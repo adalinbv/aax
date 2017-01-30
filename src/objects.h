@@ -216,7 +216,7 @@ enum
  * need to update the pre defined structure in objects.c ehwn changing
  * something here
  */
-typedef ALIGN16 struct
+typedef ALIGN struct
 {
    vec4f_t hrtf[2];
    vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
@@ -241,9 +241,9 @@ typedef ALIGN16 struct
    unsigned int id;
    void *backend;
 
-} _aaxMixerInfo ALIGN16C;
+} _aaxMixerInfo ALIGNC;
 
-typedef ALIGN16 struct
+typedef ALIGN struct
 {
    /* modelview matrix and velocity */
    mtx4f_t matrix;
@@ -252,7 +252,7 @@ typedef ALIGN16 struct
    float pitch, gain;
    int state3d;
 
-} _aaxDelayed3dProps ALIGN16C; 
+} _aaxDelayed3dProps ALIGNC; 
 
 typedef struct
 {
@@ -268,7 +268,7 @@ typedef struct
 
 } _aax3dProps;
 
-typedef ALIGN16 struct
+typedef ALIGN struct
 {
       /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
       /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
@@ -310,7 +310,7 @@ typedef ALIGN16 struct
       float gain;
    } final;
 
-} _aax2dProps ALIGN16C;
+} _aax2dProps ALIGNC;
 
 typedef struct
 {
@@ -374,11 +374,11 @@ typedef struct
 } _aaxEmitter;
 
 
-extern fx4_t _aaxContextDefaultHead[2];
-extern fx4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS];
-extern fx4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS];
-extern fx4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS];
-extern fx4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS];
+extern float _aaxContextDefaultHead[2][4];
+extern float _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS][4];
+extern float _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4];
+extern float _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS][4];
+extern float _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS][4];
 
 void _aaxFreeSource(void *);
 void _aaxProcessSource(void *, _aaxEmitter *, unsigned int);

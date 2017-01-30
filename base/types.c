@@ -39,12 +39,12 @@ uint32_t _mem_size(void *p)
 };
 #endif
 
-uint16_t _bswap16(uint16_t x)
+uint16_t _aax_bswap16(uint16_t x)
 {
    return (x >> 8) | (x << 8);
 }
 
-uint32_t _bswap32(uint32_t x)
+uint32_t _aax_bswap32(uint32_t x)
 {
 #if defined(__llvm__) || \
  (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && !defined(__ICC)
@@ -59,17 +59,17 @@ uint32_t _bswap32(uint32_t x)
 #endif
 }
 
-uint32_t _bswap32h(uint32_t x)
+uint32_t _aax_bswap32h(uint32_t x)
 {
    return ((x >>  8) & 0x00FF00FFL) | ((x <<  8) & 0xFF00FF00L);
 }
 
-uint32_t _bswap32w(uint32_t x)
+uint32_t _aax_bswap32w(uint32_t x)
 {
    return (x >> 16) | (x << 16);
 }
 
-uint64_t _bswap64(uint64_t x)
+uint64_t _aax_bswap64(uint64_t x)
 {
 #if defined(__llvm__) || \
  (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && !defined(__ICC)

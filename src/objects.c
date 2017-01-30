@@ -219,14 +219,14 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
  * up:    0.00ms, 0.100 ms, 0.015 ms
  * down:  0.00ms, 0.325 ms, 0.015 ms
  */
-fx4_t _aaxContextDefaultHead[2] = 
+float _aaxContextDefaultHead[2][4] = 
 {
 //     RIGHT     UP        BACK
    { 0.000640f,-0.000110f, 0.000120f, 0.0f },	/* head delay factors */
    { 0.000000f, 0.000200f, 0.000010f, 0.0f }	/* head delay offsets */
 };
 
-fx4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
+float _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS][4] =
 {
    /* left headphone shell (volume)                          --- */
    { 1.00f, 0.00f, 0.00f, 1.0f }, 	 /* left-right           */
@@ -241,7 +241,7 @@ fx4_t _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS] =
    { 0.00f, 0.00f, 0.000, 0.0f }
 };
 
-fx4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
+float _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS][4] =
 {
    /* left headphone shell (delay)                           --- */
    {-1.00f, 0.00f, 0.00f, 0.0f },        /* left-right           */
@@ -256,7 +256,7 @@ fx4_t _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS] =
    { 0.00f, 0.00f, 0.000, 0.0f }
 };
 
-fx4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS] =
+float _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS][4] =
 {
    { 1.00f, 0.00f, 1.00f, 1.0f },	/* front left speaker    */
    {-1.00f, 0.00f, 1.00f, 1.0f },	/* front right speaker   */
@@ -268,7 +268,7 @@ fx4_t _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS] =
    {-1.00f, 0.00f, 0.00f, 1.0f }	/* right side speaker    */
 };
 
-fx4_t _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS] =
+float _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4] =
 {
    { 0.00f, 0.00f, 0.00f, 1.0f },       /* front left speaker    */
    { 0.00f, 0.00f, 0.00f, 1.0f },       /* front right speaker   */

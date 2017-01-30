@@ -21,6 +21,15 @@ extern "C" {
 #endif
 
 #include <assert.h>
+#if defined(_MSC_VER)
+# include <intrin.h>
+#elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
+# include <x86intrin.h>
+#elif defined(__GNUC__) && defined(__ARM_NEON__)
+# include <arm_neon.h>
+#endif
+
+#include <assert.h>
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
@@ -28,26 +37,6 @@ extern "C" {
 #endif
 
 #include <arch.h>
-
-#ifdef __SSE__
-#include <xmmintrin.h>
-#endif
-
-#ifdef __SSE2__
-#include <emmintrin.h>
-#endif
-
-#ifdef __SSE3__
-#include <pmmintrin.h>
-#endif
-
-#ifdef __SSE4__
-#include <smmintrin.h>
-#endif
-
-#ifdef __AVX__
-#include <immintrin.h>
-#endif
 
 #include "base/types.h"
 #include "base/geometry.h"

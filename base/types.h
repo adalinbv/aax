@@ -30,33 +30,33 @@ extern "C" {
 #endif
 
 #ifndef O_BINARY
-# define O_BINARY               0
+# define O_BINARY	0
 #endif
 
-#define MEMALIGN		16
-#define MEMMASK			(MEMALIGN-1)
+#if SIZEOF_SIZE_T == 8
+# define MEMALIGN	32
+#else
+# define MEMALIGN	16
+#endif
+#define MEMMASK		(MEMALIGN-1)
 
 #ifdef _MSC_VER
-# define ALIGN16        __declspec(align(16))
-# define ALIGN16C
-# define ALIGN32	__declspec(align(32))
-# define ALIGN32C
-# define ALIGN64	__declspec(align(64))
-# define ALIGN64C
+# if SIZEOF_SIZE_T == 8
+#  define ALIGN	__declspec(align(32))
+# else
+#  define ALIGN	__declspec(align(16))
+# endif
+# define ALIGNC
 #elif defined(__GNUC__) || defined(__TINYC__)
-# define ALIGN16
-# define ALIGN16C        __attribute__((aligned(16)))
-# define ALIGN32
-# define ALIGN32C	__attribute__((aligned(32)))
-# define ALIGN64
-# define ALIGN64C	__attribute__((aligned(64)))
+# define ALIGN
+# if SIZEOF_SIZE_T == 8
+# define ALIGNC	__attribute__((aligned(32)))
+# else
+# define ALIGNC	__attribute__((aligned(32)))
+# endif
 #else
-# define ALIGN16
-# define ALIGN16C
-# define ALIGN32
-# define ALIGN32C
-# define ALIGN64
-# define ALIGN64C
+# define ALIGN
+# define ALIGNC
 #endif
 
 #ifdef HAVE_RMALLOC_H
@@ -119,11 +119,11 @@ typedef const double*RESTRICT	const_double64_ptr;
 #define FNMINMAX(a,b,c)	is_nan(a) ? (c) : _MINMAX((a),(b),(c))
 
 
-uint16_t _bswap16(uint16_t x);
-uint32_t _bswap32(uint32_t x);
-uint32_t _bswap32h(uint32_t x);
-uint32_t _bswap32w(uint32_t x);
-uint64_t _bswap64(uint64_t x);
+uint16_t _aax_bswap16(uint16_t x);
+uint32_t _aax_bswap32(uint32_t x);
+uint32_t _aax_bswap32h(uint32_t x);
+uint32_t _aax_bswap32w(uint32_t x);
+uint64_t _aax_bswap64(uint64_t x);
 
 #ifdef _WIN32
 # ifndef WIN32

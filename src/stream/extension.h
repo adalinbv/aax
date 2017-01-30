@@ -25,8 +25,8 @@ extern "C" {
 
 #include "audio.h"
 
-#define BSWAP(a)			is_bigendian() ? _bswap32(a) : (a)
-#define BSWAPH(a)			is_bigendian() ? _bswap32h(a) : (a)
+#define BSWAP(a)			is_bigendian() ? _aax_bswap32(a) : (a)
+#define BSWAPH(a)			is_bigendian() ? _aax_bswap32h(a) : (a)
 
 typedef enum {
    _EXT_NONE = 0,

@@ -898,7 +898,7 @@ _batch_endianswap16_cpu(void* data, size_t num)
 
       do
       {
-         *p = _bswap16(*p);
+         *p = _aax_bswap16(*p);
          p++;
       }
       while (--i);
@@ -915,7 +915,7 @@ _batch_endianswap32_cpu(void* data, size_t num)
 
       do
       {
-         *p = _bswap32(*p);
+         *p = _aax_bswap32(*p);
          p++;
       }
       while (--i);
@@ -932,7 +932,7 @@ _batch_endianswap64_cpu(void* data, size_t num)
 
       do
       {
-         *p = _bswap64(*p);
+         *p = _aax_bswap64(*p);
          p++;
       }
       while (--i);

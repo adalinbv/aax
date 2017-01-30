@@ -1100,7 +1100,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             }
          }
 
-         key = _bswap32(key);
+         key = _aax_bswap32(key);
          if (config->node[0].no_speakers > 0) {
             handle->info->no_tracks = config->node[0].no_speakers;
          }

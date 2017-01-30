@@ -17,7 +17,6 @@
 #include "arch2d_simd.h"
 
 #ifdef __ARM_NEON__
-#include <arm_neon.h>
 
 /*
  * http://gcc.gnu.org/projects/prefetch.html

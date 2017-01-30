@@ -21,14 +21,10 @@
 
 #ifdef __AVX__
 
-# define CACHE_ADVANCE_IMADD     32
+
 # define CACHE_ADVANCE_FMADD	 32
-# define CACHE_ADVANCE_MUL	 64
 # define CACHE_ADVANCE_CPY	 32
 # define CACHE_ADVANCE_CVT	 64
-# define CACHE_ADVANCE_INTL	 32
-# define CACHE_ADVANCE_FF	 64
-
 
 void
 _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
@@ -63,7 +59,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 mul = _mm256_set1_ps((float)(1<<23));
          do
          {
-            _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0 = _mm256_load_ps((const float*)sptr++);
             ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -147,7 +143,7 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 ymm0, ymm1, ymm2, ymm3;
          do
          {
-            _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0 = _mm256_load_ps((const float*)sptr++);
             ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -170,8 +166,12 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
          while(--i);
       }
 
-      if (num) {
-         batch_cvt24_ps24_avx(s, s, num);
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (int32_t)*s++;
+         } while (--i);
       }
    }
 }
@@ -202,7 +202,7 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 mul = _mm256_set1_ps(1.0f/(float)(1<<23));
          do
          {
-            _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0i = _mm256_load_si256(sptr++);
             ymm1i = _mm256_load_si256(sptr++);
@@ -230,8 +230,13 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          while(--i);
       }
 
-      if (num) {
-          _batch_cvtps_24_sse2(d, s, num);
+      if (num)
+      {
+         float mul = 1.0f/(float)(1<<23);
+         i = num;
+         do {
+            *d++ = (float)(*s++) * mul;
+         } while (--i);
       }
    }
 }
@@ -289,7 +294,7 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 ymm4, ymm5, ymm6, ymm7;
          do
          {
-            _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0i = _mm256_load_si256(sptr++);
             ymm1i = _mm256_load_si256(sptr++);
@@ -312,173 +317,13 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          while(--i);
       }
 
-      if (num) {
-          _batch_cvtps24_24_sse2(d, s, num);
-      }
-   }
-}
-
-static void
-_batch_iadd_avx(int32_ptr dst, const_int32_ptr src, size_t num)
-{
-   int32_ptr d = (int32_ptr)dst;
-   int32_ptr s = (int32_ptr)src;
-   size_t i, step, dtmp, stmp;
-
-   dtmp = (size_t)d & 0x1F;
-   stmp = (size_t)s & 0x1F;
-   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
-   {                                    /* let the compiler figure it out */
-      i = num;
-      do {
-         *d++ += *s++;
-      } while (--i);
-      return;
-   }
-
-   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
-   if (dtmp && num)
-   {
-      i = (0x20 - dtmp)/sizeof(int32_t);
-      if (i <= num)
+      if (num)
       {
-         num -= i;
-         do
-         {
-            *d++ += *s++;
-         } while(--i);
+         i = num;
+         do {
+            *d++ = (float)*s++;
+         } while (--i);
       }
-   }
-
-   step = 2*sizeof(__m256i)/sizeof(int32_t);
-
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      __m256i *sptr = (__m256i *)s;
-      __m256i *dptr = (__m256i *)d;
-      __m256i ymm0i, ymm3i, ymm4i, ymm7i;
-
-      do
-      {
-         _mm256_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
-         ymm0i = _mm256_load_si256(sptr++);
-         ymm4i = _mm256_load_si256(sptr++);
-
-         s += step;
-
-         ymm3i = _mm256_load_si256(dptr);
-         ymm7i = _mm256_load_si256(dptr+1);
-
-         d += step;
-
-         ymm0i = _mm256_add_epi32(ymm0i, ymm3i);
-         ymm4i = _mm256_add_epi32(ymm4i, ymm7i);
-
-         _mm256_store_si256(dptr++, ymm0i);
-         _mm256_store_si256(dptr++, ymm4i);
-      }
-      while(--i);
-   }
-
-   if (num) {
-       _batch_iadd_sse2(d, s, num);
-   }
-}
-
-void
-_batch_imadd_avx(int32_ptr dst, const_int32_ptr src, size_t num, float v, float vstep)
-{
-   int32_ptr d = (int32_ptr)dst;
-   int32_ptr s = (int32_ptr)src;
-   size_t i, step, dtmp, stmp;
-
-   if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
-      _batch_iadd_avx(dst, src, num);
-      return;
-   }
-
-   dtmp = (size_t)d & 0x1F;
-   stmp = (size_t)s & 0x1F;
-   if ((dtmp || stmp) && dtmp != stmp)	/* improperly aligned,            */
-   {					/* let the compiler figure it out */
-      i = num;
-      do
-      {
-         *d++ += (int32_t)((float)*s++ * v);
-         v += vstep;
-      }
-      while (--i);
-      return;
-   }
-
-   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
-   if (dtmp && num)
-   {
-      i = (0x20 - dtmp)/sizeof(int32_t);
-      if (i <= num)
-      {
-         num -= i;
-         do
-         {
-            *d++ += (int32_t)((float)*s++ * v);
-            v += vstep;
-         } while(--i);
-      }
-   }
-
-   step = 2*sizeof(__m256i)/sizeof(int32_t);
-
-   vstep *= step;				/* 8 samples at a time */
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      __m256i *sptr = (__m256i *)s;
-      __m256i *dptr = (__m256i *)d;
-      __m256 tv = _mm256_set1_ps(v);
-      __m256i ymm0i, ymm3i, ymm4i, ymm7i;
-      __m256 ymm1, ymm5;
-
-      do
-      {
-         _mm256_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
-         ymm0i = _mm256_load_si256(sptr++);
-         ymm4i = _mm256_load_si256(sptr++);
-
-         ymm1 = _mm256_cvtepi32_ps(ymm0i);
-         ymm5 = _mm256_cvtepi32_ps(ymm4i);
-
-         s += step;
-
-         ymm1 = _mm256_mul_ps(ymm1, tv);
-         ymm5 = _mm256_mul_ps(ymm5, tv);
-
-         ymm0i = _mm256_load_si256(dptr);
-         ymm4i = _mm256_load_si256(dptr+1);
-
-         ymm3i = _mm256_cvtps_epi32(ymm1);
-         ymm7i = _mm256_cvtps_epi32(ymm5);
-
-         d += step;
-
-         ymm0i = _mm256_add_epi32(ymm0i, ymm3i);
-         ymm4i = _mm256_add_epi32(ymm4i, ymm7i);
-
-         v += vstep;
-
-         _mm256_store_si256(dptr++, ymm0i);
-         _mm256_store_si256(dptr++, ymm4i);
-
-         tv = _mm256_set1_ps(v);
-      }
-      while(--i);
-   }
-
-   if (num) {
-      _batch_imadd_sse2(d, s, num);
    }
 }
 
@@ -527,8 +372,8 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
 
       do
       {
-         _mm256_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-         _mm256_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          ymm0 = _mm256_load_ps((const float*)sptr++);
          ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -556,8 +401,12 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
       while(--i);
    }
 
-   if (num) {
-      _batch_fadd_sse2(d, s, num);
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
    }
 }
 
@@ -617,8 +466,8 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
 
       do
       {
-         _mm256_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-         _mm256_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          ymm0 = _mm256_load_ps((const float*)sptr++);
          ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -655,282 +504,18 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       while(--i);
    }
 
-   if (num) {
-      _batch_fmadd_sse2(d, s, num);
-   }
-}
-
-
-void
-_batch_cvt24_16_avx(void_ptr dst, const_void_ptr src, size_t num)
-{
-   int16_t *s = (int16_t *)src;
-   int32_t *d = (int32_t*)dst;
-   size_t i, step;
-   size_t tmp;
-
-   if (!num) return;
-
-   /*
-    * work towards 16-byte aligned d
-    */
-   tmp = (size_t)d & 0x1F;
-   if (tmp && num)
+   if (num)
    {
-      i = (0x20 - tmp)/sizeof(int32_t);
-      if (i <= num)
-      {
-         num -= i;
-         do {
-            *d++ = *s++ << 8;
-         } while(--i);
-      }
-   }
-
-   step = 2*sizeof(__m256i)/sizeof(int16_t);
-
-   tmp = (size_t)s & 0x1F;
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-      __m256i zero = _mm256_setzero_si256();
-      __m256i *dptr = (__m256i *)d;
-      __m256i *sptr = (__m256i *)s;
-
+      vstep /= step;
+      i = num;
       do {
-         _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
-
-         if (tmp)
-         {
-            ymm0 = _mm256_loadu_si256(sptr++);
-            ymm4 = _mm256_loadu_si256(sptr++);
-
-            ymm1 = _mm256_unpacklo_epi16(zero, ymm0);
-            ymm3 = _mm256_unpackhi_epi16(zero, ymm0);
-            ymm5 = _mm256_unpacklo_epi16(zero, ymm4);
-            ymm7 = _mm256_unpackhi_epi16(zero, ymm4);
-         }
-         else
-         {
-            ymm0 = _mm256_load_si256(sptr++);
-            ymm4 = _mm256_load_si256(sptr++);
-
-            ymm1 = _mm256_unpacklo_epi16(zero, ymm0);
-            ymm3 = _mm256_unpackhi_epi16(zero, ymm0);
-            ymm5 = _mm256_unpacklo_epi16(zero, ymm4);
-            ymm7 = _mm256_unpackhi_epi16(zero, ymm4);
-         }
-
-         s += step;
-         d += step;
-
-         ymm0 = _mm256_srai_epi32(ymm1, 8);
-         ymm2 = _mm256_srai_epi32(ymm3, 8);
-         ymm4 = _mm256_srai_epi32(ymm5, 8);
-         ymm6 = _mm256_srai_epi32(ymm7, 8);
-
-         _mm256_store_si256(dptr++, ymm0);
-         _mm256_store_si256(dptr++, ymm2);
-         _mm256_store_si256(dptr++, ymm4);
-         _mm256_store_si256(dptr++, ymm6);
-      }
-      while (--i);
-   }
-
-   if (num) {
-      _batch_cvt24_16_sse2(d, s, num);
+         *d++ += *s++ * v;
+         v += vstep;
+      } while(--i);
    }
 }
 
-void
-_batch_cvt16_24_avx(void_ptr dst, const_void_ptr src, size_t num)
-{
-   size_t i, step;
-   int32_t* s = (int32_t*)src;
-   int16_t* d = (int16_t*)dst;
-   size_t tmp;
-
-   /*
-    * work towards 16-byte aligned sptr
-    */
-   tmp = (size_t)s & 0x1F;
-   if (tmp && num)
-   {
-      i = (0x20 - tmp)/sizeof(int32_t);
-      if (i <= num)
-      {
-         num -= i;
-         do {
-            *d++ = *s++ >> 8;
-         } while(--i);
-      }
-   }
-
-   assert(((size_t)s & 0x1F) == 0);
-   tmp = (size_t)d & 0x1F;
-
-   step = 4*sizeof(__m256i)/sizeof(int32_t);
-
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      __m256i ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-      __m256i *dptr, *sptr;
-
-      dptr = (__m256i *)d;
-      sptr = (__m256i *)s;
-      do
-      {
-         _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
-
-         ymm0 = _mm256_load_si256(sptr++);
-         ymm1 = _mm256_load_si256(sptr++);
-         ymm4 = _mm256_load_si256(sptr++);
-         ymm5 = _mm256_load_si256(sptr++);
-
-         ymm2 = _mm256_srai_epi32(ymm0, 8);
-         ymm3 = _mm256_srai_epi32(ymm1, 8);
-         ymm6 = _mm256_srai_epi32(ymm4, 8);
-         ymm7 = _mm256_srai_epi32(ymm5, 8);
-
-         s += step;
-
-         ymm4 = _mm256_packs_epi32(ymm2, ymm3);
-         ymm6 = _mm256_packs_epi32(ymm6, ymm7);
-
-         d += step;
-
-         if (tmp) {
-            _mm256_storeu_si256(dptr++, ymm4);
-            _mm256_storeu_si256(dptr++, ymm6);
-         } else {
-            _mm256_store_si256(dptr++, ymm4);
-            _mm256_store_si256(dptr++, ymm6);
-         }
-      }
-      while (--i);
-   }
-
-   if (num) {
-      _batch_cvt16_24_sse2(d, s, num);
-   }
-}
-
-void
-_batch_cvt16_intl_24_avx(void_ptr dst, const_int32_ptrptr src,
-                                size_t offset, unsigned int tracks,
-                                size_t num)
-{
-   size_t i, step;
-   int16_t *d = (int16_t*)dst;
-   int32_t *s1, *s2;
-   size_t tmp;
-
-   if (!num) return;
-
-   if (tracks != 2)
-   {
-      size_t t;
-      for (t=0; t<tracks; t++)
-      {
-         int32_t *s = (int32_t *)src[t] + offset;
-         int16_t *d = (int16_t *)dst + t;
-         size_t i = num;
-
-         do
-         {
-            *d = *s++ >> 8;
-            d += tracks;
-         }
-         while (--i);
-      }
-      return;
-   }
-
-   s1 = (int32_t *)src[0] + offset;
-   s2 = (int32_t *)src[1] + offset;
-
-   step = 2*sizeof(__m256i)/sizeof(int32_t);
-
-   /*
-    * work towards 16-byte aligned sptr
-    */
-   tmp = (size_t)s1 & 0x1F;
-   assert(tmp == ((size_t)s2 & 0x1F));
-
-   i = num/step;
-   if (tmp && i)
-   {
-      i = (0x20 - tmp)/sizeof(int32_t);
-      num -= i;
-      do
-      {
-         *d++ = *s1++ >> 8;
-         *d++ = *s2++ >> 8;
-      }
-      while (--i);
-   }
-
-   tmp = (size_t)d & 0x1F;
-   i = num/step;
-   num -= i*step;
-   if (i)
-   {
-      __m256i mask, ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-      __m256i *dptr, *sptr1, *sptr2;
-
-      sptr1 = (__m256i*)s1;
-      sptr2 = (__m256i*)s2;
-
-      mask = _mm256_set_epi32(0x00FFFF00, 0x00FFFF00, 0x00FFFF00, 0x00FFFF00);
-      dptr = (__m256i *)d;
-      do
-      {
-         _mm256_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-         _mm256_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-
-         ymm0 = _mm256_load_si256(sptr1++);
-         ymm4 = _mm256_load_si256(sptr1++);
-         ymm1 = _mm256_load_si256(sptr2++);
-         ymm5 = _mm256_load_si256(sptr2++);
-
-         ymm2 = _mm256_and_si256(ymm0, mask);
-         ymm3 = _mm256_and_si256(ymm1, mask);
-         ymm6 = _mm256_and_si256(ymm4, mask);
-         ymm7 = _mm256_and_si256(ymm5, mask);
-
-         s1 += step;
-         s2 += step;
-
-         ymm0 = _mm256_srli_epi32(ymm2, 8);
-         ymm1 = _mm256_slli_epi32(ymm3, 8);
-         ymm4 = _mm256_srli_epi32(ymm6, 8);
-         ymm5 = _mm256_slli_epi32(ymm7, 8);
-
-         ymm0 = _mm256_or_si256(ymm1, ymm0);
-         ymm4 = _mm256_or_si256(ymm5, ymm4);
-
-         d += 2*step;
-
-         if (tmp) {
-            _mm256_storeu_si256(dptr++, ymm0);
-            _mm256_storeu_si256(dptr++, ymm4);
-         } else {
-            _mm256_store_si256(dptr++, ymm0);
-            _mm256_store_si256(dptr++, ymm4);
-         }
-      } while (--i);
-   }
-
-   if (num) {
-      _batch_cvt16_intl_24_sse2(d, s, num);
-   }
-}
-
-
+#if 0
 void
 _batch_freqfilter_avx(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
 {
@@ -1092,6 +677,7 @@ _batch_freqfilter_float_avx(float32_ptr dptr, const_float32_ptr sptr, int t, siz
       while (--stages);
    }
 }
+#endif
 
 
 /*
@@ -1140,7 +726,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
       {
          do
          {
-            _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
             ymm0 = _mm256_loadu_si256(sptr++);
             ymm1 = _mm256_loadu_si256(sptr++);
@@ -1166,7 +752,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
       {
          do
          {
-            _mm256_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
             ymm0 = _mm256_load_si256(sptr++);
             ymm1 = _mm256_load_si256(sptr++);
