@@ -357,7 +357,7 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
 
       vec3fFill(loc.v3, pos);
       vec3fNegate(&m.v34[3], &loc);
-      vec3fFill(mtx, m.m4);
+      mtx4fFill(mtx, m.m4);
 #if 0
  printf("SetDirection:\n");
  PRINT_MATRIX(mtx);
@@ -408,9 +408,9 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
          vec3fNormalize(&m.v34[2], &back);
       }
 
-      vec3fFill(loc.v3, pos);
+      vec3fFill(&loc.v3, pos);
       vec3fNegate(&m.v34[3], &loc);
-      vec3fFill(mtx, m.m4);
+      mtx4fFill(mtx, m.m4);
    }
 
    return rv;
