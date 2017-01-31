@@ -743,26 +743,18 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
       do {
          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
-         if (tmp)
-         {
+         if (tmp) {
             xmm0 = _mm_loadu_si128(sptr++);
             xmm4 = _mm_loadu_si128(sptr++);
-
-            xmm1 = _mm_unpacklo_epi16(zero, xmm0);
-            xmm3 = _mm_unpackhi_epi16(zero, xmm0);
-            xmm5 = _mm_unpacklo_epi16(zero, xmm4);
-            xmm7 = _mm_unpackhi_epi16(zero, xmm4);
-         }
-         else
-         {
+         } else {
             xmm0 = _mm_load_si128(sptr++);
             xmm4 = _mm_load_si128(sptr++);
-
-            xmm1 = _mm_unpacklo_epi16(zero, xmm0);
-            xmm3 = _mm_unpackhi_epi16(zero, xmm0);
-            xmm5 = _mm_unpacklo_epi16(zero, xmm4);
-            xmm7 = _mm_unpackhi_epi16(zero, xmm4);
          }
+
+         xmm1 = _mm_unpacklo_epi16(zero, xmm0);
+         xmm3 = _mm_unpackhi_epi16(zero, xmm0);
+         xmm5 = _mm_unpacklo_epi16(zero, xmm4);
+         xmm7 = _mm_unpackhi_epi16(zero, xmm4);
 
          s += step;
          d += step;
