@@ -36,9 +36,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    if (((size_t)d & MEMMASK) != 0 || ((size_t)s & MEMMASK) != 0)
    {
-      if (((size_t)d & MEMMASK16) == 0 || ((size_t)s & MEMMASK16) == 0)
-      {
-         _mm256_zeroall();
+      if (((size_t)d & MEMMASK16) == 0 || ((size_t)s & MEMMASK16) == 0) {
          return _batch_cvt24_ps_sse2(dst, src, num);
       }
       else
@@ -109,6 +107,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
          } while (--i);
       }
    }
+   _mm256_zeroall();
 }
 
 void
@@ -192,6 +191,7 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
          } while (--i);
       }
    }
+   _mm256_zeroall();
 }
 
 void
@@ -257,6 +257,7 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          } while (--i);
       }
    }
+   _mm256_zeroall();
 }
 
 void
@@ -343,6 +344,7 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          } while (--i);
       }
    }
+   _mm256_zeroall();
 }
 
 static void
@@ -383,7 +385,6 @@ _batch_iadd_avx(int32_ptr dst, const_int32_ptr src, size_t num)
    num -= i*step;
    if (i)
    {
-      _mm256_zeroall();
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
       __m128i xmm0i, xmm3i, xmm4i, xmm7i;
@@ -468,7 +469,6 @@ _batch_imadd_avx(int32_ptr dst, const_int32_ptr src, size_t num, float v, float 
    num -= i*step;
    if (i)
    {
-      _mm256_zeroall();
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
       __m128 tv = _mm_set1_ps(v);
@@ -602,6 +602,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
          *d++ += *s++;
       } while(--i);
    }
+   _mm256_zeroall();
 }
 
 
@@ -707,6 +708,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          v += vstep;
       } while(--i);
    }
+   _mm256_zeroall();
 }
 
 void
@@ -742,7 +744,6 @@ _batch_cvt24_16_avx(void_ptr dst, const_void_ptr src, size_t num)
    num -= i*step;
    if (i)
    {
-      _mm256_zeroall();
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i zero = _mm_setzero_si128();
       __m128i *dptr = (__m128i *)d;
@@ -822,7 +823,6 @@ _batch_cvt16_24_avx(void_ptr dst, const_void_ptr src, size_t num)
    num -= i*step;
    if (i)
    {
-      _mm256_zeroall();
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *dptr, *sptr;
 
@@ -929,7 +929,6 @@ _batch_cvt16_intl_24_avx(void_ptr dst, const_int32_ptrptr src,
    num -= i*step;
    if (i)
    {
-      _mm256_zeroall();
       __m128i mask, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *dptr, *sptr1, *sptr2;
 
@@ -997,7 +996,6 @@ _batch_freqfilter_avx(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, v
 
    if (num)
    {
-      _mm256_zeroall();
       __m128 c, h, mk;
       float *cptr, *hist;
       int stages;
@@ -1077,7 +1075,6 @@ _batch_freqfilter_float_avx(float32_ptr dptr, const_float32_ptr sptr, int t, siz
 
    if (num)
    {
-      _mm256_zeroall();
       __m128 c, h, mk;
       float *cptr, *hist;
       int stages;;
