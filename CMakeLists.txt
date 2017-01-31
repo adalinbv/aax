@@ -271,13 +271,13 @@ ELSE(MSVC)
                      PROPERTY COMPILE_FLAGS "-msse3"
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                     PROPERTY COMPILE_FLAGS "-mavx -march=corei7-avx"
+                     PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-mfma -march=corei7-avx"
+                     PROPERTY COMPILE_FLAGS "-mfma -march=haswell"
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfma4 -march=corei7-avx"
+                    PROPERTY COMPILE_FLAGS "-mfma4 -march=bdver1"
           )
 
           SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
