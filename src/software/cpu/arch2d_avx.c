@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2005-2017 by Erik Hofman.
+ * Copyright 2009-2017 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -21,10 +21,10 @@
 
 #ifdef __AVX__
 
-
 # define CACHE_ADVANCE_FMADD	 32
 # define CACHE_ADVANCE_CPY	 32
 # define CACHE_ADVANCE_CVT	 64
+
 
 void
 _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
@@ -32,15 +32,26 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
    int32_t *d = (int32_t*)dst;
    float *s = (float*)src;
 
-   if (((size_t)d & 0x1F) != 0 || ((size_t)s & 0x1F) != 0) {
-      if (((size_t)d & 0xF) == 0 || ((size_t)s & 0xF) == 0) {
-         return _batch_cvt24_ps_avx(dst, src, num);
+   if (((size_t)d & MEMMASK) != 0 || ((size_t)s & MEMMASK) != 0)
+   {
+      if (((size_t)d & MEMMASK16) == 0 || ((size_t)s & MEMMASK16) == 0)
+      {
+         _mm256_zeroupper();
+         return _batch_cvt24_ps_sse2(dst, src, num);
       }
-      return _batch_cvt24_ps_cpu(dst, src, num);
+      else
+      {
+         float mul = (float)(1<<23);
+         size_t i = num;
+         do {
+            *d++ = (int32_t)(*s++ * mul);
+         } while (--i);
+         return;
+      }
    }
 
-   assert(((size_t)d & 0x1F) == 0);
-   assert(((size_t)s & 0x1F) == 0);
+   assert(((size_t)d & MEMMASK) == 0);
+   assert(((size_t)s & MEMMASK) == 0);
 
    if (num)
    {
@@ -87,8 +98,13 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
          while(--i);
       }
 
-      if (num) {
-          _batch_cvt24_ps_avx(d, s, num);
+      if (num)
+      {
+         float mul = (float)(1<<23);
+         i = num;
+         do {
+            *d++ = (int32_t)(*s++ * mul);
+         } while (--i);
       }
    }
 }
@@ -103,8 +119,8 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    if (!num) return;
 
-   dtmp = (size_t)d & 0x1F;
-   stmp = (size_t)s & 0x1F;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
    {                                    /* let the compiler figure it out */
       i = num;
@@ -182,8 +198,8 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
    int32_t *s = (int32_t*)src;
    float *d = (float*)dst;
 
-   assert(((size_t)d & 0x1F) == 0);
-   assert(((size_t)s & 0x1F) == 0);
+   assert(((size_t)d & MEMMASK) == 0);
+   assert(((size_t)s & MEMMASK) == 0);
 
    if (num)
    {
@@ -254,8 +270,8 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    if (!num) return;
 
-   dtmp = (size_t)d & 0x1F;
-   stmp = (size_t)s & 0x1F;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
    {                                    /* let the compiler figure it out */
       i = num;
@@ -334,8 +350,8 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
-   dtmp = (size_t)d & 0x1F;
-   stmp = (size_t)s & 0x1F;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)
    {
       i = num;                          /* improperly aligned,            */
@@ -424,8 +440,8 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       return;
    }
 
-   dtmp = (size_t)d & 0x1F;
-   stmp = (size_t)s & 0x1F;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)
    {
       i = num;				/* improperly aligned,            */
@@ -624,7 +640,7 @@ _batch_freqfilter_float_avx(float32_ptr dptr, const_float32_ptr sptr, int t, siz
          size_t i = num;
 
 //       c = _mm256_set_ps(cptr[3], cptr[1], cptr[2], cptr[0]);
-         if (((size_t)cptr & 0x1F) == 0) {
+         if (((size_t)cptr & MEMMASK) == 0) {
             c = _mm256_load_ps(cptr);
          } else {
             c = _mm256_loadu_ps(cptr);
@@ -697,7 +713,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
    /*
     * work towards a 16-byte aligned dptr and possibly sptr
     */
-   tmp = (size_t)d & 0x1F;
+   tmp = (size_t)d & MEMMASK;
    if (tmp)
    {
       i = (0x20 - tmp);
@@ -708,7 +724,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
       s += i;
    }
 
-   tmp = (size_t)s & 0x1F;
+   tmp = (size_t)s & MEMMASK;
    step = 8*sizeof(__m256i)/sizeof(int8_t);
 
    i = num/step;

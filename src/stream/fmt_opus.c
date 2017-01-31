@@ -147,7 +147,7 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
          handle->out_pos = 0;
          handle->out_size = MAX_FRAME_SIZE*handle->no_tracks*sizeof(float);
-         handle->outputs = _aax_aligned_alloc16(handle->out_size);
+         handle->outputs = _aax_aligned_alloc(handle->out_size);
       }
 
       if (handle->opusptr)

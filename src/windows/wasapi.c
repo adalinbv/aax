@@ -670,9 +670,9 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
    periods = handle->periods;
    rate = (float)pfmt->nSamplesPerSec;
    if (!registered) {
-      period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
+      period_frames = SIZE_ALIGNED((size_t)rintf(rate/(*refresh_rate*periods)));
    } else {
-      period_frames = SIZETO16((size_t)rintf((rate*periods)/period_rate));
+      period_frames = SIZE_ALIGNED((size_t)rintf((rate*periods)/period_rate));
    }
    if (handle->Mode == eRender) {
       period_frames *= 2;
@@ -691,12 +691,12 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
       if (!registered)
       {
          *refresh_rate = rate/(float)(period_frames);
-         period_frames = SIZETO16((size_t)rintf(rate/(*refresh_rate*periods)));
+         period_frames = SIZE_ALIGNED((size_t)rintf(rate/(*refresh_rate*periods)));
       }
       else
       {
          *refresh_rate = period_rate;
-         period_frames = SIZETO16((size_t)rintf((rate*periods)/period_rate));
+         period_frames = SIZE_ALIGNED((size_t)rintf((rate*periods)/period_rate));
       }
 
       switch (bits)

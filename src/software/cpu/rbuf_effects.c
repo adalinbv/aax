@@ -558,9 +558,9 @@ _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKER
    size = (size_t)ceilf(dde * frequency);
    size *= bps;
 #if BYTE_ALIGN
-   if (size & 0xF)
+   if (size & MEMMASK)
    {
-      size |= 0xF;
+      size |= MEMMASK;
       size++;
    }
    p = 0;

@@ -31,9 +31,9 @@
 #include "audio.h"
 
 _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
-_aax_free_proc _aax_free = (_aax_free_proc)_aax_free_align16;
-_aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_align16;
-_aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_align16;
+_aax_free_proc _aax_free = (_aax_free_proc)_aax_free_aligned;
+_aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_aligned;
+_aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_aligned;
 _aax_memcpy_proc _batch_cvt24_24 = (_aax_memcpy_proc)_batch_cvt24_24_cpu;
 
 _batch_cvt_from_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
@@ -101,11 +101,11 @@ _batch_resample_proc _batch_resample = _batch_resample_cpu;
 /* -------------------------------------------------------------------------- */
 
 void *
-_aax_aligned_alloc16(size_t size)
+_aax_aligned_alloc(size_t size)
 {
    void *rv = NULL;
 
-   size = SIZETO16(size);
+   size = SIZE_ALIGNED(size);
 
 #if __MINGW32__
 # if defined(_aligned_malloc)
@@ -129,11 +129,11 @@ _aax_aligned_alloc16(size_t size)
 
 #if defined(__MINGW32__)
 # if defined(_aligned_malloc)
-void _xmm_free(void *ptr) { _aligned_free((ptr); }
+void _simd_free(void *ptr) { _aligned_free((ptr); }
 # else
-void _xmm_free(void *ptr) { _mm_free(ptr); }
+void _simd_free(void *ptr) { _mm_free(ptr); }
 # endif
-_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_xmm_free;
+_aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)_simd_free;
 #elif ISOC11_SOURCE 
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #elif  _POSIX_C_SOURCE >= 200112L || _XOPEN_SOURCE >= 600
@@ -141,22 +141,22 @@ _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #elif _MSC_VER
 _aax_aligned_free_proc _aax_aligned_free= (_aax_aligned_free_proc)_aligned_free;
 #else
-# pragma warnig _aax_aligned_alloc16 needs implementing
+# pragma warnig _aax_aligned_alloc needs implementing
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #endif
 
 char *
-_aax_malloc_align16(char **start, size_t size)
+_aax_malloc_aligned(char **start, size_t size)
 {
    int ctr = 3;
    char *ptr;
 
    assert((size_t)*start < size);
 
-   size = SIZETO16(size + MEMALIGN);
+   size = SIZE_ALIGNED(size + MEMALIGN);
    do
    {
-      ptr = (char *)(int64_t *)malloc(size);
+      ptr = (char *)malloc(size);
       if (ptr)
       {
          char *s = ptr + (size_t)*start;
@@ -181,14 +181,14 @@ _aax_malloc_align16(char **start, size_t size)
 }
 
 char *
-_aax_calloc_align16(char **start, size_t num, size_t size)
+_aax_calloc_aligned(char **start, size_t num, size_t size)
 {
    int ctr = 3;
    char *ptr;
 
    assert((size_t)*start < num*size);
 
-   size = SIZETO16(size + MEMALIGN);
+   size = SIZE_ALIGNED(size + MEMALIGN);
    do
    {
       ptr = (char *)malloc(num*size);
@@ -218,7 +218,7 @@ _aax_calloc_align16(char **start, size_t num, size_t size)
 }
 
 void
-_aax_free_align16(void *ptr)
+_aax_free_aligned(void *ptr)
 {
    free(ptr);
 }

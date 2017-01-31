@@ -50,9 +50,9 @@ extern "C" {
 #define CUBIC_TRESHOLD		0.25f
 
 /* CPU*/
-void _aax_free_align16(void*);
-char* _aax_calloc_align16(char**, size_t, size_t);
-char* _aax_malloc_align16(char**, size_t);
+void _aax_free_aligned(void*);
+char* _aax_calloc_aligned(char**, size_t, size_t);
+char* _aax_malloc_aligned(char**, size_t);
 void _batch_cvt24_24_cpu(void_ptr, const void*, size_t);
 
 void _batch_imul_value_cpu(void*, unsigned, size_t, float);
@@ -115,8 +115,8 @@ void _batch_cvtps_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int
 void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 
-char* _aax_calloc_align16(char**, size_t, size_t);
-char* _aax_malloc_align16(char**, size_t);
+char* _aax_calloc_aligned(char**, size_t, size_t);
+char* _aax_malloc_aligned(char**, size_t);
 
 /* SSE2*/
 void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);

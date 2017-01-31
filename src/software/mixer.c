@@ -472,8 +472,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                float sdf = 1.0f;
 
                size = sizeof(_aaxDelayed3dProps);
-               sdp3d = _aax_aligned_alloc16(size);
-               sdp3d_m = _aax_aligned_alloc16(size);
+               sdp3d = _aax_aligned_alloc(size);
+               sdp3d_m = _aax_aligned_alloc(size);
 
                /**
                 * copying here prevents locking the listener the whole time

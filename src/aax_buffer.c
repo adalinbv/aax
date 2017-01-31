@@ -588,7 +588,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
             no_bytes = no_samples*bits/8;
 
             no_bytes = ((no_bytes/blocksize)+1)*blocksize;
-            datasize =  SIZETO16(tracks*no_bytes);
+            datasize =  SIZE_ALIGNED(tracks*no_bytes);
 
             ptr2 = (char*)(2 * sizeof(void*));
             ptr = _aax_calloc(&ptr2, 2, sizeof(void*) + datasize);
@@ -1416,8 +1416,8 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
          scratch_size = 2*sizeof(MIX_T*);
          sptr = (char*)scratch_size;
         
-         scratch_size += SIZETO16(samples*sizeof(MIX_T));
-         len = SIZETO16(no_samples*sizeof(MIX_T));
+         scratch_size += SIZE_ALIGNED(samples*sizeof(MIX_T));
+         len = SIZE_ALIGNED(no_samples*sizeof(MIX_T));
          scratch_size += len;
 
          scratch = (MIX_T**)_aax_malloc(&sptr, scratch_size);

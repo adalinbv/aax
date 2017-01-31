@@ -226,7 +226,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = SIZETO16(rbd->dde_samples * bps);
+      dde_bytes = SIZE_ALIGNED(rbd->dde_samples * bps);
 
       /*
        * Create one buffer that can hold the data for all channels.
@@ -235,7 +235,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       tracksize = dde_bytes + (no_samples + MEMMASK) * bps;
 #if BYTE_ALIGN
       /* 16-byte align every buffer */
-      tracksize = SIZETO16(tracksize);
+      tracksize = SIZE_ALIGNED(tracksize);
 
       tracks = rbd->no_tracks;
 
@@ -291,15 +291,15 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
       bps = rbd->bytes_sample;
       no_samples = rbd->no_samples_avail;
       dde_bytes = rbd->dde_samples*bps;
-      dde_bytes = SIZETO16(dde_bytes);
+      dde_bytes = SIZE_ALIGNED(dde_bytes);
 
       // scratch buffers have two delay effects sections
       tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
 #if BYTE_ALIGN
-      /* 16-byte align every buffer */
-      tracksize = SIZETO16(tracksize);
+      /* align every buffer */
+      tracksize = SIZE_ALIGNED(tracksize);
 
       ptr2 = (char*)(tracks * sizeof(void*));
       ptr = _aax_calloc(&ptr2, tracks, sizeof(void*) + tracksize);

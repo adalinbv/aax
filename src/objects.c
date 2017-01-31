@@ -152,7 +152,7 @@ _aax3dPropsCreate()
       rv = (_aax3dProps*)ptr1;
       rv->m_dprops3d = (_aaxDelayed3dProps*)ptr2;
 
-      rv->dprops3d = _aax_aligned_alloc16(sizeof(_aaxDelayed3dProps));
+      rv->dprops3d = _aax_aligned_alloc(sizeof(_aaxDelayed3dProps));
       if (rv->dprops3d)
       {
          _aaxSetDefaultDelayed3dProps(rv->dprops3d);
@@ -179,7 +179,7 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
 {
    _aaxDelayed3dProps *rv;
 
-   rv = _aax_aligned_alloc16(sizeof(_aaxDelayed3dProps));
+   rv = _aax_aligned_alloc(sizeof(_aaxDelayed3dProps));
    if (rv) {
       _aax_memcpy(rv, dp3d, sizeof(_aaxDelayed3dProps));
    }

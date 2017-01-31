@@ -60,7 +60,7 @@ aaxEmitterCreate()
       handle->source = src;
       src->buffer_pos = UINT_MAX;
 
-      assert(((long int)ptr2 & 0xF) == 0);
+      assert(((long int)ptr2 & MEMMASK) == 0);
       src->props2d = (_aax2dProps*)ptr2;
       _aaxSetDefault2dProps(src->props2d);
 

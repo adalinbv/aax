@@ -553,7 +553,7 @@ _aaxSLESDriverPlayback(const void *id, void *s, float pitch, float gain,
    data = handle->buffer[handle->buffer_pos];
    if (data == NULL)
    {
-      data = (int16_t*)_aax_aligned_alloc16(outbuf_size);
+      data = (int16_t*)_aax_aligned_alloc(outbuf_size);
       handle->buffer[handle->buffer_pos] = data;
       handle->buf_len = outbuf_size;
    }
