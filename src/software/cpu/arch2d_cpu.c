@@ -418,7 +418,8 @@ _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
    if (num)
    {
       if ((tracks == 1) &&
-          ((size_t)(dptr[0]+offset) & 0xF) == 0 && ((size_t)sptr & 0xF) == 0)
+          ((size_t)(dptr[0]+offset) & MEMMASK) == 0 &&
+          ((size_t)sptr & MEMMASK) == 0)
       {
          _batch_cvt24_ps(dptr[0]+offset, sptr, num);
       }

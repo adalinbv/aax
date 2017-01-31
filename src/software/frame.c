@@ -259,8 +259,8 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
       int res;
 
       size = sizeof(_aaxDelayed3dProps);
-      sfdp3d = _aax_aligned_alloc16(size);
-      sfdp3d_m = _aax_aligned_alloc16(size);
+      sfdp3d = _aax_aligned_alloc(size);
+      sfdp3d_m = _aax_aligned_alloc(size);
 
       _aaxAudioFrameProcessDelayQueue(sfmixer);
 

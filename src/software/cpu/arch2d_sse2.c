@@ -36,12 +36,18 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
    int32_t *d = (int32_t*)dst;
    float *s = (float*)src;
 
-   if (((size_t)d & 0xF) != 0 || ((size_t)s & 0xF) != 0) {
-      return _batch_cvt24_ps_cpu(dst, src, num);
+   if (((size_t)d & MEMMASK16) != 0 || ((size_t)s & MEMMASK16) != 0)
+   {
+      float mul = (float)(1<<23);
+      size_t i = num;
+      do {
+         *d++ = (int32_t)(*s++ * mul);
+      } while (--i);
+      return;
    }
 
-   assert(((size_t)d & 0xF) == 0);
-   assert(((size_t)s & 0xF) == 0);
+   assert(((size_t)d & MEMMASK) == 0);
+   assert(((size_t)s & MEMMASK) == 0);
 
    if (num)
    {
@@ -109,8 +115,8 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 
    if (!num) return;
 
-   dtmp = (size_t)d & 0xF;
-   stmp = (size_t)s & 0xF;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
    {                                    /* let the compiler figure it out */
       i = num;
@@ -188,8 +194,8 @@ _batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    int32_t *s = (int32_t*)src;
    float *d = (float*)dst;
 
-   assert(((size_t)d & 0xF) == 0);
-   assert(((size_t)s & 0xF) == 0);
+   assert(((size_t)d & MEMMASK) == 0);
+   assert(((size_t)s & MEMMASK) == 0);
 
    if (num)
    {
@@ -260,8 +266,8 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
 
    if (!num) return;
 
-   dtmp = (size_t)d & 0xF;
-   stmp = (size_t)s & 0xF;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
    {                                    /* let the compiler figure it out */
       i = num;
@@ -340,8 +346,8 @@ _batch_iadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num)
    int32_ptr s = (int32_ptr)src;
    size_t i, step, dtmp, stmp;
 
-   dtmp = (size_t)d & 0xF;
-   stmp = (size_t)s & 0xF;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
    {                                    /* let the compiler figure it out */
       i = num;
@@ -419,8 +425,8 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
       return;
    }
 
-   dtmp = (size_t)d & 0xF;
-   stmp = (size_t)s & 0xF;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)	/* improperly aligned,            */
    {					/* let the compiler figure it out */
       i = num;
@@ -514,8 +520,8 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
-   dtmp = (size_t)d & 0xF;
-   stmp = (size_t)s & 0xF;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)
    {
       i = num;                          /* improperly aligned,            */
@@ -604,8 +610,8 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       return;
    }
 
-   dtmp = (size_t)d & 0xF;
-   stmp = (size_t)s & 0xF;
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)
    {
       i = num;				/* improperly aligned,            */
@@ -709,7 +715,7 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
    /*
     * work towards 16-byte aligned d
     */
-   tmp = (size_t)d & 0xF;
+   tmp = (size_t)d & MEMMASK;
    if (tmp && num)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
@@ -724,7 +730,7 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
 
    step = 2*sizeof(__m128i)/sizeof(int16_t);
 
-   tmp = (size_t)s & 0xF;
+   tmp = (size_t)s & MEMMASK;
    i = num/step;
    num -= i*step;
    if (i)
@@ -794,7 +800,7 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    /*
     * work towards 16-byte aligned sptr
     */
-   tmp = (size_t)s & 0xF;
+   tmp = (size_t)s & MEMMASK;
    if (tmp && num)
    {
       i = (0x10 - tmp)/sizeof(int32_t);
@@ -807,8 +813,8 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       }
    }
 
-   assert(((size_t)s & 0xF) == 0);
-   tmp = (size_t)d & 0xF;
+   assert(((size_t)s & MEMMASK) == 0);
+   tmp = (size_t)d & MEMMASK;
 
    step = 4*sizeof(__m128i)/sizeof(int32_t);
 
@@ -901,8 +907,8 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    /*
     * work towards 16-byte aligned sptr
     */
-   tmp = (size_t)s1 & 0xF;
-   assert(tmp == ((size_t)s2 & 0xF));
+   tmp = (size_t)s1 & MEMMASK;
+   assert(tmp == ((size_t)s2 & MEMMASK));
 
    i = num/step;
    if (tmp && i)
@@ -917,7 +923,7 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
       while (--i);
    }
 
-   tmp = (size_t)d & 0xF;
+   tmp = (size_t)d & MEMMASK;
    i = num/step;
    num -= i*step;
    if (i)
@@ -1089,7 +1095,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          size_t i = num;
 
 //       c = _mm_set_ps(cptr[3], cptr[1], cptr[2], cptr[0]);
-         if (((size_t)cptr & 0xF) == 0) {
+         if (((size_t)cptr & MEMMASK) == 0) {
             c = _mm_load_ps(cptr);
          } else {
             c = _mm_loadu_ps(cptr);
@@ -1161,7 +1167,7 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
    /*
     * work towards a 16-byte aligned dptr and possibly sptr
     */
-   tmp = (size_t)d & 0xF;
+   tmp = (size_t)d & MEMMASK;
    if (tmp)
    {
       i = (0x10 - tmp);
@@ -1172,7 +1178,7 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
       s += i;
    }
 
-   tmp = (size_t)s & 0xF;
+   tmp = (size_t)s & MEMMASK;
    step = 8*sizeof(__m128i)/sizeof(int8_t);
 
    i = num/step;

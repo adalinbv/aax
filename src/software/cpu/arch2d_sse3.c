@@ -240,7 +240,7 @@ _aaxBufResampleCubic_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dm
 
    dptr += dmin;
 
-   if (((size_t)sptr & 0xF) == 0) {
+   if (((size_t)sptr & MEMMASK) == 0) {
       xmm0i = _mm_load_si128((__m128i*)sptr);
    } else {
       xmm0i = _mm_loadu_si128((__m128i*)sptr);
@@ -480,7 +480,7 @@ _aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin,
 
    dptr += dmin;
 
-   if (((size_t)sptr & 0xF) == 0) {
+   if (((size_t)sptr & MEMMASK) == 0) {
       y0123 = _mm_load_ps((float*)sptr);
    } else {
       y0123 = _mm_loadu_ps((float*)sptr);

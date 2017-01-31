@@ -31,8 +31,8 @@ _batch_fma3_avx(int32_ptr d, const_int32_ptr src, size_t num, float v, float vst
    size_t i, size, step;
    long dtmp, stmp;
 
-   dtmp = (long)dptr & 0xF;
-   stmp = (long)sptr & 0xF;
+   dtmp = (long)dptr & MEMMASK;
+   stmp = (long)sptr & MEMMASK;
    if ((dtmp || stmp) && dtmp != stmp)
    {
       i = num;				/* improperly aligned,            */

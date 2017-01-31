@@ -252,8 +252,8 @@ _aaxGetSSELevel()
       {
          int res;
 
-         _aax_calloc = _aax_calloc_align16;
-         _aax_malloc = _aax_malloc_align16;
+         _aax_calloc = _aax_calloc_aligned;
+         _aax_malloc = _aax_malloc_aligned;
          
          res = _aaxArchDetectMMX();
          if (res) sse_level = res;
