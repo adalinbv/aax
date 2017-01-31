@@ -586,6 +586,9 @@ off_t
 _wav_set(_ext_t *ext, int type, off_t value)
 {
    _driver_t *handle = ext->id;
+printf("handle: %x\n", handle);
+printf("handle->fmt: %x\n", handle->fmt);
+printf("handle->fmt->set: %x\n", handle->fmt->set);
    return handle->fmt->set(handle->fmt, type, value);
 }
 
@@ -1168,7 +1171,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       printf("Error: Unable to setup the file stream handler.\n");
       return;
    }
-   ext->set_param(ext, __F_BLOCK, 512); // blocksize);
+// ext->set_param(ext, __F_BLOCK, 512); // blocksize);
 
    oflag = O_CREAT|O_WRONLY|O_BINARY;
    if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
