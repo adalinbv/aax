@@ -39,7 +39,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
       if (((size_t)d & MEMMASK16) == 0 || ((size_t)s & MEMMASK16) == 0)
       {
          _mm256_zeroall();
-         return _batch_cvt24_ps_avx(dst, src, num);
+         return _batch_cvt24_ps_sse2(dst, src, num);
       }
       else
       {
