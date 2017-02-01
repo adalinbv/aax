@@ -51,7 +51,7 @@ _batch_fma3_avx(int32_ptr d, const_int32_ptr src, size_t num, float v, float vst
    i = num/step;
    if (dtmp && i)
    {
-      i = (0x10 - dtmp)/sizeof(int32_t);
+      i = (MEMALIGN - dtmp)/sizeof(int32_t);
       num -= i;
       do {
          *d++ += (int32_t)((float)*s++ * v);

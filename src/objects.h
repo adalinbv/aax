@@ -216,7 +216,7 @@ enum
  * need to update the pre defined structure in objects.c ehwn changing
  * something here
  */
-typedef ALIGN struct
+typedef ALIGN16 struct
 {
    vec4f_t hrtf[2];
    vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
@@ -241,9 +241,9 @@ typedef ALIGN struct
    unsigned int id;
    void *backend;
 
-} _aaxMixerInfo ALIGNC;
+} _aaxMixerInfo ALIGN16C;
 
-typedef ALIGN struct
+typedef ALIGN16 struct
 {
    /* modelview matrix and velocity */
    mtx4f_t matrix;
@@ -252,7 +252,7 @@ typedef ALIGN struct
    float pitch, gain;
    int state3d;
 
-} _aaxDelayed3dProps ALIGNC; 
+} _aaxDelayed3dProps ALIGN16C; 
 
 typedef struct
 {
@@ -268,7 +268,7 @@ typedef struct
 
 } _aax3dProps;
 
-typedef ALIGN struct
+typedef ALIGN16 struct
 {
       /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
       /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
@@ -310,7 +310,7 @@ typedef ALIGN struct
       float gain;
    } final;
 
-} _aax2dProps ALIGNC;
+} _aax2dProps ALIGN16C;
 
 typedef struct
 {

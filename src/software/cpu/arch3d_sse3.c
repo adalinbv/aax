@@ -22,13 +22,13 @@
 static inline FN_PREALIGN __m128
 load_vec3f(const vec3f_ptr v)
 {
-   static ALIGN const uint32_t m3a32[] ALIGNC = {
+   static ALIGN16 const uint32_t m3a32[] ALIGN16C = {
        0xffffffff,0xffffffff,0xffffffff,0
    };
    return _mm_and_ps(v->s4, _mm_load_ps((const float*)m3a32));
 }
 
-static inline float
+static inline FN_PREALIGN float
 hsum_ps_sse3(__m128 v) {
    __m128 shuf = _mm_movehdup_ps(v);
    __m128 sums = _mm_add_ps(v, shuf);

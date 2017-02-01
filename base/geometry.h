@@ -58,11 +58,11 @@ extern "C" {
 #define GMATH_RAD_TO_DEG2	114.59155902616464572930f
 
 
-typedef ALIGN int32_t ix4_t[4] ALIGNC;
-typedef ALIGN float   fx4_t[4] ALIGNC;
-typedef ALIGN double  dx4_t[4] ALIGNC;
-typedef ALIGN float   fx4x4_t[4][4] ALIGNC;
-typedef ALIGN double  dx4x4_t[4][4] ALIGNC;
+typedef ALIGN16 int32_t ix4_t[4] ALIGN16C;
+typedef ALIGN16 float   fx4_t[4] ALIGN16C;
+typedef ALIGN16 double  dx4_t[4] ALIGN16C;
+typedef ALIGN16 float   fx4x4_t[4][4] ALIGN16C;
+typedef ALIGN16 double  dx4x4_t[4][4] ALIGN16C;
 
 #ifdef __ARM_NEON__
 typedef double		simd4d_t[4];
