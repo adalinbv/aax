@@ -48,16 +48,22 @@ extern "C" {
 #  define ALIGN	__declspec(align(16))
 # endif
 # define ALIGNC
+# define ALIGN16 __declspec(align(16))
+# define ALIGN16C
 #elif defined(__GNUC__) || defined(__TINYC__)
 # define ALIGN
 # if SIZEOF_SIZE_T == 8
 # define ALIGNC	__attribute__((aligned(32)))
 # else
-# define ALIGNC	__attribute__((aligned(32)))
+# define ALIGNC	__attribute__((aligned(16)))
 # endif
+# define ALIGN16
+# define ALIGN16C __attribute__((aligned(16)))
 #else
 # define ALIGN
 # define ALIGNC
+# define ALIGN16
+# define ALIGN16C
 #endif
 
 #ifdef HAVE_RMALLOC_H
