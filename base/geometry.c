@@ -249,11 +249,39 @@ mtx4fFill(void* d, const void *m)
    memcpy(d, m, sizeof(mtx4f_t));
 }
 
+AAX_API const fx4x4_t aaxIdentityMatrix = {
+  { 1.0f, 0.0f, 0.0f, 0.0f },
+  { 0.0f, 1.0f, 0.0f, 0.0f },
+  { 0.0f, 0.0f, 1.0f, 0.0f },
+  { 0.0f, 0.0f, 0.0f, 1.0f },
+};
+
+
+void
+mtx4fSetIdentity(void* m)
+{
+    memcpy(m, aaxIdentityMatrix, sizeof(aaxIdentityMatrix));
+}
+
 void
 _mtx4dCopy_cpu(mtx4d_ptr d, const mtx4d_ptr m)
 {
    memcpy(d->m4, m->m4, sizeof(mtx4d_t));
 }
+
+AAX_API const dx4x4_t aaxIdentityMatrix64 = {
+  { 1.0, 0.0, 0.0, 0.0 },
+  { 0.0, 1.0, 0.0, 0.0 },
+  { 0.0, 0.0, 1.0, 0.0 },
+  { 0.0, 0.0, 0.0, 1.0 },
+};
+
+void
+mtx4dSetIdentity(void* m)
+{
+    memcpy(m, aaxIdentityMatrix64, sizeof(aaxIdentityMatrix64));
+}
+
 
 void
 mtx4dFill(void* d, const void *m)
@@ -487,28 +515,6 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
 }
 
 /* -------------------------------------------------------------------------- */
-
-AAX_API ALIGN16 aaxVec4f aaxZeroVector ALIGN16C = {
-    0.0f, 0.0f, 0.0f, 0.0f
-};
-
-AAX_API ALIGN16 aaxVec4f aaxAxisUnitVec ALIGN16C = {
-    1.0f, 1.0f, 1.0f, 0.0f
-};
-
-AAX_API ALIGN16 aaxMtx4d aaxIdentityMatrix64 ALIGN16C = {
-  { 1.0, 0.0, 0.0, 0.0 },
-  { 0.0, 1.0, 0.0, 0.0 },
-  { 0.0, 0.0, 1.0, 0.0 },
-  { 0.0, 0.0, 0.0, 1.0 },
-};
-
-AAX_API ALIGN16 aaxMtx4f aaxIdentityMatrix ALIGN16C = {
-  { 1.0f, 0.0f, 0.0f, 0.0f },
-  { 0.0f, 1.0f, 0.0f, 0.0f },
-  { 0.0f, 0.0f, 1.0f, 0.0f },
-  { 0.0f, 0.0f, 0.0f, 1.0f },
-};
 
 vec3fCopy_proc vec3fCopy = _vec3fCopy_cpu;
 vec3fMulvec3f_proc vec3fMulvec3 = _vec3fMulvec3_cpu;

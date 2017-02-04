@@ -131,7 +131,7 @@ aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxDelayed3dProps *dp3d;
 
-         mtx4fFill(mtx.m4, aaxIdentityMatrix);
+         mtx4fSetIdentity(mtx.m4);
          vec3fFill(mtx.m4[VELOCITY], velocity);
          mtx.m4[VELOCITY][3] = 0.0f;
 

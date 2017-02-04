@@ -51,7 +51,7 @@ int main()
     vec4fFill(x4.v4, t1); vec3fFill(y4.v4, t2);
 
     f = vec3fNormalize(&z3, &x3);
-    mtx4fFill(m.m4, aaxIdentityMatrix);
+    mtx4fSetIdentity(m.m4);
     mtx4fRotate(&m, f, z3.v3[0], z3.v3[1], z3.v3[2]);
     mtx4fTranslate(&m, 3.3f, -1.07f, 0.87f);
 
@@ -64,7 +64,7 @@ int main()
     TEST4(c4,z4);
 
     f = vec3fNormalize(&z3, &y3);
-    mtx4fFill(n.m4, aaxIdentityMatrix);
+    mtx4fSetIdentity(m.m4);
     mtx4fRotate(&n, f, z3.v3[0], z3.v3[1], z3.v3[2]);
     mtx4fTranslate(&n, -.2f, 4.507f, 1.39f);
 
