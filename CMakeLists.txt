@@ -158,6 +158,15 @@ IF(MSVC)
     SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
+    )
+    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
+    )
+    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
+    )
     SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
@@ -269,6 +278,12 @@ ELSE(MSVC)
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3"
+          )
+          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
+                     PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
+          )
+          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
+                     PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                      PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
@@ -518,6 +533,8 @@ SET( AEONWAVE_OBJS
 )
 IF(SIZEOF_SIZE_T EQUAL 8)
   SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
+     src/software/cpu/arch3d_sse_vex.c
+     src/software/cpu/arch2d_sse_vex.c
      src/software/cpu/arch2d_avx.c
      src/software/cpu/arch2d_fma3.c
      src/software/cpu/arch2d_fma4.c
