@@ -46,7 +46,7 @@ aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
    int rv = AAX_FALSE;
    if (mtx)
    {
-      mtx4fFill(mtx, aaxIdentityMatrix);
+      mtx4fSetIdentity(mtx);
       rv = AAX_TRUE;
    }
    else {
@@ -61,7 +61,7 @@ aaxMatrix64SetIdentityMatrix(aaxMtx4d mtx)
    int rv = AAX_FALSE;
    if (mtx)
    {
-      mtx4dFill(mtx, aaxIdentityMatrix64);
+      mtx4dSetIdentity(mtx);
       rv = AAX_TRUE;
    }
    else {
@@ -332,7 +332,7 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
       vec3f_t loc;
       mtx4f_t m;
 
-      mtx4fFill(m.m4, aaxIdentityMatrix);
+      mtx4fSetIdentity(m.m4);
       if (at[0] || at[1] || at[2])
       {
          aaxVec3f up = { 0.0f, 1.0f, 0.0f }; 
@@ -393,7 +393,7 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
       vec3f_t loc;
       mtx4f_t m;
 
-      mtx4fFill(m.m4, aaxIdentityMatrix);
+      mtx4fSetIdentity(m.m4);
       if ((at[0] || at[1] || at[2]) || (up[0] || up[1] || up[2]))
       {
          vec3f_t side, upwd, fwd, back;
@@ -410,7 +410,8 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
 
       vec3fFill(&loc.v3, pos);
       vec3fNegate(&m.v34[3], &loc);
-      mtx4fFill(mtx, m.m4);
+      mtx4fFill(mtx, &m.m4);
+
    }
 
    return rv;

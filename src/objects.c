@@ -123,10 +123,10 @@ _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *dp3d)
    assert(dp3d);
 
    /* modelview matrix */
-   mtx4fFill(dp3d->matrix.m4, aaxIdentityMatrix);
+   mtx4fSetIdentity(dp3d->matrix.m4);
 
    /* velocity     */
-   mtx4fFill(dp3d->velocity.m4, aaxIdentityMatrix);
+   mtx4fSetIdentity(dp3d->velocity.m4);
 
    /* status */
    dp3d->state3d = 0;

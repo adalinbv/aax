@@ -148,11 +148,6 @@ typedef mtx3d_t* mtx3d_ptr RESTRICT;
 typedef mtx4f_t* mtx4f_ptr RESTRICT;
 typedef mtx4d_t* mtx4d_ptr RESTRICT;
 
-extern aaxVec4f aaxZeroVector;
-extern aaxVec4f aaxAxisUnitVec;
-extern aaxMtx4f aaxIdentityMatrix;
-extern aaxMtx4d aaxIdentityMatrix64;
-
 typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3fMulvec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
 
@@ -206,11 +201,13 @@ extern mtx4fCopy_proc mtx4fCopy;
 extern mtx4dCopy_proc mtx4dCopy;
 
 void mtx4fFill(void* d, const void *);
+void mtx4fSetIdentity(void* m);
 void mtx4fTranslate(mtx4f_ptr m, float x, float y, float z);
 void mtx4fRotate(mtx4f_ptr m, float angle, float x, float y, float z);
 void mtx4fInverseSimple(mtx4f_ptr d, const mtx4f_ptr m);
 
 void mtx4dFill(void* d, const void *);
+void mtx4dSetIdentity(void* m);
 void mtx4dTranslate(mtx4d_ptr m, double x, double y, double z);
 void mtx4dRotate(mtx4d_ptr m, double angle, double x, double y, double z);
 void mtx4dInverseSimple(mtx4d_ptr d, const mtx4d_ptr m);
