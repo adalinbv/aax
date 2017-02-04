@@ -71,6 +71,18 @@ float _vec3fMagnitudeSquared_sse41(const vec3f_ptr v);
 float _vec3fDotProduct_sse41(const vec3f_ptr v1, const vec3f_ptr v2);
 float _vec3fNormalize_sse41(vec3f_ptr d, const vec3f_ptr v);
 
+/* AVX * SSE/VEX */
+float _vec3fMagnitude_sse_vex(const vec3f_ptr v);
+float _vec3fMagnitudeSquared_sse_vex(const vec3f_ptr v);
+float _vec3fDotProduct_sse_vex(const vec3f_ptr v1, const vec3f_ptr v2);
+void _vec3fCrossProduct_sse_vex(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+void _vec4fCopy_sse_vex(vec4f_ptr d, const vec4f_ptr v);
+void _vec4fMulvec4_sse_vex(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
+void _vec4fMatrix4_sse_vex(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m);
+void _pt4fMatrix4_sse_vex(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m);
+void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
+
+
 /* VFPV2 */
 void _vec3fNegate_vfpv2(vec3f_ptr d, const vec3f_ptr v);
 void _vec4fNegate_vfpv2(vec4f_ptr d, const vec4f_ptr v);

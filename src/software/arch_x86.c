@@ -51,6 +51,12 @@ enum cpuid_requests {
 };
 
 enum {
+    CPUID_FEAT_EBX_AVX2        	= 1 << 5,
+    CPUID_FEAT_EBX_AVX512F      = 1 << 16,
+    CPUID_FEAT_EBX_AVX512PF     = 1 << 26,
+    CPUID_FEAT_EBX_AVX512ER     = 1 << 27,
+    CPUID_FEAT_EBX_AVX512CD     = 1 << 28,
+
     CPUID_FEAT_ECX_SSE3         = 1 << 0,
     CPUID_FEAT_ECX_SSE4a        = 1 << 6,
     CPUID_FEAT_ECX_SSSE3        = 1 << 9,
@@ -82,7 +88,8 @@ enum {
     AAX_ARCH_SSE4A   = 0x00000020,
     AAX_ARCH_SSE41   = 0x00000040,
     AAX_ARCH_SSE42   = 0x00000080,
-    AAX_ARCH_AVX     = 0x00000100
+    AAX_ARCH_AVX     = 0x00000100,
+    AAX_ARCH_AVX2    = 0x00000200
 };
 
 enum {
@@ -96,6 +103,7 @@ enum {
    AAX_SIMD_SSE41,
    AAX_SIMD_SSE42,
    AAX_SIMD_AVX,
+   AAX_SIMD_AVX2,
    AAX_SIMD_MAX
 };
 
@@ -114,6 +122,7 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    SIMD_PREFIX"SSE/AVX"
 };
 
+static char check_cpuid_ebx(unsigned int);
 static char check_cpuid_ecx(unsigned int);
 static char check_extcpuid_ecx(unsigned int);
 # ifndef __x86_64__
@@ -240,6 +249,20 @@ _aaxArchDetectAVX()
 }
 
 char
+_aaxArchDetectAVX2()
+{
+   static uint32_t res = 0;
+   static int8_t init = -1;
+   if (init)
+   {
+      init = 0;
+      res = check_cpuid_ebx(CPUID_FEAT_EBX_AVX2) ? AAX_SIMD_AVX2 : 0;
+      if (res) _aax_arch_capabilities |= AAX_ARCH_AVX2;
+   }
+   return res;
+}
+
+char
 _aaxGetSSELevel()
 {
    static uint32_t sse_level = AAX_NO_SIMD;
@@ -342,20 +365,32 @@ _aaxGetSIMDSupportString()
 #  if SIZEOF_SIZE_T == 8
    if (_aax_arch_capabilities & AAX_ARCH_AVX)
    {
-#   if 0
-    /* Prefer FMA3 over FMA4 so detect FMA4 first */
-#   ifdef __FMA4__
-      if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-         _batch_fmadd = _batch_fma4_avx;
-      }
-#   endif
-#   ifdef __FMA__
-      if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-         _batch_fmadd = _batch_fma3_avx;
-      }
-#   endif
-#   endif
-      //    _aax_memcpy = _aax_memcpy_avx;
+      /* SSE/VEX */
+      vec3fMagnitude = _vec3fMagnitude_sse_vex;
+      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse_vex;
+      vec3fDotProduct = _vec3fDotProduct_sse_vex;
+      vec3fCrossProduct = _vec3fCrossProduct_sse_vex;
+      vec4fCopy = _vec4fCopy_sse_vex;
+      vec4fMulvec4 = _vec4fMulvec4_sse_vex;
+      vec4fMatrix4 = _vec4fMatrix4_sse_vex;
+      pt4fMatrix4 = _pt4fMatrix4_sse_vex;
+      mtx4fMul = _mtx4fMul_sse_vex;
+
+      _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
+      _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
+      _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
+
+#  if RB_FLOAT_DATA
+      _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
+      _batch_resample_float = _batch_resample_float_sse_vex;
+#  else
+      _batch_imadd = _batch_imadd_sse_vex;
+      _batch_freqfilter = _batch_freqfilter_sse_vex;
+      _batch_resample = _batch_resample_sse_vex;
+#  endif
+
+      /* AVX */
+//    _aax_memcpy = _aax_memcpy_avx;
       _batch_cvtps_24 = _batch_cvtps_24_avx;
       _batch_cvt24_ps = _batch_cvt24_ps_avx;
 
@@ -367,9 +402,20 @@ _aaxGetSIMDSupportString()
 #   endif
    }
 
-#   if 0
    if (_aax_arch_capabilities & AAX_ARCH_AVX2)
    {
+#  if 0
+    /* Prefer FMA3 over FMA4 so detect FMA4 first */
+#   ifdef __FMA4__
+      if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+         _batch_fmadd = _batch_fma4_avx;
+      }
+#   endif
+#   ifdef __FMA__
+      if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
+         _batch_fmadd = _batch_fma3_avx;
+      }
+#   endif
       //    _aax_memcpy = _aax_memcpy_avx;
       _batch_cvt16_24 = _batch_cvt16_24_avx2;
       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_avx2;
@@ -380,8 +426,8 @@ _aaxGetSIMDSupportString()
       _batch_imadd = _batch_imadd_avx2;
       _batch_resample = _batch_resample_avx2;
 #   endif
+#  endif
    }
-#   endif
 
 #  endif
 # endif
@@ -440,7 +486,19 @@ detect_cpuid()
 enum {
   EAX=0, EBX, ECX, EDX
 };
-static int regs[4] = {0,0,-1,-1};
+static int regs[4] = {0,-1,-1,-1};
+
+static char
+check_cpuid_ebx(unsigned int type)
+{
+   if (regs[EBX] == -1) {
+      regs[EBX] = 0;
+      if (detect_cpuid()) {
+         __cpuid(regs, CPUID_GETFEATURES);
+      }
+   }
+   return (regs[EBX] & type) ? 1 : 0;
+}
 
 static char
 check_cpuid_ecx(unsigned int type)
