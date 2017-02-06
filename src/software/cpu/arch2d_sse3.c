@@ -457,20 +457,31 @@ _aaxBufResampleLinear_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin
    }
 }
 
+static inline FN_PREALIGN float
+hsum_ps_sse3(__m128 v) {
+   __m128 shuf = _mm_movehdup_ps(v);
+   __m128 sums = _mm_add_ps(v, shuf);
+   shuf = _mm_movehl_ps(shuf, sums);
+   sums = _mm_add_ss(sums, shuf);
+   return _mm_cvtss_f32(sums);
+}
+
 static inline void
 _aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
-   const __m128 y0m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
-   const __m128 y1m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
-   const __m128 y2m = _mm_set_ps( 2.0f,-2.0f, 1.0f,-1.0f);
-   const __m128 y3m = _mm_set_ps(-1.0f, 1.0f,-1.0f, 1.0f);
-   __m128 y0123, a0123, xsmu;
-   __m128 vm0, vm1, vm2, vm3;
-   __m128 xtmp, xtmp1, xtmp2;
+    /* 
+    * a0 = y3 - y2 - y0 + y1;
+    * a1 = 2y0 - 2y1 - y3 + y2;
+    * a2 = y2 - y0;
+    * a3 = y1;
+    */
+   const __m128 y0m = _mm_set_ps(-1.0f, 1.0f,-1.0f, 1.0f);
+   const __m128 y1m = _mm_set_ps( 2.0f,-2.0f, 1.0f,-1.0f);
+   const __m128 y2m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
+   const __m128 y3m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
    size_t i;
-   float smu2;
 
    assert(s != 0);
    assert(d != 0);
@@ -479,80 +490,52 @@ _aaxBufResampleCubic_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin,
    assert(0.0f < freq_factor && freq_factor <= 1.0f);
 
    dptr += dmin;
-
-   if (((size_t)sptr & MEMMASK) == 0) {
-      y0123 = _mm_load_ps((float*)sptr);
-   } else {
-      y0123 = _mm_loadu_ps((float*)sptr);
-   }
-
-   /* 
-    * a0 = y3 - y2 - y0 + y1;
-    * a1 = y0 - y1 - a0;
-    * a2 = y2 - y0;
-    * a3 = y1;
-    */
-   vm0 = _mm_mul_ps(y0123, y0m);
-   vm1 = _mm_mul_ps(y0123, y1m);
-   vm2 = _mm_mul_ps(y0123, y2m);
-   vm3 = _mm_mul_ps(y0123, y3m);
-
-   sptr += 4;
-   smu2 = smu*smu;
-
-   xtmp = _mm_hadd_ps(vm0, vm1);
-   xtmp1 = _mm_hadd_ps(vm2, vm3);
-
-   sptr += 4;
-
-   /* work in advance */
-   xsmu = _mm_set_ps(smu*smu*smu, smu*smu, smu, 1.0f);
-
-   a0123 = _mm_hadd_ps(xtmp, xtmp1);
-   y0123 = _mm_shuffle_ps(y0123, y0123, _MM_SHUFFLE(2, 1, 0, 0));
    i = dmax-dmin;
-   if (i)
+   if (i > 4)
    {
+      __m128 a0, a1, a2, a3;
+      __m128 xtmp1, xtmp2;
+      __m128 y0123, a0123;
+      float smu2 = smu*smu;
+
+      if (((size_t)sptr & MEMMASK) == 0) {
+         y0123 = _mm_load_ps((float*)sptr);
+      } else {
+         y0123 = _mm_loadu_ps((float*)sptr);
+      }
+      sptr += 4;
+
+      a0 = _mm_mul_ps(y0123, y0m);
+      a1 = _mm_mul_ps(y0123, y1m);
+      a2 = _mm_mul_ps(y0123, y2m);
+      a3 = _mm_mul_ps(y0123, y3m);
+
       do
       {
-         xtmp = _mm_mul_ps(a0123, xsmu);
-         xtmp = _mm_hadd_ps(xtmp, xtmp);
+         __m128 xsmu3 = _mm_set1_ps(smu*smu2);
+         __m128 xsmu2 = _mm_set1_ps(smu2);
+         __m128 xsmu = _mm_set1_ps(smu);
+
+         xtmp1 = _mm_add_ps(_mm_mul_ps(a0, xsmu3), _mm_mul_ps(a1, xsmu2));
+         xtmp2 = _mm_add_ps(_mm_mul_ps(a2, xsmu), a3);
+         a0123 = _mm_add_ps(xtmp1, xtmp2);
 
          smu += freq_factor;
-
-         xtmp = _mm_hadd_ps(xtmp, xtmp);
+         *dptr++ = hsum_ps_sse3(a0123);
 
          if (smu >= 1.0)
          {
+            y0123 =_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(y0123),4));
             y0123 = _mm_move_ss(y0123, _mm_load_ss((float*)sptr++));
 
-            /* 
-             * a0 = y3 - y2 - y0 + y1;
-             * a1 = y0 - y1 - a0;
-             * a2 = y2 - y0;
-             * a3 = y1;
-             */
-            vm0 = _mm_mul_ps(y0123, y0m);
-            vm1 = _mm_mul_ps(y0123, y1m);
-            vm2 = _mm_mul_ps(y0123, y2m);
-            vm3 = _mm_mul_ps(y0123, y3m);
+            a0 = _mm_mul_ps(y0123, y0m);
+            a1 = _mm_mul_ps(y0123, y1m);
+            a2 = _mm_mul_ps(y0123, y2m);
+            a3 = _mm_mul_ps(y0123, y3m);
 
             smu--;
-
-            xtmp1 = _mm_hadd_ps(vm0, vm1);
-            xtmp2 = _mm_hadd_ps(vm2, vm3);
-
-            /* work in advance */
-            smu2 = smu*smu;
-            xsmu = _mm_set_ps(smu*smu2, smu2, smu, 1.0f);
-
-            a0123 = _mm_hadd_ps(xtmp1, xtmp2);
-            y0123 = _mm_shuffle_ps(y0123, y0123, _MM_SHUFFLE(2, 1, 0, 3));
          }
-
-         xsmu = _mm_set_ps(smu*smu2, smu2, smu, 1.0f);
-
-         _mm_store_ss((float*)dptr++, xtmp);
+         smu2 = smu*smu;
       }
       while (--i);
    }
