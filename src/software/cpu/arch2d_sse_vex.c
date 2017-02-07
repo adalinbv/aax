@@ -74,7 +74,7 @@ _batch_iadd_sse_vex(int32_ptr dst, const_int32_ptr src, size_t num)
 
       do
       {
-         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
@@ -160,7 +160,7 @@ _batch_imadd_sse_vex(int32_ptr dst, const_int32_ptr src, size_t num, float v, fl
 
       do
       {
-         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
@@ -243,7 +243,7 @@ _batch_cvt24_16_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       __m128i *sptr = (__m128i *)s;
 
       do {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
          if (tmp) {
             xmm0 = _mm_loadu_si128(sptr++);
@@ -323,7 +323,7 @@ _batch_cvt16_24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       sptr = (__m128i *)s;
       do
       {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
          xmm0 = _mm_load_si128(sptr++);
          xmm1 = _mm_load_si128(sptr++);
@@ -432,8 +432,8 @@ _batch_cvt16_intl_24_sse_vex(void_ptr dst, const_int32_ptrptr src,
       dptr = (__m128i *)d;
       do
       {
-         _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-         _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
 
          xmm0 = _mm_load_si128(sptr1++);
          xmm4 = _mm_load_si128(sptr1++);

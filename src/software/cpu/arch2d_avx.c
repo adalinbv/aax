@@ -70,7 +70,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 mul = _mm256_set1_ps((float)(1<<23));
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0 = _mm256_load_ps((const float*)sptr++);
             ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -160,7 +160,7 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 ymm0, ymm1, ymm2, ymm3;
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0 = _mm256_load_ps((const float*)sptr++);
             ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -220,7 +220,7 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 mul = _mm256_set1_ps(1.0f/(float)(1<<23));
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0i = _mm256_load_si256(sptr++);
             ymm1i = _mm256_load_si256(sptr++);
@@ -313,7 +313,7 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
          __m256 ymm4, ymm5, ymm6, ymm7;
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             ymm0i = _mm256_load_si256(sptr++);
             ymm1i = _mm256_load_si256(sptr++);
@@ -418,8 +418,8 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
 
       do
       {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          ymm0 = _mm256_load_ps((const float*)sptr++);
          ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -513,8 +513,8 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
 
       do
       {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          ymm0 = _mm256_load_ps((const float*)sptr++);
          ymm1 = _mm256_load_ps((const float*)sptr++);
@@ -609,7 +609,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
       {
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
+//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
             ymm0 = _mm256_loadu_si256(sptr++);
             ymm1 = _mm256_loadu_si256(sptr++);
@@ -635,7 +635,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
       {
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
+//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
             ymm0 = _mm256_load_si256(sptr++);
             ymm1 = _mm256_load_si256(sptr++);
