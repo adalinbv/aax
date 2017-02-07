@@ -226,6 +226,21 @@ _aaxUnsetEnv(const char *name)
 {
    return (SetEnvironmentVariable(name, NULL) == 0) ? AAX_TRUE : AAX_FALSE;
 }
+
+unsigned long long _aax_get_free_memory()
+{
+   MEMORYSTATUSEX status;
+   status.dwLength = sizeof(status);
+   GlobalMemoryStatusEx(&status);
+   return status.ullAvailPhys;
+}
+#else
+unsigned long long _aax_get_free_memory()
+{
+   long pages = sysconf(_SC_AVPHYS_PAGES);
+   long page_size = sysconf(_SC_PAGE_SIZE);
+   return pages * page_size;
+}
 #endif
 
 
