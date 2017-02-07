@@ -308,21 +308,19 @@ _aaxWorkerThread(void *id)
       {		// process up to 32 emitters at a time
          if (handle->max_emitters)
          {
-            int pos, min, max;
-            data = handle->data;
-            do
-            {
-               max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
-               pos = max - _AAX_MIN_EMITTERS_PER_WORKER;
-               min = _MAX(pos, 0);
+            int max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
 
-               /*
-                * It might be possible that other threads aleady processed
-                * all emitters which causes max to turn negative here.
-                */
-               if (max > 0)
+             /*
+             * It might be possible that other threads aleady processed
+             * all emitters which causes max to turn negative here.
+             */
+            if (max > 0)
+            {
+               data = handle->data;
+               do
                {
-                  for(pos=min; pos<max; pos++)
+                  int pos = _MAX(max - _AAX_MIN_EMITTERS_PER_WORKER, 0);
+                  do
                   {
                      _intBufferData *dptr_src;
 
@@ -334,18 +332,20 @@ _aaxWorkerThread(void *id)
                         _aaxProcessEmitter(drb, data, dptr_src, handle->stage);
                      }
                   }
+                  while(++pos < max);
+                  max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
                }
+               while (max > 0);
+
+               /* mix our own ringbuffer with that of the mixer */
+               _aaxMutexLock(handle->mutex);
+               data->drb->data_mix(data->drb, drb, NULL);
+               _aaxMutexUnLock(handle->mutex);
+
+               /* clear our own ringbuffer for future use */
+               drb->data_clear(drb);
+               drb->set_state(drb, RB_REWINDED);
             }
-            while (max > 0);
-
-            /* mix our own ringbuffer with that of the mixer */
-            _aaxMutexLock(handle->mutex);
-            data->drb->data_mix(data->drb, drb, NULL);
-            _aaxMutexUnLock(handle->mutex);
-
-            /* clear our own ringbuffer for future use */
-            drb->data_clear(drb);
-            drb->set_state(drb, RB_REWINDED);
          }
 
          /* if we're the last active worker trigger the signal */
