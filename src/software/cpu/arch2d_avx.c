@@ -334,6 +334,32 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
             _mm256_store_ps((float*)dptr++, ymm7);
          }
          while(--i);
+
+         if (num)
+         {
+            step = 2*sizeof(__m256i)/sizeof(int32_t);
+
+            i = num/step;
+            num -= i*step;
+            if (i)
+            {
+               do
+               {
+                  ymm0i = _mm256_load_si256(sptr++);
+                  ymm2i = _mm256_load_si256(sptr++);
+
+                  ymm4 = _mm256_cvtepi32_ps(ymm0i);
+                  ymm5 = _mm256_cvtepi32_ps(ymm1i);
+
+                  s += step;
+                  d += step;
+
+                  _mm256_store_ps((float*)dptr++, ymm4);
+                  _mm256_store_ps((float*)dptr++, ymm5);
+               }
+               while(--i);
+            }
+         }
          _mm256_zeroupper();
       }
 

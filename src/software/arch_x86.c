@@ -50,6 +50,7 @@ enum cpuid_requests {
   CPUID_GETEXTFEATURES = 0x80000000
 };
 
+// https://msdn.microsoft.com/en-us/library/hskdteyh.aspx
 enum {
     CPUID_FEAT_EBX_AVX2        	= 1 << 5,
     CPUID_FEAT_EBX_AVX512F      = 1 << 16,
@@ -60,6 +61,7 @@ enum {
     CPUID_FEAT_ECX_SSE3         = 1 << 0,
     CPUID_FEAT_ECX_SSE4a        = 1 << 6,
     CPUID_FEAT_ECX_SSSE3        = 1 << 9,
+    CPUID_FEAT_ECX_XOP          = 1 << 11,
     CPUID_FEAT_ECX_FMA3         = 1 << 12,
     CPUID_FEAT_ECX_CX16         = 1 << 13,
     CPUID_FEAT_ECX_FMA4         = 1 << 16,
@@ -89,7 +91,8 @@ enum {
     AAX_ARCH_SSE41   = 0x00000040,
     AAX_ARCH_SSE42   = 0x00000080,
     AAX_ARCH_AVX     = 0x00000100,
-    AAX_ARCH_AVX2    = 0x00000200
+    AAX_ARCH_XOP     = 0x00000200,
+    AAX_ARCH_AVX2    = 0x00000400
 };
 
 enum {
@@ -103,6 +106,7 @@ enum {
    AAX_SIMD_SSE41,
    AAX_SIMD_SSE42,
    AAX_SIMD_AVX,
+   AAX_SIMD_XOP,
    AAX_SIMD_AVX2,
    AAX_SIMD_MAX
 };
@@ -119,7 +123,9 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    SIMD_PREFIX"MMX/SSE4a",
    SIMD_PREFIX"MMX/SSE4.1",
    SIMD_PREFIX"MMX/SSE4.2",
-   SIMD_PREFIX"SSE/AVX"
+   SIMD_PREFIX"SSE/AVX",
+   SIMD_PREFIX"SSE/XOP",
+   SIMD_PREFIX"SSE/AVX2"
 };
 
 static char check_cpuid_ebx(unsigned int);
@@ -249,6 +255,20 @@ _aaxArchDetectAVX()
 }
 
 char
+_aaxArchDetectXOP()
+{
+   static uint32_t res = 0;
+   static int8_t init = -1;
+   if (init)
+   {
+      init = 0;
+      res = check_cpuid_ecx(CPUID_FEAT_ECX_XOP) ? AAX_SIMD_XOP : 0;
+      if (res) _aax_arch_capabilities |= AAX_ARCH_XOP;
+   }
+   return res;
+}
+
+char
 _aaxArchDetectAVX2()
 {
    static uint32_t res = 0;
@@ -296,6 +316,13 @@ _aaxGetSSELevel()
 # endif
          res = _aaxArchDetectAVX();
          if (res) sse_level = res;
+#if 0
+         res = _aaxArchDetectXOP();
+         if (res) sse_level = res;
+
+         res = _aaxArchDetectAVX2();
+         if (res) sse_level = res;
+#endif
       }
    }
 
@@ -402,20 +429,26 @@ _aaxGetSIMDSupportString()
 #   endif
    }
 
-   if (_aax_arch_capabilities & AAX_ARCH_AVX2)
+   if (_aax_arch_capabilities & AAX_ARCH_XOP)
    {
-#  if 0
     /* Prefer FMA3 over FMA4 so detect FMA4 first */
-#   ifdef __FMA4__
+#  ifdef __FMA4__
       if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+#pragma warning FMA4 needs testing
          _batch_fmadd = _batch_fma4_avx;
       }
-#   endif
-#   ifdef __FMA__
+#  endif
+   }
+
+   if (_aax_arch_capabilities & AAX_ARCH_AVX2)
+   {
+#  ifdef __FMA__
+#pragma warning FMA needs testing
       if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
          _batch_fmadd = _batch_fma3_avx;
       }
-#   endif
+#  endif
+#  if 0
       //    _aax_memcpy = _aax_memcpy_avx;
       _batch_cvt16_24 = _batch_cvt16_24_avx2;
       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_avx2;

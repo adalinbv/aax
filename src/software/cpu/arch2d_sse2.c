@@ -1521,12 +1521,12 @@ _aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmi
 }
 #endif
 
+// https://github.com/depp/libfresample, BSD license
 static inline void
 _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
-   float samp, dsamp;
    size_t i;
 
    assert(s != 0);
@@ -1537,23 +1537,34 @@ _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin
 
    dptr += dmin;
 
-   samp = *sptr++;              // n
-   dsamp = *sptr - samp;        // (n+1) - n
-
    i = dmax-dmin;
    if (i)
    {
+      __m128 samp, nsamp, dsamp;
+
+      samp = _mm_load_ss(sptr++);       // n
+      nsamp = _mm_load_ss(sptr++);      // (n+1)
+      dsamp = _mm_sub_ss(nsamp, samp);  // (n+1) - n
       do
       {
-         *dptr++ = samp + (dsamp * smu);
+         __m128 tau = _mm_set_ss(smu);
+         __m128 dout = samp;
 
          smu += freq_factor;
+
+         // fmadd
+         dout = _mm_add_ss(dout, _mm_mul_ss(dsamp, tau));
+
          if (smu >= 1.0)
          {
+            samp = nsamp;
+            nsamp = _mm_load_ss(sptr++);
+
             smu -= 1.0;
-            samp = *sptr++;
-            dsamp = *sptr - samp;
+
+            dsamp = _mm_sub_ss(nsamp, samp);
          }
+         _mm_store_ss(dptr++, dout);
       }
       while (--i);
    }
