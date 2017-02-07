@@ -171,7 +171,7 @@ IF(MSVC)
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
     SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                 PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__FMA__"
+                 PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
     )
     SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:XOP /fp:fast -D__FMA__"
@@ -209,9 +209,9 @@ ELSE(MSVC)
     ENDIF(GCC AND LTO)
 
     IF(NOT MINGW)
-       IF (GCC)
-         SET(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
-       ENDIF(GCC)
+       IF (GCC OR CLANG)
+         SET(C_FLAGS "${C_FLAGS} -fPIC -fstack-protector-strong -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
+       ENDIF(GCC OR CLANG)
     ELSE(NOT MINGW)
        INCLUDE_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
        ADD_DEFINITIONS(-U__STRICT_ANSI__)
@@ -228,8 +228,8 @@ ELSE(MSVC)
     ENDIF(NOT MINGW)
 
     IF (CLANG)
-      SET(C_FLAGS "${C_FLAGS} -Qunused-arguments" CACHE STRING
-          "Hide unised clang options"
+      SET(C_FLAGS "${C_FLAGS} -Qunused-arguments -ffp-contract=fast" CACHE STRING
+          "Hide unused clang options"
           FORCE)
     ELSEIF (MIPSPRO)
       SET(CMAKE_C_COMPILER c99)
@@ -247,15 +247,15 @@ ELSE(MSVC)
           FORCE)
 
       # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-      SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -g -DNDEBUG" CACHE STRING
+      SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -O2 -g -DNDEBUG" CACHE STRING
           "Flags used by the compiler during Release with Debug Info builds."
           FORCE)
-      SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+      SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
           "Flags used by the compiler during release minsize builds."
           FORCE)
-#     SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
-#             CACHE STRING "Flags used by the compiler during release builds"
-#            FORCE)
+      SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -flto -s -fomit-frame-pointer -DNDEBUG"
+              CACHE STRING "Flags used by the compiler during release builds"
+             FORCE)
       SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
           "Flags used by the compiler during debug builds."
           FORCE)
@@ -289,15 +289,15 @@ ELSE(MSVC)
                      PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                     PROPERTY COMPILE_FLAGS "-mfma -march=haswell"
+                     PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell"
           )
           SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfma4 -march=bdver1"
+                    PROPERTY COMPILE_FLAGS "-mxop -mfma4 -march=bdver1"
           )
 
-          SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
-              CACHE STRING "Flags used by the compiler during release builds"
-              FORCE)
+#         SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+#             CACHE STRING "Flags used by the compiler during release builds"
+#             FORCE)
 
       ELSEIF(X86)
           message("Build environment: X86")
@@ -318,9 +318,9 @@ ELSE(MSVC)
                      PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
           )
 
-          SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
-              CACHE STRING "Flags used by the compiler during release builds"
-              FORCE)
+#         SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+#             CACHE STRING "Flags used by the compiler during release builds"
+#             FORCE)
       ELSEIF(ARM)
           message("Build environment: ARM")
           SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DA32=1")
@@ -343,9 +343,9 @@ ELSE(MSVC)
                        PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
           )
 
-          SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
-              CACHE STRING "Flags used by the compiler during release builds"
-              FORCE)
+#         SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
+#             CACHE STRING "Flags used by the compiler during release builds"
+#             FORCE)
       ELSE()
           message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
       ENDIF()
