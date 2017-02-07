@@ -60,6 +60,7 @@ extern "C" {
 enum aaxErrorType __aaxDriverErrorSet(aaxConfig,enum aaxErrorType, const char*);
 enum aaxErrorType __aaxErrorSet(enum aaxErrorType, const char*);
 
+unsigned long long _aax_get_free_memory();
 
 /* --- Sensor --- */
 #define CAPTURE_ID	0x8FB82DEF
