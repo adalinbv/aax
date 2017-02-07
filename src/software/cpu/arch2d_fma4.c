@@ -70,7 +70,7 @@ _batch_fma4_avx(int32_ptr d, const_int32_ptr src, size_t num, float v, float vst
 
       do
       {
-         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+///      _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
          ymm0i = _mm256_load_si256(sptr++);
          ymm4i = _mm256_load_si256(sptr++);
          ymm1 = _mm256_cvtepi32_ps(ymm0i);
