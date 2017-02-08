@@ -1287,33 +1287,80 @@ _aaxBufResampleLinear_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t d
    i = dmax-dmin;
    if (i)
    {
-      __m128 samp, nsamp, dsamp;
-
-      samp = _mm_load_ss(sptr++);       // n
-      nsamp = _mm_load_ss(sptr++);      // (n+1)
-      dsamp = _mm_sub_ss(nsamp, samp);  // (n+1) - n
-      do
+      if (freq_factor < 0.5f)
       {
-         __m128 tau = _mm_set_ss(smu);
-         __m128 dout = samp;
-
-         smu += freq_factor;
-
-         // fmadd
-         dout = _mm_add_ss(dout, _mm_mul_ss(dsamp, tau));
-
-         if (smu >= 1.0)
+#if 1
+         float samp, dsamp;
+         do
          {
+            *dptr++ = samp + (dsamp * smu);
+
+            smu += freq_factor;
+            if (smu >= 1.0)
+            {
+               smu -= 1.0;
+               samp = *sptr++;
+               dsamp = *sptr - samp;
+            }
+         }
+         while (--i);
+#else
+
+         __m128 samp = _mm_load_ss(sptr++);       // n
+         __m128 nsamp = _mm_load_ss(sptr++);      // (n+1)
+         __m128 dsamp = _mm_sub_ss(nsamp, samp);  // (n+1) - n
+
+         do
+         {
+            __m128 tau = _mm_set_ss(smu);
+            __m128 dout = samp;
+
+            smu += freq_factor;
+
+            // fmadd
+            dout = _mm_add_ss(dout, _mm_mul_ss(dsamp, tau));
+
+            if (smu >= 1.0)
+            {
+               samp = nsamp;
+               nsamp = _mm_load_ss(sptr++);
+
+               smu -= 1.0;
+
+               dsamp = _mm_sub_ss(nsamp, samp);
+            }
+            _mm_store_ss(dptr++, dout);
+         }
+         while (--i);
+#endif
+      }
+      else
+      {
+         __m128 samp, nsamp, dsamp;
+
+         samp = _mm_load_ss(sptr++);       // n
+         nsamp = _mm_load_ss(sptr++);      // (n+1)
+         dsamp = _mm_sub_ss(nsamp, samp);  // (n+1) - n
+
+         do
+         {
+            __m128 tau = _mm_set_ss(smu);
+            __m128 dout = samp;
+
+            // fmadd
+            dout = _mm_add_ss(dout, _mm_mul_ss(dsamp, tau));
+
+            smu += freq_factor; smu -= 1.0f;
+
             samp = nsamp;
             nsamp = _mm_load_ss(sptr++);
 
-            smu -= 1.0;
-
             dsamp = _mm_sub_ss(nsamp, samp);
+
+            _mm_store_ss(dptr++, dout);
          }
-         _mm_store_ss(dptr++, dout);
+         while (--i);
       }
-      while (--i);
    }
 }
 
