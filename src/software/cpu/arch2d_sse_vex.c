@@ -723,6 +723,194 @@ _batch_cvt16_intl_24_sse_vex(void_ptr dst, const_int32_ptrptr src,
    }
 }
 
+static void
+_batch_fadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num)
+{
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i, step, dtmp, stmp;
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if ((dtmp || stmp) && dtmp != stmp)
+   {
+      i = num;                          /* improperly aligned,            */
+      do                                /* let the compiler figure it out */
+      {  
+         *d++ += *s++;
+      }
+      while (--i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+   if (dtmp && num)
+   {
+      i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += *s++;
+         } while(--i);
+      }
+   }
+
+   step = 4*sizeof(__m128)/sizeof(float);
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      __m128* sptr = (__m128*)s;
+      __m128 *dptr = (__m128*)d;
+      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+
+      do
+      {
+//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+
+         xmm0 = _mm_load_ps((const float*)sptr++);
+         xmm1 = _mm_load_ps((const float*)sptr++);
+         xmm4 = _mm_load_ps((const float*)sptr++);
+         xmm5 = _mm_load_ps((const float*)sptr++);
+
+         s += step;
+         d += step;
+
+         xmm2 = _mm_load_ps((const float*)dptr);
+         xmm3 = _mm_load_ps((const float*)(dptr+1));
+         xmm6 = _mm_load_ps((const float*)(dptr+2));
+         xmm7 = _mm_load_ps((const float*)(dptr+3));
+
+         xmm2 = _mm_add_ps(xmm2, xmm0);
+         xmm3 = _mm_add_ps(xmm3, xmm1);
+         xmm6 = _mm_add_ps(xmm6, xmm4);
+         xmm7 = _mm_add_ps(xmm7, xmm5);
+
+         _mm_store_ps((float*)dptr++, xmm2);
+         _mm_store_ps((float*)dptr++, xmm3);
+         _mm_store_ps((float*)dptr++, xmm6);
+         _mm_store_ps((float*)dptr++, xmm7);
+      }
+      while(--i);
+   }
+
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ += *s++;
+      } while(--i);
+   }
+}
+
+void
+_batch_fmadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
+{
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i, step, dtmp, stmp;
+
+   if (!num || (v == 0.0f && vstep == 0.0f)) return;
+   if (fabsf(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
+      _batch_fadd_sse_vex(dst, src, num);
+      return;
+   }
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if ((dtmp || stmp) && dtmp != stmp)
+   {
+      i = num;                          /* improperly aligned,            */
+      do                                /* let the compiler figure it out */
+      {
+         *d++ += *s++ * v;
+         v += vstep;
+      }
+      while (--i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+   if (dtmp && num)
+   {
+      i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += *s++ * v;
+            v += vstep;
+         } while(--i);
+      }
+   }
+
+   step = 4*sizeof(__m128)/sizeof(float);
+
+   vstep *= step;                               /* 8 samples at a time */
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      __m128* sptr = (__m128*)s;
+      __m128 *dptr = (__m128*)d;
+      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+      __m128 tv = _mm_set1_ps(v);
+
+      do
+      {
+//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+
+         xmm0 = _mm_load_ps((const float*)sptr++);
+         xmm1 = _mm_load_ps((const float*)sptr++);
+         xmm4 = _mm_load_ps((const float*)sptr++);
+         xmm5 = _mm_load_ps((const float*)sptr++);
+
+         xmm0 = _mm_mul_ps(xmm0, tv);
+         xmm1 = _mm_mul_ps(xmm1, tv);
+         xmm4 = _mm_mul_ps(xmm4, tv);
+         xmm5 = _mm_mul_ps(xmm5, tv);
+
+         s += step;
+         d += step;
+
+         xmm2 = _mm_load_ps((const float*)dptr);
+         xmm3 = _mm_load_ps((const float*)(dptr+1));
+         xmm6 = _mm_load_ps((const float*)(dptr+2));
+         xmm7 = _mm_load_ps((const float*)(dptr+3));
+
+         xmm2 = _mm_add_ps(xmm2, xmm0);
+         xmm3 = _mm_add_ps(xmm3, xmm1);
+         xmm6 = _mm_add_ps(xmm6, xmm4);
+         xmm7 = _mm_add_ps(xmm7, xmm5);
+
+         v += vstep;
+
+         _mm_store_ps((float*)dptr++, xmm2);
+         _mm_store_ps((float*)dptr++, xmm3);
+         _mm_store_ps((float*)dptr++, xmm6);
+         _mm_store_ps((float*)dptr++, xmm7);
+
+         tv = _mm_set1_ps(v);
+      }
+      while(--i);
+   }
+
+   if (num)
+   {
+      vstep /= step;
+      i = num;
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      } while(--i);
+   }
+}
+
+
 
 void
 _batch_freqfilter_sse_vex(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
