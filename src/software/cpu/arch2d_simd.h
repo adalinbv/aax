@@ -149,6 +149,7 @@ void _batch_resample_sse3(int32_ptr, const_int32_ptr, size_t, size_t, float, flo
 #endif
 
 /* AVX & SSE/VEX */
+void _batch_fmadd_sse_vex(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
@@ -157,6 +158,10 @@ void _batch_resample_float_sse_vex(float32_ptr, const_float32_ptr, size_t, size_
 void _batch_resample_sse_vex(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
 
+void _batch_cvt24_ps_sse_vex(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_ps24_sse_vex(void_ptr, const_void_ptr, size_t);
+void _batch_cvtps24_24_sse_vex(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_ps24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_16_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);

@@ -851,12 +851,13 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       /* recalculate period_frames and latency */
       if (!registered) {
          period_frames = (size_t)rintf(rate/(*refresh_rate*periods));
-         period_frames = ((period_frames*periods) & ~(MEMMASK));
-         if (period_frames == 0) period_frames = MEMMASK+1;
+         period_frames = (period_frames | periods*(MEMMASK+1));
+         period_frames *= periods;
+
       } else {
          period_frames = (size_t)rintf((rate*periods)/period_rate);
-         period_frames = ((period_frames*periods) & ~(MEMMASK));
-         if (period_frames == 0) period_frames = MEMMASK+1;
+         period_frames = (period_frames | periods*(MEMMASK+1));
+         period_frames *= periods;
       }
       period_frames_actual = period_frames;
 
