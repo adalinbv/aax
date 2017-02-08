@@ -39,7 +39,8 @@ extern "C" {
 # define MEMALIGN	16
 #endif
 #define MEMMASK		(MEMALIGN-1)
-#define MEMMASK16	15
+#define MEMALIGN16	16
+#define MEMMASK16	(MEMALIGN16-1)
 
 #ifdef _MSC_VER
 # if SIZEOF_SIZE_T == 8
