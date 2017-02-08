@@ -37,7 +37,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
    if (((size_t)d & MEMMASK) != 0 || ((size_t)s & MEMMASK) != 0)
    {
       if (((size_t)d & MEMMASK16) == 0 || ((size_t)s & MEMMASK16) == 0) {
-         return _batch_cvt24_ps_sse2(dst, src, num);
+         return _batch_cvt24_ps_sse_vex(dst, src, num);
       }
       else
       {
@@ -122,20 +122,14 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    dtmp = (size_t)d & MEMMASK;
    stmp = (size_t)s & MEMMASK;
-   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
-   {                                    /* let the compiler figure it out */
-      i = num;
-      do {
-         *d++ += (int32_t)*s++;
-      }
-      while (--i);
-      return;
+   if ((dtmp || stmp) && dtmp != stmp) {
+      return _batch_cvt24_ps24_sse_vex(dst, src, num);
    }
 
    /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
    if (dtmp && num)
    {
-      i = (0x20 - dtmp)/sizeof(int32_t);
+      i = (MEMALIGN - dtmp)/sizeof(int32_t);
       if (i <= num)
       {
          num -= i;
@@ -275,20 +269,14 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    dtmp = (size_t)d & MEMMASK;
    stmp = (size_t)s & MEMMASK;
-   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
-   {                                    /* let the compiler figure it out */
-      i = num;
-      do {
-         *d++ += (float)*s++;
-      }
-      while (--i);
-      return;
+   if ((dtmp || stmp) && dtmp != stmp) {
+      return _batch_cvtps24_24_sse_vex(dst, src, num);
    }
 
    /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
    if (dtmp && num)
    {
-      i = (0x20 - dtmp)/sizeof(int32_t);
+      i = (MEMALIGN - dtmp)/sizeof(int32_t);
       if (i <= num)
       {
          num -= i;
@@ -396,7 +384,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
    /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
    if (dtmp && num)
    {
-      i = (0x20 - dtmp)/sizeof(int32_t);
+      i = (MEMALIGN - dtmp)/sizeof(int32_t);
       if (i <= num)
       {
          num -= i;
@@ -488,7 +476,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
    /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
    if (dtmp && num)
    {
-      i = (0x20 - dtmp)/sizeof(int32_t);
+      i = (MEMALIGN - dtmp)/sizeof(int32_t);
       if (i <= num)
       {
          num -= i;
@@ -583,7 +571,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
    tmp = (size_t)d & MEMMASK;
    if (tmp)
    {
-      i = (0x20 - tmp);
+      i = (MEMALIGN - tmp);
       num -= i;
 
       memcpy(d, s, i);
