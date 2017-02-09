@@ -1541,11 +1541,9 @@ _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin
    if (i)
    {
 #if 1
-      __m128 samp, nsamp, dsamp;
-
-      samp = _mm_load_ss(sptr++);       // n
-      nsamp = _mm_load_ss(sptr++);      // (n+1)
-      dsamp = _mm_sub_ss(nsamp, samp);  // (n+1) - n
+      __m128 samp = _mm_load_ss(sptr++);       // n
+      __m128 nsamp = _mm_load_ss(sptr++);      // (n+1)
+      __m128 dsamp = _mm_sub_ss(nsamp, samp);  // (n+1) - n
 
       do
       {
