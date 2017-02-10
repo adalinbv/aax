@@ -596,6 +596,158 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    }
 }
 
+void
+_batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
+{
+   if (!num || f == 0.0f) return;
+
+   if (bps == 4)
+   {
+      float32_ptr d = (float32_ptr)data;
+      size_t i, step, dtmp;
+
+      dtmp = (size_t)d & MEMMASK16;
+      /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
+      if (dtmp && num)
+      {
+         i = (MEMALIGN16 - dtmp)/sizeof(float);
+         if (i <= num)
+         {
+            num -= i;
+            do {
+               *d++ *=  f;
+            } while(--i);
+         }
+      }
+
+      step = 8*sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      num -= i*step;
+      if (i)
+      {
+         __m128* dptr = (__m128*)d;
+         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+         __m128 tv = _mm_set1_ps(f);
+
+         do
+         {
+            _mm_prefetch(((char *)d)+CACHE_ADVANCE_MUL, _MM_HINT_NTA);
+
+            xmm0 = _mm_load_ps((const float*)(dptr+0));
+            xmm1 = _mm_load_ps((const float*)(dptr+1));
+            xmm2 = _mm_load_ps((const float*)(dptr+2));
+            xmm3 = _mm_load_ps((const float*)(dptr+3));
+            xmm4 = _mm_load_ps((const float*)(dptr+4));
+            xmm5 = _mm_load_ps((const float*)(dptr+5));
+            xmm6 = _mm_load_ps((const float*)(dptr+6));
+            xmm7 = _mm_load_ps((const float*)(dptr+7));
+
+            xmm0 = _mm_mul_ps(xmm0, tv);
+            xmm1 = _mm_mul_ps(xmm1, tv);
+            xmm2 = _mm_mul_ps(xmm2, tv);
+            xmm3 = _mm_mul_ps(xmm3, tv);
+            xmm4 = _mm_mul_ps(xmm4, tv);
+            xmm5 = _mm_mul_ps(xmm5, tv);
+            xmm6 = _mm_mul_ps(xmm6, tv);
+            xmm7 = _mm_mul_ps(xmm7, tv);
+
+            d += step;
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+            _mm_store_ps((float*)dptr++, xmm2);
+            _mm_store_ps((float*)dptr++, xmm3);
+            _mm_store_ps((float*)dptr++, xmm4);
+            _mm_store_ps((float*)dptr++, xmm5);
+            _mm_store_ps((float*)dptr++, xmm6);
+            _mm_store_ps((float*)dptr++, xmm7);
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ *= f;
+         } while(--i);
+      }
+   }
+   else
+   {
+      double64_ptr d = (double64_ptr)data;
+      size_t i, step, dtmp;
+
+      dtmp = (size_t)d & MEMMASK16;
+      if (dtmp && num)
+      {
+         i = (MEMALIGN16 - dtmp)/sizeof(double);
+         if (i <= num)
+         {
+            num -= i;
+            do {
+               *d++ *=  f;
+            } while(--i);
+         }
+      }
+
+      step = 4*sizeof(__m128d)/sizeof(double);
+
+      i = num/step;
+      num -= i*step;
+      if (i)
+      {
+         __m128d* dptr = (__m128d*)d;
+         __m128d xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+         __m128d tv = _mm_set1_pd(f);
+
+         do
+         {
+            _mm_prefetch(((char *)d)+CACHE_ADVANCE_MUL, _MM_HINT_NTA);
+
+            xmm0 = _mm_load_pd((const double*)(dptr+0));
+            xmm1 = _mm_load_pd((const double*)(dptr+1));
+            xmm2 = _mm_load_pd((const double*)(dptr+2));
+            xmm3 = _mm_load_pd((const double*)(dptr+3));
+            xmm4 = _mm_load_pd((const double*)(dptr+4));
+            xmm5 = _mm_load_pd((const double*)(dptr+5));
+            xmm6 = _mm_load_pd((const double*)(dptr+6));
+            xmm7 = _mm_load_pd((const double*)(dptr+7));
+
+            xmm0 = _mm_mul_pd(xmm0, tv);
+            xmm1 = _mm_mul_pd(xmm1, tv);
+            xmm2 = _mm_mul_pd(xmm2, tv);
+            xmm3 = _mm_mul_pd(xmm3, tv);
+            xmm4 = _mm_mul_pd(xmm4, tv);
+            xmm5 = _mm_mul_pd(xmm5, tv);
+            xmm6 = _mm_mul_pd(xmm6, tv);
+            xmm7 = _mm_mul_pd(xmm7, tv);
+
+            d += step;
+
+            _mm_store_pd((double*)dptr++, xmm0);
+            _mm_store_pd((double*)dptr++, xmm1);
+            _mm_store_pd((double*)dptr++, xmm2);
+            _mm_store_pd((double*)dptr++, xmm3);
+            _mm_store_pd((double*)dptr++, xmm4);
+            _mm_store_pd((double*)dptr++, xmm5);
+            _mm_store_pd((double*)dptr++, xmm6);
+            _mm_store_pd((double*)dptr++, xmm7);
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ *= f;
+         } while(--i);
+      }
+   }
+}
+
 
 void
 _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
@@ -660,6 +812,11 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          xmm4 = _mm_load_ps((const float*)sptr++);
          xmm5 = _mm_load_ps((const float*)sptr++);
 
+         xmm2 = _mm_load_ps((const float*)dptr);
+         xmm3 = _mm_load_ps((const float*)(dptr+1));
+         xmm6 = _mm_load_ps((const float*)(dptr+2));
+         xmm7 = _mm_load_ps((const float*)(dptr+3));
+
          xmm0 = _mm_mul_ps(xmm0, tv);
          xmm1 = _mm_mul_ps(xmm1, tv);
          xmm4 = _mm_mul_ps(xmm4, tv);
@@ -667,11 +824,6 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
          s += step;
          d += step;
-
-         xmm2 = _mm_load_ps((const float*)dptr);
-         xmm3 = _mm_load_ps((const float*)(dptr+1));
-         xmm6 = _mm_load_ps((const float*)(dptr+2));
-         xmm7 = _mm_load_ps((const float*)(dptr+3));
 
          xmm2 = _mm_add_ps(xmm2, xmm0);
          xmm3 = _mm_add_ps(xmm3, xmm1);

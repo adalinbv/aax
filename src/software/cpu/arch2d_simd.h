@@ -121,6 +121,7 @@ char* _aax_malloc_aligned(char**, size_t);
 /* SSE2*/
 void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
+void _batch_fmul_value_sse2(void*, unsigned, size_t, float);
 void _batch_imadd_sse2(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_sse2(int32_ptr, const_int32_ptr, int, size_t, void*);

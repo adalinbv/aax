@@ -358,6 +358,7 @@ _aaxGetSIMDSupportString()
       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
 #  if RB_FLOAT_DATA
+      _batch_fmul_value = _batch_fmul_value_sse2;
       _batch_fmadd = _batch_fmadd_sse2;
       _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
@@ -376,7 +377,7 @@ _aaxGetSIMDSupportString()
       vec3fDotProduct = _vec3fDotProduct_sse3;
       vec4fMatrix4 = _vec4fMatrix4_sse3;
       _batch_imul_value = _batch_imul_value_sse3;
-      _batch_fmul_value = _batch_fmul_value_sse3;
+//    _batch_fmul_value = _batch_fmul_value_sse3;
 
 #  if RB_FLOAT_DATA
 //    _batch_resample_float = _batch_resample_float_sse3;
