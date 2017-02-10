@@ -1522,6 +1522,8 @@ _aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmi
 #endif
 
 // https://github.com/depp/libfresample, BSD license
+// http://www.earlevel.com/main/2007/07/03/sample-rate-conversion/
+// https://en.wikipedia.org/wiki/Hermite_interpolation
 static inline void
 _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
@@ -1586,6 +1588,7 @@ _aaxBufResampleLinear_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin
    }
 }
 
+// https://en.wikipedia.org/wiki/Cubic_Hermite_spline
 static inline void
 _aaxBufResampleCubic_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
