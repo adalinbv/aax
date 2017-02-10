@@ -66,7 +66,7 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
          __m128 mul = _mm_set1_ps((float)(1<<23));
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0 = _mm_load_ps((const float*)sptr++);
             xmm1 = _mm_load_ps((const float*)sptr++);
@@ -155,7 +155,7 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
          __m128 xmm0, xmm1, xmm2, xmm3;
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0 = _mm_load_ps((const float*)sptr++);
             xmm1 = _mm_load_ps((const float*)sptr++);
@@ -214,7 +214,7 @@ _batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
          __m128 mul = _mm_set1_ps(1.0f/(float)(1<<23));
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0i = _mm_load_si128(sptr++);
             xmm1i = _mm_load_si128(sptr++);
@@ -306,7 +306,7 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
          __m128 xmm4, xmm5, xmm6, xmm7;
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0i = _mm_load_si128(sptr++);
             xmm1i = _mm_load_si128(sptr++);
@@ -383,7 +383,7 @@ _batch_iadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num)
 
       do
       {
-//       _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
@@ -469,7 +469,7 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
 
       do
       {
-//       _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
@@ -558,8 +558,8 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 
       do
       {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          xmm0 = _mm_load_ps((const float*)sptr++);
          xmm1 = _mm_load_ps((const float*)sptr++);
@@ -652,8 +652,8 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
       do
       {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          xmm0 = _mm_load_ps((const float*)sptr++);
          xmm1 = _mm_load_ps((const float*)sptr++);
@@ -741,7 +741,7 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128i *sptr = (__m128i *)s;
 
       do {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
          if (tmp) {
             xmm0 = _mm_loadu_si128(sptr++);
@@ -821,7 +821,7 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       sptr = (__m128i *)s;
       do
       {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
          xmm0 = _mm_load_si128(sptr++);
          xmm1 = _mm_load_si128(sptr++);
@@ -930,8 +930,8 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
       dptr = (__m128i *)d;
       do
       {
-//       _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
+         _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
 
          xmm0 = _mm_load_si128(sptr1++);
          xmm4 = _mm_load_si128(sptr1++);
@@ -1188,7 +1188,7 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
       {
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
             xmm0 = _mm_loadu_si128(sptr++);
             xmm1 = _mm_loadu_si128(sptr++);
@@ -1214,7 +1214,7 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
       {
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
+            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
             xmm0 = _mm_load_si128(sptr++);
             xmm1 = _mm_load_si128(sptr++);
