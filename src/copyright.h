@@ -1,14 +1,3 @@
-/*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2007-2017 by Adalin B.V.
- * All Rights Reserved.
- *
- * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
- * the contents of this file may not be disclosed to third parties, copied or
- * duplicated in any form, in whole or in part, without the prior written
- * permission of Adalin B.V.
- */
-
 unsigned char COPYING[] = {
   0x4c, 0x69, 0x63, 0x65, 0x6e, 0x73, 0x65, 0x20, 0x46, 0x6f, 0x72, 0x20,
   0x43, 0x75, 0x73, 0x74, 0x6f, 0x6d, 0x65, 0x72, 0x20, 0x55, 0x73, 0x65,
