@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2005-2013 by Erik Hofman.
- * Copyright (C) 2007-2013 by Adalin B.V.
+ * Copyright (C) 2005-2017 by Erik Hofman.
+ * Copyright (C) 2007-2017 by Adalin B.V.
  *
  * This file is part of AeonWave-OpenAL.
  *
