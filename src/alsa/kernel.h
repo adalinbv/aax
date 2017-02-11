@@ -1,13 +1,13 @@
 /*
-   * Copyright 2005-2014 by Erik Hofman.
-   * Copyright 2009-2014 by Adalin B.V.
-   * All Rights Reserved.
-   *
-   * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
-   * the contents of this file may not be disclosed to third parties, copied or
-   * duplicated in any form, in whole or in part, without the prior written
-   * permission of Adalin B.V.
-   */
+ * Copyright 2005-2017 by Erik Hofman.
+ * Copyright 2009-2017 by Adalin B.V.
+ * All Rights Reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
+ * the contents of this file may not be disclosed to third parties, copied or
+ * duplicated in any form, in whole or in part, without the prior written
+ * permission of Adalin B.V.
+ */
 
 #ifndef _ALSA_KERNEL_H
 #define _ALSA_KERNEL_H 1

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2014 by Adalin B.V.
+ * Copyright 2007-2017 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;

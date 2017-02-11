@@ -1,6 +1,6 @@
  /*
- * Copyright 2007-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2007-2017 by Erik Hofman.
+ * Copyright 2009-2017 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -1294,15 +1294,25 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
 }
 
 void
-_bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize)
+_bufFillInterleaved(_aaxRingBuffer *rb, const void *dbuf, unsigned blocksize)
 {
    unsigned int fmt, bps, no_samples, no_tracks, tracksize;
+   const char *env = getenv("AAX_USE_MIXER_FMT");
+   char to_mixer = AAX_FALSE;
+   void **ndata = NULL;
+   const void* data;
    int32_t **tracks;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != 0);
-   assert(data != 0);
+   assert(dbuf != 0);
+
+   data = dbuf;
+
+   if (env && _aax_getbool(env)) {
+      to_mixer = AAX_TRUE;
+   }
 
    rb->set_state(rb, RB_CLEARED);
 
@@ -1329,6 +1339,21 @@ _bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize)
       _batch_cvt24_pd_intl(tracks, data, 0, no_tracks, no_samples);
       break;
    default:
+      if (to_mixer)
+      {
+         unsigned int buf_samples = no_tracks*no_samples;
+         char *ptr;
+
+         ptr = (char*)sizeof(void*);
+         ndata = (void**)_aax_malloc(&ptr, buf_samples*sizeof(int32_t));
+         if (ndata)
+         {
+            *ndata = (void*)ptr;
+            _bufConvertDataToPCM24S(*ndata, (void*)data, buf_samples, fmt);
+            data = ptr;
+         }
+      }
+
       if (no_tracks == 1) {
          _aax_memcpy(tracks[0], data, tracksize);
       }
@@ -1355,6 +1380,13 @@ _bufFillInterleaved(_aaxRingBuffer *rb, const void *data, unsigned blocksize)
          }
       }
    } /* switch */
+
+   if (to_mixer)
+   {
+      free(ndata);
+//    rb->set_parami(rb, RB_IS_MIXER_BUFFER, AAX_TRUE);
+   }
+
    rb->release_tracks_ptr(rb);
 }
 
