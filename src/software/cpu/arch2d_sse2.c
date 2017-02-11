@@ -692,7 +692,7 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          }
       }
 
-      step = 4*sizeof(__m128d)/sizeof(double);
+      step = 8*sizeof(__m128d)/sizeof(double);
 
       i = num/step;
       num -= i*step;
