@@ -32,7 +32,7 @@
 
 
 static aaxEffect
-_aaxPitchEffectCreate(_handle_t *handle, enum aaxEffectType type)
+_aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* eff = calloc(1, size);
@@ -59,21 +59,52 @@ _aaxPitchEffectCreate(_handle_t *handle, enum aaxEffectType type)
 }
 
 static int
-_aaxPitchEffectDestroy(_effect_t* effect)
+_aaxImpulseResponseEffectDestroy(_effect_t* effect)
 {
+   void* data = effect->slot[0]->data;
+   if (data) _aaxRingBufferFree(data);
+   effect->slot[0]->data = NULL;
    free(effect);
 
    return AAX_TRUE;
 }
 
 static aaxEffect
-_aaxPitchEffectSetState(_effect_t* effect, int state)
+_aaxImpulseResponseEffectSetState(_effect_t* effect, int state)
 {
-   return effect;
+   void *handle = effect->handle;
+   aaxEffect rv = AAX_FALSE;
+
+   switch (state & ~AAX_INVERSE)
+   {
+   case AAX_CONSTANT_VALUE:
+   {
+      break;
+   }
+   case AAX_FALSE:
+      break;
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      break;
+   }
+   rv = effect;
+   return rv;
 }
 
-static _effect_t*
-_aaxNewPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+static aaxEffect
+_aaxImpulseResponseEffectSetData(_effect_t* effect, void* data)
+{
+   void *handle = effect->handle;
+   aaxEffect rv = AAX_FALSE;
+   if (data)
+   {
+      effect->slot[0]->data = data;
+   }
+   return rv;
+}
+
+_effect_t*
+_aaxNewImpulseResponseEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* rv = calloc(1, size);
@@ -100,49 +131,49 @@ _aaxNewPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2d
 }
 
 static float
-_aaxPitchEffectSet(float val, int ptype, unsigned char param)
-{
+_aaxImpulseResponseEffectSet(float val, int ptype, unsigned char param)
+{  
+   float rv = val;
+   return rv;
+}
+   
+static float
+_aaxImpulseResponseEffectGet(float val, int ptype, unsigned char param)
+{  
    float rv = val;
    return rv;
 }
 
 static float
-_aaxPitchEffectGet(float val, int ptype, unsigned char param)
+_aaxImpulseResponseEffectMinMax(float val, int slot, unsigned char param)
 {
-   float rv = val;
-   return rv;
-}
-
-static float
-_aaxPitchEffectMinMax(float val, int slot, unsigned char param)
-{
-   static const _eff_minmax_tbl_t _aaxPitchRange[_MAX_FE_SLOTS] =
+   static const _eff_minmax_tbl_t _aaxImpulseResponseRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 2.0f, 2.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
    };
-
+   
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-
-   return _MINMAX(val, _aaxPitchRange[slot].min[param],
-                       _aaxPitchRange[slot].max[param]);
+   
+   return _MINMAX(val, _aaxImpulseResponseRange[slot].min[param],
+                       _aaxImpulseResponseRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
 
-_eff_function_tbl _aaxPitchEffect =
+_eff_function_tbl _aaxImpulseResponseEffect =
 {
    AAX_TRUE,
-   "AAX_pitch_effect", 1.0f,
-   (_aaxEffectCreate*)&_aaxPitchEffectCreate,
-   (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,
-   (_aaxEffectSetState*)&_aaxPitchEffectSetState,
-   NULL,
-   (_aaxNewEffectHandle*)&_aaxNewPitchEffectHandle,
-   (_aaxEffectConvert*)&_aaxPitchEffectSet,
-   (_aaxEffectConvert*)&_aaxPitchEffectGet,
-   (_aaxEffectConvert*)&_aaxPitchEffectMinMax
+   "AAX_impulse_reponse_effect", 1.0f,
+   (_aaxEffectCreate*)&_aaxImpulseResponseEffectCreate,
+   (_aaxEffectDestroy*)&_aaxImpulseResponseEffectDestroy,
+   (_aaxEffectSetState*)&_aaxImpulseResponseEffectSetState,
+   (_aaxEffectSetData*)&_aaxImpulseResponseEffectSetData,
+   (_aaxNewEffectHandle*)&_aaxNewImpulseResponseEffectHandle,
+   (_aaxEffectConvert*)&_aaxImpulseResponseEffectSet,
+   (_aaxEffectConvert*)&_aaxImpulseResponseEffectGet,
+   (_aaxEffectConvert*)&_aaxImpulseResponseEffectMinMax
 };
 

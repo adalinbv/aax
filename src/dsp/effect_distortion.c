@@ -205,6 +205,7 @@ _eff_function_tbl _aaxDistortionEffect =
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
    (_aaxEffectSetState*)&_aaxDistortionEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewDistortionEffectHandle,
    (_aaxEffectConvert*)&_aaxDistortionEffectSet,
    (_aaxEffectConvert*)&_aaxDistortionEffectGet,

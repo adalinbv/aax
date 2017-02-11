@@ -30,6 +30,7 @@
 
 #include "api.h"
 #include "arch.h"
+#include "ringbuffer.h"
 
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
@@ -143,6 +144,46 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxEffectAddBuffer(aaxEffect e, aaxBuffer b)
+{
+   _effect_t* effect = get_effect(e);
+   _buffer_t* buffer = get_buffer(b, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      void *handle = effect ? effect->handle : NULL;
+      if (!effect) {
+         __aaxErrorSet(AAX_INVALID_HANDLE, __func__);
+      } else if (!buffer) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+      else
+      {
+         _aaxRingBuffer *rb = buffer->ringbuffer;
+         if (!rb->get_state(rb, RB_IS_VALID)) {
+            _aaxErrorSet(AAX_INVALID_STATE+1);
+         } else if (rb->get_parami(rb, RB_NO_TRACKS) != 1) {
+            _aaxErrorSet(AAX_INVALID_STATE+1);
+         } else {
+            rv = AAX_TRUE;
+         }
+      }
+   }
+
+   if (rv)
+   {
+      _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+      if (eff->data)
+      {
+         _aaxRingBuffer *rb = buffer->ringbuffer;
+         eff->data(effect, rb->reference(rb));
+         buffer->ref_counter++;
+      }
+   }
+   return rv;
+}
 
 AAX_API aaxEffect AAX_APIENTRY
 aaxEffectSetState(aaxEffect e, int state)

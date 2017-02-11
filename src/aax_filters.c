@@ -140,6 +140,12 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxFilterAddBuffer(aaxFilter f, aaxBuffer b)
+{
+   return AAX_FALSE;
+}
+
 AAX_API aaxFilter AAX_APIENTRY
 aaxFilterSetState(aaxFilter f, int state)
 {

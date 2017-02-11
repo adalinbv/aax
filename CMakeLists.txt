@@ -460,6 +460,7 @@ SET( AEONWAVE_OBJS
      src/dsp/effect_phasing.c
      src/dsp/effect_pitch.c
      src/dsp/effect_reverb.c
+     src/dsp/effect_impilse_response.c
      src/dsp/effect_timed_pitch.c
      src/dsp/effect_velocity.c
      src/dsp/filter_angular.c

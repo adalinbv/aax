@@ -238,6 +238,7 @@ _eff_function_tbl _aaxDynamicPitchEffect =
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxDynamicPitchEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewDynamicPitchEffectHandle,
    (_aaxEffectConvert*)&_aaxDynamicPitchEffectSet,
    (_aaxEffectConvert*)&_aaxDynamicPitchEffectGet,
