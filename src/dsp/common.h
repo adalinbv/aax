@@ -38,6 +38,7 @@ enum _aax3dFiltersEffects
 
     /* 3d effects */
     VELOCITY_EFFECT = 0,        /* Doppler               */
+    IMPULSE_RESPONSE_EFFECT,
     MAX_3D_EFFECT,
 };
 

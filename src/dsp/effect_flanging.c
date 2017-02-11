@@ -300,6 +300,7 @@ _eff_function_tbl _aaxFlangingEffect =
    (_aaxEffectCreate*)&_aaxFlangingEffectCreate,
    (_aaxEffectDestroy*)&_aaxFlangingEffectDestroy,
    (_aaxEffectSetState*)&_aaxFlangingEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewFlangingEffectHandle,
    (_aaxEffectConvert*)&_aaxFlangingEffectSet,
    (_aaxEffectConvert*)&_aaxFlangingEffectGet,

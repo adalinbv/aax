@@ -258,6 +258,7 @@ _eff_function_tbl _aaxTimedPitchEffect =
    (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxTimedPitchEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewTimedPitchEffectHandle,
    (_aaxEffectConvert*)&_aaxTimedPitchEffectSet,
    (_aaxEffectConvert*)&_aaxTimedPitchEffectGet,

@@ -63,7 +63,7 @@ void _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 float _vec3fMagnitude_sse3(const vec3f_ptr v);
 float _vec3fMagnitudeSquared_sse3(const vec3f_ptr v);
 float _vec3fDotProduct_sse3(const vec3f_ptr v1, const vec3f_ptr v2);
-void _vec4fMatrix4_sse3(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m);
+void _vec4fMatrix4_sse3(vec4f_ptr d, const vec4f_ptr pv, const mtx4f_ptr m);
 
 /* SSE4 */
 float _vec3fMagnitude_sse41(const vec3f_ptr v);

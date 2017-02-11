@@ -361,6 +361,7 @@ enum aaxEffectType
    AAX_FLANGING_EFFECT,
    AAX_VELOCITY_EFFECT,
    AAX_REVERB_EFFECT,
+   AAX_IMPULSE_RESPONSE_EFFECT,
    AAX_EFFECT_MAX
 };
 
@@ -771,7 +772,7 @@ AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, const aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlot(aaxFilter, unsigned, int, float, float, float, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetState(aaxFilter, int);
-
+AAX_API int AAX_APIENTRY aaxFilterAddBuffer(aaxFilter, aaxBuffer);
 AAX_API float AAX_APIENTRY aaxFilterGetParam(const aaxFilter, int, int);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterGetSlotParams(const aaxFilter, unsigned, int, aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterGetSlot(const aaxFilter, unsigned, int, float*, float*, float*, float*);
@@ -804,6 +805,7 @@ AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, const aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlot(aaxEffect, unsigned, int, float, float, float, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetState(aaxEffect, int);
+AAX_API int AAX_APIENTRY aaxEffectAddBuffer(aaxEffect, aaxBuffer);
 AAX_API float AAX_APIENTRY aaxEffectGetParam(const aaxEffect, int , int);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectGetSlotParams(const aaxEffect, unsigned, int, aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectGetSlot(const aaxEffect, unsigned, int, float*, float*, float*, float*);

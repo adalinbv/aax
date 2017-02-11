@@ -298,6 +298,7 @@ _eff_function_tbl _aaxChorusEffect =
    (_aaxEffectCreate*)&_aaxChorusEffectCreate,
    (_aaxEffectDestroy*)&_aaxChorusEffectDestroy,
    (_aaxEffectSetState*)&_aaxChorusEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewChorusEffectHandle,
    (_aaxEffectConvert*)&_aaxChorusEffectSet,
    (_aaxEffectConvert*)&_aaxChorusEffectGet,

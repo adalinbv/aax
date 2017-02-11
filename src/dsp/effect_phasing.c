@@ -297,6 +297,7 @@ _eff_function_tbl _aaxPhasingEffect =
    (_aaxEffectCreate*)&_aaxPhasingEffectCreate,
    (_aaxEffectDestroy*)&_aaxPhasingEffectDestroy,
    (_aaxEffectSetState*)&_aaxPhasingEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewPhasingEffectHandle,
    (_aaxEffectConvert*)&_aaxPhasingEffectSet,
    (_aaxEffectConvert*)&_aaxPhasingEffectGet,

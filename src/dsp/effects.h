@@ -69,6 +69,7 @@ extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 typedef aaxEffect _aaxEffectCreate(_handle_t*, enum aaxEffectType);
 typedef int _aaxEffectDestroy(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
+typedef aaxEffect _aaxEffectSetData(_effect_t*, void*);
 typedef _effect_t* _aaxNewEffectHandle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 typedef float _aaxEffectConvert(float, int, unsigned char);
 
@@ -80,6 +81,7 @@ typedef struct
    _aaxEffectCreate *create;
    _aaxEffectDestroy *destroy;
    _aaxEffectSetState *state;
+   _aaxEffectSetData *data;
    _aaxNewEffectHandle *handle;
 
    _aaxEffectConvert *set;
@@ -97,6 +99,7 @@ extern _eff_function_tbl _aaxChorusEffect;
 extern _eff_function_tbl _aaxFlangingEffect;
 extern _eff_function_tbl _aaxVelocityEffect;
 extern _eff_function_tbl _aaxReverbEffect;
+extern _eff_function_tbl _aaxImpulseResponseEffect;
 extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 
 /* effects */

@@ -140,6 +140,7 @@ _eff_function_tbl _aaxVelocityEffect =
    (_aaxEffectCreate*)&_aaxVelocityEffectCreate,
    (_aaxEffectDestroy*)&_aaxVelocityEffectDestroy,
    (_aaxEffectSetState*)&_aaxVelocityEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewVelocityEffectHandle,
    (_aaxEffectConvert*)&_aaxVelocityEffectSet,
    (_aaxEffectConvert*)&_aaxVelocityEffectGet,

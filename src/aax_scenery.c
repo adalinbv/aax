@@ -199,12 +199,11 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
+            _aax3dProps *p3d = mixer->props3d;
             int type = effect->pos;
             switch (effect->type)
             {
             case AAX_VELOCITY_EFFECT:
-            {
-               _aax3dProps *p3d = mixer->props3d;
                _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
                _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
@@ -213,7 +212,11 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
                rv = AAX_TRUE;
                break;
-            }
+            case AAX_IMPULSE_RESPONSE_EFFECT:
+               _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
+               _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
+               rv = AAX_TRUE;
+               break;
             default:
                _aaxErrorSet(AAX_INVALID_ENUM);
             }
@@ -238,6 +241,7 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
       switch(type)
       {
       case AAX_VELOCITY_EFFECT:
+      case AAX_IMPULSE_RESPONSE_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {

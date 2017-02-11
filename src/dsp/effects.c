@@ -33,7 +33,8 @@ _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
    &_aaxChorusEffect,
    &_aaxFlangingEffect,
    &_aaxVelocityEffect,
-   &_aaxReverbEffect
+   &_aaxReverbEffect,
+   &_aaxImpulseResponseEffect
 };
 
 _effect_t*

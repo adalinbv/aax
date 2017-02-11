@@ -250,6 +250,7 @@ _eff_function_tbl _aaxReverbEffect =
    (_aaxEffectCreate*)&_aaxReverbEffectCreate,
    (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
    (_aaxEffectSetState*)&_aaxReverbEffectSetState,
+   NULL,
    (_aaxNewEffectHandle*)&_aaxNewReverbEffectHandle,
    (_aaxEffectConvert*)&_aaxReverbEffectSet,
    (_aaxEffectConvert*)&_aaxReverbEffectGet,
