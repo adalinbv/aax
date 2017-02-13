@@ -54,41 +54,32 @@ _batch_cvt24_ps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       __m128* sptr = (__m128*)s;
       size_t i, step;
 
-      step = 4*sizeof(__m128)/sizeof(float);
+      step = 6*sizeof(__m128)/sizeof(float);
 
       i = num/step;
-      num -= i*step;
       if (i)
       {
-         __m128i xmm4i, xmm5i, xmm6i, xmm7i;
-         __m128 xmm0, xmm1, xmm2, xmm3;
+         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
          __m128 mul = _mm_set1_ps((float)(1<<23));
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
+            xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
+            xmm2 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
+            xmm3 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
+            xmm4 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
+            xmm5 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
 
-            xmm0 = _mm_load_ps((const float*)sptr++);
-            xmm1 = _mm_load_ps((const float*)sptr++);
-            xmm2 = _mm_load_ps((const float*)sptr++);
-            xmm3 = _mm_load_ps((const float*)sptr++);
-
-            xmm0 = _mm_mul_ps(xmm0, mul);
-            xmm1 = _mm_mul_ps(xmm1, mul);
-            xmm2 = _mm_mul_ps(xmm2, mul);
-            xmm3 = _mm_mul_ps(xmm3, mul);
-
-            xmm4i = _mm_cvtps_epi32(xmm0);
-            xmm5i = _mm_cvtps_epi32(xmm1);
-            xmm6i = _mm_cvtps_epi32(xmm2);
-            xmm7i = _mm_cvtps_epi32(xmm3);
-
-            d += step;
-            s += step;
-
-            _mm_store_si128(dptr++, xmm4i);
-            _mm_store_si128(dptr++, xmm5i);
-            _mm_store_si128(dptr++, xmm6i);
-            _mm_store_si128(dptr++, xmm7i);
+            _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm0));
+            _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm1));
+            _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm2));
+            _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm3));
+            _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm4));
+            _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm5));
          }
          while(--i);
       }
@@ -144,31 +135,27 @@ _batch_cvt24_ps24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       __m128i *dptr = (__m128i*)d;
       __m128* sptr = (__m128*)s;
 
-      step = 4*sizeof(__m128)/sizeof(float);
+      step = 6*sizeof(__m128)/sizeof(float);
 
       i = num/step;
-      num -= i*step;
       if (i)
       {
-         __m128i xmm4i, xmm5i, xmm6i, xmm7i;
-         __m128 xmm0, xmm1, xmm2, xmm3;
+         __m128i xmm2i, xmm3i, xmm4i, xmm5i, xmm6i, xmm7i;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            xmm2i = _mm_cvtps_epi32(_mm_load_ps((const float*)sptr++));
+            xmm3i = _mm_cvtps_epi32(_mm_load_ps((const float*)sptr++));
+            xmm4i = _mm_cvtps_epi32(_mm_load_ps((const float*)sptr++));
+            xmm5i = _mm_cvtps_epi32(_mm_load_ps((const float*)sptr++));
+            xmm6i = _mm_cvtps_epi32(_mm_load_ps((const float*)sptr++));
+            xmm7i = _mm_cvtps_epi32(_mm_load_ps((const float*)sptr++));
 
-            xmm0 = _mm_load_ps((const float*)sptr++);
-            xmm1 = _mm_load_ps((const float*)sptr++);
-            xmm2 = _mm_load_ps((const float*)sptr++);
-            xmm3 = _mm_load_ps((const float*)sptr++);
-
-            xmm4i = _mm_cvtps_epi32(xmm0);
-            xmm5i = _mm_cvtps_epi32(xmm1);
-            xmm6i = _mm_cvtps_epi32(xmm2);
-            xmm7i = _mm_cvtps_epi32(xmm3);
-
-            d += step;
-            s += step;
-
+            _mm_store_si128(dptr++, xmm2i);
+            _mm_store_si128(dptr++, xmm3i);
             _mm_store_si128(dptr++, xmm4i);
             _mm_store_si128(dptr++, xmm5i);
             _mm_store_si128(dptr++, xmm6i);
@@ -230,31 +217,27 @@ _batch_cvtps24_24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       __m128i* sptr = (__m128i*)s;
       __m128 *dptr = (__m128*)d;
 
-      step = 4*sizeof(__m128i)/sizeof(int32_t);
+      step = 6*sizeof(__m128i)/sizeof(int32_t);
 
       i = num/step;
-      num -= i*step;
       if (i)
       {
-         __m128i xmm0i, xmm1i, xmm2i, xmm3i;
-         __m128 xmm4, xmm5, xmm6, xmm7;
+         __m128 xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
          do
          {
-//          _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            xmm2 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
+            xmm3 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
+            xmm4 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
+            xmm5 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
+            xmm6 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
+            xmm7 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
 
-            xmm0i = _mm_load_si128(sptr++);
-            xmm1i = _mm_load_si128(sptr++);
-            xmm2i = _mm_load_si128(sptr++);
-            xmm3i = _mm_load_si128(sptr++);
-
-            xmm4 = _mm_cvtepi32_ps(xmm0i);
-            xmm5 = _mm_cvtepi32_ps(xmm1i);
-            xmm6 = _mm_cvtepi32_ps(xmm2i);
-            xmm7 = _mm_cvtepi32_ps(xmm3i);
-
-            s += step;
-            d += step;
-
+            _mm_store_ps((float*)dptr++, xmm2);
+            _mm_store_ps((float*)dptr++, xmm3);
             _mm_store_ps((float*)dptr++, xmm4);
             _mm_store_ps((float*)dptr++, xmm5);
             _mm_store_ps((float*)dptr++, xmm6);
@@ -308,28 +291,22 @@ _batch_iadd_sse_vex(int32_ptr dst, const_int32_ptr src, size_t num)
    step = 2*sizeof(__m128i)/sizeof(int32_t);
 
    i = num/step;
-   num -= i*step;
    if (i)
    {
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
-      __m128i xmm0i, xmm3i, xmm4i, xmm7i;
+      __m128i xmm0i, xmm4i;
 
+      num -= i*step;
+      s += i*step;
+      d += i*step;
       do
       {
-//       _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
-         s += step;
-
-         xmm3i = _mm_load_si128(dptr);
-         xmm7i = _mm_load_si128(dptr+1);
-
-         d += step;
-
-         xmm0i = _mm_add_epi32(xmm0i, xmm3i);
-         xmm4i = _mm_add_epi32(xmm4i, xmm7i);
+         xmm0i = _mm_add_epi32(_mm_load_si128(dptr+0), xmm0i);
+         xmm4i = _mm_add_epi32(_mm_load_si128(dptr+1), xmm4i);
 
          _mm_store_si128(dptr++, xmm0i);
          _mm_store_si128(dptr++, xmm4i);
@@ -390,48 +367,38 @@ _batch_imadd_sse_vex(int32_ptr dst, const_int32_ptr src, size_t num, float v, fl
 
    step = 2*sizeof(__m128i)/sizeof(int32_t);
 
-   vstep *= step;				/* 8 samples at a time */
    i = num/step;
-   num -= i*step;
    if (i)
    {
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
-      __m128 tv = _mm_set1_ps(v);
       __m128i xmm0i, xmm3i, xmm4i, xmm7i;
       __m128 xmm1, xmm5;
 
+      vstep *= step;				/* 8 samples at a time */
+      num -= i*step;
+      s += i*step;
+      d += i*step;
       do
       {
-//       _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
-         xmm0i = _mm_load_si128(sptr++);
-         xmm4i = _mm_load_si128(sptr++);
+         __m128 tv = _mm_set1_ps(v);
 
-         xmm1 = _mm_cvtepi32_ps(xmm0i);
-         xmm5 = _mm_cvtepi32_ps(xmm4i);
-
-         s += step;
+         xmm1 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
+         xmm5 = _mm_cvtepi32_ps(_mm_load_si128(sptr++));
 
          xmm1 = _mm_mul_ps(xmm1, tv);
          xmm5 = _mm_mul_ps(xmm5, tv);
 
-         xmm0i = _mm_load_si128(dptr);
-         xmm4i = _mm_load_si128(dptr+1);
-
          xmm3i = _mm_cvtps_epi32(xmm1);
          xmm7i = _mm_cvtps_epi32(xmm5);
 
-         d += step;
-
-         xmm0i = _mm_add_epi32(xmm0i, xmm3i);
-         xmm4i = _mm_add_epi32(xmm4i, xmm7i);
+         xmm0i = _mm_add_epi32(_mm_load_si128(dptr+0), xmm3i);
+         xmm4i = _mm_add_epi32(_mm_load_si128(dptr+1), xmm7i);
 
          v += vstep;
 
          _mm_store_si128(dptr++, xmm0i);
          _mm_store_si128(dptr++, xmm4i);
-
-         tv = _mm_set1_ps(v);
       }
       while(--i);
    }
@@ -473,6 +440,7 @@ _batch_cvt24_16_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       }
    }
 
+#if 0
    step = 2*sizeof(__m128i)/sizeof(int16_t);
 
    tmp = (size_t)s & MEMMASK16;
@@ -516,6 +484,45 @@ _batch_cvt24_16_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       }
       while (--i);
    }
+#else
+   step = 2*sizeof(__m128i)/sizeof(int16_t);
+
+   i = num/step;
+   if (i)
+   {
+      __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
+      __m128i zero = _mm_setzero_si128();
+      __m128i *dptr = (__m128i *)d;
+      __m128i *sptr = (__m128i *)s;
+
+      tmp = (size_t)s & MEMMASK16;
+      num -= i*step;
+
+      s += i*step;
+      d += i*step;
+      do
+      {
+         if (tmp) {
+            xmm0 = _mm_loadu_si128(sptr++);
+            xmm1 = _mm_loadu_si128(sptr++);
+         } else {
+            xmm0 = _mm_load_si128(sptr++);
+            xmm1 = _mm_load_si128(sptr++);
+         }
+
+         xmm2 = _mm_unpacklo_epi16(zero, xmm0);
+         xmm3 = _mm_unpackhi_epi16(zero, xmm0);
+         xmm4 = _mm_unpacklo_epi16(zero, xmm1);
+         xmm5 = _mm_unpackhi_epi16(zero, xmm1);
+
+         _mm_store_si128(dptr++, _mm_srai_epi32(xmm2, 8));
+         _mm_store_si128(dptr++, _mm_srai_epi32(xmm3, 8));
+         _mm_store_si128(dptr++, _mm_srai_epi32(xmm4, 8));
+         _mm_store_si128(dptr++, _mm_srai_epi32(xmm5, 8));
+      }
+      while (--i);
+   }
+#endif
 
    if (num)
    {
@@ -556,41 +563,28 @@ _batch_cvt16_24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
    step = 4*sizeof(__m128i)/sizeof(int32_t);
 
    i = num/step;
-   num -= i*step;
    if (i)
    {
-      __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128i *dptr, *sptr;
+      __m128i xmm2, xmm3, xmm6, xmm7;
+      __m128i *dptr = (__m128i *)d;
+      __m128i *sptr = (__m128i *)s;
 
-      dptr = (__m128i *)d;
-      sptr = (__m128i *)s;
+      num -= i*step;
+      s += i*step;
+      d += i*step;
       do
       {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
-
-         xmm0 = _mm_load_si128(sptr++);
-         xmm1 = _mm_load_si128(sptr++);
-         xmm4 = _mm_load_si128(sptr++);
-         xmm5 = _mm_load_si128(sptr++);
-
-         xmm2 = _mm_srai_epi32(xmm0, 8);
-         xmm3 = _mm_srai_epi32(xmm1, 8);
-         xmm6 = _mm_srai_epi32(xmm4, 8);
-         xmm7 = _mm_srai_epi32(xmm5, 8);
-
-         s += step;
-
-         xmm4 = _mm_packs_epi32(xmm2, xmm3);
-         xmm6 = _mm_packs_epi32(xmm6, xmm7);
-
-         d += step;
+         xmm2 = _mm_srai_epi32(_mm_load_si128(sptr++), 8);
+         xmm3 = _mm_srai_epi32(_mm_load_si128(sptr++), 8);
+         xmm6 = _mm_srai_epi32(_mm_load_si128(sptr++), 8);
+         xmm7 = _mm_srai_epi32(_mm_load_si128(sptr++), 8);
 
          if (tmp) {
-            _mm_storeu_si128(dptr++, xmm4);
-            _mm_storeu_si128(dptr++, xmm6);
+            _mm_storeu_si128(dptr++, _mm_packs_epi32(xmm2, xmm3));
+            _mm_storeu_si128(dptr++, _mm_packs_epi32(xmm6, xmm7));
          } else {
-            _mm_store_si128(dptr++, xmm4);
-            _mm_store_si128(dptr++, xmm6);
+            _mm_store_si128(dptr++, _mm_packs_epi32(xmm2, xmm3));
+            _mm_store_si128(dptr++, _mm_packs_epi32(xmm6, xmm7));
          }
       }
       while (--i);
@@ -660,55 +654,43 @@ _batch_cvt16_intl_24_sse_vex(void_ptr dst, const_int32_ptrptr src,
       while (--i);
    }
 
-   tmp = (size_t)d & MEMMASK16;
    i = num/step;
-   num -= i*step;
    if (i)
    {
       __m128i mask, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128i *dptr, *sptr1, *sptr2;
+      __m128i *sptr1 = (__m128i*)s1;
+      __m128i *sptr2 = (__m128i*)s2;
+      __m128i *dptr = (__m128i *)d;
 
-      sptr1 = (__m128i*)s1;
-      sptr2 = (__m128i*)s2;
 
       mask = _mm_set_epi32(0x00FFFF00, 0x00FFFF00, 0x00FFFF00, 0x00FFFF00);
-      dptr = (__m128i *)d;
+      tmp = (size_t)d & MEMMASK16;
+
+      num -= i*step;
+      s1 += i*step;
+      s2 += i*step;
+      s2 += 2*i*step;
       do
       {
-//       _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-
-         xmm0 = _mm_load_si128(sptr1++);
-         xmm4 = _mm_load_si128(sptr1++);
-         xmm1 = _mm_load_si128(sptr2++);
-         xmm5 = _mm_load_si128(sptr2++);
-
-         xmm2 = _mm_and_si128(xmm0, mask);
-         xmm3 = _mm_and_si128(xmm1, mask);
-         xmm6 = _mm_and_si128(xmm4, mask);
-         xmm7 = _mm_and_si128(xmm5, mask);
-
-         s1 += step;
-         s2 += step;
+         xmm2 = _mm_and_si128(_mm_load_si128(sptr1++), mask);
+         xmm3 = _mm_and_si128(_mm_load_si128(sptr2++), mask);
+         xmm6 = _mm_and_si128(_mm_load_si128(sptr1++), mask);
+         xmm7 = _mm_and_si128(_mm_load_si128(sptr2++), mask);
 
          xmm0 = _mm_srli_epi32(xmm2, 8);
          xmm1 = _mm_slli_epi32(xmm3, 8);
          xmm4 = _mm_srli_epi32(xmm6, 8);
          xmm5 = _mm_slli_epi32(xmm7, 8);
 
-         xmm0 = _mm_or_si128(xmm1, xmm0);
-         xmm4 = _mm_or_si128(xmm5, xmm4);
-
-         d += 2*step;
-
          if (tmp) {
-            _mm_storeu_si128(dptr++, xmm0);
-            _mm_storeu_si128(dptr++, xmm4);
+            _mm_storeu_si128(dptr++, _mm_or_si128(xmm1, xmm0));
+            _mm_storeu_si128(dptr++, _mm_or_si128(xmm5, xmm4));
          } else {
-            _mm_store_si128(dptr++, xmm0);
-            _mm_store_si128(dptr++, xmm4);
+            _mm_store_si128(dptr++, _mm_or_si128(xmm1, xmm0));
+            _mm_store_si128(dptr++, _mm_or_si128(xmm5, xmm4));
          }
-      } while (--i);
+      }
+      while (--i);
    }
 
    if (num)
@@ -759,35 +741,26 @@ _batch_fadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num)
    step = 4*sizeof(__m128)/sizeof(float);
 
    i = num/step;
-   num -= i*step;
    if (i)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 
+      num -= i*step;
+      s += i*step;
+      d += i*step;
       do
       {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-
          xmm0 = _mm_load_ps((const float*)sptr++);
          xmm1 = _mm_load_ps((const float*)sptr++);
          xmm4 = _mm_load_ps((const float*)sptr++);
          xmm5 = _mm_load_ps((const float*)sptr++);
 
-         s += step;
-         d += step;
-
-         xmm2 = _mm_load_ps((const float*)dptr);
-         xmm3 = _mm_load_ps((const float*)(dptr+1));
-         xmm6 = _mm_load_ps((const float*)(dptr+2));
-         xmm7 = _mm_load_ps((const float*)(dptr+3));
-
-         xmm2 = _mm_add_ps(xmm2, xmm0);
-         xmm3 = _mm_add_ps(xmm3, xmm1);
-         xmm6 = _mm_add_ps(xmm6, xmm4);
-         xmm7 = _mm_add_ps(xmm7, xmm5);
+         xmm2 = _mm_add_ps(_mm_load_ps((const float*)(dptr+0)), xmm0);
+         xmm3 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+         xmm6 = _mm_add_ps(_mm_load_ps((const float*)(dptr+2)), xmm4);
+         xmm7 = _mm_add_ps(_mm_load_ps((const float*)(dptr+3)), xmm5);
 
          _mm_store_ps((float*)dptr++, xmm2);
          _mm_store_ps((float*)dptr++, xmm3);
@@ -847,56 +820,97 @@ _batch_fmadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num, float v
       }
    }
 
-   step = 4*sizeof(__m128)/sizeof(float);
+   step = 12*sizeof(__m128)/sizeof(float);
 
-   vstep *= step;                               /* 8 samples at a time */
    i = num/step;
-   num -= i*step;
-   if (i)
+   if (step >= num)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
-      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128 tv = _mm_set1_ps(v);
 
+      vstep *= step;                               /* 8 samples at a time */
+      num -= i*step;
+      s += i*step;
+      d += i*step;
       do
       {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-//       _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         __m128 tv = _mm_set1_ps(v);
+         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+         __m128 xmm8, xmm9, xmm10, xmm11;
 
-         xmm0 = _mm_load_ps((const float*)sptr++);
-         xmm1 = _mm_load_ps((const float*)sptr++);
-         xmm4 = _mm_load_ps((const float*)sptr++);
-         xmm5 = _mm_load_ps((const float*)sptr++);
+         xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm2 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm3 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm4 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm5 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm6 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm7 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
 
-         xmm0 = _mm_mul_ps(xmm0, tv);
-         xmm1 = _mm_mul_ps(xmm1, tv);
-         xmm4 = _mm_mul_ps(xmm4, tv);
-         xmm5 = _mm_mul_ps(xmm5, tv);
+         xmm8 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm9 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm10 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm11 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
 
-         s += step;
-         d += step;
+         xmm0 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
+         xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+         xmm2 = _mm_add_ps(_mm_load_ps((const float*)(dptr+2)), xmm2);
+         xmm3 = _mm_add_ps(_mm_load_ps((const float*)(dptr+3)), xmm3);
+         xmm4 = _mm_add_ps(_mm_load_ps((const float*)(dptr+4)), xmm4);
+         xmm5 = _mm_add_ps(_mm_load_ps((const float*)(dptr+5)), xmm5);
+         xmm6 = _mm_add_ps(_mm_load_ps((const float*)(dptr+6)), xmm6);
+         xmm7 = _mm_add_ps(_mm_load_ps((const float*)(dptr+7)), xmm7);
 
-         xmm2 = _mm_load_ps((const float*)dptr);
-         xmm3 = _mm_load_ps((const float*)(dptr+1));
-         xmm6 = _mm_load_ps((const float*)(dptr+2));
-         xmm7 = _mm_load_ps((const float*)(dptr+3));
-
-         xmm2 = _mm_add_ps(xmm2, xmm0);
-         xmm3 = _mm_add_ps(xmm3, xmm1);
-         xmm6 = _mm_add_ps(xmm6, xmm4);
-         xmm7 = _mm_add_ps(xmm7, xmm5);
+         xmm8 = _mm_add_ps(_mm_load_ps((const float*)(dptr+8)), xmm8);
+         xmm9 = _mm_add_ps(_mm_load_ps((const float*)(dptr+9)), xmm9);
+         xmm10 = _mm_add_ps(_mm_load_ps((const float*)(dptr+10)), xmm10);
+         xmm11 = _mm_add_ps(_mm_load_ps((const float*)(dptr+11)), xmm11);
 
          v += vstep;
 
+         _mm_store_ps((float*)dptr++, xmm0);
+         _mm_store_ps((float*)dptr++, xmm1);
          _mm_store_ps((float*)dptr++, xmm2);
          _mm_store_ps((float*)dptr++, xmm3);
+         _mm_store_ps((float*)dptr++, xmm4);
+         _mm_store_ps((float*)dptr++, xmm5);
          _mm_store_ps((float*)dptr++, xmm6);
          _mm_store_ps((float*)dptr++, xmm7);
 
-         tv = _mm_set1_ps(v);
+         _mm_store_ps((float*)dptr++, xmm8);
+         _mm_store_ps((float*)dptr++, xmm9);
+         _mm_store_ps((float*)dptr++, xmm10);
+         _mm_store_ps((float*)dptr++, xmm11);
       }
       while(--i);
+
+      step = 2*sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         vstep *= step;
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            __m128 xmm0, xmm1;
+            __m128 tv = _mm_set1_ps(v);
+
+            xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+            xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+ 
+            xmm0 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
+            xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+
+            v += vstep;
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+      }
    }
 
    if (num)

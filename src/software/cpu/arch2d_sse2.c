@@ -56,15 +56,15 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
       size_t i, step;
 
       step = 4*sizeof(__m128)/sizeof(float);
-      if (step >= num)
+
+      i = num/step;
+      if (i)
       {
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
          __m128 xmm0, xmm1, xmm2, xmm3;
          __m128 mul = _mm_set1_ps((float)(1<<23));
 
-         i = num/step;
          num -= i*step;
-
          d += i*step;
          s += i*step;
          do
@@ -146,14 +146,14 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128* sptr = (__m128*)s;
 
       step = 4*sizeof(__m128)/sizeof(float);
-      if (step >= num)
+
+      i = num/step;
+      if (i)
       {
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
          __m128 xmm0, xmm1, xmm2, xmm3;
 
-         i = num/step;
          num -= i*step;
-
          s += i*step;
          d += i*step;
          do
@@ -204,16 +204,15 @@ _batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       size_t i, step;
 
       step = 4*sizeof(__m128i)/sizeof(int32_t);
-      if (step >= num)
+
+      i = num/step;
+      if (i)
       {
          __m128i xmm0i, xmm1i, xmm2i, xmm3i;
          __m128 xmm4, xmm5, xmm6, xmm7;
          __m128 mul = _mm_set1_ps(1.0f/(float)(1<<23));
 
-
-         i = num/step;
          num -= i*step;
-
          s += i*step;
          d += i*step;
          do
@@ -298,14 +297,14 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128 *dptr = (__m128*)d;
 
       step = 4*sizeof(__m128i)/sizeof(int32_t);
-      if (step >= num)
+
+      i = num/step;
+      if (i)
       {
          __m128i xmm0i, xmm1i, xmm2i, xmm3i;
          __m128 xmm4, xmm5, xmm6, xmm7;
 
-         i = num/step;
          num -= i*step;
-
          s += i*step;
          d += i*step;
          do
@@ -373,15 +372,15 @@ _batch_iadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num)
    }
 
    step = 2*sizeof(__m128i)/sizeof(int32_t);
-   if (step >= num)
+
+   i = num/step;
+   if (i)
    {
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
       __m128i xmm0i, xmm3i, xmm4i, xmm7i;
 
-      i = num/step;
       num -= i*step;
-
       s += i*step;
       d += i*step;
       do
@@ -455,18 +454,17 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    }
 
    step = 2*sizeof(__m128i)/sizeof(int32_t);
-   if (step >= num)
+
+   i = num/step;
+   if (i)
    {
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
       __m128i xmm0i, xmm3i, xmm4i, xmm7i;
       __m128 xmm1, xmm5;
 
-
-      vstep *= step;				/* 8 samples at a time */
-      i = num/step;
+      vstep *= step;
       num -= i*step;
-
       s += i*step;
       d += i*step;
       do
@@ -613,16 +611,15 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
       }
 
       step = 6*sizeof(__m128)/sizeof(float);
-      if (step >= num)
+
+      i = num/step;
+      if (i)
       {
          __m128* dptr = (__m128*)d;
          __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
          __m128 tv = _mm_set1_ps(f);
 
-
-         i = num/step;
          num -= i*step;
-
          d += i*step;
          do
          {
@@ -672,15 +669,15 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
       }
 
       step = 6*sizeof(__m128d)/sizeof(double);
-      if (step >= num)
+
+      i = num/step;
+      if (i)
       {
          __m128d* dptr = (__m128d*)d;
          __m128d xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
          __m128d tv = _mm_set1_pd(f);
 
-         i = num/step;
          num -= i*step;
-
          d += i*step;
          do
          {
@@ -756,16 +753,15 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    }
 
    step = 6*sizeof(__m128)/sizeof(float);
-   if (step >= num)
+
+   i = num/step;
+   if (i)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
 
-
       vstep *= step;
-      i = num/step;
       num -= i*step;
-
       s += i*step;
       d += i*step;
       do
@@ -875,7 +871,9 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
    }
 
    step = 2*sizeof(__m128i)/sizeof(int16_t);
-   if (step >= num)
+
+   i = num/step;
+   if (i)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i zero = _mm_setzero_si128();
@@ -883,9 +881,7 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128i *sptr = (__m128i *)s;
 
       tmp = (size_t)s & MEMMASK16;
-      i = num/step;
       num -= i*step;
-
       s += i*step;
       d += i*step;
       do
@@ -955,15 +951,15 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    tmp = (size_t)d & MEMMASK16;
 
    step = 4*sizeof(__m128i)/sizeof(int32_t);
-   if (step >= num)
+
+   i = num/step;
+   if (i)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
 
-      i = num/step;
       num -= i*step;
-
       s += i*step;
       d += i*step;
       do
@@ -1058,7 +1054,8 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
       while (--i);
    }
 
-   if (step >= num)
+   i = num/step;
+   if (i)
    {
       __m128i mask, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *sptr1 = (__m128i*)s1;
@@ -1067,9 +1064,8 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
 
       mask = _mm_set_epi32(0x00FFFF00, 0x00FFFF00, 0x00FFFF00, 0x00FFFF00);
       tmp = (size_t)d & MEMMASK16;
-      i = num/step;
-      num -= i*step;
 
+      num -= i*step;
       s1 += i*step;
       s2 += i*step;
       d += 2*i*step;
@@ -1311,16 +1307,16 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
    }
 
    step = 8*sizeof(__m128i)/sizeof(int8_t);
-   if (step >= num)
+
+   i = num/step;
+   if (i)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *sptr = (__m128i*)s;
       __m128i *dptr = (__m128i*)d;
 
       tmp = (size_t)s & MEMMASK16;
-      i = num/step;
       num -= i*step;
-
       s += i*step;
       d += i*step;
       if (tmp)
