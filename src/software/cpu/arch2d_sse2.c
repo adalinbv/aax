@@ -56,17 +56,20 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
       size_t i, step;
 
       step = 4*sizeof(__m128)/sizeof(float);
-
-      i = num/step;
-      num -= i*step;
-      if (i)
+      if (step >= num)
       {
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
          __m128 xmm0, xmm1, xmm2, xmm3;
          __m128 mul = _mm_set1_ps((float)(1<<23));
+
+         i = num/step;
+         num -= i*step;
+
+         d += i*step;
+         s += i*step;
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0 = _mm_load_ps((const float*)sptr++);
             xmm1 = _mm_load_ps((const float*)sptr++);
@@ -82,9 +85,6 @@ _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
             xmm5i = _mm_cvtps_epi32(xmm1);
             xmm6i = _mm_cvtps_epi32(xmm2);
             xmm7i = _mm_cvtps_epi32(xmm3);
-
-            d += step;
-            s += step;
 
             _mm_store_si128(dptr++, xmm4i);
             _mm_store_si128(dptr++, xmm5i);
@@ -146,16 +146,19 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128* sptr = (__m128*)s;
 
       step = 4*sizeof(__m128)/sizeof(float);
-
-      i = num/step;
-      num -= i*step;
-      if (i)
+      if (step >= num)
       {
          __m128i xmm4i, xmm5i, xmm6i, xmm7i;
          __m128 xmm0, xmm1, xmm2, xmm3;
+
+         i = num/step;
+         num -= i*step;
+
+         s += i*step;
+         d += i*step;
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0 = _mm_load_ps((const float*)sptr++);
             xmm1 = _mm_load_ps((const float*)sptr++);
@@ -166,9 +169,6 @@ _batch_cvt24_ps24_sse2(void_ptr dst, const_void_ptr src, size_t num)
             xmm5i = _mm_cvtps_epi32(xmm1);
             xmm6i = _mm_cvtps_epi32(xmm2);
             xmm7i = _mm_cvtps_epi32(xmm3);
-
-            d += step;
-            s += step;
 
             _mm_store_si128(dptr++, xmm4i);
             _mm_store_si128(dptr++, xmm5i);
@@ -204,17 +204,21 @@ _batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       size_t i, step;
 
       step = 4*sizeof(__m128i)/sizeof(int32_t);
-
-      i = num/step;
-      num -= i*step;
-      if (i)
+      if (step >= num)
       {
          __m128i xmm0i, xmm1i, xmm2i, xmm3i;
          __m128 xmm4, xmm5, xmm6, xmm7;
          __m128 mul = _mm_set1_ps(1.0f/(float)(1<<23));
+
+
+         i = num/step;
+         num -= i*step;
+
+         s += i*step;
+         d += i*step;
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0i = _mm_load_si128(sptr++);
             xmm1i = _mm_load_si128(sptr++);
@@ -230,9 +234,6 @@ _batch_cvtps_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
             xmm5 = _mm_mul_ps(xmm5, mul);
             xmm6 = _mm_mul_ps(xmm6, mul);
             xmm7 = _mm_mul_ps(xmm7, mul);
-
-            s += step;
-            d += step;
 
             _mm_store_ps((float*)dptr++, xmm4);
             _mm_store_ps((float*)dptr++, xmm5);
@@ -297,16 +298,19 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
       __m128 *dptr = (__m128*)d;
 
       step = 4*sizeof(__m128i)/sizeof(int32_t);
-
-      i = num/step;
-      num -= i*step;
-      if (i)
+      if (step >= num)
       {
          __m128i xmm0i, xmm1i, xmm2i, xmm3i;
          __m128 xmm4, xmm5, xmm6, xmm7;
+
+         i = num/step;
+         num -= i*step;
+
+         s += i*step;
+         d += i*step;
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+            _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
             xmm0i = _mm_load_si128(sptr++);
             xmm1i = _mm_load_si128(sptr++);
@@ -317,9 +321,6 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
             xmm5 = _mm_cvtepi32_ps(xmm1i);
             xmm6 = _mm_cvtepi32_ps(xmm2i);
             xmm7 = _mm_cvtepi32_ps(xmm3i);
-
-            s += step;
-            d += step;
 
             _mm_store_ps((float*)dptr++, xmm4);
             _mm_store_ps((float*)dptr++, xmm5);
@@ -372,27 +373,26 @@ _batch_iadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num)
    }
 
    step = 2*sizeof(__m128i)/sizeof(int32_t);
-
-   i = num/step;
-   num -= i*step;
-   if (i)
+   if (step >= num)
    {
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
       __m128i xmm0i, xmm3i, xmm4i, xmm7i;
 
+      i = num/step;
+      num -= i*step;
+
+      s += i*step;
+      d += i*step;
       do
       {
          _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
+
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
-         s += step;
-
          xmm3i = _mm_load_si128(dptr);
          xmm7i = _mm_load_si128(dptr+1);
-
-         d += step;
 
          xmm0i = _mm_add_epi32(xmm0i, xmm3i);
          xmm4i = _mm_add_epi32(xmm4i, xmm7i);
@@ -455,28 +455,30 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    }
 
    step = 2*sizeof(__m128i)/sizeof(int32_t);
-
-   vstep *= step;				/* 8 samples at a time */
-   i = num/step;
-   num -= i*step;
-   if (i)
+   if (step >= num)
    {
       __m128i *sptr = (__m128i *)s;
       __m128i *dptr = (__m128i *)d;
-      __m128 tv = _mm_set1_ps(v);
       __m128i xmm0i, xmm3i, xmm4i, xmm7i;
       __m128 xmm1, xmm5;
 
+
+      vstep *= step;				/* 8 samples at a time */
+      i = num/step;
+      num -= i*step;
+
+      s += i*step;
+      d += i*step;
       do
       {
+         __m128 tv = _mm_set1_ps(v);
          _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_IMADD, _MM_HINT_NTA);
+
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
          xmm1 = _mm_cvtepi32_ps(xmm0i);
          xmm5 = _mm_cvtepi32_ps(xmm4i);
-
-         s += step;
 
          xmm1 = _mm_mul_ps(xmm1, tv);
          xmm5 = _mm_mul_ps(xmm5, tv);
@@ -487,8 +489,6 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
          xmm3i = _mm_cvtps_epi32(xmm1);
          xmm7i = _mm_cvtps_epi32(xmm5);
 
-         d += step;
-
          xmm0i = _mm_add_epi32(xmm0i, xmm3i);
          xmm4i = _mm_add_epi32(xmm4i, xmm7i);
 
@@ -496,8 +496,6 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
 
          _mm_store_si128(dptr++, xmm0i);
          _mm_store_si128(dptr++, xmm4i);
-
-         tv = _mm_set1_ps(v);
       }
       while(--i);
    }
@@ -547,37 +545,31 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    }
 
    step = 4*sizeof(__m128)/sizeof(float);
-
-   i = num/step;
-   num -= i*step;
-   if (i)
+   if (num >= step)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
       __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 
+      i = num/step;
+      num -= i*step;
+
+      s += i*step;
+      d += i*step;
       do
       {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-         _mm_prefetch(((char *)d)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
+         _mm_prefetch(((char *)dptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          xmm0 = _mm_load_ps((const float*)sptr++);
          xmm1 = _mm_load_ps((const float*)sptr++);
          xmm4 = _mm_load_ps((const float*)sptr++);
          xmm5 = _mm_load_ps((const float*)sptr++);
 
-         s += step;
-         d += step;
-
-         xmm2 = _mm_load_ps((const float*)dptr);
-         xmm3 = _mm_load_ps((const float*)(dptr+1));
-         xmm6 = _mm_load_ps((const float*)(dptr+2));
-         xmm7 = _mm_load_ps((const float*)(dptr+3));
-
-         xmm2 = _mm_add_ps(xmm2, xmm0);
-         xmm3 = _mm_add_ps(xmm3, xmm1);
-         xmm6 = _mm_add_ps(xmm6, xmm4);
-         xmm7 = _mm_add_ps(xmm7, xmm5);
+         xmm2 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
+         xmm3 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+         xmm6 = _mm_add_ps(_mm_load_ps((const float*)(dptr+2)), xmm4);
+         xmm7 = _mm_add_ps(_mm_load_ps((const float*)(dptr+3)), xmm5);
 
          _mm_store_ps((float*)dptr++, xmm2);
          _mm_store_ps((float*)dptr++, xmm3);
@@ -620,39 +612,28 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          }
       }
 
-      step = 8*sizeof(__m128)/sizeof(float);
-
-      i = num/step;
-      num -= i*step;
-      if (i)
+      step = 6*sizeof(__m128)/sizeof(float);
+      if (step >= num)
       {
          __m128* dptr = (__m128*)d;
-         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
          __m128 tv = _mm_set1_ps(f);
 
+
+         i = num/step;
+         num -= i*step;
+
+         d += i*step;
          do
          {
-            _mm_prefetch(((char *)d)+CACHE_ADVANCE_MUL, _MM_HINT_NTA);
+            _mm_prefetch(((char *)dptr)+CACHE_ADVANCE_MUL, _MM_HINT_NTA);
 
-            xmm0 = _mm_load_ps((const float*)(dptr+0));
-            xmm1 = _mm_load_ps((const float*)(dptr+1));
-            xmm2 = _mm_load_ps((const float*)(dptr+2));
-            xmm3 = _mm_load_ps((const float*)(dptr+3));
-            xmm4 = _mm_load_ps((const float*)(dptr+4));
-            xmm5 = _mm_load_ps((const float*)(dptr+5));
-            xmm6 = _mm_load_ps((const float*)(dptr+6));
-            xmm7 = _mm_load_ps((const float*)(dptr+7));
-
-            xmm0 = _mm_mul_ps(xmm0, tv);
-            xmm1 = _mm_mul_ps(xmm1, tv);
-            xmm2 = _mm_mul_ps(xmm2, tv);
-            xmm3 = _mm_mul_ps(xmm3, tv);
-            xmm4 = _mm_mul_ps(xmm4, tv);
-            xmm5 = _mm_mul_ps(xmm5, tv);
-            xmm6 = _mm_mul_ps(xmm6, tv);
-            xmm7 = _mm_mul_ps(xmm7, tv);
-
-            d += step;
+            xmm0 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+0)), tv);
+            xmm1 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+1)), tv);
+            xmm2 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+2)), tv);
+            xmm3 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+3)), tv);
+            xmm4 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+4)), tv);
+            xmm5 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+5)), tv);
 
             _mm_store_ps((float*)dptr++, xmm0);
             _mm_store_ps((float*)dptr++, xmm1);
@@ -660,8 +641,6 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
             _mm_store_ps((float*)dptr++, xmm3);
             _mm_store_ps((float*)dptr++, xmm4);
             _mm_store_ps((float*)dptr++, xmm5);
-            _mm_store_ps((float*)dptr++, xmm6);
-            _mm_store_ps((float*)dptr++, xmm7);
          }
          while(--i);
       }
@@ -692,39 +671,27 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          }
       }
 
-      step = 8*sizeof(__m128d)/sizeof(double);
-
-      i = num/step;
-      num -= i*step;
-      if (i)
+      step = 6*sizeof(__m128d)/sizeof(double);
+      if (step >= num)
       {
          __m128d* dptr = (__m128d*)d;
-         __m128d xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+         __m128d xmm0, xmm1, xmm2, xmm3, xmm4, xmm5;
          __m128d tv = _mm_set1_pd(f);
 
+         i = num/step;
+         num -= i*step;
+
+         d += i*step;
          do
          {
-            _mm_prefetch(((char *)d)+CACHE_ADVANCE_MUL, _MM_HINT_NTA);
+            _mm_prefetch(((char *)dptr)+CACHE_ADVANCE_MUL, _MM_HINT_NTA);
 
-            xmm0 = _mm_load_pd((const double*)(dptr+0));
-            xmm1 = _mm_load_pd((const double*)(dptr+1));
-            xmm2 = _mm_load_pd((const double*)(dptr+2));
-            xmm3 = _mm_load_pd((const double*)(dptr+3));
-            xmm4 = _mm_load_pd((const double*)(dptr+4));
-            xmm5 = _mm_load_pd((const double*)(dptr+5));
-            xmm6 = _mm_load_pd((const double*)(dptr+6));
-            xmm7 = _mm_load_pd((const double*)(dptr+7));
-
-            xmm0 = _mm_mul_pd(xmm0, tv);
-            xmm1 = _mm_mul_pd(xmm1, tv);
-            xmm2 = _mm_mul_pd(xmm2, tv);
-            xmm3 = _mm_mul_pd(xmm3, tv);
-            xmm4 = _mm_mul_pd(xmm4, tv);
-            xmm5 = _mm_mul_pd(xmm5, tv);
-            xmm6 = _mm_mul_pd(xmm6, tv);
-            xmm7 = _mm_mul_pd(xmm7, tv);
-
-            d += step;
+            xmm0 = _mm_mul_pd(_mm_load_pd((const double*)(dptr+0)), tv);
+            xmm1 = _mm_mul_pd(_mm_load_pd((const double*)(dptr+1)), tv);
+            xmm2 = _mm_mul_pd(_mm_load_pd((const double*)(dptr+2)), tv);
+            xmm3 = _mm_mul_pd(_mm_load_pd((const double*)(dptr+3)), tv);
+            xmm4 = _mm_mul_pd(_mm_load_pd((const double*)(dptr+4)), tv);
+            xmm5 = _mm_mul_pd(_mm_load_pd((const double*)(dptr+5)), tv);
 
             _mm_store_pd((double*)dptr++, xmm0);
             _mm_store_pd((double*)dptr++, xmm1);
@@ -732,8 +699,6 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
             _mm_store_pd((double*)dptr++, xmm3);
             _mm_store_pd((double*)dptr++, xmm4);
             _mm_store_pd((double*)dptr++, xmm5);
-            _mm_store_pd((double*)dptr++, xmm6);
-            _mm_store_pd((double*)dptr++, xmm7);
          }
          while(--i);
       }
@@ -790,79 +755,82 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       }
    }
 
-   step = 4*sizeof(__m128)/sizeof(float);
-
-   vstep *= step;				/* 8 samples at a time */
-   i = num/step;
-   num -= i*step;
-   if (i)
+   step = 6*sizeof(__m128)/sizeof(float);
+   if (step >= num)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
 
+
+      vstep *= step;
+      i = num/step;
+      num -= i*step;
+
       s += i*step;
       d += i*step;
-
       do
       {
          _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
          _mm_prefetch(((char *)dptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          __m128 tv = _mm_set1_ps(v);
-#if 1
-          ASM( \
-          "addq $64, %%sri;\n" \
-          "addq $64, %%rdi;\n" \
-          "movaps -64(%%rsi), %xmm0;\n" \
-          "movaps -48(%%rsi), %xmm1;\n" \
-          "movaps -32(%%rsi), %xmm2;\n" \
-          "movaps -16(%%rsi), %xmm3;\n" \
-          "mulps %xmm0, %%xmm7;\n" \
-          "mulps %xmm1, %%xmm7;\n" \
-          "mulps %xmm2, %%xmm7;\n" \
-          "mulps %xmm3, %%xmm7;\n" \
-          "addps -64(%%rdi), %xmm0;\n" \
-          "addps -48(%%rdi), %xmm1;\n" \
-          "addps -32(%%rdi), %xmm2;\n" \
-          "addps -16(%%rdi), %xmm3;\n" \
-          "movaps %xmm0, -64(%%rdi);\n" \
-          "movaps %xmm1, -48(%%rdi);\n" \
-          "movaps %xmm2, -32(%%rdo);\n" \
-          "movaps %xmm3, -16(%%rdi);\n" \
-          : "+D"(dptr) \
-          : "D"(dptr), "S"(sptr), "x"(tv) \
-          : "memory" \
-          );
+#if 0
+         ASM("addq $96, %[src];\n"
+             "addq $96, %[dst];\n"
+             "movaps -96(%[src]), %%xmm0;\n"
+             "movaps -80(%[src]), %%xmm1;\n"
+             "movaps -64(%[src]), %%xmm2;\n"
+             "movaps -48(%[src]), %%xmm3;\n"
+             "movaps -32(%[src]), %%xmm4;\n"
+             "movaps -16(%[src]), %%xmm5;\n"
+             "mulps %%xmm0, %[tv];\n"
+             "mulps %%xmm1, %[tv];\n"
+             "mulps %%xmm2, %[tv];\n"
+             "mulps %%xmm3, %[tv];\n"
+             "mulps %%xmm4, %[tv];\n"
+             "mulps %%xmm5, %[tv];\n"
+             "addps -96(%[dst]), %%xmm0;\n"
+             "addps -80(%[dst]), %%xmm1;\n"
+             "addps -64(%[dst]), %%xmm2;\n"
+             "addps -48(%[dst]), %%xmm3;\n"
+             "addps -32(%[dst]), %%xmm4;\n"
+             "addps -16(%[dst]), %%xmm5;\n"
+             "movaps %%xmm0, -96(%[dst]);\n"
+             "movaps %%xmm1, -80(%[dst]);\n"
+             "movaps %%xmm2, -64(%[dst]);\n"
+             "movaps %%xmm3, -48(%[dst]);\n"
+             "movaps %%xmm4, -32(%[dst]);\n"
+             "movaps %%xmm5, -16(%[dst]);\n"
+                : [dst]"+D"(dptr)
+                : [src]"S"(sptr), [tv]"x"(tv)
+             );
 
-          v += step;
+         v += step;
 #else
-         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-         xmm0 = _mm_load_ps((const float*)sptr++);
-         xmm1 = _mm_load_ps((const float*)sptr++);
-         xmm4 = _mm_load_ps((const float*)sptr++);
-         xmm5 = _mm_load_ps((const float*)sptr++);
+         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5; // xmm6, xmm7;
 
-         xmm0 = _mm_mul_ps(xmm0, tv);
-         xmm1 = _mm_mul_ps(xmm1, tv);
-         xmm4 = _mm_mul_ps(xmm4, tv);
-         xmm5 = _mm_mul_ps(xmm5, tv);
+         xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm2 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm3 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm4 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+         xmm5 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
 
-         xmm2 = _mm_load_ps((const float*)dptr);
-         xmm3 = _mm_load_ps((const float*)(dptr+1));
-         xmm6 = _mm_load_ps((const float*)(dptr+2));
-         xmm7 = _mm_load_ps((const float*)(dptr+3));
-
-         xmm2 = _mm_add_ps(xmm2, xmm0);
-         xmm3 = _mm_add_ps(xmm3, xmm1);
-         xmm6 = _mm_add_ps(xmm6, xmm4);
-         xmm7 = _mm_add_ps(xmm7, xmm5);
+         xmm0 = _mm_add_ps(_mm_load_ps((const float*)(dptr+0)), xmm0);
+         xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+         xmm2 = _mm_add_ps(_mm_load_ps((const float*)(dptr+2)), xmm2);
+         xmm3 = _mm_add_ps(_mm_load_ps((const float*)(dptr+3)), xmm3);
+         xmm4 = _mm_add_ps(_mm_load_ps((const float*)(dptr+4)), xmm4);
+         xmm5 = _mm_add_ps(_mm_load_ps((const float*)(dptr+5)), xmm5);
 
          v += vstep;
 
+         _mm_store_ps((float*)dptr++, xmm0);
+         _mm_store_ps((float*)dptr++, xmm1);
          _mm_store_ps((float*)dptr++, xmm2);
          _mm_store_ps((float*)dptr++, xmm3);
-         _mm_store_ps((float*)dptr++, xmm6);
-         _mm_store_ps((float*)dptr++, xmm7);
+         _mm_store_ps((float*)dptr++, xmm4);
+         _mm_store_ps((float*)dptr++, xmm5);
 #endif
       }
       while(--i);
@@ -907,19 +875,22 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
    }
 
    step = 2*sizeof(__m128i)/sizeof(int16_t);
-
-   tmp = (size_t)s & MEMMASK16;
-   i = num/step;
-   num -= i*step;
-   if (i)
+   if (step >= num)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i zero = _mm_setzero_si128();
       __m128i *dptr = (__m128i *)d;
       __m128i *sptr = (__m128i *)s;
 
-      do {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+      tmp = (size_t)s & MEMMASK16;
+      i = num/step;
+      num -= i*step;
+
+      s += i*step;
+      d += i*step;
+      do
+      {
+         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
          if (tmp) {
             xmm0 = _mm_loadu_si128(sptr++);
@@ -933,9 +904,6 @@ _batch_cvt24_16_sse2(void_ptr dst, const_void_ptr src, size_t num)
          xmm3 = _mm_unpackhi_epi16(zero, xmm0);
          xmm5 = _mm_unpacklo_epi16(zero, xmm4);
          xmm7 = _mm_unpackhi_epi16(zero, xmm4);
-
-         s += step;
-         d += step;
 
          xmm0 = _mm_srai_epi32(xmm1, 8);
          xmm2 = _mm_srai_epi32(xmm3, 8);
@@ -987,19 +955,20 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    tmp = (size_t)d & MEMMASK16;
 
    step = 4*sizeof(__m128i)/sizeof(int32_t);
-
-   i = num/step;
-   num -= i*step;
-   if (i)
+   if (step >= num)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128i *dptr, *sptr;
+      __m128i *sptr = (__m128i *)s;
+      __m128i *dptr = (__m128i *)d;
 
-      dptr = (__m128i *)d;
-      sptr = (__m128i *)s;
+      i = num/step;
+      num -= i*step;
+
+      s += i*step;
+      d += i*step;
       do
       {
-         _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
+         _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
 
          xmm0 = _mm_load_si128(sptr++);
          xmm1 = _mm_load_si128(sptr++);
@@ -1011,12 +980,8 @@ _batch_cvt16_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
          xmm6 = _mm_srai_epi32(xmm4, 8);
          xmm7 = _mm_srai_epi32(xmm5, 8);
 
-         s += step;
-
          xmm4 = _mm_packs_epi32(xmm2, xmm3);
          xmm6 = _mm_packs_epi32(xmm6, xmm7);
-
-         d += step;
 
          if (tmp) {
             _mm_storeu_si128(dptr++, xmm4);
@@ -1093,23 +1058,25 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
       while (--i);
    }
 
-   tmp = (size_t)d & MEMMASK16;
-   i = num/step;
-   num -= i*step;
-   if (i)
+   if (step >= num)
    {
       __m128i mask, xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128i *dptr, *sptr1, *sptr2;
-
-      sptr1 = (__m128i*)s1;
-      sptr2 = (__m128i*)s2;
+      __m128i *sptr1 = (__m128i*)s1;
+      __m128i *sptr2 = (__m128i*)s2;
+      __m128i *dptr = (__m128i*)d;
 
       mask = _mm_set_epi32(0x00FFFF00, 0x00FFFF00, 0x00FFFF00, 0x00FFFF00);
-      dptr = (__m128i *)d;
+      tmp = (size_t)d & MEMMASK16;
+      i = num/step;
+      num -= i*step;
+
+      s1 += i*step;
+      s2 += i*step;
+      d += 2*i*step;
       do
       {
-         _mm_prefetch(((char *)s1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
-         _mm_prefetch(((char *)s2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
+         _mm_prefetch(((char *)sptr1)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
+         _mm_prefetch(((char *)sptr2)+CACHE_ADVANCE_INTL, _MM_HINT_NTA);
 
          xmm0 = _mm_load_si128(sptr1++);
          xmm4 = _mm_load_si128(sptr1++);
@@ -1121,9 +1088,6 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
          xmm6 = _mm_and_si128(xmm4, mask);
          xmm7 = _mm_and_si128(xmm5, mask);
 
-         s1 += step;
-         s2 += step;
-
          xmm0 = _mm_srli_epi32(xmm2, 8);
          xmm1 = _mm_slli_epi32(xmm3, 8);
          xmm4 = _mm_srli_epi32(xmm6, 8);
@@ -1131,8 +1095,6 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
 
          xmm0 = _mm_or_si128(xmm1, xmm0);
          xmm4 = _mm_or_si128(xmm5, xmm4);
-
-         d += 2*step;
 
          if (tmp) {
             _mm_storeu_si128(dptr++, xmm0);
@@ -1348,25 +1310,24 @@ _aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
       s += i;
    }
 
-   tmp = (size_t)s & MEMMASK16;
    step = 8*sizeof(__m128i)/sizeof(int8_t);
-
-   i = num/step;
-   num -= i*step;
-   if (i)
+   if (step >= num)
    {
       __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
       __m128i *sptr = (__m128i*)s;
       __m128i *dptr = (__m128i*)d;
 
+      tmp = (size_t)s & MEMMASK16;
+      i = num/step;
+      num -= i*step;
+
       s += i*step;
       d += i*step;
-
       if (tmp)
       {
          do
          {
-            _mm_prefetch(((char *)s)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
+            _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_CPY, _MM_HINT_NTA);
 
             xmm0 = _mm_loadu_si128(sptr++);
             xmm1 = _mm_loadu_si128(sptr++);
