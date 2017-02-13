@@ -474,16 +474,16 @@ _aaxGetSIMDSupportString()
 
 #if defined(__i386__) && defined(__PIC__)
 /* %ebx may be the PIC register.  */
-# define __cpuid(regs, level)				\
-  ASM ("xchgl\t%%ebx, %1\n\t"				\
-           "cpuid\n\t"					\
-           "xchgl\t%%ebx, %1\n\t"			\
+# define __cpuid(regs, level)	\
+  ASM ("xchgl\t%%ebx, %1\n\t"	\
+       "cpuid\n\t"		\
+       "xchgl\t%%ebx, %1\n\t"	\
            : "=a" (regs[0]), "=r" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
            : "0" (level))
 
 #elif defined(__i386__) || defined(__x86_64__) && !defined(_MSC_VER)
 # define __cpuid(regs, level)				\
-      ASM ("cpuid\n\t"					\
+  ASM ("cpuid\n\t"					\
            : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
            : "0" (level))
 #else
