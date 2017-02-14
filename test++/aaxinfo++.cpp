@@ -111,7 +111,7 @@ int main(int argc, char **argv)
         std::string str = "  ";
         size_t l = str.size();
         for (enum aaxFilterType f = aaxFilterType(AAX_FILTER_NONE+1);
-             f < AAX_FILTER_MAX; f = aaxFilterType(f+1))
+             f < aaxMaxFilter(); f = aaxFilterType(f+1))
         {
             if (aax.supports(f))
             {
@@ -132,7 +132,7 @@ int main(int argc, char **argv)
         str = "  ";
         l = str.size();
         for (enum aaxEffectType e = aaxEffectType(AAX_EFFECT_NONE+1);
-             e < AAX_EFFECT_MAX; e = aaxEffectType(e+1))
+             e < aaxMaxEffect(); e = aaxEffectType(e+1))
         {
             if (aax.supports(e))
             {

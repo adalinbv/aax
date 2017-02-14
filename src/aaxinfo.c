@@ -232,7 +232,7 @@ int main(int argc, char **argv)
             else printf("%6i\n", x);
 
             printf("\nSupported Filters:\n ");
-            for (i=1; i<AAX_FILTER_MAX; i++)
+            for (i=1; i<aaxMaxFilter(); i++)
             {
                 const char *s = aaxFilterGetNameByType(cfg, i);
                 static int len = 1;
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
             }
 
             printf("\n\nSupported Effects:\n ");
-            for (i=1; i<AAX_EFFECT_MAX; i++)
+            for (i=1; i<aaxMaxEffect(); i++)
             {
                 const char *s = aaxEffectGetNameByType(cfg, i);
                 static int len = 1;
