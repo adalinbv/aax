@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2016 by Erik Hofman
- * Copyright 2007-2016 by Adalin B.V.
+ * Copyright 2005-2017 by Erik Hofman
+ * Copyright 2007-2017 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -53,6 +53,8 @@ extern "C" {
 #else
 # define AAX_FPNONE		(0.0f/0.0f)
 # define AAX_FPINFINITE		(1.0f/0.0f)
+# if defined(__GNUC__) || defined(__TINYC__)
+# endif
 #endif
 #define AAX_INVERSE		0x10000000
 
@@ -359,6 +361,7 @@ enum aaxEffectType
    AAX_FLANGING_EFFECT,
    AAX_VELOCITY_EFFECT,
    AAX_REVERB_EFFECT,
+   AAX_IMPULSE_RESPONSE_EFFECT,
    AAX_EFFECT_MAX
 };
 
@@ -488,13 +491,13 @@ typedef double aaxMtx4d[4][4];
  */
 AAX_API void AAX_APIENTRY aaxFree(void*);
 
-AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion();
-AAX_API unsigned AAX_APIENTRY aaxGetMinorVersion();
-AAX_API unsigned int AAX_APIENTRY aaxGetPatchLevel();
-AAX_API const char* AAX_APIENTRY aaxGetCopyrightString();
+AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion(void);
+AAX_API unsigned AAX_APIENTRY aaxGetMinorVersion(void);
+AAX_API unsigned int AAX_APIENTRY aaxGetPatchLevel(void);
+AAX_API const char* AAX_APIENTRY aaxGetCopyrightString(void);
 AAX_API const char* AAX_APIENTRY aaxGetVersionString(aaxConfig);
 
-AAX_API enum aaxErrorType AAX_APIENTRY aaxGetErrorNo();
+AAX_API enum aaxErrorType AAX_APIENTRY aaxGetErrorNo(void);
 AAX_API const char* AAX_APIENTRY aaxGetErrorString(enum aaxErrorType);
 
 AAX_API unsigned AAX_APIENTRY aaxGetNoCores(aaxConfig);
@@ -502,17 +505,19 @@ AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
 AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);
 AAX_API int AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
 
+AAX_API enum aaxFilterType AAX_APIENTRY aaxMaxFilter(void);
+AAX_API enum aaxEffectType AAX_APIENTRY aaxMaxEffect(void);
 AAX_API int AAX_APIENTRY aaxIsFilterSupported(aaxConfig, const char*);
 AAX_API int AAX_APIENTRY aaxIsEffectSupported(aaxConfig, const char*);
 
 /* Pointer-to-function types */
 typedef void (AAX_APIENTRY *PFNAAXFREE)(void*);
-typedef unsigned (AAX_APIENTRY *PFNAAXGETMAJORVERSION)();
-typedef unsigned (AAX_APIENTRY *PFNAAXGETMINORVERSION)();
-typedef unsigned int (AAX_APIENTRY *PFNAAXGETPATCHLEVEL)();
-typedef const char* (AAX_APIENTRY *PFNAAXGETCOPYRIGHTSTRING)();
+typedef unsigned (AAX_APIENTRY *PFNAAXGETMAJORVERSION)(void);
+typedef unsigned (AAX_APIENTRY *PFNAAXGETMINORVERSION)(void);
+typedef unsigned int (AAX_APIENTRY *PFNAAXGETPATCHLEVEL)(void);
+typedef const char* (AAX_APIENTRY *PFNAAXGETCOPYRIGHTSTRING)(void);
 typedef const char* (AAX_APIENTRY *PFNAAXGETVERSIONSTRING)(aaxConfig);
-typedef enum aaxErrorType (AAX_APIENTRY *PFNAAXGETERRORNO)();
+typedef enum aaxErrorType (AAX_APIENTRY *PFNAAXGETERRORNO)(void);
 typedef const char* (AAX_APIENTRY *PFNAAXGETERRORSTRING)(enum aaxErrorType);
 typedef unsigned (AAX_APIENTRY *PFNAAXGETNOCORES)(aaxConfig);
 typedef unsigned (AAX_APIENTRY *PFNAAXGETBYTESPERSAMPLE)(enum aaxFormat);
@@ -655,7 +660,7 @@ typedef int (AAX_APIENTRY *PFNAAXBUFFERPROCESSWAVEFORM)(aaxBuffer, float, enum a
 /*
  * Source/Emitter manipulation
  */
-AAX_API aaxEmitter AAX_APIENTRY aaxEmitterCreate();
+AAX_API aaxEmitter AAX_APIENTRY aaxEmitterCreate(void);
 AAX_API int AAX_APIENTRY aaxEmitterDestroy(aaxEmitter);
 
 AAX_API int AAX_APIENTRY aaxEmitterSetMode(aaxEmitter, enum aaxModeType, int);
@@ -692,7 +697,7 @@ AAX_API int AAX_APIENTRY aaxEmitterSetOffsetSec(aaxEmitter, float);
 AAX_API float AAX_APIENTRY aaxEmitterGetOffsetSec(const aaxEmitter);
 
 /* Pointer-to-function types */
-typedef int (AAX_APIENTRY *PFNAAXEMITTERCREATE)();
+typedef int (AAX_APIENTRY *PFNAAXEMITTERCREATE)(void);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERDESTROY)(aaxEmitter);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERSETSTATE)(aaxEmitter, enum aaxState);
 typedef int (AAX_APIENTRY *PFNAAXEMITTERGETSTATE)(const aaxEmitter);
@@ -769,7 +774,7 @@ AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, const aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlot(aaxFilter, unsigned, int, float, float, float, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetState(aaxFilter, int);
-
+AAX_API int AAX_APIENTRY aaxFilterAddBuffer(aaxFilter, aaxBuffer);
 AAX_API float AAX_APIENTRY aaxFilterGetParam(const aaxFilter, int, int);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterGetSlotParams(const aaxFilter, unsigned, int, aaxVec4f);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterGetSlot(const aaxFilter, unsigned, int, float*, float*, float*, float*);
@@ -802,6 +807,7 @@ AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, const aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlot(aaxEffect, unsigned, int, float, float, float, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetState(aaxEffect, int);
+AAX_API int AAX_APIENTRY aaxEffectAddBuffer(aaxEffect, aaxBuffer);
 AAX_API float AAX_APIENTRY aaxEffectGetParam(const aaxEffect, int , int);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectGetSlotParams(const aaxEffect, unsigned, int, aaxVec4f);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectGetSlot(const aaxEffect, unsigned, int, float*, float*, float*, float*);
