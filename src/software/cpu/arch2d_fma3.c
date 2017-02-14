@@ -22,90 +22,82 @@
 # define CACHE_ADVANCE_FF	 (2*32)
 
 FN_PREALIGN void
-_batch_fma3_avx(int32_ptr d, const_int32_ptr src, size_t num, float v, float vstep)
+_batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   __m256i *sptr = (__m256i *)src;
-   __m256i *dptr = (__m256i*)d;
-   __m256 tv = _mm256_set1_ps(v);
-   int32_ptr s = (int32_ptr)src;
-   size_t i, size, step;
-   long dtmp, stmp;
+   float32_ptr s = (float32_ptr)src;
+   float32_ptr d = (float32_ptr)dst;
+   size_t i, step, dtmp, stmp;
 
-   dtmp = (long)dptr & MEMMASK;
-   stmp = (long)sptr & MEMMASK;
-   if ((dtmp || stmp) && dtmp != stmp)
-   {
-      i = num;				/* improperly aligned,            */
-      do				/* let the compiler figure it out */
-      {
-         *d++ += (int32_t)((float)*s++ * v);
-         v += vstep;
-      }
-      while (--i);
+   if (!num || (v == 0.0f && vstep == 0.0f)) return;
+   if (fabsf(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
+      _batch_fadd_avx(dst, src, num);
       return;
    }
 
-   step = 2*sizeof(__m256i)/sizeof(int32_t);
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
+   if ((dtmp || stmp) && dtmp != stmp)
+   {
+      return _batch_fmadd_sse_vex(dst, src, num, v, vstep);
+   }
 
    /* work towards a 16-byte aligned dptr (and hence 16-byte aligned sptr) */
-   i = num/step;
-   if (dtmp && i)
+   if (dtmp && num)
    {
-      i = (MEMALIGN - dtmp)/sizeof(int32_t);
-      num -= i;
-      do {
-         *d++ += (int32_t)((float)*s++ * v);
-         v += vstep;
-      } while(--i);
-      dptr = (__m256i *)d;
-      sptr = (__m256i *)s;
+      i = (MEMALIGN - dtmp)/sizeof(float);
+      if (i <= num)
+      {
+         do {
+            *d++ += *s++ * v;
+            v += vstep;
+         } while(--i);
+      }
    }
 
-   vstep *= step;				/* 8 samples at a time */
-   i = size = num/step;
+   step = 4*sizeof(__m256)/sizeof(float);
+
+   i = num/step;
    if (i)
    {
-      __m256i ymm0i, ymm4i;
-      __m256 ymm1, ymm2, ymm5, ymm6;
+      __m256 ymm0, ymm1, ymm2, ymm3;
+      __m256 *sptr = (__m256 *)s;
+      __m256 *dptr = (__m256 *)d;
 
+      vstep *= step;
+      num -= i*step;
+      s += i*step;
+      d += i*step;
       do
       {
-//       _mm_prefetch(((char *)sptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
-         ymm0i = _mm256_load_si256(sptr++);
-         ymm4i = _mm256_load_si256(sptr++);
-         ymm1 = _mm256_cvtepi32_ps(ymm0i);
-         ymm5 = _mm256_cvtepi32_ps(ymm4i);
+         __m256 tv = _mm256_set1_ps(v);
 
-         ymm0i = _mm256_load_si256(dptr);
-         ymm4i = _mm256_load_si256(dptr+1);
-         ymm2 = _mm256_cvtepi32_ps(ymm0i);
-         ymm6 = _mm256_cvtepi32_ps(ymm4i);
+         ymm0 = _mm256_load_ps((const float*)sptr++);
+         ymm1 = _mm256_load_ps((const float*)sptr++);
+         ymm2 = _mm256_load_ps((const float*)sptr++);
+         ymm3 = _mm256_load_ps((const float*)sptr++);
 
          v += vstep;
 
-         ymm2 = _mm256_fmadd_ps(ymm2, ymm1, tv);
-         ymm6 = _mm256_fmadd_ps(ymm6, ymm5, tv);
+         ymm0 =_mm256_fmadd_ps(ymm0,_mm256_load_ps((const float*)(dptr+0)), tv);
+         ymm1 =_mm256_fmadd_ps(ymm1,_mm256_load_ps((const float*)(dptr+1)), tv);
+         ymm2 =_mm256_fmadd_ps(ymm2,_mm256_load_ps((const float*)(dptr+2)), tv);
+         ymm3 =_mm256_fmadd_ps(ymm3,_mm256_load_ps((const float*)(dptr+3)), tv);
 
-         ymm0i = _mm256_cvtps_epi32(ymm2);
-         ymm4i = _mm256_cvtps_epi32(ymm6);
-
-         _mm256_store_si256(dptr, ymm0i);
-         _mm256_store_si256(dptr+1, ymm4i);
-         dptr += 2;
-
-         tv = _mm256_set1_ps(v);
+         _mm256_store_ps((float*)dptr++, ymm0);
+         _mm256_store_ps((float*)dptr++, ymm1);
+         _mm256_store_ps((float*)dptr++, ymm2);
+         _mm256_store_ps((float*)dptr++, ymm3);
       }
       while(--i);
-
+      _mm256_zeroall();
    }
 
-   i = num - size*step;
-   if (i) {
-      d = (int32_t *)dptr;
-      s = (int32_t *)sptr;
+   if (num)
+   {
       vstep /= step;
+      i = num;
       do {
-         *d++ += (int32_t)((float)*s++ * v);
+         *d++ += *s++ * v;
          v += vstep;
       } while(--i);
    }

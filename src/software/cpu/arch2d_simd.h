@@ -169,6 +169,7 @@ void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned
 
 void* _aax_memcpy_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void*, unsigned, size_t, float);
+void _batch_fadd_avx(float32_ptr, const_float32_ptr, size_t);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 #if RB_FLOAT_DATA
 void _batch_cvtps24_24_avx(void_ptr, const_void_ptr, size_t);
@@ -179,8 +180,8 @@ void _batch_cvt24_ps24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_avx(void_ptr, const_void_ptr, size_t);
 
-void _batch_fma3_avx(int32_ptr, const_int32_ptr, size_t, float, float);
-void _batch_fma4_avx(int32_ptr, const_int32_ptr, size_t, float, float);
+void _batch_fma3_avx(float32_ptr, const_float32_ptr, size_t, float, float);
+void _batch_fma4_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 
 /* VFPv2 */
 void _batch_imul_value_vfpv2(void*, unsigned, size_t, float);
