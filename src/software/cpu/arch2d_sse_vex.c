@@ -1330,19 +1330,10 @@ _aaxBufResampleLinear_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t d
    }
 }
 
-static inline FN_PREALIGN __m128
-hsum_ps_sse_vex(__m128 v) {
-   __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
-   __m128 sums = _mm_add_ps(v, shuf);
-   shuf = _mm_movehl_ps(shuf, sums);
-   return _mm_add_ss(sums, shuf);
-}
 
 static inline void
 _aaxBufResampleCubic_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
-#if 0
-// TODO: Fix this
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
    size_t i;
@@ -1357,15 +1348,18 @@ _aaxBufResampleCubic_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t dm
    i = dmax-dmin;
    if (i > 4)
    {
-      /* 
-       * a0 = y3 - y2 - y0 + y1;
-       * a1 = 2y0 - 2y1 - y3 + y2;
-       * a2 = y2 - y0;
-       * a3 = y1;
+      /*
+       * http://paulbourke.net/miscellaneous/interpolation/
+       *
+       * -- Catmull-Rom splines --
+       * a0 = -0.5*y0 + 1.5*y1 - 1.5*y2 + 0.5*y3;
+       * a1 =      y0 - 2.5*y1 +   2*y2 - 0.5*y3;
+       * a2 = -0.5*y0          + 0.5*y2;
+       * a3 =               y1;
        */
-      const __m128 y0m = _mm_set_ps(-1.0f, 1.0f,-1.0f, 1.0f);
-      const __m128 y1m = _mm_set_ps( 2.0f,-2.0f, 1.0f,-1.0f);
-      const __m128 y2m = _mm_set_ps(-1.0f, 0.0f, 1.0f, 0.0f);
+      const __m128 y0m = _mm_set_ps(-0.5f, 1.5f,-1.5f, 0.5f);
+      const __m128 y1m = _mm_set_ps( 1.0f,-2.5f, 2.0f,-0.5f);
+      const __m128 y2m = _mm_set_ps(-0.5f, 0.0f, 0.5f, 0.0f);
       const __m128 y3m = _mm_set_ps( 0.0f, 1.0f, 0.0f, 0.0f);
       __m128 a0, a1, a2, a3;
       __m128 y0123;
@@ -1384,84 +1378,41 @@ _aaxBufResampleCubic_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t dm
 
       do
       {
+//       *d++ = a0*smu*smu*smu + a1*smu*smu + a2*smu + y1
          __m128 xsmu = _mm_set1_ps(smu);
          __m128 xsmu2 = _mm_mul_ps(xsmu, xsmu);
-         __m128 xsmu3 = _mm_mul_ps(xsmu2, xsmu);
-         __m128 a0123, xtmp1, xtmp2;;
+         __m128 xsmu3, xtmp1, xtmp2, v;
+         __m128 shuf, sums;
+
+         xtmp2 = _mm_add_ps(_mm_mul_ps(a2, xsmu), a3);
+
+         xsmu3 = _mm_mul_ps(xsmu2, xsmu);
+         xtmp1 = _mm_add_ps(_mm_mul_ps(a0, xsmu3), _mm_mul_ps(a1, xsmu2));
 
          smu += freq_factor;
 
-         xtmp1 = _mm_add_ps(_mm_mul_ps(a0, xsmu3), _mm_mul_ps(a1, xsmu2));
-         xtmp2 = _mm_add_ps(_mm_mul_ps(a2, xsmu), a3);
-         a0123 = _mm_add_ps(xtmp1, xtmp2);
-         _mm_store_ss(dptr++, hsum_ps_sse_vex(a0123));
+         // horizontal sum and store
+         v = _mm_add_ps(xtmp1, xtmp2);
+         shuf = _mm_movehdup_ps(v);
+         sums = _mm_add_ps(v, shuf);
+         shuf = _mm_movehl_ps(shuf, sums);
+         _mm_store_ss(d++, _mm_add_ss(sums, shuf));
 
          if (smu >= 1.0)
          {
             y0123 =_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(y0123),4));
             y0123 = _mm_move_ss(y0123, _mm_load_ss((float*)sptr++));
 
+            smu--;
+
             a0 = _mm_mul_ps(y0123, y0m);
             a1 = _mm_mul_ps(y0123, y1m);
             a2 = _mm_mul_ps(y0123, y2m);
             a3 = _mm_mul_ps(y0123, y3m);
-
-            smu--;
          }
       }
       while (--i);
    }
-#else
-   float y0, y1, y2, y3, a0, a1, a2;
-   float32_ptr sptr = (float32_ptr)s;
-   float32_ptr dptr = d;
-   size_t i;
-
-   assert(s != 0);
-   assert(d != 0);
-   assert(dmin < dmax);
-   assert(0.0f <= smu && smu < 1.0f);
-   assert(0.0f < freq_factor && freq_factor <= 1.0f);
-
-   dptr += dmin;
-
-   y0 = *sptr++;
-   y1 = *sptr++;
-   y2 = *sptr++;
-   y3 = *sptr++;
-
-   a0 = y3 - y2 - y0 + y1;
-   a1 = y0 - y1 - a0;
-   a2 = y2 - y0;
-
-   i = dmax-dmin;
-   if (i)
-   {
-      do
-      {
-         float smu2, ftmp;
-
-         smu2 = smu*smu;
-         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
-         *dptr++ = ftmp;
-
-         smu += freq_factor;
-         if (smu >= 1.0)
-         {
-            smu--;
-            a0 += y0;
-            y0 = y1;
-            y1 = y2;
-            y2 = y3;
-            y3 = *sptr++;
-            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
-            a1 = y0 - y1 - a0;
-            a2 = y2 - y0;
-         }
-      }
-      while (--i);
-   }
-#endif
 }
 
 void
