@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2014 by Erik Hofman.
- * Copyright 2009-2014 by Adalin B.V.
+ * Copyright 2007-2017 by Erik Hofman.
+ * Copyright 2009-2017 by Adalin B.V.
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
@@ -81,6 +81,18 @@ aaxGetVersionString(aaxConfig cfg)
       _version = AAX_LIBRARY_STR_LT" "AAX_VERSION_STR;
    }
    return _version;
+}
+
+AAX_API enum aaxFilterType AAX_APIENTRY
+aaxMaxFilter(void)
+{
+   return AAX_FILTER_MAX;
+}
+
+AAX_API enum aaxEffectType AAX_APIENTRY
+aaxMaxEffect(void)
+{
+   return AAX_EFFECT_MAX;
 }
 
 AAX_API int AAX_APIENTRY
