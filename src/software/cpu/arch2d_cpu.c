@@ -1334,8 +1334,7 @@ _aaxBufResampleCubic_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t 
          {
             smu--;
 #if 0
-            /* original code */
-            /* original code */
+            // http://paulbourke.net/miscellaneous/interpolation/
             s -= 3;
             y0 = *s++;
             y1 = *s++;
