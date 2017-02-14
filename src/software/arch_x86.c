@@ -432,35 +432,17 @@ _aaxGetSIMDSupportString()
 
    if (_aax_arch_capabilities & AAX_ARCH_XOP)
    {
-    /* Prefer FMA3 over FMA4 so detect FMA4 first */
-#  ifdef __FMA4__
+      /* Prefer FMA3 over FMA4 so detect FMA4 first */
       if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-#pragma warning FMA4 needs testing
          _batch_fmadd = _batch_fma4_avx;
       }
-#  endif
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_AVX2)
    {
-#  ifdef __FMA__
-#pragma warning FMA needs testing
       if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
          _batch_fmadd = _batch_fma3_avx;
       }
-#  endif
-#  if 0
-      //    _aax_memcpy = _aax_memcpy_avx;
-      _batch_cvt16_24 = _batch_cvt16_24_avx2;
-      _batch_cvt16_intl_24 = _batch_cvt16_intl_24_avx2;
-
-#   if RB_FLOAT_DATA
-      _batch_resample_float = _batch_resample_float_avx2;
-#   else
-      _batch_imadd = _batch_imadd_avx2;
-      _batch_resample = _batch_resample_avx2;
-#   endif
-#  endif
    }
 
 #  endif
