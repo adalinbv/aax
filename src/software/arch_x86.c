@@ -47,7 +47,8 @@
 enum cpuid_requests {
   CPUID_GETVENDORSTRING = 0,
   CPUID_GETFEATURES,
-  CPUID_GETEXTFEATURES = 0x80000000
+  CPUID_GETEXTFEATURES = 0x7,
+  CPUID_GETEXTCPUINFO = 0x80000000
 };
 
 // https://msdn.microsoft.com/en-us/library/hskdteyh.aspx
@@ -316,13 +317,12 @@ _aaxGetSSELevel()
 # endif
          res = _aaxArchDetectAVX();
          if (res) sse_level = res;
-#if 0
+
          res = _aaxArchDetectXOP();
          if (res) sse_level = res;
 
          res = _aaxArchDetectAVX2();
          if (res) sse_level = res;
-#endif
       }
    }
 
@@ -430,19 +430,17 @@ _aaxGetSIMDSupportString()
 #   endif
    }
 
-   if (_aax_arch_capabilities & AAX_ARCH_XOP)
-   {
-      /* Prefer FMA3 over FMA4 so detect FMA4 first */
-      if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-         _batch_fmadd = _batch_fma4_avx;
-      }
+   /* Prefer FMA3 over FMA4 so detect FMA4 first */
+   if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+      _batch_fmadd = _batch_fma4_float_avx;
+   }
+
+   if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
+      _batch_fmadd = _batch_fma3_float_avx;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_AVX2)
    {
-      if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-         _batch_fmadd = _batch_fma3_avx;
-      }
    }
 
 #  endif
@@ -457,17 +455,15 @@ _aaxGetSIMDSupportString()
 #if defined(__i386__) && defined(__PIC__)
 /* %ebx may be the PIC register.  */
 # define __cpuid(regs, level)	\
-  ASM ("xchgl\t%%ebx, %1\n\t"	\
-       "cpuid\n\t"		\
-       "xchgl\t%%ebx, %1\n\t"	\
-           : "=a" (regs[0]), "=r" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
-           : "0" (level))
+  regs[EAX] = level; regs[ECX] = 0; \
+  ASM ("movl %%ebx, %%edi \n\t cpuid \n\t xchgl %%ebx, %%edi" \
+           : "=D" (regs[EBX]), "+a" (regs[EAX]), "+c" (regs[ECX]), "=d" (regs[EDX]) )
 
 #elif defined(__i386__) || defined(__x86_64__) && !defined(_MSC_VER)
 # define __cpuid(regs, level)				\
-  ASM ("cpuid\n\t"					\
-           : "=a" (regs[0]), "=b" (regs[1]), "=c" (regs[2]), "=d" (regs[3]) \
-           : "0" (level))
+  regs[EAX] = level; regs[ECX] = 0; \
+  ASM ("cpuid\n\t" \
+           : "+b" (regs[EBX]), "+a" (regs[EAX]), "+c" (regs[ECX]), "=d" (regs[EDX]) )
 #else
 #  define __cpuid(regs, level)
 #endif
@@ -502,16 +498,13 @@ detect_cpuid()
 enum {
   EAX=0, EBX, ECX, EDX
 };
-static int regs[4] = {0,-1,-1,-1};
+static int regs[4];
 
 static char
 check_cpuid_ebx(unsigned int type)
 {
-   if (regs[EBX] == -1) {
-      regs[EBX] = 0;
-      if (detect_cpuid()) {
-         __cpuid(regs, CPUID_GETFEATURES);
-      }
+   if (detect_cpuid()) {
+      __cpuid(regs, CPUID_GETEXTFEATURES);
    }
    return (regs[EBX] & type) ? 1 : 0;
 }
@@ -519,12 +512,8 @@ check_cpuid_ebx(unsigned int type)
 static char
 check_cpuid_ecx(unsigned int type)
 {
-   if (regs[ECX] == -1)
-   {
-      regs[ECX] = 0;
-      if (detect_cpuid()) {
-         __cpuid(regs, CPUID_GETFEATURES);
-      }
+   if (detect_cpuid()) {
+      __cpuid(regs, CPUID_GETFEATURES);
    }
    return  (regs[ECX] & type) ? 1 : 0;
 }
@@ -533,11 +522,8 @@ check_cpuid_ecx(unsigned int type)
 static char
 check_cpuid_edx(unsigned int type)
 {
-   if (regs[EDX] == -1) {
-      regs[EDX] = 0;
-      if (detect_cpuid()) {
-         __cpuid(regs, CPUID_GETFEATURES);
-      }
+   if (detect_cpuid()) {
+      __cpuid(regs, CPUID_GETFEATURES);
    }
    return (regs[EDX] & type) ? 1 : 0;
 }
@@ -549,7 +535,7 @@ check_extcpuid_ecx(unsigned int type)
    int _regs[4];
 
    regs[ECX] = 0;
-   __cpuid(_regs, CPUID_GETEXTFEATURES);
+   __cpuid(_regs, CPUID_GETEXTCPUINFO);
    if (regs[EAX] >= 0x80000001 && _regs[EBX] == htuA &&
        _regs[ECX] == DMAc && _regs[EDX] == itne)
    {

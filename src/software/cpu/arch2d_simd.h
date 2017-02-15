@@ -180,8 +180,8 @@ void _batch_cvt24_ps24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_avx(void_ptr, const_void_ptr, size_t);
 
-void _batch_fma3_avx(float32_ptr, const_float32_ptr, size_t, float, float);
-void _batch_fma4_avx(float32_ptr, const_float32_ptr, size_t, float, float);
+void _batch_fma3_float_avx(float32_ptr, const_float32_ptr, size_t, float, float);
+void _batch_fma4_float_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 
 /* VFPv2 */
 void _batch_imul_value_vfpv2(void*, unsigned, size_t, float);

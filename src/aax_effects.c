@@ -166,8 +166,15 @@ aaxEffectAddBuffer(aaxEffect e, aaxBuffer b)
             _aaxErrorSet(AAX_INVALID_STATE+1);
          } else if (rb->get_parami(rb, RB_NO_TRACKS) != 1) {
             _aaxErrorSet(AAX_INVALID_STATE+1);
-         } else {
-            rv = AAX_TRUE;
+         }
+         else
+         {
+            _eff_function_tbl *eff = _aaxEffects[effect->type-1];
+            if (!eff->data) {
+               _aaxErrorSet(AAX_INVALID_STATE);
+            } else {
+               rv = AAX_TRUE;
+            }
          }
       }
    }
@@ -175,12 +182,9 @@ aaxEffectAddBuffer(aaxEffect e, aaxBuffer b)
    if (rv)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-      if (eff->data)
-      {
-         _aaxRingBuffer *rb = buffer->ringbuffer;
-         eff->data(effect, rb->reference(rb));
-         buffer->ref_counter++;
-      }
+      _aaxRingBuffer *rb = buffer->ringbuffer;
+      eff->data(effect, rb->reference(rb));
+      buffer->ref_counter++;
    }
    return rv;
 }
