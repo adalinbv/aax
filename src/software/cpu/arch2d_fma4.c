@@ -22,7 +22,7 @@
 # define CACHE_ADVANCE_FF	 (2*32)
 
 FN_PREALIGN void
-_batch_fma4_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
+_batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
