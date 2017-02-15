@@ -83,6 +83,18 @@ aaxGetVersionString(aaxConfig cfg)
    return _version;
 }
 
+AAX_API enum aaxFilterType AAX_APIENTRY
+aaxMaxFilter(void)
+{
+   return AAX_FILTER_MAX;
+}
+
+AAX_API enum aaxEffectType AAX_APIENTRY
+aaxMaxEffect(void)
+{
+   return AAX_EFFECT_MAX;
+}
+
 AAX_API int AAX_APIENTRY
 aaxIsFilterSupported(aaxConfig cfg, const char *filter)
 {
