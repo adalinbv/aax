@@ -1344,6 +1344,48 @@ _aaxBufResampleCubic_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t dm
    assert(0.0f <= smu && smu < 1.0f);
    assert(0.0f < freq_factor && freq_factor <= 1.0f);
 
+#if 1
+   float y0, y1, y2, y3, a0, a1, a2;
+
+   dptr += dmin;
+
+   y0 = *sptr++;
+   y1 = *sptr++;
+   y2 = *sptr++;
+   y3 = *sptr++;
+
+   a0 = y3 - y2 - y0 + y1;
+   a1 = y0 - y1 - a0;
+   a2 = y2 - y0;
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         float smu2, ftmp;
+
+         smu2 = smu*smu;
+         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         *dptr++ = ftmp;
+
+         smu += freq_factor;
+         if (smu >= 1.0)
+         {
+            smu--;
+            a0 += y0;
+            y0 = y1;
+            y1 = y2;
+            y2 = y3;
+            y3 = *sptr++;
+            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+         }
+      }
+      while (--i);
+   }
+#else
    dptr += dmin;
    i = dmax-dmin;
    if (i > 4)
@@ -1413,6 +1455,7 @@ _aaxBufResampleCubic_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t dm
       }
       while (--i);
    }
+#endif
 }
 
 void
