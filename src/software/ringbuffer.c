@@ -792,7 +792,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    {
    case RB_IS_MIXER_BUFFER:
 #if RB_FLOAT_DATA
-      if (rbd->mixer_fmt  != val)
+      if (rbd->mixer_fmt != val)
       {
          _aaxRingBufferSample *rbd = rbi->sample;
          unsigned int track, no_tracks = rbd->no_tracks;
