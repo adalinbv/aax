@@ -1031,27 +1031,6 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
 
       if (format != native_fmt)
       {
-                                /* then convert to proper signedness */
-         if (format & AAX_FORMAT_UNSIGNED)
-         {
-            switch (native_fmt)
-            {
-            case AAX_PCM8S:
-               _batch_cvt8u_8s(data, samples);
-               break;
-            case AAX_PCM16S:
-               _batch_cvt16u_16s(data, samples);
-               break;
-            case AAX_PCM24S:
-               _batch_cvt24u_24s(data, samples);
-               break;
-            case AAX_PCM32S:
-               _batch_cvt32u_32s(data, samples);
-               break;
-            default:
-               break;
-            }
-         }
                                 /* first convert to requested endianness */
          if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
               ((format & AAX_FORMAT_BE) && !is_bigendian()) )
@@ -1068,6 +1047,27 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
                break;
             case AAX_DOUBLE:
                _batch_endianswap64(data, samples);
+               break;
+            default:
+               break;
+            }
+         }
+                                /* then convert to proper signedness */
+         if (format & AAX_FORMAT_UNSIGNED)
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM8S:
+               _batch_cvt8u_8s(data, samples);
+               break;
+            case AAX_PCM16S:
+               _batch_cvt16u_16s(data, samples);
+               break;
+            case AAX_PCM24S:
+               _batch_cvt24u_24s(data, samples);
+               break;
+            case AAX_PCM32S:
+               _batch_cvt32u_32s(data, samples);
                break;
             default:
                break;
@@ -1295,7 +1295,7 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
 }
 
 void
-_bufFillInterleaved(_buffer_t *handle, _aaxRingBuffer *rb, const void *dbuf, unsigned blocksize)
+_bufFillInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, unsigned blocksize)
 {
    unsigned int rb_format, bps, no_samples, no_tracks, tracksize;
    const char *env = getenv("AAX_USE_MIXER_FMT");
@@ -1347,24 +1347,36 @@ _bufFillInterleaved(_buffer_t *handle, _aaxRingBuffer *rb, const void *dbuf, uns
          unsigned int nbps = sizeof(int32_t);
          if (tracksize < buf_samples*nbps)
          {
+            _aaxRingBuffer *tmp = buf->ringbuffer;
+            enum aaxFormat fmt = buf->format;
             _aaxRingBuffer *nrb;
 
-            handle->ringbuffer = NULL;
-            handle->format = AAX_PCM24S;
-            nrb = _bufGetRingBuffer(handle, handle->handle);
+            buf->ringbuffer = NULL;
+            buf->format = AAX_PCM24S;
+            nrb = _bufGetRingBuffer(buf, buf->handle);
             if (nrb)
             {
-               rb->destroy(rb);
+               buf->ringbuffer = nrb;
+               rb = nrb;
 
-               handle->ringbuffer = rb = nrb;
+               tmp->release_tracks_ptr(tmp);
+               tmp->destroy(tmp);
+
+               bps = nbps;
                rb->init(rb, AAX_FALSE);
 
-               tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+               bps = nbps;
                tracksize = buf_samples*bps;
+               tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+            }
+            else
+            {
+               buf->ringbuffer = tmp;
+               buf->format = fmt;
             }
          }
 
-         if (tracksize >= buf_samples*bps)
+         if (tracksize >= buf_samples*nbps)
          {
             char *ptr = (char*)sizeof(void*);
             ndata = (void**)_aax_malloc(&ptr, buf_samples*nbps);
@@ -1373,7 +1385,6 @@ _bufFillInterleaved(_buffer_t *handle, _aaxRingBuffer *rb, const void *dbuf, uns
                *ndata = (void*)ptr;
                _bufConvertDataToPCM24S(ptr,(void*)data, buf_samples, rb_format);
                data = ptr;
-               bps = nbps;
             }
          }
       }
@@ -1408,7 +1419,8 @@ _bufFillInterleaved(_buffer_t *handle, _aaxRingBuffer *rb, const void *dbuf, uns
    if (to_mixer)
    {
 #if 0
-      float fact = 
+      _handle_t *handle = buf->handle;
+      float fact = handle->frequency/buffer->frequency
 
       rb->set_parami(rb, RB_IS_MIXER_BUFFER, AAX_TRUE);
       if (fact != 1.0f)
@@ -1465,10 +1477,10 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int
             tracks[t] = p;
 #if RB_FLOAT_DATA
             if (rb->get_parami(rb, RB_IS_MIXER_BUFFER) == AAX_FALSE) {
-               _batch_cvtps24_24(tracks[t], tracks[t], samples);
+               _batch_cvtps24_24(ptr[t], ptr[t], no_samples);
             }
             _batch_resample_float(tracks[t], ptr[t], 0, samples, 0, fact);
-            _batch_cvt24_ps24(tracks[t], tracks[t], samples*fact);
+            _batch_cvt24_ps24(tracks[t], tracks[t], samples);
 #else
             _batch_resample(tracks[t], ptr[t], 0, samples, 0, fact);
 #endif
