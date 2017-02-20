@@ -841,12 +841,13 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                ret = bufsize;
                if (bufsize+dataoffs > handle->threadBufAvail)
                {
-                  if (handle->threadBufAvail-dataoffs > 0) {
+                  if (handle->threadBufAvail > dataoffs) {
                      ret = handle->threadBufAvail-dataoffs;
                   } else {
                      ret = 0;
                   }
                }
+
 //             ret = _MINMAX(handle->threadBufAvail-dataoffs, 0, bufsize);
                memcpy(data+dataoffs, handle->threadBuf, ret);
 
