@@ -435,6 +435,7 @@ SET( AEONWAVE_OBJS
      base/timer.c
      base/types.c
      src/api.c
+     src/arch.c
      src/devices.c
      src/objects.c
      src/aax_audioframe.c

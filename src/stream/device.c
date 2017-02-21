@@ -430,7 +430,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 #endif
 
    res = AAX_FALSE;
-   if (!m)
+   if (1) // !m)
    {
       switch (protocol)
       {
@@ -752,11 +752,13 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       int file_bits = handle->ext->get_param(handle->ext, __F_BITS);
       size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK);
       unsigned int frame_bits = file_tracks*file_bits;
-      size_t no_samples, bufsize, samples, dataoffs, datasize, fillsize;
-      ssize_t res;
-      char *data;
+      size_t bufsize, samples, extbufPos, extbufAvail, extbufProcess;
+      ssize_t res, no_samples;
+      char *extbuf;
 
-      no_samples = *frames;
+      no_samples = (ssize_t)*frames;
+      *frames = 0;
+
       bufsize = no_samples*frame_bits/8;
       bufsize = ((bufsize/file_block)+1)*file_block;
       if (bufsize > scratchlen) {
@@ -768,24 +770,25 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       }
 
       bytes = 0;
-      data = NULL;
-      dataoffs = 0;
-      datasize = 0;
-      fillsize = 0;
+      extbuf = NULL;
+      extbufPos = 0;
+      extbufAvail = 0;
+      extbufProcess = 0;
       samples = no_samples;
       do
       {
          /* convert data still in the buffer */
-         if (data)
+         if (extbuf)
          {
             // add data from the scratch buffer to ext's internal buffer
-            fillsize = datasize+dataoffs;
-            res = handle->ext->fill(handle->ext, data, &fillsize);
+            extbufProcess = extbufPos + extbufAvail;
 
-            datasize -= fillsize;
-            dataoffs = datasize;
-            if (dataoffs) {
-               memmove(data, data+fillsize, dataoffs);
+            res = handle->ext->fill(handle->ext, extbuf, &extbufProcess);
+
+            extbufAvail -= extbufProcess;
+            extbufPos = extbufAvail;
+            if (extbufPos) {
+               memmove(extbuf, extbuf+extbufProcess, extbufPos);
             }
             res = __F_PROCESS;
          }
@@ -806,8 +809,8 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          /* or -1 if an error occured, or end of file                   */
          if (res == __F_PROCESS)
          {
-            if (fillsize == 0) {
-               data = NULL;
+            if (extbufProcess == 0) {
+               extbuf = NULL;
                samples = no_samples;
             }
          }
@@ -815,9 +818,10 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          {
             offs += samples;
             no_samples -= samples;
-            bytes += res;
+            *frames += samples;
+            if (res > 0) bytes += res;
 
-            if (no_samples)
+            if (no_samples > 0)
             {
                ssize_t ret;
 
@@ -834,22 +838,22 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                }
 
                // lock the thread buffer
-               data = scratch;
+               extbuf = scratch;
                _aaxMutexLock(handle->thread.signal.mutex);
 
                // copy data from the read-threat to the scratch buffer
                ret = bufsize;
-               if (bufsize+dataoffs > handle->threadBufAvail)
+               if (bufsize+extbufPos > handle->threadBufAvail)
                {
-                  if (handle->threadBufAvail > dataoffs) {
-                     ret = handle->threadBufAvail-dataoffs;
+                  if (handle->threadBufAvail > extbufPos) {
+                     ret = handle->threadBufAvail-extbufPos;
                   } else {
                      ret = 0;
                   }
                }
 
-//             ret = _MINMAX(handle->threadBufAvail-dataoffs, 0, bufsize);
-               memcpy(data+dataoffs, handle->threadBuf, ret);
+//             ret = _MINMAX(handle->threadBufAvail-extbufPos, 0, bufsize);
+               memcpy(extbuf+extbufPos, handle->threadBuf, ret);
 
                // remove the copied data from the thread buffer
                handle->threadBufAvail -= ret;
@@ -869,7 +873,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   bytes = 0; // -1;
                   break;
                }
-               datasize += ret;
+               extbufAvail += ret;
             }
          }
          else
@@ -877,7 +881,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             bytes = -1;
             break;
          }
-      } while (no_samples);
+      } while (no_samples > 0);
 
       if (!handle->copy_to_buffer && bytes > 0)
       {
