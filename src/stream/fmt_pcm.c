@@ -269,6 +269,7 @@ _pcm_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
       memcpy(buf, sptr, *bytes);
       handle->pcmBufPos += *bytes;
       rv = *bytes;
+      *bytes = 0;
    }
 
    return rv;
@@ -291,33 +292,57 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       *num = handle->max_samples - handle->no_samples;
    }
 
-   if (handle->format == AAX_IMA4_ADPCM) {
-      bytes = IMA4_SMP_TO_BLOCKSIZE(*num);
-   } else {
-      bytes = *num*blocksize;
-   }
-
-   if (bytes > bufsize) {
-      bytes = bufsize;
-   }
-
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      if (bufsize >= blocksize)
+      unsigned int blocksmp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
+
+      if (*num && (bufsize >= blocksize))
       {
-         bytes = bufsize - (bufsize % blocksize);
-         *num = IMA4_BLOCKSIZE_TO_SMP(bytes);
-         blocksize = (handle->no_tracks*handle->bits_sample/8);
+         unsigned int n = *num/blocksmp;
+         if (!n) n=1;
+
+         bytes = n*blocksize;
+         if (bytes > bufsize)
+         {
+            n = (bufsize/blocksize);
+            bytes = n*blocksize;
+         }
+         *num = n*blocksmp;
+
+         if (bytes)
+         {
+            dptr_offs = (dptr_offs/blocksmp)*blocksize;
+            memcpy((char*)dptr+dptr_offs, buf, bytes);
+
+            /* skip processed data */
+            handle->pcmBufPos -= bytes;
+            if (handle->pcmBufPos > 0) {
+               memmove(buf, buf+bytes, handle->pcmBufPos);
+            }
+
+            handle->no_samples += *num;
+            if (handle->no_samples < handle->max_samples) {
+               rv = bytes;
+            }
+         }
+         else {
+            *num = 0;
+         }
       }
       else {
-         *num = bytes = 0;
+         *num = 0;
       }
-   } else {
-      *num = bytes/blocksize;
-   }
 
-   if (bytes)
+   }
+   else if (*num)
    {
+      bytes = *num*blocksize;
+      if (bytes > bufsize) {
+         bytes = bufsize;
+      }
+
+      *num = bytes/blocksize;
+
       dptr_offs *= blocksize;
       memcpy((char*)dptr+dptr_offs, buf, bytes);
 

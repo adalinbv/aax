@@ -106,7 +106,9 @@ _url_split(char *url, char **protocol, char **server, char **path, char **extens
       ptr = strchr(url, '/');
       if (ptr)
       {
-         *ptr++ = '\0';
+         if (ptr != url) *ptr++ = '\0';
+         else *server = 0;
+
          *path = ptr;
          *extension = strrchr(ptr, '.');
          if (*extension) (*extension)++;
