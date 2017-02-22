@@ -608,7 +608,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                do
                {
                   ssize_t offs = offs_packets;
-                  size_t packets = 512;
+                  size_t packets = no_samples;
 
                   res = stream->capture(id, dst, &offs, &packets,
                                             dst[1], datasize, 1.0f, AAX_TRUE);
