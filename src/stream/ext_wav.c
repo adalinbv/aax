@@ -22,6 +22,7 @@
 #include "device.h"
 #include "extension.h"
 #include "format.h"
+#include "api.h"
 
 // https://tools.ietf.org/html/rfc2361
 // http://svn.tribler.org/vlc/trunk/include/vlc_codecs.h
@@ -469,25 +470,16 @@ size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
+   unsigned tracks = handle->no_tracks;
 
-   if (handle->format == AAX_IMA4_ADPCM)
+   if (handle->format == AAX_IMA4_ADPCM && tracks > 1)
    {
       size_t blocksize = handle->blocksize;
-      unsigned tracks = handle->no_tracks;
 
-#if 0
-      *num -= (*num % blocksize);
-#else
-      if (*num >= blocksize) {
-         *num = blocksize;
-      } else {
-         *num = 0;
-      }
-#endif
-
-      if (tracks > 1) {
-         _wav_cvt_msadpcm_to_ima4(sptr, *num, tracks, &blocksize);
-      }
+unsigned int blocksmp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
+printf("*num: %i, blocksmp: %i (%i)\n", *num, blocksmp, *num/blocksmp);
+// TODO
+      _wav_cvt_msadpcm_to_ima4(sptr, *num, tracks, &blocksize);
    }
 
    return handle->fmt->fill(handle->fmt, sptr, num);
@@ -586,9 +578,6 @@ off_t
 _wav_set(_ext_t *ext, int type, off_t value)
 {
    _driver_t *handle = ext->id;
-printf("handle: %x\n", handle);
-printf("handle->fmt: %x\n", handle->fmt);
-printf("handle->fmt->set: %x\n", handle->fmt->set);
    return handle->fmt->set(handle->fmt, type, value);
 }
 
