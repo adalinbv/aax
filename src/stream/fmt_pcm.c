@@ -295,44 +295,35 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    if (handle->format == AAX_IMA4_ADPCM)
    {
       unsigned int blocksmp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
+      unsigned int n = *num/blocksmp;
 
-      if (*num && (bufsize >= blocksize))
+      bytes = n*blocksize;
+      if (bytes > bufsize)
       {
-         unsigned int n = *num/blocksmp;
-         if (!n) n=1;
-
+         n = (bufsize/blocksize);
          bytes = n*blocksize;
-         if (bytes > bufsize)
-         {
-            n = (bufsize/blocksize);
-            bytes = n*blocksize;
+      }
+      *num = n*blocksmp;
+
+      if (bytes && bytes <= handle->pcmBufPos)
+      {
+         dptr_offs = (dptr_offs/blocksmp)*blocksize;
+         memcpy((char*)dptr+dptr_offs, buf, bytes);
+
+         /* skip processed data */
+         handle->pcmBufPos -= bytes;
+         if (handle->pcmBufPos > 0) {
+            memmove(buf, buf+bytes, handle->pcmBufPos);
          }
-         *num = n*blocksmp;
 
-         if (bytes)
-         {
-            dptr_offs = (dptr_offs/blocksmp)*blocksize;
-            memcpy((char*)dptr+dptr_offs, buf, bytes);
-
-            /* skip processed data */
-            handle->pcmBufPos -= bytes;
-            if (handle->pcmBufPos > 0) {
-               memmove(buf, buf+bytes, handle->pcmBufPos);
-            }
-
-            handle->no_samples += *num;
-            if (handle->no_samples < handle->max_samples) {
-               rv = bytes;
-            }
-         }
-         else {
-            *num = 0;
+         handle->no_samples += *num;
+         if (handle->no_samples < handle->max_samples) {
+            rv = bytes;
          }
       }
       else {
          *num = 0;
       }
-
    }
    else if (*num)
    {
