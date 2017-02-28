@@ -288,8 +288,8 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
                                                 &handle->outputs, &n);
          if (ret > 0)
          {
-            bufsize -= ret;
             rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
+            bufsize = handle->vorbisBuffer->avail;
          }
       }
       while (ret && n == 0);
