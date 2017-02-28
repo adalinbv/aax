@@ -86,9 +86,7 @@ typedef struct
    size_t no_samples;
    size_t max_samples;
 
-   size_t mp3BufSize;
-   char *mp3Buffer;
-   char *mp3ptr;
+   _data_t *mp3Buffer;
 
 } _driver_t;
 
@@ -234,7 +232,6 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             handle->id = pmpg123_new(NULL, NULL);
             if (handle->id)
             {
-               char *ptr = 0;
 
 #ifdef NDEBUG
                pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_QUIET, 1);
@@ -261,9 +258,7 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
                if (pmpg123_open_feed(handle->id) == MPG123_OK)
                {
-                  handle->mp3BufSize = 16384;
-                  handle->mp3ptr = _aax_malloc(&ptr, handle->mp3BufSize);
-                  handle->mp3Buffer = ptr;
+                  handle->mp3Buffer = _aaxDataCreate(16384, 1);
 
                   if (pmpg123_set_filesize) {
                      pmpg123_set_filesize(handle->id, fsize);
@@ -329,17 +324,14 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
       }
       else	// playback
       {
-         char *ptr = 0;
          /*
           * The required mp3buf_size can be computed from num_samples,
           * samplerate and encoding rate, but here is a worst case estimate:
           *
           * mp3buf_size in bytes = 1.25*num_samples + 7200
           */
-         handle->mp3BufSize = 7200 + handle->no_samples*5/4;
-         handle->mp3ptr = _aax_malloc(&ptr, handle->mp3BufSize);
-         handle->mp3Buffer = ptr;
-         if (handle->mp3ptr)
+         handle->mp3Buffer = _aaxDataCreate(7200 + handle->no_samples*5/4, 1);
+         if (handle->mp3Buffer)
          {
             int ret;
 
@@ -388,11 +380,12 @@ _mpg123_close(_fmt_t *fmt)
       }
       else
       {
-         plame_encode_flush(handle->id, (unsigned char*)handle->mp3Buffer, handle->mp3BufSize);
+         plame_encode_flush(handle->id, handle->mp3Buffer->data,
+                                        handle->mp3Buffer->size);
          // plame_mp3_tags_fid(handle->id, mp3);
          plame_close(handle->id);
       }
-      free(handle->mp3ptr);
+      _aaxDataDestroy(handle->mp3Buffer);
 
 #ifdef WINXP
       free(handle->pcmBuffer);
@@ -451,8 +444,8 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    bits = handle->bits_sample;
    bytes = *num*tracks*bits/8;
 
-   buf = (char*)handle->mp3Buffer;
-   bufsize = handle->mp3BufSize;
+   buf = (char*)handle->mp3Buffer->data;
+   bufsize = handle->mp3Buffer->size;
 
    if (bytes > bufsize) {
       bytes = bufsize;
@@ -483,21 +476,21 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
    size_t rv = __F_EOF;
-   char *buf;
+   unsigned char *buf;
    int ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
    bytes = *num*tracks*bits/8;
 
-   buf = handle->mp3Buffer;
-   bufsize = handle->mp3BufSize;
+   buf = handle->mp3Buffer->data;
+   bufsize = handle->mp3Buffer->size;
 
    if (bytes > bufsize) {
       bytes = bufsize;
    }
 
-   ret = pmpg123_read(handle->id, (unsigned char*)buf, bytes, &size);
+   ret = pmpg123_read(handle->id, buf, bytes, &size);
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
@@ -525,8 +518,8 @@ _mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t 
    handle->no_samples += *num;
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
    res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
-                         (unsigned char*)handle->mp3Buffer, handle->mp3BufSize);
-   _aax_memcpy(dptr, handle->mp3Buffer, res);
+                              handle->mp3Buffer->data, handle->mp3Buffer->size);
+   _aax_memcpy(dptr, handle->mp3Buffer->data, res);
 
    return res;
 }

@@ -39,10 +39,7 @@ typedef struct
    size_t no_samples;
    size_t max_samples;
 
-   ssize_t vorbisBufPos;
-   size_t vorbisBufSize;
-   unsigned char *vorbisBuffer;
-   void *vorbisptr;
+   _data_t *vorbisBuffer;
 
    float **outputs;
    unsigned int out_pos;
@@ -88,17 +85,11 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
-      if (!handle->vorbisptr)
-      {
-         char *ptr = 0;
-
-         handle->vorbisBufPos = 0;
-         handle->vorbisBufSize = 16384;
-         handle->vorbisptr = _aax_malloc(&ptr, handle->vorbisBufSize);
-         handle->vorbisBuffer = (unsigned char*)ptr;
+      if (!handle->vorbisBuffer) {
+         handle->vorbisBuffer = _aaxDataCreate(16384, 1);
       }
 
-      if (handle->vorbisptr)
+      if (handle->vorbisBuffer)
       {
          if (handle->capturing)
          {
@@ -107,11 +98,11 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
             if (_vorbis_fill(fmt, buf, bufsize) > 0)
             {
-               buf = (char*)handle->vorbisBuffer;
+               buf = handle->vorbisBuffer->data;
 
                if (!handle->id)
                {
-                  int max = handle->vorbisBufPos;
+                  int max = handle->vorbisBuffer->avail;
                   handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
                }
 
@@ -131,10 +122,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
   printf("Predicted memory needed: %d (%d + %d)\n", info.setup_memory_required + info.temp_memory_required,
                 info.setup_memory_required, info.temp_memory_required);
 #endif
-                  handle->vorbisBufPos -= used;
-                  if (handle->vorbisBufPos > 0) {
-                     memmove(buf, (char*)buf+used, handle->vorbisBufPos);
-                  }
+                  _aaxDataMove(handle->vorbisBuffer, NULL, used);
                   // we're done decoding, return NULL
                }
                else
@@ -192,7 +180,7 @@ _vorbis_close(_fmt_t *fmt)
       stb_vorbis_close(handle->id);
       handle->id = NULL;
 
-      free(handle->vorbisptr);
+      _aaxDataDestroy(handle->vorbisBuffer);
       free(handle);
    }
 }
@@ -207,21 +195,10 @@ size_t
 _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   size_t bufpos, bufsize, size;
    size_t rv = 0;
 
-   size = *bytes;
-   bufpos = handle->vorbisBufPos;
-   bufsize = handle->vorbisBufSize;
-   if ((size+bufpos) <= bufsize)
-   {
-      unsigned char *buf = handle->vorbisBuffer + bufpos;
-
-      memcpy(buf, sptr, size);
-      handle->vorbisBufPos += size;
-      rv = size;
-   }
-   else {
+   rv = _aaxDataAdd(handle->vorbisBuffer, sptr, *bytes);
+   if (!rv) {
       *bytes = 0;
    }
 
@@ -277,8 +254,8 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    tracks = handle->no_tracks;
    *num = 0;
 
-   buf = handle->vorbisBuffer;
-   bufsize = handle->vorbisBufPos;
+   buf = handle->vorbisBuffer->data;
+   bufsize = handle->vorbisBuffer->avail;
 
    /* there is still data left in the buffer from the previous run */
    if (handle->out_pos > 0)
@@ -312,11 +289,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
          if (ret > 0)
          {
             bufsize -= ret;
-            handle->vorbisBufPos -= ret;
-            if (handle->vorbisBufPos > 0) {
-               memmove(buf, buf+ret, handle->vorbisBufPos);
-            }
-            rv += ret;
+            rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
          }
       }
       while (ret && n == 0);
