@@ -43,7 +43,7 @@ _aaxDataCreate(size_t size, unsigned int blocksize)
          rv->create = _aaxDataCreate;
          rv->destroy = _aaxDataDestroy;
          rv->add = _aaxDataAdd;
-         rv->get = _aaxDataGet;
+         rv->move = _aaxDataMove;
       }
       else
       {
@@ -90,7 +90,7 @@ _aaxDataAdd(_data_t* buf, void* data, size_t size)
 }
 
 size_t
-_aaxDataGet(_data_t* buf, void* data, size_t size)
+_aaxDataMove(_data_t* buf, void* data, size_t size)
 {
    size_t rv = size;
 
