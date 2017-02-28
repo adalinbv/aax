@@ -57,13 +57,14 @@ extern "C" {
 
 /* --- data buffers -- */
 #define DATA_ID	0xDFA82736
-struct _data_t;
+struct _data_st;
 
-typedef struct _data_t* (_data_create_fn)(size_t, unsigned int);
-typedef int (_data_destroy_fn)(struct _data_t*);
-typedef size_t (_data_add_fn)(struct _data_t*, void*, size_t);
-typedef size_t (_data_get_fn)(struct _data_t*, void*, size_t);
-typedef struct
+typedef struct _data_st* (_data_create_fn)(size_t, unsigned int);
+typedef int (_data_destroy_fn)(struct _data_st*);
+typedef size_t (_data_add_fn)(struct _data_st*, void*, size_t);
+typedef size_t (_data_move_fn)(struct _data_st*, void*, size_t);
+
+struct _data_st
 {
    unsigned int id;
 
@@ -75,14 +76,15 @@ typedef struct
    _data_create_fn *create;
    _data_destroy_fn *destroy;
    _data_add_fn *add;
-   _data_get_fn *get;
+   _data_move_fn *move;
 
-} _data_t;
+};
+typedef struct _data_st _data_t;
 
 _data_t* _aaxDataCreate(size_t, unsigned int);
 int _aaxDataDestroy(_data_t*);
 size_t _aaxDataAdd(_data_t*, void*, size_t);
-size_t _aaxDataGet(_data_t*, void*, size_t);
+size_t _aaxDataMove(_data_t*, void*, size_t);
 
 
 /* --- Error support -- */
