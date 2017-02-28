@@ -21,6 +21,7 @@
 #else
 # include <string.h>
 #endif
+#include <assert.h>
 
 #include "api.h"
 #include "arch.h"
@@ -57,32 +58,34 @@ int
 _aaxDataDestroy(_data_t* buf)
 {
    int rv = AAX_FALSE;
-   if (buf && buf->id == DATA_ID)
-   {
-      buf->id = FADEDBAD;
-      _aax_aligned_free(buf->data);
-      free(buf);
-      rv = AAX_TRUE;
-   }
+
+   assert(buf && buf->id == DATA_ID);
+   buf->id = FADEDBAD;
+
+   _aax_aligned_free(buf->data);
+   free(buf);
+   rv = AAX_TRUE;
+
    return rv;
 }
 
 size_t
 _aaxDataAdd(_data_t* buf, void* data, size_t size)
 {
-   size_t rv = 0;
-   if (buf && buf->id == DATA_ID)
-   {
-      size_t free = buf->size - buf->avail;
-      if (size > free) rv = free;
-      else rv = size;
+   size_t free, rv = 0;
 
-      if (rv)
-      {
-         memcpy(buf->data+buf->avail, data, rv);
-         buf->avail += rv;
-      }
+   assert(buf && buf->id == DATA_ID);
+
+   free = buf->size - buf->avail;
+   if (size > free) rv = free;
+   else rv = size;
+
+   if (rv)
+   {
+      memcpy(buf->data+buf->avail, data, rv);
+      buf->avail += rv;
    }
+
    return rv;
 }
 
@@ -90,17 +93,18 @@ size_t
 _aaxDataGet(_data_t* buf, void* data, size_t size)
 {
    size_t rv = size;
-   if (buf && buf->id == DATA_ID)
-   {
-      if (size >= buf->blocksize)
-      {
-         rv = (size/buf->blocksize)*buf->blocksize;
-         memcpy(data, buf->data, rv);
 
-         buf->avail -= rv;
-         memmove(buf->data, buf->data+rv, buf->avail);
-      }
+   assert(buf && buf->id == DATA_ID);
+
+   if (size >= buf->blocksize)
+   {
+      rv = (size/buf->blocksize)*buf->blocksize;
+      memcpy(data, buf->data, rv);
+
+      buf->avail -= rv;
+      memmove(buf->data, buf->data+rv, buf->avail);
    }
+
    return rv;
 }
 
