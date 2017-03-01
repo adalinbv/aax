@@ -610,6 +610,8 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                   ssize_t offs = offs_packets;
                   size_t packets = no_samples;
 
+                  assert(packets <= datasize*8/(tracks*bits));
+
                   res = stream->capture(id, dst, &offs, &packets,
                                             dst[1], datasize, 1.0f, AAX_TRUE);
                   offs_packets += packets;
@@ -618,11 +620,6 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                   }
                }
                while (res);
-
-               // convert from WAV file ADPCM interleaved channels to IMA4
-               if (fmt == AAX_IMA4_ADPCM && tracks > 1) {
-                  _wav_cvt_msadpcm_to_ima4(dst[0], datasize, tracks, &blocksize);
-               }
 
                rv = aaxBufferCreate(config, no_samples, tracks, fmt);
                if (rv)

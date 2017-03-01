@@ -57,29 +57,16 @@ extern "C" {
 
 /* --- data buffers -- */
 #define DATA_ID	0xDFA82736
-struct _data_st;
-
-typedef struct _data_st* (_data_create_fn)(size_t, unsigned int);
-typedef int (_data_destroy_fn)(struct _data_st*);
-typedef size_t (_data_add_fn)(struct _data_st*, void*, size_t);
-typedef size_t (_data_move_fn)(struct _data_st*, void*, size_t);
-
-struct _data_st
+typedef struct _data_st
 {
    unsigned int id;
 
    unsigned int blocksize;
    size_t size;
    size_t avail;
-   char *data;
+   unsigned char *data;
 
-   _data_create_fn *create;
-   _data_destroy_fn *destroy;
-   _data_add_fn *add;
-   _data_move_fn *move;
-
-};
-typedef struct _data_st _data_t;
+} _data_t;
 
 _data_t* _aaxDataCreate(size_t, unsigned int);
 int _aaxDataDestroy(_data_t*);

@@ -303,7 +303,7 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
                   rv = buf;
 
-                  if (handle->max_samples == 0 && pmpg123_length)
+                  if (pmpg123_length)
                   {
                      off_t length = pmpg123_length(handle->id);
                      handle->max_samples = (length > 0) ? length : 0;
@@ -436,29 +436,31 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
+   unsigned char *buf;
    size_t rv = __F_EOF;
-   char *buf;
    int ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
    bytes = *num*tracks*bits/8;
 
-   buf = (char*)handle->mp3Buffer->data;
+   buf = handle->mp3Buffer->data;
    bufsize = handle->mp3Buffer->size;
 
    if (bytes > bufsize) {
       bytes = bufsize;
    }
-   ret = pmpg123_read(handle->id, (unsigned char*)buf, bytes, &size);
+   ret = pmpg123_read(handle->id, buf, bytes, &size);
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
       unsigned int framesize = tracks*bits/8;
+      unsigned char *ptr = (unsigned char*)dptr;
 
-      dptr_offs *= framesize;
+printf("dptr_offs: %i, framesize: %i, bux: %x, size: %i\n", dptr_offs, framesize, buf, size);
+      ptr += dptr_offs*framesize;
       memcpy((char*)dptr+dptr_offs, buf, size);
 
       *num = size/framesize;
