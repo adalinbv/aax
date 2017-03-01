@@ -123,9 +123,7 @@ typedef struct
    size_t no_samples;
    unsigned int no_bytes;
 
-   char *dataBuf_ptr;
-   char *dataBuf;
-   unsigned int dataBufSize;
+   _data_t *dataBuffer;
 
    void *out_header;
    unsigned int out_hdr_size;
@@ -341,7 +339,7 @@ _aaxStreamDriverDisconnect(void *id)
          _aaxThreadDestroy(handle->thread.ptr);
       }
 
-      free(handle->dataBuf_ptr);
+      _aaxDataDestroy(handle->dataBuffer);
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
       }
@@ -396,7 +394,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    int res, rate, rv = AAX_FALSE;
    _protocol_t protocol;
    int port;
-   size_t extbufSize;
+   size_t headerSize;
    float period_ms;
 
    assert(handle);
@@ -516,7 +514,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
 
       period_frames = (size_t)rintf(rate / period_rate);
-      res = handle->ext->setup(handle->ext, handle->mode, &extbufSize, rate,
+      res = handle->ext->setup(handle->ext, handle->mode, &headerSize, rate,
                                *tracks, format, period_frames, *bitrate);
       if (protocol == PROTOCOL_HTTP) {
 //       hsnandle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
@@ -528,18 +526,18 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          void *header = NULL;
          void *buf = NULL;
 
-         if (extbufSize) {
-            header = malloc(extbufSize);
+         if (headerSize) {
+            header = malloc(headerSize);
          }
 
          do
          {
-            if (!m && header && extbufSize)
+            if (!m && header && headerSize)
             {
                int tries = 100; /* 100*50 mSec = 5 seconds */
                do
                {
-                  res = handle->io->read(handle->io, header, extbufSize);
+                  res = handle->io->read(handle->io, header, headerSize);
                   if (res > 0 || --tries == 0) break;
                   msecSleep(50);
                }
@@ -555,26 +553,26 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
             }
 
-            extbufSize = res;
-            buf = handle->ext->open(handle->ext, header, &extbufSize,
+            headerSize = res;
+            buf = handle->ext->open(handle->ext, header, &headerSize,
                                     handle->no_bytes);
             if (m && buf)
             {
-               handle->out_header = malloc(extbufSize);
-               memcpy(handle->out_header, buf, extbufSize);
-               handle->out_hdr_size = extbufSize;
-               res = extbufSize;
+               handle->out_header = malloc(headerSize);
+               memcpy(handle->out_header, buf, headerSize);
+               handle->out_hdr_size = headerSize;
+               res = headerSize;
                buf = NULL;
             }
             else {
-               res = extbufSize;
+               res = headerSize;
             }
          }
-         while (handle->mode == AAX_MODE_READ && buf && extbufSize);
+         while (handle->mode == AAX_MODE_READ && buf && headerSize);
 
          free(header);
 
-         if (extbufSize && res == extbufSize)
+         if (headerSize && res == headerSize)
          {
             rate = handle->ext->get_param(handle->ext, __F_FREQ);
 
@@ -647,8 +645,8 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
    size_t no_samples, offs, outbuf_size;
    unsigned int rb_bps, file_bps, file_tracks;
+   unsigned char *data;
    int32_t** sbuf;
-   char *data;
    ssize_t res;
 
    assert(rb);
@@ -694,18 +692,14 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
    _aaxMutexLock(handle->thread.signal.mutex);
 
    outbuf_size = file_tracks * no_samples*_MAX(file_bps, rb_bps);
-   if ((handle->dataBuf_ptr == 0) || (handle->dataBufSize < outbuf_size))
+   if ((handle->dataBuffer == 0) || (handle->dataBuffer->size < outbuf_size))
    {
-      char *p = 0;
-
-      _aax_free(handle->dataBuf_ptr);
-      handle->dataBuf_ptr = (char *)_aax_malloc(&p, 2*outbuf_size);
-      handle->dataBuf = (char *)p;
-      handle->dataBufSize = outbuf_size;
+      _aaxDataDestroy(handle->dataBuffer);
+      handle->dataBuffer = _aaxDataCreate(2*outbuf_size, 1);
    }
-   data = (char*)handle->dataBuf + outbuf_size;
+   data = handle->dataBuffer->data + outbuf_size;
 
-   assert(outbuf_size <= handle->dataBufSize);
+   assert(outbuf_size <= handle->dataBuffer->size);
 
    // NOTE: Need RB_RW in case it is used as a slaved file-backend
    //       See _aaxSoftwareMixerPlay
@@ -718,9 +712,9 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
          _batch_imul_value(sbuf[t]+offs, sizeof(int32_t), no_samples, gain);
       }
    }
-   res = handle->ext->cvt_to_intl(handle->ext, handle->dataBuf,
+   res = handle->ext->cvt_to_intl(handle->ext, handle->dataBuffer->data,
                                   (const int32_t**)sbuf, offs, &no_samples,
-                                  data, handle->dataBufSize);
+                                  data, handle->dataBuffer->size);
    rb->release_tracks_ptr(rb);
    handle->threadBufAvail = res;
 
@@ -752,20 +746,20 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       int file_bits = handle->ext->get_param(handle->ext, __F_BITS);
       size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK);
       unsigned int frame_bits = file_tracks*file_bits;
-      size_t extbufSize, samples, extbufPos, extbufProcess;
+      size_t samples, extBufSize, extBufPos, extBufProcess;
       ssize_t res, no_samples;
-      char *extbuf;
+      char *extBuffer;
 
       no_samples = (ssize_t)*frames;
       *frames = 0;
 
-      extbuf = NULL;
-      extbufPos = 0;
-      extbufProcess = 0;
-      extbufSize = no_samples*frame_bits/8;
-      extbufSize = ((extbufSize/file_block)+1)*file_block;
-      if (extbufSize > scratchSize) {
-         extbufSize = (scratchSize/frame_bits)*frame_bits;
+      extBuffer = NULL;
+      extBufPos = 0;
+      extBufProcess = 0;
+      extBufSize = no_samples*frame_bits/8;
+      extBufSize = ((extBufSize/file_block)+1)*file_block;
+      if (extBufSize > scratchSize) {
+         extBufSize = (scratchSize/frame_bits)*frame_bits;
       }
 
       if (!batched) {
@@ -777,15 +771,15 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       do
       {
          /* convert data still in the buffer */
-         if (extbuf)
+         if (extBuffer)
          {
             // add data from the scratch buffer to ext's internal buffer
-            extbufProcess = extbufPos;
-            res = handle->ext->fill(handle->ext, extbuf, &extbufProcess);
+            extBufProcess = extBufPos;
+            res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
 
-            extbufPos -= res;
-            if (extbufPos) {
-               memmove(extbuf, extbuf+res, extbufPos);
+            extBufPos -= res;
+            if (extBufPos) {
+               memmove(extBuffer, extBuffer+res, extBufPos);
             }
             res = __F_PROCESS;
          }
@@ -806,8 +800,8 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          /* or -1 if an error occured, or end of file                   */
          if (res == __F_PROCESS)
          {
-            if (extbufProcess == 0) {
-               extbuf = NULL;
+            if (extBufProcess == 0) {
+               extBuffer = NULL;
                samples = no_samples;
             }
          }
@@ -822,12 +816,12 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             {
                ssize_t ret;
 
-               extbufSize = no_samples*frame_bits/8;
+               extBufSize = no_samples*frame_bits/8;
                if (file_block > frame_bits) {
-                  extbufSize = _MAX((extbufSize/file_block)*file_block, file_block);
+                  extBufSize = _MAX((extBufSize/file_block)*file_block, file_block);
                }
-               if (extbufSize > scratchSize) {
-                  extbufSize = (scratchSize/frame_bits)*frame_bits;
+               if (extBufSize > scratchSize) {
+                  extBufSize = (scratchSize/frame_bits)*frame_bits;
                }
 
                if (batched) {
@@ -835,22 +829,22 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                }
 
                // lock the thread buffer
-               extbuf = scratch;
+               extBuffer = scratch;
                _aaxMutexLock(handle->thread.signal.mutex);
 
                // copy data from the read-threat to the scratch buffer
-               ret = extbufSize;
-               if (extbufSize+extbufPos > handle->threadBufAvail)
+               ret = extBufSize;
+               if (extBufSize+extBufPos > handle->threadBufAvail)
                {
-                  if (handle->threadBufAvail > extbufPos) {
-                     ret = handle->threadBufAvail-extbufPos;
+                  if (handle->threadBufAvail > extBufPos) {
+                     ret = handle->threadBufAvail-extBufPos;
                   } else {
                      ret = 0;
                   }
                }
 
-//             ret = _MINMAX(handle->threadBufAvail-extbufPos, 0, extbufSize);
-               memcpy(extbuf+extbufPos, handle->threadBuf, ret);
+//             ret = _MINMAX(handle->threadBufAvail-extBufPos, 0, extBufSize);
+               memcpy(extBuffer+extBufPos, handle->threadBuf, ret);
 
                // remove the copied data from the thread buffer
                handle->threadBufAvail -= ret;
@@ -865,13 +859,14 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   _aaxSignalTrigger(&handle->thread.signal);
                }
 
-               if (ret <= 0 && (no_samples == 0 || extbufPos == 0))
+// printf("ret: %i, no_samples: %i, extBufPos: %i\n", ret, no_samples, extBufPos);
+               if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
                   bytes = 0; // -1;
                   break;
                }
                else if (ret > 0) {
-                  extbufPos += ret;
+                  extBufPos += ret;
                }
             }
          }
@@ -1273,13 +1268,13 @@ _aaxStreamDriverWriteChunk(const void *id)
 {
    _driver_t *handle = (_driver_t*)id;
    ssize_t buffer_avail, avail;
+   unsigned char *data;
    size_t usize;
-   char *data;
 // int bits;
 
 // bits = handle->bits_sample;
 
-   data = (char*)handle->dataBuf;
+   data = handle->dataBuffer->data;
    avail = handle->threadBufAvail;
 
 #if 0

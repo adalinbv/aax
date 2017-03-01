@@ -39,11 +39,6 @@ _aaxDataCreate(size_t size, unsigned int blocksize)
          rv->size = size;
          rv->avail = 0;
          rv->blocksize = blocksize ? blocksize : 1;
-
-         rv->create = _aaxDataCreate;
-         rv->destroy = _aaxDataDestroy;
-         rv->add = _aaxDataAdd;
-         rv->move = _aaxDataMove;
       }
       else
       {
@@ -57,16 +52,17 @@ _aaxDataCreate(size_t size, unsigned int blocksize)
 int
 _aaxDataDestroy(_data_t* buf)
 {
-   int rv = AAX_FALSE;
+   if (buf)
+   {
+      assert(buf->id == DATA_ID);
 
-   assert(buf && buf->id == DATA_ID);
-   buf->id = FADEDBAD;
+      buf->id = FADEDBAD;
 
-   _aax_aligned_free(buf->data);
-   free(buf);
-   rv = AAX_TRUE;
+      _aax_aligned_free(buf->data);
+      free(buf);
+   }
 
-   return rv;
+   return AAX_TRUE;
 }
 
 size_t
@@ -74,7 +70,9 @@ _aaxDataAdd(_data_t* buf, void* data, size_t size)
 {
    size_t free, rv = 0;
 
-   assert(buf && buf->id == DATA_ID);
+   assert(buf);
+   assert(buf->id == DATA_ID);
+   assert(data);
 
    free = buf->size - buf->avail;
    if (size > free) rv = free;
@@ -94,14 +92,19 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
 {
    size_t rv = size;
 
-   assert(buf && buf->id == DATA_ID);
+   assert(buf);
+   assert(buf->id == DATA_ID);
 
    if (size >= buf->blocksize)
    {
       rv = (size/buf->blocksize)*buf->blocksize;
-      memcpy(data, buf->data, rv);
+      if (data) {
+         memcpy(data, buf->data, rv);
+      }
 
+      assert(buf->avail >= rv);
       buf->avail -= rv;
+
       memmove(buf->data, buf->data+rv, buf->avail);
    }
 
