@@ -469,7 +469,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    unsigned tracks = handle->no_tracks;
    size_t rv = 0;
 
-   if (handle->format == AAX_IMA4_ADPCM && tracks > 1)
+   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
    {
       size_t blocksize = handle->blocksize;
 

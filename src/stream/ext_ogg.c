@@ -798,7 +798,6 @@ printf("\trv: %i, handle->oggBufPos: %i\n", rv, handle->oggBufPos);
       rv = 0;
    }
 
-printf("<<<< rv: %i\n", rv);
    return rv;
 }
 

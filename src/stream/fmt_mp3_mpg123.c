@@ -148,7 +148,7 @@ _mpg123_detect(_fmt_t *fmt, int mode)
                   handle->audio = audio;
                   handle->mode = mode;
                   handle->capturing = (mode == 0) ? 1 : 0;
-                  handle->blocksize = 4096;
+                  handle->blocksize = sizeof(int16_t);
 
                   rv = AAX_TRUE;
                }             
@@ -199,7 +199,7 @@ _mpg123_detect(_fmt_t *fmt, int mode)
                   handle->audio = audio;
                   handle->mode = mode;
                   handle->capturing = (mode == 0) ? 1 : 0;
-                  handle->blocksize = 4096;
+                  handle->blocksize = sizeof(int16_t);
 
                   rv = AAX_TRUE;
                }
@@ -431,7 +431,7 @@ _mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 }
 
 size_t
-_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
+_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
@@ -450,22 +450,21 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    if (bytes > bufsize) {
       bytes = bufsize;
    }
+
    ret = pmpg123_read(handle->id, buf, bytes, &size);
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
-      unsigned int framesize = tracks*bits/8;
       unsigned char *ptr = (unsigned char*)dptr;
+      unsigned int framesize = tracks*bits/8;
 
-printf("dptr_offs: %i, framesize: %i, bux: %x, size: %i\n", dptr_offs, framesize, buf, size);
-      ptr += dptr_offs*framesize;
-      memcpy((char*)dptr+dptr_offs, buf, size);
+      ptr += offset*framesize;
+      memcpy(ptr, buf, size);
 
       *num = size/framesize;
       handle->no_samples += *num;
-
       rv = size;
    }
    return rv;
