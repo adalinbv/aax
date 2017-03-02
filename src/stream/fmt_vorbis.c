@@ -114,7 +114,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                   handle->frequency = info.sample_rate;
                   handle->blocksize = info.max_frame_size;
 
-                  handle->max_samples = 0;
+                  handle->max_samples = 20*info.sample_rate;
                   handle->format = AAX_PCM24S;
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
 #if 0
@@ -206,38 +206,93 @@ _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 }
 
 size_t
-_vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
+_vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
 {
-   size_t rv = __F_EOF;
-#if 0
    _driver_t *handle = fmt->id;
-   size_t bytes, bufsize, size = 0;
-   unsigned int bits, tracks;
-   int ret, decode_fec = 0;
+   int bits, tracks, framesize;
+   size_t bufsize, rv = 0;
    unsigned char *buf;
+   int req, ret, n;
 
+   req = *num;
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
-   bytes = *num*tracks*bits/8;
+   framesize = tracks*bits/8;
+   *num = 0;
 
-   buf = handle->vorbisBuffer;
-   bufsize = handle->vorbisBufSize;
+   buf = handle->vorbisBuffer->data;
+   bufsize = handle->vorbisBuffer->avail;
 
-   if (bytes > bufsize) {
-      bytes = bufsize;
-   }
-
-   ret = vorbis_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, decode_fec);
-   if (ret >= 0)
+   /* there is still data left in the buffer from the previous run */
+   if (handle->out_pos > 0)
    {
-      unsigned int framesize = tracks*bits/8;
+      const_int32_ptrptr outputs = (const_int32_ptrptr)handle->outputs;
+      unsigned char *ptr = (unsigned char*)dptr;
+      unsigned int pos = handle->out_pos;
+      unsigned int max = _MIN(req, handle->out_size - pos);
 
-      *num = size/framesize;
-      handle->no_samples += *num;
+      ptr += offset*framesize;
+      _batch_cvt24_intl_ps(ptr, outputs, pos, tracks, max);
 
-      rv = size;
+      offset += max;
+      handle->out_pos += max;
+      handle->no_samples += max;
+      if (handle->out_pos == handle->out_size) {
+         handle->out_pos = 0;
+      }
+      req -= max;
+      *num = max;
+      if (req == 0) {
+         rv = 1;
+      }
    }
-#endif
+
+   while (req > 0)
+   {
+      ret = 0;
+      do
+      {
+         ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bufsize, NULL,
+                                                &handle->outputs, &n);
+         if (ret > 0)
+         {
+            rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
+            bufsize = handle->vorbisBuffer->avail;
+         }
+      }
+      while (ret && n == 0);
+
+      if (ret > 0)
+      {
+         const_int32_ptrptr outputs = (const_int32_ptrptr)handle->outputs;
+         unsigned char *ptr = (unsigned char*)dptr;
+
+         if (n > req)
+         {
+            handle->out_size = n;
+            handle->out_pos = req;
+            n = req;
+            req = 0;
+         }
+         else
+         {
+            assert(handle->out_pos == 0);
+            req -= n;
+         }
+
+         *num += n;
+         handle->no_samples += n;
+
+         ptr += offset*framesize;
+         _batch_cvt24_intl_ps(ptr, outputs, 0, tracks, n);
+         offset += n;
+      }
+      else {
+         break;
+      }
+   }
+   handle->max_samples = handle->no_samples;
+
    return rv;
 }
 
