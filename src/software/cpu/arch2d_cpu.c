@@ -691,6 +691,31 @@ _batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
 }
 
 void
+_batch_cvt24_intl_ps_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
+{
+   if (num)
+   {
+      static const float mul = (float)(1<<23);
+      size_t t;
+
+      for (t=0; t<tracks; t++)
+      {
+         float *s = (float *)sptr[t] + offset;
+         int32_t *d = (int32_t *)dptr + t;
+         size_t i = num;
+
+         do
+         {
+            *d = (int32_t)(*s++ * mul);
+            d += tracks;
+         }
+         while (--i);
+      }
+   }
+}
+
+
+void
 _batch_cvt32_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
    if (num)

@@ -492,8 +492,8 @@ SET( AEONWAVE_OBJS
      src/stream/fmt_pcm.c
      src/stream/fmt_mp3_mpg123.c
      src/stream/fmt_vorbis.c
-     src/stream/fmt_flac.c
-     src/stream/fmt_opus.c
+#    src/stream/fmt_flac.c
+#    src/stream/fmt_opus.c
      src/stream/3rdparty/stb_vorbis.c
      src/android/opensl.c
      src/software/device.c
