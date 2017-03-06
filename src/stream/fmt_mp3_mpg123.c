@@ -427,6 +427,10 @@ _mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
    if (ret == MPG123_OK) {
       rv = *bytes;
    }
+   else {
+      *bytes = 0;
+   }
+
    return rv;
 }
 

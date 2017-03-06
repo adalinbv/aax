@@ -787,8 +787,14 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          {
             // copy or convert data from ext's internal buffer to tracks[]
             // this allows ext or fmt to convert it to a supported format.
-            if (handle->copy_to_buffer) {
-               res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
+            if (handle->copy_to_buffer)
+            {
+               do
+               {
+                  res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
+                  offs += samples;
+               }
+               while (res > 0);
             }
             else {
                res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, &samples);
@@ -843,8 +849,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   }
                }
 
-//             ret = _MINMAX(handle->threadBufAvail-extBufPos, 0, extBufSize);
-               memcpy(extBuffer+extBufPos, handle->threadBuf, ret);
+              if (ret) {
+                  memcpy(extBuffer+extBufPos, handle->threadBuf, ret);
+              }
 
                // remove the copied data from the thread buffer
                handle->threadBufAvail -= ret;
