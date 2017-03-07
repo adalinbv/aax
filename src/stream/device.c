@@ -776,6 +776,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             // add data from the scratch buffer to ext's internal buffer
             extBufProcess = extBufPos;
             res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
+printf("fill: res: %i, extBufProcess: %i\n", res, extBufProcess);
 
             extBufPos -= res;
             if (extBufPos) {
@@ -795,6 +796,8 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   offs += samples;
                }
                while (res > 0);
+offs -= samples;
+printf("-------- res: %i\n", res);
             }
             else {
                res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, &samples);
@@ -866,7 +869,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   _aaxSignalTrigger(&handle->thread.signal);
                }
 
-// printf("ret: %i, no_samples: %i, extBufPos: %i\n", ret, no_samples, extBufPos);
+printf("ret: %i, no_samples: %i, extBufPos: %i\n", ret, no_samples, extBufPos);
                if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
                   bytes = 0; // -1;
