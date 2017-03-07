@@ -270,7 +270,6 @@ _pcm_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
       rv = *bytes;
       *bytes = 0;
    }
-// printf(" # fill: *bytes: %i, bufpos: %i (%i) <= bufsize: %i\n", *bytes, bufpos, *bytes+bufpos, bufsize);
 
    return rv;
 }
@@ -298,10 +297,6 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       unsigned int n = *num/blocksmp;
 
       bytes = n*blocksize;
-
-// printf(" # copy: *num: %i, blocksmp: %i, bytes: %i, blocksize: %i, bufsize: %i\n", *num, blocksmp, bytes, blocksize, bufsize);
-
-
       if (bytes > bufsize)
       {
          n = (bufsize/blocksize);
@@ -311,8 +306,8 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       if (bytes && bytes <= handle->pcmBufPos)
       {
-         dptr_offs = (dptr_offs/blocksmp)*blocksize;
-         memcpy((char*)dptr+dptr_offs, buf, bytes);
+         size_t offs = (dptr_offs/blocksmp)*blocksize;
+         memcpy((char*)dptr+offs, buf, bytes);
 
          /* skip processed data */
          handle->pcmBufPos -= bytes;
@@ -327,8 +322,8 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       }
       else {
          *num = 0;
+         rv = 0;
       }
-// printf(" # copy:  rv: %i, bytes: %i, pcmBufPos: %i\n", rv, bytes, handle->pcmBufPos);
    }
    else if (*num)
    {
