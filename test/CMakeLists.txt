@@ -12,6 +12,7 @@ FUNCTION(CREATE_TEST TEST_NAME)
 ENDFUNCTION()
 
 CREATE_TEST(testcapture)
+CREATE_TEST(testplay)
 CREATE_TEST(testcone)
 CREATE_TEST(testdistance)
 CREATE_TEST(testdistortion)
