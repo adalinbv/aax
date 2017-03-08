@@ -352,6 +352,9 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                if (handle->format == AAX_IMA4_ADPCM) {
                   handle->fmt->set(handle->fmt, __F_BLOCK,
                                    handle->blocksize/handle->no_tracks);
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
+                                     MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize,
+                                                            handle->no_tracks));
                } else {
                   handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
                }
@@ -507,10 +510,10 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 }
 
 size_t
-_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
+_wav_copy(_ext_t *ext, int32_ptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-    return handle->fmt->copy(handle->fmt, dptr, offs, num);
+    return handle->fmt->copy(handle->fmt, dptr, offset, num);
 }
 
 size_t
