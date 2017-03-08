@@ -44,6 +44,7 @@ typedef struct
    int frequency;
    int bitrate;
    int blocksize;
+   int blocksmp;
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
@@ -293,7 +294,7 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      unsigned int blocksmp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
+      unsigned int blocksmp = handle->blocksmp;
       unsigned int n = *num/blocksmp;
 
       bytes = n*blocksize;
@@ -514,6 +515,9 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
       break;
    case __F_BLOCK:
       handle->blocksize = value;
+      break;
+   case __F_BLOCK_SAMPLES:
+      handle->blocksmp = value;
       break;
    case __F_POSITION:
       handle->blockbufpos = value;

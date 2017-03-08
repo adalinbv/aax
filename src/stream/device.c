@@ -776,7 +776,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             // add data from the scratch buffer to ext's internal buffer
             extBufProcess = extBufPos;
             res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
-printf("fill: res: %i, extBufProcess: %i\n", res, extBufProcess);
 
             extBufPos -= res;
             if (extBufPos) {
@@ -794,13 +793,19 @@ printf("fill: res: %i, extBufProcess: %i\n", res, extBufProcess);
                {
                   res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
                   offs += samples;
+                  no_samples -= samples;
+                  *frames += samples;
+                  if (res > 0) bytes += res;
                }
                while (res > 0);
-offs -= samples;
-printf("-------- res: %i\n", res);
             }
-            else {
+            else
+            {
                res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, &samples);
+               offs += samples;
+               no_samples -= samples;
+               *frames += samples;
+               if (res > 0) bytes += res;
             }
          }
 
@@ -816,11 +821,6 @@ printf("-------- res: %i\n", res);
          }
          else if (samples >= 0)
          {
-            offs += samples;
-            no_samples -= samples;
-            *frames += samples;
-            if (res > 0) bytes += res;
-
             if (no_samples > 0)
             {
                ssize_t ret;
@@ -869,7 +869,6 @@ printf("-------- res: %i\n", res);
                   _aaxSignalTrigger(&handle->thread.signal);
                }
 
-printf("ret: %i, no_samples: %i, extBufPos: %i\n", ret, no_samples, extBufPos);
                if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
                   bytes = 0; // -1;
