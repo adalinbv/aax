@@ -49,10 +49,7 @@ typedef struct
    size_t no_samples;
    size_t max_samples;
 
-   ssize_t pcmBufPos;
-   size_t pcmBufSize;
-   char *pcmBuffer;
-   void *pcmptr;
+   _data_t *pcmBuffer;
 
    /* data conversion */
    _batch_cvt_proc cvt_to_signed;
@@ -98,25 +95,15 @@ _pcm_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
    if (handle)
    {
-      if (!handle->pcmptr)
-      {
-         char *ptr = 0;
+      if (!handle->pcmBuffer) {
+         handle->pcmBuffer = _aaxDataCreate(16384, 1);
+      }
 
-         handle->pcmBufPos = 0;
-         handle->pcmBufSize = 16384;
-         handle->pcmptr = _aax_malloc(&ptr, handle->pcmBufSize);
-         handle->pcmBuffer = ptr;
-
-         if (handle->pcmptr)
-         {
-            if (handle->capturing) {
-               // we're done decoding, return NULL
-            }
-         }
-         else {
-            _AAX_FILEDRVLOG("PCM: unable to allocate memory");
-            rv = buf;	// try again
-         }
+      if (handle->pcmBuffer) {
+      }
+      else {
+         _AAX_FILEDRVLOG("PCM: Unable to allocate the audio buffer");
+         rv = buf;   // try again
       }
    }
 
@@ -130,9 +117,9 @@ _pcm_close(_fmt_t *fmt)
 
    if (handle)
    {
-      _aax_free(handle->pcmptr);
+      _aaxDataDestroy(handle->pcmBuffer);
+      free(handle);
    }
-   free(handle);
 }
 
 int
@@ -257,18 +244,10 @@ size_t
 _pcm_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   size_t bufpos, bufsize;
    size_t rv = 0;
 
-   bufpos = handle->pcmBufPos;
-   bufsize = handle->pcmBufSize;
-   if ((*bytes+bufpos) <= bufsize)
-   {
-      char *buf = (char*)handle->pcmBuffer + bufpos;
-
-      memcpy(buf, sptr, *bytes);
-      handle->pcmBufPos += *bytes;
-      rv = *bytes;
+   rv = _aaxDataAdd(handle->pcmBuffer, sptr, *bytes);
+   if (!rv) {
       *bytes = 0;
    }
 
@@ -282,10 +261,8 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    unsigned int blocksize;
    size_t bytes, bufsize;
    size_t rv = __F_EOF;
-   char *buf;
 
-   buf = (char*)handle->pcmBuffer;
-   bufsize = handle->pcmBufPos;
+   bufsize = handle->pcmBuffer->avail;
    blocksize = handle->blocksize;
 
    if ((*num + handle->no_samples) > handle->max_samples) {
@@ -305,25 +282,14 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       }
       *num = n*blocksmp;
 
-      if (bytes && bytes <= handle->pcmBufPos)
+      if (bytes && bytes <= handle->pcmBuffer->avail)
       {
          size_t offs = (dptr_offs/blocksmp)*blocksize;
-         memcpy((char*)dptr+offs, buf, bytes);
-
-         /* skip processed data */
-         handle->pcmBufPos -= bytes;
-         if (handle->pcmBufPos > 0) {
-            memmove(buf, buf+bytes, handle->pcmBufPos);
-         }
-
+         rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
          handle->no_samples += *num;
-         if (handle->no_samples < handle->max_samples) {
-            rv = bytes;
-         }
       }
       else {
-         *num = 0;
-         rv = 0;
+         *num = rv = 0;
       }
    }
    else if (*num)
@@ -336,18 +302,8 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       *num = bytes/blocksize;
 
       dptr_offs *= blocksize;
-      memcpy((char*)dptr+dptr_offs, buf, bytes);
-
-      /* skip processed data */
-      handle->pcmBufPos -= bytes;
-      if (handle->pcmBufPos > 0) {
-         memmove(buf, buf+bytes, handle->pcmBufPos);
-      }
-
+      rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+dptr_offs, bytes);
       handle->no_samples += *num;
-      if (handle->no_samples < handle->max_samples) {
-         rv = bytes;
-      }
    }
 
    return rv;
@@ -362,8 +318,8 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    size_t rv = __F_EOF;
    char *buf;
 
-   buf = (char*)handle->pcmBuffer;
-   bufsize = handle->pcmBufPos;
+   buf = (char*)handle->pcmBuffer->data;
+   bufsize = handle->pcmBuffer->avail;
    blocksize = handle->blocksize;
    tracks = handle->no_tracks;
 
@@ -373,7 +329,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
 
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      unsigned int blocksmp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
+      unsigned int blocksmp = handle->blocksmp;
       unsigned int n = *num/blocksmp;
 
       bytes = n*blocksize;
@@ -384,27 +340,21 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
       }
       *num = n*blocksmp;
 
-      if (bytes && bytes <= handle->pcmBufPos)
+      if (bytes && bytes <= handle->pcmBuffer->avail)
       {
+         size_t offs = (dptr_offs/blocksmp)*blocksize;
          int t;
-         for (t=0; t<tracks; t++)
-         {
-            _sw_bufcpy_ima_adpcm(dptr[t]+dptr_offs, buf, *num);
+
+         for (t=0; t<tracks; t++) {
+            _sw_bufcpy_ima_adpcm(dptr[t]+offs, buf, *num);
          }
 
          /* skip processed data */
-         handle->pcmBufPos -= bytes;
-         if (handle->pcmBufPos > 0) {
-            memmove(buf, buf+bytes, handle->pcmBufPos);
-         }
-
+         rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
          handle->no_samples += *num;
-         if (handle->no_samples < handle->max_samples) {
-            rv = bytes;
-         }
       }
       else {
-         *num = 0;
+         *num = rv = 0;
       }
    }
    else if (*num)
@@ -428,15 +378,8 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
       }
 
       /* skip processed data */
-      handle->pcmBufPos -= bytes;
-      if (handle->pcmBufPos > 0) {
-         memmove(buf, buf+bytes, handle->pcmBufPos);
-      }
-
+      rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
       handle->no_samples += *num;
-      if (handle->no_samples < handle->max_samples) {
-         rv = bytes;
-      }
    }
 
    return rv;
@@ -694,7 +637,7 @@ _batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, const_char_ptr src, size
    size_t r;
 
    offs_smp = handle->blockbufpos;
-   block_smp = MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize, tracks);
+   block_smp = handle->blocksmp;
    decode_smp = _MIN(block_smp-offs_smp, num);
 
    r = _aaxWavMSADPCMBlockDecode(handle, dptr, src, offs_smp, decode_smp, offs, tracks);
