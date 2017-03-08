@@ -103,9 +103,11 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
       }
 
       assert(buf->avail >= rv);
-      buf->avail -= rv;
 
-      memmove(buf->data, buf->data+rv, buf->avail);
+      buf->avail -= rv;
+      if (buf->avail > 0) {
+         memmove(buf->data, buf->data+rv, buf->avail);
+      }
    }
 
    return rv;
