@@ -68,6 +68,7 @@ enum _aaxStreamParam
    __F_FREQ,
    __F_BITS,
    __F_BLOCK,
+   __F_BLOCK_SAMPLES,
    __F_SAMPLES,
    __F_NO_BYTES,
 

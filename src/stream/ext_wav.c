@@ -200,6 +200,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          handle->fmt->set(handle->fmt, __F_SAMPLES, handle->no_samples);
          handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
          handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+         handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
+                  MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize, handle->no_tracks));
          rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
 
          size = 4*handle->wavBufSize;
