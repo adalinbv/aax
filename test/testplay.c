@@ -41,7 +41,8 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define FILE_PATH                       SRC_PATH"/wasp.wav"
+
+#define FILE_PATH			SRC_PATH"/wasp.wav"
 
 int main(int argc, char **argv)
 {
@@ -60,8 +61,6 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter;
-            aaxEffect effect;
-            aaxFilter filter;
             float dt = 0.0f;
             int q, state;
             float pitch;
@@ -80,7 +79,6 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_FALSE);
             testForState(res, "aaxEmitterSetMode");
 
-
             /** mixer */
             res = aaxMixerInit(config);
             testForState(res, "aaxMixerInit");
@@ -96,7 +94,6 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterStart");
 
             q = 0;
-            printf("playing distorted\n");
             do
             {
                 msecSleep(50);
