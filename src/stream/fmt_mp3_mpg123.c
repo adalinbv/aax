@@ -417,17 +417,14 @@ size_t
 _mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   size_t rv = 0;
+   size_t rv = __F_PROCESS;
    int ret;
 
    ret = pmpg123_feed(handle->id, sptr, *bytes);
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
-   if (ret == MPG123_OK) {
-      rv = *bytes;
-   }
-   else {
+   if (ret != MPG123_OK) {
       *bytes = 0;
    }
 
