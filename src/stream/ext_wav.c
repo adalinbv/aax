@@ -472,34 +472,20 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = ext->id;
    unsigned tracks = handle->no_tracks;
-   size_t rv = 0;
+   size_t rv = __F_PROCESS;
 
    if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
    {
       size_t blocksize = handle->blocksize;
-
-      _aaxDataAdd(handle->wavBuffer, sptr, *bytes);
-      if (handle->wavBuffer->avail > blocksize)
+      size_t avail = (*bytes/blocksize)*blocksize;
+      if (avail)
       {
-         size_t avail = (handle->wavBuffer->avail/blocksize)*blocksize;
-
-         if (avail > *bytes) {
-            avail = (*bytes/blocksize)*blocksize;
-         }
-
-         if (avail)
-         {
-            _wav_cvt_msadpcm_to_ima4(handle->wavBuffer->data, avail, tracks,
-                                     &blocksize);
-
-            _aaxDataMove(handle->wavBuffer, NULL, avail);
-
-            *bytes = avail;
-            rv = handle->fmt->fill(handle->fmt, sptr, bytes);
-         }
+         *bytes = avail;
+         _wav_cvt_msadpcm_to_ima4(sptr, avail, tracks, &blocksize);
+         rv = handle->fmt->fill(handle->fmt, sptr, bytes);
       }
       else {
-         rv = 0;
+         *bytes = 0;
       }
    }
    else {
@@ -1125,6 +1111,7 @@ void
 _wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, int tracks, size_t *size)
 {
    size_t blocksize = *size;
+
    *size /= tracks;
    if (tracks > 1)
    {
@@ -1132,15 +1119,16 @@ _wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, int tracks, size_t *size)
       if (buf)
       {
          int32_t* dptr = (int32_t*)data;
-         size_t numBlocks, numChunks;
-         size_t blockNum;
+         size_t blockBytes, numChunks;
+         size_t blockNum, numBlocks;
 
          numBlocks = bufsize/blocksize;
-         numChunks = blocksize/4;
+         bockBytes = blocksize/tracks;
+         numChunks = blockBytes/sizeof(int32_t);
 
          for (blockNum=0; blockNum<numBlocks; blockNum++)
          {
-            int t, i;
+            unsigned int t, i;
 
             /* block shuffle */
             memcpy(buf, dptr, blocksize);

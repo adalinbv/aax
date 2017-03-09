@@ -776,12 +776,12 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             // add data from the scratch buffer to ext's internal buffer
             extBufProcess = extBufPos;
             res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
+printf("@ fill: res: %i (__F_PROCESS: %i), extBufProcess: %i\n", res, __F_PROCESS, extBufProcess);
 
-            extBufPos -= res;
+            extBufPos -= extBufProcess;
             if (extBufPos) {
                memmove(extBuffer, extBuffer+res, extBufPos);
             }
-            res = __F_PROCESS;
          }
          else
          {
@@ -792,6 +792,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                do
                {
                   res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
+printf("# copy: res: %i, samples: %i\n", res, samples);
                   offs += samples;
                   no_samples -= samples;
                   *frames += samples;
@@ -802,6 +803,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             else
             {
                res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, &samples);
+printf("#  cvt: res: %i, samples: %i\n", res, samples);
                offs += samples;
                no_samples -= samples;
                *frames += samples;
@@ -814,10 +816,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          /* or -1 if an error occured, or end of file                   */
          if (res == __F_PROCESS)
          {
-            if (extBufProcess == 0) {
-               extBuffer = NULL;
-               samples = no_samples;
-            }
+printf("res == __F_PROCESS, extBufProcess: %i\n", extBufProcess);
+            extBuffer = NULL;
+            samples = no_samples;
          }
          else if (samples >= 0)
          {
@@ -885,6 +886,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             break;
          }
       } while (no_samples > 0);
+printf("----\n");
 
       if (!handle->copy_to_buffer && bytes > 0)
       {

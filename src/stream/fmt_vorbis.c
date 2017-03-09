@@ -195,10 +195,9 @@ size_t
 _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
-   size_t rv = 0;
+   size_t rv = __F_PROCESS;
 
-   rv = _aaxDataAdd(handle->vorbisBuffer, sptr, *bytes);
-   if (!rv) {
+   if (_aaxDataAdd(handle->vorbisBuffer, sptr, *bytes) == 0) {
       *bytes = 0;
    }
 
