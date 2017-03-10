@@ -84,7 +84,11 @@ typedef struct
       } read;
    } io;
 
-   _data_t *wavBuffer;
+// _data_t *wavBuffer;
+   void *wavptr;
+   uint32_t *wavBuffer;
+   size_t wavBufPos;
+
    size_t wavBufSize;
 
 } _driver_t;
@@ -205,23 +209,29 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
 
          size = 4*handle->wavBufSize;
-         handle->wavBuffer = _aaxDataCreate(size, handle->blocksize);
+//       handle->wavBuffer = _aaxDataCreate(size, handle->blocksize);
+         char *ptr = 0;
+         handle->wavptr = _aax_malloc(&ptr, size);
+         handle->wavBuffer = (uint32_t*)ptr;
+
          if (handle->wavBuffer)
          {
             int32_t s, *header;
 
+//          header = handle->wavBuffer->data;
+            header = handle->wavBuffer;
             if (extfmt)
             {
-               _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultExtWaveHeader, size);
-               header = (int32_t*)handle->wavBuffer->data;
+//             _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultExtWaveHeader, size);
+               memcpy(handle->wavBuffer, _aaxDefaultExtWaveHeader, size);
 
                s = (handle->no_tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
                header[5] = s;
             }
             else
             {
-               _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultWaveHeader, size);
-               header = (int32_t*)handle->wavBuffer->data;
+//             _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultWaveHeader, size);
+               memcpy(handle->wavBuffer, _aaxDefaultWaveHeader, size);
 
                s = (handle->no_tracks << 16) | handle->wav_format;
                header[5] = s;
@@ -285,17 +295,31 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
       else if (!handle->fmt || !handle->fmt->open)
       {
          if (!handle->wavBuffer) {
-            handle->wavBuffer = _aaxDataCreate(16384, handle->blocksize);
+//          handle->wavBuffer = _aaxDataCreate(16384, handle->blocksize);
+            char *ptr = 0;
+
+            handle->wavBufPos = 0;
+            handle->wavBufSize = 16384;
+            handle->wavptr = _aax_malloc(&ptr, handle->wavBufSize);
+            handle->wavBuffer = (uint32_t*)ptr;
          }
 
          if (handle->wavBuffer)
          {
             size_t step, datapos, datasize = *bufsize, size = *bufsize;
+size_t avail = handle->wavBufSize-handle->wavBufPos;
             _fmt_type_t fmt;
             int res;
 
-            res = _aaxDataAdd(handle->wavBuffer, buf, size);
-            if (!res) return NULL;
+//          res = _aaxDataAdd(handle->wavBuffer, buf, size);
+//          if (!res) return NULL;
+            avail = _MIN(size, avail);
+            if (!avail) return NULL;
+
+            memcpy((char*)handle->wavBuffer+handle->wavBufPos,
+                   buf, avail);
+            handle->wavBufPos += avail;
+            size -= avail;
 
             /*
              * read the file information and set the file-pointer to
@@ -309,7 +333,10 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   datapos += step;
                   datasize -= step;
 
-                  _aaxDataMove(handle->wavBuffer, NULL, step);
+//                _aaxDataMove(handle->wavBuffer, NULL, step);
+                  handle->wavBufPos -= step;
+                  memmove(handle->wavBuffer, (char*)handle->wavBuffer+step,
+                          handle->wavBufPos);
                   if (res <= 0) break;
                }
 
@@ -318,12 +345,18 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                // Copy the next chunk and process it.
                if (size)
                {
-                  size_t avail = _aaxDataAdd(handle->wavBuffer, buf, size);
+//                size_t avail = _aaxDataAdd(handle->wavBuffer, buf, size);
+                  avail = handle->wavBufSize-handle->wavBufPos;
                   if (!avail) break;
+
+avail = _MIN(size, avail);
 
                   datapos = 0;
                   datasize = avail;
                   size -= avail;
+memcpy((char*)handle->wavBuffer+handle->wavBufPos,
+                         buf, avail);
+                  handle->wavBufPos += avail;
                }
             }
             while (res > 0);
@@ -365,7 +398,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                                       handle->io.read.datasize);
                if (!rv && datasize)
                {
-                   handle->wavBuffer->avail = 0;
+//                 handle->wavBuffer->avail = 0;
+                   handle->wavBufPos = 0;
                    _wav_fill(ext, dataptr, &datasize);
                }
             }
@@ -401,7 +435,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                                 handle->io.read.datasize);
          if (!rv && bufsize)
          {
-            handle->wavBuffer->avail = 0;
+//          handle->wavBuffer->avail = 0;
+            handle->wavBufPos = 0;
             _wav_fill(ext, buf, bufsize);
          }
       }
@@ -432,7 +467,8 @@ _wav_close(_ext_t *ext)
       free(handle->copyright);
       free(handle->comments);
 
-      _aaxDataDestroy(handle->wavBuffer);
+//    _aaxDataDestroy(handle->wavBuffer);
+      _aax_free(handle->wavptr);
       if (handle->fmt)
       {
          handle->fmt->close(handle->fmt);
@@ -649,8 +685,10 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
-   uint32_t *header = (uint32_t*)handle->wavBuffer->data;
-   size_t size, bufsize = handle->wavBuffer->avail;
+// uint32_t *header = (uint32_t*)handle->wavBuffer->data;
+// size_t size, bufsize = handle->wavBuffer->avail;
+   uint32_t *header = handle->wavBuffer;
+   size_t size, bufsize = handle->wavBufPos;
    int32_t curr, init_tag;
    int bits, rv = __F_EOF;
    char extfmt;
@@ -903,7 +941,8 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
    if (handle->no_samples != 0)
    {
       char extfmt = (handle->wavBufSize == WAVE_HEADER_SIZE) ? 0 : 1;
-      int32_t *header = (int32_t*)handle->wavBuffer->data;
+//    int32_t *header = (int32_t*)handle->wavBuffer->data;
+      int32_t *header = (int32_t*)handle->wavBuffer;
       size_t size;
       uint32_t s;
 
