@@ -185,6 +185,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
    {
       if (!handle->capturing)   /* write */
       {
+         *bufsize = 0;
       }
 			/* read: handle->capturing */
       else if (!handle->fmt || !handle->fmt->open)
@@ -531,7 +532,7 @@ _ogg_interfaces(int ext, int mode)
    };
    char *rv = NULL;
 
-   if (ext >= _EXT_OGG && ext < _EXT_PCM)
+   if (!mode && ext >= _EXT_OGG && ext < _EXT_PCM)
    {
       int m = mode > 0 ? 1 : 0;
       int pos = ext - _EXT_OGG;
