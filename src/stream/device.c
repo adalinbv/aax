@@ -613,14 +613,19 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                _aaxStreamDriverLog(id, 0, 0, "Internal error: thread failed");
             }
          }
-         else {
+         else if (headerSize) {
             _aaxStreamDriverLog(id, 0, 0, "Incorrect header");
+         }
+         else {
+            _aaxStreamDriverLog(id, 0, 0, "Unsupported format");
          }
 
          if (!rv)
          {
             handle->ext = _ext_free(handle->ext);
-            handle->prot = _prot_free(handle->prot);
+            if (handle->prot) {
+               handle->prot = _prot_free(handle->prot);
+            }
             handle->io->close(handle->io);
             handle->io = _io_free(handle->io);
          }
