@@ -388,9 +388,21 @@ size_t
 _pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t *num, void *scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
+   int tracks = handle->no_tracks;
+
+   handle->no_samples += *num;
    if (handle->cvt_to_intl) {
-      handle->cvt_to_intl(dptr, sptr, offset, handle->no_tracks, *num);
+      handle->cvt_to_intl(dptr, sptr, offset, tracks, *num);
    }
+
+   if (handle->cvt_to_signed) {
+      handle->cvt_to_signed(dptr, *num * tracks);
+   }
+
+   if (handle->cvt_endianness) {
+      handle->cvt_endianness(dptr, *num * tracks);
+   }
+
    return *num*handle->blocksize;
 }
 
