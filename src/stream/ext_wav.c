@@ -1123,7 +1123,7 @@ _wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, int tracks, size_t *size)
          size_t blockNum, numBlocks;
 
          numBlocks = bufsize/blocksize;
-         bockBytes = blocksize/tracks;
+         blockBytes = blocksize/tracks;
          numChunks = blockBytes/sizeof(int32_t);
 
          for (blockNum=0; blockNum<numBlocks; blockNum++)
