@@ -77,6 +77,7 @@ _pcm_detect(_fmt_t *fmt, int mode)
 
       handle->mode = mode;
       handle->capturing = (mode == 0) ? 1 : 0;
+      handle->blocksmp = 1;
 
       rv = AAX_TRUE;
    }
@@ -257,53 +258,32 @@ size_t
 _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   unsigned int blocksize;
-   size_t bytes, bufsize;
+   unsigned int n, blocksize, blocksmp;
+   size_t offs, bytes, bufsize;
    size_t rv = __F_EOF;
 
+printf("req: %i | ", *num);
    bufsize = handle->pcmBuffer->avail;
    blocksize = handle->blocksize;
+   blocksmp = handle->blocksmp;
 
    if ((*num + handle->no_samples) > handle->max_samples) {
       *num = handle->max_samples - handle->no_samples;
    }
 
-   if (handle->format == AAX_IMA4_ADPCM)
+   n = *num/blocksmp;
+   bytes = n*blocksize;
+   if (bytes > bufsize)
    {
-      unsigned int blocksmp = handle->blocksmp;
-      unsigned int n = *num/blocksmp;
-
+      n = (bufsize/blocksize);
       bytes = n*blocksize;
-      if (bytes > bufsize)
-      {
-         n = (bufsize/blocksize);
-         bytes = n*blocksize;
-      }
-      *num = n*blocksmp;
-
-      if (bytes && bytes <= handle->pcmBuffer->avail)
-      {
-         size_t offs = (dptr_offs/blocksmp)*blocksize;
-         rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
-         handle->no_samples += *num;
-      }
-      else {
-         *num = rv = 0;
-      }
    }
-   else if (*num)
-   {
-      bytes = *num*blocksize;
-      if (bytes > bufsize) {
-         bytes = bufsize;
-      }
+   *num = n*blocksmp;
 
-      *num = bytes/blocksize;
-
-      dptr_offs *= blocksize;
-      rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+dptr_offs, bytes);
-      handle->no_samples += *num;
-   }
+   offs = (dptr_offs/blocksmp)*blocksize;
+printf("offs: %i, *num: %i, blocksize: %i, blocksmp: %i\n", offs, *num, blocksize, blocksmp);
+   rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
+   handle->no_samples += *num;
 
    return rv;
 }
