@@ -216,7 +216,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
          if (handle->wavBuffer)
          {
-            int32_t s, *header;
+            uint32_t s, *header;
 
 //          header = handle->wavBuffer->data;
             header = handle->wavBuffer;
@@ -349,12 +349,12 @@ size_t avail = handle->wavBufSize-handle->wavBufPos;
                   avail = handle->wavBufSize-handle->wavBufPos;
                   if (!avail) break;
 
-avail = _MIN(size, avail);
+                  avail = _MIN(size, avail);
 
                   datapos = 0;
                   datasize = avail;
                   size -= avail;
-memcpy((char*)handle->wavBuffer+handle->wavBufPos,
+                  memcpy((char*)handle->wavBuffer+handle->wavBufPos,
                          buf, avail);
                   handle->wavBufPos += avail;
                }
