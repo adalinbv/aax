@@ -535,14 +535,18 @@ size_t
 _wav_copy(_ext_t *ext, int32_ptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-    return handle->fmt->copy(handle->fmt, dptr, offset, num);
+   size_t rv = handle->fmt->copy(handle->fmt, dptr, offset, num);
+   handle->io.read.datasize -= rv;
+   return rv;
 }
 
 size_t
 _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+   size_t rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+   handle->io.read.datasize -= rv;
+   return rv;
 }
 
 size_t
@@ -617,7 +621,18 @@ off_t
 _wav_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->get(handle->fmt, type);
+   off_t rv;
+
+   switch (type)
+   {
+   case  __F_NO_BYTES:
+      rv = handle->io.read.datasize;
+      break;
+   default:
+      rv = handle->fmt->get(handle->fmt, type);
+      break;
+   }
+   return rv;
 }
 
 off_t
@@ -910,6 +925,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             handle->io.read.blockbufpos = 0;
          }
       }
+   }
+   else if (curr == 0x4b414550)		/* peak */
+   {
+      *step = rv = 8 + (2*sizeof(int32_t) +
+                   handle->no_tracks*(sizeof(float)+sizeof(int32_t)));
    }
    else if (curr == 0x74636166)         /* fact */
    {
