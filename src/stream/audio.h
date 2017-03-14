@@ -65,11 +65,11 @@ enum _aaxStreamParam
    __F_EOF = -1,
    __F_FMT = 0,
    __F_TRACKS,
-   __F_FREQ,
-   __F_BITS,
-   __F_BLOCK,
+   __F_FREQUENCY,
+   __F_BITS_PER_SAMPLE,
+   __F_BLOCK_SIZE,
    __F_BLOCK_SAMPLES,
-   __F_SAMPLES,
+   __F_NO_SAMPLES,
    __F_NO_BYTES,
 
    __F_RATE,
@@ -94,6 +94,7 @@ enum _aaxStreamParam
    __F_WEBSITE,
 
    __F_IS_STREAM = 0x1000,      /* set */
+   __F_COPY_DATA,
    __F_POSITION
 };
 

@@ -61,7 +61,7 @@ typedef struct
    /* IMA */
    int16_t predictor[_AAX_MAX_SPEAKERS];
    uint8_t index[_AAX_MAX_SPEAKERS];
-   size_t blockbufpos;
+   _data_t *lockbuf;
 
 } _driver_t;
 
@@ -262,7 +262,6 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    size_t offs, bytes, bufsize;
    size_t rv = __F_EOF;
 
-printf("req: %i | ", *num);
    bufsize = handle->pcmBuffer->avail;
    blocksize = handle->blocksize;
    blocksmp = handle->blocksmp;
@@ -281,7 +280,6 @@ printf("req: %i | ", *num);
    *num = n*blocksmp;
 
    offs = (dptr_offs/blocksmp)*blocksize;
-printf("offs: %i, *num: %i, blocksize: %i, blocksmp: %i\n", offs, *num, blocksize, blocksmp);
    rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
    handle->no_samples += *num;
 
@@ -308,9 +306,12 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
 
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      unsigned int blocksmp = handle->blocksmp;
-      unsigned int n = *num/blocksmp;
+      unsigned int n, blocksmp = handle->blocksmp;
+// TODO:
+// This can only work if we return AAX_PCM16S and keep a full packet of
+// decoded samples to return
 
+      n = *num/blocksmp;
       bytes = n*blocksize;
       if (bytes > bufsize)
       {
@@ -319,13 +320,13 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
       }
       *num = n*blocksmp;
 
-      if (bytes && bytes <= handle->pcmBuffer->avail)
+      if (bytes)
       {
          size_t offs = (dptr_offs/blocksmp)*blocksize;
          int t;
 
          for (t=0; t<tracks; t++) {
-            _sw_bufcpy_ima_adpcm(dptr[t]+offs, buf, *num);
+            _sw_bufcpy_ima_adpcm(dptr[t]+offs, handle->pcmBuffer->data, *num);
          }
 
          /* skip processed data */
@@ -336,30 +337,28 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
          *num = rv = 0;
       }
    }
-   else if (*num)
-   {
-      bytes = *num*blocksize;
-      if (bytes > bufsize) {
-         bytes = bufsize;
-      }
 
-      *num = bytes/blocksize;
-
-      if (handle->cvt_endianness) {
-         handle->cvt_endianness(buf, *num);
-      }
-      if (handle->cvt_to_signed) {
-         handle->cvt_to_signed(buf, *num);
-      }
-
-      if (handle->cvt_from_intl) {
-         handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
-      }
-
-      /* skip processed data */
-      rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
-      handle->no_samples += *num;
+   bytes = *num*blocksize;
+   if (bytes > bufsize) {
+      bytes = bufsize;
    }
+
+   *num = bytes/blocksize;
+
+   if (handle->cvt_endianness) {
+      handle->cvt_endianness(buf, *num);
+   }
+   if (handle->cvt_to_signed) {
+      handle->cvt_to_signed(buf, *num);
+   }
+
+   if (handle->cvt_from_intl) {
+      handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
+   }
+
+   /* skip processed data */
+   rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
+   handle->no_samples += *num;
 
    return rv;
 }
@@ -406,16 +405,16 @@ _pcm_get(_fmt_t *fmt, int type)
    case __F_TRACKS:
       rv = handle->no_tracks;
       break;
-   case __F_FREQ:
+   case __F_FREQUENCY:
       rv = handle->frequency;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       rv = handle->bits_sample;
       break;
-   case __F_BLOCK:
+   case __F_BLOCK_SIZE:
       rv = handle->blocksize;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       rv = handle->max_samples;
       break;
    default:
@@ -432,7 +431,7 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
 
    switch(type)
    {
-   case __F_FREQ:
+   case __F_FREQUENCY:
       handle->frequency = value;
       break;
    case __F_RATE:
@@ -441,20 +440,20 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
    case __F_TRACKS:
       handle->no_tracks = value;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       handle->max_samples = value;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       handle->bits_sample = value;
       break;
-   case __F_BLOCK:
+   case __F_BLOCK_SIZE:
       handle->blocksize = value;
       break;
    case __F_BLOCK_SAMPLES:
       handle->blocksmp = value;
       break;
    case __F_POSITION:
-      handle->blockbufpos = value;
+//    handle->blockbufpos = value;
       break;
    default:
       break;

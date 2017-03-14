@@ -422,16 +422,16 @@ _vorbis_get(_fmt_t *fmt, int type)
    case __F_TRACKS:
       rv = handle->no_tracks;
       break;
-   case __F_FREQ:
+   case __F_FREQUENCY:
       rv = handle->frequency;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       rv = handle->bits_sample;
       break;
-   case __F_BLOCK:
+   case __F_BLOCK_SIZE:
       rv = handle->blocksize;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       rv = handle->max_samples;
       break;
    default:
@@ -456,7 +456,7 @@ _vorbis_set(_fmt_t *fmt, int type, off_t value)
 
    switch(type)
    {
-   case __F_FREQ:
+   case __F_FREQUENCY:
       handle->frequency = value;
       break;
    case __F_RATE:
@@ -465,11 +465,11 @@ _vorbis_set(_fmt_t *fmt, int type, off_t value)
    case __F_TRACKS:
       handle->no_tracks = value;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       handle->no_samples = value;
       handle->max_samples = value;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       handle->bits_sample = value;
       break;
    case __F_IS_STREAM:

@@ -58,11 +58,11 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->format = format;
          handle->fmt = fmt;
 
-         handle->fmt->set(handle->fmt, __F_FREQ, freq);
+         handle->fmt->set(handle->fmt, __F_FREQUENCY, freq);
          handle->fmt->set(handle->fmt, __F_RATE, bitrate);
          handle->fmt->set(handle->fmt, __F_TRACKS, tracks);
-         handle->fmt->set(handle->fmt, __F_SAMPLES, no_samples);
-         handle->fmt->set(handle->fmt, __F_BITS, bits);
+         handle->fmt->set(handle->fmt, __F_NO_SAMPLES, no_samples);
+         handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, bits);
 
          *bufsize = 0;
          if (handle->mode == 0) {
