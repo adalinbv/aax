@@ -198,12 +198,12 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             return rv;
          }
 
-         handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+         handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
          handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
          handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-         handle->fmt->set(handle->fmt, __F_SAMPLES, handle->no_samples);
-         handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
-         handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+         handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
+         handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
+         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
          handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
                   MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize, handle->no_tracks));
          rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
@@ -377,19 +377,19 @@ size_t avail = handle->wavBufSize-handle->wavBufPos;
                   return rv;
                }
 
-               handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+               handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
                handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
                handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-               handle->fmt->set(handle->fmt,__F_SAMPLES, handle->no_samples);
-               handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
+               handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->no_samples);
+               handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
                if (handle->format == AAX_IMA4_ADPCM) {
-                  handle->fmt->set(handle->fmt, __F_BLOCK,
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
                                    handle->blocksize/handle->no_tracks);
                   handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
                                      MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize,
                                                             handle->no_tracks));
                } else {
-                  handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
                }
                handle->fmt->set(handle->fmt, __F_POSITION,
                                                 handle->io.read.blockbufpos);
@@ -1239,7 +1239,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       printf("Error: Unable to setup the file stream handler.\n");
       return;
    }
-// ext->set_param(ext, __F_BLOCK, 512); // blocksize);
+// ext->set_param(ext, __F_BLOCK_SIZE, 512); // blocksize);
 
    oflag = O_CREAT|O_WRONLY|O_BINARY;
    if (type == AAX_OVERWRITE) oflag |= O_TRUNC;
@@ -1260,7 +1260,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
    if (format == AAX_IMA4_ADPCM) {
       size = no_samples;
    } else {
-      size = no_samples * ext->get_param(ext, __F_BLOCK);
+      size = no_samples * ext->get_param(ext, __F_BLOCK_SIZE);
    }
    res = write(fd, data, size);	// write the header
 

@@ -270,12 +270,12 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   return rv;
                }
 
-               handle->fmt->set(handle->fmt, __F_FREQ, handle->frequency);
+               handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
                handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
                handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-               handle->fmt->set(handle->fmt,__F_SAMPLES, handle->no_samples);
-               handle->fmt->set(handle->fmt, __F_BITS, handle->bits_sample);
-               handle->fmt->set(handle->fmt, __F_BLOCK, handle->blocksize);
+               handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->no_samples);
+               handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
+               handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
 //             handle->fmt->set(handle->fmt, __F_POSITION,
 //                                              handle->blockbufpos);
                datasize = handle->oggBufPos;
@@ -447,7 +447,7 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    _driver_t *handle = ext->id;
    size_t rv;
 
-   handle->fmt->set(handle->fmt, __F_BLOCK, handle->packet_offset[0]);
+   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->packet_offset[0]);
    rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
    if (rv > 0) {
       handle->page_size -= rv;

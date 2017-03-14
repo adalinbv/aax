@@ -571,7 +571,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          if (headerSize && res == headerSize)
          {
-            rate = handle->ext->get_param(handle->ext, __F_FREQ);
+            rate = handle->ext->get_param(handle->ext, __F_FREQUENCY);
 
             handle->frequency = (float)rate;
             handle->format = handle->ext->get_param(handle->ext, __F_FMT);
@@ -687,7 +687,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
    rb_bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
 
-   file_bps = handle->ext->get_param(handle->ext, __F_BITS)/8;
+   file_bps = handle->ext->get_param(handle->ext, __F_BITS_PER_SAMPLE)/8;
    file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
    assert(file_tracks == handle->no_channels);
 
@@ -744,9 +744,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    if (handle->io->fd >= 0 && frames && tracks)
    {
       int32_t **sbuf = (int32_t**)tracks;
+      int file_bits = handle->ext->get_param(handle->ext, __F_BITS_PER_SAMPLE);
       int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
-      int file_bits = handle->ext->get_param(handle->ext, __F_BITS);
-      size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK);
+      size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
       unsigned int frame_bits = file_tracks*file_bits;
       size_t samples, extBufSize, extBufPos, extBufProcess;
       ssize_t res, no_samples;
@@ -867,6 +867,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                if (!batched) {
                   _aaxSignalTrigger(&handle->thread.signal);
                }
+
+size_t b = handle->ext->get_param(handle->ext, __F_NO_BYTES);
+printf("rv: %i\n", b);
 
                if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
@@ -1071,14 +1074,14 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)_AAX_MAX_SPEAKERS;
          break;
       case DRIVER_BLOCK_SIZE:
-         rv = (float)handle->ext->get_param(handle->ext, __F_BLOCK);
+         rv = (float)handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
          break;
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = 1.0f;
          break;
       case DRIVER_MAX_SAMPLES:
-         rv = (float)handle->ext->get_param(handle->ext, __F_SAMPLES);
+         rv = (float)handle->ext->get_param(handle->ext, __F_NO_SAMPLES);
          break;
       case DRIVER_SAMPLE_DELAY:
          rv = (float)handle->no_samples;
@@ -1118,7 +1121,7 @@ _aaxStreamDriverSetPosition(const void *id, off_t pos)
       if (res >= 0)
       {
          int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
-         int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS);
+         int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS_PER_SAMPLE);
          unsigned int samples = IOBUF_SIZE*8/(file_tracks*file_bits);
          ssize_t seek;
          while ((seek = handle->fmt->set_param(handle->fmt->id, __F_POSITION, pos))
