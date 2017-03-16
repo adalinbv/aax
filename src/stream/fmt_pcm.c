@@ -38,6 +38,7 @@ typedef struct
    int mode;
 
    char capturing;
+   char copy_to_buffer;
 
    uint8_t no_tracks;
    uint8_t bits_sample;
@@ -223,7 +224,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          rv = AAX_TRUE;
          break;
       case AAX_IMA4_ADPCM:
-         rv = AAX_TRUE;
+         if (handle->copy_to_buffer) rv = AAX_TRUE;
          break;
       default:
             _AAX_FILEDRVLOG("PCM: Unsupported format");
@@ -454,6 +455,9 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
       break;
    case __F_POSITION:
 //    handle->blockbufpos = value;
+      break;
+   case __F_COPY_DATA:
+      handle->copy_to_buffer = value;
       break;
    default:
       break;
