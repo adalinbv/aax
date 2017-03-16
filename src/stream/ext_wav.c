@@ -68,6 +68,7 @@ typedef struct
    size_t max_samples;
 
    enum wavFormat wav_format;
+   char copy_to_buffer;
 
    union
    {
@@ -368,11 +369,14 @@ size_t avail = handle->wavBufSize-handle->wavBufPos;
                fmt = _getFmtFromWAVFormat(handle->wav_format);
                handle->fmt = _fmt_create(fmt, handle->mode);
                if (!handle->fmt) {
+                  *bufsize = 0;
                   return rv;
                }
 
+               handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
                if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
                {
+                  *bufsize = 0;
                   handle->fmt = _fmt_free(handle->fmt);
                   return rv;
                }
@@ -625,7 +629,7 @@ _wav_get(_ext_t *ext, int type)
 
    switch (type)
    {
-   case  __F_NO_BYTES:
+   case __F_NO_BYTES:
       rv = handle->io.read.datasize;
       break;
    default:
@@ -639,7 +643,18 @@ off_t
 _wav_set(_ext_t *ext, int type, off_t value)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->set(handle->fmt, type, value);
+   off_t rv = 0;
+
+    switch (type)
+   {
+   case __F_COPY_DATA:
+      handle->copy_to_buffer = value;
+      break;
+   default:
+      rv = handle->fmt->set(handle->fmt, type, value);
+      break;
+   }
+   return rv;
 }
 
 
