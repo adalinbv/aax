@@ -866,9 +866,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   _aaxSignalTrigger(&handle->thread.signal);
                }
 
-size_t b = handle->ext->get_param(handle->ext, __F_NO_BYTES);
-printf("rv: %i\n", b);
-
                if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
                   bytes = 0; // -1;

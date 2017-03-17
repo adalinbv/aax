@@ -224,7 +224,9 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          rv = AAX_TRUE;
          break;
       case AAX_IMA4_ADPCM:
-         if (handle->copy_to_buffer) rv = AAX_TRUE;
+         if (handle->copy_to_buffer && handle->no_tracks == 1) {
+            rv = AAX_TRUE;
+         }
          break;
       default:
             _AAX_FILEDRVLOG("PCM: Unsupported format");

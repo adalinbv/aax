@@ -373,6 +373,7 @@ size_t avail = handle->wavBufSize-handle->wavBufPos;
                   return rv;
                }
 
+               handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
                handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
                if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
                {
