@@ -1,3 +1,9 @@
+* Fri Mar 17 2017 - tech@adalin.org
+- AeonWave (2.8.0) stable; urgency=low
+ * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.
+ * Add support for WAV embeded MP3 files (if mpg123 is installed).
+ * Fix a segmentation fault when a particular file extension does not not support writing
+
 * Fri Jul 29  2016 - tech@adalin.org
 - AeonWave (2.7.0) stable; urgency=low
  * Add aeonwave.hpp, a header file only AeonWave C++ abstraction API.
