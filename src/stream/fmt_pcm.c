@@ -27,12 +27,6 @@
 #include "format.h"
 
 
-#if 0
-static size_t _batch_cvt24_adpcm_intl(_fmt_t*, int32_ptrptr, const_char_ptr, size_t, unsigned int, size_t*);
-#endif
-static void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
-static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
-
 typedef struct
 {
    int mode;
@@ -62,9 +56,15 @@ typedef struct
    /* IMA */
    int16_t predictor[_AAX_MAX_SPEAKERS];
    uint8_t index[_AAX_MAX_SPEAKERS];
-   _data_t *lockbuf;
+// _data_t *blockbuf;
+   size_t blockbufpos;
 
 } _driver_t;
+
+static void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+static size_t _batch_cvt24_adpcm_intl(_driver_t*, int32_t**, const_char_ptr, size_t, size_t, size_t, unsigned int);
+
 
 int
 _pcm_detect(_fmt_t *fmt, int mode)
@@ -224,9 +224,9 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          rv = AAX_TRUE;
          break;
       case AAX_IMA4_ADPCM:
-         if (handle->copy_to_buffer && handle->no_tracks == 1) {
+//       if (handle->copy_to_buffer && handle->no_tracks == 1) {
             rv = AAX_TRUE;
-         }
+//       }
          break;
       default:
             _AAX_FILEDRVLOG("PCM: Unsupported format");
@@ -294,8 +294,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
 {
    _driver_t *handle = fmt->id;
    unsigned int blocksize, tracks;
-   size_t bytes, bufsize;
-   size_t rv = __F_EOF;
+   size_t bufsize, rv = __F_EOF;
    char *buf;
 
    buf = (char*)handle->pcmBuffer->data;
@@ -309,59 +308,53 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
 
    if (handle->format == AAX_IMA4_ADPCM)
    {
-      unsigned int n, blocksmp = handle->blocksmp;
-// TODO:
-// This can only work if we return AAX_PCM16S and keep a full packet of
-// decoded samples to return
-
-      n = *num/blocksmp;
-      bytes = n*blocksize;
-      if (bytes > bufsize)
+      if (handle->blocksize <= bufsize)
       {
-         n = (bufsize/blocksize);
-         bytes = n*blocksize;
-      }
-      *num = n*blocksmp;
+         size_t block_smp = handle->blocksmp;
+         size_t offs_smp = handle->blockbufpos;
+         size_t decode_smp;
 
-      if (bytes)
-      {
-         size_t offs = (dptr_offs/blocksmp)*blocksize;
-         int t;
+         decode_smp = _MIN(block_smp-offs_smp, *num);
+         rv = _batch_cvt24_adpcm_intl(handle, dptr, buf, offs_smp,
+                                       decode_smp, dptr_offs, tracks);
+         handle->blockbufpos += rv;
+         handle->no_samples += rv;
+         *num = rv;
 
-         for (t=0; t<tracks; t++) {
-            _sw_bufcpy_ima_adpcm(dptr[t]+offs, handle->pcmBuffer->data, *num);
+         if (handle->blockbufpos >= block_smp)
+         {
+            handle->blockbufpos = 0;
+            _aaxDataMove(handle->pcmBuffer, NULL, handle->blocksize);
          }
-
-         /* skip processed data */
-         rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
-         handle->no_samples += *num;
       }
       else {
          *num = rv = 0;
       }
    }
+   else
+   {
+      size_t bytes = *num*blocksize;
+      if (bytes > bufsize) {
+         bytes = bufsize;
+      }
 
-   bytes = *num*blocksize;
-   if (bytes > bufsize) {
-      bytes = bufsize;
+      *num = bytes/blocksize;
+
+      if (handle->cvt_endianness) {
+         handle->cvt_endianness(buf, *num);
+      }
+      if (handle->cvt_to_signed) {
+         handle->cvt_to_signed(buf, *num);
+      }
+
+      if (handle->cvt_from_intl) {
+         handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
+      }
+
+      /* skip processed data */
+      rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
+      handle->no_samples += *num;
    }
-
-   *num = bytes/blocksize;
-
-   if (handle->cvt_endianness) {
-      handle->cvt_endianness(buf, *num);
-   }
-   if (handle->cvt_to_signed) {
-      handle->cvt_to_signed(buf, *num);
-   }
-
-   if (handle->cvt_from_intl) {
-      handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
-   }
-
-   /* skip processed data */
-   rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
-   handle->no_samples += *num;
 
    return rv;
 }
@@ -456,7 +449,7 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
       handle->blocksmp = value;
       break;
    case __F_POSITION:
-//    handle->blockbufpos = value;
+      handle->blockbufpos = value;
       break;
    case __F_COPY_DATA:
       handle->copy_to_buffer = value;
@@ -527,7 +520,7 @@ void _pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
 }
 
 static size_t
-_aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)
+_batch_cvt24_adpcm_intl(_driver_t *handle, int32_t **dptr, const_char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)
 
 {
    size_t offs_smp, rv = 0;
@@ -620,35 +613,6 @@ _aaxWavMSADPCMBlockDecode(_driver_t *handle, int32_t **dptr, const_char_ptr src,
 
    return rv;
 }
-
-#if 0
-static size_t
-_batch_cvt24_adpcm_intl(_fmt_t *fmt, int32_ptrptr dptr, const_char_ptr src, size_t offs, unsigned int tracks, size_t *n)
-{
-   _driver_t *handle = fmt->id;
-   size_t num = *n;
-   size_t rv = 0;
-
-   size_t block_smp, decode_smp, offs_smp;
-   size_t r;
-
-   offs_smp = handle->blockbufpos;
-   block_smp = handle->blocksmp;
-   decode_smp = _MIN(block_smp-offs_smp, num);
-
-   r = _aaxWavMSADPCMBlockDecode(handle, dptr, src, offs_smp, decode_smp, offs, tracks);
-   handle->blockbufpos += r;
-   *n = r;
-
-   if (handle->blockbufpos >= block_smp)
-   {
-      handle->blockbufpos = 0;
-      rv = handle->blocksize;
-   }
-
-   return rv;
-}
-#endif
 
 static void
 _batch_cvt24_mulaw_intl(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
