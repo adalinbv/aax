@@ -515,7 +515,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    unsigned tracks = handle->no_tracks;
    size_t rv = __F_PROCESS;
 
-   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
+   if (0) // handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
    {
       size_t blocksize = handle->blocksize;
       size_t avail = (*bytes/blocksize)*blocksize;
