@@ -515,18 +515,32 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    unsigned tracks = handle->no_tracks;
    size_t rv = __F_PROCESS;
 
-   if (0) // handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
+   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
    {
+      char *dptr = (char*)handle->wavBuffer;
       size_t blocksize = handle->blocksize;
-      size_t avail = (*bytes/blocksize)*blocksize;
+      size_t avail = handle->wavBufSize - handle->wavBufPos;
+
       if (avail)
       {
-         *bytes = avail;
-         _wav_cvt_msadpcm_to_ima4(sptr, avail, tracks, &blocksize);
-         rv = handle->fmt->fill(handle->fmt, sptr, bytes);
+          if (*bytes > avail) {
+             *bytes = avail;
+          }
+
+          memcpy(dptr+handle->wavBufPos, sptr, *bytes);
+          handle->wavBufPos += *bytes;
       }
-      else {
-         *bytes = 0;
+
+      avail = (handle->wavBufPos/blocksize)*blocksize;
+      if (avail)
+      {
+         _wav_cvt_msadpcm_to_ima4(dptr, avail, tracks, &blocksize);
+printf("avail: %i - ", avail);
+         rv = handle->fmt->fill(handle->fmt, dptr, &avail);
+printf("rv: %i, avail: %i\n", rv, avail);
+
+         handle->wavBufPos -= avail;
+         memmove(dptr, dptr+avail, handle->wavBufPos);
       }
    }
    else {
