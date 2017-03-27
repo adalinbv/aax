@@ -41,6 +41,7 @@ static void _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, uns
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
+static void _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer**);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -58,6 +59,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       _buffer_t* buf = calloc(1, sizeof(_buffer_t));
       if (buf)
       {
+         const char *env = getenv("AAX_USE_MIXER_FMT");
          int blocksize;
 
          switch(native_fmt)
@@ -82,6 +84,17 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->info = VALID_LITE_HANDLE(handle) ? &handle->info : &_info;
          buf->handle = handle;
          buf->ringbuffer = _bufGetRingBuffer(buf, handle);
+
+#if 0
+         if (env && !_aax_getbool(env)) {
+            buf->to_mixer = AAX_FALSE;     /* explicit request not to convert */
+         } else if (_aax_get_free_memory() > (500*1024*1024)) {
+            buf->to_mixer = AAX_TRUE;  /* more than 500Mb free memory available */
+         }
+#else
+buf->to_mixer = AAX_FALSE;
+#endif
+
          rv = (aaxBuffer)buf;
       }
       if (buf == NULL) {
@@ -383,6 +396,11 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
                }
             }
             _bufSetDataInterleaved(handle, rb, data, blocksize);
+            if (handle->to_mixer)
+            {
+               _bufConvertDataToMixerFormat(handle, &rb);
+               handle->ringbuffer = rb;
+            }
 
             rv = AAX_TRUE;
             _aax_free(ptr);
@@ -1109,6 +1127,53 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
 }
 
 static void
+_bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer **drb)
+{
+   _aaxRingBuffer *nrb = NULL, *rb = *drb;
+   unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+   unsigned int tracks = rb->get_parami(rb, RB_NO_TRACKS);
+   _handle_t *handle = buf->handle;
+
+   if (handle)
+   {
+      enum aaxRenderMode mode = handle->info->mode;
+      const _aaxDriverBackend *be;
+
+      if VALID_LITE_HANDLE(handle) {
+         be = handle->backend.ptr;
+      } else {
+         be = ((_handle_t*)((*buf->info)->backend))->backend.ptr;
+      }
+
+      nrb = be->get_ringbuffer(0.0f, mode);
+      if (nrb)
+      {
+         int32_t **src, **dst;
+         unsigned int t, fmt;
+
+         nrb->set_format(nrb, AAX_PCM24S, AAX_FALSE);
+         nrb->set_parami(nrb, RB_NO_TRACKS, buf->no_tracks);
+         nrb->set_parami(nrb, RB_NO_SAMPLES, buf->no_samples);
+         nrb->set_parami(nrb, RB_LOOPPOINT_START, buf->loop_start);
+         nrb->set_parami(nrb, RB_LOOPPOINT_END, buf->loop_end);
+         nrb->set_paramf(nrb, RB_FREQUENCY, buf->frequency);
+         nrb->init(nrb, AAX_FALSE);
+
+         fmt = rb->get_parami(rb, RB_FORMAT);
+         src = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
+         dst = (int32_t**)nrb->get_tracks_ptr(nrb, RB_WRITE);
+         for (t=0; t<tracks; t++) {
+            _bufConvertDataToPCM24S(dst[t], src[t], no_samples, fmt);
+         }
+         nrb->release_tracks_ptr(nrb);
+
+         *drb = nrb;
+         be->destroy_ringbuffer(rb);
+      }
+   }
+}
+
+static void
 _aaxLinear2MuLaw(uint8_t* ndata, int32_t* data, unsigned int i)
 {
    do {
@@ -1300,10 +1365,8 @@ void
 _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, unsigned blocksize)
 {
    unsigned int rb_format, bps, no_samples, no_tracks, tracksize;
-   const char *env = getenv("AAX_USE_MIXER_FMT");
    const void* data;
    int32_t **tracks;
-   char to_mixer;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -1311,17 +1374,6 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    assert(dbuf != 0);
 
    data = dbuf;
-
-#if 0
-   if (env && !_aax_getbool(env)) {
-      to_mixer = AAX_FALSE;	/* explicit request not to convert */
-   } else if (_aax_get_free_memory() > (500*1024*1024)) {
-      to_mixer = AAX_TRUE;	/* more than 500Mb free memory available */
-   }
-printf("\nto_mixer: %i (free mem: %i Mb)\n", to_mixer, _aax_get_free_memory()/1024/1204);
-#else
-to_mixer=0;
-#endif
 
    rb->set_state(rb, RB_CLEARED);
 
@@ -1347,75 +1399,7 @@ to_mixer=0;
       _batch_cvt24_pd_intl(tracks, data, 0, no_tracks, no_samples);
       break;
    default:
-      if (to_mixer && no_tracks == 1)
-      {
-         unsigned int buf_samples = no_tracks*no_samples;
-         unsigned int nbps = sizeof(int32_t);
-         if (tracksize < buf_samples*nbps)
-         {
-            _aaxRingBuffer *tmp = buf->ringbuffer;
-            enum aaxFormat fmt = buf->format;
-            _aaxRingBuffer *nrb;
-
-            buf->ringbuffer = NULL;
-            buf->format = AAX_PCM24S;
-            nrb = _bufGetRingBuffer(buf, buf->handle);
-            if (nrb)
-            {
-               buf->ringbuffer = nrb;
-               rb = nrb;
-
-               tmp->release_tracks_ptr(tmp);
-               tmp->destroy(tmp);
-
-               bps = nbps;
-               rb->init(rb, AAX_FALSE);
-
-               bps = nbps;
-               tracksize = buf_samples*bps;
-               tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
-            }
-            else
-            {
-               buf->ringbuffer = tmp;
-               buf->format = fmt;
-            }
-         }
-
-
-         if (tracksize >= buf_samples*nbps)
-         {
-            char* ptr = (char*)sizeof(void*);
-            void** ndata = (void**)_aax_malloc(&ptr, buf_samples*nbps);
-            if (ndata)
-            {
-               *ndata = (void*)ptr;
-               _bufConvertDataToPCM24S(ptr,(void*)data, buf_samples, rb_format);
-
-
-               _aax_memcpy(tracks[0], ptr, tracksize);
-               free(ndata);
-            }
-         }
-         else {
-            _aax_memcpy(tracks[0], data, tracksize);
-         }
-#if 0
-      _handle_t *handle = buf->handle;
-      float fact = handle->frequency/buffer->frequency
-
-      rb->set_parami(rb, RB_IS_MIXER_BUFFER, AAX_TRUE);
-      if (fact != 1.0f)
-      {
-# if RB_FLOAT_DATA
-         _batch_resample_float(scratch[1], scratch[0], 0, samples, 0, fact);
-# else
-         _batch_resample(scratch[1], scratch[0], 0, samples, 0, fact);
-# endif
-      }
-#endif
-      }
-      else if (no_tracks == 1) {
+      if (no_tracks == 1) {
          _aax_memcpy(tracks[0], data, tracksize);
       }
       else /* stereo */

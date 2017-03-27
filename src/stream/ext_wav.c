@@ -519,8 +519,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    {
       char *dptr = (char*)handle->wavBuffer;
       size_t blocksize = handle->blocksize;
-      size_t avail = handle->wavBufSize - handle->wavBufPos;
-
+      size_t avail = (*bytes/blocksize)*blocksize;
       if (avail)
       {
           if (*bytes > avail) {
@@ -530,17 +529,8 @@ _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
           memcpy(dptr+handle->wavBufPos, sptr, *bytes);
           handle->wavBufPos += *bytes;
       }
-
-      avail = (handle->wavBufPos/blocksize)*blocksize;
-      if (avail)
-      {
-         _wav_cvt_msadpcm_to_ima4(dptr, avail, tracks, &blocksize);
-printf("avail: %i - ", avail);
-         rv = handle->fmt->fill(handle->fmt, dptr, &avail);
-printf("rv: %i, avail: %i\n", rv, avail);
-
-         handle->wavBufPos -= avail;
-         memmove(dptr, dptr+avail, handle->wavBufPos);
+      else {
+         rv = *bytes = 0;
       }
    }
    else {
