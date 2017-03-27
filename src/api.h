@@ -271,6 +271,7 @@ typedef struct
    enum aaxFormat format;
    float frequency;
 
+   char to_mixer;
    char mipmap;
 
    _aaxRingBuffer *ringbuffer;
