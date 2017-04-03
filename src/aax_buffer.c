@@ -37,11 +37,11 @@ static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);
 static int _bufProcessAAXS(_buffer_t*, const void*, float);
 static int _aaxBufferProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
-static void _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
+static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
+static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
-static void _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer**);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -92,7 +92,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
             buf->to_mixer = AAX_TRUE;  /* more than 500Mb free memory available */
          }
 #else
-buf->to_mixer = AAX_FALSE;
+buf->to_mixer = AAX_TRUE;
 #endif
 
          rv = (aaxBuffer)buf;
@@ -395,12 +395,8 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
                   }
                }
             }
-            _bufSetDataInterleaved(handle, rb, data, blocksize);
-            if (handle->to_mixer)
-            {
-               _bufConvertDataToMixerFormat(handle, &rb);
-               handle->ringbuffer = rb;
-            }
+            rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
+            handle->ringbuffer = rb;
 
             rv = AAX_TRUE;
             _aax_free(ptr);
@@ -1028,7 +1024,6 @@ static void
 _aaxMuLaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 {
    do {
-//    *ndata++ = _mulaw2linear_table[*data++] << 8;
       *ndata++ = _mulaw2linear(*data++) << 8;
    } while (--i);
 }
@@ -1037,7 +1032,6 @@ static void
 _aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 {  
    do {
-//    _alaw2linear_table[*data++] << 8;
       *ndata++ = _alaw2linear(*data++) << 8;
    } while (--i);
 }
@@ -1126,10 +1120,10 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
    } /* ndata */
 }
 
-static void
-_bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer **drb)
+static _aaxRingBuffer*
+_bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
 {
-   _aaxRingBuffer *nrb = NULL, *rb = *drb;
+   _aaxRingBuffer *nrb = rb;
    unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    unsigned int tracks = rb->get_parami(rb, RB_NO_TRACKS);
    _handle_t *handle = buf->handle;
@@ -1162,15 +1156,18 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer **drb)
          fmt = rb->get_parami(rb, RB_FORMAT);
          src = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
          dst = (int32_t**)nrb->get_tracks_ptr(nrb, RB_WRITE);
-         for (t=0; t<tracks; t++) {
+         for (t=0; t<tracks; ++t) {
             _bufConvertDataToPCM24S(dst[t], src[t], no_samples, fmt);
          }
          nrb->release_tracks_ptr(nrb);
-
-         *drb = nrb;
          be->destroy_ringbuffer(rb);
       }
+      else {
+         nrb = rb;
+      }
    }
+
+   return nrb;
 }
 
 static void
@@ -1361,10 +1358,11 @@ _aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, 
    }
 }
 
-void
+_aaxRingBuffer*
 _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, unsigned blocksize)
 {
    unsigned int rb_format, bps, no_samples, no_tracks, tracksize;
+   _aaxRingBuffer *rv = rb;
    const void* data;
    int32_t **tracks;
 
@@ -1383,22 +1381,31 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    tracksize = no_samples * bps;
 
-   tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
    switch (rb_format)
    {
    case AAX_IMA4_ADPCM:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _aaxRingBufferIMA4ToPCM16(tracks, data, no_tracks, blocksize, no_samples);
+      rb->release_tracks_ptr(rb);
+      if (buf->to_mixer) rv = _bufConvertDataToMixerFormat(buf, rb);
       break;
    case AAX_PCM32S:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
+      rb->release_tracks_ptr(rb);
       break;
    case AAX_FLOAT:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_ps_intl(tracks, data, 0, no_tracks, no_samples);
+      rb->release_tracks_ptr(rb);
       break;
    case AAX_DOUBLE:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_pd_intl(tracks, data, 0, no_tracks, no_samples);
+      rb->release_tracks_ptr(rb);
       break;
    default:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       if (no_tracks == 1) {
          _aax_memcpy(tracks[0], data, tracksize);
       }
@@ -1424,9 +1431,11 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
             while (--i);
          }
       }
+      rb->release_tracks_ptr(rb);
+      if (buf->to_mixer) rv = _bufConvertDataToMixerFormat(buf, rb);
    } /* switch */
 
-   rb->release_tracks_ptr(rb);
+   return rv;
 }
 
 

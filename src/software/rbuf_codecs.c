@@ -57,9 +57,6 @@ _batch_codec_proc _aaxRingBufferCodecs[AAX_FORMAT_MAX] =
 
 extern const int16_t _ima4_step_table[89];
 extern const int16_t _ima4_index_table[16];
-extern const int16_t _ima4_index_adjust[16];
-extern const int16_t _alaw2linear_table[256];
-extern const int8_t _linear2alaw_table[128];
 
 /*
  * This function transforms a buffer into a signed, 32-bit buffer ready
