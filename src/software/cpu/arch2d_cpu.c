@@ -362,22 +362,17 @@ _batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset,
          for (t=0; t<tracks; t++)
          {
             uint8_t *s = (uint8_t*)sptr + 3*t;
-            int32_t *d = dptr[t] + offset;
+            int32_t smp, *d = dptr[t] + offset;
             size_t i = num;
-            union {
-                int32_t s32;
-                uint8_t b[4];
-            } smp;
 
             do {
-               smp.b[0] = s[0];
-               smp.b[1] = s[1];
-               smp.b[2] = s[2];
-               if (smp.b[2] > 0x7f) smp.b[3] = 0xff;
-               else smp.b[3] = 0;
+               smp = (*s++ << 16);
+               smp |= (*s++ << 8);
+               smp |= *s++;
+               if ((smp & 0x00800000) > 0) smp |= 0xFF000000;
 
-               *d++ = smp.s32;
-               s += 3*tracks;
+               *d++ = smp;
+               s += 3*(tracks-1);
             }
             while (--i);
          }
@@ -525,22 +520,16 @@ _batch_cvt24_24_3_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
    if (num)
    {
       uint8_t *s = (uint8_t *)sptr;
-      int32_t *d = dptr;
+      int32_t smp, *d = dptr;
       size_t i = num;
-      union {
-         int32_t s32;
-         uint8_t b[4];
-      } smp;
 
       do {
-         smp.b[0] = *s++;
-         smp.b[1] = *s++;
-         smp.b[2] = *s++;
-         if (smp.b[2] > 0x7f) smp.b[3] = 0xff;
-         else smp.b[3] = 0;
+         smp = (*s++ << 16);
+         smp |= (*s++ << 8);
+         smp |= *s++;
+         if ((smp & 0x00800000) > 0) smp |= 0xFF000000;
 
-         *d++ = smp.s32;
-         s += 3;
+         *d++ = smp;
       }
       while (--i);
    }
