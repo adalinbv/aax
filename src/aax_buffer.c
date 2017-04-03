@@ -59,7 +59,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       _buffer_t* buf = calloc(1, sizeof(_buffer_t));
       if (buf)
       {
-         const char *env = getenv("AAX_USE_MIXER_FMT");
+         const char *env;
          int blocksize;
 
          switch(native_fmt)
@@ -85,15 +85,12 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->handle = handle;
          buf->ringbuffer = _bufGetRingBuffer(buf, handle);
 
-#if 0
+         env = getenv("AAX_USE_MIXER_FMT");
          if (env && !_aax_getbool(env)) {
-            buf->to_mixer = AAX_FALSE;     /* explicit request not to convert */
+            buf->to_mixer = AAX_FALSE;	/* explicit request not to convert */
          } else if (_aax_get_free_memory() > (500*1024*1024)) {
-            buf->to_mixer = AAX_TRUE;  /* more than 500Mb free memory available */
+            buf->to_mixer = AAX_TRUE;	/* more than 500Mb memory available */
          }
-#else
-buf->to_mixer = AAX_TRUE;
-#endif
 
          rv = (aaxBuffer)buf;
       }
