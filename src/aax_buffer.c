@@ -59,7 +59,6 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       _buffer_t* buf = calloc(1, sizeof(_buffer_t));
       if (buf)
       {
-         const char *env;
          int blocksize;
 
          switch(native_fmt)
@@ -84,14 +83,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->info = VALID_LITE_HANDLE(handle) ? &handle->info : &_info;
          buf->handle = handle;
          buf->ringbuffer = _bufGetRingBuffer(buf, handle);
-
-         env = getenv("AAX_USE_MIXER_FMT");
-         if (env && !_aax_getbool(env)) {
-            buf->to_mixer = AAX_FALSE;	/* explicit request not to convert */
-         } else if (_aax_get_free_memory() > (500*1024*1024)) {
-            buf->to_mixer = AAX_TRUE;	/* more than 500Mb memory available */
-         }
-
+         buf->to_mixer = AAX_FALSE;
          rv = (aaxBuffer)buf;
       }
       if (buf == NULL) {
@@ -334,6 +326,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
             void *data = (void*)d, *ptr = NULL;
             unsigned int native_fmt;
             char fmt_bps, *m = 0;
+            const char *env;
 
 				/* do we need to convert to native format? */
             native_fmt = format & AAX_FORMAT_NATIVE;
@@ -391,6 +384,22 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
                      break;
                   }
                }
+            }
+
+            /* explicit request not to convert */
+            env = getenv("AAX_USE_MIXER_FMT");
+            if (env && !_aax_getbool(env)) {
+               handle->to_mixer = AAX_FALSE;
+            }
+
+            /* sound is not mono or larger than 4Mb, do not convert */
+            else if (tracks != 1 || rb->get_parami(rb, RB_TRACKSIZE) > (4*1024)) {
+                handle->to_mixer = AAX_FALSE;
+            }
+
+            /* more than 500Mb free memory is available, convert */
+            else if (_aax_get_free_memory() > (500*1024*1024)) {
+               handle->to_mixer = AAX_TRUE;
             }
             rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
             handle->ringbuffer = rb;
