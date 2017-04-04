@@ -40,6 +40,7 @@ _aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
 
    if (eff)
    {
+      _aaxRingBufferImpulseResponseData* data;
       char *ptr;
 
       eff->id = EFFECT_ID;
@@ -53,6 +54,10 @@ _aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
 
       size = sizeof(_aaxEffectInfo);
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+
+      data = calloc(1, sizeof(_aaxRingBufferImpulseResponseData));
+      eff->slot[0]->data = data;
+
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -61,8 +66,13 @@ _aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
 static int
 _aaxImpulseResponseEffectDestroy(_effect_t* effect)
 {
-   void* data = effect->slot[0]->data;
-   if (data) _aaxRingBufferFree(data);
+   _aaxRingBufferImpulseResponseData* data = effect->slot[0]->data;
+   if (data)
+   {
+      free(data->history_ptr);
+      free(data->ir_ptr);
+   }
+   free(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
    free(effect);
 
@@ -72,34 +82,46 @@ _aaxImpulseResponseEffectDestroy(_effect_t* effect)
 static aaxEffect
 _aaxImpulseResponseEffectSetState(_effect_t* effect, int state)
 {
-   void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
-
-   switch (state & ~AAX_INVERSE)
-   {
-   case AAX_CONSTANT_VALUE:
-   {
-      break;
-   }
-   case AAX_FALSE:
-      break;
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
-      break;
-   }
-   rv = effect;
-   return rv;
+   effect->slot[0]->state = state ? AAX_TRUE : AAX_FALSE;
+   return effect;
 }
 
 static aaxEffect
-_aaxImpulseResponseEffectSetData(_effect_t* effect, void* data)
+_aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
 {
+   _aaxRingBufferImpulseResponseData *ird = effect->slot[0]->data;
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   if (data)
+
+   if (ird)
    {
-      effect->slot[0]->data = data;
+      unsigned int tracks = effect->info->no_tracks;
+      float dt, fs = 48000.0f;
+
+      dt = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+      dt /= aaxBufferGetSetup(buffer, AAX_FREQUENCY);
+
+      if (effect->info) {
+         fs = effect->info->frequency;
+      }
+
+      /* convert the buffer data to mixer frequency and format */
+      aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_PCM24S);
+      aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
+
+      free(ird->ir_ptr);
+      ird->ir_ptr = aaxBufferGetData(buffer);
+      ird->impulse_repsonse = (int32_t*)(*ird->ir_ptr);
+
+      free(ird->history_ptr);
+      _aaxRingBufferCreateHistoryBuffer(&ird->history_ptr, ird->ir_history,
+                                        fs, tracks, dt);
+      rv = effect;
    }
+   else {
+      _aaxErrorSet(AAX_INVALID_STATE);
+   }
+
    return rv;
 }
 
