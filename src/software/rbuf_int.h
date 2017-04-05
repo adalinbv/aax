@@ -27,21 +27,8 @@ extern "C" {
 #include <ringbuffer.h>
 #include <arch.h>
 
-#define RB_FLOAT_DATA		1
 #define BYTE_ALIGN		1
 #define CUBIC_SAMPS		4
-
-#if RB_FLOAT_DATA
-# define MIX_T			float
-# define MIX_PTR_T		float32_ptr
-# define CONST_MIX_PTR_T	const_float32_ptr
-# define CONST_MIX_PTRPTR_T	const_float32_ptrptr
-#else
-# define MIX_T			int32_t
-# define MIX_PTR_T		int32_ptr
-# define CONST_MIX_PTR_T	const_int32_ptr
-# define CONST_MIX_PTRPTR_T	const_int32_ptrptr
-#endif
 
 /** forwrad declaration */
 typedef struct _aaxRingBufferData_t __aaxRingBufferData;

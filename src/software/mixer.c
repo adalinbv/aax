@@ -136,6 +136,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    char parametric, graphic, crossover;
    unsigned char  lfe_track;
    MIX_T **tracks, **scratch;
+   _aaxRingBufferImpulseResponseData *ir;
    _aaxRingBufferReverbData *reverb;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
@@ -155,6 +156,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
+   ir = NULL;
    reverb = NULL;
    lfe_track = router[AAX_TRACK_LFE];
    crossover = parametric = graphic = 0;
@@ -189,6 +191,10 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
       MIX_T *sptr = scratch[SCRATCH_BUFFER0];
       MIX_T *tmp = scratch[SCRATCH_BUFFER1];
       MIX_T *dptr = tracks[t];
+
+      if (ir) {
+         _aaxRingBufferEffectImpulseResponse(rbd, dptr, 0, no_samples, t, ir);
+      }
 
       if (reverb)
       {

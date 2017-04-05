@@ -132,7 +132,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
 
       dmax -= dmin;
       _aax_memcpy(scratch, sptr, dmax*sizeof(MIX_T));
-      for(q=0; q<snum; q++)
+      for(q=0; q<snum; ++q)
       {
          float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
@@ -174,7 +174,7 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       int q;
 
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
-      for(q=0; q<snum; q++)
+      for(q=0; q<snum; ++q)
       {
          size_t samples = reverb->loopback[q].sample_offs[track];
          float volume = reverb->loopback[q].gain / (snum+1);
@@ -186,6 +186,29 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       }
       _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
+}
+
+void
+_aaxRingBufferEffectImpulseResponse(_aaxRingBufferSample *rbd, MIX_PTR_T s,
+                 size_t dmin, size_t dmax, unsigned int track, const void *data)
+{
+   const _aaxRingBufferImpulseResponseData *ird = data;
+   unsigned int q, snum, irnum;
+   MIX_T *iptr = ird->impulse_repsonse;
+   MIX_T *dptr = ird->ir_history[track];
+   MIX_T *sptr = s + dmin;
+   size_t bytes;
+
+   snum = dmax-dmin;
+   irnum = ird->no_samples;
+   for (q=0; q<snum; ++q) {
+      rbd->add(dptr++, iptr, irnum, *sptr++, 0.0f);
+   }
+
+   bytes = snum*sizeof(MIX_T);
+   dptr = ird->ir_history[track];
+   _aax_memcpy(sptr, dptr, bytes);
+   memmove(dptr, dptr+bytes, ird->history_size-bytes);
 }
 
 /**
@@ -454,11 +477,11 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
 
          reverb->gain = igain;
          reverb->no_delays = num;
-         for (i=0; i<num; i++)
+         for (i=0; i<num; ++i)
          {
             if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
             {
-               for (j=0; j<snum; j++) {
+               for (j=0; j<snum; ++j) {
                   reverb->delay[i].sample_offs[j] = (ssize_t)(delays[i] * fs);
                }
                reverb->delay[i].gain = gains[i];
@@ -492,7 +515,7 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          dlb *= fs;
          dlbp *= fs;
          reverb->no_loopbacks = num;
-         for (j=0; j<num; j++)
+         for (j=0; j<num; ++j)
          {
             reverb->loopback[0].sample_offs[j] = (dlbp + dlb*0.9876543f);
             reverb->loopback[1].sample_offs[j] = (dlbp + dlb*0.4901861f);
@@ -547,7 +570,7 @@ _aaxRingBufferDelayRemoveNum(_aaxRingBuffer *rb, size_t n)
 }
 #endif
 
-void
+size_t
 _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], float frequency, int tracks, float dde)
 {
    size_t bps, size;
@@ -571,11 +594,12 @@ _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKER
    if (ptr)
    {
       *hptr = ptr;
-      for (i=0; i<tracks; i++)
+      for (i=0; i<tracks; ++i)
       {
          history[i] = (int32_t*)p;
          p += size;
       }
    }
+   return size;
 }
 
