@@ -25,6 +25,7 @@ extern "C" {
 #include <driver.h>
 #include <objects.h>
 
+#define RB_FLOAT_DATA		1
 
 enum _aaxRingBufferParam
 {
@@ -80,6 +81,20 @@ enum _aaxRingBufferMode
    RB_RW_MAX 
 };
 
+#if RB_FLOAT_DATA
+# define MIX_T                  float
+# define MIX_PTR_T              float32_ptr
+# define CONST_MIX_PTR_T        const_float32_ptr
+# define CONST_MIX_PTRPTR_T     const_float32_ptrptr
+#else
+# define MIX_T                  int32_t
+# define MIX_PTR_T              int32_ptr
+# define CONST_MIX_PTR_T        const_int32_ptr
+# define CONST_MIX_PTRPTR_T     const_int32_ptrptr
+#endif
+
+/** forwrad declaration */
+typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 
 /**
  * LFO: Low Frequency Oscillator
@@ -188,14 +203,22 @@ typedef struct
 
 } _aaxRingBufferReverbData;
 
+typedef struct
+{
+   MIX_T* ir_history[_AAX_MAX_SPEAKERS];
+   void* history_ptr;
+   size_t history_size;
+
+   size_t no_samples;
+   MIX_T *impulse_repsonse;
+   void **ir_ptr;
+
+} _aaxRingBufferImpulseResponseData;
 
 
 /**
  * Function type definitions
  */
-
-/** forwrad declaration */
-typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 
 /**
  * Initialize a new audio ringbuffer that holds no data.

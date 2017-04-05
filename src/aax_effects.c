@@ -182,9 +182,7 @@ aaxEffectAddBuffer(aaxEffect e, aaxBuffer b)
    if (rv)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-      _aaxRingBuffer *rb = buffer->ringbuffer;
-      eff->data(effect, rb->reference(rb));
-      buffer->ref_counter++;
+      eff->data(effect, b);
    }
    return rv;
 }

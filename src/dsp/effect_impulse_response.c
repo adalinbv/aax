@@ -95,10 +95,11 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
    if (ird)
    {
-      unsigned int tracks = effect->info->no_tracks;
+      unsigned int no_samples, tracks = effect->info->no_tracks;
       float dt, fs = 48000.0f;
+      size_t size;
 
-      dt = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+      dt = no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
       dt /= aaxBufferGetSetup(buffer, AAX_FREQUENCY);
 
       if (effect->info) {
@@ -111,11 +112,13 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
       free(ird->ir_ptr);
       ird->ir_ptr = aaxBufferGetData(buffer);
-      ird->impulse_repsonse = (int32_t*)(*ird->ir_ptr);
+      ird->impulse_repsonse = (MIX_T*)(*ird->ir_ptr);
+      ird->no_samples = no_samples;
 
       free(ird->history_ptr);
-      _aaxRingBufferCreateHistoryBuffer(&ird->history_ptr, ird->ir_history,
-                                        fs, tracks, dt);
+      size = _aaxRingBufferCreateHistoryBuffer(&ird->history_ptr,
+                                    (int32_t**)ird->ir_history, fs, tracks, dt);
+      ird->history_size = size;
       rv = effect;
    }
    else {
