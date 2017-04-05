@@ -106,8 +106,10 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
          fs = effect->info->frequency;
       }
 
-      /* convert the buffer data to mixer frequency and format */
-      aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_PCM24S);
+      /* convert the buffer data to floats in the range 0.0 .. 1.0
+       * and with the mixer frequency
+       */
+      aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
 
       free(ird->ir_ptr);
