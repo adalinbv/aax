@@ -575,7 +575,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
    _handle_t *handle = (_handle_t*)config;
    aaxBuffer rv = NULL;
 
-   if (stream)
+   if (handle && stream)
    {
       static const char *xcfg = "<?xml?><_ctb8>1</_ctb8>";
       void *id = stream->new_handle(AAX_MODE_READ);

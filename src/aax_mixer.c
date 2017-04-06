@@ -631,6 +631,28 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             rv = AAX_FALSE;
          }
          break;
+      case AAX_IMPULSE_RESPONSE_EFFECT:
+         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+         if (dptr)
+         {
+            _sensor_t* sensor = _intBufGetDataPtr(dptr);
+            _aaxAudioFrame *mixer = sensor->mixer;
+            _aax3dProps *p3d = mixer->props3d;
+            int type = effect->pos;
+            _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+            _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+            _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+            _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+            _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
+            _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
+            _intBufReleaseData(dptr, _AAX_SENSOR);
+         }
+         else
+         {
+            _aaxErrorSet(AAX_INVALID_STATE);
+            rv = AAX_FALSE;
+         }
+         break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
          rv = AAX_FALSE;
@@ -656,6 +678,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
       case AAX_FLANGING_EFFECT:
       case AAX_PITCH_EFFECT:
       case AAX_REVERB_EFFECT:
+      case AAX_IMPULSE_RESPONSE_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {

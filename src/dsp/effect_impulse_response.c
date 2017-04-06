@@ -70,7 +70,7 @@ _aaxImpulseResponseEffectDestroy(_effect_t* effect)
    if (data)
    {
       free(data->history_ptr);
-      free(data->ir_ptr);
+      aaxFree(data->ir_ptr);
    }
    free(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
@@ -96,7 +96,7 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
    if (ird)
    {
       unsigned int no_samples, tracks = effect->info->no_tracks;
-      float dt, fs = 48000.0f;
+      float dt, rr, fs = 48000.0f;
       size_t size;
 
       dt = no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
@@ -104,6 +104,8 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
       if (effect->info) {
          fs = effect->info->frequency;
+         rr = effect->info->refresh_rate;
+         dt += 1.0f/rr;
       }
 
       /* convert the buffer data to floats in the range 0.0 .. 1.0
@@ -112,7 +114,7 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
       aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
 
-      free(ird->ir_ptr);
+      aaxFree(ird->ir_ptr);
       ird->ir_ptr = aaxBufferGetData(buffer);
       ird->impulse_repsonse = (MIX_T*)(*ird->ir_ptr);
       ird->no_samples = no_samples;
