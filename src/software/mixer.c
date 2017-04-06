@@ -162,6 +162,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    crossover = parametric = graphic = 0;
    if (sensor)
    {
+      if (_EFFECT_GET_STATE(sensor->mixer->props3d, IMPULSE_RESPONSE_EFFECT)) {
+         ir = _EFFECT_GET_DATA(sensor->mixer->props3d, IMPULSE_RESPONSE_EFFECT);
+      }
       reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);
       parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
       parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
