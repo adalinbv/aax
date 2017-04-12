@@ -56,7 +56,7 @@ _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, 
       size_t i = num;
 
       /* v == 1.0f && step = 0.0f */
-      if (fabsf(v - 1.0f) <GMATH_128DB && vstep == 0.0f)
+      if (fabsf(v - 1.0f) < GMATH_128DB && vstep < GMATH_128DB)
       {
          do {
             *d++ += *s++;

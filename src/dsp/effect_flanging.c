@@ -107,6 +107,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          unsigned int tracks = effect->info->no_tracks;
          float sign, range, step;
          float fs = 48000.0f;
+         size_t samples;
 
          if (effect->info) {
             fs = effect->info->frequency;
@@ -121,10 +122,10 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          depth *= range * fs;		// convert to samples
          data->lfo.min = (range * offset + 10e-3f)*fs;
          data->loopback = AAX_TRUE;
+         samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
          _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
                                            data->delay_history,
-                                           fs, tracks,
-                                           DELAY_EFFECTS_TIME);
+                                           samples, tracks);
          // AAX_FLANGING_EFFECT
 
          data->lfo.convert = _linear;

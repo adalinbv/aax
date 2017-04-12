@@ -208,6 +208,7 @@ typedef struct
    MIX_T* ir_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
    size_t history_size;
+   unsigned int history_samples;
 
    size_t no_samples;
    MIX_T *impulse_repsonse;

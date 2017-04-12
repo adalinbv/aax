@@ -584,11 +584,11 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
                if (data && !data->history_ptr)
                {
                   unsigned int tracks = effect->info->no_tracks;
-                  float frequency = effect->info->frequency;
+                  float fs = effect->info->frequency;
+                  size_t samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
                   _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
                                                     data->delay_history,
-                                                    frequency, tracks,
-                                                    DELAY_EFFECTS_TIME);
+                                                    samples, tracks);
                }
             }
             rv = AAX_TRUE;
