@@ -223,7 +223,8 @@ typedef ALIGN16 struct
    vec4f_t *delay;
 
    unsigned char router[_AAX_MAX_SPEAKERS];
-   unsigned no_tracks;
+   unsigned int no_samples;
+   unsigned int no_tracks;
    int bitrate;
    int track;
 

@@ -1400,6 +1400,7 @@ _aaxMixerInit(_handle_t *handle)
             // and the new refresh-rate.
             periods = rintf(refrate/info->refresh_rate);
             info->refresh_rate = refrate/periods;
+            info->no_samples = TIME_TO_SAMPLES(freq, info->refresh_rate);
 
             /* copy the hardware volume from the backend */
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

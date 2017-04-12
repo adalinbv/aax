@@ -28,6 +28,7 @@ extern "C" {
 # define ASM    __asm __volatile
 #endif
 
+#define TIME_TO_SAMPLES(a, b)	(size_t)ceilf((a)*(b))
 #define SIZE_ALIGNED(a)	((a) & MEMMASK) ? ((a)|MEMMASK)+1 : (a)
 #if RB_FLOAT_DATA
 # define SIMD_PREFIX	"FP "

@@ -126,18 +126,17 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 void
 _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void *f, void *i)
 {
+   _aaxRingBufferReverbData *reverb;
+   _aaxRingBufferImpulseResponseData *impulse_response;
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
-   _sensor_t *sensor = (_sensor_t*)s;
-   const _frame_t *subframe = (_frame_t*)f;
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
+   const _frame_t *subframe = (_frame_t*)f;
+   _sensor_t *sensor = (_sensor_t*)s;
    unsigned char *router = info->router;
-   unsigned int t, no_tracks;
+   unsigned char lfe_track, t, no_tracks;
    size_t ds, no_samples, track_len_bytes;
    char parametric, graphic, crossover;
-   unsigned char  lfe_track;
    MIX_T **tracks, **scratch;
-   _aaxRingBufferImpulseResponseData *ir;
-   _aaxRingBufferReverbData *reverb;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
 
@@ -156,14 +155,15 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
-   ir = NULL;
    reverb = NULL;
+   impulse_response = NULL;
    lfe_track = router[AAX_TRACK_LFE];
    crossover = parametric = graphic = 0;
    if (sensor)
    {
       if (_EFFECT_GET_STATE(sensor->mixer->props3d, IMPULSE_RESPONSE_EFFECT)) {
-         ir = _EFFECT_GET_DATA(sensor->mixer->props3d, IMPULSE_RESPONSE_EFFECT);
+         impulse_response = _EFFECT_GET_DATA(sensor->mixer->props3d,
+                                             IMPULSE_RESPONSE_EFFECT);
       }
       reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);
       parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
@@ -195,8 +195,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
       MIX_T *tmp = scratch[SCRATCH_BUFFER1];
       MIX_T *dptr = tracks[t];
 
-      if (ir) {
-         _aaxRingBufferEffectImpulseResponse(rbd, dptr, 0, no_samples, t, ir);
+      if (impulse_response) {
+         _aaxRingBufferEffectImpulseResponse(rbd, dptr, 0, no_samples, t, impulse_response);
       }
 
       if (reverb)

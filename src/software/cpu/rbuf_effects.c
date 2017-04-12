@@ -193,22 +193,26 @@ _aaxRingBufferEffectImpulseResponse(_aaxRingBufferSample *rbd, MIX_PTR_T s,
                  size_t dmin, size_t dmax, unsigned int track, const void *data)
 {
    const _aaxRingBufferImpulseResponseData *ird = data;
-   unsigned int q, snum, irnum;
    MIX_T *iptr = ird->impulse_repsonse;
-   MIX_T *dptr = ird->ir_history[track];
+   MIX_T *hptr = ird->ir_history[track];
+   unsigned int q, dnum, irnum;
    MIX_T *sptr = s + dmin;
+   MIX_T *dptr = sptr;
    size_t bytes;
 
-   snum = dmax-dmin;
+   dnum = dmax-dmin;
    irnum = ird->no_samples;
-   for (q=0; q<snum; ++q) {
-      rbd->add(dptr++, iptr, irnum, *sptr++, 0.0f);
+   for (q=0; q<dnum; ++q)
+   {
+      float volume = *sptr++;
+      rbd->add(hptr++, iptr, irnum, volume, 0.0f);
    }
 
-   bytes = snum*sizeof(MIX_T);
-   dptr = ird->ir_history[track];
-   _aax_memcpy(sptr, dptr, bytes);
-   memmove(dptr, dptr+bytes, ird->history_size-bytes);
+   hptr = ird->ir_history[track];
+   _aax_memcpy(dptr, hptr, dnum*sizeof(MIX_T));
+
+   bytes = (ird->history_samples-dnum)*sizeof(MIX_T);
+   memmove(hptr, hptr+dnum, bytes);
 }
 
 /**
@@ -465,10 +469,12 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
    {
       size_t j, snum = _AAX_MAX_SPEAKERS;
 
-      if (reverb->history_ptr == 0) {
+      if (reverb->history_ptr == 0)
+      {
+         size_t samples = TIME_TO_SAMPLES(fs, REVERB_EFFECTS_TIME);
          _aaxRingBufferCreateHistoryBuffer(&reverb->history_ptr,
                                            reverb->reverb_history,
-                                           fs, tracks, REVERB_EFFECTS_TIME);
+                                           samples, tracks);
       }
 
       if (num < _AAX_MAX_DELAYS)
@@ -570,16 +576,14 @@ _aaxRingBufferDelayRemoveNum(_aaxRingBuffer *rb, size_t n)
 }
 #endif
 
+// size is the number of sampler for every track
 size_t
-_aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], float frequency, int tracks, float dde)
+_aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], size_t size, int tracks)
 {
-   size_t bps, size;
    char *ptr, *p;
    int i;
 
-   bps = sizeof(MIX_T);
-   size = (size_t)ceilf(dde * frequency);
-   size *= bps;
+   size *= sizeof(MIX_T);
 #if BYTE_ALIGN
    if (size & MEMMASK)
    {
