@@ -89,6 +89,7 @@ void _batch_endianswap64_cpu(void*, size_t);
 void _batch_cvt24_8_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_16_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_24_3_cpu(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_ph_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_pd_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_32_cpu(void_ptr, const_void_ptr, size_t);
@@ -97,6 +98,7 @@ void _batch_cvt24_16_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int
 void _batch_cvt24_24_3intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_24_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_32_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_ph_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_ps_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_pd_intl_cpu(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 
@@ -104,6 +106,7 @@ void _batch_cvt8_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_3_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt32_24_cpu(void_ptr, const_void_ptr, size_t);
+void _batch_cvtph_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtpd_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvt8_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);

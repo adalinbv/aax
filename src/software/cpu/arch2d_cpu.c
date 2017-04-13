@@ -218,6 +218,22 @@ _batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 }
 
 void
+_batch_cvt24_ph_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   if (num)
+   {
+      static const float mul = (float)(1<<23);
+      int32_t* d = (int32_t*)dptr;
+      int16_t* s = (float*)sptr;
+      size_t i = num;
+
+      do {
+         *d++ = (int32_t)(HALF2FLOAT(*s++) * mul);
+      } while (--i);
+   }
+}
+
+void
 _batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
@@ -229,6 +245,22 @@ _batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 
       do {
          *d++ = (int32_t)(*s++ * mul);
+      } while (--i);
+   }
+}
+
+void
+_batch_cvtph_24_cpu(void_ptr dst, const_void_ptr sptr, size_t num)
+{
+   if (num)
+   {
+      static const float mul = 1.0f/(float)(1<<23);
+      int32_t* s = (int32_t*)sptr;
+      int16_t* d = (int16_t*)dst;
+      size_t i = num;
+
+      do {
+         *d++ = FLOAT2HALF((float)*s++ * mul);
       } while (--i);
    }
 }
@@ -406,6 +438,39 @@ _batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
       }
    }
 }
+
+void
+_batch_cvt24_ph_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+{
+   if (num)
+   {
+      if ((tracks == 1) &&
+          ((size_t)(dptr[0]+offset) & MEMMASK) == 0 &&
+          ((size_t)sptr & MEMMASK) == 0)
+      {
+         _batch_cvt24_ph(dptr[0]+offset, sptr, num);
+      }
+      else if (tracks)
+      {
+         static const float mul = (float)(1<<23);
+         size_t t;
+
+         for (t=0; t<tracks; t++)
+         {
+            int16_t *s = (int16_t*)sptr + t;
+            int32_t *d = dptr[t] + offset;
+            size_t i = num;
+
+            do {
+               *d++ = (int32_t)(HALf2FLOAT(*s) * mul);
+               s += tracks;
+            }
+            while (--i);
+         }
+      }
+   }
+}
+
 
 void
 _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
