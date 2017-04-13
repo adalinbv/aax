@@ -631,7 +631,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             rv = AAX_FALSE;
          }
          break;
-      case AAX_IMPULSE_RESPONSE_EFFECT:
+      case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
@@ -678,7 +678,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
       case AAX_FLANGING_EFFECT:
       case AAX_PITCH_EFFECT:
       case AAX_REVERB_EFFECT:
-      case AAX_IMPULSE_RESPONSE_EFFECT:
+      case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {

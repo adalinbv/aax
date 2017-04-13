@@ -34,7 +34,7 @@ _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
    &_aaxFlangingEffect,
    &_aaxVelocityEffect,
    &_aaxReverbEffect,
-   &_aaxImpulseResponseEffect
+   &_aaxConvolutionEffect
 };
 
 _effect_t*
@@ -128,6 +128,6 @@ const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
   { AAX_FLANGING_EFFECT,        DELAY_EFFECT },
   { AAX_VELOCITY_EFFECT,        VELOCITY_EFFECT },
   { AAX_REVERB_EFFECT,          REVERB_EFFECT },
-  { AAX_IMPULSE_RESPONSE_EFFECT,IMPULSE_RESPONSE_EFFECT }
+  { AAX_CONVOLUTION_EFFECT,     CONVOLUTION_EFFECT }
 };
 

@@ -188,33 +188,6 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    }
 }
 
-void
-_aaxRingBufferEffectImpulseResponse(_aaxRingBufferSample *rbd, MIX_PTR_T s,
-                 size_t dmin, size_t dmax, unsigned int track, const void *data)
-{
-   const _aaxRingBufferImpulseResponseData *ird = data;
-   MIX_T *iptr = ird->impulse_repsonse;
-   MIX_T *hptr = ird->ir_history[track];
-   unsigned int q, dnum, irnum;
-   MIX_T *sptr = s + dmin;
-   MIX_T *dptr = sptr;
-   size_t bytes;
-
-   dnum = dmax-dmin;
-   irnum = ird->no_samples;
-   for (q=0; q<dnum; ++q)
-   {
-      float volume = *sptr++;
-      rbd->add(hptr++, iptr, irnum, volume, 0.0f);
-   }
-
-   hptr = ird->ir_history[track];
-   _aax_memcpy(dptr, hptr, dnum*sizeof(MIX_T));
-
-   bytes = (ird->history_samples-dnum)*sizeof(MIX_T);
-   memmove(hptr, hptr+dnum, bytes);
-}
-
 /**
  * - d and s point to a buffer containing the delay effects buffer prior to
  *   the pointer.
@@ -336,6 +309,34 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
    }
    while (0);
 }
+
+void
+_aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
+                 size_t dmin, size_t dmax, unsigned int track, const void *data)
+{
+   const _aaxRingBufferConvolutionData *ird = data;
+   MIX_T *cptr = ird->convolution;
+   MIX_T *hptr = ird->ir_history[track];
+   unsigned int q, dnum, irnum;
+   MIX_T *sptr = s + dmin;
+   MIX_T *dptr = sptr;
+   size_t bytes;
+
+   dnum = dmax-dmin;
+   irnum = ird->no_samples;
+   for (q=0; q<dnum; ++q)
+   {
+      float volume = *sptr++;
+      rbd->add(hptr++, cptr, irnum, volume, 0.0f);
+   }
+
+   hptr = ird->ir_history[track];
+   _aax_memcpy(dptr, hptr, dnum*sizeof(MIX_T));
+
+   bytes = (ird->history_samples-dnum)*sizeof(MIX_T);
+   memmove(hptr, hptr+dnum, bytes);
+}
+
 
 void
 _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,

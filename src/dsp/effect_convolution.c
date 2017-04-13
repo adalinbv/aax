@@ -4,7 +4,7 @@
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
- * the contents of this file may not be disclosed to third parties, copied or
+ * the contents of this file may not be disclosed to thcd parties, copied or
  * duplicated in any form, in whole or in part, without the prior written
  * permission of Adalin B.V.
  */
@@ -32,7 +32,7 @@
 
 
 static aaxEffect
-_aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
+_aaxConvolutionEffectCreate(_handle_t *handle, enum aaxEffectType type)
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* eff = calloc(1, size);
@@ -40,7 +40,7 @@ _aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
 
    if (eff)
    {
-      _aaxRingBufferImpulseResponseData* data;
+      _aaxRingBufferConvolutionData* data;
       char *ptr;
 
       eff->id = EFFECT_ID;
@@ -55,7 +55,7 @@ _aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
       size = sizeof(_aaxEffectInfo);
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
 
-      data = calloc(1, sizeof(_aaxRingBufferImpulseResponseData));
+      data = calloc(1, sizeof(_aaxRingBufferConvolutionData));
       eff->slot[0]->data = data;
 
       rv = (aaxEffect)eff;
@@ -64,13 +64,13 @@ _aaxImpulseResponseEffectCreate(_handle_t *handle, enum aaxEffectType type)
 }
 
 static int
-_aaxImpulseResponseEffectDestroy(_effect_t* effect)
+_aaxConvolutionEffectDestroy(_effect_t* effect)
 {
-   _aaxRingBufferImpulseResponseData* data = effect->slot[0]->data;
+   _aaxRingBufferConvolutionData* data = effect->slot[0]->data;
    if (data)
    {
       free(data->history_ptr);
-      aaxFree(data->ir_ptr);
+      aaxFree(data->convolution_ptr);
    }
    free(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
@@ -80,20 +80,20 @@ _aaxImpulseResponseEffectDestroy(_effect_t* effect)
 }
 
 static aaxEffect
-_aaxImpulseResponseEffectSetState(_effect_t* effect, int state)
+_aaxConvolutionEffectSetState(_effect_t* effect, int state)
 {
    effect->slot[0]->state = state ? AAX_TRUE : AAX_FALSE;
    return effect;
 }
 
 static aaxEffect
-_aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
+_aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 {
-   _aaxRingBufferImpulseResponseData *ird = effect->slot[0]->data;
+   _aaxRingBufferConvolutionData *cd = effect->slot[0]->data;
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
-   if (ird && effect->info)
+   if (cd && effect->info)
    {
       unsigned int tracks = effect->info->no_tracks;
       unsigned int no_samples = effect->info->no_samples;
@@ -108,18 +108,18 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
       data = aaxBufferGetData(buffer);
 
-      aaxFree(ird->ir_ptr);
-      ird->ir_ptr = data;
-      ird->impulse_repsonse = *data;
+      aaxFree(cd->convolution_ptr);
+      cd->convolution_ptr = data;
+      cd->convolution = *data;
 
-      ird->no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
-      no_samples += ird->no_samples;
+      cd->no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+      no_samples += cd->no_samples;
 
-      free(ird->history_ptr);
-      size = _aaxRingBufferCreateHistoryBuffer(&ird->history_ptr,
-                                (int32_t**)ird->ir_history, no_samples, tracks);
-      ird->history_samples = no_samples;
-      ird->history_size = size;
+      free(cd->history_ptr);
+      size = _aaxRingBufferCreateHistoryBuffer(&cd->history_ptr,
+                                (int32_t**)cd->ir_history, no_samples, tracks);
+      cd->history_samples = no_samples;
+      cd->history_size = size;
       rv = effect;
    }
    else {
@@ -130,7 +130,7 @@ _aaxImpulseResponseEffectSetData(_effect_t* effect, aaxBuffer buffer)
 }
 
 _effect_t*
-_aaxNewImpulseResponseEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* rv = calloc(1, size);
@@ -157,23 +157,23 @@ _aaxNewImpulseResponseEffectHandle(const aaxConfig config, enum aaxEffectType ty
 }
 
 static float
-_aaxImpulseResponseEffectSet(float val, int ptype, unsigned char param)
+_aaxConvolutionEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
 }
    
 static float
-_aaxImpulseResponseEffectGet(float val, int ptype, unsigned char param)
+_aaxConvolutionEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
    return rv;
 }
 
 static float
-_aaxImpulseResponseEffectMinMax(float val, int slot, unsigned char param)
+_aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 {
-   static const _eff_minmax_tbl_t _aaxImpulseResponseRange[_MAX_FE_SLOTS] =
+   static const _eff_minmax_tbl_t _aaxConvolutionRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
@@ -183,23 +183,23 @@ _aaxImpulseResponseEffectMinMax(float val, int slot, unsigned char param)
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
    
-   return _MINMAX(val, _aaxImpulseResponseRange[slot].min[param],
-                       _aaxImpulseResponseRange[slot].max[param]);
+   return _MINMAX(val, _aaxConvolutionRange[slot].min[param],
+                       _aaxConvolutionRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
 
-_eff_function_tbl _aaxImpulseResponseEffect =
+_eff_function_tbl _aaxConvolutionEffect =
 {
    AAX_TRUE,
-   "AAX_impulse_reponse_effect", 1.0f,
-   (_aaxEffectCreate*)&_aaxImpulseResponseEffectCreate,
-   (_aaxEffectDestroy*)&_aaxImpulseResponseEffectDestroy,
-   (_aaxEffectSetState*)&_aaxImpulseResponseEffectSetState,
-   (_aaxEffectSetData*)&_aaxImpulseResponseEffectSetData,
-   (_aaxNewEffectHandle*)&_aaxNewImpulseResponseEffectHandle,
-   (_aaxEffectConvert*)&_aaxImpulseResponseEffectSet,
-   (_aaxEffectConvert*)&_aaxImpulseResponseEffectGet,
-   (_aaxEffectConvert*)&_aaxImpulseResponseEffectMinMax
+   "AAX_convolution_effect", 1.0f,
+   (_aaxEffectCreate*)&_aaxConvolutionEffectCreate,
+   (_aaxEffectDestroy*)&_aaxConvolutionEffectDestroy,
+   (_aaxEffectSetState*)&_aaxConvolutionEffectSetState,
+   (_aaxEffectSetData*)&_aaxConvolutionEffectSetData,
+   (_aaxNewEffectHandle*)&_aaxNewConvolutionEffectHandle,
+   (_aaxEffectConvert*)&_aaxConvolutionEffectSet,
+   (_aaxEffectConvert*)&_aaxConvolutionEffectGet,
+   (_aaxEffectConvert*)&_aaxConvolutionEffectMinMax
 };
 
