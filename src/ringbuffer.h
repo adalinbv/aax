@@ -205,14 +205,13 @@ typedef struct
 
 typedef struct
 {
-   MIX_T* ir_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
-   size_t history_size;
+   MIX_T* history[_AAX_MAX_SPEAKERS];
    unsigned int history_samples;
 
    size_t no_samples;
-   MIX_T *convolution;
-   void **convolution_ptr;
+   void **sample_ptr;
+   MIX_T *sample;
 
 } _aaxRingBufferConvolutionData;
 
