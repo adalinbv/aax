@@ -349,6 +349,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
                   switch (native_fmt)
                   {
                   case AAX_PCM16S:
+                  case AAX_HALF:
                      _batch_endianswap16(data, buf_samples);
                      break;
                   case AAX_PCM24S:
@@ -531,6 +532,7 @@ aaxBufferGetData(const aaxBuffer buffer)
             switch (native_fmt)
             {
             case AAX_PCM16S:
+            case AAX_HALF:
                _batch_endianswap16(*data, buf_samples);
                break;
             case AAX_PCM24S:
@@ -1058,6 +1060,7 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
             switch (native_fmt)
             {
             case AAX_PCM16S:
+            case AAX_HALF:
                _batch_endianswap16(data, samples);
                break;
             case AAX_PCM24S:
@@ -1108,6 +1111,9 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
       case AAX_PCM32S:
          _batch_cvt24_32(ndata, data, samples);
          break;
+      case AAX_HALF:
+        _batch_cvt24_ph(ndata, data, samples);
+        break;
       case AAX_FLOAT:
         _batch_cvt24_ps(ndata, data, samples);
          break;
@@ -1241,6 +1247,7 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
             switch (native_fmt)
             {
             case AAX_PCM16S:
+            case AAX_HALF:
                _batch_endianswap16(data, samples);
                break;
             case AAX_PCM24S:
@@ -1288,6 +1295,9 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
          break;
       case AAX_PCM32S:
          _batch_cvt32_24(ndata, data, samples);
+         break;
+      case AAX_HALF:
+         _batch_cvtph_24(ndata, data, samples);
          break;
       case AAX_FLOAT:
          _batch_cvtps_24(ndata, data, samples);
@@ -1398,6 +1408,11 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    case AAX_PCM32S:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
+      rb->release_tracks_ptr(rb);
+      break; 
+   case AAX_HALF:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      _batch_cvt24_ph_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
       break;
    case AAX_FLOAT:
