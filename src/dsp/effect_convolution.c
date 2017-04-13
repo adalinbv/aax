@@ -70,7 +70,7 @@ _aaxConvolutionEffectDestroy(_effect_t* effect)
    if (data)
    {
       free(data->history_ptr);
-      aaxFree(data->convolution_ptr);
+      free(data->sample_ptr);
    }
    free(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
@@ -89,37 +89,37 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 static aaxEffect
 _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 {
-   _aaxRingBufferConvolutionData *cd = effect->slot[0]->data;
+   _aaxRingBufferConvolutionData *convolution = effect->slot[0]->data;
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
-   if (cd && effect->info)
+   if (convolution && effect->info)
    {
       unsigned int tracks = effect->info->no_tracks;
       unsigned int no_samples = effect->info->no_samples;
       float fs = effect->info->frequency;
-      size_t size;
       void **data;
 
-      /* convert the buffer data to floats in the range 0.0 .. 1.0
-       * and with the mixer frequency
+      /*
+       * convert the buffer data to floats in the range 0.0 .. 1.0
+       * using the mixer frequency
        */
       aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
       data = aaxBufferGetData(buffer);
 
-      aaxFree(cd->convolution_ptr);
-      cd->convolution_ptr = data;
-      cd->convolution = *data;
+      convolution->no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+      no_samples += convolution->no_samples;
 
-      cd->no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
-      no_samples += cd->no_samples;
+      free(convolution->sample_ptr);
+      convolution->sample_ptr = data;
+      convolution->sample = *data;
 
-      free(cd->history_ptr);
-      size = _aaxRingBufferCreateHistoryBuffer(&cd->history_ptr,
-                                (int32_t**)cd->ir_history, no_samples, tracks);
-      cd->history_samples = no_samples;
-      cd->history_size = size;
+      free(convolution->history_ptr);
+      _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
+                                        (int32_t**)convolution->history,
+                                        no_samples, tracks);
+      convolution->history_samples = no_samples;
       rv = effect;
    }
    else {

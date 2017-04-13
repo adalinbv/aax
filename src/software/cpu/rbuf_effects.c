@@ -4,7 +4,7 @@
  * All Rights Reserved.
  *
  * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
- * the contents of this file may not be disclosed to third parties, copied or
+ * the contents of this file may not be disclosed to thcd parties, copied or
  * duplicated in any form, in whole or in part, without the prior written
  * permission of Adalin B.V.
  */
@@ -314,26 +314,28 @@ void
 _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
                  size_t dmin, size_t dmax, unsigned int track, const void *data)
 {
-   const _aaxRingBufferConvolutionData *ird = data;
-   MIX_T *cptr = ird->convolution;
-   MIX_T *hptr = ird->ir_history[track];
-   unsigned int q, dnum, irnum;
+   const _aaxRingBufferConvolutionData *convolution = data;
+   MIX_T *hptr = convolution->history[track];
+   MIX_T *cptr = convolution->sample;
+   unsigned int q, dnum, cnum;
    MIX_T *sptr = s + dmin;
    MIX_T *dptr = sptr;
    size_t bytes;
+   float f;
 
    dnum = dmax-dmin;
-   irnum = ird->no_samples;
+   cnum = _MIN(convolution->no_samples, dnum*4);
+   f = 50.0f/dnum;
    for (q=0; q<dnum; ++q)
    {
       float volume = *sptr++;
-      rbd->add(hptr++, cptr, irnum, volume, 0.0f);
+      rbd->add(hptr++, cptr, cnum, f*volume, 0.0f);
    }
 
-   hptr = ird->ir_history[track];
+   hptr = convolution->history[track];
    _aax_memcpy(dptr, hptr, dnum*sizeof(MIX_T));
 
-   bytes = (ird->history_samples-dnum)*sizeof(MIX_T);
+   bytes = (convolution->history_samples-dnum)*sizeof(MIX_T);
    memmove(hptr, hptr+dnum, bytes);
 }
 
