@@ -99,7 +99,7 @@ extern _eff_function_tbl _aaxChorusEffect;
 extern _eff_function_tbl _aaxFlangingEffect;
 extern _eff_function_tbl _aaxVelocityEffect;
 extern _eff_function_tbl _aaxReverbEffect;
-extern _eff_function_tbl _aaxImpulseResponseEffect;
+extern _eff_function_tbl _aaxConvolutionEffect;
 extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 
 /* effects */

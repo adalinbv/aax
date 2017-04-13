@@ -127,7 +127,7 @@ void
 _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void *f, void *i)
 {
    _aaxRingBufferReverbData *reverb;
-   _aaxRingBufferImpulseResponseData *impulse_response;
+   _aaxRingBufferConvolutionData *convolution;
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
    _aaxMixerInfo *info = (_aaxMixerInfo*)i;
    const _frame_t *subframe = (_frame_t*)f;
@@ -156,14 +156,14 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
    reverb = NULL;
-   impulse_response = NULL;
+   convolution = NULL;
    lfe_track = router[AAX_TRACK_LFE];
    crossover = parametric = graphic = 0;
    if (sensor)
    {
-      if (_EFFECT_GET_STATE(sensor->mixer->props3d, IMPULSE_RESPONSE_EFFECT)) {
-         impulse_response = _EFFECT_GET_DATA(sensor->mixer->props3d,
-                                             IMPULSE_RESPONSE_EFFECT);
+      if (_EFFECT_GET_STATE(sensor->mixer->props3d, CONVOLUTION_EFFECT)) {
+         convolution = _EFFECT_GET_DATA(sensor->mixer->props3d,
+                                             CONVOLUTION_EFFECT);
       }
       reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);
       parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
@@ -195,8 +195,8 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
       MIX_T *tmp = scratch[SCRATCH_BUFFER1];
       MIX_T *dptr = tracks[t];
 
-      if (impulse_response) {
-         _aaxRingBufferEffectImpulseResponse(rbd, dptr, 0, no_samples, t, impulse_response);
+      if (convolution) {
+         _aaxRingBufferEffectConvolution(rbd, dptr, 0, no_samples, t, convolution);
       }
 
       if (reverb)

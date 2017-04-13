@@ -211,10 +211,10 @@ typedef struct
    unsigned int history_samples;
 
    size_t no_samples;
-   MIX_T *impulse_repsonse;
-   void **ir_ptr;
+   MIX_T *convolution;
+   void **convolution_ptr;
 
-} _aaxRingBufferImpulseResponseData;
+} _aaxRingBufferConvolutionData;
 
 
 /**

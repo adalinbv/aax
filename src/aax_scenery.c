@@ -212,7 +212,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
                rv = AAX_TRUE;
                break;
-            case AAX_IMPULSE_RESPONSE_EFFECT:
+            case AAX_CONVOLUTION_EFFECT:
                _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
                _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
                rv = AAX_TRUE;
@@ -241,7 +241,7 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
       switch(type)
       {
       case AAX_VELOCITY_EFFECT:
-      case AAX_IMPULSE_RESPONSE_EFFECT:
+      case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
