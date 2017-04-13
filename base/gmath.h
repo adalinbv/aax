@@ -23,6 +23,8 @@ extern "C" {
 # endif
 #endif
 
+#define FLOAT2HALF(f)	(((f)>>16)&0x8000)|(((((f)&0x7f800000)-0x38000000)>>13)&0x7c00)|(((f)>>13)&0x03ff)
+
 int is_nan(float);
 int is_nan64(double);
 int is_inf(float);
