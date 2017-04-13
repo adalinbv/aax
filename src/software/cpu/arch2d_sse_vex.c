@@ -823,7 +823,7 @@ _batch_fmadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num, float v
    step = 12*sizeof(__m128)/sizeof(float);
 
    i = num/step;
-   if (step >= num)
+   if (i)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
