@@ -23,6 +23,7 @@ extern "C" {
 # endif
 #endif
 
+#define HALF2FLOAT(h)	(((h)&0x8000)<<16) | ((((h)&0x7c00)+0x1C000)<<13) | (((h)&0x03FF)<<13)
 #define FLOAT2HALF(f)	(((f)>>16)&0x8000)|(((((f)&0x7f800000)-0x38000000)>>13)&0x7c00)|(((f)>>13)&0x03ff)
 
 int is_nan(float);
