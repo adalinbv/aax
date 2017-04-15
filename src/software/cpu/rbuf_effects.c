@@ -326,21 +326,15 @@ _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    dnum = dmax-dmin;
    f = 50.0f/dnum;
 
-#if 1
    cnum = convolution->no_samples;
    for (q=0; q<cnum; ++q)
    {
-      float volume = *cptr++;
-      rbd->add(hptr++, sptr, dnum, f*volume, 0.0f);
+      float volume = *cptr++ * f;
+      if (fabsf(volume) > GMATH_64DB) {
+         rbd->add(hptr, sptr, dnum, volume, 0.0f);
+      }
+      hptr++;
    }
-#else
-   cnum = _MIN(convolution->no_samples, 10*dnum);
-   for (q=0; q<dnum; ++q)
-   {
-      float volume = *sptr++;
-      rbd->add(hptr++, cptr, cnum, f*volume, 0.0f);
-   }
-#endif
 
    hptr = convolution->history[track];
    _aax_memcpy(dptr, hptr, dnum*sizeof(MIX_T));
