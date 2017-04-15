@@ -547,7 +547,7 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
-      __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+      __m128 xmm0, xmm1, xmm2, xmm3; // xmm4, xmm5, xmm6, xmm7;
 
       i = num/step;
       num -= i*step;
@@ -561,18 +561,18 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 
          xmm0 = _mm_load_ps((const float*)sptr++);
          xmm1 = _mm_load_ps((const float*)sptr++);
-         xmm4 = _mm_load_ps((const float*)sptr++);
-         xmm5 = _mm_load_ps((const float*)sptr++);
+         xmm2 = _mm_load_ps((const float*)sptr++);
+         xmm3 = _mm_load_ps((const float*)sptr++);
 
-         xmm2 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
-         xmm3 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
-         xmm6 = _mm_add_ps(_mm_load_ps((const float*)(dptr+2)), xmm4);
-         xmm7 = _mm_add_ps(_mm_load_ps((const float*)(dptr+3)), xmm5);
+         xmm0 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
+         xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+         xmm2 = _mm_add_ps(_mm_load_ps((const float*)(dptr+2)), xmm2);
+         xmm3 = _mm_add_ps(_mm_load_ps((const float*)(dptr+3)), xmm3);
 
+         _mm_store_ps((float*)dptr++, xmm0);
+         _mm_store_ps((float*)dptr++, xmm1);
          _mm_store_ps((float*)dptr++, xmm2);
          _mm_store_ps((float*)dptr++, xmm3);
-         _mm_store_ps((float*)dptr++, xmm6);
-         _mm_store_ps((float*)dptr++, xmm7);
       }
       while(--i);
    }
@@ -718,8 +718,8 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
+   if (!num || (v <= GMATH_64DB && vstep <= GMATH_64DB)) return;
+   if (fabsf(v - 1.0f) < GMATH_64DB && vstep <=  GMATH_64DB) {
       _batch_fadd_sse2(dst, src, num);
       return;
    }
@@ -752,7 +752,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       }
    }
 
-   step = 6*sizeof(__m128)/sizeof(float);
+   step = 4*sizeof(__m128)/sizeof(float);
 
    i = num/step;
    if (i)
@@ -770,54 +770,17 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          _mm_prefetch(((char *)dptr)+CACHE_ADVANCE_FMADD, _MM_HINT_NTA);
 
          __m128 tv = _mm_set1_ps(v);
-#if 0
-         ASM("addq $96, %[src];\n"
-             "addq $96, %[dst];\n"
-             "movaps -96(%[src]), %%xmm0;\n"
-             "movaps -80(%[src]), %%xmm1;\n"
-             "movaps -64(%[src]), %%xmm2;\n"
-             "movaps -48(%[src]), %%xmm3;\n"
-             "movaps -32(%[src]), %%xmm4;\n"
-             "movaps -16(%[src]), %%xmm5;\n"
-             "mulps %%xmm0, %[tv];\n"
-             "mulps %%xmm1, %[tv];\n"
-             "mulps %%xmm2, %[tv];\n"
-             "mulps %%xmm3, %[tv];\n"
-             "mulps %%xmm4, %[tv];\n"
-             "mulps %%xmm5, %[tv];\n"
-             "addps -96(%[dst]), %%xmm0;\n"
-             "addps -80(%[dst]), %%xmm1;\n"
-             "addps -64(%[dst]), %%xmm2;\n"
-             "addps -48(%[dst]), %%xmm3;\n"
-             "addps -32(%[dst]), %%xmm4;\n"
-             "addps -16(%[dst]), %%xmm5;\n"
-             "movaps %%xmm0, -96(%[dst]);\n"
-             "movaps %%xmm1, -80(%[dst]);\n"
-             "movaps %%xmm2, -64(%[dst]);\n"
-             "movaps %%xmm3, -48(%[dst]);\n"
-             "movaps %%xmm4, -32(%[dst]);\n"
-             "movaps %%xmm5, -16(%[dst]);\n"
-                : [dst]"+D"(dptr)
-                : [src]"S"(sptr), [tv]"x"(tv)
-             );
-
-         v += step;
-#else
-         __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5; // xmm6, xmm7;
+         __m128 xmm0, xmm1, xmm2, xmm3;
 
          xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm2 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm3 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
-         xmm4 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
-         xmm5 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
 
          xmm0 = _mm_add_ps(_mm_load_ps((const float*)(dptr+0)), xmm0);
          xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
          xmm2 = _mm_add_ps(_mm_load_ps((const float*)(dptr+2)), xmm2);
          xmm3 = _mm_add_ps(_mm_load_ps((const float*)(dptr+3)), xmm3);
-         xmm4 = _mm_add_ps(_mm_load_ps((const float*)(dptr+4)), xmm4);
-         xmm5 = _mm_add_ps(_mm_load_ps((const float*)(dptr+5)), xmm5);
 
          v += vstep;
 
@@ -825,9 +788,6 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          _mm_store_ps((float*)dptr++, xmm1);
          _mm_store_ps((float*)dptr++, xmm2);
          _mm_store_ps((float*)dptr++, xmm3);
-         _mm_store_ps((float*)dptr++, xmm4);
-         _mm_store_ps((float*)dptr++, xmm5);
-#endif
       }
       while(--i);
    }
