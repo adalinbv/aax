@@ -125,6 +125,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
          rbd->multiply = _batch_fmul_value;
+         rbd->add16 = _batch_hmadd;
          rbd->add = _batch_fmadd;
 #else
          rbd->freqfilter = _batch_freqfilter;

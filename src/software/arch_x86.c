@@ -70,6 +70,7 @@ enum {
     CPUID_FEAT_ECX_SSE4_2       = 1 << 20,
     CPUID_FEAT_ECX_POPCNT       = 1 << 23,
     CPUID_FEAT_ECX_AVX          = 1 << 28,
+    CPUID_FEAT_ECX_F16C		= 1 << 29,
 
     CPUID_FEAT_EDX_CX8          = 1 << 8,
     CPUID_FEAT_EDX_CMOV         = 1 << 15,
@@ -423,6 +424,11 @@ _aaxGetSIMDSupportString()
 
 #   if RB_FLOAT_DATA
       _batch_fmul_value = _batch_fmul_value_avx;
+#if 0
+      if (check_cpuid_ecx(CPUID_FEAT_ECX_F16C)) {
+         _batch_hmadd = _batch_hmadd_avx;
+      }
+#endif
       _batch_fmadd = _batch_fmadd_avx;
       _batch_cvtps24_24 = _batch_cvtps24_24_avx;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;

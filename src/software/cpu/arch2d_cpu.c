@@ -18,6 +18,8 @@
 #include <dsp/common.h>
 #include "arch2d_simd.h"
 
+#include "fp16tables.c"
+
 void
 _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float f, float vstep)
 {
@@ -40,6 +42,36 @@ _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float f, floa
          int32_t v = (int32_t)(f*1024.0f);
          do {
             *d++ += ((*s++ >> 2) * v) >> 8;
+         }
+         while (--i);
+      }
+   }
+}
+
+void
+_batch_hmadd_cpu(float32_ptr dptr, const_float16_ptr sptr, size_t num, float v, float vstep)
+{
+   if (num && (v != 0.0f || vstep != 0.0f))
+   {
+      int16_t *s = (int16_t*)sptr;
+      float *d = dptr;
+      size_t i = num;
+
+      /* v == 1.0f && step = 0.0f */
+      if (fabsf(v - 1.0f) < GMATH_128DB && vstep < GMATH_128DB)
+      {
+         do {
+            *d++ += HALF2FLOAT(*s);
+            s++;
+         }
+         while (--i);
+      }
+      else
+      {
+         do {
+            *d++ += HALF2FLOAT(*s) * v;
+            v += vstep;
+            s++;
          }
          while (--i);
       }
@@ -224,11 +256,12 @@ _batch_cvt24_ph_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
    {
       static const float mul = (float)(1<<23);
       int32_t* d = (int32_t*)dptr;
-      int16_t* s = (float*)sptr;
+      int16_t* s = (int16_t*)sptr;
       size_t i = num;
 
       do {
-         *d++ = (int32_t)(HALF2FLOAT(*s++) * mul);
+         *d++ = (int32_t)(HALF2FLOAT(*s) * mul);
+         s++;
       } while (--i);
    }
 }
@@ -462,7 +495,7 @@ _batch_cvt24_ph_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
             size_t i = num;
 
             do {
-               *d++ = (int32_t)(HALf2FLOAT(*s) * mul);
+               *d++ = (int32_t)(HALF2FLOAT(*s) * mul);
                s += tracks;
             }
             while (--i);

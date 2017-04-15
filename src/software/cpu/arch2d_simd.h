@@ -49,6 +49,21 @@ extern "C" {
 
 #define CUBIC_TRESHOLD		0.25f
 
+int16_t fp16_offsettable[64];
+int32_t fp16_exponenttable[64];
+int32_t fp16_mantissatable[2048];
+int16_t fp16_basetable[512];
+int16_t fp16_shifttable[512];
+
+inline float HALF2FLOAT(int16_t h16) {
+   return fp16_mantissatable[fp16_offsettable[h16>>10]+(h16&0x3ff)]+fp16_exponenttable[h16>>10];
+}
+
+inline int16_t FLOAT2HALF(float f) {
+   int32_t f32 = ((union { float f; int32_t i; }){ .f = f }).i;
+   return fp16_basetable[(f32>>23)&0x1ff]+((f32&0x007fffff)>>fp16_shifttable[(f32>>23)&0x1ff]);
+}
+
 /* CPU*/
 void _aax_free_aligned(void*);
 char* _aax_calloc_aligned(char**, size_t, size_t);
@@ -58,6 +73,7 @@ void _batch_cvt24_24_cpu(void_ptr, const void*, size_t);
 void _batch_imul_value_cpu(void*, unsigned, size_t, float);
 void _batch_fmul_value_cpu(void*, unsigned, size_t, float);
 void _batch_imadd_cpu(int32_ptr, const_int32_ptr, size_t, float, float);
+void _batch_hmadd_cpu(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_cpu(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_iir_cpu(int32_ptr, const_int32_ptr, int, size_t, void*);
@@ -127,6 +143,7 @@ void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
 void _batch_fmul_value_sse2(void*, unsigned, size_t, float);
 void _batch_imadd_sse2(int32_ptr, const_int32_ptr, size_t, float, float);
+void _batch_hmadd_sse2(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_sse2(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse2(float32_ptr, const_float32_ptr, int, size_t, void*);
@@ -154,6 +171,7 @@ void _batch_resample_sse3(int32_ptr, const_int32_ptr, size_t, size_t, float, flo
 #endif
 
 /* AVX & SSE/VEX */
+void _batch_hmadd_sse_vex(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_sse_vex(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
@@ -174,6 +192,7 @@ void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned
 void* _aax_memcpy_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void*, unsigned, size_t, float);
 void _batch_fadd_avx(float32_ptr, const_float32_ptr, size_t);
+void _batch_hmadd_avx(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
 #if RB_FLOAT_DATA
 void _batch_cvtps24_24_avx(void_ptr, const_void_ptr, size_t);
@@ -190,6 +209,7 @@ void _batch_fma4_float_avx(float32_ptr, const_float32_ptr, size_t, float, float)
 /* VFPv2 */
 void _batch_imul_value_vfpv2(void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv2(void*, unsigned, size_t, float);
+void _batch_hmadd_vfpv2(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_vfpv2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_vfpv2(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_vfpv2(float32_ptr, const_float32_ptr, int, size_t, void*);
@@ -212,6 +232,7 @@ void _batch_cvtpd_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned i
 /* VFPv3 */
 void _batch_imul_value_vfpv3(void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv3(void*, unsigned, size_t, float);
+void _batch_hmadd_vfpv3(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_vfpv3(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_vfpv3(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_vfpv3(float32_ptr, const_float32_ptr, int, size_t, void*);
@@ -233,6 +254,7 @@ void _batch_cvtpd_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned i
 
 /* NEON */
 void _batch_imadd_neon(int32_ptr, const_int32_ptr, size_t, float, float);
+void _batch_hmadd_neon(float32_ptr, const_float16_ptr, unsigned in, float, float);
 void _batch_fmadd_neon(float32_ptr, const_float32_ptr, unsigned in, float, float);
 void _batch_freqfilter_neon(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, void*);

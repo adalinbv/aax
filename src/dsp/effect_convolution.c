@@ -108,19 +108,28 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
       data = aaxBufferGetData(buffer);
 
-      convolution->no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
-      no_samples += convolution->no_samples;
+      if (data)
+      {
+         size_t buffer_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+         float *start = *data;
+         float *end =  start + buffer_samples;
 
-      free(convolution->sample_ptr);
-      convolution->sample_ptr = data;
-      convolution->sample = *data;
+         while (end > start && fabsf(*end--) < GMATH_32DB);
+         convolution->no_samples = end-start;
 
-      free(convolution->history_ptr);
-      _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
-                                        (int32_t**)convolution->history,
-                                        no_samples, tracks);
-      convolution->history_samples = no_samples;
-      rv = effect;
+         no_samples += convolution->no_samples;
+
+         free(convolution->sample_ptr);
+         convolution->sample_ptr = data;
+         convolution->sample = *data;
+
+         free(convolution->history_ptr);
+         _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
+                                           (int32_t**)convolution->history,
+                                           no_samples, tracks);
+         convolution->history_samples = no_samples;
+         rv = effect;
+      }
    }
    else {
       _aaxErrorSet(AAX_INVALID_STATE);
