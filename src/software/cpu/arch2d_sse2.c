@@ -718,7 +718,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v <= GMATH_64DB && vstep <= GMATH_64DB)) return;
+   if (!num || (v <= GMATH_128DB && vstep <= GMATH_128DB)) return;
    if (fabsf(v - 1.0f) < GMATH_64DB && vstep <=  GMATH_64DB) {
       _batch_fadd_sse2(dst, src, num);
       return;
