@@ -126,8 +126,10 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
          free(convolution->history_ptr);
          _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
                                            (int32_t**)convolution->history,
-                                           no_samples, tracks);
+                                           2*no_samples, tracks);
          convolution->history_samples = no_samples;
+         convolution->history_max = 2*no_samples;
+         convolution->history_start = 0;
          rv = effect;
       }
    }

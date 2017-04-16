@@ -208,6 +208,8 @@ typedef struct
    void* history_ptr;
    MIX_T* history[_AAX_MAX_SPEAKERS];
    unsigned int history_samples;
+   unsigned int history_start;
+   unsigned int history_max;
 
    size_t no_samples;
    void **sample_ptr;
