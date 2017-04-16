@@ -314,20 +314,23 @@ void
 _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
                  size_t dmin, size_t dmax, unsigned int track, const void *data)
 {
-   const _aaxRingBufferConvolutionData *convolution = data;
+   _aaxRingBufferConvolutionData *convolution = data;
    MIX_T *hptr = convolution->history[track];
    MIX_T *cptr = convolution->sample;
-   unsigned int q, dnum, cnum;
+   unsigned int q, dnum, cnum, cpos;
    MIX_T *sptr = s + dmin;
    MIX_T *dptr = sptr;
-   size_t bytes;
    float f;
 
    dnum = dmax-dmin;
    f = 50.0f/dnum;
 
    cnum = convolution->no_samples;
-   for (q=0; q<cnum; ++q)
+   cpos = convolution->history_start;
+   hptr += cpos;
+
+   q = cnum;
+   do
    {
       float volume = *cptr++ * f;
       if (fabsf(volume) > GMATH_64DB) {
@@ -335,12 +338,20 @@ _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       }
       hptr++;
    }
+   while (--q);
 
-   hptr = convolution->history[track];
+   hptr = convolution->history[track] + cpos;
    _aax_memcpy(dptr, hptr, dnum*sizeof(MIX_T));
 
-   bytes = (convolution->history_samples-dnum)*sizeof(MIX_T);
-   memmove(hptr, hptr+dnum, bytes);
+   cpos += dnum;
+   cnum = convolution->history_samples;
+// if ((cpos + cnum) > convolution->history_max)
+   {
+      size_t bytes = (cnum-dnum)*sizeof(MIX_T);
+      memmove(hptr, hptr+cpos, bytes);
+      cpos = 0;
+   }
+   convolution->history_start = cpos;
 }
 
 
