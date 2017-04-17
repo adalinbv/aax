@@ -24,12 +24,13 @@
 FN_PREALIGN void
 _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
+   int need_step = (vstep <=  LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
+   if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_avx(dst, src, num);
       return;
    }
@@ -60,6 +61,7 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
    if (i)
    {
       __m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
+      __m256 tv = _mm256_set1_ps(v);
       __m256 *sptr = (__m256 *)s;
       __m256 *dptr = (__m256 *)d;
 
@@ -69,18 +71,20 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
       d += i*step;
       do
       {
-         __m256 tv = _mm256_set1_ps(v);
-
          ymm0 = _mm256_load_ps((const float*)sptr++);
          ymm1 = _mm256_load_ps((const float*)sptr++);
          ymm2 = _mm256_load_ps((const float*)sptr++);
          ymm3 = _mm256_load_ps((const float*)sptr++);
+
+         if (need_step) {
+            v += vstep;
+            tv = _mm256_set1_ps(v);
+         }
+
          ymm4 = _mm256_load_ps((const float*)sptr++);
          ymm5 = _mm256_load_ps((const float*)sptr++);
          ymm5 = _mm256_load_ps((const float*)sptr++);
          ymm7 = _mm256_load_ps((const float*)sptr++);
-
-         v += vstep;
 
          ymm0 =_mm256_fmadd_ps(ymm0, tv,_mm256_load_ps((const float*)(dptr+0)));
          ymm1 =_mm256_fmadd_ps(ymm1, tv,_mm256_load_ps((const float*)(dptr+1)));
@@ -90,6 +94,11 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
          ymm5 =_mm256_fmadd_ps(ymm5, tv,_mm256_load_ps((const float*)(dptr+5)));
          ymm6 =_mm256_fmadd_ps(ymm6, tv,_mm256_load_ps((const float*)(dptr+6)));
          ymm7 =_mm256_fmadd_ps(ymm7, tv,_mm256_load_ps((const float*)(dptr+7)));
+
+         if (need_step) {
+            v += vstep;
+            tv = _mm256_set1_ps(v);
+         }
 
          _mm256_store_ps((float*)dptr++, ymm0);
          _mm256_store_ps((float*)dptr++, ymm1);

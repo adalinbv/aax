@@ -683,21 +683,14 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
    PRINTFUNC;
    dtmp = (size_t)d & MEMMASK;
    stmp = (size_t)s & MEMMASK;
-   if ((dtmp || stmp) && dtmp != stmp)
-   {
-      i = num;                          /* improperly aligned,            */
-      do                                /* let the compiler figure it out */
-      {
-         *d++ += *s++;
-      }
-      while (--i);
-      return;
+   if ((dtmp || stmp) && dtmp != stmp) {
+      return _batch_fadd_sse_vex(dst, src, num);
    }
 
    /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
    if (dtmp && num)
    {
-      i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
+      i = (MEMALIGN16 - dtmp)/sizeof(float);
       if (i <= num)
       {
          num -= i;
@@ -898,13 +891,14 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
 FN_PREALIGN void
 _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
+   int need_step = (vstep <=  LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
    PRINTFUNC;
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
+   if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_avx(dst, src, num);
       return;
    }
@@ -937,6 +931,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       __m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
       __m256* sptr = (__m256*)s;
       __m256 *dptr = (__m256*)d;
+      __m256 tv = _mm256_set1_ps(v);
 
       vstep *= 0.5f*step;
       num -= i*step;
@@ -944,19 +939,20 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       d += i*step;
       do
       {
-         __m256 tv = _mm256_set1_ps(v);
-
          ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
          ymm1 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
          ymm2 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
          ymm3 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
-         v += vstep;
-         tv = _mm256_set1_ps(v);
+
+         if (need_step) {
+            v += vstep;
+            tv = _mm256_set1_ps(v);
+         }
+
          ymm4 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
          ymm5 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
          ymm6 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
          ymm7 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
-         v += vstep;
 
          ymm0 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0);
          ymm1 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1);
@@ -966,6 +962,11 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          ymm5 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+5)), ymm5);
          ymm6 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+6)), ymm6);
          ymm7 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+7)), ymm7);
+
+         if (need_step) {
+            v += vstep;
+            tv = _mm256_set1_ps(v);
+         }
 
          _mm256_store_ps((float*)dptr++, ymm0);
          _mm256_store_ps((float*)dptr++, ymm1);

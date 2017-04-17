@@ -279,12 +279,13 @@ _batch_fadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
 void
 _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
+   int need_step = (vstep <=  LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
 
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
+   if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_neon(dst, src, num);
       return;
    }
@@ -304,6 +305,7 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       {
          sfr4 = vld4q_f32(s);   // load s
          dfr4 = vld4q_f32(d);   // load d
+
          s += step;
 
          dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
@@ -311,12 +313,13 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          dfr4.val[2] = vmlaq_f32(dfr4.val[2], sfr4.val[2], tv);
          dfr4.val[3] = vmlaq_f32(dfr4.val[3], sfr4.val[3], tv);
 
-         v += vstep;
+         if (need_step) {
+            v += vstep;
+            tv = vdupq_n_f32(v);
+         }
 
          vst4q_f32(d, dfr4);    // store d
          d += step;
-
-         tv = vdupq_n_f32(v);
       }
       while(--i);
    }
