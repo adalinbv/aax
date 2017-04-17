@@ -171,6 +171,7 @@ void _batch_resample_sse3(int32_ptr, const_int32_ptr, size_t, size_t, float, flo
 #endif
 
 /* AVX & SSE/VEX */
+void _batch_fadd_sse_vex(float32_ptr, const_float32_ptr, size_t);
 void _batch_hmadd_sse_vex(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_sse_vex(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);

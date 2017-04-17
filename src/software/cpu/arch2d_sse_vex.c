@@ -705,7 +705,7 @@ _batch_cvt16_intl_24_sse_vex(void_ptr dst, const_int32_ptrptr src,
    }
 }
 
-static void
+void
 _batch_fadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num)
 {
    float32_ptr s = (float32_ptr)src;
@@ -815,12 +815,13 @@ _batch_fadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num)
 void
 _batch_fmadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
+   int need_step = (vstep <=  LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
+   if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_sse_vex(dst, src, num);
       return;
    }
@@ -858,6 +859,7 @@ _batch_fmadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num, float v
    i = num/step;
    if (i)
    {
+      __m128 tv = _mm_set1_ps(v);
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
 
@@ -867,20 +869,22 @@ _batch_fmadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num, float v
       d += i*step;
       do
       {
-         __m128 tv = _mm_set1_ps(v);
          __m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 
          xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm2 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm3 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
-         v += vstep;
-         tv = _mm_set1_ps(v);
+
+         if (need_step) {
+            v += vstep;
+            tv = _mm_set1_ps(v);
+         }
+
          xmm4 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm5 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm6 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
          xmm7 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
-         v += vstep;
 
          xmm0 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
          xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
@@ -890,6 +894,11 @@ _batch_fmadd_sse_vex(float32_ptr dst, const_float32_ptr src, size_t num, float v
          xmm5 = _mm_add_ps(_mm_load_ps((const float*)(dptr+5)), xmm5);
          xmm6 = _mm_add_ps(_mm_load_ps((const float*)(dptr+6)), xmm6);
          xmm7 = _mm_add_ps(_mm_load_ps((const float*)(dptr+7)), xmm7);
+
+         if (need_step) {
+            v += vstep;
+            tv = _mm_set1_ps(v);
+         }
 
          _mm_store_ps((float*)dptr++, xmm0);
          _mm_store_ps((float*)dptr++, xmm1);
