@@ -205,6 +205,9 @@ typedef struct
 
 typedef struct
 {
+   float gain;
+   float silence_level;
+
    void* history_ptr;
    MIX_T* history[_AAX_MAX_SPEAKERS];
    unsigned int history_samples;

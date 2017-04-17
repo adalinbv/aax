@@ -119,10 +119,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
 
          flt->high_gain = fabsf(filter->slot[0]->param[AAX_LF_GAIN]);
-         if (flt->high_gain < GMATH_128DB) flt->high_gain = 0.0f;
+         if (flt->high_gain < LEVEL_128DB) flt->high_gain = 0.0f;
 
          flt->low_gain = fabsf(filter->slot[0]->param[AAX_HF_GAIN]);
-         if (flt->low_gain < GMATH_128DB) flt->low_gain = 0.0f;
+         if (flt->low_gain < LEVEL_128DB) flt->low_gain = 0.0f;
 
          flt->no_stages = stages;
          flt->state = state >> 24;
@@ -650,7 +650,7 @@ _aax_butterworth_compute(float fc, void *flt)
    first_order = stages ? AAX_FALSE : AAX_TRUE;
 
    A = 0.0f;
-   if (filter->low_gain > GMATH_128DB)
+   if (filter->low_gain > LEVEL_128DB)
    {
       // it's a shelf filter, adjust for correct dB
       // derived from the audio EQ Cookbook
@@ -662,7 +662,7 @@ _aax_butterworth_compute(float fc, void *flt)
    {
       float b2, b1, b0;
 
-      if (A > GMATH_128DB)
+      if (A > LEVEL_128DB)
       {
          switch (filter->type)
          {
@@ -862,7 +862,7 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
       float b2, b1, b0;
       float nfc;
 
-      if (A >  GMATH_128DB)	// shelf or allpass filter
+      if (A >  LEVEL_128DB)	// shelf or allpass filter
       {
          switch (type)
          {

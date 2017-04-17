@@ -29,7 +29,7 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
    size_t i, step, dtmp, stmp;
 
    if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
+   if (fabsf(v - 1.0f) < LEVEL_128DB && vstep == 0.0f) {
       _batch_fadd_avx(dst, src, num);
       return;
    }

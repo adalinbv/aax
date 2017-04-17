@@ -53,7 +53,7 @@ _aaxConvolutionEffectCreate(_handle_t *handle, enum aaxEffectType type)
       eff->type = type;
 
       size = sizeof(_aaxEffectInfo);
-      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      _aaxSetDefaultEffect3d(eff->slot[0], eff->pos);
 
       data = calloc(1, sizeof(_aaxRingBufferConvolutionData));
       eff->slot[0]->data = data;
@@ -100,6 +100,9 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
       float fs = effect->info->frequency;
       void **data;
 
+      convolution->gain = effect->slot[0]->param[AAX_GAIN];
+      convolution->silence_level = effect->slot[0]->param[AAX_SILENCE_LEVEL];
+
       /*
        * convert the buffer data to floats in the range 0.0 .. 1.0
        * using the mixer frequency
@@ -114,7 +117,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
          float *start = *data;
          float *end =  start + buffer_samples;
 
-         while (end > start && fabsf(*end--) < GMATH_32DB);
+         while (end > start && fabsf(*end--) < convolution->silence_level);
          convolution->no_samples = end-start;
 
          no_samples += convolution->no_samples;
@@ -171,6 +174,9 @@ static float
 _aaxConvolutionEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
+   if (ptype == AAX_LOGARITHMIC) {
+      rv = _lin2db(val);
+   }
    return rv;
 }
    
@@ -178,6 +184,9 @@ static float
 _aaxConvolutionEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
+   if (param < 3 && ptype == AAX_LOGARITHMIC) {
+      rv = _db2lin(val);
+   }
    return rv;
 }
 
@@ -186,7 +195,7 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxConvolutionRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     2.0f, 1.0f,  0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
    };
