@@ -333,7 +333,7 @@ _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    do
    {
       float volume = *cptr++ * f;
-      if (fabsf(volume) > GMATH_64DB) {
+      if (fabsf(volume) > convolution->silence_level) {
          rbd->add(hptr, sptr, dnum, volume, 0.0f);
       }
       hptr++;
@@ -341,7 +341,7 @@ _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    while (--q);
 
    hptr = convolution->history[track] + cpos;
-   _aax_memcpy(dptr, hptr, dnum*sizeof(MIX_T));
+   rbd->add(dptr, hptr, dnum, convolution->gain, 0.0f);
 
    cpos += dnum;
    cnum = convolution->history_samples;
@@ -460,11 +460,13 @@ _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
 
       num = dmax+ds-dmin;
       rbd->freqfilter(dptr, sptr, track, num, filter);
-      if (filter->state && (filter->low_gain > GMATH_128DB)) {
+      if (filter->state && (filter->low_gain > LEVEL_128DB)) {
          rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
       }
    }
 }
+
+
 
 /* -------------------------------------------------------------------------- */
 

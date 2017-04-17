@@ -22,12 +22,22 @@
 void
 _batch_fmadd_vfpv2(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
 {
-   if (num)
-   {
-      float *s = (float*)sptr;
-      float *d = dptr;
-      size_t i = num;
+   float *s = (float*)sptr;
+   float *d = dptr;
+   size_t i = num;
 
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB)
+   {
+      do {
+         *d++ += *s++;
+         v += vstep;
+      }
+      while (--i);
+   }
+   else
+   {
       do {
          *d++ += *s++ * v;
          v += vstep;

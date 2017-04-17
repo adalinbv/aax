@@ -27,9 +27,10 @@ extern "C" {
 #define EPS		1e-5
 #define _MAX_FE_SLOTS	3
 
-#define GMATH_32DB	0.02511886432f
-#define GMATH_64DB	0.00063095734f
-#define GMATH_128DB	0.00000039811f
+#define LEVEL_32DB	0.02511886432f
+#define LEVEL_64DB	0.00063095734f
+#define LEVEL_96DB	0.00001584893f
+#define LEVEL_128DB	0.00000039811f
 
 enum _aax3dFiltersEffects
 {

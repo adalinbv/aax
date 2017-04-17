@@ -789,7 +789,7 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
 
    PRINTFUNC;
    if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < GMATH_128DB && vstep == 0.0f) {
+   if (fabsf(v - 1.0f) < LEVEL_128DB && vstep == 0.0f) {
       _batch_hadd_avx(dst, src, num);
       return;
    }
@@ -900,8 +900,8 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
    size_t i, step, dtmp, stmp;
 
    PRINTFUNC;
-   if (!num || (v <= GMATH_128DB && vstep <= GMATH_128DB)) return;
-   if (fabsf(v - 1.0f) < GMATH_64DB && vstep <=  GMATH_64DB) {
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
       _batch_fadd_avx(dst, src, num);
       return;
    }

@@ -137,12 +137,12 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
          /* gains */
          lf_gain = fabsf(filter->slot[EQUALIZER_LF]->param[AAX_LF_GAIN]);
-         if (fabsf(lf_gain - 1.0f) < GMATH_128DB) lf_gain = 1.0f;
-         else if (lf_gain < GMATH_128DB) lf_gain = 0.0f;
+         if (fabsf(lf_gain - 1.0f) < LEVEL_128DB) lf_gain = 1.0f;
+         else if (lf_gain < LEVEL_128DB) lf_gain = 0.0f;
 
          mf_gain = filter->slot[EQUALIZER_LF]->param[AAX_HF_GAIN];
-         if (fabsf(mf_gain - 1.0f) < GMATH_128DB) mf_gain = 1.0f;
-         else if (mf_gain < GMATH_128DB) mf_gain = 0.0f;
+         if (fabsf(mf_gain - 1.0f) < LEVEL_128DB) mf_gain = 1.0f;
+         else if (mf_gain < LEVEL_128DB) mf_gain = 0.0f;
 
          if (lf_gain >= mf_gain)
          {
@@ -158,12 +158,12 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          }
 
          mf_gain = filter->slot[EQUALIZER_HF]->param[AAX_LF_GAIN];
-         if (fabsf(mf_gain - 1.0f) < GMATH_128DB) mf_gain = 1.0f;
-         else if (mf_gain < GMATH_128DB) mf_gain = 0.0f;
+         if (fabsf(mf_gain - 1.0f) < LEVEL_128DB) mf_gain = 1.0f;
+         else if (mf_gain < LEVEL_128DB) mf_gain = 0.0f;
 
          hf_gain = fabsf(filter->slot[EQUALIZER_HF]->param[AAX_HF_GAIN]);
-         if (fabsf(hf_gain - 1.0f) < GMATH_128DB) hf_gain = 1.0f;
-         else if (hf_gain < GMATH_128DB) hf_gain = 0.0f;
+         if (fabsf(hf_gain - 1.0f) < LEVEL_128DB) hf_gain = 1.0f;
+         else if (hf_gain < LEVEL_128DB) hf_gain = 0.0f;
 
          if (mf_gain >= hf_gain)
          {

@@ -407,10 +407,13 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
    AAX_PITCH = 0, AAX_MAX_PITCH, AAX_SPEEDUP,
    /* AAX_REVERB_EFFECT */
    /* AAX_CUTOFF_FREQUENCY=0, */ AAX_DELAY_DEPTH=1, AAX_DECAY_LEVEL, AAX_DECAY_DEPTH,
-   /* AAX_DISTORTION_EFFECT*/
+   /* AAX_DISTORTION_EFFECT */
    AAX_DISTORTION_FACTOR=0, AAX_CLIPPING_FACTOR, AAX_MIX_FACTOR, AAX_ASYMMETRY,
    /* AAX_VELOCITY_EFFECT */
-   AAX_SOUND_VELOCITY = 0, AAX_DOPPLER_FACTOR
+   AAX_SOUND_VELOCITY = 0, AAX_DOPPLER_FACTOR,
+
+   /* AAX_CONVOLUTION_EFFECT */
+   /* AAX_GAIN = 0, */ AAX_SILENCE_LEVEL = 1
 };
 
 
@@ -457,6 +460,14 @@ enum aaxFrequencyFilterType
 
    AAX_BUTTERWORTH = 0,
    AAX_BESSEL = 0x8000000
+};
+
+enum aaxSignalLevelType
+{
+   AAX_32DB    = -32,
+   AAX_64DB    = -64,
+   AAX_96DB    = -96,
+   AAX_128DB   = -128
 };
 
 enum aaxProcessingType

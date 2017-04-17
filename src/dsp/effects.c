@@ -109,6 +109,11 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type)
       effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
       effect->state = AAX_TRUE;
       effect->data = _aaxRingBufferDopplerFn[0];
+      break;
+   case CONVOLUTION_EFFECT:
+      effect->param[AAX_GAIN] = 1.0f;
+      effect->param[AAX_SILENCE_LEVEL] = LEVEL_64DB;
+      break;
    default:
       break;
    }
