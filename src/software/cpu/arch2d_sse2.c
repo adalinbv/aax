@@ -418,8 +418,8 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    int32_ptr s = (int32_ptr)src;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < LEVEL_128DB && vstep == 0.0f) {
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
       _batch_iadd_sse2(dst, src, num);
       return;
    }
@@ -589,9 +589,12 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 void
 _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
 {
-   if (!num || f == 0.0f) return;
+   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
-   if (bps == 4)
+   if (f <= LEVEL_128DB) {
+      memset(data, 0, num*bps);
+   }
+   else if (bps == 4)
    {
       float32_ptr d = (float32_ptr)data;
       size_t i, step, dtmp;

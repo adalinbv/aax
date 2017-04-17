@@ -63,10 +63,15 @@ _batch_imul_value_sse3(void* data, unsigned bps, size_t num, float f)
 void
 _batch_fmul_value_sse3(void* data, unsigned bps, size_t num, float f)
 {
-   size_t i = num;
+   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
-   if (num)
+   if (f <= LEVEL_128DB) {
+      memset(data, 0, num*bps);
+   }
+   else if (num)
    {
+      size_t i = num;
+
       switch (bps)
       {
       case 4:

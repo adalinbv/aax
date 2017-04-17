@@ -107,8 +107,8 @@ _batch_imadd_avx2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    int32_ptr s = (int32_ptr)src;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < LEVEL_128DB && vstep == 0.0f) {
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
       _batch_iadd_avx2(dst, src, num);
       return;
    }

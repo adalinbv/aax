@@ -395,9 +395,12 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 FN_PREALIGN void
 _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
 {
-   if (!num || f == 0.0f) return;
+   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
-   if (bps == 4)
+   if (f <= LEVEL_128DB) {
+      memset(data, 0, num*bps);
+   }
+   else if (bps == 4)
    {
       float32_ptr d = (float32_ptr)data;
       size_t i, step, dtmp;
@@ -788,8 +791,8 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
    size_t i, step, dtmp, stmp;
 
    PRINTFUNC;
-   if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < LEVEL_128DB && vstep == 0.0f) {
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
       _batch_hadd_avx(dst, src, num);
       return;
    }
