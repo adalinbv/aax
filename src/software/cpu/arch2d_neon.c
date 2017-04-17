@@ -172,8 +172,8 @@ _batch_imadd_neon(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    int32_ptr s = (int32_t *)src;
    size_t i, size, step;
 
-   if (!num || (v == 0.0f && vstep == 0.0f)) return;
-   if (fabsf(v - 1.0f) < LEVEL_128DB && vstep == 0.0f) {
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
       _batch_iadd_neon(dst, src, num);
       return;
    }
@@ -642,10 +642,15 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 void
 _batch_fmul_value_neon(void* data, unsigned bps, size_t num, float f)
 {
-   size_t i = num;
+   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
-   if (num)
+   if (f <= LEVEL_128DB) {
+      memset(data, 0, num*bps);
+   }
+   else if (num)
    {
+      size_t i = num;
+
       switch (bps)
       {
       case 4:

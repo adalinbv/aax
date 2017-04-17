@@ -312,46 +312,50 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
 
 void
 _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
-                 size_t dmin, size_t dmax, unsigned int track, const void *data)
+                 size_t dmin, size_t dmax, unsigned int track, void *data)
 {
    _aaxRingBufferConvolutionData *convolution = data;
-   MIX_T *hptr = convolution->history[track];
-   MIX_T *cptr = convolution->sample;
-   unsigned int q, dnum, cnum, cpos;
-   MIX_T *sptr = s + dmin;
-   MIX_T *dptr = sptr;
-   float f;
-
-   dnum = dmax-dmin;
-   f = 50.0f/dnum;
-
-   cnum = convolution->no_samples;
-   cpos = convolution->history_start;
-   hptr += cpos;
-
-   q = cnum;
-   do
+   if (convolution->gain > convolution->silence_level)
    {
-      float volume = *cptr++ * f;
-      if (fabsf(volume) > convolution->silence_level) {
-         rbd->add(hptr, sptr, dnum, volume, 0.0f);
+      unsigned int q, dnum, hnum, cnum, cpos;
+      MIX_T *hptr = convolution->history[track];
+      MIX_T *cptr = convolution->sample;
+      MIX_T *sptr = s + dmin;
+      MIX_T *dptr = sptr;
+      float f, silence;
+
+      dnum = dmax-dmin;
+      f = 50.0f/dnum;
+
+      silence = convolution->silence_level;
+      cnum = convolution->no_samples;
+      cpos = convolution->history_start;
+      hnum = convolution->history_samples;
+      hptr += cpos;
+
+      q = cnum;
+      do
+      {
+         float volume = *cptr++ * f;
+         if (fabsf(volume) > silence) {
+            rbd->add(hptr, sptr, dnum, volume, 0.0f);
+         }
+         hptr++;
       }
-      hptr++;
-   }
-   while (--q);
+      while (--q);
 
-   hptr = convolution->history[track] + cpos;
-   rbd->add(dptr, hptr, dnum, convolution->gain, 0.0f);
+      hptr = convolution->history[track] + cpos;
+      rbd->add(dptr, hptr, dnum, convolution->gain, 0.0f);
 
-   cpos += dnum;
-   cnum = convolution->history_samples;
-// if ((cpos + cnum) > convolution->history_max)
-   {
-      size_t bytes = (cnum-dnum)*sizeof(MIX_T);
-      memmove(hptr, hptr+cpos, bytes);
-      cpos = 0;
+      cpos += dnum;
+      if ((cpos + cnum) > convolution->history_max)
+      {
+         size_t bytes = (cnum-dnum)*sizeof(MIX_T);
+         memmove(hptr, hptr+cpos, bytes);
+         cpos = 0;
+      }
+      convolution->history_start = cpos;
    }
-   convolution->history_start = cpos;
 }
 
 

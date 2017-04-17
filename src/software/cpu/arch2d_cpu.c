@@ -21,60 +21,58 @@
 #include "fp16tables.c"
 
 void
-_batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float f, float vstep)
+_batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float v, float vstep)
 {
-   if (num && (f != 0.0f || vstep != 0.0f))
-   {
-      int32_t* s = (int32_t* )sptr;
-      int32_t* d = dptr;
-      size_t i = num;
+   int32_t* s = (int32_t* )sptr;
+   int32_t* d = dptr;
+   size_t i = num;
 
-      /* f == 1.0f && step = 0.0f */
-      if (fabsf(f - 1.0f) < LEVEL_128DB && vstep == 0.0f)
-      {
-         do {
-            *d++ += *s++;
-         }
-         while (--i);
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+
+   /* f == 1.0f && step = 0.0f */
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB)
+   {
+      do {
+         *d++ += *s++;
       }
-      else
-      {
-         int32_t v = (int32_t)(f*1024.0f);
-         do {
-            *d++ += ((*s++ >> 2) * v) >> 8;
-         }
-         while (--i);
+      while (--i);
+   }
+   else
+   {
+      int32_t f = (int32_t)(v*1024.0f);
+      do {
+         *d++ += ((*s++ >> 2) * f) >> 8;
       }
+      while (--i);
    }
 }
 
 void
 _batch_hmadd_cpu(float32_ptr dptr, const_float16_ptr sptr, size_t num, float v, float vstep)
 {
-   if (num && (v != 0.0f || vstep != 0.0f))
-   {
-      int16_t *s = (int16_t*)sptr;
-      float *d = dptr;
-      size_t i = num;
+   int16_t *s = (int16_t*)sptr;
+   float *d = dptr;
+   size_t i = num;
 
-      /* v == 1.0f && step = 0.0f */
-      if (fabsf(v - 1.0f) < LEVEL_128DB && vstep < LEVEL_128DB)
-      {
-         do {
-            *d++ += HALF2FLOAT(*s);
-            s++;
-         }
-         while (--i);
+   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+
+   /* v == 1.0f && step = 0.0f */
+   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB)
+   {
+      do {
+         *d++ += HALF2FLOAT(*s);
+         s++;
       }
-      else
-      {
-         do {
-            *d++ += HALF2FLOAT(*s) * v;
-            v += vstep;
-            s++;
-         }
-         while (--i);
+      while (--i);
+   }
+   else
+   {
+      do {
+         *d++ += HALF2FLOAT(*s) * v;
+         v += vstep;
+         s++;
       }
+      while (--i);
    }
 }
 
@@ -148,9 +146,15 @@ _batch_imul_value_cpu(void* data, unsigned bps, size_t num, float f)
 void
 _batch_fmul_value_cpu(void* data, unsigned bps, size_t num, float f)
 {
-   size_t i = num;
-   if (num)
+   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
+
+   if (f <= LEVEL_128DB) {
+      memset(data, 0, num*bps);
+   }
+   else if (num)
    {
+      size_t i = num;
+
       switch (bps)
       {
       case 4:

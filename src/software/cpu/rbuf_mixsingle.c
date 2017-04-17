@@ -146,7 +146,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
          ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
          float v_start, v_step;
 
-         if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0)) {
+         if (hrtf_volume[i] <= LEVEL_64DB) { // || (i > 0 && diff == 0)) {
             continue;
          }
 
@@ -245,7 +245,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
          float v_start, v_end, v_step;
 
-         if (hrtf_volume[i] < 1e-3f) { // || (i > 0 && diff == 0))
+         if (hrtf_volume[i] <= LEVEL_64DB) { // || (i > 0 && diff == 0))
             continue;
          }
 
