@@ -618,6 +618,49 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
       }
    }
 
+   step = 2*sizeof(__m128)/sizeof(float);
+   i = num/step;
+   if (i)
+   {
+      __m128* sptr = (__m128*)s;
+      __m128 *dptr = (__m128*)d;
+      __m128 xmm0, xmm1;
+
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
+      {
+         do
+         {
+            xmm0 = _mm_loadu_ps((const float*)sptr++);
+            xmm1 = _mm_loadu_ps((const float*)sptr++);
+
+            xmm0 =_mm_add_ps(_mm_load_ps((const float*)(dptr+0)), xmm0);
+            xmm1 =_mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+      }
+      else
+      {
+         do
+         {
+            xmm0 = _mm_load_ps((const float*)sptr++);
+            xmm1 = _mm_load_ps((const float*)sptr++);
+
+            xmm0 =_mm_add_ps(_mm_load_ps((const float*)(dptr+0)), xmm0);
+            xmm1 =_mm_add_ps(_mm_load_ps((const float*)(dptr+1)), xmm1);
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+      }
+   }
+
    if (num)
    {
       i = num;
@@ -692,6 +735,26 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          while(--i);
       }
 
+      step = 2*sizeof(__m128)/sizeof(float);
+      i = num/step;
+      if (i)
+      {
+         __m128 xmm0, xmm1, xmm7 = _mm_set1_ps(f);
+         __m128* dptr = (__m128*)d;
+
+         num -= i*step;
+         d += i*step;
+         do
+         {
+            xmm0 =_mm_mul_ps(_mm_load_ps((const float*)(dptr+0)), xmm7);
+            xmm1 =_mm_mul_ps(_mm_load_ps((const float*)(dptr+1)), xmm7);
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+      }
+
       if (num)
       {
          i = num;
@@ -752,6 +815,26 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
             _mm_store_pd((double*)dptr++, xmm7);
 
             xmm7 = _mm_set1_pd(f);
+         }
+         while(--i);
+      }
+
+      step = 2*sizeof(__m128d)/sizeof(double);
+      i = num/step;
+      if (i)
+      {
+         __m128d xmm0, xmm1, xmm7 = _mm_set1_pd(f);
+         __m128d* dptr = (__m128d*)d;
+
+         num -= i*step;
+         d += i*step;
+         do
+         {
+            xmm0 =_mm_mul_pd(_mm_load_pd((const double*)(dptr+0)), xmm7);
+            xmm1 =_mm_mul_pd(_mm_load_pd((const double*)(dptr+1)), xmm7);
+
+            _mm_store_pd((double*)dptr++, xmm0);
+            _mm_store_pd((double*)dptr++, xmm1);
          }
          while(--i);
       }
@@ -886,6 +969,58 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
             v += vstep;
             xmm7 = _mm_set1_ps(v);
+         }
+         while(--i);
+      }
+   }
+
+   step = 2*sizeof(__m128)/sizeof(float);
+   i = num/step;
+   if (i)
+   {
+      __m128* sptr = (__m128*)s;
+      __m128* dptr = (__m128*)d;
+      __m128 xmm0, xmm1;
+
+      vstep *= step;
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
+      {
+         do
+         {
+            __m128 tv = _mm_set1_ps(v);
+
+            xmm0 = _mm_mul_ps(_mm_loadu_ps((const float*)sptr++), tv);
+            xmm1 = _mm_mul_ps(_mm_loadu_ps((const float*)sptr++), tv);
+
+            xmm0 =_mm_add_ps(_mm_load_ps((const float*)(dptr+0)),xmm0);
+            xmm1 =_mm_add_ps(_mm_load_ps((const float*)(dptr+1)),xmm1);
+
+            v += vstep;
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+      }
+      else
+      {
+         do
+         {
+            __m128 tv = _mm_set1_ps(v);
+
+            xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+            xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
+
+            xmm0 =_mm_add_ps(_mm_load_ps((const float*)(dptr+0)),xmm0);
+            xmm1 =_mm_add_ps(_mm_load_ps((const float*)(dptr+1)),xmm1);
+
+            v += vstep;
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
          }
          while(--i);
       }
