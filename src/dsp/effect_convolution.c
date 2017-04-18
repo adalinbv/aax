@@ -120,20 +120,33 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
          while (end > start && fabsf(*end--) < convolution->silence_level);
          convolution->no_samples = end-start;
 
-         no_samples += convolution->no_samples;
+         if (end > start)
+         {
+            double rms = 0;
 
-         free(convolution->sample_ptr);
-         convolution->sample_ptr = data;
-         convolution->sample = *data;
+            do
+            {
+               double val = *end--;
+               rms += val*val;
+            }
+            while (end > start);
+            convolution->rms = sqrt(rms/convolution->no_samples);
 
-         free(convolution->history_ptr);
-         _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
-                                           (int32_t**)convolution->history,
-                                           2*no_samples, tracks);
-         convolution->history_samples = no_samples;
-         convolution->history_max = 2*no_samples;
-         convolution->history_start = 0;
-         rv = effect;
+            no_samples += convolution->no_samples;
+
+            free(convolution->sample_ptr);
+            convolution->sample_ptr = data;
+            convolution->sample = *data;
+
+            free(convolution->history_ptr);
+            _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
+                                              (int32_t**)convolution->history,
+                                              2*no_samples, tracks);
+            convolution->history_samples = no_samples;
+            convolution->history_max = 2*no_samples;
+            convolution->history_start = 0;
+            rv = effect;
+         }
       }
    }
    else {
