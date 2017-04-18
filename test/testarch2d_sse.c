@@ -46,11 +46,6 @@ int main()
         _batch_fmadd_avx(dst2, dst2, MAXNUM, 1.0f, 0.0f);
         _batch_fmadd_avx(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
         TEST("float fadd+fmadd avx", dst1, dst2);
-
-        memcpy(dst2, src, MAXNUM*sizeof(float));
-        _batch_fmadd_sse_vex(dst2, dst2, MAXNUM, 1.0f, 0.0f);
-        _batch_fmadd_sse_vex(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
-        TEST("float fadd+fmadd sse vex", dst1, dst2);
 #endif
         memcpy(dst2, src, MAXNUM*sizeof(float));
         _batch_fmadd_sse2(dst2, dst2, MAXNUM, 1.0f, 0.0f);

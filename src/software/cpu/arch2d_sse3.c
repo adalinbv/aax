@@ -60,44 +60,6 @@ _batch_imul_value_sse3(void* data, unsigned bps, size_t num, float f)
    }
 }
 
-void
-_batch_fmul_value_sse3(void* data, unsigned bps, size_t num, float f)
-{
-   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
-
-   if (f <= LEVEL_128DB) {
-      memset(data, 0, num*bps);
-   }
-   else if (num)
-   {
-      size_t i = num;
-
-      switch (bps)
-      {
-      case 4:
-      {
-         float *d = (float*)data;
-         do {
-            *d++ *= f;
-         }
-         while (--i);
-         break;
-      }
-      case 8:
-      {
-         double *d = (double*)data;
-         do {
-            *d++ *= f;
-         }
-         while (--i);
-         break;
-      }
-      default:
-         break;
-      }
-   }
-}
-
 #if !RB_FLOAT_DATA
 static inline void
 _aaxBufResampleSkip_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)

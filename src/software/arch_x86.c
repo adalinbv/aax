@@ -424,11 +424,6 @@ _aaxGetSIMDSupportString()
 
 #   if RB_FLOAT_DATA
       _batch_fmul_value = _batch_fmul_value_avx;
-#if 0
-      if (check_cpuid_ecx(CPUID_FEAT_ECX_F16C)) {
-         _batch_hmadd = _batch_hmadd_avx;
-      }
-#endif
       _batch_fmadd = _batch_fmadd_avx;
       _batch_cvtps24_24 = _batch_cvtps24_24_avx;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
@@ -538,16 +533,14 @@ check_cpuid_edx(unsigned int type)
 static char
 check_extcpuid_ecx(unsigned int type)
 {
-   int _regs[4];
-
    regs[ECX] = 0;
-   __cpuid(_regs, CPUID_GETEXTCPUINFO);
-   if (regs[EAX] >= 0x80000001 && _regs[EBX] == htuA &&
-       _regs[ECX] == DMAc && _regs[EDX] == itne)
+   __cpuid(regs, CPUID_GETEXTCPUINFO);
+   if (regs[EAX] >= 0x80000001 && regs[EBX] == htuA &&
+       regs[ECX] == DMAc && regs[EDX] == itne)
    {
-      __cpuid(_regs, 0x80000001);
+      __cpuid(regs, 0x80000001);
    }
-   return (_regs[ECX] & type) ? 3 : 0;
+   return (regs[ECX] & type) ? 3 : 0;
 }
 
 unsigned int

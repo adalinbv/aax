@@ -49,7 +49,6 @@ typedef void (*_batch_cvt_to_intl_proc)(void_ptr, const_int32_ptrptr, size_t, un
 typedef void (*_batch_codec_proc)(void_ptr, const_void_ptr, size_t);
 
 
-typedef void (*_batch_hmadd_proc)(float32_ptr, const_float16_ptr, size_t, float, float);
 typedef void (*_batch_fmadd_proc)(float32_ptr, const_float32_ptr, size_t, float, float);
 typedef void (*_batch_imadd_proc)(int32_ptr, const_int32_ptr, size_t, float, float);
 typedef void (*_batch_mul_value_proc)(void*, unsigned, size_t, float);
@@ -75,7 +74,6 @@ extern char* _aax_strdup(const_char_ptr);
 extern _batch_mul_value_proc _batch_imul_value;
 extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_imadd_proc _batch_imadd;
-extern _batch_hmadd_proc _batch_hmadd;
 extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_fmadd_proc _batch_fma3;
 extern _batch_fmadd_proc _batch_fma4;
