@@ -418,8 +418,8 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    int32_ptr s = (int32_ptr)src;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && vstep <=  LEVEL_96DB) {
+   if (!num || (v <= LEVEL_90DB && vstep <= LEVEL_90DB)) return;
+   if (fabsf(v - 1.0f) < LEVEL_90DB && vstep <=  LEVEL_90DB) {
       _batch_iadd_sse2(dst, src, num);
       return;
    }
@@ -636,9 +636,9 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 void
 _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
 {
-   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
+   if (!num || fabsf(f - 1.0f) < LEVEL_90DB) return;
 
-   if (f <= LEVEL_128DB) {
+   if (f <= LEVEL_90DB) {
       memset(data, 0, num*bps);
    }
    else if (bps == 4)
@@ -764,13 +764,13 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
 void
 _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   int need_step = (vstep <=  LEVEL_96DB) ? 0 : 1;
+   int need_step = (vstep <=  LEVEL_90DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
-   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
-   if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
+   if (!num || (v <= LEVEL_90DB && vstep <= LEVEL_90DB)) return;
+   if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
       _batch_fadd_sse2(dst, src, num);
       return;
    }

@@ -35,14 +35,8 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
       return;
    }
 
-   dtmp = (size_t)d & MEMMASK;
-   stmp = (size_t)s & MEMMASK;
-   if ((dtmp || stmp) && dtmp != stmp)
-   {
-      return _batch_fmadd_sse_vex(dst, src, num, v, vstep);
-   }
-
    /* work towards a 16-byte aligned dptr (and hence 16-byte aligned sptr) */
+   dtmp = (size_t)d & MEMMASK;
    if (dtmp && num)
    {
       i = (MEMALIGN - dtmp)/sizeof(float);
@@ -54,6 +48,7 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
          } while(--i);
       }
    }
+   stmp = (size_t)s & MEMMASK;
 
    step = 8*sizeof(__m256)/sizeof(float);
 
@@ -69,47 +64,95 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
       num -= i*step;
       s += i*step;
       d += i*step;
-      do
+
+      if (stmp)
       {
-         ymm0 = _mm256_load_ps((const float*)sptr++);
-         ymm1 = _mm256_load_ps((const float*)sptr++);
-         ymm2 = _mm256_load_ps((const float*)sptr++);
-         ymm3 = _mm256_load_ps((const float*)sptr++);
+         do
+         {
+            ymm0 = _mm256_loadu_ps((const float*)sptr++);
+            ymm1 = _mm256_loadu_ps((const float*)sptr++);
+            ymm2 = _mm256_loadu_ps((const float*)sptr++);
+            ymm3 = _mm256_loadu_ps((const float*)sptr++);
 
-         if (need_step) {
-            v += vstep;
-            tv = _mm256_set1_ps(v);
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
+
+            ymm4 = _mm256_loadu_ps((const float*)sptr++);
+            ymm5 = _mm256_loadu_ps((const float*)sptr++);
+            ymm5 = _mm256_loadu_ps((const float*)sptr++);
+            ymm7 = _mm256_loadu_ps((const float*)sptr++);
+
+            ymm0 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
+            ymm1 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1, tv);
+            ymm2 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+2)), ymm2, tv);
+            ymm3 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+3)), ymm3, tv);
+            ymm4 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+4)), ymm4, tv);
+            ymm5 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+5)), ymm5, tv);
+            ymm6 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+6)), ymm6, tv);
+            ymm7 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+7)), ymm7, tv);
+
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+            _mm256_store_ps((float*)dptr++, ymm2);
+            _mm256_store_ps((float*)dptr++, ymm3);
+            _mm256_store_ps((float*)dptr++, ymm4);
+            _mm256_store_ps((float*)dptr++, ymm5);
+            _mm256_store_ps((float*)dptr++, ymm6);
+            _mm256_store_ps((float*)dptr++, ymm7);
          }
-
-         ymm4 = _mm256_load_ps((const float*)sptr++);
-         ymm5 = _mm256_load_ps((const float*)sptr++);
-         ymm5 = _mm256_load_ps((const float*)sptr++);
-         ymm7 = _mm256_load_ps((const float*)sptr++);
-
-         ymm0 =_mm256_fmadd_ps(ymm0, tv,_mm256_load_ps((const float*)(dptr+0)));
-         ymm1 =_mm256_fmadd_ps(ymm1, tv,_mm256_load_ps((const float*)(dptr+1)));
-         ymm2 =_mm256_fmadd_ps(ymm2, tv,_mm256_load_ps((const float*)(dptr+2)));
-         ymm3 =_mm256_fmadd_ps(ymm3, tv,_mm256_load_ps((const float*)(dptr+3)));
-         ymm4 =_mm256_fmadd_ps(ymm4, tv,_mm256_load_ps((const float*)(dptr+4)));
-         ymm5 =_mm256_fmadd_ps(ymm5, tv,_mm256_load_ps((const float*)(dptr+5)));
-         ymm6 =_mm256_fmadd_ps(ymm6, tv,_mm256_load_ps((const float*)(dptr+6)));
-         ymm7 =_mm256_fmadd_ps(ymm7, tv,_mm256_load_ps((const float*)(dptr+7)));
-
-         if (need_step) {
-            v += vstep;
-            tv = _mm256_set1_ps(v);
-         }
-
-         _mm256_store_ps((float*)dptr++, ymm0);
-         _mm256_store_ps((float*)dptr++, ymm1);
-         _mm256_store_ps((float*)dptr++, ymm2);
-         _mm256_store_ps((float*)dptr++, ymm3);
-         _mm256_store_ps((float*)dptr++, ymm4);
-         _mm256_store_ps((float*)dptr++, ymm5);
-         _mm256_store_ps((float*)dptr++, ymm6);
-         _mm256_store_ps((float*)dptr++, ymm7);
+         while(--i);
       }
-      while(--i);
+      else
+      {
+         do
+         {
+            ymm0 = _mm256_load_ps((const float*)sptr++);
+            ymm1 = _mm256_load_ps((const float*)sptr++);
+            ymm2 = _mm256_load_ps((const float*)sptr++);
+            ymm3 = _mm256_load_ps((const float*)sptr++);
+
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
+
+            ymm4 = _mm256_load_ps((const float*)sptr++);
+            ymm5 = _mm256_load_ps((const float*)sptr++);
+            ymm5 = _mm256_load_ps((const float*)sptr++);
+            ymm7 = _mm256_load_ps((const float*)sptr++);
+
+            ymm0 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
+            ymm1 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1, tv);
+            ymm2 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+2)), ymm2, tv);
+            ymm3 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+3)), ymm3, tv);
+            ymm4 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+4)), ymm4, tv);
+            ymm5 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+5)), ymm5, tv);
+            ymm6 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+6)), ymm6, tv);
+            ymm7 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+7)), ymm7, tv);
+
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+            _mm256_store_ps((float*)dptr++, ymm2);
+            _mm256_store_ps((float*)dptr++, ymm3);
+            _mm256_store_ps((float*)dptr++, ymm4);
+            _mm256_store_ps((float*)dptr++, ymm5);
+            _mm256_store_ps((float*)dptr++, ymm6);
+            _mm256_store_ps((float*)dptr++, ymm7);
+         }
+         while(--i);
+      }
       vstep /= step;
 
       step = 2*sizeof(__m256)/sizeof(float);
@@ -120,22 +163,44 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
          num -= i*step;
          s += i*step;
          d += i*step;
-         do
+         if (sptr)
          {
-            __m256 tv = _mm256_set1_ps(v);
+            do
+            {
+               __m256 tv = _mm256_set1_ps(v);
 
-            ymm0 = _mm256_load_ps((const float*)sptr++);
-            ymm1 = _mm256_load_ps((const float*)sptr++);
+               ymm0 = _mm256_loadu_ps((const float*)sptr++);
+               ymm1 = _mm256_loadu_ps((const float*)sptr++);
 
-            ymm0 =_mm256_fmadd_ps(ymm0, tv,_mm256_load_ps((const float*)(dptr+0)));
-            ymm1 =_mm256_fmadd_ps(ymm1, tv,_mm256_load_ps((const float*)(dptr+1)));
+               ymm0 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
+               ymm1 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1, tv);
 
-            v += vstep;
+               v += vstep;
 
-            _mm256_store_ps((float*)dptr++, ymm0);
-            _mm256_store_ps((float*)dptr++, ymm1);
+               _mm256_store_ps((float*)dptr++, ymm0);
+               _mm256_store_ps((float*)dptr++, ymm1);
+            }
+            while(--i);
          }
-         while(--i);
+         else
+         {
+            do
+            {
+               __m256 tv = _mm256_set1_ps(v);
+
+               ymm0 = _mm256_load_ps((const float*)sptr++);
+               ymm1 = _mm256_load_ps((const float*)sptr++);
+
+               ymm0 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
+               ymm1 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1, tv);
+
+               v += vstep;
+
+               _mm256_store_ps((float*)dptr++, ymm0);
+               _mm256_store_ps((float*)dptr++, ymm1);
+            }
+            while(--i);
+         }
          vstep /= step;
       }
       _mm256_zeroall();
