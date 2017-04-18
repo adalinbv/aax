@@ -348,13 +348,12 @@ _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       while (--q);
 
       rbd->add(dptr, hptr+cpos, dnum, convolution->gain, 0.0f);
-//    memcpy(dptr, hptr+cpos, dnum*sizeof(MIX_T));
 
       cpos += dnum;
 //    if ((cpos + cnum) > convolution->history_max)
       {
-         size_t bytes = (hnum-dnum)*sizeof(MIX_T);
-         memmove(hptr, hptr+cpos, bytes);
+         memmove(hptr, hptr+cpos, cnum*sizeof(MIX_T));
+         memset(hptr+cnum, 0, dnum*sizeof(MIX_T));
          cpos = 0;
       }
       convolution->history_start = cpos;
