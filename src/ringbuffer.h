@@ -205,6 +205,7 @@ typedef struct
 
 typedef struct
 {
+   float rms;
    float gain;
    float silence_level;
 
