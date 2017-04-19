@@ -84,6 +84,7 @@ enum _aaxRingBufferMode
 #if RB_FLOAT_DATA
 # define MIX_T                  float
 # define MIX_PTR_T              float32_ptr
+# define MIX_PTRPTR_T           float32_ptrptr
 # define CONST_MIX_PTR_T        const_float32_ptr
 # define CONST_MIX_PTRPTR_T     const_float32_ptrptr
 #else
@@ -211,13 +212,15 @@ typedef struct
 
    void* history_ptr;
    MIX_T* history[_AAX_MAX_SPEAKERS];
+   unsigned int history_start[_AAX_MAX_SPEAKERS];
    unsigned int history_samples;
-   unsigned int history_start;
    unsigned int history_max;
 
    size_t no_samples;
    void **sample_ptr;
    MIX_T *sample;
+
+   void *tid[_AAX_MAX_SPEAKERS];
 
 } _aaxRingBufferConvolutionData;
 

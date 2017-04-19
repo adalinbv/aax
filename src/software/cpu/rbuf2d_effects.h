@@ -30,7 +30,7 @@ void _aaxRingBufferEffectDistort(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR
 void _aaxRingBufferEffectDelay(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 void _aaxRingBufferEffectReflections(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, unsigned int, const void*);
 void _aaxRingBufferEffectReverb(_aaxRingBufferSample*, MIX_PTR_T, size_t, size_t, size_t, unsigned int, const void*);
-void _aaxRingBufferEffectConvolution(_aaxRingBufferSample*, MIX_PTR_T, size_t, size_t, unsigned int, void*);
+void _aaxRingBufferEffectConvolution(_aaxRingBufferSample*, MIX_PTRPTR_T, size_t, size_t, unsigned int, void*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
