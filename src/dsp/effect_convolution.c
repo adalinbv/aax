@@ -69,6 +69,13 @@ _aaxConvolutionEffectDestroy(_effect_t* effect)
    _aaxRingBufferConvolutionData* data = effect->slot[0]->data;
    if (data)
    {
+      unsigned int t;
+      for (t=0; t<_AAX_MAX_SPEAKERS; ++t) 
+      {
+         _aaxThreadJoin(data->tid[t]);
+         _aaxThreadDestroy(data->tid[t]);
+      }
+
       free(data->history_ptr);
       free(data->sample_ptr);
    }
@@ -122,6 +129,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
          if (end > start)
          {
+            unsigned int t;
             double rms = 0;
 
             do
@@ -144,7 +152,13 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
                                               2*no_samples, tracks);
             convolution->history_samples = no_samples;
             convolution->history_max = 2*no_samples;
-            convolution->history_start = 0;
+
+            for (t=0; t<_AAX_MAX_SPEAKERS; ++t)
+            {
+               convolution->tid[t] = _aaxThreadCreate();
+               convolution->history_start[t] = 0;
+            }
+            
             rv = effect;
          }
       }

@@ -189,15 +189,17 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
 
    scratch = (MIX_T**)rb->get_scratch(rb);
    ds = rb->get_parami(rb, RB_DDE_SAMPLES);
+
+   if (convolution) {
+      _aaxRingBufferEffectConvolution(rbd, tracks, 0, no_samples, no_tracks,
+                                      convolution);
+   }
+
    for (t=0; t<no_tracks; t++)
    {
       MIX_T *sptr = scratch[SCRATCH_BUFFER0];
       MIX_T *tmp = scratch[SCRATCH_BUFFER1];
       MIX_T *dptr = tracks[t];
-
-      if (convolution) {
-         _aaxRingBufferEffectConvolution(rbd, dptr, 0, no_samples, t, convolution);
-      }
 
       if (reverb)
       {

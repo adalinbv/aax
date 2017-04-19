@@ -113,6 +113,7 @@ typedef const int32_t**RESTRICT		const_int32_ptrptr;
 typedef uint16_t*RESTRICT		float16_ptr;
 typedef const uint16_t*RESTRICT		const_float16_ptr;
 typedef float*RESTRICT			float32_ptr;
+typedef float**RESTRICT			float32_ptrptr;
 typedef const float*RESTRICT		const_float32_ptr;
 typedef const float**RESTRICT		const_float32_ptrptr;
 typedef double*RESTRICT			double64_ptr;
