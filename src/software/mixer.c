@@ -295,6 +295,9 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    rb->limit(rb, RB_LIMITER_ELECTRONIC);
 }
 
+/*
+ * This is the main thread that runs every refresh-rate
+ */
 void*
 _aaxSoftwareMixerThread(void* config)
 {

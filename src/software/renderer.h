@@ -33,6 +33,7 @@ typedef struct _aaxRendererData_t
    _aax2dProps *fp2d;
    _intBuffers *e2d;
    _intBuffers *e3d;
+   _aaxRendererCallback *callback;
    const _aaxDriverBackend *be;
    void *be_handle;
 

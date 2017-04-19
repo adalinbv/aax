@@ -61,6 +61,8 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
    data.sdf = sdf;
    data.dt = drb->get_paramf(drb, RB_DURATION_SEC);
 
+   data.callback = _aaxProcessEmitter;
+
    render->process(render, &data);
 
    return rv;
