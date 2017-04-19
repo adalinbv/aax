@@ -329,7 +329,7 @@ _aaxWorkerThread(void *id)
                      {
                         // _aaxProcessEmitter calls
                         // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-                        _aaxProcessEmitter(drb, data, dptr_src, handle->stage);
+                        data->callback(drb, data, dptr_src, handle->stage);
                      }
                   }
                   while(++pos < max);
