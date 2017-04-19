@@ -424,9 +424,9 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
       i = num/step;
       if (i)
       {
-         __m256* dptr = (__m256*)d;
          __m256 ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
          __m256 tv = _mm256_set1_ps(f);
+         __m256* dptr = (__m256*)d;
 
          num -= i*step;
          d += i*step;
@@ -451,25 +451,29 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
             _mm256_store_ps((float*)dptr++, ymm7);
          }
          while(--i);
-
-         step = 2*sizeof(__m256)/sizeof(float);
-         i = num/step;
-         if (i)
-         {
-            num -= i*step;
-            d += i*step;
-            do
-            {
-               ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)(dptr+0)), tv);
-               ymm1 = _mm256_mul_ps(_mm256_load_ps((const float*)(dptr+1)), tv);
-
-               _mm256_store_ps((float*)dptr++, ymm0);
-               _mm256_store_ps((float*)dptr++, ymm1);
-            }
-            while(--i);
-         }
-         _mm256_zeroall();
       }
+
+      step = 2*sizeof(__m256)/sizeof(float);
+      i = num/step;
+      if (i)
+      {
+         __m256 tv = _mm256_set1_ps(f);
+         __m256* dptr = (__m256*)d;
+         __m256 ymm0, ymm1;
+
+         num -= i*step;
+         d += i*step;
+         do
+         {
+            ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)(dptr+0)), tv);
+            ymm1 = _mm256_mul_ps(_mm256_load_ps((const float*)(dptr+1)), tv);
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+      _mm256_zeroall();
 
       if (num)
       {
@@ -502,9 +506,9 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
       i = num/step;
       if (i)
       {
-         __m256d* dptr = (__m256d*)d;
          __m256d ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
          __m256d tv = _mm256_set1_pd(f);
+         __m256d* dptr = (__m256d*)d;
 
          num -= i*step;
          d += i*step;
@@ -529,25 +533,29 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
             _mm256_store_pd((double*)dptr++, ymm7);
          }
          while(--i);
-
-         step = 2*sizeof(__m256d)/sizeof(double);
-         i = num/step;
-         if (i)
-         {
-            num -= i*step;
-            d += i*step;
-            do
-            {
-               ymm0 =_mm256_mul_pd(_mm256_load_pd((const double*)(dptr+0)), tv);
-               ymm1 =_mm256_mul_pd(_mm256_load_pd((const double*)(dptr+1)), tv);
-
-               _mm256_store_pd((double*)dptr++, ymm0);
-               _mm256_store_pd((double*)dptr++, ymm1);
-            }
-            while(--i);
-         }
-         _mm256_zeroall();
       }
+
+      step = 2*sizeof(__m256d)/sizeof(double);
+      i = num/step;
+      if (i)
+      {
+         __m256d tv = _mm256_set1_pd(f);
+         __m256d* dptr = (__m256d*)d;
+         __m256d ymm0, ymm1;
+
+         num -= i*step;
+         d += i*step;
+         do
+         {
+            ymm0 =_mm256_mul_pd(_mm256_load_pd((const double*)(dptr+0)), tv);
+            ymm1 =_mm256_mul_pd(_mm256_load_pd((const double*)(dptr+1)), tv);
+
+            _mm256_store_pd((double*)dptr++, ymm0);
+            _mm256_store_pd((double*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+      _mm256_zeroall();
 
       if (num)
       {
@@ -775,47 +783,51 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
          }
          while(--i);
       }
-
-      step = 2*sizeof(__m256)/sizeof(float);
-      i = num/step;
-      if (i)
-      {
-         num -= i*step;
-         s += i*step;
-         d += i*step;
-         if (stmp)
-         {
-            do
-            {
-               ymm0 = _mm256_loadu_ps((const float*)sptr++);
-               ymm1 = _mm256_loadu_ps((const float*)sptr++);
-
-               ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
-               ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
-
-               _mm256_store_ps((float*)dptr++, ymm0);
-               _mm256_store_ps((float*)dptr++, ymm1);
-            }
-            while(--i);
-         }
-         else
-         {
-            do
-            {
-               ymm0 = _mm256_load_ps((const float*)sptr++);
-               ymm1 = _mm256_load_ps((const float*)sptr++);
-
-               ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
-               ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
-
-               _mm256_store_ps((float*)dptr++, ymm0);
-               _mm256_store_ps((float*)dptr++, ymm1);
-            }
-            while(--i);
-         }
-      }
-      _mm256_zeroall();
    }
+
+   step = 2*sizeof(__m256)/sizeof(float);
+   i = num/step;
+   if (i)
+   {
+      __m256* sptr = (__m256*)s;
+      __m256* dptr = (__m256*)d;
+      __m256 ymm0, ymm1;
+
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
+      {
+         do
+         {
+            ymm0 = _mm256_loadu_ps((const float*)sptr++);
+            ymm1 = _mm256_loadu_ps((const float*)sptr++);
+
+            ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0);
+            ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1);
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+      else
+      {
+         do
+         {
+            ymm0 = _mm256_load_ps((const float*)sptr++);
+            ymm1 = _mm256_load_ps((const float*)sptr++);
+
+            ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0);
+            ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1);
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+   }
+   _mm256_zeroall();
 
    if (num)
    {
@@ -1073,57 +1085,61 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          while(--i);
       }
       vstep /= step;
-
-      step = 2*sizeof(__m256)/sizeof(float);
-      i = num/step;
-      if (i)
-      {
-         vstep *= step;
-         num -= i*step;
-         s += i*step;
-         d += i*step;
-         if (stmp)
-         {
-            do
-            {
-               __m256 tv = _mm256_set1_ps(v);
-
-               ymm0 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
-               ymm1 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
-
-               ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
-               ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
-
-               v += vstep;
-
-               _mm256_store_ps((float*)dptr++, ymm0);
-               _mm256_store_ps((float*)dptr++, ymm1);
-            }
-            while(--i);
-         }
-         else
-         {
-            do
-            {
-               __m256 tv = _mm256_set1_ps(v);
-
-               ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
-               ymm1 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
-
-               ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
-               ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
-
-               v += vstep;
-
-               _mm256_store_ps((float*)dptr++, ymm0);
-               _mm256_store_ps((float*)dptr++, ymm1);
-            }
-            while(--i);
-         }
-         vstep /= step;
-      }
-      _mm256_zeroall();
    }
+
+   step = 2*sizeof(__m256)/sizeof(float);
+   i = num/step;
+   if (i)
+   {
+      __m256* sptr = (__m256*)s;
+      __m256* dptr = (__m256*)d;
+      __m256 ymm0, ymm1;
+
+      vstep *= step;
+      num -= i*step;
+      s += i*step;
+      d += i*step;
+      if (stmp)
+      {
+         do
+         {
+            __m256 tv = _mm256_set1_ps(v);
+
+            ymm0 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
+            ymm1 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
+
+            ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
+            ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
+
+            v += vstep;
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+      else
+      {
+         do
+         {
+            __m256 tv = _mm256_set1_ps(v);
+
+            ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
+            ymm1 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
+
+            ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
+            ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
+
+            v += vstep;
+
+            _mm256_store_ps((float*)dptr++, ymm0);
+            _mm256_store_ps((float*)dptr++, ymm1);
+         }
+         while(--i);
+      }
+      vstep /= step;
+   }
+   _mm256_zeroall();
 
    if (num)
    {

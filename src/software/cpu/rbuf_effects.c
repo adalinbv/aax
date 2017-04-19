@@ -317,29 +317,27 @@ _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    _aaxRingBufferConvolutionData *convolution = data;
    if (convolution->gain > convolution->silence_level)
    {
-      unsigned int q, dnum, hnum, cnum, cpos;
+      unsigned int q, dnum, cnum, cpos;
       MIX_T *hptr, *cptr, *hcptr;
       MIX_T *sptr = s + dmin;
       MIX_T *dptr = sptr;
-      float f, silence;
+      float v, silence;
 
-      dnum = dmax-dmin;
-      f = 50.0f/dnum;
-
+      v = convolution->rms * convolution->gain;
       silence = convolution->silence_level;
 
       cptr = convolution->sample;
       cnum = convolution->no_samples;
 
       cpos = convolution->history_start;
-      hnum = convolution->history_samples;
       hptr = convolution->history[track];
       hcptr = hptr + cpos;
 
       q = cnum;
+      dnum = dmax-dmin;
       do
       {
-         float volume = *cptr++ * f;
+         float volume = *cptr++ * v;
          if (fabsf(volume) > silence) {
             rbd->add(hcptr, sptr, dnum, volume, 0.0f);
          }
@@ -347,7 +345,7 @@ _aaxRingBufferEffectConvolution(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       }
       while (--q);
 
-      rbd->add(dptr, hptr+cpos, dnum, convolution->gain, 0.0f);
+      rbd->add(dptr, hptr+cpos, dnum, 1.0f, 0.0f);
 
       cpos += dnum;
 //    if ((cpos + cnum) > convolution->history_max)
