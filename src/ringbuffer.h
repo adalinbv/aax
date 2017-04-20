@@ -206,9 +206,10 @@ typedef struct
 
 typedef struct
 {
+   float fc;
    float rms;
-   float gain;
-   float silence_level;
+   float delay_gain;
+   float threshold;
 
    void* history_ptr;
    MIX_T* history[_AAX_MAX_SPEAKERS];
@@ -220,6 +221,7 @@ typedef struct
    void **sample_ptr;
    MIX_T *sample;
 
+   _aaxRingBufferFreqFilterData *freq_filter;
    void *tid[_AAX_MAX_SPEAKERS];
 
 } _aaxRingBufferConvolutionData;

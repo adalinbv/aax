@@ -104,11 +104,42 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
    {
       unsigned int tracks = effect->info->no_tracks;
       unsigned int no_samples = effect->info->no_samples;
+      _aaxRingBufferFreqFilterData *flt;
       float fs = effect->info->frequency;
+      float fc, lfgain;
       void **data;
 
-      convolution->gain = effect->slot[0]->param[AAX_GAIN];
-      convolution->silence_level = effect->slot[0]->param[AAX_SILENCE_LEVEL];
+      convolution->fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+      convolution->delay_gain = effect->slot[0]->param[AAX_MAX_GAIN];
+      convolution->threshold = effect->slot[0]->param[AAX_THRESHOLD];
+
+      flt = convolution->freq_filter;
+      fc = convolution->fc;
+      lfgain = effect->slot[0]->param[AAX_LF_GAIN];
+
+      if (fc < 15000.0f || lfgain < (1.0f - LEVEL_96DB))
+      {
+         if (!flt) {
+            flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
+         }
+
+         flt->lfo = 0;
+         flt->fs = fs;
+         flt->Q = 0.6f;
+         flt->no_stages = 1;
+
+         flt->high_gain = fc/22050.0f;
+         flt->low_gain = lfgain;
+         flt->k = flt->low_gain/flt->high_gain;
+
+         _aax_butterworth_compute(fc, flt);
+      }
+      else if (convolution->freq_filter)
+      {
+         free(flt);
+         flt = NULL;
+      }
+      convolution->freq_filter = flt;
 
       /*
        * convert the buffer data to floats in the range 0.0 .. 1.0
@@ -124,7 +155,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
          float *start = *data;
          float *end =  start + buffer_samples;
 
-         while (end > start && fabsf(*end--) < convolution->silence_level);
+         while (end > start && fabsf(*end--) < convolution->threshold);
          convolution->no_samples = end-start;
 
          if (end > start)
@@ -222,9 +253,9 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxConvolutionRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     2.0f, 1.0f,  0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 22050.0f, 1.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f, 0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
