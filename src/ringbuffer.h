@@ -217,12 +217,15 @@ typedef struct
    unsigned int history_samples;
    unsigned int history_max;
 
+   unsigned int step;
+
    size_t no_samples;
    void **sample_ptr;
    MIX_T *sample;
 
    _aaxRingBufferFreqFilterData *freq_filter;
    void *tid[_AAX_MAX_SPEAKERS];
+
 
 } _aaxRingBufferConvolutionData;
 

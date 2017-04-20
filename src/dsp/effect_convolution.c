@@ -145,6 +145,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
        * convert the buffer data to floats in the range 0.0 .. 1.0
        * using the mixer frequency
        */
+      convolution->step = (int)fs/aaxBufferGetSetup(buffer, AAX_FREQUENCY);
       aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
       data = aaxBufferGetData(buffer);
