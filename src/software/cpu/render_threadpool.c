@@ -225,49 +225,82 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 
    assert(data);
 
-   stage = 2;
-   do
+   /*
+    * process emitters
+    */
+   if (he)
    {
-      unsigned int no_emitters, max_emitters;
-
-      max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
-      no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
-#ifdef NDEBUG
-      if (no_emitters)
-#endif
+      stage = 2;
+      do
       {
-         int num;
+         unsigned int no_emitters, max_emitters;
 
-         handle->he = he;
-         handle->stage = stage;
-         handle->max_emitters = no_emitters ? max_emitters : 0;
+         max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
+         no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
+#ifdef NDEBUG
+         if (no_emitters)
+#endif
+         {
+            int num;
+
+            handle->he = he;
+            handle->stage = stage;
+            handle->max_emitters = no_emitters ? max_emitters : 0;
+            handle->data = data;
+
+            // wake up the worker threads
+            num = 1+(no_emitters/_AAX_MIN_EMITTERS_PER_WORKER);
+            num = _MIN(handle->no_workers, num);
+            _aaxAtomicIntAdd(&handle->workers_busy, num);
+            do {
+               _aaxSemaphoreRelease(handle->worker_start);
+            }
+            while (--num);
+
+            // Wait until al worker threads are finished
+            _aaxSemaphoreWait(handle->worker_ready);
+
+            rv = AAX_TRUE;
+         }
+         _intBufReleaseNum(he, _AAX_EMITTER);
+
+         /*
+          * stage == 2 is 3d positional audio
+          * stage == 1 is stereo audio
+          */
+         if (stage == 2) {
+            he = data->e2d;	/* switch to stereo */
+         }
+      }
+      while (--stage); /* process 3d positional and stereo emitters */
+   }
+
+   /*
+    * process convolution
+    */
+   else
+   {
+      _aaxRingBuffer *rb = data->drb;
+      unsigned int no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+
+      _aaxAtomicIntAdd(&handle->workers_busy, no_tracks);
+
+      // wake up the worker threads
+      for (stage=0; stage<no_tracks; ++stage)
+      {
+         handle->he = NULL;
+         handle->stage = 0;
+         handle->max_emitters = no_tracks;
          handle->data = data;
 
-         // wake up the worker threads
-         num = 1+(no_emitters/_AAX_MIN_EMITTERS_PER_WORKER);
-         num = _MIN(handle->no_workers, num);
-         _aaxAtomicIntAdd(&handle->workers_busy, num);
-         do {
-            _aaxSemaphoreRelease(handle->worker_start);
-         }
-         while (--num);
-
-         // Wait until al worker threads are finished
-         _aaxSemaphoreWait(handle->worker_ready);
-
-         rv = AAX_TRUE;
+         _aaxSemaphoreRelease(handle->worker_start);
       }
-      _intBufReleaseNum(he, _AAX_EMITTER);
 
-      /*
-       * stage == 2 is 3d positional audio
-       * stage == 1 is stereo audio
-       */
-      if (stage == 2) {
-         he = data->e2d;	/* switch to stereo */
-      }
+      // Wait until al worker threads are finished
+      _aaxSemaphoreWait(handle->worker_ready);
+
+      rv = AAX_TRUE;
    }
-   while (--stage); /* process 3d positional and stereo emitters */
 
    return rv;
 }
@@ -294,7 +327,7 @@ _aaxWorkerThread(void *id)
    {
       int *busy = &handle->workers_busy;
       int *num = &handle->max_emitters;
-       _aaxRendererData *data;
+      _aaxRendererData *data;
       _aaxRingBuffer *drb;
 
       data = handle->data;
@@ -305,8 +338,27 @@ _aaxWorkerThread(void *id)
 
       _aaxThreadSetPriority(thread->ptr, AAX_HIGH_PRIORITY);
       do
-      {		// process up to 32 emitters at a time
-         if (handle->max_emitters)
+      {
+         data = handle->data;
+
+         /*
+          * process convolution
+          */
+         if (!handle->he)
+         {
+            int track = _aaxAtomicIntSub(num, 1) - 1;
+
+            data->callback(data->drb, data, NULL, track);
+
+            if (_aaxAtomicIntDecrement(busy) == 0) {
+               _aaxSemaphoreRelease(handle->worker_ready);
+            }
+         }
+
+         /*
+          * else: process up to 32 emitters at a time
+          */
+         else if (handle->max_emitters)
          {
             int max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
 
@@ -316,7 +368,6 @@ _aaxWorkerThread(void *id)
              */
             if (max > 0)
             {
-               data = handle->data;
                do
                {
                   int pos = _MAX(max - _AAX_MIN_EMITTERS_PER_WORKER, 0);
@@ -346,11 +397,11 @@ _aaxWorkerThread(void *id)
                drb->data_clear(drb);
                drb->set_state(drb, RB_REWINDED);
             }
-         }
 
-         /* if we're the last active worker trigger the signal */
-         if (_aaxAtomicIntDecrement(busy) == 0) {
-             _aaxSemaphoreRelease(handle->worker_ready);
+            /* if we're the last active worker trigger the signal */
+            if (_aaxAtomicIntDecrement(busy) == 0) {
+                _aaxSemaphoreRelease(handle->worker_ready);
+            }
          }
 
          _aaxSemaphoreWait(handle->worker_start);

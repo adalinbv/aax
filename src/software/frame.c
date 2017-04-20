@@ -234,7 +234,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    if (fprocess && process)
    {
       be->effects(be, be_handle, dest_rb, fp2d);
-      be->postprocess(be_handle, dest_rb, sensor, subframe, fmixer->info);
+      be->postprocess(be, be_handle, dest_rb, sensor, subframe, fmixer->info);
    }
 
    return process;
