@@ -320,7 +320,7 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, _intBuf
    MIX_T *hcptr, *hptr, *sptr, *dptr, *cptr;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   float v, silence;
+   float v, threshold;
 
    rbi = rb->handle;
    rbd = rbi->sample;
@@ -331,8 +331,8 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, _intBuf
    cptr = convolution->sample;
    cnum = convolution->no_samples;
 
-   v = convolution->rms * convolution->gain;
-   silence = convolution->silence_level;
+   v = convolution->rms * convolution->delay_gain;
+   threshold = convolution->threshold;
 
    hptr = convolution->history[t];
    hpos = convolution->history_start[t];
@@ -342,19 +342,29 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, _intBuf
    do
    {
       float volume = *cptr++ * v;
-      if (fabsf(volume) > silence) {
+      if (fabsf(volume) > threshold) {
          rbd->add(hcptr, sptr, dnum, volume, 0.0f);
       }
       hcptr++;
    }
    while (--q);
 
-// TODO: frequency filter for the direct path (dptr)
+   if (convolution->freq_filter)
+   {
+      _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
 
+      if (convolution->fc > 15000.0f) {
+         rbd->multiply(dptr, sizeof(MIX_T), dnum, flt->low_gain);
+      }
+      else {
+         _aaxRingBufferFilterFrequency(rbd, dptr, sptr, 0, dnum, 0, t,
+                                       convolution->freq_filter, NULL, 0);
+      }
+   }
    rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
 
    hpos += dnum;
-// if ((hpos + cnum) > convolution->history_max)
+// if ((hpos + cnum) > convolution->history_samples)
    {
       memmove(hptr, hptr+hpos, cnum*sizeof(MIX_T));
       hpos = 0;
@@ -369,7 +379,7 @@ void
 _aaxRingBufferEffectConvolution(const _aaxDriverBackend *be, const void *be_handle, _aaxRingBuffer *rb, void *data)
 {
    _aaxRingBufferConvolutionData *convolution = data;
-   if (convolution->gain > convolution->silence_level)
+   if (convolution->delay_gain > convolution->threshold)
    {
       _aaxRenderer *render = be->render(be_handle);
       _aaxRendererData d;
