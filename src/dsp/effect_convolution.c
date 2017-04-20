@@ -128,7 +128,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
          flt->Q = 0.6f;
          flt->no_stages = 1;
 
-         flt->high_gain = fc/22050.0f;
+         flt->high_gain = _lin2log(fc)/4.343409f;
          flt->low_gain = lfgain;
          flt->k = flt->low_gain/flt->high_gain;
 
