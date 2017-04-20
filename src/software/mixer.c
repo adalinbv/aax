@@ -124,7 +124,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 }
 
 void
-_aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void *f, void *i)
+_aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const void *s, const void *f, void *i)
 {
    _aaxRingBufferReverbData *reverb;
    _aaxRingBufferConvolutionData *convolution;
@@ -191,8 +191,7 @@ _aaxSoftwareMixerPostProcess(const void *id, void *d, const void *s, const void 
    ds = rb->get_parami(rb, RB_DDE_SAMPLES);
 
    if (convolution) {
-      _aaxRingBufferEffectConvolution(rbd, tracks, 0, no_samples, no_tracks,
-                                      convolution);
+      _aaxRingBufferEffectConvolution(id, hid, rb, convolution);
    }
 
    for (t=0; t<no_tracks; t++)

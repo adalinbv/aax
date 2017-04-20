@@ -58,6 +58,26 @@ _aaxDetectCPURenderer()
 
 /* -------------------------------------------------------------------------- */
 
+typedef struct
+{
+   int no_tracks;
+   _aaxRendererData *data;
+
+} _render_t;
+
+static void*
+_aaxConvolutionThread(void *id)
+{
+   _render_t *handle = (_render_t*)id;
+   _aaxRendererData *data = handle->data;
+   int *num = &handle->no_tracks;
+   int track = _aaxAtomicIntSub(num, 1) - 1;
+
+   data->callback(data->drb, data, NULL, track);
+
+   return id;
+}
+
 static int
 _aaxCPUDetect()
 {
@@ -107,41 +127,73 @@ _aaxCPUProcess(struct _aaxRenderer_t *render, _aaxRendererData *data)
    unsigned int stage;
    int rv = AAX_TRUE;
 
-   stage = 2;
-   do
+   /*
+    * process emitters
+    */
+   if (he)
    {
-      unsigned int no_emitters;
-
-      no_emitters = _intBufGetNum(he, _AAX_EMITTER);
-      if (no_emitters)
+      stage = 2;
+      do
       {
-         unsigned int pos = 0;
-         do
+         unsigned int no_emitters;
+
+         no_emitters = _intBufGetNum(he, _AAX_EMITTER);
+         if (no_emitters)
          {
-            _intBufferData *dptr_src;
-
-            if ((dptr_src = _intBufGet(he, _AAX_EMITTER, pos++)) != NULL)
+            unsigned int pos = 0;
+            do
             {
-               // _aaxProcessEmitter calls
-               // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-               _aaxProcessEmitter(data->drb, data, dptr_src, stage);
+               _intBufferData *dptr_src;
+
+               if ((dptr_src = _intBufGet(he, _AAX_EMITTER, pos++)) != NULL)
+               {
+                  // _aaxProcessEmitter calls
+                  // _intBufReleaseData(dptr_src, _AAX_EMITTER);
+                  _aaxProcessEmitter(data->drb, data, dptr_src, stage);
+               }
             }
+            while (--no_emitters);
+
+            rv = AAX_TRUE;
          }
-         while (--no_emitters);
+         _intBufReleaseNum(he, _AAX_EMITTER);
 
-         rv = AAX_TRUE;
+         /*
+          * stage == 2 is 3d positional audio
+          * stage == 1 is stereo audio
+          */
+         if (stage == 2) {
+            he = data->e2d;	/* switch to stereo */
+         }
       }
-      _intBufReleaseNum(he, _AAX_EMITTER);
-
-      /*
-       * stage == 2 is 3d positional audio
-       * stage == 1 is stereo audio
-       */
-      if (stage == 2) {
-         he = data->e2d;	/* switch to stereo */
-      }
+      while (--stage); /* process 3d positional and stereo emitters */
    }
-   while (--stage); /* process 3d positional and stereo emitters */
+
+   /*
+    * process convolution
+    */
+   else
+   {
+      _aaxRingBufferConvolutionData *convolution = data->be_handle;
+      _aaxRingBuffer *rb = data->drb;
+      unsigned int t, no_tracks;
+      _render_t handle;
+
+      no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+
+      handle.no_tracks = no_tracks;
+      handle.data = data;
+
+      for (t=0; t<no_tracks; ++t) {
+         _aaxThreadStart(convolution->tid[t], _aaxConvolutionThread, &handle,0);
+      }
+
+      for (t=0; t<no_tracks; ++t) {
+         _aaxThreadJoin(convolution->tid[t]);
+      }
+
+      rv = AAX_TRUE;
+   }
 
    return rv;
 }

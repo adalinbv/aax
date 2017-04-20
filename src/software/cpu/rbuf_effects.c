@@ -24,6 +24,7 @@
 #include <api.h>
 #include <arch.h>
 #include <ringbuffer.h>
+#include <software/renderer.h>
 
 #include "rbuf2d_effects.h"
 
@@ -311,44 +312,46 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
 }
 
 /** Convolution Effect */
-typedef struct {
-   MIX_PTRPTR_T s;
-   _aaxRingBufferSample *rbd;
-   _aaxRingBufferConvolutionData *convolution;
-   size_t dmin, dmax;
-   unsigned int t;
-
-} _convolution_t;
-
-void*
-_aaxRingBufferConvolutionThread(void *data)
+int
+_aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, _intBufferData *dptr_src, unsigned int t)
 {
-   _convolution_t *d = data;
-   unsigned int q, hpos, dnum, t = d->t;
-   unsigned int cnum = d->convolution->no_samples;
-   float v = d->convolution->rms * d->convolution->gain;
-   float silence = d->convolution->silence_level;
-   MIX_T *hcptr, *hptr = d->convolution->history[t];
-   MIX_T *cptr = d->convolution->sample;
-   MIX_T *sptr = d->s[t] + d->dmin;
-   MIX_T *dptr = sptr;
+   unsigned int cnum, q, hpos, dnum;
+   _aaxRingBufferConvolutionData *convolution;
+   MIX_T *hcptr, *hptr, *sptr, *dptr, *cptr;
+   _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
+   float v, silence;
 
-   hpos = d->convolution->history_start[t];
+   rbi = rb->handle;
+   rbd = rbi->sample;
+   dptr = sptr = rbd->track[t];
+   dnum = rb->get_parami(rb, RB_NO_SAMPLES);
+
+   convolution = d->be_handle;
+   cptr = convolution->sample;
+   cnum = convolution->no_samples;
+
+   v = convolution->rms * convolution->gain;
+   silence = convolution->silence_level;
+
+   hptr = convolution->history[t];
+   hpos = convolution->history_start[t];
    hcptr = hptr + hpos;
 
    q = cnum;
-   dnum = d->dmax - d->dmin;
    do
    {
       float volume = *cptr++ * v;
       if (fabsf(volume) > silence) {
-         d->rbd->add(hcptr, sptr, dnum, volume, 0.0f);
+         rbd->add(hcptr, sptr, dnum, volume, 0.0f);
       }
       hcptr++;
    }
    while (--q);
 
-   d->rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
+// TODO: frequency filter for the direct path (dptr)
+
+   rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
 
    hpos += dnum;
 // if ((hpos + cnum) > convolution->history_max)
@@ -357,51 +360,28 @@ _aaxRingBufferConvolutionThread(void *data)
       hpos = 0;
    }
    memset(hptr+hpos+cnum, 0, dnum*sizeof(MIX_T));
-   d->convolution->history_start[t] = hpos;
+   convolution->history_start[t] = hpos;
 
-   return data;
+   return 0;
 }
 
 void
-_aaxRingBufferEffectConvolution(_aaxRingBuffer *rb, void *data)
+_aaxRingBufferEffectConvolution(const _aaxDriverBackend *be, const void *be_handle, _aaxRingBuffer *rb, void *data)
 {
    _aaxRingBufferConvolutionData *convolution = data;
    if (convolution->gain > convolution->silence_level)
    {
-#if 1
-      _aaxRingBufferData *rbi = rb->handle;
-      _aaxRingBufferSample *rbd = rbi->sample;
-      _convolution_t d[_AAX_MAX_SPEAKERS];
-      unsigned int t, tracks;
-
-      tracks = rb->get_parami(rb, RB_NO_TRACKS);
-      for (t=0; t<tracks; ++t)
-      {
-         d[t].t = t;
-         d[t].s = (MIX_T**)rbd->track;
-         d[t].rbd = rbd;
-         d[t].dmin = 0;
-         d[t].dmax = rb->get_parami(rb, RB_NO_SAMPLES);
-         d[t].convolution = data;
-         _aaxThreadStart(convolution->tid[t], _aaxRingBufferConvolutionThread,
-                         &d[t], 0);
-      }
-
-      for (t=0; t<tracks; ++t) {
-         _aaxThreadJoin(convolution->tid[t]);
-      }
-#else
       _aaxRenderer *render = be->render(be_handle);
       _aaxRendererData d;
 
       d.drb = rb;
-      d.info = convolution;
+      d.info = NULL;
       d.fdp3d_m = NULL;
       d.fp2d = NULL;
       d.e2d = NULL;
-      d.e3d = NULL:
+      d.e3d = NULL;
       d.be = NULL;
-      d.be_handle = NULL;
+      d.be_handle = convolution;
 
       d.ssv = 0.0f;
       d.sdf = 0.0f;
@@ -409,7 +389,6 @@ _aaxRingBufferEffectConvolution(_aaxRingBuffer *rb, void *data)
       d.callback = _aaxRingBufferConvolutionThread;
 
       render->process(render, &d);
-#endif
    }
 }
 
