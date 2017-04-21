@@ -166,20 +166,10 @@ _aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned 
       /* In stereo-link mode the left track (0) provides the data */
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         MIX_T *sptr = (MIX_T *)ptr;
-         size_t i = num;
          float lvl, fact;
-         double rms, val;
+         float rms, peak;
 
-         rms = 0;
-         do
-         {
-            val = *sptr++;
-            rms += val*val;		// rms
-         }
-         while (--i);
-         rms = sqrt(rms/num);
-//       _batch_get_average_rms(ptr, num, &rms, &peak);
+         _batch_get_average_rms(ptr, num, &rms, &peak);
          lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          olvl = lfo->value[track];
@@ -213,20 +203,10 @@ _aaxRingBufferLFOGetCompressor(void* data, void *env, const void *ptr, unsigned 
       gf = _MIN(powf(oavg/lfo->gate_threshold, 10.0f), 1.0f);
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         MIX_T *sptr = (MIX_T *)ptr;
          float lvl, fact = 1.0f;
-         size_t i = num;
-         double rms, val;
+         float rms, peak;
 
-//       _batch_get_average_rms(ptr, num, &rms, &peak);
-         rms = 0;
-         do
-         {
-            val = *sptr++;
-            rms += val*val;		// rms
-         }
-         while (--i);
-         rms = sqrt(rms/num);
+         _batch_get_average_rms(ptr, num, &rms, &peak);
          lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          fact = lfo->gate_period;
