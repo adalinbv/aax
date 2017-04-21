@@ -41,10 +41,11 @@
 #include "driver.h"
 #include "wavfile.h"
 
+#define REFRATE			46
 #define FILE_PATH		SRC_PATH"/stereo.wav"
 
 // From: http://www.cksde.com/p_6_250.htm
-#define IRFILE_PATH		SRC_PATH"/ex3_imp3.wav"
+#define IRFILE_PATH		SRC_PATH"/convolution.wav"
 
 int main(int argc, char **argv)
 {
@@ -88,15 +89,32 @@ int main(int argc, char **argv)
             res = aaxMixerInit(config);
             testForState(res, "aaxMixerInit");
 
+            res = aaxMixerSetSetup(config, AAX_REFRESHRATE, REFRATE);
+            testForState(res, "aaxMixerSetSetup");
+
+            printf("refresh rate: %i\n", aaxMixerGetSetup(config, AAX_REFRESHRATE));
+
             res = aaxMixerRegisterEmitter(config, emitter);
             testForState(res, "aaxMixerRegisterEmitter");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
-            /* equalizer */
+            /* convolution effect */
             effect = aaxEffectCreate(config, AAX_CONVOLUTION_EFFECT);
             testForError(effect, "aaxEffectCreate");
+
+            res = aaxEffectSetParam(effect, AAX_CUTOFF_FREQUENCY, AAX_LINEAR, 5000.0f);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEffectSetParam(effect, AAX_LF_GAIN, AAX_LINEAR, 1.0f);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEffectSetParam(effect, AAX_MAX_GAIN, AAX_LINEAR, 1.0f);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEffectSetParam(effect, AAX_THRESHOLD, AAX_LOGARITHMIC, -40.0f);
+            testForState(res, "aaxEffectSetParam");
 
             res = aaxEffectAddBuffer(effect, irbuffer);
             testForState(res, "aaxEffectAddBuffer");
