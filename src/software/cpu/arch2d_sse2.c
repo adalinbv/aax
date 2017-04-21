@@ -31,6 +31,45 @@
 
 
 void
+_batch_get_average_rms_sse2(const_float32_ptr d, size_t num, float *rms , float *peak)
+{
+   size_t max = num;
+   double rms_total;
+   float peak_cur;
+
+   if (num)
+   {
+      do
+      {
+         float samp = *d++;
+         float val = samp*samp;
+         rms_total += val;
+         if (val > peak_cur) peak_cur = val;
+      }
+      while (--num);
+   }
+
+   *rms = sqrt(rms_total/max);
+   *peak = sqrtf(peak_cur);
+}
+
+void
+_batch_saturate24_sse2(void *data, size_t num)
+{
+   if (num)
+   {
+      int32_t* p = (int32_t*)data;
+      size_t i = num;
+      do
+      {
+         int32_t samp = _MINMAX(*p, -8388607, 8388607);
+         *p++ = samp;
+      }
+      while(--i);
+   }
+}
+
+void
 _batch_cvt24_ps_sse2(void_ptr dst, const_void_ptr src, size_t num)
 {
    int32_t *d = (int32_t*)dst;

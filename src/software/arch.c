@@ -52,6 +52,7 @@ _batch_cvt_from_intl_proc _batch_cvt24_ph_intl = _batch_cvt24_ph_intl_cpu;
 _batch_cvt_from_intl_proc _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_cpu;
 _batch_cvt_from_intl_proc _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_cpu;
 
+_batch_get_average_rms_proc _batch_get_average_rms = _batch_get_average_rms_cpu;
 _batch_cvt_proc _batch_saturate24 = _batch_saturate24_cpu;
 
 _batch_cvt_proc _batch_cvt8u_8s = _batch_cvt8u_8s_cpu;

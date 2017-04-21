@@ -876,6 +876,30 @@ _batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
 }
 
 void
+_batch_get_average_rms_cpu(const_float32_ptr data, size_t num, float *rms , float *peak)
+{
+   double rms_total;
+   float peak_cur;
+   size_t j = num;
+
+   assert(num);
+
+   peak_cur = 0.0f;
+   rms_total = 0.0;
+   do
+   {
+      float samp = *data++;            // rms
+      float val = samp*samp;
+      rms_total += val;
+      if (val > peak_cur) peak_cur = val;
+   }
+   while (--j);
+
+   *rms = sqrt(rms_total/num);
+   *peak = sqrtf(peak_cur);
+}
+
+void
 _batch_saturate24_cpu(void *data, size_t num)
 {
    if (num)
