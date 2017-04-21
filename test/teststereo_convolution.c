@@ -161,6 +161,9 @@ int main(int argc, char **argv)
         }
     }
 
+    aaxBufferDestroy(irbuffer);
+    aaxBufferDestroy(buffer);
+
     res = aaxDriverClose(config);
     res = aaxDriverDestroy(config);
 

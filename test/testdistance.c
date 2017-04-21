@@ -107,7 +107,9 @@ int main(int argc, char **argv)
             testForState(res, "aaxMatrixSetOrientation");
 
             res = aaxMatrixInverse(mtx);
-            res |= aaxSensorSetMatrix(config, mtx);
+            testForState(res, "aaxMatrixInverse");
+
+            res = aaxSensorSetMatrix(config, mtx);
             testForState(res, "aaxSensorSetMatrix");
 
             res = aaxSensorSetVelocity(config, SensorVel);
