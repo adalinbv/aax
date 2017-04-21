@@ -52,6 +52,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
    } while (size--);
 
    info->no_tracks = 2;
+   info->bitrate = 320;
    info->track = AAX_TRACK_ALL;
 
    info->pitch = 1.0f;
@@ -63,8 +64,9 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
    info->max_emitters = _AAX_MAX_MIXER_REGISTERED;
    info->max_registered = 0;
 
-   info->bitrate = 320;
    info->update_rate = 0;
+   info->sse_level = _aaxGetSIMDSupportLevel();
+   info->no_cores = _aaxGetNoCores();
 
    info->id = INFO_ID;
    info->backend = handle;

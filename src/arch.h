@@ -36,6 +36,22 @@ extern "C" {
 # define SIMD_PREFIX
 #endif
 
+enum {
+   AAX_SIMD_NONE = 0,
+   AAX_SIMD_MMX,
+   AAX_SIMD_SSE,
+   AAX_SIMD_SSE2,
+   AAX_SIMD_SSE3,
+   AAX_SIMD_SSSE3,
+   AAX_SIMD_SSE4A,
+   AAX_SIMD_SSE41,
+   AAX_SIMD_SSE42,
+   AAX_SIMD_AVX,
+   AAX_SIMD_XOP,
+   AAX_SIMD_AVX2,
+   AAX_SIMD_MAX
+};
+
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
 typedef char* (*_aax_calloc_proc)(char**, size_t, size_t);
 typedef char* (*_aax_malloc_proc)(char**, size_t);
@@ -134,6 +150,7 @@ extern _batch_cvt_to_intl_proc _batch_cvtps_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvtpd_intl_24;
 
 unsigned int _aaxGetNoCores();
+uint32_t _aaxGetSIMDSupportLevel();
 const char* _aaxGetSIMDSupportString();
 
 #if defined(__cplusplus)
