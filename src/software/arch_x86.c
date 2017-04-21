@@ -97,22 +97,6 @@ enum {
     AAX_ARCH_AVX2    = 0x00000400
 };
 
-enum {
-   AAX_SIMD_NONE = 0,
-   AAX_SIMD_MMX,
-   AAX_SIMD_SSE,
-   AAX_SIMD_SSE2,
-   AAX_SIMD_SSE3,
-   AAX_SIMD_SSSE3,
-   AAX_SIMD_SSE4A,
-   AAX_SIMD_SSE41,
-   AAX_SIMD_SSE42,
-   AAX_SIMD_AVX,
-   AAX_SIMD_XOP,
-   AAX_SIMD_AVX2,
-   AAX_SIMD_MAX
-};
-
 static uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
 static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
@@ -330,8 +314,8 @@ _aaxGetSSELevel()
    return sse_level;
 }
 
-const char *
-_aaxGetSIMDSupportString()
+uint32_t
+_aaxGetSIMDSupportLevel()
 {
    uint32_t level = AAX_NO_SIMD;
 
@@ -446,6 +430,14 @@ _aaxGetSIMDSupportString()
 
 #  endif
 # endif
+
+   return level;
+}
+
+const char *
+_aaxGetSIMDSupportString()
+{
+   uint32_t level = _aaxGetSIMDSupportLevel();
    return _aaxArchSIMDSupportString[level];
 }
 

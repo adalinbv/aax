@@ -112,6 +112,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
       convolution->fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
       convolution->delay_gain = effect->slot[0]->param[AAX_MAX_GAIN];
       convolution->threshold = effect->slot[0]->param[AAX_THRESHOLD];
+      convolution->step = 1;
 
       flt = convolution->freq_filter;
       fc = convolution->fc;
@@ -145,7 +146,10 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
        * convert the buffer data to floats in the range 0.0 .. 1.0
        * using the mixer frequency
        */
-      convolution->step = (int)fs/aaxBufferGetSetup(buffer, AAX_FREQUENCY);
+      if (effect->info->no_cores == 1 || effect->info->sse_level < AAX_SIMD_AVX)
+      {
+         convolution->step = (int)fs/aaxBufferGetSetup(buffer, AAX_FREQUENCY);
+      }
       aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
       data = aaxBufferGetData(buffer);

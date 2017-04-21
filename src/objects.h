@@ -238,6 +238,8 @@ typedef ALIGN16 struct
    unsigned int max_registered;		/* per (sub)mixer */
 
    uint8_t update_rate;	/* how many frames get processed before an update */
+   uint8_t sse_level;
+   uint8_t no_cores;
 
    unsigned int id;
    void *backend;
