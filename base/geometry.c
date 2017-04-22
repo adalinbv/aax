@@ -249,7 +249,7 @@ mtx4fFill(void* d, const void *m)
    memcpy(d, m, sizeof(mtx4f_t));
 }
 
-AAX_API const fx4x4_t aaxIdentityMatrix = {
+const float aaxIdentityMatrix[4][4] = {
   { 1.0f, 0.0f, 0.0f, 0.0f },
   { 0.0f, 1.0f, 0.0f, 0.0f },
   { 0.0f, 0.0f, 1.0f, 0.0f },
@@ -260,7 +260,7 @@ AAX_API const fx4x4_t aaxIdentityMatrix = {
 void
 mtx4fSetIdentity(void* m)
 {
-    memcpy(m, aaxIdentityMatrix, sizeof(aaxIdentityMatrix));
+    memcpy(m, aaxIdentityMatrix, sizeof(fx4x4_t));
 }
 
 void
@@ -269,7 +269,7 @@ _mtx4dCopy_cpu(mtx4d_ptr d, const mtx4d_ptr m)
    memcpy(d->m4, m->m4, sizeof(mtx4d_t));
 }
 
-AAX_API const dx4x4_t aaxIdentityMatrix64 = {
+const dx4x4_t aaxIdentityMatrix64 = {
   { 1.0, 0.0, 0.0, 0.0 },
   { 0.0, 1.0, 0.0, 0.0 },
   { 0.0, 0.0, 1.0, 0.0 },
