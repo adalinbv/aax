@@ -40,6 +40,8 @@ aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, const aaxMtx4d smtx)
    return rv;
 }
 
+AAX_API aaxMtx4f aaxIdentityMatrix;
+
 AAX_API int AAX_APIENTRY
 aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
 {
