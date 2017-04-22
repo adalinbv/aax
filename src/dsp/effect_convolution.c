@@ -102,7 +102,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
    if (convolution && effect->info)
    {
-      unsigned int freq, tracks = effect->info->no_tracks;
+      unsigned int step, freq, tracks = effect->info->no_tracks;
       unsigned int no_samples = effect->info->no_samples;
       _aaxRingBufferFreqFilterData *flt;
       float fs = effect->info->frequency;
@@ -146,11 +146,13 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
        * using the mixer frequency
        */
       freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
-      convolution->step = (int)fs/freq;
+      step = (int)fs/freq;
       if (effect->info->no_cores == 1 || effect->info->sse_level < AAX_SIMD_AVX)
       {
-         if (freq > 16000) convolution->step = (int)fs/16000;
+         step = (int)fs/16000;
       }
+      convolution->step = _MAX(step, 1);
+
       aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
       aaxBufferSetSetup(buffer, AAX_FREQUENCY, fs);
       data = aaxBufferGetData(buffer);
