@@ -905,7 +905,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
    /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
    dtmp = (size_t)d & MEMMASK16;
-   if (dtmp && num)
+   if (dtmp)
    {
       i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
       if (i <= num)

@@ -10,7 +10,7 @@
 #define MAXNUM		4096
 #define TEST(a,d1,d2) \
     for (i=0; i<MAXNUM; ++i) { \
-        if (d1[i] != d2[i]) { \
+        if (fabsf(d1[i]-d2[i]) > 4) { \
             printf("%s %i: %lf != %lf\n", a, i, (double)d1[i], (double)d2[i]); \
             break; \
         } }
@@ -31,7 +31,7 @@ int main()
         int i;
 
         for (i=0; i<MAXNUM; ++i) {
-            src[i] = (float)rand()/(float)(RAND_MAX/(1<<24));
+            src[i] = (float)rand()/(float)(RAND_MAX/(1<<23));
         }
         memcpy(dst1, src, MAXNUM*sizeof(float));
 
@@ -39,10 +39,10 @@ int main()
          * batch fmadd by a value
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
-        memcpy(dst2, src, MAXNUM*sizeof(float));
         _batch_fmadd_cpu(dst1, dst1, MAXNUM, 1.0, 0.0f);
         _batch_fmadd_cpu(dst1, dst1, MAXNUM, 0.8723678263f, 0.0f);
 #ifdef __AVX__
+        memcpy(dst2, src, MAXNUM*sizeof(float));
         _batch_fmadd_avx(dst2, dst2, MAXNUM, 1.0f, 0.0f);
         _batch_fmadd_avx(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
         TEST("float fadd+fmadd avx", dst1, dst2);
@@ -51,7 +51,6 @@ int main()
         _batch_fmadd_sse2(dst2, dst2, MAXNUM, 1.0f, 0.0f);
         _batch_fmadd_sse2(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
         TEST("float fadd+fmadd sse2", dst1, dst2);
-
 
         /*
          * batch fmul by a value for floats
