@@ -46,11 +46,11 @@
 #define IRFILE_PATH		SRC_PATH"/convolution.wav"
 
 #define RADIUS			20.0f
-#define FILE_PATH		SRC_PATH"/sine-440Hz-1period.wav"
+#define FILE_PATH		SRC_PATH"/tictac.wav"
 
-#define XEPOS		00000.0f
-#define YEPOS		-1000.0f
-#define ZEPOS		00.0f
+#define XEPOS		0.0f
+#define YEPOS		0.0f
+#define ZEPOS		2.0f
 
 aaxVec3f EmitterPos = {    XEPOS,    YEPOS, ZEPOS };
 aaxVec3f EmitterDir = {     0.0f,     0.0f, 1.0f };
@@ -81,11 +81,11 @@ int main(int argc, char **argv)
         if (buffer && irbuffer)
         {
             aaxEffect effect;
+            aaxMtx4f mtx, rot;
             aaxEmitter emitter[256];
             float pitch, anglestep;
             int frame_timing;
             int i, deg = 0;
-            aaxMtx4f mtx;
 
             /** mixer */
             res = aaxMixerInit(config);
@@ -135,27 +135,32 @@ int main(int argc, char **argv)
             pitch = getPitch(argc, argv);
             num = getNumEmitters(argc, argv);
 
+            aaxMatrixSetIdentityMatrix(rot);
+
             /* Set emitters to located in a circle around the sensor */
-            anglestep = (2 * GMATH_PI) / (float)num;
+            anglestep = (GMATH_PI) / (float)num;
             printf("Starting %i emitters\n", num);
             i = 0;
             do
             {
-                static float mul = 1.0f;
-
                 emitter[i] = aaxEmitterCreate();
                 testForError(emitter[i], "Unable to create a new emitter\n");
 
                 res = aaxEmitterAddBuffer(emitter[i], buffer);
                 testForState(res, "aaxEmitterAddBuffer");
 
-                aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
-                aaxMatrixRotate(mtx, anglestep, 0.0f, 1.0f, 0.0f);
+                res = aaxMatrixRotate(rot, anglestep, 0.0f, 1.0f, 0.0f);
+                testForState(res, "aaxMatrixRotate");
+
+
+                EmitterPos[0] =  8.0f*sinf(anglestep*i);
+                EmitterPos[2] = -8.0f*cosf(anglestep*i);
+                res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
+
                 res = aaxEmitterSetMatrix(emitter[i], mtx);
                 testForState(res, "aaxEmitterSetIdentityMatrix");
-                mul *= -1.0f;
 
-                res = aaxEmitterSetMode(emitter[i], AAX_POSITION, AAX_ABSOLUTE);
+                res = aaxEmitterSetMode(emitter[i], AAX_POSITION, AAX_RELATIVE);
                 testForState(res, "aaxEmitterSetMode");
 
                 res = aaxEmitterSetMode(emitter[i], AAX_LOOPING, AAX_TRUE);
@@ -181,30 +186,17 @@ int main(int argc, char **argv)
             frame_timing = aaxMixerGetSetup(config, AAX_FRAME_TIMING);
             printf("frame rendering time: %f ms\n", frame_timing/1000.0f);
 
+            aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
+            aaxMatrixInverse(mtx);
+
+
             deg = 0;
             while(deg < 360)
             {
-                float ang = (float)deg * GMATH_DEG_TO_RAD;
-
                 msecSleep(50);
 
-                EmitterPos[0] = XEPOS + RADIUS * sinf(ang);
-                EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
- //             EmitterPos[1] = YEPOS + RADIUS * sinf(ang);
-
-                printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
-                            EmitterPos[0], EmitterPos[1], EmitterPos[2]);
-
-                res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
-                testForState(res, "aaxMatrixSetDirection");
-
-                i = 0;
-                do
-                {
-                    res = aaxEmitterSetMatrix(emitter[i], mtx);
-                    testForState(res, "aaxSensorSetMatrix");
-                }
-                while (++i < num);
+                aaxMatrixRotate(mtx, GMATH_DEG_TO_RAD, 0.0f, 1.0f, 0.0f);
+                aaxSensorSetMatrix(config, mtx);
 
                 deg += 1;
             }
