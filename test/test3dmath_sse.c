@@ -9,7 +9,7 @@
 #include <base/geometry.h>
 #include <src/software/cpu/arch3d_simd.h>
 
-_aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
+// _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
 
 #define F(a,b)	(fabs((a)-(b))>FLT_EPSILON)
 

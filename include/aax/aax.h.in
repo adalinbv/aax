@@ -85,7 +85,6 @@ enum aaxFormat
    AAX_MULAW,
    AAX_ALAW,
    AAX_IMA4_ADPCM,
-   AAX_HALF,		/* 16-bit floating point, -1.0 to 1.0 */
    AAX_FORMAT_MAX,
 	
    AAX_FORMAT_NATIVE = 0x07F,	/* format mask */

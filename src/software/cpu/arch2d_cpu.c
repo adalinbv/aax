@@ -47,6 +47,7 @@ _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float v, floa
    }
 }
 
+#if 0
 void
 _batch_hmadd_cpu(float32_ptr dptr, const_float16_ptr sptr, size_t num, float v, float vstep)
 {
@@ -75,6 +76,7 @@ _batch_hmadd_cpu(float32_ptr dptr, const_float16_ptr sptr, size_t num, float v, 
       while (--i);
    }
 }
+#endif
 
 void
 _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
@@ -251,6 +253,7 @@ _batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
    }
 }
 
+#if 0
 void
 _batch_cvt24_ph_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
@@ -267,6 +270,7 @@ _batch_cvt24_ph_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
       } while (--i);
    }
 }
+#endif
 
 void
 _batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
@@ -284,6 +288,7 @@ _batch_cvt24_ps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
    }
 }
 
+#if 0
 void
 _batch_cvtph_24_cpu(void_ptr dst, const_void_ptr sptr, size_t num)
 {
@@ -299,6 +304,7 @@ _batch_cvtph_24_cpu(void_ptr dst, const_void_ptr sptr, size_t num)
       } while (--i);
    }
 }
+#endif
 
 void
 _batch_cvtps_24_cpu(void_ptr dst, const_void_ptr sptr, size_t num)
@@ -474,6 +480,7 @@ _batch_cvt24_32_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
    }
 }
 
+#if 0
 void
 _batch_cvt24_ph_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
 {
@@ -505,7 +512,7 @@ _batch_cvt24_ph_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, 
       }
    }
 }
-
+#endif
 
 void
 _batch_cvt24_ps_intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)

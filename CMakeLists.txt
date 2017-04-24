@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 2.8.8)
 SET(cmake_verbose_makefile TRUE)
 
 SET(CMAKE_MAKEFILE_DEPENDS
@@ -210,7 +210,7 @@ ELSE(MSVC)
 
     IF(NOT MINGW)
        IF (GCC OR CLANG)
-         SET(C_FLAGS "${C_FLAGS} -fPIC -fstack-protector-strong -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
+         SET(C_FLAGS "${C_FLAGS} -fstack-protector-strong -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
        ENDIF(GCC OR CLANG)
     ELSE(NOT MINGW)
        INCLUDE_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
@@ -550,9 +550,14 @@ IF(HAVE_WINDOWS_H)
   )
 ENDIF(HAVE_WINDOWS_H)
 
-# Build a library
+# Build a static library
+add_library(AAXOBJ_LIB OBJECT ${AEONWAVE_OBJS})
+ADD_LIBRARY(${LIBAEONWAVE}-static STATIC $<TARGET_OBJECTS:AAXOBJ_LIB>)
+
+# Build a shared library
+set_property(TARGET ${AAXOBJ_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 SET(LIB_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
-ADD_LIBRARY(${LIBAEONWAVE} ${LIBTYPE} ${AEONWAVE_OBJS})
+ADD_LIBRARY(${LIBAEONWAVE} SHARED $<TARGET_OBJECTS:AAXOBJ_LIB>)
 SET_TARGET_PROPERTIES(${LIBAEONWAVE}
     PROPERTIES DEFINE_SYMBOL AAX_BUILD_LIBRARY
     VERSION ${LIB_VERSION}
