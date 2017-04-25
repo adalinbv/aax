@@ -347,12 +347,7 @@ _aaxWorkerThread(void *id)
          if (!handle->he)
          {
             int track = _aaxAtomicIntSub(num, 1) - 1;
-
             data->callback(data->drb, data, NULL, track);
-
-            if (_aaxAtomicIntDecrement(busy) == 0) {
-               _aaxSemaphoreRelease(handle->worker_ready);
-            }
          }
 
          /*
@@ -397,11 +392,11 @@ _aaxWorkerThread(void *id)
                drb->data_clear(drb);
                drb->set_state(drb, RB_REWINDED);
             }
+         }
 
-            /* if we're the last active worker trigger the signal */
-            if (_aaxAtomicIntDecrement(busy) == 0) {
-                _aaxSemaphoreRelease(handle->worker_ready);
-            }
+         /* if we're the last active worker trigger the signal */
+         if (_aaxAtomicIntDecrement(busy) == 0) {
+             _aaxSemaphoreRelease(handle->worker_ready);
          }
 
          _aaxSemaphoreWait(handle->worker_start);
