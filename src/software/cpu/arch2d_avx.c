@@ -694,7 +694,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
    dtmp = (size_t)d & MEMMASK;
    if (dtmp && num)
    {
-      i = (MEMALIGN16 - dtmp)/sizeof(float);
+      i = (MEMALIGN - dtmp)/sizeof(float);
       if (i <= num)
       {
          num -= i;
