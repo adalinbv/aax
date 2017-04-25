@@ -210,7 +210,7 @@ ELSE(MSVC)
 
     IF(NOT MINGW)
        IF (GCC OR CLANG)
-         SET(C_FLAGS "${C_FLAGS} -fstack-protector-strong -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
+         SET(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
        ENDIF(GCC OR CLANG)
     ELSE(NOT MINGW)
        INCLUDE_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
@@ -247,7 +247,7 @@ ELSE(MSVC)
           FORCE)
 
       # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-      SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -O2 -g -DNDEBUG" CACHE STRING
+      SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -O2 -fstack-protector-strong -g -DNDEBUG" CACHE STRING
           "Flags used by the compiler during Release with Debug Info builds."
           FORCE)
       SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
@@ -256,7 +256,7 @@ ELSE(MSVC)
       SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
               CACHE STRING "Flags used by the compiler during release builds"
              FORCE)
-      SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
+      SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -fstack-protector-strong -g3 -D_DEBUG" CACHE STRING
           "Flags used by the compiler during debug builds."
           FORCE)
 
@@ -555,7 +555,6 @@ add_library(AAXOBJ_LIB OBJECT ${AEONWAVE_OBJS})
 ADD_LIBRARY(${LIBAEONWAVE}-static STATIC $<TARGET_OBJECTS:AAXOBJ_LIB>)
 
 # Build a shared library
-set_property(TARGET ${AAXOBJ_LIB} PROPERTY POSITION_INDEPENDENT_CODE 1)
 SET(LIB_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 ADD_LIBRARY(${LIBAEONWAVE} SHARED $<TARGET_OBJECTS:AAXOBJ_LIB>)
 SET_TARGET_PROPERTIES(${LIBAEONWAVE}
