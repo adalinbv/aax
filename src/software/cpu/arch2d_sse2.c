@@ -1347,7 +1347,6 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
    }
 }
 
-
 void
 _batch_freqfilter_sse2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
 {
@@ -1426,7 +1425,7 @@ _batch_freqfilter_sse2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
    }
 }
 
-
+// https://software.intel.com/en-us/articles/practical-intel-avx-optimization-on-2nd-generation-intel-core-processors
 void
 _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
