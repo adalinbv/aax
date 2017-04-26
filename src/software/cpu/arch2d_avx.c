@@ -111,7 +111,7 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
             }
             while(--i);
          }
-         _mm256_zeroall();
+         _mm256_zeroupper();
       }
 
       if (num)
@@ -204,7 +204,7 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
             }
             while(--i);
          }
-         _mm256_zeroall();
+         _mm256_zeroupper();
       }
 
       if (num)
@@ -279,7 +279,7 @@ _batch_cvtps_24_avx(void_ptr dst, const_void_ptr src, size_t num)
             }
             while(--i);
          }
-         _mm256_zeroall();
+         _mm256_zeroupper();
       }
 
       if (num)
@@ -379,7 +379,7 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
                while(--i);
             }
          }
-         _mm256_zeroall();
+         _mm256_zeroupper();
       }
 
       if (num)
@@ -473,7 +473,7 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
          }
          while(--i);
       }
-      _mm256_zeroall();
+      _mm256_zeroupper();
 
       if (num)
       {
@@ -555,7 +555,7 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
          }
          while(--i);
       }
-      _mm256_zeroall();
+      _mm256_zeroupper();
 
       if (num)
       {
@@ -667,7 +667,7 @@ _batch_hadd_avx(float32_ptr dst, const_float16_ptr src, size_t num)
          }
          while(--i);
       }
-      _mm256_zeroall();
+      _mm256_zeroupper();
    }
 
    if (num)
@@ -827,7 +827,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
          while(--i);
       }
    }
-   _mm256_zeroall();
+   _mm256_zeroupper();
 
    if (num)
    {
@@ -836,6 +836,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
          *d++ += *s++;
       } while(--i);
    }
+   _mm256_zeroall();
 }
 
 #if 0
@@ -937,7 +938,7 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
          while(--i);
          vstep /= step;
       }
-      _mm256_zeroall();
+      _mm256_zeroupper();
    }
 
    if (num)
@@ -1024,11 +1025,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             ymm6 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+6)), ymm6);
             ymm7 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+7)), ymm7);
 
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
-
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
             _mm256_store_ps((float*)dptr++, ymm2);
@@ -1037,6 +1033,11 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             _mm256_store_ps((float*)dptr++, ymm5);
             _mm256_store_ps((float*)dptr++, ymm6);
             _mm256_store_ps((float*)dptr++, ymm7);
+
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
          }
          while(--i);
       }
@@ -1068,11 +1069,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             ymm6 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+6)), ymm6);
             ymm7 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr+7)), ymm7);
 
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
-
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
             _mm256_store_ps((float*)dptr++, ymm2);
@@ -1081,6 +1077,11 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             _mm256_store_ps((float*)dptr++, ymm5);
             _mm256_store_ps((float*)dptr++, ymm6);
             _mm256_store_ps((float*)dptr++, ymm7);
+
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
          }
          while(--i);
       }
@@ -1101,17 +1102,19 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       d += i*step;
       if (stmp)
       {
+         __m256 tv = _mm256_set1_ps(v);
          do
          {
-            __m256 tv = _mm256_set1_ps(v);
-
             ymm0 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
             ymm1 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
 
             ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
             ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
 
-            v += vstep;
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
 
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
@@ -1120,26 +1123,29 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       }
       else
       {
+         __m256 tv = _mm256_set1_ps(v);
          do
          {
-            __m256 tv = _mm256_set1_ps(v);
-
             ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
             ymm1 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
 
             ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
             ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
 
-            v += vstep;
+            if (need_step) {
+               v += vstep;
+               tv = _mm256_set1_ps(v);
+            }
 
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
+
          }
          while(--i);
       }
       vstep /= step;
    }
-   _mm256_zeroall();
+   _mm256_zeroupper();
 
    if (num)
    {
@@ -1149,6 +1155,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          v += vstep;
       } while(--i);
    }
+   _mm256_zeroall();
 }
 
 /*
