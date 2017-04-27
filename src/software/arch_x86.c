@@ -411,7 +411,9 @@ _aaxGetSIMDSupportLevel()
       _batch_cvt24_ps = _batch_cvt24_ps_avx;
 
 #   if RB_FLOAT_DATA
-      _batch_fmul_value = _batch_fmul_value_avx;
+// _batch_fmul_value_avx is slightly slower than the compiler optimized
+// _batch_fmul_value_cpu, _batch_fmul_value_sse2 is faster however.
+//    _batch_fmul_value = _batch_fmul_value_avx;
       _batch_fmadd = _batch_fmadd_avx;
       _batch_cvtps24_24 = _batch_cvtps24_24_avx;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
