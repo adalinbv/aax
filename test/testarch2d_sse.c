@@ -5,19 +5,21 @@
 
 #include <base/types.h>
 #include <base/geometry.h>
+#include <base/timer.h>
 #include <src/software/cpu/arch2d_simd.h>
 
-#define MAXNUM		4096
+#define MAXNUM		(99*4096)
 #define TEST(a,d1,d2) \
     for (i=0; i<MAXNUM; ++i) { \
         if (fabsf(d1[i]-d2[i]) > 4) { \
-            printf("%s %i: %lf != %lf\n", a, i, (double)d1[i], (double)d2[i]); \
+            printf(" # %s %i: %lf != %lf\n", a, i, (double)d1[i], (double)d2[i]); \
             break; \
         } }
 
 int main()
 {
     float *src, *dst1, *dst2;
+    clock_t t;
 
     srand(time(NULL));
 
@@ -28,6 +30,7 @@ int main()
     if (src && dst1 && dst2)
     {
         double *dsrc, *ddst1, *ddst2;
+        double cpu[2], eps;
         int i;
 
         for (i=0; i<MAXNUM; ++i) {
@@ -35,35 +38,80 @@ int main()
         }
         memcpy(dst1, src, MAXNUM*sizeof(float));
 
+
+        /*
+         * batch fadd by a value
+         */
+        memcpy(dst1, src, MAXNUM*sizeof(float));
+        t = clock();
+          _batch_fmadd_cpu(dst1, dst1, MAXNUM, 1.0, 0.0f);
+          cpu[0] = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fadd cpu:  %f ms\n", cpu[0]*1000.0f);
+
+#ifdef __AVX__
+        memcpy(dst2, src, MAXNUM*sizeof(float));
+        t = clock();
+          _batch_fmadd_avx(dst2, dst2, MAXNUM, 1.0f, 0.0f);
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fadd avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
+#endif
+
+        memcpy(dst2, src, MAXNUM*sizeof(float));
+        t = clock();
+          _batch_fmadd_sse2(dst2, dst2, MAXNUM, 1.0f, 0.0f);
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fadd sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
+
         /*
          * batch fmadd by a value
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
-        _batch_fmadd_cpu(dst1, dst1, MAXNUM, 1.0, 0.0f);
-        _batch_fmadd_cpu(dst1, dst1, MAXNUM, 0.8723678263f, 0.0f);
+        t = clock();
+          _batch_fmadd_cpu(dst1, dst1, MAXNUM, 0.8723678263f, 0.0f);
+          cpu[1] = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfmadd cpu: %f ms\n", cpu[1]*1000.0f);
+
 #ifdef __AVX__
         memcpy(dst2, src, MAXNUM*sizeof(float));
-        _batch_fmadd_avx(dst2, dst2, MAXNUM, 1.0f, 0.0f);
-        _batch_fmadd_avx(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+        t = clock();
+          _batch_fmadd_avx(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fmadd avx: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[1]/eps);
         TEST("float fadd+fmadd avx", dst1, dst2);
 #endif
         memcpy(dst2, src, MAXNUM*sizeof(float));
-        _batch_fmadd_sse2(dst2, dst2, MAXNUM, 1.0f, 0.0f);
-        _batch_fmadd_sse2(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+        t = clock();
+          _batch_fmadd_sse2(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fmadd sse: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[1]/eps);
         TEST("float fadd+fmadd sse2", dst1, dst2);
 
         /*
          * batch fmul by a value for floats
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
-        memcpy(dst2, src, MAXNUM*sizeof(float));
-        _batch_fmul_value_cpu(dst1, sizeof(float), MAXNUM, 0.8723678263f);
+
+        t = clock();
+          _batch_fmul_value_cpu(dst1, sizeof(float), MAXNUM, 0.8723678263f);
+          cpu[0] = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfmul cpu:  %f ms\n", cpu[0]*1000.0f);
+
 #ifdef __AVX__
-        _batch_fmul_value_avx(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+        memcpy(dst2, src, MAXNUM*sizeof(float));
+
+        t = clock();
+          _batch_fmul_value_avx(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fmul avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
         TEST("float fmul avx", dst1, dst2);
 #endif
+
         memcpy(dst2, src, MAXNUM*sizeof(float));
-        _batch_fmul_value_sse2(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+       
+        t = clock();
+          _batch_fmul_value_sse2(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fmul sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
         TEST("float fmul sse2", dst1, dst2);
 
         /*
