@@ -570,7 +570,7 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    }
    stmp = (size_t)s & MEMMASK16;
 
-   step = 12*sizeof(__m128)/sizeof(float);
+   step = 8*sizeof(__m128)/sizeof(float);
    if (num >= step)
    {
       __m128* sptr = (__m128*)s;
@@ -581,8 +581,8 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
       i = num/step;
       num -= i*step;
 
-      s += 4*8;
-      d += 4*8;
+      s += i*step;
+      d += i*step;
       if (stmp)
       {
          do
@@ -608,11 +608,6 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             xmm6 = _mm_add_ps(_mm_load_ps((const float*)(dptr+6)), xmm6);
             xmm7 = _mm_add_ps(_mm_load_ps((const float*)(dptr+7)), xmm7);
 
-            *d++ += *s++;
-            *d++ += *s++;
-            *d++ += *s++;
-            *d++ += *s++;
-
             _mm_store_ps((float*)dptr++, xmm0);
             _mm_store_ps((float*)dptr++, xmm1);
             _mm_store_ps((float*)dptr++, xmm2);
@@ -621,11 +616,6 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             _mm_store_ps((float*)dptr++, xmm5);
             _mm_store_ps((float*)dptr++, xmm6);
             _mm_store_ps((float*)dptr++, xmm7);
-
-            s += 4*8;
-            d += 4*8;
-            dptr++;
-            sptr++;
          }
          while(--i);
       }
@@ -654,11 +644,6 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             xmm6 = _mm_add_ps(_mm_load_ps((const float*)(dptr+6)), xmm6);
             xmm7 = _mm_add_ps(_mm_load_ps((const float*)(dptr+7)), xmm7);
 
-            *dptr += *s++;
-            *dptr += *s++;
-            *dptr += *s++;
-            *dptr += *s++;
-
             _mm_store_ps((float*)dptr++, xmm0);
             _mm_store_ps((float*)dptr++, xmm1);
             _mm_store_ps((float*)dptr++, xmm2);
@@ -667,11 +652,6 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
             _mm_store_ps((float*)dptr++, xmm5);
             _mm_store_ps((float*)dptr++, xmm6);
             _mm_store_ps((float*)dptr++, xmm7);
-
-            s += 4*8;
-            d += 4*8;
-            dptr++;
-            sptr++;
          }
          while(--i);
       }
@@ -756,7 +736,7 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          }
       }
 
-      step = 12*sizeof(__m128)/sizeof(float);
+      step = 8*sizeof(__m128)/sizeof(float);
 
       i = num/step;
       if (i)
@@ -766,7 +746,7 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          __m128 xmm4, xmm5, xmm6, xmm7 = _mm_set1_ps(f);
 
          num -= i*step;
-         d += 4*8;
+         d += i*step;
          do
          {
             _mm_prefetch(((char *)dptr)+CACHE_ADVANCE_MUL, _MM_HINT_NTA);
@@ -780,11 +760,6 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
             xmm6 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+6)), xmm7);
             xmm7 = _mm_mul_ps(_mm_load_ps((const float*)(dptr+7)), xmm7);
 
-            *d++ *= f;
-            *d++ *= f;
-            *d++ *= f;
-            *d++ *= f;
-
             _mm_store_ps((float*)dptr++, xmm0);
             _mm_store_ps((float*)dptr++, xmm1);
             _mm_store_ps((float*)dptr++, xmm2);
@@ -793,9 +768,6 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
             _mm_store_ps((float*)dptr++, xmm5);
             _mm_store_ps((float*)dptr++, xmm6);
             _mm_store_ps((float*)dptr++, xmm7);
-
-            d += 4*8;
-            dptr++;
 
             xmm7 = _mm_set1_ps(f);
          }
