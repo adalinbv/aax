@@ -21,14 +21,6 @@
 
 #ifdef __AVX__
 
-# define CACHE_ADVANCE_IMADD     16
-# define CACHE_ADVANCE_FMADD	 16
-# define CACHE_ADVANCE_MUL	 32
-# define CACHE_ADVANCE_CPY	 16
-# define CACHE_ADVANCE_CVT	 32
-# define CACHE_ADVANCE_INTL	 16
-# define CACHE_ADVANCE_FF	 32
-
 void
 _batch_cvt24_ps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
 {
@@ -454,8 +446,6 @@ _batch_cvt24_16_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       __m128i *sptr = (__m128i *)s;
 
       do {
-//       _mm_prefetch(((char *)s)+CACHE_ADVANCE_CVT, _MM_HINT_NTA);
-
          if (tmp) {
             xmm0 = _mm_loadu_si128(sptr++);
             xmm4 = _mm_loadu_si128(sptr++);
