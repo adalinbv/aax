@@ -21,12 +21,6 @@
 
 #ifdef __AVX__
 
-# define CACHE_ADVANCE_FMADD	 32
-# define CACHE_ADVANCE_CPY	 32
-# define CACHE_ADVANCE_CVT	 64
-# define CACHE_ADVANCE_IMADD     32
-# define CACHE_ADVANCE_INTL      32
-
 #if 0
 # define PRINTFUNC	printf("%s\n", __func__)
 #else

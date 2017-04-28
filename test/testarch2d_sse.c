@@ -8,7 +8,7 @@
 #include <base/timer.h>
 #include <src/software/cpu/arch2d_simd.h>
 
-#define MAXNUM		(99*4096)
+#define MAXNUM		(199*4096)
 #define TEST(a,d1,d2) \
     for (i=0; i<MAXNUM; ++i) { \
         if (fabsf(d1[i]-d2[i]) > 4) { \
@@ -36,7 +36,6 @@ int main()
         for (i=0; i<MAXNUM; ++i) {
             src[i] = (float)rand()/(float)(RAND_MAX/(1<<23));
         }
-        memcpy(dst1, src, MAXNUM*sizeof(float));
 
 
         /*
