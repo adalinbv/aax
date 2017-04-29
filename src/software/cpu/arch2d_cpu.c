@@ -94,11 +94,18 @@ _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, 
       }
       while (--i);
    }
-   else
+   else if (need_step)
    {
       do {
          *d++ += *s++ * v;
          v += vstep;
+      }
+      while (--i);
+   }
+   else
+   {
+      do {
+         *d++ += *s++ * v;
       }
       while (--i);
    }
