@@ -16,10 +16,19 @@
             break; \
         } }
 
+char _aaxArchDetectSSE2();
+char _aaxArchDetectAVX();
+_batch_fmadd_proc _batch_fmadd;
+_batch_mul_value_proc _batch_fmul_value;
+
 int main()
 {
     float *src, *dst1, *dst2;
+    char sse, avx;
     clock_t t;
+
+    sse = _aaxArchDetectSSE2();
+    avx = _aaxArchDetectAVX();
 
     srand(time(NULL));
 
@@ -30,7 +39,7 @@ int main()
     if (src && dst1 && dst2)
     {
         double *dsrc, *ddst1, *ddst2;
-        double cpu[2], eps;
+        double cpu, eps;
         int i;
 
         for (i=0; i<MAXNUM; ++i) {
@@ -43,75 +52,119 @@ int main()
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
         t = clock();
-          _batch_fmadd_cpu(dst1, dst1, MAXNUM, 1.0, 0.0f);
-          cpu[0] = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fadd cpu:  %f ms\n", cpu[0]*1000.0f);
+          for(i=0; i<MAXNUM; ++i) {
+            dst1[i] += dst1[i];
+          }
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fadd cpu:  %f ms\n", cpu*1000.0f);
 
-#ifdef __AVX__
-        memcpy(dst2, src, MAXNUM*sizeof(float));
-        t = clock();
-          _batch_fmadd_avx(dst2, dst2, MAXNUM, 1.0f, 0.0f);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fadd avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
-#endif
 
-        memcpy(dst2, src, MAXNUM*sizeof(float));
+        memcpy(dst1, src, MAXNUM*sizeof(float));
+        _batch_fmadd = _batch_fmadd_cpu;
         t = clock();
-          _batch_fmadd_sse2(dst2, dst2, MAXNUM, 1.0f, 0.0f);
+          _batch_fmadd(dst1, dst1, MAXNUM, 1.0, 0.0f);
           eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fadd sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
+        printf("fadd cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+
+        if (avx)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_fmadd = _batch_fmadd_avx;
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fadd avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
+
+        if (sse)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_fmadd = _batch_fmadd_sse2;
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fadd sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
 
         /*
          * batch fmadd by a value
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
         t = clock();
-          _batch_fmadd_cpu(dst1, dst1, MAXNUM, 0.8723678263f, 0.0f);
-          cpu[1] = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\nfmadd cpu: %f ms\n", cpu[1]*1000.0f);
+          for(i=0; i<MAXNUM; ++i) {
+            dst1[i] += dst1[i] * 0.8723678263f;
+          }
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
 
-#ifdef __AVX__
-        memcpy(dst2, src, MAXNUM*sizeof(float));
+        memcpy(dst1, src, MAXNUM*sizeof(float));
+        _batch_fmadd = _batch_fmadd_cpu;
         t = clock();
-          _batch_fmadd_avx(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+          _batch_fmadd(dst1, dst1, MAXNUM, 0.8723678263f, 0.0f);
           eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fmadd avx: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[1]/eps);
-        TEST("float fadd+fmadd avx", dst1, dst2);
-#endif
-        memcpy(dst2, src, MAXNUM*sizeof(float));
-        t = clock();
-          _batch_fmadd_sse2(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fmadd sse: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[1]/eps);
-        TEST("float fadd+fmadd sse2", dst1, dst2);
+        printf("fmadd cpu: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+
+        if (avx)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_fmadd = _batch_fmadd_avx;
+            t = clock();
+              _batch_fmadd_avx(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fmadd avx: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fadd+fmadd avx", dst1, dst2);
+        }
+
+        if (sse)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_fmadd = _batch_fmadd_sse2;
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fmadd sse: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fadd+fmadd sse2", dst1, dst2);
+        }
 
         /*
          * batch fmul by a value for floats
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
-
         t = clock();
-          _batch_fmul_value_cpu(dst1, sizeof(float), MAXNUM, 0.8723678263f);
-          cpu[0] = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\nfmul cpu:  %f ms\n", cpu[0]*1000.0f);
+          for(i=0; i<MAXNUM; ++i) {
+            dst1[i] *= 0.8723678263f;
+          }
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfmul cpu:  %f ms\n", cpu*1000.0f);
 
-#ifdef __AVX__
-        memcpy(dst2, src, MAXNUM*sizeof(float));
-
+        memcpy(dst1, src, MAXNUM*sizeof(float));
+        _batch_fmul_value = _batch_fmul_value_cpu;
         t = clock();
-          _batch_fmul_value_avx(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+          _batch_fmul_value(dst1, sizeof(float), MAXNUM, 0.8723678263f);
           eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fmul avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
-        TEST("float fmul avx", dst1, dst2);
-#endif
+        printf("fmul cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 
-        memcpy(dst2, src, MAXNUM*sizeof(float));
-       
-        t = clock();
-          _batch_fmul_value_sse2(dst2, sizeof(float), MAXNUM, 0.8723678263f);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fmul sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu[0]/eps);
-        TEST("float fmul sse2", dst1, dst2);
+        if (avx)
+        {
+           memcpy(dst2, src, MAXNUM*sizeof(float));
+           _batch_fmul_value = _batch_fmul_value_avx;
+           t = clock();
+             _batch_fmul_value(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+           printf("fmul avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+           TEST("float fmul avx", dst1, dst2);
+        }
+
+        if (sse)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_fmul_value = _batch_fmul_value_sse2;
+            t = clock();
+              _batch_fmul_value(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fmul sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fmul sse2", dst1, dst2);
+        }
 
         /*
          * batch fmul by a value for doubles
