@@ -7,20 +7,34 @@ if(HAVE_LIBM)
 endif(HAVE_LIBM)
 
 FUNCTION(CREATE2D_TEST TEST_NAME)
+    if(X86_64)
+        SET_PROPERTY(SOURCE ${TEST_NAME}.c
+                     PROPERTY COMPILE_FLAGS "-march=athlon64 -static-libgcc"
+        )
+    else()
+        SET_PROPERTY(SOURCE ${TEST_NAME}.c APPEND
+                     PROPERTY COMPILE_FLAGS "-march=i686 -static-libgcc"
+        )
+    endif()
+
     add_executable(${TEST_NAME} ${TEST_NAME}.c)
     target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
-    set_target_properties(${TEST_NAME} PROPERTIES
-         COMPILE_FLAGS "-march=native"
-    )
     add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
 ENDFUNCTION()
 
 FUNCTION(CREATE3D_TEST TEST_NAME)
+    if(X86_64)
+        SET_PROPERTY(SOURCE ${TEST_NAME}.c
+                     PROPERTY COMPILE_FLAGS "-march=athlon64 -static-libgcc"
+        )
+    else()
+        SET_PROPERTY(SOURCE ${TEST_NAME}.c APPEND
+                     PROPERTY COMPILE_FLAGS "-march=i686 -static-libgcc"
+        )
+    endif()
+
     add_executable(${TEST_NAME} ${TEST_NAME}.c)
     target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
-    set_target_properties(${TEST_NAME} PROPERTIES
-         COMPILE_FLAGS "-march=native"
-    )
     add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
 ENDFUNCTION()
 
