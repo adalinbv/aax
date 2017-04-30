@@ -9,11 +9,11 @@ endif(HAVE_LIBM)
 FUNCTION(CREATE2D_TEST TEST_NAME)
     if(X86_64)
         SET_PROPERTY(SOURCE ${TEST_NAME}.c
-                     PROPERTY COMPILE_FLAGS "-march=athlon64 -static-libgcc"
+                     PROPERTY COMPILE_FLAGS "-march=athlon64 -static-libgcc -Wno-inline"
         )
     else()
-        SET_PROPERTY(SOURCE ${TEST_NAME}.c APPEND
-                     PROPERTY COMPILE_FLAGS "-march=i686 -static-libgcc"
+        SET_PROPERTY(SOURCE ${TEST_NAME}.c
+                     PROPERTY COMPILE_FLAGS "-march=i686 -static-libgcc -Wno-inline"
         )
     endif()
 
@@ -25,11 +25,11 @@ ENDFUNCTION()
 FUNCTION(CREATE3D_TEST TEST_NAME)
     if(X86_64)
         SET_PROPERTY(SOURCE ${TEST_NAME}.c
-                     PROPERTY COMPILE_FLAGS "-march=athlon64 -static-libgcc"
+                     PROPERTY COMPILE_FLAGS "-march=athlon64 -static-libgcc -Wno-inline"
         )
     else()
-        SET_PROPERTY(SOURCE ${TEST_NAME}.c APPEND
-                     PROPERTY COMPILE_FLAGS "-march=i686 -static-libgcc"
+        SET_PROPERTY(SOURCE ${TEST_NAME}.c
+                     PROPERTY COMPILE_FLAGS "-march=i686 -static-libgcc -Wno-inline"
         )
     endif()
 
