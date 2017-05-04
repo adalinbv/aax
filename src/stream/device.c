@@ -415,7 +415,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    }
 
    handle->io->set(handle->io, __F_FLAGS, handle->mode);
-#if 0
+#if 1
  printf("name: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
@@ -452,12 +452,23 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                else
                {
                   int fmt = handle->prot->get(handle->prot, __F_EXTENSION);
-                  handle->ext = _ext_free(handle->ext);
-                  handle->ext = _ext_create(fmt);
-                  if (handle->ext)
+                  if (fmt)
                   {
-                     handle->no_bytes = res;
-                     res = AAX_TRUE;
+                     handle->ext = _ext_free(handle->ext);
+                     handle->ext = _ext_create(fmt);
+                     if (handle->ext)
+                     {
+                        handle->no_bytes = res;
+                        res = AAX_TRUE;
+                     }
+                  }
+                  else
+                  {
+                     _aaxStreamDriverLog(id, 0, 0, "Unsupported file extension");
+                     handle->prot = _prot_free(handle->prot);
+                     handle->io->close(handle->io);
+                     handle->io = _io_free(handle->io);
+                     res = AAX_FALSE;
                   }
                }
             }
@@ -631,7 +642,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       free(s);
    }
    else {
-      _aaxStreamDriverLog(id, 0, 0, "Unable to intialize the file format");
+//    _aaxStreamDriverLog(id, 0, 0, "Unable to intialize the file format");
    }
 
    return rv;
