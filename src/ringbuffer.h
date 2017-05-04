@@ -226,6 +226,17 @@ typedef struct
    _aaxRingBufferFreqFilterData *freq_filter;
    void *tid[_AAX_MAX_SPEAKERS];
 
+#if 0
+#if __LINUX__
+   int fd;
+   struct gbm_device *gbm;
+#endif
+   EGLDisplay display;
+   GLuint shader;
+   GLuint cptr;
+   GLuint hptr[_AAX_MAX_SPEAKERS];
+   GLuint sptr[_AAX_MAX_SPEAKERS];
+#endif
 
 } _aaxRingBufferConvolutionData;
 
