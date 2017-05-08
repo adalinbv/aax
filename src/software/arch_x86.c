@@ -44,12 +44,10 @@
 #define htuA		0x68747541
 #define itne		0x69746e65
 
-enum cpuid_requests {
-  CPUID_GETVENDORSTRING = 0,
-  CPUID_GETFEATURES,
-  CPUID_GETEXTFEATURES = 0x7,
-  CPUID_GETEXTCPUINFO = 0x80000000
-};
+#define CPUID_GETVENDORSTRING	0
+#define CPUID_GETFEATURES	1
+#define CPUID_GETEXTFEATURES	0x7
+#define CPUID_GETEXTCPUINFO	0x80000000
 
 // https://msdn.microsoft.com/en-us/library/hskdteyh.aspx
 enum {
@@ -497,7 +495,7 @@ detect_cpuid()
 enum {
   EAX=0, EBX, ECX, EDX
 };
-static int regs[4];
+static unsigned int regs[4];
 
 static char
 check_cpuid_ebx(unsigned int type)

@@ -318,7 +318,9 @@ static const char* _alsa_type[2];
 static const snd_pcm_stream_t _alsa_mode[2];
 static const char *_const_alsa_default_name[2];
 static const _alsa_formats_t _alsa_formats[MAX_FORMATS];
-static const char* ifname_prefix[];
+
+#define MAX_PREFIX	7
+static const char* ifname_prefix[MAX_PREFIX];
 
 static int
 _aaxALSADriverDetect(int mode)
@@ -713,7 +715,7 @@ _aaxALSADriverDisconnect(void *id)
 
 static int
 _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
-                    unsigned int *channels, float *speed, int *bitrate,
+                    unsigned int *channels, float *speed, VOID(int *bitrate),
                     int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -1025,7 +1027,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
                   char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
                   snd_pcm_sframes_t delay;
                   _aaxRingBuffer *rb;
-                  int i;
+                  unsigned int i;
 
                   rb = _aaxRingBufferCreate(0.0f, m);
                   if (rb)
@@ -1144,7 +1146,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 #undef TRUN
 
 static ssize_t
-_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, char batched)
+_aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int tracks, frame_size;
@@ -1197,6 +1199,7 @@ _aaxALSADriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_
    *req_frames = 0;
    if (period_frames && avail)
    {
+      unsigned int scratchsz = scratchlen*8/(handle->no_tracks*handle->bits_sample);
       size_t corr, fetch = period_frames;
       unsigned int chunk, try = 0;
       snd_pcm_uframes_t size;
@@ -1287,7 +1290,8 @@ if (corr)
             if (handle->interleaved)
             {
                do {
-                  res = psnd_pcm_readi(handle->pcm, scratch, size);
+                  res = psnd_pcm_readi(handle->pcm, scratch,
+                                       _MIN(size, scratchsz));
                }
                while (res == -EAGAIN);
 
@@ -1302,7 +1306,7 @@ if (corr)
                s[0] = scratch;
                s[1] = (void*)((char*)s[0] + fetch*frame_size);
                do {
-                  res = psnd_pcm_readn(handle->pcm, s, size);
+                  res = psnd_pcm_readn(handle->pcm, s, _MIN(size, scratchsz));
                } while (res == -EAGAIN);
 
                if (res > 0)
@@ -1507,7 +1511,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxALSADriverGetDevices(const void *id, int mode)
+_aaxALSADriverGetDevices(VOID(const void *id), int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
    static time_t t_previous[2] = { 0, 0 };
@@ -1715,7 +1719,7 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
    _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
    char rv[1024]  = "default";
-   size_t len = 1024;
+   ssize_t len = 1024;
    void **hints;
    int res;
 
@@ -1804,7 +1808,7 @@ _aaxALSADriverGetInterfaceName(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
-   size_t len = 1024;
+   ssize_t len = 1024;
    void **hints;
    int res;
 
@@ -1881,7 +1885,7 @@ _aaxALSADriverLogVar(const void *id, const char *fmt, ...)
 }
 
 static char *
-_aaxALSADriverLog(const void *id, int prio, int type, const char *str)
+_aaxALSADriverLog(const void *id, VOID(int prio), VOID(int type), const char *str)
 {
    _driver_t *handle = id ? ((_driver_t *)id)->handle : NULL;
    static char _errstr[256];
@@ -1900,7 +1904,7 @@ _aaxALSADriverLog(const void *id, int prio, int type, const char *str)
 
 /*-------------------------------------------------------------------------- */
 
-static const char* ifname_prefix[] = {
+static const char* ifname_prefix[MAX_PREFIX] = {
    "front:", "rear:", "center_lfe:", "side:", "iec958:", "hdmi:", NULL
 };
 
@@ -2088,14 +2092,12 @@ _alsa_set_access(const void *id, snd_pcm_hw_params_t *hwparams)
 }
 
 static void
-_alsa_error_handler_none(const char *file, int line, const char *function,
-                         int err, const char *fmt, ...)
+_alsa_error_handler_none(VOID(const char *file), VOID(int line), VOID(const char *function), VOID(int err), VOID(const char *fmt), ...)
 {
 }
 
 static void
-_alsa_error_handler(const char *file, int line, const char *function, int err,
-                    const char *fmt, ...)
+_alsa_error_handler(const char *file, int line, const char *function, VOID(int err), const char *fmt, ...)
 {
    const void *id = NULL;
    char s[1024];
@@ -2504,7 +2506,7 @@ _alsa_get_volume_range(_driver_t *handle)
 }
 
 static float
-_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, unsigned int no_tracks, float volume)
+_alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t no_frames, VOID(unsigned int no_tracks), float volume)
 {
    float gain = fabsf(volume);
    float hwgain = gain;
@@ -2633,7 +2635,7 @@ _xrun_recovery_debug(const void *id, snd_pcm_t *handle, int err, int line)
 
 
 static size_t
-_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gain, char batched)
+_aaxALSADriverPlayback_mmap_ni(const void *id, void *src, VOID(float pitch), float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2716,7 +2718,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
       }
 
       res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
-      if (res < 0 || res != frames)
+      if (res < 0 || res != (int)frames)
       {
          res = xrun_recovery(handle->pcm, res >= 0 ? -EPIPE : res);
          if (res < 0)
@@ -2740,7 +2742,7 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, float pitch, float gai
 
 
 static size_t
-_aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gain, char batched)
+_aaxALSADriverPlayback_mmap_il(const void *id, void *src, VOID(float pitch), float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2819,7 +2821,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
       handle->cvt_to_intl(p, sbuf, offs, no_tracks, frames);
 
       res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
-      if (res < 0 || res != frames)
+      if (res < 0 || res != (int)frames)
       {
          res = xrun_recovery(handle->pcm, res >= 0 ? -EPIPE : res);
          if (res < 0)
@@ -2843,7 +2845,7 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, float pitch, float gai
 
 
 static size_t
-_aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain, char batched)
+_aaxALSADriverPlayback_rw_ni(const void *id, void *src, VOID(float pitch), float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;
@@ -2855,7 +2857,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain,
 // snd_pcm_state_t state;
    snd_pcm_sframes_t res;
    const int32_t **sbuf;
-   ssize_t outbuf_size;
+   size_t outbuf_size;
    size_t offs, rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -2964,7 +2966,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, float pitch, float gain,
 
 
 static size_t
-_aaxALSADriverPlayback_rw_il(const void *id, void *src, float pitch, float gain, char batched)
+_aaxALSADriverPlayback_rw_il(const void *id, void *src, VOID(float pitch), float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rbs = (_aaxRingBuffer *)src;

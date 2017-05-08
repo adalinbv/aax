@@ -39,7 +39,7 @@ static int _bufProcessAAXS(_buffer_t*, const void*, float);
 static int _aaxBufferProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
-static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, int, float);
+static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 
@@ -1047,7 +1047,7 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
 {
    if (ndata)
    {
-      unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
+      int native_fmt = format & AAX_FORMAT_NATIVE;
 
       if (format != native_fmt)
       {
@@ -1229,7 +1229,7 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
 {
    if (ndata)
    {
-      unsigned int native_fmt = format & AAX_FORMAT_NATIVE;
+      int native_fmt = format & AAX_FORMAT_NATIVE;
       unsigned int samples = tracks*no_samples;
 
       if (format != native_fmt)
@@ -1446,7 +1446,7 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
 
 
 void
-_bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, int channels, float fact)
+_bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, unsigned int channels, float fact)
 {
    unsigned int fmt, bps, no_samples, t, no_tracks;
    void **ptr, **tracks;

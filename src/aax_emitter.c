@@ -735,7 +735,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->buffer->ringbuffer;
-            if (mode < rb->get_parami(rb, RB_NO_TRACKS))
+            if (mode < (int)rb->get_parami(rb, RB_NO_TRACKS))
             {
                handle->track = mode;
                rv = AAX_TRUE;
@@ -1156,14 +1156,14 @@ aaxEmitterGetOffsetSec(const aaxEmitter emitter)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setup)
+aaxEmitterSetSetup(VOID(aaxEmitter emitter), VOID(enum aaxSetupType type), VOID(unsigned int setup))
 {  
    int rv = AAX_FALSE;
    return rv;
 }
 
 AAX_API unsigned int AAX_APIENTRY
-aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
+aaxEmitterGetSetup(VOID(const aaxEmitter emitter), VOID(enum aaxSetupType type))
 {
    unsigned int rv = AAX_FALSE;
    return rv;

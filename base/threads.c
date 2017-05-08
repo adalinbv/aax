@@ -158,7 +158,7 @@ _aaxThreadDestroy(void *t)
 }
 
 int
-_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
+_aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, VOID(unsigned int ms))
 {
    struct sched_param sched_param;
    pthread_attr_t attr;

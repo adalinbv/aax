@@ -479,7 +479,7 @@ _linear2adpcm(int16_t *val, int16_t nval, uint8_t *nbbl, uint8_t *idx)
 
    index += _ima4_index_table[nibble];
    *val = _MINMAX(value, -32767, 32767);
-   *idx = _MINMAX(index, 0, 88);
+   *idx = _MIN(index, 88);
    *nbbl = nibble;
 }
 

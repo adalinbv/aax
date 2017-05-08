@@ -67,13 +67,13 @@ _aaxPitchEffectDestroy(_effect_t* effect)
 }
 
 static aaxEffect
-_aaxPitchEffectSetState(_effect_t* effect, int state)
+_aaxPitchEffectSetState(_effect_t* effect, VOID(int state))
 {
    return effect;
 }
 
 static _effect_t*
-_aaxNewPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* rv = calloc(1, size);
@@ -100,14 +100,14 @@ _aaxNewPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2d
 }
 
 static float
-_aaxPitchEffectSet(float val, int ptype, unsigned char param)
+_aaxPitchEffectSet(float val, VOID(int ptype), VOID(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxPitchEffectGet(float val, int ptype, unsigned char param)
+_aaxPitchEffectGet(float val, VOID(int ptype), VOID(unsigned char param))
 {
    float rv = val;
    return rv;

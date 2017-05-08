@@ -895,5 +895,8 @@ _batch_resample_float_vfpv3(float32_ptr d, const_float32_ptr s, size_t dmin, siz
    }
 }
 # endif /* RB_FLOAT_DATA */
+
+#else
+typedef int make_iso_compilers_happy;
 #endif /* __ARM_VFPV3 */
 

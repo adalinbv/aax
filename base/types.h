@@ -33,6 +33,13 @@ extern "C" {
 # define O_BINARY	0
 #endif
 
+#ifndef NDEBUG
+#  define UNUSED(x) x
+#else
+# define UNUSED(x) x __attribute__((unused))
+#endif
+#define VOID(x) x __attribute__((unused))
+
 #if SIZEOF_SIZE_T == 8
 # define MEMALIGN	32
 #else

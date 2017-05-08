@@ -132,5 +132,7 @@ _mtx4fMul_neon(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
    }
 }
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* NEON */
 

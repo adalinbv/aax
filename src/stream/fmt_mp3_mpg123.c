@@ -408,7 +408,7 @@ _mpg123_close(_fmt_t *fmt)
 }
 
 int
-_mpg123_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
+_mpg123_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
 {
    return AAX_TRUE;
 }

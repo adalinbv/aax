@@ -24,6 +24,7 @@
 #include "types.h"
 
 
+#ifdef __ARM_VFPV2
 void
 vec3fFill_vfpv2(void* d, const void* v)
 {
@@ -486,4 +487,6 @@ mtx4dRotate_vfpv2(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
    }
 }
 
-
+#else
+typedef int make_iso_compilers_happy;
+#endif /* __ARM_VFPV2 */

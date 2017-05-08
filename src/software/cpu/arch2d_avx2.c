@@ -19,7 +19,7 @@
 #include "software/rbuf_int.h"
 #include "arch2d_simd.h"
 
-#ifdef __AVX__
+#ifdef __AVX2__
 
 static void
 _batch_iadd_avx2(int32_ptr dst, const_int32_ptr src, size_t num)
@@ -931,5 +931,7 @@ _batch_resample_float_avx2(float32_ptr d, const_float32_ptr s, size_t dmin, size
 }
 #endif // RB_FLOAT_DATA
 
-#endif /* AVX */
+#else
+typedef int make_iso_compilers_happy;
+#endif /* AVX2 */
 

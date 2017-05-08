@@ -735,7 +735,7 @@ _aaxDriverOldDetectConfigRenderer(char *xid, char **devname, char *l, char *cl)
 }
 
 static void
-_aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *config, const char *path, int m)
+_aaxDriverOldBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *config, VOID(const char *path), int m)
 {
    void *xcid = xmlNodeGet(xid, "/configuration");
 

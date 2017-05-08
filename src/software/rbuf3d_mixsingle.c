@@ -61,7 +61,7 @@ _aaxRingBufferPitchShiftFn *_aaxRingBufferDopplerFn[] =
 };
 
 static float
-_aaxRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferDistNone(VOID(float dist), VOID(float ref_dist), VOID(float max_dist), VOID(float rolloff), VOID(float vsound), VOID(float Q))
 {
    return 1.0f;
 }
@@ -84,7 +84,7 @@ _aaxRingBufferDistNone(float dist, float ref_dist, float max_dist, float rolloff
  * R = room constant (m2)
  */
 static float
-_aaxRingBufferDistInvExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferDistInvExp(float dist, float ref_dist, VOID(float max_dist), float rolloff, VOID(float vsound), VOID(float Q))
 {
 #if 1
    float fraction = 0.0f, gain = 1.0f;
@@ -119,7 +119,7 @@ _aaxRingBufferDopplerShift(float vs, float ve, float vsound)
 /* --- OpenAL support --- */
 
 static float
-_aaxRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistInv(float dist, float ref_dist, VOID(float max_dist), float rolloff, VOID(float vsound), VOID(float Q))
 {
    float gain = 1.0f;
    float denom = ref_dist + rolloff * (dist - ref_dist);
@@ -128,7 +128,7 @@ _aaxRingBufferALDistInv(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_aaxRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, VOID(float vsound), VOID(float Q))
 {
    float gain = 1.0f;
    float denom;
@@ -140,7 +140,7 @@ _aaxRingBufferALDistInvClamped(float dist, float ref_dist, float max_dist, float
 }
 
 static float
-_aaxRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rolloff, VOID(float vsound), VOID(float Q))
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -149,7 +149,7 @@ _aaxRingBufferALDistLin(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_aaxRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, VOID(float vsound), VOID(float Q))
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -160,7 +160,7 @@ _aaxRingBufferALDistLinClamped(float dist, float ref_dist, float max_dist, float
 }
 
 static float
-_aaxRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistExp(float dist, float ref_dist, VOID(float max_dist), float rolloff, VOID(float vsound), VOID(float Q))
 {
    float fraction = 0.0f, gain = 1.0f;
    if (ref_dist) fraction = dist / ref_dist;
@@ -169,7 +169,7 @@ _aaxRingBufferALDistExp(float dist, float ref_dist, float max_dist, float rollof
 }
 
 static float
-_aaxRingBufferALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, float vsound, float Q)
+_aaxRingBufferALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, VOID(float vsound), VOID(float Q))
 {
    float fraction = 0.0f, gain = 1.0f;
    dist = _MAX(dist, ref_dist);

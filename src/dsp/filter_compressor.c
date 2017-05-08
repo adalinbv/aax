@@ -211,7 +211,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewCompressorHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewCompressorHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
    _filter_t* rv = calloc(1, size);
@@ -241,14 +241,14 @@ _aaxNewCompressorHandle(const aaxConfig config, enum aaxFilterType type, _aax2dP
 }
 
 static float
-_aaxCompressorSet(float val, int ptype, unsigned char param)
+_aaxCompressorSet(float val, VOID(int ptype), VOID(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxCompressorGet(float val, int ptype, unsigned char param)
+_aaxCompressorGet(float val, VOID(int ptype), VOID(unsigned char param))
 {
    float rv = val;
    return rv;

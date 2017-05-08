@@ -161,7 +161,7 @@ float _rand_sample(float *s, float g)
 
 #define AVG	14
 #define MAX_AVG	64
-static float _rand_sample(float *s, float g)
+static float _rand_sample(VOID(float *s), float g)
 {
    static unsigned int rvals[MAX_AVG];
    static int init = 1;
@@ -457,7 +457,7 @@ __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
 }
 
 void
-_bufferMixWhiteNoise(void** data, void *scratch0, size_t no_samples, char bps, int tracks, float pitch, float gain, float dc, unsigned char skip)
+_bufferMixWhiteNoise(void** data, VOID(void *scratch0), size_t no_samples, char bps, int tracks, float pitch, float gain, float dc, unsigned char skip)
 {
    _mix_fn mixfn = _get_mixfn(3, &gain);
    size_t noise_samples = pitch*no_samples;
@@ -508,7 +508,7 @@ _bufferMixWhiteNoise(void** data, void *scratch0, size_t no_samples, char bps, i
 }
 
 void
-_bufferMixPinkNoise(void** data, void *scratch0, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
+_bufferMixPinkNoise(void** data, VOID(void *scratch0), size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
 {
    _mix_fn mixfn = _get_mixfn(3, &gain);
    size_t noise_samples = pitch*no_samples;
@@ -560,7 +560,7 @@ _bufferMixPinkNoise(void** data, void *scratch0, size_t no_samples, char bps, in
 }
 
 void
-_bufferMixBrownianNoise(void** data, void *scratch0, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
+_bufferMixBrownianNoise(void** data, VOID(void *scratch0), size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
 {
    _mix_fn mixfn = _get_mixfn(3, &gain);
    size_t noise_samples = pitch*no_samples;
@@ -634,7 +634,7 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
 
 #define NO_IMPULSE_HARMONICS		9
 void
-_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
+_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, VOID(float phase))
 {
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)

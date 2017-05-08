@@ -157,7 +157,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 }
 
 static _effect_t*
-_aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_effect_t);
    _effect_t* rv = NULL;
@@ -219,14 +219,14 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 }
 
 static float
-_aaxTimedPitchEffectSet(float val, int ptype, unsigned char param)
+_aaxTimedPitchEffectSet(float val, VOID(int ptype), VOID(unsigned char param))
 {  
    float rv = val;
    return rv;
 }
    
 static float
-_aaxTimedPitchEffectGet(float val, int ptype, unsigned char param)
+_aaxTimedPitchEffectGet(float val, VOID(int ptype), VOID(unsigned char param))
 {  
    float rv = val;
    return rv;

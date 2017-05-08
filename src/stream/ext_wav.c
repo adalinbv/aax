@@ -107,7 +107,7 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE];
 
 
 int
-_wav_detect(_ext_t *ext, int mode)
+_wav_detect(VOID(_ext_t *ext), VOID(int mode))
 {
    return AAX_TRUE;
 }
@@ -614,7 +614,7 @@ _wav_name(_ext_t *ext, enum _aaxStreamParam param)
 }
 
 char*
-_wav_interfaces(int ext, int mode)
+_wav_interfaces(VOID(int ext), int mode)
 {
    static const char *rd[2] = { "*.wav\0", "*.wav\0" };
    return (char *)rd[mode];
@@ -724,7 +724,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 // size_t size, bufsize = handle->wavBuffer->avail;
    uint32_t *header = handle->wavBuffer;
    size_t size, bufsize = handle->wavBufPos;
-   int32_t curr, init_tag;
+   uint32_t curr, init_tag;
    int bits, rv = __F_EOF;
    char extfmt;
 
@@ -1187,7 +1187,7 @@ _getFmtFromWAVFormat(enum wavFormat fmt)
  * IMA4 expects: [track0[0]..track0[n]|track1[0]..track1[n]|... ]
  */
 void
-_wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, int tracks, size_t *size)
+_wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, unsigned int tracks, size_t *size)
 {
    size_t blocksize = *size;
 

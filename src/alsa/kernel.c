@@ -162,7 +162,7 @@ typedef struct
 
    void **ptr;
    char **scratch;
-   size_t buf_len;
+   ssize_t buf_len;
 
    char *ifname[2];
 
@@ -219,7 +219,7 @@ static int _get_pagesize();
 #endif
 
 static int
-_aaxLinuxDriverDetect(int mode)
+_aaxLinuxDriverDetect(VOID(int mode))
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
@@ -493,7 +493,7 @@ _aaxLinuxDriverDisconnect(void *id)
 
 static int
 _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
-                     unsigned int *channels, float *speed, int *bitrate,
+                     unsigned int *channels, float *speed, VOID(int *bitrate),
                      int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -829,7 +829,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
 
 static ssize_t
-_aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, char batched)
+_aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req_frames, void *scratch, size_t scratchlen, float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_sframes_t avail;
@@ -856,9 +856,9 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req
 
    if (*req_frames && handle->status)
    {
+      snd_pcm_sframes_t period_frames, count, corr;
       unsigned int tracks = handle->no_tracks;
       int32_t **sbuf = (int32_t**)data;
-      size_t period_frames, count, corr;
       struct snd_xferi x;
       float diff;
 
@@ -903,8 +903,10 @@ if (corr)
          avail -= handle->control->appl_ptr;
          if (avail)
          {
+            int scratchsz= scratchlen*8/(handle->no_tracks*handle->bits_sample);
+
             x.buf = scratch;
-            x.frames = _MIN(period_frames, avail);
+            x.frames = _MIN(_MIN(period_frames, avail), scratchsz);
             ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
             if (ret >= 0)
             {
@@ -940,8 +942,7 @@ if (corr)
 }
 
 static size_t
-_aaxLinuxDriverPlayback(const void *id, void *s, float pitch, float gain,
-                        char batched)
+_aaxLinuxDriverPlayback(const void *id, void *s, VOID(float pitch), float gain, VOID(char batched))
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
@@ -1181,7 +1182,7 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxLinuxDriverGetDevices(const void *id, int mode)
+_aaxLinuxDriverGetDevices(VOID(const void *id), int mode)
 {
    static char names[2][1024] = { "\0\0", "\0\0" };
    static time_t t_previous[2] = { 0, 0 };
@@ -1261,7 +1262,7 @@ _aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
          {
             struct snd_pcm_info info;
             const char *name;
-            int slen;
+            unsigned int slen;
 
             pioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
 
@@ -1316,7 +1317,7 @@ _aaxLinuxDriverLogVar(const void *id, const char *fmt, ...)
 }
 
 static char *
-_aaxLinuxDriverLog(const void *id, int prio, int type, const char *str)
+_aaxLinuxDriverLog(const void *id, VOID(int prio), VOID(int type), const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
@@ -1334,14 +1335,14 @@ _aaxLinuxDriverLog(const void *id, int prio, int type, const char *str)
 }
 
 static int
-_kernel_get_volume(_driver_t *handle)
+_kernel_get_volume(VOID(_driver_t *handle))
 {
    int rv = 0;
    return rv;
 }
 
 static float
-_kernel_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t period_frames, unsigned int no_tracks, float volume)
+_kernel_set_volume(VOID(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, snd_pcm_sframes_t period_frames, VOID(unsigned int no_tracks), float volume)
 {
    float gain = fabsf(volume);
    float rv = 0;

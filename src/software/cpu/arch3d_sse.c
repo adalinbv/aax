@@ -122,5 +122,8 @@ _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
       d->s4x4[i] = row;
    }
 }
+
+#else
+typedef int make_iso_compilers_happy;
 #endif /* SSE */
 

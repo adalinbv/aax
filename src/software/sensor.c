@@ -243,9 +243,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
 }
 
 void*
-_aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
-                  void *be_handle, float *delay, float agc_rr, int dest_track,
-                  float pos_sec, float gain, ssize_t *nsamps, char batched)
+_aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_handle, float *delay, float agc_rr, unsigned int dest_track, VOID(float pos_sec), float gain, ssize_t *nsamps, char batched)
 {
    void *rv = drb;
    int32_t **scratch;
@@ -363,6 +361,8 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
          ntptr = (MIX_T**)nrbd->track;
          for (track=0; track<no_tracks; track++)
          {
+            float lvl;
+
             MIX_T *ptr = ntptr[track];
             MIX_T *optr = otptr[track];
 
@@ -375,7 +375,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be,
             _aax_memcpy(ptr-ds, optr-ds+nframes, ds*bps);
 
             /** average RMS and peak values */
-            _batch_get_average_rms(otptr[track], nframes, &rms, &peak);
+            _batch_get_average_rms(otptr[track], nframes, &rms, &peak, &lvl);
 
             if (maxrms < rms) maxrms = rms;
             if (maxpeak < peak) maxpeak = peak;

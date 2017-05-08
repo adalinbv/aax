@@ -156,7 +156,8 @@ typedef struct
 
 } _driver_t;
 
-#define DM_TIE_FUNCTION(d, f)	p##f = (f##_proc)_aaxGetProcAddress((d), #f)
+//#define DM_TIE_FUNCTION(d, f)	p##f = (f##_proc)_aaxGetProcAddress((d), #f)
+#define DM_TIE_FUNCTION(d, f)	*(void**)(&p##f) = _aaxGetProcAddress((d), #f)
 
 DECL_FUNCTION(alSetParams);
 DECL_FUNCTION(alGetResourceByName);
@@ -207,7 +208,7 @@ static int oserror(void);
 
 
 static int
-_aaxDMediaDriverDetect(int mode)
+_aaxDMediaDriverDetect(VOID(int mode))
 {
    static int rv = AAX_FALSE;
    void *audio = NULL;
@@ -543,8 +544,8 @@ _aaxDMediaDriverDisconnect(void *id)
 }
 
 static int
-_aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
-                      unsigned int *tracks, float *speed, int *bitrate,
+_aaxDMediaDriverSetup(const void *id, VOID(float *refresh_rate), int *fmt,
+                      unsigned int *tracks, float *speed, VOID(int *bitrate),
                       int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -665,10 +666,10 @@ _aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 
 static ssize_t
-_aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
+_aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t nframes = *frames;
+   size_t scratchsz, nframes = *frames;
    ssize_t offs = *offset;
    int tracks;
 
@@ -683,7 +684,9 @@ _aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fr
 
    *frames = 0;
    tracks = handle->port[0].no_channels;
-   palReadFrames(handle->port[0].port, scratch, nframes);
+   scratchsz = scratchlen*8/(tracks*handle->port[0].bytes_sample);
+
+   palReadFrames(handle->port[0].port, scratch, _MAX(nframes, scratchsz));
    _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, nframes);
 
 // TODO: convert to hardware volume if possible
@@ -702,16 +705,17 @@ _aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fr
 }
 
 static size_t
-_aaxDMediaDriverPlayback(const void *id, void *s, float pitch, float gain,
-                         char batched)
+_aaxDMediaDriverPlayback(const void *id, void *s, VOID(float pitch), float gain,
+                         VOID(char batched))
 {
 #if MAX_PORTS > 1
    static int check_ = CHECK_FRAMES;
 #endif
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   ssize_t offs, outbuf_size, no_samples;
-   unsigned int no_tracks;
+   ssize_t offs, no_samples;
+   size_t outbuf_size;
+   int no_tracks;
    const int32_t **sbuf;
    int16_t *data;
 
@@ -964,21 +968,21 @@ _aaxDMediaDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxDMediaDriverGetDevices(const void *id, int mode)
+_aaxDMediaDriverGetDevices(VOID(const void *id), int mode)
 {
    static char *renderers[2] = { "\0\0", "\0\0" };
    return (char *)renderers[mode];
 }
 
 static char *
-_aaxDMediaDriverGetInterfaces(const void *id, const char*devname, int mode)
+_aaxDMediaDriverGetInterfaces(VOID(const void *id), VOID(const char*devname), int mode)
 {
    static char *renderers[2] = { "\0\0", "\0\0" };
    return (char *)renderers[mode];
 }
 
 static char *
-_aaxDMediaDriverLog(const void *id, int prio, int type, const char *str)
+_aaxDMediaDriverLog(const void *id, VOID(int prio), VOID(int type), const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256] = "\0";
