@@ -168,10 +168,12 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
          if (end > start)
          {
+            float rms, peak, pct_silence;
             unsigned int t;
-            float rms, peak;
 
-            _batch_get_average_rms(start, convolution->no_samples, &rms, &peak);
+            _batch_get_average_rms(start, convolution->no_samples,
+                                   &rms, &peak, &pct_silence);
+            convolution->pct_silence = pct_silence;
             convolution->rms = rms;
 
             no_samples += convolution->no_samples;
@@ -205,7 +207,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 }
 
 _effect_t*
-_aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* rv = calloc(1, size);
@@ -235,7 +237,7 @@ static float
 _aaxConvolutionEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
+   if (param < 3 && ptype == AAX_LOGARITHMIC) {
       rv = _lin2db(val);
    }
    return rv;

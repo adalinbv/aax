@@ -36,8 +36,10 @@ _batch_cvt24_ps_avx(void_ptr dst, const_void_ptr src, size_t num)
    PRINTFUNC;
    if (((size_t)d & MEMMASK) != 0 || ((size_t)s & MEMMASK) != 0)
    {
-      if (((size_t)d & MEMMASK16) == 0 || ((size_t)s & MEMMASK16) == 0) {
-         return _batch_cvt24_ps_sse_vex(dst, src, num);
+      if (((size_t)d & MEMMASK16) == 0 || ((size_t)s & MEMMASK16) == 0)
+      {
+         _batch_cvt24_ps_sse_vex(dst, src, num);
+         return;
       }
       else
       {
@@ -132,8 +134,10 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    dtmp = (size_t)d & MEMMASK;
    stmp = (size_t)s & MEMMASK;
-   if ((dtmp || stmp) && dtmp != stmp) {
-      return _batch_cvt24_ps24_sse_vex(dst, src, num);
+   if ((dtmp || stmp) && dtmp != stmp)
+   {
+      _batch_cvt24_ps24_sse_vex(dst, src, num);
+      return;
    }
 
    /* work towards a 32-byte aligned d (and hence 32-byte aligned sptr) */
@@ -303,8 +307,10 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    dtmp = (size_t)d & MEMMASK;
    stmp = (size_t)s & MEMMASK;
-   if ((dtmp || stmp) && dtmp != stmp) {
-      return _batch_cvtps24_24_sse_vex(dst, src, num);
+   if ((dtmp || stmp) && dtmp != stmp)
+   {
+      _batch_cvtps24_24_sse_vex(dst, src, num);
+      return;
    }
 
    /* work towards a 32-byte aligned d (and hence 32-byte aligned sptr) */
@@ -1232,5 +1238,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
    return dst;
 }
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* AVX */
 

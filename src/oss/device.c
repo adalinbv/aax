@@ -173,7 +173,7 @@ static int _oss_default_nodenum = DEFAULT_DEVNUM;
 static char *_default_mixer = DEFAULT_MIXER;
 
 static int
-_aaxOSSDriverDetect(int mode)
+_aaxOSSDriverDetect(VOID(int mode))
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
@@ -410,7 +410,7 @@ _aaxOSSDriverDisconnect(void *id)
 
 static int
 _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
-                   unsigned int *tracks, float *speed, int *bitrate,
+                   unsigned int *tracks, float *speed, VOID(int *bitrate),
                    int registered, float period_rate)
 {
    _driver_t *handle = (_driver_t *)id;
@@ -544,7 +544,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
 
 static ssize_t
-_aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, char batched)
+_aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
@@ -564,7 +564,7 @@ _aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
       size_t res;
 
       no_frames = *frames;
-      buflen = no_frames * frame_size;
+      buflen = _MIN(no_frames*frame_size, scratchlen);
 
       res = read(handle->fd, scratch, buflen);
       if (res > 0)
@@ -588,18 +588,19 @@ _aaxOSSDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 }
 
 static size_t
-_aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain,
-                      char batched)
+_aaxOSSDriverPlayback(const void *id, void *s, VOID(float pitch), float gain,
+                      VOID(char batched))
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   ssize_t offs, outbuf_size, no_samples;
+   ssize_t offs, no_samples;
+   size_t outbuf_size;
    unsigned int no_tracks;
    audio_buf_info info;
    audio_errinfo err;
    int32_t **sbuf;
    int16_t *data;
-   size_t res;
+   ssize_t res;
 
    assert(rb);
    assert(id != 0);
@@ -660,7 +661,7 @@ _aaxOSSDriverPlayback(const void *id, void *s, float pitch, float gain,
          snprintf(errstr, 1024, "oss: %s", strerror(errno));
          _AAX_SYSLOG(errstr);
       }
-      else if (res != outbuf_size) {
+      else if (res != (ssize_t)outbuf_size) {
          _AAX_SYSLOG("oss: warning: pcm write error");
       }
    }
@@ -1038,7 +1039,7 @@ _aaxOSSDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 static char *
-_aaxOSSDriverLog(const void *id, int prio, int type, const char *str)
+_aaxOSSDriverLog(const void *id, VOID(int prio), VOID(int type), const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256] = "\0";
@@ -1183,7 +1184,7 @@ _oss_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_fra
    /* software volume fallback */
    if (sbuf && fabsf(hwgain - gain) > 4e-3f)
    {
-      int t;
+      unsigned int t;
       for (t=0; t<no_tracks; t++) {
          _batch_imul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
                            no_frames, gain);
@@ -1222,7 +1223,7 @@ get_oss_version()
 }
 
 static int
-detect_devnode(_driver_t *handle, char mode)
+detect_devnode(_driver_t *handle, VOID(char mode))
 {
    int version = get_oss_version();
    int rv = AAX_FALSE;

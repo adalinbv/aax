@@ -23,7 +23,7 @@
 #include "geometry.h"
 #include "types.h"
 
-
+#ifdef __ARM_VFPV3
 void
 vec3fFill_vfpv3(void* d, const void* v)
 {
@@ -486,4 +486,7 @@ mtx4dRotate_vfpv3(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
    }
 }
 
+#else
+typedef int make_iso_compilers_happy;
+#endif /* __ARM_VFPV3 */
 

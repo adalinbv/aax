@@ -269,8 +269,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       edp3d = ep3d->dprops3d;
    }
 
-   distfn = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
-   dopplerfn = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
+   *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
+   *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
    assert(dopplerfn);
    assert(distfn);
 

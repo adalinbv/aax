@@ -119,7 +119,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
    _aaxRingBufferMix1NFn *mix1n;
    _aaxRingBufferMixMNFn *mixmn;
 
-   char mixer_fmt;			/* 1 if the ringbuffer is part of the mixer */
+   unsigned char mixer_fmt;	/* 1 if the ringbuffer is part of the mixer */
 
 } _aaxRingBufferSample;
 
@@ -142,11 +142,11 @@ typedef struct _aaxRingBufferData_t
 
     unsigned int loop_max;
     unsigned int loop_no;
-    char looping;
+    unsigned char looping;
 
-    char playing;
-    char stopped;
-    char streaming;
+    unsigned char playing;
+    unsigned char stopped;
+    unsigned char streaming;
 
 #ifndef NDEBUG
     void *parent;

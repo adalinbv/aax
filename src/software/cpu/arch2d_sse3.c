@@ -527,5 +527,7 @@ _batch_resample_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size
 }
 #endif // RB_FLOAT_DATA
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* SSE3 */
 

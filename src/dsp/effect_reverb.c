@@ -184,7 +184,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 }
 
 _effect_t*
-_aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* rv = calloc(1, size);
@@ -211,14 +211,14 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2
 }
 
 static float
-_aaxReverbEffectSet(float val, int ptype, unsigned char param)
+_aaxReverbEffectSet(float val, VOID(int ptype), VOID(unsigned char param))
 {  
    float rv = val;
    return rv;
 }
    
 static float
-_aaxReverbEffectGet(float val, int ptype, unsigned char param)
+_aaxReverbEffectGet(float val, VOID(int ptype), VOID(unsigned char param))
 {  
    float rv = val;
    return rv;

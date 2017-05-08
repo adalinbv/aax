@@ -141,7 +141,7 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
 }
 
 AAX_API int AAX_APIENTRY
-aaxFilterAddBuffer(aaxFilter f, aaxBuffer b)
+aaxFilterAddBuffer(VOID(aaxFilter f), VOID(aaxBuffer b))
 {
    return AAX_FALSE;
 }
@@ -312,7 +312,7 @@ aaxFilterApplyParam(const aaxFilter f, int s, int p, int ptype)
       if (filter)
       {
          _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-         rv = flt->set(filter->slot[0]->param[p], ptype, p);
+         rv = flt->set(filter->slot[s]->param[p], ptype, p);
          free(filter);
       }
    }

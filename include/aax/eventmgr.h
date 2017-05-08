@@ -42,7 +42,7 @@ enum aaxEventType
     AAX_BUFFER_EVENTS = 0x800,
     AAX_SPECIAL_EVENTS = 0x1000,
 
-    AAX_SYSTEM_EVENTS = 0x80000000
+    AAX_SYSTEM_EVENTS = 0x8000000
 };
 
 typedef void* aaxEvent;

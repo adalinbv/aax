@@ -131,7 +131,7 @@ typedef struct
 {
    unsigned int id;
 
-   int valid;
+   unsigned int valid;
    int state;
    enum aaxErrorType error;
    unsigned int be_pos;
@@ -176,7 +176,7 @@ void _aaxDriverFree(void*);
 
 typedef struct
 {
-   int id;
+   unsigned int id;
 
    int state;
    unsigned int mixer_pos;
@@ -229,7 +229,7 @@ typedef struct
 
 typedef struct
 {
-    int id;
+    unsigned int id;
     void *handle;
     aaxFrame frame;
 
@@ -329,7 +329,7 @@ void _aaxEMitterResetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 
 typedef struct
 {
-   int id;
+   unsigned int id;
    unsigned int emitter_pos;
    enum aaxEventType event;
    void *data;
@@ -403,7 +403,7 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 #endif
 
 #ifndef NDEBUG
-# define DBG_TESTNAN(a, b)		do { int i; for (i=0;i<(b);i++) if (is_nan((a)[i])) { printf("%s line %i\n\tNaN detetced at pos %i\n", __FILE__, __LINE__, i); exit(-1); } } while(0);
+# define DBG_TESTNAN(a, b)		do { unsigned int i; for (i=0;i<(b);i++) if (is_nan((a)[i])) { printf("%s line %i\n\tNaN detetced at pos %i\n", __FILE__, __LINE__, i); exit(-1); } } while(0);
 # define DBG_MEMCLR(a, b, c, d)         if (a) memset((void*)(b), 0, (c)*(d))
 # define WRITE(a, b, dptr, ds, no_samples) \
    if (a) { static int ct = 0; if (++ct > (b)) { \

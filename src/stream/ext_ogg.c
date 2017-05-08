@@ -118,7 +118,7 @@ static void crc32_init(void);
 
 
 int
-_ogg_detect(_ext_t *ext, int mode)
+_ogg_detect(VOID(_ext_t *ext), VOID(int mode))
 {
    return AAX_TRUE;
 }
@@ -174,7 +174,7 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
 }
 
 void*
-_ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
+_ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
 {
    _driver_t *handle = ext->id;
    void *rv = NULL;
@@ -385,7 +385,7 @@ _ogg_close(_ext_t *ext)
 }
 
 void*
-_ogg_update(_ext_t *ext, size_t *offs, size_t *size, char close)
+_ogg_update(VOID(_ext_t *ext), VOID(size_t *offs), VOID(size_t *size), VOID(char close))
 {
    return NULL;
 }
@@ -630,7 +630,7 @@ crc32_init(void)
 static int
 _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
-   size_t bufsize = handle->oggBufPos;
+   ssize_t bufsize = handle->oggBufPos;
    uint32_t curr;
    int rv = __F_EOF;
 
@@ -773,13 +773,11 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
             unsigned char *ch = (unsigned char*)header;
             unsigned int i, no_segments = (header[6] >> 16) & 0xFF;
 
-printf("SKIP page due to incorrect serial number\n");
             rv = 0;
             for (i=0; i<no_segments; ++i) {
                rv += ch[27+i];
             }
 
-printf("\trv: %i, handle->oggBufPos: %i\n", rv, handle->oggBufPos);
             if (rv <= bufsize)
             {
                handle->oggBufPos -= rv;
@@ -835,7 +833,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
          uint32_t version = (header[2] << 8) | (header[3] >> 24);
          if (version == 0x0)
          {
-            int blocksize1;
+            unsigned int blocksize1;
 
             handle->format = AAX_PCM24S;
             handle->no_tracks = header[2] >> 24;
@@ -909,7 +907,7 @@ _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
                  {
                     // what follows is 'no_tracks' bytes for the channel mapping
                     rv = OPUS_ID_HEADER_SIZE + handle->no_tracks + 2;
-                    if (rv <= len) {
+                    if (rv <= (int)len) {
                        rv = __F_PROCESS;
                     }
                  }
@@ -1165,7 +1163,7 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
       uint32_t slen = *(uint32_t*)ptr;
 
       ptr += sizeof(uint32_t);
-      if ((ptr+slen-ch) > len) {
+      if ((size_t)(ptr+slen-ch) > len) {
           return __F_PROCESS;
       }
 
@@ -1256,7 +1254,7 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
       uint32_t slen = *(uint32_t*)ptr;
 
       ptr += sizeof(uint32_t);
-      if ((ptr+slen-ch) > len) {
+      if ((size_t)(ptr+slen-ch) > len) {
           return __F_PROCESS;
       }
 

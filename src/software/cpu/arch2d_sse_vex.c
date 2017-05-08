@@ -1247,5 +1247,7 @@ _batch_resample_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t dmin, s
 }
 #endif // RB_FLOAT_DATA
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* AVX */
 

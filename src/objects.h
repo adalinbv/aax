@@ -99,21 +99,21 @@ enum
 
 enum
 {
-    PITCH_CHANGED          = 0x00000001,
-    GAIN_CHANGED           = 0x00000002,
-    DIST_CHANGED           = 0x00000004,
-    MTX_CHANGED            = 0x00000008,
-    SPEED_CHANGED          = 0x00000010,
+    PITCH_CHANGED          = 0x0000001,
+    GAIN_CHANGED           = 0x0000002,
+    DIST_CHANGED           = 0x0000004,
+    MTX_CHANGED            = 0x0000008,
+    SPEED_CHANGED          = 0x0000010,
 
-    CONE_DEFINED           = 0x00010000,
-    DYNAMIC_PITCH_DEFINED  = 0x00020000,
+    CONE_DEFINED           = 0x0010000,
+    DYNAMIC_PITCH_DEFINED  = 0x0020000,
 
     /* SCENE*/
-    DISTQUEUE_CHANGED      = 0x08000000,
-    SCENE_CHANGED          = 0x10000000,
-    REVERB_CHANGED         = 0x20000000,
-    DISTDELAY_CHANGED      = 0x40000000,
-    WIND_CHANGED           = 0x80000000
+    DISTQUEUE_CHANGED      = 0x0000000,
+    SCENE_CHANGED          = 0x1000000,
+    REVERB_CHANGED         = 0x2000000,
+    DISTDELAY_CHANGED      = 0x4000000,
+    WIND_CHANGED           = 0x8000000
 };
 #define PITCH_CHANGE            (PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
 
@@ -352,11 +352,11 @@ typedef struct
 
    _intBuffers *p3dq;			/* 3d properties delay queue     */
    _intBuffers *buffers;		/* audio buffer queue            */
-   int buffer_pos;			/* audio buffer queue pos        */
+   unsigned int buffer_pos;			/* audio buffer queue pos        */
 
    int state3d;	/* backup of parent's state needed inbetween update_ctr  */
-   int8_t update_rate;
-   int8_t update_ctr;
+   uint8_t update_rate;
+   uint8_t update_ctr;
 
    float curr_pos_sec;
 

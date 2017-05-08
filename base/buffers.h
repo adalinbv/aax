@@ -28,10 +28,10 @@
 #include <limits.h>		/* for UINT_MAX */
 
 #if 1
-#define PRINT_FUNC		1
+# define PRINT_FUNC		1
 #endif
 #if 1
-#define _AAX_PERSISTENT_GETNUM	1
+# define _AAX_PERSISTENT_GETNUM	1
 #endif
 #ifndef NDEBUG
 # define BUFFER_DEBUG		1

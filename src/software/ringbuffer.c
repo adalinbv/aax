@@ -657,7 +657,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       break;
    case RB_DURATION_SEC:
    {
-      int val;
+      unsigned int val;
 
       rbd->duration_sec = fval;
       fval *= rbd->frequency_hz;

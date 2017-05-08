@@ -68,5 +68,7 @@ _vec4fMatrix4_sse3(vec4f_ptr d, const vec4f_ptr pv, const mtx4f_ptr m)
    d->s4 = _mm_hadd_ps(_mm_hadd_ps(s0, s1), _mm_hadd_ps(s2, s3));
 }
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* SSE3 */
 

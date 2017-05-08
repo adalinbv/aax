@@ -507,7 +507,7 @@ aaxDriverDestroy(aaxConfig config)
        _aaxErrorSet(AAX_INVALID_STATE);
    }
    return rv;
-};
+}
 
 AAX_API int AAX_APIENTRY
 aaxDriverClose(aaxConfig config)
@@ -909,9 +909,9 @@ _open_handle(aaxConfig config)
                {
                   smixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
                   _EFFECT_SETD3D_DATA(smixer, VELOCITY_EFFECT,
-                                            _aaxRingBufferDopplerFn[0]);
+                                      *(void**)&_aaxRingBufferDopplerFn[0]);
                   _FILTER_SETD3D_DATA(smixer, DISTANCE_FILTER,
-                          _aaxRingBufferDistanceFn[AAX_EXPONENTIAL_DISTANCE]);
+                                      *(void**)&_aaxRingBufferDistanceFn[AAX_EXPONENTIAL_DISTANCE]);
                }
 
                res = _intBufCreate(&smixer->emitters_3d, _AAX_EMITTER);
@@ -1210,8 +1210,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                }
                else
                {
-                  int t;
-
+                  unsigned int t;
 
                   _aaxContextSetupSpeakers(config->node[0].speaker,
                                            info->router, info->no_tracks);
@@ -1274,7 +1273,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 }
 
 static void
-_aaxContextSetupHRTF(void *xid, unsigned int n)
+_aaxContextSetupHRTF(void *xid, VOID(unsigned int n))
 {
    if (xid)
    {

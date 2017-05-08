@@ -1,3 +1,6 @@
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
+#include <GLES3/gl31.h>
 
 
 #define CONVOLUTION	"xhgerd"
@@ -6,14 +9,14 @@
 #define THRESHOLD	"wnrvdf"
 #define VOLUME		"ibtxdy"
 
-static const char *fshader = 
-  "#version 150\n"
-  "uniform sampler1D "CONVOLUTION";\n"
+static const char *cshader = 
+  "#version 310 es\n"
+  "layout (local_size_x=1,local_size_y=1,local_size_z=1) in;\n"
   "uniform sampler1D "HISTORY"[8];\n"
   "uniform sampler1D "SOURCE"[8];\n"
   "uniform float f, "THRESHOLD";\n"
   "uniform int cm, cs, dm, tm;\n"
-
+  "layout (local_size_x=1,local_size_y=1,local_size_z=1) in;\n"
   "void main() {\n"
     "for(int c=0; c<cm; c+=s) {\n"
       "float "VOLUME" = "CONVOLUTION"[c]*f;\n"
@@ -46,23 +49,77 @@ static void shader_error_check(GLuint object, const char *kind, GetLogFunc getLo
 GLuint
 _aaxOpenGLShaderCreate(_aaxRingBufferConvolutionData *handle)
 {
-   GLuint fshader;
+   GLuint cshader;
    int i, max;
 
-   fshader = glCreateShader(GL_FRAGMENT_SHADER);
-   glShaderSource(fshader, 1, &fragment_shader, 0);
-   glCompileShader(fshader);
+#if __LINUX__
+   /* setup EGL from the GBM device */
+   handle->fd = open ("/dev/dri/renderD128", O_RDWR);
+   if (handle->!fd) return _aaxOpenGLShaderDestroy(handle);
+
+   handle->gbm = gbm_create_device(fd);
+   if (handle->!gbm) return _aaxOpenGLShaderDestroy(handle);
+
+   handle->display = eglGetPlatformDisplay(EGL_PLATFORM_GBM_MESA, gbm, NULL);
+   if (!handle->display) return _aaxOpenGLShaderDestroy(handle);
+
+#elif __WIN32__
+   handle->hwnd = createWindow(winWidth, winHeight);
+   if (!handle->hwnd) return _aaxOpenGLShaderDestroy(handle);
+
+   handle->hdc = GetDC(handle->hwnd);
+   if (!handle->hdc) return _aaxOpenGLShaderDestroy(handle);
+
+   handle->display = eglGetDisplay(hdc);
+   if (!handle->display) return _aaxOpenGLShaderDestroy(handle);
+#endif
+
+   res = glInitialize(handle->display, NULL, NULL);
+   if (!res) return _aaxOpenGLShaderDestroy(handle);
+
+   const char *ext = eglQueryString (handle->display, EGL_EXTENSIONS);
+   if (!strstr(ext, "EGL_KHR_create_context") ||
+       !strstr(ext, "EGL_KHR_surfaceless_context")) return _aaxOpenGLShaderDestroy(handle);
+
+
+   static const EGLint config_attribs[] = {
+      EGL_RENDERABLE_TYPE, EGL_OPENGL_ES3_BIT_KHR,
+      EGL_NONE
+   };
+   EGLConfig cfg;
+   EGLint count;
+
+   res = eglChooseConfig (handle->display, config_attribs, &cfg, 1, &count);
+   if (!res) return _aaxOpenGLShaderDestroy(handle);
+
+   res = eglBindAPI (EGL_OPENGL_ES_API);
+   if (!res) return _aaxOpenGLShaderDestroy(handle);
+
+    static const EGLint attribs[] = {
+      EGL_CONTEXT_CLIENT_VERSION, 3,
+      EGL_NONE
+   };
+   EGLContext handle->context = eglCreateContext (handle->display, cg,
+                                           EGL_NO_CONTEXT, attribs);
+   if (!handle->context) return _aaxOpenGLShaderDestroy(handle);
+
+   res = eglMakeCurrent (handle->display, EGL_NO_SURFACE, EGL_NO_SURFACE, handle->context);
+   if (!res) return _aaxOpenGLShaderDestroy(handle);
+
+   /* creeate the compute shader */
+   cshader = glCreateShader(GL_COMPUTE_SHADER);
+   glShaderSource(cshader, 1, &fragment_shader, 0);
+   glCompileShader(cshader);
 
 #ifndef NDEBUG
-   shader_error_check(fshader, "fragment shader", glGetShaderInfoLog,
+   shader_error_check(cshader, "fragment shader", glGetShaderInfoLog,
                       glGetShaderiv, GL_COMPILE_STATUS);
 #endif
 
    handle->shader = glCreateProgram();
-   glAttachShader(handle->shader, fshader);
-   glDeleteShader(fshader);
-
+   glAttachShader(handle->shader, cshader);
    glLinkProgram(handle->shader);
+   glDeleteShader(cshader);
 
 #ifndef NDEBUG
    shader_error_check(handle->shader, "program", glGetProgramInfoLog,
@@ -104,12 +161,20 @@ _aaxOpenGLShaderCreate(_aaxRingBufferConvolutionData *handle)
    glUniform1i(glGetUniformLocation(shader, "dm"),rb->get_parami(rb, RB_NO_SAMPLES));
 }
 
-_aaxOpenGLShaderDestroy(_aaxRingBufferConvolutionData *shader)
+int
+_aaxOpenGLShaderDestroy(_aaxRingBufferConvolutionData *handle)
 {
    glDeleteProgram(handle->shader);
    glDeleteBuffers(1, &handle->cptr);
    glDeleteBuffers(_AAX_MAX_SPEAKERS, &handle->hptr);
    glDeleteBuffers(_AAX_MAX_SPEAKERS, &handle->sptr);
+
+   eglDestroyContext(handle->display, handle->context);
+   eglTerminate(handle->display);
+#if __LINUX__
+   gbm_device_destroy(handle->gbm);
+   close(handle->fd);
+#endif
 }
 
 int
@@ -134,9 +199,7 @@ _aaxOpenGLShaderRun(_aaxRingBufferConvolutionData *shader)
 
    // run the shader
    glUseProgram(handle->shader);
-
-   // wait for the shader to finish
-   glMemoryBarrier(GL_ALL_BARRIER_BITS); // GL_SHADER_STORAGE_BARRIER_BIT
+   glDispatchCompute(1, 1, 1);
 
 
    /* copy back the updates history buffer */

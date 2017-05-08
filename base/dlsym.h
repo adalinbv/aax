@@ -33,15 +33,16 @@ extern "C" {
 # else
 #  define DLL_RV		FARPROC
 # endif
+# define TIE_FUNCTION(f)         p##f = (f##_proc)_aaxGetProcAddress(audio, #f)
 
 #else	/* ifdef _WIN32 */
 # define DLL_API	
 # define DLL_RV			void*
+# define TIE_FUNCTION(f)         *(void**)(&p##f) = _aaxGetProcAddress(audio, #f)
 #endif
 
 #define DECL_FUNCTION(f)	f##_proc p##f = 0
 #define DECL_STATIC_FUNCTION(f)	static f##_proc p##f = 0
-#define TIE_FUNCTION(f)		p##f = (f##_proc)_aaxGetProcAddress(audio, #f)
 
 #define DECL_VARIABLE(v)	static void* p##v = 0
 #define TIE_VARIABLE(v)		p##v = _aaxGetProcAddress(audio, #v)

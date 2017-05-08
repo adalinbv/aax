@@ -151,7 +151,7 @@ static ssize_t _aaxStreamDriverReadChunk(const void*);
 const char *default_renderer = BACKEND_NAME": /tmp/AeonWaveOut.wav";
 
 static int
-_aaxStreamDriverDetect(int mode)
+_aaxStreamDriverDetect(VOID(int mode))
 {
    return AAX_TRUE;
 }
@@ -388,9 +388,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
    char *s, *protname, *server, *path, *extension;
-   int res, rate, rv = AAX_FALSE;
+   int res, port, rate, rv = AAX_FALSE;
    _protocol_t protocol;
-   int port;
    size_t headerSize;
    float period_ms;
 
@@ -578,7 +577,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          free(header);
 
-         if (headerSize && res == headerSize)
+         if (headerSize && res == (int)headerSize)
          {
             rate = handle->ext->get_param(handle->ext, __F_FREQUENCY);
 
@@ -649,8 +648,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 
 static size_t
-_aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
-                       char batched)
+_aaxStreamDriverPlayback(const void *id, void *src, VOID(float pitch), float gain, VOID(char batched))
 {
    _driver_t *handle = (_driver_t *)id;  
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
@@ -718,7 +716,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, float pitch, float gain,
    sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
    if (fabsf(gain - 1.0f) > 0.05f)
    {
-      int t;
+      unsigned int t;
       for (t=0; t<file_tracks; t++) {
          _batch_imul_value(sbuf[t]+offs, sizeof(int32_t), no_samples, gain);
       }
@@ -827,7 +825,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             extBuffer = NULL;
             samples = no_samples;
          }
-         else if (samples >= 0)
+         else //  if (samples >= 0)
          {
             if (no_samples > 0)
             {
@@ -887,11 +885,11 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                }
             }
          }
-         else
-         {
-            bytes = -1;
-            break;
-         }
+//       else
+//       {
+//          bytes = -1;
+//          break;
+//       }
       } while (no_samples > 0);
 
       if (!handle->copy_to_buffer && bytes > 0)
@@ -1023,7 +1021,7 @@ _aaxStreamDriverRender(const void* config)
 
 
 static int
-_aaxStreamDriverState(const void *id, enum _aaxDriverState state)
+_aaxStreamDriverState(VOID(const void *id), enum _aaxDriverState state)
 {
    int rv = AAX_FALSE;
    switch(state)
@@ -1112,7 +1110,7 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static int
-_aaxStreamDriverSetPosition(const void *id, off_t pos)
+_aaxStreamDriverSetPosition(VOID(const void *id), VOID(off_t pos))
 {
 // _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -1153,14 +1151,14 @@ _aaxStreamDriverSetPosition(const void *id, off_t pos)
 }
 
 static char *
-_aaxStreamDriverGetDevices(const void *id, int mode)
+_aaxStreamDriverGetDevices(VOID(const void *id), int mode)
 {
    static const char *rd[2] = { BACKEND_NAME"\0\0", BACKEND_NAME"\0\0" };
    return (char *)rd[mode];
 }
 
 static char *
-_aaxStreamDriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxStreamDriverGetInterfaces(const void *id, VOID(const char *devname), int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
@@ -1216,7 +1214,7 @@ _aaxStreamDriverGetInterfaces(const void *id, const char *devname, int mode)
 }
 
 char *
-_aaxStreamDriverLog(const void *id, int prio, int type, const char *str)
+_aaxStreamDriverLog(const void *id, VOID(int prio), VOID(int type), const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];

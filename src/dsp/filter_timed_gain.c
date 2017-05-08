@@ -156,7 +156,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_filter_t);
    _filter_t* rv = NULL;
@@ -219,7 +219,7 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 }
 
 static float
-_aaxTimedGainFilterSet(float val, int ptype, unsigned char param)
+_aaxTimedGainFilterSet(float val, int ptype, VOID(unsigned char param))
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
@@ -229,7 +229,7 @@ _aaxTimedGainFilterSet(float val, int ptype, unsigned char param)
 }
 
 static float
-_aaxTimedGainFilterGet(float val, int ptype, unsigned char param)
+_aaxTimedGainFilterGet(float val, int ptype, VOID(unsigned char param))
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {

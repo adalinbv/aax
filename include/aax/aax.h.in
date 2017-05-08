@@ -73,7 +73,7 @@ enum aaxHandleType
 
 enum aaxFormat
 {
-   AAX_FORMAT_NONE = (unsigned int)-1,
+   AAX_FORMAT_NONE = -1,
 
    /* native endianness */
    AAX_PCM8S = 0,		/* signed, 8-bits per sample  */
@@ -259,7 +259,7 @@ enum aaxSetupType
    AAX_MUSIC_PERFORMER_UPDATE = 0x2080,
    AAX_TRACK_TITLE_UPDATE,
 
-   AAX_RELEASE_MODE = (unsigned int)-1
+   AAX_RELEASE_MODE = -1
 };
 
 enum aaxErrorType

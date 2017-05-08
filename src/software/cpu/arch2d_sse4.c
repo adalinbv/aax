@@ -85,5 +85,7 @@ _batch_saturate24_sse4(void *data, size_t num)
    }
 }
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* SSE4 */
 

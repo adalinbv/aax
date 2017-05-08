@@ -79,7 +79,7 @@ _vorbis_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+_vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -189,7 +189,7 @@ _vorbis_close(_fmt_t *fmt)
 }
 
 int
-_vorbis_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
+_vorbis_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
 {
    return AAX_TRUE;
 }
@@ -214,7 +214,8 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
    int bits, tracks, framesize;
    size_t bufsize, rv = 0;
    unsigned char *buf;
-   int req, ret, n;
+   unsigned int req, ret;
+   int n;
 
    req = *num;
    tracks = handle->no_tracks;
@@ -269,7 +270,7 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
          const_int32_ptrptr outputs = (const_int32_ptrptr)handle->outputs;
          unsigned char *ptr = (unsigned char*)dptr;
 
-         if (n > req)
+         if (n > (int)req)
          {
             handle->out_size = n;
             handle->out_pos = req;
@@ -304,8 +305,8 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = 0;
    unsigned char *buf;
-   int req, ret, n;
-   int i, tracks;
+   unsigned int req, ret;
+   int n, i, tracks;
 
    req = *num;
    tracks = handle->no_tracks;
@@ -353,7 +354,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
 
       if (ret > 0)
       {
-         if (n > req)
+         if (n > (int)req)
          {
             handle->out_size = n;
             handle->out_pos = req;
@@ -383,7 +384,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
 }
 
 size_t
-_vorbis_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+_vorbis_cvt_to_intl(_fmt_t *fmt, VOID(void_ptr dptr), const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
    int res = 0;
@@ -403,7 +404,7 @@ _vorbis_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t 
 }
 
 char*
-_vorbis_name(_fmt_t *fmt, enum _aaxStreamParam param)
+_vorbis_name(VOID(_fmt_t *fmt), VOID(enum _aaxStreamParam param))
 {
    return NULL;
 }

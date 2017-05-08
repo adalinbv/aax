@@ -83,7 +83,7 @@ struct pollfd {
 
 #include "audio.h"
 
-typedef int (*ioctl_proc)(int, int, ...);
+typedef int (*ioctl_proc)(int, unsigned long, ...);
 typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
 typedef void* (*mmap_proc)(void*, size_t, int, int, int, off_t);
 typedef int (*munmap_proc)(void*, size_t);
@@ -134,11 +134,9 @@ enum {
    SNDRV_PCM_TSTAMP_LAST = SNDRV_PCM_TSTAMP_ENABLE,
 };
 
-enum {
-   SNDRV_PCM_MMAP_OFFSET_DATA = 0x00000000,
-   SNDRV_PCM_MMAP_OFFSET_STATUS = 0x80000000,
-   SNDRV_PCM_MMAP_OFFSET_CONTROL = 0x81000000,
-};
+#define SNDRV_PCM_MMAP_OFFSET_DATA    0x00000000
+#define SNDRV_PCM_MMAP_OFFSET_STATUS  0x80000000
+#define SNDRV_PCM_MMAP_OFFSET_CONTROL 0x81000000
 
 struct snd_ctl_card_info {
    int card;

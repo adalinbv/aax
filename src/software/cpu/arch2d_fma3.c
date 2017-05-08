@@ -221,5 +221,7 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
    }
 }
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* __FMA__ */
 

@@ -47,7 +47,7 @@ _aaxDistanceFilterCreate(_handle_t *handle, enum aaxFilterType type)
 
       ptr = (char*)flt + sizeof(_filter_t);
       flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->slot[0]->data = _aaxRingBufferDistanceFn[1];
+      flt->slot[0]->data = *(void**)&_aaxRingBufferDistanceFn[1];
       flt->pos = _flt_cvt_tbl[type].pos;
       flt->type = type;
 
@@ -80,12 +80,12 @@ _aaxDistanceFilterSetState(_filter_t* filter, int state)
       {
          pos -= AAX_AL_INVERSE_DISTANCE;
          filter->slot[0]->state = state;
-         filter->slot[0]->data = _aaxRingBufferALDistanceFn[pos];
+         filter->slot[0]->data = *(void**)&_aaxRingBufferALDistanceFn[pos];
       }
       else if (pos < AAX_DISTANCE_MODEL_MAX)
       {
          filter->slot[0]->state = state;
-         filter->slot[0]->data = _aaxRingBufferDistanceFn[pos];
+         filter->slot[0]->data = *(void**)&_aaxRingBufferDistanceFn[pos];
       }
       else _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
@@ -111,7 +111,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, _aa
       rv->info = info;
       rv->handle = handle;
       rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->slot[0]->data = _aaxRingBufferDistanceFn[1];
+      rv->slot[0]->data = *(void**)&_aaxRingBufferDistanceFn[1];
       rv->pos = _flt_cvt_tbl[type].pos;
       rv->state = p2d->filter[rv->pos].state;
       rv->type = type;
@@ -124,14 +124,14 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, _aa
 }
 
 static float
-_aaxDistanceFilterSet(float val, int ptype, unsigned char param)
+_aaxDistanceFilterSet(float val, VOID(int ptype), VOID(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxDistanceFilterGet(float val, int ptype, unsigned char param)
+_aaxDistanceFilterGet(float val, VOID(int ptype), VOID(unsigned char param))
 {
    float rv = val;
    return rv;

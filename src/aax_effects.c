@@ -352,7 +352,7 @@ aaxEffectApplyParam(const aaxEffect e, int s, int p, int ptype)
       if (effect)
       {
          _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-         rv = eff->set(effect->slot[0]->param[p], ptype, p);
+         rv = eff->set(effect->slot[s]->param[p], ptype, p);
          free(effect);
       }
    }

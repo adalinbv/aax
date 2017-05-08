@@ -49,7 +49,7 @@ typedef struct {
 
 typedef struct
 {
-   int id;
+   unsigned int id;
    int pos;
    int state;
    enum aaxEffectType type;

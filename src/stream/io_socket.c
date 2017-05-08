@@ -176,7 +176,7 @@ _socket_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
 }
 
 ssize_t
-_socket_get(_io_t *io, enum _aaxStreamParam ptype)
+_socket_get(VOID(_io_t *io), enum _aaxStreamParam ptype)
 {
    ssize_t rv = 0;
    switch (ptype)

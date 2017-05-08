@@ -116,7 +116,7 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
 int
 _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
 {
-   int slen = 0;
+   unsigned int slen = 0;
 
    if (prot->meta_interval)
    {
@@ -329,7 +329,7 @@ _http_get_response_data(_io_t *io, char *response, int size)
 {
    static char end[4] = "\r\n\r\n";
    char *buf = response;
-   int found = 0;
+   unsigned int found = 0;
    int res, i = 0;
 
    do

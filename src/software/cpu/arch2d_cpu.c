@@ -890,27 +890,33 @@ _batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
 }
 
 void
-_batch_get_average_rms_cpu(const_float32_ptr data, size_t num, float *rms , float *peak)
+_batch_get_average_rms_cpu(const_float32_ptr data, size_t num, float *rms, float *peak, float *pct_silence)
 {
-   double rms_total;
-   float peak_cur;
-   size_t j = num;
-
-   assert(num);
-
-   peak_cur = 0.0f;
-   rms_total = 0.0;
-   do
+   if (num)
    {
-      float samp = *data++;            // rms
-      float val = samp*samp;
-      rms_total += val;
-      if (val > peak_cur) peak_cur = val;
-   }
-   while (--j);
+      float threshold = LEVEL_90DB * (float)(1<<23);
+      double rms_total = 0.0;
+      float peak_cur = 0.0f;
+      float silence = 0.0f;
 
-   *rms = sqrt(rms_total/num);
-   *peak = sqrtf(peak_cur);
+      size_t j = num;
+      do
+      {
+         float samp = *data++;            // rms
+         float val = samp*samp;
+         rms_total += val;
+         if (fabsf(samp) < threshold) silence++;
+         else if (val > peak_cur) peak_cur = val;
+      }
+      while (--j);
+
+      *rms = sqrt(rms_total/num);
+      *peak = sqrtf(peak_cur);
+      *pct_silence = silence/num;
+   }
+   else {
+      *rms = *peak = *pct_silence = 0;
+   }
 }
 
 void

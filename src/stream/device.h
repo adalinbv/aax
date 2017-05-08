@@ -35,7 +35,7 @@ extern const _intBuffers _aaxStreamDriverEnumValues;
 /* Support for IMA4 in wav files */
 #define MSIMA_BLOCKSIZE_TO_SMP(b, t)	(((b)-4*(t))*2)/(t)
 #define SMP_TO_MSBLOCKSIZE(s, t)	(((s)*(t)/2)+4*(t))
-void _wav_cvt_msadpcm_to_ima4(void*, size_t, int, size_t*);
+void _wav_cvt_msadpcm_to_ima4(void*, size_t, unsigned int, size_t*);
 void _pcm_cvt_lin_to_ima4_block(uint8_t*, int32_t*, unsigned, int16_t*, uint8_t*, short);
 
 #if defined(__cplusplus)

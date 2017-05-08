@@ -22,14 +22,14 @@
 #include "io.h"
 
 size_t
-_direct_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, const char *agent)
+_direct_connect(_prot_t *prot, VOID(_io_t *io), VOID(const char *server), const char *path, VOID(const char *agent))
 {
    prot->path = strdup(path);
    return 0;
 }
 
 int
-_direct_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
+_direct_process(VOID(_prot_t *prot), VOID(uint8_t *buf), VOID(size_t res), VOID(size_t bytes_avail))
 {
    return 0;
 }
@@ -104,7 +104,7 @@ _direct_get(_prot_t *prot, enum _aaxStreamParam ptype)
 }
 
 char*
-_direct_name(_prot_t *prot, enum _aaxStreamParam ptype)
+_direct_name(VOID(_prot_t *prot), VOID(enum _aaxStreamParam ptype))
 {
    return NULL;
 }

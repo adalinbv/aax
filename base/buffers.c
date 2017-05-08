@@ -72,11 +72,15 @@ const char *_intBufNames[] =
 # endif
 #endif
 
-# define _BUF_LOG(a, b, c)
-#if 0
-# define PRINT(...)		printf(...)
-#else
-#define PRINT(...)
+#ifdef BUFFER_DEBUG
+# undef UNUSED
+# if 0
+#  define UNUSED(x) x
+#  define PRINT(...)		printf(...)
+# else
+#  define UNUSED(x) x __attribute__((unused))
+#  define PRINT(...)
+# endif
 #endif
 
 static int __intBufFreeSpace(_intBuffers *, int, char);
@@ -84,7 +88,7 @@ static int __intBufFreeSpace(_intBuffers *, int, char);
 
 #ifdef BUFFER_DEBUG
 unsigned int
-_intBufCreateDebug(_intBuffers **buffer, unsigned int id, char *file, int line)
+_intBufCreateDebug(_intBuffers **buffer, unsigned int id, UNUSED(char *file), UNUSED(int line))
 {
     unsigned int r = _intBufCreateNormal(buffer, id);
     PRINT("create: %s at line %i: %x\n", file, line, r);
@@ -96,8 +100,6 @@ unsigned int
 _intBufCreateNormal(_intBuffers **buffer, unsigned int id)
 {
     unsigned int rv = UINT_MAX;
-
-    _BUF_LOG(LOG_INFO, id, __func__);
 
     assert(buffer != 0);
     assert(*buffer == 0);
@@ -161,8 +163,6 @@ unsigned int
 _intBufAddDataNormal(_intBuffers *buffer, unsigned int id, const void *data, char locked)
 {
     unsigned int rv = UINT_MAX;
-
-    _BUF_LOG(LOG_INFO, id, __func__);
 
     assert(data != 0);
     assert(buffer != 0);
@@ -228,8 +228,6 @@ _intBufAddReference(_intBuffers *buffer, unsigned int id,
 {
     unsigned int rv = UINT_MAX;
 
-    _BUF_LOG(LOG_INFO, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
     assert(buffer->data != 0);
@@ -290,8 +288,6 @@ _intBufReplace(_intBuffers *buffer, unsigned int id, unsigned int n, void *data)
     _intBufferData *buf;
     const void *rv = NULL;
 
-    _BUF_LOG(LOG_INFO, id, __func__);
-
     assert(data != 0);
     assert(buffer != 0);
     assert(buffer->id == id);
@@ -314,8 +310,6 @@ _intBufReplace(_intBuffers *buffer, unsigned int id, unsigned int n, void *data)
 _intBufferData *
 _intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char locked, char *file, int line)
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
 
@@ -328,7 +322,7 @@ _intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char locke
     if (!locked && buffer->data[n] != 0)
     {
         int r = _aaxMutexLockDebug(buffer->data[n]->mutex, file, line);
-        if (r < 0) PRINT("error: %i at %s line %i\n", -r, file, line);
+        if (r < 0) { PRINT("error: %i at %s line %i\n", -r, file, line); }
     }
 #endif
 
@@ -339,8 +333,6 @@ _intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char locke
 _intBufferData *
 _intBufGetNormal(_intBuffers *buffer, unsigned int id, unsigned int n, char locked)
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer);
     assert(buffer->id == id);
 
@@ -362,8 +354,6 @@ _intBufGetNormal(_intBuffers *buffer, unsigned int id, unsigned int n, char lock
 void
 _intBufRelease(_intBuffers *buffer, unsigned int id, unsigned int n)
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
 
@@ -403,10 +393,8 @@ _intBufSetDataPtr(_intBufferData *data, void *user_data)
 #ifndef _AL_NOTHREADS
 # ifndef NDEBUG
 void
-_intBufReleaseDataDebug(const _intBufferData *data, unsigned int id, char *file, int line)
+_intBufReleaseDataDebug(const _intBufferData *data, UNUSED(unsigned int id), char *file, int line)
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(data != 0);
 
     _aaxMutexUnLockDebug(data->mutex, file, line);
@@ -414,10 +402,8 @@ _intBufReleaseDataDebug(const _intBufferData *data, unsigned int id, char *file,
 # endif
 
 void
-_intBufReleaseDataNormal(const _intBufferData *data, unsigned int id)
+_intBufReleaseDataNormal(const _intBufferData *data, UNUSED(unsigned int id))
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     _aaxMutexUnLock(data->mutex);
 }
 #endif
@@ -425,8 +411,6 @@ _intBufReleaseDataNormal(const _intBufferData *data, unsigned int id)
 unsigned int
 _intBufGetNumNoLock(const _intBuffers *buffer, unsigned int id)
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
 
@@ -435,10 +419,8 @@ _intBufGetNumNoLock(const _intBuffers *buffer, unsigned int id)
 
 #ifndef NDEBUG
 unsigned int
-_intBufGetNumDebug(_intBuffers *buffer, unsigned int id, char lock, char *file, int line)
+_intBufGetNumDebug(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock), char *file, int line)
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
 
@@ -472,10 +454,8 @@ _intBufGetNumDebug(_intBuffers *buffer, unsigned int id, char lock, char *file, 
 #endif
 
 unsigned int
-_intBufGetNumNormal(_intBuffers *buffer, unsigned int id, char lock)
+_intBufGetNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock))
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
 #ifndef _AL_NOTHREADS
     _aaxMutexLock(buffer->mutex);
 # ifndef _AAX_PERSISTENT_GETNUM
@@ -504,10 +484,8 @@ _intBufGetNumNormal(_intBuffers *buffer, unsigned int id, char lock)
 }
 
 unsigned int
-_intBufGetMaxNumNoLock(const _intBuffers *buffer, unsigned int id)
+_intBufGetMaxNumNoLock(const _intBuffers *buffer, UNUSED(unsigned int id))
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
 
@@ -515,10 +493,8 @@ _intBufGetMaxNumNoLock(const _intBuffers *buffer, unsigned int id)
 }
 
 unsigned int
-_intBufGetMaxNumNormal(_intBuffers *buffer, unsigned int id, char lock)
+_intBufGetMaxNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock))
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
 
@@ -547,10 +523,8 @@ _intBufGetMaxNumNormal(_intBuffers *buffer, unsigned int id, char lock)
 
 #ifndef _AL_NOTHREADS
 void
-_intBufReleaseNumNormal(_intBuffers *buffer, unsigned int id, char lock)
+_intBufReleaseNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock))
 {
-    _BUF_LOG(LOG_BULK, id, __func__);
-
     assert(buffer);
     assert(buffer->id == id);
 
@@ -573,8 +547,6 @@ unsigned int
 _intBufGetPos(_intBuffers *buffer, unsigned int id, void *data)
 {
     unsigned int i, start, num, max;
-
-    _BUF_LOG(LOG_BULK, id, __func__);
 
     assert(data != 0);
     assert(buffer != 0);
@@ -736,8 +708,6 @@ _intBufRemoveDebug(_intBuffers *buffer, unsigned int id, unsigned int n,
    _intBufferData *buf;
     void *rv = 0;
 
-    _BUF_LOG(LOG_INFO, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
     assert(buffer->start+n < buffer->max_allocations);
@@ -797,8 +767,6 @@ _intBufRemoveNormal(_intBuffers *buffer, unsigned int id, unsigned int n,
     _intBufferData *buf;
     void *rv = 0;
 
-    _BUF_LOG(LOG_INFO, id, __func__);
-
     assert(buffer != 0);
     assert(buffer->id == id);
     assert(buffer->start+n < buffer->max_allocations);
@@ -854,7 +822,7 @@ _intBufRemoveNormal(_intBuffers *buffer, unsigned int id, unsigned int n,
 void 
 _intBufClearDebug(_intBuffers *buffer, unsigned int id,
                       _intBufFreeCallback cb_free,
-                      char *file, int lineno)
+                      UNUSED(char *file), UNUSED(int lineno))
 {
     _intBufClearNormal(buffer, id, cb_free);
     PRINT("clear: %s at line %i\n", file, lineno);
@@ -866,8 +834,6 @@ _intBufClearNormal(_intBuffers *buffer, unsigned int id,
                      _intBufFreeCallback cb_free)
 {
     unsigned int n, max, start;
-
-    _BUF_LOG(LOG_INFO, id, __func__);
 
     assert(buffer != 0);
     assert(buffer->id == id);
@@ -892,7 +858,7 @@ _intBufClearNormal(_intBuffers *buffer, unsigned int id,
 void
 _intBufEraseDebug(_intBuffers **buffer, unsigned int id,
                       _intBufFreeCallback cb_free,
-                      char *file, int lineno)
+                      UNUSED(char *file), UNUSED(int lineno))
 {
     _intBufEraseNormal(buffer, id, cb_free);
     PRINT("erase: %s at line %i\n", file, lineno);
@@ -903,8 +869,6 @@ void
 _intBufEraseNormal(_intBuffers **buf, unsigned int id,
                      _intBufFreeCallback cb_free)
 {
-    _BUF_LOG(LOG_INFO, id, __func__);
-
     assert(buf != 0);
 
     if (*buf)

@@ -23,26 +23,33 @@
 
 
 void
-_batch_get_average_rms_sse2(const_float32_ptr d, size_t num, float *rms , float *peak)
+_batch_get_average_rms_sse2(const_float32_ptr data, size_t num, float *rms, float *peak, float *pct_silence)
 {
-   size_t max = num;
-   double rms_total;
-   float peak_cur;
-
    if (num)
    {
+      float threshold = LEVEL_96DB * (float)(1<<23);
+      double rms_total = 0.0;
+      float peak_cur = 0.0f;
+      float silence = 0.0f;
+
+      size_t j = num;
       do
       {
-         float samp = *d++;
+         float samp = *data++;            // rms
          float val = samp*samp;
          rms_total += val;
-         if (val > peak_cur) peak_cur = val;
+         if (fabsf(samp) < threshold) silence++;
+         else if (val > peak_cur) peak_cur = val;
       }
-      while (--num);
-   }
+      while (--j);
 
-   *rms = sqrt(rms_total/max);
-   *peak = sqrtf(peak_cur);
+      *rms = sqrt(rms_total/num);
+      *peak = sqrtf(peak_cur);
+      *pct_silence = silence/num;
+   }
+   else { 
+      *rms = *peak = *pct_silence = 0;
+   }
 }
 
 void
@@ -1984,5 +1991,7 @@ _batch_resample_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size
 }
 #endif // RB_FLOAT_DATA
 
+#else
+typedef int make_iso_compilers_happy;
 #endif /* SSE2 */
 

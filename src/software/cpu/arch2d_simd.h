@@ -55,6 +55,7 @@ int32_t fp16_mantissatable[2048];
 int16_t fp16_basetable[512];
 int16_t fp16_shifttable[512];
 
+#if 0
 inline float HALF2FLOAT(int16_t h16) {
    return fp16_mantissatable[fp16_offsettable[h16>>10]+(h16&0x3ff)]+fp16_exponenttable[h16>>10];
 }
@@ -63,6 +64,7 @@ inline int16_t FLOAT2HALF(float f) {
    int32_t f32 = ((union { float f; int32_t i; }){ .f = f }).i;
    return fp16_basetable[(f32>>23)&0x1ff]+((f32&0x007fffff)>>fp16_shifttable[(f32>>23)&0x1ff]);
 }
+#endif
 
 /* CPU*/
 void _aax_free_aligned(void*);
@@ -86,7 +88,7 @@ void _batch_resample_float_cpu(float32_ptr, const_float32_ptr, size_t, size_t, f
 void _batch_resample_cpu(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
 
-void _batch_get_average_rms_cpu(const_float32_ptr, size_t, float*, float*);
+void _batch_get_average_rms_cpu(const_float32_ptr, size_t, float*, float*, float*);
 void _batch_saturate24_cpu(void*, size_t);
 
 void _batch_cvt8u_8s_cpu(void*, size_t);
@@ -141,7 +143,7 @@ char* _aax_malloc_aligned(char**, size_t);
 /* SSE2*/
 void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
-void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
+void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*, float*);
 void _batch_saturate24_sse2(void*, size_t);
 
 void _batch_fmul_value_sse2(void*, unsigned, size_t, float);

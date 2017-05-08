@@ -399,7 +399,7 @@ _aaxSoftwareMixerThread(void* config)
 /*-------------------------------------------------------------------------- */
 
 int
-_aaxSoftwareMixerPlay(void* rb, const void* devices, const void* ringbuffers, const void* frames, void* props2d, char capturing, const void* sensor, const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle, char batched)
+_aaxSoftwareMixerPlay(void* rb, VOID(const void* devices), const void* ringbuffers, VOID(const void* frames), void* props2d, char capturing, VOID(const void* sensor), const void* backend, const void* be_handle, const void* fbackend, const void* fbe_handle, char batched)
 {
    const _aaxDriverBackend* be = (const _aaxDriverBackend*)backend;
    const _aaxDriverBackend* fbe = (const _aaxDriverBackend*)fbackend;
