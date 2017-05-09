@@ -237,7 +237,7 @@ static float
 _aaxConvolutionEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if (param < 3 && ptype == AAX_LOGARITHMIC) {
+   if (ptype == AAX_LOGARITHMIC) {
       rv = _lin2db(val);
    }
    return rv;
@@ -247,7 +247,7 @@ static float
 _aaxConvolutionEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if (param < 3 && ptype == AAX_LOGARITHMIC) {
+   if (ptype == AAX_LOGARITHMIC) {
       rv = _db2lin(val);
    }
    return rv;

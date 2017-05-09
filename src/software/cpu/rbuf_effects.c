@@ -321,7 +321,8 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
    float v, threshold;
-   int step, pct_silence;
+   double pct_silence;
+   int step;
 
    rbi = rb->handle;
    rbd = rbi->sample;
@@ -344,10 +345,9 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
    pct_silence = 0;
    q = dnum;
    do {
-       if (fabsf(*sptr++) <= threshold) pct_silence++;
+       if (fabsf(*sptr++) <= threshold) pct_silence += (1.0/dnum);
    }
    while (--q);
-   pct_silence /= dnum;
    sptr = dptr;
 
    if (convolution->pct_silence > pct_silence)
@@ -370,14 +370,14 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
    }
    else
    {
-      q = dnum;
-      threshold *= (float)(1<<23);
+      q = dnum/step;
       do
       {
-         float volume = *sptr++ * v;
+         float volume = *sptr * v;
          if (fabsf(volume) > threshold) {
             rbd->add(hcptr, cptr, cnum, volume, 0.0f);
          }
+         sptr += step;
          hcptr += step;
       }
       while (--q);

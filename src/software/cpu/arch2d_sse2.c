@@ -27,10 +27,10 @@ _batch_get_average_rms_sse2(const_float32_ptr data, size_t num, float *rms, floa
 {
    if (num)
    {
-      float threshold = LEVEL_96DB * (float)(1<<23);
+      float threshold = LEVEL_96DB;
       double rms_total = 0.0;
       float peak_cur = 0.0f;
-      float silence = 0.0f;
+      double silence = 0.0f;
 
       size_t j = num;
       do
@@ -38,14 +38,14 @@ _batch_get_average_rms_sse2(const_float32_ptr data, size_t num, float *rms, floa
          float samp = *data++;            // rms
          float val = samp*samp;
          rms_total += val;
-         if (fabsf(samp) < threshold) silence++;
+         if (fabsf(samp) < threshold) silence += (1.0/num);
          else if (val > peak_cur) peak_cur = val;
       }
       while (--j);
 
       *rms = sqrt(rms_total/num);
       *peak = sqrtf(peak_cur);
-      *pct_silence = silence/num;
+      *pct_silence = silence;
    }
    else { 
       *rms = *peak = *pct_silence = 0;
