@@ -321,7 +321,6 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
    float v, threshold;
-   double pct_silence;
    int step;
 
    rbi = rb->handle;
@@ -341,49 +340,19 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
    hpos = convolution->history_start[t];
    hcptr = hptr + hpos;
 
-#if 1
-   pct_silence = 0;
-   q = dnum;
-   do {
-       if (fabsf(*sptr++) <= threshold) pct_silence += (1.0/dnum);
+   q = cnum/step;
+   threshold = convolution->threshold;
+   do
+   {
+      float volume = *cptr * v;
+      if (fabsf(volume) > threshold) {
+         rbd->add(hcptr, sptr, dnum, volume, 0.0f);
+      }
+      cptr += step;
+      hcptr += step;
    }
    while (--q);
-   sptr = dptr;
 
-   if (convolution->pct_silence > pct_silence)
-#else
-   if (0)
-#endif
-   {
-      q = cnum/step;
-      threshold = convolution->threshold;
-      do
-      {
-         float volume = *cptr * v;
-         if (fabsf(volume) > threshold) {
-            rbd->add(hcptr, sptr, dnum, volume, 0.0f);
-         }
-         cptr += step;
-         hcptr += step;
-      }
-      while (--q);
-   }
-   else
-   {
-      q = dnum/step;
-      do
-      {
-         float volume = *sptr * v;
-         if (fabsf(volume) > threshold) {
-            rbd->add(hcptr, cptr, cnum, volume, 0.0f);
-         }
-         sptr += step;
-         hcptr += step;
-      }
-      while (--q);
-   }
-
-#if 0
    if (convolution->freq_filter)
    {
       _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
@@ -396,7 +365,6 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
                                        convolution->freq_filter, NULL, 0);
       }
    }
-#endif
    rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
 
    hpos += dnum;

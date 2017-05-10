@@ -361,8 +361,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
          ntptr = (MIX_T**)nrbd->track;
          for (track=0; track<no_tracks; track++)
          {
-            float lvl;
-
             MIX_T *ptr = ntptr[track];
             MIX_T *optr = otptr[track];
 
@@ -375,7 +373,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
             _aax_memcpy(ptr-ds, optr-ds+nframes, ds*bps);
 
             /** average RMS and peak values */
-            _batch_get_average_rms(otptr[track], nframes, &rms, &peak, &lvl);
+            _batch_get_average_rms(otptr[track], nframes, &rms, &peak);
 
             if (maxrms < rms) maxrms = rms;
             if (maxpeak < peak) maxpeak = peak;
