@@ -75,7 +75,7 @@ typedef void (*_batch_freqfilter_float_proc)(float32_ptr, const_float32_ptr, int
 typedef void (*_batch_resample_float_proc)(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 
-typedef void (*_batch_get_average_rms_proc)(const_float32_ptr, size_t, float*, float*, float*);
+typedef void (*_batch_get_average_rms_proc)(const_float32_ptr, size_t, float*, float*);
 
 
 typedef void (*_aax_aligned_free_proc)(void*);

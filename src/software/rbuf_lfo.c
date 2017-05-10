@@ -166,10 +166,10 @@ _aaxRingBufferLFOGetGainFollow(void* data, VOID(void *env), VOID(const void *ptr
       /* In stereo-link mode the left track (0) provides the data */
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         float pct, lvl, fact;
+         float lvl, fact;
          float rms, peak;
 
-         _batch_get_average_rms(ptr, num, &rms, &peak, &pct);
+         _batch_get_average_rms(ptr, num, &rms, &peak);
          lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          olvl = lfo->value[track];
@@ -203,10 +203,10 @@ _aaxRingBufferLFOGetCompressor(void* data, VOID(void *env), const void *ptr, uns
       gf = _MIN(powf(oavg/lfo->gate_threshold, 10.0f), 1.0f);
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
-         float pct, lvl, fact = 1.0f;
+         float lvl, fact = 1.0f;
          float rms, peak;
 
-         _batch_get_average_rms(ptr, num, &rms, &peak, &pct);
+         _batch_get_average_rms(ptr, num, &rms, &peak);
          lvl = _MINMAX(rms*div, 0.0f, 1.0f);
 
          fact = lfo->gate_period;

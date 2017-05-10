@@ -168,12 +168,10 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
          if (end > start)
          {
-            float rms, peak, pct_silence;
+            float rms, peak;
             unsigned int t;
 
-            _batch_get_average_rms(start, convolution->no_samples,
-                                   &rms, &peak, &pct_silence);
-            convolution->pct_silence = pct_silence;
+            _batch_get_average_rms(start, convolution->no_samples, &rms, &peak);
             convolution->rms = rms;
 
             no_samples += convolution->no_samples;

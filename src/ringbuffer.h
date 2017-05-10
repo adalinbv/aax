@@ -210,7 +210,6 @@ typedef struct
    float rms;
    float delay_gain;
    float threshold;
-   float pct_silence;
 
    void* history_ptr;
    MIX_T* history[_AAX_MAX_SPEAKERS];

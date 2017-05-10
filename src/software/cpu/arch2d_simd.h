@@ -88,7 +88,7 @@ void _batch_resample_float_cpu(float32_ptr, const_float32_ptr, size_t, size_t, f
 void _batch_resample_cpu(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
 
-void _batch_get_average_rms_cpu(const_float32_ptr, size_t, float*, float*, float*);
+void _batch_get_average_rms_cpu(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_cpu(void*, size_t);
 
 void _batch_cvt8u_8s_cpu(void*, size_t);
@@ -143,7 +143,7 @@ char* _aax_malloc_aligned(char**, size_t);
 /* SSE2*/
 void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
-void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*, float*);
+void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_sse2(void*, size_t);
 
 void _batch_fmul_value_sse2(void*, unsigned, size_t, float);
