@@ -260,13 +260,16 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
                _fmt_type_t fmt = handle->format_type;
 
                handle->fmt = _fmt_create(handle->format_type, handle->mode);
-               if (!handle->fmt) {
+               if (!handle->fmt)
+               {
+                  *bufsize = 0;
                   return rv;
                }
 
                if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
                {
                   handle->fmt = _fmt_free(handle->fmt);
+                  *bufsize = 0;
                   return rv;
                }
 
@@ -300,6 +303,9 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
             }
             else if (res <= 0) {
                rv = buf;
+            }
+            else {
+               *bufsize = 0;
             }
          }
          else
@@ -591,7 +597,11 @@ off_t
 _ogg_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->get(handle->fmt, type);
+   off_t rv = 0;
+   if (handle->fmt) {
+      rv = handle->fmt->get(handle->fmt, type);
+   }
+   return rv;
 }
 
 off_t

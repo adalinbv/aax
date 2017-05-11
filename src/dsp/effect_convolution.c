@@ -232,7 +232,7 @@ _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, 
 }
 
 static float
-_aaxConvolutionEffectSet(float val, int ptype, unsigned char param)
+_aaxConvolutionEffectSet(float val, int ptype, VOID(unsigned char param))
 {  
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
@@ -242,7 +242,7 @@ _aaxConvolutionEffectSet(float val, int ptype, unsigned char param)
 }
    
 static float
-_aaxConvolutionEffectGet(float val, int ptype, unsigned char param)
+_aaxConvolutionEffectGet(float val, int ptype, VOID(unsigned char param))
 {  
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {

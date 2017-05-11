@@ -650,7 +650,7 @@ _wav_set(_ext_t *ext, int type, off_t value)
    _driver_t *handle = ext->id;
    off_t rv = 0;
 
-    switch (type)
+   switch (type)
    {
    case __F_COPY_DATA:
       handle->copy_to_buffer = value;
