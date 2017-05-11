@@ -24,11 +24,16 @@ _batch_mul_value_proc _batch_fmul_value;
 int main()
 {
     float *src, *dst1, *dst2;
-    char sse, avx;
+    char sse;
+#if __AVX__
+    char avx;
+#endif
     clock_t t;
 
     sse = _aaxArchDetectSSE2();
+#if __AVX__
     avx = _aaxArchDetectAVX();
+#endif
 
     srand(time(NULL));
 

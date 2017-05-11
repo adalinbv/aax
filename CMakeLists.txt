@@ -1,360 +1,360 @@
 cmake_minimum_required(VERSION 2.8.8)
-SET(cmake_verbose_makefile TRUE)
+set(cmake_verbose_makefile TRUE)
 
-SET(CMAKE_MAKEFILE_DEPENDS
+set(CMAKE_MAKEFILE_DEPENDS
     "CMakeModules/Symlink.cmake"
 )
 
-IF(COMMAND CMAKE_POLICY)
+if(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
-ENDIF(COMMAND CMAKE_POLICY)
+endif(COMMAND CMAKE_POLICY)
 
-INCLUDE(CheckIncludeFile)
-INCLUDE(CheckIncludeFiles)
-INCLUDE(CheckLibraryExists)
-INCLUDE(CheckFunctionExists)
+include(CheckIncludeFile)
+include(CheckIncludeFiles)
+include(CheckLibraryExists)
+include(CheckFunctionExists)
 
-PROJECT(AeonWave C)
-SET(PACKAGE_NAME "AeonWave")
-SET(PACKAGE "libaax2")
+project(AeonWave C)
+set(PACKAGE_NAME "AeonWave")
+set(PACKAGE "libaax2")
 
-OPTION(LTO "Enabel linkt-time optimizations" OFF)
-OPTION(RELEASE "Enable for final release builds" OFF)
-OPTION(DLOPEN "Check for the dlopen API for loading optional libs" ON)
-OPTION(WERROR "Treat compile warnings as errors"   OFF)
-OPTION(RMALLOC "Enable memory debugging functions" OFF)
+option(LTO "Enabel linkt-time optimizations" OFF)
+option(RELEASE "Enable for final release builds" OFF)
+option(DLOPEN "Check for the dlopen API for loading optional libs" ON)
+option(WERROR "Treat compile warnings as errors"   OFF)
+option(RMALLOC "Enable memory debugging functions" OFF)
 
-ADD_DEFINITIONS(-D_XOPEN_SOURCE=600)
-IF(WIN32)
-  SET(CMAKE_GNUtoMS ON)
-  SET(EXTRA_LIBS ${EXTRA_LIBS} "-lwsock32 -lws2_32 -lwinmm")
-  ADD_DEFINITIONS(-DAAX_BUILD_LIBRARY=1)
-  ADD_DEFINITIONS(-D_WIN32 -DWIN32)
-  SET(LIBAEONWAVE AAX32)
-ELSE(WIN32)
-  ADD_DEFINITIONS(-D_GNU_SOURCE=1)
-  SET(LIBAEONWAVE aax)
-ENDIF(WIN32)
+add_definitions(-D_XOPEN_SOURCE=600)
+if(WIN32)
+  set(CMAKE_GNUtoMS ON)
+  set(EXTRA_LIBS ${EXTRA_LIBS} "-lwsock32 -lws2_32 -lwinmm")
+  add_definitions(-DAAX_BUILD_LIBRARY=1)
+  add_definitions(-D_WIN32 -DWIN32)
+  set(LIBAEONWAVE AAX32)
+else(WIN32)
+  add_definitions(-D_GNU_SOURCE=1)
+  set(LIBAEONWAVE aax)
+endif(WIN32)
 
-IF(NOT LIBTYPE)
-  SET(LIBTYPE SHARED)
-ENDIF(NOT LIBTYPE)
+if(NOT LIBTYPE)
+  set(LIBTYPE SHARED)
+endif(NOT LIBTYPE)
 
 MACRO (TODAY RESULT)
-  IF (WIN32)
+  if (WIN32)
     EXECUTE_PROCESS(COMMAND "cmd" " /C date /T" OUTPUT_VARIABLE ${RESULT})
     string(REGEX REPLACE "... (..)/(..)/..(..).*" "\\3\\1\\2" ${RESULT} ${${RESULT}})
-  ELSEIF(UNIX)
+  elseif(UNIX)
     EXECUTE_PROCESS(COMMAND "date" "+%d/%m/%Y" OUTPUT_VARIABLE ${RESULT})
     string(REGEX REPLACE "(..)/(..)/..(..).*" "\\3\\2\\1" ${RESULT} ${${RESULT}})
-  ELSE (WIN32)
+  else (WIN32)
     MESSAGE(SEND_ERROR "date not implemented")
-    SET(${RESULT} 000000)
-  ENDIF (WIN32)
+    set(${RESULT} 000000)
+  endif (WIN32)
 ENDMACRO (TODAY)
 
-IF(CMAKE_SIZEOF_VOID_P EQUAL 8)
-  SET(SIZEOF_SIZE_T 8)
-ELSE ()
-  SET(SIZEOF_SIZE_T 4)
-ENDIF ()
+if(CMAKE_SIZEOF_VOID_P EQUAL 8)
+  set(SIZEOF_SIZE_T 8)
+else ()
+  set(SIZEOF_SIZE_T 4)
+endif ()
 
 # read 'version' file into a variable (stripping any newlines or spaces)
 TODAY(DATE)
 FILE(READ version versionFile)
 STRING(STRIP ${versionFile} AAX_VERSION)
-SET(VERSION AAX_VERSION)
+set(VERSION AAX_VERSION)
 
 # split version string into components, note CMAKE_MATCH_0 is the entire regexp match
 STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_VERSION ${AAX_VERSION})
 
-SET(AAX_MAJOR_VERSION ${CMAKE_MATCH_1})
-SET(AAX_MINOR_VERSION ${CMAKE_MATCH_2})
-SET(AAX_MICRO_VERSION ${CMAKE_MATCH_3})
-SET(AAX_PATCH_LEVEL ${DATE})
+set(AAX_MAJOR_VERSION ${CMAKE_MATCH_1})
+set(AAX_MINOR_VERSION ${CMAKE_MATCH_2})
+set(AAX_MICRO_VERSION ${CMAKE_MATCH_3})
+set(AAX_PATCH_LEVEL ${DATE})
 
-SET(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
-SET(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
-SET(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
-SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Cross platform, hardware accelerated, multi-channel and 4D capable audio rendering engine")
+set(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
+set(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
+set(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Cross platform, hardware accelerated, multi-channel and 4D capable audio rendering engine")
 
 # We have some custom .cmake scripts not in the official distribution.
-SET(CMAKE_MODULE_PATH "${AeonWave_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
-INCLUDE(CPack_Modules)
-INCLUDE(CPack_Defaults)
-INCLUDE(inline)
+set(CMAKE_MODULE_PATH "${AeonWave_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
+include(CPack_Modules)
+include(CPack_Defaults)
+include(inline)
 
-IF (WIN32)
-ELSE(WIN32)
+if (WIN32)
+else(WIN32)
 
   # DEBIAN
-  SET(CPACK_DEBIAN_PACKAGE_SECTION "libs")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
-  SET(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
-  SET(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
-  SET(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-bin, libaax2-dev")
-  SET(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/config;${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;${AeonWave_SOURCE_DIR}/admin/debian/templates;")
-  SET(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+  set(CPACK_DEBIAN_PACKAGE_SECTION "libs")
+  set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
+  set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
+  set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
+  set(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-bin, libaax2-dev")
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/config;${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;${AeonWave_SOURCE_DIR}/admin/debian/templates;")
+  set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
-# SET(CPACK_DEBIAN_PACKAGE_DEPENDS "debconf" COMPONENT Headers)
-# SET(CPACK_DEBIAN_PACKAGE_SECTION "libdevel" COMPONENT Headers)
-# SET(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-dev" COMPONENT Headers)
+# set(CPACK_DEBIAN_PACKAGE_DEPENDS "debconf" COMPONENT Headers)
+# set(CPACK_DEBIAN_PACKAGE_SECTION "libdevel" COMPONENT Headers)
+# set(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-dev" COMPONENT Headers)
 
   # RPM
-  SET(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
-  SET(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
-  SET(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.postun")
-  SET(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.preinst")
-  SET(CPACK_RPM_PACKAGE_PROVIDES "libaax2")
-ENDIF(WIN32)
+  set(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
+  set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
+  set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.postun")
+  set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.preinst")
+  set(CPACK_RPM_PACKAGE_PROVIDES "libaax2")
+endif(WIN32)
 
 # ZIP
-SET(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
+set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
 # Required libraries
 FIND_PACKAGE(XML REQUIRED)
-IF(NOT XML_FOUND)
+if(NOT XML_FOUND)
   MESSAGE(FATAL_ERROR "ERROR: required XML library is not installed, aborting.")
-ENDIF(NOT XML_FOUND)
+endif(NOT XML_FOUND)
 
 # Add definitions, compiler switches, etc.
-INCLUDE_DIRECTORIES("${AeonWave_SOURCE_DIR}/src"
+include_DIRECTORIES("${AeonWave_SOURCE_DIR}/src"
     ${AeonWave_SOURCE_DIR}
-    ${XML_INCLUDE_DIR}
+    ${XML_include_DIR}
     include
     base
     ${AeonWave_BINARY_DIR}/include
 )
 
-IF(NOT CMAKE_BUILD_TYPE)
-  SET(CMAKE_BUILD_TYPE Release CACHE STRING
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE Release CACHE STRING
       "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel."
       FORCE)
-ENDIF(NOT CMAKE_BUILD_TYPE)
+endif(NOT CMAKE_BUILD_TYPE)
 
-ADD_DEFINITIONS(-DHAVE_CONFIG_H=1)
-IF(WERROR)
-  ADD_DEFINITIONS(-Werror)
-ENDIF()
+add_definitions(-DHAVE_CONFIG_H=1)
+if(WERROR)
+  add_definitions(-Werror)
+endif()
 
-IF(RELEASE)
-  SET(C_FLAGS "${C_FLAGS} -DRELEASE=1")
-ENDIF(RELEASE)
+if(RELEASE)
+  set(C_FLAGS "${C_FLAGS} -DRELEASE=1")
+endif(RELEASE)
 
-IF(MSVC)
-    SET(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
+if(MSVC)
+    set(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
     )
-    SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
+    set_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:XOP /fp:fast -D__FMA__"
     )
 
     # don't use a /O[012x] flag if you want custom optimizations
-    SET(SPEED_OPTIMIZATIONS "/Ob2 /Oi /Ot /Oy /GT /GF /GS-")
-    SET(SIZE_OPTIMIZATIONS "/O1")
+    set(SPEED_OPTIMIZATIONS "/Ob2 /Oi /Ot /Oy /GT /GF /GS-")
+    set(SIZE_OPTIMIZATIONS "/O1")
     # without inlining it's unusable, use custom optimizations again
-    SET(MIN_OPTIMIZATIONS "/Ob1")
+    set(MIN_OPTIMIZATIONS "/Ob1")
 
-    SET(CMAKE_C_FLAGS_DEBUG "/LDd /MDd /Zi /D_DEBUG ${MIN_OPTIMIZATIONS}")
-    SET(CMAKE_C_FLAGS_RELEASE "/LD /MD /Zi /D NDEBUG ${SPEED_OPTIMIZATIONS}")
-    SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/LD /MD /Zi /DNDEBUG ${SPEED_OPTIMIZATIONS}")
-    SET(CMAKE_C_FLAGS_MINSIZEREL "/LD /MD /DNDEBUG ${SIZE_OPTIMIZATIONS}")
+    set(CMAKE_C_FLAGS_DEBUG "/LDd /MDd /Zi /D_DEBUG ${MIN_OPTIMIZATIONS}")
+    set(CMAKE_C_FLAGS_RELEASE "/LD /MD /Zi /D NDEBUG ${SPEED_OPTIMIZATIONS}")
+    set(CMAKE_C_FLAGS_RELWITHDEBINFO "/LD /MD /Zi /DNDEBUG ${SPEED_OPTIMIZATIONS}")
+    set(CMAKE_C_FLAGS_MINSIZEREL "/LD /MD /DNDEBUG ${SIZE_OPTIMIZATIONS}")
 
-    ADD_DEFINITIONS(-D_CRT_SECURE_NO_WARNINGS)
-    ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
+    add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+    add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
 
-    OPTION(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" ON)
-    IF(FORCE_STATIC_VCRT)
+    option(FORCE_STATIC_VCRT "Force /MT for static VC runtimes" ON)
+    if(FORCE_STATIC_VCRT)
         FOREACH(flag_var
                 CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
                 CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
-            IF(${flag_var} MATCHES "/MD")
+            if(${flag_var} MATCHES "/MD")
                 STRING(REGEX REPLACE "/MD" "/MT" ${flag_var} "${${flag_var}}")
-            ENDIF()
+            endif()
         ENDFOREACH(flag_var)
-    ENDIF()
-ELSE(MSVC)
-    IF(GCC AND LTO)
-       SET(C_FLAGS "${C_FLAGS} -flto")
-    ELSEIF (TINYCC)
-       SET(C_FLAGS "${C_FLAGS} -b -Wall")
-    ENDIF(GCC AND LTO)
+    endif()
+else(MSVC)
+    if(GCC AND LTO)
+       set(C_FLAGS "${C_FLAGS} -flto")
+    elseif (TINYCC)
+       set(C_FLAGS "${C_FLAGS} -b -Wall")
+    endif(GCC AND LTO)
 
-    IF(NOT MINGW)
-       IF (GCC OR CLANG)
-         SET(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
-       ENDIF(GCC OR CLANG)
-    ELSE(NOT MINGW)
-       INCLUDE_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
-       ADD_DEFINITIONS(-U__STRICT_ANSI__)
-       SET(C_FLAGS "${C_FLAGS} -static-libgcc")
+    if(NOT MINGW)
+       if (GCC OR CLANG)
+         set(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
+       endif(GCC OR CLANG)
+    else(NOT MINGW)
+       include_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
+       add_definitions(-U__STRICT_ANSI__)
+       set(C_FLAGS "${C_FLAGS} -static-libgcc")
        FOREACH(flag_var
                 CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
                 CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
                 CMAKE_CXX_FLAGS CMAKE_CXX_FLAGS_DEBUG CMAKE_CXX_FLAGS_RELEASE
                 CMAKE_CXX_FLAGS_MINSIZEREL CMAKE_CXX_FLAGS_RELWITHDEBINFO)
-            IF(${flag_var} MATCHES "-mthreads")
+            if(${flag_var} MATCHES "-mthreads")
                 STRING(REGEX REPLACE "-mthreads" "" ${flag_var} "${${flag_var}}")
-            ENDIF()
+            endif()
         ENDFOREACH(flag_var)
-    ENDIF(NOT MINGW)
+    endif(NOT MINGW)
 
-    IF (CLANG)
-      SET(C_FLAGS "${C_FLAGS} -Qunused-arguments -ffp-contract=fast" CACHE STRING
+    if (CLANG)
+      set(C_FLAGS "${C_FLAGS} -Qunused-arguments -ffp-contract=fast" CACHE STRING
           "Hide unused clang options"
           FORCE)
-    ELSEIF (MIPSPRO)
-      SET(CMAKE_C_COMPILER c99)
-      SET(C_FLAGS "${C_FLAGS} -c99 -Ofast -n32 -IPA" CACHE STRING
+    elseif (MIPSPRO)
+      set(CMAKE_C_COMPILER c99)
+      set(C_FLAGS "${C_FLAGS} -c99 -Ofast -n32 -IPA" CACHE STRING
           "fastest options"
           FORCE)
-    ENDIF(CLANG)
+    endif(CLANG)
 
-    IF (GCC OR CLANG)
-      SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
+    if (GCC OR CLANG)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
           "Flags used by al build types."
           FORCE)
-      SET(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
+      set(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
           "Flags used by al build types."
           FORCE)
 
       # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-      SET(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -O2 -fstack-protector-strong -g -DNDEBUG" CACHE STRING
+      set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -O2 -fstack-protector-strong -g -DNDEBUG" CACHE STRING
           "Flags used by the compiler during Release with Debug Info builds."
           FORCE)
-      SET(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+      set(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
           "Flags used by the compiler during release minsize builds."
           FORCE)
-      SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+      set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
               CACHE STRING "Flags used by the compiler during release builds"
              FORCE)
-      SET(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -fstack-protector-strong -g3 -D_DEBUG" CACHE STRING
+      set(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -fstack-protector-strong -g3 -D_DEBUG" CACHE STRING
           "Flags used by the compiler during debug builds."
           FORCE)
 
 
-      IF(X86_64)
+      if(X86_64)
           message("Build environment: X86_64")
-          SET(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse -DI64=1")
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
+          set(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse -DI64=1")
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse2"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse2"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse2"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
                      PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
                      PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                      PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                      PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                     PROPERTY COMPILE_FLAGS "-mxop -mfma4 -march=bdver1"
           )
 
-#         SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+#         set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
 #             CACHE STRING "Flags used by the compiler during release builds"
 #             FORCE)
 
-      ELSEIF(X86)
+      elseif(X86)
           message("Build environment: X86")
-          SET(C_FLAGS "${C_FLAGS} -march=i686 -DI32=1")
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
+          set(C_FLAGS "${C_FLAGS} -march=i686 -DI32=1")
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_sse.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_sse.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
           )
 
-#         SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+#         set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
 #             CACHE STRING "Flags used by the compiler during release builds"
 #             FORCE)
-      ELSEIF(ARM)
+      elseif(ARM)
           message("Build environment: ARM")
-          SET(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DA32=1")
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
+          set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DA32=1")
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
                        PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
                        PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
                        PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
                        PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_neon.c APPEND
                        PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
           )
-          SET_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND
+          set_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND
                        PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
           )
 
-#         SET(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
+#         set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
 #             CACHE STRING "Flags used by the compiler during release builds"
 #             FORCE)
-      ELSE()
+      else()
           message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
-      ENDIF()
-   ENDIF(GCC OR CLANG)
+      endif()
+   endif(GCC OR CLANG)
 
     message("Build type: ${CMAKE_BUILD_TYPE}")
     message("Compiler flags: ${C_FLAGS}")
     message("Linker flags: ${CMAKE_SHARED_LINKER_FLAGS}")
-ENDIF(MSVC)
+endif(MSVC)
 
 # Check for the dlopen API (for alGetProcAddress)
 CHECK_INCLUDE_FILE(windows.h HAVE_WINDOWS_H -D_WIN32_WINNT=0x0501)
@@ -382,37 +382,37 @@ CHECK_INCLUDE_FILE(guiddef.h HAVE_GUIDDEF_H)
 CHECK_INCLUDE_FILE(initguid.h HAVE_INITGUID_H)
 CHECK_INCLUDE_FILE(linux/types.h HAVE_LINUX_TYPES_H)
 CHECK_INCLUDE_FILE(mmdeviceapi.h HAVE_MMDEVICEAPI_H)
-IF(UNIX)
+if(UNIX)
 CHECK_INCLUDE_FILE(pthread.h HAVE_PTHREAD_H)
 CHECK_INCLUDE_FILE(arm_neon.h HAVE_ARM_NEON_H)
-ENDIF(UNIX)
+endif(UNIX)
 
-IF(HAVE_PTHREAD_H)
+if(HAVE_PTHREAD_H)
   CHECK_LIBRARY_EXISTS(pthread pthread_create "" HAVE_LIBPTHREAD)
-  IF(HAVE_LIBPTHREAD)
-    ADD_DEFINITIONS(-D_REENTRANT -D_POSIX_C_SOURCE=199309L -D__USE_POSIX199309)
-    SET(EXTRA_LIBS pthread ${EXTRA_LIBS})
-  ENDIF(HAVE_LIBPTHREAD)
-ENDIF(HAVE_PTHREAD_H)
+  if(HAVE_LIBPTHREAD)
+    add_definitions(-D_REENTRANT -D_POSIX_C_SOURCE=199309L -D__USE_POSIX199309)
+    set(EXTRA_LIBS pthread ${EXTRA_LIBS})
+  endif(HAVE_LIBPTHREAD)
+endif(HAVE_PTHREAD_H)
 
 CHECK_LIBRARY_EXISTS(rt clock_getres "" HAVE_LIBRT)
-IF(HAVE_LIBRT)
-   SET(EXTRA_LIBS rt ${EXTRA_LIBS})
-ENDIF(HAVE_LIBRT)
+if(HAVE_LIBRT)
+   set(EXTRA_LIBS rt ${EXTRA_LIBS})
+endif(HAVE_LIBRT)
 
-IF(HAVE_MATH_H)
-  CHECK_LIBRARY_EXISTS(m floorf "" HAVE_LIBM)
-  IF(HAVE_LIBM)
-    SET(EXTRA_LIBS m ${EXTRA_LIBS})
-  ENDIF(HAVE_LIBM)
-ENDIF(HAVE_MATH_H)
+if(HAVE_MATH_H)
+  CHECK_LIBRARY_EXISTS(m random "" HAVE_LIBM)
+  if(HAVE_LIBM)
+    set(EXTRA_LIBS m ${EXTRA_LIBS})
+  endif(HAVE_LIBM)
+endif(HAVE_MATH_H)
 
-IF(HAVE_DLFCN_H)
+if(HAVE_DLFCN_H)
   CHECK_LIBRARY_EXISTS(dl dlopen "" HAVE_LIBDL)
-  IF(HAVE_LIBDL)
-    SET(EXTRA_LIBS dl ${EXTRA_LIBS})
-  ENDIF(HAVE_LIBDL)
-ENDIF(HAVE_DLFCN_H)
+  if(HAVE_LIBDL)
+    set(EXTRA_LIBS dl ${EXTRA_LIBS})
+  endif(HAVE_LIBDL)
+endif(HAVE_DLFCN_H)
 
 ADD_SUBDIRECTORY(test)
 
@@ -424,7 +424,7 @@ CONFIGURE_FILE(
     "${AeonWave_SOURCE_DIR}/include/config.h.in"
     "${AeonWave_BINARY_DIR}/include/config.h")
 
-SET( AEONWAVE_OBJS
+set( AEONWAVE_OBJS
      base/buffers.c
      base/dlsym.c
      base/geometry.c
@@ -533,40 +533,40 @@ SET( AEONWAVE_OBJS
      src/software/cpu/arch2d_sse2.c
      src/software/cpu/arch2d_sse3.c
 )
-IF(SIZEOF_SIZE_T EQUAL 8)
-  SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
+if(SIZEOF_SIZE_T EQUAL 8)
+  set(AEONWAVE_OBJS ${AEONWAVE_OBJS}
      src/software/cpu/arch3d_sse_vex.c
      src/software/cpu/arch2d_sse_vex.c
      src/software/cpu/arch2d_avx.c
      src/software/cpu/arch2d_fma3.c
      src/software/cpu/arch2d_fma4.c
   )
-ENDIF(SIZEOF_SIZE_T EQUAL 8)
+endif(SIZEOF_SIZE_T EQUAL 8)
 
-IF(HAVE_WINDOWS_H)
-  SET(AEONWAVE_OBJS ${AEONWAVE_OBJS}
+if(HAVE_WINDOWS_H)
+  set(AEONWAVE_OBJS ${AEONWAVE_OBJS}
      src/windows/wasapi.c
      src/windows/audio.c
   )
-ENDIF(HAVE_WINDOWS_H)
+endif(HAVE_WINDOWS_H)
 
 # Build a static library
 add_library(AAXOBJ_LIB OBJECT ${AEONWAVE_OBJS})
-ADD_LIBRARY(${LIBAEONWAVE}-static STATIC $<TARGET_OBJECTS:AAXOBJ_LIB>)
+add_library(${LIBAEONWAVE}-static STATIC $<TARGET_OBJECTS:AAXOBJ_LIB>)
 
 # Build a shared library
-SET(LIB_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
+set(LIB_VERSION "${CPACK_PACKAGE_VERSION_MAJOR}.${CPACK_PACKAGE_VERSION_MINOR}.${CPACK_PACKAGE_VERSION_PATCH}")
 ADD_LIBRARY(${LIBAEONWAVE} SHARED $<TARGET_OBJECTS:AAXOBJ_LIB>)
-SET_TARGET_PROPERTIES(${LIBAEONWAVE}
+set_TARGET_PROPERTIES(${LIBAEONWAVE}
     PROPERTIES DEFINE_SYMBOL AAX_BUILD_LIBRARY
     VERSION ${LIB_VERSION}
     SOVERSION ${CPACK_PACKAGE_VERSION_MAJOR}
 )
-IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
-    SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES PREFIX "")
-ELSE()
-    SET_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES COMPILE_FLAGS "-shared")
-ENDIF()
+if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
+    set_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES PREFIX "")
+else()
+    set_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES COMPILE_FLAGS "-shared")
+endif()
 
 TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
     ${EXTRA_LIBS}
@@ -589,8 +589,8 @@ INSTALL(TARGETS ${LIBAEONWAVE}
         LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}" NAMELINK_ONLY
         COMPONENT Headers
 )
-IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
-  SET(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "!include 'x64.nsh'
+if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
+  set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "!include 'x64.nsh'
     ${If} ${RunningX64}
       CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
     ${Else}
@@ -598,7 +598,7 @@ IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     ${EndIf}
     next1:
     ")
-  SET(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "!include 'x64.nsh'
+  set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "!include 'x64.nsh'
     ${If} ${RunningX64}
       IfFileExists \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\" 0 next2
          Delete \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
@@ -608,7 +608,7 @@ IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     ${EndIf}
     next2:
     ")
-ENDIF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
+endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
 INSTALL(FILES
         admin/presets/genres.xml
@@ -631,7 +631,7 @@ INSTALL(FILES
         COMPONENT Headers
 )
 
-IF (UNIX AND NOT WIN32)
+if (UNIX AND NOT WIN32)
     macro(install_symlink _dest _source)
       install(CODE "
              include(\"${AeonWave_SOURCE_DIR}/CMakeModules/Symlink.cmake\")
@@ -640,11 +640,11 @@ IF (UNIX AND NOT WIN32)
 
     install_symlink(${CMAKE_LIBRARY_ARCHITECTURE}/lib${LIBAEONWAVE}.so.${CPACK_PACKAGE_VERSION_MAJOR} ${CMAKE_INSTALL_PREFIX}/lib/lib${LIBAEONWAVE}.so.${CPACK_PACKAGE_VERSION_MAJOR})
     install_symlink(${CMAKE_LIBRARY_ARCHITECTURE}/lib${LIBAEONWAVE}.so ${CMAKE_INSTALL_PREFIX}/lib/lib${LIBAEONWAVE}.so)
-ENDIF(UNIX AND NOT WIN32)
+endif(UNIX AND NOT WIN32)
 
-IF(NOT SINGLE_PACKAGE)
-  INCLUDE (CPack)
-ENDIF(NOT SINGLE_PACKAGE)
+if(NOT SINGLE_PACKAGE)
+  include (CPack)
+endif(NOT SINGLE_PACKAGE)
 
 
 #-----------------------------------------------------------------------------
