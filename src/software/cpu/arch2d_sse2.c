@@ -690,9 +690,9 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 void
 _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
 {
-   if (!num || fabsf(f - 1.0f) < LEVEL_90DB) return;
+   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
-   if (f <= LEVEL_90DB) {
+   if (f <= LEVEL_128DB) {
       memset(data, 0, num*bps);
    }
    else if (bps == 4)
@@ -778,7 +778,7 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          } while(--i);
       }
    }
-   else
+   else if (bps == 8)
    {
       double64_ptr d = (double64_ptr)data;
       size_t i, step, dtmp;
@@ -859,6 +859,9 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
             *d++ *= f;
          } while(--i);
       }
+   }
+   else {
+      _batch_fmul_value_cpu(data, bps, num, f);
    }
 }
 

@@ -157,7 +157,7 @@ _batch_fmul_value_cpu(void* data, unsigned bps, size_t num, float f)
 {
    if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
-   if (f <= LEVEL_128DB) {
+   if (f <= LEVEL_90DB) {
       memset(data, 0, num*bps);
    }
    else if (num)
