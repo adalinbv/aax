@@ -18,85 +18,43 @@
 
 #include "api.h"
 
-#if 0
 AAX_API int AAX_APIENTRY
-aaxScenerySetDiffuseFactor(aaxConfig config, float diffuse_factor)
+aaxScenerySetMatrix(aaxConfig config, const aaxMtx4f mtx)
 {
    _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
-   if (handle)
-   {
-      if (!is_nan(diffuse_factor))
-      {
-         _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-            mixer->scene.reflection = diffuse_factor;
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-            rv = AAX_TRUE;
-         }
-      }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
-   }
-   return rv;
-}
+   int rv = __release_mode;
 
-AAX_API int AAX_APIENTRY
-aaxScenerySetDimension(aaxConfig config, aaxVec3f dimension)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
-   if (handle)
+   if (!rv)
    {
-      if (dimension && !detect_nan_vec3(dimension))
-      {
-         _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-            memcpy(&mixer->scene.dimension, dimension, sizeof(aaxVec3f));
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-            rv = AAX_TRUE;
-         }
-      }
-      else {
+      if (!mtx || detect_nan_mtx4((const float (*)[4])mtx)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
    }
-   return rv;
-}
 
-AAX_API int AAX_APIENTRY
-aaxScenerySetPosition(aaxConfig config, aaxVec3f pos)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = AAX_FALSE;
-   if (handle)
+   if (rv)
    {
-      if (pos && !detect_nan_vec3(pos))
+      const _intBufferData* dptr;
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
       {
-         _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-            memcpy(&mixer->scene.pos, pos, sizeof(aaxVec3f));
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-            rv = AAX_TRUE;
-         }
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxAudioFrame* smixer = sensor->mixer;
+         mtx4fFill(smixer->props3d->dprops3d->matrix.m4, mtx);
+         mtx4fFill(smixer->props3d->m_dprops3d->matrix.m4, mtx);
+         _PROP_MTX_SET_CHANGED(smixer->props3d);
+         _intBufReleaseData(dptr, _AAX_SENSOR);
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      else
+      {
+         _aaxErrorSet(AAX_INVALID_STATE);
+         rv = AAX_FALSE;
       }
    }
+
    return rv;
 }
-#endif
 
 AAX_API int AAX_APIENTRY
 aaxScenerySetFilter(aaxConfig config, aaxFilter f)

@@ -145,6 +145,7 @@ typedef struct
    _intBuffers *backends;
    struct backend_t backend;
    struct backend_t file;		/* file recording backend */
+
    struct threat_t thread;
    _aaxSignal buffer_ready;
    _aaxSemaphore *finished;		/* released after a rendering period */

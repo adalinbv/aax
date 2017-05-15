@@ -128,8 +128,12 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
                   _aaxDataMove(handle->vorbisBuffer, NULL, used);
                   // we're done decoding, return NULL
                }
+               else if (err == VORBIS_need_more_data) {
+                  rv = buf;
+               }
                else
                {
+                  *bufsize = 0;
                   switch (err)
                   {
                   case VORBIS_missing_capture_pattern:
@@ -154,7 +158,7 @@ _vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
                      _AAX_FILEDRVLOG("VORBIS: cant find last page");
                      break;
                   default:
-                     rv = buf;
+                     _AAX_FILEDRVLOG("VORBIS: unknown initialization error");
                      break;
                   }
                }

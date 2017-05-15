@@ -624,8 +624,11 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          else if (headerSize) {
             _aaxStreamDriverLog(id, 0, 0, "Incorrect header");
          }
-         else {
-            _aaxStreamDriverLog(id, 0, 0, "Unsupported format");
+         else
+         {
+            char *l = strdup(_aaxStreamDriverLog(NULL, 0, 0, NULL));
+            _aaxStreamDriverLog(id, 0, 0, l);
+            free(l);
          }
 
          if (!rv)
@@ -1219,17 +1222,20 @@ _aaxStreamDriverLog(const void *id, VOID(int prio), VOID(int type), const char *
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];
 
-   if (handle && handle->io && handle->io->protocol == PROTOCOL_HTTP) {
-       snprintf(_errstr, 256, "HTTP: %s\n", str);
-   } else {
-      snprintf(_errstr, 256, "Stream: %s\n", str);
-   }
-   _errstr[255] = '\0';  /* always null terminated */
+   if (str)
+   {
+      if (handle && handle->io && handle->io->protocol == PROTOCOL_HTTP) {
+          snprintf(_errstr, 256, "HTTP: %s\n", str);
+      } else {
+         snprintf(_errstr, 256, "Stream: %s\n", str);
+      }
+      _errstr[255] = '\0';  /* always null terminated */
 
-   if (handle) {
-      __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
+      if (handle) {
+         __aaxDriverErrorSet(handle->handle, AAX_BACKEND_ERROR, (char*)&_errstr);
+      }
+      _AAX_SYSLOG(_errstr);
    }
-   _AAX_SYSLOG(_errstr);
 
    return (char*)&_errstr;
 }
