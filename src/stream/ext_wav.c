@@ -36,7 +36,7 @@ enum wavFormat
    MULAW_WAVE_FILE      = 0x0007,
    IMA4_ADPCM_WAVE_FILE = 0x0011, //    17
    MP3_WAVE_FILE        = 0x0055, //    85
-   VORBIS_WAVE_FILE     = 0x1A73, // 6771 (0x566f, // 22127)
+   VORBIS_WAVE_FILE     = 0x6771,
    SPEEX_WAVE_FILE      = 0xa109, // 41225
 
    EXTENSIBLE_WAVE_FORMAT = 0xFFFE
@@ -308,7 +308,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          if (handle->wavBuffer)
          {
             size_t step, datapos, datasize = *bufsize, size = *bufsize;
-size_t avail = handle->wavBufSize-handle->wavBufPos;
+            size_t avail = handle->wavBufSize-handle->wavBufPos;
             _fmt_type_t fmt;
             int res;
 
@@ -401,11 +401,17 @@ size_t avail = handle->wavBufSize-handle->wavBufPos;
                dataptr = (char*)buf + datapos;
                rv = handle->fmt->open(handle->fmt, dataptr, &datasize,
                                       handle->io.read.datasize);
-               if (!rv && datasize)
+               if (!rv)
                {
-//                 handle->wavBuffer->avail = 0;
-                   handle->wavBufPos = 0;
-                   _wav_fill(ext, dataptr, &datasize);
+                  if (datasize)
+                  {
+//                    handle->wavBuffer->avail = 0;
+                      handle->wavBufPos = 0;
+                      _wav_fill(ext, dataptr, &datasize);
+                  }
+                  else {
+                     *bufsize = 0;
+                  }
                }
             }
 
@@ -1116,6 +1122,9 @@ _getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
    case MP3_WAVE_FILE:
       rv = AAX_PCM16S;
       break;
+   case VORBIS_WAVE_FILE:
+      rv = AAX_PCM24S;
+      break;
    default:
       break;
    }
@@ -1162,6 +1171,9 @@ _getFmtFromWAVFormat(enum wavFormat fmt)
    {
    case MP3_WAVE_FILE:
       rv = _FMT_MP3;
+      break;
+   case VORBIS_WAVE_FILE:
+      rv = _FMT_VORBIS;
       break;
    case PCM_WAVE_FILE:
    case MSADPCM_WAVE_FILE:

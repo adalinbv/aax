@@ -298,7 +298,6 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
       unsigned int pos = handle->out_pos*tracks;
       unsigned int max = _MIN(req, handle->out_size - pos);
 
-printf("1. converting: %i\n", max);
       _batch_cvt24_ps_intl(dptr, handle->outputs+pos, offset, tracks, max);
       offset += max;
       handle->out_pos += max;
@@ -331,7 +330,6 @@ printf("1. converting: %i\n", max);
       {
          int n = popus_decode_float(handle->id, buf, packet_sz, outputs,
                                     MAX_FRAME_SIZE, 0);
-printf("opus_decode: %i, requested: %i\n", n, req);
          if (n > 0)
          {
             if (n > req)
@@ -368,7 +366,6 @@ printf("opus_decode: %i, requested: %i\n", n, req);
 
       if (cvt > 0)
       {
-printf("2. converting: %i\n", cvt);
          handle->no_samples += cvt;
          _batch_cvt24_ps_intl(dptr, handle->outputs, offset, tracks, cvt);
          req -= cvt;
