@@ -12,9 +12,11 @@
 #ifndef __FILE_FMT_OPUS_H
 #define __FILE_FMT_OPUS_H 1
 
+/* opus */
 typedef void* (*opus_decoder_create_proc)(int32_t, int, int*);
 typedef void (*opus_decoder_destroy_proc)(void*);
 typedef int (*opus_decode_float_proc)(void*, const unsigned char*, int32_t, float*, int, int);
+typedef int (*opus_decode_proc)(void*, const unsigned char*, int32_t, int16_t*, int, int);
 
 typedef void* (*opus_encoder_create_proc)(int32_t, int, int*);
 typedef void (*opus_encoder_destroy_proc)(void*);
@@ -23,6 +25,8 @@ typedef int32_t (*opus_encode_proc)(void*, const int16_t*, int, unsigned char*, 
 
 typedef const char* (*opus_strerror_proc)(int);
 typedef const char* (*opus_get_version_string_proc)(void);
+typedef const char* (*opus_tags_query_proc)(void*, const char*, int);
+
 
 #endif /* __FILE_FMT_OPUS_H */
 
