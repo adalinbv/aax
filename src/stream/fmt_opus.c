@@ -64,9 +64,9 @@ typedef struct
 
    uint8_t no_tracks;
    uint8_t bits_sample;
-   int frequency;
-   int bitrate;
-   int blocksize;
+   unsigned int frequency;
+   unsigned int bitrate;
+   unsigned int blocksize;
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
@@ -142,7 +142,7 @@ _opus_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+_opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -231,7 +231,7 @@ _opus_close(_fmt_t *fmt)
 }
 
 int
-_opus_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
+_opus_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
 {
    return AAX_TRUE;
 }
@@ -272,12 +272,13 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    size_t bytes, bufsize;
    size_t rv = __F_EOF;
    unsigned char *buf;
+   int res;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
    bytes = *num*tracks*bits/8;
 
-   buf = handle->opusBuffer;
+   buf = handle->opusBuffer + dptr_offs;
    bufsize = handle->opusBufSize;
 
    if (bytes > bufsize) {
@@ -296,13 +297,14 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
     */
 // unsigned char cbits[MAX_PACKET_SIZE];
 // frame_size = opus_decode(decoder, cbits, nbBytes, out, MAX_FRAME_SIZE, 0);
-   rv = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, MAX_FRAME_SIZE, 0);
-   if (rv >= 0)
+   res = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, MAX_FRAME_SIZE,0);
+   if (res >= 0)
    {
       unsigned int framesize = tracks*bits/8;
 
-      *num = rv/framesize;
+      *num = res/framesize;
       handle->no_samples += *num;
+      rv = res;
    }
 
    return rv;
@@ -312,9 +314,9 @@ size_t
 _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = fmt->id;
+   unsigned int tracks, req;
    size_t bufsize, rv = 0;
    unsigned char *buf;
-   int tracks, req;
 
    req = *num;
    tracks = handle->no_tracks;
@@ -362,7 +364,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
                                     MAX_FRAME_SIZE, 0);
          if (n > 0)
          {
-            if (n > req)
+            if ((unsigned int)n > req)
             {
                handle->out_pos = req;
                cvt = req;
