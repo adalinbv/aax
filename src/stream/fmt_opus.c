@@ -21,6 +21,7 @@
 #include "extension.h"
 #include "format.h"
 #include "fmt_opus.h"
+#include "audio.h"
 
 // https://android.googlesource.com/platform/external/libopus/+/refs/heads/master-soong/doc/trivial_example.c
 #define FRAME_SIZE 960
@@ -30,6 +31,7 @@
 DECL_FUNCTION(opus_decoder_create);
 DECL_FUNCTION(opus_decoder_destroy);
 DECL_FUNCTION(opus_decode_float);
+DECL_FUNCTION(opus_decode);
 
 DECL_FUNCTION(opus_encoder_create);
 DECL_FUNCTION(opus_encoder_destroy);
@@ -42,8 +44,20 @@ DECL_FUNCTION(opus_get_version_string);
 typedef struct
 {
    void *id;
-   void *audio;
+   char *artist;
+   char *original;
+   char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *composer;
+   char *comments;
+   char *copyright;
+   char *website;
+   char *image;
 
+   void *audio;
    int mode;
 
    char capturing;
@@ -91,6 +105,7 @@ _opus_detect(_fmt_t *fmt, int mode)
       {
          TIE_FUNCTION(opus_decoder_destroy);
          TIE_FUNCTION(opus_decode_float);
+         TIE_FUNCTION(opus_decode);
 
          TIE_FUNCTION(opus_encoder_create);
          TIE_FUNCTION(opus_encoder_destroy);
@@ -198,6 +213,19 @@ _opus_close(_fmt_t *fmt)
 
       _aax_aligned_free(handle->outputs);
       free(handle->opusptr);
+
+      free(handle->trackno);
+      free(handle->artist);
+      free(handle->title);
+      free(handle->album);
+      free(handle->date);
+      free(handle->genre);
+      free(handle->comments);
+      free(handle->composer);
+      free(handle->copyright);
+      free(handle->original);
+      free(handle->website);
+      free(handle->image);
       free(handle);
    }
 }
@@ -213,21 +241,24 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t bufpos, bufsize, size;
-   size_t rv = 0;
+   size_t rv = __F_PROCESS;
 
    size = *bytes;
    bufpos = handle->opusBufPos;
    bufsize = handle->opusBufSize;
-   if ((size+bufpos) <= bufsize)
+   if ((size+bufpos) > bufsize) {
+      size = bufsize-bufpos;
+   }
+
+   if (size)
    {
       unsigned char *buf = handle->opusBuffer + bufpos;
-
       memcpy(buf, sptr, size);
       handle->opusBufPos += size;
-      rv = size;
+      *bytes = size;
    }
    else {
-      *bytes = 0;
+      rv = *bytes = 0;
    }
 
    return rv;
@@ -237,11 +268,10 @@ size_t
 _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
+   size_t bytes, bufsize;
    size_t rv = __F_EOF;
    unsigned char *buf;
-   int ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
@@ -264,17 +294,17 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
     * in the optimal state to decode the next incoming packet. For the PLC and
     * FEC cases, frame_size must be a multiple of 2.5 ms.
     */
-// ret = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, *num, 0);
-ret = 0;
-   if (ret >= 0)
+// unsigned char cbits[MAX_PACKET_SIZE];
+// frame_size = opus_decode(decoder, cbits, nbBytes, out, MAX_FRAME_SIZE, 0);
+   rv = popus_decode(handle->id, buf, bytes, (int16_t*)dptr, MAX_FRAME_SIZE, 0);
+   if (rv >= 0)
    {
       unsigned int framesize = tracks*bits/8;
 
-      *num = size/framesize;
+      *num = rv/framesize;
       handle->no_samples += *num;
-
-      rv = size;
    }
+
    return rv;
 }
 
@@ -407,7 +437,51 @@ _opus_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t of
 char*
 _opus_name(_fmt_t *fmt, enum _aaxStreamParam param)
 {
-   return NULL;
+   _driver_t *handle = fmt->id;
+   char *rv = NULL;
+
+   switch(param)
+   {
+   case __F_ARTIST:
+      rv = handle->artist;
+      break;
+   case __F_TITLE:
+      rv = handle->title;
+      break;
+   case __F_COMPOSER:
+      rv = handle->composer;
+      break;
+   case __F_GENRE:
+      rv = handle->genre;
+      break;
+   case __F_TRACKNO:
+      rv = handle->trackno;
+      break;
+   case __F_ALBUM:
+      rv = handle->album;
+      break;
+   case __F_DATE:
+      rv = handle->date;
+      break;
+   case __F_COMMENT:
+      rv = handle->comments;
+      break;
+   case __F_COPYRIGHT:
+      rv = handle->copyright;
+      break;
+   case __F_ORIGINAL:
+      rv = handle->original;
+      break;
+   case __F_WEBSITE:
+      rv = handle->website;
+      break;
+   case __F_IMAGE:
+      rv = handle->image;
+      break;
+   default:
+      break;
+   }
+   return rv;
 }
 
 off_t
@@ -424,16 +498,16 @@ _opus_get(_fmt_t *fmt, int type)
    case __F_TRACKS:
       rv = handle->no_tracks;
       break;
-   case __F_FREQ:
+   case __F_FREQUENCY:
       rv = handle->frequency;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       rv = handle->bits_sample;
       break;
-   case __F_BLOCK:
+   case __F_BLOCK_SIZE:
       rv = handle->blocksize;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       rv = handle->max_samples;
       break;
    default:
@@ -458,10 +532,10 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
 
    switch(type)
    {
-   case __F_BLOCK:
+   case __F_BLOCK_SIZE:
       handle->blocksize = value;
       break;
-   case __F_FREQ:
+   case __F_FREQUENCY:
       handle->frequency = value;
       break;
    case __F_RATE:
@@ -470,11 +544,11 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
    case __F_TRACKS:
       handle->no_tracks = value;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       handle->no_samples = value;
       handle->max_samples = value;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       handle->bits_sample = value;
       break;
    case __F_IS_STREAM:

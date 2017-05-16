@@ -80,7 +80,6 @@ _fmt_create(_fmt_type_t format, int mode)
       }
       break;
    case _FMT_OPUS:
-#if 0
       rv = calloc(1, sizeof(_fmt_t));
       if (rv)
       {
@@ -105,7 +104,6 @@ _fmt_create(_fmt_type_t format, int mode)
             rv = NULL;
          }
       }
-#endif
       break;
    case _FMT_VORBIS:
       rv = calloc(1, sizeof(_fmt_t));
