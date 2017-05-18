@@ -430,7 +430,7 @@ set( AEONWAVE_OBJS
      base/geometry.c
      base/gmath.c
      base/logging.c
-#    base/memory.c
+     base/memory.c
      base/threads.c
      base/timer.c
      base/types.c

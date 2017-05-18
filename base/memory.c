@@ -10,10 +10,12 @@
 # include <stdlib.h>
 # include <string.h>
 #endif
+#include <ctype.h>	// toupper
 #include <assert.h>
 
 #include "memory.h"
 
+#if 0
 #define NTID		0x5adda2d9
 
 static void *
@@ -184,5 +186,68 @@ nt_strncmp(const char *s1, off_t o1, const char *s2, off_t o2, size_t n, const c
 {
     return strncmp(_nt_memptr(s1, o1, n), _nt_memptr(s2, o2, n), n);
 }
+#endif
 
+
+/*
+ * Taken from FreeBSD:
+ * http://src.gnu-darwin.org/src/lib/libc/string/strnstr.c.html
+ */
+char *
+strnstr(const char *s, const char *find, size_t slen)
+{
+   char c, sc;
+   size_t len;
+
+   if ((c = *find++) != '\0')
+   {
+      len = strlen(find);
+      do
+      {
+         do
+         {
+            if (slen-- < 1 || (sc = *s++) == '\0') {
+               return (NULL);
+            }
+         }
+         while (sc != c);
+
+         if (len > slen) {
+            return (NULL);
+         }
+      }
+      while (strncmp(s, find, len) != 0);
+      s--;
+   }
+   return ((char *)s);
+}
+
+char *
+strncasestr(const char *s, const char *find, size_t slen)
+{
+   char c, sc;
+   size_t len;
+
+   if ((c = *find++) != '\0')
+   {
+      len = strlen(find);
+      do
+      {
+         do
+         {
+            if (slen-- < 1 || (sc = *s++) == '\0') {
+               return (NULL);
+            }
+         }
+         while (toupper(sc) != toupper(c));
+
+         if (len > slen) {
+            return (NULL);
+         }
+      }
+      while (strncasecmp(s, find, len) != 0);
+      s--;
+   }
+   return ((char *)s);
+}
 

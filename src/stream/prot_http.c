@@ -16,9 +16,9 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
-#include <ctype.h>	// toupper
 #include <errno.h>
 
+#include <base/memory.h>
 #include <api.h>
 
 #include "device.h"
@@ -31,7 +31,6 @@
 static int _http_send_request(_io_t*, const char*, const char*, const char*, const char*);
 static int _http_get_response(_io_t*, char*, int*);
 static const char *_get_json(const char*, const char*, size_t);
-static char *strnstr(const char*, const char*, size_t);
 
 
 size_t
@@ -412,68 +411,6 @@ _http_get_response(_io_t *io, char *buf, int *size)
    }
 
    return rv;
-}
-
-/*
- * Taken from FreeBSD:
- * http://src.gnu-darwin.org/src/lib/libc/string/strnstr.c.html
- */
-static char *
-strnstr(const char *s, const char *find, size_t slen)
-{
-   char c, sc;
-   size_t len;
-
-   if ((c = *find++) != '\0')
-   {
-      len = strlen(find);
-      do
-      {
-         do
-         {
-            if (slen-- < 1 || (sc = *s++) == '\0') {
-               return (NULL);
-            }
-         }
-         while (sc != c);
-
-         if (len > slen) {
-            return (NULL);
-         }
-      }
-      while (strncmp(s, find, len) != 0);
-      s--;
-   }
-   return ((char *)s);
-}
-
-static char *
-strncasestr(const char *s, const char *find, size_t slen)
-{
-   char c, sc;
-   size_t len;
-
-   if ((c = *find++) != '\0')
-   {
-      len = strlen(find);
-      do
-      {
-         do
-         {
-            if (slen-- < 1 || (sc = *s++) == '\0') {
-               return (NULL);
-            }
-         }
-         while (toupper(sc) != toupper(c));
-
-         if (len > slen) {
-            return (NULL);
-         }
-      }
-      while (strncasecmp(s, find, len) != 0);
-      s--;
-   }
-   return ((char *)s);
 }
 
 static const char*
