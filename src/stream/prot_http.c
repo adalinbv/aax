@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
+#include <ctype.h>	// toupper
 #include <errno.h>
 
 #include <api.h>
@@ -28,8 +29,8 @@
 #define MAX_BUFFER	512
 
 static int _http_send_request(_io_t*, const char*, const char*, const char*, const char*);
-static int _http_get_response(_io_t*, char*, int);
-static const char *_get_json(const char*, const char*);
+static int _http_get_response(_io_t*, char*, int*);
+static const char *_get_json(const char*, const char*, size_t);
 static char *strnstr(const char*, const char*, size_t);
 
 
@@ -44,27 +45,29 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
 
    if (res > 0)
    {
+      int max = 4096;
       char buf[4096];
-      res = _http_get_response(io, buf, 4096);
+
+      res = _http_get_response(io, buf, &max);
       if (res == 200)
       {
          const char *s;
 
          res = 0;
-         s = _get_json(buf, "content-length");
+         s = _get_json(buf, "content-length", max);
          if (s)
          {
             prot->no_bytes = strtol(s, NULL, 10);
             res = prot->no_bytes;
          }
 
-         s = _get_json(buf, "content-type");
+         s = _get_json(buf, "content-type", max);
          if (s) {
             prot->content_type = strdup(s);
          }
          if (s && _http_get(prot, __F_EXTENSION) != _EXT_NONE)
          {
-            s = _get_json(buf, "icy-name");
+            s = _get_json(buf, "icy-name", max);
             if (s)
             {
                int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
@@ -74,7 +77,7 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
                prot->station = strdup(s);
             }
 
-            s = _get_json(buf, "icy-description");
+            s = _get_json(buf, "icy-description", max);
             if (s)
             {
                int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
@@ -84,12 +87,12 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
                prot->description = strdup(s);
             }
 
-            s = _get_json(buf, "icy-genre");
+            s = _get_json(buf, "icy-genre", max);
             if (s) prot->genre = strdup(s);
 
-            s = _get_json(buf, "icy-url");
+            s = _get_json(buf, "icy-url", max);
             if (s) prot->website = strdup(s);
-            s = _get_json(buf, "icy-metaint");
+            s = _get_json(buf, "icy-metaint", max);
             if (s)
             {
                errno = 0;
@@ -330,19 +333,20 @@ _http_get_response_data(_io_t *io, char *response, int size)
    static char end[4] = "\r\n\r\n";
    char *buf = response;
    unsigned int found = 0;
-   int res, i = 0;
+   int res, j, i = 0;
 
    do
    {
       i++;
 
+      j = 10;
       do
       {
          res = io->read(io, buf, 1);
          if (res > 0) break;
          msecSleep(50);
       }
-      while (res == 0);
+      while (res == 0 && --j);
 
       if (res == 1)
       {
@@ -389,11 +393,12 @@ _http_send_request(_io_t *io, const char *command, const char *server, const cha
 }
 
 int
-_http_get_response(_io_t *io, char *buf, int size)
+_http_get_response(_io_t *io, char *buf, int *size)
 {
    int res, rv = -1;
 
-   res = _http_get_response_data(io, buf, size);
+   res = _http_get_response_data(io, buf, *size);
+   *size = res;
    if (res > 0)
    {
       res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
@@ -407,46 +412,6 @@ _http_get_response(_io_t *io, char *buf, int size)
    }
 
    return rv;
-}
-
-static const char*
-_get_json(const char *haystack, const char *needle)
-{
-   static char buf[64];
-   char *start, *end;
-   size_t pos;
-
-   buf[0] = '\0';
-   start = strcasestr(haystack, needle);
-   if (start)
-   {
-      size_t haystacklen;
-
-      start += strlen(needle);
-      pos = start - haystack;
-
-      haystacklen = strlen(haystack);
-      while ((pos++ < haystacklen) && (*start == ':' || *start == ' ')) {
-         start++;
-      }
-
-      if (pos < haystacklen)
-      {
-         end = start;
-         while ((pos++ < haystacklen) &&
-                (*end != '\0' && *end != '\n' && *end != '\r')) {
-            end++;
-         }
-
-         if ((end-start) > 63) {
-            end = start + 63;
-         }
-         memcpy(buf, start, (end-start));
-         buf[end-start] = '\0';
-      }
-   }
-
-   return (buf[0] != '\0') ? buf : NULL;
 }
 
 /*
@@ -481,4 +446,75 @@ strnstr(const char *s, const char *find, size_t slen)
    }
    return ((char *)s);
 }
+
+static char *
+strncasestr(const char *s, const char *find, size_t slen)
+{
+   char c, sc;
+   size_t len;
+
+   if ((c = *find++) != '\0')
+   {
+      len = strlen(find);
+      do
+      {
+         do
+         {
+            if (slen-- < 1 || (sc = *s++) == '\0') {
+               return (NULL);
+            }
+         }
+         while (toupper(sc) != toupper(c));
+
+         if (len > slen) {
+            return (NULL);
+         }
+      }
+      while (strncasecmp(s, find, len) != 0);
+      s--;
+   }
+   return ((char *)s);
+}
+
+static const char*
+_get_json(const char *haystack, const char *needle, size_t haystacklen)
+{
+   static char buf[64];
+   char *start, *end;
+   size_t pos;
+
+   buf[0] = '\0';
+
+   start = strncasestr(haystack, needle, haystacklen);
+   if (start)
+   {
+      start += strlen(needle);
+      pos = start - haystack;
+
+      end = memchr(haystack, '\0', haystacklen);
+      if (end) haystacklen = (end-haystack);
+
+      while ((pos++ < haystacklen) && (*start == ':' || *start == ' ')) {
+         start++;
+      }
+
+      if (pos < haystacklen)
+      {
+         end = start;
+         while ((pos++ < haystacklen) &&
+                (*end != '\0' && *end != '\n' && *end != '\r')) {
+            end++;
+         }
+
+         if ((end-start) > 63) {
+            end = start + 63;
+         }
+         memcpy(buf, start, (end-start));
+         buf[end-start] = '\0';
+      }
+   }
+
+   return (buf[0] != '\0') ? buf : NULL;
+}
+
 
