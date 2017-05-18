@@ -5,6 +5,7 @@
 extern "C" {
 #endif
 
+#if 0
 #include <sys/types.h>		/* for off_t */
 
 #define NT_OVERFLOWLEN		2048
@@ -45,6 +46,7 @@ void *nt_realloc(void *ptr, size_t size, const char *fname, unsigned int line);
 void *nt_memcpy(void *dest, off_t o1, const void *src, off_t o2, size_t n, const char *fname, unsigned int line);
 void *nt_memset(void *s, off_t o, int c, size_t n, const char *fname, unsigned int line);
 int nt_memcmp(const void *s1, off_t o1, const void *s2, off_t o2, size_t n, const char *fname, unsigned int line);
+#endif
 
 
 char *nt_strdup(const char *s, off_t o, const char *fname, unsigned int line);
@@ -53,6 +55,9 @@ char *nt_strcpy(char *dest, off_t o1, const char *src, off_t o2, const char *fna
 char *nt_strncpy(char *dest, off_t o1, const char *src, off_t o2, size_t n, const char *fname, unsigned int line);
 int nt_strcmp(const char *s1, off_t o1, const char *s2, off_t o2, const char *fname, unsigned int line);
 int nt_strncmp(const char *s1, off_t o1, const char *s2, off_t o2, size_t n, const char *fname, unsigned int line);
+
+char *strnstr(const char*, const char*, size_t);
+char *strncasestr(const char*, const char*, size_t);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
