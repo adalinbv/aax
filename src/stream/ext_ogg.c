@@ -400,7 +400,9 @@ size_t
 _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
 {
    _driver_t *handle = ext->id;
+   size_t rv;
 
+printf("fill, keep_header: %i\n", handle->keep_header);
    if (!handle->keep_header)
    {
       size_t avail = handle->oggBufSize-handle->oggBufPos;
@@ -428,10 +430,12 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
       }
 
       *num = avail;
-      return handle->fmt->fill(handle->fmt, oggbuf, num);
+      rv = handle->fmt->fill(handle->fmt, oggbuf, num);
    }
-
-   return handle->fmt->fill(handle->fmt, sptr, num);
+   else {
+      rv = handle->fmt->fill(handle->fmt, sptr, num);
+   }
+   return rv;
 }
 
 size_t
@@ -453,6 +457,7 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    _driver_t *handle = ext->id;
    size_t rv;
 
+printf("cvt_from_intl\n");
    handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->packet_offset[0]);
    rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
    if (rv > 0) {
@@ -651,9 +656,9 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 #if 0
 {
    char *ch = (char*)header;
+   unsigned int i;
    uint64_t i64;
    uint32_t i32;
-   int i;
 
    printf("Read Header:\n");
 
@@ -664,7 +669,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    i64 = (uint64_t)(header[1] >> 16);
    i64 |= ((uint64_t)header[2] << 16);
    i64 |= ((uint64_t)header[3] << 48);
-   printf("2: %08x (Granule position: %llu)\n", header[2], i64);
+   printf("2: %08x (Granule position: %zu)\n", header[2], i64);
 
    i32 = (header[3] >> 16) | (header[4] << 16);
    printf("3: %08x (Serial number: %08x)\n", header[3], i32);
@@ -681,7 +686,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    for (i=0; i<i32; ++i) {
       i64 += (uint8_t)ch[27+i];
    }
-   printf("6: %08x (Page segments: %i, Total segment size: %li)\n", header[6], i32, i64);
+   printf("6: %08x (Page segments: %i, Total segment size: %zi)\n", header[6], i32, i64);
 }
 #endif
 
