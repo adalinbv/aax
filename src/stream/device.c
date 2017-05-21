@@ -830,9 +830,11 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          }
          else //  if (samples >= 0)
          {
+printf("a, no_samples: %zi\n", no_samples);
             if (no_samples > 0)
             {
                ssize_t ret;
+printf("b\n");
 
                extBufSize = no_samples*frame_bits/8;
                if (file_block > frame_bits) {

@@ -69,6 +69,7 @@ _socket_open(_io_t *io, const char *server)
          int res = 0;
 
 #ifdef WIN32
+// The WSAStartup function initiates use of the Winsock DLL by a process.
          WSADATA wsaData;
          res = WSAStartup(MAKEWORD(1,1), &wsaData);
 #endif
