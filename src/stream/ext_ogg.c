@@ -402,7 +402,6 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
    _driver_t *handle = ext->id;
    size_t rv;
 
-printf("fill, keep_header: %i\n", handle->keep_header);
    if (!handle->keep_header)
    {
       size_t avail = handle->oggBufSize-handle->oggBufPos;
@@ -457,7 +456,6 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    _driver_t *handle = ext->id;
    size_t rv;
 
-printf("cvt_from_intl\n");
    handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->packet_offset[0]);
    rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
    if (rv > 0) {
