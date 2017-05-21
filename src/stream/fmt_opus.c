@@ -168,9 +168,12 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
                   int err, tracks = handle->no_tracks;
                   int32_t freq = 48000;
 
-                  handle->id = popus_decoder_create(freq, tracks, &err);
                   handle->frequency = freq;
+		  handle->blocksize = FRAME_SIZE;
+		  handle->format = AAX_PCM24S;
+		  handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
+		  handle->id = popus_decoder_create(freq, tracks, &err);
                   if (!handle->id && popus_strerror)
                   {
                      char s[1025];
