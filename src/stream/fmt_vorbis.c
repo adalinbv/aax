@@ -212,7 +212,7 @@ _vorbis_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 }
 
 size_t
-_vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
+_vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    int bits, tracks, framesize;
@@ -238,10 +238,10 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
       unsigned int pos = handle->out_pos;
       unsigned int max = _MIN(req, handle->out_size - pos);
 
-      ptr += offset*framesize;
+      ptr += dptr_offs*framesize;
       _batch_cvt24_intl_ps(ptr, outputs, pos, tracks, max);
 
-      offset += max;
+      dptr_offs += max;
       handle->out_pos += max;
       handle->no_samples += max;
       if (handle->out_pos == handle->out_size) {
@@ -256,7 +256,6 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
 
    while (req > 0)
    {
-      ret = 0;
       do
       {
          ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bufsize, NULL,
@@ -290,9 +289,9 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
          *num += n;
          handle->no_samples += n;
 
-         ptr += offset*framesize;
+         ptr += dptr_offs*framesize;
          _batch_cvt24_intl_ps(ptr, outputs, 0, tracks, n);
-         offset += n;
+         dptr_offs += n;
       }
       else {
          break;
@@ -304,7 +303,7 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
 }
 
 size_t
-_vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
+_vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = 0;
@@ -326,9 +325,9 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
       unsigned int max = _MIN(req, handle->out_size - pos);
 
       for (i=0; i<tracks; i++) {
-         _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i]+pos, max);
+         _batch_cvt24_ps(dptr[i]+dptr_offs, handle->outputs[i]+pos, max);
       }
-      offset += max;
+      dptr_offs += max;
       handle->out_pos += max;
       handle->no_samples += max;
       if (handle->out_pos == handle->out_size) {
@@ -375,9 +374,9 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
          handle->no_samples += n;
 
          for (i=0; i<tracks; i++) {
-            _batch_cvt24_ps(dptr[i]+offset, handle->outputs[i], n);
+            _batch_cvt24_ps(dptr[i]+dptr_offs, handle->outputs[i], n);
          }
-         offset += n;
+         dptr_offs += n;
       }
       else {
          break;
