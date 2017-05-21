@@ -1,10 +1,12 @@
 
 #include <stdio.h>
+#include <string.h>
+
 #include <base/memory.h>
 
 int main()
 {
-   static const hw = "hElLo woRLD";
+   static const char *hw = "hElLo woRLD";
    char buf[4096];
    char *res;
    int i;
