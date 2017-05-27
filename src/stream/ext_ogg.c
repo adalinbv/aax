@@ -74,15 +74,13 @@ typedef struct
     */
    char keep_header;
 
-   /* Opus */
-   size_t pre_skip;
-   float gain;
-
    /* page header information */
    char header_type;
    uint64_t granule_position;
    uint32_t bitstream_serial_no;
    uint32_t page_sequence_no;
+
+   unsigned int header_size;
    unsigned int page_size;
    unsigned int segment_size;
 
@@ -91,12 +89,12 @@ typedef struct
    unsigned short packet_offset[256];
    /* page header */
 
-   void *oggptr;
-   uint32_t *oggBuffer;
-   size_t oggBufSize;
-   size_t oggBufPos;
-
+   _data_t *oggBuffer;
    size_t datasize;
+
+   /* Opus */
+   size_t pre_skip;
+   float gain;
 
 } _driver_t;
 
@@ -190,29 +188,18 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
 			/* read: handle->capturing */
       else if (!handle->fmt || !handle->fmt->open)
       {
-         if (!handle->oggptr)
-         {
-            char *ptr = 0;
-
-            handle->oggBufPos = 0;
-            handle->oggBufSize = 200*1024;
-            handle->oggptr = _aax_malloc(&ptr, handle->oggBufSize);
-            handle->oggBuffer = (uint32_t*)ptr;
+         if (!handle->oggBuffer) {
+            handle->oggBuffer = _aaxDataCreate(200*1024, 1);
          }
 
-         if (handle->oggptr)
+         if (handle->oggBuffer)
          {
             size_t step, datapos, datasize = *bufsize, size = *bufsize;
-            size_t avail = handle->oggBufSize-handle->oggBufPos;
-            char *oggbuf = (char*)handle->oggBuffer;
+            char *oggbuf = (char*)handle->oggBuffer->data;
             int res;
 
-            avail = _MIN(size, avail);
-            if (!avail) return NULL;
-
-            memcpy(oggbuf+handle->oggBufPos, buf, avail);
-            handle->oggBufPos += avail;
-            size -= avail;
+            res = _aaxDataAdd(handle->oggBuffer, buf, size);
+            size -= res;
 
             /*
              * read the file information and set the file-pointer to
@@ -222,16 +209,13 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
             do
             {
                step = 0;
-               while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
+               while ((res =_aaxFormatDriverReadHeader(handle,&step)) !=__F_EOF)
                {
                   if (step > 0)
                   {
                      datapos += step;
                      datasize -= step;
-                     handle->oggBufPos -= step;
-                     if (handle->oggBufPos > 0) {
-                        memmove(oggbuf, oggbuf+step, handle->oggBufPos);
-                     }
+                     _aaxDataMove(handle->oggBuffer, NULL, step);
                   }
                   if (res <= 0) break;
                }
@@ -241,16 +225,11 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
                // Copy the next chunk and process it.
                if (size)
                {
-                  avail = handle->oggBufSize-handle->oggBufPos;
-                  if (!avail) break;
+                  datasize = _aaxDataAdd(handle->oggBuffer, buf, size);
+                  if (!datasize) break;
 
-                  avail = _MIN(size, avail);
-
+                  size -= datasize;
                   datapos = 0;
-                  datasize = avail;
-                  size -= avail;
-                  memcpy(oggbuf+handle->oggBufPos, buf, avail);
-                  handle->oggBufPos += avail;
                }
             }
             while (res > 0);
@@ -281,16 +260,13 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
                handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
 //             handle->fmt->set(handle->fmt, __F_POSITION,
 //                                              handle->blockbufpos);
-               datasize = handle->oggBufPos;
+               datasize = _MIN(handle->oggBuffer->avail, handle->page_size);
                rv = handle->fmt->open(handle->fmt, oggbuf, &datasize,
                                       handle->datasize);
                if (datasize)
                {
                   handle->page_size -= datasize;
-                  handle->oggBufPos -= datasize;
-                  if (handle->oggBufPos > 0) {
-                     memmove(oggbuf, oggbuf+datasize, handle->oggBufPos);
-                  }
+                  _aaxDataMove(handle->oggBuffer, NULL, datasize);
 
                   if (handle->page_size > 0)
                   {
@@ -317,26 +293,17 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, VOID(size_t fsize))
         /* Format requires more data to process it's own header */
       else if (handle->fmt && handle->fmt->open)
       {
-         size_t avail = handle->oggBufSize-handle->oggBufPos;
-         char *oggbuf = (char*)handle->oggBuffer;
+         char *oggbuf = (char*)handle->oggBuffer->data;
          size_t size = *bufsize;
 
-         avail = _MIN(size, avail);
-         if (!avail) return NULL;
-
-         memcpy((char*)handle->oggBuffer+handle->oggBufPos, buf, avail);
-         handle->oggBufPos += avail;
-
-         size = handle->oggBufPos;
+         _aaxDataAdd(handle->oggBuffer, buf, size);
+         size = handle->oggBuffer->avail;
          rv = handle->fmt->open(handle->fmt, oggbuf, &size,
                                  handle->datasize);
          if (size)
          {
             handle->page_size -= size;
-            handle->oggBufPos -= size;
-            if (handle->oggBufPos > 0) {
-               memmove(oggbuf, oggbuf+size, handle->oggBufPos);
-            }
+            _aaxDataMove(handle->oggBuffer, NULL, size);
          }
 #if 0
          if (handle->page_size > 0)
@@ -365,7 +332,7 @@ _ogg_close(_ext_t *ext)
 
    if (handle)
    {
-      _aax_free(handle->oggptr);
+      _aaxDataDestroy(handle->oggBuffer);
       if (handle->fmt)
       {
          handle->fmt->close(handle->fmt);
@@ -397,42 +364,35 @@ _ogg_update(VOID(_ext_t *ext), VOID(size_t *offs), VOID(size_t *size), VOID(char
 }
 
 size_t
-_ogg_fill(_ext_t *ext, void_ptr sptr, size_t *num)
+_ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = ext->id;
-   size_t rv;
+   int rv = 0;
 
    if (!handle->keep_header)
    {
-      size_t avail = handle->oggBufSize-handle->oggBufPos;
-      char *oggbuf = (char*)handle->oggBuffer;
+      unsigned char *header = (unsigned char*)handle->oggBuffer->data;
+      size_t bufsize;
 
-      avail = _MIN(*num, avail);
-      if (!avail) return 0;
+      rv = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
+      *bytes = rv;
 
-      memcpy(oggbuf+handle->oggBufPos, sptr, avail);
-      handle->oggBufPos += avail;
-
-      if (handle->oggBufPos > handle->page_size)
+      bufsize = handle->oggBuffer->avail;
+      rv = _getOggPageHeader(handle, (uint32_t *)header, bufsize);
+      if (rv > 0)
       {
-         int res;
+         header += rv;
+         bufsize = handle->page_size - rv;
+         rv = handle->fmt->fill(handle->fmt, header, &bufsize);
 
-         oggbuf += handle->page_size;
-         avail = handle->oggBufPos - handle->page_size;
-         res = _getOggPageHeader(handle, (uint32_t *)oggbuf, avail);
-         if (res >= 0)
-         {
-            avail -= res;
-            handle->oggBufPos -= res;
-            memmove(oggbuf, oggbuf+res, avail);
-         }
+         _aaxDataMove(handle->oggBuffer, NULL, handle->page_size);
       }
-
-      *num = avail;
-      rv = handle->fmt->fill(handle->fmt, oggbuf, num);
+      else if (rv < 0) {
+         handle->page_sequence_no--;
+      }
    }
    else {
-      rv = handle->fmt->fill(handle->fmt, sptr, num);
+      rv = handle->fmt->fill(handle->fmt, sptr, bytes);
    }
    return rv;
 }
@@ -643,7 +603,7 @@ crc32_init(void)
 static int
 _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
-   ssize_t bufsize = handle->oggBufPos;
+   ssize_t bufsize = handle->oggBuffer->avail;
    uint32_t curr;
    int rv = __F_EOF;
 
@@ -651,7 +611,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
       return __F_PROCESS;
    }
 
-#if 0
+#if 1
 {
    char *ch = (char*)header;
    unsigned int i;
@@ -691,7 +651,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    curr = header[0];
    if (curr == 0x5367674f)		/* OggS */
    {
-      unsigned int version, header_size;
+      unsigned int version;
       uint32_t page_no;
 
       curr = header[1] & 0xFF;
@@ -701,11 +661,10 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
       page_no = curr;
 
       curr = (header[6] >> 16) & 0xFF;
-      header_size = 27 + curr;
+      handle->header_size = 27 + curr;
 
-      if ((bufsize >= header_size) && (version == 0x0))
+      if ((bufsize >= handle->header_size) && (version == 0x0))
       {
-
          if ((!handle->page_sequence_no && !handle->bitstream_serial_no) 
              || (page_no > handle->page_sequence_no))
          {
@@ -745,8 +704,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                      }
                   }
                   handle->no_packets = p-1;
-                  handle->page_size = header_size + handle->segment_size;
-
+                  handle->page_size = handle->header_size+handle->segment_size;
 #if 0
   printf("no. packets: %i\n", handle->no_packets);
   for(i=0; i<handle->no_packets; i++)
@@ -767,7 +725,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                         }
                      }
 
-                     rv = header_size;
+                     rv = handle->header_size;
                      if (rv > bufsize) {
                         rv = __F_PROCESS;
                      }
@@ -780,31 +738,28 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                   rv = __F_EOF;
                }
             }
-         }
-         else	// SKIP page due to incorrect serial number
-         {
-            unsigned char *ch = (unsigned char*)header;
-            unsigned int i, no_segments = (header[6] >> 16) & 0xFF;
-
-            rv = 0;
-            for (i=0; i<no_segments; ++i) {
-               rv += ch[27+i];
-            }
-
-            if (rv <= bufsize)
+            else	// SKIP page due to incorrect serial number
             {
-               handle->oggBufPos -= rv;
-               if (handle->oggBufPos > 0) {
-                  memmove(ch, ch+rv, handle->oggBufPos);
-               }
+               unsigned char *ch = (unsigned char*)header;
+               unsigned int i, no_segments = (header[6] >> 16) & 0xFF;
+
                rv = 0;
-            }
-            else {
-               rv = __F_PROCESS;
+               for (i=0; i<no_segments; ++i) {
+                  rv += ch[27+i];
+               }
+
+               if (rv <= bufsize)
+               {
+                  _aaxDataMove(handle->oggBuffer, NULL, rv);
+                  rv = 0;
+               }
+               else {
+                  rv = __F_PROCESS;
+               }
             }
          }
       }
-      else if (bufsize < header_size) {
+      else if (bufsize < handle->header_size) {
          rv = __F_PROCESS;
       } else {
          rv = __F_EOF;
@@ -812,6 +767,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    }
    else {
       rv = 0;
+exit(0);
    }
 
    return rv;
@@ -1319,8 +1275,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    size_t bufsize;
    int rv = 1;
 
-   header = (unsigned char*)handle->oggBuffer;
-   bufsize = handle->oggBufPos;
+   header = (unsigned char*)handle->oggBuffer->data;
+   bufsize = handle->oggBuffer->avail;
 
    while ((rv > 0) && (handle->page_sequence_no < 1))
    {
@@ -1380,8 +1336,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
                      // Remove the first two pages entirely in this case
                      bufsize -= size;
-                     handle->oggBufPos -= size;
-                     memmove(header, header+size, handle->oggBufPos);
+                     _aaxDataMove(handle->oggBuffer, NULL, size);
                   }
                   else
                   {
