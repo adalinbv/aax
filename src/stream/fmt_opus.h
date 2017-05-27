@@ -12,9 +12,13 @@
 #ifndef __FILE_FMT_OPUS_H
 #define __FILE_FMT_OPUS_H 1
 
-/* opus */
+#define OPUS_GET_LAST_PACKET_DURATION_REQUEST 4039
+#define __opus_check_int_ptr(ptr) ((ptr) + ((ptr) - (int32_t*)(ptr)))
+#define OPUS_GET_LAST_PACKET_DURATION(x) OPUS_GET_LAST_PACKET_DURATION_REQUEST, __opus_check_int_ptr(x)
+
 typedef void* (*opus_decoder_create_proc)(int32_t, int, int*);
 typedef void (*opus_decoder_destroy_proc)(void*);
+typedef int (*opus_decoder_ctl_proc)(void*, int, ...);
 typedef int (*opus_decode_float_proc)(void*, const unsigned char*, int32_t, float*, int, int);
 typedef int (*opus_decode_proc)(void*, const unsigned char*, int32_t, int16_t*, int, int);
 

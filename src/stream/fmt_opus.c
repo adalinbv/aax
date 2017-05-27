@@ -27,9 +27,11 @@
 #define FRAME_SIZE 960
 #define MAX_FRAME_SIZE 6*960
 #define MAX_PACKET_SIZE (3*1276)
+#define SAMPLE_RATE 48000
 
 DECL_FUNCTION(opus_decoder_create);
 DECL_FUNCTION(opus_decoder_destroy);
+DECL_FUNCTION(opus_decoder_ctl);
 DECL_FUNCTION(opus_decode_float);
 DECL_FUNCTION(opus_decode);
 
@@ -79,6 +81,7 @@ typedef struct
 
 } _driver_t;
 
+static uint32_t _opus_char_to_int(unsigned char *ch);
 
 int
 _opus_detect(_fmt_t *fmt, int mode)
@@ -101,6 +104,7 @@ _opus_detect(_fmt_t *fmt, int mode)
       if (popus_decoder_create)
       {
          TIE_FUNCTION(opus_decoder_destroy);
+         TIE_FUNCTION(opus_decoder_ctl);
          TIE_FUNCTION(opus_decode_float);
          TIE_FUNCTION(opus_decode);
 
@@ -150,10 +154,11 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
    {
       if (!handle->opusBuffer)
       {
-         handle->opusBuffer = _aaxDataCreate(100*1024, 1);
+         unsigned int bufsize = MAX_FRAME_SIZE*handle->no_tracks*sizeof(float);
+         handle->opusBuffer = _aaxDataCreate(bufsize, 1);
 
          handle->out_pos = 0;
-         handle->out_size = MAX_FRAME_SIZE*handle->no_tracks*sizeof(float);
+         handle->out_size = MAX_PACKET_SIZE;
          handle->outputs = _aax_aligned_alloc(handle->out_size);
       }
 
@@ -166,7 +171,7 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
                if (!handle->id)
                {
                   int err, tracks = handle->no_tracks;
-                  int32_t freq = 48000;
+                  int32_t freq = SAMPLE_RATE;
 
                   handle->frequency = freq;
 		  handle->blocksize = FRAME_SIZE;
@@ -288,9 +293,13 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
    while (req > 0)
    {
+      int lost, len, output_samples;
+
       do
       {
-         ret = n = popus_decode_float(handle->id, buf, bufsize, 
+         len = _opus_char_to_int(buf);
+
+         ret = n = popus_decode_float(handle->id, buf+8, len,
                                       handle->outputs, packet_sz, 0);
          if (n > 0)
          {
@@ -379,15 +388,25 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 
    while (req > 0)
    {
+      int lost, len, output_samples;
+
       ret = 0;
       do
       {
          ret = n = popus_decode_float(handle->id, buf, bufsize,
-                                      handle->outputs, packet_sz, 0);
+                                      handle->outputs, handle->out_size, 0);
+
          if (ret > 0)
          {
             rv += _aaxDataMove(handle->opusBuffer, NULL, ret);
             bufsize = handle->opusBuffer->avail;
+         }
+         else if (ret == -4)
+         {
+            int output_samples;
+            popus_decoder_ctl(handle->id, OPUS_GET_LAST_PACKET_DURATION(&output_samples));
+            ret = n = popus_decode_float(handle->id, NULL, bufsize,
+                                      handle->outputs, output_samples, 0);
          }
       }
       while (ret && n == 0);
@@ -575,3 +594,10 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
    return rv;
 }
 
+/* -------------------------------------------------------------------------- */
+static uint32_t
+_opus_char_to_int(unsigned char *ch)
+{
+    return ((uint32_t)ch[0]<<24) | ((uint32_t)ch[1]<<16)
+         | ((uint32_t)ch[2]<< 8) |  (uint32_t)ch[3];
+}
