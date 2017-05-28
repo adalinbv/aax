@@ -367,33 +367,35 @@ size_t
 _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = ext->id;
-   int rv = 0;
+   int rv = __F_PROCESS;
 
    if (!handle->keep_header)
    {
       unsigned char *header = (unsigned char*)handle->oggBuffer->data;
-      size_t bufsize;
+      size_t avail;
+      int res;
 
       rv = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
       *bytes = rv;
 
-      bufsize = handle->oggBuffer->avail;
-      rv = _getOggPageHeader(handle, (uint32_t *)header, bufsize);
-      if (rv > 0)
+      avail = handle->oggBuffer->avail;
+      res = _getOggPageHeader(handle, (uint32_t *)header, avail);
+      if (res > 0)
       {
-         header += rv;
-         bufsize = handle->page_size - rv;
-         rv = handle->fmt->fill(handle->fmt, header, &bufsize);
+         header += res;
+         avail = handle->page_size - res;
+         res = handle->fmt->fill(handle->fmt, header, &avail);
 
          _aaxDataMove(handle->oggBuffer, NULL, handle->page_size);
       }
-      else if (rv < 0) {
+      else if (res < 0) {
          handle->page_sequence_no--;
       }
    }
    else {
       rv = handle->fmt->fill(handle->fmt, sptr, bytes);
    }
+
    return rv;
 }
 
@@ -1277,6 +1279,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
    header = (unsigned char*)handle->oggBuffer->data;
    bufsize = handle->oggBuffer->avail;
+
 
    while ((rv > 0) && (handle->page_sequence_no < 1))
    {
