@@ -458,6 +458,25 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
+
+   if (ret == MPG123_NEW_FORMAT)
+   {
+      int enc, channels;
+      long rate;
+
+      ret = pmpg123_getformat(handle->id, &rate, &channels, &enc);
+      if ((ret == MPG123_OK) &&
+             (1000 <= rate) && (rate <= 192000) &&
+             (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
+      {
+         handle->frequency = rate;
+         handle->no_tracks = channels;
+         handle->format = _getFormatFromMP3Format(enc);
+         handle->bits_sample = aaxGetBitsPerSample(handle->format);
+      }
+      ret = pmpg123_read(handle->id, buf, bytes, &size);
+   }
+
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
       unsigned char *ptr = (unsigned char*)dptr;
@@ -470,6 +489,10 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
       handle->no_samples += *num;
       rv = size;
    }
+   else if (ret != MPG123_DONE && pmpg123_plain_strerror) {
+      _AAX_FILEDRVLOG(pmpg123_plain_strerror(ret));
+   }
+
    return rv;
 }
 
@@ -499,6 +522,7 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    if (!handle->id3_found) {
       _detect_mpg123_song_info(handle);
    }
+
    if (ret == MPG123_NEW_FORMAT)
    {
       int enc, channels;
@@ -516,6 +540,7 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
       }
       ret = pmpg123_read(handle->id, buf, bytes, &size);
    }
+
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
       *num = size/framesize;
@@ -524,7 +549,7 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
       handle->no_samples += *num;
       rv = size;
    }
-   else if (pmpg123_plain_strerror) {
+   else if (ret != MPG123_DONE && pmpg123_plain_strerror) {
       _AAX_FILEDRVLOG(pmpg123_plain_strerror(ret));
    }
 
