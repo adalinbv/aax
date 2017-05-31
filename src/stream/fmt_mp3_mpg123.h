@@ -202,6 +202,8 @@ typedef off_t (*mpg123_feedseek_proc)(void*, off_t, int, off_t*);
 typedef int (*mpg123_meta_check_proc)(void*);
 typedef int (*mpg123_id3_proc)(void*, mpg123_id3v1**, mpg123_id3v2**);
 
+typedef const char* (*mpg123_plain_strerror_proc)(int);
+
 /* libmpg123 */
 
 /** lame */
