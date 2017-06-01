@@ -262,7 +262,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
       unsigned int track, no_tracks = drb->get_parami(drb, RB_NO_TRACKS);
       unsigned int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
       size_t ds = drb->get_parami(drb, RB_DDE_SAMPLES);
-      float dt = GMATH_E1 * (*delay);
+      float freq, dt = GMATH_E1 * (*delay);
       size_t frames, nframes;
       ssize_t res, offs;
       void **sbuf;
@@ -276,11 +276,21 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
       offs = 0;
       nframes = frames = drb->get_parami(drb, RB_NO_SAMPLES);
 
+      freq = be->param(be_handle, DRIVER_FREQUENCY);
+      drb->set_paramf(drb, RB_FREQUENCY, freq);
+
       sbuf = (void**)drb->get_tracks_ptr(drb, RB_WRITE);
       res = be->capture(be_handle, sbuf, &offs, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain,
                         batched);
       drb->release_tracks_ptr(drb);	// convert to mixer format
+
+      // Some formats allow format changes to save bandwidth, which might
+      // include changing the playback frequency
+      freq = be->param(be_handle, DRIVER_FREQUENCY);
+      if (freq != be->param(drb, RB_FREQUENCY)) {
+         drb->set_paramf(drb, RB_FREQUENCY, freq);
+      }
 
 #if RB_FLOAT_DATA
       // be->capture can capture one extra sample to keep synchronised with

@@ -68,6 +68,7 @@ enum _aaxDriverParam {
    DRIVER_VOLUME,
    DRIVER_AGC_LEVEL,
    DRIVER_BLOCK_SIZE,
+   DRIVER_FREQUENCY,
 
    /* int */
    DRIVER_MIN_FREQUENCY = 0x100,
