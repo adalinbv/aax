@@ -255,6 +255,7 @@ aaxEmitterGetBufferByPos(const aaxEmitter emitter, unsigned int pos, int copy)
 {
    _emitter_t* handle = get_emitter(emitter, __func__);
    aaxBuffer rv = NULL;
+
    if (handle)
    {
       const _aaxEmitter *src = handle->source;
@@ -292,7 +293,7 @@ aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
          if (_IS_PROCESSED(src->props3d)) {
             rv = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
          } else if (src->buffer_pos > 0) {
-            rv = src->buffer_pos;
+            rv = (src->buffer_pos == UINT_MAX) ? 0 : src->buffer_pos;
          }
          break;
       case AAX_PLAYING:

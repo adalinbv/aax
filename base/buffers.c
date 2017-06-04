@@ -310,6 +310,8 @@ _intBufReplace(_intBuffers *buffer, unsigned int id, unsigned int n, void *data)
 _intBufferData *
 _intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char locked, char *file, int line)
 {
+    if (n == UINT_MAX) return NULL;
+
     assert(buffer != 0);
     assert(buffer->id == id);
 
@@ -333,6 +335,8 @@ _intBufGetDebug(_intBuffers *buffer, unsigned int id, unsigned int n, char locke
 _intBufferData *
 _intBufGetNormal(_intBuffers *buffer, unsigned int id, unsigned int n, char locked)
 {
+    if (n == UINT_MAX) return NULL;
+
     assert(buffer);
     assert(buffer->id == id);
 
