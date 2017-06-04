@@ -251,3 +251,24 @@ strncasestr(const char *s, const char *find, size_t slen)
    return ((char *)s);
 }
 
+char*
+stradd(char *src, char *dest)
+{
+   char *rv;
+   if (src)
+   {
+      rv = realloc(src, strlen(src)+strlen(dest)+3);
+      if (rv)
+      {
+         strcat(rv, ", ");
+         strcat(rv, dest);
+     }
+     else {
+        rv = src;
+     }
+   }
+   else {
+      rv = strdup(dest);
+   }
+   return rv;
+}

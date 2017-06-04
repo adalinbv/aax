@@ -58,6 +58,7 @@ int nt_strncmp(const char *s1, off_t o1, const char *s2, off_t o2, size_t n, con
 
 char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);
+char* stradd(char*, char*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
