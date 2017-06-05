@@ -423,6 +423,7 @@ void _aaxBackendDriverToDeviceConnecttor(char **, char **);
 void _aaxDeviceConnecttorToBackendDriver(char **, char **);
 void _aaxConnectorDeviceToDeviceConnector(char *);
 
+const char* tmpDir();
 const char* userHomeDir();
 char* systemConfigFile(const char*);
 char* userConfigFile();
