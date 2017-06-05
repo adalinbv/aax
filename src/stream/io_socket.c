@@ -143,7 +143,7 @@ ssize_t
 _socket_read(_io_t *io, void *buf, size_t count)
 {
    ssize_t rv = recv(io->fd, buf, count, 0);
-   if (rv == EINTR) rv = recv(io->fd, buf, count, 0);
+   if (rv < 0 && error == EINTR) rv = recv(io->fd, buf, count, 0);
    if ((rv < 0) && (errno == EAGAIN || errno == EWOULDBLOCK)) {
       rv = 0;
    }
@@ -154,7 +154,7 @@ ssize_t
 _socket_write(_io_t *io, const void *buf, size_t size)
 {
    ssize_t rv = send(io->fd, buf, size, 0);
-   if (rv == EINTR) rv = send(io->fd, buf, size, 0);
+   if (rv < 0 && error == EINTR) rv = send(io->fd, buf, size, 0);
    return rv;
 }
 
