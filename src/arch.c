@@ -97,12 +97,10 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
 
    if (size >= buf->blocksize)
    {
-      rv = (size/buf->blocksize)*buf->blocksize;
+      rv = _MIN((size/buf->blocksize)*buf->blocksize, buf->avail);
       if (data) {
          memcpy(data, buf->data, rv);
       }
-
-      assert(buf->avail >= rv);
 
       buf->avail -= rv;
       if (buf->avail > 0) {
