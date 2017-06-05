@@ -37,6 +37,7 @@
 #define CONFIG_FILE             "config.xml"
 
 #if defined(WIN32)
+# define TEMP_DIR		getenv("TEMP")
 # define SYSTEM_DIR		getenv("PROGRAMFILES")
 # define USR_SYSTEM_DIR		getenv("PROGRAMFILES")
 # define AAX_DIR		"\\aax\\"
@@ -47,6 +48,7 @@
 # define USER_DIR		getenv("USERPROFILE")
 
 #else	/* !WIN32 */
+# define TEMP_DIR		"/tmp"
 # define SYSTEM_DIR		"/etc"
 # define USR_SYSTEM_DIR		"/usr"SYSTEM_DIR
 # define AAX_DIR		"/aax/"
@@ -116,6 +118,12 @@ const char*
 userHomeDir()
 {
    return USER_DIR;
+}
+
+const char*
+tmpDir()
+{
+   return TEMP_DIR;
 }
 
 char*
