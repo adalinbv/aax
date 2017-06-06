@@ -137,9 +137,6 @@ typedef struct
    _aaxRenderer *render;
 
    struct threat_t thread;
-   _aaxSemaphore *worker_start;
-   _aaxSemaphore *worker_ready;
-   _aaxMutex *mutex;
 
 } _driver_t;
 
@@ -333,18 +330,14 @@ _aaxStreamDriverDisconnect(void *id)
       {
          handle->thread.started = AAX_FALSE;
 
-         _aaxSemaphoreRelease(handle->worker_start);
-         _aaxSemaphoreWait(handle->worker_ready);
-
+         _aaxSignalTrigger(&handle->thread.signal);
          _aaxThreadJoin(handle->thread.ptr);
       }
+      _aaxSignalFree(&handle->thread.signal);
 
       if (handle->thread.ptr) {
          _aaxThreadDestroy(handle->thread.ptr);
       }
-      _aaxSemaphoreDestroy(handle->worker_start);
-      _aaxSemaphoreDestroy(handle->worker_ready);
-      _aaxMutexDestroy(handle->mutex);
 
       _aaxDataDestroy(handle->dataBuffer);
       if (handle->name && handle->name != default_renderer) {
@@ -604,11 +597,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->no_samples = no_samples;
             handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
 
-            handle->mutex = _aaxMutexCreate(NULL);
-            handle->worker_start = _aaxSemaphoreCreate(0);
-            handle->worker_ready = _aaxSemaphoreCreate(0);
-
             handle->thread.ptr = _aaxThreadCreate();
+            handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
+            _aaxSignalInit(&handle->thread.signal);
             if (handle->mode == AAX_MODE_READ) {
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxStreamDriverReadThread, handle, 20);
@@ -714,7 +705,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, VOID(float pitch), float gai
    file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
    assert(file_tracks == handle->no_channels);
 
-   _aaxMutexLock(handle->mutex);
+   _aaxMutexLock(handle->thread.signal.mutex);
 
    outbuf_size = file_tracks * no_samples*_MAX(file_bps, rb_bps);
    if ((handle->dataBuffer == 0) || (handle->dataBuffer->size < 2*outbuf_size))
@@ -745,12 +736,12 @@ _aaxStreamDriverPlayback(const void *id, void *src, VOID(float pitch), float gai
    rb->release_tracks_ptr(rb);
    handle->dataAvailWrite = res;
 
-   _aaxMutexUnLock(handle->mutex);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
 
    if (batched) {
       _aaxStreamDriverWriteChunk(id);
    } else {
-      _aaxSemaphoreRelease(handle->worker_start);
+      _aaxSignalTrigger(&handle->thread.signal);
    }
 
    return (res >= 0) ? (res-res) : -1; // (res - no_samples);
@@ -790,7 +781,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       }
 
       if (!batched) {
-         _aaxSemaphoreRelease(handle->worker_start);
+         _aaxSignalTrigger(&handle->thread.signal);
       }
 
       bytes = 0;
@@ -862,13 +853,12 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                }
                else
                {
-                  _aaxSemaphoreRelease(handle->worker_start);
-                  _aaxSemaphoreWait(handle->worker_ready);
+                  _aaxSignalTrigger(&handle->thread.signal);
                }
 
                // lock the thread buffer
                extBuffer = scratch;
-               _aaxMutexLock(handle->mutex);
+               _aaxMutexLock(handle->thread.signal.mutex);
 
                // copy data from the read-threat to the scratch buffer
                ret = extBufSize;
@@ -883,7 +873,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                _aaxDataMove(handle->threadBuffer, extBuffer+extBufPos, ret);
 
                // unlock the threat buffer
-               _aaxMutexUnLock(handle->mutex);
+               _aaxMutexUnLock(handle->thread.signal.mutex);
 
                if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
@@ -1362,11 +1352,13 @@ _aaxStreamDriverWriteThread(void *id)
 {
    _driver_t *handle = (_driver_t*)id;
 
-   _aaxSemaphoreWait(handle->worker_start);
+   _aaxMutexLock(handle->thread.signal.mutex);
 
    _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
    do
    {
+      _aaxSignalWait(&handle->thread.signal);
+
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -1376,9 +1368,6 @@ _aaxStreamDriverWriteThread(void *id)
       }
    
       _aaxStreamDriverWriteChunk(id);
-
-      _aaxSemaphoreRelease(handle->worker_ready);
-      _aaxSemaphoreWait(handle->worker_start);
    }
    while(handle->thread.started);
 
@@ -1386,7 +1375,7 @@ _aaxStreamDriverWriteThread(void *id)
       _aaxStreamDriverWriteChunk(id);
    }
 
-   _aaxSemaphoreRelease(handle->worker_ready);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle; 
 }
@@ -1438,7 +1427,7 @@ _aaxStreamDriverReadThread(void *id)
    ssize_t res;
 
    // wait for our first job
-   _aaxSemaphoreWait(handle->worker_start);
+   _aaxMutexLock(handle->thread.signal.mutex);
 
    _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
 
@@ -1459,14 +1448,12 @@ _aaxStreamDriverReadThread(void *id)
 
    do
    {
+      _aaxSignalWait(&handle->thread.signal);
       res = _aaxStreamDriverReadChunk(id);
-
-      _aaxSemaphoreRelease(handle->worker_ready);
-      _aaxSemaphoreWait(handle->worker_start);
    }
    while(res >= 0 && handle->thread.started);
 
-   _aaxSemaphoreRelease(handle->worker_ready);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
 
    return handle;
 }
