@@ -276,9 +276,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
       offs = 0;
       nframes = frames = drb->get_parami(drb, RB_NO_SAMPLES);
 
-      freq = be->param(be_handle, DRIVER_FREQUENCY);
-      drb->set_paramf(drb, RB_FREQUENCY, freq);
-
       sbuf = (void**)drb->get_tracks_ptr(drb, RB_WRITE);
       res = be->capture(be_handle, sbuf, &offs, &nframes,
                         scratch[SCRATCH_BUFFER0]-ds, 2*2*ds+frames, gain,

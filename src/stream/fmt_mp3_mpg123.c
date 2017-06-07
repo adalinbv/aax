@@ -533,12 +533,12 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
              (1000 <= rate) && (rate <= 192000) &&
              (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
       {
-         handle->frequency = rate;
-         handle->no_tracks = channels;
-         handle->format = _getFormatFromMP3Format(enc);
-         handle->bits_sample = aaxGetBitsPerSample(handle->format);
+//       handle->frequency = rate;
+//       handle->no_tracks = channels;
+//       handle->format = _getFormatFromMP3Format(enc);
+//       handle->bits_sample = aaxGetBitsPerSample(handle->format);
       }
-      ret = pmpg123_read(handle->id, buf, bytes, &size);
+//    ret = pmpg123_read(handle->id, buf, bytes, &size);
    }
 
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
