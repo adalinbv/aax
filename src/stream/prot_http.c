@@ -137,7 +137,8 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
             break;
          }
 
-         if (slen > strlen("StreamTitle=''"))
+         blen = strlen("StreamTitle=''");
+         if (slen > blen && !strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
          {
             char *artist = (char*)ptr+1 + strlen("StreamTitle='");
             if (artist)
