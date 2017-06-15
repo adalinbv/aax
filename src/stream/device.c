@@ -543,15 +543,21 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          {
             if (!m && header && headerSize)
             {
-               int tries = 10; /* 100*50 mSec = 5 seconds */
+               int tries = 50; /* 50 miliseconds */
                do
                {
                   res = handle->io->read(handle->io, header, headerSize);
                   if (res > 0 || --tries == 0) break;
-                  msecSleep(50);
+                  msecSleep(1);
                }
                while (res == 0);
-               if (res < 0)
+
+               if (!res)
+               {
+                   _aaxStreamDriverLog(id, 0, 0, "Unexpected end-of-file");
+                   return AAX_FALSE;
+               }
+               else if (res < 0)
                {
                   _aaxStreamDriverLog(id, 0, 0, "Timeout");
                   break;
@@ -854,6 +860,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                else
                {
                   _aaxSignalTrigger(&handle->thread.signal);
+                  msecSleep(1);
                }
 
                // lock the thread buffer
@@ -1395,12 +1402,12 @@ _aaxStreamDriverReadChunk(const void *id)
    }
 
    size = IOBUF_THRESHOLD - avail;
-   tries = 10; /* 10*5 mSec = 50 miliseconds */
+   tries = 50; /* 50 miliseconds */
    do
    {
       res = handle->io->read(handle->io, data+avail, size);
       if (res > 0 || --tries == 0) break;
-      msecSleep(5);
+      msecSleep(1);
    }
    while (res == 0);
 
