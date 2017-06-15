@@ -314,7 +314,8 @@ _aaxMutexLock(void *mutex)
          }
          r = pthread_mutex_timedlock(&m->mutex, &to);
          if (r == ETIMEDOUT) {
-            printf("mutex timed out in %s line %i\n", file, line);
+            printf("mutex timed out after 9 miliseconds in %s line %i\n",
+                   file, line);
             abort();
          } else if (r == EDEADLK) {
             printf("dealock in %s line %i\n", file, line);
@@ -350,7 +351,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
  
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 0 && mtx != 1) {
-            printf("1. lock mutex = %i in %s line %i, for: %s in %s\n"
+            printf("1. lock mutex = %i\n  %s line %i, for: %s in %s\n"
                    "last called from: %s line %zu\n", mtx, file, line, 
                    m->name, m->function, m->last_file, m->last_line);
             r = -mtx;
@@ -365,9 +366,10 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 
 #ifndef NDEBUG
          if (r == ETIMEDOUT) {
-            printf("mutex timed out in %s line %i\n"
-                   "  last call from %s line %zu\n", file, line,
-                      m->last_file, m->last_line);
+            printf("mutex timed out after %i seconds\n  %s line %i\n"
+                   "  last call from\n  %s line %zu\n",
+                   DEBUG_TIMEOUT, file, line,
+                   m->last_file, m->last_line);
             abort();
          } else if (r == EDEADLK) {
             printf("dealock in %s line %i\n", file, line);
@@ -379,7 +381,7 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 # ifdef __GNUC__
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 1) {
-            printf("2. lock mutex != 1 (%i) in %s line %i, for: %s in %s\n"
+            printf("2. lock mutex != 1 (%i)\n  %s line %i, for: %s in %s\n"
                     "last called from: %s line %zu\n", mtx, file, line,
                     m->name, m->function, m->last_file, m->last_line);
             r = -mtx;
@@ -634,7 +636,7 @@ _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
 
    rv = sem_timedwait(sem, &to);
    if (rv != 0) {
-      printf("semaphore error %i: %s\n  in %s line %i", errno, strerror(errno), file, line);
+      printf("semaphore error %i: %s\n  %s line %i\n", errno, strerror(errno), file, line);
    }
    return rv ? AAX_FALSE : AAX_TRUE;
 }
@@ -995,7 +997,8 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
          case WAIT_OBJECT_0:
             break;
          case WAIT_TIMEOUT:
-            printf("mutex timed out in %s line %i\n", file, line);
+            printf("mutex timed out after %i seconds in %s line %i\n",
+                    DEBUG_TIMEOUT, file, line);
             abort();
             r = ETIMEDOUT;
             break;
