@@ -1402,7 +1402,7 @@ _aaxStreamDriverReadChunk(const void *id)
    }
 
    size = IOBUF_THRESHOLD - avail;
-   tries = 50; /* 50 miliseconds */
+   tries = 3; /* 3 miliseconds */
    do
    {
       res = handle->io->read(handle->io, data+avail, size);
