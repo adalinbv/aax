@@ -25,7 +25,7 @@
 
 // https://android.googlesource.com/platform/external/libopus/+/refs/heads/master-soong/doc/trivial_example.c
 #define FRAME_SIZE 960
-#define MAX_FRAME_SIZE 6*960
+#define MAX_FRAME_SIZE (6*FRAME_SIZE)
 #define MAX_PACKET_SIZE (3*1276)
 #define SAMPLE_RATE 48000
 
@@ -74,10 +74,7 @@ typedef struct
    size_t max_samples;
 
    _data_t *opusBuffer;
-
-   float *outputs;
-   unsigned int out_pos;
-   unsigned int out_size;
+   _data_t *outputBuffer;
 
 } _driver_t;
 
@@ -156,37 +153,46 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
       {
          unsigned int bufsize = MAX_FRAME_SIZE*handle->no_tracks*sizeof(float);
          handle->opusBuffer = _aaxDataCreate(bufsize, 1);
-
-         handle->out_pos = 0;
-         handle->out_size = MAX_PACKET_SIZE;
-         handle->outputs = _aax_aligned_alloc(handle->out_size);
       }
 
-      if (handle->opusBuffer)
+      if (!handle->outputBuffer)
+      {
+         unsigned int bufsize = MAX_PACKET_SIZE*handle->no_tracks*sizeof(float);
+         handle->outputBuffer = _aaxDataCreate(bufsize, 1);
+      }
+
+      if (handle->opusBuffer && handle->outputBuffer)
       {
          if (handle->capturing)
          {
-            if (_opus_fill(fmt, buf, bufsize) > 0)
+            if (!handle->id)
             {
-               if (!handle->id)
+               int err, tracks = handle->no_tracks;
+               int32_t freq = SAMPLE_RATE;
+
+               handle->frequency = freq;
+               handle->blocksize = FRAME_SIZE;
+               handle->format = AAX_PCM24S;
+               handle->bits_sample = aaxGetBitsPerSample(handle->format);
+
+               handle->id = popus_decoder_create(freq, tracks, &err);
+               if (handle->id)
                {
-                  int err, tracks = handle->no_tracks;
-                  int32_t freq = SAMPLE_RATE;
-
-                  handle->frequency = freq;
-		  handle->blocksize = FRAME_SIZE;
-		  handle->format = AAX_PCM24S;
-		  handle->bits_sample = aaxGetBitsPerSample(handle->format);
-
-		  handle->id = popus_decoder_create(freq, tracks, &err);
-                  if (!handle->id && popus_strerror)
-                  {
-                     char s[1025];
-                     snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
-                                        popus_strerror(err));
-                     s[1024] = 0;
-                     _aaxStreamDriverLog(NULL, 0, 0, s);
+                  float *outputs = (float*)handle->outputBuffer->data;
+                  size_t size = handle->outputBuffer->size;
+                  int n = popus_decode_float(handle->id, buf, *bufsize,
+                                             outputs, size, 0);
+                  if (n > 0) {
+                     handle->outputBuffer->avail += n;
                   }
+               }
+               else if (popus_strerror)
+               {
+                  char s[1025];
+                  snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
+                                     popus_strerror(err));
+                  s[1024] = 0;
+                  _aaxStreamDriverLog(NULL, 0, 0, s);
                }
             }
          }
@@ -211,7 +217,7 @@ _opus_close(_fmt_t *fmt)
       handle->id = NULL;
 
       _aaxDataDestroy(handle->opusBuffer);
-      _aax_aligned_free(handle->outputs);
+      _aax_aligned_free(handle->outputBuffer->data);
 
       free(handle->trackno);
       free(handle->artist);
@@ -240,10 +246,10 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
+   int res;
 
-   if (_aaxDataAdd(handle->opusBuffer, sptr, *bytes) == 0) {
-      *bytes = 0;
-   }
+   res = _aaxDataAdd(handle->opusBuffer, sptr, *bytes);
+   *bytes = res;
 
    return rv;
 }
@@ -253,37 +259,34 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
-   size_t req, bufsize, rv = 0;
+   size_t bufsmp, req, avail, rv = 0;
    unsigned char *buf;
-   int ret, n;
+   float *outputs;
+   int n;
 
    req = *num;
-   packet_sz = handle->blocksize;
    tracks = handle->no_tracks;
+   packet_sz = handle->blocksize;
    bits = handle->bits_sample;
    framesize = tracks*bits/8;
    *num = 0;
 
    buf = handle->opusBuffer->data;
-   bufsize = handle->opusBuffer->avail;
+
+   outputs = (float*)handle->outputBuffer->data;
+   avail = handle->outputBuffer->avail;
+   bufsmp = handle->outputBuffer->size/framesize;
 
    /* there is still data left in the buffer from the previous run */
-   if (handle->out_pos > 0)
+   if (avail > 0)
    {
-      const_int32_ptrptr outputs = (const_int32_ptrptr)handle->outputs;
-      unsigned char *ptr = (unsigned char*)dptr;
-      unsigned int pos = handle->out_pos;
-      unsigned int max = _MIN(req, handle->out_size - pos);
+      unsigned int max = _MIN(req, avail);
 
-      ptr += dptr_offs*framesize;
-      _batch_cvt24_intl_ps(ptr, outputs, pos, tracks, max);
+      _batch_cvt24_ps(dptr+dptr_offs, outputs, max*tracks);
+      _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
 
       dptr_offs += max;
-      handle->out_pos += max;
       handle->no_samples += max;
-      if (handle->out_pos == handle->out_size) {
-         handle->out_pos = 0;
-      }
       req -= max;
       *num = max;
       if (req == 0) {
@@ -293,54 +296,28 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
    while (req > 0)
    {
-      int lost, len, output_samples;
-
-      do
+      n = popus_decode_float(handle->id, buf, packet_sz, outputs, bufsmp, 0);
+      if (n > 0)
       {
-         len = _opus_char_to_int(buf);
+         unsigned int max;
 
-         ret = n = popus_decode_float(handle->id, buf+8, len,
-                                      handle->outputs, packet_sz, 0);
-         if (n > 0)
-         {
-            rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
-            bufsize = handle->opusBuffer->avail;
+         rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
 
-            handle->out_pos += n;
-         }
-      }
-      while (ret && n == 0);
+         handle->outputBuffer->avail += n;
+         max = _MIN(req, handle->outputBuffer->avail);
 
-      if (ret > 0)
-      {
-         const_int32_ptrptr outputs = (const_int32_ptrptr)handle->outputs;
-         unsigned char *ptr = (unsigned char*)dptr;
+         _batch_cvt24_ps(dptr+dptr_offs, outputs, max*tracks);
+         _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
 
-         if (n > (int)req)
-         {
-            handle->out_size = n;
-            handle->out_pos = req;
-            n = req;
-            req = 0;
-         }
-         else
-         {
-            assert(handle->out_pos == 0);
-            req -= n;
-         }
-
-         *num += n;
-         handle->no_samples += n;
-
-         ptr += dptr_offs*framesize;
-         _batch_cvt24_intl_ps(ptr, outputs, 0, tracks, n);
-         dptr_offs += n;
+         handle->no_samples += max;
+         dptr_offs += max;
+         *num += max;
+         req -= max;
       }
       else {
          break;
       }
    }
-   handle->max_samples = handle->no_samples;
 
    return rv;
 }
@@ -350,9 +327,10 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
-   size_t req, bufsize, rv = 0;
+   size_t bufsmp, req, avail, rv = 0;
    unsigned char *buf;
-   int ret, n;
+   float *outputs;
+   int n;
 
    req = *num;
    tracks = handle->no_tracks;
@@ -362,80 +340,53 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    *num = 0;
 
    buf = handle->opusBuffer->data;
-   bufsize = handle->opusBuffer->avail;
+
+   outputs = (float*)handle->outputBuffer->data;
+   avail = handle->outputBuffer->avail;
+   bufsmp = handle->outputBuffer->size/framesize;
 
    /* there is still data left in the buffer from the previous run */
-   if (handle->out_pos > 0)
+   if (avail > 0)
    {
-      const_int32_ptrptr outputs = (const_int32_ptrptr)handle->outputs;
-      unsigned int pos = handle->out_pos*framesize;
-      unsigned int max = _MIN(req, handle->out_size - pos);
+      unsigned int max = _MIN(req, avail/framesize);
 
-      _batch_cvt24_intl_ps(dptr, outputs+pos, dptr_offs, tracks, max);
+      _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
+      _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
 
       dptr_offs += max;
-      handle->out_pos += max;
       handle->no_samples += max;
-      if (handle->out_pos == handle->out_size) {
-         handle->out_pos = 0;
-      }
       req -= max;
       *num = max;
-      if (req == 0) {
-         rv = 1;
-      }
    }
 
-   while (req > 0)
+   if (req > 0)
    {
-      int lost, len, output_samples;
-
-      ret = 0;
       do
       {
-         ret = n = popus_decode_float(handle->id, buf, bufsize,
-                                      handle->outputs, handle->out_size, 0);
+         n = popus_decode_float(handle->id, buf, packet_sz, outputs, bufsmp, 0);
+         if (n > 0)
+         {
+            unsigned int max;
 
-         if (ret > 0)
-         {
-            rv += _aaxDataMove(handle->opusBuffer, NULL, ret);
-            bufsize = handle->opusBuffer->avail;
+            _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
+            rv = packet_sz;
+
+            handle->outputBuffer->avail += n*framesize;
+            max = _MIN(req, handle->outputBuffer->avail/framesize);
+
+            _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
+            _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
+
+            handle->no_samples += max;
+            dptr_offs += max;
+            *num += max;
+            req -= max;
          }
-         else if (ret == -4)
-         {
-            int output_samples;
-            popus_decoder_ctl(handle->id, OPUS_GET_LAST_PACKET_DURATION(&output_samples));
-            ret = n = popus_decode_float(handle->id, NULL, bufsize,
-                                      handle->outputs, output_samples, 0);
+         else {
+            break;
          }
       }
-      while (ret && n == 0);
-
-      if (ret > 0)
-      {
-         const_int32_ptrptr outputs = (const_int32_ptrptr)handle->outputs;
-
-         if (n > (int)req)
-         {
-            handle->out_size = n;
-            handle->out_pos = req;
-            n = req;
-            req = 0;
-         }
-         else
-         {
-            assert(handle->out_pos == 0);
-            req -= n;
-         }
-
-         _batch_cvt24_intl_ps(dptr, outputs, dptr_offs, tracks, n);
-         handle->no_samples += n;
-         dptr_offs += n;
-         *num += n;
-      }
-      else {
-         break;
-      }
+      while (req > 0);
    }
 
    return rv;
