@@ -857,10 +857,8 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                if (batched) {
                   ret = _aaxStreamDriverReadChunk(id);
                }
-               else
-               {
+               else {
                   _aaxSignalTrigger(&handle->thread.signal);
-                  msecSleep(1);
                }
 
                // lock the thread buffer
@@ -869,6 +867,14 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
                // copy data from the read-threat to the scratch buffer
                ret = extBufSize;
+               if (ret <= 0)
+               {
+                  _aaxMutexUnLock(handle->thread.signal.mutex);
+                  msecSleep(1);
+                  _aaxMutexLock(handle->thread.signal.mutex);
+                  ret = extBufSize;
+               }
+
                if (extBufSize+extBufPos > handle->threadBuffer->avail)
                {
                   if (handle->threadBuffer->avail > extBufPos) {
