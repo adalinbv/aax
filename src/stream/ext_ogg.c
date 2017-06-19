@@ -275,19 +275,24 @@ _ogg_update(VOID(_ext_t *ext), VOID(size_t *offs), VOID(size_t *size), VOID(char
    return NULL;
 }
 
-static size_t
-_ogg_fmt_fill(_driver_t *handle)
+size_t
+_ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 {
+   _driver_t *handle = ext->id;
    int res, rv = __F_PROCESS;
    size_t avail;
 
-   avail  = handle->oggBuffer->avail;
+   res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
+   *bytes = res;
+
+   avail = handle->oggBuffer->avail;
    if (avail >= handle->page_size)
    {
       unsigned char *header = (unsigned char*)handle->oggBuffer->data;
 
-      res = _getOggPageHeader(handle, (uint32_t *)header, avail);
+      res = _getOggPageHeader(handle, (uint32_t*)header, avail);
       avail = handle->page_size;
+
       if (res > 0)
       {
          if (!handle->keep_header)
@@ -299,7 +304,7 @@ _ogg_fmt_fill(_driver_t *handle)
          rv = handle->fmt->fill(handle->fmt, header, &avail);
 
          if (avail) {
-            _aaxDataMove(handle->oggBuffer, NULL, avail);
+            _aaxDataMove(handle->oggBuffer, NULL, handle->page_size);
          }
       }
    }
@@ -308,28 +313,10 @@ _ogg_fmt_fill(_driver_t *handle)
 }
 
 size_t
-_ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
-{
-   _driver_t *handle = ext->id;
-   int res;
-
-   res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
-   *bytes = res;
-
-   return _ogg_fmt_fill(handle);
-}
-
-size_t
 _ogg_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
 {
    _driver_t *handle = ext->id;
-   size_t rv;
-
-   rv = handle->fmt->copy(handle->fmt, dptr, offs, num);
-   if (rv > 0) {
-      handle->page_size -= rv;
-   }
-   return rv;
+   return handle->fmt->copy(handle->fmt, dptr, offs, num);
 }
 
 size_t
