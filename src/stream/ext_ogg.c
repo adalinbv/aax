@@ -282,31 +282,49 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    int res, rv = __F_PROCESS;
    size_t avail;
 
-   res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
-   *bytes = res;
-
-   avail = handle->oggBuffer->avail;
-   if (avail >= handle->page_size)
+   if (!handle->keep_header)
    {
-      unsigned char *header = (unsigned char*)handle->oggBuffer->data;
+      res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
+      *bytes = res;
 
-      res = _getOggPageHeader(handle, (uint32_t*)header, avail);
-      avail = handle->page_size;
-
-      if (res > 0)
+      avail = handle->oggBuffer->avail;
+      if (avail >= handle->page_size)
       {
-         if (!handle->keep_header)
+         unsigned char *header = (unsigned char*)handle->oggBuffer->data;
+
+         res = _getOggPageHeader(handle, (uint32_t*)header, avail);
+         avail = handle->page_size;
+
+         if (res > 0)
          {
-            header += res;
-            avail = handle->segment_size;
-         }
+            if (!handle->keep_header)
+            {
+               header += res;
+               avail = handle->segment_size;
+            }
 
-         rv = handle->fmt->fill(handle->fmt, header, &avail);
+            rv = handle->fmt->fill(handle->fmt, header, &avail);
 
-         if (avail) {
-            _aaxDataMove(handle->oggBuffer, NULL, handle->page_size);
+            if (avail) {
+               _aaxDataMove(handle->oggBuffer, NULL, handle->page_size);
+            }
          }
       }
+   }
+   else
+   {
+      size_t avail = handle->oggBuffer->avail;
+
+      rv = 0;
+      if (avail)
+      {
+         unsigned char *header = (unsigned char*)handle->oggBuffer->data;
+         rv = handle->fmt->fill(handle->fmt, header, &avail);
+         if (avail) {
+            _aaxDataMove(handle->oggBuffer, NULL, avail);
+         }
+      }
+      rv += handle->fmt->fill(handle->fmt, sptr, bytes);
    }
 
    return rv;
@@ -563,7 +581,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    char *ch = (char*)header;
    unsigned int i;
    uint64_t i64;
- ndle->page_sequence_no  uint32_t i32;
+   uint32_t i32;
 
    printf("Read Header:\n");
 

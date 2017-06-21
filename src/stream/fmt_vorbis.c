@@ -350,6 +350,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
          if (ret > 0)
          {
             rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
+
             bufsize = handle->vorbisBuffer->avail;
          }
       }
@@ -378,7 +379,13 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
          }
          dptr_offs += n;
       }
-      else {
+      else if (ret == 0 && n == 0)	// need more data
+      {
+         *num = 0;
+         rv = 1;
+//       rv = *num = 1;
+         break;
+      } else {
          break;
       }
    }

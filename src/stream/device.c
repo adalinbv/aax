@@ -794,19 +794,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       samples = no_samples;
       do
       {
-         /* convert data still in the buffer */
-         if (extBuffer)
-         {
-            // add data from the scratch buffer to ext's internal buffer
-            extBufProcess = extBufPos;
-            res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
-
-            extBufPos -= extBufProcess;
-            if (extBufPos) {
-               memmove(extBuffer, extBuffer+res, extBufPos);
-            }
-         }
-         else
+         if (!extBuffer)
          {
             // copy or convert data from ext's internal buffer to tracks[]
             // this allows ext or fmt to convert it to a supported format.
@@ -829,6 +817,17 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                no_samples -= samples;
                *frames += samples;
                if (res > 0) bytes += res;
+            }
+         }
+         else	/* convert data still in the buffer */
+         {
+            // add data from the scratch buffer to ext's internal buffer
+            extBufProcess = extBufPos;
+            res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
+
+            extBufPos -= extBufProcess;
+            if (extBufPos) {
+               memmove(extBuffer, extBuffer+res, extBufPos);
             }
          }
 
@@ -890,6 +889,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
                if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
+printf("  A, ret: %i, no_samples: %i, extBufPos: %i\n", ret, no_samples, extBufPos);
                   bytes = 0; // -1;
                   break;
                }
