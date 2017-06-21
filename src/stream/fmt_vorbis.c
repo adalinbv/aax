@@ -379,13 +379,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
          }
          dptr_offs += n;
       }
-      else if (ret == 0 && n == 0)	// need more data
-      {
-         *num = 0;
-         rv = 1;
-//       rv = *num = 1;
-         break;
-      } else {
+      else {
          break;
       }
    }
