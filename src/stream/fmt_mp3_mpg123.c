@@ -9,8 +9,13 @@
  * permission of Adalin B.V.
  */
 
-#include <string.h>
 #include <assert.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
+
 #include <xml.h>
 
 #include <base/dlsym.h>
