@@ -14,10 +14,17 @@
 #endif
 
 #include <stdio.h>
-#include <stdlib.h>	// atoi
-#include <strings.h>
-#include <string.h>
 #include <assert.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
+#endif
+
 
 #include <arch.h>
 #include <api.h>

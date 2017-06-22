@@ -14,9 +14,15 @@
 #endif
 
 #include <stdio.h>
-#include <string.h>
-#include <strings.h>
 #include <errno.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
+#endif
 
 #include <base/memory.h>
 #include <api.h>

@@ -14,8 +14,13 @@
 #endif
 
 #include <stdio.h>
-#include <string.h>
 #include <assert.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+#endif
+
 
 #include <arch.h>
 

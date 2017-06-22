@@ -13,8 +13,14 @@
 #include "config.h"
 #endif
 
-#include <strings.h>
-#include <string.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
+#endif
 
 #include "extension.h"
 #include "format.h"
