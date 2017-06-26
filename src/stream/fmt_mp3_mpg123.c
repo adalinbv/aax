@@ -8,6 +8,9 @@
  * duplicated in any form, in whole or in part, without the prior written
  * permission of Adalin B.V.
  */
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <assert.h>
 #ifdef HAVE_RMALLOC_H
@@ -502,7 +505,7 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
 }
 
 size_t
-_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
+_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize;
@@ -549,7 +552,7 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
       *num = size/framesize;
-      _batch_cvt24_16_intl(dptr, buf, offset, tracks, *num);
+      _batch_cvt24_16_intl(dptr, buf, dptr_offs, tracks, *num);
 
       handle->no_samples += *num;
       rv = size;

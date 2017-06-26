@@ -8,6 +8,9 @@
  * duplicated in any form, in whole or in part, without the prior written
  * permission of Adalin B.V.
  */
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <assert.h>
 #ifdef HAVE_RMALLOC_H
@@ -152,6 +155,7 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
 
    assert(bufsize);
 
+printf("\t_opus_open\n");
    if (handle)
    {
       if (!handle->opusBuffer)
@@ -256,6 +260,8 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
    res = _aaxDataAdd(handle->opusBuffer, sptr, *bytes);
    *bytes = res;
 
+printf("_opus_fill, rv: %i, *bytes: %i\n", rv, *bytes);
+
    return rv;
 }
 
@@ -264,7 +270,7 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
-   size_t bufsmp, req, avail, rv = 0;
+   size_t req, avail, rv = 0;
    unsigned char *buf;
    float *outputs;
    int n;
@@ -280,7 +286,6 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
    outputs = (float*)handle->outputBuffer->data;
    avail = handle->outputBuffer->avail;
-   bufsmp = handle->outputBuffer->size/framesize;
 
    /* there is still data left in the buffer from the previous run */
    if (avail > 0)
@@ -301,7 +306,8 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
    while (req > 0)
    {
-      n = popus_decode_float(handle->id, buf, packet_sz, outputs, bufsmp, 0);
+      size_t outsmp = handle->outputBuffer->size/framesize;
+      n = popus_decode_float(handle->id, buf, packet_sz, outputs, outsmp, 0);
       if (n > 0)
       {
          unsigned int max;
@@ -332,28 +338,23 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
-   size_t bufsmp, req, avail, rv = 0;
-   unsigned char *buf;
+   size_t req, rv = 0;
    float *outputs;
    int n;
 
    req = *num;
    tracks = handle->no_tracks;
-   packet_sz = handle->blocksize;
    bits = handle->bits_sample;
    framesize = tracks*bits/8;
+   packet_sz = handle->blocksize;
    *num = 0;
 
-   buf = handle->opusBuffer->data;
-
    outputs = (float*)handle->outputBuffer->data;
-   avail = handle->outputBuffer->avail;
-   bufsmp = handle->outputBuffer->size/framesize;
 
    /* there is still data left in the buffer from the previous run */
-   if (avail > 0)
+   if (handle->outputBuffer->avail > 0)
    {
-      unsigned int max = _MIN(req, avail/framesize);
+      unsigned int max = _MIN(req, handle->outputBuffer->avail/framesize);
 
       _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
       _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
@@ -362,30 +363,36 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       handle->no_samples += max;
       req -= max;
       *num = max;
+      if (req == 0) {
+         rv = 1;
+      }
    }
 
    if (req > 0)
    {
       do
       {
-         n = popus_decode_float(handle->id, buf, packet_sz, outputs, bufsmp, 0);
+         size_t outsmp = handle->outputBuffer->size/framesize;
+         size_t bufsize = _MIN(packet_sz, handle->opusBuffer->avail);
+         unsigned char *buf = handle->opusBuffer->data;
+         unsigned int max;
+
+         n = popus_decode_float(handle->id, buf, bufsize, outputs, outsmp, 0);
          if (n > 0)
          {
-            unsigned int max;
-
-            _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
-            rv = packet_sz;
-
             handle->outputBuffer->avail += n*framesize;
             max = _MIN(req, handle->outputBuffer->avail/framesize);
 
             _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
             _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
 
-            handle->no_samples += max;
             dptr_offs += max;
-            *num += max;
+            handle->no_samples += max;
             req -= max;
+            *num += max;
+
+            // remove the packet from the opus buffer
+            rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
          }
          else {
             break;

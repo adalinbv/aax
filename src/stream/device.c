@@ -831,16 +831,18 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
          }
 
-         /* res holds the number of samples that are actually converted */
+         /* res holds the number of bytes that are actually converted */
          /* or -2 if the next chunk can be processed                    */
          /* or -1 if an error occured, or end of file                   */
          if (res == __F_PROCESS)
          {
+printf("res == __F_PROCESS\n");
             extBuffer = NULL;
             samples = no_samples;
          }
          else //  if (samples >= 0)
          {
+printf("no_samples: %i\n", no_samples);
             if (no_samples > 0)
             {
                ssize_t ret;

@@ -545,9 +545,22 @@ enum STBVorbisError
 #include <stdio.h>
 #endif
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
+#endif
+
 #ifndef STB_VORBIS_NO_CRT
-   #include <stdlib.h>
-   #include <string.h>
+// #include <stdlib.h>
+// #include <string.h>
    #include <assert.h>
    #include <math.h>
 
@@ -556,7 +569,7 @@ enum STBVorbisError
       #include <malloc.h>
    #endif
    #if defined(__linux__) || defined(__linux) || defined(__EMSCRIPTEN__)
-      #include <alloca.h>
+//    #include <alloca.h>
    #endif
 #else // STB_VORBIS_NO_CRT
    #define NULL 0
