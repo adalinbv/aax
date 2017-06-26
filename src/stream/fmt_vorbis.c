@@ -8,6 +8,9 @@
  * duplicated in any form, in whole or in part, without the prior written
  * permission of Adalin B.V.
  */
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <assert.h>
 #ifdef HAVE_RMALLOC_H
