@@ -836,13 +836,11 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          /* or -1 if an error occured, or end of file                   */
          if (res == __F_PROCESS)
          {
-printf("res == __F_PROCESS\n");
             extBuffer = NULL;
             samples = no_samples;
          }
          else //  if (samples >= 0)
          {
-printf("no_samples: %i\n", no_samples);
             if (no_samples > 0)
             {
                ssize_t ret;
@@ -891,7 +889,6 @@ printf("no_samples: %i\n", no_samples);
 
                if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
                {
-printf("  A, ret: %i, no_samples: %i, extBufPos: %i\n", ret, no_samples, extBufPos);
                   bytes = 0; // -1;
                   break;
                }
