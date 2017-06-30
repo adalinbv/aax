@@ -26,6 +26,7 @@
 #endif
 
 
+#include <base/memory.h>
 #include <arch.h>
 #include <api.h>
 
@@ -292,14 +293,6 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 
    header = (unsigned char*)handle->oggBuffer->data;
 
-#if 1
-   /*
-    * This code is used for both formats that have their own OGG page header
-    * handling code and for that which can't handle OGG page headers.
-    * The reason is that our code removes OGG pages with a different page
-    * serial number (interleaved streams) which might not be done by the
-    * format otherwise (Vorbis is such an example).
-    */
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
    *bytes = res;
 
@@ -318,50 +311,45 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 
       if (!handle->page_size)
       {
-         avail = handle->oggBuffer->avail;
-         res = _getOggPageHeader(handle, (uint32_t*)header, avail);
-
-         if (res)
+         uint32_t curr = header[5];
+         if (curr == PACKET_FIRST_PAGE)
          {
-            if (!handle->keep_header)
+            if (handle->bitstream_serial_no) {
+               handle->bitstream_serial_no = 0;
+            }
+            if (handle->page_sequence_no) {
+               handle->page_sequence_no = 0;
+            }
+            res = _aaxFormatDriverReadHeader(handle);
+         }
+         else
+         {
+            avail = handle->oggBuffer->avail;
+            res = _getOggPageHeader(handle, (uint32_t*)header, avail);
+            if (res)
             {
-               header += res;
-               avail = handle->segment_size;
+               if (!handle->keep_header)
+               {
+                  header += res;
+                  avail = _MIN(avail, handle->segment_size);
+               }
+               else {
+                  avail = _MIN(avail, handle->page_size);
+               }
+               rv = handle->fmt->fill(handle->fmt, header, &avail);
+               if (avail)
+               {
+                  _aaxDataMove(handle->oggBuffer, NULL, avail);
+                  handle->page_size -= avail;
+               }
             }
             else {
-               avail = _MIN(avail, handle->page_size);
-            }
-            rv = handle->fmt->fill(handle->fmt, header, &avail);
-            if (avail)
-            {
-               _aaxDataMove(handle->oggBuffer, NULL, avail);
-               handle->page_size -= avail;
+               break;
             }
          }
-         else break;
       }
    }
    while (avail && handle->oggBuffer->avail);
-
-#else
-   // works only if the format expects the OGG headers to be present
-   if (handle->keep_header)
-   {
-      rv = 0;
-      avail = handle->oggBuffer->avail;
-      if (avail)
-      {
-         rv = handle->fmt->fill(handle->fmt, header, &avail);
-         if (avail) {
-            _aaxDataMove(handle->oggBuffer, NULL, avail);
-         }
-      }
-
-      if (!avail) {
-         rv += handle->fmt->fill(handle->fmt, sptr, bytes);
-      }
-   }
-#endif
 
    return rv;
 }
@@ -650,6 +638,18 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 #endif
 
    curr = header[0];
+   if (curr != 0x5367674f)		/* OggS */
+   {
+      char *c = strncasestr(header, "OggS", size);
+      if (!c) printf("OggS header not found\n");
+      else
+      {
+         printf("Found OggS header at offset: %i\n", c-(char*)header);
+         header = (uint32_t*)c;
+         curr = header[0];
+      }
+   }
+
    if (curr == 0x5367674f)		/* OggS */
    {
       unsigned int version;
@@ -677,7 +677,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                unsigned int i, no_segments;
 
                handle->page_sequence_no = curr;
-#if 1
+#if 0
 {
    char *ch = (char*)header;
    unsigned int i;
@@ -884,6 +884,7 @@ _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
          handle->no_tracks = (unsigned char)h[9];
          handle->frequency = *((uint32_t*)h+3);
          handle->pre_skip = (unsigned)h[10] << 8 | h[11];
+         handle->no_samples = -handle->pre_skip;
 
          gain = (int)h[16] << 8 | h[17];
          handle->gain = pow(10, (float)gain/(20.0f*256.0f));
@@ -1089,27 +1090,6 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 // https://wiki.xiph.org/OggOpus#Content_Type
 // https://wiki.xiph.org/OggPCM#Comment_packet
 #define COMMENT_SIZE    1024
-static char*
-stradd(char *src, char *dest)
-{
-   char *rv;
-   if (src)
-   {
-      rv = realloc(src, strlen(src)+strlen(dest)+3);
-      if (rv)
-      {
-         strcat(rv, ", ");
-         strcat(rv, dest);
-     }
-     else {
-        rv = src;
-     }
-   }
-   else {
-      rv = strdup(dest);
-   }
-   return rv;
-}
 
 static int
 _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
@@ -1296,7 +1276,7 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
    return rv;
 }
 
-int
+static int
 _aaxFormatDriverReadHeader(_driver_t *handle)
 {
    unsigned char *header;
