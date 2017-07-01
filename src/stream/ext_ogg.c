@@ -47,9 +47,12 @@ typedef struct
 {
    void *id;
 
+   char artist_changed;
+   char title_changed;
+
    char *artist;
-   char *original;
    char *title;
+   char *original;
    char *album;
    char *trackno;
    char *date;
@@ -299,7 +302,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    do
    {
       avail = _MIN(handle->page_size, handle->oggBuffer->avail);
-      if (avail)
+      if (avail && handle->page_sequence_no >= 2)
       {
          rv = handle->fmt->fill(handle->fmt, header, &avail);
          if (avail)
@@ -312,15 +315,20 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
       if (!handle->page_size)
       {
          uint32_t curr = header[5];
-         if (curr == PACKET_FIRST_PAGE)
+         if (curr == PACKET_FIRST_PAGE || handle->page_sequence_no < 2)
          {
-            if (handle->bitstream_serial_no) {
+            if (curr == PACKET_FIRST_PAGE)
+            {
                handle->bitstream_serial_no = 0;
-            }
-            if (handle->page_sequence_no) {
                handle->page_sequence_no = 0;
+
+               free(handle->artist);
+               handle->artist = NULL;
+
+               free(handle->title);
+               handle->title = NULL;
             }
-            res = _aaxFormatDriverReadHeader(handle);
+            rv = _aaxFormatDriverReadHeader(handle);
          }
          else
          {
@@ -349,7 +357,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
          }
       }
    }
-   while (avail && handle->oggBuffer->avail);
+   while (rv > 0 && avail && handle->oggBuffer->avail);
 
    return rv;
 }
@@ -399,9 +407,11 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
       {
       case __F_ARTIST:
          rv = handle->artist;
+         handle->artist_changed = AAX_FALSE;
          break;
       case __F_TITLE:
          rv = handle->title;
+         handle->title_changed = AAX_FALSE;
          break;
       case __F_COMPOSER:
          rv = handle->composer;
@@ -431,6 +441,28 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
          rv = handle->website;
          break;
       default:
+         if (param & __F_NAME_CHANGED)
+         {
+            switch (param & ~__F_NAME_CHANGED)
+            {
+            case __F_ARTIST:
+               if (handle->artist_changed)
+               {
+                  rv = handle->artist;
+                  handle->artist_changed = AAX_FALSE;
+               }
+               break;
+            case __F_TITLE:
+               if (handle->title_changed)
+               {
+                  rv = handle->title;
+                  handle->title_changed = AAX_FALSE;
+               }
+               break;
+            default:
+               break;
+            }
+         }
          break;
       }
    }
@@ -677,6 +709,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                unsigned int i, no_segments;
 
                handle->page_sequence_no = curr;
+
 #if 0
 {
    char *ch = (char*)header;
@@ -1147,17 +1180,23 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
       snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
       ptr += slen;
 
-      if (!STRCMP(field, "TITLE")) {
+      if (!STRCMP(field, "TITLE"))
+      {
           handle->title = stradd(handle->title, field+strlen("TITLE="));
-      } else if (!STRCMP(field, "ALBUM")) {
+          handle->title_changed = AAX_TRUE;
+      }
+      else if (!STRCMP(field, "PERFORMER"))
+      {
+          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+          handle->artist_changed = AAX_TRUE;
+      }
+      else if (!STRCMP(field, "ALBUM")) {
           handle->album = stradd(handle->album, field+strlen("ALBUM="));
       } else if (!STRCMP(field, "TRACKNUMBER")) {
           handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
       } else if (!STRCMP(field, "ARTIST")) {
           handle->composer = stradd(handle->composer, field+strlen("ARTIST="));
           handle->original = stradd(handle->original, field+strlen("ARTIST="));
-      } else if (!STRCMP(field, "PERFORMER")) {
-          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
       } else if (!STRCMP(field, "COPYRIGHT")) {
           handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
       } else if (!STRCMP(field, "GENRE")) {
@@ -1189,7 +1228,7 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
    size_t i, size;
    int rv = len;
 
-#if 0
+#if 1
    printf("\n--Vorbis Comment Header:\n");
    printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
 
@@ -1238,17 +1277,23 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
       snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
       ptr += slen;
 
-      if (!STRCMP(field, "TITLE")) {
+      if (!STRCMP(field, "TITLE"))
+      {
           handle->title = stradd(handle->title, field+strlen("TITLE="));
-      } else if (!STRCMP(field, "ALBUM")) {
+          handle->title_changed = AAX_TRUE;
+      }
+      else if (!STRCMP(field, "PERFORMER"))
+      {
+          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+          handle->artist_changed = AAX_TRUE;
+      }
+      else if (!STRCMP(field, "ALBUM")) {
           handle->album = stradd(handle->album, field+strlen("ALBUM="));
       } else if (!STRCMP(field, "TRACKNUMBER")) {
           handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
       } else if (!STRCMP(field, "ARTIST")) {
           handle->composer = stradd(handle->composer, field+strlen("ARTIST="));
           handle->original = stradd(handle->original, field+strlen("ARTIST="));
-      } else if (!STRCMP(field, "PERFORMER")) {
-          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
       } else if (!STRCMP(field, "COPYRIGHT")) {
           handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
       } else if (!STRCMP(field, "GENRE")) {

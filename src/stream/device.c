@@ -959,7 +959,8 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_MUSIC_PERFORMER_UPDATE:
-               if (handle->prot) {
+               ret = handle->ext->name(handle->ext, __F_ARTIST|__F_NAME_CHANGED);
+               if (!ret && handle->prot) {
                   ret = handle->prot->name(handle->prot, __F_ARTIST|__F_NAME_CHANGED);
                }
                break;
@@ -970,7 +971,8 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_TRACK_TITLE_UPDATE:
-               if (handle->prot) {
+               ret = handle->ext->name(handle->ext, __F_TITLE|__F_NAME_CHANGED);
+               if (!ret && handle->prot) {
                   ret = handle->prot->name(handle->prot, __F_TITLE|__F_NAME_CHANGED);
                }
                break;
