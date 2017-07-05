@@ -112,6 +112,7 @@ typedef struct
    char *name;
 
    char copy_to_buffer; // true if Capture has to copy the data unmodified
+   char start_with_fill;
 
    uint8_t no_channels;
    uint8_t bits_sample;
@@ -137,6 +138,7 @@ typedef struct
    _aaxRenderer *render;
 
    struct threat_t thread;
+   _aaxSemaphore *worker_ready;
 
 } _driver_t;
 
@@ -334,6 +336,9 @@ _aaxStreamDriverDisconnect(void *id)
          _aaxThreadJoin(handle->thread.ptr);
       }
       _aaxSignalFree(&handle->thread.signal);
+
+      _aaxSemaphoreWait(handle->worker_ready);
+      _aaxSemaphoreDestroy(handle->worker_ready);
 
       if (handle->thread.ptr) {
          _aaxThreadDestroy(handle->thread.ptr);
@@ -606,6 +611,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->thread.ptr = _aaxThreadCreate();
             handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
             _aaxSignalInit(&handle->thread.signal);
+            handle->worker_ready = _aaxSemaphoreCreate(0);
             if (handle->mode == AAX_MODE_READ) {
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxStreamDriverReadThread, handle, 20);
@@ -770,7 +776,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
       size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
       unsigned int frame_bits = file_tracks*file_bits;
-      size_t samples, extBufSize, extBufPos, extBufProcess;
+      size_t samples, extBufSize, extBufAvail, extBufProcess;
       ssize_t res, no_samples;
       char *extBuffer;
 
@@ -778,7 +784,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       *frames = 0;
 
       extBuffer = NULL;
-      extBufPos = 0;
+      extBufAvail = 0;
       extBufProcess = 0;
       extBufSize = no_samples*frame_bits/8;
       extBufSize = ((extBufSize/file_block)+1)*file_block;
@@ -792,44 +798,48 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
       bytes = 0;
       samples = no_samples;
+      res = __F_NEED_MORE;
       do
       {
-         if (!extBuffer)
+         if (!handle->start_with_fill)
          {
-            // copy or convert data from ext's internal buffer to tracks[]
-            // this allows ext or fmt to convert it to a supported format.
-            if (handle->copy_to_buffer)
+            if (!extBuffer)
             {
-               do
+               // copy or convert data from ext's internal buffer to tracks[]
+               // this allows ext or fmt to convert it to a supported format.
+               if (handle->copy_to_buffer)
                {
-                  res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
+                  do
+                  {
+                     res = handle->ext->copy(handle->ext, sbuf[0], offs, &samples);
+                     offs += samples;
+                     no_samples -= samples;
+                     *frames += samples;
+                     if (res > 0) bytes += res;
+                  }
+                  while (res > 0);
+               }
+               else
+               {
+                  res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, &samples);
                   offs += samples;
                   no_samples -= samples;
                   *frames += samples;
                   if (res > 0) bytes += res;
                }
-               while (res > 0);
             }
-            else
+            else	/* convert data still in the buffer */
             {
-               res = handle->ext->cvt_from_intl(handle->ext, sbuf, offs, &samples);
-               offs += samples;
-               no_samples -= samples;
-               *frames += samples;
-               if (res > 0) bytes += res;
-            }
-         }
-         else	/* convert data still in the buffer */
-         {
-            // add data from the scratch buffer to ext's internal buffer
-            extBufProcess = extBufPos;
-            res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
+               // add data from the scratch buffer to ext's internal buffer
+               extBufProcess = extBufAvail;
+               res = handle->ext->fill(handle->ext, extBuffer, &extBufProcess);
 
-            extBufPos -= extBufProcess;
-            if (extBufPos) {
-               memmove(extBuffer, extBuffer+res, extBufPos);
+               extBufAvail -= extBufProcess;
+               if (extBufAvail) {
+                  memmove(extBuffer, extBuffer+res, extBufAvail);
+               }
             }
-         }
+         } /* handle->start_with_fill */
 
          /* res holds the number of bytes that are actually converted */
          /* or -2 if the next chunk can be processed                    */
@@ -841,7 +851,8 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          }
          else //  if (samples >= 0)
          {
-            if (no_samples > 0)
+            handle->start_with_fill = AAX_FALSE;
+            if (res == __F_NEED_MORE || no_samples > 0)
             {
                ssize_t ret;
 
@@ -858,43 +869,41 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                }
                else {
                   _aaxSignalTrigger(&handle->thread.signal);
+                  _aaxSemaphoreWait(handle->worker_ready);
                }
 
                // lock the thread buffer
-               extBuffer = scratch;
                _aaxMutexLock(handle->thread.signal.mutex);
+               extBuffer = scratch;
 
                // copy data from the read-threat to the scratch buffer
                ret = extBufSize;
-               if (ret <= 0)
+               if (extBufSize+extBufAvail > handle->threadBuffer->avail)
                {
-                  _aaxMutexUnLock(handle->thread.signal.mutex);
-                  msecSleep(1);
-                  _aaxMutexLock(handle->thread.signal.mutex);
-                  ret = extBufSize;
-               }
-
-               if (extBufSize+extBufPos > handle->threadBuffer->avail)
-               {
-                  if (handle->threadBuffer->avail > extBufPos) {
-                     ret = handle->threadBuffer->avail-extBufPos;
+                  if (handle->threadBuffer->avail > extBufAvail) {
+                     ret = handle->threadBuffer->avail-extBufAvail;
+// printf("\tA, ret: %i, thread avail: %i, extBufAvail: %i\n", ret,  handle->threadBuffer->avail, extBufAvail);
                   } else {
                      ret = 0;
+// printf("\tB, ret: %i, thread avail: %i, extBufAvail: %i\n", ret,  handle->threadBuffer->avail, extBufAvail);
                   }
                }
-               _aaxDataMove(handle->threadBuffer, extBuffer+extBufPos, ret);
+
+               if (ret <= 0 && (no_samples == 0 || extBufAvail == 0))
+               {
+// printf("BREAK, ret: %i, no_samples: %i, extBufAvail: %i, bytes: %i, avail: %i\n", ret, no_samples, extBufAvail, bytes, handle->threadBuffer->avail);
+                  _aaxMutexUnLock(handle->thread.signal.mutex);
+                  handle->start_with_fill = AAX_TRUE;
+                  break;
+               }
+               else if (ret > 0)
+               {
+                  _aaxDataMove(handle->threadBuffer, extBuffer+extBufAvail, ret);
+                  extBufAvail += ret;
+               }
 
                // unlock the threat buffer
                _aaxMutexUnLock(handle->thread.signal.mutex);
-
-               if (ret <= 0 && (no_samples == 0 || extBufPos == 0))
-               {
-                  bytes = 0; // -1;
-                  break;
-               }
-               else if (ret > 0) {
-                  extBufPos += ret;
-               }
             }
          }
 //       else
@@ -1504,6 +1513,8 @@ _aaxStreamDriverReadThread(void *id)
    {
       _aaxSignalWait(&handle->thread.signal);
       res = _aaxStreamDriverReadChunk(id);
+// printf("@ thread, buffer, avail: %i\n", handle->threadBuffer->avail);
+      _aaxSemaphoreRelease(handle->worker_ready);
    }
    while(res >= 0 && handle->thread.started);
 
