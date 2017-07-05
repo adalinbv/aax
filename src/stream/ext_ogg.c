@@ -113,6 +113,7 @@ typedef struct
 static int _aaxFormatDriverReadHeader(_driver_t*);
 static int _getOggPageHeader(_driver_t*, uint32_t*, size_t);
 static int _aaxOggInitFormat(_driver_t*, unsigned char*, size_t*);
+static void _aaxOggFreeInfo(_driver_t*);
 static void crc32_init(void);
 
 /*
@@ -262,18 +263,7 @@ _ogg_close(_ext_t *ext)
          _fmt_free(handle->fmt);
       }
 
-      free(handle->trackno);
-      free(handle->artist);
-      free(handle->title);
-      free(handle->album);
-      free(handle->date);
-      free(handle->genre);
-      free(handle->comments);
-      free(handle->composer);
-      free(handle->copyright);
-      free(handle->original);
-      free(handle->website);
-
+      _aaxOggFreeInfo(handle);
       free(handle);
    }
 
@@ -302,7 +292,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    do
    {
       avail = _MIN(handle->page_size, handle->oggBuffer->avail);
-      if (avail && handle->page_sequence_no >= 2)
+      if (avail && handle->page_sequence_no >= 2 && handle->fmt)
       {
          rv = handle->fmt->fill(handle->fmt, header, &avail);
          if (avail)
@@ -322,11 +312,11 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
                handle->bitstream_serial_no = 0;
                handle->page_sequence_no = 0;
 
-               free(handle->artist);
-               handle->artist = NULL;
+               _aaxOggFreeInfo(handle);
 
-               free(handle->title);
-               handle->title = NULL;
+               handle->fmt->close(handle->fmt);
+               _fmt_free(handle->fmt);
+               handle->fmt = NULL;
             }
             rv = _aaxFormatDriverReadHeader(handle);
          }
@@ -355,6 +345,9 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
                break;
             }
          }
+      }
+      else {
+         rv = __F_NEED_MORE;
       }
    }
    while (rv > 0 && avail && handle->oggBuffer->avail);
@@ -413,9 +406,6 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
          rv = handle->title;
          handle->title_changed = AAX_FALSE;
          break;
-      case __F_COMPOSER:
-         rv = handle->composer;
-         break;
       case __F_GENRE:
          rv = handle->genre;
          break;
@@ -427,6 +417,9 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
          break;
       case __F_DATE:
          rv = handle->date;
+         break;
+      case __F_COMPOSER:
+         rv = handle->composer;
          break;
       case __F_COMMENT:
          rv = handle->comments;
@@ -580,6 +573,33 @@ crc32_init(void)
    }
 }
 
+static void
+_aaxOggFreeInfo(_driver_t *handle)
+{
+   free(handle->trackno);
+   handle->trackno = NULL;
+   free(handle->artist);
+   handle->artist = NULL;
+   free(handle->title);
+   handle->title = NULL;
+   free(handle->album);
+   handle->album = NULL;
+   free(handle->date);
+   handle->date = NULL;
+   free(handle->genre);
+   handle->genre = NULL;
+   free(handle->composer);
+   handle->composer = NULL;
+   free(handle->comments);
+   handle->comments = NULL;
+   free(handle->copyright);
+   handle->copyright = NULL;
+   free(handle->original);
+   handle->original = NULL;
+   free(handle->website);
+   handle->website = NULL;
+}
+
 static int
 _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
 {
@@ -629,7 +649,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    int rv = 0;
 
    if (bufsize < OGG_HEADER_SIZE || size < OGG_HEADER_SIZE) {
-      return __F_PROCESS;
+      return __F_NEED_MORE;
    }
 
 #if 0
@@ -814,12 +834,12 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                rv = 0;
             }
             else {
-               rv = __F_PROCESS;
+               rv = __F_NEED_MORE;
             }
          }
       }
       else if (bufsize < handle->header_size) {
-         rv = __F_PROCESS;
+         rv = __F_NEED_MORE;
       } else {
          rv = __F_EOF;
       }
@@ -939,7 +959,7 @@ _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
                     // what follows is 'no_tracks' bytes for the channel mapping
                     rv = OPUS_ID_HEADER_SIZE + handle->no_tracks + 2;
                     if (rv <= (int)len) {
-                       rv = __F_PROCESS;
+                       rv = __F_NEED_MORE;
                     }
                  }
              }
@@ -1070,7 +1090,7 @@ static int
 _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 {
    char *h = (char*)ch;
-   int rv = __F_PROCESS;
+   int rv = __F_NEED_MORE;
 
 #if 0
   printf("  Codec identifier \"%c%c%c%c%c%c%c\"\n", ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6]);
@@ -1174,7 +1194,7 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
 
       ptr += sizeof(uint32_t);
       if ((size_t)(ptr+slen-ch) > len) {
-          return __F_PROCESS;
+          return __F_NEED_MORE;
       }
 
       snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
@@ -1185,18 +1205,19 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
           handle->title = stradd(handle->title, field+strlen("TITLE="));
           handle->title_changed = AAX_TRUE;
       }
-      else if (!STRCMP(field, "PERFORMER"))
-      {
-          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+      else if (!STRCMP(field, "ARTIST")) {
+          handle->artist = stradd(handle->artist, field+strlen("ARTIST="));
           handle->artist_changed = AAX_TRUE;
       }
+//    else if (!STRCMP(field, "PERFORMER"))
+//    {
+//        handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+//        handle->artist_changed = AAX_TRUE;
+//    }
       else if (!STRCMP(field, "ALBUM")) {
           handle->album = stradd(handle->album, field+strlen("ALBUM="));
       } else if (!STRCMP(field, "TRACKNUMBER")) {
           handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
-      } else if (!STRCMP(field, "ARTIST")) {
-          handle->composer = stradd(handle->composer, field+strlen("ARTIST="));
-          handle->original = stradd(handle->original, field+strlen("ARTIST="));
       } else if (!STRCMP(field, "COPYRIGHT")) {
           handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
       } else if (!STRCMP(field, "GENRE")) {
@@ -1228,7 +1249,7 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
    size_t i, size;
    int rv = len;
 
-#if 1
+#if 0
    printf("\n--Vorbis Comment Header:\n");
    printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
 
@@ -1271,7 +1292,7 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
 
       ptr += sizeof(uint32_t);
       if ((size_t)(ptr+slen-ch) > len) {
-          return __F_PROCESS;
+          return __F_NEED_MORE;
       }
 
       snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
@@ -1282,18 +1303,21 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len)
           handle->title = stradd(handle->title, field+strlen("TITLE="));
           handle->title_changed = AAX_TRUE;
       }
-      else if (!STRCMP(field, "PERFORMER"))
-      {
-          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
-          handle->artist_changed = AAX_TRUE;
+      else if (!STRCMP(field, "ARTIST")) {
+         handle->artist = stradd(handle->artist, field+strlen("ARTIST="));
+         handle->artist_changed = AAX_TRUE;
       }
+//    else if (!STRCMP(field, "PERFORMER"))
+//    {
+//        handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+//        handle->artist_changed = AAX_TRUE;
+//    }
       else if (!STRCMP(field, "ALBUM")) {
           handle->album = stradd(handle->album, field+strlen("ALBUM="));
       } else if (!STRCMP(field, "TRACKNUMBER")) {
           handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
-      } else if (!STRCMP(field, "ARTIST")) {
-          handle->composer = stradd(handle->composer, field+strlen("ARTIST="));
-          handle->original = stradd(handle->original, field+strlen("ARTIST="));
+      } else if (!STRCMP(field, "TRACK")) {
+          handle->trackno = stradd(handle->trackno, field+strlen("TRACK="));
       } else if (!STRCMP(field, "COPYRIGHT")) {
           handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
       } else if (!STRCMP(field, "GENRE")) {
@@ -1326,7 +1350,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
 {
    unsigned char *header;
    size_t bufsize;
-   int rv = 1;
+   int rv = 0;
 
    header = (unsigned char*)handle->oggBuffer->data;
    bufsize = handle->oggBuffer->avail;
@@ -1381,7 +1405,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                         bufsize -= page_size;
                      }
                      else {
-                        rv = __F_PROCESS;
+                        rv = __F_NEED_MORE;
                      }
                   }
                   break;
@@ -1418,7 +1442,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                         bufsize -= page_size;
                      }
                      else {
-                        rv = __F_PROCESS;
+                        rv = __F_NEED_MORE;
                      }
                   }
                   break;
@@ -1428,11 +1452,14 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                }
             }
             else { /* (bufsize >= segment_size) */
-               rv = __F_PROCESS;
+               rv = __F_NEED_MORE;
             }
          }
          else if (handle->segment_size == 0) {
             rv = __F_EOF;
+         }
+         else {
+            rv = __F_NEED_MORE;
          }
       }
       while ((rv > 0) && (handle->page_sequence_no < 1));
