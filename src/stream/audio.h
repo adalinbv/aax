@@ -61,7 +61,8 @@ _aaxDriverLog _aaxStreamDriverLog;
 
 enum _aaxStreamParam
 {
-   __F_PROCESS = -2,            /* get */
+   __F_PROCESS = -3,            /* get */
+   __F_NEED_MORE = -2,		/* need more data */
    __F_EOF = -1,
    __F_FMT = 0,
    __F_TRACKS,
