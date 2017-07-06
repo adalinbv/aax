@@ -842,8 +842,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          } /* handle->start_with_fill */
 
          /* res holds the number of bytes that are actually converted */
-         /* or -2 if the next chunk can be processed                    */
-         /* or -1 if an error occured, or end of file                   */
+         /* or (-3) __F_PROCESS if the next chunk can be processed         */
+         /* or (-2) __F_NEED_MORE if fmt->fill requires more data          */
+         /* or (-1) __F_EOF if an error occured, or end of file            */
          if (res == __F_PROCESS)
          {
             extBuffer = NULL;
@@ -882,16 +883,13 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                {
                   if (handle->threadBuffer->avail > extBufAvail) {
                      ret = handle->threadBuffer->avail-extBufAvail;
-// printf("\tA, ret: %i, thread avail: %i, extBufAvail: %i\n", ret,  handle->threadBuffer->avail, extBufAvail);
                   } else {
                      ret = 0;
-// printf("\tB, ret: %i, thread avail: %i, extBufAvail: %i\n", ret,  handle->threadBuffer->avail, extBufAvail);
                   }
                }
 
-               if (ret <= 0 && (no_samples == 0 || extBufAvail == 0))
+               if (ret <= 0 && (no_samples == 0 || handle->threadBuffer->avail == 0))
                {
-// printf("BREAK, ret: %i, no_samples: %i, extBufAvail: %i, bytes: %i, avail: %i\n", ret, no_samples, extBufAvail, bytes, handle->threadBuffer->avail);
                   _aaxMutexUnLock(handle->thread.signal.mutex);
                   handle->start_with_fill = AAX_TRUE;
                   break;
