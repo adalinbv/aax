@@ -347,7 +347,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
          }
       }
       else {
-         rv = __F_NEED_MORE;
+         rv = __F_PROCESS;
       }
    }
    while (rv > 0 && avail && handle->oggBuffer->avail);
@@ -1408,6 +1408,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                         rv = __F_NEED_MORE;
                      }
                   }
+                  else {
+                     handle->page_size = 0;
+                  }
                   break;
                case 1: // HEADER_COMMENT
                   switch(handle->format_type)
@@ -1445,6 +1448,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                         rv = __F_NEED_MORE;
                      }
                   }
+                  else {
+                     handle->page_size = 0;
+                  }
                   break;
                default:
                   rv = __F_EOF;
@@ -1453,6 +1459,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
             }
             else { /* (bufsize >= segment_size) */
                rv = __F_NEED_MORE;
+               handle->page_size = 0;
             }
          }
          else if (handle->segment_size == 0) {
