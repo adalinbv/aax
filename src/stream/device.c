@@ -113,6 +113,7 @@ typedef struct
 
    char copy_to_buffer; // true if Capture has to copy the data unmodified
    char start_with_fill;
+   char end_of_file;
 
    uint8_t no_channels;
    uint8_t bits_sample;
@@ -336,8 +337,6 @@ _aaxStreamDriverDisconnect(void *id)
          _aaxThreadJoin(handle->thread.ptr);
       }
       _aaxSignalFree(&handle->thread.signal);
-
-      _aaxSemaphoreWait(handle->worker_ready);
       _aaxSemaphoreDestroy(handle->worker_ready);
 
       if (handle->thread.ptr) {
@@ -888,7 +887,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   }
                }
 
-               if (ret <= 0 && (no_samples == 0 || handle->threadBuffer->avail == 0))
+               if (ret <= 0 && no_samples == 0)
                {
                   _aaxMutexUnLock(handle->thread.signal.mutex);
                   handle->start_with_fill = AAX_TRUE;
@@ -896,7 +895,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                }
                else if (ret > 0)
                {
-                  _aaxDataMove(handle->threadBuffer, extBuffer+extBufAvail, ret);
+                  _aaxDataMove(handle->threadBuffer, extBuffer+extBufAvail,ret);
                   extBufAvail += ret;
                }
 
@@ -904,12 +903,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                _aaxMutexUnLock(handle->thread.signal.mutex);
             }
          }
-//       else
-//       {
-//          bytes = -1;
-//          break;
-//       }
-      } while (no_samples > 0);
+      } while (no_samples > 0 && handle->threadBuffer->avail);
 
       handle->frequency = (float)handle->ext->get_param(handle->ext, __F_FREQUENCY);
 
@@ -1476,6 +1470,9 @@ _aaxStreamDriverReadChunk(const void *id)
       }
 
       handle->threadBuffer->avail = avail;
+   }
+   else if (res == 0) {
+      handle->end_of_file = AAX_TRUE;
    }
 
    return res;
