@@ -680,7 +680,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    curr = header[0];
    if (curr != 0x5367674f)		/* OggS */
    {
-      char *c = strncasestr(header, "OggS", size);
+      char *c = strncasestr((const char*)header, "OggS", size);
       if (!c) printf("OggS header not found\n");
       else
       {
