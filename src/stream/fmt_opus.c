@@ -92,62 +92,6 @@ typedef struct
 
 } _driver_t;
 
-#if 0
-int opus_packet_get_samples_per_frame(const unsigned char *data,
-      int32_t Fs)
-{
-   int audiosize;
-   if (data[0]&0x80)
-   {
-      audiosize = ((data[0]>>3)&0x3);
-      audiosize = (Fs<<audiosize)/400;
-   } else if ((data[0]&0x60) == 0x60)
-   {
-      audiosize = (data[0]&0x08) ? Fs/50 : Fs/100;
-   } else {
-      audiosize = ((data[0]>>3)&0x3);
-      if (audiosize == 3)
-         audiosize = Fs*60/1000;
-      else
-         audiosize = (Fs<<audiosize)/100;
-   }
-   return audiosize;
-}
-
-int opus_packet_get_nb_frames(const unsigned char packet[], int32_t len)
-{
-   int count;
-   if (len<1)
-      return OPUS_BAD_ARG;
-   count = packet[0]&0x3;
-   if (count==0)
-      return 1;
-   else if (count!=3)
-      return 2;
-   else if (len<2)
-      return OPUS_INVALID_PACKET;
-   else
-      return packet[1]&0x3F;
-}
-
-int opus_packet_get_nb_samples(const unsigned char packet[], int32_t len,
-      int32_t Fs)
-{
-   int samples;
-   int count = opus_packet_get_nb_frames(packet, len);
-
-   if (count<0)
-      return count;
-
-   samples = count*opus_packet_get_samples_per_frame(packet, Fs);
-   /* Can't have more than 120 ms */
-   if (samples*25 > Fs*3)
-      return OPUS_INVALID_PACKET;
-   else
-      return samples;
-}
-#endif
-
 int
 _opus_detect(_fmt_t *fmt, int mode)
 {
@@ -420,56 +364,35 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    *num = 0;
 
    outputs = (float*)handle->outputBuffer->data;
-
-
-   /* there is still data left in the buffer from the previous run */
-   if (handle->outputBuffer->avail > 0)
+   do
    {
-      unsigned int max = _MIN(req, handle->outputBuffer->avail/framesize);
-
-      _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
-      _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
-
-      dptr_offs += max;
-      handle->no_samples += max;
-      req -= max;
-      *num = max;
-      if (req == 0) {
-         rv = 1;
-      }
-   }
-
-   if (req > 0)
-   {
-      do
+      size_t avail = handle->outputBuffer->avail;
+      if (avail > 0)
       {
-         size_t bufsize = _MIN(packet_sz, handle->opusBuffer->avail);
+         unsigned int max = _MIN(req, avail/framesize);
+
+         _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
+         _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
+
+         dptr_offs += max;
+         handle->no_samples += max;
+         *num += max;
+         req -= max;
+      }
+
+      if (req > 0)
+      {
+         size_t bufsize  = _MIN(packet_sz, handle->opusBuffer->avail);
          if (bufsize == packet_sz)
          {
             size_t outsmp = handle->outputBuffer->size/framesize;
             unsigned char *buf = handle->opusBuffer->data;
-            unsigned int max;
 
             n = popus_decode_float(handle->id, buf, bufsize, outputs, outsmp,0);
-            if (n > 0)
-            {
-               handle->outputBuffer->avail += n*framesize;
-               max = _MIN(req, handle->outputBuffer->avail/framesize);
+            if (n <= 0) break;
 
-               _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
-               _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
-
-               dptr_offs += max;
-               handle->no_samples += max;
-               req -= max;
-               *num += max;
-
-               // remove the packet from the opus buffer
-               rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
-            }
-            else {
-               break;
-            }
+            handle->outputBuffer->avail += n*framesize;
+            rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
          }
          else
          {
@@ -477,8 +400,8 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
             break;
          }
       }
-      while (req > 0);
    }
+   while (req > 0);
 
    return rv;
 }
