@@ -329,6 +329,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
             avail = handle->oggBuffer->avail;
             rv = _getOggPageHeader(handle, (uint32_t*)header, avail);
             if (rv <= 0) break;
+
             if (!handle->keep_header)
             {
                handle->page_size -= rv;
