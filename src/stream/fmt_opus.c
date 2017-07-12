@@ -35,13 +35,19 @@
 #define FRAME_SIZE 960
 #define MAX_FRAME_SIZE (6*FRAME_SIZE)
 #define MAX_PACKET_SIZE (3*1276)
-#define SAMPLE_RATE 48000
+#define OPUS_SAMPLE_RATE 48000
 
 DECL_FUNCTION(opus_decoder_create);
 DECL_FUNCTION(opus_decoder_destroy);
 DECL_FUNCTION(opus_decoder_ctl);
 DECL_FUNCTION(opus_decode_float);
 DECL_FUNCTION(opus_decode);
+
+DECL_FUNCTION(opus_multistream_decoder_create);
+DECL_FUNCTION(opus_multistream_decoder_destroy);
+DECL_FUNCTION(opus_multistream_decoder_ctl);
+DECL_FUNCTION(opus_multistream_decode_float);
+DECL_FUNCTION(opus_multistream_decode);
 
 DECL_FUNCTION(opus_encoder_create);
 DECL_FUNCTION(opus_encoder_destroy);
@@ -86,7 +92,61 @@ typedef struct
 
 } _driver_t;
 
-static uint32_t _opus_char_to_int(unsigned char *ch);
+#if 0
+int opus_packet_get_samples_per_frame(const unsigned char *data,
+      int32_t Fs)
+{
+   int audiosize;
+   if (data[0]&0x80)
+   {
+      audiosize = ((data[0]>>3)&0x3);
+      audiosize = (Fs<<audiosize)/400;
+   } else if ((data[0]&0x60) == 0x60)
+   {
+      audiosize = (data[0]&0x08) ? Fs/50 : Fs/100;
+   } else {
+      audiosize = ((data[0]>>3)&0x3);
+      if (audiosize == 3)
+         audiosize = Fs*60/1000;
+      else
+         audiosize = (Fs<<audiosize)/100;
+   }
+   return audiosize;
+}
+
+int opus_packet_get_nb_frames(const unsigned char packet[], int32_t len)
+{
+   int count;
+   if (len<1)
+      return OPUS_BAD_ARG;
+   count = packet[0]&0x3;
+   if (count==0)
+      return 1;
+   else if (count!=3)
+      return 2;
+   else if (len<2)
+      return OPUS_INVALID_PACKET;
+   else
+      return packet[1]&0x3F;
+}
+
+int opus_packet_get_nb_samples(const unsigned char packet[], int32_t len,
+      int32_t Fs)
+{
+   int samples;
+   int count = opus_packet_get_nb_frames(packet, len);
+
+   if (count<0)
+      return count;
+
+   samples = count*opus_packet_get_samples_per_frame(packet, Fs);
+   /* Can't have more than 120 ms */
+   if (samples*25 > Fs*3)
+      return OPUS_INVALID_PACKET;
+   else
+      return samples;
+}
+#endif
 
 int
 _opus_detect(_fmt_t *fmt, int mode)
@@ -112,6 +172,11 @@ _opus_detect(_fmt_t *fmt, int mode)
          TIE_FUNCTION(opus_decoder_ctl);
          TIE_FUNCTION(opus_decode_float);
          TIE_FUNCTION(opus_decode);
+
+         TIE_FUNCTION(opus_multistream_decoder_destroy);
+         TIE_FUNCTION(opus_multistream_decoder_ctl);
+         TIE_FUNCTION(opus_multistream_decode_float);
+         TIE_FUNCTION(opus_multistream_decode);
 
          TIE_FUNCTION(opus_encoder_create);
          TIE_FUNCTION(opus_encoder_destroy);
@@ -155,7 +220,6 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
 
    assert(bufsize);
 
-printf("\t_opus_open\n");
    if (handle)
    {
       if (!handle->opusBuffer)
@@ -167,7 +231,7 @@ printf("\t_opus_open\n");
       if (!handle->outputBuffer)
       {
          unsigned int bufsize = MAX_PACKET_SIZE*handle->no_tracks*sizeof(float);
-         handle->outputBuffer = _aaxDataCreate(bufsize, 1);
+         handle->outputBuffer = _aaxDataCreate(2*bufsize, 1);
       }
 
       if (handle->opusBuffer && handle->outputBuffer)
@@ -177,25 +241,33 @@ printf("\t_opus_open\n");
             if (!handle->id)
             {
                int err, tracks = handle->no_tracks;
-               int32_t freq = SAMPLE_RATE;
+               int32_t freq = OPUS_SAMPLE_RATE;
 
+               /*
+                * https://tools.ietf.org/html/rfc7845.html#page-12
+                *
+                * An Ogg Opus player SHOULD select the playback sample rate
+                * according to the following procedure:
+                *
+                * 1. If the hardware supports 48 kHz playback, decode at 48 kHz.
+                * 
+                * 2. Otherwise, if the hardware's highest available sample rate
+                *    is a supported rate, decode at this sample rate.
+
+                * 3. Otherwise, if the hardware's highest available sample rate 
+                *    is less than 48 kHz, decode at the next higher Opus
+                *    supported rate above the highest available hardware rate
+                *    and resample.
+                *
+                * 4.  Otherwise, decode at 48 kHz and resample/
+                */
                handle->frequency = freq;
                handle->blocksize = FRAME_SIZE;
                handle->format = AAX_PCM24S;
                handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
                handle->id = popus_decoder_create(freq, tracks, &err);
-               if (handle->id)
-               {
-                  float *outputs = (float*)handle->outputBuffer->data;
-                  size_t size = handle->outputBuffer->size;
-                  int n = popus_decode_float(handle->id, buf, *bufsize,
-                                             outputs, size, 0);
-                  if (n > 0) {
-                     handle->outputBuffer->avail += n;
-                  }
-               }
-               else if (popus_strerror)
+               if (!handle->id && popus_strerror)
                {
                   char s[1025];
                   snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
@@ -259,8 +331,6 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 
    res = _aaxDataAdd(handle->opusBuffer, sptr, *bytes);
    *bytes = res;
-
-printf("_opus_fill, rv: %i, *bytes: %i\n", rv, *bytes);
 
    return rv;
 }
@@ -351,6 +421,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 
    outputs = (float*)handle->outputBuffer->data;
 
+
    /* there is still data left in the buffer from the previous run */
    if (handle->outputBuffer->avail > 0)
    {
@@ -372,29 +443,37 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    {
       do
       {
-         size_t outsmp = handle->outputBuffer->size/framesize;
          size_t bufsize = _MIN(packet_sz, handle->opusBuffer->avail);
-         unsigned char *buf = handle->opusBuffer->data;
-         unsigned int max;
-
-         n = popus_decode_float(handle->id, buf, bufsize, outputs, outsmp, 0);
-         if (n > 0)
+         if (bufsize == packet_sz)
          {
-            handle->outputBuffer->avail += n*framesize;
-            max = _MIN(req, handle->outputBuffer->avail/framesize);
+            size_t outsmp = handle->outputBuffer->size/framesize;
+            unsigned char *buf = handle->opusBuffer->data;
+            unsigned int max;
 
-            _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
-            _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
+            n = popus_decode_float(handle->id, buf, bufsize, outputs, outsmp,0);
+            if (n > 0)
+            {
+               handle->outputBuffer->avail += n*framesize;
+               max = _MIN(req, handle->outputBuffer->avail/framesize);
 
-            dptr_offs += max;
-            handle->no_samples += max;
-            req -= max;
-            *num += max;
+               _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
+               _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
 
-            // remove the packet from the opus buffer
-            rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
+               dptr_offs += max;
+               handle->no_samples += max;
+               req -= max;
+               *num += max;
+
+               // remove the packet from the opus buffer
+               rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
+            }
+            else {
+               break;
+            }
          }
-         else {
+         else
+         {
+           *num = 0;
             break;
          }
       }
