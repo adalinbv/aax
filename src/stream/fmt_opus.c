@@ -37,12 +37,6 @@
 #define MAX_PACKET_SIZE (3*1276)
 #define OPUS_SAMPLE_RATE 48000
 
-DECL_FUNCTION(opus_decoder_create);
-DECL_FUNCTION(opus_decoder_destroy);
-DECL_FUNCTION(opus_decoder_ctl);
-DECL_FUNCTION(opus_decode_float);
-DECL_FUNCTION(opus_decode);
-
 DECL_FUNCTION(opus_multistream_decoder_create);
 DECL_FUNCTION(opus_multistream_decoder_destroy);
 DECL_FUNCTION(opus_multistream_decoder_ctl);
@@ -90,7 +84,16 @@ typedef struct
    _data_t *opusBuffer;
    _data_t *outputBuffer;
 
+   int channel_mapping;
+
+   /* The rest is only used if channel_mapping != 0 */
+   int nb_streams;
+   int nb_coupled;
+   unsigned char stream_map[255];
+
 } _driver_t;
+
+static int _aaxReadOpusHeader(_driver_t*, char*, size_t);
 
 int
 _opus_detect(_fmt_t *fmt, int mode)
@@ -109,14 +112,9 @@ _opus_detect(_fmt_t *fmt, int mode)
 
       _aaxGetSymError(0);
 
-      TIE_FUNCTION(opus_decoder_create);
-      if (popus_decoder_create)
+      TIE_FUNCTION(opus_multistream_decoder_create);
+      if (popus_multistream_decoder_create)
       {
-         TIE_FUNCTION(opus_decoder_destroy);
-         TIE_FUNCTION(opus_decoder_ctl);
-         TIE_FUNCTION(opus_decode_float);
-         TIE_FUNCTION(opus_decode);
-
          TIE_FUNCTION(opus_multistream_decoder_destroy);
          TIE_FUNCTION(opus_multistream_decoder_ctl);
          TIE_FUNCTION(opus_multistream_decode_float);
@@ -210,14 +208,21 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
                handle->format = AAX_PCM24S;
                handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
-               handle->id = popus_decoder_create(freq, tracks, &err);
-               if (!handle->id && popus_strerror)
+               if (_aaxReadOpusHeader(handle, buf, *bufsize) > 0)
                {
-                  char s[1025];
-                  snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
-                                     popus_strerror(err));
-                  s[1024] = 0;
-                  _aaxStreamDriverLog(NULL, 0, 0, s);
+                  handle->id = popus_multistream_decoder_create(freq, tracks,
+                                                             handle->nb_streams,
+                                                             handle->nb_coupled,
+                                                             handle->stream_map,
+                                                             &err);
+                  if (!handle->id && popus_strerror)
+                  {
+                     char s[1025];
+                     snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
+                                        popus_strerror(err));
+                     s[1024] = 0;
+                     _aaxStreamDriverLog(NULL, 0, 0, s);
+                  }
                }
             }
          }
@@ -321,7 +326,8 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    while (req > 0)
    {
       size_t outsmp = handle->outputBuffer->size/framesize;
-      n = popus_decode_float(handle->id, buf, packet_sz, outputs, outsmp, 0);
+      n = popus_multistream_decode_float(handle->id, buf, packet_sz,
+                                                     outputs, outsmp, 0);
       if (n > 0)
       {
          unsigned int max;
@@ -378,6 +384,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          handle->no_samples += max;
          *num += max;
          req -= max;
+//       if (!rv) rv = 1;
       }
 
       if (req > 0)
@@ -388,11 +395,12 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
             size_t outsmp = handle->outputBuffer->size/framesize;
             unsigned char *buf = handle->opusBuffer->data;
 
-            n = popus_decode_float(handle->id, buf, bufsize, outputs, outsmp,0);
+            n = popus_multistream_decode_float(handle->id, buf, bufsize,
+                                                           outputs, outsmp, 0);
             if (n <= 0) break;
 
-            handle->outputBuffer->avail += n*framesize;
-            rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
+            handle->outputBuffer->avail = n*framesize;
+            rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
          }
          else
          {
@@ -560,9 +568,74 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
 }
 
 /* -------------------------------------------------------------------------- */
-static uint32_t
-_opus_char_to_int(unsigned char *ch)
+
+// https://tools.ietf.org/html/rfc7845.html#page-12
+#define OPUS_ID_HEADER_SIZE	(4*5-1)
+static int
+_aaxReadOpusHeader(_driver_t *handle, char *h, size_t len)
 {
-    return ((uint32_t)ch[0]<<24) | ((uint32_t)ch[1]<<16)
-         | ((uint32_t)ch[2]<< 8) |  (uint32_t)ch[3];
+   int rv = __F_EOF;
+
+   if (len >= OPUS_ID_HEADER_SIZE)
+   {
+      int version = h[8];
+      if (version == 1)
+      {
+         unsigned char mapping_family;
+         int gain;
+
+         handle->format = AAX_FLOAT;
+         handle->no_tracks = (unsigned char)h[9];
+         handle->nb_streams = 1;
+         handle->nb_coupled = handle->no_tracks/2;
+         handle->frequency = *((uint32_t*)h+3);
+//       handle->pre_skip = (unsigned)h[10] << 8 | h[11];
+//       handle->no_samples = -handle->pre_skip;
+
+//       gain = (int)h[16] << 8 | h[17];
+//       handle->gain = pow(10, (float)gain/(20.0f*256.0f));
+
+         mapping_family = h[18];
+         if ((mapping_family == 0 || mapping_family == 1) &&
+             (handle->no_tracks > 1) && (handle->no_tracks <= 8))
+         {
+             /*
+              * The 'channel mapping table' MUST be omitted when the channel
+              * mapping family s 0, but is REQUIRED otherwise.
+              */
+             if (mapping_family == 1)
+             {
+                 handle->nb_streams = h[19];
+                 handle->nb_coupled = h[20];
+                 if ((handle->nb_streams > 0) &&
+                     (handle->nb_streams <= handle->nb_coupled))
+                 {
+                    // what follows is 'no_tracks' bytes for the channel mapping
+                    rv = OPUS_ID_HEADER_SIZE + handle->no_tracks + 2;
+                    if (rv <= (int)len) {
+                       rv = __F_NEED_MORE;
+                    }
+                 }
+             }
+             else {
+                rv = OPUS_ID_HEADER_SIZE;
+             }
+         }
+      }
+
+#if 1
+{
+  uint32_t *header = (uint32_t*)h;
+  float gain = (int)h[16] << 8 | h[17];
+  printf("\n-- Opus Identification Header:\n");
+  printf("  0: %08x %08x ('%c%c%c%c%c%c%c%c')\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
+  printf("  2: %08x (Version: %i, Tracks: %i, Pre Skip: %i)\n", header[2], h[8], (unsigned char)h[9], (unsigned)h[10] << 8 | h[11]);
+  printf("  3: %08x (Original Sample Rate: %i)\n", header[3],  header[3]);
+  printf("  4: %08x (Replay gain: %f, Mapping Family: %i)\n", header[4], pow(10, (float)gain/(20.0f*256.0f)), h[18]);
+  printf("  5: %08x (Stream Count: %i, Coupled Count: %i)\n", header[5], handle->nb_streams, handle->nb_coupled);
+}
+#endif
+   }
+
+   return rv;
 }

@@ -494,7 +494,6 @@ set( AEONWAVE_OBJS
      src/stream/fmt_vorbis.c
 #    src/stream/fmt_flac.c
      src/stream/fmt_opus.c
-     src/stream/3rdparty/stb_vorbis.c
      src/android/opensl.c
      src/software/device.c
      src/software/arch.c
@@ -532,6 +531,8 @@ set( AEONWAVE_OBJS
      src/software/cpu/arch2d_neon.c
      src/software/cpu/arch2d_sse2.c
      src/software/cpu/arch2d_sse3.c
+     3rdparty/stb_vorbis.c
+     3rdparty/pffft.c
 )
 if(SIZEOF_SIZE_T EQUAL 8)
   set(AEONWAVE_OBJS ${AEONWAVE_OBJS}
