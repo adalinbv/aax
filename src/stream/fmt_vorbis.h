@@ -28,7 +28,7 @@
 #define FALSE					AAX_FALSE
 
 #define STB_VORBIS_HEADER_ONLY
-#include "3rdparty/stb_vorbis.c" 
+#include <3rdparty/stb_vorbis.c> 
 
 #undef FALSE
 #undef TRUE

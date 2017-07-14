@@ -25,14 +25,6 @@
 #define OPUS_INVALID_STATE	-6
 #define OPUS_ALLOC_FAIL		-7
 
-/* normal decode */
-typedef void* (*opus_decoder_create_proc)(int32_t, int, int*);
-typedef void (*opus_decoder_destroy_proc)(void*);
-typedef int (*opus_decoder_ctl_proc)(void*, int, ...);
-
-typedef int (*opus_decode_float_proc)(void*, const unsigned char*, int, float*, int, int);
-typedef int (*opus_decode_proc)(void*, const unsigned char*, int, int16_t*, int, int);
-
 /* multistream decode */
 typedef void* (*opus_multistream_decoder_create_proc)(int32_t, int, int, int, const unsigned char*, int*);
 typedef void (*opus_multistream_decoder_destroy_proc)(void*);

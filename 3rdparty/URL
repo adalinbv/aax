@@ -1,0 +1,19 @@
+
+PFFFT - 3-clause BSD licensed Pretty Fast FFT:
+- https://bitbucket.org/jpommier/pffft/src
+
+stb_vorbis - Public Domain Vorbis Decoder:
+- https://github.com/nothings/stb/blob/master/stb_vorbis.c
+
+dr_flac - Public Domain FLAC decoder:
+- https://github.com/mackron/dr_libs/blob/master/dr_flac.h
+
+
+Other Single file libraries:
+--------------------------------------------------------------------------------
+https://github.com/nothings/single_file_libs
+https://ccodearchive.net/list.html
+https://news.ycombinator.com/item?id=10956748
+ - https://dev.yorhel.nl/ylib
+ - https://dev.yorhel.nl/yxml
+ - http://www.kylheku.com/~kaz/kazlib.html
