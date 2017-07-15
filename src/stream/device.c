@@ -887,7 +887,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                   }
                }
 
-               if (ret <= 0 && no_samples == 0)
+               if (ret <= 0 && (no_samples == 0 || extBufAvail == 0))
                {
                   _aaxMutexUnLock(handle->thread.signal.mutex);
                   handle->start_with_fill = AAX_TRUE;
@@ -903,7 +903,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                _aaxMutexUnLock(handle->thread.signal.mutex);
             }
          }
-      } while (no_samples > 0 && handle->threadBuffer->avail);
+      } while (no_samples > 0);
 
       handle->frequency = (float)handle->ext->get_param(handle->ext, __F_FREQUENCY);
 
