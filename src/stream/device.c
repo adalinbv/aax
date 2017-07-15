@@ -797,9 +797,11 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
       bytes = 0;
       samples = no_samples;
-      res = __F_NEED_MORE;
+      res = __F_NEED_MORE;	// for handle->start_with_fill == AAX_TRUE
       do
       {
+         // handle->start_with_fill == AAX_TRUE if the previous session was
+         // a call to  handle->ext->fill() and it returned __F_NEED_MORE
          if (!handle->start_with_fill)
          {
             if (!extBuffer)
@@ -839,6 +841,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                }
             }
          } /* handle->start_with_fill */
+         handle->start_with_fill = AAX_FALSE;
 
          /* res holds the number of bytes that are actually converted */
          /* or (-3) __F_PROCESS if the next chunk can be processed         */
@@ -849,59 +852,55 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             extBuffer = NULL;
             samples = no_samples;
          }
-         else //  if (samples >= 0)
+         else if (res == __F_NEED_MORE || no_samples > 0)
          {
-            handle->start_with_fill = AAX_FALSE;
-            if (res == __F_NEED_MORE || no_samples > 0)
-            {
-               ssize_t ret;
+            ssize_t ret;
 
-               extBufSize = no_samples*frame_bits/8;
-               if (file_block > frame_bits) {
-                  extBufSize = _MAX((extBufSize/file_block)*file_block, file_block);
-               }
-               if (extBufSize > scratchSize) {
-                  extBufSize = (scratchSize/frame_bits)*frame_bits;
-               }
-
-               if (batched) {
-                  ret = _aaxStreamDriverReadChunk(id);
-               }
-               else {
-                  _aaxSignalTrigger(&handle->thread.signal);
-                  _aaxSemaphoreWait(handle->worker_ready);
-               }
-
-               // lock the thread buffer
-               _aaxMutexLock(handle->thread.signal.mutex);
-               extBuffer = scratch;
-
-               // copy data from the read-threat to the scratch buffer
-               ret = extBufSize;
-               if (extBufSize+extBufAvail > handle->threadBuffer->avail)
-               {
-                  if (handle->threadBuffer->avail > extBufAvail) {
-                     ret = handle->threadBuffer->avail-extBufAvail;
-                  } else {
-                     ret = 0;
-                  }
-               }
-
-               if (ret <= 0 && (no_samples == 0 || extBufAvail == 0))
-               {
-                  _aaxMutexUnLock(handle->thread.signal.mutex);
-                  handle->start_with_fill = AAX_TRUE;
-                  break;
-               }
-               else if (ret > 0)
-               {
-                  _aaxDataMove(handle->threadBuffer, extBuffer+extBufAvail,ret);
-                  extBufAvail += ret;
-               }
-
-               // unlock the threat buffer
-               _aaxMutexUnLock(handle->thread.signal.mutex);
+            extBufSize = no_samples*frame_bits/8;
+            if (file_block > frame_bits) {
+               extBufSize =_MAX((extBufSize/file_block)*file_block, file_block);
             }
+            if (extBufSize > scratchSize) {
+               extBufSize = (scratchSize/frame_bits)*frame_bits;
+            }
+
+            if (batched) {
+               ret = _aaxStreamDriverReadChunk(id);
+            }
+            else {
+               _aaxSignalTrigger(&handle->thread.signal);
+               _aaxSemaphoreWait(handle->worker_ready);
+            }
+
+            // lock the thread buffer
+            _aaxMutexLock(handle->thread.signal.mutex);
+            extBuffer = scratch;
+
+            // copy data from the read-threat to the scratch buffer
+            ret = extBufSize;
+            if (extBufSize+extBufAvail > handle->threadBuffer->avail)
+            {
+               if (handle->threadBuffer->avail > extBufAvail) {
+                  ret = handle->threadBuffer->avail-extBufAvail;
+               } else {
+                  ret = 0;
+               }
+            }
+
+            if (ret <= 0 && (no_samples == 0 || extBufAvail == 0))
+            {
+               _aaxMutexUnLock(handle->thread.signal.mutex);
+               handle->start_with_fill = AAX_TRUE;
+               break;
+            }
+            else if (ret > 0)
+            {
+               _aaxDataMove(handle->threadBuffer, extBuffer+extBufAvail,ret);
+               extBufAvail += ret;
+            }
+
+            // unlock the threat buffer
+            _aaxMutexUnLock(handle->thread.signal.mutex);
          }
       } while (no_samples > 0);
 
