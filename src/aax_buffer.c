@@ -26,22 +26,26 @@
 
 #include <xml.h>
 
+#include <3rdparty/pffft.h>
+
 #include <software/audio.h>
 #include <software/rbuf_int.h>
 #include <stream/device.h>
+
 #include "devices.h"
 #include "arch.h"
 #include "api.h"
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);
-static int _bufProcessAAXS(_buffer_t*, const void*, float);
 static int _aaxBufferProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
+static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
+static int _bufCreateAAXS(_buffer_t*, char*);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -301,7 +305,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       {
       case AAX_AAXS16S:
       case AAX_AAXS24S:
-         rv = _bufProcessAAXS(handle, d, 0);
+         rv = _bufCreateFromAAXS(handle, d, 0);
          break;
       default:					/* should never happen */
          break;
@@ -804,7 +808,7 @@ _bufDestroyRingBuffer(_buffer_t* buf)
 }
 
 static int
-_bufProcessAAXS(_buffer_t* handle, const void* d, float freq)
+_bufCreateFromAAXS(_buffer_t* handle, const void* d, float freq)
 {
    int rv = AAX_FALSE;
    void *xid;
@@ -916,6 +920,18 @@ _bufProcessAAXS(_buffer_t* handle, const void* d, float freq)
    }
 
    return rv;
+}
+
+static int
+_bufCreateAAXS(_buffer_t *handle, char *xml)
+{
+   PFFFT_Setup *fft = pffft_new_setup(256, PFFFT_COMPLEX);
+
+   // step through the sample in steps of 3ms and calculate the power spectrum
+
+   pffft_destroy_setup(fft);
+
+   return AAX_FALSE;
 }
 
 static int
