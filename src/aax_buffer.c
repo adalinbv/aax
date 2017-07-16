@@ -922,14 +922,39 @@ _bufCreateFromAAXS(_buffer_t* handle, const void* d, float freq)
    return rv;
 }
 
+#define N	1024
 static int
 _bufCreateAAXS(_buffer_t *handle, char *xml)
 {
-   PFFFT_Setup *fft = pffft_new_setup(256, PFFFT_COMPLEX);
+   _aaxRingBuffer* rb;
+   PFFFT_Setup *fft;
+   float *output, *ptr;
+   float *power;
+   float **sbuf;
+   int i;
 
-   // step through the sample in steps of 3ms and calculate the power spectrum
+   rb = _bufGetRingBuffer(handle, NULL);
+   output = _aax_aligned_alloc(2*N*sizeof(float));
 
+   fft = pffft_new_setup(N, PFFFT_COMPLEX);
+   sbuf = (float**)rb->get_tracks_ptr(rb, RB_READ);
+   pffft_transform_ordered(fft, sbuf[0], output, 0, PFFFT_FORWARD);
+   rb->release_tracks_ptr(rb);
    pffft_destroy_setup(fft);
+
+   ptr = output;
+   power = _aax_aligned_alloc(N*sizeof(float));
+   for (i=0; i<N; ++i)
+   {
+      float Re = *ptr++;
+      float Im = *ptr++;
+      power[i] = Re*Re + Im*Im;
+   }
+   _aax_aligned_free(output);
+
+   /* anlyze the frequencies present in the power spectrum */
+
+   _aax_aligned_free(power);
 
    return AAX_FALSE;
 }
