@@ -45,7 +45,7 @@ static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigne
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static int _bufCreateAAXS(_buffer_t*, char*);
+static char** _bufCreateAAXS(_buffer_t*, void**);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -462,6 +462,9 @@ aaxBufferGetData(const aaxBuffer buffer)
       *data = (void*)(ptr + pos*tracks*bps);
 
       user_format = handle->format;
+      if (user_format == AAX_AAXS16S || user_format == AAX_AAXS24S) {
+         user_format = AAX_FLOAT;
+      }
       native_fmt = user_format & AAX_FORMAT_NATIVE;
       rb_format = rb->get_parami(rb, RB_FORMAT);
       if (rb_format != native_fmt)
@@ -549,6 +552,11 @@ aaxBufferGetData(const aaxBuffer buffer)
                break;
             }
          }
+      }
+
+      if (handle->format == AAX_AAXS16S || handle->format == AAX_AAXS24S)
+      {
+         data = (void**)_bufCreateAAXS(handle, data);
       }
    }
    else if (handle) {	/* handle->frequency is not set */
@@ -922,24 +930,21 @@ _bufCreateFromAAXS(_buffer_t* handle, const void* d, float freq)
    return rv;
 }
 
-#define N	1024
-static int
-_bufCreateAAXS(_buffer_t *handle, char *xml)
+#define N	4096
+static char**
+_bufCreateAAXS(_buffer_t *handle, void **data)
 {
-   _aaxRingBuffer* rb;
    PFFFT_Setup *fft;
    float *output, *ptr;
    float *power;
-   float **sbuf;
+   char **rv;
    int i;
 
-   rb = _bufGetRingBuffer(handle, NULL);
+   rv = data;
    output = _aax_aligned_alloc(2*N*sizeof(float));
 
    fft = pffft_new_setup(N, PFFFT_COMPLEX);
-   sbuf = (float**)rb->get_tracks_ptr(rb, RB_READ);
-   pffft_transform_ordered(fft, sbuf[0], output, 0, PFFFT_FORWARD);
-   rb->release_tracks_ptr(rb);
+   pffft_transform_ordered(fft, (float*)*data, output, 0, PFFFT_FORWARD);
    pffft_destroy_setup(fft);
 
    ptr = output;
@@ -949,14 +954,26 @@ _bufCreateAAXS(_buffer_t *handle, char *xml)
       float Re = *ptr++;
       float Im = *ptr++;
       power[i] = Re*Re + Im*Im;
+printf("%i: re: %7.5f, im: %7.5f, P: %7.5f\n", i, Re, Im, power[i]);
    }
    _aax_aligned_free(output);
 
    /* anlyze the frequencies present in the power spectrum */
+   int n = 0;
+   float max = 0;
+   for (i=1; i<N; ++i) {
+      if (power[i] > max) {
+         max = power[i]; n = i;
+      }
+   }
+printf("max: %f at %i\n", max, n);
+
+_aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+printf("fs: %f\n", rb->get_paramf(rb, RB_FREQUENCY));
 
    _aax_aligned_free(power);
 
-   return AAX_FALSE;
+   return rv;
 }
 
 static int
