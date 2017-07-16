@@ -242,6 +242,8 @@ getAudioFormat(int argc, char **argv, enum aaxFormat format)
          rv |= AAX_PCM24U;
       } else if (!strcasecmp(fn, "AAX_PCM32U")) {
          rv |= AAX_PCM32U;
+      } else if (!strcasecmp(fn, "AAX_AAXS16S") || !strcasecmp(fn, "AAX_AAXS24S")) {
+         rv = AAX_AAXS16S;
       } else {
          rv = format;
       }
