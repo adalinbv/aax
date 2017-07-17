@@ -257,9 +257,6 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       }
       req -= max;
       *num = max;
-      if (req == 0) {
-         rv = 1;
-      }
    }
 
    while (req > 0)
@@ -343,9 +340,6 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
       }
       req -= max;
       *num = max;
-      if (req == 0) {
-         rv = 1;
-      }
    }
 
    while (req > 0)
