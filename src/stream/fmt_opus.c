@@ -318,9 +318,6 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       handle->no_samples += max;
       req -= max;
       *num = max;
-      if (req == 0) {
-         rv = 1;
-      }
    }
 
    while (req > 0)
@@ -384,7 +381,6 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          handle->no_samples += max;
          *num += max;
          req -= max;
-//       if (!rv) rv = 1;
       }
 
       if (req > 0)
