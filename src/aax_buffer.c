@@ -31,6 +31,7 @@
 #include <software/audio.h>
 #include <software/rbuf_int.h>
 #include <stream/device.h>
+#include <dsp/common.h>
 
 #include "devices.h"
 #include "arch.h"
@@ -45,7 +46,7 @@ static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigne
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static char** _bufCreateAAXS(_buffer_t*, void**);
+static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -556,7 +557,7 @@ aaxBufferGetData(const aaxBuffer buffer)
 
       if (handle->format == AAX_AAXS16S || handle->format == AAX_AAXS24S)
       {
-         data = (void**)_bufCreateAAXS(handle, data);
+         data = (void**)_bufCreateAAXS(handle, data, buf_samples*sizeof(float));
       }
    }
    else if (handle) {	/* handle->frequency is not set */
@@ -931,8 +932,9 @@ _bufCreateFromAAXS(_buffer_t* handle, const void* d, float freq)
 }
 
 #define N	4096
+#define NMAX	(N/2)
 static char**
-_bufCreateAAXS(_buffer_t *handle, void **data)
+_bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
 {
    PFFFT_Setup *fft;
    float *output, *ptr;
@@ -948,28 +950,35 @@ _bufCreateAAXS(_buffer_t *handle, void **data)
    pffft_destroy_setup(fft);
 
    ptr = output;
-   power = _aax_aligned_alloc(N*sizeof(float));
-   for (i=0; i<N; ++i)
+   power = _aax_aligned_alloc(NMAX*sizeof(float));
+   for (i=0; i<NMAX; ++i)
    {
       float Re = *ptr++;
       float Im = *ptr++;
       power[i] = Re*Re + Im*Im;
-printf("%i: re: %7.5f, im: %7.5f, P: %7.5f\n", i, Re, Im, power[i]);
    }
    _aax_aligned_free(output);
 
    /* anlyze the frequencies present in the power spectrum */
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   float fs2 = 0.5f*rb->get_paramf(rb, RB_FREQUENCY);
+
    int n = 0;
    float max = 0;
-   for (i=1; i<N; ++i) {
+   for (i=1; i<NMAX-1; ++i)
+   {
       if (power[i] > max) {
          max = power[i]; n = i;
       }
    }
-printf("max: %f at %i\n", max, n);
 
-_aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-printf("fs: %f\n", rb->get_paramf(rb, RB_FREQUENCY));
+   for (i=n; i<NMAX-1; i += n)
+   {
+      float q = power[i]/max;
+      if (q >= LEVEL_96DB) {
+         printf("% 6.0f Hz: %f\n", fs2*i/N, q);
+      }
+   }
 
    _aax_aligned_free(power);
 
