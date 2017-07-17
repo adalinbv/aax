@@ -891,6 +891,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             {
                _aaxMutexUnLock(handle->thread.signal.mutex);
                handle->start_with_fill = AAX_TRUE;
+               bytes = __F_EOF;
                break;
             }
             else if (ret > 0)
