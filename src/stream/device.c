@@ -1502,7 +1502,6 @@ _aaxStreamDriverReadThread(void *id)
 
    do
    {
-printf(" worker\n");
       _aaxSignalWait(&handle->thread.signal);
       res = _aaxStreamDriverReadChunk(id);
       _aaxSemaphoreRelease(handle->worker_ready);
