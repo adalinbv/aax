@@ -306,7 +306,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
       }
 #endif
 
-      if (res && nframes)
+      if (res > 0 && nframes)
       {
          _aaxRingBufferData *nrbi, *drbi = drb->handle;
          _aaxRingBufferSample *nrbd, *drbd = drbi->sample;
@@ -414,7 +414,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
          drb->set_state(drb, RB_CLEARED);
       }
 
-      if (res <= 0) *delay = 0.0f;
+      if (res < 0) *delay = 0.0f;
       *nsamps = nframes;
    }
 
