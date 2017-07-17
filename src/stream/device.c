@@ -791,10 +791,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          extBufSize = (scratchSize/frame_bits)*frame_bits;
       }
 
-      if (!batched) {
-         _aaxSignalTrigger(&handle->thread.signal);
-      }
-
       bytes = 0;
       samples = no_samples;
       res = __F_NEED_MORE;	// for handle->start_with_fill == AAX_TRUE
@@ -1506,9 +1502,9 @@ _aaxStreamDriverReadThread(void *id)
 
    do
    {
+printf(" worker\n");
       _aaxSignalWait(&handle->thread.signal);
       res = _aaxStreamDriverReadChunk(id);
-// printf("@ thread, buffer, avail: %i\n", handle->threadBuffer->avail);
       _aaxSemaphoreRelease(handle->worker_ready);
    }
    while(res >= 0 && handle->thread.started);
