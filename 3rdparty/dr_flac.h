@@ -1,13 +1,13 @@
 // FLAC audio decoder. Public domain. See "unlicense" statement at the end of this file.
-// dr_flac - v0.4f - 2017-03-10
+// dr_flac - v0.5 - 2017-07-16
 //
 // David Reid - mackron@gmail.com
 
 // USAGE
 //
 // dr_flac is a single-file library. To use it, do something like the following in one .c file.
-//   #define DR_FLAC_IMPLEMENTATION
-//   #include "dr_flac.h"
+//     #define DR_FLAC_IMPLEMENTATION
+//     #include "dr_flac.h"
 //
 // You can then #include this file in other parts of the program as you would with any other header file. To decode audio data,
 // do something like the following:
@@ -63,8 +63,7 @@
 // normal versions and also just a little bit harder to use.
 //
 // dr_flac reports metadata to the application through the use of a callback, and every metadata block is reported before
-// drflac_open_with_metdata() returns. See https://github.com/mackron/dr_libs_tests/blob/master/dr_flac/dr_flac_test_2.c for
-// an example on how to read metadata.
+// drflac_open_with_metdata() returns.
 //
 //
 //
@@ -88,12 +87,12 @@
 //   returns after about 4KB (which is the default). Consider reducing this if you have a very efficient implementation of
 //   onRead(), or increase it if it's very inefficient. Must be a multiple of 8.
 //
+// #define DR_FLAC_NO_CRC
+//   Disables CRC checks. This will offer a performance boost when CRC is unnecessary.
+//
 //
 //
 // QUICK NOTES
-// - Based on my tests, the performance of the 32-bit build is at about parity with the reference implementation. The 64-bit build
-//   is slightly faster.
-// - dr_flac does not currently do any CRC checks.
 // - dr_flac should work fine with valid native FLAC files, but for broadcast streams it won't work if the header and STREAMINFO
 //   block is unavailable.
 // - Audio data is output as signed 32-bit PCM, regardless of the bits per sample the FLAC stream is encoded as.
@@ -130,8 +129,8 @@ typedef uint32_t         dr_uint32;
 typedef int64_t          dr_int64;
 typedef uint64_t         dr_uint64;
 #endif
-typedef dr_int8          dr_bool8;
-typedef dr_int32         dr_bool32;
+typedef dr_uint8         dr_bool8;
+typedef dr_uint32        dr_bool32;
 #define DR_TRUE          1
 #define DR_FALSE         0
 #endif
@@ -299,7 +298,6 @@ typedef struct
             const dr_uint8* pPictureData;
         } picture;
     } data;
-
 } drflac_metadata;
 
 
@@ -373,6 +371,9 @@ typedef struct
     drflac_cache_t cacheL2[DR_FLAC_BUFFER_SIZE/sizeof(drflac_cache_t)];
     drflac_cache_t cache;
 
+    // CRC-16. This is updated whenever bits are read from the bit stream. Manually set this to 0 to reset the CRC. For FLAC, this
+    // is reset to 0 at the beginning of each frame.
+    dr_uint16 crc16;
 } drflac_bs;
 
 typedef struct
@@ -393,7 +394,6 @@ typedef struct
     // A pointer to the buffer containing the decoded samples in the subframe. This pointer is an offset from drflac::pExtraData, or
     // NULL if the heap is not being used. Note that it's a signed 32-bit integer for each value.
     dr_int32* pDecodedSamples;
-
 } drflac_subframe;
 
 typedef struct
@@ -418,9 +418,8 @@ typedef struct
     // The number of bits per sample within this frame.
     dr_uint8 bitsPerSample;
 
-    // The frame's CRC. This is set, but unused at the moment.
+    // The frame's CRC.
     dr_uint8 crc8;
-
 } drflac_frame_header;
 
 typedef struct
@@ -434,7 +433,6 @@ typedef struct
 
     // The list of sub-frames within the frame. There is one sub-frame for each channel, and there's a maximum of 8 channels.
     drflac_subframe subframes[8];
-
 } drflac_frame;
 
 typedef struct
@@ -487,7 +485,6 @@ typedef struct
     drflac__memory_stream memoryStream;
 
 
-
     // A pointer to the decoded sample data. This is an offset of pExtraData.
     dr_int32* pDecodedSamples;
 
@@ -497,7 +494,6 @@ typedef struct
 
     // Variable length extra data. We attach this to the end of the object so we avoid unnecessary mallocs.
     dr_uint8 pExtraData[1];
-
 } drflac;
 
 
@@ -537,7 +533,7 @@ drflac* drflac_open(drflac_read_proc onRead, drflac_seek_proc onSeek, void* pUse
 // This is slower than drflac_open(), so avoid this one if you don't need metadata. Internally, this will do a malloc()
 // and free() for every metadata block except for STREAMINFO and PADDING blocks.
 //
-// The caller is notified of the metadata via the onMeta callback. All metadata blocks with be handled before the function
+// The caller is notified of the metadata via the onMeta callback. All metadata blocks will be handled before the function
 // returns.
 //
 // See also: drflac_open_file_with_metadata(), drflac_open_memory_with_metadata(), drflac_open(), drflac_close()
@@ -797,6 +793,7 @@ static DRFLAC_INLINE dr_uint64 drflac__swap_endian_uint64(dr_uint64 n)
 #endif
 }
 
+
 static DRFLAC_INLINE dr_uint16 drflac__be2host_16(dr_uint16 n)
 {
 #ifdef __linux__
@@ -851,12 +848,207 @@ static DRFLAC_INLINE dr_uint32 drflac__le2host_32(dr_uint32 n)
 }
 
 
+
+// The CRC code below is based on this document: http://zlib.net/crc_v3.txt
+static dr_uint8 drflac__crc8_table[] = {
+    0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
+    0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
+    0xE0, 0xE7, 0xEE, 0xE9, 0xFC, 0xFB, 0xF2, 0xF5, 0xD8, 0xDF, 0xD6, 0xD1, 0xC4, 0xC3, 0xCA, 0xCD,
+    0x90, 0x97, 0x9E, 0x99, 0x8C, 0x8B, 0x82, 0x85, 0xA8, 0xAF, 0xA6, 0xA1, 0xB4, 0xB3, 0xBA, 0xBD,
+    0xC7, 0xC0, 0xC9, 0xCE, 0xDB, 0xDC, 0xD5, 0xD2, 0xFF, 0xF8, 0xF1, 0xF6, 0xE3, 0xE4, 0xED, 0xEA,
+    0xB7, 0xB0, 0xB9, 0xBE, 0xAB, 0xAC, 0xA5, 0xA2, 0x8F, 0x88, 0x81, 0x86, 0x93, 0x94, 0x9D, 0x9A,
+    0x27, 0x20, 0x29, 0x2E, 0x3B, 0x3C, 0x35, 0x32, 0x1F, 0x18, 0x11, 0x16, 0x03, 0x04, 0x0D, 0x0A,
+    0x57, 0x50, 0x59, 0x5E, 0x4B, 0x4C, 0x45, 0x42, 0x6F, 0x68, 0x61, 0x66, 0x73, 0x74, 0x7D, 0x7A,
+    0x89, 0x8E, 0x87, 0x80, 0x95, 0x92, 0x9B, 0x9C, 0xB1, 0xB6, 0xBF, 0xB8, 0xAD, 0xAA, 0xA3, 0xA4,
+    0xF9, 0xFE, 0xF7, 0xF0, 0xE5, 0xE2, 0xEB, 0xEC, 0xC1, 0xC6, 0xCF, 0xC8, 0xDD, 0xDA, 0xD3, 0xD4,
+    0x69, 0x6E, 0x67, 0x60, 0x75, 0x72, 0x7B, 0x7C, 0x51, 0x56, 0x5F, 0x58, 0x4D, 0x4A, 0x43, 0x44,
+    0x19, 0x1E, 0x17, 0x10, 0x05, 0x02, 0x0B, 0x0C, 0x21, 0x26, 0x2F, 0x28, 0x3D, 0x3A, 0x33, 0x34,
+    0x4E, 0x49, 0x40, 0x47, 0x52, 0x55, 0x5C, 0x5B, 0x76, 0x71, 0x78, 0x7F, 0x6A, 0x6D, 0x64, 0x63,
+    0x3E, 0x39, 0x30, 0x37, 0x22, 0x25, 0x2C, 0x2B, 0x06, 0x01, 0x08, 0x0F, 0x1A, 0x1D, 0x14, 0x13,
+    0xAE, 0xA9, 0xA0, 0xA7, 0xB2, 0xB5, 0xBC, 0xBB, 0x96, 0x91, 0x98, 0x9F, 0x8A, 0x8D, 0x84, 0x83,
+    0xDE, 0xD9, 0xD0, 0xD7, 0xC2, 0xC5, 0xCC, 0xCB, 0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
+};
+
+static dr_uint16 drflac__crc16_table[] = {
+    0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,
+    0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
+    0x8063, 0x0066, 0x006C, 0x8069, 0x0078, 0x807D, 0x8077, 0x0072,
+    0x0050, 0x8055, 0x805F, 0x005A, 0x804B, 0x004E, 0x0044, 0x8041,
+    0x80C3, 0x00C6, 0x00CC, 0x80C9, 0x00D8, 0x80DD, 0x80D7, 0x00D2,
+    0x00F0, 0x80F5, 0x80FF, 0x00FA, 0x80EB, 0x00EE, 0x00E4, 0x80E1,
+    0x00A0, 0x80A5, 0x80AF, 0x00AA, 0x80BB, 0x00BE, 0x00B4, 0x80B1,
+    0x8093, 0x0096, 0x009C, 0x8099, 0x0088, 0x808D, 0x8087, 0x0082,
+    0x8183, 0x0186, 0x018C, 0x8189, 0x0198, 0x819D, 0x8197, 0x0192,
+    0x01B0, 0x81B5, 0x81BF, 0x01BA, 0x81AB, 0x01AE, 0x01A4, 0x81A1,
+    0x01E0, 0x81E5, 0x81EF, 0x01EA, 0x81FB, 0x01FE, 0x01F4, 0x81F1,
+    0x81D3, 0x01D6, 0x01DC, 0x81D9, 0x01C8, 0x81CD, 0x81C7, 0x01C2,
+    0x0140, 0x8145, 0x814F, 0x014A, 0x815B, 0x015E, 0x0154, 0x8151,
+    0x8173, 0x0176, 0x017C, 0x8179, 0x0168, 0x816D, 0x8167, 0x0162,
+    0x8123, 0x0126, 0x012C, 0x8129, 0x0138, 0x813D, 0x8137, 0x0132,
+    0x0110, 0x8115, 0x811F, 0x011A, 0x810B, 0x010E, 0x0104, 0x8101,
+    0x8303, 0x0306, 0x030C, 0x8309, 0x0318, 0x831D, 0x8317, 0x0312,
+    0x0330, 0x8335, 0x833F, 0x033A, 0x832B, 0x032E, 0x0324, 0x8321,
+    0x0360, 0x8365, 0x836F, 0x036A, 0x837B, 0x037E, 0x0374, 0x8371,
+    0x8353, 0x0356, 0x035C, 0x8359, 0x0348, 0x834D, 0x8347, 0x0342,
+    0x03C0, 0x83C5, 0x83CF, 0x03CA, 0x83DB, 0x03DE, 0x03D4, 0x83D1,
+    0x83F3, 0x03F6, 0x03FC, 0x83F9, 0x03E8, 0x83ED, 0x83E7, 0x03E2,
+    0x83A3, 0x03A6, 0x03AC, 0x83A9, 0x03B8, 0x83BD, 0x83B7, 0x03B2,
+    0x0390, 0x8395, 0x839F, 0x039A, 0x838B, 0x038E, 0x0384, 0x8381,
+    0x0280, 0x8285, 0x828F, 0x028A, 0x829B, 0x029E, 0x0294, 0x8291,
+    0x82B3, 0x02B6, 0x02BC, 0x82B9, 0x02A8, 0x82AD, 0x82A7, 0x02A2,
+    0x82E3, 0x02E6, 0x02EC, 0x82E9, 0x02F8, 0x82FD, 0x82F7, 0x02F2,
+    0x02D0, 0x82D5, 0x82DF, 0x02DA, 0x82CB, 0x02CE, 0x02C4, 0x82C1,
+    0x8243, 0x0246, 0x024C, 0x8249, 0x0258, 0x825D, 0x8257, 0x0252,
+    0x0270, 0x8275, 0x827F, 0x027A, 0x826B, 0x026E, 0x0264, 0x8261,
+    0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234, 0x8231,
+    0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202
+};
+
+static DRFLAC_INLINE dr_uint8 drflac_crc8_byte(dr_uint8 crc, dr_uint8 data)
+{
+    return drflac__crc8_table[crc ^ data];
+}
+
+static DRFLAC_INLINE dr_uint8 drflac_crc8(dr_uint8 crc, dr_uint32 data, dr_uint32 count)
+{
+    assert(count <= 32);
+
+#ifdef DR_FLAC_NO_CRC
+    (void)crc;
+    (void)data;
+    (void)count;
+    return 0;
+#else
+#if 0
+    // REFERENCE (use of this implementation requires an explicit flush by doing "drflac_crc8(crc, 0, 8);")
+    dr_uint8 p = 0x07;
+    for (int i = count-1; i >= 0; --i) {
+        dr_uint8 bit = (data & (1 << i)) >> i;
+        if (crc & 0x80) {
+            crc = ((crc << 1) | bit) ^ p;
+        } else {
+            crc = ((crc << 1) | bit);
+        }
+    }
+    return crc;
+#else
+    dr_uint32 wholeBytes = count >> 3;
+    dr_uint32 leftoverBits = count - (wholeBytes*8);
+
+    static dr_uint64 leftoverDataMaskTable[8] = {
+        0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
+    };
+    dr_uint64 leftoverDataMask = leftoverDataMaskTable[leftoverBits];
+
+    switch (wholeBytes) {
+        case 4: crc = drflac_crc8_byte(crc, (dr_uint8)((data & (0xFF000000UL << leftoverBits)) >> (24 + leftoverBits)));
+        case 3: crc = drflac_crc8_byte(crc, (dr_uint8)((data & (0x00FF0000UL << leftoverBits)) >> (16 + leftoverBits)));
+        case 2: crc = drflac_crc8_byte(crc, (dr_uint8)((data & (0x0000FF00UL << leftoverBits)) >> ( 8 + leftoverBits)));
+        case 1: crc = drflac_crc8_byte(crc, (dr_uint8)((data & (0x000000FFUL << leftoverBits)) >> ( 0 + leftoverBits)));
+        case 0: if (leftoverBits > 0) crc = (crc << leftoverBits) ^ drflac__crc8_table[(crc >> (8 - leftoverBits)) ^ (data & leftoverDataMask)];
+    }
+    return crc;
+#endif
+#endif
+}
+
+static DRFLAC_INLINE dr_uint16 drflac_crc16_byte(dr_uint16 crc, dr_uint8 data)
+{
+    return (crc << 8) ^ drflac__crc16_table[(dr_uint8)(crc >> 8) ^ data];
+}
+
+static DRFLAC_INLINE dr_uint16 drflac_crc16__32bit(dr_uint16 crc, dr_uint32 data, dr_uint32 count)
+{
+    assert(count <= 64);
+
+#ifdef DR_FLAC_NO_CRC
+    (void)crc;
+    (void)data;
+    (void)count;
+    return 0;
+#else
+#if 0
+    // REFERENCE (use of this implementation requires an explicit flush by doing "drflac_crc16(crc, 0, 16);")
+    dr_uint16 p = 0x8005;
+    for (int i = count-1; i >= 0; --i) {
+        dr_uint16 bit = (data & (1ULL << i)) >> i;
+        if (r & 0x8000) {
+            r = ((r << 1) | bit) ^ p;
+        } else {
+            r = ((r << 1) | bit);
+        }
+    }
+
+    return crc;
+#else
+    dr_uint32 wholeBytes = count >> 3;
+    dr_uint32 leftoverBits = count - (wholeBytes*8);
+
+    static dr_uint64 leftoverDataMaskTable[8] = {
+        0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
+    };
+    dr_uint64 leftoverDataMask = leftoverDataMaskTable[leftoverBits];
+
+    switch (wholeBytes) {
+        case 4: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0xFF000000UL << leftoverBits)) >> (24 + leftoverBits)));
+        case 3: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x00FF0000UL << leftoverBits)) >> (16 + leftoverBits)));
+        case 2: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x0000FF00UL << leftoverBits)) >> ( 8 + leftoverBits)));
+        case 1: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x000000FFUL << leftoverBits)) >> ( 0 + leftoverBits)));
+        case 0: if (leftoverBits > 0) crc = (crc << leftoverBits) ^ drflac__crc16_table[(crc >> (16 - leftoverBits)) ^ (data & leftoverDataMask)];
+    }
+    return crc;
+#endif
+#endif
+}
+
+static DRFLAC_INLINE dr_uint16 drflac_crc16__64bit(dr_uint16 crc, dr_uint64 data, dr_uint32 count)
+{
+    assert(count <= 64);
+
+#ifdef DR_FLAC_NO_CRC
+    (void)crc;
+    (void)data;
+    (void)count;
+    return 0;
+#else
+    dr_uint32 wholeBytes = count >> 3;
+    dr_uint32 leftoverBits = count - (wholeBytes*8);
+
+    static dr_uint64 leftoverDataMaskTable[8] = {
+        0x00, 0x01, 0x03, 0x07, 0x0F, 0x1F, 0x3F, 0x7F
+    };
+    dr_uint64 leftoverDataMask = leftoverDataMaskTable[leftoverBits];
+
+    switch (wholeBytes) {
+        case 8: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0xFF00000000000000ULL << leftoverBits)) >> (56 + leftoverBits)));
+        case 7: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x00FF000000000000ULL << leftoverBits)) >> (48 + leftoverBits)));
+        case 6: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x0000FF0000000000ULL << leftoverBits)) >> (40 + leftoverBits)));
+        case 5: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x000000FF00000000ULL << leftoverBits)) >> (32 + leftoverBits)));
+        case 4: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x00000000FF000000ULL << leftoverBits)) >> (24 + leftoverBits)));
+        case 3: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x0000000000FF0000ULL << leftoverBits)) >> (16 + leftoverBits)));
+        case 2: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x000000000000FF00ULL << leftoverBits)) >> ( 8 + leftoverBits)));
+        case 1: crc = drflac_crc16_byte(crc, (dr_uint8)((data & (0x00000000000000FFULL << leftoverBits)) >> ( 0 + leftoverBits)));
+        case 0: if (leftoverBits > 0) crc = (crc << leftoverBits) ^ drflac__crc16_table[(crc >> (16 - leftoverBits)) ^ (data & leftoverDataMask)];
+    }
+    return crc;
+#endif
+}
+
+static DRFLAC_INLINE dr_uint16 drflac_crc16(dr_uint16 crc, drflac_cache_t data, dr_uint32 count)
+{
+#ifdef DRFLAC_64BIT
+    return drflac_crc16__64bit(crc, data, count);
+#else
+    return drflac_crc16__32bit(crc, data, count);
+#endif
+}
+
+
 #ifdef DRFLAC_64BIT
 #define drflac__be2host__cache_line drflac__be2host_64
 #else
 #define drflac__be2host__cache_line drflac__be2host_32
 #endif
-
 
 // BIT READING ATTEMPT #2
 //
@@ -969,53 +1161,6 @@ static void drflac__reset_cache(drflac_bs* bs)
     bs->unalignedCache = 0;
 }
 
-static dr_bool32 drflac__seek_bits(drflac_bs* bs, size_t bitsToSeek)
-{
-    if (bitsToSeek <= DRFLAC_CACHE_L1_BITS_REMAINING(bs)) {
-        bs->consumedBits += bitsToSeek;
-        bs->cache <<= bitsToSeek;
-        return DR_TRUE;
-    } else {
-        // It straddles the cached data. This function isn't called too frequently so I'm favouring simplicity here.
-        bitsToSeek       -= DRFLAC_CACHE_L1_BITS_REMAINING(bs);
-        bs->consumedBits += DRFLAC_CACHE_L1_BITS_REMAINING(bs);
-        bs->cache         = 0;
-
-        size_t wholeBytesRemainingToSeek = bitsToSeek/8;
-        if (wholeBytesRemainingToSeek > 0) {
-            // The next bytes to seek will be located in the L2 cache. The problem is that the L2 cache is not byte aligned,
-            // but rather DRFLAC_CACHE_L1_SIZE_BYTES aligned (usually 4 or 8). If, for example, the number of bytes to seek is
-            // 3, we'll need to handle it in a special way.
-            size_t wholeCacheLinesRemainingToSeek = wholeBytesRemainingToSeek / DRFLAC_CACHE_L1_SIZE_BYTES(bs);
-            if (wholeCacheLinesRemainingToSeek < DRFLAC_CACHE_L2_LINES_REMAINING(bs)) {
-                wholeBytesRemainingToSeek -= wholeCacheLinesRemainingToSeek * DRFLAC_CACHE_L1_SIZE_BYTES(bs);
-                bitsToSeek                -= wholeCacheLinesRemainingToSeek * DRFLAC_CACHE_L1_SIZE_BITS(bs);
-                bs->nextL2Line            += wholeCacheLinesRemainingToSeek;
-            } else {
-                wholeBytesRemainingToSeek -= DRFLAC_CACHE_L2_LINES_REMAINING(bs) * DRFLAC_CACHE_L1_SIZE_BYTES(bs);
-                bitsToSeek                -= DRFLAC_CACHE_L2_LINES_REMAINING(bs) * DRFLAC_CACHE_L1_SIZE_BITS(bs);
-                bs->nextL2Line            += DRFLAC_CACHE_L2_LINES_REMAINING(bs);
-
-                // Note that we only seek on the client side if it's got any data left to seek. We can know this by checking
-                // if we have any unaligned data which can be determined with bs->unalignedByteCount.
-                if (wholeBytesRemainingToSeek > 0 && bs->unalignedByteCount == 0) {
-                    bs->onSeek(bs->pUserData, (int)wholeBytesRemainingToSeek, drflac_seek_origin_current);
-                    bitsToSeek -= wholeBytesRemainingToSeek*8;
-                }
-            }
-        }
-
-        if (bitsToSeek > 0) {
-            if (!drflac__reload_cache(bs)) {
-                return DR_FALSE;
-            }
-
-            return drflac__seek_bits(bs, bitsToSeek);
-        }
-
-        return DR_TRUE;
-    }
-}
 
 static dr_bool32 drflac__read_uint32(drflac_bs* bs, unsigned int bitCount, dr_uint32* pResultOut)
 {
@@ -1040,6 +1185,7 @@ static dr_bool32 drflac__read_uint32(drflac_bs* bs, unsigned int bitCount, dr_ui
             bs->consumedBits = DRFLAC_CACHE_L1_SIZE_BITS(bs);
             bs->cache = 0;
         }
+        bs->crc16 = drflac_crc16(bs->crc16, *pResultOut, bitCount);
         return DR_TRUE;
     } else {
         // It straddles the cached data. It will never cover more than the next chunk. We just read the number in two parts and combine them.
@@ -1054,6 +1200,7 @@ static dr_bool32 drflac__read_uint32(drflac_bs* bs, unsigned int bitCount, dr_ui
         *pResultOut = (resultHi << bitCountLo) | DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, bitCountLo);
         bs->consumedBits += bitCountLo;
         bs->cache <<= bitCountLo;
+        bs->crc16 = drflac_crc16(bs->crc16, *pResultOut, bitCount);
         return DR_TRUE;
     }
 }
@@ -1180,11 +1327,69 @@ static dr_bool32 drflac__read_int8(drflac_bs* bs, unsigned int bitCount, dr_int8
 }
 
 
+static dr_bool32 drflac__seek_bits(drflac_bs* bs, size_t bitsToSeek)
+{
+    if (bitsToSeek <= DRFLAC_CACHE_L1_BITS_REMAINING(bs)) {
+        bs->crc16 = drflac_crc16(bs->crc16, DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, bitsToSeek), (dr_uint32)bitsToSeek);
+        bs->consumedBits += bitsToSeek;
+        bs->cache <<= bitsToSeek;
+        return DR_TRUE;
+    } else {
+        // It straddles the cached data. This function isn't called too frequently so I'm favouring simplicity here.
+        bs->crc16 = drflac_crc16(bs->crc16, DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, DRFLAC_CACHE_L1_BITS_REMAINING(bs)), (dr_uint32)DRFLAC_CACHE_L1_BITS_REMAINING(bs));
+        bitsToSeek       -= DRFLAC_CACHE_L1_BITS_REMAINING(bs);
+        bs->consumedBits += DRFLAC_CACHE_L1_BITS_REMAINING(bs);
+        bs->cache         = 0;
+
+        // Simple case. Seek in groups of the same number as bits that fit within a cache line.
+#ifdef DRFLAC_64BIT
+        while (bitsToSeek >= DRFLAC_CACHE_L1_SIZE_BITS(bs)) {
+            dr_uint64 bin;
+            if (!drflac__read_uint64(bs, DRFLAC_CACHE_L1_SIZE_BITS(bs), &bin)) {
+                return DR_FALSE;
+            }
+            bitsToSeek -= DRFLAC_CACHE_L1_SIZE_BITS(bs);
+        }
+#else
+        while (bitsToSeek >= DRFLAC_CACHE_L1_SIZE_BITS(bs)) {
+            dr_uint32 bin;
+            if (!drflac__read_uint32(bs, DRFLAC_CACHE_L1_SIZE_BITS(bs), &bin)) {
+                return DR_FALSE;
+            }
+            bitsToSeek -= DRFLAC_CACHE_L1_SIZE_BITS(bs);
+        }
+#endif
+        
+        // Whole leftover bytes.
+        while (bitsToSeek >= 8) {
+            dr_uint8 bin;
+            if (!drflac__read_uint8(bs, 8, &bin)) {
+                return DR_FALSE;
+            }
+            bitsToSeek -= 8;
+        }
+
+        // Leftover bits.
+        if (bitsToSeek > 0) {
+            dr_uint8 bin;
+            if (!drflac__read_uint8(bs, (dr_uint32)bitsToSeek, &bin)) {
+                return DR_FALSE;
+            }
+            bitsToSeek = 0; // <-- Necessary for the assert below.
+        }
+
+        assert(bitsToSeek == 0);
+        return DR_TRUE;
+    }
+}
+
+
 static inline dr_bool32 drflac__seek_past_next_set_bit(drflac_bs* bs, unsigned int* pOffsetOut)
 {
     unsigned int zeroCounter = 0;
     while (bs->cache == 0) {
         zeroCounter += (unsigned int)DRFLAC_CACHE_L1_BITS_REMAINING(bs);
+        bs->crc16 = drflac_crc16(bs->crc16, 0, (unsigned int)DRFLAC_CACHE_L1_BITS_REMAINING(bs));
         if (!drflac__reload_cache(bs)) {
             return DR_FALSE;
         }
@@ -1208,17 +1413,16 @@ static inline dr_bool32 drflac__seek_past_next_set_bit(drflac_bs* bs, unsigned i
             setBitOffsetPlus1 = DRFLAC_CACHE_L1_SIZE_BITS(bs);
         } else {
             setBitOffsetPlus1 = 5;
-            for (;;)
-            {
+            for (;;) {
                 if ((bs->cache & DRFLAC_CACHE_L1_SELECT(bs, setBitOffsetPlus1))) {
                     break;
                 }
-
                 setBitOffsetPlus1 += 1;
             }
         }
     }
 
+    bs->crc16 = drflac_crc16(bs->crc16, DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, setBitOffsetPlus1), setBitOffsetPlus1);
     bs->consumedBits += setBitOffsetPlus1;
     bs->cache <<= setBitOffsetPlus1;
 
@@ -1273,19 +1477,23 @@ static dr_bool32 drflac__seek_to_byte(drflac_bs* bs, dr_uint64 offsetFromStart)
 }
 
 
-static dr_bool32 drflac__read_utf8_coded_number(drflac_bs* bs, dr_uint64* pNumberOut)
+static dr_bool32 drflac__read_utf8_coded_number(drflac_bs* bs, dr_uint64* pNumberOut, dr_uint8* pCRCOut)
 {
     assert(bs != NULL);
     assert(pNumberOut != NULL);
+
+    dr_uint8 crc = *pCRCOut;
 
     unsigned char utf8[7] = {0};
     if (!drflac__read_uint8(bs, 8, utf8)) {
         *pNumberOut = 0;
         return DR_FALSE;
     }
+    crc = drflac_crc8(crc, utf8[0], 8);
 
     if ((utf8[0] & 0x80) == 0) {
         *pNumberOut = utf8[0];
+        *pCRCOut = crc;
         return DR_TRUE;
     }
 
@@ -1316,11 +1524,13 @@ static dr_bool32 drflac__read_utf8_coded_number(drflac_bs* bs, dr_uint64* pNumbe
             *pNumberOut = 0;
             return DR_FALSE;
         }
+        crc = drflac_crc8(crc, utf8[i], 8);
 
         result = (result << 6) | (utf8[i] & 0x3F);
     }
 
     *pNumberOut = result;
+    *pCRCOut = crc;
     return DR_TRUE;
 }
 
@@ -1572,7 +1782,6 @@ static DRFLAC_INLINE dr_int32 drflac__calculate_prediction_64(dr_uint32 order, d
     return (dr_int32)(prediction >> shift);
 }
 
-
 // Reads and decodes a string of residual values as Rice codes. The decoder should be sitting on the first bit of the Rice codes.
 //
 // This is the most frequently called function in the library. It does both the Rice decoding and the prediction in a single loop
@@ -1601,6 +1810,7 @@ static dr_bool32 funcName (drflac_bs* bs, dr_uint32 count, dr_uint8 riceParam, d
         unsigned int zeroCounter = 0;                                                                                                                               \
         while (bs->cache == 0) {                                                                                                                                    \
             zeroCounter += (unsigned int)DRFLAC_CACHE_L1_BITS_REMAINING(bs);                                                                                        \
+            bs->crc16 = drflac_crc16(bs->crc16, 0, (dr_uint32)DRFLAC_CACHE_L1_BITS_REMAINING(bs));                                                                  \
             if (!drflac__reload_cache(bs)) {                                                                                                                        \
                 return DR_FALSE;                                                                                                                                    \
             }                                                                                                                                                       \
@@ -1612,45 +1822,44 @@ static dr_bool32 funcName (drflac_bs* bs, dr_uint32 count, dr_uint8 riceParam, d
         unsigned int decodedRice;                                                                                                                                   \
                                                                                                                                                                     \
         unsigned int setBitOffsetPlus1 = bitOffsetTable[DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, 4)];                                                                   \
-        if (setBitOffsetPlus1 > 0) {                                                                                                                                \
-            decodedRice = (zeroCounter + (setBitOffsetPlus1-1)) << riceParam;                                                                                       \
-        } else {                                                                                                                                                    \
+        if (setBitOffsetPlus1 == 0) {                                                                                                                               \
             if (bs->cache == 1) {                                                                                                                                   \
                 setBitOffsetPlus1 = DRFLAC_CACHE_L1_SIZE_BITS(bs);                                                                                                  \
-                decodedRice = (zeroCounter + (DRFLAC_CACHE_L1_SIZE_BITS(bs)-1)) << riceParam;                                                                       \
             } else {                                                                                                                                                \
                 setBitOffsetPlus1 = 5;                                                                                                                              \
-                for (;;)                                                                                                                                            \
-                {                                                                                                                                                   \
+                for (;;) {                                                                                                                                          \
                     if ((bs->cache & DRFLAC_CACHE_L1_SELECT(bs, setBitOffsetPlus1))) {                                                                              \
-                        decodedRice = (zeroCounter + (setBitOffsetPlus1-1)) << riceParam;                                                                           \
                         break;                                                                                                                                      \
                     }                                                                                                                                               \
-                                                                                                                                                                    \
                     setBitOffsetPlus1 += 1;                                                                                                                         \
                 }                                                                                                                                                   \
             }                                                                                                                                                       \
         }                                                                                                                                                           \
-                                                                                                                                                                    \
+        decodedRice = (zeroCounter + (setBitOffsetPlus1-1)) << riceParam;                                                                                           \
                                                                                                                                                                     \
         unsigned int bitsLo = 0;                                                                                                                                    \
         unsigned int riceLength = setBitOffsetPlus1 + riceParam;                                                                                                    \
-        if (riceLength < DRFLAC_CACHE_L1_BITS_REMAINING(bs))                                                                                                        \
-        {                                                                                                                                                           \
+        if (riceLength < DRFLAC_CACHE_L1_BITS_REMAINING(bs)) {                                                                                                      \
             bitsLo = (unsigned int)((bs->cache & (riceParamMask >> setBitOffsetPlus1)) >> (DRFLAC_CACHE_L1_SIZE_BITS(bs) - riceLength));                            \
                                                                                                                                                                     \
+            bs->crc16 = drflac_crc16(bs->crc16, DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, riceLength), riceLength);                                                      \
             bs->consumedBits += riceLength;                                                                                                                         \
             bs->cache <<= riceLength;                                                                                                                               \
-        }                                                                                                                                                           \
-        else                                                                                                                                                        \
-        {                                                                                                                                                           \
+        } else {                                                                                                                                                    \
+            size_t bitCountHi = DRFLAC_CACHE_L1_BITS_REMAINING(bs) - setBitOffsetPlus1;                                                                             \
             bs->consumedBits += riceLength;                                                                                                                         \
-            bs->cache <<= setBitOffsetPlus1;                                                                                                                        \
+            if (setBitOffsetPlus1 == DRFLAC_CACHE_L1_SIZE_BITS(bs)) {                                                                                               \
+                bs->crc16 = drflac_crc16(bs->crc16, bs->cache, setBitOffsetPlus1);                                                                                  \
+                bs->cache = 0;                                                                                                                                      \
+            } else {                                                                                                                                                \
+                bs->crc16 = drflac_crc16(bs->crc16, DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, setBitOffsetPlus1), setBitOffsetPlus1);                                    \
+                bs->cache <<= setBitOffsetPlus1;                                                                                                                    \
+            }                                                                                                                                                       \
                                                                                                                                                                     \
             /* It straddles the cached data. It will never cover more than the next chunk. We just read the number in two parts and combine them. */                \
             size_t bitCountLo = bs->consumedBits - DRFLAC_CACHE_L1_SIZE_BITS(bs);                                                                                   \
             drflac_cache_t resultHi = bs->cache & riceParamMask;    /* <-- This mask is OK because all bits after the first bits are always zero. */                \
-                                                                                                                                                                    \
+            bs->crc16 = drflac_crc16(bs->crc16, DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, bitCountHi), (dr_uint32)bitCountHi);                                           \
                                                                                                                                                                     \
             if (bs->nextL2Line < DRFLAC_CACHE_L2_LINE_COUNT(bs)) {                                                                                                  \
                 bs->cache = drflac__be2host__cache_line(bs->cacheL2[bs->nextL2Line++]);                                                                             \
@@ -1662,6 +1871,8 @@ static dr_bool32 funcName (drflac_bs* bs, dr_uint32 count, dr_uint8 riceParam, d
             }                                                                                                                                                       \
                                                                                                                                                                     \
             bitsLo = (unsigned int)((resultHi >> resultHiShift) | DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, bitCountLo));                                                \
+                                                                                                                                                                    \
+            bs->crc16 = drflac_crc16(bs->crc16, DRFLAC_CACHE_L1_SELECT_AND_SHIFT(bs, bitCountLo), (dr_uint32)bitCountLo);                                           \
             bs->consumedBits = bitCountLo;                                                                                                                          \
             bs->cache <<= bitCountLo;                                                                                                                               \
         }                                                                                                                                                           \
@@ -1710,8 +1921,7 @@ static dr_bool32 drflac__decode_samples_with_residual__unencoded(drflac_bs* bs, 
     assert(unencodedBitsPerSample > 0 && unencodedBitsPerSample <= 32);
     assert(pSamplesOut != NULL);
 
-    for (unsigned int i = 0; i < count; ++i)
-    {
+    for (unsigned int i = 0; i < count; ++i) {
         if (!drflac__read_int32(bs, unencodedBitsPerSample, pSamplesOut + i)) {
             return DR_FALSE;
         }
@@ -1989,70 +2199,83 @@ static dr_bool32 drflac__read_next_frame_header(drflac_bs* bs, dr_uint8 streamin
     assert(bs != NULL);
     assert(header != NULL);
 
-    // At the moment the sync code is as a form of basic validation. The CRC is stored, but is unused at the moment. This
-    // should probably be handled better in the future.
-
     const dr_uint32 sampleRateTable[12]  = {0, 88200, 176400, 192000, 8000, 16000, 22050, 24000, 32000, 44100, 48000, 96000};
     const dr_uint8 bitsPerSampleTable[8] = {0, 8, 12, (dr_uint8)-1, 16, 20, 24, (dr_uint8)-1};   // -1 = reserved.
+
+    dr_uint8 crc = 0;
+    bs->crc16 = 0;  // The CRC-16 check is done on a per-frame basis, so make sure it's reset to 0 just before reading the first bits of a frame.
 
     dr_uint16 syncCode = 0;
     if (!drflac__read_uint16(bs, 14, &syncCode)) {
         return DR_FALSE;
     }
-
+    crc = drflac_crc8(crc, syncCode, 14);
+    
     if (syncCode != 0x3FFE) {
         // TODO: Try and recover by attempting to seek to and read the next frame?
         return DR_FALSE;
     }
 
-    dr_uint8 reserved;
+
+    dr_uint8 reserved = 0;
     if (!drflac__read_uint8(bs, 1, &reserved)) {
         return DR_FALSE;
     }
+    crc = drflac_crc8(crc, reserved, 1);
+
 
     dr_uint8 blockingStrategy = 0;
     if (!drflac__read_uint8(bs, 1, &blockingStrategy)) {
         return DR_FALSE;
     }
-
+    crc = drflac_crc8(crc, blockingStrategy, 1);
 
 
     dr_uint8 blockSize = 0;
     if (!drflac__read_uint8(bs, 4, &blockSize)) {
         return DR_FALSE;
     }
+    crc = drflac_crc8(crc, blockSize, 4);
+
 
     dr_uint8 sampleRate = 0;
     if (!drflac__read_uint8(bs, 4, &sampleRate)) {
         return DR_FALSE;
     }
+    crc = drflac_crc8(crc, sampleRate, 4);
+
 
     dr_uint8 channelAssignment = 0;
     if (!drflac__read_uint8(bs, 4, &channelAssignment)) {
         return DR_FALSE;
     }
+    crc = drflac_crc8(crc, channelAssignment, 4);
+
 
     dr_uint8 bitsPerSample = 0;
     if (!drflac__read_uint8(bs, 3, &bitsPerSample)) {
         return DR_FALSE;
     }
+    crc = drflac_crc8(crc, bitsPerSample, 3);
+
 
     if (!drflac__read_uint8(bs, 1, &reserved)) {
         return DR_FALSE;
     }
+    crc = drflac_crc8(crc, reserved, 1);
 
 
     dr_bool32 isVariableBlockSize = blockingStrategy == 1;
     if (isVariableBlockSize) {
         dr_uint64 sampleNumber;
-        if (!drflac__read_utf8_coded_number(bs, &sampleNumber)) {
+        if (!drflac__read_utf8_coded_number(bs, &sampleNumber, &crc)) {
             return DR_FALSE;
         }
         header->frameNumber  = 0;
         header->sampleNumber = sampleNumber;
     } else {
         dr_uint64 frameNumber = 0;
-        if (!drflac__read_utf8_coded_number(bs, &frameNumber)) {
+        if (!drflac__read_utf8_coded_number(bs, &frameNumber, &crc)) {
             return DR_FALSE;
         }
         header->frameNumber  = (dr_uint32)frameNumber;   // <-- Safe cast.
@@ -2068,11 +2291,13 @@ static dr_bool32 drflac__read_next_frame_header(drflac_bs* bs, dr_uint8 streamin
         if (!drflac__read_uint16(bs, 8, &header->blockSize)) {
             return DR_FALSE;
         }
+        crc = drflac_crc8(crc, header->blockSize, 8);
         header->blockSize += 1;
     } else if (blockSize == 7) {
         if (!drflac__read_uint16(bs, 16, &header->blockSize)) {
             return DR_FALSE;
         }
+        crc = drflac_crc8(crc, header->blockSize, 16);
         header->blockSize += 1;
     } else {
         header->blockSize = 256 * (1 << (blockSize - 8));
@@ -2085,15 +2310,18 @@ static dr_bool32 drflac__read_next_frame_header(drflac_bs* bs, dr_uint8 streamin
         if (!drflac__read_uint32(bs, 8, &header->sampleRate)) {
             return DR_FALSE;
         }
+        crc = drflac_crc8(crc, header->sampleRate, 8);
         header->sampleRate *= 1000;
     } else if (sampleRate == 13) {
         if (!drflac__read_uint32(bs, 16, &header->sampleRate)) {
             return DR_FALSE;
         }
+        crc = drflac_crc8(crc, header->sampleRate, 16);
     } else if (sampleRate == 14) {
         if (!drflac__read_uint32(bs, 16, &header->sampleRate)) {
             return DR_FALSE;
         }
+        crc = drflac_crc8(crc, header->sampleRate, 16);
         header->sampleRate *= 10;
     } else {
         return DR_FALSE;  // Invalid.
@@ -2107,9 +2335,15 @@ static dr_bool32 drflac__read_next_frame_header(drflac_bs* bs, dr_uint8 streamin
         header->bitsPerSample = streaminfoBitsPerSample;
     }
 
-    if (drflac__read_uint8(bs, 8, &header->crc8) != 1) {
+    if (!drflac__read_uint8(bs, 8, &header->crc8)) {
         return DR_FALSE;
     }
+ 
+#ifndef DR_FLAC_NO_CRC
+    if (header->crc8 != crc) {
+        return DR_FALSE;    // CRC mismatch.
+    }
+#endif
 
     return DR_TRUE;
 }
@@ -2235,7 +2469,6 @@ static dr_bool32 drflac__seek_subframe(drflac_bs* bs, drflac_frame* frame, int s
     // Need to handle wasted bits per sample.
     pSubframe->bitsPerSample -= pSubframe->wastedBitsPerSample;
     pSubframe->pDecodedSamples = NULL;
-    //pSubframe->pDecodedSamples = pFlac->pDecodedSamples + (pFlac->currentFrame.header.blockSize * subframeIndex);
 
     switch (pSubframe->subframeType)
     {
@@ -2314,18 +2547,33 @@ static dr_bool32 drflac__decode_frame(drflac* pFlac)
     memset(pFlac->currentFrame.subframes, 0, sizeof(pFlac->currentFrame.subframes));
 
     int channelCount = drflac__get_channel_count_from_channel_assignment(pFlac->currentFrame.header.channelAssignment);
-    for (int i = 0; i < channelCount; ++i)
-    {
+    for (int i = 0; i < channelCount; ++i) {
         if (!drflac__decode_subframe(&pFlac->bs, &pFlac->currentFrame, i, pFlac->pDecodedSamples + (pFlac->currentFrame.header.blockSize * i))) {
             return DR_FALSE;
         }
     }
 
-    // At the end of the frame sits the padding and CRC. We don't use these so we can just seek past.
-    if (!drflac__seek_bits(&pFlac->bs, (DRFLAC_CACHE_L1_BITS_REMAINING(&pFlac->bs) & 7) + 16)) {
+    dr_uint8 paddingSizeInBits = DRFLAC_CACHE_L1_BITS_REMAINING(&pFlac->bs) & 7;
+    if (paddingSizeInBits > 0) {
+        dr_uint8 padding = 0;
+        if (!drflac__read_uint8(&pFlac->bs, paddingSizeInBits, &padding)) {
+            return DR_FALSE;
+        }
+    }
+    
+    dr_uint16 actualCRC16 = pFlac->bs.crc16;
+    dr_uint16 desiredCRC16;
+    if (!drflac__read_uint16(&pFlac->bs, 16, &desiredCRC16)) {
         return DR_FALSE;
     }
 
+#ifndef DR_FLAC_NO_CRC
+    if (actualCRC16 != desiredCRC16) {
+        return DR_FALSE;    // CRC mismatch.
+    }
+#else
+    (void)actualCRC16;
+#endif
 
     pFlac->currentFrame.samplesRemaining = pFlac->currentFrame.header.blockSize * channelCount;
 
@@ -2335,8 +2583,7 @@ static dr_bool32 drflac__decode_frame(drflac* pFlac)
 static dr_bool32 drflac__seek_frame(drflac* pFlac)
 {
     int channelCount = drflac__get_channel_count_from_channel_assignment(pFlac->currentFrame.header.channelAssignment);
-    for (int i = 0; i < channelCount; ++i)
-    {
+    for (int i = 0; i < channelCount; ++i) {
         if (!drflac__seek_subframe(&pFlac->bs, &pFlac->currentFrame, i)) {
             return DR_FALSE;
         }
@@ -3997,16 +4244,12 @@ dr_uint64 drflac__read_s32__misaligned(drflac* pFlac, dr_uint64 samplesToRead, d
 dr_uint64 drflac__seek_forward_by_samples(drflac* pFlac, dr_uint64 samplesToRead)
 {
     dr_uint64 samplesRead = 0;
-    while (samplesToRead > 0)
-    {
-        if (pFlac->currentFrame.samplesRemaining == 0)
-        {
+    while (samplesToRead > 0) {
+        if (pFlac->currentFrame.samplesRemaining == 0) {
             if (!drflac__read_and_decode_next_frame(pFlac)) {
                 break;  // Couldn't read the next frame, so just break from the loop and return.
             }
-        }
-        else
-        {
+        } else {
             samplesRead += 1;
             pFlac->currentFrame.samplesRemaining -= 1;
             samplesToRead -= 1;
@@ -4029,17 +4272,13 @@ dr_uint64 drflac_read_s32(drflac* pFlac, dr_uint64 samplesToRead, dr_int32* buff
 
 
     dr_uint64 samplesRead = 0;
-    while (samplesToRead > 0)
-    {
+    while (samplesToRead > 0) {
         // If we've run out of samples in this frame, go to the next.
-        if (pFlac->currentFrame.samplesRemaining == 0)
-        {
+        if (pFlac->currentFrame.samplesRemaining == 0) {
             if (!drflac__read_and_decode_next_frame(pFlac)) {
                 break;  // Couldn't read the next frame, so just break from the loop and return.
             }
-        }
-        else
-        {
+        } else {
             // Here is where we grab the samples and interleave them.
 
             unsigned int channelCount = drflac__get_channel_count_from_channel_assignment(pFlac->currentFrame.header.channelAssignment);
@@ -4503,6 +4742,11 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 
 
 // REVISION HISTORY
+//
+// v0.5 - 2017-07-16
+//   - Fix typos.
+//   - Change dr_bool* types to unsigned.
+//   - Added CRC checking. This makes dr_flac slower, but can be disabled with #define DR_FLAC_NO_CRC.
 //
 // v0.4f - 2017-03-10
 //   - Fix a couple of bugs with the bitstreaming code.
