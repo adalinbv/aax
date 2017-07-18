@@ -398,9 +398,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
             handle->outputBuffer->avail = n*framesize;
             rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
          }
-         else
-         {
-           *num = 0;
+         else {
             break;
          }
       }
