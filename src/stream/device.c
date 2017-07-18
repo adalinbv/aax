@@ -1469,7 +1469,6 @@ _aaxStreamDriverReadChunk(const void *id)
    }
    else if (res == 0) {
       handle->end_of_file = AAX_TRUE;
-      res = __F_EOF;
    }
 
    return res;
