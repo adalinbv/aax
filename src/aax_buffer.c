@@ -652,7 +652,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                      offset += res*8/(bits*tracks);
                   }
                }
-               while (res);
+               while (res >= 0);
 
                // get the actual number of samples
                no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
