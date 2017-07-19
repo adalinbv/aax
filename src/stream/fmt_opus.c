@@ -34,7 +34,7 @@
 // https://android.googlesource.com/platform/external/libopus/+/refs/heads/master-soong/doc/trivial_example.c
 #define FRAME_SIZE 960
 #define MAX_FRAME_SIZE (6*FRAME_SIZE)
-#define MAX_PACKET_SIZE (3*1276)
+#define MAX_PACKET_SIZE (2*3*1276)
 #define OPUS_SAMPLE_RATE 48000
 
 DECL_FUNCTION(opus_multistream_decoder_create);
@@ -373,14 +373,16 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       if (avail > 0)
       {
          unsigned int max = _MIN(req, avail/framesize);
+         if (max)
+         {
+            _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
+            _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
 
-         _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
-         _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
-
-         dptr_offs += max;
-         handle->no_samples += max;
-         *num += max;
-         req -= max;
+            dptr_offs += max;
+            handle->no_samples += max;
+            *num += max;
+            req -= max;
+         }
       }
 
       if (req > 0)
