@@ -32,7 +32,7 @@
 #include <dsp/common.h>
 
 #include "devices.h"
-#include "synthesize.h"
+#include "analyze.h"
 #include "arch.h"
 #include "api.h"
 
