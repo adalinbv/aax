@@ -26,14 +26,13 @@
 
 #include <xml.h>
 
-#include <3rdparty/pffft.h>
-
 #include <software/audio.h>
 #include <software/rbuf_int.h>
 #include <stream/device.h>
 #include <dsp/common.h>
 
 #include "devices.h"
+#include "synthesize.h"
 #include "arch.h"
 #include "api.h"
 
@@ -931,56 +930,18 @@ _bufCreateFromAAXS(_buffer_t* handle, const void* d, float freq)
    return rv;
 }
 
-#define N	4096
-#define NMAX	(N/2)
 static char**
 _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
 {
-   PFFFT_Setup *fft;
-   float *output, *ptr;
-   float *power;
-   char **rv;
-   int i;
-
-   rv = data;
-   output = _aax_aligned_alloc(2*N*sizeof(float));
-
-   fft = pffft_new_setup(N, PFFFT_COMPLEX);
-   pffft_transform_ordered(fft, (float*)*data, output, 0, PFFFT_FORWARD);
-   pffft_destroy_setup(fft);
-
-   ptr = output;
-   power = _aax_aligned_alloc(NMAX*sizeof(float));
-   for (i=0; i<NMAX; ++i)
-   {
-      float Re = *ptr++;
-      float Im = *ptr++;
-      power[i] = Re*Re + Im*Im;
-   }
-   _aax_aligned_free(output);
-
-   /* anlyze the frequencies present in the power spectrum */
    _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-   float fs2 = 0.5f*rb->get_paramf(rb, RB_FREQUENCY);
+   float fs, **freqs;
+   char **rv;
 
-   int n = 0;
-   float max = 0;
-   for (i=1; i<NMAX-1; ++i)
-   {
-      if (power[i] > max) {
-         max = power[i]; n = i;
-      }
-   }
+   rv = malloc(100);
 
-   for (i=n; i<NMAX-1; i += n)
-   {
-      float q = power[i]/max;
-      if (q >= LEVEL_96DB) {
-         printf("% 6.0f Hz: %f\n", fs2*i/N, q);
-      }
-   }
+   fs =rb->get_paramf(rb, RB_FREQUENCY);
+   freqs = _aax_get_frequencies(data, dlen, fs);
 
-   _aax_aligned_free(power);
 
    return rv;
 }
