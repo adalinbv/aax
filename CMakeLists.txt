@@ -438,7 +438,7 @@ set( AEONWAVE_OBJS
      src/arch.c
      src/devices.c
      src/objects.c
-     src/synthesize.c
+     src/analyze.c
      src/aax_audioframe.c
      src/aax_buffer.c
      src/aax_driver.c
