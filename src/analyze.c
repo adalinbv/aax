@@ -23,30 +23,40 @@
 
 #include <3rdparty/pffft.h>
 
+#include <base/memory.h>
+
 #include "analyze.h"
 #include "arch.h"
 
 #define N       4096
 #define NMAX    (N/2)
 
-// WARNING: not thread-safe
 float **
-_aax_get_frequencies(void **data, unsigned int dlen, float fs)
+_aax_analyze_waveforms(void **data, unsigned int dlen, float fs)
 {
-   static float rv[_AAX_SYNTH_MAX_WAVEFORMS][_AAX_SYNTH_MAX_HARMONICS];
+   float (*rv)[_AAX_SYNTH_MAX_HARMONICS];
    PFFFT_Setup *fft;
    float *output, *ptr;
    float *power;
    int i;
 
    output = _aax_aligned_alloc(2*N*sizeof(float));
+   power = _aax_aligned_alloc(NMAX*sizeof(float));
+   rv = malloc(sizeof(*rv) * _AAX_SYNTH_MAX_WAVEFORMS);
+
+   if (!output || !power || !rv)
+   {
+      if (output) _aax_aligned_free(output);
+      if (power) _aax_aligned_free(power);
+      if (rv) free(rv);
+      return NULL;
+   }
 
    fft = pffft_new_setup(N, PFFFT_COMPLEX);
    pffft_transform_ordered(fft, (float*)*data, output, 0, PFFFT_FORWARD);
    pffft_destroy_setup(fft);
 
    ptr = output;
-   power = _aax_aligned_alloc(NMAX*sizeof(float));
    for (i=0; i<NMAX; ++i)
    {
       float Re = *ptr++;

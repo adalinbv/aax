@@ -940,8 +940,10 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
    rv = malloc(100);
 
    fs =rb->get_paramf(rb, RB_FREQUENCY);
-   freqs = _aax_get_frequencies(data, dlen, fs);
+   freqs = _aax_analyze_waveforms(data, dlen, fs);
 
+
+   free(freqs);
 
    return rv;
 }
