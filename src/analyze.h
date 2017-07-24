@@ -24,7 +24,8 @@ extern "C" {
 #define _AAX_SYNTH_MAX_HARMONICS	16
 
 
-float **_aax_get_frequencies(void**, unsigned int, float);
+float **_aax_analyze_waveforms(void**, unsigned int, float);
+float **_aax_analyze_envelopes(void**, unsigned int, float);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
