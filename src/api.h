@@ -278,6 +278,8 @@ typedef struct
    _aaxRingBuffer *ringbuffer;
    _aaxMixerInfo **info;
    void *handle;
+   void *aaxs;
+
 } _buffer_t;
 
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);

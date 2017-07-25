@@ -750,6 +750,7 @@ free_buffer(_buffer_t* handle)
       if (--handle->ref_counter == 0)
       {
          handle->ringbuffer = _bufDestroyRingBuffer(handle);
+         free(handle->aaxs);
 
          /* safeguard against using already destroyed handles */
          handle->id = FADEDBAD;
@@ -816,13 +817,18 @@ _bufDestroyRingBuffer(_buffer_t* buf)
 }
 
 static int
-_bufCreateFromAAXS(_buffer_t* handle, const void* d, float freq)
+_bufCreateFromAAXS(_buffer_t* handle, const void* aaxs, float freq)
 {
    int rv = AAX_FALSE;
+   const void *d;
    void *xid;
 
-   assert(d);
+   assert(aaxs);
 
+   handle->aaxs = strdup(aaxs);
+   if (!aaxs) return rv;
+
+   d = handle->aaxs;
    xid = xmlInitBuffer(d, strlen(d));
    if (xid)
    {
@@ -980,7 +986,7 @@ _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float stati
 
       if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
       {
-          no_samples = floorf(no_samples/samps_period)*samps_period;
+          no_samples = floorf((no_samples/samps_period)+1)*samps_period;
           rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
           rb->init(rb, AAX_FALSE);
        }

@@ -495,6 +495,7 @@ set( AEONWAVE_OBJS
      src/stream/fmt_vorbis.c
 #    src/stream/fmt_flac.c
      src/stream/fmt_opus.c
+     src/stream/fmt_binary.c
      src/android/opensl.c
      src/software/device.c
      src/software/arch.c

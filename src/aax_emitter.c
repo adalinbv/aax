@@ -158,11 +158,16 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       else
       {
          _aaxRingBuffer *rb = buffer->ringbuffer;
-         if (!rb->get_state(rb, RB_IS_VALID)) {
-            _aaxErrorSet(AAX_INVALID_STATE);
-         } else if (handle->track >= rb->get_parami(rb, RB_NO_TRACKS)) {
-            _aaxErrorSet(AAX_INVALID_STATE);
-         } else {
+         if (rb)
+         {
+            if (!rb->get_state(rb, RB_IS_VALID)) {
+               _aaxErrorSet(AAX_INVALID_STATE);
+            } else if (handle->track >= rb->get_parami(rb, RB_NO_TRACKS)) {
+               _aaxErrorSet(AAX_INVALID_STATE);
+            } else {
+               rv = AAX_TRUE;
+            }
+         } else if (buffer->aaxs) {
             rv = AAX_TRUE;
          }
       }
@@ -171,23 +176,31 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    if (rv)
    {
       _aaxRingBuffer *rb = buffer->ringbuffer;
-      const _aaxEmitter *src = handle->source;
-      _embuffer_t* embuf;
-
-      embuf = malloc(sizeof(_embuffer_t));
-      if (embuf)
+      if (rb)
       {
-         embuf->ringbuffer = rb->reference(rb);
-         embuf->id = EMBUFFER_ID;
-         embuf->buffer = buffer;
-         buffer->ref_counter++;
+         const _aaxEmitter *src = handle->source;
+         _embuffer_t* embuf;
 
-         _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
+         embuf = malloc(sizeof(_embuffer_t));
+         if (embuf)
+         {
+            embuf->ringbuffer = rb->reference(rb);
+            embuf->id = EMBUFFER_ID;
+            embuf->buffer = buffer;
+            buffer->ref_counter++;
+
+            _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
+         }
+         else
+         {
+            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            rv = AAX_FALSE;
+         }
       }
-      else
+
+      if (rv && buffer->aaxs)
       {
-         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-         rv = AAX_FALSE;
+printf("Emitetr AAXS\n");
       }
    }
    put_emitter(handle);
