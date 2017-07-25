@@ -69,6 +69,7 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->fmt->set(handle->fmt, __F_TRACKS, tracks);
          handle->fmt->set(handle->fmt, __F_NO_SAMPLES, no_samples);
          handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, bits);
+         handle->fmt->setup(handle->fmt, format, format);
 
          *bufsize = 0;
          if (handle->mode == 0) {
@@ -210,6 +211,7 @@ _raw_extension(char *ext)
       if (!strcasecmp(ext, "mp3")) rv = _FMT_MP3;
       else if (!strcasecmp(ext, "flac")) rv = _FMT_FLAC;
       else if (!strcasecmp(ext, "pcm") || !strcasecmp(ext, "raw")) rv =_FMT_PCM;
+      else if (!strcasecmp(ext, "aaxs")) rv = _FMT_AAXS;
    }
    return rv;
 }

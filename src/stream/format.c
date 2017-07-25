@@ -159,6 +159,32 @@ _fmt_create(_fmt_type_t format, int mode)
       }
 #endif
       break;
+   case _FMT_AAXS:
+      rv = calloc(1, sizeof(_fmt_t));
+      if (rv)
+      {
+         if (_binary_detect(rv, mode))
+         {
+            rv->setup = _binary_setup;
+            rv->open = _binary_open;
+            rv->close = _binary_close;
+            rv->name = _binary_name;
+
+            rv->cvt_to_intl = _binary_cvt_to_intl;
+            rv->cvt_from_intl = _binary_cvt_from_intl;
+            rv->fill = _binary_fill;
+            rv->copy = _binary_copy;
+
+            rv->set = _binary_set;
+            rv->get = _binary_get;
+         }
+         else
+         {
+            free(rv);
+            rv = NULL;
+         }
+      }
+      break;
    case _FMT_SPEEX:
    default:
       break;

@@ -36,6 +36,7 @@ typedef enum
    _FMT_FLAC,
    _FMT_SPEEX,
 
+   _FMT_AAXS,
    _FMT_MAX
 
 } _fmt_type_t;
@@ -148,6 +149,18 @@ char* _flac_name(_fmt_t*, enum _aaxStreamParam);
 off_t _flac_set(_fmt_t*, int, off_t);
 off_t _flac_get(_fmt_t*, int);
 
+/* RAW binary dat */
+int _binary_detect(_fmt_t*, int);
+int _binary_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
+void* _binary_open(_fmt_t*, void*, size_t*, size_t);
+void _binary_close(_fmt_t*);
+size_t _binary_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+size_t _binary_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
+size_t _binary_fill(_fmt_t*, void_ptr, size_t*);
+size_t _binary_copy(_fmt_t*, int32_ptr, size_t, size_t*);
+char* _binary_name(_fmt_t*, enum _aaxStreamParam);
+off_t _binary_set(_fmt_t*, int, off_t);
+off_t _binary_get(_fmt_t*, int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
