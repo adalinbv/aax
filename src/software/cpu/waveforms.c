@@ -208,13 +208,6 @@ static float _sin_sample(float *s, float g)
    return floorf(fast_sin(*s) * g);
 }
 
-#if 0
-static float _powsin_sample(float *s, float g)
-{
-   *s = fmodf(*s, GMATH_2PI);
-   return floor(powf(fast_sin(*s), 143.0f) * g);
-}
-#endif
 
 #define MIX(a,b,c)		_MINMAX((a)+(b),-(c), (c))
 #define RINGMODULATE(a,b,c,d)	((c)*(((float)(a)/(d))*((b)/(c))))
@@ -614,24 +607,6 @@ _bufferMixBrownianNoise(void** data, VOID(void *scratch0), size_t no_samples, ch
    }
 }
 
-#if 0
-void
-_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
-{
-   _mix_fn mixfn = _get_mixfn(bps, &gain);
-   if (data && mixfn)
-   {
-      unsigned int track;
-      float dt;
-
-      dt = GMATH_2PI/freq;
-      for(track=0; track<tracks; track++) {
-         mixfn(data[track], no_samples, dt, 0.0f, 0, gain, 1.0f, _powsin_sample);
-      }
-   }
-}
-#else
-
 #define NO_IMPULSE_HARMONICS		9
 void
 _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, VOID(float phase))
@@ -656,7 +631,6 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
       }
    }
 }
-#endif
 
 void
 _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
