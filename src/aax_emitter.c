@@ -25,6 +25,8 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <xml.h>
+
 #include <base/gmath.h>
 
 #include <dsp/filters.h>
@@ -36,6 +38,7 @@
 #include "ringbuffer.h"
 
 static void _aaxFreeEmitterBuffer(void *);
+static void _emitterCreateEFFromAAXS(aaxEmitter, const char*);
 
 
 AAX_API aaxEmitter AAX_APIENTRY
@@ -136,7 +139,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
       }
       else
       {
-         put_emitter(emitter);
+         put_emitter(handle);
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
@@ -197,13 +200,14 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             rv = AAX_FALSE;
          }
       }
+      put_emitter(handle); 
 
-      if (rv && buffer->aaxs)
-      {
-printf("Emitetr AAXS\n");
+      if (rv && buffer->aaxs) {
+         _emitterCreateEFFromAAXS(emitter, buffer->aaxs);
       }
+   } else {
+      put_emitter(handle);
    }
-   put_emitter(handle);
    return rv;
 }
 
@@ -1363,3 +1367,122 @@ _aaxFreeEmitterBuffer(void *sbuf)
    embuf = NULL;
 }
 
+static void
+_emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
+{
+   _emitter_t *handle = get_emitter(emitter, __func__);
+   aaxConfig config = handle->handle;
+   void *xid;
+
+   put_emitter(handle);
+
+   xid = xmlInitBuffer(aaxs, strlen(aaxs));
+   if (xid)
+   {
+      void *xmid = xmlNodeGet(xid, "/sound");
+      if (xmid)
+      {
+         unsigned int i, num = xmlNodeGetNum(xmid, "filter");
+         void *xeid, *xfid = xmlMarkId(xmid);
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+            {
+               char src[64];
+               int slen;
+
+               slen = xmlAttributeCopyString(xfid, "src", src, 64);
+               if (slen)
+               {
+                  enum aaxFilterType ftype;
+                  aaxFilter flt;
+
+                  src[slen] = 0;
+                  ftype = aaxFilterGetByName(config, src);
+                  flt = aaxFilterCreate(config, ftype);
+                  if (flt)
+                  {
+                     unsigned int s, num = xmlNodeGetNum(xfid, "slot");
+                     void *xsid = xmlMarkId(xfid);
+                     for (s=0; s<num; s++)
+                     {
+                        if (xmlNodeGetPos(xfid, xsid, "slot", s) != 0)
+                        {
+                           aaxVec4f params;
+                           long int n;
+
+                           n = xmlAttributeGetInt(xsid, "n");
+                           if (n == XML_NONE) n = s;
+
+                           params[0] = xmlNodeGetDouble(xsid, "p1");
+                           params[1] = xmlNodeGetDouble(xsid, "p2");
+                           params[2] = xmlNodeGetDouble(xsid, "p3");
+                           params[3] = xmlNodeGetDouble(xsid, "p4");
+                           aaxFilterSetSlotParams(flt, n, AAX_LINEAR, params);
+                        }
+                     }
+
+                     aaxFilterSetState(flt, AAX_TRUE);
+                     aaxEmitterSetFilter(emitter, flt);
+                     aaxFilterDestroy(flt);
+                  }
+               }
+            }
+         }
+         xmlFree(xfid);
+
+         xeid = xmlMarkId(xmid);
+         num = xmlNodeGetNum(xmid, "effect");
+         for (i=0; i<num; i++)
+         {  
+            if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
+            {
+               char src[64];
+               int slen;
+
+               slen = xmlAttributeCopyString(xfid, "src", src, 64);
+               if (slen)
+               {
+                  enum aaxEffectType ftype;
+                  aaxEffect eff;
+
+                  src[slen] = 0;
+                  ftype = aaxEffectGetByName(config, src);
+                  eff = aaxEffectCreate(config, ftype);
+                  if (eff)
+                  {
+                     unsigned int s, num = xmlNodeGetNum(xfid, "slot");
+                     void *xsid = xmlMarkId(xfid);
+                     for (s=0; s<num; s++)
+                     {
+                        if (xmlNodeGetPos(xfid, xsid, "slot", s) != 0)
+                        {
+                           aaxVec4f params;
+                           long int n;
+
+                           n = xmlAttributeGetInt(xsid, "n");
+                           if (n == XML_NONE) n = s;
+
+                           params[0] = xmlNodeGetDouble(xsid, "p1");
+                           params[1] = xmlNodeGetDouble(xsid, "p2");
+                           params[2] = xmlNodeGetDouble(xsid, "p3");
+                           params[3] = xmlNodeGetDouble(xsid, "p4");
+                           aaxEffectSetSlotParams(eff, n, AAX_LINEAR, params);
+                        }
+                     }
+
+                     aaxEffectSetState(eff, AAX_TRUE);
+                     aaxEmitterSetEffect(emitter, eff);
+                     aaxEffectDestroy(eff);
+                  }
+               }
+            }
+         }
+         xmlFree(xfid);
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      }
+      xmlClose(xid);
+   }
+}

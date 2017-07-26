@@ -783,6 +783,7 @@ typedef unsigned long (AAX_APIENTRY *PFNAAXSENSORGETOFFSET)(const aaxConfig, enu
 typedef int (*aaxFilterFn)(void*, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxConfig, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
+AAX_API enum aaxFilterType AAX_APIENTRY aaxFilterGetByName(aaxConfig, const char*);
 AAX_API const char* AAX_APIENTRY aaxFilterGetNameByType(aaxConfig, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterSetParam(aaxFilter, int, int, float);
 AAX_API aaxFilter AAX_APIENTRY aaxFilterSetSlotParams(aaxFilter, unsigned, int, const aaxVec4f);
@@ -816,6 +817,7 @@ typedef aaxFilter (AAX_APIENTRY *PFNAAXFILTERAPPLY)(aaxFilterFn, void *, aaxFilt
 typedef int (*aaxEffectFn)(void*, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxConfig, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
+AAX_API enum aaxEffectType AAX_APIENTRY aaxEffectGetByName(aaxConfig, const char*);
 AAX_API const char* AAX_APIENTRY aaxEffectGetNameByType(aaxConfig, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectSetParam(aaxEffect, int, int, float);
 AAX_API aaxEffect AAX_APIENTRY aaxEffectSetSlotParams(aaxEffect, unsigned, int, const aaxVec4f);

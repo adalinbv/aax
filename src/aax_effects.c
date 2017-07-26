@@ -327,6 +327,61 @@ aaxEffectGetNameByType(aaxConfig handle, enum aaxEffectType type)
    return rv;
 }
 
+AAX_API enum aaxEffectType AAX_APIENTRY
+aaxEffectGetByName(aaxConfig handle, const char *name)
+{
+   enum aaxEffectType rv = AAX_EFFECT_NONE;
+   int slen;
+   char *p;
+   
+   if (!strncasecmp(name, "AAX_", 4)) {
+      name += 4;
+   }  
+   
+   p = strchr(name, '.');
+   while (p > name && *p != '_') --p;
+   slen = p-name;
+   
+   if (!strncasecmp(name, "pitch", slen)) {
+      rv = AAX_PITCH_EFFECT;
+   }
+   else if (!strncasecmp(name, "dynamic_pitch", slen) ||
+            !strncasecmp(name, "vibrato", slen)) {
+      rv = AAX_DYNAMIC_PITCH_EFFECT;
+   }
+   else if (!strncasecmp(name, "timed_pitch", slen) ||
+            !strncasecmp(name, "envelope", slen)) {
+      rv = AAX_TIMED_PITCH_EFFECT;
+   }
+   else if (!strncasecmp(name, "distortion", slen)) {
+      rv = AAX_DISTORTION_EFFECT;
+   }
+   else if (!strncasecmp(name, "phasing", slen)) {
+      rv = AAX_PHASING_EFFECT;
+   }
+   else if (!strncasecmp(name, "chorus", slen)) {
+      rv = AAX_CHORUS_EFFECT;
+   }
+   else if (!strncasecmp(name, "flanging", slen)) {
+      rv = AAX_FLANGING_EFFECT;
+   }
+   else if (!strncasecmp(name, "reverb", slen)) {
+      rv = AAX_REVERB_EFFECT;
+   }
+   else if (!strncasecmp(name, "convolution", slen)) {
+      rv = AAX_CONVOLUTION_EFFECT;
+   }
+
+   else if (!strncasecmp(name, "velocity", slen)) {
+      rv = AAX_VELOCITY_EFFECT;
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 /* internal use only, used by aaxdefs.h */

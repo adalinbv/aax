@@ -287,6 +287,58 @@ aaxFilterGetNameByType(aaxConfig handle, enum aaxFilterType type)
    return rv;
 }
 
+AAX_API enum aaxFilterType AAX_APIENTRY
+aaxFilterGetByName(aaxConfig handle, const char *name)
+{
+   enum aaxFilterType rv = AAX_FILTER_NONE;
+   int slen;
+   char *p;
+
+   if (!strncasecmp(name, "AAX_", 4)) {
+      name += 4;
+   }
+
+   p = strchr(name, '.');
+   while (p > name && *p != '_') --p;
+   slen = p-name;
+
+   if (!strncasecmp(name, "equalizer", slen)) {
+      rv = AAX_EQUALIZER;
+   }  
+   else if (!strncasecmp(name, "volume", slen)) {
+      rv = AAX_VOLUME_FILTER;
+   }
+   else if (!strncasecmp(name, "dynamic_gain", slen) ||
+            !strncasecmp(name, "tremolo", slen)) {
+       rv = AAX_DYNAMIC_GAIN_FILTER;
+   }
+   else if (!strncasecmp(name, "timed_gain", slen) ||
+            !strncasecmp(name, "envelope", slen)) {
+      rv = AAX_TIMED_GAIN_FILTER;
+   }
+   else if (!strncasecmp(name, "frequency", slen)) {
+      rv = AAX_FREQUENCY_FILTER;
+   }
+   else if (!strncasecmp(name, "graphic_equalizer", slen)) {
+      rv = AAX_GRAPHIC_EQUALIZER;
+   }
+   else if (!strncasecmp(name, "compressor", slen)) {
+      rv = AAX_COMPRESSOR;
+   }
+
+   else if (!strncasecmp(name, "angular", slen)) {
+      rv = AAX_ANGULAR_FILTER;
+   }
+   else if (!strncasecmp(name, "distance", slen)) {
+      rv = AAX_DISTANCE_FILTER;
+   }
+   else {
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+   }
+
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 /* internal use only, used by aaxdefs.h */
