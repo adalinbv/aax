@@ -31,7 +31,7 @@
 #include "api.h"
 
 static aaxFilter
-_aaxVolumeFilterCreate(_handle_t *handle, enum aaxFilterType type)
+_aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
    unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
    _filter_t* flt = calloc(1, size);
@@ -43,7 +43,7 @@ _aaxVolumeFilterCreate(_handle_t *handle, enum aaxFilterType type)
 
       flt->id = FILTER_ID;
       flt->state = AAX_FALSE;
-      flt->info = handle->info ? handle->info : _info;
+      flt->info = info;
 
       ptr = (char*)flt + sizeof(_filter_t);
       flt->slot[0] = (_aaxFilterInfo*)ptr;

@@ -31,7 +31,7 @@
 #include "api.h"
 
 static aaxFilter
-_aaxEqualizerCreate(_handle_t *handle, enum aaxFilterType type)
+_aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
    unsigned int size = sizeof(_filter_t);
    _filter_t* flt;
@@ -45,7 +45,7 @@ _aaxEqualizerCreate(_handle_t *handle, enum aaxFilterType type)
 
       flt->id = FILTER_ID;
       flt->state = AAX_FALSE;
-      flt->info = handle->info ? handle->info : _info;
+      flt->info = info;
 
       ptr = (char*)flt + sizeof(_filter_t);
       flt->slot[0] = (_aaxFilterInfo*)ptr;

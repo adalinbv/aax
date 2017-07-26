@@ -66,7 +66,7 @@ extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
 extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
 
-typedef aaxEffect _aaxEffectCreate(_handle_t*, enum aaxEffectType);
+typedef aaxEffect _aaxEffectCreate(_aaxMixerInfo*, enum aaxEffectType);
 typedef int _aaxEffectDestroy(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
 typedef aaxEffect _aaxEffectSetData(_effect_t*, aaxBuffer);

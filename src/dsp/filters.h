@@ -65,7 +65,7 @@ _filter_t* get_filter(aaxFilter);
 extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
 
 
-typedef aaxFilter _aaxFilterCreate(_handle_t*, enum aaxFilterType);
+typedef aaxFilter _aaxFilterCreate(_aaxMixerInfo*, enum aaxFilterType);
 typedef int _aaxFilterDestroy(_filter_t*);
 typedef aaxFilter _aaxFilterSetState(_filter_t*, int);
 typedef _filter_t* _aaxNewFilterHandle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
