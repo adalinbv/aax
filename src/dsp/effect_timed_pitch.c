@@ -32,7 +32,7 @@
 
 
 static aaxEffect
-_aaxTimedPitchEffectCreate(_handle_t *handle, enum aaxEffectType type)
+_aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
    unsigned int size = sizeof(_effect_t);
    _effect_t* eff = NULL;
@@ -47,7 +47,7 @@ _aaxTimedPitchEffectCreate(_handle_t *handle, enum aaxEffectType type)
 
       eff->id = EFFECT_ID;
       eff->state = AAX_FALSE;
-      eff->info = handle->info ? handle->info : _info;
+      eff->info = info;
 
       ptr = (char*)eff + sizeof(_effect_t);
       eff->slot[0] = (_aaxEffectInfo*)ptr;

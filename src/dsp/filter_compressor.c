@@ -33,7 +33,7 @@
 static float _aaxCompressorMinMax(float, int, unsigned char);
 
 static aaxFilter
-_aaxCompressorCreate(_handle_t *handle, enum aaxFilterType type)
+_aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
    unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
   _filter_t* flt = calloc(1, size);
@@ -45,7 +45,7 @@ _aaxCompressorCreate(_handle_t *handle, enum aaxFilterType type)
 
       flt->id = FILTER_ID;
       flt->state = AAX_FALSE;
-      flt->info = handle->info ? handle->info : _info;
+      flt->info = info;
 
       ptr = (char*)flt + sizeof(_filter_t);
       flt->slot[0] = (_aaxFilterInfo*)ptr;

@@ -39,11 +39,13 @@ AAX_API aaxFilter AAX_APIENTRY
 aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
 {
    _handle_t *handle = get_handle(config, __func__);
+   _aaxMixerInfo *info = (handle && handle->info) ? handle->info : _info;
    aaxFilter rv = NULL;
-   if (handle && (type < AAX_FILTER_MAX))
+
+   if (info && (type < AAX_FILTER_MAX))
    {
       _flt_function_tbl *flt = _aaxFilters[type-1];
-      rv = flt->create(handle, type);
+      rv = flt->create(info, type);
    }
    return rv;
 }

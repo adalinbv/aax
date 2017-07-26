@@ -32,7 +32,7 @@
 
 
 static aaxEffect
-_aaxPhasingEffectCreate(_handle_t *handle, enum aaxEffectType type)
+_aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* eff = calloc(1, size);
@@ -44,7 +44,7 @@ _aaxPhasingEffectCreate(_handle_t *handle, enum aaxEffectType type)
 
       eff->id = EFFECT_ID;
       eff->state = AAX_FALSE;
-      eff->info = handle->info ? handle->info : _info;
+      eff->info = info;
 
       ptr = (char*)eff + sizeof(_effect_t);
       eff->slot[0] = (_aaxEffectInfo*)ptr;

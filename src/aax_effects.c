@@ -36,11 +36,13 @@ AAX_API aaxEffect AAX_APIENTRY
 aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
 {
    _handle_t *handle = get_handle(config, __func__);
+   _aaxMixerInfo *info = (handle && handle->info) ? handle->info : _info;
    aaxEffect rv = NULL;
-   if (handle && (type < AAX_EFFECT_MAX))
+
+   if (info && (type < AAX_EFFECT_MAX))
    {
       _eff_function_tbl *eff = _aaxEffects[type-1];
-      rv = eff->create(handle, type);
+      rv = eff->create(info, type);
    }
    return rv;
 
