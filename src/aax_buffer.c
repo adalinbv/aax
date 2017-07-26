@@ -817,19 +817,17 @@ _bufDestroyRingBuffer(_buffer_t* buf)
 }
 
 static int
-_bufCreateFromAAXS(_buffer_t* handle, const void* aaxs, float freq)
+_bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
 {
    int rv = AAX_FALSE;
-   const void *d;
    void *xid;
 
    assert(aaxs);
 
    handle->aaxs = strdup(aaxs);
-   if (!aaxs) return rv;
+   if (!handle->aaxs) return rv;
 
-   d = handle->aaxs;
-   xid = xmlInitBuffer(d, strlen(d));
+   xid = xmlInitBuffer(handle->aaxs, strlen(handle->aaxs));
    if (xid)
    {
       void *xsid = xmlNodeGet(xid, "/sound");
@@ -856,36 +854,28 @@ _bufCreateFromAAXS(_buffer_t* handle, const void* aaxs, float freq)
                pitch = xmlNodeGetDouble(xwid, "pitch");
                staticity = xmlNodeGetDouble(xwid, "staticity");
 
-               if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) 
-               {
+               if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
                    wtype = AAX_BROWNIAN_NOISE;
                }
-               else if (!xmlAttributeCompareString(xwid, "src", "white-noise"))
-               {
+               else if (!xmlAttributeCompareString(xwid, "src", "white-noise")){
                    wtype = AAX_WHITE_NOISE;
                } 
-               else if (!xmlAttributeCompareString(xwid, "src", "pink-noise")) 
-               {
+               else if (!xmlAttributeCompareString(xwid, "src", "pink-noise")) {
                    wtype = AAX_PINK_NOISE;
                }
-               else if (!xmlAttributeCompareString(xwid, "src", "square"))
-               {
+               else if (!xmlAttributeCompareString(xwid, "src", "square")) {
                   wtype = AAX_SQUARE_WAVE;
                }
-               else if (!xmlAttributeCompareString(xwid, "src", "triangle"))
-               {
+               else if (!xmlAttributeCompareString(xwid, "src", "triangle")) {
                    wtype = AAX_TRIANGLE_WAVE;
                }
-               else if (!xmlAttributeCompareString(xwid, "src", "sawtooth"))
-               {
+               else if (!xmlAttributeCompareString(xwid, "src", "sawtooth")) {
                    wtype = AAX_SAWTOOTH_WAVE;
                }
-               else if (!xmlAttributeCompareString(xwid, "src", "impulse"))
-               {
+               else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
                    wtype = AAX_IMPULSE_WAVE;
                }
-               else	// !xmlAttributeCompareString(xwid, "src", "sine")
-               {
+               else {	// !xmlAttributeCompareString(xwid, "src", "sine")
                   wtype = AAX_SINE_WAVE;
                }
 
