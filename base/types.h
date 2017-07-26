@@ -112,6 +112,7 @@ typedef int size_t;
 typedef char*RESTRICT			char_ptr;
 typedef const char*RESTRICT		const_char_ptr;
 typedef void*RESTRICT			void_ptr;
+typedef void**RESTRICT			void_ptrptr;
 typedef const void*RESTRICT		const_void_ptr;
 typedef int32_t*RESTRICT		int32_ptr;
 typedef const int32_t*RESTRICT		const_int32_ptr;
