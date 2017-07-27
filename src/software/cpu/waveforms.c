@@ -520,6 +520,33 @@ _add_noise(void_ptr data, const_int32_ptr ptr, unsigned int no_samples, char bps
    }
 }
 
+static void
+_mul_noise(void_ptr data, const_int32_ptr ptr, unsigned int no_samples, char bps)
+{
+   unsigned int i = no_samples;
+   if (bps == 1)
+   {
+      uint8_t *p = data;
+      do {
+         *p++ *= (*ptr++ >> 16);
+      } while (--i);
+   }
+   else if (bps == 2)
+   {
+      int16_t *p = data;
+      do {
+         *p++ *= *ptr++ >> 8;
+      } while (--i);
+   }
+   else if (bps == 3 || bps == 4)
+   {
+      int32_t *p = data;
+      do {
+         *p++ *= *ptr++;
+      } while (--i);
+   }
+}
+
 #define NO_FILTER_STEPS         6
 void
 __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
@@ -561,6 +588,7 @@ __bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
 void
 _bufferMixWhiteNoise(void** data, VOID(void *scratch0), size_t no_samples, char bps, int tracks, float pitch, float gain, float dc, unsigned char skip)
 {
+   char ringmodulate = (gain < 0.0f) ? 1 : 0;
    _mix_fn mixfn = _get_mixfn(3, &gain);
    size_t noise_samples = pitch*no_samples;
    int32_t* scratch;
@@ -568,20 +596,24 @@ _bufferMixWhiteNoise(void** data, VOID(void *scratch0), size_t no_samples, char 
    scratch  = _aax_aligned_alloc((noise_samples+no_samples)*sizeof(int32_t));
    if (data && scratch)
    {
+      int32_t *ptr, *ptr2;
       int track;
 
       _aax_srandom();
+
+      ptr = scratch;
+      ptr2 = ptr + no_samples;
+      memset(ptr2, 0, noise_samples*sizeof(int32_t));
+      mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
+      _resample_32bps(ptr, ptr2, no_samples, pitch);
+
       for(track=0; track<tracks; track++)
       {
-         int32_t *ptr, *ptr2;
-
-         ptr = scratch;
-         ptr2 = ptr + no_samples;
-         memset(ptr2, 0, noise_samples*sizeof(int32_t));
-         mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
-
-         _resample_32bps(ptr, ptr2, no_samples, pitch);
-         _add_noise(data[track], ptr, no_samples, bps);
+         if (ringmodulate) {
+            _mul_noise(data[track], ptr, no_samples, bps);
+         } else {
+            _add_noise(data[track], ptr, no_samples, bps);
+         }
       }
 
       _aax_aligned_free(scratch);
@@ -591,6 +623,7 @@ _bufferMixWhiteNoise(void** data, VOID(void *scratch0), size_t no_samples, char 
 void
 _bufferMixPinkNoise(void** data, VOID(void *scratch0), size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
 {
+   char ringmodulate = (gain < 0.0f) ? 1 : 0;
    _mix_fn mixfn = _get_mixfn(3, &gain);
    size_t noise_samples = pitch*no_samples;
    int32_t* scratch;
@@ -598,22 +631,27 @@ _bufferMixPinkNoise(void** data, VOID(void *scratch0), size_t no_samples, char b
    scratch = _aax_aligned_alloc((noise_samples+2*no_samples)*sizeof(int32_t));
    if (data && scratch)
    {
+      int32_t *ptr, *ptr2;
       int track;
 
       _aax_srandom();
+
+      ptr = scratch;
+      ptr2 = ptr + no_samples;
+      memset(ptr2, 0, noise_samples*sizeof(int32_t));
+      mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
+
+      __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+      _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 1.5f);
+      _resample_32bps(ptr, ptr2, no_samples, pitch);
+
       for(track=0; track<tracks; track++)
       {
-         int32_t *ptr, *ptr2;
-
-         ptr = scratch;
-         ptr2 = ptr + no_samples;
-         memset(ptr2, 0, noise_samples*sizeof(int32_t));
-         mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
-
-         __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
-         _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 1.5f);
-         _resample_32bps(ptr, ptr2, no_samples, pitch);
-         _add_noise(data[track], ptr, no_samples, bps);
+         if (ringmodulate) {
+            _mul_noise(data[track], ptr, no_samples, bps);
+         } else {
+            _add_noise(data[track], ptr, no_samples, bps);
+         }
       }
       _aax_aligned_free(scratch);
    }
@@ -622,6 +660,7 @@ _bufferMixPinkNoise(void** data, VOID(void *scratch0), size_t no_samples, char b
 void
 _bufferMixBrownianNoise(void** data, VOID(void *scratch0), size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, float dc, unsigned char skip)
 {
+   char ringmodulate = (gain < 0.0f) ? 1 : 0;
    _mix_fn mixfn = _get_mixfn(3, &gain);
    size_t noise_samples = pitch*no_samples;
    int32_t* scratch;
@@ -629,26 +668,30 @@ _bufferMixBrownianNoise(void** data, VOID(void *scratch0), size_t no_samples, ch
    scratch = _aax_aligned_alloc((noise_samples+2*no_samples)*sizeof(int32_t));
    if (data && scratch)
    {
+      int32_t *ptr, *ptr2;
+      float hist, k;
       int track;
 
       _aax_srandom();
+
+      ptr = scratch;
+      ptr2 = ptr + no_samples;
+      memset(ptr2, 0, noise_samples*sizeof(int32_t));
+      mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
+
+      hist = 0.0f;
+      k = _aax_movingaverage_compute(100.0f, fs);
+      _batch_movingaverage(ptr2, ptr2, no_samples, &hist, k);
+      _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 3.5f);
+      _resample_32bps(ptr, ptr2, no_samples, pitch);
+
       for(track=0; track<tracks; track++)
       {
-         int32_t *ptr, *ptr2;
-         float hist, k;
-
-         ptr = scratch;
-         ptr2 = ptr + no_samples;
-         memset(ptr2, 0, noise_samples*sizeof(int32_t));
-         mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
-
-         hist = 0.0f;
-         k = _aax_movingaverage_compute(100.0f, fs);
-         _batch_movingaverage(ptr2, ptr2, no_samples, &hist, k);
-         _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 3.5f);
-
-         _resample_32bps(ptr, ptr2, no_samples, pitch);
-         _add_noise(data[track], ptr, no_samples, bps);
+         if (ringmodulate) {
+            _mul_noise(data[track], ptr, no_samples, bps);
+         } else {
+            _add_noise(data[track], ptr, no_samples, bps);
+         }
       }
       _aax_aligned_free(scratch);
    }
@@ -662,28 +705,28 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      void *mix = _aax_aligned_alloc(no_samples*bps);
-      if (mix)
+      void *ptr = _aax_aligned_alloc(no_samples*bps);
+      if (ptr)
       {
          unsigned int j = NO_IMPULSE_HARMONICS;
          float dt = GMATH_2PI/freq;
          float ngain = gain/NO_IMPULSE_HARMONICS;
 
-         memset(mix, 0, no_samples*bps);
+         memset(ptr, 0, no_samples*bps);
          do
          {
             float ndt = dt*j;
             if (ndt <= GMATH_PI) {
-               mixfn(mix, no_samples, ndt, 0.0f, 0, ngain, 1.0f, _sin_sample);
+               mixfn(ptr, no_samples, ndt, 0.0f, 0, ngain, 1.0f, _sin_sample);
             }
          } while (--j);
 
          if (ringmodulate) {
-            _mul_data(data, mix, tracks, no_samples, bps);
+            _mul_data(data, ptr, tracks, no_samples, bps);
          } else {
-            _add_data(data, mix, tracks, no_samples, bps);
+            _add_data(data, ptr, tracks, no_samples, bps);
          }
-         _aax_aligned_free(mix);
+         _aax_aligned_free(ptr);
       }
    }
 }
@@ -695,20 +738,20 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      void *mix = _aax_aligned_alloc(no_samples*bps);
-      if (mix)
+      void *ptr = _aax_aligned_alloc(no_samples*bps);
+      if (ptr)
       {
          float dt = GMATH_2PI/freq;
 
-         memset(mix, 0, no_samples*bps);
-         mixfn(mix, no_samples, dt, phase, 0, gain, 1.0f, _sin_sample);
+         memset(ptr, 0, no_samples*bps);
+         mixfn(ptr, no_samples, dt, phase, 0, gain, 1.0f, _sin_sample);
 
          if (ringmodulate) {
-            _mul_data(data, mix, tracks, no_samples, bps);
+            _mul_data(data, ptr, tracks, no_samples, bps);
          } else {
-            _add_data(data, mix, tracks, no_samples, bps);
+            _add_data(data, ptr, tracks, no_samples, bps);
          }
-         _aax_aligned_free(mix);
+         _aax_aligned_free(ptr);
       }
    }
 }
@@ -722,28 +765,28 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      void *mix = _aax_aligned_alloc(no_samples*bps);
-      if (mix)
+      void *ptr = _aax_aligned_alloc(no_samples*bps);
+      if (ptr)
       {
          unsigned int j = NO_SAWTOOTH_HARMONICS;
          float dt = GMATH_2PI/freq;
 
-         memset(mix, 0, no_samples*bps);
+         memset(ptr, 0, no_samples*bps);
          do
          {
             float ngain = 0.75f*gain/j;
             float ndt = dt*j;
             if (ndt <= GMATH_PI) {
-               mixfn(mix, no_samples, ndt, phase, 0, ngain, 1.0f, _sin_sample);
+               mixfn(ptr, no_samples, ndt, phase, 0, ngain, 1.0f, _sin_sample);
             }
          } while (--j);
 
          if (ringmodulate) {
-            _mul_data(data, mix, tracks, no_samples, bps);
+            _mul_data(data, ptr, tracks, no_samples, bps);
          } else {
-            _add_data(data, mix, tracks, no_samples, bps);
+            _add_data(data, ptr, tracks, no_samples, bps);
          }
-         _aax_aligned_free(mix);
+         _aax_aligned_free(ptr);
       }
    }
 }
@@ -756,28 +799,28 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      void *mix = _aax_aligned_alloc(no_samples*bps);
-      if (mix)
+      void *ptr = _aax_aligned_alloc(no_samples*bps);
+      if (ptr)
       {
          unsigned int j = NO_SAWTOOTH_HARMONICS;
 
-         memset(mix, 0, no_samples*bps);
+         memset(ptr, 0, no_samples*bps);
          do
          {
             float nfreq = freq/(2*j-1);
             float ngain = gain/(2*j-1);
             float ndt = GMATH_PI/nfreq;
             if (ndt <= GMATH_PI) {
-               mixfn(mix, no_samples, ndt, phase, 0, ngain, 1.0f, _sin_sample);
+               mixfn(ptr, no_samples, ndt, phase, 0, ngain, 1.0f, _sin_sample);
             }
          } while (--j);
 
          if (ringmodulate) {
-            _mul_data(data, mix, tracks, no_samples, bps);
+            _mul_data(data, ptr, tracks, no_samples, bps);
          } else {
-            _add_data(data, mix, tracks, no_samples, bps);
+            _add_data(data, ptr, tracks, no_samples, bps);
          }
-         _aax_aligned_free(mix);
+         _aax_aligned_free(ptr);
       }
    }
 }
@@ -790,31 +833,31 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
    _mix_fn mixfn = _get_mixfn(bps, &gain);
    if (data && mixfn)
    {
-      void *mix = _aax_aligned_alloc(no_samples*bps);
-      if (mix)
+      void *ptr = _aax_aligned_alloc(no_samples*bps);
+      if (ptr)
       {
          unsigned int j = NO_TRIANGLEWAVE_HARMONICS;
          float m = -1;
 
          gain *= 0.6f;
-         memset(mix, 0, no_samples*bps);
+         memset(ptr, 0, no_samples*bps);
          do
          {
             float nfreq = freq/(2*j-1);
             float ngain = m*gain/(j*j);
             float ndt = GMATH_2PI/nfreq;
             if (ndt <= GMATH_PI) {
-               mixfn(mix, no_samples, ndt, phase, 0, ngain, 1.0f, _sin_sample);
+               mixfn(ptr, no_samples, ndt, phase, 0, ngain, 1.0f, _sin_sample);
             }
             m *= -1.0f;
          } while (--j);
 
          if (ringmodulate) {
-            _mul_data(data, mix, tracks, no_samples, bps);
+            _mul_data(data, ptr, tracks, no_samples, bps);
          } else {
-            _add_data(data, mix, tracks, no_samples, bps);
+            _add_data(data, ptr, tracks, no_samples, bps);
          }
-         _aax_aligned_free(mix);
+         _aax_aligned_free(ptr);
       }
    }
 }
