@@ -494,56 +494,71 @@ _mul_data(void_ptrptr data, const_void_ptr mix, int tracks, unsigned int no_samp
 }
 
 static void
-_add_noise(void_ptr data, const_int32_ptr ptr, unsigned int no_samples, char bps)
+_add_noise(void_ptrptr data, const_int32_ptr ptr, int tracks, unsigned int no_samples, char bps)
 {
-   unsigned int i = no_samples;
-   if (bps == 1)
+   int track;
+   for(track=0; track<tracks; track++)
    {
-      uint8_t *p = data;
-      do {
-         *p++ += (*ptr++ >> 16);
-      } while (--i);
-   }
-   else if (bps == 2)
-   {
-      int16_t *p = data;
-      do {
-         *p++ += *ptr++ >> 8;
-      } while (--i);
-   }
-   else if (bps == 3 || bps == 4)
-   {
-      int32_t *p = data;
-      do {
-         *p++ += *ptr++;
-      } while (--i);
+      unsigned int i = no_samples;
+      if (bps == 1)
+      {
+         uint8_t *p = data[track];
+         do {
+            *p++ += (*ptr++ >> 16);
+         } while (--i);
+      }
+      else if (bps == 2)
+      {
+         int16_t *p = data[track];
+         do {
+            *p++ += *ptr++ >> 8;
+         } while (--i);
+      }
+      else if (bps == 3 || bps == 4)
+      {
+         int32_t *p = data[track];
+         do {
+            *p++ += *ptr++;
+         } while (--i);
+      }
    }
 }
 
 static void
-_mul_noise(void_ptr data, const_int32_ptr ptr, unsigned int no_samples, char bps)
+_mul_noise(void_ptrptr data, const_int32_ptr ptr, int tracks, unsigned int no_samples, char bps)
 {
-   unsigned int i = no_samples;
-   if (bps == 1)
+   int track;
+   for(track=0; track<tracks; track++)
    {
-      uint8_t *p = data;
-      do {
-         *p++ *= (*ptr++ >> 16);
-      } while (--i);
-   }
-   else if (bps == 2)
-   {
-      int16_t *p = data;
-      do {
-         *p++ *= *ptr++ >> 8;
-      } while (--i);
-   }
-   else if (bps == 3 || bps == 4)
-   {
-      int32_t *p = data;
-      do {
-         *p++ *= *ptr++;
-      } while (--i);
+      static const float max32 = 255.0f*32765.0f;
+      unsigned int i = no_samples;
+      if (bps == 1)
+      {
+         static const float max = 127.0f;
+         uint8_t *d = data[track];
+         do {
+            *d = RINGMODULATE(*d, *ptr++ >> 16, max32, max);
+            ++d;
+         } while (--i);
+      }
+      else if (bps == 2)
+      {
+         static const float max = 32765.0f;
+         int16_t *d = data[track];
+         do {
+            *d = RINGMODULATE(*d, *ptr++ >> 8, max32, max);
+            ++d;
+         } while (--i);
+      }
+      else if (bps == 3 || bps == 4)
+      {
+         static const float max = 255.0f*32765.0f;
+         int32_t *d = data[track];
+         do {
+            *d = RINGMODULATE(*d, *ptr++, max32, max);
+            ++d;
+         } while (--i);
+      }
    }
 }
 
@@ -597,7 +612,6 @@ _bufferMixWhiteNoise(void** data, VOID(void *scratch0), size_t no_samples, char 
    if (data && scratch)
    {
       int32_t *ptr, *ptr2;
-      int track;
 
       _aax_srandom();
 
@@ -607,13 +621,10 @@ _bufferMixWhiteNoise(void** data, VOID(void *scratch0), size_t no_samples, char 
       mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, dc, _rand_sample);
       _resample_32bps(ptr, ptr2, no_samples, pitch);
 
-      for(track=0; track<tracks; track++)
-      {
-         if (ringmodulate) {
-            _mul_noise(data[track], ptr, no_samples, bps);
-         } else {
-            _add_noise(data[track], ptr, no_samples, bps);
-         }
+      if (ringmodulate) {
+         _mul_noise(data, ptr, tracks, no_samples, bps);
+      } else {
+         _add_noise(data, ptr, tracks, no_samples, bps);
       }
 
       _aax_aligned_free(scratch);
@@ -632,7 +643,6 @@ _bufferMixPinkNoise(void** data, VOID(void *scratch0), size_t no_samples, char b
    if (data && scratch)
    {
       int32_t *ptr, *ptr2;
-      int track;
 
       _aax_srandom();
 
@@ -645,13 +655,10 @@ _bufferMixPinkNoise(void** data, VOID(void *scratch0), size_t no_samples, char b
       _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 1.5f);
       _resample_32bps(ptr, ptr2, no_samples, pitch);
 
-      for(track=0; track<tracks; track++)
-      {
-         if (ringmodulate) {
-            _mul_noise(data[track], ptr, no_samples, bps);
-         } else {
-            _add_noise(data[track], ptr, no_samples, bps);
-         }
+      if (ringmodulate) {
+         _mul_noise(data, ptr, tracks, no_samples, bps);
+      } else {
+         _add_noise(data, ptr, tracks, no_samples, bps);
       }
       _aax_aligned_free(scratch);
    }
@@ -670,7 +677,6 @@ _bufferMixBrownianNoise(void** data, VOID(void *scratch0), size_t no_samples, ch
    {
       int32_t *ptr, *ptr2;
       float hist, k;
-      int track;
 
       _aax_srandom();
 
@@ -685,13 +691,10 @@ _bufferMixBrownianNoise(void** data, VOID(void *scratch0), size_t no_samples, ch
       _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 3.5f);
       _resample_32bps(ptr, ptr2, no_samples, pitch);
 
-      for(track=0; track<tracks; track++)
-      {
-         if (ringmodulate) {
-            _mul_noise(data[track], ptr, no_samples, bps);
-         } else {
-            _add_noise(data[track], ptr, no_samples, bps);
-         }
+      if (ringmodulate) {
+         _mul_noise(data, ptr, tracks, no_samples, bps);
+      } else {
+         _add_noise(data, ptr, tracks, no_samples, bps);
       }
       _aax_aligned_free(scratch);
    }
