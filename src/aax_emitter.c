@@ -1425,6 +1425,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                      aaxFilterSetState(flt, AAX_TRUE);
                      aaxEmitterSetFilter(emitter, flt);
                      aaxFilterDestroy(flt);
+                     xmlFree(xsid);
                   }
                }
             }
@@ -1474,11 +1475,13 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                      aaxEffectSetState(eff, AAX_TRUE);
                      aaxEmitterSetEffect(emitter, eff);
                      aaxEffectDestroy(eff);
+                     xmlFree(xsid);
                   }
                }
             }
          }
          xmlFree(xfid);
+         xmlFree(xmid);
       }
       else {
          _aaxErrorSet(AAX_INVALID_STATE);
