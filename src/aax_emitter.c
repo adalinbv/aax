@@ -1388,7 +1388,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
             {
-               char src[64];
+               char src[65];
                int slen;
 
                slen = xmlAttributeCopyString(xfid, "src", src, 64);
@@ -1402,6 +1402,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                   flt = aaxFilterCreate(config, ftype);
                   if (flt)
                   {
+                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
                      unsigned int s, num = xmlNodeGetNum(xfid, "slot");
                      void *xsid = xmlMarkId(xfid);
                      for (s=0; s<num; s++)
@@ -1422,7 +1423,14 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                         }
                      }
 
-                     aaxFilterSetState(flt, AAX_TRUE);
+                     slen = xmlNodeCopyString(xfid, "state", src, 64);
+                     if (slen)
+                     {
+                        src[slen] = 0;
+                        state = aaxGetWaveformTypeByName(src);
+                     }
+                     aaxFilterSetState(flt, state);
+
                      aaxEmitterSetFilter(emitter, flt);
                      aaxFilterDestroy(flt);
                      xmlFree(xsid);
@@ -1452,6 +1460,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                   eff = aaxEffectCreate(config, ftype);
                   if (eff)
                   {
+                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
                      unsigned int s, num = xmlNodeGetNum(xfid, "slot");
                      void *xsid = xmlMarkId(xfid);
                      for (s=0; s<num; s++)
@@ -1472,7 +1481,13 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                         }
                      }
 
-                     aaxEffectSetState(eff, AAX_TRUE);
+                     slen = xmlNodeCopyString(xfid, "state", src, 64);
+                     if (slen)
+                     {
+                        src[slen] = 0;
+                        state = aaxGetWaveformTypeByName(src);
+                     }
+                     aaxEffectSetState(eff, state);
                      aaxEmitterSetEffect(emitter, eff);
                      aaxEffectDestroy(eff);
                      xmlFree(xsid);
