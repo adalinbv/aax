@@ -35,7 +35,7 @@ static float _gains[MAX_WAVE];
 
 static float _aax_rand_sample();
 static unsigned int WELLRNG512(void);
-static void __bufferPinkNoiseFilter(float32_ptr, size_t, float);
+static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_resample_float(float32_ptr, const_float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
@@ -175,13 +175,13 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain);
    if (data && gain)
-   {	// __bufferPinkNoiseFilter requires twice noise_samples buffer space
+   {	// _aax_pinknoise_filter requires twice noise_samples buffer space
       float *ptr2 = _aax_generate_noise(2*noise_samples, gain, skip);
       float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
 
       if (ptr && ptr2)
       {
-         __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+         _aax_pinknoise_filter(ptr2, noise_samples, fs);
          _batch_fmul_value(ptr2, sizeof(float), noise_samples, 1.5f);
          _aax_resample_float(ptr, ptr2, no_samples, pitch);
 
@@ -400,7 +400,7 @@ _aax_generate_waveform(size_t no_samples, float freq, float phase, float gain, f
          if (ngain)
          {
             int i = no_samples;
-            float hdt = GMATH_PI/nfreq;
+            float hdt = GMATH_2PI/nfreq;
             float s = phase;
             float *ptr = rv;
 
@@ -566,7 +566,7 @@ _aax_mul_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
 
 #define NO_FILTER_STEPS         6
 void
-__bufferPinkNoiseFilter(float32_ptr data, size_t no_samples, float fs)
+_aax_pinknoise_filter(float32_ptr data, size_t no_samples, float fs)
 {
    float f = (float)logf(fs/100.0f)/(float)NO_FILTER_STEPS;
    _aaxRingBufferFreqFilterData filter;
@@ -954,13 +954,13 @@ _get_mixfn(char bps, float *gain)
 
 #define AVERAGE_SAMPS		8
 static void
-_resample_32bps(int32_t *dptr, const int32_t *sptr, size_t dmax, float freq_factor)
+_resample_float32(float_ptr dptr, const_flaot_ptrt sptr, size_t dmax, float freq_factor)
 {
    size_t i, smax = floorf(dmax * freq_factor);
-   int32_t *s = (int32_t*)sptr;
-   int32_t *d = dptr;
+   const float *s = sptr;
+   float *d = dptr;
    float smu = 0.0f;
-   int32_t samp, dsamp;
+   float samp, dsamp;
 
    samp = *(s+smax-1);
    dsamp = *(++s) - samp;
@@ -983,8 +983,8 @@ _resample_32bps(int32_t *dptr, const int32_t *sptr, size_t dmax, float freq_fact
       for (i=0; i<AVERAGE_SAMPS; i++)
       {
          float fact = 0.5f - (float)i/(4.0f*AVERAGE_SAMPS);
-         int32_t dst = dptr[dmax-i-1];
-         int32_t src = dptr[i];
+         float dst = dptr[dmax-i-1];
+         float src = dptr[i];
 
          dptr[dmax-i-1] = fact*src + (1.0f - fact)*dst;
          dptr[i] = (1.0f - fact)*src + fact*dst;
@@ -1140,7 +1140,7 @@ _mul_noise(void_ptrptr data, const_int32_ptr ptr, int tracks, unsigned int no_sa
 
 #define NO_FILTER_STEPS         6
 void
-__bufferPinkNoiseFilter(int32_t *data, size_t no_samples, float fs)
+_aax_pinknoise_filter(int32_t *data, size_t no_samples, float fs)
 {
    float f = (float)logf(fs/100.0f)/(float)NO_FILTER_STEPS;
    _aaxRingBufferFreqFilterData filter;
@@ -1195,7 +1195,7 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
       ptr2 = ptr + no_samples;
       memset(ptr2, 0, noise_samples*sizeof(int32_t));
       mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, _aax_rand_sample);
-      _resample_32bps(ptr, ptr2, no_samples, pitch);
+      _resample_float32(ptr, ptr2, no_samples, pitch);
 
       if (ringmodulate) {
          _mul_noise(data, ptr, tracks, no_samples, bps);
@@ -1227,9 +1227,9 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
       memset(ptr2, 0, noise_samples*sizeof(int32_t));
       mixfn(ptr2, noise_samples, 0.0f, 1.0f, skip, gain, _aax_rand_sample);
 
-      __bufferPinkNoiseFilter(ptr2, noise_samples, fs);
+      _aax_pinknoise_filter(ptr2, noise_samples, fs);
       _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 1.5f);
-      _resample_32bps(ptr, ptr2, no_samples, pitch);
+      _resample_float32(ptr, ptr2, no_samples, pitch);
 
       if (ringmodulate) {
          _mul_noise(data, ptr, tracks, no_samples, bps);
@@ -1265,7 +1265,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
       k = _aax_movingaverage_compute(100.0f, fs);
       _batch_movingaverage(ptr2, ptr2, no_samples, &hist, k);
       _batch_imul_value(ptr2, sizeof(int32_t), no_samples, 3.5f);
-      _resample_32bps(ptr, ptr2, no_samples, pitch);
+      eresample_float32(ptr, ptr2, no_samples, pitch);
 
       if (ringmodulate) {
          _mul_noise(data, ptr, tracks, no_samples, bps);
