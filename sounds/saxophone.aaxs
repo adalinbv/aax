@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<sound frequency="220">
+
+  <waveform src="brownian-noise">
+   <pitch>0.3</pitch>
+   <ratio>0.73</ratio>
+   <staticity>0.1</staticity>
+  </waveform>
+  <waveform src="sawtooth">
+   <processing>mix</processing>
+   <ratio>0.73</ratio>
+  </waveform>
+  <waveform src="sine">
+   <processing>modulate</processing>
+   <pitch>2.9</pitch>
+   <ratio>1.0</ratio>
+  </waveform>
+
+</sound>

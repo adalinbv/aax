@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<sound name="Crash Cymbal" frequency="3700">
+
+ <waveform src="sine"/>
+ <waveform src="sine">
+  <processing>modulate</processing>
+  <pitch>0.7</pitch>
+  <ratio>0.9</ratio>
+ </waveform>
+ <waveform src="impulse">
+  <processing>modulate</processing>
+  <pitch>1.0</pitch>
+  <ratio>0.8</ratio>
+ </waveform>
+ <waveform src="white-noise">
+  <processing>add</processing>
+  <pitch>1.0</pitch>
+  <ratio>0.42</ratio>
+  <staticity>0.02</staticity>
+ </waveform>
+
+ <filter src="envelope">
+  <slot n="0">
+   <p1>0.00</p1>
+   <p2 factor="velocity">0.01</p2>
+   <p3 factor="soften">1.50</p3>
+   <p4>0.05</p4>
+  </slot>
+  <slot n="1">
+   <p1>1.00</p1>
+   <p2>0.10</p2>
+   <p3>0.90</p3>
+   <p4>0.05</p4>
+  </slot>
+  <slot n="2">
+   <p1>0.9</p1>
+   <p2 factor="sustain">1.0</p2>
+   <p3>0.00</p3>
+   <p4>0.00</p4>
+  </slot>
+ </filter>
+ <filter src="dynamic_gain">
+  <state>triangle</state>
+  <slot n="0">
+   <p1>0.0</p1>
+   <p2>20.0</p2>
+   <p3>0.40</p3>
+   <p4>0.00</p4>
+  </slot>
+ </filter>
+
+</sound>

@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<sound name="Acoustic Grand Piano" frequency="220">
+
+ <waveform src="triangle"/>
+ <waveform src="triangle">
+  <processing>mix</processing>
+  <pitch>2.0</pitch>
+  <ratio>0.333</ratio>
+ </waveform>
+ <waveform src="triangle">
+  <processing>add</processing>
+  <pitch>4.0</pitch>
+  <ratio>-0.2</ratio>
+ </waveform>
+
+ <filter src="envelope">
+  <slot n="0">
+   <p1>0.00</p1>
+   <p2 factor="velocity">0.01</p2>
+   <p3 factor="soften">1.20</p3>
+   <p4>0.05</p4>
+  </slot>
+  <slot n="1">
+   <p1>0.70</p1>
+   <p2>0.10</p2>
+   <p3>0.60</p3>
+   <p4>0.05</p4>
+  </slot>
+  <slot n="2">
+   <p1>0.45</p1>
+   <p2 factor="sustain">1.2</p2>
+   <p3>0.00</p3>
+   <p4>0.00</p4>
+  </slot>
+ </filter>
+
+</sound>
