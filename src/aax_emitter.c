@@ -1449,7 +1449,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                char src[64];
                int slen;
 
-               slen = xmlAttributeCopyString(xfid, "src", src, 64);
+               slen = xmlAttributeCopyString(xeid, "src", src, 64);
                if (slen)
                {
                   enum aaxEffectType ftype;
@@ -1461,11 +1461,11 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                   if (eff)
                   {
                      enum aaxWaveformType state = AAX_CONSTANT_VALUE;
-                     unsigned int s, num = xmlNodeGetNum(xfid, "slot");
-                     void *xsid = xmlMarkId(xfid);
+                     unsigned int s, num = xmlNodeGetNum(xeid, "slot");
+                     void *xsid = xmlMarkId(xeid);
                      for (s=0; s<num; s++)
                      {
-                        if (xmlNodeGetPos(xfid, xsid, "slot", s) != 0)
+                        if (xmlNodeGetPos(xeid, xsid, "slot", s) != 0)
                         {
                            aaxVec4f params;
                            long int n;
@@ -1481,7 +1481,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                         }
                      }
 
-                     slen = xmlNodeCopyString(xfid, "state", src, 64);
+                     slen = xmlNodeCopyString(xeid, "state", src, 64);
                      if (slen)
                      {
                         src[slen] = 0;
@@ -1495,7 +1495,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                }
             }
          }
-         xmlFree(xfid);
+         xmlFree(xeid);
          xmlFree(xmid);
       }
       else {
