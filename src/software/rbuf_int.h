@@ -190,9 +190,9 @@ void _aaxRingBufferLimiter(MIX_PTR_T, size_t*, size_t*, float, float);
 
 
 /** BUFFER */
-void _bufferMixWhiteNoise(void**, void*, size_t, char, int, float, float, float, unsigned char);
-void _bufferMixPinkNoise(void**, void*, size_t, char, int, float, float, float, float, unsigned char);
-void _bufferMixBrownianNoise(void**, void*, size_t, char, int, float, float, float, float, unsigned char);
+void _bufferMixWhiteNoise(void**, size_t, char, int, float, float, unsigned char);
+void _bufferMixPinkNoise(void**, size_t, char, int, float, float, float, unsigned char);
+void _bufferMixBrownianNoise(void**, size_t, char, int, float, float, float, unsigned char);
 void _bufferMixSineWave(void**, float, char, size_t, int, float, float);
 void _bufferMixSquareWave(void**, float, char, size_t, int, float, float);
 void _bufferMixTriangleWave(void**, float, char, size_t, int, float, float);

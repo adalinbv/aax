@@ -233,6 +233,32 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
 
 static float _gains[MAX_WAVE] = { 0.95f, 0.9f, 0.7f, 1.1f, 1.0f };
 
+float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
+{
+  /* _SQUARE_WAVE */
+  { 1.f, 0.0f, 1.f/3.f, 0.f, 1.f/5.f, 0.f, 1.f/7.f, 0.f,
+    1.f/9.f, 0.f, 1.f/11.f, 0.f, 1.f/13.f, 0.f, 1.f/15.f, 0.f },
+
+  /* _TRIANGLE_WAVE */
+  { 1.f, 0.f, -1.f/9.f, 0.f, 1.f/25.f, 0.f, -1.f/49.f, 0.f,
+    1.f/81.f, 0.f, -1.f/121.f, 0.f, 1.f/169.f, 0.0f, -1.f/225.f, 0.f },
+
+  /* _SAWTOOTH_WAVE */
+  { 1.f, 1.f/2.f, 1.f/3.f, 1.f/4.f, 1.f/5.f, 1.f/6.f, 1.f/7.f, 1.f/8.f,
+    1.f/9.f, 1.f/10.f, 1.f/11.f, 1.f/12.f, 1.f/13.f, 1.f/14.f, 1.f/15.f,
+    1.f/16.f},
+
+  /* _IMPULSE_WAVE */
+  { 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
+    1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
+    1.f/16.f, 1.f/16.f },
+
+  /* _SINE_WAVE */
+  { 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f }
+
+};
+
 /** MT199367                                                                  *
  * "Cleaned up" and simplified Mersenne Twister implementation.               *
  * Vastly smaller and more easily understood and embedded.  Stores the        *
