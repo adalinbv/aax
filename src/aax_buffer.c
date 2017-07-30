@@ -1022,7 +1022,6 @@ _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float stati
 
       for (i=0; i<AAX_MAX_WAVE; i++)
       {
-         float dc = 1.0; /* duty cicle for noise */
          switch (wtype & bit)
          {
          case AAX_SINE_WAVE:
@@ -1035,7 +1034,7 @@ _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float stati
          case AAX_WHITE_NOISE:
          case AAX_PINK_NOISE:
          case AAX_BROWNIAN_NOISE:
-            rv = rb->data_mix_noise(rb, wtype & bit, fs_mixer, pitch, ratio, dc, skip);
+            rv = rb->data_mix_noise(rb, wtype & bit, fs_mixer, pitch, ratio, skip);
             break;
          default:
             break;

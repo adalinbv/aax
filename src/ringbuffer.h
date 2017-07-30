@@ -581,7 +581,7 @@ _aaxRingBufferDataMixWaveformFn(struct _aaxRingBuffer_t*, enum aaxWaveformType, 
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, enum aaxWaveformType, float, float, float, float, char);
+_aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, enum aaxWaveformType, float, float, float, char);
 
 /**
  * Limit the audio data in the ringbuffer

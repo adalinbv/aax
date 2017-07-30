@@ -23,6 +23,18 @@ extern "C" {
 #define _AAX_SYNTH_MAX_WAVEFORMS	4
 #define _AAX_SYNTH_MAX_HARMONICS	16
 
+enum
+{
+   _SQUARE_WAVE = 0,
+   _TRIANGLE_WAVE,
+   _SAWTOOTH_WAVE,
+   _IMPULSE_WAVE,
+   _SINE_WAVE,
+
+   MAX_WAVE
+};
+
+float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS];
 
 float **_aax_analyze_waveforms(void**, unsigned int, float);
 float **_aax_analyze_envelopes(void**, unsigned int, float);
