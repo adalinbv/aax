@@ -525,26 +525,32 @@ _aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
       const float *m = mix;
       if (bps == 1)
       {
-         float mul = 127.0f * gain / GMATH_PI_2;
+         static const float max = 127.0f;
+         static const float mul = 127.0f / GMATH_PI_2;
          int8_t *d = data[track];
          do {
-            *d++ += (atanf(*m++) * mul);
+            *d = mul * atanf(*d/max + *m++ * gain);
+             ++d;
          } while (--i);
       }
       else if (bps == 2)
       {
-         float mul = 32765.0f * gain / GMATH_PI_2;
+         static const float max = 32765.0f;
+         static const float mul = 32765.0f / GMATH_PI_2;
          int16_t *d = data[track];
          do {
-            *d++ += (atanf(*m++) * mul);
+            *d = mul * atanf(*d/max + *m++ * gain);
+             ++d;
          } while (--i);
       }
       else if (bps == 3 || bps == 4)
       {
-         float mul = 255.0f*32765.0f * gain / GMATH_PI_2;
+         static const float max = 255.0f*32765.0f;
+         static const float mul = 255.0f*32765.0f / GMATH_PI_2;
          int32_t *d = data[track];
          do {
-            *d++ += (atanf(*m++) * mul);
+            *d = mul * atanf(*d/max + *m++ * gain);
+             ++d;
          } while (--i);
       }
    }
@@ -562,29 +568,32 @@ _aax_mul_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
       const float *m = mix;
       if (bps == 1)
       {
-         static const float max = 127.0f / GMATH_PI_2;
+         static const float max = 127.0f;
+         static const float mul = 127.0f / GMATH_PI_2;
          int8_t *d = data[track];
          do {
-            *d = max*((*d/max)*(atanf(*m++) * gain));
-            d++;
+            *d = mul * atanf(*d/max * *m++ * gain);
+            ++d;
          } while (--i);
       }
       else if (bps == 2)
       {
-         static const float max = 32765.0f / GMATH_PI_2;
+         static const float max = 32765.0f;
+         static const float mul = 32765.0f / GMATH_PI_2;
          int16_t *d = data[track];
          do {
-            *d = max*((*d/max)*(atanf(*m++) * gain));
-            d++;
+            *d = mul * atanf(*d/max * *m++ * gain);
+            ++d;
          } while (--i);
       }
       else if (bps == 3 || bps == 4)
       {  
-         static const float max = 255.0f*32765.0f / GMATH_PI_2;
+         static const float max = 255.0f*32765.0f;
+         static const float mul = 255.0f*32765.0f / GMATH_PI_2;
          int32_t *d = data[track];
          do {
-            *d = max*((*d/max)*(atanf(*m++) * gain));
-            d++;
+            *d = mul * atanf(*d/max * *m++ * gain);
+            ++d;
          } while (--i);
       }
    }
