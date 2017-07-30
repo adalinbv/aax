@@ -1,8 +1,18 @@
-* Fri Mar 17 2017 - tech@adalin.org
-- AeonWave (2.8.0) stable; urgency=low
+* Sat Jul 29 2017 - tech@adalin.org
+- AeonWave (3.0.0) stable; urgency=low
+ * Reorginze the streaming code to make it more flexible.
+ * Add read support for Opus using libopus, when it is installed.
  * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.
  * Add support for WAV embeded MP3 files (if mpg123 is installed).
+ * Add support for AAXS files when calling aaxBufferReadFromStream.
+ * Add the option to define filters and effects in the AAXS file. These will
+   get applied automatically when the buffer is added to an emitter.
+ * Add a functions to get filter and effect types by name.
+ * Add a function to get a waveform type by name.
+ * Add a convolution filer.
  * Fix a segmentation fault when a particular file extension does not not support writing
+
+-- Erik Hofman <tech@adalin.org>  Sat, 29 Jul  2017 14:51:00 + 0200
 
 * Fri Jul 29  2016 - tech@adalin.org
 - AeonWave (2.7.0) stable; urgency=low
