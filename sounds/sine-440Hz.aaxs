@@ -1,0 +1,7 @@
+<?xml version="1.0"?>
+
+<sound frequency="440">
+
+  <waveform src="sine"/>
+
+</sound>
