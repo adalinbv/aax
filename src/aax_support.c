@@ -365,6 +365,39 @@ aaxGetNoCores(aaxConfig cfg)
    return rv;
 }
 
+AAX_API enum aaxType AAX_APIENTRY
+aaxGetTypeByName(const char *name)
+{
+   enum aaxType rv = AAX_TYPE_NONE;
+   if (name)
+   {
+      if (!strncmp(name, "AAX_", 4)) {
+         name += 4;
+      }
+
+      if (!strcasecmp(name, "log") || !strcasecmp(name, "db") ||
+          !strcasecmp(name, "logarithmic")) { 
+         rv = AAX_LOGARITHMIC;
+      } else if (!strcasecmp(name, "rad") || !strcasecmp(name, "radians")) {
+         rv = AAX_RADIANS;
+      } else if (!strcasecmp(name, "deg") || !strcasecmp(name, "degrees")) {
+         rv = AAX_DEGREES;
+      } else if (!strcasecmp(name, "bytes")) {
+         rv = AAX_BYTES;
+      } else if (!strcasecmp(name, "frames")) {
+         rv = AAX_FRAMES;
+      } else if (!strcasecmp(name, "samples")) {
+         rv = AAX_SAMPLES;
+      } else if (!strcasecmp(name, "usec") || !strcasecmp(name, "μsec") ||
+                 !strcasecmp(name, "microseconds")) {
+         rv = AAX_MICROSECONDS;
+      } else {
+         rv = AAX_LINEAR;
+      } 
+   }
+   return rv;
+}
+
 AAX_API enum aaxWaveformType AAX_APIENTRY
 aaxGetWaveformTypeByName(const char *name)
 {

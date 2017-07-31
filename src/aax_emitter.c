@@ -1409,6 +1409,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                      {
                         if (xmlNodeGetPos(xfid, xsid, "slot", s) != 0)
                         {
+                           enum aaxType type = AAX_LINEAR;
                            aaxVec4f params;
                            long int n;
 
@@ -1419,7 +1420,14 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                            params[1] = xmlNodeGetDouble(xsid, "p2");
                            params[2] = xmlNodeGetDouble(xsid, "p3");
                            params[3] = xmlNodeGetDouble(xsid, "p4");
-                           aaxFilterSetSlotParams(flt, n, AAX_LINEAR, params);
+
+                           slen = xmlAttributeCopyString(xsid, "type", src, 64);
+                           if (slen)
+                           {
+                              src[slen] = 0;
+                              type = aaxGetTypeByName(src);
+                           }
+                           aaxFilterSetSlotParams(flt, n, type, params);
                         }
                      }
 

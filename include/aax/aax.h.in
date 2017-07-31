@@ -517,6 +517,7 @@ AAX_API const char* AAX_APIENTRY aaxGetErrorString(enum aaxErrorType);
 AAX_API unsigned AAX_APIENTRY aaxGetNoCores(aaxConfig);
 AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
 AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);
+AAX_API enum aaxType AAX_APIENTRY aaxGetTypeByName(const char*);
 AAX_API enum aaxWaveformType AAX_APIENTRY aaxGetWaveformTypeByName(const char*);
 AAX_API int AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
 
