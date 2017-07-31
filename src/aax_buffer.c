@@ -952,7 +952,7 @@ _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float stati
 
    if (wtype > AAX_LAST_WAVEFORM) {
       _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
-   } else if (ratio > 1.0f || ratio < -1.0f) {
+   } else if ((ptype == AAX_MIX) && (ratio > 1.0f || ratio < -1.0f)) {
       _aaxErrorSet(AAX_INVALID_PARAMETER + 4);
    } else if (ptype >= AAX_PROCESSING_MAX) {
       _aaxErrorSet(AAX_INVALID_PARAMETER + 5);
