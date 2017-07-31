@@ -99,6 +99,7 @@ typedef struct
 
 } _driver_t;
 
+static int _aax_mpg123_init = AAX_FALSE;
 static int _getFormatFromMP3Format(int);
 static void _detect_mpg123_song_info(_driver_t*);
 
@@ -238,7 +239,12 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
       {
          if (!handle->id)
          {
-            pmpg123_init();
+            if (!_aax_mpg123_init)
+            {
+               pmpg123_init();
+               _aax_mpg123_init = AAX_TRUE;
+            }
+
             handle->id = pmpg123_new(NULL, NULL);
             if (handle->id)
             {
@@ -282,7 +288,12 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                   _AAX_FILEDRVLOG("MPG123: Unable to initialize mpg123");
                   pmpg123_delete(handle->id);
                   handle->id = NULL;
-                  pmpg123_exit();
+
+                  if (_aax_mpg123_init)
+                  {
+                     pmpg123_exit();
+                     _aax_mpg123_init = AAX_FALSE;
+                  }
                }
             }
          }
@@ -386,7 +397,11 @@ _mpg123_close(_fmt_t *fmt)
       {
          pmpg123_delete(handle->id);
          handle->id = NULL;
-         pmpg123_exit();
+         if (_aax_mpg123_init)
+         {
+            pmpg123_exit();
+            _aax_mpg123_init = AAX_FALSE;
+         }
       }
       else
       {
