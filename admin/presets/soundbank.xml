@@ -56,14 +56,16 @@
         <ratio>0.333</ratio>
       </waveform>
     </sound>
+
     <sound name="Tubular Bells" frequency="220">
       <waveform src="square">
         <pitch>2.5</pitch>
+        <ratio>0.2</ratio>
       </waveform>
       <waveform src="sine">
         <processing>mix</processing>
         <pitch>3.0</pitch>
-        <ratio>0.6</ratio>
+        <ratio>0.2</ratio>
       </waveform>
       <waveform src="sine">
         <processing>modulate</processing>
@@ -73,37 +75,58 @@
     </sound>
 
     <sound name="Draw Bar Organ" frequency="220">
-      <waveform src="triangle"/>
       <waveform src="sine">
-        <processing>mix</processing>
-        <pitch>4.0</pitch>
-        <ratio>0.4</ratio>
+        <ratio>0.2</ratio>
       </waveform>
-    </sound>
-
-    <sound name="Rock Organ" frequency="220">
-      <waveform src="triangle"/>
-      <waveform src="sine">
-        <processing>mix</processing>
-        <pitch>3.5</pitch>
-        <ratio>0.5</ratio>
+      <waveform src="sawtooth">
+        <processing>add</processing>
+        <pitch>0.5</pitch>
+        <ratio>0.2</ratio>
       </waveform>
-    </sound>
-
-    <sound name="Church Organ" frequency="220">
-      <waveform src="square"/>
-      <waveform src="impulse">
-        <processing>mix</processing>
+      <waveform src="sawtooth">
+        <processing>add</processing>
         <pitch>2.0</pitch>
         <ratio>0.2</ratio>
       </waveform>
     </sound>
 
-    <sound name="Reed Organ" frequency="220">
-      <waveform src="sine"/>
-      <waveform src="sine">
+    <sound name="Rock Organ" frequency="220">
+      <waveform src="square"/>
+      <waveform src="triangle">
+        <processing>add</processing>
+        <pitch>0.5</pitch>
+        <ratio>0.6</ratio>
+      </waveform>
+      <waveform src="sawtooth">
+        <processing>modulate</processing>
+        <pitch>0.5</pitch>
+        <ratio>1.0</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Church Organ" frequency="220">
+      <waveform src="sawtooth">
+        <ratio>0.2</ratio>
+      </waveform>
+      <waveform src="square">
         <processing>mix</processing>
-        <pitch>3.5</pitch>
+        <pitch>0.125</pitch>
+        <ratio>0.2</ratio>
+      </waveform>
+    </sound>
+
+    <sound name="Reed Organ" frequency="220">
+     <waveform src="sawtooth">
+       <ratio>0.2</ratio>
+      </waveform>
+      <waveform src="sawtooth">
+        <processing>mix</processing>
+        <pitch>0.5</pitch>
+        <ratio>0.2</ratio>
+      </waveform>
+      <waveform src="square">
+        <processing>mix</processing>
+        <pitch>0.125</pitch>
         <ratio>0.2</ratio>
       </waveform>
     </sound>
@@ -202,14 +225,33 @@
          <ratio>0.73</ratio>
        </waveform>
       <waveform src="sawtooth">
-        <processing>mix</processing>
+        <processing>add</processing>
         <ratio>0.73</ratio>
       </waveform>
       <waveform src="sine">
         <processing>modulate</processing>
-        <pitch>2.9</pitch>
+        <pitch>1.5</pitch>
         <ratio>1.0</ratio>
        </waveform>
+    </sound>
+
+    <!-- percussion -->
+    <sound name="Crash Cymbal" frequency="3700">
+      <waveform src="sine"/>
+      <waveform src="sine">
+        <processing>modulate</processing>
+        <pitch>0.7</pitch>
+        <ratio>0.45</ratio>
+      </waveform>
+      <waveform src="white-noise">
+        <processing>add</processing>
+        <ratio>0.3</ratio>
+      </waveform>
+      <waveform src="impulse">
+        <processing>modulate</processing>
+        <pitch>1.0</pitch>
+        <ratio>0.8</ratio>
+      </waveform>
     </sound>
 
   </timbres>
@@ -337,38 +379,29 @@
             <p2>0.20</p2>
           </slot>
         </filter>
+        <effect src="chorus">
+          <state>triangle</state>
+          <slot n="0">
+            <p1>0.4</p1>
+            <p2>0.3</p2>
+            <p3>0.1</p3>
+            <p4>0.2</p4>
+          </slot>
+        </effect>
+       </effect>
       </note>
     </controller>
 
     <controller n="19" name="Rock Organ">
       <polyphony>6</polyphony>
       <note min="36" max="96" src="Rock Organ">
-        <filter src="envelope">
+        <effect src="flanging">
+          <state>triangle</state>
           <slot n="0">
-            <p1>0.00</p1>
-            <p2 factor="velocity">0.05</p2>
-            <p1 factor="soften">1.00</p1>
-            <p2>0.05</p2>
-          </slot>
-          <slot n="1">
-            <p1>0.90</p1>
-            <p2 factor="sustain">inf</p2>
-            <p1>0.80</p1>
-            <p2>0.20</p2>
-          </slot>
-        </filter>
-        <filter src="tremolo">
-          <state>sine</state>
-          <slot>
-            <p1>15.0</p1>
-            <p2>0.15</p2>
-          </slot>
-        </filter>
-        <effect src="vibrato">
-          <state>sine</state>
-            <slot>
-            <p1>15.0</p1>
-            <p2>0.03</p2>
+            <p1>0.4</p1>
+            <p2>0.3</p2>
+            <p3>0.1</p3>
+            <p4>0.2</p4>
           </slot>
         </effect>
       </note>
@@ -626,6 +659,52 @@
             <p2>0.10</p2>
             <p1>0.99</p1>
             <p2>0.00</p2>
+          </slot>
+        </effect>
+      </note>
+    </controller>
+
+    <!-- percussion -->
+    <controller n="49" name="Crash Cymbal">
+      <polyphony>1</polyphony>
+      <note src="Crash Cymbal">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2 factor="velocity">0.01</p2>
+            <p3 factor="soften">4.00</p3>
+            <p4>0.4</p4>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>0.50</p2>
+          </slot>
+        </filter>
+      </note>
+    </controller>
+
+    <controller n="57" name="Crash Cymbal">
+      <polyphony>1</polyphony>
+      <note src="Crash Cymbal">
+        <filter src="envelope">
+          <slot n="0">
+            <p1>0.00</p1>
+            <p2 factor="velocity">0.01</p2>
+            <p3 factor="soften">4.00</p3>
+            <p4>0.4</p4>
+          </slot>
+          <slot n="1">
+            <p1>1.00</p1>
+            <p2>1.00</p2>
+          </slot>
+        </filter>
+        <effect src="phasing">
+          <state>triangle</state>
+          <slot n="0">
+            <p1>0.3</p1>
+            <p2>1.2</p2>
+            <p3>0.2</p3>
+            <p4>0.0</p4>
           </slot>
         </effect>
       </note>
