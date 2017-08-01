@@ -534,6 +534,7 @@ set( AEONWAVE_OBJS
      src/software/cpu/arch2d_sse2.c
      src/software/cpu/arch2d_sse3.c
      3rdparty/stb_vorbis.c
+     3rdparty/pdmp3.c
      3rdparty/pffft.c
 )
 if(SIZEOF_SIZE_T EQUAL 8)
