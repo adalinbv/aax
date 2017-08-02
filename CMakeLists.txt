@@ -491,7 +491,7 @@ set( AEONWAVE_OBJS
      src/stream/ext_ogg.c
      src/stream/format.c
      src/stream/fmt_pcm.c
-     src/stream/fmt_mp3_mpg123.c
+     src/stream/fmt_mp3.c
      src/stream/fmt_vorbis.c
 #    src/stream/fmt_flac.c
      src/stream/fmt_opus.c
