@@ -17,7 +17,7 @@ AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
 ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
 WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Written by Krister Lagerstrom
+Author: Krister Lagerström(krister@kmlager.com)
 */
 
 #include <stdint.h>
@@ -108,6 +108,7 @@ t_sf_band_indices;
 #define SIM_UNIX
 #define OK         0
 #define ERROR     -1
+#define NEED_MORE -10
 #define TRUE       1
 #define FALSE      0
 #define C_SYNC             0xfff00000
@@ -125,16 +126,29 @@ t_sf_band_indices;
 #define ERR(str,args...) { fprintf(stderr,str,## args) ; fprintf(stderr,"\n"); }
 #define EXIT(str,args...) { printf(str,## args);  printf("\n"); exit(0); }
 
+#define INBUF_SIZE	(4096)
 typedef struct
 {
-  char in[4096];
+  unsigned char in[INBUF_SIZE];
   unsigned out[2][576];
   t_mpeg1_header g_frame_header;
   t_mpeg1_side_info g_side_info;  /* < 100 words */
   t_mpeg1_main_data g_main_data;
-  size_t inpos;
+  size_t istart, iend;
   size_t processed;
   size_t size;
+
+  unsigned hsynth_init;
+  unsigned synth_init;
+  /* Bit reservoir for main data */
+  unsigned g_main_data_vec[2*1024];/* Large static data */
+  unsigned *g_main_data_ptr;/* Pointer into the reservoir */
+  unsigned g_main_data_idx;/* Index into the current byte(0-7) */
+  unsigned g_main_data_top;/* Number of bytes in reservoir(0-1024) */
+  /* Bit reservoir for side info */
+  unsigned side_info_vec[32+4];
+  unsigned *side_info_ptr;  /* Pointer into the reservoir */
+  unsigned side_info_idx;  /* Index into the current byte(0-7) */
 }
 pdmp3_handle;
 
@@ -154,24 +168,22 @@ void dmp_samples(t_mpeg1_main_data *md,int gr,int ch,int type);
 static int Decode_L3(pdmp3_handle *id);
 static int Get_Bytes(pdmp3_handle *id,unsigned no_of_bytes,unsigned data_vec[]);
 static int Get_Main_Data(pdmp3_handle *id,unsigned main_data_size,unsigned main_data_begin);
-static int Huffman_Decode(unsigned table_num,int32_t *x,int32_t *y,int32_t *v,int32_t *w);
+static int Huffman_Decode(pdmp3_handle *id,unsigned table_num,int32_t *x,int32_t *y,int32_t *v,int32_t *w);
 static int Read_Audio_L3(pdmp3_handle *id);
 static int Read_CRC(pdmp3_handle *id);
 static int Read_Frame(pdmp3_handle *id);
 static int Read_Header(pdmp3_handle *id);
 static int Read_Main_L3(pdmp3_handle *id);
-static int Set_Main_Pos(unsigned bit_pos);
+static int Set_Main_Pos(pdmp3_handle *id,unsigned bit_pos);
 
 static unsigned Get_Byte(pdmp3_handle *id);
-static unsigned Get_Main_Bit(void);
-static unsigned Get_Main_Bits(unsigned number_of_bits);
-static unsigned Get_Main_Pos(void);
-static unsigned Get_Side_Bits(unsigned number_of_bits);
+static unsigned Get_Main_Bit(pdmp3_handle *id);
+static unsigned Get_Main_Bits(pdmp3_handle *id,unsigned number_of_bits);
+static unsigned Get_Main_Pos(pdmp3_handle *id);
+static unsigned Get_Side_Bits(pdmp3_handle *id,unsigned number_of_bits);
 static unsigned Get_Filepos(pdmp3_handle *id);
 
-static void audio_write(pdmp3_handle *id);
-static void audio_write_raw(pdmp3_handle *id,unsigned *samples,unsigned nsamples);
-static void Decode_L3_Init_Song(void);
+static void Decode_L3_Init_Song(pdmp3_handle *id);
 static void Error(const char *s,int e);
 static void Get_Sideinfo(pdmp3_handle *id,unsigned sideinfo_size);
 static void IMDCT_Win(float in[18],float out[36],unsigned block_type);
@@ -187,8 +199,6 @@ static void Requantize_Process_Long(pdmp3_handle *id,unsigned gr,unsigned ch,uns
 static void Requantize_Process_Short(pdmp3_handle *id,unsigned gr,unsigned ch,unsigned is_pos,unsigned sfb,unsigned win);
 static void Stereo_Process_Intensity_Long(pdmp3_handle *id,unsigned gr,unsigned sfb);
 static void Stereo_Process_Intensity_Short(pdmp3_handle *id,unsigned gr,unsigned sfb);
-
-static const char *filename,*audio_name = "/dev/dsp";
 
 static const unsigned short g_huffman_table[] = {
 //g_huffman_table_1[7] = {
@@ -828,17 +838,6 @@ static const float // ci[8]={-0.6,-0.535,-0.33,-0.185,-0.095,-0.041,-0.0142,-0.0
 };
 
 
-static unsigned hsynth_init = 1,synth_init = 1,
-  /* Bit reservoir for main data */
-  g_main_data_vec[2*1024],/* Large static data */
-  *g_main_data_ptr,/* Pointer into the reservoir */
-  g_main_data_idx,/* Index into the current byte(0-7) */
-  g_main_data_top = 0,/* Number of bytes in reservoir(0-1024) */
-  /* Bit reservoir for side info */
-  side_info_vec[32+4],
-  *side_info_ptr,  /* Pointer into the reservoir */
-  side_info_idx;  /* Index into the current byte(0-7) */
-
 /* Scale factor band indices
  *
  * One table per sample rate. Each table contains the frequency indices
@@ -1064,26 +1063,26 @@ static int Get_Main_Data(pdmp3_handle *id,unsigned main_data_size,unsigned main_
 
   if(main_data_size > 1500) ERR("main_data_size = %d\n",main_data_size);
   /* Check that there's data available from previous frames if needed */
-  if(main_data_begin > g_main_data_top) {
+  if(main_data_begin > id->g_main_data_top) {
     /* No,there is not,so we skip decoding this frame,but we have to
      * read the main_data bits from the bitstream in case they are needed
      * for decoding the next frame. */
-   (void) Get_Bytes(id,main_data_size,&(g_main_data_vec[g_main_data_top]));
+// (void) Get_Bytes(id,main_data_size,&(id->g_main_data_vec[id->g_main_data_top]));
     /* Set up pointers */
-    g_main_data_ptr = &(g_main_data_vec[0]);
-    g_main_data_idx = 0;
-    g_main_data_top += main_data_size;
-    return(ERROR);    /* This frame cannot be decoded! */
+    id->g_main_data_ptr = &(id->g_main_data_vec[0]);
+    id->g_main_data_idx = 0;
+    id->g_main_data_top += main_data_size;
+    return(NEED_MORE);    /* This frame cannot be decoded! */
   }
   for(i = 0; i < main_data_begin; i++) {  /* Copy data from previous frames */
-    g_main_data_vec[i] = g_main_data_vec[g_main_data_top - main_data_begin + i];
+    id->g_main_data_vec[i] = id->g_main_data_vec[id->g_main_data_top - main_data_begin + i];
   }
   /* Read the main_data from file */
- (void) Get_Bytes(id,main_data_size,&(g_main_data_vec[main_data_begin]));
+ (void) Get_Bytes(id,main_data_size,&(id->g_main_data_vec[main_data_begin]));
   /* Set up pointers */
-  g_main_data_ptr = &(g_main_data_vec[0]);
-  g_main_data_idx = 0;
-  g_main_data_top = main_data_begin + main_data_size;
+  id->g_main_data_ptr = &(id->g_main_data_vec[0]);
+  id->g_main_data_idx = 0;
+  id->g_main_data_top = main_data_begin + main_data_size;
   return(OK);  /* Done */
 }
 
@@ -1120,30 +1119,30 @@ static int Read_Audio_L3(pdmp3_handle *id){
   if(Get_Filepos(id) == C_EOF) return(ERROR);
   /* Parse audio data */
   /* Pointer to where we should start reading main data */
-  id->g_side_info.main_data_begin = Get_Side_Bits(9);
+  id->g_side_info.main_data_begin = Get_Side_Bits(id,9);
   /* Get private bits. Not used for anything. */
   if(id->g_frame_header.mode == mpeg1_mode_single_channel)
-    id->g_side_info.private_bits = Get_Side_Bits(5);
-  else id->g_side_info.private_bits = Get_Side_Bits(3);
+    id->g_side_info.private_bits = Get_Side_Bits(id,5);
+  else id->g_side_info.private_bits = Get_Side_Bits(id,3);
   /* Get scale factor selection information */
   for(ch = 0; ch < nch; ch++)
     for(scfsi_band = 0; scfsi_band < 4; scfsi_band++)
-      id->g_side_info.scfsi[ch][scfsi_band] = Get_Side_Bits(1);
+      id->g_side_info.scfsi[ch][scfsi_band] = Get_Side_Bits(id,1);
   /* Get the rest of the side information */
   for(gr = 0; gr < 2; gr++) {
     for(ch = 0; ch < nch; ch++) {
-      id->g_side_info.part2_3_length[gr][ch]    = Get_Side_Bits(12);
-      id->g_side_info.big_values[gr][ch]        = Get_Side_Bits(9);
-      id->g_side_info.global_gain[gr][ch]       = Get_Side_Bits(8);
-      id->g_side_info.scalefac_compress[gr][ch] = Get_Side_Bits(4);
-      id->g_side_info.win_switch_flag[gr][ch]   = Get_Side_Bits(1);
+      id->g_side_info.part2_3_length[gr][ch]    = Get_Side_Bits(id,12);
+      id->g_side_info.big_values[gr][ch]        = Get_Side_Bits(id,9);
+      id->g_side_info.global_gain[gr][ch]       = Get_Side_Bits(id,8);
+      id->g_side_info.scalefac_compress[gr][ch] = Get_Side_Bits(id,4);
+      id->g_side_info.win_switch_flag[gr][ch]   = Get_Side_Bits(id,1);
       if(id->g_side_info.win_switch_flag[gr][ch] == 1) {
-        id->g_side_info.block_type[gr][ch]       = Get_Side_Bits(2);
-        id->g_side_info.mixed_block_flag[gr][ch] = Get_Side_Bits(1);
+        id->g_side_info.block_type[gr][ch]       = Get_Side_Bits(id,2);
+        id->g_side_info.mixed_block_flag[gr][ch] = Get_Side_Bits(id,1);
         for(region = 0; region < 2; region++)
-          id->g_side_info.table_select[gr][ch][region] = Get_Side_Bits(5);
+          id->g_side_info.table_select[gr][ch][region] = Get_Side_Bits(id,5);
         for(window = 0; window < 3; window++)
-          id->g_side_info.subblock_gain[gr][ch][window] = Get_Side_Bits(3);
+          id->g_side_info.subblock_gain[gr][ch][window] = Get_Side_Bits(id,3);
         if((id->g_side_info.block_type[gr][ch]==2)&&(id->g_side_info.mixed_block_flag[gr][ch]==0))
           id->g_side_info.region0_count[gr][ch] = 8; /* Implicit */
         else id->g_side_info.region0_count[gr][ch] = 7; /* Implicit */
@@ -1151,14 +1150,14 @@ static int Read_Audio_L3(pdmp3_handle *id){
         id->g_side_info.region1_count[gr][ch] = 20 - id->g_side_info.region0_count[gr][ch];
      }else{
        for(region = 0; region < 3; region++)
-         id->g_side_info.table_select[gr][ch][region] = Get_Side_Bits(5);
-       id->g_side_info.region0_count[gr][ch] = Get_Side_Bits(4);
-       id->g_side_info.region1_count[gr][ch] = Get_Side_Bits(3);
+         id->g_side_info.table_select[gr][ch][region] = Get_Side_Bits(id,5);
+       id->g_side_info.region0_count[gr][ch] = Get_Side_Bits(id,4);
+       id->g_side_info.region1_count[gr][ch] = Get_Side_Bits(id,3);
        id->g_side_info.block_type[gr][ch] = 0;  /* Implicit */
       }  /* end if ... */
-      id->g_side_info.preflag[gr][ch]            = Get_Side_Bits(1);
-      id->g_side_info.scalefac_scale[gr][ch]     = Get_Side_Bits(1);
-      id->g_side_info.count1table_select[gr][ch] = Get_Side_Bits(1);
+      id->g_side_info.preflag[gr][ch]            = Get_Side_Bits(id,1);
+      id->g_side_info.scalefac_scale[gr][ch]     = Get_Side_Bits(id,1);
+      id->g_side_info.count1table_select[gr][ch] = Get_Side_Bits(id,1);
     } /* end for(channel... */
   } /* end for(granule... */
   return(OK);/* Done */
@@ -1181,7 +1180,7 @@ static int Read_CRC(pdmp3_handle *id){
 * Return value: OK if a frame is successfully read,ERROR otherwise.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Read_Frame(pdmp3_handle *id){
-  if(Get_Filepos(id) == 0) Decode_L3_Init_Song();
+  if(Get_Filepos(id) == 0) Decode_L3_Init_Song(id);
   /* Try to find the next frame in the bitstream and decode it */
   if(Read_Header(id) != OK) return(ERROR);
 #ifdef DEBUG
@@ -1202,7 +1201,7 @@ static int Read_Frame(pdmp3_handle *id){
     /* If there's not enough main data in the bit reservoir,
      * signal to calling function so that decoding isn't done! */
     /* Get main data(scalefactors and Huffman coded frequency data) */
-    if(Read_Main_L3(id) != OK) return(ERROR);
+    return(Read_Main_L3(id));
   }else{
     ERR("Only layer 3(!= %d) is supported!\n",id->g_frame_header.layer);
     return(ERROR);
@@ -1292,6 +1291,7 @@ static int Read_Header(pdmp3_handle *id) {
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Read_Main_L3(pdmp3_handle *id){
   unsigned framesize,sideinfo_size,main_data_size,gr,ch,nch,sfb,win,slen1,slen2,nbits,part_2_start;
+  int res;
 
   /* Number of channels(1 for mono and 2 for stereo) */
   nch =(id->g_frame_header.mode == mpeg1_mode_single_channel ? 1 : 2);
@@ -1317,35 +1317,35 @@ static int Read_Main_L3(pdmp3_handle *id){
    * frames that should be used. This buffer is later accessed by the
    * Get_Main_Bits function in the same way as the side info is.
    */
-  if(Get_Main_Data(id,main_data_size,id->g_side_info.main_data_begin) != OK)
-    return(ERROR); /* This could be due to not enough data in reservoir */
+  res = Get_Main_Data(id,main_data_size,id->g_side_info.main_data_begin);
+  if(res != OK) return(res); /* This could be due to not enough data in reservoir */
   for(gr = 0; gr < 2; gr++) {
     for(ch = 0; ch < nch; ch++) {
-      part_2_start = Get_Main_Pos();
+      part_2_start = Get_Main_Pos(id);
       /* Number of bits in the bitstream for the bands */
       slen1 = mpeg1_scalefac_sizes[id->g_side_info.scalefac_compress[gr][ch]][0];
       slen2 = mpeg1_scalefac_sizes[id->g_side_info.scalefac_compress[gr][ch]][1];
       if((id->g_side_info.win_switch_flag[gr][ch] != 0)&&(id->g_side_info.block_type[gr][ch] == 2)) {
         if(id->g_side_info.mixed_block_flag[gr][ch] != 0) {
           for(sfb = 0; sfb < 8; sfb++)
-            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(slen1);
+            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(id,slen1);
           for(sfb = 3; sfb < 12; sfb++) {
             nbits = (sfb < 6)?slen1:slen2;/*slen1 for band 3-5,slen2 for 6-11*/
             for(win = 0; win < 3; win++)
-              id->g_main_data.scalefac_s[gr][ch][sfb][win]=Get_Main_Bits(nbits);
+              id->g_main_data.scalefac_s[gr][ch][sfb][win]=Get_Main_Bits(id,nbits);
           }
         }else{
           for(sfb = 0; sfb < 12; sfb++){
             nbits = (sfb < 6)?slen1:slen2;/*slen1 for band 3-5,slen2 for 6-11*/
             for(win = 0; win < 3; win++)
-              id->g_main_data.scalefac_s[gr][ch][sfb][win]=Get_Main_Bits(nbits);
+              id->g_main_data.scalefac_s[gr][ch][sfb][win]=Get_Main_Bits(id,nbits);
           }
         }
       }else{ /* block_type == 0 if winswitch == 0 */
         /* Scale factor bands 0-5 */
         if((id->g_side_info.scfsi[ch][0] == 0) ||(gr == 0)) {
           for(sfb = 0; sfb < 6; sfb++)
-            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(slen1);
+            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(id,slen1);
         }else if((id->g_side_info.scfsi[ch][0] == 1) &&(gr == 1)) {
           /* Copy scalefactors from granule 0 to granule 1 */
           for(sfb = 0; sfb < 6; sfb++)
@@ -1354,7 +1354,7 @@ static int Read_Main_L3(pdmp3_handle *id){
         /* Scale factor bands 6-10 */
         if((id->g_side_info.scfsi[ch][1] == 0) ||(gr == 0)) {
           for(sfb = 6; sfb < 11; sfb++)
-            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(slen1);
+            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(id,slen1);
         }else if((id->g_side_info.scfsi[ch][1] == 1) &&(gr == 1)) {
           /* Copy scalefactors from granule 0 to granule 1 */
           for(sfb = 6; sfb < 11; sfb++)
@@ -1363,7 +1363,7 @@ static int Read_Main_L3(pdmp3_handle *id){
         /* Scale factor bands 11-15 */
         if((id->g_side_info.scfsi[ch][2] == 0) ||(gr == 0)) {
           for(sfb = 11; sfb < 16; sfb++)
-            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(slen2);
+            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(id,slen2);
         } else if((id->g_side_info.scfsi[ch][2] == 1) &&(gr == 1)) {
           /* Copy scalefactors from granule 0 to granule 1 */
           for(sfb = 11; sfb < 16; sfb++)
@@ -1372,7 +1372,7 @@ static int Read_Main_L3(pdmp3_handle *id){
         /* Scale factor bands 16-20 */
         if((id->g_side_info.scfsi[ch][3] == 0) ||(gr == 0)) {
           for(sfb = 16; sfb < 21; sfb++)
-            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(slen2);
+            id->g_main_data.scalefac_l[gr][ch][sfb] = Get_Main_Bits(id,slen2);
         }else if((id->g_side_info.scfsi[ch][3] == 1) &&(gr == 1)) {
           /* Copy scalefactors from granule 0 to granule 1 */
           for(sfb = 16; sfb < 21; sfb++)
@@ -1391,10 +1391,10 @@ static int Read_Main_L3(pdmp3_handle *id){
 * Parameters: Bit position. 0 = start,8 = start of byte 1,etc.
 * Return value: OK or ERROR if bit_pos is past end of main data for this frame.
 * Author: Krister Lagerström(krister@kmlager.com) **/
-static int Set_Main_Pos(unsigned bit_pos){
+static int Set_Main_Pos(pdmp3_handle *id,unsigned bit_pos){
 
-  g_main_data_ptr = &(g_main_data_vec[bit_pos >> 3]);
-  g_main_data_idx = bit_pos & 0x7;
+  id->g_main_data_ptr = &(id->g_main_data_vec[bit_pos >> 3]);
+  id->g_main_data_idx = bit_pos & 0x7;
 
   return(OK);
 
@@ -1405,9 +1405,18 @@ static int Set_Main_Pos(unsigned bit_pos){
 *  discarded before getting that byte.
 * Parameters: None
 * Return value: The next byte in bitstream in the lowest 8 bits,or C_EOF.
-* Author: Krister Lagerström(krister@kmlager.com) **/
+* Original Author: Krister Lagerström(krister@kmlager.com)
+* Author: Erik Hofman(erik@ehofman.com) **/
 static unsigned Get_Byte(pdmp3_handle *id){
-  return(id->in[id->inpos++]);
+  unsigned val = C_EOF;
+  if (id->istart != id->iend){
+    val = id->in[id->istart++]; //  && 0xff;
+    if (id->istart == INBUF_SIZE){
+      id->istart=0;
+    }
+    id->processed++;
+  }
+  return(val);
 }
 
 /**Description: returns current file position in bytes.
@@ -1422,13 +1431,13 @@ static unsigned Get_Filepos(pdmp3_handle *id){
 * Parameters: None
 * Return value: The bit is returned in the LSB of the return value.
 * Author: Krister Lagerström(krister@kmlager.com) **/
-static unsigned Get_Main_Bit(void){
+static unsigned Get_Main_Bit(pdmp3_handle *id){
   unsigned tmp;
 
-  tmp = g_main_data_ptr[0] >>(7 - g_main_data_idx);
+  tmp = id->g_main_data_ptr[0] >>(7 - id->g_main_data_idx);
   tmp &= 0x01;
-  g_main_data_ptr +=(g_main_data_idx + 1) >> 3;
-  g_main_data_idx =(g_main_data_idx + 1) & 0x07;
+  id->g_main_data_ptr +=(id->g_main_data_idx + 1) >> 3;
+  id->g_main_data_idx =(id->g_main_data_idx + 1) & 0x07;
   return(tmp);  /* Done */
 }
 
@@ -1437,25 +1446,25 @@ static unsigned Get_Main_Bit(void){
 * Return value: The bits are returned in the LSB of the return value.
 *
 ******************************************************************************/
-static unsigned Get_Main_Bits(unsigned number_of_bits){
+static unsigned Get_Main_Bits(pdmp3_handle *id,unsigned number_of_bits){
   unsigned tmp;
 
 
   if(number_of_bits == 0) return(0);
 
   /* Form a word of the next four bytes */
-  tmp =(g_main_data_ptr[0] << 24) |(g_main_data_ptr[1] << 16) |
-       (g_main_data_ptr[2] <<  8) |(g_main_data_ptr[3] <<  0);
+  tmp =(id->g_main_data_ptr[0] << 24) |(id->g_main_data_ptr[1] << 16) |
+       (id->g_main_data_ptr[2] <<  8) |(id->g_main_data_ptr[3] <<  0);
 
   /* Remove bits already used */
-  tmp = tmp << g_main_data_idx;
+  tmp = tmp << id->g_main_data_idx;
 
   /* Remove bits after the desired bits */
   tmp = tmp >>(32 - number_of_bits);
 
   /* Update pointers */
-  g_main_data_ptr +=(g_main_data_idx + number_of_bits) >> 3;
-  g_main_data_idx =(g_main_data_idx + number_of_bits) & 0x07;
+  id->g_main_data_ptr +=(id->g_main_data_idx + number_of_bits) >> 3;
+  id->g_main_data_idx =(id->g_main_data_idx + number_of_bits) & 0x07;
 
   /* Done */
   return(tmp);
@@ -1466,13 +1475,13 @@ static unsigned Get_Main_Bits(unsigned number_of_bits){
 * Parameters: None
 * Return value: Bit position.
 * Author: Krister Lagerström(krister@kmlager.com) **/
-static unsigned Get_Main_Pos(void){
+static unsigned Get_Main_Pos(pdmp3_handle *id){
   unsigned pos;
   
-  pos =((size_t) g_main_data_ptr) -((size_t) &(g_main_data_vec[0]));
+  pos =((size_t) id->g_main_data_ptr) -((size_t) &(id->g_main_data_vec[0]));
   pos /= 4; /* Divide by four to get number of bytes */
   pos *= 8;    /* Multiply by 8 to get number of bits */
-  pos += g_main_data_idx;  /* Add current bit index */
+  pos += id->g_main_data_idx;  /* Add current bit index */
   return(pos);
 }
 
@@ -1480,19 +1489,19 @@ static unsigned Get_Main_Pos(void){
 * Parameters: number_of_bits to read(max 16)
 * Return value: The bits are returned in the LSB of the return value.
 * Author: Krister Lagerström(krister@kmlager.com) **/
-static unsigned Get_Side_Bits(unsigned number_of_bits){
+static unsigned Get_Side_Bits(pdmp3_handle *id,unsigned number_of_bits){
   unsigned tmp;
 
   /* Form a word of the next four bytes */                   //TODO endianness?
-  tmp =(side_info_ptr[0] << 24) |(side_info_ptr[1] << 16) |
-       (side_info_ptr[2] <<  8) |(side_info_ptr[3] <<  0);
+  tmp =(id->side_info_ptr[0] << 24) |(id->side_info_ptr[1] << 16) |
+       (id->side_info_ptr[2] <<  8) |(id->side_info_ptr[3] <<  0);
   /* Remove bits already used */
-  tmp = tmp << side_info_idx;
+  tmp = tmp << id->side_info_idx;
   /* Remove bits after the desired bits */
   tmp = tmp >>(32 - number_of_bits);
   /* Update pointers */
-  side_info_ptr +=(side_info_idx + number_of_bits) >> 3;
-  side_info_idx =(side_info_idx + number_of_bits) & 0x07;
+  id->side_info_ptr +=(id->side_info_idx + number_of_bits) >> 3;
+  id->side_info_idx =(id->side_info_idx + number_of_bits) & 0x07;
   return(tmp);
 }
 
@@ -1510,14 +1519,14 @@ static void Error(const char *s,int e){
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Get_Sideinfo(pdmp3_handle *id,unsigned sideinfo_size){
-  if(Get_Bytes(id,sideinfo_size,side_info_vec) != OK) {
+  if(Get_Bytes(id,sideinfo_size,id->side_info_vec) != OK) {
     ERR("\nCouldn't read sideinfo %d bytes at pos %d\n",
    sideinfo_size,Get_Filepos(id));
     return;
   }
 
-  side_info_ptr = &(side_info_vec[0]);
-  side_info_idx = 0;
+  id->side_info_ptr = &(id->side_info_vec[0]);
+  id->side_info_idx = 0;
 
 }
 
@@ -1525,7 +1534,7 @@ static void Get_Sideinfo(pdmp3_handle *id,unsigned sideinfo_size){
 * Parameters: Huffman table number and four pointers for the return values.
 * Return value: Two(x,y) or four(x,y,v,w) decoded Huffman words.
 * Author: Krister Lagerström(krister@kmlager.com) **/
-static int Huffman_Decode(unsigned table_num,int32_t *x,int32_t *y,int32_t *v,int32_t *w){
+static int Huffman_Decode(pdmp3_handle *id,unsigned table_num,int32_t *x,int32_t *y,int32_t *v,int32_t *w){
   unsigned point=0,error=1,bitsleft=32, //=16??
     treelen = g_huffman_main[table_num].treelen,
     linbits = g_huffman_main[table_num].linbits;
@@ -1544,7 +1553,7 @@ static int Huffman_Decode(unsigned table_num,int32_t *x,int32_t *y,int32_t *v,in
       *y = htptr[point] & 0xf;
       break;
     }
-    if(Get_Main_Bit()) { /* Go right in tree */
+    if(Get_Main_Bit(id)) { /* Go right in tree */
       while((htptr[point] & 0xff) >= 250)
         point += htptr[point] & 0xff;
       point += htptr[point] & 0xff;
@@ -1564,15 +1573,15 @@ static int Huffman_Decode(unsigned table_num,int32_t *x,int32_t *y,int32_t *v,in
     *w =(*y >> 2) & 1;
     *x =(*y >> 1) & 1;
     *y = *y & 1;
-    if((*v > 0)&&(Get_Main_Bit() == 1)) *v = -*v;
-    if((*w > 0)&&(Get_Main_Bit() == 1)) *w = -*w;
-    if((*x > 0)&&(Get_Main_Bit() == 1)) *x = -*x;
-    if((*y > 0)&&(Get_Main_Bit() == 1)) *y = -*y;
+    if((*v > 0)&&(Get_Main_Bit(id) == 1)) *v = -*v;
+    if((*w > 0)&&(Get_Main_Bit(id) == 1)) *w = -*w;
+    if((*x > 0)&&(Get_Main_Bit(id) == 1)) *x = -*x;
+    if((*y > 0)&&(Get_Main_Bit(id) == 1)) *y = -*y;
   }else{
-    if((linbits > 0)&&(*x == 15))*x += Get_Main_Bits(linbits);/* Get linbits */
-    if((*x > 0)&&(Get_Main_Bit() == 1)) *x = -*x; /* Get sign bit */
-    if((linbits > 0)&&(*y == 15))*y += Get_Main_Bits(linbits);/* Get linbits */
-    if((*y > 0)&&(Get_Main_Bit() == 1)) *y = -*y;/* Get sign bit */
+    if((linbits > 0)&&(*x == 15))*x += Get_Main_Bits(id,linbits);/* Get linbits */
+    if((*x > 0)&&(Get_Main_Bit(id) == 1)) *x = -*x; /* Get sign bit */
+    if((linbits > 0)&&(*y == 15))*y += Get_Main_Bits(id,linbits);/* Get linbits */
+    if((*y > 0)&&(Get_Main_Bit(id) == 1)) *y = -*y;/* Get sign bit */
   }
   return(error ? ERROR : OK);  /* Done */
 }
@@ -1581,9 +1590,9 @@ static int Huffman_Decode(unsigned table_num,int32_t *x,int32_t *y,int32_t *v,in
 * Parameters: None
 * Return value: None
 * Author: Krister Lagerström(krister@kmlager.com) **/
-static void Decode_L3_Init_Song(void){
-  hsynth_init = synth_init = 1;
-  g_main_data_top = 0; /* Clear bit reservoir */
+static void Decode_L3_Init_Song(pdmp3_handle *id){
+  id->hsynth_init = id->synth_init = 1;
+  id->g_main_data_top = 0; /* Clear bit reservoir */
 }
 
 /**Description: Does inverse modified DCT and windowing.
@@ -1698,7 +1707,7 @@ static void L3_Hybrid_Synthesis(pdmp3_handle *id,unsigned gr,unsigned ch){
   float rawout[36];
   static float store[2][32][18];
 
-  if(hsynth_init) { /* Clear stored samples vector. OPT? use memset */
+  if(id->hsynth_init) { /* Clear stored samples vector. OPT? use memset */
     for(j = 0; j < 2; j++) {
       for(sb = 0; sb < 32; sb++) {
         for(i = 0; i < 18; i++) {
@@ -1706,7 +1715,7 @@ static void L3_Hybrid_Synthesis(pdmp3_handle *id,unsigned gr,unsigned ch){
         }
       }
     }
-    hsynth_init = 0;
+    id->hsynth_init = 0;
   } /* end if(hsynth_init) */
   for(sb = 0; sb < 32; sb++) { /* Loop through all 32 subbands */
     /* Determine blocktype for this subband */
@@ -1940,10 +1949,10 @@ static void L3_Subband_Synthesis(pdmp3_handle *id,unsigned gr,unsigned ch,unsign
     init = 0;
   } /* end if(init) */
 
-  if(synth_init) {
+  if(id->synth_init) {
     for(i = 0; i < 2; i++) /* Setup the v_vec intermediate vector */
       for(j = 0; j < 1024; j++) v_vec[i][j] = 0.0; /*TODO: memset*/
-    synth_init = 0;
+    id->synth_init = 0;
   } /* end if(synth_init) */
 
   for(ss = 0; ss < 18; ss++){ /* Loop through 18 samples in 32 subbands */
@@ -2026,7 +2035,7 @@ static void Read_Huffman(pdmp3_handle *id,unsigned part_2_start,unsigned gr,unsi
       table_num = id->g_side_info.table_select[gr][ch][1];
     }else table_num = id->g_side_info.table_select[gr][ch][2];
     /* Get next Huffman coded words */
-   (void) Huffman_Decode(table_num,&x,&y,&v,&w);
+   (void) Huffman_Decode(id,table_num,&x,&y,&v,&w);
     /* In the big_values area there are two freq lines per Huffman word */
     id->g_main_data.is[gr][ch][is_pos++] = x;
     id->g_main_data.is[gr][ch][is_pos] = y;
@@ -2034,9 +2043,9 @@ static void Read_Huffman(pdmp3_handle *id,unsigned part_2_start,unsigned gr,unsi
   /* Read small values until is_pos = 576 or we run out of huffman data */
   table_num = id->g_side_info.count1table_select[gr][ch] + 32;
   for(is_pos = id->g_side_info.big_values[gr][ch] * 2;
-      (is_pos <= 572) &&(Get_Main_Pos() <= bit_pos_end); is_pos++) {
+      (is_pos <= 572) &&(Get_Main_Pos(id) <= bit_pos_end); is_pos++) {
     /* Get next Huffman coded words */
-   (void) Huffman_Decode(table_num,&x,&y,&v,&w);
+   (void) Huffman_Decode(id,table_num,&x,&y,&v,&w);
     id->g_main_data.is[gr][ch][is_pos++] = v;
     if(is_pos >= 576) break;
     id->g_main_data.is[gr][ch][is_pos++] = w;
@@ -2046,7 +2055,7 @@ static void Read_Huffman(pdmp3_handle *id,unsigned part_2_start,unsigned gr,unsi
     id->g_main_data.is[gr][ch][is_pos] = y;
   }
   /* Check that we didn't read past the end of this section */
-  if(Get_Main_Pos() >(bit_pos_end+1)) /* Remove last words read */
+  if(Get_Main_Pos(id) >(bit_pos_end+1)) /* Remove last words read */
     is_pos -= 4;
   /* Setup count1 which is the index of the first sample in the rzero reg. */
   id->g_side_info.count1[gr][ch] = is_pos;
@@ -2054,7 +2063,7 @@ static void Read_Huffman(pdmp3_handle *id,unsigned part_2_start,unsigned gr,unsi
   for(/* is_pos comes from last for-loop */; is_pos < 576; is_pos++)
     id->g_main_data.is[gr][ch][is_pos] = 0.0;
   /* Set the bitpos to point to the next part to read */
- (void) Set_Main_Pos(bit_pos_end+1);
+ (void) Set_Main_Pos(id,bit_pos_end+1);
   return;  /* Done */
 }
 
@@ -2163,52 +2172,7 @@ static void Stereo_Process_Intensity_Short(pdmp3_handle *id,unsigned gr,unsigned
   return; /* Done */
 } /* end Stereo_Process_Intensity_Short() */
 
-/**Description: output audio data
-* Parameters: Pointers to the samples,the number of samples
-* Return value: None
-* Author: Krister Lagerström(krister@kmlager.com) **/
-static void audio_write(pdmp3_handle *id){
-#ifdef OUTPUT_SOUND
-  static int init = 0,audio,curr_sample_rate = 0;
-  int format = AFMT_S16_LE,tmp,dsp_speed = 44100,dsp_stereo = 2;
-  int sample_rate = g_sampling_frequency[id->g_frame_header.sampling_frequency];
-  int gr;
-
-  if(init == 0) {
-    init = 1;
-    audio = open(audio_name,O_WRONLY,0);
-    if(audio == -1) {
-      perror(audio_name);
-      exit(-1);
-    }
-    tmp = format;
-    ioctl(audio,SNDCTL_DSP_SETFMT,&format);
-    if(tmp != format)
-      Error("Unable to set the audio format\n",-1);
-    if(ioctl(audio,SNDCTL_DSP_CHANNELS,&dsp_stereo) == -1)
-      Error("Unable to set mono/stereo\n",-1);
-  }
-
-  if(curr_sample_rate != sample_rate) {
-    curr_sample_rate = sample_rate;
-    if(ioctl(audio,SNDCTL_DSP_SPEED,&dsp_speed) == -1)
-      Error("Unable to set audio speed\n",-1);
-  }
-
-  for(gr = 0; gr < 2; gr++) {
-    if(write(audio,(char *) id->out[gr],576 * 4) != 576 * 4)
-      Error("Unable to write audio data\n",-1);
-  }
-#endif /* OUTPUT_SOUND */
 #ifdef OUTPUT_RAW
-  int gr;
-  for(gr = 0; gr < 2; gr++) {
-    audio_write_raw(id,id->out[gr],576);
-  }
-#endif /* OUTPUT_RAW */
-  return;
-} /* audio_write() */
-
 /******************************************************************************
 *
 * Name: audio_write_raw
@@ -2221,7 +2185,7 @@ static void audio_write(pdmp3_handle *id){
 * krister  010101  Initial revision
 *
 ******************************************************************************/
-static void audio_write_raw(pdmp3_handle *id,unsigned *samples,unsigned nsamples){
+static void audio_write_raw(pdmp3_handle *id,const char *filename,unsigned *samples,unsigned nsamples){
   static int init = 0,fd;
   char fname[1024];
   unsigned lo,hi;
@@ -2257,12 +2221,65 @@ static void audio_write_raw(pdmp3_handle *id,unsigned *samples,unsigned nsamples
     Error("Unable to write raw data\n",-1);
   return;
 } /* audio_write_raw() */
+#endif
+
+/**Description: output audio data
+* Parameters: Pointers to the samples,the number of samples
+* Return value: None
+* Author: Krister Lagerström(krister@kmlager.com) **/
+static void audio_write(pdmp3_handle *id,const char *audio_name,const char *filename){
+#ifdef OUTPUT_SOUND
+  static int init = 0,audio,curr_sample_rate = 0;
+  int format = AFMT_S16_LE,tmp,dsp_speed = 44100,dsp_stereo = 2;
+  int sample_rate = g_sampling_frequency[id->g_frame_header.sampling_frequency];
+  int gr;
+
+  if(init == 0) {
+    init = 1;
+    audio = open(audio_name,O_WRONLY,0);
+    if(audio == -1) {
+      perror(audio_name);
+      exit(-1);
+    }
+    tmp = format;
+    ioctl(audio,SNDCTL_DSP_SETFMT,&format);
+    if(tmp != format)
+      Error("Unable to set the audio format\n",-1);
+    if(ioctl(audio,SNDCTL_DSP_CHANNELS,&dsp_stereo) == -1)
+      Error("Unable to set mono/stereo\n",-1);
+  }
+
+  if(curr_sample_rate != sample_rate) {
+    curr_sample_rate = sample_rate;
+    if(ioctl(audio,SNDCTL_DSP_SPEED,&dsp_speed) == -1)
+      Error("Unable to set audio speed\n",-1);
+  }
+
+  for(gr = 0; gr < 2; gr++) {
+    if(write(audio,(char *) id->out[gr],576 * 4) != 576 * 4)
+      Error("Unable to write audio data\n",-1);
+  }
+#endif /* OUTPUT_SOUND */
+#ifdef OUTPUT_RAW
+  int gr;
+  for(gr = 0; gr < 2; gr++) {
+    audio_write_raw(id,filename,id->out[gr],576);
+  }
+#endif /* OUTPUT_RAW */
+  return;
+} /* audio_write() */
+
 
 /*#############################################################################
  * Stream API - EMH - Added for AeonWave Audio (http://www.adalin.com)
  */
 pdmp3_handle* pdmp3_new(void){
-  return calloc(1,sizeof(pdmp3_handle));
+  pdmp3_handle *rv = calloc(1,sizeof(pdmp3_handle));
+  if (rv) {
+    rv->hsynth_init = 1;
+    rv->synth_init = 1;
+  }
+  return rv;
 }
 
 void pdmp3_delete(pdmp3_handle *id){
@@ -2278,19 +2295,58 @@ int pdmp3_open_feed(pdmp3_handle *id){
 }
 
 int pdmp3_feed(pdmp3_handle *id,const unsigned char *in,size_t size){
-  if (id && in && size) { //Read_Frame();
-
-    return(OK);
+  if (id && in && size) {
+    int avail = (id->iend<id->istart)?(id->istart-id->iend):(INBUF_SIZE-id->iend+id->istart);
+    if (size<=avail)
+    {
+      int res;
+      if (id->iend<id->istart)
+      {
+         res = id->istart-id->iend;
+         if (size<res) res=size;
+         memcpy(id->in+id->iend, in, res);
+         id->iend += res;
+      }
+      else
+      {
+         res = INBUF_SIZE-id->iend;
+         if (size<res) res=size;
+         if (res) {
+            memcpy(id->in+id->iend, in, res);
+            id->iend += res;
+            size-= res;
+         }
+         if (size) {
+            memcpy(id->in, in+res, size);
+            id->iend = size;
+         }
+      }
+      return(OK);
+    }
   }
   return(ERROR);
 }
 
 int pdmp3_read(pdmp3_handle *id,unsigned char *outmemory,size_t outmemsize,size_t *done){
   if (id && outmemory && outmemsize && done){
-    int res = Decode_L3(id);
+    int res,avail = (id->istart<=id->iend)?(id->iend-id->istart):(INBUF_SIZE-id->istart+id->iend);
+    if (avail<1024) res=NEED_MORE;
+    else{
+      size_t pos = id->processed;
+      size_t mark = id->istart;
+      if((res = Read_Frame(id)) == OK) {
+        int avail;
+        Decode_L3(id);
+        *done = id->processed-pos;
+      }
+      else if (res == NEED_MORE) {
+        id->processed = pos;
+        id->istart = mark;
+      }
+    }
 
 /* copy to outmemory */
-    return(OK);
+    return(res);
   }
   return(ERROR);
 }
@@ -2309,32 +2365,48 @@ int pdmp3_getformat(pdmp3_handle *id,long *rate,int *channels,int *encoding){
  * mp3s must be NULL terminated
  */
 void pdmp3(char * const *mp3s){
+  static const char *filename,*audio_name = "/dev/dsp";
   static FILE *fp =(FILE *) NULL;
-  pdmp3_handle id;
+  unsigned char out[16*4096];
+  unsigned char in[INBUF_SIZE];
+  pdmp3_handle *id;
+  size_t res,done;
+  int used;
+
+  if ((id = pdmp3_new()) == 0)
+    Error("Cannot open stream API",0);
 
   if(!strncmp("/dev/dsp",*mp3s,8)){
     audio_name = *mp3s++;
   }
+
   while(*mp3s){
     filename = *mp3s++;
     if (!strcmp(filename,"-")) fp=stdin;
     else fp = fopen(filename,"r");
     if (fp == (FILE *) NULL)
       Error("Cannot open file\n",0);
-#if 0
-    if ((fp ==(FILE *) NULL) &&
-        !(!filename || (!strcmp(filename,"-") && (fp=stdin)))
-        && ((fp = fopen(filename,"r")) ==(FILE *) NULL))
-      Error("Cannot open file\n",0);
-#endif
-    while(Get_Filepos(&id) != C_EOF) {
-      if(Read_Frame(&id) == OK) {
-        Decode_L3(&id);
-        audio_write(&id);
-      }
-      else if(Get_Filepos(&id) == C_EOF) break;
-      else ERR("Not enough maindata to decode frame\n");
+
+    pdmp3_open_feed(id);
+    res = fread(in,1,INBUF_SIZE,fp);
+    if (res) {
+      used = res;
+      res = pdmp3_feed(id,in,res);
     }
+
+    while((res=pdmp3_read(id,out,16*4096,&done)) != ERROR){
+      used -= done;
+      if (res == OK) {
+        audio_write(id,audio_name,filename);
+      }
+      else if (res == NEED_MORE){
+        res = fread(in,1,1024,fp);
+        if (!res) break;
+        used += res;
+        res = pdmp3_feed(id,in,res);
+      }
+    }
+    pdmp3_delete(id);
     fclose(fp);
   }
 }
