@@ -317,10 +317,9 @@ else(MSVC)
           set_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
           )
-
-#         set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
-#             CACHE STRING "Flags used by the compiler during release builds"
-#             FORCE)
+          set_PROPERTY(SOURCE 3rdparty/pffft.c APPEND
+                       ROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+          )
       elseif(ARM)
           message("Build environment: ARM")
           set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DA32=1")
@@ -349,6 +348,9 @@ else(MSVC)
       else()
           message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
       endif()
+      set_PROPERTY(SOURCE 3rdparty/pdmp3.c APPEND
+                   PROPERTY COMPILE_FLAGS "-finline-small-functions -finline-functions-called-once -fno-unwind-tables -fno-asynchronous-unwind-tables -DIMDCT_TABLES -DIMDCT_NTABLES -DPOW34_TABLE"
+          )
    endif(GCC OR CLANG)
 
     message("Build type: ${CMAKE_BUILD_TYPE}")
