@@ -12,6 +12,9 @@
 #ifndef __FILE_EXT_MPG123_H
 #define __FILE_EXT_MPG123_H 1
 
+#define PDMP3_HEADER_ONLY
+#include <3rdparty/pdmp3.c>
+
 /** libmpg123 */
 
 enum    mpg123_parms {
