@@ -3,7 +3,8 @@ PFFFT - 3-clause BSD licensed Pretty Fast FFT:
 - https://bitbucket.org/jpommier/pffft/src
 
 PDMP3 - Public domain mp3 decoder:
-- https://github.com/technosaurus/PDMP3/blob/master/pdmp3.c
+- https://github.com/ehofman9923/PDMP3
+  forked from https://github.com/technosaurus/PDMP3
   (original: https://sites.google.com/a/kmlager.com/www/projects)
 
 stb_vorbis - Public Domain Vorbis Decoder:

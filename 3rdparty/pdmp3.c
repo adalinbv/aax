@@ -1,25 +1,30 @@
 /*
-Public Domain (www.unlicense.org)
-This is free and unencumbered software released into the public domain.
-Anyone is free to copy, modify, publish, use, compile, sell, or distribute this 
-software, either in source code form or as a compiled binary, for any purpose, 
-commercial or non-commercial, and by any means.
-In jurisdictions that recognize copyright laws, the author or authors of this 
-software dedicate any and all copyright interest in the software to the public 
-domain. We make this dedication for the benefit of the public at large and to 
-the detriment of our heirs and successors. We intend this dedication to be an 
-overt act of relinquishment in perpetuity of all present and future rights to 
-this software under copyright law.
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR 
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, 
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE 
-AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN 
-ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION 
-WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+ Public Domain (www.unlicense.org)
+ This is free and unencumbered software released into the public domain.
+ Anyone is free to copy, modify, publish, use, compile, sell, or distribute this
+ software, either in source code form or as a compiled binary, for any purpose,
+ commercial or non-commercial, and by any means.
+ In jurisdictions that recognize copyright laws, the author or authors of this
+ software dedicate any and all copyright interest in the software to the public
+ domain. We make this dedication for the benefit of the public at large and to
+ the detriment of our heirs and successors. We intend this dedication to be an
+ overt act of relinquishment in perpetuity of all present and future rights to
+ this software under copyright law.
+ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN
+ ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION
+ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-Author: Krister Lagerström(krister@kmlager.com)
+ Original version written by Krister Lagerström(krister@kmlager.com)
+ Website: https://sites.google.com/a/kmlager.com/www/projects
+
+ Contributors:
+   technosaurus
+   Erik Hofman (added a subset of the libmpg123 compatible streaming API)
+
 */
-
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdlib.h>
@@ -105,28 +110,13 @@ typedef struct { /* Scale factor band indices,for long and short windows */
 }
 t_sf_band_indices;
 
-#define SIM_UNIX
-#define OK         0
-#define ERROR     -1
-#define NEED_MORE -10
-#define TRUE       1
-#define FALSE      0
-#define C_SYNC             0xfff00000
-#define C_EOF              0xffffffff
-#define C_PI                   3.14159265358979323846
-#define C_INV_SQRT_2           0.70710678118654752440
-#define Hz                           1
-#define kHz                    1000*Hz
-#define bit_s                        1
-#define kbit_s                 1000*bit_s
-#define FRAG_SIZE_LN2     0x0011 /* 2^17=128kb */
-#define FRAG_NUMS         0x0004
+/** define a subset of a libmpg123 compatible streaming API */
+#define PDMP3_OK           0
+#define PDMP3_ERR         -1
+#define PDMP3_NEED_MORE  -10
+#define PDMP3_NO_SPACE     7
 
-#define DBG(str,args...) { printf(str,## args); printf("\n"); }
-#define ERR(str,args...) { fprintf(stderr,str,## args) ; fprintf(stderr,"\n"); }
-#define EXIT(str,args...) { printf(str,## args);  printf("\n"); exit(0); }
-
-#define INBUF_SIZE	(4096)
+#define INBUF_SIZE      4096
 typedef struct
 {
   unsigned char in[INBUF_SIZE];
@@ -151,6 +141,36 @@ typedef struct
   unsigned side_info_idx;  /* Index into the current byte(0-7) */
 }
 pdmp3_handle;
+
+pdmp3_handle* pdmp3_new(void);
+void pdmp3_delete(pdmp3_handle *id);
+int pdmp3_open_feed(pdmp3_handle *id);
+int pdmp3_feed(pdmp3_handle *id,const unsigned char *in,size_t size);
+int pdmp3_read(pdmp3_handle *id,unsigned char *outmemory,size_t outmemsize,size_t *done);
+int pdmp3_getformat(pdmp3_handle *id,long *rate,int *channels,int *encoding);
+/** end of the subset of a libmpg123 compatible streaming API */
+
+void pdmp3(char * const *mp3s);
+
+#ifndef PDMP3_HEADER_ONLY
+#define SIM_UNIX
+#define TRUE       1
+#define FALSE      0
+#define C_SYNC             0xfff00000
+#define C_EOF              0xffffffff
+#define C_PI                   3.14159265358979323846
+#define C_INV_SQRT_2           0.70710678118654752440
+#define Hz                           1
+#define kHz                    1000*Hz
+#define bit_s                        1
+#define kbit_s                 1000*bit_s
+#define FRAG_SIZE_LN2     0x0011 /* 2^17=128kb */
+#define FRAG_NUMS         0x0004
+
+#define DBG(str,args...) { printf(str,## args); printf("\n"); }
+#define ERR(str,args...) { fprintf(stderr,str,## args) ; fprintf(stderr,"\n"); }
+#define EXIT(str,args...) { printf(str,## args);  printf("\n"); exit(0); }
+
 
 #ifdef DEBUG //debug functions
 void dmp_fr(t_mpeg1_header *hdr);
@@ -859,13 +879,6 @@ static const t_sf_band_indices g_sf_band_indices[3 /* Sampling freq. */] = {
     }
   };
 
-#if 0
-static FILE *fp =(FILE *) NULL;
-static t_mpeg1_header    id->g_frame_header;
-static t_mpeg1_side_info id->g_side_info;  /* < 100 words */
-static t_mpeg1_main_data id->g_main_data;  /* Large static data(~2500 words) */
-#endif
-
 #ifdef DEBUG
 static void dmp_fr(t_mpeg1_header *hdr){
   printf("rate %d,sfreq %d,pad %d,mod %d,modext %d,emph %d\n",
@@ -993,8 +1006,8 @@ return powf((float)is_pos,4.0f / 3.0f);
 }
 
 /**Description: decodes a layer 3 bitstream into audio samples.
-* Parameters: Outdata vector.
-* Return value: OK or ERROR if the frame contains errors.
+* Parameters: Stream handle,outdata vector.
+* Return value: PDMP3_OK or PDMP3_ERR if the frame contains errors.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Decode_L3(pdmp3_handle *id){
   unsigned gr,ch,nch;
@@ -1031,12 +1044,13 @@ static int Decode_L3(pdmp3_handle *id){
     }
 #endif /* DEBUG */
   } /* end for(gr... */
-  return(OK);   /* Done */
+  return(PDMP3_OK);   /* Done */
 }
 
 /** Description: reads 'no_of_bytes' from input stream into 'data_vec[]'.
-*   Parameters: Number of bytes to read,vector pointer where to store them.
-*   Return value: OK or ERROR if the operation couldn't be performed.
+*   Parameters: Stream handle,number of bytes to read,vector pointer where to
+                store them.
+*   Return value: PDMP3_OK or PDMP3_ERR if the operation couldn't be performed.
 *   Author: Krister Lagerström(krister@kmlager.com) **/
 static int Get_Bytes(pdmp3_handle *id,unsigned no_of_bytes,unsigned data_vec[]){
   int i;
@@ -1047,15 +1061,15 @@ static int Get_Bytes(pdmp3_handle *id,unsigned no_of_bytes,unsigned data_vec[]){
     if(val == C_EOF) return(C_EOF);
     else data_vec[i] = val;
   }
-  return(OK);
+  return(PDMP3_OK);
 }
 
 /** Description: This function assembles the main data buffer with data from
 *              this frame and the previous two frames into a local buffer
 *              used by the Get_Main_Bits function.
-* Parameters: main_data_begin indicates how many bytes from previous
-*             frames that should be used. main_data_size indicates the number
-*             of data bytes in this frame.
+* Parameters: Stream handle,main_data_begin indicates how many bytes from
+*             previous frames that should be used. main_data_size indicates the
+*             number of data bytes in this frame.
 * Return value: Status
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Get_Main_Data(pdmp3_handle *id,unsigned main_data_size,unsigned main_data_begin){
@@ -1072,7 +1086,7 @@ static int Get_Main_Data(pdmp3_handle *id,unsigned main_data_size,unsigned main_
     id->g_main_data_ptr = &(id->g_main_data_vec[0]);
     id->g_main_data_idx = 0;
     id->g_main_data_top += main_data_size;
-    return(NEED_MORE);    /* This frame cannot be decoded! */
+    return(PDMP3_NEED_MORE);    /* This frame cannot be decoded! */
   }
   for(i = 0; i < main_data_begin; i++) {  /* Copy data from previous frames */
     id->g_main_data_vec[i] = id->g_main_data_vec[id->g_main_data_top - main_data_begin + i];
@@ -1083,13 +1097,13 @@ static int Get_Main_Data(pdmp3_handle *id,unsigned main_data_size,unsigned main_
   id->g_main_data_ptr = &(id->g_main_data_vec[0]);
   id->g_main_data_idx = 0;
   id->g_main_data_top = main_data_begin + main_data_size;
-  return(OK);  /* Done */
+  return(PDMP3_OK);  /* Done */
 }
 
 /**Description: Reads audio and main data from bitstream into a buffer. main
 *  data is taken from this frame and up to 2 previous frames.
-* Parameters: None
-* Return value: OK or ERROR if data could not be read,or contains errors.
+* Parameters: Stream handle.
+* Return value: PDMP3_OK or PDMP3_ERR if data could not be read,or contains errors.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Read_Audio_L3(pdmp3_handle *id){
   unsigned framesize,sideinfo_size,main_data_size,nch,ch,gr,scfsi_band,region,window;
@@ -1103,7 +1117,7 @@ static int Read_Audio_L3(pdmp3_handle *id){
     id->g_frame_header.padding_bit;
   if(framesize > 2000) {
     ERR("framesize = %d\n",framesize);
-    return(ERROR);
+    return(PDMP3_ERR);
   }
   /* Sideinfo is 17 bytes for one channel and 32 bytes for two */
   sideinfo_size =(nch == 1 ? 17 : 32);
@@ -1116,7 +1130,7 @@ static int Read_Audio_L3(pdmp3_handle *id){
   /* DBG("main_data_size =   %d\n",main_data_size); */
   /* Read sideinfo from bitstream into buffer used by Get_Side_Bits() */
   Get_Sideinfo(id,sideinfo_size);
-  if(Get_Filepos(id) == C_EOF) return(ERROR);
+  if(Get_Filepos(id) == C_EOF) return(PDMP3_ERR);
   /* Parse audio data */
   /* Pointer to where we should start reading main data */
   id->g_side_info.main_data_begin = Get_Side_Bits(id,9);
@@ -1160,29 +1174,29 @@ static int Read_Audio_L3(pdmp3_handle *id){
       id->g_side_info.count1table_select[gr][ch] = Get_Side_Bits(id,1);
     } /* end for(channel... */
   } /* end for(granule... */
-  return(OK);/* Done */
+  return(PDMP3_OK);/* Done */
 
 }
 
 /**Description: Reads 16 CRC bits
-* Parameters: None
-* Return value: OK or ERROR if CRC could not be read.
+* Parameters: Stream handle.
+* Return value: PDMP3_OK or PDMP3_ERR if CRC could not be read.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Read_CRC(pdmp3_handle *id){
   /* Get next two bytes from bitstream, If we got an End Of File we're done */
   if((Get_Byte(id)==C_EOF)||(Get_Byte(id)==C_EOF)) return(FALSE);
-  return(OK);  /* Done */
+  return(PDMP3_OK);  /* Done */
 }
 
 /**Description: Search for next frame and read it into  buffer. Main data in
    this frame is saved for two frames since it might be needed by them.
-* Parameters: None
-* Return value: OK if a frame is successfully read,ERROR otherwise.
+* Parameters: Stream handle.
+* Return value: PDMP3_OK if a frame is successfully read,PDMP3_ERR otherwise.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Read_Frame(pdmp3_handle *id){
   if(Get_Filepos(id) == 0) Decode_L3_Init_Song(id);
   /* Try to find the next frame in the bitstream and decode it */
-  if(Read_Header(id) != OK) return(ERROR);
+  if(Read_Header(id) != PDMP3_OK) return(PDMP3_ERR);
 #ifdef DEBUG
   { static int framenum = 0;
     printf("\nFrame %d\n",framenum++);
@@ -1194,7 +1208,7 @@ static int Read_Frame(pdmp3_handle *id){
          g_sampling_frequency[id->g_frame_header.sampling_frequency]);
 #endif
   /* Get CRC word if present */
-  if((id->g_frame_header.protection_bit==0)&&(Read_CRC(id)!=OK)) return(ERROR);
+  if((id->g_frame_header.protection_bit==0)&&(Read_CRC(id)!=PDMP3_OK)) return(PDMP3_ERR);
   if(id->g_frame_header.layer == 3) {  /* Get audio data */
     Read_Audio_L3(id);  /* Get side info */
     dmp_si(&id->g_frame_header,&id->g_side_info); /* DEBUG */
@@ -1204,15 +1218,15 @@ static int Read_Frame(pdmp3_handle *id){
     return(Read_Main_L3(id));
   }else{
     ERR("Only layer 3(!= %d) is supported!\n",id->g_frame_header.layer);
-    return(ERROR);
+    return(PDMP3_ERR);
   }
-  return(OK);
+  return(PDMP3_OK);
 }
 
 /**Description: Scans bitstream for syncword until we find it or EOF. The
    syncword must be byte-aligned. It then reads and parses audio header.
-* Parameters: None
-* Return value: OK or ERROR if the syncword can't be found,or the header
+* Parameters: Stream handle.
+* Return value: PDMP3_OK or PDMP3_ERR if the syncword can't be found,or the header
 *               contains impossible values.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Read_Header(pdmp3_handle *id) {
@@ -1225,7 +1239,7 @@ static int Read_Header(pdmp3_handle *id) {
   b4 = Get_Byte(id);
   /* If we got an End Of File condition we're done */
   if((b1==C_EOF)||(b2==C_EOF)||(b3==C_EOF)||(b4==C_EOF))
-    return(ERROR);
+    return(PDMP3_ERR);
   header =(b1 << 24) |(b2 << 16) |(b3 << 8) |(b4 << 0);
   /* Are the high 12 bits the syncword(0xfff)? */
   while((header & 0xfff00000) != C_SYNC) {
@@ -1237,7 +1251,7 @@ static int Read_Header(pdmp3_handle *id) {
     /* Get one new byte from the bitstream */
     b4 = Get_Byte(id);
     /* If we got an End Of File condition we're done */
-    if(b4 == C_EOF) return(ERROR);
+    if(b4 == C_EOF) return(PDMP3_ERR);
     /* Make up the new header */
     header =(b1 << 24) |(b2 << 16) |(b3 << 8) |(b4 << 0);
   } /* while... */
@@ -1259,7 +1273,7 @@ static int Read_Header(pdmp3_handle *id) {
   /* Check for invalid values and impossible combinations */
   if(id->g_frame_header.id != 1) {
     ERR("ID must be 1\nHeader word is 0x%08x at file pos %d\n",header,Get_Filepos(id));
-    return(ERROR);
+    return(PDMP3_ERR);
   }
   if(id->g_frame_header.bitrate_index == 0) {
     ERR("Free bitrate format NIY!\nHeader word is 0x%08x at file pos %d\n",header,Get_Filepos(id));
@@ -1267,27 +1281,27 @@ static int Read_Header(pdmp3_handle *id) {
   }
   if(id->g_frame_header.bitrate_index == 15) {
     ERR("bitrate_index = 15 is invalid!\nHeader word is 0x%08x at file pos %d\n",header,Get_Filepos(id));
-    return(ERROR);
+    return(PDMP3_ERR);
   }
   if(id->g_frame_header.sampling_frequency == 3) {
     ERR("sampling_frequency = 3 is invalid!\n");
     ERR("Header word is 0x%08x at file pos %d\n",header,Get_Filepos(id));
-    return(ERROR);
+    return(PDMP3_ERR);
   }
   if(id->g_frame_header.layer == 0) {
     ERR("layer = 0 is invalid!\n");
     ERR("Header word is 0x%08x at file pos %d\n",header,
    Get_Filepos(id));
-    return(ERROR);
+    return(PDMP3_ERR);
   }
   id->g_frame_header.layer = 4 - id->g_frame_header.layer;
   /* DBG("Header         =   0x%08x\n",header); */
-  return(OK);  /* Done */
+  return(PDMP3_OK);  /* Done */
 }
 
 /**Description: reads main data for layer 3 from main_data bit reservoir.
-* Parameters: None
-* Return value: OK or ERROR if the data contains errors.
+* Parameters: Stream handle.
+* Return value: PDMP3_OK or PDMP3_ERR if the data contains errors.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Read_Main_L3(pdmp3_handle *id){
   unsigned framesize,sideinfo_size,main_data_size,gr,ch,nch,sfb,win,slen1,slen2,nbits,part_2_start;
@@ -1304,7 +1318,7 @@ static int Read_Main_L3(pdmp3_handle *id){
 
   if(framesize > 2000) {
     ERR("framesize = %d\n",framesize);
-    return(ERROR);
+    return(PDMP3_ERR);
   }
   /* Sideinfo is 17 bytes for one channel and 32 bytes for two */
   sideinfo_size =(nch == 1 ? 17 : 32);
@@ -1318,7 +1332,7 @@ static int Read_Main_L3(pdmp3_handle *id){
    * Get_Main_Bits function in the same way as the side info is.
    */
   res = Get_Main_Data(id,main_data_size,id->g_side_info.main_data_begin);
-  if(res != OK) return(res); /* This could be due to not enough data in reservoir */
+  if(res != PDMP3_OK) return(res); /* This could be due to not enough data in reservoir */
   for(gr = 0; gr < 2; gr++) {
     for(ch = 0; ch < nch; ch++) {
       part_2_start = Get_Main_Pos(id);
@@ -1384,26 +1398,26 @@ static int Read_Main_L3(pdmp3_handle *id){
     } /* end for(gr... */
   } /* end for(ch... */
   /* The ancillary data is stored here,but we ignore it. */
-  return(OK);  /* Done */
+  return(PDMP3_OK);  /* Done */
 }
 
 /**Description: sets position of next bit to be read from main data bitstream.
-* Parameters: Bit position. 0 = start,8 = start of byte 1,etc.
-* Return value: OK or ERROR if bit_pos is past end of main data for this frame.
+* Parameters: Stream handle,Bit position. 0 = start,8 = start of byte 1,etc.
+* Return value: PDMP3_OK or PDMP3_ERR if bit_pos is past end of main data for this frame.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Set_Main_Pos(pdmp3_handle *id,unsigned bit_pos){
 
   id->g_main_data_ptr = &(id->g_main_data_vec[bit_pos >> 3]);
   id->g_main_data_idx = bit_pos & 0x7;
 
-  return(OK);
+  return(PDMP3_OK);
 
 }
 
 /**Description: returns next byte from bitstream, or EOF.
 *  If we're not on an byte-boundary, bits remaining until next boundary are
 *  discarded before getting that byte.
-* Parameters: None
+* Parameters: Stream handle.
 * Return value: The next byte in bitstream in the lowest 8 bits,or C_EOF.
 * Original Author: Krister Lagerström(krister@kmlager.com)
 * Author: Erik Hofman(erik@ehofman.com) **/
@@ -1420,15 +1434,16 @@ static unsigned Get_Byte(pdmp3_handle *id){
 }
 
 /**Description: returns current file position in bytes.
-* Parameters: None
+* Parameters: Stream handle.
 * Return value: File pos in bytes,or 0 if no file open.
-* Author: Krister Lagerström(krister@kmlager.com) **/
+* Original Author: Krister Lagerström(krister@kmlager.com)
+* Author: Erik Hofman(erik@ehofman.com) **/
 static unsigned Get_Filepos(pdmp3_handle *id){
   return(id->processed);
 }
 
 /**Description: gets one bit from the local buffer which contains main_data.
-* Parameters: None
+* Parameters: Stream handle.
 * Return value: The bit is returned in the LSB of the return value.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static unsigned Get_Main_Bit(pdmp3_handle *id){
@@ -1442,7 +1457,7 @@ static unsigned Get_Main_Bit(pdmp3_handle *id){
 }
 
 /**Description: reads 'number_of_bits' from local buffer containing main_data.
-* Parameters: number_of_bits to read(max 24)
+* Parameters: Stream handle,number_of_bits to read(max 24)
 * Return value: The bits are returned in the LSB of the return value.
 *
 ******************************************************************************/
@@ -1472,7 +1487,7 @@ static unsigned Get_Main_Bits(pdmp3_handle *id,unsigned number_of_bits){
 }
 
 /**Description: returns pos. of next bit to be read from main data bitstream.
-* Parameters: None
+* Parameters: Stream handle.
 * Return value: Bit position.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static unsigned Get_Main_Pos(pdmp3_handle *id){
@@ -1486,7 +1501,7 @@ static unsigned Get_Main_Pos(pdmp3_handle *id){
 }
 
 /**Description: reads 'number_of_bits' from buffer which contains side_info.
-* Parameters: number_of_bits to read(max 16)
+* Parameters: Stream handle,number_of_bits to read(max 16)
 * Return value: The bits are returned in the LSB of the return value.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static unsigned Get_Side_Bits(pdmp3_handle *id,unsigned number_of_bits){
@@ -1515,11 +1530,11 @@ static void Error(const char *s,int e){
 }
 
 /**Description: Reads sideinfo from bitstream into buffer for Get_Side_Bits.
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Get_Sideinfo(pdmp3_handle *id,unsigned sideinfo_size){
-  if(Get_Bytes(id,sideinfo_size,id->side_info_vec) != OK) {
+  if(Get_Bytes(id,sideinfo_size,id->side_info_vec) != PDMP3_OK) {
     ERR("\nCouldn't read sideinfo %d bytes at pos %d\n",
    sideinfo_size,Get_Filepos(id));
     return;
@@ -1531,7 +1546,8 @@ static void Get_Sideinfo(pdmp3_handle *id,unsigned sideinfo_size){
 }
 
 /**Description: reads/decodes next Huffman code word from main_data reservoir.
-* Parameters: Huffman table number and four pointers for the return values.
+* Parameters: Stream handle,Huffman table number and four pointers for the
+              return values.
 * Return value: Two(x,y) or four(x,y,v,w) decoded Huffman words.
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static int Huffman_Decode(pdmp3_handle *id,unsigned table_num,int32_t *x,int32_t *y,int32_t *v,int32_t *w){
@@ -1542,7 +1558,7 @@ static int Huffman_Decode(pdmp3_handle *id,unsigned table_num,int32_t *x,int32_t
   treelen = g_huffman_main[table_num].treelen;
   if(treelen == 0) { /* Check for empty tables */
     *x = *y = *v = *w = 0;
-    return(OK);
+    return(PDMP3_OK);
   }
   const unsigned short *htptr = g_huffman_main[table_num].hufftable;
   do {   /* Start reading the Huffman code word,bit by bit */
@@ -1583,11 +1599,11 @@ static int Huffman_Decode(pdmp3_handle *id,unsigned table_num,int32_t *x,int32_t
     if((linbits > 0)&&(*y == 15))*y += Get_Main_Bits(id,linbits);/* Get linbits */
     if((*y > 0)&&(Get_Main_Bit(id) == 1)) *y = -*y;/* Get sign bit */
   }
-  return(error ? ERROR : OK);  /* Done */
+  return(error ? PDMP3_ERR : PDMP3_OK);  /* Done */
 }
 
 /**Description: reinit decoder before playing new song,or seeking current song.
-* Parameters: None
+* Parameters: Stream handle.
 * Return value: None
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Decode_L3_Init_Song(pdmp3_handle *id){
@@ -1653,7 +1669,7 @@ static void IMDCT_Win(float in[18],float out[36],unsigned block_type){
 }
 
 /**Description: TBD
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void L3_Antialias(pdmp3_handle *id,unsigned gr,unsigned ch){
@@ -1685,7 +1701,7 @@ static void L3_Antialias(pdmp3_handle *id,unsigned gr,unsigned ch){
 }
 
 /**Description: TBD
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void L3_Frequency_Inversion(pdmp3_handle *id,unsigned gr,unsigned ch){
@@ -1699,7 +1715,7 @@ static void L3_Frequency_Inversion(pdmp3_handle *id,unsigned gr,unsigned ch){
 }
 
 /**Description: TBD
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void L3_Hybrid_Synthesis(pdmp3_handle *id,unsigned gr,unsigned ch){
@@ -1733,7 +1749,7 @@ static void L3_Hybrid_Synthesis(pdmp3_handle *id,unsigned gr,unsigned ch){
 }
 
 /**Description: TBD
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void L3_Reorder(pdmp3_handle *id,unsigned gr,unsigned ch){
@@ -1776,7 +1792,7 @@ static void L3_Reorder(pdmp3_handle *id,unsigned gr,unsigned ch){
 }
 
 /**Description: TBD
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void L3_Requantize(pdmp3_handle *id,unsigned gr,unsigned ch){
@@ -1858,7 +1874,7 @@ static void L3_Requantize(pdmp3_handle *id,unsigned gr,unsigned ch){
 }
 
 /**Description: TBD
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void L3_Stereo(pdmp3_handle *id,unsigned gr){
@@ -1925,7 +1941,7 @@ static void L3_Stereo(pdmp3_handle *id,unsigned gr){
 }
 
 /**Description: TBD
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void L3_Subband_Synthesis(pdmp3_handle *id,unsigned gr,unsigned ch,unsigned outdata[576]){
@@ -1998,7 +2014,7 @@ static void L3_Subband_Synthesis(pdmp3_handle *id,unsigned gr,unsigned ch,unsign
 }
 
 /**Description: called by Read_Main_L3 to read Huffman coded data from bitstream.
-* Parameters: None
+* Parameters: Stream handle,TBD
 * Return value: None. The data is stored in id->g_main_data.is[ch][gr][freqline].
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Read_Huffman(pdmp3_handle *id,unsigned part_2_start,unsigned gr,unsigned ch){
@@ -2068,7 +2084,7 @@ static void Read_Huffman(pdmp3_handle *id,unsigned part_2_start,unsigned gr,unsi
 }
 
 /**Description: requantize sample in subband that uses long blocks.
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Requantize_Process_Long(pdmp3_handle *id,unsigned gr,unsigned ch,unsigned is_pos,unsigned sfb){
@@ -2087,7 +2103,7 @@ static void Requantize_Process_Long(pdmp3_handle *id,unsigned gr,unsigned ch,uns
 }
 
 /**Description: requantize sample in subband that uses short blocks.
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Requantize_Process_Short(pdmp3_handle *id,unsigned gr,unsigned ch,unsigned is_pos,unsigned sfb,unsigned win){
@@ -2105,7 +2121,7 @@ static void Requantize_Process_Short(pdmp3_handle *id,unsigned gr,unsigned ch,un
 }
 
 /**Description: intensity stereo processing for entire subband with long blocks.
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Stereo_Process_Intensity_Long(pdmp3_handle *id,unsigned gr,unsigned sfb){
@@ -2137,7 +2153,7 @@ static void Stereo_Process_Intensity_Long(pdmp3_handle *id,unsigned gr,unsigned 
 
 /**Description: This function is used to perform intensity stereo processing
 *              for an entire subband that uses short blocks.
-* Parameters: TBD
+* Parameters: Stream handle,TBD
 * Return value: TBD
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void Stereo_Process_Intensity_Short(pdmp3_handle *id,unsigned gr,unsigned sfb){
@@ -2178,7 +2194,8 @@ static void Stereo_Process_Intensity_Short(pdmp3_handle *id,unsigned gr,unsigned
 * Name: audio_write_raw
 * Author: Krister Lagerström(krister@unidata.se)
 * Description: This function is used to output raw data
-* Parameters: Pointers to the samples,the number of samples
+* Parameters: Stream handle,file name,pointers to the samples,the number of
+              samples
 * Return value: None
 * Revision History:
 * Author   Date    Change
@@ -2224,7 +2241,7 @@ static void audio_write_raw(pdmp3_handle *id,const char *filename,unsigned *samp
 #endif
 
 /**Description: output audio data
-* Parameters: Pointers to the samples,the number of samples
+* Parameters: Stream handle,audio device name,file name.
 * Return value: None
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void audio_write(pdmp3_handle *id,const char *audio_name,const char *filename){
@@ -2271,8 +2288,16 @@ static void audio_write(pdmp3_handle *id,const char *audio_name,const char *file
 
 
 /*#############################################################################
- * Stream API - EMH - Added for AeonWave Audio (http://www.adalin.com)
+ * Stream API - Added for AeonWave Audio (http://www.adalin.com)
+ * This is a subset of the libmpg123 API and should by 100% compatible.
+ *
+ * Author: Erik Hofman(erik@ehofman.com)
  */
+
+/**Description: Create a new streaming handle
+* Parameters: None
+* Return value: Stream handle
+* Author: Erik Hofman(erik@ehofman.com) **/
 pdmp3_handle* pdmp3_new(void){
   pdmp3_handle *rv = calloc(1,sizeof(pdmp3_handle));
   if (rv) {
@@ -2282,18 +2307,32 @@ pdmp3_handle* pdmp3_new(void){
   return rv;
 }
 
+
+/**Description: Free a streaming handle
+* Parameters: Streaming handle
+* Return value: TBD 
+* Author: Erik Hofman(erik@ehofman.com) **/
 void pdmp3_delete(pdmp3_handle *id){
   free(id);
 }
 
+
+/**Description: TBD
+* Parameters: TBD
+* Return value: TBD 
+* Author: Erik Hofman(erik@ehofman.com) **/
 int pdmp3_open_feed(pdmp3_handle *id){
   if (id) {
-
-    return(OK);
+    return(PDMP3_OK);
   }
-  return(ERROR);
+  return(PDMP3_ERR);
 }
 
+/**Description: Feed new data to the MP3 decoder
+* Parameters: Streaming handle,data buffer containging MP3 data, size fo the
+              data buffer.
+* Return value: PDMP3_OK or an error
+* Author: Erik Hofman(erik@ehofman.com) **/
 int pdmp3_feed(pdmp3_handle *id,const unsigned char *in,size_t size){
   if (id && in && size) {
     int avail = (id->iend<id->istart)?(id->istart-id->iend):(INBUF_SIZE-id->iend+id->istart);
@@ -2321,44 +2360,75 @@ int pdmp3_feed(pdmp3_handle *id,const unsigned char *in,size_t size){
             id->iend = size;
          }
       }
-      return(OK);
+      return(PDMP3_OK);
     }
+    return (PDMP3_NO_SPACE);
   }
-  return(ERROR);
+  return(PDMP3_ERR);
 }
 
+/**Description: Convert MP3 data to PCM data
+* Parameters: Stream handle,a pointer to a buffer for the PCM data,the size of
+              the PCM buffer in bytes,a pointer to return the number of
+              converted bytes.
+* Return value: PDMP3_OK or an error.
+* Author: Erik Hofman(erik@ehofman.com) **/
 int pdmp3_read(pdmp3_handle *id,unsigned char *outmemory,size_t outmemsize,size_t *done){
-  if (id && outmemory && outmemsize && done){
+  if (id && outmemory && outmemsize && done) {
     int res,avail = (id->istart<=id->iend)?(id->iend-id->istart):(INBUF_SIZE-id->istart+id->iend);
-    if (avail<1024) res=NEED_MORE;
-    else{
+    if (avail >= (2*576) && outmemsize >= (2*576)) {
       size_t pos = id->processed;
       size_t mark = id->istart;
-      if((res = Read_Frame(id)) == OK) {
-        int avail;
+      if((res = Read_Frame(id)) == PDMP3_OK) {
+        unsigned short *s = (unsigned short*)outmemory;
+        int i,nch,gr;
+        unsigned lo,hi;
+
         Decode_L3(id);
-        *done = id->processed-pos;
+        *done = 2*576;
+
+        /* copy to outmemory */
+        nch =(id->g_frame_header.mode == mpeg1_mode_single_channel ? 1 : 2);
+        for(gr = 0; gr < 2; gr++) {
+          for(i = 0; i < 576; i++) {
+            if(nch == 1) {
+              lo = id->out[gr][i] & 0xffff;
+              s[gr*576 + i] = lo;
+            }else{
+              lo = id->out[gr][i] & 0xffff;
+              hi =(id->out[gr][i] & 0xffff0000) >> 16;
+              s[gr*576 + 2*i] = hi;
+              s[gr*576 + 2*i+1] = lo;
+            }
+          }
+        }
       }
-      else if (res == NEED_MORE) {
+      else if (res == PDMP3_NEED_MORE) {
         id->processed = pos;
         id->istart = mark;
       }
+      return(res);
     }
-
-/* copy to outmemory */
-    return(res);
+    else if (outmemsize < (2*576)) {
+      return(PDMP3_NO_SPACE);
+    }
+    return(PDMP3_NEED_MORE);
   }
-  return(ERROR);
+  return(PDMP3_ERR);
 }
 
+/**Description: Get the current output format written to the addresses given.
+* Parameters: Stream handle,pointers to store rate, channels and encoding.
+* Return value: PDMP3_OK or an error
+* Author: Erik Hofman(erik@ehofman.com) **/
 int pdmp3_getformat(pdmp3_handle *id,long *rate,int *channels,int *encoding){
   if (id && rate && channels && encoding) {
     *encoding = (0x040|0x20); // equals to MPG123_ENC_UNSIGNED_16
     *rate = g_sampling_frequency[id->g_frame_header.sampling_frequency];
     *channels = (id->g_frame_header.mode == mpeg1_mode_single_channel ? 1 : 2);
-    return(OK);
+    return(PDMP3_OK);
   }
-  return(ERROR);
+  return(PDMP3_ERR);
 }
 
 /*#############################################################################
@@ -2369,18 +2439,18 @@ void pdmp3(char * const *mp3s){
   static FILE *fp =(FILE *) NULL;
   unsigned char out[16*4096];
   unsigned char in[INBUF_SIZE];
-  pdmp3_handle *id;
   size_t res,done;
   int used;
-
-  if ((id = pdmp3_new()) == 0)
-    Error("Cannot open stream API",0);
 
   if(!strncmp("/dev/dsp",*mp3s,8)){
     audio_name = *mp3s++;
   }
 
   while(*mp3s){
+    pdmp3_handle *id = pdmp3_new();
+    if (id == 0)
+      Error("Cannot open stream API",0);
+
     filename = *mp3s++;
     if (!strcmp(filename,"-")) fp=stdin;
     else fp = fopen(filename,"r");
@@ -2388,18 +2458,12 @@ void pdmp3(char * const *mp3s){
       Error("Cannot open file\n",0);
 
     pdmp3_open_feed(id);
-    res = fread(in,1,INBUF_SIZE,fp);
-    if (res) {
-      used = res;
-      res = pdmp3_feed(id,in,res);
-    }
-
-    while((res=pdmp3_read(id,out,16*4096,&done)) != ERROR){
+    while((res=pdmp3_read(id,out,16*4096,&done)) != PDMP3_ERR){
       used -= done;
-      if (res == OK) {
+      if (res == PDMP3_OK) {
         audio_write(id,audio_name,filename);
       }
-      else if (res == NEED_MORE){
+      else if (res == PDMP3_NEED_MORE){
         res = fread(in,1,1024,fp);
         if (!res) break;
         used += res;
@@ -2410,3 +2474,4 @@ void pdmp3(char * const *mp3s){
     fclose(fp);
   }
 }
+#endif /* !definend(STB_VORBIS_HEADER_ONLY) */
