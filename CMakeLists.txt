@@ -318,7 +318,7 @@ else(MSVC)
                      PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
           )
           set_PROPERTY(SOURCE 3rdparty/pffft.c APPEND
-                       ROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+                       PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
           )
       elseif(ARM)
           message("Build environment: ARM")
