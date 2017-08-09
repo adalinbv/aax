@@ -113,7 +113,7 @@ _mpg123_detect(_fmt_t *fmt, int mode)
    if (mode == 0) /* read */
    {
       const char *env = getenv("AAX_USE_PDMP3");
-      if (env && !_aax_getbool(env))
+      if (!env || !_aax_getbool(env))
       {
          audio = _aaxIsLibraryPresent("mpg123", "0");
          if (!audio) {
