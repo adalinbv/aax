@@ -147,6 +147,21 @@ typedef struct
 }
 pdmp3_handle;
 
+struct pdpm3_frameinfo
+{
+  unsigned version;
+  unsigned layer;
+  long rate;
+  unsigned mode;
+  unsigned mode_ext;
+  unsigned framesize;
+  unsigned flags;
+  unsigned emphasis;
+  unsigned bitrate;
+  unsigned abr_rate;
+  unsigned vbr;
+};
+
 pdmp3_handle* pdmp3_new(const char *decoder,int *error);
 void pdmp3_delete(pdmp3_handle *id);
 int pdmp3_open_feed(pdmp3_handle *id);
@@ -154,6 +169,7 @@ int pdmp3_feed(pdmp3_handle *id,const unsigned char *in,size_t size);
 int pdmp3_read(pdmp3_handle *id,unsigned char *outmemory,size_t outsize,size_t *done);
 int pdmp3_decode(pdmp3_handle *id,const unsigned char *in,size_t insize,unsigned char *out,size_t outsize,size_t *done);
 int pdmp3_getformat(pdmp3_handle *id,long *rate,int *channels,int *encoding);
+int pdmp3_info(pdmp3_handle *id,struct pdpm3_frameinfo *info);
 /** end of the subset of a libmpg123 compatible streaming API */
 
 void pdmp3(char * const *mp3s);
@@ -2529,6 +2545,34 @@ int pdmp3_getformat(pdmp3_handle *id,long *rate,int *channels,int *encoding){
     *rate = g_sampling_frequency[id->g_frame_header.sampling_frequency];
     *channels = (id->g_frame_header.mode == mpeg1_mode_single_channel ? 1 : 2);
     id->new_header = -1;
+    return(PDMP3_OK);
+  }
+  return(PDMP3_ERR);
+}
+
+int pdmp3_info(pdmp3_handle *id,struct pdpm3_frameinfo *info)
+{
+  if(id){
+    long rate = g_sampling_frequency[id->g_frame_header.sampling_frequency];
+    unsigned bitrate = g_mpeg1_bitrates[id->g_frame_header.layer-1][id->g_frame_header.bitrate_index];
+
+    info->version = 0;
+    info->layer = (4 - id->g_frame_header.layer);
+    info->rate = rate;
+    info->mode = id->g_frame_header.mode;
+    info->mode_ext = 0;
+    info->framesize = (144 * bitrate) / rate + id->g_frame_header.padding_bit;
+    info->emphasis = id->g_frame_header.emphasis;
+    info->bitrate = bitrate;
+    info->abr_rate = 0;
+    info->vbr = 0;
+
+    info->flags = 0;
+    if (id->g_frame_header.protection_bit) info->flags |= 0x1;
+    if (id->g_frame_header.copyright) info->flags |= 0x2;
+    if (id->g_frame_header.private_bit) info->flags |= 0x4;
+    if (!id->g_frame_header.original_or_copy) info->flags |= 0x8;
+
     return(PDMP3_OK);
   }
   return(PDMP3_ERR);
