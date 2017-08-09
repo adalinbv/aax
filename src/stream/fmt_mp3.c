@@ -112,15 +112,17 @@ _mpg123_detect(_fmt_t *fmt, int mode)
 
    if (mode == 0) /* read */
    {
-#if 0
-      audio = _aaxIsLibraryPresent("mpg123", "0");
-      if (!audio) {
-         audio = _aaxIsLibraryPresent("libmpg123", "0");
+      const char *env = getenv("AAX_USE_PDMP3");
+      if (env && !_aax_getbool(env))
+      {
+         audio = _aaxIsLibraryPresent("mpg123", "0");
+         if (!audio) {
+            audio = _aaxIsLibraryPresent("libmpg123", "0");
+         }
+         if (!audio) {
+            audio = _aaxIsLibraryPresent("libmpg123-0", "0");
+         }
       }
-      if (!audio) {
-         audio = _aaxIsLibraryPresent("libmpg123-0", "0");
-      }
-#endif
 
       if (!audio) /* libmpg123 was not found, switch to pdmp3 */
       {
