@@ -349,7 +349,13 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                   handle->no_tracks = channels;
                   handle->format = _getFormatFromMP3Format(enc);
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
-//                rv = buf;
+
+                  struct pdpm3_frameinfo info;
+                  if (pdmp3_info(handle->id,&info) == MPG123_OK)
+                  {
+                     double q = (double)rate/(info.bitrate/8.0) * fsize;
+                     handle->max_samples = q;
+                  }
                }
             }
             else if (ret == MPG123_NEED_MORE) {
