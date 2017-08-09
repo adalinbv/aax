@@ -1391,7 +1391,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                char src[65];
                int slen;
 
-               slen = xmlAttributeCopyString(xfid, "src", src, 64);
+               slen = xmlAttributeCopyString(xfid, "type", src, 64);
                if (slen)
                {
                   enum aaxFilterType ftype;
@@ -1431,7 +1431,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                         }
                      }
 
-                     slen = xmlNodeCopyString(xfid, "state", src, 64);
+                     slen = xmlAttributeCopyString(xfid, "type", src, 64);
                      if (slen)
                      {
                         src[slen] = 0;
@@ -1457,7 +1457,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                char src[64];
                int slen;
 
-               slen = xmlAttributeCopyString(xeid, "src", src, 64);
+               slen = xmlAttributeCopyString(xeid, "type", src, 64);
                if (slen)
                {
                   enum aaxEffectType ftype;
@@ -1489,7 +1489,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                         }
                      }
 
-                     slen = xmlNodeCopyString(xeid, "state", src, 64);
+                     slen = xmlAttributeCopyString(xeid, "src", src, 64);
                      if (slen)
                      {
                         src[slen] = 0;
