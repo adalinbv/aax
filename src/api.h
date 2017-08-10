@@ -72,6 +72,7 @@ _data_t* _aaxDataCreate(size_t, unsigned int);
 int _aaxDataDestroy(_data_t*);
 size_t _aaxDataAdd(_data_t*, void*, size_t);
 size_t _aaxDataMove(_data_t*, void*, size_t);
+size_t _aaxDataMoveData(_data_t*, _data_t*, size_t);
 
 
 /* --- Error support -- */

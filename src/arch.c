@@ -111,3 +111,33 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
    return rv;
 }
 
+size_t
+_aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
+{
+   size_t rv = size;
+
+   assert(src);
+   assert(src->id == DATA_ID);
+
+   assert(dst);
+   assert(dst->id == DATA_ID);
+
+   if (size >= src->blocksize && size > dst->blocksize)
+   {
+      rv = _MIN((size/src->blocksize)*src->blocksize, src->avail);
+      if (rv > (dst->size - dst->avail)) {
+         rv = dst->size - dst->avail;
+      }
+
+      memcpy(dst->data+dst->avail, src->data, rv);
+
+      src->avail -= rv;
+      dst->avail += rv;
+      if (src->avail > 0) {
+         memmove(src->data, src->data+rv, src->avail);
+      }
+   }
+
+   return rv;
+}
+
