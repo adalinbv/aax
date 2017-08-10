@@ -170,15 +170,21 @@ size_t
 _binary_copy(_fmt_t *fmt, int32_ptr dptr, size_t offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t rv = _aaxDataMove(handle->rawBuffer, dptr+offs, *num); 
-   *num = rv;
+   size_t rv = __F_NEED_MORE;
+   if (handle->rawBuffer->avail) {
+      rv = _aaxDataMove(handle->rawBuffer, dptr+offs, *num); 
+      *num = rv;
+   }
+   else {
+      *num = 0;
+   }
    return rv;
 }
 
 size_t
 _binary_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
-   size_t rv = __F_EOF;
+   size_t rv = __F_NEED_MORE;
    return rv;
 }
 
