@@ -1448,7 +1448,7 @@ _aaxStreamDriverReadChunk(const void *id)
       return 0;
    }
 
-   size = IOBUF_THRESHOLD - avail;
+   size = IOBUF_SIZE - avail;
    tries = 3; /* 3 miliseconds */
    do
    {
