@@ -542,7 +542,7 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
    unsigned char *buf;
-   size_t rv = __F_EOF;
+   size_t rv = __F_NEED_MORE;
    int ret;
 
    tracks = handle->no_tracks;
@@ -577,7 +577,9 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       *num = size/framesize;
       handle->no_samples += *num;
-      rv = size;
+      if (ret == MPG123_OK) {
+         rv = size;
+      }
    }
    else if (ret != MPG123_DONE && pmpg123_plain_strerror) {
       _AAX_FILEDRVLOG(pmpg123_plain_strerror(ret));
@@ -589,11 +591,11 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 size_t
 _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
-      _driver_t *handle = fmt->id;
+   _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
    unsigned int bits, tracks;
    unsigned char *buf;
-   size_t rv = __F_EOF;
+   size_t rv = __F_NEED_MORE;
    int ret;
 
    tracks = handle->no_tracks;
@@ -626,7 +628,9 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
       _batch_cvt24_16_intl(dptr, buf, dptr_offs, tracks, *num);
 
       handle->no_samples += *num;
-      rv = size;
+      if (ret == MPG123_OK) {
+         rv = size;
+      }
    }
    else if (ret != MPG123_DONE && pmpg123_plain_strerror) {
       _AAX_FILEDRVLOG(pmpg123_plain_strerror(ret));
