@@ -536,7 +536,7 @@ _mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 }
 
 size_t
-_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
+_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
@@ -567,34 +567,12 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
       }
    }
 
-   if (ret == MPG123_NEW_FORMAT)
-   {
-      int enc, channels;
-      long rate;
-
-      if (!handle->audio) {
-         ret = pdmp3_getformat(handle->id, &rate, &channels, &enc);
-      } else {
-         ret = pmpg123_getformat(handle->id, &rate, &channels, &enc);
-      }
-
-      if ((ret == MPG123_OK) &&
-             (1000 <= rate) && (rate <= 192000) &&
-             (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
-      {
-         handle->frequency = rate;
-         handle->no_tracks = channels;
-         handle->format = _getFormatFromMP3Format(enc);
-         handle->bits_sample = aaxGetBitsPerSample(handle->format);
-      }
-   }
-
-   if (ret == MPG123_OK || (ret == MPG123_NEED_MORE && handle->audio))
+   if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
       unsigned char *ptr = (unsigned char*)dptr;
       unsigned int framesize = tracks*bits/8;
 
-      ptr += offset*framesize;
+      ptr += dptr_offs*framesize;
       memcpy(ptr, buf, size);
 
       *num = size/framesize;
@@ -611,17 +589,16 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t offset, size_t *num)
 size_t
 _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
-   _driver_t *handle = fmt->id;
-   unsigned int bits, tracks, framesize;
+      _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
-   size_t rv = __F_EOF;
+   unsigned int bits, tracks;
    unsigned char *buf;
+   size_t rv = __F_EOF;
    int ret;
 
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
-   framesize = tracks*bits/8;
-   bytes = *num*framesize;
+   bytes = *num*tracks*bits/8;
 
    buf = handle->mp3Buffer->data;
    bufsize = handle->mp3Buffer->size;
@@ -632,16 +609,19 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
 
    if (!handle->audio) {
       ret = pdmp3_read(handle->id, buf, bytes, &size);
-   } else {
-      ret = pmpg123_read(handle->id, buf, bytes, &size);
    }
-
-   if (!handle->id3_found) {
-      _detect_mpg123_song_info(handle);
+   else
+   {
+      ret = pmpg123_read(handle->id, buf, bytes, &size);
+      if (!handle->id3_found) {
+         _detect_mpg123_song_info(handle);
+      }
    }
 
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
+      unsigned int framesize = tracks*bits/8;
+
       *num = size/framesize;
       _batch_cvt24_16_intl(dptr, buf, dptr_offs, tracks, *num);
 
