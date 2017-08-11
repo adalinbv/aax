@@ -53,7 +53,8 @@ ssize_t
 _file_read(_io_t *io, void* buf, size_t count)
 {
    ssize_t rv = read(io->fd, buf, count);
-   if (rv == EINTR) rv = read(io->fd, buf, count);
+   if (rv < 0 && errno == EINTR) rv = read(io->fd, buf, count);
+   if (rv == 0) rv = -1;
    return rv;
 }
 

@@ -350,7 +350,7 @@ _http_get_response_data(_io_t *io, char *response, int size)
       {
          res = io->read(io, buf, 1);
          if (res > 0) break;
-         msecSleep(50);
+         msecSleep(1);
       }
       while (res == 0 && --j);
 
