@@ -142,10 +142,14 @@ _socket_close(_io_t *io)
 ssize_t
 _socket_read(_io_t *io, void *buf, size_t count)
 {
-   ssize_t rv = recv(io->fd, buf, count, 0);
-   if (rv < 0 && errno == EINTR) rv = recv(io->fd, buf, count, 0);
-   if ((rv < 0) && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-      rv = 0;
+   ssize_t rv = 0;
+
+   assert(buf);
+   assert(count);
+
+   rv = recv(io->fd, buf, count, 0);
+   if (rv < 0 && errno == EINTR) {
+      rv = recv(io->fd, buf, count, 0);
    }
    return rv;
 }

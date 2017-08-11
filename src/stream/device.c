@@ -1442,7 +1442,7 @@ _aaxStreamDriverReadChunk(const void *id)
 
       handle->threadBuffer->avail = avail;
    }
-   else if (res == 0) {
+   else if (res == -1) {
       handle->end_of_file = AAX_TRUE;
    }
 
