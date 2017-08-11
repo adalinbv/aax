@@ -526,6 +526,9 @@ _ogg_get(_ext_t *ext, int type)
    if (handle->fmt) {
       rv = handle->fmt->get(handle->fmt, type);
    }
+   if (type == __F_NO_SAMPLES && handle->no_samples == -handle->pre_skip) {
+      rv = -1;
+   }
    return rv;
 }
 
