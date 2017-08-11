@@ -289,63 +289,57 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
-   size_t req, avail, rv = 0;
-   unsigned char *buf;
+   size_t req, rv = 0;
    float *outputs;
    int n;
 
    req = *num;
    tracks = handle->no_tracks;
-   packet_sz = handle->blocksize;
    bits = handle->bits_sample;
    framesize = tracks*bits/8;
+   packet_sz = handle->blocksize;
    *num = 0;
 
-   buf = handle->opusBuffer->data;
-
    outputs = (float*)handle->outputBuffer->data;
-   avail = handle->outputBuffer->avail;
-
-   /* there is still data left in the buffer from the previous run */
-   if (avail > 0)
+   do
    {
-      unsigned int max = _MIN(req, avail);
-
-      _batch_cvt24_ps(dptr+dptr_offs, outputs, max*tracks);
-      _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
-
-      dptr_offs += max;
-      handle->no_samples += max;
-      req -= max;
-      *num = max;
-   }
-
-   while (req > 0)
-   {
-      size_t outsmp = handle->outputBuffer->size/framesize;
-      n = popus_multistream_decode_float(handle->id, buf, packet_sz,
-                                                     outputs, outsmp, 0);
-      if (n > 0)
+      size_t avail = handle->outputBuffer->avail;
+      if (avail > 0)
       {
-         unsigned int max;
+         unsigned int max = _MIN(req, avail/framesize);
+         if (max)
+         {
+            _batch_cvt24_ps(dptr+dptr_offs, outputs, max*tracks);
+            _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
 
-         rv += _aaxDataMove(handle->opusBuffer, NULL, packet_sz);
-
-         handle->outputBuffer->avail += n;
-         max = _MIN(req, handle->outputBuffer->avail);
-
-         _batch_cvt24_ps(dptr+dptr_offs, outputs, max*tracks);
-         _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
-
-         handle->no_samples += max;
-         dptr_offs += max;
-         *num += max;
-         req -= max;
+            dptr_offs += max;
+            handle->no_samples += max;
+            req -= max;
+            *num = max;
+         }
       }
-      else {
-         break;
+
+      if (req > 0)
+      {
+         size_t bufsize  = _MIN(packet_sz, handle->opusBuffer->avail);
+         if (bufsize == packet_sz)
+         {
+            size_t outsmp = handle->outputBuffer->size/framesize;
+            unsigned char *buf = handle->opusBuffer->data;
+
+            n = popus_multistream_decode_float(handle->id, buf, bufsize,
+                                                           outputs, outsmp, 0);
+            if (n <= 0) break;
+
+            handle->outputBuffer->avail = n*framesize;
+            rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
+         }
+         else {
+            break;
+         }
       }
    }
+   while (req > 0);
 
    return rv;
 }
