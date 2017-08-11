@@ -349,7 +349,7 @@ else(MSVC)
           message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
       endif()
       set_PROPERTY(SOURCE 3rdparty/pdmp3.c APPEND
-                   PROPERTY COMPILE_FLAGS "-finline-small-functions -finline-functions-called-once -fno-unwind-tables -fno-asynchronous-unwind-tables -DIMDCT_TABLES -DIMDCT_NTABLES -DPOW34_TABLE"
+                   PROPERTY COMPILE_FLAGS "-Os -DIMDCT_TABLES -DIMDCT_NTABLES -DPOW34_TABLE"
           )
    endif(GCC OR CLANG)
 
