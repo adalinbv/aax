@@ -777,10 +777,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    if (handle->io->fd >= 0 && frames && tracks)
    {
       int32_t **sbuf = (int32_t**)tracks;
-      int file_bits = handle->ext->get_param(handle->ext, __F_BITS_PER_SAMPLE);
       int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
-      size_t file_block = handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
-      unsigned int frame_bits = file_tracks*file_bits;
       unsigned char *data;
       ssize_t res, no_samples;
       size_t samples;
@@ -832,6 +829,13 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          } /* handle->start_with_fill */
          handle->start_with_fill = AAX_FALSE;
 
+         if (handle->end_of_file && res == __F_NEED_MORE)
+         {
+            handle->start_with_fill = AAX_TRUE;
+            bytes = __F_EOF;
+            break;
+         }
+
          /* res holds the number of bytes that are actually converted */
          /* or (-3) __F_PROCESS if the next chunk can be processed         */
          /* or (-2) __F_NEED_MORE if fmt->fill requires more data          */
@@ -843,38 +847,27 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          }
          else if (res == __F_NEED_MORE || no_samples > 0)
          {
-            ssize_t avail, usable;
+            ssize_t avail;
 
             if (batched) {
                _aaxStreamDriverReadChunk(id);
             }
             else {
                _aaxSignalTrigger(&handle->thread.signal);
-//             _aaxSemaphoreWait(handle->worker_ready);
+               _aaxSemaphoreWait(handle->worker_ready);
             }
 
-            // lock the thread buffer
             _aaxMutexLock(handle->thread.signal.mutex);
-            data = handle->dataBuffer->data;
-
-            // copy data from the read-threat to the scratch buffer
             avail = handle->threadBuffer->avail;
-            usable = handle->dataBuffer->avail;
-            if (handle->end_of_file && res == __F_NEED_MORE)
-            {
-               _aaxMutexUnLock(handle->thread.signal.mutex);
-               handle->start_with_fill = AAX_TRUE;
-               bytes = __F_EOF;
-               break;
-            }
-            else if (avail > 0) {
+            if (avail > 0) {
                _aaxDataMoveData(handle->threadBuffer, handle->dataBuffer,avail);
             }
-
-            // unlock the threat buffer
             _aaxMutexUnLock(handle->thread.signal.mutex);
+
+            data = handle->dataBuffer->data; // needed above
          }
-      } while (no_samples > 0);
+      }
+      while (no_samples > 0);
 
       handle->frequency = (float)handle->ext->get_param(handle->ext, __F_FREQUENCY);
 
@@ -1479,7 +1472,7 @@ _aaxStreamDriverReadThread(void *id)
    {
       _aaxSignalWait(&handle->thread.signal);
       res = _aaxStreamDriverReadChunk(id);
-//    _aaxSemaphoreRelease(handle->worker_ready);
+      _aaxSemaphoreRelease(handle->worker_ready);
    }
    while(res >= 0 && handle->thread.started);
 
