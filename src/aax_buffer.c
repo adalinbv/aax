@@ -667,6 +667,9 @@ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, dst[0], no_samples, freq, tr
                }
                free(ptr);
             }
+            else {
+               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            }
          }
          stream->disconnect(id);
       }
