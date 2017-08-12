@@ -294,16 +294,16 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
       else	/* chorus, phasing */
       {
          ssize_t doffs = noffs - offs;
-         float fact;
+         float pitch;
 
-         fact = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
-         if (fact == 1.0f) {
+         pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+         if (pitch == 1.0f) {
             rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
          }
          else
          {
             DBG_MEMCLR(1, scratch-ds, ds+end, bps);
-            rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, fact);
+            rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, pitch);
             rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
          }
       }
