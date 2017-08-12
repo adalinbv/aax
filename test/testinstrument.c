@@ -42,9 +42,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAX	1
-#define ENABLE_TIMED_GAIN_FILTER	1
-#define ENABLE_TIMED_PITCH_EFFECT	SAX
+#define SAX	2
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
 #define ENABLE_EMITTER_DYNAMIC_PITCH	0
 #define ENABLE_MIXER_DYNAMIC_GAIN	0
@@ -52,47 +50,79 @@
 
 static const char* aaxs_data_sax =   // A2, 200Hz
 #if SAX
-#if 1
 "    <sound frequency=\"220\">			\
-       <waveform src=\"sawtooth\"/>		\
-       <waveform src=\"sine\">			\
-         <processing>mix</processing>		\
-         <pitch>3.535</pitch>			\
-         <ratio>-0.4</ratio>			\
-       </waveform>				\
-     </sound>";
-#else
-"    <sound frequency=\"23\">                    \
-       <waveform src=\"brownian-noise\">        \
-         <pitch>0.3</pitch>                    \
-         <ratio>0.73</ratio>                    \
-         <staticity>0.1</staticity> 		\
-       </waveform>                              \
-       <waveform src=\"sawtooth\">		\
-         <processing>mix</processing>		\
-         <ratio>0.73</ratio>			\
-       </waveform>				\
-       <waveform src=\"sine\">                  \
-         <processing>modulate</processing>      \
-         <pitch>2.9</pitch>			\
-         <ratio>1.0</ratio>			\
-       </waveform>                              \
-     </sound>";
-#endif
-#else
-"    <sound frequency=\"110\">			\
-      <waveform src=\"triangle\"/>		\
+      <waveform src=\"brownian-noise\">		\
+       <pitch>0.3</pitch>			\
+       <ratio>0.73</ratio>			\
+       <staticity>0.1</staticity>		\
+      </waveform>				\
+      <waveform src=\"sawtooth\">		\
+       <processing>mix</processing>		\
+       <ratio>0.73</ratio>			\
+      </waveform>				\
       <waveform src=\"sine\">			\
-        <processing>mix</processing>		\
-        <pitch>4.0</pitch>			\
-        <ratio>-0.2</ratio>			\
+       <processing>modulate</processing>	\
+       <pitch>2.9</pitch>			\
+       <ratio>1.0</ratio> 			\
+      </waveform> 				\
+      <filter type=\"timed_gain\">		\
+       <slot n=\"0\">				\
+        <p2>0.05</p2>				\
+        <p3>1.0</p3>				\
+        <p4>0.05</p4>				\
+       </slot>					\
+       <slot n=\"1\">				\
+        <p1>0.9</p1>				\
+        <p2>9.0</p2>				\
+        <p3>0.8</p3>				\
+        <p4>0.2</p4>				\
+       </slot>					\
+      </filter>					\
+      <effect type=\"timed_pitch\">		\
+       <slot n=\"0\">				\
+        <p1>0.995</p1>				\
+        <p2>0.05</p2>				\
+        <p3>1.0f</p3>				\
+        <p4>0.08</p4>				\
+       </slot>					\
+       <slot n=\"1\">				\
+        <p1>1.0</p1>				\
+        <p2>0.1</p2>				\
+        <p3>0.99</p3>				\
+       </slot>					\
+      </effect>					\
+     </sound>";
+#else
+"    <sound frequency=\"440\">			\
+      <waveform src=\"triangle\"/>		\
+      <waveform src=\"triangle\">		\
+       <processing>mix</processing>		\
+       <pitch>2.0</pitch>			\
+       <ratio>0.333</ratio>			\
       </waveform>				\
       <waveform src=\"triangle\">		\
-        <processing>mix</processing>		\
-        <pitch>2.0</pitch>			\
-        <ratio>0.333</ratio>>			\
+       <processing>add</processing>		\
+       <pitch>4.0</pitch>			\
+       <ratio>-0.2</ratio>			\
       </waveform>				\
-    </sound>";
+      <filter type=\"envelope\">		\
+       <slot n=\"0\">				\
+        <p2>0.01</p2>				\
+        <p3>1.2</p3>				\
+        <p4>0.05</p4>				\
+       </slot>					\
+       <slot n=\"1\">				\
+         <p1>0.7</p1>				\
+         <p2>0.1</p2>				\
+         <p3>0.6</p3>				\
+         <p4>0.05</p4>				\
+       </slot>					\
+       <slot n=\"2\">				\
+         <p1>0.45</p1>				\
+         <p2>1.2</p2>				\
+       </slot>					\
+      </filter>					\
+     </sound>";
 #endif
 
 int main(int argc, char **argv)
