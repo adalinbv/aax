@@ -293,7 +293,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
       }
       else	/* chorus, phasing */
       {
-         size_t doffs = noffs - offs;
+         ssize_t doffs = noffs - offs;
          float fact;
 
          fact = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
