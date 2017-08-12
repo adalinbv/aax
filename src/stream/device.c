@@ -123,6 +123,7 @@ typedef struct
    float frequency;
    size_t no_samples;
    unsigned int no_bytes;
+   float refresh_rate;
 
    _data_t *dataBuffer;
    size_t dataAvailWrite;
@@ -138,7 +139,7 @@ typedef struct
    _aaxRenderer *render;
 
    struct threat_t thread;
-   _aaxSemaphore *worker_ready;
+   _aaxMutex *threadbuf_lock;
    _data_t *threadBuffer;
 
 } _driver_t;
@@ -340,7 +341,7 @@ _aaxStreamDriverDisconnect(void *id)
          _aaxThreadJoin(handle->thread.ptr);
       }
       _aaxSignalFree(&handle->thread.signal);
-      _aaxSemaphoreDestroy(handle->worker_ready);
+      _aaxMutexDestroy(handle->threadbuf_lock);
 
       if (handle->thread.ptr) {
          _aaxThreadDestroy(handle->thread.ptr);
@@ -610,13 +611,14 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *tracks = handle->no_channels;
             *refresh_rate = period_rate;
 
+            handle->refresh_rate = period_rate;
             handle->no_samples = no_samples;
             handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
 
             handle->thread.ptr = _aaxThreadCreate();
             handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
             _aaxSignalInit(&handle->thread.signal);
-            handle->worker_ready = _aaxSemaphoreCreate(0);
+            handle->threadbuf_lock = _aaxMutexCreate(handle->threadbuf_lock);
             if (handle->mode == AAX_MODE_READ) {
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxStreamDriverReadThread, handle, 20);
@@ -853,16 +855,15 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                _aaxStreamDriverReadChunk(id);
             }
             else {
-               _aaxSignalTrigger(&handle->thread.signal);
-               _aaxSemaphoreWait(handle->worker_ready);
+//             _aaxSignalTrigger(&handle->thread.signal);
             }
 
-            _aaxMutexLock(handle->thread.signal.mutex);
+            _aaxMutexLock(handle->threadbuf_lock);
             avail = handle->threadBuffer->avail;
             if (avail > 0) {
                _aaxDataMoveData(handle->threadBuffer, handle->dataBuffer,avail);
             }
-            _aaxMutexUnLock(handle->thread.signal.mutex);
+            _aaxMutexUnLock(handle->threadbuf_lock);
 
             data = handle->dataBuffer->data; // needed above
          }
@@ -1402,29 +1403,32 @@ _aaxStreamDriverWriteThread(void *id)
 static ssize_t
 _aaxStreamDriverReadChunk(const void *id)
 {
+   char buffer[PERIOD_SIZE];
    _driver_t *handle = (_driver_t*)id;
-   size_t size, tries, avail;
-   unsigned char *data;
+   size_t size, avail;
    ssize_t res;
 
-   data = handle->threadBuffer->data;
+   _aaxMutexLock(handle->threadbuf_lock);
    avail = handle->threadBuffer->avail;
-   size = handle->threadBuffer->size - avail;
+   size = _MIN(handle->threadBuffer->size - avail, PERIOD_SIZE);
+   _aaxMutexUnLock(handle->threadbuf_lock);
+
    if (!size) {
       return 0;
    }
 
-   tries = 3; /* 3 miliseconds */
-   do
-   {
-      res = handle->io->read(handle->io, data+avail, size);
-      if (res > 0 || --tries == 0) break;
-      msecSleep(1);
-   }
-   while (res == 0);
+   do {
+      res = handle->io->read(handle->io, buffer, size);
+   } while (res < 0 && errno == EINTR);
 
    if (res > 0)
    {
+      unsigned char *data;
+
+      _aaxMutexLock(handle->threadbuf_lock);
+      data = handle->threadBuffer->data;
+
+      memcpy(data+avail, buffer, res);
       avail += res;
 
       if (handle->prot)
@@ -1434,6 +1438,7 @@ _aaxStreamDriverReadChunk(const void *id)
       }
 
       handle->threadBuffer->avail = avail;
+      _aaxMutexUnLock(handle->threadbuf_lock);
    }
    else if (res == -1) {
       handle->end_of_file = AAX_TRUE;
@@ -1470,9 +1475,8 @@ _aaxStreamDriverReadThread(void *id)
 
    do
    {
-      _aaxSignalWait(&handle->thread.signal);
+      _aaxSignalWaitTimed(&handle->thread.signal, 1.0f/handle->refresh_rate);
       res = _aaxStreamDriverReadChunk(id);
-      _aaxSemaphoreRelease(handle->worker_ready);
    }
    while(res >= 0 && handle->thread.started);
 
