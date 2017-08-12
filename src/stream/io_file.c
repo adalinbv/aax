@@ -52,9 +52,13 @@ _file_close(_io_t *io)
 ssize_t
 _file_read(_io_t *io, void* buf, size_t count)
 {
-   ssize_t rv = read(io->fd, buf, count);
-   if (rv < 0 && errno == EINTR) rv = read(io->fd, buf, count);
+   ssize_t rv;
+
+   do {
+      rv  = read(io->fd, buf, count);
+   } while (rv < 0 && errno == EINTR);
    if (rv == 0) rv = -1;
+
    return rv;
 }
 

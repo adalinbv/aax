@@ -147,10 +147,10 @@ _socket_read(_io_t *io, void *buf, size_t count)
    assert(buf);
    assert(count);
 
-   rv = recv(io->fd, buf, count, 0);
-   if (rv < 0 && errno == EINTR) {
+   do {
       rv = recv(io->fd, buf, count, 0);
-   }
+   } while (rv < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK));
+
    return rv;
 }
 

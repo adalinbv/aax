@@ -1417,10 +1417,9 @@ _aaxStreamDriverReadChunk(const void *id)
       return 0;
    }
 
-   do {
-      res = handle->io->read(handle->io, buffer, size);
-   } while (res < 0 && errno == EINTR);
-
+   // read may block until enough data ia available but others will only
+   // remove data from the htreadBuffer so size may only increase.
+   res = handle->io->read(handle->io, buffer, size);
    if (res > 0)
    {
       unsigned char *data;
@@ -1428,6 +1427,7 @@ _aaxStreamDriverReadChunk(const void *id)
       _aaxMutexLock(handle->threadbuf_lock);
       data = handle->threadBuffer->data;
 
+      avail = handle->threadBuffer->avail;
       memcpy(data+avail, buffer, res);
       avail += res;
 
@@ -1455,8 +1455,6 @@ _aaxStreamDriverReadThread(void *id)
 
    // wait for our first job
    _aaxMutexLock(handle->thread.signal.mutex);
-
-   _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
 
    /* read (clear) all bytes already sent from the server */
    if (handle->io->protocol != PROTOCOL_DIRECT)
