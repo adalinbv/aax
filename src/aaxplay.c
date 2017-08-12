@@ -317,11 +317,18 @@ int main(int argc, char **argv)
 
         if (verbose)
         {
-            printf(" Audio format: %i Hz, %i bits/sample, %i tracks, %i samples\n",
+            unsigned int samples = aaxMixerGetSetup(record, AAX_SAMPLES_MAX);
+            if (samples) {
+              printf(" Audio format: %i Hz, %i bits/sample, %i tracks, %i samples\n",
                      aaxMixerGetSetup(record, AAX_FREQUENCY),
                      aaxGetBitsPerSample(aaxMixerGetSetup(record, AAX_FORMAT)),
-                     aaxMixerGetSetup(record, AAX_TRACKS),
-                     aaxMixerGetSetup(record, AAX_SAMPLES_MAX));
+                     aaxMixerGetSetup(record, AAX_TRACKS), samples);
+           } else {
+              printf(" Audio format: %i Hz, %i bits/sample, %i tracks\n",
+                     aaxMixerGetSetup(record, AAX_FREQUENCY),
+                     aaxGetBitsPerSample(aaxMixerGetSetup(record, AAX_FORMAT)),
+                     aaxMixerGetSetup(record, AAX_TRACKS));
+           }
         }
 
         if (record && verbose)
