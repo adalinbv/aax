@@ -85,7 +85,7 @@ int main(int argc, char **argv)
         res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
         testForState(res, "aaxBufferSetFrequency");
 
-        res = aaxBufferMixWaveform(buffer, 660.0f, AAX_SINE_WAVE, 0.4f);
+        res = aaxBufferProcessWaveform(buffer, 660.0f, AAX_SINE_WAVE, 0.4f, AAX_MIX);
         testForState(res, "aaxBufferProcessWaveform");
 
         /** emitter */
