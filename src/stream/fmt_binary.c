@@ -257,7 +257,7 @@ _binary_set(_fmt_t *fmt, int type, off_t value)
       handle->bitrate = value;
       break;
    case __F_TRACKS:
-      handle->no_tracks = value;
+//    handle->no_tracks = value;
       break;
    case __F_NO_SAMPLES:
       handle->no_samples = value;
