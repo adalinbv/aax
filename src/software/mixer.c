@@ -203,8 +203,9 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
       if (reverb)
       {
          _aaxRingBufferEffectReflections(rbd, dptr, sptr, tmp, 0, no_samples,
-                                                      ds, t, reverb);
-         _aaxRingBufferEffectReverb(rbd, dptr, 0, no_samples, ds, t, reverb);
+                                         ds, t, reverb, info);
+         _aaxRingBufferEffectReverb(rbd, dptr, 0, no_samples, ds, t, reverb,
+                                    info);
       }
 
       if (parametric)
