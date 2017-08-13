@@ -280,18 +280,21 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          *num = handle->max_samples - handle->no_samples;
       }
 
-      n = *num/blocksmp;
-      bytes = n*blocksize;
-      if (bytes > bufsize)
+      if (*num)
       {
-         n = (bufsize/blocksize);
+         n = *num/blocksmp;
          bytes = n*blocksize;
-      }
-      *num = n*blocksmp;
+         if (bytes > bufsize)
+         {
+            n = (bufsize/blocksize);
+            bytes = n*blocksize;
+         }
+         *num = n*blocksmp;
 
-      offs = (dptr_offs/blocksmp)*blocksize;
-      rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
-      handle->no_samples += *num;
+         offs = (dptr_offs/blocksmp)*blocksize;
+         rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
+         handle->no_samples += *num;
+      }
    }
    else {
       *num = 0;
@@ -317,54 +320,57 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
          *num = handle->max_samples - handle->no_samples;
       }
 
-      if (handle->format == AAX_IMA4_ADPCM)
+      if (*num)
       {
-         if (handle->blocksize <= bufsize)
+         if (handle->format == AAX_IMA4_ADPCM)
          {
-            size_t block_smp = handle->blocksmp;
-            size_t offs_smp = handle->blockbufpos;
-            size_t decode_smp;
-
-            decode_smp = _MIN(block_smp-offs_smp, *num);
-            rv = _batch_cvt24_adpcm_intl(handle, dptr, buf, offs_smp,
-                                       decode_smp, dptr_offs, tracks);
-            handle->blockbufpos += rv;
-            handle->no_samples += rv;
-            *num = rv;
-
-            if (handle->blockbufpos >= block_smp)
+            if (handle->blocksize <= bufsize)
             {
-               handle->blockbufpos = 0;
-               _aaxDataMove(handle->pcmBuffer, NULL, handle->blocksize);
+               size_t block_smp = handle->blocksmp;
+               size_t offs_smp = handle->blockbufpos;
+               size_t decode_smp;
+
+               decode_smp = _MIN(block_smp-offs_smp, *num);
+               rv = _batch_cvt24_adpcm_intl(handle, dptr, buf, offs_smp,
+                                       decode_smp, dptr_offs, tracks);
+               handle->blockbufpos += rv;
+               handle->no_samples += rv;
+               *num = rv;
+
+               if (handle->blockbufpos >= block_smp)
+               {
+                  handle->blockbufpos = 0;
+                  _aaxDataMove(handle->pcmBuffer, NULL, handle->blocksize);
+               }
+            }
+            else {
+               *num = rv = 0;
             }
          }
-         else {
-            *num = rv = 0;
-         }
-      }
-      else
-      {
-         size_t bytes = *num*blocksize;
-         if (bytes > bufsize) {
-            bytes = bufsize;
-         }
+         else
+         {
+            size_t bytes = *num*blocksize;
+            if (bytes > bufsize) {
+               bytes = bufsize;
+            }
 
-         *num = bytes/blocksize;
+            *num = bytes/blocksize;
 
-         if (handle->cvt_endianness) {
-            handle->cvt_endianness(buf, *num);
-         }
-         if (handle->cvt_to_signed) {
-            handle->cvt_to_signed(buf, *num);
-         }
+            if (handle->cvt_endianness) {
+               handle->cvt_endianness(buf, *num);
+            }
+            if (handle->cvt_to_signed) {
+               handle->cvt_to_signed(buf, *num);
+            }
 
-         if (handle->cvt_from_intl) {
-            handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
-         }
+            if (handle->cvt_from_intl) {
+               handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
+            }
 
-         /* skip processed data */
-         rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
-         handle->no_samples += *num;
+            /* skip processed data */
+            rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
+            handle->no_samples += *num;
+         }
       }
    }
    else {
