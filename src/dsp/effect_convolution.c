@@ -97,15 +97,16 @@ static aaxEffect
 _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 {
    _aaxRingBufferConvolutionData *convolution = effect->slot[0]->data;
+   _aaxMixerInfo *info = effect->info;
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
-   if (convolution && effect->info)
+   if (convolution && info)
    {
-      unsigned int step, freq, tracks = effect->info->no_tracks;
-      unsigned int no_samples = effect->info->no_samples;
+      unsigned int step, freq, tracks = info->no_tracks;
+      unsigned int no_samples = info->no_samples;
       _aaxRingBufferFreqFilterData *flt;
-      float fs = effect->info->frequency;
+      float fs = info->frequency;
       float fc, lfgain;
       void **data;
 
@@ -147,7 +148,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
        */
       freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
       step = (int)fs/freq;
-      if (effect->info->no_cores == 1 || effect->info->sse_level < AAX_SIMD_AVX)
+      if (info->no_cores == 1 || info->sse_level < AAX_SIMD_AVX)
       {
          step = (int)fs/16000;
       }
@@ -189,8 +190,9 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
             for (t=0; t<_AAX_MAX_SPEAKERS; ++t)
             {
+               float dst = info->speaker[t].v4[0]*info->frequency*4/343.0;
                convolution->tid[t] = _aaxThreadCreate();
-               convolution->history_start[t] = 0;
+               convolution->history_start[t] = _MAX(dst, 0);
             }
             
             rv = effect;

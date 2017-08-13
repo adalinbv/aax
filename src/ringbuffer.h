@@ -213,7 +213,7 @@ typedef struct
 
    void* history_ptr;
    MIX_T* history[_AAX_MAX_SPEAKERS];
-   unsigned int history_start[_AAX_MAX_SPEAKERS];
+   int history_start[_AAX_MAX_SPEAKERS];
    unsigned int history_samples;
    unsigned int history_max;
 
