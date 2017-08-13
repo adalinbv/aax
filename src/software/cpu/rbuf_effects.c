@@ -140,7 +140,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
          if ((volume > 0.001f) || (volume < -0.001f))
          {
             float dst = info->speaker[track].v4[0]*info->frequency*4/343.0;
-            ssize_t offs = reverb->delay[q].sample_offs[track] + dst;
+            ssize_t offs = reverb->delay[q].sample_offs[track] + _MAX(dst,0);
 
             assert(offs < ds);
 //          if (offs >= ds) offs = ds-1;
@@ -180,7 +180,7 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       for(q=0; q<snum; ++q)
       {
          float dst = info->speaker[track].v4[0]*info->frequency*4/343.0;
-         ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
+         ssize_t offs = reverb->loopback[q].sample_offs[track] + _MAX(dst,0);
          float volume = reverb->loopback[q].gain / (snum+1);
 
          assert(offs < ds);
@@ -333,14 +333,14 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
 
    convolution = d->be_handle;
    cptr = convolution->sample;
-   cnum = convolution->no_samples;
+   hpos = convolution->history_start[t];
+   cnum = convolution->no_samples - hpos;
 
    v = convolution->rms * convolution->delay_gain;
    threshold = convolution->threshold * (float)(1<<23);
    step = convolution->step;
 
    hptr = convolution->history[t];
-   hpos = convolution->history_start[t];
    hcptr = hptr + hpos;
 
    q = cnum/step;
@@ -348,7 +348,7 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
    do
    {
       float volume = *cptr * v;
-      if (fabsf(volume) > threshold) {
+      if (1) { // fabsf(volume) > threshold) {
          rbd->add(hcptr, sptr, dnum, volume, 0.0f);
       }
       cptr += step;
