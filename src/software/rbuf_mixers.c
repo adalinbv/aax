@@ -129,7 +129,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
       /* source */
       sstart = 0;
-      src_pos = floorf(srb_pos_sec*sfreq);
+      src_pos = (size_t)(srb_pos_sec*sfreq);
       sbps = srb->get_parami(srb, RB_BYTES_SAMPLE);
       sno_tracks = srb->get_parami(srb, RB_NO_TRACKS);
       sno_samples = srb->get_parami(srb, RB_NO_SAMPLES);
@@ -154,11 +154,11 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       {
          float dde = DELAY_EFFECTS_TIME*dfreq;
 
-         ddesamps = (size_t)floorf(dde);
+         ddesamps = (size_t)dde;
          if (drb->get_parami(drb, RB_DDE_SAMPLES) < ddesamps) {
             ddesamps = drb->get_parami(drb, RB_DDE_SAMPLES);
          }
-         rdesamps = (size_t)floorf(dde*fact);
+         rdesamps = (size_t)(dde*fact);
       }
 
       /* number of samples */
