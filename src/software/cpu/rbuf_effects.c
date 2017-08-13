@@ -139,11 +139,11 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
          float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
          {
-            float dst = (info->speaker[track].v4[0]+info->speaker[track].v4[1]+info->speaker[track].v4[2])*4/343.0;
-            size_t offs = reverb->delay[q].sample_offs[track] + dst;
+            float dst = info->speaker[track].v4[0]*info->frequency*4/343.0;
+            ssize_t offs = reverb->delay[q].sample_offs[track] + dst;
 
             assert(offs < ds);
-//          if (samples >= ds) samples = ds-1;
+//          if (offs >= ds) offs = ds-1;
 
             rbd->add(scratch, sptr-offs, dmax, volume, 0.0f);
          }
@@ -179,8 +179,8 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
       for(q=0; q<snum; ++q)
       {
-         float dst = (info->speaker[track].v4[0]+info->speaker[track].v4[1]+info->speaker[track].v4[2])*4/343.0;
-         size_t offs = reverb->loopback[q].sample_offs[track] + dst;
+         float dst = info->speaker[track].v4[0]*info->frequency*4/343.0;
+         ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
          float volume = reverb->loopback[q].gain / (snum+1);
 
          assert(offs < ds);
