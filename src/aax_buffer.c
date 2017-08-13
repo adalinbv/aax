@@ -838,19 +838,16 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
       {
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
          void *xwid = xmlMarkId(xsid);
-         double duration;
-
-         duration = xmlAttributeGetDouble(xsid, "duration");
-         if (duration)
-         {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-            rb->set_paramf(rb, RB_DURATION_SEC, duration);
-         }
+//       double duration;
 
          if (!freq) freq = xmlAttributeGetDouble(xsid, "frequency");
          /* for backwards combatibility, remove with version 3.0 */
          if (!freq) freq = xmlAttributeGetDouble(xsid, "freq_hz");
          if (!freq) freq = 1000.0f;
+
+//       duration = xmlAttributeGetDouble(xsid, "duration");
+//       if (!duration) duration = 1.0;
+//       rb->set_paramf(rb, RB_DURATION_SEC, duration);
 
          for (i=0; i<num; i++)
          {
