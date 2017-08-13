@@ -109,7 +109,8 @@ void
 _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
                         MIX_PTR_T s, CONST_MIX_PTR_T sbuf, MIX_PTR_T sbuf2,
                         size_t dmin, size_t dmax, size_t ds,
-                        unsigned int track, const void *data)
+                        unsigned int track, const void *data,
+                        _aaxMixerInfo *info)
 {
    const _aaxRingBufferReverbData *reverb = data;
    int snum;
@@ -138,7 +139,8 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
          float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
          {
-            size_t offs = reverb->delay[q].sample_offs[track];
+            float dst = (info->speaker[track].v4[0]+info->speaker[track].v4[1]+info->speaker[track].v4[2])*4/343.0;
+            size_t offs = reverb->delay[q].sample_offs[track] + dst;
 
             assert(offs < ds);
 //          if (samples >= ds) samples = ds-1;
@@ -155,7 +157,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
 void
 _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
                    size_t dmin, size_t dmax, size_t ds,
-                   unsigned int track, const void *data)
+                   unsigned int track, const void *data, _aaxMixerInfo *info)
 {
    const _aaxRingBufferReverbData *reverb = data;
    int snum;
@@ -177,13 +179,14 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
       for(q=0; q<snum; ++q)
       {
-         size_t samples = reverb->loopback[q].sample_offs[track];
+         float dst = (info->speaker[track].v4[0]+info->speaker[track].v4[1]+info->speaker[track].v4[2])*4/343.0;
+         size_t offs = reverb->loopback[q].sample_offs[track] + dst;
          float volume = reverb->loopback[q].gain / (snum+1);
 
-         assert(samples < ds);
-         if (samples >= ds) samples = ds-1;
+         assert(offs < ds);
+         if (offs >= ds) offs = ds-1;
 
-         rbd->add(sptr, sptr-samples, dmax-dmin, volume, 0.0f);
+         rbd->add(sptr, sptr-offs, dmax-dmin, volume, 0.0f);
       }
       _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
