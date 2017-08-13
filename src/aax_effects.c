@@ -147,10 +147,10 @@ aaxEffectSetParam(const aaxEffect e, int param, int ptype, float value)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEffectAddBuffer(aaxEffect e, aaxBuffer b)
+aaxEffectAddBuffer(aaxEffect eff, aaxBuffer buf)
 {
-   _effect_t* effect = get_effect(e);
-   _buffer_t* buffer = get_buffer(b, __func__);
+   _effect_t* effect = get_effect(eff);
+   _buffer_t* buffer = get_buffer(buf, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -184,7 +184,7 @@ aaxEffectAddBuffer(aaxEffect e, aaxBuffer b)
    if (rv)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-      eff->data(effect, b);
+      eff->data(effect, buf);
    }
    return rv;
 }
