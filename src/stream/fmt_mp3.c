@@ -519,16 +519,17 @@ _mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
    size_t rv = __F_PROCESS;
    int ret;
 
-   if (!handle->audio)
-   {
+   if (!handle->audio) {
       ret = pdmp3_feed(handle->id, sptr, *bytes);
-   } else {
+   }
+   else
+   {
       ret = pmpg123_feed(handle->id, sptr, *bytes);
+      if (!handle->id3_found) {
+         _detect_mpg123_song_info(handle);
+      }
    }
 
-   if (!handle->id3_found) {
-      _detect_mpg123_song_info(handle);
-   }
    if (ret != MPG123_OK) {
       *bytes = 0;
    }
