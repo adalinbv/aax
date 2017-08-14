@@ -2274,7 +2274,8 @@ static void audio_write_raw(const char *filename,unsigned *samples,unsigned nbyt
 #endif
 
 /**Description: output audio data
-* Parameters: Stream handle,audio device name,file name.
+* Parameters: Stream handle,audio device name,file name,sample buffer, number
+              of bytes in the sample buffer.
 * Return value: None
 * Author: Krister Lagerström(krister@kmlager.com) **/
 static void audio_write(pdmp3_handle *id,const char *audio_name,const char *filename,unsigned char *samples,size_t nbytes){
@@ -2316,9 +2317,9 @@ static void audio_write(pdmp3_handle *id,const char *audio_name,const char *file
 
 /*#############################################################################
  * Stream API - Added for AeonWave Audio (http://www.adalin.com)
- * This is a subset of the libmpg123 API and should by 100% compatible.
+ * This is a subset of the libmpg123 API and should be 100% compatible.
  *
- * Au0thor: Erik Hofman(erik@ehofman.com)
+ * Author: Erik Hofman(erik@ehofman.com)
  */
 static void Convert_Frame_S16(pdmp3_handle *id,unsigned char *outbuf,size_t buflen,size_t *done)
 {
@@ -2498,10 +2499,10 @@ int pdmp3_read(pdmp3_handle *id,unsigned char *outmemory,size_t outsize,size_t *
 
 /**Description: Feed new data to the MP3 decoder and optionally convert it
                 to PCM data.
-* Parameters: Stream handle,a pinter to the MP3 data,size of the MP3 buffer,
+* Parameters: Stream handle,a pointer to the MP3 data,size of the MP3 buffer,
               a pointer to a buffer for the PCM data or NULL,the size of
               the PCM buffer in bytes,a pointer to return the number of
-  d->ostart            converted bytes.
+              converted bytes.
 * Return value: PDMP3_OK or an error.
 * Author: Erik Hofman(erik@ehofman.com) **/
 int pdmp3_decode(pdmp3_handle *id,const unsigned char *in,size_t insize,unsigned char *out,size_t outsize,size_t *done)
@@ -2535,7 +2536,7 @@ int pdmp3_decode(pdmp3_handle *id,const unsigned char *in,size_t insize,unsigned
   return res;
 }
 
-/**Description: Get the current output format written to the addresses given.
+/**Description: Get the current output format.
 * Parameters: Stream handle,pointers to store rate, channels and encoding.
 * Return value: PDMP3_OK or an error
 * Author: Erik Hofman(erik@ehofman.com) **/
