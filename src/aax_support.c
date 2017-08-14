@@ -417,6 +417,9 @@ aaxGetWaveformTypeByName(const char *name)
              !strcmp(end, "_FOLLOW")) {
             len = end-name;
          }
+         else {
+            len = strlen(name);
+         }
       } else {
          len = strlen(name);
       }
