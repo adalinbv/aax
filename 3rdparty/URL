@@ -1,9 +1,6 @@
 
-PFFFT - 3-clause BSD licensed Pretty Fast FFT:
-- https://bitbucket.org/jpommier/pffft/src
-
 PDMP3 - Public domain mp3 decoder:
-- https://github.com/ehofman9923/PDMP3
+- https://github.com/adalinbv/PDMP3
   forked from https://github.com/technosaurus/PDMP3
   (original: https://sites.google.com/a/kmlager.com/www/projects)
 
@@ -12,6 +9,9 @@ stb_vorbis - Public Domain Vorbis Decoder:
 
 dr_flac - Public Domain FLAC decoder:
 - https://github.com/mackron/dr_libs/blob/master/dr_flac.h
+
+PFFFT - 3-clause BSD licensed Pretty Fast FFT:
+- https://bitbucket.org/jpommier/pffft/src
 
 
 Other Single file libraries:
