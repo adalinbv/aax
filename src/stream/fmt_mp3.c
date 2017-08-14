@@ -351,6 +351,7 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                   handle->no_tracks = channels;
                   handle->format = _getFormatFromMP3Format(enc);
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
+                  handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
                   struct pdpm3_frameinfo info;
                   if (pdmp3_info(handle->id,&info) == MPG123_OK)
@@ -540,14 +541,13 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
-   unsigned int bits, tracks;
+   unsigned int blocksize;
    unsigned char *buf;
    size_t rv = __F_NEED_MORE;
    int ret;
 
-   tracks = handle->no_tracks;
-   bits = handle->bits_sample;
-   bytes = *num*tracks*bits/8;
+   blocksize = handle->blocksize;
+   bytes = *num*blocksize;
 
    buf = handle->mp3Buffer->data;
    bufsize = handle->mp3Buffer->size;
@@ -570,12 +570,11 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
       unsigned char *ptr = (unsigned char*)dptr;
-      unsigned int framesize = tracks*bits/8;
 
-      ptr += dptr_offs*framesize;
+      ptr += dptr_offs*blocksize;
       memcpy(ptr, buf, size);
 
-      *num = size/framesize;
+      *num = size/blocksize;
       handle->no_samples += *num;
       if (ret == MPG123_OK) {
          rv = size;
@@ -593,14 +592,14 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
-   unsigned int bits, tracks;
+   unsigned int blocksize, tracks;
    unsigned char *buf;
    size_t rv = __F_NEED_MORE;
    int ret;
 
    tracks = handle->no_tracks;
-   bits = handle->bits_sample;
-   bytes = *num*tracks*bits/8;
+   blocksize = handle->blocksize;
+   bytes = *num*blocksize;
 
    buf = handle->mp3Buffer->data;
    bufsize = handle->mp3Buffer->size;
@@ -622,9 +621,7 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
 
    if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
    {
-      unsigned int framesize = tracks*bits/8;
-
-      *num = size/framesize;
+      *num = size/blocksize;
       _batch_cvt24_16_intl(dptr, buf, dptr_offs, tracks, *num);
 
       handle->no_samples += *num;
@@ -769,6 +766,9 @@ _mpg123_set(_fmt_t *fmt, int type, off_t value)
       break;
    case __F_BITS_PER_SAMPLE:
       handle->bits_sample = value;
+      break;
+   case __F_BLOCK_SIZE:
+      handle->blocksize = value;
       break;
    case __F_IS_STREAM:
       handle->streaming = AAX_TRUE;
