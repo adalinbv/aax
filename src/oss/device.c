@@ -495,10 +495,20 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       ainfo.dev = handle->nodenum;
       err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
-      handle->min_tracks = ainfo.min_channels;
-      handle->max_tracks = ainfo.max_channels;
-      handle->min_frequency = ainfo.min_rate;
-      handle->max_frequency = ainfo.max_rate;
+      if (err >= 0)
+      {
+         handle->min_tracks = ainfo.min_channels;
+         handle->max_tracks = ainfo.max_channels;
+         handle->min_frequency = ainfo.min_rate;
+         handle->max_frequency = ainfo.max_rate;
+      }
+      else
+      {
+         handle->min_tracks = 1;
+         handle->max_tracks = _AAX_MAX_SPEAKERS;
+         handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
+         handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
+      }
 
       handle->format = format;
       handle->no_tracks = channels;
