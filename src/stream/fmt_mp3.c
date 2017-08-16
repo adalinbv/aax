@@ -388,6 +388,7 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                   handle->no_tracks = channels;
                   handle->format = _getFormatFromMP3Format(enc);
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
+                  handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
                   rv = buf;
 
