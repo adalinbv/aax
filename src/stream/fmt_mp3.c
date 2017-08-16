@@ -310,9 +310,6 @@ _mp3_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             {
                if (pmp3_open_feed(handle->id) == MP3_OK) {
                   handle->mp3Buffer = _aaxDataCreate(16384, 1);
-                  if (!handle->id3_found) {
-                     _detect_mp3_song_info(handle);
-                  }
                }
                else
                {
@@ -363,9 +360,6 @@ _mp3_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                   if (pmp3_set_filesize) {
                      pmp3_set_filesize(handle->id, fsize);
                   }
-                  if (!handle->id3_found) {
-                     _detect_mp3_song_info(handle);
-                  }
                }
                else
                {
@@ -386,6 +380,9 @@ _mp3_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          {
             size_t size;
             int ret = pmp3_decode(handle->id, buf, *bufsize, NULL, 0, &size);
+            if (!handle->id3_found) {
+               _detect_mp3_song_info(handle);
+            }
             if (ret == MP3_NEW_FORMAT)
             {
                int enc, channels;
