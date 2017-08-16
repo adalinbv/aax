@@ -95,20 +95,20 @@ char* _pcm_name(_fmt_t*, enum _aaxStreamParam);
 off_t _pcm_set(_fmt_t*, int, off_t);
 off_t _pcm_get(_fmt_t*, int);
 
-/* MP3 - mpg123 & lame */
-int _mpg123_detect(_fmt_t*, int);
-int _mpg123_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _mpg123_open(_fmt_t*, void*, size_t*, size_t);
-void _mpg123_close(_fmt_t*);
-size_t _mpg123_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
-size_t _mpg123_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
-size_t _mpg123_fill(_fmt_t*, void_ptr, size_t*);
-size_t _mpg123_copy(_fmt_t*, int32_ptr, size_t, size_t*);
-char* _mpg123_name(_fmt_t*, enum _aaxStreamParam);
-off_t _mpg123_set(_fmt_t*, int, off_t);
-off_t _mpg123_get(_fmt_t*, int);
+/* MP3 - pdmp3/mpg123 & lame */
+int _mp3_detect(_fmt_t*, int);
+int _mp3_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
+void* _mp3_open(_fmt_t*, void*, size_t*, size_t);
+void _mp3_close(_fmt_t*);
+size_t _mp3_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+size_t _mp3_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
+size_t _mp3_fill(_fmt_t*, void_ptr, size_t*);
+size_t _mp3_copy(_fmt_t*, int32_ptr, size_t, size_t*);
+char* _mp3_name(_fmt_t*, enum _aaxStreamParam);
+off_t _mp3_set(_fmt_t*, int, off_t);
+off_t _mp3_get(_fmt_t*, int);
 
-// void* _mpg123_update(_fmt_t*, size_t*, size_t*, char);
+// void* _mp3_update(_fmt_t*, size_t*, size_t*, char);
 
 /* Opus */
 int _opus_detect(_fmt_t*, int);

@@ -54,20 +54,20 @@ _fmt_create(_fmt_type_t format, int mode)
       rv = calloc(1, sizeof(_fmt_t));
       if (rv)
       {
-         if (_mpg123_detect(rv, mode))
+         if (_mp3_detect(rv, mode))
          {
-            rv->setup = _mpg123_setup;
-            rv->open = _mpg123_open;
-            rv->close = _mpg123_close;
-            rv->name = _mpg123_name;
+            rv->setup = _mp3_setup;
+            rv->open = _mp3_open;
+            rv->close = _mp3_close;
+            rv->name = _mp3_name;
 
-            rv->cvt_to_intl = _mpg123_cvt_to_intl;
-            rv->cvt_from_intl = _mpg123_cvt_from_intl;
-            rv->fill = _mpg123_fill;
-            rv->copy = _mpg123_copy;
+            rv->cvt_to_intl = _mp3_cvt_to_intl;
+            rv->cvt_from_intl = _mp3_cvt_from_intl;
+            rv->fill = _mp3_fill;
+            rv->copy = _mp3_copy;
 
-            rv->set = _mpg123_set;
-            rv->get = _mpg123_get;
+            rv->set = _mp3_set;
+            rv->get = _mp3_get;
          }
 #ifdef WINXP
 //       else if (_aaxMSACMDetect(ext, mode)) {}
