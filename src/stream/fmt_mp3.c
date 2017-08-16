@@ -30,9 +30,25 @@
 #include "format.h"
 #include "fmt_mp3.h"
 
+DECL_FUNCTION(mp3_init);
+DECL_FUNCTION(mp3_exit);
+DECL_FUNCTION(mp3_new);
+DECL_FUNCTION(mp3_param);
+DECL_FUNCTION(mp3_open_feed);
+DECL_FUNCTION(mp3_decode);
+DECL_FUNCTION(mp3_feed);
+DECL_FUNCTION(mp3_read);
+DECL_FUNCTION(mp3_delete);
+DECL_FUNCTION(mp3_format);
+DECL_FUNCTION(mp3_getformat);
+DECL_FUNCTION(mp3_length);
+DECL_FUNCTION(mp3_set_filesize);
+DECL_FUNCTION(mp3_feedseek);
+DECL_FUNCTION(mp3_meta_check);
+DECL_FUNCTION(mp3_id3);
+DECL_FUNCTION(mp3_plain_strerror);
+
 // libmpg123 for mp3 input
-// liblame for mp3 output
-// both Linux and Windows
 DECL_FUNCTION(mpg123_init);
 DECL_FUNCTION(mpg123_exit);
 DECL_FUNCTION(mpg123_new);
@@ -51,6 +67,7 @@ DECL_FUNCTION(mpg123_meta_check);
 DECL_FUNCTION(mpg123_id3);
 DECL_FUNCTION(mpg123_plain_strerror);
 
+// liblame for mp3 output
 DECL_FUNCTION(lame_init);
 DECL_FUNCTION(lame_init_params);
 DECL_FUNCTION(lame_close);
@@ -99,13 +116,13 @@ typedef struct
 
 } _driver_t;
 
-static int _aax_mpg123_init = AAX_FALSE;
+static int _aax_mp3_init = AAX_FALSE;
 static int _getFormatFromMP3Format(int);
-static void _detect_mpg123_song_info(_driver_t*);
+static void _detect_mp3_song_info(_driver_t*);
 
 
 int
-_mpg123_detect(_fmt_t *fmt, int mode)
+_mp3_detect(_fmt_t *fmt, int mode)
 {
    void *audio = NULL;
    int rv = AAX_FALSE;
@@ -134,6 +151,16 @@ _mpg123_detect(_fmt_t *fmt, int mode)
             handle->capturing = (mode == 0) ? 1 : 0;
             handle->blocksize = sizeof(int16_t);
 
+            pmp3_new = (mp3_new_proc)pdmp3_new;
+            pmp3_open_feed = (mp3_open_feed_proc)pdmp3_open_feed;
+            pmp3_decode = (mp3_decode_proc)pdmp3_decode;
+            pmp3_feed = (mp3_feed_proc)pdmp3_feed;
+            pmp3_read = (mp3_read_proc)pdmp3_read;
+            pmp3_delete = (mp3_delete_proc)pdmp3_delete;
+            pmp3_getformat = (mp3_getformat_proc)pdmp3_getformat;
+            pmp3_meta_check = (mp3_meta_check_proc)pdmp3_meta_check;
+            pmp3_id3 = (mp3_id3_proc)pdmp3_id3;
+
             rv = AAX_TRUE;
          }
          else {
@@ -160,6 +187,18 @@ _mpg123_detect(_fmt_t *fmt, int mode)
             TIE_FUNCTION(mpg123_format);
             TIE_FUNCTION(mpg123_getformat);
 
+            pmp3_init = pmpg123_init;
+            pmp3_exit = pmpg123_exit;
+            pmp3_new = pmpg123_new;
+            pmp3_param = pmpg123_param;
+            pmp3_open_feed = pmpg123_open_feed;
+            pmp3_decode = pmpg123_decode;
+            pmp3_feed = pmpg123_feed;
+            pmp3_read = pmpg123_read;
+            pmp3_delete = pmpg123_delete;
+            pmp3_format = pmpg123_format;
+            pmp3_getformat = pmpg123_getformat;
+
             error = _aaxGetSymError(0);
             if (!error)
             {
@@ -170,6 +209,13 @@ _mpg123_detect(_fmt_t *fmt, int mode)
                TIE_FUNCTION(mpg123_meta_check);
                TIE_FUNCTION(mpg123_id3);
                TIE_FUNCTION(mpg123_plain_strerror);
+
+               pmp3_length = pmpg123_length;
+               pmp3_set_filesize = pmpg123_set_filesize;
+               pmp3_feedseek = pmpg123_feedseek;
+               pmp3_meta_check = pmpg123_meta_check;
+               pmp3_id3 = pmpg123_id3;
+               pmp3_plain_strerror = pmpg123_plain_strerror;
 
                fmt->id = calloc(1, sizeof(_driver_t));
                if (fmt->id)
@@ -184,7 +230,7 @@ _mpg123_detect(_fmt_t *fmt, int mode)
                   rv = AAX_TRUE;
                }             
                else {
-                  _AAX_FILEDRVLOG("MPG123: Insufficient memory");
+                  _AAX_FILEDRVLOG("MP3: Insufficient memory");
                }
             }
          }
@@ -235,7 +281,7 @@ _mpg123_detect(_fmt_t *fmt, int mode)
                   rv = AAX_TRUE;
                }
                else {
-                  _AAX_FILEDRVLOG("MPG123: Insufficient memory");
+                  _AAX_FILEDRVLOG("MP3: Insufficient memory");
                }
             }
          }
@@ -246,7 +292,7 @@ _mpg123_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+_mp3_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -259,75 +305,78 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
       {
          if (!handle->id && !handle->audio)
          {
-            handle->id = pdmp3_new(NULL, NULL);
+            handle->id = pmp3_new(NULL, NULL);
             if (handle->id)
             {
-               if (pdmp3_open_feed(handle->id) == MPG123_OK) {
+               if (pmp3_open_feed(handle->id) == MP3_OK) {
                   handle->mp3Buffer = _aaxDataCreate(16384, 1);
+                  if (!handle->id3_found) {
+                     _detect_mp3_song_info(handle);
+                  }
                }
                else
                {
-                  _AAX_FILEDRVLOG("MPG123: Unable to initialize pdmp3");
-                  pdmp3_delete(handle->id);
+                  _AAX_FILEDRVLOG("MP3: Unable to initialize pdmp3");
+                  pmp3_delete(handle->id);
                   handle->id = NULL;
                }
             }
          }
          else if (!handle->id)
          {
-            if (!_aax_mpg123_init)
+            if (!_aax_mp3_init)
             {
-               pmpg123_init();
-               _aax_mpg123_init = AAX_TRUE;
+               pmp3_init();
+               _aax_mp3_init = AAX_TRUE;
             }
 
-            handle->id = pmpg123_new(NULL, NULL);
+            handle->id = pmp3_new(NULL, NULL);
             if (handle->id)
             {
 #ifdef NDEBUG
-               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_QUIET, 1);
+               pmp3_param(handle->id, MP3_ADD_FLAGS, MP3_QUIET, 1);
 #endif
-               // http://sourceforge.net/p/mpg123/mailman/message/26864747/
-               // MPG123_GAPLESS could be bad for http streams
+               // http://sourceforge.net/p/mp3/mailman/message/26864747/
+               // MP3_GAPLESS could be bad for http streams
                if (handle->streaming) {
-                  pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS,0);
+                  pmp3_param(handle->id, MP3_ADD_FLAGS, MP3_GAPLESS,0);
                } else {
-                  pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_GAPLESS,1);
+                  pmp3_param(handle->id, MP3_ADD_FLAGS, MP3_GAPLESS,1);
                }
 
-               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_SEEKBUFFER,1);
-               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_FUZZY, 1);
-               pmpg123_param(handle->id, MPG123_ADD_FLAGS, MPG123_PICTURE, 1);
-               pmpg123_param(handle->id, MPG123_RESYNC_LIMIT, -1, 0.0);
-               pmpg123_param(handle->id, MPG123_REMOVE_FLAGS,
-                                         MPG123_AUTO_RESAMPLE, 0);
-               pmpg123_param(handle->id, MPG123_RVA, MPG123_RVA_MIX, 0.0);
+               pmp3_param(handle->id, MP3_ADD_FLAGS, MP3_SEEKBUFFER,1);
+               pmp3_param(handle->id, MP3_ADD_FLAGS, MP3_FUZZY, 1);
+               pmp3_param(handle->id, MP3_ADD_FLAGS, MP3_PICTURE, 1);
+               pmp3_param(handle->id, MP3_RESYNC_LIMIT, -1, 0.0);
+               pmp3_param(handle->id, MP3_REMOVE_FLAGS,
+                                         MP3_AUTO_RESAMPLE, 0);
+               pmp3_param(handle->id, MP3_RVA, MP3_RVA_MIX, 0.0);
 
-               pmpg123_format(handle->id, handle->frequency,
-                                    MPG123_MONO | MPG123_STEREO,
-                                    MPG123_ENC_SIGNED_16);
+               pmp3_format(handle->id, handle->frequency,
+                                    MP3_MONO | MP3_STEREO,
+                                    MP3_ENC_SIGNED_16);
 
-               if (pmpg123_open_feed(handle->id) == MPG123_OK)
+               if (pmp3_open_feed(handle->id) == MP3_OK)
                {
                   handle->mp3Buffer = _aaxDataCreate(16384, 1);
 
-                  if (pmpg123_set_filesize) {
-                     pmpg123_set_filesize(handle->id, fsize);
+                  if (pmp3_set_filesize) {
+                     pmp3_set_filesize(handle->id, fsize);
                   }
                   if (!handle->id3_found) {
-                     _detect_mpg123_song_info(handle);
+                     _detect_mp3_song_info(handle);
                   }
                }
                else
                {
-                  _AAX_FILEDRVLOG("MPG123: Unable to initialize mpg123");
-                  pmpg123_delete(handle->id);
+                  _AAX_FILEDRVLOG("MP3: Unable to initialize mp3");
+                  pmp3_delete(handle->id);
                   handle->id = NULL;
 
-                  if (_aax_mpg123_init)
+                  if (_aax_mp3_init)
                   {
-                     pmpg123_exit();
-                     _aax_mpg123_init = AAX_FALSE;
+                     pmp3_exit();
+                     _aax_mp3_init = AAX_FALSE;
                   }
                }
             }
@@ -336,14 +385,14 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          if (handle->id && !handle->audio)
          {
             size_t size;
-            int ret = pdmp3_decode(handle->id, buf, *bufsize, NULL, 0, &size);
-            if (ret == MPG123_NEW_FORMAT)
+            int ret = pmp3_decode(handle->id, buf, *bufsize, NULL, 0, &size);
+            if (ret == MP3_NEW_FORMAT)
             {
                int enc, channels;
                long rate;
 
-               ret = pdmp3_getformat(handle->id, &rate, &channels, &enc);
-               if ((ret == MPG123_OK) &&
+               ret = pmp3_getformat(handle->id, &rate, &channels, &enc);
+               if ((ret == MP3_OK) &&
                       (1000 <= rate) && (rate <= 192000) &&
                       (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
                {
@@ -354,14 +403,14 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                   handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
                   struct pdpm3_frameinfo info;
-                  if (pdmp3_info(handle->id,&info) == MPG123_OK)
+                  if (pdmp3_info(handle->id,&info) == MP3_OK)
                   {
                      double q = (double)rate/(info.bitrate/8.0) * fsize;
                      handle->max_samples = q;
                   }
                }
             }
-            else if (ret == MPG123_NEED_MORE) {
+            else if (ret == MP3_NEED_MORE) {
                rv = buf;
             }
          }
@@ -370,17 +419,17 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             size_t size;
             int ret;
 
-            ret = pmpg123_decode(handle->id, buf, *bufsize, NULL, 0, &size);
+            ret = pmp3_decode(handle->id, buf, *bufsize, NULL, 0, &size);
             if (!handle->id3_found) {
-               _detect_mpg123_song_info(handle);
+               _detect_mp3_song_info(handle);
             }
-            if (ret == MPG123_NEW_FORMAT)
+            if (ret == MP3_NEW_FORMAT)
             {
                int enc, channels;
                long rate;
 
-               ret = pmpg123_getformat(handle->id, &rate, &channels, &enc);
-               if ((ret == MPG123_OK) &&
+               ret = pmp3_getformat(handle->id, &rate, &channels, &enc);
+               if ((ret == MP3_OK) &&
                       (1000 <= rate) && (rate <= 192000) &&
                       (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
                {
@@ -392,23 +441,23 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
 
                   rv = buf;
 
-                  if (pmpg123_length)
+                  if (pmp3_length)
                   {
-                     off_t length = pmpg123_length(handle->id);
+                     off_t length = pmp3_length(handle->id);
                      handle->max_samples = (length > 0) ? length : 0;
                   }
                }
                else {
-                  _AAX_FILEDRVLOG("MPG123: file may be corrupt");
+                  _AAX_FILEDRVLOG("MP3: file may be corrupt");
                }
             }
-            else if (ret == MPG123_NEED_MORE) {
+            else if (ret == MP3_NEED_MORE) {
                rv = buf;
             }
             // else we're done decoding, return NULL
          }
          else {
-            _AAX_FILEDRVLOG("MPG123: Unable to create a handle");
+            _AAX_FILEDRVLOG("MP3: Unable to create a handle");
          }
       }
       else	// playback
@@ -447,14 +496,14 @@ _mpg123_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
       }
    }
    else {
-      _AAX_FILEDRVLOG("MPG123: Internal error: handle id equals 0");
+      _AAX_FILEDRVLOG("MP3: Internal error: handle id equals 0");
    }
 
    return rv;
 }
 
 void
-_mpg123_close(_fmt_t *fmt)
+_mp3_close(_fmt_t *fmt)
 {
    _driver_t *handle = fmt->id;
 
@@ -462,20 +511,12 @@ _mpg123_close(_fmt_t *fmt)
    {
       if (handle->capturing)
       {
-         if (!handle->audio)
+         pmp3_delete(handle->id);
+         handle->id = NULL;
+         if (_aax_mp3_init && pmp3_exit)
          {
-            pdmp3_delete(handle->id);
-            handle->id = NULL;
-         }
-         else
-         {
-            pmpg123_delete(handle->id);
-            handle->id = NULL;
-            if (_aax_mpg123_init)
-            {
-               pmpg123_exit();
-               _aax_mpg123_init = AAX_FALSE;
-            }
+            pmp3_exit();
+            _aax_mp3_init = AAX_FALSE;
          }
       }
       else
@@ -508,30 +549,24 @@ _mpg123_close(_fmt_t *fmt)
 }
 
 int
-_mpg123_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
+_mp3_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
 {
    return AAX_TRUE;
 }
 
 size_t
-_mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
+_mp3_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
    int ret;
 
-   if (!handle->audio) {
-      ret = pdmp3_feed(handle->id, sptr, *bytes);
-   }
-   else
-   {
-      ret = pmpg123_feed(handle->id, sptr, *bytes);
-      if (!handle->id3_found) {
-         _detect_mpg123_song_info(handle);
-      }
+   ret = pmp3_feed(handle->id, sptr, *bytes);
+   if (!handle->id3_found) {
+      _detect_mp3_song_info(handle);
    }
 
-   if (ret != MPG123_OK) {
+   if (ret != MP3_OK) {
       *bytes = 0;
    }
 
@@ -539,7 +574,7 @@ _mpg123_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 }
 
 size_t
-_mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
+_mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
@@ -558,18 +593,12 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       bytes = bufsize;
    }
 
-   if (!handle->audio) {
-      ret = pdmp3_read(handle->id, buf, bytes, &size);
-   }
-   else
-   {
-      ret = pmpg123_read(handle->id, buf, bytes, &size);
-      if (!handle->id3_found) {
-         _detect_mpg123_song_info(handle);
-      }
+   ret = pmp3_read(handle->id, buf, bytes, &size);
+   if (!handle->id3_found) {
+      _detect_mp3_song_info(handle);
    }
 
-   if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
+   if (ret == MP3_OK || ret == MP3_NEED_MORE)
    {
       unsigned char *ptr = (unsigned char*)dptr;
 
@@ -578,19 +607,19 @@ _mpg123_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       *num = size/blocksize;
       handle->no_samples += *num;
-      if (ret == MPG123_OK) {
+      if (ret == MP3_OK) {
          rv = size;
       }
    }
-   else if (ret != MPG123_DONE && pmpg123_plain_strerror) {
-      _AAX_FILEDRVLOG(pmpg123_plain_strerror(ret));
+   else if (ret != MP3_DONE && pmp3_plain_strerror) {
+      _AAX_FILEDRVLOG(pmp3_plain_strerror(ret));
    }
 
    return rv;
 }
 
 size_t
-_mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
+_mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t bytes, bufsize, size = 0;
@@ -610,36 +639,30 @@ _mpg123_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
       bytes = bufsize;
    }
 
-   if (!handle->audio) {
-      ret = pdmp3_read(handle->id, buf, bytes, &size);
-   }
-   else
-   {
-      ret = pmpg123_read(handle->id, buf, bytes, &size);
-      if (!handle->id3_found) {
-         _detect_mpg123_song_info(handle);
-      }
+   ret = pmp3_read(handle->id, buf, bytes, &size);
+   if (!handle->id3_found) {
+      _detect_mp3_song_info(handle);
    }
 
-   if (ret == MPG123_OK || ret == MPG123_NEED_MORE)
+   if (ret == MP3_OK || ret == MP3_NEED_MORE)
    {
       *num = size/blocksize;
       _batch_cvt24_16_intl(dptr, buf, dptr_offs, tracks, *num);
 
       handle->no_samples += *num;
-      if (ret == MPG123_OK) {
+      if (ret == MP3_OK) {
          rv = size;
       }
    }
-   else if (ret != MPG123_DONE && pmpg123_plain_strerror) {
-      _AAX_FILEDRVLOG(pmpg123_plain_strerror(ret));
+   else if (ret != MP3_DONE && pmp3_plain_strerror) {
+      _AAX_FILEDRVLOG(pmp3_plain_strerror(ret));
    }
 
    return rv;
 }
 
 size_t
-_mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+_mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
    int res;
@@ -656,7 +679,7 @@ _mpg123_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t 
 }
 
 char*
-_mpg123_name(_fmt_t *fmt, enum _aaxStreamParam param)
+_mp3_name(_fmt_t *fmt, enum _aaxStreamParam param)
 {
    _driver_t *handle = fmt->id;
    char *rv = NULL;
@@ -706,7 +729,7 @@ _mpg123_name(_fmt_t *fmt, enum _aaxStreamParam param)
 }
 
 off_t
-_mpg123_get(_fmt_t *fmt, int type)
+_mp3_get(_fmt_t *fmt, int type)
 {
    _driver_t *handle = fmt->id;
    off_t rv = 0;
@@ -746,7 +769,7 @@ _mpg123_get(_fmt_t *fmt, int type)
 }
 
 off_t
-_mpg123_set(_fmt_t *fmt, int type, off_t value)
+_mp3_set(_fmt_t *fmt, int type, off_t value)
 {
    _driver_t *handle = fmt->id;
    off_t rv = 0;
@@ -777,11 +800,11 @@ _mpg123_set(_fmt_t *fmt, int type, off_t value)
       break;
    case __F_POSITION:
 #if 0
-      if (pmpg123_feedseek)
+      if (pmp3_feedseek)
       {
          off_t inoffset;
-         rv = pmpg123_feedseek(handle->id, value, SEEK_SET, &inoffset);
-         if (rv ==  MPG123_NEED_MORE) rv = __F_PROCESS;
+         rv = pmp3_feedseek(handle->id, value, SEEK_SET, &inoffset);
+         if (rv ==  MP3_NEED_MORE) rv = __F_PROCESS;
          else if (rv < 0) rv = __F_EOF;
       }
 #endif
@@ -805,22 +828,22 @@ _getFormatFromMP3Format(int enc)
    int rv;
    switch (enc)
    {
-   case MPG123_ENC_8:
+   case MP3_ENC_8:
       rv = AAX_PCM8S;
       break;
-   case MPG123_ENC_ULAW_8:
+   case MP3_ENC_ULAW_8:
       rv = AAX_MULAW;
       break;
-   case MPG123_ENC_ALAW_8:
+   case MP3_ENC_ALAW_8:
       rv = AAX_ALAW;
       break;
-   case MPG123_ENC_SIGNED_16:
+   case MP3_ENC_SIGNED_16:
       rv = AAX_PCM16S;
       break;
-   case MPG123_ENC_SIGNED_24:
+   case MP3_ENC_SIGNED_24:
       rv = AAX_PCM24S;
       break;
-   case MPG123_ENC_SIGNED_32:
+   case MP3_ENC_SIGNED_32:
       rv = AAX_PCM32S;
       break;
    default:
@@ -830,19 +853,18 @@ _getFormatFromMP3Format(int enc)
 }
 
 static void
-_detect_mpg123_song_info(_driver_t *handle)
+_detect_mp3_song_info(_driver_t *handle)
 {
-   if (!pmpg123_meta_check || !pmpg123_id3) {
+   if (!pmp3_meta_check || !pmp3_id3) {
       handle->id3_found = AAX_TRUE;
    }
 
    if (!handle->id3_found)
    {
-      int meta = pmpg123_meta_check(handle->id);
-      mpg123_id3v1 *v1 = NULL;
-      mpg123_id3v2 *v2 = NULL;
-
-      if ((meta & MPG123_ID3) && (pmpg123_id3(handle->id, &v1, &v2)==MPG123_OK))
+      int meta = pmp3_meta_check(handle->id);
+      mp3_id3v1 *v1 = NULL;
+      mp3_id3v2 *v2 = NULL;
+      if ((meta & MP3_ID3) && (pmp3_id3(handle->id, &v1, &v2) == MP3_OK))
       {
          void *xid = NULL, *xmid = NULL, *xgid = NULL;
          char *lang = systemLanguage(NULL);
