@@ -78,9 +78,9 @@ log2i(uint32_t x)
 {
 #if defined(__GNUC__)
 # if __x86_64__ || __ppc64__
-   return 64 -__builtin_clzl(x);
+   return 63 -__builtin_clzl(x);
 # else
-   return 32 -__builtin_clzl(x);
+   return 31 -__builtin_clzl(x);
 # endif
 #else
    int y = 0;
