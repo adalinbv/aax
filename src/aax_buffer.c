@@ -834,6 +834,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
    if (xid)
    {
       void *xsid = xmlNodeGet(xid, "aeonwave/sound");
+      if (!xsid) xmlNodeGet(xid, "/sound"); // pre v3.0 format
       if (xsid)
       {
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
