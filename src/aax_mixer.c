@@ -24,10 +24,7 @@
 #include <assert.h>
 #include <math.h>		/* for ceif */
 
-#include <signal.h>
-#ifdef SOLARIS /* needed with at least Solaris 8 */
-# include <siginfo.h>
-#endif
+#include <xml.h>
 
 #include <base/gmath.h>
 #include <base/threads.h>
@@ -46,6 +43,7 @@ static int _aaxMixerInit(_handle_t*);
 static int _aaxMixerStart(_handle_t*);
 static int _aaxMixerStop(_handle_t*);
 static int _aaxMixerUpdate(_handle_t*);
+static int _mixerCreateEFFromAAXS(aaxConfig, const char*);
 
 AAX_API int AAX_APIENTRY
 aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
@@ -755,6 +753,31 @@ aaxMixerGetState(aaxConfig config)
       else if (_IS_STANDBY(handle)) rv = AAX_STANDBY;
       else if (_IS_PAUSED(handle)) rv = AAX_SUSPENDED;
       else if (_IS_PLAYING(handle)) rv = AAX_PLAYING;
+   }
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
+{
+   _handle_t* handle = get_valid_handle(config, __func__);
+   _buffer_t* buffer = get_buffer(buf, __func__);
+   int rv = __release_mode;
+
+   if (!rv && handle)
+   {
+      if (!buffer) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+      else if (!buffer->aaxs) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv) {
+     rv = _mixerCreateEFFromAAXS(config, buffer->aaxs);
    }
    return rv;
 }
@@ -1551,3 +1574,151 @@ _aaxMixerUpdate(_handle_t *handle)
 }
 
 
+
+static int
+_mixerCreateEFFromAAXS(aaxConfig config, const char *aaxs)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = AAX_TRUE;
+   void *xid;
+
+   put_emitter(handle);
+
+   xid = xmlInitBuffer(aaxs, strlen(aaxs));
+   if (xid)
+   {
+      void *xmid = xmlNodeGet(xid, "aeonwave/mixer");
+      if (xmid)
+      {
+         unsigned int i, num = xmlNodeGetNum(xmid, "filter");
+         void *xeid, *xfid = xmlMarkId(xmid);
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+            {
+               char src[65];
+               int slen;
+
+               slen = xmlAttributeCopyString(xfid, "type", src, 64);
+               if (slen)
+               {
+                  enum aaxFilterType ftype;
+                  aaxFilter flt;
+
+                  src[slen] = 0;
+                  ftype = aaxFilterGetByName(config, src);
+                  flt = aaxFilterCreate(config, ftype);
+                  if (flt)
+                  {
+                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+                     unsigned int s, num = xmlNodeGetNum(xfid, "slot");
+                     void *xsid = xmlMarkId(xfid);
+                     for (s=0; s<num; s++)
+                     {
+                        if (xmlNodeGetPos(xfid, xsid, "slot", s) != 0)
+                        {
+                           enum aaxType type = AAX_LINEAR;
+                           aaxVec4f params;
+                           long int n;
+
+                           n = xmlAttributeGetInt(xsid, "n");
+                           if (n == XML_NONE) n = s;
+
+                           params[0] = xmlNodeGetDouble(xsid, "p1");
+                           params[1] = xmlNodeGetDouble(xsid, "p2");
+                           params[2] = xmlNodeGetDouble(xsid, "p3");
+                           params[3] = xmlNodeGetDouble(xsid, "p4");
+
+                           slen = xmlAttributeCopyString(xsid, "type", src, 64);
+                           if (slen)
+                           {
+                              src[slen] = 0;
+                              type = aaxGetTypeByName(src);
+                           }
+                           aaxFilterSetSlotParams(flt, n, type, params);
+                        }
+                     }
+
+                     slen = xmlAttributeCopyString(xfid, "type", src, 64);
+                     if (slen)
+                     {
+                        src[slen] = 0;
+                        state = aaxGetWaveformTypeByName(src);
+                     }
+                     aaxFilterSetState(flt, state);
+
+                     aaxMixerSetFilter(handle, flt);
+                     aaxFilterDestroy(flt);
+                     xmlFree(xsid);
+                  }
+               }
+            }
+         }
+         xmlFree(xfid);
+
+         xeid = xmlMarkId(xmid);
+         num = xmlNodeGetNum(xmid, "effect");
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
+            {
+               char src[64];
+               int slen;
+
+               slen = xmlAttributeCopyString(xeid, "type", src, 64);
+               if (slen)
+               {
+                  enum aaxEffectType ftype;
+                  aaxEffect eff;
+
+                  src[slen] = 0;
+                  ftype = aaxEffectGetByName(config, src);
+                  eff = aaxEffectCreate(config, ftype);
+                  if (eff)
+                  {
+                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+                     unsigned int s, num = xmlNodeGetNum(xeid, "slot");
+                     void *xsid = xmlMarkId(xeid);
+                     for (s=0; s<num; s++)
+                     {
+                        if (xmlNodeGetPos(xeid, xsid, "slot", s) != 0)
+                        {
+                           aaxVec4f params;
+                           long int n;
+
+                           n = xmlAttributeGetInt(xsid, "n");
+                           if (n == XML_NONE) n = s;
+
+                           params[0] = xmlNodeGetDouble(xsid, "p1");
+                           params[1] = xmlNodeGetDouble(xsid, "p2");
+                           params[2] = xmlNodeGetDouble(xsid, "p3");
+                           params[3] = xmlNodeGetDouble(xsid, "p4");
+                           aaxEffectSetSlotParams(eff, n, AAX_LINEAR, params);
+                        }
+                     }
+
+                     slen = xmlAttributeCopyString(xeid, "src", src, 64);
+                     if (slen)
+                     {
+                        src[slen] = 0;
+                        state = aaxGetWaveformTypeByName(src);
+                     }
+                     aaxEffectSetState(eff, state);
+                     aaxMixerSetEffect(handle, eff);
+                     aaxEffectDestroy(eff);
+                     xmlFree(xsid);
+                  }
+               }
+            }
+         }
+         xmlFree(xeid);
+         xmlFree(xmid);
+      }
+   }
+   else
+   {
+      _aaxErrorSet(AAX_INVALID_STATE);
+      rv = AAX_FALSE;
+   }
+   return rv;
+}

@@ -38,7 +38,7 @@
 #include "ringbuffer.h"
 
 static void _aaxFreeEmitterBuffer(void *);
-static void _emitterCreateEFFromAAXS(aaxEmitter, const char*);
+static int _emitterCreateEFFromAAXS(aaxEmitter, const char*);
 
 
 AAX_API aaxEmitter AAX_APIENTRY
@@ -203,7 +203,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       put_emitter(handle); 
 
       if (rv && buffer->aaxs) {
-         _emitterCreateEFFromAAXS(emitter, buffer->aaxs);
+         rv = _emitterCreateEFFromAAXS(emitter, buffer->aaxs);
       }
    } else {
       put_emitter(handle);
@@ -1367,11 +1367,12 @@ _aaxFreeEmitterBuffer(void *sbuf)
    embuf = NULL;
 }
 
-static void
+static int
 _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
 {
    _emitter_t *handle = get_emitter(emitter, __func__);
    aaxConfig config = handle->handle;
+   int rv = AAX_TRUE;
    void *xid;
 
    put_emitter(handle);
@@ -1379,7 +1380,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "/sound");
+      void *xmid = xmlNodeGet(xid, "aeonwave/emitter");
       if (xmid)
       {
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
@@ -1451,7 +1452,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
          xeid = xmlMarkId(xmid);
          num = xmlNodeGetNum(xmid, "effect");
          for (i=0; i<num; i++)
-         {  
+         {
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
             {
                char src[64];
@@ -1506,9 +1507,11 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
          xmlFree(xeid);
          xmlFree(xmid);
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_STATE);
-      }
-      xmlClose(xid);
    }
+   else
+   {
+      _aaxErrorSet(AAX_INVALID_STATE);
+      rv = AAX_FALSE;
+   }
+   return rv;
 }
