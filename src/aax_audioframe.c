@@ -21,6 +21,7 @@
 #include <math.h>
 
 #include <aax/aax.h>
+#include <xml.h>
 
 #include <base/threads.h>
 #include <base/timer.h>		/* for msecSleep */
@@ -34,6 +35,7 @@
 
 static int _aaxAudioFrameStart(_frame_t*);
 static int _aaxAudioFrameUpdate(_frame_t*);
+static int _frameCreateEFFromAAXS(aaxFrame, const char*);
 
 AAX_API aaxFrame AAX_APIENTRY
 aaxAudioFrameCreate(aaxConfig config)
@@ -1158,6 +1160,32 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
+{
+   _frame_t* handle = get_frame(frame, __func__);
+   _buffer_t* buffer = get_buffer(buf, __func__);
+   int rv = __release_mode;
+
+   if (!rv && handle)
+   {
+      if (!buffer) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+      else if (!buffer->aaxs) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+   put_frame(frame);
+
+   if (rv) {
+     rv = _frameCreateEFFromAAXS(buffer, buffer->aaxs);
+   }
+   return rv;
+}
+
 AAX_API aaxBuffer AAX_APIENTRY
 aaxAudioFrameGetBuffer(const aaxFrame frame)
 {
@@ -1380,3 +1408,151 @@ _aaxAudioFrameUpdate(VOID(_frame_t *frame))
    return rv;
 }
 
+static int
+_frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
+{
+   _frame_t* handle = get_frame(frame, __func__);
+   aaxConfig config = handle->handle;
+   int rv = AAX_TRUE;
+   void *xid;
+
+   put_frame(handle);
+
+   xid = xmlInitBuffer(aaxs, strlen(aaxs));
+   if (xid)
+   {
+      void *xmid = xmlNodeGet(xid, "aeonwave/audioframe");
+      if (xmid)
+      {
+         unsigned int i, num = xmlNodeGetNum(xmid, "filter");
+         void *xeid, *xfid = xmlMarkId(xmid);
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+            {
+               char src[65];
+               int slen;
+
+               slen = xmlAttributeCopyString(xfid, "type", src, 64);
+               if (slen)
+               {
+                  enum aaxFilterType ftype;
+                  aaxFilter flt;
+
+                  src[slen] = 0;
+                  ftype = aaxFilterGetByName(config, src);
+                  flt = aaxFilterCreate(config, ftype);
+                  if (flt)
+                  {
+                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+                     unsigned int s, num = xmlNodeGetNum(xfid, "slot");
+                     void *xsid = xmlMarkId(xfid);
+                     for (s=0; s<num; s++)
+                     {
+                        if (xmlNodeGetPos(xfid, xsid, "slot", s) != 0)
+                        {
+                           enum aaxType type = AAX_LINEAR;
+                           aaxVec4f params;
+                           long int n;
+
+                           n = xmlAttributeGetInt(xsid, "n");
+                           if (n == XML_NONE) n = s;
+
+                           params[0] = xmlNodeGetDouble(xsid, "p1");
+                           params[1] = xmlNodeGetDouble(xsid, "p2");
+                           params[2] = xmlNodeGetDouble(xsid, "p3");
+                           params[3] = xmlNodeGetDouble(xsid, "p4");
+
+                           slen = xmlAttributeCopyString(xsid, "type", src, 64);
+                           if (slen)
+                           {
+                              src[slen] = 0;
+                              type = aaxGetTypeByName(src);
+                           }
+                           aaxFilterSetSlotParams(flt, n, type, params);
+                        }
+                     }
+
+                     slen = xmlAttributeCopyString(xfid, "type", src, 64);
+                     if (slen)
+                     {
+                        src[slen] = 0;
+                        state = aaxGetWaveformTypeByName(src);
+                     }
+                     aaxFilterSetState(flt, state);
+
+                     aaxAudioFrameSetFilter(frame, flt);
+                     aaxFilterDestroy(flt);
+                     xmlFree(xsid);
+                  }
+               }
+            }
+         }
+         xmlFree(xfid);
+
+         xeid = xmlMarkId(xmid);
+         num = xmlNodeGetNum(xmid, "effect");
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
+            {
+               char src[64];
+               int slen;
+
+               slen = xmlAttributeCopyString(xeid, "type", src, 64);
+               if (slen)
+               {
+                  enum aaxEffectType ftype;
+                  aaxEffect eff;
+
+                  src[slen] = 0;
+                  ftype = aaxEffectGetByName(config, src);
+                  eff = aaxEffectCreate(config, ftype);
+                  if (eff)
+                  {
+                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+                     unsigned int s, num = xmlNodeGetNum(xeid, "slot");
+                     void *xsid = xmlMarkId(xeid);
+                     for (s=0; s<num; s++)
+                     {
+                        if (xmlNodeGetPos(xeid, xsid, "slot", s) != 0)
+                        {
+                           aaxVec4f params;
+                           long int n;
+
+                           n = xmlAttributeGetInt(xsid, "n");
+                           if (n == XML_NONE) n = s;
+
+                           params[0] = xmlNodeGetDouble(xsid, "p1");
+                           params[1] = xmlNodeGetDouble(xsid, "p2");
+                           params[2] = xmlNodeGetDouble(xsid, "p3");
+                           params[3] = xmlNodeGetDouble(xsid, "p4");
+                           aaxEffectSetSlotParams(eff, n, AAX_LINEAR, params);
+                        }
+                     }
+
+                     slen = xmlAttributeCopyString(xeid, "src", src, 64);
+                     if (slen)
+                     {
+                        src[slen] = 0;
+                        state = aaxGetWaveformTypeByName(src);
+                     }
+                     aaxEffectSetState(eff, state);
+                     aaxAudioFrameSetEffect(frame, eff);
+                     aaxEffectDestroy(eff);
+                     xmlFree(xsid);
+                  }
+               }
+            }
+         }
+         xmlFree(xeid);
+         xmlFree(xmid);
+      }
+   }
+   else
+   {
+      _aaxErrorSet(AAX_INVALID_STATE);
+      rv = AAX_FALSE;
+   }
+   return rv;
+}

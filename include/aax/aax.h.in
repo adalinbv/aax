@@ -599,6 +599,8 @@ AAX_API int AAX_APIENTRY aaxMixerGetMode(const aaxConfig, enum aaxModeType);
 AAX_API int AAX_APIENTRY aaxMixerSetSetup(aaxConfig, enum aaxSetupType, unsigned int);
 AAX_API unsigned int AAX_APIENTRY aaxMixerGetSetup(const aaxConfig, enum aaxSetupType);
 
+AAX_API int AAX_APIENTRY aaxMixerAddBuffer(aaxConfig, aaxBuffer);
+
 AAX_API int AAX_APIENTRY aaxMixerSetFilter(aaxConfig, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxMixerGetFilter(const aaxConfig, enum aaxFilterType);
 
@@ -912,6 +914,7 @@ AAX_API aaxFilter AAX_APIENTRY aaxAudioFrameGetFilter(const aaxFrame, enum aaxFi
 AAX_API int AAX_APIENTRY aaxAudioFrameSetEffect(aaxFrame, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxAudioFrameGetEffect(const aaxFrame, enum aaxEffectType);
 
+AAX_API int AAX_APIENTRY aaxAudioFrameAddBuffer(aaxFrame, aaxBuffer);
 AAX_API int AAX_APIENTRY aaxAudioFrameWaitForBuffer(aaxFrame, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxAudioFrameGetBuffer(const aaxFrame);
 
