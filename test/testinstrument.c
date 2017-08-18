@@ -42,7 +42,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define SAX	2
+#define SAX	0
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
 #define ENABLE_EMITTER_DYNAMIC_PITCH	0
 #define ENABLE_MIXER_DYNAMIC_GAIN	0
@@ -50,7 +50,8 @@
 
 static const char* aaxs_data_sax =   // A2, 200Hz
 #if SAX
-"    <sound frequency=\"220\">			\
+" <aeonwave>					\
+    <sound frequency=\"220\">			\
       <waveform src=\"brownian-noise\">		\
        <pitch>0.3</pitch>			\
        <ratio>0.73</ratio>			\
@@ -65,6 +66,8 @@ static const char* aaxs_data_sax =   // A2, 200Hz
        <pitch>2.9</pitch>			\
        <ratio>1.0</ratio> 			\
       </waveform> 				\
+    </sound>					\
+    <emitter>					\
       <filter type=\"timed_gain\">		\
        <slot n=\"0\">				\
         <p2>0.05</p2>				\
@@ -91,9 +94,11 @@ static const char* aaxs_data_sax =   // A2, 200Hz
         <p3>0.99</p3>				\
        </slot>					\
       </effect>					\
-     </sound>";
+    </emitter>					\
+  </aeonwave>";
 #else
-"    <sound frequency=\"440\">			\
+" <aeonwave>					\
+    <sound frequency=\"440\">			\
       <waveform src=\"triangle\"/>		\
       <waveform src=\"triangle\">		\
        <processing>mix</processing>		\
@@ -105,6 +110,8 @@ static const char* aaxs_data_sax =   // A2, 200Hz
        <pitch>4.0</pitch>			\
        <ratio>-0.2</ratio>			\
       </waveform>				\
+    </sound>					\
+    <emitter>					\
       <filter type=\"envelope\">		\
        <slot n=\"0\">				\
         <p2>0.01</p2>				\
@@ -122,7 +129,8 @@ static const char* aaxs_data_sax =   // A2, 200Hz
          <p2>1.2</p2>				\
        </slot>					\
       </filter>					\
-     </sound>";
+    </emitter>					\
+  </aeonwave>";
 #endif
 
 int main(int argc, char **argv)
