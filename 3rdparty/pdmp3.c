@@ -1404,9 +1404,15 @@ static int Read_ID3v2_Tag(pdmp3_handle *id) {
 //flags =(b1 << 8) |(b2 << 0);
 
   filled = Get_Inbuf_Filled(id);
-  if(size && (filled >= size) && (texts < 32)) {
+  if(!size && (id->id3v2_size > filled)) {
+    id->processed = pos;
+    id->istart = mark;
+    return(PDMP3_NEED_MORE);
+  }
+  else if(size && (filled >= size) && (texts < 32)) {
     if(!strncmp(id->id3v2->text[texts].id, "PRIV", 4)) { // unimplemented
        for (i=0; i<size; ++i) Get_Byte(id);
+       id->id3v2_size -= (size+10);
        return(PDMP3_OK);
     }
     else {
@@ -1421,6 +1427,7 @@ static int Read_ID3v2_Tag(pdmp3_handle *id) {
           id->id3v2->text[texts].text.size = size;
           id->id3v2->text[texts].text.fill = size;
         }
+        id->id3v2_size -= (size+10);
       } else if(encoding == 0x01 || encoding == 0x02) { // UTF-16
         size_t srclen = 2*size;
         char *src = alloca(srclen);
@@ -1451,6 +1458,7 @@ static int Read_ID3v2_Tag(pdmp3_handle *id) {
             id->id3v2->text[texts].text.fill = 2*size-dstlen;
           }
 #endif
+          id->id3v2_size -= (2*(size-1)+1+10);
         } /* src != NULL */
       }
     }
@@ -1478,7 +1486,10 @@ static int Read_ID3v2_Tag(pdmp3_handle *id) {
     return(PDMP3_NEED_MORE);
   }
   else if(!size) {
-      id->id3v2_processing = 0;
+    for(i=0; i<id->id3v2_size; ++i) Get_Byte(id);
+    id->id3v2_processing = 0;
+    id->id3v2_size = 0;
+    res = PDMP3_OK;
   }
   return(res);
 }
@@ -1507,7 +1518,7 @@ static int Read_ID3v2_Header(pdmp3_handle *id) {
     if(b1 & 0x80 || b1 & 0x80 || b2 & 0x80 || b3 & 0x80) {
       return(PDMP3_ERR);
     }
-    id->id3v2_size =(b1 << 21) |(b2 << 14) |(b3 << 7) |(b4 << 0);
+    id->id3v2_size =(((unsigned)b1 << 21) |((unsigned)b2 << 14) |((unsigned)b3 << 7) |((unsigned)b4 << 0));
     if(id->id3v2_flags != 0x00) {
       return(PDMP3_ERR);		// special features not implemented
     }
@@ -1517,7 +1528,9 @@ static int Read_ID3v2_Header(pdmp3_handle *id) {
   }
 
   if(id->id3v2) {
-    while ((res = Read_ID3v2_Tag(id)) == PDMP3_OK);
+    while ((res = Read_ID3v2_Tag(id)) == PDMP3_OK) {
+       if (!id->id3v2_processing) break;
+    }
   }
   return(res);
 
@@ -1614,9 +1627,9 @@ static int Search_Header(pdmp3_handle *id) {
   int cnt = 0;
   while(Get_Inbuf_Filled(id) > 4) {
     res = Read_Header(id);
-    if(res == PDMP3_OK || res == PDMP3_NEW_FORMAT || res == PDMP3_NEED_MORE) {
-       if(id->id3v2_processing || id->g_frame_header.layer == 3) break;
-    }
+    if (res == PDMP3_NEED_MORE) break;
+    if((res == PDMP3_OK || res == PDMP3_NEW_FORMAT) &&
+       (id->g_frame_header.layer == 3)) break;
     if(++mark == INBUF_SIZE) {
       mark = 0;
     }
@@ -2902,9 +2915,8 @@ void pdmp3(char * const *mp3s){
 
     pdmp3_open_feed(id);
     while((res = pdmp3_read(id,out,INBUF_SIZE,&done)) != PDMP3_ERR){
+      audio_write(id,audio_name,filename,out,done);
       if(res == PDMP3_OK || res == PDMP3_NEW_FORMAT) {
-        audio_write(id,audio_name,filename,out,done);
-
 #ifndef NDEBUG
         if(res == PDMP3_NEW_FORMAT) {
           int enc,channels;
