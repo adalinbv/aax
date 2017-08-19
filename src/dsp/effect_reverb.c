@@ -99,13 +99,26 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       num = 3;
       igain = 0.50f;
-      gains[0] = igain*0.9484f;	// conrete/brick = 0.95
-      gains[1] = igain*0.8935f;	// wood floor    = 0.90
-      gains[2] = igain*0.8254f;	// carpet        = 0.853
-      gains[3] = igain*0.8997f;
-      gains[4] = igain*0.8346f;
-      gains[5] = igain*0.7718f;
-      gains[6] = igain*0.7946f;
+      if (state & AAX_INVERSE)
+      {
+         gains[6] = igain*0.9484f;	// conrete/brick = 0.95
+         gains[5] = igain*0.8935f;	// wood floor    = 0.90
+         gains[4] = igain*0.8254f;	// carpet        = 0.853
+         gains[3] = igain*0.8997f;
+         gains[2] = igain*0.8346f;
+         gains[1] = igain*0.7718f;
+         gains[0] = igain*0.7946f;
+      }
+      else
+      {
+         gains[0] = igain*0.9484f;      // conrete/brick = 0.95
+         gains[1] = igain*0.8935f;      // wood floor    = 0.90
+         gains[2] = igain*0.8254f;      // carpet        = 0.853
+         gains[3] = igain*0.8997f;
+         gains[4] = igain*0.8346f;
+         gains[5] = igain*0.7718f;
+         gains[6] = igain*0.7946f;
+      }
 
       depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
       idepth = 0.005f+0.045f*depth;
@@ -113,13 +126,26 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       idepth_offs = _MINMAX(idepth_offs, 0.01f, max_depth-0.05f);
       assert(idepth_offs+idepth*0.9876543f <= REVERB_EFFECTS_TIME);
 
-      delays[0] = idepth_offs + idepth*0.9876543f;
-      delays[2] = idepth_offs + idepth*0.5019726f;
-      delays[1] = idepth_offs + idepth*0.3333333f;
-      delays[6] = idepth_offs + idepth*0.1992736f;
-      delays[4] = idepth_offs + idepth*0.1428571f;
-      delays[5] = idepth_offs + idepth*0.0909091f;
-      delays[3] = idepth_offs + idepth*0.0769231f;
+      if (state & AAX_INVERSE)
+      {
+         delays[0] = idepth_offs + idepth*0.9876543f;
+         delays[2] = idepth_offs + idepth*0.5019726f;
+         delays[1] = idepth_offs + idepth*0.3333333f;
+         delays[6] = idepth_offs + idepth*0.1992736f;
+         delays[4] = idepth_offs + idepth*0.1428571f;
+         delays[5] = idepth_offs + idepth*0.0909091f;
+         delays[3] = idepth_offs + idepth*0.0769231f;
+      }  
+      else
+      {
+         delays[6] = idepth_offs + idepth*0.9876543f;
+         delays[4] = idepth_offs + idepth*0.5019726f;
+         delays[5] = idepth_offs + idepth*0.3333333f;
+         delays[0] = idepth_offs + idepth*0.1992736f;
+         delays[2] = idepth_offs + idepth*0.1428571f;
+         delays[1] = idepth_offs + idepth*0.0909091f;
+         delays[3] = idepth_offs + idepth*0.0769231f;
+      }
 
       /* calculate initial and loopback samples                      */
       lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
