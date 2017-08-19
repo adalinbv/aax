@@ -82,7 +82,7 @@ typedef struct
    size_t max_samples;
 
    _data_t *opusBuffer;
-   _data_t *outputBuffer;
+   _data_t *floatBuffer;
 
    int channel_mapping;
 
@@ -170,13 +170,13 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
          handle->opusBuffer = _aaxDataCreate(bufsize, 1);
       }
 
-      if (!handle->outputBuffer)
+      if (!handle->floatBuffer)
       {
          unsigned int bufsize = MAX_PACKET_SIZE*handle->no_tracks*sizeof(float);
-         handle->outputBuffer = _aaxDataCreate(2*bufsize, 1);
+         handle->floatBuffer = _aaxDataCreate(2*bufsize, 1);
       }
 
-      if (handle->opusBuffer && handle->outputBuffer)
+      if (handle->opusBuffer && handle->floatBuffer)
       {
          if (handle->capturing)
          {
@@ -185,24 +185,7 @@ _opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
                int err, tracks = handle->no_tracks;
                int32_t freq = OPUS_SAMPLE_RATE;
 
-               /*
-                * https://tools.ietf.org/html/rfc7845.html#page-12
-                *
-                * An Ogg Opus player SHOULD select the playback sample rate
-                * according to the following procedure:
-                *
-                * 1. If the hardware supports 48 kHz playback, decode at 48 kHz.
-                * 
-                * 2. Otherwise, if the hardware's highest available sample rate
-                *    is a supported rate, decode at this sample rate.
-
-                * 3. Otherwise, if the hardware's highest available sample rate 
-                *    is less than 48 kHz, decode at the next higher Opus
-                *    supported rate above the highest available hardware rate
-                *    and resample.
-                *
-                * 4.  Otherwise, decode at 48 kHz and resample/
-                */
+               /* https://tools.ietf.org/html/rfc7845.html#page-12 */
                handle->frequency = freq;
                handle->blocksize = FRAME_SIZE;
                handle->format = AAX_PCM24S;
@@ -247,7 +230,7 @@ _opus_close(_fmt_t *fmt)
       handle->id = NULL;
 
       _aaxDataDestroy(handle->opusBuffer);
-      _aax_aligned_free(handle->outputBuffer->data);
+      _aax_aligned_free(handle->floatBuffer->data);
 
       free(handle->trackno);
       free(handle->artist);
@@ -276,10 +259,10 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
-   int res;
 
-   res = _aaxDataAdd(handle->opusBuffer, sptr, *bytes);
-   *bytes = res;
+   if (_aaxDataAdd(handle->opusBuffer, sptr, *bytes)  == 0) {
+      *bytes = 0;
+   }
 
    return rv;
 }
@@ -290,7 +273,7 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
    size_t req, rv = 0;
-   float *outputs;
+   float *floats;
    int n;
 
    req = *num;
@@ -300,17 +283,17 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    packet_sz = handle->blocksize;
    *num = 0;
 
-   outputs = (float*)handle->outputBuffer->data;
+   floats = (float*)handle->floatBuffer->data;
    do
    {
-      size_t avail = handle->outputBuffer->avail;
+      size_t avail = handle->floatBuffer->avail;
       if (avail > 0)
       {
          unsigned int max = _MIN(req, avail/framesize);
          if (max)
          {
-            _batch_cvt24_ps(dptr+dptr_offs, outputs, max*tracks);
-            _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
+            _batch_cvt24_ps(dptr+dptr_offs, floats, max*tracks);
+            _aaxDataMove(handle->floatBuffer, NULL, max*framesize);
 
             dptr_offs += max;
             handle->no_samples += max;
@@ -324,14 +307,14 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          size_t bufsize  = _MIN(packet_sz, handle->opusBuffer->avail);
          if (bufsize == packet_sz)
          {
-            size_t outsmp = handle->outputBuffer->size/framesize;
+            size_t floatsmp = handle->floatBuffer->size/framesize;
             unsigned char *buf = handle->opusBuffer->data;
 
             n = popus_multistream_decode_float(handle->id, buf, bufsize,
-                                                           outputs, outsmp, 0);
+                                                           floats, floatsmp, 0);
             if (n <= 0) break;
 
-            handle->outputBuffer->avail = n*framesize;
+            handle->floatBuffer->avail = n*framesize;
             rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
          }
          else {
@@ -349,8 +332,8 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 {
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
-   size_t req, rv = 0;
-   float *outputs;
+   size_t req, rv = __F_NEED_MORE;
+   float *floats;
    int n;
 
    req = *num;
@@ -360,17 +343,17 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    packet_sz = handle->blocksize;
    *num = 0;
 
-   outputs = (float*)handle->outputBuffer->data;
+   floats = (float*)handle->floatBuffer->data;
    do
    {
-      size_t avail = handle->outputBuffer->avail;
+      size_t avail = handle->floatBuffer->avail;
       if (avail > 0)
       {
          unsigned int max = _MIN(req, avail/framesize);
          if (max)
          {
-            _batch_cvt24_ps_intl(dptr, outputs, dptr_offs, tracks, max);
-            _aaxDataMove(handle->outputBuffer, NULL, max*framesize);
+            _batch_cvt24_ps_intl(dptr, floats, dptr_offs, tracks, max);
+            _aaxDataMove(handle->floatBuffer, NULL, max*framesize);
 
             dptr_offs += max;
             handle->no_samples += max;
@@ -384,14 +367,14 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          size_t bufsize  = _MIN(packet_sz, handle->opusBuffer->avail);
          if (bufsize == packet_sz)
          {
-            size_t outsmp = handle->outputBuffer->size/framesize;
+            size_t floatsmp = handle->floatBuffer->size/framesize;
             unsigned char *buf = handle->opusBuffer->data;
 
             n = popus_multistream_decode_float(handle->id, buf, bufsize,
-                                                           outputs, outsmp, 0);
+                                                           floats, floatsmp, 0);
             if (n <= 0) break;
 
-            handle->outputBuffer->avail = n*framesize;
+            handle->floatBuffer->avail = n*framesize;
             rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
          }
          else {
@@ -572,7 +555,7 @@ _aaxReadOpusHeader(_driver_t *handle, char *h, size_t len)
       if (version == 1)
       {
          unsigned char mapping_family;
-         int gain;
+//       int gain;
 
          handle->format = AAX_FLOAT;
          handle->no_tracks = (unsigned char)h[9];
@@ -613,7 +596,7 @@ _aaxReadOpusHeader(_driver_t *handle, char *h, size_t len)
          }
       }
 
-#if 1
+#if 0
 {
   uint32_t *header = (uint32_t*)h;
   float gain = (int)h[16] << 8 | h[17];
