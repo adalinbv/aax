@@ -372,7 +372,11 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 
             n = popus_multistream_decode_float(handle->id, buf, bufsize,
                                                            floats, floatsmp, 0);
-            if (n <= 0) break;
+            if (n <= 0) {
+               *num = req;
+               rv = __F_NEED_MORE;
+               break;
+            }
 
             handle->floatBuffer->avail = n*framesize;
             rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
