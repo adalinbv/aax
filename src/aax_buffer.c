@@ -397,8 +397,9 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
             }
 
             /* sound is not mono or larger than 4Mb, do not convert */
-            else if (tracks != 1 || rb->get_parami(rb, RB_TRACKSIZE) > (4*1024)) {
-                handle->to_mixer = AAX_FALSE;
+            else if (tracks != 1 || rb->get_parami(rb, RB_TRACKSIZE) > (4*1024))
+            {
+               handle->to_mixer = AAX_FALSE;
             }
 
             /* more than 500Mb free memory is available, convert */
@@ -660,7 +661,10 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                {
                    aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
                    aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
-                   aaxBufferSetData(rv, dst[0]);
+                   if ((aaxBufferSetData(rv, dst[0])) == AAX_FALSE) {
+                      aaxBufferDestroy(rv);
+                      rv  = NULL;
+                   }
 #if 0
 _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, dst[0], no_samples, freq, tracks, fmt);
 #endif
