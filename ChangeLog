@@ -1,14 +1,17 @@
 * Sat Jul 29 2017 - tech@adalin.org
 - AeonWave (3.0.0) stable; urgency=low
  * Reorginze the streaming code to make it more flexible.
- * Add read support for Opus using libopus (when installed).
  * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.
  * Add support for WAV embeded MP3 files.
  * Add support for native AAXS files when calling aaxBufferReadFromStream.
- * Add the option to define filters and effects in the AAXS file. These will
-   get applied automatically when the buffer is added to an emitter.
- * Support proper distortion (not clipping) when the gain of generated
-   waveforms becomes (too) large.
+  * Support proper distortion (not clipping) when the gain of generated
+   waveforms becomes (too) large
+ * Add the option to define filters and effects in an AAXS file. These will
+   get applied automatically when the buffer is added to an emitter, the mixer
+   or audio frames.
+ * Add the aaxAudioFrameAddBuffer and aaxMixerAddBuffer functions to be able to
+   assign AAXS buffers with filter and effect information to audio-frames and
+   the mixer.
  * Add a functions to get filter and effect types by name.
  * Add functions to get a conversion-type and to get a waveform-type by name.
  * Add a convolution effect to simulate acoustics based on an audio buffer.

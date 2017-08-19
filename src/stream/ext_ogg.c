@@ -455,7 +455,7 @@ char*
 _ogg_interfaces(int ext, int mode)
 {
    static const char *raw_exts[_EXT_MAX - _EXT_PCM] = {
-      "*.ogg *.oga", "*.opus"
+      "*.ogg *.oga", // "*.opus"
    };
    static char *rd[2][_EXT_PCM - _EXT_OGG] = {
       { NULL, NULL },
@@ -684,10 +684,10 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    if (curr != 0x5367674f)		/* OggS */
    {
       char *c = strncasestr((const char*)header, "OggS", size);
-      if (!c) printf("OggS header not found, len: %i\n", size);
+      if (!c) printf("OggS header not found, len: %lu\n", size);
       else
       {
-         printf("Found OggS header at offset: %i\n", c-(char*)header);
+         printf("Found OggS header at offset: %li\n", c-(char*)header);
          header = (uint32_t*)c;
          curr = header[0];
       }
