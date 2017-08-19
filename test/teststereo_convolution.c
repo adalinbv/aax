@@ -49,7 +49,7 @@
 
 int main(int argc, char **argv)
 {
-    char *devname, *infile;
+    char *devname, *infile, *convfile;
     aaxBuffer irbuffer = 0;
     aaxBuffer buffer = 0;
     aaxConfig config;
@@ -60,7 +60,9 @@ int main(int argc, char **argv)
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    irbuffer = bufferFromFile(config, IRFILE_PATH);
+    convfile = getCaptureName(argc, argv);
+    if (!convfile) convfile = IRFILE_PATH;
+    irbuffer = bufferFromFile(config, convfile);
     testForError(config, "convolution file not found");
 
     if (config)
@@ -113,7 +115,7 @@ int main(int argc, char **argv)
             res = aaxEffectSetParam(effect, AAX_MAX_GAIN, AAX_LINEAR, 1.0f);
             testForState(res, "aaxEffectSetParam");
 
-            res = aaxEffectSetParam(effect, AAX_THRESHOLD, AAX_LOGARITHMIC, -40.0f);
+            res = aaxEffectSetParam(effect, AAX_THRESHOLD, AAX_LOGARITHMIC, -64.0f);
             testForState(res, "aaxEffectSetParam");
 
             res = aaxEffectAddBuffer(effect, irbuffer);
