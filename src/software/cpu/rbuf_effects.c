@@ -348,7 +348,7 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_i
    do
    {
       float volume = *cptr * v;
-      if (1) { // fabsf(volume) > threshold) {
+      if (fabsf(volume) > threshold) {
          rbd->add(hcptr, sptr, dnum, volume, 0.0f);
       }
       cptr += step;
