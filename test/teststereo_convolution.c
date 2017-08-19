@@ -41,6 +41,8 @@
 #include "driver.h"
 #include "wavfile.h"
 
+#define USE_REVERB		AAX_TRUE
+
 #define REFRATE			46
 #define FILE_PATH		SRC_PATH"/stereo.wav"
 
@@ -129,6 +131,24 @@ int main(int argc, char **argv)
 
             res = aaxEffectDestroy(effect);
             testForState(res, "aaxEffectDestroy");
+
+#if USE_REVERB
+            effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
+            testForError(effect, "aaxEffectCreate");
+
+            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              790.0f, 0.035f, 0.89f, 0.15f);
+            testForError(effect, "aaxEffectSetSlot/0");
+
+            effect = aaxEffectSetState(effect, AAX_TRUE);
+            testForError(effect, "aaxEffectSetState");
+
+            res = aaxMixerSetEffect(config, effect);
+            testForState(res, "aaxMixerSetEffect");
+
+            res = aaxEffectDestroy(effect);
+            testForState(res, "aaxEffectDestroy");
+#endif
 
             /** schedule the emitter for playback */
             res = aaxEmitterSetState(emitter, AAX_PLAYING);
