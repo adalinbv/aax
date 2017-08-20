@@ -128,6 +128,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
    if (snum > 0)
    {
       _aaxRingBufferFreqFilterData* filter = reverb->freq_filter;
+      float dst = _MAX(info->speaker[track].v4[0]*info->frequency*3/343.0,0.0f);
       MIX_T *scratch = (MIX_T*)sbuf + dmin;
       MIX_PTR_T sptr = s + dmin;
       int q;
@@ -139,8 +140,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
          float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
          {
-            float dst = info->speaker[track].v4[0]*info->frequency*4/343.0;
-            ssize_t offs = reverb->delay[q].sample_offs[track] + _MAX(dst,0);
+            ssize_t offs = reverb->delay[q].sample_offs[track] + dst;
 
             assert(offs < ds);
 //          if (offs >= ds) offs = ds-1;
@@ -172,6 +172,7 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    snum = reverb->no_loopbacks;
    if (snum > 0)
    {
+      float dst =_MAX(-info->speaker[track].v4[0]*info->frequency*5/343.0,0.0f);
       size_t bytes = ds*sizeof(MIX_T);
       MIX_T *sptr = s + dmin;
       int q;
@@ -179,8 +180,7 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       _aax_memcpy(sptr-ds, reverb->reverb_history[track], bytes);
       for(q=0; q<snum; ++q)
       {
-         float dst = info->speaker[track].v4[0]*info->frequency*4/343.0;
-         ssize_t offs = reverb->loopback[q].sample_offs[track] + _MAX(dst,0);
+         ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
          float volume = reverb->loopback[q].gain / (snum+1);
 
          assert(offs < ds);
@@ -542,7 +542,7 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
    reverb = *ptr;
    if (reverb)
    {
-      size_t j, snum = _AAX_MAX_SPEAKERS;
+      size_t track, tracks = _AAX_MAX_SPEAKERS;
 
       if (reverb->history_ptr == 0)
       {
@@ -562,8 +562,8 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
          {
             if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
             {
-               for (j=0; j<snum; ++j) {
-                  reverb->delay[i].sample_offs[j] = (ssize_t)(delays[i] * fs);
+               for (track=0; track<tracks; ++track) {
+                  reverb->delay[i].sample_offs[track]=(ssize_t)(delays[i] * fs);
                }
                reverb->delay[i].gain = gains[i];
             }
@@ -578,6 +578,7 @@ _aaxRingBufferDelaysAdd(void **data, float fs, unsigned int tracks, const float 
       {
          static const float max_depth = REVERB_EFFECTS_TIME*0.6877777f;
          float dlb, dlbp;
+         int j;
 
          num = 5;
          reverb->loopback[0].gain = lb_gain*0.95015f;	// conrete/brick = 0.95
