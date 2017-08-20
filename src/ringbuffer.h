@@ -202,6 +202,8 @@ typedef struct
 
     _aaxRingBufferFreqFilterData *freq_filter;
 
+    char inverse;
+
 } _aaxRingBufferReverbData;
 
 typedef struct

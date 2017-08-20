@@ -161,6 +161,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          }
 
+         reverb->inverse = (state & AAX_INVERSE) ? 1 : 0;
          reverb->freq_filter = flt;
          if (flt)
          {
