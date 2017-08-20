@@ -128,7 +128,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
    if (snum > 0)
    {
       _aaxRingBufferFreqFilterData* filter = reverb->freq_filter;
-      float dst = _MAX(info->speaker[track].v4[0]*info->frequency*3/343.0,0.0f);
+      float dst = _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f);
       MIX_T *scratch = (MIX_T*)sbuf + dmin;
       MIX_PTR_T sptr = s + dmin;
       int q;
@@ -172,7 +172,7 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    snum = reverb->no_loopbacks;
    if (snum > 0)
    {
-      float dst =_MAX(-info->speaker[track].v4[0]*info->frequency*5/343.0,0.0f);
+      float dst = _MAX(-info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f);
       size_t bytes = ds*sizeof(MIX_T);
       MIX_T *sptr = s + dmin;
       int q;
