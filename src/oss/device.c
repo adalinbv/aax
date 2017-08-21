@@ -259,12 +259,12 @@ _aaxOSSDriverConnect(void *config, const void *id, void *xid, const char *render
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("oss; frequency too small.");
+               _AAX_SYSLOG("OSS: frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("oss; frequency too large.");
+               _AAX_SYSLOG("OSS: frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->frequency_hz = f;
@@ -277,12 +277,12 @@ _aaxOSSDriverConnect(void *config, const void *id, void *xid, const char *render
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("oss; no. tracks too small.");
+                  _AAX_SYSLOG("OSS: no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("oss; no. tracks too great.");
+                  _AAX_SYSLOG("OSS: no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->no_tracks = i;
@@ -294,7 +294,7 @@ _aaxOSSDriverConnect(void *config, const void *id, void *xid, const char *render
          {
             if (i != 16)
             {
-               _AAX_SYSLOG("oss; unsopported bits-per-sample");
+               _AAX_SYSLOG("OSS: unsopported bits-per-sample");
                i = 16;
             }
          }
@@ -416,14 +416,15 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    unsigned int channels, format, rate;
    ssize_t frag, period_frames = 1024;
-   audio_buf_info info;
    int fd, err;
 
    rate = *speed;
    if (!registered) {
       period_frames = (size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS));
+      period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS)));
    } else {
       period_frames = (size_t)rintf((rate*NO_FRAGMENTS)/period_rate);
+      period_frames = get_pow2((size_t)rintf((rate*NO_FRAGMENTS)/period_rate));
    }
 
    assert(handle);
@@ -436,7 +437,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (*tracks > 2)
    {
       char str[255];
-      snprintf((char *)&str, 255, "oss; Unable to output to %i speakers in "
+      snprintf((char *)&str, 255, "OSS: Unable to output to %i speakers in "
                 "this setup (2 is the maximum)", *tracks);
       _AAX_SYSLOG(str);
       return AAX_FALSE;
@@ -445,24 +446,17 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
    fd = handle->fd;
    rate = (unsigned int)*speed;
    channels = *tracks; // handle->no_tracks;
+   format = AFMT_S16_LE;
 
-   switch(*fmt)
-   {
-   case AAX_PCM8S:	
-      format = AFMT_S8;
-      break;
-   case AAX_PCM16S:
-      format = AFMT_S16_LE;
-      break;
-   default:
-      _AAX_SYSLOG("oss; unsupported audio format.");
-      return AAX_FALSE;
+   err = pioctl(fd, SNDCTL_DSP_SETFMT, &format);
+   if (err >= 0) {
+      err = pioctl(fd, SNDCTL_DSP_CHANNELS, &channels);
    }
+   if (err >= 0) {
+      err = pioctl(fd, SNDCTL_DSP_SPEED, &rate);
+   }
+
    handle->bytes_sample = aaxGetBytesPerSample(*fmt);
-
-   err = pioctl(fd, SNDCTL_DSP_SPEED, &rate);
-   *speed = (float)rate;
-
    frag = log2i(period_frames*channels*handle->bytes_sample);
    if (frag < 4) {
       frag = 4;
@@ -471,55 +465,50 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
    frag |= NO_FRAGMENTS << 16;
    err = pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
 
-   err = pioctl(fd, SNDCTL_DSP_SETFMT, &format);
-   if (err >= 0) {
-      err = pioctl(fd, SNDCTL_DSP_CHANNELS, &channels);
-   }
-   if ((err >= 0) && (handle->mode == O_WRONLY)) {
-      err = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
-   }
+#if 0
+ printf("Sample rate: %i (reuqested: %.1f)\n", rate, *speed);
+ printf("No. channels: %i (reuqested: %i)\n", channels, *tracks);
+ printf("Fragment selector: %zi\n", frag & ~(NO_FRAGMENTS << 16));
+#endif
 
-   /* disable sample conversion */
+   *fmt = AAX_PCM16S;
+   *speed = (float)rate;
+   *tracks = channels;
+
    if (handle->oss_version >= OSS_VERSION_4)
    {
+      audio_buf_info info;
       int enable = 0;
-      err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
-   }
-
-   _oss_get_volume(handle);
-
-   if (err >= 0)
-   {
-      oss_audioinfo ainfo;
       int delay;
 
-      ainfo.dev = handle->nodenum;
-      err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+      /* disable sample conversion */
+      err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
+
+      _oss_get_volume(handle);
+
+      if ((err >= 0) && (handle->mode == O_WRONLY)) {
+         err = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
+      }
+
       if (err >= 0)
       {
-         handle->min_tracks = ainfo.min_channels;
-         handle->max_tracks = ainfo.max_channels;
-         handle->min_frequency = ainfo.min_rate;
-         handle->max_frequency = ainfo.max_rate;
-      }
-      else
-      {
-         handle->min_tracks = 1;
-         handle->max_tracks = _AAX_MAX_SPEAKERS;
-         handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
-         handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
-      }
+         oss_audioinfo ainfo;
 
-      handle->format = format;
-      handle->no_tracks = channels;
-      handle->frequency_hz = (float)rate;
-      handle->buffer_size = info.fragsize;
+         handle->buffer_size = info.fragsize;
 
-      period_frames = info.fragsize/(channels*handle->bytes_sample);
-      if (!registered) {
-         *refresh_rate = rate/(float)period_frames;
-      } else {
+         period_frames = info.fragsize/(channels*handle->bytes_sample);
+         period_rate = (float)rate/period_frames;
          *refresh_rate = period_rate;
+
+         ainfo.dev = handle->nodenum;
+         err = pioctl(handle->fd, SNDCTL_AUDIOINFO_EX, &ainfo);
+         if (err >= 0)
+         {
+            handle->min_tracks = ainfo.min_channels;
+            handle->max_tracks = ainfo.max_channels;
+            handle->min_frequency = ainfo.min_rate;
+            handle->max_frequency = ainfo.max_rate;
+         }
       }
 
       handle->latency = 0.0f;
@@ -529,24 +518,41 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->latency = (float)delay;
          handle->latency /= (float)(rate*channels*handle->bytes_sample);
       }
-      err = 0;
-      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
-      if (handle->render)
-      {
-         const char *rstr = handle->render->info(handle->render->id);
-         int version = get_oss_version();
-         char *os_name = "";
+   }
+   else /* handle->oss_version >= OSS_VERSION_4 */
+   {
+      handle->min_tracks = 1;
+      handle->max_tracks = _AAX_MAX_SPEAKERS;
+      handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
+      handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
+      handle->latency = 0.0f;
+
+      period_frames = period_frames;
+      period_rate = (float)rate/period_frames;
+      *refresh_rate = period_rate;
+   }
+
+   handle->format = format;
+   handle->no_tracks = channels;
+   handle->frequency_hz = (float)rate;
+
+   err = 0;
+   handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
+   if (handle->render)
+   {
+      const char *rstr = handle->render->info(handle->render->id);
+      int version = get_oss_version();
+      char *os_name = "";
 #if HAVE_SYS_UTSNAME_H
-         struct utsname utsname;
+      struct utsname utsname;
 
-         uname(&utsname);
-         os_name = utsname.sysname;
+      uname(&utsname);
+      os_name = utsname.sysname;
 #endif
-         snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
-                   DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
-                   (version & 0xFF), os_name, rstr);
+      snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
+                DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
+                (version & 0xFF), os_name, rstr);
 
-      }
    }
 
    return (err >= 0) ? AAX_TRUE : AAX_FALSE;
