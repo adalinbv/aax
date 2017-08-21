@@ -98,7 +98,7 @@ _aaxNewAngularFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax
 }
 
 static float
-_aaxAngularFilterSet(float val, int ptype, unsigned char param)
+_aaxAngularFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param < 2)
@@ -113,10 +113,10 @@ _aaxAngularFilterSet(float val, int ptype, unsigned char param)
 }
 
 static float
-_aaxAngularFilterGet(float val, int ptype, unsigned char param)
+_aaxAngularFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
-   if (param < 2)
+   if (param < 4)
    {
       if (ptype == AAX_DEGREES) {
          rv = _2acos_rad2deg(val);
