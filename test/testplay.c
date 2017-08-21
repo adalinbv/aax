@@ -58,6 +58,7 @@ int main(int argc, char **argv)
     if (config)
     {
         aaxBuffer buffer = bufferFromFile(config, infile);
+        testForError(buffer, "Unable to create a buffer");
         if (buffer)
         {
             aaxEmitter emitter;
@@ -135,7 +136,6 @@ int main(int argc, char **argv)
             res = aaxEmitterDestroy(emitter);
             res = aaxBufferDestroy(buffer);
         }
-        testForError(buffer, "Unable to create a buffer");
     }
 
     res = aaxDriverClose(config);
