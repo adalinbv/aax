@@ -196,8 +196,6 @@ aaxBufferWriteToFile(buffer, s, AAX_OVERWRITE);
         //       and it does work properly.
 }
 #endif
-
-
                     res = aaxEmitterAddBuffer(emitter, buffer);
                     testForState(res, "aaxEmitterAddBuffer");
 
@@ -221,6 +219,8 @@ aaxBufferWriteToFile(buffer, s, AAX_OVERWRITE);
 
             res = aaxMixerDeregisterEmitter(config, emitter);
             res = aaxMixerSetState(config, AAX_STOPPED);
+            res = aaxEmitterSetState(emitter, AAX_STOPPED);
+            res = aaxEmitterRemoveBuffer(emitter);
             res = aaxEmitterDestroy(emitter);
             res = aaxBufferDestroy(buf);
         }
