@@ -73,9 +73,17 @@ set(AAX_MINOR_VERSION ${CMAKE_MATCH_2})
 set(AAX_MICRO_VERSION ${CMAKE_MATCH_3})
 set(AAX_PATCH_LEVEL ${DATE})
 
-set(CPACK_PACKAGE_VERSION_MAJOR ${CMAKE_MATCH_1})
-set(CPACK_PACKAGE_VERSION_MINOR ${CMAKE_MATCH_2})
-set(CPACK_PACKAGE_VERSION_PATCH ${CMAKE_MATCH_3})
+FILE(READ soversion soVersionFile)
+STRING(STRIP ${soVersionFile} AAX_SOVERSION)
+set(SOVERSION AAX_SOVERSION)
+
+# split version string into components, note CMAKE_MATCH_0 is the entire regexp match
+STRING(REGEX MATCH "([0-9]+)\\.([0-9]+)\\.([0-9]+)" CPACK_PACKAGE_SOVERSION ${AAX_SOVERSION})
+
+set(CPACK_PACKAGE_SOVERSION_MAJOR ${CMAKE_MATCH_1})
+set(CPACK_PACKAGE_SOVERSION_MINOR ${CMAKE_MATCH_2})
+set(CPACK_PACKAGE_SOVERSION_PATCH ${CMAKE_MATCH_3})
+
 set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Cross platform, hardware accelerated, multi-channel and 4D capable audio rendering engine")
 
 # We have some custom .cmake scripts not in the official distribution.
@@ -557,7 +565,7 @@ ADD_LIBRARY(${LIBAEONWAVE} SHARED $<TARGET_OBJECTS:AAXOBJ_LIB>)
 set_TARGET_PROPERTIES(${LIBAEONWAVE}
     PROPERTIES DEFINE_SYMBOL AAX_BUILD_LIBRARY
     VERSION ${LIB_VERSION}
-    SOVERSION ${CPACK_PACKAGE_VERSION_MAJOR}
+    SOVERSION ${CPACK_PACKAGE_SOVERSION_MAJOR}
 )
 if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     set_TARGET_PROPERTIES(${LIBAEONWAVE} PROPERTIES PREFIX "")
@@ -643,6 +651,8 @@ if(NOT SINGLE_PACKAGE)
   include (CPack)
 endif(NOT SINGLE_PACKAGE)
 
+message("aax version: ${AAX_VERSION}")
+message("so version: ${AAX_SOVERSION}")
 
 #-----------------------------------------------------------------------------
 ### uninstall target
