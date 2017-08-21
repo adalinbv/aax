@@ -236,16 +236,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
       if (buf)
       {
          _embuffer_t *embuf = _intBufGetDataPtr(buf);
-         if (embuf)
-         {
-            assert(embuf->id == EMBUFFER_ID);
-
-            free_buffer(embuf->buffer);
-            _aaxRingBufferFree(embuf->ringbuffer);
-            embuf->ringbuffer = NULL;
-            embuf->id = FADEDBAD;
-            free(embuf);
-         }
+         _aaxFreeEmitterBuffer(embuf);
          _intBufDestroyDataNoLock(buf);
 
          if (src->buffer_pos > 0) {
@@ -309,7 +300,7 @@ aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
       case AAX_PROCESSED:
          if (_IS_PROCESSED(src->props3d)) {
             rv = _intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER);
-         } else if (src->buffer_pos > 0) {
+          } else if (src->buffer_pos > 0) {
             rv = (src->buffer_pos == UINT_MAX) ? 0 : src->buffer_pos;
          }
          break;
@@ -1358,13 +1349,15 @@ static void
 _aaxFreeEmitterBuffer(void *sbuf)
 {
    _embuffer_t *embuf = (_embuffer_t*)sbuf;
-
-   free_buffer(embuf->buffer);
-   _aaxRingBufferFree(embuf->ringbuffer);
-   embuf->ringbuffer = NULL;
-   embuf->id = FADEDBAD;
-   free(embuf);
-   embuf = NULL;
+   if (embuf)
+   {
+      free_buffer(embuf->buffer);
+      _aaxRingBufferFree(embuf->ringbuffer);
+      embuf->ringbuffer = NULL;
+      embuf->id = FADEDBAD;
+      free(embuf);
+      embuf = NULL;
+   }
 }
 
 static int
