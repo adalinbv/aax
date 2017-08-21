@@ -1032,11 +1032,11 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       }
       else
       {
+         if (sframe->handle) put_frame(sframe);
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          rv = AAX_FALSE;
       }
    }
-   if (sframe->handle) put_frame(sframe);
    put_frame(handle);
 
    return rv;
