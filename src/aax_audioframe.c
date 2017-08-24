@@ -1553,6 +1553,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          xmlFree(xeid);
          xmlFree(xmid);
       }
+      xmlClose(xid);
    }
    else
    {

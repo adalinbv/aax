@@ -149,8 +149,10 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
    }
    else if (state == AAX_FALSE)
    {
-      free(filter->slot[EQUALIZER_HF]->data);
-      filter->slot[EQUALIZER_HF]->data = NULL;
+      free(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+      free(filter->slot[1]->data);
+      filter->slot[1]->data = NULL;
       rv = filter;
    }
    else {

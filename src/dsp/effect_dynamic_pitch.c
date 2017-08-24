@@ -161,6 +161,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
       break;
    }
    case AAX_FALSE:
+      free(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
       break;
    default:

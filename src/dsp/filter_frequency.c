@@ -234,6 +234,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    }
    else if (wstate == AAX_FALSE)
    {
+      filter->slot[1]->data = NULL;
       free(filter->slot[0]->data);
       filter->slot[0]->data = NULL;
    }
