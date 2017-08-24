@@ -136,6 +136,12 @@ int main(int argc, char **argv)
             }
             while (state == AAX_PLAYING);
 
+            filter = aaxMixerGetFilter(config, AAX_EQUALIZER);
+            aaxFilterSetState(filter, AAX_FALSE);
+            aaxMixerSetFilter(config, filter);
+            aaxFilterDestroy(filter);
+            aaxBufferDestroy(buffer);
+
             res = aaxMixerDeregisterEmitter(config, emitter);
             res = aaxMixerSetState(config, AAX_STOPPED);
             res = aaxEmitterDestroy(emitter);
