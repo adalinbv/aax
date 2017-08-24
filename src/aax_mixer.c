@@ -1590,8 +1590,22 @@ _mixerCreateEFFromAAXS(aaxConfig config, const char *aaxs)
       void *xmid = xmlNodeGet(xid, "aeonwave/mixer");
       if (xmid)
       {
+         int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          void *xeid, *xfid = xmlMarkId(xmid);
+
+         if (clear)
+         {
+            const _intBufferData* dptr;
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxSetDefault2dProps(sensor->mixer->props2d);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
+         }
+
          for (i=0; i<num; i++)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)

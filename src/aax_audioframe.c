@@ -1424,8 +1424,13 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
       void *xmid = xmlNodeGet(xid, "aeonwave/audioframe");
       if (xmid)
       {
+         int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          void *xeid, *xfid = xmlMarkId(xmid);
+
+         if (clear) {
+            _aaxSetDefault2dProps(handle->submix->props2d);
+         }
          for (i=0; i<num; i++)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)

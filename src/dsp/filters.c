@@ -92,6 +92,7 @@ _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type)
 {
    assert(type < MAX_STEREO_FILTER);
 
+   free(filter->data);
    memset(filter, 0, sizeof(_aaxFilterInfo));
    switch(type)
    {

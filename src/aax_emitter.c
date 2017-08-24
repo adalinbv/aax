@@ -1376,12 +1376,17 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
       void *xmid = xmlNodeGet(xid, "aeonwave/emitter");
       if (xmid)
       {
+         int clear = xmlAttributeCompareString(xmid, "mode", "append");
          int looping = xmlAttributeGetBool(xmid, "looping");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          void *xeid, *xfid = xmlMarkId(xmid);
 
          if (looping >= 0) {
             aaxEmitterSetMode(emitter, AAX_LOOPING, looping);
+         }
+
+         if (clear) {
+            _aaxSetDefault2dProps(handle->source->props2d);
          }
 
          for (i=0; i<num; i++)
