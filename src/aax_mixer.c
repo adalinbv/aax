@@ -1728,6 +1728,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, const char *aaxs)
          xmlFree(xeid);
          xmlFree(xmid);
       }
+      xmlClose(xid);
    }
    else
    {

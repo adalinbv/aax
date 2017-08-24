@@ -150,6 +150,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
    }
    else
    {
+      free(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
    }
    rv = effect;

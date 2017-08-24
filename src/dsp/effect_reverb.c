@@ -61,8 +61,7 @@ _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxReverbEffectDestroy(_effect_t* effect)
 {
-   _aaxRingBufferReverbData* data = effect->slot[0]->data;
-   if (data) free(data->history_ptr);
+   _aaxRingBufferDelaysRemove(&effect->slot[0]->data);
    free(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
    free(effect);
@@ -200,6 +199,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    }
    case AAX_FALSE:
       _aaxRingBufferDelaysRemove(&effect->slot[0]->data);
+      free(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
       break;
    default:

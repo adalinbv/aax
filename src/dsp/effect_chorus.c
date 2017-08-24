@@ -213,7 +213,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
       if (data) data->lfo.envelope = AAX_FALSE;
-
+      free(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
       break;
    }

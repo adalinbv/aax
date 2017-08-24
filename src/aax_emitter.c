@@ -1511,6 +1511,7 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
          xmlFree(xeid);
          xmlFree(xmid);
       }
+      xmlClose(xid);
    }
    else
    {
