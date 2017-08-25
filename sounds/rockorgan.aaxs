@@ -1,24 +1,30 @@
 <?xml version="1.0"?>
 
-<sound name="Rock Organ" frequency="220">
+<aeonwave>
 
- <waveform src="sawtooth">
-  <ratio>0.6</ratio>
- </waveform>
- <waveform src="triangle">
-  <processing>add</processing>
-  <pitch>0.5</pitch>
-  <ratio>0.6</ratio>
- </waveform>
+ <sound name="Rock Organ" frequency="80" duration="0.25">
+  <waveform src="square"/>
+  <waveform src="triangle">
+   <processing>add</processing>
+   <pitch>0.5</pitch>
+   <ratio>0.6</ratio>
+  </waveform>
+  <waveform src="sawtooth">
+   <processing>modulate</processing>
+   <pitch>0.5</pitch>
+   <ratio>1.0</ratio>
+  </waveform>
+ </sound>
 
- <effect src="flanging">
-  <state>triangle</state>
-  <slot n="0">
-   <p1>0.4</p1>
-   <p2>0.3</p2>
-   <p3>0.1</p3>
-   <p4>0.2</p4>
-  </slot>
- </effect>
+ <emitter>
+  <effect type="flanging" src="triangle">
+   <slot n="0">
+    <p1>0.4</p1>
+    <p2>0.3</p2>
+    <p3>0.1</p3>
+    <p4>0.2</p4>
+   </slot>
+  </effect>
+ </emitter>
 
-</sound>
+</aeonwave>
