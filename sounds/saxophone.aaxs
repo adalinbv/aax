@@ -1,7 +1,8 @@
 <?xml version="1.0"?>
 
-<sound frequency="220">
+<aeonwave>
 
+ <sound frequency="220">
   <waveform src="brownian-noise">
    <pitch>0.3</pitch>
    <ratio>0.73</ratio>
@@ -16,5 +17,6 @@
    <pitch>2.9</pitch>
    <ratio>1.0</ratio>
   </waveform>
+ </sound>
 
-</sound>
+</aeonwave>

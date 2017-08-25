@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <sound name="Rock Organ" frequency="80">
+  <waveform src="square">
+  </waveform>
+  <waveform src="inverse_square">
+   <processing>modulate</processing>
+   <pitch>1.0</pitch>
+  </waveform>
+ </sound>
+
+</aeonwave>
