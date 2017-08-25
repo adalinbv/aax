@@ -163,6 +163,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          _aaxRingBuffer *rb = buffer->ringbuffer;
          if (rb)
          {
+            rb->set_parami(rb, RB_LOOPING, handle->looping);
             if (!rb->get_state(rb, RB_IS_VALID)) {
                _aaxErrorSet(AAX_INVALID_STATE);
             } else if (handle->track >= rb->get_parami(rb, RB_NO_TRACKS)) {
@@ -1377,11 +1378,12 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
       if (xmid)
       {
          int clear = xmlAttributeCompareString(xmid, "mode", "append");
-         int looping = xmlAttributeGetBool(xmid, "looping");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          void *xeid, *xfid = xmlMarkId(xmid);
 
-         if (looping >= 0) {
+         if (xmlAttributeExists(xmid, "looping"))
+         {
+            int looping = xmlAttributeGetBool(xmid, "looping");
             aaxEmitterSetMode(emitter, AAX_LOOPING, looping);
          }
 
