@@ -259,7 +259,6 @@ int main(int argc, char **argv)
                 aaxMixerSetState(config, AAX_PLAYING);
             }
             state = aaxEmitterGetState(emitter);
-printf("state: %i\n", state);
         }
         while (state == AAX_PLAYING && dt < 3.33f);
 
