@@ -92,8 +92,8 @@ int main(int argc, char **argv)
         emitter = aaxEmitterCreate();
         testForError(emitter, "Unable to create a new emitter\n");
 
-        res = aaxEmitterAddBuffer(emitter, buffer);
-        testForState(res, "aaxEmitterAddBuffer");
+//      res = aaxEmitterAddBuffer(emitter, buffer);
+//      testForState(res, "aaxEmitterAddBuffer");
 
         res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
         testForState(res, "aaxEmitterSetMode");
@@ -197,6 +197,9 @@ int main(int argc, char **argv)
         res = aaxMixerSetState(config, AAX_PLAYING);
         testForState(res, "aaxMixerStart");
 
+        res = aaxEmitterAddBuffer(emitter, buffer);
+        testForState(res, "aaxEmitterAddBuffer");
+
         /** schedule the emitter for playback */
         res = aaxEmitterSetState(emitter, AAX_PLAYING);
         testForState(res, "aaxEmitterStart");
@@ -256,6 +259,7 @@ int main(int argc, char **argv)
                 aaxMixerSetState(config, AAX_PLAYING);
             }
             state = aaxEmitterGetState(emitter);
+printf("state: %i\n", state);
         }
         while (state == AAX_PLAYING && dt < 3.33f);
 
