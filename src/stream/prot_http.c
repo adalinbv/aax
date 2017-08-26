@@ -133,7 +133,7 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
       {
          size_t offs = prot->meta_pos - prot->meta_interval;
          uint8_t *ptr = buf;
-         int blen;
+         size_t blen;
 
          ptr += bytes_avail;
          ptr -= offs;
