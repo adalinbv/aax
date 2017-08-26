@@ -227,6 +227,10 @@ off_t
 _raw_set(_ext_t *ext, int type, off_t value)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->set(handle->fmt, type, value);
+   off_t rv = 0;
+   if (handle->fmt) {
+      rv = handle->fmt->set(handle->fmt, type, value);
+   }
+   return rv;
 }
 

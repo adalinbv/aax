@@ -511,9 +511,9 @@ _ogg_extension(char *ext)
       {
          rv = _EXT_OGG;
       }
-      else if (!strcasecmp(ext, "flac")) {
-         rv = _EXT_FLAC;
-      }
+//    else if (!strcasecmp(ext, "flac")) {
+//       rv = _EXT_FLAC;
+//    }
    }
    return rv;
 }

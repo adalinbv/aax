@@ -32,7 +32,7 @@
 
 
 float **
-_aax_analyze_waveforms(void **data, unsigned int dlen, float fs)
+_aax_analyze_waveforms(void **data, VOID(unsigned int dlen), float fs)
 {
    float (*rv)[_AAX_SYNTH_MAX_HARMONICS];
    float *output, *Re, *Im;

@@ -68,6 +68,8 @@ typedef struct
    int32_t *flacBuffer;
    char *flacptr;
 
+   drflac__memory_stream memoryStream;
+
 } _driver_t;
 
 static void _flac_metafn(void*, drflac_metadata*);
@@ -79,6 +81,7 @@ _flac_detect(_fmt_t *fmt, int mode)
    int rv = AAX_FALSE;
 
    /* not required but useful */
+#if 0
    if (mode == 0)
    {
       fmt->id = calloc(1, sizeof(_driver_t));
@@ -98,12 +101,13 @@ _flac_detect(_fmt_t *fmt, int mode)
          _AAX_FILEDRVLOG("FLAC: Insufficient memory");
       }
    }
+#endif
 
    return rv;
 }
 
 void*
-_flac_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+_flac_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -121,12 +125,20 @@ _flac_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
          handle->flacptr = _aax_malloc(&ptr, handle->flacBufSize);
          handle->flacBuffer = (int32_t*)ptr;
 
+printf("a\n");
          memcpy(handle->flacBuffer, buf, *bufsize);
          handle->flacBufPos += *bufsize;
 
-         handle->id = drflac_open_memory_with_metadata(handle->flacBuffer,
-                                                       handle->flacBufPos,
-                                                       _flac_metafn, handle);
+         handle->memoryStream.data = (const unsigned char*)handle->flacBuffer;
+         handle->memoryStream.dataSize = handle->flacBufPos;
+         handle->memoryStream.currentReadPos = 0;
+printf("A\n");
+         handle->id = drflac_open_with_metadata_relaxed(drflac__on_read_memory,
+                                                        drflac__on_seek_memory,
+                                                        NULL, // flac_metafn
+                                                        drflac_container_native,
+                                                (void*)&handle->memoryStream);
+printf("B\n");
          if (handle->id) {
             rv = buf;
          }
@@ -169,7 +181,7 @@ _flac_close(_fmt_t *fmt)
 }
 
 int
-_flac_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
+_flac_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
 {
    return AAX_TRUE;
 }
@@ -217,7 +229,7 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
    if (bytes)
    {
-      memcpy(buf+handle->flacBufPos, dptr, bytes);
+      memcpy(dptr+dptr_offs, buf+handle->flacBufPos, bytes);
       handle->flacBufPos += bytes;
       rv = bytes;
    }
@@ -226,56 +238,50 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 }
 
 size_t
-_flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t offset, size_t *num)
+_flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bytes, bufsize, size = 0;
-   unsigned int bits, tracks;
-   size_t rv = __F_EOF;
+   size_t ret, rv = __F_NEED_MORE;
+   unsigned int blocksize, tracks;
+   size_t bytes, bufsize;
    int32_t *buf;
-   int ret;
 
    tracks = handle->no_tracks;
-   bits = handle->bits_sample;
-   bytes = *num*tracks*bits/8;
+   blocksize = handle->blocksize;
+   bytes = *num*blocksize;
 
    buf = handle->flacBuffer;
    bufsize = handle->flacBufSize;
 
-   if (bytes > bufsize)
-   {
+   if (bytes > bufsize) {
       bytes = bufsize;
-      *num = bytes*8/(tracks*bits);
    }
 
    // Returns the number of samples actually read.
+printf("C\n");
    ret = drflac_read_s32(handle->id, *num, buf);
-#if 0
-// ret = pflac_decode(handle->id, buf, bytes, handle->pcm, *num, decode_fec);
    if (ret > 0)
    {
-      unsigned int framesize = tracks*bits/8;
-
-      *num = size/framesize;
-      _batch_cvt24_32_intl(dptr, handle->pcm, offset, tracks, *num);
+      *num = ret/blocksize;
+      _batch_cvt24_32_intl(dptr, buf, dptr_offs, tracks, *num);
 
       handle->no_samples += *num;
-      rv = size;
+      rv = ret;
    }
-#endif
+printf("D\n");
 
    return rv;
 }
 
 size_t
-_flac_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+_flac_cvt_to_intl(VOID(_fmt_t *fmt), VOID(void_ptr dptr), VOID(const_int32_ptrptr sptr), VOID(size_t offs), VOID(size_t *num), VOID(void_ptr scratch), VOID(size_t scratchlen))
 {
    int res = 0;
    return res;
 }
 
 char*
-_flac_name(_fmt_t *fmt, enum _aaxStreamParam param)
+_flac_name(VOID(_fmt_t *fmt), VOID(enum _aaxStreamParam param))
 {
    return NULL;
 }
@@ -294,16 +300,16 @@ _flac_get(_fmt_t *fmt, int type)
    case __F_TRACKS:
       rv = handle->no_tracks;
       break;
-   case __F_FREQ:
+   case __F_FREQUENCY:
       rv = handle->frequency;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       rv = handle->bits_sample;
       break;
-   case __F_BLOCK:
+   case __F_BLOCK_SIZE:
       rv = handle->blocksize;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       rv = handle->max_samples;
       break;
    default:
@@ -328,7 +334,7 @@ _flac_set(_fmt_t *fmt, int type, off_t value)
 
    switch(type)
    {
-   case __F_FREQ:
+   case __F_FREQUENCY:
       handle->frequency = value;
       break;
    case __F_RATE:
@@ -337,11 +343,11 @@ _flac_set(_fmt_t *fmt, int type, off_t value)
    case __F_TRACKS:
       handle->no_tracks = value;
       break;
-   case __F_SAMPLES:
+   case __F_NO_SAMPLES:
       handle->no_samples = value;
       handle->max_samples = value;
       break;
-   case __F_BITS:
+   case __F_BITS_PER_SAMPLE:
       handle->bits_sample = value;
       break;
    case __F_IS_STREAM:
@@ -385,7 +391,7 @@ _flac_metafn(void *userData, drflac_metadata *metaData)
 #endif
       while ((ptr = drflac_next_vorbis_comment(&it, &slen)) != NULL)
       {
-         snprintf(s, _MIN(slen+1, COMMENT_SIZE), "%s\0", ptr);
+         snprintf(s, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
          if (!STRCMP(s, "TITLE")) {
             handle->title = strdup(s+strlen("TITLE="));
          } else if (!STRCMP(s, "ALBUM")) {

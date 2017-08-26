@@ -45,7 +45,7 @@ static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigne
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
+// static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -940,6 +940,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
    return rv;
 }
 
+#if 0
 static char**
 _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
 {
@@ -957,6 +958,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
 
    return rv;
 }
+#endif
 
 static int
 _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float staticity, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
