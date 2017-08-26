@@ -1,8 +1,6 @@
-diff --git a/src/stream/3rdparty/stb_vorbis.c b/src/stream/3rdparty/stb_vorbis.c
-index 1181e6d..a548942 100644
---- a/src/stream/3rdparty/stb_vorbis.c
-+++ b/src/stream/3rdparty/stb_vorbis.c
-@@ -65,6 +65,7 @@
+--- /tmp/stb_vorbis.c	2017-08-26 07:52:42.941563053 +0200
++++ stb_vorbis.c	2017-08-26 07:58:17.244736559 +0200
+@@ -66,6 +66,7 @@
  #ifndef STB_VORBIS_NO_STDIO
  #include <stdio.h>
  #endif
@@ -10,7 +8,38 @@ index 1181e6d..a548942 100644
  
  #ifdef __cplusplus
  extern "C" {
-@@ -881,7 +882,7 @@ static int error(vorb *f, enum STBVorbisError e)
+@@ -545,9 +546,17 @@
+ #include <stdio.h>
+ #endif
+ 
++#if HAVE_CONFIG_H
++#include "config.h"
++#endif
++
+ #ifndef STB_VORBIS_NO_CRT
+-   #include <stdlib.h>
+-   #include <string.h>
++   #ifdef HAVE_RMALLOC_H
++      #include <rmalloc.h>
++   #else
++      #include <stdlib.h>
++      #include <string.h>
++   #endif
+    #include <assert.h>
+    #include <math.h>
+ 
+@@ -556,7 +565,9 @@
+       #include <malloc.h>
+    #endif
+    #if defined(__linux__) || defined(__linux) || defined(__EMSCRIPTEN__)
+-      #include <alloca.h>
++      #ifndef HAVE_RMALLOC_H
++         #include <alloca.h>
++      #endif
+    #endif
+ #else // STB_VORBIS_NO_CRT
+    #define NULL 0
+@@ -883,7 +894,7 @@
  #ifdef dealloca
  #define temp_free(f,p)                  (f->alloc.alloc_buffer ? 0 : dealloca(size))
  #else
@@ -19,7 +48,7 @@ index 1181e6d..a548942 100644
  #endif
  #define temp_alloc_save(f)              ((f)->temp_offset)
  #define temp_alloc_restore(f,p)         ((f)->temp_offset = (p))
-@@ -3047,7 +3048,7 @@ typedef int16 YTYPE;
+@@ -3049,7 +3060,7 @@
  #else
  typedef int YTYPE;
  #endif
@@ -28,7 +57,7 @@ index 1181e6d..a548942 100644
  {
     int n2 = n >> 1;
     int s = map->chan[i].mux, floor;
-@@ -3154,7 +3155,7 @@ static int vorbis_decode_initial(vorb *f, int *p_left_start, int *p_left_end, in
+@@ -3156,7 +3167,7 @@
     return TRUE;
  }
  
