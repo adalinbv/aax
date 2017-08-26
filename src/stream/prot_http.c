@@ -36,7 +36,7 @@
 
 static int _http_send_request(_io_t*, const char*, const char*, const char*, const char*);
 static int _http_get_response(_io_t*, char*, int*);
-static const char *_get_json(const char*, const char*, size_t);
+static const char *_get_yaml(const char*, const char*, size_t);
 
 
 size_t
@@ -59,20 +59,20 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
          const char *s;
 
          res = 0;
-         s = _get_json(buf, "content-length", max);
+         s = _get_yaml(buf, "content-length", max);
          if (s)
          {
             prot->no_bytes = strtol(s, NULL, 10);
             res = prot->no_bytes;
          }
 
-         s = _get_json(buf, "content-type", max);
+         s = _get_yaml(buf, "content-type", max);
          if (s) {
             prot->content_type = strdup(s);
          }
          if (s && _http_get(prot, __F_EXTENSION) != _EXT_NONE)
          {
-            s = _get_json(buf, "icy-name", max);
+            s = _get_yaml(buf, "icy-name", max);
             if (s)
             {
                int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
@@ -82,7 +82,7 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
                prot->station = strdup(s);
             }
 
-            s = _get_json(buf, "icy-description", max);
+            s = _get_yaml(buf, "icy-description", max);
             if (s)
             {
                int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
@@ -92,12 +92,12 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
                prot->description = strdup(s);
             }
 
-            s = _get_json(buf, "icy-genre", max);
+            s = _get_yaml(buf, "icy-genre", max);
             if (s) prot->genre = strdup(s);
 
-            s = _get_json(buf, "icy-url", max);
+            s = _get_yaml(buf, "icy-url", max);
             if (s) prot->website = strdup(s);
-            s = _get_json(buf, "icy-metaint", max);
+            s = _get_yaml(buf, "icy-metaint", max);
             if (s)
             {
                errno = 0;
@@ -421,7 +421,7 @@ _http_get_response(_io_t *io, char *buf, int *size)
 }
 
 static const char*
-_get_json(const char *haystack, const char *needle, size_t haystacklen)
+_get_yaml(const char *haystack, const char *needle, size_t haystacklen)
 {
    static char buf[64];
    char *start, *end;
