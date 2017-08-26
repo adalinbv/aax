@@ -555,10 +555,11 @@ aaxBufferGetData(const aaxBuffer buffer)
          }
       }
 
-      if (handle->format == AAX_AAXS16S || handle->format == AAX_AAXS24S)
-      {
+#if 0
+      if (handle->format == AAX_AAXS16S || handle->format == AAX_AAXS24S) {
          data = (void**)_bufCreateAAXS(handle, data, buf_samples*sizeof(float));
       }
+#endif
    }
    else if (handle) {	/* handle->frequency is not set */
       _aaxErrorSet(AAX_INVALID_STATE);
