@@ -85,7 +85,7 @@ _aax_analyze_waveforms(void **data, unsigned int dlen, float fs)
 
          if (harmonic <= _AAX_SYNTH_MAX_HARMONICS) {
             rv[0][harmonic-1] = q;
-            printf("% 6.0f Hz (harmonic: %i): %5.4f\n", freq, harmonic, q);
+//          printf("% 6.0f Hz (harmonic: %i): %5.4f\n", freq, harmonic, q);
          }
       }
    }
@@ -104,7 +104,7 @@ _aax_analyze_waveforms(void **data, unsigned int dlen, float fs)
          }
       }
       err /= _AAX_SYNTH_MAX_HARMONICS;
-      printf("wave: %i, err: %f %%\n", i, err);
+//    printf("wave: %i, err: %f %%\n", i, err);
    }
 
    return (float**)rv;
