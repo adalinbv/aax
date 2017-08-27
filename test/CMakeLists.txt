@@ -8,7 +8,11 @@ if(HAVE_LIBM)
 endif(HAVE_LIBM)
 
 FUNCTION(CREATE_TEST TEST_NAME)
-    if(X86_64)
+    if(ARM)
+        SET_PROPERTY(SOURCE ${TEST_NAME}.c
+                     PROPERTY COMPILE_FLAGS "-march=armv5 -marm -static-libgcc -Wno-inline"
+        )
+    elseif(X86_64)
         SET_PROPERTY(SOURCE ${TEST_NAME}.c
                      PROPERTY COMPILE_FLAGS "-march=athlon64 -static-libgcc -Wno-inline"
         )
