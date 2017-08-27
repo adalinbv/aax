@@ -1,4 +1,4 @@
-* Sat Jul 29 2017 - tech@adalin.org
+* Sun Aug 27 2017 - tech@adalin.org
 - AeonWave (3.0.0) stable; urgency=low
  * Reorginze the streaming code to make it more flexible.
  * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.
@@ -19,9 +19,13 @@
  * Fix a bug where modulating waveforms by non-sine waveforms caused silence.
  * Fix a segmentation fault when a particular file extension does not not
    support writing.
+ * Fix a problem where the looping mode was not preserved when a buffer was
+   added to the emitter after the looping mode was set.
+ * Fix a possible memory leak when a filter or effect was toggled between
+   inactive and active again.
  * Fix reporting of min/max tracks and frequency for OSS v3
 
--- Erik Hofman <tech@adalin.org>  Sat, 29 Jul  2017 14:51:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sun, 27 Aug  2017 07:51:00 + 0200
 
 * Fri Jul 29  2016 - tech@adalin.org
 - AeonWave (2.7.0) stable; urgency=low
