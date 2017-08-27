@@ -117,6 +117,10 @@
 #ifndef dr_flac_h
 #define dr_flac_h
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 #include <stddef.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1600
@@ -777,7 +781,7 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
         #if defined(__GNUC__) || defined(__clang__)
             static void drflac__cpuid(int info[4], int fid)
             {
-                asm (
+                __asm (
                     "movl %[fid], %%eax\n\t"
                     "cpuid\n\t"
                     "movl %%eax, %[info0]\n\t"
