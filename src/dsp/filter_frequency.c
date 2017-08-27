@@ -246,7 +246,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
+_aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
    _filter_t* rv = calloc(1, size);

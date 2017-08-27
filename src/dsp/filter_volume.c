@@ -66,13 +66,13 @@ _aaxVolumeFilterDestroy(_filter_t* filter)
 }
 
 static aaxFilter
-_aaxVolumeFilterSetState(_filter_t* filter, VOID(int state))
+_aaxVolumeFilterSetState(_filter_t* filter, UNUSED(int state))
 {
    return filter;
 }
 
 static _filter_t*
-_aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
+_aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
    _filter_t* rv = calloc(1, size);
@@ -100,7 +100,7 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2
 }
 
 static float
-_aaxVolumeFilterSet(float val, int ptype, VOID(unsigned char param))
+_aaxVolumeFilterSet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
@@ -110,7 +110,7 @@ _aaxVolumeFilterSet(float val, int ptype, VOID(unsigned char param))
 }
 
 static float
-_aaxVolumeFilterGet(float val, int ptype, VOID(unsigned char param))
+_aaxVolumeFilterGet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
    if (param < 3 && ptype == AAX_LOGARITHMIC) {

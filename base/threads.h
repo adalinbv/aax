@@ -74,7 +74,6 @@ int __sync_fetch_and_add(int*, int);
  } _aaxMutex;
 
 #elif defined( WIN32 )
-# include <windows.h>			/* WINDOWS */
 
  typedef enum
  {

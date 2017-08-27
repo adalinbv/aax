@@ -154,7 +154,7 @@ static ssize_t _aaxStreamDriverReadChunk(const void*);
 static char default_renderer[256];
 
 static int
-_aaxStreamDriverDetect(VOID(int mode))
+_aaxStreamDriverDetect(UNUSED(int mode))
 {
    snprintf(default_renderer, 255, "%s: %s/AeonWaveOut.wav", BACKEND_NAME, tmpDir());
    return AAX_TRUE;
@@ -674,7 +674,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 }
 
 static size_t
-_aaxStreamDriverPlayback(const void *id, void *src, VOID(float pitch), float gain, VOID(char batched))
+_aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float gain, UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;  
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
@@ -767,7 +767,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, VOID(float pitch), float gai
 }
 
 static ssize_t
-_aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, VOID(void *scratch), VOID(size_t scratchSize), float gain, char batched)
+_aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, UNUSED(void *scratch), UNUSED(size_t scratchSize), float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
@@ -1043,7 +1043,7 @@ _aaxStreamDriverRender(const void* config)
 
 
 static int
-_aaxStreamDriverState(VOID(const void *id), enum _aaxDriverState state)
+_aaxStreamDriverState(UNUSED(const void *id), enum _aaxDriverState state)
 {
    int rv = AAX_FALSE;
    switch(state)
@@ -1135,7 +1135,7 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static int
-_aaxStreamDriverSetPosition(VOID(const void *id), VOID(off_t pos))
+_aaxStreamDriverSetPosition(UNUSED(const void *id), UNUSED(off_t pos))
 {
 // _driver_t *handle = (_driver_t *)id;
    int rv = AAX_FALSE;
@@ -1176,14 +1176,14 @@ _aaxStreamDriverSetPosition(VOID(const void *id), VOID(off_t pos))
 }
 
 static char *
-_aaxStreamDriverGetDevices(VOID(const void *id), int mode)
+_aaxStreamDriverGetDevices(UNUSED(const void *id), int mode)
 {
    static const char *rd[2] = { BACKEND_NAME"\0\0", BACKEND_NAME"\0\0" };
    return (char *)rd[mode];
 }
 
 static char *
-_aaxStreamDriverGetInterfaces(const void *id, VOID(const char *devname), int mode)
+_aaxStreamDriverGetInterfaces(const void *id, UNUSED(const char *devname), int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
@@ -1239,7 +1239,7 @@ _aaxStreamDriverGetInterfaces(const void *id, VOID(const char *devname), int mod
 }
 
 char *
-_aaxStreamDriverLog(const void *id, VOID(int prio), VOID(int type), const char *str)
+_aaxStreamDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256];

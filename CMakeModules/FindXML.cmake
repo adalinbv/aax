@@ -10,10 +10,13 @@
 #
 # Created by Erik Hofman.
 
+set(ProgramFilesx86 "ProgramFiles(x86)")
+
 FIND_PATH(XML_INCLUDE_DIR xml.h
   HINTS
   $ENV{XMLDIR}
   $ENV{ProgramFiles}/zeroxml
+  $ENV{${ProgramFilesx86}}/zeroxml
   PATH_SUFFIXES include
   PATHS
   ~/Library/Frameworks
@@ -29,6 +32,7 @@ IF(RMALLOC)
     HINTS
     $ENV{XMLDIR}
     $ENV{ProgramFiles}/zeroxml
+    $ENV{${ProgramFilesx86}}/zeroxml
     PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
     PATHS
     ~/Library/Frameworks

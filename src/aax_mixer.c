@@ -437,14 +437,14 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 }
 
 AAX_API int AAX_APIENTRY
-aaxMixerSetMode(VOID(aaxConfig config), VOID(enum aaxModeType type), VOID(int mode))
+aaxMixerSetMode(UNUSED(aaxConfig config), UNUSED(enum aaxModeType type), UNUSED(int mode))
 {
    int rv = AAX_FALSE;
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
-aaxMixerGetMode(VOID(const aaxConfig config), VOID(enum aaxModeType type))
+aaxMixerGetMode(UNUSED(const aaxConfig config), UNUSED(enum aaxModeType type))
 {
    int rv = AAX_FALSE;
    return rv;

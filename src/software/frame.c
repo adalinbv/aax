@@ -32,7 +32,7 @@
 void
 _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
                   _aax2dProps *fp2d, 
-                  VOID(const _aaxDriverBackend *be), VOID(void *be_handle))
+                  UNUSED(const _aaxDriverBackend *be), UNUSED(void *be_handle))
 {
    _intBufferData *buf;
 
@@ -108,7 +108,7 @@ char
 _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                       void *sensor,  _aaxAudioFrame *fmixer,
                       float ssv, float sdf,
-                      VOID(_aax2dProps *pp2d),
+                      UNUSED(_aax2dProps *pp2d),
                       _aaxDelayed3dProps *pdp3d_m,
                       _aax2dProps *fp2d,
                       _aaxDelayed3dProps *fdp3d,

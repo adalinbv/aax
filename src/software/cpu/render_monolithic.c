@@ -91,19 +91,19 @@ _aaxCPUOpen(void* id)
 }
 
 static int
-_aaxCPUClose(VOID(void* id))
+_aaxCPUClose(UNUSED(void* id))
 {
    return AAX_TRUE;
 }
 
 static void*
-_aaxCPUSetup(VOID(int dt))
+_aaxCPUSetup(UNUSED(int dt))
 {
    return (void*)-1;
 }
 
 static const char*
-_aaxCPUInfo(VOID(void *id))
+_aaxCPUInfo(UNUSED(void *id))
 {
    static char info[32] = "";
 
@@ -121,7 +121,7 @@ _aaxCPUInfo(VOID(void *id))
 }
 
 static int
-_aaxCPUProcess(VOID(struct _aaxRenderer_t *render), _aaxRendererData *data)
+_aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
 {
    _intBuffers *he = data->e3d;
    unsigned int stage;

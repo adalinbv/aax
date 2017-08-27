@@ -112,7 +112,7 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE];
 
 
 int
-_wav_detect(VOID(_ext_t *ext), VOID(int mode))
+_wav_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
 {
    return AAX_TRUE;
 }
@@ -625,7 +625,7 @@ _wav_name(_ext_t *ext, enum _aaxStreamParam param)
 }
 
 char*
-_wav_interfaces(VOID(int ext), int mode)
+_wav_interfaces(UNUSED(int ext), int mode)
 {
    static const char *rd[2] = { "*.wav\0", "*.wav\0" };
    return (char *)rd[mode];

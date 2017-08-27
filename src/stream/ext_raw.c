@@ -38,7 +38,7 @@ typedef struct
 
 
 int
-_raw_detect(VOID(_ext_t *ext), VOID(int mode))
+_raw_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
 {
    return AAX_TRUE;
 }
@@ -113,7 +113,7 @@ _raw_close(_ext_t *ext)
 }
 
 void*
-_raw_update(VOID(_ext_t *ext), VOID(size_t *offs), VOID(size_t *size), VOID(char close))
+_raw_update(UNUSED(_ext_t *ext), UNUSED(size_t *offs), UNUSED(size_t *size), UNUSED(char close))
 {
    return NULL;
 }

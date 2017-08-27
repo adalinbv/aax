@@ -67,7 +67,7 @@ _aaxVelocityEffectDestroy(_effect_t* effect)
 }
 
 static aaxEffect
-_aaxVelocityEffectSetState(VOID(_effect_t* effect), VOID(int state))
+_aaxVelocityEffectSetState(UNUSED(_effect_t* effect), UNUSED(int state))
 {
    return  effect;
 }
@@ -101,14 +101,14 @@ _aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, _aa
 }
 
 static float
-_aaxVelocityEffectSet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxVelocityEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {  
    float rv = val;
    return rv;
 }
    
 static float
-_aaxVelocityEffectGet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxVelocityEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {  
    float rv = val;
    return rv;

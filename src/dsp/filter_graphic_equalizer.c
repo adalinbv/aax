@@ -163,7 +163,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
+_aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_filter_t);
    _filter_t* rv = NULL;
@@ -196,7 +196,7 @@ _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _
 }
 
 static float
-_aaxGraphicEqualizerSet(float val, int ptype, VOID(unsigned char param))
+_aaxGraphicEqualizerSet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
@@ -206,7 +206,7 @@ _aaxGraphicEqualizerSet(float val, int ptype, VOID(unsigned char param))
 }
 
 static float
-_aaxGraphicEqualizerGet(float val, int ptype, VOID(unsigned char param))
+_aaxGraphicEqualizerGet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {

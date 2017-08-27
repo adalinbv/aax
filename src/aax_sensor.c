@@ -399,35 +399,35 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
 }
 
 AAX_API enum aaxState AAX_APIENTRY
-aaxSensorGetState(VOID(const aaxConfig config))
+aaxSensorGetState(UNUSED(const aaxConfig config))
 {
    enum aaxState ret = AAX_STATE_NONE;
    return ret;
 }
 
 AAX_API int AAX_APIENTRY
-aaxSensorSetMode(VOID(aaxConfig config), VOID(enum aaxModeType type), VOID(int mode))
+aaxSensorSetMode(UNUSED(aaxConfig config), UNUSED(enum aaxModeType type), UNUSED(int mode))
 {
    int rv = AAX_FALSE;
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
-aaxSensorGetMode(VOID(const aaxConfig config), VOID(enum aaxModeType type))
+aaxSensorGetMode(UNUSED(const aaxConfig config), UNUSED(enum aaxModeType type))
 {
    int rv = AAX_FALSE;
    return rv;
 }
 
 AAX_API int AAX_APIENTRY
-aaxSensorSetSetup(VOID(aaxConfig config), VOID(enum aaxSetupType type), VOID(unsigned int setup))
+aaxSensorSetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
 {
    int rv = AAX_FALSE;
    return rv;
 }
 
 AAX_API unsigned int AAX_APIENTRY
-aaxSensorGetSetup(VOID(const aaxConfig config), VOID(enum aaxSetupType type))
+aaxSensorGetSetup(UNUSED(const aaxConfig config), UNUSED(enum aaxSetupType type))
 {
    unsigned int rv = AAX_FALSE;
    return rv;

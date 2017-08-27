@@ -95,7 +95,7 @@ _pcm_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_pcm_open(_fmt_t *fmt, void *buf, VOID(size_t *bufsize), VOID(size_t fsize))
+_pcm_open(_fmt_t *fmt, void *buf, UNUSED(size_t *bufsize), UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -381,7 +381,7 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
 }
 
 size_t
-_pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t *num, VOID(void *scratch), VOID(size_t scratchlen))
+_pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offset, size_t *num, UNUSED(void *scratch), UNUSED(size_t scratchlen))
 {
    _driver_t *handle = fmt->id;
    int tracks = handle->no_tracks;
@@ -403,7 +403,7 @@ _pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 }
 
 char*
-_pcm_name(VOID(_fmt_t *fmt), VOID(enum _aaxStreamParam param))
+_pcm_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
 {
    return NULL;
 }

@@ -237,7 +237,7 @@ aaxEventManagerRegisterEmitter(aaxFrame frame, const char *file)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEventManagerDestoryEmitter(aaxFrame frame, VOID(aaxEmitter emitter))
+aaxEventManagerDestoryEmitter(aaxFrame frame, UNUSED(aaxEmitter emitter))
 {
    _frame_t *handle = get_frame(frame, __func__);
    int rv = AAX_FALSE;
@@ -341,7 +341,7 @@ aaxEventManagerDeregisterEvent(aaxConfig config, aaxEvent eventmgr)
 }
 
 AAX_API aaxEmitter AAX_APIENTRY
-aaxEventManagerPlayTone(aaxConfig config, VOID(enum aaxWaveformType type), VOID(float frequency), VOID(float duration), VOID(float gain), VOID(float delay))
+aaxEventManagerPlayTone(aaxConfig config, UNUSED(enum aaxWaveformType type), UNUSED(float frequency), UNUSED(float duration), UNUSED(float gain), UNUSED(float delay))
 {
    _handle_t *handle = get_handle(config, __func__);
    aaxEmitter rv = NULL;
@@ -356,7 +356,7 @@ aaxEventManagerPlayTone(aaxConfig config, VOID(enum aaxWaveformType type), VOID(
 }
 
 AAX_API aaxEmitter AAX_APIENTRY
-aaxEventManagerPlayFile(aaxConfig config, VOID(const char *file), VOID(float gain), VOID(float delay))
+aaxEventManagerPlayFile(aaxConfig config, UNUSED(const char *file), UNUSED(float gain), UNUSED(float delay))
 {
    _handle_t *handle = get_handle(config, __func__);
    aaxEmitter rv = NULL;
@@ -420,7 +420,7 @@ _aaxEventStop(_aaxEventMgr *eventmgr)
 }
 
 static aaxBuffer
-_aaxGetBufferFromCache(VOID(_aaxEventMgr *eventmgr), VOID(const char *fname))
+_aaxGetBufferFromCache(UNUSED(_aaxEventMgr *eventmgr), UNUSED(const char *fname))
 {
    aaxBuffer rv = NULL;
    if (fname)
@@ -467,7 +467,7 @@ _aaxFreeEmitterCache(void *ptr)
 }
 
 void*
-_aaxEventThread(VOID(void *eventmgr))
+_aaxEventThread(UNUSED(void *eventmgr))
 {
    return NULL;
 }

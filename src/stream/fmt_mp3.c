@@ -546,7 +546,7 @@ _mp3_close(_fmt_t *fmt)
 }
 
 int
-_mp3_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
+_mp3_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_fmt))
 {
    return AAX_TRUE;
 }

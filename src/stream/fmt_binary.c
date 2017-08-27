@@ -91,7 +91,7 @@ _binary_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_binary_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
+_binary_open(_fmt_t *fmt, void *buf, size_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -138,7 +138,7 @@ _binary_close(_fmt_t *fmt)
 }
 
 int
-_binary_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, VOID(enum aaxFormat aax_fmt))
+_binary_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, UNUSED(enum aaxFormat aax_fmt))
 {
    _driver_t *handle = fmt->id;
    switch(pcm_fmt)
@@ -189,14 +189,14 @@ _binary_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
 }
 
 size_t
-_binary_cvt_to_intl(_fmt_t *fmt, VOID(void_ptr dptr), const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+_binary_cvt_to_intl(_fmt_t *fmt, UNUSED(void_ptr dptr), const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    int rv = __F_EOF;
    return rv;
 }
 
 char*
-_binary_name(VOID(_fmt_t *fmt), VOID(enum _aaxStreamParam param))
+_binary_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
 {
    return NULL;
 }

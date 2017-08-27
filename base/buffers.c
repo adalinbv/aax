@@ -73,12 +73,12 @@ const char *_intBufNames[] =
 #endif
 
 #ifdef BUFFER_DEBUG
-# undef UNUSED
+# undef DISREGARD
 # if 0
-#  define UNUSED(x) x
+#  define DISREGARD(x) x
 #  define PRINT(...)		printf(...)
 # else
-#  define UNUSED(x) x __attribute__((unused))
+#  define DISREGARD(x) x __attribute__((unused))
 #  define PRINT(...)
 # endif
 #endif
@@ -88,7 +88,7 @@ static int __intBufFreeSpace(_intBuffers *, int, char);
 
 #ifdef BUFFER_DEBUG
 unsigned int
-_intBufCreateDebug(_intBuffers **buffer, unsigned int id, UNUSED(char *file), UNUSED(int line))
+_intBufCreateDebug(_intBuffers **buffer, unsigned int id, DISREGARD(char *file), DISREGARD(int line))
 {
     unsigned int r = _intBufCreateNormal(buffer, id);
     PRINT("create: %s at line %i: %x\n", file, line, r);
@@ -397,7 +397,7 @@ _intBufSetDataPtr(_intBufferData *data, void *user_data)
 #ifndef _AL_NOTHREADS
 # ifndef NDEBUG
 void
-_intBufReleaseDataDebug(const _intBufferData *data, UNUSED(unsigned int id), char *file, int line)
+_intBufReleaseDataDebug(const _intBufferData *data, DISREGARD(unsigned int id), char *file, int line)
 {
     assert(data != 0);
 
@@ -406,7 +406,7 @@ _intBufReleaseDataDebug(const _intBufferData *data, UNUSED(unsigned int id), cha
 # endif
 
 void
-_intBufReleaseDataNormal(const _intBufferData *data, UNUSED(unsigned int id))
+_intBufReleaseDataNormal(const _intBufferData *data, DISREGARD(unsigned int id))
 {
     _aaxMutexUnLock(data->mutex);
 }
@@ -423,7 +423,7 @@ _intBufGetNumNoLock(const _intBuffers *buffer, unsigned int id)
 
 #ifndef NDEBUG
 unsigned int
-_intBufGetNumDebug(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock), char *file, int line)
+_intBufGetNumDebug(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGARD(char lock), char *file, int line)
 {
     assert(buffer != 0);
     assert(buffer->id == id);
@@ -458,7 +458,7 @@ _intBufGetNumDebug(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char loc
 #endif
 
 unsigned int
-_intBufGetNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock))
+_intBufGetNumNormal(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGARD(char lock))
 {
 #ifndef _AL_NOTHREADS
     _aaxMutexLock(buffer->mutex);
@@ -488,7 +488,7 @@ _intBufGetNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lo
 }
 
 unsigned int
-_intBufGetMaxNumNoLock(const _intBuffers *buffer, UNUSED(unsigned int id))
+_intBufGetMaxNumNoLock(const _intBuffers *buffer, DISREGARD(unsigned int id))
 {
     assert(buffer != 0);
     assert(buffer->id == id);
@@ -497,7 +497,7 @@ _intBufGetMaxNumNoLock(const _intBuffers *buffer, UNUSED(unsigned int id))
 }
 
 unsigned int
-_intBufGetMaxNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock))
+_intBufGetMaxNumNormal(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGARD(char lock))
 {
     assert(buffer != 0);
     assert(buffer->id == id);
@@ -527,7 +527,7 @@ _intBufGetMaxNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char
 
 #ifndef _AL_NOTHREADS
 void
-_intBufReleaseNumNormal(_intBuffers *buffer, UNUSED(unsigned int id), UNUSED(char lock))
+_intBufReleaseNumNormal(_intBuffers *buffer, DISREGARD(unsigned int id), DISREGARD(char lock))
 {
     assert(buffer);
     assert(buffer->id == id);
@@ -826,7 +826,7 @@ _intBufRemoveNormal(_intBuffers *buffer, unsigned int id, unsigned int n,
 void 
 _intBufClearDebug(_intBuffers *buffer, unsigned int id,
                       _intBufFreeCallback cb_free,
-                      UNUSED(char *file), UNUSED(int lineno))
+                      DISREGARD(char *file), DISREGARD(int lineno))
 {
     _intBufClearNormal(buffer, id, cb_free);
     PRINT("clear: %s at line %i\n", file, lineno);
@@ -862,7 +862,7 @@ _intBufClearNormal(_intBuffers *buffer, unsigned int id,
 void
 _intBufEraseDebug(_intBuffers **buffer, unsigned int id,
                       _intBufFreeCallback cb_free,
-                      UNUSED(char *file), UNUSED(int lineno))
+                      DISREGARD(char *file), DISREGARD(int lineno))
 {
     _intBufEraseNormal(buffer, id, cb_free);
     PRINT("erase: %s at line %i\n", file, lineno);
