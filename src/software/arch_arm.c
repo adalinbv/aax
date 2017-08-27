@@ -50,7 +50,7 @@ enum {
 
 enum {
    AAX_SIMD_NONE = 0,
-   AAX_SIMD_VFPV2,
+   AAX_SIMD_VFPV2 = 1,
    AAX_SIMD_VFPV3,
    AAX_SIMD_VFPV4,
    AAX_SIMD_NEON,

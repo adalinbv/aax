@@ -148,7 +148,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
        */
       freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
       step = (int)fs/freq;
-      if (info->no_cores == 1 || info->sse_level < AAX_SIMD_AVX)
+      if (info->no_cores == 1 || info->sse_level < 9) // AAX_SIMD_AVX
       {
          step = (int)fs/16000;
       }
