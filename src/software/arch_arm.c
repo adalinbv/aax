@@ -147,8 +147,8 @@ _aaxArchDetectFeatures()
    return res;
 }
 
-const char *
-_aaxGetSIMDSupportString()
+uint32_t
+_aaxGetSIMDSupportLevel()
 {
    uint32_t level = AAX_NO_SIMD;
 
@@ -293,6 +293,13 @@ _aaxGetSIMDSupportString()
 # endif
    }
 
+   return level;
+}
+
+const char *
+_aaxGetSIMDSupportString()
+{
+   uint32_t level = _aaxGetSIMDSupportLevel();
    return _aaxArchSIMDSupportString[level];
 }
 
