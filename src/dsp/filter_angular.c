@@ -66,7 +66,7 @@ _aaxAngularFilterDestroy(_filter_t* filter)
 }
 
 static aaxFilter
-_aaxAngularFilterSetState(VOID(_filter_t* filter), VOID(int state))
+_aaxAngularFilterSetState(UNUSED(_filter_t* filter), UNUSED(int state))
 {
    return  filter;
 }

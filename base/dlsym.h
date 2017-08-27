@@ -26,7 +26,8 @@ extern "C" {
 #endif
 
 #ifdef _WIN32
-#include <Windows.h>
+# include "types.h"
+
 # define DLL_API		WINAPI
 # ifdef STRICT 
 #  define DLL_RV		WNDPROC

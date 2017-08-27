@@ -153,72 +153,72 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
 };
 
 static int
-_aaxNoneDriverDetect(VOID(int mode))
+_aaxNoneDriverDetect(UNUSED(int mode))
 {
    return AAX_TRUE;
 }
 
 static void *
-_aaxNoneDriverNewHandle(VOID(enum aaxRenderMode mode))
+_aaxNoneDriverNewHandle(UNUSED(enum aaxRenderMode mode))
 {
    return NULL;
 }
 
 static void *
-_aaxNoneDriverConnect(VOID(void *config), VOID(const void *id), VOID(void *xid), VOID(const char *renderer), enum aaxRenderMode mode)
+_aaxNoneDriverConnect(UNUSED(void *config), UNUSED(const void *id), UNUSED(void *xid), UNUSED(const char *renderer), enum aaxRenderMode mode)
 {
    if (mode == AAX_MODE_READ) return NULL;
    return (void *)&_aaxNoneDriverBackend;
 }
 
 static int
-_aaxNoneDriverDisconnect(VOID(void *id))
+_aaxNoneDriverDisconnect(UNUSED(void *id))
 {
    return AAX_TRUE;
 }
 
 static int
-_aaxNoneDriverSetup(VOID(const void *id), VOID(float *refresh_rate), VOID(int *fmt), VOID(unsigned int *tracks), VOID(float *speed), VOID(int *bitrate), VOID(int registered), VOID(float period_rate))
+_aaxNoneDriverSetup(UNUSED(const void *id), UNUSED(float *refresh_rate), UNUSED(int *fmt), UNUSED(unsigned int *tracks), UNUSED(float *speed), UNUSED(int *bitrate), UNUSED(int registered), UNUSED(float period_rate))
 {
    return AAX_TRUE;
 }
 
 static size_t
-_aaxNoneDriverPlayback(VOID(const void *id), VOID(void *s), VOID(float pitch), VOID(float volume), VOID(char batched))
+_aaxNoneDriverPlayback(UNUSED(const void *id), UNUSED(void *s), UNUSED(float pitch), UNUSED(float volume), UNUSED(char batched))
 {
    return 0;
 }
 
 static void
-_aaxNoneDriver3dPrepare(VOID(void* src), VOID(const void *info), VOID(float ssv), VOID(float sdf), VOID(void *fp2dpos), VOID( void *fp3d))
+_aaxNoneDriver3dPrepare(UNUSED(void* src), UNUSED(const void *info), UNUSED(float ssv), UNUSED(float sdf), UNUSED(void *fp2dpos), UNUSED( void *fp3d))
 {
 }
 
 static void
-_aaxNoneDriverPrepare(VOID(const void *id), VOID(const void *hid), VOID(void *s), VOID(const void *l))
+_aaxNoneDriverPrepare(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l))
 {
 }
 
 static void
-_aaxNoneDriverPostProcess(VOID(const void *id), VOID(const void *hid), VOID(void *s), VOID(const void *l), VOID(const void *f), VOID(void *i))
+_aaxNoneDriverPostProcess(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l), UNUSED(const void *f), UNUSED(void *i))
 {
 }
 
 static char *
-_aaxNoneDriverGetName(VOID(const void *id), VOID(int playback))
+_aaxNoneDriverGetName(UNUSED(const void *id), UNUSED(int playback))
 {
    return NULL;
 }
 
 _aaxRenderer*
-_aaxNoneDriverRender(VOID(const void* config))
+_aaxNoneDriverRender(UNUSED(const void* config))
 {
    return NULL;
 }
 
 
 static int
-_aaxNoneDriverState(VOID(const void *id), enum _aaxDriverState state)
+_aaxNoneDriverState(UNUSED(const void *id), enum _aaxDriverState state)
 {
    int rv = AAX_FALSE;
    switch(state)
@@ -239,7 +239,7 @@ _aaxNoneDriverState(VOID(const void *id), enum _aaxDriverState state)
 }
 
 static float
-_aaxNoneDriverParam(VOID(const void *id), enum _aaxDriverParam param)
+_aaxNoneDriverParam(UNUSED(const void *id), enum _aaxDriverParam param)
 {
    float rv = 0.0f;
    switch(param)
@@ -295,13 +295,13 @@ _aaxNoneDriverParam(VOID(const void *id), enum _aaxDriverParam param)
 }
 
 static char *
-_aaxNoneDriverLog(VOID(const void *id), VOID(int prio), VOID(int type), VOID(const char *str))
+_aaxNoneDriverLog(UNUSED(const void *id), UNUSED(int prio), UNUSED(int type), UNUSED(const char *str))
 {
    return NULL;
 }
 
 static char *
-_aaxNoneDriverGetDevices(VOID(const void *id), int mode)
+_aaxNoneDriverGetDevices(UNUSED(const void *id), int mode)
 {
    static const char *rd[2] = {
     "\0\0",
@@ -312,7 +312,7 @@ _aaxNoneDriverGetDevices(VOID(const void *id), int mode)
 }
 
 static char *
-_aaxNoneDriverGetInterfaces(VOID(const void *id), VOID(const char *devname), int mode)
+_aaxNoneDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char *devname), int mode)
 {
    static const char *rd[2] = {
     "\0\0",
@@ -335,7 +335,7 @@ _aaxLoopbackDriverNewHandle(enum aaxRenderMode mode)
 }
 
 static void *
-_aaxLoopbackDriverConnect(void *config, const void *id, VOID(void *xid), VOID(const char *renderer), enum aaxRenderMode mode)
+_aaxLoopbackDriverConnect(void *config, const void *id, UNUSED(void *xid), UNUSED(const char *renderer), enum aaxRenderMode mode)
 {
    _driver_t *handle = (_driver_t *)id;
    if (!handle) {
@@ -462,7 +462,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxLoopbackDriverLog(const void *id, VOID(int prio), VOID(int type), const char *str)
+_aaxLoopbackDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const char *str)
 {
    _driver_t *handle = (_driver_t *)id;
    static char _errstr[256] = "\0";

@@ -91,7 +91,6 @@ _aaxGetGlobalProcAddress(const char *func)
 
 #elif defined( _WIN32 )
 #include <direct.h>
-#include <windows.h>
 
 void*
 _aaxIsLibraryPresent(const char *name, const char *version)

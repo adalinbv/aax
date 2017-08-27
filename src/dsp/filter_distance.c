@@ -124,14 +124,14 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, _aa
 }
 
 static float
-_aaxDistanceFilterSet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxDistanceFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxDistanceFilterGet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxDistanceFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;

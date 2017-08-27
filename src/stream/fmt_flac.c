@@ -107,7 +107,7 @@ _flac_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_flac_open(_fmt_t *fmt, void *buf, size_t *bufsize, VOID(size_t fsize))
+_flac_open(_fmt_t *fmt, void *buf, size_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -181,7 +181,7 @@ _flac_close(_fmt_t *fmt)
 }
 
 int
-_flac_setup(VOID(_fmt_t *fmt), VOID(_fmt_type_t pcm_fmt), VOID(enum aaxFormat aax_fmt))
+_flac_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_fmt))
 {
    return AAX_TRUE;
 }
@@ -274,14 +274,14 @@ printf("D\n");
 }
 
 size_t
-_flac_cvt_to_intl(VOID(_fmt_t *fmt), VOID(void_ptr dptr), VOID(const_int32_ptrptr sptr), VOID(size_t offs), VOID(size_t *num), VOID(void_ptr scratch), VOID(size_t scratchlen))
+_flac_cvt_to_intl(UNUSED(_fmt_t *fmt), UNUSED(void_ptr dptr), UNUSED(const_int32_ptrptr sptr), UNUSED(size_t offs), UNUSED(size_t *num), UNUSED(void_ptr scratch), UNUSED(size_t scratchlen))
 {
    int res = 0;
    return res;
 }
 
 char*
-_flac_name(VOID(_fmt_t *fmt), VOID(enum _aaxStreamParam param))
+_flac_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
 {
    return NULL;
 }

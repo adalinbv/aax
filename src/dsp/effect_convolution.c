@@ -207,7 +207,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 }
 
 _effect_t*
-_aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
+_aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* rv = calloc(1, size);
@@ -234,7 +234,7 @@ _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, 
 }
 
 static float
-_aaxConvolutionEffectSet(float val, int ptype, VOID(unsigned char param))
+_aaxConvolutionEffectSet(float val, int ptype, UNUSED(unsigned char param))
 {  
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {
@@ -244,7 +244,7 @@ _aaxConvolutionEffectSet(float val, int ptype, VOID(unsigned char param))
 }
    
 static float
-_aaxConvolutionEffectGet(float val, int ptype, VOID(unsigned char param))
+_aaxConvolutionEffectGet(float val, int ptype, UNUSED(unsigned char param))
 {  
    float rv = val;
    if (ptype == AAX_LOGARITHMIC) {

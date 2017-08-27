@@ -139,7 +139,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
 }
 
 static _effect_t*
-_aaxNewDistortionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
+_aaxNewDistortionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
    _effect_t* rv = calloc(1, size);
@@ -166,14 +166,14 @@ _aaxNewDistortionEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 }
 
 static float
-_aaxDistortionEffectSet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxDistortionEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {  
    float rv = val;
    return rv;
 }
    
 static float
-_aaxDistortionEffectGet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxDistortionEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {  
    float rv = val;
    return rv;

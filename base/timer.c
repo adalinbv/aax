@@ -342,12 +342,12 @@ getTimerResolution() {
 }
 
 int
-setTimerResolution(VOID(unsigned int dt_ms)) {
+setTimerResolution(UNUSED(unsigned int dt_ms)) {
    return 0;
 }
 
 int
-resetTimerResolution(VOID(unsigned int dt_ms)) {
+resetTimerResolution(UNUSED(unsigned int dt_ms)) {
    return 0;
 }
 
@@ -520,7 +520,7 @@ _aaxTimerStartRepeatable(_aaxTimer* tm, float sec)
 }
 
 int
-_aaxTimerStop(VOID(_aaxTimer* tm)) {
+_aaxTimerStop(UNUSED(_aaxTimer* tm)) {
    return AAX_TRUE;
 }
 

@@ -1166,14 +1166,14 @@ aaxEmitterGetOffsetSec(const aaxEmitter emitter)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterSetSetup(VOID(aaxEmitter emitter), VOID(enum aaxSetupType type), VOID(unsigned int setup))
+aaxEmitterSetSetup(UNUSED(aaxEmitter emitter), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
 {  
    int rv = AAX_FALSE;
    return rv;
 }
 
 AAX_API unsigned int AAX_APIENTRY
-aaxEmitterGetSetup(VOID(const aaxEmitter emitter), VOID(enum aaxSetupType type))
+aaxEmitterGetSetup(UNUSED(const aaxEmitter emitter), UNUSED(enum aaxSetupType type))
 {
    unsigned int rv = AAX_FALSE;
    return rv;

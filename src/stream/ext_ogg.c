@@ -132,7 +132,7 @@ static void crc32_init(void);
 
 
 int
-_ogg_detect(VOID(_ext_t *ext), VOID(int mode))
+_ogg_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
 {
    return AAX_TRUE;
 }
@@ -274,7 +274,7 @@ _ogg_close(_ext_t *ext)
 }
 
 void*
-_ogg_update(VOID(_ext_t *ext), VOID(size_t *offs), VOID(size_t *size), VOID(char close))
+_ogg_update(UNUSED(_ext_t *ext), UNUSED(size_t *offs), UNUSED(size_t *size), UNUSED(char close))
 {
    return NULL;
 }

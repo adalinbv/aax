@@ -1273,7 +1273,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 }
 
 static void
-_aaxContextSetupHRTF(void *xid, VOID(unsigned int n))
+_aaxContextSetupHRTF(void *xid, UNUSED(unsigned int n))
 {
    if (xid)
    {

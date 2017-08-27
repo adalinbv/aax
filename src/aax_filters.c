@@ -143,7 +143,7 @@ aaxFilterSetParam(const aaxFilter f, int param, int ptype, float value)
 }
 
 AAX_API int AAX_APIENTRY
-aaxFilterAddBuffer(VOID(aaxFilter f), VOID(aaxBuffer b))
+aaxFilterAddBuffer(UNUSED(aaxFilter f), UNUSED(aaxBuffer b))
 {
    return AAX_FALSE;
 }

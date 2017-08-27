@@ -316,7 +316,7 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
 
 /** Convolution Effect */
 int
-_aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, VOID(_intBufferData *dptr_src), unsigned int t)
+_aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferData *dptr_src), unsigned int t)
 {
    unsigned int cnum, q, hpos, dnum;
    _aaxRingBufferConvolutionData *convolution;

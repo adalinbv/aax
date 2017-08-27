@@ -257,7 +257,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
+_aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_filter_t);
    _filter_t* rv = NULL;
@@ -289,14 +289,14 @@ _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dPr
 }
 
 static float
-_aaxEqualizerSet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxEqualizerSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxEqualizerGet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxEqualizerGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;

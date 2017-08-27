@@ -33,13 +33,6 @@ extern "C" {
 # define O_BINARY	0
 #endif
 
-#ifndef NDEBUG
-#  define UNUSED(x) x
-#else
-# define UNUSED(x) x __attribute__((unused))
-#endif
-#define VOID(x) x __attribute__((unused))
-
 #if SIZEOF_SIZE_T == 8
 # define MEMALIGN	32
 #else
@@ -127,9 +120,7 @@ typedef const float**RESTRICT		const_float32_ptrptr;
 typedef double*RESTRICT			double64_ptr;
 typedef const double*RESTRICT		const_double64_ptr;
 
-
 #include "gmath.h"	/* for is_nan */
-
 #define _MAX(a,b)	(((a)>(b)) ? (a) : (b))
 #define _MIN(a,b)	(((a)<(b)) ? (a) : (b))
 #define _MINMAX(a,b,c)	(((a)>(c)) ? (c) : (((a)<(b)) ? (b) : (a)))
@@ -137,7 +128,6 @@ typedef const double*RESTRICT		const_double64_ptr;
 #define FNMAX(a,b)	is_nan(a) ? (b) : _MAX((a),(b))
 #define FNMIN(a,b)	is_nan(a) ? (b) : _MIN((a),(b))
 #define FNMINMAX(a,b,c)	is_nan(a) ? (c) : _MINMAX((a),(b),(c))
-
 
 uint16_t _aax_bswap16(uint16_t x);
 uint32_t _aax_bswap32(uint32_t x);
@@ -150,14 +140,18 @@ uint64_t _aax_bswap64(uint64_t x);
 #  define WIN32
 # endif
 #endif
-
+ 
 #if defined( WIN32 )
 # undef __STRICT_ANSI__
+# define _WIN32_WINNT 0x0500
 # include <Windows.h>
 # include <stdio.h>
 # include <string.h>
 # include <errno.h>
 # include <ctype.h>
+
+# define DISREGARD(x) x
+# define UNUSED(x) x
 
 # define rintf(v) (int)(v+0.5f)
 # ifdef _MSC_VER
@@ -184,6 +178,16 @@ struct timespec {
       time_t tv_sec;
       long   tv_nsec;
 };
+#else		// WIN32
+
+# ifndef NDEBUG
+#  define DISREGARD(x) x
+#  define UNUSED(x) x
+# else
+#  define DISREGARD(x) x __attribute__((unused))
+#  define UNUSED(x) x __attribute__((unused))
+# endif
+
 #endif		// WIN32
 
 #if defined(__cplusplus)

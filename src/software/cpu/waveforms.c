@@ -771,7 +771,7 @@ float _aax_rand_sample(float *s, float g)
 
 #define AVG	14
 #define MAX_AVG	64
-static float _aax_rand_sample(VOID(float *s), float g)
+static float _aax_rand_sample(UNUSED(float *s), float g)
 {
    static unsigned int rvals[MAX_AVG];
    static int init = 1;
@@ -1313,7 +1313,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
 
 #define NO_IMPULSE_HARMONICS		9
 void
-_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, VOID(float phase))
+_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, UNUSED(float phase))
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    _mix_fn mixfn = _get_mixfn(bps, &gain);

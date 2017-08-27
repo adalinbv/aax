@@ -243,7 +243,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
 }
 
 void*
-_aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_handle, float *delay, float agc_rr, unsigned int dest_track, VOID(float pos_sec), float gain, ssize_t *nsamps, char batched)
+_aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_handle, float *delay, float agc_rr, unsigned int dest_track, UNUSED(float pos_sec), float gain, ssize_t *nsamps, char batched)
 {
    void *rv = drb;
    int32_t **scratch;

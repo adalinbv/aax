@@ -231,7 +231,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 }
 
 static _filter_t*
-_aaxNewDynamicGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, VOID(_aax3dProps* p3d))
+_aaxNewDynamicGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
    _filter_t* rv = calloc(1, size);
@@ -258,14 +258,14 @@ _aaxNewDynamicGainFilterHandle(const aaxConfig config, enum aaxFilterType type, 
 }
 
 static float
-_aaxDynamicGainFilterSet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxDynamicGainFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxDynamicGainFilterGet(float val, VOID(int ptype), VOID(unsigned char param))
+_aaxDynamicGainFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;
