@@ -101,7 +101,7 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
   set(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-bin, libaax2-dev")
-  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/config;${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;${AeonWave_SOURCE_DIR}/admin/debian/templates;")
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
 # set(CPACK_DEBIAN_PACKAGE_DEPENDS "debconf" COMPONENT Headers)
@@ -111,8 +111,6 @@ else(WIN32)
   # RPM
   set(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
-  set(CPACK_RPM_POST_UNINSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.postun")
-  set(CPACK_RPM_PRE_INSTALL_SCRIPT_FILE "${AeonWave_SOURCE_DIR}/admin/rpm/aeonwave.preinst")
   set(CPACK_RPM_PACKAGE_PROVIDES "libaax2")
 endif(WIN32)
 
@@ -623,7 +621,6 @@ INSTALL(FILES
 )
 INSTALL(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
-        include/aax/defines.h
         include/aax/aeonwave.hpp
         include/aax/strings.hpp
         include/aax/matrix.hpp
@@ -631,8 +628,6 @@ INSTALL(FILES
         COMPONENT Headers
 )
 INSTALL(FILES 
-        include/aax.h
-        include/aaxdefs.h
         DESTINATION include
         COMPONENT Headers
 )

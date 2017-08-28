@@ -3060,7 +3060,7 @@ typedef int16 YTYPE;
 #else
 typedef int YTYPE;
 #endif
-static int do_floor(vorb *f, Mapping *map, int i, int n, float *target, YTYPE *finalY, VOID(uint8 *step2_flag))
+static int do_floor(vorb *f, Mapping *map, int i, int n, float *target, YTYPE *finalY, UNUSED(uint8 *step2_flag))
 {
    int n2 = n >> 1;
    int s = map->chan[i].mux, floor;
@@ -3167,7 +3167,7 @@ static int vorbis_decode_initial(vorb *f, int *p_left_start, int *p_left_end, in
    return TRUE;
 }
 
-static int vorbis_decode_packet_rest(vorb *f, int *len, Mode *m, int left_start, VOID(int left_end), int right_start, int right_end, int *p_left)
+static int vorbis_decode_packet_rest(vorb *f, int *len, Mode *m, int left_start, UNUSED(int left_end), int right_start, int right_end, int *p_left)
 {
    Mapping *map;
    int i,j,k,n,n2;

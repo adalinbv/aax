@@ -1,12 +1,22 @@
 /*
  * Copyright 2007-2017 by Erik Hofman.
  * Copyright 2009-2017 by Adalin B.V.
- * All Rights Reserved.
  *
- * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
- * the contents of this file may not be disclosed to third parties, copied or
- * duplicated in any form, in whole or in part, without the prior written
- * permission of Adalin B.V.
+ * This file is part of AeonWave
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #if HAVE_CONFIG_H
@@ -45,8 +55,6 @@ static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int);
 static void _aaxContextSetupHRTF(void *, unsigned int);
 static void _aaxContextSetupSpeakers(void **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
-static int _aaxCheckKeyValidity(void*);
-static int _aaxCheckKeyValidityStr(char*);
 
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
@@ -414,9 +422,6 @@ aaxDriverOpen(aaxConfig config)
             }
          }
          _aaxDriverBackendClearConfigSettings(cfg);
-      }
-      else {
-         _AAX_SYSLOG("invalid personal product key");
       }
    }
 
@@ -965,10 +970,8 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
       char *path, *name;
       void *xid, *be;
       float fq, iv;
-      int key;
 
       /* read the default setup */
-      key = AAX_TRUE;
       tract_now = _aaxDriverBackendSetConfigSettings(handle->backends,
                                                      handle->devname, config);
       if (!_tvnow) _tvnow = tract_now;
@@ -983,7 +986,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             if (xmlNodeTest(xid, "/configuration"))
             {
                int m = (mode > 0) ? 1 : 0;
-               key = _aaxCheckKeyValidity(xid);
                _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
                                                    path, m);
             }
@@ -1005,8 +1007,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             if (xmlNodeTest(xid, "/configuration"))
             {
                int m = (mode > 0) ? 1 : 0;
-               int res = _aaxCheckKeyValidity(xid);
-               if ((key == AAX_TRUE) && res) key = res;
                _aaxDriverBackendReadConfigSettings(xid, handle->devname,
                                                    config, path, m);
             }
@@ -1018,18 +1018,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          free(path);
       }
 
-      /*
-       * must be after reading aax's own configuration file to be abke to
-       * invalidate the key for other products
-       */
-      name = _aaxGetEnv("EKYAXA23VBDOLANI");
-      if (name) 
-      {
-         key = _aaxCheckKeyValidityStr(name);
-         _aaxUnsetEnv("EKYAXA23VBDOLANI");
-      }
-
-      if (key)
+      if (1)
       {
          char *ptr;
 
@@ -1061,7 +1050,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          free(handle->backend.driver);
          handle->backend.driver = _aax_strdup(config->backend.driver);
 
-         key ^= 0x21051974;
          if (config->node[0].no_emitters)
          {
             unsigned int emitters = config->node[0].no_emitters;
@@ -1100,7 +1088,6 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             }
          }
 
-         key = _aax_bswap32(key);
          if (config->node[0].no_speakers > 0) {
             handle->info->no_tracks = config->node[0].no_speakers;
          }
@@ -1112,10 +1099,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          fq = config->node[0].frequency;
          iv = config->node[0].interval;
 
-         /* place config info in the syslog, if enabled */
-         /* extra validiy time check */
-         /* first generated key was at time(NULL) = 1315324133 */
-         if (1315324133 <= key && key < _tvnow)
+         do
          {
             if (fq < _AAX_MIN_MIXER_FREQUENCY) {
                fq = _AAX_MIN_MIXER_FREQUENCY;
@@ -1142,44 +1126,9 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                handle->info->update_rate = 1;
             }
 
-            /* key is valid */
             handle->valid = HANDLE_ID;
          } 
-         else
-         {
-            if (fq < _AAX_MIN_MIXER_FREQUENCY) {
-               fq = _AAX_MIN_MIXER_FREQUENCY;
-            }
-            if (fq > _AAX_MAX_MIXER_FREQUENCY_LT) {
-               fq = _AAX_MAX_MIXER_FREQUENCY_LT;
-            }
-            if (iv < _AAX_MIN_MIXER_REFRESH_RATE) {
-               iv = _AAX_MIN_MIXER_REFRESH_RATE;
-            }
-            if (iv > _AAX_MAX_MIXER_REFRESH_RATE_LT) {
-               iv = _AAX_MAX_MIXER_REFRESH_RATE_LT;
-            }
-            iv = fq / INTERVAL(fq / iv);
-            handle->info->period_rate = iv;
-            handle->info->refresh_rate = iv;
-            handle->info->frequency = fq;
-            if (config->node[0].update) {
-               handle->info->update_rate = (uint8_t)rintf(iv/config->node[0].update);
-            } else {
-               handle->info->update_rate = (uint8_t)rintf(iv/50);
-            }
-            if (handle->info->update_rate < 1) {
-               handle->info->update_rate = 1;
-            }
-
-            if (handle->info->max_emitters > _AAX_MAX_MIXER_REGISTERED_LT) {
-                handle->info->max_emitters =  _AAX_MAX_MIXER_REGISTERED_LT;
-            }
-            handle->info->max_registered = _AAX_MAX_MIXER_REGISTERED_LT;
-            _aaxSetNoEmitters(handle->info->max_emitters);
-
-            handle->valid = LITE_HANDLE_ID;
-         }
+         while(0);
 
          if (handle->sensors)
          {
@@ -1348,67 +1297,6 @@ __aaxDriverErrorSet(aaxConfig config, enum aaxErrorType err, const char* fnname)
       handle->error = err;
    }
 
-   return rv;
-}
-
-static int
-_aaxCheckKeyValidityStr(char *keystr)
-{
-   int rv = 0;
-   if (keystr && (strlen(keystr) == 26))
-   {
-      union { uint64_t ll; uint32_t i[2]; } tmp;
-      int base = strlen(keystr)+1;   /* 27 */
-      char *nptr, *eptr;
-      uint64_t key;
-
-      nptr = keystr;
-      eptr = strchr(nptr, '-');
-      if (!eptr) return rv;
-
-      key = strtoll(nptr, &eptr, base);
-
-      nptr = eptr+1;
-      eptr = strchr(nptr, '-');
-      if (!eptr) return rv;
-
-      tmp.ll = strtoll(nptr, &eptr, base);
-      if (is_bigendian()) {
-         key += tmp.i[1]; // *((uint32_t*)(&tmp.ll)+1);
-      } else {
-         key += tmp.i[0]; // *((uint32_t*)&tmp.ll);
-      }
-#if 0
-// printf("tmp: %llx\n", tmp);
-// printf("*(uint32_t*)(&tmp): %x\n((uint32_t*)(&tmp)+1): %x\n", *(uint32_t*)(&tmp), *((uint32_t*)(&tmp)+1));
-#endif
-
-      nptr = eptr+1;
-      eptr = nptr+strlen(nptr);
-      key -= strtoll(nptr, &eptr, base);
-      if (((key^HANDLE_ID) % 29723) == (7*strlen(keystr)-5)) {	/* 177 */
-         rv = tmp.ll & 0xFFFFFFFF;
-      }
-   }
-   else {
-      rv = FADEDBAD;
-   }
-   return rv;
-}
-
-static int
-_aaxCheckKeyValidity(void *xid)
-{
-   void *xcid = xmlNodeGet(xid, "/configuration");
-   int rv = AAX_FALSE;
-
-   if (xcid)
-   {
-      char keystr[27];
-      xmlNodeCopyString(xcid, "product-key", keystr, 27);
-      rv = _aaxCheckKeyValidityStr(keystr);
-      xmlFree(xcid);
-   }
    return rv;
 }
 

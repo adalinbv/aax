@@ -1,12 +1,22 @@
 /*
  * Copyright 2005-2017 by Erik Hofman
  * Copyright 2007-2017 by Adalin B.V.
- * All Rights Reserved.
  *
- * This is UNPUBLISHED PROPRIETARY SOURCE CODE of Adalin B.V.;
- * the contents of this file may not be disclosed to third parties, copied or
- * duplicated in any form, in whole or in part, without the prior written
- * permission of Adalin B.V.
+ * This file is part of AeonWave
+ *
+ *  This program is free software; you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation; either version 2 of the License, or
+ *  (at your option) any later version.
+ *
+ *  This program is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License along
+ *  with this program; if not, write to the Free Software Foundation, Inc.,
+ *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
 #ifndef AAX_H
@@ -61,13 +71,14 @@ extern "C" {
 enum aaxHandleType
 {
     AAX_NONE = 0,
-    AAX_CONFIG,
-    AAX_BUFFER,
-    AAX_EMITTER,
-    AAX_AUDIOFRAME,
+    
     AAX_FILTER,
     AAX_EFFECT,
-    AAX_CONFIG_HD,
+    AAX_CONFIG,
+    AAX_CONFIG_HD = AAX_CONFIG,
+    AAX_AUDIOFRAME,
+    AAX_EMITTER,
+    AAX_BUFFER,
     AAX_HANDLE_TYPE_MAX
 };
 
@@ -322,12 +333,12 @@ enum aaxDistanceModel
    AAX_DISTANCE_DELAY = 0x8000,
    AAX_EXPONENTIAL_DISTANCE_DELAY=(AAX_EXPONENTIAL_DISTANCE|AAX_DISTANCE_DELAY),
 
-   AAX_AL_INVERSE_DISTANCE = 1000,	/* (0x3E8) a mistake we need to keep */
+   AAX_AL_INVERSE_DISTANCE = 0x1000,
    AAX_AL_INVERSE_DISTANCE_CLAMPED,
    AAX_AL_LINEAR_DISTANCE,
    AAX_AL_LINEAR_DISTANCE_CLAMPED,
    AAX_AL_EXPONENT_DISTANCE,
-   AAX_AL_EXPONENT_DISTANCE_CLAMPED,	/*(0x3ED) */
+   AAX_AL_EXPONENT_DISTANCE_CLAMPED,
 
    AAX_AL_DISTANCE_MODEL_MAX
 };

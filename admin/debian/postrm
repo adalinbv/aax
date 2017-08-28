@@ -1,42 +1,5 @@
 #!/bin/sh -e
 
-if [ x$SUDO_USER != "x" ]; then
-  INSTALLER=$SUDO_USER;
-elif [ x$USER != "x" ]; then
-  INSTALLER=$USER;
-else
-  INSTALLER=root;
-fi
-
-if [ x$INSTALLER = "x" ]; then
-  OCONFIGFILE="$HOME/.aaxconfig.xml"
-  CONFIGFILE="$HOME/.aax/config.xml"
-  INSTALLER=`stat -c %U $HOME`
-# GROUP=`stat -c %G $HOME`
-else
-  INSTALLER_HOME=`grep $INSTALLER /etc/passwd | cut -d ":" -f6`
-  OCONFIGFILE="$INSTALLER_HOME/.aaxconfig.xml"
-  CONFIGFILE="$INSTALLER_HOME/.aax/config.xml"
-# GROUP=`stat -c %G $INSTALLER_HOME`
-fi
-
-if [ "$1" = "purge" -a -e /usr/share/debconf/confmodule ]; then
-  # Source debconf library.
-  . /usr/share/debconf/confmodule
-  # Remove my changes to the db.
-  db_purge
-
-  # remove stale configuration files
-  if [ $USER = "root" ]; then
-    if [ -d /etc/aax ] ;then
-      rm -f /etc/aax/config.xml > /dev/null;
-      rmdir /etc/aax > /dev/null;
-    fi
-  fi
-  rm -f $CONFIGFILE;
-  rm -f $OCONFIGFILE;
-fi
-
 if [ "$1" = "remove" ]; then
   ldconfig
 fi
