@@ -1,5 +1,8 @@
 * Sun Aug 27 2017 - tech@adalin.org
 - AeonWave (3.0.0) stable; urgency=low
+ * Switched to a dual licensing model with both GPL and a commercial license.
+ * Switched to 64-bit build for windows and renamed the library to AeonWave.
+ * Improve general rendering speed with about 30 percent.
  * Reorginze the streaming code to make it more flexible.
  * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.
  * Add support for WAV embeded MP3 files.
@@ -16,6 +19,8 @@
  * Add functions to get a conversion-type and to get a waveform-type by name.
  * Add a convolution effect to simulate acoustics based on an audio buffer.
    This is a resource heavy effect, use with care.
+ * Fixed some header mistakes which makes version 3.0 incompatible with 2.0
+ * Removed version 1.0 compatible header files.
  * Fix a bug where modulating waveforms by non-sine waveforms caused silence.
  * Fix a segmentation fault when a particular file extension does not not
    support writing.
