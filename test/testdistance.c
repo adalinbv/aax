@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -46,13 +46,13 @@
 #define UPDATE_DELAY		0.001f
 #define SPEED_OF_SOUND		343.0f
 #define SPEED			(0.145f*SPEED_OF_SOUND)
-#define INITIAL_DIST		4000.0f
+#define INITIAL_DIST		100.0f
 //(5.0f*SPEED_OF_SOUND)a
 #define STEP			(SPEED*UPDATE_DELAY)
 
 #define FILE_PATH		SRC_PATH"/wasp.wav"
 
-aaxVec3f EmitterPos = { -INITIAL_DIST,  300.0f,  -500.0f };
+aaxVec3f EmitterPos = { -INITIAL_DIST,   30.0f,   -50.0f };
 aaxVec3f EmitterDir = {          1.0f,    0.0f,     0.0f };
 aaxVec3f EmitterVel = {         SPEED,    0.0f,     0.0f };
 
@@ -79,27 +79,31 @@ int main(int argc, char **argv)
         {
             char *fparam = getCommandLineOption(argc, argv, "-f");
             aaxEmitter emitter;
+            aaxFilter filter;
+            aaxEffect effect;
             aaxFrame frame;
             aaxMtx4f mtx;
             float dist;
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
             /** scenery settings */
-#if 0
-            res = aaxScenerySetDistanceModel(config,
-                                             AAX_EXPONENTIAL_DISTANCE_DELAY);
-            testForState(res, "aaxScenerySetDistanceModel");
-#endif
 
-            /** dopller settings */
-            res = aaxScenerySetSoundVelocity(config, SPEED_OF_SOUND);
+            /** doppler settings */
+            effect = aaxEffectCreate(config, AAX_VELOCITY_EFFECT);
+            testForError(effect, "Unable to create the velocity effect");
+
+            res = aaxEffectSetParam(effect, AAX_SOUND_VELOCITY, AAX_LINEAR, SPEED_OF_SOUND);
             testForState(res, "aaxScenerySetSoundVelocity");
+
+            res = aaxScenerySetEffect(config, effect);
+            testForState(res, "aaxScenerySetEffect");
+            aaxEffectDestroy(effect);
 
             /** sensor settings */
             res = aaxMatrixSetOrientation(mtx, SensorPos,
@@ -131,11 +135,19 @@ int main(int argc, char **argv)
             res = aaxEmitterSetVelocity(emitter, EmitterVel);
             testForState(res, "aaxEmitterSetVelocity");
 
-            res = aaxEmitterSetReferenceDistance(emitter, 30.0f);
+            /* distance filter */
+            filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
+            testForError(filter, "Unable to create the distance filter");
+
+            res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 30.0f);
             testForState(res, "aaxEmitterSetReferenceDistance");
 
-            res = aaxEmitterSetMaxDistance(emitter, 5000.0f);
+            res = aaxFilterSetParam(filter, AAX_MAX_DISTANCE, AAX_LINEAR, 5000.0f);
             testForState(res, "aaxEmitterSetMaxDistance");
+
+            res = aaxScenerySetFilter(config, filter);
+            testForState(res, "aaxScenerySetDistanceModel");
+            aaxFilterDestroy(filter);
 
             res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
             testForState(res, "aaxMatrixSetDirection");

@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
         buffer = aaxBufferCreate(config, no_samples, 1, AAX_PCM16S);
         testForError(buffer, "Unable to create a new buffer\n");
 
-        res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
+        res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, SAMPLE_FREQUENCY);
         testForState(res, "aaxBufferSetFrequency");
 
         res = aaxBufferProcessWaveform(buffer, 660.0f, AAX_SINE_WAVE, 0.4f, AAX_MIX);
@@ -101,23 +101,31 @@ int main(int argc, char **argv)
         res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
         testForState(res, "aaxEmitterSetLooping");
 
+        /* pitch */
         pitch = getPitch(argc, argv);
-        res = aaxEmitterSetPitch(emitter, pitch);
+        effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+        testForError(effect, "Unable to create the pitch effect");
+
+        res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+        testForState(res, "aaxEffectSetParam");
+
+        res = aaxEmitterSetEffect(emitter, effect);
         testForState(res, "aaxEmitterSetPitch");
+        aaxEffectDestroy(effect);
 
         /* time filter for emitter */
         filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
         testForError(filter, "aaxFilterCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+        res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                           0.0f, 0.07f, 10.0f, 0.01f);
-        testForError(filter, "aaxFilterSetSlot 0");
-        filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+        testForState(res, "aaxFilterSetSlot 0");
+        res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
                                           0.7f, AAX_FPINFINITE, 0.7f, 1.0f);
-        testForError(filter, "aaxFilterSetSlot 1");
+        testForState(res, "aaxFilterSetSlot 1");
 
-        filter = aaxFilterSetState(filter, AAX_TRUE);
-        testForError(filter, "aaxFilterSetState");
+        res = aaxFilterSetState(filter, AAX_TRUE);
+        testForState(res, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);
         testForState(res, "aaxEmitterSetFilter");
@@ -129,15 +137,15 @@ int main(int argc, char **argv)
         effect = aaxEffectCreate(config, AAX_TIMED_PITCH_EFFECT);
         testForError(effect, "aaxEffectCreate");
 
-        effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+        res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                            1.0f, 0.2f, 4.0f, 0.2f);
-        testForError(effect, "aaxEffectSetSlot 0");
-        effect  = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
+        testForState(res, "aaxEffectSetSlot 0");
+        res  = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
                                            0.5f, 0.2f, 1.0f, 0.0f);
-        testForError(effect, "aaxEffectSetSlot 1");
+        testForState(res, "aaxEffectSetSlot 1");
 
-        effect = aaxEffectSetState(effect, AAX_TRUE);
-        testForError(effect, "aaxEffectSetState");
+        res = aaxEffectSetState(effect, AAX_TRUE);
+        testForState(res, "aaxEffectSetState");
 
         res = aaxEmitterSetEffect(emitter, effect);
         testForState(res, "aaxEmitterSetEffect");
@@ -150,12 +158,12 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
         testForError(filter, "aaxFilterCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+        res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                           0.0f, 6.0f, 1.0f, 0.0f);
-        testForError(filter, "aaxFilterSetSlot");
+        testForState(res, "aaxFilterSetSlot");
 
-        filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
-        testForError(filter, "aaxFilterSetState");
+        res = aaxFilterSetState(filter, AAX_SINE_WAVE);
+        testForState(res, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);
         testForState(res, "aaxEmitterSetFilter");
@@ -185,11 +193,8 @@ int main(int argc, char **argv)
 
 
         /** mixer */
-        res = aaxMixerInit(config);
+        res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
-
-        res = aaxMixerSetGain(config, 1.0f);
-        testForState(res, "aaxMixerSetGain");
 
         res = aaxMixerRegisterEmitter(config, emitter);
         testForState(res, "aaxMixerRegisterEmitter");
@@ -209,12 +214,12 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
         testForError(effect, "aaxEffectCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+        res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                           0.0f, 2.0f, 1.0f, 0.0f);
-        testForError(effect, "aaxEffectSetSlot");
+        testForState(res, "aaxEffectSetSlot");
 
-        filter = aaxFilterSetState(filter, AAX_SINE_WAVE);
-        testForError(effect, "aaxEffectSetState");
+        res = aaxFilterSetState(filter, AAX_SINE_WAVE);
+        testForState(res, "aaxEffectSetState");
 
         res = aaxMixerSetFilter(config, filter);
         testForState(res, "aaxMixerSetEffect");
@@ -228,12 +233,12 @@ int main(int argc, char **argv)
         effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
         testForError(effect, "aaxEffectCreate");
 
-        effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+        res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                           0.0f, 4.0f, 1.0f, 0.0f);
-        testForError(effect, "aaxEffectSetSlot");
+        testForState(res, "aaxEffectSetSlot");
 
-        effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
-        testForError(effect, "aaxEffectSetState");
+        res = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
+        testForState(res, "aaxEffectSetState");
 
         res = aaxMixerSetEffect(config, effect);
         testForState(res, "aaxEmitterSetEffect");

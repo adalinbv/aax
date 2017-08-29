@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -65,13 +65,14 @@ int main(int argc, char **argv)
         {
             aaxEmitter emitter[256];
             float pitch, dt = 0.0f;
+            aaxEffect effect;
             int q, state;
 
             /** mixer */
             res = aaxMixerSetSetup(config, AAX_REFRESHRATE, 50);
             testForState(res, "aaxMixerSetSetup");
 
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
@@ -84,8 +85,16 @@ int main(int argc, char **argv)
                 emitter[q] = aaxEmitterCreate();
                 testForError(emitter[q], "Unable to create a new emitter");
 
-                res = aaxEmitterSetPitch(emitter[q], pitch);
+                /* pitch */
+                effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+                testForError(effect, "Unable to create the pitch effect");
+
+                res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+                testForState(res, "aaxEffectSetParam");
+
+                res = aaxEmitterSetEffect(emitter[q], effect);
                 testForState(res, "aaxEmitterSetPitch");
+                aaxEffectDestroy(effect);
 
                 res = aaxEmitterAddBuffer(emitter[q], buffer);
                 testForState(res, "aaxEmitterAddBuffer");

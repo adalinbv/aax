@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include <base/geometry.h>
 #include <base/types.h>
@@ -97,6 +97,7 @@ int main(int argc, char **argv)
         aaxEmitter emitter;
         aaxFrame frame[2];
         aaxBuffer buffer;
+        aaxEffect effect;
         aaxMtx4f mtx;
         float pitch;
 
@@ -104,7 +105,7 @@ int main(int argc, char **argv)
         testForError(buffer, "Unable to generate buffer\n");
 
         /** mixer */
-        res = aaxMixerInit(config);
+        res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
         res = aaxMixerSetState(config, AAX_PLAYING);
@@ -168,9 +169,17 @@ int main(int argc, char **argv)
         res = aaxEmitterAddBuffer(emitter, buffer);
         testForState(res, "aaxEmitterAddBuffer");
 
+        /* pitch */
         pitch = getPitch(argc, argv);
-        res = aaxEmitterSetPitch(emitter, pitch);
+        effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+        testForError(effect, "Unable to create the pitch effect");
+
+        res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+        testForState(res, "aaxEffectSetParam");
+
+        res = aaxEmitterSetEffect(emitter, effect);
         testForState(res, "aaxEmitterSetPitch");
+        aaxEffectDestroy(effect);
 
         res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
         testForState(res, "aaxMatrixSetDirection");
@@ -240,7 +249,7 @@ int main(int argc, char **argv)
         }
         while (1);
 
-        res = aaxEmitterStop(emitter);
+        res = aaxEmitterSetState(emitter, AAX_STOPPED);
         res = aaxEmitterRemoveBuffer(emitter);
         testForState(res, "aaxEmitterRemoveBuffer");
 

@@ -92,7 +92,7 @@ int main(int argc, char **argv)
 
     if (config)
     {
-        int state, no_samples;
+        int no_samples; // state
         aaxEmitter emitter;
         aaxBuffer buffer;
         aaxFilter filter;
@@ -130,16 +130,16 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_EQUALIZER);
         testForError(filter, "aaxFilterCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, LF_FILTER_FREQUENCY,
+        res = aaxFilterSetSlot(filter, 0, AAX_LINEAR, LF_FILTER_FREQUENCY,
                                              LF_GAIN, MF_GAIN, LF_Q);
-        testForError(filter, "aaxFilterSetSlot 0");
+        testForState(res, "aaxFilterSetSlot 0");
 
-        filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR, HF_FILTER_FREQUENCY,
+        res = aaxFilterSetSlot(filter, 1, AAX_LINEAR, HF_FILTER_FREQUENCY,
                                              MF_GAIN , HF_GAIN, HF_Q);
-        testForError(filter, "aaxFilterSetSlot 1");
+        testForState(res, "aaxFilterSetSlot 1");
 
-        filter = aaxFilterSetState(filter, AAX_TRUE);
-        testForError(filter, "aaxFilterSetState");
+        res = aaxFilterSetState(filter, AAX_TRUE);
+        testForState(res, "aaxFilterSetState");
 
         res = aaxMixerSetFilter(config, filter);
         testForState(res, "aaxMixerSetFilter");
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
         {
             dt += 0.05f;
             msecSleep(50);
-            state = aaxEmitterGetState(emitter);
+//          state = aaxEmitterGetState(emitter);
         }
         while (dt < 1.0f); // state == AAX_PLAYING);
 

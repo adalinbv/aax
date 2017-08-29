@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -72,15 +72,23 @@ int main(int argc, char **argv)
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter");
 
+            /* pitch */
             pitch = getPitch(argc, argv);
-            res = aaxEmitterSetPitch(emitter, pitch);
+            effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+            testForError(effect, "Unable to create the pitch effect");
+
+            res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEmitterSetEffect(emitter, effect);
             testForState(res, "aaxEmitterSetPitch");
+            aaxEffectDestroy(effect);
 
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerRegisterEmitter(config, emitter);
@@ -93,12 +101,12 @@ int main(int argc, char **argv)
             effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+            res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               8500.0f, 0.035f, 0.93f, 0.049f);
-            testForError(effect, "aaxEffectSetSlot/0");
+            testForState(res, "aaxEffectSetSlot/0");
 
-            effect = aaxEffectSetState(effect, AAX_TRUE|AAX_INVERSE);
-            testForError(effect, "aaxEffectSetState");
+            res = aaxEffectSetState(effect, AAX_TRUE|AAX_INVERSE);
+            testForState(res, "aaxEffectSetState");
 
             res = aaxMixerSetEffect(config, effect);
             testForState(res, "aaxMixerSetEffect");
@@ -111,16 +119,16 @@ int main(int argc, char **argv)
             filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
             testForError(filter, "aaxFilterCreate");
 
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                               0.001f, 0.2f, 2.0f, 0.5f);
-            testForError(filter, "aaxFilterSetSlot 0");
+            testForState(res, "aaxFilterSetSlot 0");
 
-            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
                                               0.0f, 0.25f, 0.0f, 0.9f);
-            testForError(filter, "aaxFilterSetSlot 1");
+            testForState(res, "aaxFilterSetSlot 1");
 
-            filter = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);
-            testForError(filter, "aaxFilterSetState");
+            res = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);
+            testForState(res, "aaxFilterSetState");
 
             res = aaxMixerSetFilter(config, filter);
             testForState(res, "aaxEmitterSetFilter");

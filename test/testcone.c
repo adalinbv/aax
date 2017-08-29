@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "base/geometry.h"
@@ -74,11 +74,12 @@ int main(int argc, char **argv)
         {
             aaxEmitter emitter;
             float ang, pitch;
+            aaxEffect effect;
             aaxMtx4f mtx;
             int deg = 0;
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
@@ -106,7 +107,8 @@ int main(int argc, char **argv)
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
-            res = aaxEmitterSetIdentityMatrix(emitter);
+            aaxMatrixSetIdentityMatrix(mtx);
+            aaxEmitterSetMatrix(emitter, mtx);
             testForState(res, "aaxEmitterSetIdentityMatrix");
 
             res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
@@ -115,18 +117,26 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
             testForState(res, "aaxEmitterSetLooping");
 
-            res = aaxEmitterSetPitch(emitter, pitch);
+            /* pitch */
+            effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+            testForError(effect, "Unable to create the pitch effect");
+
+            res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEmitterSetEffect(emitter, effect);
             testForState(res, "aaxEmitterSetPitch");
+            aaxEffectDestroy(effect);
 
             do
             {
                aaxFilter flt = aaxEmitterGetFilter(emitter, AAX_ANGULAR_FILTER);
                testForError(flt, "aaxFilterCreate");
 
-               flt = aaxFilterSetSlot(flt, 0, AAX_RADIANS,
+               res = aaxFilterSetSlot(flt, 0, AAX_RADIANS,
                                       160.0f*GMATH_DEG_TO_RAD,
                                       200.0f*GMATH_DEG_TO_RAD, 0.0f, 0.3f);
-               testForError(flt, "aaxFilterSetSlot");
+               testForState(res, "aaxFilterSetSlot");
 
                res = aaxEmitterSetFilter(emitter, flt);
                testForState(res, "aaxEmitterSetAudioCone");

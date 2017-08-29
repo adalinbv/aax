@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -82,15 +82,23 @@ int main(int argc, char **argv)
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter");
 
+            /* pitch */
             pitch = getPitch(argc, argv);
-            res = aaxEmitterSetPitch(emitter, pitch);
+            effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+            testForError(effect, "Unable to create the pitch effect");
+
+            res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEmitterSetEffect(emitter, effect);
             testForState(res, "aaxEmitterSetPitch");
+            aaxEffectDestroy(effect);
 
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerSetSetup(config, AAX_REFRESHRATE, REFRATE);
@@ -123,8 +131,8 @@ int main(int argc, char **argv)
             res = aaxEffectAddBuffer(effect, irbuffer);
             testForState(res, "aaxEffectAddBuffer");
 
-            effect = aaxEffectSetState(effect, AAX_TRUE);
-            testForError(effect, "aaxEffectSetState");
+            res = aaxEffectSetState(effect, AAX_TRUE);
+            testForState(res, "aaxEffectSetState");
 
             res = aaxMixerSetEffect(config, effect);
             testForState(res, "aaxMixerSetEffect");
@@ -136,12 +144,12 @@ int main(int argc, char **argv)
             effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+            res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               790.0f, 0.035f, 0.89f, 0.15f);
-            testForError(effect, "aaxEffectSetSlot/0");
+            testForState(res, "aaxEffectSetSlot/0");
 
-            effect = aaxEffectSetState(effect, AAX_TRUE);
-            testForError(effect, "aaxEffectSetState");
+            res = aaxEffectSetState(effect, AAX_TRUE);
+            testForState(res, "aaxEffectSetState");
 
             res = aaxMixerSetEffect(config, effect);
             testForState(res, "aaxMixerSetEffect");

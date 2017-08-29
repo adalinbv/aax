@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/geometry.h"
 #include "base/types.h"
@@ -96,6 +96,8 @@ int main(int argc, char **argv)
         {
             float pitch, anglestep;
             aaxEmitter *emitter;
+            aaxFilter filter;
+            aaxEffect effect;
             int i, j, deg = 0;
             aaxMtx4f mtx;
 
@@ -103,7 +105,7 @@ int main(int argc, char **argv)
             emitter = calloc(num*SUBFRAMES*FRAMES, sizeof(aaxEmitter));
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
@@ -222,11 +224,26 @@ int main(int argc, char **argv)
                         res=aaxEmitterSetMode(emitter[p],AAX_LOOPING,AAX_TRUE);
                         testForState(res, "aaxEmitterSetLooping");
 
-                        res = aaxEmitterSetReferenceDistance(emitter[p], 6.3f);
+                        filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
+                        testForError(filter, "Unable to create the distance filter");
+
+                        res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 6.3f);
                         testForState(res, "aaxEmitterSetReferenceDistance");
 
-                        res = aaxEmitterSetPitch(emitter[p], pitch);
+                        res = aaxScenerySetFilter(config, filter);
+                        testForState(res, "aaxScenerySetDistanceModel");
+                        aaxFilterDestroy(filter);
+
+                        /* pitch */
+                        effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+                        testForError(effect, "Unable to create the pitch effect");
+
+                        res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+                        testForState(res, "aaxEffectSetParam");
+
+                        res = aaxEmitterSetEffect(emitter, effect);
                         testForState(res, "aaxEmitterSetPitch");
+                        aaxEffectDestroy(effect);
 
                         if (p == -1)
                         {
