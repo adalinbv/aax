@@ -62,6 +62,7 @@
 #endif
 
 static uint32_t _oalSoftwareWaveHeader[WAVE_EXT_HEADER_SIZE];
+#if 0
 static const uint32_t _defaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
 {
     0x46464952,          /*  0. "RIFF"                                        */
@@ -85,6 +86,7 @@ static const uint32_t _defaultWaveHeader[WAVE_EXT_HEADER_SIZE] =
     0                    /* 16. length of the data block                      *
                          *    (no_samples*no_tracks*bits_sample/8)            */
 };
+#endif
 
 #define DEBUG_PRINT(a) \
     printf(" %2i: %08x \"%c%c%c%c\"\n", a, _oalSoftwareWaveHeader[a], \
