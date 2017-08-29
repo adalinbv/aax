@@ -51,7 +51,6 @@ inline std::string to_string(enum aaxHandleType handle)
     case AAX_AUDIOFRAME: return "audio frame";
     case AAX_FILTER: return "sound filter";
     case AAX_EFFECT: return "sound effect";
-    case AAX_CONFIG_HD: return "HD audio driver";
     }
 }
 
