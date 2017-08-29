@@ -7,7 +7,7 @@
  * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.
  * Add support for WAV embeded MP3 files.
  * Add support for native AAXS files when calling aaxBufferReadFromStream.
-  * Support proper distortion (not clipping) when the gain of generated
+ * Support proper distortion (not clipping) when the gain of generated
    waveforms becomes (too) large
  * Add the option to define filters and effects in an AAXS file. These will
    get applied automatically when the buffer is added to an emitter, the mixer
@@ -18,7 +18,10 @@
  * Add a functions to get filter and effect types by name.
  * Add functions to get a conversion-type and to get a waveform-type by name.
  * Add a convolution effect to simulate acoustics based on an audio buffer.
-   This is a resource heavy effect, use with care.
+   Note: This is a resource heavy effect, use with care.
+ * Changed the return types of all filter and effect functions (except for the
+   Create functions) fro aaxFilter/aaxEffect to match the rest of the API.
+   Note: This will require code changes.
  * Fixed some header mistakes which makes version 3.0 incompatible with 2.0
  * Removed version 1.0 compatible header files.
  * Fix a bug where modulating waveforms by non-sine waveforms caused silence.

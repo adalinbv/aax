@@ -71,17 +71,17 @@ aaxEffectDestroy(aaxEffect e)
    return rv;
 }
 
-AAX_API aaxEffect AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxEffectSetSlot(aaxEffect e, unsigned slot, int ptype, float p1, float p2, float p3, float p4)
 {
    const aaxVec4f v = { p1, p2, p3, p4 };
    return aaxEffectSetSlotParams(e, slot, ptype, v);
 }
 
-AAX_API aaxEffect AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, const aaxVec4f p)
 {
-   aaxEffect rv = AAX_FALSE;
+   int rv = AAX_FALSE;
    _effect_t* effect = get_effect(e);
    if (effect)
    {
@@ -103,7 +103,7 @@ aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, const aaxVec4f p)
             if TEST_FOR_TRUE(effect->state) {
                rv = aaxEffectSetState(effect, effect->state);
             } else {
-               rv = effect;
+               rv = AAX_TRUE;
             }
          }
          else {
@@ -199,11 +199,11 @@ aaxEffectAddBuffer(aaxEffect eff, aaxBuffer buf)
    return rv;
 }
 
-AAX_API aaxEffect AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxEffectSetState(aaxEffect e, int state)
 {
    _effect_t* effect = get_effect(e);
-   aaxEffect rv = NULL;
+   int rv = AAX_FALSE;
    if (effect)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
@@ -232,7 +232,7 @@ aaxEffectSetState(aaxEffect e, int state)
             slot++;
          }
 
-         rv = eff->state(effect, state);
+         rv = eff->state(effect, state) ? AAX_TRUE : AAX_FALSE;
       }
    }
    return rv;
@@ -281,11 +281,11 @@ aaxEffectGetParam(const aaxEffect e, int param, int ptype)
    return rv;
 }
 
-AAX_API aaxEffect AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxEffectGetSlot(const aaxEffect e, unsigned slot, int ptype, float* p1, float* p2, float* p3, float* p4)
 {
    aaxVec4f v;
-   aaxEffect rv = aaxEffectGetSlotParams(e, slot, ptype, v);
+   int rv = aaxEffectGetSlotParams(e, slot, ptype, v);
    if(p1) *p1 = v[0];
    if(p2) *p2 = v[1];
    if(p3) *p3 = v[2];
@@ -293,11 +293,11 @@ aaxEffectGetSlot(const aaxEffect e, unsigned slot, int ptype, float* p1, float* 
    return rv;
 }
 
-AAX_API aaxEffect AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 {
    _effect_t* effect = get_effect(e);
-   aaxEffect rv = AAX_FALSE;
+   int rv = AAX_FALSE;
    if (effect)
    {
       void *handle = effect->handle;
@@ -311,7 +311,7 @@ aaxEffectGetSlotParams(const aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
                _eff_function_tbl *eff = _aaxEffects[effect->type-1];
                p[i] = eff->set(effect->slot[slot]->param[i], ptype, i);
             }
-            rv = effect;
+            rv = AAX_TRUE;
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -389,40 +389,6 @@ aaxEffectGetByName(aaxConfig handle, const char *name)
       _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
 
-   return rv;
-}
-
-/* -------------------------------------------------------------------------- */
-
-/* internal use only, used by aaxdefs.h */
-AAX_API aaxEffect AAX_APIENTRY
-aaxEffectApply(aaxEffectFn fn, void *handle, aaxEffect e)
-{
-   if (e)
-   {
-      if (!fn(handle, e))
-      {
-         aaxEffectDestroy(e);
-         e = NULL;
-      }
-   }
-   return e;
-}
-
-AAX_API float AAX_APIENTRY
-aaxEffectApplyParam(const aaxEffect e, int s, int p, int ptype)
-{
-   float rv = 0.0f;
-   if ((p >= 0) && (p < 4))
-   {
-      _effect_t* effect = get_effect(e);
-      if (effect)
-      {
-         _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-         rv = eff->set(effect->slot[s]->param[p], ptype, p);
-         free(effect);
-      }
-   }
    return rv;
 }
 

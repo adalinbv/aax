@@ -397,9 +397,8 @@ aaxDriverOpen(aaxConfig config)
 
                /* crossover lowpass filter at 80Hz, 4th orer (24dB/oct) */
                filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
-               filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                                 fc, 1.0f, 0.0f, 1.0f);
-               filter = aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
+               aaxFilterSetSlot(filter, 0, AAX_LINEAR, fc, 1.0f, 0.0f, 1.0f);
+               aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
                _FILTER_SWAP_SLOT_DATA(handle, SURROUND_CROSSOVER_LP, filter, 0);
                aaxFilterDestroy(filter);
 
@@ -414,9 +413,8 @@ aaxDriverOpen(aaxConfig config)
 
                /* head shadow filter at 1kHz, 1st order (6dB/oct) max */
                filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
-               filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                                 1000.0f, 1.0f, 0.0f, 1.0f);
-               filter = aaxFilterSetState(filter, AAX_BESSEL|AAX_6DB_OCT);
+               aaxFilterSetSlot(filter, 0, AAX_LINEAR, 1000.0f, 1.0f,0.0f,1.0f);
+               aaxFilterSetState(filter, AAX_BESSEL|AAX_6DB_OCT);
                _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
                aaxFilterDestroy(filter);
             }
