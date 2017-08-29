@@ -73,18 +73,18 @@ aaxFilterDestroy(aaxFilter f)
    return rv;
 }
 
-AAX_API aaxFilter AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxFilterSetSlot(aaxFilter f, unsigned slot, int ptype, float p1, float p2, float p3, float p4)
 {
    const aaxVec4f v = { p1, p2, p3, p4 };
    return aaxFilterSetSlotParams(f, slot, ptype, v);
 }
 
-AAX_API aaxFilter AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, const aaxVec4f p)
 {
    _filter_t* filter = get_filter(f);
-   aaxFilter rv = AAX_FALSE;
+   int rv = AAX_FALSE;
    if (filter && p)
    {
       if ((slot < _MAX_FE_SLOTS) && filter->slot[slot])
@@ -102,7 +102,7 @@ aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, const aaxVec4f p)
          if TEST_FOR_TRUE(filter->state) {
             rv = aaxFilterSetState(filter, filter->state);
          } else {
-            rv = filter;
+            rv = AAX_TRUE;
          }
       }
       else
@@ -158,11 +158,11 @@ aaxFilterAddBuffer(UNUSED(aaxFilter f), UNUSED(aaxBuffer b))
    return AAX_FALSE;
 }
 
-AAX_API aaxFilter AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxFilterSetState(aaxFilter f, int state)
 {
    _filter_t* filter = get_filter(f);
-   aaxFilter rv = NULL;
+   int rv = AAX_FALSE;
    if (filter)
    {
       _flt_function_tbl *flt = _aaxFilters[filter->type-1];
@@ -191,7 +191,7 @@ aaxFilterSetState(aaxFilter f, int state)
             slot++;
          }
 
-         rv = flt->state(filter, state);
+         rv = flt->state(filter, state) ? AAX_TRUE : AAX_FALSE;
       }
    }
    return rv;
@@ -239,11 +239,11 @@ aaxFilterGetParam(const aaxFilter f, int param, int ptype)
    return rv;
 }
 
-AAX_API aaxFilter AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxFilterGetSlot(const aaxFilter f, unsigned slot, int ptype, float* p1, float* p2, float* p3, float* p4)
 {
    aaxVec4f v;
-   aaxFilter rv = aaxEffectGetSlotParams(f, slot, ptype, v);
+   int rv = aaxEffectGetSlotParams(f, slot, ptype, v);
    if(p1) *p1 = v[0];
    if(p2) *p2 = v[1];
    if(p3) *p3 = v[2];
@@ -251,10 +251,10 @@ aaxFilterGetSlot(const aaxFilter f, unsigned slot, int ptype, float* p1, float* 
    return rv;
 }
 
-AAX_API aaxFilter AAX_APIENTRY
+AAX_API int AAX_APIENTRY
 aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 {
-   aaxFilter rv = AAX_FALSE;
+   int rv = AAX_FALSE;
    _filter_t* filter = get_filter(f);
    if (filter)
    {
@@ -269,7 +269,7 @@ aaxFilterGetSlotParams(const aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
                _flt_function_tbl *flt = _aaxFilters[filter->type-1];
                p[i] = flt->set(filter->slot[slot]->param[i], ptype, i);
             }
-            rv = filter;
+            rv = AAX_TRUE;
          }
          else {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -346,40 +346,6 @@ aaxFilterGetByName(aaxConfig handle, const char *name)
       _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
 
-   return rv;
-}
-
-/* -------------------------------------------------------------------------- */
-
-/* internal use only, used by aaxdefs.h */
-AAX_API aaxFilter AAX_APIENTRY
-aaxFilterApply(aaxFilterFn fn, void *handle, aaxFilter f)
-{
-   if (f)
-   {
-      if (!fn(handle, f))
-      {
-         aaxFilterDestroy(f);
-         f = NULL;
-      }
-   }
-   return f;
-}
-
-AAX_API float AAX_APIENTRY
-aaxFilterApplyParam(const aaxFilter f, int s, int p, int ptype)
-{
-   float rv = 0.0f;
-   if ((p >= 0) && (p < 4))
-   {
-      _filter_t* filter = get_filter(f);
-      if (filter)
-      {
-         _flt_function_tbl *flt = _aaxFilters[filter->type-1];
-         rv = flt->set(filter->slot[s]->param[p], ptype, p);
-         free(filter);
-      }
-   }
    return rv;
 }
 
