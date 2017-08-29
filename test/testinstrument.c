@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include <base/geometry.h>
 #include <base/types.h>
@@ -158,7 +158,7 @@ int main(int argc, char **argv)
         unsigned int no_samples;
         aaxEmitter emitter;
         aaxBuffer buffer;
-        aaxFilter filter;
+//      aaxFilter filter;
         aaxEffect effect;
         int i;
 
@@ -166,7 +166,7 @@ int main(int argc, char **argv)
         buffer = aaxBufferCreate(config, no_samples, 1, AAX_AAXS16S);
         testForError(buffer, "Unable to generate buffer\n");
 
-        res = aaxBufferSetFrequency(buffer, SAMPLE_FREQUENCY);
+        res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, SAMPLE_FREQUENCY);
         testForState(res, "aaxBufferSetFrequency");
 
         res = aaxBufferSetData(buffer, aaxs_data_sax);
@@ -285,7 +285,7 @@ int main(int argc, char **argv)
 #endif
 
         /** mixer */
-        res = aaxMixerInit(config);
+        res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
         res = aaxMixerRegisterEmitter(config, emitter);
@@ -325,17 +325,39 @@ int main(int argc, char **argv)
 
             if (i == 10) 
             {
-                res = aaxEmitterStop(emitter);
-                res = aaxEmitterRewind(emitter);
-                res = aaxEmitterSetPitch(emitter, 0.8909f);	// G2
-                res = aaxEmitterStart(emitter);
+                res = aaxEmitterSetState(emitter, AAX_STOPPED);
+                res = aaxEmitterSetState(emitter, AAX_INITIALIZED); // rewind
+
+                effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+                testForError(effect, "Unable to create the pitch effect");
+
+                // G2
+                res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, 0.8909f);
+                testForState(res, "aaxEffectSetParam");
+
+                res = aaxEmitterSetEffect(emitter, effect);
+                testForState(res, "aaxEmitterSetPitch");
+                aaxEffectDestroy(effect);
+
+                res = aaxEmitterSetState(emitter, AAX_PLAYING);
             }
             else if (i == 27)
             {
-                res = aaxEmitterStop(emitter);
-                res = aaxEmitterRewind(emitter);
-                res = aaxEmitterSetPitch(emitter, 0.2973f);	// C1
-                res = aaxEmitterStart(emitter);
+                res = aaxEmitterSetState(emitter, AAX_STOPPED);
+                res = aaxEmitterSetState(emitter, AAX_INITIALIZED); // rewind
+
+                effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+                testForError(effect, "Unable to create the pitch effect");
+
+                // C1
+                res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, 0.2973f);
+                testForState(res, "aaxEffectSetParam");
+
+                res = aaxEmitterSetEffect(emitter, effect);
+                testForState(res, "aaxEmitterSetPitch");
+                aaxEffectDestroy(effect);
+
+                res = aaxEmitterSetState(emitter, AAX_PLAYING);
             }
             i++;
 
@@ -352,7 +374,7 @@ int main(int argc, char **argv)
         while (state == AAX_PLAYING);
 
 
-        res = aaxEmitterStop(emitter);
+        res = aaxEmitterSetState(emitter, AAX_STOPPED);
         res = aaxEmitterRemoveBuffer(emitter);
         testForState(res, "aaxEmitterRemoveBuffer");
 

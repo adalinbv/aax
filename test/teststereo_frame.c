@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -70,12 +70,13 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter;
+            aaxEffect effect;
             aaxFrame frame;
             float pitch, dt = 0.0f;
             int q, state;
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
@@ -84,10 +85,6 @@ int main(int argc, char **argv)
             /** audio frame */
             frame = aaxAudioFrameCreate(config);
             testForError(frame, "Unable to create a new audio frame\n");
-
-            pitch = getPitch(argc, argv);
-            res = aaxAudioFrameSetPitch(frame, pitch);
-            testForState(res, "aaxAudioFrameSetPitch");
 
             /** register audio frame */
             res = aaxMixerRegisterAudioFrame(config, frame);
@@ -103,6 +100,18 @@ int main(int argc, char **argv)
 
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
+
+            /* pitch */
+            pitch = getPitch(argc, argv);
+            effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+            testForError(effect, "Unable to create the pitch effect");
+
+            res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEmitterSetEffect(emitter, effect);
+            testForState(res, "aaxEmitterSetPitch");
+            aaxEffectDestroy(effect);
 
             /** register emitter */
             res = aaxAudioFrameRegisterEmitter(frame, emitter);

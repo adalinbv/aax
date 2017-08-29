@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -61,6 +61,8 @@ int main(int argc, char **argv)
         {
             const int NUM_BUFFERS = 8;
             aaxEmitter emitter;
+            aaxFilter filter;
+            aaxEffect effect;
             float pitch;
             int i, num;
 
@@ -68,12 +70,28 @@ int main(int argc, char **argv)
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter\n");
 
+            /* pitch */
             pitch = getPitch(argc, argv);
-            res = aaxEmitterSetPitch(emitter, pitch);
-            testForState(res, "aaxEmitterSetPitch");
+            effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+            testForError(effect, "Unable to create the pitch effect");
 
-            res = aaxEmitterSetGain(emitter, 0.5f);
+            res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEmitterSetEffect(emitter, effect);
+            testForState(res, "aaxEmitterSetPitch");
+            aaxEffectDestroy(effect);
+
+            /* gain*/
+            filter = aaxFilterCreate(config, AAX_VOLUME_FILTER);
+            testForError(filter, "Unable to create the volume filter");
+
+            res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, 0.5f);
+            testForState(res, "aaxFilterSetParam");
+
+            res = aaxEmitterSetFilter(emitter, filter);
             testForState(res, "aaxEmitterSetGain");
+            aaxFilterDestroy(filter);
 
             /** buffer */
             for (i=0; i<NUM_BUFFERS; i++)
@@ -83,7 +101,7 @@ int main(int argc, char **argv)
             }
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerRegisterEmitter(config, emitter);
@@ -102,7 +120,7 @@ int main(int argc, char **argv)
             {
                 if (aaxEmitterGetNoBuffers(emitter, AAX_PROCESSED) > 1)
                 {
-                    aaxBuffer buf = aaxEmitterGetBuffer(emitter);
+                    aaxBuffer buf = aaxEmitterGetBufferByPos(emitter,0, AAX_FALSE);
                     aaxEmitterRemoveBuffer(emitter);
                     aaxEmitterAddBuffer(emitter, buf);
                     num += 1;

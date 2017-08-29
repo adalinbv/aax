@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "base/geometry.h"
@@ -80,6 +80,7 @@ int main(int argc, char **argv)
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer && irbuffer)
         {
+            aaxFilter filter;
             aaxEffect effect;
             aaxMtx4f mtx, rot;
             aaxEmitter emitter[256];
@@ -88,16 +89,22 @@ int main(int argc, char **argv)
             int i, deg = 0;
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
             /** scenery settings */
-            res=aaxScenerySetDistanceModel(config,
-                                           AAX_EXPONENTIAL_DISTANCE_DELAY);
+            filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
+            testForError(filter, "Unable to create the distance filter");
+
+            res = aaxFilterSetState(filter, AAX_EXPONENTIAL_DISTANCE_DELAY);
+            testForState(res, "aaxFilterSetState");
+
+            res = aaxScenerySetFilter(config, filter);
             testForState(res, "aaxScenerySetDistanceModel");
+            aaxFilterDestroy(filter);
 
             /* convolution */
             effect = aaxEffectCreate(config, AAX_CONVOLUTION_EFFECT);
@@ -109,8 +116,8 @@ int main(int argc, char **argv)
             res = aaxEffectAddBuffer(effect, irbuffer);
             testForState(res, "aaxEffectAddBuffer");
 
-            effect = aaxEffectSetState(effect, AAX_TRUE);
-            testForError(effect, "aaxEffectSetState");
+            res = aaxEffectSetState(effect, AAX_TRUE);
+            testForState(res, "aaxEffectSetState");
 
             res = aaxScenerySetEffect(config, effect);
             testForState(res, "aaxMixerSetEffect");
@@ -166,11 +173,27 @@ int main(int argc, char **argv)
                 res = aaxEmitterSetMode(emitter[i], AAX_LOOPING, AAX_TRUE);
                 testForState(res, "aaxEmitterSetLooping");
 
-                res = aaxEmitterSetReferenceDistance(emitter[i], 3.0f);
-                testForState(res, "aaxEmitterSetReferenceDistance");
+                /* distance model */
+                filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
+                testForError(filter, "Unable to create the distance filter");
 
-                res = aaxEmitterSetPitch(emitter[i], pitch);
+                res = aaxFilterSetParam(filter, AAX_ROLLOFF_FACTOR, AAX_LINEAR, 3.0f);
+                testForState(res, "aaxFilterSetParam");
+
+                res = aaxScenerySetFilter(config, filter);
+                testForState(res, "aaxScenerySetDistanceModel");
+                aaxFilterDestroy(filter);
+
+                /* pitch */
+                effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+                testForError(effect, "Unable to create the pitch effect");
+
+                res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+                testForState(res, "aaxEffectSetParam");
+
+                res = aaxEmitterSetEffect(emitter[i], effect);
                 testForState(res, "aaxEmitterSetPitch");
+                aaxEffectDestroy(effect);
 
                 res = aaxMixerRegisterEmitter(config, emitter[i]);
                 testForState(res, "aaxMixerRegisterEmitter");

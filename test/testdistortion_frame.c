@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -86,7 +86,7 @@ int main(int argc, char **argv)
             float pitch;
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             /** AudioFrame */
@@ -109,16 +109,16 @@ int main(int argc, char **argv)
             filter = aaxFilterCreate(config, AAX_EQUALIZER);
             testForError(filter, "aaxFilterCreate");
 
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                               60.0f, 0.3f, 1.0f, 1.2f);
-            testForError(filter, "aaxFilterSetSlot/0");
+            testForState(res, "aaxFilterSetSlot/0");
 
-            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
                                               5000.0f, 1.0f, 0.0f, 6.0f);
-            testForError(filter, "aaxFilterSetSlot/1");
+            testForState(res, "aaxFilterSetSlot/1");
 
-            filter = aaxFilterSetState(filter, AAX_TRUE);
-            testForError(filter, "aaxFilterSetState");
+            res = aaxFilterSetState(filter, AAX_TRUE);
+            testForState(res, "aaxFilterSetState");
 
             res = aaxAudioFrameSetFilter(frame, filter);
             testForState(res, "aaxMixerSetFilter");
@@ -131,9 +131,17 @@ int main(int argc, char **argv)
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter");
 
+            /* pitch */
             pitch = getPitch(argc, argv);
-            res = aaxEmitterSetPitch(emitter, pitch);
+            effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+            testForError(filter, "Unable to create the pitch effect");
+
+            res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+            testForState(res, "aaxEffectSetParam");
+
+            res = aaxEmitterSetEffect(emitter, effect);
             testForState(res, "aaxEmitterSetPitch");
+            aaxEffectDestroy(effect);
 
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
@@ -154,11 +162,11 @@ int main(int argc, char **argv)
             printf("emitter phasing\n");
             effect = aaxEmitterGetEffect(emitter, AAX_PHASING_EFFECT);
             testForError(effect, "aaxEmitterGetEffect");
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+            res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               1.0f, 0.0f, 0.0f, 0.067f);
-            testForError(effect, "aaxEffectSetSlot");
-            effect = aaxEffectSetState(effect, AAX_TRUE);
-            testForError(effect, "aaxEffectSetState");
+            testForState(res, "aaxEffectSetSlot");
+            res = aaxEffectSetState(effect, AAX_TRUE);
+            testForState(res, "aaxEffectSetState");
             res = aaxEmitterSetEffect(emitter, effect);
             testForState(res, "aaxEmitterSetEffect");
             res = aaxEffectDestroy(effect);
@@ -198,15 +206,15 @@ int main(int argc, char **argv)
 # else
             /* envelope following dynamic frequency filter (auto-wah) */
             printf("auto-wah effect\n");
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                               100.0f, 0.5f, 1.0f, 8.0f);
-            testForError(filter, "aaxFilterSetSlot 0");
+            testForState(res, "aaxFilterSetSlot 0");
 
-            filter = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
                                               550.0f, 0.0f, 0.0f, 1.0f);
-            testForError(filter, "aaxFilterSetSlot 1");
-            filter = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
-            testForError(filter, "aaxFilterSetState");
+            testForState(res, "aaxFilterSetSlot 1");
+            res = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
+            testForState(res, "aaxFilterSetState");
 # endif
             res = aaxAudioFrameSetFilter(frame, filter);
             testForState(res, "aaxAudioFrameSetFilter");
@@ -221,11 +229,11 @@ int main(int argc, char **argv)
             effect = aaxEffectCreate(config, AAX_DISTORTION_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
-            effect  = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+            res  = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               0.6f, 0.2f, 1.0f, 1.0f);
-            testForError(effect, "aaxEffectSetSlot 0");
-            effect = aaxEffectSetState(effect, AAX_TRUE);
-            testForError(effect, "aaxEffectSetState");
+            testForState(res, "aaxEffectSetSlot 0");
+            res = aaxEffectSetState(effect, AAX_TRUE);
+            testForState(res, "aaxEffectSetState");
             res = aaxAudioFrameSetEffect(frame, effect);
             testForState(res, "aaxAudioFrameSetEffect");
 

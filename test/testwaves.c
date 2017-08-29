@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <stdlib.h>	// getenv
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -113,7 +113,7 @@ int main(int argc, char **argv)
             buffer[i] = aaxBufferCreate(config, no_samples, 1, SAMPLE_FORMAT);
             testForError(buffer, "Unable to generate buffer\n");
 
-            res = aaxBufferSetFrequency(buffer[i], SAMPLE_FREQ);
+            res = aaxBufferSetSetup(buffer[i], AAX_FREQUENCY, SAMPLE_FREQ);
             testForState(res, "aaxBufferSetFrequency");
 
             res = aaxBufferProcessWaveform(buffer[i], pitch*rate, type, 1.0f,
@@ -141,11 +141,18 @@ int main(int argc, char **argv)
         testForState(res, "aaxSensorSetMatrix");
 
         /** mixer */
-        res = aaxMixerInit(config);
+        res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
-        res=aaxScenerySetDistanceModel(config, AAX_EXPONENTIAL_DISTANCE_DELAY);
+        filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
+        testForError(filter, "Unable to create the distance filter");
+
+        res = aaxFilterSetState(filter, AAX_EXPONENTIAL_DISTANCE_DELAY);
+        testForState(res, "aaxFilterSetState");
+
+        res = aaxScenerySetFilter(config, filter);
         testForState(res, "aaxScenerySetDistanceModel");
+        aaxFilterDestroy(filter);
 
         res = aaxMixerRegisterEmitter(config, emitter);
         testForState(res, "aaxMixerRegisterEmitter");

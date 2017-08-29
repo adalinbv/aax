@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -64,10 +64,12 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter[256];
+            aaxFilter filter;
+            aaxEffect effect;
             int i, state;
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             gain = getGain(argc, argv);
@@ -91,11 +93,27 @@ int main(int argc, char **argv)
                 res = aaxEmitterSetMode(emitter[i], AAX_LOOPING, AAX_FALSE);
                 testForState(res, "aaxEmitterSetLooping");
 
-                res = aaxEmitterSetPitch(emitter[i], pitch);
-                testForState(res, "aaxEmitterSetPitch");
+                /* pitch */
+                effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+                testForError(effect, "Unable to create the pitch effect");
 
-                res = aaxEmitterSetGain(emitter[i], gain);
+                res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+                testForState(res, "aaxEffectSetParam");
+
+                res = aaxEmitterSetEffect(emitter[i], effect);
+                testForState(res, "aaxEmitterSetPitch");
+                aaxEffectDestroy(effect);
+
+                /* gain */
+                filter = aaxFilterCreate(config, AAX_VOLUME_FILTER);
+                testForError(filter, "Unable to create the volume filter");
+
+                res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, gain);
+                testForState(res, "aaxFilterSetParam");
+
+                res = aaxEmitterSetFilter(emitter, filter);
                 testForState(res, "aaxEmitterSetGain");
+                aaxFilterDestroy(filter);
 
                 res = aaxMixerRegisterEmitter(config, emitter[i]);
                 testForState(res, "aaxMixerRegisterEmitter");

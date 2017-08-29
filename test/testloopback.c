@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterAddBuffer");
 
             /** mixer */
-            res = aaxMixerInit(record);
+            res = aaxMixerSetState(record, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit for recording");
 
             res = aaxMixerRegisterEmitter(record, emitter);
@@ -180,7 +180,7 @@ int main(int argc, char **argv)
             testForError(config, "No default audio device available.");
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit for playback");
 
             res = aaxMixerRegisterEmitter(config, emitter2);

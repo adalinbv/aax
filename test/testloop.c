@@ -35,7 +35,7 @@
 
 #include <stdio.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -62,13 +62,11 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter;
-            float freq, dt = 0.0f;
+            float dt = 0.0f;
             int q, state, num;
 
-//          freq = (float)aaxBufferGetSetup(buffer, AAX_FREQUENCY);
-            res = aaxBufferSetLoopPoints(buffer, 9201, 31641);
-//                                     (unsigned int)rintf(LOOP_START_SEC*freq),
-//                                     (unsigned int)rintf(LOOP_END_SEC*freq));
+            res = aaxBufferSetSetup(buffer, AAX_LOOP_START, 9201);
+            res = aaxBufferSetSetup(buffer, AAX_LOOP_END, 31641);
             testForState(res, "aaxBufferSetLoopPoints");
 
             /** emitter */
@@ -83,7 +81,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterSetLooping");
 
             /** mixer */
-            res = aaxMixerInit(config);
+            res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
             res = aaxMixerRegisterEmitter(config, emitter);

@@ -36,7 +36,7 @@
 #include <stdio.h>
 #include <math.h>
 
-#include <aax/defines.h>
+#include <aax/aax.h>
 
 #include "base/types.h"
 #include "driver.h"
@@ -77,7 +77,7 @@ int main(int argc, char **argv)
         aaxMtx4f mtx;
 
         /** mixer */
-        res = aaxMixerInit(config);
+        res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
         res = aaxMixerSetState(config, AAX_PLAYING);
