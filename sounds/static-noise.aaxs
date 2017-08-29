@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 
-<sound frequency="440">
+<aeonwave>
+ <sound frequency="440">
 <!--
- <waveform src="white-noise">
-  <pitch>0.2</pitch>
-  <staticity>0.3</staticity>
- </waveform>
+  <waveform src="white-noise">
+   <pitch>0.2</pitch>
+   <staticity>0.3</staticity>
+  </waveform>
 -->
- <waveform src="pink-noise">
-  <processing>mix</processing>
-  <staticity>0.00</staticity>
-  <ratio>0.7</ratio>
- </waveform>
-</sound>
+  <waveform src="pink-noise">
+   <processing>mix</processing>
+   <staticity>0.00</staticity>
+   <ratio>0.7</ratio>
+  </waveform>
+ </sound>
+
+</aeonwave>

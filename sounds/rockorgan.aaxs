@@ -16,7 +16,7 @@
   </waveform>
  </sound>
 
- <emitter>
+ <emitter looping="true">
   <effect type="flanging" src="triangle">
    <slot n="0">
     <p1>0.4</p1>

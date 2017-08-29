@@ -190,7 +190,7 @@ int main(int argc, char **argv)
         unsigned int max_samples;
         aaxFrame frame = NULL;
         aaxEffect effect;
-        aaxFilter filter;
+//      aaxFilter filter;
         char tstr[80];
         int state;
 
@@ -234,12 +234,12 @@ int main(int argc, char **argv)
                 effect = aaxAudioFrameGetEffect(frame,AAX_DYNAMIC_PITCH_EFFECT);
                 testForError(effect, "aaxEffectCreate");
 
-                effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                           0.0f, 0.025f, pitch, 0.0f);
-                testForError(effect, "aaxEffectSetSlot");
+                testForState(res, "aaxEffectSetSlot");
 
-                effect = aaxEffectSetState(effect, AAX_SINE_WAVE);
-                testForError(effect, "aaxEffectSetState");
+                res = aaxEffectSetState(effect, AAX_SINE_WAVE);
+                testForState(res, "aaxEffectSetState");
 #endif
                 res = aaxAudioFrameSetEffect(frame, effect);
                 testForState(res, " aaxAudioFrameSetEffect");
@@ -277,12 +277,12 @@ int main(int argc, char **argv)
             effect = aaxMixerGetEffect(record, AAX_DYNAMIC_PITCH_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
-            effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+            res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                       0.0f, frame ? 0.5f : 0.06f, pitch, 0.0f);
-            testForError(effect, "aaxEffectSetSlot");
+            testForState(res, "aaxEffectSetSlot");
 
-            effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
-            testForError(effect, "aaxEffectSetState");
+            res = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
+            testForState(res, "aaxEffectSetState");
 
             res = aaxMixerSetEffect(record, effect);
             testForState(res, "aaxEmitterSetEffect");
