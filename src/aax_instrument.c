@@ -582,10 +582,10 @@ _add_filters(_controller_t* inst, void *xbid)
                     {
                         int n = xmlAttributeGetInt(xsid, "n");
                         float p[4];
-                        p[0] = (float)xmlNodeGetDouble(xsid, "p1");
-                        p[1] = (float)xmlNodeGetDouble(xsid, "p2");
-                        p[2] = (float)xmlNodeGetDouble(xsid, "p3");
-                        p[3] = (float)xmlNodeGetDouble(xsid, "p4");
+                        p[0] = (float)xmlNodeGetDouble(xsid, "p0");
+                        p[1] = (float)xmlNodeGetDouble(xsid, "p1");
+                        p[2] = (float)xmlNodeGetDouble(xsid, "p2");
+                        p[3] = (float)xmlNodeGetDouble(xsid, "p3");
                         if (!n) n = slot;
                         aaxFilterSetSlotParams(filter, n, AAX_LINEAR, p);
                     }
@@ -637,10 +637,10 @@ _add_effects(_controller_t* inst, void *xbid)
                     {
                         int n = xmlAttributeGetInt(xsid, "n");
                         float p[4];
-                        p[0] = (float)xmlNodeGetDouble(xsid, "p1");
-                        p[1] = (float)xmlNodeGetDouble(xsid, "p2");
-                        p[2] = (float)xmlNodeGetDouble(xsid, "p3");
-                        p[3] = (float)xmlNodeGetDouble(xsid, "p4");
+                        p[0] = (float)xmlNodeGetDouble(xsid, "p0");
+                        p[1] = (float)xmlNodeGetDouble(xsid, "p1");
+                        p[2] = (float)xmlNodeGetDouble(xsid, "p2");
+                        p[3] = (float)xmlNodeGetDouble(xsid, "p3");
                         if (!n) n = slot;
                         aaxEffectSetSlotParams(effect, n, AAX_LINEAR, p);
                     }
