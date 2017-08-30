@@ -129,7 +129,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             nextval = filter->slot[i]->param[AAX_LEVEL1];
             if (nextval == 0.0f) nextval = -1e-2f;
             env->step[2*i] = (nextval - value)/max_pos;
-            env->max_pos[2*i] = max_pos;;
+            env->max_pos[2*i] = max_pos;
 
             /* prevent a core dump for accessing an illegal slot */
             if (i == (_MAX_ENVELOPE_STAGES/2)-1) break;

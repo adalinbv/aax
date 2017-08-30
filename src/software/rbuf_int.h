@@ -210,7 +210,7 @@ void _bufferMixSawtooth(void**, float, char, size_t, int, float, float);
 void _bufferMixImpulse(void**, float, char, size_t, int, float, float);
 
 /** LFO */
-float _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData*, char, float);
+float _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData*, char, float*);
 
 
 #if defined(__cplusplus)

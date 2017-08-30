@@ -64,7 +64,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    _aaxRingBufferEnvelopeData* env;
    _aaxRingBufferLFOData *lfo;
    float svol, evol, max;
-   float pitch, gain, nvel;
+   float pitch, gain, gain0, nvel;
    CONST_MIX_PTRPTR_T sptr;
    int ret = 0;
 
@@ -105,7 +105,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    } else {
       nvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
    }
-   pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped, nvel);
+   pitch *= _aaxRingBufferEnvelopeGet(env, srbi->stopped, &nvel);
    pitch *= ep2d->note.pressure;
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
@@ -155,7 +155,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    }
 
    /* apply envelope filter */
-   gain = _aaxRingBufferEnvelopeGet(env, srbi->stopped, nvel);
+   gain0 = gain = _aaxRingBufferEnvelopeGet(env, srbi->stopped, &nvel);
    gain *= ep2d->note.pressure;
    if (gain < -1e-3f) {
       ret = -1;
@@ -190,6 +190,9 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
       svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
       evol = (srbi->stopped) ? 0.0f : 1.0f;
       srbi->playing = 0;
+   }
+   if (gain0 != 0.0f) {
+      evol *= (nvel/gain0);
    }
 
    drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples,
