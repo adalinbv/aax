@@ -1433,10 +1433,10 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                            n = xmlAttributeGetInt(xsid, "n");
                            if (n == XML_NONE) n = s;
 
-                           params[0] = xmlNodeGetDouble(xsid, "p1");
-                           params[1] = xmlNodeGetDouble(xsid, "p2");
-                           params[2] = xmlNodeGetDouble(xsid, "p3");
-                           params[3] = xmlNodeGetDouble(xsid, "p4");
+                           params[0] = xmlNodeGetDouble(xsid, "p0");
+                           params[1] = xmlNodeGetDouble(xsid, "p1");
+                           params[2] = xmlNodeGetDouble(xsid, "p2");
+                           params[3] = xmlNodeGetDouble(xsid, "p3");
 
                            slen = xmlAttributeCopyString(xsid, "type", src, 64);
                            if (slen)
@@ -1498,10 +1498,10 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                            n = xmlAttributeGetInt(xsid, "n");
                            if (n == XML_NONE) n = s;
 
-                           params[0] = xmlNodeGetDouble(xsid, "p1");
-                           params[1] = xmlNodeGetDouble(xsid, "p2");
-                           params[2] = xmlNodeGetDouble(xsid, "p3");
-                           params[3] = xmlNodeGetDouble(xsid, "p4");
+                           params[0] = xmlNodeGetDouble(xsid, "p0");
+                           params[1] = xmlNodeGetDouble(xsid, "p1");
+                           params[2] = xmlNodeGetDouble(xsid, "p2");
+                           params[3] = xmlNodeGetDouble(xsid, "p3");
                            aaxEffectSetSlotParams(eff, n, AAX_LINEAR, params);
                         }
                      }
