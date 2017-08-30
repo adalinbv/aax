@@ -241,7 +241,7 @@ int main(int argc, char **argv)
                         res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
                         testForState(res, "aaxEffectSetParam");
 
-                        res = aaxEmitterSetEffect(emitter, effect);
+                        res = aaxEmitterSetEffect(emitter[p], effect);
                         testForState(res, "aaxEmitterSetPitch");
                         aaxEffectDestroy(effect);
 
