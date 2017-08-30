@@ -111,7 +111,7 @@ int main(int argc, char **argv)
                 res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, gain);
                 testForState(res, "aaxFilterSetParam");
 
-                res = aaxEmitterSetFilter(emitter, filter);
+                res = aaxEmitterSetFilter(emitter[i], filter);
                 testForState(res, "aaxEmitterSetGain");
                 aaxFilterDestroy(filter);
 
