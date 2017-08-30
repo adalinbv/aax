@@ -19,22 +19,22 @@
  <emitter looping="true">
   <filter type="envelope">
    <slot n="0">
-    <p1>0.00</p1>
-    <p2 factor="velocity">0.01</p2>
-    <p3 factor="soften">1.20</p3>
-    <p4>0.05</p4>
+    <p0>0.00</p0>
+    <p1 factor="velocity">0.01</p1>
+    <p2 factor="soften">1.20</p2>
+    <p3>0.05</p3>
    </slot>
    <slot n="1">
-    <p1>0.70</p1>
-    <p2>0.10</p2>
-    <p3>0.60</p3>
-    <p4>0.05</p4>
+    <p0>0.70</p0>
+    <p1>0.10</p1>
+    <p2>0.60</p2>
+    <p3>0.05</p3>
    </slot>
    <slot n="2">
-    <p1>0.45</p1>
-    <p2 factor="sustain">1.2</p2>
+    <p0>0.45</p0>
+    <p1 factor="sustain">1.2</p1>
+    <p2>0.00</p2>
     <p3>0.00</p3>
-    <p4>0.00</p4>
    </slot>
   </filter>
  </emitter>
