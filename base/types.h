@@ -143,7 +143,7 @@ uint64_t _aax_bswap64(uint64_t x);
  
 #if defined( WIN32 )
 # undef __STRICT_ANSI__
-# define _WIN32_WINNT 0x0500
+//# define _WIN32_WINNT 0x0500
 # include <Windows.h>
 # include <stdio.h>
 # include <string.h>
@@ -174,10 +174,12 @@ typedef INT32	ssize_t;
 typedef INT64	ssize_t;
 # endif
 
+#if 0
 struct timespec {
       time_t tv_sec;
       long   tv_nsec;
 };
+#endif
 #else		// WIN32
 
 # ifndef NDEBUG

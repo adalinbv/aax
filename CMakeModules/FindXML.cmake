@@ -15,8 +15,8 @@ set(ProgramFilesx86 "ProgramFiles(x86)")
 FIND_PATH(XML_INCLUDE_DIR xml.h
   HINTS
   $ENV{XMLDIR}
-  $ENV{ProgramFiles}/zeroxml
-  $ENV{${ProgramFilesx86}}/zeroxml
+  $ENV{ProgramFiles}/ZeroXML
+  $ENV{${ProgramFilesx86}}/ZeroXML
   PATH_SUFFIXES include
   PATHS
   ~/Library/Frameworks
@@ -31,8 +31,8 @@ IF(RMALLOC)
     NAMES XML-rmalloc zeroxml-rmalloc ZeroXML32-rmalloc libZeroXML32-rmalloc
     HINTS
     $ENV{XMLDIR}
-    $ENV{ProgramFiles}/zeroxml
-    $ENV{${ProgramFilesx86}}/zeroxml
+    $ENV{ProgramFiles}/ZeroXML
+    $ENV{${ProgramFilesx86}}/ZeroXML
     PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
     PATHS
     ~/Library/Frameworks
@@ -52,7 +52,8 @@ ELSE(RMALLOC)
     NAMES XML zeroxml ZeroXML32 libZeroXML32
     HINTS
     $ENV{XMLDIR}
-    $ENV{ProgramFiles}/zeroxml
+    $ENV{ProgramFiles}/ZeroXML
+    $ENV{${ProgramFilesx86}}/ZeroXML
     PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
     PATHS
     ~/Library/Frameworks
