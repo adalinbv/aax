@@ -1,7 +1,8 @@
 * Sun Aug 27 2017 - tech@adalin.org
 - AeonWave (3.0.0) stable; urgency=low
- * Switched to a dual licensing model with both GPL and a commercial license.
- * Switched to 64-bit build for windows and renamed the library to AeonWave.
+ * Switch to a dual licensing model with both GPL and a commercial license.
+ * Switch to 64-bit build for windows and renamed the library to AeonWave.
+ * Switch to 64-bit matrices for position and orientation.
  * Improve general rendering speed with about 30 percent.
  * Reorginze the streaming code to make it more flexible.
  * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.

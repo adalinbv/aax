@@ -42,14 +42,14 @@ static int _aaxSensorCaptureStart(_handle_t *);
 static int _aaxSensorCaptureStop(_handle_t *);
 
 AAX_API int AAX_APIENTRY
-aaxSensorSetMatrix(aaxConfig config, const aaxMtx4f mtx)
+aaxSensorSetMatrix64(aaxConfig config, const aaxMtx4d mtx64)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4((const float (*)[4])mtx)) {
+      if (!mtx64 || detect_nan_mtx4d((const double (*)[4])mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -64,8 +64,8 @@ aaxSensorSetMatrix(aaxConfig config, const aaxMtx4f mtx)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
-         mtx4fFill(smixer->props3d->dprops3d->matrix.m4, mtx);
-         mtx4fFill(smixer->props3d->m_dprops3d->matrix.m4, mtx);
+         mtx4dFill(smixer->props3d->dprops3d->matrix.m4, mtx64);
+         mtx4dFill(smixer->props3d->m_dprops3d->matrix.m4, mtx64);
          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
@@ -80,14 +80,14 @@ aaxSensorSetMatrix(aaxConfig config, const aaxMtx4f mtx)
 }
 
 AAX_API int AAX_APIENTRY
-aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
+aaxSensorGetMatrix(const aaxConfig config, aaxMtx4d mtx64)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx) {
+      if (!mtx64) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -102,7 +102,7 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4f mtx)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
-          mtx4fFill(mtx, smixer->props3d->dprops3d->matrix.m4);
+          mtx4dFill(mtx64, smixer->props3d->dprops3d->matrix.m4);
           _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }

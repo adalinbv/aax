@@ -27,6 +27,7 @@ int is_nan(float);
 int is_nan64(double);
 int is_inf(float);
 int detect_nan_vec3(const float[3]);
+int detect_nan_vec3d(const double[3]);
 int detect_nan_vec4(const float[4]);
 int detect_nan_vec4d(const double[4]);
 int detect_nan_mtx4(const float[4][4]);

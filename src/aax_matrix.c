@@ -50,7 +50,8 @@ aaxMatrix64CopyMatrix64(aaxMtx4d dmtx, const aaxMtx4d smtx)
    return rv;
 }
 
-AAX_API aaxMtx4f aaxIdentityMatrix;
+
+// AAX_API aaxMtx4f aaxIdentityMatrix;
 
 AAX_API int AAX_APIENTRY
 aaxMatrixSetIdentityMatrix(aaxMtx4f mtx)
@@ -322,15 +323,15 @@ aaxMatrix64Inverse(aaxMtx4d mtx)
 }
 
 AAX_API int AAX_APIENTRY
-aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
+aaxMatrix64SetDirection(aaxMtx4d mtx64, const aaxVec3d pos, const aaxVec3f at)
 {
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx) {
+      if (!mtx64) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!pos || detect_nan_vec3(pos)) {
+      } else if (!pos || detect_nan_vec3d(pos)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (!at || detect_nan_vec3(at)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
@@ -341,14 +342,14 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
 
    if (rv)
    {
-      vec3f_t loc;
-      mtx4f_t m;
+      vec3d_t loc;
+      mtx4d_t m;
 
-      mtx4fSetIdentity(m.m4);
+      mtx4dSetIdentity(m.m4);
       if (at[0] || at[1] || at[2])
       {
          aaxVec3f up = { 0.0f, 1.0f, 0.0f }; 
-         vec3f_t side, upwd, fwd, back;
+         vec3f_t side, upwd, fwd, back, tmp;
 
          if ((fabsf(at[0]) < FLT_EPSILON)  && (fabsf(at[2]) < FLT_EPSILON))
          {  
@@ -362,14 +363,17 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
          vec3fCrossProduct(&side, &fwd, &upwd);
 
          vec3fNegate(&back, &fwd);
-         vec3fNormalize(&m.v34[0], &side);
-         vec3fNormalize(&m.v34[1], &upwd);
-         vec3fNormalize(&m.v34[2], &back);
+         vec3fNormalize(&tmp, &side);
+         vec3dFillf(&m.v34[0], &tmp);
+         vec3fNormalize(&tmp, &upwd);
+         vec3dFillf(&m.v34[1], &tmp);
+         vec3fNormalize(&tmp, &back);
+         vec3dFillf(&m.v34[2], &tmp);
       }
 
-      vec3fFill(loc.v3, pos);
-      vec3fNegate(&m.v34[3], &loc);
-      mtx4fFill(mtx, m.m4);
+      vec3dFill(loc.v3, pos);
+      vec3dNegate(&m.v34[3], &loc);
+      mtx4dFill(mtx64, m.m4);
 #if 0
  printf("SetDirection:\n");
  PRINT_MATRIX(mtx);
@@ -380,16 +384,16 @@ aaxMatrixSetDirection(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at)
 }
 
 AAX_API int AAX_APIENTRY
-aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
-                                                          const aaxVec3f up)
+aaxMatrix64SetOrientation(aaxMtx4d mtx64, const aaxVec3d pos, const aaxVec3f at,
+                                                              const aaxVec3f up)
 {
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx) {
+      if (!mtx64) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!pos || detect_nan_vec3(pos)) {
+      } else if (!pos || detect_nan_vec3d(pos)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else if (!at || detect_nan_vec3(at)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 2, __func__);
@@ -402,27 +406,30 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
 
    if (rv)
    {
-      vec3f_t loc;
-      mtx4f_t m;
+      vec3d_t loc;
+      mtx4d_t m;
 
-      mtx4fSetIdentity(m.m4);
+      mtx4dSetIdentity(m.m4);
       if ((at[0] || at[1] || at[2]) || (up[0] || up[1] || up[2]))
       {
-         vec3f_t side, upwd, fwd, back;
+         vec3f_t side, upwd, fwd, back, tmp;
 
          vec3fFill(upwd.v3, up);
          vec3fFill(fwd.v3, at);
          vec3fCrossProduct(&side, &fwd, &upwd);
 
          vec3fNegate(&back, &fwd);
-         vec3fNormalize(&m.v34[0], &side);
-         vec3fNormalize(&m.v34[1], &upwd);
-         vec3fNormalize(&m.v34[2], &back);
+         vec3fNormalize(&tmp, &side);
+         vec3dFillf(&m.v34[0], &tmp);
+         vec3fNormalize(&tmp, &upwd);
+         vec3dFillf(&m.v34[1], &tmp);
+         vec3fNormalize(&tmp, &back);
+         vec3dFillf(&m.v34[2], &tmp);
       }
 
-      vec3fFill(&loc.v3, pos);
-      vec3fNegate(&m.v34[3], &loc);
-      mtx4fFill(mtx, &m.m4);
+      vec3dFill(&loc.v3, pos);
+      vec3dNegate(&m.v34[3], &loc);
+      mtx4dFill(mtx64, &m.m4);
 
    }
 
@@ -430,7 +437,7 @@ aaxMatrixSetOrientation(aaxMtx4f mtx, const aaxVec3f pos, const aaxVec3f at,
 }
 
 AAX_API int AAX_APIENTRY
-aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
+aaxMatrix64GetOrientation(aaxMtx4d mtx, aaxVec3d pos, aaxVec3f at, aaxVec3f up)
 {
    int rv = __release_mode;
 
@@ -446,13 +453,13 @@ aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
    if (rv)
    {
       if (pos) {
-         vec3fFill(pos, mtx[3]);/* LOCATION */
+         vec3dFill(pos, mtx[3]);/* LOCATION */
       }
       if (at) {
-         vec3fFill(at, mtx[2]);	/* DIR_UPWD */
+         vec3dFillf(at, mtx[2]);/* DIR_UPWD */
       }
       if (up) {
-         vec3fFill(up, mtx[1]); /* DIR_BACK */
+         vec3dFillf(up, mtx[1]); /* DIR_BACK */
       }
    }
 
@@ -460,15 +467,15 @@ aaxMatrixGetOrientation(aaxMtx4f mtx, aaxVec3f pos, aaxVec3f at, aaxVec3f up)
 }
 
 AAX_API int AAX_APIENTRY
-aaxMatrix64ToMatrix(aaxMtx4f mtx, const aaxMtx4d mtx64)
+aaxMatrixToMatrix64(aaxMtx4d mtx64, const aaxMtx4f mtx)
 {
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx) {
+      if (!mtx64) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!mtx64 || detect_nan_mtx4d((const double(*)[4])mtx64)) {
+      } else if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else {
          rv = AAX_TRUE;
@@ -486,7 +493,7 @@ aaxMatrix64ToMatrix(aaxMtx4f mtx, const aaxMtx4d mtx64)
          do
          {
             j--;
-            mtx[i][j] = (float)mtx64[i][j];
+            mtx64[i][j] = (double)mtx[i][j];
          }
          while(j);
       }

@@ -259,7 +259,7 @@ typedef ALIGN16 struct
 typedef ALIGN16 struct
 {
    /* modelview matrix and velocity */
-   mtx4f_t matrix;
+   mtx4d_t matrix;
    mtx4f_t velocity;
 
    float pitch, gain;

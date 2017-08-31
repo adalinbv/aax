@@ -25,9 +25,37 @@
 
 
 void
+vec3dFill(void* d, const void* v)
+{
+   memcpy(d, v, sizeof(vec3d_t));
+}
+
+void
 vec3fFill(void* d, const void* v)
 {
    memcpy(d, v, sizeof(vec3f_t));
+}
+
+void
+vec3dFillf(void* d, const void* v)
+{
+   const float *src = v;
+   double *dst = d;
+   int i;
+   for(i=0; i<3; ++i) {
+      dst[i] = (double)src[i];
+   }
+}
+
+void
+vec3fFilld(void* d, const void* v)
+{
+   const double *src = v;
+   float *dst = d;
+   int i;
+   for(i=0; i<3; ++i) {
+      dst[i] = (float)src[i];
+   }
 }
 
 void
@@ -54,6 +82,14 @@ _vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v)
    memcpy(d->v4, v->v4, sizeof(vec4i_t));
 }
 
+
+void
+vec3dNegate(vec3d_ptr d, const vec3d_ptr v)
+{
+   d->v3[0] = -v->v3[0];
+   d->v3[1] = -v->v3[1];
+   d->v3[2] = -v->v3[2];
+}
 
 void
 vec3fNegate(vec3f_ptr d, const vec3f_ptr v)
@@ -248,6 +284,29 @@ mtx4fFill(void* d, const void *m)
 {
    memcpy(d, m, sizeof(mtx4f_t));
 }
+
+void
+mtx4dFillf(double d[4][4], const float m[4][4])
+{
+   int i, j;
+   for(i=0; i<4; ++i) {
+      for (j=0; j<4; ++j) {
+         d[i][j] = (double)m[i][j];
+      }
+   }
+}
+
+void
+mtx4fFilld(float d[4][4], const double m[4][4])
+{  
+   int i, j;
+   for(i=0; i<4; ++i) {
+      for (j=0; j<4; ++j) {
+         d[i][j] = (float)m[i][j];
+      }
+   }
+}
+
 
 const float aaxIdentityMatrix[4][4] = {
   { 1.0f, 0.0f, 0.0f, 0.0f },

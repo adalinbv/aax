@@ -122,6 +122,12 @@ detect_nan_vec3(const float vec[3])
 }
 
 int
+detect_nan_vec3d(const double vec[3])
+{
+   return is_nan64(vec[0]) || is_nan64(vec[1]) || is_nan64(vec[2]);
+}
+
+int
 detect_nan_vec4(const float vec[4])
 {
    return is_nan(vec[0]) || is_nan(vec[1]) || is_nan(vec[2]) || is_nan(vec[3]);

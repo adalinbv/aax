@@ -773,14 +773,14 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterSetMatrix(aaxEmitter emitter, const aaxMtx4f mtx)
+aaxEmitterSetMatrix64(aaxEmitter emitter, const aaxMtx4d mtx64)
 {
    _emitter_t *handle = get_emitter(emitter, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
+      if (!mtx64 || detect_nan_mtx4d((const double(*)[4])mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -790,11 +790,11 @@ aaxEmitterSetMatrix(aaxEmitter emitter, const aaxMtx4f mtx)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
-      mtx4fFill(src->props3d->dprops3d->matrix.m4, mtx);
+      mtx4dFill(src->props3d->dprops3d->matrix.m4, mtx64);
       if (_IS_RELATIVE(src->props3d)) {
-         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
+         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
       } else {
-         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
+         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0;
       }
       _PROP_MTX_SET_CHANGED(src->props3d);
    }
@@ -832,14 +832,14 @@ aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterGetMatrix(const aaxEmitter emitter, aaxMtx4f mtx)
+aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
 {
    _emitter_t *handle = get_emitter(emitter, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx) {
+      if (!mtx64) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -849,7 +849,7 @@ aaxEmitterGetMatrix(const aaxEmitter emitter, aaxMtx4f mtx)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
-      mtx4fFill(mtx, src->props3d->dprops3d->matrix.m4);
+      mtx4dFill(mtx64, src->props3d->dprops3d->matrix.m4);
    }
    put_emitter(handle);
 
@@ -1325,7 +1325,8 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
       _aaxDelayed3dProps *edp3d_m = ep3d->m_dprops3d;
       _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
       _aax2dProps *ep2d = src->props2d;
-      float dist, vs;
+      double dist;
+      float vs;
 
       vs = _EFFECT_GET(fp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
 
@@ -1333,8 +1334,8 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
        * Align the modified emitter matrix with the sensor by multiplying 
        * the emitter matrix by the modified frame matrix.
        */ 
-      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      dist = vec3fMagnitude(&edp3d_m->matrix.v34[LOCATION]);
+      mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      dist = vec3dMagnitude(&edp3d_m->matrix.v34[LOCATION]);
       ep2d->dist_delay_sec = dist / vs;
 
 #if 0
