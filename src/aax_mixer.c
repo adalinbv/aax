@@ -105,8 +105,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             break;
          case AAX_REFRESHRATE:
             if (((setup <= _AAX_MAX_MIXER_REFRESH_RATE)
-                         && (handle->valid & HANDLE_ID))
-                || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
+                         && (handle->valid & HANDLE_ID)))
             {
                float update_hz = info->refresh_rate/info->update_rate;
                float fq = info->frequency;
@@ -124,8 +123,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             break;
          case AAX_UPDATE_RATE:
             if (((setup <= _AAX_MAX_MIXER_REFRESH_RATE)
-                         && (handle->valid & HANDLE_ID))
-                || (setup <= _AAX_MAX_MIXER_REFRESH_RATE_LT))
+                         && (handle->valid & HANDLE_ID)))
             {
                info->update_rate = (uint8_t)rintf(info->refresh_rate/setup);
                rv = AAX_TRUE;
@@ -350,8 +348,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                   break;
                case AAX_FREQUENCY_MAX:
                   f = be->param(handle->backend.handle,DRIVER_MAX_FREQUENCY);
-                  if (VALID_HANDLE(handle)) rv = (int)f;
-                  else rv = _MIN((int)f, _AAX_MAX_MIXER_FREQUENCY_LT);
+                  rv = (int)f;
                   break;
                case AAX_SAMPLES_MAX:
                   f = be->param(handle->backend.handle, DRIVER_MAX_SAMPLES);
@@ -1413,8 +1410,7 @@ _aaxMixerInit(_handle_t *handle)
 
       if (TEST_FOR_TRUE(res))
       {
-         if ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY) ||
-             (VALID_LITE_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY_LT))
+         if ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY))
          {
             const _intBufferData* dptr;
             float old_rate, periods;

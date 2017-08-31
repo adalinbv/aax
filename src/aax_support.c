@@ -87,8 +87,6 @@ aaxGetVersionString(aaxConfig cfg)
  
    if (handle && VALID_HANDLE(handle)) {
       _version = AAX_LIBRARY_STR" "AAX_VERSION_STR;
-   } else {
-      _version = AAX_LIBRARY_STR_LT" "AAX_VERSION_STR;
    }
    return _version;
 }

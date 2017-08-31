@@ -94,7 +94,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->pos = 0;
          buf->format = format;
          buf->frequency = 0.0f;
-         buf->info = VALID_LITE_HANDLE(handle) ? &handle->info : &_info;
+         buf->info = VALID_HANDLE(handle) ? &handle->info : &_info;
          buf->handle = handle;
          buf->ringbuffer = _bufGetRingBuffer(buf, handle);
          buf->to_mixer = AAX_FALSE;
@@ -783,16 +783,16 @@ static _aaxRingBuffer*
 _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
 {
    _aaxRingBuffer *rb = buf->ringbuffer;
-   if (!rb && (VALID_LITE_HANDLE(handle) ||
+   if (!rb && (VALID_HANDLE(handle) ||
                (buf->info && *buf->info &&
-                VALID_LITE_HANDLE((_handle_t*)((*buf->info)->backend)))
+                VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
               )
       )
    {
       enum aaxRenderMode mode = handle->info->mode;
       const _aaxDriverBackend *be;
 
-      if VALID_LITE_HANDLE(handle) {
+      if VALID_HANDLE(handle) {
          be = handle->backend.ptr;
       } else {
          be = ((_handle_t*)((*buf->info)->backend))->backend.ptr;
@@ -822,7 +822,7 @@ _bufDestroyRingBuffer(_buffer_t* buf)
 {
    _aaxRingBuffer *rb = buf->ringbuffer;
    if (rb && (buf->info && *buf->info &&
-              VALID_LITE_HANDLE((_handle_t*)((*buf->info)->backend)))
+              VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
       )
    {
       _handle_t *handle = (_handle_t*)(*buf->info)->backend;
@@ -1190,7 +1190,7 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
       enum aaxRenderMode mode = handle->info->mode;
       const _aaxDriverBackend *be;
 
-      if VALID_LITE_HANDLE(handle) {
+      if VALID_HANDLE(handle) {
          be = handle->backend.ptr;
       } else {
          be = ((_handle_t*)((*buf->info)->backend))->backend.ptr;
