@@ -30,24 +30,23 @@ extern "C" {
 #include "config.h"
 #endif
 
-#define AAX_LIBRARY_STR			"AeonWave-HD"
-#define AAX_LIBRARY_STR_LT		"AeonWave-Lite"
+#if defined(__x86_64__)
+# define AAX_LIBRARY_STR		"AeonWave-HD 64"
+#else
+# define AAX_LIBRARY_STR		"AeonWave-HD"
+#endif
 
 #define AAX_MIN_CONFIG_VERSION		0.0f
 #define AAX_NEW_CONFIG_VERSION		2.0f
 #define AAX_MAX_CONFIG_VERSION		2.9f
 
 #define _AAX_MAX_MIXER_FREQUENCY	192000.0f
-#define _AAX_MAX_MIXER_FREQUENCY_LT	48000.0f
 
 #define _AAX_MAX_MIXER_REFRESH_RATE	750
-#define _AAX_MAX_MIXER_REFRESH_RATE_LT	 25
 
 #define _AAX_MAX_SOURCES_AVAIL		UINT_MAX
-#define _AAX_MAX_SOURCES_AVAIL_LT	64
 
 #define _AAX_MAX_MIXER_REGISTERED	256
-#define _AAX_MAX_MIXER_REGISTERED_LT	64
 
 #define AAX_NAME_STR			PACKAGE_NAME
 #define AAX_VENDOR_STR			"Adalin B.V., The Netherlands"
