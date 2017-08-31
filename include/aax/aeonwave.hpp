@@ -301,11 +301,11 @@ public:
     }
 
     // ** position and orientation ******
-    inline bool matrix(Matrix& m) {
-        return aaxEmitterSetMatrix(ptr,m);
+    inline bool matrix(Matrix64& m) {
+        return aaxEmitterSetMatrix64(ptr,m);
     }
-    inline bool get(Matrix& m) {
-        return aaxEmitterGetMatrix(ptr,m);
+    inline bool get(Matrix64& m) {
+        return aaxEmitterGetMatrix64(ptr,m);
     }
     inline bool velocity(Vector& v) {
         return aaxEmitterSetVelocity(ptr,v);
@@ -426,11 +426,11 @@ public:
     }
 
     // ** position and orientation ******
-    inline bool matrix(Matrix& m) {
-        return aaxSensorSetMatrix(ptr,m);
+    inline bool matrix(Matrix64& m) {
+        return aaxSensorSetMatrix64(ptr,m);
     }
-    inline bool get(Matrix& m) {
-        return aaxSensorGetMatrix(ptr,m);
+    inline bool get(Matrix64& m) {
+        return aaxSensorGetMatrix64(ptr,m);
     }
     inline bool velocity(Vector& v) {
         return aaxSensorSetVelocity(ptr,v);
@@ -573,11 +573,11 @@ public:
     }
 
     // ** position and orientation ******
-    inline bool matrix(Matrix& m) {
-        return aaxAudioFrameSetMatrix(ptr,m);
+    inline bool matrix(Matrix64& m) {
+        return aaxAudioFrameSetMatrix64(ptr,m);
     }
-    inline bool get(Matrix& m) {
-        return aaxAudioFrameGetMatrix(ptr,m);
+    inline bool get(Matrix64& m) {
+        return aaxAudioFrameGetMatrix64(ptr,m);
     }
     inline bool velocity(Vector& v) {
         return aaxAudioFrameSetVelocity(ptr,v);
@@ -657,7 +657,7 @@ public:
     }
 
     // ** position and orientation ******
-    inline bool sensor_matrix(Matrix& m) {
+    inline bool sensor_matrix(Matrix64& m) {
         return matrix(m);
     }
     inline bool sensor_velocity(Vector& v) {

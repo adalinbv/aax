@@ -490,10 +490,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             {
                _aaxDelayed3dProps *sdp3d, *sdp3d_m;
                _aax2dProps sp2d;
+               mtx4d_t tmp, tmp2;
                char fprocess = AAX_TRUE;
-               size_t size;
                float ssv = 343.3f;
                float sdf = 1.0f;
+               size_t size;
 
                size = sizeof(_aaxDelayed3dProps);
                sdp3d = _aax_aligned_alloc(size);
@@ -527,8 +528,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
 
                /* update the modified properties */
-               mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
-               mtx4fMul(&sdp3d_m->velocity, &sdp3d->matrix, &sdp3d->velocity);
+               mtx4dCopy(&sdp3d_m->matrix, &sdp3d->matrix);
+
+               mtx4dFillf(tmp.m4, sdp3d->velocity.m4);
+               mtx4dMul(&tmp2, &sdp3d->matrix, &tmp);
+               mtx4fFilld(sdp3d_m->velocity.m4, tmp2.m4);
 #if 0
  if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
  printf("matrix:\t\t\t\tvelocity\n");

@@ -316,6 +316,7 @@ private:
     }
 };
 
+class Matrix64;
 
 class Matrix : public MtxBase<float>
 {
@@ -326,14 +327,8 @@ public:
     Matrix(const aaxMtx4f& m) {
         aaxMatrixCopyMatrix(_m,m);
     }
-    Matrix(const aaxMtx4d& m) {
-        aaxMatrix64ToMatrix(_m,m);
-    }
     Matrix(MtxBase<float>& m) {
         aaxMatrixCopyMatrix(_m,m);
-    }
-    Matrix(MtxBase<double>& m) {
-        aaxMatrix64ToMatrix(_m,m);
     }
     Matrix(Vector& p, Vector& a) {
         set(p,a);
@@ -348,21 +343,44 @@ public:
         set(p,a,u);
     }
     ~Matrix() {}
-
-    inline bool set(Vector& p, Vector& a) {
-        return aaxMatrixSetDirection(_m,p,a);
+    
+    bool set(Vector& p, Vector& a) {
+        float eps = std::numeric_limits<float>::epsilon();
+        Vector u(0.0, 1.0, 0.0);
+        if (std::abs(a[0])<=eps && std::abs(a[2])<=eps) {
+            u[1] = 0.0f; u[2] = (a[2] < 0.0f) ? -1.0f : 1.0f;
+        }
+        return set(p, a, u);
     }
-    inline bool set(const aaxVec3f& p, const aaxVec3f& a) {
-        return aaxMatrixSetDirection(_m,p,a);
+    bool set(const aaxVec3f& p, const aaxVec3f& a) {
+        float eps = std::numeric_limits<float>::epsilon();
+        float u[3] = {0.0, 1.0, 0.0};
+        if (std::abs(a[0])<eps && std::abs(a[2])<eps) {
+            u[1] = 0.0f; u[2] = (a[2] < 0.0f) ? -1.0f : 1.0f;
+        }
+        return set(p, a, u);
     }
-    inline bool set(Vector& p, Vector& a, Vector& u) {
-        return aaxMatrixSetOrientation(_m,p,a,u);
+    bool set(Vector& p, Vector& a, Vector& u) {
+        Vector pos(p[0], p[1], p[2], -1.0);
+        Vector at(a[0], a[1], a[2]);
+        Vector up(u[0], u[1], u[2]);
+        Vector side = at.cross_product(up);
+        set(0, side.normalized());
+        set(1, up.normalized());
+        set(2, -at.normalized());
+        set(3, -pos);
+        return true;
     }
-    inline bool set(const aaxVec3f& p, const aaxVec3f& a, const aaxVec3f& u) {
-        return aaxMatrixSetOrientation(_m,p,a,u);
+    bool set(const aaxVec3d& p, const aaxVec3d& a, const aaxVec3d& u) {
+        Vector pos = p, at = a, up = u;
+        return set(pos, at, up);
     }
-    inline bool get(aaxVec3f& p, aaxVec3f& a, aaxVec3f& u) {
-        return aaxMatrixGetOrientation(_m,p,a,u);
+    bool set(const aaxVec3f& p, const aaxVec3f& a, const aaxVec3f& u) {
+        Vector pos(p), at(a), up(u);
+        return set(pos, at, up);
+    }
+    bool get(aaxVec3f& p, aaxVec3f& a, aaxVec3f& u) {
+        get(1, u); get(2, a); get(3, p);
     }
     inline bool translate(float dx, float dy, float dz) {
         return aaxMatrixTranslate(_m,dx,dy,dz);
@@ -382,6 +400,7 @@ public:
     inline bool inverse() {
         return aaxMatrixInverse(_m);
     }
+    Matrix64 toMatrix();
 
     // ** support ******
     Matrix& operator*=(MtxBase<float>& m) {
@@ -425,15 +444,20 @@ public:
         aaxMatrixCopyMatrix(_m, m);
         return *this;
     }
-    Matrix& operator=(MtxBase<double>& m) {
-        aaxMatrix64ToMatrix(_m, m);
-        return *this;
-    }
     friend Matrix operator*(MtxBase<float>& m1, MtxBase<float>& m2) {
         aaxMtx4f m;
         aaxMatrixCopyMatrix(m,m1);
         aaxMatrixMultiply(m,m2);
         return Matrix(m);
+    }
+
+private:
+    void set(unsigned p, const Vector& v) {
+        if (v.is_v4()) std::copy(v+0, v+4, _m[p]);
+        else std::copy(v+0, v+3, _m[p]);
+    }
+    void get(unsigned p, aaxVec3f& v) {
+        std::copy(_m[p], _m[p]+4, v+0);
     }
 };
 
@@ -444,67 +468,46 @@ public:
     Matrix64() {
         aaxMatrix64SetIdentityMatrix(_m);
     }
+    Matrix64(const aaxMtx4f& m) {
+        aaxMatrixToMatrix64(_m,m);
+    }
     Matrix64(const aaxMtx4d m) {
         aaxMatrix64CopyMatrix64(_m,m);
+    }
+    Matrix64(MtxBase<float>& m) {
+        aaxMatrixToMatrix64(_m,m);
     }
     Matrix64(MtxBase<double>& m) {
         aaxMatrix64CopyMatrix64(_m,m);
     }
-    Matrix64(Vector64& p, Vector64& a) {
+    Matrix64(Vector64& p, Vector& a) {
         set(p,a);
     }
-    Matrix64(const aaxVec3d& p, const aaxVec3d& a) {
+    Matrix64(const aaxVec3d& p, const aaxVec3f& a) {
         set(p,a);
     }
-    Matrix64(Vector64& p, Vector64& a, Vector64& u) {
+    Matrix64(Vector64& p, Vector& a, Vector& u) {
         set(p,a,u);
     }
-    Matrix64(const aaxVec3d& p, const aaxVec3d& a, const aaxVec3d& u) {
+    Matrix64(const aaxVec3d& p, const aaxVec3f& a, const aaxVec3f& u) {
         set(p,a,u);
     }
     ~Matrix64() {}
 
-    bool set(Vector64& p, Vector64& a) {
-        double eps = std::numeric_limits<double>::epsilon();
-        Vector64 u(0.0, 1.0, 0.0);
-        if (std::abs(a[0])<=eps && std::abs(a[2])<=eps) {
-            u[1] = 0.0f; u[2] = (a[2] < 0.0f) ? -1.0f : 1.0f;
-        }
-        return set(p, a, u);
+    inline bool set(Vector64& p, Vector& a) {
+        return aaxMatrix64SetDirection(_m,p,a);
     }
-    bool set(const aaxVec3d& p, const aaxVec3d& a) {
-        double eps = std::numeric_limits<double>::epsilon();
-        double u[3] = {0.0, 1.0, 0.0};
-        if (std::abs(a[0])<eps && std::abs(a[2])<eps) {
-            u[1] = 0.0f; u[2] = (a[2] < 0.0f) ? -1.0f : 1.0f;
-        }
-        return set(p, a, u);
+    inline bool set(const aaxVec3d& p, const aaxVec3f& a) {
+        return aaxMatrix64SetDirection(_m,p,a);
     }
-    bool set(Vector64& p, Vector64& a, Vector64& u) {
-        Vector64 pos(p[0], p[1], p[2], -1.0);
-        Vector64 at(a[0], a[1], a[2]);
-        Vector64 up(u[0], u[1], u[2]);
-        Vector64 side = at.cross_product(up);
-        set(0, side.normalized());
-        set(1, up.normalized());
-        set(2, -at.normalized());
-        set(3, -pos);
-        return true;
+    inline bool set(Vector64& p, Vector& a, Vector& u) {
+        return aaxMatrix64SetOrientation(_m,p,a,u);
     }
-    bool set(const aaxVec3d& p, const aaxVec3d& a, const aaxVec3d& u) {
-        Vector64 pos = p, at = a, up = u;
-        return set(pos, at, up);
+    inline bool set(const aaxVec3d& p, const aaxVec3f& a, const aaxVec3f& u) {
+        return aaxMatrix64SetOrientation(_m,p,a,u);
     }
-    bool set(const aaxVec3f& p, const aaxVec3f& a, const aaxVec3f& u) {
-        Vector64 pos(p), at(a), up(u);
-        return set(pos, at, up);
-    }
-    bool get(aaxVec3d& p, aaxVec3d& a, aaxVec3d& u) {
-        get(1, u); get(2, a); get(3, p);
-    }
-    bool get(aaxVec3f& p, aaxVec3f& a, aaxVec3f& u) {
-        aaxMtx4f m; aaxMatrix64ToMatrix(m, _m);
-        return aaxMatrixGetOrientation(m,p,a,u);
+    inline bool get(aaxVec3d& p, aaxVec3f& a, aaxVec3f& u) {
+        return aaxMatrix64GetOrientation(_m,p,a,u);
     }
     inline bool translate(double dx, double dy, double dz) {
         return aaxMatrix64Translate(_m,dx,dy,dz);
@@ -523,10 +526,6 @@ public:
     }
     inline bool inverse() {
         return aaxMatrix64Inverse(_m);
-    }
-    Matrix toMatrix() {
-        aaxMtx4f m; aaxMatrix64ToMatrix(m, _m);
-        return Matrix(m);
     }
 
     // ** support ******
@@ -583,6 +582,10 @@ public:
         aaxMatrix64CopyMatrix64(_m,m);
         return *this;
     }
+    Matrix64& operator=(MtxBase<float>& m) {
+        aaxMatrixToMatrix64(_m, m);
+        return *this;
+    }
     Matrix64& operator=(MtxBase<double>& m) {
         aaxMatrix64CopyMatrix64(_m,m);
         return *this;
@@ -603,6 +606,11 @@ private:
         std::copy(_m[p], _m[p]+4, v+0);
     }
 };
+
+Matrix64 Matrix::toMatrix() {
+    aaxMtx4d m; aaxMatrixToMatrix64(m, _m);
+    return Matrix64(m);
+}
 
 } // namespace aax
 

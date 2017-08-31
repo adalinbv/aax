@@ -289,12 +289,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m) || 
        _PROP3D_MTXSPEED_HAS_CHANGED(src))
    {
-      vec3f_t epos;
+      vec3f_t epos, tmp;
       float refdist, dist_fact, maxdist, rolloff;
-      float dist, esv, vs;
       unsigned int i, t;
       float gain, pitch;
       float min, max;
+      float esv, vs;
+      float dist;
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
       _PROP3D_MTX_CLEAR_CHANGED(edp3d);
@@ -306,8 +307,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * align the emitter with the parent frame.
        * (compensate for the parents direction offset)
        */
-      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      dist = vec3fNormalize(&epos, &edp3d_m->matrix.v34[LOCATION]);
+      mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      vec3fFilld(&tmp, &edp3d_m->matrix.v34[LOCATION]);
+      dist = vec3fNormalize(&epos, &tmp);
 #if 0
  printf("# emitter parent:\t\t\t\temitter:\n");
  PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);

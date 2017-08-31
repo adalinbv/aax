@@ -134,7 +134,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    {
       if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
       {
-         mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+         mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
 #if 0
  printf("!  parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
@@ -318,7 +318,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
          dptr = _intBufGet(hf, _AAX_FRAME, i);
          m_sfdp3d = sfmixer->props3d->m_dprops3d;
          if (!_PROP_MTX_HAS_CHANGED(sfmixer->props3d)) {
-            mtx4fCopy(&m_sfdp3d->matrix, &sfdp3d_m->matrix);
+            mtx4dCopy(&m_sfdp3d->matrix, &sfdp3d_m->matrix);
          }
          if (!_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
             mtx4fCopy(&m_sfdp3d->velocity, &sfdp3d_m->velocity);
