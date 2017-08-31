@@ -60,11 +60,11 @@ extern "C" {
 
 #define PRINT_VEC(vec) \
 	printf ("% 7.6f % 7.6f % 7.6f % 7.6f\n", \
-             vec[0],vec[1],vec[2],vec[3]);
+             vec.v4[0],vec.v4[1],vec.v4[2],vec.v4[3]);
 
 #define PRINT_ROW(mtx, r, c) \
     printf ("% 6.3f % 6.3f % 6.3f % 6.3f%c", \
-             mtx[0][r],mtx[1][r],mtx[2][r],mtx[3][r],c);
+             mtx.m4[0][r],mtx.m4[1][r],mtx.m4[2][r],mtx.m4[3][r],c);
 
 #define PRINT_MATRIX(mtx) \
     PRINT_ROW(mtx, 0, '\n'); PRINT_ROW(mtx, 1, '\n'); \
