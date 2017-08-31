@@ -64,7 +64,7 @@ static struct {
   { "static white noise", 1.0f, AAX_WHITE_NOISE    }
 };
 
-aaxVec3f EmitterPos = { 0.0f,  0.0f, -3.0f };
+aaxVec3d EmitterPos = { 0.0,   0.0,  -3.0  };
 aaxVec3f EmitterDir = { 0.0f,  0.0f,  1.0f };
 
 int main(int argc, char **argv)
@@ -95,7 +95,7 @@ int main(int argc, char **argv)
         aaxFilter filter;
         int state, buf, i;
         float pitch;
-        aaxMtx4f mtx;
+        aaxMtx4d mtx64;
 
         tmp = getenv("TEMP");
         if (!tmp) tmp = getenv("TMP");
@@ -134,11 +134,11 @@ int main(int argc, char **argv)
         res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
         testForState(res, "aaxEmitterSetMode");
 
-        res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
-        testForState(res, "aaxMatrixSetDirection");
+        res = aaxMatrix64SetDirection(mtx64, EmitterPos, EmitterDir);
+        testForState(res, "aaxMatrix64SetDirection");
 
-        res = aaxEmitterSetMatrix(emitter, mtx);
-        testForState(res, "aaxSensorSetMatrix");
+        res = aaxEmitterSetMatrix64(emitter, mtx64);
+        testForState(res, "aaxSensorSetMatrix64");
 
         /** mixer */
         res = aaxMixerSetState(config, AAX_INITIALIZED);

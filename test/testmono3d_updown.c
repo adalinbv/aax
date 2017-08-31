@@ -46,15 +46,15 @@
 #define RADIUS			20.0f
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
-#define XEPOS		00000.0f
-#define YEPOS		-0000.0f
-#define ZEPOS		00.0f
+#define XEPOS		00000.0
+#define YEPOS		-0000.0
+#define ZEPOS		00.0
 
-aaxVec3f EmitterPos = {    XEPOS,    YEPOS, ZEPOS };
+aaxVec3d EmitterPos = {    XEPOS,    YEPOS, ZEPOS };
 aaxVec3f EmitterDir = {     0.0f,     0.0f, 1.0f };
 aaxVec3f EmitterVel = {     0.0f,     0.0f, 0.0f };
 
-aaxVec3f SensorPos = { 00000.0f, -0000.0f, 00.0f };
+aaxVec3d SensorPos = { 00000.0,  -0000.0,  00.0  };
 aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
 aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
 aaxVec3f SensorVel = {     0.0f,     0.0f,  0.0f };
@@ -82,7 +82,7 @@ int main(int argc, char **argv)
             aaxFilter filter;
             aaxEffect effect;
             int i, deg = 0;
-            aaxMtx4f mtx;
+            aaxMtx4d mtx64;
 
             /** mixer */
             res = aaxMixerSetState(config, AAX_INITIALIZED);
@@ -103,14 +103,14 @@ int main(int argc, char **argv)
             aaxFilterDestroy(filter);
 
             /** sensor settings */
-            res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
+            res = aaxMatrix64SetOrientation(mtx64, SensorPos, SensorAt, SensorUp);
             testForState(res, "aaxSensorSetOrientation");
  
-            res = aaxMatrixInverse(mtx);
-            testForState(res, "aaxMatrixInverse");
+            res = aaxMatrix64Inverse(mtx64);
+            testForState(res, "aaxMatrix64Inverse");
 
-            res = aaxSensorSetMatrix(config, mtx);
-            testForState(res, "aaxSensorSetMatrix");
+            res = aaxSensorSetMatrix64(config, mtx64);
+            testForState(res, "aaxSensorSetMatrix64");
 
             res = aaxSensorSetVelocity(config, SensorVel);
             testForState(res, "aaxSensorSetVelocity");
@@ -133,10 +133,10 @@ int main(int argc, char **argv)
                 res = aaxEmitterAddBuffer(emitter[i], buffer);
                 testForState(res, "aaxEmitterAddBuffer");
 
-                aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
-                aaxMatrixRotate(mtx, anglestep, 0.0f, 1.0f, 0.0f);
-                res = aaxEmitterSetMatrix(emitter[i], mtx);
-                testForState(res, "aaxEmitterSetIdentityMatrix");
+                aaxMatrix64SetDirection(mtx64, EmitterPos, EmitterDir);
+                aaxMatrix64Rotate(mtx64, anglestep, 0.0f, 1.0f, 0.0f);
+                res = aaxEmitterSetMatrix64(emitter[i], mtx64);
+                testForState(res, "aaxEmitterSetIdentityMatrix64");
                 mul *= -1.0f;
 
                 res = aaxEmitterSetMode(emitter[i], AAX_POSITION, AAX_ABSOLUTE);
@@ -192,14 +192,14 @@ int main(int argc, char **argv)
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);
 
-                res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
-                testForState(res, "aaxMatrixSetDirection");
+                res = aaxMatrix64SetDirection(mtx64, EmitterPos, EmitterDir);
+                testForState(res, "aaxMatrix64SetDirection");
 
                 i = 0;
                 do
                 {
-                    res = aaxEmitterSetMatrix(emitter[i], mtx);
-                    testForState(res, "aaxSensorSetMatrix");
+                    res = aaxEmitterSetMatrix64(emitter[i], mtx64);
+                    testForState(res, "aaxSensorSetMatrix64");
                 }
                 while (++i < num);
 

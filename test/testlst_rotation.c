@@ -45,11 +45,11 @@
 
 #define FILE_PATH                    SRC_PATH"/tictac.wav"
 
-aaxVec3f EmitterPos = { 0.0f, 0.0f, 10.0f };
+aaxVec3d EmitterPos = { 0.0,  0.0,  10.0  };
 aaxVec3f EmitterDir = { 0.0f, 0.0f,  1.0f };
 aaxVec3f EmitterVel = { 0.0f, 0.0f,  0.0f };
 
-aaxVec3f SensorPos = { 0.0f, 0.0f, -5.0f };
+aaxVec3d SensorPos = { 0.0,  0.0,  -5.0  };
 aaxVec3f SensorAt = {  0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp = {  0.0f, 1.0f,  0.0f };
 aaxVec3f SensorVel = { 0.0f, 0.0f,  0.0f };
@@ -72,7 +72,7 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter;
-            aaxMtx4f mtx;
+            aaxMtx4d mtx64;
             int deg = 0;
             float ang;
 
@@ -84,13 +84,13 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /** sensor settings */
-            res = aaxMatrixSetOrientation(mtx, SensorPos,
+            res = aaxMatrix64SetOrientation(mtx64, SensorPos,
                                                SensorAt, SensorUp);
-            testForState(res, "aaxMatrixSetOrientation");
+            testForState(res, "aaxMatrix64SetOrientation");
 
-            res = aaxMatrixInverse(mtx);
-            res |= aaxSensorSetMatrix(config, mtx);
-            testForState(res, "aaxSensorSetMatrix");
+            res = aaxMatrix64Inverse(mtx64);
+            res |= aaxSensorSetMatrix64(config, mtx64);
+            testForState(res, "aaxSensorSetMatrix64");
 
             res = aaxSensorSetVelocity(config, SensorVel);
             testForState(res, "aaxSensorSetVelocity");
@@ -108,11 +108,11 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
             testForState(res, "aaxEmitterSetLooping");
 
-            res = aaxMatrixSetDirection(mtx, EmitterPos, EmitterDir);
-            testForState(res, "aaxMatrixSetDirection");
+            res = aaxMatrix64SetDirection(mtx64, EmitterPos, EmitterDir);
+            testForState(res, "aaxMatrix64SetDirection");
 
-            res = aaxEmitterSetMatrix(emitter, mtx);
-            testForState(res, "aaxEmitterSetMatrix");
+            res = aaxEmitterSetMatrix64(emitter, mtx64);
+            testForState(res, "aaxEmitterSetMatrix64");
 
             res = aaxMixerRegisterEmitter(config, emitter);
             testForState(res, "aaxMixerRegisterEmitter");
@@ -134,13 +134,13 @@ int main(int argc, char **argv)
                 printf("deg: %03u\tdir (% f, % f, % f)\n", deg,
                             SensorAt[0], SensorAt[1], SensorAt[2]);
 
-                res = aaxMatrixSetOrientation(mtx, SensorPos,
+                res = aaxMatrix64SetOrientation(mtx64, SensorPos,
                                                    SensorAt, SensorUp);
-                testForState(res, "aaxMatrixSetOrientation");
+                testForState(res, "aaxMatrix64SetOrientation");
 
-                res = aaxMatrixInverse(mtx);
-                res |= aaxSensorSetMatrix(config, mtx);
-                testForState(res, "aaxSensorSetMatrix");
+                res = aaxMatrix64Inverse(mtx64);
+                res |= aaxSensorSetMatrix64(config, mtx64);
+                testForState(res, "aaxSensorSetMatrix64");
                 deg += 3;
             }
 

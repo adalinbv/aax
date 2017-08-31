@@ -72,7 +72,8 @@ void testForALCError(void *);
 void testForALError();
 
 /* geometry */
-float _vec3Magnitude(const aaxVec3f v);
+float _vec3dMagnitude(const aaxVec3d v);
+float _vec3fMagnitude(const aaxVec3f v);
 
 
 #ifdef _WIN32

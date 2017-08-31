@@ -39,7 +39,7 @@
 
 #define LOG(s,a,b,c) \
     if (((a)==(b))==(c)) printf((c)?"M1 == M2, succes":"M1 != M2, succes"); \
-    else { printf(c?"M1 != M2, failed":"M1 == M2, failed"); \
+    else { printf(c?"M1 != M2, failed\n":"M1 == M2, failed\n"); \
            std::cout << "m1:\n" << (a); std::cout << "m2:\n" << (b); }\
     printf(": %s\n",(s));
 
@@ -48,7 +48,8 @@
 
 aaxVec3f at  = { 2.0f, 0.0f, -1.0f };
 aaxVec3f up  = { 2.0f, 1.0f,  0.0f };
-aaxVec3f pos = { 1.0f, 3.0f, -2.5f };
+aaxVec3d pos = { 1.0,  3.0,  -2.5  };
+aaxVec3f pos32 = { 1.0f, 3.0f, -2.5f };
 
 int main(int argc, char **argv)
 {
@@ -67,20 +68,20 @@ int main(int argc, char **argv)
     v3 = 3.1415926536;
     printf("set Vector(%2.1f, %2.1f, %2.1f) = 3.1415926535: Vector(%5.4f, %5.4f, %5.4f)\n", v2[0], v2[1], v2[2], v3[0], v3[1], v3[2]);
 
-    aax::Matrix64 im64, m64;
-    aax::Matrix im, m1, m2;
+    aax::Matrix im32, m32;
+    aax::Matrix64 im, m1, m2;
 
     LOG("Initializing",m1,m2,true);
 
     m1.rotate(0.13f, 1.0f, 0.0f, 0.0f);
     LOG("Rotating",m1,m2,false);
 
-    m1 = m64;
-    LOG("Convert from 64-bit to 32-bit",m1,m2,true);
+    m1 = m32;
+    LOG("Convert from 32-bit to 64-bit",m1,m2,true);
 
     m1.rotate(-0.26f, 1.0f, 0.0f, 0.0f);
-    m64.rotate(-0.26, 1.0, 0.0, 0.0);
-    aax::Matrix m3 = m64;
+    m32.rotate(-0.26, 1.0, 0.0, 0.0);
+    aax::Matrix64 m3 = m32;
     LOG("Rotating M1 and M64",m1,m3,true);
 
     m1 += pos;
@@ -88,24 +89,25 @@ int main(int argc, char **argv)
     LOG("Multiplying identity matrix by m1",m3,m1,true);
 
     m1.set(pos, at, up); m1.rotate(0.13f, 1.0f, 0.0f, 0.0f);
-    m64.set(pos, at, up); m64.rotate(0.13, 1.0, 0.0, 0.0);
-    m3 = m64;
+    m32.set(pos32, at, up); m32.rotate(0.13, 1.0, 0.0, 0.0);
+    m3 = m32;
     LOG("Testing orientation",m1,m3,true);
 
     m2 = ~m1;
-    m64.inverse();
-    m3 = m64;
+    m32.inverse();
+    m3 = m32;
     LOG("Inverse matrix",m2,m3,true);
 
     std::cout << std::endl << "Matrix mtx and mtx64:\n" << (m3);
 
-    aaxVec3f at, up, pos;
-    m3.get(pos, at, up);
-    printf("mtx:   at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", at[0], at[1], at[2], up[0], up[1], up[2], pos[0], pos[1], pos[2]);
+    aaxVec3d _pos;
+    aaxVec3f _at, _up;
+    m3.get(_pos, _at, _up);
+    printf("mtx:   at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", _at[0], _at[1], _at[2], _up[0], _up[1], _up[2], _pos[0], _pos[1], _pos[2]);
 
-    aaxVec3d at64, up64, pos64;
-    m64.get(pos64, at64, up64);
-    printf("mtx64: at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", at64[0], at64[1], at64[2], up64[0], up64[1], up64[2], pos64[0], pos64[1], pos64[2]);
+    aaxVec3f _pos32, _at32, _up32;
+    m32.get(_pos32, _at32, _up32);
+    printf("mtx64: at(%2.1f, %2.1f, %2.1f), up(%2.1f, %2.1f, %2.1f), pos(%2.1f, %2.1f, %2.1f)\n", _at32[0], _at32[1], _at32[2], _up32[0], _up32[1], _up32[2], _pos32[0], _pos32[1], _pos32[2]);
 
     return 0;
 }

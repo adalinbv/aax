@@ -48,16 +48,16 @@
 #define RADIUS			15
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
-aaxVec3f EmitterPos = { 0.0f, 0.0f, 0.0f };
+aaxVec3d EmitterPos = { 0.0,  0.0,  0.0  };
 aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
 aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
 
-aaxVec3f FramePos = { 0.0f, 0.0f, 0.0f };
+aaxVec3d FramePos = { 0.0,  0.0,  0.0  };
 aaxVec3f FrameAt = {  0.0f, 0.0f, 1.0f };
 aaxVec3f FrameUp = {  0.0f, 1.0f, 0.0f };
 aaxVec3f FrameVel = { 0.0f, 0.0f, 0.0f };
 
-aaxVec3f SensorPos = { 10000.0f, -1000.0f,  0.0f };
+aaxVec3d SensorPos = { 10000.0,  -1000.0,   0.0  };
 aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
 aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
 aaxVec3f SensorVel = {     0.0f,     0.0f,  0.0f };
@@ -99,7 +99,7 @@ int main(int argc, char **argv)
             aaxFilter filter;
             aaxEffect effect;
             int i, j, deg = 0;
-            aaxMtx4f mtx;
+            aaxMtx4d mtx64;
 
             num = ((getNumEmitters(argc, argv)-1)/(FRAMES*SUBFRAMES))+1;
             emitter = calloc(num*SUBFRAMES*FRAMES, sizeof(aaxEmitter));
@@ -119,14 +119,14 @@ int main(int argc, char **argv)
 #endif
 
             /** sensor settings */
-            res = aaxMatrixSetOrientation(mtx, SensorPos, SensorAt, SensorUp);
+            res = aaxMatrix64SetOrientation(mtx64, SensorPos, SensorAt, SensorUp);
             testForState(res, "aaxSensorSetOrientation");
  
-            res = aaxMatrixInverse(mtx);
-            testForState(res, "aaxMatrixInverse");
+            res = aaxMatrix64Inverse(mtx64);
+            testForState(res, "aaxMatrix64Inverse");
 
-            res = aaxSensorSetMatrix(config, mtx);
-            testForState(res, "aaxSensorSetMatrix");
+            res = aaxSensorSetMatrix64(config, mtx64);
+            testForState(res, "aaxSensorSetMatrix64");
 
             res = aaxSensorSetVelocity(config, SensorVel);
             testForState(res, "aaxSensorSetVelocity");
@@ -138,7 +138,7 @@ int main(int argc, char **argv)
             printf("and %i emitters per subframe\nfor a total of %i "
                    "emitters\n", num, num*SUBFRAMES*FRAMES);
 
-            res = aaxMatrixSetOrientation(mtx, FramePos, FrameAt, FrameUp);
+            res = aaxMatrix64SetOrientation(mtx64, FramePos, FrameAt, FrameUp);
             testForState(res, "aaxAudioFrameSetOrientation");
 
             for (j=0; j<FRAMES; j++)
@@ -148,8 +148,8 @@ int main(int argc, char **argv)
                 frame[j] = aaxAudioFrameCreate(config);
                 testForError(frame[j], "Unable to create a new audio frame\n");
 
-                res = aaxAudioFrameSetMatrix(frame[j], mtx);
-                testForState(res, "aaxAudioFrameSetMatrix");
+                res = aaxAudioFrameSetMatrix64(frame[j], mtx64);
+                testForState(res, "aaxAudioFrameSetMatrix64");
 
                 res=aaxAudioFrameSetMode(frame[j], AAX_POSITION, AAX_RELATIVE);
                 testForState(res, "aaxAudioFrameSetMode");
@@ -171,8 +171,8 @@ int main(int argc, char **argv)
                     testForError(subframe[j][k],
                                  "Unable to create a new sub-frame\n");
 
-                    res = aaxAudioFrameSetMatrix(subframe[j][k], mtx);
-                    testForState(res, "aaxAudioFrameSetMatrix");
+                    res = aaxAudioFrameSetMatrix64(subframe[j][k], mtx64);
+                    testForState(res, "aaxAudioFrameSetMatrix64");
 
                     res = aaxAudioFrameSetMode(subframe[j][k], AAX_POSITION,
                                                                AAX_RELATIVE);
@@ -199,7 +199,7 @@ int main(int argc, char **argv)
                     {
                         unsigned int p = (j*SUBFRAMES+k)*num + i;
                         static float mul = 1.0f;
-                        aaxVec3f pos;
+                        aaxVec3d pos;
 
                         emitter[p] = aaxEmitterCreate();
                         testForError(emitter[p],
@@ -211,10 +211,10 @@ int main(int argc, char **argv)
                         pos[1] = EmitterPos[1] + cosf(anglestep * p)*RADIUS;
                         pos[0] = EmitterPos[0] + mul*cosf(anglestep * p)*RADIUS;
                         pos[2] = EmitterPos[2] + sinf(anglestep * p)*RADIUS;
-                        aaxMatrixSetDirection(mtx, pos, EmitterDir);
+                        aaxMatrix64SetDirection(mtx64, pos, EmitterDir);
 
-                        res = aaxEmitterSetMatrix(emitter[p], mtx);
-                        testForState(res, "aaxEmitterSetIdentityMatrix");
+                        res = aaxEmitterSetMatrix64(emitter[p], mtx64);
+                        testForState(res, "aaxEmitterSetIdentityMatrix64");
                         mul *= -1.0f;
 
                         res = aaxEmitterSetMode(emitter[p], AAX_POSITION,
