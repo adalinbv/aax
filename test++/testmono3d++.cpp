@@ -46,15 +46,15 @@
 #define RADIUS			20.0f
 #define FILE_PATH		SRC_PATH"/sine-440Hz-1period.wav"
 
-#define XEPOS		00000.0f
-#define YEPOS		-1000.0f
-#define ZEPOS		00.0f
+#define XEPOS		00000.0
+#define YEPOS		-1000.0
+#define ZEPOS		00.0
 
-aax::Vector EmitterPos(   XEPOS ,   YEPOS, ZEPOS);
+aax::Vector64 EmitterPos(   XEPOS ,   YEPOS, ZEPOS);
 aax::Vector EmitterDir(    0.0f,     0.0f,  1.0f);
 aax::Vector EmitterVel(    0.0f,     0.0f,  0.0f);
 
-aax::Vector SensorPos( 00000.0f,    YEPOS, 00.0f);
+aax::Vector64 SensorPos( 00000.0,   YEPOS, 00.0);
 aax::Vector SensorAt(      0.0f,     0.0f, -1.0f);
 aax::Vector SensorUp(      0.0f,     1.0f,  0.0f);
 aax::Vector SensorVel(     0.0f,     0.0f,  0.0f);
@@ -75,7 +75,7 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aax::Emitter emitter[256];
-            aax::Matrix mtx;
+            aax::Matrix64 mtx;
             aax::dsp dsp;
 
             /** mixer */

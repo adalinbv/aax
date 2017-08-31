@@ -381,10 +381,16 @@ char *strDup(const char *s)
 }
 
 float
-_vec3Magnitude(const aaxVec3f v)
+_vec3dMagnitude(const aaxVec3d v)
+{
+   double val = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
+   return sqrt(val);
+}
+
+float
+_vec3fMagnitude(const aaxVec3f v)
 {
    float val = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
    return sqrtf(val);
 }
-
 
