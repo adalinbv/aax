@@ -16,7 +16,7 @@ include(CheckFunctionExists)
 
 project(AeonWave C)
 set(PACKAGE_NAME "AeonWave")
-set(PACKAGE "libaax2")
+set(PACKAGE "libaax3")
 
 option(LTO "Enabel linkt-time optimizations" OFF)
 option(RELEASE "Enable for final release builds" OFF)
@@ -30,7 +30,7 @@ if(WIN32)
   set(EXTRA_LIBS ${EXTRA_LIBS} "-lwsock32 -lws2_32 -lwinmm")
   add_definitions(-DAAX_BUILD_LIBRARY=1)
   add_definitions(-D_WIN32 -DWIN32)
-  set(LIBAEONWAVE AAX32)
+  set(LIBAEONWAVE AAX)
 else(WIN32)
   add_definitions(-D_GNU_SOURCE=1)
   set(LIBAEONWAVE aax)
@@ -100,18 +100,14 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
-  set(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-bin, libaax2-dev")
+  set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax3-bin, libaax3-dev")
   set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-
-# set(CPACK_DEBIAN_PACKAGE_DEPENDS "debconf" COMPONENT Headers)
-# set(CPACK_DEBIAN_PACKAGE_SECTION "libdevel" COMPONENT Headers)
-# set(CPACK_DEBIAN_PACKAGE_REPLACES "aeonwave, libaax2, libaax2-dev" COMPONENT Headers)
 
   # RPM
   set(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
-  set(CPACK_RPM_PACKAGE_PROVIDES "libaax2")
+  set(CPACK_RPM_PACKAGE_PROVIDES "libaax3")
 endif(WIN32)
 
 # ZIP
