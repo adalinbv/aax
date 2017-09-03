@@ -80,15 +80,9 @@ aaxGetCopyrightString()
 }
 
 AAX_API const char* AAX_APIENTRY
-aaxGetVersionString(aaxConfig cfg)
+aaxGetVersionString(UNUSED(aaxConfig cfg))
 {
-   _handle_t *handle = (_handle_t*)cfg;
-   static const char* _version;
- 
-   if (handle && VALID_HANDLE(handle)) {
-      _version = AAX_LIBRARY_STR" "AAX_VERSION_STR;
-   }
-   return _version;
+   return AAX_LIBRARY_STR" "AAX_VERSION_STR;
 }
 
 AAX_API enum aaxFilterType AAX_APIENTRY
