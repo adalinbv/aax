@@ -144,7 +144,12 @@ uint64_t _aax_bswap64(uint64_t x);
 #if defined( WIN32 )
 # undef __STRICT_ANSI__
 //# define _WIN32_WINNT 0x0500
-# include <Windows.h>
+# ifdef HAVE_POLL_H
+#  include <poll.h>
+#elif HAVE_WINSOCK2_H
+#  include <winsock2.h>
+#endif
+# include <windows.h>
 # include <stdio.h>
 # include <string.h>
 # include <errno.h>

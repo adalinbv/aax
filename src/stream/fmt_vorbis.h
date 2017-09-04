@@ -34,8 +34,15 @@
 
 #define STB_VORBIS_NO_PULLDATA_API		1
 #define STB_VORBIS_MAX_CHANNELS			_AAX_MAX_SPEAKERS
-#define TRUE					AAX_TRUE
-#define FALSE					AAX_FALSE
+#ifndef TRUE
+# define TRUE					AAX_TRUE
+#endif
+#ifndef FALSE
+# define FALSE					AAX_FALSE
+#endif
+#ifdef alloca
+# undef alloca
+#endif
 
 #define STB_VORBIS_HEADER_ONLY
 #include <3rdparty/stb_vorbis.c> 

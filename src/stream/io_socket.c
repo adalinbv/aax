@@ -46,9 +46,7 @@
 #if HAVE_WINSOCK2_H
 # include <w32api.h>
 # define WINVER WindowsXP
-# include <winsock2.h>
 # include <ws2tcpip.h>
-# define EWOULDBLOCK WSAEWOULDBLOCK
 #endif
 #ifndef WIN32
 #define closesocket	close

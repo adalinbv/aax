@@ -135,11 +135,6 @@ static char *_wasapi_errors[WASAPI_MAX_ERROR] =
 #  include <rpcsal.h>
 #  include <sal.h>
 
-typedef struct _BYTE_BLOB {
-   unsigned long clSize;
-   BYTE abData[];
-} BYTE_BLOB;
-
 #  ifndef PROPERTYKEY_DEFINED
 #   define PROPERTYKEY_DEFINED
 typedef struct _tagpropertykey
@@ -191,6 +186,8 @@ typedef LONGLONG REFERENCE_TIME;
 #  include <unknwn.h>
 #  undef INITGUID
 
+# define IUnknown_AddRef(T)	(T)->lpVtbl->AddRef(T)
+
 # ifndef InterlockedAnd
 #  define InterlockedAnd InterlockedAnd_Inline
 LONG InterlockedAnd_Inline(LONG volatile *, LONG);
@@ -232,6 +229,12 @@ LONG InterlockedOr_Inline(LONG volatile *, LONG);
  AAX_DEFINE_GUID(aax_KSDATAFORMAT_SUBTYPE_PCM, 0x00000001, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
  AAX_DEFINE_GUID(aax_KSDATAFORMAT_SUBTYPE_ADPCM, 0x00000002, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
  AAX_DEFINE_GUID(aax_KSDATAFORMAT_SUBTYPE_IEEE_FLOAT, 0x00000003, 0x0000, 0x0010, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71);
+
+// Definitions find in "functiondiscoverykeys_devpkey.h" but not found by
+// MINGW64 TDM-gcc compiler.
+ DEFINE_PROPERTYKEY(PKEY_DeviceInterface_FriendlyName,  0x026e516e, 0xb814, 0x414b, 0x83, 0xcd, 0x85, 0x6d, 0x6f, 0xef, 0x48, 0x22, 2); // DEVPROP_TYPE_STRING
+ DEFINE_PROPERTYKEY(PKEY_Device_DeviceDesc,             0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0, 2);     // DEVPROP_TYPE_STRING
+ DEFINE_PROPERTYKEY(PKEY_Device_FriendlyName,           0xa45c254e, 0xdf1c, 0x4efd, 0x80, 0x20, 0x67, 0xd1, 0x46, 0xa8, 0x50, 0xe0, 14);    // DEVPROP_TYPE_STRING
 
 
 #endif /*__MMDEVAPI_AUDIO_H */

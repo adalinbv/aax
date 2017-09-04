@@ -792,11 +792,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  playback rate: %5.0f hz", handle->frequency_hz);
       _AAX_SYSLOG(str);
-#ifdef WIN32
-       snprintf(str,255, "  buffer size: %Iu bytes", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
-#else
       snprintf(str,255, "  buffer size: %zu bytes", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
-#endif
       _AAX_SYSLOG(str);
       snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
       _AAX_SYSLOG(str);
