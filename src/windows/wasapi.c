@@ -230,7 +230,7 @@ enum _aaxFlags
 const char* _wasapi_default_name = DEFAULT_DEVNAME;
 
 #if USE_EVENT_SESSION
-static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents;
+static struct IAudioSessionEventsVtbl _aaxAudioSessionEvents;
 #endif
 
 # define pIID_IUnknown &aax_IID_IUnknown
@@ -297,6 +297,7 @@ static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents;
 # define pIAudioCaptureClient_GetBuffer IAudioCaptureClient_GetBuffer
 # define pIAudioCaptureClient_ReleaseBuffer IAudioCaptureClient_ReleaseBuffer
 # define pIAudioCaptureClient_GetNextPacketSize IAudioCaptureClient_GetNextPacketSize
+
 
 static const char* _aaxNametoMMDevciceName(const char*);
 static char* _aaxMMDeviceNameToName(char *);
@@ -1473,7 +1474,7 @@ _aaxWASAPIDriverLog(const void *id, int prio, int type, const char *fn)
 
 /* -------------------------------------------------------------------------- */
 
-static int
+static ssize_t
 _aaxWASAPIDriverCaptureFromHardware(_driver_t *id)
 {
    _driver_t *handle = id;
@@ -2248,7 +2249,7 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
    AUDCLNT_SHAREMODE mode;
    WAVEFORMATEX *wfx;
    HRESULT hr, init;
-   size_t frames;
+   uint32_t frames;
    DWORD stream;
    float rate;
 
@@ -2907,7 +2908,7 @@ _aaxAudioSessionEvents_OnSessionDisconnected(IAudioSessionEvents *event,
    return S_OK;
 }
 
-static const struct IAudioSessionEventsVtbl _aaxAudioSessionEvents =
+static struct IAudioSessionEventsVtbl _aaxAudioSessionEvents =
 {
    _aaxAudioSessionEvents_QueryInterface,
    _aaxAudioSessionEvents_AddRef,

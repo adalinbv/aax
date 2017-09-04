@@ -28,12 +28,12 @@ FIND_PATH(XML_INCLUDE_DIR xml.h
 
 IF(RMALLOC)
   FIND_LIBRARY(XML_LIBRARY 
-    NAMES XML-rmalloc zeroxml-rmalloc ZeroXML32-rmalloc libZeroXML32-rmalloc
+    NAMES XML-rmalloc zeroxml-rmalloc ZeroXML-rmalloc libZeroXML-rmalloc
     HINTS
     $ENV{XMLDIR}
     $ENV{ProgramFiles}/ZeroXML
     $ENV{${ProgramFilesx86}}/ZeroXML
-    PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
+    PATH_SUFFIXES lib64
     PATHS
     ~/Library/Frameworks
     /Library/Frameworks
@@ -49,12 +49,12 @@ IF(RMALLOC)
 
 ELSE(RMALLOC)
   FIND_LIBRARY(XML_LIBRARY 
-    NAMES XML zeroxml ZeroXML32 libZeroXML32
+    NAMES XML zeroxml ZeroXML libZeroXML
     HINTS
     $ENV{XMLDIR}
     $ENV{ProgramFiles}/ZeroXML
     $ENV{${ProgramFilesx86}}/ZeroXML
-    PATH_SUFFIXES lib lib/${CMAKE_LIBRARY_ARCHITECTURE} lib64 libs64 libs libs/Win32 libs/Win64
+    PATH_SUFFIXES lib64
     PATHS
     ~/Library/Frameworks
     /Library/Frameworks

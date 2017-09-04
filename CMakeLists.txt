@@ -592,19 +592,30 @@ INSTALL(TARGETS ${LIBAEONWAVE}
 if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
   set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "!include 'x64.nsh'
     ${If} ${RunningX64}
-      CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
-    ${Else}
-      CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
+      ${DisableX64FSRedirection}
+      DetailPrint \\\"Disabling Windows 64-bit file system redirection\\\"
+    ${EndIf}
+
+    CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
+
+    ${If} ${RunningX64}
+      $EnableX64FSRedirection}
+      DetailPrint \\\"Re-enabling Windows 64-bit file system redirection\\\"
     ${EndIf}
     next1:
     ")
   set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "!include 'x64.nsh'
     ${If} ${RunningX64}
-      IfFileExists \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\" 0 next2
-         Delete \\\"$WINDIR\\\\SysWOW64\\\\${LIBAEONWAVE}.dll\\\"
-    ${Else}
+      ${DisableX64FSRedirection}
+      DetailPrint \\\"Disabling Windows 64-bit file system redirection\\\"
+    ${EndIf}
+
       IfFileExists \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\" 0 next2
          Delete \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
+
+    ${If} ${RunningX64}
+      ${EnableX64FSRedirection}
+      DetailPrint \\\"Re-enabling Windows 64-bit file system redirection\\\"
     ${EndIf}
     next2:
     ")
