@@ -590,34 +590,29 @@ INSTALL(TARGETS ${LIBAEONWAVE}
         COMPONENT Headers
 )
 if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
-  set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "!include 'x64.nsh'
-    ${If} ${RunningX64}
-      ${DisableX64FSRedirection}
-      DetailPrint \\\"Disabling Windows 64-bit file system redirection\\\"
-    ${EndIf}
-
-    CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
-
-    ${If} ${RunningX64}
-      ${EnableX64FSRedirection}
-      DetailPrint \\\"Re-enabling Windows 64-bit file system redirection\\\"
-    ${EndIf}
-    next1:
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "
+    !include Library.nsh
+    !include x64.nsh
+    Var /GLOBAL ALREADY_INSTALLED
+      ifFileExists \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\" 0 new_installation
+        StrCpy $ALREADY_INSTALLED 1
+      new_installation:
+      SetOutPath \\\"$SYSDIR\\\"
+      SetOverwrite IfNewer
+      ${If} ${RunningX64}
+        !define LIBRARY_X64
+        !insertmacro installLib DLL $ALREADY_INSTALLED REBOOT_PROTECTED \\\"${AeonWave_BINARY_DIR}\\\\${LIBAEONWAVE}.dll\\\" \\\"${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\" 
+	!undef LIBRARY_X64
+      ${EndIf}
     ")
-  set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "!include 'x64.nsh'
-    ${If} ${RunningX64}
-      ${DisableX64FSRedirection}
-      DetailPrint \\\"Disabling Windows 64-bit file system redirection\\\"
-    ${EndIf}
-
-      IfFileExists \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\" 0 next2
-         Delete \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
-
-    ${If} ${RunningX64}
-      ${EnableX64FSRedirection}
-      DetailPrint \\\"Re-enabling Windows 64-bit file system redirection\\\"
-    ${EndIf}
-    next2:
+    set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
+      !include Library.nsh
+      !include x64.nsh 
+      SetOutPath \\\"$SYSDIR\\\" 
+      ${If} ${RunningX64}
+        !define LIBRARY_X64
+        !insertmacro uninstallLib DLL SHARED REBOOT_NOTPROTECTED \\\"$SYSDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\"
+      ${EndIf}
     ")
 endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
