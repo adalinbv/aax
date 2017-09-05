@@ -51,7 +51,9 @@ int munmap(void *addr, size_t len);
 #ifdef __USE_GNU
 # undef __USE_GNU
 #endif
-#if HAVE_WINSOCK2_H
+#ifdef HAVE_POLL_H
+# include <poll.h>
+#elif HAVE_WINSOCK2_H
 # ifndef POLLRDNORM
 #  define POLLRDNORM	0x0100
 # endif
