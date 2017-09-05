@@ -101,7 +101,7 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
   set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax3-bin, libaax3-dev")
-  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/debian/postinst;${AeonWave_SOURCE_DIR}/admin/debian/postrm;")
+  set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/deb/postinst;${AeonWave_SOURCE_DIR}/admin/deb/postrm;")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
   # RPM
@@ -599,7 +599,7 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     CopyFiles \\\"$INSTDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\\${LIBAEONWAVE}.dll\\\"
 
     ${If} ${RunningX64}
-      $EnableX64FSRedirection}
+      ${EnableX64FSRedirection}
       DetailPrint \\\"Re-enabling Windows 64-bit file system redirection\\\"
     ${EndIf}
     next1:
@@ -652,6 +652,10 @@ endif(UNIX AND NOT WIN32)
 
 if(NOT SINGLE_PACKAGE)
   include (CPack)
+  configure_file(
+    ${PROJECT_SOURCE_DIR}/admin/nsis/NSIS.definitions.nsh.in
+    ${CMAKE_CURRENT_BINARY_DIR}/admin/nsis/NSIS.definitions.nsh
+  )
 endif(NOT SINGLE_PACKAGE)
 
 message("aax version: ${AAX_VERSION}")
