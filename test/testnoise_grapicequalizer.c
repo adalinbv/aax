@@ -10,11 +10,12 @@
 
 #include <stdio.h>
 #include <stdlib.h>	// getenv
-#include <time.h>	// nanosleep
 #include <errno.h>	// EINTR
 
 
 #include <aax/aax.h>
+
+#include "base/timer.h"
 
 #define	SAMPLE_FREQ		48000
 
@@ -62,25 +63,6 @@ testForState(int res, const char *func)
         printf("(%i) %s\n\n", err, aaxGetErrorString(err));
         exit(-1);
     }
-}
-
-int msecSleep(unsigned int dt_ms)
-{
-   static struct timespec s;
-   if (dt_ms > 0)
-   {
-      s.tv_sec = (dt_ms/1000);
-      s.tv_nsec = (dt_ms % 1000)*1000000L;
-      while(nanosleep(&s,&s)==-1 && errno == EINTR)
-         continue;
-   }
-   else
-   {
-      s.tv_sec = 0;
-      s.tv_nsec = 500000L;
-      return nanosleep(&s, 0);
-   }
-   return 0;
 }
 
 int main(int argc, char **argv)
