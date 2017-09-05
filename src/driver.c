@@ -301,28 +301,6 @@ getCommandLineOption(int argc, char **argv, char const *option)
 #ifndef _WIN32
 # include <termios.h>
 
-# if USE_NANOSLEEP
-#  include <time.h>		/* for nanosleep */
-#  include <sys/time.h>		/* for struct timeval */
-#  include <errno.h>
-int msecSleep(unsigned long dt_ms)
-   {
-       static struct timespec s;
-       s.tv_sec = (dt_ms/1000);
-       s.tv_nsec = (dt_ms % 1000)*1000000L;
-       while(nanosleep(&s,&s)==-1 && errno == EINTR)
-            continue;
-       return errno;
-   }
-
-#else
-#  include <unistd.h>		/* usleep */
-int msecSleep(unsigned long dt_ms)
-   {
-       return usleep(dt_ms*1000);
-   }
-#endif
-
 void set_mode(int want_key)
 {
     static struct termios old, new;
