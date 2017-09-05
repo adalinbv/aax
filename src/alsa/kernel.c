@@ -25,12 +25,12 @@
 
 #include <stdlib.h>		// exit
 #if HAVE_SYS_UTSNAME_H
-#include <sys/utsname.h>
+# include <sys/utsname.h>
 #endif
 #include <stdio.h>
 #include <sys/stat.h>
 #ifdef HAVE_IO_H
-#include <io.h>
+# include <io.h>
 #endif
 #include <fcntl.h>
 #if HAVE_UNISTD_H
