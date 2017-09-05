@@ -2,6 +2,7 @@
 SET( DRIVER_OBJS
      driver.c
      wavfile.c
+     timer.c
    )
 
 SET(LIBDRIVER driver)
