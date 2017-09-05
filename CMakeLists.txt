@@ -172,6 +172,9 @@ if(MSVC)
     set_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
     )
+    set_PROPERTY(SOURCE src/software/cpu/arch3d_avx.c APPEND
+                 PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
+    )
     set_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                  PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
     )
@@ -279,6 +282,9 @@ else(MSVC)
                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge"
           )
           set_PROPERTY(SOURCE src/software/cpu/arch2d_avx.c APPEND
+                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge"
+          )
+          set_PROPERTY(SOURCE src/software/cpu/arch3d_avx.c APPEND
                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge"
           )
           set_PROPERTY(SOURCE src/software/cpu/arch2d_fma3.c APPEND
@@ -538,6 +544,7 @@ if(SIZEOF_SIZE_T EQUAL 8)
      src/software/cpu/arch3d_sse_vex.c
      src/software/cpu/arch2d_sse_vex.c
      src/software/cpu/arch2d_avx.c
+     src/software/cpu/arch3d_avx.c
      src/software/cpu/arch2d_fma3.c
      src/software/cpu/arch2d_fma4.c
   )
@@ -653,8 +660,8 @@ if(NOT SINGLE_PACKAGE)
   )
 endif(NOT SINGLE_PACKAGE)
 
-message("aax version: ${AAX_VERSION}")
-message("so version: ${AAX_SOVERSION}")
+message("AAX version: ${AAX_VERSION}")
+message("API version: ${AAX_SOVERSION}")
 
 #-----------------------------------------------------------------------------
 ### uninstall target

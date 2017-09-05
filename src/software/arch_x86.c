@@ -430,6 +430,8 @@ _aaxGetSIMDSupportLevel()
 #  endif
 
       /* AVX */
+//    mtx4dMul = _mtx4dMul_avx;
+
 //    _aax_memcpy = _aax_memcpy_avx;
       _batch_cvtps_24 = _batch_cvtps_24_avx;
       _batch_cvt24_ps = _batch_cvt24_ps_avx;
