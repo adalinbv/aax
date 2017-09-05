@@ -78,6 +78,7 @@ int resetTimerResolution(unsigned int);
 
 /** highres timing code */
 #ifdef _WIN32
+# include <windows.h>
 typedef struct
 {
    double tfreq;
