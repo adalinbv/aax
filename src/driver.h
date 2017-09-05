@@ -48,6 +48,7 @@ extern "C" {
 # include <base/logging.h>
 #endif
 #include <base/types.h>
+#include <base/timer.h>
 
 void set_mode(int want_key);
 int get_key();
@@ -75,14 +76,6 @@ void testForALError();
 float _vec3dMagnitude(const aaxVec3d v);
 float _vec3fMagnitude(const aaxVec3f v);
 
-
-#ifdef _WIN32
-# include <windef.h>
-DWORD __attribute__((__stdcall__)) SleepEx(DWORD,BOOL);
-# define msecSleep(tms)	SleepEx((DWORD)tms, FALSE)
-#else
-int msecSleep(unsigned long);
-#endif
 
 #if defined(__cplusplus)
 }  /* extern "C" */
