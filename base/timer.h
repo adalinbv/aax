@@ -54,11 +54,13 @@ enum {
 int gettimeofday(struct timeval*, void*);
 int clock_gettime(int, struct timespec*);
 
+# if defined(_MSC_VER)
 typedef long    off_t;
-# if SIZEOF_SIZE_T == 4
+#  if SIZEOF_SIZE_T == 4
 typedef INT32   ssize_t;
-# else
+#  else
 typedef INT64   ssize_t;
+#  endif
 # endif
 
 #else	/* _WIN32 */
