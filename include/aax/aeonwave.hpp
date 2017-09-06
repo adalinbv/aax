@@ -691,14 +691,14 @@ public:
     inline const char* device(unsigned d) {
         return aaxDriverGetDeviceNameByPos(ptr,d,mode);
     }
-    const char* interface(int d, unsigned i) {
+    const char* interface_name(int d, unsigned i) {
         const char* ed = device(d);
         return aaxDriverGetInterfaceNameByPos(ptr,ed,i,mode);
     }
-    inline const char* interface(const char* d, unsigned i) {
+    inline const char* interface_name(const char* d, unsigned i) {
         return aaxDriverGetInterfaceNameByPos(ptr,d,i,mode);
     }
-    inline const char* interface(std::string& d, unsigned i) {
+    inline const char* interface_name(std::string& d, unsigned i) {
         return aaxDriverGetInterfaceNameByPos(ptr,d.c_str(),i,mode);
     }
 
