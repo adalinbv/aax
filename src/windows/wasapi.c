@@ -2254,7 +2254,7 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
    float rate;
 
    assert(handle);
-   assert(frames);
+   assert(period_frames);
 
    frames = *period_frames;
 
