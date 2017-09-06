@@ -25,6 +25,8 @@
    Note: This will require code changes.
  * Fixed some header mistakes which makes version 3.0 incompatible with 2.0
  * Removed version 1.0 compatible header files.
+ * Renamed the C++ interface() functions to interface_name() since some projects
+   undefine 'interface' causing the preprocessor to hide these functions.
  * Fix a bug where modulating waveforms by non-sine waveforms caused silence.
  * Fix a segmentation fault when a particular file extension does not not
    support writing.
