@@ -72,11 +72,11 @@ help()
     {
         std::cout << "Supported file formats:" << std::endl;
         if (rec) {
-            std::cout << "  - input : " << rec.interface(0, 0) << std::endl;
+            std::cout << "  - input : " << rec.interface_name(0,0) << std::endl;
         }
 
         if (play) {
-            std::cout << "  - output: " << play.interface(0, 0) << std::endl;
+            std::cout << "  - output: " << play.interface_name(0,0) <<std::endl;
         }
         std::cout << std::endl;
     }
