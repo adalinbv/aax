@@ -48,6 +48,7 @@ extern "C" {
 # include <base/logging.h>
 #endif
 #include <base/types.h>
+#include <base/timer.h>
 
 void set_mode(int want_key);
 int get_key();
