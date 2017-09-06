@@ -30,11 +30,7 @@ extern "C" {
 #include "config.h"
 #endif
 
-#if defined(__x86_64__)
-# define AAX_LIBRARY_STR		"AeonWave-HD 64"
-#else
-# define AAX_LIBRARY_STR		"AeonWave-HD"
-#endif
+#define AAX_LIBRARY_STR		"AeonWave-HD 64"
 
 #define AAX_MIN_CONFIG_VERSION		0.0f
 #define AAX_NEW_CONFIG_VERSION		2.0f
