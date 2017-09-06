@@ -77,14 +77,6 @@ float _vec3dMagnitude(const aaxVec3d v);
 float _vec3fMagnitude(const aaxVec3f v);
 
 
-#ifdef _MSC_VER
-# include <windef.h>
-DWORD __attribute__((__stdcall__)) SleepEx(DWORD,BOOL);
-# define msecSleep(tms)	SleepEx((DWORD)tms, FALSE)
-#else
-int msecSleep(unsigned long);
-#endif
-
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
