@@ -100,14 +100,14 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), debconf")
   set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "alsa-base | oss4-base")
   set(CPACK_DEBIAN_PACKAGE_SUGGESTS "libmpg123-0, libopus0")
-  set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax3-bin, libaax3-dev")
+  set(CPACK_DEBIAN_PACKAGE_REPLACES "libaax2-bin, libaax2-dev, libaax3-bin, libaax3-dev")
   set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/deb/postinst;${AeonWave_SOURCE_DIR}/admin/deb/postrm;")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
   # RPM
   set(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
-  set(CPACK_RPM_PACKAGE_PROVIDES "libaax3")
+  set(CPACK_RPM_PACKAGE_PROVIDES "libaax2, libaax3")
 endif(WIN32)
 
 # ZIP
