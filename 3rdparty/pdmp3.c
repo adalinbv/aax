@@ -1478,7 +1478,7 @@ static int Process_ID3v2_Frame(pdmp3_handle *id) {
         dst[dstlen] = 0;
       }
 #else
-      char *dst, src = id->id3v2->text[texts].text.p;
+      char *dst, *src = id->id3v2->text[texts].text.p;
       dstlen = 2*srclen;
       dst = malloc(dstlen);
       if(dst) {
