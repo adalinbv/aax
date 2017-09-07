@@ -5,6 +5,8 @@
 // # include "avxintrin-emu.h"
 #endif
 
+#include <aax/aax.h>
+
 #include <base/types.h>
 #include <base/geometry.h>
 #include <src/software/cpu/arch3d_simd.h>
@@ -23,6 +25,12 @@
     printf("line %i, %7.6f, %7.6f, %7.6f, %7.6f \n      != %7.6f, %7.6f, %7.6f, %7.6f\n", __LINE__, a.v4[0],a.v4[1],a.v4[2],a.v4[3],b.v4[0],b.v4[1],b.v4[2],b.v4[3]); \
     return __LINE__; }
 
+#define TESTM4(a,b) { \
+  int i; for (i=0; i<4; ++i) { \
+  if (F(a.m4[i][0],b.m4[i][0]) || F(a.m4[i][1],b.m4[i][1]) || F(a.m4[i][2],b.m4[i][2]) || F(a.m4[i][3],b.m4[i][3])) { \
+    printf("line %i, row: %i, %7.6f, %7.6f, %7.6f, %7.6f \n              != %7.6f, %7.6f, %7.6f, %7.6f\n", __LINE__, i, a.m4[i][0],a.m4[i][1],a.m4[i][2],a.m4[i][3],b.m4[i][0],b.m4[i][1],b.m4[i][2],b.m4[i][3]); \
+    return __LINE__; } } }
+
 static float t1[4] = {  0.303f, -1.13f, -0.078f,  0.519f };
 static float t2[4] = {  0.593f,  0.13f,  1.078f, -0.017f };
 
@@ -31,6 +39,7 @@ int main()
     vec3f_t a3, b3, c3, x3, y3, z3;
     vec4f_t a4, b4, c4, x4, y4, z4;
     mtx4f_t k, l, m, n;
+    mtx4d_t l64, m64, n64;
     float f;
 
     vec3fFill(a3.v3, t1); vec3fFill(b3.v3, t2);
@@ -78,10 +87,12 @@ int main()
 
     _mtx4fMul_cpu(&k, &m, &n);
     _mtx4fMul_sse(&l, &m, &n);
-//  TEST4(k[0],l[0]);
-//  TEST4(k[1],l[1]);
-//  TEST4(k[2],l[2]);
-//  TEST4(k[3],l[3]);
+    TESTM4(k,l);
+
+    mtx4dSetIdentity(m64.m4);
+    aaxMatrixToMatrix64(n64.m4, n.m4);
+    _mtx4dMul_sse3(&l64, &m64, &n64);
+    TESTM4(k,l64);
 
     return 0;
 }

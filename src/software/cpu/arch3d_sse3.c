@@ -78,6 +78,25 @@ _vec4fMatrix4_sse3(vec4f_ptr d, const vec4f_ptr pv, const mtx4f_ptr m)
    d->s4 = _mm_hadd_ps(_mm_hadd_ps(s0, s1), _mm_hadd_ps(s2, s3));
 }
 
+FN_PREALIGN void
+_mtx4dMul_sse3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
+{
+   int i;
+
+   for (i=0; i<4; ++i) {
+      __m128d col = _mm_set1_pd(m2->m4[i][0]);
+      __m128d row1 = _mm_mul_pd(m1->s4x4[0][0], col);
+      __m128d row2 = _mm_mul_pd(m1->s4x4[0][1], col);
+      for (int j=1; j<4; ++j) {
+          col = _mm_set1_pd(m2->m4[i][j]);
+          row1 = _mm_add_pd(row1, _mm_mul_pd(m1->s4x4[j][0], col));
+          row2 = _mm_add_pd(row2, _mm_mul_pd(m1->s4x4[j][1], col));
+      }
+      d->s4x4[i][0] = row1;
+      d->s4x4[i][1] = row2;
+   }
+}
+
 #else
 typedef int make_iso_compilers_happy;
 #endif /* SSE3 */
