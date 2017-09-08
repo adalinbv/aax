@@ -68,10 +68,10 @@ typedef ALIGN16 double  dx4x4_t[4][4] ALIGN16C;
 typedef double		simd4d_t[4];
 typedef float32x4_t	simd4f_t;
 typedef int32x4_t	simd4i_t;
-#elif defined __AVX__
-typedef __m256d         simd4d_t;
-typedef __m128          simd4f_t;
-typedef __m128i         simd4i_t;
+// #elif defined __AVX__
+// typedef __m256d         simd4d_t;
+// typedef __m128          simd4f_t;
+// typedef __m128i         simd4i_t;
 #elif defined __SSE__
 typedef __m128d		simd4d_t[2];
 typedef __m128		simd4f_t;
