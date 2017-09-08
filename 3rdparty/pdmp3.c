@@ -1468,7 +1468,7 @@ static int Process_ID3v2_Frame(pdmp3_handle *id) {
       size_t dstlen, srclen = id->id3v2->text[texts].text.size;
 
 #ifdef _WIN32
-      const wchar_t *src = *id->id3v2->text[texts].text.p;
+      const wchar_t *src = (wchar_t*)id->id3v2->text[texts].text.p;
       char*dst;
       dstlen = WideCharToMultiByte(CP_ACP, 0, src, srclen, 0,0,NULL,NULL);
       dst = id->id3v2->text[texts].text.p = malloc(dstlen);
