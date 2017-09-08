@@ -149,6 +149,7 @@ uint64_t _aax_bswap64(uint64_t x);
 #elif HAVE_WINSOCK2_H
 #  include <winsock2.h>
 #endif
+# define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # include <stdio.h>
 # include <string.h>
