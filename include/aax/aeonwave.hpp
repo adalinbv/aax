@@ -87,7 +87,7 @@ public:
 
     Obj() : ptr(0), closefn(0) {}
 
-    Obj(void *p, const close_fn* c) : ptr(p), closefn(c) {}
+    Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
     Obj(const Obj& o) : ptr(o.ptr), closefn(o.closefn) {
         o.closefn = 0;
@@ -322,7 +322,7 @@ public:
         return aaxEmitterRemoveBuffer(ptr);
     }
     inline Buffer get(unsigned int p, bool c=false) {
-        return Buffer(aaxEmitterGetBufferByPos(ptr,p,c),~c);
+        return Buffer(aaxEmitterGetBufferByPos(ptr,p,c),!c);
     }
     inline unsigned int get(enum aaxState s) {
         return aaxEmitterGetNoBuffers(ptr,s);
