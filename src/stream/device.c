@@ -63,6 +63,7 @@
 #define DEFAULT_OUTPUT_RATE	22050
 #define WAVE_HEADER_SIZE	11
 #define WAVE_EXT_HEADER_SIZE	17
+#define USE_CAPTURE_THREAD	AAX_FALSE
 
 
 static _aaxDriverDetect _aaxStreamDriverDetect;
@@ -156,8 +157,10 @@ typedef struct
 
 static _ext_t* _aaxGetFormat(const char*, enum aaxRenderMode);
 
-static void* _aaxStreamDriverWriteThread(void*);
+#if USE_CAPTURE_THREAD
 static void* _aaxStreamDriverReadThread(void*);
+#endif
+static void* _aaxStreamDriverWriteThread(void*);
 static void _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
 
@@ -625,21 +628,30 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->no_samples = no_samples;
             handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
 
-            handle->thread.ptr = _aaxThreadCreate();
-            handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
-            _aaxSignalInit(&handle->thread.signal);
-            handle->threadbuf_lock = _aaxMutexCreate(handle->threadbuf_lock);
             if (handle->mode == AAX_MODE_READ) {
+#if USE_CAPTURE_THREAD
+               handle->thread.ptr = _aaxThreadCreate();
+               handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
+               _aaxSignalInit(&handle->thread.signal);
+               handle->threadbuf_lock = _aaxMutexCreate(handle->threadbuf_lock);
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxStreamDriverReadThread, handle, 20);
+#else
+               res = 0;
+#endif
             } else {
+               handle->thread.ptr = _aaxThreadCreate();
+               handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
+               _aaxSignalInit(&handle->thread.signal);
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxStreamDriverWriteThread, handle, 20);
             }
 
             if (res == 0)
             {
+#if USE_CAPTURE_THREAD
                handle->thread.started = AAX_TRUE;
+#endif
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                       handle->mode, registered);
                if (handle->render)
@@ -865,15 +877,23 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
                _aaxStreamDriverReadChunk(id);
             }
             else {
-//             _aaxSignalTrigger(&handle->thread.signal);
+#if USE_CAPTURE_THREAD
+               _aaxSignalTrigger(&handle->thread.signal);
+#else
+               _aaxStreamDriverReadChunk(id);
+#endif
             }
 
+#if USE_CAPTURE_THREAD
             _aaxMutexLock(handle->threadbuf_lock);
+#endif
             avail = handle->threadBuffer->avail;
             if (avail > 0) {
                _aaxDataMoveData(handle->threadBuffer, handle->dataBuffer,avail);
             }
+#if USE_CAPTURE_THREAD
             _aaxMutexUnLock(handle->threadbuf_lock);
+#endif
 
             data = handle->dataBuffer->data; // needed above
          }
@@ -1418,10 +1438,14 @@ _aaxStreamDriverReadChunk(const void *id)
    size_t size, avail;
    ssize_t res;
 
+#if USE_CAPTURE_THREAD
    _aaxMutexLock(handle->threadbuf_lock);
+#endif
    avail = handle->threadBuffer->avail;
    size = _MIN(handle->threadBuffer->size - avail, PERIOD_SIZE);
+#if USE_CAPTURE_THREAD
    _aaxMutexUnLock(handle->threadbuf_lock);
+#endif
 
    if (!size) {
       return 0;
@@ -1434,7 +1458,9 @@ _aaxStreamDriverReadChunk(const void *id)
    {
       unsigned char *data;
 
+#if USE_CAPTURE_THREAD
       _aaxMutexLock(handle->threadbuf_lock);
+#endif
       data = handle->threadBuffer->data;
 
       avail = handle->threadBuffer->avail;
@@ -1448,7 +1474,9 @@ _aaxStreamDriverReadChunk(const void *id)
       }
 
       handle->threadBuffer->avail = avail;
+#if USE_CAPTURE_THREAD
       _aaxMutexUnLock(handle->threadbuf_lock);
+#endif
    }
    else if (res == -1) {
       handle->end_of_file = AAX_TRUE;
@@ -1457,6 +1485,7 @@ _aaxStreamDriverReadChunk(const void *id)
    return res;
 }
 
+#if USE_CAPTURE_THREAD
 static void*
 _aaxStreamDriverReadThread(void *id)
 {
@@ -1492,4 +1521,4 @@ _aaxStreamDriverReadThread(void *id)
 
    return handle;
 }
-
+#endif
