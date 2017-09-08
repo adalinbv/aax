@@ -55,7 +55,7 @@ protected:
 
 public:
     VecBase() : _v4(true) {
-        std::fill(_v, _v+4, 0);
+        std::fill(_v, _v+4, (T)0);
     }
     VecBase(const aaxVec3f& v) : _v4(false) {
         _v[0] = static_cast<T>(v[0]);
