@@ -30,6 +30,7 @@
 #ifdef __AVX__
 
 
+#if 0
 FN_PREALIGN void
 _vec4dMatrix4_avx(vec4d_ptr d, const vec4d_ptr vi, const mtx4d_ptr m)
 {
@@ -69,6 +70,7 @@ _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
       d->s4x4[i] = row;
    }
 }
+#endif
 
 #else
 typedef int make_iso_compilers_happy;
