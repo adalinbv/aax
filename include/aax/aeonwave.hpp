@@ -222,7 +222,7 @@ public:
         return (filter) ? aaxFilterSetSlotParams(ptr,s,t,v)
                     : aaxEffectSetSlotParams(ptr,s,t,v);
     }
-    bool set(unsigned s, const aaxVec4f v, enum aaxType t=AAX_LINEAR) {
+    bool set(unsigned s, aaxVec4f v, enum aaxType t=AAX_LINEAR) {
         return (filter) ? aaxFilterSetSlotParams(ptr,s,t,v)
                         : aaxEffectSetSlotParams(ptr,s,t,v);
     }
