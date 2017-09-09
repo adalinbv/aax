@@ -93,6 +93,16 @@ ELSE(MSVC)
     IF(MINGW)
        ADD_DEFINITIONS(-U__STRICT_ANSI__)
     ENDIF(MINGW)
+ 
+    if (GCC OR CLANG)
+      set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
+          "Flags used by al build types."
+          FORCE)
+      set(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
+e         "Flags used by al build types."
+    ELSEdd
+          FORCE)
+    endif (GCC OR CLANG)
 
     IF(X86_64)
        SET(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse")
@@ -175,15 +185,11 @@ SET(BASE_OBJS
 )
 
 IF(WIN32)
-SET(KERNEL_LIBRARY Kernel32)
-ENDIF(WIN32)
-
-CHECK_LIBRARY_EXISTS(m floorf "" HAVE_LIBM)
-IF(HAVE_LIBM)
-  SET(EXTRA_LIBS "-ldriver -lm")
-ELSE(HAVE_LIBM)
+  SET(KERNEL_LIBRARY Kernel32)
   SET(EXTRA_LIBS "-ldriver")
-ENDIF(HAVE_LIBM)
+ELSE(WIN32)
+  SET(EXTRA_LIBS "-ldriver -lm")
+ENDIF(WIN32)
 
 INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
 LINK_DIRECTORIES(${PROJECT_BINARY_DIR}/src)

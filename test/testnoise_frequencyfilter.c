@@ -55,7 +55,7 @@ testForState(int res, const char *func)
     }
 }
 
-int main(int argc, char **argv)
+int main()
 {
     char *tmp, devname[128], filename[64];
     aaxConfig config;
@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 
     if (config)
     {
-        int state, no_samples;
+        int no_samples;
         aaxEmitter emitter;
         aaxBuffer buffer;
         aaxFilter filter;
@@ -145,9 +145,9 @@ int main(int argc, char **argv)
         {
             dt += 0.05f;
             msecSleep(50);
-            state = aaxEmitterGetState(emitter);
+            aaxEmitterGetState(emitter);
         }
-        while (dt < 1.0f); // state == AAX_PLAYING);
+        while (dt < 1.0f);;
 
         res = aaxEmitterSetState(emitter, AAX_PROCESSED);
         testForState(res, "aaxEmitterStop");

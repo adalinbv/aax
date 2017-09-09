@@ -197,7 +197,7 @@ int main(int argc, char **argv)
                     i = 0;
                     do
                     {
-                        unsigned int p = (j*SUBFRAMES+k)*num + i;
+                        int p = (j*SUBFRAMES+k)*num + i;
                         static float mul = 1.0f;
                         aaxVec3d pos;
 
