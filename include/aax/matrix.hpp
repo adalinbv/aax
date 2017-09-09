@@ -297,6 +297,7 @@ public:
             }
             s << " ]" << std::endl;
         }
+        return s;
     }
 
 protected:
@@ -525,6 +526,7 @@ public:
     }
     bool get(aaxVec3f& p, aaxVec3f& a, aaxVec3f& u) {
         get(1, u); get(2, a); get(3, p);
+        return true;
     }
     inline bool translate(float dx, float dy, float dz) {
         return aaxMatrixTranslate(_m,dx,dy,dz);
