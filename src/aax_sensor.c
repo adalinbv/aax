@@ -42,7 +42,7 @@ static int _aaxSensorCaptureStart(_handle_t *);
 static int _aaxSensorCaptureStop(_handle_t *);
 
 AAX_API int AAX_APIENTRY
-aaxSensorSetMatrix64(aaxConfig config, const aaxMtx4d mtx64)
+aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
@@ -117,7 +117,7 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4d mtx64)
 }
 
 AAX_API int AAX_APIENTRY
-aaxSensorSetVelocity(aaxConfig config, const aaxVec3f velocity)
+aaxSensorSetVelocity(aaxConfig config, aaxVec3f velocity)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
