@@ -65,7 +65,7 @@ testForState(int res, const char *func)
     }
 }
 
-int main(int argc, char **argv)
+int main()
 {
     char *tmp, devname[128], filename[64];
     aaxConfig config;

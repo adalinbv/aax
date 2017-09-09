@@ -89,7 +89,8 @@ int main(int argc, char **argv)
             testForState(res, "aaxMatrix64SetOrientation");
 
             res = aaxMatrix64Inverse(mtx64);
-            res |= aaxSensorSetMatrix64(config, mtx64);
+            testForState(res, "aaaxMatrix64Inverse");
+            res = aaxSensorSetMatrix64(config, mtx64);
             testForState(res, "aaxSensorSetMatrix64");
 
             res = aaxSensorSetVelocity(config, SensorVel);

@@ -30,7 +30,7 @@
 #define HF_Q			5.0f
 
 
-int main(int argc, char **argv)
+int main()
 {
     char *tmp, devname[128], filename[64];
     aaxConfig config;

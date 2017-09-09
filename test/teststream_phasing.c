@@ -82,11 +82,11 @@ int main(int argc, char **argv)
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
-            const int NUM_BUFFERS = 32;
+            const unsigned NUM_BUFFERS = 32;
             aaxEmitter emitter;
             aaxEffect effect;
             aaxFilter filter;
-            int i, deg = 0;
+            unsigned i, deg = 0;
 
             /** mixer */
             res = aaxMixerSetState(config, AAX_INITIALIZED);
