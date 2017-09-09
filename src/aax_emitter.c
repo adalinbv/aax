@@ -773,7 +773,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterSetMatrix64(aaxEmitter emitter, const aaxMtx4d mtx64)
+aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
 {
    _emitter_t *handle = get_emitter(emitter, __func__);
    int rv = __release_mode;
@@ -804,7 +804,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, const aaxMtx4d mtx64)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterSetVelocity(aaxEmitter emitter, const aaxVec3f velocity)
+aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
 {
    _emitter_t* handle = get_emitter(emitter, __func__);
    int rv = __release_mode;

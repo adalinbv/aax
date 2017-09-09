@@ -74,12 +74,12 @@ aaxEffectDestroy(aaxEffect e)
 AAX_API int AAX_APIENTRY
 aaxEffectSetSlot(aaxEffect e, unsigned slot, int ptype, float p1, float p2, float p3, float p4)
 {
-   const aaxVec4f v = { p1, p2, p3, p4 };
+   aaxVec4f v = { p1, p2, p3, p4 };
    return aaxEffectSetSlotParams(e, slot, ptype, v);
 }
 
 AAX_API int AAX_APIENTRY
-aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, const aaxVec4f p)
+aaxEffectSetSlotParams(aaxEffect e, unsigned slot, int ptype, aaxVec4f p)
 {
    int rv = AAX_FALSE;
    _effect_t* effect = get_effect(e);

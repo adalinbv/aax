@@ -76,12 +76,12 @@ aaxFilterDestroy(aaxFilter f)
 AAX_API int AAX_APIENTRY
 aaxFilterSetSlot(aaxFilter f, unsigned slot, int ptype, float p1, float p2, float p3, float p4)
 {
-   const aaxVec4f v = { p1, p2, p3, p4 };
+   aaxVec4f v = { p1, p2, p3, p4 };
    return aaxFilterSetSlotParams(f, slot, ptype, v);
 }
 
 AAX_API int AAX_APIENTRY
-aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, const aaxVec4f p)
+aaxFilterSetSlotParams(aaxFilter f, unsigned slot, int ptype, aaxVec4f p)
 {
    _filter_t* filter = get_filter(f);
    int rv = AAX_FALSE;

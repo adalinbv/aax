@@ -195,7 +195,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
 }
 
 AAX_API int AAX_APIENTRY
-aaxAudioFrameSetMatrix64(aaxFrame frame, const aaxMtx4d mtx64)
+aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 {
    _frame_t *handle = get_frame(frame, __func__);
    int rv = __release_mode;
@@ -275,7 +275,7 @@ aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4d mtx64)
 }
 
 AAX_API int AAX_APIENTRY
-aaxAudioFrameSetVelocity(aaxFrame frame, const aaxVec3f velocity)
+aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 {
    _frame_t *handle = get_frame(frame, __func__);
    int rv = __release_mode;
