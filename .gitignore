@@ -27,3 +27,4 @@ CTestTestfile.cmake
 *.orig
 src/copyright.h
 debian/ChangeLog.gz
+*~
