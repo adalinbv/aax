@@ -14,10 +14,7 @@ include(CheckIncludeFiles)
 include(CheckLibraryExists)
 include(CheckFunctionExists)
 
-if (MINGW)
-  message("Turining on CMAKE_GNUtoMS")
-  set(CMAKE_GNUtoMS ON)
-endif(MINGW)
+set(CMAKE_GNUtoMS ON)
 project(AeonWave C)
 set(PACKAGE_NAME "AeonWave")
 set(PACKAGE "libaax3")
@@ -224,6 +221,7 @@ else(MSVC)
        include_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
        add_definitions(-U__STRICT_ANSI__)
        set(C_FLAGS "${C_FLAGS} -static-libgcc")
+       set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--out-implib,${LIBAEONWAVE}.lib")
        FOREACH(flag_var
                 CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
                 CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO
