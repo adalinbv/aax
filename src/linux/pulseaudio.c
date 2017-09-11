@@ -102,8 +102,8 @@ const _aaxDriverBackend _aaxPulseAudioDriverBackend =
 typedef struct
 {
    void *pa;
-   void *handle;
    char *name;
+   void *handle;
 
    _aaxRenderer *render;
 
@@ -180,8 +180,7 @@ _aaxPulseAudioDriverDetect(int mode)
                   &pa_spec,             // Our sample format.
                   NULL,                 // Use default channel map
                   NULL,                 // Use default buffering attributes.
-                  NULL                  // Ignore error code.
-                  );
+                  NULL);                // Ignore error code.
          if (pa)
          {
             ppa_simple_free(pa);
@@ -239,9 +238,23 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
       if (xid)
       {
          float f;
-//       char *s;
          int i;
-
+#if 0
+         char *s;
+         if (!handle->devnode)
+         {
+            s = xmlAttributeGetString(xid, "name");
+            if (s)
+            {
+               handle->nodenum = detect_nodenum(s);
+               if (handle->name != _const_oss_default_name) {
+                  free(handle->name);
+               }
+               handle->name = _aax_strdup(s);
+               xmlFree(s);
+            }
+         }
+#endif
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
          if (f)
          {
@@ -276,7 +289,7 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
                handle->pa_spec.channels = i;
             }
          }
-
+#if 0
          i = xmlNodeGetInt(xid, "bits-per-sample");
          if (i)
          {
@@ -286,6 +299,7 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
                i = 16;
             }
          }
+#endif
       }
 
       if (renderer)
@@ -301,7 +315,6 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
  printf("device number: %i\n", handle->nodenum);
 #endif
    }
-
 
    if (handle)
    {
@@ -346,10 +359,20 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    int errno, rv = AAX_FALSE;
+   ssize_t period_frames = 1024;
+   unsigned int rate;
 
    assert(handle);
 
-   handle->pa_spec.rate = *speed;
+   handle->pa_spec.rate = rate = *speed;
+   if (!registered) {
+      period_frames = (size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS));
+      period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS)));
+   } else {
+      period_frames = (size_t)rintf((rate*NO_FRAGMENTS)/period_rate);
+      period_frames = get_pow2((size_t)rintf((rate*NO_FRAGMENTS)/period_rate));
+   }
+
    if (handle->pa_spec.channels > *tracks) {
       handle->pa_spec.channels = *tracks;
    }
@@ -358,33 +381,23 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (*tracks > _AAX_MAX_SPEAKERS)
    {
       char str[255];
-      snprintf((char *)&str, 255, "PulseAudio: Unable to output to %i speakers in "
-                "this setup (2 is the maximum)", *tracks);
+      snprintf((char *)&str, 255, "PulseAudio: Unable to output to %i speakers"
+                                  " in this setup (%i is the maximum)", *tracks,
+                                  _AAX_MAX_SPEAKERS);
       _AAX_SYSLOG(str);
       return AAX_FALSE;
    }
-
-#if 1
- printf("Sample rate: %i (reuqested: %.1f)\n", handle->pa_spec.rate, *speed);
- printf("No. channels: %i (reuqested: %i)\n", handle->pa_spec.channels, *tracks);
-#endif
 
    *fmt = AAX_PCM16S;
    *speed = (float)handle->pa_spec.rate;
    *tracks = handle->pa_spec.channels;
 
-   handle->pa = ppa_simple_new(
-                  NULL,			// Use the default server.
-                  AAX_LIBRARY_STR,	// Our application's name.
-                  handle->mode ? PA_STREAM_PLAYBACK : PA_STREAM_RECORD,
-                  NULL,			// Use the default device.
-                  "Music",		// Description of our stream.
-                  &handle->pa_spec,	// Our sample format.
-                  NULL,			// Use default channel map
-                  NULL,			// Use default buffering attributes.
-                  &errno 		// Error code.
-                  );
- 
+   period_rate = (float)rate/period_frames;
+   *refresh_rate = period_rate;
+
+   handle->pa = ppa_simple_new(NULL, AAX_LIBRARY_STR,
+                           handle->mode ? PA_STREAM_PLAYBACK : PA_STREAM_RECORD,
+                           NULL, "Music", &handle->pa_spec, NULL, NULL, &errno);
    if (handle->pa)
    {
       uint64_t latency_us = ppa_simple_get_latency(handle->pa, NULL);
@@ -397,6 +410,14 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
          snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s", DEFAULT_RENDERER, rstr);
 
       }
+
+#if 0
+ printf("Latency: %3.1f ms\n", handle->latency*1e3f);
+ printf("Refresh rate: %f\n", *refresh_rate);
+ printf("Sample rate: %i (reuqested: %.1f)\n", handle->pa_spec.rate, *speed);
+ printf("No. channels: %i (reuqested: %i)\n", handle->pa_spec.channels, *tracks);
+#endif
+
       rv = AAX_TRUE;
    }
    else {
@@ -414,10 +435,10 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
 }
 
 static size_t
-_aaxPulseAudioDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain, UNUSED(char batched))
+_aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), float gain, UNUSED(char batched))
 {
-   _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
+   _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
    ssize_t offs, no_samples;
    size_t outbuf_size;
    unsigned int no_tracks;
@@ -425,20 +446,11 @@ _aaxPulseAudioDriverPlayback(const void *id, void *s, UNUSED(float pitch), float
    int16_t *data;
    int res, errno;
 
-   assert(rb);
-   assert(id != 0);
-
-   if (handle->mode == 0)
-      return 0;
-
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES) - offs;
 
-printf("no_tracks: %i, no_samples: %i            | \n", no_tracks, no_samples);
    outbuf_size = no_tracks *no_samples*sizeof(int16_t);
-printf("outbuf_size: %i, handle->buf_len: %i\n", outbuf_size, handle->buf_len);
-   assert(outbuf_size <= handle->buf_len);
    if (handle->ptr == 0)
    {
       char *p = 0;
@@ -448,6 +460,8 @@ printf("outbuf_size: %i, handle->buf_len: %i\n", outbuf_size, handle->buf_len);
       handle->buf_len = outbuf_size;
 #endif
    }
+   assert(outbuf_size <= handle->buf_len);
+
    data = handle->scratch;
    assert(outbuf_size <= handle->buf_len);
 
@@ -457,7 +471,6 @@ printf("outbuf_size: %i, handle->buf_len: %i\n", outbuf_size, handle->buf_len);
 
    res = ppa_simple_write(handle->pa, data, outbuf_size, &errno);
    if (res < 0) {
-printf("%s\n", ppa_strerror(errno));
       _AAX_DRVLOG(ppa_strerror(errno));
    }
 

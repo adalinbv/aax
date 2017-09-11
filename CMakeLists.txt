@@ -477,8 +477,9 @@ set( AEONWAVE_OBJS
      src/dsp/filter_graphic_equalizer.c
      src/dsp/filter_timed_gain.c
      src/dsp/filter_volume.c
-     src/alsa/asound.c
-     src/alsa/kernel.c
+     src/linux/pulseaudio.c
+     src/linux/asound.c
+     src/linux/kernel.c
      src/dmedia/device.c
      src/oss/device.c
      src/stream/device.c
