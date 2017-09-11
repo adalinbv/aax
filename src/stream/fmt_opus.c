@@ -77,7 +77,6 @@ typedef struct
    char *website;
    char *image;
 
-   void *audio;
    int mode;
 
    char capturing;
@@ -142,21 +141,7 @@ _opus_detect(_fmt_t *fmt, int mode)
             TIE_FUNCTION(opus_strerror);
             TIE_FUNCTION(opus_get_version_string);
 
-            fmt->id = calloc(1, sizeof(_driver_t));
-            if (fmt->id)
-            {
-               _driver_t *handle = fmt->id;
-
-               handle->audio = audio;
-               handle->mode = mode;
-               handle->capturing = (mode == 0) ? 1 : 0;
-               handle->blocksize = FRAME_SIZE;
-
-               rv = AAX_TRUE;
-            }             
-            else {
-               _AAX_FILEDRVLOG("OPUS: Insufficient memory");
-            }
+            rv = AAX_TRUE;
          }
       }
    }
@@ -165,14 +150,26 @@ _opus_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_opus_open(_fmt_t *fmt, void *buf, size_t *bufsize, UNUSED(size_t fsize))
+_opus_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
 
-   assert(bufsize);
+   if (!handle)
+   {
+      handle = fmt->id = calloc(1, sizeof(_driver_t));
+      if (fmt->id)
+      {
+         handle->mode = mode;
+         handle->capturing = (mode == 0) ? 1 : 0;
+         handle->blocksize = FRAME_SIZE;
+      }
+      else {
+         _AAX_FILEDRVLOG("OPUS: Insufficient memory");
+      }
+   }
 
-   if (handle)
+   if (handle && buf && bufsize)
    {
       if (!handle->opusBuffer)
       {

@@ -74,37 +74,34 @@ _vorbis_detect(_fmt_t *fmt, int mode)
 {
    int rv = AAX_FALSE;
 
-   if (!mode)
-   {
-      /* not required but useful */
-      fmt->id = calloc(1, sizeof(_driver_t));
-      if (fmt->id)
-      {
-         _driver_t *handle = fmt->id;
-
-         handle->mode = mode;
-         handle->capturing = (mode == 0) ? 1 : 0;
-         handle->blocksize = FRAME_SIZE;
-
-         rv = AAX_TRUE;
-      }
-      else {
-         _AAX_FILEDRVLOG("VORBIS: Insufficient memory");
-      }
+   if (!mode) {
+      rv = AAX_TRUE;
    }
 
    return rv;
 }
 
 void*
-_vorbis_open(_fmt_t *fmt, void *buf, size_t *bufsize, UNUSED(size_t fsize))
+_vorbis_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
 
-   assert(bufsize);
+   if (!handle)
+   {
+      handle = fmt->id = calloc(1, sizeof(_driver_t));
+      if (fmt->id)
+      {
+         handle->mode = mode;
+         handle->capturing = (mode == 0) ? 1 : 0;
+         handle->blocksize = FRAME_SIZE;
+      }
+      else {
+         _AAX_FILEDRVLOG("VORBIS: Insufficient memory");
+      }
+   }
 
-   if (handle)
+   if (handle && buf && bufsize)
    {
       if (!handle->vorbisBuffer) {
          handle->vorbisBuffer = _aaxDataCreate(16384, 1);

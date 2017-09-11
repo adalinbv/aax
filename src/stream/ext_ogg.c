@@ -616,6 +616,7 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
          return rv;
       }
 
+      handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
       if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
       {
          handle->fmt = _fmt_free(handle->fmt);
@@ -635,7 +636,7 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
    }
 
    if (handle->fmt) {
-      handle->fmt->open(handle->fmt, oggbuf, bufsize, handle->datasize);
+      handle->fmt->open(handle->fmt, handle->mode, oggbuf, bufsize, handle->datasize);
    }
 
    return rv;
@@ -1437,10 +1438,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                   if (rv > 0)
                   {
                      if (handle->keep_header) {
-                        handle->fmt->open(handle->fmt, header, &page_size,
+                        handle->fmt->open(handle->fmt, handle->mode,
+                                          header, &page_size,
                                           handle->datasize);
                      } else {
-                        handle->fmt->open(handle->fmt, segment, &segment_size,
+                        handle->fmt->open(handle->fmt, handle->mode,
+                                          segment, &segment_size,
                                           handle->datasize);
                         if (!segment_size) page_size = 0;
                      }

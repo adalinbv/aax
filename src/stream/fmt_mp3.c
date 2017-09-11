@@ -106,12 +106,12 @@ typedef struct
    char *website;
    char *image;
 
-   void *audio;
    int mode;
 
    char capturing;
    char id3_found;
    char streaming;
+   char internal;
 
    uint8_t no_tracks;
    uint8_t bits_sample;
@@ -129,12 +129,11 @@ typedef struct
 static int _aax_mp3_init = AAX_FALSE;
 static int _getFormatFromMP3Format(int);
 static void _detect_mp3_song_info(_driver_t*);
-
+static void *audio = NULL;
 
 int
 _mp3_detect(_fmt_t *fmt, int mode)
 {
-   void *audio = NULL;
    int rv = AAX_FALSE;
 
    if (mode == 0) /* read */
@@ -153,29 +152,16 @@ _mp3_detect(_fmt_t *fmt, int mode)
 
       if (!audio) /* libmpg123 was not found, switch to pdmp3 */
       {
-         fmt->id = calloc(1, sizeof(_driver_t));
-         if (fmt->id)
-         {
-            _driver_t *handle = fmt->id;
-            handle->mode = mode;
-            handle->capturing = (mode == 0) ? 1 : 0;
-            handle->blocksize = sizeof(int16_t);
-
-            pmp3_new = (mp3_new_proc)pdmp3_new;
-            pmp3_open_feed = (mp3_open_feed_proc)pdmp3_open_feed;
-            pmp3_decode = (mp3_decode_proc)pdmp3_decode;
-            pmp3_feed = (mp3_feed_proc)pdmp3_feed;
-            pmp3_read = (mp3_read_proc)pdmp3_read;
-            pmp3_delete = (mp3_delete_proc)pdmp3_delete;
-            pmp3_getformat = (mp3_getformat_proc)pdmp3_getformat;
-            pmp3_meta_check = (mp3_meta_check_proc)pdmp3_meta_check;
-            pmp3_id3 = (mp3_id3_proc)pdmp3_id3;
-
-            rv = AAX_TRUE;
-         }
-         else {
-            _AAX_FILEDRVLOG("PDMP3: Insufficient memory");
-         }
+         pmp3_new = (mp3_new_proc)pdmp3_new;
+         pmp3_open_feed = (mp3_open_feed_proc)pdmp3_open_feed;
+         pmp3_decode = (mp3_decode_proc)pdmp3_decode;
+         pmp3_feed = (mp3_feed_proc)pdmp3_feed;
+         pmp3_read = (mp3_read_proc)pdmp3_read;
+         pmp3_delete = (mp3_delete_proc)pdmp3_delete;
+         pmp3_getformat = (mp3_getformat_proc)pdmp3_getformat;
+         pmp3_meta_check = (mp3_meta_check_proc)pdmp3_meta_check;
+         pmp3_id3 = (mp3_id3_proc)pdmp3_id3;
+         rv = AAX_TRUE;
       }
       else /* libmpg123 was found */
       {
@@ -226,22 +212,7 @@ _mp3_detect(_fmt_t *fmt, int mode)
                pmp3_meta_check = pmpg123_meta_check;
                pmp3_id3 = pmpg123_id3;
                pmp3_plain_strerror = pmpg123_plain_strerror;
-
-               fmt->id = calloc(1, sizeof(_driver_t));
-               if (fmt->id)
-               {
-                  _driver_t *handle = fmt->id;
-
-                  handle->audio = audio;
-                  handle->mode = mode;
-                  handle->capturing = (mode == 0) ? 1 : 0;
-                  handle->blocksize = sizeof(int16_t);
-
-                  rv = AAX_TRUE;
-               }             
-               else {
-                  _AAX_FILEDRVLOG("MP3: Insufficient memory");
-               }
+               rv = AAX_TRUE;
             }
          }
       }
@@ -276,23 +247,8 @@ _mp3_detect(_fmt_t *fmt, int mode)
             TIE_FUNCTION(lame_encode_flush);
 
             error = _aaxGetSymError(0);
-            if (!error)
-            {
-               fmt->id = calloc(1, sizeof(_driver_t));
-               if (fmt->id)
-               {
-                  _driver_t *handle = fmt->id;
-
-                  handle->audio = audio;
-                  handle->mode = mode;
-                  handle->capturing = (mode == 0) ? 1 : 0;
-                  handle->blocksize = sizeof(int16_t);
-
-                  rv = AAX_TRUE;
-               }
-               else {
-                  _AAX_FILEDRVLOG("MP3: Insufficient memory");
-               }
+            if (!error) {
+               rv = AAX_TRUE;
             }
          }
       }
@@ -302,20 +258,35 @@ _mp3_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_mp3_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
+_mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
 
-   assert(bufsize);
+   if (!handle)
+   {
+      handle = fmt->id = calloc(1, sizeof(_driver_t));
+      if (fmt->id)
+      {
+         handle->mode = mode;
+         handle->capturing = (mode == 0) ? 1 : 0;
+         handle->blocksize = sizeof(int16_t);
+         handle->internal = audio ? AAX_FALSE : AAX_TRUE;
+      }
+      else {
+         _AAX_FILEDRVLOG("MP3: Insufficient memory");
+      }
+   }
 
-   if (handle)
+   if (handle && buf && bufsize)
    {
       if (handle->capturing)
       {
-         if (!handle->id && !handle->audio)
+         if (!handle->id && handle->internal)
          {
-            handle->id = pmp3_new(NULL, NULL);
+            int errno;
+
+            handle->id = pmp3_new(NULL, &errno);
             if (handle->id)
             {
                if (pmp3_open_feed(handle->id) == MP3_OK) {
@@ -323,10 +294,19 @@ _mp3_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
                }
                else
                {
-                  _AAX_FILEDRVLOG("MP3: Unable to initialize pdmp3");
+                  _AAX_FILEDRVLOG("MP3: Unable to initialize");
                   pmp3_delete(handle->id);
                   handle->id = NULL;
                }
+            }
+            else
+            {
+               if (pmp3_plain_strerror) {
+                   _AAX_FILEDRVLOG(pmp3_plain_strerror(errno));
+               } else {
+                  _AAX_FILEDRVLOG("MP3: Unable to create a handle");
+               }
+               handle->id = NULL;
             }
          }
          else if (!handle->id)
@@ -386,7 +366,7 @@ _mp3_open(_fmt_t *fmt, void *buf, size_t *bufsize, size_t fsize)
             }
          }
 
-         if (handle->id && !handle->audio)
+         if (handle->id && handle->internal)
          {
             size_t size;
             int ret = pmp3_decode(handle->id, buf, *bufsize, NULL, 0, &size);
@@ -534,10 +514,6 @@ _mp3_close(_fmt_t *fmt)
          plame_close(handle->id);
       }
       _aaxDataDestroy(handle->mp3Buffer);
-
-#ifdef WINXP
-      free(handle->pcmBuffer);
-#endif
 
       free(handle->trackno);
       free(handle->artist);

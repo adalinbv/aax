@@ -182,8 +182,6 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
    _driver_t *handle = ext->id;
    void *rv = NULL;
 
-   assert(bufsize);
-
    if (handle)
    {
       if (!handle->capturing)	/* write */
@@ -208,6 +206,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             return rv;
          }
 
+         handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
          if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
          {
             handle->fmt = _fmt_free(handle->fmt);
@@ -222,7 +221,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
          handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
                   MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize, handle->no_tracks));
-         rv = handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+         rv = handle->fmt->open(handle->fmt, handle->mode, buf, bufsize, fsize);
 
          size = 4*handle->wavBufSize;
 //       handle->wavBuffer = _aaxDataCreate(size, handle->blocksize);
@@ -388,6 +387,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   return rv;
                }
 
+               handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
                handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
                handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
                if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
@@ -414,7 +414,8 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                handle->fmt->set(handle->fmt, __F_POSITION,
                                                 handle->io.read.blockbufpos);
                dataptr = (char*)buf + datapos;
-               rv = handle->fmt->open(handle->fmt, dataptr, &datasize,
+               rv = handle->fmt->open(handle->fmt, handle->mode,
+                                      dataptr, &datasize,
                                       handle->io.read.datasize);
                if (!rv)
                {
@@ -457,7 +458,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 	/* Format requires more data to process it's own header */
       else if (handle->fmt && handle->fmt->open)
       {
-         rv = handle->fmt->open(handle->fmt, buf, bufsize,
+         rv = handle->fmt->open(handle->fmt, handle->mode, buf, bufsize,
                                 handle->io.read.datasize);
          if (!rv && bufsize)
          {

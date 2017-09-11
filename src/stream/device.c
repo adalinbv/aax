@@ -187,7 +187,9 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
       }
       if (handle->ext)
       {
-         if (!handle->ext->detect(handle->ext, mode)) {
+         if (handle->ext->detect(handle->ext, mode)) {
+            handle->ext->open(handle->ext, NULL, NULL, 0);
+         } else {
             handle->ext = _ext_free(handle->ext);
          }
       }

@@ -90,26 +90,9 @@ _flac_detect(_fmt_t *fmt, int mode)
 {
    int rv = AAX_FALSE;
 
-   /* not required but useful */
 #if 0
-   if (mode == 0)
-   {
-      fmt->id = calloc(1, sizeof(_driver_t));
-      if (fmt->id)
-      {
-         _driver_t *handle = fmt->id;
-
-         handle->mode = mode;
-         handle->capturing = (mode == 0) ? 1 : 0;
-         handle->blocksize = 4096;
-         handle->format = AAX_PCM32S;
-         handle->bits_sample = aaxGetBitsPerSample(handle->format);
-
-         rv = AAX_TRUE;
-      }             
-      else {
-         _AAX_FILEDRVLOG("FLAC: Insufficient memory");
-      }
+   if (mode == 0) {
+      rv = AAX_TRUE;
    }
 #endif
 
@@ -117,14 +100,28 @@ _flac_detect(_fmt_t *fmt, int mode)
 }
 
 void*
-_flac_open(_fmt_t *fmt, void *buf, size_t *bufsize, UNUSED(size_t fsize))
+_flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
 
-   assert(bufsize);
+   if (!handle)
+   {
+      handle = fmt->id = calloc(1, sizeof(_driver_t));
+      if (fmt->id)
+      {
+         handle->mode = mode;
+         handle->capturing = (mode == 0) ? 1 : 0;
+         handle->blocksize = 4096;
+         handle->format = AAX_PCM32S;
+         handle->bits_sample = aaxGetBitsPerSample(handle->format);
+      }             
+      else {
+         _AAX_FILEDRVLOG("FLAC: Insufficient memory");
+      }
+   }
 
-   if (handle)
+   if (handle && buf && bufsize)
    {
       if (!handle->id)
       {
