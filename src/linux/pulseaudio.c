@@ -238,23 +238,21 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
       if (xid)
       {
          float f;
-         int i;
-#if 0
          char *s;
-         if (!handle->devnode)
+         int i;
+
+         if (!handle->name)
          {
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
-               handle->nodenum = detect_nodenum(s);
-               if (handle->name != _const_oss_default_name) {
-                  free(handle->name);
+               if (strcasecmp(s, "default")) {
+                  handle->name = _aax_strdup(s);
                }
-               handle->name = _aax_strdup(s);
                xmlFree(s);
             }
          }
-#endif
+
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
          if (f)
          {
@@ -623,10 +621,10 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_SHARED_MODE:
+      case DRIVER_TIMER_MODE:
          rv = (float)AAX_TRUE;
          break;
       case DRIVER_BATCHED_MODE:
-      case DRIVER_TIMER_MODE:
       default:
          break;
       }
@@ -637,7 +635,7 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][1024] = { "\0\0", "\0\0" };
+   static char names[2][1024] = { "default\0\0", "default\0\0" };
    return (char *)&names[mode];
 }
 
@@ -645,7 +643,7 @@ static char *
 _aaxPulseAudioDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
 // _driver_t *handle = (_driver_t *)id;
-   return "default";
+   return NULL;
 }
 
 static char *
