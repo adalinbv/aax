@@ -41,7 +41,7 @@
 #include <software/device.h>
 #include <stream/device.h>
 #include <dmedia/device.h>
-#include <alsa/device.h>
+#include <linux/device.h>
 #include <oss/device.h>
 #ifdef HAVE_WINDOWS_H
 # include <windows/wasapi.h>
@@ -653,8 +653,9 @@ _aaxIntDriverGetBackends()
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxStreamDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLoopbackDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxOSSDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxPulseAudioDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxALSADriverBackend);
-       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLinuxDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLinuxDriverBackend);
 #ifdef HAVE_WINDOWS_H
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxWASAPIDriverBackend);
 #endif
