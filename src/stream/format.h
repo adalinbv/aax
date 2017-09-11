@@ -54,7 +54,7 @@ typedef enum
 struct _fmt_st;
 
 typedef int (_fmt_setup_fn)(struct _fmt_st*, _fmt_type_t, enum aaxFormat);
-typedef void* (_fmt_open_fn)(struct _fmt_st*, void*, size_t*, size_t);
+typedef void* (_fmt_open_fn)(struct _fmt_st*, int, void*, size_t*, size_t);
 typedef void (_fmt_close_fn)(struct _fmt_st*);
 typedef char* (_fmt_name_fn)(struct _fmt_st*, enum _aaxStreamParam);
 typedef void (_fmt_cvt_fn)(struct _fmt_st*, void_ptr, size_t);
@@ -92,7 +92,7 @@ void* _fmt_free(_fmt_t*);
 /* PCM */
 int _pcm_detect(_fmt_t*, int);
 int _pcm_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _pcm_open(_fmt_t*, void*, size_t*, size_t);
+void* _pcm_open(_fmt_t*, int, void*, size_t*, size_t);
 void _pcm_close(_fmt_t*);
 void _pcm_cvt_to_signed(_fmt_t*, void_ptr, size_t);
 void _pcm_cvt_from_signed(_fmt_t*, void_ptr, size_t);
@@ -108,7 +108,7 @@ off_t _pcm_get(_fmt_t*, int);
 /* MP3 - pdmp3/mpg123 & lame */
 int _mp3_detect(_fmt_t*, int);
 int _mp3_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _mp3_open(_fmt_t*, void*, size_t*, size_t);
+void* _mp3_open(_fmt_t*, int, void*, size_t*, size_t);
 void _mp3_close(_fmt_t*);
 size_t _mp3_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 size_t _mp3_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
@@ -123,7 +123,7 @@ off_t _mp3_get(_fmt_t*, int);
 /* Opus */
 int _opus_detect(_fmt_t*, int);
 int _opus_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _opus_open(_fmt_t*, void*, size_t*, size_t);
+void* _opus_open(_fmt_t*, int, void*, size_t*, size_t);
 void _opus_close(_fmt_t*);
 size_t _opus_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 size_t _opus_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
@@ -136,7 +136,7 @@ off_t _opus_get(_fmt_t*, int);
 /* Vorbis */
 int _vorbis_detect(_fmt_t*, int);
 int _vorbis_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _vorbis_open(_fmt_t*, void*, size_t*, size_t);
+void* _vorbis_open(_fmt_t*, int, void*, size_t*, size_t);
 void _vorbis_close(_fmt_t*);
 size_t _vorbis_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 size_t _vorbis_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
@@ -149,7 +149,7 @@ off_t _vorbis_get(_fmt_t*, int);
 /* FLAC */
 int _flac_detect(_fmt_t*, int);
 int _flac_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _flac_open(_fmt_t*, void*, size_t*, size_t);
+void* _flac_open(_fmt_t*, int, void*, size_t*, size_t);
 void _flac_close(_fmt_t*);
 size_t _flac_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 size_t _flac_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);
@@ -162,7 +162,7 @@ off_t _flac_get(_fmt_t*, int);
 /* RAW binary dat */
 int _binary_detect(_fmt_t*, int);
 int _binary_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
-void* _binary_open(_fmt_t*, void*, size_t*, size_t);
+void* _binary_open(_fmt_t*, int, void*, size_t*, size_t);
 void _binary_close(_fmt_t*);
 size_t _binary_cvt_to_intl(_fmt_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 size_t _binary_cvt_from_intl(_fmt_t*, int32_ptrptr, size_t, size_t*);

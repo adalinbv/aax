@@ -84,33 +84,30 @@ static size_t _batch_cvt24_adpcm_intl(_driver_t*, int32_t**, const_char_ptr, siz
 int
 _pcm_detect(_fmt_t *fmt, int mode)
 {
-   int rv = AAX_FALSE;
-
-   fmt->id = calloc(1, sizeof(_driver_t));
-   if (fmt->id)
-   {
-      _driver_t *handle = fmt->id;
-
-      handle->mode = mode;
-      handle->capturing = (mode == 0) ? 1 : 0;
-      handle->blocksmp = 1;
-
-      rv = AAX_TRUE;
-   }
-   else {
-      _AAX_FILEDRVLOG("PCM: Unable to create a handle");
-   }
-
-   return rv;
+   return AAX_TRUE;
 }
 
 void*
-_pcm_open(_fmt_t *fmt, void *buf, UNUSED(size_t *bufsize), UNUSED(size_t fsize))
+_pcm_open(_fmt_t *fmt, int mode, void *buf, UNUSED(size_t *bufsize), UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
 
-   if (handle)
+   if (!handle)
+   {
+      handle = fmt->id = calloc(1, sizeof(_driver_t));
+      if (fmt->id)
+      {
+         handle->mode = mode;
+         handle->capturing = (mode == 0) ? 1 : 0;
+         handle->blocksmp = 1;
+      }
+      else {
+         _AAX_FILEDRVLOG("PCM: Unable to create a handle");
+      }
+   }
+
+   if (handle && buf && bufsize)
    {
       if (!handle->pcmBuffer) {
          handle->pcmBuffer = _aaxDataCreate(16384, 1);

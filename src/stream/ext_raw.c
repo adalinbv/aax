@@ -74,6 +74,7 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->format = format;
          handle->fmt = fmt;
 
+         handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
          handle->fmt->set(handle->fmt, __F_FREQUENCY, freq);
          handle->fmt->set(handle->fmt, __F_RATE, bitrate);
          handle->fmt->set(handle->fmt, __F_TRACKS, tracks);
@@ -99,7 +100,7 @@ void*
 _raw_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->open(handle->fmt, buf, bufsize, fsize);
+   return handle->fmt->open(handle->fmt, handle->mode, buf, bufsize, fsize);
 
 }
 

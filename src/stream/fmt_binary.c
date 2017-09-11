@@ -70,14 +70,24 @@ _binary_detect(_fmt_t *fmt, int mode)
 {
    int rv = AAX_FALSE;
 
-   if (!mode)
+   if (!mode) {
+      rv = AAX_TRUE;
+   }
+
+   return rv;
+}
+
+void*
+_binary_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
+{
+   _driver_t *handle = fmt->id;
+   void *rv = NULL;
+
+   if (!handle)
    {
-      /* not required but useful */
-      fmt->id = calloc(1, sizeof(_driver_t));
+      handle = fmt->id = calloc(1, sizeof(_driver_t));
       if (fmt->id)
       {
-         _driver_t *handle = fmt->id;
-
          handle->mode = mode;
          handle->capturing = (mode == 0) ? 1 : 0;
 
@@ -85,30 +95,17 @@ _binary_detect(_fmt_t *fmt, int mode)
          handle->bits_sample = 8;
          handle->frequency = 44100;
          handle->bitrate = 0;
-         handle->blocksize = 1; 
+         handle->blocksize = 1;
          handle->format = AAX_PCM16S;
          handle->no_samples = 0;
          handle->max_samples = 0;
-
-         rv = AAX_TRUE;
       }
       else {
          _AAX_FILEDRVLOG("RAW: Insufficient memory");
       }
    }
 
-   return rv;
-}
-
-void*
-_binary_open(_fmt_t *fmt, void *buf, size_t *bufsize, UNUSED(size_t fsize))
-{
-   _driver_t *handle = fmt->id;
-   void *rv = NULL;
-
-   assert(bufsize);
-
-   if (handle)
+   if (handle && buf && bufsize)
    {
       if (!handle->rawBuffer) {
          handle->rawBuffer = _aaxDataCreate(16384, 1);
