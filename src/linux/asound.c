@@ -16,7 +16,7 @@
  *
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
 #if HAVE_CONFIG_H
@@ -771,10 +771,8 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    periods = handle->no_periods;
    if (!registered) {
-//    period_frames = SIZE_ALIGNED((size_t)rintf(rate/(*refresh_rate*periods)));
       period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
    } else {
-//    period_frames = SIZE_ALIGNED((size_t)rintf((rate*periods)/period_rate));
       period_frames = get_pow2((size_t)rintf((rate*periods)/period_rate));
    }
    period_frames_actual = period_frames;
