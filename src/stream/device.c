@@ -63,7 +63,11 @@
 #define DEFAULT_OUTPUT_RATE	22050
 #define WAVE_HEADER_SIZE	11
 #define WAVE_EXT_HEADER_SIZE	17
-#define USE_CAPTURE_THREAD	AAX_FALSE
+#ifdef WIN32
+# define USE_CAPTURE_THREAD	AAX_FALSE
+#else
+# define USE_CAPTURE_THREAD	AAX_TRUE
+#endif
 
 
 static _aaxDriverDetect _aaxStreamDriverDetect;
