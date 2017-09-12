@@ -23,6 +23,8 @@
 #include "config.h"
 #endif
 
+#include <time.h>
+
 #include <aax/aax.h>
 #include <xml.h>
 
@@ -802,10 +804,23 @@ static void context_state_callback(void *context, void *id)
 static void*
 _aaxContextConnect(void *id)
 {
+   static char pulse_avail = AAX_TRUE;
    _driver_t *handle = (_driver_t*)id;
    const char *name = AAX_LIBRARY_STR;
    char buf[PATH_MAX];
    void *rv = NULL;
+
+   if (!pulse_avail)
+   {
+      static time_t t_previous = 0;
+      time_t t_now = time(NULL);
+      if (t_now > (t_previous+1))
+      {
+         t_previous = t_now;
+         pulse_avail = AAX_TRUE;
+      }
+      return rv;
+   }
 
    assert(id);
    assert(handle->ml);
@@ -838,7 +853,9 @@ _aaxContextConnect(void *id)
          }
          ppa_context_set_state_callback(rv, NULL, NULL);
       }
-      else {
+      else
+      {
+         pulse_avail = AAX_FALSE;
          ppa_context_unref(rv);
          if (ppa_strerror) {
             _AAX_DRVLOG(ppa_strerror(ppa_context_errno(rv)));
