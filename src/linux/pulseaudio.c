@@ -458,10 +458,9 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    handle->pa_spec.rate = rate = *speed;
    if (!registered) {
-      period_frames = rate/(*refresh_rate);
+      period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS)));
    } else {
       period_frames = get_pow2((size_t)rintf((rate*NO_FRAGMENTS)/period_rate));
-      period_frames = rate/period_rate;
    }
 
    if (handle->pa_spec.channels > *tracks) {
