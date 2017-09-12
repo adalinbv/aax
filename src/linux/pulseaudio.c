@@ -23,14 +23,13 @@
 #include "config.h"
 #endif
 
-#include <time.h>
-
 #include <aax/aax.h>
 #include <xml.h>
 
 #include <base/types.h>
 #include <base/logging.h>
 #include <base/dlsym.h>
+#include <base/timer.h>
 
 #include <arch.h>
 #include <api.h>
@@ -515,7 +514,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->render)
             {
                const char *rstr = handle->render->info(handle->render->id);
-               snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s %s", DEFAULT_RENDERER, rstr, ppa_get_library_version());
+               snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s %s", DEFAULT_RENDERER, ppa_get_library_version(), rstr);
                rv = AAX_TRUE;
             } 
          }
