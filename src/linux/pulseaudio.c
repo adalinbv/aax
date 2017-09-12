@@ -16,7 +16,7 @@
  *
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
 #if HAVE_CONFIG_H
@@ -101,7 +101,9 @@ const _aaxDriverBackend _aaxPulseAudioDriverBackend =
 
 typedef struct
 {
-   void *pa;
+   void *ctx;
+   void *str;
+
    char *name;
    void *handle;
 
@@ -126,14 +128,25 @@ typedef struct
 
 } _driver_t;
 
-DECL_FUNCTION(pa_simple_new);
-DECL_FUNCTION(pa_simple_free);
-DECL_FUNCTION(pa_simple_write);
-DECL_FUNCTION(pa_simple_read);
-DECL_FUNCTION(pa_simple_drain);
-DECL_FUNCTION(pa_simple_get_latency);
-DECL_FUNCTION(pa_simple_flush);
 DECL_FUNCTION(pa_strerror);
+DECL_FUNCTION(pa_xfree);
+DECL_FUNCTION(pa_mainloop_new);
+DECL_FUNCTION(pa_mainloop_get_api);
+DECL_FUNCTION(pa_mainloop_run);
+DECL_FUNCTION(pa_mainloop_free);
+DECL_FUNCTION(pa_context_new_with_proplist);
+DECL_FUNCTION(pa_context_connect);
+DECL_FUNCTION(pa_context_disconnect);
+DECL_FUNCTION(pa_context_get_state);
+DECL_FUNCTION(pa_context_unref);
+DECL_FUNCTION(pa_stream_new);
+DECL_FUNCTION(pa_stream_set_state_callback);
+DECL_FUNCTION(pa_stream_set_write_callback);
+DECL_FUNCTION(pa_stream_connect_playback);
+DECL_FUNCTION(pa_stream_unref);
+DECL_FUNCTION(pa_stream_write);
+DECL_FUNCTION(pa_signal_new);
+DECL_FUNCTION(pa_signal_done);
 
 static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
 
@@ -147,20 +160,34 @@ _aaxPulseAudioDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __func__);
      
    if (TEST_FOR_FALSE(rv)) {
-      audio = _aaxIsLibraryPresent("pulse-simple", "0");
+      audio = _aaxIsLibraryPresent("pulse", "0");
    }
    if (audio)
    {
       _aaxGetSymError(0);
 
-      TIE_FUNCTION(pa_simple_new);
+      TIE_FUNCTION(pa_stream_new);
       if (ppa_simple_new)
       {
-         TIE_FUNCTION(pa_simple_read);
-         TIE_FUNCTION(pa_simple_write);
-         TIE_FUNCTION(pa_simple_free);
-         TIE_FUNCTION(pa_simple_get_latency);  
          TIE_FUNCTION(pa_strerror);
+         TIE_FUNCTION(pa_xfree);
+         TIE_FUNCTION(pa_mainloop_new);
+         TIE_FUNCTION(pa_mainloop_get_api);
+         TIE_FUNCTION(pa_mainloop_run);
+         TIE_FUNCTION(pa_mainloop_free);
+         TIE_FUNCTION(pa_context_new_with_proplist);
+         TIE_FUNCTION(pa_context_connect);
+         TIE_FUNCTION(pa_context_disconnect);
+         TIE_FUNCTION(pa_context_get_state);
+         TIE_FUNCTION(pa_context_unref);
+         TIE_FUNCTION(pa_stream_new);
+         TIE_FUNCTION(pa_stream_set_state_callback);
+         TIE_FUNCTION(pa_stream_set_write_callback);
+         TIE_FUNCTION(pa_stream_connect_playback);
+         TIE_FUNCTION(pa_stream_unref);
+         TIE_FUNCTION(pa_stream_write);
+         TIE_FUNCTION(pa_signal_new);
+         TIE_FUNCTION(pa_signal_done);
       }
 
       error = _aaxGetSymError(0);
@@ -364,11 +391,10 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    handle->pa_spec.rate = rate = *speed;
    if (!registered) {
-      period_frames = (size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS));
-      period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS)));
+      period_frames = rate/(*refresh_rate);
    } else {
-      period_frames = (size_t)rintf((rate*NO_FRAGMENTS)/period_rate);
       period_frames = get_pow2((size_t)rintf((rate*NO_FRAGMENTS)/period_rate));
+      period_frames = rate/period_rate;
    }
 
    if (handle->pa_spec.channels > *tracks) {
@@ -393,21 +419,33 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
    period_rate = (float)rate/period_frames;
    *refresh_rate = period_rate;
 
-   handle->pa = ppa_simple_new(NULL, AAX_LIBRARY_STR,
-                           handle->mode ? PA_STREAM_PLAYBACK : PA_STREAM_RECORD,
-                           NULL, "Music", &handle->pa_spec, NULL, NULL, &errno);
-   if (handle->pa)
+   handle->ctx = ppa_context_new_with_proplist(NULL, AAX_LIBRARY_STR, NULL);
+   if (handle->ctx)
    {
-      uint64_t latency_us = ppa_simple_get_latency(handle->pa, NULL);
-      handle->latency = latency_us*1e-6f;
+      ppa_context_set_state_callback(handle->ctx, _aaxPulseAudioContextState, handle);
 
-      handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
-      if (handle->render)
+      // connect to the default server (for now)
+      if (ppa_context_connect(handle->ctx, NULL, 0, NULL) >= 0)
       {
-         const char *rstr = handle->render->info(handle->render->id);
-         snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s", DEFAULT_RENDERER, rstr);
+         uint64_t latency_us = ppa_simple_get_latency(handle->pa, NULL);
+         handle->latency = latency_us*1e-6f;
 
+         handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
+         if (handle->render)
+         {
+            const char *rstr = handle->render->info(handle->render->id);
+            snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s", DEFAULT_RENDERER, rstr);
+            rv = AAX_TRUE;
+         }
       }
+      else {
+         pa_context_unref(handle->ctx);
+         _AAX_DRVLOG(pa_strerror(pa_context_errno(handle->ctx)));
+      }
+   }
+   else {
+      _AAX_DRVLOG("unable to create a context");
+   }
 
 #if 0
  printf("Latency: %3.1f ms\n", handle->latency*1e3f);
@@ -415,8 +453,6 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("Sample rate: %i (reuqested: %.1f)\n", handle->pa_spec.rate, *speed);
  printf("No. channels: %i (reuqested: %i)\n", handle->pa_spec.channels, *tracks);
 #endif
-
-      rv = AAX_TRUE;
    }
    else {
       _AAX_DRVLOG(ppa_strerror(errno));
@@ -665,3 +701,5 @@ _aaxPulseAudioDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), cons
 }
 
 /* ----------------------------------------------------------------------- */
+// device list:
+// https://stackoverflow.com/questions/15535661/pulseaudio-threaded-main-loop-data-callbacks

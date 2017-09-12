@@ -16,7 +16,7 @@
  *
  *  You should have received a copy of the GNU General Public License along
  *  with this program; if not, write to the Free Software Foundation, Inc.,
- *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+ *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
 #ifndef _AAX_PULSEAUDIO_H
@@ -62,17 +62,42 @@ typedef struct
 typedef void pa_sample_spec;
 typedef void pa_channel_map;
 typedef void pa_buffer_attr;
+typedef void pa_context;
+typedef void pa_stream;
+typedef void pa_mainloop;
+typedef void pa_mainloop_api;
 
-typedef void* (*pa_simple_new_proc)(const char*, const char*, pa_stream_direction_t, const char*, const char*, const pa_sample_spec*, const pa_channel_map*, const pa_buffer_attr*, int*);
-typedef void (*pa_simple_free_proc)(void*);
- 
-typedef int (*pa_simple_write_proc)(void*, const void*, size_t, int *);
-typedef int (*pa_simple_drain_proc)(void*, int*);
-typedef int (*pa_simple_read_proc)(void*, void*, size_t, int*);
-typedef uint16_t (*pa_simple_get_latency_proc)(void*, int*);
-typedef int (*pa_simple_flush_proc)(void*, int*);
+typedef void (*pa_state_callback_fn)(void*, void*);
+typedef void (*pa_write_callback_fn)(void*, size_t, void*);
+typedef void (*pa_signal_callback_fn)(void*, void*, int, void*);
 
+typedef const char* (*pa_get_headers_version_proc)(void);
+typedef const char* (*pa_get_library_version_proc)(void);
 typedef const char* (*pa_strerror_proc)(int);
+typedef void (*pa_xfree_proc)(void*);
+
+typedef void* (*pa_mainloop_new_proc)(void);
+typedef void* (*pa_mainloop_get_api_proc)(void*);
+typedef int (*pa_mainloop_run_proc)(void*, int*);
+typedef void (*pa_mainloop_free_proc)(void*);
+
+typedef void* (*pa_context_new_with_proplist_proc)(void*, const char*, void*);
+typedef void* (*pa_context_set_state_callback_proc)(void*, pa_state_callback_fn, void*);
+typedef int (*pa_context_connect_proc)(void*, const char*, int, const char*);
+typedef void (*pa_context_disconnect_proc)(void);
+typedef int (*pa_context_get_state_proc)(void*);
+typedef void (*pa_context_unref_proc)(void*);
+
+typedef void* (*pa_stream_new_proc)(void*, const char*, const void*, const void*);
+typedef void (*pa_stream_set_state_callback_proc)(void*, pa_state_callback_fn, void*);
+typedef void (*pa_stream_set_write_callback_proc)(void*, pa_write_callback_fn, void*);
+typedef void (*pa_stream_connect_playback_proc)(void*, const char*, const void*, int, void*, void*);
+typedef void (*pa_stream_unref_proc)(void*);
+
+typedef void (*pa_stream_write_proc)(void*, const void*, size_t, pa_xfree_proc, int64_t, int);
+
+typedef void (*pa_signal_new_proc)(int, pa_signal_callback_fn*, void*);
+typedef void (*pa_signal_done_proc)(void);
 
 #endif /* _AAX_PULSEAUDIO_H */
 
