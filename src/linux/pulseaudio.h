@@ -51,50 +51,84 @@ typedef enum
   PA_STREAM_UPLOAD
 } pa_stream_direction_t;
 
+typedef enum
+{
+  PA_SEEK_RELATIVE  = 0,
+  PA_SEEK_ABSOLUTE,
+  PA_SEEK_RELATIVE_ON_READ,
+  PA_SEEK_RELATIVE_END
+} pa_seek_mode_t;
+
+typedef enum
+{
+  PA_CONTEXT_UNCONNECTED = 0,
+  PA_CONTEXT_CONNECTING,
+  PA_CONTEXT_AUTHORIZING,
+  PA_CONTEXT_SETTING_NAME,
+  PA_CONTEXT_READY,
+  PA_CONTEXT_FAILED,
+  PA_CONTEXT_TERMINATED
+} pa_context_state_t;
+
+typedef enum
+{
+  PA_CONTEXT_NOFLAGS = 0,
+  PA_CONTEXT_NOAUTOSPAWN,
+  PA_CONTEXT_NOFAIL
+} pa_context_flags_t;
+
+typedef enum
+{
+  PA_STREAM_UNCONNECTED = 0,
+  PA_STREAM_CREATING,
+  PA_STREAM_READY,
+  PA_STREAM_FAILED,
+  PA_STREAM_TERMINATED
+} pa_stream_state_t;
+
 typedef struct
 {
   pa_sample_format_t format;
   uint32_t rate;
   uint8_t channels;
-
-} pa_simple_spec;
-
-typedef void pa_sample_spec;
-typedef void pa_channel_map;
-typedef void pa_buffer_attr;
-typedef void pa_context;
-typedef void pa_stream;
-typedef void pa_mainloop;
-typedef void pa_mainloop_api;
+} pa_sample_spec;
 
 typedef void (*pa_state_callback_fn)(void*, void*);
 typedef void (*pa_write_callback_fn)(void*, size_t, void*);
 typedef void (*pa_signal_callback_fn)(void*, void*, int, void*);
 
-typedef const char* (*pa_get_headers_version_proc)(void);
+typedef int (*pa_get_binary_name_proc)(const char*, size_t);
+typedef const char* (*pa_path_get_filename_proc)(const char*);
 typedef const char* (*pa_get_library_version_proc)(void);
 typedef const char* (*pa_strerror_proc)(int);
 typedef void (*pa_xfree_proc)(void*);
 
-typedef void* (*pa_mainloop_new_proc)(void);
-typedef void* (*pa_mainloop_get_api_proc)(void*);
-typedef int (*pa_mainloop_run_proc)(void*, int*);
-typedef void (*pa_mainloop_free_proc)(void*);
+typedef void* (*pa_threaded_mainloop_new_proc)(void);
+typedef int (*pa_threaded_mainloop_free_proc)(void*);
+typedef int (*pa_threaded_mainloop_start_proc)(void*);
+typedef int (*pa_threaded_mainloop_stop_proc)(void*);
+typedef int (*pa_threaded_mainloop_lock_proc)(void*);
+typedef int (*pa_threaded_mainloop_unlock_proc)(void*);
+typedef int (*pa_threaded_mainloop_wait_proc)(void*);
+typedef void (*pa_threaded_mainloop_signal_proc)(void*, int);
+typedef void* (*pa_threaded_mainloop_get_api_proc)(void*);
 
-typedef void* (*pa_context_new_with_proplist_proc)(void*, const char*, void*);
+typedef void* (*pa_context_new_proc)(void*, const char*);
 typedef void* (*pa_context_set_state_callback_proc)(void*, pa_state_callback_fn, void*);
-typedef int (*pa_context_connect_proc)(void*, const char*, int, const char*);
-typedef void (*pa_context_disconnect_proc)(void);
+typedef int (*pa_context_connect_proc)(void*, const char*, int, const void*);
+typedef void (*pa_context_disconnect_proc)(void*);
 typedef int (*pa_context_get_state_proc)(void*);
 typedef void (*pa_context_unref_proc)(void*);
+typedef int (*pa_context_errno_proc)(void*);
 
 typedef void* (*pa_stream_new_proc)(void*, const char*, const void*, const void*);
 typedef void (*pa_stream_set_state_callback_proc)(void*, pa_state_callback_fn, void*);
-typedef void (*pa_stream_set_write_callback_proc)(void*, pa_write_callback_fn, void*);
 typedef void (*pa_stream_connect_playback_proc)(void*, const char*, const void*, int, void*, void*);
+typedef void (*pa_stream_disconnect_proc)(void*);
 typedef void (*pa_stream_unref_proc)(void*);
-
-typedef void (*pa_stream_write_proc)(void*, const void*, size_t, pa_xfree_proc, int64_t, int);
+typedef int (*pa_stream_begin_write_proc)(void*, void**, size_t*);
+typedef int (*pa_stream_write_proc)(void*, const void*, size_t, pa_xfree_proc, int64_t, int);
+typedef int (*pa_stream_get_state_proc)(void*);
 
 typedef void (*pa_signal_new_proc)(int, pa_signal_callback_fn*, void*);
 typedef void (*pa_signal_done_proc)(void);
