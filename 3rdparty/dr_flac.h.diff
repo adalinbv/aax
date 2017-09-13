@@ -1,0 +1,26 @@
+--- dr_flac.h-orig	2017-09-13 13:45:57.912653242 +0200
++++ dr_flac.h	2017-09-13 13:48:45.226061194 +0200
+@@ -117,8 +117,14 @@
+ #ifndef dr_flac_h
+ #define dr_flac_h
+ 
++#if HAVE_CONFIG_H
++#include "config.h"
++#endif
++
+ #include <stddef.h>
+ 
++#include <arch.h>
++
+ #if defined(_MSC_VER) && _MSC_VER < 1600
+ typedef   signed char    drflac_int8;
+ typedef unsigned char    drflac_uint8;
+@@ -777,7 +783,7 @@
+         #if defined(__GNUC__) || defined(__clang__)
+             static void drflac__cpuid(int info[4], int fid)
+             {
+-                asm (
++                ASM (
+                     "movl %[fid], %%eax\n\t"
+                     "cpuid\n\t"
+                     "movl %%eax, %[info0]\n\t"
