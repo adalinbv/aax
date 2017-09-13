@@ -1,5 +1,5 @@
 // FLAC audio decoder. Public domain. See "unlicense" statement at the end of this file.
-// dr_flac - v0.8b - 2017-08-19
+// dr_flac - v0.8c - 2017-09-07
 //
 // David Reid - mackron@gmail.com
 
@@ -122,6 +122,8 @@
 #endif
 
 #include <stddef.h>
+
+#include <arch.h>
 
 #if defined(_MSC_VER) && _MSC_VER < 1600
 typedef   signed char    drflac_int8;
@@ -781,7 +783,7 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
         #if defined(__GNUC__) || defined(__clang__)
             static void drflac__cpuid(int info[4], int fid)
             {
-                __asm (
+                ASM (
                     "movl %[fid], %%eax\n\t"
                     "cpuid\n\t"
                     "movl %%eax, %[info0]\n\t"
@@ -894,10 +896,10 @@ typedef drflac_int32 drflac_result;
 
 // CPU caps.
 static drflac_bool32 drflac__gIsLZCNTSupported = DRFLAC_FALSE;
+#ifndef DRFLAC_NO_CPUID
 static drflac_bool32 drflac__gIsSSE42Supported = DRFLAC_FALSE;
 static void drflac__init_cpu_caps()
 {
-#ifndef DRFLAC_NO_CPUID
     int info[4] = {0};
 
     // LZCNT
@@ -907,8 +909,8 @@ static void drflac__init_cpu_caps()
     // SSE4.2
     drflac__cpuid(info, 1);
     drflac__gIsSSE42Supported = (info[2] & (1 << 19)) != 0;
-#endif
 }
+#endif
 
 
 //// Endian Management ////
@@ -4507,9 +4509,10 @@ void drflac__init_from_info(drflac* pFlac, drflac_init_info* pInit)
 
 drflac* drflac_open_with_metadata_private(drflac_read_proc onRead, drflac_seek_proc onSeek, drflac_meta_proc onMeta, drflac_container container, void* pUserData, void* pUserDataMD)
 {
+#ifndef DRFLAC_NO_CPUID
     // CPU support first.
     drflac__init_cpu_caps();
-
+#endif
 
     drflac_init_info init;
     if (!drflac__init_private(&init, onRead, onSeek, onMeta, container, pUserData, pUserDataMD)) {
@@ -5460,6 +5463,9 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 
 
 // REVISION HISTORY
+//
+// v0.8c - 2017-09-07
+//   - Fix warning on non-x86/x64 architectures.
 //
 // v0.8b - 2017-08-19
 //   - Fix build on non-x86/x64 architectures.
