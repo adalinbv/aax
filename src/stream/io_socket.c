@@ -151,13 +151,14 @@ ssize_t
 _socket_read(_io_t *io, void *buf, size_t count)
 {
    ssize_t rv = 0;
+   int num = 3;
 
    assert(buf);
    assert(count);
 
    do {
       rv = recv(io->fd, buf, count, 0);
-   } while (rv < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK));
+   } while (--num && (rv < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)));
 
    return rv;
 }
