@@ -1,0 +1,17 @@
+Short term projects:
+* Implement a MacOS CoreAudio backend
+* Implement the OpenSL backend
+* Fix and re-enable the PulseAudio backend
+* Fix and re-enable Opus support
+* Finish FLAC support using dr_flac
+* Further improve pdmp3 ID3v2 handling
+
+
+Long term projects:
+* Implement an audio analyzer which can create an AAXS sound buffer file from 
+  digital audio data:
+  - Wave shape detection using pffft
+  - Volume and Pitch envelope shape detection
+* Add an event manager
+* Add MIDI support using the event manager
+
