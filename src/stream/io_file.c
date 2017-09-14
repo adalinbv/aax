@@ -46,15 +46,15 @@
 int
 _file_open(_io_t *io, const char* pathname)
 {
-   io->fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
-   return io->fd;
+   io->fds.fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
+   return io->fds.fd;
 }
 
 int
 _file_close(_io_t *io)
 {
-   int rv = close(io->fd);
-   io->fd = -1;
+   int rv = close(io->fds.fd);
+   io->fds.fd = -1;
    return rv;
 }
 
@@ -64,7 +64,7 @@ _file_read(_io_t *io, void* buf, size_t count)
    ssize_t rv;
 
    do {
-      rv  = read(io->fd, buf, count);
+      rv  = read(io->fds.fd, buf, count);
    } while (rv < 0 && errno == EINTR);
    if (rv == 0) rv = -1;
 
@@ -74,9 +74,14 @@ _file_read(_io_t *io, void* buf, size_t count)
 ssize_t
 _file_write(_io_t *io, const void* buf, size_t count)
 {
-   ssize_t rv = write(io->fd, buf, count);
-   if (rv == EINTR) rv = write(io->fd, buf, count);
+   ssize_t rv = write(io->fds.fd, buf, count);
+   if (rv == EINTR) rv = write(io->fds.fd, buf, count);
    return rv;
+}
+
+void
+_file_wait(_io_t *io, float timeout_sec)
+{
 }
 
 int
@@ -91,7 +96,7 @@ _file_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
    switch (ptype)
    {
    case __F_POSITION:
-      rv = (lseek(io->fd, param, SEEK_SET) >= 0) ? 0 : -1;
+      rv = (lseek(io->fds.fd, param, SEEK_SET) >= 0) ? 0 : -1;
       break;
    case __F_FLAGS:
       io->param[_IO_FILE_FLAGS] = _flags[(param == AAX_MODE_READ) ? 1 : 0];
@@ -116,13 +121,13 @@ _file_get(_io_t *io, enum _aaxStreamParam ptype)
    case __F_NO_BYTES:
    {
       struct stat st;
-      if (fstat(io->fd, &st) == 0) {
+      if (fstat(io->fds.fd, &st) == 0) {
           rv = st.st_size;
       }
       break;
    }
    case __F_POSITION:
-      rv = lseek(io->fd, 0L, SEEK_CUR);
+      rv = lseek(io->fds.fd, 0L, SEEK_CUR);
       break;
    default:
       break;

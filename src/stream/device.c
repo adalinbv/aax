@@ -452,6 +452,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("ext: '%s'\n", extension);
  printf("port: %i\n", port);
  printf("timeout: %4.1f ms\n", period_ms);
+ printf("refresh rate: %f\n", *refresh_rate);
 #endif
 
    res = AAX_FALSE;
@@ -460,7 +461,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       switch (protocol)
       {
       case PROTOCOL_HTTP:
-         handle->io->set(handle->io, __F_RATE, size);
+         handle->io->set(handle->io, __F_NO_BYTES, size);
+         handle->io->set(handle->io, __F_RATE, *refresh_rate);
          handle->io->set(handle->io, __F_PORT, port);
          handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
          if (handle->io->open(handle->io, server) >= 0)
@@ -559,7 +561,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
       }
 
-      if (res && ((handle->io->fd >= 0) || m))
+      if (res && ((handle->io->fds.fd >= 0) || m))
       {
          size_t no_samples = period_frames;
          void *header = NULL;
@@ -720,13 +722,13 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
     * prevent setting the file size to zero just bij running aaxinfo -d
     * which always opens a file in playback mode.
     */
-   if (handle->io->fd < 0) {
+   if (handle->io->fds.fd < 0) {
       handle->io->open(handle->io, handle->name);
    }
 
    if (handle->out_header)
    {
-      if (handle->io->fd >= 0)
+      if (handle->io->fds.fd >= 0)
       {
          res = handle->io->write(handle->io, handle->out_header,
                                             handle->out_hdr_size);
@@ -804,7 +806,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    assert(*frames);
 
    *offset = 0;
-   if (handle->io->fd >= 0 && frames && tracks)
+   if (handle->io->fds.fd >= 0 && frames && tracks)
    {
       int32_t **sbuf = (int32_t**)tracks;
       int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
