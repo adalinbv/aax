@@ -42,6 +42,7 @@ _io_create(int protocol)
          rv->write = _socket_write;
          rv->set = _socket_set;
          rv->get = _socket_get;
+         rv->wait = _socket_wait;
 
          rv->param[_IO_SOCKET_SIZE] = 2048;
          rv->param[_IO_SOCKET_PORT] = 80;
@@ -54,6 +55,7 @@ _io_create(int protocol)
          rv->write = _file_write;
          rv->set = _file_set;
          rv->get = _file_get;
+         rv->wait = _file_wait;
 
          rv->param[_IO_FILE_FLAGS] = 0;
          rv->param[_IO_FILE_MODE] = 0644;
@@ -62,7 +64,8 @@ _io_create(int protocol)
          break;
       }
       rv->protocol = protocol;
-      rv->fd = -1;
+      rv->fds.fd = -1;
+      rv->fds.events = POLLIN;
    }
    return rv;
 }

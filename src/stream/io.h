@@ -30,16 +30,21 @@ extern "C" {
 #include "config.h"
 #endif
 
+#ifdef HAVE_POLL_H
+#include <poll.h>
+#endif
+
 #include "protocol.h"
 
 typedef enum {
    _IO_FILE_FLAGS = 1,
-   _IO_FILE_MODE = 2,
+   _IO_FILE_MODE,
    _IO_PARAM_MAX,
 
    _IO_SOCKET_SIZE = 0,
-   _IO_SOCKET_PORT = 1,
-   _IO_SOCKET_TIMEOUT = 2
+   _IO_SOCKET_RATE,
+   _IO_SOCKET_PORT,
+   _IO_SOCKET_TIMEOUT
 } _io_type_t;
 
 struct _io_st;
@@ -52,6 +57,7 @@ typedef ssize_t _io_read_fn(struct _io_st*, void*, size_t);
 typedef ssize_t _io_write_fn(struct _io_st*, const void*, size_t);
 typedef int _io_set_fn(struct _io_st*, enum _aaxStreamParam, ssize_t);
 typedef ssize_t _io_get_fn(struct _io_st*, enum _aaxStreamParam);
+typedef void _io_wait_fn(struct _io_st*, float);
 
 struct _io_st
 {
@@ -61,12 +67,15 @@ struct _io_st
    _io_write_fn *write;
    _io_get_fn *get;
    _io_set_fn *set;
+   _io_wait_fn *wait;
+
+
+   unsigned error_ctr;
+   unsigned error_max;
 
    int protocol;
    int param[_IO_PARAM_MAX];
-   int fd;
-
-   unsigned error_ctr;
+   struct pollfd fds;
 
 };
 typedef struct _io_st _io_t;
@@ -81,6 +90,7 @@ ssize_t _file_read(_io_t*, void*, size_t);
 ssize_t _file_write(_io_t*, const void*, size_t);
 int _file_set(_io_t*, int, ssize_t);
 ssize_t _file_get(_io_t*, int);
+void _file_wait(_io_t*, float);
 
 /* socket */
 int _socket_open(_io_t*, const char*);
@@ -89,6 +99,7 @@ ssize_t _socket_read(_io_t*, void*, size_t);
 ssize_t _socket_write(_io_t*, const void*, size_t);
 int _socket_set(_io_t*, int, ssize_t);
 ssize_t _socket_get(_io_t*, int);
+void _socket_wait(_io_t*, float);
 
 
 #if defined(__cplusplus)

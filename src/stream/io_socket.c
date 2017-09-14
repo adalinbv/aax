@@ -92,7 +92,7 @@ _socket_open(_io_t *io, const char *server)
          }
          if (res == 0)
          {
-            if (timeout_ms < 50) timeout_ms = 50;
+            if (timeout_ms < 5) timeout_ms = 5;
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
             if (fd >= 0)
             {
@@ -103,6 +103,8 @@ _socket_open(_io_t *io, const char *server)
                setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
+
+               io->error_max = (unsigned)(100.0f/timeout_ms); // 0.1 sec.
 #if 0
  unsigned int m;
  int n;
@@ -112,7 +114,7 @@ _socket_open(_io_t *io, const char *server)
  printf("socket receive buffer size: %u\n", n);
 #endif
                if (connect(fd, host->ai_addr, host->ai_addrlen) >= 0) {
-                  io->fd = fd;
+                  io->fds.fd = fd;
                }
                else
                {
@@ -140,8 +142,8 @@ _socket_open(_io_t *io, const char *server)
 int
 _socket_close(_io_t *io)
 {
-   int rv = closesocket(io->fd);
-   io->fd = -1;
+   int rv = closesocket(io->fds.fd);
+   io->fds.fd = -1;
    return rv;
 }
 
@@ -154,11 +156,11 @@ _socket_read(_io_t *io, void *buf, size_t count)
    assert(count);
 
    do {
-      rv = recv(io->fd, buf, count, 0);
+      rv = recv(io->fds.fd, buf, count, 0);
    } while (rv < 0 && errno == EINTR);
 
    if (rv < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-      if (++io->error_ctr < 20) {
+      if (++io->error_ctr < io->error_max) {
          rv = 0;
       }
    }
@@ -172,9 +174,15 @@ _socket_read(_io_t *io, void *buf, size_t count)
 ssize_t
 _socket_write(_io_t *io, const void *buf, size_t size)
 {
-   ssize_t rv = send(io->fd, buf, size, 0);
-   if (rv < 0 && errno == EINTR) rv = send(io->fd, buf, size, 0);
+   ssize_t rv = send(io->fds.fd, buf, size, 0);
+   if (rv < 0 && errno == EINTR) rv = send(io->fds.fd, buf, size, 0);
    return rv;
+}
+
+void
+_socket_wait(_io_t *io, float timeout_msec)
+{
+   poll(&io->fds, 1, (int)timeout_msec);
 }
 
 int
@@ -183,10 +191,11 @@ _socket_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
    int rv = -1;
    switch (ptype)
    {
+   case __F_NO_BYTES:
    case __F_RATE:
    case __F_PORT:
    case __F_TIMEOUT:
-      io->param[ptype - __F_RATE] = param;
+      io->param[ptype - __F_NO_BYTES] = param;
       rv = 0;
       break;
    default:
