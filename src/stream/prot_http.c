@@ -117,11 +117,6 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
             }
          }
       }
-      else
-      {
-         _AAX_SYSLOG(buf+strlen("HTTP/1.0 "));
-         res = -res;
-      }
    }
    else {
       res = -res;

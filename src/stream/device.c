@@ -471,8 +471,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->prot)
             {
                const char *agent = aaxGetVersionString((aaxConfig)id);
-               res = handle->prot->connect(handle->prot, handle->io,
-                                           server, path, agent);
+               int num = 10;
+               do {
+                  res = handle->prot->connect(handle->prot, handle->io,
+                                              server, path, agent);
+               } while (res < 0 && --num);
+
                if (res < 0)
                {
                   _aaxStreamDriverLog(id, 0, 0, "Unable to open connection");
