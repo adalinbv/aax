@@ -97,13 +97,13 @@ _socket_open(_io_t *io, const char *server)
             if (fd >= 0)
             {
                struct timeval tv;
+               int on = 1;
                
                tv.tv_sec = timeout_ms / 1000;
                tv.tv_usec = (timeout_ms * 1000) % 1000000;              
-               setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, 0, 0);
+               setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on, sizeof(on));
                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
-
                io->error_max = (unsigned)(100.0f/timeout_ms); // 0.1 sec.
 #if 0
  unsigned int m;
