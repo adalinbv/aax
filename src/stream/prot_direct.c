@@ -32,10 +32,7 @@
 # endif
 #endif
 
-#include "extension.h"
-#include "protocol.h"
-#include "format.h"
-#include "io.h"
+#include "audio.h"
 
 size_t
 _direct_connect(_prot_t *prot, UNUSED(_io_t *io), UNUSED(const char *server), const char *path, UNUSED(const char *agent))

@@ -35,8 +35,7 @@
 #include <arch.h>
 
 #include "device.h"
-#include "extension.h"
-#include "format.h"
+#include "audio.h"
 #include "api.h"
 
 // https://tools.ietf.org/html/rfc2361

@@ -38,9 +38,7 @@
 #include <api.h>
 
 #include "device.h"
-#include "protocol.h"
-#include "extension.h"
-#include "format.h"
+#include "audio.h"
 
 #define MAX_BUFFER	512
 

@@ -36,10 +36,8 @@
 #include <api.h>
 #include <arch.h>
 
-#include "extension.h"
-#include "format.h"
-#include "fmt_opus.h"
 #include "audio.h"
+#include "fmt_opus.h"
 
 // https://android.googlesource.com/platform/external/libopus/+/refs/heads/master-soong/doc/trivial_example.c
 #define FRAME_SIZE 960

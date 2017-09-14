@@ -31,7 +31,6 @@ extern "C" {
 #endif
 
 #include "audio.h"
-#include "io.h"
 
 typedef enum
 {

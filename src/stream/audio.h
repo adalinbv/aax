@@ -109,6 +109,10 @@ enum _aaxStreamParam
    __F_POSITION
 };
 
+#include "io.h"
+#include "format.h"
+#include "extension.h"
+#include "protocol.h"
 
 #if defined(__cplusplus)
 }  /* extern "C" */

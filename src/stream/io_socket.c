@@ -56,18 +56,17 @@
 #include <base/types.h>
 #include <base/timer.h>
 
-#include "io.h"
-#include "extension.h"
+#include "audio.h"
 
 int
 _socket_open(_io_t *io, const char *server)
 {
-   int rate = io->param[_IO_SOCKET_RATE];
+   int size = io->param[_IO_SOCKET_SIZE];
    int port = io->param[_IO_SOCKET_PORT];
    int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
    int fd = -1;
 
-   if (server && (rate > 4000) && (port > 0))
+   if (server && (size > 4000) && (port > 0))
    {
       int slen = strlen(server);
       if (slen < 256)
@@ -93,11 +92,10 @@ _socket_open(_io_t *io, const char *server)
          }
          if (res == 0)
          {
-            if (timeout_ms < 500) timeout_ms = 500;
+            if (timeout_ms < 50) timeout_ms = 50;
             fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
             if (fd >= 0)
             {
-               int size = 4*rate*timeout_ms/1000.0f;
                struct timeval tv;
                
                tv.tv_sec = timeout_ms / 1000;
@@ -157,7 +155,16 @@ _socket_read(_io_t *io, void *buf, size_t count)
 
    do {
       rv = recv(io->fd, buf, count, 0);
-   } while (rv < 0 && (errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK));
+   } while (rv < 0 && errno == EINTR);
+
+   if (rv < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
+      if (++io->error_ctr < 20) {
+         rv = 0;
+      }
+   }
+   else {
+      io->error_ctr = 0;
+   }
 
    return rv;
 }

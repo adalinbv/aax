@@ -28,7 +28,7 @@
 #include "io.h"
 
 _io_t*
-_io_create(_protocol_t protocol)
+_io_create(int protocol)
 {
    _io_t* rv = calloc(1, sizeof(_io_t));
    if (rv)
@@ -43,9 +43,9 @@ _io_create(_protocol_t protocol)
          rv->set = _socket_set;
          rv->get = _socket_get;
 
-         rv->param[_IO_SOCKET_RATE] = 0;
+         rv->param[_IO_SOCKET_SIZE] = 2048;
          rv->param[_IO_SOCKET_PORT] = 80;
-         rv->param[_IO_SOCKET_TIMEOUT] = 1000;
+         rv->param[_IO_SOCKET_TIMEOUT] = 100;
          break;
       case PROTOCOL_DIRECT:
          rv->open = _file_open;

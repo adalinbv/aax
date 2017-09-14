@@ -37,7 +37,7 @@ typedef enum {
    _IO_FILE_MODE = 2,
    _IO_PARAM_MAX,
 
-   _IO_SOCKET_RATE = 0,
+   _IO_SOCKET_SIZE = 0,
    _IO_SOCKET_PORT = 1,
    _IO_SOCKET_TIMEOUT = 2
 } _io_type_t;
@@ -65,6 +65,8 @@ struct _io_st
    int protocol;
    int param[_IO_PARAM_MAX];
    int fd;
+
+   unsigned error_ctr;
 
 };
 typedef struct _io_st _io_t;

@@ -36,8 +36,7 @@
 #include <api.h>
 #include <arch.h>
 
-#include "extension.h"
-#include "format.h"
+#include "audio.h"
 #include "fmt_flac.h"
 
 #define FRAME_SIZE 960
