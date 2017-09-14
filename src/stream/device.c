@@ -884,7 +884,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
             else {
 #if USE_CAPTURE_THREAD
-               _aaxSignalTrigger(&handle->thread.signal);
+//             _aaxSignalTrigger(&handle->thread.signal);
 #else
                _aaxStreamDriverReadChunk(id);
 #endif
