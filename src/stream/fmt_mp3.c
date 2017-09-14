@@ -36,8 +36,7 @@
 #include <api.h>
 #include <arch.h>
 
-#include "extension.h"
-#include "format.h"
+#include "audio.h"
 #include "fmt_mp3.h"
 
 DECL_FUNCTION(mp3_init);

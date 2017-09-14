@@ -40,8 +40,7 @@
 #include <arch.h>
 #include <api.h>
 
-#include "extension.h"
-#include "format.h"
+#include "audio.h"
 #include "ext_ogg.h"
 
 

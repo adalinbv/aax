@@ -51,9 +51,6 @@
 
 #include <software/renderer.h>
 #include "device.h"
-#include "io.h"
-#include "extension.h"
-#include "format.h"
 #include "audio.h"
 
 #define BACKEND_NAME_OLD	"File"
@@ -419,7 +416,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
    char *s, *protname, *server, *path, *extension;
-   int res, port, rate, rv = AAX_FALSE;
+   int res, port, rate, size, rv = AAX_FALSE;
    _protocol_t protocol;
    size_t headerSize;
    float period_ms;
@@ -429,7 +426,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
    handle->frequency = *speed;
+
    rate = *speed;
+   size = *tracks * rate * handle->bits_sample / (*refresh_rate * 2);
 
    period_ms = 1000.0f / period_rate;
    if (period_ms < 4.0f) period_ms = 4.0f;
@@ -452,6 +451,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("path: '%s'\n", path);
  printf("ext: '%s'\n", extension);
  printf("port: %i\n", port);
+ printf("timeout: %4.1f ms\n", period_ms);
 #endif
 
    res = AAX_FALSE;
@@ -460,7 +460,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       switch (protocol)
       {
       case PROTOCOL_HTTP:
-         handle->io->set(handle->io, __F_RATE, rate);
+         handle->io->set(handle->io, __F_RATE, size);
          handle->io->set(handle->io, __F_PORT, port);
          handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
          if (handle->io->open(handle->io, server) >= 0)

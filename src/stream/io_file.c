@@ -37,8 +37,7 @@
 
 #include <aax/aax.h>
 
-#include "io.h"
-#include "extension.h"
+#include "audio.h"
 
 #ifndef O_BINARY
 # define O_BINARY	0
