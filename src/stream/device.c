@@ -445,14 +445,15 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    handle->io->set(handle->io, __F_FLAGS, handle->mode);
 #if 0
- printf("name: '%s'\n", handle->name);
+ printf("\nname: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
  printf("path: '%s'\n", path);
  printf("ext: '%s'\n", extension);
  printf("port: %i\n", port);
- printf("timeout: %4.1f ms\n", period_ms);
+ printf("timeout period: %4.1f ms\n", period_ms);
  printf("refresh rate: %f\n", *refresh_rate);
+ printf("buffer size: %i bytes\n", size);
 #endif
 
    res = AAX_FALSE;
@@ -806,6 +807,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    _driver_t *handle = (_driver_t *)id;
    ssize_t offs = *offset;
    ssize_t bytes = 0;
+   int num = 3;
 
    assert(*frames);
 
@@ -910,7 +912,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             data = handle->dataBuffer->data; // needed above
          }
       }
-      while (no_samples > 0);
+      while (no_samples > 0 && --num);
 
       handle->frequency = (float)handle->ext->get_param(handle->ext, __F_FREQUENCY);
 
