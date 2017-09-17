@@ -182,7 +182,9 @@ _socket_write(_io_t *io, const void *buf, size_t size)
 void
 _socket_wait(_io_t *io, float timeout_msec)
 {
+#if HAVE_POLL_H
    poll(&io->fds, 1, (int)timeout_msec);
+#endif
 }
 
 int

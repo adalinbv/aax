@@ -32,6 +32,13 @@ extern "C" {
 
 #ifdef HAVE_POLL_H
 #include <poll.h>
+#else
+#define POLLIN	0
+struct pollfd {
+   int fd;
+   short events;
+   short revents;
+};
 #endif
 
 #include "protocol.h"
