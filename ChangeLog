@@ -1,4 +1,4 @@
-* Sun Aug 27 2017 - tech@adalin.org
+* Sun Sep 17 2017 - tech@adalin.org
 - AeonWave (3.0.0) stable; urgency=low
  * Switch to a dual licensing model with both GPL and a commercial license.
  * Switch to 64-bit build for windows and renamed the library to AeonWave.
@@ -21,13 +21,14 @@
  * Add a convolution effect to simulate acoustics based on an audio buffer.
    Note: This is a resource heavy effect, use with care.
  * Changed the return types of all filter and effect functions (except for the
-   Create functions) fro aaxFilter/aaxEffect to match the rest of the API.
-   Note: This will require code changes.
- * Fixed some header mistakes which makes version 3.0 incompatible with 2.0
- * Removed version 1.0 compatible header files.
+   Create functions) for aaxFilter/aaxEffect to match the rest of the API.
+   Note: This might require client side code changes.
+ * Fixed some lingering header mistakes. This makes version 3.0 binary
+   incompatible with earlier version. Recompilig is required.
+ * Removed version 1.0 compatibility header files.
  * Renamed the C++ interface() functions to interface_name() since some projects
    undefine 'interface' causing the preprocessor to hide these functions.
- * Make sure that capturing does not hold up the engine when a (http) stream
+ * Make sure that capturing does not stagnate the engine when a (http) stream
    stalls.
  * Fix a bug where modulating waveforms by non-sine waveforms caused silence.
  * Fix a segmentation fault when a particular file extension does not not
@@ -38,7 +39,7 @@
    inactive and active again.
  * Fix reporting of min/max tracks and frequency for OSS v3
 
--- Erik Hofman <tech@adalin.org>  Sun, 27 Aug  2017 07:51:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sun, 17 Sep  2017 09:51:00 + 0200
 
 * Fri Jul 29  2016 - tech@adalin.org
 - AeonWave (2.7.0) stable; urgency=low
