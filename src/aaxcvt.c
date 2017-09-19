@@ -45,6 +45,10 @@
 #include "driver.h"
 #include "wavfile.h"
 
+#ifndef O_BINARY
+# define O_BINARY       0
+#endif
+
 #define MAX_LOOPS		6
 static int _mask_t[MAX_LOOPS] = {
     0,
@@ -184,6 +188,8 @@ int main(int argc, char **argv)
     }
 
     format = getAudioFormat(argc, argv, AAX_FORMAT_NONE);
+    if (format == AAX_AAXS16S) raw = AAX_TRUE;
+
     if (format != AAX_FORMAT_NONE)
     {
         char *rfs = getCommandLineOption(argc, argv, "-p");
@@ -204,7 +210,10 @@ int main(int argc, char **argv)
             }
             else
             {
-               int fd = open(outfile, O_CREAT|O_WRONLY, 0644);
+               int fd, flags = O_WRONLY|O_CREAT|O_TRUNC;
+
+               if (format != AAX_AAXS16S) flags += O_BINARY;
+               fd = open(outfile, flags, 0644);
                if (fd >= 0)
                {
                   int size = aaxBufferGetSetup(buffer, AAX_TRACKSIZE);
