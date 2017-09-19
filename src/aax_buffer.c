@@ -261,7 +261,13 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = handle->format;
          break;
       case AAX_TRACKSIZE:
-         if (handle->frequency)
+         if (handle->format & AAX_AAXS)
+         {
+            if (handle->aaxs) {
+               rv = strlen(handle->aaxs);
+            }
+         }
+         else if (handle->frequency)
          {
             float fact = 1.0f;
             if (rb) {
@@ -274,7 +280,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          else _aaxErrorSet(AAX_INVALID_STATE);
          break;
       case AAX_NO_SAMPLES:
-         if (handle->frequency)
+         if (handle->frequency && !(handle->format & AAX_AAXS))
          {
             float fact = 1.0f;
             if (rb) {
@@ -442,12 +448,34 @@ AAX_API void** AAX_APIENTRY
 aaxBufferGetData(const aaxBuffer buffer)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
+   enum aaxFormat user_format;
    void** data = NULL;
-   if (handle && handle->frequency)
+
+   user_format = handle->format;
+   if (handle && (user_format == AAX_AAXS16S || user_format == AAX_AAXS24S))
+   {
+      if (handle->aaxs)
+      {
+         size_t len = strlen(handle->aaxs);
+
+         data = malloc(len + sizeof(void*));
+         if (data == NULL)
+         {
+            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            return data;
+         }
+
+         data[0] = &data[1];
+         memcpy(data+1, handle->aaxs, len);
+      }
+      else {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      }
+   }
+   else if (handle && handle->frequency)
    {
       unsigned int buf_samples, no_samples, tracks;
       unsigned int native_fmt, rb_format, pos;
-      enum aaxFormat user_format;
       _aaxRingBuffer *rb;
       char *ptr, bps;
       float fact;
@@ -472,10 +500,6 @@ aaxBufferGetData(const aaxBuffer buffer)
       _bufGetDataInterleaved(rb, ptr, no_samples, tracks, fact);
       *data = (void*)(ptr + pos*tracks*bps);
 
-      user_format = handle->format;
-      if (user_format == AAX_AAXS16S || user_format == AAX_AAXS24S) {
-         user_format = AAX_FLOAT;
-      }
       native_fmt = user_format & AAX_FORMAT_NATIVE;
       rb_format = rb->get_parami(rb, RB_FORMAT);
       if (rb_format != native_fmt)
