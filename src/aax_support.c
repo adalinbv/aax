@@ -400,17 +400,18 @@ aaxGetWaveformTypeByName(const char *name)
    enum aaxWaveformType rv = AAX_WAVE_NONE;
    if (name)
    {
-      size_t len;
+      size_t len, invlen;
       char *end;
 
-      if (!strncmp(name, "AAX_", 4)) {
+      if (!strncasecmp(name, "AAX_", 4)) {
          name += 4;
       }
       end = strrchr(name, '_');
+      if (!end) end = strrchr(name, '-');
       if (end)
       {
-         if (!strcmp(end, "_VALUE") || !strcmp(end, "_WAVE") ||
-             !strcmp(end, "_FOLLOW")) {
+         if (!strcasecmp(end+1, "VALUE") || !strcasecmp(end+1, "WAVE") ||
+             !strcasecmp(end+1, "FOLLOW")) {
             len = end-name;
          }
          else {
@@ -420,27 +421,25 @@ aaxGetWaveformTypeByName(const char *name)
          len = strlen(name);
       }
 
-      if (!strncasecmp(name, "triangle", len)) {
-         rv = AAX_TRIANGLE_WAVE;
-      } else if (!strncasecmp(name, "sine", len)) {
-         rv = AAX_SINE_WAVE;
-      } else if (!strncasecmp(name, "square", len)) {
-         rv = AAX_SQUARE_WAVE;
-      } else if (!strncasecmp(name, "sawtooth", len)) {
-         rv = AAX_SAWTOOTH_WAVE;
-      } else if (!strncasecmp(name, "envelope", len)) {
-         rv = AAX_ENVELOPE_FOLLOW;
+      invlen = strlen("inverse");
+      if (!strncasecmp(name, "inverse", invlen) &&
+          (len > ++invlen))
+      {
+         name += invlen;
+         len -= invlen;
+         rv |= AAX_INVERSE;
       }
-      else if (!strncasecmp(name, "inverse_triangle", len)) {
-         rv = AAX_INVERSE_TRIANGLE_WAVE;
-      } else if (!strncasecmp(name, "inverse_sine", len)) {
-         rv = AAX_INVERSE_SINE_WAVE;
-      } else if (!strncasecmp(name, "inverse_square", len)) {
-         rv = AAX_INVERSE_SQUARE_WAVE;
-      } else if (!strncasecmp(name, "inverse_sawtooth", len)) {
-         rv = AAX_INVERSE_SAWTOOTH_WAVE;
-      } else if (!strncasecmp(name, "inverse_envelope", len)) {
-         rv = AAX_INVERSE_ENVELOPE_FOLLOW;
+
+      if (!strncasecmp(name, "triangle", len)) {
+         rv |= AAX_TRIANGLE_WAVE;
+      } else if (!strncasecmp(name, "sine", len)) {
+         rv |= AAX_SINE_WAVE;
+      } else if (!strncasecmp(name, "square", len)) {
+         rv |= AAX_SQUARE_WAVE;
+      } else if (!strncasecmp(name, "sawtooth", len)) {
+         rv |= AAX_SAWTOOTH_WAVE;
+      } else if (!strncasecmp(name, "envelope", len)) {
+         rv |= AAX_ENVELOPE_FOLLOW;
       }
       else {
          rv = AAX_CONSTANT_VALUE;
@@ -449,6 +448,55 @@ aaxGetWaveformTypeByName(const char *name)
    return rv;
 }
 
+
+AAX_API enum aaxDistanceModel AAX_APIENTRY
+aaxGetDistanceModelByName(const char *name)
+{
+   enum aaxDistanceModel rv = AAX_DISTANCE_MODEL_NONE;
+   if (name)
+   {
+      char type[256];
+      size_t i, len;
+
+      strncpy(type, name, 256);
+      name = type;
+      type[256] = 0;
+
+      len = strlen(name);
+      for (i=0; i<len; ++i) {
+         if (type[i] == '-') type[i] = '_';
+      }
+
+      if (!strncasecmp(name, "AAX_AL_", 7)) {
+         name += 7;
+      } else if (!strncasecmp(name, "AAX_", 4)) {
+         name += 4;
+      }
+      len = strlen(name);
+
+      if (!strncasecmp(name, "exponential_distance", len)) {
+         rv = AAX_EXPONENTIAL_DISTANCE;
+      } else if (!strncasecmp(name, "exponential_distance_delay", len)) {
+         rv = AAX_EXPONENTIAL_DISTANCE_DELAY;
+      }
+
+      else if (!strncasecmp(name, "inverse_distance", len)) {
+         rv = AAX_AL_INVERSE_DISTANCE;
+      } else if (!strncasecmp(name, "inverse_distance_clamped", len)) {
+         rv = AAX_AL_INVERSE_DISTANCE_CLAMPED;
+      } else if (!strncasecmp(name, "linear_distance", len)) {
+         rv = AAX_AL_LINEAR_DISTANCE;
+      } else if (!strncasecmp(name, "linear_distance_clamped", len)) {
+         rv = AAX_AL_LINEAR_DISTANCE_CLAMPED;
+      } else if (!strncasecmp(name, "exponent_distance", len)) {
+         rv = AAX_AL_EXPONENT_DISTANCE;
+      } else if (!strncasecmp(name, "exponent_distance_clamped", len)) {
+         rv = AAX_AL_EXPONENT_DISTANCE_CLAMPED;
+      }
+   }
+
+   return rv;
+}
 
 /* -------------------------------------------------------------------------- */
 

@@ -530,6 +530,7 @@ AAX_API unsigned AAX_APIENTRY aaxGetBytesPerSample(enum aaxFormat);
 AAX_API unsigned AAX_APIENTRY aaxGetBitsPerSample(enum aaxFormat);
 AAX_API enum aaxType AAX_APIENTRY aaxGetTypeByName(const char*);
 AAX_API enum aaxWaveformType AAX_APIENTRY aaxGetWaveformTypeByName(const char*);
+AAX_API enum aaxDistanceModel AAX_APIENTRY aaxGetDistanceModelByName(const char*);
 AAX_API int AAX_APIENTRY aaxIsValid(const void*, enum aaxHandleType);
 
 AAX_API enum aaxFilterType AAX_APIENTRY aaxMaxFilter(void);

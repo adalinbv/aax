@@ -1453,7 +1453,11 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                      if (slen)
                      {
                         src[slen] = 0;
-                        state = aaxGetWaveformTypeByName(src);
+                        if (ftype == AAX_DISTANCE_FILTER) {
+                           state = aaxGetDistanceModelByName(src);
+                        } else {
+                           state = aaxGetWaveformTypeByName(src);
+                        }
                      }
                      aaxFilterSetState(flt, state);
 
