@@ -531,6 +531,11 @@ public:
         return aaxAudioFrameGetMode(ptr,t);
     }
 
+    // ** buffer handling (AAXS only) ******
+    inline bool add(Buffer& b) {
+        return aaxAudioFrameAddBuffer(ptr,b);
+    }
+
     // ** filters and effects ******
     bool set(dsp& dsp) {
         return dsp.is_filter() ? aaxAudioFrameSetFilter(ptr,dsp)
@@ -654,6 +659,11 @@ public:
         for(buffer_it it=buffers.begin(); it!=buffers.end(); it++){
              aaxBufferDestroy(it->second.second); buffers.erase(it);
         }
+    }
+
+    // ** buffer handling (AAXS only) ******
+    inline bool add(Buffer& b) {
+        return aaxMixerAddBuffer(ptr,b);
     }
 
     // ** position and orientation ******
