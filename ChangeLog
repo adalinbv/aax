@@ -1,3 +1,14 @@
+* Tue Sep 19 2017 - tech@adalin.org
+- AeonWave (3.0.0) stable; urgency=low
+ * Add a functions to get the distance model by name.
+ * use the proper distance model if type is DISTANCE for AAXS defined filters.
+ * Add functions to add a buffer object to the AeonWave and Frame classes.
+ * Add the option to retrieve the original AAXS file when calling
+   aaxBufferGetData when the buffer format is AAX_AAXS16S or AAX_AAXS24S.
+
+-- Erik Hofman <tech@adalin.org>  Tue, 19 Sep  2017 09:51:00 + 0200
+
+
 * Sun Sep 17 2017 - tech@adalin.org
 - AeonWave (3.0.0) stable; urgency=low
  * Switch to a dual licensing model with both GPL and a commercial license.
