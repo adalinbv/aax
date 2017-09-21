@@ -4,6 +4,8 @@
 
 #define DIST(a,b)	testDist((a),(b),__LINE__)
 #define WAVE(a,b)       testWave((a),(b),__LINE__)
+#define FLT(a,b)	testFilter((a),(b),__LINE__)
+#define EFF(a,b)	testEffect((a),(b),__LINE__)
 
 void
 testDist(const char *name, int type, int lineno)
@@ -20,6 +22,28 @@ void
 testWave(const char *name, int type, int lineno)
 {   
     int res = aaxGetWaveformTypeByName(name);
+    if (res != type)
+    {
+        printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
+        exit(-1);
+    }
+}
+
+void
+testFilter(const char *name, int type, int lineno)
+{
+    int res = aaxFilterGetByName(NULL, name);
+    if (res != type)
+    {
+        printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
+        exit(-1);
+    }
+}
+
+void
+testEffect(const char *name, int type, int lineno)
+{
+    int res = aaxEffectGetByName(NULL, name);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
@@ -88,6 +112,53 @@ int main(int argc, char **argv)
     DIST("exponent-distance", AAX_AL_EXPONENT_DISTANCE);
     DIST("exponent-distance-clamped", AAX_AL_EXPONENT_DISTANCE_CLAMPED);
 
+    /* filters */
+    FLT("AAX_EQUALIZER", AAX_EQUALIZER);
+    FLT("AAX_VOLUME_FILTER", AAX_VOLUME_FILTER);
+    FLT("AAX_DYNAMIC_GAIN_FILTER", AAX_DYNAMIC_GAIN_FILTER);
+    FLT("AAX_TREMOLO_FILTER", AAX_TREMOLO_FILTER);
+    FLT("AAX_TIMED_GAIN_FILTER", AAX_TIMED_GAIN_FILTER);
+    FLT("AAX_ANGULAR_FILTER", AAX_ANGULAR_FILTER);
+    FLT("AAX_DISTANCE_FILTER", AAX_DISTANCE_FILTER);
+    FLT("AAX_FREQUENCY_FILTER", AAX_FREQUENCY_FILTER);
+    FLT("AAX_GRAPHIC_EQUALIZER", AAX_GRAPHIC_EQUALIZER);
+    FLT("AAX_COMPRESSOR", AAX_COMPRESSOR);
+
+    FLT("equalizer", AAX_EQUALIZER);
+    FLT("volume", AAX_VOLUME_FILTER);
+    FLT("dynamic-gain", AAX_DYNAMIC_GAIN_FILTER);
+    FLT("tremolo", AAX_TREMOLO_FILTER);
+    FLT("timed-gain", AAX_TIMED_GAIN_FILTER);
+    FLT("angular", AAX_ANGULAR_FILTER);
+    FLT("distance", AAX_DISTANCE_FILTER);
+    FLT("frequency", AAX_FREQUENCY_FILTER);
+    FLT("graphic-equalizer", AAX_GRAPHIC_EQUALIZER);
+    FLT("compressor", AAX_COMPRESSOR);
+
+    /* effect */
+    EFF("AAX_PITCH_EFFECT", AAX_PITCH_EFFECT);
+    EFF("AAX_DYNAMIC_PITCH_EFFECT", AAX_DYNAMIC_PITCH_EFFECT);
+    EFF("AAX_VIBRATO_EFFECT", AAX_VIBRATO_EFFECT);
+    EFF("AAX_TIMED_PITCH_EFFECT", AAX_TIMED_PITCH_EFFECT);
+    EFF("AAX_DISTORTION_EFFECT", AAX_DISTORTION_EFFECT);
+    EFF("AAX_PHASING_EFFECT", AAX_PHASING_EFFECT);
+    EFF("AAX_CHORUS_EFFECT", AAX_CHORUS_EFFECT);
+    EFF("AAX_FLANGING_EFFECT", AAX_FLANGING_EFFECT);
+    EFF("AAX_VELOCITY_EFFECT", AAX_VELOCITY_EFFECT);
+    EFF("AAX_REVERB_EFFECT", AAX_REVERB_EFFECT);
+    EFF("AAX_CONVOLUTION_EFFECT", AAX_CONVOLUTION_EFFECT);
+
+    EFF("pitch", AAX_PITCH_EFFECT);
+    EFF("dynamic-pitch", AAX_DYNAMIC_PITCH_EFFECT);
+    EFF("vibrato", AAX_VIBRATO_EFFECT);
+    EFF("timed-pitch", AAX_TIMED_PITCH_EFFECT);
+    EFF("distortion", AAX_DISTORTION_EFFECT);
+    EFF("phasing", AAX_PHASING_EFFECT);
+    EFF("chorus", AAX_CHORUS_EFFECT);
+    EFF("flanging", AAX_FLANGING_EFFECT);
+    EFF("velocity", AAX_VELOCITY_EFFECT);
+    EFF("reverb", AAX_REVERB_EFFECT);
+    EFF("convolution", AAX_CONVOLUTION_EFFECT);
 
     return 0;
 }
