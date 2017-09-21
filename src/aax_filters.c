@@ -298,19 +298,35 @@ aaxFilterGetNameByType(aaxConfig handle, enum aaxFilterType type)
 }
 
 AAX_API enum aaxFilterType AAX_APIENTRY
-aaxFilterGetByName(aaxConfig handle, const char *name)
+aaxFilterGetByName(UNUSED(aaxConfig handle), const char *name)
 {
    enum aaxFilterType rv = AAX_FILTER_NONE;
-   int slen;
-   char *p;
+   char type[256];
+   int i, slen;
+   char *end;
 
    if (!strncasecmp(name, "AAX_", 4)) {
       name += 4;
    }
 
-   p = strchr(name, '.');
-   while (p > name && *p != '_') --p;
-   slen = p-name;
+   strncpy(type, name, 256);
+   name = type;
+   type[256] = 0;
+
+   slen = strlen(name);
+   for (i=0; i<slen; ++i) {
+      if (type[i] == '-') type[i] = '_';
+   }
+
+   end = strchr(name, '.');
+   while (end > name && *end != '_') --end;
+   if (end) type[end-name] = 0;
+
+   end = strrchr(name, '_');
+   if (end && !strcasecmp(end+1, "FILTER")) {
+      type[end-name] = 0;
+   }
+   slen = strlen(name);
 
    if (!strncasecmp(name, "equalizer", slen)) {
       rv = AAX_EQUALIZER;
