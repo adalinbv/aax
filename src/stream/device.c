@@ -181,25 +181,9 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       handle->mode = mode;
-      handle->ext = _ext_create(_EXT_WAV);
       handle->threadBuffer = _aaxDataCreate(IOBUF_THRESHOLD, 1);
       if (mode == AAX_MODE_READ) {
          handle->dataBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
-      }
-      if (handle->ext)
-      {
-         if (handle->ext->detect(handle->ext, mode)) {
-            handle->ext->open(handle->ext, NULL, NULL, 0);
-         } else {
-            handle->ext = _ext_free(handle->ext);
-         }
-      }
-
-      if (!handle->ext)
-      {
-         _aaxDataDestroy(handle->threadBuffer);
-         free(handle);
-         handle = NULL;
       }
    }
 
@@ -453,7 +437,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("port: %i\n", port);
  printf("timeout period: %4.1f ms\n", period_ms);
  printf("refresh rate: %f\n", *refresh_rate);
- printf("buffer size: %i bytes\n", size);
+ printf("buffer size: %i bytes\n\n", size);
 #endif
 
    res = AAX_FALSE;
@@ -472,19 +456,18 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->prot)
             {
                const char *agent = aaxGetVersionString((aaxConfig)id);
-               int num = 10;
+               int rv, num = 10;
                do {
-                  res = handle->prot->connect(handle->prot, handle->io,
+                  rv = handle->prot->connect(handle->prot, handle->io,
                                               server, path, agent);
-               } while (res < 0 && --num);
+               } while (rv < 0 && --num);
 
-               if (res < 0)
+               if (rv < 0)
                {
                   _aaxStreamDriverLog(id, 0, 0, "Unable to open connection");
                   handle->prot = _prot_free(handle->prot);
                   handle->io->close(handle->io);
                   handle->io = _io_free(handle->io);
-                  res = AAX_FALSE;
                }
                else
                {
@@ -499,13 +482,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                         res = AAX_TRUE;
                      }
                   }
-                  else
+                  else if (!handle->ext)
                   {
                      _aaxStreamDriverLog(id, 0, 0, "Unsupported file extension");
                      handle->prot = _prot_free(handle->prot);
                      handle->io->close(handle->io);
                      handle->io = _io_free(handle->io);
-                     res = AAX_FALSE;
                   }
                }
             }
