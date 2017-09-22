@@ -52,6 +52,8 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
 {
    int res = _http_send_request(io, "GET", server, path, agent);
 
+   prot->path = strdup(path);
+
 #if 0
   printf("GET:\n server: '%s'\n path: '%s'\n agent: '%s'\n res: %i\n", server, path, agent, res);
 #endif
@@ -231,44 +233,56 @@ _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
    switch (ptype)
    {
    case __F_FMT:
-      if (!strcasecmp(prot->content_type, "audio/mpeg")) {
-         rv = _FMT_MP3;
-      }
-      else if (!strcasecmp(prot->content_type, "audio/flac")) { 
-         rv = _FMT_FLAC;
-      }
-      else if (!strcasecmp(prot->content_type, "audio/opus")) {
-         rv = _FMT_OPUS;
-      }
-      else if (!strcasecmp(prot->content_type, "audio/vorbis")) {
-         rv = _FMT_VORBIS;
-      }
-      else if (!strcasecmp(prot->content_type, "audio/speex")) {
-         rv = _FMT_SPEEX;
+      if (prot->content_type)
+      {
+         if (!strcasecmp(prot->content_type, "audio/mpeg")) {
+            rv = _FMT_MP3;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/flac")) {
+            rv = _FMT_FLAC;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/opus")) {
+            rv = _FMT_OPUS;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/vorbis")) {
+            rv = _FMT_VORBIS;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/speex")) {
+            rv = _FMT_SPEEX;
+         }
+         else {
+            rv = _FMT_NONE;
+         }
       }
       else {
-         rv = _FMT_NONE;
+         rv = _direct_get(prot, ptype);
       }
       break;
    case __F_EXTENSION:
-      if (!strcasecmp(prot->content_type, "audio/wav") ||
-          !strcasecmp(prot->content_type, "audio/wave") ||
-          !strcasecmp(prot->content_type, "audio/x-wav")) {
-         rv = _EXT_WAV;
-      }
-      else if (!strcasecmp(prot->content_type, "audio/ogg") ||
-               !strcasecmp(prot->content_type, "application/ogg") ||
-               !strcasecmp(prot->content_type, "audio/x-ogg")) {
-         rv = _EXT_OGG;
-      }
-      else if (!strcasecmp(prot->content_type, "audio/mpeg")) {
-         rv = _EXT_MP3;
-      }
-      else if (!strcasecmp(prot->content_type, "audio/flac")) {
-         rv = _EXT_FLAC;
+      if (prot->content_type)
+      {
+         if (!strcasecmp(prot->content_type, "audio/wav") ||
+             !strcasecmp(prot->content_type, "audio/wave") ||
+             !strcasecmp(prot->content_type, "audio/x-wav")) {
+            rv = _EXT_WAV;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/ogg") ||
+                  !strcasecmp(prot->content_type, "application/ogg") ||
+                  !strcasecmp(prot->content_type, "audio/x-ogg")) {
+            rv = _EXT_OGG;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/mpeg")) {
+            rv = _EXT_MP3;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/flac")) {
+            rv = _EXT_FLAC;
+         }
+         else {
+            rv = _EXT_NONE;
+         }
       }
       else {
-         rv = _EXT_NONE;
+         rv = _direct_get(prot, ptype);
       }
       break;
    default:
