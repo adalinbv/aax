@@ -412,7 +412,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    handle->frequency = *speed;
 
    rate = *speed;
-   size = *tracks * rate * handle->bits_sample / (*refresh_rate * 2);
+   size = *tracks * rate * handle->bits_sample / *refresh_rate;
 
    period_ms = 1000.0f / period_rate;
    if (period_ms < 4.0f) period_ms = 4.0f;
