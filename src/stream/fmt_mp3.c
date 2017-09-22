@@ -345,7 +345,6 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
                if (pmp3_open_feed(handle->id) == MP3_OK)
                {
                   handle->mp3Buffer = _aaxDataCreate(16384, 1);
-
                   if (pmp3_set_filesize) {
                      pmp3_set_filesize(handle->id, fsize);
                   }
@@ -365,7 +364,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
             }
          }
 
-         if (handle->id && handle->internal)
+         if (handle->id && handle->internal && buf && bufsize)
          {
             size_t size;
             int ret = pmp3_decode(handle->id, buf, *bufsize, NULL, 0, &size);
@@ -400,7 +399,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
                rv = buf;
             }
          }
-         else if (handle->id)
+         else if (handle->id && buf && bufsize)
          {
             size_t size;
             int ret;
@@ -481,7 +480,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
          }
       }
    }
-   else {
+   else if (!handle) {
       _AAX_FILEDRVLOG("MP3: Internal error: handle id equals 0");
    }
 
