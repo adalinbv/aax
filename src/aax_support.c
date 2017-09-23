@@ -458,9 +458,9 @@ aaxGetDistanceModelByName(const char *name)
       char type[256];
       size_t i, len;
 
-      strncpy(type, name, 256);
+      strncpy(type, name, 255);
       name = type;
-      type[256] = 0;
+      type[255] = 0;
 
       len = strlen(name);
       for (i=0; i<len; ++i) {
