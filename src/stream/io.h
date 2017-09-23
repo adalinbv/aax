@@ -46,12 +46,13 @@ struct pollfd {
 typedef enum {
    _IO_FILE_FLAGS = 1,
    _IO_FILE_MODE,
-   _IO_PARAM_MAX,
 
    _IO_SOCKET_SIZE = 0,
    _IO_SOCKET_RATE,
    _IO_SOCKET_PORT,
-   _IO_SOCKET_TIMEOUT
+   _IO_SOCKET_TIMEOUT,
+
+   _IO_PARAM_MAX
 } _io_type_t;
 
 struct _io_st;
