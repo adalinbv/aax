@@ -50,9 +50,8 @@ vec3fFill(void* d, const void* v)
 }
 
 void
-vec3dFillf(void* d, const void* v)
+vec3dFillf(void* d, const float src[3])
 {
-   const float *src = v;
    double *dst = d;
    int i;
    for(i=0; i<3; ++i) {
@@ -61,9 +60,8 @@ vec3dFillf(void* d, const void* v)
 }
 
 void
-vec3fFilld(void* d, const void* v)
+vec3fFilld(void* d, const double src[3])
 {
-   const double *src = v;
    float *dst = d;
    int i;
    for(i=0; i<3; ++i) {

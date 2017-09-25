@@ -364,11 +364,11 @@ aaxMatrix64SetDirection(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at)
 
          vec3fNegate(&back, &fwd);
          vec3fNormalize(&tmp, &side);
-         vec3dFillf(&m.v34[0], &tmp);
+         vec3dFillf(&m.v34[0], tmp.v3);
          vec3fNormalize(&tmp, &upwd);
-         vec3dFillf(&m.v34[1], &tmp);
+         vec3dFillf(&m.v34[1], tmp.v3);
          vec3fNormalize(&tmp, &back);
-         vec3dFillf(&m.v34[2], &tmp);
+         vec3dFillf(&m.v34[2], tmp.v3);
       }
 
       vec3dFill(loc.v3, pos);
@@ -420,11 +420,11 @@ aaxMatrix64SetOrientation(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at,
 
          vec3fNegate(&back, &fwd);
          vec3fNormalize(&tmp, &side);
-         vec3dFillf(&m.v34[0], &tmp);
+         vec3dFillf(&m.v34[0], tmp.v3);
          vec3fNormalize(&tmp, &upwd);
-         vec3dFillf(&m.v34[1], &tmp);
+         vec3dFillf(&m.v34[1], tmp.v3);
          vec3fNormalize(&tmp, &back);
-         vec3dFillf(&m.v34[2], &tmp);
+         vec3dFillf(&m.v34[2], tmp.v3);
       }
 
       vec3dFill(&loc.v3, pos);
@@ -456,10 +456,10 @@ aaxMatrix64GetOrientation(aaxMtx4d mtx, aaxVec3d pos, aaxVec3f at, aaxVec3f up)
          vec3dFill(pos, mtx[3]);/* LOCATION */
       }
       if (at) {
-         vec3dFillf(at, mtx[2]);/* DIR_UPWD */
+         vec3fFilld(at, mtx[2]);/* DIR_UPWD */
       }
       if (up) {
-         vec3dFillf(up, mtx[1]); /* DIR_BACK */
+         vec3fFilld(up, mtx[1]); /* DIR_BACK */
       }
    }
 

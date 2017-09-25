@@ -159,8 +159,8 @@ void vec3dNegate(vec3d_ptr d, const vec3d_ptr v);
 void vec3fNegate(vec3f_ptr d, const vec3f_ptr v);
 void vec3dFill(void* d, const void* v);
 void vec3fFill(void* d, const void* v);
-void vec3dFillf(void* d, const void* v);
-void vec3fFilld(void* d, const void* v);
+void vec3dFillf(void* d, const float v[3]);
+void vec3fFilld(void* d, const double v[3]);
 void mtx3fCopy(mtx3f_ptr d, const mtx3f_ptr m);
 
 typedef float (*vec3fMagnitude_proc)(const vec3f_ptr v);

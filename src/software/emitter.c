@@ -308,7 +308,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * (compensate for the parents direction offset)
        */
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      vec3fFilld(&tmp, &edp3d_m->matrix.v34[LOCATION]);
+      vec3fFilld(&tmp, edp3d_m->matrix.v34[LOCATION].v3);
       dist = vec3fNormalize(&epos, &tmp);
 #if 0
  printf("# emitter parent:\t\t\t\temitter:\n");
