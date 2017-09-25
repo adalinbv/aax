@@ -6,11 +6,12 @@
 
 * Sat Sep 23 2017 - tech@adalin.org
 - AeonWave (3.0.1) stable; urgency=medium
- * Add a functions to get the distance model by name.
+ * Add a function to get the distance model by name.
  * use the proper distance model if type is DISTANCE for AAXS defined filters.
  * Add functions to add a buffer object to the AeonWave and Frame classes.
  * Add the option to retrieve the original AAXS file when calling
    aaxBufferGetData when the buffer format is AAX_AAXS16S or AAX_AAXS24S.
+ * Fix a few bugs for unusual situations in the new streaming code.
 
 -- Erik Hofman <tech@adalin.org>  Sat, 23 Sep  2017 09:08:00 + 0200
 
@@ -23,7 +24,7 @@
  * Improve general rendering speed with about 30 percent.
  * Reorginze the streaming code to make it more flexible.
  * Add read support for Ogg/Vorbis using the Public Domain stb_vorbis code.
- * Add support for WAV embeded MP3 files.
+ * Add support for WAV embedded MP3 files.
  * Add support for native AAXS files when calling aaxBufferReadFromStream.
  * Support proper distortion (not clipping) when the gain of generated
    waveforms becomes (too) large
@@ -48,7 +49,7 @@
  * Make sure that capturing does not stagnate the engine when a (http) stream
    stalls.
  * Fix a bug where modulating waveforms by non-sine waveforms caused silence.
- * Fix a segmentation fault when a particular file extension does not not
+ * Fix a segmentation fault when a particular file extension does not
    support writing.
  * Fix a problem where the looping mode was not preserved when a buffer was
    added to the emitter after the looping mode was set.
@@ -135,7 +136,7 @@
    by making calls to the aaxMixerGetSetup function.
  * Changed the threading model from one thread per mixer-registered audio-frame
    to a load-balancing threadpool model. This slightly increases the work the
-   CPU has to do but devides the wall time spent on rendering by the number of
+   CPU has to do but divides the wall time spent on rendering by the number of
    physical cores. Threading is now always active on multi-core systems except
    when the environment variable AAX_USE_THREADPOOL is set to 0.
  * Add support for the ARM architecture including support for hardware FPU
