@@ -1164,7 +1164,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                   for (t=0; t<handle->info->no_tracks; t++)
                   {
                      vec3f_t sv;
-                     vec3fFill(&sv, _aaxContextDefaultSpeakersVolume[t]);
+                     vec3fFill(sv.v3, _aaxContextDefaultSpeakersVolume[t]);
                      float gain = vec3fNormalize((vec3f_ptr)&info->speaker[t], &sv);
                      info->speaker[t].v4[3] = 1.0f/gain;
                   }

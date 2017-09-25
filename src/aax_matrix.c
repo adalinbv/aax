@@ -364,11 +364,11 @@ aaxMatrix64SetDirection(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at)
 
          vec3fNegate(&back, &fwd);
          vec3fNormalize(&tmp, &side);
-         vec3dFillf(&m.v34[0], tmp.v3);
+         vec3dFillf(m.v34[0].v3, tmp.v3);
          vec3fNormalize(&tmp, &upwd);
-         vec3dFillf(&m.v34[1], tmp.v3);
+         vec3dFillf(m.v34[1].v3, tmp.v3);
          vec3fNormalize(&tmp, &back);
-         vec3dFillf(&m.v34[2], tmp.v3);
+         vec3dFillf(m.v34[2].v3, tmp.v3);
       }
 
       vec3dFill(loc.v3, pos);
@@ -420,16 +420,16 @@ aaxMatrix64SetOrientation(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at,
 
          vec3fNegate(&back, &fwd);
          vec3fNormalize(&tmp, &side);
-         vec3dFillf(&m.v34[0], tmp.v3);
+         vec3dFillf(m.v34[0].v3, tmp.v3);
          vec3fNormalize(&tmp, &upwd);
-         vec3dFillf(&m.v34[1], tmp.v3);
+         vec3dFillf(m.v34[1].v3, tmp.v3);
          vec3fNormalize(&tmp, &back);
-         vec3dFillf(&m.v34[2], tmp.v3);
+         vec3dFillf(m.v34[2].v3, tmp.v3);
       }
 
-      vec3dFill(&loc.v3, pos);
+      vec3dFill(loc.v3, pos);
       vec3dNegate(&m.v34[3], &loc);
-      mtx4dFill(mtx64, &m.m4);
+      mtx4dFill(mtx64, m.m4);
 
    }
 
