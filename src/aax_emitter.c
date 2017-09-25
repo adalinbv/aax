@@ -780,7 +780,9 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
 
    if (!rv)
    {
-      if (!mtx64 || detect_nan_mtx4d((const double(*)[4])mtx64)) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx64 || detect_nan_mtx4d((const double(*)[4])mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -811,7 +813,9 @@ aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
 
    if (!rv)
    {
-      if (!velocity || detect_nan_vec3(velocity)) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity || detect_nan_vec3(velocity)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -839,7 +843,9 @@ aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
 
    if (!rv)
    {
-      if (!mtx64) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx64) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
