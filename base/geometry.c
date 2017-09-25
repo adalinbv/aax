@@ -38,19 +38,19 @@
 
 
 void
-vec3dFill(double* d, const double* v)
+vec3dFill(double d[3], const double v[3])
 {
-   memcpy(d, v, sizeof(vec3d_t));
+   memcpy(d, v, sizeof(double[3]));
 }
 
 void
-vec3fFill(float* d, const float* v)
+vec3fFill(float d[3], const float v[3])
 {
-   memcpy(d, v, sizeof(vec3f_t));
+   memcpy(d, v, sizeof(float[3]));
 }
 
 void
-vec3dFillf(double* dst, const float src[3])
+vec3dFillf(double dst[3], const float src[3])
 {
    int i;
    for(i=0; i<3; ++i) {
@@ -59,7 +59,7 @@ vec3dFillf(double* dst, const float src[3])
 }
 
 void
-vec3fFilld(float* dst, const double src[3])
+vec3fFilld(float dst[3], const double src[3])
 {
    int i;
    for(i=0; i<3; ++i) {
@@ -74,9 +74,9 @@ _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v)
 }
 
 void
-vec4fFill(float* d, const float* v)
+vec4fFill(float d[4], const float v[4])
 {
-   memcpy(d, v, sizeof(vec4f_t));
+   memcpy(d, v, sizeof(float[4]));
 }
 
 void
@@ -291,7 +291,7 @@ _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m)
 void
 mtx4fFill(float d[4][4], const float m[4][4])
 {
-   memcpy(d, m, sizeof(mtx4f_t));
+   memcpy(d, m, sizeof(float[4]));
 }
 
 void
@@ -328,7 +328,7 @@ const float aaxIdentityMatrix[4][4] = {
 void
 mtx4fSetIdentity(float m[4][4])
 {
-    memcpy(m, aaxIdentityMatrix, sizeof(fx4x4_t));
+    memcpy(m, aaxIdentityMatrix, sizeof(float[4][4]));
 }
 
 void
@@ -347,14 +347,14 @@ const dx4x4_t aaxIdentityMatrix64 = {
 void
 mtx4dSetIdentity(double m[4][4])
 {
-    memcpy(m, aaxIdentityMatrix64, sizeof(aaxIdentityMatrix64));
+    memcpy(m, aaxIdentityMatrix64, sizeof(double[4][4]));
 }
 
 
 void
 mtx4dFill(double d[4][4], const double m[4][4])
 {
-   memcpy(d, m, sizeof(mtx4d_t));
+   memcpy(d, m, sizeof(double[4][4]));
 }
 
 void
