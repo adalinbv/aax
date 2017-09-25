@@ -192,7 +192,7 @@ public:
     }
 
     bool set(int s) {
-        return (filter) ? aaxFilterSetState(ptr,s) : aaxEffectSetState(ptr,s)
+        return (filter) ? aaxFilterSetState(ptr,s) : aaxEffectSetState(ptr,s);
     }
 
     int state() {
