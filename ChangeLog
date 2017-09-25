@@ -1,6 +1,7 @@
 * Fri Sep 29 2017 - tech@adalin.org
 - AeonWave (3.0.2) stable; urgency=medium
  * Add a function to add a buffer to the dsp class.
+ * Fix a bug in the matrix code which could create a stack smash.
 
 -- Erik Hofman <tech@adalin.org>  Fri, 29 Sep  2017 09:08:00 + 0200
 
