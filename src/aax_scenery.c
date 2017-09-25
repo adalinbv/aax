@@ -29,7 +29,7 @@
 #include "api.h"
 
 AAX_API int AAX_APIENTRY
-aaxScenerySetMatrix(aaxConfig config, const aaxMtx4f mtx)
+aaxScenerySetMatrix(aaxConfig config, const aaxMtx4d mtx)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
@@ -51,8 +51,8 @@ aaxScenerySetMatrix(aaxConfig config, const aaxMtx4f mtx)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
-         mtx4fFill(smixer->props3d->dprops3d->matrix.m4, mtx);
-         mtx4fFill(smixer->props3d->m_dprops3d->matrix.m4, mtx);
+         mtx4dFill(smixer->props3d->dprops3d->matrix.m4, mtx);
+         mtx4dFill(smixer->props3d->m_dprops3d->matrix.m4, mtx);
          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
