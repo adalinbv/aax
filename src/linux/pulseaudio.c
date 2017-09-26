@@ -49,7 +49,7 @@
 #define _AAX_DRVLOG(a)         _aaxPulseAudioDriverLog(id, 0, 0, a)
 #define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
 
-static _aaxDriverDetect _aaxPulseAudioDriverDetect;
+_aaxDriverDetect _aaxPulseAudioDriverDetect;
 static _aaxDriverNewHandle _aaxPulseAudioDriverNewHandle;
 static _aaxDriverGetDevices _aaxPulseAudioDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxPulseAudioDriverGetInterfaces;
@@ -160,6 +160,8 @@ DECL_FUNCTION(pa_stream_unref);
 DECL_FUNCTION(pa_stream_begin_write);
 DECL_FUNCTION(pa_stream_write);
 DECL_FUNCTION(pa_stream_get_state);
+DECL_FUNCTION(pa_stream_cork);
+DECL_FUNCTION(pa_stream_is_corked);
 DECL_FUNCTION(pa_signal_new);
 DECL_FUNCTION(pa_signal_done);
 
@@ -167,8 +169,8 @@ static void* _aaxContextConnect(void*);
 
 static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
 
-static int
-_aaxPulseAudioDriverDetect(int mode)
+int
+_aaxPulseAudioDriverDetect(UNUSED(int mode))
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
@@ -210,6 +212,8 @@ _aaxPulseAudioDriverDetect(int mode)
          TIE_FUNCTION(pa_stream_unref);
          TIE_FUNCTION(pa_stream_write);
          TIE_FUNCTION(pa_stream_get_state);
+         TIE_FUNCTION(pa_stream_cork);
+         TIE_FUNCTION(pa_stream_is_corked);
          TIE_FUNCTION(pa_signal_new);
          TIE_FUNCTION(pa_signal_done);
       }
@@ -374,9 +378,9 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
       snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s", DEFAULT_RENDERER);
 
       handle->ml = ppa_threaded_mainloop_new();
+      ppa_threaded_mainloop_lock(handle->ml);
       if (handle->ml && ppa_threaded_mainloop_start(handle->ml) >= 0)
       {
-         ppa_threaded_mainloop_lock(handle->ml);
          handle->ctx = _aaxContextConnect(handle);
          if (handle->ctx)
          {
@@ -392,6 +396,7 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
       else {
          _AAX_DRVLOG("unable to create the main loop");
       }
+      
    }
 
    return (void *)handle;
@@ -492,12 +497,17 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       const char *dev = NULL; // use the default device (for now)
       if (handle->mode)
       {
+         pa_stream_flags_t stream_flags;
          pa_stream_state_t state;
 
-         ppa_stream_connect_playback(handle->str, dev, NULL, 0, NULL, NULL);
+         stream_flags = PA_STREAM_START_CORKED | PA_STREAM_INTERPOLATE_TIMING |
+                        PA_STREAM_NOT_MONOTONIC | PA_STREAM_AUTO_TIMING_UPDATE |
+                        PA_STREAM_ADJUST_LATENCY;
+
+         ppa_stream_connect_playback(handle->str, dev, NULL, stream_flags, NULL, NULL);
          while ((state = ppa_stream_get_state(handle->str)) != PA_STREAM_READY)
          {
-            if (state != PA_STREAM_CREATING)
+            if (!PA_STREAM_IS_GOOD(state))
             {
                if (ppa_strerror) {
                   _AAX_DRVLOG(ppa_strerror(ppa_context_errno(handle->ctx)));
@@ -506,6 +516,8 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
             }
             ppa_threaded_mainloop_wait(handle->ml);
          }
+
+         ppa_stream_cork(handle->str, 0, NULL, NULL);
 
          if (state == PA_STREAM_READY)
          {
@@ -532,13 +544,13 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
 
 static ssize_t
-_aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, UNUSED(char batched))
+_aaxPulseAudioDriverCapture(UNUSED(const void *id), UNUSED(void **data), UNUSED(ssize_t *offset), UNUSED(size_t *frames), UNUSED(void *scratch), UNUSED(size_t scratchlen), UNUSED(float gain), UNUSED(char batched))
 {
    return AAX_FALSE;
 }
 
 static size_t
-_aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), float gain, UNUSED(char batched))
+_aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSED(float gain), UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
@@ -624,50 +636,19 @@ _aaxPulseAudioDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_PAUSE:
       if (handle)
       {
-#if 0
-         close(handle->fd);
-         handle->fd = -1;
-#endif
+         if (!ppa_stream_is_corked(handle->str)) {
+            ppa_stream_cork(handle->str, 1, NULL, NULL);
+         }
          rv = AAX_TRUE;
       }
       break;
    case DRIVER_RESUME:
       if (handle) 
       {
-#if 0
-         handle->fd = open(handle->devnode, handle->mode|handle->exclusive);
-         if (handle->fd)
-         {
-            int err, frag, fd = handle->fd;
-            unsigned int param;
-
-            if (handle->oss_version >= PulseAudio_VERSION_4)
-            {
-               int enable = 0;
-               err = pioctl(fd, SNDCTL_DSP_COOKEDMODE, &enable);
-            }
-
-            frag = log2i(handle->buffer_size);
-            frag |= NO_FRAGMENTS << 16;
-            pioctl(fd, SNDCTL_DSP_SETFRAGMENT, &frag);
-
-            param = handle->format;
-            err = pioctl(fd, SNDCTL_DSP_SETFMT, &param);
-            if (err >= 0)
-            {
-               param = handle->pa_spec.channels;
-               err = pioctl(fd, SNDCTL_DSP_CHANNELS, &param);
-            }
-            if (err >= 0)
-            {
-               param = (unsigned int)handle->pa_spec.rate;
-               err = pioctl(fd, SNDCTL_DSP_SPEED, &param);
-            }
-            if (err >= 0) {
-               rv = AAX_TRUE;
-            }
+         if (ppa_stream_is_corked(handle->str)) {
+            ppa_stream_cork(handle->str, 0, NULL, NULL);
          }
-#endif
+         rv = AAX_TRUE;
       }
       break;
    case DRIVER_AVAILABLE:
@@ -753,14 +734,14 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxPulseAudioDriverGetDevices(const void *id, int mode)
+_aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
 {
    static char names[2][1024] = { "default\0\0", "default\0\0" };
    return (char *)&names[mode];
 }
 
 static char *
-_aaxPulseAudioDriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxPulseAudioDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char *devname), UNUSED(int mode))
 {
 // _driver_t *handle = (_driver_t *)id;
    return NULL;
@@ -786,17 +767,10 @@ _aaxPulseAudioDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), cons
 
 /* ----------------------------------------------------------------------- */
 
-static void context_state_callback(void *context, void *id)
+static void context_state_callback(UNUSED(void *context), void *id)
 {
    _driver_t *handle = (_driver_t*)id;
-   int state = ppa_context_get_state(context);
-   if(state == PA_CONTEXT_READY ||
-      (state != PA_CONTEXT_CONNECTING &&
-       state != PA_CONTEXT_AUTHORIZING &&
-       state != PA_CONTEXT_SETTING_NAME))
-   {
-     ppa_threaded_mainloop_signal(handle->ml, 0);
-   }
+   ppa_threaded_mainloop_signal(handle->ml, 0);
 }
 
 static void*
@@ -838,9 +812,7 @@ _aaxContextConnect(void *id)
          int state;
          while ((state = ppa_context_get_state(rv)) != PA_CONTEXT_READY)
          {
-            if(state != PA_CONTEXT_CONNECTING &&
-               state != PA_CONTEXT_AUTHORIZING &&
-               state != PA_CONTEXT_SETTING_NAME)
+            if(!PA_CONTEXT_IS_GOOD(state))
             {
                if (ppa_strerror) {
                   _AAX_DRVLOG(ppa_strerror(ppa_context_errno(rv)));

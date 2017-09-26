@@ -38,22 +38,20 @@
 
 
 void
-vec3dFill(void* d, const void* v)
+vec3dFill(double d[3], double v[3])
 {
-   memcpy(d, v, sizeof(vec3d_t));
+   memcpy(d, v, sizeof(double[3]));
 }
 
 void
-vec3fFill(void* d, const void* v)
+vec3fFill(float d[3], float v[3])
 {
-   memcpy(d, v, sizeof(vec3f_t));
+   memcpy(d, v, sizeof(float[3]));
 }
 
 void
-vec3dFillf(void* d, const void* v)
+vec3dFillf(double dst[3], float src[3])
 {
-   const float *src = v;
-   double *dst = d;
    int i;
    for(i=0; i<3; ++i) {
       dst[i] = (double)src[i];
@@ -61,10 +59,8 @@ vec3dFillf(void* d, const void* v)
 }
 
 void
-vec3fFilld(void* d, const void* v)
+vec3fFilld(float dst[3], double src[3])
 {
-   const double *src = v;
-   float *dst = d;
    int i;
    for(i=0; i<3; ++i) {
       dst[i] = (float)src[i];
@@ -78,9 +74,9 @@ _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v)
 }
 
 void
-vec4fFill(void* d, const void* v)
+vec4fFill(float d[4], float v[4])
 {
-   memcpy(d, v, sizeof(vec4f_t));
+   memcpy(d, v, sizeof(float[4]));
 }
 
 void
@@ -293,13 +289,13 @@ _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m)
 }
 
 void
-mtx4fFill(void* d, const void *m)
+mtx4fFill(float d[4][4], float m[4][4])
 {
-   memcpy(d, m, sizeof(mtx4f_t));
+   memcpy(d, m, sizeof(float[4]));
 }
 
 void
-mtx4dFillf(double d[4][4], const float m[4][4])
+mtx4dFillf(double d[4][4], float m[4][4])
 {
    int i, j;
    for(i=0; i<4; ++i) {
@@ -310,7 +306,7 @@ mtx4dFillf(double d[4][4], const float m[4][4])
 }
 
 void
-mtx4fFilld(float d[4][4], const double m[4][4])
+mtx4fFilld(float d[4][4], double m[4][4])
 {  
    int i, j;
    for(i=0; i<4; ++i) {
@@ -330,9 +326,9 @@ const float aaxIdentityMatrix[4][4] = {
 
 
 void
-mtx4fSetIdentity(void* m)
+mtx4fSetIdentity(float m[4][4])
 {
-    memcpy(m, aaxIdentityMatrix, sizeof(fx4x4_t));
+    memcpy(m, aaxIdentityMatrix, sizeof(float[4][4]));
 }
 
 void
@@ -349,16 +345,16 @@ const dx4x4_t aaxIdentityMatrix64 = {
 };
 
 void
-mtx4dSetIdentity(void* m)
+mtx4dSetIdentity(double m[4][4])
 {
-    memcpy(m, aaxIdentityMatrix64, sizeof(aaxIdentityMatrix64));
+    memcpy(m, aaxIdentityMatrix64, sizeof(double[4][4]));
 }
 
 
 void
-mtx4dFill(void* d, const void *m)
+mtx4dFill(double d[4][4], double m[4][4])
 {
-   memcpy(d, m, sizeof(mtx4d_t));
+   memcpy(d, m, sizeof(double[4][4]));
 }
 
 void

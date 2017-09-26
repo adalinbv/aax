@@ -22,80 +22,16 @@
 #ifndef _AAX_PULSEAUDIO_H
 #define _AAX_PULSEAUDIO_H 1
 
+#include <pulse/sample.h>
+#include <pulse/format.h>
+#include <pulse/def.h>
+
 #include <base/types.h>
-
-// https://freedesktop.org/software/pulseaudio/doxygen/simple.html
-typedef enum
-{
-  PA_SAMPLE_U8 = 0,
-  PA_SAMPLE_ALAW,
-  PA_SAMPLE_ULAW,
-  PA_SAMPLE_S16LE,
-  PA_SAMPLE_S16BE,
-  PA_SAMPLE_FLOAT32LE,
-  PA_SAMPLE_FLOAT32BE,
-  PA_SAMPLE_S32LE,
-  PA_SAMPLE_S32BE,
-  PA_SAMPLE_S24LE,
-  PA_SAMPLE_S24BE,
-  PA_SAMPLE_S24_32LE,
-  PA_SAMPLE_S24_32BE,
-  PA_SAMPLE_MAX
-} pa_sample_format_t;
-
-typedef enum
-{
-  PA_STREAM_NODIRECTION = 0,
-  PA_STREAM_PLAYBACK,
-  PA_STREAM_RECORD,
-  PA_STREAM_UPLOAD
-} pa_stream_direction_t;
-
-typedef enum
-{
-  PA_SEEK_RELATIVE  = 0,
-  PA_SEEK_ABSOLUTE,
-  PA_SEEK_RELATIVE_ON_READ,
-  PA_SEEK_RELATIVE_END
-} pa_seek_mode_t;
-
-typedef enum
-{
-  PA_CONTEXT_UNCONNECTED = 0,
-  PA_CONTEXT_CONNECTING,
-  PA_CONTEXT_AUTHORIZING,
-  PA_CONTEXT_SETTING_NAME,
-  PA_CONTEXT_READY,
-  PA_CONTEXT_FAILED,
-  PA_CONTEXT_TERMINATED
-} pa_context_state_t;
-
-typedef enum
-{
-  PA_CONTEXT_NOFLAGS = 0,
-  PA_CONTEXT_NOAUTOSPAWN,
-  PA_CONTEXT_NOFAIL
-} pa_context_flags_t;
-
-typedef enum
-{
-  PA_STREAM_UNCONNECTED = 0,
-  PA_STREAM_CREATING,
-  PA_STREAM_READY,
-  PA_STREAM_FAILED,
-  PA_STREAM_TERMINATED
-} pa_stream_state_t;
-
-typedef struct
-{
-  pa_sample_format_t format;
-  uint32_t rate;
-  uint8_t channels;
-} pa_sample_spec;
 
 typedef void (*pa_state_callback_fn)(void*, void*);
 typedef void (*pa_write_callback_fn)(void*, size_t, void*);
 typedef void (*pa_signal_callback_fn)(void*, void*, int, void*);
+typedef void (*pa_stream_success_callback_fn)(void*, int, void*);
 
 typedef int (*pa_get_binary_name_proc)(const char*, size_t);
 typedef const char* (*pa_path_get_filename_proc)(const char*);
@@ -129,6 +65,8 @@ typedef void (*pa_stream_unref_proc)(void*);
 typedef int (*pa_stream_begin_write_proc)(void*, void**, size_t*);
 typedef int (*pa_stream_write_proc)(void*, const void*, size_t, pa_xfree_proc, int64_t, int);
 typedef int (*pa_stream_get_state_proc)(void*);
+typedef void* (*pa_stream_cork_proc)(void*, int, pa_stream_success_callback_fn, void*);
+typedef int (*pa_stream_is_corked_proc)(void*);
 
 typedef void (*pa_signal_new_proc)(int, pa_signal_callback_fn*, void*);
 typedef void (*pa_signal_done_proc)(void);
