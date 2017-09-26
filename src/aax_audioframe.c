@@ -202,7 +202,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 
    if (!rv)
    {
-      if (!mtx64 || detect_nan_mtx4d((const double(*)[4])mtx64)) {
+      if (!mtx64 || detect_nan_mtx4d(mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;

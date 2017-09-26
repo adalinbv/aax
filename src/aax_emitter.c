@@ -782,7 +782,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
    {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!mtx64 || detect_nan_mtx4d((const double(*)[4])mtx64)) {
+      } else if (!mtx64 || detect_nan_mtx4d(mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;

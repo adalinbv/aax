@@ -80,7 +80,7 @@ _file_write(_io_t *io, const void* buf, size_t count)
 }
 
 void
-_file_wait(_io_t *io, float timeout_sec)
+_file_wait(UNUSED(_io_t *io), UNUSED(float timeout_sec))
 {
 }
 

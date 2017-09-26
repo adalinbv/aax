@@ -29,14 +29,14 @@
 #include "api.h"
 
 AAX_API int AAX_APIENTRY
-aaxScenerySetMatrix(aaxConfig config, const aaxMtx4d mtx)
+aaxScenerySetMatrix(aaxConfig config, aaxMtx4d mtx)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4((const float (*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4d(mtx)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
