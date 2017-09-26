@@ -63,6 +63,7 @@
 #include <software/renderer.h>
 #include "kernel.h"
 #include "device.h"
+#include "audio.h"
 
 #define TIMER_BASED		AAX_FALSE
 
@@ -229,7 +230,7 @@ static int _get_pagesize();
 #endif
 
 static int
-_aaxLinuxDriverDetect(UNUSED(int mode))
+_aaxLinuxDriverDetect(int mode)
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
@@ -238,29 +239,29 @@ _aaxLinuxDriverDetect(UNUSED(int mode))
    _AAX_LOG(LOG_DEBUG, __func__);
 
 #if RELEASE
-   if TEST_FOR_FALSE(rv)
-   {
-      audio = _aaxIsLibraryPresent("asound", "2");
-      _aaxGetSymError(0);
-   }
+   rv = _aaxALSADriverDetect(mode);
 #endif
-     
-   if (!audio && TEST_FOR_FALSE(rv))
+
+   if TEST_FOR_FALSE(rv)
    {
       audio = _aaxIsLibraryPresent(NULL, 0);
       _aaxGetSymError(0);
-      if (audio && (access(DEFAULT_PCM_NAME, F_OK) != -1))
-      {
-         TIE_FUNCTION(ioctl);
-         TIE_FUNCTION(mmap);
-         TIE_FUNCTION(munmap);
-         TIE_FUNCTION(poll);
+   }
+     
+   if (audio && mode != -1)
+   {
+      TIE_FUNCTION(ioctl);
+      TIE_FUNCTION(mmap);
+      TIE_FUNCTION(munmap);
+      TIE_FUNCTION(poll);
 
-         error = _aaxGetSymError(0);
-         if (!error) {
-            rv = AAX_TRUE;
-         }
+      error = _aaxGetSymError(0);
+      if (!error && (access(DEFAULT_PCM_NAME, F_OK) != -1)) {
+         rv = AAX_TRUE;
       }
+   }
+   else {
+      rv = AAX_FALSE;
    }
 
    return rv;
