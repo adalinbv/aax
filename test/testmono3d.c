@@ -217,7 +217,7 @@ int main(int argc, char **argv)
             i = 0;
             do
             {
-                res = aaxEmitterSetState(emitter[i], AAX_STOPPED);
+                res = aaxEmitterSetState(emitter[i], AAX_PROCESSED);
                 testForState(res, "aaxEmitterStop");
 
                 res = aaxMixerDeregisterEmitter(config, emitter[i]);
