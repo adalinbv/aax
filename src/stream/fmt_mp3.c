@@ -131,7 +131,7 @@ static void _detect_mp3_song_info(_driver_t*);
 static void *audio = NULL;
 
 int
-_mp3_detect(_fmt_t *fmt, int mode)
+_mp3_detect(UNUSED(_fmt_t *fmt), int mode)
 {
    int rv = AAX_FALSE;
 

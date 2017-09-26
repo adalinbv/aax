@@ -168,7 +168,7 @@ static void* _aaxContextConnect(void*);
 static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
 
 static int
-_aaxPulseAudioDriverDetect(int mode)
+_aaxPulseAudioDriverDetect(UNUSED(int mode))
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
@@ -532,13 +532,13 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
 
 static ssize_t
-_aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, UNUSED(char batched))
+_aaxPulseAudioDriverCapture(UNUSED(const void *id), UNUSED(void **data), UNUSED(ssize_t *offset), UNUSED(size_t *frames), UNUSED(void *scratch), UNUSED(size_t scratchlen), UNUSED(float gain), UNUSED(char batched))
 {
    return AAX_FALSE;
 }
 
 static size_t
-_aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), float gain, UNUSED(char batched))
+_aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSED(float gain), UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
@@ -753,14 +753,14 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static char *
-_aaxPulseAudioDriverGetDevices(const void *id, int mode)
+_aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
 {
    static char names[2][1024] = { "default\0\0", "default\0\0" };
    return (char *)&names[mode];
 }
 
 static char *
-_aaxPulseAudioDriverGetInterfaces(const void *id, const char *devname, int mode)
+_aaxPulseAudioDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char *devname), UNUSED(int mode))
 {
 // _driver_t *handle = (_driver_t *)id;
    return NULL;

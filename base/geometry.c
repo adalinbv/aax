@@ -38,19 +38,19 @@
 
 
 void
-vec3dFill(double d[3], const double v[3])
+vec3dFill(double d[3], double v[3])
 {
    memcpy(d, v, sizeof(double[3]));
 }
 
 void
-vec3fFill(float d[3], const float v[3])
+vec3fFill(float d[3], float v[3])
 {
    memcpy(d, v, sizeof(float[3]));
 }
 
 void
-vec3dFillf(double dst[3], const float src[3])
+vec3dFillf(double dst[3], float src[3])
 {
    int i;
    for(i=0; i<3; ++i) {
@@ -59,7 +59,7 @@ vec3dFillf(double dst[3], const float src[3])
 }
 
 void
-vec3fFilld(float dst[3], const double src[3])
+vec3fFilld(float dst[3], double src[3])
 {
    int i;
    for(i=0; i<3; ++i) {
@@ -74,7 +74,7 @@ _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v)
 }
 
 void
-vec4fFill(float d[4], const float v[4])
+vec4fFill(float d[4], float v[4])
 {
    memcpy(d, v, sizeof(float[4]));
 }
@@ -289,13 +289,13 @@ _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m)
 }
 
 void
-mtx4fFill(float d[4][4], const float m[4][4])
+mtx4fFill(float d[4][4], float m[4][4])
 {
    memcpy(d, m, sizeof(float[4]));
 }
 
 void
-mtx4dFillf(double d[4][4], const float m[4][4])
+mtx4dFillf(double d[4][4], float m[4][4])
 {
    int i, j;
    for(i=0; i<4; ++i) {
@@ -306,7 +306,7 @@ mtx4dFillf(double d[4][4], const float m[4][4])
 }
 
 void
-mtx4fFilld(float d[4][4], const double m[4][4])
+mtx4fFilld(float d[4][4], double m[4][4])
 {  
    int i, j;
    for(i=0; i<4; ++i) {
@@ -352,7 +352,7 @@ mtx4dSetIdentity(double m[4][4])
 
 
 void
-mtx4dFill(double d[4][4], const double m[4][4])
+mtx4dFill(double d[4][4], double m[4][4])
 {
    memcpy(d, m, sizeof(double[4][4]));
 }

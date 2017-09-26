@@ -51,7 +51,7 @@ testEffect(const char *name, int type, int lineno)
     }
 }
 
-int main(int argc, char **argv)
+int main()
 {
 
     /* waveforms */

@@ -103,7 +103,7 @@ typedef struct
 static int _aaxReadOpusHeader(_driver_t*, char*, size_t);
 
 int
-_opus_detect(_fmt_t *fmt, int mode)
+_opus_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
    void *audio = NULL;
    int rv = AAX_FALSE;

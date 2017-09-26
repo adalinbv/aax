@@ -157,10 +157,10 @@ extern vec3fMulvec3f_proc vec3fMulvec3;
 
 void vec3dNegate(vec3d_ptr d, const vec3d_ptr v);
 void vec3fNegate(vec3f_ptr d, const vec3f_ptr v);
-void vec3dFill(double d[3], const double v[3]);
-void vec3fFill(float d[3], const float v[3]);
-void vec3dFillf(double d[3], const float v[3]);
-void vec3fFilld(float d[3], const double v[3]);
+void vec3dFill(double d[3], double v[3]);
+void vec3fFill(float d[3], float v[3]);
+void vec3dFillf(double d[3], float v[3]);
+void vec3fFilld(float d[3], double v[3]);
 void mtx3fCopy(mtx3f_ptr d, const mtx3f_ptr m);
 
 typedef float (*vec3fMagnitude_proc)(const vec3f_ptr v);
@@ -191,7 +191,7 @@ extern vec4fMulvec4f_proc vec4fMulvec4;
 extern vec4fMatrix4_proc vec4fMatrix4;
 extern vec4fMatrix4_proc pt4fMatrix4;
 
-void vec4fFill(float d[4], const float v[4]);
+void vec4fFill(float d[4], float v[4]);
 void vec4fScalarMul(vec4f_ptr r, float v);
 void vec4fNegate(vec4f_ptr d, const vec4f_ptr v);
 
@@ -205,15 +205,15 @@ extern mtx4dMul_proc mtx4dMul;
 extern mtx4fCopy_proc mtx4fCopy;
 extern mtx4dCopy_proc mtx4dCopy;
 
-void mtx4fFill(float d[4][4], const float m[4][4]);
-void mtx4dFillf(double d[4][4], const float m[4][4]);
-void mtx4fFilld(float d[4][4], const double m[4][4]);
+void mtx4fFill(float d[4][4], float m[4][4]);
+void mtx4dFillf(double d[4][4], float m[4][4]);
+void mtx4fFilld(float d[4][4], double m[4][4]);
 void mtx4fSetIdentity(float m[4][4]);
 void mtx4fTranslate(mtx4f_ptr m, float x, float y, float z);
 void mtx4fRotate(mtx4f_ptr m, float angle, float x, float y, float z);
 void mtx4fInverseSimple(mtx4f_ptr d, const mtx4f_ptr m);
 
-void mtx4dFill(double d[4][4], const double m[4][4]);
+void mtx4dFill(double d[4][4], double m[4][4]);
 void mtx4dSetIdentity(double m[4][4]);
 void mtx4dTranslate(mtx4d_ptr m, double x, double y, double z);
 void mtx4dRotate(mtx4d_ptr m, double angle, double x, double y, double z);

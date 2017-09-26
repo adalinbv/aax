@@ -1,5 +1,5 @@
 // FLAC audio decoder. Public domain. See "unlicense" statement at the end of this file.
-// dr_flac - v0.8c - 2017-09-07
+// dr_flac - v0.8d - 2017-09-22
 //
 // David Reid - mackron@gmail.com
 
@@ -860,7 +860,7 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 #define DRFLAC_INLINE __forceinline
 #else
 #ifdef __GNUC__
-#define DRFLAC_INLINE inline __attribute__((always_inline))
+#define DRFLAC_INLINE inline
 #else
 #define DRFLAC_INLINE inline
 #endif
@@ -914,6 +914,7 @@ static void drflac__init_cpu_caps()
 
 
 //// Endian Management ////
+#if 0
 static DRFLAC_INLINE drflac_bool32 drflac__is_little_endian()
 {
 #if defined(DRFLAC_X86) || defined(DRFLAC_X64)
@@ -923,7 +924,9 @@ static DRFLAC_INLINE drflac_bool32 drflac__is_little_endian()
     return (*(char*)&n) == 1;
 #endif
 }
+#endif
 
+#if 0
 static DRFLAC_INLINE drflac_uint16 drflac__swap_endian_uint16(drflac_uint16 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
@@ -939,7 +942,9 @@ static DRFLAC_INLINE drflac_uint16 drflac__swap_endian_uint16(drflac_uint16 n)
            ((n & 0x00FF) << 8);
 #endif
 }
+#endif
 
+#if 0
 static DRFLAC_INLINE drflac_uint32 drflac__swap_endian_uint32(drflac_uint32 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
@@ -957,7 +962,9 @@ static DRFLAC_INLINE drflac_uint32 drflac__swap_endian_uint32(drflac_uint32 n)
            ((n & 0x000000FF) << 24);
 #endif
 }
+#endif
 
+#if 0
 static DRFLAC_INLINE drflac_uint64 drflac__swap_endian_uint64(drflac_uint64 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
@@ -979,7 +986,7 @@ static DRFLAC_INLINE drflac_uint64 drflac__swap_endian_uint64(drflac_uint64 n)
            ((n & (drflac_uint64)0x00000000000000FF) << 56);
 #endif
 }
-
+#endif
 
 static DRFLAC_INLINE drflac_uint16 drflac__be2host_16(drflac_uint16 n)
 {
@@ -1035,8 +1042,21 @@ static DRFLAC_INLINE drflac_uint32 drflac__le2host_32(drflac_uint32 n)
 }
 
 
+static DRFLAC_INLINE drflac_uint32 drflac__unsynchsafe_32(drflac_uint32 n)
+{
+    drflac_uint32 result = 0;
+    result |= (n & 0x7F000000) >> 3;
+    result |= (n & 0x007F0000) >> 2;
+    result |= (n & 0x00007F00) >> 1;
+    result |= (n & 0x0000007F) >> 0;
+
+    return result;
+}
+
+
 
 // The CRC code below is based on this document: http://zlib.net/crc_v3.txt
+#if 0
 static drflac_uint8 drflac__crc8_table[] = {
     0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
     0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
@@ -1055,7 +1075,9 @@ static drflac_uint8 drflac__crc8_table[] = {
     0xAE, 0xA9, 0xA0, 0xA7, 0xB2, 0xB5, 0xBC, 0xBB, 0x96, 0x91, 0x98, 0x9F, 0x8A, 0x8D, 0x84, 0x83,
     0xDE, 0xD9, 0xD0, 0xD7, 0xC2, 0xC5, 0xCC, 0xCB, 0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
 };
+#endif
 
+#if 0
 static drflac_uint16 drflac__crc16_table[] = {
     0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,
     0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
@@ -1090,11 +1112,14 @@ static drflac_uint16 drflac__crc16_table[] = {
     0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234, 0x8231,
     0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202
 };
+#endif
 
+#if 0
 static DRFLAC_INLINE drflac_uint8 drflac_crc8_byte(drflac_uint8 crc, drflac_uint8 data)
 {
     return drflac__crc8_table[crc ^ data];
 }
+#endif
 
 static DRFLAC_INLINE drflac_uint8 drflac_crc8(drflac_uint8 crc, drflac_uint32 data, drflac_uint32 count)
 {
@@ -1139,11 +1164,14 @@ static DRFLAC_INLINE drflac_uint8 drflac_crc8(drflac_uint8 crc, drflac_uint32 da
 #endif
 }
 
+#if 0
 static DRFLAC_INLINE drflac_uint16 drflac_crc16_byte(drflac_uint16 crc, drflac_uint8 data)
 {
     return (crc << 8) ^ drflac__crc16_table[(drflac_uint8)(crc >> 8) ^ data];
 }
+#endif
 
+#if 0
 static DRFLAC_INLINE drflac_uint16 drflac_crc16_bytes(drflac_uint16 crc, drflac_cache_t data, drflac_uint32 byteCount)
 {
     switch (byteCount)
@@ -1162,7 +1190,9 @@ static DRFLAC_INLINE drflac_uint16 drflac_crc16_bytes(drflac_uint16 crc, drflac_
 
     return crc;
 }
+#endif
 
+#if 0
 static DRFLAC_INLINE drflac_uint16 drflac_crc16__32bit(drflac_uint16 crc, drflac_uint32 data, drflac_uint32 count)
 {
     drflac_assert(count <= 64);
@@ -1207,7 +1237,9 @@ static DRFLAC_INLINE drflac_uint16 drflac_crc16__32bit(drflac_uint16 crc, drflac
 #endif
 #endif
 }
+#endif
 
+#if 0
 static DRFLAC_INLINE drflac_uint16 drflac_crc16__64bit(drflac_uint16 crc, drflac_uint64 data, drflac_uint32 count)
 {
     drflac_assert(count <= 64);
@@ -1241,8 +1273,9 @@ static DRFLAC_INLINE drflac_uint16 drflac_crc16__64bit(drflac_uint16 crc, drflac
     return crc;
 #endif
 }
+#endif
 
-
+#if 0
 static DRFLAC_INLINE drflac_uint16 drflac_crc16(drflac_uint16 crc, drflac_cache_t data, drflac_uint32 count)
 {
 #ifdef DRFLAC_64BIT
@@ -1251,6 +1284,7 @@ static DRFLAC_INLINE drflac_uint16 drflac_crc16(drflac_uint16 crc, drflac_cache_
     return drflac_crc16__32bit(crc, data, count);
 #endif
 }
+#endif
 
 
 #ifdef DRFLAC_64BIT
@@ -4299,11 +4333,11 @@ drflac_bool32 drflac__init_private__ogg(drflac_init_info* pInit, drflac_read_pro
     drflac_ogg_page_header header;
 
     drflac_uint32 crc32 = DRFLAC_OGG_CAPTURE_PATTERN_CRC32;
-    drflac_uint32 bytesRead = 4;    // <-- Initialize this to 4 because we have read the "OggS" bytes earlier.
+    drflac_uint32 bytesRead = 0;
     if (drflac_ogg__read_page_header_after_capture_pattern(onRead, pUserData, &header, &bytesRead, &crc32) != DRFLAC_SUCCESS) {
         return DRFLAC_FALSE;
     }
-    pInit->runningFilePos = bytesRead;
+    pInit->runningFilePos += bytesRead;
 
     for (;;) {
         // Break if we're past the beginning of stream page.
@@ -4461,8 +4495,36 @@ drflac_bool32 drflac__init_private(drflac_init_info* pInit, drflac_read_proc onR
     drflac_bool32 relaxed = container != drflac_container_unknown;
 
     drflac_uint8 id[4];
-    if (onRead(pUserData, id, 4) != 4) {
-        return DRFLAC_FALSE;
+
+    // Skip over any ID3 tags.
+    for (;;) {
+        if (onRead(pUserData, id, 4) != 4) {
+            return DRFLAC_FALSE;    // Ran out of data.
+        }
+        pInit->runningFilePos += 4;
+
+        if (id[0] == 'I' && id[1] == 'D' && id[2] == '3') {
+            drflac_uint8 header[6];
+            if (onRead(pUserData, header, 6) != 6) {
+                return DRFLAC_FALSE;    // Ran out of data.
+            }
+            pInit->runningFilePos += 6;
+
+            drflac_uint8 flags = header[1];
+            drflac_uint32 headerSize;
+            drflac_copy_memory(&headerSize, header+2, 4);
+            headerSize = drflac__unsynchsafe_32(drflac__be2host_32(headerSize));
+            if (flags & 0x10) {
+                headerSize += 10;
+            }
+
+            if (!onSeek(pUserData, headerSize, drflac_seek_origin_current)) {
+                return DRFLAC_FALSE;    // Failed to seek past the tag.
+            }
+            pInit->runningFilePos += headerSize;
+        } else {
+            break;
+        }
     }
 
     if (id[0] == 'f' && id[1] == 'L' && id[2] == 'a' && id[3] == 'C') {
@@ -5463,6 +5525,9 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 
 
 // REVISION HISTORY
+//
+// v0.8d - 2017-09-22
+//   - Add support for decoding streams with ID3 tags. ID3 tags are just skipped.
 //
 // v0.8c - 2017-09-07
 //   - Fix warning on non-x86/x64 architectures.
