@@ -52,6 +52,7 @@
 #include <software/renderer.h>
 #include "device.h"
 #include "audio.h"
+#include "alsa.h"
 
 #define TIMER_BASED		AAX_FALSE
 #define MAX_ID_STRLEN		64
@@ -68,7 +69,7 @@
 
 #define ALSA_TIE_FUNCTION(a)	if ((TIE_FUNCTION(a)) == 0) printf("%s\n", #a)
 
-static _aaxDriverDetect _aaxALSADriverDetect;
+_aaxDriverDetect _aaxALSADriverDetect;
 static _aaxDriverNewHandle _aaxALSADriverNewHandle;
 static _aaxDriverGetDevices _aaxALSADriverGetDevices;
 static _aaxDriverGetInterfaces _aaxALSADriverGetInterfaces;
@@ -332,7 +333,8 @@ static const _alsa_formats_t _alsa_formats[MAX_FORMATS];
 #define MAX_PREFIX	7
 static const char* ifname_prefix[MAX_PREFIX];
 
-static int
+
+int
 _aaxALSADriverDetect(int mode)
 {
    static void *audio = NULL;
@@ -341,14 +343,17 @@ _aaxALSADriverDetect(int mode)
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
+#if RELEASE
+   rv = _aaxPulseAudioDriverDetect(mode);
+#endif
+
    if TEST_FOR_FALSE(rv) {
       audio = _aaxIsLibraryPresent("asound", "2");
+      _aaxGetSymError(0);
    }
 
    if (audio)
    {
-      _aaxGetSymError(0);
-
       TIE_FUNCTION(snd_pcm_open);					//
       if (psnd_pcm_open)	
       {
@@ -459,6 +464,9 @@ _aaxALSADriverDetect(int mode)
             rv = AAX_TRUE;
          }
       }
+   }
+   else {
+      rv = AAX_FALSE;
    }
 
    return rv;
@@ -654,6 +662,7 @@ _aaxALSADriverConnect(void *config, const void *id, void *xid, const char *rende
       err = _alsa_pcm_open(handle, m);
       if (err < 0)
       {
+         _AAX_DRVLOG(psnd_strerror(err));
          if (id == 0) free(handle);
          handle = 0;
       }
