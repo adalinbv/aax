@@ -90,7 +90,7 @@ struct pollfd {
 };
 #endif
 
-#include "audio.h"
+#include "alsa.h"
 
 typedef int (*ioctl_proc)(int, unsigned long, ...);
 typedef int (*poll_proc)(struct pollfd[], nfds_t, int);
