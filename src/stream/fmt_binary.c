@@ -65,7 +65,7 @@ typedef struct
 
 
 int
-_binary_detect(_fmt_t *fmt, int mode)
+_binary_detect(UNUSED(_fmt_t *fmt), int mode)
 {
    int rv = AAX_FALSE;
 
@@ -188,14 +188,14 @@ _binary_copy(_fmt_t *fmt, int32_ptr dptr, size_t offs, size_t *num)
 }
 
 size_t
-_binary_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
+_binary_cvt_from_intl(UNUSED(_fmt_t *fmt), UNUSED(int32_ptrptr dptr), UNUSED(size_t dptr_offs), UNUSED(size_t *num))
 {
    size_t rv = __F_NEED_MORE;
    return rv;
 }
 
 size_t
-_binary_cvt_to_intl(_fmt_t *fmt, UNUSED(void_ptr dptr), const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+_binary_cvt_to_intl(UNUSED(_fmt_t *fmt), UNUSED(void_ptr dptr), UNUSED(const_int32_ptrptr sptr), UNUSED(size_t offs), UNUSED(size_t *num), UNUSED(void_ptr scratch), UNUSED(size_t scratchlen))
 {
    int rv = __F_EOF;
    return rv;

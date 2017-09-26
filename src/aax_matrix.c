@@ -90,7 +90,7 @@ aaxMatrixTranslate(aaxMtx4f mtx, float dx, float dy, float dz)
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan(dx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
@@ -122,7 +122,7 @@ aaxMatrix64Translate(aaxMtx4d mtx, double dx, double dy, double dz)
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4d((const double(*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4d(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan64(dx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
@@ -154,7 +154,7 @@ aaxMatrixRotate(aaxMtx4f mtx, float angle_rad, float x, float y, float z)
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan(angle_rad)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
@@ -188,7 +188,7 @@ aaxMatrix64Rotate(aaxMtx4d mtx, double angle_rad, double x, double y, double z)
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4d((const double(*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4d(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else if (is_nan64(angle_rad)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
@@ -223,9 +223,9 @@ aaxMatrixMultiply(aaxMtx4f mtx1, aaxMtx4f mtx2)
 
    if (!rv)
    {
-      if (!mtx1 || detect_nan_mtx4((const float(*)[4])mtx1)) {
+      if (!mtx1 || detect_nan_mtx4(mtx1)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!mtx2 || detect_nan_mtx4((const float(*)[4])mtx2)) {
+      } else if (!mtx2 || detect_nan_mtx4(mtx2)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       }
    }
@@ -250,9 +250,9 @@ aaxMatrix64Multiply(aaxMtx4d mtx1, aaxMtx4d mtx2)
 
    if (!rv)
    {
-      if (!mtx1 || detect_nan_mtx4d((const double(*)[4])mtx1)) {
+      if (!mtx1 || detect_nan_mtx4d(mtx1)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!mtx2 || detect_nan_mtx4d((const double(*)[4])mtx2)) {
+      } else if (!mtx2 || detect_nan_mtx4d(mtx2)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else {
          rv = AAX_TRUE;
@@ -279,7 +279,7 @@ aaxMatrixInverse(aaxMtx4f mtx)
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
          rv = AAX_TRUE;
@@ -304,7 +304,7 @@ aaxMatrix64Inverse(aaxMtx4d mtx)
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4d((const double(*)[4])mtx)) {
+      if (!mtx || detect_nan_mtx4d(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
       } else {
          rv = AAX_TRUE;
@@ -364,11 +364,11 @@ aaxMatrix64SetDirection(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at)
 
          vec3fNegate(&back, &fwd);
          vec3fNormalize(&tmp, &side);
-         vec3dFillf(&m.v34[0], &tmp);
+         vec3dFillf(m.v34[0].v3, tmp.v3);
          vec3fNormalize(&tmp, &upwd);
-         vec3dFillf(&m.v34[1], &tmp);
+         vec3dFillf(m.v34[1].v3, tmp.v3);
          vec3fNormalize(&tmp, &back);
-         vec3dFillf(&m.v34[2], &tmp);
+         vec3dFillf(m.v34[2].v3, tmp.v3);
       }
 
       vec3dFill(loc.v3, pos);
@@ -420,16 +420,16 @@ aaxMatrix64SetOrientation(aaxMtx4d mtx64, aaxVec3d pos, aaxVec3f at,
 
          vec3fNegate(&back, &fwd);
          vec3fNormalize(&tmp, &side);
-         vec3dFillf(&m.v34[0], &tmp);
+         vec3dFillf(m.v34[0].v3, tmp.v3);
          vec3fNormalize(&tmp, &upwd);
-         vec3dFillf(&m.v34[1], &tmp);
+         vec3dFillf(m.v34[1].v3, tmp.v3);
          vec3fNormalize(&tmp, &back);
-         vec3dFillf(&m.v34[2], &tmp);
+         vec3dFillf(m.v34[2].v3, tmp.v3);
       }
 
-      vec3dFill(&loc.v3, pos);
+      vec3dFill(loc.v3, pos);
       vec3dNegate(&m.v34[3], &loc);
-      mtx4dFill(mtx64, &m.m4);
+      mtx4dFill(mtx64, m.m4);
 
    }
 
@@ -456,10 +456,10 @@ aaxMatrix64GetOrientation(aaxMtx4d mtx, aaxVec3d pos, aaxVec3f at, aaxVec3f up)
          vec3dFill(pos, mtx[3]);/* LOCATION */
       }
       if (at) {
-         vec3dFillf(at, mtx[2]);/* DIR_UPWD */
+         vec3fFilld(at, mtx[2]);/* DIR_UPWD */
       }
       if (up) {
-         vec3dFillf(up, mtx[1]); /* DIR_BACK */
+         vec3fFilld(up, mtx[1]); /* DIR_BACK */
       }
    }
 
@@ -475,7 +475,7 @@ aaxMatrixToMatrix64(aaxMtx4d mtx64, aaxMtx4f mtx)
    {
       if (!mtx64) {
          __aaxErrorSet(AAX_INVALID_PARAMETER, __func__);
-      } else if (!mtx || detect_nan_mtx4((const float(*)[4])mtx)) {
+      } else if (!mtx || detect_nan_mtx4(mtx)) {
          __aaxErrorSet(AAX_INVALID_PARAMETER + 1, __func__);
       } else {
          rv = AAX_TRUE;

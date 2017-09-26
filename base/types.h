@@ -181,21 +181,10 @@ typedef INT32	ssize_t;
 typedef INT64	ssize_t;
 # endif
 
-#if 0
-struct timespec {
-      time_t tv_sec;
-      long   tv_nsec;
-};
-#endif
 #else		// WIN32
 
-# ifndef NDEBUG
-#  define DISREGARD(x) x
-#  define UNUSED(x) x
-# else
-#  define DISREGARD(x) x __attribute__((unused))
-#  define UNUSED(x) x __attribute__((unused))
-# endif
+# define DISREGARD(x) x __attribute__((unused))
+# define UNUSED(x) x __attribute__((unused))
 
 #endif		// WIN32
 

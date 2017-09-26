@@ -461,7 +461,7 @@ _aax_generate_waveform(size_t no_samples, float freq, float phase, float gain, f
  * output range is -1.0 .. 1.0
  */
 static float *
-_aax_generate_noise(size_t no_samples, float gain, unsigned char skip)
+_aax_generate_noise(size_t no_samples, UNUSED(float gain), unsigned char skip)
 {
    float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)

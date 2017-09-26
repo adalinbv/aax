@@ -69,7 +69,7 @@ typedef struct
 
 
 int
-_vorbis_detect(_fmt_t *fmt, int mode)
+_vorbis_detect(UNUSED(_fmt_t *fmt), int mode)
 {
    int rv = AAX_FALSE;
 

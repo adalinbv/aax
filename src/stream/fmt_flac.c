@@ -81,11 +81,11 @@ typedef struct
 
 } _driver_t;
 
-static void _flac_metafn(void*, drflac_metadata*);
+// static void _flac_metafn(void*, drflac_metadata*);
 
 
 int
-_flac_detect(_fmt_t *fmt, int mode)
+_flac_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
    int rv = AAX_FALSE;
 
@@ -369,6 +369,7 @@ _flac_set(_fmt_t *fmt, int type, off_t value)
 /* -------------------------------------------------------------------------- */
 #define COMMENT_SIZE	1024
 
+#if 0
 static void
 _flac_metafn(void *userData, drflac_metadata *metaData)
 {
@@ -433,3 +434,4 @@ _flac_metafn(void *userData, drflac_metadata *metaData)
       break;
    }
 }
+#endif

@@ -81,7 +81,7 @@ static size_t _batch_cvt24_adpcm_intl(_driver_t*, int32_t**, const_char_ptr, siz
 
 
 int
-_pcm_detect(_fmt_t *fmt, int mode)
+_pcm_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
    return AAX_TRUE;
 }
