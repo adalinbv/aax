@@ -23,6 +23,8 @@
 #include "config.h"
 #endif
 
+#if HAVE_PULSE_PULSEAUDIO_H
+#include <pulse/pulseaudio.h>
 #include <aax/aax.h>
 #include <xml.h>
 
@@ -39,7 +41,6 @@
 
 #include <software/renderer.h>
 #include "audio.h"
-#include "pulseaudio.h"
 
 #define DEFAULT_RENDERER	"PulseAudio"
 #define DEFAULT_DEVNAME		"default"
@@ -131,11 +132,15 @@ typedef struct
 
 } _driver_t;
 
+#undef TIE_FUNCTION
+#undef DECL_FUNCTION
+
+#define TIE_FUNCTION(f)
+#define DECL_FUNCTION(f) static __typeof__(f) * p##f
 DECL_FUNCTION(pa_get_binary_name);
 DECL_FUNCTION(pa_path_get_filename);
 DECL_FUNCTION(pa_get_library_version);
 DECL_FUNCTION(pa_strerror);
-DECL_FUNCTION(pa_xfree);
 DECL_FUNCTION(pa_threaded_mainloop_new);
 DECL_FUNCTION(pa_threaded_mainloop_free);
 DECL_FUNCTION(pa_threaded_mainloop_start);
@@ -153,7 +158,7 @@ DECL_FUNCTION(pa_context_get_state);
 DECL_FUNCTION(pa_context_unref);
 DECL_FUNCTION(pa_context_errno);
 DECL_FUNCTION(pa_stream_new);
-DECL_FUNCTION(pa_stream_set_state_callback);
+// DECL_FUNCTION(pa_stream_set_state_callback);
 DECL_FUNCTION(pa_stream_connect_playback);
 DECL_FUNCTION(pa_stream_disconnect);
 DECL_FUNCTION(pa_stream_unref);
@@ -162,8 +167,9 @@ DECL_FUNCTION(pa_stream_write);
 DECL_FUNCTION(pa_stream_get_state);
 DECL_FUNCTION(pa_stream_cork);
 DECL_FUNCTION(pa_stream_is_corked);
-DECL_FUNCTION(pa_signal_new);
-DECL_FUNCTION(pa_signal_done);
+// DECL_FUNCTION(pa_signal_new);
+// DECL_FUNCTION(pa_signal_done);
+// DECL_FUNCTION(pa_xfree);
 
 static void* _aaxContextConnect(void*);
 
@@ -767,7 +773,7 @@ _aaxPulseAudioDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), cons
 
 /* ----------------------------------------------------------------------- */
 
-static void context_state_callback(UNUSED(void *context), void *id)
+static void context_state_callback(UNUSED(pa_context *context), void *id)
 {
    _driver_t *handle = (_driver_t*)id;
    ppa_threaded_mainloop_signal(handle->ml, 0);
@@ -835,3 +841,4 @@ _aaxContextConnect(void *id)
    return rv;
 }
 
+#endif /* HAVE_PULSE_PULSEAUDIO_H */
