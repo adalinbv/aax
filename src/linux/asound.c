@@ -28,10 +28,14 @@
 #endif
 #include <stdio.h>
 #include <errno.h>
-#if HAVE_STRINGS_H
-# include <strings.h>
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
+# include <string.h>		/* strstr, strncmp */
 #endif
-#include <string.h>		/* strstr, strncmp */
 #include <stdarg.h>		/* va_start */
 
 #include <xml.h>
