@@ -381,6 +381,7 @@ _aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, a
          }
       }
    }
+   xmlFree(xsid);
 }
 
 
