@@ -345,9 +345,8 @@ _aaxPutEmitter() {
    return _aaxGetSetMonoSources(0, -1);
 }
 
-
 static void
-_aaxSetSlotFromAAXS(const char *xid, int (*setSlotFn)(void*, int, int, float), void *id)
+_aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, aaxVec4f), void *id)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
    void *xsid = xmlMarkId(xid);
@@ -356,47 +355,93 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setSlotFn)(void*, int, int, float), v
    {
       if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
       {
-         unsigned int p, pnum = xmlNodeGetNum(xsid, "param");
-         enum aaxType type = AAX_LINEAR;
-         void *xpid = xmlMarkId(xsid);
-         unsigned int slen;
-         char src[65];
-         long int sn;
-
-         sn = xmlAttributeGetInt(xsid, "n");
-         if (sn == XML_NONE) sn = s;
-
-         slen = xmlAttributeCopyString(xsid, "type", src, 64);
-         if (slen)
+         if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
          {
-            src[slen] = 0; 
-            type = aaxGetTypeByName(src);
-         }
+            enum aaxType type = AAX_LINEAR;
+            aaxVec4f params;
+            unsigned int slen;
+            char src[65];
+            long int n;
 
-         for (p=0; p<pnum; p++)
-         {  
-            if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
+            n = xmlAttributeGetInt(xsid, "n");
+            if (n == XML_NONE) n = s;
+
+            params[0] = xmlNodeGetDouble(xsid, "p0");
+            params[1] = xmlNodeGetDouble(xsid, "p1");
+            params[2] = xmlNodeGetDouble(xsid, "p2");
+            params[3] = xmlNodeGetDouble(xsid, "p3");
+
+            slen = xmlAttributeCopyString(xsid, "type", src, 64);
+            if (slen)
             {
-               int slotnum[_MAX_FE_SLOTS] = { 0x00, 0x10, 0x20, 0x30 };
-               double value = xmlGetDouble(xpid);
-               long int pn = xmlAttributeGetInt(xpid, "n");
-               if (pn == XML_NONE) pn = p;
-
-               slen = xmlAttributeCopyString(xpid, "type", src, 64);
-               if (slen)
-               {
-                  src[slen] = 0;
-                  type = aaxGetTypeByName(src);
-               }
-            
-               pn |= slotnum[sn];
-               setSlotFn(id, pn, type, value);
+               src[slen] = 0;
+               type = aaxGetTypeByName(src);
             }
+            setSlotFn(id, n, type, params);
          }
-         xmlFree(xpid);
+      }
+   }
+}
+
+
+static int
+_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id)
+{
+   unsigned int s, snum = xmlNodeGetNum(xid, "slot");
+   void *xsid = xmlMarkId(xid);
+   int rv = AAX_FALSE;
+
+   for (s=0; s<snum; s++)
+   {
+      if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
+      {
+         unsigned int p, pnum = xmlNodeGetNum(xsid, "param");
+         if (pnum)
+         {
+            enum aaxType type = AAX_LINEAR;
+            void *xpid = xmlMarkId(xsid);
+            unsigned int slen;
+            char src[65];
+            long int sn;
+
+            sn = xmlAttributeGetInt(xsid, "n");
+            if (sn == XML_NONE) sn = s;
+
+            slen = xmlAttributeCopyString(xsid, "type", src, 64);
+            if (slen)
+            {
+               src[slen] = 0; 
+               type = aaxGetTypeByName(src);
+            }
+
+            for (p=0; p<pnum; p++)
+            {  
+               if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
+               {
+                  int slotnum[_MAX_FE_SLOTS] = { 0x00, 0x10, 0x20, 0x30 };
+                  double value = xmlGetDouble(xpid);
+                  long int pn = xmlAttributeGetInt(xpid, "n");
+                  if (pn == XML_NONE) pn = p;
+
+                  slen = xmlAttributeCopyString(xpid, "type", src, 64);
+                  if (slen)
+                  {
+                     src[slen] = 0;
+                     type = aaxGetTypeByName(src);
+                  }
+            
+                  pn |= slotnum[sn];
+                  setParamFn(id, pn, type, value);
+               }
+            }
+            xmlFree(xpid);
+            rv = AAX_TRUE;
+         }
       }
    }
    xmlFree(xsid);
+
+   return rv;
 }
 
 aaxFilter
@@ -418,7 +463,9 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid)
       flt = aaxFilterCreate(config, ftype);
       if (flt)
       {
-         _aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt);
+         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt)) {
+            _aaxSetSlotFromAAXSOld(xid, aaxFilterSetSlotParams, flt);
+         }
 
          slen = xmlAttributeCopyString(xid, "src", src, 64);
          if (slen)
@@ -457,7 +504,9 @@ _aaxGetEffectFromAAXS(aaxConfig config, const char *xid)
       eff = aaxEffectCreate(config, etype);
       if (eff)
       {
-         _aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff);
+         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff)) {
+            _aaxSetSlotFromAAXSOld(xid, aaxEffectSetSlotParams, eff);
+         }
 
          slen = xmlAttributeCopyString(xid, "src", src, 64);
          if (slen)
