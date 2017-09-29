@@ -35,6 +35,7 @@
 # include <libio.h>		/* for NULL */
 #endif
 #include <math.h>		/* for MAXFLOAT */
+#include <xml.h>
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
@@ -344,3 +345,179 @@ _aaxPutEmitter() {
    return _aaxGetSetMonoSources(0, -1);
 }
 
+static void
+_aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, aaxVec4f), void *id)
+{
+   unsigned int s, snum = xmlNodeGetNum(xid, "slot");
+   void *xsid = xmlMarkId(xid);
+
+   for (s=0; s<snum; s++)
+   {
+      if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
+      {
+         if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
+         {
+            enum aaxType type = AAX_LINEAR;
+            aaxVec4f params;
+            unsigned int slen;
+            char src[65];
+            long int n;
+
+            n = xmlAttributeGetInt(xsid, "n");
+            if (n == XML_NONE) n = s;
+
+            params[0] = xmlNodeGetDouble(xsid, "p0");
+            params[1] = xmlNodeGetDouble(xsid, "p1");
+            params[2] = xmlNodeGetDouble(xsid, "p2");
+            params[3] = xmlNodeGetDouble(xsid, "p3");
+
+            slen = xmlAttributeCopyString(xsid, "type", src, 64);
+            if (slen)
+            {
+               src[slen] = 0;
+               type = aaxGetTypeByName(src);
+            }
+            setSlotFn(id, n, type, params);
+         }
+      }
+   }
+}
+
+
+static int
+_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id)
+{
+   unsigned int s, snum = xmlNodeGetNum(xid, "slot");
+   void *xsid = xmlMarkId(xid);
+   int rv = AAX_FALSE;
+
+   for (s=0; s<snum; s++)
+   {
+      if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
+      {
+         unsigned int p, pnum = xmlNodeGetNum(xsid, "param");
+         if (pnum)
+         {
+            enum aaxType type = AAX_LINEAR;
+            void *xpid = xmlMarkId(xsid);
+            unsigned int slen;
+            char src[65];
+            long int sn;
+
+            sn = xmlAttributeGetInt(xsid, "n");
+            if (sn == XML_NONE) sn = s;
+
+            slen = xmlAttributeCopyString(xsid, "type", src, 64);
+            if (slen)
+            {
+               src[slen] = 0; 
+               type = aaxGetTypeByName(src);
+            }
+
+            for (p=0; p<pnum; p++)
+            {  
+               if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
+               {
+                  int slotnum[_MAX_FE_SLOTS] = { 0x00, 0x10, 0x20, 0x30 };
+                  double value = xmlGetDouble(xpid);
+                  long int pn = xmlAttributeGetInt(xpid, "n");
+                  if (pn == XML_NONE) pn = p;
+
+                  slen = xmlAttributeCopyString(xpid, "type", src, 64);
+                  if (slen)
+                  {
+                     src[slen] = 0;
+                     type = aaxGetTypeByName(src);
+                  }
+            
+                  pn |= slotnum[sn];
+                  setParamFn(id, pn, type, value);
+               }
+            }
+            xmlFree(xpid);
+            rv = AAX_TRUE;
+         }
+      }
+   }
+   xmlFree(xsid);
+
+   return rv;
+}
+
+aaxFilter
+_aaxGetFilterFromAAXS(aaxConfig config, const char *xid)
+{
+   aaxFilter rv = NULL;
+   char src[65];
+   int slen;
+
+   slen = xmlAttributeCopyString(xid, "type", src, 64);
+   if (slen)
+   {
+      enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+      enum aaxFilterType ftype;
+      aaxFilter flt;
+
+      src[slen] = 0;
+      ftype = aaxFilterGetByName(config, src);
+      flt = aaxFilterCreate(config, ftype);
+      if (flt)
+      {
+         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt)) {
+            _aaxSetSlotFromAAXSOld(xid, aaxFilterSetSlotParams, flt);
+         }
+
+         slen = xmlAttributeCopyString(xid, "src", src, 64);
+         if (slen)
+         {
+            src[slen] = 0;
+            if (ftype == AAX_DISTANCE_FILTER) {
+               state = aaxGetDistanceModelByName(src);
+            } else {
+               state = aaxGetWaveformTypeByName(src);
+            }
+         }
+         aaxFilterSetState(flt, state);
+         rv = flt;
+      }
+   }
+
+   return rv;
+}
+
+aaxEffect
+_aaxGetEffectFromAAXS(aaxConfig config, const char *xid)
+{
+   aaxEffect rv = NULL;
+   char src[65];
+   int slen;
+
+   slen = xmlAttributeCopyString(xid, "type", src, 64);
+   if (slen)
+   {
+      enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+      enum aaxEffectType etype;
+      aaxEffect eff;
+
+      src[slen] = 0;
+      etype = aaxEffectGetByName(config, src);
+      eff = aaxEffectCreate(config, etype);
+      if (eff)
+      {
+         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff)) {
+            _aaxSetSlotFromAAXSOld(xid, aaxEffectSetSlotParams, eff);
+         }
+
+         slen = xmlAttributeCopyString(xid, "src", src, 64);
+         if (slen)
+         {
+            src[slen] = 0;
+            state = aaxGetWaveformTypeByName(src);
+         }
+         aaxEffectSetState(eff, state);
+         rv = eff;
+      }
+   }
+
+   return rv;
+}
