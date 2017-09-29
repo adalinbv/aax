@@ -408,6 +408,9 @@ unsigned int _aaxSetNoEmitters(unsigned int);
 unsigned int _aaxGetEmitter();
 unsigned int _aaxPutEmitter();
 
+aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*);
+aaxFilter _aaxGetEffectFromAAXS(aaxConfig, const char*);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

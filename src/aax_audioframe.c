@@ -1446,61 +1446,11 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
             {
-               char src[65];
-               int slen;
-
-               slen = xmlAttributeCopyString(xfid, "type", src, 64);
-               if (slen)
+               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid);
+               if (flt)
                {
-                  enum aaxFilterType ftype;
-                  aaxFilter flt;
-
-                  src[slen] = 0;
-                  ftype = aaxFilterGetByName(config, src);
-                  flt = aaxFilterCreate(config, ftype);
-                  if (flt)
-                  {
-                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
-                     unsigned int s, num = xmlNodeGetNum(xfid, "slot");
-                     void *xsid = xmlMarkId(xfid);
-                     for (s=0; s<num; s++)
-                     {
-                        if (xmlNodeGetPos(xfid, xsid, "slot", s) != 0)
-                        {
-                           enum aaxType type = AAX_LINEAR;
-                           aaxVec4f params;
-                           long int n;
-
-                           n = xmlAttributeGetInt(xsid, "n");
-                           if (n == XML_NONE) n = s;
-
-                           params[0] = xmlNodeGetDouble(xsid, "p0");
-                           params[1] = xmlNodeGetDouble(xsid, "p1");
-                           params[2] = xmlNodeGetDouble(xsid, "p2");
-                           params[3] = xmlNodeGetDouble(xsid, "p3");
-
-                           slen = xmlAttributeCopyString(xsid, "type", src, 64);
-                           if (slen)
-                           {
-                              src[slen] = 0;
-                              type = aaxGetTypeByName(src);
-                           }
-                           aaxFilterSetSlotParams(flt, n, type, params);
-                        }
-                     }
-
-                     slen = xmlAttributeCopyString(xfid, "type", src, 64);
-                     if (slen)
-                     {
-                        src[slen] = 0;
-                        state = aaxGetWaveformTypeByName(src);
-                     }
-                     aaxFilterSetState(flt, state);
-
-                     aaxAudioFrameSetFilter(frame, flt);
-                     aaxFilterDestroy(flt);
-                     xmlFree(xsid);
-                  }
+                  aaxAudioFrameSetFilter(frame, flt);
+                  aaxFilterDestroy(flt);
                }
             }
          }
@@ -1512,52 +1462,11 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
             {
-               char src[64];
-               int slen;
-
-               slen = xmlAttributeCopyString(xeid, "type", src, 64);
-               if (slen)
+               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid);
+               if (eff)
                {
-                  enum aaxEffectType ftype;
-                  aaxEffect eff;
-
-                  src[slen] = 0;
-                  ftype = aaxEffectGetByName(config, src);
-                  eff = aaxEffectCreate(config, ftype);
-                  if (eff)
-                  {
-                     enum aaxWaveformType state = AAX_CONSTANT_VALUE;
-                     unsigned int s, num = xmlNodeGetNum(xeid, "slot");
-                     void *xsid = xmlMarkId(xeid);
-                     for (s=0; s<num; s++)
-                     {
-                        if (xmlNodeGetPos(xeid, xsid, "slot", s) != 0)
-                        {
-                           aaxVec4f params;
-                           long int n;
-
-                           n = xmlAttributeGetInt(xsid, "n");
-                           if (n == XML_NONE) n = s;
-
-                           params[0] = xmlNodeGetDouble(xsid, "p0");
-                           params[1] = xmlNodeGetDouble(xsid, "p1");
-                           params[2] = xmlNodeGetDouble(xsid, "p2");
-                           params[3] = xmlNodeGetDouble(xsid, "p3");
-                           aaxEffectSetSlotParams(eff, n, AAX_LINEAR, params);
-                        }
-                     }
-
-                     slen = xmlAttributeCopyString(xeid, "src", src, 64);
-                     if (slen)
-                     {
-                        src[slen] = 0;
-                        state = aaxGetWaveformTypeByName(src);
-                     }
-                     aaxEffectSetState(eff, state);
-                     aaxAudioFrameSetEffect(frame, eff);
-                     aaxEffectDestroy(eff);
-                     xmlFree(xsid);
-                  }
+                  aaxAudioFrameSetEffect(frame, eff);
+                  aaxEffectDestroy(eff);
                }
             }
          }

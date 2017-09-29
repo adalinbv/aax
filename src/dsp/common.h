@@ -35,7 +35,7 @@ extern "C" {
 #define WRITEFN         0
 #define READFN		!WRITEFN
 #define EPS		1e-5
-#define _MAX_FE_SLOTS	3
+#define _MAX_FE_SLOTS	4
 
 #define LEVEL_32DB	0.02511886432f
 #define LEVEL_64DB	0.00063095734f
