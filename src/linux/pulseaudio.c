@@ -813,11 +813,12 @@ _aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
       context = _aaxContextConnect(loop);
       if (context)
       {
+         _sink_info_t si;
+         pa_operation *opr;
+#if 1
          pa_stream_flags_t flags;
          pa_sample_spec spec;
          pa_stream *stream;
-         pa_operation *opr;
-         _sink_info_t si;
 
          flags = PA_STREAM_FIX_FORMAT | PA_STREAM_FIX_RATE |
                  PA_STREAM_FIX_CHANNELS | PA_STREAM_DONT_MOVE;
@@ -825,10 +826,12 @@ _aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
          spec.format = PA_SAMPLE_S16NE;
          spec.rate = 44100;
          spec.channels = (mode == AAX_MODE_READ) ? 1 : 2;
+#endif
 
          si.devices = (char *)&names[mode];
          si.loop = loop;
 
+#if 1
          stream = _aaxStreamConnect(NULL, context, loop, &spec, flags, NULL, NULL, mode);
          if (stream)
          {   
@@ -849,7 +852,7 @@ _aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
              ppa_stream_unref(stream);
              stream = NULL;
          }
-
+#else
          if (mode == AAX_MODE_READ) {
             opr = ppa_context_get_source_info_list(context, source_device_callback, &si);
          } else {
@@ -863,6 +866,7 @@ _aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
             }
             ppa_operation_unref(opr);
          }
+#endif
 
          ppa_context_disconnect(context);
          ppa_context_unref(context);
