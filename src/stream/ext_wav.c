@@ -154,7 +154,7 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          if (handle->capturing)
          {
             handle->no_samples = UINT_MAX;
-            *bufsize = 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
+            *bufsize = 4096; // 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
          }
          else /* playback */
          {
@@ -330,8 +330,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             avail = _MIN(size, avail);
             if (!avail) return NULL;
 
-            memcpy((char*)handle->wavBuffer+handle->wavBufPos,
-                   buf, avail);
+            memcpy((char*)handle->wavBuffer+handle->wavBufPos, buf, avail);
             handle->wavBufPos += avail;
             size -= avail;
 
@@ -874,7 +873,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       {
          curr = BSWAP(header[1]);
          handle->io.read.blockbufpos = curr;
-         size = _MIN(curr, bufsize);
+         size = _MIN(2*sizeof(int32_t) + curr, bufsize);
       }
 
       /*
@@ -960,11 +959,15 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          if (size < 0)
          {
             handle->io.read.last_tag = 0x5453494c; /* LIST */
-            rv = __F_PROCESS;
+            rv = __F_NEED_MORE;
          }
          else {
             handle->io.read.blockbufpos = 0;
          }
+      }
+      else
+      {
+         rv = *step = size;
       }
    }
    else if (curr == 0x4b414550)		/* peak */
@@ -989,6 +992,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          handle->max_samples = curr;
       }
       *step = rv = 2*sizeof(int32_t);
+   }
+   else if (curr == 0x20657563 ||	/* cue  */
+            curr == 0x6c706d73)		/* smpl */
+   {
+      curr = BSWAP(header[1]);
+      *step = rv = 2*sizeof(int32_t) + curr;
    }
 
    return rv;
