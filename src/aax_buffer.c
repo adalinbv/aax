@@ -901,17 +901,29 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                enum aaxWaveformType wtype = AAX_SINE_WAVE;
                float pitch, ratio, staticity;
 
-               ratio = xmlNodeGetDouble(xwid, "ratio");
-               pitch = xmlNodeGetDouble(xwid, "pitch");
-               staticity = xmlNodeGetDouble(xwid, "staticity");
+               if (xmlAttributeExists(xwid, "ratio")) {
+                  ratio = xmlAttributeGetDouble(xwid, "ratio");
+               } else {
+                  ratio = xmlNodeGetDouble(xwid, "ratio");
+               }
+               if (xmlAttributeExists(xwid, "pitch")) {
+                  pitch = xmlAttributeGetDouble(xwid, "pitch");
+               } else {
+                  pitch = xmlNodeGetDouble(xwid, "pitch");
+               }
+               if (xmlAttributeExists(xwid, "staticity")) {
+                  staticity = xmlAttributeGetDouble(xwid, "staticity");
+               } else {
+                  staticity = xmlNodeGetDouble(xwid, "staticity");
+               }
 
                if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
                    wtype = AAX_BROWNIAN_NOISE;
                }
-               else if (!xmlAttributeCompareString(xwid, "src", "white-noise")){
+               else if (!xmlAttributeCompareString(xwid, "src","white-noise")){
                    wtype = AAX_WHITE_NOISE;
                } 
-               else if (!xmlAttributeCompareString(xwid, "src", "pink-noise")) {
+               else if (!xmlAttributeCompareString(xwid, "src","pink-noise")) {
                    wtype = AAX_PINK_NOISE;
                }
                else if (!xmlAttributeCompareString(xwid, "src", "square")) {
@@ -930,29 +942,59 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                   wtype = AAX_SINE_WAVE;
                }
 
-               if (!xmlNodeCompareString(xwid, "processing", "add"))
+               if (xmlAttributeExists(xwid, "processing"))
                {
-                  ptype = AAX_ADD;
-                  if (!ratio) ratio = 1.0f;
-                  if (!pitch) pitch = 1.0f;
+                  if (!xmlAttributeCompareString(xwid,"processing","modulate"))
+                  {
+                     ptype = AAX_RINGMODULATE;
+                     if (!ratio) ratio = 1.0f;
+                     if (!pitch) pitch = 1.0f;
+                  }
+                  else if (!xmlAttributeCompareString(xwid,"processing","add"))
+                  {
+                     ptype = AAX_ADD;
+                     if (!ratio) ratio = 1.0f;
+                     if (!pitch) pitch = 1.0f;
+                  }
+                  else if (!xmlAttributeCompareString(xwid,"processing","mix"))
+                  {
+                     ptype = AAX_MIX;
+                     if (!ratio) ratio = 0.5f;
+                     if (!pitch) pitch = 1.0f;
+                  }
+                  else if (!xmlAttributeCompareString(xwid, "processing", "overwrite"))
+                  {
+                     ptype = AAX_OVERWRITE;
+                     if (!ratio) ratio = 1.0f;
+                     if (!pitch) pitch = 1.0f;
+                  }
                }
-               else if (!xmlNodeCompareString(xwid, "processing", "mix"))
+               else
                {
-                  ptype = AAX_MIX;
-                  if (!ratio) ratio = 0.5f;
-                  if (!pitch) pitch = 1.0f;
-               }
-               else if (!xmlNodeCompareString(xwid, "processing", "modulate"))
-               {
-                  ptype = AAX_RINGMODULATE;
-                  if (!ratio) ratio = 1.0f;
-                  if (!pitch) pitch = 1.0f;
-               }
-               else  // !xmlNodeCompareString(xwid, "processing", "overwrite")
-               {
-                  ptype = AAX_OVERWRITE;
-                  if (!ratio) ratio = 1.0f;
-                  if (!pitch) pitch = 1.0f;
+                  if (!xmlNodeCompareString(xwid, "processing", "modulate"))
+                  {
+                     ptype = AAX_RINGMODULATE;
+                     if (!ratio) ratio = 1.0f;
+                     if (!pitch) pitch = 1.0f;
+                  }
+                  else if (!xmlNodeCompareString(xwid, "processing", "add"))
+                  {
+                     ptype = AAX_ADD;
+                     if (!ratio) ratio = 1.0f;
+                     if (!pitch) pitch = 1.0f;
+                  }
+                  else if (!xmlNodeCompareString(xwid, "processing", "mix"))
+                  {
+                     ptype = AAX_MIX;
+                     if (!ratio) ratio = 0.5f;
+                     if (!pitch) pitch = 1.0f;
+                  }
+                  else //!xmlNodeCompareString(xwid, "processing", "overwrite")
+                  {
+                     ptype = AAX_OVERWRITE;
+                     if (!ratio) ratio = 1.0f;
+                     if (!pitch) pitch = 1.0f;
+                  }
                }
 
                rv = _aaxBufferProcessWaveform(handle, freq, pitch, staticity,
