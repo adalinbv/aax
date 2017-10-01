@@ -1,3 +1,7 @@
+* Sun Oct  1 2017 - tech@adalin.org
+- AeonWave (3.0.3) stable; urgency=medium
+ * Support WAV files with LIST adtl, bext, cue and smpl tags.
+
 * Fri Sep 29 2017 - tech@adalin.org
 - AeonWave (3.0.2) stable; urgency=medium
  * Add a function to add a buffer to the dsp class.

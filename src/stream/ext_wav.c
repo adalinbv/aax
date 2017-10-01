@@ -904,8 +904,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             case 0x44524349:    /* ICRD: Date Created        */
             case 0x524e4749:    /* IGNR: Genre               */
             case 0x504f4349:    /* ICOP: Copyright           */
-            case 0x544d4349:    /* ICMT: Comments            */
-            case 0x54465349:    /* ISFT: Software            */
+            case 0x544d4349:    /* ISFT: Comments            */
+            case 0x54465349:    /* ICMT: Software            */
+            case 0x59454b49:    /* IKEY: Subject             */
+            case 0x4a425349:    /* ISBJ	 Keywords            */
+            case 0x48435449:    /* ITCH: Engineer            */
+            case 0x474e4549:    /* IENG: Technician          */
+            case 0x524e4547:    /* GENR: Genre               */
                curr = BSWAP(header[1]);
                size -= 2*sizeof(int32_t) + curr;
                if (size < 0) break;
@@ -994,7 +999,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       *step = rv = 2*sizeof(int32_t);
    }
    else if (curr == 0x20657563 ||	/* cue  */
-            curr == 0x6c706d73)		/* smpl */
+            curr == 0x6c706d73 ||	/* smpl */
+            curr == 0x74786562)		/* bext */
    {
       curr = BSWAP(header[1]);
       *step = rv = 2*sizeof(int32_t) + curr;

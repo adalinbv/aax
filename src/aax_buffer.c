@@ -649,7 +649,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
          if (res)
          {
             size_t no_samples, no_bytes, blocksize, datasize, bits;
-            char *ptr, *ptr2;
+            char *ptr2, *ptr = NULL;
 
             bits = aaxGetBitsPerSample(fmt);
             blocksize = stream->param(id, DRIVER_BLOCK_SIZE);
@@ -659,8 +659,12 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
             no_bytes = ((no_bytes/blocksize)+1)*blocksize;
             datasize =  SIZE_ALIGNED(tracks*no_bytes);
 
-            ptr2 = (char*)(2 * sizeof(void*));
-            ptr = _aax_calloc(&ptr2, 2, sizeof(void*) + datasize);
+            if (datasize < 64*1024*1024) // sanity check
+            {
+               ptr2 = (char*)(2 * sizeof(void*));
+               ptr = _aax_calloc(&ptr2, 2, sizeof(void*) + datasize);
+            }
+
             if (ptr)
             {
                void **dst = (void **)ptr;
