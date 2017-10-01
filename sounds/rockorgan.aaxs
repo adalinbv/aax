@@ -4,25 +4,17 @@
 
  <sound name="Rock Organ" frequency="80" duration="0.25">
   <waveform src="square"/>
-  <waveform src="triangle">
-   <processing>add</processing>
-   <pitch>0.5</pitch>
-   <ratio>0.6</ratio>
-  </waveform>
-  <waveform src="sawtooth">
-   <processing>modulate</processing>
-   <pitch>0.5</pitch>
-   <ratio>1.0</ratio>
-  </waveform>
+  <waveform src="triangle" processing="add" pitch="0.5" ratio="0.6"/>
+  <waveform src="sawtooth" processing="modulate" pitch="0.5"/>
  </sound>
 
  <emitter looping="true">
   <effect type="flanging" src="triangle">
    <slot n="0">
-    <p0>0.4</p0>
-    <p1>0.3</p1>
-    <p2>0.1</p2>
-    <p3>0.2</p3>
+    <param n="0">0.4</param>
+    <param n="1">0.3</param>
+    <param n="2">0.1</param>
+    <param n="3">0.2</param>
    </slot>
   </effect>
  </emitter>
