@@ -371,19 +371,17 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
       *ptr = '\0';
       url = ptr + strlen("://");
    }
-   else if (!strchr(url, '/'))
+   else if (!strchr(url, '/')) /* something like 'example.com' or 'test.wav' */
    {
       struct addrinfo* res;
-      if (!getaddrinfo(url, NULL, NULL, &res)) {
-         *server = url;
-      }
-      else {
+      if (getaddrinfo(url, NULL, NULL, &res)) /* not a server, it's a file */
+      {
          *path = url;
          *extension = strrchr(url, '.');
          if (*extension) (*extension)++;
       }
    }
-   else if (access(url, F_OK) != -1)
+   else if (strrchr(url, '/') < strrchr(url, '.')) // access(url, F_OK) != -1)
    {
       *path = url;
       *extension = strrchr(url, '.');
