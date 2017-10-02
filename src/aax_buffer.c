@@ -315,10 +315,8 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
-printf("handle: %zx\n", (size_t)handle);
    if (handle && (handle->format & AAX_SPECIAL) && d)
    {				/* the data in *d isn't actual raw sound data */
-printf("x\n");
       unsigned int format = handle->format;
       switch(format)
       {
@@ -333,7 +331,6 @@ printf("x\n");
    else if (handle)
    {
       _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL);
-printf("rb: %zx\n", (size_t)rb);
       if (rb)
       {
          unsigned int tracks, no_samples, buf_samples;
