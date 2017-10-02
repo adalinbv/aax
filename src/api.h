@@ -438,6 +438,7 @@ void _aaxBackendDriverToDeviceConnecttor(char **, char **);
 void _aaxDeviceConnecttorToBackendDriver(char **, char **);
 void _aaxConnectorDeviceToDeviceConnector(char *);
 void _aaxURLSplit(char*, char**, char**, char**, char**, int*);
+char *_aaxURLConstruct(char*, char*);
 
 const char* tmpDir();
 const char* userHomeDir();
