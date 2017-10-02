@@ -34,6 +34,7 @@
 #include <errno.h>
 #include <assert.h>
 #include <locale.h>
+#include <netdb.h>
 
 #include <base/geometry.h>
 #include <base/threads.h>
@@ -350,5 +351,71 @@ _aaxConnectorDeviceToDeviceConnector(char *iface)
          *ptr = 0;
          sprintf(iface, "%s: %s", ptr, _str);
       }
+   }
+}
+
+void
+_aaxURLSplit(char *url, char **protocol, char **server, char **path, char **extension, int *port)
+{
+   char *ptr;
+
+   *protocol = NULL;
+   *server = NULL;
+   *path = NULL;
+   *port = 0;
+
+   ptr = strstr(url, "://");
+   if (ptr)
+   {
+      *protocol = (char*)url;
+      *ptr = '\0';
+      url = ptr + strlen("://");
+   }
+   else if (!strchr(url, '/'))
+   {
+      struct addrinfo* res;
+      if (!getaddrinfo(url, NULL, NULL, &res)) {
+         *server = url;
+      }
+      else {
+         *path = url;
+         *extension = strrchr(url, '.');
+         if (*extension) (*extension)++;
+      }
+   }
+   else if (access(url, F_OK) != -1)
+   {
+      *path = url;
+      *extension = strrchr(url, '.');
+      if (*extension) (*extension)++;
+   }
+
+   if (!*path)
+   {
+      *server = url;
+
+      ptr = strchr(url, '/');
+      if (ptr)
+      {
+         if (ptr != url) *ptr++ = '\0';
+         else *server = 0;
+
+         *path = ptr;
+         *extension = strrchr(ptr, '.');
+         if (*extension) (*extension)++;
+      }
+
+      ptr = strchr(url, ':');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         *port = strtol(ptr, NULL, 10);
+      }
+   }
+
+   if ((*protocol && !strcasecmp(*protocol, "http")) ||
+       (*server && **server != 0))
+   {
+      if (*port <= 0) *port = 80;
    }
 }
