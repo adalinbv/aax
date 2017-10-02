@@ -54,6 +54,7 @@ static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*)
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
+static char** _bufGetDataFromStream(const char*, int*, unsigned int*, float*, size_t*, size_t*);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
 // static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
@@ -314,8 +315,10 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
+printf("handle: %zx\n", (size_t)handle);
    if (handle && (handle->format & AAX_SPECIAL) && d)
    {				/* the data in *d isn't actual raw sound data */
+printf("x\n");
       unsigned int format = handle->format;
       switch(format)
       {
@@ -330,6 +333,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
    else if (handle)
    {
       _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL);
+printf("rb: %zx\n", (size_t)rb);
       if (rb)
       {
          unsigned int tracks, no_samples, buf_samples;
@@ -619,102 +623,41 @@ aaxBufferDestroy(aaxBuffer buffer)
 AAX_API aaxBuffer AAX_APIENTRY
 aaxBufferReadFromStream(aaxConfig config, const char *url)
 {
-   const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
    _handle_t *handle = (_handle_t*)config;
-   aaxBuffer rv = NULL;
+   _buffer_t* rv = NULL;
 
-   if (handle && stream)
+   if (handle)
    {
-      static const char *xcfg = "<?xml?><_ctb8>1</_ctb8>";
-      void *id = stream->new_handle(AAX_MODE_READ);
-      void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
+      size_t no_samples, blocksize;
+      unsigned int tracks;
+      float freq;
+      int fmt;
+      char **ptr;
 
-      // xid makes the stream return sound data in file format when capturing
-      id = stream->connect(config, id, xid, url, AAX_MODE_READ);
-      xmlClose(xid);
-
-      if (id)
+      ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
+                                       &no_samples, &blocksize);
+      if (ptr)
       {
-         _aaxMixerInfo* info = handle->info;
-         float refrate = info->refresh_rate;
-         float periodrate = info->period_rate;
-         unsigned tracks = info->no_tracks;
-         float freq = info->frequency;
-         int brate = info->bitrate;
-         int fmt = info->format;
-         int res;
-
-         res = stream->setup(id, &refrate, &fmt, &tracks, &freq, &brate,
-                                 AAX_FALSE, periodrate);
-         if (res)
+         rv = aaxBufferCreate(config, no_samples, tracks, fmt);
+         if (rv)
          {
-            size_t no_samples, no_bytes, blocksize, datasize, bits;
-            char *ptr2, *ptr = NULL;
+             free(rv->url);
+             rv->url = strdup(url);
 
-            bits = aaxGetBitsPerSample(fmt);
-            blocksize = stream->param(id, DRIVER_BLOCK_SIZE);
-            no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-            no_bytes = no_samples*bits/8;
-
-            no_bytes = ((no_bytes/blocksize)+1)*blocksize;
-            datasize =  SIZE_ALIGNED(tracks*no_bytes);
-
-            if (datasize < 64*1024*1024) // sanity check
-            {
-               ptr2 = (char*)(2 * sizeof(void*));
-               ptr = _aax_calloc(&ptr2, 2, sizeof(void*) + datasize);
-            }
-
-            if (ptr)
-            {
-               void **dst = (void **)ptr;
-               ssize_t res, offset = 0;
-               ssize_t offs_packets = 0;
-
-               dst[0] = ptr2;
-               ptr2 += datasize;
-               dst[1] = ptr2;
-
-               // capture now returns native file format instead of PCM24S
-               // in batched capturing mode
-               do
-               {
-                  ssize_t offs = offs_packets;
-                  size_t packets = no_samples;
-
-                  assert(packets <= datasize*8/(tracks*bits));
-
-                  res = stream->capture(id, dst, &offs, &packets,
-                                            dst[1], datasize, 1.0f, AAX_TRUE);
-                  offs_packets += packets;
-                  if (res > 0) {
-                     offset += res*8/(bits*tracks);
-                  }
-               }
-               while (res >= 0);
-
-               // get the actual number of samples
-               no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-               rv = aaxBufferCreate(config, no_samples, tracks, fmt);
-               if (rv)
-               {
-                   aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
-                   aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
-                   if ((aaxBufferSetData(rv, dst[0])) == AAX_FALSE) {
-                      aaxBufferDestroy(rv);
-                      rv  = NULL;
-                   }
+             aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
+             aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
+             if ((aaxBufferSetData(rv, ptr[0])) == AAX_FALSE) {
+                aaxBufferDestroy(rv);
+                rv  = NULL;
+             }
 #if 0
-_aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, dst[0], no_samples, freq, tracks, fmt);
+_aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr, no_samples, freq, tracks, fmt);
 #endif
-               }
-               free(ptr);
-            }
-            else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            }
          }
-         stream->disconnect(id);
+         free(ptr);
+      }
+      else {
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       }
    }
 
@@ -797,6 +740,7 @@ free_buffer(_buffer_t* handle)
       {
          handle->ringbuffer = _bufDestroyRingBuffer(handle);
          free(handle->aaxs);
+         free(handle->url);
 
          /* safeguard against using already destroyed handles */
          handle->id = FADEDBAD;
@@ -862,6 +806,95 @@ _bufDestroyRingBuffer(_buffer_t* buf)
    return rb;
 }
 
+static char**
+_bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *freq, size_t *no_samples, size_t *blocksize)
+{
+   const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
+   char **ptr = NULL;
+
+   *no_samples = 0;
+   if (stream)
+   {
+     static const char *xcfg = "<?xml?><_ctb8>1</_ctb8>";
+      void *id = stream->new_handle(AAX_MODE_READ);
+      void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
+
+      // xid makes the stream return sound data in file format when capturing
+      id = stream->connect(NULL, id, xid, url, AAX_MODE_READ);
+      xmlClose(xid);
+
+      if (id)
+      {
+         float refrate = _info->refresh_rate;
+         float periodrate = _info->period_rate;
+         int brate = _info->bitrate;
+         int res;
+
+         *tracks = _info->no_tracks;
+         *freq = _info->frequency;
+         *fmt = _info->format;
+
+         res = stream->setup(id, &refrate, fmt, tracks, freq, &brate,
+                                 AAX_FALSE, periodrate);
+         if (res)
+         {
+            size_t no_bytes, datasize, bits;
+            char *ptr2;
+
+            bits = aaxGetBitsPerSample(*fmt);
+            *blocksize = stream->param(id, DRIVER_BLOCK_SIZE);
+            *no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+            no_bytes = (*no_samples)*bits/8;
+
+            no_bytes = ((no_bytes/(*blocksize))+1)*(*blocksize);
+            datasize =  SIZE_ALIGNED((*tracks)*no_bytes);
+
+            if (datasize < 64*1024*1024) // sanity check
+            {
+               ptr2 = (char*)(2 * sizeof(void*));
+               ptr = (char**)_aax_calloc(&ptr2, 2, sizeof(void*) + datasize);
+            }
+
+            if (ptr)
+            {
+               void **dst = (void **)ptr;
+               ssize_t res, offset = 0;
+               ssize_t offs_packets = 0;
+
+               dst[0] = ptr2;
+               ptr2 += datasize;
+               dst[1] = ptr2;
+
+               // capture now returns native file format instead of PCM24S
+               // in batched capturing mode
+               do
+               {
+                  ssize_t offs = offs_packets;
+                  size_t packets = *no_samples;
+
+                  assert(packets <= datasize*8/((*tracks)*bits));
+
+                  res = stream->capture(id, dst, &offs, &packets,
+                                            dst[1], datasize, 1.0f, AAX_TRUE);
+                  offs_packets += packets;
+                  if (res > 0) {
+                     offset += res*8/(bits*(*tracks));
+                  }
+               }
+               while (res >= 0);
+
+               // get the actual number of samples
+               *no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+            }
+         }
+         stream->disconnect(id);
+      }
+   }
+
+   return ptr;
+}
+
+
 static int
 _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
 {
@@ -883,6 +916,34 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
          void *xwid = xmlMarkId(xsid);
 //       double duration;
+
+         if (xmlAttributeExists(xsid, "file"))
+         {
+            size_t no_samples, blocksize;
+            char **ptr, *s, *url;
+            unsigned int tracks;
+            float freq;
+            int fmt;
+
+            s = xmlAttributeGetString(xsid, "file");
+            url = _aaxURLConstruct(handle->url, s);
+            free(s);
+
+            ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
+                                             &no_samples, &blocksize);
+            if (ptr)
+            {
+               handle->format = fmt;
+               handle->no_samples = no_samples;
+               handle->blocksize = blocksize;
+               handle->no_tracks = tracks;
+               handle->frequency = freq;
+               rv = aaxBufferSetData(handle, ptr[0]);
+            }
+            else {
+               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            }
+         }
 
          if (!freq) freq = xmlAttributeGetDouble(xsid, "frequency");
          /* for backwards combatibility, remove with version 3.0 */
@@ -1004,9 +1065,6 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
          }
          xmlFree(xwid);
          xmlFree(xsid);
-
-//       rb = _bufGetRingBuffer(handle, NULL);
-//       rb->limit(rb, RB_LIMITER_ELECTRONIC);
       }
       else {
          _aaxErrorSet(AAX_INVALID_STATE);
