@@ -6,13 +6,13 @@
   <waveform src="sine"/>
  </sound>
 
- <emtter>
+ <emitter>
   <effect type="chorus" src="triangle">
    <slot n="0">
-    <p0>0.5</p0>
-    <p1>0.3</p1>
-    <p2>0.05</p2>
-    <p3>0.0</p3>
+    <param n="0">0.5</param>
+    <param n="1">0.3</param>
+    <param n="2">0.05</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
