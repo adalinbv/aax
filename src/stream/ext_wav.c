@@ -676,7 +676,9 @@ _wav_set(_ext_t *ext, int type, off_t value)
       handle->copy_to_buffer = value;
       break;
    default:
-      rv = handle->fmt->set(handle->fmt, type, value);
+      if (handle->fmt) {
+         rv = handle->fmt->set(handle->fmt, type, value);
+      }
       break;
    }
    return rv;
