@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <sound name="Rock Organ" frequency="440" duration="0.25" file="sine-440Hz.wav">
+<!--
+  <waveform src="square"/>
+  <waveform src="triangle" processing="add" pitch="0.5" ratio="0.6"/>
+-->
+  <waveform src="sawtooth" processing="modulate" pitch="0.5"/>
+ </sound>
+
+ <emitter looping="true">
+  <effect type="flanging" src="triangle">
+   <slot n="0">
+    <param n="0">0.4</param>
+    <param n="1">0.3</param>
+    <param n="2">0.1</param>
+    <param n="3">0.2</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
