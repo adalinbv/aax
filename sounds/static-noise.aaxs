@@ -2,17 +2,8 @@
 
 <aeonwave>
  <sound frequency="440">
-<!--
-  <waveform src="white-noise">
-   <pitch>0.2</pitch>
-   <staticity>0.3</staticity>
-  </waveform>
--->
-  <waveform src="pink-noise">
-   <processing>mix</processing>
-   <staticity>0.00</staticity>
-   <ratio>0.7</ratio>
-  </waveform>
+<!-- <waveform src="white-noise" pitch="0.2" staticity="0.3"/> -->
+  <waveform src="pink-noise" processing="mix" staticity="0.00" ratio="0.7"/>
  </sound>
 
 </aeonwave>
