@@ -100,6 +100,7 @@ _url_split(char *url, char **protocol, char **server, char **path, char **extens
    if ((*protocol && !strcasecmp(*protocol, "http")) ||
        (*server && **server != 0))
    {
+      if (!(*port)) *port = 80;
       rv = PROTOCOL_HTTP;
    }
    else if (!*protocol || !strcasecmp(*protocol, "file")) {
