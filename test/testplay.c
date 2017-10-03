@@ -103,6 +103,7 @@ int main(int argc, char **argv)
             res = aaxEmitterSetState(emitter, AAX_PLAYING);
             testForState(res, "aaxEmitterStart");
 
+            printf("Playing sound for 6.0 seconds or until a key is pressed\n");
             q = 0;
             set_mode(1);
             do
