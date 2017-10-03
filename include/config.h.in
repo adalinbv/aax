@@ -46,6 +46,10 @@
 #undef HAVE_SYS_SOCKET_H
 #cmakedefine HAVE_SYS_SOCKET_H @HAVE_SYS_SOCKET_H@
 
+/* Define to 1 if you have the <netdb.h> header file. */
+#undef HAVE_NETDB_H
+#cmakedefine HAVE_NETDB_H @HAVE_NETDB_H@
+
 /* Define to 1 if you have the <Winsock2.h> header file. */
 #undef HAVE_WINSOCK2_H
 #cmakedefine HAVE_WINSOCK2_H @HAVE_WINSOCK2_H@

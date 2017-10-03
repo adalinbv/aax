@@ -34,7 +34,9 @@
 #include <errno.h>
 #include <assert.h>
 #include <locale.h>
-#include <netdb.h>
+#if HAVE_NETDB_H
+# include <netdb.h>
+#endif
 
 #include <base/geometry.h>
 #include <base/threads.h>
