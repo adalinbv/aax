@@ -425,7 +425,7 @@ char *
 _aaxURLConstruct(char *url1, char *url2)
 {
    char *prot[2], *srv[2], *path[2], *ext[2];
-   static char url[PATH_MAX+1];
+   char url[PATH_MAX+1];
    int abs, port[2];
    char *ptr;
 
@@ -476,6 +476,6 @@ _aaxURLConstruct(char *url1, char *url2)
  printf("new url: %s\n\n", url);
 #endif
 
-   return url;
+   return strdup(url);
 }
 

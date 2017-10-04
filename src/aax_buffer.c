@@ -27,6 +27,7 @@
 # include <rmalloc.h>
 #else
 # include <string.h>
+#include <strings.h>
 #endif
 #ifdef HAVE_LIBIO_H
 #include <libio.h>              /* for NULL */
@@ -916,18 +917,25 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
 
          if (xmlAttributeExists(xsid, "file"))
          {
+            char *s, *u, *url, **ptr = NULL;
             size_t no_samples, blocksize;
-            char **ptr, *s, *url;
             unsigned int tracks;
             float freq;
             int fmt;
 
+            u = strdup(handle->url);
             s = xmlAttributeGetString(xsid, "file");
-            url = _aaxURLConstruct(handle->url, s);
+            url = _aaxURLConstruct(u, s);
             free(s);
+            free(u);
 
-            ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
-                                             &no_samples, &blocksize);
+            s = strrchr(url, '.');
+            if (!s || strcasecmp(s, ".aaxs")) {
+               ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
+                                                &no_samples, &blocksize);
+            }
+            free(url);
+
             if (ptr)
             {
                handle->format = fmt;
