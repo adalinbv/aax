@@ -90,6 +90,7 @@ _socket_open(_io_t *io, const char *server)
             hints.ai_socktype = SOCK_STREAM;
             res = getaddrinfo(server, (port > 0) ? sport : NULL, &hints, &host);
          }
+
          if (res == 0)
          {
             if (timeout_ms < 5) timeout_ms = 5;
