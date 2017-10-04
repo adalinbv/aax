@@ -277,9 +277,9 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
       }
    }
 
-   if (handle && buf && bufsize)
+   if (handle)
    {
-      if (handle->capturing)
+      if (handle->capturing && buf && bufsize)
       {
          if (!handle->id && handle->internal)
          {
@@ -445,7 +445,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
             _AAX_FILEDRVLOG("MP3: Unable to create a handle");
          }
       }
-      else	// playback
+      else if (!handle->capturing)	// playback
       {
          /*
           * The required mp3buf_size can be computed from num_samples,

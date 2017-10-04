@@ -34,6 +34,9 @@
 #include <errno.h>
 #include <assert.h>
 #include <locale.h>
+#if HAVE_NETDB_H
+# include <netdb.h>
+#endif
 
 #include <base/geometry.h>
 #include <base/threads.h>
@@ -352,3 +355,127 @@ _aaxConnectorDeviceToDeviceConnector(char *iface)
       }
    }
 }
+
+void
+_aaxURLSplit(char *url, char **protocol, char **server, char **path, char **extension, int *port)
+{
+   char *ptr;
+
+   *protocol = NULL;
+   *server = NULL;
+   *path = NULL;
+   *port = 0;
+
+   ptr = strstr(url, "://");
+   if (ptr)
+   {
+      *protocol = (char*)url;
+      *ptr = '\0';
+      url = ptr + strlen("://");
+   }
+   else if (!strchr(url, '/')) /* something like 'example.com' or 'test.wav' */
+   {
+      struct addrinfo* res;
+      if (getaddrinfo(url, NULL, NULL, &res)) /* not a server, it's a file */
+      {
+         *path = url;
+         *extension = strrchr(url, '.');
+         if (*extension) (*extension)++;
+      }
+   }
+   else if ((strrchr(url, '/') < strchr(url, '.')) ||
+             url[0] == '.') // access(url, F_OK) != -1)
+   {
+      *path = url;
+      *extension = strrchr(url, '.');
+      if (*extension) (*extension)++;
+   }
+
+   if (!*path)
+   {
+      *server = url;
+
+      ptr = strchr(url, '/');
+      if (ptr)
+      {
+         if (ptr != url) *ptr++ = '\0';
+         else *server = 0;
+
+         *path = ptr;
+         *extension = strrchr(ptr, '.');
+         if (*extension) (*extension)++;
+      }
+
+      ptr = strchr(url, ':');
+      if (ptr)
+      {
+         *ptr++ = '\0';
+         *port = strtol(ptr, NULL, 10);
+      }
+   }
+
+   if ((*protocol && !strcasecmp(*protocol, "http")) ||
+       (*server && **server != 0))
+   {
+      if (*port < 0) *port = 80;
+   }
+}
+
+char *
+_aaxURLConstruct(char *url1, char *url2)
+{
+   char *prot[2], *srv[2], *path[2], *ext[2];
+   static char url[PATH_MAX+1];
+   int abs, port[2];
+   char *ptr;
+
+   url[0] = '\0';
+   _aaxURLSplit(url1, &prot[0], &srv[0], &path[0], &ext[0], &port[0]);
+   _aaxURLSplit(url2, &prot[1], &srv[1], &path[1], &ext[1], &port[1]);
+
+   if (path[0] && (ptr = strrchr(path[0], '/')) != NULL) {
+      *(ptr+1) = '\0';
+   }
+
+   if (srv[1] || (path[1] && *path[1] == '/')) abs = 1;
+   else abs = path[0] ? 0 : 1;
+
+   if (srv[0] || srv[1])
+   {
+      if ((prot[0] || prot[1]) && ((port[0] && !srv[1]) || port[1])) {
+         snprintf(url, PATH_MAX, "%s://%s:%i/%s%s",
+                               prot[1] ? prot[1] : prot[0],
+                               srv[1] ? srv[1] : srv[0],
+                               port[1] ? port[1] : port[0],
+                               abs ? "" : path[0], path[1]);
+      } else if (prot[0] || prot[1]) {
+         snprintf(url, PATH_MAX, "%s://%s/%s%s",
+                               prot[1] ? prot[1] : prot[0],
+                               srv[1] ? srv[1] : srv[0],
+                               abs ? "" : path[0], path[1]);
+      } else if ((port[0] && !srv[1]) || port[1]) {
+         snprintf(url, PATH_MAX, "%s:%i/%s%s",
+                               srv[1] ? srv[1] : srv[0],
+                               port[1] ? port[1] : port[0], 
+                               abs ? "" : path[0], path[1]);
+     } else {
+         snprintf(url, PATH_MAX, "%s/%s%s",
+                               srv[1] ? srv[1] : srv[0],
+                               abs ? "" : path[0], path[1]);
+     }
+   } else {
+      snprintf(url, PATH_MAX, "%s%s", abs ? "" : path[0], path[1]);
+   }
+
+#if 0
+ printf("protocol: '%s' - '%s'\n", prot[0], prot[1]);
+ printf("server: '%s' - '%s'\n", srv[0], srv[1]);
+ printf("path: '%s' - '%s'\n", path[0], path[1]);
+ printf("ext: '%s' - '%s'\n", ext[0], ext[1]);
+ printf("port: %i - %i\n", port[0], port[1]);
+ printf("new url: %s\n\n", url);
+#endif
+
+   return url;
+}
+
