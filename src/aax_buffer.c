@@ -813,7 +813,7 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
    *no_samples = 0;
    if (stream)
    {
-     static const char *xcfg = "<?xml?><_ctb8>1</_ctb8>";
+      static const char *xcfg = "<?xml?><_ctb8>1</_ctb8>";
       void *id = stream->new_handle(AAX_MODE_READ);
       void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
 
@@ -911,6 +911,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
       if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
       if (xsid)
       {
+          _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
          void *xwid = xmlMarkId(xsid);
 //       double duration;
@@ -943,6 +944,11 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                handle->blocksize = blocksize;
                handle->no_tracks = tracks;
                handle->frequency = freq;
+
+//             rb->set_format(rb, fmt, AAX_FALSE);
+               rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
+               rb->set_parami(rb, RB_NO_SAMPLES, handle->no_samples);
+
                rv = aaxBufferSetData(handle, ptr[0]);
             }
             else {
@@ -950,14 +956,22 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
             }
          }
 
-         if (!freq) freq = xmlAttributeGetDouble(xsid, "frequency");
-         /* for backwards combatibility, remove with version 3.0 */
-         if (!freq) freq = xmlAttributeGetDouble(xsid, "freq_hz");
-         if (!freq) freq = 1000.0f;
+#if 0
+         duration = xmlAttributeGetDouble(xsid, "duration");
+         if (duration != XML_FPNONE)
+         {
+            size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+            if (duration <= 0.0) {
+            } else if (duration > (handle->frequency/no_samples)) {
+            } else {
+               rb->set_paramf(rb, RB_DURATION_SEC, duration);
+            }
+         }
+#endif
 
-//       duration = xmlAttributeGetDouble(xsid, "duration");
-//       if (!duration) duration = 1.0;
-//       rb->set_paramf(rb, RB_DURATION_SEC, duration);
+         if (!freq) {
+            freq = xmlAttributeGetDouble(xsid, "frequency");
+         }
 
          for (i=0; i<num; i++)
          {
