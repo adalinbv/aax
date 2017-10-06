@@ -813,7 +813,7 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
    *no_samples = 0;
    if (stream)
    {
-      static const char *xcfg = "<?xml?><_ctb8>1</_ctb8>";
+      static const char *xcfg = "<?xml?><"COPY_TO_BUFFER">1</"COPY_TO_BUFFER">";
       void *id = stream->new_handle(AAX_MODE_READ);
       void *xid = xmlInitBuffer(xcfg, strlen(xcfg));
 

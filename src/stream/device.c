@@ -313,7 +313,7 @@ _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *dev
             handle->bits_sample = i;
          }
 
-         if (xmlNodeGetBool(xid, "_ctb8")) {
+         if (xmlNodeGetBool(xid, COPY_TO_BUFFER)) {
             handle->copy_to_buffer = 1;
          }
       }
