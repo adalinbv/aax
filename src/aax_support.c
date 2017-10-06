@@ -412,7 +412,7 @@ aaxGetWaveformTypeByName(const char *wave)
          if (!strncasecmp(name, "AAX_", 4)) {
             name += 4;
          }
- 
+
          end = last;
          while(end > name && *end != '_' && *end != '-') --end;
          if (end > name)
