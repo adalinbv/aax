@@ -92,6 +92,9 @@ int main()
     WAVE("inverse_sawtooth", AAX_INVERSE_SAWTOOTH_WAVE);
     WAVE("inverse_envelope", AAX_INVERSE_ENVELOPE_FOLLOW);
 
+    WAVE("", AAX_CONSTANT_VALUE);
+    WAVE("|", AAX_CONSTANT_VALUE);
+    WAVE("||||", AAX_CONSTANT_VALUE);
     WAVE("sine|square", AAX_SINE_WAVE|AAX_SQUARE_WAVE);
     WAVE("sine|triangle|square|sawtooth", AAX_SINE_WAVE|AAX_TRIANGLE_WAVE|AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE);
     WAVE("square|sawtooth|sine", AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE|AAX_SINE_WAVE);
