@@ -428,25 +428,31 @@ aaxGetWaveformTypeByName(const char *wave)
             len = last-name;
          }
 
-         invlen = strlen("inverse");
-         if (!strncasecmp(name, "inverse", invlen) &&
-             (len > ++invlen))
+         if (len)
          {
-            name += invlen;
-            len -= invlen;
-            rv |= AAX_INVERSE;
-         }
+            invlen = strlen("inverse");
+            if (!strncasecmp(name, "inverse", invlen) &&
+                (len > ++invlen))
+            {
+               name += invlen;
+               len -= invlen;
+               rv |= AAX_INVERSE;
+            }
 
-         if (!strncasecmp(name, "triangle", len)) {
-            rv |= AAX_TRIANGLE_WAVE;
-         } else if (!strncasecmp(name, "sine", len)) {
-            rv |= AAX_SINE_WAVE;
-         } else if (!strncasecmp(name, "square", len)) {
-            rv |= AAX_SQUARE_WAVE;
-         } else if (!strncasecmp(name, "sawtooth", len)) {
-            rv |= AAX_SAWTOOTH_WAVE;
-         } else if (!strncasecmp(name, "envelope", len)) {
-            rv |= AAX_ENVELOPE_FOLLOW;
+            if (!strncasecmp(name, "triangle", len)) {
+               rv |= AAX_TRIANGLE_WAVE;
+            } else if (!strncasecmp(name, "sine", len)) {
+               rv |= AAX_SINE_WAVE;
+            } else if (!strncasecmp(name, "square", len)) {
+               rv |= AAX_SQUARE_WAVE;
+            } else if (!strncasecmp(name, "sawtooth", len)) {
+               rv |= AAX_SAWTOOTH_WAVE;
+            } else if (!strncasecmp(name, "envelope", len)) {
+               rv |= AAX_ENVELOPE_FOLLOW;
+            }
+            else {
+               rv = AAX_CONSTANT_VALUE;
+            }
          }
          else {
             rv = AAX_CONSTANT_VALUE;
