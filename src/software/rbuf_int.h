@@ -106,6 +106,9 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     float loop_end_sec;
     float dde_sec;
 
+    float freqfilter_history_x[_AAX_MAX_SPEAKERS];
+    float freqfilter_history_y[_AAX_MAX_SPEAKERS];
+
     size_t dde_samples;
     size_t no_samples;		/* actual no. samples */
     size_t no_samples_avail;	/* maximum available no. samples */
