@@ -950,6 +950,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                rb->set_parami(rb, RB_NO_SAMPLES, handle->no_samples);
 
                rv = aaxBufferSetData(handle, ptr[0]);
+               free(ptr);
             }
             else {
                _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
