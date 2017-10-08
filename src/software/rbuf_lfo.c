@@ -266,6 +266,10 @@ _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *
             }
          }
 
+         // If the number-of-steps for this stage is reached go to the next.
+         // If the duration of a stage == (uint32_t)-1 then we keep looping
+         // the sample until stopped becomes true. After that the rest of the
+         // stages get processed.
          if ((env->pos == env->max_pos[stage])
              || (env->max_pos[stage] == (uint32_t)-1 && stopped))
          {
@@ -274,6 +278,7 @@ _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *
          }
       }
 
+      // Only the timed-gain-filter supports env->repeat > 1
       if ((env->repeat > 1) &&
           ((env->stage == env->max_stages) || (rv < -1e-3f)))
       {
