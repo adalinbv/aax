@@ -273,6 +273,14 @@ _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *
             env->stage++;
          }
       }
+
+      if (env->repeat && ((env->stage == env->max_stages) || (rv < -1e-3f)))
+      {
+         env->stage = 0;
+         env->value = 0;
+         env->repeat--;
+      }
+
       *velocity = env->value;
    }
    return rv;
