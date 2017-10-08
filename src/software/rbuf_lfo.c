@@ -274,10 +274,14 @@ _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *
          }
       }
 
-      if (env->repeat && ((env->stage == env->max_stages) || (rv < -1e-3f)))
+      if ((env->repeat > 1) &&
+          ((env->stage == env->max_stages) || (rv < -1e-3f)))
       {
+         if (rv < -1e-3f) rv = 0.0f;
          env->stage = 0;
          env->value = 0;
+         env->stage = 0;
+         env->pos = 0;
          env->repeat--;
       }
 
