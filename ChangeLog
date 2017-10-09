@@ -1,4 +1,4 @@
-* Mon Obt  9 2017 - tech@adalin.org
+* Mon Oct  9 2017 - tech@adalin.org
 - AeonWave (3.0.4) stable; urgency=low
  * Add the option to repeat the timed-gain filter for a specified number of
    times. This could be useful for repeating sounds like alarm and clock sounds.
