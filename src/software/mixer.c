@@ -200,6 +200,32 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
    scratch = (MIX_T**)rb->get_scratch(rb);
    ds = rb->get_parami(rb, RB_DDE_SAMPLES);
 
+   if (convolution || reverb)
+   {
+      for (t=0; t<no_tracks; t++)
+      {
+         MIX_T *dptr = tracks[t];
+         float *histx = rbd->freqfilter_history_x;
+         float *histy = rbd->freqfilter_history_y;
+         float xm1 = histx[t];
+         float ym1 = histy[t];
+         size_t i = no_samples;
+
+         // remove any DC offset
+         do
+         {
+            float x = *dptr;
+            float y = x - xm1 + 0.995 * ym1;
+            xm1 = x;
+            ym1 = y;
+            *dptr++ = y;
+         }
+         while (--i);
+         histx[t] = xm1;
+         histy[t] = ym1;
+      }
+   }
+
    if (convolution) {
       _aaxRingBufferEffectConvolution(id, hid, rb, convolution);
    }
