@@ -51,16 +51,19 @@ int main(int argc, char **argv)
     if (argc > 1) {
         while (++i < argc)
         {
-            printf("Playing: %s ...\n", argv[i]);
-            bool res = aax.playback(argv[i]);
-            if (!res) printf("Error: %s\n", aax::strerror());
+            aax::Buffer& buffer = aax.buffer(argv[i]);
+            aax::Emitter emitter(AAX_STEREO);
+
+            emitter.add(buffer);
+            aax.add(emitter);
+
             do
             {
                 // Your (game) code could be placed here
                 printf("\rposition: %5.1f", aax.offset());
                 sleep(1);
             }
-            while (aax.playing());
+            while (emitter.state() == AAX_PLAYING);
         }
     }
     else {
