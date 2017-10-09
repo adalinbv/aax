@@ -63,9 +63,11 @@ int main(int argc, char **argv)
         {
             aaxEmitter emitter;
             aaxEffect effect;
+            float pitch, duration;
             float dt = 0.0f;
             int q, state;
-            float pitch;
+
+            duration = getDuration(argc, argv);
 
             /** emitter */
             emitter = aaxEmitterCreate();
@@ -103,7 +105,7 @@ int main(int argc, char **argv)
             res = aaxEmitterSetState(emitter, AAX_PLAYING);
             testForState(res, "aaxEmitterStart");
 
-            printf("Playing sound for 6.0 seconds or until a key is pressed\n");
+            printf("Playing sound for %3.1f seconds or until a key is pressed\n", duration);
             q = 0;
             set_mode(1);
             do
@@ -128,7 +130,7 @@ int main(int argc, char **argv)
 
                 if (get_key()) break;
             }
-            while ((dt < 6.0f) && (state == AAX_PLAYING));
+            while ((dt < duration) && (state == AAX_PLAYING));
             set_mode(0);
 
             res = aaxEmitterSetState(emitter, AAX_STOPPED);
