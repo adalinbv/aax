@@ -146,6 +146,17 @@ getGain(int argc, char **argv)
     return num;
 }
 
+float
+getDuration(int argc, char **argv)
+{
+    float num = 1.0f;
+    char *ret = getCommandLineOption(argc, argv, "-t");
+    if (!ret) ret = getCommandLineOption(argc, argv, "--time");
+    if (ret) num = (float)atof(ret);
+    return num;
+}
+
+
 int
 printCopyright(int argc, char **argv)
 {

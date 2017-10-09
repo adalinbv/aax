@@ -62,6 +62,7 @@ enum aaxFormat getAudioFormat(int, char **, enum aaxFormat);
 int getNumEmitters(int, char **);
 float getPitch(int, char **);
 float getGain(int, char **);
+float getDuration(int, char **);
 int getMode(int, char **);
 char *getRenderer(int, char **);
 int printCopyright(int, char **);
