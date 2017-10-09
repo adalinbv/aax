@@ -110,7 +110,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             env->repeat = (state & ~AAX_REPEAT);
          }
 
-         env->value = nextval;
+         env->value0 = env->value = nextval;
          env->max_stages = _MAX_ENVELOPE_STAGES;
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {

@@ -143,12 +143,12 @@ typedef struct
 
 typedef struct
 {
-   float value;
+   float ctr;
+   float value0, value;
    uint32_t pos;
    unsigned int stage, max_stages, repeat;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
-   float ctr;
 } _aaxRingBufferEnvelopeData;
 
 
