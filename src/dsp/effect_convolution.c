@@ -84,13 +84,14 @@ _aaxConvolutionEffectDestroy(_effect_t* effect)
       {
          if (data->tid[t])
          {
-            _aaxThreadJoin(data->tid[t]);
-            _aaxThreadDestroy(data->tid[t]);
+//          _aaxThreadJoin(data->tid[t]);
+//          _aaxThreadDestroy(data->tid[t]);
          }
       }
 
       free(data->history_ptr);
       free(data->sample_ptr);
+      free(data->freq_filter);
    }
    free(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
