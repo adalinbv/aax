@@ -55,8 +55,8 @@ static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*)
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
-static char** _bufGetDataFromStream(const char*, int*, unsigned int*, float*, size_t*, size_t*);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
+static char** _aaxGetBufferDataFromAAXS(_buffer_t *buffer, char *file);
 // static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 
@@ -804,7 +804,7 @@ _bufDestroyRingBuffer(_buffer_t* buf)
    return rb;
 }
 
-static char**
+char**
 _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *freq, size_t *no_samples, size_t *blocksize)
 {
    const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
@@ -892,6 +892,43 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
    return ptr;
 }
 
+char **
+_aaxGetBufferDataFromAAXS(_buffer_t *buffer, char *file)
+{
+   char *s, *u, *url, **ptr = NULL;
+   size_t no_samples, blocksize;
+   unsigned int tracks;
+   float freq;
+   int fmt;
+
+   u = strdup(buffer->url);
+   url = _aaxURLConstruct(u, file);
+   free(u);
+
+   s = strrchr(url, '.');
+   if (!s || strcasecmp(s, ".aaxs")) {
+      ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
+                                       &no_samples, &blocksize);
+   }
+   free(url);
+
+   if (ptr)
+   {
+      _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, NULL);
+
+      buffer->format = fmt;
+      buffer->no_samples = no_samples;
+      buffer->blocksize = blocksize;
+      buffer->no_tracks = tracks;
+      buffer->frequency = freq;
+
+//    rb->set_format(rb, fmt, AAX_FALSE);
+      rb->set_parami(rb, RB_NO_TRACKS, buffer->no_tracks);
+      rb->set_parami(rb, RB_NO_SAMPLES, buffer->no_samples);
+   }
+
+   return ptr;
+}
 
 static int
 _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
@@ -911,44 +948,18 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
       if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
       if (xsid)
       {
-          _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
          void *xwid = xmlMarkId(xsid);
 //       double duration;
 
          if (xmlAttributeExists(xsid, "file"))
          {
-            char *s, *u, *url, **ptr = NULL;
-            size_t no_samples, blocksize;
-            unsigned int tracks;
-            float freq;
-            int fmt;
-
-            u = strdup(handle->url);
-            s = xmlAttributeGetString(xsid, "file");
-            url = _aaxURLConstruct(u, s);
-            free(s);
-            free(u);
-
-            s = strrchr(url, '.');
-            if (!s || strcasecmp(s, ".aaxs")) {
-               ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
-                                                &no_samples, &blocksize);
-            }
-            free(url);
+            char *file = xmlAttributeGetString(xsid, "file");
+            char **ptr = _aaxGetBufferDataFromAAXS(handle, file);
+            xmlFree(file);
 
             if (ptr)
             {
-               handle->format = fmt;
-               handle->no_samples = no_samples;
-               handle->blocksize = blocksize;
-               handle->no_tracks = tracks;
-               handle->frequency = freq;
-
-//             rb->set_format(rb, fmt, AAX_FALSE);
-               rb->set_parami(rb, RB_NO_TRACKS, handle->no_tracks);
-               rb->set_parami(rb, RB_NO_SAMPLES, handle->no_samples);
-
                rv = aaxBufferSetData(handle, ptr[0]);
                free(ptr);
             }
@@ -961,6 +972,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
          duration = xmlAttributeGetDouble(xsid, "duration");
          if (duration != XML_FPNONE)
          {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
             size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
             if (duration <= 0.0) {
             } else if (duration > (handle->frequency/no_samples)) {

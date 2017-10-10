@@ -481,6 +481,10 @@ aaxDriverDestroy(aaxConfig config)
 
       _intBufErase(&handle->sensors, _AAX_SENSOR, _aaxFreeSensor);
 
+      if (handle->buffer) {
+         aaxBufferDestroy(handle->buffer);
+      }
+
       if (handle->devname[0] != _aax_default_devname)
       {
          free(handle->devname[0]);
