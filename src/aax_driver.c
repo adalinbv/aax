@@ -463,10 +463,25 @@ aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
+   aaxEffect effect;
 
    aaxMixerSetState(handle, AAX_STOPPED);
    aaxSensorSetState(handle, AAX_STOPPED);
    aaxDriverClose(handle);
+
+   effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
+   if (effect)
+   {
+      aaxMixerSetEffect(config, effect);
+      aaxEffectDestroy(effect);
+   }
+
+   effect = aaxEffectCreate(config, AAX_CONVOLUTION_EFFECT);
+   if (effect)
+   {
+      aaxMixerSetEffect(config, effect);
+      aaxEffectDestroy(effect);
+   }
 
    if (handle && !handle->handle)
    {
@@ -1319,6 +1334,8 @@ _aaxFreeSensor(void *ssr)
    free(_FILTER_GET2D_DATA(smixer, DYNAMIC_GAIN_FILTER));
    free(_FILTER_GET2D_DATA(smixer, TIMED_GAIN_FILTER));
    free(_EFFECT_GET2D_DATA(smixer, DYNAMIC_PITCH_EFFECT));
+   free(_EFFECT_GET2D_DATA(smixer, REVERB_EFFECT));
+   free(_EFFECT_GET3D_DATA(smixer, CONVOLUTION_EFFECT));
 
    effect = _EFFECT_GET2D_DATA(smixer, DELAY_EFFECT);
    if (effect) free(effect->history_ptr);
