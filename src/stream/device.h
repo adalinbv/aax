@@ -33,6 +33,8 @@ extern "C" {
 
 #include <driver.h>
 
+#define COPY_TO_BUFFER	"_ctb237676265365"
+
 #define MAX_ID_STRLEN	64
 #define PERIOD_SIZE	4096
 #define IOBUF_THRESHOLD	(2*PERIOD_SIZE)

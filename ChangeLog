@@ -1,3 +1,15 @@
+* Mon Oct  9 2017 - tech@adalin.org
+- AeonWave (3.0.4) stable; urgency=low
+ * Add the option to repeat the timed-gain filter for a specified number of
+   times. This could be useful for repeating sounds like alarm and clock sounds.
+   If a timed-pitch effect is present for the same emitter then it will repeat
+   at the same moment the timed-gain filter restarts.
+ * Fix the buffer length when a file is specified for the sound section of an
+   AAXS file.
+
+-- Erik Hofman <tech@adalin.org>  Mon, 09 Oct  2017 14:16:00 + 0200
+
+
 * Tue Oct  3 2017 - tech@adalin.org
 - AeonWave (3.0.3) stable; urgency=medium
  * Support WAV files with LIST adtl, bext, cue and smpl tags.

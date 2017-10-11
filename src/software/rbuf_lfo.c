@@ -242,7 +242,7 @@ _aaxRingBufferLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, u
 }
 
 float
-_aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *velocity)
+_aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *velocity, _aaxRingBufferEnvelopeData *penv)
 {
    float rv = 1.0f;
    if (env)
@@ -266,6 +266,10 @@ _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *
             }
          }
 
+         // If the number-of-steps for this stage is reached go to the next.
+         // If the duration of a stage == (uint32_t)-1 then we keep looping
+         // the sample until stopped becomes true. After that the rest of the
+         // stages get processed.
          if ((env->pos == env->max_pos[stage])
              || (env->max_pos[stage] == (uint32_t)-1 && stopped))
          {
@@ -273,6 +277,28 @@ _aaxRingBufferEnvelopeGet(_aaxRingBufferEnvelopeData *env, char stopped, float *
             env->stage++;
          }
       }
+
+      // Only the timed-gain-filter supports env->repeat > 1
+      if ((env->repeat > 1) &&
+          ((env->stage == env->max_stages) || (rv < -1e-3f)))
+      {
+         if (rv < -1e-3f) rv = 0.0f;
+         env->value = env->value0;
+         env->stage = 0;
+         env->stage = 0;
+         env->pos = 0;
+         env->ctr = 0.0f;
+         env->repeat--;
+         if (penv)
+         {
+            penv->value = penv->value0;
+            penv->stage = 0;
+            penv->stage = 0;
+            penv->pos = 0;
+            penv->ctr = 0.0f;
+         }
+      }
+
       *velocity = env->value;
    }
    return rv;

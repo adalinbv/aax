@@ -53,7 +53,8 @@ static int _aaxMixerInit(_handle_t*);
 static int _aaxMixerStart(_handle_t*);
 static int _aaxMixerStop(_handle_t*);
 static int _aaxMixerUpdate(_handle_t*);
-static int _mixerCreateEFFromAAXS(aaxConfig, const char*);
+static int _mixerCreateEFFromAAXS(aaxConfig, _buffer_t*);
+static aaxBuffer _aaxCreateBufferFromAAXS(aaxConfig, _buffer_t*, char*);
 
 AAX_API int AAX_APIENTRY
 aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
@@ -599,7 +600,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
       }
    }
 
-   if (rv)
+   if (rv && handle->sensors)
    {
       const _intBufferData* dptr;
       switch (effect->type)
@@ -784,7 +785,7 @@ aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
    }
 
    if (rv) {
-     rv = _mixerCreateEFFromAAXS(config, buffer->aaxs);
+     rv = _mixerCreateEFFromAAXS(config, buffer);
    }
    return rv;
 }
@@ -1579,12 +1580,11 @@ _aaxMixerUpdate(_handle_t *handle)
    return rv;
 }
 
-
-
 static int
-_mixerCreateEFFromAAXS(aaxConfig config, const char *aaxs)
+_mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
 {
    _handle_t *handle = get_handle(config, __func__);
+   const char *aaxs = buffer->aaxs;
    int rv = AAX_TRUE;
    void *xid;
 
@@ -1632,12 +1632,29 @@ _mixerCreateEFFromAAXS(aaxConfig config, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
             {
+               char *file = xmlAttributeGetString(xeid, "file");
                aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid);
                if (eff)
                {
+                  _effect_t* effect = get_effect(eff);
+                  if (file && effect->type == AAX_CONVOLUTION_EFFECT)
+                  {
+                     aaxBuffer buf;
+
+                     buf = _aaxCreateBufferFromAAXS(handle, buffer, file);
+                     if (buf)
+                     {
+                        aaxEffectAddBuffer(eff, buf);
+                        handle->buffer = buf;
+                     }
+                     else {
+                        _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+                     }
+                  }
                   aaxMixerSetEffect(handle, eff);
                   aaxEffectDestroy(eff);
                }
+               xmlFree(file);
             }
          }
          xmlFree(xeid);
@@ -1650,5 +1667,52 @@ _mixerCreateEFFromAAXS(aaxConfig config, const char *aaxs)
       _aaxErrorSet(AAX_INVALID_STATE);
       rv = AAX_FALSE;
    }
+   return rv;
+}
+
+static aaxBuffer
+_aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
+{
+   _buffer_t *rv = NULL;
+   char *s, *u, *url, **ptr = NULL;
+   size_t no_samples, blocksize;
+   unsigned int tracks;
+   float freq;
+   int fmt;
+
+   u = strdup(buffer->url);
+   url = _aaxURLConstruct(u, file);
+   free(u);
+
+   s = strrchr(url, '.');
+   if (!s || strcasecmp(s, ".aaxs")) {
+      ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
+                                       &no_samples, &blocksize);
+   }
+
+   if (ptr)
+   {
+      rv = aaxBufferCreate(config, no_samples, tracks, fmt);
+      if (rv)
+      {
+          free(rv->url);
+          rv->url = url;
+
+          aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
+          aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
+          if ((aaxBufferSetData(rv, ptr[0])) == AAX_FALSE) {
+             aaxBufferDestroy(rv);
+             rv  = NULL;
+          }
+      }
+      else {
+         free(url);
+      }
+      free(ptr);
+   }
+   else {
+      free(url);
+   }
+
    return rv;
 }

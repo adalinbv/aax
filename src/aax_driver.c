@@ -463,10 +463,23 @@ aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
+   aaxEffect effect;
 
    aaxMixerSetState(handle, AAX_STOPPED);
    aaxSensorSetState(handle, AAX_STOPPED);
    aaxDriverClose(handle);
+
+   // This assigns a new effect without any effect data to the mixer
+   // and returns the already assigned effect, possibly with a data
+   // section. The data gets destroyed when de returned effect gets
+   // destroyed.
+   effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
+   aaxMixerSetEffect(config, effect);
+   aaxEffectDestroy(effect);
+
+   effect = aaxEffectCreate(config, AAX_CONVOLUTION_EFFECT);
+   aaxMixerSetEffect(config, effect);
+   aaxEffectDestroy(effect);
 
    if (handle && !handle->handle)
    {
@@ -480,6 +493,10 @@ aaxDriverDestroy(aaxConfig config)
       }
 
       _intBufErase(&handle->sensors, _AAX_SENSOR, _aaxFreeSensor);
+
+      if (handle->buffer) {
+         aaxBufferDestroy(handle->buffer);
+      }
 
       if (handle->devname[0] != _aax_default_devname)
       {
@@ -1315,6 +1332,8 @@ _aaxFreeSensor(void *ssr)
    free(_FILTER_GET2D_DATA(smixer, DYNAMIC_GAIN_FILTER));
    free(_FILTER_GET2D_DATA(smixer, TIMED_GAIN_FILTER));
    free(_EFFECT_GET2D_DATA(smixer, DYNAMIC_PITCH_EFFECT));
+   free(_EFFECT_GET2D_DATA(smixer, REVERB_EFFECT));
+   free(_EFFECT_GET3D_DATA(smixer, CONVOLUTION_EFFECT));
 
    effect = _EFFECT_GET2D_DATA(smixer, DELAY_EFFECT);
    if (effect) free(effect->history_ptr);

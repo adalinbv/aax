@@ -1343,9 +1343,32 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
    tracks = (MIX_T**)rbd->track;
    for (track=0; track<no_tracks; track++)
    {
+      MIX_T *dptr = tracks[track];
+#if 0
+      float *histx = rbd->freqfilter_historyx;
+      float *histy = rbd->freqfilter_historyy;
+      float xm1 = hist_x[track];
+      float ym1 = hist_y[track];
+      size_t i = no_samples;
+
+      // remove any DC offset
+      do
+      {
+         float x = *dptr;
+         float y = x - xm1 + 0.995 * ym1;
+         xm1 = x;
+         ym1 = y;
+         *dptr++ = y;
+      }
+      while (--i);
+      hist_x[track] = xm1;
+      hist_y[track] = ym1;
+#endif
+
       rms = 0;
       peak = no_samples;
-      _aaxRingBufferLimiter(tracks[track], &rms, &peak, _val[type][0], _val[type][1]); 
+      dptr = tracks[track];
+      _aaxRingBufferLimiter(dptr, &rms, &peak, _val[type][0], _val[type][1]); 
 
       avg = rbi->average[track];
       avg = (rms_rr*avg + (1.0f-rms_rr)*rms);

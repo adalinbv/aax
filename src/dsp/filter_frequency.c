@@ -385,17 +385,14 @@ _batch_ema_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, floa
    if (num)
    {
       float32_ptr s = (float32_ptr)sptr;
-      float smp; // b1 = 1.0f - a1;
       size_t i = num;
+      float smp;
 
       smp = *hist;
       do
       {
-#if 0
-         smp = a1*(*s++) + b1*smp;
-#else
+//       smp = a1*(*s++) + (1.0f - a1)*smp;
          smp += a1*(*s++ - smp);	// smp = a1*(*s++ - smp) + smp;
-#endif
          *d++ = smp;
       }
       while (--i);
