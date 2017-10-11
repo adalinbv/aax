@@ -635,7 +635,11 @@ _aaxRingBufferDelaysRemove(void **data)
       reverb->no_delays = 0;
       reverb->no_loopbacks = 0;
       reverb->delay[0].gain = 1.0f;
+#if BYTE_ALIGN
+      _aax_free(reverb->history_ptr);
+#else
       free(reverb->history_ptr);
+#endif
       free(reverb->freq_filter);
       reverb->freq_filter = 0;
       reverb->history_ptr = 0;
