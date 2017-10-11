@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <aax/aax.h>
@@ -90,6 +91,14 @@ int main()
     WAVE("inverse_square", AAX_INVERSE_SQUARE_WAVE);
     WAVE("inverse_sawtooth", AAX_INVERSE_SAWTOOTH_WAVE);
     WAVE("inverse_envelope", AAX_INVERSE_ENVELOPE_FOLLOW);
+
+    WAVE("", AAX_CONSTANT_VALUE);
+    WAVE("|", AAX_CONSTANT_VALUE);
+    WAVE("||||", AAX_CONSTANT_VALUE);
+    WAVE("sine|square", AAX_SINE_WAVE|AAX_SQUARE_WAVE);
+    WAVE("sine|triangle|square|sawtooth", AAX_SINE_WAVE|AAX_TRIANGLE_WAVE|AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE);
+    WAVE("square|sawtooth|sine", AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE|AAX_SINE_WAVE);
+    WAVE("sine|inverse_triangle", AAX_SINE_WAVE|AAX_INVERSE_TRIANGLE_WAVE);
 
     /* distance model */
     DIST("AAX_DISTANCE_MODEL_NONE", AAX_DISTANCE_MODEL_NONE);

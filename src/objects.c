@@ -468,14 +468,25 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid)
             _aaxSetSlotFromAAXSOld(xid, aaxFilterSetSlotParams, flt);
          }
 
-         slen = xmlAttributeCopyString(xid, "src", src, 64);
-         if (slen)
+         if ((ftype == AAX_TIMED_GAIN_FILTER) &&
+              xmlAttributeExists(xid, "repeat"))
          {
-            src[slen] = 0;
-            if (ftype == AAX_DISTANCE_FILTER) {
-               state = aaxGetDistanceModelByName(src);
-            } else {
-               state = aaxGetWaveformTypeByName(src);
+            state = xmlAttributeGetInt(xid, "repeat");
+            if (state < 0) state = 0;
+            if (state >= AAX_REPEAT) state = AAX_REPEAT-1;
+            state |= AAX_REPEAT;
+         }
+         else
+         {
+            slen = xmlAttributeCopyString(xid, "src", src, 64);
+            if (slen)
+            {
+               src[slen] = 0;
+               if (ftype == AAX_DISTANCE_FILTER) {
+                  state = aaxGetDistanceModelByName(src);
+               } else {
+                  state = aaxGetWaveformTypeByName(src);
+               }
             }
          }
          aaxFilterSetState(flt, state);

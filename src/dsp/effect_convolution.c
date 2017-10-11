@@ -82,12 +82,16 @@ _aaxConvolutionEffectDestroy(_effect_t* effect)
       unsigned int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; ++t) 
       {
-         _aaxThreadJoin(data->tid[t]);
-         _aaxThreadDestroy(data->tid[t]);
+         if (data->tid[t])
+         {
+//       _aaxThreadJoin(data->tid[t]); // this is done by the renderer already
+            _aaxThreadDestroy(data->tid[t]);
+         }
       }
 
       free(data->history_ptr);
       free(data->sample_ptr);
+      free(data->freq_filter);
    }
    free(effect->slot[0]->data);
    effect->slot[0]->data = NULL;

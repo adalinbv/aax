@@ -452,9 +452,9 @@ set( AEONWAVE_OBJS
      src/aax_sensor.c
      src/aax_support.c
      src/aax_emitter.c
-     src/aax_eventmgr.c
-     src/aax_instrument.c
-     src/aax_midi.c
+#    src/aax_eventmgr.c
+#    src/aax_instrument.c
+#    src/aax_midi.c
      src/aax_filters.c
      src/aax_effects.c
      src/dsp/filters.c
