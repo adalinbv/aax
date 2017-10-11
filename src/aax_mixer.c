@@ -600,7 +600,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
       }
    }
 
-   if (rv)
+   if (rv && handle->sensors)
    {
       const _intBufferData* dptr;
       switch (effect->type)

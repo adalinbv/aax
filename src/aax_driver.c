@@ -469,19 +469,17 @@ aaxDriverDestroy(aaxConfig config)
    aaxSensorSetState(handle, AAX_STOPPED);
    aaxDriverClose(handle);
 
+   // This assigns a new effect without any effect data to the mixer
+   // and returns the already assigned effect, possibly with a data
+   // section. The data gets destroyed when de returned effect gets
+   // destroyed.
    effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
-   if (effect)
-   {
-      aaxMixerSetEffect(config, effect);
-      aaxEffectDestroy(effect);
-   }
+   aaxMixerSetEffect(config, effect);
+   aaxEffectDestroy(effect);
 
    effect = aaxEffectCreate(config, AAX_CONVOLUTION_EFFECT);
-   if (effect)
-   {
-      aaxMixerSetEffect(config, effect);
-      aaxEffectDestroy(effect);
-   }
+   aaxMixerSetEffect(config, effect);
+   aaxEffectDestroy(effect);
 
    if (handle && !handle->handle)
    {
