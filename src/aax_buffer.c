@@ -655,7 +655,7 @@ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr, no_samples, freq, track
          free(ptr);
       }
       else {
-         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         _aaxErrorSet(AAX_INVALID_REFERENCE);
       }
    }
 
@@ -964,7 +964,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                free(ptr);
             }
             else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+               _aaxErrorSet(AAX_INVALID_REFERENCE);
             }
          }
 
