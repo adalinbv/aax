@@ -2,7 +2,8 @@
 
 <aeonwave>
 
- <sound name="Contamination Alarm" frequency="440" file="sine-440Hz.wav">
+ <sound name="Hazard Alarm" frequency="440" file="sine-440Hz.wav">
+  <!-- <waveform src="sine" pitch="0.95"/> -->
   <waveform src="sawtooth" processing="modulate" pitch="0.5"/>
  </sound>
 
@@ -22,5 +23,13 @@
    </slot>
   </filter>
  </emitter>
+
+ <mixer>
+  <effect type="convolution" file="tictac.wav">
+   <slot n="0">
+    <param n="3" type="logarithmic">-64.0</param>
+   </slot>
+  </effect>
+ </mixer>
 
 </aeonwave>
