@@ -31,20 +31,6 @@
     <param n="3">1.8</param>
    </slot>
   </filter>
-  <filter type="frequency" >
-   <slot n="0">
-    <param n="0">1000</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">10.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">8000</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
  </emitter>
 
 </aeonwave>
