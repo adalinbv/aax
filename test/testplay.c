@@ -57,8 +57,14 @@ int main(int argc, char **argv)
 
     if (config)
     {
-        aaxBuffer buffer = bufferFromFile(config, infile);
+        aaxBuffer buffer;
+
+        res = aaxMixerSetSetup(config, AAX_REFRESH_RATE, 90.0f);
+        testForState(res, "aaxMixerSetSetup");
+
+        buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to create a buffer");
+
         if (buffer)
         {
             aaxEmitter emitter;
@@ -94,6 +100,9 @@ int main(int argc, char **argv)
             /** mixer */
             res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
+
+            res = aaxMixerAddBuffer(config, buffer);
+            testForState(res, "aaxMixerAddBuffer");
 
             res = aaxMixerRegisterEmitter(config, emitter);
             testForState(res, "aaxMixerRegisterEmitter");
