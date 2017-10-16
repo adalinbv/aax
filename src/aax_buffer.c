@@ -1162,12 +1162,12 @@ _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float stati
 
       if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
       {
-          no_samples = floorf((no_samples/samps_period)+1)*samps_period;
-          rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-          rb->init(rb, AAX_FALSE);
-       }
-       f = (float)no_samples/(float)samps_period;
-       f = fw*ceilf(f)/f;
+         no_samples = floorf((no_samples/samps_period)+1)*samps_period;
+         rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+         rb->init(rb, AAX_FALSE);
+      }
+      f = (float)no_samples/(float)samps_period;
+      f = fw*ceilf(f)/f;
 
       switch (ptype)
       {
