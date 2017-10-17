@@ -484,6 +484,8 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid)
                src[slen] = 0;
                if (ftype == AAX_DISTANCE_FILTER) {
                   state = aaxGetDistanceModelByName(src);
+               } else if (ftype == AAX_FREQUENCY_FILTER) {
+                  state = aaxGetFrequencyFilterTypeByName(src);
                } else {
                   state = aaxGetWaveformTypeByName(src);
                }

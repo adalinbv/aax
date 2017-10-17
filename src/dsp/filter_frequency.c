@@ -836,10 +836,6 @@ _aax_bessel_compute(float fc, void *flt)
 void
 _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {
-
-void
-_aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
-{
 // http://www.eevblog.com/forum/projects/sallen-key-lpf-frequency-scaling-factor
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
    static const float _FSF[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
