@@ -1,3 +1,10 @@
+* Tue Oct 17 2017 - tech@adalin.org
+- AeonWave (3.0.5) stable; urgency=low
+ * Add the aaxGetFrequencyFilterTypeByName function.
+
+-- Erik Hofman <tech@adalin.org>  Tue, 17 Oct  2017 13:39:00 + 0200
+
+
 * Mon Oct  9 2017 - tech@adalin.org
 - AeonWave (3.0.4) stable; urgency=low
  * Add the option to repeat the timed-gain filter for a specified number of
