@@ -178,6 +178,9 @@ int main()
     FREQ("36db/oct|bessel", AAX_BESSEL|AAX_36DB_OCT);
     FREQ("48db/oct|bessel", AAX_BESSEL|AAX_48DB_OCT);
 
+    FREQ("1st-order|sine", AAX_1ST_ORDER|AAX_SINE_WAVE);
+    FREQ("4th-order|bessel|sawtooth", AAX_BESSEL|AAX_4TH_ORDER|AAX_SAWTOOTH_WAVE);
+
     /* filters */
     FLT("AAX_EQUALIZER", AAX_EQUALIZER);
     FLT("AAX_VOLUME_FILTER", AAX_VOLUME_FILTER);

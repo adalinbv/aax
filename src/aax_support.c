@@ -449,8 +449,8 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_SAWTOOTH_WAVE;
             } else if (!strncasecmp(name, "envelope", len)) {
                rv |= AAX_ENVELOPE_FOLLOW;
-            }
-            else {
+            } else if (!strncasecmp(name, "true", len) ||
+                       !strncasecmp(name, "constant", len)) {
                rv = AAX_CONSTANT_VALUE;
             }
          }
@@ -519,64 +519,71 @@ aaxGetDistanceModelByName(const char *name)
 }
 
 AAX_API enum aaxFrequencyFilterType AAX_APIENTRY
-aaxGetFrequencyFilterTypeByName(const char *name)
+aaxGetFrequencyFilterTypeByName(const char *type)
 {
-   enum aaxFrequencyFilterType rv = AAX_FALSE;
-   char *ptr = strchr(name, '|');
-   size_t len;
+   enum aaxFrequencyFilterType rv = aaxGetWaveformTypeByName(type);
 
-   if (!strncasecmp(name, "AAX_", 4)) {
-      name += 4;
-   }
-
-   len = strlen(name);
-   if (ptr)
+   if (type)
    {
-      if (!strncasecmp(name, "BESSEL", ptr-name))
+      char *last, *name = (char*)type;
+      size_t len;
+
+      last = strchr(name, '|');
+      if (!last) last = name+strlen(name);
+
+      do
       {
-         name = ptr+1;
-         len = strlen(name);
-         rv |= AAX_BESSEL;
-      }
-      else if (!strcasecmp(ptr+1, "BESSEL") || !strcasecmp(ptr+1, "AAX_BESSEL"))
-      {
-         len = ptr-name;
-         rv |= AAX_BESSEL;
-      }
-   }
+         if (!strncasecmp(name, "AAX_", 4)) {
+            name += 4;
+         }
 
-   if (!strncasecmp(name, "AAX_", 4)) {
-      name += 4;
-      len -= 4;
-   }
+         len = last-name;
+         if (!strncasecmp(name, "BESSEL", len)) {
+            rv |= AAX_BESSEL;
+         }
+         else
+         {
+            if (!strncasecmp(name+len-5, "ORDER", 5))
+            {
+               if (*(name+len-6) == '_' || *(name+len-6) == '-') {
+                  len -= 6;
+               }
+            }
+            else if (!strncasecmp(name+len-3, "OCT", 3))
+            {
+               if (*(name+len-4) == '_' || *(name+len-4) == '/') {
+                  len -= 4;
+               }
+            }
 
-   if (!strncasecmp(name+len-5, "ORDER", 5))
-   {
-      if (*(name+len-6) == '_' || *(name+len-6) == '-') {
-         len -= 6;
-      }
-   }
-   else if (!strncasecmp(name+len-3, "OCT", 3))
-   {
-      if (*(name+len-4) == '_' || *(name+len-4) == '/') {
-         len -= 4;
-      }
-   }
+            if (!strncasecmp(name, "1st", len) ||
+                !strncasecmp(name, "6db", len)) {
+               rv |= AAX_1ST_ORDER;
+            }
+            else if (!strncasecmp(name, "2nd", len) ||
+                     !strncasecmp(name, "12db", len)) {
+               rv |= AAX_2ND_ORDER;
+            }
+            else if (!strncasecmp(name, "4th", len) ||
+                     !strncasecmp(name, "24db", len)) {
+               rv |= AAX_4TH_ORDER;
+            }
+            else if (!strncasecmp(name, "6th", len) ||
+                     !strncasecmp(name, "36db", len)) {
+               rv |= AAX_6TH_ORDER;
+            }
+            else if (!strncasecmp(name, "8th", len) ||
+                     !strncasecmp(name, "48db", len)) {
+               rv |= AAX_8TH_ORDER;
+            }
+         }
 
-   if (!strncasecmp(name, "1st", len) || !strncasecmp(name, "6db", len)) {
-      rv |= AAX_1ST_ORDER; 
-   }
-   else if (!strncasecmp(name, "2nd", len) || !strncasecmp(name, "12db", len)) {
-      rv |= AAX_2ND_ORDER;
-   }
-   else if (!strncasecmp(name, "4th", len) || !strncasecmp(name, "24db", len)) {
-      rv |= AAX_4TH_ORDER;
-   }
-   else if (!strncasecmp(name, "6th", len) || !strncasecmp(name, "36db", len)) {
-      rv |= AAX_6TH_ORDER;
-   }
-   else if (!strncasecmp(name, "8th", len) || !strncasecmp(name, "48db", len)) {
-      rv |= AAX_8TH_ORDER;
+         if (last == name+strlen(name)) break;
+         name = ++last;
+         last = strchr(name, '|');
+         if (!last) last = name+strlen(name);
+      }
+      while(last);
    }
 
    return rv;
