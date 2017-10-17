@@ -518,6 +518,70 @@ aaxGetDistanceModelByName(const char *name)
    return rv;
 }
 
+AAX_API enum aaxFrequencyFilterType AAX_APIENTRY
+aaxGetFrequencyFilterTypeByName(const char *name)
+{
+   enum aaxFrequencyFilterType rv = AAX_FALSE;
+   char *ptr = strchr(name, '|');
+   size_t len;
+
+   if (!strncasecmp(name, "AAX_", 4)) {
+      name += 4;
+   }
+
+   len = strlen(name);
+   if (ptr)
+   {
+      if (!strncasecmp(name, "BESSEL", ptr-name))
+      {
+         name = ptr+1;
+         len = strlen(name);
+         rv |= AAX_BESSEL;
+      }
+      else if (!strcasecmp(ptr+1, "BESSEL") || !strcasecmp(ptr+1, "AAX_BESSEL"))
+      {
+         len = ptr-name;
+         rv |= AAX_BESSEL;
+      }
+   }
+
+   if (!strncasecmp(name, "AAX_", 4)) {
+      name += 4;
+      len -= 4;
+   }
+
+   if (!strncasecmp(name+len-5, "ORDER", 5))
+   {
+      if (*(name+len-6) == '_' || *(name+len-6) == '-') {
+         len -= 6;
+      }
+   }
+   else if (!strncasecmp(name+len-3, "OCT", 3))
+   {
+      if (*(name+len-4) == '_' || *(name+len-4) == '/') {
+         len -= 4;
+      }
+   }
+
+   if (!strncasecmp(name, "1st", len) || !strncasecmp(name, "6db", len)) {
+      rv |= AAX_1ST_ORDER; 
+   }
+   else if (!strncasecmp(name, "2nd", len) || !strncasecmp(name, "12db", len)) {
+      rv |= AAX_2ND_ORDER;
+   }
+   else if (!strncasecmp(name, "4th", len) || !strncasecmp(name, "24db", len)) {
+      rv |= AAX_4TH_ORDER;
+   }
+   else if (!strncasecmp(name, "6th", len) || !strncasecmp(name, "36db", len)) {
+      rv |= AAX_6TH_ORDER;
+   }
+   else if (!strncasecmp(name, "8th", len) || !strncasecmp(name, "48db", len)) {
+      rv |= AAX_8TH_ORDER;
+   }
+
+   return rv;
+}
+
 /* -------------------------------------------------------------------------- */
 
 const char *_aax_id_s[_AAX_MAX_ID] =
