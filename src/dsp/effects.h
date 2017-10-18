@@ -44,6 +44,8 @@ extern "C" {
 #define DELAY_EFFECTS_TIME      0.0f
 #endif
 
+aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned);
+
 void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int);
 void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int);
 

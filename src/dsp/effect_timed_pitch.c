@@ -44,31 +44,14 @@
 static aaxEffect
 _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   unsigned int size = sizeof(_effect_t);
-   _effect_t* eff = NULL;
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2);
    aaxEffect rv = NULL;
 
-   size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxEffectInfo);
-   eff = calloc(1, size);
    if (eff)
    {
-      char *ptr;
-      int i;
-
-      eff->id = EFFECT_ID;
-      eff->state = AAX_FALSE;
-      eff->info = info;
-
-      ptr = (char*)eff + sizeof(_effect_t);
-      eff->slot[0] = (_aaxEffectInfo*)ptr;
-      eff->pos = _eff_cvt_tbl[type].pos;
-      eff->type = type;
-
-      size = sizeof(_aaxEffectInfo);
-      for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
-      {
-         eff->slot[i] = (_aaxEffectInfo*)(ptr + i*size);
-         _aaxSetDefaultEffect2d(eff->slot[i], eff->pos);
+      unsigned s;
+      for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
+         _aaxSetDefaultEffect2d(eff->slot[s], eff->pos);
       }
       rv = (aaxEffect)eff;
    }

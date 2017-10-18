@@ -45,25 +45,11 @@ static float _aaxCompressorMinMax(float, int, unsigned char);
 static aaxFilter
 _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
-  _filter_t* flt = calloc(1, size);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
    aaxFilter rv = NULL;
 
    if (flt)
    {
-      char *ptr;
-
-      flt->id = FILTER_ID;
-      flt->state = AAX_FALSE;
-      flt->info = info;
-
-      ptr = (char*)flt + sizeof(_filter_t);
-      flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->pos = _flt_cvt_tbl[type].pos;
-      flt->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-      flt->slot[1] = (_aaxFilterInfo*)(ptr + size);
       flt->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
       flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);

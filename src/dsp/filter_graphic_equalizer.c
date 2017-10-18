@@ -43,27 +43,11 @@
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   unsigned int size = sizeof(_filter_t);
-   _filter_t* flt;
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX);
    aaxFilter rv = NULL;
 
-   size += EQUALIZER_MAX*sizeof(_aaxFilterInfo);
-   flt = calloc(1, size);
    if (flt)
    {
-      char *ptr;
-
-      flt->id = FILTER_ID;
-      flt->state = AAX_FALSE;
-      flt->info = info;
-
-      ptr = (char*)flt + sizeof(_filter_t);
-      flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->pos = _flt_cvt_tbl[type].pos;
-      flt->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-      flt->slot[1] = (_aaxFilterInfo*)(ptr + size);
       flt->slot[0]->param[0] = 1.0f; flt->slot[1]->param[0] = 1.0f;
       flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
       flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
