@@ -34,6 +34,39 @@
 #include "common.h"
 #include "filters.h"
 
+aaxFilter
+_aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned slots)
+{
+   aaxFilter rv = NULL;
+   unsigned int size;
+   _filter_t* flt;
+
+   size = sizeof(_filter_t) + slots*sizeof(_aaxFilterInfo);
+   flt = calloc(1, size);
+   if (flt)
+   {
+      unsigned s;
+      char *ptr;
+
+      flt->id = FILTER_ID;
+      flt->state = AAX_FALSE;
+      flt->info = info;
+
+      ptr = (char*)flt + sizeof(_filter_t);
+      flt->slot[0] = (_aaxFilterInfo*)ptr;
+      flt->pos = _flt_cvt_tbl[type].pos;
+      flt->type = type;
+
+      size = sizeof(_aaxFilterInfo);
+      for (s=0; s<slots; ++s) {
+         flt->slot[s] = (_aaxFilterInfo*)(ptr + s*size);
+      }
+
+      rv = (aaxFilter)flt;
+   }
+   return rv;
+}
+
 _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
 {
    &_aaxEqualizer,

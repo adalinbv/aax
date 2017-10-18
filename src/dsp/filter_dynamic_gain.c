@@ -45,25 +45,11 @@ static float _aaxDynamicGainFilterMinMax(float, int, unsigned char);
 static aaxFilter
 _aaxDynamicGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
-   _filter_t* flt = calloc(1, size);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
    aaxFilter rv = NULL;
 
    if (flt)
    {
-      char *ptr;
-
-      flt->id = FILTER_ID;
-      flt->state = AAX_FALSE;
-      flt->info = info;
-
-      ptr = (char*)flt + sizeof(_filter_t);
-      flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->pos = _flt_cvt_tbl[type].pos;
-      flt->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-      flt->slot[1] = (_aaxFilterInfo*)(ptr + size);
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
       rv = (aaxFilter)flt;
    }

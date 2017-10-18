@@ -33,6 +33,39 @@
 #include "common.h"
 #include "effects.h"
 
+aaxEffect
+_aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned slots)
+{
+   aaxEffect rv = NULL;
+   unsigned int size;
+   _effect_t* eff;
+
+   size = sizeof(_effect_t) + slots*sizeof(_aaxEffectInfo);
+   eff = calloc(1, size);
+   if (eff)
+   {
+      unsigned s;
+      char *ptr;
+
+      eff->id = EFFECT_ID;
+      eff->state = AAX_FALSE;
+      eff->info = info;
+
+      ptr = (char*)eff + sizeof(_effect_t);
+      eff->slot[0] = (_aaxEffectInfo*)ptr;
+      eff->pos = _eff_cvt_tbl[type].pos;
+      eff->type = type;
+
+      size = sizeof(_aaxEffectInfo);
+      for (s=0; s<slots; ++s) {
+         eff->slot[s] = (_aaxEffectInfo*)(ptr + s*size);
+      }
+
+      rv = (aaxEffect)eff;
+   }
+   return rv;
+}
+
 _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
 {
    &_aaxPitchEffect,
