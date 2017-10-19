@@ -124,6 +124,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_GET(P, f, p)            P->effect[f].param[p]
 #define _EFFECT_GET_STATE(P, f)         P->effect[f].state
 #define _EFFECT_GET_DATA(P, f)          P->effect[f].data
+#define _EFFECT_FREE_DATA(P, f)         if (P->effect[f].destroy) P->effect[f].destroy(P->effect[f].data)
 #define _EFFECT_SET(P, f, p, v)         P->effect[f].param[p] = v
 #define _EFFECT_SET_STATE(P, f, v)      P->effect[f].state = v;
 #define _EFFECT_SET_DATA(P, f, v)       P->effect[f].data = v
@@ -133,8 +134,10 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 
 #define _EFFECT_GET2D(G, f, p)          _EFFECT_GET(G->props2d, f, p)
 #define _EFFECT_GET2D_DATA(G, f)        _EFFECT_GET_DATA(G->props2d, f)
+#define _EFFECT_FREE2D_DATA(G, f)	_EFFECT_FREE_DATA(G->props2d, f)
 #define _EFFECT_GET3D(G, f, p)          _EFFECT_GET(G->props3d, f, p)
 #define _EFFECT_GET3D_DATA(G, f)        _EFFECT_GET_DATA(G->props3d, f)
+#define _EFFECT_FREE3D_DATA(G, f)	_EFFECT_FREE_DATA(G->props3d, f)
 #define _EFFECT_SET2D(G, f, p, v)       _EFFECT_SET(G->props2d, f, p, v)
 #define _EFFECT_SET2D_DATA(G, f, v)     _EFFECT_SET_DATA(G->props2d, f, v)
 #define _EFFECT_SET3D(G, f, p, v)       _EFFECT_SET(G->props3d, f, p, v)
@@ -152,6 +155,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_SWAP_SLOT_DATA(P, f, F, s)                              \
     do { void* ptr = P->effect[f].data;                                 \
     P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr;       \
+    P->effect[f].destroy = F->slot[s]->destroy;                         \
     if (!s) aaxEffectSetState(F, P->effect[f].state); } while (0);
 
 #endif /* _AAX_EFFECTS_H */

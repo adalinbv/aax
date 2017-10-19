@@ -69,27 +69,20 @@ _aaxAngularFilterSetState(UNUSED(_filter_t* filter), UNUSED(int state))
 }
 
 static _filter_t*
-_aaxNewAngularFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewAngularFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
 {
-   unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
-   _filter_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
+      unsigned int size = sizeof(_aaxFilterInfo);
 
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxFilterInfo);
       memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
+      rv->slot[0]->data = NULL;
+
+      rv->state = p3d->filter[rv->pos].state;
    }
    return rv;
 }

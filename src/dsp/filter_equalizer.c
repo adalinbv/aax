@@ -50,6 +50,7 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       _aaxSetDefaultFilter2d(flt->slot[1], flt->pos);
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      flt->slot[0]->destroy = destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -58,9 +59,9 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxEqualizerDestroy(_filter_t* filter)
 {
-   filter->slot[1]->data = NULL;
-   free(filter->slot[0]->data);
+   filter->slot[0]->destroy(filter->slot[0]->data);
    filter->slot[0]->data = NULL;
+   filter->slot[1]->data = NULL;
    free(filter);
 
    return AAX_TRUE;
@@ -238,9 +239,9 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
    }
    else if (state == AAX_FALSE)
    {
-      filter->slot[1]->data = NULL;
-      free(filter->slot[0]->data);
+      filter->slot[0]->destroy(filter->slot[0]->data);
       filter->slot[0]->data = NULL;
+      filter->slot[1]->data = NULL;
       rv = filter;
    }
    else {
@@ -253,31 +254,22 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 static _filter_t*
 _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_filter_t);
-   _filter_t* rv = NULL;
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX);
 
-   size += EQUALIZER_MAX*sizeof(_aaxFilterInfo);
-   rv = calloc(1, size);
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
+      unsigned int size = sizeof(_aaxFilterInfo);
 
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-      rv->slot[1] = (_aaxFilterInfo*)(ptr + size);
       memcpy(rv->slot[1], &p2d->filter[rv->pos], size);
       rv->slot[1]->data = NULL;
+
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      rv->slot[0]->destroy = destroy;
       rv->slot[0]->data = NULL;
+
+      rv->state = p2d->filter[rv->pos].state;
    }
    return rv;
 }

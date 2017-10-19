@@ -53,6 +53,7 @@ _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
       flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      flt->slot[0]->destroy = destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -61,7 +62,7 @@ _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxCompressorDestroy(_filter_t* filter)
 {
-   free(filter->slot[0]->data);
+   filter->slot[0]->destroy(filter->slot[0]->data);
    filter->slot[0]->data = NULL;
    free(filter);
 
@@ -195,7 +196,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       break;
    }
    case AAX_FALSE:
-      free(filter->slot[0]->data);
+      filter->slot[0]->destroy(filter->slot[0]->data);
       filter->slot[0]->data = NULL;
       break;
    default:
@@ -209,29 +210,22 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 static _filter_t*
 _aaxNewCompressorHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
-   _filter_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
+      unsigned int size = sizeof(_aaxFilterInfo);
 
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
+      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      rv->slot[0]->destroy = destroy;
+      rv->slot[0]->data = NULL;
 
-      size = sizeof(_aaxFilterInfo);
-      rv->slot[1] = (_aaxFilterInfo*)(ptr + size);
       rv->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
       rv->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
-      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-      rv->slot[0]->data = NULL;
+
+      rv->state = p2d->filter[rv->pos].state;
    }
    return rv;
 }

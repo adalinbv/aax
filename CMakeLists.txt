@@ -457,6 +457,7 @@ set( AEONWAVE_OBJS
 #    src/aax_midi.c
      src/aax_filters.c
      src/aax_effects.c
+     src/dsp/common.c
      src/dsp/filters.c
      src/dsp/effects.c
      src/dsp/effect_chorus.c

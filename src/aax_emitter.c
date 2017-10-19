@@ -123,19 +123,14 @@ aaxEmitterDestroy(aaxEmitter emitter)
       _aaxEmitter *src = handle->source;
       if (!handle->handle && _IS_PROCESSED(src->props3d))
       {
-         _aaxRingBufferDelayEffectData* effect;
-
          _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,_aaxFreeEmitterBuffer);
 
-         free(_FILTER_GET2D_DATA(src, FREQUENCY_FILTER));
-         free(_FILTER_GET2D_DATA(src, DYNAMIC_GAIN_FILTER));
-         free(_FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER));
-         free(_EFFECT_GET2D_DATA(src, DYNAMIC_PITCH_EFFECT));
-         free(_EFFECT_GET2D_DATA(src, TIMED_PITCH_EFFECT));
-
-         effect = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
-         if (effect) free(effect->history_ptr);
-         free(effect);
+         _FILTER_FREE2D_DATA(src, FREQUENCY_FILTER);
+         _FILTER_FREE2D_DATA(src, DYNAMIC_GAIN_FILTER);
+         _FILTER_FREE2D_DATA(src, TIMED_GAIN_FILTER);
+         _EFFECT_FREE2D_DATA(src, DYNAMIC_PITCH_EFFECT);
+         _EFFECT_FREE2D_DATA(src, TIMED_PITCH_EFFECT);
+         _EFFECT_FREE2D_DATA(src, DELAY_EFFECT);
 
          _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
          _aax_aligned_free(src->props3d->dprops3d);

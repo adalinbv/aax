@@ -150,17 +150,13 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
    if (rv)
    {
-      _aaxRingBufferDelayEffectData* effect;
       _aaxAudioFrame* fmixer = handle->submix;
 
-      free(_FILTER_GET2D_DATA(fmixer, FREQUENCY_FILTER));
-      free(_FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER));
-      free(_FILTER_GET2D_DATA(fmixer, TIMED_GAIN_FILTER));
-      free(_EFFECT_GET2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT));
-
-      effect = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
-      if (effect) free(effect->history_ptr);
-      free(effect);
+      _FILTER_FREE2D_DATA(fmixer, FREQUENCY_FILTER);
+      _FILTER_FREE2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+      _FILTER_FREE2D_DATA(fmixer, TIMED_GAIN_FILTER);
+      _EFFECT_FREE2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT);
+      _EFFECT_FREE2D_DATA(fmixer, DELAY_EFFECT);
 
       _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
       _aax_aligned_free(fmixer->props3d->dprops3d);
