@@ -53,6 +53,7 @@ _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
       for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
          _aaxSetDefaultEffect2d(eff->slot[s], eff->pos);
       }
+      eff->slot[0]->destroy = destroy;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -61,7 +62,7 @@ _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxTimedPitchEffectDestroy(_effect_t* effect)
 {
-   free(effect->slot[0]->data);
+   effect->slot[0]->destroy(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
    free(effect);
 
@@ -143,7 +144,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
    }
    else
    {
-      free(effect->slot[0]->data);
+      effect->slot[0]->destroy(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
    }
    rv = effect;
@@ -153,35 +154,27 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 static _effect_t*
 _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_effect_t);
-   _effect_t* rv = NULL;
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2);
 
-   size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxEffectInfo);
-   rv = calloc(1, size);
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_effect_t);
+      unsigned int size = sizeof(_aaxEffectInfo);
       _aaxRingBufferEnvelopeData *env;
       unsigned int no_steps;
       float dt, value;
       int i, stages;
 
-      rv->id = EFFECT_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxEffectInfo*)ptr;
-      rv->pos = _eff_cvt_tbl[type].pos;
-      rv->state = p2d->effect[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxEffectInfo);
-      env = (_aaxRingBufferEnvelopeData*)p2d->effect[rv->pos].data;
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      rv->slot[0]->destroy = destroy;
       rv->slot[0]->data = NULL;
 
+      rv->state = p2d->effect[rv->pos].state;
+
       i = 0;
+      env = (_aaxRingBufferEnvelopeData*)p2d->effect[rv->pos].data;
+
       if (env->max_pos[1] > env->max_pos[0]) i = 1;
       dt = p2d->effect[rv->pos].param[2*i+1] / env->max_pos[i];
 
@@ -192,10 +185,7 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
       stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
       for (i=1; i<stages; i++)
       {
-         _aaxEffectInfo* slot;
-
-         slot = (_aaxEffectInfo*)(ptr + i*size);
-         rv->slot[i] = slot;
+         _aaxEffectInfo* slot = rv->slot[i];
 
          no_steps = env->max_pos[2*i];
          slot->param[0] = value;

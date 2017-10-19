@@ -50,6 +50,7 @@ _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      eff->slot[0]->destroy = destroy;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -58,6 +59,8 @@ _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxDistortionEffectDestroy(_effect_t* effect)
 {
+   effect->slot[0]->destroy(effect->slot[0]->data);
+   effect->slot[0]->data = NULL;
    free(effect);
 
    return AAX_TRUE;
@@ -124,7 +127,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    }
    case AAX_CONSTANT_VALUE:
    case AAX_FALSE:
-      free(effect->slot[0]->data);
+      effect->slot[0]->destroy(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
       break;
    default:
@@ -138,26 +141,19 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
 static _effect_t*
 _aaxNewDistortionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-   _effect_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_effect_t);
+      unsigned int size = sizeof(_aaxEffectInfo);
 
-      rv->id = EFFECT_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxEffectInfo*)ptr;
-      rv->pos = _eff_cvt_tbl[type].pos;
-      rv->state = p2d->effect[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxEffectInfo);
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      rv->slot[0]->destroy = destroy;
       rv->slot[0]->data = NULL;
+
+      rv->state = p2d->effect[rv->pos].state;
    }
    return rv;
 }

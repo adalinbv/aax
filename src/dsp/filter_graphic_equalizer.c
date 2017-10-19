@@ -52,6 +52,7 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
       flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
       flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
+      flt->slot[EQUALIZER_HF]->destroy = destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -60,10 +61,10 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxGraphicEqualizerDestroy(_filter_t* filter)
 {
-   free(filter->slot[1]->data);
-   filter->slot[1]->data = NULL;
-   free(filter->slot[0]->data);
-   filter->slot[0]->data = NULL;
+   filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
+   filter->slot[EQUALIZER_LF]->data = NULL;
+   filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
+   filter->slot[EQUALIZER_HF]->data = NULL;
    free(filter);
 
    return AAX_TRUE;
@@ -143,10 +144,10 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
    }
    else if (state == AAX_FALSE)
    {
-      free(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-      free(filter->slot[1]->data);
-      filter->slot[1]->data = NULL;
+      filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
+      filter->slot[EQUALIZER_LF]->data = NULL;
+      filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
+      filter->slot[EQUALIZER_HF]->data = NULL;
       rv = filter;
    }
    else {
@@ -159,32 +160,20 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
 static _filter_t*
 _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_filter_t);
-   _filter_t* rv = NULL;
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX);
 
-   size += EQUALIZER_MAX*sizeof(_aaxFilterInfo);
-   rv = calloc(1, size);
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
-
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-      rv->slot[1] = (_aaxFilterInfo*)(ptr + size);
       rv->slot[0]->param[0] = 1.0f; rv->slot[1]->param[0] = 1.0f;
       rv->slot[0]->param[1] = 1.0f; rv->slot[1]->param[1] = 1.0f;
       rv->slot[0]->param[2] = 1.0f; rv->slot[1]->param[2] = 1.0f;
       rv->slot[0]->param[3] = 1.0f; rv->slot[1]->param[3] = 1.0f;
       rv->slot[0]->data = NULL;     rv->slot[1]->data = NULL;
+      rv->slot[EQUALIZER_HF]->destroy = destroy;
+
+      rv->state = p2d->filter[rv->pos].state;
    }
    return rv;
 }

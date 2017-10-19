@@ -52,6 +52,7 @@ _aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
          _aaxSetDefaultFilter2d(flt->slot[s], flt->pos);
       }
+      flt->slot[0]->destroy = destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -60,7 +61,7 @@ _aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxTimedGainFilterDestroy(_filter_t* filter)
 {
-   free(filter->slot[0]->data);
+   filter->slot[0]->destroy(filter->slot[0]->data);
    filter->slot[0]->data = NULL;
    free(filter);
 
@@ -145,7 +146,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
    }
    else
    {
-      free(filter->slot[0]->data);
+      filter->slot[0]->destroy(filter->slot[0]->data);
       filter->slot[0]->data = NULL;
    }
    rv = filter;
@@ -155,36 +156,27 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
 static _filter_t*
 _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_filter_t);
-   _filter_t* rv = NULL;
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2);
 
-   size += (_MAX_ENVELOPE_STAGES/2)*sizeof(_aaxFilterInfo);
-   rv = calloc(1, size);
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
+      unsigned int size = sizeof(_aaxFilterInfo);
       _aaxRingBufferEnvelopeData *env;
       unsigned int no_steps;
       float dt, value;
       int i, stages;
 
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-
-      env = (_aaxRingBufferEnvelopeData*)p2d->filter[rv->pos].data;
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      rv->slot[0]->destroy = destroy;
       rv->slot[0]->data = NULL;
 
+      rv->state = p2d->filter[rv->pos].state;
+
       i = 0;
+      env = (_aaxRingBufferEnvelopeData*)p2d->filter[rv->pos].data;
+
       if (env->max_pos[1] > env->max_pos[0]) i = 1;
       dt = p2d->filter[rv->pos].param[2*i+1] / env->max_pos[i];
 
@@ -195,10 +187,7 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
       stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
       for (i=1; i<stages; i++)
       {
-         _aaxFilterInfo* slot;
-
-         slot = (_aaxFilterInfo*)(ptr + i*size);
-         rv->slot[i] = slot;
+         _aaxFilterInfo* slot = rv->slot[i];
 
          no_steps = env->max_pos[2*i];
          slot->param[0] = value;

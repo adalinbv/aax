@@ -102,18 +102,14 @@ typedef struct
 {
    float param[4];
    int state;
-   void* data;          /* filter specific interal data structure */
+   void* data;          /* filter and effect specific interal data structure */
+   void (*destroy)(void*); /* function to call to free the data structure */
 
-} _aaxFilterInfo;
+} _aaxDSPInfo;
 
-typedef struct
-{
-   float param[4];
-   int state;
-   void* data;          /* effect specific interal data structure */
-
-
-} _aaxEffectInfo;
+typedef _aaxDSPInfo _aaxFilterInfo;
+typedef _aaxDSPInfo _aaxEffectInfo;
+void destroy(void *ptr);
 
 typedef float _aaxRingBufferPitchShiftFn(float, float, float);
 extern _aaxRingBufferPitchShiftFn* _aaxRingBufferDopplerFn[];

@@ -73,20 +73,6 @@
 #endif
 
 
-float _lin(float v) { return v; }
-float _square(float v) { return v*v; }
-float _lin2log(float v) { return log10f(v); }
-float _log2lin(float v) { return powf(10.0f,v); }
-float _lin2db(float v) { return 20.0f*log10f(v); }
-float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
-float _rad2deg(float v) { return v*GMATH_RAD_TO_DEG; }
-float _deg2rad(float v) { return fmodf(v, 360.0f)*GMATH_DEG_TO_RAD; }
-float _cos_deg2rad_2(float v) { return cosf(_deg2rad(v)/2); }
-float _2acos_rad2deg(float v) { return 2*_rad2deg(acosf(v)); }
-float _cos_2(float v) { return cosf(v/2); }
-float _2acos(float v) { return 2*acosf(v); }
-
-
 #ifndef WIN32
 # include <stdio.h>
 # include <sys/types.h>

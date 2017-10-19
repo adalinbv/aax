@@ -1113,6 +1113,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                _filter_t *filter = (_filter_t *)f;
                aaxFilterSetState(f, filter->slot[0]->state);
                aaxEmitterSetFilter(emitter, f);
+               aaxFilterDestroy(f);
             }
 
             src->info = handle->info;
