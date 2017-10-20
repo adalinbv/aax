@@ -57,6 +57,22 @@ inline const char* strerror(enum aaxErrorType e=error_no()) {
     return aaxGetErrorString(e);
 }
 
+inline enum aaxType type(const char *s) {
+   return aaxGetTypeByName(s);
+}
+
+inline enum aaxWaveformType waveform_type(const char *s) {
+   return aaxGetWaveformTypeByName(s);
+}
+
+inline enum aaxFrequencyFilterType frequency_filter_type(const char *s) {
+   return aaxGetFrequencyFilterTypeByName(s);
+}
+
+inline enum aaxDistanceModel distance_model(const char *s) {
+   return aaxGetDistanceModelByName(s);
+}
+
 inline bool is_valid(void* c, enum aaxHandleType t=AAX_CONFIG) {
     return aaxIsValid(c,t);
 }
