@@ -876,7 +876,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       break;
    case RB_TRACKSIZE:
       val /= rbd->bytes_sample;
-      /* no break needed */
+      // intentional fallthrough
    case RB_NO_SAMPLES:
       if (rbd->track == NULL)
       {

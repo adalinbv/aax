@@ -719,7 +719,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
       {
          res = handle->io->write(handle->io, handle->out_header,
                                             handle->out_hdr_size);
-         if (res == handle->out_hdr_size)
+         if ((size_t)res == handle->out_hdr_size)
          {
             free(handle->out_header);
             handle->out_header = NULL;

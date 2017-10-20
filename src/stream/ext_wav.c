@@ -1105,10 +1105,13 @@ getMSChannelMask(uint16_t nChannels)
       break;
    case 8:
       rv |= SPEAKER_SIDE_LEFT | SPEAKER_SIDE_RIGHT;
+      // intentional fallthrough
    case 6:
       rv |= SPEAKER_FRONT_CENTER | SPEAKER_LOW_FREQUENCY;
+      // intentional fallthrough
    case 4:
       rv |= SPEAKER_BACK_LEFT | SPEAKER_BACK_RIGHT;
+      // intentional fallthrough
    case 2:
       break;
    default:

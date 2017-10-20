@@ -67,7 +67,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
       {
       case AAX_STEREO_EMITTERS:
          setup *= 2;
-         /* break not needed */
+         // intentional fallthrough
       case AAX_MONO_EMITTERS:
          rv = (setup <= _aaxGetNoEmitters()) ? AAX_TRUE : AAX_FALSE;
          break;
@@ -88,7 +88,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          {
          case AAX_STEREO_EMITTERS:
             setup *= 2;
-            /* break not needed */
+            // intentional fallthrough
          case AAX_MONO_EMITTERS:
             rv = (setup <= info->max_emitters) ? AAX_TRUE : AAX_FALSE;
             break;
