@@ -229,7 +229,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             }
             else
             {
-               ssize_t samples = cno_samples+CUBIC_SAMPS;
+               size_t samples = cno_samples+CUBIC_SAMPS;
                size_t send = sno_samples;
                MIX_T *ptr = scratch0;
 

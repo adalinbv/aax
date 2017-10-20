@@ -351,7 +351,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          else if (_IS_PAUSED(src->props3d)) {
             _TAS_PAUSED(src->props3d, AAX_FALSE);
          }
-         /* break not needed */
+         // intentional fallthrough
       case AAX_UPDATE:				/* update distance delay */
          if (handle->mixer_pos != UINT_MAX)	/* emitter is registered */
          {
@@ -463,7 +463,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          {
          case AAX_TIMED_GAIN_FILTER:
             _PROP_DISTDELAY_SET_DEFINED(src->props3d);
-            /* break not needed */
+            // intentional fallthrough
          case AAX_FREQUENCY_FILTER:
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:
@@ -569,7 +569,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          case AAX_PITCH_EFFECT:
          case AAX_TIMED_PITCH_EFFECT:
             _PROP_PITCH_SET_CHANGED(src->props3d);
-            /* break not needed */
+            // intentional fallthrough
          case AAX_DISTORTION_EFFECT:
          {
             _aax2dProps *p2d = src->props2d;
@@ -880,6 +880,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
          {
          case AAX_BYTES:   
             offs /= rb->get_parami(rb, RB_BYTES_SAMPLE);
+            // intentional fallthrough
          case AAX_FRAMES:
          case AAX_SAMPLES:
             samples = rb->get_parami(rb, RB_NO_SAMPLES);

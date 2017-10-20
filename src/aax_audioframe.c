@@ -429,6 +429,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          else {
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
+         break;
       }
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
