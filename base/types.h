@@ -147,9 +147,10 @@ uint64_t _aax_bswap64(uint64_t x);
 //# define _WIN32_WINNT 0x0500
 # ifdef HAVE_POLL_H
 #  include <poll.h>
-#elif HAVE_WINSOCK2_H
+# elif HAVE_WINSOCK2_H
 #  include <winsock2.h>
-#endif
+#  include <ws2tcpip.h>
+# endif
 # define WIN32_LEAN_AND_MEAN
 # include <windows.h>
 # include <stdio.h>
