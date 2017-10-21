@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -123,19 +123,14 @@ aaxEmitterDestroy(aaxEmitter emitter)
       _aaxEmitter *src = handle->source;
       if (!handle->handle && _IS_PROCESSED(src->props3d))
       {
-         _aaxRingBufferDelayEffectData* effect;
-
          _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,_aaxFreeEmitterBuffer);
 
-         free(_FILTER_GET2D_DATA(src, FREQUENCY_FILTER));
-         free(_FILTER_GET2D_DATA(src, DYNAMIC_GAIN_FILTER));
-         free(_FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER));
-         free(_EFFECT_GET2D_DATA(src, DYNAMIC_PITCH_EFFECT));
-         free(_EFFECT_GET2D_DATA(src, TIMED_PITCH_EFFECT));
-
-         effect = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
-         if (effect) free(effect->history_ptr);
-         free(effect);
+         _FILTER_FREE2D_DATA(src, FREQUENCY_FILTER);
+         _FILTER_FREE2D_DATA(src, DYNAMIC_GAIN_FILTER);
+         _FILTER_FREE2D_DATA(src, TIMED_GAIN_FILTER);
+         _EFFECT_FREE2D_DATA(src, DYNAMIC_PITCH_EFFECT);
+         _EFFECT_FREE2D_DATA(src, TIMED_PITCH_EFFECT);
+         _EFFECT_FREE2D_DATA(src, DELAY_EFFECT);
 
          _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
          _aax_aligned_free(src->props3d->dprops3d);
@@ -356,7 +351,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          else if (_IS_PAUSED(src->props3d)) {
             _TAS_PAUSED(src->props3d, AAX_FALSE);
          }
-         /* break not needed */
+         // intentional fallthrough
       case AAX_UPDATE:				/* update distance delay */
          if (handle->mixer_pos != UINT_MAX)	/* emitter is registered */
          {
@@ -468,7 +463,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
          {
          case AAX_TIMED_GAIN_FILTER:
             _PROP_DISTDELAY_SET_DEFINED(src->props3d);
-            /* break not needed */
+            // intentional fallthrough
          case AAX_FREQUENCY_FILTER:
          case AAX_VOLUME_FILTER:
          case AAX_DYNAMIC_GAIN_FILTER:
@@ -574,7 +569,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
          case AAX_PITCH_EFFECT:
          case AAX_TIMED_PITCH_EFFECT:
             _PROP_PITCH_SET_CHANGED(src->props3d);
-            /* break not needed */
+            // intentional fallthrough
          case AAX_DISTORTION_EFFECT:
          {
             _aax2dProps *p2d = src->props2d;
@@ -885,6 +880,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
          {
          case AAX_BYTES:   
             offs /= rb->get_parami(rb, RB_BYTES_SAMPLE);
+            // intentional fallthrough
          case AAX_FRAMES:
          case AAX_SAMPLES:
             samples = rb->get_parami(rb, RB_NO_SAMPLES);

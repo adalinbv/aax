@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -40,29 +40,18 @@
 #include "api.h"
 #include "arch.h"
 
+static void _reverb_destroy(void*);
 
 static aaxEffect
 _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-   _effect_t* eff = calloc(1, size);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
    aaxEffect rv = NULL;
 
    if (eff)
    {
-      char *ptr;
-
-      eff->id = EFFECT_ID;
-      eff->state = AAX_FALSE;
-      eff->info = info;
-
-      ptr = (char*)eff + sizeof(_effect_t);
-      eff->slot[0] = (_aaxEffectInfo*)ptr;
-      eff->pos = _eff_cvt_tbl[type].pos;
-      eff->type = type;
-
-      size = sizeof(_aaxEffectInfo);
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      eff->slot[0]->destroy = _reverb_destroy;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -71,8 +60,7 @@ _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxReverbEffectDestroy(_effect_t* effect)
 {
-   _aaxRingBufferDelaysRemove(&effect->slot[0]->data);
-   free(effect->slot[0]->data);
+   effect->slot[0]->destroy(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
    free(effect);
 
@@ -208,8 +196,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       break;
    }
    case AAX_FALSE:
-      _aaxRingBufferDelaysRemove(&effect->slot[0]->data);
-      free(effect->slot[0]->data);
+      effect->slot[0]->destroy(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
       break;
    default:
@@ -223,26 +210,19 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 _effect_t*
 _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-   _effect_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_effect_t);
+      unsigned int size = sizeof(_aaxEffectInfo);
 
-      rv->id = EFFECT_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxEffectInfo*)ptr;
-      rv->pos = _eff_cvt_tbl[type].pos;
-      rv->state = p2d->effect[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxEffectInfo);
-      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      rv->slot[0]->destroy = _reverb_destroy;
       rv->slot[0]->data = NULL;
+
+      rv->state = p2d->effect[rv->pos].state;
    }
    return rv;
 }
@@ -293,4 +273,11 @@ _eff_function_tbl _aaxReverbEffect =
    (_aaxEffectConvert*)&_aaxReverbEffectGet,
    (_aaxEffectConvert*)&_aaxReverbEffectMinMax
 };
+
+static void
+_reverb_destroy(void *ptr)
+{  
+   _aaxRingBufferDelaysRemove(&ptr);
+   free(ptr);
+}
 

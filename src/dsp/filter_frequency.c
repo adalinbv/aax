@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -40,29 +40,18 @@
 #include "filters.h"
 #include "api.h"
 
+static void _freqfilter_destroy(void*);
+
 static aaxFilter
 _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
-   _filter_t* flt = calloc(1, size);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
    aaxFilter rv = NULL;
 
    if (flt)
    {
-      char *ptr;
-
-      flt->id = FILTER_ID;
-      flt->state = AAX_FALSE;
-      flt->info = info;
-
-      ptr = (char*)flt + sizeof(_filter_t);
-      flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->pos = _flt_cvt_tbl[type].pos;
-      flt->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-      flt->slot[1] = (_aaxFilterInfo*)(ptr + size);
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      flt->slot[0]->destroy = _freqfilter_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -71,9 +60,9 @@ _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxFrequencyFilterDestroy(_filter_t* filter)
 {
-   filter->slot[1]->data = NULL;
-   free(filter->slot[0]->data);
+   filter->slot[0]->destroy(filter->slot[0]->data);
    filter->slot[0]->data = NULL;
+   filter->slot[1]->data = NULL;
    free(filter);
 
    return AAX_TRUE;
@@ -244,9 +233,9 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    }
    else if (wstate == AAX_FALSE)
    {
-      filter->slot[1]->data = NULL;
-      free(filter->slot[0]->data);
+      filter->slot[0]->destroy(filter->slot[0]->data);
       filter->slot[0]->data = NULL;
+      filter->slot[1]->data = NULL;
    }
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -258,28 +247,21 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 static _filter_t*
 _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
-   _filter_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
 
    if (rv)
    { 
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
+      unsigned int size = sizeof(_aaxFilterInfo);
       _aaxRingBufferFreqFilterData *freq;
 
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
+      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      rv->slot[0]->destroy = _freqfilter_destroy;
+      rv->slot[0]->data = NULL;
 
-      size = sizeof(_aaxFilterInfo);
-      freq = (_aaxRingBufferFreqFilterData *)p2d->filter[rv->pos].data;
-      rv->slot[1] = (_aaxFilterInfo*)(ptr + size);
       /* reconstruct rv->slot[1] */
+      freq = (_aaxRingBufferFreqFilterData*)p2d->filter[rv->pos].data;
       if (freq && freq->lfo)
       {
          rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = freq->lfo->f;
@@ -290,8 +272,8 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
          rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = 1.0f;
          rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = 22050.0f;
       }
-      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-      rv->slot[0]->data = NULL;
+
+      rv->state = p2d->filter[rv->pos].state;
    }
    return rv;
 }
@@ -348,6 +330,16 @@ _flt_function_tbl _aaxFrequencyFilter =
    (_aaxFilterConvert*)&_aaxFrequencyFilterMinMax
 };
 
+static void
+_freqfilter_destroy(void *ptr)
+{
+   _aaxRingBufferFreqFilterData *flt = ptr;
+   if (flt)
+   {
+      free(flt->lfo);
+      free(flt);
+   }
+}
 
 /**
  * 1st order, 6dB/octave exponential moving average Butterwordth FIR filter
@@ -833,10 +825,6 @@ _aax_bessel_compute(float fc, void *flt)
    filter->k = k;
 }
 #else
-void
-_aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
-{
-
 void
 _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int stages, char type)
 {

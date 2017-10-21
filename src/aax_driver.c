@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -463,23 +463,10 @@ aaxDriverDestroy(aaxConfig config)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = AAX_FALSE;
-   aaxEffect effect;
 
    aaxMixerSetState(handle, AAX_STOPPED);
    aaxSensorSetState(handle, AAX_STOPPED);
    aaxDriverClose(handle);
-
-   // This assigns a new effect without any effect data to the mixer
-   // and returns the already assigned effect, possibly with a data
-   // section. The data gets destroyed when de returned effect gets
-   // destroyed.
-   effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
-   aaxMixerSetEffect(config, effect);
-   aaxEffectDestroy(effect);
-
-   effect = aaxEffectCreate(config, AAX_CONVOLUTION_EFFECT);
-   aaxMixerSetEffect(config, effect);
-   aaxEffectDestroy(effect);
 
    if (handle && !handle->handle)
    {
@@ -1319,7 +1306,6 @@ static void
 _aaxFreeSensor(void *ssr)
 {
    _sensor_t *sensor = (_sensor_t*)ssr;
-   _aaxRingBufferDelayEffectData* effect;
    _aaxAudioFrame* smixer = sensor->mixer;
 
    /* frees both EQUALIZER_LF and EQUALIZER_HF */
@@ -1328,16 +1314,13 @@ _aaxFreeSensor(void *ssr)
    /* frees both HRTF_HEADSHADOW and SURROUND_CROSSOVER_LP **/
    free(sensor->filter[HRTF_HEADSHADOW].data);
 
-   free(_FILTER_GET2D_DATA(smixer, FREQUENCY_FILTER));
-   free(_FILTER_GET2D_DATA(smixer, DYNAMIC_GAIN_FILTER));
-   free(_FILTER_GET2D_DATA(smixer, TIMED_GAIN_FILTER));
-   free(_EFFECT_GET2D_DATA(smixer, DYNAMIC_PITCH_EFFECT));
-   free(_EFFECT_GET2D_DATA(smixer, REVERB_EFFECT));
-   free(_EFFECT_GET3D_DATA(smixer, CONVOLUTION_EFFECT));
-
-   effect = _EFFECT_GET2D_DATA(smixer, DELAY_EFFECT);
-   if (effect) free(effect->history_ptr);
-   free(effect);
+   _FILTER_FREE2D_DATA(smixer, FREQUENCY_FILTER);
+   _FILTER_FREE2D_DATA(smixer, DYNAMIC_GAIN_FILTER);
+   _FILTER_FREE2D_DATA(smixer, TIMED_GAIN_FILTER);
+   _EFFECT_FREE2D_DATA(smixer, DYNAMIC_PITCH_EFFECT);
+   _EFFECT_FREE2D_DATA(smixer, REVERB_EFFECT);
+   _EFFECT_FREE3D_DATA(smixer, CONVOLUTION_EFFECT);
+   _EFFECT_FREE2D_DATA(smixer, DELAY_EFFECT);
 
    _intBufErase(&smixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
    _aax_aligned_free(smixer->props3d->dprops3d);

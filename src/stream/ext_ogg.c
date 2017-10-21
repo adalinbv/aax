@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -645,7 +645,7 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
 static int
 _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
-   ssize_t bufsize = handle->oggBuffer->avail;
+   size_t bufsize = handle->oggBuffer->avail;
    uint32_t curr;
    int rv = 0;
 
@@ -836,7 +836,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                rv += ch[27+i];
             }
 
-            if (rv <= bufsize)
+            if (rv <= (int)bufsize)
             {
                _aaxDataMove(handle->oggBuffer, NULL, rv);
                rv = 0;

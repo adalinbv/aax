@@ -5,6 +5,7 @@
 
 #define DIST(a,b)	testDist((a),(b),__LINE__)
 #define WAVE(a,b)       testWave((a),(b),__LINE__)
+#define FREQ(a,b)	testFreq((a),(b),__LINE__)
 #define FLT(a,b)	testFilter((a),(b),__LINE__)
 #define EFF(a,b)	testEffect((a),(b),__LINE__)
 
@@ -23,6 +24,17 @@ void
 testWave(const char *name, int type, int lineno)
 {   
     int res = aaxGetWaveformTypeByName(name);
+    if (res != type)
+    {
+        printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
+        exit(-1);
+    }
+}
+
+void
+testFreq(const char *name, int type, int lineno)
+{
+    int res = aaxGetFrequencyFilterTypeByName(name);
     if (res != type)
     {
         printf("at line: %i, %s:\t\t0x%x != 0x%x\n", lineno, name, res, type);
@@ -120,6 +132,54 @@ int main()
     DIST("linear-distance-clamped", AAX_AL_LINEAR_DISTANCE_CLAMPED);
     DIST("exponent-distance", AAX_AL_EXPONENT_DISTANCE);
     DIST("exponent-distance-clamped", AAX_AL_EXPONENT_DISTANCE_CLAMPED);
+
+    /* frequency filter */
+    FREQ("AAX_1ST_ORDER", AAX_1ST_ORDER);
+    FREQ("AAX_2ND_ORDER", AAX_2ND_ORDER);
+    FREQ("AAX_4TH_ORDER", AAX_4TH_ORDER);
+    FREQ("AAX_6TH_ORDER", AAX_6TH_ORDER);
+    FREQ("AAX_8TH_ORDER", AAX_8TH_ORDER);
+    FREQ("AAX_1ST_ORDER|AAX_BESSEL", AAX_1ST_ORDER|AAX_BESSEL);
+    FREQ("AAX_2ND_ORDER|AAX_BESSEL", AAX_2ND_ORDER|AAX_BESSEL);
+    FREQ("AAX_4TH_ORDER|AAX_BESSEL", AAX_4TH_ORDER|AAX_BESSEL);
+    FREQ("AAX_6TH_ORDER|AAX_BESSEL", AAX_6TH_ORDER|AAX_BESSEL);
+    FREQ("AAX_8TH_ORDER|AAX_BESSEL", AAX_8TH_ORDER|AAX_BESSEL);
+
+    FREQ("AAX_6DB_OCT", AAX_1ST_ORDER);
+    FREQ("AAX_12DB_OCT", AAX_2ND_ORDER);
+    FREQ("AAX_24DB_OCT", AAX_4TH_ORDER);
+    FREQ("AAX_36DB_OCT", AAX_6TH_ORDER);
+    FREQ("AAX_48DB_OCT", AAX_8TH_ORDER);
+    FREQ("AAX_BESSEL|AAX_6DB_OCT", AAX_BESSEL|AAX_1ST_ORDER);
+    FREQ("AAX_BESSEL|AAX_12DB_OCT", AAX_BESSEL|AAX_2ND_ORDER);
+    FREQ("AAX_BESSEL|AAX_24DB_OCT", AAX_BESSEL|AAX_4TH_ORDER);
+    FREQ("AAX_BESSEL|AAX_36DB_OCT", AAX_BESSEL|AAX_6TH_ORDER);
+    FREQ("AAX_BESSEL|AAX_48DB_OCT", AAX_BESSEL|AAX_8TH_ORDER);
+
+    FREQ("1st-order", AAX_1ST_ORDER);
+    FREQ("2nd-order", AAX_2ND_ORDER);
+    FREQ("4th-order", AAX_4TH_ORDER);
+    FREQ("6th-order", AAX_6TH_ORDER);
+    FREQ("8th-order", AAX_8TH_ORDER);
+    FREQ("bessel|1st-order", AAX_BESSEL|AAX_1ST_ORDER);
+    FREQ("bessel|2nd-order", AAX_BESSEL|AAX_2ND_ORDER);
+    FREQ("bessel|4th-order", AAX_BESSEL|AAX_4TH_ORDER);
+    FREQ("bessel|6th-order", AAX_BESSEL|AAX_6TH_ORDER);
+    FREQ("bessel|8th-order", AAX_BESSEL|AAX_8TH_ORDER);
+
+    FREQ("6db/oct", AAX_6DB_OCT);
+    FREQ("12db/oct", AAX_12DB_OCT);
+    FREQ("24db/oct", AAX_24DB_OCT);
+    FREQ("36db/oct", AAX_36DB_OCT);
+    FREQ("48db/oct", AAX_48DB_OCT);
+    FREQ("6db/oct|bessel", AAX_BESSEL|AAX_6DB_OCT);
+    FREQ("12db/oct|bessel", AAX_BESSEL|AAX_12DB_OCT);
+    FREQ("24db/oct|bessel", AAX_BESSEL|AAX_24DB_OCT);
+    FREQ("36db/oct|bessel", AAX_BESSEL|AAX_36DB_OCT);
+    FREQ("48db/oct|bessel", AAX_BESSEL|AAX_48DB_OCT);
+
+    FREQ("1st-order|sine", AAX_1ST_ORDER|AAX_SINE_WAVE);
+    FREQ("4th-order|bessel|sawtooth", AAX_BESSEL|AAX_4TH_ORDER|AAX_SAWTOOTH_WAVE);
 
     /* filters */
     FLT("AAX_EQUALIZER", AAX_EQUALIZER);

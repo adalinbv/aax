@@ -1957,36 +1957,67 @@ static DRFLAC_INLINE drflac_int32 drflac__calculate_prediction_32(drflac_uint32 
     switch (order)
     {
     case 32: prediction += coefficients[31] * pDecodedSamples[-32];
+    // intentional fallthrough
     case 31: prediction += coefficients[30] * pDecodedSamples[-31];
+    // intentional fallthrough
     case 30: prediction += coefficients[29] * pDecodedSamples[-30];
+    // intentional fallthrough
     case 29: prediction += coefficients[28] * pDecodedSamples[-29];
+    // intentional fallthrough
     case 28: prediction += coefficients[27] * pDecodedSamples[-28];
+    // intentional fallthrough
     case 27: prediction += coefficients[26] * pDecodedSamples[-27];
+    // intentional fallthrough
     case 26: prediction += coefficients[25] * pDecodedSamples[-26];
+    // intentional fallthrough
     case 25: prediction += coefficients[24] * pDecodedSamples[-25];
+    // intentional fallthrough
     case 24: prediction += coefficients[23] * pDecodedSamples[-24];
+    // intentional fallthrough
     case 23: prediction += coefficients[22] * pDecodedSamples[-23];
+    // intentional fallthrough
     case 22: prediction += coefficients[21] * pDecodedSamples[-22];
+    // intentional fallthrough
     case 21: prediction += coefficients[20] * pDecodedSamples[-21];
+    // intentional fallthrough
     case 20: prediction += coefficients[19] * pDecodedSamples[-20];
+    // intentional fallthrough
     case 19: prediction += coefficients[18] * pDecodedSamples[-19];
+    // intentional fallthrough
     case 18: prediction += coefficients[17] * pDecodedSamples[-18];
+    // intentional fallthrough
     case 17: prediction += coefficients[16] * pDecodedSamples[-17];
+    // intentional fallthrough
     case 16: prediction += coefficients[15] * pDecodedSamples[-16];
+    // intentional fallthrough
     case 15: prediction += coefficients[14] * pDecodedSamples[-15];
+    // intentional fallthrough
     case 14: prediction += coefficients[13] * pDecodedSamples[-14];
+    // intentional fallthrough
     case 13: prediction += coefficients[12] * pDecodedSamples[-13];
+    // intentional fallthrough
     case 12: prediction += coefficients[11] * pDecodedSamples[-12];
+    // intentional fallthrough
     case 11: prediction += coefficients[10] * pDecodedSamples[-11];
+    // intentional fallthrough
     case 10: prediction += coefficients[ 9] * pDecodedSamples[-10];
+    // intentional fallthrough
     case  9: prediction += coefficients[ 8] * pDecodedSamples[- 9];
+    // intentional fallthrough
     case  8: prediction += coefficients[ 7] * pDecodedSamples[- 8];
+    // intentional fallthrough
     case  7: prediction += coefficients[ 6] * pDecodedSamples[- 7];
+    // intentional fallthrough
     case  6: prediction += coefficients[ 5] * pDecodedSamples[- 6];
+    // intentional fallthrough
     case  5: prediction += coefficients[ 4] * pDecodedSamples[- 5];
+    // intentional fallthrough
     case  4: prediction += coefficients[ 3] * pDecodedSamples[- 4];
+    // intentional fallthrough
     case  3: prediction += coefficients[ 2] * pDecodedSamples[- 3];
+    // intentional fallthrough
     case  2: prediction += coefficients[ 1] * pDecodedSamples[- 2];
+    // intentional fallthrough
     case  1: prediction += coefficients[ 0] * pDecodedSamples[- 1];
     }
 
@@ -3589,6 +3620,7 @@ drflac_bool32 drflac__read_and_decode_metadata(drflac* pFlac)
                     }
                 }
             }
+            // intentional fallthrough
 
             default:
             {

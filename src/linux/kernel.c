@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -74,7 +74,7 @@
 #define DEFAULT_PCM_NUM		0
 #define	DEFAULT_PCM_NAME	"/dev/snd/pcmC0D0p"
 #define DEFAULT_MIXER_NAME	"/dev/snd/controlC0"
-#define MAX_ID_STRLEN		64
+#define MAX_ID_STRLEN		96
 
 #ifdef __ANDROID__
 # define DEFAULT_RENDERER	"Android"

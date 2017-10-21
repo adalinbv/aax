@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -655,7 +655,7 @@ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr, no_samples, freq, track
          free(ptr);
       }
       else {
-         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         _aaxErrorSet(AAX_INVALID_REFERENCE);
       }
    }
 
@@ -964,7 +964,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                free(ptr);
             }
             else {
-               _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+               _aaxErrorSet(AAX_INVALID_REFERENCE);
             }
          }
 
@@ -1162,12 +1162,12 @@ _aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float stati
 
       if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
       {
-          no_samples = floorf((no_samples/samps_period)+1)*samps_period;
-          rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-          rb->init(rb, AAX_FALSE);
-       }
-       f = (float)no_samples/(float)samps_period;
-       f = fw*ceilf(f)/f;
+         no_samples = floorf((no_samples/samps_period)+1)*samps_period;
+         rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+         rb->init(rb, AAX_FALSE);
+      }
+      f = (float)no_samples/(float)samps_period;
+      f = fw*ceilf(f)/f;
 
       switch (ptype)
       {

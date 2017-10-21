@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -45,28 +45,15 @@ static float _aaxCompressorMinMax(float, int, unsigned char);
 static aaxFilter
 _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
-  _filter_t* flt = calloc(1, size);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
    aaxFilter rv = NULL;
 
    if (flt)
    {
-      char *ptr;
-
-      flt->id = FILTER_ID;
-      flt->state = AAX_FALSE;
-      flt->info = info;
-
-      ptr = (char*)flt + sizeof(_filter_t);
-      flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->pos = _flt_cvt_tbl[type].pos;
-      flt->type = type;
-
-      size = sizeof(_aaxFilterInfo);
-      flt->slot[1] = (_aaxFilterInfo*)(ptr + size);
       flt->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
       flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      flt->slot[0]->destroy = destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -75,7 +62,7 @@ _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxCompressorDestroy(_filter_t* filter)
 {
-   free(filter->slot[0]->data);
+   filter->slot[0]->destroy(filter->slot[0]->data);
    filter->slot[0]->data = NULL;
    free(filter);
 
@@ -209,7 +196,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       break;
    }
    case AAX_FALSE:
-      free(filter->slot[0]->data);
+      filter->slot[0]->destroy(filter->slot[0]->data);
       filter->slot[0]->data = NULL;
       break;
    default:
@@ -223,29 +210,22 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 static _filter_t*
 _aaxNewCompressorHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_filter_t) + 2*sizeof(_aaxFilterInfo);
-   _filter_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
+      unsigned int size = sizeof(_aaxFilterInfo);
 
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
+      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      rv->slot[0]->destroy = destroy;
+      rv->slot[0]->data = NULL;
 
-      size = sizeof(_aaxFilterInfo);
-      rv->slot[1] = (_aaxFilterInfo*)(ptr + size);
       rv->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
       rv->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
-      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-      rv->slot[0]->data = NULL;
+
+      rv->state = p2d->filter[rv->pos].state;
    }
    return rv;
 }

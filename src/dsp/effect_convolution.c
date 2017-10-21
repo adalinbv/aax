@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -40,33 +40,23 @@
 #include "api.h"
 #include "arch.h"
 
+static void _convolution_destroy(void*);
 
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-   _effect_t* eff = calloc(1, size);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
    aaxEffect rv = NULL;
 
    if (eff)
    {
       _aaxRingBufferConvolutionData* data;
-      char *ptr;
 
-      eff->id = EFFECT_ID;
-      eff->state = AAX_FALSE;
-      eff->info = info;
-
-      ptr = (char*)eff + sizeof(_effect_t);
-      eff->slot[0] = (_aaxEffectInfo*)ptr;
-      eff->pos = _eff_cvt_tbl[type].pos;
-      eff->type = type;
-
-      size = sizeof(_aaxEffectInfo);
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos);
 
       data = calloc(1, sizeof(_aaxRingBufferConvolutionData));
       eff->slot[0]->data = data;
+      eff->slot[0]->destroy = _convolution_destroy;
 
       rv = (aaxEffect)eff;
    }
@@ -76,24 +66,7 @@ _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxConvolutionEffectDestroy(_effect_t* effect)
 {
-   _aaxRingBufferConvolutionData* data = effect->slot[0]->data;
-   if (data)
-   {
-      unsigned int t;
-      for (t=0; t<_AAX_MAX_SPEAKERS; ++t) 
-      {
-         if (data->tid[t])
-         {
-//       _aaxThreadJoin(data->tid[t]); // this is done by the renderer already
-            _aaxThreadDestroy(data->tid[t]);
-         }
-      }
-
-      free(data->history_ptr);
-      free(data->sample_ptr);
-      free(data->freq_filter);
-   }
-   free(effect->slot[0]->data);
+   effect->slot[0]->destroy(effect->slot[0]->data);
    effect->slot[0]->data = NULL;
    free(effect);
 
@@ -104,6 +77,11 @@ static aaxEffect
 _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 {
    effect->slot[0]->state = state ? AAX_TRUE : AAX_FALSE;
+   if (effect->slot[0]->state ==  AAX_FALSE)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
    return effect;
 }
 
@@ -223,26 +201,19 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 _effect_t*
 _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
-   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-   _effect_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_effect_t);
+      unsigned int size = sizeof(_aaxEffectInfo);
 
-      rv->id = EFFECT_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxEffectInfo*)ptr;
-      rv->pos = _eff_cvt_tbl[type].pos;
-      rv->state = p2d->effect[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxEffectInfo);
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      rv->slot[0]->destroy = _convolution_destroy;
       rv->slot[0]->data = NULL;
+
+      rv->state = p2d->effect[rv->pos].state;
    }
    return rv;
 }
@@ -299,4 +270,27 @@ _eff_function_tbl _aaxConvolutionEffect =
    (_aaxEffectConvert*)&_aaxConvolutionEffectGet,
    (_aaxEffectConvert*)&_aaxConvolutionEffectMinMax
 };
+
+static void
+_convolution_destroy(void *ptr)
+{
+   _aaxRingBufferConvolutionData* data = ptr;
+   if (data)
+   {
+      unsigned int t;
+      for (t=0; t<_AAX_MAX_SPEAKERS; ++t)
+      {
+         if (data->tid[t])
+         {
+//       _aaxThreadJoin(data->tid[t]); // this is done by the renderer already
+            _aaxThreadDestroy(data->tid[t]);
+         }
+      }
+
+      free(data->history_ptr);
+      free(data->sample_ptr);
+      free(data->freq_filter);
+      free(data);
+   }
+}
 

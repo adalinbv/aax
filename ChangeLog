@@ -1,3 +1,15 @@
+* Tue Oct 17 2017 - tech@adalin.org
+- AeonWave (3.0.5) stable; urgency=low
+ * Add the aaxGetFrequencyFilterTypeByName function.
+ * Restructure the filter and effects code a bit to make it easier to remove
+   allocated data. And use the new functionality.
+ * Add function to the C++ support class to get the type, waveform_type,
+   frequency_filter_type and distance_model by name
+
+
+-- Erik Hofman <tech@adalin.org>  Tue, 17 Oct  2017 13:39:00 + 0200
+
+
 * Mon Oct  9 2017 - tech@adalin.org
 - AeonWave (3.0.4) stable; urgency=low
  * Add the option to repeat the timed-gain filter for a specified number of

@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -33,6 +33,39 @@
 
 #include "common.h"
 #include "filters.h"
+
+aaxFilter
+_aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned slots)
+{
+   aaxFilter rv = NULL;
+   unsigned int size;
+   _filter_t* flt;
+
+   size = sizeof(_filter_t) + slots*sizeof(_aaxFilterInfo);
+   flt = calloc(1, size);
+   if (flt)
+   {
+      unsigned s;
+      char *ptr;
+
+      flt->id = FILTER_ID;
+      flt->state = AAX_FALSE;
+      flt->info = info;
+
+      ptr = (char*)flt + sizeof(_filter_t);
+      flt->slot[0] = (_aaxFilterInfo*)ptr;
+      flt->pos = _flt_cvt_tbl[type].pos;
+      flt->type = type;
+
+      size = sizeof(_aaxFilterInfo);
+      for (s=0; s<slots; ++s) {
+         flt->slot[s] = (_aaxFilterInfo*)(ptr + s*size);
+      }
+
+      rv = (aaxFilter)flt;
+   }
+   return rv;
+}
 
 _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
 {
