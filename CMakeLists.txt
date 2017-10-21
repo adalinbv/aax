@@ -646,10 +646,9 @@ INSTALL(FILES
 )
 
 if (UNIX AND NOT WIN32)
-    macro(install_symlink _dest _source)
-      install(CODE "
-             include(\"${AeonWave_SOURCE_DIR}/CMakeModules/Symlink.cmake\")
-             InstallSymlink(\"${_dest}\" \"\$ENV{DESTDIR}${_source}\")")
+     macro(install_symlink filepath sympath)
+        install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${filepath} ${sympath})")
+        install(CODE "message(\"-- Created symlink: ${sympath} -> ${filepath}\")")
     endmacro(install_symlink)
 
     install_symlink(${CMAKE_LIBRARY_ARCHITECTURE}/lib${LIBAEONWAVE}${CPACK_PACKAGE_SOVERSION_MAJOR}.so.${CPACK_PACKAGE_SOVERSION_MAJOR} ${CMAKE_INSTALL_PREFIX}/lib/lib${LIBAEONWAVE}${CPACK_PACKAGE_SOVERSION_MAJOR}.so.${CPACK_PACKAGE_SOVERSION_MAJOR})
