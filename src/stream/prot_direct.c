@@ -37,7 +37,9 @@
 size_t
 _direct_connect(_prot_t *prot, UNUSED(_io_t *io), UNUSED(const char *server), const char *path, UNUSED(const char *agent))
 {
-   prot->path = strdup(path);
+   if (path) {
+      prot->path = strdup(path);
+   }
    return 0;
 }
 
@@ -66,7 +68,7 @@ _direct_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
 int
 _direct_get(_prot_t *prot, enum _aaxStreamParam ptype)
 {
-   char *ext = strrchr(prot->path, '.');
+   char *ext = prot->path ? strrchr(prot->path, '.') : NULL;
    int rv = -1;
 
    if (ext++)
