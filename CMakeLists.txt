@@ -457,6 +457,7 @@ set( AEONWAVE_OBJS
 #    src/aax_midi.c
      src/aax_filters.c
      src/aax_effects.c
+     src/dsp/common.c
      src/dsp/filters.c
      src/dsp/effects.c
      src/dsp/effect_chorus.c
@@ -645,10 +646,9 @@ INSTALL(FILES
 )
 
 if (UNIX AND NOT WIN32)
-    macro(install_symlink _dest _source)
-      install(CODE "
-             include(\"${AeonWave_SOURCE_DIR}/CMakeModules/Symlink.cmake\")
-             InstallSymlink(\"${_dest}\" \"\$ENV{DESTDIR}${_source}\")")
+     macro(install_symlink filepath sympath)
+        install(CODE "execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${filepath} ${sympath})")
+        install(CODE "message(\"-- Created symlink: ${sympath} -> ${filepath}\")")
     endmacro(install_symlink)
 
     install_symlink(${CMAKE_LIBRARY_ARCHITECTURE}/lib${LIBAEONWAVE}${CPACK_PACKAGE_SOVERSION_MAJOR}.so.${CPACK_PACKAGE_SOVERSION_MAJOR} ${CMAKE_INSTALL_PREFIX}/lib/lib${LIBAEONWAVE}${CPACK_PACKAGE_SOVERSION_MAJOR}.so.${CPACK_PACKAGE_SOVERSION_MAJOR})

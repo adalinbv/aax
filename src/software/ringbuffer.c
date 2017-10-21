@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -876,7 +876,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       break;
    case RB_TRACKSIZE:
       val /= rbd->bytes_sample;
-      /* no break needed */
+      // intentional fallthrough
    case RB_NO_SAMPLES:
       if (rbd->track == NULL)
       {

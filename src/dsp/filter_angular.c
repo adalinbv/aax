@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -43,24 +43,11 @@
 static aaxFilter
 _aaxAngularFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
-   _filter_t* flt = calloc(1, size);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1);
    aaxFilter rv = NULL;
 
    if (flt)
    {
-      char *ptr;
-
-      flt->id = FILTER_ID;
-      flt->state = AAX_FALSE;
-      flt->info = info;
-
-      ptr = (char*)flt + sizeof(_filter_t);
-      flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->pos = _flt_cvt_tbl[type].pos;
-      flt->type = type;
-
-      size = sizeof(_aaxFilterInfo);
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos);
       rv = (aaxFilter)flt;
    }
@@ -82,27 +69,20 @@ _aaxAngularFilterSetState(UNUSED(_filter_t* filter), UNUSED(int state))
 }
 
 static _filter_t*
-_aaxNewAngularFilterHandle(const aaxConfig config, enum aaxFilterType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewAngularFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
 {
-   unsigned int size = sizeof(_filter_t) + sizeof(_aaxFilterInfo);
-   _filter_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_filter_t);
+      unsigned int size = sizeof(_aaxFilterInfo);
 
-      rv->id = FILTER_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxFilterInfo*)ptr;
-      rv->pos = _flt_cvt_tbl[type].pos;
-      rv->state = p2d->filter[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxFilterInfo);
       memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
+      rv->slot[0]->data = NULL;
+
+      rv->state = p3d->filter[rv->pos].state;
    }
    return rv;
 }

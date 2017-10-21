@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -55,6 +55,22 @@ inline enum aaxErrorType error_no() {
 }
 inline const char* strerror(enum aaxErrorType e=error_no()) {
     return aaxGetErrorString(e);
+}
+
+inline enum aaxType type(const char *s) {
+   return aaxGetTypeByName(s);
+}
+
+inline enum aaxWaveformType waveform_type(const char *s) {
+   return aaxGetWaveformTypeByName(s);
+}
+
+inline enum aaxFrequencyFilterType frequency_filter_type(const char *s) {
+   return aaxGetFrequencyFilterTypeByName(s);
+}
+
+inline enum aaxDistanceModel distance_model(const char *s) {
+   return aaxGetDistanceModelByName(s);
 }
 
 inline bool is_valid(void* c, enum aaxHandleType t=AAX_CONFIG) {

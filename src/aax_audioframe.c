@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -150,17 +150,13 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
    if (rv)
    {
-      _aaxRingBufferDelayEffectData* effect;
       _aaxAudioFrame* fmixer = handle->submix;
 
-      free(_FILTER_GET2D_DATA(fmixer, FREQUENCY_FILTER));
-      free(_FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER));
-      free(_FILTER_GET2D_DATA(fmixer, TIMED_GAIN_FILTER));
-      free(_EFFECT_GET2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT));
-
-      effect = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
-      if (effect) free(effect->history_ptr);
-      free(effect);
+      _FILTER_FREE2D_DATA(fmixer, FREQUENCY_FILTER);
+      _FILTER_FREE2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+      _FILTER_FREE2D_DATA(fmixer, TIMED_GAIN_FILTER);
+      _EFFECT_FREE2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT);
+      _EFFECT_FREE2D_DATA(fmixer, DELAY_EFFECT);
 
       _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
       _aax_aligned_free(fmixer->props3d->dprops3d);
@@ -433,6 +429,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          else {
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
+         break;
       }
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:

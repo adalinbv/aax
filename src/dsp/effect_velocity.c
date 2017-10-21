@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -44,25 +44,12 @@
 static aaxEffect
 _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-   _effect_t* eff = calloc(1, size);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
    aaxEffect rv = NULL;
 
    if (eff)
    {
-      char *ptr;
-
-      eff->id = EFFECT_ID;
-      eff->state = AAX_FALSE;
-      eff->info = info;
-
-      ptr = (char*)eff + sizeof(_effect_t);
-      eff->slot[0] = (_aaxEffectInfo*)ptr;
       eff->slot[0]->data = *(void**)&_aaxRingBufferDopplerFn[0];
-      eff->pos = _eff_cvt_tbl[type].pos;
-      eff->type = type;
-
-      size = sizeof(_aaxEffectInfo);
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos);
       rv = (aaxEffect)eff;
    }
@@ -83,28 +70,19 @@ _aaxVelocityEffectSetState(UNUSED(_effect_t* effect), UNUSED(int state))
 }
 
 static _effect_t*
-_aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, _aax3dProps* p3d)
+_aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
 {
-   unsigned int size = sizeof(_effect_t) + sizeof(_aaxEffectInfo);
-   _effect_t* rv = calloc(1, size);
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
 
    if (rv)
    {
-      _handle_t *handle = get_driver_handle(config);
-      _aaxMixerInfo* info = handle ? handle->info : _info;
-      char *ptr = (char*)rv + sizeof(_effect_t);
+      unsigned int size = sizeof(_aaxEffectInfo);
 
-      rv->id = EFFECT_ID;
-      rv->info = info;
-      rv->handle = handle;
-      rv->slot[0] = (_aaxEffectInfo*)ptr;
-      rv->slot[0]->data = *(void**)&_aaxRingBufferDopplerFn[0];
-      rv->pos = _eff_cvt_tbl[type].pos;
-      rv->state = p2d->effect[rv->pos].state;
-      rv->type = type;
-
-      size = sizeof(_aaxEffectInfo);
       memcpy(rv->slot[0], &p3d->effect[rv->pos], size);
+      rv->slot[0]->data = *(void**)&_aaxRingBufferDopplerFn[0];
+
       rv->state = p3d->effect[rv->pos].state;
    }
    return rv;

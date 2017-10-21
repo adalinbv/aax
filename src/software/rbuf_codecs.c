@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -186,7 +186,7 @@ _sw_bufcpy_24s(void *dst, const void *src, size_t l)
    _batch_cvt24_24(dst, src, l);
 }
 
-/** http://docs.freeswitch.org/g711_8h-source.html */
+/** http://docs.freeswitch.org/g711_8h_source.html */
 #define ULAW_BIAS       0x84
 int16_t
 _mulaw2linear(uint8_t ulaw)
@@ -288,7 +288,7 @@ _sw_bufcpy_ima_adpcm(void *dst, const void *src, size_t l)
 
 
 /* single sample convert */
-/** http://docs.freeswitch.org/g711_8h-source.html */
+/** http://docs.freeswitch.org/g711_8h_source.html */
 int16_t
 top_bit(uint16_t bits)
 {
@@ -337,7 +337,7 @@ top_bit(uint16_t bits)
    return i;
 }
 
-/** http://docs.freeswitch.org/g711_8h-source.html */
+/** http://docs.freeswitch.org/g711_8h_source.html */
 uint8_t
 _linear2mulaw(int16_t linear)
 {
@@ -379,7 +379,7 @@ _linear2mulaw(int16_t linear)
    return u_val;
 }
 
-/** http://docs.freeswitch.org/g711_8h-source.html */
+/** http://docs.freeswitch.org/g711_8h_source.html */
 #define ALAW_AMI_MASK		0x55
 uint8_t
 _linear2alaw(int16_t linear)

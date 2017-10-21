@@ -6,7 +6,7 @@
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
- *  the Free Software Foundation; either version 2 of the License, or
+ *  the Free Software Foundation; either version 3 of the License, or
  *  (at your option) any later version.
  *
  *  This program is distributed in the hope that it will be useful,
@@ -449,8 +449,8 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_SAWTOOTH_WAVE;
             } else if (!strncasecmp(name, "envelope", len)) {
                rv |= AAX_ENVELOPE_FOLLOW;
-            }
-            else {
+            } else if (!strncasecmp(name, "true", len) ||
+                       !strncasecmp(name, "constant", len)) {
                rv = AAX_CONSTANT_VALUE;
             }
          }
@@ -513,6 +513,77 @@ aaxGetDistanceModelByName(const char *name)
       } else if (!strncasecmp(name, "exponent_distance_clamped", len)) {
          rv = AAX_AL_EXPONENT_DISTANCE_CLAMPED;
       }
+   }
+
+   return rv;
+}
+
+AAX_API enum aaxFrequencyFilterType AAX_APIENTRY
+aaxGetFrequencyFilterTypeByName(const char *type)
+{
+   enum aaxFrequencyFilterType rv = aaxGetWaveformTypeByName(type);
+
+   if (type)
+   {
+      char *last, *name = (char*)type;
+      size_t len;
+
+      last = strchr(name, '|');
+      if (!last) last = name+strlen(name);
+
+      do
+      {
+         if (!strncasecmp(name, "AAX_", 4)) {
+            name += 4;
+         }
+
+         len = last-name;
+         if (!strncasecmp(name, "BESSEL", len)) {
+            rv |= AAX_BESSEL;
+         }
+         else
+         {
+            if (!strncasecmp(name+len-5, "ORDER", 5))
+            {
+               if (*(name+len-6) == '_' || *(name+len-6) == '-') {
+                  len -= 6;
+               }
+            }
+            else if (!strncasecmp(name+len-3, "OCT", 3))
+            {
+               if (*(name+len-4) == '_' || *(name+len-4) == '/') {
+                  len -= 4;
+               }
+            }
+
+            if (!strncasecmp(name, "1st", len) ||
+                !strncasecmp(name, "6db", len)) {
+               rv |= AAX_1ST_ORDER;
+            }
+            else if (!strncasecmp(name, "2nd", len) ||
+                     !strncasecmp(name, "12db", len)) {
+               rv |= AAX_2ND_ORDER;
+            }
+            else if (!strncasecmp(name, "4th", len) ||
+                     !strncasecmp(name, "24db", len)) {
+               rv |= AAX_4TH_ORDER;
+            }
+            else if (!strncasecmp(name, "6th", len) ||
+                     !strncasecmp(name, "36db", len)) {
+               rv |= AAX_6TH_ORDER;
+            }
+            else if (!strncasecmp(name, "8th", len) ||
+                     !strncasecmp(name, "48db", len)) {
+               rv |= AAX_8TH_ORDER;
+            }
+         }
+
+         if (last == name+strlen(name)) break;
+         name = ++last;
+         last = strchr(name, '|');
+         if (!last) last = name+strlen(name);
+      }
+      while(last);
    }
 
    return rv;
