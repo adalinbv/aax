@@ -143,22 +143,8 @@ int main(int argc, char **argv)
     devname = getDeviceName(argc, argv);
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "Audio output device is not available.");
-    if (!config) // || !aaxIsValid(config, AAX_CONFIG_HD))
-    {
-    // TODO: fall back to buffer streaming mode
-        if (!config) {
-           printf("Warning: %s\n", aaxGetErrorString(aaxGetErrorNo()));
-        }
-        else
-        {
-            printf("Warning:\n");
-            printf("  %s requires a registered version of AeonWave\n", argv[0]);
-            printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
-            printf("obtain\n  a product-key.\n\n");
-        }
-        exit(-2);
-    }
-    else
+
+    if (config)
     {
         record = aaxDriverOpenByName(idevname, AAX_MODE_READ);
         if (!record)
@@ -188,6 +174,7 @@ int main(int argc, char **argv)
         float dhour, hour, minutes, seconds;
         float duration, freq;
         unsigned int max_samples;
+        int key, paused;
         aaxFrame frame = NULL;
         aaxEffect effect;
 //      aaxFilter filter;
@@ -401,6 +388,7 @@ int main(int argc, char **argv)
            snprintf(tstr, 80, "%s\r", "pos: % 5.1f (%02.0f:%02.0f:%04.1f)");
         }
 
+        paused = AAX_FALSE;
         do
         {
             if (verbose)
@@ -443,7 +431,26 @@ int main(int argc, char **argv)
                 fflush(stdout);
             }
 
-            if (get_key()) break;
+            key = get_key();
+            if (key)
+            {
+               if (key == ' ')
+               {
+                  if (paused)
+                  {
+                     aaxMixerSetState(config, AAX_PLAYING);
+                     paused = AAX_FALSE;
+                  }
+                  else
+                  {
+                     aaxMixerSetState(config, AAX_SUSPENDED);
+                     paused = AAX_TRUE;
+                  }
+               }
+               else {
+                  break;
+               }
+            }
 
             if (batch) {
                res = aaxMixerSetState(config, AAX_UPDATE);
