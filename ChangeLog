@@ -24,6 +24,7 @@
 
 * Tue Oct  3 2017 - tech@adalin.org
 - AeonWave (3.0.3) stable; urgency=medium
+ * Fix playback support to mp3 files.
  * Support WAV files with LIST adtl, bext, cue and smpl tags.
  * Allow specifying a file attribute in the sound section of AAXS files.
  * Allow processing, pitch, ratio and staticiy to be attributes instead of

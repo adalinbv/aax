@@ -1522,7 +1522,7 @@ _aaxMixerStart(_handle_t *handle)
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
-   else if (_IS_STANDBY(handle) || handle->handle) {
+   else if (_IS_PAUSED(handle) || _IS_STANDBY(handle) || handle->handle) {
       rv = AAX_TRUE;
    }
    return rv;
