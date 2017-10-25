@@ -1166,8 +1166,14 @@ static int
 _aaxStreamDriverSetPosition(const void *id, off_t samples)
 {
    _driver_t *handle = (_driver_t *)id;
-   off_t bytes = handle->ext->set_param(handle->ext, __F_POSITION, samples);
-   return handle->io->set_param(handle->io, __F_POSITION, bytes);
+   int rv = 0;
+
+   if (handle->ext)
+   {
+      off_t bytes = handle->ext->set_param(handle->ext, __F_POSITION, samples);
+      rv = handle->io->set_param(handle->io, __F_POSITION, bytes);
+   }
+   return rv;
 }
 
 static char *
