@@ -361,7 +361,7 @@ _aaxStreamDriverDisconnect(void *id)
          {
             if (handle->io->protocol == PROTOCOL_DIRECT)
             {
-               handle->io->set(handle->io, __F_POSITION, 0L);
+               handle->io->set_param(handle->io, __F_POSITION, 0L);
                ret = handle->io->write(handle->io, buf, size);
             }
          }
@@ -427,7 +427,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       return rv;
    }
 
-   handle->io->set(handle->io, __F_FLAGS, handle->mode);
+   handle->io->set_param(handle->io, __F_FLAGS, handle->mode);
 #if 0
  printf("\nname: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
@@ -446,10 +446,10 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       switch (protocol)
       {
       case PROTOCOL_HTTP:
-         handle->io->set(handle->io, __F_NO_BYTES, size);
-         handle->io->set(handle->io, __F_RATE, *refresh_rate);
-         handle->io->set(handle->io, __F_PORT, port);
-         handle->io->set(handle->io, __F_TIMEOUT, (int)period_ms);
+         handle->io->set_param(handle->io, __F_NO_BYTES, size);
+         handle->io->set_param(handle->io, __F_RATE, *refresh_rate);
+         handle->io->set_param(handle->io, __F_PORT, port);
+         handle->io->set_param(handle->io, __F_TIMEOUT, (int)period_ms);
          if (handle->io->open(handle->io, server) >= 0)
          {   
             handle->prot = _prot_create(protocol);
@@ -471,7 +471,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
                else
                {
-                  int fmt = handle->prot->get(handle->prot, __F_EXTENSION);
+                  int fmt = handle->prot->get_param(handle->prot,__F_EXTENSION);
                   if (fmt)
                   {
                      handle->ext = _ext_free(handle->ext);
@@ -500,14 +500,14 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          }
          break;
       case PROTOCOL_DIRECT:
-         handle->io->set(handle->io, __F_FLAGS, handle->mode);
+         handle->io->set_param(handle->io, __F_FLAGS, handle->mode);
          if (handle->io->open(handle->io, path) >= 0)
          {
             handle->ext = _ext_free(handle->ext);
             handle->ext = _aaxGetFormat(handle->name, handle->mode);
             if (handle->ext)
             {
-               handle->no_bytes = handle->io->get(handle->io, __F_NO_BYTES);
+               handle->no_bytes= handle->io->get_param(handle->io,__F_NO_BYTES);
                res = AAX_TRUE;
             }
          }
@@ -534,7 +534,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       size_t period_frames;
 
       if (handle->prot) {
-         format = handle->prot->get(handle->prot, __F_FMT);
+         format = handle->prot->get_param(handle->prot, __F_FMT);
       }
       if (format == _FMT_NONE) {
          format = handle->ext->supported(extension);
@@ -583,7 +583,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
 
                if (handle->prot) {
-                  handle->prot->set(handle->prot, __F_POSITION, res);
+                  handle->prot->set_param(handle->prot, __F_POSITION, res);
                }
             }
 
@@ -1144,8 +1144,10 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
 
       /* boolean */
       case DRIVER_SEEKABLE_SUPPORT:
-         if (handle->ext->get_param(handle->ext, __F_POSITION) != 0) {
-            rv =  (float)AAX_TRUE;
+         if (handle->ext->get_param(handle->ext, __F_POSITION) &&
+             handle->io->get_param(handle->io, __F_POSITION) != -1)
+         {
+             rv = (float)AAX_TRUE;
          }
          break;
       case DRIVER_TIMER_MODE:
@@ -1161,44 +1163,11 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
 }
 
 static int
-_aaxStreamDriverSetPosition(UNUSED(const void *id), UNUSED(off_t pos))
+_aaxStreamDriverSetPosition(const void *id, off_t samples)
 {
-// _driver_t *handle = (_driver_t *)id;
-   int rv = AAX_FALSE;
-
-// TODO: we probably need a protocol dependend way to set a new position
-#if 0
-   int res = handle->io->seek(handle->io, 0, SEEK_CUR);
-   if (res != pos)
-   {
-//    handle->threadBuffer->avail = 0;
-      res = handle->io->seek(handle->io, 0, SEEK_SET);
-      if (res >= 0)
-      {
-         int file_tracks = handle->fmt->get_param(handle->fmt->id, __F_TRACKS);
-         int file_bits = handle->fmt->get_param(handle->fmt->id, __F_BITS_PER_SAMPLE);
-         unsigned int samples = IOBUF_SIZE*8/(file_tracks*file_bits);
-         ssize_t seek;
-         while ((seek = handle->fmt->set_param(handle->fmt->id, __F_POSITION, pos))
-                   == __F_PROCESS)
-         {
-            unsigned char sbuf[IOBUF_SIZE][_AAX_MAX_SPEAKERS];
-            unsigned char buf[IOBUF_SIZE];
-
-            res = handle->io->read(handle->io, buf, IOBUF_SIZE);
-            if (res <= 0) break;
-
-            res = handle->fmt->cvt_from_intl(handle->fmt->id, (int32_ptrptr)sbuf,
-                                             buf, 0, file_tracks, samples);
-         }
-      
-         if ((seek >= 0) && (res >= 0)) {
-            rv = (handle->io->seek(handle->io, seek, SEEK_SET) >= 0) ? AAX_TRUE : AAX_FALSE;
-         }
-      }
-   }
-#endif
-   return rv;
+   _driver_t *handle = (_driver_t *)id;
+   off_t bytes = handle->ext->set_param(handle->ext, __F_POSITION, samples);
+   return handle->io->set_param(handle->io, __F_POSITION, bytes);
 }
 
 static char *
@@ -1370,10 +1339,10 @@ _aaxStreamDriverWriteChunk(const void *id)
                                                   AAX_FALSE);
                   if (buf)
                   {
-                     off_t floc = handle->io->get(handle->io, __F_POSITION);
-                     handle->io->set(handle->io, __F_POSITION, 0L);
+                     off_t floc= handle->io->get_param(handle->io,__F_POSITION);
+                     handle->io->set_param(handle->io, __F_POSITION, 0L);
                      res = handle->io->write(handle->io, buf, usize);
-                     handle->io->set(handle->io, __F_POSITION, floc);
+                     handle->io->set_param(handle->io, __F_POSITION, floc);
                   }
                }
             }

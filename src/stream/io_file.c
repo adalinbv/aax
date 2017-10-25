@@ -96,7 +96,7 @@ _file_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
    switch (ptype)
    {
    case __F_POSITION:
-      rv = (lseek(io->fds.fd, param, SEEK_SET) >= 0) ? 0 : -1;
+      rv = lseek(io->fds.fd, param, SEEK_SET);
       break;
    case __F_FLAGS:
       io->param[_IO_FILE_FLAGS] = _flags[(param == AAX_MODE_READ) ? 1 : 0];
