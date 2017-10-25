@@ -40,8 +40,8 @@ _io_create(int protocol)
          rv->close = _socket_close;
          rv->read = _socket_read;
          rv->write = _socket_write;
-         rv->set = _socket_set;
-         rv->get = _socket_get;
+         rv->set_param = _socket_set;
+         rv->get_param = _socket_get;
          rv->wait = _socket_wait;
 
          rv->param[_IO_SOCKET_SIZE] = 2048;
@@ -53,8 +53,8 @@ _io_create(int protocol)
          rv->close = _file_close;
          rv->read = _file_read;
          rv->write = _file_write;
-         rv->set = _file_set;
-         rv->get = _file_get;
+         rv->set_param = _file_set;
+         rv->get_param = _file_get;
          rv->wait = _file_wait;
 
          rv->param[_IO_FILE_FLAGS] = 0;

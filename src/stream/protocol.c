@@ -47,8 +47,8 @@ _prot_create(_protocol_t protocol)
          rv->connect = _http_connect;
          rv->process = _http_process;
          rv->name = _http_name;
-         rv->set = _http_set;
-         rv->get = _http_get;
+         rv->set_param = _http_set;
+         rv->get_param = _http_get;
 
          rv->protocol = protocol;
          rv->meta_interval = 0;
@@ -62,8 +62,8 @@ _prot_create(_protocol_t protocol)
          rv->connect = _direct_connect;
          rv->process = _direct_process;
          rv->name = _direct_name;
-         rv->set = _direct_set;
-         rv->get = _direct_get;
+         rv->set_param = _direct_set;
+         rv->get_param = _direct_get;
 
          rv->protocol = protocol;
          rv->meta_interval = 0;
