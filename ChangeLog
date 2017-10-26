@@ -1,9 +1,13 @@
-* Wed Oct 25 2017 - tech@adalin.org
+* Tue Oct 26 2017 - tech@adalin.org
 - AeonWave (3.0.6) stable; urgency=low
+ * Postpone initialization of AAXS filter and effect code for emitters to
+   make sure they will be set after initializing the mixer which could change
+   parameters like the refresh rate. As a bonus it is now possible to stream
+   different AAXS buffers one after the other.
  * Reduce getaddrinfo timeout considerably by specifying ai_family = AF_INET
  * Fix a bug where a suspended configuration could not be resumed.
 
--- Erik Hofman <tech@adalin.org>  Wed, 25 Oct  2017 15:43:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue, 26 Oct  2017 10:03:00 + 0200
 
 
 * Sat Oct 21 2017 - tech@adalin.org
