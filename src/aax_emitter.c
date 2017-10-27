@@ -190,7 +190,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          const _aaxEmitter *src = handle->source;
          _embuffer_t* embuf;
 
-         embuf = malloc(sizeof(_embuffer_t));
+         embuf = calloc(1, sizeof(_embuffer_t));
          if (embuf)
          {
             embuf->ringbuffer = rb->reference(rb);
