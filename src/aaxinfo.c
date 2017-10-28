@@ -193,6 +193,9 @@ int main(int argc, char **argv)
             x = aaxMixerGetSetup(cfg, AAX_BATCHED_MODE);
             printf ("Mixer batched mode support: %s\n", x ? "yes" : "no");
 
+            x = aaxMixerGetSetup(cfg, AAX_SEEKABLE_SUPPORT);
+            printf ("Mixer seekable support: %s\n", x ? "yes" : "no");
+
             min = aaxMixerGetSetup(cfg, AAX_TRACKS_MIN);
             max = aaxMixerGetSetup(cfg, AAX_TRACKS_MAX);
             printf("Mixer supported track range: %i - %i tracks\n", min, max);
