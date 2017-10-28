@@ -339,7 +339,6 @@ int get_key()
 
     if (FD_ISSET(STDIN_FILENO, &fs)) {
         c = getchar();
-        set_mode(0);
     }
     return c;
 }
