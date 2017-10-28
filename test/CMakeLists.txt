@@ -8,6 +8,7 @@ ENDFUNCTION()
 
 CREATE_TEST(testcapture)
 CREATE_TEST(testplay)
+CREATE_TEST(teststreamed_aaxs)
 CREATE_TEST(testmultiplay)
 CREATE_TEST(testcone)
 CREATE_TEST(testdistance)
