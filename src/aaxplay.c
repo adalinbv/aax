@@ -98,6 +98,9 @@ help()
         printf("  - output: %s\n", s);
         aaxDriverDestroy(cfgo);
     }
+
+    printf("\nDuring playback the stream can be suspened and resumed using "
+           "the spacebar key.\n");
     printf("\n");
 
     exit(-1);

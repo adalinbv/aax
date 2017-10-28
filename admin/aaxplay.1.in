@@ -37,6 +37,8 @@ Either --input or --capture can be used but not both.
 For a list of device names run: aaxinfo
 .PP
 Audio will always be sent to the (default) audio device, writing to an output file is fully optional.
+.PP
+During playback the stream can be suspened and resumed using the spacebar key.
 .SH AUTHOR
 Written by Erik Hofman <tech@adalin.com>
 .SH SEE ALSO
