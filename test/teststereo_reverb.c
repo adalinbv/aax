@@ -167,6 +167,7 @@ int main(int argc, char **argv)
             res = aaxMixerDeregisterEmitter(config, emitter);
             res = aaxMixerSetState(config, AAX_STOPPED);
             res = aaxEmitterDestroy(emitter);
+            res = aaxBufferDestroy(buffer);
         }
     }
 
