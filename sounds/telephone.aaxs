@@ -4,17 +4,15 @@
 
  <sound name="Telephone Ring" frequency="1250">
   <waveform src="square" pitch="0.985"/>
-  <waveform src="sawtooth" processing="mix" pitch="3.0"/>
+  <waveform src="sawtooth" processing="mix" pitch="2.9"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
  </sound>
 
  <emitter looping="true">
   <filter type="dynamic_gain" src="sawtooth">
    <slot n="0">
-    <param n="0">0</param>
     <param n="1">12.0</param>
     <param n="2">2.0</param>
-    <param n="3">0</param>
    </slot>
   </filter>
   <filter type="envelope" repeat="5">

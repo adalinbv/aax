@@ -3,7 +3,7 @@
 <aeonwave>
 
  <sound name="Hazard Alarm" frequency="440" file="sine-440Hz.wav">
-  <!-- <waveform src="sine" pitch="0.95"/> -->
+  <waveform src="sine" pitch="0.935"/>
   <waveform src="sawtooth" processing="modulate" pitch="0.5"/>
  </sound>
 
