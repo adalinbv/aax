@@ -102,9 +102,6 @@ int main(int argc, char **argv)
         res = aaxEmitterAddBuffer(emitter, buffer[2]);
         testForState(res, "aaxEmitterAddBuffer 2");
 
-        res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
-        testForState(res, "aaxEmitterSetMode");
-
         /** mixer */
         res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
@@ -158,18 +155,34 @@ int main(int argc, char **argv)
             msecSleep(50);
             state = aaxEmitterGetState(emitter);
         }
-        while (state == AAX_PLAYING);
+        while (state != AAX_PROCESSED);
 
         res = aaxMixerDeregisterEmitter(config, emitter);
+        testForState(res, "aaxMixerDeregisterEmitter");
+
         res = aaxMixerSetState(config, AAX_STOPPED);
+        testForState(res, "aaxMixerStop");
+
         res = aaxEmitterDestroy(emitter);
+        testForState(res, "aaxEmitterDestroy");
+
         res = aaxBufferDestroy(buffer[2]);
+        testForState(res, "aaxBufferDestroy");
+
         res = aaxBufferDestroy(buffer[1]);
+        testForState(res, "aaxBufferDestroy 1");
+
         res = aaxBufferDestroy(buffer[0]);
+        testForState(res, "aaxBufferDestroy 0");
+
     }
 
     res = aaxDriverClose(config);
+    testForState(res, "aaxDriverClose");
+
     res = aaxDriverDestroy(config);
+    testForState(res, "aaxDriverDestroy");
+
 
 
     return 0;
