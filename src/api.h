@@ -325,6 +325,7 @@ typedef struct
 {
    unsigned int id;	/* always first */
 
+   void *aaxs;
    _buffer_t *buffer;
    _aaxRingBuffer *ringbuffer;
 } _embuffer_t;

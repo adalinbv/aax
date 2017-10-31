@@ -88,6 +88,7 @@ _socket_open(_io_t *io, const char *server)
 
             memset(&hints, 0, sizeof hints);
             hints.ai_socktype = SOCK_STREAM;
+            hints.ai_family = AF_INET;
             res = getaddrinfo(server, (port > 0) ? sport : NULL, &hints, &host);
          }
 
@@ -102,6 +103,9 @@ _socket_open(_io_t *io, const char *server)
                
                tv.tv_sec = timeout_ms / 1000;
                tv.tv_usec = (timeout_ms * 1000) % 1000000;              
+#ifdef SO_NOSIGPIPE
+               setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
+#endif
                setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on, sizeof(on));
                setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
@@ -213,8 +217,10 @@ _socket_get(UNUSED(_io_t *io), enum _aaxStreamParam ptype)
    ssize_t rv = 0;
    switch (ptype)
    {
-   case __F_NO_BYTES:
    case __F_POSITION:
+      rv = -1;
+      break;
+   case __F_NO_BYTES:
    default:
       break;
    }

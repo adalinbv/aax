@@ -735,6 +735,11 @@ _mp3_get(_fmt_t *fmt, int type)
    case __F_NO_SAMPLES:
       rv = handle->max_samples;
       break;
+   case __F_POSITION:
+      if (pmp3_feedseek) {
+         rv = AAX_TRUE;
+      }
+      break;
    default:
       if (type & __F_NAME_CHANGED)
       {
@@ -758,37 +763,36 @@ _mp3_set(_fmt_t *fmt, int type, off_t value)
    switch(type)
    {
    case __F_FREQUENCY:
-      handle->frequency = value;
+      handle->frequency = rv = value;
       break;
    case __F_RATE:
-      handle->bitrate = value;
+      handle->bitrate = rv = value;
       break;
    case __F_TRACKS:
-      handle->no_tracks = value;
+      handle->no_tracks = rv = value;
       break;
    case __F_NO_SAMPLES:
       handle->no_samples = value;
-      handle->max_samples = value;
+      handle->max_samples = rv = value;
       break;
    case __F_BITS_PER_SAMPLE:
-      handle->bits_sample = value;
+      handle->bits_sample = rv = value;
       break;
    case __F_BLOCK_SIZE:
-      handle->blocksize = value;
+      handle->blocksize = rv = value;
       break;
    case __F_IS_STREAM:
       handle->streaming = AAX_TRUE;
       break;
    case __F_POSITION:
-#if 0
       if (pmp3_feedseek)
       {
          off_t inoffset;
          rv = pmp3_feedseek(handle->id, value, SEEK_SET, &inoffset);
          if (rv ==  MP3_NEED_MORE) rv = __F_PROCESS;
          else if (rv < 0) rv = __F_EOF;
+         else rv = inoffset;
       }
-#endif
       break;
    default:
       break;
