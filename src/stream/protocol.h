@@ -44,16 +44,16 @@ struct _prot_st;
 
 typedef size_t _prot_connect_fn(struct _prot_st*, struct _io_st*, const char*, const char*, const char*);
 typedef int _prot_process_fn(struct _prot_st*, uint8_t*, size_t, size_t);
-typedef int _prot_set_fn(struct _prot_st*, enum _aaxStreamParam, ssize_t);
-typedef int _prot_get_fn(struct _prot_st*, enum _aaxStreamParam);
+typedef int _prot_set_param_fn(struct _prot_st*, enum _aaxStreamParam, ssize_t);
+typedef int _prot_get_param_fn(struct _prot_st*, enum _aaxStreamParam);
 typedef char* _prot_name_fn(struct _prot_st*, enum _aaxStreamParam);
 
 struct _prot_st
 {
    _prot_connect_fn *connect;
    _prot_process_fn *process;
-   _prot_set_fn *set;
-   _prot_get_fn *get;
+   _prot_set_param_fn *set_param;
+   _prot_get_param_fn *get_param;
    _prot_name_fn *name;
    
    int protocol;

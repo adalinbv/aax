@@ -52,7 +52,9 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
 {
    int res = _http_send_request(io, "GET", server, path, agent);
 
-   prot->path = strdup(path);
+   if (path) {
+      prot->path = strdup(path);
+   }
 
 #if 0
   printf("GET:\n server: '%s'\n path: '%s'\n agent: '%s'\n res: %i\n", server, path, agent, res);

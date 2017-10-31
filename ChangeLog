@@ -1,4 +1,16 @@
-* Tue Oct 17 2017 - tech@adalin.org
+* Tue Oct 26 2017 - tech@adalin.org
+- AeonWave (3.0.6) stable; urgency=low
+ * Postpone initialization of AAXS filter and effect code for emitters to
+   make sure they will be set after initializing the mixer which could change
+   parameters like the refresh rate. As a bonus it is now possible to stream
+   different AAXS buffers one after the other.
+ * Reduce getaddrinfo timeout considerably by specifying ai_family = AF_INET
+ * Fix a bug where a suspended configuration could not be resumed.
+
+-- Erik Hofman <tech@adalin.org>  Tue, 26 Oct  2017 10:03:00 + 0200
+
+
+* Sat Oct 21 2017 - tech@adalin.org
 - AeonWave (3.0.5) stable; urgency=low
  * Add the aaxGetFrequencyFilterTypeByName function.
  * Restructure the filter and effects code a bit to make it easier to remove
@@ -6,8 +18,7 @@
  * Add function to the C++ support class to get the type, waveform_type,
    frequency_filter_type and distance_model by name
 
-
--- Erik Hofman <tech@adalin.org>  Tue, 17 Oct  2017 13:39:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat, 21 Oct  2017 13:39:00 + 0200
 
 
 * Mon Oct  9 2017 - tech@adalin.org
@@ -24,6 +35,7 @@
 
 * Tue Oct  3 2017 - tech@adalin.org
 - AeonWave (3.0.3) stable; urgency=medium
+ * Fix playback support to mp3 files.
  * Support WAV files with LIST adtl, bext, cue and smpl tags.
  * Allow specifying a file attribute in the sound section of AAXS files.
  * Allow processing, pitch, ratio and staticiy to be attributes instead of

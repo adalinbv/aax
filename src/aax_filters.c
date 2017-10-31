@@ -311,7 +311,7 @@ aaxFilterGetByName(UNUSED(aaxConfig handle), const char *name)
 
    strncpy(type, name, 256);
    name = type;
-   type[256] = 0;
+   type[255] = 0;
 
    slen = strlen(name);
    for (i=0; i<slen; ++i) {

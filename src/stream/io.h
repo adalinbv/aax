@@ -63,8 +63,8 @@ typedef int _io_open_fn(struct _io_st*, const char*);
 typedef int _io_close_fn(struct _io_st*);
 typedef ssize_t _io_read_fn(struct _io_st*, void*, size_t);
 typedef ssize_t _io_write_fn(struct _io_st*, const void*, size_t);
-typedef int _io_set_fn(struct _io_st*, enum _aaxStreamParam, ssize_t);
-typedef ssize_t _io_get_fn(struct _io_st*, enum _aaxStreamParam);
+typedef int _io_set_param_fn(struct _io_st*, enum _aaxStreamParam, ssize_t);
+typedef ssize_t _io_get_param_fn(struct _io_st*, enum _aaxStreamParam);
 typedef void _io_wait_fn(struct _io_st*, float);
 
 struct _io_st
@@ -73,8 +73,8 @@ struct _io_st
    _io_close_fn *close;
    _io_read_fn *read;
    _io_write_fn *write;
-   _io_get_fn *get;
-   _io_set_fn *set;
+   _io_get_param_fn *get_param;
+   _io_set_param_fn *set_param;
    _io_wait_fn *wait;
 
 

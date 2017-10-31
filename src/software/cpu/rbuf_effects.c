@@ -89,7 +89,6 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
       BUFSWAP(pdst, psrc);
    }
 
-#if !ENABLE_LITE
    if (delay)
    {
       /* Apply delay effects */
@@ -105,7 +104,6 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
          BUFSWAP(pdst, psrc);
       }
    }
-#endif
 
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
@@ -114,7 +112,6 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
    }
 }
 
-#if !ENABLE_LITE
 void
 _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
                         MIX_PTR_T s, CONST_MIX_PTR_T sbuf, MIX_PTR_T sbuf2,
@@ -487,7 +484,6 @@ _aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
    while(0);
 }
 
-#endif /* !ENABLE_LITE */
 
 void
 _aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,

@@ -521,23 +521,23 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
    switch(type)
    {
    case __F_BLOCK_SIZE:
-      handle->blocksize = value;
+      handle->blocksize = rv = value;
       break;
    case __F_FREQUENCY:
-      handle->frequency = value;
+      handle->frequency = rv = value;
       break;
    case __F_RATE:
-      handle->bitrate = value;
+      handle->bitrate = rv = value;
       break;
    case __F_TRACKS:
-      handle->no_tracks = value;
+      handle->no_tracks = rv = value;
       break;
    case __F_NO_SAMPLES:
       handle->no_samples = value;
-      handle->max_samples = value;
+      handle->max_samples = rv = value;
       break;
    case __F_BITS_PER_SAMPLE:
-      handle->bits_sample = value;
+      handle->bits_sample = rv = value;
       break;
    case __F_IS_STREAM:
       break;

@@ -48,8 +48,8 @@
 #include "ringbuffer.h"
 
 static void _aaxFreeEmitterBuffer(void *);
-static int _emitterCreateEFFromAAXS(aaxEmitter, const char*);
-
+static int _emitterSetFilter(_aaxEmitter*, _filter_t*);
+static int _emitterSetEffect(_aaxEmitter*, _effect_t*);
 
 AAX_API aaxEmitter AAX_APIENTRY
 aaxEmitterCreate()
@@ -190,7 +190,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          const _aaxEmitter *src = handle->source;
          _embuffer_t* embuf;
 
-         embuf = malloc(sizeof(_embuffer_t));
+         embuf = calloc(1, sizeof(_embuffer_t));
          if (embuf)
          {
             embuf->ringbuffer = rb->reference(rb);
@@ -206,14 +206,15 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             rv = AAX_FALSE;
          }
       }
-      put_emitter(handle); 
 
+#if 0
       if (rv && buffer->aaxs) {
-         rv = _emitterCreateEFFromAAXS(emitter, buffer->aaxs);
+         rv = _emitterCreateEFFromAAXS(handle, buffer->aaxs);
       }
-   } else {
-      put_emitter(handle);
+#endif
    }
+   put_emitter(handle);
+
    return rv;
 }
 
@@ -456,63 +457,9 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
    {
       _filter_t* filter = get_filter(f);
       if (filter)
-      {
-         _aaxEmitter *src = handle->source;
-         int type = filter->pos;
-         switch (filter->type)
-         {
-         case AAX_TIMED_GAIN_FILTER:
-            _PROP_DISTDELAY_SET_DEFINED(src->props3d);
-            // intentional fallthrough
-         case AAX_FREQUENCY_FILTER:
-         case AAX_VOLUME_FILTER:
-         case AAX_DYNAMIC_GAIN_FILTER:
-         {
-            _aax2dProps *p2d = src->props2d;
-            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-            _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-            _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
-            rv = AAX_TRUE;
-            break;
-         }      
-         case AAX_DISTANCE_FILTER:
-         {
-            _aax3dProps *p3d = src->props3d;
-            _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-            _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-            _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-            _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
-            rv = AAX_TRUE;
-            break;
-         }
-         case AAX_ANGULAR_FILTER:
-         {
-            _aax3dProps *p3d = src->props3d;
-            float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
-            float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
-            float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
-            float forward_gain = _FILTER_GET_SLOT(filter, 0, 3);
-
-            if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
-               _PROP_CONE_CLEAR_DEFINED(p3d);
-            } else {
-               _PROP_CONE_SET_DEFINED(p3d);
-            }
-            _FILTER_SET(p3d, type, 0, inner_vec);
-            _FILTER_SET(p3d, type, 1, outer_vec);
-            _FILTER_SET(p3d, type, 2, outer_gain);
-            _FILTER_SET(p3d, type, 3, forward_gain);
-            _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
-            rv = AAX_TRUE;
-            break;
-         }
-         default:
+       {
+         rv = _emitterSetFilter(handle->source, filter);
+         if (!rv) {
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
@@ -562,100 +509,8 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
       _effect_t* effect = get_effect(e);
       if (effect)
       {
-         _aaxEmitter *src = handle->source;
-         int type = effect->pos;
-         switch (effect->type)
-         {
-         case AAX_PITCH_EFFECT:
-         case AAX_TIMED_PITCH_EFFECT:
-            _PROP_PITCH_SET_CHANGED(src->props3d);
-            // intentional fallthrough
-         case AAX_DISTORTION_EFFECT:
-         {
-            _aax2dProps *p2d = src->props2d;
-            _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-            _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-            _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-            _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-            rv = AAX_TRUE;
-            break;
-         }
-         case AAX_FLANGING_EFFECT:
-         case AAX_PHASING_EFFECT:
-         case AAX_CHORUS_EFFECT:
-         {
-            _aax2dProps *p2d = src->props2d;
-            _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-            _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-            _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-            _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-            {
-               _aaxRingBufferDelayEffectData* data;
-               data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
-               if (data && !data->history_ptr)
-               {
-                  unsigned int tracks = effect->info->no_tracks;
-                  float fs = effect->info->frequency;
-                  size_t samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
-                  _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
-                                                    data->delay_history,
-                                                    samples, tracks);
-               }
-            }
-            rv = AAX_TRUE;
-            break;
-         }
-         case AAX_DYNAMIC_PITCH_EFFECT:
-         {
-            _aax2dProps *p2d = src->props2d;
-            _aaxRingBufferLFOData *lfo;
-
-            _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-            _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-            _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-            _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-
-            lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
-            if (lfo) /* enabled */
-            {
-               float lfo_val = _EFFECT_GET_SLOT(effect, 0, AAX_LFO_FREQUENCY);
-               _PROP_DYNAMIC_PITCH_SET_DEFINED(src->props3d);
-		/*
-		 * The vibrato effect is not gradual like tremolo but is
-		 * adjusted every update and stays constant which requires
-		 * the fastest update rate when the LFO is faster than 1Hz.
-		 */
-               if ((lfo_val > 1.0f) && (src->update_rate < 4*lfo_val)) {
-                  src->update_rate = 1;
-               }
-            }
-            else
-            { 
-               _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->props3d);
-               src->update_rate = 0;
-            }
-            rv = AAX_TRUE;
-            break;
-         }
-         case AAX_VELOCITY_EFFECT:
-         {
-            _aax3dProps *p3d = src->props3d;
-            _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-            _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-            _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-            _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-            _EFFECT_SWAP_SLOT_DATA(p3d,  type, effect, 0);
-            rv = AAX_TRUE;
-            break;
-         }
-         default:
+         rv = _emitterSetEffect(handle->source, effect);
+         if (!rv) {
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
       }
@@ -731,12 +586,13 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
       }
       case AAX_LOOPING:
       {
+         _aaxEmitter *src = handle->source;
          _intBufferData *dptr =_intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
-            rb->set_parami(rb, RB_LOOPING, mode);
+            rb->set_parami(rb, RB_LOOPING, mode); 
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          handle->looping = mode;
@@ -1375,14 +1231,177 @@ _aaxFreeEmitterBuffer(void *sbuf)
 }
 
 static int
-_emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
+_emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
 {
-   _emitter_t *handle = get_emitter(emitter, __func__);
+   int type = filter->pos;
+   int rv = AAX_TRUE;
+
+   switch (filter->type)
+   {
+   case AAX_TIMED_GAIN_FILTER:
+      _PROP_DISTDELAY_SET_DEFINED(src->props3d);
+      // intentional fallthrough
+   case AAX_FREQUENCY_FILTER:
+   case AAX_VOLUME_FILTER:
+   case AAX_DYNAMIC_GAIN_FILTER:
+   {
+      _aax2dProps *p2d = src->props2d;
+      _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+      _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+      _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+      _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+      _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
+      _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+      break;
+   }
+   case AAX_DISTANCE_FILTER:
+   {
+      _aax3dProps *p3d = src->props3d;
+      _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+      _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+      _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+      _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+      _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
+      _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+      break;
+   }
+   case AAX_ANGULAR_FILTER:
+   {
+      _aax3dProps *p3d = src->props3d;
+      float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
+      float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
+      float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
+      float forward_gain = _FILTER_GET_SLOT(filter, 0, 3);
+
+      if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
+         _PROP_CONE_CLEAR_DEFINED(p3d);
+      } else {
+         _PROP_CONE_SET_DEFINED(p3d);
+      }
+      _FILTER_SET(p3d, type, 0, inner_vec);
+      _FILTER_SET(p3d, type, 1, outer_vec);
+      _FILTER_SET(p3d, type, 2, outer_gain);
+      _FILTER_SET(p3d, type, 3, forward_gain);
+      _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
+      _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+      break;
+   }
+   default:
+      rv = AAX_FALSE;
+      break;
+   }
+
+   return rv;
+}
+
+static int
+_emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
+{
+   int type = effect->pos;
+   int rv = AAX_TRUE;
+
+   switch (effect->type)
+   {
+   case AAX_PITCH_EFFECT:
+   case AAX_TIMED_PITCH_EFFECT:
+      _PROP_PITCH_SET_CHANGED(src->props3d);
+      // intentional fallthrough
+   case AAX_DISTORTION_EFFECT:
+   {
+      _aax2dProps *p2d = src->props2d;
+      _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+      _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+      _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+      _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+      _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
+      _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+      break;
+   }
+   case AAX_FLANGING_EFFECT:
+   case AAX_PHASING_EFFECT:
+   case AAX_CHORUS_EFFECT:
+   {
+      _aax2dProps *p2d = src->props2d;
+      _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+      _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+      _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+      _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+      _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
+      _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+      {
+         _aaxRingBufferDelayEffectData* data;
+         data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
+         if (data && !data->history_ptr)
+         {
+            unsigned int tracks = effect->info->no_tracks;
+            float fs = effect->info->frequency;
+            size_t samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+            _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
+                                              data->delay_history,
+                                              samples, tracks);
+         }
+      }
+      break;
+   }
+   case AAX_DYNAMIC_PITCH_EFFECT:
+   {
+      _aax2dProps *p2d = src->props2d;
+      _aaxRingBufferLFOData *lfo;
+
+      _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+      _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+      _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+      _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+      _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
+      _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+
+      lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+      if (lfo) /* enabled */
+      {
+         float lfo_val = _EFFECT_GET_SLOT(effect, 0, AAX_LFO_FREQUENCY);
+         _PROP_DYNAMIC_PITCH_SET_DEFINED(src->props3d);
+          /*
+           * The vibrato effect is not gradual like tremolo but is
+           * adjusted every update and stays constant which requires
+           * the fastest update rate when the LFO is faster than 1Hz.
+           */
+         if ((lfo_val > 1.0f) && (src->update_rate < 4*lfo_val)) {
+            src->update_rate = 1;
+         }
+      }
+      else
+      {
+         _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->props3d);
+         src->update_rate = 0;
+      }
+      break;
+   }
+   case AAX_VELOCITY_EFFECT:
+   {
+      _aax3dProps *p3d = src->props3d;
+      _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+      _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+      _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+      _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+      _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
+      _EFFECT_SWAP_SLOT_DATA(p3d,  type, effect, 0);
+      break;
+   }
+   default:
+      rv = AAX_FALSE;
+      break;
+   }
+
+   return rv;
+}
+
+int
+_emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
+{
+   _emitter_t *handle = (_emitter_t*)emitter;
    aaxConfig config = handle->handle;
    int rv = AAX_TRUE;
    void *xid;
-
-   put_emitter(handle);
 
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
@@ -1396,12 +1415,22 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
 
          if (xmlAttributeExists(xmid, "looping"))
          {
-            int looping = xmlAttributeGetBool(xmid, "looping");
-            aaxEmitterSetMode(emitter, AAX_LOOPING, looping);
+            int mode = xmlAttributeGetBool(xmid, "looping");
+            _embuffer_t *embuf = (_embuffer_t*)buf;
+            _aaxRingBuffer *rb = embuf->ringbuffer;
+            rb->set_parami(rb, RB_LOOPING, mode);
          }
 
-         if (clear) {
-            _aaxSetDefault2dProps(handle->source->props2d);
+         if (clear)
+         {
+            _aaxEmitter *src = handle->source;
+            _FILTER_FREE2D_DATA(src, FREQUENCY_FILTER);
+            _FILTER_FREE2D_DATA(src, DYNAMIC_GAIN_FILTER);
+            _FILTER_FREE2D_DATA(src, TIMED_GAIN_FILTER);
+            _EFFECT_FREE2D_DATA(src, DYNAMIC_PITCH_EFFECT);
+            _EFFECT_FREE2D_DATA(src, TIMED_PITCH_EFFECT);
+            _EFFECT_FREE2D_DATA(src, DELAY_EFFECT);
+            _aaxSetDefault2dProps(src->props2d);
          }
 
          for (i=0; i<num; i++)
@@ -1411,7 +1440,8 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid);
                if (flt)
                {
-                  aaxEmitterSetFilter(emitter, flt);
+                  _filter_t* filter = get_filter(flt);
+                  _emitterSetFilter(handle->source, filter);
                   aaxFilterDestroy(flt);
                }
             }
@@ -1427,7 +1457,8 @@ _emitterCreateEFFromAAXS(aaxEmitter emitter, const char *aaxs)
                aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid);
                if (eff)
                {
-                  aaxEmitterSetEffect(emitter, eff);
+                  _effect_t* effect = get_effect(eff);
+                  _emitterSetEffect(handle->source, effect);
                   aaxEffectDestroy(eff);
                }
             }
