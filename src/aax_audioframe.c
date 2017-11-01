@@ -150,13 +150,16 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
    if (rv)
    {
+      int i;
+
       _aaxAudioFrame* fmixer = handle->submix;
 
-      _FILTER_FREE2D_DATA(fmixer, FREQUENCY_FILTER);
-      _FILTER_FREE2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
-      _FILTER_FREE2D_DATA(fmixer, TIMED_GAIN_FILTER);
-      _EFFECT_FREE2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT);
-      _EFFECT_FREE2D_DATA(fmixer, DELAY_EFFECT);
+      for (i=0; i<MAX_STEREO_FILTER; ++i) {
+         _FILTER_FREE2D_DATA(fmixer, i);
+      }
+      for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+         _EFFECT_FREE2D_DATA(fmixer, i);
+      }
 
       _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
       _aax_aligned_free(fmixer->props3d->dprops3d);
