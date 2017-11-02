@@ -70,15 +70,9 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       MIX_T **scratch = (MIX_T**)rb->get_scratch(rb);
       MIX_T *scratch0 = scratch[SCRATCH_BUFFER0];
       MIX_T *scratch1 = scratch[SCRATCH_BUFFER1];
-      void* distortion_effect = NULL;
       size_t no_samples, ddesamps = 0;
       unsigned int track, no_tracks;
       MIX_T **tracks;
-      void *env;
-
-      if (dist_state) {
-         distortion_effect = &p2d->effect[DISTORTION_EFFECT];
-      }
 
       if (delay_effect)
       {
@@ -90,8 +84,6 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          // ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
          ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
       }
-
-      env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
 
       no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
@@ -108,9 +100,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
          /* mix the buffer and the delay buffer */
          DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
-         rbi->effects(rbi->sample, scratch0, dptr, scratch1,
-                      0, no_samples, no_samples, ddesamps, track, 0,
-                      freq_filter, delay_effect, distortion_effect, env);
+         rbi->effects(rbi->sample, scratch0, dptr, scratch1, 0, no_samples,
+                      no_samples, ddesamps, track, 0, p2d);
 
          /* copy the unmodified next effects buffer back */
          DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);

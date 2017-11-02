@@ -47,7 +47,7 @@ typedef struct _aaxRingBufferSample_t __aaxRingBufferSample;
 typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, float, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
 typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
 typedef void
-_aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, unsigned char, void*, void*, void*, void*);
+_aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, unsigned char, _aax2dProps*);
 
 
 /**
@@ -186,7 +186,7 @@ typedef struct {
 extern _batch_codec_proc _aaxRingBufferCodecs[];
 
 void _aaxRingBufferProcessCodec(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
-void _aaxRingBufferEffectsApply(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, unsigned char, void*, void*, void*, void*);
+void _aaxRingBufferEffectsApply(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, unsigned char, _aax2dProps*);
 
 
 /** MIXER */
