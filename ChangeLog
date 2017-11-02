@@ -7,7 +7,7 @@
 -- Erik Hofman <tech@adalin.org>  Tue,  1 Nov  2017 14:51:00 + 0100
 
 
-* Tue Oct 32 2017 - tech@adalin.org
+* Tue Oct 31 2017 - tech@adalin.org
 - AeonWave (3.0.6) stable; urgency=low
  * Postpone initialization of AAXS filter and effect code for emitters to
    make sure they will be set after initializing the mixer which could change
