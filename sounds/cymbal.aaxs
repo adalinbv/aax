@@ -6,7 +6,7 @@
   <waveform src="square" pitch="0.985"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="add" staticity="0.15" pitch="0.25"/>
-  <waveform src="white-noise" processing="add" staticity="0.85"/>
+  <waveform src="white-noise" processing="add" staticity="0.95"/>
  </sound>
 
  <emitter>
