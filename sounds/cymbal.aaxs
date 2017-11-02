@@ -4,9 +4,9 @@
 
  <sound name="Crash Cymbal" frequency="3700">
   <waveform src="square" pitch="0.985"/>
-  <waveform src="sawtooth" processing="mix" pitch="2.9"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
-  <waveform src="white-noise" processing="add" staticity="0.15" pitch="0.5"/>
+  <waveform src="white-noise" processing="add" staticity="0.15" pitch="0.25"/>
+  <waveform src="white-noise" processing="add" staticity="0.85"/>
  </sound>
 
  <emitter>
@@ -14,11 +14,11 @@
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">1.50</param>
+    <param n="2" factor="soften">0.80</param>
     <param n="3">0.4</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
+    <param n="0">0.50</param>
     <param n="1">0.50</param>
    </slot>
   </filter>
