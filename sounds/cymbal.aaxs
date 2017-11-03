@@ -10,7 +10,7 @@
  </sound>
 
  <emitter>
-  <filter type="timed-gain" repeat="9">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1" factor="velocity">0.01</param>
