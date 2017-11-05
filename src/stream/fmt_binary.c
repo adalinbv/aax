@@ -150,6 +150,7 @@ _binary_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, UNUSED(enum aaxFormat aax_fmt))
    switch(pcm_fmt)
    {
    case _FMT_AAXS:
+      /* the internal buffer format for .aaxs files is signed 24-bit */
       handle->format = AAX_AAXS24S;
       handle->max_samples = handle->frequency;
       break;

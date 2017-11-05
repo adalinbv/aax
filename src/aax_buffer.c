@@ -898,7 +898,7 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
 char **
 _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
 {
-   char *s, *u, *url, **ptr = NULL;
+   char *s, *u, *url, **data = NULL;
    size_t no_samples, blocksize;
    unsigned int tracks;
    float freq;
@@ -910,16 +910,32 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
 
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs")) {
-      ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
-                                       &no_samples, &blocksize);
+      data = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
+                                        &no_samples, &blocksize);
    }
    free(url);
 
-   if (ptr)
+   if (data)
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, NULL);
 
-      buffer->format = fmt;
+      /* the internal buffer format for .aaxs files is signed 24-bit */
+      {
+         char **ndata;
+         char *ptr;
+
+         ptr = (char*)sizeof(void*);
+         ndata = (char**)_aax_malloc(&ptr, no_samples*sizeof(int32_t));
+         if (ndata)
+         {
+            *ndata = (void*)ptr;
+            _bufConvertDataToPCM24S(*ndata, *data, no_samples, fmt);
+            free(data);
+            data = ndata;
+         }
+      }
+
+      buffer->format = AAX_PCM24S;
       buffer->no_samples = no_samples;
       buffer->blocksize = blocksize;
       buffer->no_tracks = tracks;
@@ -930,7 +946,7 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
       rb->set_parami(rb, RB_NO_SAMPLES, buffer->no_samples);
    }
 
-   return ptr;
+   return data;
 }
 
 static int
