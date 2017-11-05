@@ -2,10 +2,10 @@
 
 <aeonwave>
 
- <sound name="Electric Guitar" frequency="220">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="3.0" ratio="0.35"/>
-  <waveform src="sine" processing="modulate" pitch="5.0" ratio="3.1"/>
+ <sound name="Electric Guitar" frequency="262">
+  <waveform src="square"/>
+  <waveform src="sawtooth" processing="mix" pitch="1.999" ratio="0.5"/>
+  <waveform src="triangle" processing="modulate" pitch="2.0" ratio="2.5"/>
  </sound>
 
  <emitter looping="true">
