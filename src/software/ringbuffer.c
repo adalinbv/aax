@@ -916,6 +916,10 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       rv = AAX_TRUE;
       break;
    case RB_FORMAT:
+      rbd->format = val;
+      rbd->codec = _aaxRingBufferCodecs[rbd->format];
+      rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
+      break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
           (param <= RB_PEAK_VALUE_MAX))
