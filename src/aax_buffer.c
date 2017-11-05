@@ -969,6 +969,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
       {
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
          void *xeid, *xfid, *xwid = xmlMarkId(xsid);
+         unsigned int bits = 24;
 //       double duration;
 
          if (xmlAttributeExists(xsid, "file"))
@@ -1000,6 +1001,12 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
             }
          }
 #endif
+
+         if (xmlAttributeExists(xsid, "bits"))
+         {
+            bits = xmlAttributeGetInt(xsid, "bits");
+            if (bits != 16) bits = 24;
+         }
 
          if (!freq) {
             freq = xmlAttributeGetDouble(xsid, "frequency");
@@ -1159,6 +1166,22 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
          }
          xmlFree(xeid);
          xmlFree(xsid);
+
+         if (bits == 16)
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+            _aaxRingBufferData *rbi = rb->handle;
+            _aaxRingBufferSample *rbd = rbi->sample; 
+            void *dptr = rbd->track[0];
+            unsigned int no_samples;
+
+            // this works because 32-bit aligned 24-bit is smaller than 16-bit
+            // TODO: return the freed space, but how does aligned realloc work?
+            no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+            _batch_cvt16_24(dptr, dptr, no_samples);
+            rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
+            handle->format = AAX_PCM16S;
+         }
       }
       else {
          _aaxErrorSet(AAX_INVALID_STATE);
