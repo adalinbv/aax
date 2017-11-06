@@ -1439,9 +1439,19 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          void *xeid, *xfid = xmlMarkId(xmid);
 
-         if (clear) {
-            _aaxSetDefault2dProps(handle->submix->props2d);
+         if (clear)
+         {
+            _aaxAudioFrame* fmixer = handle->submix;
+            int i;
+            for (i=0; i<MAX_STEREO_FILTER; ++i) {
+               _FILTER_FREE2D_DATA(fmixer, i);
+            }
+            for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+               _EFFECT_FREE2D_DATA(fmixer, i);
+            }
+            _aaxSetDefault2dProps(fmixer->props2d);
          }
+
          for (i=0; i<num; i++)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
