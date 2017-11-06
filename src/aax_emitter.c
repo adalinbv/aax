@@ -1426,12 +1426,13 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
          if (clear)
          {
             _aaxEmitter *src = handle->source;
-            _FILTER_FREE2D_DATA(src, FREQUENCY_FILTER);
-            _FILTER_FREE2D_DATA(src, DYNAMIC_GAIN_FILTER);
-            _FILTER_FREE2D_DATA(src, TIMED_GAIN_FILTER);
-            _EFFECT_FREE2D_DATA(src, DYNAMIC_PITCH_EFFECT);
-            _EFFECT_FREE2D_DATA(src, TIMED_PITCH_EFFECT);
-            _EFFECT_FREE2D_DATA(src, DELAY_EFFECT);
+            int i;
+            for (i=0; i<MAX_STEREO_FILTER; ++i) {
+               _FILTER_FREE2D_DATA(src, i);
+            }
+            for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+               _EFFECT_FREE2D_DATA(src, i);
+            }
             _aaxSetDefault2dProps(src->props2d);
          }
 
