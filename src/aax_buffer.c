@@ -41,6 +41,8 @@
 #include <software/rbuf_int.h>
 #include <stream/device.h>
 #include <dsp/common.h>
+#include <dsp/filters.h>
+#include <dsp/effects.h>
 
 #include "devices.h"
 #include "analyze.h"
@@ -49,16 +51,17 @@
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);
-static int _aaxBufferProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
+static int _bufProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static char** _aaxGetBufferDataFromAAXS(_buffer_t *buffer, char *file);
+static char** _bufGetDataFromAAXS(_buffer_t *buffer, char *file);
+static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*);
+static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*);
 // static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
-
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
 
@@ -443,7 +446,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   return _aaxBufferProcessWaveform(buffer, rate, 1.0f, rate, wtype, ratio, ptype);
+   return _bufProcessWaveform(buffer, rate, 1.0f, rate, wtype, ratio, ptype);
 }
 
 AAX_API void** AAX_APIENTRY
@@ -893,9 +896,9 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
 }
 
 char **
-_aaxGetBufferDataFromAAXS(_buffer_t *buffer, char *file)
+_bufGetDataFromAAXS(_buffer_t *buffer, char *file)
 {
-   char *s, *u, *url, **ptr = NULL;
+   char *s, *u, *url, **data = NULL;
    size_t no_samples, blocksize;
    unsigned int tracks;
    float freq;
@@ -907,16 +910,32 @@ _aaxGetBufferDataFromAAXS(_buffer_t *buffer, char *file)
 
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs")) {
-      ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
-                                       &no_samples, &blocksize);
+      data = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
+                                        &no_samples, &blocksize);
    }
    free(url);
 
-   if (ptr)
+   if (data)
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, NULL);
 
-      buffer->format = fmt;
+      /* the internal buffer format for .aaxs files is signed 24-bit */
+      {
+         char **ndata;
+         char *ptr;
+
+         ptr = (char*)sizeof(void*);
+         ndata = (char**)_aax_malloc(&ptr, no_samples*sizeof(int32_t));
+         if (ndata)
+         {
+            *ndata = (void*)ptr;
+            _bufConvertDataToPCM24S(*ndata, *data, no_samples, fmt);
+            free(data);
+            data = ndata;
+         }
+      }
+
+      buffer->format = AAX_PCM24S;
       buffer->no_samples = no_samples;
       buffer->blocksize = blocksize;
       buffer->no_tracks = tracks;
@@ -927,7 +946,7 @@ _aaxGetBufferDataFromAAXS(_buffer_t *buffer, char *file)
       rb->set_parami(rb, RB_NO_SAMPLES, buffer->no_samples);
    }
 
-   return ptr;
+   return data;
 }
 
 static int
@@ -949,13 +968,14 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
       if (xsid)
       {
          unsigned int i, num = xmlNodeGetNum(xsid, "waveform");
-         void *xwid = xmlMarkId(xsid);
+         void *xeid, *xfid, *xwid = xmlMarkId(xsid);
+         unsigned int bits = 24;
 //       double duration;
 
          if (xmlAttributeExists(xsid, "file"))
          {
             char *file = xmlAttributeGetString(xsid, "file");
-            char **ptr = _aaxGetBufferDataFromAAXS(handle, file);
+            char **ptr = _bufGetDataFromAAXS(handle, file);
             xmlFree(file);
 
             if (ptr)
@@ -981,6 +1001,12 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
             }
          }
 #endif
+
+         if (xmlAttributeExists(xsid, "bits"))
+         {
+            bits = xmlAttributeGetInt(xsid, "bits");
+            if (bits != 16) bits = 24;
+         }
 
          if (!freq) {
             freq = xmlAttributeGetDouble(xsid, "frequency");
@@ -1090,17 +1116,77 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                   }
                }
 
-               rv = _aaxBufferProcessWaveform(handle, freq, pitch, staticity,
+               rv = _bufProcessWaveform(handle, freq, pitch, staticity,
                                                       wtype, ratio, ptype);
                if (rv == AAX_FALSE) break;
             }
          }
          xmlFree(xwid);
+
+         /* apply (some) static filters and affects */
+         xfid = xmlMarkId(xsid);
+         num = xmlNodeGetNum(xsid, "filter");
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xsid, xfid, "filter", i) != 0)
+            {
+               aaxFilter flt = _aaxGetFilterFromAAXS(handle->handle, xfid);
+               if (flt)
+               {
+                  _filter_t* filter = get_filter(flt);
+                  if (filter->type == AAX_FREQUENCY_FILTER &&
+                      filter->state == AAX_TRUE)
+                  {
+                     _bufApplyFrequencyFilter(handle, filter);
+                  }
+                  aaxFilterDestroy(flt);
+               }
+            }
+         }
+         xmlFree(xfid);
+
+         xeid = xmlMarkId(xsid);
+         num = xmlNodeGetNum(xsid, "effect");
+         for (i=0; i<num; i++)
+         {
+            if (xmlNodeGetPos(xsid, xeid, "effect", i) != 0)
+            {
+               aaxEffect eff = _aaxGetEffectFromAAXS(handle->handle, xeid);
+               if (eff)
+               {
+                  _effect_t* effect = get_effect(eff);
+                  if (effect->type == AAX_DISTORTION_EFFECT &&
+                      effect->state == AAX_TRUE)
+                  {
+                     _bufApplyDistortionEffect(handle, effect);
+                  }
+                  aaxEffectDestroy(eff);
+               }
+            }
+         }
+         xmlFree(xeid);
          xmlFree(xsid);
+
+         if (bits == 16)
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+            _aaxRingBufferData *rbi = rb->handle;
+            _aaxRingBufferSample *rbd = rbi->sample; 
+            void *dptr = rbd->track[0];
+            unsigned int no_samples;
+
+            // this works because 32-bit aligned 24-bit is smaller than 16-bit
+            // TODO: return the freed space, but how does aligned realloc work?
+            no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+            _batch_cvt16_24(dptr, dptr, no_samples);
+            rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
+            handle->format = AAX_PCM16S;
+         }
       }
       else {
          _aaxErrorSet(AAX_INVALID_STATE);
       }
+
       xmlClose(xid);
    }
    else {
@@ -1131,7 +1217,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
 #endif
 
 static int
-_aaxBufferProcessWaveform(aaxBuffer buffer, float freq, float pitch, float staticity, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
+_bufProcessWaveform(aaxBuffer buffer, float freq, float pitch, float staticity, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
@@ -1766,3 +1852,86 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
    if (ptr != tracks) free(tracks);
 }
 
+static void
+_bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
+{
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   unsigned int bps, no_samples;
+   void *dptr = rbd->track[0];
+   void *sptr;
+
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+
+   /* AAXS defined buffers have just one track */
+   assert(rb->get_parami(rb, RB_NO_TRACKS) == 1);
+   assert(bps == 4);
+
+   sptr = _aax_aligned_alloc(no_samples*bps);
+   if (sptr)
+   {
+      _aaxRingBufferFreqFilterData *data = filter->slot[0]->data;
+
+      _batch_cvtps24_24(dptr, dptr, no_samples);
+      _aax_memcpy(sptr, dptr, no_samples*bps);
+      rbd->freqfilter(dptr, sptr, 0, no_samples, data);
+      if (data->state && (data->low_gain > LEVEL_128DB)) {
+         rbd->add(dptr, sptr, no_samples, data->low_gain, 0.0f);
+      }
+      _aax_aligned_free(sptr);
+      _batch_cvt24_ps24(dptr, dptr, no_samples);
+   }
+}
+
+static void
+_bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
+{
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   int32_t **sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   _aaxFilterInfo* slot = effect->slot[0];
+   float fact = slot->param[AAX_DISTORTION_FACTOR];
+   float clip = slot->param[AAX_CLIPPING_FACTOR];
+   float mix  = slot->param[AAX_MIX_FACTOR];
+   float asym = slot->param[AAX_ASYMMETRY];
+   unsigned int bps, no_samples;
+   void *dptr = sbuf[0];
+   void *sptr;
+
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+   bps = sizeof(float); // rb->get_parami(rb, RB_BYTES_SAMPLE);
+   sptr = _aax_aligned_alloc(no_samples*bps);
+   if (sptr)
+   {
+      _batch_cvtps24_24(dptr, dptr, no_samples);
+      _aax_memcpy(sptr, dptr, no_samples*bps);
+      if (mix > 0.01f)
+      {
+         float mix_factor;
+
+         /* make dptr the wet signal */
+         if (fact > 0.0013f) {
+            rbd->multiply(dptr, bps, no_samples, 1.0f+64.f*fact);
+         }
+
+         if ((fact > 0.01f) || (asym > 0.01f))
+         {
+            size_t avg = 0;
+            size_t peak = no_samples;
+            _aaxRingBufferLimiter(dptr, &avg, &peak, clip, 4*asym);
+         }
+
+         /* mix with the dry signal */
+         mix_factor = mix/(0.5f+powf(fact, 0.25f));
+         rbd->multiply(dptr, bps, no_samples, mix_factor);
+         if (mix < 0.99f) {
+            rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
+         }
+      }
+      _aax_aligned_free(sptr);
+      _batch_cvt24_ps24(dptr, dptr, no_samples);
+   }
+}
