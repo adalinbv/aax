@@ -123,14 +123,16 @@ aaxEmitterDestroy(aaxEmitter emitter)
       _aaxEmitter *src = handle->source;
       if (!handle->handle && _IS_PROCESSED(src->props3d))
       {
+         int i;
+
          _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,_aaxFreeEmitterBuffer);
 
-         _FILTER_FREE2D_DATA(src, FREQUENCY_FILTER);
-         _FILTER_FREE2D_DATA(src, DYNAMIC_GAIN_FILTER);
-         _FILTER_FREE2D_DATA(src, TIMED_GAIN_FILTER);
-         _EFFECT_FREE2D_DATA(src, DYNAMIC_PITCH_EFFECT);
-         _EFFECT_FREE2D_DATA(src, TIMED_PITCH_EFFECT);
-         _EFFECT_FREE2D_DATA(src, DELAY_EFFECT);
+         for (i=0; i<MAX_STEREO_FILTER; ++i) {
+            _FILTER_FREE2D_DATA(src, i);
+         }
+         for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+            _EFFECT_FREE2D_DATA(src, i);
+         }
 
          _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
          _aax_aligned_free(src->props3d->dprops3d);

@@ -29,6 +29,7 @@
 #include <base/logging.h>
 #include <base/geometry.h>
 
+#include <dsp/filters.h>
 #include <dsp/effects.h>
 
 #include <api.h>
@@ -53,13 +54,21 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
           size_t start, size_t end, size_t no_samples,
           size_t ddesamps, unsigned int track, unsigned char ctr,
-          void *freq, void *delay, void *distort, void *env)
+          _aax2dProps *p2d)
 {
+   void *env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+   void *freq = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
+   void *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = delay;
    size_t ds = delay ? ddesamps : 0;	/* 0 for frequency filtering */
    MIX_T *psrc = src; /* might change further in the code */
    MIX_T *pdst = dst; /* might change further in the code */
+   void *distort = NULL;
+
+   if (_EFFECT_GET_STATE(p2d, DISTORTION_EFFECT)) {
+      distort = &p2d->effect[DISTORTION_EFFECT];
+   }
 
    src += start;
    dst += start;

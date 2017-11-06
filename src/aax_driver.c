@@ -1307,6 +1307,7 @@ _aaxFreeSensor(void *ssr)
 {
    _sensor_t *sensor = (_sensor_t*)ssr;
    _aaxAudioFrame* smixer = sensor->mixer;
+   int i;
 
    /* frees both EQUALIZER_LF and EQUALIZER_HF */
    free(sensor->filter[EQUALIZER_LF].data);
@@ -1314,13 +1315,13 @@ _aaxFreeSensor(void *ssr)
    /* frees both HRTF_HEADSHADOW and SURROUND_CROSSOVER_LP **/
    free(sensor->filter[HRTF_HEADSHADOW].data);
 
-   _FILTER_FREE2D_DATA(smixer, FREQUENCY_FILTER);
-   _FILTER_FREE2D_DATA(smixer, DYNAMIC_GAIN_FILTER);
-   _FILTER_FREE2D_DATA(smixer, TIMED_GAIN_FILTER);
-   _EFFECT_FREE2D_DATA(smixer, DYNAMIC_PITCH_EFFECT);
-   _EFFECT_FREE2D_DATA(smixer, REVERB_EFFECT);
+   for (i=0; i<MAX_STEREO_FILTER; ++i) {
+      _FILTER_FREE2D_DATA(smixer, i);
+   }
+   for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+      _EFFECT_FREE2D_DATA(smixer, i);
+   }
    _EFFECT_FREE3D_DATA(smixer, CONVOLUTION_EFFECT);
-   _EFFECT_FREE2D_DATA(smixer, DELAY_EFFECT);
 
    _intBufErase(&smixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
    _aax_aligned_free(smixer->props3d->dprops3d);
