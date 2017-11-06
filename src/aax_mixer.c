@@ -1608,7 +1608,18 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
             if (dptr)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               _aaxSetDefault2dProps(sensor->mixer->props2d);
+               _aaxAudioFrame* smixer = sensor->mixer;
+               int i;
+
+               for (i=0; i<MAX_STEREO_FILTER; ++i) {
+                  _FILTER_FREE2D_DATA(smixer, i);
+               }
+               for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+                  _EFFECT_FREE2D_DATA(smixer, i);
+               }
+               _EFFECT_FREE3D_DATA(smixer, CONVOLUTION_EFFECT);
+               _aaxSetDefault2dProps(smixer->props2d);
+
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
          }
