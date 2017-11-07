@@ -2,10 +2,10 @@
 
 <aeonwave>
 
- <sound name="Acoustic Grand Piano" frequency="220">
+ <sound name="Acoustic Grand Piano" frequency="55">
   <waveform src="triangle"/>
-  <waveform src="sine" processing="add" pitch="4.0" ratio="0.5"/>
-  <waveform src="sine" processing="modulate" pitch="2.0" ratio="3.33"/>
+  <waveform src="sawtooth" processing="add"/>
+  <waveform src="sawtooth" processing="add" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
@@ -14,13 +14,11 @@
     <param n="0">0.00</param>
     <param n="1" factor="velocity">0.01</param>
     <param n="2" factor="soften">1.20</param>
-    <param n="3">0.1</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.9</param>
-    <param n="1">0.3</param>
-    <param n="2">0.7</param>
-    <param n="3">0.5</param>
+    <param n="0">0.70</param>
+    <param n="1">1.80</param>
    </slot>
   </filter>
  </emitter>
