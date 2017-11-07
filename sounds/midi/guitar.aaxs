@@ -2,13 +2,18 @@
 
 <aeonwave>
 
- <sound name="Electric Guitar" frequency="262">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="1.999" ratio="-0.5"/>
-  <waveform src="triangle" processing="modulate" pitch="2.0" ratio="2.5"/>
+ <sound name="Electric Guitar" frequency="87">
+  <waveform src="sawtooth" ratio="0.9"/>
+  <waveform src="square" processing="add" pitch="2.0" ratio="0.4"/>
+  <waveform src="sine" processing="modulate" pitch="3.0" ratio="2.0"/>
  </sound>
 
  <emitter looping="true">
+  <filter type="volume">
+   <slot n="0">
+    <param n="0">1.4</param>
+   </slot>
+  </filter>
   <filter type="envelope">
    <slot n="0">
     <param n="0">0.00</param>
@@ -21,6 +26,25 @@
     <param n="1">2.50</param>
    </slot>
   </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.1</param>
+    <param n="1" factor="velocity">0.075</param>
+    <param n="2">1.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.975</param>
+   </slot>
+  </effect>
+  <effect type="flanging" src="true">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.8</param>
+   </slot>
+  </effect>
  </emitter>
 
 </aeonwave>
