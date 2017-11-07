@@ -1,10 +1,12 @@
-* Wed Nov  1 2017 - tech@adalin.org
+* Wed Nov  7 2017 - tech@adalin.org
 - AeonWave (3.0.7) stable; urgency=low
  * Fix a problem where large AAXS files where truncated.
  * Reorganize the filter and effect cleanup for emitters, audio-frames and the
    sensor.
+ * Add support for a static frequency filter and a static distortion effect
+   within the <sound/> section.
 
--- Erik Hofman <tech@adalin.org>  Tue,  1 Nov  2017 14:51:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue,  7 Nov  2017 13:19:00 + 0100
 
 
 * Tue Oct 31 2017 - tech@adalin.org
