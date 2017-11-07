@@ -4,11 +4,16 @@
 
  <sound name="Acoustic Grand Piano" frequency="55">
   <waveform src="square"/>
-  <waveform src="triangle" processing="add" pitch="17.999" ratio="0.4"/>
+  <waveform src="triangle" processing="add" pitch="18.1" ratio="0.4"/>
   <waveform src="square" processing="modulate" pitch="2.0" ratio="1.5"/>
  </sound>
 
  <emitter looping="true">
+  <filter type="volume">
+   <slot n="0">
+    <param n="0">2.0</param>
+   </slot>
+  </filter>
   <filter type="envelope">
    <slot n="0">
     <param n="0">0.00</param>
@@ -17,7 +22,7 @@
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">0.50</param>
+    <param n="0">0.40</param>
     <param n="1">2.80</param>
    </slot>
   </filter>
