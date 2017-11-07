@@ -4,7 +4,7 @@
 
  <sound name="Electric Guitar" frequency="262">
   <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="1.999"/>
+  <waveform src="sawtooth" processing="mix" pitch="1.999" ratio="-0.5"/>
   <waveform src="triangle" processing="modulate" pitch="2.0" ratio="2.5"/>
  </sound>
 
