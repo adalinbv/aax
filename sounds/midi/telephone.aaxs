@@ -11,11 +11,11 @@
  <emitter looping="true">
   <filter type="dynamic_gain" src="sawtooth">
    <slot n="0">
-    <param n="1">12.0</param>
+    <param n="1">15.0</param>
     <param n="2">2.0</param>
    </slot>
   </filter>
-  <filter type="envelope" repeat="5">
+  <filter type="envelope" repeat="1">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>

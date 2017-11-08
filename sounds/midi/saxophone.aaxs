@@ -3,9 +3,40 @@
 <aeonwave>
 
  <sound frequency="220">
-  <waveform src="brownian-noise" pitch="0.3" ratio="0.73" staticity="0.1"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.73"/>
-  <waveform src="sine" processing="modulate" pitch="2.9" ratio="1.0"/>
+  <waveform src="sawtooth"/>
+  <waveform src="sine" processing="mix" pitch="3.0" ratio="0.4"/>
  </sound>
+
+ <emitter looping="true">
+  <filter src="envelope">
+   <slot n="0">
+     <p1>0.00</p1>
+     <p2>0.05</p2>
+     <p1>1.00</p1>
+     <p2>0.05</p2>
+   </slot>
+   <slot n="1">
+     <p1>0.90</p1>
+     <p2>inf</p2>
+     <p1>0.80</p1>
+     <p2>0.20</p2>
+   </slot>
+  </filter>
+  <effect src="envelope">
+   <slot n="0">
+     <p1>0.995</p1>
+     <p2>0.05</p2>
+     <p1>1.05</p1>
+     <p2>0.08</p2>
+   </slot>
+   <slot n="1">
+     <p1>1.00</p1>
+     <p2>0.10</p2>
+     <p1>0.99</p1>
+     <p2>0.00</p2>
+   </slot>
+  </effect>
+ </emitter>
+
 
 </aeonwave>

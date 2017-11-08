@@ -10,10 +10,10 @@
 
   <filter type="frequency">
    <slot n="0">
-    <param n="0">2000</param>
+    <param n="0">3000</param>
     <param n="1">0.1</param>
     <param n="2">1.2</param>
-    <param n="3">2.0</param>
+    <param n="3">5.0</param>
    </slot>
   </filter>
  </sound>
