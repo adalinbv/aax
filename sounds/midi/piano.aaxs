@@ -11,7 +11,7 @@
  <emitter looping="true">
   <filter type="volume">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">2.5</param>
    </slot>
   </filter>
   <filter type="envelope">
