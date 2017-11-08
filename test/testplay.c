@@ -67,6 +67,7 @@ int main(int argc, char **argv)
 
         if (buffer)
         {
+            aaxFrame frame;
             aaxEmitter emitter;
             aaxEffect effect;
             float pitch, duration;
@@ -97,15 +98,28 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
             testForState(res, "aaxEmitterSetMode");
 
-            /** mixer */
+            /** audio-frame */
             res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
+            frame = aaxAudioFrameCreate(config);
+            testForError(frame, "Unable to create a new audio frame");
+
+            res = aaxMixerRegisterAudioFrame(config, frame);
+            testForState(res, "aaxMixerRegisterAudioFrame");
+
+            res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+            testForState(res, "aaxAudioFrameStart");
+
+            res = aaxAudioFrameAddBuffer(frame, buffer);
+            testForState(res, "aaxAudioFrameAddBuffer");
+
+            res = aaxAudioFrameRegisterEmitter(frame, emitter);
+            testForState(res, "aaxAudioFrameRegisterEmitter");
+
+            /** mixer */
             res = aaxMixerAddBuffer(config, buffer);
             testForState(res, "aaxMixerAddBuffer");
-
-            res = aaxMixerRegisterEmitter(config, emitter);
-            testForState(res, "aaxMixerRegisterEmitter");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
@@ -152,7 +166,8 @@ int main(int argc, char **argv)
             }
             while (state == AAX_PLAYING);
 
-            res = aaxMixerDeregisterEmitter(config, emitter);
+            res = aaxAudioFrameDeregisterEmitter(frame, emitter);
+            res = aaxMixerDeregisterAudioFrame(config, frame);
             res = aaxMixerSetState(config, AAX_STOPPED);
             res = aaxEmitterDestroy(emitter);
             res = aaxBufferDestroy(buffer);
