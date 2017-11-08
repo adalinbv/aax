@@ -63,15 +63,6 @@ int main(int argc, char **argv)
     config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
-    if (!aaxIsValid(config, AAX_CONFIG_HD))
-    {
-        printf("Warning:\n");
-        printf("  %s requires a registered version of AeonWave\n", argv[0]);
-        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
-        printf("obtain\n  a product-key.\n\n");
-        rv = -1;
-    }
-
     if (config && (rv >= 0))
     {
         aaxBuffer buffer = bufferFromFile(config, infile);

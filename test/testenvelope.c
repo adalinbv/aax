@@ -279,7 +279,6 @@ int main(int argc, char **argv)
         res = aaxMixerSetState(config, AAX_STOPPED);
         res = aaxEmitterDestroy(emitter);
         res = aaxBufferDestroy(buffer);
-
     }
 
     res = aaxDriverClose(config);
