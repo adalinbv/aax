@@ -1175,7 +1175,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   data = _aaxRingBufferGetTracksPtr(rb, RB_WRITE);
+   data = rb->get_tracks_ptr(rb, RB_WRITE);
    switch (type)
    {
    case AAX_WHITE_NOISE:
@@ -1199,7 +1199,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
    default:
       break;
    }
-   _aaxRingBufferReleaseTracksPtr(rb);
+   rb->release_tracks_ptr(rb);
 
    return rv;
 }
