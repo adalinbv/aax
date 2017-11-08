@@ -3,18 +3,18 @@
 <aeonwave>
 
  <sound name="Rock Organ" frequency="220">
-  <waveform src="square"/>
-  <waveform src="sine" processing="add" pitch="4.0" ratio="0.4"/>
-  <waveform src="sawtooth" processing="modulate" pitch="2.0" ratio="1.2"/>
+  <waveform src="triangle" ratio="0.8"/>
+  <waveform src="sine" processing="add" pitch="4.02" ratio="0.4"/>
+  <waveform src="sawtooth" processing="modulate" pitch="2.0" ratio="1.5"/>
  </sound>
 
  <emitter looping="true">
-  <effect type="flanging" src="sine">
+  <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.333</param>
-    <param n="1">0.331</param>
-    <param n="2">0.05</param>
-    <param n="3">0.1</param>
+    <param n="0">0.533</param>
+    <param n="1">0.337</param>
+    <param n="2">0.5</param>
+    <param n="3">0.3</param>
    </slot>
   </effect>
  </emitter>

@@ -2,7 +2,7 @@
 
 <aeonwave>
 
- <sound name="Acoustic Grand Piano" frequency="55">
+ <sound name="Acoustic Grand Piano" frequency="220">
   <waveform src="square"/>
   <waveform src="triangle" processing="add" pitch="18.1" ratio="0.4"/>
   <waveform src="square" processing="modulate" pitch="2.0" ratio="1.5"/>
