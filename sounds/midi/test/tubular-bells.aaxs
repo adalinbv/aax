@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <sound name="Tubular Bells" frequency="220">
+  <waveform src="square" pitch="2.5" ratio="0.2"/>
+  <waveform src="sine" processing="mix" pitch="3.0" ratio="0.2"/>
+  <waveform src="sine" processing="modulate" ratio="0.6"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="dynamic-gain" src="sine">
+   <slot n="0">
+    <param n="0">2.8</param>
+    <param n="1">0.4</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>
