@@ -352,6 +352,9 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
    *path = NULL;
    *port = 0;
 
+   ptr = url;
+   while ((ptr = strchr(ptr, '\\')) != NULL) *ptr++ = '/';
+
    ptr = strstr(url, "://");
    if (ptr)
    {
@@ -367,13 +370,13 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
    }
    else /* 'example.com', 'dir.ext/file' or 'file.ext' */
    {
-      char *slash = strchr(url, '/');
       struct addrinfo* res;
       int file_not_server;
 
-      if (slash) *slash = '\0';
+      ptr = strchr(url, '/');
+      if (ptr) *ptr = '\0';
       file_not_server = getaddrinfo(url, NULL, NULL, &res);
-      if (slash) *slash = '/';
+      if (ptr) *ptr = '/';
 
       if (file_not_server) /* not a server so it must be a file */
       {
