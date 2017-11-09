@@ -55,9 +55,6 @@ extern "C" {
 #  pragma waring _WIN32 defined but not WIN32
 #  define WIN32			_WIN32
 # endif
-# define AAX_PATH_SEPARATOR	'\\'
-#else
-# define AAX_PATH_SEPARATOR	'/'
 #endif
 
 #define TEST_FOR_TRUE(x)	(x != AAX_FALSE)
