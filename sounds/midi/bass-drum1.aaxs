@@ -3,7 +3,7 @@
 <aeonwave>
 
  <sound name="Acoustic Bass Drum" frequency="60">
-  <waveform src="sine"/>
+  <waveform src="sine" ratio="2.50"/>
  </sound>
 
  <emitter looping="true">
@@ -11,12 +11,12 @@
    <slot n="0">
     <param n="0">0.00</param>
     <param n="1">0.01</param>
-    <param n="2">2.50</param>
+    <param n="2">1.20</param>
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
     <param n="0">1.00</param>
-    <param n="1">0.05</param>
+    <param n="1">0.10</param>
    </slot>
   </filter>
  </emitter>
