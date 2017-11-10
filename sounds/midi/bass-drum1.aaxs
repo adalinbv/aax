@@ -2,10 +2,8 @@
 
 <aeonwave>
 
- <sound name="Acoustic Bass Drum" frequency="22">
-  <waveform src="sine" ratio="0.5"/>
-  <waveform src="sine" processing="add" pitch="2.0" ratio="0.5"/>
-  <waveform src="sine" processing="add" pitch="3.0"/>
+ <sound name="Acoustic Bass Drum" frequency="60">
+  <waveform src="sine"/>
  </sound>
 
  <emitter looping="true">
