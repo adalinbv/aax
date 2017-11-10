@@ -112,14 +112,14 @@ int main(int argc, char **argv)
             testForState(res, "aaxAudioFrameStart");
 
             res = aaxAudioFrameAddBuffer(frame, buffer);
-            testForState(res, "aaxAudioFrameAddBuffer");
+            // testForState(res, "aaxAudioFrameAddBuffer");
 
             res = aaxAudioFrameRegisterEmitter(frame, emitter);
             testForState(res, "aaxAudioFrameRegisterEmitter");
 
             /** mixer */
             res = aaxMixerAddBuffer(config, buffer);
-            testForState(res, "aaxMixerAddBuffer");
+            // testForState(res, "aaxMixerAddBuffer");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
