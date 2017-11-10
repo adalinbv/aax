@@ -2,9 +2,11 @@
 
 <aeonwave>
 
- <sound name="Acoustic Snare" frequency="120">
-  <waveform src="sine" ratio="1.8"/>/>
-  <waveform src="brownian-noise" processing="add" pitch="0.25" ratio="6.6"/>
+ <sound name="Acoustic Snare" frequency="33">
+  <waveform src="sine"/>
+  <waveform src="sine" pitch="2.0" ratio="1.8"/>
+  <waveform src="triangle" pitch="3.0" ratio="2.2"/>
+  <waveform src="pink-noise" processing="add" pitch="0.66" ratio="3.0"/>
  </sound>
 
  <emitter looping="true">
