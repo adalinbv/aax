@@ -218,9 +218,15 @@ int main(int argc, char **argv)
                {
                   int size = aaxBufferGetSetup(buffer, AAX_TRACKSIZE);
                   void **data = aaxBufferGetData(buffer);
-                  int res = write(fd, *data, size);
-                  if (res != size) {
-                     printf("Written %i bytes of the required: %i\n", res, size);
+                  if (data)
+                  {
+                     int res = write(fd, *data, size);
+                     if (res != size) {
+                        printf("Written %i bytes of the required: %i\n", res, size);
+                     }
+                  }
+                  else {
+                     printf("Error: %s\n", aaxGetErrorString(aaxGetErrorNo()));
                   }
                   close(fd);
                }
