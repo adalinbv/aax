@@ -2,16 +2,16 @@
 
 <aeonwave>
 
- <sound name="Crash Cymbal" frequency="885">
+ <sound name="Crash Cymbal" frequency="1600">
   <waveform src="square" pitch="0.985"/>
-  <waveform src="sawtooth" processing="add" pitch="1.9" ratio="0.8"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.3"/>
+  <waveform src="sawtooth" processing="add" pitch="2.9" ratio="0.8"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.5"/>
 
   <filter type="frequency">
    <slot n="0">
     <param n="0">2000</param>
     <param n="1">0.5</param>
-    <param n="2">1.0</param>
+    <param n="2">0.8</param>
     <param n="3">5.0</param>
    </slot>
   </filter>
