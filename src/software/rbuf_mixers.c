@@ -208,14 +208,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          char eff = (freq_filter || delay_effect || dist_state) ? 1 : 0;
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
-         void *env, *distortion_effect = NULL;
          unsigned int track;
          float smu;
-
-         env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
-         if (dist_state) {
-            distortion_effect = &p2d->effect[DISTORTION_EFFECT];
-         }
 
          smu = (srb_pos_sec*sfreq) - (float)src_pos;
          for (track=0; track<sno_tracks; track++)
@@ -273,9 +267,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
 #else
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
-               srbi->effects(srbi->sample, dptr, dst, scratch0,
-                             dest_pos, dend, dno_samples, ddesamps, track, ctr,
-                             freq_filter, delay_effect, distortion_effect, env);
+               srbi->effects(srbi->sample, dptr, dst, scratch0, dest_pos, dend,
+                             dno_samples, ddesamps, track, ctr, p2d);
 #endif
 #if RB_FLOAT_DATA
                DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);

@@ -352,6 +352,9 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
    *path = NULL;
    *port = 0;
 
+   ptr = url;
+   while ((ptr = strchr(ptr, '\\')) != NULL) *ptr++ = '/';
+
    ptr = strstr(url, "://");
    if (ptr)
    {
@@ -359,22 +362,28 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
       *ptr = '\0';
       url = ptr + strlen("://");
    }
-   else if (!strchr(url, '/')) /* something like 'example.com' or 'test.wav' */
+   else if ((strrchr(url, '/') < strchr(url, '.')) || url[0] == '.')
+   {
+      *path = url;
+      *extension = strrchr(url, '.');
+      if (*extension) (*extension)++;
+   }
+   else /* 'example.com', 'dir.ext/file' or 'file.ext' */
    {
       struct addrinfo* res;
-      if (getaddrinfo(url, NULL, NULL, &res)) /* not a server, it's a file */
+      int file_not_server;
+
+      ptr = strchr(url, '/');
+      if (ptr) *ptr = '\0';
+      file_not_server = getaddrinfo(url, NULL, NULL, &res);
+      if (ptr) *ptr = '/';
+
+      if (file_not_server) /* not a server so it must be a file */
       {
          *path = url;
          *extension = strrchr(url, '.');
          if (*extension) (*extension)++;
       }
-   }
-   else if ((strrchr(url, '/') < strchr(url, '.')) ||
-             url[0] == '.') // access(url, F_OK) != -1)
-   {
-      *path = url;
-      *extension = strrchr(url, '.');
-      if (*extension) (*extension)++;
    }
 
    if (!*path)
