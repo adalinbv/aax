@@ -1,4 +1,13 @@
-* Wed Nov  7 2017 - tech@adalin.org
+* Thu Nov 11 2017 - tech@adalin.org
+- AeonWave (3.0.8) stable; urgency=low
+ * Fix a problem for AAXS buffers added to AudioFrames.
+ * Fix detecting directories with a dot in the name as not being a remote host.
+   e.g. 'sound.dir/file.mp3"
+
+-- Erik Hofman <tech@adalin.org>  Thu, 11 Nov  2017 13:44:00 + 0100
+
+
+* Tue Nov  7 2017 - tech@adalin.org
 - AeonWave (3.0.7) stable; urgency=low
  * Fix a problem where large AAXS files where truncated.
  * Reorganize the filter and effect cleanup for emitters, audio-frames and the
