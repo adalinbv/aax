@@ -64,7 +64,7 @@ _aax_analyze_waveforms(void **data, UNUSED(unsigned int dlen), float fs)
    pffft_transform(fft, (float*)*data, output, 0, PFFFT_FORWARD);
    pffft_destroy_setup(fft);
 
-   n = 0;
+   n = 1;
    max = 0.0f;
    Re = output;
    Im = output + N;
@@ -95,7 +95,7 @@ _aax_analyze_waveforms(void **data, UNUSED(unsigned int dlen), float fs)
 
          if (harmonic <= _AAX_SYNTH_MAX_HARMONICS) {
             rv[0][harmonic-1] = q;
-//          printf("% 6.0f Hz (harmonic: %i): %5.4f\n", freq, harmonic, q);
+            printf("% 6.0f Hz (harmonic: %i): %5.4f\n", freq, harmonic, q);
          }
       }
    }
@@ -114,7 +114,7 @@ _aax_analyze_waveforms(void **data, UNUSED(unsigned int dlen), float fs)
          }
       }
       err /= _AAX_SYNTH_MAX_HARMONICS;
-//    printf("wave: %i, err: %f %%\n", i, err);
+      printf("wave: %s, err: %f %%\n", aaxGetWaveFormNameByType(i), err);
    }
 
    return (float**)rv;
