@@ -150,13 +150,16 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
    if (rv)
    {
+      int i;
+
       _aaxAudioFrame* fmixer = handle->submix;
 
-      _FILTER_FREE2D_DATA(fmixer, FREQUENCY_FILTER);
-      _FILTER_FREE2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
-      _FILTER_FREE2D_DATA(fmixer, TIMED_GAIN_FILTER);
-      _EFFECT_FREE2D_DATA(fmixer, DYNAMIC_PITCH_EFFECT);
-      _EFFECT_FREE2D_DATA(fmixer, DELAY_EFFECT);
+      for (i=0; i<MAX_STEREO_FILTER; ++i) {
+         _FILTER_FREE2D_DATA(fmixer, i);
+      }
+      for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+         _EFFECT_FREE2D_DATA(fmixer, i);
+      }
 
       _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
       _aax_aligned_free(fmixer->props3d->dprops3d);
@@ -1188,7 +1191,7 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
    put_frame(frame);
 
    if (rv) {
-     rv = _frameCreateEFFromAAXS(buffer, buffer->aaxs);
+     rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
    }
    return rv;
 }
@@ -1436,9 +1439,19 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          void *xeid, *xfid = xmlMarkId(xmid);
 
-         if (clear) {
-            _aaxSetDefault2dProps(handle->submix->props2d);
+         if (clear)
+         {
+            _aaxAudioFrame* fmixer = handle->submix;
+            int i;
+            for (i=0; i<MAX_STEREO_FILTER; ++i) {
+               _FILTER_FREE2D_DATA(fmixer, i);
+            }
+            for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+               _EFFECT_FREE2D_DATA(fmixer, i);
+            }
+            _aaxSetDefault2dProps(fmixer->props2d);
          }
+
          for (i=0; i<num; i++)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)

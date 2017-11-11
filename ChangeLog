@@ -1,4 +1,24 @@
-* Tue Oct 26 2017 - tech@adalin.org
+* Thu Nov 11 2017 - tech@adalin.org
+- AeonWave (3.0.8) stable; urgency=low
+ * Fix a problem for AAXS buffers added to AudioFrames.
+ * Fix detecting directories with a dot in the name as not being a remote host.
+   e.g. 'sound.dir/file.mp3"
+
+-- Erik Hofman <tech@adalin.org>  Thu, 11 Nov  2017 13:44:00 + 0100
+
+
+* Tue Nov  7 2017 - tech@adalin.org
+- AeonWave (3.0.7) stable; urgency=low
+ * Fix a problem where large AAXS files where truncated.
+ * Reorganize the filter and effect cleanup for emitters, audio-frames and the
+   sensor.
+ * Add support for a static frequency filter and a static distortion effect
+   within the <sound/> section.
+
+-- Erik Hofman <tech@adalin.org>  Tue,  7 Nov  2017 13:19:00 + 0100
+
+
+* Tue Oct 31 2017 - tech@adalin.org
 - AeonWave (3.0.6) stable; urgency=low
  * Postpone initialization of AAXS filter and effect code for emitters to
    make sure they will be set after initializing the mixer which could change
@@ -7,7 +27,7 @@
  * Reduce getaddrinfo timeout considerably by specifying ai_family = AF_INET
  * Fix a bug where a suspended configuration could not be resumed.
 
--- Erik Hofman <tech@adalin.org>  Tue, 26 Oct  2017 10:03:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue, 31 Oct  2017 10:03:00 + 0200
 
 
 * Sat Oct 21 2017 - tech@adalin.org

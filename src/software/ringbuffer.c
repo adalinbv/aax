@@ -916,6 +916,10 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       rv = AAX_TRUE;
       break;
    case RB_FORMAT:
+      rbd->format = val;
+      rbd->codec = _aaxRingBufferCodecs[rbd->format];
+      rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
+      break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
           (param <= RB_PEAK_VALUE_MAX))
@@ -1171,7 +1175,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   data = _aaxRingBufferGetTracksPtr(rb, RB_WRITE);
+   data = rb->get_tracks_ptr(rb, RB_WRITE);
    switch (type)
    {
    case AAX_WHITE_NOISE:
@@ -1195,7 +1199,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
    default:
       break;
    }
-   _aaxRingBufferReleaseTracksPtr(rb);
+   rb->release_tracks_ptr(rb);
 
    return rv;
 }

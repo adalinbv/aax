@@ -631,6 +631,7 @@ _aax_pinknoise_filter(float32_ptr data, size_t no_samples, float fs)
       v1 = powf(1.003f, q);
       v2 = powf(0.90f, q);
       filter.high_gain = v1-v2;
+      filter.low_gain = 0.0f;
       filter.freqfilter_history[0][0] = 0.0f;
       filter.freqfilter_history[0][1] = 0.0f;
       filter.k = 1.0f;
@@ -1205,6 +1206,7 @@ _aax_pinknoise_filter(int32_t *data, size_t no_samples, float fs)
       v1 = powf(1.003f, q);
       v2 = powf(0.90f, q);
       filter.high_gain = v1-v2;
+      filter.low_gain = 0.0f;
       filter.freqfilter_history[0][0] = 0.0f;
       filter.freqfilter_history[0][1] = 0.0f;
       filter.k = 1.0f;
