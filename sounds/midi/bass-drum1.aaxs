@@ -22,12 +22,12 @@
     <param n="1">0.50</param>
    </slot>
   </filter>
-    <effect type="timed-pitch">
+  <effect type="timed-pitch">
    <slot n="0">
     <param n="0">3.00</param>
     <param n="1">0.03</param>
     <param n="2">1.00</param>
-    <param n="3">0.10</param>
+    <param n="3">0.05</param>
    </slot>
   </effect>
  </emitter>
