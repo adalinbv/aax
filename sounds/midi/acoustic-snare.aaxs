@@ -3,7 +3,7 @@
 <aeonwave>
 
  <sound name="Acoustic Snare" frequency="110">
-  <waveform src="triangle" ratio="2.2"/>
+  <waveform src="triangle" ratio="1.2"/>
   <waveform src="pink-noise" processing="add" pitch="0.25" ratio="3.0"/>
  </sound>
 
