@@ -61,7 +61,7 @@ static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
 static char** _bufGetDataFromAAXS(_buffer_t *buffer, char *file);
 static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*);
 static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*);
-// static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
+static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
 
@@ -472,12 +472,11 @@ aaxBufferGetData(const aaxBuffer buffer)
 
          data[0] = &data[1];
          memcpy(data+1, handle->aaxs, len);
-      }
-      else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+         return data;
       }
    }
-   else if (handle && handle->frequency)
+
+   if (handle && handle->frequency)
    {
       unsigned int buf_samples, no_samples, tracks;
       unsigned int native_fmt, rb_format, pos;
@@ -1208,7 +1207,6 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
 
    fs =rb->get_paramf(rb, RB_FREQUENCY);
    freqs = _aax_analyze_waveforms(data, dlen, fs);
-
 
    free(freqs);
 
