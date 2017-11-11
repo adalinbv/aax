@@ -2,7 +2,7 @@
 
 <aeonwave>
 
- <sound name="Electric Bass" frequency="220">
+ <sound name="Electric Bass" frequency="110">
   <waveform src="sawtooth" ratio="1.0"/>
   <waveform src="triangle" processing="add" pitch="1.0" ratio="0.4"/>
   <waveform src="sine" processing="modulate" pitch="2.0" ratio="2.5"/>

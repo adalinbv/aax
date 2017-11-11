@@ -34,6 +34,14 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
+  <effect type="phasing">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.2</param>
+   </slot>
+  </effect>
  </emitter>
 
 </aeonwave>
