@@ -5,7 +5,7 @@
  <sound name="Crash Cymbal" frequency="1600">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="add" pitch="2.9" ratio="0.8"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.5"/>
+  <waveform src="sine" processing="modulate" pitch="6.9" ratio="1.2"/>
 
   <filter type="frequency">
    <slot n="0">
