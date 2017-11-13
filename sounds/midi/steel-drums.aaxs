@@ -8,8 +8,8 @@
 
 <aeonwave>
 
- <sound name="High Tom" frequency="660">
-  <waveform src="sine" pitch="0.98" ratio="1.0"/>
+ <sound name="Steel Drums" frequency="220">
+  <waveform src="sine" pitch="0.98" ratio="1.2"/>
   <waveform src="square" processing="add" pitch="1.02" ratio="-0.4"/>
  </sound>
 
@@ -31,10 +31,16 @@
 
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">3.00</param>
-    <param n="1">0.01</param>
+    <param n="0">2.00</param>
+    <param n="1">0.02</param>
     <param n="2">1.00</param>
-    <param n="3">0.10</param>
+    <param n="3">0.01</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.00</param>
+    <param n="1">0.80</param>
+    <param n="2">0.98</param>
+
    </slot>
   </effect>
  </emitter>
