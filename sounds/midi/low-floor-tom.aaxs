@@ -1,11 +1,17 @@
 <?xml version="1.0"?>
 
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
 <aeonwave>
 
- <sound name="Acoustic Snare" frequency="66">
+ <sound name="Low Floor Tom" frequency="77">
   <waveform src="sine" pitch="0.9" ratio="1.0"/>
   <waveform src="sawtooth" processing="add" pitch="1.1" ratio="-0.4"/>
-  <waveform src="pink-noise" processing="add" pitch="0.125" ratio="0.5"/>
+  <waveform src="white-noise" processing="add" pitch="0.125" ratio="0.15"/>
  </sound>
 
  <emitter looping="true">
