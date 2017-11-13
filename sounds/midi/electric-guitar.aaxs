@@ -1,5 +1,11 @@
 <?xml version="1.0"?>
 
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
 <aeonwave>
 
  <sound name="Electric Guitar" frequency="220">
