@@ -317,9 +317,9 @@ else(MSVC)
           set_PROPERTY(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse3 -mfpmath=sse -march=prescott"
           )
-#         set_PROPERTY(SOURCE 3rdparty/pffft.c APPEND
-#                      PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse -mfpmath=sse -march=pentium3m"
-#         )
+          set_PROPERTY(SOURCE 3rdparty/pffft.c APPEND
+                       PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse -mfpmath=sse -march=pentium3m"
+          )
       elseif(ARM)
           message("Build environment: ARM")
           set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DA32=1")
@@ -442,7 +442,6 @@ set( AEONWAVE_OBJS
      src/arch.c
      src/devices.c
      src/objects.c
-#    src/analyze.c
      src/aax_audioframe.c
      src/aax_buffer.c
      src/aax_driver.c
@@ -539,9 +538,10 @@ set( AEONWAVE_OBJS
      src/software/cpu/arch2d_neon.c
      src/software/cpu/arch2d_sse2.c
      src/software/cpu/arch2d_sse3.c
+     src/analyze.c
+     3rdparty/pffft.c
      3rdparty/stb_vorbis.c
      3rdparty/pdmp3.c
-#    3rdparty/pffft.c
 )
 if(SIZEOF_SIZE_T EQUAL 8)
   set(AEONWAVE_OBJS ${AEONWAVE_OBJS}
