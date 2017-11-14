@@ -28,6 +28,8 @@
 #else
 # include <string.h>
 #endif
+#include <stdio.h>
+#include <aax/aax.h>
 
 #include <dsp/common.h>
 #include <3rdparty/pffft.h>
@@ -37,32 +39,51 @@
 #include "analyze.h"
 #include "arch.h"
 
-#define N       4096
+#define N       8192
 #define NMAX    (N/2)
 
 
 float **
-_aax_analyze_waveforms(void **data, UNUSED(unsigned int dlen), float fs)
+_aax_analyze_waveforms(void **data, unsigned int samples, float fs)
 {
    float (*rv)[_AAX_SYNTH_MAX_HARMONICS];
-   float *output, *Re, *Im;
+   float *output, *tmp, *Re, *Im;
    float max, magnitude[NMAX];
    PFFFT_Setup *fft;
-   int i, n;
+   int i, j, n, num;
+   float *d;
 
    output = _aax_aligned_alloc(2*N*sizeof(float));
+   tmp = _aax_aligned_alloc(2*N*sizeof(float));
    rv = malloc(sizeof(*rv) * _AAX_SYNTH_MAX_WAVEFORMS);
 
-   if (!output || !rv)
+   if (!output || !tmp || !rv)
    {
       if (output) _aax_aligned_free(output);
+      if (tmp) _aax_aligned_free(tmp);
       if (rv) free(rv);
       return NULL;
    }
 
+   num = 2*samples/N;
+   memset(output, 0, 2*N*sizeof(float));
+
+   d = (float*)*data;
    fft = pffft_new_setup(N, PFFFT_COMPLEX);
-   pffft_transform(fft, (float*)*data, output, 0, PFFFT_FORWARD);
+   for (i=0; i<num; ++i)
+   {
+      pffft_transform(fft, d, tmp, 0, PFFFT_FORWARD);
+      for (j=0; j<2*N; ++j) {
+         output[j] += tmp[j];
+      }
+      d += N/2;
+   }
+   _aax_aligned_free(tmp);
    pffft_destroy_setup(fft);
+
+   for (j=0; j<2*N; ++j) {
+     output[j] /= num;
+   }
 
    n = 1;
    max = 0.0f;
@@ -84,10 +105,10 @@ _aax_analyze_waveforms(void **data, UNUSED(unsigned int dlen), float fs)
    float f0 = 0.0f;
    for (i=n; i<NMAX-1; i += n)
    {
+      float freq = _MAX(fs*i/N, 1e-9f);
       float q = magnitude[i]/max;		// normalized gain component
       if (q > LEVEL_96DB)
       {
-         float freq = _MAX(fs*i/N, 1e-9f);
          int harmonic;
 
          if (!f0) f0 = freq;		// set the base frequency
@@ -95,8 +116,8 @@ _aax_analyze_waveforms(void **data, UNUSED(unsigned int dlen), float fs)
 
          if (harmonic <= _AAX_SYNTH_MAX_HARMONICS) {
             rv[0][harmonic-1] = q;
-            printf("% 6.0f Hz (harmonic: %i): %5.4f\n", freq, harmonic, q);
          }
+         printf("% 6.0f Hz (harmonic: %i): %5.4f\n", freq, harmonic, q);
       }
    }
 
@@ -114,7 +135,7 @@ _aax_analyze_waveforms(void **data, UNUSED(unsigned int dlen), float fs)
          }
       }
       err /= _AAX_SYNTH_MAX_HARMONICS;
-      printf("wave: %s, err: %f %%\n", aaxGetWaveFormNameByType(i), err);
+      printf("wave: %i, err: %f %%\n", i, err);
    }
 
    return (float**)rv;

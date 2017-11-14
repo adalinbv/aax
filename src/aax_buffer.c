@@ -474,6 +474,9 @@ aaxBufferGetData(const aaxBuffer buffer)
          memcpy(data+1, handle->aaxs, len);
          return data;
       }
+      else {
+         user_format = AAX_FLOAT;
+      }
    }
 
    if (handle && handle->frequency)
@@ -593,9 +596,9 @@ aaxBufferGetData(const aaxBuffer buffer)
          }
       }
 
-#if 0
+#if 1
       if (handle->format == AAX_AAXS16S || handle->format == AAX_AAXS24S) {
-         data = (void**)_bufCreateAAXS(handle, data, buf_samples*sizeof(float));
+         data = (void**)_bufCreateAAXS(handle, data, buf_samples);
       }
 #endif
    }
@@ -1195,9 +1198,9 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
    return rv;
 }
 
-#if 0
+#if 1
 static char**
-_bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
+_bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 {
    _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
    float fs, **freqs;
@@ -1205,8 +1208,8 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int dlen)
 
    rv = malloc(100);
 
-   fs =rb->get_paramf(rb, RB_FREQUENCY);
-   freqs = _aax_analyze_waveforms(data, dlen, fs);
+   fs = rb->get_paramf(rb, RB_FREQUENCY);
+   freqs = _aax_analyze_waveforms(data, samples, fs);
 
    free(freqs);
 
