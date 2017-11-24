@@ -113,7 +113,8 @@ endif(WIN32)
 # ZIP
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
-# Required libraries
+#$ Required libraries
+FIND_PACKAGE(OpenACC)
 FIND_PACKAGE(XML REQUIRED)
 if(NOT XML_FOUND)
   MESSAGE(FATAL_ERROR "ERROR: required XML library is not installed, aborting.")
@@ -293,6 +294,9 @@ else(MSVC)
           )
           set_PROPERTY(SOURCE src/software/cpu/arch2d_fma4.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -mxop -mfma4 -march=bdver1"
+          )
+          set_PROPERTY(SOURCE src/software/cpu/rbuf_effects.c  APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} ${OpenACC_C_FLAGS}"
           )
 
 #         set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
@@ -538,6 +542,7 @@ set( AEONWAVE_OBJS
      src/software/cpu/arch2d_neon.c
      src/software/cpu/arch2d_sse2.c
      src/software/cpu/arch2d_sse3.c
+     src/software/gpu/opencl.c
      src/analyze.c
      3rdparty/pffft.c
      3rdparty/stb_vorbis.c
