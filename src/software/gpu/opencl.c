@@ -83,6 +83,7 @@ _aaxOpenCLDestroy(_aax_opencl_t *handle)
 {
    clReleaseCommandQueue(handle->queue);
    clReleaseContext(handle->context);
+   free(handle);
 }
 
 
