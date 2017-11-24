@@ -36,6 +36,19 @@ extern "C" {
 # include "CL/cl.h"
 #endif
 
+#include <ringbuffer.h>
+
+
+typedef struct
+{
+   cl_context context;
+   cl_command_queue queue;
+
+} _aax_opencl_t;
+
+_aax_opencl_t* _aaxOpenCLCreate(); 
+void _aaxOpenCLDestroy(_aax_opencl_t*);
+
 enum {
    SPTR = 0,
    CPTR,
@@ -47,6 +60,8 @@ typedef struct {
    float v, threshold;
    float *ptr[3];
 } _aax_convolution_t;
+
+void _aaxOpenCLRunConvolution(_aax_opencl_t*, _aaxRingBufferConvolutionData*, float*, unsigned int, unsigned int);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
