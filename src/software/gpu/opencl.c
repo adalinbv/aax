@@ -21,13 +21,9 @@
 
 #include <math.h>
 
-#ifdef __APPLE__
-        #include "OpenCL/opencl.h"
-#else
-        #include "CL/cl.h"
-#endif
-
 #include <ringbuffer.h>
+
+#include "opencl.h"
 
 typedef struct
 {
@@ -98,18 +94,6 @@ _aaxOpenCLDestroy(_aax_opencl_t *handle)
    clReleaseContext(handle->context);
 }
 
-
-enum {
-   SPTR = 0,
-   CPTR,
-   HCPTR
-};
-
-typedef struct {
-   unsigned int snum, cnum, step;
-   float v, threshold;
-   float *ptr[3];
-} _aax_convolution_t;
 
 static void
 _aax_convolution_kernel(void *args)
