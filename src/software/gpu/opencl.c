@@ -21,18 +21,9 @@
 
 #include <math.h>
 
-#include <ringbuffer.h>
-
 #include "opencl.h"
 
-typedef struct
-{
-   cl_context context;
-   cl_command_queue queue;
-
-} _aax_opencl_t;
-
-void*
+_aax_opencl_t*
 _aaxOpenCLCreate()
 {
    _aax_opencl_t *handle = malloc(sizeof(_aax_opencl_t));
