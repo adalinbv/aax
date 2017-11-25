@@ -849,6 +849,12 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          } /* handle->start_with_fill */
          handle->start_with_fill = AAX_FALSE;
 
+         if (res == __F_EOF) {
+            handle->end_of_file = AAX_TRUE;
+            bytes = __F_EOF;
+            break;
+         }
+
          if (handle->end_of_file && res == __F_NEED_MORE)
          {
             handle->start_with_fill = AAX_TRUE;
