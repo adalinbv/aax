@@ -1,3 +1,10 @@
+* Thu Nov 25 2017 - tech@adalin.org
+- AeonWave (3.0.9) stable; urgency=low
+ * Prevent an endless loop for mangled wav files.
+
+-- Erik Hofman <tech@adalin.org>  Sat 25 Nov  2017 15:08:00 + 0100
+
+
 * Thu Nov 11 2017 - tech@adalin.org
 - AeonWave (3.0.8) stable; urgency=low
  * Fix a problem for AAXS buffers added to AudioFrames.
