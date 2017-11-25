@@ -23,6 +23,7 @@
 
 #include "opencl.h"
 
+#if HAVE_OPENCL
 _aax_opencl_t*
 _aaxOpenCLCreate()
 {
@@ -146,4 +147,4 @@ _aaxOpenCLRunConvolution(_aax_opencl_t *handle, _aaxRingBufferConvolutionData *c
                          3, clptr, &mem_loc, 0, 0, &event);
    clWaitForEvents(1, &event);
 }
-
+#endif
