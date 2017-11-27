@@ -34,13 +34,14 @@ extern "C" {
 #include <driver.h>
 
 #include "software/rbuf_int.h"
+#include "software/gpu/gpu.h"
 
 void _aaxRingBufferFilterFrequency(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void *, unsigned char);
 void _aaxRingBufferEffectDistort(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);
 void _aaxRingBufferEffectDelay(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 void _aaxRingBufferEffectReflections(_aaxRingBufferSample*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
 void _aaxRingBufferEffectReverb(_aaxRingBufferSample*, MIX_PTR_T, size_t, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
-void _aaxRingBufferEffectConvolution(const _aaxDriverBackend*, const void*, _aaxRingBuffer*, void*);
+void _aaxRingBufferEffectConvolution(const _aaxDriverBackend*, const void*, _aaxRingBuffer*, _aax_opencl_t*, void*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

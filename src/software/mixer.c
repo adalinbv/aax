@@ -218,7 +218,7 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
    }
 
    if (convolution) {
-      _aaxRingBufferEffectConvolution(id, hid, rb, convolution);
+      _aaxRingBufferEffectConvolution(id, hid, rb, info->gpu, convolution);
    }
 
    for (t=0; t<no_tracks; t++)
