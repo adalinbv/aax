@@ -115,7 +115,6 @@ endif(WIN32)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
 #$ Required libraries
-FIND_PACKAGE(OpenCL)
 FIND_PACKAGE(XML REQUIRED)
 if(NOT XML_FOUND)
   MESSAGE(FATAL_ERROR "ERROR: required XML library is not installed, aborting.")

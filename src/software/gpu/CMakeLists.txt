@@ -1,6 +1,6 @@
 
 set(GPU_HEADERS
-  opencl.h
+  gpu.h
 )
 
 set(GPU_SOURCES

@@ -21,9 +21,60 @@
 
 #include <math.h>
 
-#include "opencl.h"
+#include <base/dlsym.h>
 
-#if HAVE_OPENCL
+#include <api.h>
+
+#include "gpu.h"
+
+DECL_FUNCTION(clGetDeviceIDs);
+DECL_FUNCTION(clGetPlatformIDs);
+DECL_FUNCTION(clCreateContext);
+DECL_FUNCTION(clReleaseContext);
+DECL_FUNCTION(clCreateCommandQueueWithProperties);
+DECL_FUNCTION(clReleaseCommandQueue);
+DECL_FUNCTION(clCreateBuffer);
+DECL_FUNCTION(clEnqueueNativeKernel);
+DECL_FUNCTION(clWaitForEvents);
+
+int
+_aaxOpenCLDetect()
+{
+   static void *audio = NULL;
+   static int rv = AAX_FALSE;
+
+   if TEST_FOR_FALSE(rv) {
+      audio = _aaxIsLibraryPresent("OpenCL", "1");
+   }
+
+   if (audio)
+   {
+      _aaxGetSymError(0);
+
+      TIE_FUNCTION(clGetPlatformIDs);
+      if (pclGetPlatformIDs)
+      {
+         char *error = 0;
+
+         TIE_FUNCTION(clGetDeviceIDs);
+         TIE_FUNCTION(clCreateContext);
+         TIE_FUNCTION(clReleaseContext);
+         TIE_FUNCTION(clCreateCommandQueueWithProperties);
+         TIE_FUNCTION(clReleaseCommandQueue);
+         TIE_FUNCTION(clCreateBuffer);
+         TIE_FUNCTION(clEnqueueNativeKernel);
+         TIE_FUNCTION(clWaitForEvents);
+
+         error = _aaxGetSymError(0);
+         if (!error) {
+            rv = AAX_TRUE;
+         }
+      }
+   }
+
+   return rv;
+}
+
 _aax_opencl_t*
 _aaxOpenCLCreate()
 {
@@ -33,15 +84,15 @@ _aaxOpenCLCreate()
       cl_platform_id *platforms = NULL;
       cl_uint num_platforms = 0;
 
-      clGetPlatformIDs (0, NULL, &num_platforms);
+      pclGetPlatformIDs(0, NULL, &num_platforms);
       if (num_platforms > 0)
       {
          platforms = malloc(num_platforms*sizeof(num_platforms));
          if (platforms)
          {
             cl_uint num_devices = 0;
-            clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL,
-                           &num_devices);
+            pclGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL,
+                            &num_devices);
             if (num_devices > 0)
             {
                cl_device_id *devices = malloc(num_devices*sizeof(cl_device_id));
@@ -52,16 +103,16 @@ _aaxOpenCLCreate()
                      0, 0
                   };
 
-                  clGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU,
-                                 num_devices, devices, NULL);
-                  handle->context = clCreateContext(ctx_props,
-                                                    num_devices, devices,
-                                                    NULL, NULL, NULL);
+                  pclGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU,
+                                  num_devices, devices, NULL);
+                  handle->context = pclCreateContext(ctx_props,
+                                                     num_devices, devices,
+                                                     NULL, NULL, NULL);
                   if (handle->context)
                   {
-                     handle->queue = clCreateCommandQueueWithProperties(
-                                                          handle->context,
-                                                          devices[0], 0, NULL);
+                     handle->queue = pclCreateCommandQueueWithProperties(
+                                                           handle->context,
+                                                           devices[0], 0, NULL);
                   }
                   free(devices);
                }
@@ -82,8 +133,8 @@ _aaxOpenCLCreate()
 void
 _aaxOpenCLDestroy(_aax_opencl_t *handle)
 {
-   clReleaseCommandQueue(handle->queue);
-   clReleaseContext(handle->context);
+   pclReleaseCommandQueue(handle->queue);
+   pclReleaseContext(handle->context);
    free(handle);
 }
 
@@ -135,16 +186,16 @@ _aaxOpenCLRunConvolution(_aax_opencl_t *handle, _aaxRingBufferConvolutionData *c
    cptr = convolution->sample;
    hcptr = convolution->history[track] + hpos;
 
-   clptr[SPTR] = clCreateBuffer(context, CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR,
+   clptr[SPTR] = pclCreateBuffer(context, CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR,
                                 d.snum*sizeof(float), sptr, 0);
-   clptr[CPTR] = clCreateBuffer(context, CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR,
+   clptr[CPTR] = pclCreateBuffer(context, CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR,
                                 d.snum*sizeof(float), cptr, 0);
-   clptr[HCPTR] = clCreateBuffer(context, CL_MEM_READ_WRITE|CL_MEM_USE_HOST_PTR,
+   clptr[HCPTR] = pclCreateBuffer(context,CL_MEM_READ_WRITE|CL_MEM_USE_HOST_PTR,
                                  d.cnum*sizeof(float), hcptr, 0);
 
    mem_loc = (const void*)&d.ptr;
-   clEnqueueNativeKernel(handle->queue, &_aax_convolution_kernel, &d, sizeof(d),
+   pclEnqueueNativeKernel(handle->queue, &_aax_convolution_kernel, &d,sizeof(d),
                          3, clptr, &mem_loc, 0, 0, &event);
-   clWaitForEvents(1, &event);
+   pclWaitForEvents(1, &event);
 }
-#endif
+
