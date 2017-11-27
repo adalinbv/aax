@@ -107,6 +107,7 @@ typedef struct
 
 } _aax_opencl_t;
 
+int _aaxOpenCLDetect();
 _aax_opencl_t* _aaxOpenCLCreate(); 
 void _aaxOpenCLDestroy(_aax_opencl_t*);
 
