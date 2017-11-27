@@ -66,8 +66,27 @@ _aaxOpenCLDetect()
          TIE_FUNCTION(clWaitForEvents);
 
          error = _aaxGetSymError(0);
-         if (!error) {
-            rv = AAX_TRUE;
+         if (!error)
+         {
+            cl_platform_id *platforms = NULL;
+            cl_uint num_platforms = 0;
+
+            pclGetPlatformIDs(0, NULL, &num_platforms);
+            if (num_platforms > 0)
+            {
+               platforms = malloc(num_platforms*sizeof(cl_platform_id));
+               if (platforms)
+               {
+                  cl_uint num_devices = 0;
+                  pclGetPlatformIDs(num_platforms, platforms, NULL);
+                  pclGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL,
+                                  &num_devices);
+                  if (num_devices > 0) {
+                     rv = AAX_TRUE;
+                  }
+                  free(platforms);
+               }
+            }
          }
       }
    }
@@ -87,10 +106,11 @@ _aaxOpenCLCreate()
       pclGetPlatformIDs(0, NULL, &num_platforms);
       if (num_platforms > 0)
       {
-         platforms = malloc(num_platforms*sizeof(num_platforms));
+         platforms = malloc(num_platforms*sizeof(cl_platform_id));
          if (platforms)
          {
             cl_uint num_devices = 0;
+            pclGetPlatformIDs(num_platforms, platforms, NULL);
             pclGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL,
                             &num_devices);
             if (num_devices > 0)
