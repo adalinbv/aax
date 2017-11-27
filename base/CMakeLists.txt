@@ -1,22 +1,29 @@
 
+set(BASE_HEADERS
+  buffers.h
+  dlsym.h
+  geometry.h
+  gmath.h
+  logging.h
+  memory.h
+  threads.h
+  timer.h
+  types.h
+)
 
-SET(BASE_LIBRARY base)
-SET (LIBTYPE STATIC)
+set(BASE_SOURCES
+  buffers.c
+  dlsym.c
+  geometry.c
+  gmath.c
+  logging.c
+  memory.c
+  threads.c
+  timer.c
+  types.c
+)
 
-SET(BASE_OBJS
-     buffers.c
-     dlsym.c
-     geometry.c
-     gmath.c
-     logging.c
-     memory.c
-     threads.c
-     types.c
-   )
-
-ADD_LIBRARY(${BASE_LIBRARY} ${LIBTYPE} ${BASE_OBJS})
-
-IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
-    SET_TARGET_PROPERTIES(${BASE_LIBRARY} PROPERTIES PREFIX "")
-ENDIF()
-
+set(SOURCES "")
+foreach(src ${BASE_SOURCES})
+  set(SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/${src};${SOURCES}")
+endforeach()

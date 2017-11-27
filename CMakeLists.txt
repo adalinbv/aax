@@ -90,6 +90,7 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Cross platform, hardware accelerated, mul
 set(CMAKE_MODULE_PATH "${AeonWave_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 include(CPack_Modules)
 include(CPack_Defaults)
+include(package)
 include(inline)
 
 if (WIN32)
@@ -432,142 +433,12 @@ CONFIGURE_FILE(
     "${AeonWave_SOURCE_DIR}/include/config.h.in"
     "${AeonWave_BINARY_DIR}/include/config.h")
 
-set( AEONWAVE_OBJS
-     base/buffers.c
-     base/dlsym.c
-     base/geometry.c
-     base/gmath.c
-     base/logging.c
-     base/memory.c
-     base/threads.c
-     base/timer.c
-     base/types.c
-     src/api.c
-     src/arch.c
-     src/devices.c
-     src/objects.c
-     src/aax_audioframe.c
-     src/aax_buffer.c
-     src/aax_driver.c
-     src/aax_matrix.c
-     src/aax_mixer.c
-     src/aax_scenery.c
-     src/aax_sensor.c
-     src/aax_support.c
-     src/aax_emitter.c
-#    src/aax_eventmgr.c
-#    src/aax_instrument.c
-#    src/aax_midi.c
-     src/aax_filters.c
-     src/aax_effects.c
-     src/dsp/common.c
-     src/dsp/filters.c
-     src/dsp/effects.c
-     src/dsp/effect_chorus.c
-     src/dsp/effect_distortion.c
-     src/dsp/effect_dynamic_pitch.c
-     src/dsp/effect_flanging.c
-     src/dsp/effect_phasing.c
-     src/dsp/effect_pitch.c
-     src/dsp/effect_reverb.c
-     src/dsp/effect_convolution.c
-     src/dsp/effect_timed_pitch.c
-     src/dsp/effect_velocity.c
-     src/dsp/filter_angular.c
-     src/dsp/filter_compressor.c
-     src/dsp/filter_distance.c
-     src/dsp/filter_dynamic_gain.c
-     src/dsp/filter_equalizer.c
-     src/dsp/filter_frequency.c
-     src/dsp/filter_graphic_equalizer.c
-     src/dsp/filter_timed_gain.c
-     src/dsp/filter_volume.c
-     src/linux/pulseaudio.c
-     src/linux/asound.c
-     src/linux/kernel.c
-     src/dmedia/device.c
-     src/oss/device.c
-     src/stream/device.c
-     src/stream/io.c
-     src/stream/io_file.c
-     src/stream/io_socket.c
-     src/stream/protocol.c
-     src/stream/prot_direct.c
-     src/stream/prot_http.c
-     src/stream/extension.c
-     src/stream/ext_raw.c
-     src/stream/ext_wav.c
-     src/stream/ext_ogg.c
-     src/stream/format.c
-     src/stream/fmt_pcm.c
-     src/stream/fmt_mp3.c
-     src/stream/fmt_vorbis.c
-     src/stream/fmt_flac.c
-     src/stream/fmt_opus.c
-     src/stream/fmt_binary.c
-     src/android/opensl.c
-     src/software/device.c
-     src/software/arch.c
-     src/software/arch_x86.c
-     src/software/arch_arm.c
-     src/software/mixer.c
-     src/software/frame.c
-     src/software/sensor.c
-     src/software/emitter.c
-     src/software/ringbuffer.c
-     src/software/rbuf_lfo.c
-     src/software/rbuf_codecs.c
-     src/software/rbuf_codec_tables.c
-     src/software/rbuf_mixers.c
-     src/software/rbuf_mixmulti.c
-     src/software/rbuf2d_mixsingle.c
-     src/software/rbuf3d_mixsingle.c
-     src/software/renderer.c
-     src/software/cpu/render_monolithic.c
-     src/software/cpu/render_threadpool.c
-     src/software/cpu/waveforms.c
-     src/software/cpu/rbuf_effects.c
-     src/software/cpu/rbuf_limiter.c
-     src/software/cpu/rbuf_limiter_tables.c
-     src/software/cpu/rbuf_mixmulti.c
-     src/software/cpu/rbuf_mixsingle.c
-     src/software/cpu/arch3d_vfpv2.c
-     src/software/cpu/arch3d_vfpv3.c
-     src/software/cpu/arch3d_neon.c
-     src/software/cpu/arch3d_sse.c
-     src/software/cpu/arch3d_sse3.c
-     src/software/cpu/arch2d_cpu.c
-     src/software/cpu/arch2d_vfpv2.c
-     src/software/cpu/arch2d_vfpv3.c
-     src/software/cpu/arch2d_neon.c
-     src/software/cpu/arch2d_sse2.c
-     src/software/cpu/arch2d_sse3.c
-     src/software/gpu/opencl.c
-     src/analyze.c
-     3rdparty/pffft.c
-     3rdparty/stb_vorbis.c
-     3rdparty/pdmp3.c
-)
-if(SIZEOF_SIZE_T EQUAL 8)
-  set(AEONWAVE_OBJS ${AEONWAVE_OBJS}
-     src/software/cpu/arch3d_sse_vex.c
-     src/software/cpu/arch2d_sse_vex.c
-     src/software/cpu/arch2d_avx.c
-     src/software/cpu/arch3d_avx.c
-     src/software/cpu/arch2d_fma3.c
-     src/software/cpu/arch2d_fma4.c
-  )
-endif(SIZEOF_SIZE_T EQUAL 8)
-
-if(HAVE_WINDOWS_H)
-  set(AEONWAVE_OBJS ${AEONWAVE_OBJS}
-     src/windows/wasapi.c
-     src/windows/audio.c
-  )
-endif(HAVE_WINDOWS_H)
+aax_subdirectory(3rdparty)
+aax_subdirectory(base)
+aax_subdirectory(src)
 
 # Build a static library
-add_library(AAXOBJ_LIB OBJECT ${AEONWAVE_OBJS})
+add_library(AAXOBJ_LIB OBJECT ${SOURCES})
 add_library(${LIBAEONWAVE}-static STATIC $<TARGET_OBJECTS:AAXOBJ_LIB>)
 
 # Build a shared library
@@ -586,7 +457,6 @@ endif()
 
 TARGET_LINK_LIBRARIES(${LIBAEONWAVE}
     ${EXTRA_LIBS}
-    ${BASE_LIBRARY}
     ${XML_LIBRARY}
 )
 
