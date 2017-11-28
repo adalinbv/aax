@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Crash Cymbal" frequency="1540">
+  <waveform src="sine"/>
+  <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
+  <waveform src="white-noise" processing="mix" ratio="0.6" pitch="0.25"/>
+  <waveform src="sine" processing="modulate" ratio="5" pitch="1.6"/>
+
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">2000</param>
+    <param n="1">0.1</param>
+    <param n="2">1.2</param>
+    <param n="3">5.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.03</param>
+    <param n="2">1.0</param>
+    <param n="3">0.08</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>
