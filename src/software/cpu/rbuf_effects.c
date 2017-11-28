@@ -332,6 +332,11 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
 }
 
 /** Convolution Effect */
+// irnum = convolution->no_samples
+// for (q=0; q<dnum; ++q) {
+//    float volume = *sptr++;
+//    rbd->add(hptr++, cptr, irnum, volume, 0.0f);
+// }
 int
 _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferData *dptr_src), unsigned int t)
 {

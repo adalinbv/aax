@@ -34,8 +34,22 @@ DECL_FUNCTION(clReleaseContext);
 DECL_FUNCTION(clCreateCommandQueueWithProperties);
 DECL_FUNCTION(clReleaseCommandQueue);
 DECL_FUNCTION(clCreateBuffer);
+DECL_FUNCTION(clEnqueueWriteBuffer);
+DECL_FUNCTION(clReleaseMemObject);
+DECL_FUNCTION(clCreateProgramWithSource);
+DECL_FUNCTION(clBuildProgram);
+DECL_FUNCTION(clReleaseProgram);
+DECL_FUNCTION(clCreateKernel);
+DECL_FUNCTION(clReleaseKernel);
+DECL_FUNCTION(clSetKernelArg);
+DECL_FUNCTION(clGetKernelWorkGroupInfo);
+DECL_FUNCTION(clEnqueueNDRangeKernel);
+DECL_FUNCTION(clFlush);
+DECL_FUNCTION(clFinish);
+#if 0
 DECL_FUNCTION(clEnqueueNativeKernel);
 DECL_FUNCTION(clWaitForEvents);
+#endif
 
 int
 _aaxOpenCLDetect()
@@ -62,8 +76,22 @@ _aaxOpenCLDetect()
          TIE_FUNCTION(clCreateCommandQueueWithProperties);
          TIE_FUNCTION(clReleaseCommandQueue);
          TIE_FUNCTION(clCreateBuffer);
+         TIE_FUNCTION(clEnqueueWriteBuffer);
+         TIE_FUNCTION(clReleaseMemObject);
+         TIE_FUNCTION(clCreateProgramWithSource);
+         TIE_FUNCTION(clBuildProgram);
+         TIE_FUNCTION(clReleaseProgram);
+         TIE_FUNCTION(clCreateKernel);
+         TIE_FUNCTION(clReleaseKernel);
+         TIE_FUNCTION(clSetKernelArg);
+         TIE_FUNCTION(clGetKernelWorkGroupInfo);
+         TIE_FUNCTION(clEnqueueNDRangeKernel);
+         TIE_FUNCTION(clFlush);
+         TIE_FUNCTION(clFinish);
+#if 0
          TIE_FUNCTION(clEnqueueNativeKernel);
          TIE_FUNCTION(clWaitForEvents);
+#endif
 
          error = _aaxGetSymError(0);
          if (!error)
@@ -97,7 +125,7 @@ _aaxOpenCLDetect()
 _aax_opencl_t*
 _aaxOpenCLCreate()
 {
-   _aax_opencl_t *handle = malloc(sizeof(_aax_opencl_t));
+   _aax_opencl_t *handle = calloc(1, sizeof(_aax_opencl_t));
    if (handle)
    {
       cl_platform_id *platforms = NULL;
@@ -109,14 +137,14 @@ _aaxOpenCLCreate()
          platforms = malloc(num_platforms*sizeof(cl_platform_id));
          if (platforms)
          {
-            cl_uint num_devices = 0;
+            handle->num_devices = 0;
             pclGetPlatformIDs(num_platforms, platforms, NULL);
             pclGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU, 0, NULL,
-                            &num_devices);
-            if (num_devices > 0)
+                            &handle->num_devices);
+            if (handle->num_devices > 0)
             {
-               cl_device_id *devices = malloc(num_devices*sizeof(cl_device_id));
-               if (devices)
+               handle->devices = malloc(handle->num_devices*sizeof(cl_device_id));
+               if (handle->devices)
                {
                   const cl_context_properties ctx_props[] = {
                      CL_CONTEXT_PLATFORM, (cl_context_properties)platforms[0],
@@ -124,17 +152,17 @@ _aaxOpenCLCreate()
                   };
 
                   pclGetDeviceIDs(platforms[0], CL_DEVICE_TYPE_GPU,
-                                  num_devices, devices, NULL);
+                                  handle->num_devices, handle->devices, NULL);
                   handle->context = pclCreateContext(ctx_props,
-                                                     num_devices, devices,
-                                                     NULL, NULL, NULL);
+                                           handle->num_devices, handle->devices,
+                                           NULL, NULL, NULL);
                   if (handle->context)
                   {
                      handle->queue = pclCreateCommandQueueWithProperties(
                                                            handle->context,
-                                                           devices[0], 0, NULL);
+                                                           handle->devices[0],
+                                                           0, NULL);
                   }
-                  free(devices);
                }
             }
             free(platforms);
@@ -153,69 +181,91 @@ _aaxOpenCLCreate()
 void
 _aaxOpenCLDestroy(_aax_opencl_t *handle)
 {
+   pclReleaseProgram(handle->program);
+   pclReleaseKernel(handle->kernel);
    pclReleaseCommandQueue(handle->queue);
    pclReleaseContext(handle->context);
+   free(handle->devices);
    free(handle);
 }
 
 
-static void
-_aax_convolution_kernel(void *args)
-{
-   _aax_convolution_t *data = args;
-   float *sptr, *cptr, *hcptr;
-   unsigned int i, j;
-
-   sptr = data->ptr[SPTR];
-   cptr = data->ptr[CPTR];
-   hcptr = data->ptr[HCPTR];
-
-   for (j=0; j<data->cnum; j += data->step)
-   {
-      float volume = cptr[j] * data->v;
-      if (fabsf(volume) > data->threshold)
-      {
-         for (i=0; i<data->snum; i++) {
-            hcptr[j+i] += sptr[i]*volume;
-         }
-      }
-   }
-}
+// irnum = convolution->no_samples
+// for (q=0; q<snum; ++q) {
+//    float volume = *sptr++;
+//    rbd->add(hptr++, cptr, irnum, volume, 0.0f);
+// }
+const char *_aax_convolution_kernel = \
+"__kernel void convolution(__global float* c, __global float* h, int q, float g) { "\
+  "unsigned int i = get_global_id(0); " \
+  "h[q+i] += c[i]*g; }";
 
 void
-_aaxOpenCLRunConvolution(_aax_opencl_t *handle, _aaxRingBufferConvolutionData *convolution, float *sptr, unsigned int snum, unsigned int track)
+_aaxOpenCLRunConvolution(_aax_opencl_t *handle, _aaxRingBufferConvolutionData *convolution, float *sptr, unsigned int snum, unsigned int t)
 {
-   _aax_convolution_t d;
-   const void *mem_loc;
-   float *cptr, *hcptr;
+   unsigned int q, cnum, hpos;
+   size_t global, local;
+   MIX_T *hptr, *hcptr;
    cl_context context;
-   unsigned int hpos;
-   cl_mem clptr[3];
-   cl_event event;
+   cl_mem cl_hptr;
+   cl_int err;
+   float v;
 
    context = handle->context;
-   hpos = convolution->history_start[track];
+   cnum = convolution->no_samples;
+
+   if (!handle->kernel)
+   {
+      MIX_T *cptr = convolution->sample;
+
+      handle->program = pclCreateProgramWithSource(context, 1, 
+                                          &_aax_convolution_kernel, NULL, &err);
+      if (!handle->program || err) return;
+
+      err = pclBuildProgram(handle->program, 1, handle->devices,NULL,NULL,NULL);
+      if (err) return;
    
-   d.step = convolution->step;
-   d.threshold = convolution->threshold * (float)(1<<23);
-   d.v = convolution->rms * convolution->delay_gain;
+      handle->kernel = pclCreateKernel(handle->program, "convolution", &err);
+      if (!handle->kernel || err) return;
 
-   d.snum = snum;
-   d.cnum = convolution->no_samples - hpos;
+       err = pclGetKernelWorkGroupInfo(handle->kernel, handle->devices[0],
+                        CL_KERNEL_WORK_GROUP_SIZE, sizeof(local), &local, NULL);
+       if (err) return;
+       handle->local = local;
 
-   cptr = convolution->sample;
-   hcptr = convolution->history[track] + hpos;
+       handle->sample = pclCreateBuffer(context, CL_MEM_READ_ONLY,
+                                        cnum*sizeof(float), NULL, 0);
+       if (!handle->sample) return;
 
-   clptr[SPTR] = pclCreateBuffer(context, CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR,
-                                d.snum*sizeof(float), sptr, 0);
-   clptr[CPTR] = pclCreateBuffer(context, CL_MEM_READ_ONLY|CL_MEM_USE_HOST_PTR,
-                                d.snum*sizeof(float), cptr, 0);
-   clptr[HCPTR] = pclCreateBuffer(context,CL_MEM_READ_WRITE|CL_MEM_USE_HOST_PTR,
-                                 d.cnum*sizeof(float), hcptr, 0);
+       err = pclEnqueueWriteBuffer(handle->queue, handle->sample, CL_TRUE, 0,
+                                   cnum*sizeof(float), cptr, 0, NULL, NULL);
+       if (err) return;
+       pclSetKernelArg(handle->kernel, 0, sizeof(cl_mem), &handle->sample);
+   }
 
-   mem_loc = (const void*)&d.ptr;
-   pclEnqueueNativeKernel(handle->queue, &_aax_convolution_kernel, &d,sizeof(d),
-                         3, clptr, &mem_loc, 0, 0, &event);
-   pclWaitForEvents(1, &event);
+   hptr = convolution->history[t];
+   hpos = convolution->history_start[t];
+   hcptr = hptr + hpos;
+
+   cl_hptr = pclCreateBuffer(context, CL_MEM_READ_WRITE|CL_MEM_USE_HOST_PTR,
+                             (snum+cnum)*sizeof(float), hcptr, 0);
+   if (!cl_hptr) return;
+   pclSetKernelArg(handle->kernel, 1, sizeof(cl_mem), &cl_hptr);
+
+   local = handle->local;
+   global = ceil(cnum/local)*local;
+
+   v = convolution->rms * convolution->delay_gain;
+   for (q=0; q<snum; ++q)
+   {
+      float volume = *sptr++ * v;
+      pclSetKernelArg(handle->kernel, 2, sizeof(cl_int), &q);
+      pclSetKernelArg(handle->kernel, 3, sizeof(cl_float), &volume);
+      err = pclEnqueueNDRangeKernel(handle->queue, handle->kernel, 1, NULL,
+                                    &global, &local, 0, NULL, NULL);
+      if (err) break;
+      pclFinish(handle->queue);
+   }
+   pclReleaseMemObject(cl_hptr);
 }
 

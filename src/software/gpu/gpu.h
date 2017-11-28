@@ -48,15 +48,20 @@ typedef void* cl_context;
 typedef void* cl_device_id;
 typedef void* cl_platform_id;
 typedef void* cl_command_queue;
+typedef void* cl_program;
+typedef void* cl_kernel;
 typedef intptr_t cl_context_properties;
 
 typedef int32_t cl_int;
 typedef uint32_t cl_uint;
 typedef int64_t cl_ulong;
+typedef float  cl_float;
+typedef cl_uint cl_bool;
 typedef cl_ulong cl_bitfield;
 typedef cl_bitfield cl_mem_flags;
 typedef cl_bitfield cl_device_type;
 typedef cl_bitfield cl_queue_properties;
+typedef cl_uint cl_kernel_work_group_info;
 
 #if defined(_WIN32)
 # define CL_CALLBACK	__stdcall
@@ -83,6 +88,14 @@ typedef cl_bitfield cl_queue_properties;
 /* cl_context_properties */
 #define CL_CONTEXT_PLATFORM		0x1084
 
+/* cl_bool */
+#define CL_FALSE			0
+#define CL_TRUE				1
+
+/* cl_kernel_work_group_info */
+#define CL_KERNEL_WORK_GROUP_SIZE	0x11B0
+
+
 typedef cl_int (*clGetPlatformIDs_proc)(cl_uint, cl_platform_id*, cl_uint*);
 typedef cl_int (*clGetDeviceIDs_proc)(cl_platform_id, cl_device_type, cl_uint, cl_device_id*, cl_uint*);
 
@@ -93,10 +106,27 @@ typedef cl_command_queue (*clCreateCommandQueueWithProperties_proc)(cl_context, 
 typedef cl_int (*clReleaseCommandQueue_proc)(cl_command_queue);
 
 typedef cl_mem (*clCreateBuffer_proc)(cl_context, cl_mem_flags, size_t, void*, cl_int*);
+typedef cl_int (*clEnqueueWriteBuffer_proc)(cl_command_queue, cl_mem, cl_bool, size_t, size_t, const void*, cl_uint, const cl_event*, cl_event*);
+typedef cl_int (*clReleaseMemObject_proc)(cl_mem);
 
+typedef cl_program (*clCreateProgramWithSource_proc)(cl_context, cl_uint, const char**, const size_t*, cl_int*);
+typedef cl_int (*clBuildProgram_proc)(cl_program, cl_uint, const cl_device_id*, const char*, void (CL_CALLBACK*)(cl_program, void*), void*);
+typedef cl_int (*clReleaseProgram_proc)(cl_program);
+
+typedef cl_kernel (*clCreateKernel_proc)(cl_program, const char*, cl_int*);
+typedef cl_int (*clReleaseKernel_proc)(cl_kernel);
+
+typedef cl_int (*clSetKernelArg_proc)(cl_kernel, cl_uint, size_t, const void*);
+typedef cl_int (*clGetKernelWorkGroupInfo_proc)(cl_kernel, cl_device_id, cl_kernel_work_group_info, size_t, void*, size_t*);
+
+typedef cl_int (*clEnqueueNDRangeKernel_proc)(cl_command_queue, cl_kernel, cl_uint, const size_t*, const size_t*, const size_t*, cl_uint, const cl_event*, cl_event*);
+typedef cl_int (*clFlush_proc)(cl_command_queue);
+typedef cl_int (*clFinish_proc)(cl_command_queue);
+
+#if 0
 typedef cl_int (*clEnqueueNativeKernel_proc)(cl_command_queue, void (CL_CALLBACK*)(void *), void*, size_t, cl_uint, const cl_mem*, const void**, cl_uint, const cl_event*, cl_event*);
-
 typedef cl_int (*clWaitForEvents_proc)(cl_uint, const cl_event*);
+#endif
 /* OpenCL declarations */
 
 
@@ -104,24 +134,19 @@ typedef struct
 {
    cl_context context;
    cl_command_queue queue;
+   cl_program program;
+   cl_kernel kernel;
+   cl_mem sample;
+
+   cl_device_id *devices;
+   cl_uint num_devices;
+   size_t local;
 
 } _aax_opencl_t;
 
 int _aaxOpenCLDetect();
 _aax_opencl_t* _aaxOpenCLCreate(); 
 void _aaxOpenCLDestroy(_aax_opencl_t*);
-
-enum {
-   SPTR = 0,
-   CPTR,
-   HCPTR
-};
-
-typedef struct {
-   unsigned int snum, cnum, step;
-   float v, threshold;
-   float *ptr[3];
-} _aax_convolution_t;
 
 void _aaxOpenCLRunConvolution(_aax_opencl_t*, _aaxRingBufferConvolutionData*, float*, unsigned int, unsigned int);
 
