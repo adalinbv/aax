@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Low Mid Tom" frequency="136">
-  <waveform src="triangle" pitch="0.9" ratio="1.0"/>
+ <sound name="Low Tom" frequency="125">
+  <waveform src="triangle" pitch="0.95" ratio="1.0"/>
   <waveform src="triangle" processing="add" pitch="1.1" ratio="-0.4"/>
-  <waveform src="white-noise" processing="add" pitch="0.125" ratio="0.22"/>
+  <waveform src="white-noise" processing="add" pitch="0.125" ratio="0.4"/>
  </sound>
 
  <emitter looping="true">
@@ -24,15 +24,15 @@
    </slot>
    <slot n="1">
     <param n="0">1.00</param>
-    <param n="1">0.20</param>
+    <param n="1">0.10</param>
     <param n="2">0.40</param>
-    <param n="3">0.50</param>
+    <param n="3">0.30</param>
    </slot>
   </filter>
 
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">30.00</param>
+    <param n="0">3.00</param>
     <param n="1">0.03</param>
     <param n="2">1.00</param>
     <param n="3">0.10</param>
