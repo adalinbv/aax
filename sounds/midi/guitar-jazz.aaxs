@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Electric Jazz Guitar" frequency="220">
+  <waveform src="sawtooth" ratio="0.9"/>
+  <waveform src="square" processing="add" pitch="2.0" ratio="0.6"/>
+  <waveform src="sine" processing="modulate" pitch="3.0" ratio="1.1"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">0.00</param>
+    <param n="1" factor="velocity">0.01</param>
+    <param n="2" factor="soften">1.20</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.70</param>
+    <param n="1">2.50</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.05</param>
+    <param n="1" factor="velocity">0.05</param>
+    <param n="2">1.0</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">4.5</param>
+    <param n="2">0.975</param>
+   </slot>
+  </effect>
+  <effect type="phasing" src="true">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.4</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
