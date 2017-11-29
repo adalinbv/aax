@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Acoustic Grand Piano" frequency="220">
-  <waveform src="sawtooth"/>
+ <sound name="Acoustic Guitar" frequency="220">
+  <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" pitch="1.999" ratio="0.75"/>
-  <waveform src="triangle" processing="modulate" pitch="0.999" ratio="2.5"/>
+  <waveform src="triangle" processing="modulate" pitch="1.999" ratio="1.5"/>
 
   <filter type="frequency">
    <slot n="0">

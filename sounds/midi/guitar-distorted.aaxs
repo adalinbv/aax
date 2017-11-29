@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Distorted Electric Guitar" frequency="220">
+ <sound name="Distorted Electric Guitar" frequency="88">
   <waveform src="sawtooth" ratio="0.9"/>
-  <waveform src="square" processing="add" pitch="2.0" ratio="0.4"/>
-  <waveform src="sine" processing="modulate" pitch="3.0" ratio="2.0"/>
+  <waveform src="square" processing="add" pitch="2.0" ratio="0.6"/>
+  <waveform src="sine" processing="modulate" ratio="1.5" pitch="5.0"/>
  </sound>
 
  <emitter looping="true">
@@ -40,7 +40,7 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
-  <effect type="flanging">
+  <effect type="flanging" src="true">
    <slot n="0">
     <param n="0">0.5</param>
     <param n="1">0.0</param>
@@ -55,7 +55,7 @@
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.9</param>
-    <param n="2">1.0</param>
+    <param n="2">0.7</param>
     <param n="3">0.6</param>
    </slot>
   </effect>
