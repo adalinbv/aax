@@ -8,10 +8,11 @@
 
 <aeonwave>
 
- <sound name="Electric Bass" frequency="110">
-  <waveform src="sawtooth" ratio="1.0"/>
-  <waveform src="triangle" processing="add" pitch="1.0" ratio="0.4"/>
-  <waveform src="sine" processing="modulate" pitch="2.0" ratio="2.5"/>
+ <sound name="Electric Bass (Finger)" frequency="110">
+  <waveform src="square" pitch="1.0"/>
+  <waveform src="sawtooth" processing="mix"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" ratio="2.5" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
@@ -19,27 +20,14 @@
    <slot n="0">
     <param n="0">0.00</param>
     <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">1.20</param>
+    <param n="2" factor="soften">1.00</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.70</param>
+    <param n="0">0.80</param>
     <param n="1">2.50</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0" factor="soften">1.05</param>
-    <param n="1" factor="velocity">0.05</param>
-    <param n="2">1.0</param>
-    <param n="3">0.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.5</param>
-    <param n="2">0.975</param>
-   </slot>
-  </effect>
  </emitter>
 
 </aeonwave>
