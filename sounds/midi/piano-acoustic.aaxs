@@ -8,10 +8,11 @@
 
 <aeonwave>
 
- <sound name="Acoustic Grand Piano" frequency="220">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="add" pitch="18.0" ratio="0.3"/>
-  <waveform src="square" processing="modulate" pitch="2.0" ratio="1.5"/>
+ <sound name="Acoustic Grand Piano" frequency="44">
+  <waveform src="triangle"/>
+  <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
+  <waveform src="triangle" processing="mix" ratio="0.333" pitch="3.0"/>
+  <waveform src="square" processing="modulate" ratio="2.5" pitch="1.999"/>
  </sound>
 
  <emitter looping="true">
@@ -24,17 +25,15 @@
    </slot>
    <slot n="1">
     <param n="0">1.00</param>
-    <param n="1">0.02</param>
-    <param n="0">0.70</param>
     <param n="1">2.50</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0" factor="soften">1.9</param>
-    <param n="1" factor="velocity">0.01</param>
-    <param n="2">0.9</param>
-    <param n="3">0.01</param>
+    <param n="1" factor="velocity">0.02</param>
+    <param n="2">1.0</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
