@@ -8,33 +8,32 @@
 
 <aeonwave>
 
- <sound name="Slapped Electric Bass" frequency="110">
-  <waveform src="square"/>
-  <waveform src="triangle" processing="mix" ratio="0.2" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" ratio="3.0" pitch="1.999"/>
+ <sound name="Electric Bass (Pick)" frequency="110">
+  <waveform src="square" pitch="1.0"/>
+  <waveform src="sawtooth" processing="mix"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" ratio="2.5" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="envelope">
    <slot n="0">
-    <param n="0">1.25</param>
+    <param n="0">1.50</param>
     <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">0.90</param>
-    <param n="3">0.01</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.06</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
-    <param n="1">0.20</param>
-    <param n="2">0.60</param>
-    <param n="3">2.50</param>
+    <param n="0">0.50</param>
+    <param n="1">2.50</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.12</param>
+    <param n="0" factor="soften">1.55</param>
     <param n="1" factor="velocity">0.03</param>
-    <param n="2">1.0</param>
-    <param n="3">0.2</param>
+    <param n="2">0.95</param>
+    <param n="3">0.03</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>

@@ -9,21 +9,21 @@
 <aeonwave>
 
  <sound name="Slapped Electric Bass 2" frequency="110">
-  <waveform src="square" pitch="0.9997"/>
-  <waveform src="triangle" processing="add" pitch="9.999" ratio="0.4"/>
-  <waveform src="triangle" processing="modulate" pitch="1.999" ratio="4.5"/>
+  <waveform src="sawtooth" pitch="0.9997"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="9.999"/>
+  <waveform src="triangle" processing="modulate" ratio="2.5" pitch="1.999"/>
  </sound>
 
  <emitter looping="true">
   <filter type="envelope">
    <slot n="0">
-    <param n="0">0.00</param>
+    <param n="0">2.00</param>
     <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">1.20</param>
+    <param n="2" factor="soften">0.90</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.70</param>
+    <param n="0">1.00</param>
     <param n="1">2.50</param>
    </slot>
   </filter>
