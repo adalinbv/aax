@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Acoustic Grand Piano" frequency="44">
+ <sound name="Acoustic Grand Piano" frequency="220">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
   <waveform src="triangle" processing="mix" ratio="0.333" pitch="3.0"/>
