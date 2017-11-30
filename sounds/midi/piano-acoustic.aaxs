@@ -20,11 +20,11 @@
    <slot n="0">
     <param n="0">2.00</param>
     <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">0.90</param>
-    <param n="3">0.05</param>
+    <param n="2" factor="soften">0.50</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
+    <param n="0">1.20</param>
     <param n="1">2.50</param>
    </slot>
   </filter>
