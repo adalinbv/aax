@@ -8,10 +8,11 @@
 
 <aeonwave>
 
- <sound name="Violin" frequency="220">
+ <sound name="Viola" frequency="220">
   <waveform src="sawtooth"/>
-  <waveform src="triangle" processing="mix" ratio="0.6" pitch="2.0001"/>
-  <waveform src="sawtooth" processing="add" ratio="0.3" pitch="1.99"/>
+  <waveform src="sawtooth" processing="mix" pitch="1.9845" ratio="0.8"/>
+  <waveform src="impulse" processing="add" ratio="0.7"  pitch="0.993"/>
+  <waveform src="sine" processing="add" ratio="0.1" pitch="5.999"/>
  </sound>
 
  <emitter looping="true">
