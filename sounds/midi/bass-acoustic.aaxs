@@ -1,0 +1,45 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Acoustic Bass" frequency="110">
+  <waveform src="square" ratio="0.8"/>
+  <waveform src="triangle" processing="add" ratio="1.2" pitch="1.997"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">2.00</param>
+    <param n="1" factor="velocity">0.04</param>
+    <param n="2" factor="soften">1.20</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.80</param>
+    <param n="1">2.50</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.9</param>
+    <param n="1" factor="velocity">0.02</param>
+    <param n="2">1.0</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">2.5</param>
+    <param n="2">0.975</param>
+   </slot>
+  </effect>
+
+ </emitter>
+
+</aeonwave>
