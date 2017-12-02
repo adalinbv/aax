@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Acoustic Bass" frequency="47">
+ <sound name="Acoustic Bass" frequency="110">
   <waveform src="square"/>
   <waveform src="triabgle" processing="mix" pitch="1.999" ratio="0.75"/>
   <waveform src="triangle" processing="modulate" pitch="0.999" ratio="2.0"/>
