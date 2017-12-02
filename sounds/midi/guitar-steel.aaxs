@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Acoustic Guitar (Nylon)" frequency="220">
+ <sound name="Acoustic Guitar (Steel)" frequency="220">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" pitch="1.999" ratio="0.75"/>
-  <waveform src="triangle" processing="modulate" pitch="0.999" ratio="1.5"/>
+  <waveform src="triangle" processing="modulate" pitch="2.999" ratio="1.5"/>
 
   <filter type="frequency">
    <slot n="0">
