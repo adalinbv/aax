@@ -8,38 +8,39 @@
 
 <aeonwave>
 
- <sound frequency="220">
-  <waveform src="sawtooth"/>
-  <waveform src="sine" processing="mix" pitch="3.0" ratio="0.4"/>
+ <sound name="Alto Saxophone" frequency="220">
+  <waveform src="impulse"/>
+  <waveform src="square" processing="modulate" ratio="2.0" pitch="2.0"/>
+  <waveform src="sawtooth" processing="add" ratio="0.3" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter src="envelope">
+  <filter type="envelope">
    <slot n="0">
-     <p1>0.00</p1>
-     <p2>0.05</p2>
-     <p1>1.00</p1>
-     <p2>0.05</p2>
+     <param n="0">0.00</param>
+     <param n="1">0.05</param>
+     <param n="2">1.00</param>
+     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-     <p1>0.90</p1>
-     <p2>inf</p2>
-     <p1>0.80</p1>
-     <p2>0.20</p2>
+     <param n="0">0.90</param>
+     <param n="1">inf</param>
+     <param n="2">0.80</param>
+     <param n="3">0.20</param>
    </slot>
   </filter>
-  <effect src="envelope">
+  <effect type="timed-pitch">
    <slot n="0">
-     <p1>0.995</p1>
-     <p2>0.05</p2>
-     <p1>1.05</p1>
-     <p2>0.08</p2>
+     <param n="0">0.995</param>
+     <param n="1">0.03</param>
+     <param n="2">1.05</param>
+     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-     <p1>1.00</p1>
-     <p2>0.10</p2>
-     <p1>0.99</p1>
-     <p2>0.00</p2>
+     <param n="0">1.00</param>
+     <param n="1">0.10</param>
+     <param n="2">0.99</param>
+     <param n="3">5.00</param>
    </slot>
   </effect>
  </emitter>
