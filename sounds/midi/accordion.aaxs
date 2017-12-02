@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Recorder" frequency="220">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="mix" pitch="2.0" ratio="0.2"/>
+ <sound name="Accordion" frequency="220">
+  <waveform src="square"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="2.991"/>
  </sound>
 
  <emitter looping="true">
@@ -28,14 +28,6 @@
     <param n="3">0.20</param>
    </slot>
   </filter>
-  <effect src="chrosus" src="triangle">
-   <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.3</param>
-    <param n="2">0.1</param>
-    <param n="3">0.2</param>
-   </slot>
-  </effect>
  </emitter>
 
 </aeonwave>
