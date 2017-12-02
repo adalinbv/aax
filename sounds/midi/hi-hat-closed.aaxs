@@ -15,7 +15,7 @@
 
   <filter type="frequency">
    <slot n="0">
-    <param n="0">4500</param>
+    <param n="0">3500</param>
     <param n="1">0.1</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
@@ -29,7 +29,7 @@
     <param n="0">5.0</param>
     <param n="1">0.04</param>
     <param n="2">1.0</param>
-    <param n="3">0.3</param>
+    <param n="3">0.7</param>
    </slot>
   </filter>
  </emitter>
