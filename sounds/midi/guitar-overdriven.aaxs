@@ -45,7 +45,7 @@
     <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.3</param>
+    <param n="3">0.09</param>
    </slot>
   </effect>
  </emitter>
@@ -53,9 +53,9 @@
  <audioframe>
   <effect type="distortion">
    <slot n="0">
-    <param n="0">1.0</param>
+    <param n="0">0.5</param>
     <param n="1">0.0</param>
-    <param n="2">0.7</param>
+    <param n="2">0.5</param>
     <param n="3">1.0</param>
    </slot>
   </effect>
