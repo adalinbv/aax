@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Overdriven Electric Guitar" frequency="88">
+ <sound name="Overdriven Electric Guitar" frequency="220">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" pitch="2.0" ratio="0.6"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="5.0"/>
