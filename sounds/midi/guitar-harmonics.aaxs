@@ -8,31 +8,22 @@
 
 <aeonwave>
 
- <sound name="Electric Guitar" frequency="770">
-  <waveform src="sine" ratio="1.0"/>
-  <waveform src="brownian-noise" processing="add" pitch="0.42" ratio="0.2"/>
-  <waveform src="sine" processing="modulate" pitch="2.0" ratio="2.0"/>
-
+ <sound name="Distorted Electric Guitar" frequency="220">
+  <waveform src="sawtooth" ratio="0.9"/>
+  <waveform src="square" processing="add" pitch="2.0" ratio="0.6"/>
+  <waveform src="sine" processing="modulate" pitch="2.0" ratio="1.5"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">1400</param>
-    <param n="1">0.4</param>
+    <param n="0">660</param>
+    <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">100.0</param>
+    <param n="3">40.0</param>
    </slot>
   </filter>
-  <effect type="distortion">
-   <slot n="0">
-    <param n="0">4.0</param>
-    <param n="1">1.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="envelope">
    <slot n="0">
     <param n="0">0.00</param>
     <param n="1" factor="velocity">0.01</param>
@@ -41,7 +32,7 @@
    </slot>
    <slot n="1">
     <param n="0">0.70</param>
-    <param n="1">2.50</param>
+    <param n="1">7.50</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -54,7 +45,7 @@
    <slot n="1">
     <param n="0">1.0</param>
     <param n="1">4.5</param>
-    <param n="2">1.0</param>
+    <param n="2">0.975</param>
    </slot>
   </effect>
  </emitter>
