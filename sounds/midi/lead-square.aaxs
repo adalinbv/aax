@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <sound name="Lead 1 (square)" frequency="220">
+  <waveform src="square" pitch="2.0"/>
+  <waveform src="square" processing="modulate" ratio="1.5" pitch="0.497"/>
+ </sound>
+
+</aeonwave>
