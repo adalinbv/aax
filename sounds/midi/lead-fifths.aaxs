@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Viola" frequency="220">
+ <sound name="Lead 7 (fifths)" frequency="220">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" pitch="1.9889" ratio="0.8"/>
   <waveform src="square" processing="modulate" ratio="1.4" pitch="1.997"/>
