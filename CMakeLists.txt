@@ -345,6 +345,9 @@ else(MSVC)
           set_PROPERTY(SOURCE src/software/cpu/arch2d_neon.c APPEND
                        PROPERTY COMPILE_FLAGS "${C_FLAGS} -march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
           )
+          set_PROPERTY(SOURCE 3rdparty/pffft.c APPEND
+                       PROPERTY COMPILE_FLAGS "${C_FLAGS} -march=armv7-a -mthumb -mfpu=neon"
+          )
 
 #         set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -O3 -s -fomit-frame-pointer -DNDEBUG"
 #             CACHE STRING "Flags used by the compiler during release builds"
