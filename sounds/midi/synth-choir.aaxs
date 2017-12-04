@@ -8,18 +8,19 @@
 
 <aeonwave>
 
- <sound name="Synthesizer Choir" frequency="110">
+ <sound name="Synthesizer Choir" frequency="88">
   <waveform src="pink-noise"/>
+  <waveform src="pink-noise" processing="modulate" ratio="8.0"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">4500</param>
-    <param n="1">1.0</param>
+    <param n="0">2500</param>
+    <param n="1">0.6</param>
     <param n="2">0.1</param>
-    <param n="3">2.0</param>
+    <param n="3">16.0</param>
    </slot>
   </filter>
   <waveform src="sine" processing="mix" ratio="0.8" pitch="0.9894"/>
-  <waveform src="sine" processing="add" ratio="0.2" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.3" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="2.0" pitch="3.01"/>
  </sound>
 
