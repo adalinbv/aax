@@ -41,12 +41,20 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
+  <effect type="chorus" src="inverse-triangle">
+   <slot n="0">
+    <param n="0">0.4</param>
+    <param n="1">0.07</param>
+    <param n="2">0.3</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe>
   <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">0.8</param>
+    <param n="0">0.5</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
     <param n="3">0.5</param>
