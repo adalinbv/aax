@@ -1,0 +1,66 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Viola" frequency="220">
+  <waveform src="square"/>
+  <waveform src="sawtooth" processing="mix" pitch="1.9889" ratio="0.8"/>
+  <waveform src="square" processing="modulate" ratio="1.4" pitch="1.997"/>
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">0.7</param>
+    <param n="1">0.9</param>
+    <param n="2">0.7</param>
+    <param n="3">0.2</param>
+   </slot>
+  </effect>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">0.80</param>
+    <param n="1" factor="velocity">0.20</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.90</param>
+    <param n="1">inf</param>
+    <param n="2">0.80</param>
+    <param n="3">0.20</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.05</param>
+    <param n="1" factor="velocity">0.5</param>
+    <param n="2">1.0</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">4.5</param>
+    <param n="2">0.975</param>
+   </slot>
+  </effect>
+ </emitter>
+ 
+ <audioframe>
+  <effect type="phasing" src="sine">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.2</param>
+    <param n="2">0.4</param>
+    <param n="3">0.4</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+</aeonwave>
