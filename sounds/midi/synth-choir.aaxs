@@ -1,0 +1,67 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Synthesizer Choir" frequency="110">
+  <waveform src="pink-noise"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">4500</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
+  <waveform src="sine" processing="mix" ratio="0.8" pitch="0.9894"/>
+  <waveform src="sine" processing="add" ratio="0.2" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" ratio="2.0" pitch="3.01"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">0.70</param>
+    <param n="1" factor="velocity">0.20</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.90</param>
+    <param n="1">inf</param>
+    <param n="2">0.80</param>
+    <param n="3">0.20</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">0.92</param>
+    <param n="1" factor="velocity">0.15</param>
+    <param n="2">1.0</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">4.5</param>
+    <param n="2">0.975</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="sine">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.1</param>
+    <param n="2">0.2</param>
+    <param n="3">0.2</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+</aeonwave>
