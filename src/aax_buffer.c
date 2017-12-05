@@ -59,8 +59,6 @@ static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
 static char** _bufGetDataFromAAXS(_buffer_t *buffer, char *file);
-static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*);
-static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*);
 static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -701,6 +699,9 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 
 /* -------------------------------------------------------------------------- */
 
+static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*);
+static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*);
+
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
 {
   1,    /* 8-bit          */
@@ -1065,7 +1066,8 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, UNUSED(float frequ
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
-      if (filter->type == AAX_FREQUENCY_FILTER && filter->state == AAX_TRUE) {
+      if (filter->type == AAX_FREQUENCY_FILTER && filter->state == AAX_TRUE)
+      {
          _bufApplyFrequencyFilter(handle, filter);
       }
       aaxFilterDestroy(flt);
@@ -1856,6 +1858,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
    if (ptr != tracks) free(tracks);
 }
 
+#define EXTRA_SAMPLES	16
 static void
 _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 {
@@ -1863,8 +1866,8 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int bps, no_samples;
-   void *dptr = rbd->track[0];
-   void *sptr;
+   float *dptr = rbd->track[0];
+   float *sptr;
 
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
@@ -1873,17 +1876,25 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
    assert(rb->get_parami(rb, RB_NO_TRACKS) == 1);
    assert(bps == 4);
 
-   sptr = _aax_aligned_alloc(no_samples*bps);
+   sptr = _aax_aligned_alloc((2*EXTRA_SAMPLES+no_samples)*bps);
    if (sptr)
    {
       _aaxRingBufferFreqFilterData *data = filter->slot[0]->data;
 
       _batch_cvtps24_24(dptr, dptr, no_samples);
-      _aax_memcpy(sptr, dptr, no_samples*bps);
-      rbd->freqfilter(dptr, sptr, 0, no_samples, data);
+
+      _aax_memcpy(sptr+EXTRA_SAMPLES, dptr, no_samples*bps);
+      _aax_memcpy(sptr, sptr+no_samples, EXTRA_SAMPLES*bps);
+      _aax_memcpy(sptr+no_samples+EXTRA_SAMPLES, sptr+EXTRA_SAMPLES,
+                  EXTRA_SAMPLES*bps);
+
+      rbd->freqfilter(sptr, sptr, 0, 2*EXTRA_SAMPLES+no_samples, data);
       if (data->state && (data->low_gain > LEVEL_128DB)) {
-         rbd->add(dptr, sptr, no_samples, data->low_gain, 0.0f);
+         rbd->add(sptr+EXTRA_SAMPLES, dptr, no_samples, data->low_gain, 0.0f);
       }
+
+      _aax_memcpy(dptr, sptr+EXTRA_SAMPLES, no_samples*bps);
+
       _aax_aligned_free(sptr);
       _batch_cvt24_ps24(dptr, dptr, no_samples);
    }
