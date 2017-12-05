@@ -1,11 +1,13 @@
-* Thu Dec 04 2017 - tech@adalin.org
+* Thu Dec 05 2017 - tech@adalin.org
 - AeonWave (3.0.9) stable; urgency=low
  * Prevent an endless loop for mangled wav files.
  * Waveforms, filters and effects in the sound section of an AAXS file now are
    processed in the order of appearance which means a created waveform may be
    filtered before adding, mixing or modulating other waveforms.
+ * Fix static frequency filter anomalies at the loop points of AAXS defined
+   waveforms.
 
--- Erik Hofman <tech@adalin.org>  Mon 04 Dec  2017 10:59:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue 05 Dec  2017 11:22:00 + 0100
 
 
 * Thu Nov 11 2017 - tech@adalin.org
