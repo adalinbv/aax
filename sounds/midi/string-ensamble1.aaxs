@@ -9,16 +9,9 @@
 <aeonwave>
 
  <sound name="String Ensamble 1" frequency="220">
-  <waveform src="sawtooth"/>
+  <waveform src="sawtooth" ratio="0.5"/>
+  <waveform src="impulse" processing="add" ratio="0.75"/>
   <waveform src="sawtooth" processing="mix" pitch="1.9889" ratio="0.35"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">110</param>
-    <param n="1">0.8</param>
-    <param n="2">2.0</param>
-    <param n="3">0.75</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">
@@ -53,7 +46,7 @@
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.07</param>
-    <param n="2">0.3</param>
+    <param n="2">0.2</param>
     <param n="3">0.5</param>
    </slot>
   </effect>
@@ -65,7 +58,7 @@
     <param n="0">0.5</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
-    <param n="3">0.5</param>
+    <param n="3">0.4</param>
    </slot>
   </effect>
  </audioframe>

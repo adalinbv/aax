@@ -10,26 +10,10 @@
 
  <sound name="String Ensamble 2" frequency="220">
   <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="1.9889" ratio="0.35"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">110</param>
-    <param n="1">0.8</param>
-    <param n="2">2.0</param>
-    <param n="3">5.75</param>
-   </slot>
-  </filter>
+  <waveform src="sawtooth" processing="mix" pitch="1.9883" ratio="0.35"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">8000</param>
-    <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
   <filter type="envelope">
    <slot n="0">
     <param n="0">0.80</param>
@@ -48,7 +32,7 @@
    <slot n="0">
     <param n="0" factor="soften">0.94</param>
     <param n="1" factor="velocity">0.25</param>
-    <param n="2">1.0</param>
+    <param n="2">0.98</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
@@ -59,10 +43,10 @@
   </effect>
   <effect type="chorus" src="inverse-triangle">
    <slot n="0">
-    <param n="0">0.4</param>
+    <param n="0">0.6</param>
     <param n="1">0.07</param>
-    <param n="2">0.3</param>
-    <param n="3">0.5</param>
+    <param n="2">0.6</param>
+    <param n="3">0.4</param>
    </slot>
   </effect>
  </emitter>
@@ -71,8 +55,8 @@
   <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.5</param>
-    <param n="1">0.2</param>
-    <param n="2">0.3</param>
+    <param n="1">0.17</param>
+    <param n="2">0.2</param>
     <param n="3">0.5</param>
    </slot>
   </effect>
