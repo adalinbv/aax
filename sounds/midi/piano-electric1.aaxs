@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Electric Piano 1" frequency="220">
+  <waveform src="sine" pitch="0.993"/>
+  <waveform src="sawtooth" processing="add" ratio="0.2" pitch="3.0"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="5.9989"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1" factor="velocity">0.04</param>
+    <param n="2" factor="soften">1.2</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.00</param>
+    <param n="1">2.50</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>

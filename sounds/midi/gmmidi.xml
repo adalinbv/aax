@@ -2,8 +2,8 @@
  <instrument n="2" name="Bright Acoustic Piano" file="piano-bright.aaxs"/>
  <instrument n="3" name="Electric Grand Piano" file=".aaxs"/>
  <instrument n="4" name="Honky-tonk Piano" file=".aaxs"/>
- <instrument n="5" name="Electric Piano 1" file=".aaxs"/>
- <instrument n="6" name="Electric Piano 2" file=".aaxs"/>
+ <instrument n="5" name="Electric Piano 1" file="piano-electric1.aaxs"/>
+ <instrument n="6" name="Electric Piano 2" file="piano-electric2.aaxs"/>
  <instrument n="7" name="Harpsichord" file=".aaxs"/>
  <instrument n="8" name="Clavi" file=".aaxs"/>
  <instrument n="9" name="Celesta" file=".aaxs"/>
