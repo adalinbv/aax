@@ -10,9 +10,8 @@
 
  <sound name="Viola" frequency="220">
   <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="1.9845" ratio="0.8"/>
-  <waveform src="impulse" processing="add" ratio="0.7"  pitch="0.993"/>
-  <waveform src="sine" processing="add" ratio="0.1" pitch="5.999"/>
+  <waveform src="impulse" processing="add" ratio="0.9" pitch="0.993"/>
+  <waveform src="sine" processing="add" ratio="0.2" pitch="5.999"/>
  </sound>
 
  <emitter looping="true">
