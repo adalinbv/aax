@@ -39,15 +39,15 @@
  <instrument n="39" name="Synth Bass 1" file="bass-synth1.aaxs"/>
  <instrument n="40" name="Synth Bass 2" file="bass-synth2.aaxs"/>
  <instrument n="41" name="Violin" file="violin.aaxs"/>
- <instrument n="42" name="Viola" file=".aaxs"/>
- <instrument n="43" name="Cello" file=".aaxs"/>
- <instrument n="44" name="Contrabass" file=".aaxs"/>
+ <instrument n="42" name="Viola" file="violin.aaxs"/>
+ <instrument n="43" name="Cello" file="violin.aaxs"/>
+ <instrument n="44" name="Contrabass" file="violin.aaxs"/>
  <instrument n="45" name="Tremolo Strings" file=".aaxs"/>
  <instrument n="46" name="Pizzicato Strings" file=".aaxs"/>
  <instrument n="47" name="Orchestral Harp" file=".aaxs"/>
  <instrument n="48" name="Timpani" file=".aaxs"/>
- <instrument n="49" name="String Ensemble 1" file=".aaxs"/>
- <instrument n="50" name="String Ensemble 2" file=".aaxs"/>
+ <instrument n="49" name="String Ensemble 1" file="string-ensamble1.aaxs"/>
+ <instrument n="50" name="String Ensemble 2" file="string-ensamble2.aaxs"/>
  <instrument n="51" name="SynthStrings 1" file="strings-synth1.aaxs"/>
  <instrument n="52" name="SynthStrings 2" file="strings-synth2.aaxs"/>
  <instrument n="53" name="Choir Aahs" file=".aaxs"/>
