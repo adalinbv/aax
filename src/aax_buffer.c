@@ -1858,7 +1858,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
    if (ptr != tracks) free(tracks);
 }
 
-#define EXTRA_SAMPLES	16
+#define EXTRA_SAMPLES	64
 static void
 _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 {
