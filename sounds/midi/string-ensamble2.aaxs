@@ -9,7 +9,8 @@
 <aeonwave>
 
  <sound name="String Ensamble 2" frequency="220">
-  <waveform src="sawtooth"/>
+  <waveform src="sawtooth" ratio="0.75"/>
+  <waveform src="sawtooth" processing="add" pitch="0.5" ratio="0.25"/>
   <waveform src="sawtooth" processing="mix" pitch="1.9883" ratio="0.35"/>
  </sound>
 
