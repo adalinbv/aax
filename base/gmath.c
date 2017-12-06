@@ -37,38 +37,16 @@ float fast_fabs(float x)
 }
 #endif
 
-#if 1
 /* http://www.devmaster.net/forums/showthread.php?t=5784 */
+/* Do not replace! */
 float
-fast_sin(float x)
+fast_sin_cpu(float x)
 {
-   float y;
-
-   x = fmodf(x+GMATH_PI, GMATH_2PI) - GMATH_PI;
-   y = DIV4_GMATH_PI*x + DIV4_GMATH_PI2*x*fabsf(x);
-
-   return y;
+   x *= GMATH_1_PI;
+   x = fmodf(x+0.5f, 2.0f) - 1.0f;
+   return 2.0f*(x - x*fabsf(x));
 }
-#else
-float
-fast_sin(float v)
-{
-   float rv, rv2;
-
-   rv = fabs(1.0 - fmod(v+GMATH_PI_2, GMATH_2PI)/GMATH_PI);
-   if (rv < 0.5f)
-   {
-      rv2 = 4.0f*rv*rv;
-   }
-   else
-   {
-      float val = 1.0f - rv;
-      rv2 = 2.0f - 4.0f*val*val;
-   }
-
-   return 1.0f - rv2;
-}
-#endif
+fast_sin_proc fast_sin = fast_sin_cpu;
 
 unsigned
 get_pow2(uint32_t n)
