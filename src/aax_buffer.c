@@ -1268,7 +1268,7 @@ _bufAAXSThread(void *d)
 static int
 _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
 {
-// struct threat_t thread;
+   struct threat_t thread;
    _buffer_aax_t data;
    int rv = AAX_FALSE;
 
@@ -1277,9 +1277,8 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
    data.frequency = freq;
    data.error = AAX_ERROR_NONE;
 
-#if 1
-   _bufAAXSThread(&data);
-#else
+   // Using a thread here might spawn wavweform generation on another CPU
+   // core freeing the current (possibly busy) CPU core from doing the work.
    thread.ptr = _aaxThreadCreate();
    if (thread.ptr)
    {
@@ -1293,7 +1292,6 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
          _bufAAXSThread(&data);
       }
    }
-#endif
 
    if (data.error) {
       _aaxErrorSet(data.error);
