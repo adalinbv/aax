@@ -44,7 +44,6 @@
 #include "types.h"
 
 #define DEBUG_TIMEOUT		3
-static char __threads_enabled = 0;
 
 #if HAVE_PTHREAD_H	/* UNIX */
 
@@ -201,9 +200,6 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, UNUSED(unsigned in
 #endif
 
    ret = pthread_create(t, &attr, handler, arg);
-   if (ret == 0) {
-      __threads_enabled = 1;
-   }
 
    return ret;
 }
@@ -216,7 +212,6 @@ _aaxThreadJoin(void *t)
 
    assert(t);
 
-   __threads_enabled = 0;
    ret = pthread_join(*thread, 0);
 
    return ret;
@@ -855,9 +850,7 @@ _aaxThreadStart(void *t,  void *(*handler)(void*), void *arg, unsigned int ms)
    thread->callback_fn = handler;
    thread->callback_data = arg;
    thread->handle = CreateThread(NULL, 0, _callback_handler, t, 0, NULL);
-   if (thread->handle != NULL)
-   {
-      __threads_enabled = 1;
+   if (thread->handle != NULL) {
      rv = 0;
    }
 
@@ -872,8 +865,6 @@ _aaxThreadJoin(void *t)
    DWORD r;
 
    assert(t);
-
-   __threads_enabled = 0;
 
    r = WaitForSingleObject(thread->handle, INFINITE);
    switch (r)

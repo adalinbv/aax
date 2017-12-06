@@ -267,6 +267,8 @@ _aaxGetSIMDSupportLevel()
 
    if (_aax_arch_capabilities & AAX_ARCH_NEON)
    {
+      fast_sin = fast_sin_neon;
+
       vec3fMagnitude = _vec3fMagnitude_neon;
       vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
       vec3fDotProduct = _vec3fDotProduct_neon;

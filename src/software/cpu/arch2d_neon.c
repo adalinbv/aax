@@ -45,6 +45,14 @@
  * Note: In NEON, the SIMD supports up to 16 operations at the same time.
  */
 
+float
+fast_sin_neon(float x)
+{
+   x *= GMATH_1_PI;
+   x = fmodf(x+0.5f, 2.0f) - 1.0f;
+   return 2.0f*(x - x*fabsf(x));
+}
+
 void
 _batch_cvtps24_24_neon(void_ptr dst, const_void_ptr src, size_t num)
 {

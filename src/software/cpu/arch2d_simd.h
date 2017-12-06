@@ -151,6 +151,7 @@ char* _aax_calloc_aligned(char**, size_t, size_t);
 char* _aax_malloc_aligned(char**, size_t);
 
 /* SSE2*/
+float fast_sin_sse2(float);
 void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
 void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
@@ -185,6 +186,7 @@ void _batch_resample_sse3(int32_ptr, const_int32_ptr, size_t, size_t, float, flo
 #endif
 
 /* AVX & SSE/VEX */
+float fast_sin_sse_vex(float);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
@@ -265,6 +267,7 @@ void _batch_cvtps_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned i
 void _batch_cvtpd_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* NEON */
+float fast_sin_neon(float);
 void _batch_imadd_neon(int32_ptr, const_int32_ptr, size_t, float, float);
 // void _batch_hmadd_neon(float32_ptr, const_float16_ptr, unsigned in, float, float);
 void _batch_fmadd_neon(float32_ptr, const_float32_ptr, unsigned in, float, float);

@@ -293,6 +293,15 @@ typedef struct
 
 } _buffer_t;
 
+typedef struct
+{
+   _buffer_t* handle;
+   const void *aaxs;
+   float frequency;
+   enum aaxErrorType error;
+
+} _buffer_aax_t;
+
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);
 _buffer_t* get_buffer(aaxBuffer, const char*);
 int free_buffer(_buffer_t*);

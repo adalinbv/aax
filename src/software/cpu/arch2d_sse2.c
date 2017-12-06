@@ -32,6 +32,14 @@
 #ifdef __SSE2__
 
 
+float
+fast_sin_sse2(float x)
+{
+   x *= GMATH_1_PI;
+   x = fmodf(x+0.5f, 2.0f) - 1.0f;
+   return 2.0f*(x - x*fabsf(x));
+}
+
 void
 _batch_get_average_rms_sse2(const_float32_ptr data, size_t num, float *rms, float *peak)
 {
