@@ -564,8 +564,13 @@ size_t
 _wav_copy(_ext_t *ext, int32_ptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-   size_t rv = handle->fmt->copy(handle->fmt, dptr, offset, num);
-   handle->io.read.datasize -= rv;
+   ssize_t rv = handle->fmt->copy(handle->fmt, dptr, offset, num);
+   if (rv > 0) {
+      handle->io.read.datasize -= rv;
+   }
+   if (handle->io.read.datasize == 0) {
+      rv = __F_EOF;
+   }
    return rv;
 }
 
@@ -573,8 +578,13 @@ size_t
 _wav_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
 {
    _driver_t *handle = ext->id;
-   size_t rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
-   handle->io.read.datasize -= rv;
+   ssize_t rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+   if (rv > 0) {
+      handle->io.read.datasize -= rv;
+   }
+   if (handle->io.read.datasize == 0) {
+      rv = __F_EOF;
+   }
    return rv;
 }
 

@@ -37,6 +37,7 @@
 #include <math.h>		/* for MAXFLOAT */
 #include <xml.h>
 
+#include <software/gpu/gpu.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>
 #include "objects.h"
@@ -46,6 +47,7 @@
 void
 _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 {
+   const char *opencl;
    unsigned int size;
 
    size = 2*sizeof(vec4f_t); 
@@ -81,6 +83,13 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 
    info->id = INFO_ID;
    info->backend = handle;
+
+#if 0
+   opencl = getenv("AAX_USE_OPENCL");
+   if ((!opencl || _aax_getbool(opencl)) && _aaxOpenCLDetect()) {
+      info->gpu = _aaxOpenCLCreate();
+   }
+#endif
 }
 
 void

@@ -218,6 +218,9 @@
 #undef HAVE_RMALLOC_H
 #cmakedefine HAVE_RMALLOC_H @HAVE_RMALLOC_H@
 
+#undef HAVE_OPENCL
+#cmakedefine HAVE_OPENCL @OPENCL_FOUND@
+
 /* Version number of package */
 #undef VERSION
 

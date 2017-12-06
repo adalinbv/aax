@@ -31,6 +31,14 @@
 
 #ifdef __AVX__
 
+float
+fast_sin_sse_vex(float x)
+{
+   x *= GMATH_1_PI;
+   x = fmodf(x+0.5f, 2.0f) - 1.0f;
+   return 2.0f*(x - x*fabsf(x));
+}
+
 void
 _batch_cvt24_ps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
 {

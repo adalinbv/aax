@@ -36,6 +36,7 @@
 #include <arch.h>
 #include <ringbuffer.h>
 #include <software/renderer.h>
+#include <software/gpu/gpu.h>
 
 #include "rbuf2d_effects.h"
 
@@ -331,46 +332,62 @@ _aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
 }
 
 /** Convolution Effect */
+// irnum = convolution->no_samples
+// for (q=0; q<dnum; ++q) {
+//    float volume = *sptr++;
+//    rbd->add(hptr++, cptr, irnum, volume, 0.0f);
+// }
 int
 _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferData *dptr_src), unsigned int t)
 {
-   unsigned int cnum, q, hpos, dnum;
    _aaxRingBufferConvolutionData *convolution;
-   MIX_T *hcptr, *hptr, *sptr, *dptr, *cptr;
+   unsigned int cnum, dnum, hpos;
+   MIX_T *sptr, *dptr, *hptr;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
-   float v, threshold;
-   int step;
+
+   convolution = d->be_handle;
+   hptr = convolution->history[t];
+   hpos = convolution->history_start[t];
+   cnum = convolution->no_samples - hpos;
 
    rbi = rb->handle;
    rbd = rbi->sample;
    dptr = sptr = rbd->track[t];
    dnum = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   convolution = d->be_handle;
-   cptr = convolution->sample;
-   hpos = convolution->history_start[t];
-   cnum = convolution->no_samples - hpos;
-
-   v = convolution->rms * convolution->delay_gain;
-   threshold = convolution->threshold * (float)(1<<23);
-   step = convolution->step;
-
-   hptr = convolution->history[t];
-   hcptr = hptr + hpos;
-
-   q = cnum/step;
-   threshold = convolution->threshold;
-   do
+   if (d->be)
    {
-      float volume = *cptr * v;
-      if (fabsf(volume) > threshold) {
-         rbd->add(hcptr, sptr, dnum, volume, 0.0f);
-      }
-      cptr += step;
-      hcptr += step;
+      _aax_opencl_t *gpu = (_aax_opencl_t*)d->be;
+      _aaxOpenCLRunConvolution(gpu, convolution, dptr, dnum, t);
    }
-   while (--q);
+   else
+   {
+      MIX_T *hcptr, *cptr;
+      float v, threshold;
+      unsigned int q;
+      int step;
+
+      v = convolution->rms * convolution->delay_gain;
+      threshold = convolution->threshold * (float)(1<<23);
+      step = convolution->step;
+
+      cptr = convolution->sample;
+      hcptr = hptr + hpos;
+
+      q = cnum/step;
+      threshold = convolution->threshold;
+      do
+      {
+         float volume = *cptr * v;
+         if (fabsf(volume) > threshold) {
+            rbd->add(hcptr, sptr, dnum, volume, 0.0f);
+         }
+         cptr += step;
+         hcptr += step;
+      }
+      while (--q);
+   }
 
    if (convolution->freq_filter)
    {
@@ -399,7 +416,7 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(
 }
 
 void
-_aaxRingBufferEffectConvolution(const _aaxDriverBackend *be, const void *be_handle, _aaxRingBuffer *rb, void *data)
+_aaxRingBufferEffectConvolution(const _aaxDriverBackend *be, const void *be_handle, _aaxRingBuffer *rb, _aax_opencl_t *gpu, void *data)
 {
    _aaxRingBufferConvolutionData *convolution = data;
    if (convolution->delay_gain > convolution->threshold)
@@ -413,7 +430,7 @@ _aaxRingBufferEffectConvolution(const _aaxDriverBackend *be, const void *be_hand
       d.fp2d = NULL;
       d.e2d = NULL;
       d.e3d = NULL;
-      d.be = NULL;
+      d.be = (const _aaxDriverBackend*)gpu;
       d.be_handle = convolution;
 
       d.ssv = 0.0f;
