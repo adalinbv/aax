@@ -122,11 +122,23 @@ AAX_API int AAX_APIENTRY
 aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   unsigned int tmp;
-   int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv && handle)
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      if (!rb) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      unsigned int tmp;
+
       switch(type)
       {
       case AAX_FREQUENCY:
@@ -248,8 +260,19 @@ AAX_API unsigned int AAX_APIENTRY
 aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   unsigned int rv = AAX_FALSE;
-   if (handle)
+   int rv = __release_mode;
+
+   if (!rv && handle)
+   {
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      if (!rb) {
+         _aaxErrorSet(AAX_INVALID_STATE);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
       switch(type)
@@ -316,8 +339,28 @@ AAX_API int AAX_APIENTRY
 aaxBufferSetData(aaxBuffer buffer, const void* d)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int rv = AAX_FALSE;
-   if (handle && (handle->format & AAX_SPECIAL) && d)
+   int rv = __release_mode;
+
+   if (!rv && handle)
+   {
+      if (!d) {
+          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+      else if ((handle->format & AAX_SPECIAL) != 0)
+      {
+         _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL);
+         if (!rb || rb->get_parami(rb, RB_NO_SAMPLES) == 0) {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         } else {
+            rv = AAX_TRUE;
+         }
+      }
+      else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv && (handle->format & AAX_SPECIAL))
    {				/* the data in *d isn't actual raw sound data */
       unsigned int format = handle->format;
       switch(format)
@@ -330,114 +373,101 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
          break;
       }
    }
-   else if (handle)
+   else if (rv)
    {
       _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL);
-      if (rb)
-      {
-         unsigned int tracks, no_samples, buf_samples;
+      unsigned int tracks, no_samples, buf_samples;
+      unsigned blocksize =  handle->blocksize;
+      unsigned int format = handle->format;
+      void *data = (void*)d, *ptr = NULL;
+      unsigned int native_fmt;
+      char fmt_bps, *m = 0;
+      const char *env;
 
-         rb->init(rb, AAX_FALSE);
-         tracks = rb->get_parami(rb, RB_NO_TRACKS);
-         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      rb->init(rb, AAX_FALSE);
+      tracks = rb->get_parami(rb, RB_NO_TRACKS);
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
 
-         buf_samples = tracks*no_samples;
-         if (d && (buf_samples > 0))
-         {
-            unsigned blocksize =  handle->blocksize;
-            unsigned int format = handle->format;
-            void *data = (void*)d, *ptr = NULL;
-            unsigned int native_fmt;
-            char fmt_bps, *m = 0;
-            const char *env;
+      buf_samples = tracks*no_samples;
 
 				/* do we need to convert to native format? */
-            native_fmt = format & AAX_FORMAT_NATIVE;
-            if (format & ~AAX_FORMAT_NATIVE)
-            {
-               fmt_bps = _aaxFormatsBPS[native_fmt];
-               ptr = (void**)_aax_malloc(&m, buf_samples*fmt_bps);
-               if (!ptr)
-               {
-                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-                  return rv;
-               }
+      native_fmt = format & AAX_FORMAT_NATIVE;
+      if (format & ~AAX_FORMAT_NATIVE)
+      {
+         fmt_bps = _aaxFormatsBPS[native_fmt];
+         ptr = (void**)_aax_malloc(&m, buf_samples*fmt_bps);
+         if (!ptr)
+         {
+            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+            return rv;
+         }
 
-               _aax_memcpy(m, data, buf_samples*fmt_bps);
-               data = m;
+         _aax_memcpy(m, data, buf_samples*fmt_bps);
+         data = m;
 					/* first convert to native endianness */
-               if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
-                    ((format & AAX_FORMAT_BE) && !is_bigendian()) )
-               {
-                  switch (native_fmt)
-                  {
-                  case AAX_PCM16S:
-                     _batch_endianswap16(data, buf_samples);
-                     break;
-                  case AAX_PCM24S:
-                  case AAX_PCM32S:
-                  case AAX_FLOAT:
-                     _batch_endianswap32(data, buf_samples);
-                     break;
-                  case AAX_DOUBLE:
-                     _batch_endianswap64(data, buf_samples);
-                     break;
-                  default:
-                     break;
-                  }
-               }
-					/* then convert to proper signedness */
-               if (format & AAX_FORMAT_UNSIGNED)
-               {
-                  switch (native_fmt)
-                  {  
-                  case AAX_PCM8S:
-                     _batch_cvt8u_8s(data, buf_samples);
-                     break;
-                  case AAX_PCM16S:
-                     _batch_cvt16u_16s(data, buf_samples);
-                     break;
-                  case AAX_PCM24S:
-                     _batch_cvt24u_24s(data, buf_samples);
-                     break;
-                  case AAX_PCM32S:
-                     _batch_cvt32u_32s(data, buf_samples);
-                     break;
-                  default:
-                     break;
-                  }
-               }
-            }
-
-            /* explicit request not to convert */
-            env = getenv("AAX_USE_MIXER_FMT");
-            if (env && !_aax_getbool(env)) {
-               handle->to_mixer = AAX_FALSE;
-            }
-
-            /* sound is not mono or larger than 4Mb, do not convert */
-            else if (tracks != 1 || rb->get_parami(rb, RB_TRACKSIZE) > (4*1024))
+         if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
+              ((format & AAX_FORMAT_BE) && !is_bigendian()) )
+         {
+            switch (native_fmt)
             {
-               handle->to_mixer = AAX_FALSE;
+            case AAX_PCM16S:
+               _batch_endianswap16(data, buf_samples);
+               break;
+            case AAX_PCM24S:
+            case AAX_PCM32S:
+            case AAX_FLOAT:
+               _batch_endianswap32(data, buf_samples);
+               break;
+            case AAX_DOUBLE:
+               _batch_endianswap64(data, buf_samples);
+               break;
+            default:
+               break;
             }
-
-            /* more than 500Mb free memory is available, convert */
-            else if (_aax_get_free_memory() > (500*1024*1024)) {
-               handle->to_mixer = AAX_TRUE;
-            }
-            rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
-            handle->ringbuffer = rb;
-
-            rv = AAX_TRUE;
-            _aax_free(ptr);
          }
-         else {
-            _aaxErrorSet(AAX_INVALID_PARAMETER);
+					/* then convert to proper signedness */
+         if (format & AAX_FORMAT_UNSIGNED)
+         {
+            switch (native_fmt)
+            {
+            case AAX_PCM8S:
+               _batch_cvt8u_8s(data, buf_samples);
+               break;
+            case AAX_PCM16S:
+               _batch_cvt16u_16s(data, buf_samples);
+               break;
+            case AAX_PCM24S:
+               _batch_cvt24u_24s(data, buf_samples);
+               break;
+            case AAX_PCM32S:
+               _batch_cvt32u_32s(data, buf_samples);
+               break;
+            default:
+               break;
+            }
          }
       }
-      else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+
+      /* explicit request not to convert */
+      env = getenv("AAX_USE_MIXER_FMT");
+      if (env && !_aax_getbool(env)) {
+         handle->to_mixer = AAX_FALSE;
       }
+
+      /* sound is not mono or larger than 4Mb, do not convert */
+      else if (tracks != 1 || rb->get_parami(rb, RB_TRACKSIZE) > (4*1024)) {
+         handle->to_mixer = AAX_FALSE;
+      }
+
+      /* more than 500Mb free memory is available, convert */
+      else if (_aax_get_free_memory() > (500*1024*1024)) {
+         handle->to_mixer = AAX_TRUE;
+      }
+      rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
+      handle->ringbuffer = rb;
+
+      rv = AAX_TRUE;
+      _aax_free(ptr);
    }
    return rv;
 }
@@ -452,10 +482,34 @@ aaxBufferGetData(const aaxBuffer buffer)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    enum aaxFormat user_format;
+   int rv = __release_mode;
    void** data = NULL;
 
+   if (!rv && handle)
+   {
+      user_format = handle->format;
+      if (user_format != AAX_AAXS16S && user_format != AAX_AAXS24S)
+      {
+         if (!handle->frequency) {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         }
+         else
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+            if (!rb) {
+               _aaxErrorSet(AAX_INVALID_STATE);
+            } else {
+               rv = AAX_TRUE;
+            }
+         }
+      }
+      else {
+         rv = AAX_TRUE;
+      }
+   }
+
    user_format = handle->format;
-   if (handle && (user_format == AAX_AAXS16S || user_format == AAX_AAXS24S))
+   if (rv && (user_format == AAX_AAXS16S || user_format == AAX_AAXS24S))
    {
       if (handle->aaxs)
       {
@@ -470,14 +524,14 @@ aaxBufferGetData(const aaxBuffer buffer)
 
          data[0] = &data[1];
          memcpy(data+1, handle->aaxs, len);
-         return data;
+         rv = AAX_FALSE; /* we're done */
       }
       else {
          user_format = AAX_FLOAT;
       }
    }
 
-   if (handle && handle->frequency)
+   if (rv)
    {
       unsigned int buf_samples, no_samples, tracks;
       unsigned int native_fmt, rb_format, pos;
@@ -600,9 +654,6 @@ aaxBufferGetData(const aaxBuffer buffer)
       }
 #endif
    }
-   else if (handle) {	/* handle->frequency is not set */
-      _aaxErrorSet(AAX_INVALID_STATE);
-   }
 
    return data;
 }
@@ -625,9 +676,14 @@ AAX_API aaxBuffer AAX_APIENTRY
 aaxBufferReadFromStream(aaxConfig config, const char *url)
 {
    _handle_t *handle = (_handle_t*)config;
-   _buffer_t* rv = NULL;
+   int rv = __release_mode;
+   _buffer_t* buf = NULL;
 
-   if (handle)
+   if (!rv && handle) {
+      rv = AAX_TRUE;
+   }
+
+   if (rv)
    {
       size_t no_samples, blocksize;
       unsigned int tracks;
@@ -639,17 +695,17 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                                        &no_samples, &blocksize);
       if (ptr)
       {
-         rv = aaxBufferCreate(config, no_samples, tracks, fmt);
-         if (rv)
+         buf = aaxBufferCreate(config, no_samples, tracks, fmt);
+         if (buf)
          {
-             free(rv->url);
-             rv->url = strdup(url);
+             free(buf->url);
+             buf->url = strdup(url);
 
-             aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
-             aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
-             if ((aaxBufferSetData(rv, ptr[0])) == AAX_FALSE) {
-                aaxBufferDestroy(rv);
-                rv  = NULL;
+             aaxBufferSetSetup(buf, AAX_FREQUENCY, freq);
+             aaxBufferSetSetup(buf, AAX_BLOCK_ALIGNMENT, blocksize);
+             if ((aaxBufferSetData(buf, ptr[0])) == AAX_FALSE) {
+                aaxBufferDestroy(buf);
+                buf = NULL;
              }
 #if 0
 _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr, no_samples, freq, tracks, fmt);
@@ -662,7 +718,7 @@ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr, no_samples, freq, track
       }
    }
 
-   return rv;
+   return buf;
 }
 
 AAX_API int AAX_APIENTRY
@@ -759,10 +815,10 @@ static _aaxRingBuffer*
 _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
 {
    _aaxRingBuffer *rb = buf->ringbuffer;
-   if (!rb && (VALID_HANDLE(handle) ||
-               (buf->info && *buf->info &&
-                VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
-              )
+   if (!rb && handle && (VALID_HANDLE(handle) ||
+                         (buf->info && *buf->info &&
+                          VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
+                        )
       )
    {
       enum aaxRenderMode mode = handle->info->mode;
