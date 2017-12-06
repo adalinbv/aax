@@ -1147,16 +1147,22 @@ _bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, UNUSED(float frequ
    return AAX_TRUE;
 }
 
-static int
-_bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
+
+static void*
+_bufAAXSThread(void *d)
 {
+   _buffer_aax_t *aax_buf = (_buffer_aax_t*)d;
+   _buffer_t* handle = aax_buf->handle;
+   const void *aaxs =  aax_buf->aaxs;
+   float freq = aax_buf->frequency;
    int rv = AAX_FALSE;
    void *xid;
 
+   assert(handle);
    assert(aaxs);
 
    handle->aaxs = strdup(aaxs);
-   if (!handle->aaxs) return rv;
+   if (!handle->aaxs) return NULL;
 
    xid = xmlInitBuffer(handle->aaxs, strlen(handle->aaxs));
    if (xid)
@@ -1181,7 +1187,7 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
                free(ptr);
             }
             else {
-               _aaxErrorSet(AAX_INVALID_REFERENCE);
+               aax_buf->error = AAX_INVALID_REFERENCE;
             }
          }
 
@@ -1247,13 +1253,52 @@ _bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
          }
       }
       else {
-         _aaxErrorSet(AAX_INVALID_STATE);
+         aax_buf->error = AAX_INVALID_STATE;
       }
 
       xmlClose(xid);
    }
    else {
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      aax_buf->error = AAX_INVALID_PARAMETER;
+   }
+
+   return rv ? d : NULL;
+}
+
+static int
+_bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
+{
+// struct threat_t thread;
+   _buffer_aax_t data;
+   int rv = AAX_FALSE;
+
+   data.handle = handle;
+   data.aaxs = aaxs;
+   data.frequency = freq;
+   data.error = AAX_ERROR_NONE;
+
+#if 1
+   _bufAAXSThread(&data);
+#else
+   thread.ptr = _aaxThreadCreate();
+   if (thread.ptr)
+   {
+      rv = _aaxThreadStart(thread.ptr, _bufAAXSThread, &data, 0);
+      if (!rv)
+      {
+         _aaxThreadJoin(thread.ptr);
+         _aaxThreadDestroy(thread.ptr);
+      }
+      else {
+         _bufAAXSThread(&data);
+      }
+   }
+#endif
+
+   if (data.error) {
+      _aaxErrorSet(data.error);
+   } else {
+      rv = AAX_TRUE;
    }
 
    return rv;
