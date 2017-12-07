@@ -10,19 +10,21 @@
 
  <sound name="Rock Organ" frequency="220">
   <waveform src="triangle" ratio="0.8"/>
-  <waveform src="sine" processing="add" pitch="4.02" ratio="0.4"/>
+  <waveform src="sine" processing="add" pitch="3.9991" ratio="0.4"/>
   <waveform src="sawtooth" processing="modulate" pitch="2.0" ratio="1.5"/>
  </sound>
 
- <emitter looping="true">
+ <emitter looping="true"/>
+
+ <audioframe>
   <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.533</param>
-    <param n="1">0.337</param>
-    <param n="2">0.5</param>
-    <param n="3">0.3</param>
+    <param n="1">5.537</param>
+    <param n="2">0.15</param>
+    <param n="3">0.6</param>
    </slot>
   </effect>
- </emitter>
+ </audioframe>
 
 </aeonwave>
