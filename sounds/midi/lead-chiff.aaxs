@@ -10,17 +10,17 @@
 
  <sound name="Lead 4 (chiff)" frequency="220">
   <waveform src="sine"/>
-  <waveform src="square" processing="add" pitch="1.01" ratio="-0.5"/>
-  <waveform src="triangle" processing="modulate" pitch="1.0" ratio="1.1"/>
-  <waveform src="triangle" processing="modulate" pitch="1.995" ratio="2.9"/>
+  <waveform src="square" processing="add" ratio="-0.5" pitch="1.01"/>
+  <waveform src="triangle" processing="modulate" ratio="1.1" pitch="1.0"/>
+  <waveform src="sine" processing="modulate" ratio="2.9" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="envelope">
    <slot n="0">
-    <param n="0">1.10</param>
+    <param n="0">0.50</param>
     <param n="1">0.01</param>
-    <param n="2">0.90</param>
+    <param n="2">1.20</param>
     <param n="3">0.10</param>
    </slot>
    <slot n="1">
@@ -32,7 +32,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">0.5</param>
+    <param n="0" factor="soften">0.95</param>
     <param n="1" factor="velocity">0.07</param>
     <param n="2">1.0</param>
     <param n="3">3.5</param>

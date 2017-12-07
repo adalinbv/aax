@@ -1,11 +1,11 @@
  <instrument n="1" name="Acoustic Grand Piano" file="piano=acoustic.aaxs"/>
  <instrument n="2" name="Bright Acoustic Piano" file="piano-bright.aaxs"/>
- <instrument n="3" name="Electric Grand Piano" file=".aaxs"/>
+ <instrument n="3" name="Electric Grand Piano" file="piano-electric.aaxs"/>
  <instrument n="4" name="Honky-tonk Piano" file=".aaxs"/>
  <instrument n="5" name="Electric Piano 1" file="piano-electric1.aaxs"/>
  <instrument n="6" name="Electric Piano 2" file="piano-electric2.aaxs"/>
  <instrument n="7" name="Harpsichord" file=".aaxs"/>
- <instrument n="8" name="Clavi" file=".aaxs"/>
+ <instrument n="8" name="Clavi" file=" clavecimbel.aaxs"/>
  <instrument n="9" name="Celesta" file=".aaxs"/>
  <instrument n="10" name="Glockenspiel" file=".aaxs"/>
  <instrument n="11" name="Music Box" file=".aaxs"/>
@@ -18,7 +18,7 @@
  <instrument n="18" name="Percussive Organ" file=".aaxs"/>
  <instrument n="19" name="Rock Organ" file="organ-rock.aaxs"/>
  <instrument n="20" name="Church Organ" file="organ-church.aaxs"/>
- <instrument n="21" name="Reed Organ" file=".aaxs"/>
+ <instrument n="21" name="Reed Organ" file="organ-reed.aaxs"/>
  <instrument n="22" name="Accordion" file="accordion.aaxs"/>
  <instrument n="23" name="Harmonica" file="harmonica.aaxs"/>
  <instrument n="24" name="Tango Accordion" file=".aaxs"/>
