@@ -32,7 +32,7 @@
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.70</param>
+    <param n="0">0.75</param>
     <param n="1">2.50</param>
    </slot>
   </filter>
