@@ -9,9 +9,9 @@
 <aeonwave>
 
  <sound name="Synth Bass 1" frequency="110">
-  <waveform src="square"/>
-  <waveform src="sine" processing="add" ratio="-0.5" pitch="4.998"/>
-  <waveform src="triangle" processing="mix" ratio="0.5" pitch="1.998"/>
+  <waveform src="square" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="-0.5" pitch="8.998"/>
+  <waveform src="triangle" processing="mix" ratio="0.5" pitch="2.998"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="0.498"/>
  </sound>
 
@@ -36,7 +36,7 @@
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.95</param>
+    <param n="0">0.98</param>
    </slot>
   </effect>
   <effect type="phasing" src="sine">
