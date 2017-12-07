@@ -17,12 +17,26 @@
  <emitter looping="true"/>
 
  <audioframe>
+<!--
+  <filter type="frequency" src="sine">
+   <slot n="0">
+    <param n="0">4000</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">8000</param>
+    <param n="3">5.537</param>
+   </slot>
+  </filter>
+-->
   <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.533</param>
     <param n="1">5.537</param>
     <param n="2">0.15</param>
-    <param n="3">0.6</param>
+    <param n="3">0.5</param>
    </slot>
   </effect>
  </audioframe>
