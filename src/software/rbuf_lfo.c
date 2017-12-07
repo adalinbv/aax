@@ -83,8 +83,13 @@ _aaxRingBufferLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *p
 static float
 _fast_sin1(float x)
 {
+#if 0
+   float y = fmodf(x, 2.0f) - 1.0f;
+   return -4.0f*(y - y*fabsf(y));
+#else
    float y = fmodf(x+0.5f, 2.0f) - 1.0f;
    return 0.5f + 2.0f*(y - y*fabsf(y));
+#endif
 }
 
 float
