@@ -12,7 +12,7 @@
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
   <waveform src="triangle" processing="mix" ratio="0.333" pitch="3.0"/>
-  <waveform src="square" processing="modulate" ratio="2.5" pitch="1.999"/>
+  <waveform src="square" processing="modulate" ratio="1.5" pitch="1.999"/>
  </sound>
 
  <emitter looping="true">
