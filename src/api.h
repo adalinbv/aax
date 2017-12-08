@@ -161,7 +161,11 @@ typedef struct
    /* parametric equalizer **/
    _aaxFilterInfo filter[EQUALIZER_MAX];
 
+   /* for AAXS defined filters and effects */
    aaxBuffer buffer;
+
+   /* thread for AAXS defined waveform generation */
+   struct threat_t aaxs_thread;
 
 } _handle_t;
 
