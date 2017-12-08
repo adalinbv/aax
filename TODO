@@ -12,6 +12,4 @@ Long term projects:
   digital audio data:
   - Wave shape detection using pffft
   - Volume and Pitch envelope shape detection
-* Add an event manager
-* Add MIDI support using the event manager
 
