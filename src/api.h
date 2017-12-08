@@ -31,8 +31,6 @@ extern "C" {
 #endif
 
 #include <aax/aax.h>
-#include <aax/eventmgr.h>
-#include <aax/instrument.h>
 
 #include <base/threads.h>
 #include <base/gmath.h>
@@ -40,13 +38,6 @@ extern "C" {
 #include "ringbuffer.h"
 #include "objects.h"
 
-#ifndef RELEASE
-#define USE_MIDI			AAX_FALSE
-#define USE_EVENTMGR			AAX_TRUE
-#else
-#define USE_MIDI			AAX_FALSE
-#define USE_EVENTMGR			AAX_FALSE
-#endif
 #define USE_SPATIAL_FOR_SURROUND	AAX_TRUE
 #define	FADEDBAD			0xfadedbad
 
@@ -171,7 +162,6 @@ typedef struct
    _aaxFilterInfo filter[EQUALIZER_MAX];
 
    aaxBuffer buffer;
-// void *eventmgr;
 
 } _handle_t;
 
@@ -214,54 +204,6 @@ void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameMix(_aaxRingBuffer*, _intBuffers *, _aax2dProps*, const _aaxDriverBackend*, void*);
 void _aaxAudioFrameFree(void*);
-
-/* --- Instrument --- */
-#define INSTRUMENT_ID	0x0EB9A645
-
-typedef struct
-{
-    aaxBuffer buffer;
-    struct {
-       unsigned int min;
-       unsigned int max;
-    } note;
-} _timbre_t;
-
-typedef struct
-{
-    aaxEmitter emitter;
-    float pitchbend;
-    float velocity;
-    float aftertouch;
-    float displacement;
-//  float sustain;
-//  float soften;
-} _note_t;
-
-typedef struct
-{
-    unsigned int id;
-    void *handle;
-    aaxFrame frame;
-
-    float soften;
-    float sustain;
-    unsigned int polyphony;
-    _intBuffers *note;
-//  enum aaxFormat format;
-//  unsigned int frequency_hz;
-//  aaxFilter filter[AAX_FILTER_MAX];
-//  aaxEffect effect[AAX_EFFECT_MAX];
-} _controller_t;
-
-typedef struct
-{
-    _intBuffers *timbres;
-    _intBuffers *controllers;
-} _soundbank_t;
-
-_controller_t *get_controller(aaxController);
-_controller_t *get_valid_controller(aaxController);
 
 /* --- Buffer --- */
 #define BUFFER_ID       0x81ACFE07
@@ -349,32 +291,6 @@ void _aaxEMitterResetDistDelay(_aaxEmitter*, _aaxAudioFrame*);
 #define FILTER_ID	0x887AFE21
 #define EFFECT_ID	0x21EFA788
 
-/* --- Events --- */
-#define EVENT_ID	0x9173652A
-
-typedef struct
-{
-   unsigned int id;
-   unsigned int emitter_pos;
-   enum aaxEventType event;
-   void *data;
-   aaxEventCallbackFn callback;
-   void *user_data;
-} _event_t;
-
-typedef struct
-{
-   void *handle;
-   _intBuffers *buffers;
-   _intBuffers *emitters;
-   _intBuffers *frames;
-
-   struct threat_t thread;
-
-} _aaxEventMgr;
-
-void* _aaxEventThread(void*);
-
 /* --- WaveForms --- */
 void *_bufferWaveCreateWhiteNoise(float, int, float, unsigned int*);
 void *_bufferWaveCreatePinkNoise(float, int, float, unsigned int*);
@@ -403,7 +319,6 @@ enum
     _AAX_BUFFER_CACHE,
     _AAX_EMITTER_CACHE,
     _AAX_FRAME_CACHE,
-    _AAX_EVENT_QUEUE,
 
     _AAX_NOTE,
 
