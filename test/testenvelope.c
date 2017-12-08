@@ -85,7 +85,7 @@ int main(int argc, char **argv)
         res = aaxBufferSetSetup(buffer, AAX_FREQUENCY, SAMPLE_FREQUENCY);
         testForState(res, "aaxBufferSetFrequency");
 
-        res = aaxBufferProcessWaveform(buffer, 660.0f, AAX_SINE_WAVE, 0.4f, AAX_MIX);
+        res = aaxBufferProcessWaveform(buffer, 660.0f, AAX_SQUARE_WAVE, 0.4f, AAX_MIX);
         testForState(res, "aaxBufferProcessWaveform");
 
         /** emitter */
@@ -177,12 +177,12 @@ int main(int argc, char **argv)
         effect = aaxEffectCreate(config, AAX_DYNAMIC_PITCH_EFFECT);
         testForError(effect, "aaxEffectCreate");
 
-        effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+        res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                           0.0f, 10.0f, 1.0f, 0.0f);
-        testForError(effect, "aaxEffectSetSlot");
+        testForState(res, "aaxEffectSetSlot");
 
-        effect = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
-        testForError(effect, "aaxEffectSetState");
+        res = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
+        testForState(res, "aaxEffectSetState");
 
         res = aaxEmitterSetEffect(emitter, effect);
         testForState(res, "aaxEmitterSetEffect");
