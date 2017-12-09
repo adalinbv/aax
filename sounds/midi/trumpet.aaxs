@@ -50,4 +50,15 @@
   </effect>
  </emitter>
 
+ <audioframe>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.305</param>
+   </slot>
+  </effect>
+ </audioframe>
+
 </aeonwave>
