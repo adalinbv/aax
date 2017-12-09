@@ -58,7 +58,7 @@
  <instrument n="58" name="Trombone" file="trumpet.aaxs"/>
  <instrument n="59" name="Tuba" file="trumpet.aaxs"/>
  <instrument n="60" name="Muted Trumpet" file="trumpet-muted.aaxs"/>
- <instrument n="61" name="French Horn" file=".aaxs"/>
+ <instrument n="61" name="French Horn" file="horn-french.aaxs"/>
  <instrument n="62" name="Brass Section" file="brass-section.aaxs"/>
  <instrument n="63" name="SynthBrass 1" file=".aaxs"/>
  <instrument n="64" name="SynthBrass 2" file=".aaxs"/>
