@@ -54,10 +54,10 @@
  <instrument n="54" name="Voice Oohs" file=".aaxs"/>
  <instrument n="55" name="Synth Voice" file="synth-choir.aaxs"/>
  <instrument n="56" name="Orchestra Hit" file=".aaxs"/>
- <instrument n="57" name="Trumpet" file=".aaxs"/>
+ <instrument n="57" name="Trumpet" file="trumpet.aaxs"/>
  <instrument n="58" name="Trombone" file=".aaxs"/>
  <instrument n="59" name="Tuba" file=".aaxs"/>
- <instrument n="60" name="Muted Trumpet" file=".aaxs"/>
+ <instrument n="60" name="Muted Trumpet" file="trumpet-muted.aaxs"/>
  <instrument n="61" name="French Horn" file=".aaxs"/>
  <instrument n="62" name="Brass Section" file=".aaxs"/>
  <instrument n="63" name="SynthBrass 1" file=".aaxs"/>
@@ -71,7 +71,7 @@
  <instrument n="71" name="Bassoon" file=".aaxs"/>
  <instrument n="72" name="Clarinet" file=".aaxs"/>
  <instrument n="73" name="Piccolo" file=".aaxs"/>
- <instrument n="74" name="Flute" file=".aaxs"/>
+ <instrument n="74" name="Flute" file="flute.aaxs"/>
  <instrument n="75" name="Recorder" file="recorder.aaxs"/>
  <instrument n="76" name="Pan Flute" file=".aaxs"/>
  <instrument n="77" name="Blown Bottle" file=".aaxs"/>
