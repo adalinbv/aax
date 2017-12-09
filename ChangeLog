@@ -1,3 +1,11 @@
+* sat Dec 09  2017 - tech@adalin.org
+- AeonWave (3.0.10) stable; urgency=low
+ * Fix the case where filters in the sound section of AAXS files could only
+   be 12db/oct.
+
+-- Erik Hofman <tech@adalin.org>  Sat 09 Dec  2017 11:36:00 + 0100
+
+
 * Thu Dec 05 2017 - tech@adalin.org
 - AeonWave (3.0.9) stable; urgency=low
  * Prevent an endless loop for mangled wav files.
