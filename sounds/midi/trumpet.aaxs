@@ -9,14 +9,13 @@
 <aeonwave>
 
  <sound name="Trumpet" frequency="220">
-  <waveform src="impulse" ratio="1.3"/>
-  <waveform src="square" processing="modulate" ratio="1.7" pitch="2.0"/>
-  <filter type="frequency" src="48db">
+  <waveform src="impulse"/>
+  <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0">1100</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
  </sound>
