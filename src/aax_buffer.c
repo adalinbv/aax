@@ -1181,7 +1181,7 @@ _bufAAXSThread(void *d)
       if (xsid)
       {
          unsigned int i, num, bits = 24;
-//       double duration;
+         double duration;
          void *xwid;
 
          if (xmlAttributeExists(xsid, "file"))
@@ -1199,13 +1199,13 @@ _bufAAXSThread(void *d)
                aax_buf->error = AAX_INVALID_REFERENCE;
             }
          }
-
-#if 0
-         duration = xmlAttributeGetDouble(xsid, "duration");
-         if (duration != XML_FPNONE)
+#if 1
+         else if (xmlAttributeExists(xsid, "duration"))
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
             size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+
+            duration = xmlAttributeGetDouble(xsid, "duration");
             if (duration <= 0.0) {
             } else if (duration > (handle->frequency/no_samples)) {
             } else {
