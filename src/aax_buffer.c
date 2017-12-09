@@ -1122,9 +1122,18 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, UNUSED(float frequ
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
-      if (filter->type == AAX_FREQUENCY_FILTER && filter->state == AAX_TRUE)
+      if (filter->type == AAX_FREQUENCY_FILTER)
       {
-         _bufApplyFrequencyFilter(handle, filter);
+         int state = filter->state & ~(AAX_BUTTERWORTH|AAX_BESSEL);
+         if (state == AAX_TRUE     ||
+             state == AAX_6DB_OCT  ||
+             state == AAX_12DB_OCT ||
+             state == AAX_24DB_OCT ||
+             state == AAX_36DB_OCT ||
+             state == AAX_48DB_OCT)
+         {
+            _bufApplyFrequencyFilter(handle, filter);
+         }
       }
       aaxFilterDestroy(flt);
    }
