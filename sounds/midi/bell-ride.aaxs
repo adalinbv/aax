@@ -8,19 +8,10 @@
 
 <aeonwave>
 
- <sound name="Crash Cymbal" frequency="885">
+ <sound name="Bell Ride" frequency="885">
   <waveform src="square" pitch="0.985"/>
-  <waveform src="sawtooth" processing="add" pitch="1.9" ratio="0.8"/>
+  <waveform src="sawtooth" processing="add" ratio="0.8" pitch="1.9"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.3"/>
-
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">2000</param>
-    <param n="1">0.5</param>
-    <param n="2">1.0</param>
-    <param n="3">5.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter>
@@ -32,9 +23,9 @@
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.45</param>
+    <param n="0">0.50</param>
     <param n="1">0.30</param>
-    <param n="2">0.20</param>
+    <param n="2">0.35</param>
     <param n="3">1.00</param>
    </slot>
   </filter>

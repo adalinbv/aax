@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Synthesizer Choir" frequency="88">
+ <sound name="Synthesizer Choir" frequency="220">
   <waveform src="pink-noise"/>
   <waveform src="pink-noise" processing="modulate" ratio="8.0"/>
   <filter type="frequency">
@@ -21,11 +21,11 @@
   </filter>
   <waveform src="sine" processing="mix" ratio="0.8" pitch="0.9894"/>
   <waveform src="sine" processing="add" ratio="0.3" pitch="3.0"/>
-  <waveform src="sine" processing="modulate" ratio="2.0" pitch="3.01"/>
+  <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.01"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="envelope">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.70</param>
     <param n="1" factor="velocity">0.20</param>
@@ -55,12 +55,12 @@
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="sine">
+  <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.1</param>
-    <param n="2">0.2</param>
-    <param n="3">0.2</param>
+    <param n="2">0.1</param>
+    <param n="3">0.4</param>
    </slot>
   </effect>
  </audioframe>

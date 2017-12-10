@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Pistol" frequency="220">
+ <sound name="Gunshot" frequency="220">
   <waveform src="white-noise" pitch="0.25"/>
   <waveform src="white-noise" processing="modulate" ratio="8.0" pitch="0.25"/>
   <filter type="frequency" src="24db">
@@ -22,7 +22,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="envelope">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.4</param>
     <param n="1" factor="velocity">0.1</param>
@@ -33,7 +33,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0" factor="soften">1.5</param>
-    <param n="1" factor="velocity">0.02</param>
+    <param n="1" factor="velocity">0.04</param>
     <param n="2">0.9</param>
    </slot>
   </effect>

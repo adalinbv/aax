@@ -16,13 +16,13 @@
     <param n="0">220</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="envelope">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.40</param>
     <param n="1" factor="velocity">0.15</param>

@@ -10,8 +10,8 @@
 
  <sound name="Rock Organ" frequency="220">
   <waveform src="triangle" ratio="0.8"/>
-  <waveform src="sine" processing="add" pitch="3.9991" ratio="0.4"/>
-  <waveform src="sawtooth" processing="modulate" pitch="2.0" ratio="1.5"/>
+  <waveform src="sine" processing="add" ratio="0.4" pitch="3.9991"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="2.0"/>
  </sound>
 
  <emitter looping="true"/>
