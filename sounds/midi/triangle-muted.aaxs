@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Crash Cymbal" frequency="1600">
+ <sound name="Muted Triangle" frequency="1600">
   <waveform src="square" pitch="0.985"/>
-  <waveform src="sawtooth" processing="add" pitch="2.9" ratio="0.8"/>
+  <waveform src="sawtooth" processing="add" ratio="0.8" pitch="2.9"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.5"/>
  </sound>
 

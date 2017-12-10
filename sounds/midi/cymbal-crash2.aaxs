@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <sound name="Crash Cymbal" frequency="660">
+ <sound name="Crash Cymbal 2" frequency="660">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>
-  <waveform src="sine" processing="modulate" ratio="5" pitch="5"/>
+  <waveform src="sine" processing="modulate" ratio="3.0" pitch="5.0"/>
 
   <filter type="frequency">
    <slot n="0">

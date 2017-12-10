@@ -10,11 +10,11 @@
 
  <sound name="Synthesizer Strings 2" frequency="220">
   <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="1.9889" ratio="0.8"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.8" pitch="1.9889"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="envelope">
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.80</param>
     <param n="1" factor="velocity">0.20</param>
@@ -41,7 +41,7 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
-  <effect type="chorus" src="inverse-sine">
+  <effect type="chorus" src="triangle">
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.07</param>
@@ -52,7 +52,7 @@
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="sine">
+  <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.1</param>
