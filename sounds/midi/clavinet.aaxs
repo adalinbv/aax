@@ -11,7 +11,7 @@
  <sound name="Clavinet" frequency="220">
   <waveform src="square" pitch="2.0"/>
   <waveform src="impulse" processing="mix" ratio="0.7" pitch="2.0"/>
-  <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="0.498"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="0.498"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">4400</param>
@@ -31,7 +31,7 @@
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.40</param>
+    <param n="0">0.50</param>
     <param n="1">1.20</param>
    </slot>
   </filter>
