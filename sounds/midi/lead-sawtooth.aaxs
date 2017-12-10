@@ -5,7 +5,7 @@
  <sound name="Lead 2 (sawtooth)" frequency="220">
   <waveform src="square"/>
   <waveform src="square" processing="mix" ratio="0.5" pitch="2.001"/>
-  <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="1.4987"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="1.4987"/>
  </sound>
 
 </aeonwave>

@@ -11,7 +11,7 @@
  <sound name="Distorted Electric Guitar" frequency="220">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.5" pitch="5.0"/>
+  <waveform src="sine" processing="modulate" ratio="1.0" pitch="5.0"/>
  </sound>
 
  <emitter looping="true">
@@ -53,9 +53,9 @@
  <audioframe>
   <effect type="distortion">
    <slot n="0">
-    <param n="0">1.5</param>
+    <param n="0">1.2</param>
     <param n="1">0.9</param>
-    <param n="2">0.7</param>
+    <param n="2">0.6</param>
     <param n="3">0.6</param>
    </slot>
   </effect>
