@@ -12,7 +12,7 @@
   <waveform src="sawtooth"/>
   <waveform src="pink-noise" processing="mix" ratio="0.1"/>
   <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="3.9936"/>
-  <waveform src="square" processing="modulate" ratio="1.5" pitch="2.999"/>
+  <waveform src="square" processing="modulate" ratio="1.0" pitch="2.999"/>
  </sound>
 
  <emitter looping="true">

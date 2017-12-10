@@ -9,8 +9,8 @@
 <aeonwave>
 
  <sound name="Accordion" frequency="220">
-  <waveform src="square"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.6" pitch="2.991"/>
+  <waveform src="square" ratio="0.6"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="2.991"/>
  </sound>
 
  <emitter looping="true">
