@@ -11,7 +11,7 @@
  <sound name="Acoustic Guitar (Steel)" frequency="220">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
-  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="2.999"/>
+  <waveform src="triangle" processing="modulate" ratio="1.1" pitch="2.999"/>
 
   <filter type="frequency">
    <slot n="0">
