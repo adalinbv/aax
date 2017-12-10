@@ -11,7 +11,7 @@
  <sound name="Synth Bass 2" frequency="110">
   <waveform src="triangle"/>
   <waveform src="sawtooth" processing="mix" ratio="0.7" pitch="0.99"/>
-  <waveform src="sine" processing="modulate" ratio="2.0" pitch="1.997"/>
+  <waveform src="sine" processing="modulate" ratio="1.0" pitch="1.997"/>
  </sound>
 
  <emitter looping="true">
