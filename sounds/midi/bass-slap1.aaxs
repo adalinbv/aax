@@ -11,22 +11,10 @@
  <sound name="Slapped Electric Bass" frequency="110">
   <waveform src="square"/>
   <waveform src="triangle" processing="mix" ratio="0.2" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" ratio="2.0" pitch="1.999"/>
+  <waveform src="sine" processing="modulate" ratio="1.5" pitch="1.999"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">440</param>
-    <param n="1">0.1</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">11000</param>
-    <param n="3">0.03</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.25</param>
