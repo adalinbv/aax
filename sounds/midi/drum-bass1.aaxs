@@ -9,8 +9,8 @@
 <aeonwave>
 
  <sound name="Bass Drum 1" frequency="22">
-  <waveform src="sine" ratio="0.8"/>
-  <waveform src="triangle" processing="add" ratio="0.8" pitch="3.0"/>
+  <waveform src="sine" ratio="0.4"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">

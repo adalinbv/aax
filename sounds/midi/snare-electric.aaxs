@@ -9,9 +9,9 @@
 <aeonwave>
 
  <sound name="Electric Snare" frequency="66">
-  <waveform src="sine"/>
-  <waveform src="triangle" processing="add" ratio="1.1" pitch="1.5"/>
-  <waveform src="white-noise" processing="add" ratio="1.5" pitch="0.22"/>
+  <waveform src="sine" ratio="0.33"/>
+  <waveform src="triangle" processing="add" ratio="0.37" pitch="1.5"/>
+  <waveform src="white-noise" processing="add" ratio="0.5" pitch="0.22"/>
  </sound>
 
  <emitter looping="true">
