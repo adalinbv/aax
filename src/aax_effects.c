@@ -49,7 +49,7 @@ aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
    _aaxMixerInfo *info = (handle && handle->info) ? handle->info : _info;
    aaxEffect rv = NULL;
 
-   if (info && (type < AAX_EFFECT_MAX))
+   if (info && (type > 0 && type < AAX_EFFECT_MAX))
    {
       _eff_function_tbl *eff = _aaxEffects[type-1];
       rv = eff->create(info, type);
