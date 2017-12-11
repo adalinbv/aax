@@ -2061,4 +2061,5 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
       _aax_aligned_free(sptr);
       _batch_cvt24_ps24(dptr, dptr, no_samples);
    }
+   rb->release_tracks_ptr(rb);
 }
