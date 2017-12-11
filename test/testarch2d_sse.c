@@ -20,6 +20,7 @@ char _aaxArchDetectSSE2();
 char _aaxArchDetectAVX();
 _batch_fmadd_proc _batch_fmadd;
 _batch_mul_value_proc _batch_fmul_value;
+_batch_get_average_rms_proc _batch_get_average_rms;
 
 int main()
 {
@@ -43,12 +44,13 @@ int main()
 
     if (src && dst1 && dst2)
     {
+        float rms1, rms2, peak1, peak2;
         double *dsrc, *ddst1, *ddst2;
         double cpu, eps;
         int i;
 
         for (i=0; i<MAXNUM; ++i) {
-            src[i] = (float)rand()/(float)(RAND_MAX/(1<<23));
+            src[i] = (float)(1<<23) * (float)rand()/(float)(RAND_MAX);
         }
 
 
@@ -175,6 +177,28 @@ int main()
             printf("fmul sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fmul sse2", dst1, dst2);
         }
+
+        /*
+         * batch RMS calulculation
+         */
+        _batch_get_average_rms = _batch_get_average_rms_cpu;
+        t = clock();
+          _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("rms cpu:  %f\n", cpu*1000.0f);
+
+#if __AVX__
+        _batch_get_average_rms = _batch_get_average_rms_vex;
+#else
+        _batch_get_average_rms = _batch_get_average_rms_sse2;
+#endif
+        t = clock();
+          _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("rms sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
+        printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
+
 
         /*
          * batch fmul by a value for doubles

@@ -408,6 +408,7 @@ _aaxGetSIMDSupportLevel()
    if (_aax_arch_capabilities & AAX_ARCH_AVX)
    {
       fast_sin = fast_sin_sse_vex;
+      _batch_get_average_rms = _batch_get_average_rms_vex;
 
       /* SSE/VEX */
       vec3fMagnitude = _vec3fMagnitude_sse_vex;

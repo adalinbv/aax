@@ -41,29 +41,91 @@ fast_sin_sse2(float x)
 }
 
 void
-_batch_get_average_rms_sse2(const_float32_ptr data, size_t num, float *rms, float *peak)
+_batch_get_average_rms_sse2(const_float32_ptr s, size_t num, float *rms, float *peak)
 {
+   size_t stmp, step, total;
+   double rms_total = 0.0;
+   float peak_cur = 0.0f;
+   unsigned int i, j, k;
+
+   *rms = *peak = 0;
+
+   if (!num) return;
+
+   total = num;
+   stmp = (size_t)s & MEMMASK16;
+   if (stmp)
+   {
+      i = (MEMALIGN16 - stmp)/sizeof(float);
+      if (i <= num)
+      {
+         do
+         {
+            float samp = *s++;            // rms
+            float val = samp*samp;
+            rms_total += val;
+            if (val > peak_cur) peak_cur = val;
+         }
+         while (--i);
+      }
+   }
+
    if (num)
    {
-      double rms_total = 0.0;
-      float peak_cur = 0.0f;
+      __m128* sptr = (__m128*)s;
 
-      size_t j = num;
-      do
+      step = 4*sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
       {
-         float samp = *data++;            // rms
-         float val = samp*samp;
-         rms_total += val;
-         if (val > peak_cur) peak_cur = val;
-      }
-      while (--j);
+          __m128 xmm0, xmm1, xmm2, xmm3;
+          float f[4][4];
 
-      *rms = sqrt(rms_total/num);
-      *peak = sqrtf(peak_cur);
+         num -= i*step;
+         s += i*step;
+         do
+         {
+            xmm0 = _mm_load_ps((const float*)sptr++);
+            xmm1 = _mm_load_ps((const float*)sptr++);
+            xmm2 = _mm_load_ps((const float*)sptr++);
+            xmm3 = _mm_load_ps((const float*)sptr++);
+
+            _mm_store_ps(f[0], _mm_mul_ps(xmm0, xmm0));
+            _mm_store_ps(f[1], _mm_mul_ps(xmm1, xmm1));
+            _mm_store_ps(f[2], _mm_mul_ps(xmm2, xmm2));
+            _mm_store_ps(f[3], _mm_mul_ps(xmm3, xmm3));
+
+            for (j=0; j<4; ++j)
+            {
+               for (k=0; k<4; ++k)
+               {
+                  float val = f[j][k];
+
+                  rms_total += val;
+                  if (val > peak_cur) peak_cur = val;
+               }
+            }
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         i = num;
+         do
+         {
+            float samp = *s++;            // rms
+            float val = samp*samp;
+            rms_total += val;
+            if (val > peak_cur) peak_cur = val;
+         }
+         while (--i);
+      }
    }
-   else { 
-      *rms = *peak = 0;
-   }
+
+   *rms = (float)sqrt(rms_total/total);
+   *peak = sqrtf(peak_cur);
 }
 
 void
