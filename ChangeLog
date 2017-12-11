@@ -1,5 +1,6 @@
-* sat Dec 09  2017 - tech@adalin.org
+* Sat Dec 09  2017 - tech@adalin.org
 - AeonWave (3.0.10) stable; urgency=low
+ * Protect against unrecognized filter or effect types.
  * Fix the case where filters in the sound section of AAXS files could only
    be 12db/oct.
 
