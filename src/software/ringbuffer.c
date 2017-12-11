@@ -461,7 +461,7 @@ _aaxRingBufferGetTracksPtr(_aaxRingBuffer *rb, enum _aaxRingBufferMode mode)
    assert(rbi != 0);
    assert(rbi->sample != 0);
    assert(rbi->parent == rb);
-   assert(rbi->access == RB_RW_MAX);
+   assert(rbi->access == RB_RW_MAX); // track was previously released
 
    rbd = rbi->sample;
    if (rbd)
