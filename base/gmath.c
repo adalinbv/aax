@@ -43,8 +43,8 @@ float
 fast_sin_cpu(float x)
 {
    x *= GMATH_1_PI;
-   x = fmodf(x+0.5f, 2.0f) - 1.0f;
-   return 2.0f*(x - x*fabsf(x));
+   x = fmodf(x, 2.0f) - 1.0f;
+   return -4.0f*(x - x*fabsf(x));
 }
 fast_sin_proc fast_sin = fast_sin_cpu;
 

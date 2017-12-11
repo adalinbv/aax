@@ -83,8 +83,13 @@ _aaxRingBufferLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *p
 static float
 _fast_sin1(float x)
 {
+#if 0
+   float y = fmodf(x, 2.0f) - 1.0f;
+   return -4.0f*(y - y*fabsf(y));
+#else
    float y = fmodf(x+0.5f, 2.0f) - 1.0f;
    return 0.5f + 2.0f*(y - y*fabsf(y));
+#endif
 }
 
 float
@@ -164,7 +169,7 @@ _aaxRingBufferLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *p
 }
 
 float
-_aaxRingBufferLFOGetGainFollow(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t num))
+_aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, size_t num)
 {
    _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
    static const float div = 1.0f / (float)0x000fffff;
@@ -177,20 +182,29 @@ _aaxRingBufferLFOGetGainFollow(void* data, UNUSED(void *env), UNUSED(const void 
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
          float lvl, fact;
-         float rms, peak;
 
-         _batch_get_average_rms(ptr, num, &rms, &peak);
-         lvl = _MINMAX(rms*div, 0.0f, 1.0f);
+         if (!env)
+         {
+            float rms, peak;
+            _batch_get_average_rms(ptr, num, &rms, &peak);
+            lvl = _MINMAX(rms*div, 0.0f, 1.0f);
+         }
+         else
+         {  
+            _aaxRingBufferEnvelopeData *genv = (_aaxRingBufferEnvelopeData*)env;
+            lvl = genv->value;
+         }
 
          olvl = lfo->value[track];
          fact = lfo->step[track];
          lfo->value[track] = _MINMAX(olvl + fact*(lvl - olvl), 0.01f, 0.99f);
-      }
 
-      rv = lfo->convert(olvl, lfo->max-lfo->min);
-      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-      lfo->compression[track] = 1.0f - rv;
+         rv = lfo->convert(olvl, lfo->max-lfo->min);
+         rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+         lfo->compression[track] = 1.0f - rv;
+      }
    }
+
    return rv;
 }
 

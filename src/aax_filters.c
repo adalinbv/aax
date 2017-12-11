@@ -52,7 +52,7 @@ aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
    _aaxMixerInfo *info = (handle && handle->info) ? handle->info : _info;
    aaxFilter rv = NULL;
 
-   if (info && (type < AAX_FILTER_MAX))
+   if (info && (type > 0 && type < AAX_FILTER_MAX))
    {
       _flt_function_tbl *flt = _aaxFilters[type-1];
       rv = flt->create(info, type);
