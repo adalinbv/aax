@@ -442,10 +442,8 @@ _aax_generate_waveform(size_t no_samples, float freq, float phase, float gain, f
 
             do
             {
-               float samp = ngain * fast_sin(s);
-
+               *ptr++ += ngain * fast_sin(s);
                s = fmodf(s+hdt, GMATH_2PI);
-               *ptr++ += samp;
             }
             while (--i);
          }

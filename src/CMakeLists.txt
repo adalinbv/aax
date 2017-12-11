@@ -28,9 +28,6 @@ set(SRC_SOURCES
   devices.c
   objects.c
 )
-# aax_eventmgr.c
-# aax_instrument.c
-# aax_midi.c
 
 set(SOURCES "")
 foreach(src ${SRC_SOURCES})

@@ -1122,9 +1122,18 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, UNUSED(float frequ
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
-      if (filter->type == AAX_FREQUENCY_FILTER && filter->state == AAX_TRUE)
+      if (filter->type == AAX_FREQUENCY_FILTER)
       {
-         _bufApplyFrequencyFilter(handle, filter);
+         int state = filter->state & ~(AAX_BUTTERWORTH|AAX_BESSEL);
+         if (state == AAX_TRUE     ||
+             state == AAX_6DB_OCT  ||
+             state == AAX_12DB_OCT ||
+             state == AAX_24DB_OCT ||
+             state == AAX_36DB_OCT ||
+             state == AAX_48DB_OCT)
+         {
+            _bufApplyFrequencyFilter(handle, filter);
+         }
       }
       aaxFilterDestroy(flt);
    }
@@ -1172,7 +1181,7 @@ _bufAAXSThread(void *d)
       if (xsid)
       {
          unsigned int i, num, bits = 24;
-//       double duration;
+         double duration;
          void *xwid;
 
          if (xmlAttributeExists(xsid, "file"))
@@ -1190,13 +1199,13 @@ _bufAAXSThread(void *d)
                aax_buf->error = AAX_INVALID_REFERENCE;
             }
          }
-
-#if 0
-         duration = xmlAttributeGetDouble(xsid, "duration");
-         if (duration != XML_FPNONE)
+#if 1
+         else if (xmlAttributeExists(xsid, "duration"))
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
             size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+
+            duration = xmlAttributeGetDouble(xsid, "duration");
             if (duration <= 0.0) {
             } else if (duration > (handle->frequency/no_samples)) {
             } else {
@@ -1266,31 +1275,35 @@ _bufAAXSThread(void *d)
 }
 
 static int
-_bufCreateFromAAXS(_buffer_t* handle, const void *aaxs, float freq)
+_bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
 {
-   struct threat_t thread;
+   _handle_t *handle = buffer->handle;
    _buffer_aax_t data;
    int rv = AAX_FALSE;
 
-   data.handle = handle;
+   data.handle = buffer;
    data.aaxs = aaxs;
    data.frequency = freq;
    data.error = AAX_ERROR_NONE;
 
    // Using a thread here might spawn wavweform generation on another CPU
    // core freeing the current (possibly busy) CPU core from doing the work.
-   thread.ptr = _aaxThreadCreate();
-   if (thread.ptr)
+   if (!handle->aaxs_thread.ptr) {
+      handle->aaxs_thread.ptr = _aaxThreadCreate();
+   }
+
+   if (handle->aaxs_thread.ptr)
    {
-      rv = _aaxThreadStart(thread.ptr, _bufAAXSThread, &data, 0);
-      if (!rv)
-      {
-         _aaxThreadJoin(thread.ptr);
-         _aaxThreadDestroy(thread.ptr);
+      rv = _aaxThreadStart(handle->aaxs_thread.ptr, _bufAAXSThread, &data, 0);
+      if (!rv) {
+         _aaxThreadJoin(handle->aaxs_thread.ptr);
       }
       else {
          _bufAAXSThread(&data);
       }
+   }
+   else {
+      _bufAAXSThread(&data);
    }
 
    if (data.error) {
@@ -2048,4 +2061,5 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
       _aax_aligned_free(sptr);
       _batch_cvt24_ps24(dptr, dptr, no_samples);
    }
+   rb->release_tracks_ptr(rb);
 }
