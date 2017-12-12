@@ -204,7 +204,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
 
    /* final emitter volume */
    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
-   genv->value_total = gain;
+   if (genv) genv->value_total = gain;
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
