@@ -94,7 +94,7 @@
  <instrument n="94" name="Pad 6 (metallic)" file=".aaxs"/>
  <instrument n="95" name="Pad 7 (halo)" file=".aaxs"/>
  <instrument n="96" name="Pad 8 (sweep)" file="pad-sweep.aaxs"/>
- <instrument n="97" name="FX 1 (rain)" file=".aaxs"/>
+ <instrument n="97" name="FX 1 (rain)" file="fx-rain.aaxs"/>
  <instrument n="98" name="FX 2 (soundtrack)" file=".aaxs"/>
  <instrument n="99" name="FX 3 (crystal)" file=".aaxs"/>
  <instrument n="100" name="FX 4 (atmosphere)" file=".aaxs"/>
