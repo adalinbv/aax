@@ -10,7 +10,7 @@
 
  <sound name="Lead 3 (calliope)">
   <waveform src="pink-noise"/>
-  <waveform src="white-noise" processing="modulate" ratio="5.7"/>
+  <waveform src="white-noise" processing="modulate" ratio="2.0"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0">8000</param>
@@ -38,9 +38,9 @@
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.90</param>
+    <param n="0">0.50</param>
     <param n="1">inf</param>
-    <param n="2">0.80</param>
+    <param n="2">0.50</param>
     <param n="3">0.20</param>
    </slot>
   </filter>
