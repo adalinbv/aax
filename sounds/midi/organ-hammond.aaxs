@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Lead 3 (calliope)" frequency="880">
+  <waveform src="sine"/>
+  <waveform src="triangle" processing="mix" ratio="0.4" pitch="0.9987"/>
+  <waveform src="triangle" processing="mix" ratio="0.2" pitch="0.5"/>
+ </sound>
+
+</aeonwave>
