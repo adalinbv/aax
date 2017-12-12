@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <sound name="Seashore" frequency="220">
-  <waveform src="pink-noise" ratio="2.0"/>
-  <filter type="frequency" src="48db">
+ <sound name="Rain" frequency="220">
+  <waveform src="pink-noise" pitch="1.0"/>
+  <filter type="frequency">
    <slot n="0">
-    <param n="0">110</param>
+    <param n="0">440</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
@@ -23,20 +23,14 @@
  <emitter looping="true">
   <filter type="frequency" src="triangle">
    <slot n="0">
-    <param n="0">660</param>
-    <param n="1">1.0</param>
-    <param n="2">0.2</param>
+    <param n="0">6660</param>
+    <param n="1">0.4</param>
+    <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
     <param n="0">8800</param>
     <param n="3">0.05</param>
-   </slot>
-  </filter>
-  <filter type="dynamic-gain" src="sawtooth">
-   <slot n="0">
-    <param n="1">1.0</param>
-    <param n="2">0.21</param>
    </slot>
   </filter>
  </emitter>
