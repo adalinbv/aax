@@ -23,6 +23,18 @@
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="envelope">
+   <slot n="0">
+    <param n="0">220</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">8800</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.00</param>
