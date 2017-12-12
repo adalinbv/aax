@@ -120,7 +120,7 @@
  <instrument n="120" name="Reverse Cymbal" file="cymbal-reverse.aaxs"/>
  <instrument n="121" name="Guitar Fret Noise" file=".aaxs"/>
  <instrument n="122" name="Breath Noise" file=".aaxs"/>
- <instrument n="123" name="Seashore" file=".aaxs"/>
+ <instrument n="123" name="Seashore" file="seashore.aaxs"/>
  <instrument n="124" name="Bird Tweet" file=".aaxs"/>
  <instrument n="125" name="Telephone Ring" file="telephone.aaxs"/>
  <instrument n="126" name="Helicopter" file=".aaxs"/>
