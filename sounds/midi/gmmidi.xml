@@ -60,8 +60,8 @@
  <instrument n="60" name="Muted Trumpet" file="trumpet-muted.aaxs"/>
  <instrument n="61" name="French Horn" file="horn-french.aaxs"/>
  <instrument n="62" name="Brass Section" file="brass-section.aaxs"/>
- <instrument n="63" name="SynthBrass 1" file=".aaxs"/>
- <instrument n="64" name="SynthBrass 2" file=".aaxs"/>
+ <instrument n="63" name="SynthBrass 1" file="brass-synth1.aaxs"/>
+ <instrument n="64" name="SynthBrass 2" file="brass-synth2.aaxs"/>
  <instrument n="65" name="Soprano Sax" file=".aaxs"/>
  <instrument n="66" name="Alto Sax" file="saxophone.aaxs"/>
  <instrument n="67" name="Tenor Sax" file="saxophone.aaxs"/>
