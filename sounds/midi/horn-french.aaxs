@@ -12,7 +12,7 @@
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">550</param>
+    <param n="0">660</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
@@ -48,11 +48,11 @@
     <param n="2">0.995</param>
    </slot>
   </effect>
-  <effect type="chorus" src="inverse-envelope">
+  <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.17</param>
-    <param n="2">0.3</param>
+    <param n="2">0.41</param>
     <param n="3">0.435</param>
    </slot>
   </effect>
