@@ -10,7 +10,9 @@
 
  <sound name="Flute" frequency="220">
   <waveform src="sine"/>
+  <waveform src="sine" processing="add" ratio="0.4" pitch="3.0"/>
   <waveform src="triangle" processing="mix" ratio="0.4" pitch="0.9987"/>
+  <waveform src="brownian-noise" processing="add" ratio="0.1"/>
  </sound>
 
  <emitter looping="true">
