@@ -144,7 +144,7 @@ typedef struct
 typedef struct
 {
    float ctr;
-   float value0, value;
+   float value0, value, value_total;
    uint32_t pos;
    unsigned int stage, max_stages, repeat;
    float step[_MAX_ENVELOPE_STAGES];

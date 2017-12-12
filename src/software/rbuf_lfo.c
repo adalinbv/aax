@@ -192,7 +192,7 @@ _aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned 
          else
          {  
             _aaxRingBufferEnvelopeData *genv = (_aaxRingBufferEnvelopeData*)env;
-            lvl = genv->value;
+            lvl = genv->value_total;
          }
 
          olvl = lfo->value[track];
