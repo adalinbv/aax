@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Pad 8 (sweep)" frequency="220">
+  <waveform src="square" pitch="1.0"/>
+  <waveform src="triange" processing="modulate" pitch="2.0"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="sine">
+   <slot n="0">
+    <param n="0">880</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">3.3</param>
+   </slot>
+   <slot n="1">
+    <param n="0">8800</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="inverse-sine">
+   <slot n="0">
+    <param n="1">1.0</param>
+    <param n="2">0.4</param>
+    <param n="2">0.4</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>
