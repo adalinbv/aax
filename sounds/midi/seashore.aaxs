@@ -21,7 +21,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="triangle">
+  <filter type="frequency" src="sine">
    <slot n="0">
     <param n="0">660</param>
     <param n="1">1.0</param>
@@ -30,13 +30,13 @@
    </slot>
    <slot n="1">
     <param n="0">8800</param>
-    <param n="3">0.05</param>
+    <param n="3">0.25</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
     <param n="1">1.0</param>
-    <param n="2">0.21</param>
+    <param n="2">0.33</param>
    </slot>
   </filter>
  </emitter>
