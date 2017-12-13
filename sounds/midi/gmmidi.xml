@@ -66,10 +66,10 @@
  <instrument n="66" name="Alto Sax" file="saxophone.aaxs"/>
  <instrument n="67" name="Tenor Sax" file="saxophone.aaxs"/>
  <instrument n="68" name="Baritone Sax" file="saxophone.aaxs"/>
- <instrument n="69" name="Oboe" file=".aaxs"/>
+ <instrument n="69" name="Oboe" file="oboe.aaxs"/>
  <instrument n="70" name="English Horn" file=".aaxs"/>
  <instrument n="71" name="Bassoon" file=".aaxs"/>
- <instrument n="72" name="Clarinet" file=".aaxs"/>
+ <instrument n="72" name="Clarinet" file="clarinet.aaxs"/>
  <instrument n="73" name="Piccolo" file="flute.aaxs"/>
  <instrument n="74" name="Flute" file="flute.aaxs"/>
  <instrument n="75" name="Recorder" file="recorder.aaxs"/>
