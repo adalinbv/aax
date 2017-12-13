@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Clarinet" frequency="220">
+ <sound name="Oboe" frequency="220">
   <waveform src="sawtooth"/>
   <waveform src="square" processing="modulate" pitch="5.0"/>
   <filter type="frequency" src="24db">
@@ -25,7 +25,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.40</param>
-    <param n="1" factor="velocity">0.15</param>
+    <param n="1" factor="velocity">0.05</param>
     <param n="2" factor="soften">1.00</param>
     <param n="3">0.05</param>
    </slot>

@@ -8,6 +8,21 @@
 
 <aeonwave>
 
+ <!--
+  <sound name="Clarinet" frequency="220">
+  <waveform src="triangle" pitch="0.3333"/>
+  <waveform src="triangle" processing="modulate" ratio="1.2" pitch="3.0"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">2200</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </sound>
+ -->
+
  <sound name="Lead 3 (calliope)" frequency="220">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
