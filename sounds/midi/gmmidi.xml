@@ -72,9 +72,9 @@
  <instrument n="72" name="Clarinet" file="clarinet.aaxs"/>
  <instrument n="73" name="Piccolo" file="flute.aaxs"/>
  <instrument n="74" name="Flute" file="flute.aaxs"/>
- <instrument n="75" name="Recorder" file="recorder.aaxs"/>
- <instrument n="76" name="Pan Flute" file="pan-flute.aaxs"/>
- <instrument n="77" name="Blown Bottle" file=".aaxs"/>
+ <instrument n="75" name="Recorder" file="flute.aaxs"/>
+ <instrument n="76" name="Pan Flute" file="flute-pan.aaxs"/>
+ <instrument n="77" name="Blown Bottle" file="bottle-blow.aaxs"/>
  <instrument n="78" name="Shakuhachi" file=".aaxs"/>
  <instrument n="79" name="Whistle" file="whistle.aaxs"/>
  <instrument n="80" name="Ocarina" file=".aaxs"/>
