@@ -9,9 +9,9 @@
 <aeonwave>
 
  <sound name="Clarinet" frequency="220">
-  <waveform src="sine"/>
-  <waveform src="triangle" processing="modulate" ratio="1.2" pitch="2.0"/>
-  <filter type="frequency">
+  <waveform src="sawtooth"/>
+  <waveform src="square" processing="modulate" pitch="5.0"/>
+  <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0">2200</param>
     <param n="1">1.0</param>
