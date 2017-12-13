@@ -9,28 +9,23 @@
 <aeonwave>
 
  <sound name="Pad 8 (sweep)" frequency="220">
-  <waveform src="square" pitch="1.0"/>
-  <waveform src="triange" processing="modulate" pitch="2.0"/>
+  <waveform src="square" ratio="0.5"/>
+  <waveform src="triangle" processing="mix" ratio="0.25" pitch="1.9987"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.4" pitch="1.4987"/>
+  <waveform src="triangle" processing="mix" ratio="0.25" pitch="1.4989"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="sine">
    <slot n="0">
-    <param n="0">880</param>
+    <param n="0">440</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">3.3</param>
+    <param n="3">3.0</param>
    </slot>
    <slot n="1">
-    <param n="0">8800</param>
-    <param n="3">0.1</param>
-   </slot>
-  </filter>
-  <filter type="dynamic-gain" src="inverse-sine">
-   <slot n="0">
-    <param n="1">1.0</param>
-    <param n="2">0.4</param>
-    <param n="2">0.4</param>
+    <param n="0">2200</param>
+    <param n="3">0.17</param>
    </slot>
   </filter>
  </emitter>
