@@ -239,9 +239,6 @@ _aaxLinuxDriverDetect(int mode)
    _AAX_LOG(LOG_DEBUG, __func__);
 
 #if RELEASE
-# ifdef HAVE_PULSE_PULSEAUDIO_H
-   rv = _aaxPulseAudioDriverDetect(mode);
-# endif
    if TEST_FOR_FALSE(rv) {
       rv = _aaxALSADriverDetect(mode);
    }
