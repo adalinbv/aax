@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Flute" frequency="220">
-  <waveform src="sine"/>
-  <waveform src="brownian-noise" processing="mix" ratio="0.05"/>
+ <sound name="Pan Flute" frequency="220">
+  <waveform src="triangle"/>
+  <waveform src="brownian-noise" processing="mix" ratio="0.1"/>
   <waveform src="triangle" processing="add" ratio="0.1" pitch="2.0"/>
  </sound>
 
