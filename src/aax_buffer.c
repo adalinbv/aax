@@ -1203,11 +1203,8 @@ _bufAAXSThread(void *d)
          else if (xmlAttributeExists(xsid, "duration"))
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-            size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-
             duration = xmlAttributeGetDouble(xsid, "duration");
-            if (duration <= 0.0) {
-            } else if (duration > (handle->frequency/no_samples)) {
+            if (duration <= 1.0) {
             } else {
                rb->set_paramf(rb, RB_DURATION_SEC, duration);
             }
