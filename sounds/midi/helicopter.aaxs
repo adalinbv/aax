@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Helicopter" frequency="220">
+  <waveform src="square" pitch="1.0"/>
+  <waveform src="impulse" processing="mix" ratio="0.7" pitch="1.0"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="0.498"/>
+ </sound>
+
+ <emitter looping="true">
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.25</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
