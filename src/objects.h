@@ -405,10 +405,10 @@ _aax3dProps* _aax3dPropsCreate();
 _aaxDelayed3dProps* _aaxDelayed3dPropsDup(_aaxDelayed3dProps*);
 void _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps*);
 
-unsigned int _aaxGetNoEmitters();
+unsigned int _aaxGetNoEmitters(void);
 unsigned int _aaxSetNoEmitters(unsigned int);
-unsigned int _aaxGetEmitter();
-unsigned int _aaxPutEmitter();
+unsigned int _aaxIncreaseEmitterCounter(void);
+unsigned int _aaxDecreaseEmitterCounter(void);
 
 aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*);
 aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const char*);

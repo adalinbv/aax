@@ -345,12 +345,12 @@ _aaxSetNoEmitters(unsigned int max) {
 }
 
 unsigned int
-_aaxGetEmitter() {
+_aaxIncreaseEmitterCounter() {
    return _aaxGetSetMonoSources(0, 1);
 }
 
 unsigned int
-_aaxPutEmitter() {
+_aaxDecreaseEmitterCounter() {
    return _aaxGetSetMonoSources(0, -1);
 }
 
