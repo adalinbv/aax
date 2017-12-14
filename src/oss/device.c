@@ -73,7 +73,7 @@
 #define DEFAULT_MIXER		"/dev/mixer0"
 #define DEFAULT_RENDERER	"OSS"
 #define OSS_VERSION_4		0x040002
-#define MAX_ID_STRLEN		64
+#define MAX_ID_STRLEN		80
 
 #define _AAX_DRVLOG(a)         _aaxOSSDriverLog(id, 0, 0, a)
 #define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
@@ -347,7 +347,7 @@ _aaxOSSDriverConnect(void *config, const void *id, void *xid, const char *render
          uname(&utsname);
          os_name = utsname.sysname;
 #endif
-         snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %x.%x.%x %s",
+         snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %2x.%2x.%2x %s",
                    DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
                    (version & 0xFF), os_name);
 
@@ -557,8 +557,8 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
       uname(&utsname);
       os_name = utsname.sysname;
 #endif
-      snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %x.%x.%x %s %s",
-                DEFAULT_RENDERER,(version>>16), (version>>8 & 0xFF),
+      snprintf(_oss_id_str, MAX_ID_STRLEN ,"%s %2x.%2x.%2x %s %s",
+                DEFAULT_RENDERER, (version>>16), (version>>8 & 0xFF),
                 (version & 0xFF), os_name, rstr);
 
    }
