@@ -19,12 +19,16 @@ ${EndIf}
 
 section "GENERAL"
   CopyFiles "$INSTDIR\bin\${LIBAEONWAVE}.dll" "$SYSDIR\${LIBAEONWAVE}.dll"
+  CopyFiles "$INSTDIR\bin\${LIBEVENTMGR}.dll" "$SYSDIR\${LIBEVENTMGR}.dll"
 sectionEnd
 
 section "Uninstall"
   ifFileExists "$SYSDIR\${LIBAEONWAVE}.dll" 0 next2
     Delete "$SYSDIR\${LIBAEONWAVE}.dll"
 next2:
+  ifFileExists "$SYSDIR\${LIBEVENTMGR}.dll" 0 next3
+    Delete "$SYSDIR\${LIBEVENTMGR}.dll"
+next3:
 sectionEnd
 
 ${If} ${RunningX64}
