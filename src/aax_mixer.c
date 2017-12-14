@@ -1084,7 +1084,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 
             if (mixer->no_registered < mixer->info->max_registered)
             {
-               if (_aaxGetEmitter())
+               if (_aaxIncreaseEmitterCounter())
                {
                   mixer->no_registered++;
                   pos = _intBufAddData(he, _AAX_EMITTER, emitter);
@@ -1206,7 +1206,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
             ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos,AAX_FALSE);
             if (ptr)
             {
-               _aaxPutEmitter();
+               _aaxDecreaseEmitterCounter();
                mixer->no_registered--;
                emitter->handle = NULL;
                emitter->mixer_pos = UINT_MAX;

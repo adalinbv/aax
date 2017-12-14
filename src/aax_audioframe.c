@@ -844,7 +844,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
       if (fmixer->no_registered < fmixer->info->max_registered)
       {
-         if (_aaxGetEmitter())
+         if (_aaxIncreaseEmitterCounter())
          {
             pos = _intBufAddData(he, _AAX_EMITTER, emitter);
             fmixer->no_registered++;
@@ -942,7 +942,7 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
       /* proper order by _intBufRemove                               */
       _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
       _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, AAX_FALSE);
-      _aaxPutEmitter();
+      _aaxDecreaseEmitterCounter();
       fmixer->no_registered--;
       emitter->mixer_pos = UINT_MAX;
       emitter->handle = NULL;
