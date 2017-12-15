@@ -36,11 +36,14 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include <software/rbuf_int.h>
 #include "effects.h"
 #include "api.h"
 #include "arch.h"
 
+
 static void _phasing_destroy(void*);
+static void _phasing_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 static aaxEffect
 _aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -86,13 +89,17 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       if (data == NULL)
       {
          int t;
+
          data  = malloc(sizeof(_aaxRingBufferDelayEffectData));
          effect->slot[0]->data = data;
-         data->history_ptr = 0;
-         for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+         if (data)
          {
-            data->lfo.value[t] = 0.0f;
-            data->lfo.step[t] = 0.0f;
+            data->history_ptr = 0;
+            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+            {
+               data->lfo.value[t] = 0.0f;
+               data->lfo.step[t] = 0.0f;
+            }
          }
       }
 
@@ -102,6 +109,8 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          float sign, range, step;
          float fs = 48000.0f;
+
+         data->run = _phasing_run;
 
          if (effect->info) {
             fs = effect->info->frequency;
@@ -304,3 +313,64 @@ _phasing_destroy(void *ptr)
       free(data);
    }
 }
+
+/**
+ * - d and s point to a buffer containing the delay effects buffer prior to
+ *   the pointer.
+ * - start is the starting pointer
+ * - end is the end pointer (end-start is the number of samples)
+ * - no_samples is the number of samples to process this run
+ * - dmax does not include ds
+ */
+static void
+_phasing_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
+             size_t start, size_t end, size_t no_samples, size_t ds,
+             void *data, void *env, unsigned int track)
+{
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxRingBufferDelayEffectData* effect = data;
+   size_t offs, noffs, doffs;
+   MIX_T *sptr, *dptr;
+   float pitch, volume;
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(start < end);
+   assert(data != NULL);
+
+   sptr = (MIX_T*)s + start;
+   dptr = d + start;
+
+   volume =  effect->delay.gain;
+   offs = effect->delay.sample_offs[track];
+
+   assert(start || (offs < ds));
+   if (offs >= ds) offs = ds-1;
+
+   if (start) {
+      noffs = effect->curr_noffs[track];
+   }
+   else
+   {
+      noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
+      effect->delay.sample_offs[track] = noffs;
+      effect->curr_noffs[track] = noffs;
+   }
+
+   assert(s != d);
+   
+   doffs = noffs - offs;
+   pitch = _MAX(((float)(end-doffs))/(float)(end), 0.001f);
+   if (pitch == 1.0f) {
+      rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
+   }
+   else
+   {
+      DBG_MEMCLR(1, scratch-ds, ds+end, sizeof(MIX_T));
+      rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, pitch);
+      rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
+   }
+}
+

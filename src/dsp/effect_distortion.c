@@ -36,10 +36,12 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include <software/rbuf_int.h>
 #include "effects.h"
 #include "api.h"
 #include "arch.h"
 
+static void _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);
 
 static aaxEffect
 _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -76,16 +78,27 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    {
    case AAX_ENVELOPE_FOLLOW:
    {
-      _aaxRingBufferLFOData* lfo = effect->slot[0]->data;
-      if (lfo == NULL)
+      _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
+
+      effect->slot[0]->destroy(data);
+      if (data == NULL)
       {
-         lfo = malloc(sizeof(_aaxRingBufferLFOData));
-         effect->slot[0]->data = lfo;
+         data = malloc(sizeof(_aaxRingBufferDistoritonData) +
+                       sizeof(_aaxRingBufferLFOData));
+         effect->slot[0]->data = data;
+         if (data)
+         {
+            char *ptr = (char*)data + sizeof(_aaxRingBufferDistoritonData);
+            data->lfo = (_aaxRingBufferLFOData*)ptr;
+         }
       }
 
-      if (lfo)
+      if (data)
       {
+         _aaxRingBufferLFOData *lfo = data->lfo;
          int t;
+
+         data->run = _distortion_run;
 
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          lfo->convert = _linear; // _log2lin;
@@ -127,9 +140,23 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    }
    case AAX_CONSTANT_VALUE:
    case AAX_FALSE:
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
+   {
+      _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
+
+      effect->slot[0]->destroy(data);
+      if (data == NULL)
+      {
+         data = malloc(sizeof(_aaxRingBufferDistoritonData));
+         effect->slot[0]->data = data;
+      }
+
+      if (data)
+      {
+         data->run = _distortion_run;
+         data->lfo = NULL;
+      }
       break;
+   }
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
@@ -204,4 +231,71 @@ _eff_function_tbl _aaxDistortionEffect =
    (_aaxEffectConvert*)&_aaxDistortionEffectGet,
    (_aaxEffectConvert*)&_aaxDistortionEffectMinMax
 };
+
+void
+_distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
+                size_t dmin, size_t dmax, size_t ds,
+                unsigned int track, void *data, void *env)
+{
+   static const size_t bps = sizeof(MIX_T);
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)data;
+   _aaxRingBufferDistoritonData *dist_data = dist_effect->data;
+   _aaxRingBufferLFOData* lfo = dist_data->lfo;
+   float *params = dist_effect->param;
+   float clip, asym, fact, mix;
+   size_t no_samples;
+   float lfo_fact = 1.0;
+   CONST_MIX_PTR_T sptr;
+   MIX_T *dptr;
+
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(data != 0);
+   assert(dmin < dmax);
+   assert(data != NULL);
+   assert(track < _AAX_MAX_SPEAKERS);
+
+   sptr = s - ds + dmin;
+   dptr = d - ds + dmin;
+
+   no_samples = dmax+ds-dmin;
+   DBG_MEMCLR(1, d-ds, ds+dmax, bps);
+
+   if (lfo) {
+      lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);
+   }
+   fact = params[AAX_DISTORTION_FACTOR]*lfo_fact;
+   clip = params[AAX_CLIPPING_FACTOR];
+   mix  = params[AAX_MIX_FACTOR]*lfo_fact;
+   asym = params[AAX_ASYMMETRY];
+
+   _aax_memcpy(dptr, sptr, no_samples*bps);
+   if (mix > 0.01f)
+   {
+      float mix_factor;
+
+      /* make dptr the wet signal */
+      if (fact > 0.0013f) {
+         rbd->multiply(dptr, bps, no_samples, 1.0f+64.0f*fact);
+      }
+
+      if ((fact > 0.01f) || (asym > 0.01f))
+      {
+         size_t average = 0;
+         size_t peak = no_samples;
+         _aaxRingBufferLimiter(dptr, &average, &peak, clip, 4*asym);
+      }
+
+      /* mix with the dry signal */
+      mix_factor = mix/(0.5f+powf(fact, 0.25f));
+      rbd->multiply(dptr, bps, no_samples, mix_factor);
+      if (mix < 0.99f) {
+         rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
+      }  
+   }
+}
 

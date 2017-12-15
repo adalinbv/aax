@@ -163,18 +163,25 @@ typedef struct
 
 typedef struct
 {
-   float gain;
-   size_t sample_offs[_AAX_MAX_SPEAKERS];
-} _aaxRingBufferDelayData;
+   _aaxRingBufferLFOData *lfo;
+   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
+               unsigned int, void*, void*);
+}
+_aaxRingBufferDistoritonData;
 
 typedef struct
 {
+   _aaxRingBufferLFOData *lfo;
+   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
+               unsigned int, void*, void*, unsigned char);
+
    float coeff[4*_AAX_MAX_STAGES];
    float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES];
    float Q, k, fs, high_gain, low_gain;
+
    unsigned char no_stages, state;
    signed char type;
-   _aaxRingBufferLFOData *lfo;
+
 } _aaxRingBufferFreqFilterData;
 
 typedef struct
@@ -182,8 +189,18 @@ typedef struct
    _aaxRingBufferFreqFilterData band[_AAX_MAX_EQBANDS];
 } _aaxRingBufferEqualizerData;
 
+
 typedef struct
 {
+   float gain;
+   size_t sample_offs[_AAX_MAX_SPEAKERS];
+} _aaxRingBufferDelayData;
+
+typedef struct
+{
+   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
+               size_t, size_t, void*, void*, unsigned int);
+
    _aaxRingBufferLFOData lfo;
    _aaxRingBufferDelayData delay;
 
@@ -197,6 +214,7 @@ typedef struct
 
    char loopback;
 } _aaxRingBufferDelayEffectData;
+
 
 typedef struct
 {

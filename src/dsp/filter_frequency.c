@@ -36,11 +36,13 @@
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
+#include <software/rbuf_int.h>
 #include "common.h"
 #include "filters.h"
 #include "api.h"
 
 static void _freqfilter_destroy(void*);
+static void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxFilter
 _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -103,19 +105,15 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       if (flt == NULL)
       {
          flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
-         flt->fs = filter->info ? filter->info->frequency : 48000.0f;
          filter->slot[0]->data = flt;
       }
 
-      if (state & AAX_48DB_OCT) stages = 4;
-      else if (state & AAX_36DB_OCT) stages = 3;
-      else if (state & AAX_24DB_OCT) stages = 2;
-      else if (state & AAX_6DB_OCT) stages = 0;
-      else stages = 1;
-
       if (flt)
       {
-         float fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+         float fc;
+
+         flt->fs = filter->info ? filter->info->frequency : 48000.0f;
+         flt->run = _freqfilter_run;
 
          flt->high_gain = fabsf(filter->slot[0]->param[AAX_LF_GAIN]);
          if (flt->high_gain < LEVEL_128DB) flt->high_gain = 0.0f;
@@ -123,11 +121,18 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->low_gain = fabsf(filter->slot[0]->param[AAX_HF_GAIN]);
          if (flt->low_gain < LEVEL_128DB) flt->low_gain = 0.0f;
 
+         if (state & AAX_48DB_OCT) stages = 4;
+         else if (state & AAX_36DB_OCT) stages = 3;
+         else if (state & AAX_24DB_OCT) stages = 2;
+         else if (state & AAX_6DB_OCT) stages = 0;
+         else stages = 1;
+
          flt->no_stages = stages;
          flt->state = state >> 24;
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
+         fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
          if (state & AAX_BESSEL) {
              _aax_bessel_compute(fc, flt);
          }
@@ -931,3 +936,46 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
    *gain = k;
 }
 #endif
+
+static void
+_freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
+                              size_t dmin, size_t dmax, size_t ds,
+                              unsigned int track, void *data, void *env,
+                              unsigned char ctr)
+{
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxRingBufferFreqFilterData *filter = data;
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(data != 0);
+   assert(dmin < dmax);
+   assert(data != NULL);
+   assert(track < _AAX_MAX_SPEAKERS);
+
+   if (filter->k)
+   {
+      CONST_MIX_PTR_T sptr = s - ds + dmin;
+      MIX_T *dptr = d - ds + dmin;
+      int num;
+
+      if (filter->lfo && !ctr)
+      {
+         float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
+
+         if (filter->state) {
+            _aax_bessel_compute(fc, filter);
+         } else {
+            _aax_butterworth_compute(fc, filter);
+         }
+      }
+
+      num = dmax+ds-dmin;
+      rbd->freqfilter(dptr, sptr, track, num, filter);
+      if (filter->state && (filter->low_gain > LEVEL_128DB)) {
+         rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
+      }
+   }
+}

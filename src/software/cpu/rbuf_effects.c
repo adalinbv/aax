@@ -58,59 +58,60 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
           _aax2dProps *p2d)
 {
    void *env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
-   void *freq = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
-   void *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+   _aaxRingBufferFreqFilterData *freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
+   _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    static const size_t bps = sizeof(MIX_T);
-   _aaxRingBufferDelayEffectData* effect = delay;
    size_t ds = delay ? ddesamps : 0;	/* 0 for frequency filtering */
    MIX_T *psrc = src; /* might change further in the code */
    MIX_T *pdst = dst; /* might change further in the code */
-   void *distort = NULL;
+   void *distort_data = NULL;
 
    if (_EFFECT_GET_STATE(p2d, DISTORTION_EFFECT)) {
-      distort = &p2d->effect[DISTORTION_EFFECT];
+      distort_data = &p2d->effect[DISTORTION_EFFECT];
    }
 
    src += start;
    dst += start;
 
    /* streaming emitters with delay effects need the source history */
-   if (effect && !effect->loopback && effect->history_ptr)
+   if (delay && !delay->loopback && delay->history_ptr)
    {
       // copy the delay effects history to src
       DBG_MEMCLR(1, src-ds, ds, bps);
-      _aax_memcpy(src-ds, effect->delay_history[track], ds*bps);
+      _aax_memcpy(src-ds, delay->delay_history[track], ds*bps);
 
       // copy the new delay effects history back
-      _aax_memcpy(effect->delay_history[track], src+no_samples-ds, ds*bps);
+      _aax_memcpy(delay->delay_history[track], src+no_samples-ds, ds*bps);
    }
 
    /* Apply frequency filter first */
    if (freq)
    {
-      _aaxRingBufferFilterFrequency(rbd, pdst, psrc, start, end, ds, track,
-                                    freq, env, ctr);
+      freq->run(rbd, pdst, psrc, start, end, ds, track, freq, env, ctr);
       BUFSWAP(pdst, psrc);
    }
 
-   if (distort)
+   if (distort_data)
    {
-      _aaxRingBufferEffectDistort(rbd, pdst, psrc, start, end, ds, track, distort, env);
+      _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)distort_data;
+      _aaxRingBufferDistoritonData *distort = dist_effect->data;
+
+      distort->run(rbd, pdst, psrc, start, end, ds, track, distort_data, env);
       BUFSWAP(pdst, psrc);
    }
 
    if (delay)
    {
       /* Apply delay effects */
-      if (effect->loopback) {		/*    flanging     */
-         _aaxRingBufferEffectDelay(rbd, psrc, psrc, scratch, start, end,
-                                   no_samples, ds, delay, env, track);
+      if (delay->loopback) {		/*    flanging     */
+         delay->run(rbd, psrc, psrc, scratch, start, end, no_samples, ds,
+                    delay, env, track);
       }
       else				/* phasing, chorus */
       {
          _aax_memcpy(pdst+start, psrc+start, no_samples*bps);
-         _aaxRingBufferEffectDelay(rbd, pdst, psrc, scratch, start, end,
-                                   no_samples, ds, delay, env, track);
+         delay->run(rbd, pdst, psrc, scratch, start, end, no_samples, ds,
+                    delay, env, track);
          BUFSWAP(pdst, psrc);
       }
    }
@@ -166,7 +167,7 @@ _aaxRingBufferEffectReflections(_aaxRingBufferSample *rbd,
          }
       }
 
-      _aaxRingBufferFilterFrequency(rbd, sbuf2, scratch, 0, dmax, 0, track, filter, NULL, 0);
+      filter->run(rbd, sbuf2, scratch, 0, dmax, 0, track, filter, NULL, 0);
       rbd->add(sptr, sbuf2, dmax, 0.5f, 0.0f);
    }
 }
@@ -207,128 +208,6 @@ _aaxRingBufferEffectReverb(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       }
       _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
-}
-
-/**
- * - d and s point to a buffer containing the delay effects buffer prior to
- *   the pointer.
- * - start is the starting pointer
- * - end is the end pointer (end-start is the number of samples)
- * - no_samples is the number of samples to process this run
- * - dmax does not include ds
- */
-void
-_aaxRingBufferEffectDelay(_aaxRingBufferSample *rbd,
-               MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
-               size_t start, size_t end, size_t no_samples,
-               size_t ds, void *data, void *env, unsigned int track)
-{
-   static const size_t bps = sizeof(MIX_T);
-   _aaxRingBufferDelayEffectData* effect = data;
-   float volume;
-
-   _AAX_LOG(LOG_DEBUG, __func__);
-
-   assert(s != 0);
-   assert(d != 0);
-   assert(start < end);
-   assert(data != NULL);
-
-   volume =  effect->delay.gain;
-   do
-   {
-      size_t offs, noffs;
-      MIX_T *sptr = (MIX_T*)s + start;
-      MIX_T *dptr = d + start;
-
-      offs = effect->delay.sample_offs[track];
-      assert(start || (offs < ds));
-      if (offs >= ds) offs = ds-1;
-
-      if (start) {
-         noffs = effect->curr_noffs[track];
-      }
-      else
-      {
-         noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
-         effect->delay.sample_offs[track] = noffs;
-         effect->curr_noffs[track] = noffs;
-      }
-
-      if (s == d)	/*  flanging */
-      {
-         size_t sign = (noffs < offs) ? -1 : 1;
-         size_t doffs = labs(noffs - offs);
-         size_t i = no_samples;
-         size_t coffs = offs;
-         size_t step = end;
-         MIX_T *ptr = dptr;
-
-         if (start)
-         {
-            step = effect->curr_step[track];
-            coffs = effect->curr_coffs[track];
-         }
-         else
-         {
-            if (doffs)
-            {
-               step = end/doffs;
-               if (step < 2) step = end;
-            }
-         }
-         effect->curr_step[track] = step;
-
-         DBG_MEMCLR(1, s-ds, ds+start, bps);
-         _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
-         if (i >= step)
-         {
-//          float diff;
-            do
-            {
-               rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
-#if 0
-               /* gradually fade to the new value */
-               diff = (float)*ptr - (float)*(ptr-1);
-               *(ptr-1) += (6.0f/7.0f)*diff;
-               *(ptr-2) += (5.0f/7.0f)*diff;
-               *(ptr-3) += (4.0f/7.0f)*diff;
-               *(ptr-4) += (3.0f/7.0f)*diff;
-               *(ptr-5) += (2.0f/7.0f)*diff;
-               *(ptr-6) += (1.0f/7.0f)*diff;
-#endif
-               ptr += step;
-               coffs += sign;
-               i -= step;
-            }
-            while(i >= step);
-         }
-         if (i) {
-            rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
-         }
-
-//       DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
-         _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
-         effect->curr_coffs[track] = coffs;
-      }
-      else	/* chorus, phasing */
-      {
-         ssize_t doffs = noffs - offs;
-         float pitch;
-
-         pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
-         if (pitch == 1.0f) {
-            rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
-         }
-         else
-         {
-            DBG_MEMCLR(1, scratch-ds, ds+end, bps);
-            rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, pitch);
-            rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
-         }
-      }
-   }
-   while (0);
 }
 
 /** Convolution Effect */
@@ -396,9 +275,10 @@ _aaxRingBufferConvolutionThread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(
       if (convolution->fc > 15000.0f) {
          rbd->multiply(dptr, sizeof(MIX_T), dnum, flt->low_gain);
       }
-      else {
-         _aaxRingBufferFilterFrequency(rbd, dptr, sptr, 0, dnum, 0, t,
-                                       convolution->freq_filter, NULL, 0);
+      else
+      {
+         _aaxRingBufferFreqFilterData *filter = convolution->freq_filter;
+         filter->run(rbd, dptr, sptr, 0, dnum, 0, t, filter, NULL, 0);
       }
    }
    rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
@@ -441,118 +321,6 @@ _aaxRingBufferEffectConvolution(const _aaxDriverBackend *be, const void *be_hand
       render->process(render, &d);
    }
 }
-
-
-void
-_aaxRingBufferEffectDistort(_aaxRingBufferSample *rbd,
-                   MIX_PTR_T d, CONST_MIX_PTR_T s,
-                   size_t dmin, size_t dmax, size_t ds,
-                   unsigned int track, void *data, void *env)
-{
-   _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)data;
-   _aaxRingBufferLFOData* lfo = dist_effect->data;
-   float *params = dist_effect->param;
-
-   _AAX_LOG(LOG_DEBUG, __func__);
-
-   assert(s != 0);
-   assert(d != 0);
-   assert(data != 0);
-   assert(dmin < dmax);
-   assert(data != NULL);
-   assert(track < _AAX_MAX_SPEAKERS);
-
-   do
-   {
-      static const size_t bps = sizeof(MIX_T);
-      CONST_MIX_PTR_T sptr = s - ds + dmin;
-      MIX_T *dptr = d - ds + dmin;
-      float clip, asym, fact, mix;
-      size_t no_samples;
-      float lfo_fact = 1.0;
-
-      no_samples = dmax+ds-dmin;
-      DBG_MEMCLR(1, d-ds, ds+dmax, bps);
-
-      if (lfo) {
-         lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);
-      }
-      fact = params[AAX_DISTORTION_FACTOR]*lfo_fact;
-      clip = params[AAX_CLIPPING_FACTOR];
-      mix  = params[AAX_MIX_FACTOR]*lfo_fact;
-      asym = params[AAX_ASYMMETRY];
-
-      _aax_memcpy(dptr, sptr, no_samples*bps);
-      if (mix > 0.01f)
-      {
-         float mix_factor;
-
-         /* make dptr the wet signal */
-         if (fact > 0.0013f) {
-            rbd->multiply(dptr, bps, no_samples, 1.0f+64.0f*fact);
-         }
-
-         if ((fact > 0.01f) || (asym > 0.01f))
-         {
-            size_t average = 0;
-            size_t peak = no_samples;
-            _aaxRingBufferLimiter(dptr, &average, &peak, clip, 4*asym);
-         }
-
-         /* mix with the dry signal */
-         mix_factor = mix/(0.5f+powf(fact, 0.25f));
-         rbd->multiply(dptr, bps, no_samples, mix_factor);
-         if (mix < 0.99f) {
-            rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
-         }
-      }
-   }
-   while(0);
-}
-
-
-void
-_aaxRingBufferFilterFrequency(_aaxRingBufferSample *rbd,
-                   MIX_PTR_T d, CONST_MIX_PTR_T s,
-                   size_t dmin, size_t dmax, size_t ds,
-                   unsigned int track, void *data, void *env, unsigned char ctr)
-{
-   _aaxRingBufferFreqFilterData *filter = data;
-
-   _AAX_LOG(LOG_DEBUG, __func__);
-
-   assert(s != 0);
-   assert(d != 0);
-   assert(data != 0);
-   assert(dmin < dmax);
-   assert(data != NULL);
-   assert(track < _AAX_MAX_SPEAKERS);
-
-   if (filter->k)
-   {
-      CONST_MIX_PTR_T sptr = s - ds + dmin;
-      MIX_T *dptr = d - ds + dmin;
-      int num;
-
-      if (filter->lfo && !ctr)
-      {
-         float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
-
-         if (filter->state) {
-            _aax_bessel_compute(fc, filter);
-         } else {
-            _aax_butterworth_compute(fc, filter);
-         }
-      }
-
-      num = dmax+ds-dmin;
-      rbd->freqfilter(dptr, sptr, track, num, filter);
-      if (filter->state && (filter->low_gain > LEVEL_128DB)) {
-         rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
-      }
-   }
-}
-
 
 
 /* -------------------------------------------------------------------------- */
