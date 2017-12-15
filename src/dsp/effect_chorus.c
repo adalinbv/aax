@@ -319,9 +319,10 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferDelayEffectData* effect = data;
-   size_t offs, noffs, doffs;
+   size_t offs, noffs;
    MIX_T *sptr, *dptr;
    float pitch, volume;
+   ssize_t doffs;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -352,7 +353,7 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    assert(s != d);
 
    doffs = noffs - offs;
-   pitch = _MAX(((float)(end-doffs))/(float)(end), 0.001f);
+   pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
    if (pitch == 1.0f) {
       rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
    }
