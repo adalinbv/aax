@@ -47,7 +47,7 @@
 void
 _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 {
-   const char *opencl;
+// const char *opencl;
    unsigned int size;
 
    size = 2*sizeof(vec4f_t); 

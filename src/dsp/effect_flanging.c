@@ -36,11 +36,13 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include <software/rbuf_int.h>
 #include "effects.h"
 #include "api.h"
 #include "arch.h"
 
 static void _flanging_destroy(void*);
+static void _flanging_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 static aaxEffect
 _aaxFlangingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -88,11 +90,14 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          int t;
          data  = malloc(sizeof(_aaxRingBufferDelayEffectData));
          effect->slot[0]->data = data;
-         data->history_ptr = 0;
-         for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+         if (data)
          {
-            data->lfo.value[t] = 0.0f;
-            data->lfo.step[t] = 0.0f;
+            data->history_ptr = 0;
+            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+            {
+               data->lfo.value[t] = 0.0f;
+               data->lfo.step[t] = 0.0f;
+            }
          }
       }
 
@@ -104,6 +109,8 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          float sign, range, step;
          float fs = 48000.0f;
          size_t samples;
+
+         data->run = _flanging_run;
 
          if (effect->info) {
             fs = effect->info->frequency;
@@ -304,5 +311,108 @@ _flanging_destroy(void *ptr)
       free(data->history_ptr);
       free(data);
    }
+}
+
+
+/**
+ * - d and s point to a buffer containing the delay effects buffer prior to
+ *   the pointer.
+ * - start is the starting pointer
+ * - end is the end pointer (end-start is the number of samples)
+ * - no_samples is the number of samples to process this run
+ * - dmax does not include ds
+ */
+void
+_flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
+             size_t start, size_t end, size_t no_samples, size_t ds,
+             void *data, void *env, unsigned int track)
+{
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   static const size_t bps = sizeof(MIX_T);
+   _aaxRingBufferDelayEffectData* effect = data;
+   size_t offs, noffs, doffs, coffs;
+   size_t i, sign, step;
+   MIX_T *sptr, *dptr, *ptr;
+   float volume;
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(start < end);
+   assert(data != NULL);
+
+   volume =  effect->delay.gain;
+
+   sptr = (MIX_T*)s + start;
+   dptr = d + start;
+
+   offs = effect->delay.sample_offs[track];
+   assert(start || (offs < ds));
+   if (offs >= ds) offs = ds-1;
+
+   if (start) {
+      noffs = effect->curr_noffs[track];
+   }
+   else
+   {
+      noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
+      effect->delay.sample_offs[track] = noffs;
+      effect->curr_noffs[track] = noffs;
+   }
+
+   sign = (noffs < offs) ? -1 : 1;
+   doffs = labs(noffs - offs);
+   i = no_samples;
+   coffs = offs;
+   step = end;
+   ptr = dptr;
+
+   if (start)
+   {
+      step = effect->curr_step[track];
+      coffs = effect->curr_coffs[track];
+   }
+   else
+   {
+      if (doffs)
+      {
+         step = end/doffs;
+         if (step < 2) step = end;
+      }
+   }
+   effect->curr_step[track] = step;
+
+   DBG_MEMCLR(1, s-ds, ds+start, bps);
+   _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
+   if (i >= step)
+   {
+//    float diff;
+      do
+      {
+         rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
+#if 0
+         /* gradually fade to the new value */
+         diff = (float)*ptr - (float)*(ptr-1);
+         *(ptr-1) += (6.0f/7.0f)*diff;
+         *(ptr-2) += (5.0f/7.0f)*diff;
+         *(ptr-3) += (4.0f/7.0f)*diff;
+         *(ptr-4) += (3.0f/7.0f)*diff;
+         *(ptr-5) += (2.0f/7.0f)*diff;
+         *(ptr-6) += (1.0f/7.0f)*diff;
+#endif
+         ptr += step;
+         coffs += sign;
+         i -= step;
+      }
+      while(i >= step);
+   }
+   if (i) {
+      rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
+   }
+
+// DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
+   _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
+   effect->curr_coffs[track] = coffs;
 }
 
