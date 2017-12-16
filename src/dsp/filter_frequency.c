@@ -42,7 +42,7 @@
 #include "api.h"
 
 static void _freqfilter_destroy(void*);
-static void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
+void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxFilter
 _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -937,7 +937,7 @@ _aax_bessel_compute(float fc, float fs, float *coef, float *gain, float Q, int s
 }
 #endif
 
-static void
+void
 _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
                               size_t dmin, size_t dmax, size_t ds,
                               unsigned int track, void *data, void *env,

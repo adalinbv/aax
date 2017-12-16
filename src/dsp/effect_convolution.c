@@ -36,11 +36,16 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include <software/rbuf_int.h>
+#include <software/renderer.h>
+#include <software/gpu/gpu.h>
 #include "effects.h"
 #include "api.h"
 #include "arch.h"
 
 static void _convolution_destroy(void*);
+static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*, void*);
+void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -57,6 +62,10 @@ _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
       data = calloc(1, sizeof(_aaxRingBufferConvolutionData));
       eff->slot[0]->data = data;
       eff->slot[0]->destroy = _convolution_destroy;
+
+      if (data) {
+         data->run = _convolution_run;
+      }
 
       rv = (aaxEffect)eff;
    }
@@ -116,16 +125,21 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          }
 
-         flt->lfo = 0;
-         flt->fs = fs;
-         flt->Q = 0.6f;
-         flt->no_stages = 1;
+         if (flt)
+         {
+            flt->run = _freqfilter_run;
 
-         flt->high_gain = _lin2log(fc)/4.343409f;
-         flt->low_gain = lfgain;
-         flt->k = flt->low_gain/flt->high_gain;
+            flt->lfo = 0;
+            flt->fs = fs;
+            flt->Q = 0.6f;
+            flt->no_stages = 1;
 
-         _aax_butterworth_compute(fc, flt);
+            flt->high_gain = _lin2log(fc)/4.343409f;
+            flt->low_gain = lfgain;
+            flt->k = flt->low_gain/flt->high_gain;
+
+            _aax_butterworth_compute(fc, flt);
+         }
       }
       else if (convolution->freq_filter)
       {
@@ -294,3 +308,117 @@ _convolution_destroy(void *ptr)
    }
 }
 
+/** Convolution Effect */
+// irnum = convolution->no_samples
+// for (q=0; q<dnum; ++q) {
+//    float volume = *sptr++;
+//    rbd->add(hptr++, cptr, irnum, volume, 0.0f);
+// }
+static int
+_convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferData *dptr_src), unsigned int t)
+{
+   _aaxRingBufferConvolutionData *convolution;
+   unsigned int cnum, dnum, hpos;
+   MIX_T *sptr, *dptr, *hptr;
+   _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
+
+   convolution = d->be_handle;
+   hptr = convolution->history[t];
+   hpos = convolution->history_start[t];
+   cnum = convolution->no_samples - hpos;
+
+   rbi = rb->handle;
+   rbd = rbi->sample;
+   dptr = sptr = rbd->track[t];
+   dnum = rb->get_parami(rb, RB_NO_SAMPLES);
+
+   if (d->be)
+   {
+      _aax_opencl_t *gpu = (_aax_opencl_t*)d->be;
+      _aaxOpenCLRunConvolution(gpu, convolution, dptr, dnum, t);
+   }
+   else
+   {
+      MIX_T *hcptr, *cptr;
+      float v, threshold;
+      unsigned int q;
+      int step;
+
+      v = convolution->rms * convolution->delay_gain;
+      threshold = convolution->threshold * (float)(1<<23);
+      step = convolution->step;
+
+      cptr = convolution->sample;
+      hcptr = hptr + hpos;;
+
+      q = cnum/step;
+      threshold = convolution->threshold;
+      do
+      {
+         float volume = *cptr * v;
+         if (fabsf(volume) > threshold) {
+            rbd->add(hcptr, sptr, dnum, volume, 0.0f);
+         }
+         cptr += step;
+         hcptr += step;
+      }
+      while (--q);
+   }
+
+   if (convolution->freq_filter)
+   {
+      _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
+
+      if (convolution->fc > 15000.0f) {
+         rbd->multiply(dptr, sizeof(MIX_T), dnum, flt->low_gain);
+      }
+      else
+      {
+         _aaxRingBufferFreqFilterData *filter = convolution->freq_filter;
+         filter->run(rbd, dptr, sptr, 0, dnum, 0, t, filter, NULL, 0);
+      }
+   }
+   rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
+
+   hpos += dnum;
+// if ((hpos + cnum) > convolution->history_samples)
+   {
+      memmove(hptr, hptr+hpos, cnum*sizeof(MIX_T));
+      hpos = 0;
+   }
+   memset(hptr+hpos+cnum, 0, dnum*sizeof(MIX_T));
+   convolution->history_start[t] = hpos;
+
+   return 0;
+}
+
+static void
+_convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, void *gpuid, void *data)
+{
+   _aaxRingBufferConvolutionData *convolution = data;
+   _aax_opencl_t *gpu = gpuid;
+   _aaxRingBuffer *rb = rbd;
+
+   if (convolution->delay_gain > convolution->threshold)
+   {
+      _aaxRenderer *render = be->render(be_handle);
+      _aaxRendererData d;
+
+      d.drb = rb;
+      d.info = NULL;
+      d.fdp3d_m = NULL;
+      d.fp2d = NULL;
+      d.e2d = NULL;
+      d.e3d = NULL;
+      d.be = (const _aaxDriverBackend*)gpu;
+      d.be_handle = convolution;
+
+      d.ssv = 0.0f;
+      d.sdf = 0.0f;
+
+      d.callback = _convolution_thread;
+
+      render->process(render, &d);
+   }
+}

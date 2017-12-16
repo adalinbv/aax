@@ -2,7 +2,6 @@
 set(CPU_HEADERS
   arch2d_simd.h
   arch3d_simd.h
-  rbuf2d_effects.h
 )
 
 set(CPU_SOURCES
