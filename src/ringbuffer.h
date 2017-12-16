@@ -32,6 +32,7 @@ extern "C" {
 
 #include <base/geometry.h>
 
+#include <dsp/common.h>
 #include <driver.h>
 #include <objects.h>
 
