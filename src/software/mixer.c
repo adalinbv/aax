@@ -39,7 +39,6 @@
 #include <arch.h>
 #include <ringbuffer.h>
 
-#include "cpu/rbuf2d_effects.h"
 #include "rbuf_int.h"
 #include "audio.h"
 
@@ -218,7 +217,8 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
    }
 
    if (convolution) {
-      _aaxRingBufferEffectConvolution(id, hid, rb, info->gpu, convolution);
+      convolution->run(id, hid, rb, info->gpu, convolution);
+//    _aaxRingBufferEffectConvolution(id, hid, rb, info->gpu, convolution);
    }
 
    for (t=0; t<no_tracks; t++)
@@ -227,12 +227,8 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
       MIX_T *tmp = scratch[SCRATCH_BUFFER1];
       MIX_T *dptr = tracks[t];
 
-      if (reverb)
-      {
-         _aaxRingBufferEffectReflections(rbd, dptr, sptr, tmp, 0, no_samples,
-                                         ds, t, reverb, info);
-         _aaxRingBufferEffectReverb(rbd, dptr, 0, no_samples, ds, t, reverb,
-                                    info);
+      if (reverb) {
+         reverb->run(rbd, dptr, sptr, tmp, no_samples, ds, t, reverb, info);
       }
 
       if (parametric)
