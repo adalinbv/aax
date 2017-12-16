@@ -74,6 +74,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
+   effect->state = state;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_ENVELOPE_FOLLOW:
