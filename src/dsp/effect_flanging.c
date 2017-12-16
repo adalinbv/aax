@@ -41,6 +41,9 @@
 #include "api.h"
 #include "arch.h"
 
+#define FLANGING_MIN	10e-3f
+#define FLANGING_MAX	60e-3f
+
 static void _flanging_destroy(void*);
 static void _flanging_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
@@ -75,6 +78,9 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
+   assert(effect->info);
+
+   effect->state = state;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
@@ -88,6 +94,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
       if (data == NULL)
       {
          int t;
+
          data  = malloc(sizeof(_aaxRingBufferDelayEffectData));
          effect->slot[0]->data = data;
          if (data)
@@ -103,78 +110,39 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 
       if (data)
       {
-         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          unsigned int tracks = effect->info->no_tracks;
-         float sign, range, step;
-         float fs = 48000.0f;
+         int t, constant;
          size_t samples;
 
          data->run = _flanging_run;
-
-         if (effect->info) {
-            fs = effect->info->frequency;
-         }
-
-         if ((offset + depth) > 1.0f) {
-            depth = 1.0f - offset;
-         }
-
-         // AAX_FLANGING_EFFECT
-         range = (60e-3f - 10e-3f);		// 10ms .. 60ms
-         depth *= range * fs;		// convert to samples
-         data->lfo.min = (range * offset + 10e-3f)*fs;
          data->loopback = AAX_TRUE;
-         samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+
+         samples = TIME_TO_SAMPLES(effect->info->frequency, DELAY_EFFECTS_TIME);
          _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
                                            data->delay_history,
                                            samples, tracks);
-         // AAX_FLANGING_EFFECT
 
          data->lfo.convert = _linear;
-         data->lfo.max = data->lfo.min + depth;
+         data->lfo.state = effect->state;
+         data->lfo.fs = effect->info->frequency;
+         data->lfo.period_rate = effect->info->period_rate;
+
+         data->lfo.min_sec = FLANGING_MIN;
+         data->lfo.range_sec = FLANGING_MAX - FLANGING_MIN;
+         data->lfo.depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-         if (depth > 0.05f)
+         constant = _lfo_set_timing(&data->lfo);
+
+         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
+         for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
+            data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
+         }
+
+         if (!constant)
          {
-            int t;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               // slowly work towards the new settings
-               step = data->lfo.step[t];
-               sign = step ? (step/fabsf(step)) : 1.0f;
-
-               data->lfo.step[t] = 2.0f*sign * data->lfo.f;
-               data->lfo.step[t] *= (data->lfo.max - data->lfo.min);
-               data->lfo.step[t] /= effect->info->period_rate;
-
-               if ((data->lfo.value[t] == 0)
-                   || (data->lfo.value[t] < data->lfo.min)) {
-                  data->lfo.value[t] = data->lfo.min;
-               } else if (data->lfo.value[t] > data->lfo.max) {
-                  data->lfo.value[t] = data->lfo.max;
-               }
-               data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
-
-               switch (state & ~AAX_INVERSE)
-               {
-               case AAX_SAWTOOTH_WAVE:
-                  data->lfo.step[t] *= 0.5f;
-                  break;
-               case AAX_ENVELOPE_FOLLOW:
-               {
-                  float fact = data->lfo.f;
-                  data->lfo.value[t] /= data->lfo.max;
-                  data->lfo.step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
-                  break;
-               }
-               default:
-                  break;
-               }
-            }
-
             switch (state & ~AAX_INVERSE)
             {
             case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
@@ -201,14 +169,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
                break;
             }
          }
-         else
-         {
-            int t;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               data->lfo.value[t] = data->lfo.min;
-               data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
-            }
+         else {
             data->lfo.get = _aaxRingBufferLFOGetFixedValue;
          }
       }

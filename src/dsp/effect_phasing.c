@@ -42,6 +42,10 @@
 #include "arch.h"
 
 
+#define PHASING_MIN	50e-6f
+#define PHASING_MAX	10e-3f
+
+
 static void _phasing_destroy(void*);
 static void _phasing_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
@@ -76,6 +80,9 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
+   assert(effect->info);
+
+   effect->state = state;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
@@ -105,77 +112,38 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 
       if (data)
       {
-         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
-         float sign, range, step;
-         float fs = 48000.0f;
+         int t, constant;
 
          data->run = _phasing_run;
-
-         if (effect->info) {
-            fs = effect->info->frequency;
-         }
-
-         if ((offset + depth) > 1.0f) {
-            depth = 1.0f - offset;
-         }
-
-         // AAX_PHASING_EFFECT
-         range = (10e-3f - 50e-6f);		// 50us .. 10ms
-         depth *= range * fs;		// convert to samples
-         data->lfo.min = (range * offset + 50e-6f)*fs;
          data->loopback = AAX_FALSE;
+
          if (data->history_ptr)
          {
             free(data->history_ptr);
             data->history_ptr = 0;
          }
-         // AAX_PHASING_EFFECT
 
          data->lfo.convert = _linear;
-         data->lfo.max = data->lfo.min + depth;
+         data->lfo.state = effect->state;
+         data->lfo.fs = effect->info->frequency;
+         data->lfo.period_rate = effect->info->period_rate;
+
+         data->lfo.min_sec = PHASING_MIN;
+         data->lfo.range_sec = PHASING_MAX - PHASING_MIN;
+         data->lfo.depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-         if (depth > 0.05f)
+         constant = _lfo_set_timing(&data->lfo);
+
+         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
+         for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
+            data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
+         }
+
+         if (!constant)
          {
-            int t;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               // slowly work towards the new settings
-               step = data->lfo.step[t];
-               sign = step ? (step/fabsf(step)) : 1.0f;
-
-               data->lfo.step[t] = 2.0f*sign * data->lfo.f;
-               data->lfo.step[t] *= (data->lfo.max - data->lfo.min);
-               data->lfo.step[t] /= effect->info->period_rate;
-
-               if ((data->lfo.value[t] == 0)
-                   || (data->lfo.value[t] < data->lfo.min)) {
-                  data->lfo.value[t] = data->lfo.min;
-               } else if (data->lfo.value[t] > data->lfo.max) {
-                  data->lfo.value[t] = data->lfo.max;
-               }
-               data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
-
-               switch (state & ~AAX_INVERSE)
-               {
-               case AAX_SAWTOOTH_WAVE:
-                  data->lfo.step[t] *= 0.5f;
-                  break;
-               case AAX_ENVELOPE_FOLLOW:
-               {
-                  float fact = data->lfo.f;
-                  data->lfo.value[t] /= data->lfo.max;
-                  data->lfo.step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
-                  break;
-               }
-               default:
-                  break;
-               }
-            }
-
             switch (state & ~AAX_INVERSE)
             {
             case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
@@ -202,14 +170,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
                break;
             }
          }
-         else
-         {
-            int t;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               data->lfo.value[t] = data->lfo.min;
-               data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
-            }
+         else {
             data->lfo.get = _aaxRingBufferLFOGetFixedValue;
          }
       }
