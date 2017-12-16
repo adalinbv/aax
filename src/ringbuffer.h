@@ -241,6 +241,8 @@ typedef struct
 {
    void (*run)(const _aaxDriverBackend*, const void*, void*, void*, void*);
 
+   _aaxRingBufferFreqFilterData *freq_filter
+
    float fc;
    float rms;
    float delay_gain;
@@ -258,7 +260,6 @@ typedef struct
    void **sample_ptr;
    MIX_T *sample;
 
-   _aaxRingBufferFreqFilterData *freq_filter;
    void *tid[_AAX_MAX_SPEAKERS];
 
 #if 0
