@@ -108,51 +108,6 @@ enum _aaxRingBufferMode
 typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 
 /**
- * LFO: Low Frequency Oscillator
- */
-#define _MAX_ENVELOPE_STAGES		6
-#define ENVELOPE_FOLLOW_STEP_CVT(a)	_MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0f, 1.0f)
-
-typedef float _aaxRingBufferLFOGetFn(void *, void*, const void*, unsigned, size_t);
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSine;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSquare;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetTriangle;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSawtooth;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetFixedValue;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetGainFollow;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetCompressor;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetPitchFollow;
-
-typedef float _convert_fn(float, float);
-_convert_fn _linear;
-_convert_fn _compress;
-
-typedef struct
-{
-   float f, min, max;
-   float gate_threshold, gate_period;
-   float step[_AAX_MAX_SPEAKERS];	/* step = frequency / refresh_rate */
-   float down[_AAX_MAX_SPEAKERS];	/* compressor release rate         */
-   float value[_AAX_MAX_SPEAKERS];	/* current value                   */
-   float average[_AAX_MAX_SPEAKERS];	/* average value over time         */
-   float compression[_AAX_MAX_SPEAKERS];	/* compression level       */
-   _aaxRingBufferLFOGetFn *get;
-   _convert_fn *convert;
-   char inv, envelope, stereo_lnk;
-} _aaxRingBufferLFOData;
-
-typedef struct
-{
-   float ctr;
-   float value0, value, value_total;
-   uint32_t pos;
-   unsigned int stage, max_stages, repeat;
-   float step[_MAX_ENVELOPE_STAGES];
-   uint32_t max_pos[_MAX_ENVELOPE_STAGES];
-} _aaxRingBufferEnvelopeData;
-
-
-/**
  * Filtes and Effects
  */
 
@@ -189,7 +144,6 @@ typedef struct
    _aaxRingBufferFreqFilterData band[_AAX_MAX_EQBANDS];
 } _aaxRingBufferEqualizerData;
 
-
 typedef struct
 {
    float gain;
@@ -214,7 +168,6 @@ typedef struct
 
    char loopback;
 } _aaxRingBufferDelayEffectData;
-
 
 typedef struct
 {

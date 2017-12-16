@@ -41,6 +41,10 @@
 #include "api.h"
 #include "arch.h"
 
+#define CHORUS_MIN	10e-3f
+#define CHORUS_MAX	60e-3f
+
+static void _chorus_destroy(void*);
 static void _chorus_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 static aaxEffect
@@ -52,7 +56,7 @@ _aaxChorusEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
-      eff->slot[0]->destroy = destroy;
+      eff->slot[0]->destroy = _chorus_destroy;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -74,6 +78,9 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
+   assert(effect->info);
+
+   effect->state = state;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
@@ -103,77 +110,38 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
       if (data)
       {
-         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
-         float sign, range, step;
-         float fs = 48000.0f;
+         int t, constant;
 
          data->run = _chorus_run;
-
-         if (effect->info) {
-            fs = effect->info->frequency;
-         }
-
-         if ((offset + depth) > 1.0f) {
-            depth = 1.0f - offset;
-         }
-
-         // AAX_CHORUS_EFFECT
-         range = (60e-3f - 10e-3f);		// 10ms .. 60ms
-         depth *= range * fs;		// convert to samples
-         data->lfo.min = (range * offset + 10e-3f)*fs;
          data->loopback = AAX_FALSE;
+
          if (data->history_ptr)
          {
             free(data->history_ptr);
             data->history_ptr = 0;
          }
-         // AAX_CHORUS_EFFECT
 
          data->lfo.convert = _linear;
-         data->lfo.max = data->lfo.min + depth;
+         data->lfo.state = effect->state;
+         data->lfo.fs = effect->info->frequency;
+         data->lfo.period_rate = effect->info->period_rate;
+
+         data->lfo.min_sec = CHORUS_MIN;
+         data->lfo.range_sec = CHORUS_MAX - CHORUS_MIN;
+         data->lfo.depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-         if (depth > 0.05f)
+         constant = _lfo_set_timing(&data->lfo);
+
+         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
+         for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
+            data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
+         }
+
+         if (!constant)
          {
-            int t;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               // slowly work towards the new settings
-               step = data->lfo.step[t];
-               sign = step ? (step/fabsf(step)) : 1.0f;
-
-               data->lfo.step[t] = 2.0f*sign * data->lfo.f;
-               data->lfo.step[t] *= (data->lfo.max - data->lfo.min);
-               data->lfo.step[t] /= effect->info->period_rate;
-
-               if ((data->lfo.value[t] == 0)
-                   || (data->lfo.value[t] < data->lfo.min)) {
-                  data->lfo.value[t] = data->lfo.min;
-               } else if (data->lfo.value[t] > data->lfo.max) {
-                  data->lfo.value[t] = data->lfo.max;
-               }
-               data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
-
-               switch (state & ~AAX_INVERSE)
-               {
-               case AAX_SAWTOOTH_WAVE:
-                  data->lfo.step[t] *= 0.5f;
-                  break;
-               case AAX_ENVELOPE_FOLLOW:
-               {
-                  float fact = data->lfo.f;
-                  data->lfo.value[t] /= data->lfo.max;
-                  data->lfo.step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
-                  break;
-               }
-               default:
-                  break;
-               }
-            }
-
             switch (state & ~AAX_INVERSE)
             {
             case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
@@ -200,14 +168,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
                break;
             }
          }
-         else
-         {
-            int t;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               data->lfo.value[t] = data->lfo.min;
-               data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
-            }
+         else {
             data->lfo.get = _aaxRingBufferLFOGetFixedValue;
          }
       }
@@ -216,8 +177,6 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    }
    case AAX_FALSE:
    {
-      _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      if (data) data->lfo.envelope = AAX_FALSE;
       effect->slot[0]->destroy(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
       break;
@@ -242,10 +201,9 @@ _aaxNewChorusEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2
       unsigned int size = sizeof(_aaxEffectInfo);
 
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-      rv->slot[0]->destroy = destroy;
+      rv->slot[0]->destroy = _chorus_destroy;
       rv->slot[0]->data = NULL;
 
-//    rv->handle = handle;
       rv->state = p2d->effect[rv->pos].state;
    }
    return rv;
@@ -304,6 +262,17 @@ _eff_function_tbl _aaxChorusEffect =
    (_aaxEffectConvert*)&_aaxChorusEffectMinMax
 };
 
+static void
+_chorus_destroy(void *ptr)
+{
+   _aaxRingBufferDelayEffectData *data = ptr;
+   if (data)
+   {
+      data->lfo.envelope = AAX_FALSE;
+      free(data);
+   }
+}
+
 /**
  * - d and s point to a buffer containing the delay effects buffer prior to
  *   the pointer.
@@ -312,7 +281,7 @@ _eff_function_tbl _aaxChorusEffect =
  * - no_samples is the number of samples to process this run
  * - dmax does not include ds
  */
-void
+static void
 _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
              size_t start, size_t end, size_t no_samples, size_t ds,
              void *data, void *env, unsigned int track)
@@ -364,3 +333,4 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
       rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
    }
 }
+
