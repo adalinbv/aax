@@ -241,7 +241,7 @@ typedef struct
 {
    void (*run)(const _aaxDriverBackend*, const void*, void*, void*, void*);
 
-   _aaxRingBufferFreqFilterData *freq_filter
+   _aaxRingBufferFreqFilterData *freq_filter;
 
    float fc;
    float rms;
