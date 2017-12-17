@@ -71,8 +71,11 @@ static aaxFilter
 _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
-   aaxFilter rv = NULL;
+   aaxFilter rv = AAX_FALSE;
 
+   assert(filter->info);
+
+   filter->state = state;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
@@ -91,125 +94,91 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 
       if (lfo)
       {
-         float depth, offs = 0.0f;
-         int t;
-
-         depth = _MAX(filter->slot[0]->param[AAX_LFO_DEPTH], 0.01f);
-         if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
+         if (filter->type == AAX_COMPRESSOR)
          {
-            if (filter->type == AAX_COMPRESSOR)
-            {
-               lfo->min = filter->slot[0]->param[AAX_THRESHOLD];
-               lfo->max = depth;
-            }
-            else
-            {
-               offs = 0.49f*filter->slot[0]->param[AAX_LFO_OFFSET];
-               depth *= 0.5f;
-               lfo->min = offs;
-               lfo->max = offs + depth;
-            }
+            float f;
+
+            lfo->convert = _linear;
+            lfo->state = filter->state;
+            lfo->fs = filter->info->frequency;
+            lfo->period_rate = filter->info->period_rate;
+            lfo->envelope = AAX_TRUE;
+            lfo->stereo_lnk = AAX_TRUE;
+
+            f = filter->slot[0]->param[AAX_RELEASE_RATE];
+            lfo->min_sec = _aaxDynamicGainFilterMinMax(f, 0, AAX_RELEASE_RATE);
+
+            f = filter->slot[0]->param[AAX_ATTACK_RATE];
+            lfo->range_sec = _aaxDynamicGainFilterMinMax(f, 0, AAX_ATTACK_RATE);
+
+            f = filter->slot[1]->param[AAX_GATE_PERIOD & 0xF];
+            lfo->offset = _aaxDynamicGainFilterMinMax(f, 1, AAX_GATE_PERIOD & 0xF);
+
+            f = filter->slot[1]->param[AAX_GATE_THRESHOLD & 0xF];
+            lfo->gate_threshold = _aaxDynamicGainFilterMinMax(f, 1, AAX_GATE_THRESHOLD & 0xF);
+
+            lfo->min = filter->slot[0]->param[AAX_THRESHOLD];
+            lfo->max = filter->slot[0]->param[AAX_LFO_DEPTH];
+            lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+            _compressor_set_timing(lfo);
+
+            lfo->get = _aaxRingBufferLFOGetCompressor;
          }
-         else 
+         else
          {
-            lfo->min = offs;
-            lfo->max = offs + depth;
-         }
-         lfo->envelope = AAX_FALSE;
-         lfo->stereo_lnk = AAX_FALSE;
-         lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-         lfo->convert = _linear;
+            int constant;
 
-         for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-         {
-            lfo->step[t] = 2.0f*depth * lfo->f;
-            lfo->step[t] *= (lfo->max - lfo->min);
-            lfo->step[t] /= filter->info->period_rate;
-            lfo->value[t] = 1.0f;
+            lfo->convert = _linear;
+            lfo->state = filter->state;
+            lfo->fs = filter->info->frequency;
+            lfo->period_rate = filter->info->period_rate;
+            lfo->envelope = AAX_FALSE;
+            lfo->stereo_lnk = AAX_FALSE;
 
-            switch (state & ~AAX_INVERSE)
+            lfo->min_sec = 0.0f;
+            lfo->range_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs - lfo->min_sec;
+            lfo->depth = 1.0f;
+            lfo->offset = 0.0f;
+            lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
+            lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+            if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
             {
-            case AAX_SAWTOOTH_WAVE:
-               lfo->step[t] *= 0.5f;
-               break;
-            case AAX_ENVELOPE_FOLLOW:
+               lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
+               lfo->range_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs - lfo->min_sec;
+            }
+
+            constant = _lfo_set_timing(lfo);
+            if (!constant)
             {
-               if (filter->type == AAX_COMPRESSOR)
-               {		// 10dB
-                  float dt = 3.16228f/filter->info->period_rate;
-                  float rate;
-
-                  /*
-                   * We're implementing an upward dynamic range
-                   * compressor, which means that attack is down!
-                   */
-                  rate = filter->slot[0]->param[AAX_RELEASE_RATE];
-                  rate = _aaxDynamicGainFilterMinMax(rate, 0, AAX_RELEASE_RATE);
-                  lfo->step[t] = _MIN(dt/rate, 2.0f);
-
-                  rate = filter->slot[0]->param[AAX_ATTACK_RATE];
-                  rate = _aaxDynamicGainFilterMinMax(rate, 0, AAX_ATTACK_RATE);
-                  lfo->down[t] = _MIN(dt/rate, 2.0f);
+               switch (state & ~AAX_INVERSE)
+               {
+               case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
+                  lfo->get = _aaxRingBufferLFOGetFixedValue;
+                  break;
+               case AAX_TRIANGLE_WAVE:
+                  lfo->get = _aaxRingBufferLFOGetTriangle;
+                  break;
+               case AAX_SINE_WAVE:
+                  lfo->get = _aaxRingBufferLFOGetSine;
+                  break;
+               case AAX_SQUARE_WAVE:
+                  lfo->get = _aaxRingBufferLFOGetSquare;
+                  break;
+               case AAX_SAWTOOTH_WAVE:
+                  lfo->get = _aaxRingBufferLFOGetSawtooth;
+                  break;
+               case AAX_ENVELOPE_FOLLOW:
+                   lfo->get = _aaxRingBufferLFOGetGainFollow;
+                   lfo->envelope = AAX_TRUE;
+                  break;
+               default:
+                  break;
                }
-               else {
-                  lfo->step[t] = atanf(lfo->f*0.1f)/atanf(100.0f);
-               }
-               break;
-            }
-            default:
-               break;
-            }
-         }
-
-         if (depth > 0.001f)
-         {
-            switch (state & ~AAX_INVERSE)
-            {
-            case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
+            } else {
                lfo->get = _aaxRingBufferLFOGetFixedValue;
-               break;
-            case AAX_TRIANGLE_WAVE:
-               lfo->get = _aaxRingBufferLFOGetTriangle;
-               break;
-            case AAX_SINE_WAVE:
-               lfo->get = _aaxRingBufferLFOGetSine;
-               break;
-            case AAX_SQUARE_WAVE:
-               lfo->get = _aaxRingBufferLFOGetSquare;
-               break;
-            case AAX_SAWTOOTH_WAVE:
-               lfo->get = _aaxRingBufferLFOGetSawtooth;
-               break;
-            case AAX_ENVELOPE_FOLLOW:
-               if (filter->type == AAX_COMPRESSOR)
-               {
-                  float dt = 1.0f/filter->info->period_rate;
-                  float f;
-
-                  f = filter->slot[1]->param[AAX_GATE_PERIOD & 0xF];
-                  f = _aaxDynamicGainFilterMinMax(f, 1, AAX_GATE_PERIOD & 0xF);
-                  lfo->gate_period = GMATH_E1 * _MIN(dt/f, 2.0f);
-
-                  f = filter->slot[1]->param[AAX_GATE_THRESHOLD & 0xF];
-                  f = _aaxDynamicGainFilterMinMax(f, 1, AAX_GATE_THRESHOLD & 0xF);
-                  lfo->gate_threshold = f;
-
-                  lfo->get = _aaxRingBufferLFOGetCompressor;
-               }
-               else
-               {
-                  lfo->get = _aaxRingBufferLFOGetGainFollow;
-                  lfo->max *= 10.0f; // maximum compression factor
-               }
-               lfo->envelope = AAX_TRUE;
-               lfo->stereo_lnk = AAX_TRUE;
-               break;
-            default:
-               break;
             }
-         } else {
-            lfo->get = _aaxRingBufferLFOGetFixedValue;
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

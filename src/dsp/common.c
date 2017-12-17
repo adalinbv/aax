@@ -61,9 +61,6 @@ _lfo_set_timing(_aaxRingBufferLFOData *lfo)
    float fs = lfo->fs;
    int constant;
 
-   if ((offset + depth) > 1.0f) {
-      depth = 1.0f - offset;
-   }
    depth *= range * fs; 
    constant = (depth > 0.05f) ? AAX_FALSE : AAX_TRUE;
    
@@ -118,3 +115,29 @@ _lfo_set_timing(_aaxRingBufferLFOData *lfo)
    return constant;
 }
 
+int
+_compressor_set_timing(_aaxRingBufferLFOData *lfo)
+{
+   float dt = 3.16228f/lfo->period_rate;
+   int t;
+
+   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+   {
+      lfo->step[t] = 2.0f*lfo->max * lfo->f;
+      lfo->step[t] *= (lfo->max - lfo->min);
+      lfo->step[t] /= lfo->period_rate;
+      lfo->value[t] = 1.0f;
+      
+      /*
+       * We're implementing an upward dynamic range
+       * compressor, which means that attack is down!
+       */
+      lfo->step[t] = _MIN(dt/lfo->min_sec, 2.0f);
+      lfo->down[t] = _MIN(dt/lfo->range_sec, 2.0f);
+   }
+
+   dt = 1.0f/lfo->period_rate;
+   lfo->gate_period = GMATH_E1 * _MIN(dt/lfo->offset, 2.0f);
+
+   return 0;
+}

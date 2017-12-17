@@ -176,6 +176,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                lfo->inv = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
 
+               if ((lfo->offset + lfo->depth) > 1.0f) {
+                  lfo->depth = 1.0f - lfo->offset;
+               }
+
                constant = _lfo_set_timing(lfo);
 
                lfo->envelope = AAX_FALSE;
