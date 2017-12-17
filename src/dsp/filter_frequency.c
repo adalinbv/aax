@@ -170,16 +170,26 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->fs = filter->info->frequency;
                lfo->period_rate = filter->info->period_rate;
 
-               lfo->min_sec = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY]/lfo->fs;
-               lfo->range_sec = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY]/lfo->fs - lfo->min_sec;
+               lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+               lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+               if (fabsf(lfo->max - lfo->min) < 200.0f)
+               {
+                  lfo->min = 0.5f*(lfo->min + lfo->max);
+                  lfo->max = lfo->min;
+               }
+               else if (lfo->max < lfo->min)
+               {
+                  float f = lfo->max;
+                  lfo->max = lfo->min;
+                  lfo->min = f;
+               }
+
+               lfo->min_sec = lfo->min/lfo->fs;
+               lfo->range_sec = lfo->max/lfo->fs - lfo->min_sec;
                lfo->depth = 1.0f;
                lfo->offset = 0.0f;
                lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                lfo->inv = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
-
-               if ((lfo->offset + lfo->depth) > 1.0f) {
-                  lfo->depth = 1.0f - lfo->offset;
-               }
 
                constant = _lfo_set_timing(lfo);
 
