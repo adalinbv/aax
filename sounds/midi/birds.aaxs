@@ -12,14 +12,6 @@
   <waveform src="square" pitch="1.0"/>
   <waveform src="impulse" processing="mix" ratio="0.7" pitch="1.0"/>
   <waveform src="sawtooth" processing="modulate" ratio="3.0" pitch="1.498"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">1200</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">3.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">
@@ -35,11 +27,11 @@
     <param n="3">0.1</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="sawtooth">
+  <filter type="dynamic-gain" src="triangle">
    <slot n="0">
-    <param n="1">0.19</param>
-    <param n="2">0.5</param>
-    <param n="3">0.1</param>
+    <param n="1">0.171</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -47,28 +39,26 @@
     <param n="0">0.10</param>
    </slot>
   </effect>
-  <effect type="chorus" src="sine">
+  <effect type="dynamic-pitch" src="square">
    <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.07</param>
-    <param n="2">0.2</param>
-    <param n="3">0.8</param>
+    <param n="1">0.41</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
  <audioframe>
-   <filter type="dynamic-gain" src="square">
+  <filter type="dynamic-gain" src="square">
    <slot n="0">
-    <param n="1">0.08</param>
-    <param n="2">0.5</param>
-    <param n="3">0.5</param>
+    <param n="1">0.071</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="chorus" src="triangle">
+  <effect type="dynamic-pitch" src="sine">
    <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.01</param>
+    <param n="1">0.1581</param>
     <param n="2">0.2</param>
     <param n="3">0.8</param>
    </slot>
