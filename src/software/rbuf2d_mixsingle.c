@@ -43,6 +43,7 @@
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/lfo.h>
 
 #include <api.h>
 
@@ -77,7 +78,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
    _aaxRingBufferEnvelopeData *genv, *penv;
-   _aaxRingBufferLFOData *lfo;
+   _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
    float gain, gain0, svol, evol;

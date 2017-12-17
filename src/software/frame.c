@@ -30,6 +30,7 @@
 #include <base/buffers.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/lfo.h>
 
 #include <objects.h>
 #include <devices.h>
@@ -52,7 +53,7 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
    if (buf)
    {
       _aaxRingBuffer *src_rb  = _intBufGetDataPtr(buf);
-      _aaxRingBufferLFOData *lfo;
+      _aaxLFOData *lfo;
 
       lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
       dest_rb->data_mix(dest_rb, src_rb, lfo);
@@ -126,7 +127,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                       const _aaxDriverBackend *be, void *be_handle,
                       char fprocess, char batched)
 {
-   _aaxRingBufferLFOData *lfo;
+   _aaxLFOData *lfo;
    char process;
 
    /* update the model-view matrix based on our own and that of out parent */

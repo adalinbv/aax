@@ -152,41 +152,6 @@ typedef struct
 } _aaxRingBufferEnvelopeData;
 
 
-typedef float _aaxRingBufferLFOGetFn(void *, void*, const void*, unsigned, size_t);
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSine;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSquare;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetTriangle;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSawtooth;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetFixedValue;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetGainFollow;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetCompressor;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetPitchFollow;
-
-typedef float _convert_fn(float, float);
-_convert_fn _linear;
-_convert_fn _compress;
-
-typedef struct
-{
-   int state;
-   float fs, period_rate, offset, depth;
-   float min_sec, range_sec;
-
-   float f, min, max;
-   float gate_threshold, gate_period;
-   float step[_AAX_MAX_SPEAKERS];       /* step = frequency / refresh_rate */
-   float down[_AAX_MAX_SPEAKERS];       /* compressor release rate         */
-   float value[_AAX_MAX_SPEAKERS];      /* current value                   */
-   float average[_AAX_MAX_SPEAKERS];    /* average value over time         */
-   float compression[_AAX_MAX_SPEAKERS];        /* compression level       */
-   _aaxRingBufferLFOGetFn *get;
-   _convert_fn *convert;
-   char inv, envelope, stereo_lnk;
-} _aaxRingBufferLFOData;
-
-int _lfo_set_timing(_aaxRingBufferLFOData*);
-int _compressor_set_timing(_aaxRingBufferLFOData*);
-
 /* frequency filters */
 #define _aax_movingaverage_compute(fc, fs)	(1.f-expf(-GMATH_2PI*(fc)/(fs)))
 

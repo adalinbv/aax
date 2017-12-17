@@ -37,7 +37,8 @@
 #include <base/gmath.h>
 
 #include <software/rbuf_int.h>
-#include "common.h"
+
+#include "lfo.h"
 #include "filters.h"
 #include "api.h"
 
@@ -153,10 +154,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          // Non-Manual only
          if (wstate && EBF_VALID(filter) && filter->slot[1])
          {
-            _aaxRingBufferLFOData* lfo = flt->lfo;
+            _aaxLFOData* lfo = flt->lfo;
 
             if (lfo == NULL) {
-               lfo = flt->lfo = malloc(sizeof(_aaxRingBufferLFOData));
+               lfo = flt->lfo = _lfo_create();
             }
 
             if (lfo)
@@ -215,7 +216,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          } /* flt */
          else if (wstate == AAX_FALSE)
          {
-            free(flt->lfo);
+            _lfo_destroy(flt->lfo);
             flt->lfo = NULL;
          }
       }

@@ -30,6 +30,7 @@
 #include <ringbuffer.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/lfo.h>
 
 #include "cpu/arch2d_simd.h"
 #include "rbuf_int.h"
@@ -190,7 +191,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
 
             do
             {
-               _aaxRingBufferLFOData *lfo;
+               _aaxLFOData *lfo;
 
                lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
                if (lfo)

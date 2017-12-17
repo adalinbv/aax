@@ -1,11 +1,13 @@
 
 set(DSP_HEADERS
+  lfo.h
   common.h
   effects.h
   filters.h
 )
 
 set(DSP_SOURCES
+  lfo.c
   common.c
   filters.c
   effects.c

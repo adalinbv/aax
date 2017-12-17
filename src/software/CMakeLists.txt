@@ -18,7 +18,6 @@ set(SOFTWARE_SOURCES
   rbuf_codecs.c
   rbuf_codec_tables.c
   rbuf_int.h
-  rbuf_lfo.c
   rbuf_mixers.c
   rbuf_mixmulti.c
   renderer.c

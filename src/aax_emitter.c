@@ -41,6 +41,7 @@
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/lfo.h>
 
 #include "api.h"
 #include "devices.h"
@@ -1348,7 +1349,7 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
    case AAX_DYNAMIC_PITCH_EFFECT:
    {
       _aax2dProps *p2d = src->props2d;
-      _aaxRingBufferLFOData *lfo;
+      _aaxLFOData *lfo;
 
       _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
       _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));

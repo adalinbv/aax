@@ -36,6 +36,7 @@
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
 
+#include "lfo.h"
 #include "effects.h"
 #include "api.h"
 #include "arch.h"
@@ -50,7 +51,7 @@ _aaxDynamicPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
-      eff->slot[0]->destroy = destroy;
+      eff->slot[0]->destroy = _lfo_destroy;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -84,11 +85,9 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_ENVELOPE_FOLLOW:
    {
-      _aaxRingBufferLFOData* lfo = effect->slot[0]->data;
-      if (lfo == NULL)
-      {
-         lfo = malloc(sizeof(_aaxRingBufferLFOData));
-         effect->slot[0]->data = lfo;
+      _aaxLFOData* lfo = effect->slot[0]->data;
+      if (lfo == NULL) {
+         effect->slot[0]->data = lfo = _lfo_create();
       }
 
       if (lfo)

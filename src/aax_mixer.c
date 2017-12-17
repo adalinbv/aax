@@ -42,6 +42,7 @@
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/lfo.h>
 
 #include "api.h"
 #include "arch.h"
@@ -398,7 +399,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *mixer = sensor->mixer;
-                  _aaxRingBufferLFOData *lfo;
+                  _aaxLFOData *lfo;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
                   if (lfo) {
@@ -420,7 +421,7 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                {
                   _sensor_t* sensor = _intBufGetDataPtr(dptr);
                   _aaxAudioFrame *mixer = sensor->mixer;
-                  _aaxRingBufferLFOData *lfo;
+                  _aaxLFOData *lfo;
                   int state;
 
                   lfo = _FILTER_GET2D_DATA(mixer, DYNAMIC_GAIN_FILTER);
