@@ -185,6 +185,7 @@ typedef struct
 } _aaxRingBufferLFOData;
 
 int _lfo_set_timing(_aaxRingBufferLFOData*);
+int _compressor_set_timing(_aaxRingBufferLFOData*);
 
 /* frequency filters */
 #define _aax_movingaverage_compute(fc, fs)	(1.f-expf(-GMATH_2PI*(fc)/(fs)))

@@ -72,6 +72,9 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
 
+   assert(effect->info);
+
+   effect->state = state;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
@@ -90,42 +93,24 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 
       if (lfo)
       {
-         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         int t;
+         int constant;
 
-         lfo->min = 1.0f - 0.5f*depth;
-         lfo->max = 1.0f + 0.5f*depth;
-
+         lfo->convert = _linear;
+         lfo->state = effect->state;
+         lfo->fs = effect->info->frequency;
+         lfo->period_rate = effect->info->period_rate;
          lfo->envelope = AAX_FALSE;
          lfo->stereo_lnk = AAX_TRUE;
+
+         lfo->min_sec = 0.0f;
+         lfo->range_sec = effect->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
+         lfo->depth = 1.0f;
+         lfo->offset = 0.5f;
          lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-         lfo->convert = _linear;
 
-         for(t=0; t<_AAX_MAX_SPEAKERS; t++)
-         {
-            lfo->step[t] = -2.0f*depth * lfo->f;
-            lfo->step[t] *= (lfo->max - lfo->min);
-            lfo->step[t] /= effect->info->period_rate;
-            lfo->value[t] = 1.0f; // 0.5f*(lfo->min+lfo->max);
-            switch (state & ~AAX_INVERSE)
-            {
-            case AAX_CONSTANT_VALUE:
-                lfo->value[t] = 1.0f;
-                break;
-            case AAX_SAWTOOTH_WAVE:
-               lfo->step[t] *= 0.5f;
-               break;
-            case AAX_ENVELOPE_FOLLOW:
-               lfo->value[t] = lfo->min/lfo->max;
-               lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-               break;
-            default:
-               break;
-            }
-         }
-
-         if (depth > 0.01f)
+         constant = _lfo_set_timing(lfo);
+         if (!constant)
          {
             switch (state & ~AAX_INVERSE)
             {
