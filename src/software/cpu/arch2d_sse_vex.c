@@ -79,7 +79,10 @@ _batch_get_average_rms_vex(const_float32_ptr s, size_t num, float *rms, float *p
       if (i)
       {
           __m128 xmm0, xmm1, xmm2, xmm3;
-          float f[4][4];
+          union {
+             __m128 x[4];
+             float f[4][4];
+          } v;
 
          num -= i*step;
          s += i*step;
@@ -90,16 +93,16 @@ _batch_get_average_rms_vex(const_float32_ptr s, size_t num, float *rms, float *p
             xmm2 = _mm_load_ps((const float*)sptr++);
             xmm3 = _mm_load_ps((const float*)sptr++);
 
-            _mm_store_ps(f[0], _mm_mul_ps(xmm0, xmm0));
-            _mm_store_ps(f[1], _mm_mul_ps(xmm1, xmm1));
-            _mm_store_ps(f[2], _mm_mul_ps(xmm2, xmm2));
-            _mm_store_ps(f[3], _mm_mul_ps(xmm3, xmm3));
+            _mm_store_ps(v.f[0], _mm_mul_ps(xmm0, xmm0));
+            _mm_store_ps(v.f[1], _mm_mul_ps(xmm1, xmm1));
+            _mm_store_ps(v.f[2], _mm_mul_ps(xmm2, xmm2));
+            _mm_store_ps(v.f[3], _mm_mul_ps(xmm3, xmm3));
 
             for (j=0; j<4; ++j)
             {
                for (k=0; k<4; ++k)
                {
-                  float val = f[j][k];
+                  float val = v.f[j][k];
 
                   rms_total += val;
                   if (val > peak_cur) peak_cur = val;
