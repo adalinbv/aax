@@ -37,6 +37,7 @@
 #include <base/timer.h>		/* for msecSleep */
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/lfo.h>
 
 #include "ringbuffer.h"
 #include "arch.h"
@@ -357,7 +358,7 @@ aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
       if (type & AAX_COMPRESSION_VALUE)
       {
          _aaxAudioFrame* fmixer = handle->submix;
-         _aaxRingBufferLFOData *lfo;
+         _aaxLFOData *lfo;
 
          lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
          if (lfo) {
@@ -367,7 +368,7 @@ aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
       else if (type & AAX_GATE_ENABLED)
       {
          _aaxAudioFrame* fmixer = handle->submix;
-         _aaxRingBufferLFOData *lfo;
+         _aaxLFOData *lfo;
 
          lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
          if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {

@@ -30,6 +30,7 @@
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/lfo.h>
 
 #include <api.h>
 #include <ringbuffer.h>
@@ -39,7 +40,7 @@
 void
 _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, size_t offs, size_t dno_samples, float gain, float svol, float evol, UNUSED(char cptr))
 {
-   _aaxRingBufferLFOData *lfo;
+   _aaxLFOData *lfo;
    unsigned int rbd_tracks;
    unsigned int rbs_tracks;
    unsigned int track;

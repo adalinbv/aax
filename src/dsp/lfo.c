@@ -18,13 +18,129 @@
  *  with this program; if not, write to the Free Software Foundation, Inc.,
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
-
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
 
-#include <ringbuffer.h>
-#include "rbuf_int.h"
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <stdlib.h>
+# include <malloc.h>
+#endif
+
+#include <base/geometry.h>
+#include <arch.h>
+
+#include "common.h"
+#include "lfo.h"
+
+_aaxLFOData*
+_lfo_create()
+{
+   return malloc(sizeof(_aaxLFOData));
+}
+
+void
+_lfo_destroy(void *data)
+{
+   _aaxLFOData *lfo = data;
+   if (lfo) lfo->envelope = AAX_FALSE;
+   free(lfo);
+}
+
+int
+_lfo_set_timing(_aaxLFOData *lfo)
+{
+   float min = lfo->min_sec;
+   float range = lfo->range_sec;
+   float depth = lfo->depth;
+   float offset = lfo->offset;
+   float fs = lfo->fs;
+   int constant;
+
+   depth *= range * fs; 
+   constant = (depth > 0.05f) ? AAX_FALSE : AAX_TRUE;
+   
+   lfo->min = (range * offset + min)*fs;
+   lfo->max = lfo->min + depth;
+
+   if (!constant)
+   {
+      float sign, step;
+      int t;
+      for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+      {
+         // slowly work towards the new settings
+         step = lfo->step[t];
+         sign = step ? (step/fabsf(step)) : 1.0f;
+
+         lfo->step[t] = 2.0f*sign * lfo->f;
+         lfo->step[t] *= (lfo->max - lfo->min);
+         lfo->step[t] /= lfo->period_rate;
+
+         if ((lfo->value[t] == 0) || (lfo->value[t] < lfo->min)) {
+            lfo->value[t] = lfo->min;
+         } else if (lfo->value[t] > lfo->max) {
+            lfo->value[t] = lfo->max;
+         }
+
+         switch (lfo->state & ~AAX_INVERSE)
+         {
+         case AAX_SAWTOOTH_WAVE:
+            lfo->step[t] *= 0.5f;
+            break;
+         case AAX_ENVELOPE_FOLLOW:
+         {
+            float fact = lfo->f;
+            lfo->value[t] /= lfo->max;
+            lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(fact);
+            break;
+         }
+         default:
+            break;
+         }
+      }
+   }
+   else
+   {
+      int t;
+      for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
+         lfo->value[t] = lfo->min;
+      }
+   }
+
+   return constant;
+}
+
+int
+_compressor_set_timing(_aaxLFOData *lfo)
+{
+   float dt = 3.16228f/lfo->period_rate;
+   int t;
+
+   for (t=0; t<_AAX_MAX_SPEAKERS; t++)
+   {
+      lfo->step[t] = 2.0f*lfo->max * lfo->f;
+      lfo->step[t] *= (lfo->max - lfo->min);
+      lfo->step[t] /= lfo->period_rate;
+      lfo->value[t] = 1.0f;
+      
+      /*
+       * We're implementing an upward dynamic range
+       * compressor, which means that attack is down!
+       */
+      lfo->step[t] = _MIN(dt/lfo->min_sec, 2.0f);
+      lfo->down[t] = _MIN(dt/lfo->range_sec, 2.0f);
+   }
+
+   dt = 1.0f/lfo->period_rate;
+   lfo->gate_period = GMATH_E1 * _MIN(dt/lfo->offset, 2.0f);
+
+   return 0;
+}
+
+
 
 /*
  * Low Frequency Oscilator funtions
@@ -44,7 +160,7 @@
 float
 _aaxRingBufferLFOGetFixedValue(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
-   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -58,7 +174,7 @@ _aaxRingBufferLFOGetFixedValue(void* data, UNUSED(void *env), UNUSED(const void 
 float
 _aaxRingBufferLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
-   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -95,7 +211,7 @@ _fast_sin1(float x)
 float
 _aaxRingBufferLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
-   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -122,7 +238,7 @@ _aaxRingBufferLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr),
 float
 _aaxRingBufferLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
-   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -147,7 +263,7 @@ _aaxRingBufferLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr
 float
 _aaxRingBufferLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
-   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
    float rv = 1.0f;
    if (lfo)
    {
@@ -171,7 +287,7 @@ _aaxRingBufferLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *p
 float
 _aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, size_t num)
 {
-   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
    static const float div = 1.0f / (float)0x000fffff;
    float rv = 1.0f;
    if (lfo && ptr && num)
@@ -211,7 +327,7 @@ _aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned 
 float
 _aaxRingBufferLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned track, size_t num)
 {
-   _aaxRingBufferLFOData* lfo = (_aaxRingBufferLFOData*)data;
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
    static const float div = 1.0f / (float)0x007fffff;
    float rv = 1.0f;
    if (lfo && ptr && num)

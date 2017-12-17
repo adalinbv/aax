@@ -32,7 +32,7 @@ extern "C" {
 
 #include <base/geometry.h>
 
-#include <dsp/common.h>
+#include <dsp/lfo.h>
 #include <driver.h>
 #include <objects.h>
 
@@ -119,7 +119,7 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 
 typedef struct
 {
-   _aaxRingBufferLFOData *lfo;
+   _aaxLFOData *lfo;
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
                unsigned int, void*, void*);
 }
@@ -127,7 +127,7 @@ _aaxRingBufferDistoritonData;
 
 typedef struct
 {
-   _aaxRingBufferLFOData *lfo;
+   _aaxLFOData *lfo;
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
                unsigned int, void*, void*, unsigned char);
 
@@ -156,7 +156,7 @@ typedef struct
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
                size_t, size_t, void*, void*, unsigned int);
 
-   _aaxRingBufferLFOData lfo;
+   _aaxLFOData lfo;
    _aaxRingBufferDelayData delay;
 
    int32_t* delay_history[_AAX_MAX_SPEAKERS];
@@ -529,7 +529,7 @@ _aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aaxRingBufferLFOData*);
+_aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aaxLFOData*);
 
 /**
  * Alter the gain of the ringbuffer audio data

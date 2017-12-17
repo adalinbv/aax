@@ -41,6 +41,7 @@
 #include <api.h>
 #include <arch.h>
 #include <ringbuffer.h>
+#include <dsp/lfo.h>
 
 #include "audio.h"
 #include "rbuf_int.h"
@@ -1230,7 +1231,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
 }
 
 int
-_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxRingBufferLFOData *lfo)
+_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxLFOData *lfo)
 {
    _aaxRingBufferData *srbi, *drbi;
    _aaxRingBufferSample *drbd;

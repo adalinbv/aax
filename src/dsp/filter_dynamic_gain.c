@@ -36,7 +36,7 @@
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
-#include "common.h"
+#include "lfo.h"
 #include "filters.h"
 #include "api.h"
 
@@ -51,7 +51,7 @@ _aaxDynamicGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    if (flt)
    {
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
-      flt->slot[0]->destroy = destroy;
+      flt->slot[0]->destroy = _lfo_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -85,11 +85,9 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_ENVELOPE_FOLLOW:
    {
-      _aaxRingBufferLFOData* lfo = filter->slot[0]->data;
-      if (lfo == NULL)
-      {
-         lfo = malloc(sizeof(_aaxRingBufferLFOData));
-         filter->slot[0]->data = lfo;
+      _aaxLFOData* lfo = filter->slot[0]->data;
+      if (lfo == NULL) {
+         filter->slot[0]->data = lfo = _lfo_create();
       }
 
       if (lfo)

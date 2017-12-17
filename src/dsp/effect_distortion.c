@@ -85,18 +85,18 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       if (data == NULL)
       {
          data = malloc(sizeof(_aaxRingBufferDistoritonData) +
-                       sizeof(_aaxRingBufferLFOData));
+                       sizeof(_aaxLFOData));
          effect->slot[0]->data = data;
          if (data)
          {
             char *ptr = (char*)data + sizeof(_aaxRingBufferDistoritonData);
-            data->lfo = (_aaxRingBufferLFOData*)ptr;
+            data->lfo = (_aaxLFOData*)ptr;
          }
       }
 
       if (data)
       {
-         _aaxRingBufferLFOData *lfo = data->lfo;
+         _aaxLFOData *lfo = data->lfo;
          int t;
 
          data->run = _distortion_run;
@@ -242,7 +242,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)data;
    _aaxRingBufferDistoritonData *dist_data = dist_effect->data;
-   _aaxRingBufferLFOData* lfo = dist_data->lfo;
+   _aaxLFOData* lfo = dist_data->lfo;
    float *params = dist_effect->param;
    float clip, asym, fact, mix;
    size_t no_samples;
