@@ -190,37 +190,19 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->offset = 0.0f;
                lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                lfo->inv = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
+               lfo->stereo_lnk = AAX_TRUE;
 
                constant = _lfo_set_timing(lfo);
+#if 1
+int t;
+               for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
+                  lfo->value[t] = 0.0f;
+               }
+#endif
 
                lfo->envelope = AAX_FALSE;
-               if (!constant)
-               {
-                  switch (wstate)
-                  {
-                  case AAX_TRIANGLE_WAVE:
-                     lfo->get = _aaxRingBufferLFOGetTriangle;
-                     break;
-                  case AAX_SINE_WAVE:
-                     lfo->get = _aaxRingBufferLFOGetSine;
-                     break;
-                  case AAX_SQUARE_WAVE:
-                     lfo->get = _aaxRingBufferLFOGetSquare;
-                     break;
-                  case AAX_SAWTOOTH_WAVE:
-                     lfo->get = _aaxRingBufferLFOGetSawtooth;
-                     break;
-                  case AAX_ENVELOPE_FOLLOW:
-                     lfo->get = _aaxRingBufferLFOGetGainFollow;
-                     lfo->envelope = AAX_TRUE;
-                     break;
-                  default:
-                     _aaxErrorSet(AAX_INVALID_PARAMETER);
-                     break;
-                  }
-               }
-               else {
-                  lfo->get = _aaxRingBufferLFOGetFixedValue;
+               if (!_lfo_set_function(lfo, constant)) {
+                  _aaxErrorSet(AAX_INVALID_PARAMETER);
                }
             } /* flt->lfo */
          } /* flt */

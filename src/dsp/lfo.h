@@ -40,15 +40,16 @@ _convert_fn _compress;
 #define _MAX_ENVELOPE_STAGES            6
 #define ENVELOPE_FOLLOW_STEP_CVT(a)     _MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0f, 1.0f)
 
-typedef float _aaxRingBufferLFOGetFn(void *, void*, const void*, unsigned, size_t);
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSine;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSquare;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetTriangle;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetSawtooth;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetFixedValue;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetGainFollow;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetCompressor;
-_aaxRingBufferLFOGetFn _aaxRingBufferLFOGetPitchFollow;
+typedef float _aaxLFOGetFn(void *, void*, const void*, unsigned, size_t);
+
+_aaxLFOGetFn _aaxLFOGetSine;
+_aaxLFOGetFn _aaxLFOGetSquare;
+_aaxLFOGetFn _aaxLFOGetTriangle;
+_aaxLFOGetFn _aaxLFOGetSawtooth;
+_aaxLFOGetFn _aaxLFOGetFixedValue;
+_aaxLFOGetFn _aaxLFOGetGainFollow;
+_aaxLFOGetFn _aaxLFOGetCompressor;
+_aaxLFOGetFn _aaxLFOGetPitchFollow;
 
 typedef struct
 {
@@ -63,7 +64,7 @@ typedef struct
    float value[_AAX_MAX_SPEAKERS];      /* current value                   */
    float average[_AAX_MAX_SPEAKERS];    /* average value over time         */
    float compression[_AAX_MAX_SPEAKERS];        /* compression level       */
-   _aaxRingBufferLFOGetFn *get;
+   _aaxLFOGetFn *get;
    _convert_fn *convert;
    char inv, envelope, stereo_lnk;
 } _aaxLFOData;
@@ -71,9 +72,22 @@ typedef struct
 _aaxLFOData* _lfo_create(void);
 void _lfo_destroy(void*);
 
+int _lfo_set_function(_aaxLFOData*, int);
 int _lfo_set_timing(_aaxLFOData*);
 int _compressor_set_timing(_aaxLFOData*);
 
+
+typedef struct
+{
+   float ctr;
+   float value0, value, value_total;
+   uint32_t pos;
+   unsigned int stage, max_stages, repeat;
+   float step[_MAX_ENVELOPE_STAGES];
+   uint32_t max_pos[_MAX_ENVELOPE_STAGES];
+} _aaxEnvelopeData;
+
+float _aaxEnvelopeGet(_aaxEnvelopeData*, char, float*, _aaxEnvelopeData*);
 
 #endif /* _AAX_FE_LFO_H */
 

@@ -36,7 +36,7 @@
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
-#include "common.h"
+#include "lfo.h"
 #include "filters.h"
 #include "api.h"
 
@@ -76,10 +76,10 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
 
    if TEST_FOR_TRUE(state)
    {
-      _aaxRingBufferEnvelopeData* env = filter->slot[0]->data;
+      _aaxEnvelopeData* env = filter->slot[0]->data;
       if (env == NULL)
       {
-         env =  calloc(1, sizeof(_aaxRingBufferEnvelopeData));
+         env =  calloc(1, sizeof(_aaxEnvelopeData));
          filter->slot[0]->data = env;
       }
 
@@ -163,7 +163,7 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
    if (rv)
    {
       unsigned int size = sizeof(_aaxFilterInfo);
-      _aaxRingBufferEnvelopeData *env;
+      _aaxEnvelopeData *env;
       unsigned int no_steps;
       float dt, value;
       int i, stages;
@@ -175,7 +175,7 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
       rv->state = p2d->filter[rv->pos].state;
 
       i = 0;
-      env = (_aaxRingBufferEnvelopeData*)p2d->filter[rv->pos].data;
+      env = (_aaxEnvelopeData*)p2d->filter[rv->pos].data;
 
       if (env->max_pos[1] > env->max_pos[0]) i = 1;
       dt = p2d->filter[rv->pos].param[2*i+1] / env->max_pos[i];

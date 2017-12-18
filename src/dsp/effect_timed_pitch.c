@@ -77,10 +77,10 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 
    if TEST_FOR_TRUE(state)
    {
-      _aaxRingBufferEnvelopeData* env = effect->slot[0]->data;
+      _aaxEnvelopeData* env = effect->slot[0]->data;
       if (env == NULL)
       {
-         env =  calloc(1, sizeof(_aaxRingBufferEnvelopeData));
+         env =  calloc(1, sizeof(_aaxEnvelopeData));
          effect->slot[0]->data = env;
       }
 
@@ -161,7 +161,7 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
    if (rv)
    {
       unsigned int size = sizeof(_aaxEffectInfo);
-      _aaxRingBufferEnvelopeData *env;
+      _aaxEnvelopeData *env;
       unsigned int no_steps;
       float dt, value;
       int i, stages;
@@ -173,7 +173,7 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
       rv->state = p2d->effect[rv->pos].state;
 
       i = 0;
-      env = (_aaxRingBufferEnvelopeData*)p2d->effect[rv->pos].data;
+      env = (_aaxEnvelopeData*)p2d->effect[rv->pos].data;
 
       if (env->max_pos[1] > env->max_pos[0]) i = 1;
       dt = p2d->effect[rv->pos].param[2*i+1] / env->max_pos[i];

@@ -109,34 +109,8 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          constant = _lfo_set_timing(lfo);
-         if (!constant)
-         {
-            switch (state & ~AAX_INVERSE)
-            {
-            case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
-               lfo->get = _aaxRingBufferLFOGetFixedValue;
-               break;
-            case AAX_TRIANGLE_WAVE:
-               lfo->get = _aaxRingBufferLFOGetTriangle;
-               break;
-            case AAX_SINE_WAVE:
-               lfo->get = _aaxRingBufferLFOGetSine;
-               break;
-            case AAX_SQUARE_WAVE:
-               lfo->get = _aaxRingBufferLFOGetSquare;
-               break;
-            case AAX_SAWTOOTH_WAVE:
-               lfo->get = _aaxRingBufferLFOGetSawtooth;
-               break;
-            case AAX_ENVELOPE_FOLLOW:
-                lfo->get = _aaxRingBufferLFOGetGainFollow;
-                lfo->envelope = AAX_TRUE;
-               break;
-            default:
-               break;
-            }
-         } else {
-            lfo->get = _aaxRingBufferLFOGetFixedValue;
+         if (!_lfo_set_function(lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
