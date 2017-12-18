@@ -7,6 +7,7 @@
 #include <base/geometry.h>
 #include <base/timer.h>
 #include <src/software/cpu/arch2d_simd.h>
+#include <arch.h>
 
 #define MAXNUM		(199*4096)
 #define TEST(a,d1,d2) \
@@ -35,10 +36,11 @@ _batch_fmadd_proc _batch_fmadd;
 _batch_mul_value_proc _batch_fmul_value;
 _batch_get_average_rms_proc _batch_get_average_rms;
 
+
 int main()
 {
     float *src, *dst1, *dst2;
-    char SIMD;
+    char SIMD = 0;
 #if __AVX__
     char avx;
 #endif
@@ -55,9 +57,9 @@ int main()
 
     srand(time(NULL));
 
-    src = (float*)malloc(MAXNUM*sizeof(double));
-    dst1 = (float*)malloc(MAXNUM*sizeof(double));
-    dst2 = (float*)malloc(MAXNUM*sizeof(double));
+    src = (float*)_aax_aligned_alloc(MAXNUM*sizeof(double));
+    dst1 = (float*)_aax_aligned_alloc(MAXNUM*sizeof(double));
+    dst2 = (float*)_aax_aligned_alloc(MAXNUM*sizeof(double));
 
     if (src && dst1 && dst2)
     {
@@ -202,7 +204,7 @@ int main()
         t = clock();
           _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("rms cpu:  %f\n", cpu*1000.0f);
+        printf("\nrms cpu:  %f\n", cpu*1000.0f);
 
 #if __AVX__
         _batch_get_average_rms = _batch_get_average_rms_vex;
@@ -240,9 +242,9 @@ int main()
         TEST("double fmul "MKSTR(SIMD), ddst1, ddst2);
     }
 
-    free(dst2);
-    free(dst1);
-    free(src);
+    _aax_aligned_free(dst2);
+    _aax_aligned_free(dst1);
+    _aax_aligned_free(src);
 
     return 0;
 }
