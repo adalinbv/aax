@@ -185,7 +185,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                }
 
                lfo->min_sec = lfo->min/lfo->fs;
-               lfo->range_sec = lfo->max/lfo->fs - lfo->min_sec;
+               lfo->max_sec = lfo->max/lfo->fs;
                lfo->depth = 1.0f;
                lfo->offset = 0.0f;
                lfo->f = filter->slot[1]->param[AAX_RESONANCE];
