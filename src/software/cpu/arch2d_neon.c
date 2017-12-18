@@ -70,25 +70,25 @@ _batch_get_average_rms_neon(const_float32_ptr s, size_t num, float *rms, float *
    i = num/step;
    if (i)
    {
-      float32x4_t nfr0, nfr1, nfr2, nfr3;
+      float32x4x4_t nfr4;
       union {
-         float32x4_t x[4];
+         float32x4x4_t x;
          float f[4][4];
       } v;
+      int j, k;
 
       num -= i*step;
       do
       {
-         nfr0 = vld4q_s32(s);
-         nfr1 = vld4q_s32(s+4);
-         nfr2 = vld4q_s32(s+8);
-         nfr3 = vld4q_s32(s+12);
+         nfr4 = vld4q_f32(s);
          s += 4*4;
 
-         vst4q_f32(v.f[0], _mm_mul_ps(nfr0, nfr0));
-         vst4q_f32(v.f[1], _mm_mul_ps(nfr1, nfr1));
-         vst4q_f32(v.f[2], _mm_mul_ps(nfr2, nfr2));
-         vst4q_f32(v.f[3], _mm_mul_ps(nfr3, nfr3));
+         nfr4.val[0] = vmulq_f32(nfr4.val[0], nfr4.val[0]);
+         nfr4.val[1] = vmulq_f32(nfr4.val[1], nfr4.val[1]);
+         nfr4.val[2] = vmulq_f32(nfr4.val[2], nfr4.val[2]);
+         nfr4.val[3] = vmulq_f32(nfr4.val[3], nfr4.val[3]);
+
+         vst4q_f32((float*)v.f, nfr4);
 
          for (j=0; j<4; ++j)
          {

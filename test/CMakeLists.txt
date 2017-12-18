@@ -10,7 +10,7 @@ endif(HAVE_LIBM)
 FUNCTION(CREATE_TEST TEST_NAME)
     if(ARM)
         SET_PROPERTY(SOURCE ${TEST_NAME}.c
-                     PROPERTY COMPILE_FLAGS "-march=armv5 -marm -static-libgcc -Wno-inline"
+                     PROPERTY COMPILE_FLAGS "-march=armv7-a -marm -static-libgcc -Wno-inline -mthumb -mfpu=neon"
         )
     elseif(X86_64)
         SET_PROPERTY(SOURCE ${TEST_NAME}.c
@@ -31,8 +31,8 @@ if (ARM)
   CREATE_TEST(test3dmath_neon)
 else()
   CREATE_TEST(test3dmath_sse)
-  CREATE_TEST(testarch2d_sse)
 endif()
+CREATE_TEST(testarch2d_sse)
 CREATE_TEST(testmemory)
 CREATE_TEST(testtypes)
 CREATE_TEST(testurl)
