@@ -127,7 +127,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          data->lfo.period_rate = effect->info->period_rate;
 
          data->lfo.min_sec = CHORUS_MIN;
-         data->lfo.range_sec = CHORUS_MAX - CHORUS_MIN;
+         data->lfo.max_sec = CHORUS_MAX;
          data->lfo.depth = effect->slot[0]->param[AAX_LFO_DEPTH];
          data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];

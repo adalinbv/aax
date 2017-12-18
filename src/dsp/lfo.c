@@ -93,7 +93,7 @@ int
 _lfo_set_timing(_aaxLFOData *lfo)
 {
    float min = lfo->min_sec;
-   float range = lfo->range_sec;
+   float range = lfo->max_sec - lfo->min_sec;
    float depth = lfo->depth;
    float offset = lfo->offset;
    float fs = lfo->fs;
@@ -170,7 +170,8 @@ _compressor_set_timing(_aaxLFOData *lfo)
        * compressor, which means that attack is down!
        */
       lfo->step[t] = _MIN(dt/lfo->min_sec, 2.0f);
-      lfo->down[t] = _MIN(dt/lfo->range_sec, 2.0f);
+      lfo->down[t] = _MIN(dt/lfo->max_sec, 2.0f);
+
    }
 
    dt = 1.0f/lfo->period_rate;

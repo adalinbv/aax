@@ -107,7 +107,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          lfo->period_rate = effect->info->period_rate;
 
          lfo->min_sec = 0.15f/lfo->fs;
-         lfo->range_sec = 0.99f/lfo->fs - lfo->min_sec;
+         lfo->max_sec = 0.99f/lfo->fs;
          lfo->f = 0.33f;
          lfo->depth = 1.0f;
          lfo->offset = 0.0f;

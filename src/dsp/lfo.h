@@ -55,7 +55,7 @@ typedef struct
 {
    int state;
    float fs, period_rate, offset, depth;
-   float min_sec, range_sec;
+   float min_sec, max_sec;
 
    float f, min, max;
    float gate_threshold, gate_period;
