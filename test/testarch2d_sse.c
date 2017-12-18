@@ -19,10 +19,22 @@
 
 #if defined(__i386__)
 # define SIMD	sse2
+char _aaxArchDetectSSE2();
 #elif defined(__x86_64__)
 # define SIMD   sse_vex
+char _aaxArchDetectAVX();
 #elif defined(__arm__) || defined(_M_ARM)
 # define SIMD	neon
+char _aaxArchDetectFeatures();
+extern static uint32_t _aax_arch_capabilities;
+int _aaxArchDetectNEON()
+{
+   uint32_t level = AAX_NO_SIMD;
+
+   level = _aaxArchDetectFeatures();
+   if (_aax_arch_capabilities & AAX_ARCH_NEON) return 1;
+   return 0;
+}
 #endif
 
 #define __MKSTR(X)		#X
@@ -30,8 +42,6 @@
 # define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
 # define GLUE(FUNC,NAME)	__GLUE(FUNC,NAME)
 
-char _aaxArchDetectSSE2();
-char _aaxArchDetectAVX();
 _batch_fmadd_proc _batch_fmadd;
 _batch_mul_value_proc _batch_fmul_value;
 _batch_get_average_rms_proc _batch_get_average_rms;
@@ -40,19 +50,18 @@ _batch_get_average_rms_proc _batch_get_average_rms;
 int main()
 {
     float *src, *dst1, *dst2;
-    char SIMD = 0;
+    char simd = 0;
 #if __AVX__
     char avx;
 #endif
     clock_t t;
 
-#ifdef __SSE2__
-    SIMD = _aaxArchDetectSSE2();
-# elif defined(NEON)
-    SIMD = 1;
-#endif
-#if __AVX__
+#if defined(__i386__)
+    simd = _aaxArchDetectSSE2();
+#elif defined(__x86_64__)
     avx = _aaxArchDetectAVX();
+#elif defined(__arm__) || defined(_M_ARM)
+    simd = _aaxArchDetectNEON();
 #endif
 
     srand(time(NULL));
@@ -103,7 +112,7 @@ int main()
         }
 #endif
 
-        if (SIMD)
+        if (simd)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD);
@@ -144,7 +153,7 @@ int main()
         }
 #endif
 
-        if (SIMD)
+        if (simd)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD);
@@ -186,7 +195,7 @@ int main()
         }
 #endif
 
-        if (SIMD)
+        if (simd)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmul_value = GLUE(_batch_fmul_value, SIMD);
