@@ -313,11 +313,12 @@ _aaxRingBufferLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned 
          olvl = lfo->value[track];
          fact = lfo->step[track];
          lfo->value[track] = _MINMAX(olvl + fact*(lvl - olvl), 0.01f, 0.99f);
-
-         rv = lfo->convert(olvl, lfo->max-lfo->min);
-         rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-         lfo->compression[track] = 1.0f - rv;
+         olvl = lfo->value[track];
       }
+
+      rv = lfo->convert(olvl, lfo->max-lfo->min);
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+      lfo->compression[track] = 1.0f - rv;
    }
 
    return rv;
