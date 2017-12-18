@@ -19,7 +19,7 @@
 #if defined(__i386__)
 # define SIMD	sse2
 #elif defined(__x86_64__)
-# define SIMD   vex
+# define SIMD   sse_vex
 #elif defined(__arm__) || defined(_M_ARM)
 # define SIMD	neon
 #endif

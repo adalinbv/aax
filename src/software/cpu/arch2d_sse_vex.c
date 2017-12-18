@@ -40,7 +40,7 @@ fast_sin_sse_vex(float x)
 }
 
 void
-_batch_get_average_rms_vex(const_float32_ptr s, size_t num, float *rms, float *peak)
+_batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, float *peak)
 {
    size_t stmp, step, total;
    double rms_total = 0.0;
