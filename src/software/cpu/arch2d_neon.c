@@ -744,11 +744,50 @@ _batch_fmul_value_neon(void* data, unsigned bps, size_t num, float f)
       {
       case 4:
       {
+#if 0
          float *d = (float*)data;
          do {
             *d++ *= f;
          }
          while (--i);
+
+#else
+         float32_ptr s = (float32_ptr)data;
+         float32_ptr d = (float32_ptr)data;
+         size_t i, step;
+
+         step = sizeof(float32x4x4_t)/sizeof(float);
+
+         i = num/step;
+         num -= i*step;
+         if (i)
+         {
+            float32x4x4_t sfr4, dfr4;
+
+            do
+            {
+               sfr4 = vld4q_f32(s);   // load s
+               dfr4 = vld4q_f32(d);   // load d
+               s += step;
+
+               dfr4.val[0] = vmulq_f32(dfr4.val[0], sfr4.val[0]);
+               dfr4.val[1] = vmulq_f32(dfr4.val[1], sfr4.val[1]);
+               dfr4.val[2] = vmulq_f32(dfr4.val[2], sfr4.val[2]);
+               dfr4.val[3] = vmulq_f32(dfr4.val[3], sfr4.val[3]);
+
+               vst4q_f32(d, dfr4);    // store d
+               d += step;
+            }
+            while(--i);
+         }
+
+         if (num) {
+            i = num;
+            do {
+               *d++ *= *s++;
+            } while(--i);
+         }
+#endif
          break;
       }
       case 8:
