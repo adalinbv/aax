@@ -133,6 +133,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         data->lfo.stereo_lnk = AAX_TRUE;
 
          if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
             data->lfo.depth = 1.0f - data->lfo.offset;
@@ -145,36 +146,8 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
             data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
          }
 
-         if (!constant)
-         {
-            switch (state & ~AAX_INVERSE)
-            {
-            case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
-               data->lfo.get = _aaxRingBufferLFOGetFixedValue;
-               break;
-            case AAX_TRIANGLE_WAVE:
-               data->lfo.get = _aaxRingBufferLFOGetTriangle;
-               break;
-            case AAX_SINE_WAVE:
-               data->lfo.get = _aaxRingBufferLFOGetSine;
-               break;
-            case AAX_SQUARE_WAVE:
-               data->lfo.get = _aaxRingBufferLFOGetSquare;
-               break;
-            case AAX_SAWTOOTH_WAVE:
-               data->lfo.get = _aaxRingBufferLFOGetSawtooth;
-               break;
-            case AAX_ENVELOPE_FOLLOW:
-                data->lfo.get = _aaxRingBufferLFOGetGainFollow;
-                data->lfo.envelope = AAX_TRUE;
-               break;
-            default:
-               _aaxErrorSet(AAX_INVALID_PARAMETER);
-               break;
-            }
-         }
-         else {
-            data->lfo.get = _aaxRingBufferLFOGetFixedValue;
+         if (!_lfo_set_function(&data->lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

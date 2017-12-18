@@ -173,11 +173,11 @@ _aaxCompressorSetState(_filter_t* filter, int state)
                   f = _aaxCompressorMinMax(f, 1, AAX_GATE_THRESHOLD & 0xF);
                   lfo->gate_threshold = f;
 
-                  lfo->get = _aaxRingBufferLFOGetCompressor;
+                  lfo->get = _aaxLFOGetCompressor;
                }
                else
                {
-                  lfo->get = _aaxRingBufferLFOGetGainFollow;
+                  lfo->get = _aaxLFOGetGainFollow;
                   lfo->max *= 10.0f; // maximum compression factor
                }
                lfo->envelope = AAX_TRUE;
@@ -187,7 +187,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
                break;
             }
          } else {
-            lfo->get = _aaxRingBufferLFOGetFixedValue;
+            lfo->get = _aaxLFOGetFixedValue;
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

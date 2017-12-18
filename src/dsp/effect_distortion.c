@@ -97,44 +97,26 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       if (data)
       {
          _aaxLFOData *lfo = data->lfo;
-         int t;
+         int constant;
 
          data->run = _distortion_run;
 
-         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          lfo->convert = _linear; // _log2lin;
-         lfo->min = 0.15f;
-         lfo->max = 0.99f;
+         lfo->state = effect->state;
+         lfo->fs = effect->info->frequency;
+         lfo->period_rate = effect->info->period_rate;
+
+         lfo->min_sec = 0.15f/lfo->fs;
+         lfo->range_sec = 0.99f/lfo->fs - lfo->min_sec;
          lfo->f = 0.33f;
+         lfo->depth = 1.0f;
+         lfo->offset = 0.0f;
+         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         lfo->stereo_lnk = AAX_TRUE;
 
-         for(t=0; t<_AAX_MAX_SPEAKERS; t++)
-         {
-            lfo->step[t] = 0.0f;
-            lfo->value[t] = 0.0f;
-            switch (state & ~AAX_INVERSE)
-            {
-            case AAX_SAWTOOTH_WAVE:
-               lfo->step[t] *= 0.5f;
-               break;
-            case AAX_ENVELOPE_FOLLOW:
-               lfo->f = 0.33f;
-               lfo->value[t] = 0.0f;
-               lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-               break;
-            default:
-               break;
-            }
-         }
-
-         switch (state & ~AAX_INVERSE)
-         {
-         case AAX_SINE_WAVE:
-            lfo->get = _aaxRingBufferLFOGetSine;
-            break;
-         default:
-            lfo->get = _aaxRingBufferLFOGetGainFollow;
-            lfo->envelope = AAX_TRUE;
-            break;
+         constant = _lfo_set_timing(lfo);
+         if (!_lfo_set_function(lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
       }
       break;

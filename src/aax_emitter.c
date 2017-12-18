@@ -419,7 +419,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
-            _aaxRingBufferEnvelopeData* env;
+            _aaxEnvelopeData* env;
 
             rb->set_state(rb, RB_REWINDED);
             src->buffer_pos = 0;

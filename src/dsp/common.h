@@ -137,20 +137,6 @@ float _2acos(float v);
 
 typedef float (*cvtfn_t)(float);
 
-/* Low Frequency Oscilator */
-#define _MAX_ENVELOPE_STAGES            6
-#define ENVELOPE_FOLLOW_STEP_CVT(a)     _MINMAX(-0.1005f+powf((a), 0.25f)/3.15f, 0.0f, 1.0f)
-
-typedef struct
-{
-   float ctr;
-   float value0, value, value_total;
-   uint32_t pos;
-   unsigned int stage, max_stages, repeat;
-   float step[_MAX_ENVELOPE_STAGES];
-   uint32_t max_pos[_MAX_ENVELOPE_STAGES];
-} _aaxRingBufferEnvelopeData;
-
 
 /* frequency filters */
 #define _aax_movingaverage_compute(fc, fs)	(1.f-expf(-GMATH_2PI*(fc)/(fs)))
