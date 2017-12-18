@@ -54,6 +54,74 @@ fast_sin_neon(float x)
 }
 
 void
+_batch_get_average_rms_neon(const_float32_ptr s, size_t num, float *rms, float *peak)
+{
+   double rms_total = 0.0;
+   float peak_cur = 0.0f;
+   size_t i, step, total;
+
+   *rms = *peak = 0;
+
+   if (!num) return;
+
+   total = num;
+   step = 4*sizeof(float32x4_t)/sizeof(float);
+
+   i = num/step;
+   if (i)
+   {
+      float32x4_t nfr0, nfr1, nfr2, nfr3;
+      union {
+         float32x4_t x[4];
+         float f[4][4];
+      } v;
+
+      num -= i*step;
+      do
+      {
+         nfr0 = vld4q_s32(s);
+         nfr1 = vld4q_s32(s+4);
+         nfr2 = vld4q_s32(s+8);
+         nfr3 = vld4q_s32(s+12);
+         s += 4*4;
+
+         vst4q_f32(v.f[0], _mm_mul_ps(nfr0, nfr0));
+         vst4q_f32(v.f[1], _mm_mul_ps(nfr1, nfr1));
+         vst4q_f32(v.f[2], _mm_mul_ps(nfr2, nfr2));
+         vst4q_f32(v.f[3], _mm_mul_ps(nfr3, nfr3));
+
+         for (j=0; j<4; ++j)
+         {
+            for (k=0; k<4; ++k)
+            {
+               float val = v.f[j][k];
+
+               rms_total += val;
+               if (val > peak_cur) peak_cur = val;
+            }
+         }
+      }
+      while(--i);
+   }
+
+   if (num)
+   {
+      i = num;
+      do
+      {
+         float samp = *s++;            // rms
+         float val = samp*samp;
+         rms_total += val;
+         if (val > peak_cur) peak_cur = val;
+      }
+      while (--i);
+   }
+
+   *rms = (float)sqrt(rms_total/total);
+   *peak = sqrtf(peak_cur);
+}
+
+void
 _batch_cvtps24_24_neon(void_ptr dst, const_void_ptr src, size_t num)
 {
    int32_t *s = (int32_t*)src;
