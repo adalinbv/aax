@@ -18,7 +18,7 @@
 
 #ifdef __SSE2__
 # define SIMD	sse2
-# elif defined(__ARM_NEON__)
+# elif defined(NEON)
 # define SIMD	neon
 #endif
 
@@ -44,7 +44,7 @@ int main()
 
 #ifdef __SSE2__
     SIMD = _aaxArchDetectSSE2();
-# elif defined(__ARM_NEON__)
+# elif defined(NEON)
     SIMD = 1;
 #endif
 #if __AVX__

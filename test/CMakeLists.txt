@@ -10,7 +10,7 @@ endif(HAVE_LIBM)
 FUNCTION(CREATE_TEST TEST_NAME)
     if(ARM)
         SET_PROPERTY(SOURCE ${TEST_NAME}.c
-                     PROPERTY COMPILE_FLAGS "-march=armv7-a -marm -static-libgcc -Wno-inline -mthumb -mfpu=neon"
+                     PROPERTY COMPILE_FLAGS "-march=armv5 -marm -static-libgcc -Wno-inline -DNEON=1"
         )
     elseif(X86_64)
         SET_PROPERTY(SOURCE ${TEST_NAME}.c
