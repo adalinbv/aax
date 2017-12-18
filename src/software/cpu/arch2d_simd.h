@@ -269,6 +269,7 @@ void _batch_cvtpd_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned i
 
 /* NEON */
 float fast_sin_neon(float);
+void _batch_get_average_rms_neon(const_float32_ptr, size_t, float*, float*);
 void _batch_imadd_neon(int32_ptr, const_int32_ptr, size_t, float, float);
 // void _batch_hmadd_neon(float32_ptr, const_float16_ptr, unsigned in, float, float);
 void _batch_fmadd_neon(float32_ptr, const_float32_ptr, unsigned in, float, float);
