@@ -193,14 +193,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->stereo_lnk = AAX_TRUE;
 
                constant = _lfo_set_timing(lfo);
-#if 1
-int t;
-               for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
-                  lfo->value[t] = 0.0f;
-               }
-#endif
-
                lfo->envelope = AAX_FALSE;
+
                if (!_lfo_set_function(lfo, constant)) {
                   _aaxErrorSet(AAX_INVALID_PARAMETER);
                }
