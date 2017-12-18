@@ -29,7 +29,6 @@
 
 char _aaxArchDetectSSE2();
 char _aaxArchDetectAVX();
-char _aaxArchDetectNEON();
 _batch_fmadd_proc _batch_fmadd;
 _batch_mul_value_proc _batch_fmul_value;
 _batch_get_average_rms_proc _batch_get_average_rms;
@@ -46,7 +45,7 @@ int main()
 #ifdef __SSE2__
     SIMD = _aaxArchDetectSSE2();
 # elif defined(__ARM_NEON__)
-    SIMD = _aaxArchDetectNEON();
+    SIMD = 1;
 #endif
 #if __AVX__
     avx = _aaxArchDetectAVX();
