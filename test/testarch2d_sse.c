@@ -16,8 +16,20 @@
             break; \
         } }
 
+#ifdef __SSE2__
+# define SIMD	sse2
+# elif defined(__ARM_NEON__)
+# define SIMD	neon
+#endif
+
+#define __MKSTR(X)		#X
+#define MKSTR(X)		__MKSTR(X)
+# define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
+# define GLUE(FUNC,NAME)	__GLUE(FUNC,NAME)
+
 char _aaxArchDetectSSE2();
 char _aaxArchDetectAVX();
+char _aaxArchDetectNEON();
 _batch_fmadd_proc _batch_fmadd;
 _batch_mul_value_proc _batch_fmul_value;
 _batch_get_average_rms_proc _batch_get_average_rms;
@@ -25,13 +37,17 @@ _batch_get_average_rms_proc _batch_get_average_rms;
 int main()
 {
     float *src, *dst1, *dst2;
-    char sse;
+    char SIMD;
 #if __AVX__
     char avx;
 #endif
     clock_t t;
 
-    sse = _aaxArchDetectSSE2();
+#ifdef __SSE2__
+    SIMD = _aaxArchDetectSSE2();
+# elif defined(__ARM_NEON__)
+    SIMD = _aaxArchDetectNEON();
+#endif
 #if __AVX__
     avx = _aaxArchDetectAVX();
 #endif
@@ -84,14 +100,14 @@ int main()
         }
 #endif
 
-        if (sse)
+        if (SIMD)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
-            _batch_fmadd = _batch_fmadd_sse2;
+            _batch_fmadd = GLUE(_batch_fmadd, SIMD);
             t = clock();
               _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fadd sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("fadd "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
 
         /*
@@ -125,15 +141,15 @@ int main()
         }
 #endif
 
-        if (sse)
+        if (SIMD)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
-            _batch_fmadd = _batch_fmadd_sse2;
+            _batch_fmadd = GLUE(_batch_fmadd, SIMD);
             t = clock();
               _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fmadd sse: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TEST("float fadd+fmadd sse2", dst1, dst2);
+            printf("fmadd "MKSTR(SIMD)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fadd+fmadd "MKSTR(SIMD), dst1, dst2);
         }
 
         /*
@@ -167,15 +183,15 @@ int main()
         }
 #endif
 
-        if (sse)
+        if (SIMD)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
-            _batch_fmul_value = _batch_fmul_value_sse2;
+            _batch_fmul_value = GLUE(_batch_fmul_value, SIMD);
             t = clock();
               _batch_fmul_value(dst2, sizeof(float), MAXNUM, 0.8723678263f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fmul sse:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TEST("float fmul sse2", dst1, dst2);
+            printf("fmul "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fmul "MKSTR(SIMD), dst1, dst2);
         }
 
         /*
@@ -190,12 +206,12 @@ int main()
 #if __AVX__
         _batch_get_average_rms = _batch_get_average_rms_vex;
 #else
-        _batch_get_average_rms = _batch_get_average_rms_sse2;
+        _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
 #endif
         t = clock();
           _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("rms sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        printf("rms "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
         printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
 
@@ -219,8 +235,8 @@ int main()
         TEST("double fmul avx", ddst1, ddst2);
 #endif
         memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
-        _batch_fmul_value_sse2(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
-        TEST("double fmul sse2", ddst1, ddst2);
+        GLUE(_batch_fmul_value, SIMD)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
+        TEST("double fmul "MKSTR(SIMD), ddst1, ddst2);
     }
 
     free(dst2);
