@@ -130,7 +130,6 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
    *peak = sqrtf(peak_cur);;
 }
 
-
 void
 _batch_cvt24_ps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
 {
