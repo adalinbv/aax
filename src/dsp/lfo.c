@@ -133,7 +133,8 @@ _lfo_set_timing(_aaxLFOData *lfo)
          case AAX_ENVELOPE_FOLLOW:
          {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-            lfo->value[t] /= lfo->max;
+//          lfo->value[t] /= lfo->max;
+            lfo->value[t] = 0.0f;
             break;
          }
          default:
