@@ -85,7 +85,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
    istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL);
    wstate = istate & mask;
-   filter->state = state;
 
    if (wstate == AAX_6DB_OCT         ||
        wstate == AAX_12DB_OCT        ||
@@ -132,7 +131,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          else stages = 1;
 
          flt->no_stages = stages;
-         flt->state = state >> 24;
+         flt->state = (state && AAX_BESSEL) ? AAX_FALSE : AAX_TRUE;
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
@@ -166,7 +165,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
                /* sweeprate */
                lfo->convert = _linear;
-               lfo->state = filter->state;
+               lfo->state = state;
                lfo->fs = filter->info->frequency;
                lfo->period_rate = filter->info->period_rate;
 
