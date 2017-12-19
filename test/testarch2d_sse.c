@@ -19,12 +19,15 @@
 
 #if defined(__i386__)
 # define SIMD	sse2
+# define SIMD2	sse2
 char _aaxArchDetectSSE2();
 #elif defined(__x86_64__)
 # define SIMD   sse_vex
+# define SIMD2	avx
 char _aaxArchDetectAVX();
 #elif defined(__arm__) || defined(_M_ARM)
 # define SIMD	neon
+# define SIMD2	neon
 char _aaxArchDetectFeatures();
 extern static uint32_t _aax_arch_capabilities;
 int _aaxArchDetectNEON()
@@ -51,9 +54,7 @@ int main()
 {
     float *src, *dst1, *dst2;
     char simd = 0;
-#if __AVX__
     char avx;
-#endif
     clock_t t;
 
 #if defined(__i386__)
@@ -100,7 +101,6 @@ int main()
           eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("fadd cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 
-#if __AVX__
         if (avx)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -110,16 +110,15 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fadd avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
-#endif
 
         if (simd)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
-            _batch_fmadd = GLUE(_batch_fmadd, SIMD);
+            _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
               _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fadd "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("fadd "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
 
         /*
@@ -140,7 +139,6 @@ int main()
           eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("fmadd cpu: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 
-#if __AVX__
         if (avx)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -151,17 +149,16 @@ int main()
             printf("fmadd avx: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd avx", dst1, dst2);
         }
-#endif
 
         if (simd)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
-            _batch_fmadd = GLUE(_batch_fmadd, SIMD);
+            _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
               _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fmadd "MKSTR(SIMD)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TEST("float fadd+fmadd "MKSTR(SIMD), dst1, dst2);
+            printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
         }
 
         /*
@@ -182,7 +179,6 @@ int main()
           eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("fmul cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 
-#if __AVX__
         if (avx)
         {
            memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -193,17 +189,16 @@ int main()
            printf("fmul avx:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
            TEST("float fmul avx", dst1, dst2);
         }
-#endif
 
         if (simd)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
-            _batch_fmul_value = GLUE(_batch_fmul_value, SIMD);
+            _batch_fmul_value = GLUE(_batch_fmul_value, SIMD2);
             t = clock();
               _batch_fmul_value(dst2, sizeof(float), MAXNUM, 0.8723678263f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fmul "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TEST("float fmul "MKSTR(SIMD), dst1, dst2);
+            printf("fmul "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fmul "MKSTR(SIMD2), dst1, dst2);
         }
 
         /*
@@ -215,11 +210,7 @@ int main()
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nrms cpu:  %f\n", cpu*1000.0f);
 
-#if __AVX__
-        _batch_get_average_rms = _batch_get_average_rms_vex;
-#else
         _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
-#endif
         t = clock();
           _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -240,15 +231,10 @@ int main()
         }
         memcpy(ddst1, dsrc, MAXNUM*sizeof(double));
 
-        memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
         _batch_fmul_value_cpu(ddst1, sizeof(double), MAXNUM, 0.8723678263f);
-#ifdef __AVX__
-        _batch_fmul_value_avx(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
-        TEST("double fmul avx", ddst1, ddst2);
-#endif
         memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
-        GLUE(_batch_fmul_value, SIMD)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
-        TEST("double fmul "MKSTR(SIMD), ddst1, ddst2);
+        GLUE(_batch_fmul_value, SIMD2)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
+        TEST("double fmul "MKSTR(SIMD2), ddst1, ddst2);
     }
 
     _aax_aligned_free(dst2);
