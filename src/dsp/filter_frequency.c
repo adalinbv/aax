@@ -165,7 +165,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
                /* sweeprate */
                lfo->convert = _linear;
-               lfo->state = state;
+               lfo->state = wstate;
                lfo->fs = filter->info->frequency;
                lfo->period_rate = filter->info->period_rate;
 
