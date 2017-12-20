@@ -15,7 +15,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope|24db">
+  <filter type="frequency" src="envelope|24db">
    <slot n="0">
     <param n="0">110</param>
     <param n="1">0.7</param>
