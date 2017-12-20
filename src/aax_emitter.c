@@ -1409,7 +1409,16 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/emitter");
+      void *xmid = xmlNodeGet(xid, "aeonwave/sound");
+      float freq = 0.0f;
+
+      if (xmid)
+      {
+         freq = xmlAttributeGetDouble(xmid, "frequency");
+         xmlFree(xmid);
+      }
+
+      xmid = xmlNodeGet(xid, "aeonwave/emitter");
       if (xmid)
       {
          int clear = xmlAttributeCompareString(xmid, "mode", "append");
@@ -1441,7 +1450,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
             {
-               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid);
+               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
                if (flt)
                {
                   _filter_t* filter = get_filter(flt);
@@ -1458,7 +1467,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
             {
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid);
+               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
                if (eff)
                {
                   _effect_t* effect = get_effect(eff);

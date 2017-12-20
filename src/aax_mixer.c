@@ -1595,7 +1595,16 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/mixer");
+      void *xmid = xmlNodeGet(xid, "aeonwave/sound");
+      float freq = 0.0f;
+
+      if (xmid)
+      {
+         freq = xmlAttributeGetDouble(xmid, "frequency");
+         xmlFree(xmid);
+      }
+
+      xmid = xmlNodeGet(xid, "aeonwave/mixer");
       if (xmid)
       {
          int clear = xmlAttributeCompareString(xmid, "mode", "append");
@@ -1629,7 +1638,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
             {
-               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid);
+               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
                if (flt)
                {
                   aaxMixerSetFilter(handle, flt);
@@ -1646,7 +1655,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
             {
                char *file = xmlAttributeGetString(xeid, "file");
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid);
+               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
                if (eff)
                {
                   _effect_t* effect = get_effect(eff);

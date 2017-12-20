@@ -1116,9 +1116,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq)
 }
 
 static int
-_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, UNUSED(float frequency))
+_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
 {
-   aaxFilter flt = _aaxGetFilterFromAAXS(handle->handle, xfid);
+   aaxFilter flt = _aaxGetFilterFromAAXS(handle->handle, xfid, frequency);
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
@@ -1141,10 +1141,10 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, UNUSED(float frequ
 }
 
 static int
-_bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, UNUSED(float frequency))
+_bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency)
 {
 
-   aaxEffect eff = _aaxGetEffectFromAAXS(handle->handle, xeid);
+   aaxEffect eff = _aaxGetEffectFromAAXS(handle->handle, xeid, frequency);
    if (eff)
    {
       _effect_t* effect = get_effect(eff);
