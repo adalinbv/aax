@@ -40,17 +40,17 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
-  <effect type="flanging" src="true">
-   <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.8</param>
-   </slot>
-  </effect>
  </emitter>
 
  <audioframe>
+  <filter type="frequency" src="true">
+   <slot n="0">
+    <param n="0">1100</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
   <effect type="distortion">
    <slot n="0">
     <param n="0">1.2</param>
