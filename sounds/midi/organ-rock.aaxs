@@ -33,7 +33,7 @@
 -->
   <effect type="phasing" src="sine">
    <slot n="0">
-    <param n="0">0.133</param>
+    <param n="0">0.433</param>
     <param n="1">5.537</param>
     <param n="2">0.15</param>
     <param n="3">0.5</param>
