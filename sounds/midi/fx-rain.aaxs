@@ -10,7 +10,7 @@
 
  <sound name="Rain" frequency="220" duration="3.0">
   <waveform src="white-noise" pitch="0.20"/>
-  <filter type="frequency" src="24db">
+  <filter type="frequency" src="36db">
    <slot n="0">
     <param n="0">550</param>
     <param n="1">0.0</param>
