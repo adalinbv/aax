@@ -108,7 +108,7 @@
  <instrument n="108" name="Koto" file=".aaxs"/>
  <instrument n="109" name="Kalimba" file=".aaxs"/>
  <instrument n="110" name="Bag pipe" file=".aaxs"/>
- <instrument n="111" name="Fiddle" file=".aaxs"/>
+ <instrument n="111" name="Fiddle" file="fiddle.aaxs"/>
  <instrument n="112" name="Shanai" file=".aaxs"/>
  <instrument n="113" name="Tinkle Bell" file=".aaxs"/>
  <instrument n="114" name="Agogo" file=".aaxs"/>
