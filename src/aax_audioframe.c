@@ -1433,7 +1433,16 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/audioframe");
+      void *xmid = xmlNodeGet(xid, "aeonwave/sound");
+      float freq = 0.0f;
+
+      if (xmid)
+      {
+         freq = xmlAttributeGetDouble(xmid, "frequency");
+         xmlFree(xmid);
+      }
+
+      xmid = xmlNodeGet(xid, "aeonwave/audioframe");
       if (xmid)
       {
          int clear = xmlAttributeCompareString(xmid, "mode", "append");
@@ -1457,7 +1466,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
             {
-               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid);
+               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
                if (flt)
                {
                   aaxAudioFrameSetFilter(frame, flt);
@@ -1473,7 +1482,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
             {
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid);
+               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
                if (eff)
                {
                   aaxAudioFrameSetEffect(frame, eff);

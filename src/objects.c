@@ -395,7 +395,7 @@ _aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, a
 
 
 static int
-_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id)
+_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id, float freq)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
    void *xsid = xmlMarkId(xid);
@@ -433,6 +433,15 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
                   long int pn = xmlAttributeGetInt(xpid, "n");
                   if (pn == XML_NONE) pn = p;
 
+                  if (freq != 0.0f)
+                  {
+                     float pitch = xmlAttributeGetDouble(xpid, "pitch");
+                     if (pitch != 0.0f) {
+                        value = pitch*freq;
+printf("value: %f, pitch: %f\n", value, pitch);
+                     }
+                  }
+
                   slen = xmlAttributeCopyString(xpid, "type", src, 64);
                   if (slen)
                   {
@@ -455,7 +464,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
 }
 
 aaxFilter
-_aaxGetFilterFromAAXS(aaxConfig config, const char *xid)
+_aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
 {
    aaxFilter rv = NULL;
    char src[65];
@@ -473,7 +482,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid)
       flt = aaxFilterCreate(config, ftype);
       if (flt)
       {
-         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt)) {
+         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt, freq)) {
             _aaxSetSlotFromAAXSOld(xid, aaxFilterSetSlotParams, flt);
          }
 
@@ -509,7 +518,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid)
 }
 
 aaxEffect
-_aaxGetEffectFromAAXS(aaxConfig config, const char *xid)
+_aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq)
 {
    aaxEffect rv = NULL;
    char src[65];
@@ -527,7 +536,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const char *xid)
       eff = aaxEffectCreate(config, etype);
       if (eff)
       {
-         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff)) {
+         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff, freq)) {
             _aaxSetSlotFromAAXSOld(xid, aaxEffectSetSlotParams, eff);
          }
 
