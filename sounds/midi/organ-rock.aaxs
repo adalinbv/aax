@@ -20,13 +20,13 @@
 <!--
   <filter type="frequency" src="sine">
    <slot n="0">
-    <param n="0">4000</param>
+    <param n="0" pitch="20.0">4400</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">8000</param>
+    <param n="0" pitch="40.0">8800</param>
     <param n="3">5.537</param>
    </slot>
   </filter>

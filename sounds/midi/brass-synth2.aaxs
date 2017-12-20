@@ -16,13 +16,13 @@
  <emitter looping="true">
   <filter type="frequency" src="envelope">
    <slot n="0">
-    <param n="0">11</param>
+    <param n="0" pitch="1.0">220</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1760</param>
+    <param n="0" pitch="8.0">1760</param>
     <param n="3">0.4</param>
    </slot>
   </filter>
