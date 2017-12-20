@@ -22,12 +22,12 @@
    </slot>
    <slot n="1">
     <param n="0">6600</param>
-    <param n="3">0.08</param>
+    <param n="3">0.1</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
-    <param n="1">0.527</param>
+    <param n="1">0.327</param>
     <param n="2">0.5</param>
     <param n="3">0.0</param>
    </slot>
