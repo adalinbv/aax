@@ -15,7 +15,7 @@
   <waveform src="white_noise" processing="modulate" ratio="2.0" pitch="0.2"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">1200</param>
+    <param n="0" pitch="5.5">1210</param>
     <param n="1">0.2</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
@@ -26,13 +26,13 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">1900</param>
+    <param n="0" pitch="8.5">1870</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">30.0</param>
    </slot>
    <slot n="1">
-    <param n="0">8800</param>
+    <param n="0" pitch="40.0">8800</param>
     <param n="3">0.1</param>
    </slot>
   </filter>
