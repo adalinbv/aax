@@ -1967,7 +1967,6 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
    if (ptr != tracks) free(tracks);
 }
 
-#define EXTRA_SAMPLES	64
 static void
 _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 {
@@ -1985,24 +1984,22 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
    assert(rb->get_parami(rb, RB_NO_TRACKS) == 1);
    assert(bps == 4);
 
-   sptr = _aax_aligned_alloc((2*EXTRA_SAMPLES+no_samples)*bps);
+   sptr = _aax_aligned_alloc(2*no_samples*bps);
    if (sptr)
    {
       _aaxRingBufferFreqFilterData *data = filter->slot[0]->data;
 
       _batch_cvtps24_24(dptr, dptr, no_samples);
 
-      _aax_memcpy(sptr+EXTRA_SAMPLES, dptr, no_samples*bps);
-      _aax_memcpy(sptr, sptr+no_samples, EXTRA_SAMPLES*bps);
-      _aax_memcpy(sptr+no_samples+EXTRA_SAMPLES, sptr+EXTRA_SAMPLES,
-                  EXTRA_SAMPLES*bps);
+      _aax_memcpy(sptr+no_samples, dptr, no_samples*bps);
+      _aax_memcpy(sptr, sptr+no_samples, no_samples*bps);
 
-      rbd->freqfilter(sptr, sptr, 0, 2*EXTRA_SAMPLES+no_samples, data);
+      rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
       if (data->state && (data->low_gain > LEVEL_128DB)) {
-         rbd->add(sptr+EXTRA_SAMPLES, dptr, no_samples, data->low_gain, 0.0f);
+         rbd->add(sptr+no_samples, dptr, no_samples, data->low_gain, 0.0f);
       }
 
-      _aax_memcpy(dptr, sptr+EXTRA_SAMPLES, no_samples*bps);
+      _aax_memcpy(dptr, sptr+no_samples, no_samples*bps);
 
       _aax_aligned_free(sptr);
       _batch_cvt24_ps24(dptr, dptr, no_samples);
