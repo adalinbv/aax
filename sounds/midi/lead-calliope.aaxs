@@ -14,6 +14,14 @@
   <waveform src="sine" processing="mix" ratio="0.035"/>
   <filter type="frequency" src="24db">
    <slot n="0">
+    <param n="0" pitch="1.0">220</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">70.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
     <param n="0" pitch="36.36">8000</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
@@ -23,14 +31,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="1.0">220</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">70.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.40</param>

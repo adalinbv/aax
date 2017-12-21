@@ -8,11 +8,19 @@
 
 <aeonwave>
 
- <sound name="Muted Trumpet" frequency="220">
+ <sound name="Muted Trumpet" frequency="880">
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="5.0">1100</param>
+    <param n="0">550</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">1100</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>
@@ -21,14 +29,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="2.5">550</param>
-    <param n="1">0.1</param>
-    <param n="2">1.0</param>
-    <param n="3">3.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.40</param>
