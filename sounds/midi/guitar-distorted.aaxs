@@ -12,6 +12,14 @@
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="5.0"/>
+  <filter type="frequency" src="true">
+   <slot n="0">
+    <param n="0" pitch="8.0">8800</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
@@ -43,20 +51,12 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="true">
-   <slot n="0">
-    <param n="0" pitch="5.0">1100</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
   <effect type="distortion">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.9</param>
-    <param n="2">0.6</param>
-    <param n="3">0.6</param>
+    <param n="0">1.5</param>
+    <param n="1">0.5</param>
+    <param n="2">0.5</param>
+    <param n="3">0.5</param>
    </slot>
   </effect>
  </audioframe>
