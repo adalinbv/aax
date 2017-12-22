@@ -313,8 +313,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
                fact = handle->frequency / rb->get_paramf(rb, RB_FREQUENCY);
             }
             rv = (unsigned int)(fact*(handle->no_samples - handle->pos));
+         } else {
+            _aaxErrorSet(AAX_INVALID_STATE);
          }
-         else _aaxErrorSet(AAX_INVALID_STATE);
          break;
       case AAX_LOOP_START:
          rv = handle->loop_start;
@@ -731,14 +732,16 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
       unsigned int samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
       unsigned int freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
       char tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
+
 #if 0
       _buffer_t* handle = get_buffer(buffer, __func__);
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-      _aaxRingBufferSample *rbd = rb->sample;
+      _aaxRingBufferData *rbi = rb->handle;
+      _aaxRingBufferSample *rbd = rbi->sample;
       const int32_t **data;
 
       data = (const int32_t**)rbd->track;
-      rv = _aaxFileDriverWrite(file, type, data, samples, freq, tracks, format);
+      _aaxFileDriverWrite(file, type, data, samples, freq, tracks, format);
 #else
       void **data = aaxBufferGetData(buffer);
       _buffer_t *handle = (_buffer_t*)buffer;
@@ -747,8 +750,8 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
       freq = handle->frequency;
       _aaxFileDriverWrite(file, type, *data, samples, freq, tracks, format);
       free(data);
-      rv = AAX_TRUE;
 #endif
+      rv = AAX_TRUE;
    }
    return rv;
 }
@@ -1199,7 +1202,6 @@ _bufAAXSThread(void *d)
                aax_buf->error = AAX_INVALID_REFERENCE;
             }
          }
-#if 1
          else if (xmlAttributeExists(xsid, "duration"))
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
@@ -1209,7 +1211,6 @@ _bufAAXSThread(void *d)
                rb->set_paramf(rb, RB_DURATION_SEC, duration);
             }
          }
-#endif
 
          if (xmlAttributeExists(xsid, "bits"))
          {
