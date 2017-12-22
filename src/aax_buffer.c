@@ -1991,15 +1991,14 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 
       _batch_cvtps24_24(dptr, dptr, no_samples);
 
+      _aax_memcpy(sptr, dptr, no_samples*bps);
       _aax_memcpy(sptr+no_samples, dptr, no_samples*bps);
-      _aax_memcpy(sptr, sptr+no_samples, no_samples*bps);
 
       rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
       if (data->state && (data->low_gain > LEVEL_128DB)) {
          rbd->add(sptr+no_samples, dptr, no_samples, data->low_gain, 0.0f);
       }
-
-      _aax_memcpy(dptr, sptr+no_samples, no_samples*bps);
+      _aax_memcpy(dptr, sptr+no_samples/2, no_samples*bps);
 
       _aax_aligned_free(sptr);
       _batch_cvt24_ps24(dptr, dptr, no_samples);
