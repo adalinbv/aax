@@ -28,8 +28,6 @@
 #include <dsp/common.h>
 #include "arch2d_simd.h"
 
-#include "fp16tables.c"
-
 void
 _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float v, float vstep)
 {
