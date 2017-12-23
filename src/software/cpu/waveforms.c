@@ -533,32 +533,32 @@ _aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
       const float *m = mix;
       if (bps == 1)
       {
-         static const float max = 1.0f/127.0f;
+         static const float max = 1.0f/128.0f;
          static const float mul = 127.0f / GMATH_PI_2;
          int8_t *d = data[track];
          do {
-            *d = mul * atanf(*d * max + *m++ * gain);
-             ++d;
+            float v = (float)*d * max + *m++ * gain;
+            *d++ = mul * atanf(v);
          } while (--i);
       }
       else if (bps == 2)
       {
-         static const float max = 1.0f/32765.0f;
-         static const float mul = 32765.0f / GMATH_PI_2;
+         static const float max = 1.0f/32768.0f;
+         static const float mul = 32767.0f / GMATH_PI_2;
          int16_t *d = data[track];
          do {
-            *d = mul * atanf(*d * max + *m++ * gain);
-             ++d;
+            float v = (float)*d * max + *m++ * gain;
+            *d++ = mul * atanf(v);
          } while (--i);
       }
       else if (bps == 3 || bps == 4)
       {
-         static const float max = 1.0f/8388607.0f;
-         static const float mul = 0.5f*8388607.0f / GMATH_PI_2;
+         static const float max = 1.0f/8388608.0f;
+         static const float mul = 8388607.0f / GMATH_PI_2;
          int32_t *d = data[track];
          do {
-            *d = mul * atanf(*d * max + *m++ * gain);
-             ++d;
+            float v = (float)*d * max + *m++ * gain;
+            *d++ = mul * atanf(v);
          } while (--i);
       }
    }
