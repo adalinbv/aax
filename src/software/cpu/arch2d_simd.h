@@ -59,23 +59,6 @@ extern "C" {
 
 #define CUBIC_TRESHOLD		0.25f
 
-int16_t fp16_offsettable[64];
-int32_t fp16_exponenttable[64];
-int32_t fp16_mantissatable[2048];
-int16_t fp16_basetable[512];
-int16_t fp16_shifttable[512];
-
-#if 0
-inline float HALF2FLOAT(int16_t h16) {
-   return fp16_mantissatable[fp16_offsettable[h16>>10]+(h16&0x3ff)]+fp16_exponenttable[h16>>10];
-}
-
-inline int16_t FLOAT2HALF(float f) {
-   int32_t f32 = ((union { float f; int32_t i; }){ .f = f }).i;
-   return fp16_basetable[(f32>>23)&0x1ff]+((f32&0x007fffff)>>fp16_shifttable[(f32>>23)&0x1ff]);
-}
-#endif
-
 /* CPU*/
 void _aax_free_aligned(void*);
 char* _aax_calloc_aligned(char**, size_t, size_t);
