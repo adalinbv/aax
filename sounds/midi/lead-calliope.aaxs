@@ -11,7 +11,7 @@
  <sound name="Lead 3 (calliope)" frequency="220">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
-  <waveform src="sine" processing="mix" ratio="0.035"/>
+  <waveform src="sine" processing="mix" ratio="0.04"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
