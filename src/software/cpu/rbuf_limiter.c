@@ -60,28 +60,30 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float
    static const float df = (float)(65535.0f*256.0f);
    static const float rf = 1.0f/(65536.0f*12.0f);
    float osamp, imix, mix;
+   float rms, peak;
    size_t j, max;
    MIX_T *ptr = d;
    MIX_T iasym;
-   float peak;
-   double rms;
+
+   rms = peak = 0;
+   j = max = *dmax - *dmin;
+
+   _batch_get_average_rms(ptr, max, &rms, &peak);
+
+   *dmax = (size_t)peak;
+   *dmin = (size_t)rms;
 
    osamp = 0.0f;
-   rms = peak = 0;
    mix = _MINMAX(clip, 0.0f, 1.0f);
-   imix = (1.0f - mix);
-   j = max = *dmax - *dmin;
+   imix = 2.0f*(1.0f - mix);
    iasym = asym*16*(1<<SHIFT);
    do
    {
-      float val, fact1, fact2, sdf, rise;
+      float fact1, fact2, sdf, rise;
       MIX_T asamp, samp;
       size_t pos;
 
       samp = *ptr;
-      val = (float)samp*samp;	// RMS
-      rms += val;
-      if (val > peak) peak = val;
 
       asamp = (samp < 0) ? fabsf(samp-iasym) : fabsf(samp);
       pos = ((int32_t)asamp >> SHIFT);
@@ -100,9 +102,6 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float
       *ptr++ = (MIX_T)((imix*fact1 + mix*fact2)*samp);
    }
    while (--j);
- 
-   *dmax = (size_t)sqrtf(peak);
-   *dmin = (size_t)sqrt(rms/max);
 }
 
 #else
@@ -120,7 +119,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float
    j = *dmax - *dmin;
    do
    {
-      float samp = atan(*ptr*rf*mix)*GMATH_1_PI_2;
+      float samp = atanf(*ptr*rf*mix)*GMATH_1_PI_2;
       *ptr++ = samp*(65535.0f*256.0f);
    }
    while (--j);
