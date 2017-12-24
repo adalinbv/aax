@@ -10,7 +10,7 @@
 
  <sound name="Synthesizer Strings 1" frequency="220">
   <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.4" pitch="1.9889"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="1.9889"/>
  </sound>
 
  <emitter looping="true">
@@ -41,9 +41,6 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
- </emitter>
-
- <audioframe>
   <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.5</param>
@@ -52,6 +49,6 @@
     <param n="3">0.5</param>
    </slot>
   </effect>
- </audioframe>
+ </emitter>
 
 </aeonwave>
