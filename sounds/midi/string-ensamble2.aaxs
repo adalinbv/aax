@@ -11,7 +11,7 @@
  <sound name="String Ensamble 2" frequency="220">
   <waveform src="sawtooth" ratio="0.75"/>
   <waveform src="sawtooth" processing="add" ratio="0.25" pitch="0.5"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="1.9883"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="1.9889"/>
  </sound>
 
  <emitter looping="true">
@@ -42,22 +42,22 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
-  <effect type="chorus" src="triangle">
+  <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.07</param>
-    <param n="2">0.6</param>
+    <param n="2">0.5</param>
     <param n="3">0.4</param>
    </slot>
   </effect>
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="envelope">
+  <effect type="chorus" src="true">
    <slot n="0">
     <param n="0">0.5</param>
-    <param n="1">0.17</param>
-    <param n="2">0.2</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.5</param>
    </slot>
   </effect>
