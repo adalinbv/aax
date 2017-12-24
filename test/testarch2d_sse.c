@@ -28,13 +28,12 @@ char _aaxArchDetectAVX();
 #elif defined(__arm__) || defined(_M_ARM)
 # define SIMD	neon
 # define SIMD2	neon
+# define AAX_ARCH_NEON	0x00000008
 char _aaxArchDetectFeatures();
-extern static uint32_t _aax_arch_capabilities;
+extern uint32_t _aax_arch_capabilities;
 int _aaxArchDetectNEON()
 {
-   uint32_t level = AAX_NO_SIMD;
-
-   level = _aaxArchDetectFeatures();
+   _aaxArchDetectFeatures();
    if (_aax_arch_capabilities & AAX_ARCH_NEON) return 1;
    return 0;
 }
