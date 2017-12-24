@@ -75,7 +75,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float
 
    osamp = 0.0f;
    mix = _MINMAX(clip, 0.0f, 1.0f);
-   imix = 2.0f*(1.0f - mix);
+   imix = (1.0f - mix);
    iasym = asym*16*(1<<SHIFT);
    do
    {
