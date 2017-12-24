@@ -11,10 +11,9 @@
  <sound name="Brass Section" frequency="220">
   <waveform src="impulse"/>
   <waveform src="impulse" processing="add" pitch="0.995"/>
-  <waveform src="impulse" processing="add" pitch="0.997"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="5.0">1100</param>
+    <param n="0" pitch="6.5">1430</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>
@@ -23,9 +22,9 @@
   <effect type="distortion">
    <slot n="0">
     <param n="0">0.5</param>
-    <param n="1">0.8</param>
+    <param n="1">0.2</param>
     <param n="2">0.5</param>
-    <param n="3">0.2</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </sound>
@@ -62,7 +61,7 @@
    <slot n="0">
     <param n="0">0.5</param>
     <param n="1">0.05</param>
-    <param n="2">0.37</param>
+    <param n="2">0.57</param>
     <param n="3">0.23</param>
    </slot>
   </effect>
