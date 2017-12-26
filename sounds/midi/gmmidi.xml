@@ -50,9 +50,9 @@
  <instrument n="50" name="String Ensemble 2" file="string-ensamble2.aaxs"/>
  <instrument n="51" name="SynthStrings 1" file="strings-synth1.aaxs"/>
  <instrument n="52" name="SynthStrings 2" file="strings-synth2.aaxs"/>
- <instrument n="53" name="Choir Aahs" file=".aaxs"/>
- <instrument n="54" name="Voice Oohs" file=".aaxs"/>
- <instrument n="55" name="Synth Voice" file="synth-choir.aaxs"/>
+ <instrument n="53" name="Choir Aahs" file="choir-aahs.aaxs"/>
+ <instrument n="54" name="Voice Oohs" file="voice-oohs.aaxs"/>
+ <instrument n="55" name="Synth Voice" file=".aaxs"/>
  <instrument n="56" name="Orchestra Hit" file=".aaxs"/>
  <instrument n="57" name="Trumpet" file="trumpet.aaxs"/>
  <instrument n="58" name="Trombone" file="trumpet.aaxs"/>
@@ -83,7 +83,7 @@
  <instrument n="83" name="Lead 3 (calliope)" file="lead-calliope.aaxs"/>
  <instrument n="84" name="Lead 4 (chiff)" file="lead-chiff.aaxs"/>
  <instrument n="85" name="Lead 5 (charang)" file=".aaxs"/>
- <instrument n="86" name="Lead 6 (voice)" file="lead-voice.aaxs"/>
+ <instrument n="86" name="Lead 6 (voice)" file=".aaxs"/>
  <instrument n="87" name="Lead 7 (fifths)" file="lead-fifths.aaxs"/>
  <instrument n="88" name="Lead 8 (bass + lead)" file=".aaxs"/>
  <instrument n="89" name="Pad 1 (new age)" file=".aaxs"/>
