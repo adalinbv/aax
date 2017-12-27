@@ -19,7 +19,8 @@
     <param n="3">16.0</param>
    </slot>
   </filter>
-  <waveform src="sine" processing="mix" ratio="0.8" pitch="0.9894"/>
+  <waveform src="sine" processing="mix" ratio="0.8" pitch="0.4894"/>
+  <waveform src="sine" processing="add" ratio="0.3" pitch="0.987"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.01"/>
  </sound>
 
