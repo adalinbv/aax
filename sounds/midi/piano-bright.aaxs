@@ -11,7 +11,7 @@
  <sound name="Bright Piano" frequency="220">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.1" pitch="3.0"/>
+  <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
@@ -41,5 +41,16 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0" pitch="20">4400</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>
