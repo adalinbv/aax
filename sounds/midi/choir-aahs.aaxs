@@ -9,16 +9,16 @@
 <aeonwave>
 
  <sound name="Choir Aahs" frequency="220">
-  <waveform src="pink-noise" pitch="0.25"/>
+  <waveform src="pink-noise" pitch="0.33"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">880</param>
-    <param n="1">0.0</param>
-    <param n="2">0.5</param>
-    <param n="3">2.0</param>
+    <param n="0">3300</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
-  <waveform src="sine" processing="mix" ratio="0.8" pitch="1.0"/>
+  <waveform src="sine" processing="mix" ratio="0.6" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="2.987"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.0"/>
  </sound>
@@ -53,12 +53,13 @@
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.1</param>
-    <param n="2">0.4</param>
+    <param n="2">0.7</param>
     <param n="3">0.4</param>
    </slot>
   </effect>
  </emitter>
 
+<!--
  <audioframe>
   <effect type="chorus" src="true">
    <slot n="0">
@@ -69,5 +70,6 @@
    </slot>
   </effect>
  </audioframe>
+-->
 
 </aeonwave>
