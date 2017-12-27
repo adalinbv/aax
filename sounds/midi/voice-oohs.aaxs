@@ -10,17 +10,17 @@
 
  <sound name="Voice Oohs" frequency="220">
   <waveform src="pink-noise"/>
-  <waveform src="pink-noise" processing="modulate" ratio="8.0"/>
   <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="10.0">2200</param>
     <param n="1">0.6</param>
-    <param n="2">0.1</param>
-    <param n="3">16.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
   <waveform src="sine" processing="mix" ratio="0.8" pitch="0.4894"/>
-  <waveform src="sine" processing="add" ratio="0.3" pitch="0.987"/>
+  <waveform src="sine" processing="add" ratio="0.3" pitch="1.003"/>
+  <waveform src="sine" processing="add" ratio="0.2" pitch="2.987"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.01"/>
  </sound>
 
@@ -49,20 +49,17 @@
    <slot n="1">
     <param n="0">1.0</param>
     <param n="1">4.5</param>
-    <param n="2">0.975</param>
+    <param n="2">0.995</param>
    </slot>
   </effect>
- </emitter>
-
- <audioframe>
   <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.1</param>
-    <param n="2">0.1</param>
+    <param n="2">0.2</param>
     <param n="3">0.4</param>
    </slot>
   </effect>
- </audioframe>
+ </emitter>
 
 </aeonwave>
