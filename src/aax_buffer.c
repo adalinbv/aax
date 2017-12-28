@@ -1183,7 +1183,7 @@ _bufAAXSThread(void *d)
       if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
       if (xsid)
       {
-         unsigned int i, num, bits = 24;
+         unsigned int i, num, bits;
          double duration;
          void *xwid;
 
@@ -1206,12 +1206,12 @@ _bufAAXSThread(void *d)
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
             duration = xmlAttributeGetDouble(xsid, "duration");
-            if (duration <= 1.0) {
-            } else {
+            if (duration >= 0.099f) {
                rb->set_paramf(rb, RB_DURATION_SEC, duration);
             }
          }
 
+         bits = 24;
          if (xmlAttributeExists(xsid, "bits"))
          {
             bits = xmlAttributeGetInt(xsid, "bits");
@@ -1262,6 +1262,9 @@ _bufAAXSThread(void *d)
       else {
          aax_buf->error = AAX_INVALID_STATE;
       }
+
+_aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+printf("no_samples: %i\n", rb->get_parami(rb, RB_NO_SAMPLES));
 
       xmlClose(xid);
    }
