@@ -1263,9 +1263,6 @@ _bufAAXSThread(void *d)
          aax_buf->error = AAX_INVALID_STATE;
       }
 
-_aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-printf("no_samples: %i\n", rb->get_parami(rb, RB_NO_SAMPLES));
-
       xmlClose(xid);
    }
    else {
