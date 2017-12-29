@@ -8,12 +8,16 @@
 
 <aeonwave>
 
- <sound name="Electric Bass (Finger)" frequency="110">
+ <sound name="Electric Bass (Finger)" frequency="110" duration="0.10">
   <waveform src="square" pitch="1.0"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="2.0"/>
  </sound>
+
+ <instrument>
+  <note polyphony="6" min="35" max="76" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

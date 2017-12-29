@@ -8,11 +8,15 @@
 
 <aeonwave>
 
- <sound name="Electric Grand Piano" frequency="220">
+ <sound name="Electric Grand Piano" frequency="220" duration="0.10">
   <waveform src="sine"/>
   <waveform src="sine" processing="mix" ratio="0.2" pitch="10.0"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="2.0"/>
  </sound>
+
+ <instrument>
+  <note polyphony="88" min="21" max="108" step="12"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

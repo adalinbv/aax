@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Low Floor Tom" frequency="77">
+ <sound name="Low Floor Tom" frequency="77" duration="0.10">
   <waveform src="triangle" pitch="0.9"/>
   <waveform src="sawtooth" processing="add" ratio="-0.4" pitch="1.1"/>
   <waveform src="white-noise" processing="add" ratio="0.15" pitch="0.125"/>

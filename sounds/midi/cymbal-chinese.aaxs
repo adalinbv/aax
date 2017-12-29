@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Chinese Cymbal" frequency="440">
+ <sound name="Chinese Cymbal" frequency="440" duration="0.20">
   <waveform src="sawtooth" pitch="1.297"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="2.5"/>
   <waveform src="white-noise" processing="mix" ratio="0.5" pitch="0.25"/>

@@ -8,10 +8,15 @@
 
 <aeonwave>
 
- <sound name="Harp" frequency="220">
+ <sound name="Harp" frequency="220" duration="0.10">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="0.2" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="2.0"/>
  </sound>
+
+ <instrument>
+  <note polyphony="88" min="21" max="108" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -23,7 +28,7 @@
    </slot>
    <slot n="1">
     <param n="0">0.70</param>
-    <param n="1" auto-sustain="1.0">4.0</param>
+    <param n="1" auto-sustain="1.0">4.1</param>
    </slot>
   </filter>
  </emitter>

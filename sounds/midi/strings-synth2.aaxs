@@ -8,10 +8,14 @@
 
 <aeonwave>
 
- <sound name="Synthesizer Strings 2" frequency="220">
+ <sound name="Synthesizer Strings 2" frequency="220" duration="0.5">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="0.4987"/>
  </sound>
+
+ <instrument>
+  <note polyphony="4" min="28" max="91" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -24,7 +28,7 @@
    <slot n="1">
     <param n="0">0.90</param>
     <param n="1">inf</param>
-    <param n="2">0.80</param>
+    <param n="2">0.90</param>
     <param n="3">0.20</param>
    </slot>
   </filter>
@@ -33,22 +37,23 @@
     <param n="0" factor="soften">0.92</param>
     <param n="1" factor="velocity">0.15</param>
     <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.5</param>
-    <param n="2">0.975</param>
-   </slot>
-  </effect>
-  <effect type="chorus" src="envelope">
-   <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.07</param>
-    <param n="2">0.2</param>
-    <param n="3">0.4</param>
+    <param n="0">0.975</param>
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.4</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.4</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

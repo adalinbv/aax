@@ -4,8 +4,8 @@
  <instrument n="4" name="Honky-tonk Piano" file="piano-honky-tonk.aaxs"/>
  <instrument n="5" name="Electric Piano 1" file="piano-electric1.aaxs"/>
  <instrument n="6" name="Electric Piano 2" file="piano-electric2.aaxs"/>
- <instrument n="7" name="Harpsichord" file="harp.aaxs"/>
- <instrument n="8" name="Clavi" file=" clavecimbel.aaxs"/>
+ <instrument n="7" name="Harpsichord" file="harpsichord.aaxs"/>
+ <instrument n="8" name="Clavi" file=" .aaxs"/>
  <instrument n="9" name="Celesta" file=".aaxs"/>
  <instrument n="10" name="Glockenspiel" file=".aaxs"/>
  <instrument n="11" name="Music Box" file=".aaxs"/>
@@ -44,7 +44,7 @@
  <instrument n="44" name="Contrabass" file="violin.aaxs"/>
  <instrument n="45" name="Tremolo Strings" file=".aaxs"/>
  <instrument n="46" name="Pizzicato Strings" file=".aaxs"/>
- <instrument n="47" name="Orchestral Harp" file=".aaxs"/>
+ <instrument n="47" name="Orchestral Harp" file="harp.aaxs"/>
  <instrument n="48" name="Timpani" file=".aaxs"/>
  <instrument n="49" name="String Ensemble 1" file="string-ensamble1.aaxs"/>
  <instrument n="50" name="String Ensemble 2" file="string-ensamble2.aaxs"/>

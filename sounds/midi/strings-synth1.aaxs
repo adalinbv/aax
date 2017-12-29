@@ -8,10 +8,14 @@
 
 <aeonwave>
 
- <sound name="Synthesizer Strings 1" frequency="220">
+ <sound name="Synthesizer Strings 1" frequency="220" duration="0.5">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="1.9889"/>
  </sound>
+
+ <instrument>
+  <note polyphony="4" min="28" max="91" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -41,14 +45,17 @@
     <param n="2">0.975</param>
    </slot>
   </effect>
-  <effect type="chorus" src="envelope">
+ </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="true">
    <slot n="0">
     <param n="0">0.5</param>
-    <param n="1">0.2</param>
-    <param n="2">0.3</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.5</param>
    </slot>
   </effect>
- </emitter>
+ </audioframe>
 
 </aeonwave>

@@ -8,11 +8,15 @@
 
 <aeonwave>
 
- <sound name="Fiddle" frequency="220">
+ <sound name="Fiddle" frequency="220" duration="0.75">
   <waveform src="impulse"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="2.0"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>
  </sound>
+
+ <instrument>
+  <note polyphony="4" min="55" max="91" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Trumpet" frequency="220">
+ <sound name="Trumpet" frequency="220" duration="0.10">
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -19,6 +19,10 @@
    </slot>
   </filter>
  </sound>
+
+ <instrument>
+  <note polyphony="1" min="21" max="91" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -31,7 +35,7 @@
    <slot n="1">
     <param n="0">0.90</param>
     <param n="1">inf</param>
-    <param n="2">0.80</param>
+    <param n="2">0.90</param>
     <param n="3">0.20</param>
    </slot>
   </filter>
@@ -48,6 +52,9 @@
     <param n="2">0.995</param>
    </slot>
   </effect>
+ </emitter>
+
+ <audioframe>
   <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.8</param>
@@ -56,6 +63,6 @@
     <param n="3">0.305</param>
    </slot>
   </effect>
- </emitter>
+ </audioframe>
 
 </aeonwave>

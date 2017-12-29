@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Lead 3 (calliope)" frequency="220">
+ <sound name="Lead 3 (calliope)" frequency="220" duration="1.0">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
-  <waveform src="sine" processing="mix" ratio="0.04"/>
+  <waveform src="sine" processing="mix" ratio="0.048"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
@@ -29,6 +29,10 @@
    </slot>
   </filter>
  </sound>
+
+ <instrument>
+  <note polyphony="43" min="48" max="91" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

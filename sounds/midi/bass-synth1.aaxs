@@ -8,12 +8,16 @@
 
 <aeonwave>
 
- <sound name="Synth Bass 1" frequency="110">
+ <sound name="Synth Bass 1" frequency="110" duraration="0.10">
   <waveform src="sawtooth" pitch="2.0"/>
   <waveform src="impulse" processing="mix" ratio="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.4" pitch="0.498"/>
  </sound>
+
+ <instrument>
+  <note polyphony="6" min="35" max="76" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope|24db">
