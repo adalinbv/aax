@@ -8,12 +8,11 @@
 
 <aeonwave>
 
- <sound name="Splash Cymbal" frequency="770">
+ <sound name="Splash Cymbal" frequency="770" duration="0.10">
     <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>
   <waveform src="sine" processing="modulate" ratio="2.0" pitch="1.6"/>
-
   <filter type="frequency">
    <slot n="0">
     <param n="0">2000</param>

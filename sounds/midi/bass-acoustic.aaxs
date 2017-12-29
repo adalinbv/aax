@@ -8,11 +8,15 @@
 
 <aeonwave>
 
- <sound name="Acoustic Bass" frequency="110">
+ <sound name="Acoustic Bass" frequency="110" duration="0.10">
   <waveform src="square"/>
   <waveform src="triangle" processing="mix" ratio="0.75" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="0.999"/>
  </sound>
+
+ <instrument>
+  <note polyphony="4" min="24" max="86" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -32,12 +36,10 @@
     <param n="0" factor="soften">1.2</param>
     <param n="1" factor="velocity">0.02</param>
     <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="3">2.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">2.5</param>
-    <param n="2">0.975</param>
+    <param n="0">0.975</param>
    </slot>
   </effect>
  </emitter>

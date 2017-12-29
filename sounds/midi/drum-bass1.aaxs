@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Bass Drum 1" frequency="22">
+ <sound name="Bass Drum 1" frequency="22" duration="0.10">
   <waveform src="sine" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
  </sound>
@@ -22,7 +22,7 @@
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
-    <param n="0">0.50</param>
+    <param n="0">0.80</param>
     <param n="1">0.30</param>
     <param n="2">0.10</param>
     <param n="3">0.40</param>

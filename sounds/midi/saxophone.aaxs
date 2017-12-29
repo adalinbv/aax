@@ -8,11 +8,23 @@
 
 <aeonwave>
 
- <sound name="Saxophone" frequency="220">
+ <sound name="Saxophone" frequency="220" duration="0.10">
   <waveform src="impulse"/>
   <waveform src="square" processing="modulate" ratio="2.0" pitch="2.0"/>
   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="2.0"/>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">4400</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </sound>
+
+ <instrument>
+  <note polyphony="1" min="26" max="98" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -25,7 +37,7 @@
    <slot n="1">
      <param n="0">0.90</param>
      <param n="1">inf</param>
-     <param n="2">0.80</param>
+     <param n="2">0.90</param>
      <param n="3">0.20</param>
    </slot>
   </filter>

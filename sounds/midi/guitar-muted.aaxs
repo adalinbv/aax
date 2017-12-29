@@ -8,11 +8,15 @@
 
 <aeonwave>
 
- <sound name="Muted Electric Guitar" frequency="220">
+ <sound name="Muted Electric Guitar" frequency="220" duration="0.10">
   <waveform src="triangle" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.4" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="2.0"/>
  </sound>
+
+ <instrument>
+  <note polyphony="6" min="40" max="86" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -24,7 +28,7 @@
    </slot>
    <slot n="1">
     <param n="0">0.70</param>
-    <param n="1">2.50</param>
+    <param n="1">1.50</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -32,14 +36,15 @@
     <param n="0" factor="soften">1.05</param>
     <param n="1" factor="velocity">0.05</param>
     <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.5</param>
-    <param n="2">0.975</param>
+    <param n="0">0.975</param>
    </slot>
   </effect>
+ </emitter>
+
+ <audioframe>
   <effect type="phasing">
    <slot n="0">
     <param n="0">0.8</param>
@@ -48,6 +53,6 @@
     <param n="3">0.2</param>
    </slot>
   </effect>
- </emitter>
+ </audioframe>
 
 </aeonwave>

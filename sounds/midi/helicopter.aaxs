@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Helicopter (4 blade)" frequency="220">
-  <waveform src="square" pitch="1.0"/>
-  <waveform src="impulse" processing="mix" ratio="0.7" pitch="1.0087"/>
+ <sound name="Helicopter (4 blade)" frequency="220" duration="2.301">
+  <waveform src="square" pitch="1.00043"/>
+  <waveform src="impulse" processing="mix" ratio="0.7" pitch="0.9999"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="0.498"/>
  </sound>
 

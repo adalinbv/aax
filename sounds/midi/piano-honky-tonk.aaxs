@@ -8,11 +8,15 @@
 
 <aeonwave>
 
- <sound name="Honky-Tonk Piano" frequency="220">
+ <sound name="Honky-Tonk Piano" frequency="220" duration="0.10">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.4" pitch="2.997"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.003"/>
  </sound>
+
+ <instrument>
+  <note polyphony="88" min="21" max="108" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -32,12 +36,10 @@
     <param n="0" factor="soften">1.3</param>
     <param n="1" factor="velocity">0.03</param>
     <param n="2">0.96</param>
-    <param n="3">0.02</param>
+    <param n="3">4.50</param>
    </slot>
    <slot n="1">
-    <param n="0">1.01</param>
-    <param n="1">4.5</param>
-    <param n="2">0.975</param>
+    <param n="0">0.975</param>
    </slot>
   </effect>
   <effect type="phasing" src="inverse-envelope">

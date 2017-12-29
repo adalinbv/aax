@@ -8,11 +8,15 @@
 
 <aeonwave>
 
- <sound name="String Ensamble 2" frequency="220">
+ <sound name="String Ensamble 2" frequency="220" duration="0.5">
   <waveform src="sawtooth" ratio="0.75"/>
   <waveform src="sawtooth" processing="add" ratio="0.25" pitch="0.5"/>
   <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="1.9889"/>
  </sound>
+
+ <instrument>
+  <note polyphony="4" min="28" max="91" step="1"/>
+ </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -40,14 +44,6 @@
     <param n="0">1.0</param>
     <param n="1">4.5</param>
     <param n="2">0.975</param>
-   </slot>
-  </effect>
-  <effect type="chorus" src="envelope">
-   <slot n="0">
-    <param n="0">0.6</param>
-    <param n="1">0.07</param>
-    <param n="2">0.5</param>
-    <param n="3">0.4</param>
    </slot>
   </effect>
  </emitter>

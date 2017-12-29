@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="High Tom" frequency="208">
+ <sound name="High Tom" frequency="208" duration="0.10">
   <waveform src="triangle" pitch="0.97"/>
   <waveform src="sawtooth" processing="add" ratio="-0.4" pitch="1.1"/>
   <waveform src="white-noise" processing="add" ratio="0.5" pitch="0.125"/>
