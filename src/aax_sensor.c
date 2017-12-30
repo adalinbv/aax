@@ -345,10 +345,10 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
       switch(state)
       {
       case AAX_CAPTURING:
-         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
+         if ((handle->info->mode == AAX_MODE_READ) && !handle->parent) {
             rv = _aaxSensorCaptureStart(handle);
          }
-         else if (handle->handle)	/* registered sensor */
+         else if (handle->parent)	/* registered sensor */
          {
             _aaxSensorCreateRingBuffer(handle);
             _SET_PLAYING(handle);
@@ -373,10 +373,10 @@ aaxSensorSetState(aaxConfig config, enum aaxState state)
 //    case AAX_PROCESSED:
       case AAX_SUSPENDED:
       case AAX_STOPPED:
-         if ((handle->info->mode == AAX_MODE_READ) && !handle->handle) {
+         if ((handle->info->mode == AAX_MODE_READ) && !handle->parent) {
             rv = _aaxSensorCaptureStop(handle);
          }
-         else if (handle->handle)	/* registered sensor */
+         else if (handle->parent)	/* registered sensor */
          {
             if (state == AAX_SUSPENDED) {
                _SET_PAUSED(handle);

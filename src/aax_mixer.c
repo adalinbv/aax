@@ -82,7 +82,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
    else
    {
       _handle_t *handle = get_handle(config, __func__);
-      if (handle && !handle->handle)
+      if (handle && !handle->parent)
       {
          _aaxMixerInfo* info = handle->info;
          switch(type)
@@ -888,7 +888,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      }
                      _intBufReleaseData(dptr, _AAX_SENSOR);
 
-                     sframe->handle = handle;
+                     sframe->root = handle;
+                     sframe->parent = handle;
                      sframe->mixer_pos = pos;
                      submix->refcount++;
 
@@ -975,7 +976,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
 
-            sframe->handle = handle;
+            sframe->root = handle;
+            sframe->parent = handle;
             handle->file.driver = (char*)sframe;
             handle->file.handle = sframe->backend.handle;
             handle->file.ptr = sframe->backend.ptr;
@@ -1024,7 +1026,8 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
                sframe_sensor->mixer->refcount--;
                _intBufReleaseData(dptr_sframe, _AAX_SENSOR);
 
-               sframe->handle = NULL;
+               sframe->root = NULL;
+               sframe->parent = NULL;
                sframe->mixer_pos = UINT_MAX;
                rv = AAX_TRUE;
             }
@@ -1038,7 +1041,8 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
             handle->file.ptr = NULL;
             handle->file.driver = NULL;
             handle->file.handle = NULL;
-            sframe->handle = NULL;
+            sframe->parent = NULL;
+            sframe->root = NULL;
             rv = AAX_TRUE;
          }
          else {
@@ -1099,7 +1103,8 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             _aaxEmitter *src = emitter->source;
             _intBufferData *dptr;
 
-            emitter->handle = handle;
+            emitter->root = handle;
+            emitter->parent = handle;
             emitter->mixer_pos = pos;
 
             /*
@@ -1209,7 +1214,8 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
             {
                _aaxDecreaseEmitterCounter();
                mixer->no_registered--;
-               emitter->handle = NULL;
+               emitter->root = NULL;
+               emitter->parent = NULL;
                emitter->mixer_pos = UINT_MAX;
                rv = AAX_TRUE;
             }
@@ -1232,7 +1238,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
    if (handle && VALID_MIXER(handle))
    {
       _frame_t* frame = get_frame(f, __func__);
-      if (frame && !frame->handle)
+      if (frame && !frame->parent)
       {
          if (frame->mixer_pos == UINT_MAX)
          {
@@ -1306,7 +1312,8 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
                   fmixer->refcount++;
 
-                  frame->handle = handle;
+                  frame->root = handle->root;
+                  frame->parent = handle;
                   frame->mixer_pos = pos;
                }
             }
@@ -1325,7 +1332,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
       }
       else if (frame)
       {
-         if (frame->handle) put_frame(frame);
+         if (frame->parent) put_frame(frame);
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
@@ -1358,7 +1365,8 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _intBufReleaseData(dptr, _AAX_SENSOR);
 
             submix->refcount--;
-            frame->handle = NULL;
+            frame->root = NULL;
+            frame->parent = NULL;
             frame->mixer_pos = UINT_MAX;
             rv = AAX_TRUE;
          }
@@ -1407,7 +1415,7 @@ _aaxMixerInit(_handle_t *handle)
       assert(be != 0);
 
       /* is this a registered sensor? */
-      rssr = (handle->handle) ? AAX_TRUE : AAX_FALSE;
+      rssr = (handle->parent) ? AAX_TRUE : AAX_FALSE;
       res = be->setup(be_handle, &refrate, &fmt, &ch, &freq, &brate,
                       rssr, periodrate);
 
@@ -1466,7 +1474,7 @@ _aaxMixerStart(_handle_t *handle)
    int rv = AAX_FALSE;
 
    if (handle && TEST_FOR_FALSE(handle->thread.started)
-       && !handle->handle)
+       && !handle->parent)
    {
       unsigned int ms;
       int r;
@@ -1523,7 +1531,7 @@ _aaxMixerStart(_handle_t *handle)
          _aaxErrorSet(AAX_INVALID_STATE);
       }
    }
-   else if (_IS_PAUSED(handle) || _IS_STANDBY(handle) || handle->handle) {
+   else if (_IS_PAUSED(handle) || _IS_STANDBY(handle) || handle->parent) {
       rv = AAX_TRUE;
    }
    return rv;
@@ -1533,7 +1541,7 @@ static int
 _aaxMixerStop(_handle_t *handle)
 {
    int rv = AAX_FALSE;
-   if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
+   if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
       handle->thread.started = AAX_FALSE;
 
@@ -1551,7 +1559,7 @@ _aaxMixerStop(_handle_t *handle)
 
       rv = AAX_TRUE;
    }
-   else if (handle->handle) {
+   else if (handle->parent) {
       rv = AAX_TRUE;
    }
 
@@ -1562,7 +1570,7 @@ static int
 _aaxMixerUpdate(_handle_t *handle)
 {
    int rv = AAX_FALSE;
-   if (!handle->handle && TEST_FOR_TRUE(handle->thread.started))
+   if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
       if (be->param(handle->backend.handle, DRIVER_BATCHED_MODE))
@@ -1575,7 +1583,7 @@ _aaxMixerUpdate(_handle_t *handle)
       _aaxSignalTrigger(&handle->thread.signal);
       rv = AAX_TRUE;
    }
-   else if (handle->handle) {
+   else if (handle->parent) {
       rv = AAX_TRUE;
    }
 

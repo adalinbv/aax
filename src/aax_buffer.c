@@ -98,7 +98,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->format = format;
          buf->frequency = 0.0f;
          buf->info = VALID_HANDLE(handle) ? &handle->info : &_info;
-         buf->handle = handle;
+         buf->root = handle;
          buf->ringbuffer = _bufGetRingBuffer(buf, handle);
          buf->to_mixer = AAX_FALSE;
          rv = (aaxBuffer)buf;
@@ -736,7 +736,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 #if 0
       _buffer_t* handle = get_buffer(buffer, __func__);
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-      _aaxRingBufferData *rbi = rb->handle;
+      _aaxRingBufferData *rbi = rb->root;
       _aaxRingBufferSample *rbd = rbi->sample;
       const int32_t **data;
 
@@ -1121,7 +1121,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq)
 static int
 _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
 {
-   aaxFilter flt = _aaxGetFilterFromAAXS(handle->handle, xfid, frequency);
+   aaxFilter flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency);
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
@@ -1147,7 +1147,7 @@ static int
 _bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency)
 {
 
-   aaxEffect eff = _aaxGetEffectFromAAXS(handle->handle, xeid, frequency);
+   aaxEffect eff = _aaxGetEffectFromAAXS(handle->root, xeid, frequency);
    if (eff)
    {
       _effect_t* effect = get_effect(eff);
@@ -1164,7 +1164,7 @@ static void*
 _bufAAXSThread(void *d)
 {
    _buffer_aax_t *aax_buf = (_buffer_aax_t*)d;
-   _buffer_t* handle = aax_buf->handle;
+   _buffer_t* handle = aax_buf->parent;
    const void *aaxs =  aax_buf->aaxs;
    float freq = aax_buf->frequency;
    int rv = AAX_FALSE;
@@ -1281,11 +1281,11 @@ _bufAAXSThread(void *d)
 static int
 _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
 {
-   _handle_t *handle = buffer->handle;
+   _handle_t *handle = buffer->root;
    _buffer_aax_t data;
    int rv = AAX_FALSE;
 
-   data.handle = buffer;
+   data.parent = buffer;
    data.aaxs = aaxs;
    data.frequency = freq;
    data.error = AAX_ERROR_NONE;
@@ -1551,7 +1551,7 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
    _aaxRingBuffer *nrb = rb;
    unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    unsigned int tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   _handle_t *handle = buf->handle;
+   _handle_t *handle = buf->root;
 
    if (handle)
    {

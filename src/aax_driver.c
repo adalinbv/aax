@@ -468,7 +468,7 @@ aaxDriverDestroy(aaxConfig config)
    aaxSensorSetState(handle, AAX_STOPPED);
    aaxDriverClose(handle);
 
-   if (handle && !handle->handle)
+   if (handle && !handle->parent)
    {
       assert(handle->backends != NULL);
 
@@ -863,9 +863,9 @@ get_driver_handle(aaxConfig c)
       } else if (frame->id == AUDIOFRAME_ID) {
          rv = frame->submix->info->backend;
       } else if (frame->id == EMITTER_ID) {
-          rv = get_driver_handle( ((_emitter_t*)c)->handle );
+          rv = get_driver_handle( ((_emitter_t*)c)->parent );
       } else if (frame->id == BUFFER_ID) {
-          rv = ((_buffer_t*)c)->handle;
+          rv = ((_buffer_t*)c)->root;
       }
    }
    return rv;
