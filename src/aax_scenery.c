@@ -29,38 +29,44 @@
 #include "api.h"
 
 AAX_API int AAX_APIENTRY
-aaxScenerySetMatrix(aaxConfig config, aaxMtx4d mtx)
+aaxScenerySetMatrix64(aaxConfig config, aaxMtx4d mtx64)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
 
    if (!rv)
    {
-      if (!mtx || detect_nan_mtx4d(mtx)) {
+      if (!mtx64 || detect_nan_mtx4d(mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
       }
    }
 
-   if (rv)
+   if (rv) {
+      mtx4dFill(handle->info->matrix.m4, mtx64);
+   }
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxSceneryGetMatrix64(aaxConfig config, aaxMtx4d mtx64)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
    {
-      const _intBufferData* dptr;
-      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-      if (dptr)
-      {
-         _sensor_t* sensor = _intBufGetDataPtr(dptr);
-         _aaxAudioFrame* smixer = sensor->mixer;
-         mtx4dFill(smixer->props3d->dprops3d->matrix.m4, mtx);
-         mtx4dFill(smixer->props3d->m_dprops3d->matrix.m4, mtx);
-         _PROP_MTX_SET_CHANGED(smixer->props3d);
-         _intBufReleaseData(dptr, _AAX_SENSOR);
+      if (!mtx64) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
       }
-      else
-      {
-         _aaxErrorSet(AAX_INVALID_STATE);
-         rv = AAX_FALSE;
-      }
+   }
+
+   if (rv) {
+      mtx4dFill(mtx64, handle->info->matrix.m4);
    }
 
    return rv;
@@ -227,3 +233,48 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxScenerySetDimensions(aaxConfig config, aaxVec3f dimensions)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!dimensions || detect_nan_vec3(dimensions)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      vec3fFill(handle->info->bounding.box.v3, dimensions);
+//    handle->info->bounding.radius_sq =
+   }
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxSceneryGetDimensions(aaxConfig config, aaxVec3f dimensions)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!dimensions) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv) {
+      vec3fFill(dimensions, handle->info->bounding.box.v3);
+   }
+
+   return rv;
+}

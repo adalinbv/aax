@@ -103,7 +103,6 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4d mtx64)
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
           mtx4dFill(mtx64, smixer->props3d->dprops3d->matrix.m4);
-          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
       else
