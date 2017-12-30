@@ -742,6 +742,7 @@ new_handle()
       handle->id = HANDLE_ID;
       handle->backends = get_backends();
 
+      handle->root = handle;
       handle->mixer_pos = UINT_MAX;
       handle->be_pos = UINT_MAX;
       _SET_PROCESSED(handle);
