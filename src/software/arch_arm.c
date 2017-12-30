@@ -68,7 +68,7 @@ enum {
    AAX_SIMD_MAX
 };
 
-static uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
+uint32_t _aax_arch_capabilities = AAX_NO_SIMD;
 static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
    SIMD_PREFIX"",

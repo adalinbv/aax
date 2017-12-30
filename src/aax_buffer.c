@@ -1184,8 +1184,18 @@ _bufAAXSThread(void *d)
       if (xsid)
       {
          unsigned int i, num, bits = 24;
-         double duration;
+         double duration = 1.0f;
          void *xwid;
+
+         if (xmlAttributeExists(xsid, "bits"))
+         {
+            bits = xmlAttributeGetInt(xsid, "bits");
+            if (bits != 16) bits = 24;
+         }
+
+         if (!freq) {
+            freq = xmlAttributeGetDouble(xsid, "frequency");
+         }
 
          if (xmlAttributeExists(xsid, "file"))
          {
@@ -1204,22 +1214,18 @@ _bufAAXSThread(void *d)
          }
          else if (xmlAttributeExists(xsid, "duration"))
          {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
             duration = xmlAttributeGetDouble(xsid, "duration");
-            if (duration <= 1.0) {
-            } else {
-               rb->set_paramf(rb, RB_DURATION_SEC, duration);
+            if (duration < 0.1f) {
+               duration = 0.1f;
             }
          }
 
-         if (xmlAttributeExists(xsid, "bits"))
+         if (duration >= 0.099f)
          {
-            bits = xmlAttributeGetInt(xsid, "bits");
-            if (bits != 16) bits = 24;
-         }
-
-         if (!freq) {
-            freq = xmlAttributeGetDouble(xsid, "frequency");
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+            float f = rb->get_paramf(rb, RB_FREQUENCY);
+            size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
+            rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
          }
 
          xwid = xmlMarkId(xsid);
