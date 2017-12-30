@@ -116,7 +116,9 @@ enum
     SPEED_CHANGED          = 0x0000010,
 
     CONE_DEFINED           = 0x0010000,
-    DYNAMIC_PITCH_DEFINED  = 0x0020000,
+    DIMENSIONS_DEFINED     = 0x0020000,
+    DYNAMIC_PITCH_DEFINED  = 0x0040000,
+    ALL_DEFINED       = (CONE_DEFINED|DIMENSIONS_DEFINED|DYNAMIC_PITCH_DEFINED),
 
     /* SCENE*/
     DISTQUEUE_CHANGED      = 0x0000000,
@@ -127,29 +129,37 @@ enum
 };
 #define PITCH_CHANGE            (PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
 
-#define _PROP3D_CLEAR(q)                ((q)->state3d &= (CONE_DEFINED|DYNAMIC_PITCH_DEFINED))
+#define _PROP3D_CLEAR(q)                ((q)->state3d &= ALL_DEFINED)
 #define _PROP3D_PITCH_HAS_CHANGED(q)    ((q)->state3d & PITCH_CHANGE)
 #define _PROP3D_GAIN_HAS_CHANGED(q)     ((q)->state3d & GAIN_CHANGED)
 #define _PROP3D_DIST_HAS_CHANGED(q)     ((q)->state3d & DIST_CHANGED)
 #define _PROP3D_MTX_HAS_CHANGED(q)      ((q)->state3d & MTX_CHANGED)
 #define _PROP3D_SPEED_HAS_CHANGED(q)    ((q)->state3d & SPEED_CHANGED)
 #define _PROP3D_MTXSPEED_HAS_CHANGED(q) ((q)->state3d & (SPEED_CHANGED|MTX_CHANGED))
-#define _PROP3D_CONE_IS_DEFINED(q)      ((q)->state3d & CONE_DEFINED)
 
 #define _PROP3D_PITCH_SET_CHANGED(q)    ((q)->state3d |= PITCH_CHANGED)
 #define _PROP3D_GAIN_SET_CHANGED(q)     ((q)->state3d |= GAIN_CHANGED)
 #define _PROP3D_DIST_SET_CHANGED(q)     ((q)->state3d |= DIST_CHANGED)
 #define _PROP3D_MTX_SET_CHANGED(q)      ((q)->state3d |= MTX_CHANGED)
 #define _PROP3D_SPEED_SET_CHANGED(q)    ((q)->state3d |= SPEED_CHANGED)
-#define _PROP3D_CONE_SET_DEFINED(q)     ((q)->state3d |= CONE_DEFINED)
-#define _PROP3D_DYNAMIC_PITCH_SET_DEFINED(q) ((q)->state3d |= DYNAMIC_PITCH_DEFINED)
 
 #define _PROP3D_PITCH_CLEAR_CHANGED(q)  ((q)->state3d &= ~PITCH_CHANGED)
 #define _PROP3D_GAIN_CLEAR_CHANGED(q)   ((q)->state3d &= ~GAIN_CHANGED)
 #define _PROP3D_DIST_CLEAR_CHANGED(q)   ((q)->state3d &= ~DIST_CHANGED)
 #define _PROP3D_MTX_CLEAR_CHANGED(q)    ((q)->state3d &= ~MTX_CHANGED)
 #define _PROP3D_SPEED_CLEAR_CHANGED(q)  ((q)->state3d &= ~SPEED_CHANGED)
+
+
+#define _PROP3D_CONE_IS_DEFINED(q)      ((q)->state3d & CONE_DEFINED)
+#define _PROP3D_DIMENSIONS_IS_DEFINED(q) ((q)->state3d & DIMENSIONS_DEFINED)
+#define _PROP3D_DYNAMIC_PITCHIS_DEFINED(q) ((q)->state3d & DYNAMIC_PITCH_DEFINED)
+
+#define _PROP3D_CONE_SET_DEFINED(q)     ((q)->state3d |= CONE_DEFINED)
+#define _PROP3D_DIMENSION_SET_DEFINED(q) ((q)->state3d |= DIMENSIONS_DEFINED)
+#define _PROP3D_DYNAMIC_PITCH_SET_DEFINED(q) ((q)->state3d |= DYNAMIC_PITCH_DEFINED)
+
 #define _PROP3D_CONE_CLEAR_DEFINED(q)   ((q)->state3d &= ~CONE_DEFINED)
+#define _PROP3D_DIMENSIONS_CLEAR_DEFINED(q) ((q)->state3d &= ~DIMENSIONS_DEFINED)
 #define _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED(q) ((q)->state3d &= ~DYNAMIC_PITCH_DEFINED)
 
 /* 3d properties: AAX Scene extension*/
@@ -222,6 +232,11 @@ enum
    HRTF_OFFSET
 };
 
+typedef ALIGN16  struct {
+   vec3f_t box;				/* bounding box */
+   float radius_sq;			/* bounding radius squared */
+} bounding_t ALIGN16C;
+
 /* warning:
  * need to update the pre defined structure in objects.c ehwn changing
  * something here
@@ -230,6 +245,10 @@ typedef ALIGN16 struct
 {
    vec4f_t hrtf[2];
    vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
+
+   mtx4d_t matrix;			/* scenery position and orientation */
+   bounding_t bounding;
+
    vec4f_t *delay;
 
    unsigned char router[_AAX_MAX_SPEAKERS];
@@ -270,11 +289,13 @@ typedef ALIGN16 struct
 
 typedef struct
 {
+   bounding_t bounding;
+
+   float buf3dq_step;
+   int state;
 
    _aaxDelayed3dProps* dprops3d;        /* current   */
    _aaxDelayed3dProps* m_dprops3d;      /* modiefied */
-   float buf3dq_step;
-   int state;
 
    /* 3d filters and effects */
    _aaxFilterInfo filter[MAX_3D_FILTER];

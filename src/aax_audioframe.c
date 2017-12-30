@@ -140,9 +140,11 @@ aaxAudioFrameDestroy(aaxFrame frame)
    aaxAudioFrameSetState(frame, AAX_STOPPED);
 
    handle = get_frame(frame, __func__);
-   if (!rv && handle)
+   if (!rv)
    {
-      if (handle->parent) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (handle->parent) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
          rv = AAX_TRUE;
@@ -202,7 +204,9 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 
    if (!rv)
    {
-      if (!mtx64 || detect_nan_mtx4d(mtx64)) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx64 || detect_nan_mtx4d(mtx64)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -260,7 +264,9 @@ aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4d mtx64)
 
    if (!rv)
    {
-      if (!mtx64) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!mtx64) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -283,7 +289,9 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 
    if (!rv)
    {
-      if (!velocity || detect_nan_vec3(velocity)) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity || detect_nan_vec3(velocity)) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -312,7 +320,9 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
 
    if (!rv)
    {
-      if (!velocity) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -327,6 +337,59 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
       vec3fFill(velocity, dp3d->velocity.m4[VELOCITY]);
    }
    put_frame(frame);
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxAudioFrameSetDimensions(aaxFrame frame, aaxVec3f dimensions)
+{
+   _frame_t *handle = get_frame(frame, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {  
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!dimensions || detect_nan_vec3(dimensions)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aax3dProps *p3d = handle->submix->props3d;
+      vec3fFill(p3d->bounding.box.v3, dimensions);
+//    handle->info->bounding.radius_sq =
+   }
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxAudioFrameGetDimensions(aaxFrame frame, aaxVec3f dimensions)
+{
+   _frame_t *handle = get_frame(frame, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!dimensions) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aax3dProps *p3d = handle->submix->props3d;
+      vec3fFill(dimensions, p3d->bounding.box.v3);
+   }
 
    return rv;
 }
@@ -347,7 +410,9 @@ aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
 
    if (!rv)
    {
-      if (track >= _AAX_MAX_SPEAKERS) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (track >= _AAX_MAX_SPEAKERS) {
          _aaxErrorSet(AAX_INVALID_ENUM);
       } else {
          rv = AAX_TRUE; 
@@ -394,7 +459,9 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 
    if (!rv) 
    {
-      if (!filter) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!filter) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -515,7 +582,9 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
 
    if (!rv)
    {
-      if (!effect) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!effect) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -589,7 +658,7 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 {
    _frame_t *handle = get_frame(frame, __func__);
-   int rv =AAX_TRUE;
+   int rv = AAX_TRUE;
 
    if (rv)
    {
@@ -638,7 +707,9 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
 
    if (!rv)
    {
-      if (!ssr_config) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!ssr_config) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else if (ssr_config->thread.started) {
          _aaxErrorSet(AAX_INVALID_STATE);
@@ -778,7 +849,9 @@ aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
 
    if (!rv)
    {
-      if (!ssr_config || ssr_config->mixer_pos == UINT_MAX) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!ssr_config || ssr_config->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -824,7 +897,9 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
    if (!rv)
    {
-      if (!emitter || emitter->parent || emitter->mixer_pos < UINT_MAX) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!emitter || emitter->parent || emitter->mixer_pos < UINT_MAX) {
           _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -922,7 +997,9 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
    if (!rv)
    {
-      if (!emitter || emitter->mixer_pos == UINT_MAX) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!emitter || emitter->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -968,7 +1045,9 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
    if (!rv)
    {
-      if (!sframe) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!sframe) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else if (sframe->parent) {
          _aaxErrorSet(AAX_INVALID_STATE);
@@ -1068,7 +1147,9 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
    if (!rv)
    {
-      if (!sframe || sframe->mixer_pos == UINT_MAX) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!sframe || sframe->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -1185,9 +1266,11 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
    _buffer_t* buffer = get_buffer(buf, __func__);
    int rv = __release_mode;
 
-   if (!rv && handle)
+   if (!rv)
    {
-      if (!buffer) {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!buffer) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
       else if (!buffer->aaxs) {
