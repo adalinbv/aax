@@ -122,7 +122,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
    if (handle)
    {
       _aaxEmitter *src = handle->source;
-      if (!handle->handle && _IS_PROCESSED(src->props3d))
+      if (!handle->parent && _IS_PROCESSED(src->props3d))
       {
          int i;
 
@@ -359,7 +359,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
       case AAX_UPDATE:				/* update distance delay */
          if (handle->mixer_pos != UINT_MAX)	/* emitter is registered */
          {
-            _handle_t *phandle = handle->handle;
+            _handle_t *phandle = handle->parent;
             if (phandle->id == HANDLE_ID)
             {
                _intBufferData *dptr;
@@ -948,7 +948,7 @@ aaxEmitterGetState(const aaxEmitter emitter)
    enum aaxState ret = AAX_STATE_NONE;
    if (handle)
    {
-      _handle_t *thread = get_valid_handle(handle->handle, __func__);
+      _handle_t *thread = get_valid_handle(handle->parent, __func__);
       if (thread)
       {
          const _aaxEmitter *src = handle->source;
@@ -1058,7 +1058,7 @@ get_emitter_unregistered(aaxEmitter em, const char *func)
    _emitter_t *emitter = (_emitter_t *)em;
    _emitter_t *rv = NULL;
 
-   if (emitter && emitter->id == EMITTER_ID && !emitter->handle) {
+   if (emitter && emitter->id == EMITTER_ID && !emitter->parent) {
       rv = emitter;
    }
    else if (emitter && emitter->id == FADEDBAD) {
@@ -1079,7 +1079,7 @@ get_emitter(aaxEmitter em, const char *func)
 
    if (emitter && emitter->id == EMITTER_ID)
    {
-      _handle_t *handle = emitter->handle;
+      _handle_t *handle = emitter->parent;
       if (handle && handle->id == HANDLE_ID)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1102,7 +1102,7 @@ get_emitter(aaxEmitter em, const char *func)
       }
       else if (handle && handle->id == AUDIOFRAME_ID)
       {
-         _frame_t *handle = (_frame_t*)emitter->handle;
+         _frame_t *handle = (_frame_t*)emitter->parent;
          _intBufferData *dptr_src;
          _intBuffers *he;
 
@@ -1133,7 +1133,7 @@ put_emitter(aaxEmitter em)
 
    if (emitter && emitter->id == EMITTER_ID)
    {
-      _handle_t *handle = emitter->handle;
+      _handle_t *handle = emitter->parent;
       if (handle && handle->id == HANDLE_ID)
       {
           _intBufferData *dptr =_intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1154,7 +1154,7 @@ put_emitter(aaxEmitter em)
       }
       else if (handle && handle->id == AUDIOFRAME_ID)
       {
-         _frame_t *handle = (_frame_t*)emitter->handle;
+         _frame_t *handle = (_frame_t*)emitter->parent;
          _intBuffers *he;
 
          if (!_IS_POSITIONAL(emitter->source->props3d)) {
@@ -1402,7 +1402,7 @@ int
 _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
 {
    _emitter_t *handle = (_emitter_t*)emitter;
-   aaxConfig config = handle->handle;
+   aaxConfig config = handle->root;
    int rv = AAX_TRUE;
    void *xid;
 

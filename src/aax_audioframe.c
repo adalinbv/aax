@@ -142,7 +142,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
    handle = get_frame(frame, __func__);
    if (!rv && handle)
    {
-      if (handle->handle) {
+      if (handle->parent) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
          rv = AAX_TRUE;
@@ -212,25 +212,26 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
    if (rv)
    {
       _aaxAudioFrame* fmixer = handle->submix;
-      _handle_t *parent = handle->handle;
-
-      if (parent && parent->id == HANDLE_ID)
+      if (handle->parent)
       {
-         const _intBufferData* dptr;
-         dptr = _intBufGet(parent->sensors, _AAX_SENSOR, 0);
-         if (dptr)
+         if (handle->parent == handle->root)
          {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
-                      &sensor->mixer->props3d->m_dprops3d->matrix);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+            const _intBufferData* dptr;
+            dptr = _intBufGet(handle->root->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
+                         &sensor->mixer->props3d->m_dprops3d->matrix);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
          }
-      }
-      else if (parent && parent->id == AUDIOFRAME_ID)
-      {
-         _frame_t *parent = (_frame_t*)handle->handle;
-         mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
-                   &parent->submix->props3d->m_dprops3d->matrix);
+         else
+         {
+            _frame_t *parent = handle->parent;
+            mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
+                      &parent->submix->props3d->m_dprops3d->matrix);
+         }
       }
 
       mtx4dFill(fmixer->props3d->dprops3d->matrix.m4, mtx64);
@@ -716,7 +717,8 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
             }
 
-            ssr_config->handle = handle;
+            ssr_config->root = handle->root;
+            ssr_config->parent = handle;
             ssr_config->mixer_pos = pos;
             smixer->refcount++;
 
@@ -800,7 +802,8 @@ aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             sensor->mixer->refcount--;
             ssr_config->mixer_pos = UINT_MAX;
-            ssr_config->handle = NULL;
+            ssr_config->parent = NULL;
+            ssr_config->root = NULL;
 
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
@@ -821,7 +824,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
    if (!rv)
    {
-      if (!emitter || emitter->handle || emitter->mixer_pos < UINT_MAX) {
+      if (!emitter || emitter->parent || emitter->mixer_pos < UINT_MAX) {
           _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
@@ -855,7 +858,8 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
       if (pos != UINT_MAX)
       {
          _aaxEmitter *src = emitter->source;
-         emitter->handle = handle;
+         emitter->root = handle->root;
+         emitter->parent = handle;
          emitter->mixer_pos = pos;
 
          /*
@@ -946,7 +950,8 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
       _aaxDecreaseEmitterCounter();
       fmixer->no_registered--;
       emitter->mixer_pos = UINT_MAX;
-      emitter->handle = NULL;
+      emitter->parent = NULL;
+      emitter->root = NULL;
    }
    put_frame(frame);
    put_emitter(emitter);
@@ -965,7 +970,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
    {
       if (!sframe) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else if (sframe->handle) {
+      } else if (sframe->parent) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else if (sframe->mixer_pos < UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_STATE);
@@ -1032,7 +1037,8 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             }
 
             submix->refcount++;
-            sframe->handle = handle;
+            sframe->root = handle->root;
+            sframe->parent = handle;
             sframe->mixer_pos = pos;
          }
          else
@@ -1043,7 +1049,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       }
       else
       {
-         if (sframe->handle) put_frame(sframe);
+         if (sframe->parent) put_frame(sframe);
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          rv = AAX_FALSE;
       }
@@ -1079,7 +1085,8 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos, AAX_FALSE);
       sframe->submix->refcount--;
       sframe->mixer_pos = UINT_MAX;
-      sframe->handle = NULL;
+      sframe->parent = NULL;
+      sframe->root = NULL;
 
       handle->submix->no_registered--;
    }
@@ -1263,33 +1270,36 @@ get_frame(aaxFrame f, const char *func)
  
    if (frame && (frame->id == AUDIOFRAME_ID))
    {
-      _handle_t *handle = frame->handle;
-      if (handle && handle->id == HANDLE_ID)
+      if (frame->parent)
       {
-         _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {			/* frame is registered at the final mixer */
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* smixer = sensor->mixer;
+         if (frame->parent == frame->root)
+         {
+            _handle_t *handle = frame->root;
+            _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {			/* frame is registered at the final mixer */
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame* smixer = sensor->mixer;
+               _intBufferData *dptr_frame;
+               _intBuffers *hf;
+
+               hf = smixer->frames;
+
+               dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->mixer_pos);
+               frame = _intBufGetDataPtr(dptr_frame);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
+         }
+         else			/* subframe is registered at another frame */
+         {
+            _frame_t *handle = frame->parent;
             _intBufferData *dptr_frame;
             _intBuffers *hf;
 
-            hf = smixer->frames;
-
+            hf =  handle->submix->frames;
             dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->mixer_pos);
             frame = _intBufGetDataPtr(dptr_frame);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
-      }
-      else if (handle && handle->id == AUDIOFRAME_ID)
-      {				/* subframe is registered at another frame */
-         _frame_t *handle = (_frame_t*)frame->handle;
-         _intBufferData *dptr_frame;
-         _intBuffers *hf;
-
-         hf =  handle->submix->frames;
-         dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->mixer_pos);
-         frame = _intBufGetDataPtr(dptr_frame);
       }
       rv = frame;
    }
@@ -1310,28 +1320,31 @@ put_frame(aaxFrame f)
 
    if (frame && (frame->id == AUDIOFRAME_ID))
    {
-      _handle_t *handle = frame->handle;
-      if (handle && handle->id == HANDLE_ID)
+      if (frame->parent)
       {
-          _intBufferData *dptr =_intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
+         if (frame->parent == frame->root)
          {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* smixer = sensor->mixer;
+            _handle_t *handle = frame->root;
+            _intBufferData *dptr =_intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
+            {
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame* smixer = sensor->mixer;
+               _intBuffers *hf;
+
+               hf = smixer->frames;
+               _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
+               _intBufReleaseData(dptr, _AAX_SENSOR);
+            }
+         }
+         else
+         {
+            _frame_t *handle = frame->parent;
             _intBuffers *hf;
 
-            hf = smixer->frames;
+            hf =  handle->submix->frames;
             _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
-            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
-      }
-      else if (handle && handle->id == AUDIOFRAME_ID)
-      {
-         _frame_t *handle = (_frame_t*)frame->handle;
-         _intBuffers *hf;
-
-         hf =  handle->submix->frames;
-         _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
       }
    }
 }
@@ -1424,7 +1437,7 @@ static int
 _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
 {
    _frame_t* handle = get_frame(frame, __func__);
-   aaxConfig config = handle->handle;
+   aaxConfig config = handle->root;
    int rv = AAX_TRUE;
    void *xid;
 
