@@ -135,7 +135,11 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    {
       if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
       {
+#ifdef ARCH32
+         mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+#else
          mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+#endif
 #if 0
  printf("!  parent:\t\t\t\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);

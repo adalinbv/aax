@@ -299,7 +299,7 @@ else(MSVC)
        )
      elseif(X86)
        message("Build environment: X86")
-       set(C_FLAGS "${C_FLAGS} -march=i686 -DI32=1")
+       set(C_FLAGS "${C_FLAGS} -march=i686 -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse -mfpmath=sse -march=pentium3m"
        )
@@ -320,7 +320,7 @@ else(MSVC)
        )
      elseif(ARM)
        message("Build environment: ARM")
-       set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DA32=1")
+       set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
        )

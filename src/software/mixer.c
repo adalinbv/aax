@@ -543,9 +543,16 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                /* update the modified properties */
                mtx4dCopy(&sdp3d_m->matrix, &sdp3d->matrix);
 
+// TODO: only update when necessary!!!
+#ifdef ARCH32
+               mtx4fFill(tmp.m4, sdp3d->velocity.m4);
+               mtx4fMul(&tmp2, &sdp3d->matrix, &tmp);
+               mtx4fFill(sdp3d_m->velocity.m4, tmp2.m4);
+#else
                mtx4dFillf(tmp.m4, sdp3d->velocity.m4);
                mtx4dMul(&tmp2, &sdp3d->matrix, &tmp);
                mtx4fFilld(sdp3d_m->velocity.m4, tmp2.m4);
+#endif
 #if 0
  if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
  printf("matrix:\t\t\t\tvelocity\n");
