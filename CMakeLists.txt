@@ -145,6 +145,18 @@ if(RELEASE)
 endif(RELEASE)
 
 if(MSVC)
+ et(C_FLAGS "${C_FLAGS} -DARCH64=1")
+else()
+  if(X86_64)
+    set(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse -DARCH64=1")
+  elseif(X86)
+    set(C_FLAGS "${C_FLAGS} -march=i686 -DARCH32=1")
+  elseif(ARM)
+    set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DARCH32=1")
+  endif()
+endif()
+
+if(MSVC)
   set(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")
   set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
@@ -155,14 +167,14 @@ if(MSVC)
   set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
   )
+  set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
+  )
   set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
   )
   set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
-  )
-  set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
-               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE2__"
   )
   set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
@@ -269,7 +281,6 @@ else(MSVC)
 
      if(X86_64)
        message("Build environment: X86_64")
-       set(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse -DI64=1")
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse3"
        )
@@ -299,7 +310,6 @@ else(MSVC)
        )
      elseif(X86)
        message("Build environment: X86")
-       set(C_FLAGS "${C_FLAGS} -march=i686 -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse -mfpmath=sse -march=pentium3m"
        )
@@ -307,6 +317,9 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse -mfpmath=sse -march=pentium3m"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse -march=pentium-m"
+       )
+       set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse2 -mfpmath=sse -march=pentium-m"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
@@ -320,7 +333,6 @@ else(MSVC)
        )
      elseif(ARM)
        message("Build environment: ARM")
-       set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
        )

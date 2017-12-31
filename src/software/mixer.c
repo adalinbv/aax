@@ -503,7 +503,11 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             {
                _aaxDelayed3dProps *sdp3d, *sdp3d_m;
                _aax2dProps sp2d;
+#ifdef ARCH32
+               mtx4f_t tmp, tmp2;
+#else
                mtx4d_t tmp, tmp2;
+#endif
                char fprocess = AAX_TRUE;
                float ssv = 343.3f;
                float sdf = 1.0f;
@@ -540,15 +544,18 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                           2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
 
-               /* update the modified properties */
-               mtx4dCopy(&sdp3d_m->matrix, &sdp3d->matrix);
-
 // TODO: only update when necessary!!!
 #ifdef ARCH32
+               /* update the modified properties */
+               mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
+
                mtx4fFill(tmp.m4, sdp3d->velocity.m4);
                mtx4fMul(&tmp2, &sdp3d->matrix, &tmp);
                mtx4fFill(sdp3d_m->velocity.m4, tmp2.m4);
 #else
+               /* update the modified properties */
+               mtx4dCopy(&sdp3d_m->matrix, &sdp3d->matrix);
+
                mtx4dFillf(tmp.m4, sdp3d->velocity.m4);
                mtx4dMul(&tmp2, &sdp3d->matrix, &tmp);
                mtx4fFilld(sdp3d_m->velocity.m4, tmp2.m4);
