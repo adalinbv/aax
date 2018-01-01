@@ -64,8 +64,14 @@ aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
+#ifdef ARCH32
+         mtx4fFilld(smixer->props3d->dprops3d->matrix.m4, mtx64);
+         mtx4fFill(smixer->props3d->m_dprops3d->matrix.m4,
+                   smixer->props3d->dprops3d->matrix.m4);
+#else
          mtx4dFill(smixer->props3d->dprops3d->matrix.m4, mtx64);
          mtx4dFill(smixer->props3d->m_dprops3d->matrix.m4, mtx64);
+#endif
          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
@@ -102,7 +108,12 @@ aaxSensorGetMatrix(const aaxConfig config, aaxMtx4d mtx64)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
+#ifdef ARCH32
+          mtx4dFillf(mtx64, smixer->props3d->dprops3d->matrix.m4);
+#else
           mtx4dFill(mtx64, smixer->props3d->dprops3d->matrix.m4);
+#endif
+          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }
       else

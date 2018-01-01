@@ -91,7 +91,7 @@ int main()
 
     mtx4dSetIdentity(m64.m4);
     aaxMatrixToMatrix64(n64.m4, n.m4);
-    _mtx4dMul_sse3(&l64, &m64, &n64);
+    _mtx4dMul_sse2(&l64, &m64, &n64);
     TESTM4(k,l64);
 
     return 0;
