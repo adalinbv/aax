@@ -313,7 +313,11 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * align the emitter with the parent frame.
        * (compensate for the parents direction offset)
        */
+#ifdef ARCH32
+      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+#else
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+#endif
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
       dist = vec3fNormalize(&epos, &tmp);
 #if 0

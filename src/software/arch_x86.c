@@ -362,6 +362,8 @@ _aaxGetSIMDSupportLevel()
 //    _aax_memcpy = _aax_memcpy_sse2;
       fast_sin = fast_sin_sse2;
 
+      mtx4dMul = _mtx4dMul_sse2;
+
       _batch_get_average_rms = _batch_get_average_rms_sse2;
       _batch_saturate24 = _batch_saturate24_sse2;
 
@@ -390,7 +392,6 @@ _aaxGetSIMDSupportLevel()
       vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse3;
       vec3fDotProduct = _vec3fDotProduct_sse3;
       vec4fMatrix4 = _vec4fMatrix4_sse3;
-      mtx4dMul = _mtx4dMul_sse3;
       _batch_imul_value = _batch_imul_value_sse3;
 
 #  if RB_FLOAT_DATA
