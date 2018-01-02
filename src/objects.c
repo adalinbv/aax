@@ -145,7 +145,11 @@ _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *dp3d)
    assert(dp3d);
 
    /* modelview matrix */
+#ifdef ARCH32
+   mtx4fSetIdentity(dp3d->matrix.m4);
+#else
    mtx4dSetIdentity(dp3d->matrix.m4);
+#endif
 
    /* velocity     */
    mtx4fSetIdentity(dp3d->velocity.m4);

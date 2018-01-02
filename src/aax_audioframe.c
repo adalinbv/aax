@@ -221,16 +221,26 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
          if (dptr)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
+#ifdef ARCH32
+            mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+                      &sensor->mixer->props3d->m_dprops3d->matrix);
+#else
             mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
                       &sensor->mixer->props3d->m_dprops3d->matrix);
+#endif
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
       else if (parent && parent->id == AUDIOFRAME_ID)
       {
          _frame_t *parent = (_frame_t*)handle->handle;
+#ifdef ARCH32
+          mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+                    &parent->submix->props3d->m_dprops3d->matrix);
+#else
          mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
                    &parent->submix->props3d->m_dprops3d->matrix);
+#endif
       }
 
 #ifdef ARCH32
