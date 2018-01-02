@@ -137,7 +137,7 @@ _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
 FN_PREALIGN void
 _mtx4dMul_sse_vex(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 {
-#if 1
+#if 0
    int i;
 
    for (i=0; i<4; ++i) {
