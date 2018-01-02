@@ -68,6 +68,13 @@ extern "C" {
 # define ALIGN16C
 #endif
 
+#ifdef __MINGW32__
+        // Force proper stack alignment for functions that use SSE
+# define FN_PREALIGN	__attribute__((force_align_arg_pointer))
+#else
+# define FN_PREALIGN
+#endif
+
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
