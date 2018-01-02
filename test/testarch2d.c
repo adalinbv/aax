@@ -84,20 +84,12 @@ int main()
         /*
          * batch fadd by a value
          */
-        memcpy(dst1, src, MAXNUM*sizeof(float));
-        t = clock();
-          for(i=0; i<MAXNUM; ++i) {
-            dst1[i] += dst1[i];
-          }
-          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fadd cpu:  %f ms\n", cpu*1000.0f);
-
         memcpy(dst2, src, MAXNUM*sizeof(float));
         _batch_fmadd = _batch_fmadd_cpu;
         t = clock();
           _batch_fmadd(dst2, dst2, MAXNUM, 1.0, 0.0f);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fadd cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfadd cpu:  %f ms\n", cpu*1000.0f);
 
         if (simd)
         {
@@ -122,19 +114,11 @@ int main()
          * batch fmadd by a value
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
-        t = clock();
-          for(i=0; i<MAXNUM; ++i) {
-            dst1[i] += dst1[i] * 0.8723678263f;
-          }
-          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
-
-        memcpy(dst1, src, MAXNUM*sizeof(float));
         _batch_fmadd = _batch_fmadd_cpu;
         t = clock();
           _batch_fmadd(dst1, dst1, MAXNUM, 0.8723678263f, 0.0f);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fmadd cpu: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
 
         if (simd)
         {
@@ -161,19 +145,11 @@ int main()
          * batch fmul by a value for floats
          */
         memcpy(dst1, src, MAXNUM*sizeof(float));
-        t = clock();
-          for(i=0; i<MAXNUM; ++i) {
-            dst1[i] *= 0.8723678263f;
-          }
-          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\nfmul cpu:  %f ms\n", cpu*1000.0f);
-
-        memcpy(dst1, src, MAXNUM*sizeof(float));
         _batch_fmul_value = _batch_fmul_value_cpu;
         t = clock();
           _batch_fmul_value(dst1, sizeof(float), MAXNUM, 0.8723678263f);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fmul cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfmul cpu:  %f ms\n", cpu*1000.0f);
 
         if (simd)
         {
@@ -210,8 +186,12 @@ int main()
           _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("rms "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-        printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
-        printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
+        if (rms1 != rms2) {
+           printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
+        }
+        if (peak1 != peak2) {
+           printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
+        }
 
 
         /*
