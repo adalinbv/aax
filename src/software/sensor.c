@@ -296,7 +296,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
       // Some formats allow format changes to save bandwidth, which might
       // include changing the playback frequency
       freq = be->param(be_handle, DRIVER_FREQUENCY);
-      if (freq != be->param(drb, RB_FREQUENCY)) {
+      if (freq != drb->get_paramf(drb, RB_FREQUENCY)) {
          drb->set_paramf(drb, RB_FREQUENCY, freq);
       }
 

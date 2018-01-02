@@ -145,7 +145,7 @@ if(RELEASE)
 endif(RELEASE)
 
 if(MSVC)
- et(C_FLAGS "${C_FLAGS} -DARCH64=1")
+ set(C_FLAGS "${C_FLAGS} -DARCH64=1")
 else()
   if(X86_64)
     set(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse -DARCH64=1")
@@ -288,7 +288,7 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -msse3"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -mfpmath=sse -march=sandybridge"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
                     PROPERTY COMPILE_FLAGS "${C_FLAGS} -mavx -march=sandybridge"

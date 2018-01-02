@@ -421,8 +421,7 @@ _aaxGetSIMDSupportLevel()
       vec4fMatrix4 = _vec4fMatrix4_sse_vex;
       pt4fMatrix4 = _pt4fMatrix4_sse_vex;
       mtx4fMul = _mtx4fMul_sse_vex;
-//    mtx4dMul = _mtx4dMul_sse_vex;
-      mtx4dMul = _mtx4dMul_avx;
+      mtx4dMul = _mtx4dMul_sse_vex;
 
       _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
       _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
