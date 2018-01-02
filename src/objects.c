@@ -479,7 +479,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
    slen = xmlAttributeCopyString(xid, "type", src, 64);
    if (slen)
    {
-      enum aaxWaveformType state = AAX_CONSTANT_VALUE;
+      int state = AAX_CONSTANT_VALUE;
       enum aaxFilterType ftype;
       aaxFilter flt;
 

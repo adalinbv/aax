@@ -97,8 +97,6 @@ void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4dMul_sse_vex(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 /* AVX */
-void _vec4dMatrix4_avx(vec4d_ptr d, const vec4d_ptr v, const mtx4d_ptr m);
-void _pt4dMatrix4_avx(vec4d_ptr d, const vec4d_ptr p, const mtx4d_ptr m);
 void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 

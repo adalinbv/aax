@@ -229,7 +229,7 @@ int main()
         _batch_fmul_value_cpu(ddst1, sizeof(double), MAXNUM, 0.8723678263f);
         memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
         GLUE(_batch_fmul_value, SIMD2)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
-        TEST("double fmul "MKSTR(SIMD2), ddst1, ddst2);
+        TEST("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
     }
 
     _aax_aligned_free(dst2);

@@ -121,12 +121,13 @@ _pt4fMatrix4_sse_vex(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
 FN_PREALIGN void
 _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
 {
-   int i;
+   __m128 row, col;
+   int i, j;
 
    for (i=0; i<4; ++i) {
-      __m128 row = _mm_mul_ps(m1->s4x4[0], _mm_set1_ps(m2->m4[i][0]));
-      for (int j=1; j<4; ++j) {
-          __m128 col = _mm_set1_ps(m2->m4[i][j]);
+      row = _mm_mul_ps(m1->s4x4[0], _mm_set1_ps(m2->m4[i][0]));
+      for (j=1; j<4; ++j) {
+          col = _mm_set1_ps(m2->m4[i][j]);
           row = _mm_add_ps(row, _mm_mul_ps(m1->s4x4[j], col));
       }
       d->s4x4[i] = row;
@@ -136,7 +137,7 @@ _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
 FN_PREALIGN void
 _mtx4dMul_sse_vex(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 {
-#if 0
+#if 1
    int i;
 
    for (i=0; i<4; ++i) {

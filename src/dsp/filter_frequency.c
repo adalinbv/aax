@@ -131,7 +131,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          else stages = 1;
 
          flt->no_stages = stages;
-         flt->state = (state && AAX_BESSEL) ? AAX_FALSE : AAX_TRUE;
+         flt->state = (state & AAX_BESSEL) ? AAX_FALSE : AAX_TRUE;
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 

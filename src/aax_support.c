@@ -521,7 +521,7 @@ aaxGetDistanceModelByName(const char *name)
 AAX_API enum aaxFrequencyFilterType AAX_APIENTRY
 aaxGetFrequencyFilterTypeByName(const char *type)
 {
-   enum aaxFrequencyFilterType rv = aaxGetWaveformTypeByName(type);
+   int rv = aaxGetWaveformTypeByName(type);
 
    if (type)
    {
