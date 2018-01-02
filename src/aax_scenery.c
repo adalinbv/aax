@@ -51,8 +51,13 @@ aaxScenerySetMatrix(aaxConfig config, aaxMtx4d mtx)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
          _aaxAudioFrame* smixer = sensor->mixer;
+#ifdef ARCH32
+         mtx4fFilld(smixer->props3d->dprops3d->matrix.m4, mtx);
+         mtx4fFilld(smixer->props3d->m_dprops3d->matrix.m4, mtx);
+#else
          mtx4dFill(smixer->props3d->dprops3d->matrix.m4, mtx);
          mtx4dFill(smixer->props3d->m_dprops3d->matrix.m4, mtx);
+#endif
          _PROP_MTX_SET_CHANGED(smixer->props3d);
          _intBufReleaseData(dptr, _AAX_SENSOR);
       }

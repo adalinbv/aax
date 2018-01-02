@@ -315,10 +315,11 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        */
 #ifdef ARCH32
       mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      vec3fFill(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #else
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-#endif
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
+#endif
       dist = vec3fNormalize(&epos, &tmp);
 #if 0
  printf("# emitter parent:\t\t\t\temitter:\n");

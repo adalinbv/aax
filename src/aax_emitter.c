@@ -1205,10 +1205,11 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
        */ 
 #ifdef ARCH32
       mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      dist = vec3fMagnitude(&edp3d_m->matrix.v34[LOCATION]);
 #else
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-#endif
       dist = vec3dMagnitude(&edp3d_m->matrix.v34[LOCATION]);
+#endif
       ep2d->dist_delay_sec = dist / vs;
 
 #if 0
