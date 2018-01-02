@@ -55,9 +55,9 @@ extern "C" {
 #elif defined(__GNUC__) || defined(__TINYC__)
 # define ALIGN
 # if SIZEOF_SIZE_T == 8
-# define ALIGNC	__attribute__((aligned(32)))
+#  define ALIGNC __attribute__((aligned(32)))
 # else
-# define ALIGNC	__attribute__((aligned(16)))
+#  define ALIGNC __attribute__((aligned(16)))
 # endif
 # define ALIGN16
 # define ALIGN16C __attribute__((aligned(16)))
