@@ -19,7 +19,7 @@
 # define SIMD   sse
 # define SIMD2  sse2
 # define SIMD3  sse3
-# define SIMD4
+# define SIMD4  sse2
 char _aaxArchDetectSSE();
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE3();
@@ -36,7 +36,7 @@ char _aaxArchDetectAVX();
 # define SIMD   neon
 # define SIMD2  neon
 # define SIMD3  neon
-# define SIMD3
+# define SIMD3	neon
 # define AAX_ARCH_NEON  0x00000008
 char _aaxArchDetectFeatures();
 extern uint32_t _aax_arch_capabilities;
