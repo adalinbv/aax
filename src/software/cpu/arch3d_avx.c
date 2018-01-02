@@ -29,7 +29,6 @@
 
 #ifdef __AVX__
 
-
 #if 0
 FN_PREALIGN void
 _vec4dMatrix4_avx(vec4d_ptr d, const vec4d_ptr vi, const mtx4d_ptr m)
@@ -55,6 +54,7 @@ _pt4dMatrix4_avx(vec4d_ptr d, const vec4d_ptr vi, const mtx4d_ptr m)
    }
    d->s4 = _mm256_add_pd(d->s4, m->s4x4[3]);
 }
+#endif
 
 FN_PREALIGN void
 _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
@@ -70,7 +70,6 @@ _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
       d->s4x4[i] = row;
    }
 }
-#endif
 
 #else
 typedef int make_iso_compilers_happy;

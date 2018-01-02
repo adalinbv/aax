@@ -23,7 +23,7 @@ set(CPU_SOURCES
   arch3d_vfpv2.c
   arch3d_vfpv3.c
   arch3d_sse_vex.c
-  arch2d_avx.c
+  arch3d_avx.c
   rbuf_effects.c
   rbuf_limiter.c
   rbuf_limiter_tables.c
