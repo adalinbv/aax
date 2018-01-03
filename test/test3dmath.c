@@ -162,7 +162,7 @@ int main()
         t = clock();
         for (i=0; i<1000; ++i) {
             m4fMul(&k, &m, &n);
-            mtx4fCopy(&n, &k);
+            mtx4fCopy(&m, &k);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4fMul cpu:\t\t%f ms\n", cpu*1000.0f);
@@ -171,7 +171,7 @@ int main()
         t = clock();
         for (i=0; i<1000; ++i) {
             m4fMul(&l, &m, &n);
-            mtx4fCopy(&n, &l);
+            mtx4fCopy(&m, &l);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4fMul "MKSTR(SIMD)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
@@ -181,7 +181,7 @@ int main()
         t = clock();
         for (i=0; i<1000; ++i) {
             m4fMul(&l, &m, &n);
-            mtx4fCopy(&n, &l);
+            mtx4fCopy(&m, &l);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4fMul sse:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
@@ -197,7 +197,7 @@ int main()
         t = clock();
         for (i=0; i<1000; ++i) {
             m4dMul(&k64, &m64, &n64);
-            mtx4dCopy(&n64, &k64);
+            mtx4dCopy(&m64, &k64);
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nmtx4dMul cpu:\t\t%f ms\n", cpu*1000.0f);
@@ -210,7 +210,7 @@ int main()
         t = clock();
         for (i=0; i<1000; ++i) {
             m4dMul(&l64, &m64, &n64);
-            mtx4dCopy(&n64, &l64);
+            mtx4dCopy(&m64, &l64);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         if (simd4) {
@@ -224,7 +224,7 @@ int main()
         t = clock();
         for (i=0; i<1000; ++i) {
             m4dMul(&l64, &m64, &n64);
-            mtx4dCopy(&n64, &l64);
+            mtx4dCopy(&m64, &l64);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4dMul sse2:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
