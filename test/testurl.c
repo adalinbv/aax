@@ -30,11 +30,11 @@ int main()
         exit(-1);
     }
 
-    sprintf(src, "%s", "example.com:7777/test/dir/test.wav");
-    sprintf(dst, "%s", "www.another-example.com//file.mp3");
+    sprintf(src, "%s", "google.com:7777/test/dir/test.wav");
+    sprintf(dst, "%s", "www.facebook.com//file.mp3");
     url = _aaxURLConstruct(src, dst);
-    if (strcmp(url, "www.another-example.com//file.mp3")) {
-        printf("%s does not match\nwww.another-example.com//file.mp3\n", url);
+    if (strcmp(url, "www.facebook.com//file.mp3")) {
+        printf("%s does not match\nwww.facebook.com//file.mp3\n", url);
         exit(-1);
     }
 

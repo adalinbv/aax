@@ -544,7 +544,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                           2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
 
-// TODO: only update when necessary!!!
+// TODO: only update when necessary
 #ifdef ARCH32
                /* update the modified properties */
                mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
