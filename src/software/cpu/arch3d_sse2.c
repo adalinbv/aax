@@ -50,5 +50,5 @@ _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 
 #else
 typedef int make_iso_compilers_happy;
-#endif /* SSE3 */
+#endif /* SSE2 */
 
