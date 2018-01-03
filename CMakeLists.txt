@@ -308,9 +308,6 @@ else(MSVC)
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
        )
-       set_property(SOURCE test/matrix_test.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
-       )
      elseif(X86)
        message("Build environment: X86")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
@@ -334,9 +331,6 @@ else(MSVC)
        set_property(SOURCE 3rdparty/pffft.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
        )
-       set_property(SOURCE test/matrix_test.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
-       )
      elseif(ARM)
        message("Build environment: ARM")
        set_property(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
@@ -358,9 +352,6 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
-       )
-       set_property(SOURCE test/matrix_test.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
        )
      else()
