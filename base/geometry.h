@@ -76,7 +76,7 @@ typedef double		simd4d_t[4];
 typedef float32x4_t	simd4f_t;
 typedef int32x4_t	simd4i_t;
 #elif defined __x86_64__ || defined __i386__
-typedef ALIGN union {
+typedef union {
    __m256d avx;
    __m128d sse[2];
 } simd4d_t;
