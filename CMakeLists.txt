@@ -335,7 +335,7 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
        )
        set_property(SOURCE test/matrix_test.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
        )
      elseif(ARM)
        message("Build environment: ARM")
