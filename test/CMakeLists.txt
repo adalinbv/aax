@@ -18,4 +18,18 @@ CREATE_TEST(testarch2d)
 CREATE_TEST(testmemory)
 CREATE_TEST(testtypes)
 CREATE_TEST(testurl)
+
 CREATE_TEST(matrix_test)
+if(X86_64)
+  set_property(SOURCE matrix_test.c APPEND
+               PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
+  )
+elseif(X86)
+  set_property(SOURCE matrix_test.c APPEND
+               PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
+  )
+elseif(ARM)
+   set_property(SOURCE matrix_test.c APPEND
+                PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
+  )
+endif()
