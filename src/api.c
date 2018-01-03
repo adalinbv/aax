@@ -370,19 +370,21 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
    }
    else /* 'example.com', 'dir.ext/file' or 'file.ext' */
    {
-      struct addrinfo* res;
-      int file_not_server;
-
       ptr = strchr(url, '/');
       if (ptr) *ptr = '\0';
-      file_not_server = getaddrinfo(url, NULL, NULL, &res);
-      if (ptr) *ptr = '/';
 
-      if (file_not_server) /* not a server so it must be a file */
+      if (!strchr(url, ':'))
       {
-         *path = url;
-         *extension = strrchr(url, '.');
-         if (*extension) (*extension)++;
+         struct addrinfo* res;
+         int file_not_server = getaddrinfo(url, NULL, NULL, &res);
+         if (ptr) *ptr = '/';
+
+         if (file_not_server) /* not a server so it must be a file */
+         {
+            *path = url;
+            *extension = strrchr(url, '.');
+            if (*extension) (*extension)++;
+         }
       }
    }
 
@@ -414,6 +416,14 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
    {
       if (*port < 0) *port = 80;
    }
+
+#if 0
+ printf("\nprotocol: '%s'\n", protocol[0]);
+ printf("server: '%s'\n", server[0]);
+ printf("path: '%s'\n", path[0]);
+ printf("ext: '%s'\n", extension[0]);
+ printf("port: %i\n", port[0]);
+#endif
 }
 
 char *
