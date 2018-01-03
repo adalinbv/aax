@@ -36,15 +36,15 @@ _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 
    for (i=0; i<4; ++i) {
       __m128d col = _mm_set1_pd(m2->m4[i][0]);
-      __m128d row1 = _mm_mul_pd(m1->s4x4[0][0], col);
-      __m128d row2 = _mm_mul_pd(m1->s4x4[0][1], col);
+      __m128d row1 = _mm_mul_pd(m1->s4x4[0].sse[0], col);
+      __m128d row2 = _mm_mul_pd(m1->s4x4[0].sse[1], col);
       for (int j=1; j<4; ++j) {
           col = _mm_set1_pd(m2->m4[i][j]);
-          row1 = _mm_add_pd(row1, _mm_mul_pd(m1->s4x4[j][0], col));
-          row2 = _mm_add_pd(row2, _mm_mul_pd(m1->s4x4[j][1], col));
+          row1 = _mm_add_pd(row1, _mm_mul_pd(m1->s4x4[j].sse[0], col));
+          row2 = _mm_add_pd(row2, _mm_mul_pd(m1->s4x4[j].sse[1], col));
       }
-      d->s4x4[i][0] = row1;
-      d->s4x4[i][1] = row2;
+      d->s4x4[i].sse[0] = row1;
+      d->s4x4[i].sse[1] = row2;
    }
 }
 

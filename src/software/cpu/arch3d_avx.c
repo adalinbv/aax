@@ -36,12 +36,12 @@ _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
    int i, j;
 
    for (i=0; i<4; ++i) {
-      row = _mm256_mul_pd(m1->s4x4[0], _mm256_set1_pd(m2->m4[i][0]));
+      row = _mm256_mul_pd(m1->s4x4[0].avx, _mm256_set1_pd(m2->m4[i][0]));
       for (j=1; j<4; ++j) {
           col = _mm256_set1_pd(m2->m4[i][j]);
-          row = _mm256_add_pd(row, _mm256_mul_pd(m1->s4x4[j], col));
+          row = _mm256_add_pd(row, _mm256_mul_pd(m1->s4x4[j].avx, col));
       }
-      d->s4x4[i] = row;
+      d->s4x4[i].avx = row;
    }
 }
 
