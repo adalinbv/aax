@@ -32,14 +32,6 @@ extern "C" {
 # include <intrin.h>
 #elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
 # include <x86intrin.h>
-# if !defined __SSE__
-#  pragma GCC push_options
-#  pragma GCC target("sse")
-#  define __DISABLE_SSE__
-# endif
-# ifndef __AVX__
-#  pragma GCC target("avx")
-# endif
 #elif defined(__GNUC__) && defined(__ARM_NEON__)
 # include <arm_neon.h>
 #endif
@@ -158,6 +150,7 @@ typedef mtx3d_t* mtx3d_ptr RESTRICT;
 typedef mtx4f_t* mtx4f_ptr RESTRICT;
 typedef mtx4d_t* mtx4d_ptr RESTRICT;
 
+
 typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3fMulvec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
 
@@ -259,15 +252,6 @@ void _mtx4dMul_cpu(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2);
 
 void _vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v);
 void _vec4iMulvec4i_cpu(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2);
-
-#ifdef __DISABLE_AVX__
-# undef __DISABLE_AVX__
-#endif
-
-#ifdef __DISABLE_SSE__
-# undef __DISABLE_SSE__
-# pragma GCC pop_options
-#endif
 
 #if defined(__cplusplus)
 }  /* extern "C" */
