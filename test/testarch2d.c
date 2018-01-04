@@ -184,7 +184,7 @@ int main()
         _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
         t = clock();
           _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
-          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("rms "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         if (rms1 != rms2) {
            printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);

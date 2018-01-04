@@ -30,6 +30,6 @@ elseif(X86)
   )
 elseif(ARM)
    set_property(SOURCE matrix_test.c APPEND
-                PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
+                PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
   )
 endif()

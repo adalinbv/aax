@@ -5,6 +5,47 @@
 
 #include <base/geometry.h>
 
+#ifdef __ARM_NEON__
+
+void
+_mtx4fMul(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
+{
+   int i;
+   for (i=0; i<4; ++i) {
+      float32x4_t row = vmulq_f32(m1->s4x4[0], vdupq_n_f32(m2->m4[i][0]));
+      for (int j=1; j<4; ++j) {
+         float32x4_t col = vdupq_n_f32(m2->m4[i][j]);
+         row = vaddq_f32(row, vmulq_f32(m1->s4x4[j], col));
+      }
+      d->s4x4[i] = row;
+   }
+}
+
+void
+_mtx4dMul(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2)
+{
+   const double *m20 = mtx2->m4[0], *m21 = mtx2->m4[1];
+   const double *m22 = mtx2->m4[2], *m23 = mtx2->m4[3];
+   double m10i, m11i, m12i, m13i;
+   int i=4;
+   do
+   {
+      --i;
+
+      m10i = mtx1->m4[0][i];
+      m11i = mtx1->m4[1][i];
+      m12i = mtx1->m4[2][i];
+      m13i = mtx1->m4[3][i];
+
+      dst->m4[0][i] = m10i*m20[0] + m11i*m20[1] + m12i*m20[2] + m13i*m20[3];
+      dst->m4[1][i] = m10i*m21[0] + m11i*m21[1] + m12i*m21[2] + m13i*m21[3];
+      dst->m4[2][i] = m10i*m22[0] + m11i*m22[1] + m12i*m22[2] + m13i*m22[3];
+      dst->m4[3][i] = m10i*m23[0] + m11i*m23[1] + m12i*m23[2] + m13i*m23[3];
+   }
+   while (i != 0);
+}
+
+#else
 void
 _mtx4fMul(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
 {
@@ -20,9 +61,8 @@ _mtx4fMul(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
       d->s4x4[i] = row;
    }
 }
-void (*mtx4fMul)(mtx4f_ptr, const mtx4f_ptr, const mtx4f_ptr) = _mtx4fMul;
 
-#ifdef __AVX__
+# ifdef __AVX__
 void
 _mtx4dMul(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 {
@@ -38,7 +78,7 @@ _mtx4dMul(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
       d->s4x4[i].avx = row;
    }
 }
-#else
+# else
 void
 _mtx4dMul(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 {
@@ -57,7 +97,10 @@ _mtx4dMul(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
       d->s4x4[i].sse[1] = row2;
    }
 }
+# endif
 #endif
+
+void (*mtx4fMul)(mtx4f_ptr, const mtx4f_ptr, const mtx4f_ptr) = _mtx4fMul;
 void (*mtx4dMul)(mtx4d_ptr, const mtx4d_ptr, const mtx4d_ptr) = _mtx4dMul;
 
 int main()
