@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017 by Erik Hofman.
- * Copyright (C) 2017 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
  <sound name="Synthesizer Strings 2" frequency="220" duration="0.5">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="0.4987"/>
+  <waveform src="sawtooth" ratio="0.7"/>
+  <waveform src="square" processing="mix" ratio="0.3" pitch="0.4987"/>
  </sound>
 
  <instrument>
@@ -46,12 +46,12 @@
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="true">
+  <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.4</param>
+    <param n="0">0.6</param>
+    <param n="1">0.1</param>
+    <param n="2">0.3</param>
+    <param n="3">0.333</param>
    </slot>
   </effect>
  </audioframe>

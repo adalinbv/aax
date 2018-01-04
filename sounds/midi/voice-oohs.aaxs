@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017 by Erik Hofman.
- * Copyright (C) 2017 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
@@ -10,18 +10,18 @@
 
  <sound name="Voice Oohs" frequency="220" duration="0.33">
   <waveform src="pink-noise"/>
-  <filter type="frequency">
+  <waveform src="sine" processing="mix" ratio="0.4" pitch="0.4894"/>
+  <waveform src="sine" processing="add" ratio="0.8" pitch="1.003"/>
+  <waveform src="sine" processing="add" ratio="0.6" pitch="2.987"/>
+  <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.01"/>
+  <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="10.0">2200</param>
-    <param n="1">0.6</param>
+    <param n="0" pitch="4.0">880</param>
+    <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">2.0</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
-  <waveform src="sine" processing="mix" ratio="0.8" pitch="0.4894"/>
-  <waveform src="sine" processing="add" ratio="0.3" pitch="1.003"/>
-  <waveform src="sine" processing="add" ratio="0.2" pitch="2.987"/>
-  <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.01"/>
  </sound>
 
  <instrument>
@@ -56,6 +56,7 @@
     <param n="2">0.995</param>
    </slot>
   </effect>
+<!--
   <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.8</param>
@@ -64,6 +65,18 @@
     <param n="3">0.4</param>
    </slot>
   </effect>
+-->
  </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>
