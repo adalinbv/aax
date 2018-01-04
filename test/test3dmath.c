@@ -152,6 +152,7 @@ int main()
 
     f = vec3fNormalize(&z3, &y3);
     mtx4fSetIdentity(m.m4);
+    mtx4fSetIdentity(n.m4);
     mtx4fRotate(&n, f, z3.v3[0], z3.v3[1], z3.v3[2]);
     mtx4fTranslate(&n, -.2f, 4.507f, 1.39f);
 
