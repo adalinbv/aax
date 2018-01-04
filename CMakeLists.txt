@@ -346,13 +346,13 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
-       )
-       set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
        )
+       set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations -funsafe-math-optimizations"
+       )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
        )
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")

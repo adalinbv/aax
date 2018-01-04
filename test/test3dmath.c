@@ -36,10 +36,17 @@ char _aaxArchDetectAVX();
 # define SIMD   neon
 # define SIMD2  neon
 # define SIMD3  neon
-# define SIMD3	neon
+# define SIMD4	vfpv3
+# define AAX_ARCH_VFPV3	0x00000002
 # define AAX_ARCH_NEON  0x00000008
 char _aaxArchDetectFeatures();
 extern uint32_t _aax_arch_capabilities;
+int _aaxArchDetectVFPV3()
+{
+   _aaxArchDetectFeatures();
+   if (_aax_arch_capabilities & AAX_ARCH_VFPV3) return 1;
+   return 0;
+}
 int _aaxArchDetectNEON()
 {
    _aaxArchDetectFeatures();
@@ -98,7 +105,8 @@ int main()
     }
     simd3 = _aaxArchDetectSSE3();
 #elif defined(__arm__) || defined(_M_ARM)
-    simd = simd2 = simd3 = aaxArchDetectNEON();
+    simd = simd2 = simd3 = _aaxArchDetectNEON();
+    simd4 = _aaxArchDetectVFPV3();
 #endif
 
     vec3fFill(a3.v3, t1); vec3fFill(b3.v3, t2);
@@ -178,6 +186,16 @@ int main()
             printf("mtx4fMul "MKSTR(SIMD)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
 
+
+#if defined(__arm__) || defined(_M_ARM)
+        m4fMul = _mtx4fMul_vfpv3;
+        t = clock();
+        for (i=0; i<1000; ++i) {
+            m4fMul(&l, &m, &n);
+        }
+        eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("mtx4fMul vfpv3:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+#else
         m4fMul = _mtx4fMul_sse;
         t = clock();
         for (i=0; i<1000; ++i) {
@@ -185,6 +203,7 @@ int main()
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4fMul sse:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+#endif
         TESTM4(k,l);
     }
 
@@ -214,6 +233,15 @@ int main()
             TESTM4(k64,l64);
         }
 
+#if defined(__arm__) || defined(_M_ARM)
+        m4dMul = _mtx4dMul_vfpv3;
+        t = clock();
+        for (i=0; i<1000; ++i) {
+            m4dMul(&l64, &m64, &n64);
+        }
+        eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("mtx4dMul vfpv3:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+#else
         m4dMul = _mtx4dMul_sse2;
         t = clock();
         for (i=0; i<1000; ++i) {
@@ -221,6 +249,7 @@ int main()
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4dMul sse2:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+#endif
     }
 
     return 0;
