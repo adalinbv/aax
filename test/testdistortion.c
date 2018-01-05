@@ -44,20 +44,20 @@
 
 // Order: AAX_6DB_OCT, AAX_12DB_OCT, AAX_24DB_OCT, AAX_36DB_OCT, AAX_48DB_OCT
 // Type:  AAX_BUTTERWORTH, AAX_BESSEL
-#define Q			5.0f
+#define Q			1.0f
 #define LF_GAIN			1.0f
-#define HF_GAIN			0.1f
+#define HF_GAIN			0.0f
 #define FILTER_ORDER		AAX_12DB_OCT
 #define FILTER_TYPE		AAX_BESSEL
 #define FILTER_STATE		(FILTER_TYPE|FILTER_ORDER)
 
 #define ENABLE_EMITTER_FREQFILTER	1
-#define ENABLE_STATIC_FREQFILTER	0
+#define ENABLE_STATIC_FREQFILTER	1
 #define ENABLE_EMITTER_DISTORTION	1
-#define ENABLE_STATIC_DISTORTION	0
+#define ENABLE_STATIC_DISTORTION	1
 #define ENABLE_EMITTER_PHASING		1
 #define ENABLE_EMITTER_DYNAMIC_GAIN	0
-#define ENABLE_MIXER_EQUALIZER		1
+#define ENABLE_MIXER_EQUALIZER		0
 #define FILE_PATH			SRC_PATH"/wasp.wav"
 
 int main(int argc, char **argv)
@@ -114,11 +114,11 @@ int main(int argc, char **argv)
 # if ENABLE_STATIC_FREQFILTER
             /* straight frequency filter */
             printf("Add frequency filter at 150Hz\n");
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                               5000.0f, LF_GAIN, HF_GAIN, Q);
-            testForError(filter, "aaxFilterSetSlot");
-            filter = aaxFilterSetState(filter, FILTER_STATE);
-            testForError(filter, "aaxFilterSetState");
+            testForState(res, "aaxFilterSetSlot");
+            res = aaxFilterSetState(filter, FILTER_STATE);
+            testForState(res, "aaxFilterSetState");
 # else
             /* envelope following dynamic frequency filter (auto-wah) */
             printf("Add auto-wah\n");
@@ -146,7 +146,7 @@ int main(int argc, char **argv)
 
             // distortion, clipping (soft-hard), mix, symmertry (sym-asym)
             res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              4.0f, 0.0f, 0.5f, 1.0f);
+                                              0.8f, 0.2f, 0.4f, 0.7f);
             testForState(res, "aaxEffectSetSlot 0");
 
 #if ENABLE_STATIC_DISTORTION
@@ -187,12 +187,12 @@ int main(int argc, char **argv)
             filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
             testForError(filter, "aaxFilterCreate");
 
-            filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+            res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
                                               0.0f, 0.2f, 2.0f, 0.5f);
-            testForError(filter, "aaxFilterSetSlot");
+            testForState(res, "aaxFilterSetSlot");
 
-            filter = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);
-            testForError(filter, "aaxFilterSetState");
+            res = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);
+            testForState(res, "aaxFilterSetState");
 
             res = aaxEmitterSetFilter(emitter, filter);
             testForState(res, "aaxEmitterSetFilter");
