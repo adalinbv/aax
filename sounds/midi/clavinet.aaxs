@@ -26,29 +26,33 @@
  </instrument>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope">
+  <filter type="frequency" src="envelope|48db">
    <slot n="0">
-    <param n="0" pitch="1.0">220</param>
+    <param n="0" pitch="0.5">110</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">22000</param>
-    <param n="3">1.5</param>
+    <param n="0" pitch="40">8800</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.50</param>
     <param n="1" factor="velocity">0.11</param>
-    <param n="2" factor="soften">1.15</param>
-    <param n="3" auto-sustain="1.0" factor="sustain">4.0</param>
+    <param n="2" factor="soften">1.20</param>
+    <param n="3">0.52</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.00</param>
+    <param n="1" auto-sustain="1.0" factor="sustain">3.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.6</param>
+    <param n="0" factor="soften">1.2</param>
     <param n="1" factor="velocity">0.03</param>
     <param n="2">1.0</param>
    </slot>
