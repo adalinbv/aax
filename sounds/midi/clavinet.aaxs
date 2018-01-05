@@ -9,8 +9,8 @@
 <aeonwave>
 
  <sound name="Clavinet" frequency="220" duration="0.10">
-  <waveform src="square" pitch="1.0"/>
-  <waveform src="impulse" processing="mix" ratio="0.8" pitch="1.0"/>
+  <waveform src="impulse" pitch="0.5"/>
+  <waveform src="impulse" processing="add" ratio="0.4" pitch="2.0"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0" pitch="1.5">330</param>
@@ -40,15 +40,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.00</param>
+    <param n="0">1.50</param>
     <param n="1" factor="velocity">0.11</param>
     <param n="2" factor="soften">1.15</param>
-    <param n="3">2.50</param>
+    <param n="3" factor="sustain">2.50</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.2</param>
+    <param n="0" factor="soften">1.6</param>
     <param n="1" factor="velocity">0.03</param>
     <param n="2">1.0</param>
    </slot>
