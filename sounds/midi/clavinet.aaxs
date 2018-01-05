@@ -34,7 +34,7 @@
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="30">6600</param>
+    <param n="0">22000</param>
     <param n="3">1.5</param>
    </slot>
   </filter>
@@ -43,7 +43,7 @@
     <param n="0">1.50</param>
     <param n="1" factor="velocity">0.11</param>
     <param n="2" factor="soften">1.15</param>
-    <param n="3" factor="sustain">2.50</param>
+    <param n="3" factor="sustain">3.50</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
