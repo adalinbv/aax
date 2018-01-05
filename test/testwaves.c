@@ -165,12 +165,12 @@ int main(int argc, char **argv)
         filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
         testForError(filter, "aaxFilterCreate");
 
-        filter = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 500.0f,
+        res = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 500.0f,
                                              0.33f, 3.33f, 1.0);
-        testForError(filter, "aaxFilterSetSlot");
+        testForState(res, "aaxFilterSetSlot");
 
-        filter = aaxFilterSetState(filter, AAX_24DB_OCT);
-        testForError(filter, "aaxFilterSetState");
+        res = aaxFilterSetState(filter, AAX_24DB_OCT);
+        testForState(res, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);
         testForState(res, "aaxEmitterSetFilter");

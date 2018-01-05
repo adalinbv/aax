@@ -141,8 +141,8 @@ int main(int argc, char **argv)
             /* flanging effect */
             printf("emitter flanging.. (envelope following)\n");
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-            effect = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7f, 1.0f, 0.2f, 0.0f);
-            effect = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
+            res = aaxEffectSetSlot(effect,0,AAX_LINEAR, 0.7f, 1.0f, 0.2f, 0.0f);
+            res = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffectCreate");
@@ -151,7 +151,7 @@ int main(int argc, char **argv)
             FILLBUFFER;
 
             effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
-            effect = aaxEffectSetState(effect, AAX_FALSE);
+            res = aaxEffectSetState(effect, AAX_FALSE);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
             testForError(effect, "aaxEffect Disable");
@@ -218,11 +218,11 @@ int main(int argc, char **argv)
                 printf("emitter flanging..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
                 testForError(effect, "aaxEmitterGetEffect");
-                effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   0.88f, 0.08f, 1.0f, 0.0f);
-                testForError(effect, "aaxEffectSetSlot");
-                effect = aaxEffectSetState(effect, AAX_TRUE);
-                testForError(effect, "aaxEffectSetState");
+                testForState(res, "aaxEffectSetSlot");
+                res = aaxEffectSetState(effect, AAX_TRUE);
+                testForState(res, "aaxEffectSetState");
                 res = aaxEmitterSetEffect(emitter, effect);
                 testForState(res, "aaxEmitterSetEffect");
                 res = aaxEffectDestroy(effect);
@@ -282,11 +282,11 @@ int main(int argc, char **argv)
                 printf("emitter flanging..\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_FLANGING_EFFECT);
                 testForError(effect, "aaxEmitterGetEffect");
-                effect = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                                   0.88f, 0.08f, 1.0f, 0.0f);
-                testForError(effect, "aaxEffectSetSlot");
-                effect = aaxEffectSetState(effect, AAX_TRUE);
-                testForError(effect, "aaxEffectSetState");
+                testForState(res, "aaxEffectSetSlot");
+                res = aaxEffectSetState(effect, AAX_TRUE);
+                testForState(res, "aaxEffectSetState");
                 res = aaxEmitterSetEffect(emitter, effect);
                 testForState(res, "aaxEmitterSetEffect");
                 res = aaxEffectDestroy(effect);
