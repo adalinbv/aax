@@ -362,6 +362,8 @@ _aaxGetSIMDSupportLevel()
 //    _aax_memcpy = _aax_memcpy_sse2;
       fast_sin = fast_sin_sse2;
 
+      mtx4dMul = _mtx4dMul_sse2;
+
       _batch_get_average_rms = _batch_get_average_rms_sse2;
       _batch_saturate24 = _batch_saturate24_sse2;
 
@@ -390,7 +392,6 @@ _aaxGetSIMDSupportLevel()
       vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse3;
       vec3fDotProduct = _vec3fDotProduct_sse3;
       vec4fMatrix4 = _vec4fMatrix4_sse3;
-      mtx4dMul = _mtx4dMul_sse3;
       _batch_imul_value = _batch_imul_value_sse3;
 
 #  if RB_FLOAT_DATA
@@ -420,7 +421,7 @@ _aaxGetSIMDSupportLevel()
       vec4fMatrix4 = _vec4fMatrix4_sse_vex;
       pt4fMatrix4 = _pt4fMatrix4_sse_vex;
       mtx4fMul = _mtx4fMul_sse_vex;
-      mtx4dMul = _mtx4dMul_sse_vex;
+      mtx4dMul = _mtx4dMul_avx; // _mtx4dMul_sse_vex;
 
       _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
       _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
@@ -434,9 +435,6 @@ _aaxGetSIMDSupportLevel()
       _batch_freqfilter = _batch_freqfilter_sse_vex;
       _batch_resample = _batch_resample_sse_vex;
 #  endif
-
-      /* AVX */
-//    mtx4dMul = _mtx4dMul_avx;
 
 //    _aax_memcpy = _aax_memcpy_avx;
       _batch_cvtps_24 = _batch_cvtps_24_avx;

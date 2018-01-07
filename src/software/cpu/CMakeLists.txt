@@ -7,22 +7,25 @@ set(CPU_HEADERS
 set(CPU_SOURCES
   arch2d_cpu.c
   arch2d_neon.c
+  arch2d_vfpv2.c
+  arch2d_vfpv3.c
   arch2d_sse2.c
   arch2d_sse3.c
   arch2d_sse4.c
-  arch2d_vfpv2.c
-  arch2d_vfpv3.c
   arch2d_sse_vex.c
   arch2d_avx.c
   arch2d_fma3.c
   arch2d_fma4.c
+
   arch3d_neon.c
-  arch3d_sse3.c
-  arch3d_sse.c
   arch3d_vfpv2.c
   arch3d_vfpv3.c
+  arch3d_sse.c
+  arch3d_sse2.c
+  arch3d_sse3.c
   arch3d_sse_vex.c
-  arch2d_avx.c
+  arch3d_avx.c
+
   rbuf_effects.c
   rbuf_limiter.c
   rbuf_limiter_tables.c

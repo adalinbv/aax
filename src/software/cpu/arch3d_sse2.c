@@ -27,25 +27,28 @@
 
 #include "arch3d_simd.h"
 
-#ifdef __AVX__
+#ifdef __SSE2__
 
 FN_PREALIGN void
-_mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
+_mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 {
-   __m256d row, col;
-   int i, j;
+   int i;
 
    for (i=0; i<4; ++i) {
-      row = _mm256_mul_pd(m1->s4x4[0].avx, _mm256_set1_pd(m2->m4[i][0]));
-      for (j=1; j<4; ++j) {
-          col = _mm256_set1_pd(m2->m4[i][j]);
-          row = _mm256_add_pd(row, _mm256_mul_pd(m1->s4x4[j].avx, col));
+      __m128d col = _mm_set1_pd(m2->m4[i][0]);
+      __m128d row1 = _mm_mul_pd(m1->s4x4[0].sse[0], col);
+      __m128d row2 = _mm_mul_pd(m1->s4x4[0].sse[1], col);
+      for (int j=1; j<4; ++j) {
+          col = _mm_set1_pd(m2->m4[i][j]);
+          row1 = _mm_add_pd(row1, _mm_mul_pd(m1->s4x4[j].sse[0], col));
+          row2 = _mm_add_pd(row2, _mm_mul_pd(m1->s4x4[j].sse[1], col));
       }
-      d->s4x4[i].avx = row;
+      d->s4x4[i].sse[0] = row1;
+      d->s4x4[i].sse[1] = row2;
    }
 }
 
 #else
 typedef int make_iso_compilers_happy;
-#endif /* AVX */
+#endif /* SSE2 */
 

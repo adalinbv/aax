@@ -268,8 +268,9 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = data;
-   size_t offs, noffs, doffs, coffs;
+   size_t doffs, coffs;
    size_t i, sign, step;
+   ssize_t offs, noffs;
    MIX_T *sptr, *dptr, *ptr;
    float volume;
 

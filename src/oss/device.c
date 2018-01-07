@@ -535,7 +535,6 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
       handle->latency = 0.0f;
 
-      period_frames = period_frames;
       period_rate = (float)rate/period_frames;
       *refresh_rate = period_rate;
    }

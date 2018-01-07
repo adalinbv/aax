@@ -124,9 +124,10 @@ _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
    int i;
 
    for (i=0; i<4; ++i) {
-      __m128 row = _mm_mul_ps(m1->s4x4[0], _mm_set1_ps(m2->m4[i][0]));
+      __m128 col = _mm_set1_ps(m2->m4[i][0]);
+      __m128 row = _mm_mul_ps(m1->s4x4[0], col);
       for (int j=1; j<4; ++j) {
-          __m128 col = _mm_set1_ps(m2->m4[i][j]);
+          col = _mm_set1_ps(m2->m4[i][j]);
           row = _mm_add_ps(row, _mm_mul_ps(m1->s4x4[j], col));
       }
       d->s4x4[i] = row;
