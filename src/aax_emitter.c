@@ -646,7 +646,11 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
+#ifdef ARCH32
+      mtx4fFilld(src->props3d->dprops3d->matrix.m4, mtx64);
+#else
       mtx4dFill(src->props3d->dprops3d->matrix.m4, mtx64);
+#endif
       if (_IS_RELATIVE(src->props3d)) {
          src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
       } else {
@@ -709,7 +713,11 @@ aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
+#ifdef ARCH32
+     mtx4dFillf(mtx64, src->props3d->dprops3d->matrix.m4);
+#else
       mtx4dFill(mtx64, src->props3d->dprops3d->matrix.m4);
+#endif
    }
    put_emitter(handle);
 
@@ -1195,8 +1203,13 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
        * Align the modified emitter matrix with the sensor by multiplying 
        * the emitter matrix by the modified frame matrix.
        */ 
+#ifdef ARCH32
+      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      dist = vec3fMagnitude(&edp3d_m->matrix.v34[LOCATION]);
+#else
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       dist = vec3dMagnitude(&edp3d_m->matrix.v34[LOCATION]);
+#endif
       ep2d->dist_delay_sec = dist / vs;
 
 #if 0

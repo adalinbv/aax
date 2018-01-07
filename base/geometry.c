@@ -317,7 +317,7 @@ mtx4fFilld(float d[4][4], double m[4][4])
 }
 
 
-const float aaxIdentityMatrix[4][4] = {
+const fx4x4_t aaxIdentityMatrix = {
   { 1.0f, 0.0f, 0.0f, 0.0f },
   { 0.0f, 1.0f, 0.0f, 0.0f },
   { 0.0f, 0.0f, 1.0f, 0.0f },

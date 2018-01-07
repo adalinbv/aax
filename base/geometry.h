@@ -27,6 +27,7 @@ extern "C" {
 #endif
 
 #include <assert.h>
+
 #if defined(_MSC_VER)
 # include <intrin.h>
 #elif defined(__GNUC__) && (defined(__x86_64__) || defined(__i386__))
@@ -56,28 +57,27 @@ extern "C" {
 #define GMATH_RAD_TO_DEG2	114.59155902616464572930f
 
 
-typedef ALIGN16 int32_t ix4_t[4] ALIGN16C;
-typedef ALIGN16 float   fx4_t[4] ALIGN16C;
-typedef ALIGN16 double  dx4_t[4] ALIGN16C;
-typedef ALIGN16 float   fx4x4_t[4][4] ALIGN16C;
-typedef ALIGN16 double  dx4x4_t[4][4] ALIGN16C;
+typedef ALIGN16 int32_t	ix4_t[4] ALIGN16C;
+typedef ALIGN16 float	fx4_t[4] ALIGN16C;
+typedef ALIGN32 double	dx4_t[4] ALIGN32C;
+typedef ALIGN16 float	fx4x4_t[4][4] ALIGN16C;
+typedef ALIGN32 double	dx4x4_t[4][4] ALIGN32C;
 
 #ifdef __ARM_NEON__
 typedef double		simd4d_t[4];
 typedef float32x4_t	simd4f_t;
 typedef int32x4_t	simd4i_t;
-// #elif defined __AVX__
-// typedef __m256d         simd4d_t;
-// typedef __m128          simd4f_t;
-// typedef __m128i         simd4i_t;
-#elif defined __SSE__
-typedef __m128d		simd4d_t[2];
+#elif defined __x86_64__ || defined __i386__
+typedef union {
+   __m256d avx;
+   __m128d sse[2];
+} simd4d_t;
 typedef __m128		simd4f_t;
 typedef __m128i		simd4i_t;
 #else
-typedef dx4_t		simd4d_t;
-typedef fx4_t		simd4f_t;
-typedef ix4_t		simd4i_t;
+typedef ALIGN32 dx4_t	simd4d_t ALIGN32C;
+typedef ALIGN16 fx4_t	simd4f_t ALIGN16C;
+typedef ALIGN16 ix4_t	simd4i_t ALIGN16C;
 #endif
 
 typedef union {
@@ -116,7 +116,7 @@ typedef union {
 typedef union {
     simd4f_t s4x4[4];
     vec3f_t v34[4];
-    fx4x4_t m3;
+    fx4x4_t m3 ALIGN16C;
 } mtx3f_t;
 
 typedef union {
@@ -149,6 +149,7 @@ typedef mtx3f_t* mtx3f_ptr RESTRICT;
 typedef mtx3d_t* mtx3d_ptr RESTRICT;
 typedef mtx4f_t* mtx4f_ptr RESTRICT;
 typedef mtx4d_t* mtx4d_ptr RESTRICT;
+
 
 typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3fMulvec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);

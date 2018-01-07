@@ -52,20 +52,33 @@ extern "C" {
 # define ALIGNC
 # define ALIGN16 __declspec(align(16))
 # define ALIGN16C
+# define ALIGN32 __declspec(align(32))
+# define ALIGN32C
 #elif defined(__GNUC__) || defined(__TINYC__)
 # define ALIGN
 # if SIZEOF_SIZE_T == 8
-# define ALIGNC	__attribute__((aligned(32)))
+#  define ALIGNC __attribute__((aligned(32)))
 # else
-# define ALIGNC	__attribute__((aligned(16)))
+#  define ALIGNC __attribute__((aligned(16)))
 # endif
 # define ALIGN16
 # define ALIGN16C __attribute__((aligned(16)))
+# define ALIGN32
+# define ALIGN32C __attribute__((aligned(32)))
 #else
 # define ALIGN
 # define ALIGNC
 # define ALIGN16
 # define ALIGN16C
+# define ALIGN32
+# define ALIGN32C
+#endif
+
+#ifdef __MINGW32__
+        // Force proper stack alignment for functions that use SSE
+# define FN_PREALIGN	__attribute__((force_align_arg_pointer))
+#else
+# define FN_PREALIGN
 #endif
 
 #ifdef HAVE_RMALLOC_H

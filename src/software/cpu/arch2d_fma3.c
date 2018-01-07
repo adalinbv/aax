@@ -91,7 +91,7 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
 
             ymm4 = _mm256_loadu_ps((const float*)sptr++);
             ymm5 = _mm256_loadu_ps((const float*)sptr++);
-            ymm5 = _mm256_loadu_ps((const float*)sptr++);
+            ymm6 = _mm256_loadu_ps((const float*)sptr++);
             ymm7 = _mm256_loadu_ps((const float*)sptr++);
 
             ymm0 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
@@ -135,7 +135,7 @@ _batch_fma3_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
 
             ymm4 = _mm256_load_ps((const float*)sptr++);
             ymm5 = _mm256_load_ps((const float*)sptr++);
-            ymm5 = _mm256_load_ps((const float*)sptr++);
+            ymm6 = _mm256_load_ps((const float*)sptr++);
             ymm7 = _mm256_load_ps((const float*)sptr++);
 
             ymm0 =_mm256_fmadd_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);

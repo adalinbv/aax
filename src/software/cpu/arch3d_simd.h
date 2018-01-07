@@ -51,13 +51,6 @@ extern "C" {
 #include "base/types.h"
 #include "base/geometry.h"
 
-#ifdef __MINGW32__
-	// Force proper stack alignment for functions that use SSE
-# define FN_PREALIGN	__attribute__((force_align_arg_pointer))
-#else
-# define FN_PREALIGN
-#endif
-
 /* SSE*/
 float _vec3fMagnitude_sse(const vec3f_ptr v);
 float _vec3fMagnitudeSquared_sse(const vec3f_ptr v);
@@ -69,12 +62,14 @@ void _vec4fMatrix4_sse(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m);
 void _pt4fMatrix4_sse(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m);
 void _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 
+/* SSE2 */
+void _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
+
 /* SSE3 */
 float _vec3fMagnitude_sse3(const vec3f_ptr v);
 float _vec3fMagnitudeSquared_sse3(const vec3f_ptr v);
 float _vec3fDotProduct_sse3(const vec3f_ptr v1, const vec3f_ptr v2);
 void _vec4fMatrix4_sse3(vec4f_ptr d, const vec4f_ptr pv, const mtx4f_ptr m);
-void _mtx4dMul_sse3(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 /* SSE4 */
 float _vec3fMagnitude_sse41(const vec3f_ptr v);
@@ -95,8 +90,6 @@ void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4dMul_sse_vex(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 /* AVX */
-void _vec4dMatrix4_avx(vec4d_ptr d, const vec4d_ptr v, const mtx4d_ptr m);
-void _pt4dMatrix4_avx(vec4d_ptr d, const vec4d_ptr p, const mtx4d_ptr m);
 void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 
 
