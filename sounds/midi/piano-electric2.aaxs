@@ -9,8 +9,8 @@
 <aeonwave>
 
  <sound name="Electric Piano 2" frequency="220" duration="0.10">
-  <waveform src="triangle" ratio="1.0" pitch="0.997"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="6.9899"/>
+  <waveform src="impulse" ratio="0.6"/>
+  <waveform src="square" processing="add" ratio="-0.4"/>
  </sound>
 
  <instrument>
@@ -18,18 +18,6 @@
  </instrument>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope|24db">
-   <slot n="0">
-    <param n="0" pitch="4.0">880</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1760</param>
-    <param n="3">0.04</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.8</param>
@@ -42,14 +30,6 @@
     <param n="1" factor="sustain">2.50</param>
    </slot>
   </filter>
-  <effect type="phasing" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">0.2</param>
-    <param n="2">0.3</param>
-    <param n="3">0.4</param>
-   </slot>
-  </effect>
  </emitter>
 
 </aeonwave>
