@@ -90,7 +90,7 @@
  <instrument n="90" name="Pad 2 (warm)" file=".aaxs"/>
  <instrument n="91" name="Pad 3 (polysynth)" file=".aaxs"/>
  <instrument n="92" name="Pad 4 (choir)" file=".aaxs"/>
- <instrument n="93" name="Pad 5 (bowed)" file=".aaxs"/>
+ <instrument n="93" name="Pad 5 (bowed)" file="pad-bowed.aaxs"/>
  <instrument n="94" name="Pad 6 (metallic)" file=".aaxs"/>
  <instrument n="95" name="Pad 7 (halo)" file=".aaxs"/>
  <instrument n="96" name="Pad 8 (sweep)" file="pad-sweep.aaxs"/>
