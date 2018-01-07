@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Pad 5 (bowed)" frequency="220" duration="0.10">
+  <waveform src="triangle" ratio="0.8"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="6.9899"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="1" min="21" max="108" step="1"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1" factor="velocity">0.14</param>
+    <param n="2" factor="soften">1.0</param>
+    <param n="3">0.55</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.80</param>
+    <param n="1" factor="sustain">inf</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.95</param>
+    <param n="1">0.34</param>
+    <param n="2">1.0</param>
+   </slot>
+  </effect>
+  <effect type="phasing" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.2</param>
+    <param n="2">0.3</param>
+    <param n="3">0.4</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
