@@ -11,7 +11,7 @@
  <sound name="Steel Drums" frequency="220" duration="0.33">
   <waveform src="square" pitch="0.999"/>
   <waveform src="sine" processing="add" ratio="0.7" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.1" pitch="1.99"/>
+  <waveform src="sine" processing="modulate" ratio="1.1" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.0"/>
  </sound>
 
@@ -20,6 +20,18 @@
  </instrument>
 
  <emitter looping="true">
+  <filter type="frequency" src="inverse-envelope|24db">
+   <slot n="0">
+    <param n="0" pitch="4.0">880</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">5000</param>
+    <param n="3">0.04</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.00</param>
@@ -38,8 +50,8 @@
    <slot n="0">
     <param n="0">1.50</param>
     <param n="1">0.015</param>
-    <param n="2">1.00</param>
-    <param n="3" >0.77</param>
+    <param n="2">0.93</param>
+    <param n="3" >0.025</param>
    </slot>
    <slot n="1">
     <param n="0">1.00</param>
