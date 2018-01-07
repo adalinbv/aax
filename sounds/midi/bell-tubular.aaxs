@@ -8,11 +8,10 @@
 
 <aeonwave>
 
- <sound name="Tubular Bells" frequency="220" duration="0.33">
-  <waveform src="sine" pitch="0.99998"/>
-  <waveform src="square" processing="add" ratio="0.4" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.5"  pitch="7.0"/>
-  <waveform src="triangle" processing="modulate" ratio="1.2" pitch="4.0"/>
+ <sound name="Tubular Bells" frequency="220" duration="0.10">
+  <waveform src="sine" pitch="1.199998"/>
+  <waveform src="sine" processing="add" ratio="0.4"  pitch="2.59987"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.4587"/>
  </sound>
 
  <instrument>
@@ -22,9 +21,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.00</param>
-    <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">1.00</param>
+    <param n="0">1.50</param>
+    <param n="1" factor="velocity">0.05</param>
+    <param n="2" factor="soften">1.20</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
@@ -34,13 +33,13 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.7</param>
-    <param n="1" factor="velocity">0.01</param>
-    <param n="2">1.0</param>
-    <param n="3">4.5</param>
+    <param n="0" factor="soften">1.14</param>
+    <param n="1" factor="velocity">0.03</param>
+    <param n="2">1.10</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">0.975</param>
+    <param n="0">1.12</param>
    </slot>
   </effect>
  </emitter>
