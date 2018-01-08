@@ -11,9 +11,7 @@
  <sound name="Hammond Organ"  program="17" bank="0" frequency="220" duration="0.10">
   <waveform src="sine"/>
   <waveform src="triangle" processing="mix" ratio="0.4" pitch="0.9987"/>
-<!--
   <waveform src="triangle" processing="mix" ratio="0.2" pitch="0.5"/>
--->
  </sound>
 
  <instrument>

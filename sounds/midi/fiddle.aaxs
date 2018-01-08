@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Fiddle" program="41" bank="0" frequency="220" duration="0.75">
+ <sound name="Fiddle" program="111" bank="0" frequency="220" duration="0.75">
   <waveform src="impulse"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="2.0"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>
