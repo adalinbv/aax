@@ -86,12 +86,12 @@
  <instrument n="86" name="Lead 6 (voice)" file=".aaxs"/>
  <instrument n="87" name="Lead 7 (fifths)" file="lead-fifths.aaxs"/>
  <instrument n="88" name="Lead 8 (bass + lead)" file=".aaxs"/>
- <instrument n="89" name="Pad 1 (new age)" file=".aaxs"/>
+ <instrument n="89" name="Pad 1 (new age)" file="pad-fantasia.aaxs"/>
  <instrument n="90" name="Pad 2 (warm)" file=".aaxs"/>
  <instrument n="91" name="Pad 3 (polysynth)" file=".aaxs"/>
  <instrument n="92" name="Pad 4 (choir)" file=".aaxs"/>
  <instrument n="93" name="Pad 5 (bowed)" file="pad-bowed.aaxs"/>
- <instrument n="94" name="Pad 6 (metallic)" file=".aaxs"/>
+ <instrument n="94" name="Pad 6 (metallic)" file="pad-metallic.aaxs"/>
  <instrument n="95" name="Pad 7 (halo)" file=".aaxs"/>
  <instrument n="96" name="Pad 8 (sweep)" file="pad-sweep.aaxs"/>
  <instrument n="97" name="FX 1 (rain)" file="fx-rain.aaxs"/>
