@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Bright Piano" frequency="220" duration="0.10">
+ <sound name="Bright Piano" program="2" bank="0" frequency="220" duration="0.10">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.0"/>

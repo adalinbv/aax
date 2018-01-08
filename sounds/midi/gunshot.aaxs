@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Gunshot" frequency="220" duration="0.2">
+ <sound name="Gunshot" program="128" bank="0" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <waveform src="white-noise" processing="modulate" ratio="8.0" pitch="0.25"/>
   <filter type="frequency" src="24db">

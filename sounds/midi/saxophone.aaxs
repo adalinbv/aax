@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Saxophone" frequency="220" duration="0.10">
+ <sound name="Saxophone"  program="65-68" bank="0" frequency="220" duration="0.10">
   <waveform src="impulse"/>
   <waveform src="square" processing="modulate" ratio="2.0" pitch="2.0"/>
   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="2.0"/>
@@ -23,7 +23,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="1" min="26" max="98" step="1"/>
+  <note polyphony="1" min="37" max="87" step="1"/>
  </instrument>
 
  <emitter looping="true">

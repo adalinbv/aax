@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Lead 3 (calliope)" frequency="220" duration="1.0">
+ <sound name="Lead 3 (calliope)" program="83" bank="0" frequency="220" duration="1.0">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
   <waveform src="sine" processing="mix" ratio="0.048"/>
@@ -31,7 +31,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="43" min="48" max="91" step="1"/>
+  <note polyphony="43" min="48" max="96" step="1"/>
  </instrument>
 
  <emitter looping="true">

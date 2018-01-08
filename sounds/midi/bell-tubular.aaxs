@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Tubular Bells" frequency="220" duration="0.10">
+ <sound name="Tubular Bells" program="15" bank="0" frequency="220" duration="0.10">
   <waveform src="sine" pitch="1.199998"/>
   <waveform src="sine" processing="add" ratio="0.4"  pitch="2.59987"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.4587"/>

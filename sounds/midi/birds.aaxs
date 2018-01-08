@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Birds" frequency="220" duration="2.9">
+ <sound name="Birds" program="124" bank="0" frequency="220" duration="2.9">
   <waveform src="square" pitch="1.0"/>
   <waveform src="impulse" processing="mix" ratio="0.7" pitch="1.0"/>
   <waveform src="sawtooth" processing="modulate" ratio="3.0" pitch="1.498"/>

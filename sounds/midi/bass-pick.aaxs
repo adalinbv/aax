@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Electric Bass (Pick)" frequency="110" duration="0.10">
+ <sound name="Electric Bass (Pick)" program="35" bank="0" frequency="110" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="5.997"/>
@@ -16,7 +16,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="6" min="35" max="76" step="1"/>
+  <note polyphony="6" min="28" max="55" step="1"/>
  </instrument>
 
  <emitter looping="true">

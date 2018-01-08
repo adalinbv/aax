@@ -8,13 +8,13 @@
 
 <aeonwave>
 
- <sound name="Electric Piano 2" frequency="220" duration="0.10">
+ <sound name="Electric Piano 2"  program="6" bank="0" frequency="220" duration="0.10">
   <waveform src="impulse" ratio="0.6"/>
   <waveform src="square" processing="add" ratio="-0.4"/>
  </sound>
 
  <instrument>
-  <note polyphony="88" min="21" max="108" step="12"/>
+  <note polyphony="8" min="28" max="103" step="12"/>
  </instrument>
 
  <emitter looping="true">

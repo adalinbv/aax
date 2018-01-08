@@ -8,33 +8,19 @@
 
 <aeonwave>
 
- <sound name="Rock Organ" frequency="220" duration="0.10">
+ <sound name="Rock Organ"  program="19" bank="0" frequency="220" duration="0.10">
   <waveform src="triangle" ratio="0.8"/>
   <waveform src="sine" processing="add" ratio="0.4" pitch="3.9991"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="2.0"/>
  </sound>
 
  <instrument>
-  <note polyphony="10" min="48" max="108" step="1"/>
+  <note polyphony="10" min="36" max="96" step="1"/>
  </instrument>
 
  <emitter looping="true"/>
 
  <audioframe>
-<!--
-  <filter type="frequency" src="sine">
-   <slot n="0">
-    <param n="0" pitch="20.0">4400</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0" pitch="40.0">8800</param>
-    <param n="3">5.537</param>
-   </slot>
-  </filter>
--->
   <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.183</param>

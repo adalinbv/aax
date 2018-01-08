@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Honky-Tonk Piano" frequency="220" duration="0.10">
+ <sound name="Honky-Tonk Piano"  program="4" bank="0" frequency="220" duration="0.10">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.4" pitch="2.997"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.003"/>

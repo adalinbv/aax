@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Seashore" frequency="220" duration="1.7234">
+ <sound name="Seashore"  program="123" bank="0" frequency="220" duration="1.7234">
   <waveform src="white-noise"/>
  </sound>
 

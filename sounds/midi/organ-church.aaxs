@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Church Organ" frequency="220" duration="0.5">
+ <sound name="Church Organ" program="20" bank="0" frequency="220" duration="0.5">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.4" pitch="0.5"/>
   <waveform src="square" processing="mix" ratio="0.01" pitch="0.125"/>
@@ -16,7 +16,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="10" min="48" max="108" step="1"/>
+  <note polyphony="10" min="21" max="108" step="1"/>
  </instrument>
 
  <emitter looping="true">
