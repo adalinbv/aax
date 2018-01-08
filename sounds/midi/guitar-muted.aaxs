@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Muted Electric Guitar" frequency="220" duration="0.10">
+ <sound name="Muted Electric Guitar" program="29" bank="0" frequency="220" duration="0.10">
   <waveform src="triangle" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.4" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="2.0"/>

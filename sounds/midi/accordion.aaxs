@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Accordion" frequency="220" duration="0.75">
+ <sound name="French Accordion" program="22" bank="0" frequency="220" duration="0.75">
   <waveform src="square" ratio="0.6"/>
   <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="2.991"/>
  </sound>

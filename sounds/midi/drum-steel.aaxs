@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Steel Drums" frequency="220" duration="0.33">
-  <waveform src="square" pitch="0.999"/>
+ <sound name="Steel Drums" program="115" bank="0" frequency="220" duration="0.33">
+  <waveform src="square" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="0.7" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.1" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.0"/>
  </sound>
 
  <instrument>
-  <note polyphony="4" min="43" max="101" step="1"/>
+  <note polyphony="4" min="52" max="76" step="1"/>
  </instrument>
 
  <emitter looping="true">
@@ -34,8 +34,8 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.00</param>
-    <param n="1">0.01</param>
+    <param n="0">1.20</param>
+    <param n="1">0.05</param>
     <param n="2">1.20</param>
     <param n="3">0.10</param>
    </slot>

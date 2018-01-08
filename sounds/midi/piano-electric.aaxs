@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Electric Grand Piano" frequency="220" duration="0.10">
+ <sound name="Electric Grand Piano"  program="3" bank="0" frequency="220" duration="0.10">
   <waveform src="sine"/>
   <waveform src="sine" processing="mix" ratio="0.2" pitch="10.0"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="2.0"/>

@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Clarinet" frequency="220" duration="0.1">
+ <sound name="Clarinet" program="72" bank="0" frequency="220" duration="0.1">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="modulate" ratio="1.2" pitch="2.0"/>
   <filter type="frequency">
@@ -22,7 +22,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="1" min="50" max="96" step="1"/>
+  <note polyphony="1" min="50" max="91" step="1"/>
  </instrument>
 
  <emitter looping="true">

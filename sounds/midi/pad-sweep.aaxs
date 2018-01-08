@@ -8,11 +8,15 @@
 
 <aeonwave>
 
- <sound name="Pad 8 (sweep)" frequency="220" duration="0.25">
+ <sound name="Pad 8 (sweep)" program="96" bank="0" frequency="220" duration="0.25">
   <waveform src="impulse"/>
   <waveform src="impulse" processing="mix" pitch="1.407"/>
   <waveform src="impulse" processing="mix" pitch="0.993"/>
  </sound>
+
+ <instrument>
+  <note polyphony="6" min="36" max="96" step="1"/>
+ </instrument>
 
  <emitter looping="true"/>
 

@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Choir Aahs" frequency="220" duration="0.33">
+ <sound name="Choir Aahs" program="53" bank="0" frequency="220" duration="0.33">
   <waveform src="pink-noise" pitch="0.33"/>
   <waveform src="sine" processing="mix" ratio="0.4" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.987"/>
@@ -25,7 +25,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="1" min="43" max="86" step="1"/>
+  <note polyphony="1" min="48" max="79" step="1"/>
  </instrument>
 
  <emitter looping="true">

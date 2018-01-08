@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Synth Bass 2" frequency="110" duration="0.10">
+ <sound name="Synth Bass 3" program="40" bank="0" frequency="110" duration="0.10">
   <waveform src="triangle"/>
   <waveform src="sawtooth" processing="mix" ratio="0.7" pitch="0.99"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="1.997"/>
  </sound>
 
  <instrument>
-  <note polyphony="6" min="35" max="76" step="1"/>
+  <note polyphony="6" min="28" max="55" step="1"/>
  </instrument>
 
  <emitter looping="true">

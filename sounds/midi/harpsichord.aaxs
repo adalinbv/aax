@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Harpsichord" frequency="220" duration="0.10">
+ <sound name="Harpsichord" program="7" bank="0" frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="3.0"/>
   <waveform src="square" processing="modulate" ratio="1.5" pitch="3.0"/>
  </sound>
 
  <instrument>
-  <note polyphony="72" min="29" max="101" step="1"/>
+  <note polyphony="72" min="41" max="89" step="1"/>
  </instrument>
 
  <emitter looping="true">

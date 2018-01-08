@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Lead 4 (chiff)" frequency="55" duration="0.125">
+ <sound name="Lead 4 (chiff)" program="84" bank="0" frequency="220" duration="0.125">
   <waveform src="sine"/>
   <waveform src="square" processing="add" ratio="-0.5" pitch="1.01"/>
   <waveform src="triangle" processing="modulate" ratio="1.0" pitch="1.0"/>
@@ -16,7 +16,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="8" min="21" max="108" step="1"/>
+  <note polyphony="8" min="48" max="96" step="1"/>
  </instrument>
 
  <emitter looping="true">

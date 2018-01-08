@@ -14,7 +14,7 @@
  <instrument n="14" name="Xylophone" file=".aaxs"/>
  <instrument n="15" name="Tubular Bells" file=".aaxs"/>
  <instrument n="16" name="Dulcimer" file=".aaxs"/>
- <instrument n="17" name="Drawbar Organ" file=".aaxs"/>
+ <instrument n="17" name="Drawbar Organ" file="organ-hammond.aaxs"/>
  <instrument n="18" name="Percussive Organ" file=".aaxs"/>
  <instrument n="19" name="Rock Organ" file="organ-rock.aaxs"/>
  <instrument n="20" name="Church Organ" file="organ-church.aaxs"/>
@@ -37,7 +37,7 @@
  <instrument n="37" name="Slap Bass 1" file="bass-slap1.aaxs"/>
  <instrument n="38" name="Slap Bass 2" file="bass-slap2.aaxs"/>
  <instrument n="39" name="Synth Bass 1" file="bass-synth1.aaxs"/>
- <instrument n="40" name="Synth Bass 2" file="bass-synth2.aaxs"/>
+ <instrument n="40" name="Synth Bass 2" file="bass-synth3.aaxs"/>
  <instrument n="41" name="Violin" file="violin.aaxs"/>
  <instrument n="42" name="Viola" file="violin.aaxs"/>
  <instrument n="43" name="Cello" file="violin.aaxs"/>

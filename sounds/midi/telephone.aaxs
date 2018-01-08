@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Telephone Ring" frequency="1250" duration="0.10">
+ <sound name="Telephone Ring"  program="125" bank="0" frequency="1250" duration="0.10">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>

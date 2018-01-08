@@ -8,13 +8,13 @@
 
 <aeonwave>
 
- <sound name="Lead 7 (fifths)" frequency="220" duration="0.5">
-  <waveform src="square"/>
+ <sound name="Lead 7 (fifths)" program="87" bank="0" frequency="220" duration="0.5">
+  <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" pitch="1.4889"/>
  </sound>
 
  <instrument>
-  <note polyphony="8" min="21" max="108" step="1"/>
+  <note polyphony="8" min="36" max="96" step="1"/>
  </instrument>
 
 </aeonwave>

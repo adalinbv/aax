@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Synthesizer Brass Section 1" frequency="220" duration="0.25">
+ <sound name="Synthesizer Brass 1" program="63" bank="0" frequency="220" duration="0.25">
   <waveform src="impulse"/>
   <waveform src="impulse" processing="add" pitch="1.407"/>
   <waveform src="impulse" processing="add" pitch="0.993"/>
@@ -23,7 +23,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="1" min="31" max="91" step="1"/>
+  <note polyphony="1" min="36" max="96" step="1"/>
  </instrument>
 
  <emitter looping="true">
