@@ -10,8 +10,8 @@
 
  <sound name="Pad 1 (new-age)" program="89" bank="0" frequency="220" duration="0.33">
   <waveform src="triangle" pitch="0.98"/>
-  <waveform src="sine" processing="modulate" ratio="0.3" pitch="7.9987"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>
+  <waveform src="square" processing="modulate" ratio="0.3" pitch="7.9987"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9399"/>
  </sound>
 
  <instrument>
@@ -42,9 +42,21 @@
  </emitter>
 
  <audioframe>
+  <filter type="frequency" src="sine">
+   <slot n="0">
+    <param n="0" pitch="1.0">220</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">80.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0"pitch="5">1100</param>
+    <param n="3">0.07</param>
+   </slot>
+  </filter>
   <effect type="flanging" src="inverse-sine">
    <slot n="0">
-    <param n="0">0.7</param>
+    <param n="0">0.5</param>
     <param n="1">0.05</param>
     <param n="2">0.3</param>
     <param n="3">0.4</param>
