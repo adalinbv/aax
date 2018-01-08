@@ -31,12 +31,20 @@
     <param n="1">inf</param>
    </slot>
   </filter>
- </emitter>
-
- <audioframe>
   <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.3</param>
+    <param n="1">0.05</param>
+    <param n="2">0.3</param>
+    <param n="3">0.4</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <effect type="flanging" src="inverse-sine">
+   <slot n="0">
+    <param n="0">0.7</param>
     <param n="1">0.05</param>
     <param n="2">0.3</param>
     <param n="3">0.4</param>
