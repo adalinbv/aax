@@ -258,8 +258,12 @@ aaxScenerySetDimensions(aaxConfig config, aaxVec3f dimensions)
 
    if (rv)
    {
+      float radius;
+
       vec3fFill(handle->info->bounding.box.v3, dimensions);
-//    handle->info->bounding.radius_sq =
+
+      radius = fmaxf(dimensions[0], fmaxf(dimensions[1], dimensions[2]));
+      handle->info->bounding.radius_sq = radius*radius;
    }
 
    return rv;
