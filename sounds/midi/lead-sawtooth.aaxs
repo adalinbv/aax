@@ -18,4 +18,15 @@
   <note polyphony="8" min="21" max="108" step="1"/>
  </instrument>
 
+ <emitter>
+  <effect type="phasing" src="sine">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.15</param>
+    <param n="2">0.5</param>
+    <param n="3">0.3</param>
+   </slot>
+  </effect>
+ </emitter>
+
 </aeonwave>
