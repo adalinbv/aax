@@ -366,7 +366,7 @@ aaxAudioFrameSetDimensions(aaxFrame frame, aaxVec3f dimensions)
    int rv = __release_mode;
 
    if (!rv)
-   {  
+   {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!dimensions || detect_nan_vec3(dimensions)) {
@@ -378,9 +378,13 @@ aaxAudioFrameSetDimensions(aaxFrame frame, aaxVec3f dimensions)
 
    if (rv)
    {
+      float radius;
+
       _aax3dProps *p3d = handle->submix->props3d;
       vec3fFill(p3d->bounding.box.v3, dimensions);
-//    handle->info->bounding.radius_sq =
+
+      radius = fmaxf(dimensions[0], fmaxf(dimensions[1], dimensions[2]));
+      p3d->bounding.radius_sq = radius*radius;
    }
 
    return rv;
