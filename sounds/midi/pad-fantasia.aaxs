@@ -31,7 +31,7 @@
     <param n="1">inf</param>
    </slot>
   </filter>
-  <effect type="phasing" src="sine">
+  <effect type="phasing" src="inverse-sine">
    <slot n="0">
     <param n="0">0.3</param>
     <param n="1">0.05</param>
@@ -42,7 +42,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="sine">
+  <filter type="frequency" src="inverse-sine">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
     <param n="1">0.0</param>
@@ -54,7 +54,7 @@
     <param n="3">0.07</param>
    </slot>
   </filter>
-  <effect type="flanging" src="inverse-sine">
+  <effect type="flanging" src="sine">
    <slot n="0">
     <param n="0">0.5</param>
     <param n="1">0.05</param>
