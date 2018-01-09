@@ -264,6 +264,10 @@ aaxScenerySetDimensions(aaxConfig config, aaxVec3f dimensions)
 
       radius = fmaxf(dimensions[0], fmaxf(dimensions[1], dimensions[2]));
       handle->info->bounding.radius_sq = radius*radius;
+
+      // Scenery does not set the dimensions property on purpose.
+      // This tells the emitter to apply directional cues.
+      // _PROP_DIMENSIONS_SET_DEFINED(p3d);
    }
 
    return rv;
