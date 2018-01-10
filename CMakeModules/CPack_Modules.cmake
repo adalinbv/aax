@@ -54,3 +54,13 @@ ELSE(WIN32)
   SET(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES bin)
 ENDIF(WIN32)
 
+macro (INSTALL_CUSTOM_FILES FILELIST destination)
+  FILE(GLOB FILES ${FILELIST})
+  FOREACH(instfile ${FILES})
+#   message(STATUS "Adding ${instfile} to ${destination}")
+    INSTALL(FILES ${instfile}
+            DESTINATION "${destination}"
+            CONFIGURATIONS Release Debug
+            COMPONENT Applications)
+  ENDFOREACH(instfile)
+endmacro()

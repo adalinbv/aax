@@ -509,11 +509,9 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
   ")
 endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
-install(FILES
-        admin/presets/genres.xml
-        DESTINATION etc/aax
-        COMPONENT Libraries
-)
+INSTALL_CUSTOM_FILES("admin/presets/midi/*.aaxs" ${APP_DATA_DIR}/midi)
+INSTALL_CUSTOM_FILES("admin/presets/reverb/*.aaxs" ${APP_DATA_DIR}/reverb)
+
 install(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/aeonwave.hpp
