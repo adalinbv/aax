@@ -1,0 +1,47 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Seashore"  program="123" bank="0" frequency="220" duration="1.7234">
+  <waveform src="white-noise"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="sine">
+   <slot n="0">
+    <param n="0" pitch="10.0">2200</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="30.0">6600</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="sawtooth">
+   <slot n="0">
+    <param n="1">0.327</param>
+    <param n="2">0.5</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+ </emitter>
+
+ <audioframe>
+  <filter type="dynamic-gain" src="triangle">
+   <slot n="0">
+    <param n="1">0.027</param>
+    <param n="2">0.5</param>
+    <param n="3">0.173</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+</aeonwave>

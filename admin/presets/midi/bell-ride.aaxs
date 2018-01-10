@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Bell Ride" frequency="885" duration="0.10">
+  <waveform src="square" pitch="0.985"/>
+  <waveform src="sawtooth" processing="add" ratio="0.8" pitch="1.9"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.3"/>
+ </sound>
+
+ <emitter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.50</param>
+    <param n="1">0.03</param>
+    <param n="2">0.9</param>
+    <param n="3">0.2</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.50</param>
+    <param n="1">0.30</param>
+    <param n="2">0.35</param>
+    <param n="3">1.00</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>

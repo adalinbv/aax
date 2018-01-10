@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Acoustic Grand Piano" program="1" bank="0" frequency="220" duration="0.10">
+  <waveform src="triangle"/>
+  <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
+  <waveform src="triangle" processing="mix" ratio="0.333" pitch="2.0"/>
+  <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.0"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="88" min="21" max="108" step="1"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.20</param>
+    <param n="1" factor="velocity">0.01</param>
+    <param n="2" factor="soften">0.95</param>
+    <param n="3">0.02</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.20</param>
+    <param n="1" auto-sustain="1.5" factor="sustain">6.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.3</param>
+    <param n="1" factor="velocity">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.975</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0">2700</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+</aeonwave>

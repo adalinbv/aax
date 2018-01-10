@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Electric Bass (Finger)" program="34" bank="0" frequency="110" duration="0.10">
+  <waveform src="square" pitch="1.0"/>
+  <waveform src="sawtooth" processing="mix"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="2.0"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="6" min="28" max="55" step="1"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.00</param>
+    <param n="1" factor="velocity">0.01</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.80</param>
+    <param n="1">3.00</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>
