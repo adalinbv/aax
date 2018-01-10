@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="" frequency="220" duration="1.0">
+  <waveform src="square"/>
+  <waveform src="sawtooth" processing="mix" pitch="1.4889"/>
+ </sound>
+
+</aeonwave>

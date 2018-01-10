@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017 by Erik Hofman.
+ * Copyright (C) 2017 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Acoustic Snare" frequency="132" duration="0.20">
+  <waveform src="triangle" ratio="0.6"/>
+  <waveform src="pink-noise" processing="add" pitch="0.20"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.00</param>
+    <param n="1">0.01</param>
+    <param n="2">1.20</param>
+    <param n="3">0.10</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.00</param>
+    <param n="1">0.40</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.50</param>
+    <param n="1">0.03</param>
+    <param n="2">1.00</param>
+    <param n="3">0.10</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
