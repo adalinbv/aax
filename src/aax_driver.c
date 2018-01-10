@@ -1326,7 +1326,6 @@ _aaxFreeSensor(void *ssr)
    for (i=0; i<MAX_STEREO_EFFECT; ++i) {
       _EFFECT_FREE2D_DATA(smixer, i);
    }
-   _EFFECT_FREE3D_DATA(smixer, CONVOLUTION_EFFECT);
 
    _intBufErase(&smixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
    _aax_aligned_free(smixer->props3d->dprops3d);

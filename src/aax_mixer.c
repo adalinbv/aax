@@ -613,6 +613,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
       case AAX_REVERB_EFFECT:
+      case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {
@@ -630,28 +631,6 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             {
                p2d->final.pitch_lfo = 1.0f;
             }
-            _intBufReleaseData(dptr, _AAX_SENSOR);
-         }
-         else
-         {
-            _aaxErrorSet(AAX_INVALID_STATE);
-            rv = AAX_FALSE;
-         }
-         break;
-      case AAX_CONVOLUTION_EFFECT:
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
-         {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame *mixer = sensor->mixer;
-            _aax3dProps *p3d = mixer->props3d;
-            int type = effect->pos;
-            _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-            _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-            _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-            _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-            _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
          else
@@ -678,12 +657,12 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
       const _intBufferData* dptr;
       switch(type)
       {
+      case AAX_PITCH_EFFECT:
       case AAX_DYNAMIC_PITCH_EFFECT:
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
-      case AAX_PITCH_EFFECT:
       case AAX_REVERB_EFFECT:
       case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1635,7 +1614,6 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
                for (i=0; i<MAX_STEREO_EFFECT; ++i) {
                   _EFFECT_FREE2D_DATA(smixer, i);
                }
-               _EFFECT_FREE3D_DATA(smixer, CONVOLUTION_EFFECT);
                _aaxSetDefault2dProps(smixer->props2d);
 
                _intBufReleaseData(dptr, _AAX_SENSOR);

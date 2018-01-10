@@ -161,8 +161,8 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
    crossover = parametric = graphic = 0;
    if (sensor)
    {
-      if (_EFFECT_GET_STATE(sensor->mixer->props3d, CONVOLUTION_EFFECT)) {
-         convolution = _EFFECT_GET_DATA(sensor->mixer->props3d,
+      if (_EFFECT_GET_STATE(sensor->mixer->props2d, CONVOLUTION_EFFECT)) {
+         convolution = _EFFECT_GET_DATA(sensor->mixer->props2d,
                                              CONVOLUTION_EFFECT);
       }
       reverb = _EFFECT_GET_DATA(sensor->mixer->props2d, REVERB_EFFECT);

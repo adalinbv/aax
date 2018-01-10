@@ -52,7 +52,6 @@ enum _aax3dFiltersEffects
 
     /* 3d effects */
     VELOCITY_EFFECT = 0,        /* Doppler               */
-    CONVOLUTION_EFFECT,
     MAX_3D_EFFECT,
 };
 
@@ -79,6 +78,7 @@ enum _aax2dFiltersEffects
     TIMED_PITCH_EFFECT,
     DISTORTION_EFFECT,
     DELAY_EFFECT,               /* phasing, chorus or flanging  */
+    CONVOLUTION_EFFECT,
     MAX_STEREO_EFFECT,
 };
 

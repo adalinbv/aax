@@ -622,12 +622,13 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       int type = effect->pos;
       switch (effect->type)
       {
+      case AAX_PITCH_EFFECT:
       case AAX_DYNAMIC_PITCH_EFFECT:
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
-      case AAX_PITCH_EFFECT:
+      case AAX_REVERB_EFFECT:
       {
          _aax2dProps *p2d = fmixer->props2d;
          _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
@@ -660,12 +661,13 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
    {
       switch(type)
       {
+      case AAX_PITCH_EFFECT:
       case AAX_DYNAMIC_PITCH_EFFECT:
       case AAX_DISTORTION_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
-      case AAX_PITCH_EFFECT:
+      case AAX_REVERB_EFFECT:
       {
          _aaxAudioFrame* fmixer = handle->submix;
          rv = new_effect_handle(frame, type, fmixer->props2d, fmixer->props3d);
@@ -691,22 +693,25 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
       switch(type)
       {
       case AAX_POSITION:
-         m = (mode != AAX_STEREO && mode != AAX_INDOOR) ? AAX_TRUE : AAX_FALSE;
-         _TAS_POSITIONAL(handle, m);
-         if TEST_FOR_TRUE(m)
-         {
-            m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
-            _TAS_RELATIVE(handle, m);
-            if TEST_FOR_TRUE(m) {
-               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
-            } else {
-               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
-            }
-         }
-         else if (mode == AAX_INDOOR)
+         if (mode == AAX_INDOOR)
          {
             _aax3dProps *p3d = handle->submix->props3d;
             _PROP_INDOOR_SET_DEFINED(p3d);
+         }
+         else
+         {
+            m = (mode != AAX_STEREO) ? AAX_TRUE : AAX_FALSE;
+            _TAS_POSITIONAL(handle, m);
+            if TEST_FOR_TRUE(m)
+            {
+               m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
+               _TAS_RELATIVE(handle, m);
+               if TEST_FOR_TRUE(m) {
+                  fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
+               } else {
+                  fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
+               }
+            }
          }
          break;
       default:
