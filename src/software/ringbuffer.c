@@ -143,6 +143,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->multiply = _batch_imul_value;
          rbd->add = _batch_imadd;
 #endif
+         rbd->mix1 = _aaxRingBufferMixMono16Mono;
          rbd->mixmn = _aaxRingBufferMixStereo16;
          switch(rbi->mode)
          {

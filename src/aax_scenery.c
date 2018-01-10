@@ -28,6 +28,7 @@
 
 #include "api.h"
 
+#if 0
 AAX_API int AAX_APIENTRY
 aaxScenerySetMatrix64(aaxConfig config, aaxMtx4d mtx64)
 {
@@ -79,6 +80,61 @@ aaxSceneryGetMatrix64(aaxConfig config, aaxMtx4d mtx64)
 
    return rv;
 }
+
+AAX_API int AAX_APIENTRY
+aaxScenerySetDimensions(aaxConfig config, aaxVec3f dimensions)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!dimensions || detect_nan_vec3(dimensions)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      float radius;
+
+      vec3fFill(handle->info->bounding.box.v3, dimensions);
+
+      radius = fmaxf(dimensions[0], fmaxf(dimensions[1], dimensions[2]));
+      handle->info->bounding.radius_sq = radius*radius;
+
+      // Scenery does not set the dimensions property on purpose.
+      // This tells the emitter to apply directional cues.
+      // _PROP_DIMENSIONS_SET_DEFINED(p3d);
+   }
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxSceneryGetDimensions(aaxConfig config, aaxVec3f dimensions)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!dimensions) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv) {
+      vec3fFill(dimensions, handle->info->bounding.box.v3);
+   }
+
+   return rv;
+}
+#endif
 
 AAX_API int AAX_APIENTRY
 aaxScenerySetFilter(aaxConfig config, aaxFilter f)
@@ -238,59 +294,5 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
          _aaxErrorSet(AAX_INVALID_PARAMETER);
       }
    }
-   return rv;
-}
-
-AAX_API int AAX_APIENTRY
-aaxScenerySetDimensions(aaxConfig config, aaxVec3f dimensions)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!dimensions || detect_nan_vec3(dimensions)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = AAX_TRUE;
-      }
-   }
-
-   if (rv)
-   {
-      float radius;
-
-      vec3fFill(handle->info->bounding.box.v3, dimensions);
-
-      radius = fmaxf(dimensions[0], fmaxf(dimensions[1], dimensions[2]));
-      handle->info->bounding.radius_sq = radius*radius;
-
-      // Scenery does not set the dimensions property on purpose.
-      // This tells the emitter to apply directional cues.
-      // _PROP_DIMENSIONS_SET_DEFINED(p3d);
-   }
-
-   return rv;
-}
-
-AAX_API int AAX_APIENTRY
-aaxSceneryGetDimensions(aaxConfig config, aaxVec3f dimensions)
-{
-   _handle_t *handle = get_handle(config, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!dimensions) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = AAX_TRUE;
-      }
-   }
-
-   if (rv) {
-      vec3fFill(dimensions, handle->info->bounding.box.v3);
-   }
-
    return rv;
 }

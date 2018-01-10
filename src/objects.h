@@ -109,23 +109,23 @@ enum
 
 enum
 {
-    PITCH_CHANGED          = 0x0000001,
-    GAIN_CHANGED           = 0x0000002,
-    DIST_CHANGED           = 0x0000004,
-    MTX_CHANGED            = 0x0000008,
-    SPEED_CHANGED          = 0x0000010,
+    PITCH_CHANGED         = 0x0000001,
+    GAIN_CHANGED          = 0x0000002,
+    DIST_CHANGED          = 0x0000004,
+    MTX_CHANGED           = 0x0000008,
+    SPEED_CHANGED         = 0x0000010,
 
-    CONE_DEFINED           = 0x0010000,
-    DIMENSIONS_DEFINED     = 0x0020000,
-    DYNAMIC_PITCH_DEFINED  = 0x0040000,
-    ALL_DEFINED       = (CONE_DEFINED|DIMENSIONS_DEFINED|DYNAMIC_PITCH_DEFINED),
+    CONE_DEFINED          = 0x0010000,
+    INDOOR_DEFINED        = 0x0020000,
+    DYNAMIC_PITCH_DEFINED = 0x0040000,
+    ALL_DEFINED           = (CONE_DEFINED|INDOOR_DEFINED|DYNAMIC_PITCH_DEFINED),
 
     /* SCENE*/
-    DISTQUEUE_CHANGED      = 0x0000000,
-    SCENE_CHANGED          = 0x1000000,
-    REVERB_CHANGED         = 0x2000000,
-    DISTDELAY_CHANGED      = 0x4000000,
-    WIND_CHANGED           = 0x8000000
+    DISTQUEUE_CHANGED     = 0x0000000,
+    SCENE_CHANGED         = 0x1000000,
+    REVERB_CHANGED        = 0x2000000,
+    DISTDELAY_CHANGED     = 0x4000000,
+    WIND_CHANGED          = 0x8000000
 };
 #define PITCH_CHANGE            (PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
 
@@ -151,15 +151,15 @@ enum
 
 
 #define _PROP3D_CONE_IS_DEFINED(q)      ((q)->state3d & CONE_DEFINED)
-#define _PROP3D_DIMENSIONS_IS_DEFINED(q) ((q)->state3d & DIMENSIONS_DEFINED)
+#define _PROP3D_INDOOR_IS_DEFINED(q) ((q)->state3d & INDOOR_DEFINED)
 #define _PROP3D_DYNAMIC_PITCHIS_DEFINED(q) ((q)->state3d & DYNAMIC_PITCH_DEFINED)
 
 #define _PROP3D_CONE_SET_DEFINED(q)     ((q)->state3d |= CONE_DEFINED)
-#define _PROP3D_DIMENSIONS_SET_DEFINED(q) ((q)->state3d |= DIMENSIONS_DEFINED)
+#define _PROP3D_INDOOR_SET_DEFINED(q) ((q)->state3d |= INDOOR_DEFINED)
 #define _PROP3D_DYNAMIC_PITCH_SET_DEFINED(q) ((q)->state3d |= DYNAMIC_PITCH_DEFINED)
 
 #define _PROP3D_CONE_CLEAR_DEFINED(q)   ((q)->state3d &= ~CONE_DEFINED)
-#define _PROP3D_DIMENSIONS_CLEAR_DEFINED(q) ((q)->state3d &= ~DIMENSIONS_DEFINED)
+#define _PROP3D_INDOOR_CLEAR_DEFINED(q) ((q)->state3d &= ~INDOOR_DEFINED)
 #define _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED(q) ((q)->state3d &= ~DYNAMIC_PITCH_DEFINED)
 
 /* 3d properties: AAX Scene extension*/
@@ -189,7 +189,7 @@ enum
 #define _PROP_MTX_HAS_CHANGED(q)        _PROP3D_MTX_HAS_CHANGED((q)->dprops3d)
 #define _PROP_SPEED_HAS_CHANGED(q)      _PROP3D_SPEED_HAS_CHANGED((q)->dprops3d)
 #define _PROP_CONE_IS_DEFINED(q)        _PROP3D_CONE_IS_DEFINED((q)->dprops3d)
-#define _PROP_DIMENSIONS_IS_DEFINED(q)	_PROP3D_DIMENSIONS_IS_DEFINED((q)->dprops3d)
+#define _PROP_INDOOR_IS_DEFINED(q)	_PROP3D_INDOOR_IS_DEFINED((q)->dprops3d)
 
 #define _PROP_PITCH_SET_CHANGED(q)      _PROP3D_PITCH_SET_CHANGED((q)->dprops3d)
 #define _PROP_GAIN_SET_CHANGED(q)       _PROP3D_GAIN_SET_CHANGED((q)->dprops3d)
@@ -197,7 +197,7 @@ enum
 #define _PROP_MTX_SET_CHANGED(q)        _PROP3D_MTX_SET_CHANGED((q)->dprops3d)
 #define _PROP_SPEED_SET_CHANGED(q)      _PROP3D_SPEED_SET_CHANGED((q)->dprops3d)
 #define _PROP_CONE_SET_DEFINED(q)       _PROP3D_CONE_SET_DEFINED((q)->dprops3d)
-#define _PROP_DIMENSIONS_SET_DEFINED(q)	_PROP3D_DIMENSIONS_SET_DEFINED((q)->dprops3d)
+#define _PROP_INDOOR_SET_DEFINED(q)	_PROP3D_INDOOR_SET_DEFINED((q)->dprops3d)
 #define _PROP_DYNAMIC_PITCH_SET_DEFINED(q) _PROP3D_DYNAMIC_PITCH_SET_DEFINED((q)->dprops3d)
 
 #define _PROP_PITCH_CLEAR_CHANGED(q)    _PROP3D_PITCH_CLEAR_CHANGED((q)->dprops3d)
@@ -206,7 +206,7 @@ enum
 #define _PROP_MTX_CLEAR_CHANGED(q)      _PROP3D_MTX_CLEAR_CHANGED((q)->dprops3d)
 #define _PROP_SPEED_CLEAR_CHANGED(q)    _PROP3D_SPEED_CLEAR_CHANGED((q)->dprops3d)
 #define _PROP_CONE_CLEAR_DEFINED(q)     _PROP3D_CONE_CLEAR_DEFINED((q)->dprops3d)
-#define _PROP_DIMENSIONS_CLEAR_DEFINED(q) _PROP3D_DIMENSIONS_CLEAR_DEFINED((q)->dprops3d)
+#define _PROP_INDOOR_CLEAR_DEFINED(q) _PROP3D_INDOOR_CLEAR_DEFINED((q)->dprops3d)
 #define _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(q) _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED((q)->dprops3d)
 
 /* delayed 3d properties: AAX Scene extension*/
@@ -250,7 +250,7 @@ typedef ALIGN16 struct
    vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
 
    mtx4d_t matrix;			/* scenery position and orientation */
-   bounding_t bounding;
+// bounding_t bounding;
 
    vec4f_t *delay;
 
@@ -296,7 +296,7 @@ typedef ALIGN16 struct
 
 typedef struct
 {
-   bounding_t bounding;
+// bounding_t bounding;
 
    float buf3dq_step;
    int state;

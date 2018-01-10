@@ -226,8 +226,8 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
 #ifdef ARCH32
-            mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
-                      &sensor->mixer->props3d->m_dprops3d->matrix);
+               mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+                         &sensor->mixer->props3d->m_dprops3d->matrix);
 #else
                mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
                          &sensor->mixer->props3d->m_dprops3d->matrix);
@@ -239,8 +239,8 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
          {
             _frame_t *parent = handle->parent;
 #ifdef ARCH32
-          mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
-                    &parent->submix->props3d->m_dprops3d->matrix);
+            mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+                      &parent->submix->props3d->m_dprops3d->matrix);
 #else
             mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
                       &parent->submix->props3d->m_dprops3d->matrix);
@@ -359,6 +359,7 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
    return rv;
 }
 
+#if 0
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetDimensions(aaxFrame frame, aaxVec3f dimensions)
 {
@@ -416,6 +417,7 @@ aaxAudioFrameGetDimensions(aaxFrame frame, aaxVec3f dimensions)
 
    return rv;
 }
+#endif
 
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetSetup(UNUSED(aaxFrame frame), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
@@ -681,7 +683,7 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 {
    _frame_t *handle = get_frame(frame, __func__);
-   int rv = AAX_TRUE;
+   int m, rv = AAX_TRUE;
 
    if (rv)
    {
@@ -689,8 +691,7 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
       switch(type)
       {
       case AAX_POSITION:
-      {
-         int m = (mode > AAX_MODE_NONE) ? AAX_TRUE : AAX_FALSE;
+         m = (mode != AAX_STEREO && mode != AAX_INDOOR) ? AAX_TRUE : AAX_FALSE;
          _TAS_POSITIONAL(handle, m);
          if TEST_FOR_TRUE(m)
          {
@@ -702,8 +703,12 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
                fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
             }
          }
+         else if (mode == AAX_INDOOR)
+         {
+            _aax3dProps *p3d = handle->submix->props3d;
+            _PROP_INDOOR_SET_DEFINED(p3d);
+         }
          break;
-      }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
          rv = AAX_FALSE;
@@ -715,9 +720,28 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 }
 
 AAX_API int AAX_APIENTRY
-aaxAudioFrameGetMode(UNUSED(const aaxFrame frame), UNUSED(enum aaxModeType type))
+aaxAudioFrameGetMode(const aaxFrame frame, enum aaxModeType type)
 {
-   int rv = AAX_FALSE;
+   _frame_t *handle = get_frame(frame, __func__);
+   int rv = AAX_STEREO;
+
+   switch(type)
+   {
+   case AAX_POSITION:
+      if (_IS_POSITIONAL(handle)) {
+         rv = _IS_RELATIVE(handle) ? AAX_RELATIVE : AAX_ABSOLUTE;
+      }
+      else
+      {
+         _aax3dProps *p3d = handle->submix->props3d;
+         if (_PROP_INDOOR_IS_DEFINED(p3d)) rv = AAX_INDOOR;
+      }
+      break;
+   default:
+      _aaxErrorSet(AAX_INVALID_ENUM);
+   }
+   put_frame(handle);
+   
    return rv;
 }
 
@@ -1133,8 +1157,8 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
             if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
             {
-               _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
-               _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
+               _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+               _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
                _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
             }
 

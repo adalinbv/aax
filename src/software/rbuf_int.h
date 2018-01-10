@@ -129,6 +129,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
 #endif
 
    /* called by the mix function above */
+   _aaxRingBufferMix1NFn *mix1;
    _aaxRingBufferMix1NFn *mix1n;
    _aaxRingBufferMixMNFn *mixmn;
 
@@ -194,6 +195,7 @@ void _aaxRingBufferEffectsApply(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX
 CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, float, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
 
 _aaxRingBufferMixMNFn _aaxRingBufferMixStereo16;
+_aaxRingBufferMix1NFn _aaxRingBufferMixMono16Mono;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Stereo;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Spatial;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Surround;

@@ -296,6 +296,7 @@ enum aaxEmitterMode
    AAX_STEREO = AAX_MODE_NONE,
    AAX_ABSOLUTE,
    AAX_RELATIVE,
+   AAX_INDOOR,
    AAX_EMITTER_MODE_MAX
 };
 
@@ -599,17 +600,11 @@ AAX_API int AAX_APIENTRY aaxMixerDeregisterAudioFrame(const aaxConfig, const aax
 /*
  * Scenery setup
  */
-AAX_API int AAX_APIENTRY aaxScenerySetMatrix64(aaxConfig, aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxSceneryGetMatrix64(aaxConfig, aaxMtx4d);
-
 AAX_API int AAX_APIENTRY aaxScenerySetFilter(aaxConfig, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxSceneryGetFilter(const aaxConfig, enum aaxFilterType);
 
 AAX_API int AAX_APIENTRY aaxScenerySetEffect(aaxConfig, aaxEffect);
 AAX_API aaxEffect AAX_APIENTRY aaxSceneryGetEffect(const aaxConfig, enum aaxEffectType);
-
-AAX_API int AAX_APIENTRY aaxScenerySetDimensions(aaxConfig, aaxVec3f);
-AAX_API int AAX_APIENTRY aaxSceneryGetDimensions(aaxConfig, aaxVec3f);
 
 /*
  * Sound buffer related
@@ -771,9 +766,6 @@ AAX_API int AAX_APIENTRY aaxAudioFrameGetMatrix64(aaxFrame, aaxMtx4d);
 
 AAX_API int AAX_APIENTRY aaxAudioFrameSetVelocity(aaxFrame, aaxVec3f);
 AAX_API int AAX_APIENTRY aaxAudioFrameGetVelocity(aaxFrame, aaxVec3f);
-
-AAX_API int AAX_APIENTRY aaxAudioFrameSetDimensions(aaxFrame, aaxVec3f);
-AAX_API int AAX_APIENTRY aaxAudioFrameGetDimensions(aaxFrame, aaxVec3f);
 
 AAX_API int AAX_APIENTRY aaxAudioFrameSetFilter(aaxFrame, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxAudioFrameGetFilter(const aaxFrame, enum aaxFilterType);
