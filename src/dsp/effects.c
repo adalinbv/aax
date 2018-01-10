@@ -134,6 +134,12 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type)
       effect->param[AAX_DECAY_LEVEL] = 0.3f;
       effect->param[AAX_DECAY_DEPTH] = 0.7f;
       break;
+   case CONVOLUTION_EFFECT:
+      effect->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
+      effect->param[AAX_LF_GAIN] = 1.0f;
+      effect->param[AAX_MAX_GAIN] = 1.0f;
+      effect->param[AAX_THRESHOLD] = LEVEL_64DB;
+      break;
    default:
       break;
    }
@@ -152,12 +158,6 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type)
       effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
       effect->state = AAX_TRUE;
       effect->data = *(void**)&_aaxRingBufferDopplerFn[0];
-      break;
-   case CONVOLUTION_EFFECT:
-      effect->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
-      effect->param[AAX_LF_GAIN] = 1.0f;
-      effect->param[AAX_MAX_GAIN] = 1.0f;
-      effect->param[AAX_THRESHOLD] = LEVEL_64DB;
       break;
    default:
       break;

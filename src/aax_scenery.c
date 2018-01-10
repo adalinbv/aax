@@ -231,34 +231,37 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
       _effect_t* effect = get_effect(e);
       if (effect)
       {
-         const _intBufferData* dptr;
-         dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-         if (dptr)
+         if (effect->type == AAX_CONVOLUTION_EFFECT)  // deprtecated
          {
-            _sensor_t* sensor = _intBufGetDataPtr(dptr);
-            _aaxAudioFrame* mixer = sensor->mixer;
-            _aax3dProps *p3d = mixer->props3d;
-            int type = effect->pos;
-            switch (effect->type)
+            _AAX_SYSLOG("Addigning the convolution effect to the scenery is deprecated, assign to the mixer instead");
+            rv = aaxMixerSetEffect(config, e);
+         }
+         else
+         {
+            const _intBufferData* dptr;
+            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            if (dptr)
             {
-            case AAX_VELOCITY_EFFECT:
-               _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-               _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-               _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-               _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-               _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-               _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
-               rv = AAX_TRUE;
-               break;
-            case AAX_CONVOLUTION_EFFECT:
-               _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-               _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
-               rv = AAX_TRUE;
-               break;
-            default:
-               _aaxErrorSet(AAX_INVALID_ENUM);
+               _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame* mixer = sensor->mixer;
+               _aax3dProps *p3d = mixer->props3d;
+               int type = effect->pos;
+               switch (effect->type)
+               {
+               case AAX_VELOCITY_EFFECT:
+                  _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+                  _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+                  _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+                  _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+                  _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
+                  _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
+                  rv = AAX_TRUE;
+                  break;
+               default:
+                  _aaxErrorSet(AAX_INVALID_ENUM);
+               }
+               _intBufReleaseData(dptr, _AAX_SENSOR);
             }
-            _intBufReleaseData(dptr, _AAX_SENSOR);
          }
       }
       else {
@@ -279,7 +282,6 @@ aaxSceneryGetEffect(aaxConfig config, enum aaxEffectType type)
       switch(type)
       {
       case AAX_VELOCITY_EFFECT:
-      case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
          {

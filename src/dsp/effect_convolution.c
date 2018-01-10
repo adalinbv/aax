@@ -57,7 +57,7 @@ _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    {
       _aaxRingBufferConvolutionData* data;
 
-      _aaxSetDefaultEffect3d(eff->slot[0], eff->pos);
+      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
 
       data = calloc(1, sizeof(_aaxRingBufferConvolutionData));
       eff->slot[0]->data = data;
