@@ -71,6 +71,7 @@ aaxAudioFrameCreate(aaxConfig config)
          unsigned int res;
 
          frame->id = AUDIOFRAME_ID;
+         frame->root = handle->root;
          frame->cache_pos = UINT_MAX;
          frame->mixer_pos = UINT_MAX;
          _SET_INITIAL(frame);
@@ -1168,7 +1169,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             }
 
             submix->refcount++;
-            sframe->root = handle->root;
+//          sframe->root = handle->root;  // this is set in aaxAudioFrameCreate
             sframe->parent = handle;
             sframe->mixer_pos = pos;
          }
