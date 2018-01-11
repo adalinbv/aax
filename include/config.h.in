@@ -8,6 +8,9 @@
 /* Define this to enable nano debug messages. */
 #undef DEBUG
 
+/* app data dir */
+#cmakedefine APP_DATA_DIR "@APP_DATA_DIR@"
+
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H
 

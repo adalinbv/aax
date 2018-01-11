@@ -137,8 +137,8 @@ typedef struct
    unsigned int be_pos;
    unsigned int mixer_pos;
    int registered_sensors;
-   void *parent;		/* assigned when registered to a (sub)mixer */
-   void *root;
+   void *parent;		/* assigned when registered to a (sub)mixer  */
+   void *root;			/* reference to the mixer object             */
 
    char *devname[2];
    _aaxMixerInfo *info;
@@ -187,8 +187,9 @@ typedef struct
    int state;
    unsigned int mixer_pos;
    unsigned int cache_pos;	/* position in the eventmgr emitter cache   */
-   _handle_t *root;
+
    void *parent;		/* assigned when registered to a (sub)mixer */
+   _handle_t *root;		/* reference to the mixer object            */
 
    _aaxAudioFrame *submix;
 
@@ -235,7 +236,7 @@ typedef struct
 
    _aaxRingBuffer *ringbuffer;
    _aaxMixerInfo **info;
-   void *root;
+   void *root;			/* reference to the mixer object */
    void *aaxs;
    void *url;
 
@@ -271,8 +272,9 @@ typedef struct
    char looping;
 
    _aaxEmitter *source;
-   _handle_t *root;
-   void *parent;	/* assigned when registered to a (sub)mixer */
+
+   void *parent;		/* assigned when registered to a (sub)mixer */
+   _handle_t *root;		/* reference to the mixer                   */
 
 } _emitter_t;
 
@@ -373,6 +375,7 @@ char *_aaxURLConstruct(char*, char*);
 
 const char* tmpDir();
 const char* userHomeDir();
+char* systemDataFile(const char*);
 char* systemConfigFile(const char*);
 char* userConfigFile();
 char* systemLanguage(char**);

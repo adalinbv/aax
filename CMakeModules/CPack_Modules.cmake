@@ -61,6 +61,6 @@ macro (INSTALL_CUSTOM_FILES FILELIST destination)
     INSTALL(FILES ${instfile}
             DESTINATION "${destination}"
             CONFIGURATIONS Release Debug
-            COMPONENT Applications)
+            COMPONENT Runtime)
   ENDFOREACH(instfile)
 endmacro()

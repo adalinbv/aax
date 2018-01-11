@@ -856,12 +856,12 @@ _detect_mp3_song_info(_driver_t *handle)
          char *path, fname[81];
 
          snprintf(fname, 80, "genres-%s.xml", lang);
-         path = systemConfigFile(fname);
+         path = systemDataFile(fname);
          xid = xmlOpen(path);
          free(path);
          if (!xid)
          {
-            path = systemConfigFile("genres.xml");
+            path = systemDataFile("genres.xml");
             xid = xmlOpen(path);
             free(path);
          }

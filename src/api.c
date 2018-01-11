@@ -53,6 +53,7 @@
 # define TEMP_DIR		getenv("TEMP")
 # define SYSTEM_DIR		getenv("PROGRAMFILES")
 # define USR_SYSTEM_DIR		getenv("PROGRAMFILES")
+# define USER_DATA_DIR		getenv("PROGRAMFILES")
 # define AAX_DIR		"\\aax\\"
 
 # define LOCALAPP_DIR		getenv("LOCALAPPDATA")
@@ -64,6 +65,7 @@
 # define TEMP_DIR		"/tmp"
 # define SYSTEM_DIR		"/etc"
 # define USR_SYSTEM_DIR		"/usr"SYSTEM_DIR
+# define USER_DATA_DIR		"/usr/share"
 # define AAX_DIR		"/aax/"
 
 # define LOCALAPP_DIR		getenv("HOME")
@@ -162,6 +164,30 @@ systemConfigFile(const char *file)
       size_t len;
 
       if (!file) file = CONFIG_FILE;
+
+      len = strlen(global_path);
+      len += strlen(AAX_DIR);
+      len += strlen(file);
+      len++;
+
+      rv = malloc(len);
+      if (rv) {
+         snprintf(rv, len, "%s%s%s", global_path, AAX_DIR, file);
+      }
+   }
+
+   return rv;
+}
+
+char *
+systemDataFile(const char *file)
+{
+   char *global_path = USER_DATA_DIR;
+   char *rv = NULL;
+
+   if (global_path && file)
+   {
+      size_t len;
 
       len = strlen(global_path);
       len += strlen(AAX_DIR);
