@@ -1334,8 +1334,12 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
    }
    put_frame(frame);
 
-   if (rv) {
-     rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
+   if (rv)
+   {
+      rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
+      if (!buffer->root) {
+         buffer->root = handle->root;
+      }
    }
    return rv;
 }

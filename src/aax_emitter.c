@@ -182,6 +182,9 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          } else if (buffer->aaxs) {
             rv = AAX_TRUE;
          }
+         if (!buffer->root) {
+            buffer->root = handle->root;
+         }
       }
    }
 

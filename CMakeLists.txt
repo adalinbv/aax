@@ -509,8 +509,16 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
   ")
 endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
-INSTALL_CUSTOM_FILES("admin/presets/midi/*.aaxs" ${APP_DATA_DIR}/midi)
-INSTALL_CUSTOM_FILES("admin/presets/reverb/*.aaxs" ${APP_DATA_DIR}/reverb)
+include(GNUInstallDirs)
+IF(WIN32)
+  SET(APP_DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
+ELSE(WIN32)
+  SET(APP_DATA_DIR "/usr/${CMAKE_INSTALL_DATAROOTDIR}/aax")
+ENDIF(WIN32)
+INSTALL_CUSTOM_FILES("admin/presets/genres.xml" "${APP_DATA_DIR}/")
+INSTALL_CUSTOM_FILES("admin/presets/midi/*.aaxs" "${APP_DATA_DIR}/midi")
+INSTALL_CUSTOM_FILES("admin/presets/reverb/*.aaxs" "${APP_DATA_DIR}/reverb")
+message("APP_DATA_DIR: ${APP_DATA_DIR}")
 
 install(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h

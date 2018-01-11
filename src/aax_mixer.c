@@ -764,8 +764,12 @@ aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
       }
    }
 
-   if (rv) {
-     rv = _mixerCreateEFFromAAXS(config, buffer);
+   if (rv)
+   {
+      rv = _mixerCreateEFFromAAXS(config, buffer);
+      if (!buffer->root) {
+         buffer->root = handle->root;
+      }
    }
    return rv;
 }
