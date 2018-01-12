@@ -28,7 +28,6 @@
 #else
 # include <string.h>
 #endif
-#include <errno.h>		/* for ETIMEDOUT */
 #include <assert.h>
 
 #include <base/threads.h>
@@ -49,6 +48,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    _aaxDriverBackend *be = (_aaxDriverBackend*)id;
    _aaxRingBufferDelayEffectData* delay_effect;
    _aaxRingBufferFreqFilterData* freq_filter;
+   _aaxRingBufferReverbData *reverb;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)drb;
    _aax2dProps *p2d = (_aax2dProps*)props2d;
    float maxgain, gain;
@@ -62,7 +62,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
-   if (delay_effect || freq_filter || dist_state)
+   reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
+   if (delay_effect || freq_filter || dist_state || reverb)
    {
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;
@@ -73,14 +74,16 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       unsigned int track, no_tracks;
       MIX_T **tracks;
 
-      if (delay_effect)
+      if (reverb) {
+         ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
+      }
+      else if (delay_effect)
       {
          float f = rb->get_paramf(rb, RB_FREQUENCY);
          /*
-          * can not use drbd->dde_samples since it's 10 times as big for the
-          * final mixer to accomodate for reverb
+          * can not use rb->get_parami(rb, RB_DDE_SAMPLES) since it's 10 times
+          * as big for the final mixer to accomodate for reverb
           */
-         // ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
          ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
       }
 
@@ -228,7 +231,7 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
       MIX_T *dptr = tracks[t];
 
       if (reverb) {
-         reverb->run(rbd, dptr, sptr, tmp, no_samples, ds, t, reverb, info);
+//       reverb->run(rbd, dptr, sptr, tmp, no_samples, ds, t, reverb, info);
       }
 
       if (parametric)

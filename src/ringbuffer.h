@@ -187,6 +187,8 @@ typedef struct
     int32_t* reverb_history[_AAX_MAX_SPEAKERS];
     void* history_ptr;
 
+    _aaxMixerInfo *info;
+
     char inverse;
 
 } _aaxRingBufferReverbData;

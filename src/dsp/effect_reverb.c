@@ -163,6 +163,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          }
 
+         reverb->info = effect->info;
          reverb->inverse = (state & AAX_INVERSE) ? 1 : 0;
          reverb->freq_filter = flt;
          if (flt)
@@ -290,7 +291,7 @@ _reverb_destroy(void *ptr)
 
 static void
 _reverb_delays(_aaxRingBufferSample *rbd,
-               MIX_PTR_T s, CONST_MIX_PTR_T sbuf, MIX_PTR_T sbuf2,
+               MIX_PTR_T dptr, CONST_MIX_PTR_T sbuf, MIX_PTR_T tmp,
                size_t dmin, size_t dmax, size_t ds,
                unsigned int track, const void *data,
                _aaxMixerInfo *info)
@@ -300,9 +301,9 @@ _reverb_delays(_aaxRingBufferSample *rbd,
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   assert(s != 0);
+   assert(dptr != 0);
    assert(sbuf != 0);
-   assert(sbuf2 != 0);
+   assert(tmp != 0);
    assert(dmin < dmax);
    assert(track < _AAX_MAX_SPEAKERS);
 
@@ -311,9 +312,9 @@ _reverb_delays(_aaxRingBufferSample *rbd,
    if (snum > 0)
    {
       _aaxRingBufferFreqFilterData* filter = reverb->freq_filter;
-      float dst = _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f);
+      float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
       MIX_T *scratch = (MIX_T*)sbuf + dmin;
-      MIX_PTR_T sptr = s + dmin;
+      MIX_PTR_T sptr = dptr + dmin;
       int q;
 
       dmax -= dmin;
@@ -325,6 +326,7 @@ _reverb_delays(_aaxRingBufferSample *rbd,
          {  
             ssize_t offs = reverb->delay[q].sample_offs[track] + dst;
 
+            if (offs >= (ssize_t)ds) continue;
             assert(offs < (ssize_t)ds);
 //          if (offs >= ds) offs = ds-1;
 
@@ -332,8 +334,8 @@ _reverb_delays(_aaxRingBufferSample *rbd,
          }
       }  
 
-      filter->run(rbd, sbuf2, scratch, 0, dmax, 0, track, filter, NULL, 0);
-      rbd->add(sptr, sbuf2, dmax, 0.5f, 0.0f);
+      filter->run(rbd, tmp, scratch, 0, dmax, 0, track, filter, NULL, 0);
+      rbd->add(sptr, tmp, dmax, 0.5f, 0.0f);
    }
 }
 
@@ -355,7 +357,7 @@ _reverb_loopbacks(_aaxRingBufferSample *rbd, MIX_PTR_T s,
    snum = reverb->no_loopbacks;
    if (snum > 0)
    {
-      float dst = _MAX(-info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f);
+      float dst = info ? _MAX(-info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
       size_t bytes = ds*sizeof(MIX_T);
       MIX_T *sptr = s + dmin;
       int q;
@@ -367,6 +369,7 @@ _reverb_loopbacks(_aaxRingBufferSample *rbd, MIX_PTR_T s,
          float volume = reverb->loopback[q].gain / (snum+1);
          if (offs && volume > LEVEL_96DB)
          {
+            if (offs >= (ssize_t)ds) continue;
             assert(offs < (ssize_t)ds);
             if (offs >= (ssize_t)ds) offs = ds-1;
 
@@ -431,6 +434,9 @@ _reverb_add_delays(void **data, float fs, unsigned int tracks, const float *dela
                   reverb->delay[i].sample_offs[track]=(ssize_t)(delays[i] * fs);
                }
                reverb->delay[i].gain = gains[i];
+#if 0
+ printf("delay[%zi]: %zi\n", i, reverb->delay[i].sample_offs[0]);
+#endif
             }
             else {
                reverb->no_delays--;
@@ -439,11 +445,11 @@ _reverb_add_delays(void **data, float fs, unsigned int tracks, const float *dela
       }
 
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
+      // https://web.archive.org/web/20150416071915/http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       if ((num > 0) && (lb_depth != 0) && (lb_gain != 0))
       {
          static const float max_depth = REVERB_EFFECTS_TIME*0.6877777f;
          float dlb, dlbp;
-         unsigned j;
 
          num = 5;
          reverb->loopback[0].gain = lb_gain*0.95015f;   // conrete/brick = 0.95
@@ -462,16 +468,20 @@ _reverb_add_delays(void **data, float fs, unsigned int tracks, const float *dela
          dlb *= fs;
          dlbp *= fs;
          reverb->no_loopbacks = num;
-         for (j=0; j<num; ++j)
+         for (track=0; track<tracks; ++track)
          {
-            reverb->loopback[0].sample_offs[j] = (dlbp + dlb*0.9876543f);
-            reverb->loopback[1].sample_offs[j] = (dlbp + dlb*0.4901861f);
-            reverb->loopback[2].sample_offs[j] = (dlbp + dlb*0.3333333f);
-            reverb->loopback[3].sample_offs[j] = (dlbp + dlb*0.2001743f);
-            reverb->loopback[4].sample_offs[j] = (dlbp + dlb*0.1428571f);
-            reverb->loopback[5].sample_offs[j] = (dlbp + dlb*0.0909091f);
-            reverb->loopback[6].sample_offs[j] = (dlbp + dlb*0.0769231f);
+            reverb->loopback[0].sample_offs[track] = (dlbp + dlb*0.9876543f);
+            reverb->loopback[1].sample_offs[track] = (dlbp + dlb*0.4901861f);
+            reverb->loopback[2].sample_offs[track] = (dlbp + dlb*0.3333333f);
+            reverb->loopback[3].sample_offs[track] = (dlbp + dlb*0.2001743f);
+            reverb->loopback[4].sample_offs[track] = (dlbp + dlb*0.1428571f);
+            reverb->loopback[5].sample_offs[track] = (dlbp + dlb*0.0909091f);
+            reverb->loopback[6].sample_offs[track] = (dlbp + dlb*0.0769231f);
          }
+#if 0
+ for (int i=0; i<7; ++i)
+ printf(" loopback[%i]: %zi\n", i, reverb->loopback[i].sample_offs[0]);
+#endif
       }
       *data = reverb;
    }
