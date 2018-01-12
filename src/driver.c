@@ -368,6 +368,36 @@ char *strDup(const char *s)
     return p;
 }
 
+aaxBuffer
+setFiltersEffects(int argc, char **argv, aaxConfig c, aaxEmitter e, aaxFrame f)
+{
+    static char fname[255];
+    aaxBuffer buffer = NULL;
+    int len = 255;
+    char *s;
+
+   /* -c for a capture device */
+    s = getCommandLineOption(argc, argv, "-x");
+    if (!s) s = getCommandLineOption(argc, argv, "--aaxs");
+    if (s)
+    {
+        strncpy((char *)&fname, s, len);
+        len -= strlen(s);
+
+        buffer = aaxBufferReadFromStream(c, fname);
+        if (buffer)
+        {
+           if (e) aaxEmitterAddBuffer(e, buffer);
+           if (f) aaxAudioFrameAddBuffer(f, buffer);
+           if (c) aaxMixerAddBuffer(c, buffer);
+        }
+        else printf("Error: %s\n", aaxGetErrorString(aaxGetErrorNo()));
+    }
+
+    return buffer;
+}
+
+
 float
 _vec3dMagnitude(const aaxVec3d v)
 {

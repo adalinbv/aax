@@ -65,6 +65,7 @@ float getGain(int, char **);
 float getDuration(int, char **);
 int getMode(int, char **);
 char *getRenderer(int, char **);
+aaxBuffer setFiltersEffects(int, char **, aaxConfig, aaxEmitter, aaxFrame);
 int printCopyright(int, char **);
 char *strDup(const char *);
 

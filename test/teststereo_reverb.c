@@ -41,7 +41,6 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define ENABLE_EMITTER_DYNAMIC_GAIN	1
 #define FILE_PATH		SRC_PATH"/stereo.wav"
 
 int main(int argc, char **argv)
@@ -62,8 +61,8 @@ int main(int argc, char **argv)
         if (buffer)
         {
             aaxEmitter emitter;
-            aaxFilter filter;
             aaxEffect effect;
+            aaxBuffer xbuffer;
             float dt = 0.0f;
             int q, state;
             float pitch;
@@ -98,44 +97,25 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStart");
 
             /* reverb */
-            effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
-            testForError(effect, "aaxEffectCreate");
+            xbuffer = setFiltersEffects(argc, argv, config, emitter, NULL);
+            if (!xbuffer)
+            {
+               effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
+               testForError(effect, "aaxEffectCreate");
 
-            res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+               res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               8500.0f, 0.035f, 0.93f, 0.049f);
-            testForState(res, "aaxEffectSetSlot/0");
+               testForState(res, "aaxEffectSetSlot/0");
 
-            res = aaxEffectSetState(effect, AAX_TRUE|AAX_INVERSE);
-            testForState(res, "aaxEffectSetState");
+               res = aaxEffectSetState(effect, AAX_TRUE|AAX_INVERSE);
+               testForState(res, "aaxEffectSetState");
 
-            res = aaxMixerSetEffect(config, effect);
-            testForState(res, "aaxMixerSetEffect");
+               res = aaxMixerSetEffect(config, effect);
+               testForState(res, "aaxMixerSetEffect");
 
-            res = aaxEffectDestroy(effect);
-            testForState(res, "aaxEffectDestroy");
-
-#if ENABLE_EMITTER_DYNAMIC_GAIN
-            /* dynamic gain filter for emitter (compressor) */
-            filter = aaxFilterCreate(config, AAX_DYNAMIC_GAIN_FILTER);
-            testForError(filter, "aaxFilterCreate");
-
-            res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.001f, 0.2f, 2.0f, 0.5f);
-            testForState(res, "aaxFilterSetSlot 0");
-
-            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              0.0f, 0.25f, 0.0f, 0.9f);
-            testForState(res, "aaxFilterSetSlot 1");
-
-            res = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW);
-            testForState(res, "aaxFilterSetState");
-
-            res = aaxMixerSetFilter(config, filter);
-            testForState(res, "aaxEmitterSetFilter");
-
-            res = aaxFilterDestroy(filter);
-            testForState(res, "aaxFilterDestroy");
-#endif
+               res = aaxEffectDestroy(effect);
+               testForState(res, "aaxEffectDestroy");
+            }
 
             /** schedule the emitter for playback */
             res = aaxEmitterSetState(emitter, AAX_PLAYING);
@@ -164,6 +144,7 @@ int main(int argc, char **argv)
             }
             while (state == AAX_PLAYING);
 
+            if (xbuffer) aaxBufferDestroy(xbuffer);
             res = aaxMixerDeregisterEmitter(config, emitter);
             res = aaxMixerSetState(config, AAX_STOPPED);
             res = aaxEmitterDestroy(emitter);
