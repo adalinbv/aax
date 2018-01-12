@@ -169,7 +169,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
       _aax_aligned_free(fmixer->props3d->dprops3d);
       free(fmixer->props3d);
 
-      /* handle->ringbuffer gets removed bij the frame thread */
+      /* handle->ringbuffer gets removed by the frame thread */
       /* be->destroy_ringbuffer(handle->ringbuffer); */
       _intBufErase(&fmixer->frames, _AAX_FRAME, _aaxAudioFrameFree);
       _intBufErase(&fmixer->devices, _AAX_DEVICE, _aaxDriverFree);
