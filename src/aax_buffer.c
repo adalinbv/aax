@@ -1265,10 +1265,6 @@ _bufAAXSThread(void *d)
             handle->format = AAX_PCM16S;
          }
       }
-      else {
-         aax_buf->error = AAX_INVALID_STATE;
-      }
-
       xmlClose(xid);
    }
    else {
