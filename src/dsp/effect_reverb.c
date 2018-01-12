@@ -365,11 +365,13 @@ _reverb_loopbacks(_aaxRingBufferSample *rbd, MIX_PTR_T s,
       {
          ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
          float volume = reverb->loopback[q].gain / (snum+1);
+         if (offs && volume > LEVEL_96DB)
+         {
+            assert(offs < (ssize_t)ds);
+            if (offs >= (ssize_t)ds) offs = ds-1;
 
-         assert(offs < (ssize_t)ds);
-         if (offs >= (ssize_t)ds) offs = ds-1;
-
-         rbd->add(sptr, sptr-offs, dmax-dmin, volume, 0.0f);
+            rbd->add(sptr, sptr-offs, dmax-dmin, volume, 0.0f);
+         }
       }
       _aax_memcpy(reverb->reverb_history[track], sptr+dmax-ds, bytes);
    }
