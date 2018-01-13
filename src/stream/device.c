@@ -449,7 +449,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->io->set_param(handle->io, __F_NO_BYTES, size);
          handle->io->set_param(handle->io, __F_RATE, *refresh_rate);
          handle->io->set_param(handle->io, __F_PORT, port);
-         handle->io->set_param(handle->io, __F_TIMEOUT, (int)period_ms);
+         handle->io->set_param(handle->io, __F_TIMEOUT, (int)10*period_ms);
          if (handle->io->open(handle->io, server) >= 0)
          {   
             handle->prot = _prot_create(protocol);
