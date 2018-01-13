@@ -86,7 +86,7 @@ _socket_open(_io_t *io, const char *server)
             snprintf(sport, 15, "%d", port);
             sport[15] = '\0';
 
-            memset(&hints, 0, sizeof hints);
+            memset(&hints, 0, sizeof(hints));
             hints.ai_socktype = SOCK_STREAM;
             hints.ai_family = AF_INET;
             res = getaddrinfo(server, (port > 0) ? sport : NULL, &hints, &host);
@@ -107,15 +107,15 @@ _socket_open(_io_t *io, const char *server)
                setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
                setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on, sizeof(on));
-               setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
-               setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(int));
+//             setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+               setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size,sizeof(size));
                io->error_max = (unsigned)(500.0f/timeout_ms); // 0.1 sec.
 #if 0
  unsigned int m;
  int n;
 
  m = sizeof(n);
- getsockopt(fd, SOL_SOCKET, SO_RCVBUF, (void *)&n, &m);
+ getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &n, &m);
  printf("socket receive buffer size: %u\n", n);
 #endif
                if (connect(fd, host->ai_addr, host->ai_addrlen) >= 0) {
