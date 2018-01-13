@@ -318,21 +318,35 @@ _reverb_delays(_aaxRingBufferSample *rbd,
       int q;
 
       dmax -= dmin;
+#if 1
+      rbd->resample(tmp, sptr, 0, dmax, 0.0f, 0.25f);
+
+      dmax /= 4;
+      sptr = tmp + dmax;
+      _aax_memcpy(sptr, tmp, dmax*sizeof(MIX_T));
+#else
       _aax_memcpy(scratch, sptr, dmax*sizeof(MIX_T));
+#endif
       for(q=0; q<snum; ++q)
       {  
          float volume = reverb->delay[q].gain / (snum+1);
          if ((volume > 0.001f) || (volume < -0.001f))
          {  
             ssize_t offs = reverb->delay[q].sample_offs[track] + dst;
-
+#if 1
+            offs /= 4;
             if (offs >= (ssize_t)ds) continue;
-            assert(offs < (ssize_t)ds);
-//          if (offs >= ds) offs = ds-1;
-
+            rbd->add(tmp, sptr-offs, dmax, volume, 0.0f);
+#else
             rbd->add(scratch, sptr-offs, dmax, volume, 0.0f);
+#endif
          }
-      }  
+      }
+
+#if 1
+      rbd->resample(scratch, tmp, 0, dmax, 0.0f, 4.0f);
+      dmax *= 4;
+#endif
 
       filter->run(rbd, tmp, scratch, 0, dmax, 0, track, filter, NULL, 0);
       rbd->add(sptr, tmp, dmax, 0.5f, 0.0f);
@@ -370,9 +384,6 @@ _reverb_loopbacks(_aaxRingBufferSample *rbd, MIX_PTR_T s,
          if (offs && volume > LEVEL_96DB)
          {
             if (offs >= (ssize_t)ds) continue;
-            assert(offs < (ssize_t)ds);
-            if (offs >= (ssize_t)ds) offs = ds-1;
-
             rbd->add(sptr, sptr-offs, dmax-dmin, volume, 0.0f);
          }
       }
