@@ -715,21 +715,32 @@ _aaxBufResampleSkip_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, size_t
    i = dmax-dmin;
    if (i)
    {
-      do
+      if (freq_factor == 2.0f)
       {
-         size_t step;
-
-         *d++ = samp + (dsamp * smu);
-
-         smu += freq_factor;
-         step = (size_t)floorf(smu);
-
-         smu -= step;
-         s += step-1;
-         samp = *s++;
-         dsamp = *s - samp;
+         do {
+            *d++ = (*s + *(s+1))*0.5f;
+            s += 2;
+         }
+         while (--i);
       }
-      while (--i);
+      else
+      {
+         do
+         {  
+            size_t step;
+            
+            *d++ = samp + (dsamp * smu);
+    
+            smu += freq_factor;
+            step = (size_t)floorf(smu);
+     
+            smu -= step;
+            s += step-1;
+            samp = *s++; 
+            dsamp = *s - samp;
+         }
+         while (--i);
+      }
    }
 }
 

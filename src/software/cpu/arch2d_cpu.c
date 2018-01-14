@@ -1140,21 +1140,32 @@ _aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_
    i=dmax-dmin;
    if (i)
    {
-      do
+      if (freq_factor == 2.0f)
       {
-         size_t step;
-
-         *d++ = samp + (int32_t)(dsamp * smu);
-
-         smu += freq_factor;
-         step = (size_t)floorf(smu);
-
-         smu -= step;
-         s += step-1;
-         samp = *s++;
-         dsamp = *s - samp;
+         do {
+            *d++ = (*s + *(s+1))*0.5f;
+            s += 2;
+         }
+         while (--i);
       }
-      while (--i);
+      else
+      {
+         do
+         {
+            size_t step;
+
+            *d++ = samp + (int32_t)(dsamp * smu);
+
+            smu += freq_factor;
+            step = (size_t)floorf(smu);
+
+            smu -= step;
+            s += step-1;
+            samp = *s++;
+            dsamp = *s - samp;
+         }
+         while (--i);
+      }
    }
 }
 
@@ -1354,21 +1365,32 @@ _aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t d
    i = dmax-dmin;
    if (i)
    {
-      do
+      if (freq_factor == 2.0f)
       {
-         size_t step;
-
-         *d++ = samp + (dsamp * smu);
-
-         smu += freq_factor;
-         step = (size_t)floorf(smu);
-
-         smu -= step;
-         s += step-1;
-         samp = *s++;
-         dsamp = *s - samp;
+         do {
+            *d++ = (*s + *(s+1))*0.5f;
+            s += 2;
+         }
+         while (--i);
       }
-      while (--i);
+      else
+      {
+         do
+         {  
+            size_t step;
+            
+            *d++ = samp + (dsamp * smu);
+    
+            smu += freq_factor;
+            step = (size_t)floorf(smu);
+     
+            smu -= step;
+            s += step-1;
+            samp = *s++; 
+            dsamp = *s - samp;
+         }
+         while (--i);
+      }
    }
 }
 
