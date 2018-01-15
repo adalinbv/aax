@@ -116,13 +116,12 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
       }
    }
 
-#if 1
    if (reverb)
    {
-      reverb->run(rbd, psrc+start, pdst, scratch, no_samples,
+      reverb->run(rbd, pdst+start, psrc+start, scratch, no_samples,
                   ddesamps, track, reverb, NULL);
+      BUFSWAP(pdst, psrc);
    }
-#endif
 
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
