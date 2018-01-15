@@ -36,13 +36,9 @@ extern "C" {
 #include "common.h"
 #include "api.h"
 
-#define DELAY_EFFECTS_TIME      0.070f
-#define REVERB_EFFECTS_TIME     0.700f
-#if 0
-#define NO_DELAY_EFFECTS_TIME
-#undef DELAY_EFFECTS_TIME
-#define DELAY_EFFECTS_TIME      0.0f
-#endif
+#define DELAY_EFFECTS_TIME      	0.070f
+#define FRAME_REVERB_EFFECTS_TIME	(3.0f*DELAY_EFFECTS_TIME)
+#define REVERB_EFFECTS_TIME     	0.700f
 
 aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned);
 
