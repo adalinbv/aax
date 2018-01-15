@@ -369,7 +369,7 @@ char *strDup(const char *s)
 }
 
 aaxBuffer
-setFiltersEffects(int argc, char **argv, aaxConfig c, aaxEmitter e, aaxFrame f)
+setFiltersEffects(int argc, char **argv, aaxConfig c, aaxConfig m, aaxFrame f, aaxEmitter e)
 {
     static char fname[255];
     aaxBuffer buffer = NULL;
@@ -387,9 +387,9 @@ setFiltersEffects(int argc, char **argv, aaxConfig c, aaxEmitter e, aaxFrame f)
         buffer = aaxBufferReadFromStream(c, fname);
         if (buffer)
         {
-           if (e) aaxEmitterAddBuffer(e, buffer);
+           if (m) aaxMixerAddBuffer(m, buffer);
            if (f) aaxAudioFrameAddBuffer(f, buffer);
-           if (c) aaxMixerAddBuffer(c, buffer);
+           if (e) aaxEmitterAddBuffer(e, buffer);
         }
         else printf("Error: %s\n", aaxGetErrorString(aaxGetErrorNo()));
     }

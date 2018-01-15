@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2016 by Erik Hofman.
- * Copyright (C) 2009-2016 by Adalin B.V.
+ * Copyright (C) 2008-2018 by Erik Hofman.
+ * Copyright (C) 2009-2018 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,9 +60,10 @@ int main(int argc, char **argv)
         buffer = bufferFromFile(config, infile);
         if (buffer)
         {
+            aaxBuffer xbuffer;
             aaxEmitter emitter;
             aaxEffect effect;
-            aaxBuffer xbuffer;
+            aaxFrame frame;
             float dt = 0.0f;
             int q, state;
             float pitch;
@@ -86,31 +87,41 @@ int main(int argc, char **argv)
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
+            /* audioframe */
+            frame = aaxAudioFrameCreate(config);
+            testForError(frame, "Unable to create a new audio-frame");
+
+            res = aaxAudioFrameRegisterEmitter(frame, emitter);
+            testForState(res, "aaxAudioFrameRegisterEmitter");
+
+            res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+            testForState(res, "aaxAudioFrameStart");
+
             /** mixer */
             res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
-            res = aaxMixerRegisterEmitter(config, emitter);
-            testForState(res, "aaxMixerRegisterEmitter");
+            res = aaxMixerRegisterAudioFrame(config, frame);
+            testForState(res, "aaxMixerRegisterAudioFrame");
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
             /* reverb */
-            xbuffer = setFiltersEffects(argc, argv, config, config, NULL, emitter);
+            xbuffer = setFiltersEffects(argc, argv, config, NULL, frame, emitter);
             if (!xbuffer)
             {
                effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
                testForError(effect, "aaxEffectCreate");
 
                res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              8500.0f, 0.035f, 0.93f, 0.049f);
+                                              8500.0f, 0.007f, 0.93f, 0.049f);
                testForState(res, "aaxEffectSetSlot/0");
 
                res = aaxEffectSetState(effect, AAX_TRUE|AAX_INVERSE);
                testForState(res, "aaxEffectSetState");
 
-               res = aaxMixerSetEffect(config, effect);
+               res = aaxAudioFrameSetEffect(frame, effect);
                testForState(res, "aaxMixerSetEffect");
 
                res = aaxEffectDestroy(effect);
@@ -145,7 +156,8 @@ int main(int argc, char **argv)
             while (state == AAX_PLAYING);
 
             if (xbuffer) aaxBufferDestroy(xbuffer);
-            res = aaxMixerDeregisterEmitter(config, emitter);
+            res = aaxAudioFrameDeregisterEmitter(frame, emitter);
+            res = aaxMixerDeregisterAudioFrame(config, frame);
             res = aaxMixerSetState(config, AAX_STOPPED);
             res = aaxEmitterDestroy(emitter);
             res = aaxBufferDestroy(buffer);
