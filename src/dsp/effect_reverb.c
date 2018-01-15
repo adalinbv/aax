@@ -359,7 +359,7 @@ _reverb_loopbacks(_aaxRingBufferSample *rbd, MIX_PTR_T dptr, MIX_PTR_T scratch,
       for(q=0; q<snum; ++q)
       {
          float volume = reverb->loopback[q].gain / (snum+1);
-         if ((volume > 0.001f) || (volume < -0.001f))
+         if (1) // (volume > 0.001f) || (volume < -0.001f))
          {
             ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
             if (offs > 0 && offs < (ssize_t)ds) {
