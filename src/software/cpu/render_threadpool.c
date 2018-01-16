@@ -397,7 +397,7 @@ _aaxWorkerThread(void *id)
 
                /* mix our own ringbuffer with that of the mixer */
                _aaxMutexLock(handle->mutex);
-               data->drb->data_mix(data->drb, drb, NULL);
+               data->drb->data_mix(data->drb, drb, NULL, AAX_TRACK_ALL);
                _aaxMutexUnLock(handle->mutex);
 
                /* clear our own ringbuffer for future use */

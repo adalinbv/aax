@@ -40,9 +40,9 @@
 #include "ringbuffer.h"
 #include "audio.h"
 
-void
+static void
 _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
-                  _aax2dProps *fp2d, 
+                  _aax2dProps *fp2d,  _aaxDelayed3dProps *fdp3d_m,
                   UNUSED(const _aaxDriverBackend *be), UNUSED(void *be_handle))
 {
    _intBufferData *buf;
@@ -53,10 +53,15 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
    if (buf)
    {
       _aaxRingBuffer *src_rb  = _intBufGetDataPtr(buf);
+      unsigned char tracks = AAX_TRACK_ALL;
       _aaxLFOData *lfo;
 
+      if (_PROP3D_INDOOR_IS_DEFINED(fdp3d_m)) {
+         tracks = 1;
+      }
+
       lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
-      dest_rb->data_mix(dest_rb, src_rb, lfo);
+      dest_rb->data_mix(dest_rb, src_rb, lfo, tracks);
 
       /*
        * push the ringbuffer to the back of the stack so it can
@@ -335,8 +340,8 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
          _intBufReleaseData(dptr, _AAX_FRAME);
 
          /* finally mix the data with dest_rb */
-         _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers, &sfp2d, 
-                           be, be_handle);
+         _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
+                           &sfp2d, sfdp3d_m, be, be_handle);
          sfmixer->capturing = 1;
 
          process = AAX_TRUE;
