@@ -153,8 +153,8 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
                res = AAX_FALSE;
                if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec)
                {
-                  res = drb->mix3d(drb, srb, data->info, ep2d, data->fp2d,
-                                             emitter->track, ctr, src->history);
+                  res = drb->mix3d(drb, srb, ep2d, data, emitter->track, ctr,
+                                             src->history);
                }
             }
             else
@@ -379,6 +379,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
       dist_fact = _MIN(dist/refdist, 1.0f);
 
+      // If the parent frame is defined indoor then directional sound
+      // propagation goes out the door. Note that the scenery frame is
+      // never defined as indoor so emitters registered with the mixer
+      // will always be directional.
       if (!_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
       {
          float dp, offs, fact;

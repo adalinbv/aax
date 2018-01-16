@@ -41,6 +41,7 @@
 #include <base/logging.h>
 #include <base/threads.h>
 
+#include <software/renderer.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>
 #include <dsp/lfo.h>
@@ -73,8 +74,12 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ch, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
 {
+   _aaxRendererData *renderer = data;
+   const _aaxMixerInfo *info =  renderer->info;
+   _aaxDelayed3dProps *fdp3d_m = renderer->fdp3d_m;
+   _aax2dProps *fp2d = renderer->fp2d;
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;
    _aaxEnvelopeData *genv, *penv;
@@ -220,8 +225,13 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixe
    }
 
    /* Mix */
-   drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
-               info->frequency, gain, svol, evol, ctr);
+   if (_PROP3D_INDOOR_IS_DEFINED(fdp3d_m)) {
+      drbd->mix1(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
+                 info->frequency, gain, svol, evol, ctr);
+   } else {
+      drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
+                  info->frequency, gain, svol, evol, ctr);
+   }
 
    if (drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;
