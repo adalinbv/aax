@@ -93,6 +93,7 @@ aaxAudioFrameCreate(aaxConfig config)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame* smixer = sensor->mixer;
+
                _FILTER_COPYD3D_DATA(submix, smixer, DISTANCE_FILTER);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
@@ -827,7 +828,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
             smixer->info->period_rate = fmixer->info->period_rate;
             smixer->info->refresh_rate = fmixer->info->refresh_rate;
             smixer->info->update_rate = fmixer->info->update_rate;
-            if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
+            if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
                _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
@@ -1015,7 +1016,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
             _aax3dProps *ep3d = src->props3d;
             _aax3dProps *mp3d = fmixer->props3d;
 
-            if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL)
+            if (_FILTER_GET_STATE(ep3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
                _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
@@ -1154,7 +1155,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             mp3d = fmixer->props3d;
             fp3d = submix->props3d;
 
-            if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)
+            if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
                _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
