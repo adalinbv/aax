@@ -1232,16 +1232,18 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
 }
 
 int
-_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxLFOData *lfo)
+_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxLFOData *lfo, unsigned char tracks)
 {
    _aaxRingBufferData *srbi, *drbi;
    _aaxRingBufferSample *drbd;
-   unsigned char track, tracks;
+   unsigned char track;
    size_t dno_samples;
    float g = 1.0f;
 
    dno_samples =  drb->get_parami(drb, RB_NO_SAMPLES);
-   tracks =  drb->get_parami(drb, RB_NO_TRACKS);
+   if (tracks == AAX_TRACK_ALL) {
+      tracks =  drb->get_parami(drb, RB_NO_TRACKS);
+   }
 
    srbi = srb->handle;
    if (lfo && lfo->envelope)

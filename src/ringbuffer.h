@@ -401,7 +401,7 @@ _aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, co
  * @param drb multi track destination buffer
  * @param srb single (or milti) track source buffer
  * @param ep2d 3d positioning information structure of the source
- * @param fp2f 3d positioning information structure of the parents frame
+ * @param data rendering structure containing information about the parent frame
  * @param ch channel to use from the source buffer if it is multi-channel
  * @param ctr update-rate counter:
  *     - Rendering to the destination buffer is done every frame at the
@@ -414,7 +414,7 @@ _aaxRingBufferMixStereoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, co
  * returns 0 if the sound has stopped playing, 1 otherwise.
  */
 typedef int
-_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, const _aaxMixerInfo*, _aax2dProps*, _aax2dProps*, unsigned char, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
+_aaxRingBufferMixMonoFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, void*, unsigned char, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
 
 
 /**
@@ -531,7 +531,7 @@ _aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aaxLFOData*);
+_aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aaxLFOData*, unsigned char);
 
 /**
  * Alter the gain of the ringbuffer audio data
