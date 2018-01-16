@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2016 by Erik Hofman.
- * Copyright (C) 2009-2016 by Adalin B.V.
+ * Copyright (C) 2008-2018 by Erik Hofman.
+ * Copyright (C) 2009-2018 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,21 +57,10 @@ int main(int argc, char **argv)
     printf("Playback: %s\n", aaxDriverGetSetup(config, AAX_RENDERER_STRING));
     testForError(config, "Audio output device  is not available.");
 
-    if (!aaxIsValid(config, AAX_CONFIG_HD))
-    {
-        printf("Warning:\n");
-        printf("  %s requires a registered version of AeonWave\n", argv[0]);
-        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
-        printf("obtain\n  a product-key.\n\n");
-        rv = -1;
-    }
-    else
-    {
-        devname = getCaptureName(argc, argv);
-        record = aaxDriverOpenByName(devname, AAX_MODE_READ);
-        printf("Recording: %s\n",aaxDriverGetSetup(record,AAX_RENDERER_STRING));
-        testForError(record, "Audio capture device is not available.");
-    }
+    devname = getCaptureName(argc, argv);
+    record = aaxDriverOpenByName(devname, AAX_MODE_READ);
+    printf("Recording: %s\n",aaxDriverGetSetup(record,AAX_RENDERER_STRING));
+    testForError(record, "Audio capture device is not available.");
 
     if (config && record && (rv >= 0))
     {
