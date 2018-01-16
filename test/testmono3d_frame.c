@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2016 by Erik Hofman.
- * Copyright (C) 2009-2016 by Adalin B.V.
+ * Copyright (C) 2008-2018 by Erik Hofman.
+ * Copyright (C) 2009-2018 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,15 +75,6 @@ int main(int argc, char **argv)
     infile = getInputFile(argc, argv, FILE_PATH);
     config = aaxDriverOpenByName(devname, mode);
     testForError(config, "No default audio device available.");
-
-    if (!aaxIsValid(config, AAX_CONFIG_HD))
-    {
-        printf("Warning:\n");
-        printf("  %s requires a registered version of AeonWave\n", argv[0]);
-        printf("  Please visit http://www.adalin.com/buy_aeonwaveHD.html to ");
-        printf("obtain\n  a product-key.\n\n");
-        rv = -1;
-    }
 
     if (config && (rv >= 0))
     {

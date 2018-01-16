@@ -119,7 +119,7 @@ int main(int argc, char **argv)
             res = aaxEffectSetState(effect, AAX_TRUE);
             testForState(res, "aaxEffectSetState");
 
-            res = aaxScenerySetEffect(config, effect);
+            res = aaxMixerSetEffect(config, effect);
             testForState(res, "aaxMixerSetEffect");
 
             res = aaxEffectDestroy(effect);
