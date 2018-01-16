@@ -854,7 +854,7 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      info->update_rate = mixer->info->update_rate;
                      info->period_rate = mixer->info->period_rate;
                      info->refresh_rate = mixer->info->refresh_rate;
-                     if (_FILTER_GET_DATA(sp3d, DISTANCE_FILTER) == NULL)
+                     if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == AAX_FALSE)
                      {
                         _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
                         _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
@@ -1130,7 +1130,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                if (positional)
                {
                   mp3d = mixer->props3d;
-                  if (_FILTER_GET_DATA(ep3d, DISTANCE_FILTER) == NULL)
+                  if (_FILTER_GET_STATE(ep3d, DISTANCE_FILTER) == AAX_FALSE)
                   {
                      _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
                      _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
@@ -1277,7 +1277,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   fmixer->info->period_rate = smixer->info->period_rate;
                   fmixer->info->refresh_rate = smixer->info->refresh_rate;
                   fmixer->info->update_rate = smixer->info->update_rate;
-                  if (_FILTER_GET_DATA(fp3d, DISTANCE_FILTER) == NULL)
+                  if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
                   {
                      _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
                      _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
