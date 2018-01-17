@@ -296,7 +296,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(src))
    {
       vec3f_t epos, tmp;
-      float refdist, dist_fact, maxdist, rolloff;
+      float refdist, maxdist, rolloff;
       unsigned int i, t;
       float gain, pitch;
       float min, max;
@@ -377,7 +377,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
       maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
       rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
-      dist_fact = _MIN(dist/refdist, 1.0f);
 
       // If the parent frame is defined indoor then directional sound
       // propagation goes out the door. Note that the scenery frame is
@@ -385,9 +384,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       // will always be directional.
       if (!_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
       {
-         float dp, offs, fact;
+         float dp, offs, fact, dist_fact;
          int pos;
 
+         dist_fact = _MIN(dist/refdist, 1.0f);
          switch (info->mode)
          {
          case AAX_MODE_WRITE_HRTF:
@@ -454,10 +454,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       gain *= distfn(dist, refdist, maxdist, rolloff, vs, 1.0f);
 
       /*
-       * audio cone recalculaion
-       * version 2.6 adds forward gain which allows for donut shaped cones
+       * Audio cone recalculaion.
+       * Version 2.6 adds forward gain which allows for donut shaped cones.
+       * TODO: Calculate cone relative to the frame position when indoors.
+       *       For now it is assumed that indoor reflections render the cone
+       *       pretty much useless, at least if the emitter is in another room.
        */
-      if (_PROP3D_CONE_IS_DEFINED(edp3d))
+      if (_PROP3D_CONE_IS_DEFINED(edp3d) && !_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
       {
          float tmp, forward_gain, inner_vec, cone_volume = 1.0f;
 
