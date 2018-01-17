@@ -203,7 +203,6 @@ void put_frame(aaxFrame);
 _handle_t *get_driver_handle(aaxFrame);
 int _aaxAudioFrameStop(_frame_t*);
 char _aaxAudioFrameProcess(_aaxRingBuffer*, _frame_t*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aaxDelayed3dProps*, _aax2dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char);
-char _aaxAudioFrameRender(_aaxRingBuffer *, _aaxAudioFrame *, _aax2dProps*, _aaxDelayed3dProps *, _intBuffers *, unsigned int, float, float, const _aaxDriverBackend*, void*, char);
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameFree(void*);
