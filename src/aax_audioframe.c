@@ -695,24 +695,24 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
       switch(type)
       {
       case AAX_POSITION:
-         if (mode == AAX_INDOOR)
+         if (mode & AAX_INDOOR)
          {
             _aax3dProps *p3d = handle->submix->props3d;
             _PROP_INDOOR_SET_DEFINED(p3d);
+            if (mode == AAX_INDOOR) mode = AAX_ABSOLUTE;
+            else mode &= ~AAX_INDOOR;
          }
-         else
+
+         m = (mode != AAX_STEREO) ? AAX_TRUE : AAX_FALSE;
+         _TAS_POSITIONAL(handle, m);
+         if TEST_FOR_TRUE(m)
          {
-            m = (mode != AAX_STEREO) ? AAX_TRUE : AAX_FALSE;
-            _TAS_POSITIONAL(handle, m);
-            if TEST_FOR_TRUE(m)
-            {
-               m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
-               _TAS_RELATIVE(handle, m);
-               if TEST_FOR_TRUE(m) {
-                  fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
-               } else {
-                  fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
-               }
+            m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
+            _TAS_RELATIVE(handle, m);
+            if TEST_FOR_TRUE(m) {
+               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
+            } else {
+               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
             }
          }
          break;
@@ -735,15 +735,14 @@ aaxAudioFrameGetMode(const aaxFrame frame, enum aaxModeType type)
    switch(type)
    {
    case AAX_POSITION:
+   {
+      _aax3dProps *p3d = handle->submix->props3d;
       if (_IS_POSITIONAL(handle)) {
          rv = _IS_RELATIVE(handle) ? AAX_RELATIVE : AAX_ABSOLUTE;
       }
-      else
-      {
-         _aax3dProps *p3d = handle->submix->props3d;
-         if (_PROP_INDOOR_IS_DEFINED(p3d)) rv = AAX_INDOOR;
-      }
+      if (_PROP_INDOOR_IS_DEFINED(p3d)) rv |= AAX_INDOOR;
       break;
+   }
    default:
       _aaxErrorSet(AAX_INVALID_ENUM);
    }
