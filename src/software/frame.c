@@ -42,6 +42,7 @@
 
 static void
 _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
+                  _aaxDelayed3dProps *pfdp3d_m,
                   _aax2dProps *fp2d,  _aaxDelayed3dProps *fdp3d_m,
                   UNUSED(const _aaxDriverBackend *be), UNUSED(void *be_handle))
 {
@@ -56,7 +57,7 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
       unsigned char tracks = AAX_TRACK_ALL;
       _aaxLFOData *lfo;
 
-      if (_PROP3D_INDOOR_IS_DEFINED(fdp3d_m)) {
+      if (_PROP3D_INDOOR_IS_DEFINED(pfdp3d_m)) {
          tracks = 1;
       }
 
@@ -261,7 +262,10 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 }
 
 char
-_aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProps *fp2d, _aaxDelayed3dProps *fdp3d_m, _intBuffers *hf, unsigned int i, float ssv, float sdf, const _aaxDriverBackend *be, void *be_handle, char batched)
+_aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
+                     _aax2dProps *fp2d, _aaxDelayed3dProps *fdp3d_m,
+                     _intBuffers *hf, unsigned int i, float ssv, float sdf,
+                     const _aaxDriverBackend *be, void *be_handle, char batched)
 {
    char process = AAX_FALSE;
    _intBufferData *dptr;
@@ -340,7 +344,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer, _aax2dProp
          _intBufReleaseData(dptr, _AAX_FRAME);
 
          /* finally mix the data with dest_rb */
-         _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
+         _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers, fdp3d_m,
                            &sfp2d, sfdp3d_m, be, be_handle);
          sfmixer->capturing = 1;
 
