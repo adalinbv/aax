@@ -59,6 +59,10 @@ extern "C" {
 # define LOG_SYSLOG	40
 #endif
 
+#define PRINT_VEC3(vec) \
+        printf ("% 7.6f % 7.6f % 7.6f (%7.6f)\n", \
+             vec.v3[0],vec.v3[1],vec.v3[2],vec.v3[3]);
+
 #define PRINT_VEC(vec) \
 	printf ("% 7.6f % 7.6f % 7.6f % 7.6f\n", \
              vec.v4[0],vec.v4[1],vec.v4[2],vec.v4[3]);

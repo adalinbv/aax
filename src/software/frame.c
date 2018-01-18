@@ -42,7 +42,7 @@
 #include "audio.h"
 
 static void _aaxAudioFrameMix(_aaxRingBuffer*, _intBuffers*, _aax2dProps*, _aaxDelayed3dProps*, char);
-static void _aaxAudioFrameMix3D(_aaxRingBuffer*, _intBuffers*, _aax2dProps*, _aaxDelayed3dProps*, vec3f_t, const _aaxMixerInfo*);
+static void _aaxAudioFrameMix3D(_aaxRingBuffer*, _intBuffers*, _aax2dProps*, _aaxDelayed3dProps*, vec3f_t, vec4f_t*, const _aaxMixerInfo*);
 static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
 static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
 
@@ -270,77 +270,14 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 static void
 _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
                   _aax2dProps *fp2d,  _aaxDelayed3dProps *fdp3d_m,
-                  vec3f_t sftmp, const _aaxMixerInfo *info)
+                  vec3f_t sftmp, vec4f_t* speaker, const _aaxMixerInfo *info)
 {
    vec3f_t sfpos;
-   float dp, offs, fact, dist_fact;
-   unsigned int pos, t, i;
    _intBufferData *buf;
+   float dfact;
 
-   dist_fact = vec3fNormalize(&sfpos, &sftmp);
-
-   switch (info->mode)
-   {
-   case AAX_MODE_WRITE_HRTF:
-      for (t=0; t<info->no_tracks; t++)
-      {
-         for (i=0; i<3; i++)
-         {
-            dp = vec3fDotProduct(&fp2d->speaker[3*t+i].v3, &sfpos);
-            dp *= fp2d->speaker[t].v4[3];
-            fp2d->speaker[t].v4[i] = dp * dist_fact;		/* -1 .. +1 */
-
-            offs = info->hrtf[HRTF_OFFSET].v4[i];
-            fact = info->hrtf[HRTF_FACTOR].v4[i];
-
-            pos = _AAX_MAX_SPEAKERS + 3*t + i;
-            dp = vec3fDotProduct(&fp2d->speaker[pos].v3, &sfpos);
-            fp2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
-         }
-      }
-      break;
-   case AAX_MODE_WRITE_SURROUND:
-      for (t=0; t<info->no_tracks; t++)
-      {
-#ifdef USE_SPATIAL_FOR_SURROUND
-         dp = vec3fDotProduct(&fp2d->speaker[t].v3, &sfpos);
-         dp *= fp2d->speaker[t].v4[3];
-
-         fp2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
-#else
-         vec4fMulvec4(&fp2d->speaker[t], &fp2d->speaker[t], &sfpos);
-         vec4fScalarMul(&fp2d->speaker[t], dist_fact);
-#endif
-         i = DIR_UPWD;
-         do				/* skip left-right and back-front */
-         {
-            offs = info->hrtf[HRTF_OFFSET].v4[i];
-            fact = info->hrtf[HRTF_FACTOR].v4[i];
-
-            pos = _AAX_MAX_SPEAKERS + 3*t + i;
-            dp = vec3fDotProduct(&fp2d->speaker[pos].v3, &sfpos);
-            fp2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
-         }
-         while(0);
-      }
-      break;
-   case AAX_MODE_WRITE_SPATIAL:
-      for (t=0; t<info->no_tracks; t++)
-      {						/* speaker == sensor_pos */
-         dp = vec3fDotProduct(&fp2d->speaker[t].v3, &sfpos);
-         dp *= fp2d->speaker[t].v4[3];
-
-         fp2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
-      }
-      break;
-   default: /* AAX_MODE_WRITE_STEREO */
-      for (t=0; t<info->no_tracks; t++)
-      {
-         vec3fMulvec3(&fp2d->speaker[t].v3, &fp2d->speaker[t].v3, &sfpos);
-         vec4fScalarMul(&fp2d->speaker[t], dist_fact);
-      }
-   }
-
+   dfact = _MIN(vec3fNormalize(&sfpos, &sftmp), 1.0f);
+   _aaxSetupSpeakersFromDistanceVector(sfpos, dfact, speaker, fp2d, info);
 
    _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
    buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
@@ -467,12 +404,16 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             vec3f_t tmp;
 
 #ifdef ARCH32
-            vec3fFill(tmp.v3, fdp3d_m->matrix.v34[LOCATION].v3);
+            vec3fFill(tmp.v3, sfdp3d_m->matrix.v34[LOCATION].v3);
 #else
-            vec3fFilld(tmp.v3, fdp3d_m->matrix.v34[LOCATION].v3);
+            vec3fFilld(tmp.v3, sfdp3d_m->matrix.v34[LOCATION].v3);
+#endif
+#if 0
+ PRINT_VEC3(tmp);
 #endif
             _aaxAudioFrameMix3D(dest_rb, sfmixer->frame_ringbuffers,
-                                &sfp2d, sfdp3d_m, tmp, fmixer->info);
+                                &sfp2d, sfdp3d_m, tmp, fp2d->speaker,
+                                fmixer->info);
          } else {
             _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
                               &sfp2d, sfdp3d_m, parent_indoor);
