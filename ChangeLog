@@ -1,3 +1,21 @@
+* Tue Jan 18 2018 - tech@adalin.org
+- AeonWave (3.1.0) stable; urgency=low
+ * Increase the http stream timeout value. The default was just too low.
+ * Add the option to regeister the reverb effect to audio-frames.
+   Due to memory considerations they only support up to large room sizes,
+   any reflection beyond that will be ignored.
+ * Add the option to define audio-frames as indoor by setting AAX_POSITION
+   to AAX_INDOOR when calling aaxAudioFrameSetMode. It is possible to combine
+   AAX_INDOOR with AAX_RELATIVE or AAX_ABSOLUTE (the default when omitted).
+   This allows for indoor sound propagation where every audio-frame represents
+   a room or a section of a room. Reverb and frequency filters can be used
+   to simulate the properties of the room section defined by the audio-frame.
+   By specifying the audio-frame indoor sound will not become directional until
+   it arives at the same scene as the listener.
+
+-- Erik Hofman <tech@adalin.org>  Fri 05 Jan  2018 13:57:00 + 0100
+
+
 * Fri Jan 05  2018 - tech@adalin.org
 - AeonWave (3.0.11) stable; urgency=low
  * Fix a speed regression for matrix multiplications.
