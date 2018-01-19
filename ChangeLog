@@ -1,6 +1,7 @@
 * Tue Jan 18 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=low
  * Increase the http stream timeout value. The default was just too low.
+ * Add the option to define the properties of the direct path of reverb.
  * Add the option to regeister the reverb effect to audio-frames.
    Due to memory considerations they only support up to large room sizes,
    any reflection beyond that will be ignored.
