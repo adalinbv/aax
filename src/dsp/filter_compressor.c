@@ -52,7 +52,7 @@ _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       flt->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;
       flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
-      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       flt->slot[0]->destroy = _lfo_destroy;
       rv = (aaxFilter)flt;
    }

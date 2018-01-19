@@ -48,8 +48,8 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      _aaxSetDefaultFilter2d(flt->slot[1], flt->pos);
-      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
+      _aaxSetDefaultFilter2d(flt->slot[1], flt->pos, 1);
       flt->slot[0]->destroy = destroy;
       rv = (aaxFilter)flt;
    }

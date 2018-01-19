@@ -50,7 +50,7 @@ _aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       unsigned s;
       for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
-         _aaxSetDefaultFilter2d(flt->slot[s], flt->pos);
+         _aaxSetDefaultFilter2d(flt->slot[s], flt->pos, s);
       }
       flt->slot[0]->destroy = destroy;
       rv = (aaxFilter)flt;

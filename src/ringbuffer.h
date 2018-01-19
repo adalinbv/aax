@@ -175,7 +175,10 @@ typedef struct
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
                unsigned int, const void*, _aaxMixerInfo*);
  
-   _aaxRingBufferFreqFilterData *freq_filter;
+   _aaxMixerInfo *info;
+   _aaxRingBufferFreqFilterData *freq_filter;		// reflections
+   _aaxRingBufferFreqFilterData *freq_filter_dp;	// direct path
+   float fc, fc_dp;
 
    /* reverb*/
    float gain;
@@ -186,8 +189,6 @@ typedef struct
     _aaxRingBufferDelayData loopback[_AAX_MAX_LOOPBACKS];
     int32_t* reverb_history[_AAX_MAX_SPEAKERS];
     void* history_ptr;
-
-    _aaxMixerInfo *info;
 
     char inverse;
 

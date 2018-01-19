@@ -50,7 +50,7 @@ _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       eff->slot[0]->data = *(void**)&_aaxRingBufferDopplerFn[0];
-      _aaxSetDefaultEffect3d(eff->slot[0], eff->pos);
+      _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
       rv = (aaxEffect)eff;
    }
    return rv;

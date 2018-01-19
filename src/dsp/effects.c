@@ -108,9 +108,10 @@ get_effect(const aaxEffect e)
 }
 
 void
-_aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type)
+_aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
 {
    assert(type < MAX_STEREO_EFFECT);
+   assert(slot < _MAX_FE_SLOTS);
 
    memset(effect, 0, sizeof(_aaxEffectInfo));
    switch(type)
@@ -128,11 +129,16 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type)
       effect->param[AAX_CLIPPING_FACTOR] = 0.3f;
       effect->param[AAX_ASYMMETRY] = 0.7f;
       break;
-   case AAX_REVERB_EFFECT:
-      effect->param[AAX_CUTOFF_FREQUENCY] = 10000.0f;
-      effect->param[AAX_DELAY_DEPTH] = 0.27f;
-      effect->param[AAX_DECAY_LEVEL] = 0.3f;
-      effect->param[AAX_DECAY_DEPTH] = 0.7f;
+   case REVERB_EFFECT:
+      if (slot == 0) {
+         effect->param[AAX_CUTOFF_FREQUENCY] = 10000.0f;
+         effect->param[AAX_DELAY_DEPTH] = 0.27f;
+         effect->param[AAX_DECAY_LEVEL] = 0.3f;
+         effect->param[AAX_DECAY_DEPTH] = 0.7f;
+      } else if (slot == 1) {
+         effect->param[AAX_CUTOFF_FREQUENCY] = 22000.0f;
+         effect->param[AAX_LF_GAIN] = 1.0f;
+      }
       break;
    case CONVOLUTION_EFFECT:
       effect->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
@@ -146,7 +152,7 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type)
 }
 
 void
-_aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type)
+_aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, UNUSED(unsigned slot))
 {
    assert(type < MAX_3D_EFFECT);
 

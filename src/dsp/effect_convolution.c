@@ -57,7 +57,7 @@ _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    {
       _aaxRingBufferConvolutionData* data;
 
-      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
 
       data = calloc(1, sizeof(_aaxRingBufferConvolutionData));
       eff->slot[0]->data = data;
@@ -371,15 +371,18 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
 
       if (convolution->fc > 15000.0f) {
-         rbd->multiply(dptr, sizeof(MIX_T), dnum, flt->low_gain);
+         rbd->add(dptr, hptr+hpos, dnum, flt->low_gain, 0.0f);
       }
       else
       {
          _aaxRingBufferFreqFilterData *filter = convolution->freq_filter;
          filter->run(rbd, dptr, sptr, 0, dnum, 0, t, filter, NULL, 0);
+         rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
       }
    }
-   rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
+   else {
+      rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
+   }
 
    hpos += dnum;
 // if ((hpos + cnum) > convolution->history_samples)

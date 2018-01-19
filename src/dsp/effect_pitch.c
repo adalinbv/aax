@@ -49,7 +49,7 @@ _aaxPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 
    if (eff)
    {
-      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
       rv = (aaxEffect)eff;
    }
    return rv;
