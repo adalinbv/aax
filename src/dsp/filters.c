@@ -131,7 +131,7 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
 }
 
 void
-_aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type)
+_aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigned slot))
 {
    assert(type < MAX_STEREO_FILTER);
 
@@ -155,7 +155,7 @@ _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type)
 }
 
 void
-_aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type)
+_aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigned slot))
 {
    assert(type < MAX_3D_FILTER);
 

@@ -115,10 +115,10 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
 
    /* stereo filters */
    for (pos=0; pos<MAX_STEREO_FILTER; pos++) {
-      _aaxSetDefaultFilter2d(&p2d->filter[pos], pos);
+      _aaxSetDefaultFilter2d(&p2d->filter[pos], pos, 0);
    }
    for (pos=0; pos<MAX_STEREO_EFFECT; pos++) {
-      _aaxSetDefaultEffect2d(&p2d->effect[pos], pos);
+      _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
    }
 
    /* previous gains */
@@ -185,10 +185,10 @@ _aax3dPropsCreate()
          _aaxSetDefaultDelayed3dProps(rv->m_dprops3d);
 
          for (pos=0; pos<MAX_3D_FILTER; pos++) {
-            _aaxSetDefaultFilter3d(&rv->filter[pos], pos);
+            _aaxSetDefaultFilter3d(&rv->filter[pos], pos, 0);
          }
          for (pos=0; pos<MAX_3D_EFFECT; pos++) {
-            _aaxSetDefaultEffect3d(&rv->effect[pos], pos);
+            _aaxSetDefaultEffect3d(&rv->effect[pos], pos, 0);
          }
       }
       else

@@ -51,7 +51,7 @@ _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    {
       unsigned s;
       for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
-         _aaxSetDefaultEffect2d(eff->slot[s], eff->pos);
+         _aaxSetDefaultEffect2d(eff->slot[s], eff->pos, s);
       }
       eff->slot[0]->destroy = destroy;
       rv = (aaxEffect)eff;

@@ -49,7 +49,7 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    if (flt)
    {
       flt->slot[0]->data = *(void**)&_aaxRingBufferDistanceFn[1];
-      _aaxSetDefaultFilter3d(flt->slot[0], flt->pos);
+      _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
       rv = (aaxFilter)flt;
    }
    return rv;

@@ -55,7 +55,7 @@ _aaxFlangingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 
    if (eff)
    {
-      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
       eff->slot[0]->destroy = _flanging_destroy;
       rv = (aaxEffect)eff;
    }

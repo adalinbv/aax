@@ -48,7 +48,7 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       rv = (aaxFilter)flt;
    }
    return rv;

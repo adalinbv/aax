@@ -50,12 +50,13 @@ void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, 
 static aaxEffect
 _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2);
    aaxEffect rv = NULL;
 
    if (eff)
    {
-      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos);
+      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
+      _aaxSetDefaultEffect2d(eff->slot[1], eff->pos, 1);
       eff->slot[0]->destroy = _reverb_destroy;
       rv = (aaxEffect)eff;
    }
@@ -159,8 +160,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
+
          if (!flt) {
-            flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
+            flt = calloc(2, sizeof(_aaxRingBufferFreqFilterData));
          }
 
          reverb->info = effect->info;
@@ -168,35 +170,59 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          reverb->freq_filter = flt;
          if (flt)
          {
-            float dfact, fc;
+            _aaxRingBufferFreqFilterData *flt_dp;
+            const char *ptr;
+            float dfact;
 
-            flt->run = _freqfilter_run;
+            /* set up the direct path frequency filter */
+            ptr = (char*)flt + sizeof(_aaxRingBufferFreqFilterData);
+            flt_dp = (_aaxRingBufferFreqFilterData*)ptr;
 
-            /* set up a cut-off frequency between 100Hz and 15000Hz
-             * the lower the cut-off frequency, the more the low
-             * frequencies get exaggerated.
+            reverb->fc_dp = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+            if (reverb->fc_dp < 50.0f) reverb->fc_dp = 22000.0f;
+
+            flt_dp->run = _freqfilter_run;
+            flt_dp->lfo = 0;
+            flt_dp->fs = fs;
+            flt_dp->Q = 0.6f;
+            flt_dp->no_stages = 1;
+
+            flt_dp->high_gain = _lin2log(reverb->fc_dp)/4.343409f;
+            flt_dp->low_gain = effect->slot[1]->param[AAX_LF_GAIN];
+//          if (flt_dp->low_gain <= LEVEL_128DB) flt_dp->low_gain = 1.0f;
+
+            flt_dp->k = flt_dp->low_gain/flt_dp->high_gain;
+
+            _aax_butterworth_compute(reverb->fc_dp, flt_dp);
+            reverb->freq_filter_dp = flt_dp;
+            
+
+            /* set up a frequency filter between 100Hz and 15000Hz
+             * for the refelctions. The lower the cut-off frequency,
+             * the more the low frequencies get exaggerated.
              *
              * low: 100Hz/1.75*gain .. 15000Hz/1.0*gain
              * high: 100Hz/0.0*gain .. 15000Hz/0.33*gain
              *
-             * Q is set to 0.6 to dampen the frequency response too
-             * much to provide a bit smoother frequency response
-             * around the cut-off frequency.
+             * Q is set to 0.6 to overly dampen the frequency response to
+             * provide a bit smoother frequency response  around the
+             * cut-off frequency.
              */
-            fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+            reverb->fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
 
+            flt->run = _freqfilter_run;
             flt->lfo = 0;
             flt->fs = fs;
             flt->Q = 0.6f;
             flt->low_gain = 0.0f;
             flt->no_stages = 1;
 
-            dfact = powf(fc*0.00005f, 0.2f);
+            dfact = powf(reverb->fc*0.00005f, 0.2f);
             flt->high_gain = 1.75f-0.75f*dfact;
             flt->low_gain = 0.33f*dfact;
             flt->k = flt->low_gain/flt->high_gain;
 
-            _aax_butterworth_compute(fc, flt);
+            _aax_butterworth_compute(reverb->fc, flt);
          }
       }
       while(0);
@@ -254,9 +280,9 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f, 0.07f, 1.0f, 0.7f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
+    { {50.0f,        0.0f, 0.0f, 0.0f }, { 22000.0f, 0.07f, 1.0f, 0.7f } },
+    { {49.0f, LEVEL_128DB, 0.0f, 0.0f }, { 22000.0f, 1.0f,  0.0f, 0.0f } },
+    { { 0.0f,        0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
@@ -296,8 +322,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxRingBufferFreqFilterData *filter, *filter_dp;
    const _aaxRingBufferReverbData *reverb = data;
-   _aaxRingBufferFreqFilterData* filter;
    int snum;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -308,6 +334,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(track < _AAX_MAX_SPEAKERS);
 
    filter = reverb->freq_filter;
+   filter_dp = reverb->freq_filter_dp;
+
    _aax_memcpy(scratch, sptr, no_samples*sizeof(MIX_T));
 
    /* reverb (1st order reflections) */
@@ -327,7 +355,10 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             }
          }
       }
-      filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
+
+      if (reverb->fc < 15000.0f) {
+         filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
+      }
    }
 
    /* loopback for reverb (2nd order reflections) */
@@ -353,7 +384,20 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    }
 
    filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 0);
-   rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+   
+
+   /* add the dirtect path */
+   if (filter_dp->low_gain > LEVEL_96DB)
+   {
+      if (reverb->fc_dp > 15000.0f) {
+         rbd->add(dptr, sptr, no_samples, filter_dp->low_gain, 0.0f);
+      }
+      else
+      {
+         filter_dp->run(rbd, scratch, sptr, 0, no_samples, 0, track, filter_dp, NULL, 0);
+         rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
+      }
+   }
 }
 
 static void

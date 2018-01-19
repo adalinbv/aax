@@ -42,8 +42,8 @@ extern "C" {
 
 aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned);
 
-void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int);
-void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int);
+void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int, unsigned slot);
+void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int, unsigned slot);
 
 typedef struct {
   enum aaxEffectType type;

@@ -50,7 +50,7 @@ _aaxDynamicGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       flt->slot[0]->destroy = _lfo_destroy;
       rv = (aaxFilter)flt;
    }

@@ -41,8 +41,8 @@ extern "C" {
 
 aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned);
 
-void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int);
-void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int);
+void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int, unsigned slot);
+void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX]);
 
 typedef struct
