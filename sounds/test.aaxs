@@ -2,9 +2,17 @@
 
 <aeonwave>
 
- <sound name="Rock Organ" frequency="80">
-  <waveform src="square"/>
-  <waveform src="inverse_square" processing="modulate" pitch="1.0"/>
+ <sound name="Test" frequency="800">
+  <waveform src="sine" ratio="1.2"/>
+<!--
+  <waveform src="square" processing="add"/>
+  <waveform src="impulse" processing="add"/>
+  <waveform src="triangle" processing="add"/>
+  <waveform src="sawtooth" processing="add"/>
+-->
  </sound>
+
+ <emitter looping="true">
+ </emitter>
 
 </aeonwave>
