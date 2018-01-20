@@ -179,7 +179,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt_dp = (_aaxRingBufferFreqFilterData*)ptr;
 
             reverb->fc_dp = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-            if (reverb->fc_dp < 50.0f) reverb->fc_dp = 22000.0f;
 
             flt_dp->run = _freqfilter_run;
             flt_dp->lfo = 0;
@@ -187,9 +186,15 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt_dp->Q = 0.6f;
             flt_dp->no_stages = 1;
 
-            flt_dp->high_gain = _lin2log(reverb->fc_dp)/4.343409f;
-            flt_dp->low_gain = effect->slot[1]->param[AAX_LF_GAIN];
-//          if (flt_dp->low_gain <= LEVEL_128DB) flt_dp->low_gain = 1.0f;
+#if 0
+            flt_dp->high_gain = fabsf(effect->slot[1]->param[AAX_HF_GAIN]);
+#else
+            flt_dp->high_gain = 1.0f;
+#endif
+            flt_dp->high_gain *= _lin2log(reverb->fc_dp)/4.343409f;
+
+            flt_dp->low_gain = fabsf(effect->slot[1]->param[AAX_LF_GAIN]);
+            if (flt_dp->low_gain < LEVEL_128DB) flt_dp->low_gain = 0.0f;
 
             flt_dp->k = flt_dp->low_gain/flt_dp->high_gain;
 
@@ -280,9 +285,9 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {50.0f,        0.0f, 0.0f, 0.0f }, { 22000.0f, 0.07f, 1.0f, 0.7f } },
-    { {49.0f, LEVEL_128DB, 0.0f, 0.0f }, { 22000.0f, 1.0f,  0.0f, 0.0f } },
-    { { 0.0f,        0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
+    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f, 0.07f, 1.0f, 0.7f } },
+    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f, 1.0f,  1.0f, AAX_FPINFINITE } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
