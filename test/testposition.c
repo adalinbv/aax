@@ -60,12 +60,10 @@ aaxVec3f SensorAt  =  { 0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp  =  { 0.0f, 1.0f,  0.0f };
 
 aaxVec3d Frame1Pos =  { -0.5,  0.0,  0.0  };		/* 0.5m to the left */
-aaxVec3f Frame1At =   {  0.0f, 0.0f, 1.0f };
-aaxVec3f Frame1Up =   {  0.0f, 1.0f, 0.0f };
-
 aaxVec3d Frame2Pos =  {  1.0,  0.0,  0.0  };		/* 1m to the right */
-aaxVec3f Frame2At =   {  0.0f, 0.0f, 1.0f };
-aaxVec3f Frame2Up =   {  0.0f, 1.0f, 0.0f };
+
+aaxVec3f FrameAt =   {  0.0f, 0.0f, 1.0f };
+aaxVec3f FrameUp =   {  0.0f, 1.0f, 0.0f };
 
 aaxVec3d EmitterPos = { -1.0,  0.0,  0.0  };		/* 1m to the left */
 aaxVec3f EmitterDir = {  0.0f, 0.0f, 1.0f };
@@ -119,7 +117,7 @@ int main(int argc, char **argv)
         frame[0] = aaxAudioFrameCreate(config);
         testForError(frame[0], "Unable to create a new audio frame\n");
 
-        res = aaxMatrix64SetOrientation(mtx64, Frame1Pos, Frame1At, Frame1Up);
+        res = aaxMatrix64SetOrientation(mtx64, Frame1Pos, FrameAt, FrameUp);
         testForState(res, "aaxAudioFrameSetOrientation");
 
         res = aaxAudioFrameSetMatrix64(frame[0], mtx64);
@@ -138,7 +136,7 @@ int main(int argc, char **argv)
         frame[1] = aaxAudioFrameCreate(config);
         testForError(frame[1], "Unable to create a new audio frame\n");
 
-        res = aaxMatrix64SetOrientation(mtx64, Frame2Pos, Frame2At, Frame2Up);
+        res = aaxMatrix64SetOrientation(mtx64, Frame2Pos, FrameAt, FrameUp);
         testForState(res, "aaxAudioFrameSetOrientation");
 
         res = aaxAudioFrameSetMatrix64(frame[1], mtx64);
@@ -217,7 +215,7 @@ int main(int argc, char **argv)
             case 1:
                 printf("Rotating the audio-frame 180 degrees.\n");
                 printf("The emitter is now positioned 90 degrees to the left.\n");
-                res=aaxMatrix64SetOrientation(mtx64, Frame1Pos, Frame1At, Frame1Up);
+                res=aaxMatrix64SetOrientation(mtx64, Frame1Pos, FrameAt, FrameUp);
                 res=aaxMatrix64Rotate(mtx64,180.0f*GMATH_DEG_TO_RAD,0.0f,1.0f,0.0f);
                 testForState(res, "aaxMatrix64Rotate");
                 res = aaxAudioFrameSetMatrix64(frame[0], mtx64);
@@ -226,7 +224,7 @@ int main(int argc, char **argv)
             case 2:
                 printf("Rotating the sub-frame 180 degrees.\n");
                 printf("The emitter is now back to 90 degrees to the right.\n");
-                res=aaxMatrix64SetOrientation(mtx64, Frame2Pos, Frame2At, Frame2Up);
+                res=aaxMatrix64SetOrientation(mtx64, Frame2Pos, FrameAt, FrameUp);
                 res=aaxMatrix64Rotate(mtx64,180.0f*GMATH_DEG_TO_RAD,0.0f,1.0f,0.0f);
                 testForState(res, "aaxMatrix64Rotate");
                 res = aaxAudioFrameSetMatrix64(frame[1], mtx64);
