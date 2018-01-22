@@ -302,7 +302,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxReverbEffect =
 {
    AAX_TRUE,
-   "AAX_reverb_effect", 1.1f,
+   "AAX_reverb_effect_1.1", 1.1f,
    (_aaxEffectCreate*)&_aaxReverbEffectCreate,
    (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
    (_aaxEffectSetState*)&_aaxReverbEffectSetState,
