@@ -152,17 +152,23 @@ typedef mtx4d_t* mtx4d_ptr RESTRICT;
 
 
 typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
+typedef void (*vec3dCopy_proc)(vec3d_ptr d, const vec3d_ptr v);
 typedef void (*vec3fMulvec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
 
 extern vec3fCopy_proc vec3fCopy;
+extern vec3dCopy_proc vec3dCopy;
 extern vec3fMulvec3f_proc vec3fMulvec3;
 
-void vec3dNegate(vec3d_ptr d, const vec3d_ptr v);
-void vec3fNegate(vec3f_ptr d, const vec3f_ptr v);
 void vec3dFill(double d[3], double v[3]);
-void vec3fFill(float d[3], float v[3]);
 void vec3dFillf(double d[3], float v[3]);
+void vec3dAdd(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2);
+void vec3dSub(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2);
+void vec3dNegate(vec3d_ptr d, const vec3d_ptr v);
+
+void vec3fFill(float d[3], float v[3]);
 void vec3fFilld(float d[3], double v[3]);
+void vec3fNegate(vec3f_ptr d, const vec3f_ptr v);
+
 void mtx3fCopy(mtx3f_ptr d, const mtx3f_ptr m);
 
 typedef float (*vec3fMagnitude_proc)(const vec3f_ptr v);
@@ -172,12 +178,14 @@ typedef float (*vec3fNormalize_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3fCrossProduct_proc)(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 
 typedef double (*vec3dMagnitude_proc)(const vec3d_ptr v);
+typedef double (*vec3dMagnitudeSquared_proc)(const vec3d_ptr v);
 typedef double (*vec3dDotProduct_proc)(const vec3d_ptr v1, const vec3d_ptr v2);
 typedef double (*vec3dNormalize_proc)(vec3d_ptr d, const vec3d_ptr v);
 
 extern vec3fMagnitude_proc vec3fMagnitude;
 extern vec3dMagnitude_proc vec3dMagnitude;
 extern vec3fMagnitudeSquared_proc vec3fMagnitudeSquared;
+extern vec3dMagnitudeSquared_proc vec3dMagnitudeSquared;
 extern vec3fDotProduct_proc vec3fDotProduct;
 extern vec3dDotProduct_proc vec3dDotProduct;
 extern vec3fNormalize_proc vec3fNormalize;
@@ -230,6 +238,7 @@ extern vec4iMulvec4if_proc vec4iMulvec4i;
 
 /* CPU implementTION */
 void _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v);
+void _vec3dCopy_cpu(vec3d_ptr d, const vec3d_ptr v);
 void _vec3fMulvec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
 
 float _vec3fMagnitude_cpu(const vec3f_ptr v);
