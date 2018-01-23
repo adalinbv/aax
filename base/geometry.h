@@ -163,10 +163,14 @@ void vec3dFill(double d[3], double v[3]);
 void vec3dFillf(double d[3], float v[3]);
 void vec3dAdd(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2);
 void vec3dSub(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2);
+void vec3dScalarMul(vec3d_ptr d, const vec3d_ptr r, float v);
 void vec3dNegate(vec3d_ptr d, const vec3d_ptr v);
 
 void vec3fFill(float d[3], float v[3]);
 void vec3fFilld(float d[3], double v[3]);
+void vec3fAdd(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+void vec3fSub(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+void vec3fScalarMul(vec3f_ptr d, const vec3f_ptr r, float v);
 void vec3fNegate(vec3f_ptr d, const vec3f_ptr v);
 
 void mtx3fCopy(mtx3f_ptr d, const mtx3f_ptr m);
@@ -202,7 +206,7 @@ extern vec4fMatrix4_proc vec4fMatrix4;
 extern vec4fMatrix4_proc pt4fMatrix4;
 
 void vec4fFill(float d[4], float v[4]);
-void vec4fScalarMul(vec4f_ptr r, float v);
+void vec4fScalarMul(vec4f_ptr d, const vec4f_ptr r, float v);
 void vec4fNegate(vec4f_ptr d, const vec4f_ptr v);
 
 typedef void (*mtx4fMul_proc)(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
