@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2017 by Erik Hofman.
- * Copyright 2012-2017 by Adalin B.V.
+ * Copyright 2012-2018 by Erik Hofman.
+ * Copyright 2012-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -37,10 +37,12 @@
 #include "audio.h"
 
 /**
- * sv_m -> modified sensor velocity vector
+ * The following code renders all emitters attached to an audio-frame object
+ * (which includes the final mixer) into the ringbuffer of the audio frame.
+ *
+ * fp2d -> frames 2d properties structure
  * ssv -> sensor sound velocity
  * sdf -> sensor doppler factor
- * pos
  */
 
 
@@ -50,8 +52,8 @@
  */
 char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _aax2dProps *fp2d,
-                    _aaxDelayed3dProps *fdp3d_m,
+                    float ssv, float sdf,
+                    _aax2dProps *fp2d, _aaxDelayed3dProps *fdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
 {
@@ -223,10 +225,10 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * ssv:     sensor velocity vector
  * de:      sensor doppler factor
  * speaker: parent frame p2d->speaker position
- * fdp3d_m: parent frame dp3d->dprops3d
+ * fdp3d_m: frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps* fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps *fdp3d_m)
 {
    _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
@@ -298,10 +300,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    {
       vec3f_t epos, tmp;
       float refdist, maxdist, rolloff;
+      float dist_ef, diameter;
       float gain, pitch;
       float min, max;
       float esv, vs;
-      float dist;
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
       _PROP3D_MTX_CLEAR_CHANGED(edp3d);
@@ -320,13 +322,15 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #endif
-      dist = vec3fNormalize(&epos, &tmp);
+      dist_ef = vec3fNormalize(&epos, &tmp);
+
 #if 0
- printf("# emitter parent:\t\t\t\temitter:\n");
- PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
- printf("# modified emitter\n");
- PRINT_MATRIX(edp3d_m->matrix);
- printf("# dist: %f\n", dist);
+ printf("# modified parent frame:\n");
+ PRINT_MATRIX(fdp3d_m->matrix);
+ printf("# modified emitter:\t\temitter:\n");
+ PRINT_MATRICES(edp3d_m->matrix, edp3d->matrix);
+ printf("Note: Frame positions are relative to their parent.\n");
+ printf("# dist: %f\n", dist_ef);
 #endif
 
       /* calculate the sound velocity inbetween the emitter and the sensor */
@@ -337,7 +341,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * Doppler
        */
       pitch = 1.0f; // edp3d->pitch --> this is done in mixmult/mixsingle
-      if (dist > 1.0f)
+      if (dist_ef > 1.0f)
       {
          float ve, vf, df;
 
@@ -384,11 +388,57 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       // will always be directional.
       if (!_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
       {
-         float dfact = _MIN(dist/refdist, 1.0f);
+         float dfact = _MIN(dist_ef/refdist, 1.0f);
          _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
       }
 
-      gain *= distfn(dist, refdist, maxdist, rolloff, vs, 1.0f);
+      gain *= distfn(dist_ef, refdist, maxdist, rolloff, vs, 1.0f);
+
+      /*
+       * Occlusion
+       */
+      diameter  = _FILTER_GETD3D(src, OCCLUSION_FILTER,
+                                      AAX_OBSTRUCTION_DIAMETER - 0x10);
+      if (diameter < FLT_MAX)
+      {
+         float dist2, dist_epf;
+#ifdef ARCH32
+         vec3f_t epf, tmp;
+
+         vec3fAdd(&tmp, &fdp3d->matrix.v34[LOCATION],
+                        &fdp3d_m->matrix.v34[LOCATION]);
+         vec3fNormalize(&epf, &tmp);
+
+         dist_epf = vec3fDotProduct(&edp3d_m->matrix.v34[LOCATION], &epf);
+#else
+         vec3d_t epf, tmp;
+
+         vec3dAdd(&tmp, &fdp3d_m->matrix.v34[LOCATION],
+                        &edp3d_m->matrix.v34[LOCATION]);
+         vec3dNormalize(&epf, &tmp);
+
+         dist_epf = vec3dDotProduct(&edp3d_m->matrix.v34[LOCATION], &epf);
+#endif
+
+         /*
+          * Squared distance between the emiters parent-frame position
+          * and the line from the emitter to the parents-frame parent-frame
+          * position using Pythagoras.
+          */
+         dist2 = dist_ef*dist_ef + dist_epf*dist_epf;
+#if 0
+ printf("\nframe-emitter:\t\t");
+ PRINT_VEC3(edp3d_m->matrix.v34[LOCATION]);
+ printf("parent-frame-emitter:\t");
+ PRINT_VEC3(epf);
+ printf("dist_ef: %f, dist_epf:   %f\n", dist_ef, dist_epf);
+ printf("dist:    %f to diameter: %f\n", sqrtf(dist2), diameter);
+#endif
+
+         if (dist2 < diameter*diameter)
+         {
+         }
+      }
 
       /*
        * Audio cone recalculaion.

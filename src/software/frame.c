@@ -81,7 +81,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
 #endif
 #if 0
- printf("!  parent:\t\t\t\tframe:\n");
+ printf("!  modifed parent frame:\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
  printf("!  modified frame\n");
  PRINT_MATRIX(fdp3d_m->matrix);
