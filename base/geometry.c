@@ -74,6 +74,13 @@ _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v)
 }
 
 void
+_vec3dCopy_cpu(vec3d_ptr d, const vec3d_ptr v)
+{
+   memcpy(d->v3, v->v3, sizeof(vec3d_t));
+}
+
+
+void
 vec4fFill(float d[4], float v[4])
 {
    memcpy(d, v, sizeof(float[4]));
@@ -93,11 +100,43 @@ _vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v)
 
 
 void
+vec3dAdd(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2)
+{
+   d->v3[0] = v1->v3[0] + v2->v3[0];
+   d->v3[1] = v1->v3[1] + v2->v3[1];
+   d->v3[2] = v1->v3[2] + v2->v3[2];
+}
+
+void
+vec3dSub(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2)
+{
+   d->v3[0] = v1->v3[0] - v2->v3[0];
+   d->v3[1] = v1->v3[1] - v2->v3[1];
+   d->v3[2] = v1->v3[2] - v2->v3[2];
+}
+
+void
 vec3dNegate(vec3d_ptr d, const vec3d_ptr v)
 {
    d->v3[0] = -v->v3[0];
    d->v3[1] = -v->v3[1];
    d->v3[2] = -v->v3[2];
+}
+
+void
+vec3fAdd(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
+{
+   d->v3[0] = v1->v3[0] + v2->v3[0];
+   d->v3[1] = v1->v3[1] + v2->v3[1];
+   d->v3[2] = v1->v3[2] + v2->v3[2];
+}
+
+void
+vec3fSub(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
+{
+   d->v3[0] = v1->v3[0] - v2->v3[0];
+   d->v3[1] = v1->v3[1] - v2->v3[1];
+   d->v3[2] = v1->v3[2] - v2->v3[2];
 }
 
 void
@@ -171,6 +210,12 @@ _vec3dMagnitude_cpu(const vec3d_ptr v)
 
 float
 _vec3fMagnitudeSquared_cpu(const vec3f_ptr v)
+{
+   return (v->v3[0]*v->v3[0] + v->v3[1]*v->v3[1] + v->v3[2]*v->v3[2]);
+}
+
+double
+_vec3dMagnitudeSquared_cpu(const vec3d_ptr v)
 {
    return (v->v3[0]*v->v3[0] + v->v3[1]*v->v3[1] + v->v3[2]*v->v3[2]);
 }
@@ -585,11 +630,13 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
 /* -------------------------------------------------------------------------- */
 
 vec3fCopy_proc vec3fCopy = _vec3fCopy_cpu;
+vec3dCopy_proc vec3dCopy = _vec3dCopy_cpu;
 vec3fMulvec3f_proc vec3fMulvec3 = _vec3fMulvec3_cpu;
 
 vec3fMagnitude_proc vec3fMagnitude = _vec3fMagnitude_cpu;
 vec3dMagnitude_proc vec3dMagnitude = _vec3dMagnitude_cpu;
 vec3fMagnitudeSquared_proc vec3fMagnitudeSquared = _vec3fMagnitudeSquared_cpu;
+vec3dMagnitudeSquared_proc vec3dMagnitudeSquared = _vec3dMagnitudeSquared_cpu;
 vec3fDotProduct_proc vec3fDotProduct = _vec3fDotProduct_cpu;
 vec3dDotProduct_proc vec3dDotProduct = _vec3dDotProduct_cpu;
 vec3fNormalize_proc vec3fNormalize = _vec3fNormalize_cpu;
