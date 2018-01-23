@@ -48,18 +48,43 @@
 aaxVec3d EmitterPos = { 17.0,  0.5,  -2.0  };	// in metres (right, up, back)
 aaxVec3f EmitterDir = { 0.0f,  0.0f,  1.0f };
 
-aaxVec3d SensorPos =  {  0.0,  1.7,   0.0  };
-aaxVec3f SensorAt =   {  0.0f, 0.0f, -1.0f };
-aaxVec3f SensorUp =   {  0.0f, 1.0f,  0.0f };
-
 aaxVec3d RoomPos =    { 15.0,  1.0,  -4.0  };
 aaxVec3d HallwayPos = {  0.0,  1.0,  -4.0  };
 
 aaxVec3f WorldAt =    {  0.0f, 0.0f,  1.0f };
 aaxVec3f WorldUp =    {  0.0f, 1.0f,  0.0f };
 
-aaxVec4f room_reverb =    { 8500.0f, 0.007f, 0.93f, 0.049f };
-aaxVec4f hallway_reverb = {  790.0f, 0.035f, 0.89f, 0.15f  };
+aaxVec3d SensorPos =  {  0.0,  1.7,   0.0  };
+aaxVec3f SensorAt =   {  0.0f, 0.0f, -1.0f };
+aaxVec3f SensorUp =   {  0.0f, 1.0f,  0.0f };
+
+const char *room_reverb_aaxs = "<?xml version='1.0'?> \
+<aeonwave> 				\
+ <audioframe> 				\
+  <effect type='reverb' src='false'> 	\
+   <slot n='0'> 			\
+    <param n='0'>8500.0</param> 	\
+    <param n='1'>0.007</param> 		\
+    <param n='2'>0.93</param> 		\
+    <param n='3'>0.049</param> 		\
+   </slot> 				\
+  </effect> 				\
+ </audioframe> 				\
+</aeonwave>";
+
+const char *hallway_reverb_aaxs = "<?xml version='1.0'?> \
+<aeonwave> 				\
+ <audioframe> 				\
+  <effect type='reverb' src='false'> 	\
+   <slot n='0'> 			\
+    <param n='0'>790.0</param> 		\
+    <param n='1'>0.035</param> 		\
+    <param n='2'>0.89</param> 		\
+    <param n='3'>0.150</param> 		\
+   </slot> 				\
+  </effect> 				\
+ </audioframe> 				\
+</aeonwave>";
 
 int main(int argc, char **argv)
 {
@@ -76,7 +101,7 @@ int main(int argc, char **argv)
 
     if (config && (rv >= 0))
     {
-        aaxBuffer buffer;
+        aaxBuffer buffer, reverb;
 
         buffer = bufferFromFile(config, infile);
         if (buffer)
@@ -84,7 +109,6 @@ int main(int argc, char **argv)
             aaxFrame room, hallway;
             aaxEmitter emitter;
             aaxFilter filter;
-            aaxEffect effect;
             aaxMtx4d mtx64;
             float deg;
 
@@ -118,23 +142,20 @@ int main(int argc, char **argv)
             res = aaxAudioFrameSetMode(hallway, AAX_POSITION, AAX_INDOOR);
             testForState(res, "aaxAudioFrameSetMode");
 
-            effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
-            testForError(effect, "aaxEffectCreate hallway");
-
-            res = aaxEffectSetSlotParams(effect, 0, AAX_LINEAR, hallway_reverb);
-            testForState(res, "aaxEffectSetSlot/0");
-
-            res = aaxEffectSetState(effect, AAX_TRUE);
-            testForState(res, "aaxEffectSetState");
-
-            res = aaxAudioFrameSetEffect(hallway, effect);
-            testForState(res, "aaxMixerSetEffect");
-
-            res = aaxEffectDestroy(effect);
-            testForState(res, "aaxEffectDestroy");
-
             res = aaxMixerRegisterAudioFrame(config, hallway);
             testForState(res, "aaxMixerRegisterAudioFrame: Hallway");
+
+            // hallway reverb
+            reverb = aaxBufferCreate(config, 1, 1, AAX_AAXS16S);
+            testForError(reverb, "aaxBufferCreate: Hallway\n");
+
+            res = aaxBufferSetData(reverb, hallway_reverb_aaxs);
+            testForState(res, "aaxBufferSetData: Hallway");
+
+            res = aaxAudioFrameAddBuffer(hallway, reverb);
+            testForState(res, "aaxMixerAddBuffer: Hallway");
+
+            aaxBufferDestroy(reverb);
 
             /** room audio frame */
             room = aaxAudioFrameCreate(config);
@@ -149,23 +170,20 @@ int main(int argc, char **argv)
             res = aaxAudioFrameSetMode(room, AAX_POSITION, AAX_INDOOR);
             testForState(res, "aaxAudioFrameSetMode");
 
-            effect = aaxEffectCreate(config, AAX_REVERB_EFFECT);
-            testForError(effect, "aaxEffectCreate hallway");
-
-            res = aaxEffectSetSlotParams(effect, 0, AAX_LINEAR, room_reverb);
-            testForState(res, "aaxEffectSetSlot/0");
-
-            res = aaxEffectSetState(effect, AAX_TRUE);
-            testForState(res, "aaxEffectSetState");
-
-            res = aaxAudioFrameSetEffect(room, effect);
-            testForState(res, "aaxMixerSetEffect");
-
-            res = aaxEffectDestroy(effect);
-            testForState(res, "aaxEffectDestroy");
-
             res = aaxAudioFrameRegisterAudioFrame(hallway, room);
             testForState(res, "aaxAudioFrameRegisterAudioFrame: Room");
+
+            // room reverb
+            reverb = aaxBufferCreate(config, 1, 1, AAX_AAXS16S);
+            testForError(reverb, "aaxBufferCreate: Room\n");
+
+            res = aaxBufferSetData(reverb, room_reverb_aaxs);
+            testForState(res, "aaxBufferSetData: Room");
+
+            res = aaxAudioFrameAddBuffer(room, reverb);
+            testForState(res, "aaxMixerAddBuffer: Room");
+
+            aaxBufferDestroy(reverb);
 
             /** schedule the audioframe for playback */
             res = aaxAudioFrameSetState(room, AAX_PLAYING);
@@ -242,7 +260,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxBufferDestroy");
 
             res = aaxAudioFrameDeregisterAudioFrame(hallway, room);
-            testForState(res, "aaxMixerDeregisterAudioFrame");
+            testForState(res, "aaxAudioFrameDeregisterAudioFrame");
 
             res = aaxAudioFrameDestroy(room);
             testForState(res, "aaxAudioFrameDestroy: Room");
