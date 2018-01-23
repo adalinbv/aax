@@ -116,7 +116,8 @@ int main(int argc, char **argv)
             effect = aaxEffectCreate(config, AAX_CONVOLUTION_EFFECT);
             testForError(effect, "aaxEffectCreate");
 
-            res = aaxEffectSetParam(effect, AAX_CUTOFF_FREQUENCY, AAX_LINEAR, 5000.0f);
+            res = aaxEffectSetParam(effect, AAX_CUTOFF_FREQUENCY, AAX_LINEAR,
+                                            5000.0f);
             testForState(res, "aaxEffectSetParam");
 
             res = aaxEffectSetParam(effect, AAX_LF_GAIN, AAX_LINEAR, 1.0f);

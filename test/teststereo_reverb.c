@@ -106,6 +106,11 @@ int main(int argc, char **argv)
                res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               8500.0f, 0.035f, 0.93f, 0.049f);
                testForState(res, "aaxEffectSetSlot/0");
+#if 1
+               res = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
+                                              500.0f, 0.01f, 0.0f, 0.0f);
+               testForState(res, "aaxEffectSetSlot/1");
+#endif
 
                res = aaxEffectSetState(effect, AAX_TRUE|AAX_INVERSE);
                testForState(res, "aaxEffectSetState");
