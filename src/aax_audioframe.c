@@ -532,7 +532,6 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       }
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
-      case AAX_VOLUME_FILTER:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_COMPRESSOR:
       {
@@ -559,6 +558,28 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
          _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
          _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+         break;
+      }
+      case AAX_VOLUME_FILTER:
+      {
+         _aax2dProps *p2d = handle->submix->props2d;
+         _aax3dProps *p3d = handle->submix->props3d;
+
+         _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+         _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+         _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+         _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+         _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
+         if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
+             filter->type == AAX_COMPRESSOR) {
+            p2d->final.gain_lfo = 1.0f;
+         }
+
+         _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
+         _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
+         _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
+         _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+         _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
          break;
       }
       default:
@@ -630,7 +651,6 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
-      case AAX_REVERB_EFFECT:
       {
          _aax2dProps *p2d = fmixer->props2d;
          _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
@@ -642,6 +662,25 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
             p2d->final.pitch_lfo = 1.0f;
          }
+         break;
+      }
+      case AAX_REVERB_EFFECT:
+      {
+         _aax2dProps *p2d = fmixer->props2d;
+         _aax3dProps *p3d = fmixer->props3d;
+
+         _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+         _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+         _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+         _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+         _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
+         _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+
+         _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
+         _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
+         _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
+         _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+         _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
          break;
       }
       default:
