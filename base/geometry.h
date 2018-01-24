@@ -154,10 +154,12 @@ typedef mtx4d_t* mtx4d_ptr RESTRICT;
 typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3dCopy_proc)(vec3d_ptr d, const vec3d_ptr v);
 typedef void (*vec3fMulvec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
+typedef void (*vec3dMulvec3d_proc)(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2);
 
 extern vec3fCopy_proc vec3fCopy;
 extern vec3dCopy_proc vec3dCopy;
 extern vec3fMulvec3f_proc vec3fMulvec3;
+extern vec3dMulvec3d_proc vec3dMulvec3;
 
 void vec3dFill(double d[3], double v[3]);
 void vec3dFillf(double d[3], float v[3]);
