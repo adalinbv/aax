@@ -176,6 +176,14 @@ _vec3fMulvec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2)
 }
 
 void
+_vec3dMulvec3_cpu(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2)
+{
+   r->v3[0] = v1->v3[0]*v2->v3[0];
+   r->v3[1] = v1->v3[1]*v2->v3[1];
+   r->v3[2] = v1->v3[2]*v2->v3[2];
+}
+
+void
 _vec4fMulvec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 {
    r->v4[0] = v1->v4[0]*v2->v4[0];
@@ -632,6 +640,7 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
 vec3fCopy_proc vec3fCopy = _vec3fCopy_cpu;
 vec3dCopy_proc vec3dCopy = _vec3dCopy_cpu;
 vec3fMulvec3f_proc vec3fMulvec3 = _vec3fMulvec3_cpu;
+vec3dMulvec3d_proc vec3dMulvec3 = _vec3dMulvec3_cpu;
 
 vec3fMagnitude_proc vec3fMagnitude = _vec3fMagnitude_cpu;
 vec3dMagnitude_proc vec3dMagnitude = _vec3dMagnitude_cpu;
