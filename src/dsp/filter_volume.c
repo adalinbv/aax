@@ -38,6 +38,7 @@
 
 #include "common.h"
 #include "filters.h"
+#include "arch.h"
 #include "api.h"
 
 static aaxFilter
@@ -50,6 +51,7 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
       _aaxSetDefaultFilter3d(flt->slot[1], flt->pos, 1);
+      flt->slot[0]->destroy = aligned_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -58,14 +60,36 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxVolumeFilterDestroy(_filter_t* filter)
 {
+   filter->slot[0]->destroy(filter->slot[0]->data);
    free(filter);
 
    return AAX_TRUE;
 }
 
 static aaxFilter
-_aaxVolumeFilterSetState(_filter_t* filter, UNUSED(int state))
+_aaxVolumeFilterSetState(_filter_t* filter, int state)
 {
+   _aaxRingBufferOcclusionData *direct_path = filter->slot[0]->data;
+
+   if (!direct_path)
+   {
+      direct_path = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+      filter->slot[0]->data = direct_path;
+   }
+
+   if (direct_path)
+   {
+      memset(direct_path, 0, sizeof(_aaxRingBufferOcclusionData));
+
+      direct_path->occlusion.v4[0] = filter->slot[1]->param[0];
+      direct_path->occlusion.v4[1] = filter->slot[1]->param[1];
+      direct_path->occlusion.v4[2] = filter->slot[1]->param[2];
+      direct_path->occlusion.v4[3] = filter->slot[1]->param[3];
+      direct_path->fc = 22000.0f;
+
+      direct_path->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+   }
+
    return filter;
 }
 

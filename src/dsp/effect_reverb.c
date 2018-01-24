@@ -42,7 +42,7 @@
 #include "arch.h"
 
 static void _reverb_destroy(void*);
-static void _reverb_destory_delays(void**);
+static void _reverb_destroy_delays(void**);
 static void _reverb_add_delays(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
@@ -160,47 +160,34 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
+         _aaxRingBufferOcclusionData *direct_path = reverb->direct_path;
 
          if (!flt) {
-            flt = calloc(2, sizeof(_aaxRingBufferFreqFilterData));
+            flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
+         }
+
+         if (!direct_path) {
+            direct_path = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
          }
 
          reverb->info = effect->info;
-         reverb->inverse = (state & AAX_INVERSE) ? 1 : 0;
          reverb->freq_filter = flt;
+         reverb->direct_path = direct_path;
+
+         if (direct_path)
+         {
+            direct_path->occlusion.v4[0] = effect->slot[1]->param[0];
+            direct_path->occlusion.v4[1] = effect->slot[1]->param[1];
+            direct_path->occlusion.v4[2] = effect->slot[1]->param[2];
+            direct_path->occlusion.v4[3] = effect->slot[1]->param[3];
+            direct_path->fc = 22000.0f;
+
+            direct_path->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         }
+
          if (flt)
          {
-            _aaxRingBufferFreqFilterData *flt_dp;
-            const char *ptr;
             float dfact;
-
-            /* set up the direct path frequency filter */
-            ptr = (char*)flt + sizeof(_aaxRingBufferFreqFilterData);
-            flt_dp = (_aaxRingBufferFreqFilterData*)ptr;
-
-            reverb->fc_dp = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-
-            flt_dp->run = _freqfilter_run;
-            flt_dp->lfo = 0;
-            flt_dp->fs = fs;
-            flt_dp->Q = 0.6f;
-            flt_dp->no_stages = 1;
-
-#if 0
-            flt_dp->high_gain = fabsf(effect->slot[1]->param[AAX_HF_GAIN]);
-#else
-            flt_dp->high_gain = 1.0f;
-#endif
-            flt_dp->high_gain *= _lin2log(reverb->fc_dp)/4.343409f;
-
-            flt_dp->low_gain = fabsf(effect->slot[1]->param[AAX_LF_GAIN]);
-            if (flt_dp->low_gain < LEVEL_128DB) flt_dp->low_gain = 0.0f;
-
-            flt_dp->k = flt_dp->low_gain/flt_dp->high_gain;
-
-            _aax_butterworth_compute(reverb->fc_dp, flt_dp);
-            reverb->freq_filter_dp = flt_dp;
-            
 
             /* set up a frequency filter between 100Hz and 15000Hz
              * for the refelctions. The lower the cut-off frequency,
@@ -317,7 +304,7 @@ _eff_function_tbl _aaxReverbEffect =
 static void
 _reverb_destroy(void *ptr)
 {  
-   _reverb_destory_delays(&ptr);
+   _reverb_destroy_delays(&ptr);
    free(ptr);
 }
 
@@ -328,7 +315,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   _aaxRingBufferFreqFilterData *filter, *filter_dp;
+   _aaxRingBufferOcclusionData *direct_path;
+   _aaxRingBufferFreqFilterData *filter;
    const _aaxRingBufferReverbData *reverb = data;
    int snum;
 
@@ -340,7 +328,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(track < _AAX_MAX_SPEAKERS);
 
    filter = reverb->freq_filter;
-   filter_dp = reverb->freq_filter_dp;
+   direct_path = reverb->direct_path;
 
    _aax_memcpy(scratch, sptr, no_samples*sizeof(MIX_T));
 
@@ -391,10 +379,10 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
    filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 0);
    
-
    /* add the dirtect path */
-   if (filter_dp->low_gain > LEVEL_96DB)
+   if (direct_path)
    {
+#if 0
       if (reverb->fc_dp > 15000.0f) {
          rbd->add(dptr, sptr, no_samples, filter_dp->low_gain, 0.0f);
       }
@@ -403,6 +391,10 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          filter_dp->run(rbd, scratch, sptr, 0, no_samples, 0, track, filter_dp, NULL, 0);
          rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
       }
+#endif
+   }
+   else {
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
 }
 
@@ -503,7 +495,7 @@ _reverb_add_delays(void **data, float fs, unsigned int tracks, const float *dela
 }
 
 static void
-_reverb_destory_delays(void **data)
+_reverb_destroy_delays(void **data)
 {
    _aaxRingBufferReverbData *reverb;
 
@@ -520,6 +512,7 @@ _reverb_destory_delays(void **data)
 #else
       free(reverb->history_ptr);
 #endif
+      _aax_aligned_free(reverb->direct_path);
       free(reverb->freq_filter);
       reverb->freq_filter = 0;
       reverb->history_ptr = 0;
