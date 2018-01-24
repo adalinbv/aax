@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -249,6 +249,7 @@ _aaxCompressorMinMax(float val, int slot, unsigned char param)
    {    /* min[4] */                  /* max[4] */
     { { 1e-3f, 1e-3f, 0.0f, 0.0f }, { 0.25f, 10.0f, 1.0f, 1.0f } },
     { {  0.0f, 1e-3f, 0.0f, 0.0f }, { 0.0f,  10.0f, 0.0f, 1.0f } },
+    { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,   0.0f, 0.0f, 0.0f } },
     { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,   0.0f, 0.0f, 0.0f } }
    };
 

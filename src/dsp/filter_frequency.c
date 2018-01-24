@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -281,6 +281,7 @@ _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
    {    /* min[4] */                  /* max[4] */
     { { 20.0f, 0.0f, 0.0f, 1.0f  }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
     { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,  1.0f,  1.0f,  50.0f } },
+    { {  0.0f, 0.0f, 0.0f, 0.0f  }, {     0.0f,  0.0f,  0.0f,   0.0f } },
     { {  0.0f, 0.0f, 0.0f, 0.0f  }, {     0.0f,  0.0f,  0.0f,   0.0f } }
    };
    

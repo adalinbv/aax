@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -168,6 +168,7 @@ _aaxDynamicPitchEffectMinMax(float val, int slot, unsigned char param)
    static const _eff_minmax_tbl_t _aaxDynamicPitchRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { 1.0f, 0.01f, 0.0f, 0.0f }, { 1.0f, 50.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
    };
