@@ -177,7 +177,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       ret = -1;
    }
 
-   /* 3d: distance and audio-cone related gain */
+   /* 3d: distance, audio-cone and occlusion related gain */
    gain *= ep2d->final.gain;
 
    /* apply the parent mixer/audio-frame volume and tremolo-gain */

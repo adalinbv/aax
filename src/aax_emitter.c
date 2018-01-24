@@ -1260,8 +1260,8 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
    case AAX_TIMED_GAIN_FILTER:
       _PROP_DISTDELAY_SET_DEFINED(src->props3d);
       // intentional fallthrough
-   case AAX_FREQUENCY_FILTER:
    case AAX_VOLUME_FILTER:
+   case AAX_FREQUENCY_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:
    {
       _aax2dProps *p2d = src->props2d;
