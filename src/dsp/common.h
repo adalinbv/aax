@@ -46,13 +46,14 @@ extern "C" {
 enum _aax3dFiltersEffects
 {
     /* 3d filters */
-    DISTANCE_FILTER = 0,        /* distance attennuation */
-    ANGULAR_FILTER,             /* audio cone support    */
-    OCCLUSION_FILTER,		/* sound obstruction     */
+    OCCLUSION_FILTER = 0,	/* direct path sound obstruction	*/
+    DISTANCE_FILTER,		/* distance attennuation		*/
+    ANGULAR_FILTER,		/* direction audio cone support		*/
     MAX_3D_FILTER,
 
     /* 3d effects */
-    VELOCITY_EFFECT = 0,        /* Doppler               */
+    REVERB_OCCLUSION_EFFECT = 0,/* reverb direct path sound obstruction	*/
+    VELOCITY_EFFECT,		/* Doppler				*/
     MAX_3D_EFFECT,
 };
 
@@ -73,8 +74,8 @@ enum _aax2dFiltersEffects
     MAX_STEREO_FILTER,
 
     /* stereo effects */
-    PITCH_EFFECT = 0,
-    REVERB_EFFECT,
+    REVERB_EFFECT = 0,
+    PITCH_EFFECT,
     DYNAMIC_PITCH_EFFECT,
     TIMED_PITCH_EFFECT,
     DISTORTION_EFFECT,
