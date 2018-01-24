@@ -111,6 +111,7 @@ typedef struct
 
 typedef _aaxDSPInfo _aaxFilterInfo;
 typedef _aaxDSPInfo _aaxEffectInfo;
+void aligned_destroy(void *ptr);
 void destroy(void *ptr);
 
 typedef float _aaxRingBufferPitchShiftFn(float, float, float);
