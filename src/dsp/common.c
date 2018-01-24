@@ -34,9 +34,11 @@
 #include <base/types.h>
 #include <base/geometry.h>
 
+#include "arch.h"
 #include "common.h"
 
 void destroy(void *ptr) { free(ptr); }
+void aligned_destroy(void *ptr) { _aax_aligned_free(ptr); }
 
 float _lin(float v) { return v; }
 float _square(float v) { return v*v; }
