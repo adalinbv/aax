@@ -1159,10 +1159,10 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                    */
                   _aaxContextSetupHRTF(config->node[0].hrtf, 0);
                   vec4fFill(info->hrtf[0].v4, _aaxContextDefaultHead[0]);
-                  vec4fScalarMul(&info->hrtf[0], fq);
+                  vec4fScalarMul(&info->hrtf[0], &info->hrtf[0], fq);
 
                   vec4fFill(info->hrtf[1].v4, _aaxContextDefaultHead[1]);
-                  vec4fScalarMul(&info->hrtf[1], fq);
+                  vec4fScalarMul(&info->hrtf[1], &info->hrtf[1], fq);
                }
                else
                {

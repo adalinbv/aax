@@ -116,6 +116,14 @@ vec3dSub(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2)
 }
 
 void
+vec3dScalarMul(vec3d_ptr d, const vec3d_ptr r, float f)
+{
+   d->v3[0] = r->v3[0] * f;
+   d->v3[1] = r->v3[1] * f;
+   d->v3[2] = r->v3[2] * f;
+}
+
+void
 vec3dNegate(vec3d_ptr d, const vec3d_ptr v)
 {
    d->v3[0] = -v->v3[0];
@@ -140,6 +148,14 @@ vec3fSub(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
 }
 
 void
+vec3fScalarMul(vec3f_ptr d, const vec3f_ptr r, float f)
+{
+   d->v3[0] = r->v3[0] * f;
+   d->v3[1] = r->v3[1] * f;
+   d->v3[2] = r->v3[2] * f;
+}
+
+void
 vec3fNegate(vec3f_ptr d, const vec3f_ptr v)
 {
    d->v3[0] = -v->v3[0];
@@ -158,12 +174,12 @@ vec4fNegate(vec4f_ptr d, const vec4f_ptr v)
 
 
 void
-vec4fScalarMul(vec4f_ptr r, float f)
+vec4fScalarMul(vec4f_ptr d, const vec4f_ptr r, float f)
 {
-   r->v4[0] *= f;
-   r->v4[1] *= f;
-   r->v4[2] *= f;
-   r->v4[3] *= f;
+   d->v4[0] = r->v4[0] * f;
+   d->v4[1] = r->v4[0] * f;
+   d->v4[2] = r->v4[0] * f;
+   d->v4[3] = r->v4[0] * f;
 }
 
 
