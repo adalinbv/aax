@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -55,8 +55,8 @@ _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 
    if (eff)
    {
-      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
-      _aaxSetDefaultEffect2d(eff->slot[1], eff->pos, 1);
+      _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
+      _aaxSetDefaultEffect3d(eff->slot[1], eff->pos, 1);
       eff->slot[0]->destroy = _reverb_destroy;
       rv = (aaxEffect)eff;
    }
@@ -247,7 +247,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 }
 
 _effect_t*
-_aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
+_aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
@@ -257,11 +257,11 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2
    {
       unsigned int size = sizeof(_aaxEffectInfo);
 
-       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+       memcpy(rv->slot[0], &p3d->effect[rv->pos], size);
       rv->slot[0]->destroy = _reverb_destroy;
       rv->slot[0]->data = NULL;
 
-      rv->state = p2d->effect[rv->pos].state;
+      rv->state = p3d->effect[rv->pos].state;
    }
    return rv;
 }
@@ -285,9 +285,10 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f, 0.07f, 1.0f, 0.7f } },
-    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f, 1.0f,  1.0f, AAX_FPINFINITE } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f,  0.0f, 0.0f } }
+    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f,   0.07f,    1.0f, 0.7f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);

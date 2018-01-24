@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -139,9 +139,11 @@ _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
    switch(type)
    {
    case VOLUME_FILTER:
-      filter->param[AAX_GAIN] = 1.0f;
-      filter->param[AAX_MAX_GAIN] = 1.0f;
-      filter->state = AAX_TRUE;
+      if (slot == 0) {
+         filter->param[AAX_GAIN] = 1.0f;
+         filter->param[AAX_MAX_GAIN] = 1.0f;
+         filter->state = AAX_TRUE;
+      }
       break;
    case FREQUENCY_FILTER:
       filter->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
