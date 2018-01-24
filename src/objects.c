@@ -154,6 +154,9 @@ _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *dp3d)
    /* velocity     */
    mtx4fSetIdentity(dp3d->velocity.m4);
 
+   /* occlusion */
+   memset(dp3d->occlusion.v4, 0, sizeof(vec4f_t));
+
    /* status */
    dp3d->state3d = 0;
    dp3d->pitch = 1.0f;

@@ -300,10 +300,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    {
       vec3f_t epos, tmp;
       float refdist, maxdist, rolloff;
-      float dist_ef, diameter;
       float gain, pitch;
       float min, max;
       float esv, vs;
+      float dist_ef;
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
       _PROP3D_MTX_CLEAR_CHANGED(edp3d);
@@ -397,15 +397,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /*
        * Occlusion
        */
-      diameter  = _FILTER_GETD3D(src, OCCLUSION_FILTER,
-                                      AAX_OBSTRUCTION_DIAMETER - 0x10);
-      if (diameter < FLT_MAX)
+      if (_PROP3D_OCCLUSION_IS_DEFINED(fdp3d_m))
       {
-         float dist2, dist_epf;
+         vec3f_t otest;
+         float dist_epf;
 #ifdef ARCH32
          vec3f_t epf, tmp;
 
-         vec3fAdd(&tmp, &fdp3d->matrix.v34[LOCATION],
+         vec3fAdd(&tmp, &fdp3d_m->matrix.v34[LOCATION],
                         &fdp3d_m->matrix.v34[LOCATION]);
          vec3fNormalize(&epf, &tmp);
 
@@ -413,11 +412,28 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 #else
          vec3d_t epf, tmp;
 
+         // calculate the parent-frame-to-emitter unit vector.
+         // fdp3d_m specifies the relative position to the parent frame.
+         // edp3d_m specifies the relative position to the current frame.
          vec3dAdd(&tmp, &fdp3d_m->matrix.v34[LOCATION],
                         &edp3d_m->matrix.v34[LOCATION]);
          vec3dNormalize(&epf, &tmp);
 
+         // get the projection length of the frame-to-emitter vector on the
+         // parent-frame-to-emitter unit vector.
          dist_epf = vec3dDotProduct(&edp3d_m->matrix.v34[LOCATION], &epf);
+
+         // scale the parent-frame-to-emitter unit vector.
+         vec3dScalarMul(&epf, &epf, dist_epf);
+
+         // get the vector from the frame position which perpendicular to the
+         // parent-frame-to-emitter vector.
+         vec3dSub(&tmp, &epf, &edp3d_m->matrix.v34[LOCATION]);
+         vec3fFilld(otest.v3, tmp.v3);
+
+printf("ef:  "); PRINT_VEC3(edp3d_m->matrix.v34[LOCATION]);
+printf("epf: "); PRINT_VEC3(epf);
+printf("tmp: "); PRINT_VEC3(tmp);
 #endif
 
          /*
@@ -425,17 +441,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
           * and the line from the emitter to the parents-frame parent-frame
           * position using Pythagoras.
           */
-         dist2 = dist_ef*dist_ef + dist_epf*dist_epf;
 #if 0
  printf("\nframe-emitter:\t\t");
  PRINT_VEC3(edp3d_m->matrix.v34[LOCATION]);
  printf("parent-frame-emitter:\t");
  PRINT_VEC3(epf);
- printf("dist_ef: %f, dist_epf:   %f\n", dist_ef, dist_epf);
- printf("dist:    %f to diameter: %f\n", sqrtf(dist2), diameter);
 #endif
 
-         if (dist2 < diameter*diameter)
+         if (0)
          {
          }
       }
