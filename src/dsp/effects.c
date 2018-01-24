@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -135,11 +135,6 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
          effect->param[AAX_DELAY_DEPTH] = 0.27f;
          effect->param[AAX_DECAY_LEVEL] = 0.3f;
          effect->param[AAX_DECAY_DEPTH] = 0.7f;
-      } else if (slot == 1) {
-         effect->param[AAX_CUTOFF_FREQUENCY] = 22000.0f;
-         effect->param[AAX_LF_GAIN] = 1.0f;
-         effect->param[AAX_HF_GAIN] = 1.0f;
-         effect->param[AAX_OBSTRUCTION_DIAMETER - 0x10] = AAX_FPINFINITE;
       }
       break;
    case CONVOLUTION_EFFECT:
