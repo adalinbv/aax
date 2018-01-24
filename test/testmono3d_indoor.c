@@ -61,13 +61,19 @@ aaxVec3f SensorUp =   {  0.0f, 1.0f,  0.0f };
 const char *room_reverb_aaxs = "<?xml version='1.0'?> \
 <aeonwave> 				\
  <audioframe> 				\
-  <effect type='reverb' src='false'> 	\
+  <effect type='reverb' src='inverse'> 	\
    <slot n='0'> 			\
     <param n='0'>8500.0</param> 	\
     <param n='1'>0.007</param> 		\
     <param n='2'>0.93</param> 		\
     <param n='3'>0.049</param> 		\
    </slot> 				\
+   <slot n='1'>                         \
+    <param n='0'>8500.0</param>         \
+    <param n='1'>1.0</param>            \
+    <param n='2'>0.0</param>            \
+    <param n='3'>0.8</param>            \
+   </slot>                              \
   </effect> 				\
  </audioframe> 				\
 </aeonwave>";
@@ -75,13 +81,19 @@ const char *room_reverb_aaxs = "<?xml version='1.0'?> \
 const char *hallway_reverb_aaxs = "<?xml version='1.0'?> \
 <aeonwave> 				\
  <audioframe> 				\
-  <effect type='reverb' src='false'> 	\
+  <effect type='reverb' src='inverse'> 	\
    <slot n='0'> 			\
     <param n='0'>790.0</param> 		\
     <param n='1'>0.035</param> 		\
     <param n='2'>0.89</param> 		\
     <param n='3'>0.150</param> 		\
    </slot> 				\
+   <slot n='1'>                         \
+    <param n='0'>8500.0</param>         \
+    <param n='1'>1.0</param>            \
+    <param n='2'>0.0</param>            \
+    <param n='3'>2.0</param>            \
+   </slot>                              \
   </effect> 				\
  </audioframe> 				\
 </aeonwave>";
@@ -234,11 +246,15 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterStart");
 
             deg = 0;
+            set_mode(1);
             while(deg < 360)
             {
                 msecSleep(50);
                 deg += 1;
+
+                if (get_key()) break;
             }
+            set_mode(0);
 
             res = aaxAudioFrameSetState(hallway, AAX_STOPPED);
             testForState(res, "aaxAudioFrameStop: Hallway");
