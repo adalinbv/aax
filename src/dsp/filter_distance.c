@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -130,6 +130,7 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
   static const _flt_minmax_tbl_t _aaxDistanceRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { 0.0f, 0.1f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT, 1.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } }
    };
