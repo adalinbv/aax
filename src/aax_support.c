@@ -451,7 +451,9 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_ENVELOPE_FOLLOW;
             } else if (!strncasecmp(name, "true", len) ||
                        !strncasecmp(name, "constant", len)) {
-               rv = AAX_CONSTANT_VALUE;
+               rv |= AAX_CONSTANT_VALUE;
+            } else if (!strncasecmp(name, "inverse", len)) {
+               rv |= AAX_CONSTANT_VALUE|AAX_INVERSE;
             }
          }
          else {
