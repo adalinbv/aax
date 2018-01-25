@@ -177,9 +177,9 @@ void
 vec4fScalarMul(vec4f_ptr d, const vec4f_ptr r, float f)
 {
    d->v4[0] = r->v4[0] * f;
-   d->v4[1] = r->v4[0] * f;
-   d->v4[2] = r->v4[0] * f;
-   d->v4[3] = r->v4[0] * f;
+   d->v4[1] = r->v4[1] * f;
+   d->v4[2] = r->v4[2] * f;
+   d->v4[3] = r->v4[3] * f;
 }
 
 
