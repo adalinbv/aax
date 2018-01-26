@@ -52,8 +52,8 @@
  */
 char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf,
-                    _aax2dProps *fp2d, _aaxDelayed3dProps *fdp3d_m,
+                    float ssv, float sdf, _aax2dProps *fp2d,
+                    _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
 {
@@ -64,6 +64,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
    data.drb = drb;
    data.info = info;
    data.fdp3d_m = fdp3d_m;
+   data.fp3d = fp3d;
    data.fp2d = fp2d;
    data.e2d = e2d;
    data.e3d = e3d;
@@ -125,7 +126,8 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             {
                src->state3d |= data->fdp3d_m->state3d;
                data->be->prepare3d(src, data->info, data->ssv, data->sdf,
-                                   data->fp2d->speaker, data->fdp3d_m);
+                                   data->fp2d->speaker, data->fp3d,
+                                   data->fdp3d_m);
             }
             src->update_ctr = src->update_rate;
          }
@@ -228,7 +230,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * fdp3d_m: frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps *fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m)
 {
    _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
@@ -299,6 +301,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(src))
    {
       vec3f_t epos, tmp;
+      _aaxRingBufferOcclusionData *direct_path;
       float refdist, maxdist, rolloff;
       float gain, pitch;
       float min, max;
@@ -397,18 +400,25 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /*
        * Occlusion
        */
-      if (_PROP3D_OCCLUSION_IS_DEFINED(fdp3d_m))
+      direct_path = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
+      if (!direct_path) direct_path = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
+      if (direct_path)
       {
-         vec3f_t otest;
+         vec3f_t vres;
          float dist_epf;
+
 #ifdef ARCH32
          vec3f_t epf, tmp;
 
          vec3fAdd(&tmp, &fdp3d_m->matrix.v34[LOCATION],
-                        &fdp3d_m->matrix.v34[LOCATION]);
+                        &edp3d_m->matrix.v34[LOCATION]);
          vec3fNormalize(&epf, &tmp);
 
          dist_epf = vec3fDotProduct(&edp3d_m->matrix.v34[LOCATION], &epf);
+
+         vec3dScalarMul(&epf, &epf, dist_epf);
+         vec3dSub(&vres, &epf, &edp3d_m->matrix.v34[LOCATION]);
+
 #else
          vec3d_t epf, tmp;
 
@@ -429,11 +439,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          // get the vector from the frame position which perpendicular to the
          // parent-frame-to-emitter vector.
          vec3dSub(&tmp, &epf, &edp3d_m->matrix.v34[LOCATION]);
-         vec3fFilld(otest.v3, tmp.v3);
-
-printf("ef:  "); PRINT_VEC3(edp3d_m->matrix.v34[LOCATION]);
-printf("epf: "); PRINT_VEC3(epf);
-printf("tmp: "); PRINT_VEC3(tmp);
+         vec3fFilld(vres.v3, tmp.v3);
 #endif
 
          /*
@@ -448,9 +454,13 @@ printf("tmp: "); PRINT_VEC3(tmp);
  PRINT_VEC3(epf);
 #endif
 
-         if (0)
+         vec3fAbsolute(&vres, &vres);
+         if (vec3fLessThan(&vres, &direct_path->occlusion.v3))
          {
+printf("less\n");
          }
+else
+printf("more\n");
       }
 
       /*

@@ -493,6 +493,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             {
                _aaxDelayed3dProps *sdp3d, *sdp3d_m;
                _aax2dProps sp2d;
+               _aax3dProps sp3d;
 #ifdef ARCH32
                mtx4f_t tmp, tmp2;
 #else
@@ -518,8 +519,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   ssv=_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
                   sdf=_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
 
-                  _aax_memcpy(&sp2d, smixer->props2d,
-                                     sizeof(_aax2dProps));
+                  _aax_memcpy(&sp2d, smixer->props2d, sizeof(_aax2dProps));
+                  _aax_memcpy(&sp3d, smixer->props3d, sizeof(_aax3dProps));
                   _aax_memcpy(sdp3d, smixer->props3d->dprops3d,
                                       sizeof(_aaxDelayed3dProps));
                   sdp3d_m->state3d = sdp3d->state3d;
@@ -564,7 +565,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
-                                           NULL, NULL, &sp2d, sdp3d, sdp3d_m,
+                                           NULL, &sp2d, &sp3d, sdp3d, sdp3d_m,
                                            be, be_handle, fprocess, batched);
                /*
                 * if the final mixer actually did render something,

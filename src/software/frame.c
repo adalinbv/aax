@@ -59,9 +59,9 @@ char
 _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                       void *sensor,  _aaxAudioFrame *fmixer,
                       float ssv, float sdf,
-                      UNUSED(_aax2dProps *pp2d),
                       _aaxDelayed3dProps *pdp3d_m,
                       _aax2dProps *fp2d,
+                      _aax3dProps *fp3d,
                       _aaxDelayed3dProps *fdp3d,
                       _aaxDelayed3dProps *fdp3d_m,
                       const _aaxDriverBackend *be, void *be_handle,
@@ -125,9 +125,9 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    }
 
    /** process possible registered emitters */
-   process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf, fp2d, fdp3d_m,
-                                 fmixer->emitters_2d, fmixer->emitters_3d,
-                                 be, be_handle);
+   process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf, fp2d, fp3d,
+                              fdp3d_m, fmixer->emitters_2d, fmixer->emitters_3d,
+                               be, be_handle);
 
    /** process registered sub-frames */
    if (fprocess && fmixer->frames)
@@ -329,6 +329,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       _aaxDelayed3dProps *sfdp3d_m;
       _aaxDelayed3dProps *sfdp3d;
       _aax2dProps sfp2d;
+      _aax3dProps sfp3d;
       size_t size;
       int res;
 
@@ -338,8 +339,8 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
 
       _aaxAudioFrameProcessDelayQueue(sfmixer);
 
-      _aax_memcpy(&sfp2d, sfmixer->props2d,
-                          sizeof(_aax2dProps));
+      _aax_memcpy(&sfp2d, sfmixer->props2d, sizeof(_aax2dProps));
+      _aax_memcpy(&sfp3d, sfmixer->props3d, sizeof(_aax3dProps));
       _aax_memcpy(sfdp3d, sfmixer->props3d->dprops3d,
                            sizeof(_aaxDelayed3dProps));
       _aax_memcpy(sfdp3d_m, sfmixer->props3d->m_dprops3d,
@@ -365,7 +366,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
        * dest_rb, this could potentialy save a lot of ringbuffers
        */
       res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
-                                  fp2d, fdp3d_m, &sfp2d, sfdp3d, sfdp3d_m,
+                                  fdp3d_m, &sfp2d, &sfp3d, sfdp3d, sfdp3d_m,
                                   be, be_handle, AAX_TRUE, batched);
 
       /* if the subframe actually did render something, mix the data */
