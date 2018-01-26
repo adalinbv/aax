@@ -155,11 +155,13 @@ typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3dCopy_proc)(vec3d_ptr d, const vec3d_ptr v);
 typedef void (*vec3fMulvec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
 typedef void (*vec3dMulvec3d_proc)(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2);
+typedef void (*vec3fAbsolute_proc)(vec3f_ptr d, const vec3f_ptr v);
 
 extern vec3fCopy_proc vec3fCopy;
 extern vec3dCopy_proc vec3dCopy;
 extern vec3fMulvec3f_proc vec3fMulvec3;
 extern vec3dMulvec3d_proc vec3dMulvec3;
+extern vec3fAbsolute_proc vec3fAbsolute;
 
 void vec3dFill(double d[3], double v[3]);
 void vec3dFillf(double d[3], float v[3]);
@@ -174,6 +176,7 @@ void vec3fAdd(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 void vec3fSub(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 void vec3fScalarMul(vec3f_ptr d, const vec3f_ptr r, float v);
 void vec3fNegate(vec3f_ptr d, const vec3f_ptr v);
+int vec3fLessThan(const vec3f_ptr v1, const vec3f_ptr v);
 
 void mtx3fCopy(mtx3f_ptr d, const mtx3f_ptr m);
 
@@ -255,6 +258,7 @@ double _vec3dDotProduct_cpu(const vec3d_ptr v1, const vec3d_ptr v2);
 float _vec3fNormalize_cpu(vec3f_ptr d, const vec3f_ptr v);
 double _vec3dNormalize_cpu(vec3d_ptr d, const vec3d_ptr v);
 void _vec3fCrossProduct_cpu(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+void _vec3fAbsolute_cpu(vec3f_ptr d, const vec3f_ptr v);
 
 void _vec4fCopy_cpu(vec4f_ptr d, const vec4f_ptr v);
 void _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m);
