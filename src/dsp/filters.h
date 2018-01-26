@@ -122,7 +122,7 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 #define _FILTER_GET_DATA(P, f)          P->filter[f].data
 #define _FILTER_FREE_DATA(P, f)		if (P->filter[f].destroy) P->filter[f].destroy(P->filter[f].data)
 #define _FILTER_SET(P, f, p, v)         P->filter[f].param[p] = v
-#define _FILTER_SET_STATE(P, f, v)      P->filter[f].state = v;
+#define _FILTER_SET_STATE(P, f, v)      P->filter[f].state = v
 #define _FILTER_SET_DATA(P, f, v)       P->filter[f].data = v
 #define _FILTER_COPY(P1, P2, f, p)      P1->filter[f].param[p] = P2->filter[f].param[p]
 #define _FILTER_COPY_DATA(P1, P2, f)    P1->filter[f].data = P2->filter[f].data

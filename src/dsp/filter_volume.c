@@ -81,9 +81,9 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
    {
       memset(direct_path, 0, sizeof(_aaxRingBufferOcclusionData));
 
-      direct_path->occlusion.v4[0] = filter->slot[1]->param[0];
-      direct_path->occlusion.v4[1] = filter->slot[1]->param[1];
-      direct_path->occlusion.v4[2] = filter->slot[1]->param[2];
+      direct_path->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
+      direct_path->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
+      direct_path->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
       direct_path->occlusion.v4[3] = filter->slot[1]->param[3];
       direct_path->fc = 22000.0f;
 

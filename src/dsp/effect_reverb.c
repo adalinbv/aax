@@ -176,9 +176,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
          if (direct_path)
          {
-            direct_path->occlusion.v4[0] = effect->slot[1]->param[0];
-            direct_path->occlusion.v4[1] = effect->slot[1]->param[1];
-            direct_path->occlusion.v4[2] = effect->slot[1]->param[2];
+            direct_path->occlusion.v4[0] = 0.5f*effect->slot[1]->param[0];
+            direct_path->occlusion.v4[1] = 0.5f*effect->slot[1]->param[1];
+            direct_path->occlusion.v4[2] = 0.5f*effect->slot[1]->param[2];
             direct_path->occlusion.v4[3] = effect->slot[1]->param[3];
             direct_path->fc = 22000.0f;
 

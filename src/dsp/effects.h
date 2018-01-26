@@ -122,7 +122,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_GET_DATA(P, f)          P->effect[f].data
 #define _EFFECT_FREE_DATA(P, f)         if (P->effect[f].destroy) P->effect[f].destroy(P->effect[f].data)
 #define _EFFECT_SET(P, f, p, v)         P->effect[f].param[p] = v
-#define _EFFECT_SET_STATE(P, f, v)      P->effect[f].state = v;
+#define _EFFECT_SET_STATE(P, f, v)      P->effect[f].state = v
 #define _EFFECT_SET_DATA(P, f, v)       P->effect[f].data = v
 #define _EFFECT_COPY(P1, P2, f, p)      \
                                 P1->effect[f].param[p] = P2->effect[f].param[p]
