@@ -351,6 +351,7 @@ _aaxGetSIMDSupportLevel()
       vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse;
       vec3fDotProduct = _vec3fDotProduct_sse;
       vec3fCrossProduct = _vec3fCrossProduct_sse;
+      vec3fAbsolute = _vec3fAbsolute_sse;
       vec4fCopy = _vec4fCopy_sse;
       vec4fMulvec4 = _vec4fMulvec4_sse;
       vec4fMatrix4 = _vec4fMatrix4_sse;
@@ -416,6 +417,7 @@ _aaxGetSIMDSupportLevel()
       vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse_vex;
       vec3fDotProduct = _vec3fDotProduct_sse_vex;
       vec3fCrossProduct = _vec3fCrossProduct_sse_vex;
+      vec3fAbsolute = _vec3fAbsolute_sse_vex;
       vec4fCopy = _vec4fCopy_sse_vex;
       vec4fMulvec4 = _vec4fMulvec4_sse_vex;
       vec4fMatrix4 = _vec4fMatrix4_sse_vex;
