@@ -575,11 +575,12 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             p2d->final.gain_lfo = 1.0f;
          }
 
-         _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-         _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-         _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-         _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+         _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
+         _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
+         _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
+         _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
          _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
+         _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
          break;
       }
       default:
@@ -668,6 +669,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       {
          _aax2dProps *p2d = fmixer->props2d;
          _aax3dProps *p3d = fmixer->props3d;
+         _aaxRingBufferReverbData *reverb;
 
          _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
          _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
@@ -676,11 +678,16 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
          _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
 
-         _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-         _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-         _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-         _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
+         _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 1, 0));
+         _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 1, 1));
+         _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 1, 2));
+         _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 1, 3));
          _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
+
+         reverb = _EFFECT_GET_DATA(p2d, type);
+         if (reverb) {
+            _EFFECT_SET_DATA(p3d, type, reverb->direct_path);
+         }
          break;
       }
       default:
