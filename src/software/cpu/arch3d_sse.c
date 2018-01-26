@@ -79,13 +79,17 @@ _vec3fCrossProduct_sse(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2)
    d->s4 = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3, 0, 2, 1));
 }
 
+FN_PREALIGN void
+_vec3fAbsolute_sse(vec3f_ptr d, const vec3f_ptr v)
+{
+   d->s4 = _mm_andnot_ps(_mm_set1_ps(-0.f), v->s4);
+}
 
 FN_PREALIGN void
 _vec4fCopy_sse(vec4f_ptr d, const vec4f_ptr v)
 {
    d->s4 = v->s4;
 }
-
 
 FN_PREALIGN void
 _vec4fMulvec4_sse(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
