@@ -80,7 +80,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 #else
          mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
 #endif
-#if 0
+#if 1
  printf("!  modifed parent frame:\tframe:\n");
  PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
  printf("!  modified frame\n");
@@ -125,9 +125,10 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    }
 
    /** process possible registered emitters */
-   process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf, fp2d, fp3d,
-                              fdp3d_m, fmixer->emitters_2d, fmixer->emitters_3d,
-                               be, be_handle);
+   process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf,
+                                 fp2d, fp3d, fdp3d_m, pdp3d_m,
+                                 fmixer->emitters_2d, fmixer->emitters_3d,
+                                 be, be_handle);
 
    /** process registered sub-frames */
    if (fprocess && fmixer->frames)

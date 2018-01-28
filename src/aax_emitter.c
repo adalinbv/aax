@@ -584,7 +584,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
             else
             {
                src->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
-               src->props3d->dprops3d->velocity.m4[VELOCITY][3] = 1.0f;
+               src->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
             }
          }
          rv = AAX_TRUE;
