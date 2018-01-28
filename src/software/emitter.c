@@ -321,7 +321,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        */
 #ifdef ARCH32
       mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      vec3fCopy(tmp, edp3d_m->matrix.v34[LOCATION]);
+      vec3fCopy(&tmp, &edp3d_m->matrix.v34[LOCATION]);
 #else
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
