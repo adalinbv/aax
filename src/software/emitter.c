@@ -52,7 +52,8 @@
  */
 char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _aax2dProps *fp2d, _aax3dProps *fp3d,
+                    float ssv, float sdf, _aaxDelayed3dProps *sdp3d_m,
+                    _aax2dProps *fp2d, _aax3dProps *fp3d,
                     _aaxDelayed3dProps *fdp3d_m, _aaxDelayed3dProps *pdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
@@ -63,6 +64,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 
    data.drb = drb;
    data.info = info;
+   data.sdp3d_m = sdp3d_m;
    data.pdp3d_m = pdp3d_m;
    data.fdp3d_m = fdp3d_m;
    data.fp3d = fp3d;
@@ -127,8 +129,9 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             {
                src->state3d |= data->fdp3d_m->state3d;
                data->be->prepare3d(src, data->info, data->ssv, data->sdf,
-                                   data->fp2d->speaker, data->fp3d,
-                                   data->fdp3d_m, data->pdp3d_m);
+                                   data->fp2d->speaker, data->sdp3d_m,
+                                   data->fp3d, data->fdp3d_m, data->pdp3d_m);
+
             }
             src->update_ctr = src->update_rate;
          }
@@ -231,7 +234,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * fdp3d_m: frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m, _aaxDelayed3dProps *pdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps *sdp3d_m, _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m, _aaxDelayed3dProps *pdp3d_m)
 {
    _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
@@ -320,10 +323,18 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * (compensate for the parents direction offset)
        */
 #ifdef ARCH32
-      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      if (_IS_RELATIVE(ep3d)) {
+         mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      } else {
+         mtx4fMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
+      }
       vec3fCopy(&tmp, &edp3d_m->matrix.v34[LOCATION]);
 #else
-      mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      if (_IS_RELATIVE(ep3d)) {
+         mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
+      } else {
+         mtx4dMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
+      }
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #endif
       dist_ef = vec3fNormalize(&epos, &tmp);

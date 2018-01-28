@@ -565,8 +565,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
-                                           NULL, &sp2d, &sp3d, sdp3d, sdp3d_m,
-                                           be, be_handle, fprocess, batched);
+                                    sdp3d_m, NULL, &sp2d, &sp3d, sdp3d, sdp3d_m,
+                                    be, be_handle, fprocess, batched);
                /*
                 * if the final mixer actually did render something,
                 * mix the data.
