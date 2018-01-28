@@ -262,8 +262,8 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
       }
       else
       {
-         fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0;
-         fmixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 1.0;
+         fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+         fmixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0;
       }
       _PROP_MTX_SET_CHANGED(fmixer->props3d);
    }
@@ -758,7 +758,7 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
             if TEST_FOR_TRUE(m) {
                fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
             } else {
-               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
+               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
             }
          }
          break;

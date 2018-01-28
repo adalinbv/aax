@@ -52,8 +52,8 @@
  */
 char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _aax2dProps *fp2d,
-                    _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m,
+                    float ssv, float sdf, _aax2dProps *fp2d, _aax3dProps *fp3d,
+                    _aaxDelayed3dProps *fdp3d_m, _aaxDelayed3dProps *pdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
 {
@@ -63,6 +63,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 
    data.drb = drb;
    data.info = info;
+   data.pdp3d_m = pdp3d_m;
    data.fdp3d_m = fdp3d_m;
    data.fp3d = fp3d;
    data.fp2d = fp2d;
@@ -127,7 +128,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
                src->state3d |= data->fdp3d_m->state3d;
                data->be->prepare3d(src, data->info, data->ssv, data->sdf,
                                    data->fp2d->speaker, data->fp3d,
-                                   data->fdp3d_m);
+                                   data->fdp3d_m, data->pdp3d_m);
             }
             src->update_ctr = src->update_rate;
          }
@@ -230,7 +231,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * fdp3d_m: frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m, _aaxDelayed3dProps *pdp3d_m)
 {
    _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
@@ -320,18 +321,18 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        */
 #ifdef ARCH32
       mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      vec3fFill(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
+      vec3fCopy(tmp, edp3d_m->matrix.v34[LOCATION]);
 #else
       mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #endif
       dist_ef = vec3fNormalize(&epos, &tmp);
 
-#if 0
- printf("# modified parent frame:\n");
- PRINT_MATRIX(fdp3d_m->matrix);
- printf("# modified emitter:\t\temitter:\n");
- PRINT_MATRICES(edp3d_m->matrix, edp3d->matrix);
+#if 1
+ printf("# modified parent frame:\temitter:\n");
+ PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
+ printf("# modified emitter:\n");
+ PRINT_MATRIX(edp3d_m->matrix);
  printf("Note: Frame positions are relative to their parent.\n");
  printf("# dist: %f\n", dist_ef);
 #endif
@@ -400,68 +401,81 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /*
        * Occlusion
        */
-      direct_path = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
-      if (!direct_path) direct_path = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
-      if (direct_path)
+      if (pdp3d_m)
       {
-         vec3f_t vres;
-         float dist_epf;
+         direct_path = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
+         if (!direct_path) direct_path = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
+         if (direct_path)
+         {
+            vec3f_t vres;
 
 #ifdef ARCH32
-         vec3f_t epf, tmp;
+            vec3f_t fpepos, fpevec, pevec;
+            float mag_pev;
 
-         vec3fAdd(&tmp, &fdp3d_m->matrix.v34[LOCATION],
-                        &edp3d_m->matrix.v34[LOCATION]);
-         vec3fNormalize(&epf, &tmp);
+            vec3fSub(&pevec, &pdp3d_m->matrix.v34[LOCATION],
+                             &edp3d_m->matrix.v34[LOCATION]);
+            vec3fNormalize(&pevec, &pevec);
 
-         dist_epf = vec3fDotProduct(&edp3d_m->matrix.v34[LOCATION], &epf);
+            vec3fSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION],
+                              &edp3d_m->matrix.v34[LOCATION]);
 
-         vec3dScalarMul(&epf, &epf, dist_epf);
-         vec3dSub(&vres, &epf, &edp3d_m->matrix.v34[LOCATION]);
+            mag_pev = vec3fDotProduct(&fpevec, &pevec);
+            vec3fScalarMul(&fpevec, &pevec, mag_pev);
 
+            vec3fAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+            vec3fSub(&vres, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
 #else
-         vec3d_t epf, tmp;
+            vec3d_t fpepos, fpevec, pevec;
+            double mag_pev;
 
-         // calculate the parent-frame-to-emitter unit vector.
-         // fdp3d_m specifies the relative position to the parent frame.
-         // edp3d_m specifies the relative position to the current frame.
-         vec3dAdd(&tmp, &fdp3d_m->matrix.v34[LOCATION],
-                        &edp3d_m->matrix.v34[LOCATION]);
-         vec3dNormalize(&epf, &tmp);
+            // calculate the parent_frame-to-emitter unit vector.
+            // pdp3d_m specifies the absolute position of the parent frame.
+            // edp3d_m specifies the absolute position of the emitter.
+            vec3dSub(&pevec, &pdp3d_m->matrix.v34[LOCATION],
+                             &edp3d_m->matrix.v34[LOCATION]);
+            vec3dNormalize(&pevec, &pevec);
 
-         // get the projection length of the frame-to-emitter vector on the
-         // parent-frame-to-emitter unit vector.
-         dist_epf = vec3dDotProduct(&edp3d_m->matrix.v34[LOCATION], &epf);
+            // calculate the frame-to-emitter vector.
+            // fdp3d_m specifies the absolute position of the frame.
+            vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION],
+                              &edp3d_m->matrix.v34[LOCATION]);
 
-         // scale the parent-frame-to-emitter unit vector.
-         vec3dScalarMul(&epf, &epf, dist_epf);
+            // get the projection length of the frame-to-emitter vector on the
+            // parent_frame-to-emitter unit vector.
+            mag_pev = vec3dDotProduct(&fpevec, &pevec);
 
-         // get the vector from the frame position which perpendicular to the
-         // parent-frame-to-emitter vector.
-         vec3dSub(&tmp, &epf, &edp3d_m->matrix.v34[LOCATION]);
-         vec3fFilld(vres.v3, tmp.v3);
+            // scale the parent_frame-to-emitter unit vector.
+            vec3dScalarMul(&fpevec, &pevec, mag_pev);
+
+            // get the vector from the frame position which perpendicular to the
+            // parent_frame-to-emitter vector.
+            vec3dAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+
+            vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+            vec3fFilld(vres.v3, fpevec.v3);
+#endif
+            /*
+             * Squared distance between the emiters parent-frame position
+             * and the line from the emitter to the parents-frame parent-frame
+             * position using Pythagoras.
+             */
+#if 1
+ printf("obstruction dimensions:\t");
+ PRINT_VEC3(direct_path->occlusion.v3);
+ printf("parent_frame-emitter:\t");
+ PRINT_VEC3(vres);
 #endif
 
-         /*
-          * Squared distance between the emiters parent-frame position
-          * and the line from the emitter to the parents-frame parent-frame
-          * position using Pythagoras.
-          */
-#if 0
- printf("\nframe-emitter:\t\t");
- PRINT_VEC3(edp3d_m->matrix.v34[LOCATION]);
- printf("parent-frame-emitter:\t");
- PRINT_VEC3(epf);
-#endif
-
-         vec3fAbsolute(&vres, &vres);
-         if (vec3fLessThan(&vres, &direct_path->occlusion.v3))
-         {
+            vec3fAbsolute(&vres, &vres);
+            if (vec3fLessThan(&vres, &direct_path->occlusion.v3))
+            {
 printf("less\n");
-         }
+            }
 else
 printf("more\n");
-      }
+         } /* direct_path != NULL */
+      } /* pdp3d_m != NULL */
 
       /*
        * Audio cone recalculaion.
