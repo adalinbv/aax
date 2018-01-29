@@ -553,6 +553,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 #endif
 #if 0
  if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
+ printf("modified matrix:\t\tmatrix:\n");
+ PRINT_MATRICES(sdp3d_m->matrix, sdp3d->matrix);
+ }
+#endif
+#if 0
+ if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
  printf("matrix:\t\t\t\tvelocity\n");
  PRINT_MATRICES(sdp3d->matrix, sdp3d->velocity);
  printf("modified velocity\n");

@@ -1274,6 +1274,10 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   mp3d = smixer->props3d;
                   fp3d = fmixer->props3d;
 
+                  if (_IS_RELATIVE(fp3d)) {
+                     fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+                  }
+
                   fmixer->info->period_rate = smixer->info->period_rate;
                   fmixer->info->refresh_rate = smixer->info->refresh_rate;
                   fmixer->info->update_rate = smixer->info->update_rate;

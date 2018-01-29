@@ -184,7 +184,6 @@ typedef struct
 {
    unsigned int id;
 
-   int state;
    unsigned int mixer_pos;
    unsigned int cache_pos;	/* position in the eventmgr emitter cache   */
 
