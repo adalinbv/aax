@@ -184,6 +184,8 @@ _aax3dPropsCreate()
       rv->dprops3d = _aax_aligned_alloc(sizeof(_aaxDelayed3dProps));
       if (rv->dprops3d)
       {
+         _SET_INITIAL(rv);
+
          _aaxSetDefaultDelayed3dProps(rv->dprops3d);
          _aaxSetDefaultDelayed3dProps(rv->m_dprops3d);
 

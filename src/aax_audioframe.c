@@ -74,7 +74,6 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->root = handle->root;
          frame->cache_pos = UINT_MAX;
          frame->mixer_pos = UINT_MAX;
-         _SET_INITIAL(frame);
 
          size = sizeof(_frame_t);
          submix = (_aaxAudioFrame*)((char*)frame + size);
@@ -218,6 +217,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
    if (rv)
    {
       _aaxAudioFrame* fmixer = handle->submix;
+      _aax3dProps *fp3d = fmixer->props3d;
       if (handle->parent)
       {
          if (handle->parent == handle->root)
@@ -228,10 +228,10 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
 #ifdef ARCH32
-               mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+               mtx4fCopy(&fp3d->m_dprops3d->matrix,
                          &sensor->mixer->props3d->m_dprops3d->matrix);
 #else
-               mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
+               mtx4dCopy(&fp3d->m_dprops3d->matrix,
                          &sensor->mixer->props3d->m_dprops3d->matrix);
 #endif
                _intBufReleaseData(dptr, _AAX_SENSOR);
@@ -241,29 +241,24 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
          {
             _frame_t *parent = handle->parent;
 #ifdef ARCH32
-            mtx4fCopy(&fmixer->props3d->m_dprops3d->matrix,
+            mtx4fCopy(&fp3d->m_dprops3d->matrix,
                       &parent->submix->props3d->m_dprops3d->matrix);
 #else
-            mtx4dCopy(&fmixer->props3d->m_dprops3d->matrix,
+            mtx4dCopy(&fp3d->m_dprops3d->matrix,
                       &parent->submix->props3d->m_dprops3d->matrix);
 #endif
          }
       }
 
 #ifdef ARCH32
-      mtx4fFilld(fmixer->props3d->dprops3d->matrix.m4, mtx64);
+      mtx4fFilld(fp3d->dprops3d->matrix.m4, mtx64);
 #else
-      mtx4dFill(fmixer->props3d->dprops3d->matrix.m4, mtx64);
+      mtx4dFill(fp3d->dprops3d->matrix.m4, mtx64);
 #endif
-      if (_IS_RELATIVE(handle))
+      if (handle->parent && (handle->parent == handle->root) &&
+         _IS_RELATIVE(fp3d))
       {
-         fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
-         fmixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0;
-      }
-      else
-      {
-         fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
-         fmixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0;
+         fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
       }
       _PROP_MTX_SET_CHANGED(fmixer->props3d);
    }
@@ -737,29 +732,23 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 
    if (rv)
    {
-      _aaxAudioFrame* fmixer = handle->submix;
+      _aax3dProps *fp3d = handle->submix->props3d;
       switch(type)
       {
       case AAX_POSITION:
          if (mode & AAX_INDOOR)
          {
-            _aax3dProps *p3d = handle->submix->props3d;
-            _PROP_INDOOR_SET_DEFINED(p3d);
+            _PROP_INDOOR_SET_DEFINED(fp3d);
             if (mode == AAX_INDOOR) mode = AAX_ABSOLUTE;
             else mode &= ~AAX_INDOOR;
          }
 
          m = (mode != AAX_STEREO) ? AAX_TRUE : AAX_FALSE;
-         _TAS_POSITIONAL(handle, m);
+         _TAS_POSITIONAL(fp3d, m);
          if TEST_FOR_TRUE(m)
          {
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
-            _TAS_RELATIVE(handle, m);
-            if TEST_FOR_TRUE(m) {
-               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
-            } else {
-               fmixer->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
-            }
+            _TAS_RELATIVE(fp3d, m);
          }
          break;
       default:
@@ -782,11 +771,11 @@ aaxAudioFrameGetMode(const aaxFrame frame, enum aaxModeType type)
    {
    case AAX_POSITION:
    {
-      _aax3dProps *p3d = handle->submix->props3d;
-      if (_IS_POSITIONAL(handle)) {
-         rv = _IS_RELATIVE(handle) ? AAX_RELATIVE : AAX_ABSOLUTE;
+      _aax3dProps *fp3d = handle->submix->props3d;
+      if (_IS_POSITIONAL(fp3d)) {
+         rv = _IS_RELATIVE(fp3d) ? AAX_RELATIVE : AAX_ABSOLUTE;
       }
-      if (_PROP_INDOOR_IS_DEFINED(p3d)) rv |= AAX_INDOOR;
+      if (_PROP_INDOOR_IS_DEFINED(fp3d)) rv |= AAX_INDOOR;
       break;
    }
    default:
@@ -1283,28 +1272,29 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
    int rv = AAX_FALSE;
    if (handle)
    {
+      _aax3dProps *fp3d = handle->submix->props3d;
       switch (state)
       {
       case AAX_UPDATE:
          rv = _aaxAudioFrameUpdate(handle);
          break;
       case AAX_SUSPENDED:
-         _SET_PAUSED(handle);
+         _SET_PAUSED(fp3d);
          rv = AAX_TRUE;
          break;
       case AAX_STANDBY:
-         _SET_STANDBY(handle);
+         _SET_STANDBY(fp3d);
          rv = AAX_TRUE;
          break;
       case AAX_PLAYING:
          put_frame(frame);
          rv = _aaxAudioFrameStart(handle);
          handle = get_frame(frame, __func__);
-         if (rv) _SET_PLAYING(handle);
+         if (rv) _SET_PLAYING(fp3d);
          break;
       case AAX_STOPPED:
          rv = _aaxAudioFrameStop(handle);
-         if (rv) _SET_PROCESSED(handle);
+         if (rv) _SET_PROCESSED(fp3d);
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1594,16 +1584,18 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
 static int
 _aaxAudioFrameStart(_frame_t *frame)
 {
+   _aax3dProps *fp3d;
    int rv = AAX_FALSE;
 
    assert(frame);
 
-   if (_IS_INITIAL(frame) || _IS_PROCESSED(frame))
+   fp3d = frame->submix->props3d;
+   if (_IS_INITIAL(fp3d) || _IS_PROCESSED(fp3d))
    {
       frame->submix->capturing = AAX_TRUE;
       rv = AAX_TRUE;
    }
-   else if _IS_STANDBY(frame) {
+   else if _IS_STANDBY(fp3d) {
       rv = AAX_TRUE;
    }
    return rv;

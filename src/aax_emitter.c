@@ -576,16 +576,6 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          {
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
             _TAS_RELATIVE(src->props3d, m);
-            if TEST_FOR_TRUE(m)
-            {
-               src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0f;
-               src->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
-            }
-            else
-            {
-               src->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0f;
-               src->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
-            }
          }
          rv = AAX_TRUE;
          break;
@@ -654,11 +644,6 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
 #else
       mtx4dFill(src->props3d->dprops3d->matrix.m4, mtx64);
 #endif
-      if (_IS_RELATIVE(src->props3d)) {
-         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
-      } else {
-         src->props3d->dprops3d->matrix.m4[LOCATION][3] = 1.0;
-      }
       _PROP_MTX_SET_CHANGED(src->props3d);
    }
    put_emitter(handle);
