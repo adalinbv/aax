@@ -122,12 +122,22 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             _emitterCreateEFFromAAXS(emitter, embuf, embuf->aaxs);
          }
 
+         if (_PROP3D_MTXSPEED_HAS_CHANGED(data->fdp3d_m))
+         {
+            if (_PROP3D_MTX_HAS_CHANGED(data->fdp3d_m)) {
+               _PROP3D_MTX_SET_CHANGED(src->props3d->dprops3d);
+            }
+            if (_PROP3D_SPEED_HAS_CHANGED(data->fdp3d_m)) {
+               _PROP3D_SPEED_SET_CHANGED(src->props3d->dprops3d);
+            }
+         }
+
          ctr = --src->update_ctr;
-         if (ctr == 0)
+         // TODO: delayed updates causes emitter/frame status mismatch.
+         if (1) // ctr == 0)
          {
             if (stage == 2)
             {
-               src->state3d |= data->fdp3d_m->state3d;
                data->be->prepare3d(src, data->info, data->ssv, data->sdf,
                                    data->fp2d->speaker, data->sdp3d_m,
                                    data->fp3d, data->fdp3d_m, data->pdp3d_m);
@@ -300,9 +310,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    assert(distfn);
 
    /* only update when the matrix and/or the velocity vector has changed */
-   if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
-       _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m) || 
-       _PROP3D_MTXSPEED_HAS_CHANGED(src))
+   if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d))
    {
       vec3f_t epos, tmp;
       _aaxRingBufferOcclusionData *direct_path;
@@ -314,9 +322,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
       _PROP3D_MTX_CLEAR_CHANGED(edp3d);
-
-      _PROP3D_SPEED_CLEAR_CHANGED(src);
-      _PROP3D_MTX_CLEAR_CHANGED(src);
 
       /**
        * align the emitter with the parent frame.
@@ -339,12 +344,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 #endif
       dist_ef = vec3fNormalize(&epos, &tmp);
 
-#if 1
+#if 0
  printf("# modified parent frame:\temitter:\n");
- PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
+ if (_IS_RELATIVE(ep3d)) { PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix); }
+ else { PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix); }
  printf("# modified emitter:\n");
  PRINT_MATRIX(edp3d_m->matrix);
- printf("Note: Frame positions are relative to their parent.\n");
  printf("# dist: %f\n", dist_ef);
 #endif
 
@@ -440,8 +445,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             vec3d_t fpepos, fpevec, pevec;
             double mag_pev;
 
-            // calculate the parent_frame-to-emitter unit vector.
-            // pdp3d_m specifies the absolute position of the parent frame.
+            // calculate the sensor-to-emitter unit vector.
+            // pdp3d_m specifies the absolute position of the parent_frame.
             // edp3d_m specifies the absolute position of the emitter.
             vec3dSub(&pevec, &pdp3d_m->matrix.v34[LOCATION],
                              &edp3d_m->matrix.v34[LOCATION]);
@@ -453,14 +458,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                               &edp3d_m->matrix.v34[LOCATION]);
 
             // get the projection length of the frame-to-emitter vector on the
-            // parent_frame-to-emitter unit vector.
+            // sensor-to-emitter unit vector.
             mag_pev = vec3dDotProduct(&fpevec, &pevec);
 
-            // scale the parent_frame-to-emitter unit vector.
+            // scale the sensor-to-emitter unit vector.
             vec3dScalarMul(&fpevec, &pevec, mag_pev);
 
             // get the vector from the frame position which perpendicular to the
-            // parent_frame-to-emitter vector.
+            // sensor-to-emitter vector.
             vec3dAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
 
             vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
@@ -474,7 +479,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 #if 1
  printf("obstruction dimensions:\t");
  PRINT_VEC3(direct_path->occlusion.v3);
- printf("parent_frame-emitter:\t");
+ printf("sensor-emitter:\t");
  PRINT_VEC3(vres);
 #endif
 

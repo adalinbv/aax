@@ -72,48 +72,57 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    char process;
 
    /* update the model-view matrix based on our own and that of out parent */
+   /* pdp3d_m == NULL means this is the sensor frame so no math there.     */
    if (pdp3d_m)
    {
-      if (_PROP3D_MTX_HAS_CHANGED(pdp3d_m) || _PROP3D_MTX_HAS_CHANGED(fdp3d_m))
+      if (_PROP3D_MTX_HAS_CHANGED(fdp3d_m) ||
+          _PROP3D_MTX_HAS_CHANGED(pdp3d_m))
       {
+         if (_IS_RELATIVE(fp3d))
+         {
 #ifdef ARCH32
-         if (_IS_RELATIVE(fp3d)) {
             mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
-         } else {
-            mtx4fMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
-         }
 #else
-         if (_IS_RELATIVE(fp3d)) {
             mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
-         } else {
-            mtx4dMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
-         }
 #endif
-#if 1
+         }
+         else
+         {
+#ifdef ARCH32
+            mtx4fMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
+#else
+            mtx4dMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
+#endif
+         }
+         _PROP3D_MTX_SET_CHANGED(fdp3d_m);
+#if 0
  printf("!  modifed parent frame:\tframe:\n");
- PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
- printf("!  modified frame\n");
+ if (_IS_RELATIVE(fp3d)) { PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix); }
+ else { PRINT_MATRICES(sdp3d_m->matrix, fdp3d->matrix); }
+ printf("!  modified frame:\n");
  PRINT_MATRIX(fdp3d_m->matrix);
 #endif
-
-         _PROP3D_MTX_CLEAR_CHANGED(pdp3d_m);
-         _PROP3D_MTX_SET_CHANGED(fdp3d_m);
       }
 
-      if (_PROP3D_MTXSPEED_HAS_CHANGED(pdp3d_m) ||
-          _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
+      if (_PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m) ||
+          _PROP3D_MTXSPEED_HAS_CHANGED(pdp3d_m))
       {
-         mtx4fMul(&fdp3d_m->velocity, &pdp3d_m->velocity, &fdp3d->velocity);
-
+          mtx4fMul(&fdp3d_m->velocity, &pdp3d_m->velocity, &fdp3d->velocity);
+         _PROP3D_SPEED_SET_CHANGED(fdp3d_m);
 #if 0
  printf("parent velocity:\t\t\tframe velocity:\n");
  PRINT_MATRICES(pdp3d_m->velocity, fdp3d->velocity);
  printf("modified frame velocity\n");
  PRINT_MATRIX(fdp3d_m->velocity);
 #endif
-
-
-         _PROP3D_SPEED_CLEAR_CHANGED(pdp3d_m);
+      }
+   }
+   else
+   {
+      if (_PROP3D_MTX_HAS_CHANGED(sdp3d_m)) {
+         _PROP3D_MTX_SET_CHANGED(fdp3d_m);
+      }
+      if (_PROP3D_SPEED_HAS_CHANGED(sdp3d_m)) {
          _PROP3D_SPEED_SET_CHANGED(fdp3d_m);
       }
    }
@@ -360,7 +369,6 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       sfdp3d_m->state3d = sfdp3d->state3d;
       sfdp3d_m->pitch = sfdp3d->pitch;
       sfdp3d_m->gain = sfdp3d->gain;
-      _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
 
       /* read-only data */
@@ -405,6 +413,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          if (!_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
             mtx4fCopy(&m_sfdp3d->velocity, &sfdp3d_m->velocity);
          }
+         _PROP_CLEAR(sfmixer->props3d);
          _intBufReleaseData(dptr, _AAX_FRAME);
 
          /* finally mix the data with dest_rb */
@@ -416,7 +425,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             vec3f_t tmp;
 
 #ifdef ARCH32
-            vec3fFill(tmp.v3, sfdp3d_m->matrix.v34[LOCATION].v3);
+            vec3fCopy(&tmp, &sfdp3d_m->matrix.v34[LOCATION]);
 #else
             vec3fFilld(tmp.v3, sfdp3d_m->matrix.v34[LOCATION].v3);
 #endif

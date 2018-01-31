@@ -149,7 +149,7 @@ enum
 #define _PROP3D_DIST_CLEAR_CHANGED(q)   ((q)->state3d &= ~DIST_CHANGED)
 #define _PROP3D_MTX_CLEAR_CHANGED(q)    ((q)->state3d &= ~MTX_CHANGED)
 #define _PROP3D_SPEED_CLEAR_CHANGED(q)  ((q)->state3d &= ~SPEED_CHANGED)
-
+#define _PROP3D_MTXSPEED_CLEAR_CHANGED(q) ((q)->state3d &= ~(SPEED_CHANGED|MTX_CHANGED))
 
 #define _PROP3D_CONE_IS_DEFINED(q)      ((q)->state3d & CONE_DEFINED)
 #define _PROP3D_INDOOR_IS_DEFINED(q)    ((q)->state3d & INDOOR_DEFINED)
@@ -400,25 +400,12 @@ typedef struct
 
    _intBuffers *p3dq;			/* 3d properties delay queue     */
    _intBuffers *buffers;		/* audio buffer queue            */
-   unsigned int buffer_pos;			/* audio buffer queue pos        */
+   unsigned int buffer_pos;		/* audio buffer queue pos        */
 
-   int state3d;	/* backup of parent's state needed inbetween update_ctr  */
    uint8_t update_rate;
    uint8_t update_ctr;
 
    float curr_pos_sec;
-
-#if 0
-   /* delay effects */
-   struct {
-      char enabled;
-      float pre_delay_time;
-      float reflection_time;
-      float reflection_factor;
-      float decay_time;
-      float decay_time_hf;
-   } reverb;
-#endif
 
    int32_t history[_AAX_MAX_SPEAKERS][4];	// 4 = CUBIC_SAMPS
 
