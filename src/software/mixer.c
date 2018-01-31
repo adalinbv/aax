@@ -523,9 +523,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   _aax_memcpy(&sp3d, smixer->props3d, sizeof(_aax3dProps));
                   _aax_memcpy(sdp3d, smixer->props3d->dprops3d,
                                       sizeof(_aaxDelayed3dProps));
-                  sdp3d_m->state3d = sdp3d->state3d;
-                  sdp3d_m->pitch = sdp3d->pitch;
-                  sdp3d_m->gain = sdp3d->gain;
                   _PROP_CLEAR(smixer->props3d);
                   _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                }
@@ -535,14 +532,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                           2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
 
-// TODO: only update when necessary
 #ifdef ARCH32
                /* update the modified properties */
                mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
-
-               mtx4fFill(tmp.m4, sdp3d->velocity.m4);
-               mtx4fMul(&tmp2, &sdp3d->matrix, &tmp);
-               mtx4fFill(sdp3d_m->velocity.m4, tmp2.m4);
+               mtx4fMul(&sdp3d_m->velocity, &sdp3d->matrix, &sdp3d->velocity);
 #else
                /* update the modified properties */
                mtx4dCopy(&sdp3d_m->matrix, &sdp3d->matrix);
@@ -551,6 +544,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                mtx4dMul(&tmp2, &sdp3d->matrix, &tmp);
                mtx4fFilld(sdp3d_m->velocity.m4, tmp2.m4);
 #endif
+               sdp3d_m->state3d = sdp3d->state3d;
+               sdp3d_m->pitch = sdp3d->pitch;
+               sdp3d_m->gain = sdp3d->gain;
 #if 0
  if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
  printf("modified matrix:\t\tmatrix:\n");
