@@ -1,8 +1,8 @@
-* Tue Jan 18 2018 - tech@adalin.org
+* Wed Jan 31 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=low
- * Increase the http stream timeout value. The default was just too low.
- * Add the option to define the properties of the direct path of reverb.
- * Add the option to regeister the reverb effect to audio-frames.
+ * Add the option to define occlusion object parameters to the volume-filter
+   and reverb-effect, which will influence the direct path of the sound.
+ * Add the option to register the reverb effect to audio-frames.
    Due to memory considerations they only support up to large room sizes,
    any reflection beyond that will be ignored.
  * Add the option to define audio-frames as indoor by setting AAX_POSITION
@@ -13,8 +13,13 @@
    to simulate the properties of the room section defined by the audio-frame.
    By specifying the audio-frame indoor sound will not become directional until
    it arives at the same scene as the listener.
+ * Harden the matrix multiplication code so it will be more correct in more
+   situations. A smaller update-rate than the refresh-rate could cause emitter
+   and parent-frame data to be out of sync. Also absolute positions are handled
+   better now.
+ * Increase the http stream timeout value. The default was just too low.
 
--- Erik Hofman <tech@adalin.org>  Fri 05 Jan  2018 13:57:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Wed 31 Jan  2018 14:25:00 + 0100
 
 
 * Fri Jan 05  2018 - tech@adalin.org
