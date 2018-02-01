@@ -258,19 +258,9 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 
       if (_IS_RELATIVE(fp3d))
       {
-         _frame_t *parent;
-
          if (handle->parent && (handle->parent == handle->root)) {
             fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
          }
-
-         parent = handle->parent;
-         while ((void*)parent != handle->root)
-         {
-            handle = parent;
-            parent = handle->parent;
-         }
-         _PROP_MTX_SET_CHANGED(handle->submix->props3d);
       }
       _PROP_MTX_SET_CHANGED(fmixer->props3d);
    }
