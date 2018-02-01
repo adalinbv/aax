@@ -400,17 +400,16 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                                               sfmixer->frame_ringbuffers, dde);
 
          /* copy back the altered sfdp3d matrix and velocity vector */
-         /* beware, they might have been altered in the mean time! */
          dptr = _intBufGet(hf, _AAX_FRAME, i);
          m_sfdp3d = sfmixer->props3d->m_dprops3d;
-         if (!_PROP_MTX_HAS_CHANGED(sfmixer->props3d)) {
+         if (_PROP_MTX_HAS_CHANGED(sfmixer->props3d)) {
 #ifdef ARCH32
             mtx4fCopy(&m_sfdp3d->matrix, &sfdp3d_m->matrix);
 #else
             mtx4dCopy(&m_sfdp3d->matrix, &sfdp3d_m->matrix);
 #endif
          }
-         if (!_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
+         if (_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
             mtx4fCopy(&m_sfdp3d->velocity, &sfdp3d_m->velocity);
          }
          _PROP_CLEAR(sfmixer->props3d);
