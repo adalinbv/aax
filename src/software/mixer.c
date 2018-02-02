@@ -491,22 +491,12 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
             smixer = sensor->mixer;
             if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
             {
-               _aaxDelayed3dProps *sdp3d, *sdp3d_m;
+               _aaxDelayed3dProps sdp3d, *sdp3d_m;
                _aax2dProps sp2d;
                _aax3dProps sp3d;
-#ifdef ARCH32
-               mtx4f_t tmp, tmp2;
-#else
-               mtx4d_t tmp, tmp2;
-#endif
                char fprocess = AAX_TRUE;
                float ssv = 343.3f;
                float sdf = 1.0f;
-               size_t size;
-
-               size = sizeof(_aaxDelayed3dProps);
-               sdp3d = _aax_aligned_alloc(size);
-               sdp3d_m = _aax_aligned_alloc(size);
 
                /**
                 * copying here prevents locking the listener the whole time
@@ -521,8 +511,13 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                   _aax_memcpy(&sp2d, smixer->props2d, sizeof(_aax2dProps));
                   _aax_memcpy(&sp3d, smixer->props3d, sizeof(_aax3dProps));
-                  _aax_memcpy(sdp3d, smixer->props3d->dprops3d,
+                  _aax_memcpy(&sdp3d, smixer->props3d->dprops3d,
                                       sizeof(_aaxDelayed3dProps));
+                  sdp3d_m = smixer->props3d->m_dprops3d;
+                  if (_PROP3D_MTX_HAS_CHANGED(smixer->props3d->dprops3d)) {
+                     _aax_memcpy(sdp3d_m, smixer->props3d->dprops3d,
+                                 sizeof(_aaxDelayed3dProps));
+                  }
                   _PROP_CLEAR(smixer->props3d);
                   _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
                }
@@ -531,34 +526,16 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                _aax_memcpy(&sp2d.speaker, handle->info->speaker,
                                           2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
-
-#ifdef ARCH32
-               /* update the modified properties */
-               mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
-               mtx4fMul(&sdp3d_m->velocity, &sdp3d->matrix, &sdp3d->velocity);
-#else
-               /* update the modified properties */
-               mtx4dCopy(&sdp3d_m->matrix, &sdp3d->matrix);
-
-               mtx4dFillf(tmp.m4, sdp3d->velocity.m4);
-               mtx4dMul(&tmp2, &sdp3d->matrix, &tmp);
-               mtx4fFilld(sdp3d_m->velocity.m4, tmp2.m4);
-#endif
-               sdp3d_m->state3d = sdp3d->state3d;
-               sdp3d_m->pitch = sdp3d->pitch;
-               sdp3d_m->gain = sdp3d->gain;
 #if 0
- if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
- printf("modified matrix:\t\tmatrix:\n");
- PRINT_MATRICES(sdp3d_m->matrix, sdp3d->matrix);
+ if (_PROP3D_MTX_HAS_CHANGED(sdp3d_m)) {
+  printf("modified sensor matrix:\n");
+  PRINT_MATRIX(sdp3d_m->matrix);
  }
 #endif
 #if 0
- if (_PROP3D_MTXSPEED_HAS_CHANGED(sdp3d_m)) {
- printf("matrix:\t\t\t\tvelocity\n");
- PRINT_MATRICES(sdp3d->matrix, sdp3d->velocity);
- printf("modified velocity\n");
- PRINT_MATRIX(sdp3d_m->velocity);
+ if (_PROP3D_SPEED_HAS_CHANGED(sdp3d_m)) {
+  printf("modified velocity:\tmatrix:\n");
+  PRINT_MATRICES(sdp3d_m->velocity, sdp3d_m->matrix);
  }
 #endif
                /* clear the buffer for use by the subframe */
@@ -567,8 +544,10 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
-                                    sdp3d_m, NULL, &sp2d, &sp3d, sdp3d, sdp3d_m,
-                                    be, be_handle, fprocess, batched);
+                                   sdp3d_m, NULL, sdp3d_m, &sdp3d, &sp2d, &sp3d,
+                                   be, be_handle, fprocess, batched);
+               _PROP3D_CLEAR(smixer->props3d->m_dprops3d);
+
                /*
                 * if the final mixer actually did render something,
                 * mix the data.
@@ -579,8 +558,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                            smixer->capturing, sensor,
                                            be, be_handle, fbe, fbe_handle,
                                            batched);
-               _aax_aligned_free(sdp3d);
-               _aax_aligned_free(sdp3d_m);
 
                if (handle->file.driver)
                {

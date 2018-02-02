@@ -576,6 +576,12 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          {
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
             _TAS_RELATIVE(src->props3d, m);
+            if (_IS_RELATIVE(src->props3d))
+            {
+               if (handle->parent && (handle->parent == handle->root)) {
+                  src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+               }
+            }
          }
          rv = AAX_TRUE;
          break;
@@ -639,12 +645,20 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
    if (rv)
    {
       _aaxEmitter *src = handle->source;
+      _aax3dProps *ep3d = src->props3d;
+      _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
 #ifdef ARCH32
-      mtx4fFilld(src->props3d->dprops3d->matrix.m4, mtx64);
+      mtx4fFilld(edp3d->matrix.m4, mtx64);
 #else
-      mtx4dFill(src->props3d->dprops3d->matrix.m4, mtx64);
+      mtx4dFill(edp3d->matrix.m4, mtx64);
 #endif
-      _PROP_MTX_SET_CHANGED(src->props3d);
+      if (_IS_RELATIVE(ep3d))
+      {
+         if (handle->parent && (handle->parent == handle->root)) {
+            edp3d->matrix.m4[LOCATION][3] = 0.0;
+         }
+      }
+      _PROP_MTX_SET_CHANGED(ep3d);
    }
    put_emitter(handle);
 
