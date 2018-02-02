@@ -61,10 +61,10 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                       float ssv, float sdf,
                       _aaxDelayed3dProps *sdp3d_m,
                       _aaxDelayed3dProps *pdp3d_m,
+                      _aaxDelayed3dProps *fdp3d_m,
+                      _aaxDelayed3dProps *fdp3d,
                       _aax2dProps *fp2d,
                       _aax3dProps *fp3d,
-                      _aaxDelayed3dProps *fdp3d,
-                      _aaxDelayed3dProps *fdp3d_m,
                       const _aaxDriverBackend *be, void *be_handle,
                       char fprocess, char batched)
 {
@@ -75,36 +75,28 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    /* pdp3d_m == NULL means this is the sensor frame so no math there.     */
    if (pdp3d_m)
    {
-      if (_PROP3D_MTX_HAS_CHANGED(fdp3d_m) ||
+      if (!_IS_RELATIVE(fp3d)) {
+         pdp3d_m = sdp3d_m;
+      }
+
+      if (_PROP3D_MTX_HAS_CHANGED(fdp3d) ||
           _PROP3D_MTX_HAS_CHANGED(pdp3d_m))
       {
-         if (_IS_RELATIVE(fp3d))
-         {
 #ifdef ARCH32
-            mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+         mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
 #else
-            mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+         mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
 #endif
-         }
-         else
-         {
-#ifdef ARCH32
-            mtx4fMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
-#else
-            mtx4dMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
-#endif
-         }
          _PROP3D_MTX_SET_CHANGED(fdp3d_m);
 #if 0
  printf("!  modifed parent frame:\tframe:\n");
- if (_IS_RELATIVE(fp3d)) { PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix); }
- else { PRINT_MATRICES(sdp3d_m->matrix, fdp3d->matrix); }
+ PRINT_MATRICES(pdp3d_m->matrix, fdp3d->matrix);
  printf("!  modified frame:\n");
  PRINT_MATRIX(fdp3d_m->matrix);
 #endif
       }
 
-      if (_PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m) ||
+      if (_PROP3D_MTXSPEED_HAS_CHANGED(fdp3d) ||
           _PROP3D_MTXSPEED_HAS_CHANGED(pdp3d_m))
       {
           mtx4fMul(&fdp3d_m->velocity, &pdp3d_m->velocity, &fdp3d->velocity);
@@ -117,15 +109,17 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 #endif
       }
    }
+#if 0
    else
    {
       if (_PROP3D_MTX_HAS_CHANGED(sdp3d_m)) {
-         _PROP3D_MTX_SET_CHANGED(fdp3d_m);
+         _PROP3D_MTX_SET_CHANGED(fdp3d);
       }
       if (_PROP3D_SPEED_HAS_CHANGED(sdp3d_m)) {
-         _PROP3D_SPEED_SET_CHANGED(fdp3d_m);
+         _PROP3D_SPEED_SET_CHANGED(fdp3d);
       }
    }
+#endif
 
    lfo = _EFFECT_GET_DATA(fp2d, DYNAMIC_PITCH_EFFECT);
    if (lfo)
@@ -334,42 +328,37 @@ static char
 _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                      _aaxDelayed3dProps *sdp3d_m, _aax2dProps *fp2d,
                      _aaxDelayed3dProps *fdp3d_m,
-                    _intBuffers *hf, unsigned int i, float ssv, float sdf,
+                    _intBuffers *hf, unsigned int pos, float ssv, float sdf,
                     const _aaxDriverBackend *be, void *be_handle, char batched)
 {
    char process = AAX_FALSE;
    _intBufferData *dptr;
 
-   dptr = _intBufGet(hf, _AAX_FRAME, i);
+   dptr = _intBufGet(hf, _AAX_FRAME, pos);
    if (dptr)
    {
       _aaxRingBuffer *frame_rb = fmixer->ringbuffer;
       _frame_t* subframe = _intBufGetDataPtr(dptr);
       _aaxAudioFrame *sfmixer = subframe->submix;
-      _aaxDelayed3dProps *sfdp3d_m;
-      _aaxDelayed3dProps *sfdp3d;
+      _aaxDelayed3dProps sfdp3d, *sfdp3d_m;
       _aax2dProps sfp2d;
       _aax3dProps sfp3d;
-      size_t size;
       int res;
-
-      size = sizeof(_aaxDelayed3dProps);
-      sfdp3d = _aax_aligned_alloc(size);
-      sfdp3d_m = _aax_aligned_alloc(size);
 
       _aaxAudioFrameProcessDelayQueue(sfmixer);
 
       _aax_memcpy(&sfp2d, sfmixer->props2d, sizeof(_aax2dProps));
       _aax_memcpy(&sfp3d, sfmixer->props3d, sizeof(_aax3dProps));
-      _aax_memcpy(sfdp3d, sfmixer->props3d->dprops3d,
+      _aax_memcpy(&sfdp3d, sfmixer->props3d->dprops3d,
                            sizeof(_aaxDelayed3dProps));
-      _aax_memcpy(sfdp3d_m, sfmixer->props3d->m_dprops3d,
-                             sizeof(_aaxDelayed3dProps));
-
-      sfdp3d_m->state3d = sfdp3d->state3d;
-      sfdp3d_m->pitch = sfdp3d->pitch;
-      sfdp3d_m->gain = sfdp3d->gain;
+      sfdp3d_m = sfmixer->props3d->m_dprops3d;
+      if (_PROP3D_MTX_HAS_CHANGED(sfmixer->props3d->dprops3d)) {
+         _aax_memcpy(sfdp3d_m, sfmixer->props3d->dprops3d,
+                              sizeof(_aaxDelayed3dProps));
+      }
+      _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
+
 
       /* read-only data */
       _aax_memcpy(&sfp2d.speaker, fp2d->speaker,
@@ -385,36 +374,19 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
        * dest_rb, this could potentialy save a lot of ringbuffers
        */
       res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
-                             sdp3d_m, fdp3d_m, &sfp2d, &sfp3d, sfdp3d, sfdp3d_m,
-                             be, be_handle, AAX_TRUE, batched);
+                            sdp3d_m, fdp3d_m, sfdp3d_m, &sfdp3d, &sfp2d, &sfp3d,
+                            be, be_handle, AAX_TRUE, batched);
+      _PROP3D_CLEAR(sfmixer->props3d->m_dprops3d);
 
       /* if the subframe actually did render something, mix the data */
       if (res)
       {
          unsigned int parent_indoor, frame_indoor;
-         _aaxDelayed3dProps *m_sfdp3d;
          char dde;
 
          dde = _EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) ? AAX_TRUE : AAX_FALSE;
          fmixer->ringbuffer = _aaxAudioFrameSwapBuffers(frame_rb,
                                               sfmixer->frame_ringbuffers, dde);
-
-         /* copy back the altered sfdp3d matrix and velocity vector */
-         /* beware, they might have been altered in the mean time! */
-         dptr = _intBufGet(hf, _AAX_FRAME, i);
-         m_sfdp3d = sfmixer->props3d->m_dprops3d;
-         if (!_PROP_MTX_HAS_CHANGED(sfmixer->props3d)) {
-#ifdef ARCH32
-            mtx4fCopy(&m_sfdp3d->matrix, &sfdp3d_m->matrix);
-#else
-            mtx4dCopy(&m_sfdp3d->matrix, &sfdp3d_m->matrix);
-#endif
-         }
-         if (!_PROP_SPEED_HAS_CHANGED(sfmixer->props3d)) {
-            mtx4fCopy(&m_sfdp3d->velocity, &sfdp3d_m->velocity);
-         }
-         _PROP_CLEAR(sfmixer->props3d);
-         _intBufReleaseData(dptr, _AAX_FRAME);
 
          /* finally mix the data with dest_rb */
          parent_indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m);
@@ -443,9 +415,6 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
 
          process = AAX_TRUE;
       }
-
-      _aax_aligned_free(sfdp3d);
-      _aax_aligned_free(sfdp3d_m);
    }
 
    return process;

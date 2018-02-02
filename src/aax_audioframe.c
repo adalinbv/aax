@@ -332,7 +332,6 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
       dp3d = handle->submix->props3d->dprops3d;
       vec3fFill(dp3d->velocity.m4[VELOCITY], velocity);
       _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
    put_frame(frame);
 
@@ -761,6 +760,12 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
          {
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
             _TAS_RELATIVE(fp3d, m);
+            if (_IS_RELATIVE(fp3d))
+            {
+               if (handle->parent && (handle->parent == handle->root)) {
+                  fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+               }
+            }
          }
          break;
       default:

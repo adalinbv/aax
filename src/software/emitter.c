@@ -122,16 +122,6 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             _emitterCreateEFFromAAXS(emitter, embuf, embuf->aaxs);
          }
 
-         if (_PROP3D_MTXSPEED_HAS_CHANGED(data->fdp3d_m))
-         {
-            if (_PROP3D_MTX_HAS_CHANGED(data->fdp3d_m)) {
-               _PROP3D_MTX_SET_CHANGED(src->props3d->dprops3d);
-            }
-            if (_PROP3D_SPEED_HAS_CHANGED(data->fdp3d_m)) {
-               _PROP3D_SPEED_SET_CHANGED(src->props3d->dprops3d);
-            }
-         }
-
          ctr = --src->update_ctr;
          // TODO: delayed updates causes emitter/frame status mismatch.
          if (1) // ctr == 0)
@@ -179,7 +169,8 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             else
             {
                assert(!_IS_POSITIONAL(src->props3d));
-               res = drb->mix2d(drb, srb, data->info, ep2d, data->fp2d, ctr, src->history);
+               res = drb->mix2d(drb, srb, data->info, ep2d, data->fp2d,  ctr,
+                                          src->history);
             }
 
             /*
@@ -262,14 +253,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    edp3d_m = ep3d->m_dprops3d;
    ep2d = src->props2d;
 
-   /* get pitch and gain before it is pushed to the delay queue */
+   /* aplly pitch and gain before it is pushed to the delay queue */
    edp3d->pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
    edp3d->gain = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
 
    // _aaxEmitterProcessDelayQueue
    if (_PROP3D_DISTQUEUE_IS_DEFINED(edp3d))
    {
-      _aaxDelayed3dProps *sdp3d = NULL;
+      _aaxDelayed3dProps *ndp3d = NULL;
       _intBufferData *buf3dq;
       float pos3dq;
 
@@ -287,7 +278,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                buf3dq = _intBufPop(src->p3dq, _AAX_DELAYED3D);
                if (buf3dq)
                {
-                  sdp3d = _intBufGetDataPtr(buf3dq);
+                  ndp3d = _intBufGetDataPtr(buf3dq);
                   _intBufDestroyDataNoLock(buf3dq);
                }
                --ep2d->bufpos3dq;
@@ -296,11 +287,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          }
       }
 
-      if (!sdp3d) {                  // TODO: get from buffer cache
-         sdp3d = _aaxDelayed3dPropsDup(edp3d);
+      if (!ndp3d) {                  // TODO: get from buffer cache
+         ndp3d = _aaxDelayed3dPropsDup(edp3d);
       }
-
-      ep3d->dprops3d = sdp3d;
+      ep3d->dprops3d = ndp3d;
       edp3d = ep3d->dprops3d;
    }
 
@@ -310,7 +300,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    assert(distfn);
 
    /* only update when the matrix and/or the velocity vector has changed */
-   if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d))
+   if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
+       _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
       vec3f_t epos, tmp;
       _aaxRingBufferOcclusionData *direct_path;
@@ -327,28 +318,22 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * align the emitter with the parent frame.
        * (compensate for the parents direction offset)
        */
-#ifdef ARCH32
-      if (_IS_RELATIVE(ep3d)) {
-         mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      } else {
-         mtx4fMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
+      if (!_IS_RELATIVE(ep3d)) {
+         fdp3d_m = sdp3d_m;
       }
+#ifdef ARCH32
+      mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       vec3fCopy(&tmp, &edp3d_m->matrix.v34[LOCATION]);
 #else
-      if (_IS_RELATIVE(ep3d)) {
-         mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
-      } else {
-         mtx4dMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
-      }
+      mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #endif
       dist_ef = vec3fNormalize(&epos, &tmp);
 
 #if 0
- printf("# modified parent frame:\temitter:\n");
- if (_IS_RELATIVE(ep3d)) { PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix); }
- else { PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix); }
- printf("# modified emitter:\n");
+ printf("# modified parent frame:\t\temitter:\n");
+ PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
+ printf(" modified emitter:\n");
  PRINT_MATRIX(edp3d_m->matrix);
  printf("# dist: %f\n", dist_ef);
 #endif
@@ -360,7 +345,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /*
        * Doppler
        */
-      pitch = 1.0f; // edp3d->pitch --> this is done in mixmult/mixsingle
+      pitch = 1.0f;
       if (dist_ef > 1.0f)
       {
          float ve, vf, df;
@@ -379,10 +364,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             edp3d_m->velocity[LOCATION][0],
             edp3d_m->velocity[LOCATION][1],
             edp3d_m->velocity[LOCATION][2]);
- printf("parent velocity:\t\t\t\temitter velocity:\n");
- PRINT_MATRICES(fdp3d_m->velocity, edp3d->velocity);
- printf("# modified emitter velocity\n");
- PRINT_MATRIX(edp3d_m->velocity);
+ printf("modified velocity:\t\t\tparent velocity:\n");
+ PRINT_MATRICES(edp3d_m->velocity, fdp3d_m->velocity);
  printf("doppler: %f, ve: %f, vs: %f\n\n", df, ve, vs/sdf);
 # else
  printf("doppler: %f, ve: %f, vs: %f\n", df, ve, vs/sdf);
