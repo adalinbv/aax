@@ -79,8 +79,6 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
 
    if (direct_path)
    {
-      memset(direct_path, 0, sizeof(_aaxRingBufferOcclusionData));
-
       direct_path->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
       direct_path->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
       direct_path->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
@@ -98,13 +96,14 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSE
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
 
    if (rv)
    {
       unsigned int size = sizeof(_aaxFilterInfo);
 
-      memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
+      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      memcpy(rv->slot[1], &p3d->filter[rv->pos], size);
       rv->slot[0]->data = NULL;
 
       rv->state = p3d->filter[rv->pos].state;

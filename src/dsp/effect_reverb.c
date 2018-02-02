@@ -238,13 +238,14 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSE
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2);
 
    if (rv)
    {
       unsigned int size = sizeof(_aaxEffectInfo);
 
-       memcpy(rv->slot[0], &p3d->effect[rv->pos], size);
+      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      memcpy(rv->slot[1], &p3d->effect[rv->pos], size);
       rv->slot[0]->destroy = _reverb_destroy;
       rv->slot[0]->data = NULL;
 
