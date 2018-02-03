@@ -160,8 +160,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
                assert(_IS_POSITIONAL(src->props3d));
 
                res = AAX_FALSE;
-               if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec)
-               {
+               if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
                   res = drb->mix3d(drb, srb, ep2d, data, emitter->track, ctr,
                                              src->history);
                }
