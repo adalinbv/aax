@@ -185,7 +185,6 @@ typedef struct
    unsigned int id;
 
    unsigned int mixer_pos;
-   unsigned int cache_pos;	/* position in the eventmgr emitter cache   */
 
    void *parent;		/* assigned when registered to a (sub)mixer */
    _handle_t *root;		/* reference to the mixer object            */
@@ -261,7 +260,6 @@ typedef struct
    unsigned int id;	/* always first */
 
    unsigned int mixer_pos;	/* rigsitered emitter position            */
-   unsigned int cache_pos;	/* position in the eventmgr emitter cache */
    unsigned char track;		/* which track to use from the buffer     */
    char looping;
 
