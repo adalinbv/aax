@@ -44,7 +44,7 @@
 #include "software/rbuf_int.h"
 
 void
-_aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
+_aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, UNUSED(const unsigned char *router), _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
 {
     MIX_T *dptr = (MIX_T*)drbd->track[0] + offs;
    float vstart, vend, vstep;
