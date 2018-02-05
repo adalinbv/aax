@@ -91,7 +91,6 @@ aaxEmitterCreate()
          if (src->buffers)
          {
             handle->id = EMITTER_ID;
-            handle->cache_pos = UINT_MAX;
             handle->mixer_pos = UINT_MAX;
             handle->looping = AAX_FALSE;
             _SET_INITIAL(src->props3d);

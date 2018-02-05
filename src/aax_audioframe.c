@@ -72,7 +72,6 @@ aaxAudioFrameCreate(aaxConfig config)
 
          frame->id = AUDIOFRAME_ID;
          frame->root = handle->root;
-         frame->cache_pos = UINT_MAX;
          frame->mixer_pos = UINT_MAX;
 
          size = sizeof(_frame_t);
