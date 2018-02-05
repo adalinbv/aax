@@ -286,7 +286,7 @@ typedef ALIGN16 struct
 
 } _aaxMixerInfo ALIGN16C;
 
-typedef ALIGN16 struct
+typedef ALIGN16 struct _delayed3dProps
 {
    /* modelview matrix and velocity */
 #ifdef ARCH32
@@ -301,6 +301,9 @@ typedef ALIGN16 struct
 
    float pitch, gain;
    int state3d;
+
+   struct _delayed3dProps *parent;
+   struct _delayed3dProps *root;
 
 } _aaxDelayed3dProps ALIGN16C; 
 

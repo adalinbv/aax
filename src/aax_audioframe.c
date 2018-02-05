@@ -98,6 +98,7 @@ aaxAudioFrameCreate(aaxConfig config)
                _EFFECT_COPYD3D_DATA(submix, smixer, VELOCITY_EFFECT);
 
                submix->info = sensor->mixer->info;
+               submix->props3d->m_dprops3d->root = smixer->props3d->m_dprops3d;
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
          }
@@ -1204,13 +1205,13 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          {
             mp3d = fmixer->props3d;
             fp3d = submix->props3d;
+            fp3d->m_dprops3d->parent = mp3d->m_dprops3d;
 
             if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
                _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
             }
-            _aaxAudioFrameResetDistDelay(submix, fmixer);
 
             if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
             {
@@ -1220,9 +1221,10 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             }
 
             submix->refcount++;
-//          sframe->root = handle->root;  // this is set in aaxAudioFrameCreate
             sframe->parent = handle;
             sframe->mixer_pos = pos;
+
+            _aaxAudioFrameResetDistDelay(submix, fmixer);
          }
          else
          {
