@@ -109,17 +109,6 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 #endif
       }
    }
-#if 0
-   else
-   {
-      if (_PROP3D_MTX_HAS_CHANGED(sdp3d_m)) {
-         _PROP3D_MTX_SET_CHANGED(fdp3d);
-      }
-      if (_PROP3D_SPEED_HAS_CHANGED(sdp3d_m)) {
-         _PROP3D_SPEED_SET_CHANGED(fdp3d);
-      }
-   }
-#endif
 
    lfo = _EFFECT_GET_DATA(fp2d, DYNAMIC_PITCH_EFFECT);
    if (lfo)
