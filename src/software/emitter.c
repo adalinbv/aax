@@ -404,7 +404,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /*
        * Occlusion
        */
-      assert(sdp3d_m != fdp3d_m);
       if (pdp3d_m)
       {
          direct_path = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
