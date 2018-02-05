@@ -89,8 +89,8 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t  rpos, float dist_fact,
 
          p2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
 #else
-         vec4fMulvec4(&p2d->speaker[t], &speaker[t], &rpos);
-         vec4fScalarMul(&p2d->speaker[t], &p2d->speaker[t], dist_fact);
+         vec3fMulvec3(&p2d->speaker[t].v3, &speaker[t].v3, &rpos);
+         vec3fScalarMul(&p2d->speaker[t].v3, &p2d->speaker[t].v3, dist_fact);
 #endif
          i = DIR_UPWD;
          do				/* skip left-right and back-front */

@@ -288,8 +288,8 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
    dptr = d + start;
 
    offs = effect->delay.sample_offs[track];
-   assert(start || (offs < ds));
-   if (offs >= ds) offs = ds-1;
+   assert(start || (offs < (ssize_t)ds));
+   if (offs >= (ssize_t)ds) offs = ds-1;
 
    if (start) {
       noffs = effect->curr_noffs[track];

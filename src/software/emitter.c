@@ -318,14 +318,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * (compensate for the parents direction offset)
        */
 #ifdef ARCH32
-      if (_IS_RELATIVE(ep3d)) {
+      if (_IS_RELATIVE(ep3d) || !pdp3d_m) {
          mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       } else {
          mtx4fMul(&edp3d_m->matrix, &pdp3d_m->matrix, &edp3d->matrix);
       }
       vec3fCopy(&tmp, &edp3d_m->matrix.v34[LOCATION]);
 #else
-      if (_IS_RELATIVE(ep3d)) {
+      if (_IS_RELATIVE(ep3d) || !pdp3d_m) {
          mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       } else {
          mtx4dMul(&edp3d_m->matrix, &pdp3d_m->matrix, &edp3d->matrix);

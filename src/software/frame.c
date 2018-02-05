@@ -41,8 +41,6 @@
 #include "rbuf_int.h"
 #include "audio.h"
 
-static void _aaxAudioFrameMix(_aaxRingBuffer*, _intBuffers*, _aax2dProps*, _aaxDelayed3dProps*, char);
-static void _aaxAudioFrameMix3D(_aaxRingBuffer*, _intBuffers*, _aax2dProps*, _aaxDelayed3dProps*, vec3f_t, vec4f_t*, const _aaxMixerInfo*);
 static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aaxDelayed3dProps*, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
 static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
 
@@ -242,8 +240,7 @@ _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *frame)
 
 static void
 _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
-                  _aax2dProps *fp2d,  _aaxDelayed3dProps *fdp3d_m,
-                  char parent_indoor)
+                  _aax2dProps *fp2d, char parent_indoor)
 {
    _intBufferData *buf;
 
@@ -271,8 +268,8 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 
 static void
 _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
-                  _aax2dProps *fp2d,  _aaxDelayed3dProps *fdp3d_m,
-                  vec3f_t sftmp, vec4f_t* speaker, const _aaxMixerInfo *info)
+                    _aax2dProps *fp2d, vec3f_t sftmp, vec4f_t* speaker,
+                    const _aaxMixerInfo *info)
 {
    vec3f_t sfpos;
    _intBufferData *buf;
@@ -394,11 +391,10 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
  PRINT_VEC3(tmp);
 #endif
             _aaxAudioFrameMix3D(dest_rb, sfmixer->frame_ringbuffers,
-                                &sfp2d, sfdp3d_m, tmp, fp2d->speaker,
-                                fmixer->info);
+                                &sfp2d, tmp, fp2d->speaker, fmixer->info);
          } else {
             _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
-                              &sfp2d, sfdp3d_m, parent_indoor);
+                              &sfp2d, parent_indoor);
          }
          sfmixer->capturing = 1;
 
