@@ -175,6 +175,18 @@ vec3fLessThan(const vec3f_ptr v1, const vec3f_ptr v2)
    return 0;
 }
 
+int
+vec3dLessThan(const vec3d_ptr v1, const vec3d_ptr v2)
+{
+   if ((v1->v3[0]) < (v2->v3[0]) &&
+       (v1->v3[1]) < (v2->v3[1]) &&
+       (v1->v3[2]) < (v2->v3[2]))
+   {
+      return 1;
+   }
+   return 0;
+}
+
 void
 vec4fNegate(vec4f_ptr d, const vec4f_ptr v)
 {
@@ -197,6 +209,14 @@ vec4fScalarMul(vec4f_ptr d, const vec4f_ptr r, float f)
 
 void
 _vec3fAbsolute_cpu(vec3f_ptr d, const vec3f_ptr v)
+{
+   d->v3[0] = fabsf(v->v3[0]);
+   d->v3[1] = fabsf(v->v3[1]);
+   d->v3[2] = fabsf(v->v3[2]);
+}
+
+void
+_vec3dAbsolute_cpu(vec3d_ptr d, const vec3d_ptr v)
 {
    d->v3[0] = fabsf(v->v3[0]);
    d->v3[1] = fabsf(v->v3[1]);
@@ -678,6 +698,7 @@ vec3dCopy_proc vec3dCopy = _vec3dCopy_cpu;
 vec3fMulvec3f_proc vec3fMulvec3 = _vec3fMulvec3_cpu;
 vec3dMulvec3d_proc vec3dMulvec3 = _vec3dMulvec3_cpu;
 vec3fAbsolute_proc vec3fAbsolute = _vec3fAbsolute_cpu;
+vec3dAbsolute_proc vec3dAbsolute = _vec3dAbsolute_cpu;
 
 vec3fMagnitude_proc vec3fMagnitude = _vec3fMagnitude_cpu;
 vec3dMagnitude_proc vec3dMagnitude = _vec3dMagnitude_cpu;
