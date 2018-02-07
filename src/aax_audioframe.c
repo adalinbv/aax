@@ -98,7 +98,6 @@ aaxAudioFrameCreate(aaxConfig config)
                _EFFECT_COPYD3D_DATA(submix, smixer, VELOCITY_EFFECT);
 
                submix->info = sensor->mixer->info;
-               submix->props3d->m_dprops3d->root = smixer->props3d->m_dprops3d;
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
          }

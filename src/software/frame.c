@@ -73,17 +73,21 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    /* pdp3d_m == NULL means this is the sensor frame so no math there.     */
    if (pdp3d_m)
    {
-      if (!_IS_RELATIVE(fp3d)) {
-         pdp3d_m = sdp3d_m;
-      }
-
       if (_PROP3D_MTX_HAS_CHANGED(fdp3d) ||
           _PROP3D_MTX_HAS_CHANGED(pdp3d_m))
       {
 #ifdef ARCH32
-         mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+         if (_IS_RELATIVE(fp3d)) {
+            mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+         } else {
+            mtx4fMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
+         }
 #else
-         mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+         if (_IS_RELATIVE(fp3d)) {
+            mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+         } else {
+            mtx4dMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
+         }
 #endif
          _PROP3D_MTX_SET_CHANGED(fdp3d_m);
 #if 0
@@ -229,7 +233,7 @@ _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *frame)
          }
       }
 
-      if (!tdp3d) {			// TODO: get from buffer cache
+      if (!tdp3d) {			// TODO: get from a buffer cache
          tdp3d = _aaxDelayed3dPropsDup(fdp3d);
       }
       fp3d->dprops3d = tdp3d;
@@ -342,6 +346,8 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          _aax_memcpy(sfdp3d_m, sfmixer->props3d->dprops3d,
                               sizeof(_aaxDelayed3dProps));
       }
+      sfdp3d_m->parent = fdp3d_m;
+
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
 

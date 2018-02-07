@@ -570,15 +570,16 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
       case AAX_POSITION:
       {
          int m = (mode > AAX_MODE_NONE) ? AAX_TRUE : AAX_FALSE;
-         _TAS_POSITIONAL(src->props3d, m);
+         _aax3dProps *ep3d = src->props3d;
+         _TAS_POSITIONAL(ep3d, m);
          if TEST_FOR_TRUE(m)
          {
             m = (mode == AAX_RELATIVE) ? AAX_TRUE : AAX_FALSE;
-            _TAS_RELATIVE(src->props3d, m);
-            if (_IS_RELATIVE(src->props3d))
+            _TAS_RELATIVE(ep3d, m);
+            if (_IS_RELATIVE(ep3d))
             {
                if (handle->parent && (handle->parent == handle->root)) {
-                  src->props3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+                  ep3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
                }
             }
          }

@@ -303,7 +303,6 @@ typedef ALIGN16 struct _delayed3dProps
    int state3d;
 
    struct _delayed3dProps *parent;
-   struct _delayed3dProps *root;
 
 } _aaxDelayed3dProps ALIGN16C; 
 

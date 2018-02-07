@@ -318,17 +318,17 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        * (compensate for the parents direction offset)
        */
 #ifdef ARCH32
-      if (_IS_RELATIVE(ep3d) || !pdp3d_m) {
+      if (_IS_RELATIVE(ep3d)) {
          mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       } else {
-         mtx4fMul(&edp3d_m->matrix, &pdp3d_m->matrix, &edp3d->matrix);
+         mtx4fMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
       }
       vec3fCopy(&tmp, &edp3d_m->matrix.v34[LOCATION]);
 #else
-      if (_IS_RELATIVE(ep3d) || !pdp3d_m) {
+      if (_IS_RELATIVE(ep3d)) {
          mtx4dMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       } else {
-         mtx4dMul(&edp3d_m->matrix, &pdp3d_m->matrix, &edp3d->matrix);
+         mtx4dMul(&edp3d_m->matrix, &sdp3d_m->matrix, &edp3d->matrix);
       }
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #endif
@@ -411,6 +411,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          if (direct_path)
          {
             vec3f_t vres;
+            _aaxDelayed3dProps *m_pdp3d = pdp3d_m;
+            int res;
 
 #ifdef ARCH32
             vec3f_t fpepos, fpevec, pevec;
@@ -419,7 +421,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             vec3fSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION],
                               &edp3d_m->matrix.v34[LOCATION]);
 
-            vec3fSub(&pevec, &pdp3d_m->matrix.v34[LOCATION],
+            vec3fSub(&pevec, &m_pdp3d->matrix.v34[LOCATION],
                              &edp3d_m->matrix.v34[LOCATION]);
             vec3fNormalize(&pevec, &pevec);
 
@@ -429,49 +431,57 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             vec3fAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
             vec3fSub(&vres, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
 #else
-            vec3d_t fpepos, fpevec, pevec;
+            vec3d_t fpepos, fpevec, pevec, fevec;
             double mag_pev;
 
-            // calculate the frame-to-emitter vector.
-            // fdp3d_m specifies the absolute position of the frame.
-            vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION],
-                              &edp3d_m->matrix.v34[LOCATION]);
-
-            // calculate the sensor-to-emitter unit vector.
-            // pdp3d_m specifies the absolute position of the parent_frame.
-            // edp3d_m specifies the absolute position of the emitter.
-            vec3dSub(&pevec, &pdp3d_m->matrix.v34[LOCATION],
+            // Calculate the frame-to-emitter vector.
+            // fdp3d_m specifies the absolute position of the frame
+            // where, by definition, the sound obstruction is located.
+            vec3dSub(&fevec, &fdp3d_m->matrix.v34[LOCATION],
                              &edp3d_m->matrix.v34[LOCATION]);
-            vec3dNormalize(&pevec, &pevec);
+            do
+            {
+               // Calculate the parent_frame-to-emitter unit vector.
+               // m_pdp3d specifies the absolute position of the parent_frame.
+               // edp3d_m specifies the absolute position of the emitter.
 
-            // get the projection length of the frame-to-emitter vector on
-            // the sensor-to-emitter unit vector.
-            mag_pev = vec3dDotProduct(&fpevec, &pevec);
+               vec3dSub(&pevec, &m_pdp3d->matrix.v34[LOCATION],
+                                &edp3d_m->matrix.v34[LOCATION]);
+               vec3dNormalize(&pevec, &pevec);
 
-            // scale the sensor-to-emitter unit vector.
-            vec3dScalarMul(&fpevec, &pevec, mag_pev);
+               // Get the projection length of the frame-to-emitter vector on
+               // the parent_frame-to-emitter unit vector.
+               mag_pev = vec3dDotProduct(&fevec, &pevec);
 
-            // get the vector from the frame position which perpendicular to
-            // the sensor-to-emitter vector.
-            vec3dAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+               // scale the parent_frame-to-emitter unit vector.
+               vec3dScalarMul(&fpevec, &pevec, mag_pev);
 
-            vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
-            vec3fFilld(vres.v3, fpevec.v3);
+               // Get the vector from the frame position which perpendicular to
+               // the parent_frame-to-emitter vector.
+               vec3dAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+               vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+
+               vec3fFilld(vres.v3, fpevec.v3);
+               vec3fAbsolute(&vres, &vres);
+               res = vec3fLessThan(&vres, &direct_path->occlusion.v3);
+#if 0
+ printf("obstruction dimensions:\t");
+ PRINT_VEC3(direct_path->occlusion.v3);
+ printf("  parent_frame-emitter:\t");
+ PRINT_VEC3(vres);
+ printf("    less or more? less: %i\n", res);
 #endif
+               m_pdp3d = m_pdp3d->parent;
+            }
+            while (res && m_pdp3d);
+#endif
+
             /*
              * Squared distance between the emiters parent-frame position
              * and the line from the emitter to the parents-frame parent-frame
              * position using Pythagoras.
              */
-#if 1
- printf("obstruction dimensions:\t");
- PRINT_VEC3(direct_path->occlusion.v3);
- printf("        sensor-emitter:\t");
- PRINT_VEC3(vres);
-#endif
-
-            vec3fAbsolute(&vres, &vres);
-            if (vec3fLessThan(&vres, &direct_path->occlusion.v3))
+            if (res)
             {
 printf("less\n");
             }
