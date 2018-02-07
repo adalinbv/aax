@@ -1,10 +1,8 @@
 * Wed Jan 31 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=low
- * Add the option to define occlusion object parameters to the volume-filter
-   and reverb-effect, which will influence the direct path of the sound.
  * Add the option to register the reverb effect to audio-frames.
    Due to memory considerations they only support up to large room sizes,
-   any reflection beyond that will be ignored.
+   any reflections with a larger delay will be ignored.
  * Add the option to define audio-frames as indoor by setting AAX_POSITION
    to AAX_INDOOR when calling aaxAudioFrameSetMode. It is possible to combine
    AAX_INDOOR with AAX_RELATIVE or AAX_ABSOLUTE (the default when omitted).
@@ -12,7 +10,10 @@
    a room or a section of a room. Reverb and frequency filters can be used
    to simulate the properties of the room section defined by the audio-frame.
    By specifying the audio-frame indoor sound will not become directional until
-   it arives at the same scene as the listener.
+   it arives at the scene of the listener.
+ * Add the option to define occlusion object parameters to the volume-filter
+   and reverb-effect, which will influence the sound properties of the direct
+   path of the sound.
  * Harden the matrix multiplication code so it will be more correct in more
    situations. A smaller update-rate than the refresh-rate could cause emitter
    and parent-frame data to be out of sync. Also absolute positions are handled
