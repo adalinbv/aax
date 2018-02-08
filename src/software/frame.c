@@ -41,7 +41,7 @@
 #include "rbuf_int.h"
 #include "audio.h"
 
-static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aaxDelayed3dProps*, _aax2dProps*, _aaxDelayed3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
+static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aaxDelayed3dProps*, _aax2dProps*, _aax3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
 static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
 
 /**
@@ -174,7 +174,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          for (i=0; i<max; i++)
          {
             process = _aaxAudioFrameRender(dest_rb, fmixer, sdp3d_m, fp2d,
-                              fdp3d_m, hf, i, ssv, sdf, be, be_handle, batched);
+                              fp3d, hf, i, ssv, sdf, be, be_handle, batched);
             if (process) --cnt;
             if (cnt == 0) break;
          }
@@ -317,10 +317,11 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 static char
 _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                      _aaxDelayed3dProps *sdp3d_m, _aax2dProps *fp2d,
-                     _aaxDelayed3dProps *fdp3d_m,
-                    _intBuffers *hf, unsigned int pos, float ssv, float sdf,
-                    const _aaxDriverBackend *be, void *be_handle, char batched)
+                     _aax3dProps *fp3d,
+                     _intBuffers *hf, unsigned int pos, float ssv, float sdf,
+                     const _aaxDriverBackend *be, void *be_handle, char batched)
 {
+   _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
    char process = AAX_FALSE;
    _intBufferData *dptr;
 
@@ -346,6 +347,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          _aax_memcpy(sfdp3d_m, sfmixer->props3d->dprops3d,
                               sizeof(_aaxDelayed3dProps));
       }
+      sfp3d.parent = fp3d;
 
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);

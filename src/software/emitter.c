@@ -479,17 +479,18 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
                   vec3fFilld(vres.v3, fpevec.v3);
                   vec3fAbsolute(&vres, &vres);
-                  res = vec3fLessThan(&vres, &direct_path->occlusion.v3);
+                  res = vec3fLessThan(&vres, &path->occlusion.v3);
 #if 1
  printf("obstruction dimensions:\t");
- PRINT_VEC3(direct_path->occlusion.v3);
+ PRINT_VEC3(path->occlusion.v3);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
- printf("    less or more? less: %i, level: %f\n", res, _MINMAX(1.0f - direct_path->occlusion.v4[0]*vec3fMagnitudeSquared(&vres)/direct_path->radius_sq, 0.0f, 1.0f));
+ printf("    less or more? less: %i, level: %f\n", res, _MINMAX(1.0f - path->occlusion.v4[0]*vec3fMagnitudeSquared(&vres)/path->radius_sq, 0.0f, 1.0f));
 #endif
                }
 else printf("no obstruction\n");
                nfp3d = nfp3d->parent;
+printf(" res: %i, nfp3d: %zx\n", res, nfp3d);
             }
             while (res && nfp3d);
 #endif
