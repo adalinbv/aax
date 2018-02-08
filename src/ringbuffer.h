@@ -173,9 +173,12 @@ typedef struct
 typedef struct
 {
    vec4f_t occlusion;
+   float radius_sq;
+
+   float level;
+   float fc;
 
    _aaxRingBufferFreqFilterData freq_filter;
-   float fc;
 
    char inverse;
 

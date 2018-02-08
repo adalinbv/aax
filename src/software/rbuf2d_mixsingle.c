@@ -78,7 +78,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 {
    _aaxRendererData *renderer = data;
    const _aaxMixerInfo *info =  renderer->info;
-   _aaxDelayed3dProps *fdp3d_m = renderer->fdp3d_m;
+   _aaxDelayed3dProps *fdp3d_m = renderer->fp3d->m_dprops3d;
    _aax2dProps *fp2d = renderer->fp2d;
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *drbd;

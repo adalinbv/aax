@@ -411,7 +411,7 @@ _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, 
 
       d.drb = rb;
       d.info = NULL;
-      d.fdp3d_m = NULL;
+      d.fp3d = NULL;
       d.fp2d = NULL;
       d.e2d = NULL;
       d.e3d = NULL;

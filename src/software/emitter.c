@@ -54,7 +54,6 @@ char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
                     float ssv, float sdf, _aaxDelayed3dProps *sdp3d_m,
                     _aax2dProps *fp2d, _aax3dProps *fp3d,
-                    _aaxDelayed3dProps *fdp3d_m, _aaxDelayed3dProps *pdp3d_m,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
 {
@@ -65,8 +64,6 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
    data.drb = drb;
    data.info = info;
    data.sdp3d_m = sdp3d_m;
-   data.pdp3d_m = pdp3d_m;
-   data.fdp3d_m = fdp3d_m;
    data.fp3d = fp3d;
    data.fp2d = fp2d;
    data.e2d = e2d;
@@ -129,8 +126,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             if (stage == 2)
             {
                data->be->prepare3d(src, data->info, data->ssv, data->sdf,
-                                   data->fp2d->speaker, data->sdp3d_m,
-                                   data->fp3d, data->fdp3d_m, data->pdp3d_m);
+                                data->fp2d->speaker, data->sdp3d_m, data->fp3d);
 
             }
             src->update_ctr = src->update_rate;
@@ -234,9 +230,10 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * fdp3d_m: frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps *sdp3d_m, _aax3dProps *fp3d, _aaxDelayed3dProps *fdp3d_m, _aaxDelayed3dProps *pdp3d_m)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps *sdp3d_m, _aax3dProps *fp3d)
 {
    _aaxRingBufferPitchShiftFn* dopplerfn;
+   _aaxDelayed3dProps *fdp3d_m, *pdp3d_m;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
    _aax3dProps *ep3d;
    _aax2dProps *ep2d;
@@ -246,6 +243,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
    assert(src);
    assert(info);
+
+   fdp3d_m = fp3d->m_dprops3d;
+   pdp3d_m = fp3d->parent ? fp3d->parent->m_dprops3d : NULL;
 
    ep3d = src->props3d;
    edp3d = ep3d->dprops3d;
@@ -411,25 +411,36 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          if (direct_path)
          {
             vec3f_t vres;
-            _aaxDelayed3dProps *m_pdp3d = pdp3d_m;
+            _aaxRingBufferOcclusionData *path = direct_path;
+            _aax3dProps *nfp3d = fp3d->parent;
+            _aaxDelayed3dProps *ndp3d_m;
             int res;
 
+            assert(nfp3d->m_dprops3d == pdp3d_m);
+
 #ifdef ARCH32
-            vec3f_t fpepos, fpevec, pevec;
+            vec3f_t fpepos, fpevec, pevec, fevec;
             float mag_pev;
 
-            vec3fSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION],
-                              &edp3d_m->matrix.v34[LOCATION]);
-
-            vec3fSub(&pevec, &m_pdp3d->matrix.v34[LOCATION],
+            vec3fSub(&fevec, &fdp3d_m->matrix.v34[LOCATION],
                              &edp3d_m->matrix.v34[LOCATION]);
-            vec3fNormalize(&pevec, &pevec);
 
-            mag_pev = vec3fDotProduct(&fpevec, &pevec);
-            vec3fScalarMul(&fpevec, &pevec, mag_pev);
+            do
+            {
+               vec3fSub(&pevec, &m_pdp3d->matrix.v34[LOCATION],
+                                &edp3d_m->matrix.v34[LOCATION]);
+               vec3fNormalize(&pevec, &pevec);
 
-            vec3fAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
-            vec3fSub(&vres, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+               mag_pev = vec3fDotProduct(&fevec, &pevec);
+               vec3fScalarMul(&fpevec, &pevec, mag_pev);
+
+               vec3fAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+               vec3fSub(&vres, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+               res = vec3fLessThan(&vres, &path->occlusion.v3);
+
+               m_pdp3d = m_pdp3d->parent;
+            }
+            while (res && m_pdp3d);
 #else
             vec3d_t fpepos, fpevec, pevec, fevec;
             double mag_pev;
@@ -441,39 +452,46 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                              &edp3d_m->matrix.v34[LOCATION]);
             do
             {
-               // Calculate the parent_frame-to-emitter unit vector.
-               // m_pdp3d specifies the absolute position of the parent_frame.
-               // edp3d_m specifies the absolute position of the emitter.
+               ndp3d_m = nfp3d->m_dprops3d;
+               path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
+               if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
+               if (path)
+               {
+                  // Calculate the parent_frame-to-emitter unit vector.
+                  // ndp3d_m specifies the absolute position of the parent.
+                  // edp3d_m specifies the absolute position of the emitter.
 
-               vec3dSub(&pevec, &m_pdp3d->matrix.v34[LOCATION],
-                                &edp3d_m->matrix.v34[LOCATION]);
-               vec3dNormalize(&pevec, &pevec);
+                  vec3dSub(&pevec, &ndp3d_m->matrix.v34[LOCATION],
+                                   &edp3d_m->matrix.v34[LOCATION]);
+                  vec3dNormalize(&pevec, &pevec);
 
-               // Get the projection length of the frame-to-emitter vector on
-               // the parent_frame-to-emitter unit vector.
-               mag_pev = vec3dDotProduct(&fevec, &pevec);
+                  // Get the projection length of the frame-to-emitter vector on
+                  // the parent_frame-to-emitter unit vector.
+                  mag_pev = vec3dDotProduct(&fevec, &pevec);
 
-               // scale the parent_frame-to-emitter unit vector.
-               vec3dScalarMul(&fpevec, &pevec, mag_pev);
+                  // scale the parent_frame-to-emitter unit vector.
+                  vec3dScalarMul(&fpevec, &pevec, mag_pev);
 
-               // Get the vector from the frame position which perpendicular to
-               // the parent_frame-to-emitter vector.
-               vec3dAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
-               vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+                  // Get the vector from the frame position which perpendicular
+                  // to the parent_frame-to-emitter vector.
+                  vec3dAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+                  vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
 
-               vec3fFilld(vres.v3, fpevec.v3);
-               vec3fAbsolute(&vres, &vres);
-               res = vec3fLessThan(&vres, &direct_path->occlusion.v3);
-#if 0
+                  vec3fFilld(vres.v3, fpevec.v3);
+                  vec3fAbsolute(&vres, &vres);
+                  res = vec3fLessThan(&vres, &direct_path->occlusion.v3);
+#if 1
  printf("obstruction dimensions:\t");
  PRINT_VEC3(direct_path->occlusion.v3);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
- printf("    less or more? less: %i\n", res);
+ printf("    less or more? less: %i, level: %f\n", res, _MINMAX(1.0f - direct_path->occlusion.v4[0]*vec3fMagnitudeSquared(&vres)/direct_path->radius_sq, 0.0f, 1.0f));
 #endif
-               m_pdp3d = m_pdp3d->parent;
+               }
+else printf("no obstruction\n");
+               nfp3d = nfp3d->parent;
             }
-            while (res && m_pdp3d);
+            while (res && nfp3d);
 #endif
 
             /*
@@ -481,12 +499,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
              * and the line from the emitter to the parents-frame parent-frame
              * position using Pythagoras.
              */
-            if (res)
-            {
-printf("less\n");
-            }
-else
+            if (res) {
+               direct_path->level = 1.0f - direct_path->occlusion.v4[0]*vec3fMagnitudeSquared(&vres)/direct_path->radius_sq;
+printf("less, level: %f\n", direct_path->level);
+            } else {
+               direct_path->level = 0.0f;
 printf("more\n");
+            }
          } /* direct_path != NULL */
       } /* pdp3d_m != NULL */
 
