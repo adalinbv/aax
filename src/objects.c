@@ -158,7 +158,6 @@ _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *dp3d)
    memset(dp3d->occlusion.v4, 0, sizeof(vec4f_t));
 
    /* status */
-   dp3d->parent = NULL;
    dp3d->state3d = 0;
    dp3d->pitch = 1.0f;
    dp3d->gain = 1.0f;

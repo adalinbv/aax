@@ -58,21 +58,21 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                       void *sensor,  _aaxAudioFrame *fmixer,
                       float ssv, float sdf,
                       _aaxDelayed3dProps *sdp3d_m,
-                      _aaxDelayed3dProps *pdp3d_m,
-                      _aaxDelayed3dProps *fdp3d_m,
                       _aaxDelayed3dProps *fdp3d,
                       _aax2dProps *fp2d,
                       _aax3dProps *fp3d,
                       const _aaxDriverBackend *be, void *be_handle,
                       char fprocess, char batched)
 {
+   _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
    _aaxLFOData *lfo;
    char process;
 
    /* update the model-view matrix based on our own and that of out parent */
    /* pdp3d_m == NULL means this is the sensor frame so no math there.     */
-   if (pdp3d_m)
+   if (fp3d->parent)
    {
+      _aaxDelayed3dProps *pdp3d_m = fp3d->parent->m_dprops3d;
       if (_PROP3D_MTX_HAS_CHANGED(fdp3d) ||
           _PROP3D_MTX_HAS_CHANGED(pdp3d_m))
       {
@@ -129,7 +129,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 
    /** process possible registered emitters */
    process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf,
-                                 sdp3d_m, fp2d, fp3d, fdp3d_m, pdp3d_m,
+                                 sdp3d_m, fp2d, fp3d,
                                  fmixer->emitters_2d, fmixer->emitters_3d,
                                  be, be_handle);
 
@@ -346,7 +346,6 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          _aax_memcpy(sfdp3d_m, sfmixer->props3d->dprops3d,
                               sizeof(_aaxDelayed3dProps));
       }
-      sfdp3d_m->parent = fdp3d_m;
 
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
@@ -366,7 +365,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
        * dest_rb, this could potentialy save a lot of ringbuffers
        */
       res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
-                            sdp3d_m, fdp3d_m, sfdp3d_m, &sfdp3d, &sfp2d, &sfp3d,
+                            sdp3d_m, &sfdp3d, &sfp2d, &sfp3d,
                             be, be_handle, AAX_TRUE, batched);
       _PROP3D_CLEAR(sfmixer->props3d->m_dprops3d);
 

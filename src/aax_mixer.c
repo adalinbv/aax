@@ -1273,7 +1273,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
                   mp3d = smixer->props3d;
                   fp3d = fmixer->props3d;
-                  fp3d->m_dprops3d->parent = mp3d->m_dprops3d;
+                  fp3d->parent = mp3d;
 
                   if (_IS_RELATIVE(fp3d)) {
                      fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;

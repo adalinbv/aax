@@ -40,8 +40,6 @@ typedef struct _aaxRendererData_t
    _aaxRingBuffer *drb;
    const _aaxMixerInfo *info;
    _aaxDelayed3dProps *sdp3d_m;
-   _aaxDelayed3dProps *pdp3d_m;
-   _aaxDelayed3dProps *fdp3d_m;
    _aax3dProps *fp3d;
    _aax2dProps *fp2d;
    _intBuffers *e2d;

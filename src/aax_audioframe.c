@@ -1204,7 +1204,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          {
             mp3d = fmixer->props3d;
             fp3d = submix->props3d;
-            fp3d->m_dprops3d->parent = mp3d->m_dprops3d;
+            fp3d->parent = mp3d;
 
             if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
             {

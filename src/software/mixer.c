@@ -544,7 +544,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
-                                   sdp3d_m, NULL, sdp3d_m, &sdp3d, &sp2d, &sp3d,
+                                   sdp3d_m, &sdp3d, &sp2d, &sp3d,
                                    be, be_handle, fprocess, batched);
                _PROP3D_CLEAR(smixer->props3d->m_dprops3d);
 
