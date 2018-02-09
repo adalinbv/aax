@@ -309,6 +309,7 @@ typedef struct _aax3dProps_s
    float buf3dq_step;
    int state;
 
+   struct _aax3dProps_s *root;
    struct _aax3dProps_s *parent;
    _aaxDelayed3dProps* dprops3d;        /* current   */
    _aaxDelayed3dProps* m_dprops3d;      /* modiefied */

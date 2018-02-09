@@ -52,7 +52,7 @@
  */
 char
 _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
-                    float ssv, float sdf, _aaxDelayed3dProps *sdp3d_m,
+                    float ssv, float sdf,
                     _aax2dProps *fp2d, _aax3dProps *fp3d,
                     _intBuffers *e2d, _intBuffers *e3d,
                     const _aaxDriverBackend* be, void *be_handle)
@@ -63,7 +63,6 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 
    data.drb = drb;
    data.info = info;
-   data.sdp3d_m = sdp3d_m;
    data.fp3d = fp3d;
    data.fp2d = fp2d;
    data.e2d = e2d;
@@ -126,7 +125,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             if (stage == 2)
             {
                data->be->prepare3d(src, data->info, data->ssv, data->sdf,
-                                data->fp2d->speaker, data->sdp3d_m, data->fp3d);
+                                data->fp2d->speaker, data->fp3d);
 
             }
             src->update_ctr = src->update_rate;
@@ -230,10 +229,10 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
  * fdp3d_m: frame dp3d->dprops3d
  */
 void
-_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aaxDelayed3dProps *sdp3d_m, _aax3dProps *fp3d)
+_aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aax3dProps *fp3d)
 {
    _aaxRingBufferPitchShiftFn* dopplerfn;
-   _aaxDelayed3dProps *fdp3d_m, *pdp3d_m;
+   _aaxDelayed3dProps *sdp3d_m, *pdp3d_m, *fdp3d_m;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
    _aax3dProps *ep3d;
    _aax2dProps *ep2d;
@@ -245,6 +244,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    assert(info);
 
    fdp3d_m = fp3d->m_dprops3d;
+   sdp3d_m = fp3d->root->m_dprops3d;
    pdp3d_m = fp3d->parent ? fp3d->parent->m_dprops3d : NULL;
 
    ep3d = src->props3d;
