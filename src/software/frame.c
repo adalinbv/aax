@@ -41,7 +41,7 @@
 #include "rbuf_int.h"
 #include "audio.h"
 
-static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aaxDelayed3dProps*, _aax2dProps*, _aax3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
+static char _aaxAudioFrameRender(_aaxRingBuffer*, _aaxAudioFrame*, _aax2dProps*, _aax3dProps*, _intBuffers*, unsigned int, float, float, const _aaxDriverBackend*,  void*, char);
 static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
 
 /**
@@ -55,21 +55,19 @@ static void* _aaxAudioFrameSwapBuffers(void*, _intBuffers*, char);
  */
 char
 _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
-                      void *sensor,  _aaxAudioFrame *fmixer,
-                      float ssv, float sdf,
-                      _aaxDelayed3dProps *sdp3d_m,
-                      _aaxDelayed3dProps *fdp3d,
-                      _aax2dProps *fp2d,
-                      _aax3dProps *fp3d,
-                      const _aaxDriverBackend *be, void *be_handle,
-                      char fprocess, char batched)
+                     void *sensor,  _aaxAudioFrame *fmixer,
+                     float ssv, float sdf, _aax2dProps *fp2d, _aax3dProps *fp3d,
+                     _aaxDelayed3dProps *fdp3d,
+                     const _aaxDriverBackend *be, void *be_handle,
+                     char fprocess, char batched)
 {
+   _aaxDelayed3dProps *sdp3d_m = fp3d->root->m_dprops3d;
    _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
    _aaxLFOData *lfo;
    char process;
 
-   /* update the model-view matrix based on our own and that of out parent */
-   /* pdp3d_m == NULL means this is the sensor frame so no math there.     */
+   /* Update the model-view matrix based on our own and that of out parent. */
+   /* fp3d->parent == NULL means this is the sensor frame so no math there. */
    if (fp3d->parent)
    {
       _aaxDelayed3dProps *pdp3d_m = fp3d->parent->m_dprops3d;
@@ -128,8 +126,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    }
 
    /** process possible registered emitters */
-   process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf,
-                                 sdp3d_m, fp2d, fp3d,
+   process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf, fp2d, fp3d,
                                  fmixer->emitters_2d, fmixer->emitters_3d,
                                  be, be_handle);
 
@@ -173,8 +170,8 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          cnt = _intBufGetNumNoLock(hf, _AAX_FRAME);
          for (i=0; i<max; i++)
          {
-            process = _aaxAudioFrameRender(dest_rb, fmixer, sdp3d_m, fp2d,
-                              fp3d, hf, i, ssv, sdf, be, be_handle, batched);
+            process = _aaxAudioFrameRender(dest_rb, fmixer,fp2d, fp3d, hf, i,
+                                           ssv, sdf, be, be_handle, batched);
             if (process) --cnt;
             if (cnt == 0) break;
          }
@@ -316,8 +313,7 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 
 static char
 _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
-                     _aaxDelayed3dProps *sdp3d_m, _aax2dProps *fp2d,
-                     _aax3dProps *fp3d,
+                     _aax2dProps *fp2d, _aax3dProps *fp3d,
                      _intBuffers *hf, unsigned int pos, float ssv, float sdf,
                      const _aaxDriverBackend *be, void *be_handle, char batched)
 {
@@ -347,6 +343,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
          _aax_memcpy(sfdp3d_m, sfmixer->props3d->dprops3d,
                               sizeof(_aaxDelayed3dProps));
       }
+      sfp3d.root = fp3d->root;
       sfp3d.parent = fp3d;
 
       _PROP_CLEAR(sfmixer->props3d);
@@ -367,8 +364,8 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
        * dest_rb, this could potentialy save a lot of ringbuffers
        */
       res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
-                            sdp3d_m, &sfdp3d, &sfp2d, &sfp3d,
-                            be, be_handle, AAX_TRUE, batched);
+                                  &sfp2d, &sfp3d, &sfdp3d,
+                                  be, be_handle, AAX_TRUE, batched);
       _PROP3D_CLEAR(sfmixer->props3d->m_dprops3d);
 
       /* if the subframe actually did render something, mix the data */

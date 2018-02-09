@@ -499,8 +499,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                float sdf = 1.0f;
 
                /**
-                * copying here prevents locking the listener the whole time
-                * it's used for just one time-frame anyhow
+                * Copying here prevents locking the listener the whole time
+                * and it's used for just one time-frame anyhow.
                 */
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (dptr_sensor)
@@ -513,6 +513,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   _aax_memcpy(&sp3d, smixer->props3d, sizeof(_aax3dProps));
                   _aax_memcpy(&sdp3d, smixer->props3d->dprops3d,
                                       sizeof(_aaxDelayed3dProps));
+                  sp3d.root = &sp3d;
                   sdp3d_m = smixer->props3d->m_dprops3d;
                   if (_PROP3D_MTX_HAS_CHANGED(smixer->props3d->dprops3d)) {
                      _aax_memcpy(sdp3d_m, smixer->props3d->dprops3d,
@@ -544,8 +545,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
-                                   sdp3d_m, &sdp3d, &sp2d, &sp3d,
-                                   be, be_handle, fprocess, batched);
+                                           &sp2d, &sp3d, &sdp3d,
+                                           be, be_handle, fprocess, batched);
                _PROP3D_CLEAR(smixer->props3d->m_dprops3d);
 
                /*

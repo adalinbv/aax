@@ -33,6 +33,7 @@ extern "C" {
 #include <base/types.h>
 #include <ringbuffer.h>
 #include <objects.h>
+#include <api.h>
 
 // y = 1x^2 + 0.5x + 0.5
 // #define NORM_TO_PITCH(a)	(0.5f + 0.5f*(a) + (a)*(a))
@@ -55,8 +56,13 @@ void _aaxSensorsProcess(_aaxRingBuffer*, const _intBuffers*, _aax2dProps*, int, 
 void *_aaxSensorCapture(_aaxRingBuffer*, const _aaxDriverBackend*, void*,
                      float*, float, unsigned int, float, float, ssize_t*, char);
 
-char _aaxEmittersProcess(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aaxDelayed3dProps*, _aax2dProps*, _aax3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
-void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float, vec4f_t*, _aaxDelayed3dProps*, _aax3dProps*);
+/* frame */
+char _aaxAudioFrameProcess(_aaxRingBuffer*, _frame_t*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char);
+void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
+
+/* emitter */
+char _aaxEmittersProcess(_aaxRingBuffer*, const _aaxMixerInfo*, float, float, _aax2dProps*, _aax3dProps*, _intBuffers*, _intBuffers*, const _aaxDriverBackend*, void*);
+void _aaxEmitterPrepare3d(_aaxEmitter*, const _aaxMixerInfo*, float, float, vec4f_t*, _aax3dProps*);
 
 
 
