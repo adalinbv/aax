@@ -413,10 +413,11 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             vec3f_t vres;
             _aaxRingBufferOcclusionData *path = direct_path;
             _aaxDelayed3dProps *ndp3d_m;
-            _aax3dProps *nfp3d = fp3d;
+            _aax3dProps *nfp3d;
             int less;
 
-            assert(nfp3d->parent->m_dprops3d == pdp3d_m);
+            nfp3d = fp3d->parent;
+            assert(nfp3d->m_dprops3d == pdp3d_m);
 
 #ifdef ARCH32
             vec3f_t fpepos, fpevec, pevec, fevec;
@@ -427,11 +428,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             less = 0;
             do
             {
-               ndp3d_m = nfp3d->m_dprops3d;
-               path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
-               if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
                if (path)
                {
+                  ndp3d_m = nfp3d->m_dprops3d;
                   vec3fSub(&pevec, &ndp3d_m->matrix.v34[LOCATION],
                                    &edp3d_m->matrix.v34[LOCATION]);
                   vec3fNormalize(&pevec, &pevec);
@@ -441,11 +440,26 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
                   vec3fAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
                   vec3fSub(&vres, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+
+                  vec3fAbsolute(&vres, &vres);
                   less = vec3fLessThan(&vres, &path->occlusion.v3);
+                  if (path->inverse) less = !less;
+                  if (less)
+                  {
+                     path->level = _MIN(vec3fMagnitudeSquared(&vres)/path->radius_sq, 1.0f);
+                     path->level *= path->occlusion.v4[0];
+                  }
+                  else {
+                     path->level = 0.0f;
+                  }
+                  if (path->level > (1.0f-LEVEL_64DB)) break;
                }
+
+               path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
+               if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
                nfp3d = nfp3d->parent;
             }
-            while (less && nfp3d);
+            while (nfp3d);
 #else
             vec3d_t fpepos, fpevec, pevec, fevec;
             double mag_pev;
@@ -458,11 +472,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             less = 0;
             do
             {
-               ndp3d_m = nfp3d->m_dprops3d;
-               path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
-               if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
                if (path)
                {
+                  ndp3d_m = nfp3d->m_dprops3d;
+
                   // Calculate the parent_frame-to-emitter unit vector.
                   // ndp3d_m specifies the absolute position of the parent.
                   // edp3d_m specifies the absolute position of the emitter.
@@ -485,34 +498,37 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
                   vec3fFilld(vres.v3, fpevec.v3);
                   vec3fAbsolute(&vres, &vres);
+
+                  // Less is true means the direct path intersects with an
+                  // obstrruction.
+                  // In case path->inverse is true the real obstruction is
+                  // everything but the defined dimensions (meaning a hole).
                   less = vec3fLessThan(&vres, &path->occlusion.v3);
-#if 1
+                  if (path->inverse) less = !less;
+                  if (less) 		// The direct path hit the obstruction
+                  {
+                     path->level = _MIN(vec3fMagnitudeSquared(&vres)/path->radius_sq, 1.0f);
+                     path->level *= path->occlusion.v4[0];
+                  }
+                  else {
+                     path->level = 0.0f;
+                  }
+#if 0
  printf("obstruction dimensions:\t");
  PRINT_VEC3(path->occlusion.v3);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
- printf("    less or more? less: %i, level: %f\n", less, _MINMAX(1.0f - path->occlusion.v4[0]*vec3fMagnitudeSquared(&vres)/path->radius_sq, 0.0f, 1.0f));
+ printf("    more or less? less: %i, level: %f\n", less, path->level);
 #endif
+                  if (path->level > (1.0f-LEVEL_64DB)) break;
                }
-else printf("no obstruction\n");
-               nfp3d = nfp3d->parent;
-printf(" less: %i, nfp3d: %zx\n", less, nfp3d);
-            }
-            while (less && nfp3d);
-#endif
 
-            /*
-             * Squared distance between the emiters parent-frame position
-             * and the line from the emitter to the parents-frame parent-frame
-             * position using Pythagoras.
-             */
-            if (less) {
-               direct_path->level = 1.0f - direct_path->occlusion.v4[0]*vec3fMagnitudeSquared(&vres)/direct_path->radius_sq;
-printf("less, level: %f\n", direct_path->level);
-            } else {
-               direct_path->level = 0.0f;
-printf("more\n");
+               path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
+               if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
+               nfp3d = nfp3d->parent;
             }
+            while (nfp3d);
+#endif
          } /* direct_path != NULL */
       } /* pdp3d_m != NULL */
 
