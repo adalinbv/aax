@@ -231,12 +231,10 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
 void
 _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, float sdf, vec4f_t *speaker, _aax3dProps *fp3d)
 {
-   _aaxRingBufferPitchShiftFn* dopplerfn;
    _aaxDelayed3dProps *sdp3d_m, *pdp3d_m, *fdp3d_m;
    _aaxDelayed3dProps *edp3d, *edp3d_m;
    _aax3dProps *ep3d;
    _aax2dProps *ep2d;
-   _aaxRingBufferDistFn* distfn;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -293,18 +291,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       edp3d = ep3d->dprops3d;
    }
 
-   *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
-   *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
-   assert(dopplerfn);
-   assert(distfn);
-
    /* only update when the matrix and/or the velocity vector has changed */
    if (_PROP3D_MTXSPEED_HAS_CHANGED(edp3d) ||
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
       vec3f_t epos, tmp;
       _aaxRingBufferOcclusionData *direct_path;
-      float refdist, maxdist, rolloff;
       float gain, pitch;
       float min, max;
       float esv, vs;
@@ -347,12 +339,16 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       vs = (esv+ssv) / 2.0f;
 
       /*
-       * Doppler
+       * Velocity effect: Doppler
        */
       pitch = 1.0f;
       if (dist_ef > 1.0f)
       {
+         _aaxRingBufferPitchShiftFn* dopplerfn;
          float ve, vf, df;
+
+         *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
+         assert(dopplerfn);
 
          /* align velocity vectors with the modified emitter position
           * relative to the sensor
@@ -381,28 +377,41 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       ep2d->final.pitch = pitch;
 
       /*
-       * Distance queues for every speaker (volume)
+       * Distance filter: Distance attenuation.
        */
-      gain = edp3d->gain;
-
-      refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
-      maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
-      rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
-
-      // If the parent frame is defined indoor then directional sound
-      // propagation goes out the door. Note that the scenery frame is
-      // never defined as indoor so emitters registered with the mixer
-      // will always be directional.
-      if (!_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
+      do
       {
-         float dfact = _MIN(dist_ef/refdist, 1.0f);
-         _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
-      }
+         _aaxRingBufferDistFn* distfn;
+         float refdist, maxdist, rolloff;
 
-      gain *= distfn(dist_ef, refdist, maxdist, rolloff, vs, 1.0f);
+         /*
+          * Distance queues for every speaker (volume)
+          */
+         gain = edp3d->gain;
+
+         refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
+         maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
+         rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
+
+         // If the parent frame is defined indoor then directional sound
+         // propagation goes out the door. Note that the scenery frame is
+         // never defined as indoor so emitters registered with the mixer
+         // will always be directional.
+         if (!_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
+         {
+            float dfact = _MIN(dist_ef/refdist, 1.0f);
+            _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
+         }
+
+         *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
+         assert(distfn);
+
+         gain *= distfn(dist_ef, refdist, maxdist, rolloff, vs, 1.0f);
+      }
+      while (0);
 
       /*
-       * Occlusion
+       * Volume filter/Reverb effect: Occlusion
        */
       if (pdp3d_m)
       {
@@ -446,13 +455,17 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                   if (path->inverse) less = !less;
                   if (less)
                   {
-                     path->level = _MIN(vec3fMagnitudeSquared(&vres)/path->radius_sq, 1.0f);
-                     path->level *= path->occlusion.v4[0];
+                     float level, mag = path->magnitude_sq;
+
+                     level = _MIN(vec3fMagnitudeSquared(&vres)/mag, 1.0f);
+                     if (path->inverse) level = 1.0f / level;
+
+                     level *= path->occlusion.v4[3];
+                     if (level > direct_path->level) {
+                        direct_path->level = level;
+                     }
+                     if (direct_path->level > (1.0f-LEVEL_64DB)) break;
                   }
-                  else {
-                     path->level = 0.0f;
-                  }
-                  if (path->level > (1.0f-LEVEL_64DB)) break;
                }
 
                path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
@@ -505,24 +518,31 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
                   // everything but the defined dimensions (meaning a hole).
                   less = vec3fLessThan(&vres, &path->occlusion.v3);
                   if (path->inverse) less = !less;
-                  if (less) 		// The direct path hit the obstruction
+                  if (less)
                   {
-                     path->level = _MIN(vec3fMagnitudeSquared(&vres)/path->radius_sq, 1.0f);
-                     path->level *= path->occlusion.v4[0];
+                     float level, mag = path->magnitude_sq;
+
+                     level = _MIN(vec3fMagnitudeSquared(&vres)/mag, 1.0f);
+                     if (path->inverse) level = 1.0f / level;
+
+                     level *= path->occlusion.v4[3];	// density
+                     if (level > direct_path->level) {
+                        direct_path->level = level;
+                     }
+#if 1
+                     if (direct_path->level > (1.0f-LEVEL_64DB)) break;
                   }
-                  else {
-                     path->level = 0.0f;
+               }
+#else
                   }
-#if 0
  printf("obstruction dimensions:\t");
  PRINT_VEC3(path->occlusion.v3);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
- printf("    more or less? less: %i, level: %f\n", less, path->level);
-#endif
-                  if (path->level > (1.0f-LEVEL_64DB)) break;
+ printf("       hit obstruction: %s, level: %f\n", less?"yes":"no ", direct_path->level);
+                  if (direct_path->level > (1.0f-LEVEL_64DB)) break;
                }
-
+#endif
                path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
                if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
                nfp3d = nfp3d->parent;
@@ -533,7 +553,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       } /* pdp3d_m != NULL */
 
       /*
-       * Audio cone recalculaion.
+       * Angular filter: audio cone support.
+       *
        * Version 2.6 adds forward gain which allows for donut shaped cones.
        * TODO: Calculate cone relative to the frame position when indoors.
        *       For now it is assumed that indoor reflections render the cone

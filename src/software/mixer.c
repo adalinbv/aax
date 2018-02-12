@@ -516,8 +516,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   sp3d.root = &sp3d;
                   sdp3d_m = smixer->props3d->m_dprops3d;
                   if (_PROP3D_MTX_HAS_CHANGED(smixer->props3d->dprops3d)) {
-                     _aax_memcpy(sdp3d_m, smixer->props3d->dprops3d,
-                                 sizeof(_aaxDelayed3dProps));
+                     _aax_memcpy(sdp3d_m, &sdp3d, sizeof(_aaxDelayed3dProps));
                   }
                   _PROP_CLEAR(smixer->props3d);
                   _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
