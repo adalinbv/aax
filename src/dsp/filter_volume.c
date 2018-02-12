@@ -36,10 +36,14 @@
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
+#include <software/rbuf_int.h>
 #include "common.h"
 #include "filters.h"
 #include "arch.h"
 #include "api.h"
+
+static void _volume_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
+void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxFilter
 _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -77,8 +81,16 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
       filter->slot[0]->data = direct_path;
    }
 
-   if (direct_path)
+   if (direct_path && state)
    {
+      float  fs = 48000.0f;
+
+      if (filter->info) {
+         fs = filter->info->frequency;
+      }
+
+      direct_path->run = _volume_run;
+
       direct_path->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
       direct_path->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
       direct_path->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
@@ -86,8 +98,18 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
       direct_path->magnitude_sq = vec3fMagnitudeSquared(&direct_path->occlusion.v3);
       direct_path->fc = 22000.0f;
 
-      direct_path->level = 0.0f;
+      direct_path->level = 1.0f;
+      direct_path->olevel = 0.0f;
       direct_path->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+      memset(&direct_path->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
+
+      direct_path->freq_filter.run = _freqfilter_run;
+      direct_path->freq_filter.lfo = 0;
+      direct_path->freq_filter.fs = fs;
+      direct_path->freq_filter.Q = 0.6f;
+      direct_path->freq_filter.low_gain = 1.0f;
+      direct_path->freq_filter.no_stages = 1;
    }
 
    return filter;
@@ -166,3 +188,43 @@ _flt_function_tbl _aaxVolumeFilter =
     (_aaxFilterConvert*)&_aaxVolumeFilterMinMax
 };
 
+static void
+_volume_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
+            size_t no_samples, size_t ds, unsigned int track,
+            const void *data, _aaxMixerInfo *info)
+{
+   _aaxRingBufferOcclusionData *direct_path = (_aaxRingBufferOcclusionData*)data;
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+
+   /* add the direct path */
+   if (direct_path)
+   {
+      _aaxRingBufferFreqFilterData *freq_flt = &direct_path->freq_filter;
+
+      if (direct_path->level != direct_path->olevel)
+      {
+         // level = 0.0f: 20kHz, level = 1.0f: 250Hz
+         // log10(20000 - 1000) = 4.2787541
+         direct_path->fc = 20000.0f - _log2lin(4.278754f*direct_path->level);
+         _aax_butterworth_compute(direct_path->fc, freq_flt);
+
+         direct_path->olevel = direct_path->level;
+      }
+
+      // direct_path->level: 0.0 = free path, 1.0 = blocked
+      if ( direct_path->level < 1.0f)
+      {
+         if (direct_path->fc > 15000.0f) {
+            rbd->add(dptr, sptr, no_samples, freq_flt->low_gain, 0.0f);
+         }
+         else
+         {
+            freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
+            rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
+         }
+      }
+   }
+   else {
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+   }
+}

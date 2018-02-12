@@ -175,12 +175,15 @@ typedef struct
    vec4f_t occlusion;
    float magnitude_sq;
 
-   float level;
+   float level, olevel;
    float fc;
 
    _aaxRingBufferFreqFilterData freq_filter;
 
    char inverse;
+
+   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
+               unsigned int, const void*, _aaxMixerInfo*);
 
 } _aaxRingBufferOcclusionData;
 

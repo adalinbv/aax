@@ -237,7 +237,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       int i;
 
       /*
-       * IID; Interaural Intensitive Differenc
+       * IID; Interaural Intensitive Difference
        */
 
       /**
