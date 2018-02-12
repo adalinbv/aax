@@ -173,7 +173,7 @@ typedef struct
 typedef struct
 {
    vec4f_t occlusion;
-   float radius_sq;
+   float magnitude_sq;
 
    float level;
    float fc;
