@@ -192,13 +192,17 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             direct_path->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
             memset(&direct_path->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
-
             direct_path->freq_filter.run = _freqfilter_run;
             direct_path->freq_filter.lfo = 0;
             direct_path->freq_filter.fs = fs;
             direct_path->freq_filter.Q = 0.6f;
             direct_path->freq_filter.low_gain = 1.0f;
-            direct_path->freq_filter.no_stages = 1;
+
+            // 6db/Oct low-pass Bessel filter
+            direct_path->freq_filter.type = LOWPASS;
+            direct_path->freq_filter.no_stages = 0;
+            direct_path->freq_filter.state = AAX_FALSE;
+            _aax_bessel_compute(direct_path->fc, &direct_path->freq_filter);
          }
 
          if (flt)
@@ -401,27 +405,24 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    {
       _aaxRingBufferFreqFilterData *freq_flt = &direct_path->freq_filter;
 
+      // occlusion->level: 0.0 = free path, 1.0 = blocked
       if (direct_path->level != direct_path->olevel)
       {
          // level = 0.0f: 20kHz, level = 1.0f: 250Hz
          // log10(20000 - 1000) = 4.2787541
          direct_path->fc = 20000.0f - _log2lin(4.278754f*direct_path->level);
-         _aax_butterworth_compute(direct_path->fc, freq_flt);
+         _aax_bessel_compute(direct_path->fc, freq_flt);
 
          direct_path->olevel = direct_path->level;
       }
 
-      // direct_path->level: 0.0 = free path, 1.0 = blocked
-      if ( direct_path->level < 1.0f)
+      if (direct_path->fc < 15000.0f)
       {
-         if (direct_path->fc > 15000.0f) {
-            rbd->add(dptr, sptr, no_samples, freq_flt->low_gain, 0.0f);
-         }
-         else
-         {
-            freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
-            rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
-         }
+         freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
+         rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
+      }
+      else {
+         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
       }
    }
    else {
