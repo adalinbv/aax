@@ -75,15 +75,15 @@ _aaxVolumeFilterDestroy(_filter_t* filter)
 static aaxFilter
 _aaxVolumeFilterSetState(_filter_t* filter, int state)
 {
-   _aaxRingBufferOcclusionData *direct_path = filter->slot[0]->data;
+   _aaxRingBufferOcclusionData *occlusion = filter->slot[0]->data;
 
-   if (!direct_path)
+   if (!occlusion)
    {
-      direct_path = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
-      filter->slot[0]->data = direct_path;
+      occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+      filter->slot[0]->data = occlusion;
    }
 
-   if (direct_path && state)
+   if (occlusion && state)
    {
       float  fs = 48000.0f;
 
@@ -91,28 +91,32 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
          fs = filter->info->frequency;
       }
 
-      direct_path->prepare = _occlusion_prepare;
-      direct_path->run = _volume_run;
+      occlusion->prepare = _occlusion_prepare;
+      occlusion->run = _volume_run;
 
-      direct_path->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
-      direct_path->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
-      direct_path->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
-      direct_path->occlusion.v4[3] = filter->slot[1]->param[3];
-      direct_path->magnitude_sq = vec3fMagnitudeSquared(&direct_path->occlusion.v3);
-      direct_path->fc = 22000.0f;
+      occlusion->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
+      occlusion->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
+      occlusion->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
+      occlusion->occlusion.v4[3] = filter->slot[1]->param[3];
+      occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
+      occlusion->fc = 22000.0f;
 
-      direct_path->level = 1.0f;
-      direct_path->olevel = 0.0f;
-      direct_path->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+      occlusion->level = 1.0f;
+      occlusion->olevel = 0.0f;
+      occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-      memset(&direct_path->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
+      memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
+      occlusion->freq_filter.run = _freqfilter_run;
+      occlusion->freq_filter.lfo = 0;
+      occlusion->freq_filter.fs = fs;
+      occlusion->freq_filter.Q = 0.6f;
+      occlusion->freq_filter.low_gain = 1.0f;
 
-      direct_path->freq_filter.run = _freqfilter_run;
-      direct_path->freq_filter.lfo = 0;
-      direct_path->freq_filter.fs = fs;
-      direct_path->freq_filter.Q = 0.6f;
-      direct_path->freq_filter.low_gain = 1.0f;
-      direct_path->freq_filter.no_stages = 1;
+      // 6db/Oct low-pass Bessel filter
+      occlusion->freq_filter.type = LOWPASS;
+      occlusion->freq_filter.no_stages = 0;
+      occlusion->freq_filter.state = AAX_FALSE;
+      _aax_bessel_compute(occlusion->fc, &occlusion->freq_filter);
    }
 
    return filter;
@@ -196,39 +200,28 @@ _volume_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             size_t no_samples, size_t ds, unsigned int track,
             const void *data, _aaxMixerInfo *info)
 {
-   _aaxRingBufferOcclusionData *direct_path = (_aaxRingBufferOcclusionData*)data;
+   _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
 
    /* add the direct path */
-   if (direct_path)
+   if (occlusion)
    {
-      _aaxRingBufferFreqFilterData *freq_flt = &direct_path->freq_filter;
+      _aaxRingBufferFreqFilterData *freq_flt = &occlusion->freq_filter;
 
-      if (direct_path->level != direct_path->olevel)
+      // occlusion->level: 0.0 = free path, 1.0 = blocked
+      if (occlusion->level != occlusion->olevel)
       {
          // level = 0.0f: 20kHz, level = 1.0f: 250Hz
          // log10(20000 - 1000) = 4.2787541
-         direct_path->fc = 20000.0f - _log2lin(4.278754f*direct_path->level);
-         _aax_butterworth_compute(direct_path->fc, freq_flt);
+         occlusion->fc = 20000.0f - _log2lin(4.278754f*occlusion->level);
+         _aax_bessel_compute(occlusion->fc, freq_flt);
 
-         direct_path->olevel = direct_path->level;
+         occlusion->olevel = occlusion->level;
       }
 
-      // direct_path->level: 0.0 = free path, 1.0 = blocked
-      if ( direct_path->level < 1.0f)
-      {
-         if (direct_path->fc > 15000.0f) {
-            rbd->add(dptr, sptr, no_samples, freq_flt->low_gain, 0.0f);
-         }
-         else
-         {
-            freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
-            rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
-         }
+      if (occlusion->fc < 15000.0f) {
+         freq_flt->run(rbd, dptr, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
       }
-   }
-   else {
-      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
 }
 
@@ -256,7 +249,7 @@ _volume_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 void
 _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
 {
-   _aaxRingBufferOcclusionData *direct_path;
+   _aaxRingBufferOcclusionData *occlusion;
    _aaxDelayed3dProps *pdp3d_m, *fdp3d_m;
    _aaxDelayed3dProps *edp3d_m;
    _aax3dProps *ep3d;
@@ -268,13 +261,13 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
    
    if (pdp3d_m)
    {
-      direct_path = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
-      if (!direct_path) direct_path = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
-      if (direct_path)
+      occlusion = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
+      if (!occlusion) occlusion = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
+      if (occlusion)
       {
          VEC3_T fpepos, fpevec, pevec, fevec;
          vec3f_t vres;
-         _aaxRingBufferOcclusionData *path = direct_path;
+         _aaxRingBufferOcclusionData *path = occlusion;
          _aaxDelayed3dProps *ndp3d_m;
          _aax3dProps *nfp3d;
          FLOAT mag_pev;
@@ -330,11 +323,11 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
                   if (path->inverse) level = 1.0f / level;
 
                   level *= path->occlusion.v4[3];    // density
-                  if (level > direct_path->level) {
-                     direct_path->level = level;
+                  if (level > occlusion->level) {
+                     occlusion->level = level;
                   }
 #if 1
-                  if (direct_path->level > (1.0f-LEVEL_64DB)) break;
+                  if (occlusion->level > (1.0f-LEVEL_64DB)) break;
                }
             }
 #else
@@ -343,8 +336,8 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
  PRINT_VEC3(path->occlusion.v3);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
- printf("       hit obstruction: %s, level: %f\n", less?"yes":"no ", direct_path->level);
-               if (direct_path->level > (1.0f-LEVEL_64DB)) break;
+ printf("       hit obstruction: %s, level: %f\n", less?"yes":"no ", occlusion->level);
+               if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
             path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
@@ -352,6 +345,6 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
             nfp3d = nfp3d->parent;
          }
          while (nfp3d);
-      } /* direct_path != NULL */
+      } /* occlusion != NULL */
    } /* pdp3d_m != NULL */
 }
