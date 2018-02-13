@@ -44,6 +44,7 @@
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(void**);
 static void _reverb_add_delays(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
@@ -176,6 +177,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
          if (direct_path)
          {
+            direct_path->prepare = _occlusion_prepare;
+
             direct_path->occlusion.v4[0] = 0.5f*effect->slot[1]->param[0];
             direct_path->occlusion.v4[1] = 0.5f*effect->slot[1]->param[1];
             direct_path->occlusion.v4[2] = 0.5f*effect->slot[1]->param[2];

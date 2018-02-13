@@ -39,9 +39,11 @@
 #include <software/rbuf_int.h>
 #include "common.h"
 #include "filters.h"
+#include "effects.h"
 #include "arch.h"
 #include "api.h"
 
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
 static void _volume_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
@@ -89,6 +91,7 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
          fs = filter->info->frequency;
       }
 
+      direct_path->prepare = _occlusion_prepare;
       direct_path->run = _volume_run;
 
       direct_path->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
@@ -227,4 +230,158 @@ _volume_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    else {
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
+}
+
+void
+_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
+{
+   _aaxRingBufferOcclusionData *direct_path;
+   _aaxDelayed3dProps *pdp3d_m, *fdp3d_m;
+   _aaxDelayed3dProps *edp3d_m;
+   _aax3dProps *ep3d;
+
+   ep3d = src->props3d;
+   edp3d_m = ep3d->m_dprops3d;
+   fdp3d_m = fp3d->m_dprops3d;
+   pdp3d_m = fp3d->parent ? fp3d->parent->m_dprops3d : NULL;
+   
+
+   if (pdp3d_m)
+   {
+      direct_path = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
+      if (!direct_path) direct_path = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
+      if (direct_path)
+      {
+         vec3f_t vres;
+         _aaxRingBufferOcclusionData *path = direct_path;
+         _aaxDelayed3dProps *ndp3d_m;
+         _aax3dProps *nfp3d;
+         int less;
+
+         nfp3d = fp3d->parent;
+         assert(nfp3d->m_dprops3d == pdp3d_m);
+
+#ifdef ARCH32
+         vec3f_t fpepos, fpevec, pevec, fevec;
+         float mag_pev;
+
+         vec3fSub(&fevec, &fdp3d_m->matrix.v34[LOCATION],
+                          &edp3d_m->matrix.v34[LOCATION]);
+         less = 0;
+         do
+         {
+            if (path)
+            {
+               ndp3d_m = nfp3d->m_dprops3d;
+               vec3fSub(&pevec, &ndp3d_m->matrix.v34[LOCATION],
+                                &edp3d_m->matrix.v34[LOCATION]);
+               vec3fNormalize(&pevec, &pevec);
+
+               mag_pev = vec3fDotProduct(&fevec, &pevec);
+               vec3fScalarMul(&fpevec, &pevec, mag_pev);
+
+               vec3fAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+               vec3fSub(&vres, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+
+               vec3fAbsolute(&vres, &vres);
+               less = vec3fLessThan(&vres, &path->occlusion.v3);
+               if (path->inverse) less = !less;
+               if (less)
+               {
+                  float level, mag = path->magnitude_sq;
+
+                  level = _MIN(vec3fMagnitudeSquared(&vres)/mag, 1.0f);
+                  if (path->inverse) level = 1.0f / level;
+
+                  level *= path->occlusion.v4[3];
+                  if (level > direct_path->level) {
+                     direct_path->level = level;
+                  }
+                  if (direct_path->level > (1.0f-LEVEL_64DB)) break;
+               }
+            }
+
+            path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
+            if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
+            nfp3d = nfp3d->parent;
+         }
+         while (nfp3d);
+#else
+         vec3d_t fpepos, fpevec, pevec, fevec;
+         double mag_pev;
+
+         // Calculate the frame-to-emitter vector.
+         // fdp3d_m specifies the absolute position of the frame
+         // where, by definition, the sound obstruction is located.
+         vec3dSub(&fevec, &fdp3d_m->matrix.v34[LOCATION],
+                          &edp3d_m->matrix.v34[LOCATION]);
+         less = 0;
+         do
+         {
+            if (path)
+            {
+               ndp3d_m = nfp3d->m_dprops3d;
+
+               // Calculate the parent_frame-to-emitter unit vector.
+               // ndp3d_m specifies the absolute position of the parent.
+               // edp3d_m specifies the absolute position of the emitter.
+
+               vec3dSub(&pevec, &ndp3d_m->matrix.v34[LOCATION],
+                                &edp3d_m->matrix.v34[LOCATION]);
+               vec3dNormalize(&pevec, &pevec);
+
+               // Get the projection length of the frame-to-emitter vector on
+               // the parent_frame-to-emitter unit vector..
+               mag_pev = vec3dDotProduct(&fevec, &pevec);
+
+               // scale the parent_frame-to-emitter unit vector.
+               vec3dScalarMul(&fpevec, &pevec, mag_pev);
+
+               // Get the vector from the frame position which perpendicular
+               // to the parent_frame-to-emitter vector.
+               vec3dAdd(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
+               vec3dSub(&fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
+
+               vec3fFilld(vres.v3, fpevec.v3);
+               vec3fAbsolute(&vres, &vres);
+
+               // Less is true means the direct path intersects with an
+               // obstrruction.
+               // In case path->inverse is true the real obstruction is
+               // everything but the defined dimensions (meaning a hole).
+               less = vec3fLessThan(&vres, &path->occlusion.v3);
+               if (path->inverse) less = !less;
+               if (less)
+               {
+                  float level, mag = path->magnitude_sq;
+
+                  level = _MIN(vec3fMagnitudeSquared(&vres)/mag, 1.0f);
+                  if (path->inverse) level = 1.0f / level;
+
+                  level *= path->occlusion.v4[3];    // density
+                  if (level > direct_path->level) {
+                     direct_path->level = level;
+                  }
+#if 1
+                  if (direct_path->level > (1.0f-LEVEL_64DB)) break;
+               }
+            }
+#else
+               }
+ printf("obstruction dimensions:\t");
+ PRINT_VEC3(path->occlusion.v3);
+ printf("  parent_frame-emitter:\t");
+ PRINT_VEC3(vres);
+ printf("       hit obstruction: %s, level: %f\n", less?"yes":"no ", direct_path->level);
+               if (direct_path->level > (1.0f-LEVEL_64DB)) break;
+            }
+#endif
+            path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
+            if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
+            nfp3d = nfp3d->parent;
+         }
+         while (nfp3d);
+#endif
+      } /* direct_path != NULL */
+   } /* pdp3d_m != NULL */
 }
