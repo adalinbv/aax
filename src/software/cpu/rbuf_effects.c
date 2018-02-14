@@ -57,14 +57,14 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
           _aax2dProps *p2d)
 {
    void *env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+   _aaxRingBufferOcclusionData *occlusion =_FILTER_GET_DATA(p2d, VOLUME_FILTER);
    _aaxRingBufferFreqFilterData *freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
    static const size_t bps = sizeof(MIX_T);
    size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
-   MIX_T *psrc = src; /* might change further in the code */
-   MIX_T *pdst = dst; /* might change further in the code */
    void *distort_data = NULL;
+   MIX_T *psrc, *pdst;
 
    if (_EFFECT_GET_STATE(p2d, DISTORTION_EFFECT)) {
       distort_data = &p2d->effect[DISTORTION_EFFECT];
@@ -84,10 +84,19 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
       _aax_memcpy(delay->delay_history[track], src+no_samples-ds, ds*bps);
    }
 
+   psrc = src; /* might change further in the code */
+   pdst = dst; /* might change further in the code */
+
+   if (occlusion)
+   {
+      occlusion->run(rbd, pdst, psrc, scratch, no_samples, track, occlusion);
+      BUFSWAP(pdst, psrc);
+   }
+
    /* Apply frequency filter first */
    if (freq)
    {
-      freq->run(rbd, pdst, psrc, start, end, ds, track, freq, env, ctr);
+      freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, ctr);
       BUFSWAP(pdst, psrc);
    }
 
@@ -96,7 +105,7 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
       _aaxFilterInfo *dist_effect = (_aaxFilterInfo*)distort_data;
       _aaxRingBufferDistoritonData *distort = dist_effect->data;
 
-      distort->run(rbd, pdst, psrc, start, end, ds, track, distort_data, env);
+      distort->run(rbd, pdst, psrc, 0, end, ds, track, distort_data, env);
       BUFSWAP(pdst, psrc);
    }
 
@@ -104,13 +113,12 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
    {
       /* Apply delay effects */
       if (delay->loopback) {		/*    flanging     */
-         delay->run(rbd, psrc, psrc, scratch, start, end, no_samples, ds,
+         delay->run(rbd, psrc, psrc, scratch, 0, end, no_samples, ds,
                     delay, env, track);
       }
       else				/* phasing, chorus */
       {
-         _aax_memcpy(pdst+start, psrc+start, no_samples*bps);
-         delay->run(rbd, pdst, psrc, scratch, start, end, no_samples, ds,
+         delay->run(rbd, pdst, psrc, scratch, 0, end, no_samples, ds,
                     delay, env, track);
          BUFSWAP(pdst, psrc);
       }
@@ -118,8 +126,8 @@ _aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
 
    if (reverb)
    {
-      reverb->run(rbd, pdst+start, psrc+start, scratch, no_samples,
-                  ddesamps, track, reverb, NULL);
+      reverb->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
+                  reverb, NULL);
       BUFSWAP(pdst, psrc);
    }
 

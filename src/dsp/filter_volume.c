@@ -44,7 +44,7 @@
 #include "api.h"
 
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
-static void _volume_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
+void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxFilter
@@ -92,7 +92,7 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
       }
 
       occlusion->prepare = _occlusion_prepare;
-      occlusion->run = _volume_run;
+      occlusion->run = _occlusion_run;
 
       occlusion->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
       occlusion->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
@@ -192,37 +192,39 @@ _flt_function_tbl _aaxVolumeFilter =
    (_aaxNewFilterHandle*)&_aaxNewVolumeFilterHandle,
    (_aaxFilterConvert*)&_aaxVolumeFilterSet,
    (_aaxFilterConvert*)&_aaxVolumeFilterGet,
-    (_aaxFilterConvert*)&_aaxVolumeFilterMinMax
+   (_aaxFilterConvert*)&_aaxVolumeFilterMinMax
 };
 
-static void
-_volume_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
-            size_t no_samples, size_t ds, unsigned int track,
-            const void *data, _aaxMixerInfo *info)
+void
+_occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch, size_t no_samples, unsigned int track, const void *data)
 {
    _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxRingBufferFreqFilterData *freq_flt;
 
    /* add the direct path */
-   if (occlusion)
+   assert(occlusion);
+
+   freq_flt = &occlusion->freq_filter;
+
+   // occlusion->level: 0.0 = free path, 1.0 = blocked
+   if (occlusion->level != occlusion->olevel)
    {
-      _aaxRingBufferFreqFilterData *freq_flt = &occlusion->freq_filter;
+      // level = 0.0f: 20kHz, level = 1.0f: 250Hz
+      // log10(20000 - 1000) = 4.2787541
+      occlusion->fc = 20000.0f - _log2lin(4.278754f*occlusion->level);
+      _aax_bessel_compute(occlusion->fc, freq_flt);
 
-      // occlusion->level: 0.0 = free path, 1.0 = blocked
-      if (occlusion->level != occlusion->olevel)
-      {
-         // level = 0.0f: 20kHz, level = 1.0f: 250Hz
-         // log10(20000 - 1000) = 4.2787541
-         occlusion->fc = 20000.0f - _log2lin(4.278754f*occlusion->level);
-         _aax_bessel_compute(occlusion->fc, freq_flt);
-
-         occlusion->olevel = occlusion->level;
-      }
-
-      if (occlusion->fc < 15000.0f) {
-         freq_flt->run(rbd, dptr, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
-      }
+      occlusion->olevel = occlusion->level;
    }
+
+   if (occlusion->fc < 15000.0f)
+   {
+      freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt,
+                    NULL, 0);
+      sptr = scratch;
+   }
+   rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
 }
 
 
