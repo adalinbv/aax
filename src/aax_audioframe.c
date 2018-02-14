@@ -575,6 +575,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
          _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
          _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
+         _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
          if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
              filter->type == AAX_COMPRESSOR) {
             p2d->final.gain_lfo = 1.0f;
@@ -585,7 +586,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
          _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
          _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-         _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+         _FILTER_COPY_DATA(p3d, p2d, type);
          break;
       }
       default:
@@ -691,7 +692,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
 
          reverb = _EFFECT_GET_DATA(p2d, type);
          if (reverb) {
-            _EFFECT_SET_DATA(p3d, type, reverb->direct_path);
+            _EFFECT_SET_DATA(p3d, type, reverb->occlusion);
          }
          break;
       }

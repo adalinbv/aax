@@ -44,8 +44,10 @@
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(void**);
 static void _reverb_add_delays(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
+
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
+void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxEffect
@@ -161,48 +163,48 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
-         _aaxRingBufferOcclusionData *direct_path = reverb->direct_path;
+         _aaxRingBufferOcclusionData *occlusion = reverb->occlusion;
 
          if (!flt) {
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          }
 
-         if (!direct_path) {
-            direct_path = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+         if (!occlusion) {
+            occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
          }
 
          reverb->info = effect->info;
          reverb->freq_filter = flt;
-         reverb->direct_path = direct_path;
+         reverb->occlusion = occlusion;
 
-         if (direct_path)
+         if (occlusion)
          {
-            direct_path->prepare = _occlusion_prepare;
+            occlusion->prepare = _occlusion_prepare;
+            occlusion->run = _occlusion_run;
 
-            direct_path->occlusion.v4[0] = 0.5f*effect->slot[1]->param[0];
-            direct_path->occlusion.v4[1] = 0.5f*effect->slot[1]->param[1];
-            direct_path->occlusion.v4[2] = 0.5f*effect->slot[1]->param[2];
-            direct_path->occlusion.v4[3] = effect->slot[1]->param[3];
+            occlusion->occlusion.v4[0] = 0.5f*effect->slot[1]->param[0];
+            occlusion->occlusion.v4[1] = 0.5f*effect->slot[1]->param[1];
+            occlusion->occlusion.v4[2] = 0.5f*effect->slot[1]->param[2];
+            occlusion->occlusion.v4[3] = effect->slot[1]->param[3];
+            occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
+            occlusion->fc = 22000.0f;
 
-            direct_path->magnitude_sq = vec3fMagnitudeSquared(&direct_path->occlusion.v3);
-            direct_path->fc = 22000.0f;
+            occlusion->level = 1.0f;
+            occlusion->olevel = 0.0f;
+            occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-            direct_path->level = 1.0f;
-            direct_path->olevel = 0.0f;
-            direct_path->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-
-            memset(&direct_path->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
-            direct_path->freq_filter.run = _freqfilter_run;
-            direct_path->freq_filter.lfo = 0;
-            direct_path->freq_filter.fs = fs;
-            direct_path->freq_filter.Q = 0.6f;
-            direct_path->freq_filter.low_gain = 1.0f;
+            memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
+            occlusion->freq_filter.run = _freqfilter_run;
+            occlusion->freq_filter.lfo = 0;
+            occlusion->freq_filter.fs = fs;
+            occlusion->freq_filter.Q = 0.6f;
+            occlusion->freq_filter.low_gain = 1.0f;
 
             // 6db/Oct low-pass Bessel filter
-            direct_path->freq_filter.type = LOWPASS;
-            direct_path->freq_filter.no_stages = 0;
-            direct_path->freq_filter.state = AAX_FALSE;
-            _aax_bessel_compute(direct_path->fc, &direct_path->freq_filter);
+            occlusion->freq_filter.type = LOWPASS;
+            occlusion->freq_filter.no_stages = 0;
+            occlusion->freq_filter.state = AAX_FALSE;
+            _aax_bessel_compute(occlusion->fc, &occlusion->freq_filter);
          }
 
          if (flt)
@@ -336,9 +338,9 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   _aaxRingBufferOcclusionData *direct_path;
-   _aaxRingBufferFreqFilterData *filter;
    const _aaxRingBufferReverbData *reverb = data;
+   _aaxRingBufferOcclusionData *occlusion;
+   _aaxRingBufferFreqFilterData *filter;
    int snum;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -349,7 +351,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(track < _AAX_MAX_SPEAKERS);
 
    filter = reverb->freq_filter;
-   direct_path = reverb->direct_path;
+   occlusion = reverb->occlusion;
 
    _aax_memcpy(scratch, sptr, no_samples*sizeof(MIX_T));
 
@@ -401,31 +403,9 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 0);
    
    /* add the direct path */
-   if (direct_path)
-   {
-      _aaxRingBufferFreqFilterData *freq_flt = &direct_path->freq_filter;
-
-      // occlusion->level: 0.0 = free path, 1.0 = blocked
-      if (direct_path->level != direct_path->olevel)
-      {
-         // level = 0.0f: 20kHz, level = 1.0f: 250Hz
-         // log10(20000 - 1000) = 4.2787541
-         direct_path->fc = 20000.0f - _log2lin(4.278754f*direct_path->level);
-         _aax_bessel_compute(direct_path->fc, freq_flt);
-
-         direct_path->olevel = direct_path->level;
-      }
-
-      if (direct_path->fc < 15000.0f)
-      {
-         freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
-         rbd->add(dptr, scratch, no_samples, 1.0f, 0.0f);
-      }
-      else {
-         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-      }
-   }
-   else {
+   if (occlusion) {
+      occlusion->run(rbd, dptr, sptr, scratch, no_samples, track, occlusion);
+   } else {
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
 }
@@ -544,7 +524,7 @@ _reverb_destroy_delays(void **data)
 #else
       free(reverb->history_ptr);
 #endif
-      _aax_aligned_free(reverb->direct_path);
+      _aax_aligned_free(reverb->occlusion);
       free(reverb->freq_filter);
       reverb->freq_filter = 0;
       reverb->history_ptr = 0;

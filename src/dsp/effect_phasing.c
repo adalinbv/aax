@@ -266,6 +266,7 @@ _phasing_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
              size_t start, size_t end, size_t no_samples, size_t ds,
              void *data, void *env, unsigned int track)
 {
+   static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferDelayEffectData* effect = data;
    size_t offs, noffs;
@@ -303,6 +304,8 @@ _phasing_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    
    doffs = noffs - offs;
    pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+
+   _aax_memcpy(dptr, sptr, no_samples*bps);
    if (pitch == 1.0f) {
       rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
    }
