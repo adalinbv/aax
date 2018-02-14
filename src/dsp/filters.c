@@ -178,6 +178,13 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       filter->param[AAX_FORWARD_GAIN] = 1.0f;
       filter->state = AAX_TRUE;
       break;
+   case OCCLUSION_FILTER:
+      if (slot == 0) {
+         filter->param[AAX_GAIN] = 1.0f;
+         filter->param[AAX_MAX_GAIN] = 1.0f;
+         filter->state = AAX_TRUE;
+      }
+      break;
    default:
       break;
    }
