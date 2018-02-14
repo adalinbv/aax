@@ -156,6 +156,14 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, UNUSED(unsigne
    memset(effect, 0, sizeof(_aaxEffectInfo));
    switch(type)
    {
+   case REVERB_OCCLUSION_EFFECT:
+      if (slot == 0) {
+         effect->param[AAX_CUTOFF_FREQUENCY] = 15000.0f;
+         effect->param[AAX_DELAY_DEPTH] = 0.27f;
+         effect->param[AAX_DECAY_LEVEL] = 0.3f;
+         effect->param[AAX_DECAY_DEPTH] = 0.7f;
+      }
+      break;
    case VELOCITY_EFFECT:
       effect->param[AAX_SOUND_VELOCITY] = 343.0f;
       effect->param[AAX_DOPPLER_FACTOR] = 1.0f;
