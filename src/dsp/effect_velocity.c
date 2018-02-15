@@ -49,7 +49,7 @@ _aaxVelocityEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 
    if (eff)
    {
-      eff->slot[0]->data = *(void**)&_aaxRingBufferDopplerFn[0];
+      eff->slot[0]->data = *(void**)&_aaxDopplerFn[0];
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
       rv = (aaxEffect)eff;
    }
@@ -81,7 +81,7 @@ _aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, UNU
       unsigned int size = sizeof(_aaxEffectInfo);
 
       memcpy(rv->slot[0], &p3d->effect[rv->pos], size);
-      rv->slot[0]->data = *(void**)&_aaxRingBufferDopplerFn[0];
+      rv->slot[0]->data = *(void**)&_aaxDopplerFn[0];
 
       rv->state = p3d->effect[rv->pos].state;
    }
@@ -135,4 +135,34 @@ _eff_function_tbl _aaxVelocityEffect =
    (_aaxEffectConvert*)&_aaxVelocityEffectGet,
    (_aaxEffectConvert*)&_aaxVelocityEffectMinMax
 };
+
+static _aaxPitchShiftFn _aaxDopplerShift;
+
+_aaxPitchShiftFn *_aaxDopplerFn[] =
+{
+   (_aaxPitchShiftFn *)&_aaxDopplerShift
+};
+
+/*
+ * Sources:
+ * http://en.wikipedia.org/wiki/Doppler_effect
+ */
+static float
+_aaxDopplerShift(float vs, float ve, float vsound)
+{
+#if 1
+   float vse, rv;
+
+   /* relative speed */
+   vse = _MIN(ve, vsound) - _MIN(vs, vsound);
+   rv =  vsound/_MAX(vsound - vse, 1.0f);
+
+   return rv;
+#else
+   float vss, ves;
+   vss = vsound - _MIN(vs, vsound);
+   ves = _MAX(vsound - _MIN(ve, vsound), 1.0f);
+   return vss/ves;
+#endif
+}
 
