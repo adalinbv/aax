@@ -295,10 +295,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
       vec3f_t epos, tmp;
-      float gain, pitch;
+      float pitch, gain;
       float min, max;
       float esv, vs;
       float dist_ef;
+
+      pitch = 1.0f;
+      gain = edp3d->gain;
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
       _PROP3D_MTX_CLEAR_CHANGED(edp3d);
@@ -339,13 +342,11 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /*
        * Velocity effect: Doppler
        */
-      pitch = 1.0f;
       if (dist_ef > 1.0f)
       {
-         _aaxRingBufferPitchShiftFn* dopplerfn;
-         float ve, vf, df;
+         _aaxPitchShiftFn* dopplerfn = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
+         float ve, df;
 
-         *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
          assert(dopplerfn);
 
          /* align velocity vectors with the modified emitter position
@@ -353,9 +354,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
           */
          mtx4fMul(&edp3d_m->velocity, &fdp3d_m->velocity, &edp3d->velocity);
 
-         vf = 0.0f;
          ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], &epos);
-         df = dopplerfn(vf, ve, vs/sdf);
+         df = dopplerfn(ve, vs/sdf);
 #if 0
 # if 1
  printf("velocity: %3.2f, %3.2f, %3.2f\n",
@@ -372,21 +372,20 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          pitch *= df;
          ep3d->buf3dq_step = df;
       }
-      ep2d->final.pitch = pitch;
 
       /*
        * Distance filter: Distance attenuation.
        */
       do
       {
-         _aaxRingBufferDistFn* distfn;
+         _aaxDistFn* distfn = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
          float refdist, maxdist, rolloff;
+
+         assert(distfn);
 
          /*
           * Distance queues for every speaker (volume)
           */
-         gain = edp3d->gain;
-
          refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
          maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
          rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
@@ -401,28 +400,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
          }
 
-         *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
-         assert(distfn);
-
-         gain *= distfn(dist_ef, refdist, maxdist, rolloff, vs, 1.0f);
-      }
-      while (0);
-
-      /*
-       * Volume filter/Reverb effect: Occlusion
-       */
-      do
-      {
-         _aaxRingBufferOcclusionData *occlusion;
-
-         occlusion = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
-         if (!occlusion) {
-            occlusion = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
-         }
-
-         if (occlusion) {
-            occlusion->prepare(src, fp3d);
-         }
+         gain *= distfn(dist_ef, refdist, maxdist, rolloff);
       }
       while (0);
 
@@ -468,9 +446,28 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          gain *= cone_volume;
       }
 
+      /*
+       * Volume filter/Reverb effect: Occlusion
+       */
+      do
+      {
+         _aaxRingBufferOcclusionData *occlusion;
+
+         occlusion = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);
+         if (!occlusion) {
+            occlusion = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
+         }
+
+         if (occlusion) {
+            occlusion->prepare(src, fp3d);
+         }
+      }
+      while (0);
+
       min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
       max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
       ep2d->final.gain = _MINMAX(gain, min, max);
+      ep2d->final.pitch = pitch;
    }
 }
 
