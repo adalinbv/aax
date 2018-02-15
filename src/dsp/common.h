@@ -114,12 +114,12 @@ typedef _aaxDSPInfo _aaxEffectInfo;
 void aligned_destroy(void *ptr);
 void destroy(void *ptr);
 
-typedef float _aaxRingBufferPitchShiftFn(float, float, float);
-extern _aaxRingBufferPitchShiftFn* _aaxRingBufferDopplerFn[];
+typedef float _aaxPitchShiftFn(float, float, float);
+extern _aaxPitchShiftFn* _aaxDopplerFn[];
 
-typedef float _aaxRingBufferDistFn(float, float, float, float, float, float);
-extern _aaxRingBufferDistFn* _aaxRingBufferDistanceFn[];
-extern _aaxRingBufferDistFn* _aaxRingBufferALDistanceFn[];
+typedef float _aaxDistFn(float, float, float, float, float);
+extern _aaxDistFn* _aaxDistanceFn[];
+extern _aaxDistFn* _aaxALDistanceFn[];
 
 void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 void _aaxRingBufferDelaysRemove(void**);

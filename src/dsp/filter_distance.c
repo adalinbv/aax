@@ -48,7 +48,7 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      flt->slot[0]->data = *(void**)&_aaxRingBufferDistanceFn[1];
+      flt->slot[0]->data = *(void**)&_aaxDistanceFn[1];
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
       rv = (aaxFilter)flt;
    }
@@ -77,12 +77,12 @@ _aaxDistanceFilterSetState(_filter_t* filter, int state)
       {
          pos -= AAX_AL_INVERSE_DISTANCE;
          filter->slot[0]->state = state;
-         filter->slot[0]->data = *(void**)&_aaxRingBufferALDistanceFn[pos];
+         filter->slot[0]->data = *(void**)&_aaxALDistanceFn[pos];
       }
       else if (pos < AAX_DISTANCE_MODEL_MAX)
       {
          filter->slot[0]->state = state;
-         filter->slot[0]->data = *(void**)&_aaxRingBufferDistanceFn[pos];
+         filter->slot[0]->data = *(void**)&_aaxDistanceFn[pos];
       }
       else _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
@@ -103,7 +103,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
       unsigned int size = sizeof(_aaxFilterInfo);
 
       memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
-      rv->slot[0]->data = *(void**)&_aaxRingBufferDistanceFn[1];
+      rv->slot[0]->data = *(void**)&_aaxDistanceFn[1];
 
       rv->state = p3d->filter[rv->pos].state;
    }
@@ -157,4 +157,129 @@ _flt_function_tbl _aaxDistanceFilter =
    (_aaxFilterConvert*)&_aaxDistanceFilterMinMax
 };
 
+/* Forward declartations */
+static _aaxDistFn _aaxDistNone;
+static _aaxDistFn _aaxDistInvExp;
 
+static _aaxDistFn _aaxALDistInv;
+static _aaxDistFn _aaxALDistInvClamped;
+static _aaxDistFn _aaxALDistLin;
+static _aaxDistFn _aaxALDistLinClamped;
+static _aaxDistFn _aaxALDistExp;
+static _aaxDistFn _aaxALDistExpClamped;
+
+_aaxDistFn *_aaxDistanceFn[AAX_DISTANCE_MODEL_MAX] =
+{
+   (_aaxDistFn *)&_aaxDistNone,
+   (_aaxDistFn *)&_aaxDistInvExp
+};
+
+#define AL_DISTANCE_MODEL_MAX AAX_AL_DISTANCE_MODEL_MAX-AAX_AL_INVERSE_DISTANCE
+_aaxDistFn *_aaxALDistanceFn[AL_DISTANCE_MODEL_MAX] =
+{
+   (_aaxDistFn *)&_aaxALDistInv,
+   (_aaxDistFn *)&_aaxALDistInvClamped,
+   (_aaxDistFn *)&_aaxALDistLin,
+   (_aaxDistFn *)&_aaxALDistLinClamped,
+   (_aaxDistFn *)&_aaxALDistExp,
+   (_aaxDistFn *)&_aaxALDistExpClamped
+};
+
+static float
+_aaxDistNone(UNUSED(float dist), UNUSED(float ref_dist), UNUSED(float max_dist), UNUSED(float rolloff), UNUSED(float vsound))
+{
+   return 1.0f;
+}
+
+/**
+ * http://www.engineeringtoolbox.com/outdoor-propagation-sound-d_64.html
+ *
+ * Lp = Lw + 10 log(Q/(4π r2) + 4/R)  (1b)
+ *
+ * where
+ *
+ * Lp = sound pressure level (dB)
+ * Lw = sound power level source in decibel (dB)
+ * Q = Q coefficient 
+ *     1 if uniform spherical
+ *     2 if uniform half spherical (single reflecting surface)
+ *     4 if uniform radiation over 1/4 sphere (two reflecting surfaces, corner)
+ * r = distance from source   (m)
+ * R = room constant (m2)
+ */
+static float
+_aaxDistInvExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float vsound))
+{
+#if 1
+   float fraction = 0.0f, gain = 1.0f;
+   if (ref_dist) fraction = _MAX(dist, 0.01f) / _MAX(ref_dist, 0.01f);
+   if (fraction) gain = powf(fraction, -rolloff);
+   return gain;
+#else
+   return powf(dist/ref_dist, -rolloff);
+#endif
+}
+
+/* --- OpenAL support --- */
+
+static float
+_aaxALDistInv(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float vsound))
+{
+   float gain = 1.0f;
+   float denom = ref_dist + rolloff * (dist - ref_dist);
+   if (denom) gain = ref_dist/denom;
+   return gain;
+}
+
+static float
+_aaxALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float vsound))
+{
+   float gain = 1.0f;
+   float denom;
+   dist = _MAX(dist, ref_dist);
+   dist = _MIN(dist, max_dist);
+   denom = ref_dist + rolloff * (dist - ref_dist);
+   if (denom) gain = ref_dist/denom;
+   return gain;
+}
+
+static float
+_aaxALDistLin(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float vsound))
+{
+   float gain = 1.0f;
+   float denom = max_dist - ref_dist;
+   if (denom) gain = (1-rolloff)*(dist-ref_dist)/denom;
+   return gain;
+}
+
+static float
+_aaxALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float vsound))
+{
+   float gain = 1.0f;
+   float denom = max_dist - ref_dist;
+   dist = _MAX(dist, ref_dist);
+   dist = _MIN(dist, max_dist);
+   if (denom) gain = (1-rolloff)*(dist-ref_dist)/denom;
+   return gain;
+}
+
+static float
+_aaxALDistExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float vsound))
+{
+   float fraction = 0.0f, gain = 1.0f;
+   if (ref_dist) fraction = dist / ref_dist;
+   if (fraction) gain = powf(fraction, -rolloff);
+   return gain;
+}
+
+static float
+_aaxALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float vsound))
+{
+   float fraction = 0.0f, gain = 1.0f;
+   dist = _MAX(dist, ref_dist);
+   dist = _MIN(dist, max_dist);
+   if (ref_dist) fraction = dist / ref_dist;
+   if (fraction) gain = powf(fraction, -rolloff);
+
+   return gain;
+}

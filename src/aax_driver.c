@@ -921,9 +921,9 @@ _open_handle(aaxConfig config)
                {
                   smixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
                   _EFFECT_SETD3D_DATA(smixer, VELOCITY_EFFECT,
-                                      *(void**)&_aaxRingBufferDopplerFn[0]);
+                                      *(void**)&_aaxDopplerFn[0]);
                   _FILTER_SETD3D_DATA(smixer, DISTANCE_FILTER,
-                                      *(void**)&_aaxRingBufferDistanceFn[AAX_EXPONENTIAL_DISTANCE]);
+                                      *(void**)&_aaxDistanceFn[AAX_EXPONENTIAL_DISTANCE]);
                }
 
                res = _intBufCreate(&smixer->emitters_3d, _AAX_EMITTER);

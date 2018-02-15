@@ -169,7 +169,7 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       filter->param[AAX_MAX_DISTANCE] = MAXFLOAT;
       filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
       filter->state = AAX_FALSE; // AAX_EXPONENTIAL_DISTANCE;
-      filter->data = *(void**)&_aaxRingBufferDistanceFn[1];
+      filter->data = *(void**)&_aaxDistanceFn[1];
       break;
    case ANGULAR_FILTER:
       filter->param[AAX_INNER_ANGLE] = 1.0f;
