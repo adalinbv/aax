@@ -117,7 +117,7 @@ void destroy(void *ptr);
 typedef float _aaxPitchShiftFn(float, float, float);
 extern _aaxPitchShiftFn* _aaxDopplerFn[];
 
-typedef float _aaxDistFn(float, float, float, float, float);
+typedef float _aaxDistFn(float, float, float, float);
 extern _aaxDistFn* _aaxDistanceFn[];
 extern _aaxDistFn* _aaxALDistanceFn[];
 
