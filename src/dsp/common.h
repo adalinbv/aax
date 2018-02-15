@@ -114,7 +114,7 @@ typedef _aaxDSPInfo _aaxEffectInfo;
 void aligned_destroy(void *ptr);
 void destroy(void *ptr);
 
-typedef float _aaxPitchShiftFn(float, float, float);
+typedef float _aaxPitchShiftFn(float, float);
 extern _aaxPitchShiftFn* _aaxDopplerFn[];
 
 typedef float _aaxDistFn(float, float, float, float);

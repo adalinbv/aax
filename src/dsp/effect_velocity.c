@@ -148,21 +148,20 @@ _aaxPitchShiftFn *_aaxDopplerFn[] =
  * http://en.wikipedia.org/wiki/Doppler_effect
  */
 static float
-_aaxDopplerShift(float vs, float ve, float vsound)
+_aaxDopplerShift(float ve, float vsound)
 {
 #if 1
    float vse, rv;
 
    /* relative speed */
-   vse = _MIN(ve, vsound) - _MIN(vs, vsound);
+   vse = _MIN(ve, vsound);
    rv =  vsound/_MAX(vsound - vse, 1.0f);
 
    return rv;
 #else
-   float vss, ves;
-   vss = vsound - _MIN(vs, vsound);
+   float ves;
    ves = _MAX(vsound - _MIN(ve, vsound), 1.0f);
-   return vss/ves;
+   return vsound/ves;
 #endif
 }
 
