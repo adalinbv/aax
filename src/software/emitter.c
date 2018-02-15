@@ -118,9 +118,9 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             _emitterCreateEFFromAAXS(emitter, embuf, embuf->aaxs);
          }
 
-         ctr = --src->update_ctr;
          // TODO: delayed updates causes emitter/frame status mismatch.
-         if (1) // ctr == 0)
+         ctr = 0; // ctr = --src->update_ctr;
+         if (ctr == 0)
          {
             if (stage == 2)
             {
