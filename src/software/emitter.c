@@ -59,7 +59,6 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 {
    _aaxRenderer *render = be->render(be_handle);
    _aaxRendererData data;
-   char rv = AAX_TRUE;
 
    data.drb = drb;
    data.info = info;
@@ -76,9 +75,7 @@ _aaxEmittersProcess(_aaxRingBuffer *drb, const _aaxMixerInfo *info,
 
    data.callback = _aaxProcessEmitter;
 
-   render->process(render, &data);
-
-   return rv;
+   return render->process(render, &data);
 }
 
 int
