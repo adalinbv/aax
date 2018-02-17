@@ -101,8 +101,8 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
       occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
       occlusion->fc = 22000.0f;
 
-      occlusion->level = 1.0f;
-      occlusion->olevel = 0.0f;
+      occlusion->level = 0.0f;
+      occlusion->olevel = 1.0f;
       occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
       memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
@@ -213,6 +213,7 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch
    {
       // level = 0.0f: 20kHz, level = 1.0f: 250Hz
       // log10(20000 - 1000) = 4.2787541
+      occlusion->freq_filter.low_gain = 1.0f - occlusion->level;
       occlusion->fc = 20000.0f - _log2lin(4.278754f*occlusion->level);
       _aax_bessel_compute(occlusion->fc, freq_flt);
 

@@ -175,7 +175,7 @@ typedef struct
    vec4f_t occlusion;
    float magnitude_sq;
 
-   float level, olevel;
+   float level, olevel;		// obstruction level
    float fc;
 
    _aaxRingBufferFreqFilterData freq_filter;

@@ -140,6 +140,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    {
       offs = drbi->sample->dde_samples;
    }
+
    sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
@@ -154,7 +155,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    genv = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (srbi->playing == 0 && srbi->stopped == 1)
    {
-      /* the emitter was already flagged as stopped */
+      /* The emitter was already flagged as stopped */
       ret = -1;
    }
    else if (!genv && srbi->stopped == 1)
@@ -170,7 +171,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       }
    }
 
-   /* apply envelope filter */
+   /* Apply envelope filter */
    gain0 = gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
    gain *= ep2d->note.pressure;
    if (gain < -1e-3f) {
@@ -180,7 +181,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /* 3d: distance, audio-cone and occlusion related gain */
    gain *= ep2d->final.gain;
 
-   /* apply the parent mixer/audio-frame volume and tremolo-gain */
+   /* Apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
    if (fp2d)
    {
@@ -188,7 +189,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       max *= fp2d->final.gain_lfo;
    }
 
-   /* tremolo and envelope following gain filter */
+   /* Tremolo and envelope following gain filter */
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo)
    {
@@ -203,16 +204,16 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       }
    }
 
-   /* tremolo was defined */
+   /* Tremolo was defined */
    if (max != 1.0f) {
       gain *= 1.0f - max/2.0f;
    }
 
-   /* final emitter volume */
+   /* Final emitter volume */
    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    if (genv) genv->value_total = gain;
 
-   /** Automatic volume ramping to avoid clicking */
+   /* Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
    if (!genv && !srbi->streaming && (srbi->playing == srbi->stopped))
    {
