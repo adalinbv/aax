@@ -261,6 +261,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 
          if (handle->parent && (handle->parent == handle->root)) {
             fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+            fp3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
          }
 
          parent = handle->parent;
@@ -764,6 +765,7 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
             {
                if (handle->parent && (handle->parent == handle->root)) {
                   fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+                  fp3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
                }
             }
          }
