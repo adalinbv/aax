@@ -580,6 +580,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
             {
                if (handle->parent && (handle->parent == handle->root)) {
                   ep3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+                  ep3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
                }
             }
          }
@@ -656,6 +657,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
       {
          if (handle->parent && (handle->parent == handle->root)) {
             edp3d->matrix.m4[LOCATION][3] = 0.0;
+            edp3d->velocity.m4[VELOCITY][3] = 0.0f;
          }
       }
       _PROP_MTX_SET_CHANGED(ep3d);
