@@ -1575,10 +1575,11 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
        */
 #ifdef ARCH32
       mtx4fMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
+      dist = vec3fMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
 #else
       mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
-#endif
       dist = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
+#endif
       fp2d->dist_delay_sec = dist / vs;
 
 #if 0
