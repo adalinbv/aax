@@ -1578,7 +1578,7 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
 #else
       mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
 #endif
-      dist = vec3dMagnitude((vec3d_t*)&fdp3d_m->matrix.s4x4[LOCATION]);
+      dist = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
       fp2d->dist_delay_sec = dist / vs;
 
 #if 0
