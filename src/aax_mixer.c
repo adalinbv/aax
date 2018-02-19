@@ -1127,6 +1127,11 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                   src->props2d->dist_delay_sec = 0.0f;
                }
 
+               if (_IS_RELATIVE(ep3d)) {
+                  ep3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+                  ep3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
+               }
+
                if (positional)
                {
                   mp3d = mixer->props3d;
@@ -1277,6 +1282,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
                   if (_IS_RELATIVE(fp3d)) {
                      fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
+                     fp3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
                   }
 
                   fmixer->info->period_rate = smixer->info->period_rate;
