@@ -43,7 +43,7 @@
 #include "arch.h"
 #include "api.h"
 
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
@@ -77,46 +77,59 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
 {
    _aaxRingBufferOcclusionData *occlusion = filter->slot[0]->data;
 
-   if (!occlusion)
+   if (state != AAX_FALSE &&
+       filter->slot[1]->param[0] > 0.1f &&
+       filter->slot[1]->param[1] > 0.1f &&
+       filter->slot[1]->param[2] > 0.1f &&
+       filter->slot[1]->param[3] > LEVEL_64DB)
    {
-      occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
-      filter->slot[0]->data = occlusion;
-   }
 
-   if (occlusion && state)
-   {
-      float  fs = 48000.0f;
-
-      if (filter->info) {
-         fs = filter->info->frequency;
+      if (!occlusion)
+      {
+         occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+         filter->slot[0]->data = occlusion;
       }
 
-      occlusion->prepare = _occlusion_prepare;
-      occlusion->run = _occlusion_run;
+      if (occlusion)
+      {
+         float  fs = 48000.0f;
 
-      occlusion->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
-      occlusion->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
-      occlusion->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
-      occlusion->occlusion.v4[3] = filter->slot[1]->param[3];
-      occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
-      occlusion->fc = 22000.0f;
+         if (filter->info) {
+            fs = filter->info->frequency;
+         }
 
-      occlusion->level = 0.0f;
-      occlusion->olevel = 1.0f;
-      occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         occlusion->prepare = _occlusion_prepare;
+         occlusion->run = _occlusion_run;
 
-      memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
-      occlusion->freq_filter.run = _freqfilter_run;
-      occlusion->freq_filter.lfo = 0;
-      occlusion->freq_filter.fs = fs;
-      occlusion->freq_filter.Q = 0.6f;
-      occlusion->freq_filter.low_gain = 1.0f;
+         occlusion->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
+         occlusion->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
+         occlusion->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
+         occlusion->occlusion.v4[3] = filter->slot[1]->param[3];
+         occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
+         occlusion->fc = 22000.0f;
 
-      // 6db/Oct low-pass Bessel filter
-      occlusion->freq_filter.type = LOWPASS;
-      occlusion->freq_filter.no_stages = 0;
-      occlusion->freq_filter.state = AAX_FALSE;
-      _aax_bessel_compute(occlusion->fc, &occlusion->freq_filter);
+         occlusion->level = 1.0f;
+         occlusion->olevel = 0.0f;
+         occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+         memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
+         occlusion->freq_filter.run = _freqfilter_run;
+         occlusion->freq_filter.lfo = 0;
+         occlusion->freq_filter.fs = fs;
+         occlusion->freq_filter.Q = 0.6f;
+         occlusion->freq_filter.low_gain = 1.0f;
+
+         // 6db/Oct low-pass Bessel filter
+         occlusion->freq_filter.type = LOWPASS;
+         occlusion->freq_filter.no_stages = 0;
+         occlusion->freq_filter.state = AAX_FALSE;
+         _aax_bessel_compute(occlusion->fc, &occlusion->freq_filter);
+      }
+   }
+   else
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
    }
 
    return filter;
@@ -220,13 +233,16 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch
       occlusion->olevel = occlusion->level;
    }
 
-   if (occlusion->fc < 15000.0f)
+   if (occlusion->freq_filter.low_gain > LEVEL_64DB)
    {
-      freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt,
-                    NULL, 0);
-      sptr = scratch;
+      if (occlusion->fc < 15000.0f)
+      {
+         freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt,
+                       NULL, 0);
+         sptr = scratch;
+      }
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
-   rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
 }
 
 
@@ -235,6 +251,7 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch
 # define VEC3_T			vec3f_t
 # define VEC3SUB(a,b,c)		vec3fSub(a,b,c)
 # define VEC3ADD(a,b,c)		vec3fAdd(a,b,c)
+# define VEC3NEGATE(a,b)	vec3fNegate(a,b)
 # define VEC3NORMALIZE(a,b)	vec3fNormalize(a,b)
 # define VEC3DOTPRODUCT(a,b)	vec3fDotProduct(a,b)
 # define VEC3SCALARMUL(a,b,c)	vec3fScalarMul(a,b,c)
@@ -244,6 +261,7 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch
 # define VEC3_T			vec3d_t
 # define VEC3SUB(a,b,c)		vec3dSub(a,b,c)
 # define VEC3ADD(a,b,c)		vec3dAdd(a,b,c)
+# define VEC3NEGATE(a,b)	vec3dNegate(a,b)
 # define VEC3NORMALIZE(a,b)	vec3dNormalize(a,b)
 # define VEC3DOTPRODUCT(a,b)	vec3dDotProduct(a,b)
 # define VEC3SCALARMUL(a,b,c)	vec3dScalarMul(a,b,c)
@@ -251,7 +269,7 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch
 #endif
 
 void
-_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
+_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
 {
    _aaxRingBufferOcclusionData *occlusion;
    _aaxDelayed3dProps *pdp3d_m, *fdp3d_m;
@@ -286,6 +304,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
          VEC3SUB(&fevec, &fdp3d_m->matrix.v34[LOCATION],
                          &edp3d_m->matrix.v34[LOCATION]);
          less = 0;
+         occlusion->level = 0.0f;
          do
          {
             if (path)
@@ -296,8 +315,14 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
                // ndp3d_m specifies the absolute position of the parent.
                // edp3d_m specifies the absolute position of the emitter.
 
-               VEC3SUB(&pevec, &ndp3d_m->matrix.v34[LOCATION],
-                               &edp3d_m->matrix.v34[LOCATION]);
+               if (nfp3d == nfp3d->root) {
+                  VEC3NEGATE(&pevec, &edp3d_m->matrix.v34[LOCATION]);
+               }
+               else
+               {
+                  VEC3SUB(&pevec, &ndp3d_m->matrix.v34[LOCATION],
+                                  &edp3d_m->matrix.v34[LOCATION]);
+               }
                VEC3NORMALIZE(&pevec, &pevec);
 
                // Get the projection length of the frame-to-emitter vector on
@@ -321,9 +346,11 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
                if (path->inverse) less = !less;
                if (less)
                {
-                  float level, mag = path->magnitude_sq;
+                  float level, mag;
 
-                  level = _MIN(vec3fMagnitudeSquared(&vres)/mag, 1.0f);
+                  mag = path->magnitude_sq * 100.0f*100.0f/(vs*vs);
+                  level = 1.0f - _MIN(vec3fMagnitudeSquared(&vres)/mag, 1.0f);
+
                   if (path->inverse) level = 1.0f / level;
 
                   level *= path->occlusion.v4[3];    // density
@@ -340,7 +367,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
  PRINT_VEC3(path->occlusion.v3);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
- printf("       hit obstruction: %s, level: %f\n", less?"yes":"no ", occlusion->level);
+ printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (less^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
