@@ -137,7 +137,7 @@ int main(int argc, char **argv)
             res = aaxEffectSetState(effect, AAX_ENVELOPE_FOLLOW);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
-            testForError(effect, "aaxEffectCreate");
+            testForError(effect, "aaxEffectDestroy");
 
             DELAY;
 
@@ -145,7 +145,7 @@ int main(int argc, char **argv)
             res = aaxEffectSetState(effect, AAX_FALSE);
             res = aaxEmitterSetEffect(emitter, effect);
             res = aaxEffectDestroy(effect);
-            testForError(effect, "aaxEffect Disable");
+            testForError(effect, "aaxEffect Destroy");
 # endif
 
 # if ENABLE_EMITTER_PHASING
