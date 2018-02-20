@@ -26,7 +26,9 @@
 * Fri Jan 05  2018 - tech@adalin.org
 - AeonWave (3.0.11) stable; urgency=low
  * Fix a speed regression for matrix multiplications.
- * Add the 'auto-sustain' option for filters and effects which calculates the sustain time by subtracting the logarithmic frequency value multiplied by the auto-sustain value from the original value
+ * Add the 'auto-sustain' option for filters and effects which calculates the
+   sustain time by subtracting the logarithmic frequency value multiplied by
+   the auto-sustain value from the original value.
 
 -- Erik Hofman <tech@adalin.org>  Fri 05 Jan  2018 13:57:00 + 0100
 

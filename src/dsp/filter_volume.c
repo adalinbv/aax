@@ -209,42 +209,6 @@ _flt_function_tbl _aaxVolumeFilter =
    (_aaxFilterConvert*)&_aaxVolumeFilterMinMax
 };
 
-void
-_occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch, size_t no_samples, unsigned int track, const void *data)
-{
-   _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
-   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   _aaxRingBufferFreqFilterData *freq_flt;
-
-   /* add the direct path */
-   assert(occlusion);
-
-   freq_flt = &occlusion->freq_filter;
-
-   // occlusion->level: 0.0 = free path, 1.0 = blocked
-   if (occlusion->level != occlusion->olevel)
-   {
-      // level = 0.0f: 20kHz, level = 1.0f: 250Hz
-      // log10(20000 - 1000) = 4.2787541
-      occlusion->freq_filter.low_gain = 1.0f - occlusion->level;
-      occlusion->fc = 20000.0f - _log2lin(4.278754f*occlusion->level);
-      _aax_bessel_compute(occlusion->fc, freq_flt);
-
-      occlusion->olevel = occlusion->level;
-   }
-
-   if (occlusion->freq_filter.low_gain > LEVEL_64DB)
-   {
-      if (occlusion->fc < 15000.0f)
-      {
-         freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt,
-                       NULL, 0);
-         sptr = scratch;
-      }
-      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-   }
-}
-
 
 #ifdef ARCH32
 # define FLOAT			float
@@ -378,4 +342,40 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          while (nfp3d);
       } /* occlusion != NULL */
    } /* pdp3d_m != NULL */
+}
+
+void
+_occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch, size_t no_samples, unsigned int track, const void *data)
+{
+   _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxRingBufferFreqFilterData *freq_flt;
+
+   /* add the direct path */
+   assert(occlusion);
+
+   freq_flt = &occlusion->freq_filter;
+
+   // occlusion->level: 0.0 = free path, 1.0 = blocked
+   if (occlusion->level != occlusion->olevel)
+   {
+      // level = 0.0f: 20kHz, level = 1.0f: 250Hz
+      // log10(20000 - 1000) = 4.2787541
+      occlusion->freq_filter.low_gain = 1.0f - occlusion->level;
+      occlusion->fc = 20000.0f - _log2lin(4.278754f*occlusion->level);
+      _aax_bessel_compute(occlusion->fc, freq_flt);
+
+      occlusion->olevel = occlusion->level;
+   }
+
+   if (occlusion->freq_filter.low_gain > LEVEL_64DB)
+   {
+      if (occlusion->fc < 15000.0f)
+      {
+         freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt,
+                       NULL, 0);
+         sptr = scratch;
+      }
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+   }
 }
