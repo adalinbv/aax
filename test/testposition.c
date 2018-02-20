@@ -55,17 +55,17 @@
 
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
-aaxVec3d SensorPos =  { 9.0,  9.0,   9.0  };
 aaxVec3f SensorAt  =  { 0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp  =  { 0.0f, 1.0f,  0.0f };
+aaxVec3d SensorPos =  { 9.0,  9.0,   9.0  };
 
-aaxVec3d Frame1Pos =  { -0.5,  0.0,  0.0  };		/* 0.5m to the left */
-aaxVec3d Frame2Pos =  {  1.0,  0.0,  0.0  };		/* 1m to the right */
+aaxVec3f FrameAt =   {  0.0f, 0.0f, -1.0f };
+aaxVec3f FrameUp =   {  0.0f, 1.0f,  0.0f };
 
-aaxVec3f FrameAt =   {  0.0f, 0.0f, 1.0f };
-aaxVec3f FrameUp =   {  0.0f, 1.0f, 0.0f };
+aaxVec3d Frame1Pos =  {  0.0,  0.0,  0.0  };
+aaxVec3d Frame2Pos =  {  0.0,  0.0,  0.5  };
 
-aaxVec3d EmitterPos = { -1.0,  0.0,  0.0  };		/* 1m to the left */
+aaxVec3d EmitterPos = { -1.0,  0.0,  0.0  };
 aaxVec3f EmitterDir = {  0.0f, 0.0f, 1.0f };
 
 int main(int argc, char **argv)
@@ -123,7 +123,7 @@ int main(int argc, char **argv)
         res = aaxAudioFrameSetMatrix64(frame[0], mtx64);
         testForState(res, "aaxAudioFrameSetMatrix64");
 
-        res=aaxAudioFrameSetMode(frame[0], AAX_POSITION, AAX_RELATIVE);
+        res = aaxAudioFrameSetMode(frame[0], AAX_POSITION, AAX_RELATIVE);
         testForState(res, "aaxAudioFrameSetMode");
 
         res = aaxMixerRegisterAudioFrame(config, frame[0]);
@@ -142,7 +142,7 @@ int main(int argc, char **argv)
         res = aaxAudioFrameSetMatrix64(frame[1], mtx64);
         testForState(res, "aaxAudioFrameSetMatrix64");
 
-        res=aaxAudioFrameSetMode(frame[1], AAX_POSITION, AAX_RELATIVE);
+        res = aaxAudioFrameSetMode(frame[1], AAX_POSITION, AAX_RELATIVE);
         testForState(res, "aaxAudioFrameSetMode");
 
         res = aaxAudioFrameRegisterAudioFrame(frame[0], frame[1]);
