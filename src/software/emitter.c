@@ -353,7 +353,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
          ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], &epos);
          df = dopplerfn(ve, vs/sdf);
-#if 1
+#if 0
 # if 1
  printf("velocity: %3.2f, %3.2f, %3.2f\n",
             edp3d_m->velocity.v34[LOCATION].v3[0],
