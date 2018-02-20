@@ -427,6 +427,8 @@ int _emitterCreateEFFromAAXS(void*, void*, const char*);
 void _aaxSetDefaultInfo(_aaxMixerInfo*, void*);
 
 void _aaxSetDefault2dProps(_aax2dProps*);
+void _aaxSetDefault2dFiltersEffects(_aax2dProps*);
+
 _aax3dProps* _aax3dPropsCreate();
 _aaxDelayed3dProps* _aaxDelayed3dPropsDup(_aaxDelayed3dProps*);
 void _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps*);

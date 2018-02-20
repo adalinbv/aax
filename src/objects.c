@@ -93,11 +93,35 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 }
 
 void
+_aaxSetDefault2dFiltersEffects(_aax2dProps *p2d)
+{
+   unsigned int pos;
+
+   /* Note: skips the volume filter */
+   for (pos=DYNAMIC_GAIN_FILTER; pos<MAX_STEREO_FILTER; pos++)
+   {
+      _aaxSetDefaultFilter2d(&p2d->filter[pos], pos, 0);
+      _FILTER_FREE_DATA(p2d, pos);
+   }
+
+   /* Note: skips the pitch effect */
+   for (pos=REVERB_EFFECT; pos<MAX_STEREO_EFFECT; pos++)
+   {
+      _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
+      _FILTER_FREE_DATA(p2d, pos);
+   }
+}
+
+void
 _aaxSetDefault2dProps(_aax2dProps *p2d)
 {
-   unsigned int pos, size;
+   unsigned int size;
 
    assert (p2d);
+
+   _aaxSetDefaultFilter2d(&p2d->filter[0], 0, 0);
+   _aaxSetDefaultEffect2d(&p2d->effect[0], 0, 0);
+   _aaxSetDefault2dFiltersEffects(p2d);
 
    /* normalized  directions */
    size = _AAX_MAX_SPEAKERS*sizeof(vec4f_t);
@@ -112,14 +136,6 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    size = _AAX_MAX_SPEAKERS*sizeof(float);
    memset(p2d->freqfilter_history, 0, size);
    p2d->k = 0.0f;
-
-   /* stereo filters */
-   for (pos=0; pos<MAX_STEREO_FILTER; pos++) {
-      _aaxSetDefaultFilter2d(&p2d->filter[pos], pos, 0);
-   }
-   for (pos=0; pos<MAX_STEREO_EFFECT; pos++) {
-      _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
-   }
 
    /* previous gains */
    size = _AAX_MAX_SPEAKERS*sizeof(float);
