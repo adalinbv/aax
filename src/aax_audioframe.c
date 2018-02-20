@@ -1668,19 +1668,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          if (clear)
          {
             _aaxAudioFrame* fmixer = handle->submix;
-            _aax2dProps *p2d = fmixer->props2d;
-            int pos;
-
-            for (pos=DYNAMIC_GAIN_FILTER; pos<MAX_STEREO_FILTER; ++pos)
-            {
-               _FILTER_FREE2D_DATA(fmixer, pos);
-               _aaxSetDefaultFilter2d(&p2d->filter[pos], pos, 0);
-            }
-            for (pos=REVERB_EFFECT; pos<MAX_STEREO_EFFECT; ++pos)
-            {
-               _EFFECT_FREE2D_DATA(fmixer, pos);
-               _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
-            }
+            _aaxSetDefault2dFiltersEffects(fmixer->props2d);
          }
 
          for (i=0; i<num; i++)
