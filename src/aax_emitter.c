@@ -1453,14 +1453,19 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
          if (clear)
          {
             _aaxEmitter *src = handle->source;
-            int i;
-            for (i=0; i<MAX_STEREO_FILTER; ++i) {
-               _FILTER_FREE2D_DATA(src, i);
+            _aax2dProps *p2d = src->props2d;
+            int pos;
+
+            for (pos=DYNAMIC_GAIN_FILTER; pos<MAX_STEREO_FILTER; ++pos)
+            {
+               _FILTER_FREE2D_DATA(src, pos);
+               _aaxSetDefaultFilter2d(&p2d->filter[pos], pos, 0);
             }
-            for (i=0; i<MAX_STEREO_EFFECT; ++i) {
-               _EFFECT_FREE2D_DATA(src, i);
+            for (pos=REVERB_EFFECT; pos<MAX_STEREO_EFFECT; ++pos)
+            {
+               _EFFECT_FREE2D_DATA(src, pos);
+               _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
             }
-            _aaxSetDefault2dProps(src->props2d);
          }
 
          for (i=0; i<num; i++)
