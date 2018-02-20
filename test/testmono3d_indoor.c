@@ -45,14 +45,15 @@
 
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
-aaxVec3d EmitterPos = { 17.0,  0.5,  -2.0  };	// in metres (right, up, back)
-aaxVec3f EmitterDir = { 0.0f,  0.0f,  1.0f };
-
-aaxVec3d RoomPos =    { 15.0,  1.0,  -4.0  };
-aaxVec3d HallwayPos = {  0.0,  1.0,  -4.0  };
-
 aaxVec3f WorldAt =    {  0.0f, 0.0f,  1.0f };
 aaxVec3f WorldUp =    {  0.0f, 1.0f,  0.0f };
+
+aaxVec3f EmitterDir = { 0.0f,  0.0f,  1.0f };
+aaxVec3d EmitterPos = { 15.0,  0.5,   2.0  };	// in metres (right, up, back)
+
+aaxVec3d RoomPos =    { 15.0,  1.0,  -4.0  };
+aaxVec3d SectionPos = { 15.0,  1.0,  -5.0  };
+aaxVec3d HallwayPos = {  0.0,  1.0,  -4.0  };
 
 aaxVec3d SensorPos =  {  0.0,  1.7,   0.0  };
 aaxVec3f SensorAt =   {  0.0f, 0.0f, -1.0f };
@@ -69,10 +70,10 @@ const char *room_reverb_aaxs = "<?xml version='1.0'?> \
     <param n='3'>0.049</param> 		\
    </slot> 				\
    <slot n='1'>                         \
-    <param n='0'>8500.0</param>         \
-    <param n='1'>1.0</param>            \
-    <param n='2'>0.0</param>            \
-    <param n='3'>0.8</param>            \
+    <param n='0'>0.8</param>            \
+    <param n='1'>2.1</param>            \
+    <param n='2'>0.1</param>            \
+    <param n='3'>1.0</param>            \
    </slot>                              \
   </effect> 				\
  </audioframe> 				\
@@ -89,10 +90,10 @@ const char *hallway_reverb_aaxs = "<?xml version='1.0'?> \
     <param n='3'>0.150</param> 		\
    </slot> 				\
    <slot n='1'>                         \
-    <param n='0'>8500.0</param>         \
-    <param n='1'>1.0</param>            \
-    <param n='2'>0.0</param>            \
-    <param n='3'>2.0</param>            \
+    <param n='0'>2.0</param>            \
+    <param n='1'>2.1</param>            \
+    <param n='2'>0.1</param>            \
+    <param n='3'>1.0</param>            \
    </slot>                              \
   </effect> 				\
  </audioframe> 				\
@@ -118,7 +119,7 @@ int main(int argc, char **argv)
         buffer = bufferFromFile(config, infile);
         if (buffer)
         {
-            aaxFrame room, hallway;
+            aaxFrame room, section, hallway;
             aaxEmitter emitter;
             aaxFilter filter;
             aaxMtx4d mtx64;
@@ -169,6 +170,22 @@ int main(int argc, char **argv)
 
             aaxBufferDestroy(reverb);
 
+            /** intersection frame */
+            section = aaxAudioFrameCreate(config);
+            testForError(section, "Unable to create a new audio frame\n");
+
+            res = aaxMatrix64SetOrientation(mtx64, SectionPos, WorldAt, WorldUp);
+            testForState(res, "aaxAudioFrameSetOrientation: Inetrsection");
+
+            res = aaxAudioFrameSetMatrix64(section, mtx64);
+            testForState(res, "aaxAudioFrameSetMatrix64");
+
+            res = aaxAudioFrameSetMode(section, AAX_POSITION, AAX_INDOOR);
+            testForState(res, "aaxAudioFrameSetMode");
+
+            res = aaxAudioFrameRegisterAudioFrame(hallway, section);
+            testForState(res, "aaxAudioFrameRegisterAudioFrame: Intersection");
+
             /** room audio frame */
             room = aaxAudioFrameCreate(config);
             testForError(room, "Unable to create a new audio frame\n");
@@ -182,7 +199,7 @@ int main(int argc, char **argv)
             res = aaxAudioFrameSetMode(room, AAX_POSITION, AAX_INDOOR);
             testForState(res, "aaxAudioFrameSetMode");
 
-            res = aaxAudioFrameRegisterAudioFrame(hallway, room);
+            res = aaxAudioFrameRegisterAudioFrame(section, room);
             testForState(res, "aaxAudioFrameRegisterAudioFrame: Room");
 
             // room reverb
@@ -259,6 +276,9 @@ int main(int argc, char **argv)
             res = aaxAudioFrameSetState(hallway, AAX_STOPPED);
             testForState(res, "aaxAudioFrameStop: Hallway");
 
+            res = aaxAudioFrameSetState(section, AAX_STOPPED);
+            testForState(res, "aaxAudioFrameStop: Intersection");
+
             res = aaxAudioFrameSetState(room, AAX_STOPPED);
             testForState(res, "aaxAudioFrameStop: Room");
 
@@ -275,11 +295,17 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
             testForState(res, "aaxBufferDestroy");
 
-            res = aaxAudioFrameDeregisterAudioFrame(hallway, room);
+            res = aaxAudioFrameDeregisterAudioFrame(section, room);
             testForState(res, "aaxAudioFrameDeregisterAudioFrame");
 
             res = aaxAudioFrameDestroy(room);
             testForState(res, "aaxAudioFrameDestroy: Room");
+
+            res = aaxAudioFrameDeregisterAudioFrame(hallway, section);
+            testForState(res, "aaxAudioFrameDeregisterAudioFrame");
+
+            res = aaxAudioFrameDestroy(section);
+            testForState(res, "aaxAudioFrameDestroy: Intersection");
 
             res = aaxMixerDeregisterAudioFrame(config, hallway);
             testForState(res, "aaxMixerDeregisterAudioFrame");
