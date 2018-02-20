@@ -69,8 +69,9 @@ int main(int argc, char **argv)
         {
             aaxFrame frame;
             aaxEmitter emitter;
+            aaxFilter filter;
             aaxEffect effect;
-            float pitch, duration;
+            float pitch, gain, duration;
             float dt = 0.0f;
             int q, state;
 
@@ -79,6 +80,18 @@ int main(int argc, char **argv)
             /** emitter */
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter");
+
+            /* gain */
+            gain = getGain(argc, argv);
+            filter = aaxFilterCreate(config, AAX_VOLUME_FILTER);
+            testForError(filter, "Unable to create the volume filter");
+
+            res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, gain);
+            testForState(res, "aaxFilterSetParam");
+
+            res = aaxEmitterSetFilter(emitter, filter);
+            testForState(res, "aaxEmitterSetGain");
+            aaxFilterDestroy(filter);
 
             /* pitch */
             pitch = getPitch(argc, argv);
@@ -92,6 +105,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxEmitterSetPitch");
             aaxEffectDestroy(effect);
 
+            /* buffer */
             res = aaxEmitterAddBuffer(emitter, buffer);
             testForState(res, "aaxEmitterAddBuffer");
 
