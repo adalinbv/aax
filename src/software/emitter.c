@@ -353,14 +353,16 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 
          ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], &epos);
          df = dopplerfn(ve, vs/sdf);
-#if 0
+#if 1
 # if 1
  printf("velocity: %3.2f, %3.2f, %3.2f\n",
-            edp3d_m->velocity[LOCATION][0],
-            edp3d_m->velocity[LOCATION][1],
-            edp3d_m->velocity[LOCATION][2]);
- printf("modified velocity:\t\t\tparent velocity:\n");
- PRINT_MATRICES(edp3d_m->velocity, fdp3d_m->velocity);
+            edp3d_m->velocity.v34[LOCATION].v3[0],
+            edp3d_m->velocity.v34[LOCATION].v3[1],
+            edp3d_m->velocity.v34[LOCATION].v3[2]);
+ printf("velocity:\t\t\t\tparent velocity:\n");
+ PRINT_MATRICES(edp3d->velocity, fdp3d_m->velocity);
+ printf("modified velocity:");
+ PRINT_MATRIX(edp3d_m->velocity);
  printf("doppler: %f, ve: %f, vs: %f\n\n", df, ve, vs/sdf);
 # else
  printf("doppler: %f, ve: %f, vs: %f\n", df, ve, vs/sdf);
@@ -456,7 +458,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          }
 
          if (occlusion) {
-            occlusion->prepare(src, fp3d);
+            occlusion->prepare(src, fp3d, vs);
          }
       }
       while (0);
