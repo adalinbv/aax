@@ -46,7 +46,7 @@ static void _reverb_destroy_delays(void**);
 static void _reverb_add_delays(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
 
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
