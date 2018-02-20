@@ -48,14 +48,14 @@
 #define RADIUS			15
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
-aaxVec3d EmitterPos = { 0.0,  0.0,  0.0  };
-aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
 aaxVec3f EmitterVel = { 0.0f, 0.0f, 0.0f };
+aaxVec3f EmitterDir = { 0.0f, 0.0f, 1.0f };
+aaxVec3d EmitterPos = { 0.0,  0.0,  0.0  };
 
-aaxVec3d FramePos = { 0.0,  0.0,  0.0  };
-aaxVec3f FrameAt = {  0.0f, 0.0f, 1.0f };
-aaxVec3f FrameUp = {  0.0f, 1.0f, 0.0f };
-aaxVec3f FrameVel = { 0.0f, 0.0f, 0.0f };
+aaxVec3d FramePos = {   0.0,  0.0,  0.0  };
+aaxVec3f FrameAt = {    0.0f, 0.0f, 1.0f };
+aaxVec3f FrameUp = {    0.0f, 1.0f, 0.0f };
+aaxVec3f FrameVel = {   0.0f, 0.0f, 0.0f };
 
 aaxVec3d SensorPos = { 10000.0,  -1000.0,   0.0  };
 aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
@@ -209,7 +209,7 @@ int main(int argc, char **argv)
                         mul *= -1.0f;
 
                         res = aaxEmitterSetMode(emitter[p], AAX_POSITION,
-                                                            AAX_ABSOLUTE);
+                                                            AAX_RELATIVE);
                         testForState(res, "aaxEmitterSetMode");
 
                         res=aaxEmitterSetMode(emitter[p],AAX_LOOPING,AAX_TRUE);
