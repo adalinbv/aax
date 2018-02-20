@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2016 by Erik Hofman.
- * Copyright (C) 2009-2016 by Adalin B.V.
+ * Copyright (C) 2008-2018 by Erik Hofman.
+ * Copyright (C) 2009-2018 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,16 +48,16 @@
 
 #define XEPOS		00000.0
 #define YEPOS		-1000.0
-#define ZEPOS		00.0
+#define ZEPOS		 0.0
 
-aaxVec3d EmitterPos = {    XEPOS,    YEPOS, ZEPOS };
-aaxVec3f EmitterDir = {     0.0f,     0.0f, 1.0f };
-aaxVec3f EmitterVel = {     0.0f,     0.0f, 0.0f };
+aaxVec3f EmitterVel = {     0.0f,  0.0f,  0.0f };
+aaxVec3f EmitterDir = {     0.0f,  0.0f, -1.0f };
+aaxVec3d EmitterPos = {    XEPOS, YEPOS, ZEPOS };
 
-aaxVec3d SensorPos = { 00000.0f,    YEPOS, 00.0f };
-aaxVec3f SensorAt = {      0.0f,     0.0f, -1.0f };
-aaxVec3f SensorUp = {      0.0f,     1.0f,  0.0f };
-aaxVec3f SensorVel = {     0.0f,     0.0f,  0.0f };
+aaxVec3d SensorPos = {      0.0 , YEPOS,  0.0  };
+aaxVec3f SensorAt = {       0.0f,  0.0f, -1.0f };
+aaxVec3f SensorUp = {       0.0f,  1.0f,  0.0f };
+aaxVec3f SensorVel = {      0.0f,  0.0f,  0.0f };
 
 int main(int argc, char **argv)
 {
