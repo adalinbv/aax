@@ -52,8 +52,8 @@ enum _aax3dFiltersEffects
     MAX_3D_FILTER,
 
     /* 3d effects */
-    REVERB_OCCLUSION_EFFECT = 0,/* reverb direct path sound obstruction	*/
-    VELOCITY_EFFECT,		/* Doppler				*/
+    VELOCITY_EFFECT = 0,	/* Doppler				*/
+    REVERB_OCCLUSION_EFFECT,	/* reverb direct path sound obstruction */
     MAX_3D_EFFECT,
 };
 
@@ -67,15 +67,15 @@ enum _aax2dFiltersEffects
     EQUALIZER_MAX,
 
     /* stereo filters */
-    VOLUME_FILTER = 0,
+    VOLUME_FILTER = 0,		// must be the same as OCCLUSION_FILTER
     DYNAMIC_GAIN_FILTER,
     TIMED_GAIN_FILTER,
     FREQUENCY_FILTER,
     MAX_STEREO_FILTER,
 
     /* stereo effects */
-    REVERB_EFFECT = 0,
-    PITCH_EFFECT,
+    PITCH_EFFECT = 0,
+    REVERB_EFFECT,		// must be the same as REVERB_OCCLUSION_EFFECT
     DYNAMIC_PITCH_EFFECT,
     TIMED_PITCH_EFFECT,
     DISTORTION_EFFECT,

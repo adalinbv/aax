@@ -1621,15 +1621,19 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame* smixer = sensor->mixer;
-               int i;
+               _aax2dProps *p2d = smixer->props2d;
+               int pos;
 
-               for (i=0; i<MAX_STEREO_FILTER; ++i) {
-                  _FILTER_FREE2D_DATA(smixer, i);
+               for (pos=DYNAMIC_GAIN_FILTER; pos<MAX_STEREO_FILTER; ++pos)
+               {
+                  _FILTER_FREE2D_DATA(smixer, pos);
+                  _aaxSetDefaultFilter2d(&p2d->filter[pos], pos, 0);
                }
-               for (i=0; i<MAX_STEREO_EFFECT; ++i) {
-                  _EFFECT_FREE2D_DATA(smixer, i);
+               for (pos=REVERB_EFFECT; pos<MAX_STEREO_EFFECT; ++pos)
+               {
+                  _EFFECT_FREE2D_DATA(smixer, pos);
+                  _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
                }
-               _aaxSetDefault2dProps(smixer->props2d);
 
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
