@@ -9,11 +9,11 @@
 <aeonwave>
 
  <sound name="Clavinet" program="8" bank="0" frequency="220" duration="0.10">
-  <waveform src="impulse" pitch="1.0"/>
-  <waveform src="impulse" processing="add" ratio="0.4" pitch="2.0"/>
+  <waveform src="impulse" pitch="0.5"/>
+  <waveform src="impulse" processing="add" ratio="0.4" pitch="1.0"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="1.5">330</param>
+    <param n="0" pitch="1.0">220</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
