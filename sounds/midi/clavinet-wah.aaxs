@@ -9,11 +9,11 @@
 <aeonwave>
 
  <sound name="Wah Clavinet" frequency="220" duration="0.10">
-  <waveform src="impulse" pitch="1.0"/>
-  <waveform src="impulse" processing="add" ratio="0.4" pitch="2.0"/>
+  <waveform src="impulse" pitch="0.5"/>
+  <waveform src="impulse" processing="add" ratio="0.4" pitch="1.0"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="1.5">330</param>
+    <param n="0" pitch="1.0">220</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
@@ -34,16 +34,16 @@
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="40">8800</param>
-    <param n="3">4.0</param>
+    <param n="0" pitch="20">8800</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.50</param>
-    <param n="1" factor="velocity">0.11</param>
-    <param n="2" factor="soften">1.20</param>
-    <param n="3">0.52</param>
+    <param n="1" factor="velocity">0.21</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.22</param>
    </slot>
    <slot n="1">
     <param n="0">0.80</param>
