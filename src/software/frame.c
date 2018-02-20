@@ -287,7 +287,7 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
       _aaxRingBufferData *srbi, *drbi;
       _aaxRingBufferSample *srbd, *drbd;
       CONST_MIX_PTRPTR_T sptr;
-      size_t no_samples;
+      size_t t, no_samples;
 
       srbi = src_rb->handle;
       srbd = srbi->sample;
@@ -296,10 +296,12 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 
       drbi = dest_rb->handle;
       drbd = drbi->sample;
+
+      for (t=0; t<drbd->no_tracks; t++) {
+         fp2d->prev_gain[t] = 1.0f;
+      }
       drbd->mix1n(drbd, sptr, info->router, fp2d, 0, 0, no_samples,
                   info->frequency, 1.0f, 1.0f, 1.0f, 0);
-//    dest_rb->data_mix(dest_rb, src_rb, lfo, parent_indoor? 1 : AAX_TRACK_ALL);
-
       /*
        * push the ringbuffer to the back of the stack so it can
        * be used without the need to delete this one now and 
@@ -394,6 +396,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
 #if 0
  PRINT_VEC3(tmp);
 #endif
+
             _aaxAudioFrameMix3D(dest_rb, sfmixer->frame_ringbuffers,
                                 &sfp2d, tmp, fp2d->speaker, fmixer->info);
          } else {
