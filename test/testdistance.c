@@ -43,16 +43,15 @@
 #include "wavfile.h"
 
 /* 50m/s (0.145*Vsound) = about 100kts */
-#define UPDATE_DELAY		0.001f
+#define UPDATE_DELAY		0.00033f
 #define SPEED_OF_SOUND		343.0f
 #define SPEED			(0.145f*SPEED_OF_SOUND)
-#define INITIAL_DIST		100.0f
-//(5.0f*SPEED_OF_SOUND)a
+#define INITIAL_DIST		150.0f
 #define STEP			(SPEED*UPDATE_DELAY)
 
 #define FILE_PATH		SRC_PATH"/wasp.wav"
 
-aaxVec3d EmitterPos = { -INITIAL_DIST,   30.0,    -50.0  };
+aaxVec3d EmitterPos = { -INITIAL_DIST,   30.0,    -15.0  };
 aaxVec3f EmitterDir = {          1.0f,    0.0f,     0.0f };
 aaxVec3f EmitterVel = {         SPEED,    0.0f,     0.0f };
 
@@ -139,7 +138,7 @@ int main(int argc, char **argv)
             filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
             testForError(filter, "Unable to create the distance filter");
 
-            res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 30.0f);
+            res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 90.0f);
             testForState(res, "aaxEmitterSetReferenceDistance");
 
             res = aaxFilterSetParam(filter, AAX_MAX_DISTANCE, AAX_LINEAR, 5000.0f);
