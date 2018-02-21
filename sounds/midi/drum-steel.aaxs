@@ -9,10 +9,9 @@
 <aeonwave>
 
  <sound name="Steel Drums" program="115" bank="0" frequency="220" duration="0.33">
-  <waveform src="square" pitch="1.0"/>
-  <waveform src="sine" processing="add" ratio="0.7" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.1" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.0"/>
+  <waveform src="sine" pitch="1.696"/>
+  <waveform src="sine" processing="add" ratio="0.6" pitch="5.0"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="5.0587"/>
  </sound>
 
  <instrument>
@@ -48,13 +47,13 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.50</param>
+    <param n="0">0.447</param>
     <param n="1">0.015</param>
-    <param n="2">0.93</param>
+    <param n="2">0.277</param>
     <param n="3" >0.025</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
+    <param n="0">0.298</param>
    </slot>
   </effect>
  </emitter>
