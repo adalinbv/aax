@@ -485,7 +485,7 @@ _batch_freqfilter_float_avx2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       stages = filter->no_stages;
       if (!stages) stages++;
 
-      if (filter->state) {
+      if (filter->state == AAX_BESSEL) {
          mk = _mm256_set_ss(filter->k * (filter->high_gain - filter->low_gain));
       } else {
          mk = _mm256_set_ss(filter->k * filter->high_gain);
