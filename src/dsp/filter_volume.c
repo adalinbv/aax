@@ -43,6 +43,7 @@
 #include "arch.h"
 #include "api.h"
 
+_aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
@@ -75,62 +76,13 @@ _aaxVolumeFilterDestroy(_filter_t* filter)
 static aaxFilter
 _aaxVolumeFilterSetState(_filter_t* filter, int state)
 {
-   _aaxRingBufferOcclusionData *occlusion = filter->slot[0]->data;
+   float  fs = 48000.0f;
 
-   if (state != AAX_FALSE &&
-       filter->slot[1]->param[0] > 0.1f &&
-       filter->slot[1]->param[1] > 0.1f &&
-       filter->slot[1]->param[2] > 0.1f &&
-       filter->slot[1]->param[3] > LEVEL_64DB)
-   {
-
-      if (!occlusion)
-      {
-         occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
-         filter->slot[0]->data = occlusion;
-      }
-
-      if (occlusion)
-      {
-         float  fs = 48000.0f;
-
-         if (filter->info) {
-            fs = filter->info->frequency;
-         }
-
-         occlusion->prepare = _occlusion_prepare;
-         occlusion->run = _occlusion_run;
-
-         occlusion->occlusion.v4[0] = 0.5f*filter->slot[1]->param[0];
-         occlusion->occlusion.v4[1] = 0.5f*filter->slot[1]->param[1];
-         occlusion->occlusion.v4[2] = 0.5f*filter->slot[1]->param[2];
-         occlusion->occlusion.v4[3] = filter->slot[1]->param[3];
-         occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
-         occlusion->fc = 22000.0f;
-
-         occlusion->level = 1.0f;
-         occlusion->olevel = 0.0f;
-         occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-
-         memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
-         occlusion->freq_filter.run = _freqfilter_run;
-         occlusion->freq_filter.lfo = 0;
-         occlusion->freq_filter.fs = fs;
-         occlusion->freq_filter.Q = 0.6f;
-         occlusion->freq_filter.low_gain = 1.0f;
-
-         // 6db/Oct low-pass Bessel filter
-         occlusion->freq_filter.type = LOWPASS;
-         occlusion->freq_filter.no_stages = 0;
-         occlusion->freq_filter.state = AAX_FALSE;
-         _aax_bessel_compute(occlusion->fc, &occlusion->freq_filter);
-      }
+   if (filter->info) {
+      fs = filter->info->frequency;
    }
-   else
-   {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-   }
+
+   filter->slot[0]->data = _occlusion_create(filter->slot[0]->data, filter->slot[1], state, fs);
 
    return filter;
 }
@@ -232,6 +184,96 @@ _flt_function_tbl _aaxVolumeFilter =
 # define VEC3SUBFILL(a,b,c,d)	vec3dSub(&b,c,d); vec3fFilld(a.v3,b.v3)
 #endif
 
+static float
+_occlusion_lfo(void* data, UNUSED(void *env), const void *ptr, unsigned track, size_t num)
+{
+  _aaxLFOData* lfo = (_aaxLFOData*)data;
+  _aaxRingBufferOcclusionData *occlusion;
+  float rv;
+
+  occlusion = (_aaxRingBufferOcclusionData*)lfo->convert;
+  occlusion->freq_filter.low_gain = 1.0f - occlusion->level;
+  
+  rv = _linear(occlusion->level, lfo->max-lfo->min);
+  rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+
+  return rv;
+}
+
+
+_aaxRingBufferOcclusionData*
+_occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
+                  int state, float fs)
+{
+   if (state != AAX_FALSE &&
+       slot->param[0] > 0.1f &&
+       slot->param[1] > 0.1f &&
+       slot->param[2] > 0.1f &&
+       slot->param[3] > LEVEL_64DB)
+   {
+
+      if (!occlusion) {
+         occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+      }
+
+      if (occlusion)
+      {
+         occlusion->prepare = _occlusion_prepare;
+         occlusion->run = _occlusion_run;
+
+         occlusion->occlusion.v4[0] = 0.5f*slot->param[0];
+         occlusion->occlusion.v4[1] = 0.5f*slot->param[1];
+         occlusion->occlusion.v4[2] = 0.5f*slot->param[2];
+         occlusion->occlusion.v4[3] = slot->param[3];
+         occlusion->magnitude = vec3fMagnitude(&occlusion->occlusion.v3);
+         occlusion->fc = 22000.0f;
+
+         occlusion->level = 1.0f;
+         occlusion->olevel = 0.0f;
+         occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+         memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
+         occlusion->freq_filter.run = _freqfilter_run;
+         occlusion->freq_filter.lfo = 0;
+         occlusion->freq_filter.fs = fs;
+         occlusion->freq_filter.Q = 0.6f;
+         occlusion->freq_filter.low_gain = 1.0f;
+
+         // 6db/Oct low-pass Bessel filter
+         occlusion->freq_filter.type = LOWPASS;
+         occlusion->freq_filter.no_stages = 0;
+         occlusion->freq_filter.state = AAX_BESSEL;
+         _aax_bessel_compute(occlusion->fc, &occlusion->freq_filter);
+
+         occlusion->freq_filter.lfo = _lfo_create();
+         if (occlusion->freq_filter.lfo)
+         {
+            _aaxLFOData* lfo = occlusion->freq_filter.lfo;
+
+            lfo->convert = (_convert_fn*)occlusion;
+            lfo->state = AAX_TRUE;
+            lfo->fs = fs;
+            lfo->period_rate = 1.0f/fs;
+         
+            lfo->min = 100.0f;
+            lfo->max = 20000.0f;
+         
+            lfo->min_sec = lfo->min/lfo->fs;
+            lfo->max_sec = lfo->max/lfo->fs;
+            lfo->depth = 1.0f;
+            lfo->offset = 0.0f;
+            lfo->f = 0.6f;
+            lfo->inv = AAX_TRUE;
+            lfo->stereo_lnk = AAX_TRUE;
+            lfo->envelope = AAX_FALSE;
+
+            lfo->get = _occlusion_lfo;
+         }
+      }
+   }
+   return occlusion;
+}
+
 void
 _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
 {
@@ -312,8 +354,8 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                {
                   float level, mag;
 
-                  mag = path->magnitude_sq * 100.0f*100.0f/(vs*vs);
-                  level = 1.0f - _MIN(vec3fMagnitudeSquared(&vres)/mag, 1.0f);
+                  mag = path->magnitude*100.0f/vs;
+                  level = 1.0f - _MIN(vec3fMagnitude(&vres)/mag, 1.0f);
 
                   if (path->inverse) level = 1.0f / level;
 
@@ -355,27 +397,5 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch
    assert(occlusion);
 
    freq_flt = &occlusion->freq_filter;
-
-   // occlusion->level: 0.0 = free path, 1.0 = blocked
-   if (occlusion->level != occlusion->olevel)
-   {
-      // level = 0.0f: 20kHz, level = 1.0f: 250Hz
-      // log10(20000 - 1000) = 4.2787541
-      occlusion->freq_filter.low_gain = 1.0f - occlusion->level;
-      occlusion->fc = 20000.0f - _log2lin(4.278754f*occlusion->level);
-      _aax_bessel_compute(occlusion->fc, freq_flt);
-
-      occlusion->olevel = occlusion->level;
-   }
-
-   if (occlusion->freq_filter.low_gain > LEVEL_64DB)
-   {
-      if (occlusion->fc < 15000.0f)
-      {
-         freq_flt->run(rbd, scratch, sptr, 0, no_samples, 0, track, freq_flt,
-                       NULL, 0);
-         sptr = scratch;
-      }
-      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-   }
+   freq_flt->run(rbd, dptr, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
 }

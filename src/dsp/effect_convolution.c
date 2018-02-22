@@ -45,28 +45,24 @@
 
 static void _convolution_destroy(void*);
 static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*, void*);
+
+_aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
+void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2);
    aaxEffect rv = NULL;
 
    if (eff)
    {
-      _aaxRingBufferConvolutionData* data;
 
-      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
-
-      data = calloc(1, sizeof(_aaxRingBufferConvolutionData));
-      eff->slot[0]->data = data;
+      _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
+      _aaxSetDefaultEffect3d(eff->slot[1], eff->pos, 1);
       eff->slot[0]->destroy = _convolution_destroy;
-
-      if (data) {
-         data->run = _convolution_run;
-      }
-
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -85,48 +81,54 @@ _aaxConvolutionEffectDestroy(_effect_t* effect)
 static aaxEffect
 _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 {
-   effect->slot[0]->state = state ? AAX_TRUE : AAX_FALSE;
-   if (effect->slot[0]->state ==  AAX_FALSE)
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
-   }
-   return effect;
-}
-
-static aaxEffect
-_aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
-{
-   _aaxRingBufferConvolutionData *convolution = effect->slot[0]->data;
-   _aaxMixerInfo *info = effect->info;
    void *handle = effect->handle;
-   aaxEffect rv = AAX_FALSE;
 
-   if (convolution && info)
+   effect->slot[0]->state = state ? AAX_TRUE : AAX_FALSE;
+   switch (state & ~AAX_INVERSE)
    {
-      unsigned int step, freq, tracks = info->no_tracks;
-      unsigned int no_samples = info->no_samples;
-      _aaxRingBufferFreqFilterData *flt;
-      float fs = info->frequency;
-      float fc, lfgain;
-      void **data;
+   case AAX_CONSTANT_VALUE:
+   {
+      _aaxRingBufferConvolutionData *convolution = effect->slot[0]->data;
 
-      convolution->fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
-      convolution->delay_gain = effect->slot[0]->param[AAX_MAX_GAIN];
-      convolution->threshold = effect->slot[0]->param[AAX_THRESHOLD];
-
-      flt = convolution->freq_filter;
-      fc = convolution->fc;
-      lfgain = effect->slot[0]->param[AAX_LF_GAIN];
-
-      if (fc < 15000.0f || lfgain < (1.0f - LEVEL_96DB))
+      if (!convolution)
       {
+         convolution = calloc(1, sizeof(_aaxRingBufferConvolutionData));
+         effect->slot[0]->data = convolution;
+      }
+
+      if (convolution)
+      {
+         _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
+         _aaxRingBufferOcclusionData *occlusion = convolution->occlusion;
+         float  fs = 48000.0f;
+
+         convolution->run = _convolution_run;
+
+         if (effect->info) {
+            fs = effect->info->frequency;
+         }
+
          if (!flt) {
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          }
 
+         if (!occlusion) {
+            occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+         }
+
+         convolution->info = effect->info;
+         convolution->freq_filter = flt;
+         convolution->occlusion = _occlusion_create(convolution->occlusion, effect->slot[1], state, fs);
+
+         convolution->fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+         convolution->delay_gain = effect->slot[0]->param[AAX_MAX_GAIN];
+         convolution->threshold = effect->slot[0]->param[AAX_THRESHOLD];
+
          if (flt)
          {
+            float lfgain = effect->slot[0]->param[AAX_LF_GAIN];
+            float fc = convolution->fc;
+
             flt->run = _freqfilter_run;
 
             flt->lfo = 0;
@@ -141,12 +143,39 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
             _aax_butterworth_compute(fc, flt);
          }
       }
-      else if (convolution->freq_filter)
-      {
-         free(flt);
-         flt = NULL;
-      }
-      convolution->freq_filter = flt;
+   }
+   case AAX_FALSE:
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      break;
+   }
+   return effect;
+}
+
+static aaxEffect
+_aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
+{
+   _aaxRingBufferConvolutionData *convolution = effect->slot[0]->data;
+   _aaxMixerInfo *info = effect->info;
+   void *handle = effect->handle;
+   aaxEffect rv = AAX_FALSE;
+
+   if (!convolution)
+   {
+      convolution = calloc(1, sizeof(_aaxRingBufferConvolutionData));
+      effect->slot[0]->data = convolution;
+   }
+
+   if (convolution && info)
+   {
+      unsigned int step, freq, tracks = info->no_tracks;
+      unsigned int no_samples = info->no_samples;
+      float fs = info->frequency;
+      void **data;
 
       /*
        * convert the buffer data to floats in the range 0.0 .. 1.0
@@ -217,13 +246,14 @@ _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, 
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2);
 
    if (rv)
    {
       unsigned int size = sizeof(_aaxEffectInfo);
 
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      memcpy(rv->slot[1], &p3d->effect[rv->pos], size);
       rv->slot[0]->destroy = _convolution_destroy;
       rv->slot[0]->data = NULL;
 
@@ -257,10 +287,10 @@ _aaxConvolutionEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxConvolutionRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 22050.0f, 1.0f, 1.0f, 1.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f, 0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 22050.0f,    1.0f,    1.0f, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
@@ -316,28 +346,31 @@ _convolution_destroy(void *ptr)
 //    rbd->add(hptr++, cptr, irnum, volume, 0.0f);
 // }
 static int
-_convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferData *dptr_src), unsigned int t)
+_convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferData *dptr_src), unsigned int track)
 {
    _aaxRingBufferConvolutionData *convolution;
+   _aaxRingBufferOcclusionData *occlusion;
    unsigned int cnum, dnum, hpos;
-   MIX_T *sptr, *dptr, *hptr;
+   MIX_T *sptr, *dptr, *hptr, *scratch;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
 
    convolution = d->be_handle;
-   hptr = convolution->history[t];
-   hpos = convolution->history_start[t];
+   hptr = convolution->history[track];
+   hpos = convolution->history_start[track];
    cnum = convolution->no_samples - hpos;
+   occlusion = convolution->occlusion;
 
    rbi = rb->handle;
    rbd = rbi->sample;
-   dptr = sptr = rbd->track[t];
+   dptr = sptr = rbd->track[track];
+   scratch = rbd->scratch[0];
    dnum = rb->get_parami(rb, RB_NO_SAMPLES);
 
    if (d->be)
    {
       _aax_opencl_t *gpu = (_aax_opencl_t*)d->be;
-      _aaxOpenCLRunConvolution(gpu, convolution, dptr, dnum, t);
+      _aaxOpenCLRunConvolution(gpu, convolution, dptr, dnum, track);
    }
    else
    {
@@ -351,7 +384,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       step = convolution->step;
 
       cptr = convolution->sample;
-      hcptr = hptr + hpos;;
+      hcptr = hptr + hpos;
 
       q = cnum/step;
       threshold = convolution->threshold;
@@ -367,6 +400,14 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       while (--q);
    }
 
+#if 1
+   /* add the direct path */
+   if (occlusion) {
+      occlusion->run(rbd, dptr, hptr+hpos, scratch, dnum, track, occlusion);
+   } else {
+      rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
+   }
+#else
    if (convolution->freq_filter)
    {
       _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
@@ -377,13 +418,14 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       else
       {
          _aaxRingBufferFreqFilterData *filter = convolution->freq_filter;
-         filter->run(rbd, dptr, sptr, 0, dnum, 0, t, filter, NULL, 0);
+         filter->run(rbd, dptr, sptr, 0, dnum, 0, track, filter, NULL, 0);
          rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
       }
    }
    else {
       rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
    }
+#endif
 
    hpos += dnum;
 // if ((hpos + cnum) > convolution->history_samples)
@@ -392,7 +434,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       hpos = 0;
    }
    memset(hptr+hpos+cnum, 0, dnum*sizeof(MIX_T));
-   convolution->history_start[t] = hpos;
+   convolution->history_start[track] = hpos;
 
    return 0;
 }

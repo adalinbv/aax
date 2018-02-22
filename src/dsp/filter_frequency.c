@@ -130,7 +130,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          else if (state & AAX_6DB_OCT) stages = 0;
          else stages = 1;
 
-printf("flt->state: %x\n", state & AAX_BESSEL);
          flt->no_stages = stages;
          flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
@@ -139,7 +138,6 @@ printf("flt->state: %x\n", state & AAX_BESSEL);
          fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
          if (flt->state == AAX_BESSEL) {
              _aax_bessel_compute(fc, flt);
-printf("BESSEL\n");
          }
          else
          {
@@ -150,7 +148,6 @@ printf("BESSEL\n");
                flt->low_gain = g;
             }
             _aax_butterworth_compute(fc, flt);
-printf("BUTTERWORTH\n");
          }
 
          // Non-Manual only
@@ -942,10 +939,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
          if (filter->state == AAX_BESSEL) {
             _aax_bessel_compute(fc, filter);
-printf("BESSEL\n");
          } else {
             _aax_butterworth_compute(fc, filter);
-printf("BUTTERWORTH\n");
          }
       }
 
