@@ -46,6 +46,7 @@ static void _reverb_destroy_delays(void**);
 static void _reverb_add_delays(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
 
+_aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
@@ -169,43 +170,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          }
 
-         if (!occlusion) {
-            occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
-         }
-
          reverb->info = effect->info;
          reverb->freq_filter = flt;
-         reverb->occlusion = occlusion;
-
-         if (occlusion)
-         {
-            occlusion->prepare = _occlusion_prepare;
-            occlusion->run = _occlusion_run;
-
-            occlusion->occlusion.v4[0] = 0.5f*effect->slot[1]->param[0];
-            occlusion->occlusion.v4[1] = 0.5f*effect->slot[1]->param[1];
-            occlusion->occlusion.v4[2] = 0.5f*effect->slot[1]->param[2];
-            occlusion->occlusion.v4[3] = effect->slot[1]->param[3];
-            occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
-            occlusion->fc = 22000.0f;
-
-            occlusion->level = 1.0f;
-            occlusion->olevel = 0.0f;
-            occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-
-            memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
-            occlusion->freq_filter.run = _freqfilter_run;
-            occlusion->freq_filter.lfo = 0;
-            occlusion->freq_filter.fs = fs;
-            occlusion->freq_filter.Q = 0.6f;
-            occlusion->freq_filter.low_gain = 1.0f;
-
-            // 6db/Oct low-pass Bessel filter
-            occlusion->freq_filter.type = LOWPASS;
-            occlusion->freq_filter.no_stages = 0;
-            occlusion->freq_filter.state = AAX_FALSE;
-            _aax_bessel_compute(occlusion->fc, &occlusion->freq_filter);
-         }
+         reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
 
          if (flt)
          {

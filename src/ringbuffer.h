@@ -135,7 +135,8 @@ typedef struct
    float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES];
    float Q, k, fs, high_gain, low_gain;
 
-   unsigned char no_stages, state;
+   unsigned int state;
+   unsigned char no_stages;
    signed char type;
 
 } _aaxRingBufferFreqFilterData;
@@ -173,7 +174,7 @@ typedef struct
 typedef struct
 {
    vec4f_t occlusion;
-   float magnitude_sq;
+   float magnitude;
 
    float level, olevel;		// obstruction level
    float fc;
@@ -214,6 +215,8 @@ typedef struct
 {
    void (*run)(const _aaxDriverBackend*, const void*, void*, void*, void*);
 
+   _aaxMixerInfo *info;
+   _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferFreqFilterData *freq_filter;
 
    float fc;

@@ -54,6 +54,7 @@ enum _aax3dFiltersEffects
     /* 3d effects */
     VELOCITY_EFFECT = 0,	/* Doppler				*/
     REVERB_OCCLUSION_EFFECT,	/* reverb direct path sound obstruction */
+    CONVOLUTION_OCCLUSION_EFFECT,/* convolution direct path sound obstruction */
     MAX_3D_EFFECT,
 };
 
@@ -76,11 +77,11 @@ enum _aax2dFiltersEffects
     /* stereo effects */
     PITCH_EFFECT = 0,
     REVERB_EFFECT,		// must be the same as REVERB_OCCLUSION_EFFECT
+    CONVOLUTION_EFFECT,		// the same as CONVOLUTION_OCCLUSION_EFFECT
     DYNAMIC_PITCH_EFFECT,
     TIMED_PITCH_EFFECT,
     DISTORTION_EFFECT,
     DELAY_EFFECT,               /* phasing, chorus or flanging  */
-    CONVOLUTION_EFFECT,
     MAX_STEREO_EFFECT,
 };
 
