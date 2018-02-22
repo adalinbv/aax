@@ -130,14 +130,16 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          else if (state & AAX_6DB_OCT) stages = 0;
          else stages = 1;
 
+printf("flt->state: %x\n", state & AAX_BESSEL);
          flt->no_stages = stages;
-         flt->state = (state & AAX_BESSEL) ? AAX_FALSE : AAX_TRUE;
+         flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
          fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
-         if (state & AAX_BESSEL) {
+         if (flt->state == AAX_BESSEL) {
              _aax_bessel_compute(fc, flt);
+printf("BESSEL\n");
          }
          else
          {
@@ -148,6 +150,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                flt->low_gain = g;
             }
             _aax_butterworth_compute(fc, flt);
+printf("BUTTERWORTH\n");
          }
 
          // Non-Manual only
@@ -448,7 +451,7 @@ _batch_freqfilter_iir_cpu(int32_ptr dptr, const_int32_ptr sptr, int t, size_t nu
       stage = filter->no_stages;
       if (!stage) stage++;
 
-      if (filter->state) {
+      if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
       } else {
          k = filter->k * filter->high_gain;
@@ -502,7 +505,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
       stage = filter->no_stages;
       if (!stage) stage++;
 
-      if (filter->state) {
+      if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
       } else {
          k = filter->k * filter->high_gain;
@@ -937,16 +940,18 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       {
          float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
 
-         if (filter->state) {
+         if (filter->state == AAX_BESSEL) {
             _aax_bessel_compute(fc, filter);
+printf("BESSEL\n");
          } else {
             _aax_butterworth_compute(fc, filter);
+printf("BUTTERWORTH\n");
          }
       }
 
       num = dmax+ds-dmin;
       rbd->freqfilter(dptr, sptr, track, num, filter);
-      if (filter->state && (filter->low_gain > LEVEL_128DB)) {
+      if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
          rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
       }
    }

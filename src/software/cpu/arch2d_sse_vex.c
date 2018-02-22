@@ -821,7 +821,7 @@ _batch_freqfilter_sse_vex(int32_ptr dptr, const_int32_ptr sptr, int t, size_t nu
       stages = filter->no_stages;
       if (!stages) stages++;
 
-      if (filter->state) {
+      if (filter->state == AAX_BESSEL) {
          mk = _mm_set_ss(filter->k * (filter->high_gain - filter->low_gain));
       } else {
          mk = _mm_set_ss(filter->k * filter->high_gain);
@@ -900,7 +900,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
       stages = filter->no_stages;
       if (!stages) stages++;
 
-      if (filter->state) {
+      if (filter->state == AAX_BESSEL) {
          mk = _mm_set_ss(filter->k * (filter->high_gain - filter->low_gain));
       } else {
          mk = _mm_set_ss(filter->k * filter->high_gain);
