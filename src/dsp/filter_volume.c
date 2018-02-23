@@ -189,12 +189,14 @@ _occlusion_lfo(void* data, UNUSED(void *env), const void *ptr, unsigned track, s
 {
   _aaxLFOData* lfo = (_aaxLFOData*)data;
   _aaxRingBufferOcclusionData *occlusion;
-  float rv;
+  float rv, level;
 
   occlusion = (_aaxRingBufferOcclusionData*)lfo->convert;
-  occlusion->freq_filter.low_gain = 1.0f - occlusion->level;
+
+  level = occlusion->level*occlusion->level;
+  occlusion->freq_filter.low_gain = 1.0f - level;
   
-  rv = _linear(occlusion->level, lfo->max-lfo->min);
+  rv = _linear(level, lfo->max-lfo->min);
   rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
 
   return rv;
