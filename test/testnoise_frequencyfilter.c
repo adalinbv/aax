@@ -125,7 +125,7 @@ int main()
                                              LF_GAIN, HF_GAIN, Q);
         testForState(res, "aaxFilterSetSlot");
 
-        res = aaxFilterSetState(filter, AAX_TRUE);
+        res = aaxFilterSetState(filter, FILTER_STATE);
         testForState(res, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);
