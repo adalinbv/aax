@@ -122,7 +122,7 @@ int main(int argc, char **argv)
             testForError(filter, "aaxAudioFrameGetFilter");
 
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 1.0f, 0.0f, 1.0f, 0.0f);
-            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 1.0f, 1.0f, 1.0f, 0.8f);
+            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 1.0f, 1.0f, 1.0f, 1.0f);
             testForState(res, "aaxFilterSetSlot");
 
             res = aaxFilterSetState(filter, AAX_TRUE);
