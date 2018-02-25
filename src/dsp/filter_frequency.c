@@ -927,22 +927,22 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    assert(data != NULL);
    assert(track < _AAX_MAX_SPEAKERS);
 
+   if (filter->lfo && !ctr)
+   {
+      float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
+
+      if (filter->state == AAX_BESSEL) {
+         _aax_bessel_compute(fc, filter);
+      } else {
+         _aax_butterworth_compute(fc, filter);
+      }
+   }
+
    if (filter->k)
    {
       CONST_MIX_PTR_T sptr = s - ds + dmin;
       MIX_T *dptr = d - ds + dmin;
       int num;
-
-      if (filter->lfo && !ctr)
-      {
-         float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
-
-         if (filter->state == AAX_BESSEL) {
-            _aax_bessel_compute(fc, filter);
-         } else {
-            _aax_butterworth_compute(fc, filter);
-         }
-      }
 
       num = dmax+ds-dmin;
       rbd->freqfilter(dptr, sptr, track, num, filter);
