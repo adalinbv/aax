@@ -164,7 +164,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
-         _aaxRingBufferOcclusionData *occlusion = reverb->occlusion;
 
          if (!flt) {
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
