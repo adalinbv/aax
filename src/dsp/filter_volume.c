@@ -315,7 +315,9 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          occlusion->level = 0.0f;
          do
          {
-            if (path)
+            // If the audio-frame has occlusion defined with a density
+            // factor larger than zero then process it.
+            if (path && path->occlusion.v4[3] > 0.01f)
             {
                ndp3d_m = nfp3d->m_dprops3d;
 
