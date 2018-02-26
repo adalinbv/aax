@@ -108,7 +108,7 @@ _aaxSetDefault2dFiltersEffects(_aax2dProps *p2d)
    for (pos=REVERB_EFFECT; pos<MAX_STEREO_EFFECT; pos++)
    {
       _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
-      _FILTER_FREE_DATA(p2d, pos);
+      _EFFECT_FREE_DATA(p2d, pos);
    }
 }
 
