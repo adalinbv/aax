@@ -15,7 +15,7 @@ include(CheckLibraryExists)
 include(CheckFunctionExists)
 
 set(CMAKE_GNUtoMS ON)
-project(AeonWave C)
+project(AeonWave)
 set(PACKAGE_NAME "AeonWave")
 set(PACKAGE "libaax3")
 
