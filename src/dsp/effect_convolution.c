@@ -143,6 +143,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
             _aax_butterworth_compute(fc, flt);
          }
       }
+      break;
    }
    case AAX_FALSE:
    {
