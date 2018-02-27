@@ -37,7 +37,7 @@ template <typename T>
 class VecBase
 {
 protected:
-    typedef T MT[4];
+    typedef T VT[4];
 
 public:
     VecBase() : _v4(true) {
@@ -75,6 +75,18 @@ public:
         std::fill(_v, _v+4, f);
     }
     ~VecBase() {}
+
+    inline void set(T x, T y, T z) {
+        _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = 0; _v4 = false;
+    }
+
+    inline void set(T w, T x, T y, T z) {
+        _v[0] = w; _v[1] = x; _v[2] = y; _v[3] = z; _v4 = true;
+    }
+
+    inline void set(T f)  {
+        std::fill(_v, _v+4, f); _v4 = true;
+    }
 
     inline T magnitude2() {
         return dot_product(*this);
@@ -237,7 +249,7 @@ public:
     }
 
 private:
-    MT _v;
+    VT _v;
     bool _v4;
 };
 typedef VecBase<float> Vector;
