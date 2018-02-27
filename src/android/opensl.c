@@ -1121,6 +1121,10 @@ _aaxSLESDriverThread(void* config)
       if (TEST_FOR_TRUE(handle->thread.started) && _IS_PLAYING(handle)) {
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
+
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
    }
    while TEST_FOR_TRUE(handle->thread.started);
 

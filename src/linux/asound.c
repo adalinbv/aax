@@ -3275,6 +3275,10 @@ if (elapsed > delay_sec)
  printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
  printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
 #endif
+
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
    }
 
 #if ENABLE_TIMING

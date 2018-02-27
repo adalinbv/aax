@@ -1885,6 +1885,10 @@ _aaxWASAPIDriverThread(void* config)
          _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
       }
 
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
+
       hr = S_OK;
    }
 
