@@ -1566,11 +1566,19 @@ _aaxMixerUpdate(_handle_t *handle)
    int rv = AAX_FALSE;
    if (!handle->parent && TEST_FOR_TRUE(handle->thread.started))
    {
+      int playing = _IS_PLAYING(handle);
       if (!handle->finished) {
          handle->finished = _aaxSemaphoreCreate(0);
       }
+
+      if (!playing) {
+         _SET_PLAYING(handle);
+      }
       _aaxSignalTrigger(&handle->thread.signal);
       _aaxSemaphoreWait(handle->finished);
+      if (!playing) {
+         _SET_PAUSED(handle);
+      }
       rv = AAX_TRUE;
    }
    else if (handle->parent) {
