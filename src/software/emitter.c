@@ -341,9 +341,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        */
       if (dist_ef > 1.0f)
       {
-         _aaxPitchShiftFn* dopplerfn = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
+         _aaxPitchShiftFn* dopplerfn;
          float ve, df;
 
+         *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
          assert(dopplerfn);
 
          /* align velocity vectors with the modified emitter position
@@ -377,9 +378,10 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        */
       do
       {
-         _aaxDistFn* distfn = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
+         _aaxDistFn* distfn;
          float refdist, maxdist, rolloff;
 
+         *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
          assert(distfn);
 
          /*
