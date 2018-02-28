@@ -66,6 +66,7 @@ typedef struct
    float compression[_AAX_MAX_SPEAKERS];        /* compression level       */
    _aaxLFOGetFn *get;
    _convert_fn *convert;
+   void *data;
    char inv, envelope, stereo_lnk;
 } _aaxLFOData;
 
