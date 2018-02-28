@@ -149,6 +149,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
    {
       effect->slot[0]->destroy(effect->slot[0]->data);
       effect->slot[0]->data = NULL;
+      break;
    }
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
