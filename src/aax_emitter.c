@@ -653,44 +653,14 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
 #else
       mtx4dFill(edp3d->matrix.m4, mtx64);
 #endif
-      if (_IS_RELATIVE(ep3d))
+      if (_IS_RELATIVE(ep3d) &&
+          handle->parent && (handle->parent == handle->root))
       {
-         if (handle->parent && (handle->parent == handle->root)) {
-            edp3d->matrix.m4[LOCATION][3] = 0.0;
-            edp3d->velocity.m4[VELOCITY][3] = 0.0f;
-         }
+         edp3d->matrix.m4[LOCATION][3] = 0.0;
+      } else {
+         edp3d->matrix.m4[LOCATION][3] = 1.0;
       }
       _PROP_MTX_SET_CHANGED(ep3d);
-   }
-   put_emitter(handle);
-
-   return rv;
-}
-
-AAX_API int AAX_APIENTRY
-aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
-{
-   _emitter_t* handle = get_emitter(emitter, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!handle) {
-         _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!velocity || detect_nan_vec3(velocity)) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = AAX_TRUE;
-      }
-   }
-
-   if (rv)
-   {
-      _aaxDelayed3dProps *dp3d;
-
-      dp3d = handle->source->props3d->dprops3d;
-      vec3fFill(dp3d->velocity.m4[VELOCITY], velocity);
-      _PROP_SPEED_SET_CHANGED(handle->source->props3d);
    }
    put_emitter(handle);
 
@@ -722,6 +692,69 @@ aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
 #else
       mtx4dFill(mtx64, src->props3d->dprops3d->matrix.m4);
 #endif
+   }
+   put_emitter(handle);
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
+{
+   _emitter_t* handle = get_emitter(emitter, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!handle) {
+         _aaxErrorSet(AAX_INVALID_HANDLE);
+      } else if (!velocity || detect_nan_vec3(velocity)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      _aaxEmitter *src = handle->source;
+      _aax3dProps *ep3d = src->props3d;
+      _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
+
+      vec3fFill(edp3d->velocity.m4[VELOCITY], velocity);
+      if (_IS_RELATIVE(ep3d) &&
+          handle->parent && (handle->parent == handle->root))
+      {
+         edp3d->velocity.m4[VELOCITY][3] = 0.0f;
+      } else {
+         edp3d->velocity.m4[VELOCITY][3] = 1.0f;
+      }
+      _PROP_SPEED_SET_CHANGED(ep3d);
+   }
+   put_emitter(handle);
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
+{
+   _emitter_t* handle = get_emitter(emitter, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!velocity) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      }
+   }
+
+   if (rv)
+   {
+      _aaxDelayed3dProps *dp3d;
+
+      dp3d = handle->source->props3d->dprops3d;
+      vec3fFill(velocity, dp3d->velocity.m4[VELOCITY]);
    }
    put_emitter(handle);
 
@@ -925,31 +958,6 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
       }
    }
    put_emitter(handle);
-   return rv;
-}
-
-AAX_API int AAX_APIENTRY
-aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
-{
-   _emitter_t* handle = get_emitter(emitter, __func__);
-   int rv = __release_mode;
-
-   if (!rv)
-   {
-      if (!velocity) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
-      }
-   }
-
-   if (rv)
-   {
-      _aaxDelayed3dProps *dp3d;
-
-      dp3d = handle->source->props3d->dprops3d;
-      vec3fFill(velocity, dp3d->velocity.m4[VELOCITY]);
-   }
-   put_emitter(handle);
-
    return rv;
 }
 

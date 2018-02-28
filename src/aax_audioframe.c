@@ -217,6 +217,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
    {
       _aaxAudioFrame* fmixer = handle->submix;
       _aax3dProps *fp3d = fmixer->props3d;
+      _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
       if (handle->parent)
       {
          if (handle->parent == handle->root)
@@ -226,12 +227,13 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
             if (dptr)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
+               _aaxAudioFrame* smixer = sensor->mixer;
+               _aax3dProps *sp3d = smixer->props3d;
+
 #ifdef ARCH32
-               mtx4fCopy(&fp3d->m_dprops3d->matrix,
-                         &sensor->mixer->props3d->m_dprops3d->matrix);
+               mtx4fCopy(&fp3d->m_dprops3d->matrix, &sp3d->m_dprops3d->matrix);
 #else
-               mtx4dCopy(&fp3d->m_dprops3d->matrix,
-                         &sensor->mixer->props3d->m_dprops3d->matrix);
+               mtx4dCopy(&fp3d->m_dprops3d->matrix, &sp3d->m_dprops3d->matrix);
 #endif
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
@@ -239,32 +241,38 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
          else
          {
             _frame_t *parent = handle->parent;
+            _aaxAudioFrame* pmixer = parent->submix;;
+            _aax3dProps *pp3d = pmixer->props3d;
+
 #ifdef ARCH32
-            mtx4fCopy(&fp3d->m_dprops3d->matrix,
-                      &parent->submix->props3d->m_dprops3d->matrix);
+            mtx4fCopy(&fp3d->m_dprops3d->matrix, &pp3d->m_dprops3d->matrix);
 #else
-            mtx4dCopy(&fp3d->m_dprops3d->matrix,
-                      &parent->submix->props3d->m_dprops3d->matrix);
+            mtx4dCopy(&fp3d->m_dprops3d->matrix, &pp3d->m_dprops3d->matrix);
 #endif
          }
       }
 
 #ifdef ARCH32
-      mtx4fFilld(fp3d->dprops3d->matrix.m4, mtx64);
+      mtx4fFilld(fdp3d->matrix.m4, mtx64);
 #else
-      mtx4dFill(fp3d->dprops3d->matrix.m4, mtx64);
+      mtx4dFill(fdp3d->matrix.m4, mtx64);
 #endif
+
+      if (_IS_RELATIVE(fp3d) &&
+          handle->parent && (handle->parent == handle->root))
+      {
+         fdp3d->matrix.m4[LOCATION][3] = 0.0;
+      } else {
+         fdp3d->matrix.m4[LOCATION][3] = 1.0;
+      }
+      _PROP_MTX_SET_CHANGED(fp3d);
 
       if (_IS_RELATIVE(fp3d))
       {
-         _frame_t *parent;
+         _frame_t *parent = handle->parent;
 
-         if (handle->parent && (handle->parent == handle->root)) {
-            fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
-            fp3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
-         }
-
-         parent = handle->parent;
+         // Walk back to the lowest parent frame which is registered
+         // at the sensor and mark it changed.
          while ((void*)parent != handle->root)
          {
             handle = parent;
@@ -272,7 +280,6 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
          }
          _PROP_MTX_SET_CHANGED(handle->submix->props3d);
       }
-      _PROP_MTX_SET_CHANGED(fmixer->props3d);
    }
    put_frame(frame);
 
@@ -327,11 +334,34 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 
    if (rv)
    {
-      _aaxDelayed3dProps *dp3d;
+      _aaxAudioFrame* fmixer = handle->submix;
+      _aax3dProps *fp3d = fmixer->props3d;
+      _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
 
-      dp3d = handle->submix->props3d->dprops3d;
-      vec3fFill(dp3d->velocity.m4[VELOCITY], velocity);
-      _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
+      vec3fFill(fdp3d->velocity.m4[VELOCITY], velocity);
+      fdp3d->velocity.m4[LOCATION][3] = 0.0f;
+      if (_IS_RELATIVE(fp3d) &&
+          handle->parent && (handle->parent == handle->root))
+      {
+         fdp3d->velocity.m4[LOCATION][3] = 0.0f;
+      } else {
+         fdp3d->velocity.m4[LOCATION][3] = 1.0f;
+      }
+      _PROP_SPEED_SET_CHANGED(fp3d);
+
+      if (_IS_RELATIVE(fp3d))
+      {
+         _frame_t *parent = handle->parent;
+
+         // Walk back to the lowest parent frame which is registered
+         // at the sensor and mark it changed.
+         while ((void*)parent != handle->root)
+         {
+            handle = parent;
+            parent = handle->parent;
+         }
+         _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
+      }
    }
    put_frame(frame);
 
