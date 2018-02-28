@@ -7,11 +7,19 @@ if(HAVE_LIBM)
   set(EXTRA_LIBS m ${EXTRA_LIBS})
 endif(HAVE_LIBM)
 
+FUNCTION(CREATE_CPP_TEST TEST_NAME)
+  add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
+  target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
+  add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
+ENDFUNCTION()
+
 FUNCTION(CREATE_TEST TEST_NAME)
   add_executable(${TEST_NAME} ${TEST_NAME}.c)
   target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
   add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
 ENDFUNCTION()
+
+CREATE_CPP_TEST(testposition)
 
 CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
