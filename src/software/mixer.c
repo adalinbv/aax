@@ -528,16 +528,37 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                _aax_memcpy(&sp2d.speaker, handle->info->speaker,
                                           2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
+
+               /* update the modified properties */
+               do {
+#ifdef ARCH32
+                  mtx4f_t tmp, tmp2;
+                  mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
+
+                  mtx4fFill(tmp.m4, sdp3d->velocity.m4);
+                  mtx4fMul(&tmp2, &sdp3d->matrix, &tmp);
+                  mtx4fFill(sdp3d_m->velocity.m4, tmp2.m4);
+#else
+                  mtx4d_t tmp, tmp2;
+                  mtx4dCopy(&sdp3d_m->matrix, &sdp3d.matrix);
+
+                  mtx4dFillf(tmp.m4, sdp3d.velocity.m4);
+                  mtx4dMul(&tmp2, &sdp3d.matrix, &tmp);
+                  mtx4fFilld(sdp3d_m->velocity.m4, tmp2.m4);
+#endif
+               } while (0);
+               sdp3d_m->velocity.m4[VELOCITY][3] = 1.0f;
+
 #if 0
  if (_PROP3D_MTX_HAS_CHANGED(sdp3d_m)) {
-  printf("modified sensor matrix:\n");
+  printf("sensor modified matrix:\n");
   PRINT_MATRIX(sdp3d_m->matrix);
  }
 #endif
 #if 0
  if (_PROP3D_SPEED_HAS_CHANGED(sdp3d_m)) {
-  printf("modified velocity:\tmatrix:\n");
-  PRINT_MATRICES(sdp3d_m->velocity, sdp3d_m->matrix);
+  printf("sensor modified velocity:\tsensor velocity:\n");
+  PRINT_MATRICES(sdp3d_m->velocity, sdp3d.velocity);
  }
 #endif
                /* clear the buffer for use by the subframe */

@@ -361,7 +361,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
             edp3d_m->velocity.v34[LOCATION].v3[2]);
  printf("velocity:\t\t\t\tparent velocity:\n");
  PRINT_MATRICES(edp3d->velocity, fdp3d_m->velocity);
- printf("modified velocity:");
+ printf("modified velocity:\n");
  PRINT_MATRIX(edp3d_m->velocity);
  printf("doppler: %f, ve: %f, vs: %f\n\n", df, ve, vs/sdf);
 # else
