@@ -535,12 +535,13 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   mtx4fCopy(&sdp3d_m->matrix, &sdp3d.matrix);
                   mtx4fMul(&sdp3d_m->velocity, &sdp3d.matrix, &sdp3d.velocity);
 #else
-                  mtx4d_t tmp, tmp2;
+                  mtx4f_t tmp;
                   mtx4dCopy(&sdp3d_m->matrix, &sdp3d.matrix);
 
-                  mtx4dFillf(tmp.m4, sdp3d.velocity.m4);
-                  mtx4dMul(&tmp2, &sdp3d.matrix, &tmp);
-                  mtx4fFilld(sdp3d_m->velocity.m4, tmp2.m4);
+                  // For velocity we're only interested in the normalized
+                  // direction vector of the position matrix. Floats will do.
+                  mtx4fFilld(tmp.m4, sdp3d.matrix.m4);
+                  mtx4fMul(&sdp3d_m->velocity, &tmp, &sdp3d.velocity);
 #endif
                } while (0);
                sdp3d_m->velocity.m4[VELOCITY][3] = 1.0f;
