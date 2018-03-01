@@ -42,7 +42,7 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define MODE			AAX_ABSOLUTE
+#define MODE			AAX_RELATIVE
 
 /* 50m/s (0.145*Vsound) = about 100kts */
 #define UPDATE_DELAY		0.00033f
@@ -56,13 +56,21 @@
 #define SZPOS			-500.0f
 
 #define INITIAL_DIST		150.0f
-#define EXPOS			(SXPOS-INITIAL_DIST)
-#define EYPOS			(SYPOS+30.0f)
-#define EZPOS			(SZPOS-15.0f)
+#define FXPOS			(-INITIAL_DIST)
+#define FYPOS			(30.0f)
+#define FZPOS			(15.0f)
+
+#define EXPOS			(-1.0f)
+#define EYPOS			(0.5f)
+#define EZPOS			(0.5f)
 
 aaxVec3f EmitterDir = {  1.0f,  0.0f,  0.0f };
-aaxVec3f EmitterVel = { SPEED,  0.0f,  0.0f };
+aaxVec3f EmitterVel = {  0.0f,  0.0f,  0.0f };
 aaxVec3d EmitterPos = { EXPOS, EYPOS, EZPOS };
+
+aaxVec3d FramePos   = { FXPOS, FYPOS, FZPOS };
+aaxVec3f FrameVel   = { SPEED,  0.0f,  0.0f };
+aaxVec3f FrameDir   = {  1.0f,  0.0f,  0.0f };
 
 aaxVec3d SensorPos  = { SXPOS, SYPOS, SZPOS };
 aaxVec3f SensorVel  = {  0.0f,  0.0f, SPEED };
@@ -85,7 +93,6 @@ int main(int argc, char **argv)
         aaxBuffer buffer = bufferFromFile(config, infile);
         if (buffer)
         {
-            char *fparam = getCommandLineOption(argc, argv, "-f");
             aaxEmitter emitter;
             aaxFilter filter;
             aaxEffect effect;
@@ -163,25 +170,30 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMatrix64(emitter, mtx64);
             testForState(res, "aaxEmitterSetMatrix64");
 
-            if (!fparam)
-            {
-                res = aaxMixerRegisterEmitter(config, emitter);
-                testForState(res, "aaxMixerRegisterEmitter");
-            }
-            else
-            {
-                frame = aaxAudioFrameCreate(config);
-                testForError(frame, "Unable to create a new frame");
+            /** audio frame */
+            frame = aaxAudioFrameCreate(config);
+            testForError(frame, "Unable to create a new frame");
 
-                res = aaxMixerRegisterAudioFrame(config, frame);
-                testForState(res, "aaxMixerRegisterAudioFrame");
+            res = aaxAudioFrameSetMode(frame, AAX_POSITION, MODE);
+            testForState(res, "aaxAudioFrameSetMode");
 
-                res = aaxAudioFrameRegisterEmitter(frame, emitter);
-                testForState(res, "aaxAudioFrameRegisterEmitter");
+            res = aaxMixerRegisterAudioFrame(config, frame);
+            testForState(res, "aaxMixerRegisterAudioFrame");
 
-                res = aaxAudioFrameSetState(frame, AAX_PLAYING);
-                testForState(res, "aaxAudioFrameSetState");
-            }
+            res = aaxAudioFrameRegisterEmitter(frame, emitter);
+            testForState(res, "aaxAudioFrameRegisterEmitter");
+
+            res = aaxMatrix64SetDirection(mtx64, FramePos, FrameDir);
+            testForState(res, "aaxMatrix64SetDirection");
+
+            res = aaxAudioFrameSetMatrix64(frame, mtx64);
+            testForState(res, "aaxAudioFrameSetMatrix64");
+
+            res = aaxAudioFrameSetVelocity(frame, FrameVel);
+            testForState(res, "aaxAudioFrameSetVelocity");
+
+            res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+            testForState(res, "aaxAudioFrameSetState");
 
             /** schedule the emitter for playback */
             printf("Engine start\n");
@@ -193,19 +205,19 @@ int main(int argc, char **argv)
             {
                 msecSleep((int)(ceilf(UPDATE_DELAY*1000.0f)));
 
-                EmitterPos[0] = (SXPOS-dist);
+                FramePos[0] = (-dist);
                 dist -= STEP;
 #if 1
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n",
-                        _vec3dMagnitude(EmitterPos),
-                        EmitterPos[0]-SensorPos[0],
-                        EmitterPos[1]-SensorPos[1],
-                        EmitterPos[2]-SensorPos[2]);
+                        _vec3dMagnitude(FramePos),
+                        FramePos[0],
+                        FramePos[1],
+                        FramePos[2]);
 #endif
-                res = aaxMatrix64SetDirection(mtx64, EmitterPos, EmitterDir);
+                res = aaxMatrix64SetDirection(mtx64, FramePos, FrameDir);
                 testForState(res, "aaxMatrix64SetDirection");
 
-                res = aaxEmitterSetMatrix64(emitter, mtx64);
+                res = aaxAudioFrameSetMatrix64(frame, mtx64);
                 testForState(res, "aaxEmitterSetMatrix64");
             }
 
@@ -221,23 +233,29 @@ int main(int argc, char **argv)
                msecSleep(100);
             }
 
-            if (!fparam)
-            {
-                res = aaxMixerDeregisterEmitter(config, emitter);
-                testForState(res, "aaxMixerDeregisterEmitter");
-            }
-            else
-            {
-            }
+            res = aaxAudioFrameSetState(frame, AAX_STOPPED);
+            testForState(res, "aaxAudioFrameStop");
+
+            res = aaxAudioFrameDeregisterEmitter(frame, emitter);
+            testForState(res, "aaxAudioFrameDeregisterEmitter");
+
+            res = aaxEmitterRemoveBuffer(emitter);
+            testForState(res, "aaxEmitterRemoveBuffer");
 
             res = aaxEmitterDestroy(emitter);
             testForState(res, "aaxEmitterDestroy");
 
-            res = aaxBufferDestroy(buffer);
+//          res = aaxBufferDestroy(buffer);
             testForState(res, "aaxBufferDestroy");
 
             res = aaxMixerSetState(config, AAX_STOPPED);
             testForState(res, "aaxMixerStop");
+
+            res = aaxMixerDeregisterAudioFrame(config, frame);
+            testForState(res, "aaxMixerDeregisterAudioFrame");
+
+            res = aaxAudioFrameDestroy(frame);
+            testForState(res, "aaxAudioFrameDestroyr");
         }
     }
 
