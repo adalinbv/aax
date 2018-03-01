@@ -532,12 +532,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                /* update the modified properties */
                do {
 #ifdef ARCH32
-                  mtx4f_t tmp, tmp2;
-                  mtx4fCopy(&sdp3d_m->matrix, &sdp3d->matrix);
-
-                  mtx4fFill(tmp.m4, sdp3d->velocity.m4);
-                  mtx4fMul(&tmp2, &sdp3d->matrix, &tmp);
-                  mtx4fFill(sdp3d_m->velocity.m4, tmp2.m4);
+                  mtx4fCopy(&sdp3d_m->matrix, &sdp3d.matrix);
+                  mtx4fMul(&sdp3d_m->velocity, &sdp3d.matrix, &sdp3d.velocity);
 #else
                   mtx4d_t tmp, tmp2;
                   mtx4dCopy(&sdp3d_m->matrix, &sdp3d.matrix);
