@@ -799,7 +799,7 @@ free_buffer(_buffer_t* handle)
    int rv = AAX_FALSE;
    if (handle)
    {
-      if (--handle->ref_counter == 1)
+      if (--handle->ref_counter == 0)
       {
          handle->ringbuffer = _bufDestroyRingBuffer(handle);
          free(handle->aaxs);
