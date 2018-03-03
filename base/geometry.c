@@ -166,9 +166,9 @@ vec3fNegate(vec3f_ptr d, const vec3f_ptr v)
 int
 vec3fLessThan(const vec3f_ptr v1, const vec3f_ptr v2)
 {
-   if ((v1->v3[0]) < (v2->v3[0]) &&
-       (v1->v3[1]) < (v2->v3[1]) &&
-       (v1->v3[2]) < (v2->v3[2]))
+   if ((v1->v3[0]) <= (v2->v3[0]) &&
+       (v1->v3[1]) <= (v2->v3[1]) &&
+       (v1->v3[2]) <= (v2->v3[2]))
    {
       return 1;
    }
