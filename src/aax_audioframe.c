@@ -273,10 +273,13 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 
          // Walk back to the lowest parent frame which is registered
          // at the sensor and mark it changed.
-         while ((void*)parent != handle->root)
+         if (parent)
          {
-            handle = parent;
-            parent = handle->parent;
+            while ((void*)parent != handle->root)
+            {
+               handle = parent;
+               parent = handle->parent;
+            }
          }
          _PROP_MTX_SET_CHANGED(handle->submix->props3d);
       }
@@ -355,10 +358,14 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 
          // Walk back to the lowest parent frame which is registered
          // at the sensor and mark it changed.
-         while ((void*)parent != handle->root)
+         if (parent)
          {
-            handle = parent;
-            parent = handle->parent;
+            while ((void*)parent != handle->root)
+            {
+               handle = parent;
+               parent = handle->parent;
+
+            }
          }
          _PROP_SPEED_SET_CHANGED(handle->submix->props3d);
       }
