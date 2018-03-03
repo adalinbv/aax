@@ -90,9 +90,6 @@ typedef struct
 {
    _aaxAudioFrame *mixer;
 
-   size_t count;
-   size_t no_speakers;
-
    /* parametric equalizer, located at _handle_t **/
    _aaxFilterInfo *filter;
 
