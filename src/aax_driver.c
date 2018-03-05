@@ -940,7 +940,6 @@ _open_handle(aaxConfig config)
                   {
                      unsigned int num;
 
-                     sensor->count = 1;
                      num = _aaxGetNoEmitters();
                      sensor->mixer->info->max_emitters = num;
                      num = _AAX_MAX_MIXER_REGISTERED;
