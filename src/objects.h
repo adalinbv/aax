@@ -414,11 +414,11 @@ typedef struct
 } _aaxEmitter;
 
 
-extern float _aaxContextDefaultHead[2][4];
-extern float _aaxContextDefaultSpeakersVolume[_AAX_MAX_SPEAKERS][4];
-extern float _aaxContextDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4];
-extern float _aaxContextDefaultHRTFVolume[_AAX_MAX_SPEAKERS][4];
-extern float _aaxContextDefaultHRTFDelay[_AAX_MAX_SPEAKERS][4];
+extern float _aaxDefaultHead[2][4];
+extern float _aaxDefaultSpeakersVolume[_AAX_MAX_SPEAKERS][4];
+extern float _aaxDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4];
+extern float _aaxDefaultHRTFVolume[_AAX_MAX_SPEAKERS][4];
+extern float _aaxDefaultHRTFDelay[_AAX_MAX_SPEAKERS][4];
 
 void _aaxFreeSource(void*);
 void _aaxProcessSource(void*, _aaxEmitter*, unsigned int);
