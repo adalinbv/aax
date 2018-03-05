@@ -52,8 +52,8 @@
 static _intBuffers* get_backends();
 static _handle_t* _open_handle(aaxConfig);
 static _aaxConfig* _aaxReadConfig(_handle_t*, const char*, int);
-static void _aaxContextSetupHRTF(void *, unsigned int);
-static void _aaxContextSetupSpeakers(void **, unsigned char *router, unsigned int);
+static void _aaxSetupHRTF(void *, unsigned int);
+static void _aaxSetupSpeakers(void **, unsigned char *router, unsigned int);
 static void _aaxFreeSensor(void *);
 
 static const char* _aax_default_devname;
@@ -1150,34 +1150,34 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
                if (handle->info->mode == AAX_MODE_WRITE_HRTF)
                {
                   handle->info->no_tracks = 2;
-                  _aax_memcpy(&info->speaker,&_aaxContextDefaultHRTFVolume, size);
-                  _aax_memcpy(info->delay, &_aaxContextDefaultHRTFDelay, size);
+                  _aax_memcpy(&info->speaker,&_aaxDefaultHRTFVolume, size);
+                  _aax_memcpy(info->delay, &_aaxDefaultHRTFDelay, size);
 
                   /*
                    * By mulitplying the delays with the sample frequency the
                    * delays in seconds get converted into sample offsets.
                    */
-                  _aaxContextSetupHRTF(config->node[0].hrtf, 0);
-                  vec4fFill(info->hrtf[0].v4, _aaxContextDefaultHead[0]);
+                  _aaxSetupHRTF(config->node[0].hrtf, 0);
+                  vec4fFill(info->hrtf[0].v4, _aaxDefaultHead[0]);
                   vec4fScalarMul(&info->hrtf[0], &info->hrtf[0], fq);
 
-                  vec4fFill(info->hrtf[1].v4, _aaxContextDefaultHead[1]);
+                  vec4fFill(info->hrtf[1].v4, _aaxDefaultHead[1]);
                   vec4fScalarMul(&info->hrtf[1], &info->hrtf[1], fq);
                }
                else
                {
                   unsigned int t;
 
-                  _aaxContextSetupSpeakers(config->node[0].speaker,
+                  _aaxSetupSpeakers(config->node[0].speaker,
                                            info->router, info->no_tracks);
                   for (t=0; t<handle->info->no_tracks; t++)
                   {
                      vec3f_t sv;
-                     vec3fFill(sv.v3, _aaxContextDefaultSpeakersVolume[t]);
+                     vec3fFill(sv.v3, _aaxDefaultSpeakersVolume[t]);
                      float gain = vec3fNormalize((vec3f_ptr)&info->speaker[t], &sv);
                      info->speaker[t].v4[3] = 1.0f/gain;
                   }
-                  _aax_memcpy(info->delay, &_aaxContextDefaultSpeakersDelay, size);
+                  _aax_memcpy(info->delay, &_aaxDefaultSpeakersDelay, size);
                }
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
@@ -1229,35 +1229,35 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
 }
 
 static void
-_aaxContextSetupHRTF(void *xid, UNUSED(unsigned int n))
+_aaxSetupHRTF(void *xid, UNUSED(unsigned int n))
 {
    if (xid)
    {
       float f = (float)xmlNodeGetDouble(xid, "gain");
-      _aaxContextDefaultHead[HRTF_FACTOR][GAIN] = f;
+      _aaxDefaultHead[HRTF_FACTOR][GAIN] = f;
 
       f = (float)xmlNodeGetDouble(xid, "side-delay-sec");
-      _aaxContextDefaultHead[HRTF_FACTOR][DIR_RIGHT] = f;
+      _aaxDefaultHead[HRTF_FACTOR][DIR_RIGHT] = f;
 
       f = (float)xmlNodeGetDouble(xid, "side-offset-sec");
-      _aaxContextDefaultHead[HRTF_OFFSET][DIR_RIGHT] = f;
+      _aaxDefaultHead[HRTF_OFFSET][DIR_RIGHT] = f;
 
       f = (float)xmlNodeGetDouble(xid, "up-delay-sec");
-      _aaxContextDefaultHead[HRTF_FACTOR][DIR_UPWD] = f;
+      _aaxDefaultHead[HRTF_FACTOR][DIR_UPWD] = f;
 
       f = (float)xmlNodeGetDouble(xid, "up-offset-sec");
-      _aaxContextDefaultHead[HRTF_OFFSET][DIR_UPWD] = f;
+      _aaxDefaultHead[HRTF_OFFSET][DIR_UPWD] = f;
 
       f = (float)xmlNodeGetDouble(xid, "forward-delay-sec");
-      _aaxContextDefaultHead[HRTF_FACTOR][DIR_BACK] = f;
+      _aaxDefaultHead[HRTF_FACTOR][DIR_BACK] = f;
 
       f = (float)xmlNodeGetDouble(xid, "forward-offset-sec");
-      _aaxContextDefaultHead[HRTF_OFFSET][DIR_BACK] = f;
+      _aaxDefaultHead[HRTF_OFFSET][DIR_BACK] = f;
    }
 }
 
 static void
-_aaxContextSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
+_aaxSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
 {
    unsigned int i;
 
@@ -1278,15 +1278,15 @@ _aaxContextSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
 
          f = (float)xmlNodeGetDouble(xsid, "volume-norm");
          if (f) {
-            _aaxContextDefaultSpeakersVolume[channel][GAIN] = f;
+            _aaxDefaultSpeakersVolume[channel][GAIN] = f;
          } else {
-            _aaxContextDefaultSpeakersVolume[channel][GAIN] = 1.0f;
+            _aaxDefaultSpeakersVolume[channel][GAIN] = 1.0f;
          }
 
          v.v3[0] = -(float)xmlNodeGetDouble(xsid, "pos-x");
          v.v3[1] = -(float)xmlNodeGetDouble(xsid, "pos-y");
          v.v3[2] = (float)xmlNodeGetDouble(xsid, "pos-z");
-         vec3fFill(_aaxContextDefaultSpeakersVolume[channel], v.v3);
+         vec3fFill(_aaxDefaultSpeakersVolume[channel], v.v3);
       }
    }
 }
