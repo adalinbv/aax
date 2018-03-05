@@ -51,10 +51,17 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t  rpos, float dist_fact,
       {
          for (i=0; i<3; i++)
          {
-            dp = vec3fDotProduct(&speaker[3*t+i].v3, &rpos);
+            /*
+             * IID; Interaural Intensitive Difference
+             */
+            pos = 3*t + i;
+            dp = vec3fDotProduct(&speaker[pos].v3, &rpos);
             dp *= speaker[t].v4[3];
             p2d->speaker[t].v4[i] = dp * dist_fact;		/* -1 .. +1 */
 
+            /*
+             * ITD; Interaural Time Difference
+             */
             offs = info->hrtf[HRTF_OFFSET].v4[i];
             fact = info->hrtf[HRTF_FACTOR].v4[i];
 

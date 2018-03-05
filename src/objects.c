@@ -250,7 +250,7 @@ _aaxDelayed3dPropsDup(_aaxDelayed3dProps *dp3d)
  *   180 deg = 0.100 ms                                 -- above  --
  *
  * The inner pinna ridge which determine front-back directions in the
- * horizontal plane. Front-back istinctions are not uniquely determined
+ * horizontal plane. Front-back distinctions are not uniquely determined
  * by time differences:
  * Angle from right (azimuth, front = 0deg): (inner pinna ridge)
  *     0 deg =  0.080 ms,				-- ahead  --
@@ -269,7 +269,7 @@ float _aaxDefaultHead[2][4] =
 {
 //     RIGHT     UP        BACK
    { 0.000640f,-0.000110f, 0.000120f, 0.0f },	/* head delay factors */
-   { 0.000000f, 0.000200f, 0.000010f, 0.0f }	/* head delay offsets */
+   { 0.000000f, 0.000225f, 0.000020f, 0.0f }	/* head delay offsets */
 };
 
 float _aaxDefaultHRTFVolume[_AAX_MAX_SPEAKERS][4] =
