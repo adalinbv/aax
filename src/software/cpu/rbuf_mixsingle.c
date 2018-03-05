@@ -244,20 +244,20 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
        * vertical positioning
        **/
       dir_fact[DIR_UPWD] = ep2d->speaker[t].v4[DIR_UPWD];
-      hrtf_volume[DIR_UPWD] = _MAX(-0.125f*dir_fact[DIR_UPWD], 0.01f); // 0.66 + 0.33f*dir_fact[DIR_UPWD];
+      hrtf_volume[DIR_UPWD] = -0.125f*dir_fact[DIR_UPWD];
 
       /**
        * horizontal positioning, back-front
        **/
       dir_fact[DIR_BACK] = ep2d->speaker[t].v4[DIR_BACK];
-      hrtf_volume[DIR_BACK] = 0.175f + 0.05f*dir_fact[DIR_BACK]; // 0.66f + 0.33f*dir_fact[DIR_BACK];
+      hrtf_volume[DIR_BACK] = 0.175f + 0.05f*dir_fact[DIR_BACK];
 
       /**
        * horizontal positioning, left-right
        * WARNING: must be last: dir_fact is used for head shadow filtering
        **/
       dir_fact[DIR_RIGHT] = ep2d->speaker[t].v4[DIR_RIGHT];
-      hrtf_volume[DIR_RIGHT] = dir_fact[DIR_RIGHT]; // _MIN(0.66f + dir_fact, 1.0f);
+      hrtf_volume[DIR_RIGHT] = dir_fact[DIR_RIGHT];
 
 #if 0
  printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t].v4[0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t].v4[1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t].v4[2]/44100.0f);
