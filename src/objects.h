@@ -109,24 +109,24 @@ enum
 
 enum
 {
-    PITCH_CHANGED         = 0x0000001,
-    GAIN_CHANGED          = 0x0000002,
-    DIST_CHANGED          = 0x0000004,
-    MTX_CHANGED           = 0x0000008,
-    SPEED_CHANGED         = 0x0000010,
+    PITCH_CHANGED         = 0x00000001,
+    GAIN_CHANGED          = 0x00000002,
+    DIST_CHANGED          = 0x00000004,
+    MTX_CHANGED           = 0x00000008,
+    SPEED_CHANGED         = 0x00000010,
 
-    CONE_DEFINED          = 0x0010000,
-    INDOOR_DEFINED        = 0x0020000,
-    OCCLUSION_DEFINED     = 0x0040000,
-    DYNAMIC_PITCH_DEFINED = 0x0080000,
+    CONE_DEFINED          = 0x00010000,
+    INDOOR_DEFINED        = 0x00020000,
+    OCCLUSION_DEFINED     = 0x00040000,
+    DYNAMIC_PITCH_DEFINED = 0x00080000,
     ALL_DEFINED           = (CONE_DEFINED|INDOOR_DEFINED|OCCLUSION_DEFINED|DYNAMIC_PITCH_DEFINED),
 
-    /* SCENE*/
-    DISTQUEUE_CHANGED     = 0x0000000,
-    SCENE_CHANGED         = 0x1000000,
-    REVERB_CHANGED        = 0x2000000,
-    DISTDELAY_CHANGED     = 0x4000000,
-    WIND_CHANGED          = 0x8000000
+    /* SCENE */
+    MONO_RENDERING        = 0x08000000,
+    DISTQUEUE_CHANGED     = 0x10000000,
+    REVERB_CHANGED        = 0x20000000,
+    DISTDELAY_CHANGED     = 0x40000000,
+    WIND_CHANGED          = 0x80000000
 };
 #define PITCH_CHANGE            (PITCH_CHANGED | DYNAMIC_PITCH_DEFINED)
 
@@ -167,19 +167,19 @@ enum
 #define _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED(q) ((q)->state3d &= ~DYNAMIC_PITCH_DEFINED)
 
 /* 3d properties: AAX Scene extension*/
-#define _PROP3D_SCENE_IS_DEFINED(q)     ((q)->state3d & SCENE_CHANGED)
+#define _PROP3D_MONO_IS_DEFINED(q)     ((q)->state3d & MONO_RENDERING)
 #define _PROP3D_REVERB_IS_DEFINED(q)    ((q)->state3d & REVERB_CHANGED)
 #define _PROP3D_DISTDELAY_IS_DEFINED(q) ((q)->state3d & DISTDELAY_CHANGED)
 #define _PROP3D_DISTQUEUE_IS_DEFINED(q) ((q)->state3d & DISTQUEUE_CHANGED)
 #define _PROP3D_WIND_IS_DEFINED(q)      ((q)->state3d & WIND_CHANGED)
 
-#define _PROP3D_SCENE_SET_CHANGED(q)    ((q)->state3d |= SCENE_CHANGED)
+#define _PROP3D_MONO_SET_DEFINED(q)    ((q)->state3d |= MONO_RENDERING)
 #define _PROP3D_REVERB_SET_CHANGED(q)   ((q)->state3d |= REVERB_CHANGED)
 #define _PROP3D_DISTDELAY_SET_DEFINED(q) ((q)->state3d |= DISTDELAY_CHANGED)
 #define _PROP3D_DISTQUEUE_SET_DEFINED(q) ((q)->state3d |= (DISTQUEUE_CHANGED|DISTDELAY_CHANGED))
 #define _PROP3D_WIND_SET_CHANGED(q)     ((q)->state3d |= WIND_CHANGED)
 
-#define _PROP3D_SCENE_CLEAR_CHANGED(q)  ((q)->state3d &= ~SCENE_CHANGED)
+#define _PROP3D_MONO_CLEAR_DEFINED(q)  ((q)->state3d &= ~MONO_RENDERING)
 #define _PROP3D_REVERB_CLEAR_CHANGED(q) ((q)->state3d &= ~REVERB_CHANGED)
 #define _PROP3D_DISTDELAY_CLEAR_DEFINED(q) ((q)->state3d &= ~DISTDELAY_CHANGED)
 #define _PROP3D_DISTQUEUE_CLEAR_DEFINED(q) ((q)->state3d &= ~(DISTQUEUE_CHANGED|DISTDELAY_CHANGED))
@@ -217,19 +217,19 @@ enum
 #define _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(q) _PROP3D_DYNAMIC_PITCH_CLEAR_DEFINED((q)->dprops3d)
 
 /* delayed 3d properties: AAX Scene extension*/
-#define _PROP_SCENE_IS_DEFINED(q)       _PROP3D_SCENE_IS_DEFINED((q)->dprops3d)
+#define _PROP_MONO_IS_DEFINED(q)       _PROP3D_MONO_IS_DEFINED((q)->dprops3d)
 #define _PROP_REVERB_IS_DEFINED(q)      _PROP3D_REVERB_IS_DEFINED((q)->dprops3d)
 #define _PROP_DISTDELAY_IS_DEFINED(q)   _PROP3D_DISTDELAY_IS_DEFINED((q)->dprops3d)
 #define _PROP_DISTQUEUE_IS_DEFINED(q)   _PROP3D_DISTQUEUE_IS_DEFINED((q)->dprops3d)
 #define _PROP_WIND_IS_DEFINED(q)        _PROP3D_WIND_IS_DEFINED((q)->dprops3d)
 
-#define _PROP_SCENE_SET_CHANGED(q)      _PROP3D_SCENE_SET_CHANGED((q)->dprops3d)
+#define _PROP_MONO_SET_DEFINED(q)      _PROP3D_MONO_SET_DEFINED((q)->dprops3d)
 #define _PROP_REVERB_SET_CHANGED(q)     _PROP3D_REVERB_SET_CHANGED((q)->dprops3d)
 #define _PROP_DISTDELAY_SET_DEFINED(q)  _PROP3D_DISTDELAY_SET_DEFINED((q)->dprops3d)
 #define _PROP_DISTQUEUE_SET_DEFINED(q)  _PROP3D_DISTQUEUE_SET_DEFINED((q)->dprops3d)
 #define _PROP_WIND_SET_CHANGED(q)       _PROP3D_WIND_SET_CHANGED((q)->dprops3d)
 
-#define _PROP_SCENE_CLEAR_CHANGED(q)    _PROP3D_SCENE_CLEAR_CHANGED((q)->dprops3d)
+#define _PROP_MONO_CLEAR_DEFINED(q)    _PROP3D_MONO_CLEAR_DEFINED((q)->dprops3d)
 #define _PROP_REVERB_CLEAR_CHANGED(q)   _PROP3D_REVERB_CLEAR_CHANGED(((q)->dprops3d)
 #define _PROP_DISTDELAY_CLEAR_DEFINED(q) _PROP3D_DISTDELAY_CLEAR_DEFINED((q)->dprops3d)
 #define _PROP_DISTQUEUE_CLEAR_DEFINED(q) _PROP3D_DISTQUEUE_CLEAR_DEFINED((q)->dprops3d)
@@ -295,9 +295,7 @@ typedef ALIGN16 struct
    mtx4d_t matrix;
 #endif
    mtx4f_t velocity;
-
    vec4f_t occlusion;
-   float occ_fact;
 
    float pitch, gain;
    int state3d;

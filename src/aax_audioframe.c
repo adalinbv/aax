@@ -1246,6 +1246,10 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             fp3d = submix->props3d;
             fp3d->parent = mp3d;
 
+            if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
+               _PROP_MONO_SET_DEFINED(fp3d);
+            }
+
             if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
@@ -1309,6 +1313,7 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       /* order by _intBufRemove                                            */
       _intBufRelease(hf, _AAX_FRAME, sframe->mixer_pos);
       _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos, AAX_FALSE);
+      _PROP_MONO_CLEAR_DEFINED(sframe->submix->props3d);
       sframe->submix->refcount--;
       sframe->mixer_pos = UINT_MAX;
       sframe->parent = NULL;

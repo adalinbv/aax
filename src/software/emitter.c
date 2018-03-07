@@ -395,7 +395,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          // propagation goes out the door. Note that the scenery frame is
          // never defined as indoor so emitters registered with the mixer
          // will always be directional.
-         if (!_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
+         if (!_PROP3D_MONO_IS_DEFINED(fdp3d_m))
          {
             float dfact = _MIN(dist_ef/refdist, 1.0f);
             _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
@@ -413,7 +413,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        *       For now it is assumed that indoor reflections render the cone
        *       pretty much useless, at least if the emitter is in another room.
        */
-      if (_PROP3D_CONE_IS_DEFINED(edp3d) && !_PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
+      if (_PROP3D_CONE_IS_DEFINED(edp3d) && !_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
          float tmp, forward_gain, inner_vec, cone_volume = 1.0f;
 
