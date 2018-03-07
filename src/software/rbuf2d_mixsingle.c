@@ -226,7 +226,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Mix */
-   if (_PROP3D_INDOOR_IS_DEFINED(fdp3d_m)) {
+   if (_PROP3D_MONO_IS_DEFINED(fdp3d_m)) {
       drbd->mix1(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
                  info->frequency, gain, svol, evol, ctr);
    } else {

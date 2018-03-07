@@ -241,7 +241,7 @@ _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *frame)
 
 static void
 _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
-                  _aax2dProps *fp2d, char parent_indoor)
+                  _aax2dProps *fp2d, char mono)
 {
    _intBufferData *buf;
 
@@ -254,7 +254,7 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
       _aaxLFOData *lfo;
 
       lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
-      dest_rb->data_mix(dest_rb, src_rb, lfo, parent_indoor? 1 : AAX_TRACK_ALL);
+      dest_rb->data_mix(dest_rb, src_rb, lfo, mono ? 1 : AAX_TRACK_ALL);
 
       /*
        * push the ringbuffer to the back of the stack so it can
@@ -373,18 +373,16 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       /* if the subframe actually did render something, mix the data */
       if (res)
       {
-         unsigned int parent_indoor, frame_indoor;
-         char dde;
+         char dde, mono, indoor;
 
          dde = _EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) ? AAX_TRUE : AAX_FALSE;
          fmixer->ringbuffer = _aaxAudioFrameSwapBuffers(frame_rb,
                                               sfmixer->frame_ringbuffers, dde);
 
          /* finally mix the data with dest_rb */
-         parent_indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m);
-         frame_indoor = _PROP3D_INDOOR_IS_DEFINED(sfdp3d_m);
-
-         if (frame_indoor && !parent_indoor)
+         mono = _PROP3D_MONO_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
+         indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
+         if (indoor && !mono)
          {
             vec3f_t tmp;
 
@@ -401,7 +399,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                                 &sfp2d, tmp, fp2d->speaker, fmixer->info);
          } else {
             _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
-                              &sfp2d, parent_indoor);
+                              &sfp2d, mono);
          }
          sfmixer->capturing = 1;
 
