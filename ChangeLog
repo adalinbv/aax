@@ -19,6 +19,7 @@
    and parent-frame data to be out of sync. Also absolute positions are handled
    better now.
  * Increase the http stream timeout value. The default was just too low.
+ * Protect against deregistering an unregistered audio-frame or emitter.
 
 -- Erik Hofman <tech@adalin.org>  Wed 31 Jan  2018 14:25:00 + 0100
 
