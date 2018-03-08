@@ -1145,8 +1145,21 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!emitter || emitter->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else {
-         rv = AAX_TRUE;
+      }
+      else
+      {
+         _intBuffers *he;
+         if (_IS_POSITIONAL(emitter->source->props3d)) {
+            he = handle->submix->emitters_3d;
+         } else {
+            he = handle->submix->emitters_2d;
+         }
+
+         if (_intBufGetNumNoLock(he, _AAX_EMITTER) == 0) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         } else {
+            rv = AAX_TRUE;
+         }
       }
    }
 
@@ -1300,6 +1313,8 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!sframe || sframe->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (_intBufGetNumNoLock(handle->submix->frames, _AAX_FRAME) == 0) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
       }

@@ -1196,18 +1196,24 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
 
             /* Unlock the frame again to make sure locking is done in the  */
             /* proper order by _intBufRemove                               */
-            _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
-            ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos,AAX_FALSE);
-            if (ptr)
+            if (_intBufGetNumNoLock(he, _AAX_EMITTER))
             {
-               _aaxDecreaseEmitterCounter();
-               mixer->no_registered--;
-               emitter->root = NULL;
-               emitter->parent = NULL;
-               emitter->mixer_pos = UINT_MAX;
-               rv = AAX_TRUE;
+               _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
+               ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, AAX_FALSE);
+               if (ptr)
+               {
+                  _aaxDecreaseEmitterCounter();
+                  mixer->no_registered--;
+                  emitter->root = NULL;
+                  emitter->parent = NULL;
+                  emitter->mixer_pos = UINT_MAX;
+                  rv = AAX_TRUE;
+               }
+               _intBufReleaseData(dptr, _AAX_SENSOR);
             }
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+            else {
+               _aaxErrorSet(AAX_INVALID_PARAMETER);
+            }
          }
       }
       else {
@@ -1352,17 +1358,23 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
             _intBuffers *hf = mixer->frames;
 
             /* Unlock the frame again to make sure locking is done in the */
-           /* proper order by _intBufRemove                               */
-            _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
-            _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos, AAX_FALSE);
-            mixer->no_registered--;
-            _intBufReleaseData(dptr, _AAX_SENSOR);
+            /* proper order by _intBufRemove                              */
+            if (_intBufGetNumNoLock(hf, _AAX_FRAME))
+            {
+               _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
+               _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos, AAX_FALSE);
+               mixer->no_registered--;
+               _intBufReleaseData(dptr, _AAX_SENSOR);
 
-            submix->refcount--;
-            frame->root = NULL;
-            frame->parent = NULL;
-            frame->mixer_pos = UINT_MAX;
-            rv = AAX_TRUE;
+               submix->refcount--;
+               frame->root = NULL;
+               frame->parent = NULL;
+               frame->mixer_pos = UINT_MAX;
+               rv = AAX_TRUE;
+            }
+            else {
+               _aaxErrorSet(AAX_INVALID_PARAMETER);
+            }
          }
       }
       else {
