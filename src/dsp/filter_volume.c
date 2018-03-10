@@ -362,7 +362,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                   VEC3COPY(pevec_2, pevec);
                   vec3fAbsolute(&pevec_2, &pevec_2);
                   vec3fScalarMul(&pevec_2, &pevec_2, 0.5f);
-                  less = vec3fLessThan(&pevec_2, &path->occlusion.v3);
+                  less = !vec3fLessThan(&pevec_2, &path->occlusion.v3);
                }
 
                if (less)
