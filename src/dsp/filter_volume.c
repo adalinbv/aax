@@ -165,6 +165,7 @@ _flt_function_tbl _aaxVolumeFilter =
 #ifdef ARCH32
 # define FLOAT			float
 # define VEC3_T			vec3f_t
+# define VEC3COPY(a,b)		vec3fCopy(&a,&b)
 # define VEC3SUB(a,b,c)		vec3fSub(a,b,c)
 # define VEC3ADD(a,b,c)		vec3fAdd(a,b,c)
 # define VEC3NEGATE(a,b)	vec3fNegate(a,b)
@@ -175,6 +176,7 @@ _flt_function_tbl _aaxVolumeFilter =
 #else
 # define FLOAT			double
 # define VEC3_T			vec3d_t
+# define VEC3COPY(a,b)		vec3fFilld(a.v3,b.v3)
 # define VEC3SUB(a,b,c)		vec3dSub(a,b,c)
 # define VEC3ADD(a,b,c)		vec3dAdd(a,b,c)
 # define VEC3NEGATE(a,b)	vec3dNegate(a,b)
@@ -295,7 +297,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
       if (!occlusion) occlusion = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
       if (occlusion)
       {
-         VEC3_T fpepos, fpevec, pevec, fevec;
+         VEC3_T fpepos, fpevec, pevec, npevec, fevec;
          vec3f_t vres;
          _aaxRingBufferOcclusionData *path = occlusion;
          _aaxDelayed3dProps *ndp3d_m;
@@ -333,14 +335,14 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                   VEC3SUB(&pevec, &ndp3d_m->matrix.v34[LOCATION],
                                   &edp3d_m->matrix.v34[LOCATION]);
                }
-               VEC3NORMALIZE(&pevec, &pevec);
+               VEC3NORMALIZE(&npevec, &pevec);
 
                // Get the projection length of the frame-to-emitter vector on
                // the parent_frame-to-emitter unit vector..
-               mag_pev = VEC3DOTPRODUCT(&fevec, &pevec);
+               mag_pev = VEC3DOTPRODUCT(&fevec, &npevec);
 
                // scale the parent_frame-to-emitter unit vector.
-               VEC3SCALARMUL(&fpevec, &pevec, mag_pev);
+               VEC3SCALARMUL(&fpevec, &npevec, mag_pev);
 
                // Get the vector from the frame position which perpendicular
                // to the parent_frame-to-emitter vector.
@@ -353,15 +355,23 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                // In case path->inverse is true the real obstruction is
                // everything but the defined dimensions (meaning a hole).
                less = vec3fLessThan(&vres, &path->occlusion.v3);
-               if (path->inverse) less = !less;
+               if (path->inverse)
+               {
+                  vec3f_t pevec_2;
+
+                  VEC3COPY(pevec_2, pevec);
+                  vec3fAbsolute(&pevec_2, &pevec_2);
+                  vec3fScalarMul(&pevec_2, &pevec_2, 0.5f);
+                  less = vec3fLessThan(&pevec_2, &path->occlusion.v3);
+               }
+
                if (less)
                {
                   float level, mag;
 
                   mag = path->magnitude*100.0f/vs;
                   level = 1.0f - _MIN(vec3fMagnitude(&vres)/mag, 1.0f);
-
-                  if (path->inverse) level = 1.0f / level;
+                  if (path->inverse) level = _MIN(1.0f/level, 1.0f);
 
                   level *= path->occlusion.v4[3];    // density
                   if (level > occlusion->level) {
@@ -375,6 +385,8 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                }
  printf("obstruction dimensions:\t");
  PRINT_VEC3(path->occlusion.v3);
+ printf("        parent-emitter:\t");
+ PRINT_VEC3(pevec);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
  printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (less^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
