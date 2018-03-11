@@ -9,7 +9,7 @@
 <aeonwave>
 
  <sound name="Cowbel" program="15" bank="0" frequency="220" duration="0.10">
-  <waveform src="sine" pitch="1.696"/>
+  <waveform src="triangle" pitch="1.696"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="4.0987"/>
  </sound>
 
@@ -22,12 +22,12 @@
    <slot n="0">
     <param n="0">1.50</param>
     <param n="1" factor="velocity">0.05</param>
-    <param n="2" factor="soften">0.80</param>
+    <param n="2" factor="soften">1.00</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
     <param n="0">0.80</param>
-    <param n="1">0.23</param>
+    <param n="1">0.18</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
