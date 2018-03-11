@@ -40,6 +40,9 @@
 #include "filters.h"
 #include "api.h"
 
+// https://en.wikipedia.org/wiki/Attenuation#Attenuation_coefficient
+// https://physics.stackexchange.com/questions/87751/do-low-frequency-sounds-really-carry-longer-distances
+
 static aaxFilter
 _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
@@ -286,4 +289,118 @@ _aaxALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff)
    if (fraction) gain = powf(fraction, -rolloff);
 
    return gain;
+}
+
+/**
+ * rpos: emitter position relative to the listener
+ * dist_fact: the factor that translates the distance into meters/feet/etc.
+ * speaker: the parents speaker positions
+ * p2d: the emitters 2d properties structure
+ * info: the mixers info structure
+ */
+void
+_aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
+                                    vec4f_t *speaker, _aax2dProps *p2d,
+                                    const _aaxMixerInfo* info)
+{
+   unsigned int pos, i, t;
+   float dp, offs, fact;
+
+   switch (info->mode)
+   {
+   case AAX_MODE_WRITE_HRTF:
+      for (t=0; t<info->no_tracks; t++)
+      {
+         for (i=0; i<3; i++)
+         {
+            /*
+             * IID; Interaural Intensitive Difference
+             */
+            pos = 3*t + i;
+            dp = vec3fDotProduct(&speaker[pos].v3, &rpos);
+            dp *= speaker[t].v4[3];
+            p2d->speaker[t].v4[i] = dp * dist_fact;             /* -1 .. +1 */
+
+            /*
+             * ITD; Interaural Time Difference
+             */
+            offs = info->hrtf[HRTF_OFFSET].v4[i];
+            fact = info->hrtf[HRTF_FACTOR].v4[i];
+
+            pos = _AAX_MAX_SPEAKERS + 3*t + i;
+            dp = vec3fDotProduct(&speaker[pos].v3, &rpos);
+            p2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
+         }
+      }
+      break;
+   case AAX_MODE_WRITE_SURROUND:
+      for (t=0; t<info->no_tracks; t++)
+      {
+#ifdef USE_SPATIAL_FOR_SURROUND
+         dp = vec3fDotProduct(&speaker[t].v3, &rpos);
+         dp *= speaker[t].v4[3];
+
+         p2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
+#else
+         vec3fMulvec3(&p2d->speaker[t].v3, &speaker[t].v3, &rpos);
+         vec3fScalarMul(&p2d->speaker[t].v3, &p2d->speaker[t].v3, dist_fact);
+#endif
+         i = DIR_UPWD;
+         do                             /* skip left-right and back-front */
+         {
+            offs = info->hrtf[HRTF_OFFSET].v4[i];
+            fact = info->hrtf[HRTF_FACTOR].v4[i];
+
+            pos = _AAX_MAX_SPEAKERS + 3*t + i;
+            dp = vec3fDotProduct(&speaker[pos].v3, &rpos);
+            p2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
+         }
+         while(0);
+      }
+      break;
+   case AAX_MODE_WRITE_SPATIAL:
+      for (t=0; t<info->no_tracks; t++)
+      {                                         /* speaker == sensor_pos */
+         dp = vec3fDotProduct(&speaker[t].v3, &rpos);
+         dp *= speaker[t].v4[3];
+
+         p2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
+      }
+      break;
+   default: /* AAX_MODE_WRITE_STEREO */
+      for (t=0; t<info->no_tracks; t++)
+      {
+         vec3fMulvec3(&p2d->speaker[t].v3, &speaker[t].v3, &rpos);
+         vec4fScalarMul(&p2d->speaker[t], &p2d->speaker[t], dist_fact);
+      }
+   }
+}
+
+float
+_distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3d_m, vec3f_t epos, float dist_ef, vec4f_t *speaker, const _aaxMixerInfo* info)
+{
+   _aaxDistFn* distfn;
+   float refdist, maxdist, rolloff;
+
+   *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
+   assert(distfn);
+
+   /*
+    * Distance queues for every speaker (volume)
+    */
+   refdist = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_REF_DISTANCE);
+   maxdist = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_MAX_DISTANCE);
+   rolloff = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
+
+   // If the parent frame is defined indoor then directional sound
+   // propagation goes out the door. Note that the scenery frame is
+   // never defined as indoor so emitters registered with the mixer
+   // will always be directional.
+   if (!_PROP3D_MONO_IS_DEFINED(fdp3d_m))
+   {
+      float dfact = _MIN(dist_ef/refdist, 1.0f);
+      _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
+   }
+
+   return distfn(dist_ef, refdist, maxdist, rolloff);
 }
