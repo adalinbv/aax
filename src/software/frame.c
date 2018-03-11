@@ -269,15 +269,15 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 
 static void
 _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
-                    _aax2dProps *fp2d, vec3f_t sftmp, vec4f_t* speaker,
+                    _aax2dProps *fp2d, vec3f_ptr sftmp, vec4f_ptr speaker,
                     const _aaxMixerInfo *info)
 {
    vec3f_t sfpos;
    _intBufferData *buf;
    float dfact;
 
-   dfact = _MIN(vec3fNormalize(&sfpos, &sftmp), 1.0f);
-   _aaxSetupSpeakersFromDistanceVector(sfpos, dfact, speaker, fp2d, info);
+   dfact = _MIN(vec3fNormalize(&sfpos, sftmp), 1.0f);
+   _aaxSetupSpeakersFromDistanceVector(&sfpos, dfact, speaker, fp2d, info);
 
    _intBufGetNum(ringbuffers, _AAX_RINGBUFFER);
    buf = _intBufPopNormal(ringbuffers, _AAX_RINGBUFFER, AAX_TRUE);
@@ -396,7 +396,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
 #endif
 
             _aaxAudioFrameMix3D(dest_rb, sfmixer->frame_ringbuffers,
-                                &sfp2d, tmp, fp2d->speaker, fmixer->info);
+                                &sfp2d, &tmp, fp2d->speaker, fmixer->info);
          } else {
             _aaxAudioFrameMix(dest_rb, sfmixer->frame_ringbuffers,
                               &sfp2d, mono);
