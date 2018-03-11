@@ -214,8 +214,6 @@ void _bufferMixTriangleWave(void**, float, char, size_t, int, float, float);
 void _bufferMixSawtooth(void**, float, char, size_t, int, float, float);
 void _bufferMixImpulse(void**, float, char, size_t, int, float, float);
 
-/** */
-void _aaxSetupSpeakersFromDistanceVector(vec3f_t, float, vec4f_t*, _aax2dProps*, const _aaxMixerInfo*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

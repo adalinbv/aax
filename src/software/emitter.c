@@ -398,7 +398,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          if (!_PROP3D_MONO_IS_DEFINED(fdp3d_m))
          {
             float dfact = _MIN(dist_ef/refdist, 1.0f);
-            _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
+            _aaxSetupSpeakersFromDistanceVector(&epos, dfact, speaker, ep2d, info);
          }
 
          gain *= distfn(dist_ef, refdist, maxdist, rolloff);

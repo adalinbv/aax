@@ -299,8 +299,8 @@ _aaxALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff)
  * info: the mixers info structure
  */
 void
-_aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
-                                    vec4f_t *speaker, _aax2dProps *p2d,
+_aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
+                                    vec4f_ptr speaker, _aax2dProps *p2d,
                                     const _aaxMixerInfo* info)
 {
    unsigned int pos, i, t;
@@ -317,7 +317,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
              * IID; Interaural Intensitive Difference
              */
             pos = 3*t + i;
-            dp = vec3fDotProduct(&speaker[pos].v3, &rpos);
+            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
             dp *= speaker[t].v4[3];
             p2d->speaker[t].v4[i] = dp * dist_fact;             /* -1 .. +1 */
 
@@ -328,7 +328,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
             fact = info->hrtf[HRTF_FACTOR].v4[i];
 
             pos = _AAX_MAX_SPEAKERS + 3*t + i;
-            dp = vec3fDotProduct(&speaker[pos].v3, &rpos);
+            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
             p2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
          }
       }
@@ -337,12 +337,12 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
       for (t=0; t<info->no_tracks; t++)
       {
 #ifdef USE_SPATIAL_FOR_SURROUND
-         dp = vec3fDotProduct(&speaker[t].v3, &rpos);
+         dp = vec3fDotProduct(&speaker[t].v3, rpos);
          dp *= speaker[t].v4[3];
 
          p2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
 #else
-         vec3fMulvec3(&p2d->speaker[t].v3, &speaker[t].v3, &rpos);
+         vec3fMulvec3(&p2d->speaker[t].v3, &speaker[t].v3, rpos);
          vec3fScalarMul(&p2d->speaker[t].v3, &p2d->speaker[t].v3, dist_fact);
 #endif
          i = DIR_UPWD;
@@ -352,7 +352,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
             fact = info->hrtf[HRTF_FACTOR].v4[i];
 
             pos = _AAX_MAX_SPEAKERS + 3*t + i;
-            dp = vec3fDotProduct(&speaker[pos].v3, &rpos);
+            dp = vec3fDotProduct(&speaker[pos].v3, rpos);
             p2d->hrtf[t].v4[i] = _MAX(offs + dp*fact, 0.0f);
          }
          while(0);
@@ -361,7 +361,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
    case AAX_MODE_WRITE_SPATIAL:
       for (t=0; t<info->no_tracks; t++)
       {                                         /* speaker == sensor_pos */
-         dp = vec3fDotProduct(&speaker[t].v3, &rpos);
+         dp = vec3fDotProduct(&speaker[t].v3, rpos);
          dp *= speaker[t].v4[3];
 
          p2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
@@ -370,14 +370,14 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_t rpos, float dist_fact,
    default: /* AAX_MODE_WRITE_STEREO */
       for (t=0; t<info->no_tracks; t++)
       {
-         vec3fMulvec3(&p2d->speaker[t].v3, &speaker[t].v3, &rpos);
+         vec3fMulvec3(&p2d->speaker[t].v3, &speaker[t].v3, rpos);
          vec4fScalarMul(&p2d->speaker[t], &p2d->speaker[t], dist_fact);
       }
    }
 }
 
 float
-_distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3d_m, vec3f_t epos, float dist_ef, vec4f_t *speaker, const _aaxMixerInfo* info)
+_distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, vec4f_ptr speaker, const _aaxMixerInfo* info)
 {
    _aaxDistFn* distfn;
    float refdist, maxdist, rolloff;
