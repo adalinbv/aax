@@ -14,7 +14,6 @@ set(SOFTWARE_SOURCES
   frame.c
   mixer.c
   rbuf2d_mixsingle.c
-  rbuf3d_mixsingle.c
   rbuf_codecs.c
   rbuf_codec_tables.c
   rbuf_int.h
