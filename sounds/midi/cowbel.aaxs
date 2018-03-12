@@ -8,14 +8,10 @@
 
 <aeonwave>
 
- <sound name="Cowbel" program="15" bank="0" frequency="220" duration="0.10">
+ <sound name="Cowbel" frequency="220" duration="0.10">
   <waveform src="triangle" pitch="1.696"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="4.0987"/>
  </sound>
-
- <instrument>
-  <note polyphony="17" min="60" max="77" step="1"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
@@ -27,12 +23,12 @@
    </slot>
    <slot n="1">
     <param n="0">0.80</param>
-    <param n="1">0.18</param>
+    <param n="1" auto-sustain="0.1" factor="sustain">0.55</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.04</param>
+    <param n="0" factor="soften">1.01</param>
     <param n="1" factor="velocity">0.02</param>
     <param n="2">0.98</param>
    </slot>
