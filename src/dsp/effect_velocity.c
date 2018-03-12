@@ -165,3 +165,43 @@ _aaxDopplerShift(float ve, float vsound)
 #endif
 }
 
+float
+_velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf)
+{
+   float df = 1.0f;
+
+   if (dist_ef > 1.0f)
+   {
+      _aaxPitchShiftFn* dopplerfn;
+      float ve;
+
+      *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
+      assert(dopplerfn);
+
+      /* align velocity vectors with the modified emitter position
+       * relative to the sensor
+       */
+      mtx4fMul(&edp3d_m->velocity, &fdp3d_m->velocity, &edp3d->velocity);
+
+      ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], epos);
+      df = dopplerfn(ve, vs/sdf);
+#if 0
+# if 1
+ printf("velocity: %3.2f, %3.2f, %3.2f\n",
+            edp3d_m->velocity.v34[LOCATION].v3[0],
+            edp3d_m->velocity.v34[LOCATION].v3[1],
+            edp3d_m->velocity.v34[LOCATION].v3[2]);
+ printf("velocity:\t\t\t\tparent velocity:\n");
+ PRINT_MATRICES(edp3d->velocity, fdp3d_m->velocity);
+ printf("modified velocity:\n");
+ PRINT_MATRIX(edp3d_m->velocity);
+ printf("doppler: %f, ∆ve: %f, vs: %f\n\n", df, ve, vs/sdf);
+# else
+ printf("doppler: %f, ve: %f, vs: %f\n", df, ve, vs/sdf);
+# endif
+#endif
+      ep3d->buf3dq_step = df;
+   }
+
+   return df;
+}

@@ -38,6 +38,7 @@
 
 float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);
 float _angular_prepare(_aax3dProps*,  _aaxDelayed3dProps*, _aaxDelayed3dProps*);
+float _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
 
 /**
  * The following code renders all emitters attached to an audio-frame object
@@ -336,49 +337,14 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
  printf("# dist: %f\n", dist_ef);
 #endif
 
+      /* distance attenuation and audio-cone support */
+      gain *= _angular_prepare(ep3d, edp3d_m, fdp3d_m);
+      gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
+
       /* calculate the sound velocity inbetween the emitter and the sensor */
       esv = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
       vs = (esv+ssv) / 2.0f;
-
-      /*
-       * Velocity effect: Doppler
-       */
-      if (dist_ef > 1.0f)
-      {
-         _aaxPitchShiftFn* dopplerfn;
-         float ve, df;
-
-         *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
-         assert(dopplerfn);
-
-         /* align velocity vectors with the modified emitter position
-          * relative to the sensor
-          */
-         mtx4fMul(&edp3d_m->velocity, &fdp3d_m->velocity, &edp3d->velocity);
-
-         ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], &epos);
-         df = dopplerfn(ve, vs/sdf);
-#if 0
-# if 1
- printf("velocity: %3.2f, %3.2f, %3.2f\n",
-            edp3d_m->velocity.v34[LOCATION].v3[0],
-            edp3d_m->velocity.v34[LOCATION].v3[1],
-            edp3d_m->velocity.v34[LOCATION].v3[2]);
- printf("velocity:\t\t\t\tparent velocity:\n");
- PRINT_MATRICES(edp3d->velocity, fdp3d_m->velocity);
- printf("modified velocity:\n");
- PRINT_MATRIX(edp3d_m->velocity);
- printf("doppler: %f, ∆ve: %f, vs: %f\n\n", df, ve, vs/sdf);
-# else
- printf("doppler: %f, ve: %f, vs: %f\n", df, ve, vs/sdf);
-# endif
-#endif
-         pitch *= df;
-         ep3d->buf3dq_step = df;
-      }
-
-      gain *= _angular_prepare(ep3d, edp3d_m, fdp3d_m);
-      gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
+      pitch *= _velocity_prepare(ep3d, edp3d, edp3d_m, fdp3d_m, &epos, dist_ef, vs, sdf);
 
       /*
        * Volume filter/Reverb effect: Occlusion
@@ -398,8 +364,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       }
       while (0);
 
-      min = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MIN_GAIN);
-      max = _FILTER_GET2D(src, VOLUME_FILTER, AAX_MAX_GAIN);
+      min = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MIN_GAIN);
+      max = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MAX_GAIN);
       ep2d->final.gain = _MINMAX(gain, min, max);
       ep2d->final.pitch = pitch;
    }
