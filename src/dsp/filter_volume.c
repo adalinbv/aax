@@ -370,14 +370,18 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                   vec3fScalarMul(&pevec_2, &pevec_2, 0.5f);
                   less = !vec3fLessThan(&pevec_2, &path->occlusion.v3);
                }
-               else
+               else if (fabsf(mag_pe-mag_fpe) <= FLT_EPSILON)
                {
+                  vec3f_t fpvec;
+
                   // At this point the emitter is definitely outside of the
                   // obstruction but the frame could be behind both the
                   // emitter and the parent-frame which means the path
                   // from the emitter to the parent-frame is not blocked
                   // after all.
-                  if (mag_pe < FLT_EPSILON || mag_pe < mag_fpe) less = !less;
+                  VEC3SUBFILL(fpvec, fpevec, &fevec, &pevec);
+                  vec3fAbsolute(&fpvec, &fpvec);
+                  less = vec3fLessThan(&fpvec, &path->occlusion.v3);
                }
 
                if (less)
