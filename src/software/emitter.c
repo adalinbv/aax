@@ -36,6 +36,9 @@
 #include "renderer.h"
 #include "audio.h"
 
+float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);
+float _angular_prepare(_aax3dProps*,  _aaxDelayed3dProps*, _aaxDelayed3dProps*);
+
 /**
  * The following code renders all emitters attached to an audio-frame object
  * (which includes the final mixer) into the ringbuffer of the audio frame.
@@ -249,6 +252,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    /* aplly pitch and gain before it is pushed to the delay queue */
    edp3d->pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
    edp3d->gain = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+   edp3d_m->state3d = edp3d->state3d;
 
    // _aaxEmitterProcessDelayQueue
    if (_PROP3D_DISTQUEUE_IS_DEFINED(edp3d))
@@ -373,79 +377,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
          ep3d->buf3dq_step = df;
       }
 
-      /*
-       * Distance filter: Distance attenuation.
-       */
-      do
-      {
-         _aaxDistFn* distfn;
-         float refdist, maxdist, rolloff;
-
-         *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
-         assert(distfn);
-
-         /*
-          * Distance queues for every speaker (volume)
-          */
-         refdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_REF_DISTANCE);
-         maxdist = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_MAX_DISTANCE);
-         rolloff = _FILTER_GETD3D(src, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
-
-         // If the parent frame is defined indoor then directional sound
-         // propagation goes out the door. Note that the scenery frame is
-         // never defined as indoor so emitters registered with the mixer
-         // will always be directional.
-         if (!_PROP3D_MONO_IS_DEFINED(fdp3d_m))
-         {
-            float dfact = _MIN(dist_ef/refdist, 1.0f);
-            _aaxSetupSpeakersFromDistanceVector(&epos, dfact, speaker, ep2d, info);
-         }
-
-         gain *= distfn(dist_ef, refdist, maxdist, rolloff);
-      }
-      while (0);
-
-      /*
-       * Angular filter: audio cone support.
-       *
-       * Version 2.6 adds forward gain which allows for donut shaped cones.
-       * TODO: Calculate cone relative to the frame position when indoors.
-       *       For now it is assumed that indoor reflections render the cone
-       *       pretty much useless, at least if the emitter is in another room.
-       */
-      if (_PROP3D_CONE_IS_DEFINED(edp3d) && !_PROP3D_MONO_IS_DEFINED(fdp3d_m))
-      {
-         float tmp, forward_gain, inner_vec, cone_volume = 1.0f;
-
-         forward_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_FORWARD_GAIN);
-         inner_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_INNER_ANGLE);
-         tmp = -edp3d_m->matrix.m4[DIR_BACK][2];
-
-         if (tmp < inner_vec)
-         {
-            float outer_vec, outer_gain;
-
-            outer_vec = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_ANGLE);
-            outer_gain = _FILTER_GETD3D(src, ANGULAR_FILTER, AAX_OUTER_GAIN);
-            if (outer_vec < tmp)
-            {
-               tmp -= inner_vec;
-               tmp *= (outer_gain - 1.0f);
-               tmp /= (outer_vec - inner_vec);
-               cone_volume = (1.0f + tmp);
-            } else {
-               cone_volume = outer_gain;
-            }
-         }
-         else if (forward_gain != 1.0f)
-         {
-            tmp -= inner_vec;
-
-            tmp /= (1.0f - inner_vec);
-            cone_volume = (1.0f - tmp) + tmp*forward_gain;
-         }
-         gain *= cone_volume;
-      }
+      gain *= _angular_prepare(ep3d, edp3d_m, fdp3d_m);
+      gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
 
       /*
        * Volume filter/Reverb effect: Occlusion

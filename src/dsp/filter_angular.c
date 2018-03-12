@@ -150,3 +150,51 @@ _flt_function_tbl _aaxAngularFilter =
    (_aaxFilterConvert*)&_aaxAngularFilterMinMax
 };
 
+/*
+ * Angular filter: audio cone support.
+ *
+ * Version 2.6 adds forward gain which allows for donut shaped cones.
+ * TODO: Calculate cone relative to the frame position when indoors.
+ *       For now it is assumed that indoor reflections render the cone
+ *       pretty much useless, at least if the emitter is in another room.
+ */
+float
+_angular_prepare(_aax3dProps *ep3d,  _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m)
+{
+   float cone_volume = 1.0f;
+
+   if (_PROP3D_CONE_IS_DEFINED(edp3d_m) && !_PROP3D_MONO_IS_DEFINED(fdp3d_m))
+   {
+      float tmp, forward_gain, inner_vec;
+
+      forward_gain = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_FORWARD_GAIN);
+      inner_vec = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_INNER_ANGLE);
+      tmp = -edp3d_m->matrix.m4[DIR_BACK][2];
+
+      if (tmp < inner_vec)
+      {
+         float outer_vec, outer_gain;
+
+         outer_vec = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_OUTER_ANGLE);
+         outer_gain = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_OUTER_GAIN);
+         if (outer_vec < tmp)
+         {
+            tmp -= inner_vec;
+            tmp *= (outer_gain - 1.0f);
+            tmp /= (outer_vec - inner_vec);
+            cone_volume = (1.0f + tmp);
+         } else {
+            cone_volume = outer_gain;
+         }
+      }
+      else if (forward_gain != 1.0f)
+      {
+         tmp -= inner_vec;
+
+         tmp /= (1.0f - inner_vec);
+         cone_volume = (1.0f - tmp) + tmp*forward_gain;
+      }
+   }
+
+   return cone_volume;
+}
