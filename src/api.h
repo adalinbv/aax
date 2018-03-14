@@ -193,7 +193,7 @@ typedef struct
 
 } _frame_t;
 
-_frame_t* get_frame(aaxFrame, const char*);
+_frame_t* get_frame(aaxFrame, int, const char*);
 void put_frame(aaxFrame);
 _handle_t *get_driver_handle(aaxFrame);
 int _aaxAudioFrameStop(_frame_t*);
