@@ -139,7 +139,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
    aaxAudioFrameSetState(frame, AAX_STOPPED);
 
-   handle = get_frame(frame, AAX_TRUE, __func__);
+   handle = get_frame(frame, _LOCK, __func__);
    if (!rv)
    {
       if (!handle) {
@@ -199,7 +199,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 {
-   _frame_t *handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t *handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -292,7 +292,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4d mtx64)
 {
-   _frame_t *handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -320,7 +320,7 @@ aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4d mtx64)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 {
-   _frame_t *handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t *handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -377,7 +377,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
 {
-   _frame_t *handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -412,7 +412,7 @@ aaxAudioFrameSetSetup(UNUSED(aaxFrame frame), UNUSED(enum aaxSetupType type), UN
 AAX_API unsigned int AAX_APIENTRY
 aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
 {
-   _frame_t *handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    unsigned int track = type & 0x3F;
    unsigned int rv = __release_mode;
 
@@ -460,7 +460,7 @@ aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 {
-   _frame_t *handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t *handle = get_frame(frame, _LOCK, __func__);
    _filter_t* filter = get_filter(f);
    int rv = __release_mode;
 
@@ -577,7 +577,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 AAX_API aaxFilter AAX_APIENTRY
 aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
 {
-   _frame_t *handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    aaxFilter rv = AAX_FALSE;
    if (handle)
    {
@@ -605,7 +605,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
 {
-   _frame_t *handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t *handle = get_frame(frame, _LOCK, __func__);
    _effect_t* effect = get_effect(e);
    int rv = __release_mode;
 
@@ -683,7 +683,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
 AAX_API aaxEffect AAX_APIENTRY
 aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
 {
-   _frame_t *handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    aaxEffect rv = AAX_FALSE;
    if (handle)
    {
@@ -711,7 +711,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 {
-   _frame_t *handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t *handle = get_frame(frame, _LOCK, __func__);
    int m, rv = AAX_TRUE;
 
    if (rv)
@@ -755,7 +755,7 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameGetMode(const aaxFrame frame, enum aaxModeType type)
 {
-   _frame_t *handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    int rv = AAX_STEREO;
 
    switch(type)
@@ -780,7 +780,7 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
 {
    _handle_t* ssr_config = get_read_handle(sensor, __func__);
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -922,7 +922,7 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
 {
    _handle_t* ssr_config = get_handle(sensor, __func__);
-   _frame_t* handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t* handle = get_frame(frame, _NOLOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -969,7 +969,7 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
    _emitter_t* emitter = get_emitter_unregistered(em, __func__);
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -1068,8 +1068,8 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
 {
-   _emitter_t* emitter = get_emitter(em, __func__);
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _emitter_t* emitter = get_emitter(em, _LOCK, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -1130,7 +1130,7 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
    _frame_t* sframe = get_frame(subframe, AAX_TRUE, __func__);
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -1237,7 +1237,7 @@ AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
    _frame_t* sframe = get_frame(subframe, AAX_TRUE, __func__);
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -1278,7 +1278,7 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
 {
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -1299,7 +1299,7 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
       case AAX_PLAYING:
          put_frame(frame);
          rv = _aaxAudioFrameStart(handle);
-         handle = get_frame(frame, AAX_TRUE, __func__);
+         handle = get_frame(frame, _LOCK, __func__);
          if (rv) _SET_PLAYING(fp3d);
          break;
       case AAX_STOPPED:
@@ -1324,7 +1324,7 @@ aaxAudioFrameGetState(UNUSED(const aaxFrame frame))
 AAX_API int AAX_APIENTRY
 aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
 {
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -1361,7 +1361,7 @@ aaxAudioFrameWaitForBuffer(const aaxFrame frame, float timeout)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
 {
-   _frame_t* handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t* handle = get_frame(frame, _NOLOCK, __func__);
    _buffer_t* buffer = get_buffer(buf, __func__);
    int rv = __release_mode;
 
@@ -1393,7 +1393,7 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
 AAX_API aaxBuffer AAX_APIENTRY
 aaxAudioFrameGetBuffer(const aaxFrame frame)
 {
-   _frame_t* handle = get_frame(frame, AAX_TRUE, __func__);
+   _frame_t* handle = get_frame(frame, _LOCK, __func__);
    aaxBuffer buffer = NULL;
    if (handle)
    {
@@ -1637,7 +1637,7 @@ _aaxAudioFrameUpdate(UNUSED(_frame_t *frame))
 static int
 _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
 {
-   _frame_t* handle = get_frame(frame, AAX_FALSE, __func__);
+   _frame_t* handle = get_frame(frame, _NOLOCK, __func__);
    aaxConfig config = handle->root;
    int rv = AAX_TRUE;
    void *xid;

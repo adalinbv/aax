@@ -56,6 +56,12 @@ extern "C" {
 #define EBF_VALID(a)		((a)->info && VALID_HANDLE((_handle_t*)((a)->info)->backend))
 
 
+#define _READ			AAX_FALSE
+#define _WRITE			AAX_TRUE
+
+#define _NOLOCK			AAX_FALSE
+#define _LOCK			AAX_TRUE
+
 /* --- data buffers -- */
 #define DATA_ID	0xDFA82736
 typedef struct _data_st
@@ -274,7 +280,7 @@ typedef struct
    _aaxRingBuffer *ringbuffer;
 } _embuffer_t;
 
-_emitter_t* get_emitter(aaxEmitter, const char*);
+_emitter_t* get_emitter(aaxEmitter, int, const char*);
 _emitter_t* get_emitter_unregistered(aaxEmitter, const char*);
 void put_emitter(aaxEmitter);
 int destory_emitter(aaxEmitter);
