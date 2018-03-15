@@ -1129,7 +1129,7 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
-   _frame_t* sframe = get_frame(subframe, AAX_TRUE, __func__);
+   _frame_t* sframe = get_frame(subframe, _LOCK, __func__);
    _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
@@ -1171,6 +1171,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             aaxBufferDestroy(buf);
          }
          _aaxErrorSet(AAX_ERROR_NONE);
+
          pos = _intBufAddData(hf, _AAX_FRAME, sframe);
          fmixer->no_registered++;
       }
@@ -1180,46 +1181,33 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
       if (pos != UINT_MAX)
       {
-         _aax3dProps *mp3d, *fp3d;
          _aaxAudioFrame *submix = sframe->submix;
-         const _aaxDriverBackend *be = NULL;
-         unsigned int be_pos;
+         _aax3dProps *mp3d = fmixer->props3d;
+         _aax3dProps *fp3d = submix->props3d;
 
-         be = _aaxGetDriverBackendLoopback(&be_pos);
-         if (be)
-         {
-            mp3d = fmixer->props3d;
-            fp3d = submix->props3d;
-            fp3d->parent = mp3d;
-
-            if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
-               _PROP_MONO_SET_DEFINED(fp3d);
-            }
-
-            if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
-            {
-               _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
-               _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
-            }
-
-            if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
-            {
-               _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-               _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
-               _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
-            }
-
-            submix->refcount++;
-            sframe->parent = handle;
-            sframe->mixer_pos = pos;
-
-            _aaxAudioFrameResetDistDelay(submix, fmixer);
+         fp3d->parent = mp3d;
+         if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
+            _PROP_MONO_SET_DEFINED(fp3d);
          }
-         else
+
+         if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
          {
-            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            rv = AAX_FALSE;
+            _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
+            _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
          }
+
+         if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)
+         {
+            _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+            _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
+            _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
+         }
+
+         submix->refcount++;
+         sframe->parent = handle;
+         sframe->mixer_pos = pos;
+
+         _aaxAudioFrameResetDistDelay(submix, fmixer);
       }
       else
       {
@@ -1236,7 +1224,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 {
-   _frame_t* sframe = get_frame(subframe, AAX_TRUE, __func__);
+   _frame_t* sframe = get_frame(subframe, _LOCK, __func__);
    _frame_t* handle = get_frame(frame, _LOCK, __func__);
    int rv = __release_mode;
 
