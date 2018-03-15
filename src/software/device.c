@@ -205,7 +205,7 @@ _aaxNoneDriver3dPrepare(UNUSED(void* src), UNUSED(const void *info), UNUSED(floa
 }
 
 static void
-_aaxNoneDriverPrepare(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l))
+_aaxNoneDriverPrepare(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l), UNUSED(char mono))
 {
 }
 
