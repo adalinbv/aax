@@ -139,11 +139,11 @@ int main(int argc, char **argv)
                 frame[j] = aaxAudioFrameCreate(config);
                 testForError(frame[j], "Unable to create a new audio frame\n");
 
-                res = aaxAudioFrameSetMatrix64(frame[j], mtx64);
-                testForState(res, "aaxAudioFrameSetMatrix64");
-
                 res=aaxAudioFrameSetMode(frame[j], AAX_POSITION, AAX_RELATIVE);
                 testForState(res, "aaxAudioFrameSetMode");
+
+                res = aaxAudioFrameSetMatrix64(frame[j], mtx64);
+                testForState(res, "aaxAudioFrameSetMatrix64");
 
                 res = aaxAudioFrameSetVelocity(frame[j], FrameVel);
                 testForState(res, "aaxAudioFrameSetVelocity");
