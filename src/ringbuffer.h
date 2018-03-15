@@ -192,7 +192,7 @@ typedef struct
 typedef struct
 {
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-               unsigned int, const void*, _aaxMixerInfo*);
+               unsigned int, const void*, _aaxMixerInfo*, unsigned char);
  
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;
