@@ -57,7 +57,7 @@ void *_aaxSensorCapture(_aaxRingBuffer*, const _aaxDriverBackend*, void*,
                      float*, float, unsigned int, float, float, ssize_t*, char);
 
 /* frame */
-char _aaxAudioFrameProcess(_aaxRingBuffer*, _frame_t*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char);
+char _aaxAudioFrameProcess(_aaxRingBuffer*, _frame_t*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char, char);
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 
 /* emitter */
