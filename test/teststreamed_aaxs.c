@@ -42,7 +42,7 @@
 #include "wavfile.h"
 
 
-#define FILE1_PATH			SRC_PATH"/telephone.aaxs"
+#define FILE1_PATH			SRC_PATH"/midi/telephone.aaxs"
 #define FILE2_PATH			SRC_PATH"/alarm.aaxs"
 #define FILE3_PATH			SRC_PATH"/whitenoise-filtered.aaxs"
 
