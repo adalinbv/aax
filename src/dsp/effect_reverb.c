@@ -44,7 +44,7 @@
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(void**);
 static void _reverb_add_delays(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
-static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*);
+static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
@@ -300,7 +300,7 @@ _reverb_destroy(void *ptr)
 static void
 _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             size_t no_samples, size_t ds, unsigned int track,
-            const void *data, _aaxMixerInfo *info)
+            const void *data, _aaxMixerInfo *info, unsigned char mono)
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
@@ -322,8 +322,9 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    _aax_memcpy(scratch, sptr, no_samples*sizeof(MIX_T));
 
    /* reverb (1st order reflections) */
+   /* skip if the caller is mono  */
    snum = reverb->no_delays;
-   if (snum > 0)
+   if (!mono && snum > 0)
    {
       int q;
 
