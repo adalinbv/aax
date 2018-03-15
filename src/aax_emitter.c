@@ -116,7 +116,7 @@ aaxEmitterCreate()
 AAX_API int AAX_APIENTRY
 aaxEmitterDestroy(aaxEmitter emitter)
 {
-   _emitter_t *handle = get_emitter(emitter, __func__);
+   _emitter_t *handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -156,7 +156,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
 AAX_API int AAX_APIENTRY
 aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _buffer_t* buffer = get_buffer(buf, __func__);
    int rv = __release_mode;
 
@@ -226,7 +226,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 AAX_API int AAX_APIENTRY
 aaxEmitterRemoveBuffer(aaxEmitter emitter)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv && handle)
@@ -273,7 +273,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
 AAX_API aaxBuffer AAX_APIENTRY
 aaxEmitterGetBufferByPos(const aaxEmitter emitter, unsigned int pos, int copy)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    aaxBuffer rv = NULL;
 
    if (handle)
@@ -302,7 +302,7 @@ aaxEmitterGetBufferByPos(const aaxEmitter emitter, unsigned int pos, int copy)
 AAX_API unsigned int AAX_APIENTRY
 aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    unsigned rv = 0;
    if (handle)
    {
@@ -336,7 +336,7 @@ aaxEmitterGetNoBuffers(const aaxEmitter emitter, enum aaxState state)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -456,7 +456,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -479,7 +479,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
 AAX_API aaxFilter AAX_APIENTRY
 aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    aaxFilter rv = AAX_FALSE;
    if (handle)
    {
@@ -507,7 +507,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -530,7 +530,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
 AAX_API aaxEffect AAX_APIENTRY
 aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    aaxEffect rv = AAX_FALSE;
    if (handle)
    {
@@ -560,7 +560,7 @@ aaxEmitterGetEffect(const aaxEmitter emitter, enum aaxEffectType type)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -629,7 +629,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
 {
-   _emitter_t *handle = get_emitter(emitter, __func__);
+   _emitter_t *handle = get_emitter(emitter, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -670,7 +670,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
 AAX_API int AAX_APIENTRY
 aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
 {
-   _emitter_t *handle = get_emitter(emitter, __func__);
+   _emitter_t *handle = get_emitter(emitter, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -701,7 +701,7 @@ aaxEmitterGetMatrix64(const aaxEmitter emitter, aaxMtx4d mtx64)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -739,7 +739,7 @@ aaxEmitterSetVelocity(aaxEmitter emitter, aaxVec3f velocity)
 AAX_API int AAX_APIENTRY
 aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -764,7 +764,7 @@ aaxEmitterGetVelocity(const aaxEmitter emitter, aaxVec3f velocity)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -850,7 +850,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 AAX_API int AAX_APIENTRY
 aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = __release_mode;
 
    if (!rv)
@@ -918,7 +918,7 @@ aaxEmitterSetOffsetSec(aaxEmitter emitter, float offs)
 AAX_API int AAX_APIENTRY
 aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
    if (handle)
    {
@@ -964,7 +964,7 @@ aaxEmitterGetMode(const aaxEmitter emitter, enum aaxModeType type)
 AAX_API int AAX_APIENTRY
 aaxEmitterGetState(const aaxEmitter emitter)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    enum aaxState ret = AAX_STATE_NONE;
    if (handle)
    {
@@ -992,7 +992,7 @@ aaxEmitterGetState(const aaxEmitter emitter)
 AAX_API unsigned long AAX_APIENTRY
 aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    unsigned long rv = 0;
    if (handle)
    {
@@ -1045,7 +1045,7 @@ aaxEmitterGetOffset(const aaxEmitter emitter, enum aaxType type)
 AAX_API float AAX_APIENTRY
 aaxEmitterGetOffsetSec(const aaxEmitter emitter)
 {
-   _emitter_t* handle = get_emitter(emitter, __func__);
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    float rv = 0.0f;
    if (handle)
    {
@@ -1092,7 +1092,7 @@ get_emitter_unregistered(aaxEmitter em, const char *func)
 }
 
 _emitter_t*
-get_emitter(aaxEmitter em, const char *func)
+get_emitter(aaxEmitter em, int lock, const char *func)
 {
    _emitter_t *emitter = (_emitter_t *)em;
    _emitter_t *rv = NULL;
@@ -1115,7 +1115,12 @@ get_emitter(aaxEmitter em, const char *func)
             } else {
                he = mixer->emitters_3d;
             }
-            dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->mixer_pos);
+
+            if (lock) {
+               dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->mixer_pos);
+            } else {
+               dptr_src =_intBufGetNoLock(he, _AAX_EMITTER, emitter->mixer_pos);
+            }
             emitter = _intBufGetDataPtr(dptr_src);
             _intBufReleaseData(dptr, _AAX_SENSOR);
          }
@@ -1131,7 +1136,12 @@ get_emitter(aaxEmitter em, const char *func)
          } else {
             he = handle->submix->emitters_3d;
          }
-         dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->mixer_pos);
+
+         if (lock) {
+            dptr_src = _intBufGet(he, _AAX_EMITTER, emitter->mixer_pos);
+         } else {
+            dptr_src = _intBufGetNoLock(he, _AAX_EMITTER, emitter->mixer_pos);
+         }
          emitter = _intBufGetDataPtr(dptr_src);
       }
       rv = emitter;
