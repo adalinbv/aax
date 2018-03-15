@@ -43,18 +43,19 @@
 #include "driver.h"
 #include "wavfile.h"
 
-#define RADIUS			 2.0f
+#define ZPOS			-3.0
+#define RADIUS			 1.5f
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
 aaxVec3f WorldAt =    {  0.0f, 0.0f,  1.0f };
 aaxVec3f WorldUp =    {  0.0f, 1.0f,  0.0f };
 
 aaxVec3f EmitterDir = {  0.0f, 0.0f,  1.0f };
-aaxVec3d EmitterPos = {  0.0,  1.0,  -2.0  };	// in metres (right, up, back)
+aaxVec3d EmitterPos = {  0.0,  1.0,  ZPOS  };	// in metres (right, up, back)
 
-aaxVec3d FramePos =   {  0.0,  1.0,   0.0  };
+aaxVec3d FramePos =   {  0.0,  1.0,  -1.0  };
 
-aaxVec3d SensorPos =  {  0.0,  1.0,   2.0  };
+aaxVec3d SensorPos =  {  0.0,  1.0,   0.0  };
 aaxVec3f SensorAt =   {  0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp =   {  0.0f, 1.0f,  0.0f };
 
@@ -122,7 +123,7 @@ int main(int argc, char **argv)
             testForError(filter, "aaxAudioFrameGetFilter");
 
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 1.0f, 0.0f, 1.0f, 0.0f);
-            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 1.0f, 1.0f, 1.0f, 1.0f);
+            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 2.0f, 2.0f, 2.0f, 1.0f);
             testForState(res, "aaxFilterSetSlot");
 
             res = aaxFilterSetState(filter, AAX_TRUE);
@@ -186,8 +187,7 @@ int main(int argc, char **argv)
                 float ang = deg * GMATH_DEG_TO_RAD;
 
                 EmitterPos[0] = RADIUS * sinf(ang);
-                EmitterPos[2] = -RADIUS * cosf(ang);
- //             EmitterPos[1] = YEPOS + RADIUS * sinf(ang);
+                EmitterPos[2] = ZPOS - RADIUS * cosf(ang);
 
                 printf("deg: %2.1f\tpos (% lf, % lf, % lf)\n", deg,
                             EmitterPos[0], EmitterPos[1], EmitterPos[2]);
