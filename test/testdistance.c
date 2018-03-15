@@ -57,8 +57,8 @@
 
 #define INITIAL_DIST		150.0f
 #define EXPOS			(SXPOS-INITIAL_DIST)
-#define EYPOS			(SYPOS+30.0f)
-#define EZPOS			(SZPOS-15.0f)
+#define EYPOS			(SYPOS+20.0f)
+#define EZPOS			(SZPOS-50.0f)
 
 aaxVec3f EmitterDir = {  1.0f,  0.0f,  0.0f };
 aaxVec3f EmitterVel = { SPEED,  0.0f,  0.0f };
