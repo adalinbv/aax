@@ -1366,7 +1366,6 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
          rv = AAX_TRUE;
       }
    }
-   put_frame(frame);
 
    if (rv)
    {
