@@ -141,6 +141,8 @@ float _2acos(float v);
 
 typedef float (*cvtfn_t)(float);
 
+float _lorentz(float v, float c);
+
 
 /* frequency filters */
 #define _aax_movingaverage_compute(fc, fs)	(1.f-expf(-GMATH_2PI*(fc)/(fs)))
