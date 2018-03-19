@@ -126,7 +126,7 @@
    <instrument n="114" name="Agogo" file=".aaxs"/>
    <instrument n="115" name="Steel Drums" file="drum-steel.aaxs"/>
    <instrument n="116" name="Woodblock" file=".aaxs"/>
-   <instrument n="117" name="Taiko Drum" file=".aaxs"/>
+   <instrument n="117" name="Taiko Drum" file="drum-taiko.aaxs"/>
    <instrument n="118" name="Melodic Tom" file=".aaxs"/>
    <instrument n="119" name="Synth Drum" file=".aaxs"/>
    <instrument n="120" name="Reverse Cymbal" file="cymbal-reverse.aaxs"/>
