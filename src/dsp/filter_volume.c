@@ -302,7 +302,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          _aaxDelayed3dProps *ndp3d_m;
          _aax3dProps *nfp3d;
          FLOAT mag_fpe;
-         int less;
+         int hit;
 
          nfp3d = fp3d->parent;
          assert(nfp3d->m_dprops3d == pdp3d_m);
@@ -312,7 +312,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          // where, by definition, the sound obstruction is located.
          VEC3SUB(&fevec, &fdp3d_m->matrix.v34[LOCATION],
                          &edp3d_m->matrix.v34[LOCATION]);
-         less = 0;
+         hit = 0;
          occlusion->level = 0.0f;
          do
          {
@@ -351,48 +351,58 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                VEC3SUBFILL(vres, fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
                vec3fAbsolute(&vres, &vres);
 
-               // Less is true means the direct path intersects with an
-               // obstrruction.
-               // In case path->inverse is true the real obstruction is
-               // everything but the defined dimensions (meaning a cavity).
-               less = vec3fLessThan(&vres, &path->occlusion.v3);
-               if (path->inverse)
+               // hit is true when the direct path does interstect
+               // with the defined obstruction/cavity.
+               hit = vec3fLessThan(&vres, &path->occlusion.v3);
+               if (hit)
                {
-                  vec3f_t pevec_2;
+                  // In case path->inverse is true the real obstruction is
+                  // everything but the defined dimensions (meaning a cavity).
+                  if (path->inverse)
+                  {
+                     vec3f_t vec;
 
-                  // At this point we know for sure that either the emitter
-                  // or parent-frame is inside the cavity. Just make sure
-                  // that the parent-emitter vector is less than the
-                  // specified dimensions.
-                  VEC3COPY(pevec_2, pevec);
-                  vec3fAbsolute(&pevec_2, &pevec_2);
-                  vec3fScalarMul(&pevec_2, &pevec_2, 0.5f);
-                  less = !vec3fLessThan(&pevec_2, &path->occlusion.v3);
+                     // Is the emitter inside the cavity?
+                     VEC3COPY(vec, fevec);
+                     vec3fAbsolute(&vec, &vec);
+                     hit = vec3fLessThan(&vec, &path->occlusion.v3);
+                     if (hit)
+                     {
+                        // Is the parent also inside the cavity?
+                        VEC3SUBFILL(vec, fpevec, &fevec, &pevec);
+                        vec3fAbsolute(&vec, &vec);
+                        hit = vec3fLessThan(&vec, &path->occlusion.v3);
+                     }
+                     hit = !hit;
+                  }
+                  else if (mag_fpe <= 0.0f || (mag_pe-mag_fpe) <= FLT_EPSILON)
+                  {
+                     vec3f_t vec;
+
+                     // At this point the emitter is definitely outside of the
+                     // obstruction.
+                     //
+                     // If mag_fpe < 0.0f then the emitter is between the frame
+                     // and the parent-frame meaning there is a clean path to
+                     // the parent-frame.
+                     //
+                     // Otherwise the frame could be behind both the emitter and
+                     // the parent-frame which means the path from the emitter
+                     // to the parent-frame is not blocked after all.
+                     VEC3SUBFILL(vec, fpevec, &fevec, &pevec);
+                     vec3fAbsolute(&vec, &vec);
+                     hit = vec3fLessThan(&vec, &path->occlusion.v3);
+                  }
                }
-               else if (mag_fpe <= 0.0f || (mag_pe-mag_fpe) <= FLT_EPSILON)
-               {
-                  vec3f_t fpvec;
-
-                  // At this point the emitter is definitely outside of the
-                  // obstruction.
-                  //
-                  // If mag_fpe < 0.0f then the emitter is between the frame
-                  // and the parent-frame meaning there is a clean path to the.
-                  // parent-frame.
-                  //
-                  // Otherwise the frame could be behind both the emitter and
-                  // the parent-frame which means the path from the emitter to
-                  // the parent-frame is not blocked after all.
-                  VEC3SUBFILL(fpvec, fpevec, &fevec, &pevec);
-                  vec3fAbsolute(&fpvec, &fpvec);
-                  less = vec3fLessThan(&fpvec, &path->occlusion.v3);
+               else if (path->inverse) {
+                  hit = !hit;
                }
 
-               if (less)
+               if (hit)
                {
                   float level, mag;
 
-                  mag = path->magnitude*100.0f/vs;
+                  mag = path->magnitude; // path->magnitude*100.0f/vs;
                   level = 1.0f - _MIN(vec3fMagnitude(&vres)/mag, 1.0f);
                   if (path->inverse) level = _MIN(1.0f/level, 1.0f);
 
@@ -412,7 +422,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
  PRINT_VEC3(pevec);
  printf("  parent_frame-emitter:\t");
  PRINT_VEC3(vres);
- printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (less^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
+ printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
