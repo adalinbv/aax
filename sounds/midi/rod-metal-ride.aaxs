@@ -10,7 +10,7 @@
 
  <sound name="Metal Rod Ride" program="15" bank="0" frequency="220" duration="0.10">
   <waveform src="sine" pitch="0.996"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="5.7587"/>
  </sound>
 
  <instrument>
