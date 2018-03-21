@@ -691,6 +691,40 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
    }
 }
 
+// Calculate the squared-altitude of p1 on the p2-p3 vector,
+// which is useful for detecting whether a line hits a boundingssphere.
+float
+_vec3fAltitudeSquared_cpu(const vec3f_ptr p1, const vec3f_ptr p2, const vec3f_ptr p3)
+{
+   vec3f_t p3p1, p3p2;
+   float a2, b;
+
+   vec3fSub(&p3p1, p3, p1);
+   a2 = _vec3fMagnitudeSquared_cpu(&p3p1);
+
+   vec3fSub(&p3p2, p3, p2);
+   _vec3fNormalize_cpu(&p3p2, &p3p2);
+   b = _vec3fDotProduct_cpu(&p3p1, &p3p2);
+
+   return (a2 + b*b);
+}
+
+double
+_vec3dAltitudeSquared_cpu(const vec3d_ptr p1, const vec3d_ptr p2, const vec3d_ptr p3)
+{
+   vec3d_t p3p1, p3p2;
+   double a2, b;
+
+   vec3dSub(&p3p1, p3, p1);
+   a2 = _vec3dMagnitudeSquared_cpu(&p3p1);
+
+   vec3dSub(&p3p2, p3, p2);
+   _vec3dNormalize_cpu(&p3p2, &p3p2);
+   b = _vec3dDotProduct_cpu(&p3p1, &p3p2);
+
+   return (a2 + b*b);
+}
+
 /* -------------------------------------------------------------------------- */
 
 vec3fCopy_proc vec3fCopy = _vec3fCopy_cpu;
@@ -709,6 +743,8 @@ vec3dDotProduct_proc vec3dDotProduct = _vec3dDotProduct_cpu;
 vec3fNormalize_proc vec3fNormalize = _vec3fNormalize_cpu;
 vec3dNormalize_proc vec3dNormalize = _vec3dNormalize_cpu;
 vec3fCrossProduct_proc vec3fCrossProduct = _vec3fCrossProduct_cpu;
+vec3fAltitudeSquared_proc vec3fAltitudeSquared = _vec3fAltitudeSquared_cpu;
+vec3dAltitudeSquared_proc vec3dAltitudeSquared = _vec3dAltitudeSquared_cpu;
 
 vec4fCopy_proc vec4fCopy = _vec4fCopy_cpu;
 mtx4fCopy_proc mtx4fCopy = _mtx4fCopy_cpu;
