@@ -189,12 +189,14 @@ typedef float (*vec3fDotProduct_proc)(const vec3f_ptr v1, const vec3f_ptr v2);
 typedef float (*vec3fNormalize_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3fCrossProduct_proc)(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 typedef float (*vec3fAltitudeSquared_proc)(const vec3f_ptr p1, const vec3f_ptr p2, const vec3f_ptr p3);
+typedef int (*vec3fAltitudeVector_proc)(vec3f_ptr vres, const vec3f_ptr frame, const vec3f_ptr parent, const vec3f_ptr emitter, const vec3f_ptr fevec, vec3f_ptr fpvec);
 
 typedef double (*vec3dMagnitude_proc)(const vec3d_ptr v);
 typedef double (*vec3dMagnitudeSquared_proc)(const vec3d_ptr v);
 typedef double (*vec3dDotProduct_proc)(const vec3d_ptr v1, const vec3d_ptr v2);
 typedef double (*vec3dNormalize_proc)(vec3d_ptr d, const vec3d_ptr v);
 typedef double (*vec3dAltitudeSquared_proc)(const vec3d_ptr p1, const vec3d_ptr p2, const vec3d_ptr p3);
+typedef int (*vec3dAltitudeVector_proc)(vec3f_ptr vres, const vec3d_ptr frame, const vec3d_ptr parent, const vec3d_ptr emitter, const vec3d_ptr fevec, vec3f_ptr fpvec);
 
 extern vec3fMagnitude_proc vec3fMagnitude;
 extern vec3dMagnitude_proc vec3dMagnitude;
@@ -207,6 +209,8 @@ extern vec3dNormalize_proc vec3dNormalize;
 extern vec3fCrossProduct_proc vec3fCrossProduct;
 extern vec3fAltitudeSquared_proc vec3fAltitudeSquared;
 extern vec3dAltitudeSquared_proc vec3dAltitudeSquared;
+extern vec3fAltitudeVector_proc vec3fAltitudeVector;
+extern vec3dAltitudeVector_proc vec3dAltitudeVector;
 
 typedef void (*vec4fCopy_proc)(vec4f_ptr d, const vec4f_ptr v);
 typedef void (*vec4fMulvec4f_proc)(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
