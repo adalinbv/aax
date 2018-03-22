@@ -59,17 +59,21 @@ extern "C" {
 # define LOG_SYSLOG	40
 #endif
 
-#define PRINT_VEC3(vec) \
+#define PRINT_VEC3PTR(vec) \
         printf ("% 7.6f % 7.6f % 7.6f (%7.6f)\n", \
-             vec.v3[0],vec.v3[1],vec.v3[2],vec.v3[3]);
+             vec->v3[0],vec->v3[1],vec->v3[2],vec->v3[3]);
+
+#define PRINT_VEC3(vec)	\
+	printf ("% 7.6f % 7.6f % 7.6f (%7.6f)\n", \
+	    vec.v3[0],vec.v3[1],vec.v3[2],vec.v3[3]);
 
 #define PRINT_VEC(vec) \
 	printf ("% 7.6f % 7.6f % 7.6f % 7.6f\n", \
-             vec.v4[0],vec.v4[1],vec.v4[2],vec.v4[3]);
+            vec.v4[0],vec.v4[1],vec.v4[2],vec.v4[3]);
 
 #define PRINT_ROW(mtx, r, c) \
-    printf ("% 6.3f % 6.3f % 6.3f % 6.3f%c", \
-             mtx.m4[0][r],mtx.m4[1][r],mtx.m4[2][r],mtx.m4[3][r],c);
+	printf ("% 6.3f % 6.3f % 6.3f % 6.3f%c", \
+            mtx.m4[0][r],mtx.m4[1][r],mtx.m4[2][r],mtx.m4[3][r],c);
 
 #define PRINT_MATRIX(mtx) \
     PRINT_ROW(mtx, 0, '\n'); PRINT_ROW(mtx, 1, '\n'); \
