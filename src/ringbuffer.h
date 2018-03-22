@@ -174,7 +174,7 @@ typedef struct
 typedef struct
 {
    vec4f_t occlusion;
-   float magnitude;
+   float magnitude_sq;
 
    float level, olevel;		// obstruction level
    float fc;

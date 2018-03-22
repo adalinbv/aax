@@ -173,6 +173,7 @@ _flt_function_tbl _aaxVolumeFilter =
 # define VEC3DOTPRODUCT(a,b)	vec3fDotProduct(a,b)
 # define VEC3SCALARMUL(a,b,c)	vec3fScalarMul(a,b,c)
 # define VEC3SUBFILL(a,b,c,d)	vec3fSub(&a,c,d)
+# define VEC3ALTITUDESQUARED(a,b,c) vec3fAltitudeSquared(a,b,c)
 #else
 # define FLOAT			double
 # define VEC3_T			vec3d_t
@@ -184,6 +185,7 @@ _flt_function_tbl _aaxVolumeFilter =
 # define VEC3DOTPRODUCT(a,b)	vec3dDotProduct(a,b)
 # define VEC3SCALARMUL(a,b,c)	vec3dScalarMul(a,b,c)
 # define VEC3SUBFILL(a,b,c,d)	vec3dSub(&b,c,d); vec3fFilld(a.v3,b.v3)
+# define VEC3ALTITUDESQUARED(a,b,c) vec3dAltitudeSquared(a,b,c)
 #endif
 
 static float
@@ -228,7 +230,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
          occlusion->occlusion.v4[1] = 0.5f*slot->param[1];
          occlusion->occlusion.v4[2] = 0.5f*slot->param[2];
          occlusion->occlusion.v4[3] = slot->param[3];
-         occlusion->magnitude = vec3fMagnitude(&occlusion->occlusion.v3);
+         occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
          occlusion->fc = 22000.0f;
 
          occlusion->level = 1.0f;
@@ -296,12 +298,11 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
       if (!occlusion) occlusion = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
       if (occlusion)
       {
-         VEC3_T fpepos, fpevec, pevec, npevec, fevec;
-         vec3f_t vres;
+         VEC3_T fevec;
+         vec3f_t vres, vec;
          _aaxRingBufferOcclusionData *path = occlusion;
          _aaxDelayed3dProps *ndp3d_m;
          _aax3dProps *nfp3d;
-         FLOAT mag_fpe;
          int hit;
 
          nfp3d = fp3d->parent;
@@ -316,40 +317,31 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          occlusion->level = 0.0f;
          do
          {
-            float mag_pe;
+            float density = path->occlusion.v4[3];
+//          float mag_pe;
 
             // If the audio-frame has occlusion defined with a density
             // factor larger than zero then process it.
-            if (path && path->occlusion.v4[3] > 0.01f)
+            if (path && (density > 0.01f))
             {
+               VEC3_T *e, *f, *p;
+               float alt_fpe2;
+               int behind;
+
                ndp3d_m = nfp3d->m_dprops3d;
+               p = (nfp3d==nfp3d->root) ? NULL : &ndp3d_m->matrix.v34[LOCATION];
+               f = &fdp3d_m->matrix.v34[LOCATION];
+               e = &edp3d_m->matrix.v34[LOCATION];
 
                // Calculate the parent_frame-to-emitter unit vector.
                // ndp3d_m specifies the absolute position of the parent.
                // edp3d_m specifies the absolute position of the emitter.
+#if 1
+               alt_fpe2 = VEC3ALTITUDESQUARED(f, p, e);
+printf("alt_fpe sq.: %f (%f), dim. mag. sq.: %f\n", alt_fpe2, sqrtf(alt_fpe2), occlusion->magnitude_sq);
+#endif
 
-               if (nfp3d == nfp3d->root) {
-                  VEC3NEGATE(&pevec, &edp3d_m->matrix.v34[LOCATION]);
-               }
-               else
-               {
-                  VEC3SUB(&pevec, &ndp3d_m->matrix.v34[LOCATION],
-                                  &edp3d_m->matrix.v34[LOCATION]);
-               }
-               mag_pe = VEC3NORMALIZE(&npevec, &pevec);
-
-               // Get the projection length of the frame-to-emitter vector on
-               // the parent_frame-to-emitter unit vector..
-               mag_fpe = VEC3DOTPRODUCT(&fevec, &npevec);
-
-               // scale the parent_frame-to-emitter unit vector.
-               VEC3SCALARMUL(&fpevec, &npevec, mag_fpe);
-
-               // Get the vector from the frame position which perpendicular
-               // to the parent_frame-to-emitter vector.
-               VEC3ADD(&fpepos, &edp3d_m->matrix.v34[LOCATION], &fpevec);
-               VEC3SUBFILL(vres, fpevec, &fdp3d_m->matrix.v34[LOCATION], &fpepos);
-               vec3fAbsolute(&vres, &vres);
+               behind = vec3dAltitudeVector(&vres, f, p, e, &fevec, &vec);
 
                // hit is true when the direct path does interstect
                // with the defined obstruction/cavity.
@@ -360,37 +352,16 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                   // everything but the defined dimensions (meaning a cavity).
                   if (path->inverse)
                   {
-                     vec3f_t vec;
-
                      // Is the emitter inside the cavity?
                      VEC3COPY(vec, fevec);
                      vec3fAbsolute(&vec, &vec);
                      hit = vec3fLessThan(&vec, &path->occlusion.v3);
-                     if (hit)
-                     {
-                        // Is the parent also inside the cavity?
-                        VEC3SUBFILL(vec, fpevec, &fevec, &pevec);
-                        vec3fAbsolute(&vec, &vec);
+                     if (hit) {
                         hit = vec3fLessThan(&vec, &path->occlusion.v3);
                      }
                      hit = !hit;
                   }
-                  else if (mag_fpe <= 0.0f || (mag_pe-mag_fpe) <= FLT_EPSILON)
-                  {
-                     vec3f_t vec;
-
-                     // At this point the emitter is definitely outside of the
-                     // obstruction.
-                     //
-                     // If mag_fpe < 0.0f then the emitter is between the frame
-                     // and the parent-frame meaning there is a clean path to
-                     // the parent-frame.
-                     //
-                     // Otherwise the frame could be behind both the emitter and
-                     // the parent-frame which means the path from the emitter
-                     // to the parent-frame is not blocked after all.
-                     VEC3SUBFILL(vec, fpevec, &fevec, &pevec);
-                     vec3fAbsolute(&vec, &vec);
+                  else if (behind) {
                      hit = vec3fLessThan(&vec, &path->occlusion.v3);
                   }
                }
@@ -402,27 +373,23 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                {
                   float level, mag;
 
-                  mag = path->magnitude; // path->magnitude*100.0f/vs;
+                  mag = sqrtf(path->magnitude_sq); // path->magnitude*100.0f/vs;
                   level = 1.0f - _MIN(vec3fMagnitude(&vres)/mag, 1.0f);
                   if (path->inverse) level = _MIN(1.0f/level, 1.0f);
 
-                  level *= path->occlusion.v4[3];    // density
+                  level *= density;
                   if (level > occlusion->level) {
                      occlusion->level = level;
                   }
-#if 1
+#if 0
                   if (occlusion->level > (1.0f-LEVEL_64DB)) break;
                }
             }
 #else
                }
- printf("obstruction dimensions:\t");
- PRINT_VEC3(path->occlusion.v3);
- printf("        parent-emitter:\t");
- PRINT_VEC3(pevec);
- printf("  parent_frame-emitter:\t");
- PRINT_VEC3(vres);
  printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
+ printf("\nobstruction dimensions:\t");
+ PRINT_VEC3(path->occlusion.v3);
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
