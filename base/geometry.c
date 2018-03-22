@@ -23,6 +23,7 @@
 #include <config.h>
 #endif
 
+#include <stdio.h>
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
@@ -33,6 +34,7 @@
 #endif
 
 #include <aax/aax.h>
+#include "logging.h"
 #include "geometry.h"
 #include "types.h"
 
@@ -691,38 +693,132 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
    }
 }
 
-// Calculate the squared-altitude of p1 on the p2-p3 vector,
-// which is useful for detecting whether a line hits a boundingssphere.
-float
-_vec3fAltitudeSquared_cpu(const vec3f_ptr p1, const vec3f_ptr p2, const vec3f_ptr p3)
+// Calculate the squared-altitude of the frame on the parent-emitter vector,
+// which is useful for detecting whether a line hits a bounding sphere.
+double
+_vec3dAltitudeSquared_cpu(const vec3d_ptr frame, const vec3d_ptr parent, const vec3d_ptr emitter)
 {
-   vec3f_t p3p1, p3p2;
+   vec3d_t fe, pe;
+   double a2, b;
+
+   if (!parent) {			// parent position is at the origin
+      vec3dNegate(&pe, emitter);
+   } else {
+      vec3dSub(&pe, parent, emitter);
+   }
+
+   vec3dSub(&fe, frame, emitter);
+   _vec3dNormalize_cpu(&pe, &pe);
+
+   a2 = _vec3dMagnitudeSquared_cpu(&fe);
+   b = _vec3dDotProduct_cpu(&fe, &pe);
+
+   // Pythagoras: a2 = h2 + b2 -> h2 = a2 - b2;
+   return (a2 - b*b);
+}
+
+float
+_vec3fAltitudeSquared_cpu(const vec3f_ptr frame, const vec3f_ptr parent, const vec3f_ptr emitter)
+{
+   vec3f_t fe, pe;
    float a2, b;
 
-   vec3fSub(&p3p1, p3, p1);
-   a2 = _vec3fMagnitudeSquared_cpu(&p3p1);
+   if (!parent) {
+      vec3fNegate(&pe, emitter);
+   } else {
+      vec3fSub(&pe, parent, emitter);
+   }
 
-   vec3fSub(&p3p2, p3, p2);
-   _vec3fNormalize_cpu(&p3p2, &p3p2);
-   b = _vec3fDotProduct_cpu(&p3p1, &p3p2);
+   vec3fSub(&fe, frame, emitter);
+   _vec3fNormalize_cpu(&pe, &pe);
+
+   a2 = _vec3fMagnitudeSquared_cpu(&fe);
+   b = _vec3fDotProduct_cpu(&fe, &pe);
 
    return (a2 + b*b);
 }
 
-double
-_vec3dAltitudeSquared_cpu(const vec3d_ptr p1, const vec3d_ptr p2, const vec3d_ptr p3)
+// Calculate the altitude vector of the frame on the parent-emitter vector
+// which is useful for detecting whether a line hits a bounding box.
+//
+// Returns true if the parent and the emitter are at the same side, but
+// outside of, the bounding box.
+int
+_vec3dAltitudeVector_cpu(vec3f_ptr vres, const vec3d_ptr frame, const vec3d_ptr parent, const vec3d_ptr emitter, const vec3d_ptr fevec, vec3f_ptr fpvec)
 {
-   vec3d_t p3p1, p3p2;
-   double a2, b;
+   vec3d_t pevec, npevec, fpevec, fpepos;
+   double mag_pe, dot_fpe;
+   int behind;
 
-   vec3dSub(&p3p1, p3, p1);
-   a2 = _vec3dMagnitudeSquared_cpu(&p3p1);
+   if (!parent) {			// parent position is at the origin
+      vec3dNegate(&pevec, emitter);
+   } else {
+      vec3dSub(&pevec, parent, emitter);
+   }
 
-   vec3dSub(&p3p2, p3, p2);
-   _vec3dNormalize_cpu(&p3p2, &p3p2);
-   b = _vec3dDotProduct_cpu(&p3p1, &p3p2);
+   // Get the projection length of the frame-to-emitter vector on
+   // the parent_frame-to-emitter unit vector.
+   mag_pe = _vec3dNormalize_cpu(&npevec, &pevec);
+   dot_fpe = _vec3dDotProduct_cpu(fevec, &npevec);
 
-   return (a2 + b*b);
+   // Scale the parent_frame-to-emitter unit vector.
+   vec3dScalarMul(&fpevec, &npevec, dot_fpe);
+
+   // Get the vector from the frame position which perpendicular
+   // to the parent_frame-to-emitter vector.
+   vec3dAdd(&fpepos, emitter, &fpevec);
+   vec3dSub(&fpevec, frame, &fpepos);
+
+   vec3fFilld(vres->v3, fpevec.v3);
+   _vec3fAbsolute_cpu(vres, vres);
+
+   // Calculate the frame-parent vector which is used outside this function.
+   vec3dSub(&fpevec, fevec, &pevec);
+   vec3fFilld(fpvec->v3, fpevec.v3);
+   vec3fAbsolute(fpvec, fpvec);
+
+   // If dot_fpe < 0.0f then the emitter is between the frame and the
+   // parent-frame meaning there is a clean path to the parent-frame.
+   behind = (dot_fpe <= 0.0f || (mag_pe-dot_fpe) <= FLT_EPSILON);
+
+#if 1
+ printf("        parent-emitter:\t");
+ PRINT_VEC3(pevec);
+ printf("  parent_frame-emitter:\t");
+ PRINT_VEC3PTR(vres);
+#endif
+
+   return behind;
+}
+
+int
+_vec3fAltitudeVector_cpu(vec3f_ptr vres, const vec3f_ptr frame, const vec3f_ptr parent, const vec3f_ptr emitter, const vec3f_ptr fevec, vec3f_ptr fpvec)
+{
+   vec3f_t pevec, npevec, fpevec, fpepos;
+   float mag_pe, dot_fpe;
+   int behind;
+
+   if (!parent) {
+      vec3fNegate(&pevec, emitter);
+   } else {
+      vec3fSub(&pevec, parent, emitter);
+   }
+
+   mag_pe = _vec3fNormalize_cpu(&npevec, &pevec);
+   dot_fpe = _vec3fDotProduct_cpu(fevec, &npevec);
+
+   vec3fScalarMul(&fpevec, &npevec, dot_fpe);
+
+   vec3fAdd(&fpepos, emitter, &fpevec);
+   vec3fSub(vres, frame, &fpepos);
+   _vec3fAbsolute_cpu(vres, vres);
+
+   vec3fSub(fpvec, fevec, &pevec);
+   vec3fAbsolute(fpvec, fpvec);
+
+   behind = (dot_fpe <= 0.0f || (mag_pe-dot_fpe) <= FLT_EPSILON);
+
+   return behind;
 }
 
 /* -------------------------------------------------------------------------- */
@@ -745,6 +841,8 @@ vec3dNormalize_proc vec3dNormalize = _vec3dNormalize_cpu;
 vec3fCrossProduct_proc vec3fCrossProduct = _vec3fCrossProduct_cpu;
 vec3fAltitudeSquared_proc vec3fAltitudeSquared = _vec3fAltitudeSquared_cpu;
 vec3dAltitudeSquared_proc vec3dAltitudeSquared = _vec3dAltitudeSquared_cpu;
+vec3fAltitudeVector_proc vec3fAltitudeVector = _vec3fAltitudeVector_cpu;
+vec3dAltitudeVector_proc vec3dAltitudeVector = _vec3dAltitudeVector_cpu;
 
 vec4fCopy_proc vec4fCopy = _vec4fCopy_cpu;
 mtx4fCopy_proc mtx4fCopy = _mtx4fCopy_cpu;
