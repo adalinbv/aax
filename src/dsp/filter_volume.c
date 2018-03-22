@@ -174,6 +174,7 @@ _flt_function_tbl _aaxVolumeFilter =
 # define VEC3SCALARMUL(a,b,c)	vec3fScalarMul(a,b,c)
 # define VEC3SUBFILL(a,b,c,d)	vec3fSub(&a,c,d)
 # define VEC3ALTITUDESQUARED(a,b,c) vec3fAltitudeSquared(a,b,c)
+# define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3fAltitudeVector(a,b,c,d,e,f)
 #else
 # define FLOAT			double
 # define VEC3_T			vec3d_t
@@ -186,6 +187,7 @@ _flt_function_tbl _aaxVolumeFilter =
 # define VEC3SCALARMUL(a,b,c)	vec3dScalarMul(a,b,c)
 # define VEC3SUBFILL(a,b,c,d)	vec3dSub(&b,c,d); vec3fFilld(a.v3,b.v3)
 # define VEC3ALTITUDESQUARED(a,b,c) vec3dAltitudeSquared(a,b,c)
+# define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3dAltitudeVector(a,b,c,d,e,f)
 #endif
 
 static float
@@ -341,7 +343,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
 printf("alt_fpe sq.: %f (%f), dim. mag. sq.: %f\n", alt_fpe2, sqrtf(alt_fpe2), occlusion->magnitude_sq);
 #endif
 
-               behind = vec3dAltitudeVector(&vres, f, p, e, &fevec, &vec);
+               behind = VEC3ALTITUDEVECTOR(&vres, f, p, e, &fevec, &vec);
 
                // hit is true when the direct path does interstect
                // with the defined obstruction/cavity.
