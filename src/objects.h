@@ -248,16 +248,13 @@ typedef ALIGN16  struct {
 } bounding_t ALIGN16C;
 
 /* warning:
- * need to update the pre defined structure in objects.c ehwn changing
+ * need to update the pre defined structure in objects.c when changing
  * something here
  */
 typedef ALIGN16 struct
 {
    vec4f_t hrtf[2];
    vec4f_t speaker[2*_AAX_MAX_SPEAKERS];
-
-   mtx4d_t matrix;			/* scenery position and orientation */
-// bounding_t bounding;
 
    vec4f_t *delay;
 
