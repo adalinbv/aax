@@ -97,36 +97,10 @@ _vec4fCopy_neon(vec4f_ptr d, const vec4f_ptr v)
 }
 
 void
-_vec4fMulvec4_neon(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
+_vec4fMulVec4_neon(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 {
    r->s4 = vmulq_f32(v1->s4, v2->s4);
 }
-
-void
-_vec4fMatrix4_neon(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
-{
-   int i;
-
-   d->s4 = vmulq_f32(m->s4x4[0], vdupq_n_f32(vi->v4[0]));
-   for (i=1; i<3; ++i) {
-      float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(vi->v4[i]));
-      d->s4 = vaddq_f32(d->s4, row);
-   }
-}
-
-void
-_pt4fMatrix4_neon(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
-{
-   int i;
-
-   d->s4 = vmulq_f32(m->s4x4[0], vdupq_n_f32(vi->v4[0]));
-   for (i=1; i<3; ++i) {
-      float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(vi->v4[i]));
-      d->s4 = vaddq_f32(d->s4, row);
-   }
-   d->s4 = vaddq_f32(d->s4, m->s4x4[3]);
-}
-
 
 void
 _mtx4fMul_neon(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
@@ -139,6 +113,18 @@ _mtx4fMul_neon(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
          row = vaddq_f32(row, vmulq_f32(m1->s4x4[j], col));
       }
       d->s4x4[i] = row;
+   }
+}
+
+void
+_mtx4fMulVec4_neon(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
+{
+   int i;
+
+   d->s4 = vmulq_f32(m->s4x4[0], vdupq_n_f32(v->v4[0]));
+   for (i=1; i<4; ++i) {
+      float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(v->v4[i]));
+      d->s4 = vaddq_f32(d->s4, row);
    }
 }
 

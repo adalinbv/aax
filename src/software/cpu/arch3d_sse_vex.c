@@ -92,34 +92,9 @@ _vec4fCopy_sse_vex(vec4f_ptr d, const vec4f_ptr v)
 }
 
 FN_PREALIGN void
-_vec4fMulvec4_sse_vex(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
+_vec4fMulVec4_sse_vex(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 {
    r->s4 = _mm_mul_ps(v1->s4, v2->s4);
-}
-
-FN_PREALIGN void
-_vec4fMatrix4_sse_vex(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
-{
-   int i;
-
-   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(vi->v4[0]));
-   for (i=1; i<3; ++i) {
-      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(vi->v4[i]));
-      d->s4 = _mm_add_ps(d->s4, row);
-   }
-}
-
-FN_PREALIGN void
-_pt4fMatrix4_sse_vex(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
-{
-   int i;
-
-   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(vi->v4[0]));
-   for (i=1; i<3; ++i) {
-      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(vi->v4[i]));
-      d->s4 = _mm_add_ps(d->s4, row);
-   }
-   d->s4 = _mm_add_ps(d->s4, m->s4x4[3]);
 }
 
 FN_PREALIGN void
@@ -139,24 +114,15 @@ _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
 }
 
 FN_PREALIGN void
-_mtx4dMul_sse_vex(UNUSED(mtx4d_ptr d), UNUSED(const mtx4d_ptr m1), UNUSED(const mtx4d_ptr m2))
+_mtx4fMulVec4_sse_vex(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
 {
-#if 0
    int i;
 
-   for (i=0; i<4; ++i) {
-      __m128d col = _mm_set1_pd(m2->m4[i][0]);
-      __m128d row1 = _mm_mul_pd(m1->s4x4[0][0], col);
-      __m128d row2 = _mm_mul_pd(m1->s4x4[0][1], col);
-      for (int j=1; j<4; ++j) {
-          col = _mm_set1_pd(m2->m4[i][j]);
-          row1 = _mm_add_pd(row1, _mm_mul_pd(m1->s4x4[j][0], col));
-          row2 = _mm_add_pd(row2, _mm_mul_pd(m1->s4x4[j][1], col));
-      }
-      d->s4x4[i][0] = row1;
-      d->s4x4[i][1] = row2;
+   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(v->v4[0]));
+   for (i=1; i<4; ++i) {
+      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(v->v4[i]));
+      d->s4 = _mm_add_ps(d->s4, row);
    }
-#endif
 }
 
 #else

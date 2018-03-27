@@ -48,6 +48,24 @@ _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
    }
 }
 
+FN_PREALIGN void
+_mtx4dMulVec4_sse2(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v)
+{
+   __m128d row[2], val;
+   int i;
+   
+   val = _mm_set1_pd(v->v4[0]);
+   d->s4.sse[0] = _mm_mul_pd(m->s4x4[0].sse[0], val);
+   d->s4.sse[1] = _mm_mul_pd(m->s4x4[0].sse[1], val);
+   for (i=1; i<4; ++i) {
+      val = _mm_set1_pd(v->v4[i]);
+      row[0] = _mm_mul_pd(m->s4x4[i].sse[0], val);
+      row[1] = _mm_mul_pd(m->s4x4[i].sse[1], val);
+      d->s4.sse[0] = _mm_add_pd(d->s4.sse[0], row[0]);
+      d->s4.sse[1] = _mm_add_pd(d->s4.sse[1], row[1]);
+   }
+}
+
 #else
 typedef int make_iso_compilers_happy;
 #endif /* SSE2 */

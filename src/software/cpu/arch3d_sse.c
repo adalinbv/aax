@@ -1,5 +1,5 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
+ * Cpyight 2005-2017 by Erik Hofman.
  * Copyright 2009-2017 by Adalin B.V.
  *
  * This file is part of AeonWave
@@ -92,34 +92,9 @@ _vec4fCopy_sse(vec4f_ptr d, const vec4f_ptr v)
 }
 
 FN_PREALIGN void
-_vec4fMulvec4_sse(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
+_vec4fMulVec4_sse(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 {
    r->s4 = _mm_mul_ps(v1->s4, v2->s4);
-}
-
-FN_PREALIGN void
-_vec4fMatrix4_sse(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
-{
-   int i;
-
-   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(vi->v4[0]));
-   for (i=1; i<3; ++i) {
-      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(vi->v4[i]));
-      d->s4 = _mm_add_ps(d->s4, row);
-   }
-}
-
-FN_PREALIGN void
-_pt4fMatrix4_sse(vec4f_ptr d, const vec4f_ptr vi, const mtx4f_ptr m)
-{
-   int i;
-
-   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(vi->v4[0]));
-   for (i=1; i<3; ++i) {
-      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(vi->v4[i]));
-      d->s4 = _mm_add_ps(d->s4, row);
-   }
-   d->s4 = _mm_add_ps(d->s4, m->s4x4[3]);
 }
 
 FN_PREALIGN void
@@ -135,6 +110,18 @@ _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
           row = _mm_add_ps(row, _mm_mul_ps(m1->s4x4[j], col));
       }
       d->s4x4[i] = row;
+   }
+}
+
+FN_PREALIGN void
+_mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
+{
+   int i;
+
+   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(v->v4[0]));
+   for (i=1; i<4; ++i) {
+      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(v->v4[i]));
+      d->s4 = _mm_add_ps(d->s4, row);
    }
 }
 

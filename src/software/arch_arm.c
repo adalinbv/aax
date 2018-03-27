@@ -190,7 +190,7 @@ _aaxGetSIMDSupportLevel()
 
 //    vec3fAdd = _vec3fAdd_vfpv2;
 //    vec3fDevide = _vec3fDevide_vfpv2;
-      vec3fMulvec3 = _vec3fMulvec3_vfpv2;
+      vec3fMulVec3 = _vec3fMulVec3_vfpv2;
 //    vec3fSub = _vec3fSub_vfpv2;
 
       vec3fMagnitude = _vec3fMagnitude_vfpv2;
@@ -204,10 +204,10 @@ _aaxGetSIMDSupportLevel()
 
 //    vec4fAdd = _vec4fAdd_vfpv2;
 //    vec4fDevide = _vec4fDevide_vfpv2;
-      vec4fMulvec4 = _vec4fMulvec4_vfpv2;
+      vec4fMulVec4 = _vec4fMulVec4_vfpv2;
 //    vec4fSub = _vec4fSub_vfpv2;
-      vec4fMatrix4 = _vec4fMatrix4_vfpv2;
-      pt4fMatrix4 = _pt4fMatrix4_vfpv2;
+      mtx4fMulVec4 = _mtx4fMulVec4_vfpv2;
+      mtx4dMulVec4 = _mtx4dMulVec4_vfpv2;
       mtx4fMul = _mtx4fMul_vfpv2;
       mtx4dMul = _mtx4dMul_vfpv2;
 
@@ -241,7 +241,7 @@ _aaxGetSIMDSupportLevel()
 
 //    vec3fAdd = _vec3fAdd_vfpv3;
 //    vec3fDevide = _vec3fDevide_vfpv3;
-      vec3fMulvec3 = _vec3fMulvec3_vfpv3;
+      vec3fMulVec3 = _vec3fMulVec3_vfpv3;
 //    vec3fSub = _vec3fSub_vfpv3;
 
       vec3fMagnitude = _vec3fMagnitude_vfpv3;
@@ -255,10 +255,10 @@ _aaxGetSIMDSupportLevel()
 
 //    vec4fAdd = _vec4fAdd_vfpv3;
 //    vec4fDevide = _vec4fDevide_vfpv3;
-      vec4fMulvec4 = _vec4fMulvec4_vfpv3;
+      vec4fMulVec4 = _vec4fMulVec4_vfpv3;
 //    vec4fSub = _vec4fSub_vfpv3;
-      vec4fMatrix4 = _vec4fMatrix4_vfpv3;
-      pt4fMatrix4 = _pt4fMatrix4_vfpv3;
+      mtx4fMulVec4 = _mtx4fMulVec4_vfpv3;
+      mtx4dMulVec4 = _mtx4dMulVec4_vfpv3;
       mtx4fMul = _mtx4fMul_vfpv3;
       mtx4dMul = _mtx4dMul_vfpv3;
 
@@ -279,9 +279,9 @@ _aaxGetSIMDSupportLevel()
 //    vec4fSub = _vec4fSub_neon;
       vec4fCopy = _vec4fCopy_neon;
 //    vec4fDevide = _vec4fDevide_neon;
-      vec4fMulvec4 = _vec4fMulvec4_neon;
-      vec4fMatrix4 = _vec4fMatrix4_neon;
-      pt4fMatrix4 = _pt4fMatrix4_neon;
+      vec4fMulVec4 = _vec4fMulVec4_neon;
+      mtx4fMulVec4 = _mtx4fMulVec4_neon;
+      mtx4dMulVec4 = _mtx4dMulVec4_neon;
       mtx4fMul = _mtx4fMul_neon;
 
 #if 0

@@ -67,17 +67,6 @@ _vec3fDotProduct_sse3(const vec3f_ptr v1, const vec3f_ptr v2)
    return hsum_ps_sse3(_mm_mul_ps(load_vec3f(v1), load_vec3f(v2)));
 }
 
-FN_PREALIGN void
-_vec4fMatrix4_sse3(vec4f_ptr d, const vec4f_ptr pv, const mtx4f_ptr m)
-{
-   __m128 v = load_vec3f(&pv->v3);
-   __m128 s0 = _mm_mul_ps(v, m->s4x4[0]);
-   __m128 s1 = _mm_mul_ps(v, m->s4x4[1]);
-   __m128 s2 = _mm_mul_ps(v, m->s4x4[2]);
-   __m128 s3 = _mm_setzero_ps();
-   d->s4 = _mm_hadd_ps(_mm_hadd_ps(s0, s1), _mm_hadd_ps(s2, s3));
-}
-
 #else
 typedef int make_iso_compilers_happy;
 #endif /* SSE3 */
