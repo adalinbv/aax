@@ -342,7 +342,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
 
          ep2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
 #else
-         vec3fMulvec3(&ep2d->speaker[t].v3, &speaker[t].v3, rpos);
+         vec3fMulVec3(&ep2d->speaker[t].v3, &speaker[t].v3, rpos);
          vec3fScalarMul(&ep2d->speaker[t].v3, &ep2d->speaker[t].v3, dist_fact);
 #endif
          i = DIR_UPWD;
@@ -370,7 +370,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
    default: /* AAX_MODE_WRITE_STEREO */
       for (t=0; t<info->no_tracks; t++)
       {
-         vec3fMulvec3(&ep2d->speaker[t].v3, &speaker[t].v3, rpos);
+         vec3fMulVec3(&ep2d->speaker[t].v3, &speaker[t].v3, rpos);
          vec4fScalarMul(&ep2d->speaker[t], &ep2d->speaker[t], dist_fact);
       }
    }

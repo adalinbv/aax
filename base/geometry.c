@@ -226,7 +226,7 @@ _vec3dAbsolute_cpu(vec3d_ptr d, const vec3d_ptr v)
 }
 
 void
-_vec3fMulvec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2)
+_vec3fMulVec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2)
 {
    r->v3[0] = v1->v3[0]*v2->v3[0];
    r->v3[1] = v1->v3[1]*v2->v3[1];
@@ -234,7 +234,7 @@ _vec3fMulvec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2)
 }
 
 void
-_vec3dMulvec3_cpu(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2)
+_vec3dMulVec3_cpu(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2)
 {
    r->v3[0] = v1->v3[0]*v2->v3[0];
    r->v3[1] = v1->v3[1]*v2->v3[1];
@@ -242,7 +242,7 @@ _vec3dMulvec3_cpu(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2)
 }
 
 void
-_vec4fMulvec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
+_vec4fMulVec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 {
    r->v4[0] = v1->v4[0]*v2->v4[0];
    r->v4[1] = v1->v4[1]*v2->v4[1];
@@ -251,7 +251,7 @@ _vec4fMulvec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2)
 }
 
 void
-_vec4iMulvec4i_cpu(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2)
+_vec4iMulVec4i_cpu(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2)
 {
    r->v4[0] = v1->v4[0]*v2->v4[0];
    r->v4[1] = v1->v4[1]*v2->v4[1];
@@ -355,38 +355,6 @@ vec3fMatrix3(vec3f_ptr d, const vec3f_ptr v, const mtx3f_ptr m)
    d->v3[2] = v0*m->m3[0][2] + v1*m->m3[1][2] + v2*m->m3[2][2];
 }
 
-/*
- * http://www.unknownroad.com/rtfm/graphics/rt_normals.html
- * If you are doing any real graphics, you are using homogenoeus vectors and 
- * matrices. That means 4 dimensions, vectors are [x y z w]. That fourth 
- * coordinate is the homogenoeous coordinate, it should be 1 for points and 0
- * for vectors.
- *
- * Note: this does not work for non-uniform scaling (that means scaling by
- * different amounts in the different axis)
- */
-void
-_vec4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m)
-{
-   float v0 = v->v4[0], v1 = v->v4[1], v2 = v->v4[2]; // v3 = 0.0f;
-
-   d->v4[0] = v0*m->m4[0][0] + v1*m->m4[1][0] + v2*m->m4[2][0]; // + v3*m[3][0];
-   d->v4[1] = v0*m->m4[0][1] + v1*m->m4[1][1] + v2*m->m4[2][1]; // + v3*m[3][1];
-   d->v4[2] = v0*m->m4[0][2] + v1*m->m4[1][2] + v2*m->m4[2][2]; // + v3*m[3][2];
-   d->v4[3] = v0*m->m4[0][3] + v1*m->m4[1][3] + v2*m->m4[2][3]; // + v3*m[3][3];
-}
-
-void
-_pt4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m)
-{
-   float p0 = p->v4[0], p1 = p->v4[1], p2 = p->v4[2]; // p3 = 1.0f;
-
-   d->v4[0] = p0*m->m4[0][0] + p1*m->m4[1][0] + p2*m->m4[2][0] + m->m4[3][0]; // *p3
-   d->v4[1] = p0*m->m4[0][1] + p1*m->m4[1][1] + p2*m->m4[2][1] + m->m4[3][1]; // *p3
-   d->v4[2] = p0*m->m4[0][2] + p1*m->m4[1][2] + p2*m->m4[2][2] + m->m4[3][2]; // *p3
-   d->v4[3] = p0*m->m4[0][3] + p1*m->m4[1][3] + p2*m->m4[2][3] + m->m4[3][3]; // *p3
-}
-
 void
 mtx3fCopy(mtx3f_ptr d, const mtx3f_ptr m)
 {
@@ -474,10 +442,32 @@ mtx4fSetAbsolute(mtx4f_ptr d, char absolute)
    d->m4[3][3] = absolute ? 1.0f : 0.0f;
 }
 
+
+/*
+ * http://www.unknownroad.com/rtfm/graphics/rt_normals.html
+ * If you are doing any real graphics, you are using homogenoeus vectors and 
+ * matrices. That means 4 dimensions, vectors are [x y z w]. That fourth 
+ * coordinate is the homogenoeous coordinate, it should be 1 for points and 0
+ * for vectors.
+ *
+ * Note: this does not work for non-uniform scaling (that means scaling by
+ * different amounts in the different axis)
+ */
 void
-mtx4fMulVec4(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
+_mtx4fMulVec4_cpu(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
 {
    float v0 = v->v4[0], v1 = v->v4[1], v2 = v->v4[2], v3 = v->v4[3];
+
+   d->v4[0] = m->m4[0][0]*v0 + m->m4[1][0]*v1 + m->m4[2][0]*v2 + m->m4[3][0]*v3;
+   d->v4[1] = m->m4[0][1]*v0 + m->m4[1][1]*v1 + m->m4[2][1]*v2 + m->m4[3][1]*v3;
+   d->v4[2] = m->m4[0][2]*v0 + m->m4[1][2]*v1 + m->m4[2][2]*v2 + m->m4[3][2]*v3;
+   d->v4[3] = m->m4[0][3]*v0 + m->m4[1][3]*v1 + m->m4[2][3]*v2 + m->m4[3][3]*v3;
+}
+
+void
+_mtx4dMulVec4_cpu(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v)
+{
+   double v0 = v->v4[0], v1 = v->v4[1], v2 = v->v4[2], v3 = v->v4[3];
 
    d->v4[0] = m->m4[0][0]*v0 + m->m4[1][0]*v1 + m->m4[2][0]*v2 + m->m4[3][0]*v3;
    d->v4[1] = m->m4[0][1]*v0 + m->m4[1][1]*v1 + m->m4[2][1]*v2 + m->m4[3][1]*v3;
@@ -693,21 +683,21 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
    }
 }
 
-// Calculate the squared-altitude of the frame on the parent-emitter vector,
+// Calculate the squared-altvec of the frame on the frame-emitter vector,
 // which is useful for detecting whether a line hits a bounding sphere.
 double
-_vec3dAltitudeSquared_cpu(const vec3d_ptr frame, const vec3d_ptr parent, const vec3d_ptr emitter)
+_vec3dAltitudeSquared_cpu(const vec3d_ptr frame, const vec3d_ptr fpvec, const vec3d_ptr fevec)
 {
    vec3d_t fe, pe;
    double a2, b;
 
-   if (!parent) {			// parent position is at the origin
-      vec3dNegate(&pe, emitter);
+   if (!fpvec) {			// fpvec position is at the origin
+      vec3dNegate(&pe, fevec);
    } else {
-      vec3dSub(&pe, parent, emitter);
+      vec3dSub(&pe, fpvec, fevec);
    }
 
-   vec3dSub(&fe, frame, emitter);
+   vec3dSub(&fe, frame, fevec);
    _vec3dNormalize_cpu(&pe, &pe);
 
    a2 = _vec3dMagnitudeSquared_cpu(&fe);
@@ -718,18 +708,18 @@ _vec3dAltitudeSquared_cpu(const vec3d_ptr frame, const vec3d_ptr parent, const v
 }
 
 float
-_vec3fAltitudeSquared_cpu(const vec3f_ptr frame, const vec3f_ptr parent, const vec3f_ptr emitter)
+_vec3fAltitudeSquared_cpu(const vec3f_ptr frame, const vec3f_ptr fpvec, const vec3f_ptr fevec)
 {
    vec3f_t fe, pe;
    float a2, b;
 
-   if (!parent) {
-      vec3fNegate(&pe, emitter);
+   if (!fpvec) {
+      vec3fNegate(&pe, fevec);
    } else {
-      vec3fSub(&pe, parent, emitter);
+      vec3fSub(&pe, fpvec, fevec);
    }
 
-   vec3fSub(&fe, frame, emitter);
+   vec3fSub(&fe, frame, fevec);
    _vec3fNormalize_cpu(&pe, &pe);
 
    a2 = _vec3fMagnitudeSquared_cpu(&fe);
@@ -738,11 +728,16 @@ _vec3fAltitudeSquared_cpu(const vec3f_ptr frame, const vec3f_ptr parent, const v
    return (a2 + b*b);
 }
 
-// Calculate the altitude vector of the frame on the parent-emitter vector
+// Calculate the altvec vector of the frame on the frame-emitter vector
 // which is useful for detecting whether a line hits a bounding box.
 //
-// Returns true if the parent and the emitter are at the same side, but
+// Returns true if the fpvec and the fevec are at the same side, but
 // outside of, the bounding box.
+//
+// Since the frame should be axis-aligned end positioned at the origin
+// at this point:
+//  - fpvec equals to the parent_frame position
+//  - fevec equals to the emitter position.
 int
 _vec3dAltitudeVector_cpu(vec3f_ptr vres, const vec3d_ptr frame, const vec3d_ptr parent, const vec3d_ptr emitter, const vec3d_ptr fevec, vec3f_ptr fpvec)
 {
@@ -750,8 +745,8 @@ _vec3dAltitudeVector_cpu(vec3f_ptr vres, const vec3d_ptr frame, const vec3d_ptr 
    double mag_pe, dot_fpe;
    int behind;
 
-   if (!parent) {			// parent position is at the origin
-      vec3dNegate(&pevec, emitter);
+   if (!parent) {                       // parent position is at the origin
+      vec3dNegate(&pevec, emitter); // parent-emitter vector is emitter pos.
    } else {
       vec3dSub(&pevec, parent, emitter);
    }
@@ -825,8 +820,8 @@ _vec3fAltitudeVector_cpu(vec3f_ptr vres, const vec3f_ptr frame, const vec3f_ptr 
 
 vec3fCopy_proc vec3fCopy = _vec3fCopy_cpu;
 vec3dCopy_proc vec3dCopy = _vec3dCopy_cpu;
-vec3fMulvec3f_proc vec3fMulvec3 = _vec3fMulvec3_cpu;
-vec3dMulvec3d_proc vec3dMulvec3 = _vec3dMulvec3_cpu;
+vec3fMulVec3f_proc vec3fMulVec3 = _vec3fMulVec3_cpu;
+vec3dMulVec3d_proc vec3dMulVec3 = _vec3dMulVec3_cpu;
 vec3fAbsolute_proc vec3fAbsolute = _vec3fAbsolute_cpu;
 vec3dAbsolute_proc vec3dAbsolute = _vec3dAbsolute_cpu;
 
@@ -847,12 +842,12 @@ vec3dAltitudeVector_proc vec3dAltitudeVector = _vec3dAltitudeVector_cpu;
 vec4fCopy_proc vec4fCopy = _vec4fCopy_cpu;
 mtx4fCopy_proc mtx4fCopy = _mtx4fCopy_cpu;
 mtx4dCopy_proc mtx4dCopy = _mtx4dCopy_cpu;
-vec4fMulvec4f_proc vec4fMulvec4 = _vec4fMulvec4_cpu;
-vec4fMatrix4_proc vec4fMatrix4 = _vec4fMatrix4_cpu;
-vec4fMatrix4_proc pt4fMatrix4 = _pt4fMatrix4_cpu;
+vec4fMulVec4f_proc vec4fMulVec4 = _vec4fMulVec4_cpu;
 mtx4fMul_proc mtx4fMul = _mtx4fMul_cpu;
 mtx4dMul_proc mtx4dMul = _mtx4dMul_cpu;
+mtx4fMulVec4_proc mtx4fMulVec4 = _mtx4fMulVec4_cpu;
+mtx4dMulVec4_proc mtx4dMulVec4 = _mtx4dMulVec4_cpu;
 
 vec4iCopy_proc vec4iCopy = _vec4iCopy_cpu;
-vec4iMulvec4if_proc vec4iMulvec4i = _vec4iMulvec4i_cpu;
+vec4iMulVec4if_proc vec4iMulVec4i = _vec4iMulVec4i_cpu;
 

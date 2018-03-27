@@ -163,29 +163,18 @@ _flt_function_tbl _aaxVolumeFilter =
 
 
 #ifdef ARCH32
-# define FLOAT			float
 # define VEC3_T			vec3f_t
-# define VEC3COPY(a,b)		vec3fCopy(&a,&b)
-# define VEC3SUB(a,b,c)		vec3fSub(a,b,c)
-# define VEC3ADD(a,b,c)		vec3fAdd(a,b,c)
-# define VEC3NEGATE(a,b)	vec3fNegate(a,b)
-# define VEC3NORMALIZE(a,b)	vec3fNormalize(a,b)
-# define VEC3DOTPRODUCT(a,b)	vec3fDotProduct(a,b)
-# define VEC3SCALARMUL(a,b,c)	vec3fScalarMul(a,b,c)
-# define VEC3SUBFILL(a,b,c,d)	vec3fSub(&a,c,d)
+# define VEC4_T			vec4f_t
+# define MTX4_T			mtx4f_t
+# define VEC3COPY(a,b)		vec3fCopy(&a,b)
 # define VEC3ALTITUDESQUARED(a,b,c) vec3fAltitudeSquared(a,b,c)
 # define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3fAltitudeVector(a,b,c,d,e,f)
 #else
-# define FLOAT			double
 # define VEC3_T			vec3d_t
+# define VEC4_T			vec4d_t
+# define MTX4_T			mtx4d_t
 # define VEC3COPY(a,b)		vec3fFilld(a.v3,b.v3)
-# define VEC3SUB(a,b,c)		vec3dSub(a,b,c)
-# define VEC3ADD(a,b,c)		vec3dAdd(a,b,c)
-# define VEC3NEGATE(a,b)	vec3dNegate(a,b)
-# define VEC3NORMALIZE(a,b)	vec3dNormalize(a,b)
-# define VEC3DOTPRODUCT(a,b)	vec3dDotProduct(a,b)
-# define VEC3SCALARMUL(a,b,c)	vec3dScalarMul(a,b,c)
-# define VEC3SUBFILL(a,b,c,d)	vec3dSub(&b,c,d); vec3fFilld(a.v3,b.v3)
+# define VEC3SUB(a,b,c)         vec3dSub(a,b,c)
 # define VEC3ALTITUDESQUARED(a,b,c) vec3dAltitudeSquared(a,b,c)
 # define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3dAltitudeVector(a,b,c,d,e,f)
 #endif
@@ -293,7 +282,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
    edp3d_m = ep3d->m_dprops3d;
    fdp3d_m = fp3d->m_dprops3d;
    pdp3d_m = fp3d->parent ? fp3d->parent->m_dprops3d : NULL;
-   
+
    if (pdp3d_m)
    {
       occlusion = _EFFECT_GET_DATA(fp3d, REVERB_EFFECT);

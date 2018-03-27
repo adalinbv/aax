@@ -142,19 +142,14 @@ int main()
     mtx4fTranslate(&m, 3.3f, -1.07f, 0.87f);
 
     if (simd2) {
-        _vec4fMatrix4_cpu(&c4, &a4, &m);
-        GLUE(_vec4fMatrix4, SIMD)(&z4, &x4, &m);
+        _mtx4fMulVec4_cpu(&c4, &m, &a4);
+        GLUE(_mtx4fMulVec4, SIMD)(&z4, &m, &x4);
         TEST4(c4,z4);
     }
 
-    if (simd3) {
-        GLUE(_vec4fMatrix4, SIMD3)(&z4, &x4, &m);
-        TEST4(c4,z4)
-    }
-
     if (simd) {
-        _pt4fMatrix4_cpu(&c4, &b4, &m);
-        GLUE(_pt4fMatrix4, SIMD)(&z4, &y4, &m);
+        _mtx4fMulVec4_cpu(&c4, &m, &b4);
+        GLUE(_mtx4fMulVec4, SIMD)(&z4, &m, &y4);
         TEST4(c4,z4);
     }
 

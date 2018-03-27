@@ -153,15 +153,15 @@ typedef mtx4d_t* mtx4d_ptr RESTRICT;
 
 typedef void (*vec3fCopy_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3dCopy_proc)(vec3d_ptr d, const vec3d_ptr v);
-typedef void (*vec3fMulvec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
-typedef void (*vec3dMulvec3d_proc)(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2);
+typedef void (*vec3fMulVec3f_proc)(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
+typedef void (*vec3dMulVec3d_proc)(vec3d_ptr r, const vec3d_ptr v1, const vec3d_ptr v2);
 typedef void (*vec3fAbsolute_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3dAbsolute_proc)(vec3d_ptr d, const vec3d_ptr v);
 
 extern vec3fCopy_proc vec3fCopy;
 extern vec3dCopy_proc vec3dCopy;
-extern vec3fMulvec3f_proc vec3fMulvec3;
-extern vec3dMulvec3d_proc vec3dMulvec3;
+extern vec3fMulVec3f_proc vec3fMulVec3;
+extern vec3dMulVec3d_proc vec3dMulVec3;
 extern vec3fAbsolute_proc vec3fAbsolute;
 extern vec3dAbsolute_proc vec3dAbsolute;
 
@@ -189,6 +189,7 @@ typedef float (*vec3fDotProduct_proc)(const vec3f_ptr v1, const vec3f_ptr v2);
 typedef float (*vec3fNormalize_proc)(vec3f_ptr d, const vec3f_ptr v);
 typedef void (*vec3fCrossProduct_proc)(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
 typedef float (*vec3fAltitudeSquared_proc)(const vec3f_ptr p1, const vec3f_ptr p2, const vec3f_ptr p3);
+// typedef int (*vec3fAltitudeVector_proc)(vec3f_ptr altvec, vec3f_ptr nfpvec, const vec3f_ptr fevec, mtx4d_ptr ifmtx, const vec4f_ptr fpvec, char abs);
 typedef int (*vec3fAltitudeVector_proc)(vec3f_ptr vres, const vec3f_ptr frame, const vec3f_ptr parent, const vec3f_ptr emitter, const vec3f_ptr fevec, vec3f_ptr fpvec);
 
 typedef double (*vec3dMagnitude_proc)(const vec3d_ptr v);
@@ -196,7 +197,9 @@ typedef double (*vec3dMagnitudeSquared_proc)(const vec3d_ptr v);
 typedef double (*vec3dDotProduct_proc)(const vec3d_ptr v1, const vec3d_ptr v2);
 typedef double (*vec3dNormalize_proc)(vec3d_ptr d, const vec3d_ptr v);
 typedef double (*vec3dAltitudeSquared_proc)(const vec3d_ptr p1, const vec3d_ptr p2, const vec3d_ptr p3);
+// typedef int (*vec3dAltitudeVector_proc)(vec3f_ptr altvec, vec3f_ptr nfpvec, const vec3d_ptr fevec, mtx4d_ptr ifmtx, const vec4d_ptr fpvec, char abs);
 typedef int (*vec3dAltitudeVector_proc)(vec3f_ptr vres, const vec3d_ptr frame, const vec3d_ptr parent, const vec3d_ptr emitter, const vec3d_ptr fevec, vec3f_ptr fpvec);
+
 
 extern vec3fMagnitude_proc vec3fMagnitude;
 extern vec3dMagnitude_proc vec3dMagnitude;
@@ -213,13 +216,10 @@ extern vec3fAltitudeVector_proc vec3fAltitudeVector;
 extern vec3dAltitudeVector_proc vec3dAltitudeVector;
 
 typedef void (*vec4fCopy_proc)(vec4f_ptr d, const vec4f_ptr v);
-typedef void (*vec4fMulvec4f_proc)(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
-typedef void (*vec4fMatrix4_proc)(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m);
+typedef void (*vec4fMulVec4f_proc)(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
 
 extern vec4fCopy_proc vec4fCopy;
-extern vec4fMulvec4f_proc vec4fMulvec4;
-extern vec4fMatrix4_proc vec4fMatrix4;
-extern vec4fMatrix4_proc pt4fMatrix4;
+extern vec4fMulVec4f_proc vec4fMulVec4;
 
 void vec4fFill(float d[4], float v[4]);
 void vec4fScalarMul(vec4f_ptr d, const vec4f_ptr r, float v);
@@ -227,11 +227,15 @@ void vec4fNegate(vec4f_ptr d, const vec4f_ptr v);
 
 typedef void (*mtx4fMul_proc)(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 typedef void (*mtx4dMul_proc)(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
+typedef void (*mtx4dMulVec4_proc)(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
+typedef void (*mtx4fMulVec4_proc)(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
 typedef void (*mtx4fCopy_proc)(mtx4f_ptr d, const mtx4f_ptr m);
 typedef void (*mtx4dCopy_proc)(mtx4d_ptr d, const mtx4d_ptr m);
 
 extern mtx4fMul_proc mtx4fMul;
 extern mtx4dMul_proc mtx4dMul;
+extern mtx4fMulVec4_proc mtx4fMulVec4;
+extern mtx4dMulVec4_proc mtx4dMulVec4;
 extern mtx4fCopy_proc mtx4fCopy;
 extern mtx4dCopy_proc mtx4dCopy;
 
@@ -250,16 +254,16 @@ void mtx4dRotate(mtx4d_ptr m, double angle, double x, double y, double z);
 void mtx4dInverseSimple(mtx4d_ptr d, const mtx4d_ptr m);
 
 typedef void (*vec4iCopy_proc)(vec4i_ptr d, const vec4i_ptr v);
-typedef void (*vec4iMulvec4if_proc)(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2);
+typedef void (*vec4iMulVec4if_proc)(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2);
 
 extern vec4iCopy_proc vec4iCopy;
-extern vec4iMulvec4if_proc vec4iMulvec4i;
+extern vec4iMulVec4if_proc vec4iMulVec4i;
 
 
 /* CPU implementTION */
 void _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v);
 void _vec3dCopy_cpu(vec3d_ptr d, const vec3d_ptr v);
-void _vec3fMulvec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
+void _vec3fMulVec3_cpu(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
 
 float _vec3fMagnitude_cpu(const vec3f_ptr v);
 double _vec3dMagnitude_cpu(const vec3d_ptr v);
@@ -275,14 +279,14 @@ void _vec3dAbsolute_cpu(vec3d_ptr d, const vec3d_ptr v);
 void _vec4fCopy_cpu(vec4f_ptr d, const vec4f_ptr v);
 void _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m);
 void _mtx4dCopy_cpu(mtx4d_ptr d, const mtx4d_ptr m);
-void _vec4fMulvec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
-void _vec4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr v, const mtx4f_ptr m);
-void _pt4fMatrix4_cpu(vec4f_ptr d, const vec4f_ptr p, const mtx4f_ptr m);
+void _vec4fMulVec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
 void _mtx4fMul_cpu(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2);
 void _mtx4dMul_cpu(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2);
+void _mtx4fMulVec4_cpu(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
+void _mtx4dMulVec4_cpu(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
 
 void _vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v);
-void _vec4iMulvec4i_cpu(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2);
+void _vec4iMulVec4i_cpu(vec4i_ptr r, const vec4i_ptr v1, const vec4i_ptr v2);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
