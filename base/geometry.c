@@ -734,86 +734,113 @@ _vec3fAltitudeSquared_cpu(const vec3f_ptr frame, const vec3f_ptr fpvec, const ve
 // Returns true if the fpvec and the fevec are at the same side, but
 // outside of, the bounding box.
 //
-// Since the frame should be axis-aligned end positioned at the origin
+// Since the frame should be axis-aligned, and positioned at the origin
 // at this point:
-//  - fpvec equals to the parent_frame position
-//  - fevec equals to the emitter position.
+//  - altvec is the altitude of the frame over the parent-emitter vector.
+//  - afevec is the emitter position retlative to the frame position.
+//  - fpvec is the parent_frame position retlative to the frame position.
 int
-_vec3dAltitudeVector_cpu(vec3f_ptr vres, const vec3d_ptr frame, const vec3d_ptr parent, const vec3d_ptr emitter, const vec3d_ptr fevec, vec3f_ptr fpvec)
+_vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr fmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   vec3d_t pevec, npevec, fpevec, fpepos;
+   mtx4d_t ifmtx;
+   vec4d_t pevec, fevec;
+   vec3d_t npevec, fpevec;
    double mag_pe, dot_fpe;
-   int behind;
+   int ahead;
 
-   if (!parent) {                       // parent position is at the origin
-      vec3dNegate(&pevec, emitter); // parent-emitter vector is emitter pos.
+   mtx4dInverseSimple(&ifmtx, fmtx);
+
+   pevec.v4[3] = 0.0;
+   if (!ppos) {				// parent position is at the origin
+      vec3dNegate(&pevec.v3, epos);	// parent-emitter vector is emtter pos.
    } else {
-      vec3dSub(&pevec, parent, emitter);
+      vec3dSub(&pevec.v3, ppos, epos);
    }
+   _mtx4dMulVec4_cpu(&pevec, &ifmtx, &pevec);
+
+   fevec.v4[3] = 1.0;
+   vec3dCopy(&fevec.v3, epos);
+   _mtx4dMulVec4_cpu(&fevec, &ifmtx, &fevec);
+
+   vec3fFilld(afevec->v3, fevec.v4);
+   _vec3fAbsolute_cpu(afevec, afevec);
 
    // Get the projection length of the frame-to-emitter vector on
    // the parent_frame-to-emitter unit vector.
-   mag_pe = _vec3dNormalize_cpu(&npevec, &pevec);
-   dot_fpe = _vec3dDotProduct_cpu(fevec, &npevec);
+   mag_pe = _vec3dNormalize_cpu(&npevec, &pevec.v3);
+   dot_fpe = _vec3dDotProduct_cpu(&fevec.v3, &npevec);
 
    // Scale the parent_frame-to-emitter unit vector.
    vec3dScalarMul(&fpevec, &npevec, dot_fpe);
 
-   // Get the vector from the frame position which perpendicular
-   // to the parent_frame-to-emitter vector.
-   vec3dAdd(&fpepos, emitter, &fpevec);
-   vec3dSub(&fpevec, frame, &fpepos);
-
-   vec3fFilld(vres->v3, fpevec.v3);
-   _vec3fAbsolute_cpu(vres, vres);
+   // Get the perpendicular vector from the frame position to the
+   // parent_frame-to-emitter vector (altitude).
+   vec3dSub(&fpevec, &fevec.v3, &fpevec);
+   vec3fFilld(altvec->v3, fpevec.v3);
+   _vec3fAbsolute_cpu(altvec, altvec);
 
    // Calculate the frame-parent vector which is used outside this function.
-   vec3dSub(&fpevec, fevec, &pevec);
-   vec3fFilld(fpvec->v3, fpevec.v3);
-   vec3fAbsolute(fpvec, fpvec);
+   vec3dAdd(&npevec, &fevec.v3, &pevec.v3);
+   vec3fFilld(fpvec->v3, npevec.v3);
 
    // If dot_fpe < 0.0f then the emitter is between the frame and the
    // parent-frame meaning there is a clean path to the parent-frame.
-   behind = (dot_fpe <= 0.0f || (mag_pe-dot_fpe) <= FLT_EPSILON);
+   ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
 
-#if 1
+#if 0
+ printf("   frame-parent vector: ");
+ PRINT_VEC3(fpevec);
  printf("        parent-emitter:\t");
- PRINT_VEC3(pevec);
- printf("  parent_frame-emitter:\t");
- PRINT_VEC3PTR(vres);
+ PRINT_VEC3(pevec.v3);
+ printf("              altitude:\t");
+ PRINT_VEC3PTR(altvec);
 #endif
 
-   return behind;
+   return ahead;
 }
 
 int
-_vec3fAltitudeVector_cpu(vec3f_ptr vres, const vec3f_ptr frame, const vec3f_ptr parent, const vec3f_ptr emitter, const vec3f_ptr fevec, vec3f_ptr fpvec)
+_vec3fAltitudeVector_cpu(vec3f_ptr altvec, const mtx4f_ptr fmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   vec3f_t pevec, npevec, fpevec, fpepos;
+   mtx4f_t ifmtx;
+   vec4f_t pevec, fevec;
+   vec3f_t npevec, fpevec;
    float mag_pe, dot_fpe;
-   int behind;
+   int ahead;
 
-   if (!parent) {
-      vec3fNegate(&pevec, emitter);
+   mtx4fInverseSimple(&ifmtx, fmtx);
+
+   pevec.v4[3] = 0.0;
+   if (!ppos) {
+      vec3fNegate(&pevec.v3, epos);
    } else {
-      vec3fSub(&pevec, parent, emitter);
+      vec3fSub(&pevec.v3, ppos, epos);
    }
+   _mtx4fMulVec4_cpu(&pevec, &ifmtx, &pevec);
 
-   mag_pe = _vec3fNormalize_cpu(&npevec, &pevec);
-   dot_fpe = _vec3fDotProduct_cpu(fevec, &npevec);
+   fevec.v4[3] = 1.0;
+   _vec3fCopy_cpu(&fevec.v3, epos);
+   _mtx4fMulVec4_cpu(&fevec, &ifmtx, &fevec);
+
+   _vec3fCopy_cpu(afevec, &fevec.v3);
+   _vec3fAbsolute_cpu(afevec, afevec);
+
+   mag_pe = _vec3fNormalize_cpu(&npevec, &pevec.v3);
+   dot_fpe = _vec3fDotProduct_cpu(&fevec.v3, &npevec);
 
    vec3fScalarMul(&fpevec, &npevec, dot_fpe);
 
-   vec3fAdd(&fpepos, emitter, &fpevec);
-   vec3fSub(vres, frame, &fpepos);
-   _vec3fAbsolute_cpu(vres, vres);
+   vec3fSub(&fpevec, &fevec.v3, &fpevec);
+   _vec3fCopy_cpu(altvec, &fpevec);
+   _vec3fAbsolute_cpu(altvec, altvec);
 
-   vec3fSub(fpvec, fevec, &pevec);
-   vec3fAbsolute(fpvec, fpvec);
+   vec3fAdd(&npevec, &fevec.v3, &pevec.v3);
+   _vec3fCopy_cpu(fpvec, &npevec);
 
-   behind = (dot_fpe <= 0.0f || (mag_pe-dot_fpe) <= FLT_EPSILON);
+   ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
 
-   return behind;
+   return ahead;
+
 }
 
 /* -------------------------------------------------------------------------- */

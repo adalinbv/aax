@@ -61,11 +61,11 @@ extern "C" {
 
 #define PRINT_VEC3PTR(vec) \
         printf ("% 7.6f % 7.6f % 7.6f (%7.6f)\n", \
-             vec->v3[0],vec->v3[1],vec->v3[2],vec->v3[3]);
+             vec->v3[0],vec->v3[1],vec->v3[2],_MINMAX(vec->v3[3],0,1));
 
 #define PRINT_VEC3(vec)	\
 	printf ("% 7.6f % 7.6f % 7.6f (%7.6f)\n", \
-	    vec.v3[0],vec.v3[1],vec.v3[2],vec.v3[3]);
+	    vec.v3[0],vec.v3[1],vec.v3[2],_MINMAX(vec.v3[3],0,1));
 
 #define PRINT_VECPTR(vec) \
 	printf ("% 7.6f % 7.6f % 7.6f % 7.6f\n", \
