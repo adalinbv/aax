@@ -174,7 +174,6 @@ _flt_function_tbl _aaxVolumeFilter =
 # define VEC4_T			vec4d_t
 # define MTX4_T			mtx4d_t
 # define VEC3COPY(a,b)		vec3fFilld(a.v3,b.v3)
-# define VEC3SUB(a,b,c)         vec3dSub(a,b,c)
 # define VEC3ALTITUDESQUARED(a,b,c) vec3dAltitudeSquared(a,b,c)
 # define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3dAltitudeVector(a,b,c,d,e,f)
 #endif
@@ -289,8 +288,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
       if (!occlusion) occlusion = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
       if (occlusion)
       {
-         VEC3_T fevec;
-         vec3f_t vres, vec;
+         vec3f_t afevec, altvec, fpvec;
          _aaxRingBufferOcclusionData *path = occlusion;
          _aaxDelayed3dProps *ndp3d_m;
          _aax3dProps *nfp3d;
@@ -299,11 +297,6 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          nfp3d = fp3d->parent;
          assert(nfp3d->m_dprops3d == pdp3d_m);
 
-         // Calculate the frame-to-emitter vector.
-         // fdp3d_m specifies the absolute position of the frame
-         // where, by definition, the sound obstruction is located.
-         VEC3SUB(&fevec, &fdp3d_m->matrix.v34[LOCATION],
-                         &edp3d_m->matrix.v34[LOCATION]);
          hit = 0;
          occlusion->level = 0.0f;
          do
@@ -315,28 +308,25 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
             // factor larger than zero then process it.
             if (path && (density > 0.01f))
             {
-               VEC3_T *e, *f, *p;
-               float alt_fpe2;
-               int behind;
+               MTX4_T *f;
+               VEC3_T *e, *p;
+               int ahead;
 
                ndp3d_m = nfp3d->m_dprops3d;
                p = (nfp3d==nfp3d->root) ? NULL : &ndp3d_m->matrix.v34[LOCATION];
-               f = &fdp3d_m->matrix.v34[LOCATION];
                e = &edp3d_m->matrix.v34[LOCATION];
-
-               // Calculate the parent_frame-to-emitter unit vector.
-               // ndp3d_m specifies the absolute position of the parent.
-               // edp3d_m specifies the absolute position of the emitter.
-#if 1
-               alt_fpe2 = VEC3ALTITUDESQUARED(f, p, e);
-printf("alt_fpe sq.: %f (%f), dim. mag. sq.: %f\n", alt_fpe2, sqrtf(alt_fpe2), occlusion->magnitude_sq);
+               f = &fdp3d_m->matrix;
+#if 0
+ printf("#   frame:\t\t\tparent:\n");
+ PRINT_MATRICES(fdp3d_m->matrix, ndp3d_m->matrix);
+ printf("# emitter:\n");
+ PRINT_MATRIX(edp3d_m->matrix);
 #endif
-
-               behind = VEC3ALTITUDEVECTOR(&vres, f, p, e, &fevec, &vec);
 
                // hit is true when the direct path does interstect
                // with the defined obstruction/cavity.
-               hit = vec3fLessThan(&vres, &path->occlusion.v3);
+               ahead = VEC3ALTITUDEVECTOR(&altvec, f, p, e, &afevec, &fpvec);
+               hit = vec3fLessThan(&altvec, &path->occlusion.v3);
                if (hit)
                {
                   // In case path->inverse is true the real obstruction is
@@ -344,16 +334,14 @@ printf("alt_fpe sq.: %f (%f), dim. mag. sq.: %f\n", alt_fpe2, sqrtf(alt_fpe2), o
                   if (path->inverse)
                   {
                      // Is the emitter inside the cavity?
-                     VEC3COPY(vec, fevec);
-                     vec3fAbsolute(&vec, &vec);
-                     hit = vec3fLessThan(&vec, &path->occlusion.v3);
+                     hit = vec3fLessThan(&fpvec, &path->occlusion.v3);
                      if (hit) {
-                        hit = vec3fLessThan(&vec, &path->occlusion.v3);
+                        hit = vec3fLessThan(&afevec, &path->occlusion.v3);
                      }
                      hit = !hit;
                   }
-                  else if (behind) {
-                     hit = vec3fLessThan(&vec, &path->occlusion.v3);
+                  else if (ahead) {
+                     hit = vec3fLessThan(&fpvec, &path->occlusion.v3);
                   }
                }
                else if (path->inverse) {
@@ -365,22 +353,22 @@ printf("alt_fpe sq.: %f (%f), dim. mag. sq.: %f\n", alt_fpe2, sqrtf(alt_fpe2), o
                   float level, mag;
 
                   mag = sqrtf(path->magnitude_sq); // path->magnitude*100.0f/vs;
-                  level = 1.0f - _MIN(vec3fMagnitude(&vres)/mag, 1.0f);
+                  level = 1.0f - _MIN(vec3fMagnitude(&altvec)/mag, 1.0f);
                   if (path->inverse) level = _MIN(1.0f/level, 1.0f);
 
                   level *= density;
                   if (level > occlusion->level) {
                      occlusion->level = level;
                   }
-#if 0
+#if 1
                   if (occlusion->level > (1.0f-LEVEL_64DB)) break;
                }
             }
 #else
                }
- printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
- printf("\nobstruction dimensions:\t");
+ printf("obstruction dimensions:\t");
  PRINT_VEC3(path->occlusion.v3);
+ printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
