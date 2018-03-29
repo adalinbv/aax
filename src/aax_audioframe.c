@@ -269,7 +269,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 
       if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
 #ifdef ARCH32
-         mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+         mtx4fInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
 #else
          mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
 #endif
@@ -757,7 +757,7 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
 
                if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
 #ifdef ARCH32
-                  mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+                  mtx4fInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
 #else
                   mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
 #endif
