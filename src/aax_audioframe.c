@@ -267,6 +267,15 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
       }
       _PROP_MTX_SET_CHANGED(fp3d);
 
+      if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
+#ifdef ARCH32
+         mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+#else
+         mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+#endif
+
+      }
+
       if (_IS_RELATIVE(fp3d))
       {
          _frame_t *parent = handle->parent;
@@ -341,7 +350,6 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
       _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
 
       vec3fFill(fdp3d->velocity.m4[VELOCITY], velocity);
-      fdp3d->velocity.m4[LOCATION][3] = 0.0f;
       if (_IS_RELATIVE(fp3d) &&
           handle->parent && (handle->parent == handle->root))
       {
@@ -735,9 +743,24 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
             _TAS_RELATIVE(fp3d, m);
             if (_IS_RELATIVE(fp3d))
             {
-               if (handle->parent && (handle->parent == handle->root)) {
-                  fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
-                  fp3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
+               _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
+               if (handle->parent && (handle->parent == handle->root))
+               {
+                  fdp3d->matrix.m4[LOCATION][3] = 0.0;
+                  fdp3d->velocity.m4[LOCATION][3] = 0.0;
+               }
+               else
+               {
+                  fdp3d->matrix.m4[LOCATION][3] = 1.0;
+                  fdp3d->velocity.m4[LOCATION][3] = 1.0;
+               }
+
+               if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
+#ifdef ARCH32
+                  mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+#else
+                  mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+#endif
                }
             }
          }

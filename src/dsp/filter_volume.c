@@ -315,7 +315,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                ndp3d_m = nfp3d->m_dprops3d;
                p = (nfp3d==nfp3d->root) ? NULL : &ndp3d_m->matrix.v34[LOCATION];
                e = &edp3d_m->matrix.v34[LOCATION];
-               f = &fdp3d_m->matrix;
+               f = &fdp3d_m->imatrix;
 #if 0
  printf("#   frame:\t\t\tparent:\n");
  PRINT_MATRICES(fdp3d_m->matrix, ndp3d_m->matrix);
