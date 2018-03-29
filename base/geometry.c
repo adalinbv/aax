@@ -740,15 +740,12 @@ _vec3fAltitudeSquared_cpu(const vec3f_ptr frame, const vec3f_ptr fpvec, const ve
 //  - afevec is the emitter position retlative to the frame position.
 //  - fpvec is the parent_frame position retlative to the frame position.
 int
-_vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr fmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
+_vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   mtx4d_t ifmtx;
    vec4d_t pevec, fevec;
    vec3d_t npevec, fpevec;
    double mag_pe, dot_fpe;
    int ahead;
-
-   mtx4dInverseSimple(&ifmtx, fmtx);
 
    pevec.v4[3] = 0.0;
    if (!ppos) {				// parent position is at the origin
@@ -756,11 +753,11 @@ _vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr fmtx, const vec3d_ptr
    } else {
       vec3dSub(&pevec.v3, ppos, epos);
    }
-   _mtx4dMulVec4_cpu(&pevec, &ifmtx, &pevec);
+   _mtx4dMulVec4_cpu(&pevec, ifmtx, &pevec);
 
    fevec.v4[3] = 1.0;
    vec3dCopy(&fevec.v3, epos);
-   _mtx4dMulVec4_cpu(&fevec, &ifmtx, &fevec);
+   _mtx4dMulVec4_cpu(&fevec, ifmtx, &fevec);
 
    vec3fFilld(afevec->v3, fevec.v4);
    _vec3fAbsolute_cpu(afevec, afevec);
@@ -800,15 +797,12 @@ _vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr fmtx, const vec3d_ptr
 }
 
 int
-_vec3fAltitudeVector_cpu(vec3f_ptr altvec, const mtx4f_ptr fmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
+_vec3fAltitudeVector_cpu(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   mtx4f_t ifmtx;
    vec4f_t pevec, fevec;
    vec3f_t npevec, fpevec;
    float mag_pe, dot_fpe;
    int ahead;
-
-   mtx4fInverseSimple(&ifmtx, fmtx);
 
    pevec.v4[3] = 0.0;
    if (!ppos) {
@@ -816,11 +810,11 @@ _vec3fAltitudeVector_cpu(vec3f_ptr altvec, const mtx4f_ptr fmtx, const vec3f_ptr
    } else {
       vec3fSub(&pevec.v3, ppos, epos);
    }
-   _mtx4fMulVec4_cpu(&pevec, &ifmtx, &pevec);
+   _mtx4fMulVec4_cpu(&pevec, ifmtx, &pevec);
 
    fevec.v4[3] = 1.0;
    _vec3fCopy_cpu(&fevec.v3, epos);
-   _mtx4fMulVec4_cpu(&fevec, &ifmtx, &fevec);
+   _mtx4fMulVec4_cpu(&fevec, ifmtx, &fevec);
 
    _vec3fCopy_cpu(afevec, &fevec.v3);
    _vec3fAbsolute_cpu(afevec, afevec);

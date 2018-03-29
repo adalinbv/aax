@@ -1130,6 +1130,9 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                if (_IS_RELATIVE(ep3d)) {
                   ep3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
                   ep3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
+               } else {
+                  ep3d->dprops3d->matrix.m4[LOCATION][3] = 1.0;
+                  ep3d->dprops3d->velocity.m4[LOCATION][3] = 1.0;
                }
 
                if (positional)
@@ -1279,16 +1282,29 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                if (dptr)
                {
                   _sensor_t *sensor = _intBufGetDataPtr(dptr);
+                  _aaxDelayed3dProps *fdp3d;
                   smixer = sensor->mixer;
                   fmixer = frame->submix;
 
                   mp3d = smixer->props3d;
                   fp3d = fmixer->props3d;
+                  fdp3d = fp3d->dprops3d;
                   fp3d->parent = mp3d;
 
                   if (_IS_RELATIVE(fp3d)) {
-                     fp3d->dprops3d->matrix.m4[LOCATION][3] = 0.0;
-                     fp3d->dprops3d->velocity.m4[LOCATION][3] = 0.0;
+                     fdp3d->matrix.m4[LOCATION][3] = 0.0;
+                     fdp3d->velocity.m4[LOCATION][3] = 0.0;
+                  } else {
+                     fdp3d->matrix.m4[LOCATION][3] = 1.0;
+                     fdp3d->velocity.m4[LOCATION][3] = 1.0;
+                  }
+
+                  if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
+#ifdef ARCH32
+                     mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+#else
+                     mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
+#endif
                   }
 
                   fmixer->info->period_rate = smixer->info->period_rate;
