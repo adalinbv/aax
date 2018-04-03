@@ -80,11 +80,17 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          } else {
             mtx4fMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
          }
+         if (_PROP3D_OCCLUSION_IS_DEFINED(fdp3d_m)) {
+            mtx4fInverseSimple(&fdp3d_m->imatrix, &fdp3d_m->matrix);
+         }
 #else
          if (_IS_RELATIVE(fp3d)) {
             mtx4dMul(&fdp3d_m->matrix, &pdp3d_m->matrix, &fdp3d->matrix);
          } else {
             mtx4dMul(&fdp3d_m->matrix, &sdp3d_m->matrix, &fdp3d->matrix);
+         }
+         if (_PROP3D_OCCLUSION_IS_DEFINED(fdp3d_m)) {
+            mtx4dInverseSimple(&fdp3d_m->imatrix, &fdp3d_m->matrix);
          }
 #endif
          _PROP3D_MTX_SET_CHANGED(fdp3d_m);

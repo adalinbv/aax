@@ -1299,14 +1299,6 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                      fdp3d->velocity.m4[LOCATION][3] = 1.0;
                   }
 
-                  if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
-#ifdef ARCH32
-                     mtx4fInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
-#else
-                     mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
-#endif
-                  }
-
                   fmixer->info->period_rate = smixer->info->period_rate;
                   fmixer->info->refresh_rate = smixer->info->refresh_rate;
                   fmixer->info->update_rate = smixer->info->update_rate;
