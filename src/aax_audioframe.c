@@ -267,15 +267,6 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
       }
       _PROP_MTX_SET_CHANGED(fp3d);
 
-      if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
-#ifdef ARCH32
-         mtx4fInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
-#else
-         mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
-#endif
-
-      }
-
       if (_IS_RELATIVE(fp3d))
       {
          _frame_t *parent = handle->parent;
@@ -570,6 +561,9 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
          _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
          _FILTER_COPY_DATA(p3d, p2d, type);
+         if (_FILTER_GET_DATA(p3d, type)) {
+            _PROP_OCCLUSION_SET_DEFINED(handle->submix->props3d);
+         }
          break;
       }
       default:
@@ -673,8 +667,10 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
 
          reverb = _EFFECT_GET_DATA(p2d, type);
-         if (reverb) {
+         if (reverb)
+         {
             _EFFECT_SET_DATA(p3d, type, reverb->occlusion);
+            _PROP_OCCLUSION_SET_DEFINED(handle->submix->props3d);
          }
          break;
       }
@@ -753,14 +749,6 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
                {
                   fdp3d->matrix.m4[LOCATION][3] = 1.0;
                   fdp3d->velocity.m4[LOCATION][3] = 1.0;
-               }
-
-               if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
-#ifdef ARCH32
-                  mtx4fInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
-#else
-                  mtx4dInverseSimple(&fdp3d->imatrix, &fdp3d->matrix);
-#endif
                }
             }
          }
