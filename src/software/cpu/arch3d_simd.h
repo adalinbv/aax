@@ -61,10 +61,12 @@ void _vec4fCopy_sse(vec4f_ptr d, const vec4f_ptr v);
 void _vec4fMulVec4_sse(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
 void _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
+int _vec3fAltitudeVector_sse(vec3f_ptr vres, const mtx4f_ptr ifmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr fevec, vec3f_ptr fpvec);
 
 /* SSE2 */
 void _mtx4dMul_sse2(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMulVec4_sse2(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
+int _vec3dAltitudeVector_sse2(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec);
 
 /* SSE3 */
 float _vec3fMagnitude_sse3(const vec3f_ptr v);
@@ -89,11 +91,13 @@ void _mtx4fMul_sse_vex(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2);
 void _mtx4dMul_sse_vex(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4fMulVec4_sse_vex(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
 void _mtx4dMulVec4_sse_vex(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
+int _vec3fAltitudeVector_sse_vex(vec3f_ptr vres, const mtx4f_ptr ifmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr fevec, vec3f_ptr fpvec);
+int _vec3dAltitudeVector_sse_vex(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec);
 
 /* AVX */
 void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMulVec4_avx(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
-
+int _vec3dAltitudeVector_avx(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec);
 
 /* VFPV2 */
 void _vec3fNegate_vfpv2(vec3f_ptr d, const vec3f_ptr v);

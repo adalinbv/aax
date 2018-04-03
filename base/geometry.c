@@ -95,6 +95,12 @@ _vec4fCopy_cpu(vec4f_ptr d, const vec4f_ptr v)
 }
 
 void
+_vec4dCopy_cpu(vec4d_ptr d, const vec4d_ptr v)
+{
+   memcpy(d->v4, v->v4, sizeof(vec4d_t));
+}
+
+void
 _vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v)
 {
    memcpy(d->v4, v->v4, sizeof(vec4i_t));
@@ -862,6 +868,7 @@ vec3fAltitudeVector_proc vec3fAltitudeVector = _vec3fAltitudeVector_cpu;
 vec3dAltitudeVector_proc vec3dAltitudeVector = _vec3dAltitudeVector_cpu;
 
 vec4fCopy_proc vec4fCopy = _vec4fCopy_cpu;
+vec4dCopy_proc vec4dCopy = _vec4dCopy_cpu;
 mtx4fCopy_proc mtx4fCopy = _mtx4fCopy_cpu;
 mtx4dCopy_proc mtx4dCopy = _mtx4dCopy_cpu;
 vec4fMulVec4f_proc vec4fMulVec4 = _vec4fMulVec4_cpu;

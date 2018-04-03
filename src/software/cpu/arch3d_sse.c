@@ -114,15 +114,57 @@ _mtx4fMul_sse(mtx4f_ptr d, const mtx4f_ptr m1, const mtx4f_ptr m2)
 }
 
 FN_PREALIGN void
-_mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
+_mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr vi)
 {
+   vec4f_t v;
    int i;
 
-   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(v->v4[0]));
+   vec4fCopy(&v, vi);
+   d->s4 = _mm_mul_ps(m->s4x4[0], _mm_set1_ps(v.v4[0]));
    for (i=1; i<4; ++i) {
-      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(v->v4[i]));
+      __m128 row = _mm_mul_ps(m->s4x4[i], _mm_set1_ps(v.v4[i]));
       d->s4 = _mm_add_ps(d->s4, row);
    }
+}
+
+FN_PREALIGN int
+_vec3fAltitudeVector_sse(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
+{
+   vec4f_t pevec, fevec;
+   vec3f_t npevec, fpevec;
+   float mag_pe, dot_fpe;
+   int ahead;
+
+   pevec.v4[3] = 0.0;
+   if (!ppos) {
+      vec3fNegate(&pevec.v3, epos);
+   } else {
+      vec3fSub(&pevec.v3, ppos, epos);
+   }
+   _mtx4fMulVec4_sse(&pevec, ifmtx, &pevec);
+
+   fevec.v4[3] = 1.0;
+   _vec3fCopy_cpu(&fevec.v3, epos);
+   _mtx4fMulVec4_sse(&fevec, ifmtx, &fevec);
+
+   _vec3fCopy_cpu(afevec, &fevec.v3);
+   _vec3fAbsolute_sse(afevec, afevec);
+
+   mag_pe = _vec3fNormalize_cpu(&npevec, &pevec.v3);
+   dot_fpe = _vec3fDotProduct_sse(&fevec.v3, &npevec);
+
+   vec3fScalarMul(&fpevec, &npevec, dot_fpe);
+
+   vec3fSub(&fpevec, &fevec.v3, &fpevec);
+   _vec3fCopy_cpu(altvec, &fpevec);
+   _vec3fAbsolute_sse(altvec, altvec);
+
+   vec3fAdd(&npevec, &fevec.v3, &pevec.v3);
+   _vec3fCopy_cpu(fpvec, &npevec);
+
+   ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
+
+   return ahead;
 }
 
 #else
