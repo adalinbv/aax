@@ -214,9 +214,11 @@ extern vec3fAltitudeVector_proc vec3fAltitudeVector;
 extern vec3dAltitudeVector_proc vec3dAltitudeVector;
 
 typedef void (*vec4fCopy_proc)(vec4f_ptr d, const vec4f_ptr v);
+typedef void (*vec4dCopy_proc)(vec4d_ptr d, const vec4d_ptr v);
 typedef void (*vec4fMulVec4f_proc)(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
 
 extern vec4fCopy_proc vec4fCopy;
+extern vec4dCopy_proc vec4dCopy;
 extern vec4fMulVec4f_proc vec4fMulVec4;
 
 void vec4fFill(float d[4], float v[4]);
@@ -275,6 +277,7 @@ void _vec3fAbsolute_cpu(vec3f_ptr d, const vec3f_ptr v);
 void _vec3dAbsolute_cpu(vec3d_ptr d, const vec3d_ptr v);
 
 void _vec4fCopy_cpu(vec4f_ptr d, const vec4f_ptr v);
+void _vec4dCopy_cpu(vec4d_ptr d, const vec4d_ptr v);
 void _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m);
 void _mtx4dCopy_cpu(mtx4d_ptr d, const mtx4d_ptr m);
 void _vec4fMulVec4_cpu(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);

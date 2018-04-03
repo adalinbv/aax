@@ -11,6 +11,7 @@
 #include <base/timer.h>
 #include <base/types.h>
 #include <base/geometry.h>
+#include <base/logging.h>
 #include <src/software/cpu/arch3d_simd.h>
 
 // _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;

@@ -317,8 +317,8 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                e = &edp3d_m->matrix.v34[LOCATION];
                f = &fdp3d_m->imatrix;
 #if 0
- printf("#   frame:\t\t\tparent:\n");
- PRINT_MATRICES(fdp3d_m->matrix, ndp3d_m->matrix);
+ printf("#   inverse frame:\t\tparent:\n");
+ PRINT_MATRICES(fdp3d_m->imatrix, ndp3d_m->matrix);
  printf("# emitter:\n");
  PRINT_MATRIX(edp3d_m->matrix);
 #endif
@@ -334,9 +334,9 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                   if (path->inverse)
                   {
                      // Is the emitter inside the cavity?
-                     hit = vec3fLessThan(&fpvec, &path->occlusion.v3);
+                     hit = vec3fLessThan(&afevec, &path->occlusion.v3);
                      if (hit) {
-                        hit = vec3fLessThan(&afevec, &path->occlusion.v3);
+                        hit = vec3fLessThan(&fpvec, &path->occlusion.v3);
                      }
                      hit = !hit;
                   }

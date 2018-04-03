@@ -29,6 +29,33 @@
 
 #ifdef __AVX__
 
+static inline FN_PREALIGN __m256d
+load_vec3d(const vec3d_ptr v)
+{
+   static ALIGN32 const uint64_t m3a64[] ALIGN32C = {
+        0xffffffffffffffff,0xffffffffffffffff,0xffffffffffffffff,0
+   };
+   return _mm256_and_pd(v->s4.avx, _mm256_load_pd((const double*)m3a64));
+}
+
+// http://berenger.eu/blog/sseavxsimd-horizontal-sum-sum-simd-vector-intrinsic/
+static inline FN_PREALIGN double
+hsum_pd_avx(__m256d v) {
+    const __m128d valupper = _mm256_extractf128_pd(v, 1);
+    const __m128d vallower = _mm256_castpd256_pd128(v);
+    _mm256_zeroupper();
+    const __m128d valval = _mm_add_pd(valupper, vallower);
+    const __m128d sums = _mm_add_pd(_mm_permute_pd(valval,1), valval);
+    return _mm_cvtsd_f64(sums);
+}
+
+FN_PREALIGN float
+_vec3dDotProduct_avx(const vec3d_ptr v1, const vec3d_ptr v2)
+{
+   return hsum_pd_avx(_mm256_mul_pd(load_vec3d(v1), load_vec3d(v2)));
+}
+
+
 FN_PREALIGN void
 _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 {
@@ -46,17 +73,59 @@ _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
 }
 
 FN_PREALIGN void
-_mtx4dMulVec4_avx(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v)
+_mtx4dMulVec4_avx(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr vi)
 {
+   vec4d_t v;
    int i;
 
-   d->s4.avx = _mm256_mul_pd(m->s4x4[0].avx, _mm256_set1_pd(v->v4[0]));
+   vec4dCopy(&v, vi);
+   d->s4.avx = _mm256_mul_pd(m->s4x4[0].avx, _mm256_set1_pd(v.v4[0]));
    for (i=1; i<4; ++i) {
-      __m256d row = _mm256_mul_pd(m->s4x4[i].avx, _mm256_set1_pd(v->v4[i]));
+      __m256d row = _mm256_mul_pd(m->s4x4[i].avx, _mm256_set1_pd(v.v4[i]));
       d->s4.avx = _mm256_add_pd(d->s4.avx, row);
    }
 }
 
+FN_PREALIGN int
+_vec3dAltitudeVector_avx(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
+{
+   vec4d_t pevec, fevec;
+   vec3d_t npevec, fpevec;
+   double mag_pe, dot_fpe;
+   int ahead;
+
+   pevec.v4[3] = 0.0;
+   if (!ppos) {
+      vec3dNegate(&pevec.v3, epos);
+   } else {
+      vec3dSub(&pevec.v3, ppos, epos);
+   }
+   _mtx4dMulVec4_avx(&pevec, ifmtx, &pevec);
+
+   fevec.v4[3] = 1.0;
+   vec3dCopy(&fevec.v3, epos);
+   _mtx4dMulVec4_avx(&fevec, ifmtx, &fevec);
+
+   mag_pe = _vec3dNormalize_cpu(&npevec, &pevec.v3);
+   dot_fpe = _vec3dDotProduct_avx(&fevec.v3, &npevec);
+   _mm256_zeroupper();
+
+   vec3fFilld(afevec->v3, fevec.v4);
+   _vec3fAbsolute_sse_vex(afevec, afevec);
+
+   vec3dScalarMul(&fpevec, &npevec, dot_fpe);
+
+   vec3dSub(&fpevec, &fevec.v3, &fpevec);
+   vec3fFilld(altvec->v3, fpevec.v3);
+   _vec3fAbsolute_sse_vex(altvec, altvec);
+
+   vec3dAdd(&npevec, &fevec.v3, &pevec.v3);
+   vec3fFilld(fpvec->v3, npevec.v3);
+
+   ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
+
+   return ahead;
+}
 
 #else
 typedef int make_iso_compilers_happy;
