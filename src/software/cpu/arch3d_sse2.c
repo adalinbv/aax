@@ -85,6 +85,36 @@ _vec3dScalarMul_sse2(vec3d_ptr d, const vec3d_ptr r, float f) {
    d->s4.sse[1] = _mm_mul_pd(r->s4.sse[1], _mm_set1_pd(f));
 }
 
+FN_PREALIGN double
+_vec3dMagnitudeSquared_sse2(const vec3d_ptr v) {
+   __m128d v3[2], mv[2];
+
+   v3[0] = load_vec3d0(v);
+   v3[1] = load_vec3d1(v);
+   mv[0] = _mm_mul_pd(v3[0], v3[0]);
+   mv[1] = _mm_mul_pd(v3[1], v3[1]);
+   return hsum_pd_sse(mv);
+}
+
+FN_PREALIGN double
+_vec3dMagnitude_sse2(const vec3d_ptr v) {
+   return sqrt(_vec3dMagnitudeSquared_sse2(v));
+}
+
+double
+_vec3dNormalize_sse2(vec3d_ptr d, const vec3d_ptr v)
+{
+   double mag = vec3dMagnitude(v);
+   if (mag) {
+      __m128d div = _mm_set1_pd(1.0/mag);
+      d->s4.sse[0] = _mm_mul_pd(v->s4.sse[0], div);
+      d->s4.sse[1] = _mm_mul_pd(v->s4.sse[1], div);
+   } else {
+      d->s4.sse[0] = d->s4.sse[1] = _mm_set1_pd(0.0);
+   }
+   return mag;
+}
+
 FN_PREALIGN float
 _vec3dDotProduct_sse2(const vec3d_ptr v1, const vec3d_ptr v2)
 {
@@ -154,7 +184,7 @@ _vec3dAltitudeVector_sse2(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_p
    fevec.v4[3] = 1.0;
    _mtx4dMulVec4_sse2(&fevec, ifmtx, &fevec);
 
-   mag_pe = _vec3dNormalize_cpu(&npevec, &pevec.v3);
+   mag_pe = _vec3dNormalize_sse2(&npevec, &pevec.v3);
    dot_fpe = _vec3dDotProduct_sse2(&fevec.v3, &npevec);
 
    vec3fFilld(afevec->v3, fevec.v4);
