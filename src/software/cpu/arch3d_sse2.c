@@ -55,6 +55,36 @@ hsum_pd_sse(const __m128d vd[2]) {
             _mm_cvtsd_f64(_mm_add_sd(vd[1], shuf2));
 }
 
+FN_PREALIGN void
+_vec3dCopy_sse2(vec3d_ptr d, const vec3d_ptr v) {
+   d->s4.sse[0] = v->s4.sse[0];
+   d->s4.sse[1] = v->s4.sse[1];
+}
+
+FN_PREALIGN void
+_vec3dNegate_sse2(vec3d_ptr d, const vec3d_ptr v) {
+   d->s4.sse[0] = _mm_xor_pd(v->s4.sse[0], _mm_set1_pd(-0.0));
+   d->s4.sse[1] = _mm_xor_pd(v->s4.sse[1], _mm_set1_pd(-0.0));
+}
+
+FN_PREALIGN void
+_vec3dAdd_sse2(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
+   d->s4.sse[0] = _mm_add_pd(v1->s4.sse[0], v2->s4.sse[0]);
+   d->s4.sse[1] = _mm_add_pd(v1->s4.sse[1], v2->s4.sse[1]);
+}
+
+FN_PREALIGN void
+_vec3dSub_sse2(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
+   d->s4.sse[0] = _mm_sub_pd(v1->s4.sse[0], v2->s4.sse[0]);
+   d->s4.sse[1] = _mm_sub_pd(v1->s4.sse[1], v2->s4.sse[1]);
+}
+
+FN_PREALIGN void
+_vec3dScalarMul_sse2(vec3d_ptr d, const vec3d_ptr r, float f) {
+   d->s4.sse[0] = _mm_mul_pd(r->s4.sse[0], _mm_set1_pd(f));
+   d->s4.sse[1] = _mm_mul_pd(r->s4.sse[1], _mm_set1_pd(f));
+}
+
 FN_PREALIGN float
 _vec3dDotProduct_sse2(const vec3d_ptr v1, const vec3d_ptr v2)
 {
@@ -112,31 +142,31 @@ _vec3dAltitudeVector_sse2(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_p
    double mag_pe, dot_fpe;
    int ahead;
 
-   pevec.v4[3] = 0.0;
    if (!ppos) {
-      vec3dNegate(&pevec.v3, epos);
+      _vec3dNegate_sse2(&pevec.v3, epos);
    } else {
-      vec3dSub(&pevec.v3, ppos, epos);
+      _vec3dSub_sse2(&pevec.v3, ppos, epos);
    }
+   pevec.v4[3] = 0.0;
    _mtx4dMulVec4_sse2(&pevec, ifmtx, &pevec);
 
+   _vec3dCopy_sse2(&fevec.v3, epos);
    fevec.v4[3] = 1.0;
-   vec3dCopy(&fevec.v3, epos);
    _mtx4dMulVec4_sse2(&fevec, ifmtx, &fevec);
-
-   vec3fFilld(afevec->v3, fevec.v4);
-   _vec3fAbsolute_sse(afevec, afevec);
 
    mag_pe = _vec3dNormalize_cpu(&npevec, &pevec.v3);
    dot_fpe = _vec3dDotProduct_sse2(&fevec.v3, &npevec);
 
-   vec3dScalarMul(&fpevec, &npevec, dot_fpe);
+   vec3fFilld(afevec->v3, fevec.v4);
+   _vec3fAbsolute_sse(afevec, afevec);
 
-   vec3dSub(&fpevec, &fevec.v3, &fpevec);
+   _vec3dScalarMul_sse2(&fpevec, &npevec, dot_fpe);
+
+   _vec3dSub_sse2(&fpevec, &fevec.v3, &fpevec);
    vec3fFilld(altvec->v3, fpevec.v3);
    _vec3fAbsolute_sse(altvec, altvec);
 
-   vec3dAdd(&npevec, &fevec.v3, &pevec.v3);
+   _vec3dAdd_sse2(&npevec, &fevec.v3, &pevec.v3);
    vec3fFilld(fpvec->v3, npevec.v3);
 
    ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);

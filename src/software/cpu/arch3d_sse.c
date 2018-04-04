@@ -47,6 +47,31 @@ hsum_ps_sse(__m128 v) {
    return _mm_cvtss_f32(sums);
 }
 
+FN_PREALIGN void
+_vec3fCopy_sse(vec3f_ptr d, const vec3f_ptr v) {
+   d->s4 = v->s4;
+}
+
+FN_PREALIGN void
+_vec3fNegate_sse(vec3f_ptr d, const vec3f_ptr v) {
+   d->s4 = _mm_xor_ps(v->s4, _mm_set1_ps(-0.0));
+}
+
+FN_PREALIGN void
+_vec3fAdd_sse(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
+   d->s4 = _mm_add_ps(v1->s4, v2->s4);
+}
+
+FN_PREALIGN void
+_vec3fSub_sse(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
+   d->s4 = _mm_sub_ps(v1->s4, v2->s4);
+}
+
+FN_PREALIGN void
+_vec3fScalarMul_sse(vec3f_ptr d, const vec3f_ptr r, float f) {
+   d->s4 = _mm_mul_ps(r->s4, _mm_set1_ps(f));
+}
+
 FN_PREALIGN float
 _vec3fMagnitudeSquared_sse(const vec3f_ptr v3)
 {
@@ -135,32 +160,30 @@ _vec3fAltitudeVector_sse(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_pt
    float mag_pe, dot_fpe;
    int ahead;
 
-   pevec.v4[3] = 0.0;
    if (!ppos) {
-      vec3fNegate(&pevec.v3, epos);
+      _vec3fNegate_sse(&pevec.v3, epos);
    } else {
-      vec3fSub(&pevec.v3, ppos, epos);
+      _vec3fSub_sse(&pevec.v3, ppos, epos);
    }
+   pevec.v4[3] = 0.0;
    _mtx4fMulVec4_sse(&pevec, ifmtx, &pevec);
 
+   _vec3fCopy_sse(&fevec.v3, epos);
    fevec.v4[3] = 1.0;
-   _vec3fCopy_cpu(&fevec.v3, epos);
    _mtx4fMulVec4_sse(&fevec, ifmtx, &fevec);
-
-   _vec3fCopy_cpu(afevec, &fevec.v3);
-   _vec3fAbsolute_sse(afevec, afevec);
 
    mag_pe = _vec3fNormalize_cpu(&npevec, &pevec.v3);
    dot_fpe = _vec3fDotProduct_sse(&fevec.v3, &npevec);
 
+   _vec3fCopy_sse(afevec, &fevec.v3);
+   _vec3fAbsolute_sse(afevec, afevec);
+
    vec3fScalarMul(&fpevec, &npevec, dot_fpe);
 
-   vec3fSub(&fpevec, &fevec.v3, &fpevec);
-   _vec3fCopy_cpu(altvec, &fpevec);
+   _vec3fSub_sse(altvec, &fevec.v3, &fpevec);
    _vec3fAbsolute_sse(altvec, altvec);
 
-   vec3fAdd(&npevec, &fevec.v3, &pevec.v3);
-   _vec3fCopy_cpu(fpvec, &npevec);
+   _vec3fAdd_sse(fpvec, &fevec.v3, &pevec.v3);
 
    ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
 
