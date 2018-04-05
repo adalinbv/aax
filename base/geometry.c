@@ -795,10 +795,6 @@ _vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
  PRINT_VEC3(fevec.v3);
  printf("        parent-emitter:\t");
  PRINT_VEC3(pevec.v3);
- printf("   frame-parent vector: ");
- PRINT_VEC3(npevec);
- printf("              altitude:\t");
- PRINT_VEC3PTR(altvec);
 #endif
 
    return ahead;

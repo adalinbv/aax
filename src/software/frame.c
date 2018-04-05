@@ -325,7 +325,6 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                      _intBuffers *hf, unsigned int pos, float ssv, float sdf,
                      const _aaxDriverBackend *be, void *be_handle, char batched)
 {
-   _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
    char process = AAX_FALSE;
    _intBufferData *dptr;
 
@@ -335,10 +334,11 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       _aaxRingBuffer *frame_rb = fmixer->ringbuffer;
       _frame_t* subframe = _intBufGetDataPtr(dptr);
       _aaxAudioFrame *sfmixer = subframe->submix;
+      _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
       _aaxDelayed3dProps sfdp3d, *sfdp3d_m;
       _aax2dProps sfp2d;
       _aax3dProps sfp3d;
-      char mono;
+      char mono, indoor;
       int res;
 
       _aaxAudioFrameProcessDelayQueue(sfmixer);
@@ -354,6 +354,9 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       }
       sfp3d.root = fp3d->root;
       sfp3d.parent = fp3d;
+
+      mono = _PROP3D_MONO_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
+      indoor = _PROP3D_INDOOR_IS_DEFINED(sfdp3d_m) ? AAX_TRUE : AAX_FALSE;
 
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
@@ -372,7 +375,6 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
        * frames render in the ringbuffer of their parent and mix with
        * dest_rb, this could potentialy save a lot of ringbuffers
        */
-      mono = _PROP3D_MONO_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
       res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
                                   &sfp2d, &sfp3d, &sfdp3d,
                                   be, be_handle, AAX_TRUE, batched, mono);
@@ -381,14 +383,13 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       /* if the subframe actually did render something, mix the data */
       if (res)
       {
-         char dde, indoor;
+         char dde;
 
          dde = _EFFECT_GET2D_DATA(sfmixer, DELAY_EFFECT) ? AAX_TRUE : AAX_FALSE;
          fmixer->ringbuffer = _aaxAudioFrameSwapBuffers(frame_rb,
                                               sfmixer->frame_ringbuffers, dde);
 
          /* finally mix the data with dest_rb */
-         indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
          if (indoor && !mono)
          {
             vec3f_t tmp;
