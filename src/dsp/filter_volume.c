@@ -366,7 +366,8 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
             }
 #else
                }
- printf("   frame-parent vector: "); PRINT_VEC3(fpvec);
+ printf("         frame-emitter:\t"); PRINT_VEC3(afevec);
+ printf("   frame-parent vector:\t"); PRINT_VEC3(fpvec);
  printf("       altitude vector:\t"); PRINT_VEC3(altvec);
  printf("obstruction dimensions:\t"); PRINT_VEC3(path->occlusion.v3);
  printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);

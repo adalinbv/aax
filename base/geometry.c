@@ -791,8 +791,6 @@ _vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
    ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
 
 #if 0
- printf("         frame-emitter:\t");
- PRINT_VEC3(fevec.v3);
  printf("        parent-emitter:\t");
  PRINT_VEC3(pevec.v3);
 #endif
@@ -836,6 +834,11 @@ _vec3fAltitudeVector_cpu(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_pt
    _vec3fCopy_cpu(fpvec, &npevec);
 
    ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
+
+#if 0
+ printf("        parent-emitter:\t");
+ PRINT_VEC3(pevec.v3);
+#endif
 
    return ahead;
 }
