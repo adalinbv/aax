@@ -177,6 +177,7 @@ _aaxGetSIMDSupportLevel()
       _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv2;
       _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv2;
 
+      _batch_movingaverage_float = _batch_ema_iir_float_vfpv2;
       _batch_freqfilter = _batch_freqfilter_vfpv2;
       _batch_freqfilter_float = _batch_freqfilter_float_vfpv2;
 
@@ -228,6 +229,7 @@ _aaxGetSIMDSupportLevel()
       _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv3;
       _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv3;
 
+      _batch_movingaverage_float = _batch_ema_iir_float_vfpv3;
       _batch_freqfilter = _batch_freqfilter_vfpv3;
       _batch_freqfilter_float = _batch_freqfilter_float_vfpv3;
 
@@ -297,6 +299,7 @@ _aaxGetSIMDSupportLevel()
       _batch_fmadd = _batch_fmadd_neon;
       _batch_cvtps24_24 = _batch_cvtps24_24_neon;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
+      _batch_movingaverage_float = _batch_ema_iir_float_neon;
       _batch_freqfilter_float = _batch_freqfilter_float_neon;
       _batch_resample_float = _batch_resample_float_neon;
 # else

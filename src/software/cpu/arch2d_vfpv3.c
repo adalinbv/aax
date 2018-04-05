@@ -350,6 +350,26 @@ _batch_cvtpd_intl_24_vfpv3(void_ptr dptr, const_int32_ptrptr sptr, size_t offset
 }
 
 void
+_batch_ema_iir_float_vfpv3(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      size_t i = num;
+      float smp;
+
+      smp = *hist;
+      do
+      {
+         smp += a1*(*s++ - smp);
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
+   }
+}
+
+void
 _batch_freqfilter_vfpv3(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;

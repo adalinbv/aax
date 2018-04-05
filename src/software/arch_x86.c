@@ -381,6 +381,7 @@ _aaxGetSIMDSupportLevel()
       _batch_fmadd = _batch_fmadd_sse2;
       _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
       _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
+      _batch_movingaverage_float = _batch_ema_iir_float_sse2;
       _batch_freqfilter_float = _batch_freqfilter_float_sse2;
       _batch_resample_float = _batch_resample_float_sse2;
 #  else
@@ -435,6 +436,7 @@ _aaxGetSIMDSupportLevel()
       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
 
 #  if RB_FLOAT_DATA
+      _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
       _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
       _batch_resample_float = _batch_resample_float_sse_vex;
 #  else
