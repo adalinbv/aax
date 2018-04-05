@@ -562,7 +562,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
          _FILTER_COPY_DATA(p3d, p2d, type);
          if (_FILTER_GET_DATA(p3d, type)) {
-            _PROP_OCCLUSION_SET_DEFINED(handle->submix->props3d);
+            _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
          break;
       }
@@ -670,7 +670,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          if (reverb)
          {
             _EFFECT_SET_DATA(p3d, type, reverb->occlusion);
-            _PROP_OCCLUSION_SET_DEFINED(handle->submix->props3d);
+            _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
          break;
       }
@@ -727,8 +727,14 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
          if (mode & AAX_INDOOR)
          {
             _PROP_INDOOR_SET_DEFINED(fp3d);
+            _PROP_MONO_SET_DEFINED(fp3d);
             if (mode == AAX_INDOOR) mode = AAX_ABSOLUTE;
             else mode &= ~AAX_INDOOR;
+         }
+         else
+         {
+            _PROP_INDOOR_CLEAR_DEFINED(fp3d);
+            _PROP_MONO_CLEAR_DEFINED(fp3d);
          }
 
          m = (mode != AAX_STEREO) ? AAX_TRUE : AAX_FALSE;
@@ -1197,10 +1203,6 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          _aax3dProps *fp3d = submix->props3d;
 
          fp3d->parent = mp3d;
-         if (_PROP_INDOOR_IS_DEFINED(fp3d)) {
-            _PROP_MONO_SET_DEFINED(fp3d);
-         }
-
          if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
          {
             _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
@@ -1260,7 +1262,6 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       /* order by _intBufRemove                                            */
       _intBufRelease(hf, _AAX_FRAME, sframe->mixer_pos);
       _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos, AAX_FALSE);
-      _PROP_MONO_CLEAR_DEFINED(sframe->submix->props3d);
       sframe->submix->refcount--;
       sframe->mixer_pos = UINT_MAX;
       sframe->parent = NULL;
