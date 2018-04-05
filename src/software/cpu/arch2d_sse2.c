@@ -1395,6 +1395,26 @@ _batch_cvt16_intl_24_sse2(void_ptr dst, const_int32_ptrptr src,
 }
 
 void
+_batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      size_t i = num;
+      float smp;
+
+      smp = *hist;
+      do
+      {
+         smp += a1*(*s++ - smp);
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
+   }
+}
+
+void
 _batch_freqfilter_sse2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
