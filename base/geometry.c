@@ -689,51 +689,6 @@ mtx4dRotate(mtx4d_ptr mtx, double angle_rad, double x, double y, double z)
    }
 }
 
-// Calculate the squared-altvec of the frame on the frame-emitter vector,
-// which is useful for detecting whether a line hits a bounding sphere.
-double
-_vec3dAltitudeSquared_cpu(const vec3d_ptr frame, const vec3d_ptr fpvec, const vec3d_ptr fevec)
-{
-   vec3d_t fe, pe;
-   double a2, b;
-
-   if (!fpvec) {			// fpvec position is at the origin
-      vec3dNegate(&pe, fevec);
-   } else {
-      vec3dSub(&pe, fpvec, fevec);
-   }
-
-   vec3dSub(&fe, frame, fevec);
-   _vec3dNormalize_cpu(&pe, &pe);
-
-   a2 = _vec3dMagnitudeSquared_cpu(&fe);
-   b = _vec3dDotProduct_cpu(&fe, &pe);
-
-   // Pythagoras: a2 = h2 + b2 -> h2 = a2 - b2;
-   return (a2 - b*b);
-}
-
-float
-_vec3fAltitudeSquared_cpu(const vec3f_ptr frame, const vec3f_ptr fpvec, const vec3f_ptr fevec)
-{
-   vec3f_t fe, pe;
-   float a2, b;
-
-   if (!fpvec) {
-      vec3fNegate(&pe, fevec);
-   } else {
-      vec3fSub(&pe, fpvec, fevec);
-   }
-
-   vec3fSub(&fe, frame, fevec);
-   _vec3fNormalize_cpu(&pe, &pe);
-
-   a2 = _vec3fMagnitudeSquared_cpu(&fe);
-   b = _vec3fDotProduct_cpu(&fe, &pe);
-
-   return (a2 + b*b);
-}
-
 // Calculate the altvec vector of the frame on the frame-emitter vector
 // which is useful for detecting whether a line hits a bounding box.
 //
@@ -861,8 +816,6 @@ vec3dDotProduct_proc vec3dDotProduct = _vec3dDotProduct_cpu;
 vec3fNormalize_proc vec3fNormalize = _vec3fNormalize_cpu;
 vec3dNormalize_proc vec3dNormalize = _vec3dNormalize_cpu;
 vec3fCrossProduct_proc vec3fCrossProduct = _vec3fCrossProduct_cpu;
-vec3fAltitudeSquared_proc vec3fAltitudeSquared = _vec3fAltitudeSquared_cpu;
-vec3dAltitudeSquared_proc vec3dAltitudeSquared = _vec3dAltitudeSquared_cpu;
 vec3fAltitudeVector_proc vec3fAltitudeVector = _vec3fAltitudeVector_cpu;
 vec3dAltitudeVector_proc vec3dAltitudeVector = _vec3dAltitudeVector_cpu;
 
