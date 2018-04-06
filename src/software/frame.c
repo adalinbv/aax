@@ -356,7 +356,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       sfp3d.parent = fp3d;
 
       mono = _PROP3D_MONO_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
-      indoor = _PROP3D_INDOOR_IS_DEFINED(sfdp3d_m) ? AAX_TRUE : AAX_FALSE;
+      indoor = _PROP3D_INDOOR_IS_DEFINED(fdp3d_m) ? AAX_TRUE : AAX_FALSE;
 
       _PROP_CLEAR(sfmixer->props3d);
       _intBufReleaseData(dptr, _AAX_FRAME);
