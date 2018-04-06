@@ -45,13 +45,15 @@
 
 #define ZPOS			-2.0
 #define RADIUS			 1.5f
+#define DIMENSION		 1.5f
+#define DENSITY			 1.0f
 #define FILE_PATH		SRC_PATH"/tictac.wav"
 
 aaxVec3f WorldAt =    {  0.0f, 0.0f,  1.0f };
 aaxVec3f WorldUp =    {  0.0f, 1.0f,  0.0f };
 
 aaxVec3f EmitterDir = {  0.0f, 0.0f,  1.0f };
-aaxVec3d EmitterPos = {  0.0,  1.0,  ZPOS  };	// in metres (right, up, back)
+aaxVec3d EmitterPos = {  0.0,  1.0,   ZPOS };	// in metres (right, up, back)
 
 aaxVec3d FramePos =   {  0.0,  1.0,   0.0  };
 
@@ -123,7 +125,7 @@ int main(int argc, char **argv)
             testForError(filter, "aaxAudioFrameGetFilter");
 
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR, 1.0f, 0.0f, 1.0f, 0.0f);
-            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR, 1.0f, 1.0f, 1.0f, 1.0f);
+            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR, DIMENSION, DIMENSION, DIMENSION, DENSITY);
             testForState(res, "aaxFilterSetSlot");
 
             res = aaxFilterSetState(filter, AAX_INVERSE);
