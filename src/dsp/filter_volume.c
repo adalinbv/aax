@@ -167,14 +167,12 @@ _flt_function_tbl _aaxVolumeFilter =
 # define VEC4_T			vec4f_t
 # define MTX4_T			mtx4f_t
 # define VEC3COPY(a,b)		vec3fCopy(&a,b)
-# define VEC3ALTITUDESQUARED(a,b,c) vec3fAltitudeSquared(a,b,c)
 # define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3fAltitudeVector(a,b,c,d,e,f)
 #else
 # define VEC3_T			vec3d_t
 # define VEC4_T			vec4d_t
 # define MTX4_T			mtx4d_t
 # define VEC3COPY(a,b)		vec3fFilld(a.v3,b.v3)
-# define VEC3ALTITUDESQUARED(a,b,c) vec3dAltitudeSquared(a,b,c)
 # define VEC3ALTITUDEVECTOR(a,b,c,d,e,f) vec3dAltitudeVector(a,b,c,d,e,f)
 #endif
 
@@ -290,6 +288,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
       {
          vec3f_t afevec, altvec, fpvec;
          _aaxRingBufferOcclusionData *path = occlusion;
+         _aaxRingBufferOcclusionData *poccl = NULL;
          _aaxDelayed3dProps *ndp3d_m;
          _aax3dProps *nfp3d;
          int hit;
@@ -301,6 +300,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          occlusion->level = 0.0f;
          do
          {
+            vec3f_t dim;
             float density = path->occlusion.v4[3];
 //          float mag_pe;
 
@@ -311,6 +311,18 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                MTX4_T *f;
                VEC3_T *e, *p;
                int ahead;
+
+               // calculate the sum of the current dimension vector and the
+               // parent dimension vector, and test fpvec against that.
+               vec3fCopy(&dim, &path->occlusion.v3);
+               if (nfp3d)
+               {
+                  poccl = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
+                  if (!poccl) poccl = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
+                  if (poccl) {
+                     vec3fAdd(&dim, &dim, &poccl->occlusion.v3);
+                  }
+               }
 
                ndp3d_m = nfp3d->m_dprops3d;
                p = (nfp3d==nfp3d->root) ? NULL : &ndp3d_m->matrix.v34[LOCATION];
@@ -336,12 +348,12 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                      // Is the emitter inside the cavity?
                      hit = vec3fLessThan(&afevec, &path->occlusion.v3);
                      if (hit) {
-                        hit = vec3fLessThan(&fpvec, &path->occlusion.v3);
+                        hit = vec3fLessThan(&fpvec, &dim);
                      }
                      hit = !hit;
                   }
                   else if (ahead) {
-                     hit = vec3fLessThan(&fpvec, &path->occlusion.v3);
+                     hit = vec3fLessThan(&fpvec, &dim);
                   }
                }
                else if (path->inverse) {
@@ -360,7 +372,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                   if (level > occlusion->level) {
                      occlusion->level = level;
                   }
-#if 1
+#if 0
                   if (occlusion->level > (1.0f-LEVEL_64DB)) break;
                }
             }
@@ -368,15 +380,15 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                }
  printf("         frame-emitter:\t"); PRINT_VEC3(afevec);
  printf("   frame-parent vector:\t"); PRINT_VEC3(fpvec);
+ printf("   combined dimensions:\t"); PRINT_VEC3(dim);
  printf("       altitude vector:\t"); PRINT_VEC3(altvec);
  printf("obstruction dimensions:\t"); PRINT_VEC3(path->occlusion.v3);
- printf("       hit obstruction: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
+ printf("           obstruction: hit: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
-            path = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
-            if (!path) path = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
             nfp3d = nfp3d->parent;
+            path = poccl;
          }
          while (nfp3d);
       } /* occlusion != NULL */

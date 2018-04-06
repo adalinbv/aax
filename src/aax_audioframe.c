@@ -727,7 +727,6 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
          if (mode & AAX_INDOOR)
          {
             _PROP_INDOOR_SET_DEFINED(fp3d);
-            _PROP_MONO_SET_DEFINED(fp3d);
             if (mode == AAX_INDOOR) mode = AAX_ABSOLUTE;
             else mode &= ~AAX_INDOOR;
          }
@@ -1214,6 +1213,10 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
             _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
             _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
+         }
+
+         if (_PROP_INDOOR_IS_DEFINED(mp3d)) {
+            _PROP_MONO_SET_DEFINED(fp3d);
          }
 
          submix->refcount++;
