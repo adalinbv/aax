@@ -49,16 +49,14 @@ aaxVec3f WorldAt =    {  0.0f, 0.0f,  1.0f };
 aaxVec3f WorldUp =    {  0.0f, 1.0f,  0.0f };
 
 aaxVec3f EmitterDir = { 0.0f,  0.0f,  1.0f };
-aaxVec3d EmitterPos = {  7.8,  0.5,   1.0  };	// in metres (right, up, back)
+aaxVec3d EmitterPos = {  0.0,  1.0,   1.65 };	// in metres (right, up, back)
 
-// frames
-aaxVec3d DinerPos =   {  0.0,  1.3,   0.0  };
-aaxVec3d RoomPos =    {  8.4,  1.4,   0.0  };
-aaxVec3d DoorLPos =   {  0.0,  1.0,  -1.5  };
-aaxVec3d DoorRPos =   {  8.4,  1.0,  -1.5  };
-aaxVec3d HallwayPos = {  3.5,  1.3,  -2.0  };
+// frames						dimensions
+aaxVec3d RoomPos =    {  0.0,  1.0,   1.49 };   // { 2.2, 2.5, 3.0 }
+aaxVec3d DoorPos =    {  0.0,  1.0,   0.0  };	// { 0.8, 2.1, 0.1 }
+aaxVec3d DinerPos =   {  0.0,  1.0,  -1.5  };	// { 5.0, 2.8, 3.5 }
 
-aaxVec3d SensorPos =  {  2.0,  1.7,  -1.0  };
+aaxVec3d SensorPos =  {  0.0,  1.0,  -1.0  };
 aaxVec3f SensorAt =   {  0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp =   {  0.0f, 1.0f,  0.0f };
 
@@ -89,31 +87,11 @@ const char *room_reverb_aaxs = "<?xml version='1.0'?> \
    <slot n='1'>                         \
     <param n='0'>2.2</param>            \
     <param n='1'>2.5</param>            \
-    <param n='2'>3.1</param>            \
+    <param n='2'>3.0</param>            \
     <param n='3'>1.0</param>            \
    </slot>                              \
   </effect> 				\
  </audioframe> 				\
-</aeonwave>";
-
-const char *hallway_aaxs = "<?xml version='1.0'?> \
-<aeonwave>                              \
- <audioframe>                           \
-  <effect type='reverb' src='inverse'>  \
-   <slot n='0'>                         \
-    <param n='0'>790.0</param>          \
-    <param n='1'>0.035</param>          \
-    <param n='2'>0.89</param>           \
-    <param n='3'>0.150</param>          \
-   </slot>                              \
-   <slot n='1'>                         \
-    <param n='0'>1.1</param>            \
-    <param n='1'>2.5</param>            \
-    <param n='2'>12.0</param>           \
-    <param n='3'>1.0</param>            \
-   </slot>                              \
-  </effect>                             \
- </audioframe>                          \
 </aeonwave>";
 
 const char *diner_aaxs = "<?xml version='1.0'?> \
@@ -231,7 +209,7 @@ int main(int argc, char **argv)
         buffer = bufferFromFile(config, infile);
         if (buffer)
         {
-            aaxFrame diner, door1, hallway, door2, room;
+            aaxFrame diner, door, room;
             aaxEmitter emitter;
             aaxFilter filter;
             aaxMtx4d mtx64;
@@ -256,10 +234,8 @@ int main(int argc, char **argv)
 
             /* room audio frames */
             diner = create_room(config, NULL, DinerPos, diner_aaxs);
-            door1 = create_room(config, diner, DoorLPos, door_aaxs);
-            hallway = create_room(config, door1, HallwayPos, hallway_aaxs);
-            door2 = create_room(config, hallway, DoorRPos, door_aaxs);
-            room = create_room(config, door2, RoomPos, room_reverb_aaxs);
+            door= create_room(config, diner, DoorPos, door_aaxs);
+            room = create_room(config, door, RoomPos, room_reverb_aaxs);
 
             /* emitter */
             emitter = aaxEmitterCreate();
@@ -329,10 +305,8 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
             testForState(res, "aaxBufferDestroy");
 
-            destroy_room(config, door2, room);
-            destroy_room(config, hallway, door2);
-            destroy_room(config, door1, hallway);
-            destroy_room(config, diner, door1);
+            destroy_room(config, door, room);
+            destroy_room(config, diner, door);
             destroy_room(config, NULL, diner);
         }
     }
