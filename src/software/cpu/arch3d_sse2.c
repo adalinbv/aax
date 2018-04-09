@@ -197,12 +197,12 @@ _vec3dAltitudeVector_sse2(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_p
    _vec3dScalarMul_sse2(&fpevec, &npevec, dot_fpe);
 
    _vec3dSub_sse2(&fpevec, &fevec.v3, &fpevec);
-   _vec3dAbsolute_sse2(&fpevec, &fpevec);
-
    _vec3dAdd_sse2(&npevec, &fevec.v3, &pevec.v3);
-   _vec3dAbsolute_sse2(&npevec, &npevec);
 
+   _vec3dAbsolute_sse2(&fpevec, &fpevec);
+   _vec3dAbsolute_sse2(&npevec, &npevec);
    _vec3dAbsolute_sse2(&fevec.v3, &fevec.v3);
+
    vec3fFilld(afevec->v3, fevec.v4);
    vec3fFilld(altvec->v3, fpevec.v3);
    vec3fFilld(fpvec->v3, npevec.v3);

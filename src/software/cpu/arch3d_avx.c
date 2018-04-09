@@ -166,11 +166,10 @@ _vec3dAltitudeVector_avx(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
    _vec3dScalarMul_avx(&fpevec, &npevec, dot_fpe);
 
    _vec3dSub_avx(&fpevec, &fevec.v3, &fpevec);
-   _vec3dAbsolute_avx(&fpevec, &fpevec);
-
    _vec3dAdd_avx(&npevec, &fevec.v3, &pevec.v3);
-   _vec3dAbsolute_avx(&npevec, &npevec);
 
+   _vec3dAbsolute_avx(&fpevec, &fpevec);
+   _vec3dAbsolute_avx(&npevec, &npevec);
    _vec3dAbsolute_avx(&fevec.v3, &fevec.v3);
    _mm256_zeroupper();
 
