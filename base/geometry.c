@@ -708,20 +708,17 @@ _vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
    double mag_pe, dot_fpe;
    int ahead;
 
-   pevec.v4[3] = 0.0;
    if (!ppos) {				// parent position is at the origin
       vec3dNegate(&pevec.v3, epos);	// parent-emitter vector is emtter pos.
    } else {
       vec3dSub(&pevec.v3, ppos, epos);
    }
+   pevec.v4[3] = 0.0;
    _mtx4dMulVec4_cpu(&pevec, ifmtx, &pevec);
 
-   fevec.v4[3] = 1.0;
    vec3dCopy(&fevec.v3, epos);
+   fevec.v4[3] = 1.0;
    _mtx4dMulVec4_cpu(&fevec, ifmtx, &fevec);
-
-   vec3fFilld(afevec->v3, fevec.v4);
-   _vec3fAbsolute_cpu(afevec, afevec);
 
    // Get the projection length of the frame-to-emitter vector on
    // the parent_frame-to-emitter unit vector.
@@ -734,21 +731,20 @@ _vec3dAltitudeVector_cpu(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
    // Get the perpendicular vector from the frame position to the
    // parent_frame-to-emitter vector (altitude).
    vec3dSub(&fpevec, &fevec.v3, &fpevec);
-   vec3fFilld(altvec->v3, fpevec.v3);
-   _vec3fAbsolute_cpu(altvec, altvec);
+   _vec3dAbsolute_cpu(&fpevec, &fpevec);
 
    // Calculate the frame-parent vector which is used outside this function.
    vec3dAdd(&npevec, &fevec.v3, &pevec.v3);
+   _vec3dAbsolute_cpu(&npevec, &npevec);
+
+   _vec3dAbsolute_cpu(&fevec.v3, &fevec.v3);
+   vec3fFilld(afevec->v3, fevec.v4);
+   vec3fFilld(altvec->v3, fpevec.v3);
    vec3fFilld(fpvec->v3, npevec.v3);
 
    // If dot_fpe < 0.0f then the emitter is between the frame and the
    // parent-frame meaning there is a clean path to the parent-frame.
    ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
-
-#if 0
- printf("        parent-emitter:\t");
- PRINT_VEC3(pevec.v3);
-#endif
 
    return ahead;
 }
@@ -761,20 +757,18 @@ _vec3fAltitudeVector_cpu(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_pt
    float mag_pe, dot_fpe;
    int ahead;
 
-   pevec.v4[3] = 0.0;
    if (!ppos) {
       vec3fNegate(&pevec.v3, epos);
    } else {
       vec3fSub(&pevec.v3, ppos, epos);
    }
+   pevec.v4[3] = 0.0;
    _mtx4fMulVec4_cpu(&pevec, ifmtx, &pevec);
 
-   fevec.v4[3] = 1.0;
    _vec3fCopy_cpu(&fevec.v3, epos);
+   fevec.v4[3] = 1.0;
    _mtx4fMulVec4_cpu(&fevec, ifmtx, &fevec);
-
-   _vec3fCopy_cpu(afevec, &fevec.v3);
-   _vec3fAbsolute_cpu(afevec, afevec);
+   _vec3fAbsolute_cpu(afevec, &fevec.v3);
 
    mag_pe = _vec3fNormalize_cpu(&npevec, &pevec.v3);
    dot_fpe = _vec3fDotProduct_cpu(&fevec.v3, &npevec);
@@ -782,18 +776,12 @@ _vec3fAltitudeVector_cpu(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_pt
    vec3fScalarMul(&fpevec, &npevec, dot_fpe);
 
    vec3fSub(&fpevec, &fevec.v3, &fpevec);
-   _vec3fCopy_cpu(altvec, &fpevec);
-   _vec3fAbsolute_cpu(altvec, altvec);
+   _vec3fAbsolute_cpu(altvec, &fpevec);
 
    vec3fAdd(&npevec, &fevec.v3, &pevec.v3);
-   _vec3fCopy_cpu(fpvec, &npevec);
+   _vec3fAbsolute_cpu(fpvec, &npevec);
 
    ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
-
-#if 0
- printf("        parent-emitter:\t");
- PRINT_VEC3(pevec.v3);
-#endif
 
    return ahead;
 }
