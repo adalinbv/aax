@@ -181,19 +181,18 @@ _vec3fAltitudeVector_sse_vex(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3
    _vec3fCopy_sse_vex(&fevec.v3, epos);
    fevec.v4[3] = 1.0;
    _mtx4fMulVec4_sse_vex(&fevec, ifmtx, &fevec);
+   _vec3fAbsolute_sse_vex(afevec, &fevec.v3);
 
    mag_pe = _vec3fNormalize_sse_vex(&npevec, &pevec.v3);
    dot_fpe = _vec3fDotProduct_sse_vex(&fevec.v3, &npevec);
 
-   _vec3fCopy_sse_vex(afevec, &fevec.v3);
-   _vec3fAbsolute_sse_vex(afevec, afevec);
-
    _vec3fScalarMul_sse_vex(&fpevec, &npevec, dot_fpe);
 
-   _vec3fSub_sse_vex(altvec, &fevec.v3, &fpevec);
-   _vec3fAbsolute_sse_vex(altvec, altvec);
+   _vec3fSub_sse_vex(&fpevec, &fevec.v3, &fpevec);
+   _vec3fAbsolute_sse_vex(altvec, &fpevec);
 
-   _vec3fAdd_sse_vex(fpvec, &fevec.v3, &pevec.v3);
+   _vec3fAdd_sse_vex(&npevec, &fevec.v3, &pevec.v3);
+   _vec3fAbsolute_sse_vex(fpvec, &npevec);
 
    ahead = (dot_fpe >= 0.0f || (mag_pe+dot_fpe) <= FLT_EPSILON);
 
