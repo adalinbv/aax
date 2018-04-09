@@ -378,12 +378,21 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
             }
 #else
                }
- printf("         frame-emitter:\t"); PRINT_VEC3(afevec);
- printf("   frame-parent vector:\t"); PRINT_VEC3(fpvec);
- printf("   combined dimensions:\t"); PRINT_VEC3(dim);
  printf("       altitude vector:\t"); PRINT_VEC3(altvec);
- printf("obstruction dimensions:\t"); PRINT_VEC3(path->occlusion.v3);
- printf("           obstruction: hit: %s, level: %f, inverse?: %i\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
+ if (path->inverse) {
+   printf("         frame-emitter:\t"); PRINT_VEC3(afevec);
+ }
+ if (ahead) {
+   printf("   frame-parent vector:\t"); PRINT_VEC3(fpvec);
+ }
+ printf("obstruction dimensions:\t\x1b[33m"); PRINT_VEC3(path->occlusion.v3);
+ printf("\x1b[0m");
+ if (path->inverse) {
+   printf("#  frame-parent vector:\t"); PRINT_VEC3(fpvec);
+   printf("#  combined dimensions:\t\x1b[33m"); PRINT_VEC3(dim);
+   printf("\x1b[0m");
+ }
+ printf("           obstruction: hit: \x1b[31m%s\x1b[0m, level: \x1b[31m%f\x1b[0m, inverse?: \x1b[31m%i\x1b[0m\n\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
