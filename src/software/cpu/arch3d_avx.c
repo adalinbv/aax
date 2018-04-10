@@ -154,7 +154,7 @@ _vec3dAltitudeVector_avx(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
    } else {
       _vec3dSub_avx(&pevec.v3, ppos, &evec.v3);
    }
-   _mtx4dMulVec4_avx(&pevec, ifmtx, &evec);
+   _mtx4dMulVec4_avx(&pevec, ifmtx, &pevec);
 
    evec.v4[3] = 1.0;
    _vec3dCopy_avx(&fevec.v3, &evec.v3);
