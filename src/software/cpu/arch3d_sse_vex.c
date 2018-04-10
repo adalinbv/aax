@@ -47,27 +47,27 @@ hsum_ps_sse_vex(__m128 v) {
    return _mm_cvtss_f32(sums);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3fCopy_sse_vex(vec3f_ptr d, const vec3f_ptr v) {
    d->s4 = v->s4;
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3fNegate_sse_vex(vec3f_ptr d, const vec3f_ptr v) {
    d->s4 = _mm_xor_ps(v->s4, _mm_set1_ps(-0.f));
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3fAdd_sse_vex(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
    d->s4 = _mm_add_ps(v1->s4, v2->s4);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3fSub_sse_vex(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2) {
    d->s4 = _mm_sub_ps(v1->s4, v2->s4);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3fScalarMul_sse_vex(vec3f_ptr d, const vec3f_ptr r, float f) {
     d->s4 = _mm_mul_ps(r->s4, _mm_set1_ps(f));
 }
@@ -80,7 +80,8 @@ _vec3fMagnitudeSquared_sse_vex(const vec3f_ptr v3)
 }
 
 FN_PREALIGN float
-_vec3fMagnitude_sse_vex(const vec3f_ptr v) {
+_vec3fMagnitude_sse_vex(const vec3f_ptr v)
+{
    return sqrt(_vec3fMagnitudeSquared_sse_vex(v));
 }
 
@@ -165,21 +166,23 @@ _mtx4fMulVec4_sse_vex(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr vi)
 FN_PREALIGN int
 _vec3fAltitudeVector_sse_vex(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   vec4f_t pevec, fevec, evec;
+   vec4f_t pevec, fevec;
    vec3f_t npevec, fpevec;
    float mag_pe, dot_fpe;
    int ahead;
 
-   evec.s4 = load_vec3f(epos);
+   fevec.s4 = load_vec3f(epos);
    if (!ppos) {
-      _vec3fNegate_sse_vex(&pevec.v3, &evec.v3);
-   } else {
-      _vec3fSub_sse_vex(&pevec.v3, ppos, &evec.v3);
+      _vec3fNegate_sse_vex(&pevec.v3, &fevec.v3);
+   }
+   else
+   {
+      pevec.s4 = load_vec3f(ppos);
+      _vec3fSub_sse_vex(&pevec.v3, &pevec.v3, &fevec.v3);
    }
    _mtx4fMulVec4_sse_vex(&pevec, ifmtx, &pevec);
 
-   evec.v4[3] = 1.0;
-   _vec3fCopy_sse_vex(&fevec.v3, &evec.v3);
+   fevec.v4[3] = 1.0;
    _mtx4fMulVec4_sse_vex(&fevec, ifmtx, &fevec);
 
    mag_pe = _vec3fNormalize_sse_vex(&npevec, &pevec.v3);

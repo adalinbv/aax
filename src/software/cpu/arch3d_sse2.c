@@ -44,7 +44,7 @@ load_vec3d1(const vec3d_ptr v)
    return _mm_and_pd(v->s4.sse[1], _mm_load_pd((const double*)m3a64));
 }
 
-static double
+static inline double
 hsum_pd_sse(const __m128d vd[2]) {
     __m128 undef    = _mm_setzero_ps();
     __m128 shuftmp1 = _mm_movehl_ps(undef, _mm_castpd_ps(vd[0]));
@@ -55,44 +55,43 @@ hsum_pd_sse(const __m128d vd[2]) {
             _mm_cvtsd_f64(_mm_add_sd(vd[1], shuf2));
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dCopy_sse2(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.sse[0] = v->s4.sse[0];
    d->s4.sse[1] = v->s4.sse[1];
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dNegate_sse2(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.sse[0] = _mm_xor_pd(v->s4.sse[0], _mm_set1_pd(-0.0));
    d->s4.sse[1] = _mm_xor_pd(v->s4.sse[1], _mm_set1_pd(-0.0));
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dAdd_sse2(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
    d->s4.sse[0] = _mm_add_pd(v1->s4.sse[0], v2->s4.sse[0]);
    d->s4.sse[1] = _mm_add_pd(v1->s4.sse[1], v2->s4.sse[1]);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dSub_sse2(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
    d->s4.sse[0] = _mm_sub_pd(v1->s4.sse[0], v2->s4.sse[0]);
    d->s4.sse[1] = _mm_sub_pd(v1->s4.sse[1], v2->s4.sse[1]);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dAbsolute_sse2(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.sse[0] = _mm_andnot_pd(_mm_set1_pd(-0.0), v->s4.sse[0]);
    d->s4.sse[1] = _mm_andnot_pd(_mm_set1_pd(-0.0), v->s4.sse[1]);
 }
 
-
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dScalarMul_sse2(vec3d_ptr d, const vec3d_ptr r, float f) {
    d->s4.sse[0] = _mm_mul_pd(r->s4.sse[0], _mm_set1_pd(f));
    d->s4.sse[1] = _mm_mul_pd(r->s4.sse[1], _mm_set1_pd(f));
 }
 
-FN_PREALIGN double
+static inline FN_PREALIGN double
 _vec3dMagnitudeSquared_sse2(const vec3d_ptr v) {
    __m128d v3[2], mv[2];
 
@@ -103,7 +102,7 @@ _vec3dMagnitudeSquared_sse2(const vec3d_ptr v) {
    return hsum_pd_sse(mv);
 }
 
-FN_PREALIGN double
+static inline FN_PREALIGN double
 _vec3dMagnitude_sse2(const vec3d_ptr v) {
    return sqrt(_vec3dMagnitudeSquared_sse2(v));
 }
@@ -174,22 +173,25 @@ _mtx4dMulVec4_sse2(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr vi)
 FN_PREALIGN int
 _vec3dAltitudeVector_sse2(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   vec4d_t pevec, fevec, evec;
+   vec4d_t pevec, fevec;
    vec3d_t npevec, fpevec;
    double mag_pe, dot_fpe;
    int ahead;
 
-   evec.s4.sse[0] = load_vec3d0(epos);
-   evec.s4.sse[1] = load_vec3d1(epos);
+   fevec.s4.sse[0] = load_vec3d0(epos);
+   fevec.s4.sse[1] = load_vec3d1(epos);
    if (!ppos) {
-      _vec3dNegate_sse2(&pevec.v3, &evec.v3);
-   } else {
-      _vec3dSub_sse2(&pevec.v3, ppos, &evec.v3);
+      _vec3dNegate_sse2(&pevec.v3, &fevec.v3);
+   }
+   else
+   {
+      pevec.s4.sse[0] = load_vec3d0(ppos);
+      pevec.s4.sse[1] = load_vec3d1(ppos);
+      _vec3dSub_sse2(&pevec.v3, &pevec.v3, &fevec.v3);
    }
    _mtx4dMulVec4_sse2(&pevec, ifmtx, &pevec);
 
-   evec.v4[3] = 1.0;
-   _vec3dCopy_sse2(&fevec.v3, &evec.v3);
+   fevec.v4[3] = 1.0;
    _mtx4dMulVec4_sse2(&fevec, ifmtx, &fevec);
 
    mag_pe = _vec3dNormalize_sse2(&npevec, &pevec.v3);
