@@ -49,43 +49,43 @@ hsum_pd_avx(__m256d v) {
     return _mm_cvtsd_f64(sums);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dCopy_avx(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = v->s4.avx;
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dNegate_avx(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = _mm256_xor_pd(v->s4.avx, _mm256_set1_pd(-0.0));
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dAdd_avx(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
    d->s4.avx = _mm256_add_pd(v1->s4.avx, v2->s4.avx);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dSub_avx(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
    d->s4.avx = _mm256_sub_pd(v1->s4.avx, v2->s4.avx);
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dScalarMul_avx(vec3d_ptr d, const vec3d_ptr r, float f) {
    d->s4.avx = _mm256_mul_pd(r->s4.avx, _mm256_set1_pd(f));
 }
 
-FN_PREALIGN double
+static inline FN_PREALIGN double
 _vec3dMagnitudeSquared_avx(const vec3d_ptr v) {
    __m256d v3 = load_vec3d(v);
    return hsum_pd_avx(_mm256_mul_pd(v3, v3));
 }
 
-FN_PREALIGN double
+static inline FN_PREALIGN double
 _vec3dMagnitude_avx(const vec3d_ptr v) {
    return sqrt(_vec3dMagnitudeSquared_avx(v));
 }
 
-FN_PREALIGN void
+static inline FN_PREALIGN void
 _vec3dAbsolute_avx(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = _mm256_andnot_pd(_mm256_set1_pd(-0.0), v->s4.avx);
 }
@@ -143,21 +143,23 @@ _mtx4dMulVec4_avx(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr vi)
 FN_PREALIGN int
 _vec3dAltitudeVector_avx(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   vec4d_t pevec, fevec, evec;
+   vec4d_t pevec, fevec;
    vec3d_t npevec, fpevec;
    double mag_pe, dot_fpe;
    int ahead;
 
-   evec.s4.avx = load_vec3d(epos);		// sets evec.v4[3] to 0.0
+   fevec.s4.avx = load_vec3d(epos);		// sets fevec.v4[3] to 0.0
    if (!ppos) {
-      _vec3dNegate_avx(&pevec.v3, &evec.v3);
-   } else {
-      _vec3dSub_avx(&pevec.v3, ppos, &evec.v3);
+      _vec3dNegate_avx(&pevec.v3, &fevec.v3);
+   }
+   else
+   {
+      pevec.s4.avx = load_vec3d(ppos);
+      _vec3dSub_avx(&pevec.v3, &pevec.v3, &fevec.v3);
    }
    _mtx4dMulVec4_avx(&pevec, ifmtx, &pevec);
 
-   evec.v4[3] = 1.0;
-   _vec3dCopy_avx(&fevec.v3, &evec.v3);
+   fevec.v4[3] = 1.0;
    _mtx4dMulVec4_avx(&fevec, ifmtx, &fevec);
 
    mag_pe = _vec3dNormalize_avx(&npevec, &pevec.v3);
