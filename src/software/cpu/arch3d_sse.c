@@ -165,21 +165,21 @@ _mtx4fMulVec4_sse(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr vi)
 FN_PREALIGN int
 _vec3fAltitudeVector_sse(vec3f_ptr altvec, const mtx4f_ptr ifmtx, const vec3f_ptr ppos, const vec3f_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec)
 {
-   vec4f_t pevec, fevec;
+   vec4f_t pevec, fevec, evec;
    vec3f_t npevec, fpevec;
    float mag_pe, dot_fpe;
    int ahead;
 
+   evec.s4 = load_vec3f(epos);
    if (!ppos) {
-      _vec3fNegate_sse(&pevec.v3, epos);
+      _vec3fNegate_sse(&pevec.v3, &evec.v3);
    } else {
-      _vec3fSub_sse(&pevec.v3, ppos, epos);
+      _vec3fSub_sse(&pevec.v3, ppos, &evec.v3);
    }
-   pevec.v4[3] = 0.0;
    _mtx4fMulVec4_sse(&pevec, ifmtx, &pevec);
 
-   _vec3fCopy_sse(&fevec.v3, epos);
-   fevec.v4[3] = 1.0;
+   evec.v4[3] = 1.0;
+   _vec3fCopy_sse(&fevec.v3, &evec.v3);
    _mtx4fMulVec4_sse(&fevec, ifmtx, &fevec);
 
    mag_pe = _vec3fNormalize_sse(&npevec, &pevec.v3);
