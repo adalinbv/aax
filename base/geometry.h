@@ -165,6 +165,7 @@ extern vec3dMulVec3d_proc vec3dMulVec3;
 extern vec3fAbsolute_proc vec3fAbsolute;
 extern vec3dAbsolute_proc vec3dAbsolute;
 
+void vec3dZero(vec3d_ptr d);
 void vec3dFill(double d[3], double v[3]);
 void vec3dFillf(double d[3], float v[3]);
 void vec3dAdd(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2);
@@ -173,6 +174,7 @@ void vec3dScalarMul(vec3d_ptr d, const vec3d_ptr r, float v);
 void vec3dNegate(vec3d_ptr d, const vec3d_ptr v);
 int vec3dLessThan(const vec3d_ptr v1, const vec3d_ptr v);
 
+void vec3fZero(vec3f_ptr f);
 void vec3fFill(float d[3], float v[3]);
 void vec3fFilld(float d[3], double v[3]);
 void vec3fAdd(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
