@@ -30,6 +30,7 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <base/geometry.h>
 #include <driver.h>
 
 #define WRITEFN         0
@@ -141,7 +142,7 @@ float _2acos(float v);
 
 typedef float (*cvtfn_t)(float);
 
-float _lorentz(float v, float c);
+FLOAT _lorentz(FLOAT v, FLOAT c);
 
 
 /* frequency filters */

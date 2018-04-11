@@ -173,6 +173,7 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
    if (dist_ef > 1.0f)
    {
       _aaxPitchShiftFn* dopplerfn;
+      FLOAT c, ve2;
       float ve;
 
       *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
@@ -184,7 +185,10 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
       mtx4fMul(&edp3d_m->velocity, &fdp3d_m->velocity, &edp3d->velocity);
 
       ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], epos);
-      df = dopplerfn(ve, vs/sdf);
+
+      ve2 = vec3fMagnitudeSquared(&edp3d->velocity.v34[LOCATION]);
+      c = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
+      df = dopplerfn(ve, vs/sdf) + _lorentz(ve2, c*c);
 #if 0
 # if 1
  printf("velocity: %3.2f, %3.2f, %3.2f\n",
@@ -195,9 +199,9 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
  PRINT_MATRICES(edp3d->velocity, fdp3d_m->velocity);
  printf("modified velocity:\n");
  PRINT_MATRIX(edp3d_m->velocity);
- printf("doppler: %f, ∆ve: %f, vs: %f\n\n", df, ve, vs/sdf);
+ printf("doppler: %lf, ∆ve: %f, vs: %f\n\n", df, ve, vs/sdf);
 # else
- printf("doppler: %f, ve: %f, vs: %f\n", df, ve, vs/sdf);
+ printf("doppler: %lf, ve: %f, vs: %f\n", df, ve, vs/sdf);
 # endif
 #endif
       ep3d->buf3dq_step = df;
