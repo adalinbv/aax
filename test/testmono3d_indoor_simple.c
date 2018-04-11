@@ -52,7 +52,7 @@ aaxVec3f EmitterDir = { 0.0f,  0.0f,  1.0f };
 aaxVec3d EmitterPos = {  0.0,  1.0,   1.65 };	// in metres (right, up, back)
 
 // frames						dimensions
-aaxVec3d RoomPos =    {  0.0,  1.0,   1.49 };   // { 2.2, 2.5, 3.0 }
+aaxVec3d RoomPos =    {  0.0,  1.0,   1.5  };   // { 2.2, 2.5, 3.0 }
 aaxVec3d DoorPos =    {  0.0,  1.0,   0.0  };	// { 0.8, 2.1, 0.1 }
 aaxVec3d DinerPos =   {  0.0,  1.0,  -1.5  };	// { 5.0, 2.8, 3.5 }
 
