@@ -44,7 +44,7 @@ extern "C" {
 typedef struct _aaxRingBufferData_t __aaxRingBufferData;
 typedef struct _aaxRingBufferSample_t __aaxRingBufferSample;
 
-typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, float, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
+typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
 typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
 typedef void
 _aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, _aax2dProps*, unsigned char, unsigned char);
@@ -147,11 +147,11 @@ typedef struct _aaxRingBufferData_t
     float average[_AAX_MAX_SPEAKERS+1];
 
     float elapsed_sec;
-    float pitch_norm;
     float volume_norm, gain_agc;
     float volume_min, volume_max;
+    FLOAT pitch_norm;
 
-    float curr_pos_sec;
+    FLOAT curr_pos_sec;
     size_t curr_sample;
 
     unsigned int loop_max;
@@ -192,7 +192,7 @@ void _aaxRingBufferEffectsApply(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX
 
 /** MIXER */
 
-CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, float, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
+CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
 
 _aaxRingBufferMixMNFn _aaxRingBufferMixStereo16;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Mono;

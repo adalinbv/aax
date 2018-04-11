@@ -87,7 +87,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
    float gain, gain0, svol, evol;
-   float pitch, max, pnvel, gnvel;
+   float pnvel, gnvel;
+   FLOAT pitch, max;
    int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);

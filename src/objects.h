@@ -43,6 +43,13 @@ extern "C" {
    exit(-1); \
  } while (0);
 
+#ifdef ARCH32
+# define FLOAT	float
+# define MTX4_t	mtx4f_t
+#else
+# define FLOAT	double
+# define MTX4_t	mtx4d_t
+#endif
 
 /*
  * Beware: state can be both PLAYING and STOPPED, meaning the emitter is
@@ -286,11 +293,7 @@ typedef ALIGN16 struct
 typedef ALIGN16 struct
 {
    /* modelview matrix and velocity */
-#ifdef ARCH32
-   mtx4f_t matrix, imatrix;
-#else
-   mtx4d_t matrix, imatrix;
-#endif
+   MTX4_t matrix, imatrix;
    mtx4f_t velocity;
    vec4f_t occlusion;
 
@@ -351,8 +354,8 @@ typedef ALIGN16 struct
    } note;
 
    struct {
+      FLOAT pitch;
       float pitch_lfo;
-      float pitch;
       float gain_lfo;
       float gain;
       float occlusion;		/* occlusion factor 0.0 .. 1.0 (being hidden) */

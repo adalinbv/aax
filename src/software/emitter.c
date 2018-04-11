@@ -38,7 +38,7 @@
 
 float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);
 float _angular_prepare(_aax3dProps*,  _aaxDelayed3dProps*, _aaxDelayed3dProps*);
-float _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
+FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
 
 /**
  * The following code renders all emitters attached to an audio-frame object
@@ -297,12 +297,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
       vec3f_t epos, tmp;
-      float pitch, gain;
       float min, max;
       float esv, vs;
       float dist_ef;
+      float gain;
+      FLOAT pitch;
 
-      pitch = 1.0f;
+      pitch = (FLOAT)1.0f;
       gain = edp3d->gain;
 
       _PROP3D_SPEED_CLEAR_CHANGED(edp3d);
