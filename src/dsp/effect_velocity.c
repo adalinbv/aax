@@ -165,10 +165,10 @@ _aaxDopplerShift(float ve, float vsound)
 #endif
 }
 
-float
+FLOAT
 _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf)
 {
-   float df = 1.0f;
+   FLOAT df = 1.0;
 
    if (dist_ef > 1.0f)
    {

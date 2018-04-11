@@ -51,14 +51,15 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, float pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
+_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, FLOAT pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
-   float dfreq, dadvance, dduration, drb_pos_sec, fact, dremain;
-   float sfreq, sduration, srb_pos_sec, new_srb_pos_sec;
+   float dfreq, dduration, drb_pos_sec, fact, dremain;
+   float sfreq, sduration, srb_pos_sec, new_srb_pos_sec, pitch;
    size_t ddesamps = *start;
    MIX_T **track_ptr;
+   FLOAT dadvance;
    char src_loops;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -95,18 +96,18 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
    /* source fast forward */
    pitch_norm *= srbi->pitch_norm;
-   srb->set_paramf(srb, RB_FORWARD_SEC, dduration*pitch_norm);
-   if (pitch_norm < 0.01f) return NULL;
+   srb->set_paramd(srb, RB_FORWARD_SEC, dduration*pitch_norm);
+   if (pitch_norm < 0.01) return NULL;
+   pitch = pitch_norm;
 
    /* source time offset */
    sfreq = srb->get_paramf(srb, RB_FREQUENCY);
-   new_srb_pos_sec = srb_pos_sec + dduration*pitch_norm;
+   new_srb_pos_sec = srb_pos_sec + dduration*pitch;
    src_loops = (srbi->looping && !srbi->streaming);
 
    /* destination time offset */
-   dfreq = drb->get_paramf(drb, RB_FREQUENCY);
    dadvance = (sduration - srb_pos_sec)/pitch_norm;
-   drb->set_paramf(drb, RB_FORWARD_SEC, dadvance);
+   drb->set_paramd(drb, RB_FORWARD_SEC, dadvance);
 
    /* destination time remaining after fast forwarding */
    dremain = drb->get_paramf(drb, RB_DURATION_SEC);
@@ -116,7 +117,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    }
 
    /* sample conversion factor */
-   fact = _MAX((sfreq * pitch_norm)/dfreq, 0.001f);
+   dfreq = drb->get_paramf(drb, RB_FREQUENCY);
+   fact = _MAX((sfreq * pitch)/dfreq, 0.001f);
 
    /*
     * Test if the remaining start delay is smaller than the duration of the

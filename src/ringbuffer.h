@@ -504,6 +504,9 @@ _aaxRingBufferSetParamiFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, un
 typedef int
 _aaxRingBufferSetParamfFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, float);
 
+typedef int
+_aaxRingBufferSetParamdFn(struct _aaxRingBuffer_t*, enum _aaxRingBufferParam, FLOAT);
+
 /**
  * Get the value of an integer ringbuffer parameter
  *
@@ -620,6 +623,7 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferSetStateFn *set_state;
    _aaxRingBufferGetStateFn *get_state;
 
+   _aaxRingBufferSetParamdFn *set_paramd;
    _aaxRingBufferSetParamfFn *set_paramf;
    _aaxRingBufferSetParamiFn *set_parami;
    _aaxRingBufferGetParamfFn *get_paramf;
