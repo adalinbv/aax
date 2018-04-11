@@ -38,7 +38,6 @@
 #include "geometry.h"
 #include "types.h"
 
-
 void
 vec3dFill(double d[3], double v[3])
 {
@@ -67,6 +66,18 @@ vec3fFilld(float dst[3], double src[3])
    for(i=0; i<3; ++i) {
       dst[i] = (float)src[i];
    }
+}
+
+void
+vec3fZero(vec3f_ptr f)
+{
+   memset(f->v3, 0, sizeof(vec3f_t));
+}
+
+void
+vec3dZero(vec3d_ptr d)
+{
+   memset(d->v3, 0, sizeof(vec3d_t));
 }
 
 void
