@@ -300,7 +300,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       float min, max;
       float esv, vs;
       float dist_ef;
-      float gain;
+      float gain, c;
       FLOAT pitch;
 
       pitch = (FLOAT)1.0f;
@@ -341,6 +341,15 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       /* distance attenuation and audio-cone support */
       gain *= _angular_prepare(ep3d, edp3d_m, fdp3d_m);
       gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
+
+      c = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
+      if (c > 0.0f)
+      {
+         float unit_m = c/299792458.0f;
+         float dist_km = _MIN(dist_ef * unit_m / 1000.0f, 1.0f);
+         ep2d->final.fc = 22050.0f - (22050.0f-1000.0f)*dist_km;
+printf("attenuation fc: %f (%f)\n", ep2d->final.fc, unit_m);
+      }
 
       /* calculate the sound velocity inbetween the emitter and the sensor */
       esv = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
