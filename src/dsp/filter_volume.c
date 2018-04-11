@@ -286,48 +286,48 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
       if (!occlusion) occlusion = _FILTER_GET_DATA(fp3d, VOLUME_FILTER);
       if (occlusion)
       {
-         vec3f_t afevec, altvec, fpvec;
-         _aaxRingBufferOcclusionData *path = occlusion;
-         _aaxRingBufferOcclusionData *poccl = NULL;
+         vec3f_t afevec, altvec, fpvec, cfpvec, dim;
+         _aaxRingBufferOcclusionData *cpath = occlusion;
+         _aaxRingBufferOcclusionData *npath = NULL;
          _aaxDelayed3dProps *ndp3d_m;
          _aax3dProps *nfp3d;
+         VEC3_T *e, *p;
+         MTX4_T *f;
          int hit;
 
          nfp3d = fp3d->parent;
          assert(nfp3d->m_dprops3d == pdp3d_m);
 
+         e = &edp3d_m->matrix.v34[LOCATION];
+         f = &fdp3d_m->imatrix;
+
          hit = 0;
          occlusion->level = 0.0f;
+         vec3fZero(&fpvec);
          do
          {
-            vec3f_t dim;
-            float density = path->occlusion.v4[3];
-//          float mag_pe;
+            float density = cpath->occlusion.v4[3];
 
             // If the audio-frame has occlusion defined with a density
             // factor larger than zero then process it.
-            if (path && (density > 0.01f))
+            if (cpath && (density > 0.01f))
             {
-               MTX4_T *f;
-               VEC3_T *e, *p;
                int ahead;
 
                // calculate the sum of the current dimension vector and the
                // parent dimension vector, and test fpvec against that.
-               vec3fCopy(&dim, &path->occlusion.v3);
+               vec3fCopy(&dim, &cpath->occlusion.v3);
                if (nfp3d)
                {
-                  poccl = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
-                  if (!poccl) poccl = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
-                  if (poccl) {
-                     vec3fAdd(&dim, &dim, &poccl->occlusion.v3);
+                  npath = _EFFECT_GET_DATA(nfp3d, REVERB_EFFECT);
+                  if (!npath) npath = _FILTER_GET_DATA(nfp3d, VOLUME_FILTER);
+                  if (npath) {
+                     vec3fAdd(&dim, &dim, &npath->occlusion.v3);
                   }
                }
 
                ndp3d_m = nfp3d->m_dprops3d;
                p = (nfp3d==nfp3d->root) ? NULL : &ndp3d_m->matrix.v34[LOCATION];
-               e = &edp3d_m->matrix.v34[LOCATION];
-               f = &fdp3d_m->imatrix;
 #if 0
  printf("#   inverse frame:\t\tparent:\n");
  PRINT_MATRICES(fdp3d_m->imatrix, ndp3d_m->matrix);
@@ -335,28 +335,29 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
  PRINT_MATRIX(edp3d_m->matrix);
 #endif
 
-               // hit is true when the direct path does interstect
+               // hit is true when the direct cpath does interstect
                // with the defined obstruction/cavity.
-               ahead = VEC3ALTITUDEVECTOR(&altvec, f, p, e, &afevec, &fpvec);
-               hit = vec3fLessThan(&altvec, &path->occlusion.v3);
+               ahead = VEC3ALTITUDEVECTOR(&altvec, f, p, e, &afevec, &cfpvec);
+               vec3fSub(&fpvec, &cfpvec, &fpvec);
+               hit = vec3fLessThan(&altvec, &cpath->occlusion.v3);
                if (hit)
                {
-                  // In case path->inverse is true the real obstruction is
+                  // In case cpath->inverse is true the real obstruction is
                   // everything but the defined dimensions (meaning a cavity).
-                  if (path->inverse)
+                  if (cpath->inverse)
                   {
                      // Is the emitter inside the cavity?
-                     hit = vec3fLessThan(&afevec, &path->occlusion.v3);
+                     hit = vec3fLessThan(&afevec, &cpath->occlusion.v3);
                      if (hit) {
                         hit = vec3fLessThan(&fpvec, &dim);
                      }
                      hit = !hit;
                   }
                   else if (ahead) {
-                     hit = vec3fLessThan(&fpvec, &dim);
+                     hit = vec3fLessThan(&cfpvec, &dim);
                   }
                }
-               else if (path->inverse) {
+               else if (cpath->inverse) {
                   hit = !hit;
                }
 
@@ -364,9 +365,9 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
                {
                   float level, mag;
 
-                  mag = sqrtf(path->magnitude_sq); // path->magnitude*100.0f/vs;
+                  mag = sqrtf(cpath->magnitude_sq); // cpath->magnitude*100.0f/vs;
                   level = 1.0f - _MIN(vec3fMagnitude(&altvec)/mag, 1.0f);
-                  if (path->inverse) level = _MIN(1.0f/level, 1.0f);
+                  if (cpath->inverse) level = _MIN(1.0f/level, 1.0f);
 
                   level *= density;
                   if (level > occlusion->level) {
@@ -379,25 +380,25 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
 #else
                }
  printf("       altitude vector:\t"); PRINT_VEC3(altvec);
- if (path->inverse) {
+ if (cpath->inverse) {
    printf("         frame-emitter:\t"); PRINT_VEC3(afevec);
  }
  if (ahead) {
-   printf("   frame-parent vector:\t"); PRINT_VEC3(fpvec);
+   printf("   frame-parent vector:\t"); PRINT_VEC3(cfpvec);
  }
- printf("obstruction dimensions:\t\x1b[33m"); PRINT_VEC3(path->occlusion.v3);
+ printf("obstruction dimensions:\t\x1b[33m"); PRINT_VEC3(cpath->occlusion.v3);
  printf("\x1b[0m");
- if (path->inverse) {
+ if (cpath->inverse) {
    printf("#  frame-parent vector:\t"); PRINT_VEC3(fpvec);
    printf("#  combined dimensions:\t\x1b[33m"); PRINT_VEC3(dim);
    printf("\x1b[0m");
  }
- printf("           obstruction: hit: \x1b[31m%s\x1b[0m, level: \x1b[31m%f\x1b[0m, inverse?: \x1b[31m%i\x1b[0m\n\n", (hit^path->inverse)?"yes":"no ", occlusion->level, path->inverse);
+ printf("           obstruction: hit: \x1b[31m%s\x1b[0m, level: \x1b[31m%f\x1b[0m, inverse?: \x1b[31m%i\x1b[0m\n\n", (hit^cpath->inverse)?"yes":"no ", occlusion->level, cpath->inverse);
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
 #endif
             nfp3d = nfp3d->parent;
-            path = poccl;
+            cpath = npath;
          }
          while (nfp3d);
       } /* occlusion != NULL */
