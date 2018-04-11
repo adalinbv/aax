@@ -179,16 +179,17 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
       *(void**)(&dopplerfn) = _EFFECT_GET_DATA(ep3d, VELOCITY_EFFECT);
       assert(dopplerfn);
 
+      ve2 = vec3fMagnitudeSquared(&edp3d_m->velocity.v34[LOCATION]);
+      c = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
+      df = _lorentz(ve2, c*c);
+
       /* align velocity vectors with the modified emitter position
        * relative to the sensor
        */
       mtx4fMul(&edp3d_m->velocity, &fdp3d_m->velocity, &edp3d->velocity);
 
       ve = vec3fDotProduct(&edp3d_m->velocity.v34[LOCATION], epos);
-
-      ve2 = vec3fMagnitudeSquared(&edp3d->velocity.v34[LOCATION]);
-      c = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
-      df = dopplerfn(ve, vs/sdf) + _lorentz(ve2, c*c);
+      df += dopplerfn(ve, vs/sdf);
 #if 0
 # if 1
  printf("velocity: %3.2f, %3.2f, %3.2f\n",
