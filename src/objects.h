@@ -43,13 +43,6 @@ extern "C" {
    exit(-1); \
  } while (0);
 
-#ifdef ARCH32
-# define FLOAT	float
-# define MTX4_t	mtx4f_t
-#else
-# define FLOAT	double
-# define MTX4_t	mtx4d_t
-#endif
 
 /*
  * Beware: state can be both PLAYING and STOPPED, meaning the emitter is

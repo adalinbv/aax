@@ -95,6 +95,7 @@ aaxAudioFrameCreate(aaxConfig config)
                _FILTER_COPYD3D_DATA(submix, smixer, DISTANCE_FILTER);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
+               _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
                _EFFECT_COPYD3D_DATA(submix, smixer, VELOCITY_EFFECT);
 
                submix->info = sensor->mixer->info;
@@ -877,10 +878,11 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
 
             if (_EFFECT_GET_DATA(sp3d, VELOCITY_EFFECT) == NULL)
             {
-               _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
-               _EFFECT_COPY(sp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
+               _EFFECT_COPY(sp3d, mp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+               _EFFECT_COPY(sp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
                _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
             }
+            _EFFECT_COPY(sp3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
 
             ssr_config->root = handle->root;
             ssr_config->parent = handle;
@@ -1068,6 +1070,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
                _EFFECT_COPY_DATA(ep3d, mp3d, VELOCITY_EFFECT);
             }
+            _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
          }
       }
       else
@@ -1214,6 +1217,7 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
             _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
             _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
          }
+         _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
 
          if (_PROP_INDOOR_IS_DEFINED(mp3d)) {
             _PROP_MONO_SET_DEFINED(fp3d);

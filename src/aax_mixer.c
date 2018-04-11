@@ -869,6 +869,8 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                                                  AAX_DOPPLER_FACTOR);
                         _EFFECT_COPY_DATA(sp3d, mp3d, VELOCITY_EFFECT);
                      }
+                     _EFFECT_COPY(sp3d, mp3d, VELOCITY_EFFECT,
+                                              AAX_LIGHT_VELOCITY);
                      _intBufReleaseData(dptr, _AAX_SENSOR);
 
                      sframe->root = handle;
@@ -1151,6 +1153,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                      _EFFECT_COPY(ep3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
                      _EFFECT_COPY_DATA(ep3d, mp3d, VELOCITY_EFFECT);
                   }
+                  _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
                }
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
@@ -1315,6 +1318,7 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                      _EFFECT_COPY(fp3d,mp3d,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
                      _EFFECT_COPY_DATA(fp3d, mp3d, VELOCITY_EFFECT);
                   }
+                  _EFFECT_COPY(fp3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
                   _intBufReleaseData(dptr, _AAX_SENSOR);
                   rv = AAX_TRUE;
 

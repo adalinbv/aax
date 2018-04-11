@@ -53,4 +53,4 @@ inline float _2acos_rad2deg(float v) { return 2*_rad2deg(acosf(v)); }
 inline float _cos_2(float v) { return cosf(v/2); }
 inline float _2acos(float v) { return 2*acosf(v); }
 
-inline float _lorentz(float v, float c)	{ return sqrtf(1.f - (v*v)/(c*c)); }
+inline FLOAT _lorentz(FLOAT v2, FLOAT c2) { return sqrt(1.0 - (v2/c2)); }

@@ -249,14 +249,27 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                switch (effect->type)
                {
                case AAX_VELOCITY_EFFECT:
+               {
+                  float c, vs;
+
                   _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
                   _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
                   _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
                   _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
                   _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
                   _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
+
+                  c = _EFFECT_GET(p3d, type, AAX_LIGHT_VELOCITY);
+                  vs = _EFFECT_GET(p3d, type, AAX_SOUND_VELOCITY);
+                  if (c < 800000.0f*vs)
+                  {
+                     static const double c_mps = 299792458.0;
+                     double fact = vs/343.0;
+                     _EFFECT_SET(p3d, type, AAX_LIGHT_VELOCITY, c_mps*fact);
+                  }
                   rv = AAX_TRUE;
                   break;
+               }
                default:
                   _aaxErrorSet(AAX_INVALID_ENUM);
                }
