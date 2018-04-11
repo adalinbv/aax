@@ -351,7 +351,8 @@ typedef ALIGN16 struct
       float pitch_lfo;
       float gain_lfo;
       float gain;
-      float occlusion;		/* occlusion factor 0.0 .. 1.0 (being hidden) */
+      float occlusion;		/* occlusion factor 0.0..1.0 (being hidden) */
+      float fc;			/* attenuation cut-off frequency */
    } final;
 
 } _aax2dProps ALIGN16C;
