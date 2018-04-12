@@ -265,6 +265,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                   {
                      static const double c_mps = 299792458.0;
                      double fact = vs/343.0;
+                     handle->info->light_speed = c_mps*fact;
                      _EFFECT_SET(p3d, type, AAX_LIGHT_VELOCITY, c_mps*fact);
                   }
                   rv = AAX_TRUE;
