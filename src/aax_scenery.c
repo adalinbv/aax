@@ -264,9 +264,10 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                   if (c < 800000.0f*vs)
                   {
                      static const double c_mps = 299792458.0;
-                     double fact = vs/343.0;
-                     handle->info->light_speed = c_mps*fact;
-                     _EFFECT_SET(p3d, type, AAX_LIGHT_VELOCITY, c_mps*fact);
+                     double unit_m = vs/343.0;
+
+                     handle->info->unit_m = unit_m;
+                     _EFFECT_SET(p3d, type, AAX_LIGHT_VELOCITY, c_mps*unit_m);
                   }
                   rv = AAX_TRUE;
                   break;

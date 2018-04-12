@@ -342,12 +342,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       gain *= _angular_prepare(ep3d, edp3d_m, fdp3d_m);
       gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
 
-      if (info->light_speed > 0.0f)
+printf("indoor: %i\n", _PROP3D_INDOOR_IS_DEFINED(fdp3d_m));
+      if (info->unit_m > 0.0f)
       {
-         float unit_m = info->light_speed/299792458.0f;
-         float dist_km = _MIN(dist_ef * unit_m / 1000.0f, 1.0f);
+         float dist_km = _MIN(dist_ef * info->unit_m / 1000.0f, 1.0f);
          ep2d->final.fc = 22050.0f - (22050.0f-1000.0f)*dist_km;
-printf("attenuation fc: %f (%f)\n", ep2d->final.fc, unit_m);
+printf("attenuation fc: %f (%f)\n", ep2d->final.fc, info->unit_m);
       }
 
       /* calculate the sound velocity inbetween the emitter and the sensor */

@@ -268,7 +268,7 @@ typedef ALIGN16 struct
    float frequency;
    float period_rate;
    float refresh_rate;			/* defines the latency */
-   float light_speed;
+   float unit_m;			/* unit factor to convert to meters */
    enum aaxFormat format;
    enum aaxRenderMode mode;
    unsigned int max_emitters;		/* total */
