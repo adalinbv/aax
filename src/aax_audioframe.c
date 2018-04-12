@@ -869,7 +869,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
             smixer->info->period_rate = fmixer->info->period_rate;
             smixer->info->refresh_rate = fmixer->info->refresh_rate;
             smixer->info->update_rate = fmixer->info->update_rate;
-            smixer->info->light_speed = fmixer->info->light_speed;
+            smixer->info->unit_m = fmixer->info->unit_m;
             if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
