@@ -41,6 +41,7 @@
 #include <api.h>
 #include <arch.h>
 #include <ringbuffer.h>
+#include <dsp/filters.h>
 #include <dsp/lfo.h>
 
 #include "audio.h"
@@ -1259,10 +1260,11 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
 }
 
 int
-_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxLFOData *lfo, unsigned char tracks)
+_aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *fp2d, unsigned char tracks)
 {
    _aaxRingBufferData *srbi, *drbi;
    _aaxRingBufferSample *drbd;
+   _aaxLFOData *lfo;
    unsigned char track;
    size_t dno_samples;
    float g = 1.0f;
@@ -1273,6 +1275,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxLFOData 
    }
 
    srbi = srb->handle;
+   lfo =  fp2d ? _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER) : NULL;
    if (lfo && lfo->envelope)
    {
        g = 0.0f;
@@ -1296,6 +1299,20 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aaxLFOData 
       float gstep = 0.0f;
 
       drbd->add(dptr, sptr, dno_samples, g, gstep);
+
+      if (fp2d && fp2d->final.k < 0.9f)
+      {
+         float *hist = fp2d->final.freqfilter_history[track];
+         MIX_PTR_T d = dptr;
+
+#if RB_FLOAT_DATA
+         _batch_movingaverage_float(d, d, dno_samples, hist+0, fp2d->final.k);
+         _batch_movingaverage_float(d, d, dno_samples, hist+1, fp2d->final.k);
+#else
+         _batch_movingaverage(d, d, dno_samples, hist+0, fp2d->final.k);
+         _batch_movingaverage(d, d, dno_samples, hist+1, fp2d->final.k);
+#endif
+      }
    }
    return AAX_TRUE;
 }

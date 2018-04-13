@@ -86,7 +86,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
-   float gain, gain0, svol, evol;
+   float gain, gain0;
    float pnvel, gnvel;
    FLOAT pitch, max;
    int ret = 0;
@@ -214,25 +214,48 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    if (genv) genv->value_total = gain;
 
-   /* Automatic volume ramping to avoid clicking */
-   svol = evol = 1.0f;
-   if (!genv && !srbi->streaming && (srbi->playing == srbi->stopped))
+   if (gain > LEVEL_96DB)
    {
-      svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
-      evol = (srbi->stopped) ? 0.0f : 1.0f;
-      srbi->playing = !srbi->stopped;
-   }
-   if (gain0 != 0.0f) {
-      evol *= (gnvel/gain0);
-   }
+      float svol, evol;
 
-   /* Mix */
-   if (_PROP3D_MONO_IS_DEFINED(fdp3d_m)) {
-      drbd->mix1(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
-                 info->frequency, gain, svol, evol, ctr);
-   } else {
-      drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
-                  info->frequency, gain, svol, evol, ctr);
+      /* Automatic volume ramping to avoid clicking */
+      svol = evol = 1.0f;
+      if (!genv && !srbi->streaming && (srbi->playing == srbi->stopped))
+      {
+         svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
+         evol = (srbi->stopped) ? 0.0f : 1.0f;
+         srbi->playing = !srbi->stopped;
+      }
+      if (gain0 != 0.0f) {
+         evol *= (gnvel/gain0);
+      }
+
+      /* Distance attenutation frequency filtering */
+      if (ep2d->final.k < 0.9f) // only filter when fc < 17600 Hz
+      {
+         float *hist = ep2d->final.freqfilter_history[0];
+         MIX_PTR_T s = (MIX_PTR_T)sptr[ch] + offs;
+
+#if RB_FLOAT_DATA
+         _batch_movingaverage_float(s, s, dno_samples, hist+0, ep2d->final.k);
+         _batch_movingaverage_float(s, s, dno_samples, hist+1, ep2d->final.k);
+#else
+         _batch_movingaverage(s, s, dno_samples, hist+0, ep2d->final.k);
+         _batch_movingaverage(s, s, dno_samples, hist+1, ep2d->final.k);
+#endif
+      }
+
+      /* Mix */
+      if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
+      {
+         drbd->mix1(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
+                    info->frequency, gain, svol, evol, ctr);
+      }
+      else
+      {
+         drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
+                     info->frequency, gain, svol, evol, ctr);
+      }
    }
 
    if (drbi->playing == 0 && drbi->stopped == 1) {

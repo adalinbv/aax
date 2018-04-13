@@ -192,6 +192,8 @@ _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dPro
       df += dopplerfn(ve, vs/sdf);
 #if 0
 # if 1
+ printf("position: ");
+ PRINT_VEC3PTR(epos);
  printf("velocity: %3.2f, %3.2f, %3.2f\n",
             edp3d_m->velocity.v34[LOCATION].v3[0],
             edp3d_m->velocity.v34[LOCATION].v3[1],

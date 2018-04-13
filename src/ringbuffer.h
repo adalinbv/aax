@@ -554,7 +554,7 @@ _aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*);
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aaxLFOData*, unsigned char);
+_aaxRingBufferDataMixDataFn(struct _aaxRingBuffer_t*, struct _aaxRingBuffer_t*, _aax2dProps*, unsigned char);
 
 /**
  * Alter the gain of the ringbuffer audio data
