@@ -349,7 +349,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
           (fdp3d_m == sdp3d_m || _PROP3D_INDOOR_IS_DEFINED(fdp3d_m)))
       {
          float dist_km = _MIN(dist_ef * info->unit_m / 1000.0f, 1.0f);
-         float fc = 2050.0f - (22050.0f-1000.0f)*dist_km;
+         float fc = 22050.0f - (22050.0f-1000.0f)*dist_km;
          ep2d->final.k = _aax_movingaverage_compute(fc, info->frequency);
       }
 
