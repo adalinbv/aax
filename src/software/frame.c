@@ -141,7 +141,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    {
       float dist_pf = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
       float dist_km = _MIN(dist_pf * info->unit_m / 1000.0f, 1.0f);
-      float fc = 2050.0f - (22050.0f-1000.0f)*dist_km;
+      float fc = 22050.0f - (22050.0f-1000.0f)*dist_km;
       fp2d->final.k = _aax_movingaverage_compute(fc, info->frequency);
    }
 
@@ -269,10 +269,8 @@ _aaxAudioFrameMix(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
    if (buf)
    {
       _aaxRingBuffer *src_rb  = _intBufGetDataPtr(buf);
-      _aaxLFOData *lfo;
 
-      lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
-      dest_rb->data_mix(dest_rb, src_rb, lfo, mono ? 1 : AAX_TRACK_ALL);
+      dest_rb->data_mix(dest_rb, src_rb, fp2d, mono ? 1 : AAX_TRACK_ALL);
 
       /*
        * push the ringbuffer to the back of the stack so it can
@@ -314,6 +312,8 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 
       drbi = dest_rb->handle;
       drbd = drbi->sample;
+
+      assert(fp2d->final.k >= 0.9f);
 
       for (t=0; t<drbd->no_tracks; t++) {
          fp2d->prev_gain[t] = 1.0f;
