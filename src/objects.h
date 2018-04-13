@@ -353,7 +353,9 @@ typedef ALIGN16 struct
       float gain_lfo;
       float gain;
       float occlusion;		/* occlusion factor 0.0..1.0 (being hidden) */
-      float fc;			/* attenuation cut-off frequency */
+
+      float k;			/* attenuation frequency filter */
+      float freqfilter_history[_AAX_MAX_SPEAKERS];
    } final;
 
 } _aax2dProps ALIGN16C;

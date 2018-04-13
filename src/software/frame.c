@@ -64,6 +64,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    _aaxDelayed3dProps *sdp3d_m = fp3d->root->m_dprops3d;
    _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
    _aaxDelayed3dProps *pdp3d_m = NULL;
+   _aaxMixerInfo *info = fmixer->info;
    _aaxLFOData *lfo;
    char process;
 
@@ -134,17 +135,18 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 
    // Only do distance attenuation frequency filtering if the frame is
    // registered at the mixer or when the parent-frame is defined indoor.
-   fp2d->final.fc = 22050.0f;
-   if (fmixer->info->unit_m > 0.0f &&
+   fp2d->final.k = 1.0f;
+   if (info->unit_m > 0.0f &&
        (pdp3d_m && !_PROP3D_INDOOR_IS_DEFINED(pdp3d_m)))
    {
       float dist_pf = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
-      float dist_km = _MIN(dist_pf * fmixer->info->unit_m / 1000.0f, 1.0f);
-      fp2d->final.fc -= (22050.0f-1000.0f)*dist_km;
+      float dist_km = _MIN(dist_pf * info->unit_m / 1000.0f, 1.0f);
+      float fc = 2050.0f - (22050.0f-1000.0f)*dist_km;
+      fp2d->final.k = _aax_movingaverage_compute(fc, info->frequency);
    }
 
    /** process possible registered emitters */
-   process = _aaxEmittersProcess(dest_rb, fmixer->info, ssv, sdf, fp2d, fp3d,
+   process = _aaxEmittersProcess(dest_rb, info, ssv, sdf, fp2d, fp3d,
                                  fmixer->emitters_2d, fmixer->emitters_3d,
                                  be, be_handle);
 
@@ -159,8 +161,6 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
        */
       if (!frame_rb)
       {
-         _aaxMixerInfo* info = fmixer->info;
-
          assert (be == sensor ? ((_sensor_t*)sensor)->mixer->info->backend
                               : fmixer->info->backend);
 
