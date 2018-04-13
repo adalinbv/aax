@@ -135,8 +135,8 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    // Only do distance attenuation frequency filtering if the frame is
    // registered at the mixer or when the parent-frame is defined indoor.
    fp2d->final.fc = 22050.0f;
-   if ((pdp3d_m && !_PROP3D_INDOOR_IS_DEFINED(pdp3d_m)) &&
-       fmixer->info->unit_m > 0.0f)
+   if (fmixer->info->unit_m > 0.0f &&
+       (pdp3d_m && !_PROP3D_INDOOR_IS_DEFINED(pdp3d_m)))
    {
       float dist_pf = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
       float dist_km = _MIN(dist_pf * fmixer->info->unit_m / 1000.0f, 1.0f);

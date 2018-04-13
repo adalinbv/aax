@@ -345,8 +345,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       // Only do distance attenuation frequency filtering if the emitter is
       // registered at the mixer or when the parent-frame is defined indoor.
       ep2d->final.fc = 22050.0f;
-      if ((fdp3d_m == sdp3d_m || _PROP3D_INDOOR_IS_DEFINED(fdp3d_m)) &&
-          info->unit_m > 0.0f)
+      if (info->unit_m > 0.0f &&
+          (fdp3d_m == sdp3d_m || _PROP3D_INDOOR_IS_DEFINED(fdp3d_m)))
       {
          float dist_km = _MIN(dist_ef * info->unit_m / 1000.0f, 1.0f);
          ep2d->final.fc -= (22050.0f-1000.0f)*dist_km;
