@@ -160,7 +160,7 @@ int main(int argc, char **argv)
             res = aaxFilterSetParam(filter, AAX_MAX_DISTANCE, AAX_LINEAR, 5000.0f);
             testForState(res, "aaxEmitterSetMaxDistance");
 
-            res = aaxScenerySetFilter(config, filter);
+            res = aaxEmitterSetFilter(emitter, filter);
             testForState(res, "aaxScenerySetDistanceModel");
             aaxFilterDestroy(filter);
 
