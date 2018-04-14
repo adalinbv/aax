@@ -55,7 +55,7 @@
 #define SYPOS			1000.0f
 #define SZPOS			-500.0f
 
-#define INITIAL_DIST		150.0f
+#define INITIAL_DIST		 200.0f
 #define EXPOS			(SXPOS-INITIAL_DIST)
 #define EYPOS			(SYPOS+20.0f)
 #define EZPOS			(SZPOS-50.0f)
@@ -65,7 +65,7 @@ aaxVec3f EmitterVel = { SPEED,  0.0f,  0.0f };
 aaxVec3d EmitterPos = { EXPOS, EYPOS, EZPOS };
 
 aaxVec3d SensorPos  = { SXPOS, SYPOS, SZPOS };
-aaxVec3f SensorVel  = {  0.0f,  0.0f, SPEED };
+aaxVec3f SensorVel  = {  0.0f,  0.0f,  0.0f };
 aaxVec3f SensorAt   = {  0.0f,  0.0f, -1.0f };
 aaxVec3f SensorUp   = {  0.0f,  1.0f,  0.0f };
 
@@ -147,13 +147,13 @@ int main(int argc, char **argv)
             filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
             testForError(filter, "Unable to create the distance filter");
 
-            res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 90.0f);
+            res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 45.0f);
             testForState(res, "aaxEmitterSetReferenceDistance");
 
             res = aaxFilterSetParam(filter, AAX_MAX_DISTANCE, AAX_LINEAR, 5000.0f);
             testForState(res, "aaxEmitterSetMaxDistance");
 
-            res = aaxScenerySetFilter(config, filter);
+            res = aaxEmitterSetFilter(emitter, filter);
             testForState(res, "aaxScenerySetDistanceModel");
             aaxFilterDestroy(filter);
 
@@ -191,13 +191,15 @@ int main(int argc, char **argv)
             dist = INITIAL_DIST;
             while(dist > -INITIAL_DIST)
             {
+                static aaxVec3d EmitterOrg = { EXPOS+INITIAL_DIST, EYPOS, EZPOS };
+
                 msecSleep((int)(ceilf(UPDATE_DELAY*1000.0f)));
 
                 EmitterPos[0] = (SXPOS-dist);
                 dist -= STEP;
 #if 1
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n",
-                        _vec3dMagnitude(EmitterPos),
+                       _vec3dMagnitude(EmitterPos)-_vec3dMagnitude(EmitterOrg),
                         EmitterPos[0]-SensorPos[0],
                         EmitterPos[1]-SensorPos[1],
                         EmitterPos[2]-SensorPos[2]);
