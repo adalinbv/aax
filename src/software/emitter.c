@@ -329,10 +329,13 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       }
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #endif
-      dist_ef = vec3fNormalize(&epos, &tmp);
-      ep3d->dist_sensor = dist_es = fp3d->dist_sensor + dist_ef;
+      dist_es = dist_ef = vec3fNormalize(&epos, &tmp);
+      if (fp3d->parent) {
+         dist_es += fp3d->dist_sensor;
+      }
+      ep3d->dist_sensor = dist_es;
 
-#if 1
+#if 0
  printf("# modified parent frame:\t\temitter:\n");
  PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
  printf(" modified emitter:\n");
