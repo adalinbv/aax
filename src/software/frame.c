@@ -139,7 +139,11 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    if (info->unit_m > 0.0f &&
        (pdp3d_m && !_PROP3D_INDOOR_IS_DEFINED(pdp3d_m)))
    {
+#if ARCH32
+      float dist_pf = vec3fMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
+#else
       float dist_pf = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
+#endif
       float dist_km = _MIN(dist_pf * info->unit_m / 1000.0f, 1.0f);
       float fc = 22050.0f - (22050.0f-1000.0f)*dist_km;
       fp2d->final.k = _aax_movingaverage_compute(fc, info->frequency);
