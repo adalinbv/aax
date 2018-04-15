@@ -66,10 +66,12 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    _aaxDelayed3dProps *pdp3d_m = NULL;
    _aaxMixerInfo *info = fmixer->info;
    _aaxLFOData *lfo;
+   float dist_pf, dist_sp;
    char process;
 
    /* Update the model-view matrix based on our own and that of out parent. */
    /* fp3d->parent == NULL means this is the sensor frame so no math there. */
+   dist_sp = 0.0f;
    if (fp3d->parent)
    {
       pdp3d_m = fp3d->parent->m_dprops3d;
@@ -102,6 +104,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
  printf("!  modified frame:\n");
  PRINT_MATRIX(fdp3d_m->matrix);
 #endif
+         dist_sp = fp3d->parent->dist_sensor;
       }
 
       if (_PROP3D_MTXSPEED_HAS_CHANGED(fdp3d) ||
@@ -133,17 +136,18 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       fp2d->final.gain_lfo = 1.0f;
    }
 
+#if ARCH32
+   dist_pf = vec3fMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
+#else
+   dist_pf = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
+#endif
+   fp3d->dist_sensor = dist_sp + dist_pf;
+
    // Only do distance attenuation frequency filtering if the frame is
    // registered at the mixer or when the parent-frame is defined indoor.
    fp2d->final.k = 1.0f;
-   if (info->unit_m > 0.0f &&
-       (pdp3d_m && !_PROP3D_INDOOR_IS_DEFINED(pdp3d_m)))
+   if (info->unit_m > 0.0f && pdp3d_m && !_PROP3D_INDOOR_IS_DEFINED(pdp3d_m))
    {
-#if ARCH32
-      float dist_pf = vec3fMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
-#else
-      float dist_pf = vec3dMagnitude(&fdp3d_m->matrix.v34[LOCATION]);
-#endif
       float dist_km = _MIN(dist_pf * info->unit_m / 1000.0f, 1.0f);
       float fc = 22050.0f - (22050.0f-1000.0f)*dist_km;
       fp2d->final.k = _aax_movingaverage_compute(fc, info->frequency);
