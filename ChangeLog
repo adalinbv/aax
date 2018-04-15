@@ -1,5 +1,6 @@
 * Wed Jan 31 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=low
+ * Add distance filter frequency response.
  * Add the option to register the reverb effect to audio-frames.
    Due to memory considerations they only support up to large room sizes,
    any reflections with a larger delay will be ignored.
@@ -18,7 +19,7 @@
    situations. A smaller update-rate than the refresh-rate could cause emitter
    and parent-frame data to be out of sync. Also absolute positions are handled
    better now.
- * Increase the http stream timeout value. The default was just too low.
+ * Increase the http stream timeout value. The default was too low.
  * Protect against deregistering an unregistered audio-frame or emitter.
 
 -- Erik Hofman <tech@adalin.org>  Wed 31 Jan  2018 14:25:00 + 0100
