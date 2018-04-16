@@ -300,6 +300,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       float min, max;
       float esv, vs;
       float dist_ef;
+      float dist_es;
       float gain;
       FLOAT pitch;
 
@@ -328,19 +329,23 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       }
       vec3fFilld(tmp.v3, edp3d_m->matrix.v34[LOCATION].v3);
 #endif
-      dist_ef = vec3fNormalize(&epos, &tmp);
+      dist_es = dist_ef = vec3fNormalize(&epos, &tmp);
+      if (fp3d->parent) {
+         dist_es += fp3d->dist_sensor;
+      }
+      ep3d->dist_sensor = dist_es;
 
 #if 0
  printf("# modified parent frame:\t\temitter:\n");
  PRINT_MATRICES(fdp3d_m->matrix, edp3d->matrix);
  printf(" modified emitter:\n");
  PRINT_MATRIX(edp3d_m->matrix);
- printf("# dist: %f\n", dist_ef);
+ printf("# dist straight:%f), dist path: %f\n", dist_ef, dist_es);
 #endif
 
       /* distance attenuation and audio-cone support */
       gain *= _angular_prepare(ep3d, edp3d_m, fdp3d_m);
-      gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
+      gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_es, speaker, info);
 
       // Only do distance attenuation frequency filtering if the emitter is
       // registered at the mixer or when the parent-frame is defined indoor.

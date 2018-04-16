@@ -298,6 +298,7 @@ typedef ALIGN16 struct
 
 typedef struct _aax3dProps_s
 {
+   float dist_sensor;
    float buf3dq_step;
    int state;
 
