@@ -221,7 +221,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
          occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
          occlusion->fc = 22000.0f;
 
-         occlusion->level = 1.0f;
+         occlusion->level = 0.0f;
          occlusion->olevel = 0.0f;
          occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
