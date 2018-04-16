@@ -306,12 +306,11 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
          vec3fZero(&fpvec);
          do
          {
-            float density = cpath->occlusion.v4[3];
-
             // If the audio-frame has occlusion defined with a density
             // factor larger than zero then process it.
-            if (cpath && (density > 0.01f))
+            if (cpath && (cpath->occlusion.v4[3] > 0.01f))
             {
+               float density = cpath->occlusion.v4[3];
                int ahead;
 
                // calculate the sum of the current dimension vector and the
@@ -406,7 +405,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
 }
 
 void
-_occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, UNUSED(MIX_PTR_T scratch), size_t no_samples, unsigned int track, const void *data)
+_occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, UNUSED(MIX_PTR_T scratch), size_t samples, unsigned int track, const void *data)
 {
    _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
@@ -416,5 +415,6 @@ _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, UNUSED(MIX_PTR_T 
    assert(occlusion);
 
    freq_flt = &occlusion->freq_filter;
-   freq_flt->run(rbd, dptr, sptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
+   freq_flt->run(rbd, scratch, sptr, 0, samples, 0, track, freq_flt, NULL, 0);
+   rbd->add(dptr, scratch, samples, 1.0f, 0.0f);
 }
