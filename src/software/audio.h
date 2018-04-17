@@ -51,13 +51,13 @@ void    _linear2adpcm(int16_t*, int16_t, uint8_t*, uint8_t*);
 void  _sw_bufcpy_ima_adpcm(void*, const void*, size_t);
 
 /* sensor */
-void _aaxSensorsProcessSensor(void*, _aaxRingBuffer*, _aax2dProps*, int, char);
-void _aaxSensorsProcess(_aaxRingBuffer*, const _intBuffers*, _aax2dProps*, int, char);
+char _aaxSensorsProcessSensor(void*, _aaxRingBuffer*, _aax2dProps*, int, char);
+char _aaxSensorsProcess(_aaxRingBuffer*, const _intBuffers*, _aax2dProps*, int, char);
 void *_aaxSensorCapture(_aaxRingBuffer*, const _aaxDriverBackend*, void*,
                      float*, float, unsigned int, float, float, ssize_t*, char);
 
 /* frame */
-char _aaxAudioFrameProcess(_aaxRingBuffer*, _frame_t*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char, char);
+char _aaxAudioFrameProcess(_aaxRingBuffer*, _frame_t*, void*, _aaxAudioFrame*, float, float, _aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, const _aaxDriverBackend*, void*, char, char);
 void _aaxAudioFrameProcessDelayQueue(_aaxAudioFrame *);
 
 /* emitter */

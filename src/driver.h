@@ -127,7 +127,7 @@ typedef ssize_t _aaxDriverCaptureCallback(const void*, void**, ssize_t*, size_t*
 
 typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*);
 typedef void _aaxDriverPostProcess(const void*, const void*, void*, const void*, const void*, void*);
-typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*, char);
+typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*, char, char);
 
 typedef void *_aaxDriverRingBufferCreate(float, enum aaxRenderMode);
 typedef void _aaxDriverRingBufferDestroy(void*);

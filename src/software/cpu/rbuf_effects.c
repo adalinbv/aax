@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -39,8 +39,10 @@
 #include <software/renderer.h>
 #include <software/gpu/gpu.h>
 
-
 /**
+ * 1nd order effects:
+ *   Apply to registered emitters and registered sensors only.
+ *
  * - dst and scratch point to the beginning of a buffer containing room for
  *   the delay effects prior to the pointer.
  * - start is the starting pointer
@@ -50,7 +52,54 @@
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 
 void
-_aaxRingBufferEffectsApply(_aaxRingBufferSample *rbd,
+_aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
+          MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
+          size_t start, size_t end, size_t no_samples,
+          size_t ddesamps, unsigned int track, _aax2dProps *p2d,
+          unsigned char ctr, unsigned char mono)
+{
+   _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+   _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
+   static const size_t bps = sizeof(MIX_T);
+   size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
+   MIX_T *psrc, *pdst;
+
+   src += start;
+   dst += start;
+
+   psrc = src; /* might change further in the code */
+   pdst = dst; /* might change further in the code */
+
+   if (reverb)
+   {
+      reverb->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
+                  reverb, NULL, mono);
+      BUFSWAP(pdst, psrc);
+   }
+
+   if (dst == pdst)	/* copy the data back to the dst buffer */
+   {
+      DBG_MEMCLR(1, dst-ds, ds+end, bps);
+      _aax_memcpy(dst, src, no_samples*bps);
+   }
+}
+
+
+/**
+ * 2nd order effects:
+ *   Apply to all registered emitters, registered sensors and
+ *   registered audio-frames.
+ *
+ * - dst and scratch point to the beginning of a buffer containing room for
+ *   the delay effects prior to the pointer.
+ * - start is the starting pointer
+ * - end is the end pointer (end-start is the number of smaples)
+ * - dmax does not include ds
+ */
+#define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
+
+void
+_aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
           size_t start, size_t end, size_t no_samples,
           size_t ddesamps, unsigned int track, _aax2dProps *p2d,
