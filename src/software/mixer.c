@@ -104,8 +104,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
          /* mix the buffer and the delay buffer */
          DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
-         rbi->effects(rbi->sample, scratch0, dptr, scratch1, 0, no_samples,
-                      no_samples, ddesamps, track, p2d, 0, mono);
+         rbi->effects_2nd(rbi->sample, scratch0, dptr, scratch1, 0, no_samples,
+                          no_samples, ddesamps, track, p2d, 0, mono);
 
          /* copy the unmodified next effects buffer back */
          DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
@@ -496,7 +496,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                _aaxDelayed3dProps sdp3d, *sdp3d_m;
                _aax2dProps sp2d;
                _aax3dProps sp3d;
-               char fprocess = AAX_TRUE;
                float ssv = 343.3f;
                float sdf = 1.0f;
 
@@ -565,7 +564,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                /* process emitters and registered sensors */
                res = _aaxAudioFrameProcess(rb, NULL, sensor, smixer, ssv, sdf,
                                            &sp2d, &sp3d, &sdp3d, be, be_handle,
-                                           fprocess, batched, AAX_FALSE);
+                                           batched, AAX_FALSE);
                _PROP3D_CLEAR(smixer->props3d->m_dprops3d);
 
                /*

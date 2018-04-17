@@ -59,7 +59,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                      float ssv, float sdf, _aax2dProps *fp2d, _aax3dProps *fp3d,
                      _aaxDelayed3dProps *fdp3d,
                      const _aaxDriverBackend *be, void *be_handle,
-                     char fprocess, char batched, char mono)
+                     char batched, char mono)
 {
    _aaxDelayed3dProps *sdp3d_m = fp3d->root->m_dprops3d;
    _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
@@ -153,8 +153,20 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                                  fmixer->emitters_2d, fmixer->emitters_3d,
                                  be, be_handle);
 
+   /** process registered devices */
+   if (fmixer->devices)
+   {
+      _aaxMixerInfo* info = fmixer->info;
+      process &= _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track,
+                                    batched);
+   }
+
+   if (process) {
+//    be->effects(be, be_handle, dest_rb, fp2d, mono, AAX_FALSE);
+   }
+
    /** process registered sub-frames */
-   if (fprocess && fmixer->frames)
+   if (fmixer->frames)
    {
       _aaxRingBuffer *frame_rb = fmixer->ringbuffer;
 
@@ -191,26 +203,18 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          cnt = _intBufGetNumNoLock(hf, _AAX_FRAME);
          for (i=0; i<max; i++)
          {
-            process = _aaxAudioFrameRender(dest_rb, fmixer,fp2d, fp3d, hf, i,
-                                           ssv, sdf, be, be_handle, batched);
-            if (process) --cnt;
-            if (cnt == 0) break;
+            char res = _aaxAudioFrameRender(dest_rb, fmixer,fp2d, fp3d, hf, i,
+                                            ssv, sdf, be, be_handle, batched);
+            process &= res;
+            if (res && --cnt == 0) break;
          }
          _intBufReleaseNum(hf, _AAX_FRAME);
       }
    }
 
-   /** process registered devices */
-   if (fmixer->devices)
+   if (process)
    {
-      _aaxMixerInfo* info = fmixer->info;
-      _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track, batched);
-      process = AAX_TRUE;
-   }
-
-   if (fprocess && process)
-   {
-      be->effects(be, be_handle, dest_rb, fp2d, mono);
+      be->effects(be, be_handle, dest_rb, fp2d, mono, AAX_TRUE);
       be->postprocess(be, be_handle, dest_rb, sensor, subframe, fmixer->info);
    }
 
@@ -392,7 +396,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
        */
       res = _aaxAudioFrameProcess(frame_rb, subframe, NULL, sfmixer, ssv, sdf,
                                   &sfp2d, &sfp3d, &sfdp3d,
-                                  be, be_handle, AAX_TRUE, batched, mono);
+                                  be, be_handle, batched, mono);
       _PROP3D_CLEAR(sfmixer->props3d->m_dprops3d);
 
       /* if the subframe actually did render something, mix the data */

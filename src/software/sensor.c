@@ -36,11 +36,12 @@
 #include "rbuf_int.h"
 #include "audio.h"
 
-void
+char
 _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
                    _aax2dProps *props2d, int dest_track, char batched)
 {
    _intBuffers *hd = (_intBuffers *)devices;
+   char rv = AAX_FALSE;
    size_t i, num;
 
    assert(devices);
@@ -55,13 +56,15 @@ _aaxSensorsProcess(_aaxRingBuffer *drb, const _intBuffers *devices,
       if (!dptr) continue;
 
       device = _intBufGetDataPtr(dptr);
-      _aaxSensorsProcessSensor(device, drb, props2d, dest_track, batched);
+      rv &= _aaxSensorsProcessSensor(device, drb, props2d, dest_track, batched);
       _intBufReleaseData(dptr, _AAX_DEVICE);
    }
    _intBufReleaseNum(hd, _AAX_DEVICE);
+
+   return rv;
 }
 
-void
+char
 _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int dest_track, char batched)
 {
    _handle_t* device = (_handle_t*)id;
@@ -70,6 +73,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
    const _aaxDriverBackend *be;
    char unregistered_ssr;
    void *be_handle;
+   char rv = AAX_FALSE;
 
    be = device->backend.ptr;
    be_handle = device->backend.handle;
@@ -92,7 +96,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
       _sensor_t* sensor;
       _intBuffers *srbs;
       ssize_t nsamps;
-      void *rv;
+      void *res;
 
       sensor = _intBufGetDataPtr(dptr_sensor);
       smixer = sensor->mixer;
@@ -121,7 +125,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
          gain *= (float)_FILTER_GET_STATE(smixer->props2d, VOLUME_FILTER);
          rr = _FILTER_GET(smixer->props2d, VOLUME_FILTER,
                                            AAX_AGC_RESPONSE_RATE);
-         rv = _aaxSensorCapture(srb, be, be_handle, &dt, rr, dest_track,
+         res = _aaxSensorCapture(srb, be, be_handle, &dt, rr, dest_track,
                                 curr_pos_sec, gain, &nsamps, batched);
          if (dt == 0.0f)
          {
@@ -137,7 +141,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
          if (device->ringbuffer)
          {
             _aaxRingBuffer *drb = device->ringbuffer;
-            _aaxRingBuffer *rb = rv;
+            _aaxRingBuffer *rb = res;
             int track, tracks;
 
             tracks = rb->get_parami(rb, RB_NO_TRACKS);
@@ -152,7 +156,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
          }
 
          dptr_sensor = _intBufGetNoLock(device->sensors, _AAX_SENSOR, 0);
-         if (rv != srb)
+         if (res != srb)
          {
             /**
              * Add the new buffer to the buffer queue and pop the
@@ -168,12 +172,12 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
             {
                if (smixer->capturing)
                {
-                  device->ringbuffer = rv;
+                  device->ringbuffer = res;
                   _aaxSignalTrigger(&device->buffer_ready);
                }
             }
             else {
-               smixer->ringbuffer = rv;
+               smixer->ringbuffer = res;
             }
          }
          smixer->curr_pos_sec += dt;
@@ -187,7 +191,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
          if (sptr_rb)
          {
             _aaxRingBuffer *ssr_rb = _intBufGetDataPtr(sptr_rb);
-            size_t rv = 0;
+            size_t res = 0;
 
             do
             {
@@ -207,10 +211,10 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }
-               rv = drb->mix2d(drb, ssr_rb, smixer->info, smixer->props2d, p2d, 0, NULL);
+               res = drb->mix2d(drb, ssr_rb, smixer->info, smixer->props2d, p2d, 0, NULL);
                _intBufReleaseData(sptr_rb, _AAX_RINGBUFFER);
 
-               if (rv) /* true if a new buffer is required */
+               if (res) /* true if a new buffer is required */
                {
                   _intBufferData *rbuf;
 
@@ -227,15 +231,16 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
                   if ((sptr_rb =_intBufGet(srbs, _AAX_RINGBUFFER,0)) != NULL)
                   {
                      ssr_rb = _intBufGetDataPtr(sptr_rb);
-                     /* since rv == AAX_TRUE this will be unlocked 
+                     /* since res == AAX_TRUE this will be unlocked 
                         after rb->mix2d */
                   }
                   else {
-                     rv = 0;
+                     res = 0;
                   }
                }
             }
-            while(rv);
+            while(res);
+            rv = AAX_TRUE;
          }
       }
       else if (_IS_PROCESSED(device))
@@ -251,6 +256,8 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
    else {
       _SET_PROCESSED(device);
    }
+
+   return rv;
 }
 
 void*

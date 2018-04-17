@@ -269,8 +269,9 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
 #else
                DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
-               srbi->effects(srbi->sample, dptr, dst, scratch0, dest_pos, dend,
-                             dno_samples, ddesamps, track, p2d, ctr, AAX_FALSE);
+               srbi->effects_2nd(srbi->sample, dptr, dst, scratch0,
+                                 dest_pos, dend, dno_samples, ddesamps, track,
+                                 p2d, ctr, AAX_FALSE);
 #endif
 #if RB_FLOAT_DATA
                DBG_TESTNAN(dptr-ddesamps+dest_pos, dno_samples+ddesamps);

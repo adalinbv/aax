@@ -367,13 +367,16 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       _aax_memcpy(reverb->reverb_history[track], scratch+no_samples-ds, bytes);
    }
 
-   filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 0);
-   
-   /* add the direct path */
-   if (occlusion) {
-      occlusion->run(rbd, dptr, sptr, scratch, no_samples, track, occlusion);
-   } else {
+   /* add reverb and the the direct path */
+   if (!occlusion)
+   {
+      filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 0);
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+   }
+   else // if (occlusion->level < (1.0f-LEVEL_64DB))
+   {
+      filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 0);
+      occlusion->run(rbd, dptr, sptr, scratch, no_samples, track, occlusion);
    }
 }
 
