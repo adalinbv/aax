@@ -43,7 +43,8 @@
 
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(void**);
-static void _reverb_add_delays(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
+static void _reverb_add_reflections(void**, float, unsigned int, float, int, size_t);
+static void _reverb_add_reverb(void**, float, unsigned int, size_t, float, float);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
@@ -87,79 +88,24 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    {
    case AAX_CONSTANT_VALUE:
    {
-      /* i = initial, lb = loopback */
-      /* max 100ms reverb, longer sounds like echo */
-      static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
       unsigned int tracks = effect->info->no_tracks;
-      float delays[8], gains[8];
-      float idepth, igain, idepth_offs, lb_depth, lb_gain;
+      float lb_depth, lb_gain;
       float depth, fs = 48000.0f;
-      int num;
+      int num = 3;
 
       if (effect->info) {
          fs = effect->info->frequency;
       }
 
-      /* initial delay in seconds (should be between 10ms en 70 ms) */
-      /* initial gains, defnining a direct path is not necessary    */
-      /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
-// http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      num = 3;
-      igain = 0.50f;
-      if (state & AAX_INVERSE)
-      {
-         gains[6] = igain*0.9484f;	// conrete/brick = 0.95
-         gains[5] = igain*0.8935f;	// wood floor    = 0.90
-         gains[4] = igain*0.8254f;	// carpet        = 0.853
-         gains[3] = igain*0.8997f;
-         gains[2] = igain*0.8346f;
-         gains[1] = igain*0.7718f;
-         gains[0] = igain*0.7946f;
-      }
-      else
-      {
-         gains[0] = igain*0.9484f;      // conrete/brick = 0.95
-         gains[1] = igain*0.8935f;      // wood floor    = 0.90
-         gains[2] = igain*0.8254f;      // carpet        = 0.853
-         gains[3] = igain*0.8997f;
-         gains[4] = igain*0.8346f;
-         gains[5] = igain*0.7718f;
-         gains[6] = igain*0.7946f;
-      }
-
-      depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
-      idepth = 0.005f+0.045f*depth;
-      idepth_offs = (max_depth-idepth)*depth;
-      idepth_offs = _MINMAX(idepth_offs, 0.01f, max_depth-0.05f);
-      assert(idepth_offs+idepth*0.9876543f <= REVERB_EFFECTS_TIME);
-
-      if (state & AAX_INVERSE)
-      {
-         delays[0] = idepth_offs + idepth*0.9876543f;
-         delays[2] = idepth_offs + idepth*0.5019726f;
-         delays[1] = idepth_offs + idepth*0.3333333f;
-         delays[6] = idepth_offs + idepth*0.1992736f;
-         delays[4] = idepth_offs + idepth*0.1428571f;
-         delays[5] = idepth_offs + idepth*0.0909091f;
-         delays[3] = idepth_offs + idepth*0.0769231f;
-      }  
-      else
-      {
-         delays[6] = idepth_offs + idepth*0.9876543f;
-         delays[4] = idepth_offs + idepth*0.5019726f;
-         delays[5] = idepth_offs + idepth*0.3333333f;
-         delays[0] = idepth_offs + idepth*0.1992736f;
-         delays[2] = idepth_offs + idepth*0.1428571f;
-         delays[1] = idepth_offs + idepth*0.0909091f;
-         delays[3] = idepth_offs + idepth*0.0769231f;
-      }
-
       /* calculate initial and loopback samples                      */
       lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
       lb_gain = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
-      _reverb_add_delays(&effect->slot[0]->data, fs, tracks,
-                              delays, gains, num, 1.25f,
+      _reverb_add_reverb(&effect->slot[0]->data, fs, tracks, num,
                               lb_depth, lb_gain);
+
+      depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
+      _reverb_add_reflections(&effect->slot[0]->data, fs, tracks,
+                              depth, state, num);
       do
       {
          _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
@@ -380,15 +326,14 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    }
 }
 
+// Calculate the 1st order reflections
 static void
-_reverb_add_delays(void **data, float fs, unsigned int tracks, const float *delays, const float *gains, size_t num, float igain, float lb_depth, float lb_gain)
+_reverb_add_reflections(void **data, float fs, unsigned int tracks, float depth, int state, size_t num)
 {
    _aaxRingBufferReverbData **ptr = (_aaxRingBufferReverbData**)data;
    _aaxRingBufferReverbData *reverb;
 
    assert(ptr != 0);
-   assert(delays != 0);
-   assert(gains != 0);
 
    if (*ptr == NULL) {
       *ptr = calloc(1, sizeof(_aaxRingBufferReverbData));
@@ -397,21 +342,66 @@ _reverb_add_delays(void **data, float fs, unsigned int tracks, const float *dela
    reverb = *ptr;
    if (reverb)
    {
-      size_t track;
-
       reverb->run = _reverb_run;
-
-      if (reverb->history_ptr == 0)
-      {
-         size_t samples = TIME_TO_SAMPLES(fs, REVERB_EFFECTS_TIME);
-         _aaxRingBufferCreateHistoryBuffer(&reverb->history_ptr,
-                                           reverb->reverb_history,
-                                           samples, tracks);
-      }
 
       if (num < _AAX_MAX_DELAYS)
       {
+         static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
+         float delays[8], gains[8];
+         float idepth, igain, idepth_offs;
          size_t i;
+
+         /* initial delay in seconds (should be between 10ms en 70 ms) */
+         /* initial gains, defnining a direct path is not necessary    */
+         /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
+// http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
+         igain = 0.50f;
+         if (state & AAX_INVERSE)
+         {
+            gains[6] = igain*0.9484f;      // conrete/brick = 0.95
+            gains[5] = igain*0.8935f;      // wood floor    = 0.90
+            gains[4] = igain*0.8254f;      // carpet        = 0.853
+            gains[3] = igain*0.8997f;
+            gains[2] = igain*0.8346f;
+            gains[1] = igain*0.7718f;
+            gains[0] = igain*0.7946f;
+         }
+         else
+         {
+            gains[0] = igain*0.9484f;      // conrete/brick = 0.95
+            gains[1] = igain*0.8935f;      // wood floor    = 0.90
+            gains[2] = igain*0.8254f;      // carpet        = 0.853
+            gains[3] = igain*0.8997f;
+            gains[4] = igain*0.8346f;
+            gains[5] = igain*0.7718f;
+            gains[6] = igain*0.7946f;
+         }
+
+         idepth = 0.005f+0.045f*depth;
+         idepth_offs = (max_depth-idepth)*depth;
+         idepth_offs = _MINMAX(idepth_offs, 0.01f, max_depth-0.05f);
+         assert(idepth_offs+idepth*0.9876543f <= REVERB_EFFECTS_TIME);
+
+         if (state & AAX_INVERSE)
+         {
+            delays[0] = idepth_offs + idepth*0.9876543f;
+            delays[2] = idepth_offs + idepth*0.5019726f;
+            delays[1] = idepth_offs + idepth*0.3333333f;
+            delays[6] = idepth_offs + idepth*0.1992736f;
+            delays[4] = idepth_offs + idepth*0.1428571f;
+            delays[5] = idepth_offs + idepth*0.0909091f;
+            delays[3] = idepth_offs + idepth*0.0769231f;
+         }
+         else
+         {
+            delays[6] = idepth_offs + idepth*0.9876543f;
+            delays[4] = idepth_offs + idepth*0.5019726f;
+            delays[5] = idepth_offs + idepth*0.3333333f;
+            delays[0] = idepth_offs + idepth*0.1992736f;
+            delays[2] = idepth_offs + idepth*0.1428571f;
+            delays[1] = idepth_offs + idepth*0.0909091f;
+            delays[3] = idepth_offs + idepth*0.0769231f;
+         }
 
          reverb->gain = igain;
          reverb->no_delays = num;
@@ -419,6 +409,7 @@ _reverb_add_delays(void **data, float fs, unsigned int tracks, const float *dela
          {
             if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
             {
+               unsigned int track;
                for (track=0; track<tracks; ++track) {
                   reverb->delay[i].sample_offs[track]=(ssize_t)(delays[i] * fs);
                }
@@ -432,12 +423,42 @@ _reverb_add_delays(void **data, float fs, unsigned int tracks, const float *dela
             }
          }
       }
+      *data = reverb;
+   }
+}
+
+// Calculate the 2nd order reflections
+static void
+_reverb_add_reverb(void **data, float fs, unsigned int tracks, size_t num, float lb_depth, float lb_gain)
+{
+      _aaxRingBufferReverbData **ptr = (_aaxRingBufferReverbData**)data;
+   _aaxRingBufferReverbData *reverb;
+
+   assert(ptr != 0);
+
+   if (*ptr == NULL) {
+      *ptr = calloc(1, sizeof(_aaxRingBufferReverbData));
+   }
+
+   reverb = *ptr;
+   if (reverb)
+   {
+      reverb->run = _reverb_run;
+
+      if (reverb->history_ptr == 0)
+      {
+         size_t samples = TIME_TO_SAMPLES(fs, REVERB_EFFECTS_TIME);
+         _aaxRingBufferCreateHistoryBuffer(&reverb->history_ptr,
+                                           reverb->reverb_history,
+                                           samples, tracks);
+      }
 
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       // https://web.archive.org/web/20150416071915/http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       if ((num > 0) && (lb_depth != 0) && (lb_gain != 0))
       {
          static const float max_depth = REVERB_EFFECTS_TIME*0.6877777f;
+         unsigned int track;
          float dlb, dlbp;
 
          num = 5;

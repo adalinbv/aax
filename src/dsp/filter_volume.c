@@ -268,7 +268,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
 }
 
 void
-_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, float vs)
+_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, UNUSED(float vs))
 {
    _aaxRingBufferOcclusionData *occlusion;
    _aaxDelayed3dProps *pdp3d_m, *fdp3d_m;
