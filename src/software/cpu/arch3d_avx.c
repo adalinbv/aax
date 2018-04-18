@@ -49,10 +49,12 @@ hsum_pd_avx(__m256d v) {
     return _mm_cvtsd_f64(sums);
 }
 
+#if 0
 static inline FN_PREALIGN void
 _vec3dCopy_avx(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = v->s4.avx;
 }
+#endif
 
 static inline FN_PREALIGN void
 _vec3dNegate_avx(vec3d_ptr d, const vec3d_ptr v) {
@@ -94,7 +96,7 @@ _vec3dAbsolute_avx(vec3d_ptr d, const vec3d_ptr v) {
 double
 _vec3dNormalize_avx(vec3d_ptr d, const vec3d_ptr v)
 {
-   double mag = vec3dMagnitude(v);
+   double mag = _vec3dMagnitude_avx(v);
    if (mag) {
       d->s4.avx = _mm256_mul_pd(v->s4.avx, _mm256_set1_pd(1.0/mag));
    } else {

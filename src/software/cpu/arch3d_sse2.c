@@ -55,11 +55,13 @@ hsum_pd_sse(const __m128d vd[2]) {
             _mm_cvtsd_f64(_mm_add_sd(vd[1], shuf2));
 }
 
+#if 0
 static inline FN_PREALIGN void
 _vec3dCopy_sse2(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.sse[0] = v->s4.sse[0];
    d->s4.sse[1] = v->s4.sse[1];
 }
+#endif
 
 static inline FN_PREALIGN void
 _vec3dNegate_sse2(vec3d_ptr d, const vec3d_ptr v) {
@@ -110,7 +112,7 @@ _vec3dMagnitude_sse2(const vec3d_ptr v) {
 double
 _vec3dNormalize_sse2(vec3d_ptr d, const vec3d_ptr v)
 {
-   double mag = vec3dMagnitude(v);
+   double mag = _vec3dMagnitude_sse2(v);
    if (mag) {
       __m128d div = _mm_set1_pd(1.0/mag);
       d->s4.sse[0] = _mm_mul_pd(v->s4.sse[0], div);
