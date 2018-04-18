@@ -47,10 +47,12 @@ hsum_ps_sse_vex(__m128 v) {
    return _mm_cvtss_f32(sums);
 }
 
+#if 0
 static inline FN_PREALIGN void
 _vec3fCopy_sse_vex(vec3f_ptr d, const vec3f_ptr v) {
    d->s4 = v->s4;
 }
+#endif
 
 static inline FN_PREALIGN void
 _vec3fNegate_sse_vex(vec3f_ptr d, const vec3f_ptr v) {

@@ -56,7 +56,7 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
           size_t start, size_t end, size_t no_samples,
           size_t ddesamps, unsigned int track, _aax2dProps *p2d,
-          unsigned char ctr, unsigned char mono)
+          UNUSED(unsigned char ctr), unsigned char mono)
 {
    _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
