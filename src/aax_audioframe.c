@@ -673,6 +673,8 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
             _EFFECT_SET_DATA(p3d, type, reverb->occlusion);
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
+
+         // TODO: add _aaxRingBufferReflectionData to all registered emitters
          break;
       }
       default:
@@ -1072,6 +1074,8 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                _EFFECT_COPY_DATA(ep3d, mp3d, VELOCITY_EFFECT);
             }
             _EFFECT_COPY(ep3d, mp3d, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
+
+            // TODO: add _aaxRingBufferReflectionData to the emitter
          }
       }
       else
