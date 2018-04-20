@@ -252,7 +252,7 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scrat
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    const _aaxRingBufferReflectionData *reflections = data;
-   unsigned int snum, tmod = track+1;
+   unsigned int snum, tracks;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -261,18 +261,17 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scrat
    assert(scratch != 0);
    assert(track < _AAX_MAX_SPEAKERS);
 
+   tracks = rbd->no_tracks;
+
    /* reverb (1st order reflections) */
    /* skip if the caller is mono  */
    snum = reflections->no_delays;
    if (!mono && snum > 0)
    {
       unsigned int q;
-      for(q=0; q<snum; ++q)
+      for(q=track; q<snum; q += tracks)
       {  
-         float volume;
-         if ((q % tmod) != 0) continue;
-
-         volume = reflections->delay[q].gain;
+         float volume = reflections->delay[q].gain;
          if ((volume > 0.001f) || (volume < -0.001f))
          {  
             ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
