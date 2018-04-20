@@ -43,7 +43,7 @@
 
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(void**);
-static void _reverb_add_reflections(void**, float, unsigned int, float, int);
+static void _reverb_add_reflections(void*, float, unsigned int, float, int);
 static void _reverb_add_reverb(void**, float, unsigned int, float, float);
 static void _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
@@ -102,13 +102,13 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       lb_gain = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
       _reverb_add_reverb(&effect->slot[0]->data, fs, tracks, lb_depth, lb_gain);
 
-      depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
-      _reverb_add_reflections(&effect->slot[0]->data, fs, tracks, depth, state);
-
       do
       {
          _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
+
+         depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
+         _reverb_add_reflections(&reverb->reflections, fs, tracks, depth, state);
 
          if (!flt) {
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
@@ -251,9 +251,8 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scrat
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   const _aaxRingBufferReverbData *reverb = data;
-   _aaxRingBufferFreqFilterData *filter;
-   int snum;
+   const _aaxRingBufferReflectionData *reflections = data;
+   unsigned int snum, tmod = track+1;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -262,27 +261,29 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scrat
    assert(scratch != 0);
    assert(track < _AAX_MAX_SPEAKERS);
 
-   filter = reverb->freq_filter;
-   filter->run(rbd, dptr, sptr, 0, no_samples, 0, track, filter, NULL, 0);
-
    /* reverb (1st order reflections) */
    /* skip if the caller is mono  */
-   snum = reverb->no_delays;
+   snum = reflections->no_delays;
    if (!mono && snum > 0)
    {
-      int q;
-
+      unsigned int q;
       for(q=0; q<snum; ++q)
       {  
-         float volume = reverb->delay[q].gain / (snum+1);
+         float volume;
+         if ((q % tmod) != 0) continue;
+
+         volume = reflections->delay[q].gain;
          if ((volume > 0.001f) || (volume < -0.001f))
          {  
-            ssize_t offs = reverb->delay[q].sample_offs[track] + dst;
+            ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
             if (offs && offs < (ssize_t)ds) {
                rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
             }
          }
       }
+   }
+   else {
+      _aax_memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
    }
 }
 
@@ -308,7 +309,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    filter = reverb->freq_filter;
    occlusion = reverb->occlusion;
 
-   _reflections_run(rb, scratch, sptr, scratch, no_samples, ds, track, data, info, mono);
+   _reflections_run(rb, scratch, sptr, scratch, no_samples, ds, track,
+                    &reverb->reflections, info, mono);
 
    /* loopback for reverb (2nd order reflections) */
    snum = reverb->no_loopbacks;
@@ -325,6 +327,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          {
             ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
             if (offs && offs < (ssize_t)ds) {
+               filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
                rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
             }
          }
@@ -340,28 +343,23 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
 // Calculate the 1st order reflections
 static void
-_reverb_add_reflections(void **data, float fs, unsigned int tracks, float depth, int state)
+_reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, int state)
 {
-   _aaxRingBufferReverbData **ptr = (_aaxRingBufferReverbData**)data;
-   _aaxRingBufferReverbData *reverb;
-   unsigned int num = 3;
+   _aaxRingBufferReflectionData *reflections = ptr;
+   unsigned int num = 4;
 
    assert(ptr != 0);
    assert(num < _AAX_MAX_DELAYS);
+   assert(reflections);
 
-   if (*ptr == NULL) {
-      *ptr = calloc(1, sizeof(_aaxRingBufferReverbData));
-   }
-
-   reverb = *ptr;
-   if (reverb)
+   if (reflections)
    {
       static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
       float delays[8], gains[8];
       float idepth, igain, idepth_offs;
       size_t i;
 
-      reverb->run = _reverb_run;
+      reflections->run = _reflections_run;
 
       /* initial delay in seconds (should be between 10ms en 70 ms) */
       /* initial gains, defnining a direct path is not necessary    */
@@ -415,26 +413,25 @@ _reverb_add_reflections(void **data, float fs, unsigned int tracks, float depth,
          delays[3] = idepth_offs + idepth*0.0769231f;
       }
 
-      reverb->gain = igain;
-      reverb->no_delays = num;
+      reflections->gain = igain;
+      reflections->no_delays = num;
       for (i=0; i<num; ++i)
       {
          if ((gains[i] > 0.001f) || (gains[i] < -0.001f))
          {
             unsigned int track;
             for (track=0; track<tracks; ++track) {
-               reverb->delay[i].sample_offs[track]=(ssize_t)(delays[i] * fs);
+               reflections->delay[i].sample_offs[track]=(ssize_t)(delays[i] * fs);
             }
-            reverb->delay[i].gain = gains[i];
+            reflections->delay[i].gain = gains[i];
 #if 0
  printf("delay[%zi]: %zi\n", i, reverb->delay[i].sample_offs[0]);
 #endif
          }
          else {
-            reverb->no_delays--;
+            reflections->delay[i].gain = 0.0f;
          }
       }
-      *data = reverb;
    }
 }
 
@@ -519,9 +516,9 @@ _reverb_destroy_delays(void **data)
    reverb = *data;
    if (reverb)
    {
-      reverb->no_delays = 0;
+      reverb->reflections.no_delays = 0;
+      reverb->reflections.delay[0].gain = 1.0f;
       reverb->no_loopbacks = 0;
-      reverb->delay[0].gain = 1.0f;
 #if BYTE_ALIGN
       _aax_free(reverb->history_ptr);
 #else

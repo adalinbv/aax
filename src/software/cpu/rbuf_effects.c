@@ -59,7 +59,7 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
           UNUSED(unsigned char ctr), unsigned char mono)
 {
    _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-   _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
+   _aaxRingBufferReflectionData *reflections = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
    static const size_t bps = sizeof(MIX_T);
    size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
    MIX_T *psrc, *pdst;
@@ -70,10 +70,10 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
    psrc = src; /* might change further in the code */
    pdst = dst; /* might change further in the code */
 
-   if (reverb)
+   if (reflections)
    {
-      reverb->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
-                  reverb, NULL, mono);
+      reflections->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
+                       reflections, NULL, mono);
       BUFSWAP(pdst, psrc);
    }
 
