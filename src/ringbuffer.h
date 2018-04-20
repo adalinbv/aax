@@ -113,8 +113,8 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
  */
 
 #define _AAX_MAX_STAGES		4
-#define _AAX_MAX_DELAYS         8
-#define _AAX_MAX_LOOPBACKS      8
+#define _AAX_MAX_DELAYS         _AAX_MAX_SPEAKERS
+#define _AAX_MAX_LOOPBACKS      _AAX_MAX_SPEAKERS
 #define _AAX_MAX_EQBANDS        8
 
 typedef struct
@@ -200,10 +200,12 @@ typedef struct
    float fc;
 
 #if 1
-   /* 1st order reflections */
-   float gain;
-   unsigned int no_delays;
-   _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
+   struct {
+      /* 1st order reflections */
+      float gain;
+      unsigned int no_delays;
+      _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
+   } reflections;
 #endif
 
     /* 2nd roder reflections */
