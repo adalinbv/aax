@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Bass Drum 1" frequency="22" duration="0.10">
-  <waveform src="sine" ratio="0.4"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
+ <sound name="Acoustic Base Drum" frequency="55" duration="0.10">
+  <waveform src="triangle" ratio="0.4"/>
+  <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
  </sound>
 
  <emitter looping="true">
@@ -22,18 +22,19 @@
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
-    <param n="0">0.80</param>
-    <param n="1">0.30</param>
+    <param n="0">0.70</param>
+    <param n="1">0.20</param>
     <param n="2">0.10</param>
-    <param n="3">0.40</param>
+    <param n="3">0.20</param>
    </slot>
   </filter>
+
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">3.00</param>
     <param n="1">0.03</param>
     <param n="2">1.00</param>
-    <param n="3">0.05</param>
+    <param n="3">0.10</param>
    </slot>
   </effect>
  </emitter>
