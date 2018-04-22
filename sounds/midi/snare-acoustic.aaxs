@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Acoustic Snare" frequency="75" duration="0.20">
-  <waveform src="pink-noise" processing="add" ratio="0.7" pitch="2.20"/>
-  <waveform src="sine" processing="add" ratio="0.43"/>
-  <waveform src="triangle" processing="add" ratio="0.37" pitch="1.5"/>
+ <sound name="Acoustic Snare" frequency="95" duration="0.20">
+  <waveform src="pink-noise" ratio="0.6" pitch="2.20"/>
+  <waveform src="sine" processing="add" ratio="0.73"/>
+  <waveform src="triangle" processing="add" ratio="0.47" pitch="1.53"/>
  </sound>
 
  <emitter looping="true">
