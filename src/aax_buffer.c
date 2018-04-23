@@ -51,7 +51,7 @@
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);
-static int _bufProcessWaveform(aaxBuffer, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
+static int _bufProcessWaveform(aaxBuffer, float, float, float, float, enum aaxWaveformType, float, enum aaxProcessingType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
@@ -475,7 +475,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   return _bufProcessWaveform(buffer, rate, 1.0f, rate, wtype, ratio, ptype);
+   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, wtype, ratio, ptype);
 }
 
 AAX_API void** AAX_APIENTRY
@@ -1016,7 +1016,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
-   float pitch, ratio, staticity;
+   float phase, pitch, ratio, staticity;
 
    if (xmlAttributeExists(xwid, "ratio")) {
       ratio = xmlAttributeGetDouble(xwid, "ratio");
@@ -1027,6 +1027,11 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq)
       pitch = xmlAttributeGetDouble(xwid, "pitch");
    } else {
       pitch = xmlNodeGetDouble(xwid, "pitch");
+   }
+   if (xmlAttributeExists(xwid, "phase")) {
+      phase = xmlAttributeGetDouble(xwid, "phase");
+   }  else { 
+      phase = xmlNodeGetDouble(xwid, "phase");
    }
    if (xmlAttributeExists(xwid, "staticity")) {
       staticity = xmlAttributeGetDouble(xwid, "staticity");
@@ -1114,7 +1119,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq)
       }
    }
 
-   return _bufProcessWaveform(handle, freq, pitch, staticity,
+   return _bufProcessWaveform(handle, freq, phase, pitch, staticity,
                                       wtype, ratio, ptype);
 }
 
@@ -1335,7 +1340,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 #endif
 
 static int
-_bufProcessWaveform(aaxBuffer buffer, float freq, float pitch, float staticity, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
+_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
@@ -1350,10 +1355,12 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float pitch, float staticity, 
    else if (handle && handle->info && (*handle->info && ((*handle->info)->id == INFO_ID)))
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-      float phase = (ratio < 0.0f) ? GMATH_PI : 0.0f;
       float f, samps_period, fs, fw, fs_mixer, rate;
       unsigned int no_samples, i, bit = 1;
       unsigned skip;
+
+      phase *= GMATH_2PI;
+      if (ratio < 0.0f) phase = GMATH_2PI - phase;
 
       rate = freq * pitch;
       ratio = fabsf(ratio);
