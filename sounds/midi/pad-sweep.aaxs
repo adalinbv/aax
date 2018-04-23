@@ -10,15 +10,24 @@
 
  <sound name="Pad 8 (sweep)" program="96" bank="0" frequency="220" duration="0.25">
   <waveform src="impulse"/>
-  <waveform src="impulse" processing="mix" pitch="1.407"/>
-  <waveform src="impulse" processing="mix" pitch="0.993"/>
+  <waveform src="impulse" processing="mix" pitch="1.471"/>
+  <waveform src="impulse" processing="mix" pitch="0.991"/>
  </sound>
 
  <instrument>
   <note polyphony="6" min="36" max="96" step="1"/>
  </instrument>
 
- <emitter looping="true"/>
+ <emitter looping="true">
+  <effect type="phasing" src="inverse-sine">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.09</param>
+    <param n="2">0.4</param>
+    <param n="3">0.2</param>
+   </slot>
+  </effect>
+ </emitter>
 
  <audioframe>
   <filter type="frequency" src="sine">
@@ -26,11 +35,11 @@
     <param n="0" pitch="2.0">440</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">3.0</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
     <param n="0" pitch="10.0">2200</param>
-    <param n="3">0.125</param>
+    <param n="3">0.075</param>
    </slot>
   </filter>
  </audioframe>
