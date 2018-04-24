@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Pad 8 (sweep)" program="96" bank="0" frequency="220" duration="0.25">
-  <waveform src="impulse"/>
-  <waveform src="impulse" processing="mix" pitch="1.471"/>
-  <waveform src="impulse" processing="mix" pitch="0.991"/>
+ <sound name="Pad 8 (sweep)" program="96" bank="0" frequency="220" duration="0.25" voices="3" spread="0.4">
+  <waveform src="sine"/>
+  <waveform src="impulse" processing="mix" pitch="1.5"/>
+  <waveform src="impulse" processing="mix" pitch="1.0"/>
  </sound>
 
  <instrument>
@@ -39,7 +39,7 @@
    </slot>
    <slot n="1">
     <param n="0" pitch="10.0">2200</param>
-    <param n="3">0.075</param>
+    <param n="3">0.115</param>
    </slot>
   </filter>
  </audioframe>
