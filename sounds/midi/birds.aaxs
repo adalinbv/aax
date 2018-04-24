@@ -9,15 +9,21 @@
 <aeonwave>
 
  <sound name="Birds" program="124" bank="0" frequency="220" duration="2.9">
-  <waveform src="square" pitch="1.0"/>
-  <waveform src="impulse" processing="mix" ratio="0.7" pitch="1.0"/>
-  <waveform src="sawtooth" processing="modulate" ratio="3.0" pitch="1.498"/>
-  <waveform src="white_noise" processing="modulate" ratio="2.0" pitch="0.2"/>
+  <waveform src="white_noise" ratio="2.0" pitch="0.6"/>
+  <waveform src="impulse" processing="modulate" ratio="2.0" pitch="0.5"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="5.5">1210</param>
-    <param n="1">0.2</param>
+    <param n="0" pitch="1.0">220</param>
+    <param n="1">0.1</param>
     <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="8.0">220</param>
+    <param n="1">1.0</param>
+    <param n="2">0.2</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
@@ -29,11 +35,11 @@
     <param n="0" pitch="8.5">1870</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">30.0</param>
+    <param n="3">100.0</param>
    </slot>
    <slot n="1">
     <param n="0" pitch="40.0">8800</param>
-    <param n="3">0.1</param>
+    <param n="3">1.1</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="square">
