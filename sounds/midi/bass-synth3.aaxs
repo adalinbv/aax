@@ -19,16 +19,16 @@
  </instrument>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope">
+  <filter type="frequency" src="envelope|24db">
    <slot n="0">
-    <param n="0" pitch="2.0">220</param>
+    <param n="0" pitch="0.1">22</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">2.0</param>
    </slot>
    <slot n="1">
-    <param n="0">16000</param>
-    <param n="3">0.04</param>
+    <param n="0" pitch="7">1540</param>
+    <param n="3">5.0</param>
    </slot>
   </filter>
   <filter type="timed-gain">
