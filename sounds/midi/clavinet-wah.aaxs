@@ -26,16 +26,16 @@
  </instrument>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope|48db">
+  <filter type="frequency" src="envelope|24db">
    <slot n="0">
     <param n="0" pitch="0.1">22</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">3.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="20">8800</param>
-    <param n="3">1.0</param>
+    <param n="0" pitch="7">1540</param>
+    <param n="3">5.0</param>
    </slot>
   </filter>
   <filter type="timed-gain">
@@ -58,20 +58,5 @@
    </slot>
   </effect>
  </emitter>
-
- <audioframe>
-  <filter type="frequency" src="envelope|24db">
-   <slot n="0">
-    <param n="0">5</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">50.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">3300</param>
-    <param n="3">0.08</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>
