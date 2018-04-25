@@ -44,7 +44,7 @@
 #include "api.h"
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
@@ -181,14 +181,14 @@ _occlusion_lfo(void* data, UNUSED(void *env), UNUSED(const void *ptr), UNUSED(un
 {
   _aaxLFOData* lfo = (_aaxLFOData*)data;
   _aaxRingBufferOcclusionData *occlusion;
-  float rv, level;
+  float rv, gain;
 
   occlusion = lfo->data;
 
-  level = occlusion->level*occlusion->level;
-  occlusion->freq_filter.low_gain = 1.0f - level;
+  gain = occlusion->gain;
+  occlusion->freq_filter.low_gain = gain;
   
-  rv = _linear(level, lfo->max-lfo->min);
+  rv = _linear(1.0f - gain, lfo->max-lfo->min);
   rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
 
   return rv;
@@ -218,11 +218,12 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
          occlusion->occlusion.v4[1] = 0.5f*slot->param[1];
          occlusion->occlusion.v4[2] = 0.5f*slot->param[2];
          occlusion->occlusion.v4[3] = slot->param[3];
-         occlusion->magnitude_sq = vec3fMagnitudeSquared(&occlusion->occlusion.v3);
+         occlusion->magnitude = vec3fMagnitude(&occlusion->occlusion.v3);
          occlusion->fc = 22000.0f;
 
+         occlusion->gain_reverb = 1.0f;
+         occlusion->gain = 1.0f;
          occlusion->level = 0.0f;
-         occlusion->olevel = 0.0f;
          occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
@@ -268,7 +269,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
 }
 
 void
-_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, UNUSED(float vs))
+_occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d)
 {
    _aaxRingBufferOcclusionData *occlusion;
    _aaxDelayed3dProps *pdp3d_m, *fdp3d_m;
@@ -302,6 +303,8 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, UNUSED(float vs))
          f = &fdp3d_m->imatrix;
 
          hit = 0;
+         occlusion->gain_reverb = 1.0f;
+         occlusion->gain = 1.0f;
          occlusion->level = 0.0f;
          vec3fZero(&fpvec);
          do
@@ -311,7 +314,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, UNUSED(float vs))
             if (cpath && (cpath->occlusion.v4[3] > 0.01f))
             {
                float density = cpath->occlusion.v4[3];
-               int ahead;
+               int ahead, blocked = AAX_FALSE;
 
                // calculate the sum of the current dimension vector and the
                // parent dimension vector, and test fpvec against that.
@@ -355,6 +358,9 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, UNUSED(float vs))
                   else if (ahead) {
                      hit = vec3fLessThan(&cfpvec, &dim);
                   }
+                  else {
+                     blocked = 1;
+                  }
                }
                else if (cpath->inverse) {
                   hit = !hit;
@@ -364,13 +370,18 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, UNUSED(float vs))
                {
                   float level, mag;
 
-                  mag = sqrtf(cpath->magnitude_sq); // cpath->magnitude*100.0f/vs;
+                  mag = cpath->magnitude;
                   level = 1.0f - _MIN(vec3fMagnitude(&altvec)/mag, 1.0f);
                   if (cpath->inverse) level = _MIN(1.0f/level, 1.0f);
 
                   level *= density;
-                  if (level > occlusion->level) {
+                  if (level > occlusion->level)
+                  {
+                     float l2 = level*level;
+
                      occlusion->level = level;
+                     occlusion->gain = 1.0f - l2;
+                     if (blocked) occlusion->gain_reverb = 1.0f - l2*l2;
                   }
 #if 0
                   if (occlusion->level > (1.0f-LEVEL_64DB)) break;
