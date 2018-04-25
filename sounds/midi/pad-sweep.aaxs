@@ -18,7 +18,9 @@
   <note polyphony="6" min="36" max="96" step="1"/>
  </instrument>
 
- <emitter looping="true">
+ <emitter looping="true"/>
+
+ <audioframe>
   <effect type="phasing" src="inverse-sine">
    <slot n="0">
     <param n="0">1.0</param>
@@ -27,9 +29,6 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
- </emitter>
-
- <audioframe>
   <filter type="frequency" src="sine">
    <slot n="0">
     <param n="0" pitch="2.0">440</param>
