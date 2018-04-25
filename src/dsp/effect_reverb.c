@@ -298,7 +298,9 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    const _aaxRingBufferReverbData *reverb = data;
+   _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
+   float l = 1.0f, gain = 1.0f;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -308,9 +310,21 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(track < _AAX_MAX_SPEAKERS);
 
    occlusion = reverb->occlusion;
-   if (occlusion->gain_reverb > LEVEL_64DB)
+   if (occlusion)
    {
-      float gain = occlusion->gain_reverb;
+      float fc;
+
+      gain = occlusion->gain_reverb;
+      l = 1.0f - occlusion->level;
+
+      fc = _MIN(l*22000.0f, reverb->fc);
+      if (fc > 100.0f) {
+          _aax_butterworth_compute(fc, filter);
+      }
+   }
+
+   if (gain > LEVEL_64DB)
+   {
       int snum;
 
       _reflections_run(rb, scratch, sptr, scratch, no_samples, ds, track, gain,
@@ -320,32 +334,23 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       snum = reverb->no_loopbacks;
       if (snum > 0)
       {
-         float fc, l = 1.0f - occlusion->level;
+         size_t bytes = ds*sizeof(MIX_T);
+         int q;
 
-         fc = _MIN(l*22000.0f, reverb->fc);
-         if (fc > 100.0f)
+         _aax_memcpy(scratch-ds, reverb->reverb_history[track], bytes);
+         for(q=0; q<snum; ++q)
          {
-            _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
-            size_t bytes = ds*sizeof(MIX_T);
-            int q;
-
-            _aax_butterworth_compute(fc, filter);
-
-            _aax_memcpy(scratch-ds, reverb->reverb_history[track], bytes);
-            for(q=0; q<snum; ++q)
+            float volume = gain * reverb->loopback[q].gain / (snum+1);
+            if ((volume > 0.001f) || (volume < -0.001f))
             {
-               float volume = gain * reverb->loopback[q].gain / (snum+1);
-               if ((volume > 0.001f) || (volume < -0.001f))
-               {
-                  ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
-                  if (offs && offs < (ssize_t)ds) {
-                     filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
-                     rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
-                  }
+               ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
+               if (offs && offs < (ssize_t)ds) {
+                  filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
+                  rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
                }
             }
-            _aax_memcpy(reverb->reverb_history[track], scratch+no_samples-ds, bytes);
          }
+         _aax_memcpy(reverb->reverb_history[track], scratch+no_samples-ds, bytes);
       }
 
       _aax_memcpy(dptr, scratch, no_samples*sizeof(MIX_T));
