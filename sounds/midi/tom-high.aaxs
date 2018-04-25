@@ -9,9 +9,9 @@
 <aeonwave>
 
  <sound name="High Tom" frequency="208" duration="0.10">
-  <waveform src="pink-noise" pitch="0.125"/>
-  <waveform src="sine" processing="mix" ratio="0.95" pitch="0.8"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.98"/>
+  <waveform src="pink-noise" ratio="0.2" pitch="0.12"/>
+  <waveform src="sine" processing="add" ratio="0.65"/>
+  <waveform src="sine" processing="add" ratio="0.6" pitch="0.48"/>
  </sound>
 
  <emitter looping="true">
@@ -32,7 +32,7 @@
 
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">3.00</param>
+    <param n="0">1.00</param>
     <param n="1">0.03</param>
     <param n="2">1.00</param>
    </slot>
