@@ -99,7 +99,7 @@
    <instrument n="87" name="Lead 7 (fifths)" file="lead-fifths.aaxs"/>
    <instrument n="88" name="Lead 8 (bass + lead)" file=".aaxs"/>
    <instrument n="89" name="Pad 1 (new age)" file="pad-newwave.aaxs"/>
-   <instrument n="90" name="Pad 2 (warm)" file=".aaxs"/>
+   <instrument n="90" name="Pad 2 (warm)" file="pad-warm.aaxs"/>
    <instrument n="91" name="Pad 3 (polysynth)" file=".aaxs"/>
    <instrument n="92" name="Pad 4 (choir)" file=".aaxs"/>
    <instrument n="93" name="Pad 5 (bowed)" file="pad-bowed.aaxs"/>
