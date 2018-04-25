@@ -45,11 +45,11 @@ static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(void**);
 static void _reverb_add_reflections(void*, float, unsigned int, float, int);
 static void _reverb_add_reverb(void**, float, unsigned int, float, float);
-static void _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
+static void _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
@@ -114,10 +114,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          }
 
-         reverb->info = effect->info;
-         reverb->freq_filter = flt;
-         reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
-
          if (flt)
          {
             float dfact;
@@ -149,6 +145,10 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
             _aax_butterworth_compute(reverb->fc, flt);
          }
+
+         reverb->info = effect->info;
+         reverb->freq_filter = flt;
+         reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
       }
       while(0);
 
@@ -246,7 +246,7 @@ _reverb_destroy(void *ptr)
 
 static void
 _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
-            size_t no_samples, size_t ds, unsigned int track,
+            size_t no_samples, size_t ds, unsigned int track, float gain,
             const void *data, _aaxMixerInfo *info, unsigned char mono)
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
@@ -269,9 +269,9 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scrat
    if (!mono && snum > 0)
    {
       unsigned int q;
-      for(q=track; q<snum; q += tracks)
+      for(q=track % snum; q<snum; q += tracks)
       {  
-         float volume = reflections->delay[q].gain;
+         float volume = gain*reflections->delay[q].gain;
          if ((volume > 0.001f) || (volume < -0.001f))
          {  
             ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
@@ -281,8 +281,12 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scrat
          }
       }
    }
-   else {
+   else if (gain > LEVEL_64DB)
+   {
       _aax_memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
+      if (gain < (1.0f-LEVEL_64DB)) {
+         rbd->multiply(dptr, sizeof(MIX_T), no_samples, gain);
+      }
    }
 }
 
@@ -295,8 +299,6 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    const _aaxRingBufferReverbData *reverb = data;
    _aaxRingBufferOcclusionData *occlusion;
-   _aaxRingBufferFreqFilterData *filter;
-   int snum;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -305,38 +307,51 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(scratch != 0);
    assert(track < _AAX_MAX_SPEAKERS);
 
-   filter = reverb->freq_filter;
    occlusion = reverb->occlusion;
-
-   _reflections_run(rb, scratch, sptr, scratch, no_samples, ds, track,
-                    &reverb->reflections, info, mono);
-
-   /* loopback for reverb (2nd order reflections) */
-   snum = reverb->no_loopbacks;
-   if (snum > 0)
+   if (occlusion->gain_reverb > LEVEL_64DB)
    {
-      size_t bytes = ds*sizeof(MIX_T);
-      int q;
+      float gain = occlusion->gain_reverb;
+      int snum;
 
-      _aax_memcpy(scratch-ds, reverb->reverb_history[track], bytes);
-      for(q=0; q<snum; ++q)
+      _reflections_run(rb, scratch, sptr, scratch, no_samples, ds, track, gain,
+                       &reverb->reflections, info, mono);
+
+      /* loopback for reverb (2nd order reflections) */
+      snum = reverb->no_loopbacks;
+      if (snum > 0)
       {
-         float volume = reverb->loopback[q].gain / (snum+1);
-         if ((volume > 0.001f) || (volume < -0.001f))
+         float fc, l = 1.0f - occlusion->level;
+
+         fc = _MIN(l*22000.0f, reverb->fc);
+         if (fc > 100.0f)
          {
-            ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
-            if (offs && offs < (ssize_t)ds) {
-               filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
-               rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
+            _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
+            size_t bytes = ds*sizeof(MIX_T);
+            int q;
+
+            _aax_butterworth_compute(fc, filter);
+
+            _aax_memcpy(scratch-ds, reverb->reverb_history[track], bytes);
+            for(q=0; q<snum; ++q)
+            {
+               float volume = gain * reverb->loopback[q].gain / (snum+1);
+               if ((volume > 0.001f) || (volume < -0.001f))
+               {
+                  ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
+                  if (offs && offs < (ssize_t)ds) {
+                     filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
+                     rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
+                  }
+               }
             }
+            _aax_memcpy(reverb->reverb_history[track], scratch+no_samples-ds, bytes);
          }
       }
-      _aax_memcpy(reverb->reverb_history[track], scratch+no_samples-ds, bytes);
-   }
 
-   _aax_memcpy(dptr, scratch, no_samples*sizeof(MIX_T));
-   if (occlusion) {
-      occlusion->run(rbd, dptr, sptr, scratch, no_samples, track, occlusion);
+      _aax_memcpy(dptr, scratch, no_samples*sizeof(MIX_T));
+      if (occlusion) {
+         occlusion->run(rbd, dptr, sptr, scratch, no_samples, track, occlusion);
+      }
    }
 }
 

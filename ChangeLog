@@ -1,16 +1,17 @@
 * Wed Jan 31 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=low
  * Add distance filter frequency response.
+ * Turn the reverb effect into a true 3d effect.
  * Add the option to register the reverb effect to audio-frames.
-   Due to memory considerations they only support up to large room sizes,
-   any reflections with a larger delay will be ignored.
+   - Due to memory considerations they only support up to large room sizes,
+    any reflections with a larger delay will be ignored.
  * Add the option to define audio-frames as indoor by setting AAX_POSITION
    to AAX_INDOOR when calling aaxAudioFrameSetMode. It is possible to combine
    AAX_INDOOR with AAX_RELATIVE or AAX_ABSOLUTE (the default when omitted).
    This allows for indoor sound propagation where every audio-frame represents
    a room or a section of a room. Reverb and frequency filters can be used
    to simulate the properties of the room section defined by the audio-frame.
-   By specifying the audio-frame indoor sound will not become directional until
+   By specifying the audio-frame indoor, sound will not become directional until
    it arives at the scene of the listener.
  * Add the option to define occlusion object parameters to the volume-filter
    and reverb-effect, which will influence the sound properties of the direct

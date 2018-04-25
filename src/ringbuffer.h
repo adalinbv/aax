@@ -174,16 +174,18 @@ typedef struct
 typedef struct
 {
    vec4f_t occlusion;
-   float magnitude_sq;
+   float magnitude;
 
-   float level, olevel;		// obstruction level
+   float level;			// obstruction level
+   float gain_reverb;		// reverb gain (e.q. a closed door)
+   float gain;			// direct-path gain and cutoff-frequency
    float fc;
 
    _aaxRingBufferFreqFilterData freq_filter;
 
    char inverse;
 
-   void (*prepare)(_aaxEmitter *src, _aax3dProps *fp3d, float);
+   void (*prepare)(_aaxEmitter *src, _aax3dProps *fp3d);
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t,
                unsigned int, const void*);
 
@@ -196,8 +198,6 @@ typedef struct
  
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;
-   _aaxRingBufferFreqFilterData *freq_filter;		// reflections
-   float fc;
 
 #if 1
    struct {
@@ -214,12 +214,15 @@ typedef struct
     int32_t* reverb_history[_AAX_MAX_SPEAKERS];
     void* history_ptr;
 
+   _aaxRingBufferFreqFilterData *freq_filter;
+   float fc;
+
 } _aaxRingBufferReverbData;
 
 typedef struct
 {
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-               unsigned int, const void*, _aaxMixerInfo*, unsigned char);
+               unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
 
    _aaxRingBufferReverbData *reverb;
 
