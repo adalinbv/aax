@@ -1369,6 +1369,9 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       unsigned int no_samples, i, bit = 1;
       unsigned skip;
 
+      phase *= GMATH_2PI;
+      if (ratio < 0.0f) phase = GMATH_2PI - phase;
+
       rate = freq * pitch;
       ratio = fabsf(ratio);
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
