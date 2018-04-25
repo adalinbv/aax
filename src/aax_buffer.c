@@ -1018,6 +1018,14 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, int 
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
    float phase, pitch, ratio, staticity;
 
+   if (xmlAttributeExists(xwid, "voices"))
+   {
+      voices = _MINMAX(xmlAttributeGetInt(xwid, "voices"), 1, 11);
+      if (xmlAttributeExists(xwid, "spread")) {
+         spread = _MAX(xmlNodeGetDouble(xwid, "spread"), 0.01f);
+      }
+   }
+
    if (xmlAttributeExists(xwid, "ratio")) {
       ratio = xmlAttributeGetDouble(xwid, "ratio");
    } else {
@@ -1206,10 +1214,10 @@ _bufAAXSThread(void *d)
             freq = xmlAttributeGetDouble(xsid, "frequency");
          }
          if (xmlAttributeExists(xsid, "voices")) {
-            voices = xmlAttributeGetInt(xsid, "voices");
+            voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
          }
          if (xmlAttributeExists(xsid, "spread")) {
-            spread = xmlAttributeGetDouble(xsid, "spread");
+            spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
          }
 
          if (xmlAttributeExists(xsid, "file"))
@@ -1353,7 +1361,7 @@ static int
 _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
-   int q, rv = AAX_FALSE;
+   int rv = AAX_FALSE;
 
    if (wtype > AAX_LAST_WAVEFORM) {
       _aaxErrorSet(AAX_INVALID_PARAMETER + 3);
@@ -1367,6 +1375,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
       float samps_period, fs, fw, fs_mixer, rate;
       unsigned int no_samples, i, bit = 1;
+      int q, hvoices;
       unsigned skip;
 
       phase *= GMATH_2PI;
@@ -1383,6 +1392,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       fs = rb->get_paramf(rb, RB_FREQUENCY);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       samps_period = fs/fw;
+      hvoices = voices >> 1;
       voices |= 0x1;
 
       if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
@@ -1440,15 +1450,16 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
          case AAX_IMPULSE_WAVE:
             for (q=0; q<voices; ++q)
             {
-               float ffact, nfw, nphase;
+               float ffact, nfw, nphase, nratio;
 
-               nfw = (fw - voices/2*spread) + (float)q*spread;
+               nfw = (fw - hvoices*spread) + (float)q*spread;
                samps_period = fs/nfw;
                ffact = (float)no_samples/(float)samps_period;
                nfw = nfw*ceilf(ffact)/ffact;
                nphase = phase + q*GMATH_PI/voices;
+               nratio = (q == hvoices) ? ratio : 0.8f*ratio;
 
-               rv = rb->data_mix_waveform(rb, wtype&bit, nfw, ratio, nphase);
+               rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase);
             }
             break;
          case AAX_WHITE_NOISE:
