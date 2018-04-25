@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Pad 2 (Warm)" program="89" bank="0" frequency="220" voices="9" spread="0.2">
+  <waveform src="triangle" ratio="0.4" pitch="0.5"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="4" min="36" max="96" step="1"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1" factor="velocity">2.04</param>
+    <param n="2" factor="soften">1.2</param>
+    <param n="3">1.95</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.00</param>
+    <param n="1">inf</param>
+   </slot>
+  </filter>
+  <effect type="chorus" src="sine">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.01</param>
+    <param n="2">0.3</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
