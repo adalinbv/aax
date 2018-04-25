@@ -9,9 +9,9 @@
 <aeonwave>
 
  <sound name="High Mid Tom" frequency="173" duration="0.15">
-  <waveform src="pink-noise" pitch="0.125"/>
-  <waveform src="sine" processing="mix" ratio="0.95" pitch="0.8"/>
-  <waveform src="sine" processing="add" ratio="0.4" pitch="0.98"/>
+  <waveform src="pink-noise" ratio="0.2" pitch="0.12"/>
+  <waveform src="sine" processing="add" ratio="0.65"/>
+  <waveform src="sine" processing="add" ratio="0.6" pitch="0.48"/>
  </sound>
 
  <emitter looping="true">
