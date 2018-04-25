@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="String Ensamble 2 (slow)"  program="50" bank="0" frequency="220" duration="0.5" voices="5" spread="0.3">
+ <sound name="String Ensamble 2 (slow)"  program="50" bank="0" frequency="220" duration="1.5" voices="5" spread="0.3">
 <!--
   <waveform src="sawtooth" ratio="0.75"/>
   <waveform src="sawtooth" processing="add" ratio="0.25" pitch="0.99"/>
