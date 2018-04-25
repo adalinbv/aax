@@ -1378,9 +1378,6 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       int q, hvoices;
       unsigned skip;
 
-      phase *= GMATH_2PI;
-      if (ratio < 0.0f) phase = GMATH_2PI - phase;
-
       rate = freq * pitch;
       ratio = fabsf(ratio);
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
@@ -1456,7 +1453,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
                samps_period = fs/nfw;
                ffact = (float)no_samples/(float)samps_period;
                nfw = nfw*ceilf(ffact)/ffact;
-               nphase = phase + q*GMATH_PI/voices;
+               nphase = phase; //  + q*GMATH_PI/voices;
                nratio = (q == hvoices) ? ratio : 0.8f*ratio;
 
                rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase);
