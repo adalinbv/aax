@@ -18,6 +18,18 @@
  </instrument>
 
  <emitter looping="true">
+  <filter type="frequency" src="envelope">
+   <slot n="0">
+    <param n="0" pitch="1.0">220</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.01</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="10">2200</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.5</param>
@@ -26,7 +38,7 @@
     <param n="3">1.95</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
+    <param n="0">0.90</param>
     <param n="1">inf</param>
    </slot>
   </filter>
@@ -40,16 +52,16 @@
    <slot n="1">
     <param n="0">1.02</param>
     <param n="1">1.5</param>
-    <param n="2">0.95</param>
+    <param n="2">0.98</param>
     <param n="3">9.5</param>
    </slot>
   </effect>
-  <effect type="chorus" src="sine">
+  <effect type="chorus" src="invelope">
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.01</param>
-    <param n="2">0.3</param>
-    <param n="3">0.5</param>
+    <param n="2">0.5</param>
+    <param n="3">0.3</param>
    </slot>
   </effect>
  </emitter>
