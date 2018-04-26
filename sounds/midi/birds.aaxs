@@ -9,22 +9,22 @@
 <aeonwave>
 
  <sound name="Birds" program="124" bank="0" frequency="220" duration="2.9">
-  <waveform src="white_noise" pitch="0.6"/>
-  <waveform src="impulse" processing="modulate" ratio="2.5" pitch="0.4829"/>
+  <waveform src="white_noise" pitch="0.2"/>
+  <waveform src="impulse" processing="modulate" ratio="2.5" pitch="1.4829"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="1.0">220</param>
-    <param n="1">0.1</param>
+    <param n="0">1320</param>
+    <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">1.0</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="8.0">220</param>
-    <param n="1">1.0</param>
-    <param n="2">0.2</param>
-    <param n="3">1.0</param>
+    <param n="0">1540</param>
+    <param n="1">0.8</param>
+    <param n="2">0.0</param>
+    <param n="3">1.8</param>
    </slot>
   </filter>
  </sound>
@@ -32,19 +32,19 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0" pitch="8.5">1870</param>
+    <param n="0">1870</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">100.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="40.0">8800</param>
+    <param n="0">8800</param>
     <param n="3">1.1</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="square">
    <slot n="0">
-    <param n="1">0.017923</param>
+    <param n="1">0.17923</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -53,7 +53,7 @@
    <slot n="0">
     <param n="1">0.412983</param>
     <param n="2">0.2</param>
-    <param n="3">0.5</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="timed-pitch">
@@ -66,16 +66,16 @@
  <audioframe>
   <filter type="dynamic-gain" src="square">
    <slot n="0">
-    <param n="1">0.2829137</param>
+    <param n="1">0.7829137</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="dynamic-pitch" src="square">
    <slot n="0">
-    <param n="1">0.058101</param>
+    <param n="1">0.158101</param>
     <param n="2">0.4</param>
-    <param n="3">0.2</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="chorus" src="envelope">
