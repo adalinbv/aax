@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Pad 2 (Warm)" program="89" bank="0" frequency="220" voices="9" spread="0.2">
-  <waveform src="triangle" ratio="0.4" pitch="0.5"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>
+ <sound name="Pad 2 (Warm)" program="89" bank="0" frequency="220" duration="1.0">
+  <waveform src="sine" ratio="0.4" pitch="0.501" voices="9" spread="0.71"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899" voices="3" spread="0.11"/>
  </sound>
 
  <instrument>
