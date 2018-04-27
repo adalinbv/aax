@@ -94,7 +94,7 @@
    <instrument n="82" name="Lead 2 (sawtooth)" file="lead-sawtooth.aaxs"/>
    <instrument n="83" name="Lead 3 (calliope)" file="lead-calliope.aaxs"/>
    <instrument n="84" name="Lead 4 (chiff)" file="lead-chiff.aaxs"/>
-   <instrument n="85" name="Lead 5 (charang)" file=".aaxs"/>
+   <instrument n="85" name="Lead 5 (charang)" file="lead-charang.aaxs"/>
    <instrument n="86" name="Lead 6 (voice)" file="lead-voice.aaxs"/>
    <instrument n="87" name="Lead 7 (fifths)" file="lead-fifths.aaxs"/>
    <instrument n="88" name="Lead 8 (bass + lead)" file=".aaxs"/>
