@@ -9,8 +9,9 @@
 <aeonwave>
 
  <sound name="Pad 2 (Warm)" program="89" bank="0" frequency="220" duration="1.0">
-  <waveform src="sine" ratio="0.4" pitch="0.501" voices="9" spread="0.71"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899" voices="3" spread="0.11"/>
+  <waveform src="brownian-noise" pitch="0.125"/>
+  <waveform src="sine" processing="mix" pitch="0.501" voices="5" spread="0.71"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899" voices="3" spread="0.05"/>
  </sound>
 
  <instrument>
@@ -23,11 +24,11 @@
     <param n="0" pitch="1.0">220</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.01</param>
+    <param n="3">3.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="10">2200</param>
-    <param n="3">1.0</param>
+    <param n="0" pitch="5">1100</param>
+    <param n="3">0.05</param>
    </slot>
   </filter>
   <filter type="timed-gain">
@@ -51,9 +52,8 @@
    </slot>
    <slot n="1">
     <param n="0">1.02</param>
-    <param n="1">1.5</param>
-    <param n="2">0.98</param>
-    <param n="3">9.5</param>
+    <param n="1">5.5</param>
+    <param n="2">0.99</param>
    </slot>
   </effect>
   <effect type="chorus" src="invelope">
