@@ -12,7 +12,7 @@
 0.10">
   <waveform src="square" pitch="0.9"/>
   <waveform src="square" processing="mix" ratio="0.5" pitch="1.987"/>
-  <waveform src="sawtooth" processing="modulate" ratio="0.8" pitch="2.4997"/>
+  <waveform src="sawtooth" processing="modulate" ratio="0.6" pitch="2.4997"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="7.0">1540</param>
