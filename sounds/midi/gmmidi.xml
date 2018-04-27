@@ -54,7 +54,7 @@
    <instrument n="42" name="Viola" file="violin.aaxs"/>
    <instrument n="43" name="Cello" file="violin.aaxs"/>
    <instrument n="44" name="Contrabass" file="violin.aaxs"/>
-   <instrument n="45" name="Tremolo Strings" file=".aaxs"/>
+   <instrument n="45" name="Tremolo Strings" file="string-tremolo.aaxs"/>
    <instrument n="46" name="Pizzicato Strings" file=".aaxs"/>
    <instrument n="47" name="Orchestral Harp" file="harp.aaxs"/>
    <instrument n="48" name="Timpani" file=".aaxs"/>
