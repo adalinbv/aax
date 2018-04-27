@@ -92,6 +92,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 
       if (lfo)
       {
+         float depth = 0.5f*effect->slot[0]->param[AAX_LFO_DEPTH];
          int constant;
 
          lfo->convert = _linear;
@@ -101,8 +102,8 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          lfo->envelope = AAX_FALSE;
          lfo->stereo_lnk = AAX_TRUE;
 
-         lfo->min_sec = (1.0f - effect->slot[0]->param[AAX_LFO_DEPTH])/lfo->fs;
-         lfo->max_sec = (1.0f + effect->slot[0]->param[AAX_LFO_DEPTH])/lfo->fs;
+         lfo->min_sec = (1.0f - depth)/lfo->fs;
+         lfo->max_sec = (1.0f + depth)/lfo->fs;
          lfo->depth = 1.0f;
          lfo->offset = 0.0f;
          lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
