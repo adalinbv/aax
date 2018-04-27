@@ -13,7 +13,7 @@
   <waveform src="impulse" processing="modulate" ratio="2.5" pitch="1.4829"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">1320</param>
+    <param n="0">750</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">0.5</param>
@@ -24,7 +24,7 @@
     <param n="0">1540</param>
     <param n="1">0.8</param>
     <param n="2">0.0</param>
-    <param n="3">1.8</param>
+    <param n="3">2.1</param>
    </slot>
   </filter>
  </sound>
@@ -52,13 +52,13 @@
   <effect type="dynamic-pitch" src="square">
    <slot n="0">
     <param n="1">0.412983</param>
-    <param n="2">0.2</param>
+    <param n="2">0.8</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.10</param>
+    <param n="0">0.08</param>
    </slot>
   </effect>
  </emitter>
@@ -74,7 +74,7 @@
   <effect type="dynamic-pitch" src="square">
    <slot n="0">
     <param n="1">0.158101</param>
-    <param n="2">0.4</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
