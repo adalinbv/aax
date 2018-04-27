@@ -104,7 +104,7 @@
    <instrument n="92" name="Pad 4 (choir)" file="pad-choir.aaxs"/>
    <instrument n="93" name="Pad 5 (bowed)" file="pad-bowed.aaxs"/>
    <instrument n="94" name="Pad 6 (metallic)" file="pad-metallic.aaxs"/>
-   <instrument n="95" name="Pad 7 (halo)" file=".aaxs"/>
+   <instrument n="95" name="Pad 7 (halo)" file="pad-halo.aaxs"/>
    <instrument n="96" name="Pad 8 (sweep)" file="pad-sweep.aaxs"/>
    <instrument n="97" name="FX 1 (rain)" file="fx-rain.aaxs"/>
    <instrument n="98" name="FX 2 (soundtrack)" file=".aaxs"/>
