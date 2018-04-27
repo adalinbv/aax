@@ -19,7 +19,31 @@
  </instrument>
 
  <emitter>
-  <effect type="phasing" src="sine">
+  <filter type="frequency" src="inverse-envelope">
+   <slot n="0">
+    <param n="0" pitch="0.1">22</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0"pitch="4">880</param>
+    <param n="3">0.7</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1" factor="velocity">0.04</param>
+    <param n="2" factor="soften">1.1</param>
+    <param n="3">0.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.9</param>
+    <param n="1">5.5</param>
+   </slot>
+  </filter>
+  <effect type="phasing" src="envelope">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.15</param>
