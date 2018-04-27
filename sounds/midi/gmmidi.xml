@@ -101,7 +101,7 @@
    <instrument n="89" name="Pad 1 (new age)" file="pad-newwave.aaxs"/>
    <instrument n="90" name="Pad 2 (warm)" file="pad-warm.aaxs"/>
    <instrument n="91" name="Pad 3 (polysynth)" file="pad-polysynth.aaxs"/>
-   <instrument n="92" name="Pad 4 (choir)" file=".aaxs"/>
+   <instrument n="92" name="Pad 4 (choir)" file="pad-choir.aaxs"/>
    <instrument n="93" name="Pad 5 (bowed)" file="pad-bowed.aaxs"/>
    <instrument n="94" name="Pad 6 (metallic)" file="pad-metallic.aaxs"/>
    <instrument n="95" name="Pad 7 (halo)" file=".aaxs"/>
