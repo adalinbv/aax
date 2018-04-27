@@ -1453,8 +1453,8 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
                samps_period = fs/nfw;
                ffact = (float)no_samples/(float)samps_period;
                nfw = nfw*ceilf(ffact)/ffact;
-               nphase = phase; //  + q*GMATH_PI/voices;
-               nratio = (q == hvoices) ? ratio : 0.8f*ratio;
+               nphase = phase + q*GMATH_2PI/voices;
+               nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
 
                rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase);
             }
