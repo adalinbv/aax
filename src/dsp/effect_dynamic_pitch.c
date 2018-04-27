@@ -101,10 +101,10 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          lfo->envelope = AAX_FALSE;
          lfo->stereo_lnk = AAX_TRUE;
 
-         lfo->min_sec = 0.0f;
-         lfo->max_sec = effect->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
+         lfo->min_sec = (1.0f - effect->slot[0]->param[AAX_LFO_DEPTH])/lfo->fs;
+         lfo->max_sec = (1.0f + effect->slot[0]->param[AAX_LFO_DEPTH])/lfo->fs;
          lfo->depth = 1.0f;
-         lfo->offset = 0.5f;
+         lfo->offset = 0.0f;
          lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
