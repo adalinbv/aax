@@ -61,7 +61,7 @@
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.05</param>
-    <param n="2">0.2</param>
+    <param n="2">0.25</param>
     <param n="3">0.2</param>
    </slot>
   </effect>
