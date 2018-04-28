@@ -1153,6 +1153,10 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
             _bufApplyFrequencyFilter(handle, filter);
          }
       }
+      else if (filter->type == AAX_EQUALIZER)
+      {
+         _bufApplyFrequencyFilter(handle, filter);
+      }
       aaxFilterDestroy(flt);
    }
    return AAX_TRUE;
@@ -2016,7 +2020,7 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int bps, no_samples;
    float *dptr = rbd->track[0];
-   float *sptr;
+   float *sptr, *tmp;
 
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
@@ -2025,21 +2029,41 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
    assert(rb->get_parami(rb, RB_NO_TRACKS) == 1);
    assert(bps == 4);
 
-   sptr = _aax_aligned_alloc(2*no_samples*bps);
+   sptr = _aax_aligned_alloc(4*no_samples*bps);
    if (sptr)
    {
       _aaxRingBufferFreqFilterData *data = filter->slot[0]->data;
+      _aaxRingBufferFreqFilterData *data_hf = filter->slot[1]->data;
 
       _batch_cvtps24_24(dptr, dptr, no_samples);
 
+      tmp = sptr+no_samples;
       _aax_memcpy(sptr, dptr, no_samples*bps);
-      _aax_memcpy(sptr+no_samples, dptr, no_samples*bps);
+      _aax_memcpy(tmp, dptr, no_samples*bps);
 
-      rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
-      if (data->state && (data->low_gain > LEVEL_128DB)) {
-         rbd->add(sptr+no_samples, dptr, no_samples, data->low_gain, 0.0f);
+      if (!data_hf)
+      {
+         rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
+         if (data->state && (data->low_gain > LEVEL_128DB)) {
+            rbd->add(tmp, dptr, no_samples, data->low_gain, 0.0f);
+         }
       }
-      _aax_memcpy(dptr, sptr+no_samples, no_samples*bps);
+      else
+      {
+         if (data->type == LOWPASS && data_hf->type == HIGHPASS)
+         {
+            float *tmp2 = sptr + 2*no_samples;
+            rbd->freqfilter(tmp2, sptr, 0, 2*no_samples, data);
+            rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data_hf);
+            rbd->add(tmp, tmp2+no_samples, no_samples, 1.0f, 0.0f);
+         }
+         else
+         {
+            rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
+            rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data_hf);
+         }
+      }
+      _aax_memcpy(dptr, tmp, no_samples*bps);
 
       _aax_aligned_free(sptr);
       _batch_cvt24_ps24(dptr, dptr, no_samples);
