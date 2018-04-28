@@ -9,9 +9,9 @@
 <aeonwave>
 
  <sound name="Choir Aahs" program="53" bank="0" frequency="220">
-  <waveform src="sine" processing="mix" ratio="0.3" pitch="0.25"/>
-  <waveform src="sine" processing="add" ratio="0.8" pitch="0.5" voices="5"/>
-  <waveform src="sine" processing="add" ratio="0.9" pitch="1.5" phase="0.5"/>
+  <waveform src="sine" processing="mix" ratio="0.3" pitch="0.2501"/>
+  <waveform src="sine" processing="add" ratio="0.8" pitch="0.4978" voices="5"/>
+  <waveform src="sine" processing="add" ratio="0.9" pitch="1.4917" phase="0.5"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="0.5"/>
   <waveform src="brownian-noise" processing="mix" ratio="0.075"/>
   <filter type="frequency" src="24db">
