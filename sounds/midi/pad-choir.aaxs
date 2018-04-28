@@ -13,7 +13,7 @@
   <waveform src="triangle" processing="add" ratio="0.5" phasing="0.13" voices="3" spread="0.73"/>
   <waveform src="square" processing="add" ratio="0.75" pitch="0.9993"/>
   <waveform src="triangle" processing="add" ratio="1.5" pitch="0.4993"/>
-  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="0.5"/>
+  <waveform src="triangle" processing="modulate" ratio="1.2" pitch="0.5"/>
   <waveform src="brownian-noise" processing="mix" ratio="0.1"/>
   <filter type="frequency" src="48db">
    <slot n="0">
