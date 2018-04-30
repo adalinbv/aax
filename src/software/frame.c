@@ -161,9 +161,11 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
                                     batched);
    }
 
+#if 0
    if (process) {
-//    be->effects(be, be_handle, dest_rb, fp2d, mono, AAX_FALSE);
+      be->effects(be, be_handle, dest_rb, fp2d, mono, AAX_FALSE);
    }
+#endif
 
    /** process registered sub-frames */
    if (fmixer->frames)
