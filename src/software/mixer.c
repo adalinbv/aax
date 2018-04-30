@@ -89,7 +89,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
       }
 
-      no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+      no_tracks = mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       tracks = (MIX_T**)rbd->track;
       for (track=0; track<no_tracks; track++)
@@ -577,6 +577,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                            smixer->capturing, sensor,
                                            be, be_handle, fbe, fbe_handle,
                                            batched);
+printf("---\n");
 
                if (handle->file.driver)
                {
