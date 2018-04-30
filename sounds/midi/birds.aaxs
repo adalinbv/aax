@@ -8,23 +8,24 @@
 
 <aeonwave>
 
- <sound name="Birds" program="124" bank="0" frequency="220" duration="2.9">
-  <waveform src="white_noise" ratio="2.0" pitch="0.2"/>
-  <waveform src="impulse" processing="modulate" ratio="2.5" pitch="1.4829"/>
+ <sound name="Birds" program="124" bank="0" frequency="22" duration="2.9">
+  <waveform src="white-noise" ratio="2.0" pitch="0.2"/>
+  <waveform src="impulse" processing="modulate" ratio="1.0" pitch="0.4729"/>
+  <waveform src="square" processing="modulate" ratio="-2.0" pitch="0.0329"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">150</param>
+    <param n="0">50</param>
     <param n="1">0.0</param>
-    <param n="2">0.75</param>
-    <param n="3">2.0</param>
+    <param n="2">0.5</param>
+    <param n="3">15.0</param>
    </slot>
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">250</param>
+    <param n="0">150</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">3.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
  </sound>
@@ -35,7 +36,7 @@
     <param n="0">1870</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">100.0</param>
+    <param n="3">50.0</param>
    </slot>
    <slot n="1">
     <param n="0">8800</param>
@@ -78,6 +79,7 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
+<!--
   <effect type="chorus" src="envelope">
    <slot n="0">
     <param n="0">0.8</param>
@@ -86,6 +88,7 @@
     <param n="3">0.235</param>
    </slot>
   </effect>
+-->
   <filter type="equalizer">
    <slot n="0">
     <param n="0">2700</param>
@@ -94,10 +97,10 @@
     <param n="3">10.0</param>
    </slot>
    <slot n="1">
-    <param n="0">4000</param>
+    <param n="0">3300</param>
     <param n="1">0.6</param>
     <param n="2">0.0</param>
-    <param n="3">10.0</param>
+    <param n="3">6.0</param>
    </slot>
   </filter>
  </audioframe>
