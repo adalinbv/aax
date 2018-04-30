@@ -577,7 +577,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                                            smixer->capturing, sensor,
                                            be, be_handle, fbe, fbe_handle,
                                            batched);
-printf("---\n");
 
                if (handle->file.driver)
                {
