@@ -9,22 +9,22 @@
 <aeonwave>
 
  <sound name="Birds" program="124" bank="0" frequency="220" duration="2.9">
-  <waveform src="white_noise" pitch="0.2"/>
+  <waveform src="white_noise" ratio="2.0" pitch="0.2"/>
   <waveform src="impulse" processing="modulate" ratio="2.5" pitch="1.4829"/>
-  <filter type="frequency">
+  <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">750</param>
+    <param n="0">150</param>
     <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.5</param>
+    <param n="2">0.75</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
-  <filter type="frequency">
+  <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">1540</param>
-    <param n="1">0.8</param>
+    <param n="0">250</param>
+    <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">2.1</param>
+    <param n="3">3.0</param>
    </slot>
   </filter>
  </sound>
@@ -58,7 +58,7 @@
   </effect>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.08</param>
+    <param n="0">0.09</param>
    </slot>
   </effect>
  </emitter>
@@ -73,7 +73,7 @@
   </filter>
   <effect type="dynamic-pitch" src="square">
    <slot n="0">
-    <param n="1">0.158101</param>
+    <param n="1">0.058101</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -86,6 +86,20 @@
     <param n="3">0.235</param>
    </slot>
   </effect>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">2700</param>
+    <param n="1">0.0</param>
+    <param n="2">0.6</param>
+    <param n="3">10.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">4000</param>
+    <param n="1">0.6</param>
+    <param n="2">0.0</param>
+    <param n="3">10.0</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>
