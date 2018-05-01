@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Music Box" program="11" bank="0" frequency="880" duration="0.10">
+ <sound name="Music Box" program="11" bank="0" frequency="220" duration="0.10">
   <waveform src="triangle" pitch="1.0"/>
   <waveform src="impulse" processing="modulate" ratio="1.3" pitch="1.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.0" pitch="5.0"/>
