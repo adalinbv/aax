@@ -18,8 +18,8 @@
    <instrument n="6" name="Electric Piano 2" file="piano-electric2.aaxs"/>
    <instrument n="7" name="Harpsichord" file="harpsichord.aaxs"/>
    <instrument n="8" name="Clavi" file="clavinet.aaxs"/>
-   <instrument n="9" name="Celesta" file=".aaxs"/>
-   <instrument n="10" name="Glockenspiel" file=".aaxs"/>
+   <instrument n="9" name="Celesta" file="celesta.aaxs"/>
+   <instrument n="10" name="Glockenspiel" file="glockenspiel.aaxs"/>
    <instrument n="11" name="Music Box" file=".aaxs"/>
    <instrument n="12" name="Vibraphone" file=".aaxs"/>
    <instrument n="13" name="Marimba" file=".aaxs"/>
