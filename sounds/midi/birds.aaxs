@@ -39,7 +39,7 @@
     <param n="3">50.0</param>
    </slot>
    <slot n="1">
-    <param n="0">8800</param>
+    <param n="0">5800</param>
     <param n="3">1.1</param>
    </slot>
   </filter>
@@ -65,7 +65,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="dynamic-gain" src="square">
+  <filter type="dynamic-gain" src="inverse-square">
    <slot n="0">
     <param n="1">0.7829137</param>
     <param n="2">1.0</param>
@@ -79,16 +79,6 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-<!--
-  <effect type="chorus" src="envelope">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.17</param>
-    <param n="2">0.71</param>
-    <param n="3">0.235</param>
-   </slot>
-  </effect>
--->
   <filter type="equalizer">
    <slot n="0">
     <param n="0">2700</param>
