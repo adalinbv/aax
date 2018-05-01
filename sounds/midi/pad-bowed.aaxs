@@ -46,9 +46,9 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.95</param>
+    <param n="0">0.48</param>
     <param n="1">0.34</param>
-    <param n="2">1.0</param>
+    <param n="2">0.5</param>
    </slot>
   </effect>
  </emitter>
