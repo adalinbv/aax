@@ -8,8 +8,8 @@
 
 <aeonwave>
 
- <sound name="Brass Section" program="62" bank="0" frequency="220" duration="1.0" voices="3" spread="0.17">
-  <waveform src="impulse" ratio="1.0"/>
+ <sound name="Brass Section" program="62" bank="0" frequency="220" duration="3.0">
+  <waveform src="impulse" ratio="1.0" voices="3" spread="0.17"/>
   <waveform src="impulse" processing="mix" ratio="0.5" pitch="0.9857"/>
   <waveform src="impulse" processing="mix" ratio="0.5" pitch="0.9990"/>
   <filter type="frequency" src="24db">
