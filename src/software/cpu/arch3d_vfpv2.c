@@ -250,7 +250,7 @@ mtx4fSetAbsolute_vfpv2(mtx4f_ptr d, char absolute)
 }
 
 void
-mtx4fMulVec4_vfpv2(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
+_mtx4fMulVec4_vfpv2(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
 {
    float v0 = v->v4[0], v1 = v->v4[1], v2 = v->v4[2], v3 = v->v4[3];
 
