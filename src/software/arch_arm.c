@@ -283,7 +283,7 @@ _aaxGetSIMDSupportLevel()
 //    vec4fDevide = _vec4fDevide_neon;
       vec4fMulVec4 = _vec4fMulVec4_neon;
       mtx4fMulVec4 = _mtx4fMulVec4_neon;
-      mtx4dMulVec4 = _mtx4dMulVec4_neon;
+//    mtx4dMulVec4 = _mtx4dMulVec4_neon;
       mtx4fMul = _mtx4fMul_neon;
 
 #if 0
