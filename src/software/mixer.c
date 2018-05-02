@@ -504,6 +504,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                 * and it's used for just one time-frame anyhow.
                 */
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               sdp3d_m = smixer->props3d->m_dprops3d;
                if (dptr_sensor)
                {
                   _aaxAudioFrameProcessDelayQueue(smixer);
@@ -523,7 +524,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                }
 
                /* read-only data */
-               sdp3d_m = smixer->props3d->m_dprops3d;
                _aax_memcpy(&sp2d.speaker, handle->info->speaker,
                                           2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
