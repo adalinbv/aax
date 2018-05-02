@@ -213,6 +213,7 @@ vec3fMatrix3_vfpv2(vec3f_ptr d, const vec3f_ptr v, const mtx3f_ptr m)
    d->v3[2] = v0*m->m3[0][2] + v1*m->m3[1][2] + v2*m->m3[2][2];
 }
 
+void
 mtx3fCopy_vfpv2(mtx3f_ptr d, const mtx3f_ptr m)
 {
    memcpy(d->m3, m->m3, sizeof(mtx3f_t));
