@@ -515,7 +515,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   _aax_memcpy(&sdp3d, smixer->props3d->dprops3d,
                                       sizeof(_aaxDelayed3dProps));
                   sp3d.root = &sp3d;
-                  sdp3d_m = smixer->props3d->m_dprops3d;
                   if (_PROP3D_MTX_HAS_CHANGED(smixer->props3d->dprops3d)) {
                      _aax_memcpy(sdp3d_m, &sdp3d, sizeof(_aaxDelayed3dProps));
                   }
@@ -524,6 +523,7 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                }
 
                /* read-only data */
+               sdp3d_m = smixer->props3d->m_dprops3d;
                _aax_memcpy(&sp2d.speaker, handle->info->speaker,
                                           2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
                _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
