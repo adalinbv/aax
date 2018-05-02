@@ -8,8 +8,8 @@
 
 <aeonwave>
 
- <sound name="Electric Piano 1" program="5" bank="0" frequency="220" duration="0.10">
-  <waveform src="sawtooth" ratio="0.4"/>
+ <sound name="Detuned Electric Piano 1" program="5" bank="8" frequency="220" duration="0.10">
+  <waveform src="sawtooth" ratio="0.4" pitch="0.995"/>
   <waveform src="sine" processing="mix" ratio="0.5"/>
  </sound>
 
