@@ -1,4 +1,4 @@
-* Wed Jan 31 2018 - tech@adalin.org
+* Sat May  5 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=low
  * Add distance filter frequency response.
  * Turn the reverb effect into a true 3d effect.
@@ -20,10 +20,12 @@
    situations. A smaller update-rate than the refresh-rate could cause emitter
    and parent-frame data to be out of sync. Also absolute positions are handled
    better now.
+ * Add support for a static parametric-equalizer within the <sound/> section
+   of AAXS files.
  * Increase the http stream timeout value. The default was too low.
  * Protect against deregistering an unregistered audio-frame or emitter.
 
--- Erik Hofman <tech@adalin.org>  Wed 31 Jan  2018 14:25:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Sat  5 May  2018 17:25:00 + 0100
 
 
 * Fri Jan 05  2018 - tech@adalin.org

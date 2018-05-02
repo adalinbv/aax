@@ -1,0 +1,34 @@
+https://en.wikibooks.org/wiki/Engineering_Acoustics/Outdoor_Sound_Propagation#Sound_attenuation[3]
+
+At = 20*log10(Ps/Pr) 	-- dB
+Ps: rms sound pressure at the source
+Pr: rms sound pressure at distance r from the source
+
+At = As + Aa + Ae	-- dB
+As: attenuation due to geometric spreading
+Aa: attenuation due to atmospheric absorption
+Ae: excess attenuation due to all other effects  
+    - Ag: attenuation from the ground in a homogeneous atmosphere 
+    - refraction by a non-homogeneous atmosphere
+    - attenuation by diffraction and reflection by a barrier or obstacle,
+       and scattering or diffraction effects due to turbulence
+
+As = 20*g*log10(r2/r1)	-- dB
+g: 0 for plane wave propagation (uniform pipe), 0.5 for cylindrical propagation
+   from a line source, and 1 for spherical wave propagation from a point source.
+r1, r2: distance r1 and r2 from a source
+
+
+
+
+Atmospheric attenuation coefficient a(dB/km) at selected frequencies at 1 atm
+		  Hz:
+Temp.	 humidity 62.5	125	250	500	1000 	2000 	4000	8000
+-----------------------------------------------------------------------------
+20 °C	70 	0.090 	0.339 	1.13 	2.80 	4.98 	9.02 	22.9 	76.6
+
+3dB/Oct:	0	0	0	3	6	9	12	15
+6dB/Oct:	0	0	0	0	6	12	18	24
+12db/Oct	0	0	0	0	0	12	24	36
+24db/Oct	0	0	0	0	0	0	24	48
+36db/Oct	0	0	0	0	0	0	36	72

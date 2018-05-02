@@ -1,0 +1,19 @@
+
+
+P: frames parent frame position		(0,0,2)			(sensor)
+F: frame position			(0,0,0)
+E: emitter position			(0,0,-2)
+
+---- modiefied:
+P: frames parent frame position		(0,0,0)
+F: frame position			(0,0,2)
+E: emitter position			(0,0,4)
+
+1) FEVec = F - E			(0,0,2) - (0,0,4) = (0,0,-2)
+2) PEVec = P - E			(0,0,0) - (0,0,4) = (0.0,-4)
+3) pevec = norm(PEVec)			(0,0,-1)
+4) mag = dot(FEVec, pevec)		0*0 + 0*0 + -2*-1 = 2
+5) FPEVec = mag * pevec			(0,0,-2)
+6) FPEpos = E + FPEVec			(0,0,4) + (0,0,-2) = (0,0,2)
+7) vres = F - FPEpos			(0,0,2) - (0,0,2) = (0,0,0)
+
