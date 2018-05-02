@@ -31,7 +31,7 @@
    <instrument n="19" name="Rock Organ" file="organ-rock.aaxs"/>
    <instrument n="20" name="Church Organ" file="organ-church.aaxs"/>
    <instrument n="21" name="Reed Organ" file="organ-reed.aaxs"/>
-   <instrument n="22" name="Accordion" file="accordion-french.aaxs"/>
+   <instrument n="22" name="French Accordion" file="accordion-french.aaxs"/>
    <instrument n="23" name="Harmonica" file="harmonica.aaxs"/>
    <instrument n="24" name="Tango Accordion" file=".aaxs"/>
    <instrument n="25" name="Acoustic Guitar (nylon)" file="guitar-nylon.aaxs"/>
@@ -143,6 +143,7 @@
    <instrument n="5" name="Electric Piano 1" file="piano-electric1-detuned.aaxs"/>
    <instrument n="6" name="Electric Piano 2" file="piano-electric2-detuned.aaxs"/>
    <instrument n="15" name="Church Bell" file="bells-church.aaxs"/>
+   <instrument n="22" name="Italian Accordion" file="accordion-italian.aaxs"/>
   </bank>
  </midi>
 
