@@ -3,6 +3,8 @@ PDMP3 - Public domain mp3 decoder:
 - https://github.com/adalinbv/PDMP3
   forked from https://github.com/technosaurus/PDMP3
   (original: https://sites.google.com/a/kmlager.com/www/projects)
+- https://github.com/audioboy77/OpenMP3
+  modified C++ version of PDMP3
 
 stb_vorbis - Public Domain Vorbis Decoder:
 - https://github.com/nothings/stb/blob/master/stb_vorbis.c

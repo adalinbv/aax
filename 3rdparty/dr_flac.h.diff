@@ -1,6 +1,6 @@
---- dr_flac.h-orig	2017-09-26 11:02:44.590974133 +0200
-+++ dr_flac.h	2017-09-26 11:01:52.335743461 +0200
-@@ -117,8 +117,14 @@
+--- /tmp/dr_flac.h	2018-05-03 14:01:11.094789793 +0200
++++ dr_flac.h	2018-05-03 14:01:53.434058700 +0200
+@@ -118,8 +118,14 @@
  #ifndef dr_flac_h
  #define dr_flac_h
  
@@ -15,16 +15,7 @@
  #if defined(_MSC_VER) && _MSC_VER < 1600
  typedef   signed char    drflac_int8;
  typedef unsigned char    drflac_uint8;
-@@ -777,7 +783,7 @@
-         #if defined(__GNUC__) || defined(__clang__)
-             static void drflac__cpuid(int info[4], int fid)
-             {
--                asm (
-+                ASM (
-                     "movl %[fid], %%eax\n\t"
-                     "cpuid\n\t"
-                     "movl %%eax, %[info0]\n\t"
-@@ -854,7 +860,7 @@
+@@ -846,7 +852,7 @@
  #define DRFLAC_INLINE __forceinline
  #else
  #ifdef __GNUC__
@@ -33,7 +24,7 @@
  #else
  #define DRFLAC_INLINE inline
  #endif
-@@ -908,6 +914,7 @@
+@@ -900,6 +906,7 @@
  
  
  //// Endian Management ////
@@ -41,7 +32,7 @@
  static DRFLAC_INLINE drflac_bool32 drflac__is_little_endian()
  {
  #if defined(DRFLAC_X86) || defined(DRFLAC_X64)
-@@ -917,7 +924,9 @@
+@@ -909,7 +916,9 @@
      return (*(char*)&n) == 1;
  #endif
  }
@@ -51,7 +42,7 @@
  static DRFLAC_INLINE drflac_uint16 drflac__swap_endian_uint16(drflac_uint16 n)
  {
  #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
-@@ -933,7 +942,9 @@
+@@ -925,7 +934,9 @@
             ((n & 0x00FF) << 8);
  #endif
  }
@@ -61,7 +52,7 @@
  static DRFLAC_INLINE drflac_uint32 drflac__swap_endian_uint32(drflac_uint32 n)
  {
  #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
-@@ -951,7 +962,9 @@
+@@ -943,7 +954,9 @@
             ((n & 0x000000FF) << 24);
  #endif
  }
@@ -71,7 +62,7 @@
  static DRFLAC_INLINE drflac_uint64 drflac__swap_endian_uint64(drflac_uint64 n)
  {
  #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
-@@ -973,7 +986,7 @@
+@@ -965,7 +978,7 @@
             ((n & (drflac_uint64)0x00000000000000FF) << 56);
  #endif
  }
@@ -80,7 +71,7 @@
  
  static DRFLAC_INLINE drflac_uint16 drflac__be2host_16(drflac_uint16 n)
  {
-@@ -1043,6 +1056,7 @@
+@@ -1035,6 +1048,7 @@
  
  
  // The CRC code below is based on this document: http://zlib.net/crc_v3.txt
@@ -88,7 +79,7 @@
  static drflac_uint8 drflac__crc8_table[] = {
      0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15, 0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
      0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65, 0x48, 0x4F, 0x46, 0x41, 0x54, 0x53, 0x5A, 0x5D,
-@@ -1061,7 +1075,9 @@
+@@ -1053,7 +1067,9 @@
      0xAE, 0xA9, 0xA0, 0xA7, 0xB2, 0xB5, 0xBC, 0xBB, 0x96, 0x91, 0x98, 0x9F, 0x8A, 0x8D, 0x84, 0x83,
      0xDE, 0xD9, 0xD0, 0xD7, 0xC2, 0xC5, 0xCC, 0xCB, 0xE6, 0xE1, 0xE8, 0xEF, 0xFA, 0xFD, 0xF4, 0xF3
  };
@@ -98,7 +89,7 @@
  static drflac_uint16 drflac__crc16_table[] = {
      0x0000, 0x8005, 0x800F, 0x000A, 0x801B, 0x001E, 0x0014, 0x8011,
      0x8033, 0x0036, 0x003C, 0x8039, 0x0028, 0x802D, 0x8027, 0x0022,
-@@ -1096,11 +1112,14 @@
+@@ -1088,11 +1104,14 @@
      0x0220, 0x8225, 0x822F, 0x022A, 0x823B, 0x023E, 0x0234, 0x8231,
      0x8213, 0x0216, 0x021C, 0x8219, 0x0208, 0x820D, 0x8207, 0x0202
  };
@@ -113,7 +104,7 @@
  
  static DRFLAC_INLINE drflac_uint8 drflac_crc8(drflac_uint8 crc, drflac_uint32 data, drflac_uint32 count)
  {
-@@ -1145,11 +1164,14 @@
+@@ -1137,11 +1156,14 @@
  #endif
  }
  
@@ -128,7 +119,7 @@
  static DRFLAC_INLINE drflac_uint16 drflac_crc16_bytes(drflac_uint16 crc, drflac_cache_t data, drflac_uint32 byteCount)
  {
      switch (byteCount)
-@@ -1168,7 +1190,9 @@
+@@ -1160,7 +1182,9 @@
  
      return crc;
  }
@@ -138,7 +129,7 @@
  static DRFLAC_INLINE drflac_uint16 drflac_crc16__32bit(drflac_uint16 crc, drflac_uint32 data, drflac_uint32 count)
  {
      drflac_assert(count <= 64);
-@@ -1213,7 +1237,9 @@
+@@ -1205,7 +1229,9 @@
  #endif
  #endif
  }
@@ -148,7 +139,7 @@
  static DRFLAC_INLINE drflac_uint16 drflac_crc16__64bit(drflac_uint16 crc, drflac_uint64 data, drflac_uint32 count)
  {
      drflac_assert(count <= 64);
-@@ -1247,8 +1273,9 @@
+@@ -1239,8 +1265,9 @@
      return crc;
  #endif
  }
@@ -159,7 +150,7 @@
  static DRFLAC_INLINE drflac_uint16 drflac_crc16(drflac_uint16 crc, drflac_cache_t data, drflac_uint32 count)
  {
  #ifdef DRFLAC_64BIT
-@@ -1257,6 +1284,7 @@
+@@ -1249,6 +1276,7 @@
      return drflac_crc16__32bit(crc, data, count);
  #endif
  }
