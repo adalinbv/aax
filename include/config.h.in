@@ -84,10 +84,6 @@
 #undef HAVE_STRDUP
 #cmakedefine HAVE_STRDUP @HAVE_STRDUP@
 
-/* Define to 1 if you have the <libio.h> header file. */
-#undef HAVE_LIBIO_H
-#cmakedefine HAVE_LIBIO_H @HAVE_LIBIO_H@
-
 /* Define to 1 if you have the <machine/cpu-features.h> header file. */
 #undef HAVE_MACHINE_CPU_FEATURES_H
 
