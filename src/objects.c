@@ -31,9 +31,7 @@
 #else
 # include <string.h>
 #endif
-#ifdef HAVE_LIBIO_H
-# include <libio.h>		/* for NULL */
-#endif
+#include <stdio.h>		/* for NULL */
 #include <math.h>		/* for MAXFLOAT */
 #include <xml.h>
 
