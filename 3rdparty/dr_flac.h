@@ -1,5 +1,5 @@
 // FLAC audio decoder. Public domain. See "unlicense" statement at the end of this file.
-// dr_flac - v0.8d - 2017-09-22
+// dr_flac - v0.9.1 - 2018-04-29
 //
 // David Reid - mackron@gmail.com
 
@@ -106,6 +106,7 @@
 //
 //
 // QUICK NOTES
+// - dr_flac does not currently support changing the sample rate nor channel count mid stream.
 // - Audio data is output as signed 32-bit PCM, regardless of the bits per sample the FLAC stream is encoded as.
 // - This has not been tested on big-endian architectures.
 // - Rice codes in unencoded binary form (see https://xiph.org/flac/format.html#rice_partition) has not been tested. If anybody
@@ -765,11 +766,13 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 #define DRFLAC_X64
 #elif defined(__i386) || defined(_M_IX86)
 #define DRFLAC_X86
+#elif defined(__arm__) || defined(_M_ARM)
+#define DRFLAC_ARM
 #endif
 
 // Compile-time CPU feature support.
 #if !defined(DR_FLAC_NO_SIMD) && (defined(DRFLAC_X86) || defined(DRFLAC_X64))
-    #ifdef _MSC_VER
+    #if defined(_MSC_VER) && !defined(__clang__)
         #if _MSC_VER >= 1400
             #include <intrin.h>
             static void drflac__cpuid(int info[4], int fid)
@@ -783,19 +786,8 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
         #if defined(__GNUC__) || defined(__clang__)
             static void drflac__cpuid(int info[4], int fid)
             {
-                ASM (
-                    "movl %[fid], %%eax\n\t"
-                    "cpuid\n\t"
-                    "movl %%eax, %[info0]\n\t"
-                    "movl %%ebx, %[info1]\n\t"
-                    "movl %%ecx, %[info2]\n\t"
-                    "movl %%edx, %[info3]\n\t"
-                    : [info0] "=rm"(info[0]),
-                      [info1] "=rm"(info[1]),
-                      [info2] "=rm"(info[2]),
-                      [info3] "=rm"(info[3])
-                    : [fid] "rm"(fid)
-                    : "eax", "ebx", "ecx", "edx"
+                __asm__ __volatile__ (
+                    "cpuid" : "=a"(info[0]), "=b"(info[1]), "=c"(info[2]), "=d"(info[3]) : "a"(fid), "c"(0)
                 );
             }
         #else
@@ -812,7 +804,7 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 #include <endian.h>
 #endif
 
-#if defined(_MSC_VER) && _MSC_VER >= 1500
+#if defined(_MSC_VER) && _MSC_VER >= 1500 && (defined(DRFLAC_X86) || defined(DRFLAC_X64))
 #define DRFLAC_HAS_LZCNT_INTRINSIC
 #elif (defined(__GNUC__) && ((__GNUC__ > 4) || (__GNUC__ == 4 && __GNUC_MINOR__ >= 7)))
 #define DRFLAC_HAS_LZCNT_INTRINSIC
@@ -1722,7 +1714,7 @@ static drflac_bool32 drflac__find_and_seek_to_next_sync_code(drflac_bs* bs)
 #if !defined(DR_FLAC_NO_SIMD) && defined(DRFLAC_HAS_LZCNT_INTRINSIC)
 #define DRFLAC_IMPLEMENT_CLZ_LZCNT
 #endif
-#if  defined(_MSC_VER) && _MSC_VER >= 1400
+#if  defined(_MSC_VER) && _MSC_VER >= 1400 && (defined(DRFLAC_X64) || defined(DRFLAC_X86))
 #define DRFLAC_IMPLEMENT_CLZ_MSVC
 #endif
 
@@ -1767,7 +1759,7 @@ static DRFLAC_INLINE drflac_bool32 drflac__is_lzcnt_supported()
 
 static DRFLAC_INLINE drflac_uint32 drflac__clz_lzcnt(drflac_cache_t x)
 {
-#ifdef _MSC_VER
+#if defined(_MSC_VER) && !defined(__clang__)
     #ifdef DRFLAC_64BIT
         return (drflac_uint32)__lzcnt64(x);
     #else
@@ -1957,67 +1949,36 @@ static DRFLAC_INLINE drflac_int32 drflac__calculate_prediction_32(drflac_uint32 
     switch (order)
     {
     case 32: prediction += coefficients[31] * pDecodedSamples[-32];
-    // intentional fallthrough
     case 31: prediction += coefficients[30] * pDecodedSamples[-31];
-    // intentional fallthrough
     case 30: prediction += coefficients[29] * pDecodedSamples[-30];
-    // intentional fallthrough
     case 29: prediction += coefficients[28] * pDecodedSamples[-29];
-    // intentional fallthrough
     case 28: prediction += coefficients[27] * pDecodedSamples[-28];
-    // intentional fallthrough
     case 27: prediction += coefficients[26] * pDecodedSamples[-27];
-    // intentional fallthrough
     case 26: prediction += coefficients[25] * pDecodedSamples[-26];
-    // intentional fallthrough
     case 25: prediction += coefficients[24] * pDecodedSamples[-25];
-    // intentional fallthrough
     case 24: prediction += coefficients[23] * pDecodedSamples[-24];
-    // intentional fallthrough
     case 23: prediction += coefficients[22] * pDecodedSamples[-23];
-    // intentional fallthrough
     case 22: prediction += coefficients[21] * pDecodedSamples[-22];
-    // intentional fallthrough
     case 21: prediction += coefficients[20] * pDecodedSamples[-21];
-    // intentional fallthrough
     case 20: prediction += coefficients[19] * pDecodedSamples[-20];
-    // intentional fallthrough
     case 19: prediction += coefficients[18] * pDecodedSamples[-19];
-    // intentional fallthrough
     case 18: prediction += coefficients[17] * pDecodedSamples[-18];
-    // intentional fallthrough
     case 17: prediction += coefficients[16] * pDecodedSamples[-17];
-    // intentional fallthrough
     case 16: prediction += coefficients[15] * pDecodedSamples[-16];
-    // intentional fallthrough
     case 15: prediction += coefficients[14] * pDecodedSamples[-15];
-    // intentional fallthrough
     case 14: prediction += coefficients[13] * pDecodedSamples[-14];
-    // intentional fallthrough
     case 13: prediction += coefficients[12] * pDecodedSamples[-13];
-    // intentional fallthrough
     case 12: prediction += coefficients[11] * pDecodedSamples[-12];
-    // intentional fallthrough
     case 11: prediction += coefficients[10] * pDecodedSamples[-11];
-    // intentional fallthrough
     case 10: prediction += coefficients[ 9] * pDecodedSamples[-10];
-    // intentional fallthrough
     case  9: prediction += coefficients[ 8] * pDecodedSamples[- 9];
-    // intentional fallthrough
     case  8: prediction += coefficients[ 7] * pDecodedSamples[- 8];
-    // intentional fallthrough
     case  7: prediction += coefficients[ 6] * pDecodedSamples[- 7];
-    // intentional fallthrough
     case  6: prediction += coefficients[ 5] * pDecodedSamples[- 6];
-    // intentional fallthrough
     case  5: prediction += coefficients[ 4] * pDecodedSamples[- 5];
-    // intentional fallthrough
     case  4: prediction += coefficients[ 3] * pDecodedSamples[- 4];
-    // intentional fallthrough
     case  3: prediction += coefficients[ 2] * pDecodedSamples[- 3];
-    // intentional fallthrough
     case  2: prediction += coefficients[ 1] * pDecodedSamples[- 2];
-    // intentional fallthrough
     case  1: prediction += coefficients[ 0] * pDecodedSamples[- 1];
     }
 
@@ -2164,67 +2125,36 @@ static DRFLAC_INLINE drflac_int32 drflac__calculate_prediction_64(drflac_uint32 
     switch (order)
     {
     case 32: prediction += coefficients[31] * (drflac_int64)pDecodedSamples[-32];
-    // intentional fallthrough
     case 31: prediction += coefficients[30] * (drflac_int64)pDecodedSamples[-31];
-    // intentional fallthrough
     case 30: prediction += coefficients[29] * (drflac_int64)pDecodedSamples[-30];
-    // intentional fallthrough
     case 29: prediction += coefficients[28] * (drflac_int64)pDecodedSamples[-29];
-    // intentional fallthrough
     case 28: prediction += coefficients[27] * (drflac_int64)pDecodedSamples[-28];
-    // intentional fallthrough
     case 27: prediction += coefficients[26] * (drflac_int64)pDecodedSamples[-27];
-    // intentional fallthrough
     case 26: prediction += coefficients[25] * (drflac_int64)pDecodedSamples[-26];
-    // intentional fallthrough
     case 25: prediction += coefficients[24] * (drflac_int64)pDecodedSamples[-25];
-    // intentional fallthrough
     case 24: prediction += coefficients[23] * (drflac_int64)pDecodedSamples[-24];
-    // intentional fallthrough
     case 23: prediction += coefficients[22] * (drflac_int64)pDecodedSamples[-23];
-    // intentional fallthrough
     case 22: prediction += coefficients[21] * (drflac_int64)pDecodedSamples[-22];
-    // intentional fallthrough
     case 21: prediction += coefficients[20] * (drflac_int64)pDecodedSamples[-21];
-    // intentional fallthrough
     case 20: prediction += coefficients[19] * (drflac_int64)pDecodedSamples[-20];
-    // intentional fallthrough
     case 19: prediction += coefficients[18] * (drflac_int64)pDecodedSamples[-19];
-    // intentional fallthrough
     case 18: prediction += coefficients[17] * (drflac_int64)pDecodedSamples[-18];
-    // intentional fallthrough
     case 17: prediction += coefficients[16] * (drflac_int64)pDecodedSamples[-17];
-    // intentional fallthrough
     case 16: prediction += coefficients[15] * (drflac_int64)pDecodedSamples[-16];
-    // intentional fallthrough
     case 15: prediction += coefficients[14] * (drflac_int64)pDecodedSamples[-15];
-    // intentional fallthrough
     case 14: prediction += coefficients[13] * (drflac_int64)pDecodedSamples[-14];
-    // intentional fallthrough
     case 13: prediction += coefficients[12] * (drflac_int64)pDecodedSamples[-13];
-    // intentional fallthrough
     case 12: prediction += coefficients[11] * (drflac_int64)pDecodedSamples[-12];
-    // intentional fallthrough
     case 11: prediction += coefficients[10] * (drflac_int64)pDecodedSamples[-11];
-    // intentional fallthrough
     case 10: prediction += coefficients[ 9] * (drflac_int64)pDecodedSamples[-10];
-    // intentional fallthrough
     case  9: prediction += coefficients[ 8] * (drflac_int64)pDecodedSamples[- 9];
-    // intentional fallthrough
     case  8: prediction += coefficients[ 7] * (drflac_int64)pDecodedSamples[- 8];
-    // intentional fallthrough
     case  7: prediction += coefficients[ 6] * (drflac_int64)pDecodedSamples[- 7];
-    // intentional fallthrough
     case  6: prediction += coefficients[ 5] * (drflac_int64)pDecodedSamples[- 6];
-    // intentional fallthrough
     case  5: prediction += coefficients[ 4] * (drflac_int64)pDecodedSamples[- 5];
-    // intentional fallthrough
     case  4: prediction += coefficients[ 3] * (drflac_int64)pDecodedSamples[- 4];
-    // intentional fallthrough
     case  3: prediction += coefficients[ 2] * (drflac_int64)pDecodedSamples[- 3];
-    // intentional fallthrough
     case  2: prediction += coefficients[ 1] * (drflac_int64)pDecodedSamples[- 2];
-    // intentional fallthrough
     case  1: prediction += coefficients[ 0] * (drflac_int64)pDecodedSamples[- 1];
     }
 #endif
@@ -2492,6 +2422,16 @@ static drflac_bool32 drflac__decode_samples_with_residual(drflac_bs* bs, drflac_
         return DRFLAC_FALSE;
     }
 
+    // From the FLAC spec:
+    //   The Rice partition order in a Rice-coded residual section must be less than or equal to 8.
+    if (partitionOrder > 8) {
+        return DRFLAC_FALSE;
+    }
+
+    // Validation check.
+    if ((blockSize / (1 << partitionOrder)) <= order) {
+        return DRFLAC_FALSE;
+    }
 
     drflac_uint32 samplesInPartition = (blockSize / (1 << partitionOrder)) - order;
     drflac_uint32 partitionsRemaining = (1 << partitionOrder);
@@ -2536,7 +2476,10 @@ static drflac_bool32 drflac__decode_samples_with_residual(drflac_bs* bs, drflac_
         }
 
         partitionsRemaining -= 1;
-        samplesInPartition = blockSize / (1 << partitionOrder);
+
+        if (partitionOrder != 0) {
+            samplesInPartition = blockSize / (1 << partitionOrder);
+        }
     }
 
     return DRFLAC_TRUE;
@@ -3072,7 +3015,17 @@ static drflac_result drflac__decode_frame(drflac* pFlac)
     // This function should be called while the stream is sitting on the first byte after the frame header.
     drflac_zero_memory(pFlac->currentFrame.subframes, sizeof(pFlac->currentFrame.subframes));
 
+    // The frame block size must never be larger than the maximum block size defined by the FLAC stream.
+    if (pFlac->currentFrame.header.blockSize > pFlac->maxBlockSize) {
+        return DRFLAC_ERROR;
+    }
+
+    // The number of channels in the frame must match the channel count from the STREAMINFO block.
     int channelCount = drflac__get_channel_count_from_channel_assignment(pFlac->currentFrame.header.channelAssignment);
+    if (channelCount != (int)pFlac->channels) {
+        return DRFLAC_ERROR;
+    }
+
     for (int i = 0; i < channelCount; ++i) {
         if (!drflac__decode_subframe(&pFlac->bs, &pFlac->currentFrame, i, pFlac->pDecodedSamples + (pFlac->currentFrame.header.blockSize * i))) {
             return DRFLAC_ERROR;
@@ -3651,7 +3604,6 @@ drflac_bool32 drflac__read_and_decode_metadata(drflac* pFlac)
                     }
                 }
             }
-            // intentional fallthrough
 
             default:
             {
@@ -5588,6 +5540,23 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 
 
 // REVISION HISTORY
+//
+// v0.9.1 - 2018-04-29
+//   - Fix compilation error with Clang.
+//
+// v0.9 - 2018-04-24
+//   - Fix Clang build.
+//   - Start using major.minor.revision versioning.
+//
+// v0.8g - 2018-04-19
+//   - Fix build on non-x86/x64 architectures.
+//
+// v0.8f - 2018-02-02
+//   - Stop pretending to support changing rate/channels mid stream.
+//
+// v0.8e - 2018-02-01
+//   - Fix a crash when the block size of a frame is larger than the maximum block size defined by the FLAC stream.
+//   - Fix a crash the the Rice partition order is invalid.
 //
 // v0.8d - 2017-09-22
 //   - Add support for decoding streams with ID3 tags. ID3 tags are just skipped.
