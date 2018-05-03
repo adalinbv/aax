@@ -27,7 +27,7 @@
    <instrument n="15" name="Tubular Bells" file="bells-tubular.aaxs"/>
    <instrument n="16" name="Dulcimer" file=".aaxs"/>
    <instrument n="17" name="Drawbar Organ" file="organ-drawbar.aaxs"/>
-   <instrument n="18" name="Percussive Organ" file=".aaxs"/>
+   <instrument n="18" name="Percussive Organ" file="organ-percussive.aaxs"/>
    <instrument n="19" name="Rock Organ" file="organ-rock.aaxs"/>
    <instrument n="20" name="Church Organ" file="organ-church.aaxs"/>
    <instrument n="21" name="Reed Organ" file="organ-reed.aaxs"/>
