@@ -139,8 +139,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             flt->no_stages = 1;
 
             dfact = powf(reverb->fc*0.00005f, 0.2f);
-            flt->high_gain = _MIN(1.75f-0.75f*dfact, 1.15f);
-            flt->low_gain = 0.33f*dfact;
+            flt->low_gain = _MIN(1.75f-0.75f*dfact, 1.15f);
+            flt->high_gain = 1.0f - 0.33f*dfact;
             flt->k = flt->low_gain/flt->high_gain;
 
             _aax_butterworth_compute(reverb->fc, flt);
