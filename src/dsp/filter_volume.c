@@ -386,7 +386,7 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
                   occlusion->gain = 1.0f - l2;
                   if (blocked) occlusion->gain_reverb = 1.0f - l2*l2;
                }
-#if 0
+#if 1
                if (occlusion->level > (1.0f-LEVEL_64DB)) break;
             }
          }
