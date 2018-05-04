@@ -49,7 +49,7 @@ static void _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*);
+void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
@@ -291,6 +291,27 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scrat
 }
 
 static void
+_reverb_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
+{
+   _aaxRingBufferReverbData *reverb = data;
+   _aaxRingBufferOcclusionData *occlusion;
+   _aaxRingBufferFreqFilterData *filter;
+
+   filter = reverb->freq_filter;
+   occlusion = reverb->occlusion;
+   if (occlusion)
+   {
+      float l = 1.0f - occlusion->level;
+      reverb->fc = _MAX(l*22000.0f, reverb->fc);
+      if (reverb->fc > 100.0f) {
+          _aax_butterworth_compute(reverb->fc, filter);
+      }
+   }
+
+   _occlusion_prepare(src, fp3d, occlusion);
+}
+
+static void
 _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             size_t no_samples, size_t ds, unsigned int track,
             const void *data, _aaxMixerInfo *info, unsigned char mono)
@@ -300,7 +321,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    const _aaxRingBufferReverbData *reverb = data;
    _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
-   float l = 1.0f, gain = 1.0f;
+   float gain = 1.0f;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -310,18 +331,6 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(track < _AAX_MAX_SPEAKERS);
 
    occlusion = reverb->occlusion;
-   if (occlusion)
-   {
-      float fc;
-
-      gain = occlusion->gain_reverb;
-      l = 1.0f - occlusion->level;
-
-      fc = _MIN(l*22000.0f, reverb->fc);
-      if (fc > 100.0f) {
-          _aax_butterworth_compute(fc, filter);
-      }
-   }
 
    if (gain > LEVEL_64DB)
    {
@@ -471,6 +480,7 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
    reverb = *ptr;
    if (reverb)
    {
+      reverb->prepare = _reverb_prepare;
       reverb->run = _reverb_run;
 
       if (reverb->history_ptr == 0)
