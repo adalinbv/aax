@@ -58,7 +58,7 @@ aaxVec3d DoorLPos =   {  0.0,  1.0,  -1.5  };
 aaxVec3d DoorRPos =   {  8.4,  1.0,  -1.5  };
 aaxVec3d HallwayPos = {  3.5,  1.3,  -2.0  };
 
-aaxVec3d SensorPos =  {  2.0,  1.7,  -1.0  };
+aaxVec3d SensorPos =  {  0.0,  1.7,  -1.0  };
 aaxVec3f SensorAt =   {  0.0f, 0.0f, -1.0f };
 aaxVec3f SensorUp =   {  0.0f, 1.0f,  0.0f };
 
@@ -101,7 +101,7 @@ const char *hallway_aaxs = "<?xml version='1.0'?> \
  <audioframe>                           \
   <effect type='reverb' src='inverse'>  \
    <slot n='0'>                         \
-    <param n='0'>790.0</param>          \
+    <param n='0'>1790.0</param>          \
     <param n='1'>0.035</param>          \
     <param n='2'>0.89</param>           \
     <param n='3'>0.150</param>          \
@@ -121,7 +121,7 @@ const char *diner_aaxs = "<?xml version='1.0'?> \
  <audioframe> 				\
   <effect type='reverb' src='inverse'> 	\
    <slot n='0'> 			\
-    <param n='0'>8500.0</param> 		\
+    <param n='0'>750.0</param> 		\
     <param n='1'>0.005</param> 		\
     <param n='2'>0.92</param> 		\
     <param n='3'>0.075</param> 		\
