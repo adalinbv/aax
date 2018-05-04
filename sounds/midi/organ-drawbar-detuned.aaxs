@@ -8,14 +8,22 @@
 
 <aeonwave>
 
- <sound name="Detuned Drawbar Organ"  program="17" bank="8" frequency="220">
-  <waveform src="sine" ratio="0.4" pitch="1.0163"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.987"/>
-  <waveform src="triangle" processing="add" ratio="0.2" pitch="0.4935"/>
+ <sound name="Drawbar Organ"  program="17" bank="0" frequency="220" duration="0.10">
+  <waveform src="sine" ratio="0.48"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="1.0"/>
+  <waveform src="triangle" processing="add" ratio="0.2" pitch="0.49"/>
  </sound>
 
  <instrument>
   <note polyphony="10" min="36" max="96" step="1"/>
  </instrument>
+
+ <emitter looping="true">
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.96</param>
+   </slot>
+  </effect>
+ </emitter>
 
 </aeonwave>

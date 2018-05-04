@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Detuned Electric Piano 2"  program="6" bank="8" frequency="220" duration="0.30">
-  <waveform src="impulse" ratio="0.6" pitch="0.9877"/>
-  <waveform src="square" processing="add" ratio="-0.6"/>
+ <sound name="Electric Piano 2"  program="6" bank="0" frequency="220" duration="0.10">
+  <waveform src="impulse" ratio="0.6" pitch="1.01"/>
+  <waveform src="square" processing="add" ratio="-0.4" pitch="0.9972"/>
  </sound>
 
  <instrument>
@@ -30,6 +30,11 @@
     <param n="1" factor="sustain">2.50</param>
    </slot>
   </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.96</param>
+   </slot>
+  </effect>
  </emitter>
 
 </aeonwave>
