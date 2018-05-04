@@ -185,7 +185,7 @@ typedef struct
 
    char inverse;
 
-   void (*prepare)(_aaxEmitter *src, _aax3dProps *fp3d);
+   void (*prepare)(_aaxEmitter *src, _aax3dProps *fp3d, void*);
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t,
                unsigned int, const void*);
 
@@ -193,6 +193,7 @@ typedef struct
 
 typedef struct
 {
+   void (*prepare)(_aaxEmitter*, _aax3dProps*, void*);
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
                unsigned int, const void*, _aaxMixerInfo*, unsigned char);
  

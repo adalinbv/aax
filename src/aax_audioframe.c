@@ -668,9 +668,8 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
 
          reverb = _EFFECT_GET_DATA(p2d, type);
-         if (reverb)
-         {
-            _EFFECT_SET_DATA(p3d, type, reverb->occlusion);
+         _EFFECT_SET_DATA(p3d, type, reverb);
+         if (reverb) {
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
 
