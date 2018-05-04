@@ -301,14 +301,16 @@ _reverb_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
    occlusion = reverb->occlusion;
    if (occlusion)
    {
-      float l = 1.0f - occlusion->level;
+      float l;
+
+      _occlusion_prepare(src, fp3d, occlusion);
+
+      l = 1.0f - occlusion->level;
       reverb->fc = _MAX(l*22000.0f, reverb->fc);
       if (reverb->fc > 100.0f) {
           _aax_butterworth_compute(reverb->fc, filter);
       }
    }
-
-   _occlusion_prepare(src, fp3d, occlusion);
 }
 
 static void
@@ -331,6 +333,20 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(track < _AAX_MAX_SPEAKERS);
 
    occlusion = reverb->occlusion;
+#if 1
+// TODO: move tot _reverb_prepare
+   occlusion = reverb->occlusion;
+   if (occlusion)
+   {
+      float l, fc;
+
+      l = 1.0f - occlusion->level;
+      fc = _MAX(l*22000.0f, reverb->fc);
+      if (fc > 100.0f) {
+          _aax_butterworth_compute(fc, filter);
+      }
+   }
+#endif
 
    if (gain > LEVEL_64DB)
    {
