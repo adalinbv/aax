@@ -67,11 +67,13 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    _aaxMixerInfo *info = fmixer->info;
    _aaxLFOData *lfo;
    char process;
+   char ssr = 1;
 
    /* Update the model-view matrix based on our own and that of out parent. */
    /* fp3d->parent == NULL means this is the sensor frame so no math there. */
    if (fp3d->parent)
    {
+      ssr = 0;
       pdp3d_m = fp3d->parent->m_dprops3d;
       if (_PROP3D_MTX_HAS_CHANGED(fdp3d) ||
           _PROP3D_MTX_HAS_CHANGED(pdp3d_m))
@@ -216,7 +218,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
 
    if (process)
    {
-      be->effects(be, be_handle, dest_rb, fp2d, mono, AAX_TRUE);
+      be->effects(be, be_handle, dest_rb, fp2d, mono, ssr);
       be->postprocess(be, be_handle, dest_rb, sensor, subframe, fmixer->info);
    }
 
