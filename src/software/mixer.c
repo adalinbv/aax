@@ -43,7 +43,7 @@
 
 
 void
-_aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d, char mono)
+_aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d, char mono, char order)
 {
    _aaxDriverBackend *be = (_aaxDriverBackend*)id;
    _aaxRingBufferDelayEffectData* delay_effect;

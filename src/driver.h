@@ -186,7 +186,7 @@ void _aaxNoneDriverProcessFrame(void*);
 void* _aaxSoftwareMixerThread(void*);
 int _aaxSoftwareMixerThreadUpdate(void*, void*);
 void _aaxSoftwareMixerPostProcess(const void *, const void *, void *, const void *, const void*, void*);
-void _aaxSoftwareMixerApplyEffects(const void *, const void *, void *, const void *, char);
+void _aaxSoftwareMixerApplyEffects(const void *, const void *, void *, const void *, char, char);
 
 
 uint32_t getMSChannelMask(uint16_t);
