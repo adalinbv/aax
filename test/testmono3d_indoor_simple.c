@@ -68,7 +68,7 @@ const char *door_aaxs = "<?xml version='1.0'?> \
     <param n='0'>0.8</param>            \
     <param n='1'>2.1</param>            \
     <param n='2'>0.1</param>            \
-    <param n='3'>0.1</param>            \
+    <param n='3'>0.90</param>            \
    </slot>                              \
   </filter>                             \
  </audioframe>                          \
