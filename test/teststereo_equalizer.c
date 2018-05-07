@@ -60,9 +60,11 @@ int main(int argc, char **argv)
         buffer = bufferFromFile(config, infile);
         if (buffer)
         {
+            char *fparam = getCommandLineOption(argc, argv, "-f");
             aaxEmitter emitter;
             aaxFilter filter;
             aaxEffect effect;
+            aaxFrame frame;
             float dt = 0.0f;
             int q, state;
             float pitch;
@@ -91,8 +93,25 @@ int main(int argc, char **argv)
             res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
-            res = aaxMixerRegisterEmitter(config, emitter);
-            testForState(res, "aaxMixerRegisterEmitter");
+            if (!fparam)
+            {
+                res = aaxMixerRegisterEmitter(config, emitter);
+                testForState(res, "aaxMixerRegisterEmitter");
+            }
+            else
+            {
+                frame = aaxAudioFrameCreate(config);
+                testForError(frame, "Unable to create a new frame");
+
+                res = aaxMixerRegisterAudioFrame(config, frame);
+                testForState(res, "aaxMixerRegisterAudioFrame");
+
+                res = aaxAudioFrameRegisterEmitter(frame, emitter);
+                testForState(res, "aaxAudioFrameRegisterEmitter");
+
+                res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+                testForState(res, "aaxAudioFrameSetState");
+            }
 
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
@@ -112,8 +131,16 @@ int main(int argc, char **argv)
             res = aaxFilterSetState(filter, AAX_TRUE);
             testForState(res, "aaxFilterSetState");
 
-            res = aaxMixerSetFilter(config, filter);
-            testForState(res, "aaxMixerSetFilter");
+            if (!fparam)
+            {
+               res = aaxMixerSetFilter(config, filter);
+               testForState(res, "aaxMixerSetFilter");
+            }
+            else
+            {
+               res = aaxAudioFrameSetFilter(frame, filter);
+               testForState(res, "aaxAudioFrameSetFilter");
+            }
 
             res = aaxFilterDestroy(filter);
             testForState(res, "aaxFilterDestroy");
@@ -150,6 +177,15 @@ int main(int argc, char **argv)
             aaxMixerSetFilter(config, filter);
             aaxFilterDestroy(filter);
             aaxBufferDestroy(buffer);
+
+            if (!fparam)
+            {
+                res = aaxMixerDeregisterEmitter(config, emitter);
+                testForState(res, "aaxMixerDeregisterEmitter");
+            }
+            else
+            {
+            }
 
             res = aaxMixerDeregisterEmitter(config, emitter);
             res = aaxMixerSetState(config, AAX_STOPPED);
