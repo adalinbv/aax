@@ -9,21 +9,13 @@
 <aeonwave>
 
  <sound name="Water Stream" program="" bank="0" frequency="220" duration="2.9">
-  <waveform src="brownian-noise" ratio="20.0" pitch="0.05" staticity="0.995"/>
+  <waveform src="brownian-noise" ratio="20.0" pitch="0.05" staticity="0.998"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">50</param>
-    <param n="1">0.0</param>
-    <param n="2">0.5</param>
-    <param n="3">20.0</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">120</param>
+    <param n="0">10</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">2.0</param>
+    <param n="3">10.0</param>
    </slot>
   </filter>
  </sound>
