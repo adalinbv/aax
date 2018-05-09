@@ -74,7 +74,7 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferOcclusionData *occlusion = reflections->reverb->occlusion;
       float v = (1.0f - occlusion->level);
-      reflections->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
+      reflections->run(rbd, pdst, psrc, no_samples, ddesamps, track,
                        v, reflections, NULL, mono);
       BUFSWAP(pdst, psrc);
    }
