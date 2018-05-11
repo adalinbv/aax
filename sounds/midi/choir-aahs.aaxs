@@ -14,15 +14,7 @@
   <waveform src="sine" processing="add" ratio="0.9" pitch="1.4917" phase="0.5"/>
   <waveform src="sine" processing="add" ratio="0.7" pitch="3.4917"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="0.5"/>
-  <waveform src="brownian-noise" processing="mix" ratio="0.075"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">1760</param>
-    <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
+  <waveform src="brownian-noise" processing="mix" ratio="0.2"/>
  </sound>
 
  <instrument>
@@ -64,5 +56,24 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">1760</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <effect type="phasing">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.83</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>
