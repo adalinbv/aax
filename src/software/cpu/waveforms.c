@@ -303,8 +303,8 @@ xorshift128plus()
 static float
 _aax_rand_sample()
 {
-   float r = (double)xorshift128plus()/(double)INT64_MAX;
-   return -1.0f + r;
+   float r = (double)(int64_t)xorshift128plus()/(double)INT64_MAX;
+   return r;
 }
 
 static void
