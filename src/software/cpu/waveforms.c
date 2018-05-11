@@ -28,9 +28,17 @@
 #else
 # include <stdlib.h>
 #endif
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #include <math.h>	/* for floorf() */
 #include <time.h>	/* for time() */
 #include <assert.h>
+#include <sys/types.h>
+#include <sys/time.h>
+#ifdef HAVE_SYS_RANDOM_H
+# include <sys/random.h>
+#endif
 
 #include <base/gmath.h>
 #include <base/types.h>
@@ -44,7 +52,6 @@
 static float _gains[MAX_WAVE];
 
 static float _aax_rand_sample();
-static unsigned int WELLRNG512(void);
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_resample_float(float32_ptr, const_float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
@@ -269,83 +276,35 @@ float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
 
 };
 
-/** MT199367                                                                  *
- * "Cleaned up" and simplified Mersenne Twister implementation.               *
- * Vastly smaller and more easily understood and embedded.  Stores the        *
- * state in a user-maintained structure instead of static memory, so          *
- * you can have more than one, or save snapshots of the RNG state.            *
- * Lacks the "init_by_array()" feature of the original code in favor          *
- * of the simpler 32 bit seed initialization.                                 *
- * Verified to be identical to the original MT199367ar code through           *
- * the first 10M generated numbers.                                           *
- *                                                                            *
- * Note: Code Taken from SimGear.                                             *
- *       The original Mersenne Twister implementation is in public domain.    *
- */
-#define MT_N 624
-#define MT_M 397
-#define MT(i) mt->array[i]
-
-typedef struct {unsigned int array[MT_N]; int index; } mt;
-static mt random_seed;
-
-static void
-mt_init(mt *mt, unsigned int seed)
-{
-   int i;
-   MT(0)= seed;
-   for(i=1; i<MT_N; i++) {
-      MT(i) = (1812433253 * (MT(i-1) ^ (MT(i-1) >> 30)) + i);
-   }
-   mt->index = MT_N+1;
+static int
+_aax_hash3(unsigned int h1, unsigned int h2, unsigned int h3) {
+    return (((h1 * 2654435789U) + h2) * 2654435789U) + h3;
 }
 
-static unsigned int
-mt_rand32(mt *mt)
+// https://en.wikipedia.org/wiki/Xorshift#xorshift+
+/* This generator is one of the fastest generators passing BigCrush */
+/* The state must be seeded so that it is not all zero */
+uint64_t _xor_s[2];
+
+static uint64_t
+xorshift128plus()
 {
-   unsigned int i, y;
-   if(mt->index >= MT_N)
-   {
-      for(i=0; i<MT_N; i++)
-      {
-         y = (MT(i) & 0x80000000) | (MT((i+1)%MT_N) & 0x7fffffff);
-         MT(i) = MT((i+MT_M)%MT_N) ^ (y>>1) ^ (y&1 ? 0x9908b0df : 0);
-      }
-      mt->index = 0;
-   }
-   y = MT(mt->index++);
-   y ^= (y >> 11);
-   y ^= (y << 7) & 0x9d2c5680;
-   y ^= (y << 15) & 0xefc60000;
-   y ^= (y >> 18);
-   return y;
+   uint64_t x = _xor_s[0];
+   uint64_t const y = _xor_s[1];
+
+   _xor_s[0] = y;
+   x ^= x << 23;
+   _xor_s[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
+   return _xor_s[1] + y;
 }
 
-/** WELL 512, Note: also in Public Domain */
-#define MAX_RANDOM		4294967295.0f
-#define MAX_RANDOM_2		(MAX_RANDOM/2)
+#define _aax_random()		((double)xorshift128plus()/UINT64_MAX)
 
-#define _aax_random()		((float)WELLRNG512()/MAX_RANDOM)
-
-static unsigned long state[16];
-static unsigned int idx = 0;
-
-static unsigned int
-WELLRNG512(void)
+static float
+_aax_rand_sample()
 {
-   unsigned int a, b, c, d;
-   a = state[idx];
-   c = state[(idx+13) & 15];
-   b = a^c^(a<<16)^(c<<15);
-   c = state[(idx+9) & 15];
-   c ^= (c>>11);
-   a = state[idx] = b^c;
-   d = a^((a<<5) & 0xDA442D24UL);
-   idx = (idx + 15) & 15;
-   a = state[idx];
-   state[idx] = a^b^d^(a<<2)^(b<<18)^(c<<28);
-
-   return state[idx];
+   float r = (double)xorshift128plus()/(double)INT64_MAX;
+   return -1.0f + r;
 }
 
 static void
@@ -354,66 +313,23 @@ _aax_srandom()
    static int init = -1;
    if (init < 0)
    {
-      unsigned int i, num;
+      unsigned int size = 2*sizeof(uint64_t);
+      unsigned int num = 0;
 
-      mt_init(&random_seed, time(NULL));
-      num = 100 + (mt_rand32(&random_seed) & 255);
-      for (i=0; i<num; i++) {
-          mt_rand32(&random_seed);
-      }
+#ifdef HAVE_SYS_RANDOM_H
+      num = getrandom(_xor_s, size, 0);
+#endif
 
-      for (i=0; i<15; i++) {
-         state[i] = mt_rand32(&random_seed);
-      }
-
-      num = 1024+(WELLRNG512()>>22);
-      for (i=0; i<num; i++) {
-         WELLRNG512();
-      }
-   }
-}
-
-#define AVG     14
-#define MAX_AVG 64
-static float
-_aax_rand_sample()
-{
-   static unsigned int rvals[MAX_AVG];
-   static int init = 1;
-   unsigned int r, p;
-   float rv;
-
-   if (init)
-   {
-      p = MAX_AVG-1;
-      do
+      if (num < size)
       {
-         r = AVG;
-         rv = 0.0f;
-         do {
-            rv += WELLRNG512();
-         } while(--r);
-         r = (unsigned int)rintf(rv/AVG);
-         rvals[p] = r;
+         struct timeval time;
+
+         gettimeofday(&time, NULL);
+         srand(_aax_hash3(time.tv_sec, time.tv_usec, getpid()));
+         _xor_s[0] = (uint64_t)rand() * rand();
+         _xor_s[1] = ((uint64_t)rand() * rand()) ^ _xor_s[0];
       }
-      while(p--);
-      init = 0;
    }
-
-   r = AVG;
-   rv = 0.0f;
-   do {
-      rv += WELLRNG512();
-   } while(--r);
-   r = (unsigned int)rintf(rv/AVG);
-
-   p = (r >> 2) & (MAX_AVG-1);
-   rv = rvals[p];
-   rvals[p] = r;
-
-   rv = 2.0f*(-1.0f + rv/MAX_RANDOM_2);
-
-   return rv;
 }
 
 /**
@@ -472,7 +388,7 @@ _aax_generate_noise(size_t no_samples, UNUSED(float gain), unsigned char skip)
       memset(rv, 0, no_samples*sizeof(float));
       do
       {
-         *ptr += _aax_rand_sample();
+         *ptr += 0.5f*_aax_rand_sample();
 
          ptr += (int)rnd_skip;
          i -= (int)rnd_skip;
