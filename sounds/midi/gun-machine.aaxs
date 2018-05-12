@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Gunshot" program="128" bank="0" frequency="220" duration="0.2">
+ <sound name="Machine Gun" program="128" bank="0" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -21,12 +21,12 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" repeat="2400">
    <slot n="0">
     <param n="0">2.0</param>
     <param n="1" factor="velocity">0.03</param>
     <param n="2" factor="soften">1.0</param>
-    <param n="3">0.6</param>
+    <param n="3">0.055</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

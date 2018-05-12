@@ -71,7 +71,7 @@
   <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.2</param>
-    <param n="1">6.5</param>
+    <param n="1">13</param>
     <param n="2">0.08</param>
     <param n="3">0.0</param>
    </slot>
