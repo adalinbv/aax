@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Helicopter (4 blade)" program="126" bank="0" frequency="220" duration="2.301">
+ <sound name="Helicopter (4 blade)" program="126" bank="0" frequency="220" duration="3.33">
   <waveform src="sawtooth" pitch="1.0"/>
   <waveform src="pink-noise" processing="mix" ratio="0.95"/>
-  <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="0.5"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="0.5"/>
  </sound>
 
  <emitter looping="true">
