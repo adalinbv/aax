@@ -8,15 +8,16 @@
 
 <aeonwave>
 
- <sound name="Propeller Aircraft" program="126" bank="0" frequency="220" duration="0.21">
-  <waveform src="square" pitch="1.0"/>
-  <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="0.7498"/>
+ <sound name="Helicopter (4 blade)" program="126" bank="0" frequency="220" duration="2.301">
+  <waveform src="sawtooth" pitch="1.0"/>
+  <waveform src="pink-noise" processing="mix" ratio="0.95"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="0.5"/>
  </sound>
 
  <emitter looping="true">
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.25</param>
+    <param n="0">0.225</param>
    </slot>
   </effect>
  </emitter>
