@@ -1,6 +1,9 @@
 * Sat May  5 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=low
+ * Explicitly allow GPL version 2 and GPL version 3 applications to use
+   the library.
  * Add distance filter frequency response.
+ * Speed up waveform generation quite a bit.
  * Turn the reverb effect into a true 3d effect.
  * Add the option to register the reverb effect to audio-frames.
    - Due to memory considerations they only support up to large room sizes,
