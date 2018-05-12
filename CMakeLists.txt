@@ -467,7 +467,7 @@ target_link_libraries(${LIBAEONWAVE}
 )
 
 # Create the copyright file
-execute_process(COMMAND "xxd" -include COPYING src/copyright.h
+execute_process(COMMAND "xxd" -include COPYING.v3 src/copyright.h
                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes
 )
 
