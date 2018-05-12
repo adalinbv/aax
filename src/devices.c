@@ -40,11 +40,11 @@
 
 #include <software/device.h>
 #include <stream/device.h>
-#include <dmedia/device.h>
-#include <linux/device.h>
-#include <oss/device.h>
+#include <backends/dmedia/device.h>
+#include <backends/linux/device.h>
+#include <backends/oss/device.h>
 #ifdef HAVE_WINDOWS_H
-# include <windows/wasapi.h>
+# include <backends/windows/wasapi.h>
 #endif
 #include <dsp/filters.h>
 #include <dsp/effects.h>
