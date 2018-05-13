@@ -10,12 +10,12 @@
 
  <sound name="Machine Gun" program="128" bank="0" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
-  <filter type="frequency" src="24db">
+  <filter type="frequency" src="12db">
    <slot n="0">
     <param n="0" pitch="16.0">80</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
-    <param n="3">1.5</param>
+    <param n="3">1.2</param>
    </slot>
   </filter>
  </sound>
@@ -32,7 +32,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0" factor="soften">1.8</param>
-    <param n="1" factor="velocity">0.02</param>
+    <param n="1" factor="velocity">0.01</param>
     <param n="2">0.7</param>
    </slot>
   </effect>
