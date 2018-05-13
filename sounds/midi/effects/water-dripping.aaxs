@@ -15,7 +15,7 @@
     <param n="0">10</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">10.0</param>
+    <param n="3">15.0</param>
    </slot>
   </filter>
  </sound>
