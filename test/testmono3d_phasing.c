@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2016 by Erik Hofman.
- * Copyright (C) 2009-2016 by Adalin B.V.
+ * Copyright (C) 2008-2018 by Erik Hofman.
+ * Copyright (C) 2009-2018 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
