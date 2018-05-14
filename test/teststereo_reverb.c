@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2008-2016 by Erik Hofman.
- * Copyright (C) 2009-2016 by Adalin B.V.
+ * Copyright (C) 2008-2018 by Erik Hofman.
+ * Copyright (C) 2009-2018 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
                res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
                                               8500.0f, 0.035f, 0.93f, 0.049f);
                testForState(res, "aaxEffectSetSlot/0");
-#if 1
+#if 0
                res = aaxEffectSetSlot(effect, 1, AAX_LINEAR,
                                               500.0f, 0.01f, 0.0f, 0.0f);
                testForState(res, "aaxEffectSetSlot/1");
