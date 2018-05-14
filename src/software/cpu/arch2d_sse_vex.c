@@ -52,6 +52,8 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
    if (!num) return;
 
    total = num;
+#if 0
+// TODO: this code is slower than compiler optimized CPU ony code.
    stmp = (size_t)s & MEMMASK16;
    if (stmp)
    {
@@ -111,6 +113,7 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
          }
          while(--i);
       }
+#endif
 
       if (num)
       {
@@ -124,7 +127,7 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
          }
          while (--i);
       }
-   }
+// }
 
    *rms = (float)sqrt(rms_total/total);
    *peak = sqrtf(peak_cur);;
