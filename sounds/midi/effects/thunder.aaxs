@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Thunder" program="127" bank="4" frequency="220" duration="3.33">
+  <waveform src="white-noise" processing="add" ratio="2.0" pitch="0.15"/>
+  <waveform src="sawtooth" processing="modulate" ratio="3.0" pitch="0.01"/>
+  <waveform src="impulse" processing="modulate" ratio="4.0" pitch="0.021"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="envelope|12db">
+   <slot n="0">
+    <param n="0">22</param>
+    <param n="1">1.5</param>
+    <param n="2">0.0</param>
+    <param n="3">2.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1600</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.5</param>
+    <param n="2">0.3</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.5</param>
+    <param n="1">0.5</param>
+    <param n="2">0.15</param>
+    <param n="3">8.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">2.0</param>
+    <param n="1" factor="velocity">1.0</param>
+    <param n="2">0.17</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
