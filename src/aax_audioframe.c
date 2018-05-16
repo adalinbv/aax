@@ -219,39 +219,6 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
       _aaxAudioFrame* fmixer = handle->submix;
       _aax3dProps *fp3d = fmixer->props3d;
       _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
-      if (handle->parent)
-      {
-         if (handle->parent == handle->root)
-         {
-            const _intBufferData* dptr;
-            dptr = _intBufGet(handle->root->sensors, _AAX_SENSOR, 0);
-            if (dptr)
-            {
-               _sensor_t* sensor = _intBufGetDataPtr(dptr);
-               _aaxAudioFrame* smixer = sensor->mixer;
-               _aax3dProps *sp3d = smixer->props3d;
-
-#ifdef ARCH32
-               mtx4fCopy(&fp3d->m_dprops3d->matrix, &sp3d->m_dprops3d->matrix);
-#else
-               mtx4dCopy(&fp3d->m_dprops3d->matrix, &sp3d->m_dprops3d->matrix);
-#endif
-               _intBufReleaseData(dptr, _AAX_SENSOR);
-            }
-         }
-         else
-         {
-            _frame_t *parent = handle->parent;
-            _aaxAudioFrame* pmixer = parent->submix;;
-            _aax3dProps *pp3d = pmixer->props3d;
-
-#ifdef ARCH32
-            mtx4fCopy(&fp3d->m_dprops3d->matrix, &pp3d->m_dprops3d->matrix);
-#else
-            mtx4dCopy(&fp3d->m_dprops3d->matrix, &pp3d->m_dprops3d->matrix);
-#endif
-         }
-      }
 
 #ifdef ARCH32
       mtx4fFilld(fdp3d->matrix.m4, mtx64);
