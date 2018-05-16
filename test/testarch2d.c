@@ -181,6 +181,14 @@ int main()
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nrms cpu:  %f\n", cpu*1000.0f);
 
+#ifdef __x86_64__
+        _batch_get_average_rms = _batch_get_average_rms_sse2;
+        t = clock();
+          _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
+          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("rms sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+#endif
+
         _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
         t = clock();
           _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
