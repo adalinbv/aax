@@ -414,7 +414,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
             dde = AAX_TRUE;
          }
          fmixer->ringbuffer = _aaxAudioFrameSwapBuffers(frame_rb,
-                                              sfmixer->frame_ringbuffers, dde);
+                                             sfmixer->frame_ringbuffers, dde);
 
          /* finally mix the data with dest_rb */
          if (indoor && !mono)

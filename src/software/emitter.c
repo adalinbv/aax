@@ -120,7 +120,8 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
          }
 
          // TODO: delayed updates causes emitter/frame status mismatch.
-         ctr = 0; // ctr = --src->update_ctr;
+         ctr = --src->update_ctr;
+//       ctr = 0;
          if (ctr == 0)
          {
             if (stage == 2)
