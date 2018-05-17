@@ -3109,3 +3109,60 @@ const unsigned char ___sounds_tune_wav[] = {
   0xa1, 0x8d, 0x85, 0x88, 0x91, 0xd0, 0x30, 0x80, 0x10, 0x89, 0x10, 0x90
 };
 unsigned int ___sounds_tune_wav_len = 36924;
+
+const char *
+___sounds_tune_aaxs = "							\
+<?xml version='1.0'?>							\
+<aeonwave>								\
+ <sound name='Brass Section' frequency='220' duration='3.0'>		\
+  <waveform src='impulse' voices='3' spread='0.17'/>			\
+  <waveform src='impulse' processing='mix' pitch='0.9857'/>		\
+  <waveform src='impulse' processing='mix' pitch='0.9990'/>		\
+  <filter type='frequency' src='24db'>					\
+   <slot>								\
+    <param>1100</param>							\
+    <param>1.0</param>							\
+    <param>0.0</param>							\
+    <param>1.0</param>							\
+   </slot>								\
+  </filter>								\
+  <effect type='distortion'>						\
+   <slot>								\
+    <param>0.4</param>							\
+    <param>0.2</param>							\
+    <param>0.5</param>							\
+    <param>0.0</param>							\
+   </slot>								\
+  </effect>								\
+ </sound>								\
+ <emitter looping='true'>						\
+  <filter type='timed-gain'>						\
+   <slot>								\
+    <param>0.00</param>							\
+    <param>0.15</param>							\
+    <param>1.10</param>							\
+    <param>0.05</param>							\
+   </slot>								\
+   <slot>								\
+    <param>0.80</param>							\
+    <param>3.0</param>							\
+    <param>0.70</param>							\
+    <param>0.20</param>							\
+   </slot>								\
+  </filter>								\
+  <effect type='timed-pitch'>						\
+   <slot>								\
+    <param>3.37</param>							\
+   </slot>								\
+  </effect>								\
+  <effect type='chorus' src='envelope'>					\
+   <slot>								\
+    <param>0.6</param>							\
+    <param>0.05</param>							\
+    <param>0.3</param>							\
+    <param>0.4</param>							\
+   </slot>								\
+  </effect>								\
+ </emitter>								\
+</aeonwave>";
+
