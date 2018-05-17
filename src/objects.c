@@ -393,11 +393,12 @@ _aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, a
             enum aaxType type = AAX_LINEAR;
             aaxVec4f params;
             unsigned int slen;
+            long int n = s;
             char src[65];
-            long int n;
 
-            n = xmlAttributeGetInt(xsid, "n");
-            if (n == XML_NONE) n = s;
+            if (xmlAttributeExists(xsid, "n")) {
+               n = xmlAttributeGetInt(xsid, "n");
+            }
 
             params[0] = xmlNodeGetDouble(xsid, "p0");
             params[1] = xmlNodeGetDouble(xsid, "p1");
@@ -435,11 +436,12 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
             enum aaxType type = AAX_LINEAR;
             void *xpid = xmlMarkId(xsid);
             unsigned int slen;
+            long int sn = s;
             char src[65];
-            long int sn;
 
-            sn = xmlAttributeGetInt(xsid, "n");
-            if (sn == XML_NONE) sn = s;
+            if (xmlAttributeExists(xsid, "n")) {
+               sn = xmlAttributeGetInt(xsid, "n");
+            }
 
             slen = xmlAttributeCopyString(xsid, "type", src, 64);
             if (slen)
@@ -454,8 +456,11 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
                {
                   int slotnum[_MAX_FE_SLOTS] = { 0x00, 0x10, 0x20, 0x30 };
                   double value = xmlGetDouble(xpid);
-                  long int pn = xmlAttributeGetInt(xpid, "n");
-                  if (pn == XML_NONE) pn = p;
+                  long int pn = p;
+
+                  if (xmlAttributeExists(xpid, "n")) {
+                     pn = xmlAttributeGetInt(xpid, "n");
+                  }
 
                   if (freq != 0.0f)
                   {
