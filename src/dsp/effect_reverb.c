@@ -268,6 +268,8 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
    if (!mono && snum > 0)
    {
       unsigned int q;
+
+      memset(dptr, 0, no_samples*sizeof(MIX_T));
       for(q=track % snum; q<snum; q += tracks)
       {  
          float volume = gain*reflections->delay[q].gain;
@@ -522,6 +524,10 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          reverb->loopback[4].gain = lb_gain*0.80317f;
          reverb->loopback[5].gain = lb_gain*0.73317f;
          reverb->loopback[6].gain = lb_gain*0.88317f;
+#if 0
+ for (int i=0; i<7; ++i)
+ printf(" loopback[%i].gain: %f\n", i,  reverb->loopback[i].gain);
+#endif
 
          dlb = 0.01f+lb_depth*max_depth;
          dlbp = (REVERB_EFFECTS_TIME-dlb)*lb_depth;
@@ -543,7 +549,7 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          }
 #if 0
  for (int i=0; i<7; ++i)
- printf(" loopback[%i]: %zi\n", i, reverb->loopback[i].sample_offs[0]);
+ printf(" loopback.offset[%i]: %zi\n", i, reverb->loopback[i].sample_offs[0]);
 #endif
       }
       *data = reverb;
