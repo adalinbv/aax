@@ -250,7 +250,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
          max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
          no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
 #ifdef NDEBUG
-         if (no_emitters)
+//       if (no_emitters)
 #endif
          {
             int num;

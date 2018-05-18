@@ -99,16 +99,18 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
          /* save the unmodified next effects buffer for later use          */
          /* (scratch buffers have a leading and a trailing effects buffer) */
-         DBG_MEMCLR(1, scratch1-ddesamps, no_samples+2*ddesamps, bps);
+//       DBG_MEMCLR(1, scratch1-ddesamps, no_samples+2*ddesamps, bps);
+
          _aax_memcpy(scratch1+no_samples, ddeptr+no_samples, ddesamps*bps);
 
          /* mix the buffer and the delay buffer */
-         DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
+//       DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
+         memset(scratch0, 0, no_samples*bps);
          rbi->effects_2nd(rbi->sample, scratch0, dptr, scratch1, 0, no_samples,
                           no_samples, ddesamps, track, p2d, 0, mono);
 
          /* copy the unmodified next effects buffer back */
-         DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
+//       DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
          _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*bps);
 
          /* copy the data back from scratch0 to dptr */

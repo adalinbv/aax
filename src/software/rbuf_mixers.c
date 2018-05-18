@@ -235,7 +235,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
                   send += CUBIC_SAMPS;
                }
 
-               DBG_MEMCLR(1, scratch0, dend, sizeof(int32_t));
+//             DBG_MEMCLR(1, scratch0, dend, sizeof(int32_t));
                srbi->codec((int32_t*)ptr, sptr, srbd->codec,
                             src_pos, sstart, send, 0, samples,
                             sbps, src_loops);
@@ -257,7 +257,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             }
 
             dst = eff ? scratch1 : dptr;
-            DBG_MEMCLR(1, dst-ddesamps, ddesamps+dend, sizeof(MIX_T));
+//          DBG_MEMCLR(1, dst-ddesamps, ddesamps+dend, sizeof(MIX_T));
 
             drbd->resample(dst-ddesamps, scratch0-rdesamps,
                            dest_pos, dest_pos+dno_samples+ddesamps, smu, fact);
@@ -270,7 +270,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 #if 0
 memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
 #else
-               DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
+//             DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
                srbi->effects_2nd(srbi->sample, dptr, dst, scratch0,
                                  dest_pos, dend, dno_samples, ddesamps, track,
                                  p2d, ctr, AAX_FALSE);
