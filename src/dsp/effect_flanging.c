@@ -323,7 +323,7 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
    }
    effect->curr_step[track] = step;
 
-   DBG_MEMCLR(1, s-ds, ds+start, bps);
+// DBG_MEMCLR(1, s-ds, ds+start, bps);
    _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
    if (i >= step)
    {

@@ -83,7 +83,7 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
 
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
-      DBG_MEMCLR(1, dst-ds, ds+end, bps);
+//    DBG_MEMCLR(1, dst-ds, ds+end, bps);
       _aax_memcpy(dst, src, no_samples*bps);
    }
 }
@@ -130,7 +130,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    if (delay && !delay->loopback && delay->history_ptr)
    {
       // copy the delay effects history to src
-      DBG_MEMCLR(1, src-ds, ds, bps);
+//    DBG_MEMCLR(1, src-ds, ds, bps);
       _aax_memcpy(src-ds, delay->delay_history[track], ds*bps);
 
       // copy the new delay effects history back
@@ -186,7 +186,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
-      DBG_MEMCLR(1, dst-ds, ds+end, bps);
+//    DBG_MEMCLR(1, dst-ds, ds+end, bps);
       _aax_memcpy(dst, src, no_samples*bps);
    }
 }
