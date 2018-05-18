@@ -247,7 +247,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    dptr = d - ds + dmin;
 
    no_samples = dmax+ds-dmin;
-   DBG_MEMCLR(1, d-ds, ds+dmax, bps);
+// DBG_MEMCLR(1, d-ds, ds+dmax, bps);
 
    if (lfo) {
       lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);

@@ -309,7 +309,7 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    }
    else
    {
-      DBG_MEMCLR(1, scratch-ds, ds+end, sizeof(MIX_T));
+//    DBG_MEMCLR(1, scratch-ds, ds+end, sizeof(MIX_T));
       rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, pitch);
       rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
    }
