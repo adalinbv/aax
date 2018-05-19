@@ -18,16 +18,16 @@
     <param n="0" pitch="10.0">2200</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.5</param>
+    <param n="3">1.1</param>
    </slot>
    <slot n="1">
     <param n="0" pitch="30.0">6600</param>
-    <param n="3">0.1</param>
+    <param n="3">0.05</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
-    <param n="1">0.327</param>
+    <param n="1">0.163</param>
     <param n="2">0.5</param>
     <param n="3">0.0</param>
    </slot>
@@ -37,7 +37,7 @@
  <audioframe>
   <filter type="dynamic-gain" src="triangle">
    <slot n="0">
-    <param n="1">0.027</param>
+    <param n="1">0.014</param>
     <param n="2">0.5</param>
     <param n="3">0.173</param>
    </slot>
