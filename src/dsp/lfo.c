@@ -407,7 +407,8 @@ _aaxLFOGetCompressor(void* data, UNUSED(void *env), const void *ptr, unsigned tr
 
       rv = lfo->convert(rv, 1.0f);
       lfo->compression[track] = 1.0f - (1.0f/rv);
-      rv = lfo->inv ? 1.0f/(1.0f - 0.999f*rv) : 1.0f - rv;
+//    rv = lfo->inv ? 1.0f/(1.0f - 0.999f*rv) : 1.0f - rv;
+      rv = lfo->inv ? 1.0f/rv : rv;
    }
 
    return rv;
