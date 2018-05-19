@@ -33,13 +33,13 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">1870</param>
+    <param n="0">2070</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">50.0</param>
    </slot>
    <slot n="1">
-    <param n="0">5800</param>
+    <param n="0">4800</param>
     <param n="3">1.1</param>
    </slot>
   </filter>
