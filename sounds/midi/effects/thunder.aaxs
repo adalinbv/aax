@@ -11,11 +11,11 @@
  <sound name="Thunder" program="127" bank="4" frequency="220" duration="3.33">
   <waveform src="white-noise" pitch="0.25"/>
   <waveform src="impulse" processing="modulate" ratio="2.0" pitch="0.001"/>
-  <waveform src="sawtooth" processing="modulate" ratio="3.0" pitch="0.021"/>
+  <waveform src="sawtooth" processing="modulate" ratio="3.0" pitch="0.017"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">660</param>
-    <param n="1">2.0</param>
+    <param n="1">2.5</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
@@ -44,16 +44,33 @@
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1" auto-sustain="1.0">5.5</param>
+    <param n="1" auto-sustain="1.0">6.0</param>
+    <param n="2">0.5</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">2.0</param>
-    <param n="1" factor="velocity">0.4</param>
-    <param n="2">0.8</param>
+    <param n="0">1.2</param>
+    <param n="1">0.8</param>
+    <param n="2">0.7</param>
+    <param n="3">3.3</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.5</param>
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="compressor">
+   <slot n="0">
+    <param n="0">0.04</param>
+    <param n="1">0.2</param>
+    <param n="2">0.97</param>
+    <param n="4">0.9</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>
