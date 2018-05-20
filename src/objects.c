@@ -524,9 +524,16 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
          if ((ftype == AAX_TIMED_GAIN_FILTER) &&
               xmlAttributeExists(xid, "repeat"))
          {
-            state = xmlAttributeGetInt(xid, "repeat");
-            if (state < 0) state = 0;
-            if (state >= AAX_REPEAT) state = AAX_REPEAT-1;
+            if (!xmlAttributeCompareString(xid, "repeat", "inf") ||
+                !xmlAttributeCompareString(xid, "repeat", "max")) {
+               state = AAX_REPEAT-1;
+            }
+            else
+            {
+               state = xmlAttributeGetInt(xid, "repeat");
+               if (state < 0) state = 0;
+               else if (state >= AAX_REPEAT) state = AAX_REPEAT-1;
+            }
             state |= AAX_REPEAT;
          }
          else
