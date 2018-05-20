@@ -21,7 +21,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" repeat="2400">
+  <filter type="timed-gain" repeat="max">
    <slot n="0">
     <param n="0">2.0</param>
     <param n="1" factor="velocity">0.03</param>
