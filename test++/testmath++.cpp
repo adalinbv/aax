@@ -37,9 +37,17 @@
 
 #include <aax/aeonwave.hpp>
 
+#define PRINT_ROW(mtx, r, c) \
+        printf ("% 6.3f % 6.3f % 6.3f % 6.3f%c", \
+            mtx[0][r],mtx[1][r],mtx[2][r],mtx[3][r],c);
+
+#define PRINT_MATRIX(mtx) \
+    PRINT_ROW(mtx, 0, '\n'); PRINT_ROW(mtx, 1, '\n'); \
+    PRINT_ROW(mtx, 2, '\n'); PRINT_ROW(mtx, 3, '\n');
+
 #define LOG(s,a,b,c) \
     if (((a)==(b))==(c)) printf((c)?"M1 == M2, succes":"M1 != M2, succes"); \
-    else { printf(c?"M1 != M2, failed\n":"M1 == M2, failed\n"); \
+    else { printf(c?"M1 == M2, failed:\n":"M1 != M2, failed:\n"); \
            std::cout << "m1:\n" << (a); std::cout << "m2:\n" << (b); }\
     printf(": %s\n",(s));
 
@@ -73,16 +81,17 @@ int main(int argc, char **argv)
 
     LOG("Initializing",m1,m2,true);
 
-    m1.rotate(0.13f, 1.0f, 0.0f, 0.0f);
+    m1.rotate(0.13, 1.0, 0.0, 0.0);
     LOG("Rotating",m1,m2,false);
 
-    m1 = m32;
+    m32.rotate(0.13f, 1.0f, 0.0f, 0.0f);
+    m2 = m32;
     LOG("Convert from 32-bit to 64-bit",m1,m2,true);
 
-    m1.rotate(-0.26f, 1.0f, 0.0f, 0.0f);
-    m32.rotate(-0.26, 1.0, 0.0, 0.0);
+    m1.rotate(-0.26, 1.0, 0.0f, 0.0f);
+    m32.rotate(-0.26f, 1.0f, 0.0, 0.0);
     aax::Matrix64 m3 = m32;
-    LOG("Rotating M1 and M64",m1,m3,true);
+    LOG("Rotating M1 and M32",m1,m3,true);
 
     m1 += pos;
     m3 = m1 * im;
