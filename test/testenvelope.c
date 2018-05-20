@@ -83,9 +83,6 @@ int main(int argc, char **argv)
         emitter = aaxEmitterCreate();
         testForError(emitter, "Unable to create a new emitter\n");
 
-//      res = aaxEmitterAddBuffer(emitter, buffer);
-//      testForState(res, "aaxEmitterAddBuffer");
-
         res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
         testForState(res, "aaxEmitterSetMode");
 
