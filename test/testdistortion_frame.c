@@ -198,13 +198,13 @@ int main(int argc, char **argv)
             /* envelope following dynamic frequency filter (auto-wah) */
             printf("auto-wah effect\n");
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              100.0f, 0.5f, 1.0f, 8.0f);
+                                              55.0f, 0.8f, 0.0f, 1.5f);
             testForState(res, "aaxFilterSetSlot 0");
 
             res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
-                                              550.0f, 0.0f, 0.0f, 1.0f);
+                                              1500.0f, 0.0f, 0.0f, 5.0f);
             testForState(res, "aaxFilterSetSlot 1");
-            res = aaxFilterSetState(filter, AAX_INVERSE_ENVELOPE_FOLLOW);
+            res = aaxFilterSetState(filter, AAX_ENVELOPE_FOLLOW|AAX_24DB_OCT);
             testForState(res, "aaxFilterSetState");
 # endif
             res = aaxAudioFrameSetFilter(frame, filter);
