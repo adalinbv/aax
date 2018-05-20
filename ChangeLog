@@ -27,6 +27,8 @@
    of AAXS files.
  * Increase the http stream timeout value. The default was too low.
  * Protect against deregistering an unregistered audio-frame or emitter.
+ * Fix a mistake in 32-bit matrix calculations caused by copying just one
+   row instead of all rows.
 
 -- Erik Hofman <tech@adalin.org>  Sat  5 May  2018 17:25:00 + 0100
 
