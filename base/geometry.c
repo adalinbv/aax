@@ -387,7 +387,7 @@ _mtx4fCopy_cpu(mtx4f_ptr d, const mtx4f_ptr m)
 void
 mtx4fFill(float d[4][4], float m[4][4])
 {
-   memcpy(d, m, sizeof(float[4]));
+   memcpy(d, m, sizeof(float[4][4]));
 }
 
 void
