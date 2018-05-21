@@ -1,5 +1,5 @@
-* Sat May  5 2018 - tech@adalin.org
-- AeonWave (3.1.0) stable; urgency=low
+* Sat May 21 2018 - tech@adalin.org
+- AeonWave (3.1.0) stable; urgency=high
  * Explicitly allow GPL version 2 and GPL version 3 applications to use
    the library.
  * Add distance filter frequency response.
@@ -23,14 +23,14 @@
    situations. A smaller update-rate than the refresh-rate could cause emitter
    and parent-frame data to be out of sync. Also absolute positions are handled
    better now.
+ * Fix a mistake in 32-bit matrix calculations caused by copying just one
+   row instead of all rows.
  * Add support for a static parametric-equalizer within the <sound/> section
    of AAXS files.
  * Increase the http stream timeout value. The default was too low.
  * Protect against deregistering an unregistered audio-frame or emitter.
- * Fix a mistake in 32-bit matrix calculations caused by copying just one
-   row instead of all rows.
 
--- Erik Hofman <tech@adalin.org>  Sat  5 May  2018 17:25:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Sat 21 May  2018 13:44:00 + 0100
 
 
 * Fri Jan 05  2018 - tech@adalin.org
