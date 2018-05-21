@@ -283,9 +283,9 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
       {
          if (!handle->id && handle->internal)
          {
-            int errno;
+            int error_no;
 
-            handle->id = pmp3_new(NULL, &errno);
+            handle->id = pmp3_new(NULL, &error_no);
             if (handle->id)
             {
                if (pmp3_open_feed(handle->id) == MP3_OK) {
@@ -301,7 +301,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
             else
             {
                if (pmp3_plain_strerror) {
-                   _AAX_FILEDRVLOG(pmp3_plain_strerror(errno));
+                   _AAX_FILEDRVLOG(pmp3_plain_strerror(error_no));
                } else {
                   _AAX_FILEDRVLOG("MP3: Unable to create a handle");
                }
