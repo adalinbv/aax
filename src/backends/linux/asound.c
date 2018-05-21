@@ -774,7 +774,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       }
    }
    /* TODO: for now */
-   if (tracks > 2) {
+   if (tracks > 0) {
       handle->use_timer = AAX_FALSE;
    }
 
