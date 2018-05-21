@@ -71,6 +71,18 @@ _vec3dSub_avx(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
    d->s4.avx = _mm256_sub_pd(v1->s4.avx, v2->s4.avx);
 }
 
+// TODO: For now the SSE2 version is more reliable thane the AVX version
+static inline FN_PREALIGN void
+_vec3dAbsolute_sse2(vec3d_ptr d, const vec3d_ptr v) {
+   d->s4.sse[0] = _mm_andnot_pd(_mm_set1_pd(-0.0), v->s4.sse[0]);
+   d->s4.sse[1] = _mm_andnot_pd(_mm_set1_pd(-0.0), v->s4.sse[1]);
+}
+
+static inline FN_PREALIGN void
+_vec3dAbsolute_avx(vec3d_ptr d, const vec3d_ptr v) {
+   d->s4.avx = _mm256_andnot_pd(v->s4.avx, _mm256_set1_pd(-0.0));
+}
+
 static inline FN_PREALIGN void
 _vec3dScalarMul_avx(vec3d_ptr d, const vec3d_ptr r, float f) {
    d->s4.avx = _mm256_mul_pd(r->s4.avx, _mm256_set1_pd(f));
@@ -86,12 +98,6 @@ static inline FN_PREALIGN double
 _vec3dMagnitude_avx(const vec3d_ptr v) {
    return sqrt(_vec3dMagnitudeSquared_avx(v));
 }
-
-static inline FN_PREALIGN void
-_vec3dAbsolute_avx(vec3d_ptr d, const vec3d_ptr v) {
-   d->s4.avx = _mm256_andnot_pd(_mm256_set1_pd(-0.0), v->s4.avx);
-}
-
 
 double
 _vec3dNormalize_avx(vec3d_ptr d, const vec3d_ptr v)
@@ -110,7 +116,6 @@ _vec3dDotProduct_avx(const vec3d_ptr v1, const vec3d_ptr v2)
 {
    return hsum_pd_avx(_mm256_mul_pd(load_vec3d(v1), load_vec3d(v2)));
 }
-
 
 FN_PREALIGN void
 _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2)
@@ -171,11 +176,11 @@ _vec3dAltitudeVector_avx(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_pt
 
    _vec3dSub_avx(&fpevec, &fevec.v3, &fpevec);
    _vec3dAdd_avx(&npevec, &fevec.v3, &pevec.v3);
-
-   _vec3dAbsolute_avx(&fpevec, &fpevec);
-   _vec3dAbsolute_avx(&npevec, &npevec);
-   _vec3dAbsolute_avx(&fevec.v3, &fevec.v3);
    _mm256_zeroupper();
+
+   _vec3dAbsolute_sse2(&fpevec, &fpevec);
+   _vec3dAbsolute_sse2(&npevec, &npevec);
+   _vec3dAbsolute_sse2(&fevec.v3, &fevec.v3);
 
    vec3fFilld(afevec->v3, fevec.v4);
    vec3fFilld(altvec->v3, fpevec.v3);
