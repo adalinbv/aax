@@ -906,7 +906,7 @@ static void drflac__init_cpu_caps()
 
 
 //// Endian Management ////
-#if 0
+#ifndef __linux__
 static DRFLAC_INLINE drflac_bool32 drflac__is_little_endian()
 {
 #if defined(DRFLAC_X86) || defined(DRFLAC_X64)
@@ -918,7 +918,7 @@ static DRFLAC_INLINE drflac_bool32 drflac__is_little_endian()
 }
 #endif
 
-#if 0
+#ifndef __linux__
 static DRFLAC_INLINE drflac_uint16 drflac__swap_endian_uint16(drflac_uint16 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
