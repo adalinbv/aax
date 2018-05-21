@@ -936,7 +936,7 @@ static DRFLAC_INLINE drflac_uint16 drflac__swap_endian_uint16(drflac_uint16 n)
 }
 #endif
 
-#if 0
+#ifndef __linux__
 static DRFLAC_INLINE drflac_uint32 drflac__swap_endian_uint32(drflac_uint32 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
@@ -956,7 +956,7 @@ static DRFLAC_INLINE drflac_uint32 drflac__swap_endian_uint32(drflac_uint32 n)
 }
 #endif
 
-#if 0
+#ifndef __linux__
 static DRFLAC_INLINE drflac_uint64 drflac__swap_endian_uint64(drflac_uint64 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
