@@ -326,7 +326,7 @@ _aaxAudioFrameMix3D(_aaxRingBuffer *dest_rb, _intBuffers *ringbuffers,
 
       assert(fp2d->final.k >= 0.9f);
 
-      for (t=0; t<drbd->no_tracks; t++) {
+      for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
          fp2d->prev_gain[t] = 1.0f;
       }
       drbd->mix1n(drbd, sptr, info->router, fp2d, 0, 0, no_samples,
