@@ -2035,7 +2035,7 @@ _wasapi_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_
 
       if (fabsf(hwgain - handle->volumeCur) > 0.05f)
       {
-         float cur;
+         double cur;
          rv = IAudioEndpointVolume_GetMasterVolumeLevel(handle->pEndpointVolume,
                                                         &cur);
          if (rv == S_OK) {
@@ -2077,7 +2077,7 @@ _wasapi_get_volume_range(_driver_t *handle)
                                                      &mask);
       if (rv == S_OK && (mask & ENDPOINT_HARDWARE_SUPPORT_VOLUME))
       {
-         float cur, min, max, step;
+         double cur, min, max, step;
 
          rv = IAudioEndpointVolume_GetVolumeRange(handle->pEndpointVolume,
                                                   &min, &max, &step);
