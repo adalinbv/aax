@@ -338,7 +338,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
       {
 #ifdef USE_SPATIAL_FOR_SURROUND
          dp = vec3fDotProduct(&speaker[t].v3, rpos);
-         dp *= speaker[t].v4[3];
+         dp *= -speaker[t].v4[3];
 
          ep2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
 #else
@@ -362,7 +362,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
       for (t=0; t<info->no_tracks; t++)
       {                                         /* speaker == sensor_pos */
          dp = vec3fDotProduct(&speaker[t].v3, rpos);
-         dp *= speaker[t].v4[3];
+         dp *= -speaker[t].v4[3];
 
          ep2d->speaker[t].v4[0] = 0.5f + dp*dist_fact;
       }
