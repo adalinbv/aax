@@ -1,5 +1,5 @@
---- /tmp/dr_flac.h	2018-05-12 13:41:10.051473929 +0200
-+++ dr_flac.h	2018-05-12 13:45:38.105738476 +0200
+--- /tmp/dr_flac.h	2018-05-22 15:22:33.983846066 +0200
++++ dr_flac.h	2018-05-22 15:22:52.767572728 +0200
 @@ -118,8 +118,14 @@
  #ifndef dr_flac_h
  #define dr_flac_h
@@ -158,7 +158,7 @@
  
  
  #ifdef DRFLAC_64BIT
-@@ -1921,36 +1949,67 @@
+@@ -1920,36 +1948,67 @@
      switch (order)
      {
      case 32: prediction += coefficients[31] * pDecodedSamples[-32];
@@ -226,7 +226,7 @@
      case  1: prediction += coefficients[ 0] * pDecodedSamples[- 1];
      }
  
-@@ -2097,36 +2156,67 @@
+@@ -2096,36 +2155,67 @@
      switch (order)
      {
      case 32: prediction += coefficients[31] * (drflac_int64)pDecodedSamples[-32];
