@@ -1,5 +1,5 @@
 // FLAC audio decoder. Public domain. See "unlicense" statement at the end of this file.
-// dr_flac - v0.9.2 - 2018-05-12
+// dr_flac - v0.9.3 - 2018-05-22
 //
 // David Reid - mackron@gmail.com
 
@@ -906,7 +906,7 @@ static void drflac__init_cpu_caps()
 
 
 //// Endian Management ////
-#ifndef __linux__
+#if 0
 static DRFLAC_INLINE drflac_bool32 drflac__is_little_endian()
 {
 #if defined(DRFLAC_X86) || defined(DRFLAC_X64)
@@ -918,7 +918,7 @@ static DRFLAC_INLINE drflac_bool32 drflac__is_little_endian()
 }
 #endif
 
-#ifndef __linux__
+#if 0
 static DRFLAC_INLINE drflac_uint16 drflac__swap_endian_uint16(drflac_uint16 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
@@ -936,7 +936,7 @@ static DRFLAC_INLINE drflac_uint16 drflac__swap_endian_uint16(drflac_uint16 n)
 }
 #endif
 
-#ifndef __linux__
+#if 0
 static DRFLAC_INLINE drflac_uint32 drflac__swap_endian_uint32(drflac_uint32 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
@@ -956,7 +956,7 @@ static DRFLAC_INLINE drflac_uint32 drflac__swap_endian_uint32(drflac_uint32 n)
 }
 #endif
 
-#ifndef __linux__
+#if 0
 static DRFLAC_INLINE drflac_uint64 drflac__swap_endian_uint64(drflac_uint64 n)
 {
 #ifdef DRFLAC_HAS_BYTESWAP_INTRINSIC
@@ -1822,7 +1822,6 @@ static inline drflac_bool32 drflac__seek_past_next_set_bit(drflac_bs* bs, unsign
     }
 
     drflac_uint32 setBitOffsetPlus1 = drflac__clz(bs->cache);
-    zeroCounter += setBitOffsetPlus1;
     setBitOffsetPlus1 += 1;
 
     bs->consumedBits += setBitOffsetPlus1;
@@ -5602,6 +5601,9 @@ const char* drflac_next_vorbis_comment(drflac_vorbis_comment_iterator* pIter, dr
 
 
 // REVISION HISTORY
+//
+// v0.9.3 - 2018-05-22
+//   - Bug fix.
 //
 // v0.9.2 - 2018-05-12
 //   - Fix a compilation error due to a missing break statement.
