@@ -188,19 +188,23 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
 void
 _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip)
 {
-   size_t noise_samples = pitch*no_samples;
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain);
    if (data && gain)
    {	// _aax_pinknoise_filter requires twice noise_samples buffer space
-      float *ptr2 = _aax_generate_noise(2*noise_samples, gain, skip);
-      float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
+      size_t noise_samples;
+      float *ptr, *ptr2;
 
+      pitch = ((unsigned int)(pitch*no_samples/100.0f)*100.0f)/no_samples;
+
+      noise_samples = pitch*no_samples + 64;
+      ptr2 = _aax_generate_noise(2*noise_samples, gain, skip);
+      ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
          _aax_pinknoise_filter(ptr2, noise_samples, fs);
          _batch_fmul_value(ptr2, sizeof(float), noise_samples, 1.5f);
-         _aax_resample_float(ptr, ptr2, no_samples, pitch);
+         _aax_resample_float(ptr, ptr2+32, no_samples, pitch);
 
          if (ringmodulate) {
             _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
@@ -217,14 +221,16 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
 void
 _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip)
 {
-   size_t noise_samples = pitch*no_samples;
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain);
    if (data && gain)
    {
-      float *ptr2 = _aax_generate_noise(noise_samples, gain, skip);
-      float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
+      size_t noise_samples;
+      float *ptr, *ptr2;
 
+      noise_samples = pitch*no_samples + 64;
+      ptr2 = _aax_generate_noise(noise_samples, gain, skip);
+      ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
          float k = _aax_movingaverage_compute(100.0f, fs);
