@@ -54,6 +54,14 @@
 # else
 #  include <string.h>	/* for memcpy */
 # endif
+# include <sched.h>
+
+// SCHED_ISO may not be defined as it is a reserved value not yet
+// implemented in official kernel sources, see linux/sched.h.
+#ifndef SCHED_ISO
+# define SCHED_ISO 4
+#endif
+
 
 # ifdef __TINYC__
 #  if defined( __x86_64__ ) || defined( __i386 )
@@ -71,13 +79,14 @@ __sync_fetch_and_add(int *variable, int value) {
 int                     /* Prio is a value in the range -20 to 19 */
 _aaxProcessSetPriority(int prio)
 {
-   int curr_prio = getpriority(PRIO_PROCESS, getpid());
+   pid_t pid = getpid();
+   int curr_prio = getpriority(PRIO_PROCESS, pid);
    int rv = 0;
 
    if (curr_prio < prio)
    {
       errno = 0;
-      rv = setpriority(PRIO_PROCESS, getpid(), prio);
+      rv = setpriority(PRIO_PROCESS, pid, prio);
    }
 
    return rv;
@@ -95,7 +104,6 @@ _aaxThreadCreate()
 }
 
 /* http://www.linuxjournal.com/article/6799 */
-# include <sched.h>
 int
 _aaxThreadSetAffinity(void *t, int core)
 {
