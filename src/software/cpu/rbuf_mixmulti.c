@@ -79,13 +79,13 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
       MIX_T *dptr = (MIX_T*)drbd->track[router[rbd_track]] + offs;
       float vstart, vend, vstep;
 
-      vstart = g*gain * svol * ep2d->prev_gain[track];
-      vend = g*gain * evol * gain;
+      vstart = ep2d->prev_gain[track];
+      vend = gain * g*evol;
       vstep = (vend - vstart) / dno_samples;
 
       drbd->add(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
 
-      ep2d->prev_gain[track] = gain;
+      ep2d->prev_gain[track] = vend;
    }
 }
 
