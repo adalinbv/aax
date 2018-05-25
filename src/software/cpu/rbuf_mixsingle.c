@@ -49,14 +49,14 @@ _aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
    MIX_T *dptr = (MIX_T*)drbd->track[0] + offs;
    float vstart, vend, vstep;
 
-   vstart = svol * ep2d->prev_gain[0];
-   vend   = evol * gain;
+   vstart = ep2d->prev_gain[0];
+   vend   = gain * evol;
    vstep  = (vend - vstart) / dno_samples;
 
 // DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
    drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
-   ep2d->prev_gain[0] = gain;
+   ep2d->prev_gain[0] = vend;
 }
 
 void
@@ -88,14 +88,14 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 #else
       dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
 #endif
-      vstart = dir_fact * svol * ep2d->prev_gain[t];
-      vend   = dir_fact * evol * gain;
+      vstart = ep2d->prev_gain[t];
+      vend   = gain * dir_fact * evol;
       vstep  = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
       drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
-      ep2d->prev_gain[t] = gain;
+      ep2d->prev_gain[t] = vend;
    }
 }
 
@@ -151,8 +151,8 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 #else
       dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
 #endif
-      vstart = svol * ep2d->prev_gain[t];
-      vend = evol * gain;
+      vstart = ep2d->prev_gain[t];
+      vend = gain * evol;
       vstep = (vend - vstart) / dno_samples;
 
       drbd->add(dptr, sptr[ch]+offs, dno_samples, dir_fact*vstart, vstep);
@@ -208,14 +208,14 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
       float dir_fact;
 
       dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
-      vstart = dir_fact * svol * ep2d->prev_gain[t];
-      vend   = dir_fact * evol * gain;
+      vstart = ep2d->prev_gain[t];
+      vend   = gain * dir_fact * evol;
       vstep  = (vend - vstart) / dno_samples;
 
 //    DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
       drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
 
-      ep2d->prev_gain[t] = gain;
+      ep2d->prev_gain[t] = vend;
    }
 }
 
@@ -279,14 +279,14 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          assert(diff > -(ssize_t)dno_samples);
          diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
  
-         v_start = ep2d->prev_gain[3*t+i] * svol;
-         v_end = hrtf_volume[i] * gain * evol;
+         v_start = ep2d->prev_gain[3*t+i];
+         v_end = gain * hrtf_volume[i] * evol;
          v_step = (v_end - v_start)/dno_samples;
 
 //       DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
          drbd->add(dptr, ptr-diff, dno_samples, v_start, v_step);
 
-         ep2d->prev_gain[3*t+i] = hrtf_volume[i] * gain;
+         ep2d->prev_gain[3*t+i] = v_end;
       }
 
       /* HEAD shadow frequency filter */
