@@ -1,3 +1,9 @@
+* Sat May 26 2018 - tech@adalin.org
+- AeonWave (3.1.1) stable; urgency=medium
+ * Fix volume glitches for dynamic-gain and timed-gain filters
+
+-- Erik Hofman <tech@adalin.org>  Sat 26 May  2018 15:15:00 + 0100
+
 * Sat May 21 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=high
  * Explicitly allow GPL version 2 and GPL version 3 applications to use
