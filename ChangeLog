@@ -1,6 +1,9 @@
 * Sat May 26 2018 - tech@adalin.org
 - AeonWave (3.1.1) stable; urgency=medium
  * Fix volume glitches for dynamic-gain and timed-gain filters
+ * Account for the fact that pink-noise and brownian-noise both have a lowest
+   cut-off frequency of 100Hz. Which can be used to create continuous noise
+   instead of noise with possible volume glitches.
 
 -- Erik Hofman <tech@adalin.org>  Sat 26 May  2018 15:15:00 + 0100
 
