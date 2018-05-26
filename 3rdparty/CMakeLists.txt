@@ -1,5 +1,6 @@
 
 set(THIRDPARTY_HEADERS
+  minimp3.h
   dr_flac.h
   pffft.h
 )
