@@ -179,9 +179,6 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       ret = -1;
    }
 
-   /* 3d: distance, audio-cone and occlusion related gain */
-   gain *= ep2d->final.gain;
-
    /* Apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
    if (fp2d)
@@ -209,6 +206,9 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    if (max != 1.0f) {
       gain *= 1.0f - max/2.0f;
    }
+
+   /* 3d: distance, audio-cone and occlusion related gain */
+   gain = _square(gain)*ep2d->final.gain;
 
    /* Final emitter volume */
    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
