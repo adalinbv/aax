@@ -16,7 +16,7 @@
 
   <filter type="frequency">
    <slot n="0">
-    <param n="0">750</param>
+    <param n="0">550</param>
     <param n="1">0.1</param>
     <param n="2">1.2</param>
     <param n="3">2.0</param>
@@ -29,20 +29,20 @@
    <slot n="0">
     <param n="0">0.50</param>
     <param n="1">0.1</param>
-    <param n="2">0.8</param>
+    <param n="2">1.0</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.65</param>
+    <param n="0">0.75</param>
     <param n="1">0.30</param>
-    <param n="2">0.30</param>
+    <param n="2">0.40</param>
     <param n="3">1.50</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.7</param>
-    <param n="1">0.03</param>
+    <param n="0">0.5</param>
+    <param n="1">0.1</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
    </slot>
