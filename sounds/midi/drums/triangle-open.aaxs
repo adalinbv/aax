@@ -15,7 +15,7 @@
   <filter type="frequency">
    <slot n="0">
     <param n="0">2000</param>
-    <param n="1">0.5</param>
+    <param n="1">0.0</param>
     <param n="2">0.8</param>
     <param n="3">5.0</param>
    </slot>
@@ -31,9 +31,9 @@
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.45</param>
+    <param n="0">0.55</param>
     <param n="1">0.30</param>
-    <param n="2">0.20</param>
+    <param n="2">0.45</param>
     <param n="3">1.00</param>
    </slot>
   </filter>
