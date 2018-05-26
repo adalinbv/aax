@@ -22,8 +22,13 @@
 #ifndef __FILE_EXT_MP3_H
 #define __FILE_EXT_MP3_H 1
 
-#define PDMP3_HEADER_ONLY
-#include <3rdparty/pdmp3.c>
+#if 1
+# define PDMP3_HEADER_ONLY
+# include <3rdparty/pdmp3.c>
+#else
+# define MINIMP3_IMPLEMENTATION
+# include <3rdparty/minimp3.h>
+#endif
 
 enum    mp3_parms {
   MP3_VERBOSE = 0, MP3_FLAGS,
