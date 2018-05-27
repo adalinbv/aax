@@ -10,7 +10,7 @@
 
  <sound name="Voice Oohs" program="54" bank="0" frequency="220" duration="0.33">
   <waveform src="pink-noise"/>
-  <waveform src="sine" processing="mix" ratio="0.4" pitch="0.4894"/>
+  <waveform src="sine" processing="mix" ratio="0.2" pitch="0.4894"/>
   <waveform src="sine" processing="add" ratio="0.8" pitch="1.003"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="2.987"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.01"/>
