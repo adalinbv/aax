@@ -286,7 +286,7 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    offs = effect->delay.sample_offs[track];
 
    assert(start || (offs < ds));
-   if (offs >= ds) offs = ds-1;
+// if (offs >= ds) offs = ds-1;
 
    if (start) {
       noffs = effect->curr_noffs[track];

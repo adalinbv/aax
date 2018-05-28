@@ -262,14 +262,14 @@ _flanging_destroy(void *ptr)
  * - dmax does not include ds
  */
 void
-_flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
+_flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch),
              size_t start, size_t end, size_t no_samples, size_t ds,
              void *data, void *env, unsigned int track)
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = data;
-   size_t doffs, coffs;
+   ssize_t doffs, coffs;
    size_t i, sign, step;
    ssize_t offs, noffs;
    MIX_T *sptr, *dptr, *ptr;
@@ -282,14 +282,15 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
    assert(start < end);
    assert(data != NULL);
 
-   volume =  effect->delay.gain;
-
    sptr = (MIX_T*)s + start;
    dptr = d + start;
+   ptr = dptr;
 
+   volume = effect->delay.gain;
    offs = effect->delay.sample_offs[track];
+
    assert(start || (offs < (ssize_t)ds));
-   if (offs >= (ssize_t)ds) offs = ds-1;
+// if (offs >= (ssize_t)ds) offs = ds-1;
 
    if (start) {
       noffs = effect->curr_noffs[track];
@@ -301,12 +302,14 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
       effect->curr_noffs[track] = noffs;
    }
 
+   assert(s == d);
+// assert(noffs >= offs);
+
    sign = (noffs < offs) ? -1 : 1;
    doffs = labs(noffs - offs);
    i = no_samples;
    coffs = offs;
    step = end;
-   ptr = dptr;
 
    if (start)
    {
@@ -323,24 +326,14 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scr),
    }
    effect->curr_step[track] = step;
 
-// DBG_MEMCLR(1, s-ds, ds+start, bps);
+//  DBG_MEMCLR(1, s-ds, ds+start, bps);
    _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
    if (i >= step)
    {
-//    float diff;
       do
       {
          rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
-#if 0
-         /* gradually fade to the new value */
-         diff = (float)*ptr - (float)*(ptr-1);
-         *(ptr-1) += (6.0f/7.0f)*diff;
-         *(ptr-2) += (5.0f/7.0f)*diff;
-         *(ptr-3) += (4.0f/7.0f)*diff;
-         *(ptr-4) += (3.0f/7.0f)*diff;
-         *(ptr-5) += (2.0f/7.0f)*diff;
-         *(ptr-6) += (1.0f/7.0f)*diff;
-#endif
+
          ptr += step;
          coffs += sign;
          i -= step;

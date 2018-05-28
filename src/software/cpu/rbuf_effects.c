@@ -61,8 +61,8 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferReflectionData *reflections = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
 #ifndef NDEBUG
-   _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-   size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
+// _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+// size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
 #endif
    MIX_T *psrc, *pdst;
 
