@@ -226,9 +226,6 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
          evol = (srbi->stopped) ? 0.0f : 1.0f;
          srbi->playing = !srbi->stopped;
       }
-      if (gain0 != 0.0f) {
-         evol *= (gnvel/gain0);
-      }
 
       /* Distance attenutation frequency filtering */
       if (ep2d->final.k < 0.9f) // only filter when fc < 17600 Hz
@@ -245,7 +242,11 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 #endif
       }
 
-      /* Mix */
+#if 0
+      if (gain0 != 0.0f) {
+         evol *= (gnvel/gain0);
+      }
+#endif
       if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
          drbd->mix1(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,

@@ -49,7 +49,7 @@ _aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
    MIX_T *dptr = (MIX_T*)drbd->track[0] + offs;
    float vstart, vend, vstep;
 
-   vstart = ep2d->prev_gain[0];
+   vstart = ep2d->prev_gain[0] * svol;
    vend   = gain * evol;
    vstep  = (vend - vstart) / dno_samples;
 
@@ -88,7 +88,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 #else
       dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
 #endif
-      vstart = ep2d->prev_gain[t];
+      vstart = ep2d->prev_gain[t] * svol;
       vend   = gain * dir_fact * evol;
       vstep  = (vend - vstart) / dno_samples;
 
@@ -151,7 +151,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 #else
       dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
 #endif
-      vstart = ep2d->prev_gain[t];
+      vstart = ep2d->prev_gain[t] * svol;
       vend = gain * evol;
       vstep = (vend - vstart) / dno_samples;
 
@@ -208,7 +208,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
       float dir_fact;
 
       dir_fact = ep2d->speaker[t].v4[DIR_RIGHT];
-      vstart = ep2d->prev_gain[t];
+      vstart = ep2d->prev_gain[t] * svol;
       vend   = gain * dir_fact * evol;
       vstep  = (vend - vstart) / dno_samples;
 
