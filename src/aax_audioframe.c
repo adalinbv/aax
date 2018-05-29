@@ -1019,7 +1019,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
          if (src->update_rate == 0) {
             src->update_rate = fmixer->info->update_rate;
          }
-         src->update_ctr = src->update_rate;
+         src->update_ctr = 1;
 
          if (positional)
          {

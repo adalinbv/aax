@@ -1111,7 +1111,7 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             if (src->update_rate == 0) {
                src->update_rate = handle->info->update_rate;
             }
-            src->update_ctr = src->update_rate;
+            src->update_ctr = 1;
 
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
             if (dptr)
