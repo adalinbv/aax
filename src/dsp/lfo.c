@@ -39,7 +39,7 @@
 _aaxLFOData*
 _lfo_create()
 {
-   return malloc(sizeof(_aaxLFOData));
+   return calloc(1, sizeof(_aaxLFOData));
 }
 
 void
