@@ -111,6 +111,10 @@ _lfo_set_timing(_aaxLFOData *lfo)
       int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; t++)
       {
+         if (!lfo->stereo_lnk) {
+            lfo->value[t] = (t % 2)*1e9f;
+         }
+
          // slowly work towards the new settings
          step = lfo->step[t];
          sign = step ? (step/fabsf(step)) : 1.0f;

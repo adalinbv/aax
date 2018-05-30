@@ -72,8 +72,12 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
+   int stereo;
 
    assert(effect->info);
+
+   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   state &= ~AAX_LFO_STEREO;
 
    effect->state = state;
    switch (state & ~AAX_INVERSE)
@@ -100,7 +104,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          lfo->fs = effect->info->frequency;
          lfo->period_rate = effect->info->period_rate;
          lfo->envelope = AAX_FALSE;
-         lfo->stereo_lnk = AAX_TRUE;
+         lfo->stereo_lnk = !stereo;
 
          lfo->min_sec = (1.0f - depth)/lfo->fs;
          lfo->max_sec = (1.0f + depth)/lfo->fs;

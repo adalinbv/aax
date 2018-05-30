@@ -77,11 +77,15 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
    int mask, istate, wstate;
+   int stereo;
 
    assert(filter->info);
 
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE |
           AAX_ENVELOPE_FOLLOW;
+
+   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   state &= ~AAX_LFO_STEREO;
 
    istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL);
    wstate = istate & mask;
@@ -189,7 +193,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->offset = 0.0f;
                lfo->f = filter->slot[1]->param[AAX_RESONANCE];
                lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-               lfo->stereo_lnk = AAX_TRUE;
+               lfo->stereo_lnk = !stereo;
 
                constant = _lfo_set_timing(lfo);
                lfo->envelope = AAX_FALSE;
