@@ -454,23 +454,15 @@ playAudioTune(int argc, char **argv)
     {
         char *devname = getDeviceName(argc, argv);
         unsigned int frequency;
-        aaxEmitter emitter;
         aaxConfig config;
         aaxBuffer buffer;
-        float dt = 0.0f;
-        int state;
-        int note;
 
         config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
         aaxMixerSetSetup(config, AAX_REFRESHRATE, REFRESH_RATE);
         aaxMixerSetState(config, AAX_INITIALIZED);
         aaxMixerSetState(config, AAX_PLAYING);
 
-#if 0
-        buffer = bufferFromData(config, ___sounds_tune_wav);
-#else
         frequency = aaxMixerGetSetup(config, AAX_FREQUENCY);
-
         buffer = aaxBufferCreate(config, frequency, 1, AAX_AAXS24S);
         if (buffer)
         {
@@ -482,32 +474,33 @@ playAudioTune(int argc, char **argv)
                buffer = NULL;
             }
         }
-#endif
+
         if (buffer)
         {
-            emitter = aaxEmitterCreate();
-            aaxEmitterAddBuffer(emitter, buffer);
-            aaxMixerRegisterEmitter(config, emitter);
+            aaxEmitter emitter;
+            aaxFrame frame;
+            int state;
 
-            note = 0;
-            aaxEmitterSetState(emitter, AAX_PLAYING);
+            frame = aaxAudioFrameCreate(config);
+            state = aaxMixerRegisterAudioFrame(config, frame);
+            state |= aaxAudioFrameSetState(frame, AAX_PLAYING);
+            state |= aaxAudioFrameAddBuffer(frame, buffer);
+
+            emitter = aaxEmitterCreate();
+            state |= aaxEmitterAddBuffer(emitter, buffer);
+            state |= aaxAudioFrameRegisterEmitter(frame, emitter);
+            state |= aaxEmitterSetState(emitter, AAX_PLAYING);
+
             do
             {
                 msecSleep(50);
-                dt += 0.05f;
                 state = aaxEmitterGetState(emitter);
-
-                if (note == 0 && dt > 0.4f)
-                {
-                   aaxEmitterSetState(emitter, AAX_PROCESSED);
-                   msecSleep(20);
-                   aaxEmitterSetState(emitter, AAX_PLAYING);
-                   note++;
-                }
             }
-            while (state == AAX_PLAYING && dt < 1.5f);
+            while (state == AAX_PLAYING);
 
-            aaxMixerDeregisterEmitter(config, emitter);
+            aaxAudioFrameDeregisterEmitter(frame, emitter);
+            aaxMixerDeregisterAudioFrame(config, frame);
+            aaxAudioFrameDestroy(frame);
             aaxEmitterDestroy(emitter);
         }
         else {
