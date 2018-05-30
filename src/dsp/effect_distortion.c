@@ -73,6 +73,10 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
+   int stereo;
+
+   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   state &= ~AAX_LFO_STEREO;
 
    effect->state = state;
    switch (state & ~AAX_INVERSE)
@@ -112,7 +116,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          lfo->depth = 1.0f;
          lfo->offset = 0.0f;
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-         lfo->stereo_lnk = AAX_TRUE;
+         lfo->stereo_lnk = !stereo;
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {

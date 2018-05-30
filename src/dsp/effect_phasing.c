@@ -79,8 +79,12 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
+   int stereo;
 
    assert(effect->info);
+
+   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   state &= ~AAX_LFO_STEREO;
 
    effect->state = state;
    switch (state & ~AAX_INVERSE)
@@ -134,7 +138,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-         data->lfo.stereo_lnk = AAX_TRUE;
+         data->lfo.stereo_lnk = !stereo;
 
          if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
             data->lfo.depth = 1.0f - data->lfo.offset;

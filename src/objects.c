@@ -551,6 +551,12 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
                }
             }
          }
+
+         if (xmlAttributeExists(xid, "stereo") &&
+             xmlAttributeGetBool(xid, "stereo")) {
+            state |= AAX_LFO_STEREO;
+         }
+
          aaxFilterSetState(flt, state);
          rv = flt;
       }
@@ -588,6 +594,12 @@ _aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq)
             src[slen] = 0;
             state = aaxGetWaveformTypeByName(src);
          }
+
+         if (xmlAttributeExists(xid, "stereo") &&
+             xmlAttributeGetBool(xid, "stereo")) {
+            state |= AAX_LFO_STEREO;
+         }
+
          aaxEffectSetState(eff, state);
          rv = eff;
       }
