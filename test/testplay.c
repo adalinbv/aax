@@ -58,6 +58,7 @@ int main(int argc, char **argv)
     if (config)
     {
         aaxBuffer buffer;
+        char *ofile;
 
         res = aaxMixerSetSetup(config, AAX_REFRESH_RATE, 90.0f);
         testForState(res, "aaxMixerSetSetup");
@@ -65,7 +66,8 @@ int main(int argc, char **argv)
         buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to create a buffer");
 
-        if (buffer)
+        ofile = getOutputFile(argc, argv, NULL);
+        if (!ofile && buffer)
         {
             aaxFrame frame;
             aaxEmitter emitter;
@@ -80,6 +82,9 @@ int main(int argc, char **argv)
             /** emitter */
             emitter = aaxEmitterCreate();
             testForError(emitter, "Unable to create a new emitter");
+
+            res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
+            testForError(emitter, "Unable to set emitter mode");
 
             /* gain */
             gain = getGain(argc, argv);
@@ -187,6 +192,11 @@ int main(int argc, char **argv)
             res = aaxAudioFrameDestroy(frame);
             res = aaxEmitterDestroy(emitter);
             res = aaxBufferDestroy(buffer);
+        }
+        else if (buffer)
+        {
+           aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_PCM16S);
+           aaxBufferWriteToFile(buffer, ofile, AAX_OVERWRITE);
         }
     }
 
