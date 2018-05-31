@@ -51,7 +51,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="sine">
+  <filter type="frequency" src="sine" stereo="1">
    <slot n="0">
     <param n="0" pitch="0.5">110</param>
     <param n="1">0.0</param>
@@ -59,7 +59,7 @@
     <param n="3">10.0</param>
    </slot>
    <slot n="1">
-    <param n="0"pitch="7">1100</param>
+    <param n="0" pitch="7">1100</param>
     <param n="3">0.030</param>
    </slot>
   </filter>
