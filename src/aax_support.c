@@ -34,7 +34,9 @@
 
 #include "api.h"
 #include "copyright.h"
+#include "sound_logo.h"
 #include "arch.h"
+
 #include "software/audio.h"
 
 #define _AAX_MAX_ERROR		12
@@ -95,6 +97,70 @@ AAX_API enum aaxEffectType AAX_APIENTRY
 aaxMaxEffect(void)
 {
    return AAX_EFFECT_MAX;
+}
+
+void AAX_APIENTRY
+aaxPlaySoundLogo(const char *devname)
+{
+   unsigned int frequency;
+   aaxConfig config;
+   aaxBuffer buffer;
+
+   config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
+// aaxMixerSetSetup(config, AAX_REFRESHRATE, REFRESH_RATE);
+   aaxMixerSetState(config, AAX_INITIALIZED);
+   aaxMixerSetState(config, AAX_PLAYING);
+
+   frequency = aaxMixerGetSetup(config, AAX_FREQUENCY);
+   buffer = aaxBufferCreate(config, frequency, 1, AAX_AAXS24S);
+   if (buffer)
+   {
+       aaxBufferSetSetup(buffer, AAX_FREQUENCY, frequency);
+       aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, 1);
+       if (aaxBufferSetData(buffer, __aax_sound_logo) == AAX_FALSE)
+       {
+          aaxBufferDestroy(buffer);
+          buffer = NULL;
+       }
+   }
+
+   if (buffer)
+   {
+       aaxEmitter emitter;
+       aaxFrame frame;
+       int state;
+
+       frame = aaxAudioFrameCreate(config);
+       state = aaxMixerRegisterAudioFrame(config, frame);
+       state |= aaxAudioFrameSetState(frame, AAX_PLAYING);
+       state |= aaxAudioFrameAddBuffer(frame, buffer);
+
+       emitter = aaxEmitterCreate();
+       state |= aaxEmitterAddBuffer(emitter, buffer);
+       state |= aaxAudioFrameRegisterEmitter(frame, emitter);
+       state |= aaxEmitterSetState(emitter, AAX_PLAYING);
+
+       do
+       {
+           msecSleep(50);
+           state = aaxEmitterGetState(emitter);
+       }
+       while (state == AAX_PLAYING);
+
+       aaxAudioFrameDeregisterEmitter(frame, emitter);
+       aaxMixerDeregisterAudioFrame(config, frame);
+       aaxAudioFrameDestroy(frame);
+       aaxEmitterDestroy(emitter);
+   }
+   else {
+      printf("Unable to create sound buffer.\n");
+   }
+
+   aaxMixerSetState(config, AAX_STOPPED);
+   aaxBufferDestroy(buffer);
+
+   aaxDriverClose(config);
+   aaxDriverDestroy(config);
 }
 
 AAX_API int AAX_APIENTRY
