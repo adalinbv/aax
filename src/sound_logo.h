@@ -20,58 +20,58 @@
  */
 
 const char *
-__aax_sound_logo = "							\
-<?xml version='1.0'?>							\
-<aeonwave>								\
- <sound frequency='220' duration='3.0'>					\
-  <waveform src='triangle' pitch='0.51' voices='5' spread='0.9'/>	\
-  <waveform src='square' processing='modulate' ratio='0.8' pitch='8.'/>	\
-  <waveform src='triangle' processing='add' ratio='0.3' pitch='0.94'/>	\
-  <waveform src='pink-noise' processing='add' ratio='0.1' pitch='0.02'/>\
-  <filter type='frequency' src='48db'>					\
-   <slot>								\
-    <param>1650</param>							\
-    <param>1.0</param>							\
-    <param>0.1</param>							\
-    <param>3.0</param>							\
-   </slot>								\
-  </filter>								\
- </sound>								\
- <emitter looping='true'>						\
-  <filter type='envelope'>						\
-   <slot>								\
-    <param>0.5</param>							\
-    <param>0.41</param>							\
-    <param>1.0</param>							\
-    <param>5.05</param>							\
-   </slot>								\
-   <slot>								\
-    <param>0.8</param>							\
-    <param>5.5</param>							\
-   </slot>								\
-  </filter>								\
-  <effect type='phasing' src='inverse-sine'>				\
-   <slot>								\
-    <param>0.3</param>							\
-    <param>0.05</param>							\
-    <param>0.3</param>							\
-    <param>0.5</param>							\
-   </slot>								\
-  </effect>								\
- </emitter>								\
- <audioframe>								\
-  <filter type='frequency' src='sine' stereo='1'>			\
-   <slot>								\
-    <param>110</param>							\
-    <param>0.0</param>							\
-    <param>1.0</param>							\
-    <param>10.0</param>							\
-   </slot>								\
-   <slot>								\
-    <param>1100</param>							\
-    <param n='3'>0.03</param>						\
-   </slot>								\
-  </filter>								\
- </audioframe>								\
-</aeonwave>";
+__aax_sound_logo =  							\
+"<?xml version='1.0'?>"							\
+"<aeonwave>"								\
+ "<sound frequency='220' duration='3.0'>"				\
+  "<waveform src='triangle' pitch='0.51' voices='5' spread='0.9'/>"	\
+  "<waveform src='square' processing='modulate' ratio='0.8' pitch='8.'/>"\
+  "<waveform src='triangle' processing='add' ratio='0.3' pitch='0.94'/>"\
+  "<waveform src='pink-noise' processing='add' ratio='0.1' pitch='0.02'/>"\
+  "<filter type='frequency' src='48db'>"				\
+   "<slot>"								\
+    "<param>1650</param>"						\
+    "<param>1.0</param>"						\
+    "<param>0.1</param>"						\
+    "<param>3.0</param>"						\
+   "</slot>"								\
+  "</filter>"								\
+ "</sound>"								\
+ "<emitter looping='true'>"						\
+  "<filter type='envelope'>"						\
+   "<slot>"								\
+    "<param>0.5</param>"						\
+    "<param>0.41</param>"						\
+    "<param>1.0</param>"						\
+    "<param>5.05</param>"						\
+   "</slot>"								\
+   "<slot>"								\
+    "<param>0.8</param>"						\
+    "<param>5.5</param>"						\
+   "</slot>"								\
+  "</filter>"								\
+  "<effect type='phasing' src='inverse-sine'>"				\
+   "<slot>"								\
+    "<param>0.3</param>"						\
+    "<param>0.05</param>"						\
+    "<param>0.3</param>"						\
+    "<param>0.5</param>"						\
+   "</slot>"								\
+  "</effect>"								\
+ "</emitter>"								\
+ "<audioframe>"								\
+  "<filter type='frequency' src='sine' stereo='1'>"			\
+   "<slot>"								\
+    "<param>110</param>"						\
+    "<param>0.0</param>"						\
+    "<param>1.0</param>"						\
+    "<param>10.0</param>"						\
+   "</slot>"								\
+   "<slot>"								\
+    "<param>1100</param>"						\
+    "<param n='3'>0.03</param>"						\
+   "</slot>"								\
+  "</filter>"								\
+ "</audioframe>"							\
+"</aeonwave>";
 
