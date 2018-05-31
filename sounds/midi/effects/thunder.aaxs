@@ -10,8 +10,14 @@
 
  <sound name="Thunder" program="127" bank="4" frequency="220" duration="3.33">
   <waveform src="white-noise" pitch="0.25"/>
+<<<<<<< HEAD
   <waveform src="impulse" processing="modulate" ratio="2.0" pitch="0.001"/>
   <waveform src="sawtooth" processing="modulate" ratio="3.0" pitch="0.017"/>
+=======
+  <waveform src="impulse" processing="modulate" ratio="4.0" pitch="0.001"/>
+  <waveform src="sawtooth" processing="modulate" ratio="2.5" pitch="0.013"/>
+  <waveform src="impulse" processing="modulate" ratio="2.5" pitch="0.0025"/>
+>>>>>>> 39f96e2b09f57ead58b3ef3f1999d987198f6c12
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">660</param>
@@ -37,8 +43,13 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
+<<<<<<< HEAD
     <param n="0">1.15</param>
     <param n="1">0.5</param>
+=======
+    <param n="0">0.85</param>
+    <param n="1">0.1</param>
+>>>>>>> 39f96e2b09f57ead58b3ef3f1999d987198f6c12
     <param n="2">1.0</param>
     <param n="3" auto-sustain="1.0">10.0</param>
    </slot>
@@ -49,6 +60,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
+<<<<<<< HEAD
     <param n="0">2.2</param>
     <param n="1">0.8</param>
     <param n="2">0.7</param>
@@ -56,19 +68,40 @@
    </slot>
    <slot n="1">
     <param n="0">0.5</param>
+=======
+    <param n="0">0.7</param>
+    <param n="1">0.2</param>
+    <param n="2">1.1</param>
+    <param n="3">3.3</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.7</param>
+>>>>>>> 39f96e2b09f57ead58b3ef3f1999d987198f6c12
    </slot>
   </effect>
  </emitter>
 
+<<<<<<< HEAD
+=======
+<!--
+>>>>>>> 39f96e2b09f57ead58b3ef3f1999d987198f6c12
  <audioframe>
   <filter type="compressor">
    <slot n="0">
     <param n="0">0.04</param>
     <param n="1">0.2</param>
+<<<<<<< HEAD
     <param n="2">0.97</param>
+=======
+    <param n="2">0.99</param>
+>>>>>>> 39f96e2b09f57ead58b3ef3f1999d987198f6c12
     <param n="4">0.9</param>
    </slot>
   </filter>
  </audioframe>
+<<<<<<< HEAD
+=======
+-->
+>>>>>>> 39f96e2b09f57ead58b3ef3f1999d987198f6c12
 
 </aeonwave>

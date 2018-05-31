@@ -450,75 +450,8 @@ int
 playAudioTune(int argc, char **argv)
 {
     char *ret = getCommandLineOption(argc, argv, "-p");
-    if (ret)
-    {
-        char *devname = getDeviceName(argc, argv);
-        unsigned int frequency;
-        aaxEmitter emitter;
-        aaxConfig config;
-        aaxBuffer buffer;
-        float dt = 0.0f;
-        int state;
-        int note;
-
-        config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-        aaxMixerSetSetup(config, AAX_REFRESHRATE, REFRESH_RATE);
-        aaxMixerSetState(config, AAX_INITIALIZED);
-        aaxMixerSetState(config, AAX_PLAYING);
-
-#if 0
-        buffer = bufferFromData(config, ___sounds_tune_wav);
-#else
-        frequency = aaxMixerGetSetup(config, AAX_FREQUENCY);
-
-        buffer = aaxBufferCreate(config, frequency, 1, AAX_AAXS24S);
-        if (buffer)
-        {
-            aaxBufferSetSetup(buffer, AAX_FREQUENCY, frequency);
-            aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, 1);
-            if (aaxBufferSetData(buffer, ___sounds_tune_aaxs) == AAX_FALSE)
-            {
-               aaxBufferDestroy(buffer);
-               buffer = NULL;
-            }
-        }
-#endif
-        if (buffer)
-        {
-            emitter = aaxEmitterCreate();
-            aaxEmitterAddBuffer(emitter, buffer);
-            aaxMixerRegisterEmitter(config, emitter);
-
-            note = 0;
-            aaxEmitterSetState(emitter, AAX_PLAYING);
-            do
-            {
-                msecSleep(50);
-                dt += 0.05f;
-                state = aaxEmitterGetState(emitter);
-
-                if (note == 0 && dt > 0.4f)
-                {
-                   aaxEmitterSetState(emitter, AAX_PROCESSED);
-                   msecSleep(20);
-                   aaxEmitterSetState(emitter, AAX_PLAYING);
-                   note++;
-                }
-            }
-            while (state == AAX_PLAYING && dt < 1.5f);
-
-            aaxMixerDeregisterEmitter(config, emitter);
-            aaxEmitterDestroy(emitter);
-        }
-        else {
-           printf("Unable to create sound buffer.\n");
-        }
-
-        aaxMixerSetState(config, AAX_STOPPED);
-        aaxBufferDestroy(buffer);
-
-        aaxDriverClose(config);
-        aaxDriverDestroy(config);
+    if (ret) {
+        aaxPlaySoundLogo( getDeviceName(argc, argv) );
     }
     return ret ? -1 : 0;
 }
