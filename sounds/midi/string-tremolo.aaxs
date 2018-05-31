@@ -57,24 +57,6 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="dynamic-pitch" src="sine">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">6.5</param>
-    <param n="2">0.08</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
-  <effect type="phasing" src="sine">
-   <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">13</param>
-    <param n="2">0.08</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
-=======
->>>>>>> 39f96e2b09f57ead58b3ef3f1999d987198f6c12
  </emitter>
 
 </aeonwave>
