@@ -210,7 +210,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
             unsigned int t;
 
             _batch_get_average_rms(start, convolution->no_samples, &rms, &peak);
-            convolution->rms = rms;
+            convolution->rms = .25f*rms/peak;
 
             no_samples += convolution->no_samples;
 
@@ -382,6 +382,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       int step;
 
       v = convolution->rms * convolution->delay_gain;
+printf("v: %f, rms: %f, delay_gain: %f\n", v, convolution->rms, convolution->delay_gain);
       threshold = convolution->threshold * (float)(1<<23);
       step = convolution->step;
 
