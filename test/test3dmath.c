@@ -171,18 +171,6 @@ int main()
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4fMul cpu:\t\t%f ms\n", cpu*1000.0f);
 
-        if (simd4)
-        {
-            m4fMul = GLUE(_mtx4fMul, SIMD);
-            t = clock();
-            for (i=0; i<1000; ++i) {
-                m4fMul(&l, &m, &n);
-            }
-            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4fMul "MKSTR(SIMD)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-        }
-
-
 #if defined(__arm__) || defined(_M_ARM)
         m4fMul = _mtx4fMul_vfpv3;
         t = clock();
@@ -200,6 +188,17 @@ int main()
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4fMul sse:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 #endif
+
+        if (simd4)
+        {
+            m4fMul = GLUE(_mtx4fMul, SIMD);
+            t = clock();
+            for (i=0; i<1000; ++i) {
+                m4fMul(&l, &m, &n);
+            }
+            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("mtx4fMul "MKSTR(SIMD)":\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
         TESTM4(k,l);
     }
 
@@ -216,18 +215,6 @@ int main()
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nmtx4dMul cpu:\t\t%f ms\n", cpu*1000.0f);
-
-        if (simd4)
-        {
-            m4dMul = GLUE(_mtx4dMul, SIMD4);
-            t = clock();
-            for (i=0; i<1000; ++i) {
-                m4dMul(&l64, &m64, &n64);
-            }
-            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("mtx4dMul "MKSTR(SIMD4)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTM4(k64,l64);
-        }
 
 #if defined(__arm__) || defined(_M_ARM)
         m4dMul = _mtx4dMul_vfpv3;
@@ -246,6 +233,18 @@ int main()
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("mtx4dMul sse2:\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 #endif
+
+        if (simd4)
+        {
+            m4dMul = GLUE(_mtx4dMul, SIMD4);
+            t = clock();
+            for (i=0; i<1000; ++i) {
+                m4dMul(&l64, &m64, &n64);
+            }
+            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("mtx4dMul "MKSTR(SIMD4)":\t\t%f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TESTM4(k64,l64);
+        }
     }
 
     return 0;
