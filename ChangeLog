@@ -1,6 +1,7 @@
 * Sat May 26 2018 - tech@adalin.org
 - AeonWave (3.1.1) stable; urgency=medium
- * Add the aaxPlaySoundLogo() function.
+ * Add the aaxPlaySoundLogo() function to play back the official sound
+   logo at the requested device.
  * Add the option to mark an LFO based filter or effect 'stereo' for
    audio-frames.
  * Fix volume glitches for dynamic-gain and timed-gain filters
