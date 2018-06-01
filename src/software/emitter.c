@@ -119,7 +119,10 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
             _emitterCreateEFFromAAXS(emitter, embuf, embuf->aaxs);
          }
 
-         ctr = --src->update_ctr;
+         // TODO: status updates still don't get processed properly
+         //       use the testposition to test.
+//       ctr = --src->update_ctr;
+         ctr = 0;
          if (ctr == 0)
          {
             if (stage == 2)
