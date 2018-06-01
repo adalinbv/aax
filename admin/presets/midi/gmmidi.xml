@@ -18,20 +18,20 @@
    <instrument n="6" name="Electric Piano 2" file="piano-electric2.aaxs"/>
    <instrument n="7" name="Harpsichord" file="harpsichord.aaxs"/>
    <instrument n="8" name="Clavi" file="clavinet.aaxs"/>
-   <instrument n="9" name="Celesta" file=".aaxs"/>
-   <instrument n="10" name="Glockenspiel" file=".aaxs"/>
-   <instrument n="11" name="Music Box" file=".aaxs"/>
-   <instrument n="12" name="Vibraphone" file=".aaxs"/>
-   <instrument n="13" name="Marimba" file=".aaxs"/>
-   <instrument n="14" name="Xylophone" file=".aaxs"/>
+   <instrument n="9" name="Celesta" file="celesta.aaxs"/>
+   <instrument n="10" name="Glockenspiel" file="glockenspiel.aaxs"/>
+   <instrument n="11" name="Music Box" file="musicbox.aaxs"/>
+   <instrument n="12" name="Vibraphone" file="vibraphone.aaxs"/>
+   <instrument n="13" name="Marimba" file="marimba.aaxs"/>
+   <instrument n="14" name="Xylophone" file="xylophone.aaxs"/>
    <instrument n="15" name="Tubular Bells" file="bells-tubular.aaxs"/>
    <instrument n="16" name="Dulcimer" file=".aaxs"/>
-   <instrument n="17" name="Drawbar Organ" file="organ-hammond.aaxs"/>
-   <instrument n="18" name="Percussive Organ" file=".aaxs"/>
+   <instrument n="17" name="Drawbar Organ" file="organ-drawbar.aaxs"/>
+   <instrument n="18" name="Percussive Organ" file="organ-percussive.aaxs"/>
    <instrument n="19" name="Rock Organ" file="organ-rock.aaxs"/>
    <instrument n="20" name="Church Organ" file="organ-church.aaxs"/>
    <instrument n="21" name="Reed Organ" file="organ-reed.aaxs"/>
-   <instrument n="22" name="Accordion" file="accordion.aaxs"/>
+   <instrument n="22" name="French Accordion" file="accordion-french.aaxs"/>
    <instrument n="23" name="Harmonica" file="harmonica.aaxs"/>
    <instrument n="24" name="Tango Accordion" file=".aaxs"/>
    <instrument n="25" name="Acoustic Guitar (nylon)" file="guitar-nylon.aaxs"/>
@@ -54,7 +54,7 @@
    <instrument n="42" name="Viola" file="violin.aaxs"/>
    <instrument n="43" name="Cello" file="violin.aaxs"/>
    <instrument n="44" name="Contrabass" file="violin.aaxs"/>
-   <instrument n="45" name="Tremolo Strings" file=".aaxs"/>
+   <instrument n="45" name="Tremolo Strings" file="string-tremolo.aaxs"/>
    <instrument n="46" name="Pizzicato Strings" file=".aaxs"/>
    <instrument n="47" name="Orchestral Harp" file="harp.aaxs"/>
    <instrument n="48" name="Timpani" file=".aaxs"/>
@@ -94,17 +94,17 @@
    <instrument n="82" name="Lead 2 (sawtooth)" file="lead-sawtooth.aaxs"/>
    <instrument n="83" name="Lead 3 (calliope)" file="lead-calliope.aaxs"/>
    <instrument n="84" name="Lead 4 (chiff)" file="lead-chiff.aaxs"/>
-   <instrument n="85" name="Lead 5 (charang)" file=".aaxs"/>
-   <instrument n="86" name="Lead 6 (voice)" file=".aaxs"/>
+   <instrument n="85" name="Lead 5 (charang)" file="lead-charang.aaxs"/>
+   <instrument n="86" name="Lead 6 (voice)" file="lead-voice.aaxs"/>
    <instrument n="87" name="Lead 7 (fifths)" file="lead-fifths.aaxs"/>
    <instrument n="88" name="Lead 8 (bass + lead)" file=".aaxs"/>
-   <instrument n="89" name="Pad 1 (new age)" file="pad-fantasia.aaxs"/>
-   <instrument n="90" name="Pad 2 (warm)" file=".aaxs"/>
-   <instrument n="91" name="Pad 3 (polysynth)" file=".aaxs"/>
-   <instrument n="92" name="Pad 4 (choir)" file=".aaxs"/>
+   <instrument n="89" name="Pad 1 (new age)" file="pad-newwave.aaxs"/>
+   <instrument n="90" name="Pad 2 (warm)" file="pad-warm.aaxs"/>
+   <instrument n="91" name="Pad 3 (polysynth)" file="pad-polysynth.aaxs"/>
+   <instrument n="92" name="Pad 4 (choir)" file="pad-choir.aaxs"/>
    <instrument n="93" name="Pad 5 (bowed)" file="pad-bowed.aaxs"/>
    <instrument n="94" name="Pad 6 (metallic)" file="pad-metallic.aaxs"/>
-   <instrument n="95" name="Pad 7 (halo)" file=".aaxs"/>
+   <instrument n="95" name="Pad 7 (halo)" file="pad-halo.aaxs"/>
    <instrument n="96" name="Pad 8 (sweep)" file="pad-sweep.aaxs"/>
    <instrument n="97" name="FX 1 (rain)" file="fx-rain.aaxs"/>
    <instrument n="98" name="FX 2 (soundtrack)" file=".aaxs"/>
@@ -126,18 +126,27 @@
    <instrument n="114" name="Agogo" file=".aaxs"/>
    <instrument n="115" name="Steel Drums" file="drum-steel.aaxs"/>
    <instrument n="116" name="Woodblock" file=".aaxs"/>
-   <instrument n="117" name="Taiko Drum" file=".aaxs"/>
+   <instrument n="117" name="Taiko Drum" file="drum-taiko.aaxs"/>
    <instrument n="118" name="Melodic Tom" file=".aaxs"/>
    <instrument n="119" name="Synth Drum" file=".aaxs"/>
    <instrument n="120" name="Reverse Cymbal" file="cymbal-reverse.aaxs"/>
    <instrument n="121" name="Guitar Fret Noise" file=".aaxs"/>
    <instrument n="122" name="Breath Noise" file=".aaxs"/>
-   <instrument n="123" name="Seashore" file="seashore.aaxs"/>
-   <instrument n="124" name="Bird Tweet" file="birds.aaxs"/>
-   <instrument n="125" name="Telephone Ring" file="telephone.aaxs"/>
-   <instrument n="126" name="Helicopter" file="helicopter.aaxs"/>
+   <instrument n="123" name="Seashore" file="effecst/seashore.aaxs"/>
+   <instrument n="124" name="Bird Tweet" file="effecst/birds.aaxs"/>
+   <instrument n="125" name="Telephone Ring" file="effecst/telephone.aaxs"/>
+   <instrument n="126" name="Helicopter" file="effecst/helicopter.aaxs"/>
    <instrument n="127" name="Applause" file=".aaxs"/>
-   <instrument n="128" name="Gunshot" file="gunshot.aaxs"/>
+   <instrument n="128" name="Gunshot" file="effecst/gunshot.aaxs"/>
+  </bank>
+
+  <bank n="8">
+   <instrument n="5" name="Detuned Electric Piano 1" file="piano-electric1-detuned.aaxs"/>
+   <instrument n="6" name="Detuned Electric Piano 2" file="piano-electric2-detuned.aaxs"/>
+   <instrument n="7" name="Coupled Harpsichord" file="harpsichord-coupled.aaxs"/>
+   <instrument n="15" name="Church Bell" file="bells-church.aaxs"/>
+   <instrument n="17" name="Detuned Drawbar Organ" file="organ-drawbar-detuned.aaxs"/>
+   <instrument n="22" name="Italian Accordion" file="accordion-italian.aaxs"/>
   </bank>
  </midi>
 

@@ -1,16 +1,16 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017 by Erik Hofman.
- * Copyright (C) 2017 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
  <sound name="Lead 7 (fifths)" program="87" bank="0" frequency="220" duration="0.1">
-  <waveform src="sawtooth"/>
-  <waveform src="sawtooth" processing="mix" pitch="1.4889"/>
+  <waveform src="square" ratio="0.3"/>
+  <waveform src="sawtooth" processing="add" ratio="0.3" pitch="1.4989"/>
  </sound>
 
  <instrument>
@@ -18,16 +18,28 @@
  </instrument>
 
  <emitter>
-  <filter type="frequency" src="inverse-sine">
+  <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0" pitch="3.0">660</param>
+    <param n="0" pitch="0.1">22</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">1.0</param>
+    <param n="3">2.0</param>
    </slot>
    <slot n="1">
-    <param n="0"pitch="6">1320</param>
-    <param n="3">0.07</param>
+    <param n="0"pitch="4">880</param>
+    <param n="3">0.7</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1" factor="velocity">0.04</param>
+    <param n="2" factor="soften">1.1</param>
+    <param n="3">0.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.9</param>
+    <param n="1">5.5</param>
    </slot>
   </filter>
  </emitter>
