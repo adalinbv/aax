@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Machine Gun" program="128" bank="0" frequency="220" duration="0.2">
+  <waveform src="white-noise" pitch="0.25"/>
+  <filter type="frequency" src="12db">
+   <slot n="0">
+    <param n="0" pitch="16.0">80</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">1.2</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" repeat="max">
+   <slot n="0">
+    <param n="0">2.0</param>
+    <param n="1" factor="velocity">0.03</param>
+    <param n="2" factor="soften">1.0</param>
+    <param n="3">0.055</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.8</param>
+    <param n="1" factor="velocity">0.01</param>
+    <param n="2">0.7</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>

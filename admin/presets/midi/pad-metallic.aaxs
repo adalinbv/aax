@@ -1,45 +1,62 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <sound name="Pad 6 (metallic)" program="94" bank="0" frequency="220" duration="0.10">
-  <waveform src="triangle" ratio="0.8" pitch="0.9899"/>
-  <waveform src="sine" processing="mix" ratio="0.1" pitch="1.9599"/>
-  <waveform src="sine" processing="modulate" ratio="1.0" pitch="3.9599"/>
+ <sound name="Pad 6 (metallic)" program="94" bank="0" frequency="220" duration="
+0.10">
+  <waveform src="square" pitch="0.9"/>
+  <waveform src="square" processing="mix" ratio="0.5" pitch="1.987"/>
+  <waveform src="sawtooth" processing="modulate" ratio="0.6" pitch="2.4997"/>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="7.0">1540</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
  </sound>
 
  <instrument>
-  <note polyphony="4" min="21" max="108" step="1"/>
+  <note polyphony="8" min="21" max="108" step="1"/>
  </instrument>
 
  <emitter looping="true">
-  <filter type="timed-gain">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1" factor="velocity">0.14</param>
-    <param n="2" factor="soften">1.0</param>
-    <param n="3">0.55</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.80</param>
-    <param n="1" factor="sustain">inf</param>
-   </slot>
-  </filter>
-  </emitter>
-
- <audioframe>
-  <effect type="chorus" src="sine">
+  <filter type="envelope">
    <slot n="0">
     <param n="0">0.2</param>
-    <param n="1">0.1</param>
-    <param n="2">0.3</param>
-    <param n="3">0.4</param>
+    <param n="1" factor="velocity">0.04</param>
+    <param n="2" factor="soften">1.2</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.00</param>
+    <param n="1">inf</param>
+   </slot>
+  </filter>
+  <effect type="phasing" src="inverse-sine">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.09</param>
+    <param n="2">0.4</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <effect type="phasing" src="triangle">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.03</param>
+    <param n="2">0.7</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </audioframe>

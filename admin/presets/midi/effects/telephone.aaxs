@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Telephone Ring"  program="125" bank="0" frequency="1250" duration="0.10">
+  <waveform src="square" pitch="0.985"/>
+  <waveform src="sawtooth" processing="mix" pitch="2.9"/>
+  <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="dynamic-gain" src="sawtooth">
+   <slot n="0">
+    <param n="1">15.0</param>
+    <param n="2">1.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" repeat="2400">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+    <param n="2">2.0</param>
+    <param n="3">1.2</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.04</param>
+    <param n="3">1.8</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>

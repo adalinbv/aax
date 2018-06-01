@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Rain" program="123" bank="1" frequency="220" duration="3.0">
+  <waveform src="white-noise" pitch="0.20"/>
+  <waveform src="pink-noise" processing="modulate" ratio="30.0"/>
+  <waveform src="pink-noise" processing="modulate" ratio="3.0" pitch="2.0"/>
+  <filter type="frequency" src="36db">
+   <slot n="0">
+    <param n="0" pitch="1.5">550</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <instrument>
+  <note polyphony="88" min="0" max="108" step="1"/>
+ </instrument>
+
+</aeonwave>

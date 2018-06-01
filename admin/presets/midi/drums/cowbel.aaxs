@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Cowbel" frequency="220" duration="0.10">
+  <waveform src="triangle" pitch="1.696"/>
+  <waveform src="square" processing="modulate" ratio="1.0" pitch="4.0987"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.50</param>
+    <param n="1" factor="velocity">0.05</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.02</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.80</param>
+    <param n="1" auto-sustain="0.1" factor="sustain">0.55</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.01</param>
+    <param n="1" factor="velocity">0.02</param>
+    <param n="2">0.98</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>

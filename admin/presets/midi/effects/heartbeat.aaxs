@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Human Heartbeat" program="127" bank="4" frequency="220">
+  <waveform src="white-noise" pitch="0.25"/>
+  <waveform src="impulse" processing="modulate" ratio="0.8" pitch="0.2"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="envelope|24db">
+   <slot n="0">
+    <param n="0" pitch="0.1">22</param>
+    <param n="1">0.4</param>
+    <param n="2">0.0</param>
+    <param n="3">2.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="7">1000</param>
+    <param n="3">5.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.043</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
