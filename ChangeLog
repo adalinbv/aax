@@ -1,4 +1,12 @@
-* Sat May 26 2018 - tech@adalin.org
+* Sat Jun 02 2018 - tech@adalin.org
+- AeonWave (3.1.2) stable; urgency=low
+ * Delever on the promis that one can add a named, but empty, buffer in
+   case aaxBufferReadFromStream fails when calling buffer() from the
+   aeonwave class.
+
+-- Erik Hofman <tech@adalin.org>  Fri 02 Jun  2018 23:41:00 + 0200
+
+* Fri Jun 01 2018 - tech@adalin.org
 - AeonWave (3.1.1) stable; urgency=medium
  * Add the aaxPlaySoundLogo() function to play back the official sound
    logo at the requested device.
@@ -11,7 +19,7 @@
  * Fix a case where LFO filters and/or effects could be initialized improperly
    for use with audio-frames.
 
--- Erik Hofman <tech@adalin.org>  Sat 26 May  2018 15:15:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 01 Jun  2018 15:15:00 + 0200
 
 * Sat May 21 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=high
@@ -45,7 +53,7 @@
  * Increase the http stream timeout value. The default was too low.
  * Protect against deregistering an unregistered audio-frame or emitter.
 
--- Erik Hofman <tech@adalin.org>  Sat 21 May  2018 13:44:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Sat 21 May  2018 13:44:00 + 0200
 
 
 * Fri Jan 05  2018 - tech@adalin.org
