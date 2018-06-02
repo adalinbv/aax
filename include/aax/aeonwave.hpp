@@ -777,12 +777,14 @@ public:
     // Get a shared buffer from the buffer cache if it's name is already
     // in the cache. Otherwise create a new one and add it to the cache.
     // The name can be an URL or a path to a file or just a reference-id.
-    // In the case of an RUL of a path the data is read automatically,
+    // In the case of an URL of a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
     Buffer& buffer(std::string name) {
         buffer_it it = buffers.find(name);
         if (it == buffers.end()) {
-            std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(aaxBufferReadFromStream(ptr,name.c_str()),false))));
+            aaxBuffer b = aaxBufferReadFromStream(ptr,name.c_str());
+            if (!b) b = aaxBufferCreate(ptr,1,1,AAX_PCM16S);
+            std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(b,false))));
             it = ret.first;
         }
         it->second.first++;
