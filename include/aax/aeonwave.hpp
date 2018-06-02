@@ -783,7 +783,7 @@ public:
         buffer_it it = buffers.find(name);
         if (it == buffers.end()) {
             aaxBuffer b = aaxBufferReadFromStream(ptr,name.c_str());
-            if (!b) b = aaxBufferCreate(ptr,1,1,AAX_PCM16S);
+            if (!b) { aaxGetErrorNo(); b=aaxBufferCreate(ptr,1,1,AAX_PCM16S); }
             std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(b,false))));
             it = ret.first;
         }
