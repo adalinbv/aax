@@ -114,6 +114,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    _aaxRingBufferFreqFilterData *freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
+   _aaxLFOData *bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
    static const size_t bps = sizeof(MIX_T);
    size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
    void *distort_data = NULL;
@@ -144,6 +145,26 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       occlusion->run(rbd, pdst, psrc, scratch, no_samples, track, occlusion);
       BUFSWAP(pdst, psrc);
+   }
+
+   if (bitcrush)
+   {
+      float g, ginv;
+      if (bitcrush->envelope)
+      {
+         g = bitcrush->get(bitcrush, NULL, psrc, 0, no_samples);
+         if (bitcrush->inv) g = 1.0f/g;
+      }
+      else {
+         g = bitcrush->get(bitcrush, NULL, NULL, 0, 0);
+      }
+
+      g = powf(2.0f, 8+sqrtf(g)*11.5f);	// 24-bits per sample
+      ginv = 1.0f/g;
+      _batch_fmul_value(psrc, sizeof(MIX_T), no_samples, ginv);
+      _batch_cvt24_ps24(psrc, psrc, no_samples);
+      _batch_cvtps24_24(psrc, psrc, no_samples);
+      _batch_fmul_value(psrc, sizeof(MIX_T), no_samples, g);
    }
 
    /* Apply frequency filter first */

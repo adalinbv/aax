@@ -105,6 +105,7 @@ extern _flt_function_tbl _aaxCompressor;
 extern _flt_function_tbl _aaxVolumeFilter;
 extern _flt_function_tbl _aaxFrequencyFilter;
 extern _flt_function_tbl _aaxDynamicGainFilter;
+extern _flt_function_tbl _aaxBitCrusherFilter;
 extern _flt_function_tbl _aaxTimedGainFilter;
 extern _flt_function_tbl _aaxAngularFilter;
 extern _flt_function_tbl _aaxDistanceFilter;

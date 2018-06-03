@@ -76,6 +76,7 @@ _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
    &_aaxAngularFilter,
    &_aaxDistanceFilter,
    &_aaxFrequencyFilter,
+   &_aaxBitCrusherFilter,
    &_aaxGraphicEqualizer,
    &_aaxCompressor
 };
@@ -202,6 +203,7 @@ const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
   { AAX_ANGULAR_FILTER,         ANGULAR_FILTER },
   { AAX_DISTANCE_FILTER,        DISTANCE_FILTER },
   { AAX_FREQUENCY_FILTER,       FREQUENCY_FILTER },
+  { AAX_BITCRUSHER_FILTER,	BITCRUSHER_FILTER },
   { AAX_GRAPHIC_EQUALIZER,      FREQUENCY_FILTER },
   { AAX_COMPRESSOR,             DYNAMIC_GAIN_FILTER }
 };

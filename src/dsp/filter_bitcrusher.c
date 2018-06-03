@@ -33,12 +33,11 @@
 
 #include <aax/aax.h>
 
-#include <base/types.h>		/* for rintf */
-#include <base/gmath.h>
-
 #include "common.h"
 #include "filters.h"
 #include "api.h"
+
+static float _aaxBitCrusherFilterMinMax(float, int, unsigned char);
 
 static aaxFilter
 _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -48,7 +47,8 @@ _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos);
+      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
+      flt->slot[0]->destroy = _lfo_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -57,6 +57,8 @@ _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxBitCrusherFilterDestroy(_filter_t* filter)
 {
+   filter->slot[0]->destroy(filter->slot[0]->data);
+   filter->slot[0]->data = NULL;
    free(filter);
 
    return AAX_TRUE;
@@ -65,8 +67,79 @@ _aaxBitCrusherFilterDestroy(_filter_t* filter)
 static aaxFilter
 _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 {
-   filter->slot[0]->state = state;
-   return filter;
+   void *handle = filter->handle;
+   aaxFilter rv = AAX_FALSE;
+   int stereo;
+
+   assert(filter->info);
+
+   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   state &= ~AAX_LFO_STEREO;
+
+   filter->state = state;
+   switch (state & ~AAX_INVERSE)
+   {
+   case AAX_CONSTANT_VALUE:
+   case AAX_TRIANGLE_WAVE:
+   case AAX_SINE_WAVE:
+   case AAX_SQUARE_WAVE:
+   case AAX_SAWTOOTH_WAVE:
+   case AAX_ENVELOPE_FOLLOW:
+   {
+      _aaxLFOData* lfo = filter->slot[0]->data;
+      if (lfo == NULL) {
+         filter->slot[0]->data = lfo = _lfo_create();
+      }
+
+      if (lfo)
+      {
+         float offs, depth;
+         int constant;
+
+         lfo->convert = _linear;
+         lfo->state = filter->state;
+         lfo->fs = filter->info->frequency;
+         lfo->period_rate = filter->info->period_rate;
+         lfo->envelope = AAX_FALSE;
+         lfo->stereo_lnk = !stereo;
+
+         offs = filter->slot[0]->param[AAX_LFO_OFFSET];
+         depth = filter->slot[0]->param[AAX_LFO_DEPTH];
+         if ((offs + depth) > 1.0f) {
+            depth = 1.0f - offs;
+         }
+
+         lfo->min_sec = offs/lfo->fs;
+         lfo->max_sec = lfo->min_sec + depth/lfo->fs;
+         lfo->depth = 1.0f;
+         lfo->offset = 0.0f;
+         lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
+         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+         if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
+         {
+            lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
+            lfo->max_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs + lfo->min_sec;
+         }
+
+         constant = _lfo_set_timing(lfo);
+         if (!_lfo_set_function(lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+      }
+      else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      break;
+   }
+   case AAX_FALSE:
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+      break;
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      break;
+   }
+   rv = filter;
+   return rv;
 }
 
 static _filter_t*
@@ -81,6 +154,7 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
       unsigned int size = sizeof(_aaxFilterInfo);
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      rv->slot[0]->destroy = p2d->filter[rv->pos].destroy;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;
@@ -92,9 +166,6 @@ static float
 _aaxBitCrusherFilterSet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
-      rv = _lin2db(val);
-   }
    return rv;
 }
 
@@ -102,9 +173,6 @@ static float
 _aaxBitCrusherFilterGet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
-   if (param < 3 && ptype == AAX_LOGARITHMIC) {
-      rv = _db2lin(val);
-   }
    return rv;
 }
 
@@ -113,10 +181,10 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxBitCrusherRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 1.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }, 
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 0.0f, 50.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }, 
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);

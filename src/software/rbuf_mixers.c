@@ -126,6 +126,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
     */
    if (new_srb_pos_sec >= -dduration)
    {
+      _aaxLFOData *bitcrush;
       _aaxRingBufferReflectionData *reflections;
       _aaxRingBufferDelayEffectData* delay_effect;
       _aaxRingBufferFreqFilterData* freq_filter;
@@ -140,6 +141,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);  // phasing, etc.
       freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
       dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
+      bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
 
       /* source */
       sstart = 0;
@@ -209,7 +211,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 #endif
       if (track_ptr && dno_samples)
       {
-         char eff = (freq_filter || delay_effect || dist_state || reflections) ? 1 : 0;
+         char eff = (freq_filter || delay_effect || dist_state || bitcrush || reflections) ? 1 : 0;
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
          unsigned int track;
