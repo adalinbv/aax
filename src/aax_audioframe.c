@@ -479,6 +479,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       }
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
+      case AAX_BITCRUSHER_FILTER:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_COMPRESSOR:
       {
@@ -555,6 +556,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       {
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
+      case AAX_BITCRUSHER_FILTER:
       case AAX_VOLUME_FILTER:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DISTANCE_FILTER:

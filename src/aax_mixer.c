@@ -498,6 +498,7 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
          }
          case AAX_COMPRESSOR:
          case AAX_DYNAMIC_GAIN_FILTER:
+         case AAX_BITCRUSHER_FILTER:
          case AAX_TIMED_GAIN_FILTER:
          {
             _aaxAudioFrame *mixer = sensor->mixer;
@@ -563,6 +564,7 @@ aaxMixerGetFilter(const aaxConfig config, enum aaxFilterType type)
       case AAX_VOLUME_FILTER:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
+      case AAX_BITCRUSHER_FILTER:
       case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

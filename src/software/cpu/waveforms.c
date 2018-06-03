@@ -51,7 +51,7 @@
 
 static float _gains[MAX_WAVE];
 
-static float _aax_rand_sample();
+float _aax_rand_sample();
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_resample_float(float32_ptr, const_float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
@@ -290,9 +290,9 @@ _aax_hash3(unsigned int h1, unsigned int h2, unsigned int h3) {
 // https://en.wikipedia.org/wiki/Xorshift#xorshift+
 /* This generator is one of the fastest generators passing BigCrush */
 /* The state must be seeded so that it is not all zero */
-uint64_t _xor_s[2];
+static uint64_t _xor_s[2];
 
-static uint64_t
+uint64_t
 xorshift128plus()
 {
    uint64_t x = _xor_s[0];
@@ -306,14 +306,14 @@ xorshift128plus()
 
 #define _aax_random()		((double)xorshift128plus()/UINT64_MAX)
 
-static float
+float
 _aax_rand_sample()
 {
    float r = (double)(int64_t)xorshift128plus()/(double)INT64_MAX;
    return r;
 }
 
-static void
+void
 _aax_srandom()
 {
    static int init = -1;
