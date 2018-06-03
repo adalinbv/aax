@@ -84,7 +84,6 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_SINE_WAVE:
    case AAX_SQUARE_WAVE:
    case AAX_SAWTOOTH_WAVE:
-   case AAX_ENVELOPE_FOLLOW:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
@@ -103,6 +102,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          lfo->envelope = AAX_FALSE;
          lfo->stereo_lnk = !stereo;
 
+printf("filter->slot[0]->param[AAX_NOISE_LEVEL]: %f\n", filter->slot[0]->param[AAX_NOISE_LEVEL]);
          offs = filter->slot[0]->param[AAX_LFO_OFFSET];
          depth = filter->slot[0]->param[AAX_LFO_DEPTH];
          if ((offs + depth) > 1.0f) {
@@ -115,12 +115,6 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          lfo->offset = 0.0f;
          lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-
-         if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
-         {
-            lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
-            lfo->max_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs + lfo->min_sec;
-         }
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {
@@ -181,7 +175,7 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxBitCrusherRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 0.0f, 50.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 1.5f, 50.0f, 1.0f, 1.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }, 
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }

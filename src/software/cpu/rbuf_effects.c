@@ -39,6 +39,10 @@
 #include <software/renderer.h>
 #include <software/gpu/gpu.h>
 
+void _aax_srandom();
+uint64_t xorshift128plus();
+
+
 /**
  * 1nd order effects:
  *   Apply to registered emitters and registered sensors only.
@@ -149,7 +153,14 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    if (bitcrush)
    {
-      float g, ginv;
+      float g, ginv, ratio;
+      unsigned char bps;
+      unsigned int i;
+
+      bps = sizeof(MIX_T);
+      ratio = _FILTER_GET(p2d, BITCRUSHER_FILTER, AAX_NOISE_LEVEL);
+      ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
+
       if (bitcrush->envelope)
       {
          g = bitcrush->get(bitcrush, NULL, psrc, 0, no_samples);
@@ -161,10 +172,15 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
       g = powf(2.0f, 8+sqrtf(g)*11.5f);	// 24-bits per sample
       ginv = 1.0f/g;
-      _batch_fmul_value(psrc, sizeof(MIX_T), no_samples, ginv);
+      _batch_fmul_value(psrc, bps, no_samples, ginv);
       _batch_cvt24_ps24(psrc, psrc, no_samples);
       _batch_cvtps24_24(psrc, psrc, no_samples);
-      _batch_fmul_value(psrc, sizeof(MIX_T), no_samples, g);
+      _batch_fmul_value(psrc, bps, no_samples, g);
+
+      _aax_srandom();
+      for (i=0; i<no_samples; ++i) {
+         psrc[i] += ratio*xorshift128plus();
+      }
    }
 
    /* Apply frequency filter first */
