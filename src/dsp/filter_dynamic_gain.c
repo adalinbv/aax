@@ -105,7 +105,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             lfo->fs = filter->info->frequency;
             lfo->period_rate = filter->info->period_rate;
             lfo->envelope = AAX_TRUE;
-            lfo->stereo_lnk = !stereo;
+            lfo->stereo_lnk = AAX_TRUE;
 
             f = filter->slot[0]->param[AAX_RELEASE_RATE];
             lfo->min_sec = _aaxDynamicGainFilterMinMax(f, 0, AAX_RELEASE_RATE);
@@ -136,7 +136,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             lfo->fs = filter->info->frequency;
             lfo->period_rate = filter->info->period_rate;
             lfo->envelope = AAX_FALSE;
-            lfo->stereo_lnk = AAX_TRUE;
+            lfo->stereo_lnk = !stereo;
 
             lfo->min_sec = 0.0f;
             lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
