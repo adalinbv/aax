@@ -1,5 +1,6 @@
 * Sat Jun 02 2018 - tech@adalin.org
 - AeonWave (3.1.2) stable; urgency=low
+ * Add the bitcrusher filter to simulate sound degradation.
  * Delever on the promis that one can add a named, but empty, buffer in
    case aaxBufferReadFromStream fails when calling buffer() from the
    aeonwave class.

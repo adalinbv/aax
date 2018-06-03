@@ -29,6 +29,7 @@ set(DSP_SOURCES
   filter_frequency.c
   filter_graphic_equalizer.c
   filter_timed_gain.c
+  filter_bitcrusher.c
   filter_volume.c
 )
 
