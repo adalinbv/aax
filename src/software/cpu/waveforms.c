@@ -36,12 +36,10 @@
 #include <assert.h>
 #include <sys/types.h>
 #include <sys/time.h>
-#ifdef HAVE_SYS_RANDOM_H
-# include <sys/random.h>
-#endif
 
 #include <base/gmath.h>
 #include <base/types.h>
+#include <base/random.h>
 
 #include <api.h>
 #include <arch.h>
@@ -51,7 +49,6 @@
 
 static float _gains[MAX_WAVE];
 
-float _aax_rand_sample();
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_resample_float(float32_ptr, const_float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
@@ -282,62 +279,6 @@ float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
 
 };
 
-static int
-_aax_hash3(unsigned int h1, unsigned int h2, unsigned int h3) {
-    return (((h1 * 2654435789U) + h2) * 2654435789U) + h3;
-}
-
-// https://en.wikipedia.org/wiki/Xorshift#xorshift+
-/* This generator is one of the fastest generators passing BigCrush */
-/* The state must be seeded so that it is not all zero */
-static uint64_t _xor_s[2];
-
-uint64_t
-xorshift128plus()
-{
-   uint64_t x = _xor_s[0];
-   uint64_t const y = _xor_s[1];
-
-   _xor_s[0] = y;
-   x ^= x << 23;
-   _xor_s[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
-   return _xor_s[1] + y;
-}
-
-#define _aax_random()		((double)xorshift128plus()/UINT64_MAX)
-
-float
-_aax_rand_sample()
-{
-   float r = (double)(int64_t)xorshift128plus()/(double)INT64_MAX;
-   return r;
-}
-
-void
-_aax_srandom()
-{
-   static int init = -1;
-   if (init < 0)
-   {
-      unsigned int size = 2*sizeof(uint64_t);
-      unsigned int num = 0;
-
-#ifdef HAVE_SYS_RANDOM_H
-      num = getrandom(_xor_s, size, 0);
-#endif
-
-      if (num < size)
-      {
-         struct timeval time;
-
-         gettimeofday(&time, NULL);
-         srand(_aax_hash3(time.tv_sec, time.tv_usec, getpid()));
-         _xor_s[0] = (uint64_t)rand() * rand();
-         _xor_s[1] = ((uint64_t)rand() * rand()) ^ _xor_s[0];
-      }
-   }
-}
-
 /**
  * Generate a waveform based on the harminics list
  * output range is -1.0 .. 1.0
@@ -390,7 +331,6 @@ _aax_generate_noise(size_t no_samples, UNUSED(float gain), unsigned char skip)
       int i = no_samples;
       float *ptr = rv;
 
-      _aax_srandom();
       memset(rv, 0, no_samples*sizeof(float));
       do
       {

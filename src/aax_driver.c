@@ -418,6 +418,7 @@ aaxDriverOpen(aaxConfig config)
             }
          }
          _aaxDriverBackendClearConfigSettings(cfg);
+         _aax_srandom();
       }
    }
 
