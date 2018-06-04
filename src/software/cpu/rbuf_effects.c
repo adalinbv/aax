@@ -28,6 +28,7 @@
 
 #include <base/logging.h>
 #include <base/geometry.h>
+#include <base/random.h>
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
@@ -38,9 +39,6 @@
 #include <software/rbuf_int.h>
 #include <software/renderer.h>
 #include <software/gpu/gpu.h>
-
-void _aax_srandom();
-uint64_t xorshift128plus();
 
 
 /**
@@ -153,33 +151,29 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    if (bitcrush)
    {
-      float g, ginv, ratio;
-      unsigned char bps;
-      unsigned int i;
+      float level, ratio;
 
-      bps = sizeof(MIX_T);
-      ratio = _FILTER_GET(p2d, BITCRUSHER_FILTER, AAX_NOISE_LEVEL);
-      ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
-
-      if (bitcrush->envelope)
+      level = bitcrush->get(bitcrush, NULL, NULL, 0, 0);
+      if (level > 0.01f)
       {
-         g = bitcrush->get(bitcrush, NULL, psrc, 0, no_samples);
-         if (bitcrush->inv) g = 1.0f/g;
-      }
-      else {
-         g = bitcrush->get(bitcrush, NULL, NULL, 0, 0);
+         unsigned bps = sizeof(MIX_T);
+
+         level = powf(2.0f, 8+sqrtf(level)*11.5f);	// 24-bits per sample
+         _batch_fmul_value(psrc, bps, no_samples, 1.0f/level);
+         _batch_cvt24_ps24(psrc, psrc, no_samples);
+         _batch_cvtps24_24(psrc, psrc, no_samples);
+         _batch_fmul_value(psrc, bps, no_samples, level);
       }
 
-      g = powf(2.0f, 8+sqrtf(g)*11.5f);	// 24-bits per sample
-      ginv = 1.0f/g;
-      _batch_fmul_value(psrc, bps, no_samples, ginv);
-      _batch_cvt24_ps24(psrc, psrc, no_samples);
-      _batch_cvtps24_24(psrc, psrc, no_samples);
-      _batch_fmul_value(psrc, bps, no_samples, g);
+      ratio = _FILTER_GET(p2d, BITCRUSHER_FILTER, AAX_NOISE_LEVEL);
+      if (ratio > 0.01f)
+      {
+         unsigned int i;
 
-      _aax_srandom();
-      for (i=0; i<no_samples; ++i) {
-         psrc[i] += ratio*xorshift128plus();
+         ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
+         for (i=0; i<no_samples; ++i) {
+            psrc[i] += ratio*xorshift128plus();
+         }
       }
    }
 
