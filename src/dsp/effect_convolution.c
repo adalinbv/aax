@@ -382,7 +382,6 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       int step;
 
       v = convolution->rms * convolution->delay_gain;
-printf("v: %f, rms: %f, delay_gain: %f\n", v, convolution->rms, convolution->delay_gain);
       threshold = convolution->threshold * (float)(1<<23);
       step = convolution->step;
 

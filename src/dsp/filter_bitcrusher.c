@@ -102,7 +102,6 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          lfo->envelope = AAX_FALSE;
          lfo->stereo_lnk = !stereo;
 
-printf("filter->slot[0]->param[AAX_NOISE_LEVEL]: %f\n", filter->slot[0]->param[AAX_NOISE_LEVEL]);
          offs = filter->slot[0]->param[AAX_LFO_OFFSET];
          depth = filter->slot[0]->param[AAX_LFO_DEPTH];
          if ((offs + depth) > 1.0f) {
