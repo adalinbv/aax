@@ -31,11 +31,11 @@
     <param n="0">0.70</param>
     <param n="1">0.10</param>
     <param n="2">0.60</param>
-    <param n="3">0.05</param>
+    <param n="3">0.50</param>
    </slot>
    <slot n="2">
     <param n="0">0.45</param>
-    <param n="1" factor="sustain">1.8</param>
+    <param n="1" factor="sustain">2.8</param>
    </slot>
   </filter>
  </emitter>
