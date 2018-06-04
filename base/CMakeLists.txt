@@ -9,6 +9,7 @@ set(BASE_HEADERS
   threads.h
   timer.h
   types.h
+  random.h
 )
 
 set(BASE_SOURCES
@@ -21,6 +22,7 @@ set(BASE_SOURCES
   threads.c
   timer.c
   types.c
+  random.c
 )
 
 set(SOURCES "")
