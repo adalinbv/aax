@@ -1,11 +1,11 @@
-* Sat Jun 02 2018 - tech@adalin.org
+* Tue Jun 05 2018 - tech@adalin.org
 - AeonWave (3.1.2) stable; urgency=low
- * Add the bitcrusher filter to simulate sound degradation.
+ * Add the bitcrusher filter to simulate (communication line) sound degradation.
  * Delever on the promis that one can add a named, but empty, buffer in
    case aaxBufferReadFromStream fails when calling buffer() from the
    aeonwave class.
 
--- Erik Hofman <tech@adalin.org>  Fri 02 Jun  2018 23:41:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue 05 Jun  2018 20:48:00 + 0200
 
 * Fri Jun 01 2018 - tech@adalin.org
 - AeonWave (3.1.1) stable; urgency=medium
