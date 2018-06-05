@@ -38,6 +38,7 @@
 
 #include <base/gmath.h>
 #include <base/logging.h>
+#include <base/random.h>
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>

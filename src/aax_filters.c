@@ -338,6 +338,9 @@ aaxFilterGetByName(UNUSED(aaxConfig handle), const char *name)
             !strncasecmp(name, "tremolo", slen)) {
        rv = AAX_DYNAMIC_GAIN_FILTER;
    }
+   else if (!strncasecmp(name, "bitcrusher", slen)) {
+       rv = AAX_BITCRUSHER_FILTER;
+   }
    else if (!strncasecmp(name, "timed_gain", slen) ||
             !strncasecmp(name, "envelope", slen)) {
       rv = AAX_TIMED_GAIN_FILTER;
