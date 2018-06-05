@@ -149,6 +149,13 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       BUFSWAP(pdst, psrc);
    }
 
+   /* Apply frequency filter first */
+   if (freq)
+   {
+      freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, ctr);
+      BUFSWAP(pdst, psrc);
+   }
+
    if (bitcrush)
    {
       float level, ratio;
@@ -158,7 +165,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       {
          unsigned bps = sizeof(MIX_T);
 
-         level = powf(2.0f, 8+sqrtf(level)*11.5f);	// 24-bits per sample
+         level = powf(2.0f, 8+sqrtf(level)*11.5f);      // 24-bits per sample
          _batch_fmul_value(psrc, bps, no_samples, 1.0f/level);
          _batch_cvt24_ps24(psrc, psrc, no_samples);
          _batch_cvtps24_24(psrc, psrc, no_samples);
@@ -175,13 +182,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
             psrc[i] += ratio*xorshift128plus();
          }
       }
-   }
-
-   /* Apply frequency filter first */
-   if (freq)
-   {
-      freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, ctr);
-      BUFSWAP(pdst, psrc);
    }
 
    if (distort_data)
