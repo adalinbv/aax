@@ -10,23 +10,15 @@
 
  <sound name="Human Footstep" program="127" bank="4" frequency="220">
   <waveform src="pink-noise" pitch="0.125"/>
-  <waveform src="impulse" processing="modulate" ratio="1.0" pitch="0.02"/>
-  <waveform src="impulse" processing="modulate" ratio="1.0" pitch="0.02"/>
-  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
+  <waveform src="impulse" processing="modulate" ratio="1.2" pitch="0.02"/>
+  <waveform src="impulse" processing="modulate" ratio="2.0" pitch="0.02"/>
+  <waveform src="impulse" processing="modulate" ratio="1.2" pitch="0.32"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0">440</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">2.5</param>
-   </slot>
-  </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.33</param>
+    <param n="0">0.37</param>
    </slot>
   </effect>
  </emitter>
