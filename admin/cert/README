@@ -1,0 +1,91 @@
+http://blog.didierstevens.com/2008/12/30/howto-make-your-own-cert-with-openssl/
+
+First we generate a 4096-bit long RSA key for our root CA and store it in file ca.key:
+
+openssl genrsa -out ca.key 4096
+
+Generating RSA private key, 4096 bit long modulus
+...................................................................................++
+........................................................................++
+e is 65537 (0x10001)
+
+If you want to password-protect this key, add option -des3.
+
+Next, we create our self-signed root CA certificate ca.crt; you’ll need to provide an identity for your root CA:
+
+openssl req -new -x509 -days 1826 -key ca.key -out ca.crt
+
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [GB]:BE
+State or Province Name (full name) [Berkshire]:Brussels
+Locality Name (eg, city) [Newbury]:Brussels
+Organization Name (eg, company) [My Company Ltd]:https://DidierStevens.com
+Organizational Unit Name (eg, section) []:
+Common Name (eg, your name or your server's hostname) []:Didier Stevens (https://DidierStevens.com)
+Email Address []:didier stevens Google mail
+
+The -x509 option is used for a self-signed certificate. 1826 days gives us a cert valid for 5 years.
+
+Next step: create our subordinate CA that will be used for the actual signing. First, generate the key:
+
+openssl genrsa -out ia.key 4096
+
+Generating RSA private key, 4096 bit long modulus
+.....++
+.............................................................................++
+e is 65537 (0x10001)
+
+Then, request a certificate for this subordinate CA:
+
+openssl req -new -key ia.key -out ia.csr
+
+You are about to be asked to enter information that will be incorporated
+into your certificate request.
+What you are about to enter is what is called a Distinguished Name or a DN.
+There are quite a few fields but you can leave some blank
+For some fields there will be a default value,
+If you enter '.', the field will be left blank.
+-----
+Country Name (2 letter code) [GB]:BE
+State or Province Name (full name) [Berkshire]:Brussels
+Locality Name (eg, city) [Newbury]:Brussels
+Organization Name (eg, company) [My Company Ltd]:https://DidierStevens.com
+Organizational Unit Name (eg, section) []:Didier Stevens Code Signing (https://DidierStevens.com)
+Common Name (eg, your name or your server's hostname) []:
+Email Address []:didier stevens Google mail
+
+Please enter the following 'extra' attributes
+to be sent with your certificate request
+A challenge password []:
+An optional company name []:
+
+Next step: process the request for the subordinate CA certificate and get it signed by the root CA.
+
+openssl x509 -req -days 730 -in ia.csr -CA ca.crt -CAkey ca.key -set_serial 01 -out ia.crt
+
+Signature ok
+subject=/C=BE/ST=Brussels/L=Brussels/O=https://DidierStevens.com/OU=Didier Stevens Code Signing (https://DidierStevens.com)/emailAddress=didier stevens Google mail
+Getting CA Private Key
+
+The cert will be valid for 2 years (730 days) and I decided to choose my own serial number 01 for this cert (-set_serial 01). For the root CA, I let OpenSSL generate a random serial number.
+
+That’s all there is to it! Of course, there are many options I didn’t use. Consult the OpenSSL documentation for more info. For example, I didn’t restrict my subordinate CA key usage to digital signatures. It can be used for anything, even making another subordinate CA. When you buy a code signing certificate, the CA company will limit its use to code signing.
+
+o use this subordinate CA key for Authenticode signatures with Microsoft’s signtool, you’ll have to package the keys and certs in a PKCS12 file:
+
+openssl pkcs12 -export -out ia.p12 -inkey ia.key -in ia.crt -chain -CAfile ca.crt
+
+Enter Export Password:
+Verifying - Enter Export Password:
+
+To sign executables in Windows with the signtool: install file ia.p12 in your certificate store (e.g. double click it), and then use signtool /wizard to sign your PE file.
+
+I’ve used this process to generate certs for my own code signing, and for my Authenticode Challenge.
+
+Update: don’t have OpenSSL? Use my website https://toolbokz.com/gencert.psp
