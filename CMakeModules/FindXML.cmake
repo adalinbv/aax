@@ -10,12 +10,12 @@
 #
 # Created by Erik Hofman.
 
-set(ProgramFilesx86 "ProgramFiles(x86)")
+set(ProgramFilesx86 "PROGRAMFILES(x86)")
 
 FIND_PATH(XML_INCLUDE_DIR xml.h
   HINTS
   $ENV{XMLDIR}
-  $ENV{ProgramFiles}/ZeroXML
+  $ENV{PROGRAMFILES}/ZeroXML
   $ENV{${ProgramFilesx86}}/ZeroXML
   PATH_SUFFIXES include
   PATHS
@@ -66,5 +66,6 @@ ENDIF(RMALLOC)
 
 SET(XML_FOUND "NO")
 IF(XML_LIBRARY AND XML_INCLUDE_DIR)
+  include_directories(${XML_INCLUDE_DIR})
   SET(XML_FOUND "YES")
 ENDIF(XML_LIBRARY AND XML_INCLUDE_DIR)
