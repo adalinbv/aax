@@ -95,10 +95,31 @@ int main(int argc, char **argv)
             testForError(filter, "aaxFilterCreate");
 
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.1f, 0.02f, 0.6f, 0.3f);
+                                              0.1f, 0.02f, 0.7f, 0.3f);
             testForState(res, "aaxFilterSetSlot 0");
 
             res = aaxFilterSetState(filter, AAX_SINE_WAVE);
+            testForState(res, "aaxFilterSetState");
+
+            res = aaxEmitterSetFilter(emitter, filter);
+            testForState(res, "aaxEmitterSetFilter");
+
+            res = aaxFilterDestroy(filter);
+            testForState(res, "aaxFilterDestroy");
+
+            /* frequency filter for emitter */
+            filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
+            testForError(filter, "aaxFilterCreate");
+
+            res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
+                                              440.0f, 1.0f, 0.0f, 0.0f);
+            testForState(res, "aaxFilterSetSlot 0");
+
+            res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
+                                              22500.0f, 0.0f, 0.0f, 0.02f);
+            testForState(res, "aaxFilterSetSlot 1");
+
+            res = aaxFilterSetState(filter, AAX_INVERSE_SINE_WAVE);
             testForState(res, "aaxFilterSetState");
 
             res = aaxEmitterSetFilter(emitter, filter);
