@@ -38,9 +38,8 @@
 
 #include <api.h>
 
-#include "arch.h"
-#include "audio.h"
-#include "renderer.h"
+#include <software/renderer.h>
+#include <software/audio.h>
 
 #define NONE_RENDERER		"None"
 #define DEFAULT_RENDERER	AAX_NAME_STR""

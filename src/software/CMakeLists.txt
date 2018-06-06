@@ -1,7 +1,6 @@
 
 set(SOFTWARE_HEADERS
   audio.h
-  device.h
   renderer.h
 )
 
@@ -9,7 +8,6 @@ set(SOFTWARE_SOURCES
   arch_arm.c
   arch.c
   arch_x86.c
-  device.c
   emitter.c
   frame.c
   mixer.c

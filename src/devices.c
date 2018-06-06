@@ -38,8 +38,8 @@
 
 #include <base/logging.h>
 
-#include <software/device.h>
 #include <stream/device.h>
+#include <backends/software/device.h>
 #include <backends/dmedia/device.h>
 #include <backends/linux/device.h>
 #include <backends/oss/device.h>

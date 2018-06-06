@@ -1,4 +1,5 @@
 
+aax_subdirectory(software)
 aax_subdirectory(linux)
 if(HAVE_WINDOWS_H)
   aax_subdirectory(windows)
