@@ -99,68 +99,84 @@ aaxMaxEffect(void)
    return AAX_EFFECT_MAX;
 }
 
-void AAX_APIENTRY
+int AAX_APIENTRY
 aaxPlaySoundLogo(const char *devname)
 {
-   unsigned int frequency;
+   int rv = AAX_FALSE;
    aaxConfig config;
-   aaxBuffer buffer;
 
    config = aaxDriverOpenByName(devname, AAX_MODE_WRITE_STEREO);
-// aaxMixerSetSetup(config, AAX_REFRESHRATE, REFRESH_RATE);
-   aaxMixerSetState(config, AAX_INITIALIZED);
-   aaxMixerSetState(config, AAX_PLAYING);
-
-   frequency = aaxMixerGetSetup(config, AAX_FREQUENCY);
-   buffer = aaxBufferCreate(config, frequency, 1, AAX_AAXS24S);
-   if (buffer)
+   if(config)
    {
-       aaxBufferSetSetup(buffer, AAX_FREQUENCY, frequency);
-       aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, 1);
-       if (aaxBufferSetData(buffer, __aax_sound_logo) == AAX_FALSE)
+       aaxBuffer buffer = NULL;
+       unsigned int frequency;
+
+       rv = aaxMixerSetState(config, AAX_INITIALIZED);
+       if (rv) rv = aaxMixerSetState(config, AAX_PLAYING);
+
+       frequency = aaxMixerGetSetup(config, AAX_FREQUENCY);
+       if (rv) buffer = aaxBufferCreate(config, frequency, 1, AAX_AAXS24S);
+       if (buffer)
        {
-          aaxBufferDestroy(buffer);
-          buffer = NULL;
+           rv = aaxBufferSetSetup(buffer, AAX_FREQUENCY, frequency);
+           if (rv) rv = aaxBufferSetSetup(buffer, AAX_BLOCK_ALIGNMENT, 1);
+           if (aaxBufferSetData(buffer, __aax_sound_logo) == AAX_FALSE)
+           {
+              rv = aaxBufferDestroy(buffer);
+              buffer = NULL;
+           }
        }
-   }
 
-   if (buffer)
-   {
-       aaxEmitter emitter;
-       aaxFrame frame;
-       int state;
-
-       frame = aaxAudioFrameCreate(config);
-       state = aaxMixerRegisterAudioFrame(config, frame);
-       state |= aaxAudioFrameSetState(frame, AAX_PLAYING);
-       state |= aaxAudioFrameAddBuffer(frame, buffer);
-
-       emitter = aaxEmitterCreate();
-       state |= aaxEmitterAddBuffer(emitter, buffer);
-       state |= aaxAudioFrameRegisterEmitter(frame, emitter);
-       state |= aaxEmitterSetState(emitter, AAX_PLAYING);
-
-       do
+       if (buffer)
        {
-           msecSleep(50);
-           state = aaxEmitterGetState(emitter);
+           aaxEmitter emitter = NULL;
+           aaxFrame frame;
+           int state;
+
+           frame = aaxAudioFrameCreate(config);
+           if (frame)
+           {
+              rv = aaxMixerRegisterAudioFrame(config, frame);
+              if (rv) rv = aaxAudioFrameSetState(frame, AAX_PLAYING);
+              if (rv) rv = aaxAudioFrameAddBuffer(frame, buffer);
+
+              emitter = aaxEmitterCreate();
+              if (emitter)
+              {
+                 rv = aaxEmitterAddBuffer(emitter, buffer);
+                 if (rv) rv = aaxAudioFrameRegisterEmitter(frame, emitter);
+                 if (rv) rv = aaxEmitterSetState(emitter, AAX_PLAYING);
+              }
+           }
+
+           if (frame && emitter)
+           {
+              do
+              {
+                  msecSleep(50);
+                  state = aaxEmitterGetState(emitter);
+              }
+              while (state == AAX_PLAYING);
+
+              aaxAudioFrameDeregisterEmitter(frame, emitter);
+           }
+           if (frame)
+            {
+              aaxMixerDeregisterAudioFrame(config, frame);
+              aaxAudioFrameDestroy(frame);
+           }
+           if (emitter) aaxEmitterDestroy(emitter);
        }
-       while (state == AAX_PLAYING);
+       else rv = AAX_FALSE;
 
-       aaxAudioFrameDeregisterEmitter(frame, emitter);
-       aaxMixerDeregisterAudioFrame(config, frame);
-       aaxAudioFrameDestroy(frame);
-       aaxEmitterDestroy(emitter);
-   }
-   else {
-      printf("Unable to create sound buffer.\n");
+       aaxMixerSetState(config, AAX_STOPPED);
+       aaxBufferDestroy(buffer);
+
+       aaxDriverClose(config);
+       aaxDriverDestroy(config);
    }
 
-   aaxMixerSetState(config, AAX_STOPPED);
-   aaxBufferDestroy(buffer);
-
-   aaxDriverClose(config);
-   aaxDriverDestroy(config);
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY

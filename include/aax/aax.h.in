@@ -517,7 +517,7 @@ typedef double aaxMtx4d[4][4];
 /*
  * Version and Support information
  */
-AAX_API void AAX_APIENTRY aaxPlaySoundLogo();
+AAX_API int AAX_APIENTRY aaxPlaySoundLogo(const char*);
 AAX_API void AAX_APIENTRY aaxFree(void*);
 
 AAX_API unsigned AAX_APIENTRY aaxGetMajorVersion(void);

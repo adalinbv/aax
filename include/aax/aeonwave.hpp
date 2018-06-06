@@ -800,6 +800,10 @@ public:
         }
     }
 
+    bool playback() {
+       return aaxPlaySoundLogo(play.info(AAX_RENDERER_STRING));
+    }
+
     // ** handles for a single background music stream ******
     // The name can be an URL or a path to a file.
     bool playback(std::string name) {
