@@ -234,7 +234,7 @@ _aaxLinuxDriverDetect(int mode)
 {
    static void *audio = NULL;
    static int rv = AAX_FALSE;
-   char *error = 0;
+   char *s, *error = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -243,6 +243,11 @@ _aaxLinuxDriverDetect(int mode)
       rv = _aaxALSADriverDetect(mode);
    }
 #endif
+
+   s = getenv("AAX_USE_KERNEL_DRIVER");
+   if (s && (_aax_getbool(s) == AAX_FALSE)) {
+      rv = AAX_TRUE;
+   }
 
    if TEST_FOR_FALSE(rv)
    {
