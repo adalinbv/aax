@@ -470,7 +470,9 @@ _aaxLinuxDriverDisconnect(void *id)
    {
       int page_size = _get_pagesize();
 
-      close(handle->fd);
+      if (handle->fd >= 0) {
+         close(handle->fd);
+      }
 
       if (handle->sync) {
          free(handle->sync);
