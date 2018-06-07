@@ -77,7 +77,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    state &= ~AAX_LFO_STEREO;
 
    filter->state = state;
-   switch (state & ~AAX_INVERSE)
+   switch (state & ~(AAX_INVERSE|AAX_ENVELOPE_FOLLOW))
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -98,7 +98,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
          /* bit reduction */
          bitcrush->lfo.convert = _linear;
-         bitcrush->lfo.state = filter->state;
+         bitcrush->lfo.state = filter->state & ~AAX_ENVELOPE_FOLLOW;
          bitcrush->lfo.fs = filter->info->frequency;
          bitcrush->lfo.period_rate = filter->info->period_rate;
          bitcrush->lfo.stereo_lnk = !stereo;
@@ -124,8 +124,8 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
          /* noise */
          memcpy(&bitcrush->env, &bitcrush->lfo, sizeof(_aaxLFOData));
-         bitcrush->env.state = AAX_ENVELOPE_FOLLOW;
-         bitcrush->env.f = 2.0f;
+         bitcrush->env.state = state & (AAX_INVERSE|AAX_ENVELOPE_FOLLOW);
+         bitcrush->env.f = 10.0f;
 
          constant = _lfo_set_timing(&bitcrush->env);
          bitcrush->env.envelope = AAX_FALSE;

@@ -180,7 +180,9 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       {
          unsigned int i;
 
-         ratio *= bitcrush->env.get(&bitcrush->env, genv, psrc, 0, end);
+         if (bitcrush->env.envelope) {
+            ratio *= bitcrush->env.get(&bitcrush->env, genv, psrc, 0, end);
+         }
          ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
          for (i=0; i<no_samples; ++i) {
             psrc[i] += ratio*xorshift128plus();
