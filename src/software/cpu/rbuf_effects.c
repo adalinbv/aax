@@ -149,7 +149,23 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       BUFSWAP(pdst, psrc);
    }
 
-   /* Apply frequency filter first */
+   // Note: bitcrushing takes two steps.
+   //       noise is added after the frequency filter.
+   if (bitcrush)
+   {
+      float level = bitcrush->get(bitcrush, NULL, NULL, 0, 0);
+      if (level > 0.01f)
+      {
+         unsigned bps = sizeof(MIX_T);
+
+         level = powf(2.0f, 8+sqrtf(level)*13.5f);      // (24-bits/sample)
+         _batch_fmul_value(psrc, bps, no_samples, 1.0f/level);
+         _batch_cvt24_ps24(psrc, psrc, no_samples);
+         _batch_cvtps24_24(psrc, psrc, no_samples);
+         _batch_fmul_value(psrc, bps, no_samples, level);
+      }
+   }
+
    if (freq)
    {
       freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, ctr);
@@ -158,21 +174,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    if (bitcrush)
    {
-      float level, ratio;
-
-      level = bitcrush->get(bitcrush, NULL, NULL, 0, 0);
-      if (level > 0.01f)
-      {
-         unsigned bps = sizeof(MIX_T);
-
-         level = powf(2.0f, 8+sqrtf(level)*11.5f);      // 24-bits per sample
-         _batch_fmul_value(psrc, bps, no_samples, 1.0f/level);
-         _batch_cvt24_ps24(psrc, psrc, no_samples);
-         _batch_cvtps24_24(psrc, psrc, no_samples);
-         _batch_fmul_value(psrc, bps, no_samples, level);
-      }
-
-      ratio = _FILTER_GET(p2d, BITCRUSHER_FILTER, AAX_NOISE_LEVEL);
+      float ratio = _FILTER_GET(p2d, BITCRUSHER_FILTER, AAX_NOISE_LEVEL);
       if (ratio > 0.01f)
       {
          unsigned int i;
