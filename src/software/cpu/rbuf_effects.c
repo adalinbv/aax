@@ -116,7 +116,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    _aaxRingBufferFreqFilterData *freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
-   _aaxLFOData *bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
+   _aaxRingBufferBitCrusherData *bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
    static const size_t bps = sizeof(MIX_T);
    size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
    void *distort_data = NULL;
@@ -153,7 +153,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    //       noise is added after the frequency filter.
    if (bitcrush)
    {
-      float level = bitcrush->get(bitcrush, NULL, NULL, 0, 0);
+      float level = bitcrush->lfo.get(&bitcrush->lfo, NULL, NULL, 0, 0);
       if (level > 0.01f)
       {
          unsigned bps = sizeof(MIX_T);
@@ -174,11 +174,13 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    if (bitcrush)
    {
+      _aaxEnvelopeData *genv = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
       float ratio = _FILTER_GET(p2d, BITCRUSHER_FILTER, AAX_NOISE_LEVEL);
       if (ratio > 0.01f)
       {
          unsigned int i;
 
+         ratio *= bitcrush->env.get(&bitcrush->env, genv, psrc, 0, end);
          ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
          for (i=0; i<no_samples; ++i) {
             psrc[i] += ratio*xorshift128plus();

@@ -127,6 +127,13 @@ _aaxRingBufferDistoritonData;
 
 typedef struct
 {
+   _aaxLFOData lfo;
+   _aaxLFOData env;
+}
+_aaxRingBufferBitCrusherData;
+
+typedef struct
+{
    _aaxLFOData *lfo;
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
                unsigned int, void*, void*, unsigned char);
