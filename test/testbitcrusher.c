@@ -95,7 +95,7 @@ int main(int argc, char **argv)
             testForError(filter, "aaxFilterCreate");
 
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.02f, 0.01f, 0.6f, 0.3f);
+                                              0.02f, 0.01f, 0.8f, 0.3f);
             testForState(res, "aaxFilterSetSlot 0");
 
             res = aaxFilterSetState(filter, AAX_SINE_WAVE);
@@ -112,7 +112,7 @@ int main(int argc, char **argv)
             testForError(filter, "aaxFilterCreate");
 
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              880.0f, 1.0f, 0.0f, 0.0f);
+                                              440.0f, 0.0f, 1.0f, 0.0f);
             testForState(res, "aaxFilterSetSlot 0");
 
             res = aaxFilterSetSlot(filter, 1, AAX_LINEAR,
