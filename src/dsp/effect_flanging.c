@@ -114,17 +114,22 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 
       if (data)
       {
-         unsigned int tracks = effect->info->no_tracks;
          int t, constant;
-         size_t samples;
 
          data->run = _flanging_run;
          data->loopback = AAX_TRUE;
 
-         samples = TIME_TO_SAMPLES(effect->info->frequency, DELAY_EFFECTS_TIME);
-         _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
-                                           data->delay_history,
-                                           samples, tracks);
+         if (data->history_ptr == 0)
+         {
+            unsigned int tracks = effect->info->no_tracks;
+            float fs = effect->info->frequency;
+            size_t samples;
+
+            samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+            _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
+                                              data->delay_history,
+                                              samples, tracks);
+         }
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
