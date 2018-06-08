@@ -203,6 +203,7 @@ DECL_FUNCTION(snd_hctl_close);
 DECL_FUNCTION(snd_pcm_hw_params_can_pause);
 DECL_FUNCTION(snd_asoundlib_version);
 DECL_FUNCTION(snd_config_update);
+DECL_FUNCTION(snd_config_update_free_global);
 DECL_FUNCTION(snd_device_name_hint);
 DECL_FUNCTION(snd_device_name_get_hint);
 DECL_FUNCTION(snd_device_name_free_hint);
@@ -445,6 +446,7 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_stream);					//
          TIE_FUNCTION(snd_strerror);					//
          TIE_FUNCTION(snd_config_update);				//
+         TIE_FUNCTION(snd_config_update_free_global);			//
          TIE_FUNCTION(snd_lib_error_set_handler);			//
          TIE_FUNCTION(snd_asoundlib_version);				//
 
@@ -667,6 +669,7 @@ _aaxALSADriverConnect(void *config, const void *id, void *xid, const char *rende
       }
     
       err = _alsa_pcm_open(handle, m);
+//    psnd_config_update_free_global();
       if (err < 0)
       {
          _AAX_DRVLOG(psnd_strerror(err));
@@ -774,6 +777,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->devname = detect_devname(handle, m);
 
       err = _alsa_pcm_open(handle, m);
+//    psnd_config_update_free_global();
       if (err < 0)
       {
          _AAX_DRVLOG("unsupported number of tracks");
@@ -1979,6 +1983,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
       if (res >= 0)
       {
          res = psnd_ctl_open(&ctl, name, _alsa_mode[m]);
+//       psnd_config_update_free_global();
          if (res >= 0)
          {
             res = psnd_ctl_pcm_info(ctl, pcminfo);
@@ -2001,18 +2006,20 @@ _alsa_pcm_open(_driver_t *handle, int m)
 
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
-
+// psnd_config_update_free_global();
    if (err >= 0)
    {
       err = psnd_pcm_nonblock(handle->pcm, 1);
       if (err >= 0)
       {
          err = psnd_mixer_open(&handle->mixer, 0);
+//       psnd_config_update_free_global();
          if (err >= 0)
          {
             char name[8];
             snprintf(name, 8, "hw:%i", handle->devnum);
             err = psnd_hctl_open(&handle->hctl, name, 0);
+//          psnd_config_update_free_global();
             if (err >= 0) {
                err = psnd_mixer_attach_hctl(handle->mixer, handle->hctl);
             }
@@ -2053,7 +2060,7 @@ _alsa_pcm_close(_driver_t *handle)
    int err = 0;
    if (handle)
    {
-      if (handle->mixer && !handle->shared_volume)
+      if (handle->mixer)
       {
          _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
          psnd_mixer_detach_hctl(handle->mixer, handle->hctl);
