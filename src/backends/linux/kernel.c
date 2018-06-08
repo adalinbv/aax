@@ -249,7 +249,7 @@ _aaxLinuxDriverDetect(int mode)
       rv = AAX_TRUE;
    }
 
-   if TEST_FOR_FALSE(rv)
+   if (TEST_FOR_FALSE(rv) && !audio)
    {
       audio = _aaxIsLibraryPresent(NULL, 0);
       _aaxGetSymError(0);

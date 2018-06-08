@@ -225,7 +225,7 @@ _aaxDMediaDriverDetect(UNUSED(int mode))
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   if TEST_FOR_FALSE(rv) {
+   if (TEST_FOR_FALSE(rv) && !audio) {
      audio = _aaxIsLibraryPresent("audio", 0);
    }
 
@@ -265,7 +265,11 @@ _aaxDMediaDriverDetect(UNUSED(int mode))
       error = _aaxGetSymError(0);
       if (!error)
       {
-         void *dmedia = _aaxIsLibraryPresent("dmedia", 0);
+         static void *dmedia = NULL;
+
+         if (!dmedia) {
+            _aaxIsLibraryPresent("dmedia", 0);
+         }
          if (dmedia)
          {
             DM_TIE_FUNCTION(dmedia, dmGetError);

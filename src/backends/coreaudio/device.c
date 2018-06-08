@@ -118,7 +118,7 @@ _aaxCoreAudioDriverDetect(UNUSED(int mode))
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   if TEST_FOR_FALSE(rv) {
+   if (TEST_FOR_FALSE(rv) && !audio) {
      audio = _aaxIsLibraryPresent("audio", 0);
    }
 

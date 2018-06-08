@@ -190,7 +190,7 @@ _aaxOSSDriverDetect(UNUSED(int mode))
 
    _AAX_LOG(LOG_DEBUG, __func__);
      
-   if (TEST_FOR_FALSE(rv)) {
+   if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent(NULL, 0);
       if (audio) {
          TIE_FUNCTION(ioctl);
