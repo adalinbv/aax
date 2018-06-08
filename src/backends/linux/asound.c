@@ -137,6 +137,7 @@ typedef struct
     _aaxDriverPlaybackCallback *play;
     _aaxRenderer *render;
     snd_mixer_t *mixer;
+    snd_hctl_t *hctl;
     snd_pcm_t *pcm;
 
     float volumeCur, volumeInit;
@@ -197,6 +198,8 @@ DECL_FUNCTION(snd_pcm_wait);
 DECL_FUNCTION(snd_pcm_nonblock);
 DECL_FUNCTION(snd_pcm_prepare);
 DECL_FUNCTION(snd_pcm_pause);
+DECL_FUNCTION(snd_hctl_open);
+DECL_FUNCTION(snd_hctl_close);
 DECL_FUNCTION(snd_pcm_hw_params_can_pause);
 DECL_FUNCTION(snd_asoundlib_version);
 DECL_FUNCTION(snd_config_update);
@@ -251,7 +254,8 @@ DECL_FUNCTION(snd_pcm_recover);
 DECL_FUNCTION(snd_pcm_stream);
 DECL_FUNCTION(snd_mixer_open);
 DECL_FUNCTION(snd_mixer_close);
-DECL_FUNCTION(snd_mixer_attach);
+DECL_FUNCTION(snd_mixer_attach_hctl);
+DECL_FUNCTION(snd_mixer_detach_hctl);
 DECL_FUNCTION(snd_mixer_load);
 DECL_FUNCTION(snd_mixer_selem_id_malloc);
 DECL_FUNCTION(snd_mixer_selem_id_free);
@@ -371,9 +375,12 @@ _aaxALSADriverDetect(int mode)
          TIE_FUNCTION(snd_pcm_avail_update);				//
          TIE_FUNCTION(snd_pcm_avail);					//
          TIE_FUNCTION(snd_pcm_recover);					//
+         TIE_FUNCTION(snd_hctl_open);					//
+         TIE_FUNCTION(snd_hctl_close);					//
          TIE_FUNCTION(snd_mixer_open);					//
          TIE_FUNCTION(snd_mixer_close);					//
-         TIE_FUNCTION(snd_mixer_attach);				//
+         TIE_FUNCTION(snd_mixer_attach_hctl);				//
+         TIE_FUNCTION(snd_mixer_detach_hctl);				//
          TIE_FUNCTION(snd_mixer_load);					//
          TIE_FUNCTION(snd_mixer_selem_id_malloc);			//
          TIE_FUNCTION(snd_mixer_selem_id_free);				//
@@ -2005,7 +2012,10 @@ _alsa_pcm_open(_driver_t *handle, int m)
          {
             char name[8];
             snprintf(name, 8, "hw:%i", handle->devnum);
-            err = psnd_mixer_attach(handle->mixer, name);
+            err = psnd_hctl_open(&handle->hctl, name, 0);
+            if (err >= 0) {
+               err = psnd_mixer_attach_hctl(handle->mixer, handle->hctl);
+            }
          }
          if (err >= 0) {
             err = psnd_mixer_selem_register(handle->mixer, NULL, NULL);
@@ -2017,7 +2027,10 @@ _alsa_pcm_open(_driver_t *handle, int m)
          }
          if (err < 0)
          {
+            psnd_mixer_detach_hctl(handle->mixer, handle->hctl);
+            psnd_hctl_close(handle->hctl);
             psnd_mixer_close(handle->mixer);
+            handle->hctl = NULL;
             handle->mixer = NULL;
          }
       }
@@ -2043,7 +2056,11 @@ _alsa_pcm_close(_driver_t *handle)
       if (handle->mixer && !handle->shared_volume)
       {
          _alsa_set_volume(handle, NULL, 0, 0, 0, handle->volumeInit);
+         psnd_mixer_detach_hctl(handle->mixer, handle->hctl);
+         psnd_hctl_close(handle->hctl);
          psnd_mixer_close(handle->mixer);
+         handle->hctl = NULL;
+         handle->mixer = NULL;
       }
       if (handle->pcm) {
          err = psnd_pcm_close(handle->pcm);
