@@ -1,3 +1,12 @@
+* Fri Jun 05 2018 - tech@adalin.org
+- AeonWave (3.1.2) stable; urgency=low
+ * Allow defining AAX_ENVELOPE_FOLLOW or AAX_INVERSE_ENVELOPE_FOLLOW alongside
+   the waveform type to control the noise behavior when setting the state for
+   the bitcrusher filter. The default behavior is still a constant noise level.
+ * Fix a number of one-off memory leaks.
+
+-- Erik Hofman <tech@adalin.org>  Fri 08 Jun  2018 13:16:00 + 0200
+
 * Tue Jun 05 2018 - tech@adalin.org
 - AeonWave (3.1.2) stable; urgency=low
  * Add the bitcrusher filter to simulate (communication line) sound degradation.
