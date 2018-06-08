@@ -518,6 +518,9 @@ int main(int argc, char **argv)
             res = aaxMixerDeregisterAudioFrame(config, frame);
             testForState(res, "aaxMixerDeregisterAudioFrame");
 
+            res = aaxAudioFrameDestroy(frame);
+            testForState(res, "aaxAudioFrameDestroy");
+
             res = aaxMixerSetState(config, AAX_STOPPED);
             testForState(res, "aaxMixerStop");
         }
