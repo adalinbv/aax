@@ -2456,7 +2456,9 @@ get_devices_avail(int mode)
             ++lst;
          }
          while (*lst != NULL);
+      }
 
+      if (hints) {
          res = psnd_device_name_free_hint(hints);
       }
    }

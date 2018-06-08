@@ -1366,6 +1366,7 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
       _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
       _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
       _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+#if 0
       {
          _aaxRingBufferDelayEffectData* data;
          data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
@@ -1379,6 +1380,7 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
                                               samples, tracks);
          }
       }
+#endif
       break;
    }
    case AAX_DYNAMIC_PITCH_EFFECT:
