@@ -42,6 +42,8 @@
 #include <dsp/filters.h>
 #include <dsp/effects.h>
 
+#include <base/random.h>
+
 #include "devices.h"
 #include "analyze.h"
 #include "arch.h"
@@ -756,8 +758,10 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 
 /* -------------------------------------------------------------------------- */
 
+static void _bufApplyBitCrusherFilter(_buffer_t*, _filter_t*);
 static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*);
 static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*);
+
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
 {
@@ -1138,7 +1142,12 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
-      if (filter->type == AAX_FREQUENCY_FILTER)
+      switch (filter->type)
+      {
+      case AAX_BITCRUSHER_FILTER:
+         _bufApplyBitCrusherFilter(handle, filter);
+         break;
+      case AAX_FREQUENCY_FILTER:
       {
          int state = filter->state & ~(AAX_BUTTERWORTH|AAX_BESSEL);
          if (state == AAX_TRUE     ||
@@ -1150,10 +1159,13 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
          {
             _bufApplyFrequencyFilter(handle, filter);
          }
+         break;
       }
-      else if (filter->type == AAX_EQUALIZER)
-      {
+      case AAX_EQUALIZER:
          _bufApplyFrequencyFilter(handle, filter);
+         break;
+      default:
+         break;
       }
       aaxFilterDestroy(flt);
    }
@@ -2011,6 +2023,43 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
 }
 
 static void
+_bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter)
+{
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   int32_t **sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
+   _aaxFilterInfo* slot = filter->slot[0];
+   float ratio = slot->param[AAX_NOISE_LEVEL];
+   float level = slot->param[AAX_LFO_OFFSET];
+   unsigned int bps, no_samples;
+   int32_t *dptr = sbuf[0];
+
+   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+   bps = sizeof(float); // rb->get_parami(rb, RB_BYTES_SAMPLE);
+   if (dptr)
+   {
+      if (level > 0.01f)
+      {
+         level = powf(2.0f, 8+sqrtf(level)*13.5f);      // (24-bits/sample)
+         _batch_imul_value(dptr, bps, no_samples, 1.0f/level);
+         _batch_imul_value(dptr, bps, no_samples, level);
+      }
+
+      if (ratio > 0.01f)
+      {
+         unsigned int i;
+
+         ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
+         for (i=0; i<no_samples; ++i) {
+            dptr[i] += ratio*xorshift128plus();
+         }
+      }
+   }
+   rb->release_tracks_ptr(rb);
+}
+
+
+
+static void
 _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 {
    _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
@@ -2075,7 +2124,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
    int32_t **sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
-   _aaxFilterInfo* slot = effect->slot[0];
+   _aaxEffectInfo* slot = effect->slot[0];
    float fact = slot->param[AAX_DISTORTION_FACTOR];
    float clip = slot->param[AAX_CLIPPING_FACTOR];
    float mix  = slot->param[AAX_MIX_FACTOR];
