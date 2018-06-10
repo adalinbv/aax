@@ -2,38 +2,12 @@
 ================================================================================
 Short term projects:
 ================================================================================
-* Indoor sound propagation:
-  - Use an audio-frame for each rectangular room section.
-    + TODO:
-      - Add bounding-box support to audio-frames.
-      - Process only mono signals (emitter/audio-frame) when a bounding-box is
-        defined.
-      - Add support for fast (mono) reveberation to audio-frames, these will
-        only filter the sound but not propagate them (make use of the delay
-        effects code, eliminate the direct path when not connected to the
-        scenery).
-      - Only when this mono signal enters the scenery it will be positional,
-        based on the audio-frames position.
-      - Add the option to somehow link the audio-frame defined filters and
-        effects to the scenery. This way the listener can move around in the
-        room sections tree too.
-
-  - Use an intersection audio-frame for any overlapping areas:
-                                  --------------------------
-  Mixer/Scenery - Listener       |          .               |
-        |                        |       E' .            E  |
-  inter-section audio-frame (E') |.......... ---------------
-        |                        |          |
-  room section audio-frame       |       L  |
-        |                         ----------
-     emitter (E)
-
 * Implement a MacOS CoreAudio backend
+* Replace pdmp3 with minimp3
 * Implement the OpenSL backend
 * Fix and re-enable the PulseAudio backend
 * Fix and re-enable Opus support
 * Finish FLAC support using dr_flac
-* Further improve pdmp3 ID3v2 handling
 
 ================================================================================
 Long term projects:
@@ -50,8 +24,6 @@ Long term projects:
 
 * Finish MIDI support
 * Finish the Event manager
-* Finish Scenery support
-  - room support with automatic reverb
 
 http://www.dx.com/nl/p/fx-fx502a-50w-x-2-hifi-2-channel-digital-power-amplifier-black-100-240v-292841?tc=EUR&gclid=CKbNhqvNlsUCFVMatAodS2AAcw#.VT47X-SY5QI
 
@@ -63,4 +35,3 @@ http://nl.aliexpress.com/item/TA2020-PCB-25Watt-Tripath-Class-T-Audio-Amplifier-
   digital audio data:
   - Wave shape detection using pffft
   - Volume and Pitch envelope shape detection
-
