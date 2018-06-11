@@ -985,14 +985,14 @@ static char *
 _aaxDMediaDriverGetDevices(UNUSED(const void *id), int mode)
 {
    static char *renderers[2] = { "\0\0", "\0\0" };
-   return (char *)renderers[mode];
+   return (char *)renderers[mode ? 0 : 1];
 }
 
 static char *
 _aaxDMediaDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char*devname), int mode)
 {
    static char *renderers[2] = { "\0\0", "\0\0" };
-   return (char *)renderers[mode];
+   return (char *)renderers[mode ? 0 : 1];
 }
 
 static char *

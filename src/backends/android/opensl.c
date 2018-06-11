@@ -696,21 +696,15 @@ _aaxSLESDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxSLESDriverGetDevices(const void *id, int mode)
 {
-   static const char *rd[2] = {
-    "\0\0",
-    "\0\0"
-   };
-   return (char *)rd[mode];
+   static const char *rd[2] = { "\0\0", "\0\0" };
+   return (char *)rd[mode ? 0 : 1];
 }
 
 static char *
 _aaxSLESDriverGetInterfaces(const void *id, const char *devname, int mode)
 {
-   static const char *rd[2] = {
-    "\0\0",
-    "\0\0"
-   };
-   return (char *)rd[mode];
+   static const char *rd[2] = { "\0\0", "\0\0" };
+   return (char *)rd[mode ? 0 : 1];
 }
 
 static char *

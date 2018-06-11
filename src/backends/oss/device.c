@@ -913,7 +913,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
                char *ptr;
 
                len = 1024;
-               ptr = (char *)&names[mode];
+               ptr = (char *)&names[m];
                for (i = 0; i < info.numcards; i++)
                {
                   size_t slen;
@@ -970,7 +970,7 @@ _aaxOSSDriverGetDevices(const void *id, int mode)
       }
    }
 
-   return (char *)&names[mode];
+   return (char *)&names[m];
 }
 
 static char *

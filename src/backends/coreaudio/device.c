@@ -46,7 +46,7 @@
 #include "device.h"
 
 
-#define COREAUDIO_ID_STRING	"MacOS"
+#define COREAUDIO_ID_STRING	"CoreAudio"
 #define MAX_ID_STRLEN		32
 
 #define DEFAULT_OUTPUT_RATE	48000
@@ -501,14 +501,14 @@ static char *
 _aaxCoreAudioDriverGetDevices(UNUSED(const void *id), int mode)
 {
    static char *renderers[2] = { "\0\0", "\0\0" };
-   return (char *)renderers[mode];
+   return (char *)renderers[mode ? 0 : 1];
 }
 
 static char *
 _aaxCoreAudioDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char*devname), int mode)
 {
    static char *renderers[2] = { "\0\0", "\0\0" };
-   return (char *)renderers[mode];
+   return (char *)renderers[mode ? 0 : 1];
 }
 
 static char *

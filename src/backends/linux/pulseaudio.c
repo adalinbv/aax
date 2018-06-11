@@ -802,6 +802,7 @@ static char *
 _aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
 {
    static char names[2][MAX_DEVICES_LIST] = { "\0\0", "\0\0" };
+   int m = (mode == AAX_MODE_READ) ? 0 : 1;
    pa_threaded_mainloop *loop;
 
    loop = ppa_threaded_mainloop_new();
@@ -828,7 +829,7 @@ _aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
          spec.channels = (mode == AAX_MODE_READ) ? 1 : 2;
 #endif
 
-         si.devices = (char *)&names[mode];
+         si.devices = (char *)&names[m];
          si.loop = loop;
 
 #if 1
@@ -878,7 +879,7 @@ _aaxPulseAudioDriverGetDevices(UNUSED(const void *id), int mode)
       ppa_threaded_mainloop_free(loop);
    }
 
-   return (char *)&names[mode];
+   return (char *)&names[m];
 }
 
 static char *

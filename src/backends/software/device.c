@@ -316,7 +316,7 @@ _aaxNoneDriverGetDevices(UNUSED(const void *id), int mode)
     "\0\0",
     "\0\0"
    };
-   return (char *)rd[mode];
+   return (char *)rd[mode ? 0 : 1];
 
 }
 
@@ -327,7 +327,7 @@ _aaxNoneDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char *devname),
     "\0\0",
     "\0\0"
    };
-   return (char *)rd[mode];
+   return (char *)rd[mode ? 0 : 1];
 
 }
 

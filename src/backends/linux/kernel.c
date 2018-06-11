@@ -1248,7 +1248,7 @@ _aaxLinuxDriverGetDevices(UNUSED(const void *id), int mode)
       names[m][1023] = 0;
    }
 
-   return (char *)&names[mode];
+   return (char *)&names[m];
 }
 
 static char *

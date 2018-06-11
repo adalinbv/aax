@@ -1215,7 +1215,7 @@ ExitGetDevices:
       }
    }
 
-   return (char *)&names[mode];
+   return (char *)&names[m];
 }
 
 static char *
