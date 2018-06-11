@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2018 by Erik Hofman.
+ * Copyright 2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -19,8 +19,8 @@
  *  59 Temple Place, Suite 330, Boston, MA 02111-1307 USA.
  */
 
-#ifndef _ALSASOFT_DRIVER_H
-#define _ALSASOFT_DRIVER_H 1
+#ifndef _AL_SDL_DRIVER_H
+#define _AL_SDL_DRIVER_H 1
 
 #if defined(__cplusplus)
 extern "C" {
@@ -32,13 +32,11 @@ extern "C" {
 
 #include <backends/driver.h>
 
-extern const _aaxDriverBackend _aaxLinuxDriverBackend;
-extern const _aaxDriverBackend _aaxALSADriverBackend;
-extern const _aaxDriverBackend _aaxPulseAudioDriverBackend;
+extern const _aaxDriverBackend _aaxSDLDriverBackend;
 
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
 
-#endif /* !_ALSASOFT_DRIVER_H */
+#endif /* !_AL_SDL_DRIVER_H */
 

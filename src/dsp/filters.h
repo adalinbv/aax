@@ -32,7 +32,7 @@ extern "C" {
 
 #include <base/geometry.h>
 
-#include "driver.h"
+#include <backends/driver.h>
 #include "objects.h"
 #include "common.h"
 #include "api.h"

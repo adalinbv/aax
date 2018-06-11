@@ -23,7 +23,6 @@
 #define __FILE_FMT_VORBIS_H 1
 
 #include <aax/aax.h>
-#include <driver.h>
 
 /*
  * Public domain vorbis decoder:

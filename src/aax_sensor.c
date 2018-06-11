@@ -35,7 +35,6 @@
 #include <dsp/effects.h>
 
 #include "api.h"
-#include "devices.h"
 
 static int _aaxSensorCreateRingBuffer(_handle_t *);
 static int _aaxSensorCaptureStart(_handle_t *);

@@ -44,7 +44,6 @@
 
 #include "api.h"
 #include "arch.h"
-#include "devices.h"
 #include "stream/device.h"
 #include "ringbuffer.h"
 

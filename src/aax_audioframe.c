@@ -41,7 +41,6 @@
 
 #include "ringbuffer.h"
 #include "arch.h"
-#include "devices.h"
 #include "api.h"
 
 static int _aaxAudioFrameStart(_frame_t*);

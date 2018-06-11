@@ -33,7 +33,7 @@
 #include <base/types.h>
 
 #include <software/audio.h>
-#include <devices.h>
+#include <backends/devices.h>
 #include <arch.h>
 #include <api.h>
 

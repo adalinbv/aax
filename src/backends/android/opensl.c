@@ -32,11 +32,9 @@
 #include <base/logging.h>
 #include <base/dlsym.h>
 
+#include <ringbuffer.h>
 #include <arch.h>
 #include <api.h>
-#include <driver.h>
-#include <devices.h>
-#include <ringbuffer.h>
 
 #include <software/renderer.h>
 

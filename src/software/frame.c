@@ -32,8 +32,8 @@
 #include <dsp/effects.h>
 #include <dsp/lfo.h>
 
+#include <backends/driver.h>
 #include <objects.h>
-#include <devices.h>
 #include <api.h>
 
 #include "arch.h"

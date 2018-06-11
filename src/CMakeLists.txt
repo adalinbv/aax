@@ -4,8 +4,6 @@ set(SRC_HEADERS
   api.h
   arch.h
   copyright.h
-  devices.h
-  driver.h
   objects.h
   ringbuffer.h
 )
@@ -25,7 +23,6 @@ set(SRC_SOURCES
   analyze.c
   api.c
   arch.c
-  devices.c
   objects.c
 )
 

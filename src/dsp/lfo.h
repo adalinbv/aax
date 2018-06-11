@@ -30,7 +30,7 @@ extern "C" {
 #include "config.h"
 #endif
 
-#include <driver.h>
+#include <backends/driver.h>
 
 
 typedef float _convert_fn(float, float);

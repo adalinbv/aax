@@ -43,6 +43,7 @@
 #include <backends/dmedia/device.h>
 #include <backends/linux/device.h>
 #include <backends/oss/device.h>
+#include <backends/sdl/device.h>
 #ifdef HAVE_WINDOWS_H
 # include <backends/windows/wasapi.h>
 #endif
@@ -662,6 +663,7 @@ _aaxIntDriverGetBackends()
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxWASAPIDriverBackend);
 #endif
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxDMediaDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxSDLDriverBackend);
 
       atexit(_aaxIntDriverRemoveBackends);
    }

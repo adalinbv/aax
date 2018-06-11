@@ -32,9 +32,9 @@
 
 #include <base/types.h>
 
-#include <arch.h>
-#include <devices.h>
+#include <backends/driver.h>
 #include <ringbuffer.h>
+#include <arch.h>
 
 #include "audio.h"
 #include "cpu/arch2d_simd.h"

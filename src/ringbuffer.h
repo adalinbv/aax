@@ -33,7 +33,6 @@ extern "C" {
 #include <base/geometry.h>
 
 #include <dsp/lfo.h>
-#include <driver.h>
 #include <objects.h>
 
 #define RB_FLOAT_DATA		1

@@ -50,11 +50,10 @@
 #include <base/dlsym.h>
 #include <base/timer.h>
 
+#include <backends/driver.h>
+#include <ringbuffer.h>
 #include <arch.h>
 #include <api.h>
-#include <driver.h>
-#include <devices.h>
-#include <ringbuffer.h>
 
 #include <software/renderer.h>
 #include "audio.h"

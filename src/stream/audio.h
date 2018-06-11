@@ -33,7 +33,7 @@ extern "C" {
 #include <sys/stat.h>
 
 #include <base/dlsym.h>
-#include <driver.h>
+#include <backends/driver.h>
 
 #define MAX_ID_STRLEN			64
 

@@ -42,7 +42,6 @@
 #include <dsp/lfo.h>
 
 #include "api.h"
-#include "devices.h"
 #include "arch.h"
 #include "ringbuffer.h"
 
