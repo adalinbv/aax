@@ -51,6 +51,7 @@ extern "C" {
 #define SDL_AUDIO_ALLOW_FREQUENCY_CHANGE 0x1
 #define SDL_AUDIO_ALLOW_FORMAT_CHANGE 0x2
 #define SDL_AUDIO_ALLOW_CHANNELS_CHANGE	0x4
+#define SDL_AUDIO_ALLOW_ANY_CHANGE (SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_FORMAT_CHANGE|SDL_AUDIO_ALLOW_CHANNELS_CHANGE)
 
 #define AUDIO_S16SYS	0x8010
 #define AUDIO_S32SYS	0x8020
@@ -67,6 +68,15 @@ typedef struct {
    void *userdata;
 
 } SDL_AudioSpec;
+
+typedef struct {
+   uint8_t major;
+   uint8_t minor;
+   uint8_t patch;
+
+} SDL_version;
+
+typedef void (*SDL_GetVersion_proc)(SDL_version*);
 
 typedef int (*SDL_GetNumAudioDrivers_proc)(void);
 typedef const char* (*SDL_GetAudioDriver_proc)(int);

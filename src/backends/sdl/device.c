@@ -117,23 +117,23 @@ const _aaxDriverBackend _aaxSDLDriverBackend =
 typedef struct
 {
    void *handle;
-   char *name;
+   char *driver;
+   char *device;
    _aaxRenderer *render;
    enum aaxRenderMode mode;
 
-   uint32_t device;
+   uint32_t devnum;
    SDL_AudioSpec spec;
+
+   unsigned int format;
+   unsigned int period_frames;
+   char bits_sample;
+   char no_periods;
 
    size_t threshold;            /* sensor buffer threshold for padding */
    float padding;               /* for sensor clock drift correction   */
 
    float latency;
-   float frequency_hz;
-   unsigned int format;
-   unsigned int no_tracks;
-   ssize_t period_frames;
-   char bits_sample;
-   char no_periods;
 
    void **ptr;
    char **scratch;
@@ -151,9 +151,16 @@ typedef struct
       float aim;
    } fill;
 
+    /* capabilities */
+   unsigned int min_frequency;
+   unsigned int max_frequency;
+   unsigned int min_tracks;
+   unsigned int max_tracks;
+
 } _driver_t;
 
 // http://wiki.libsdl.org/CategoryAudio
+DECL_FUNCTION(SDL_GetVersion);
 DECL_FUNCTION(SDL_GetNumAudioDrivers);
 DECL_FUNCTION(SDL_GetAudioDriver);
 DECL_FUNCTION(SDL_GetNumAudioDevices);
@@ -174,7 +181,8 @@ DECL_FUNCTION(SDL_ClearError);
 
 static float _sdl_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, unsigned int, float);
 
-const char *_const_sdl_default_name = DEFAULT_DEVNAME;
+const char *_const_sdl_default_driver = DEFAULT_DEVNAME;
+const char *_const_sdl_default_device = NULL;
 
 static int
 _aaxSDLDriverDetect(UNUSED(int mode))
@@ -201,6 +209,7 @@ _aaxSDLDriverDetect(UNUSED(int mode))
       if (pSDL_Init)
       {
          TIE_FUNCTION(SDL_Quit);
+         TIE_FUNCTION(SDL_GetVersion);
          TIE_FUNCTION(SDL_GetNumAudioDrivers);
          TIE_FUNCTION(SDL_GetAudioDriver);
          TIE_FUNCTION(SDL_GetNumAudioDevices);
@@ -240,12 +249,13 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
    {
 //    char m = (mode == AAX_MODE_READ) ? 0 : 1;
 
-      handle->name = (char*)_const_sdl_default_name;
-      handle->frequency_hz = (float)48000.0f;
+      handle->driver = (char*)_const_sdl_default_driver;
+      handle->device = (char*)_const_sdl_default_device;
       handle->bits_sample = 16;
-      handle->no_tracks = 2;
-      handle->period_frames = handle->frequency_hz/DEFAULT_REFRESH;
-      handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
+      handle->spec.freq = (float)48000.0f;
+      handle->spec.channels = 2;
+      handle->period_frames = handle->spec.freq/DEFAULT_REFRESH;
+      handle->buf_len = handle->spec.channels*handle->period_frames*handle->bits_sample/8;
       pSDL_Init(SDL_INIT_AUDIO);
    }
 
@@ -269,8 +279,18 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
    if (handle)
    {
       handle->handle = config;
-      if (renderer) {
-         handle->name = (char *)renderer;
+      if (renderer)
+      {
+         handle->driver = _aax_strdup(renderer);
+         if (handle->driver)
+         {
+            handle->device = strstr(handle->driver, ": ");
+            if (handle->device)
+            {
+               handle->device[0] = 0;
+               handle->device += strlen(": ");
+            }
+         }
       }
 
       if (xid)
@@ -279,13 +299,13 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
          char *s;
          int i;
 
-         if (!handle->name)
+         if (!handle->driver)
          {
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
                if (strcasecmp(s, "default")) {
-                  handle->name = _aax_strdup(s);
+                  handle->driver = _aax_strdup(s);
                }
                xmlFree(s);
             }
@@ -304,7 +324,7 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
                _AAX_DRVLOG("sdl; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
-            handle->frequency_hz = f;
+            handle->spec.freq = f;
          }
 
          if (mode != AAX_MODE_READ)
@@ -322,7 +342,7 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
                   _AAX_DRVLOG("sdl; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
-               handle->no_tracks = i;
+               handle->spec.channels = i;
             }
          }
 
@@ -339,26 +359,40 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
       }
    }
 
-   if (handle)
+   if (handle && !pSDL_AudioInit(handle->driver))
    {
-      SDL_AudioSpec req;
+     
+      SDL_AudioSpec req, avail;
       uint32_t device;
 
       memset(&req, 0, sizeof(SDL_AudioSpec));
 
       req.format = AUDIO_S16SYS;
-      req.freq = handle->frequency_hz;
-      req.channels = handle->no_tracks;
-      req.samples = get_pow2(handle->period_frames*handle->no_tracks);
+      req.freq = handle->spec.freq;
+      req.channels = handle->spec.channels;
+      req.samples = get_pow2(handle->period_frames*handle->spec.channels);
 
-      
-      device = pSDL_OpenAudioDevice(handle->name, m, &req, &handle->spec,
-              SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
-      if (handle->device != 0)
+      device = pSDL_OpenAudioDevice(handle->device, m, &req, &handle->spec,
+              SDL_AUDIO_ALLOW_ANY_CHANGE);
+      if (device != 0)
       {
          pSDL_CloseAudioDevice(device);
-         handle->frequency_hz = req.freq;
-         handle->no_tracks = req.channels;
+
+         req.freq = 0;
+         req.channels = 1;
+         device = pSDL_OpenAudioDevice(handle->device, m, &req, &avail,
+                                       SDL_AUDIO_ALLOW_ANY_CHANGE);
+         handle->min_frequency = avail.freq;
+         handle->min_tracks = avail.channels;
+         pSDL_CloseAudioDevice(device);
+
+         req.freq = _AAX_MAX_MIXER_FREQUENCY;
+         req.channels = _AAX_MAX_SPEAKERS;
+         device = pSDL_OpenAudioDevice(handle->device, m, &req, &avail,
+                                       SDL_AUDIO_ALLOW_ANY_CHANGE);
+         handle->max_frequency = avail.freq;
+         handle->max_tracks = avail.channels;
+         pSDL_CloseAudioDevice(device);
       }
       else
       {
@@ -366,7 +400,7 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
          _aaxSDLDriverDisconnect(handle);
          handle = NULL;
       }
-
+      pSDL_AudioQuit();
    }
 
    return (void *)handle;
@@ -379,10 +413,16 @@ _aaxSDLDriverDisconnect(void *id)
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   if (handle && handle->device) {
-      pSDL_CloseAudioDevice(handle->device);
+   if (handle && handle->device)
+   {
+      pSDL_CloseAudioDevice(handle->devnum);
+      pSDL_AudioQuit();
    }
    pSDL_Quit();
+
+   if (handle->driver != _const_sdl_default_driver) {
+      free(handle->driver);
+   }
 
    return AAX_TRUE;
 }
@@ -398,7 +438,7 @@ _aaxSDLDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
 
    *fmt = AAX_PCM16S;
 
-   if (handle->device == 0)
+   if (handle->devnum == 0 && !pSDL_AudioInit(handle->driver))
    {
       uint32_t period_frames;
       unsigned int periods;
@@ -406,8 +446,8 @@ _aaxSDLDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
 
       req.freq = (unsigned int)*speed;
       req.channels = *tracks;
-      if (req.channels > handle->no_tracks) {
-         req.channels = handle->no_tracks;
+      if (req.channels > handle->spec.channels) {
+         req.channels = handle->spec.channels;
       }
 
       periods = handle->no_periods;
@@ -419,24 +459,22 @@ _aaxSDLDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
 
       handle->latency = 1.0f / *refresh_rate;
 
-      memset(&req, 0, sizeof(SDL_AudioSpec));
+      memcpy(&req, &handle->spec, sizeof(SDL_AudioSpec));
       req.format = AUDIO_S16SYS;
       req.samples = get_pow2(period_frames*req.channels);
 
-      handle->device= pSDL_OpenAudioDevice(handle->name, m, &req, &handle->spec,
+      handle->devnum = pSDL_OpenAudioDevice(handle->device, m, &req, &handle->spec,
               SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
       if (handle->device != 0)
       {
-         handle->frequency_hz = req.freq;
-         handle->no_tracks = req.channels;
          handle->period_frames = req.samples/req.channels;
-         handle->buf_len = handle->no_tracks*handle->period_frames*handle->bits_sample/8;
+         handle->buf_len = handle->spec.channels*handle->period_frames*handle->bits_sample/8;
          handle->cvt_to_intl = _batch_cvt16_intl_24;
 
-         *speed = req.freq;
-         *tracks = req.channels;
+         *speed = handle->spec.freq;
+         *tracks = handle->spec.channels;
          if (!registered) {
-            *refresh_rate = handle->frequency_hz/(float)handle->period_frames;
+            *refresh_rate = handle->spec.freq/(float)handle->period_frames;
          } else {
             *refresh_rate = period_rate;
          }
@@ -454,15 +492,11 @@ _aaxSDLDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
          if (handle->render)
          {
             const char *rstr = handle->render->info(handle->render->id);
-#if HAVE_SYS_UTSNAME_H
-            struct utsname utsname;
-            uname(&utsname);
-            snprintf(_sdl_id_str, MAX_ID_STRLEN, "%s %s %s",
-                                 DEFAULT_RENDERER, utsname.release, rstr);
-#else
-            snprintf(_sdl_id_str, MAX_ID_STRLEN, "%s %s",
-                                      DEFAULT_RENDERER, rstr);
-#endif
+            SDL_version v;
+
+            pSDL_GetVersion(&v);
+            snprintf(_sdl_id_str, MAX_ID_STRLEN, "%s %i.%i.%i %s",
+                     DEFAULT_RENDERER, v.major, v.minor, v.patch, rstr);
             rv = AAX_TRUE;
          }
          else {
@@ -481,16 +515,16 @@ _aaxSDLDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
       _AAX_SYSLOG("driver settings:");
 
       if (handle->mode != AAX_MODE_READ) {
-         snprintf(str,255,"  output renderer: '%s'", handle->name);
+         snprintf(str,255,"  output renderer: '%s'", handle->driver);
       } else {
-         snprintf(str,255,"  input renderer: '%s'", handle->name);
+         snprintf(str,255,"  input renderer: '%s'", handle->driver);
       }
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  devname: '%s'", handle->name);
+      snprintf(str,255, "  devname: '%s'", handle->device);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  playback rate: %5.0f hz", handle->frequency_hz);
+      snprintf(str,255, "  playback rate: %5i hz", handle->spec.freq);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  buffer size: %zu bytes", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
+      snprintf(str,255, "  buffer size: %i bytes", handle->period_frames*handle->spec.channels*handle->bits_sample/8);
       _AAX_SYSLOG(str);
       snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
       _AAX_SYSLOG(str);
@@ -498,23 +532,23 @@ _aaxSDLDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255,"  timer based: yes");
       _AAX_SYSLOG(str);
-      snprintf(str,255,"  channels: %i, bytes/sample: %i\n", handle->no_tracks, handle->bits_sample/8);
+      snprintf(str,255,"  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
       _AAX_SYSLOG(str);
 
 #if 0
  printf("driver settings:\n");
  if (handle->mode != AAX_MODE_READ) {
-    printf("  output renderer: '%s'\n", handle->name);
+    printf("  output renderer: '%s'\n", handle-driver);
  } else {
-    printf("  input renderer: '%s'\n", handle->name);
+    printf("  input renderer: '%s'\n", handle->driver);
  }
- printf("  device: '%s'\n", handle->name);
- printf("  playback rate: %5.0f Hz\n", handle->frequency_hz);
- printf("  buffer size: %zu bytes\n", handle->period_frames*handle->no_tracks*handle->bits_sample/8);
+ printf("  device: '%s'\n", handle->device);
+ printf("  playback rate: %5.0f Hz\n", handle->spec.freq);
+ printf("  buffer size: %zu bytes\n", handle->period_frames*handle->spec.channels*handle->bits_sample/8);
  printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
  printf("  no_periods: %i\n", handle->no_periods);
  printf("  timer based: yes\n");
- printf("  channels: %i, bytes/sample: %i\n", handle->no_tracks, handle->bits_sample/8);
+ printf("  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
 #endif
    }
    while (0);
@@ -539,7 +573,7 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
    }
 
    *frames = 0;
-   tracks = handle->no_tracks;
+   tracks = handle->spec.channels;
 
 
    *frames = nframes;
@@ -600,8 +634,8 @@ _aaxSDLGetName(const void *id, int mode)
    char *ret = NULL;
 
    /* TODO: distinguish between playback and record */
-   if (handle && handle->name && (mode < AAX_MODE_WRITE_MAX)) {
-      ret = _aax_strdup(handle->name);
+   if (handle && handle->device && (mode < AAX_MODE_WRITE_MAX)) {
+      ret = _aax_strdup(handle->device);
    }
 
    return ret;
@@ -668,16 +702,16 @@ _aaxSDLDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
-         rv = 8000.0f;
+         rv = (float)handle->min_frequency;
          break;
       case DRIVER_MAX_FREQUENCY:
-         rv = _AAX_MAX_MIXER_FREQUENCY;
+         rv = (float)handle->max_frequency;
          break;
       case DRIVER_MIN_TRACKS:
-         rv = 1.0f;
+         rv = (float)handle->min_tracks;
          break;
       case DRIVER_MAX_TRACKS:
-         rv = (float)_AAX_MAX_SPEAKERS;
+         rv = (float)handle->max_tracks;
          break;
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
@@ -725,13 +759,13 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
       count = pSDL_GetNumAudioDrivers();
       for (i=0; i<count; ++i)
       {
-         int slen;
+         const char* driver = pSDL_GetAudioDriver(i);
+         int slen = strlen(driver)+1;
+
+         if (slen > (len-1)) break;
+         if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) break;
 
          snprintf(ptr, len, "%s", pSDL_GetAudioDriver(i));
-
-         slen = strlen(ptr)+1;      /* skip the trailing 0 */
-         if (slen > (len-1)) break;
-
          len -= slen;
          ptr += slen;
       }
