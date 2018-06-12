@@ -420,6 +420,7 @@ _aaxSDLDriverDisconnect(void *id)
    if (handle->driver != _const_sdl_default_driver) {
       free(handle->driver);
    }
+   free(handle);
 
    return AAX_TRUE;
 }
