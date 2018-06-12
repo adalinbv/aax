@@ -1598,14 +1598,10 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
                      iface = strstr(desc, ", ");
                      if (iface) *iface = 0;
 
-//                   if (!strchr(name, ':') && (!desc || strcmp(name, desc))) {
-//                      snprintf(ptr, len, "%s: %s", name, desc);
-//                   } else {
-                        snprintf(ptr, len, "%s", desc);
-//                   }
-                     slen = strlen(ptr)+1;	/* skip the trailing 0 */
+                     slen = strlen(desc)+1;	/* skip the trailing 0 */
                      if (slen > (len-1)) break;
 
+                     snprintf(ptr, len, "%s", desc);
                      len -= slen;
                      ptr += slen;
 
@@ -1690,6 +1686,10 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                         if (!m || strcmp(name, "hdmi:") == 0)
                         {
                            if (iface != desc) iface += 2;
+
+                           slen = strlen(iface)+1;
+                           if (slen > (len-1)) break;
+
                            snprintf(ptr, len, "%s", iface);
                            iface = strchr(ptr, '\n');
                            if (iface) *iface = 0;
@@ -1699,10 +1699,11 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                            if (iface != desc) {
                               iface = strchr(iface+2, '\n')+1;
                            }
+                           slen = strlen(iface)+1;
+                           if (slen > (len-1)) break;
+
                            snprintf(ptr, len, "%s", iface);
                         }
-                        slen = strlen(ptr)+1; /* skip the trailing 0 */
-                        if (slen > (len-1)) break;
 
                         len -= slen;
                         ptr += slen;

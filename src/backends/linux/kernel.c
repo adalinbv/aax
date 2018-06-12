@@ -1228,12 +1228,12 @@ _aaxLinuxDriverGetDevices(UNUSED(const void *id), int mode)
             {
                int slen;
 
-               snprintf(ptr, len, "%s", card_info.name);
                close(fd);
 
-               slen = strlen(ptr)+1;      /* skip the trailing 0 */
+               slen = strlen((const char*)card_info.name)+1;
                if (slen > (len-1)) break;
 
+               snprintf(ptr, len, "%s", (const char*)card_info.name);
                len -= slen;
                ptr += slen;
             }
@@ -1275,18 +1275,15 @@ _aaxLinuxDriverGetInterfaces(const void *id, const char *devname, int mode)
          if (fd >= 0)
          {
             struct snd_pcm_info info;
-            const char *name;
             unsigned int slen;
 
             pioctl(fd, SNDRV_PCM_IOCTL_INFO, &info);
-
-            name = (const char*)info.name;
-            snprintf(ptr, len, "%s", name);
             close(fd);
 
-            slen = strlen(ptr)+1; /* skip the trailing 0 */
+            slen = strlen((const char*)info.name)+1;
             if (slen > (len-1)) break;
 
+            snprintf(ptr, len, "%s", (const char*)info.name);
             len -= slen;
             ptr += slen;
          }
