@@ -252,10 +252,13 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
       handle->driver = (char*)_const_sdl_default_driver;
       handle->device = (char*)_const_sdl_default_device;
       handle->bits_sample = 16;
-      handle->spec.freq = (float)48000.0f;
+      handle->spec.freq = 48000;
       handle->spec.channels = 2;
+      handle->spec.format = AUDIO_S16SYS;
       handle->period_frames = handle->spec.freq/DEFAULT_REFRESH;
+      handle->spec.samples = get_pow2(handle->period_frames*handle->spec.channels);
       handle->buf_len = handle->spec.channels*handle->period_frames*handle->bits_sample/8;
+      handle->no_periods = 2;
       pSDL_Init(SDL_INIT_AUDIO);
    }
 
@@ -365,15 +368,9 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
       SDL_AudioSpec req, avail;
       uint32_t device;
 
-      memset(&req, 0, sizeof(SDL_AudioSpec));
-
-      req.format = AUDIO_S16SYS;
-      req.freq = handle->spec.freq;
-      req.channels = handle->spec.channels;
-      req.samples = get_pow2(handle->period_frames*handle->spec.channels);
-
+      memcpy(&req, &handle->spec, sizeof(SDL_AudioSpec));
       device = pSDL_OpenAudioDevice(handle->device, m, &req, &handle->spec,
-              SDL_AUDIO_ALLOW_ANY_CHANGE);
+              SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
       if (device != 0)
       {
          pSDL_CloseAudioDevice(device);
@@ -538,13 +535,13 @@ _aaxSDLDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
 #if 0
  printf("driver settings:\n");
  if (handle->mode != AAX_MODE_READ) {
-    printf("  output renderer: '%s'\n", handle-driver);
+    printf("  output renderer: '%s'\n", handle->driver);
  } else {
     printf("  input renderer: '%s'\n", handle->driver);
  }
  printf("  device: '%s'\n", handle->device);
- printf("  playback rate: %5.0f Hz\n", handle->spec.freq);
- printf("  buffer size: %zu bytes\n", handle->period_frames*handle->spec.channels*handle->bits_sample/8);
+ printf("  playback rate: %5i Hz\n", handle->spec.freq);
+ printf("  buffer size: %u bytes\n", handle->period_frames*handle->spec.channels*handle->bits_sample/8);
  printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
  printf("  no_periods: %i\n", handle->no_periods);
  printf("  timer based: yes\n");
