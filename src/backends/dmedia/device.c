@@ -39,6 +39,7 @@
 
 #include <base/dlsym.h>
 #include <base/logging.h>
+#include <base/memory.h>
 
 #include <ringbuffer.h>
 #include <arch.h>

@@ -59,19 +59,6 @@ static _intBuffers *_aaxIntDriverGetBackends();
 static char* _aaxDriverDetectConfigConnector(char*, char**, char*, char*);
 static void _aaxDriverOldBackendReadConfigSettings(void*, char**, _aaxConfig*, const char*, int);
 
-char is_bigendian()
-{
-   static char __big_endian = 0;
-   static char detect = 0;
-   if (!detect)
-   {
-      unsigned int _t = 1;
-      __big_endian = (*(char *)&_t == 0);
-      detect = 1;
-   }
-   return __big_endian;
-}
-
 _intBuffers *
 _aaxGetDriverBackends()
 {

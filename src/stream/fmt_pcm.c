@@ -31,9 +31,9 @@
 
 
 #include <base/types.h>
+#include <base/memory.h>
 
 #include <software/audio.h>
-#include <backends/devices.h>
 #include <arch.h>
 #include <api.h>
 

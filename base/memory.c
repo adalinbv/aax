@@ -35,6 +35,21 @@
 
 #include "memory.h"
 
+char
+is_bigendian()
+{
+   static char __big_endian = 0;
+   static char detect = 0;
+   if (!detect)
+   {
+      unsigned int _t = 1;
+      __big_endian = (*(char *)&_t == 0);
+      detect = 1;
+   }
+   return __big_endian;
+}
+
+
 /*
  * Taken from FreeBSD:
  * http://src.gnu-darwin.org/src/lib/libc/string/strnstr.c.html

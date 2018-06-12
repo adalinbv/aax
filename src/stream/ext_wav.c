@@ -31,7 +31,7 @@
 # include <string.h>
 #endif
 
-
+#include <base/memory.h>
 #include <arch.h>
 
 #include "device.h"

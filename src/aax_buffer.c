@@ -43,8 +43,8 @@
 #include <dsp/effects.h>
 
 #include <base/random.h>
+#include <base/memory.h>
 
-#include <backends/devices.h>
 #include "analyze.h"
 #include "arch.h"
 #include "api.h"

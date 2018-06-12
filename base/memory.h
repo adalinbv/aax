@@ -26,7 +26,7 @@
 extern "C" {
 #endif
 
-
+char is_bigendian();
 char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);
 char* stradd(char*, char*);

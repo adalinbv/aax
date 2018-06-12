@@ -59,7 +59,6 @@ typedef struct
 } _aaxConfig;
 
 
-char is_bigendian();
 _intBuffers *_aaxGetDriverBackends();
 _aaxDriverBackend *_aaxGetDriverBackendLoopback(unsigned int *);
 void *_aaxRemoveDriverBackends(_intBuffers **);

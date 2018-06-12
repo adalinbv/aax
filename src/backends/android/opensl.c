@@ -30,6 +30,7 @@
 
 #include <base/types.h>
 #include <base/logging.h>
+#include <base/memory.h>
 #include <base/dlsym.h>
 
 #include <ringbuffer.h>

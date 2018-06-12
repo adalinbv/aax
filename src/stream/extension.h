@@ -31,6 +31,7 @@ extern "C" {
 #endif
 
 #include <base/types.h>
+#include <base/memory.h>
 
 #include "audio.h"
 
