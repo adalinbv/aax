@@ -760,7 +760,19 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
          int slen = strlen(driver)+1;
 
          if (slen > (len-1)) break;
-         if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) break;
+
+         // We already provide a file and none backend
+         if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) continue;
+
+         // We already provide the alsa backend
+         if (!strcmp(driver, "alsa")) continue;
+         // We already provide the oss backend
+         if (!strcmp(driver, "dsp") || !strcmp(driver, "dma")) continue;
+
+         // We already provide the windows backend
+         if (!strcmp(driver, "directsound") || !strcmp(driver, "winmm")) {
+            continue;
+         }
 
          snprintf(ptr, len, "%s", pSDL_GetAudioDriver(i));
          len -= slen;
