@@ -54,6 +54,8 @@
 #define SDL_ID_STRING	"SDL"
 #define MAX_ID_STRLEN		96
 
+#define TIMER_BASED		AAX_FALSE
+
 #define DEFAULT_OUTPUT_RATE	48000
 #define DEFAULT_DEVNAME		"Default"
 #define DEFAULT_RENDERER	"SDL"
@@ -73,6 +75,9 @@ static _aaxDriverCaptureCallback _aaxSDLDriverCapture;
 static _aaxDriverPlaybackCallback _aaxSDLDriverPlayback;
 static _aaxDriverGetName _aaxSDLGetName;
 static _aaxDriverRender _aaxSDLDriverRender;
+#if TIMER_BASED
+static _aaxDriverThread _aaxSDLDriverThread;
+#endif
 static _aaxDriverState _aaxSDLDriverState;
 static _aaxDriverParam _aaxSDLDriverParam;
 static _aaxDriverLog _aaxSDLDriverLog;
@@ -95,7 +100,11 @@ const _aaxDriverBackend _aaxSDLDriverBackend =
 
    (_aaxDriverGetName *)&_aaxSDLGetName,
    (_aaxDriverRender *)&_aaxSDLDriverRender,
+#if TIMER_BASED
+   (_aaxDriverThread *)&_aaxSDLDriverThread,
+#else
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
+#endif
 
    (_aaxDriverConnect *)&_aaxSDLDriverConnect,
    (_aaxDriverDisconnect *)&_aaxSDLDriverDisconnect,
@@ -127,6 +136,9 @@ typedef struct
    unsigned int format;
    unsigned int period_frames;
    char bits_sample;
+#if TIMER_BASED
+   char use_timer;
+#endif
    char no_periods;
 
    size_t threshold;            /* sensor buffer threshold for padding */
@@ -138,6 +150,16 @@ typedef struct
    _aaxMutex *lock;
 
    char *ifname[2];
+
+#if TIMER_BASED
+   struct {
+      float I;
+      float err;
+   } PID;
+   struct {
+      float aim;
+   } fill;
+#endif
 
     /* capabilities */
    unsigned int min_frequency;
@@ -252,6 +274,15 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
       handle->period_frames = handle->spec.freq/DEFAULT_REFRESH;
       handle->spec.samples = get_pow2(handle->period_frames*handle->spec.channels);
       handle->spec.size = handle->spec.channels*handle->period_frames*handle->bits_sample/8;
+
+#if TIMER_BASED
+      // default period size is for 25Hz
+      handle->fill.aim = FILL_FACTOR * DEFAULT_REFRESH;
+      if (handle->mode != AAX_MODE_READ) { // Always interupt based for capture
+         handle->use_timer = TIMER_BASED;
+      }
+#endif
+
       pSDL_Init(SDL_INIT_AUDIO);
    }
 
@@ -306,6 +337,18 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
                xmlFree(s);
             }
          }
+
+#if TIMER_BASED
+         s = getenv("AAX_USE_TIMER");
+         if (s) {
+            handle->use_timer = _aax_getbool(s);
+         } else if (xmlNodeTest(xid, "timed")) {
+            handle->use_timer = xmlNodeGetBool(xid, "timed");
+         }
+         if (handle->mode == AAX_MODE_READ) {
+            handle->use_timer = AAX_FALSE;
+         }
+#endif
 
          f = (float)xmlNodeGetDouble(xid, "frequency-hz");
          if (f)
@@ -484,7 +527,17 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
          }
 
+#if TIMER_BASED
+         handle->fill.aim = (float)period_frames/(float)*refresh_rate;
+         if (handle->fill.aim > 0.02f) {
+            handle->fill.aim += 0.01f; // add 10ms
+         } else {
+            handle->fill.aim *= FILL_FACTOR;
+         }
+         handle->latency = handle->fill.aim;
+#else
          handle->latency = (float)period_frames/(float)handle->spec.freq;
+#endif
          handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
          if (handle->render)
@@ -559,7 +612,6 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 {
    _driver_t *handle = (_driver_t *)id;
    size_t nframes = *frames;
-   int tracks;
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
@@ -571,7 +623,6 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
    }
 
    *frames = 0;
-   tracks = handle->spec.channels;
 
 
    *frames = nframes;
@@ -739,8 +790,10 @@ _aaxSDLDriverParam(const void *id, enum _aaxDriverParam param)
 
 		/* boolean */
       case DRIVER_TIMER_MODE:
+#if TIMER_BASED
          rv = (float)AAX_TRUE;
          break;
+#endif
       case DRIVER_BATCHED_MODE:
       case DRIVER_SHARED_MODE:
       default:
@@ -900,3 +953,156 @@ _sdl_callback(void *id, uint8_t *dst, int len)
    _aaxMutexUnLock(handle->lock);
 }
 
+
+#if TIMER_BASED
+void *
+_aaxSDLDriverThread(void* config)
+{
+   _handle_t *handle = (_handle_t *)config;
+   size_t period_frames, bufsize;
+   _intBufferData *dptr_sensor;
+   const _aaxDriverBackend *be;
+   _aaxRingBuffer *dest_rb;
+   _aaxAudioFrame *mixer;
+   _driver_t *be_handle;
+   unsigned int wait_us;
+   float delay_sec;
+   const void *id;
+   int stdby_time;
+   char state;
+
+   if (!handle || !handle->sensors || !handle->backend.ptr
+       || !handle->info->no_tracks) {
+      return NULL;
+   }
+
+   delay_sec = 1.0f/handle->info->period_rate;
+
+   be = handle->backend.ptr;
+   id = handle->backend.handle;		// Required for _AAX_DRVLOG
+   be_handle = (_driver_t *)handle->backend.handle;
+
+   dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor)
+   {
+      _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
+
+      mixer = sensor->mixer;
+
+      dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
+      if (dest_rb)
+      {
+         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
+         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
+         dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
+         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->set_state(dest_rb, RB_STARTED);
+
+         handle->ringbuffer = dest_rb;
+      }
+      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+
+      if (!dest_rb) {
+         return NULL;
+      }
+   }
+   else {
+      return NULL;
+   }
+
+   be->state(handle->backend.handle, DRIVER_PAUSE);
+   state = AAX_SUSPENDED;
+
+   bufsize = be_handle->no_periods*be_handle->period_frames;
+
+   wait_us = delay_sec*1000000;
+   period_frames = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
+   stdby_time = (int)(delay_sec*1000);
+   _aaxMutexLock(handle->thread.signal.mutex);
+   while TEST_FOR_TRUE(handle->thread.started)
+   {
+      _driver_t *be_handle = (_driver_t *)handle->backend.handle;
+      int ret;
+
+      _aaxMutexUnLock(handle->thread.signal.mutex);
+
+         if (_IS_PLAYING(handle))
+         {
+            // TIMER_BASED
+            usecSleep(wait_us);
+         }
+         else {
+            msecSleep(stdby_time);
+         }
+
+      _aaxMutexLock(handle->thread.signal.mutex);
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
+      }
+
+      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
+         _SET_PROCESSED(handle);
+      }
+
+      if (state != handle->state)
+      {
+         if (_IS_PAUSED(handle) ||
+             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+            be->state(handle->backend.handle, DRIVER_PAUSE);
+         }
+         else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
+            be->state(handle->backend.handle, DRIVER_RESUME);
+         }
+         state = handle->state;
+      }
+
+      if (_IS_PLAYING(handle))
+      {
+         int res = _aaxSoftwareMixerThreadUpdate(handle, dest_rb);
+
+         if (be_handle->use_timer)
+         {
+            float target, input, err, P, I; //, D;
+            float freq = mixer->info->frequency;
+
+            target = be_handle->fill.aim;
+            input = (float)res/freq;
+            err = input - target;
+
+            /* present error */
+            P = err;
+
+            /*  accumulation of past errors */
+            be_handle->PID.I += err*delay_sec;
+            I = be_handle->PID.I;
+
+            /* prediction of future errors, based on current rate of change */
+//          D = (be_handle->PID.err - err)/delay_sec;
+//          be_handle->PID.err = err;
+
+//          err = 0.45f*P + 0.83f*I + 0.00125f*D;
+            err = 0.40f*P + 0.97f*I;
+            wait_us = _MAX((delay_sec + err), 1e-6f) * 1000000.0f;
+#if 0
+ printf("target: %5.1f, res: %i, err: %- 5.1f, delay: %5.2f\n", target*freq, res, err*freq, be_handle->fill.dt*1000.0f);
+#endif
+         }
+      }
+#if 0
+ printf("state: %i, paused: %i\n", state, _IS_PAUSED(handle));
+ printf("playing: %i, standby: %i\n", _IS_PLAYING(handle), _IS_STANDBY(handle));
+#endif
+
+      if (handle->finished) {
+         _aaxSemaphoreRelease(handle->finished);
+      }
+   }
+
+   handle->ringbuffer = NULL;
+   be->destroy_ringbuffer(dest_rb);
+   _aaxMutexUnLock(handle->thread.signal.mutex);
+
+   return handle;
+}
+#endif
