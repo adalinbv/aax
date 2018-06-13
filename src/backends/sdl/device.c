@@ -38,6 +38,7 @@
 
 #include <base/dlsym.h>
 #include <base/logging.h>
+#include <base/memory.h>
 #include <base/gmath.h>
 
 #include <ringbuffer.h>
@@ -604,7 +605,7 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    if (handle->dataBuffer == 0 || (handle->dataBuffer->size < 2*size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(4*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(8*size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
    }
 
