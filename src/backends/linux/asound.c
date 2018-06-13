@@ -2625,7 +2625,7 @@ _alsa_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, snd_pcm_
    }
 
    /* software volume fallback */
-   if (rb && fabsf(gain - 1.0f) > 0.05f) {
+   if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
       rb->data_multiply(rb, offset, no_frames, gain);
    }
 

@@ -760,7 +760,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    //       See _aaxSoftwareMixerPlay
 
    sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
-   if (fabsf(gain - 1.0f) > 0.05f)
+   if (fabsf(gain - 1.0f) > LEVEL_32DB)
    {
       unsigned int t;
       for (t=0; t<file_tracks; t++) {

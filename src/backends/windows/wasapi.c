@@ -2033,7 +2033,7 @@ _wasapi_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_
          handle->hwgain = hwgain;
       }
 
-      if (fabsf(hwgain - handle->volumeCur) > 0.05f)
+      if (fabsf(hwgain - handle->volumeCur) > LEVEL_32DB)
       {
          double cur;
          rv = IAudioEndpointVolume_GetMasterVolumeLevel(handle->pEndpointVolume,
@@ -2051,7 +2051,7 @@ _wasapi_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_
       else gain = 0.0f;
    }
 
-   if (fabsf(gain - 1.0f) > 0.05f)
+   if (fabsf(gain - 1.0f) > LEVEL_32DB)
    {
       int t;
       for (t=0; t<no_tracks; t++) {
