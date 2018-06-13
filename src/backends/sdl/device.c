@@ -251,6 +251,7 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
 
       handle->driver = (char*)_const_sdl_default_driver;
       handle->device = (char*)_const_sdl_default_device;
+      handle->mode = mode;
       handle->bits_sample = 16;
       handle->spec.freq = 48000;
       handle->spec.channels = 2;
@@ -410,17 +411,28 @@ _aaxSDLDriverDisconnect(void *id)
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   if (handle && handle->device)
+   if (handle)
    {
-      pSDL_CloseAudioDevice(handle->devnum);
-      pSDL_AudioQuit();
-   }
-   pSDL_Quit();
+      if (handle->device)
+      {
+         pSDL_CloseAudioDevice(handle->devnum);
+         pSDL_AudioQuit();
+      }
+      pSDL_Quit();
 
-   if (handle->driver != _const_sdl_default_driver) {
-      free(handle->driver);
+      if (handle->driver != _const_sdl_default_driver) {
+         free(handle->driver);
+      }
+
+      if (handle->render)
+      {
+         handle->render->close(handle->render->id);
+         free(handle->render);
+      }
+
+      free(handle->ifname[(handle->mode == AAX_MODE_READ) ? 1 : 0]);
+      free(handle);
    }
-   free(handle);
 
    return AAX_TRUE;
 }
@@ -794,48 +806,47 @@ _aaxSDLDriverGetInterfaces(const void *id, const char*devname, int mode)
    _driver_t *handle = (_driver_t *)id;
    unsigned char m = (mode == AAX_MODE_READ) ? 1 : 0;
    char *rv = handle->ifname[m];
-   int res;
 
-   res = pSDL_AudioInit(devname);
-   if (!rv && !res)
+   if (!rv)
    {
-      char devlist[1024] = "\0\0";
-      int i, count, len = 1024;
-      char *ptr;
-
-      ptr = devlist;
- 
-      count = pSDL_GetNumAudioDevices(m);
-      for (i=0; i<count; ++i)
+      int res = pSDL_AudioInit(devname);
+      if (!res)
       {
-         const char *name = pSDL_GetAudioDeviceName(i, m);
-         int slen = strlen(name)+1;
+         char devlist[1024] = "\0\0";
+         int i, count, len = 1024;
+         char *ptr;
 
-         if (slen > (len-1)) break;
+         ptr = devlist;
 
-         snprintf(ptr, len, "%s", name);
-         len -= slen; 
-         ptr += slen; 
-      }
-
-      if (ptr != devlist)
-      {
-         *ptr++ = '\0';
-         if (handle->ifname[m]) {
-            rv = realloc(handle->ifname[m], ptr-devlist);
-         } else {
-            rv = malloc(ptr-devlist);
-         }
-         if (rv)
+         count = pSDL_GetNumAudioDevices(m);
+         for (i=0; i<count; ++i)
          {
-            handle->ifname[m] = rv;
-            memcpy(handle->ifname[m], devlist, ptr-devlist);
-         }
-      }
-   }
+            const char *name = pSDL_GetAudioDeviceName(i, m);
+            int slen = strlen(name)+1;
 
-   if (res) {
-      pSDL_AudioQuit();
+            if (slen > (len-1)) break;
+
+            snprintf(ptr, len, "%s", name);
+            len -= slen;
+            ptr += slen;
+         }
+
+         if (ptr != devlist)
+         {
+            *ptr++ = '\0';
+            if (handle->ifname[m]) {
+               rv = realloc(handle->ifname[m], ptr-devlist);
+            } else {
+               rv = malloc(ptr-devlist);
+            }
+            if (rv)
+            {
+               handle->ifname[m] = rv;
+               memcpy(handle->ifname[m], devlist, ptr-devlist);
+            }
+         }
+         pSDL_AudioQuit();
+      }
    }
 
    return rv;
