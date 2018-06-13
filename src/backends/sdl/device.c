@@ -611,7 +611,10 @@ static ssize_t
 _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t nframes = *frames;
+   unsigned int no_tracks = handle->spec.channels;
+   size_t frame_sz, nframes = *frames;
+   int32_t **sbuf = (int32_t**)data;
+   ssize_t offs = *offset;
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
@@ -624,8 +627,20 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 
    *frames = 0;
 
+   frame_sz = no_tracks*handle->bits_sample/8;
+   if (handle->dataBuffer->avail >= nframes*frame_sz)
+   {
+      unsigned char *data;
 
-   *frames = nframes;
+      _aaxMutexLock(handle->lock);
+      data = handle->dataBuffer->data;
+      _batch_cvt24_16_intl(sbuf, data, offs, no_tracks, nframes);
+      _aaxDataMove(handle->dataBuffer, NULL, nframes*frame_sz);
+      _aaxMutexUnLock(handle->lock);
+
+      *frames = nframes;
+   }
+
    return AAX_TRUE;
 }
 
@@ -947,9 +962,14 @@ static void
 _sdl_callback(void *id, uint8_t *dst, int len)
 {
    _driver_t *handle = (_driver_t *)id;
+   char m = (handle->mode == AAX_MODE_READ) ? 1 : 0;
 
    _aaxMutexLock(handle->lock);
-   _aaxDataMove(handle->dataBuffer, dst, len);
+   if (m) {	//  handle->mode == AAX_MODE_READ
+      _aaxDataAdd(handle->dataBuffer, dst, len);
+   } else {
+      _aaxDataMove(handle->dataBuffer, dst, len);
+   }
    _aaxMutexUnLock(handle->lock);
 }
 
