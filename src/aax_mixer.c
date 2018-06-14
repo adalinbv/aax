@@ -1458,7 +1458,7 @@ _aaxMixerInit(_handle_t *handle)
 
             // recalculate refresh_rate based on the number of periods
             // and the new refresh-rate.
-            periods = rintf(refrate/info->refresh_rate);
+            periods = _MAX(rintf(refrate/info->refresh_rate), 1.0f);
             info->refresh_rate = refrate/periods;
             info->no_samples = TIME_TO_SAMPLES(freq, info->refresh_rate);
 
