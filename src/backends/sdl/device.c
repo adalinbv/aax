@@ -161,13 +161,13 @@ DECL_FUNCTION(SDL_OpenAudioDevice);
 DECL_FUNCTION(SDL_CloseAudioDevice);
 DECL_FUNCTION(SDL_PauseAudioDevice);
 DECL_FUNCTION(SDL_QueueAudio);
+DECL_FUNCTION(SDL_DequeueAudio);
 DECL_FUNCTION(SDL_GetQueuedAudioSize);
 DECL_FUNCTION(SDL_ClearQueuedAudio);
 DECL_FUNCTION(SDL_GetError);
 DECL_FUNCTION(SDL_ClearError);
 
 
-static void _sdl_callback_read(void*, uint8_t*, int);
 static void _sdl_callback_write(void*, uint8_t*, int);
 static float _sdl_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, unsigned int, float);
 
@@ -210,6 +210,7 @@ _aaxSDLDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(SDL_CloseAudioDevice);
          TIE_FUNCTION(SDL_PauseAudioDevice);
          TIE_FUNCTION(SDL_QueueAudio);
+         TIE_FUNCTION(SDL_DequeueAudio);
          TIE_FUNCTION(SDL_GetQueuedAudioSize);
          TIE_FUNCTION(SDL_ClearQueuedAudio);
          TIE_FUNCTION(SDL_GetError);
@@ -247,7 +248,7 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
       handle->spec.freq = 48000;
       handle->spec.channels = 2;
       handle->spec.format = is_bigendian() ? AUDIO_S16MSB : AUDIO_S16LSB;
-      handle->spec.callback = m ? _sdl_callback_read : _sdl_callback_write;
+      handle->spec.callback = m ? NULL : _sdl_callback_write;
       handle->spec.userdata = handle;
       handle->spec.samples = get_pow2(handle->spec.freq/DEFAULT_REFRESH);
 
@@ -565,10 +566,9 @@ static ssize_t
 _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
-   unsigned int no_tracks = handle->spec.channels;
-   size_t frame_sz, nframes = *frames;
-   int32_t **sbuf = (int32_t**)data;
+   size_t res, scratchsz, nframes = *frames;
    ssize_t offs = *offset;
+   int tracks;
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
@@ -580,18 +580,25 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
    }
 
    *frames = 0;
+   tracks = handle->spec.channels;
+   scratchsz = scratchlen*8/(tracks*handle->bits_sample);
 
-   frame_sz = no_tracks*handle->bits_sample/8;
-   if (handle->dataBuffer->avail >= nframes*frame_sz)
+   res = pSDL_DequeueAudio(handle->devnum, scratch, _MAX(nframes, scratchsz));
+
+   nframes = res*8/(tracks*handle->bits_sample);
+   _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, nframes);
+
+   /* gain is negative for auto-gain mode */
+   gain = fabsf(gain);
+   if (gain < 0.99f || gain > 1.01f)
    {
-      unsigned char *data;
-
-      data = handle->dataBuffer->data;
-      _batch_cvt24_16_intl(sbuf, data, offs, no_tracks, nframes);
-      _aaxDataMove(handle->dataBuffer, NULL, nframes*frame_sz);
-
-      *frames = nframes;
+      int t;
+      for (t=0; t<tracks; t++) {
+         _batch_imul_value((int32_t**)data[t]+offs, sizeof(int32_t), nframes,
+                           gain);
+      }
    }
+   *frames = nframes;
 
    return AAX_TRUE;
 }
@@ -1012,22 +1019,4 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
    if (be_handle->dataBuffer->avail >= len) {
       _aaxDataMove(be_handle->dataBuffer, dst, len);
    }
-}
-
-static void
-_sdl_callback_read(void *be_ptr, uint8_t *dst, int len)
-{
-   _driver_t *be_handle = (_driver_t *)be_ptr;
-   _handle_t *handle = (_handle_t *)be_handle->handle;
-
-   assert(_IS_PLAYING(handle));
-   assert(be_handle->mode != AAX_MODE_READ);
-   assert(be_handle->dataBuffer);
-   assert(handle->ringbuffer);
-
-   _aaxMutexLock(handle->thread.signal.mutex);
-   _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
-   _aaxMutexUnLock(handle->thread.signal.mutex);
-
-   _aaxDataAdd(be_handle->dataBuffer, dst, len);
 }
