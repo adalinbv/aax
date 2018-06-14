@@ -698,9 +698,9 @@ _aaxDMediaDriverCapture(const void *id, void **data, ssize_t *offset, size_t *fr
 
    *frames = 0;
    tracks = handle->port[0].no_channels;
-   scratchsz = scratchlen*8/(tracks*handle->port[0].bytes_sample);
+   scratchsz = scratchlen/(tracks*handle->port[0].bytes_sample);
 
-   palReadFrames(handle->port[0].port, scratch, _MAX(nframes, scratchsz));
+   palReadFrames(handle->port[0].port, scratch, _MIN(nframes, scratchsz));
    _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, nframes);
 
 // TODO: convert to hardware volume if possible

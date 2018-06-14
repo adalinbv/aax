@@ -97,6 +97,7 @@ typedef void (*SDL_CloseAudioDevice_proc)(uint32_t);
 typedef void (*SDL_PauseAudioDevice_proc)(uint32_t, int);
 
 typedef int (*SDL_QueueAudio_proc)(uint32_t, const void*, uint32_t);
+typedef int (*SDL_DequeueAudio_proc)(uint32_t, void*, uint32_t);
 typedef uint32_t (*SDL_GetQueuedAudioSize_proc)(uint32_t);
 typedef void (*SDL_ClearQueuedAudio_proc)(uint32_t);
 

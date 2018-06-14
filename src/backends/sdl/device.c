@@ -566,9 +566,9 @@ static ssize_t
 _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, void *scratch, size_t scratchlen, float gain, UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t res, scratchsz, nframes = *frames;
+   size_t res, nframes = *frames;
    ssize_t offs = *offset;
-   int tracks;
+   int tracks, frame_sz;
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
@@ -581,11 +581,12 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
 
    *frames = 0;
    tracks = handle->spec.channels;
-   scratchsz = scratchlen*8/(tracks*handle->bits_sample);
+   frame_sz = tracks*handle->bits_sample/8;
 
-   res = pSDL_DequeueAudio(handle->devnum, scratch, _MAX(nframes, scratchsz));
+   res = _MIN(nframes*frame_sz, scratchlen);
+   res = pSDL_DequeueAudio(handle->devnum, scratch, res);
 
-   nframes = res*8/(tracks*handle->bits_sample);
+   nframes = res/frame_sz;
    _batch_cvt24_16_intl((int32_t**)data, scratch, offs, tracks, nframes);
 
    /* gain is negative for auto-gain mode */
