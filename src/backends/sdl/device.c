@@ -455,8 +455,10 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
          req.channels = handle->spec.channels;
       }
 
-      *refresh_rate /= 2;
       periods = handle->no_periods;
+      if (*refresh_rate > 100) {
+         *refresh_rate = 100;
+      }
       if (!registered) {
          period_samples = get_pow2((size_t)rintf(req.freq/(*refresh_rate*periods)));
       } else {
@@ -916,13 +918,14 @@ static void *
 _aaxSDLDriverThread(void* config)
 {
    _handle_t *handle = (_handle_t *)config;
-   const _aaxDriverBackend *be;
    _intBufferData *dptr_sensor;
+   const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
+   _aaxAudioFrame *smixer;
    _driver_t *be_handle;
+   int state, tracks;
    float delay_sec;
    int stdby_time;
-   char state;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
@@ -930,73 +933,84 @@ _aaxSDLDriverThread(void* config)
    }
 
    be = handle->backend.ptr;
-   be_handle = (_driver_t *)handle->backend.handle;
    delay_sec = 1.0f/handle->info->period_rate;
 
-   dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
-   if (dptr_sensor)
+   tracks = 2;
+   smixer = NULL;
+   dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
+   if (dest_rb)
    {
-      _sensor_t* sensor = _intBufGetDataPtr(dptr_sensor);
-      _aaxAudioFrame *mixer = sensor->mixer;
-
-      dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, mixer->info->mode);
-      if (dest_rb)
+      dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr_sensor)
       {
+         _aaxMixerInfo* info;
+         _sensor_t* sensor;
+
+         sensor = _intBufGetDataPtr(dptr_sensor);
+         smixer = sensor->mixer;
+         info = smixer->info;
+
+         tracks = info->no_tracks;
+         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
          dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
-         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, mixer->info->no_tracks);
-         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, mixer->info->frequency);
+         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, info->frequency);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
          dest_rb->init(dest_rb, AAX_TRUE);
          dest_rb->set_state(dest_rb, RB_STARTED);
 
          handle->ringbuffer = dest_rb;
-      }
-      _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
-
-      if (!dest_rb) {
-         return NULL;
+         _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
       }
    }
-   else {
+
+   dest_rb = handle->ringbuffer;
+   if (!dest_rb) {
       return NULL;
    }
+
+   /* get real duration, it might have been altered for better performance */
+   delay_sec = dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
+   stdby_time = (int)(delay_sec*1000);
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
+   be_handle = (_driver_t *)handle->backend.handle;
    be_handle->dataBuffer = _aaxDataCreate(1, 1);
 
-   stdby_time = (int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.signal.mutex);
-
-   _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
-   while TEST_FOR_TRUE(handle->thread.started)
+   do
    {
-      _aaxMutexUnLock(handle->thread.signal.mutex);
-
-      msecSleep(stdby_time);
-
-      _aaxMutexLock(handle->thread.signal.mutex);
-      if (be->state(be_handle, DRIVER_AVAILABLE) == AAX_FALSE) {
-         _SET_PROCESSED(handle);
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
       }
 
       if (state != handle->state)
       {
-         if (_IS_PAUSED(handle) || 
-             (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+         if (_IS_PAUSED(handle) || (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
             be->state(handle->backend.handle, DRIVER_PAUSE);
          }
          else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
             be->state(handle->backend.handle, DRIVER_RESUME);
          }
-         handle->state = state;
-      }
-   }
 
-   handle->ringbuffer = NULL;
-   be->destroy_ringbuffer(dest_rb);
+         state = handle->state;
+      }
+
+      _aaxMutexUnLock(handle->thread.signal.mutex);
+      msecSleep(stdby_time);
+      _aaxMutexLock(handle->thread.signal.mutex);
+   }
+   while TEST_FOR_TRUE(handle->thread.started);
+
    _aaxMutexUnLock(handle->thread.signal.mutex);
+
+   dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor)
+   {
+      be->destroy_ringbuffer(handle->ringbuffer);
+      handle->ringbuffer = NULL;
+   }
 
    return handle;
 }
@@ -1007,17 +1021,19 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
    _driver_t *be_handle = (_driver_t *)be_ptr;
    _handle_t *handle = (_handle_t *)be_handle->handle;
 
-   assert(_IS_PLAYING(handle));
-   assert(be_handle->mode != AAX_MODE_READ);
-   assert(be_handle->dataBuffer);
-   assert(handle->ringbuffer);
+   if (_IS_PLAYING(handle))
+   {
+      assert(be_handle->mode != AAX_MODE_READ);
+      assert(be_handle->dataBuffer);
+      assert(handle->ringbuffer);
 
-   _aaxMutexLock(handle->thread.signal.mutex);
-   _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
-   _aaxMutexUnLock(handle->thread.signal.mutex);
+      _aaxMutexLock(handle->thread.signal.mutex);
+      _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+      _aaxMutexUnLock(handle->thread.signal.mutex);
 
-   assert(be_handle->dataBuffer->avail >= len);
-   if (be_handle->dataBuffer->avail >= len) {
-      _aaxDataMove(be_handle->dataBuffer, dst, len);
+      assert(be_handle->dataBuffer->avail >= len);
+      if (be_handle->dataBuffer->avail >= len) {
+         _aaxDataMove(be_handle->dataBuffer, dst, len);
+      }
    }
 }
