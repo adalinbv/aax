@@ -1,13 +1,17 @@
-* Fri Jun 13 2018 - tech@adalin.org
-- AeonWave (3.1.3) stable; urgency=low
+* Sat Jun 16 2018 - tech@adalin.org
+- AeonWave (3.2.0) stable; urgency=high
  * Add SDL audio support for backends AeonWave does not support natively.
-   This potentially opens op the option to use AeonWave on MacOS and OpenBSD.
+   This potentially opens up the option to use AeonWave on MacOS and BSD.
+ * Allow retrieving the data directory which AeonWave uses to store shared data
+   like preset files by calling aaxDriverGetSetup(cfg, AAX_SHARED_DATA_DIR)
  * Allow defining AAX_ENVELOPE_FOLLOW or AAX_INVERSE_ENVELOPE_FOLLOW alongside
    the waveform type to control the noise behavior when setting the state for
    the bitcrusher filter. The default behavior is still a constant noise level.
+ * Fix a number of potential buffer overflows when enumerating the available
+   backend interfaces.
  * Fix a number of one-off memory leaks.
 
--- Erik Hofman <tech@adalin.org>  Fri 13 Jun  2018 13:30:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 16 Jun  2018 13:30:00 + 0200
 
 * Tue Jun 05 2018 - tech@adalin.org
 - AeonWave (3.1.2) stable; urgency=low
