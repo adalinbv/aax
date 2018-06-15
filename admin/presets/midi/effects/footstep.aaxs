@@ -13,7 +13,12 @@
   <waveform src="impulse" processing="modulate" ratio="1.2" pitch="0.02"/>
   <waveform src="impulse" processing="modulate" ratio="2.0" pitch="0.02"/>
   <waveform src="impulse" processing="modulate" ratio="1.2" pitch="0.32"/>
- </sound>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="3">0.8</param>
+   </slot>
+  </filter>
+  </sound>
 
  <emitter looping="true">
   <effect type="timed-pitch">
