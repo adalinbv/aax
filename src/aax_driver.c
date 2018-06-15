@@ -106,6 +106,22 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
             }
          }
          break;
+      case AAX_SHARED_DATA_DIR:
+      {
+         static char _data_dir[128] = "\0";
+         if (_data_dir[0] == '\0')
+         {
+            char *s = systemDataFile("");
+            if (s)
+            {
+               memcpy(_data_dir, s, _MAX(strlen(s), 127));
+               _data_dir[127] = 0;
+               free(s);
+            }
+         }
+         rv = _data_dir;
+         break;
+      }
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
       case AAX_MUSIC_GENRE_STRING:
