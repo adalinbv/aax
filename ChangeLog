@@ -2,6 +2,7 @@
 - AeonWave (3.2.0) stable; urgency=high
  * Add SDL audio support for backends AeonWave does not support natively.
    This potentially opens up the option to use AeonWave on MacOS and BSD.
+   SDL 2.0.5 or later is required.
  * Allow retrieving the data directory which AeonWave uses to store shared data
    like preset files by calling aaxDriverGetSetup(cfg, AAX_SHARED_DATA_DIR)
  * Allow defining AAX_ENVELOPE_FOLLOW or AAX_INVERSE_ENVELOPE_FOLLOW alongside
