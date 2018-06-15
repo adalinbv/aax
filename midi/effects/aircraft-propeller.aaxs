@@ -1,0 +1,25 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Propeller Aircraft" program="126" bank="0" frequency="220">
+  <waveform src="white-noise" pitch="0.25"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.96" pitch="1.0"/>
+  <waveform src="sawtooth" processing="modulate" pitch="0.5"/>
+ </sound>
+
+ <emitter looping="true">
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.225</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>

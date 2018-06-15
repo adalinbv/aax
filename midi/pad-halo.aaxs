@@ -1,0 +1,68 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Pad 7 (halo)" program="89" bank="0" frequency="220" duration="3.0">
+  <waveform src="triangle" pitch="0.51" voices="5" spread="0.9"/>
+  <waveform src="square" processing="modulate" ratio="0.8" pitch="7.9987"/>
+  <waveform src="triangle" processing="add" ratio="0.3" pitch="0.9399"/>
+  <waveform src="pink-noise" processing="add" ratio="0.08" pitch="0.02"/>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0">1650</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <instrument>
+  <note polyphony="8" min="36" max="96" step="1"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1" factor="velocity">0.41</param>
+    <param n="2" factor="soften">1.0</param>
+    <param n="3">5.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.80</param>
+    <param n="1">5.5</param>
+   </slot>
+  </filter>
+  <effect type="phasing" src="inverse-sine">
+   <slot n="0">
+    <param n="0">0.3</param>
+    <param n="1">0.05</param>
+    <param n="2">0.3</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="sine">
+   <slot n="0">
+    <param n="0" pitch="0.5">110</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">10.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="7">1100</param>
+    <param n="3">0.030</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+</aeonwave>

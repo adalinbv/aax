@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="String Ensamble 2 (slow)"  program="50" bank="0" frequency="220" duration="0.75">
+  <waveform src="sawtooth" ratio="0.75"/>
+  <waveform src="sawtooth" processing="add" ratio="0.25" pitch="0.99"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="1.4889"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="4" min="28" max="96" step="1"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1" factor="velocity">2.04</param>
+    <param n="2" factor="soften">1.2</param>
+    <param n="3">1.95</param>/slot>
+   </slot>
+   <slot n="1">
+    <param n="0">0.90</param>
+    <param n="1">inf</param>
+    <param n="2">0.80</param>
+    <param n="3">0.20</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">0.94</param>
+    <param n="1" factor="velocity">0.25</param>
+    <param n="2">0.98</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">4.5</param>
+    <param n="2">0.975</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+</aeonwave>

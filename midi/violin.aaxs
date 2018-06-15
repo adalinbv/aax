@@ -1,0 +1,60 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Violin" program="41-44" bank="0" frequency="220" duration="0.10">
+  <waveform src="sawtooth" ratio="0.6"/>
+  <waveform src="square" processing="modulate" ratio="1.0" pitch="3.0"/>
+  <waveform src="inverse-impulse" processing="mix" ratio="0.4" pitch="0.9899"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="4" min="28" max="96" step="1"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.40</param>
+    <param n="1" factor="velocity">0.15</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.90</param>
+    <param n="1">inf</param>
+    <param n="2">0.90</param>
+    <param n="3">0.20</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">0.97</param>
+    <param n="1" factor="velocity">0.25</param>
+    <param n="2">1.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.995</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.553</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+</aeonwave>
