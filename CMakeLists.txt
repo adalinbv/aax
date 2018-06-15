@@ -515,9 +515,8 @@ IF(WIN32)
 ELSE(WIN32)
   SET(APP_DATA_DIR "/usr/${CMAKE_INSTALL_DATAROOTDIR}/aax")
 ENDIF(WIN32)
-INSTALL_CUSTOM_FILES("admin/presets/genres.xml" "${APP_DATA_DIR}/")
-INSTALL_CUSTOM_FILES("admin/presets/midi/*.aaxs" "${APP_DATA_DIR}/midi")
-INSTALL_CUSTOM_FILES("admin/presets/reverb/*.aaxs" "${APP_DATA_DIR}/reverb")
+INSTALL( DIRECTORY admin/presets/ DESTINATION ${APP_DATA_DIR} )
+
 message("APP_DATA_DIR: ${APP_DATA_DIR}")
 
 install(FILES 
