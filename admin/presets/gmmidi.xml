@@ -9,7 +9,7 @@
 <aeonwave>
 
  <midi>
-  <bank n="0">
+  <bank n="0" dir="instruments">
    <instrument n="1" name="Acoustic Grand Piano" file="piano-acoustic.aaxs"/>
    <instrument n="2" name="Bright Acoustic Piano" file="piano-bright.aaxs"/>
    <instrument n="3" name="Electric Grand Piano" file="piano-electric.aaxs"/>
@@ -140,7 +140,7 @@
    <instrument n="128" name="Gunshot" file="effecst/gunshot.aaxs"/>
   </bank>
 
-  <bank n="8">
+  <bank n="8" dir="instruments">
    <instrument n="5" name="Detuned Electric Piano 1" file="piano-electric1-detuned.aaxs"/>
    <instrument n="6" name="Detuned Electric Piano 2" file="piano-electric2-detuned.aaxs"/>
    <instrument n="7" name="Coupled Harpsichord" file="harpsichord-coupled.aaxs"/>
