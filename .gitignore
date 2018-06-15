@@ -21,6 +21,7 @@ CPackConfig.cmake
 CPackSourceConfig.cmake
 cmake_uninstall.cmake
 CTestTestfile.cmake
+sounds/midi
 .kdev4
 *.kdev4
 
