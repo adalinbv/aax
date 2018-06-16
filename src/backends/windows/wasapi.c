@@ -46,7 +46,7 @@
 #include <base/threads.h>
 
 #include <software/renderer.h>
-#include <backend/driver.h>
+#include <backends/driver.h>
 #include <dsp/effects.h>
 #include "api.h"
 #include "arch.h"
