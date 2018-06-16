@@ -556,25 +556,26 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
    if (!signal->triggered && timeout > 0.0f)
    {
       _aaxMutex *m = (_aaxMutex *)signal->mutex;
-      struct timespec ts;
       time_t secs;
 
-      clock_gettime(CLOCK_REALTIME, &ts);
+      if(signal->ts.tv_sec == 0) {
+         clock_gettime(CLOCK_REALTIME, &signal->ts);
+      }
 
       secs = (time_t)floorf(timeout);
       timeout -= secs;
 
-      ts.tv_sec += secs;
-      ts.tv_nsec += (long)rintf(timeout*1e9f);
-      if (ts.tv_nsec >= 1000000000L)
+      signal->ts.tv_sec += secs;
+      signal->ts.tv_nsec += (long)rintf(timeout*1e9f);
+      if (signal->ts.tv_nsec >= 1000000000L)
       {
-         ts.tv_sec++;
-         ts.tv_nsec -= 1000000000L;
+         signal->ts.tv_sec++;
+         signal->ts.tv_nsec -= 1000000000L;
       }
    
       signal->waiting = AAX_TRUE;
       do {
-         rv = pthread_cond_timedwait(signal->condition, &m->mutex, &ts);
+         rv = pthread_cond_timedwait(signal->condition, &m->mutex,&signal->ts);
          if (rv == ETIMEDOUT) break;
       }
       while (signal->waiting == AAX_TRUE);
@@ -1154,9 +1155,9 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
       _aaxMutex *mutex = (_aaxMutex *)signal->mutex;
       DWORD hr;
 
-      timeout *= 1000.0f; 		/* from seconds to ms */
       if (timeout > 0.0f)	
       {
+         timeout *= 1000.0f;		/* from seconds to ms */
          signal->waiting = AAX_TRUE;
          do
          {

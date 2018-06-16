@@ -58,6 +58,10 @@ typedef struct
    void *condition;
    char waiting;
    int triggered;
+#if defined( WIN32 )
+#else
+   struct timespec ts;
+#endif
 } _aaxSignal;
 
 int _aaxProcessSetPriority(int);
