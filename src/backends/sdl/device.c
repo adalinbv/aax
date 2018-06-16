@@ -58,7 +58,7 @@
 #define DEFAULT_DEVNAME		"Default"
 #define DEFAULT_RENDERER	"SDL"
 #define DEFAULT_REFRESH		25.0f
-#define FILL_FACTOR		1.5f
+#define FILL_FACTOR		2.0f
 
 #define _AAX_DRVLOG(a)		_aaxSDLDriverLog(NULL, 0, 0, a)
 
@@ -128,14 +128,10 @@ typedef struct
    unsigned int format;
    char bits_sample;
    char no_periods;
-
-   size_t threshold;            /* sensor buffer threshold for padding */
-   float padding;               /* for sensor clock drift correction   */
-
    float latency;
 
    _data_t *dataBuffer;
-   _aaxMutex *lock;
+   _aaxMutex *mutex;
 
    char *ifname[2];
 
@@ -144,6 +140,14 @@ typedef struct
    unsigned int max_frequency;
    unsigned int min_tracks;
    unsigned int max_tracks;
+
+   struct {
+      float I;
+      float err;
+   } PID;
+   struct {
+      float aim;
+   } fill;
 
 } _driver_t;
 
@@ -251,6 +255,10 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
       handle->spec.callback = m ? NULL : _sdl_callback_write;
       handle->spec.userdata = handle;
       handle->spec.samples = get_pow2(handle->spec.freq/DEFAULT_REFRESH);
+      handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/8;
+      if (!m) {
+         handle->mutex = _aaxMutexCreate(handle->mutex);
+      }
 
       pSDL_Init(SDL_INIT_AUDIO);
    }
@@ -421,6 +429,9 @@ _aaxSDLDriverDisconnect(void *id)
          handle->render->close(handle->render->id);
          free(handle->render);
       }
+      if (handle->mutex) {
+         _aaxMutexDestroy(handle->mutex);
+      }
       _aaxDataDestroy(handle->dataBuffer);
 
       free(handle->ifname[(handle->mode == AAX_MODE_READ) ? 1 : 0]);
@@ -494,6 +505,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
          }
 
+         handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/8;
          handle->latency = (float)period_samples/(float)handle->spec.freq/handle->spec.channels;
          handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
@@ -648,12 +660,15 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
 
       _sdl_set_volume(handle, rb, offs, period_frames, no_tracks, gain);
 
+      _aaxMutexLock(handle->mutex);
       data = handle->dataBuffer->data + handle->dataBuffer->avail;
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
       handle->dataBuffer->avail += size;
+      _aaxMutexUnLock(handle->mutex);
+
       assert(handle->dataBuffer->avail <= handle->dataBuffer->size);
 
       rv = period_frames;
@@ -925,7 +940,8 @@ _aaxSDLDriverThread(void* config)
    _driver_t *be_handle;
    int state, tracks;
    float delay_sec;
-   int stdby_time;
+   float freq;
+   int res;
 
    if (!handle || !handle->sensors || !handle->backend.ptr
        || !handle->info->no_tracks) {
@@ -950,6 +966,7 @@ _aaxSDLDriverThread(void* config)
          smixer = sensor->mixer;
          info = smixer->info;
 
+         freq = info->frequency;
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
          dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
@@ -970,7 +987,6 @@ _aaxSDLDriverThread(void* config)
 
    /* get real duration, it might have been altered for better performance */
    delay_sec = dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
-   stdby_time = (int)(delay_sec*1000);
 
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
@@ -981,6 +997,8 @@ _aaxSDLDriverThread(void* config)
    _aaxMutexLock(handle->thread.signal.mutex);
    do
    {
+      float dt = delay_sec;
+
       if TEST_FOR_FALSE(handle->thread.started) {
          break;
       }
@@ -997,11 +1015,33 @@ _aaxSDLDriverThread(void* config)
          state = handle->state;
       }
 
-      _aaxMutexUnLock(handle->thread.signal.mutex);
-      msecSleep(stdby_time);
-      _aaxMutexLock(handle->thread.signal.mutex);
+      if (_IS_PLAYING(handle))
+      {
+         float target, input, err, P, I;
+
+         res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+
+         target = be_handle->fill.aim;
+         input = (float)be_handle->dataBuffer->avail;
+         err = input - target;
+
+         /* present error */
+         P = err;
+
+         /*  accumulation of past errors */
+         be_handle->PID.I += err*delay_sec;
+         I = be_handle->PID.I;
+
+         err = 0.40f*P + 0.97f*I;
+         dt = _MAX((delay_sec + err/freq), 1e-6f);
+#if 0
+ printf("target: %5.1f, avail: %5.1f, err: %- 5.1f, delay: %5.2f\n", target, input, err, dt);
+#endif
+      }
+
+      res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
    }
-   while TEST_FOR_TRUE(handle->thread.started);
+   while (res == AAX_TIMEOUT || res == AAX_TRUE);
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
@@ -1027,13 +1067,14 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
       assert(be_handle->dataBuffer);
       assert(handle->ringbuffer);
 
-      _aaxMutexLock(handle->thread.signal.mutex);
-      _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
-      _aaxMutexUnLock(handle->thread.signal.mutex);
-
-      assert(be_handle->dataBuffer->avail >= len);
-      if (be_handle->dataBuffer->avail >= len) {
+      // assert(be_handle->dataBuffer->avail >= len);
+      if (be_handle->dataBuffer->avail >= len)
+      {
+         _aaxMutexLock(be_handle->mutex);
          _aaxDataMove(be_handle->dataBuffer, dst, len);
+         _aaxMutexUnLock(be_handle->mutex);
       }
+else
+printf("buffer underflow: %i         \n", len-be_handle->dataBuffer->avail);
    }
 }
