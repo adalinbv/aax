@@ -46,10 +46,10 @@
 #include <base/threads.h>
 
 #include <software/renderer.h>
+#include <backend/driver.h>
 #include <dsp/effects.h>
 #include "api.h"
 #include "arch.h"
-#include "driver.h"
 #include "ringbuffer.h"
 #include "audio.h"
 #include "wasapi.h"
