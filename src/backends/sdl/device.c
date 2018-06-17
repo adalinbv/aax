@@ -58,7 +58,7 @@
 #define DEFAULT_DEVNAME		"Default"
 #define DEFAULT_RENDERER	"SDL"
 #define DEFAULT_REFRESH		25.0f
-#define FILL_FACTOR		2.5f
+#define FILL_FACTOR		2.0f
 
 #define _AAX_DRVLOG(a)		_aaxSDLDriverLog(NULL, 0, 0, a)
 
@@ -1033,9 +1033,9 @@ _aaxSDLDriverThread(void* config)
          I = be_handle->PID.I;
 
          err = 0.40f*P + 0.97f*I;
-         dt = _MAX((delay_sec + err), 1e-6f);
+         dt = _MINMAX((delay_sec + err), 1e-6f, 1.5f*delay_sec);
 #if 0
- printf("target: %5.1f, avail: %5.1f, err: %- 5.1f, delay: %5.2f\n", target, input, err, dt);
+ printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r", target*freq, input*freq, err*freq, dt, delay_sec);
 #endif
       }
 
@@ -1074,7 +1074,8 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
          _aaxDataMove(be_handle->dataBuffer, dst, len);
          _aaxMutexUnLock(be_handle->mutex);
       }
-else
-printf("buffer underflow: %i         \n", len-be_handle->dataBuffer->avail);
+      else {
+         _AAX_DRVLOG("buffer underflow\n");
+      }
    }
 }
