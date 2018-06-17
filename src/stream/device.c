@@ -1428,8 +1428,8 @@ _aaxStreamDriverReadChunk(const void *id)
       return 0;
    }
 
-   // read may block until enough data ia available but others will only
-   // remove data from the htreadBuffer so size may only increase.
+   // read may block until enough data is available but others will only
+   // remove data from the threadBuffer so size may only increase.
    res = handle->io->read(handle->io, buffer, size);
    if (res > 0)
    {
@@ -1441,6 +1441,8 @@ _aaxStreamDriverReadChunk(const void *id)
       data = handle->threadBuffer->data;
 
       avail = handle->threadBuffer->avail;
+      assert(avail+res < handle->threadBuffer->size);
+
       memcpy(data+avail, buffer, res);
       avail += res;
 
