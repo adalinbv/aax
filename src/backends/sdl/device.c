@@ -60,7 +60,7 @@
 #define DEFAULT_REFRESH		25.0f
 #define FILL_FACTOR		2.0f
 
-#define _AAX_DRVLOG(a)		_aaxSDLDriverLog(NULL, 0, 0, a)
+#define _AAX_DRVLOG(a)		_aaxSDLDriverLog(id, 0, 0, a)
 
 static _aaxDriverDetect _aaxSDLDriverDetect;
 static _aaxDriverNewHandle _aaxSDLDriverNewHandle;
@@ -1060,6 +1060,7 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
 {
    _driver_t *be_handle = (_driver_t *)be_ptr;
    _handle_t *handle = (_handle_t *)be_handle->handle;
+   void *id = be_handle;
 
    if (_IS_PLAYING(handle))
    {
