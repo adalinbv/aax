@@ -58,7 +58,7 @@
 #define DEFAULT_DEVNAME		"Default"
 #define DEFAULT_RENDERER	"SDL"
 #define DEFAULT_REFRESH		25.0f
-#define FILL_FACTOR		2.0f
+#define FILL_FACTOR		2.5f
 
 #define _AAX_DRVLOG(a)		_aaxSDLDriverLog(NULL, 0, 0, a)
 
@@ -255,7 +255,7 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
       handle->spec.callback = m ? NULL : _sdl_callback_write;
       handle->spec.userdata = handle;
       handle->spec.samples = get_pow2(handle->spec.freq/DEFAULT_REFRESH);
-      handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/8;
+      handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/(8*handle->spec.freq);
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
@@ -505,7 +505,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
          }
 
-         handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/8;
+         handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/(8*handle->spec.freq);
          handle->latency = (float)period_samples/(float)handle->spec.freq/handle->spec.channels;
          handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
@@ -1022,7 +1022,7 @@ _aaxSDLDriverThread(void* config)
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
 
          target = be_handle->fill.aim;
-         input = (float)be_handle->dataBuffer->avail;
+         input = (float)be_handle->dataBuffer->avail/freq;
          err = input - target;
 
          /* present error */
@@ -1033,7 +1033,7 @@ _aaxSDLDriverThread(void* config)
          I = be_handle->PID.I;
 
          err = 0.40f*P + 0.97f*I;
-         dt = _MAX((delay_sec + err/freq), 1e-6f);
+         dt = _MAX((delay_sec + err), 1e-6f);
 #if 0
  printf("target: %5.1f, avail: %5.1f, err: %- 5.1f, delay: %5.2f\n", target, input, err, dt);
 #endif
