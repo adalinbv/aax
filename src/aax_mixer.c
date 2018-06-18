@@ -289,6 +289,20 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_FORMAT:
                rv = info->format;
                break;
+            case AAX_LATENCY:
+            {
+               const _aaxDriverBackend *be = handle->backend.ptr;
+               float f;
+               switch(type)
+               {
+               case AAX_LATENCY:
+                  f = be->param(handle->backend.handle, DRIVER_LATENCY);
+                  rv = (int)(f*1e6);
+                  break;
+               default:
+                  break;
+               }
+            }
             default:
                break;
             }
