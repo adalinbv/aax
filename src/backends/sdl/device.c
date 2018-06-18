@@ -61,7 +61,7 @@
 
 #define USE_PID			AAX_TRUE
 #define USE_SDL_THREAD		AAX_TRUE
-#define FILL_FACTOR		2.0f
+#define FILL_FACTOR		4.0f
 
 #define _AAX_DRVLOG(a)		_aaxSDLDriverLog(id, 0, 0, a)
 
@@ -136,7 +136,6 @@ typedef struct
 
    unsigned int format;
    char bits_sample;
-   char no_periods;
    float latency;
 
    _data_t *dataBuffer;
@@ -254,20 +253,25 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
    if (handle)
    {
       char m = (mode == AAX_MODE_READ) ? 1 : 0;
+      int frame_sz;
 
       handle->driver = (char*)_const_sdl_default_driver;
       handle->devname = (char*)_const_sdl_default_device;
       handle->mode = mode;
-      handle->no_periods = 1;
       handle->bits_sample = 16;
       handle->spec.freq = 48000;
       handle->spec.channels = 2;
       handle->spec.format = is_bigendian() ? AUDIO_S16MSB : AUDIO_S16LSB;
       handle->spec.callback = m ? NULL : _sdl_callback_write;
       handle->spec.userdata = handle;
-      handle->spec.samples = get_pow2(handle->spec.freq/DEFAULT_REFRESH);
+      handle->spec.samples = get_pow2(handle->spec.freq*handle->spec.channels/DEFAULT_REFRESH);
+
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
 #if USE_PID
-      handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/(8*handle->spec.freq);
+      handle->fill.aim = FILL_FACTOR*handle->spec.samples/handle->spec.freq;
+      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+#else
+      handle->latency = (float)handle->spec.samples/((float)handle->spec.freq*frame_sz);
 #endif
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
@@ -468,8 +472,8 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (handle->devnum == 0 && !pSDL_AudioInit(handle->driver))
    {
       uint32_t period_samples;
-      unsigned int periods;
       SDL_AudioSpec req;
+      int frame_sz;
 
       memcpy(&req, &handle->spec, sizeof(SDL_AudioSpec));
 
@@ -479,26 +483,25 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
          req.channels = handle->spec.channels;
       }
 
-      periods = handle->no_periods;
       if (*refresh_rate > 100) {
          *refresh_rate = 100;
       }
       if (!registered) {
-         period_samples = get_pow2((size_t)rintf(req.freq/(*refresh_rate*periods)));
+         period_samples = get_pow2((size_t)rintf(req.freq/(*refresh_rate)));
       } else {
-         period_samples = get_pow2((size_t)rintf((req.freq*periods)/period_rate));
+         period_samples = get_pow2((size_t)rintf(req.freq/period_rate));
       }
 
-      handle->latency = 1.0f / *refresh_rate;
-
+      frame_sz = req.channels*handle->bits_sample/8;
       req.format = is_bigendian() ? AUDIO_S16MSB : AUDIO_S16LSB;
-      req.samples = period_samples;
+      req.samples = period_samples*frame_sz;
       req.size = req.samples*handle->bits_sample/8;
 
       handle->devnum = pSDL_OpenAudioDevice(handle->devname, m,
                                             &req, &handle->spec, 0);
       if (handle->devnum != 0)
       {
+         frame_sz = handle->spec.channels*handle->bits_sample/8;
 #if 0
  printf("spec:\n");
  printf("   frequency: %i\n", handle->spec.freq);
@@ -513,15 +516,17 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
          *speed = handle->spec.freq;
          *tracks = handle->spec.channels;
          if (!registered) {
-            *refresh_rate = handle->spec.freq/(float)handle->spec.samples;
+            *refresh_rate = handle->spec.freq*frame_sz/(float)handle->spec.samples;
          } else {
             *refresh_rate = period_rate;
          }
 
 #if USE_PID
-         handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/(8*handle->spec.freq);
+         handle->fill.aim = FILL_FACTOR*handle->spec.samples/handle->spec.freq;
+         handle->latency = (float)handle->fill.aim/(float)frame_sz;
+#else
+         handle->latency = (float)handle->spec.samples/((float)handle->spec.freq*frame_sz);
 #endif
-         handle->latency = (float)period_samples/(float)handle->spec.freq/handle->spec.channels;
          handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
          if (handle->render)
@@ -563,8 +568,6 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  no. periods: %i", handle->no_periods);
-      _AAX_SYSLOG(str);
       snprintf(str,255,"  timer based: yes");
       _AAX_SYSLOG(str);
       snprintf(str,255,"  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
@@ -581,7 +584,6 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("  playback rate: %5i Hz\n", handle->spec.freq);
  printf("  buffer size: %u bytes\n", handle->spec.samples*handle->bits_sample/8);
  printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
- printf("  no_periods: %i\n", handle->no_periods);
  printf("  timer based: yes\n");
  printf("  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
 #endif
@@ -660,7 +662,7 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    if (handle->dataBuffer == 0 || (handle->dataBuffer->size < 8*size))
    {
       _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(8*size, no_tracks*handle->bits_sample/8);
+      handle->dataBuffer = _aaxDataCreate(2*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
       if (handle->dataBuffer == 0) return -1;
    }
 
@@ -960,18 +962,15 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
       // assert(be_handle->dataBuffer->avail >= len);
       if (be_handle->dataBuffer->avail >= len)
       {
-if (be_handle->dataBuffer->avail > 4*len) {
-  printf("buffer overflow: avail: %zi, len: %i\n", be_handle->dataBuffer->avail, len);
-}
          _aaxMutexLock(be_handle->mutex);
          _aaxDataMove(be_handle->dataBuffer, dst, len);
          _aaxMutexUnLock(be_handle->mutex);
       }
       else {
-#if 1
- printf("buffer underflow: avail: %zi, len: %i\n", be_handle->dataBuffer->avail, len);
+#if 0
+ printf("buffer underrun: avail: %zi, len: %i\n", be_handle->dataBuffer->avail, len);
 #endif
-         _AAX_DRVLOG("buffer underflow\n");
+         _AAX_DRVLOG("buffer underrun\n");
       }
    }
 }
