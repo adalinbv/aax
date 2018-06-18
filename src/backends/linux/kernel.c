@@ -533,7 +533,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       periods = handle->no_periods;
       if (!registered) {
-         period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
+         period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate)));
       } else {
          period_frames = get_pow2((size_t)rintf((rate*periods)/period_rate));
       }
@@ -567,7 +567,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          /* recalculate the no. frames to match the refresh_rate */
          if (!registered) {
-            period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*periods)));
+            period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate)));
          } else {
             period_frames = get_pow2((size_t)rintf((rate*periods)/period_rate));
          }
@@ -697,7 +697,14 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                handle->period_frames = period_frames;
                handle->period_frames_actual = period_frames_actual;
                handle->threshold = 5*period_frames/4;
-               
+#if 0
+ printf("   frequency           : %f\n", handle->frequency_hz);
+ printf("   no. channels:         %i\n", handle->no_tracks);
+ printf("   bits per sample:      %i\n", handle->bits_sample);
+ printf("   no. periods:          %i\n", handle->no_periods);
+ printf("   period frames:        %zi\n", handle->period_frames);
+ printf("   actial period frames: %zi\n", handle->period_frames_actual);
+#endif
 
                *speed = rate;
                *channels = tracks;
