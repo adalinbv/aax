@@ -169,14 +169,14 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
 }
 
 static float
-_aaxBitCrusherFilterSet(float val, int ptype, UNUSED(unsigned char param))
+_aaxBitCrusherFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;
 }
 
 static float
-_aaxBitCrusherFilterGet(float val, int ptype, UNUSED(unsigned char param))
+_aaxBitCrusherFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
    return rv;

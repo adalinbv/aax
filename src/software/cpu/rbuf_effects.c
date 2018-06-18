@@ -56,7 +56,7 @@
 void
 _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, UNUSED(MIX_PTR_T scratch),
-          size_t start, size_t end, size_t no_samples,
+          size_t start, UNUSED(size_t end), size_t no_samples,
           size_t ddesamps, unsigned int track, _aax2dProps *p2d,
           UNUSED(unsigned char ctr), unsigned char mono)
 {

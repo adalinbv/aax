@@ -86,7 +86,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
-   float gain, gain0;
+   float gain; // gain0;
    float pnvel, gnvel;
    FLOAT pitch, max;
    int ret = 0;
@@ -173,7 +173,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Apply envelope filter */
-   gain0 = gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
+   gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0
    gain *= ep2d->note.pressure;
    if (gain < -1e-3f) {
       ret = -1;

@@ -641,9 +641,10 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer *)s;
    _driver_t *handle = (_driver_t *)id;
-   ssize_t free, offs, size, period_frames;
+   ssize_t offs, period_frames;
    unsigned int no_tracks, frame_sz;
    const int32_t **sbuf;
+   size_t size, free;
    int rv = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -960,7 +961,7 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
       assert(handle->ringbuffer);
 
       // assert(be_handle->dataBuffer->avail >= len);
-      if (be_handle->dataBuffer->avail >= len)
+      if (be_handle->dataBuffer->avail >= (size_t)len)
       {
          _aaxMutexLock(be_handle->mutex);
          _aaxDataMove(be_handle->dataBuffer, dst, len);
