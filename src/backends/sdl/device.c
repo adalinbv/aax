@@ -60,6 +60,7 @@
 #define DEFAULT_REFRESH		25.0f
 
 #define USE_PID			AAX_FALSE
+#define USE_SDL_THREAD		AAX_FALSE
 #define FILL_FACTOR		2.0f
 
 #define _AAX_DRVLOG(a)		_aaxSDLDriverLog(id, 0, 0, a)
@@ -75,10 +76,12 @@ static _aaxDriverCaptureCallback _aaxSDLDriverCapture;
 static _aaxDriverPlaybackCallback _aaxSDLDriverPlayback;
 static _aaxDriverGetName _aaxSDLGetName;
 static _aaxDriverRender _aaxSDLDriverRender;
-static _aaxDriverThread _aaxSDLDriverThread;
 static _aaxDriverState _aaxSDLDriverState;
 static _aaxDriverParam _aaxSDLDriverParam;
 static _aaxDriverLog _aaxSDLDriverLog;
+#if USE_SDL_THREAD
+static _aaxDriverThread _aaxSDLDriverThread;
+#endif
 
 static char _sdl_id_str[MAX_ID_STRLEN+1] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxSDLDriverBackend =
@@ -98,7 +101,11 @@ const _aaxDriverBackend _aaxSDLDriverBackend =
 
    (_aaxDriverGetName *)&_aaxSDLGetName,
    (_aaxDriverRender *)&_aaxSDLDriverRender,
+#if USE_SDL_THREAD
    (_aaxDriverThread *)&_aaxSDLDriverThread,
+#else
+   (_aaxDriverThread *)&_aaxSoftwareMixerThread,
+#endif
 
    (_aaxDriverConnect *)&_aaxSDLDriverConnect,
    (_aaxDriverDisconnect *)&_aaxSDLDriverDisconnect,
@@ -937,6 +944,36 @@ _sdl_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, u
 
 /*-------------------------------------------------------------------------- */
 
+static void
+_sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
+{
+   _driver_t *be_handle = (_driver_t *)be_ptr;
+   _handle_t *handle = (_handle_t *)be_handle->handle;
+   void *id = be_handle;
+
+   if (_IS_PLAYING(handle))
+   {
+      assert(be_handle->mode != AAX_MODE_READ);
+      assert(be_handle->dataBuffer);
+      assert(handle->ringbuffer);
+
+      // assert(be_handle->dataBuffer->avail >= len);
+      if (be_handle->dataBuffer->avail >= len)
+      {
+         _aaxMutexLock(be_handle->mutex);
+         _aaxDataMove(be_handle->dataBuffer, dst, len);
+         _aaxMutexUnLock(be_handle->mutex);
+      }
+      else {
+#if 0
+ printf("buffer underflow: avail: %i, len: %i\n", be_handle->dataBuffer->avail, len);
+#endif
+         _AAX_DRVLOG("buffer underflow\n");
+      }
+   }
+}
+
+#if USE_SDL_THREAD
 static void *
 _aaxSDLDriverThread(void* config)
 {
@@ -1068,30 +1105,4 @@ _aaxSDLDriverThread(void* config)
 
    return handle;
 }
-
-static void
-_sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
-{
-   _driver_t *be_handle = (_driver_t *)be_ptr;
-   _handle_t *handle = (_handle_t *)be_handle->handle;
-   void *id = be_handle;
-
-   if (_IS_PLAYING(handle))
-   {
-      assert(be_handle->mode != AAX_MODE_READ);
-      assert(be_handle->dataBuffer);
-      assert(handle->ringbuffer);
-
-      // assert(be_handle->dataBuffer->avail >= len);
-      if (be_handle->dataBuffer->avail >= len)
-      {
-         _aaxMutexLock(be_handle->mutex);
-         _aaxDataMove(be_handle->dataBuffer, dst, len);
-         _aaxMutexUnLock(be_handle->mutex);
-      }
-      else {
-printf("buffer underflow: avial: %zi, len: %i\n", be_handle->dataBuffer->avail, len);
-         _AAX_DRVLOG("buffer underflow\n");
-      }
-   }
-}
+#endif
