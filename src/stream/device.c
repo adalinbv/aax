@@ -1441,7 +1441,7 @@ _aaxStreamDriverReadChunk(const void *id)
       data = handle->threadBuffer->data;
 
       avail = handle->threadBuffer->avail;
-      assert(avail+res < handle->threadBuffer->size);
+      assert(avail+res <= handle->threadBuffer->size);
 
       memcpy(data+avail, buffer, res);
       avail += res;
