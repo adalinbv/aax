@@ -1084,7 +1084,7 @@ _aaxSDLDriverThread(void* config)
             I = be_handle->PID.I;
 
             err = 0.40f*P + 0.97f*I;
-            dt = _MINMAX((delay_sec + err), 1e-6f, 3.0f*delay_sec);
+            dt = _MINMAX((delay_sec + err), 1e-6f, 1.5f*delay_sec);
 # if 0
  printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r", target*freq, input*freq, err*freq, dt, delay_sec);
 # endif
