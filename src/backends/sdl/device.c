@@ -58,6 +58,8 @@
 #define DEFAULT_DEVNAME		"Default"
 #define DEFAULT_RENDERER	"SDL"
 #define DEFAULT_REFRESH		25.0f
+
+#define USE_PID			AAX_FALSE
 #define FILL_FACTOR		2.0f
 
 #define _AAX_DRVLOG(a)		_aaxSDLDriverLog(id, 0, 0, a)
@@ -141,6 +143,7 @@ typedef struct
    unsigned int min_tracks;
    unsigned int max_tracks;
 
+#if USE_PID
    struct {
       float I;
       float err;
@@ -148,6 +151,7 @@ typedef struct
    struct {
       float aim;
    } fill;
+#endif
 
 } _driver_t;
 
@@ -255,7 +259,9 @@ _aaxSDLDriverNewHandle(enum aaxRenderMode mode)
       handle->spec.callback = m ? NULL : _sdl_callback_write;
       handle->spec.userdata = handle;
       handle->spec.samples = get_pow2(handle->spec.freq/DEFAULT_REFRESH);
+#if USE_PID
       handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/(8*handle->spec.freq);
+#endif
       if (!m) {
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
@@ -505,7 +511,9 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
          }
 
+#if USE_PID
          handle->fill.aim = FILL_FACTOR*handle->spec.samples*handle->spec.channels*handle->bits_sample/(8*handle->spec.freq);
+#endif
          handle->latency = (float)period_samples/(float)handle->spec.freq/handle->spec.channels;
          handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                 handle->mode, registered);
@@ -970,7 +978,7 @@ _aaxSDLDriverThread(void* config)
          tracks = info->no_tracks;
          dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
          dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
-         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, info->frequency);
+         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, freq);
          dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
          dest_rb->init(dest_rb, AAX_TRUE);
          dest_rb->set_state(dest_rb, RB_STARTED);
@@ -1017,25 +1025,31 @@ _aaxSDLDriverThread(void* config)
 
       if (_IS_PLAYING(handle))
       {
-         float target, input, err, P, I;
-
          res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
 
-         target = be_handle->fill.aim;
-         input = (float)be_handle->dataBuffer->avail/freq;
-         err = input - target;
+#if USE_PID
+         do
+         {
+            float target, input, err, P, I;
 
-         /* present error */
-         P = err;
+            target = be_handle->fill.aim;
+            input = (float)be_handle->dataBuffer->avail/freq;
+            err = input - target;
 
-         /*  accumulation of past errors */
-         be_handle->PID.I += err*delay_sec;
-         I = be_handle->PID.I;
+            /* present error */
+            P = err;
 
-         err = 0.40f*P + 0.97f*I;
-         dt = _MINMAX((delay_sec + err), 1e-6f, 1.5f*delay_sec);
-#if 0
+            /*  accumulation of past errors */
+            be_handle->PID.I += err*delay_sec;
+            I = be_handle->PID.I;
+
+            err = 0.40f*P + 0.97f*I;
+            dt = _MINMAX((delay_sec + err), 1e-6f, 1.5f*delay_sec);
+# if 0
  printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r", target*freq, input*freq, err*freq, dt, delay_sec);
+# endif
+         }
+         while (0);
 #endif
       }
 
@@ -1076,6 +1090,7 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
          _aaxMutexUnLock(be_handle->mutex);
       }
       else {
+printf("buffer underflow: avial: %zi, len: %i\n", be_handle->dataBuffer->avail, len);
          _AAX_DRVLOG("buffer underflow\n");
       }
    }
