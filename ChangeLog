@@ -1,3 +1,13 @@
+* Mon Jun 18 2018 - tech@adalin.org
+- AeonWave (3.2.1) stable; urgency=low
+ * Improve timing for some backends by using a regular interval method
+   instead of waiting just a number of milliseconds from the time of calling.
+   This moslty affected OSS and SDL backends.
+ * Move the mixing code from the callback to the backend-thread for the SDL
+   backend reducing the time spent in the callers code to a mere memcopy.
+
+-- Erik Hofman <tech@adalin.org>  Mon 18 Jun  2018 12:31:00 + 0200
+
 * Sat Jun 16 2018 - tech@adalin.org
 - AeonWave (3.2.0) stable; urgency=high
  * Add SDL audio support for backends AeonWave does not support natively.
