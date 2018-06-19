@@ -237,9 +237,9 @@ _vec3fAbsolute_cpu(vec3f_ptr d, const vec3f_ptr v)
 void
 _vec3dAbsolute_cpu(vec3d_ptr d, const vec3d_ptr v)
 {
-   d->v3[0] = fabsf(v->v3[0]);
-   d->v3[1] = fabsf(v->v3[1]);
-   d->v3[2] = fabsf(v->v3[2]);
+   d->v3[0] = fabs(v->v3[0]);
+   d->v3[1] = fabs(v->v3[1]);
+   d->v3[2] = fabs(v->v3[2]);
 }
 
 void
