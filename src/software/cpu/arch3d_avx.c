@@ -72,16 +72,19 @@ _vec3dSub_avx(vec3d_ptr d, const vec3d_ptr v1, const vec3d_ptr v2) {
 }
 
 // TODO: For now the SSE2 version is more reliable thane the AVX version
+#if 1
 static inline FN_PREALIGN void
 _vec3dAbsolute_sse2(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.sse[0] = _mm_andnot_pd(_mm_set1_pd(-0.0), v->s4.sse[0]);
    d->s4.sse[1] = _mm_andnot_pd(_mm_set1_pd(-0.0), v->s4.sse[1]);
 }
 
+#else
 static inline FN_PREALIGN void
 _vec3dAbsolute_avx(vec3d_ptr d, const vec3d_ptr v) {
    d->s4.avx = _mm256_andnot_pd(v->s4.avx, _mm256_set1_pd(-0.0));
 }
+#endif
 
 static inline FN_PREALIGN void
 _vec3dScalarMul_avx(vec3d_ptr d, const vec3d_ptr r, float f) {
