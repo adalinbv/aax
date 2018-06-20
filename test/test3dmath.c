@@ -110,8 +110,12 @@ int main()
     simd4 = _aaxArchDetectVFPV3();
 #endif
 
+    vec3fZero(&a3); vec3fZero(&b3);
+    vec3fZero(&x3); vec3fZero(&y3);
     vec3fFill(a3.v3, t1); vec3fFill(b3.v3, t2);
     vec3fFill(x3.v3, t1); vec3fFill(y3.v3, t2);
+    TEST3(a3,x3);
+    TEST3(b3,y3);
 
     if (simd) {
         vec3fCopy(&c3, &a3); vec3fCopy(&z3, &x3);
@@ -136,6 +140,8 @@ int main()
 
     vec4fFill(a4.v4, t1); vec3fFill(b4.v4, t2);
     vec4fFill(x4.v4, t1); vec3fFill(y4.v4, t2);
+    TEST4(a4,x4);
+    TEST4(b4,y4);
 
     f = vec3fNormalize(&z3, &x3);
     mtx4fSetIdentity(m.m4);
