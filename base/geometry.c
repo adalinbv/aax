@@ -41,13 +41,13 @@
 void
 vec3dFill(double d[3], double v[3])
 {
-   memcpy(d, v, sizeof(double[4]));
+   memcpy(d, v, sizeof(double[3]));
 }
 
 void
 vec3fFill(float d[3], float v[3])
 {
-   memcpy(d, v, sizeof(float[4]));
+   memcpy(d, v, sizeof(float[3]));
 }
 
 void
@@ -71,25 +71,25 @@ vec3fFilld(float dst[3], double src[3])
 void
 vec3fZero(vec3f_ptr f)
 {
-   memset(f->v3, 0, sizeof(vec3f_t));
+   memset(f->v3, 0, sizeof(fx4_t));
 }
 
 void
 vec3dZero(vec3d_ptr d)
 {
-   memset(d->v3, 0, sizeof(vec3d_t));
+   memset(d->v3, 0, sizeof(dx4_t));
 }
 
 void
 _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v)
 {
-   memcpy(d->v3, v->v3, sizeof(vec4f_t));
+   memcpy(d->v3, v->v3, sizeof(fx4_t));
 }
 
 void
 _vec3dCopy_cpu(vec3d_ptr d, const vec3d_ptr v)
 {
-   memcpy(d->v3, v->v3, sizeof(vec4d_t));
+   memcpy(d->v3, v->v3, sizeof(dx4_t));
 }
 
 
@@ -102,19 +102,19 @@ vec4fFill(float d[4], float v[4])
 void
 _vec4fCopy_cpu(vec4f_ptr d, const vec4f_ptr v)
 {
-   memcpy(d->v4, v->v4, sizeof(vec4f_t));
+   memcpy(d->v4, v->v4, sizeof(fx4_t));
 }
 
 void
 _vec4dCopy_cpu(vec4d_ptr d, const vec4d_ptr v)
 {
-   memcpy(d->v4, v->v4, sizeof(vec4d_t));
+   memcpy(d->v4, v->v4, sizeof(dx4_t));
 }
 
 void
 _vec4iCopy_cpu(vec4i_ptr d, const vec4i_ptr v)
 {
-   memcpy(d->v4, v->v4, sizeof(vec4i_t));
+   memcpy(d->v4, v->v4, sizeof(ix4_t));
 }
 
 

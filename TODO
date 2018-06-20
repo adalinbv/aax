@@ -2,10 +2,10 @@
 ================================================================================
 Short term projects:
 ================================================================================
-* Implement a MacOS CoreAudio backend
+* Implement a MacOS CoreAudio backend (partly done using SDL)
+* Implement the OpenSL backend (partly done using SDL)
+* Fix and re-enable the PulseAudio backend (partly done using SDL)
 * Replace pdmp3 with minimp3
-* Implement the OpenSL backend
-* Fix and re-enable the PulseAudio backend
 * Fix and re-enable Opus support
 * Finish FLAC support using dr_flac
 
@@ -17,20 +17,10 @@ Long term projects:
   http://www.bosleymusic.com/Papers/Bosley_Vocal_Synthesis.pdf
   - Enable Waveform/Envelope following Filters/Effects
 
-* Active, networked, speaker setup usign ARM boards
-  - Finish Android support
-
-* Instument maker software with automatic timbre reconstruction
-
 * Finish MIDI support
 * Finish the Event manager
 
-http://www.dx.com/nl/p/fx-fx502a-50w-x-2-hifi-2-channel-digital-power-amplifier-black-100-240v-292841?tc=EUR&gclid=CKbNhqvNlsUCFVMatAodS2AAcw#.VT47X-SY5QI
-
-http://www.amazon.com/TOPPING-TP10MK4-TP-MARK4-Tripath-Amplifier/dp/B009WK775U
-
-http://nl.aliexpress.com/item/TA2020-PCB-25Watt-Tripath-Class-T-Audio-Amplifier-Board/32256054616.html
-
+* Instument maker software with automatic timbre reconstruction
 * Implement an audio analyzer which can create an AAXS sound buffer file from 
   digital audio data:
   - Wave shape detection using pffft

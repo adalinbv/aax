@@ -39,37 +39,6 @@
 
 #ifdef __ARM_VFPV2
 void
-vec3fFill_vfpv2(void* d, const void* v)
-{
-   memcpy(d, v, sizeof(vec4f_t));
-}
-
-void
-_vec3fCopy_vfpv2(vec3f_ptr d, const vec3f_ptr v)
-{
-   memcpy(d->v3, v->v3, sizeof(vec4f_t));
-}
-
-void
-vec4fFill_vfpv2(void* d, const void* v)
-{
-   memcpy(d, v, sizeof(vec4f_t));
-}
-
-void
-_vec4fCopy_vfpv2(vec4f_ptr d, const vec4f_ptr v)
-{
-   memcpy(d->v4, v->v4, sizeof(vec4f_t));
-}
-
-void
-_vec4iCopy_vfpv2(vec4i_ptr d, const vec4i_ptr v)
-{
-   memcpy(d->v4, v->v4, sizeof(vec4i_t));
-}
-
-
-void
 vec3fNegate_vfpv2(vec3f_ptr d, const vec3f_ptr v)
 {
    d->v3[0] = -v->v3[0];
@@ -211,36 +180,6 @@ vec3fMatrix3_vfpv2(vec3f_ptr d, const vec3f_ptr v, const mtx3f_ptr m)
    d->v3[0] = v0*m->m3[0][0] + v1*m->m3[1][0] + v2*m->m3[2][0];
    d->v3[1] = v0*m->m3[0][1] + v1*m->m3[1][1] + v2*m->m3[2][1];
    d->v3[2] = v0*m->m3[0][2] + v1*m->m3[1][2] + v2*m->m3[2][2];
-}
-
-void
-mtx3fCopy_vfpv2(mtx3f_ptr d, const mtx3f_ptr m)
-{
-   memcpy(d->m3, m->m3, sizeof(mtx3f_t));
-}
-
-void
-_mtx4fCopy_vfpv2(mtx4f_ptr d, const mtx4f_ptr m)
-{
-   memcpy(d->m4, m->m4, sizeof(mtx4f_t));
-}
-
-void
-mtx4fFill_vfpv2(void* d, const void *m)
-{
-   memcpy(d, m, sizeof(mtx4f_t));
-}
-
-void
-_mtx4dCopy_vfpv2(mtx4d_ptr d, const mtx4d_ptr m)
-{
-   memcpy(d->m4, m->m4, sizeof(mtx4d_t));
-}
-
-void
-mtx4dFill_vfpv2(void* d, const void *m)
-{
-   memcpy(d, m, sizeof(mtx4d_t));
 }
 
 void
