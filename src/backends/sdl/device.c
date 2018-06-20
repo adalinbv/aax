@@ -1009,6 +1009,7 @@ _aaxSDLDriverThread(void* config)
    delay_sec = 1.0f/handle->info->period_rate;
 
    tracks = 2;
+   freq = 48000.0f;
    smixer = NULL;
    dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
    if (dest_rb)
