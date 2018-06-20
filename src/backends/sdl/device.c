@@ -33,6 +33,10 @@
 # include <strings.h>	/* strcasecmp */
 #endif
 
+#if defined(WIN32)
+# include <VersionHelpers.h>
+#endif
+
 #include <aax/aax.h>
 #include <xml.h>
 
@@ -844,6 +848,11 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
 
          // We already provide the windows backend
          if (!strcmp(driver, "directsound") || !strcmp(driver, "winmm")) {
+#if defined(WIN32)
+           // for XP use the directsound SDL fallback
+           // for Vista and later: skip it.
+           if (IsWindowsVistaOrGreater())
+#endif
             continue;
          }
 
