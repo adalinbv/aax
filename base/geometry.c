@@ -41,13 +41,13 @@
 void
 vec3dFill(double d[3], double v[3])
 {
-   memcpy(d, v, sizeof(double[3]));
+   memcpy(d, v, sizeof(double[4]));
 }
 
 void
 vec3fFill(float d[3], float v[3])
 {
-   memcpy(d, v, sizeof(float[3]));
+   memcpy(d, v, sizeof(float[4]));
 }
 
 void
@@ -83,13 +83,13 @@ vec3dZero(vec3d_ptr d)
 void
 _vec3fCopy_cpu(vec3f_ptr d, const vec3f_ptr v)
 {
-   memcpy(d->v3, v->v3, sizeof(vec3f_t));
+   memcpy(d->v3, v->v3, sizeof(vec4f_t));
 }
 
 void
 _vec3dCopy_cpu(vec3d_ptr d, const vec3d_ptr v)
 {
-   memcpy(d->v3, v->v3, sizeof(vec3d_t));
+   memcpy(d->v3, v->v3, sizeof(vec4d_t));
 }
 
 

@@ -38,13 +38,13 @@
 void
 vec3fFill_vfpv3(void* d, const void* v)
 {
-   memcpy(d, v, sizeof(vec3f_t));
+   memcpy(d, v, sizeof(vec4f_t));
 }
 
 void
 _vec3fCopy_vfpv3(vec3f_ptr d, const vec3f_ptr v)
 {
-   memcpy(d->v3, v->v3, sizeof(vec3f_t));
+   memcpy(d->v3, v->v3, sizeof(vec4f_t));
 }
 
 void
