@@ -5,6 +5,7 @@
    This moslty affected OSS and SDL backends.
  * Move the mixing code from the callback to the backend-thread for the SDL
    backend reducing the time spent in the callers code to a mere memcopy.
+ * Enable the SDL directsound backend for Windows XP.
 
 -- Erik Hofman <tech@adalin.org>  Mon 18 Jun  2018 12:31:00 + 0200
 
