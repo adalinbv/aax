@@ -73,7 +73,7 @@ _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX] =
    &_aaxVolumeFilter,
    &_aaxDynamicGainFilter,
    &_aaxTimedGainFilter,
-   &_aaxAngularFilter,
+   &_aaxDirectionalFilter,
    &_aaxDistanceFilter,
    &_aaxFrequencyFilter,
    &_aaxBitCrusherFilter,
@@ -172,7 +172,7 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       filter->state = AAX_FALSE; // AAX_EXPONENTIAL_DISTANCE;
       filter->data = *(void**)&_aaxDistanceFn[1];
       break;
-   case ANGULAR_FILTER:
+   case DIRECTIONAL_FILTER:
       filter->param[AAX_INNER_ANGLE] = 1.0f;
       filter->param[AAX_OUTER_ANGLE] = 1.0f;
       filter->param[AAX_OUTER_GAIN] = 1.0f;
@@ -200,7 +200,7 @@ const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
   { AAX_VOLUME_FILTER,          VOLUME_FILTER },
   { AAX_DYNAMIC_GAIN_FILTER,    DYNAMIC_GAIN_FILTER },
   { AAX_TIMED_GAIN_FILTER,      TIMED_GAIN_FILTER },
-  { AAX_ANGULAR_FILTER,         ANGULAR_FILTER },
+  { AAX_DIRECTIONAL_FILTER,     DIRECTIONAL_FILTER },
   { AAX_DISTANCE_FILTER,        DISTANCE_FILTER },
   { AAX_FREQUENCY_FILTER,       FREQUENCY_FILTER },
   { AAX_BITCRUSHER_FILTER,	BITCRUSHER_FILTER },

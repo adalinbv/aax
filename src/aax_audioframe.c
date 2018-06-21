@@ -496,7 +496,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          break;
       }
       case AAX_DISTANCE_FILTER:
-      case AAX_ANGULAR_FILTER:
+      case AAX_DIRECTIONAL_FILTER:
       {
          _aax3dProps *p3d = handle->submix->props3d;
          _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
@@ -559,7 +559,7 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
       case AAX_VOLUME_FILTER:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DISTANCE_FILTER:
-      case AAX_ANGULAR_FILTER:
+      case AAX_DIRECTIONAL_FILTER:
       case AAX_COMPRESSOR:
       {
          _aaxAudioFrame* submix = handle->submix;

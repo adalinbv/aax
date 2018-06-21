@@ -355,8 +355,9 @@ aaxFilterGetByName(UNUSED(aaxConfig handle), const char *name)
       rv = AAX_COMPRESSOR;
    }
 
-   else if (!strncasecmp(name, "angular", slen)) {
-      rv = AAX_ANGULAR_FILTER;
+   else if (!strncasecmp(name, "directional", slen) ||
+            !strncasecmp(name, "angular", slen)) {
+      rv = AAX_DIRECTIONAL_FILTER;
    }
    else if (!strncasecmp(name, "distance", slen)) {
       rv = AAX_DISTANCE_FILTER;

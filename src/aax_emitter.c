@@ -495,7 +495,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_BITCRUSHER_FILTER:
       case AAX_DISTANCE_FILTER:
-      case AAX_ANGULAR_FILTER:
+      case AAX_DIRECTIONAL_FILTER:
       {
          _aaxEmitter *src = handle->source;
          rv = new_filter_handle(emitter, type, src->props2d, src->props3d);
@@ -1309,7 +1309,7 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
       _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
       break;
    }
-   case AAX_ANGULAR_FILTER:
+   case AAX_DIRECTIONAL_FILTER:
    {
       _aax3dProps *p3d = src->props3d;
       float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);

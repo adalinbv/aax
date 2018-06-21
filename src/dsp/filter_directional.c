@@ -41,7 +41,7 @@
 #include "api.h"
 
 static aaxFilter
-_aaxAngularFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
+_aaxDirectionalFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
    _filter_t* flt = _aaxFilterCreateHandle(info, type, 1);
    aaxFilter rv = NULL;
@@ -55,7 +55,7 @@ _aaxAngularFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 }
 
 static int
-_aaxAngularFilterDestroy(_filter_t* filter)
+_aaxDirectionalFilterDestroy(_filter_t* filter)
 {
    free(filter);
 
@@ -63,13 +63,13 @@ _aaxAngularFilterDestroy(_filter_t* filter)
 }
 
 static aaxFilter
-_aaxAngularFilterSetState(UNUSED(_filter_t* filter), UNUSED(int state))
+_aaxDirectionalFilterSetState(UNUSED(_filter_t* filter), UNUSED(int state))
 {
    return  filter;
 }
 
 static _filter_t*
-_aaxNewAngularFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
+_aaxNewDirectionalFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSED(_aax2dProps* p2d), _aax3dProps* p3d)
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
@@ -88,7 +88,7 @@ _aaxNewAngularFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUS
 }
 
 static float
-_aaxAngularFilterGet(float val, int ptype, unsigned char param)
+_aaxDirectionalFilterGet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param < 2)
@@ -103,7 +103,7 @@ _aaxAngularFilterGet(float val, int ptype, unsigned char param)
 }
 
 static float
-_aaxAngularFilterSet(float val, int ptype, unsigned char param)
+_aaxDirectionalFilterSet(float val, int ptype, unsigned char param)
 {
    float rv = val;
    if (param < 4)
@@ -118,9 +118,9 @@ _aaxAngularFilterSet(float val, int ptype, unsigned char param)
 }
 
 static float
-_aaxAngularFilterMinMax(float val, int slot, unsigned char param)
+_aaxDirectionalFilterMinMax(float val, int slot, unsigned char param)
 {
-  static const _flt_minmax_tbl_t _aaxAngularRange[_MAX_FE_SLOTS] =
+  static const _flt_minmax_tbl_t _aaxDirectionalRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
     { { -1.0f, -1.0f, 0.0f, 0.0f }, { 1.0f, 1.0f, 1.0f, 1.0f } },
     { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
@@ -131,27 +131,27 @@ _aaxAngularFilterMinMax(float val, int slot, unsigned char param)
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
 
-   return _MINMAX(val, _aaxAngularRange[slot].min[param],
-                       _aaxAngularRange[slot].max[param]);
+   return _MINMAX(val, _aaxDirectionalRange[slot].min[param],
+                       _aaxDirectionalRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
 
-_flt_function_tbl _aaxAngularFilter =
+_flt_function_tbl _aaxDirectionalFilter =
 {
    AAX_TRUE,
-   "AAX_angular_filter_1.01", 1.01f,
-   (_aaxFilterCreate*)&_aaxAngularFilterCreate,
-   (_aaxFilterDestroy*)&_aaxAngularFilterDestroy,
-   (_aaxFilterSetState*)&_aaxAngularFilterSetState,
-   (_aaxNewFilterHandle*)&_aaxNewAngularFilterHandle,
-   (_aaxFilterConvert*)&_aaxAngularFilterSet,
-   (_aaxFilterConvert*)&_aaxAngularFilterGet,
-   (_aaxFilterConvert*)&_aaxAngularFilterMinMax
+   "AAX_directional_filter_1.01", 1.01f,
+   (_aaxFilterCreate*)&_aaxDirectionalFilterCreate,
+   (_aaxFilterDestroy*)&_aaxDirectionalFilterDestroy,
+   (_aaxFilterSetState*)&_aaxDirectionalFilterSetState,
+   (_aaxNewFilterHandle*)&_aaxNewDirectionalFilterHandle,
+   (_aaxFilterConvert*)&_aaxDirectionalFilterSet,
+   (_aaxFilterConvert*)&_aaxDirectionalFilterGet,
+   (_aaxFilterConvert*)&_aaxDirectionalFilterMinMax
 };
 
 /*
- * Angular filter: audio cone support.
+ * Directional filter: audio cone support.
  *
  * Version 2.6 adds forward gain which allows for donut shaped cones.
  * TODO: Calculate cone relative to the frame position when indoors.
@@ -159,7 +159,7 @@ _flt_function_tbl _aaxAngularFilter =
  *       pretty much useless, at least if the emitter is in another room.
  */
 float
-_angular_prepare(_aax3dProps *ep3d,  _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m)
+_directional_prepare(_aax3dProps *ep3d,  _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m)
 {
    float cone_volume = 1.0f;
 
@@ -167,16 +167,16 @@ _angular_prepare(_aax3dProps *ep3d,  _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dP
    {
       float tmp, forward_gain, inner_vec;
 
-      forward_gain = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_FORWARD_GAIN);
-      inner_vec = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_INNER_ANGLE);
+      forward_gain = _FILTER_GET(ep3d, DIRECTIONAL_FILTER, AAX_FORWARD_GAIN);
+      inner_vec = _FILTER_GET(ep3d, DIRECTIONAL_FILTER, AAX_INNER_ANGLE);
       tmp = -edp3d_m->matrix.m4[DIR_BACK][2];
 
       if (tmp < inner_vec)
       {
          float outer_vec, outer_gain;
 
-         outer_vec = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_OUTER_ANGLE);
-         outer_gain = _FILTER_GET(ep3d, ANGULAR_FILTER, AAX_OUTER_GAIN);
+         outer_vec = _FILTER_GET(ep3d, DIRECTIONAL_FILTER, AAX_OUTER_ANGLE);
+         outer_gain = _FILTER_GET(ep3d, DIRECTIONAL_FILTER, AAX_OUTER_GAIN);
          if (outer_vec < tmp)
          {
             tmp -= inner_vec;

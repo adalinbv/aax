@@ -49,7 +49,7 @@ enum _aax3dFiltersEffects
     /* 3d filters */
     OCCLUSION_FILTER = 0,	/* direct path sound obstruction	*/
     DISTANCE_FILTER,		/* distance attennuation		*/
-    ANGULAR_FILTER,		/* direction audio cone support		*/
+    DIRECTIONAL_FILTER,		/* directional audio cone support	*/
     MAX_3D_FILTER,
 
     /* 3d effects */

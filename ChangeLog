@@ -6,6 +6,10 @@
  * Move the mixing code from the callback to the backend-thread for the SDL
    backend reducing the time spent in the callers code to a mere memcopy.
  * Enable the SDL directsound backend for Windows XP.
+ * Rename the angular filter (which was lost in translation) to directional
+   filter. For backwards compatibility the angular name is still being
+   recognized internally and the library is binary compatible with previous
+   versions.
 
 -- Erik Hofman <tech@adalin.org>  Mon 18 Jun  2018 12:31:00 + 0200
 

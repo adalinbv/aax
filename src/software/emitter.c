@@ -37,7 +37,7 @@
 #include "audio.h"
 
 float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);
-float _angular_prepare(_aax3dProps*,  _aaxDelayed3dProps*, _aaxDelayed3dProps*);
+float _directional_prepare(_aax3dProps*,  _aaxDelayed3dProps*, _aaxDelayed3dProps*);
 FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
 
 /**
@@ -341,7 +341,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
 #endif
 
       /* distance attenuation and audio-cone support */
-      gain *= _angular_prepare(ep3d, edp3d_m, fdp3d_m);
+      gain *= _directional_prepare(ep3d, edp3d_m, fdp3d_m);
       gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
 
       // Only do distance attenuation frequency filtering if the emitter is

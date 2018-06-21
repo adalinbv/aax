@@ -21,7 +21,7 @@ set(DSP_SOURCES
   effect_convolution.c
   effect_timed_pitch.c
   effect_velocity.c
-  filter_angular.c
+  filter_directional.c
   filter_compressor.c
   filter_distance.c
   filter_dynamic_gain.c
