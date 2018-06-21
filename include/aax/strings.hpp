@@ -128,6 +128,7 @@ inline std::string to_string(enum aaxSetupType type)
     case AAX_VERSION_STRING: return "version string";
     case AAX_RENDERER_STRING: return "renderer string";
     case AAX_VENDOR_STRING: return "vendor string";
+    case AAX_SHARED_DATA_DIR: return "shared-data direcoty";
     case AAX_FREQUENCY: return "frequency";
     case AAX_TRACKS: return "number of tracks";
     case AAX_FORMAT: return "audio format";
