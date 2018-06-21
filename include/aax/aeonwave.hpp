@@ -448,6 +448,11 @@ public:
         return aaxSensorSetState(ptr,s);
     }
 
+    // ** buffer handling (AAXS only) ******
+    inline bool add(Buffer& b) {
+        return aaxMixerAddBuffer(ptr,b);
+    }
+
     // ** buffer handling ******
     inline bool wait(float t) {
         return aaxSensorWaitForBuffer(ptr,t);
@@ -455,13 +460,36 @@ public:
     inline Buffer buffer() {
         return Buffer(aaxSensorGetBuffer(ptr));
     }
-    inline unsigned long offset(enum aaxType t) {
-        return aaxSensorGetOffset(ptr,t);
+
+    // ** enumeration ******
+    inline const char* device(unsigned d) {
+        return aaxDriverGetDeviceNameByPos(ptr,d,mode);
+    }
+    const char* interface_name(int d, unsigned i) {
+        const char* ed = device(d);
+        return aaxDriverGetInterfaceNameByPos(ptr,ed,i,mode);
+    }
+    inline const char* interface_name(const char* d, unsigned i) {
+        return aaxDriverGetInterfaceNameByPos(ptr,d,i,mode);
+    }
+    inline const char* interface_name(std::string& d, unsigned i) {
+        return aaxDriverGetInterfaceNameByPos(ptr,d.c_str(),i,mode);
     }
 
     // ** support ******
     inline const char* version() {
         return aaxGetVersionString(ptr);
+    }
+
+    inline enum aaxErrorType error_no() {
+        return aaxDriverGetErrorNo(ptr);
+    }
+    inline  const char* strerror() {
+        return aaxGetErrorString(error_no());
+    }
+
+    inline unsigned long offset(enum aaxType t) {
+        return aaxSensorGetOffset(ptr,t);
     }
 
     friend void swap(Sensor& o1, Sensor& o2) {
@@ -667,11 +695,6 @@ public:
         }
     }
 
-    // ** buffer handling (AAXS only) ******
-    inline bool add(Buffer& b) {
-        return aaxMixerAddBuffer(ptr,b);
-    }
-
     // ** position and orientation ******
     inline bool sensor_matrix(Matrix64& m) {
         return matrix(m);
@@ -704,32 +727,7 @@ public:
         return ifs;
     }
 
-    inline const char* device(unsigned d) {
-        return aaxDriverGetDeviceNameByPos(ptr,d,mode);
-    }
-    const char* interface_name(int d, unsigned i) {
-        const char* ed = device(d);
-        return aaxDriverGetInterfaceNameByPos(ptr,ed,i,mode);
-    }
-    inline const char* interface_name(const char* d, unsigned i) {
-        return aaxDriverGetInterfaceNameByPos(ptr,d,i,mode);
-    }
-    inline const char* interface_name(std::string& d, unsigned i) {
-        return aaxDriverGetInterfaceNameByPos(ptr,d.c_str(),i,mode);
-    }
-
     // ** support ******
-    inline enum aaxErrorType error_no() {
-        return aaxDriverGetErrorNo(ptr);
-    }
-    inline  const char* strerror() {
-        return aaxGetErrorString(error_no());
-    }
-
-    inline unsigned long offset(enum aaxType t) {
-        return aaxSensorGetOffset(ptr,t);
-    }
-
     friend void swap(AeonWave& o1, AeonWave& o2) {
         swap(static_cast<Sensor&>(o1), static_cast<Sensor&>(o2));
         o1.frames.swap(o2.frames);
