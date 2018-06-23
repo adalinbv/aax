@@ -33,10 +33,6 @@
 # include <strings.h>	/* strcasecmp */
 #endif
 
-#if defined(WIN32)
-# include <VersionHelpers.h>
-#endif
-
 #include <aax/aax.h>
 #include <xml.h>
 
@@ -53,6 +49,11 @@
 #include <software/renderer.h>
 #include "audio.h"
 #include "device.h"
+
+#if defined(WIN32)
+# include <Windows.h>
+# include <VersionHelpers.h>
+#endif
 
 
 #define SDL_ID_STRING		"SDL"
