@@ -10,14 +10,22 @@
 
  <sound name="Air Fan" frequency="220" duration="3.33">
   <waveform src="pink-noise" pitch="0.125"/>
-  <waveform src="impulse" processing="modulate" ratio="2.5" pitch="0.1"/>
-  <waveform src="pink-noise" processing="add" pitch="0.125"/>
+  <waveform src="impulse" processing="modulate" ratio="3.0" pitch="0.1"/>
+  <waveform src="pink-noise" processing="add" ratio="0.6" pitch="0.15"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="1.0">220</param>
+    <param n="0" pitch="0.8">175</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.2</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="1.5">220</param>
     <param n="1">0.8</param>
     <param n="2">0.2</param>
-    <param n="3">2.0</param>
+    <param n="3">1.2</param>
    </slot>
   </filter>
  </sound>
