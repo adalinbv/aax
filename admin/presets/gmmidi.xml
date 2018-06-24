@@ -92,7 +92,7 @@
    <instrument n="80" name="Ocarina" file=".aaxs"/>
    <instrument n="81" name="Lead 1 (square)" file="instruments/lead-square.aaxs"/>
    <instrument n="82" name="Lead 2 (sawtooth)" file="instruments/lead-sawtooth.aaxs"/>
-   <instrument n="83" name="Lead 3 (calliope)" file="effects/train-whistle.aaxs"/>
+   <instrument n="83" name="Lead 3 (calliope)" file="instruments/lead-calliope.aaxs"/>
    <instrument n="84" name="Lead 4 (chiff)" file="instruments/lead-chiff.aaxs"/>
    <instrument n="85" name="Lead 5 (charang)" file="instruments/lead-charang.aaxs"/>
    <instrument n="86" name="Lead 6 (voice)" file="instruments/lead-voice.aaxs"/>
