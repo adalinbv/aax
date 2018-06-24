@@ -527,6 +527,8 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_SINE_WAVE;
             } else if (!strncasecmp(name, "square", len)) {
                rv |= AAX_SQUARE_WAVE;
+            } else if (!strncasecmp(name, "impulse", len)) {
+               rv |= AAX_IMPULSE_WAVE;
             } else if (!strncasecmp(name, "sawtooth", len)) {
                rv |= AAX_SAWTOOTH_WAVE;
             } else if (!strncasecmp(name, "envelope", len)) {

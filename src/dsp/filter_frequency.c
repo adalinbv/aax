@@ -81,7 +81,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
    assert(filter->info);
 
-   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_SAWTOOTH_WAVE |
+   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|AAX_SAWTOOTH_WAVE |
           AAX_ENVELOPE_FOLLOW;
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
@@ -98,6 +98,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_TRIANGLE_WAVE   ||
        wstate == AAX_SINE_WAVE       ||
        wstate == AAX_SQUARE_WAVE     ||
+       wstate == AAX_IMPULSE_WAVE    ||
        wstate == AAX_SAWTOOTH_WAVE   ||
        wstate == AAX_ENVELOPE_FOLLOW ||
        istate == AAX_6DB_OCT         ||

@@ -86,6 +86,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    case AAX_TRIANGLE_WAVE:
    case AAX_SINE_WAVE:
    case AAX_SQUARE_WAVE:
+   case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
    case AAX_ENVELOPE_FOLLOW:
    {

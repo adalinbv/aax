@@ -70,6 +70,9 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
       case AAX_SQUARE_WAVE:
          lfo->get = _aaxLFOGetSquare;
          break;
+      case AAX_IMPULSE_WAVE:
+         lfo->get = _aaxLFOGetImpulse;
+         break;
       case AAX_SAWTOOTH_WAVE:
          lfo->get = _aaxLFOGetSawtooth;
          break;
@@ -304,6 +307,32 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
    return rv;
 }
 
+float
+_aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
+{
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
+   float rv = 1.0f;
+   if (lfo)
+   {
+      float step = lfo->step[track];
+
+      if (step > 0) step *= 10.0f;	// 10% duty cycle
+      else step *= 0.9f;
+
+      rv = lfo->convert((step >= 0.0f ) ? lfo->max-lfo->min : 0, 1.0f);
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+
+      lfo->value[track] += step;
+      if (((lfo->value[track] <= lfo->min) && (step < 0))
+          || ((lfo->value[track] >= lfo->max) && (step > 0)))
+      {
+         lfo->step[track] *= -1.0f;
+         lfo->value[track] -= step;
+      }
+      lfo->compression[track] = 1.0f - rv;
+   }
+   return rv;
+}
 
 float
 _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))

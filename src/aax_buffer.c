@@ -1425,6 +1425,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
          ratio = 2.0f*(1.0f - ratio_orig);
          if (wtype & AAX_SINE_WAVE) ratio /= 2;
          if (wtype & AAX_SQUARE_WAVE) ratio /= 2;
+         if (wtype & AAX_IMPULSE_WAVE) ratio /= 2;
          if (wtype & AAX_TRIANGLE_WAVE) ratio /= 2;
          if (wtype & AAX_SAWTOOTH_WAVE) ratio /= 2;
          if (wtype & AAX_IMPULSE_WAVE) ratio /= 2;
