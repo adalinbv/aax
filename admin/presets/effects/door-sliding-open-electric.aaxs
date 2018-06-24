@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Train whistle" program="83" bank="0" frequency="220" duration="1.0">
+ <sound name="Electric door sliding open" frequency="220" duration="1.0">
   <waveform src="impulse" ratio="1.0" voices="3" spread="0.17"/>
   <waveform src="square" processing="mix" ratio="0.5" pitch="0.9857"/>
   <filter type="frequency" src="24db">
@@ -28,10 +28,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="43" min="48" max="96" step="1"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

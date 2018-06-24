@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Water Stream" program="" bank="0" frequency="220" duration="2.9">
+ <sound name="Water Dripping" program="" bank="0" frequency="220" duration="2.9">
   <waveform src="brownian-noise" ratio="20.0" pitch="0.05" staticity="0.998"/>
   <filter type="frequency" src="24db">
    <slot n="0">
