@@ -1683,7 +1683,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                      {
                         size_t slen;
 
-                        if (!m || strcmp(name, "hdmi:") == 0)
+                        if (!m) //  || strcmp(name, "hdmi:") == 0)
                         {
                            if (iface != desc) iface += 2;
 
