@@ -1586,13 +1586,14 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
                       || !STRCMP(name, "sysdefault:")
                      )
                   {
-                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *iface;
+                     char *desc, *iface;
                      size_t slen;
 
                      if (!sysdefault && !STRCMP(name, "sysdefault:")) {
                         sysdefault = strdup(colon);
                      }
+
+                     desc = psnd_device_name_get_hint(*lst, "DESC");
                      if (!desc) desc = name;
 
                      iface = strstr(desc, ", ");
@@ -1672,33 +1673,40 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                         !strcmp(name, "iec958:") || !strcmp(name, "default:")))
                      )
                   {
-                     char *desc = psnd_device_name_get_hint(*lst, "DESC");
-                     char *iface;
+                     char *desc, *iface;
+                     size_t slen;
 
+                     desc = psnd_device_name_get_hint(*lst, "DESC");
                      if (!desc) desc = name;
-                     iface = strstr(desc, ", ");
 
+                     iface = strstr(desc, ", ");
                      if (iface) *iface = 0;
+
                      if (iface && !strcasecmp(devname, desc))
                      {
-                        size_t slen;
-
-                        if (!m) //  || strcmp(name, "hdmi:") == 0)
+                        if (!m) // Input
                         {
-                           if (iface != desc) iface += 2;
+                           if (iface != desc)
+                           {
+                              char *p;
+
+                              iface += 2;
+                              p = strchr(iface, '\n');
+                              if (p) *p = 0;
+                           }
+
 
                            slen = strlen(iface)+1;
                            if (slen > (len-1)) break;
 
                            snprintf(ptr, len, "%s", iface);
-                           iface = strchr(ptr, '\n');
-                           if (iface) *iface = 0;
                         }
                         else
                         {
                            if (iface != desc) {
                               iface = strchr(iface+2, '\n')+1;
                            }
+
                            slen = strlen(iface)+1;
                            if (slen > (len-1)) break;
 
