@@ -1569,6 +1569,9 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
       case AAX_PCM16S:
          _batch_cvt24_16(ndata, data, samples);
          break;
+      case AAX_PCM24_PACKED:
+         _batch_cvt24_24_3(ndata, data, samples);
+         break;
       case AAX_PCM32S:
          _batch_cvt24_32(ndata, data, samples);
          break;
@@ -1859,6 +1862,7 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
       rb->release_tracks_ptr(rb);
       if (buf->to_mixer) rv = _bufConvertDataToMixerFormat(buf, rb);
       break;
+   case AAX_PCM24S:
    case AAX_PCM32S:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);

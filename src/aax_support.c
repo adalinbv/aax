@@ -331,6 +331,9 @@ aaxGetBytesPerSample(enum aaxFormat format)
    case AAX_IMA4_ADPCM:		/* gets decoded before use */
       rv = 2;
       break;
+   case AAX_PCM24_PACKED:
+      rv = 3;
+      break;
    case AAX_PCM24S:
    case AAX_PCM32S:
    case AAX_FLOAT:
@@ -360,6 +363,9 @@ aaxGetBitsPerSample(enum aaxFormat format)
       break;
    case AAX_PCM16S:
       rv = 16;
+      break;
+   case AAX_PCM24_PACKED:
+      rv = 24;
       break;
    case AAX_PCM24S:
    case AAX_PCM32S:

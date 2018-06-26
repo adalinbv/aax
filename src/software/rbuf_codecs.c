@@ -42,9 +42,6 @@
 static void _sw_bufcpy_8s(void_ptr, const_void_ptr, size_t);
 static void _sw_bufcpy_16s(void_ptr, const_void_ptr, size_t);
 static void _sw_bufcpy_24s(void_ptr, const_void_ptr, size_t);
-#if 0
-static void _sw_bufcpy_32a(void_ptr, const_void_ptr, size_t)s;
-#endif
 static void _sw_bufcpy_mulaw(void_ptr, const_void_ptr, size_t);
 static void _sw_bufcpy_alaw(void_ptr, const_void_ptr, size_t);
 
@@ -61,8 +58,9 @@ _batch_codec_proc _aaxRingBufferCodecs[AAX_FORMAT_MAX] =
 #ifdef USE_IMA_ADPCM_CODEC
    &_sw_bufcpy_ima_adpcm
 #else
-   &_sw_bufcpy_16s	/* IMA4-ADPCM gets converted to 16-bit */
+   &_sw_bufcpy_16s,	/* IMA4-ADPCM gets converted to 16-bit */
 #endif
+   &_sw_bufcpy_24s	/* 24-bit packed gets converted to 24-bit */
 };
 
 extern const int16_t _ima4_step_table[89];

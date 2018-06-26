@@ -1429,7 +1429,8 @@ static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX] =
   { 32, AAX_PCM24S },	/* double gets converted to 24-bit */
   {  8, AAX_MULAW },	/* mu-law  */
   {  8, AAX_ALAW },	/* a-law */
-  { 16, AAX_PCM16S }	/* IMA4-ADPCM gets converted to 16-bit */
+  { 16, AAX_PCM16S },	/* IMA4-ADPCM gets converted to 16-bit */
+  { 32, AAX_PCM24S }	/* 24-bit packed gets converted to 24-bit */
 };
 
 _aaxRingBufferMixStereoFn _aaxRingBufferMixMulti16;

@@ -184,7 +184,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          }
          rv = AAX_TRUE;
          break;
-      case AAX_PCM24S:
+      case AAX_PCM24_PACKED:
          handle->cvt_to_intl = _batch_cvt24_3intl_24;
          handle->cvt_from_intl = _batch_cvt24_24_3intl;
          if (need_endian_swap) {
@@ -194,6 +194,27 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          {
             handle->cvt_to_signed = _batch_cvt32u_32s;
             handle->cvt_from_signed = _batch_cvt32s_32u;
+         }
+
+         /* for the extension we act as 24-bit in 32-bit */
+         if (!handle->copy_to_buffer)
+         {
+            handle->format = AAX_PCM24S;
+            handle->bits_sample = 32;
+            handle->blocksize = (unsigned int)handle->no_tracks*handle->bits_sample/8;
+         }
+         rv = AAX_TRUE;
+         break;
+      case AAX_PCM24S:
+         handle->cvt_to_intl = _batch_cvt24_intl_24;
+         handle->cvt_from_intl = _batch_cvt24_24_intl;
+         if (need_sign_swap)
+         {
+            handle->cvt_to_signed = _batch_cvt24u_24s;
+            handle->cvt_from_signed = _batch_cvt24s_24u;
+         }
+         if (need_endian_swap) {
+            handle->cvt_endianness = _batch_endianswap32;
          }
          rv = AAX_TRUE;
          break;
