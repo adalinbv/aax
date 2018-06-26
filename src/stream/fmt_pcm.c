@@ -201,7 +201,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          {
             handle->format = AAX_PCM24S;
             handle->bits_sample = 32;
-            handle->blocksize = (unsigned int)handle->no_tracks*handle->bits_sample/8;
+            handle->blocksize = 4*handle->no_tracks;
          }
          rv = AAX_TRUE;
          break;
@@ -377,10 +377,10 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
          else
          {
             size_t bytes = *num*blocksize;
-            if (bytes > bufsize) {
-               bytes = bufsize;
-            }
 
+            if (bytes > bufsize) {
+               bytes = (bufsize/blocksize)*blocksize;
+            }
             *num = bytes/blocksize;
 
             if (handle->cvt_endianness) {
