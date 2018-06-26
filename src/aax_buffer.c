@@ -382,7 +382,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       unsigned int format = handle->format;
       void *data = (void*)d, *ptr = NULL;
       unsigned int native_fmt;
-      char fmt_bps, *m = 0;
+      char fmt_bps, *m;
       const char *env;
 
       rb->init(rb, AAX_FALSE);
@@ -396,7 +396,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       if (format & ~AAX_FORMAT_NATIVE)
       {
          fmt_bps = _aaxFormatsBPS[native_fmt];
-         ptr = (void**)_aax_malloc(&m, buf_samples*fmt_bps);
+         ptr = (void**)_aax_malloc(&m, 0, buf_samples*fmt_bps);
          if (!ptr)
          {
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -549,8 +549,7 @@ aaxBufferGetData(const aaxBuffer buffer)
       tracks = rb->get_parami(rb, RB_NO_TRACKS);
       buf_samples = tracks*no_samples;
 
-      ptr = (char*)sizeof(void*);
-      data = (void**)_aax_malloc(&ptr, no_samples*tracks*bps);
+      data = (void**)_aax_malloc(&ptr, sizeof(void*), no_samples*tracks*bps);
       if (data == NULL) 
       {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -569,8 +568,7 @@ aaxBufferGetData(const aaxBuffer buffer)
             void **ndata;
             char *ptr;
 
-            ptr = (char*)sizeof(void*);
-            ndata = (void**)_aax_malloc(&ptr, buf_samples*sizeof(int32_t));
+            ndata = (void**)_aax_malloc(&ptr, sizeof(void*), buf_samples*sizeof(int32_t));
             if (ndata)
             {
                *ndata = (void*)ptr;
@@ -588,8 +586,7 @@ aaxBufferGetData(const aaxBuffer buffer)
             void** ndata;
             char *ptr;
 
-            ptr = (char*)sizeof(void*);
-            ndata = (void**)_aax_malloc(&ptr, tracks*new_samples*new_bps);
+            ndata = (void**)_aax_malloc(&ptr, sizeof(void*), tracks*new_samples*new_bps);
             if (ndata)
             {
                *ndata = (void*)ptr;
@@ -916,8 +913,8 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
 
             if (datasize < 64*1024*1024) // sanity check
             {
-               ptr2 = (char*)(2 * sizeof(void*));
-               ptr = (char**)_aax_calloc(&ptr2, 2, sizeof(void*) + datasize);
+               size_t offs = 2 * sizeof(void*);
+               ptr = (char**)_aax_calloc(&ptr2, offs, 2, datasize);
             }
 
             if (ptr)
@@ -988,8 +985,7 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
          char **ndata;
          char *ptr;
 
-         ptr = (char*)sizeof(void*);
-         ndata = (char**)_aax_malloc(&ptr, no_samples*sizeof(int32_t));
+         ndata = (char**)_aax_malloc(&ptr, sizeof(void*), no_samples*sizeof(int32_t));
          if (ndata)
          {
             *ndata = (void*)ptr;
@@ -1878,6 +1874,11 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
       _batch_cvt24_pd_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
       break;
+   case AAX_PCM24_PACKED:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      _batch_cvt24_24_3intl(tracks, data, 0, no_tracks, no_samples);
+      rb->release_tracks_ptr(rb);
+      break;
    default:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       if (no_tracks == 1) {
@@ -1944,8 +1945,8 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
       
       if (fmt == AAX_PCM24S)
       {
-         p = (char*)(no_tracks*sizeof(void*));
-         tracks = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
+         size_t offs = no_tracks*sizeof(void*);
+         tracks = (void**)_aax_malloc(&p, offs, no_tracks*size);
          for (t=0; t<no_tracks; t++)
          {
             tracks[t] = p;
@@ -1963,23 +1964,21 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
       }
       else
       {
-         size_t scratch_size, len;
+         size_t scratch_size, offs, len;
          MIX_T **scratch;
          char *sptr;
 
-         scratch_size = 2*sizeof(MIX_T*);
-         sptr = (char*)scratch_size;
-        
-         scratch_size += SIZE_ALIGNED(samples*sizeof(MIX_T));
+         offs = 2*sizeof(MIX_T*);
+         scratch_size = SIZE_ALIGNED(samples*sizeof(MIX_T));
          len = SIZE_ALIGNED(no_samples*sizeof(MIX_T));
          scratch_size += len;
 
-         scratch = (MIX_T**)_aax_malloc(&sptr, scratch_size);
+         scratch = (MIX_T**)_aax_malloc(&sptr, offs, scratch_size);
          scratch[0] = (MIX_T*)sptr;
          scratch[1] = (MIX_T*)(sptr + len);
 
-         p = (char*)(no_tracks*sizeof(void*));
-         tracks = (void**)_aax_malloc(&p, no_tracks*(sizeof(void*) + size));
+         offs = no_tracks*sizeof(void*);
+         tracks = (void**)_aax_malloc(&p, offs, no_tracks*size);
          for (t=0; t<no_tracks; t++)
          {
             tracks[t] = p;

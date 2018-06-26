@@ -124,11 +124,11 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
    {
       if (!handle->id)
       {
-         char *ptr = 0;
+         char *ptr;
 
          handle->flacBufPos = 0;
          handle->flacBufSize = MAX_PACKET_SIZE;
-         handle->flacptr = _aax_malloc(&ptr, handle->flacBufSize);
+         handle->flacptr = _aax_malloc(&ptr, 0, handle->flacBufSize);
          handle->flacBuffer = (int32_t*)ptr;
 
 printf("a\n");

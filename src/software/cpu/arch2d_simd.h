@@ -54,8 +54,8 @@ extern "C" {
 
 /* CPU*/
 void _aax_free_aligned(void*);
-char* _aax_calloc_aligned(char**, size_t, size_t);
-char* _aax_malloc_aligned(char**, size_t);
+char* _aax_calloc_aligned(char**, size_t, size_t, size_t);
+char* _aax_malloc_aligned(char**, size_t, size_t);
 void _batch_cvt24_24_cpu(void_ptr, const void*, size_t);
 
 void _batch_imul_value_cpu(void*, unsigned, size_t, float);
@@ -122,9 +122,6 @@ void _batch_cvt32_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int
 void _batch_cvtps_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
-
-char* _aax_calloc_aligned(char**, size_t, size_t);
-char* _aax_malloc_aligned(char**, size_t);
 
 /* SSE2*/
 float fast_sin_sse2(float);

@@ -748,8 +748,8 @@ _aaxDMediaDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gai
    outbuf_size = no_tracks * no_samples*sizeof(int16_t);
    if (handle->scratch == 0)
    {
-      char *p = 0;
-      handle->scratch = (void**)_aax_malloc(&p, outbuf_size);
+      char *p;
+      handle->scratch = (void**)_aax_malloc(&p, 0, outbuf_size);
       handle->data = (int16_t**)p;
 #ifndef NDEBUG
       handle->buf_len = outbuf_size;

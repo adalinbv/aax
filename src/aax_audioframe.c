@@ -55,14 +55,13 @@ aaxAudioFrameCreate(aaxConfig config)
 
    if (handle && VALID_HANDLE(handle))
    {
-      unsigned long size;
+      size_t offs, size;
       char* ptr2;
       void* ptr1;
 
-      size = sizeof(_frame_t) + sizeof(_aaxAudioFrame);
-      ptr2 = (char*)size;
-      size += sizeof(_aax2dProps);
-      ptr1 = _aax_calloc(&ptr2, 1, size);
+      offs = sizeof(_frame_t) + sizeof(_aaxAudioFrame);
+      size = sizeof(_aax2dProps);
+      ptr1 = _aax_calloc(&ptr2, offs, 1, size);
       if (ptr1)
       {
          _frame_t* frame = (_frame_t*)ptr1;

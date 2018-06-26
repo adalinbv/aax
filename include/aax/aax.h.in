@@ -87,25 +87,26 @@ enum aaxFormat
    AAX_FORMAT_NONE = -1,
 
    /* native endianness */
-   AAX_PCM8S = 0,		/* signed, 8-bits per sample  */
-   AAX_PCM16S,			/* signed, 16-bits per sample */
-   AAX_PCM24S,			/* signed, 24-bits per sample */
-   AAX_PCM32S,			/* signed, 32-bits per sample */
-   AAX_FLOAT,		/* 32-bit floating point, -1.0 to 1.0 */
-   AAX_DOUBLE,		/* 64-bit floating point, -1.0 to 1.0 */
+   AAX_PCM8S = 0,		/* signed, 8-bits per sample             */
+   AAX_PCM16S,			/* signed, 16-bits per sample            */
+   AAX_PCM24S,			/* signed, 24-bits per sample in 32-bits */
+   AAX_PCM32S,			/* signed, 32-bits per sample            */
+   AAX_FLOAT,		/* 32-bit floating point, -1.0 to 1.0            */
+   AAX_DOUBLE,		/* 64-bit floating point, -1.0 to 1.0            */
    AAX_MULAW,
    AAX_ALAW,
    AAX_IMA4_ADPCM,
+   AAX_PCM24_PACKED,		/* signed, packed 24-bits per sample     */
    AAX_FORMAT_MAX,
 	
    AAX_FORMAT_NATIVE = 0x07F,	/* format mask */
 
    			/* the following formats get converted before use */
    AAX_FORMAT_UNSIGNED = 0x080,
-   AAX_PCM8U = 0x080,		/* unsigned, 8-bits per sample  */
-   AAX_PCM16U,			/* unsigned, 16-bits per sample */
-   AAX_PCM24U,			/* unsigned, 24-bits per sample */
-   AAX_PCM32U,			/* unsigned, 32-bits per sample */
+   AAX_PCM8U = 0x080,		/* unsigned, 8-bits per sample             */
+   AAX_PCM16U,			/* unsigned, 16-bits per sample            */
+   AAX_PCM24U,			/* unsigned, 24-bits per sample in 32-bits */
+   AAX_PCM32U,			/* unsigned, 32-bits per sample            */
 
    /* little endian */
    AAX_FORMAT_LE = 0x100,

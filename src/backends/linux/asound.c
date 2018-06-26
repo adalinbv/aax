@@ -2925,7 +2925,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, UNUSED(float pitch), flo
    outbuf_size = (no_tracks * period_frames*hw_bits)/8;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
-      size_t size;
+      size_t offs, size;
       char *p;
 
       _aax_free(handle->ptr);
@@ -2933,11 +2933,9 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, UNUSED(float pitch), flo
       
       outbuf_size = SIZE_ALIGNED((period_frames*hw_bits)/8);
 
-      size = no_tracks * sizeof(void*);
-      p = (char *)size;
-
-      size += no_tracks * outbuf_size;
-      handle->ptr = (void**)_aax_malloc(&p, size);
+      offs = no_tracks * sizeof(void*);
+      size = no_tracks * outbuf_size;
+      handle->ptr = (void**)_aax_malloc(&p, offs, size);
       handle->scratch = (char**)p;
 
       for (t=0; t<no_tracks; t++)
@@ -3045,12 +3043,12 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, UNUSED(float pitch), flo
    outbuf_size = (no_tracks * period_frames*hw_bits)/8;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
-      char *p = 0;
+      char *p;
 
       _aax_free(handle->ptr);
       handle->buf_len = outbuf_size;
 
-      handle->ptr = (void**)_aax_malloc(&p, outbuf_size);
+      handle->ptr = (void**)_aax_malloc(&p, 0, outbuf_size);
       handle->scratch = (char**)p;
    }
 

@@ -53,15 +53,13 @@ AAX_API aaxEmitter AAX_APIENTRY
 aaxEmitterCreate()
 {
    aaxEmitter rv = NULL;
-   unsigned long size;
+   size_t offs, size;
    void *ptr1;
    char* ptr2;
 
-   size = sizeof(_emitter_t) + sizeof(_aaxEmitter);
-   ptr2 = (char*)size;
-
-   size += sizeof(_aax2dProps);
-   ptr1 = _aax_calloc(&ptr2, 1, size);
+   offs = sizeof(_emitter_t) + sizeof(_aaxEmitter);
+   size = sizeof(_aax2dProps);
+   ptr1 = _aax_calloc(&ptr2, offs, 1, size);
    if (ptr1)
    {
       _emitter_t* handle = (_emitter_t*)ptr1;

@@ -188,6 +188,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          char extfmt = AAX_FALSE;
          _fmt_type_t fmt;
          size_t size;
+         char *ptr;
 
          if (handle->bits_sample > 16) extfmt = AAX_TRUE;
          else if (handle->no_tracks > 2) extfmt = AAX_TRUE;
@@ -224,8 +225,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
          size = 4*handle->wavBufSize;
 //       handle->wavBuffer = _aaxDataCreate(size, handle->blocksize);
-         char *ptr = 0;
-         handle->wavptr = _aax_malloc(&ptr, size);
+         handle->wavptr = _aax_malloc(&ptr, 0, size);
          handle->wavBuffer = (uint32_t*)ptr;
 
          if (handle->wavBuffer)
@@ -310,11 +310,11 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
       {
          if (!handle->wavBuffer) {
 //          handle->wavBuffer = _aaxDataCreate(16384, handle->blocksize);
-            char *ptr = 0;
+            char *ptr;
 
             handle->wavBufPos = 0;
             handle->wavBufSize = 16384;
-            handle->wavptr = _aax_malloc(&ptr, handle->wavBufSize);
+            handle->wavptr = _aax_malloc(&ptr, 0, handle->wavBufSize);
             handle->wavBuffer = (uint32_t*)ptr;
          }
 
@@ -1144,7 +1144,7 @@ _getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
       else if (bits_sample == 16 && big_endian) rv = AAX_PCM16S_LE;
       else if (bits_sample == 16) rv = AAX_PCM16S;
       else if (bits_sample == 24 && big_endian) rv = AAX_PCM24S_LE;
-      else if (bits_sample == 24) rv = AAX_PCM24S;
+      else if (bits_sample == 24) rv = AAX_PCM24_PACKED;
       else if (bits_sample == 32 && big_endian) rv = AAX_PCM32S_LE;
       else if (bits_sample == 32) rv = AAX_PCM32S;
       break;

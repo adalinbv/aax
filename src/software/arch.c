@@ -158,20 +158,19 @@ _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #endif
 
 char *
-_aax_malloc_aligned(char **start, size_t size)
+_aax_malloc_aligned(char **start, size_t offs, size_t size)
 {
    int ctr = 3;
    char *ptr;
 
-   assert((size_t)*start < size);
-
+   size += offs;
    size = SIZE_ALIGNED(size + MEMALIGN);
    do
    {
       ptr = (char *)malloc(size);
       if (ptr)
       {
-         char *s = ptr + (size_t)*start;
+         char *s = ptr + offs;
          size_t tmp;
 
          tmp = (size_t)s & MEMMASK;
@@ -193,20 +192,19 @@ _aax_malloc_aligned(char **start, size_t size)
 }
 
 char *
-_aax_calloc_aligned(char **start, size_t num, size_t size)
+_aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
 {
    int ctr = 3;
    char *ptr;
 
-   assert((size_t)*start < num*size);
-
+   size += offs;
    size = SIZE_ALIGNED(size + MEMALIGN);
    do
    {
       ptr = (char *)malloc(num*size);
       if (ptr)
       {
-         char *s = ptr + (size_t)*start;
+         char *s = ptr + offs;
          size_t tmp;
 
          tmp = (size_t)s & MEMMASK;

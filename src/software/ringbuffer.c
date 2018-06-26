@@ -234,7 +234,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
    if (1) // !rbd->track)
    {
       unsigned int tracks;
-      size_t no_samples, tracksize, dde_bytes;
+      size_t offs, no_samples, tracksize, dde_bytes;
       char *ptr, *ptr2;
       char bps;
 
@@ -253,10 +253,10 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
       tracks = rbd->no_tracks;
 
-      ptr2 = (char*)(tracks * sizeof(void*));
-      ptr = _aax_calloc(&ptr2, tracks, sizeof(void*) + tracksize);
+      offs = tracks * sizeof(void*);
+      ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
 #else
-      ptr = ptr2 = calloc(tracks, sizeof(void*) + tracksize);
+      ptr = ptr2 = calloc(tracks, offs+tracksize);
 #endif
       if (ptr)
       {
@@ -298,7 +298,7 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
 
    if (add_scratchbuf && rbd->scratch == NULL)
    {
-      size_t i, tracks, no_samples, tracksize, dde_bytes;
+      size_t i, offs, tracks, no_samples, tracksize, dde_bytes;
       char *ptr, *ptr2;
       char bps;
 
@@ -315,10 +315,10 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
       /* align every buffer */
       tracksize = SIZE_ALIGNED(tracksize);
 
-      ptr2 = (char*)(tracks * sizeof(void*));
-      ptr = _aax_calloc(&ptr2, tracks, sizeof(void*) + tracksize);
+      offs = tracks * sizeof(void*);
+      ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
 #else
-      ptr = ptr2 = calloc(tracks, sizeof(void*) + tracksize);
+      ptr = ptr2 = calloc(tracks, offs+tracksize);
 #endif
       if (ptr)
       {

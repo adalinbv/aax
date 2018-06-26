@@ -653,8 +653,8 @@ _aaxOSSDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    outbuf_size = no_tracks *no_samples*sizeof(int16_t);
    if (handle->ptr == 0)
    {
-      char *p = 0;
-      handle->ptr = (int16_t *)_aax_malloc(&p, outbuf_size);
+      char *p;
+      handle->ptr = (int16_t *)_aax_malloc(&p, 0, outbuf_size);
       handle->scratch = (int16_t*)p;
 #ifndef NDEBUG
       handle->buf_len = outbuf_size;

@@ -2587,8 +2587,7 @@ _wasapi_setup(_driver_t *handle, size_t *period_frames, int registered)
                                           pIID_IAudioCaptureClient,
                                           (void**)&handle->uType.pCapture);
             handle->scratch_offs = 0;
-            handle->scratch = (char*)0;
-            handle->scratch_ptr = _aax_malloc(&handle->scratch,
+            handle->scratch_ptr = _aax_malloc(&handle->scratch, 0,
                                               handle->buffer_frames*frame_sz);
             if (!handle->scratch_ptr) hr = S_FALSE;
          }

@@ -986,12 +986,12 @@ _aaxLinuxDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain
    outbuf_size = no_tracks*period_frames*handle->bits_sample/8;
    if (handle->ptr == 0 || (handle->buf_len < outbuf_size))
    {
-      char *p = 0;
+      char *p;
 
       _aax_free(handle->ptr);
       handle->buf_len = outbuf_size;
 
-      handle->ptr = (void**)_aax_malloc(&p, outbuf_size);
+      handle->ptr = (void**)_aax_malloc(&p, 0, outbuf_size);
       handle->scratch = (char**)p;
    }
 

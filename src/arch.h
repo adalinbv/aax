@@ -47,8 +47,8 @@ extern "C" {
 #endif
 
 typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
-typedef char* (*_aax_calloc_proc)(char**, size_t, size_t);
-typedef char* (*_aax_malloc_proc)(char**, size_t);
+typedef char* (*_aax_calloc_proc)(char**, size_t, size_t, size_t);
+typedef char* (*_aax_malloc_proc)(char**, size_t, size_t);
 typedef void (*_aax_free_proc)(void*);
 
 typedef void (*_batch_cvt_proc)(void*, size_t);

@@ -244,8 +244,8 @@ _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKER
       size |= MEMMASK;
       size++;
    }
-   p = 0;
-   ptr = _aax_calloc(&p, tracks, size);
+
+   ptr = _aax_calloc(&p, 0, tracks, size);
 #else
    ptr = p = calloc(tracks, size);
 #endif

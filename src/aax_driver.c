@@ -741,16 +741,14 @@ get_backends()
 _handle_t*
 new_handle()
 {
-   unsigned long size;
    _handle_t *rv = NULL;
+   size_t offs, size;
    void *ptr1;
    char *ptr2;
 
-   size = sizeof(_handle_t);
-   ptr2 = (char*)size;
-   size += sizeof(_aaxMixerInfo);
-
-   ptr1 = _aax_calloc(&ptr2, 1, size);
+   offs = sizeof(_handle_t);
+   size = sizeof(_aaxMixerInfo);
+   ptr1 = _aax_calloc(&ptr2, offs, 1, size);
    if (ptr1)
    {
       _handle_t* handle = (_handle_t*)ptr1;
@@ -902,15 +900,13 @@ _open_handle(aaxConfig config)
          unsigned int res = _intBufCreate(&handle->sensors, _AAX_SENSOR);
          if (res != UINT_MAX)
          {
-            unsigned long size;
+            size_t offs, size;
             char* ptr2;
             void* ptr1;
 
-            size = sizeof(_sensor_t) + sizeof(_aaxAudioFrame);
-            ptr2 = (char*)size;
-
-            size += sizeof(_aax2dProps);
-            ptr1 = _aax_calloc(&ptr2, 1, size);
+            offs = sizeof(_sensor_t) + sizeof(_aaxAudioFrame);
+            size = sizeof(_aax2dProps);
+            ptr1 = _aax_calloc(&ptr2, offs, 1, size);
 
             if (ptr1)
             {

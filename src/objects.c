@@ -183,12 +183,11 @@ _aax3dPropsCreate()
 {
    _aax3dProps *rv = NULL;
    char *ptr1, *ptr2;
-   size_t size;
+   size_t offs, size;
 
-   size = sizeof(_aax3dProps);
-   ptr2 = (char*)size;
-   size += sizeof(_aaxDelayed3dProps);
-   ptr1 = _aax_calloc(&ptr2, 1, size);
+   offs = sizeof(_aax3dProps);
+   size = sizeof(_aaxDelayed3dProps);
+   ptr1 = _aax_calloc(&ptr2, offs, 1, size);
    if (ptr1)
    {
       unsigned int pos;

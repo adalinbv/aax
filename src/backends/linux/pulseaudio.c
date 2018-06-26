@@ -645,8 +645,8 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
    {
       if (handle->ptr == 0)
       {
-         char *p = 0;
-         handle->ptr = (int16_t *)_aax_malloc(&p, outbuf_size);
+         char *p;
+         handle->ptr = (int16_t *)_aax_malloc(&p, 0, outbuf_size);
          handle->scratch = (int16_t*)p;
 #ifndef NDEBUG
          handle->buf_len = outbuf_size;
