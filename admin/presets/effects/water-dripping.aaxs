@@ -8,14 +8,22 @@
 
 <aeonwave>
 
- <sound name="Water Dripping" program="" bank="0" frequency="220" duration="2.9">
-  <waveform src="brownian-noise" ratio="20.0" pitch="0.05" staticity="0.9"/>
+ <sound name="Water Dripping" program="" bank="0" frequency="1" duration="3.3">
+  <waveform src="white-noise" ratio="25.0" pitch="0.025" staticity="0.9"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">99</param>
+    <param n="0">10</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">14.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">100</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">20.0</param>
+    <param n="2">0.001</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </sound>
@@ -23,14 +31,14 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">220</param>
+    <param n="0">330</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
     <param n="3">50.0</param>
    </slot>
    <slot n="1">
     <param n="0">8800</param>
-    <param n="3">2.1</param>
+    <param n="3">8.0</param>
    </slot>
   </filter>
  </emitter>
@@ -40,7 +48,7 @@
    <slot n="0">
     <param n="0">440</param>
     <param n="1">0.0</param>
-    <param n="2">0.5</param>
+    <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
