@@ -652,9 +652,15 @@ _batch_cvt24_24_3_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
       size_t i = num;
 
       do {
+#if 0
          smp = (*s++ << 16);
          smp |= (*s++ << 8);
          smp |= *s++;
+#else
+         smp = *s++;
+         smp |= (*s++ << 8);
+         smp |= (*s++ << 16);
+#endif
          if ((smp & 0x00800000) > 0) smp |= 0xFF000000;
 
          *d++ = smp;
