@@ -87,6 +87,7 @@ void _batch_cvt32u_32s_cpu(void*, size_t);
 void _batch_cvt32s_32u_cpu(void*, size_t);
 
 void _batch_endianswap16_cpu(void*, size_t);
+void _batch_endianswap24_cpu(void*, size_t);
 void _batch_endianswap32_cpu(void*, size_t);
 void _batch_endianswap64_cpu(void*, size_t);
 

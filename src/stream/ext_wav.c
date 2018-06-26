@@ -1144,7 +1144,7 @@ _getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
       if (bits_sample == 8) rv = AAX_PCM8U;
       else if (bits_sample == 16 && big_endian) rv = AAX_PCM16S_LE;
       else if (bits_sample == 16) rv = AAX_PCM16S;
-      else if (bits_sample == 24) rv = AAX_PCM24_PACKED;
+      else if (bits_sample == 24) rv = AAX_PCM24S_PACKED;
       else if (bits_sample == 32 && big_endian) rv = AAX_PCM32S_LE;
       else if (bits_sample == 32) rv = AAX_PCM32S;
       break;
@@ -1184,7 +1184,7 @@ _getWAVFormatFromAAXFormat(enum aaxFormat format)
    {
    case AAX_PCM8U:
    case AAX_PCM16S:
-   case AAX_PCM24_PACKED:
+   case AAX_PCM24S_PACKED:
    case AAX_PCM32S:
       rv = PCM_WAVE_FILE;
       break;

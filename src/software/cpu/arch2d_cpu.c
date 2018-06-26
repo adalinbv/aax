@@ -454,15 +454,9 @@ _batch_cvt24_24_3intl_cpu(int32_ptrptr dptr, const_void_ptr sptr, size_t offset,
             size_t i = num;
 
             do {
-#if 0
-               smp = (*s++ << 16);
-               smp |= (*s++ << 8);
-               smp |= *s++;
-#else
                smp = *s++;
                smp |= (*s++ << 8);
                smp |= (*s++ << 16);
-#endif
                if ((smp & 0x00800000) > 0) smp |= 0xFF000000;
 
                *d++ = smp;
@@ -652,15 +646,9 @@ _batch_cvt24_24_3_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
       size_t i = num;
 
       do {
-#if 0
-         smp = (*s++ << 16);
-         smp |= (*s++ << 8);
-         smp |= *s++;
-#else
          smp = *s++;
          smp |= (*s++ << 8);
          smp |= (*s++ << 16);
-#endif
          if ((smp & 0x00800000) > 0) smp |= 0xFF000000;
 
          *d++ = smp;
@@ -1075,6 +1063,25 @@ _batch_endianswap16_cpu(void* data, size_t num)
       {
          *p = _aax_bswap16(*p);
          p++;
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_endianswap24_cpu(void* data, size_t num)
+{
+   if (num)
+   {
+      int32_t* p = (int32_t*)data;
+      size_t i = num*3;
+
+      do
+      {
+         char s = *p;
+         *p = *(p+2);
+         p += 2;
+         *p++ = s;
       }
       while (--i);
    }

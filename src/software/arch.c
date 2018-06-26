@@ -73,6 +73,7 @@ _batch_cvt_proc _batch_cvt32u_32s = _batch_cvt32u_32s_cpu;
 _batch_cvt_proc _batch_cvt32s_32u = _batch_cvt32s_32u_cpu;
 
 _batch_cvt_proc _batch_endianswap16 = _batch_endianswap16_cpu;
+_batch_cvt_proc _batch_endianswap24 = _batch_endianswap24_cpu;
 _batch_cvt_proc _batch_endianswap32 = _batch_endianswap32_cpu;
 _batch_cvt_proc _batch_endianswap64 = _batch_endianswap64_cpu;
 

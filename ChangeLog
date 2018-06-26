@@ -1,4 +1,12 @@
-* Mon Jun 18 2018 - tech@adalin.org
+* Tue Jun 26 2018 - tech@adalin.org
+- AeonWave (3.2.2) stable; urgency=low
+ * Add the AAX_PCM24S_PACKED format for 3-byte packed 24-bit samples.
+   AAX_PCM24S is used for 32-bit encoded 24-bit samples.
+ * Fix 24-bit packed PCM data handling.
+
+-- Erik Hofman <tech@adalin.org>  Tue 26 Jun  2018 15:06:00 + 0200
+
+* Sat Jun 23 2018 - tech@adalin.org
 - AeonWave (3.2.1) stable; urgency=low
  * Improve timing for some backends by using a regular interval method
    instead of waiting just a number of milliseconds from the time of calling.
@@ -11,7 +19,7 @@
    recognized internally and the library is binary compatible with previous
    versions.
 
--- Erik Hofman <tech@adalin.org>  Mon 18 Jun  2018 12:31:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 23 Jun  2018 12:31:00 + 0200
 
 * Sat Jun 16 2018 - tech@adalin.org
 - AeonWave (3.2.0) stable; urgency=high

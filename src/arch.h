@@ -109,6 +109,7 @@ extern _batch_cvt_proc _batch_cvt32u_32s;
 extern _batch_cvt_proc _batch_cvt32s_32u;
 
 extern _batch_cvt_proc _batch_endianswap16;
+extern _batch_cvt_proc _batch_endianswap24;
 extern _batch_cvt_proc _batch_endianswap32;
 extern _batch_cvt_proc _batch_endianswap64;
 

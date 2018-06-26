@@ -96,7 +96,7 @@ enum aaxFormat
    AAX_MULAW,
    AAX_ALAW,
    AAX_IMA4_ADPCM,
-   AAX_PCM24_PACKED,		/* signed, packed 24-bits per sample     */
+   AAX_PCM24S_PACKED,		/* signed, packed 24-bits per sample     */
    AAX_FORMAT_MAX,
 	
    AAX_FORMAT_NATIVE = 0x07F,	/* format mask */
