@@ -201,10 +201,15 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
          prot->meta_pos -= (prot->meta_interval+slen);
 
          /* move the rest of the buffer slen-bytes back */
+         assert(bytes_avail >= slen);
          bytes_avail -= slen;
          blen = bytes_avail;
+
+         assert(ptr >= buf);
          blen -= (ptr - buf);
 
+// TODO: Could lead to a buffer overflow
+         assert(blen <= bytes_avail);
          memmove(ptr, ptr+slen, blen);
       }
    }
