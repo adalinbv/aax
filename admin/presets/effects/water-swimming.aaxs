@@ -24,7 +24,7 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">220</param>
+    <param n="0">330</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
     <param n="3">22.5</param>
