@@ -138,12 +138,13 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
       prot->meta_pos += res;
       while (prot->meta_pos > prot->meta_interval)
       {
-         size_t offs = prot->meta_pos - prot->meta_interval;
+         size_t offs = _MIN(prot->meta_pos-prot->meta_interval, bytes_avail);
          uint8_t *ptr = buf;
          size_t blen;
 
          ptr += bytes_avail;
          ptr -= offs;
+         assert(ptr >= buf);
 
          slen = *ptr * 16;
          if ((size_t)(ptr+slen) >= (size_t)(buf+IOBUF_THRESHOLD)) {
@@ -204,8 +205,6 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
          assert(bytes_avail >= slen);
          bytes_avail -= slen;
          blen = bytes_avail;
-
-         assert(ptr >= buf);
          blen -= (ptr - buf);
 
 // TODO: Could lead to a buffer overflow
