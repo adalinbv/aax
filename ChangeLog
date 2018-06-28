@@ -3,6 +3,8 @@
  * Add the AAX_PCM24S_PACKED format for 3-byte packed 24-bit samples.
    AAX_PCM24S is used for 32-bit encoded 24-bit samples.
  * Fix 24-bit packed PCM data handling.
+ * Fix a possible stream synchronization problem at the start of streams
+   that support ICY metadata song information.
 
 -- Erik Hofman <tech@adalin.org>  Tue 26 Jun  2018 15:06:00 + 0200
 
