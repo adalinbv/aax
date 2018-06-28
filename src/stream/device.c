@@ -582,8 +582,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   break;
                }
 
-               if (handle->prot) {
-                  handle->prot->set_param(handle->prot, __F_POSITION, res);
+               if (handle->prot)
+               {
+                  int r;
+
+                  r = handle->prot->process(handle->prot, header, res, res);
+                  res -= r;
                }
             }
 

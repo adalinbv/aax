@@ -138,7 +138,7 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
       prot->meta_pos += res;
       while (prot->meta_pos > prot->meta_interval)
       {
-         size_t offs = _MIN(prot->meta_pos-prot->meta_interval, bytes_avail);
+         size_t offs = prot->meta_pos - prot->meta_interval;
          uint8_t *ptr = buf;
          size_t blen;
 
