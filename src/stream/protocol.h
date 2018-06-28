@@ -59,6 +59,7 @@ struct _prot_st
    int protocol;
    size_t no_bytes;
    size_t meta_interval;
+   size_t meta_size;
    size_t meta_pos;
 
    char *path;

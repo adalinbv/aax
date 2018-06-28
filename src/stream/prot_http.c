@@ -135,6 +135,17 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
 
    if (prot->meta_interval)
    {
+      // The ICY data length did extend beyond the buffer size,
+      // skip the remaining data.
+      if (prot->meta_size)
+      {
+         size_t skip = _MIN(prot->meta_size, bytes_avail);
+
+         buf += skip;	// memmove(buf, buf+skip, bytes_avail-skip);
+         bytes_avail -= skip;
+         prot->meta_size -= skip;
+      }
+
       prot->meta_pos += res;
       while (prot->meta_pos > prot->meta_interval)
       {
@@ -146,7 +157,18 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
          ptr -= offs;
          assert(ptr >= buf);
 
-         slen = *ptr * 16;
+         prot->meta_size = slen = *ptr * 16;
+
+         // The ICY data length extends beyond the buffer size,
+         // skip the part of the ICY data which is in the buffer now.
+         if ((size_t)(ptr+slen) >= (size_t)(buf+bytes_avail))
+         {
+            size_t skip = (size_t)(buf+bytes_avail) - (size_t)ptr;
+
+            prot->meta_size -= skip;
+            slen = skip;
+            break;
+         }
          if ((size_t)(ptr+slen) >= (size_t)(buf+IOBUF_THRESHOLD)) {
             break;
          }
@@ -194,6 +216,7 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
                   prot->title[1] = '\0';
                   prot->title[0] = AAX_TRUE;
                }
+               prot->meta_size -= slen;
                prot->metadata_changed = AAX_TRUE;
             }
          }
