@@ -1,0 +1,53 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Short Whistle" frequency="300" duration="3.33">
+  <waveform src="pink-noise"/>
+  <waveform src="square" processing="modulate" ratio="2.0" pitch="0.001"/>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="10">3000</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">22.5</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0" factor="soften">1.50</param>
+    <param n="1" factor="velocity">0.05</param>
+    <param n="2">1.0</param>
+    <param n="3">0.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.90</param>
+    <param n="1">0.2</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="square">
+   <slot n="0">
+    <param n="1">20.0</param>
+    <param n="2">2.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.08</param>
+    <param n="1" factor="velocity">1.2</param>
+    <param n="2">0.98</param> 
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
