@@ -11,10 +11,18 @@
  <sound name="Propeller Aircraft" program="126" bank="0" frequency="220">
   <waveform src="white-noise" pitch="0.25"/>
   <waveform src="sawtooth" processing="mix" ratio="0.96" pitch="1.0"/>
-  <waveform src="sawtooth" processing="modulate" pitch="0.5"/>
+  <waveform src="sawtooth" processing="modulate" ratio="1.2" pitch="0.5"/>
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">125</param>
+    <param n="1">1.5</param>
+    <param n="2">1.0</param>
+    <param n="3">8.0</param>
+   </slot>
+  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.225</param>
