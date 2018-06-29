@@ -1,5 +1,5 @@
 * Tue Jun 26 2018 - tech@adalin.org
-- AeonWave (3.2.2) stable; urgency=low
+- AeonWave (3.2.2) stable; urgency=medium
  * Add the AAX_PCM24S_PACKED format for 3-byte packed 24-bit samples.
    AAX_PCM24S is used for 32-bit encoded 24-bit samples.
  * Fix 24-bit packed PCM data handling.
