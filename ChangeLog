@@ -1,4 +1,4 @@
-* Tue Jun 26 2018 - tech@adalin.org
+* Sat Jun 30 2018 - tech@adalin.org
 - AeonWave (3.2.2) stable; urgency=medium
  * Add the AAX_PCM24S_PACKED format for 3-byte packed 24-bit samples.
    AAX_PCM24S is used for 32-bit encoded 24-bit samples.
@@ -6,7 +6,7 @@
  * Fix a possible stream synchronization problem at the start of streams
    that support ICY metadata song information.
 
--- Erik Hofman <tech@adalin.org>  Tue 26 Jun  2018 15:06:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 30 Jun  2018 11:06:00 + 0200
 
 * Sat Jun 23 2018 - tech@adalin.org
 - AeonWave (3.2.1) stable; urgency=low

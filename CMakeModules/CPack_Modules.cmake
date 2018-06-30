@@ -1,7 +1,6 @@
 
 # Component support
-#SET(CPACK_COMPONENTS_ALL Applications Libraries Headers)
-SET(CPACK_COMPONENTS_ALL Libraries Headers)
+SET(CPACK_COMPONENTS_ALL Libraries Headers Data)
 
 # Display name
 SET(CPACK_COMPONENT_APPLICATIONS_HIDDEN ON)
@@ -12,9 +11,11 @@ SET(CPACK_COMPONENT_HEADERS_DISPLAY_NAME "C/C++ Development Files")
 SET(CPACK_COMPONENT_APPLICATIONS_DESCRIPTION
    "Support applictaions to test the capabilities of the software")
 SET(CPACK_COMPONENT_LIBRARIES_DESCRIPTION
-   "Dynamically shared components of the software")
+   "Dynamically data components of the software")
 SET(CPACK_COMPONENT_HEADERS_DESCRIPTION
    "Development header files and library components for use with the software")
+SET(CPACK_COMPONENT_DATA_DESCRIPTION
+   "Shared preset files like instrument and sound effect declarations")
 
 # Dependecies
 SET(CPACK_COMPONENT_HEADERS_DEPENDS Libraries)
@@ -26,32 +27,38 @@ IF(WIN32)
   SET(CPACK_COMPONENT_APPLICATIONS_GROUP "Runtime")
   SET(CPACK_COMPONENT_LIBRARIES_GROUP "Runtime")
   SET(CPACK_COMPONENT_HEADERS_GROUP "Development")
+  SET(CPACK_COMPONENT_DATA_GROUP "Data")
 
   # Note Windows DLL are specified by RUNTIME
   SET(CPACK_COMPONENT_GROUP_RUNTIME_DESCRIPTION
      "Software required to run the software")
   SET(CPACK_COMPONENT_GROUP_DEVELOPMENT_DESCRIPTION
      "C/C++ Development headers and libraries")
+  SET(CPACK_COMPONENT_GROUP_DATA_DESCRIPTION
+     "Instruments, presets and sound effect declarations")
 
-  SET(CPACK_ALL_INSTALL_TYPES Runtime Developer)
+  SET(CPACK_ALL_INSTALL_TYPES Runtime Developer Data)
   SET(CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES Runtime Developer)
   SET(CPACK_COMPONENT_HEADERS_INSTALL_TYPES Developer)
-  SET(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Runtime)
+  SET(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES Runtime Data)
   
 ELSE(WIN32)
   SET(CPACK_COMPONENT_APPLICATIONS_GROUP "bin")
   SET(CPACK_COMPONENT_LIBRARIES_GROUP "bin")
   SET(CPACK_COMPONENT_HEADERS_GROUP "dev")
+  SET(CPACK_COMPONENT_DATA_GROUP "data")
 
   SET(CPACK_COMPONENT_GROUP_BIN_DESCRIPTION
      "Software required to run the software")
   SET(CPACK_COMPONENT_GROUP_DEV_DESCRIPTION
      "C/C++ Development headers and libraries")
+  SET(CPACK_COMPONENT_GROUP_DATA_DESCRIPTION
+     "Instruments, presets and sound effect declarations")
 
-  SET(CPACK_ALL_INSTALL_TYPES bin dev)
+  SET(CPACK_ALL_INSTALL_TYPES bin dev data)
   SET(CPACK_COMPONENT_LIBRARIES_INSTALL_TYPES bin dev)
   SET(CPACK_COMPONENT_HEADERS_INSTALL_TYPES dev)
-  SET(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES bin)
+  SET(CPACK_COMPONENT_APPLICATIONS_INSTALL_TYPES bin data)
 ENDIF(WIN32)
 
 macro (INSTALL_CUSTOM_FILES FILELIST destination)

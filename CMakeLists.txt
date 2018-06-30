@@ -35,6 +35,7 @@ else(WIN32)
   add_definitions(-D_GNU_SOURCE=1)
   set(LIBAEONWAVE aax)
 endif(WIN32)
+set (AEONWAVE_DIR "${LIBAEONWAVE}")
 
 if(NOT LIBTYPE)
   set(LIBTYPE SHARED)
@@ -434,11 +435,6 @@ configure_file(
   "${AeonWave_BINARY_DIR}/include/aax/aax.h"
 )
 
-configure_file(
-  "${AeonWave_SOURCE_DIR}/include/config.h.in"
-  "${AeonWave_BINARY_DIR}/include/config.h"
-)
-
 aax_subdirectory(3rdparty)
 aax_subdirectory(base)
 aax_subdirectory(src)
@@ -509,14 +505,16 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
   ")
 endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
-include(GNUInstallDirs)
-IF(WIN32)
-  SET(APP_DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
-ELSE(WIN32)
-  SET(APP_DATA_DIR "/usr/${CMAKE_INSTALL_DATAROOTDIR}/aax")
-ENDIF(WIN32)
-INSTALL( DIRECTORY admin/presets/ DESTINATION ${APP_DATA_DIR} )
-
+if(WIN32)
+  set(DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
+else()
+  include(GNUInstallDirs)
+  set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}")
+  install( DIRECTORY ${CMAKE_SOURCE_DIR}/admin/presets/
+           DESTINATION "${DATA_DIR}/${AEONWAVE_DIR}" COMPONENT Data
+         )
+endif()
+set(APP_DATA_DIR "${DATA_DIR}")
 message("APP_DATA_DIR: ${APP_DATA_DIR}")
 
 install(FILES 
@@ -552,6 +550,12 @@ endif(NOT SINGLE_PACKAGE)
 
 message("AAX version: ${AAX_VERSION}")
 message("API version: ${AAX_SOVERSION}")
+
+configure_file(
+  "${AeonWave_SOURCE_DIR}/include/config.h.in"
+  "${AeonWave_BINARY_DIR}/include/config.h"
+)
+
 
 #-----------------------------------------------------------------------------
 ### uninstall target

@@ -10,6 +10,7 @@
 
 /* app data dir */
 #cmakedefine APP_DATA_DIR "@APP_DATA_DIR@"
+#cmakedefine AEONWAVE_DIR "@AEONWAVE_DIR@"
 
 /* Define to 1 if you have the <alloca.h> header file. */
 #undef HAVE_ALLOCA_H

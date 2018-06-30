@@ -53,11 +53,11 @@
 # define TEMP_DIR		getenv("TEMP")
 # define SYSTEM_DIR		getenv("PROGRAMFILES")
 # define USR_SYSTEM_DIR		getenv("PROGRAMFILES")
-# define USER_DATA_DIR		getenv("PROGRAMFILES")
-# define AAX_DIR		"\\aax\\"
+# define USER_DATA_DIR		APP_DATA_DIR
+# define AAX_DIR		"\\"AEONWAVE_DIR"\\"
 
 # define LOCALAPP_DIR		getenv("LOCALAPPDATA")
-# define USER_AAX_DIR		"\\adalin\\aax\\"
+# define USER_AAX_DIR		"\\adalin\\"AEONWAVE_DIR"\\"
 
 # define USER_DIR		getenv("USERPROFILE")
 
@@ -65,11 +65,11 @@
 # define TEMP_DIR		"/tmp"
 # define SYSTEM_DIR		"/etc"
 # define USR_SYSTEM_DIR		"/usr"SYSTEM_DIR
-# define USER_DATA_DIR		"/usr/share"
-# define AAX_DIR		"/aax/"
+# define USER_DATA_DIR		APP_DATA_DIR
+# define AAX_DIR		"/"AEONWAVE_DIR"/"
 
 # define LOCALAPP_DIR		getenv("HOME")
-# define USER_AAX_DIR		"/.aax/"
+# define USER_AAX_DIR		"/."AEONWAVE_DIR"/"
 
 # define USER_DIR		getenv("HOME")
 #endif
