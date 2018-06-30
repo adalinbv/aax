@@ -184,6 +184,9 @@ int main(int argc, char **argv)
             s = aaxDriverGetSetup(cfg, AAX_VENDOR_STRING);
             printf("Vendor  : %s\n", s);
 
+	    s = aaxDriverGetSetup(cfg, AAX_SHARED_DATA_DIR);
+	    printf("Shared data directory: %s\n" , s);
+
             x = aaxMixerGetSetup(cfg, AAX_TIMER_MODE);
             printf ("Mixer timed mode support:   %s\n", x ? "yes" : "no");
 
