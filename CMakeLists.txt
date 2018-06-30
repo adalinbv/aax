@@ -91,6 +91,7 @@ set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Cross platform, hardware accelerated, mul
 set(CMAKE_MODULE_PATH "${AeonWave_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}")
 include(CPack_Modules)
 include(CPack_Defaults)
+include(GNUInstallDirs)
 include(package)
 include(inline)
 
@@ -107,7 +108,7 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
   # RPM
-  set(CPACK_RPM_PACKAGE_LICENSE "License For Customer Use of ADALIN AEONWAVE AUDIO EXTENSIONS LIBRARY Software")
+  set(CPACK_RPM_PACKAGE_LICENSE "GPL")
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
   set(CPACK_RPM_PACKAGE_PROVIDES "libaax2, libaax3")
 endif(WIN32)
@@ -232,7 +233,6 @@ else(MSVC)
       set(C_FLAGS "${C_FLAGS} -fPIC -Wl,--hash-style=both -Wpointer-arith -Wparentheses")
      endif(GCC OR CLANG)
    else(NOT MINGW)
-     include_DIRECTORIES ("${AeonWave_SOURCE_DIR}/src/windows/mingw")
      add_definitions(-U__STRICT_ANSI__)
      set(C_FLAGS "${C_FLAGS} -static-libgcc")
      set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,--out-implib,${LIBAEONWAVE}.lib")
@@ -506,15 +506,15 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
 if(WIN32)
-  set(DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
+  set(APP_DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
 else()
-  include(GNUInstallDirs)
-  set(DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}")
-  install( DIRECTORY ${CMAKE_SOURCE_DIR}/admin/presets/
-           DESTINATION "${DATA_DIR}/${AEONWAVE_DIR}" COMPONENT Data
-         )
+  set(APP_DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
 endif()
-set(APP_DATA_DIR "${DATA_DIR}")
+install( DIRECTORY
+         admin/presets/
+         DESTINATION "${APP_DATA_DIR}/${AEONWAVE_DIR}"
+         COMPONENT Data
+)
 message("APP_DATA_DIR: ${APP_DATA_DIR}")
 
 install(FILES 
@@ -522,11 +522,7 @@ install(FILES
         include/aax/aeonwave.hpp
         include/aax/strings.hpp
         include/aax/matrix.hpp
-        DESTINATION include/aax
-        COMPONENT Headers
-)
-install(FILES 
-        DESTINATION include
+        DESTINATION "include/${AEONWAVE_DIR}"
         COMPONENT Headers
 )
 
