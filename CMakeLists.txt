@@ -505,18 +505,6 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
   ")
 endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
-if(WIN32)
-  set(APP_DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
-else()
-  set(APP_DATA_DIR "${CMAKE_INSTALL_DATAROOTDIR}")
-endif()
-install( DIRECTORY
-         admin/presets/
-         DESTINATION "${APP_DATA_DIR}/${AEONWAVE_DIR}"
-         COMPONENT Data
-)
-message("APP_DATA_DIR: ${APP_DATA_DIR}")
-
 install(FILES 
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/aeonwave.hpp
@@ -525,6 +513,19 @@ install(FILES
         DESTINATION "include/${AEONWAVE_DIR}"
         COMPONENT Headers
 )
+
+install( DIRECTORY
+         admin/presets/
+         DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${AEONWAVE_DIR}"
+         COMPONENT Data
+)
+
+if(WIN32)
+  set(APP_DATA_DIR "${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_DATAROOTDIR}")
+else()
+  set(APP_DATA_DIR "/usr/${CMAKE_INSTALL_DATAROOTDIR}")
+endif()
+message("APP_DATA_DIR: ${APP_DATA_DIR}")
 
 if (UNIX AND NOT WIN32)
   macro(install_symlink filepath sympath)
