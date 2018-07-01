@@ -968,7 +968,6 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
    {
       assert(be_handle->mode != AAX_MODE_READ);
       assert(be_handle->dataBuffer);
-      assert(handle->ringbuffer);
 
       // assert(be_handle->dataBuffer->avail >= len);
       if (be_handle->dataBuffer->avail >= (size_t)len)
