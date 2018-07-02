@@ -514,19 +514,24 @@ install(FILES
         COMPONENT Headers
 )
 
+if(WIN32)
+  set(SHARED_DATA_SUBDIR "${CMAKE_INSTALL_DATAROOTDIR}")
+  set(APP_DATA_DIR "$ENV{ProgramFiles}\\${CPACK_PACKAGE_INSTALL_DIRECTORY}\\${SHARED_DATA_SUBDIR}")
+  string(REPLACE "\\\\" "\\" APP_DATA_DIR ${APP_DATA_DIR})
+  string(REPLACE "\\" "\\\\" APP_DATA_DIR ${APP_DATA_DIR})
+  string(REPLACE "/" "\\\\" APP_DATA_DIR ${APP_DATA_DIR})
+else()
+  set(SHARED_DATA_SUBDIR "${CMAKE_INSTALL_DATAROOTDIR}/${AEONWAVE_DIR}")
+  set(APP_DATA_DIR "/usr/${SHARED_DATA_DIR}")
+endif()
+message("SHARED_DATA_SUBDIR: ${SHARED_DATA_SUBDIR}")
+message("APP_DATA_DIR: ${APP_DATA_DIR}")
+
 install( DIRECTORY
          admin/presets/
-         DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/${AEONWAVE_DIR}"
+	 DESTINATION "${SHARED_DATA_SUBDIR}"
          COMPONENT Data
 )
-
-if(WIN32)
-  set(BINDIR "$ENV{ProgramFiles}")
-  set(APP_DATA_DIR "${BINDIR}\\${CPACK_PACKAGE_INSTALL_DIRECTORY}\\${CMAKE_INSTALL_DATAROOTDIR}")
-else()
-  set(APP_DATA_DIR "/usr/${CMAKE_INSTALL_DATAROOTDIR}/${AEONWAVE_DIR}")
-endif()
-message("APP_DATA_DIR: ${APP_DATA_DIR}")
 
 if (UNIX AND NOT WIN32)
   macro(install_symlink filepath sympath)
