@@ -742,6 +742,10 @@ public:
         return *this;
     }
 
+    inline unsigned long offset(enum aaxType t) {
+        return aaxSensorGetOffset(ptr,t);
+    }
+
     // ** mixing ******
     bool add(Frame& m) {
         frames.push_back(m);
