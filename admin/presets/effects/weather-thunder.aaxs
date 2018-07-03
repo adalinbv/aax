@@ -8,70 +8,54 @@
 
 <aeonwave>
 
- <sound name="Thunder" program="127" bank="4" frequency="220" duration="3.33">
-  <waveform src="white-noise" pitch="0.25"/>
-  <waveform src="impulse" processing="modulate" ratio="4.0" pitch="0.001"/>
-  <waveform src="sawtooth" processing="modulate" ratio="2.5" pitch="0.013"/>
-  <waveform src="impulse" processing="modulate" ratio="2.5" pitch="0.0025"/>
-  <filter type="frequency" src="48db">
+ <sound name="Thunder" program="127" bank="4" frequency="80.0" duration="3.33">
+  <waveform src="white-noise" ratio="15.0" pitch="0.01"/>
+  <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">660</param>
-    <param n="1">2.5</param>
+    <param n="0">500.0</param>
+    <param n="1">0.5</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">1.25</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope|12db">
+  <filter type="frequency" src="envelope|24db">
    <slot n="0">
-    <param n="0">88</param>
+    <param n="0" pitch="25.0">300</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">2.5</param>
+    <param n="3">1.8</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="7.2">1600</param>
+    <param n="0" pitch="00.0">1600</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.85</param>
-    <param n="1">0.1</param>
+    <param n="0">0.15</param>
+    <param n="1">0.2</param>
     <param n="2">1.0</param>
-    <param n="3" auto-sustain="1.0">10.0</param>
+    <param n="3" auto-sustain="2.0">5.0</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
-    <param n="1">0.7</param>
+    <param n="0">0.7</param>
+    <param n="1" auto-sustain="0.5">8.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.7</param>
-    <param n="1">0.2</param>
-    <param n="2">1.1</param>
+    <param n="0">3.0</param>
+    <param n="1">0.5</param>
+    <param n="2">2.0</param>
     <param n="3">3.3</param>
    </slot>
    <slot n="1">
-    <param n="0">0.7</param>
+    <param n="0">1.5</param>
    </slot>
   </effect>
  </emitter>
-
-<!--
- <audioframe>
-  <filter type="compressor">
-   <slot n="0">
-    <param n="0">0.04</param>
-    <param n="1">0.2</param>
-    <param n="2">0.99</param>
-    <param n="4">0.9</param>
-   </slot>
-  </filter>
- </audioframe>
--->
 
 </aeonwave>
