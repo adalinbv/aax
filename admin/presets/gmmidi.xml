@@ -140,6 +140,14 @@
    <instrument n="128" name="Gunshot" file="effecst/gun-shot.aaxs"/>
   </bank>
 
+  <bank n="1">
+   <instrument n="128" name="Machinegun" file="effecst/gun-maxhine.aaxs"/>
+  </bank>
+
+  <bank n="2">
+   <instrument n="128" name="Lasergun" file="effecst/gun-laser.aaxs"/>
+  </bank>
+
   <bank n="8">
    <instrument n="5" name="Detuned Electric Piano 1" file="instruments/piano-electric1-detuned.aaxs"/>
    <instrument n="6" name="Detuned Electric Piano 2" file="instruments/piano-electric2-detuned.aaxs"/>
