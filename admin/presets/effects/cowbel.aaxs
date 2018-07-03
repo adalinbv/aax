@@ -14,23 +14,29 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" repeat="2">
+  <filter type="timed-gain" repeat="max">
    <slot n="0">
-    <param n="0" factor="soften">1.50</param>
-    <param n="1" factor="velocity">0.05</param>
-    <param n="2">1.00</param>
-    <param n="3">0.02</param>
+    <param n="0">1.00</param>
+    <param n="1">0.25</param>
+    <param n="2">0.4</param>
+    <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0">0.80</param>
-    <param n="1" auto-sustain="0.1" factor="sustain">0.7</param>
+    <param n="0">1.00</param>
+    <param n="1">0.07</param>
+    <param n="2">0.80</param>
+    <param n="3">0.70</param>
+   </slot>
+   <slot n="2">
+    <param n="0">0.001</param>
+    <param n="1">0.10</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.01</param>
-    <param n="1" factor="velocity">0.02</param>
-    <param n="2">0.98</param>
+    <param n="0">0.52</param>
+    <param n="1">0.005</param>
+    <param n="2">0.45</param>
    </slot>
   </effect>
  </emitter>
