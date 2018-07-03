@@ -141,11 +141,29 @@
   </bank>
 
   <bank n="1">
+   <instrument n="123" name="Rain" file="effecst/weather-rain.aaxs"/>
+   <instrument n="125" name="Telephone Buzz" file="effecst/telephone-buzz.aaxs"/>
+   <instrument n="126" name="Car Engine" file="effecst/car-emgine.aaxs"/>
    <instrument n="128" name="Machinegun" file="effecst/gun-maxhine.aaxs"/>
   </bank>
 
   <bank n="2">
+   <instrument n="123" name="Thunder" file="effecst/weather-thunder.aaxs"/>
    <instrument n="128" name="Lasergun" file="effecst/gun-laser.aaxs"/>
+  </bank>
+
+  <bank n="3">
+   <instrument n="123" name="Wind Blowing" file="effecst/weather-wind.aaxs"/>
+  </bank>
+
+  <bank n="4">
+   <instrument n="123" name="Water Stream" file="effecst/water-stream.aaxs"/>
+   <instrument n="127" name="Heart Beat" file="effecst/human-heartbeat.aaxs"/>
+  </bank>
+
+  <bank n="5">
+   <instrument n="123" name="Water Bubbles" file="effecst/water-bubbles.aaxs"/>
+   <instrument n="127" name="Foot Steps" file="effecst/human-footsteps.aaxs"/>
   </bank>
 
   <bank n="8">

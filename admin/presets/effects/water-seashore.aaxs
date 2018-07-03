@@ -15,7 +15,7 @@
  <emitter looping="true">
   <filter type="frequency" src="sine">
    <slot n="0">
-    <param n="0" pitch="10.0">2200</param>
+    <param n="0" pitch="4.0">220</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.1</param>
