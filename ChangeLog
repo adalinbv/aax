@@ -1,3 +1,10 @@
+* Tue Jul 03 2018 - tech@adalin.org
+- AeonWave (3.2.3) stable; urgency=low
+ * Fix a missing offset(enum aaxType) error for the AeonWave class.
+ * Fix a problem with AAX_SHARED_DATA_DIR support for Windows.
+
+-- Erik Hofman <tech@adalin.org>  Tue 03 Jul  2018 08:49:00 + 0200
+
 * Sat Jun 30 2018 - tech@adalin.org
 - AeonWave (3.2.2) stable; urgency=medium
  * Add the AAX_PCM24S_PACKED format for 3-byte packed 24-bit samples.
