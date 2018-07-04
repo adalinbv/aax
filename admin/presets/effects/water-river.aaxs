@@ -9,8 +9,16 @@
 <aeonwave>
 
  <sound name="River" program="123" bank="4" frequency="220" duration="2.9">
-  <waveform src="white-noise" ratio="15.0" pitch="0.25"/>
-  <waveform src="brownian-noise" processing="add" ratio="15.0" pitch="0.05" staticity="0.9"/>
+  <waveform src="white-noise" ratio="4.0" pitch="0.25"/>
+  <waveform src="brownian-noise" processing="add" ratio="5.0" pitch="0.05" staticity="0.9"/>
+  <filter type="frequency" src="12db">
+   <slot n="0">
+    <param n="0">2200</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.2</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
@@ -27,16 +35,5 @@
    </slot>
   </filter>
  </emitter>
-
- <audioframe>
-  <filter type="frequency" src="12db">
-   <slot n="0">
-    <param n="0">2200</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>
