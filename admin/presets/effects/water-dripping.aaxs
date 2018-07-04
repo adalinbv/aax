@@ -34,11 +34,11 @@
     <param n="0">330</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
-    <param n="3">50.0</param>
+    <param n="3">80.0</param>
    </slot>
    <slot n="1">
     <param n="0">8800</param>
-    <param n="3">8.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
  </emitter>
