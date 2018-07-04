@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Long Whistle" frequency="300" duration="0.1">
+ <sound name="Long Whistle" frequency="350" duration="0.1">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -36,7 +36,7 @@
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
-    <param n="1">25.0</param>
+    <param n="1">50.0</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
