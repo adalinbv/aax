@@ -13,7 +13,7 @@
   <waveform src="brownian-noise" processing="add" ratio="15.0" pitch="0.1" staticity="0.3"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0">3300</param>
+    <param n="0">3000</param>
     <param n="1">0.7</param>
     <param n="2">0.2</param>
     <param n="3">2.0</param>
@@ -27,7 +27,7 @@
     <param n="0">330</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
-    <param n="3">22.5</param>
+    <param n="3">10.0</param>
    </slot>
    <slot n="1">
     <param n="0">5000</param>
@@ -42,16 +42,5 @@
    </slot>
   </filter>
  </emitter>
-
- <audioframe>
-  <filter type="frequency" src="12db">
-   <slot n="0">
-    <param n="0">2200</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>
