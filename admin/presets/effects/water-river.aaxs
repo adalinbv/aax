@@ -11,14 +11,6 @@
  <sound name="River" program="123" bank="4" frequency="220" duration="2.9">
   <waveform src="white-noise" ratio="15.0" pitch="0.25"/>
   <waveform src="brownian-noise" processing="add" ratio="15.0" pitch="0.05" staticity="0.9"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">3300</param>
-    <param n="1">0.7</param>
-    <param n="2">0.2</param>
-    <param n="3">5.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">

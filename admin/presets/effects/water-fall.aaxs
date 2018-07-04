@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Waterfall" program="123" bank="4" frequency="220" duration="2.9">
+  <waveform src="white-noise" ratio="7.5" pitch="0.2"/>
+  <waveform src="white-noise" processing="add" ratio="15.0" pitch="0.05" staticity="0.9"/>
+  <filter type="frequency" src="12db">
+   <slot n="0">
+    <param n="0">2700</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">220</param>
+    <param n="1">0.2</param>
+    <param n="2">0.3</param>
+    <param n="3">8.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">17500</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
+ </emitter>
+
+</aeonwave>
