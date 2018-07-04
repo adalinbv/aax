@@ -9,7 +9,7 @@
 <aeonwave>
 
  <sound name="Seashore"  program="123" bank="0" frequency="220" duration="3.33">
-  <waveform src="white-noise" ratio="8" pitch="0.33"/>
+  <waveform src="white-noise" ratio="2" pitch="0.33"/>
  </sound>
 
  <emitter looping="true">
