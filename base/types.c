@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include <stdlib.h>	// _byteswap_ushort, etc
 #include <errno.h>
 
 #include "types.h"
@@ -42,7 +43,16 @@ uint32_t _mem_size(void *p)
 
 uint16_t _aax_bswap16(uint16_t x)
 {
+#if defined(__llvm__) || \
+ (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) && !defined(__ICC)
+   return __builtin_bswap16(x);
+
+#elif defined(_MSC_VER) && !defined(_DEBUG)
+   return _byteswap_ushort(x);
+
+#else
    return (x >> 8) | (x << 8);
+#endif
 }
 
 uint32_t _aax_bswap32(uint32_t x)
