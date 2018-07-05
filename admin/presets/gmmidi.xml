@@ -131,20 +131,20 @@
    <instrument n="119" name="Synth Drum" file=".aaxs"/>
    <instrument n="120" name="Reverse Cymbal" file="instruments/cymbal-reverse.aaxs"/>
    <instrument n="121" name="Guitar Fret Noise" file=".aaxs"/>
-   <instrument n="122" name="Breath Noise" file=".aaxs"/>
+   <instrument n="122" name="Breath Noise" file="effecst/human-breathing.aaxs"/>
    <instrument n="123" name="Seashore" file="effecst/water-seashore.aaxs"/>
    <instrument n="124" name="Bird Tweet" file="effecst/nature-birds.aaxs"/>
-   <instrument n="125" name="Telephone Ring" file="effecst/telephone.aaxs"/>
-   <instrument n="126" name="Helicopter" file="effecst/helicopter.aaxs"/>
+   <instrument n="125" name="Telephone Ring" file="effecst/domestic-telephone-bell.aaxs"/>
+   <instrument n="126" name="Helicopter" file="effecst/transport-helicopter.aaxs"/>
    <instrument n="127" name="Applause" file="effects/.aaxs"/>
    <instrument n="128" name="Gunshot" file="effecst/gun-shot.aaxs"/>
   </bank>
 
   <bank n="1">
    <instrument n="123" name="Rain" file="effecst/weather-rain.aaxs"/>
-   <instrument n="125" name="Telephone Buzz" file="effecst/telephone-buzz.aaxs"/>
-   <instrument n="126" name="Car Engine" file="effecst/car-emgine.aaxs"/>
-   <instrument n="128" name="Machinegun" file="effecst/gun-maxhine.aaxs"/>
+   <instrument n="125" name="Telephone Buzz" file="effecst/domestic-telephone-buzz.aaxs"/>
+   <instrument n="126" name="Car Engine" file="effecst/transport-car-engine.aaxs"/>
+   <instrument n="128" name="Machinegun" file="effecst/gun-machine.aaxs"/>
   </bank>
 
   <bank n="2">
