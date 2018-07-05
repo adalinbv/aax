@@ -86,7 +86,7 @@
    <instrument n="74" name="Flute" file="instruments/flute.aaxs"/>
    <instrument n="75" name="Recorder" file="instruments/flute.aaxs"/>
    <instrument n="76" name="Pan Flute" file="instruments/flute-pan.aaxs"/>
-   <instrument n="77" name="Blown Bottle" file="effects/bottle-blow.aaxs"/>
+   <instrument n="77" name="Blown Bottle" file="effects/blow-bottle.aaxs"/>
    <instrument n="78" name="Shakuhachi" file=".aaxs"/>
    <instrument n="79" name="Whistle" file="effects/human-whistle.aaxs"/>
    <instrument n="80" name="Ocarina" file=".aaxs"/>
@@ -133,7 +133,7 @@
    <instrument n="121" name="Guitar Fret Noise" file=".aaxs"/>
    <instrument n="122" name="Breath Noise" file=".aaxs"/>
    <instrument n="123" name="Seashore" file="effecst/water-seashore.aaxs"/>
-   <instrument n="124" name="Bird Tweet" file="effecst/birds.aaxs"/>
+   <instrument n="124" name="Bird Tweet" file="effecst/nature-birds.aaxs"/>
    <instrument n="125" name="Telephone Ring" file="effecst/telephone.aaxs"/>
    <instrument n="126" name="Helicopter" file="effecst/helicopter.aaxs"/>
    <instrument n="127" name="Applause" file="effects/.aaxs"/>
