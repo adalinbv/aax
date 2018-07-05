@@ -420,14 +420,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    s = strdup(handle->name);
    protocol = _url_split(s, &protname, &server, &path, &extension, &port);
-   handle->io = _io_create(protocol);
-   if (!handle->io)
-   {
-      _aaxStreamDriverLog(id, 0, 0, "Unable to create the protocol");
-      return rv;
-   }
-
-   handle->io->set_param(handle->io, __F_FLAGS, handle->mode);
 #if 0
  printf("\nname: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
@@ -439,6 +431,15 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("refresh rate: %f\n", *refresh_rate);
  printf("buffer size: %i bytes\n\n", size);
 #endif
+
+   handle->io = _io_create(protocol);
+   if (!handle->io)
+   {
+      _aaxStreamDriverLog(id, 0, 0, "Unable to create the protocol");
+      return rv;
+   }
+
+   handle->io->set_param(handle->io, __F_FLAGS, handle->mode);
 
    res = AAX_FALSE;
    if (1) // !m)

@@ -370,6 +370,7 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
 {
    char *ptr;
 
+   *extension = NULL;
    *protocol = NULL;
    *server = NULL;
    *path = NULL;
@@ -391,7 +392,7 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
       *extension = strrchr(url, '.');
       if (*extension) (*extension)++;
    }
-   else /* 'example.com', 'dir.ext/file' or 'file.ext' */
+   else if (strchr(url, '.')) /* 'example.com', 'dir.ext/file' or 'file.ext' */
    {
       ptr = strchr(url, '/');
       if (ptr) *ptr = '\0';
@@ -409,6 +410,9 @@ _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **exte
             if (*extension) (*extension)++;
          }
       }
+   }
+   else {
+      *path = url;
    }
 
    if (!*path)
