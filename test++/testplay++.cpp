@@ -33,11 +33,14 @@
 #include "config.h"
 #endif
 
-#include <stdio.h>
 #include <unistd.h>
+
+#include <cstdio>
 #include <string>
 
 #include <aax/aeonwave.hpp>
+
+#include "driver.h"
 
 int main(int argc, char **argv)
 {
@@ -49,21 +52,28 @@ int main(int argc, char **argv)
     // Start the background music (file or http-stream)
     int i = 0;
     if (argc > 1) {
+        aax::Frame frame;
+
+        frame.set(AAX_PLAYING);
+        aax.add(frame);
         while (++i < argc)
         {
             aax::Buffer& buffer = aax.buffer(argv[i]);
             aax::Emitter emitter(AAX_STEREO);
 
             emitter.add(buffer);
-            aax.add(emitter);
+
+            frame.add(emitter);
+            emitter.set(AAX_PLAYING);
 
             do
             {
                 // Your (game) code could be placed here
-                printf("\rposition: %5.1f", aax.offset());
-                sleep(1);
+                printf("\rposition: %5.1f", emitter.offset());
+                msecSleep(50);
             }
-            while (emitter.state() == AAX_PLAYING);
+            while (emitter.state() != AAX_STOPPED);
+            frame.remove(emitter);
         }
     }
     else {
