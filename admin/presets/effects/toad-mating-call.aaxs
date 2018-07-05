@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Door Creaking" frequency="220" duration="0.2">
+ <sound name="Toad Mating Call" frequency="220" duration="0.2">
   <waveform src="pink-noise" ratio="2.0" pitch="0.5" staticity="0.8"/>
   <filter type="frequency" src="48db">
    <slot n="0">
