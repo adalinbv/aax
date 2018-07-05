@@ -784,8 +784,7 @@ public:
     Buffer& buffer(std::string name) {
         buffer_it it = buffers.find(name);
         if (it == buffers.end()) {
-            aaxBuffer b = aaxBufferReadFromStream(ptr,name.c_str());
-            if (!b) { aaxGetErrorNo(); b=aaxBufferCreate(ptr,1,1,AAX_PCM16S); }
+            aaxBuffer b = make_buffer(name);
             std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(b,false))));
             it = ret.first;
         }
@@ -827,6 +826,21 @@ public:
     }
 
 private:
+    std::string preset_file(std::string& name) {
+        std::string rv = aaxDriverGetSetup(ptr,AAX_SHARED_DATA_DIR);
+        rv.append("/"); rv.append(name); rv.append(".aaxs");
+        return rv;
+    }
+    aaxBuffer make_buffer(std::string& name) {
+        aaxBuffer b = aaxBufferReadFromStream(ptr,name.c_str());
+        if (!b) { aaxGetErrorNo();
+            b = aaxBufferReadFromStream(ptr,preset_file(name).c_str());
+        }
+        if (!b) { aaxGetErrorNo();
+            b = aaxBufferCreate(ptr,1,1,AAX_PCM16S);
+        }
+    }
+
     std::vector<aaxFrame> frames;
     typedef std::vector<aaxFrame>::iterator frame_it;
 
