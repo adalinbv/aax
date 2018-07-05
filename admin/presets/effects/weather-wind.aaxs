@@ -25,6 +25,18 @@
     <param n="3">0.0232</param>
    </slot>
   </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.15</param>
+    <param n="1">0.4</param>
+    <param n="2">1.0</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n0="1">
+    <param n="0">1.0</param>
+    <param n="1">0.4</param>
+   </slot>
+  </filter>
   <filter type="dynamic-gain" src="triangle">
    <slot n="0">
     <param n="1">0.113</param>
