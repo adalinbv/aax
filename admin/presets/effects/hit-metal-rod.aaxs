@@ -8,14 +8,10 @@
 
 <aeonwave>
 
- <sound name="Metal Rod Ride" program="15" bank="0" frequency="220" duration="0.10">
+ <sound name="Metal Rod Hit" frequency="220" duration="0.10">
   <waveform src="sine" pitch="0.996"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="5.7587"/>
  </sound>
-
- <instrument>
-  <note polyphony="17" min="60" max="77" step="1"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

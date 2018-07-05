@@ -8,15 +8,11 @@
 
 <aeonwave>
 
- <sound name="Bowl Ride" program="15" bank="0" frequency="220" duration="0.10">
+ <sound name="Bowl Ride" frequency="220" duration="0.10">
   <waveform src="sine" pitch="1.696"/>
   <waveform src="sine" processing="add" ratio="0.4" pitch="5.0"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.0587"/>
  </sound>
-
- <instrument>
-  <note polyphony="17" min="60" max="77" step="1"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

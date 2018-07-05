@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Metal Pipe Hit" frequency="88" duration="1.0">
+  <waveform src="sawtooth"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="4.9897"/>
+  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="3.4991"/>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0" pitch="0.3">22</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0" pitch="10">660</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1" factor="velocity">0.04</param>
+    <param n="2" factor="soften">1.0</param>
+    <param n="3">0.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.9</param>
+    <param n="1">2.0</param>
+   </slot>
+  </filter>
+  <effect type="phasing" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.15</param>
+    <param n="2">0.3</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
