@@ -442,11 +442,13 @@ int main(int argc, char **argv)
                   if (paused)
                   {
                      aaxMixerSetState(config, AAX_PLAYING);
+                     printf("\nRestart playback.\n");
                      paused = AAX_FALSE;
                   }
                   else
                   {
                      aaxMixerSetState(config, AAX_SUSPENDED);
+                     printf("\nPause playback.\n");
                      paused = AAX_TRUE;
                   }
                }
