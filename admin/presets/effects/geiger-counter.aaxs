@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Geiger-Muller Counter" program="" bank="0" frequency="1" duration="3.3">
+ <sound name="Geiger-Muller Counter" frequency="1" duration="3.3">
   <waveform src="pink-noise" ratio="27.0" pitch="0.0125" staticity="0.9"/>
   <filter type="frequency" src="24db">
    <slot n="0">

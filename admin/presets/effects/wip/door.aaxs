@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Door Creaking" frequency="220" duration="0.2">
+  <waveform src="square" processing="mix"/>
+  <waveform src="square" processing="modulate" ratio="1.0" pitch="5.0"/>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0">400</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0">4000</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" repeat="max">
+   <slot n="0">
+    <param n="0">5.0</param>
+    <param n="1" factor="velocity">0.01</param>
+    <param n="2">0.0</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">0.1</param>
+    <param n="1">0.25</param>
+    <param n="2">0.4</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
