@@ -131,46 +131,46 @@
    <instrument n="119" name="Synth Drum" file=".aaxs"/>
    <instrument n="120" name="Reverse Cymbal" file="instruments/cymbal-reverse.aaxs"/>
    <instrument n="121" name="Guitar Fret Noise" file=".aaxs"/>
-   <instrument n="122" name="Breath Noise" file="effecst/human-breathing.aaxs"/>
-   <instrument n="123" name="Seashore" file="effecst/water-seashore.aaxs"/>
-   <instrument n="124" name="Bird Tweet" file="effecst/nature-birds.aaxs"/>
-   <instrument n="125" name="Telephone Ring" file="effecst/domestic-telephone-bell.aaxs"/>
-   <instrument n="126" name="Helicopter" file="effecst/transport-helicopter.aaxs"/>
+   <instrument n="122" name="Breath Noise" file="effecst/humans/human-breathing.aaxs"/>
+   <instrument n="123" name="Seashore" file="effecst/nature/water-seashore.aaxs"/>
+   <instrument n="124" name="Bird Tweet" file="effecst/nature/birds.aaxs"/>
+   <instrument n="125" name="Telephone Ring" file="effecst/domestic/telephone-bell.aaxs"/>
+   <instrument n="126" name="Helicopter" file="effecst/transport/helicopter.aaxs"/>
    <instrument n="127" name="Applause" file="effects/.aaxs"/>
-   <instrument n="128" name="Gunshot" file="effecst/gun-shot.aaxs"/>
+   <instrument n="128" name="Gunshot" file="effecst/weapons/gun-shot.aaxs"/>
   </bank>
 
   <bank n="1">
-   <instrument n="123" name="Rain" file="effecst/weather-rain.aaxs"/>
-   <instrument n="125" name="Telephone Buzz" file="effecst/domestic-telephone-buzz.aaxs"/>
-   <instrument n="126" name="Car Engine" file="effecst/transport-car-engine.aaxs"/>
-   <instrument n="128" name="Machinegun" file="effecst/gun-machine.aaxs"/>
+   <instrument n="123" name="Rain" file="effecst/nature/weather-rain.aaxs"/>
+   <instrument n="125" name="Telephone Buzz" file="effecst/domestic/telephone-buzz.aaxs"/>
+   <instrument n="126" name="Car Engine" file="effecst/transport/car-engine.aaxs"/>
+   <instrument n="128" name="Machinegun" file="effecst/weapons/gun-machine.aaxs"/>
   </bank>
 
   <bank n="2">
-   <instrument n="123" name="Thunder" file="effecst/weather-thunder.aaxs"/>
-   <instrument n="128" name="Lasergun" file="effecst/gun-laser.aaxs"/>
+   <instrument n="123" name="Thunder" file="effecst/nature/weather-thunder.aaxs"/>
+   <instrument n="128" name="Lasergun" file="effecst/weapons/gun-laser.aaxs"/>
   </bank>
 
   <bank n="3">
-   <instrument n="123" name="Wind Blowing" file="effecst/weather-wind.aaxs"/>
+   <instrument n="123" name="Wind Blowing" file="effecst/nature/weather-wind.aaxs"/>
   </bank>
 
   <bank n="4">
-   <instrument n="123" name="Water Stream" file="effecst/water-stream.aaxs"/>
-   <instrument n="127" name="Heart Beat" file="effecst/human-heartbeat.aaxs"/>
+   <instrument n="123" name="Water Stream" file="effecst/nature/water-stream.aaxs"/>
+   <instrument n="127" name="Heart Beat" file="effecst/humans/human-heartbeat.aaxs"/>
   </bank>
 
   <bank n="5">
-   <instrument n="123" name="Water Bubbles" file="effecst/water-bubbles.aaxs"/>
-   <instrument n="127" name="Foot Steps" file="effecst/human-footsteps.aaxs"/>
+   <instrument n="123" name="Water Bubbles" file="effecst/nature/water-bubbles.aaxs"/>
+   <instrument n="127" name="Foot Steps" file="effecst/humans/human-footsteps.aaxs"/>
   </bank>
 
   <bank n="8">
    <instrument n="5" name="Detuned Electric Piano 1" file="instruments/piano-electric1-detuned.aaxs"/>
    <instrument n="6" name="Detuned Electric Piano 2" file="instruments/piano-electric2-detuned.aaxs"/>
    <instrument n="7" name="Coupled Harpsichord" file="instruments/harpsichord-coupled.aaxs"/>
-   <instrument n="15" name="Church Bell" file="effects/bell-church.aaxs"/>
+   <instrument n="15" name="Church Bell" file="effects/domestic/bell-church.aaxs"/>
    <instrument n="17" name="Detuned Drawbar Organ" file="instruments/organ-drawbar-detuned.aaxs"/>
    <instrument n="22" name="Italian Accordion" file="instruments/accordion-italian.aaxs"/>
   </bank>
