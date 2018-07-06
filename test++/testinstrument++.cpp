@@ -252,34 +252,26 @@ int main(int argc, char **argv)
         testForState(res, "aaxEmitterStart");
 
         i = 0;
+        dsp = emitter.get(AAX_PITCH_EFFECT);
+        aax::Param pitch(dsp, AAX_PITCH, 1.0f);
+        pitch.tie(emitter);
         do
         {
             msecSleep(50);
             if (i == 100) break;
 
-            if (i == 10) 
-            {
-                res = emitter.set(AAX_STOPPED);
-                res = emitter.set(AAX_INITIALIZED);
-                dsp = emitter.get(AAX_PITCH_EFFECT);
-                dsp.set(AAX_PITCH, 0.8909f); 		// G2
-                emitter.set(dsp);
-                res = emitter.set(AAX_PLAYING);
+            if (i == 10) {
+                pitch = 0.8909f;			// G2
             }
-            else if (i == 27)
-            {
-                res = emitter.set(AAX_STOPPED);
-                res = emitter.set(AAX_INITIALIZED);
-                dsp = emitter.get(AAX_PITCH_EFFECT);
-                dsp.set(AAX_PITCH, 0.2973f);		// C1
-                emitter.set(dsp);
-                res = emitter.set(AAX_PLAYING);
+            else if (i == 27) {
+                pitch = 0.2973f;			// C1
             }
             i++;
 
             state = emitter.state();
         }
         while (state == AAX_PLAYING);
+        pitch.untie();
 
         res = emitter.set(AAX_STOPPED);
         do
