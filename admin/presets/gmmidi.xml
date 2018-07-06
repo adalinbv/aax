@@ -86,9 +86,9 @@
    <instrument n="74" name="Flute" file="instruments/flute.aaxs"/>
    <instrument n="75" name="Recorder" file="instruments/flute.aaxs"/>
    <instrument n="76" name="Pan Flute" file="instruments/flute-pan.aaxs"/>
-   <instrument n="77" name="Blown Bottle" file="effects/blow-bottle.aaxs"/>
+   <instrument n="77" name="Blown Bottle" file="effects/humans/blow-bottle.aaxs"/>
    <instrument n="78" name="Shakuhachi" file=".aaxs"/>
-   <instrument n="79" name="Whistle" file="effects/human-whistle.aaxs"/>
+   <instrument n="79" name="Whistle" file="effects/humans/human-whistle.aaxs"/>
    <instrument n="80" name="Ocarina" file=".aaxs"/>
    <instrument n="81" name="Lead 1 (square)" file="instruments/lead-square.aaxs"/>
    <instrument n="82" name="Lead 2 (sawtooth)" file="instruments/lead-sawtooth.aaxs"/>
