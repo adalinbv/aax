@@ -44,7 +44,6 @@ _aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
 _aax_free_proc _aax_free = (_aax_free_proc)_aax_free_aligned;
 _aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_aligned;
 _aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_aligned;
-_aax_memcpy_proc _batch_cvt24_24 = (_aax_memcpy_proc)_batch_cvt24_24_cpu;
 
 _batch_cvt_from_proc _batch_cvt24_8 = _batch_cvt24_8_cpu;
 _batch_cvt_from_proc _batch_cvt24_16 = _batch_cvt24_16_cpu;
@@ -83,6 +82,7 @@ _batch_cvt_to_proc _batch_cvt24_3_24 = _batch_cvt24_3_24_cpu;
 _batch_cvt_to_proc _batch_cvt32_24 = _batch_cvt32_24_cpu;
 _batch_cvt_to_proc _batch_cvtps_24 = _batch_cvtps_24_cpu;
 _batch_cvt_to_proc _batch_cvtpd_24 = _batch_cvtpd_24_cpu;
+_batch_cvt_to_proc _batch_cvt24_24 = _batch_cvt24_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt8_intl_24 = _batch_cvt8_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt16_intl_24 = _batch_cvt16_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt24_3intl_24 = _batch_cvt24_3intl_24_cpu;

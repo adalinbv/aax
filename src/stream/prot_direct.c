@@ -50,7 +50,7 @@ _direct_process(UNUSED(_prot_t *prot), UNUSED(uint8_t *buf), UNUSED(size_t res),
 }
 
 int
-_direct_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
+_direct_set(UNUSED(_prot_t *prot), enum _aaxStreamParam ptype, UNUSED(ssize_t param))
 {
    int rv = -1;
    switch (ptype)

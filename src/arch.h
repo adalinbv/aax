@@ -80,7 +80,6 @@ extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;
 extern _aax_free_proc _aax_free;
 extern _aax_memcpy_proc _aax_memcpy;
-extern _aax_memcpy_proc _batch_cvt24_24;
 extern char* _aax_strdup(const_char_ptr);
 
 extern _batch_mul_value_proc _batch_imul_value;
@@ -138,6 +137,7 @@ extern _batch_cvt_to_proc _batch_cvtph_24;
 extern _batch_cvt_to_proc _batch_cvtps_24;
 extern _batch_cvt_to_proc _batch_cvtps24_24;
 extern _batch_cvt_to_proc _batch_cvtpd_24;
+extern _batch_cvt_to_proc _batch_cvt24_24;
 extern _batch_cvt_to_intl_proc _batch_cvt8_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvt16_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvt24_3intl_24;
