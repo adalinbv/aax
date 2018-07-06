@@ -60,11 +60,11 @@ int main(int argc, char **argv)
         {
             aax::Buffer& buffer = aax.buffer(argv[i]);
             aax::Emitter emitter(AAX_STEREO);
-
             emitter.add(buffer);
-
-            frame.add(emitter);
             emitter.set(AAX_PLAYING);
+
+            frame.add(buffer);
+            frame.add(emitter);
             do
             {
                 // Your (game) code could be placed here
