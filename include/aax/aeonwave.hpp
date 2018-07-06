@@ -839,6 +839,7 @@ private:
         if (!b) { aaxGetErrorNo();
             b = aaxBufferCreate(ptr,1,1,AAX_PCM16S);
         }
+        return b;
     }
 
     std::vector<aaxFrame> frames;
