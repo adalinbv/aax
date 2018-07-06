@@ -142,6 +142,7 @@ if(WERROR)
   add_definitions(-Werror)
 endif()
 
+set(C_FLAGS "${CMAKE_C_FLAGS}")
 if(RELEASE)
   set(C_FLAGS "${C_FLAGS} -DRELEASE=1")
 endif(RELEASE)
@@ -259,7 +260,7 @@ else(MSVC)
    endif(CLANG)
 
    if (GCC OR CLANG)
-     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
+     set(CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
          "Flags used by al build types."
          FORCE)
      set(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
@@ -364,7 +365,8 @@ else(MSVC)
    endif(GCC OR CLANG)
 
    message("Build type: ${CMAKE_BUILD_TYPE}")
-   message("Compiler flags: ${C_FLAGS}")
+   message("C flags: ${C_FLAGS}")
+   message("C++ flags: ${CXX_FLAGS}")
    message("Linker flags: ${CMAKE_SHARED_LINKER_FLAGS}")
 endif(MSVC)
 

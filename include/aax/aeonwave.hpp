@@ -22,9 +22,9 @@
 #ifndef AAX_AEONWAVE_HPP
 #define AAX_AEONWAVE_HPP 1
 
-#include <map>
-#include <vector>
 #include <algorithm>
+#include <vector>
+#include <map>
 
 #include <aax/matrix.hpp>
 #include <aax/aax.h>

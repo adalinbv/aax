@@ -1,6 +1,6 @@
 
-#include <stdio.h>
-#include <string.h>
+#include <cstdio>
+#include <cstring>
 #include <aax/aeonwave.hpp>
 #include <aax/matrix.hpp>
 
