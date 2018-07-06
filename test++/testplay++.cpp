@@ -52,7 +52,7 @@ int main(int argc, char **argv)
     // Start the background music (file or http-stream)
     int i = 0;
     if (argc > 1) {
-        aax::Frame frame;
+        aax::Frame frame(aax);
 
         frame.set(AAX_PLAYING);
         aax.add(frame);
@@ -65,14 +65,13 @@ int main(int argc, char **argv)
 
             frame.add(emitter);
             emitter.set(AAX_PLAYING);
-
             do
             {
                 // Your (game) code could be placed here
                 printf("\rposition: %5.1f", emitter.offset());
                 msecSleep(50);
             }
-            while (emitter.state() != AAX_STOPPED);
+            while (emitter.state() == AAX_PLAYING);
             frame.remove(emitter);
         }
     }
