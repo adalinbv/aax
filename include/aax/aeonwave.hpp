@@ -82,17 +82,115 @@ inline void free(void *ptr) {
 }
 
 
+class Param
+{
+public:
+    Param(float v=0.0f) : val(v), tied(0) {}
+    Param(const Param& p) : Param(p.val) {}
+    ~Param() {}
+
+    // float operators
+    inline float operator+(float v) { return (val + v); }
+    inline float operator-(float v) { return (val - v); }
+    inline float operator*(float v) { return (val * v); }
+    inline float operator/(float v) { return (val / v); }
+    inline float operator=(float v) { val = v; fire(); return val; }
+    inline float operator+=(float v) { val += v; fire(); return val; }
+    inline float operator-=(float v) { val += v; fire(); return val; }
+    inline float operator*=(float v) { val += v; fire(); return val; }
+    inline float operator/=(float v) { val += v; fire(); return val; }
+
+    inline bool operator==(float v) { val += v; fire(); return val; }
+    inline bool operator!=(float v) { val += v; fire(); return val; }
+    inline bool operator<(float v) { return (val < v); }
+    inline bool operator>(float v) { return (val > v); }
+    inline bool operator<=(float v) { return (val <= v); }
+    inline bool operator>=(float v) { return (val >= v); }
+
+    // Param operators
+    inline Param operator-() { return Param(-val); }
+    inline Param operator+(const Param& v) { return (val + v.val); }
+    inline Param operator-(const Param& v) { return (val - v.val); }
+    inline Param operator*(const Param& v) { return (val * v.val); }
+    inline Param operator/(const Param& v) { return (val / v.val); }
+    inline Param operator=(const Param& v) { val = v.val; fire(); return val; }
+    inline Param operator+=(const Param& v) { val+=v.val; fire(); return val; }
+    inline Param operator-=(const Param& v) { val+=v.val; fire(); return val; }
+    inline Param operator*=(const Param& v) { val+=v.val; fire(); return val; }
+    inline Param operator/=(const Param& v) { val+=v.val; fire(); return val; }
+
+    inline bool operator==(const Param& v) { return (val == v.val); }
+    inline bool operator!=(const Param& v) { return (val != v.val); }
+    inline bool operator<(const Param& v) { return (val < v.val); }
+    inline bool operator>(const Param& v) { return (val > v.val); }
+    inline bool operator<=(const Param& v) { return (val <= v.val); }
+    inline bool operator>=(const Param& v) { return (val >= v.val); }
+
+    operator const float*() const { return &val; }
+    operator float() { return val; }
+
+    typedef int set_filter(void*, aaxFilter);
+    typedef int set_effect(void*, aaxEffect);
+    typedef aaxFilter get_filter(void*, aaxFilterType);
+    typedef aaxEffect get_effect(void*, aaxEffectType);
+
+    void tie(set_filter sfn, get_filter gfn, void* o, aaxFilterType f, int p) {
+        set.filter = sfn; get.filter = gfn; obj = o; type.filter = f; param = p;
+        filter = true; tied = true;
+    }
+    void tie(set_effect sfn, get_effect gfn, void* o, aaxEffectType e, int p) {
+        set.effect = sfn; get.effect = gfn; obj = o; type.effect = e; param = p;
+        filter = false; tied = true;
+    }
+    void untie() { tied = false; }
+
+protected:
+    void fire() {
+        if (!tied) return;
+        if (filter) {
+            aaxFilter flt = get.filter(obj, type.filter);
+            aaxFilterSetParam(flt, param, AAX_LINEAR, val);
+            set.filter(obj, flt);
+        } else {
+            aaxEffect eff = get.effect(obj, type.effect);
+            aaxEffectSetParam(eff, param, AAX_LINEAR, val);
+            set.effect(obj, eff);
+        }
+    }
+
+private:
+    float val;
+    bool tied;
+
+    bool filter;
+    void *obj;
+    union setter {
+        set_filter* filter;
+        set_effect* effect;
+    } set;
+    union getter {
+        get_filter* filter;
+        get_effect* effect;
+    } get;
+    union type {
+        enum aaxFilterType filter;
+        enum aaxEffectType effect;
+    } type;
+   int param;
+};
+
+
 class Obj
 {
 public:
     typedef int close_fn(void*);
 
-    Obj() : ptr(0), closefn(0) {}
+    Obj() : ptr(nullptr), closefn(nullptr), tied(nullptr) {}
 
-    Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
+    Obj(void *p, close_fn* c) : ptr(p), closefn(c), tied(nullptr) {}
 
-    Obj(const Obj& o) : ptr(o.ptr), closefn(o.closefn) {
-        o.closefn = 0;
+    Obj(const Obj& o) : ptr(o.ptr), closefn(o.closefn), tied(nullptr) {
+        o.closefn = nullptr;
     }
 
 #if __cplusplus >= 201103L
@@ -102,12 +200,13 @@ public:
 #endif
 
     ~Obj() {
+        if (tied) tied->untie();
         if (!!closefn) closefn(ptr);
     }
 
     bool close() {
         bool rv = (!!closefn) ? closefn(ptr) : false;
-        closefn = 0;
+        closefn = nullptr;
         return rv;
     }
 
@@ -132,7 +231,9 @@ public:
 protected:
     void* ptr;
     mutable close_fn* closefn;
+    Param *tied;
 };
+
 
 class Buffer : public Obj
 {
@@ -351,6 +452,14 @@ public:
         swap(*this, o);
         return *this;
     }
+
+    void tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
+        tied->tie(aaxEmitterSetFilter, aaxEmitterGetFilter, ptr, f, p);
+     }
+    void tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
+        tied->tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
+     }
+    void untie() { if (tied) tied->untie(); tied = nullptr;}
 };
 
 
@@ -646,6 +755,14 @@ public:
         return *this;
     }
 
+    void tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
+        tied->tie(aaxAudioFrameSetFilter, aaxAudioFrameGetFilter, ptr, f, p);
+     }
+    void tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
+        tied->tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
+     }
+    void untie() { if (tied) tied->untie(); tied = nullptr; }
+
 private:
     std::vector<aaxFrame> frames;
     typedef std::vector<aaxFrame>::iterator frame_it;
@@ -706,7 +823,7 @@ public:
     // ** enumeration ******
     const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
         aaxDriverDestroy(_ec);
-        _em = m; _ec = 0; _e[1] = 0; _e[2] = 0;
+        _em = m; _ec = nullptr; _e[1] = 0; _e[2] = 0;
         if (_e[0] < aaxDriverGetCount(_em)) {
             _ec = aaxDriverGetByPos(_e[0]++,_em);
         }  else _e[0] = 0;

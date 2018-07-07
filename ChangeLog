@@ -1,3 +1,14 @@
+* Fri Jul 06 2018 - tech@adalin.org
+- AeonWave (3.2.4) stable; urgency=low
+ * Automatically convert an effect name like "effects/nature/birds" to a full
+   path name using APP_DATA_DIR when it is parsed to the buffer retrieving
+   function of the AeonWave class.
+ * Add a Param class which encapsulates a float variable and which can
+   be tied to a DSP parameter. Every time the param gets a new value
+   assigned the DSP parameter will be updated too.
+
+-- Erik Hofman <tech@adalin.org>  Fri 04 Jul  2018 11:39:00 + 0200
+
 * Tue Jul 03 2018 - tech@adalin.org
 - AeonWave (3.2.3) stable; urgency=low
  * Fix a missing offset(enum aaxType) error for the AeonWave class.
