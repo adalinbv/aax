@@ -38,9 +38,15 @@
     <param n="0">0.15</param>
     <param n="1">0.1</param>
     <param n="2">1.35</param>
+    <param n="3">0.1</param>
+  </slot>
+   <slot n="1">
+    <param n="0">0.90</param>
+    <param n="1">0.1</param>
+    <param n="2">1.35</param>
     <param n="3" auto-sustain="2.0">5.0</param>
    </slot>
-   <slot n="1">
+   <slot n="2">
     <param n="0">0.7</param>
     <param n="1" auto-sustain="0.5">8.0</param>
    </slot>
