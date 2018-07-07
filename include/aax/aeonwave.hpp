@@ -151,10 +151,12 @@ protected:
             aaxFilter flt = get.filter(obj, type.filter);
             aaxFilterSetParam(flt, param, AAX_LINEAR, val);
             set.filter(obj, flt);
+            aaxFilterDestroy(flt);
         } else {
             aaxEffect eff = get.effect(obj, type.effect);
             aaxEffectSetParam(eff, param, AAX_LINEAR, val);
             set.effect(obj, eff);
+            aaxEffectDestroy(eff);
         }
     }
 
