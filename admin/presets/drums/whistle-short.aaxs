@@ -27,11 +27,11 @@
     <param n="0" factor="soften">0.98</param>
     <param n="1" factor="velocity">0.05</param>
     <param n="2">1.0</param>
-    <param n="3">0.6</param>
+    <param n="3">0.35</param>
    </slot>
    <slot n="1">
     <param n="0">0.95</param>
-    <param n="1">0.2</param>
+    <param n="1">0.15</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
