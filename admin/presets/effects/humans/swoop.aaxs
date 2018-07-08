@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Punch" program="127" bank="3" frequency="66.0" duration="0.1">
-  <waveform src="pink-noise" ratio="4.0" pitch="0.3"/>
+ <sound name="Punch" program="127" bank="3" frequency="66.0" duration="3.33">
+  <waveform src="pink-noise" ratio="2.0" pitch="0.25"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0">350.0</param>
+    <param n="0">500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.2</param>
-    <param n="3">10.0</param>
+    <param n="2">0.1</param>
+    <param n="3">20.0</param>
    </slot>
   </filter>
  </sound>
@@ -30,18 +30,14 @@
    </slot>
    <slot n="1">
     <param n="0">0.8</param>
-    <param n="1">0.06</param>
+    <param n="1">0.1</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.01</param>
-    <param n="2">0.8</param>
-    <param n="3">0.2</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.1</param>
+    <param n="0">1.9</param>
+    <param n="1">0.2</param>
+    <param n="2">0.1</param>
    </slot>
   </effect>
  </emitter>
