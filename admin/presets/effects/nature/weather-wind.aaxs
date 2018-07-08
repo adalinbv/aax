@@ -32,7 +32,7 @@
     <param n="2">1.0</param>
     <param n="3">inf</param>
    </slot>
-   <slot n0="1">
+   <slot n="1">
     <param n="0">1.0</param>
     <param n="1">1.5</param>
    </slot>
