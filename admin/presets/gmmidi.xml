@@ -154,6 +154,8 @@
 
   <bank n="3">
    <instrument n="123" name="Wind Blowing" file="effecst/nature/weather-wind.aaxs"/>
+   <instrument n="127" name="Punch" file="effecst/humans/punch.aaxs"/>
+   <instrument n="128" name="Explosion" file="effecst/weapons/explosion.aaxs"/>
   </bank>
 
   <bank n="4">
