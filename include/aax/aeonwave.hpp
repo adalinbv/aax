@@ -134,13 +134,23 @@ public:
     typedef aaxFilter get_filter(void*, aaxFilterType);
     typedef aaxEffect get_effect(void*, aaxEffectType);
 
-    void tie(set_filter sfn, get_filter gfn, void* o, aaxFilterType f, int p) {
-        set.filter = sfn; get.filter = gfn; obj = o; type.filter = f; param = p;
-        filter = true; tied = true;
+    bool tie(set_filter sfn, get_filter gfn, void* o, aaxFilterType f, int p) {
+        if (!tied) {
+            set.filter = sfn; get.filter = gfn;
+            obj = o; type.filter = f; param = p;
+            filter = true; tied = true;
+            return true;
+        }
+        return false;
     }
-    void tie(set_effect sfn, get_effect gfn, void* o, aaxEffectType e, int p) {
-        set.effect = sfn; get.effect = gfn; obj = o; type.effect = e; param = p;
-        filter = false; tied = true;
+    bool tie(set_effect sfn, get_effect gfn, void* o, aaxEffectType e, int p) {
+        if (!tied) {
+            set.effect = sfn; get.effect = gfn;
+            obj = o; type.effect = e; param = p;
+            filter = false; tied = true;
+            return true;
+        }
+        return false;
     }
     void untie() { tied = false; }
 
@@ -455,12 +465,12 @@ public:
         return *this;
     }
 
-    void tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
-        tied->tie(aaxEmitterSetFilter, aaxEmitterGetFilter, ptr, f, p);
-     }
-    void tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
-        tied->tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
-     }
+    bool tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
+        return tied->tie(aaxEmitterSetFilter, aaxEmitterGetFilter, ptr, f, p);
+    }
+    bool tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
+        return tied->tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
+    }
     void untie() { if (tied) tied->untie(); tied = nullptr;}
 };
 
@@ -757,12 +767,12 @@ public:
         return *this;
     }
 
-    void tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
-        tied->tie(aaxAudioFrameSetFilter, aaxAudioFrameGetFilter, ptr, f, p);
-     }
-    void tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
-        tied->tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
-     }
+    bool tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
+        return tied->tie(aaxAudioFrameSetFilter, aaxAudioFrameGetFilter, ptr, f, p);
+    }
+    bool tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
+        return tied->tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
+    }
     void untie() { if (tied) tied->untie(); tied = nullptr; }
 
 private:
