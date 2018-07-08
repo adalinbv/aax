@@ -264,7 +264,7 @@ protected:
 
 public:
     MtxBase() {}
-    ~MtxBase() {}
+    virtual ~MtxBase() {}
 
     // ** support ******
     inline bool operator==(MtxBase<T>& m) {

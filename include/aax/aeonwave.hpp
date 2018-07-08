@@ -201,7 +201,7 @@ public:
     }
 #endif
 
-    ~Obj() {
+    virtual ~Obj() {
         if (tied) tied->untie();
         if (!!closefn) closefn(ptr);
     }
@@ -481,7 +481,7 @@ public:
 
     Sensor(const Sensor& o) : Obj(o), mode(o.mode) {}
 
-    ~Sensor() {}
+    virtual ~Sensor() {}
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
