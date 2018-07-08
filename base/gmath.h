@@ -26,22 +26,15 @@
 extern "C" {
 #endif
 
-#if HAVE_VALUES_H
-# include <values.h>	/* for MAXFLOAT */
-#endif
+#include <float.h>	/* for FLT_MAX */
 #include <math.h>
 
 #include "types.h"
 
 #define __NAN__		(0.0f/0.0f)
 
-#ifndef MAXFLOAT
-# include <float.h>
-# ifdef FLT_MAX
-#  define MAXFLOAT FLT_MAX
-# else
-#  define MAXFLOAT 3.40282347e+38F
-# endif
+#ifndef FLT_MAX
+# define FLT_MAX 3.40282347e+38F
 #endif
 
 int is_nan(float);

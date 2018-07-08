@@ -132,10 +132,10 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxDistanceRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.1f, 0.0f, 0.0f }, { MAXFLOAT, MAXFLOAT, 1.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,     0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.1f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX, 1.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f, 0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

@@ -32,7 +32,6 @@
 # include <string.h>
 #endif
 #include <stdio.h>		/* for NULL */
-#include <math.h>		/* for MAXFLOAT */
 #include <xml.h>
 
 #include <software/gpu/gpu.h>

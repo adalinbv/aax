@@ -36,6 +36,9 @@
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
 #endif
+#if HAVE_VALUES_H
+# include <values.h>     /* for EM_VALUE_MAX */
+#endif
 #include <errno.h>
 
 #include <aax/aax.h>

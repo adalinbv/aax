@@ -107,10 +107,10 @@ _aaxVelocityEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxVelocityRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { MAXFLOAT, 10.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { FLT_MAX, 10.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,  0.0f, 0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
