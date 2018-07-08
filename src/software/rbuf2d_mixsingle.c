@@ -175,7 +175,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /* Apply envelope filter */
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0
    gain *= ep2d->note.pressure;
-   if (gain < -1e-3f) {
+   if (gain <= -1e-3f) {
       ret = -1;
    }
 
@@ -259,7 +259,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       }
    }
 
-   if (drbi->playing == 0 && drbi->stopped == 1) {
+   if (ret >= 0.0f && drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;
    }
 
