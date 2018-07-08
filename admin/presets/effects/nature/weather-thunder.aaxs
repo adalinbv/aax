@@ -53,9 +53,9 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.3</param>
-    <param n="1">0.1</param>
-    <param n="2">3.0</param>
+    <param n="0">1.0</param>
+    <param n="1">0.2</param>
+    <param n="2">2.5</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">

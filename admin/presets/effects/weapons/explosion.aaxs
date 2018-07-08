@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Explosion" program="128" bank="3" frequency="66.0" duration="3.33">
-  <waveform src="white-noise" ratio="15.0" pitch="0.0125"/>
+ <sound name="Explosion" program="128" bank="3" frequency="66.0">
+  <waveform src="white-noise" ratio="10.0" pitch="0.0125"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="6.25">500.0</param>
     <param n="1">0.5</param>
     <param n="2">0.0</param>
-    <param n="3">1.25</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </sound>
@@ -26,16 +26,16 @@
     <param n="0">1.8</param>
     <param n="1">0.24</param>
     <param n="2">1.1</param>
-    <param n="3" auto-sustain="1.0">2.5</param>
+    <param n="3" auto-sustain="1.0">2.7</param>
    </slot>
    <slot n="1">
-    <param n="0">0.9</param>
+    <param n="0">0.7</param>
     <param n="1" auto-sustain="1.0">3.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.2</param>
+    <param n="0">0.9</param>
     <param n="1">0.04</param>
     <param n="2">1.8</param>
     <param n="3">0.5</param>
