@@ -90,7 +90,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t *dmin, size_t *dmax, float clip, float
       sdf = _MINMAX(asamp*df, 0.0f, 1.0f);
 
       rise = _MINMAX((osamp-samp)*rf, 0.3f, 303.3f);
-      pos = (size_t)_MINMAX(pos+asym*rise, 1, ((1<<BITS)));
+      pos = (size_t)_MINMAX(pos+asym*rise, 1, (1<<BITS));
       osamp = samp;
 
       fact1 = (1.0f-sdf)*_limiter_tbl[0][pos-1];

@@ -114,7 +114,7 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
             char *s = systemDataFile("");
             if (s)
             {
-               memcpy(_data_dir, s, _MAX(strlen(s), 127));
+               snprintf(_data_dir, 128, "%s", s);
                _data_dir[127] = 0;
                free(s);
             }
