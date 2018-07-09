@@ -53,7 +53,8 @@ _file_open(_io_t *io, const char* pathname)
 int
 _file_close(_io_t *io)
 {
-   int rv = close(io->fds.fd);
+   int rv = 0;
+   if (io->fds.fd != -1) close(io->fds.fd);
    io->fds.fd = -1;
    return rv;
 }
