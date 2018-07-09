@@ -211,7 +211,7 @@ public:
     }
 #endif
 
-    virtual ~Obj() {
+    ~Obj() {
         if (tied) tied->untie();
         if (!!closefn) closefn(ptr);
     }
@@ -260,6 +260,21 @@ public:
 
     Buffer(const Buffer& o) : Obj(o) {}
 
+    Buffer(aaxConfig c, const char* name) {
+        ptr = aaxBufferReadFromStream(c, name);
+        if (!ptr) { aaxGetErrorNo();
+            ptr = aaxBufferReadFromStream(c, preset_file(c, name).c_str());
+        }
+        if (!ptr) { aaxGetErrorNo();
+            ptr = aaxBufferCreate(c ,1, 1, AAX_PCM16S);
+        }
+        if (ptr) {
+            closefn = aaxBufferDestroy;
+        }
+    }
+
+    Buffer(aaxConfig c, std::string& name) : Buffer(c, name.c_str()) {}
+
     ~Buffer() {}
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
@@ -293,6 +308,13 @@ public:
     Buffer& operator=(Buffer o) {
         swap(*this, o);
         return *this;
+    }
+
+private:
+    std::string preset_file(aaxConfig c, const char* name) {
+        std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
+        rv.append("/"); rv.append(name); rv.append(".aaxs");
+        return rv;
     }
 };
 
@@ -491,7 +513,7 @@ public:
 
     Sensor(const Sensor& o) : Obj(o), mode(o.mode) {}
 
-    virtual ~Sensor() {}
+    ~Sensor() {}
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
@@ -929,8 +951,7 @@ public:
     Buffer& buffer(std::string name) {
         buffer_it it = buffers.find(name);
         if (it == buffers.end()) {
-            aaxBuffer b = make_buffer(name);
-            std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(b,false))));
+            std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(ptr,name))));
             it = ret.first;
         }
         it->second.first++;
@@ -971,22 +992,6 @@ public:
     }
 
 private:
-    std::string preset_file(std::string& name) {
-        std::string rv = aaxDriverGetSetup(ptr,AAX_SHARED_DATA_DIR);
-        rv.append("/"); rv.append(name); rv.append(".aaxs");
-        return rv;
-    }
-    aaxBuffer make_buffer(std::string& name) {
-        aaxBuffer b = aaxBufferReadFromStream(ptr,name.c_str());
-        if (!b) { aaxGetErrorNo();
-            b = aaxBufferReadFromStream(ptr,preset_file(name).c_str());
-        }
-        if (!b) { aaxGetErrorNo();
-            b = aaxBufferCreate(ptr,1,1,AAX_PCM16S);
-        }
-        return b;
-    }
-
     std::vector<aaxFrame> frames;
     typedef std::vector<aaxFrame>::iterator frame_it;
 
