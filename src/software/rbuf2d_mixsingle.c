@@ -176,7 +176,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0
    gain *= ep2d->note.pressure;
    if (gain <= -1e-3f) {
-      ret = -1;
+      ret = -2;
    }
 
    /* Apply the parent mixer/audio-frame volume and tremolo-gain */
@@ -259,7 +259,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       }
    }
 
-   if (ret >= 0.0f && drbi->playing == 0 && drbi->stopped == 1) {
+   if (ret >= -1.0f && drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;
    }
 
