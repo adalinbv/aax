@@ -6,6 +6,9 @@
  * Add a Param class which encapsulates a float variable and which can
    be tied to a DSP parameter. Every time the param gets a new value
    assigned the DSP parameter will be updated too.
+ * Fix a small problem with stopping an emitter which has a timed-gain envelope
+   defined with one of the time settings to "inf". They should now finish
+   properly after the emitter is requested to stop playing.
 
 -- Erik Hofman <tech@adalin.org>  Fri 04 Jul  2018 11:39:00 + 0200
 

@@ -338,11 +338,13 @@ typedef ALIGN16 struct
    float dist_delay_sec;        /* time to keep playing after a stop request */
    float bufpos3dq;             /* distance delay queue buffer position      */
 
-   float curr_pos_sec;		/* MIDI */
+   float curr_pos_sec;
+#ifdef MIDI
    struct {
       float velocity;
       float pressure;
    } note;
+#endif
 
    struct {
       FLOAT pitch;

@@ -141,9 +141,11 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    p2d->dist_delay_sec = 0.0f;
    p2d->bufpos3dq = 0.0f;
 
+#ifdef MIDI
    p2d->curr_pos_sec = 0.0f;		/* MIDI */
    p2d->note.velocity = 1.0f;
    p2d->note.pressure = 1.0f;
+#endif
 
    p2d->final.pitch_lfo = 1.0f;		/* LFO */
    p2d->final.pitch = 1.0f;

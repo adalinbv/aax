@@ -102,13 +102,17 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 
+#ifndef MIDI
+   gnvel = pnvel = 1.0f;
+#else
    if (ep2d->note.velocity == 1.0f) {
       gnvel = pnvel = 1.0f;
    } else {
       pnvel = gnvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
    }
-   pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
    pitch *= ep2d->note.pressure;
+#endif
+   pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch, 0.01f, max);
@@ -158,7 +162,9 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
 
    /* apply envelope filter */
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
+#ifdef MIDI
    gain *= ep2d->note.pressure;
+#endif
    if (gain <= -1e-3f) {
       ret = -2;
    }
