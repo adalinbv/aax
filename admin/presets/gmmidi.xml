@@ -154,6 +154,7 @@
 
   <bank n="3">
    <instrument n="123" name="Wind Blowing" file="effecst/nature/weather-wind.aaxs"/>
+   <instrument n="126" name="Car Pass" file="instruments/car-pass.aaxs"/>
    <instrument n="127" name="Punch" file="effecst/humans/punch.aaxs"/>
    <instrument n="128" name="Explosion" file="effecst/weapons/explosion.aaxs"/>
   </bank>
@@ -165,7 +166,7 @@
 
   <bank n="5">
    <instrument n="123" name="Water Bubbles" file="effecst/nature/water-bubbles.aaxs"/>
-   <instrument n="127" name="Foot Steps" file="effecst/humans/human-footsteps.aaxs"/>
+   <instrument n="127" name="Footstep" file="effecst/humans/human-footsteps.aaxs"/>
   </bank>
 
   <bank n="8">
@@ -175,6 +176,7 @@
    <instrument n="15" name="Church Bell" file="effects/domestic/bell-church.aaxs"/>
    <instrument n="17" name="Detuned Drawbar Organ" file="instruments/organ-drawbar-detuned.aaxs"/>
    <instrument n="22" name="Italian Accordion" file="instruments/accordion-italian.aaxs"/>
+   <instrument n="126" name="Starship" file="effects/scifi/spaceship.aaxs"/>
   </bank>
  </midi>
 
