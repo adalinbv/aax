@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Wood Creak" frequency="330" duration="3.3">
+ <sound name="Wood Creak" frequency="200" duration="3.3">
   <waveform src="white-noise" ratio="40.0" pitch="0.02" staticity="0.95"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0">420</param>
+    <param n="0" pitch="1.0">200</param>
     <param n="1">0.0</param>
     <param n="2">0.75</param>
-    <param n="3">8.0</param>
+    <param n="3">7.5</param>
    </slot>
   </filter>
   <filter type="frequency" src="48db">
