@@ -8,31 +8,27 @@
 
 <aeonwave>
 
- <sound name="Geiger-Muller Counter" frequency="1" duration="3.3">
-  <waveform src="pink-noise" ratio="27.0" pitch="0.0125" staticity="0.9"/>
-  <filter type="frequency" src="24db">
+ <sound name="Geiger-Muller Counte" frequency="440" duration="3.3">
+  <waveform src="white-noise" ratio="40.0" pitch="0.02" staticity="0.95"/>
+  <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0">2200</param>
+    <param n="0">420</param>
     <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">20.0</param>
+    <param n="2">0.75</param>
+    <param n="3">11.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0">3500</param>
+    <param n="1">1.0</param>
+    <param n="2">0.25</param>
+    <param n="3">4.5</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">880</param>
-    <param n="1">0.2</param>
-    <param n="2">0.3</param>
-    <param n="3">25.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">8800</param>
-    <param n="3">2.1</param>
-   </slot>
-  </filter>
  </emitter>
 
 </aeonwave>
