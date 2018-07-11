@@ -169,7 +169,7 @@
   <bank n="5">
    <instrument n="123" name="Water Bubbles" file="effecst/nature/water-bubbles.aaxs"/>
    <instrument n="126" name="Siren" file="effecst/transport/siren.aaxs"/>
-   <instrument n="127" name="Footstep" file="effecst/humans/human-footsteps.aaxs"/>
+   <instrument n="127" name="Footstep" file="effecst/humans/human-footsteps-concrete.aaxs"/>
   </bank>
 
   <bank n="8">

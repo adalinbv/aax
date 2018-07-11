@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Human Footstep" program="127" bank="4" frequency="220">
-  <waveform src="pink-noise" ratio="1.0" pitch="0.25"/>
+ <sound name="Footsteps On Dirt" program="127" bank="4" frequency="220">
+  <waveform src="pink-noise" ratio="1.5" pitch="0.25"/>
   <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
-  <waveform src="sawtooth" processing="modulate" ratio="1.5" pitch="0.12"/>
+  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
  </sound>
 
  <emitter looping="true">
