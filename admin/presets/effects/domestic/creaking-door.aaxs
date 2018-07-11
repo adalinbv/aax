@@ -9,7 +9,7 @@
 <aeonwave>
 
  <sound name="Creaking Wooden Door" frequency="280">
-  <waveform src="white-noise" ratio="40.0" pitch="0.014" staticity="1.0"/>
+  <waveform src="white-noise" ratio="40.0" pitch="0.02" staticity="0.75"/>
   <filter type="frequency" src="12db">
    <slot n="0">
     <param n="0" pitch="1.0">300</param>
@@ -20,26 +20,18 @@
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="16">3500</param>
+    <param n="0">3500</param>
     <param n="1">1.0</param>
     <param n="2">0.25</param>
-    <param n="3">4.5</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="48db">
-   <slot n="0">
-    <param n="0" pitch="30">6000</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
+    <param n="3">5.5</param>
    </slot>
   </filter>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0" pitch="0.5">300</param>
+    <param n="0" pitch="1.0">300</param>
     <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">22.5</param>
+    <param n="2">0.5</param>
+    <param n="3">2.5</param>
    </slot>
   </filter>
  </sound>
