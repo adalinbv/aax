@@ -12,7 +12,7 @@
   <waveform src="pink-noise" pitch="0.25"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="16.0">80</param>
+    <param n="0" pitch="16.0">3520</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
     <param n="3">1.5</param>
@@ -35,10 +35,14 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.5</param>
-    <param n="1" factor="velocity">0.03</param>
-    <param n="2" factor="soften">0.80</param>
-    <param n="3">0.8</param>
+    <param n="0">1.2</param>
+    <param n="1" factor="velocity">0.1</param>
+    <param n="2" factor="soften">0.9</param>
+    <param n="3">0.4</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.5</param>
+    <param n="1">0.08</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
