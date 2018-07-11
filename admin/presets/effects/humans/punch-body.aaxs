@@ -1,0 +1,59 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Body Punch" frequency="25.0" duration="1.0">
+  <waveform src="sawtooth"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="3.9897"/>
+  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="9.4991"/>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0" pitch="5.0">215.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0" pitch="8.0">200</param>
+    <param n="1">0.5</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1" factor="velocity">0.04</param>
+    <param n="2" factor="soften">0.8</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.5</param>
+    <param n="1">0.2</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.5</param>
+    <param n="1">0.01</param>
+    <param n="2">0.6</param>
+    <param n="3">0.3</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.56</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
