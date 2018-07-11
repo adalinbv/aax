@@ -10,12 +10,12 @@
 
  <sound name="Explosion" program="128" bank="3" frequency="66.0">
   <waveform src="white-noise" ratio="10.0" pitch="0.0125"/>
-  <filter type="frequency" src="24db">
+  <filter type="frequency" src="36db">
    <slot n="0">
-    <param n="0" pitch="6.25">500.0</param>
+    <param n="0" pitch="6.25">412.5</param>
     <param n="1">0.5</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
  </sound>
@@ -25,8 +25,8 @@
    <slot n="0">
     <param n="0">1.8</param>
     <param n="1">0.24</param>
-    <param n="2">1.1</param>
-    <param n="3" auto-sustain="1.0">2.7</param>
+    <param n="2">0.9</param>
+    <param n="3" auto-sustain="1.0">2.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.7</param>
