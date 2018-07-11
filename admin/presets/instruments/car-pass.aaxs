@@ -12,18 +12,9 @@
   <waveform src="white-noise" ratio="0.25" pitch="0.25"/>
   <waveform src="sawtooth" processing="modulate" ratio="2.0" pitch="0.5"/>
   <waveform src="sawtooth" processing="mix" ratio="0.97" pitch="0.5"/>
-  <waveform src="pink-noise" processing="mix" ratio="0.3" pitch="0.125"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">175</param>
-    <param n="1">1.2</param>
-    <param n="2">0.7</param>
-    <param n="3">6.0</param>
-   </slot>
-  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.5</param>
