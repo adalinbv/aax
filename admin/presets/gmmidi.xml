@@ -162,6 +162,7 @@
 
   <bank n="4">
    <instrument n="123" name="Water Stream" file="effecst/nature/water-stream.aaxs"/>
+   <instrument n="125" name="Scratch" file="instruments/scratch.aaxs"/>
    <instrument n="127" name="Heart Beat" file="effecst/humans/human-heartbeat.aaxs"/>
   </bank>
 
