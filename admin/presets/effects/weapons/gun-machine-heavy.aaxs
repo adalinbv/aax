@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <sound name="Heavy Machine Gun" program="128" bank="0" frequency="220" duration="0.2">
+ <sound name="Heavy Machine Gun" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0" pitch="16.0">80</param>
+    <param n="0" pitch="12.0">2200</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
-    <param n="3">1.2</param>
+    <param n="3">3.2</param>
    </slot>
   </filter>
  </sound>

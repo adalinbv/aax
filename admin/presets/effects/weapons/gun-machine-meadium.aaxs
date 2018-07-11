@@ -1,21 +1,21 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <sound name="Licht Machine Gun" program="128" bank="0" frequency="220" duration="0.2">
+ <sound name="Medium Machine Gun" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0" pitch="40.0">8800</param>
+    <param n="0" pitch="20.0">4400</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
-    <param n="3">1.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
  </sound>
@@ -26,7 +26,7 @@
     <param n="0">2.0</param>
     <param n="1" factor="velocity">0.03</param>
     <param n="2" factor="soften">0.8</param>
-    <param n="3">0.005</param>
+    <param n="3">0.025</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
