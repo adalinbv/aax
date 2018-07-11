@@ -156,7 +156,7 @@
    <instrument n="123" name="Wind Blowing" file="effecst/nature/weather-wind.aaxs"/>
    <instrument n="125" name="Creaking Door" file="effecst/domestic/creaking-door.aaxs"/>
    <instrument n="126" name="Car Pass" file="instruments/car-pass.aaxs"/>
-   <instrument n="127" name="Punch" file="effecst/humans/punch.aaxs"/>
+   <instrument n="127" name="Punch" file="effecst/humans/punch-body.aaxs"/>
    <instrument n="128" name="Explosion" file="effecst/weapons/explosion.aaxs"/>
   </bank>
 
