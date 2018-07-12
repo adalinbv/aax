@@ -9,13 +9,13 @@
 <aeonwave>
 
  <sound name="Shotgun" frequency="220" duration="0.2">
-  <waveform src="white-noise" pitch="0.2"/>
-  <filter type="frequency" src="12db">
+  <waveform src="white-noise" pitch="0.1"/>
+  <filter type="frequency" src="24db" src="bessel">
    <slot n="0">
-    <param n="0" pitch="10.0">80</param>
-    <param n="1">1.0</param>
+    <param n="0" pitch="4.5">990</param>
+    <param n="1">1.2</param>
     <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
  </sound>
@@ -24,15 +24,15 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">2.0</param>
-    <param n="1" factor="velocity">0.11</param>
-    <param n="2" factor="soften">1.2</param>
-    <param n="3">0.7</param>
+    <param n="1">0.11</param>
+    <param n="2">1.2</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.1</param>
-    <param n="1" factor="velocity">0.07</param>
+    <param n="0">1.1</param>
+    <param n="1">0.07</param>
     <param n="2">0.55</param>
    </slot>
   </effect>
