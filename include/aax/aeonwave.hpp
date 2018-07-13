@@ -138,7 +138,7 @@ public:
         if (!tied) {
             set.filter = sfn; get.filter = gfn;
             obj = o; type.filter = f; param = p;
-            filter = true; tied = true;
+            filter = true; tied = true; fire();
             return true;
         }
         return false;
@@ -147,7 +147,7 @@ public:
         if (!tied) {
             set.effect = sfn; get.effect = gfn;
             obj = o; type.effect = e; param = p;
-            filter = false; tied = true;
+            filter = false; tied = true; fire();
             return true;
         }
         return false;
@@ -160,13 +160,11 @@ protected:
         if (filter) {
             aaxFilter flt = get.filter(obj, type.filter);
             aaxFilterSetParam(flt, param, AAX_LINEAR, val);
-            set.filter(obj, flt);
-            aaxFilterDestroy(flt);
+            set.filter(obj, flt); aaxFilterDestroy(flt);
         } else {
             aaxEffect eff = get.effect(obj, type.effect);
             aaxEffectSetParam(eff, param, AAX_LINEAR, val);
-            set.effect(obj, eff);
-            aaxEffectDestroy(eff);
+            set.effect(obj, eff); aaxEffectDestroy(eff);
         }
     }
 
