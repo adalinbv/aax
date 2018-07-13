@@ -959,7 +959,7 @@ public:
     Buffer& buffer(std::string name) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            auto ret = buffers.insert({name,{static_cast<size_t>(0),Buffer(ptr,name)}});
+            auto ret = buffers.insert({name,{0,Buffer(ptr,name)}});
             it = ret.first;
         }
         it->second.first++;
