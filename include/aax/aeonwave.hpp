@@ -224,7 +224,7 @@ public:
     }
 
     void ties_add(Param& pm) {
-        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        auto pi = std::find(ties.begin(),ties.end(),&pm);
         if (pi == ties.end()) ties.push_back(&pm);
     }
 
@@ -250,7 +250,6 @@ protected:
     void* ptr;
     mutable close_fn* closefn;
     std::vector<Param*> ties;
-    typedef std::vector<Param*>::iterator ties_it;
 };
 
 
@@ -455,7 +454,7 @@ public:
         return pm.tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
     }
     void untie(Param& pm) {
-        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        auto pi = std::find(ties.begin(),ties.end(),&pm);
         if (pi != ties.end()) ties.erase(pi); pm.untie();
     }
 
@@ -599,7 +598,7 @@ public:
         }
     }
     void untie(Param& pm) {
-        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        auto pi = std::find(ties.begin(),ties.end(),&pm);
         if (pi != ties.end()) ties.erase(pi); pm.untie();
     }
 
@@ -761,7 +760,7 @@ public:
         return pm.tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
     }
     void untie(Param& pm) {
-        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        auto pi = std::find(ties.begin(),ties.end(),&pm);
         if (pi != ties.end()) ties.erase(pi); pm.untie();
     }
 
@@ -771,7 +770,7 @@ public:
         return aaxAudioFrameRegisterAudioFrame(ptr,m);
     }
     bool remove(Frame& m) {
-        frame_it fi = std::find(frames.begin(),frames.end(),m);
+        auto fi = std::find(frames.begin(),frames.end(),m);
         if (fi != frames.end()) frames.erase(fi);
         return aaxAudioFrameDeregisterAudioFrame(ptr,m);
     }
@@ -780,7 +779,7 @@ public:
         return aaxAudioFrameRegisterSensor(ptr,s);
     }
     bool remove(Sensor& s) {
-        sensor_it si = std::find(sensors.begin(),sensors.end(),s);
+        auto si = std::find(sensors.begin(),sensors.end(),s);
         if (si != sensors.end()) sensors.erase(si);
         return aaxAudioFrameDeregisterSensor(ptr,s);
     }
@@ -789,7 +788,7 @@ public:
         return aaxAudioFrameRegisterEmitter(ptr,e);
     }
     bool remove(Emitter& e) {
-        emitter_it ei = std::find(emitters.begin(),emitters.end(),e);
+        auto ei = std::find(emitters.begin(),emitters.end(),e);
         if (ei != emitters.end()) emitters.erase(ei);
         return aaxAudioFrameDeregisterEmitter(ptr,e);
     }
@@ -831,13 +830,8 @@ public:
 
 private:
     std::vector<aaxFrame> frames;
-    typedef std::vector<aaxFrame>::iterator frame_it;
-
     std::vector<aaxConfig> sensors;
-    typedef std::vector<aaxConfig>::iterator sensor_it;
-
     std::vector<aaxEmitter> emitters;
-    typedef std::vector<aaxEmitter>::iterator emitter_it;
 };
 typedef Frame Mixer;
 
@@ -873,7 +867,7 @@ public:
              aaxMixerDeregisterEmitter(ptr,emitters[i]);
         }
         emitters.clear();
-        for(buffer_it it=buffers.begin(); it!=buffers.end(); it++){
+        for(auto it=buffers.begin(); it!=buffers.end(); it++){
              aaxBufferDestroy(it->second.second); buffers.erase(it);
         }
     }
@@ -935,7 +929,7 @@ public:
         return aaxMixerRegisterAudioFrame(ptr,m);
     }
     bool remove(Frame& m) {
-        frame_it fi = std::find(frames.begin(),frames.end(),m);
+        auto fi = std::find(frames.begin(),frames.end(),m);
         if (fi != frames.end()) frames.erase(fi);
         return aaxMixerDeregisterAudioFrame(ptr,m);
     }
@@ -944,7 +938,7 @@ public:
         return aaxMixerRegisterSensor(ptr,s);
     }
     bool remove(Sensor& s) {
-        sensor_it si = std::find(sensors.begin(),sensors.end(),s);
+        auto si = std::find(sensors.begin(),sensors.end(),s);
         if (si != sensors.end()) sensors.erase(si);
         return aaxMixerDeregisterSensor(ptr,s);
     }
@@ -953,7 +947,7 @@ public:
         return aaxMixerRegisterEmitter(ptr,e);
     }
     bool remove(Emitter& e) {
-        emitter_it ei = std::find(emitters.begin(),emitters.end(),e);
+        auto ei = std::find(emitters.begin(),emitters.end(),e);
         if (ei != emitters.end()) emitters.erase(ei);
         return aaxMixerDeregisterEmitter(ptr,e);
     }
@@ -965,16 +959,16 @@ public:
     // In the case of an URL of a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
     Buffer& buffer(std::string name) {
-        buffer_it it = buffers.find(name);
+        auto it = buffers.find(name);
         if (it == buffers.end()) {
-            std::pair<buffer_it,bool> ret = buffers.insert(std::make_pair(name,std::make_pair(static_cast<size_t>(0),Buffer(ptr,name))));
+            std::pair<buffer_it,bool> ret = buffers.insert({name,{static_cast<size_t>(0),Buffer(ptr,name)}});
             it = ret.first;
         }
         it->second.first++;
         return it->second.second;
     }
     void destroy(Buffer& b) {
-        for(buffer_it it=buffers.begin(); it!=buffers.end(); it++)
+        for(auto it=buffers.begin(); it!=buffers.end(); it++)
         {
             if (it->second.second == b && !(--it->second.first)) {
                 aaxBufferDestroy(it->second.second);
@@ -1009,14 +1003,8 @@ public:
 
 private:
     std::vector<aaxFrame> frames;
-    typedef std::vector<aaxFrame>::iterator frame_it;
-
     std::vector<aaxConfig> sensors;
-    typedef std::vector<aaxConfig>::iterator sensor_it;
-
     std::vector<aaxEmitter> emitters;
-    typedef std::vector<aaxEmitter>::iterator emitter_it;
-
     std::map<std::string,std::pair<size_t,Buffer> > buffers;
     typedef std::map<std::string,std::pair<size_t,Buffer> >::iterator buffer_it;
 
