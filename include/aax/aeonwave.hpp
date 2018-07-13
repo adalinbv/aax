@@ -195,11 +195,11 @@ class Obj
 public:
     typedef int close_fn(void*);
 
-    Obj() : ptr(nullptr), closefn(nullptr), tied(nullptr) {}
+    Obj() : ptr(nullptr), closefn(nullptr) {}
 
-    Obj(void *p, close_fn* c) : ptr(p), closefn(c), tied(nullptr) {}
+    Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
-    Obj(const Obj& o) : ptr(o.ptr), closefn(o.closefn), tied(nullptr) {
+    Obj(const Obj& o) : ptr(o.ptr), closefn(o.closefn) {
         o.closefn = nullptr;
     }
 
@@ -210,7 +210,10 @@ public:
 #endif
 
     ~Obj() {
-        if (tied) tied->untie();
+        for (size_t i=0; i<ties.size(); ++i) {
+            ties[i]->untie();
+        }
+        ties.clear();
         if (!!closefn) closefn(ptr);
     }
 
@@ -218,6 +221,11 @@ public:
         bool rv = (!!closefn) ? closefn(ptr) : false;
         closefn = nullptr;
         return rv;
+    }
+
+    void ties_add(Param& pm) {
+        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        if (pi == ties.end()) ties.push_back(&pm);
     }
 
     friend void swap(Obj& o1, Obj& o2) {
@@ -241,7 +249,8 @@ public:
 protected:
     void* ptr;
     mutable close_fn* closefn;
-    Param *tied;
+    std::vector<Param*> ties;
+    typedef std::vector<Param*>::iterator ties_it;
 };
 
 
@@ -439,13 +448,16 @@ public:
         return dsp(aaxEmitterGetEffect(ptr,e),e);
     }
 
-    bool tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
-        return tied->tie(aaxEmitterSetFilter, aaxEmitterGetFilter, ptr, f, p);
+    bool tie(Param& pm, enum aaxFilterType f, int p) { ties_add(pm);
+        return pm.tie(aaxEmitterSetFilter, aaxEmitterGetFilter, ptr, f, p);
     }
-    bool tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
-        return tied->tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
+    bool tie(Param& pm, enum aaxEffectType e, int p) { ties_add(pm);
+        return pm.tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
     }
-    void untie() { if (tied) tied->untie(); tied = nullptr;}
+    void untie(Param& pm) {
+        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        if (pi != ties.end()) ties.erase(pi); pm.untie();
+    }
 
     // ** position and orientation ******
     inline bool matrix(Matrix64& m) {
@@ -572,21 +584,24 @@ public:
         return dsp(e,t);
     }
 
-    bool tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
+    bool tie(Param& pm, enum aaxFilterType f, int p) { ties_add(pm);
         if (scenery_filter(f)) {
-            return tied->tie(aaxScenerySetFilter, aaxSceneryGetFilter,ptr,f,p);
+            return pm.tie(aaxScenerySetFilter, aaxSceneryGetFilter,ptr,f,p);
         } else {
-            return tied->tie(aaxMixerSetFilter, aaxMixerGetFilter, ptr, f, p);
+            return pm.tie(aaxMixerSetFilter, aaxMixerGetFilter, ptr, f, p);
         }
     }
-    bool tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
+    bool tie(Param& pm, enum aaxEffectType e, int p) { ties_add(pm);
         if (scenery_effect(e)) {
-            return tied->tie(aaxScenerySetEffect, aaxSceneryGetEffect,ptr,e,p);
+            return pm.tie(aaxScenerySetEffect, aaxSceneryGetEffect,ptr,e,p);
         } else {
-            return tied->tie(aaxMixerSetEffect, aaxMixerGetEffect, ptr, e, p);
+            return pm.tie(aaxMixerSetEffect, aaxMixerGetEffect, ptr, e, p);
         }
     }
-    void untie() { if (tied) tied->untie(); tied = nullptr; }
+    void untie(Param& pm) {
+        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        if (pi != ties.end()) ties.erase(pi); pm.untie();
+    }
 
     // ** position and orientation ******
     inline bool matrix(Matrix64& m) {
@@ -739,13 +754,16 @@ public:
         return dsp(aaxAudioFrameGetEffect(ptr,t),t);
     }
 
-    bool tie(Param& pm, enum aaxFilterType f, int p) { tied = &pm;
-        return tied->tie(aaxAudioFrameSetFilter, aaxAudioFrameGetFilter, ptr, f, p);
+    bool tie(Param& pm, enum aaxFilterType f, int p) { ties_add(pm);
+        return pm.tie(aaxAudioFrameSetFilter, aaxAudioFrameGetFilter, ptr, f, p);
     }
-    bool tie(Param& pm, enum aaxEffectType e, int p) { tied = &pm;
-        return tied->tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
+    bool tie(Param& pm, enum aaxEffectType e, int p) { ties_add(pm);
+        return pm.tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
     }
-    void untie() { if (tied) tied->untie(); tied = nullptr; }
+    void untie(Param& pm) {
+        ties_it pi = std::find(ties.begin(),ties.end(),&pm);
+        if (pi != ties.end()) ties.erase(pi); pm.untie();
+    }
 
     // ** sub-mixing ******
     bool add(Frame& m) {
