@@ -22,9 +22,9 @@
 #ifndef AAX_AEONWAVE_HPP
 #define AAX_AEONWAVE_HPP 1
 
+#include <unordered_map>
 #include <algorithm>
 #include <vector>
-#include <map>
 
 #include <aax/matrix.hpp>
 #include <aax/aax.h>
@@ -87,7 +87,7 @@ class Param
 public:
     Param(float v=0.0f) : val(v), tied(0) {}
     Param(const Param& p) : Param(p.val) {}
-    ~Param() {}
+    virtual ~Param()=default;
 
     // float operators
     inline float operator+(float v) { return (val + v); }
@@ -203,13 +203,11 @@ public:
         o.closefn = nullptr;
     }
 
-#if __cplusplus >= 201103L
     Obj(Obj&& o) : Obj() {
         swap(*this, o);
     }
-#endif
 
-    ~Obj() {
+    virtual ~Obj() {
         for (size_t i=0; i<ties.size(); ++i) {
             ties[i]->untie();
         }
@@ -281,7 +279,7 @@ public:
 
     Buffer(aaxConfig c, std::string& name) : Buffer(c, name.c_str()) {}
 
-    ~Buffer() {}
+    virtual ~Buffer()=default;
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
@@ -342,7 +340,7 @@ public:
 
     dsp(const dsp& o) : Obj(o), filter(o.filter), fetype(o.fetype) {}
 
-    ~dsp() {}
+    virtual ~dsp()=default;
 
     inline bool add(Buffer& b) {
         return (filter) ? aaxFilterAddBuffer(ptr,b) : aaxEffectAddBuffer(ptr,b);
@@ -420,7 +418,7 @@ public:
 
     Emitter(const Emitter& o) : Obj(o) {}
 
-    ~Emitter() {}
+    virtual ~Emitter()=default;
 
     inline bool set(enum aaxModeType t, int m) {
         return aaxEmitterSetMode(ptr,t,m);
@@ -522,7 +520,7 @@ public:
 
     Sensor(const Sensor& o) : Obj(o), mode(o.mode) {}
 
-    ~Sensor() {}
+    virtual ~Sensor()=default;
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
@@ -694,14 +692,14 @@ private:
 class Frame : public Obj
 {
 public:
-    Frame() {}
+    Frame()=default;
 
     Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
 
     Frame(const Frame& o) : Obj(o),
         frames(o.frames), sensors(o.sensors), emitters(o.emitters) {}
 
-    ~Frame() {
+    virtual ~Frame() {
         for (size_t i=0; i<frames.size(); ++i) {
              aaxAudioFrameDeregisterAudioFrame(ptr,frames[i]);
         }
@@ -854,7 +852,7 @@ public:
         frames(o.frames), sensors(o.sensors), emitters(o.emitters),
         buffers(o.buffers) {}
 
-    ~AeonWave() {
+    virtual ~AeonWave() {
         for (size_t i=0; i<frames.size(); ++i) {
              aaxMixerDeregisterAudioFrame(ptr,frames[i]);
         }
@@ -1005,8 +1003,8 @@ private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
-    std::map<std::string,std::pair<size_t,Buffer> > buffers;
-    typedef std::map<std::string,std::pair<size_t,Buffer> >::iterator buffer_it;
+    std::unordered_map<std::string,std::pair<size_t,Buffer> > buffers;
+    typedef decltype(buffers.begin()) buffer_it;
 
     // background music stream
     Sensor play;
