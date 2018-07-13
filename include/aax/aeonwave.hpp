@@ -959,7 +959,7 @@ public:
     Buffer& buffer(std::string name) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            std::pair<buffer_it,bool> ret = buffers.insert({name,{static_cast<size_t>(0),Buffer(ptr,name)}});
+            auto ret = buffers.insert({name,{static_cast<size_t>(0),Buffer(ptr,name)}});
             it = ret.first;
         }
         it->second.first++;
@@ -1004,7 +1004,6 @@ private:
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
     std::unordered_map<std::string,std::pair<size_t,Buffer> > buffers;
-    typedef decltype(buffers.begin()) buffer_it;
 
     // background music stream
     Sensor play;
