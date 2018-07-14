@@ -227,7 +227,9 @@ _ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
             *bufsize = res;
 
             res = _aaxFormatDriverReadHeader(handle);
-            if (res <= 0) {
+            if (res <= 0)
+            {
+               if (res == __F_EOF) *bufsize = 0;
                rv = buf;
             }
          }
@@ -612,21 +614,15 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
       if (!handle->fmt)
       {
          *bufsize = 0;
-         return rv;
+         return __F_EOF;
       }
 
-      if (!handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0))
-      {
-         handle->fmt = _fmt_free(handle->fmt);
-         *bufsize = 0;
-         return rv;
-      }
-
+      handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
       if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
       {
          handle->fmt = _fmt_free(handle->fmt);
          *bufsize = 0;
-         return rv;
+         return __F_EOF;
       }
 
       handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
@@ -1402,12 +1398,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                case 0: // HEADER_IDENTIFICATION
                   rv = _getOggIdentification(handle, segment, segment_size);
 
-                  if (rv > 0)
+                  if (rv >= 0)
                   {
                      if (handle->keep_header) {
-                        _aaxOggInitFormat(handle, header, &page_size);
+                        rv = _aaxOggInitFormat(handle, header, &page_size);
                      } else {
-                        _aaxOggInitFormat(handle, segment, &segment_size);
+                        rv = _aaxOggInitFormat(handle, segment, &segment_size);
                         if (!segment_size) page_size = 0;
                      }
 
@@ -1418,7 +1414,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                         handle->page_size -= page_size;
                         bufsize -= page_size;
                      }
-                     else {
+                     else if (rv > 0) {
                         rv = __F_NEED_MORE;
                      }
                   }
@@ -1440,21 +1436,22 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                      break;
                   }
 
-                  if (rv > 0)
+                  if (rv >= 0)
                   {
+                     void *buf;
                      if (handle->keep_header) {
-                        handle->fmt->open(handle->fmt, handle->mode,
-                                          header, &page_size,
-                                          handle->datasize);
+                        buf = handle->fmt->open(handle->fmt, handle->mode,
+                                                header, &page_size,
+                                                handle->datasize);
                      } else {
-                        handle->fmt->open(handle->fmt, handle->mode,
-                                          segment, &segment_size,
-                                          handle->datasize);
+                        buf = handle->fmt->open(handle->fmt, handle->mode,
+                                                segment, &segment_size,
+                                                handle->datasize);
                         if (!segment_size) page_size = 0;
                      }
 
                      // remove the page from the stream
-                     if (page_size)
+                     if (!buf && page_size)
                      {
                         _aaxDataMove(handle->oggBuffer, NULL, page_size);
                         handle->page_size -= page_size;
