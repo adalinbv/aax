@@ -78,6 +78,7 @@ typedef struct
    int mode;
 
    char capturing;
+   char recover;
 
    uint8_t no_tracks;
    uint8_t bits_sample;
@@ -375,16 +376,25 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
             size_t floatsmp = handle->floatBuffer->size/framesize;
             unsigned char *buf = handle->opusBuffer->data;
 
+            if (handle->recover)
+            {
+               handle->recover = 0;
+               n = popus_multistream_decode_float(handle->id,
+                           (const unsigned char*)NULL, 0, floats, packet_sz, 0);
+            }
+
             n = popus_multistream_decode_float(handle->id, buf, bufsize,
                                                            floats, floatsmp, 0);
-            if (n <= 0) {
+
+            handle->floatBuffer->avail = _MAX(n,0)*framesize;
+            rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
+
+            if (n < 0) {
                *num = req;
+               handle->recover = 1;
                rv = __F_NEED_MORE;
                break;
             }
-
-            handle->floatBuffer->avail = n*framesize;
-            rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
          }
          else {
             break;
