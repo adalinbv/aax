@@ -463,8 +463,8 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
 char*
 _ogg_interfaces(int ext, int mode)
 {
-   static const char *raw_exts[_EXT_MAX - _EXT_PCM] = {
-      "*.ogg *.oga", // "*.opus"
+   static const char *ogg_exts[_EXT_PCM - _EXT_OGG] = {
+      "*.ogg *.oga", "*.opus"
    };
    static char *rd[2][_EXT_PCM - _EXT_OGG] = {
       { NULL, NULL },
@@ -479,7 +479,7 @@ _ogg_interfaces(int ext, int mode)
 
       if (rd[m][pos] == NULL)
       {
-         int format = _FMT_MAX;
+         int format = _FMT_NONE;
 
          switch(ext)
          {
@@ -497,7 +497,7 @@ _ogg_interfaces(int ext, int mode)
          if (fmt)
          {
             _fmt_free(fmt);
-            rd[m][pos] = (char*)raw_exts[pos];
+            rd[m][pos] = (char*)ogg_exts[pos];
          }
       }
       rv = rd[mode][pos];
