@@ -86,8 +86,10 @@ class Param
 {
 public:
     Param(float v=0.0f) : val(v), tied(0) {}
+
     Param(const Param& p) : Param(p.val) {}
-    virtual ~Param()=default;
+
+    virtual ~Param() = default;
 
     // float operators
     inline float operator+(float v) { return (val + v); }
@@ -108,7 +110,7 @@ public:
     inline bool operator>=(float v) { return (val >= v); }
 
     // Param operators
-    inline Param operator-() { return Param(-val); }
+    inline Param operator-() { return -val; }
     inline Param operator+(const Param& v) { return (val + v.val); }
     inline Param operator-(const Param& v) { return (val - v.val); }
     inline Param operator*(const Param& v) { return (val * v.val); }
@@ -279,7 +281,7 @@ public:
 
     Buffer(aaxConfig c, std::string& name) : Buffer(c, name.c_str()) {}
 
-    virtual ~Buffer()=default;
+    virtual ~Buffer() = default;
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
@@ -340,7 +342,7 @@ public:
 
     dsp(const dsp& o) : Obj(o), filter(o.filter), fetype(o.fetype) {}
 
-    virtual ~dsp()=default;
+    virtual ~dsp() = default;
 
     inline bool add(Buffer& b) {
         return (filter) ? aaxFilterAddBuffer(ptr,b) : aaxEffectAddBuffer(ptr,b);
@@ -418,7 +420,7 @@ public:
 
     Emitter(const Emitter& o) : Obj(o) {}
 
-    virtual ~Emitter()=default;
+    virtual ~Emitter() = default;
 
     inline bool set(enum aaxModeType t, int m) {
         return aaxEmitterSetMode(ptr,t,m);
@@ -520,7 +522,7 @@ public:
 
     Sensor(const Sensor& o) : Obj(o), mode(o.mode) {}
 
-    virtual ~Sensor()=default;
+    virtual ~Sensor() = default;
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
@@ -692,7 +694,7 @@ private:
 class Frame : public Obj
 {
 public:
-    Frame()=default;
+    Frame() = default;
 
     Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
 
