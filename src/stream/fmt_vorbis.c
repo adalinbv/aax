@@ -121,7 +121,6 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fs
                {
                   int max = handle->vorbisBuffer->avail;
                   handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
-                  if (!handle->id)  return rv;
                }
 
                if (handle->id)
@@ -172,6 +171,20 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fs
                   case VORBIS_cant_find_last_page:
                      _AAX_FILEDRVLOG("VORBIS: cant find last page");
                      break;
+                  case VORBIS_invalid_setup:
+                  case VORBIS_invalid_stream:
+                     _AAX_FILEDRVLOG("VORBIS: corrupt/invalid stream");
+                     break;
+                  case VORBIS_outofmem:
+                     _AAX_FILEDRVLOG("VORBIS: insufficient memory");
+                     break;
+                  case VORBIS_invalid_api_mixing:
+                  case VORBIS_feature_not_supported:
+                  case VORBIS_too_many_channels:
+                  case VORBIS_file_open_failure:
+                  case VORBIS_seek_without_length:
+                  case VORBIS_unexpected_eof:
+                  case VORBIS_seek_failed:
                   default:
                      _AAX_FILEDRVLOG("VORBIS: unknown initialization error");
                      break;
