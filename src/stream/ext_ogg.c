@@ -615,7 +615,13 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
          return rv;
       }
 
-      handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
+      if (!handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0))
+      {
+         handle->fmt = _fmt_free(handle->fmt);
+         *bufsize = 0;
+         return rv;
+      }
+
       if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
       {
          handle->fmt = _fmt_free(handle->fmt);

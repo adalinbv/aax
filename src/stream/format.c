@@ -79,9 +79,6 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->set = _mp3_set;
             rv->get = _mp3_get;
          }
-#ifdef WINXP
-//       else if (_aaxMSACMDetect(ext, mode)) {}
-#endif
          else
          {
             free(rv);

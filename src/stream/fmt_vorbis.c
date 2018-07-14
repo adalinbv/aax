@@ -121,6 +121,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fs
                {
                   int max = handle->vorbisBuffer->avail;
                   handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
+                  if (!handle->id)  return rv;
                }
 
                if (handle->id)
