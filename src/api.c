@@ -73,46 +73,6 @@
 #endif
 
 
-#ifndef WIN32
-# include <stdio.h>
-# include <sys/types.h>
-# include <sys/stat.h>
-# ifdef HAVE_RMALLOC_H
-#  include <rmalloc.h>
-# endif
-
-static void
-moveOldCfgFile()
-{
-   char *path = USER_DIR;
-   if (path)
-   {
-      char ofile[256];
-      struct stat sb;
-
-      snprintf(ofile, 256, "%s/.aaxconfig.xml", path);
-      if (!stat(ofile, &sb) && (sb.st_size > 0))
-      {
-         char nfile[256];
-
-         snprintf(nfile, 256, "%s%s", path, USER_AAX_DIR);
-         if (stat(nfile, &sb))
-         {
-            int mode = strtol("0700", 0, 8);
-            mkdir(nfile, mode);       /* the new directory does not yet exist */
-         }
-
-         snprintf(nfile, 256, "%s%s%s", path, USER_AAX_DIR, CONFIG_FILE);
-         if (stat(nfile, &sb)) {
-            rename(ofile, nfile);   /* the new config file does not yet exist */
-         }
-      }
-   }
-}
-#else
-# define moveOldCfgFile()
-#endif
-
 const char*
 userHomeDir()
 {
@@ -130,8 +90,6 @@ userConfigFile()
 {
    const char *app_path = LOCALAPP_DIR;
    char *rv = NULL;
-
-   moveOldCfgFile();
 
    if (app_path)
    {
