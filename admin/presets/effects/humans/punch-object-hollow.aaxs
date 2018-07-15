@@ -1,0 +1,58 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Umphf" frequency="25.0" duration="1.0">
+  <waveform src="white-noise" ratio="2.0" pitch="0.125"/>
+  <waveform src="triangle" processing="modulate" ratio="0.8" pitch="6.4991"/>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="5.0">125.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">3.5</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0" pitch="27.5">500</param>
+    <param n="1">0.8</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.8</param>
+    <param n="1" auto-sustain="1.0">1.8</param>
+    <param n="2">1.45</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.5</param>
+    <param n="1">0.1</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.5</param>
+    <param n="1">0.01</param>
+    <param n="2">0.8</param>
+    <param n="3">0.3</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.26</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
