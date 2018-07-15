@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Explosion" program="128" bank="3" frequency="66.0">
+ <sound name="Fast Explosion" program="128" bank="3" frequency="66.0">
   <waveform src="white-noise" ratio="10.0" pitch="0.0125"/>
   <filter type="frequency" src="36db">
    <slot n="0">
