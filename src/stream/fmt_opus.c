@@ -244,15 +244,11 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
                   _aaxStreamDriverLog(NULL, 0, 0, s);
                }
             }
-#if 0
-            else if (handle->format == AAX_FLOAT)
+            else
             {
-               res = _aaxReadOpusComment(handle);
-               if (res) {
-                  res = _aaxDataMove(handle->opusBuffer, NULL, res);
-               }
+               size_t res = _aaxDataAdd(handle->opusBuffer, buf, *bufsize);
+               *bufsize = res;
             }
-#endif
          }
       }
    }
@@ -405,33 +401,31 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    while (req > 0)
    {
       unsigned char *opusbuf;
-      int32_t opusbufavail;
+      int32_t packet_size;
       int32_t pcmbufremain;
       int32_t pcmbufoffs;
       int frame_space;
 
-      if (handle->opusBuffer->avail == 0) {
+      packet_size = handle->blocksize;
+      if (handle->opusBuffer->avail < packet_size) {
          rv = __F_NEED_MORE;
          break;
       }
-
-      opusbuf = handle->opusBuffer->data;
-      opusbufavail = handle->opusBuffer->avail;
 
       pcmbufoffs = handle->pcmBuffer->avail;
       pcmbufremain = handle->pcmBuffer->size - pcmbufoffs;
       frame_space = pcmbufremain/(tracks*sizeof(float));
 
       // store the next chunk into the pcmBuffer;
-      ret = popus_decode_float(handle->id, opusbuf, opusbufavail,
+      opusbuf = handle->opusBuffer->data;
+      ret = popus_decode_float(handle->id, opusbuf, packet_size,
                               (float*)(pcmbuf+pcmbufoffs), frame_space, 0);
-printf("popus_decode_float: %i\n", ret);
+printf("popus_decode_float: %i, packet size: %i\n", ret, packet_size);
       if (ret > 0)
       {
          unsigned int max;
 
-         _aaxDataMove(handle->opusBuffer, NULL, opusbufavail);
-         rv =+ opusbufavail;
+         rv += _aaxDataMove(handle->opusBuffer, NULL, packet_size);
 
          handle->pcmBuffer->avail += ret*sizeof(float);
          assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);

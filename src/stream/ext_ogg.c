@@ -1441,6 +1441,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                                                 header, &page_size,
                                                 handle->datasize);
                      } else {
+                        segment += rv;
+                        segment_size -= rv;
                         buf = handle->fmt->open(handle->fmt, handle->mode,
                                                 segment, &segment_size,
                                                 handle->datasize);
