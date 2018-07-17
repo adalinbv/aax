@@ -1,3 +1,14 @@
+* Tue Jul 17 2018 - tech@adalin.org
+- AeonWave (3.3.0) stable; urgency=low
+
+ * Overhaul of the C++ classes to make them C++11 compliant.
+ * Fire the filter or effect right after tying it to an Parameter.
+ * Remove support for an ancient way of handling config files.
+ * Fix an issue where the last stage did not finish for the timed gain filter
+   when all stages where used.
+
+-- Erik Hofman <tech@adalin.org>  Tue 17 Jul  2018 10:06:00 + 0200
+
 * Fri Jul 06 2018 - tech@adalin.org
 - AeonWave (3.2.4) stable; urgency=low
  * Automatically convert an effect name like "effects/nature/birds" to a full

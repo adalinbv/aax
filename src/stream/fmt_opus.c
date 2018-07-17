@@ -40,16 +40,25 @@
 #include "fmt_opus.h"
 
 // https://android.googlesource.com/platform/external/libopus/+/refs/heads/master-soong/doc/trivial_example.c
-#define FRAME_SIZE 960
-#define MAX_FRAME_SIZE (6*FRAME_SIZE)
-#define MAX_PACKET_SIZE (2*3*1276)
-#define OPUS_SAMPLE_RATE 48000
+#define FRAME_SIZE		960
+#define MAX_FRAME_SIZE		(6*FRAME_SIZE)
+#define MAX_PACKET_SIZE		(2*3*1276)
+#define OPUS_SAMPLE_RATE	48000
+
+#define MAX_OPUSBUFSIZE		(MAX_FRAME_SIZE*handle->no_tracks*sizeof(float))
+#define MAX_FLOATBUFSIZE	(2*MAX_OPUSBUFSIZE)
 
 DECL_FUNCTION(opus_multistream_decoder_create);
 DECL_FUNCTION(opus_multistream_decoder_destroy);
 DECL_FUNCTION(opus_multistream_decoder_ctl);
 DECL_FUNCTION(opus_multistream_decode_float);
 DECL_FUNCTION(opus_multistream_decode);
+
+DECL_FUNCTION(opus_decoder_create);
+DECL_FUNCTION(opus_decoder_destroy);
+DECL_FUNCTION(opus_decoder_ctl);
+DECL_FUNCTION(opus_decode_float);
+DECL_FUNCTION(opus_decode);
 
 DECL_FUNCTION(opus_encoder_create);
 DECL_FUNCTION(opus_encoder_destroy);
@@ -62,6 +71,10 @@ DECL_FUNCTION(opus_get_version_string);
 typedef struct
 {
    void *id;
+
+   char artist_changed;
+   char title_changed;
+
    char *artist;
    char *original;
    char *title;
@@ -88,9 +101,11 @@ typedef struct
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
+   size_t pre_skip;
+   float gain;
 
    _data_t *opusBuffer;
-   _data_t *floatBuffer;
+   _data_t *pcmBuffer;
 
    int channel_mapping;
 
@@ -101,7 +116,8 @@ typedef struct
 
 } _driver_t;
 
-static int _aaxReadOpusHeader(_driver_t*, char*, size_t);
+static int _aaxReadOpusHeader(_driver_t*);
+// static int _aaxReadOpusComment(_driver_t *);
 
 int
 _opus_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
@@ -127,6 +143,12 @@ _opus_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
          TIE_FUNCTION(opus_multistream_decoder_ctl);
          TIE_FUNCTION(opus_multistream_decode_float);
          TIE_FUNCTION(opus_multistream_decode);
+
+         TIE_FUNCTION(opus_decoder_create);
+         TIE_FUNCTION(opus_decoder_destroy);
+         TIE_FUNCTION(opus_decoder_ctl);
+         TIE_FUNCTION(opus_decode_float);
+         TIE_FUNCTION(opus_decode);
 
          TIE_FUNCTION(opus_encoder_create);
          TIE_FUNCTION(opus_encoder_destroy);
@@ -170,19 +192,15 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
 
    if (handle && buf && bufsize)
    {
-      if (!handle->opusBuffer)
-      {
-         unsigned int bufsize = MAX_FRAME_SIZE*handle->no_tracks*sizeof(float);
-         handle->opusBuffer = _aaxDataCreate(bufsize, 1);
+      if (!handle->opusBuffer) {
+         handle->opusBuffer = _aaxDataCreate(MAX_OPUSBUFSIZE, 1);
       }
 
-      if (!handle->floatBuffer)
-      {
-         unsigned int bufsize = MAX_PACKET_SIZE*handle->no_tracks*sizeof(float);
-         handle->floatBuffer = _aaxDataCreate(2*bufsize, 1);
+      if (!handle->pcmBuffer) {
+         handle->pcmBuffer = _aaxDataCreate(MAX_FLOATBUFSIZE, 1);
       }
 
-      if (handle->opusBuffer && handle->floatBuffer)
+      if (handle->opusBuffer && handle->pcmBuffer)
       {
          if (handle->capturing)
          {
@@ -197,23 +215,44 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
                handle->format = AAX_PCM24S;
                handle->bits_sample = aaxGetBitsPerSample(handle->format);
 
-               if (_aaxReadOpusHeader(handle, buf, *bufsize) > 0)
+               handle->id = popus_decoder_create(freq, tracks, &err);
+               if (handle->id)
                {
-                  handle->id = popus_multistream_decoder_create(freq, tracks,
-                                                             handle->nb_streams,
-                                                             handle->nb_coupled,
-                                                             handle->stream_map,
-                                                             &err);
-                  if (!handle->id && popus_strerror)
-                  {
-                     char s[1025];
-                     snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
-                                        popus_strerror(err));
-                     s[1024] = 0;
-                     _aaxStreamDriverLog(NULL, 0, 0, s);
+                  size_t size = _MIN(*bufsize, MAX_OPUSBUFSIZE);
+                  int res;
+
+                  res = _aaxDataAdd(handle->opusBuffer, buf, size);
+                  *bufsize = res;
+
+                  res = _aaxReadOpusHeader(handle);
+                  if (res) {
+                     res = _aaxDataMove(handle->opusBuffer, NULL, res);
                   }
                }
+               else
+               {
+                  char s[1025];
+                  rv = buf;
+                  if (popus_strerror) {
+                     snprintf(s, 1024, "OPUS: Unable to create a handle: %s",
+                                     popus_strerror(err));
+                  } else {
+                     snprintf(s, 1024, "OPUS: Unable to create a handle: %i",
+                                     err);
+                  }
+                  s[1024] = 0;
+                  _aaxStreamDriverLog(NULL, 0, 0, s);
+               }
             }
+#if 0
+            else if (handle->format == AAX_FLOAT)
+            {
+               res = _aaxReadOpusComment(handle);
+               if (res) {
+                  res = _aaxDataMove(handle->opusBuffer, NULL, res);
+               }
+            }
+#endif
          }
       }
    }
@@ -236,7 +275,7 @@ _opus_close(_fmt_t *fmt)
       handle->id = NULL;
 
       _aaxDataDestroy(handle->opusBuffer);
-      _aax_aligned_free(handle->floatBuffer->data);
+      _aaxDataDestroy(handle->pcmBuffer);
 
       free(handle->trackno);
       free(handle->artist);
@@ -289,17 +328,17 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    packet_sz = handle->blocksize;
    *num = 0;
 
-   floats = (float*)handle->floatBuffer->data;
+   floats = (float*)handle->pcmBuffer->data;
    do
    {
-      size_t avail = handle->floatBuffer->avail;
+      size_t avail = handle->pcmBuffer->avail;
       if (avail > 0)
       {
          unsigned int max = _MIN(req, avail/framesize);
          if (max)
          {
             _batch_cvt24_ps(dptr+dptr_offs, floats, max*tracks);
-            _aaxDataMove(handle->floatBuffer, NULL, max*framesize);
+            _aaxDataMove(handle->pcmBuffer, NULL, max*framesize);
 
             dptr_offs += max;
             handle->no_samples += max;
@@ -313,14 +352,14 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          size_t bufsize  = _MIN(packet_sz, handle->opusBuffer->avail);
          if (bufsize == packet_sz)
          {
-            size_t floatsmp = handle->floatBuffer->size/framesize;
+            size_t floatsmp = handle->pcmBuffer->size/framesize;
             unsigned char *buf = handle->opusBuffer->data;
 
-            n = popus_multistream_decode_float(handle->id, buf, bufsize,
+            n = popus_decode_float(handle->id, buf, bufsize,
                                                            floats, floatsmp, 0);
             if (n <= 0) break;
 
-            handle->floatBuffer->avail = n*framesize;
+            handle->pcmBuffer->avail = n*framesize;
             rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
          }
          else {
@@ -337,71 +376,81 @@ size_t
 _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   unsigned int bits, tracks, framesize, packet_sz;
-   size_t req, rv = __F_NEED_MORE;
-   float *floats;
-   int n;
+   unsigned int req, tracks;
+   unsigned char *pcmbuf;
+   size_t pcmbufavail;
+   size_t rv = 0;
+   int ret;
 
    req = *num;
    tracks = handle->no_tracks;
-   bits = handle->bits_sample;
-   framesize = tracks*bits/8;
-   packet_sz = handle->blocksize;
    *num = 0;
 
-   floats = (float*)handle->floatBuffer->data;
-   do
-   {
-      size_t avail = handle->floatBuffer->avail;
-      if (avail > 0)
-      {
-         unsigned int max = _MIN(req, avail/framesize);
-         if (max)
-         {
-            _batch_cvt24_ps_intl(dptr, floats, dptr_offs, tracks, max);
-            _aaxDataMove(handle->floatBuffer, NULL, max*framesize);
+   pcmbuf = handle->pcmBuffer->data;
+   pcmbufavail = handle->pcmBuffer->avail;
 
-            dptr_offs += max;
-            handle->no_samples += max;
-            *num += max;
-            req -= max;
-         }
+   /* there is still data left in the buffer from the previous run */
+   if (pcmbufavail)
+   {
+      unsigned int max = _MIN(req, pcmbufavail/sizeof(float));
+
+      _batch_cvt24_ps_intl(dptr, pcmbuf, dptr_offs, tracks, max);
+      _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(float));
+      handle->no_samples += max;
+      dptr_offs += max;
+      req -= max;
+      *num = max;
+   }
+
+   while (req > 0)
+   {
+      unsigned char *opusbuf;
+      int32_t opusbufavail;
+      int32_t pcmbufremain;
+      int32_t pcmbufoffs;
+      int frame_space;
+
+      if (handle->opusBuffer->avail == 0) {
+         rv = __F_NEED_MORE;
+         break;
       }
 
-      if (req > 0)
+      opusbuf = handle->opusBuffer->data;
+      opusbufavail = handle->opusBuffer->avail;
+
+      pcmbufoffs = handle->pcmBuffer->avail;
+      pcmbufremain = handle->pcmBuffer->size - pcmbufoffs;
+      frame_space = pcmbufremain/(tracks*sizeof(float));
+
+      // store the next chunk into the pcmBuffer;
+      ret = popus_decode_float(handle->id, opusbuf, opusbufavail,
+                              (float*)(pcmbuf+pcmbufoffs), frame_space, 0);
+printf("popus_decode_float: %i\n", ret);
+      if (ret > 0)
       {
-         size_t bufsize  = _MIN(packet_sz, handle->opusBuffer->avail);
-         if (bufsize == packet_sz)
-         {
-            size_t floatsmp = handle->floatBuffer->size/framesize;
-            unsigned char *buf = handle->opusBuffer->data;
+         unsigned int max;
 
-            if (handle->recover)
-            {
-               handle->recover = 0;
-               n = popus_multistream_decode_float(handle->id,
-                           (const unsigned char*)NULL, 0, floats, packet_sz, 0);
-            }
+         _aaxDataMove(handle->opusBuffer, NULL, opusbufavail);
+         rv =+ opusbufavail;
 
-            n = popus_multistream_decode_float(handle->id, buf, bufsize,
-                                                           floats, floatsmp, 0);
+         handle->pcmBuffer->avail += ret*sizeof(float);
+         assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);
 
-            handle->floatBuffer->avail = _MAX(n,0)*framesize;
-            rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
+         max = _MIN(req, handle->pcmBuffer->avail/sizeof(float));
 
-            if (n < 0) {
-               *num = req;
-               handle->recover = 1;
-               rv = __F_NEED_MORE;
-               break;
-            }
-         }
-         else {
-            break;
-         }
+         _batch_cvt24_ps_intl(dptr, pcmbuf, dptr_offs, tracks, max);
+         _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(float));
+         handle->no_samples += max;
+         dptr_offs += max;
+         req -= max;
+         *num += max;
+      }
+      else
+      {
+         rv = __F_NEED_MORE;
+         break;
       }
    }
-   while (req > 0);
 
    return rv;
 }
@@ -564,11 +613,13 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
 // https://tools.ietf.org/html/rfc7845.html#page-12
 #define OPUS_ID_HEADER_SIZE	(4*5-1)
 static int
-_aaxReadOpusHeader(_driver_t *handle, char *h, size_t len)
+_aaxReadOpusHeader(_driver_t *handle)
 {
+   char *h = (char*)handle->opusBuffer->data;
+   size_t len = handle->opusBuffer->avail;
    int rv = __F_EOF;
 
-   if (len >= OPUS_ID_HEADER_SIZE)
+   if (len >= OPUS_ID_HEADER_SIZE && !strncasecmp(h, "OpusHead", 8))
    {
       int version = h[8];
       if (version == 1)
@@ -631,3 +682,112 @@ _aaxReadOpusHeader(_driver_t *handle, char *h, size_t len)
 
    return rv;
 }
+
+
+#if 0
+// https://xiph.org/vorbis/doc/v-comment.html
+// https://wiki.xiph.org/OggOpus#Content_Type
+// https://wiki.xiph.org/OggPCM#Comment_packet
+#define COMMENT_SIZE    1024
+
+static int
+_aaxReadOpusComment(_driver_t *handle)
+{
+   unsigned char *ch = (unsigned char*)handle->opusBuffer->data;
+   size_t len = handle->opusBuffer->avail;
+   uint32_t *header = (uint32_t*)ch;
+   char field[COMMENT_SIZE+1];
+   unsigned char *ptr;
+   size_t i, size;
+   int rv = 0;
+
+   if (len > 12 && !strncasecmp((char*)ch, "OpusTags", 8))
+   {
+#if 0
+      printf("\n--Opus Comment Header:\n");
+      printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
+
+      size = header[2];
+      snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
+      printf("  2: %08x Vendor: '%s'\n", header[2], field);
+
+      i = 12+size;
+      ptr = ch+i;
+      size = *(uint32_t*)ptr;
+// printf("User comment list length: %i\n", size);
+
+      ptr += 4;
+      for (i=0; i<size; i++)
+      {
+         size_t slen = *(uint32_t*)ptr;
+         ptr += 4;
+         snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+         printf("\t'%s'\n", field);
+         ptr += slen;
+      }
+#endif
+
+      field[COMMENT_SIZE] = 0;
+
+      size = header[2];
+      snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
+//    handle->vendor = strdup(field);
+
+      i = 12+size;
+      ptr = ch+i;
+      size = *(uint32_t*)ptr;
+
+      ptr += 4;
+      for (i=0; i<size; i++)
+      {
+         uint32_t slen = *(uint32_t*)ptr;
+
+         ptr += sizeof(uint32_t);
+         if ((size_t)(ptr+slen-ch) > len) {
+             return __F_NEED_MORE;
+         }
+
+         snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+         ptr += slen;
+
+         if (!STRCMP(field, "TITLE"))
+         {
+             handle->title = stradd(handle->title, field+strlen("TITLE="));
+             handle->title_changed = AAX_TRUE;
+         }
+         else if (!STRCMP(field, "ARTIST")) {
+             handle->artist = stradd(handle->artist, field+strlen("ARTIST="));
+             handle->artist_changed = AAX_TRUE;
+         }
+//       else if (!STRCMP(field, "PERFORMER"))
+//       {
+//           handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+//           handle->artist_changed = AAX_TRUE;
+   //       }
+         else if (!STRCMP(field, "ALBUM")) {
+             handle->album = stradd(handle->album, field+strlen("ALBUM="));
+         } else if (!STRCMP(field, "TRACKNUMBER")) {
+             handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
+         } else if (!STRCMP(field, "COPYRIGHT")) {
+             handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
+         } else if (!STRCMP(field, "GENRE")) {
+             handle->genre = stradd(handle->genre, field+strlen("GENRE="));
+         } else if (!STRCMP(field, "DATE")) {
+             handle->date = stradd(handle->date, field+strlen("DATE="));
+         } else if (!STRCMP(field, "CONTACT")) {
+             handle->website = stradd(handle->website, field+strlen("CONTACT="));
+         } else if (!STRCMP(field, "DESCRIPTION")) {
+             handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
+         }
+         else if (!STRCMP(field, "R128_TRACK_GAIN"))
+         {
+             int gain = atoi(field+strlen("R128_TRACK_GAIN="));
+             handle->gain = pow(10, (float)gain/(20.0f*256.0f));
+         }
+      }
+      rv = ptr-ch;
+   }
+
+   return rv;
+}
+#endif

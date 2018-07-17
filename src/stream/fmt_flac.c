@@ -78,8 +78,6 @@ typedef struct
    _data_t *flacBuffer;
    size_t rv;
 
-// drflac__memory_stream memoryStream;
-
 } _driver_t;
 
 static size_t _flac_callback_read(void*, void*, size_t);
@@ -127,16 +125,17 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
    {
       if (!handle->id)
       {
-         if (!handle->flacBuffer)
-         {
+         if (!handle->flacBuffer) {
             handle->flacBuffer = _aaxDataCreate(MAX_FLACBUFSIZE, 1);
+         }
+
+         if (!handle->pcmBuffer) {
             handle->pcmBuffer = _aaxDataCreate(MAX_PCMBUFSIZE, 1);
          }
          
 
          if (handle->flacBuffer && handle->pcmBuffer)
          {
-            int32_t *pcmbuf = (int32_t*)handle->pcmBuffer->data;
             size_t size = *bufsize;
             int res;
 
@@ -152,11 +151,8 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
                                         _flac_callback_seek, handle);
             }
 
-            res = drflac_read_s32(handle->id, handle->pcmBuffer->size,
-                                             pcmbuf);
-            handle->pcmBuffer->avail += res;
             handle->rv = 0;
-            if (res == 0) {
+            if (!handle->id) {
                rv = buf;
             }
          }
@@ -217,7 +213,6 @@ _flac_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
    size_t res;
 
    res = _aaxDataAdd(handle->flacBuffer, sptr, *bytes);
-printf("fill: %lu, added: %lu\n", *bytes, res);
    if (res == 0) {
       *bytes = 0;
    }
@@ -256,7 +251,7 @@ size_t
 _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bufsize, rv = 0;
+   size_t bufsize, rv = __F_NEED_MORE;
    unsigned char *buf;
    unsigned int req, ret;
    int tracks;
@@ -269,7 +264,6 @@ _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    bufsize = handle->pcmBuffer->avail;
 
    /* there is still data left in the buffer from the previous run */
-printf("# pcmbuf avail: %lu\n", bufsize);
    if (bufsize)
    {
       unsigned int max = _MIN(req, bufsize/sizeof(int32_t));
@@ -282,8 +276,7 @@ printf("# pcmbuf avail: %lu\n", bufsize);
       *num = max;
    }
 
-printf("# req: %u\n", req);
-   if (req > 0)
+   if (req > 0 && handle->flacBuffer->avail > 0)
    {
       size_t avail = handle->pcmBuffer->avail;
       size_t bufsize = handle->pcmBuffer->size - avail;
@@ -292,8 +285,14 @@ printf("# req: %u\n", req);
       // store the next chunk into the pcmBuffer;
       ret = drflac_read_s32(handle->id, bufsize, pcmbuf);
       handle->pcmBuffer->avail += ret;
-      rv = handle->rv;
-      handle->rv = 0;
+
+      assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);
+
+      if (handle->rv)
+      {
+         rv = handle->rv;
+         handle->rv = 0;
+      }
 
       if (handle->pcmBuffer->avail)
       {  
@@ -307,7 +306,6 @@ printf("# req: %u\n", req);
       }
    }
 
-printf("# read: %li, req: %u\n", rv, req);
    return rv;
 }
 
@@ -399,82 +397,22 @@ _flac_set(_fmt_t *fmt, int type, off_t value)
 }
 
 /* -------------------------------------------------------------------------- */
-#define COMMENT_SIZE	1024
-
-#if 0
-static void
-_flac_metafn(void *userData, drflac_metadata *metaData)
-{
-   _driver_t *handle = (_driver_t *)userData;
-
-   switch(metaData->type)
-   {
-   case DRFLAC_METADATA_BLOCK_TYPE_STREAMINFO:
-      handle->blocksize = metaData->data.streaminfo.maxBlockSize;
-      handle->frequency = metaData->data.streaminfo.sampleRate;
-      handle->no_tracks = metaData->data.streaminfo.channels;
-      handle->bits_sample = metaData->data.streaminfo.bitsPerSample;
-      handle->max_samples = metaData->data.streaminfo.totalSampleCount;
-      break;
-   case DRFLAC_METADATA_BLOCK_TYPE_VORBIS_COMMENT:
-   {
-	// https://xiph.org/vorbis/doc/v-comment.html
-      drflac_vorbis_comment_iterator it;
-      char s[COMMENT_SIZE+1];
-      const char *ptr;
-      uint32_t slen;
-#if 0
-      ptr = metaData->data.vorbis_comment.vendor;
-      slen = metaData->data.vorbis_comment.vendorLength;
-      snprintf(s, _MIN(slen+1, COMMENT_SIZE), "%s\0", ptr);
-#endif
-      while ((ptr = drflac_next_vorbis_comment(&it, &slen)) != NULL)
-      {
-         snprintf(s, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
-         if (!STRCMP(s, "TITLE")) {
-            handle->title = strdup(s+strlen("TITLE="));
-         } else if (!STRCMP(s, "ALBUM")) {
-            handle->album = strdup(s+strlen("ALBUM="));
-         } else if (!STRCMP(s, "TRACKNUMBER")) {
-            handle->trackno = strdup(s+strlen("TRACKNUMBER="));
-         } else if (!STRCMP(s, "ARTIST")) {
-            handle->artist = strdup(s+strlen("ARTIST="));
-         } else if (!STRCMP(s, "PERFORMER")) {
-            handle->artist = strdup(s+strlen("PERFORMER="));
-         } else if (!STRCMP(s, "COPYRIGHT")) {
-            handle->copyright = strdup(s+strlen("COPYRIGHT="));
-         } else if (!STRCMP(s, "GENRE")) {
-            handle->genre = strdup(s+strlen("GENRE="));
-         } else if (!STRCMP(s, "DATE")) {
-            handle->date = strdup(s+strlen("DATE="));
-         } else if (!STRCMP(s, "ORGANIZATION")) {
-            handle->composer= strdup(s+strlen("ORGANIZATION="));
-         } else if (!STRCMP(s, "DESCRIPTION")) {
-            handle->comments = strdup(s+strlen("DESCRIPTION="));
-         } else if (!STRCMP(s, "CONTACT")) {
-            handle->website =  strdup(s+strlen("CONTACT="));
-         }
-      }
-      break;
-   }
-   case DRFLAC_METADATA_BLOCK_TYPE_APPLICATION:
-   case DRFLAC_METADATA_BLOCK_TYPE_SEEKTABLE:
-   case DRFLAC_METADATA_BLOCK_TYPE_CUESHEET:
-   case DRFLAC_METADATA_BLOCK_TYPE_PICTURE:
-   case DRFLAC_METADATA_BLOCK_TYPE_PADDING:
-   default:
-      break;
-   }
-}
-#endif
-
 static size_t
 _flac_callback_read(void* pUserData, void* pBufferOut, size_t bytesToRead)
 {
    _driver_t *handle = (_driver_t *)pUserData;
-   size_t rv = _aaxDataMove(handle->flacBuffer, pBufferOut, bytesToRead);
-printf("\trequest %lu bytes, move %lu bytes\n", bytesToRead, rv);
-   handle->rv += rv;
+   int tries = 10240;
+   size_t rv;
+
+   do
+   {
+      rv =  _aaxDataMove(handle->flacBuffer, pBufferOut, bytesToRead);
+      handle->rv += rv;
+      if (rv > 0) break;
+      msecSleep(1);
+   }
+   while (--tries);
+
    return rv;
 }
 

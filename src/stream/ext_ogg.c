@@ -553,8 +553,8 @@ _ogg_set(_ext_t *ext, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 
-static int _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len);
-static int _getOggVorbisComment(_driver_t *handle, unsigned char *ch, size_t len);
+static int _getOggOpusComment(_driver_t*, unsigned char*, size_t);
+static int _getOggVorbisComment(_driver_t*, unsigned char*, size_t);
 
 #define CRC32_POLY		0x04c11db7   // from spec
 #define CRC32_UPDATE(c,b)	c = ((c) << 8) ^ crc_table[(b) ^ ((c) >> 24)]
