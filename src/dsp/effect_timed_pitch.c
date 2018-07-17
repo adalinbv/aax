@@ -89,11 +89,11 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
          float nextval = effect->slot[0]->param[AAX_LEVEL0];
          float period = effect->info->period_rate;
          float timestep = 1.0f / period;
-         int i;
+         int i, stage;
 
+         stage = 0;
          env->value0 = env->value = nextval;
-
-         env->max_stages = _MAX_ENVELOPE_STAGES;
+         env->max_stages = _MAX_ENVELOPE_STAGES-1;
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {
             float dt, value = nextval;
@@ -108,17 +108,15 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
             }
             if (max_pos == 0)
             {
-               env->max_stages = 2*i;
+               env->max_stages = stage;
                break;
             }
 
             nextval = effect->slot[i]->param[AAX_LEVEL1];
             if (nextval == 0.0f) nextval = -1e-2f;
-            env->step[2*i] = (nextval - value)/max_pos;
-            env->max_pos[2*i] = max_pos;
-
-            /* prevent a core dump for accessing an illegal slot */
-            if (i == (_MAX_ENVELOPE_STAGES/2)-1) break;
+            env->step[stage] = (nextval - value)/max_pos;
+            env->max_pos[stage] = max_pos;
+            stage++;
 
             max_pos = (uint32_t)-1;
             dt = effect->slot[i]->param[AAX_TIME1];
@@ -134,10 +132,11 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
             }
 
             value = nextval;
-            nextval = effect->slot[i+1]->param[AAX_LEVEL0];
+            nextval = (i < 2) ? effect->slot[i+1]->param[AAX_LEVEL0] : 0.0f;
             if (nextval == 0.0f) nextval = -1e-2f;
-            env->step[2*i+1] = (nextval - value)/max_pos;
-            env->max_pos[2*i+1] = max_pos;
+            env->step[stage] = (nextval - value)/max_pos;
+            env->max_pos[stage] = max_pos;
+            stage++;
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

@@ -88,14 +88,15 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
          float nextval = filter->slot[0]->param[AAX_LEVEL0];
          float period = filter->info->period_rate;
          float timestep = 1.0f / period;
-         int i;
+         int i, stage;
 
          if (state & AAX_REPEAT) {
             env->repeat = (state & ~AAX_REPEAT);
          }
 
+         stage = 0;
          env->value0 = env->value = nextval;
-         env->max_stages = _MAX_ENVELOPE_STAGES;
+         env->max_stages = _MAX_ENVELOPE_STAGES-1;
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {
             float dt, value = nextval;
@@ -110,17 +111,15 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             }
             if (max_pos == 0)
             {
-               env->max_stages = 2*i;
+               env->max_stages = stage;
                break;
             }
 
             nextval = filter->slot[i]->param[AAX_LEVEL1];
             if (nextval == 0.0f) nextval = -1e-2f;
-            env->step[2*i] = (nextval - value)/max_pos;
-            env->max_pos[2*i] = max_pos;
-
-            /* prevent a core dump for accessing an illegal slot */
-            if (i == (_MAX_ENVELOPE_STAGES/2)-1) break;
+            env->step[stage] = (nextval - value)/max_pos;
+            env->max_pos[stage] = max_pos;
+            stage++;
 
             max_pos = (uint32_t)-1;
             dt = filter->slot[i]->param[AAX_TIME1];
@@ -131,15 +130,16 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             }
             if (max_pos == 0)
             {
-               env->max_stages = 2*i+1;
+               env->max_stages = stage;
                break;
             }
 
             value = nextval;
-            nextval = filter->slot[i+1]->param[AAX_LEVEL0];
+            nextval = (i < 2) ? filter->slot[i+1]->param[AAX_LEVEL0] : 0.0f;
             if (nextval == 0.0f) nextval = -1e-2f;
-            env->step[2*i+1] = (nextval - value)/max_pos;
-            env->max_pos[2*i+1] = max_pos;
+            env->step[stage] = (nextval - value)/max_pos;
+            env->max_pos[stage] = max_pos;
+            stage++;
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

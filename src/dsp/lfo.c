@@ -455,7 +455,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
    {
       unsigned int stage = env->stage;
       rv = env->value;
-      if (stage < env->max_stages)
+      if (stage <= env->max_stages)
       {
          env->value += env->step[stage];
 
