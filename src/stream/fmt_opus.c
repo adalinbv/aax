@@ -398,7 +398,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       *num = max;
    }
 
-   while (req > 0)
+   if (req > 0)
    {
       unsigned char *opusbuf;
       int32_t packet_size;
@@ -408,8 +408,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 
       packet_size = handle->blocksize;
       if (handle->opusBuffer->avail < packet_size) {
-         rv = __F_NEED_MORE;
-         break;
+         return __F_NEED_MORE;
       }
 
       pcmbufoffs = handle->pcmBuffer->avail;
@@ -420,7 +419,6 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       opusbuf = handle->opusBuffer->data;
       ret = popus_decode_float(handle->id, opusbuf, packet_size,
                               (float*)(pcmbuf+pcmbufoffs), frame_space, 0);
-printf("popus_decode_float: %i, packet size: %i\n", ret, packet_size);
       if (ret > 0)
       {
          unsigned int max;
@@ -439,13 +437,10 @@ printf("popus_decode_float: %i, packet size: %i\n", ret, packet_size);
          req -= max;
          *num += max;
       }
-      else
-      {
+      else {
          rv = __F_NEED_MORE;
-         break;
       }
    }
-
    return rv;
 }
 
@@ -611,9 +606,11 @@ _aaxReadOpusHeader(_driver_t *handle)
 {
    char *h = (char*)handle->opusBuffer->data;
    size_t len = handle->opusBuffer->avail;
+   int32_t *x = (int32_t*)h;
    int rv = __F_EOF;
 
-   if (len >= OPUS_ID_HEADER_SIZE && !strncasecmp(h, "OpusHead", 8))
+   //                                       'Opus'                'Head'
+   if (len >= OPUS_ID_HEADER_SIZE && x[0] == 0x7375704f && x[1] == 0x64616548)
    {
       int version = h[8];
       if (version == 1)
@@ -691,11 +688,13 @@ _aaxReadOpusComment(_driver_t *handle)
    size_t len = handle->opusBuffer->avail;
    uint32_t *header = (uint32_t*)ch;
    char field[COMMENT_SIZE+1];
+   int32_t *x = (int32_t*)ch;
    unsigned char *ptr;
    size_t i, size;
    int rv = 0;
 
-   if (len > 12 && !strncasecmp((char*)ch, "OpusTags", 8))
+   //                      'Opus'                'Tags'
+   if (len > 12 && x[0] == 0x7375704f && x[1] == 0x73676154)
    {
 #if 0
       printf("\n--Opus Comment Header:\n");

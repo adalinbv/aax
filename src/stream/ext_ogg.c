@@ -91,6 +91,8 @@ typedef struct
    _fmt_type_t format_type;
    enum oggFormat ogg_format;
 
+   char need_more;
+
    /*
     * Indicate whether the data presented to the format code needs the Ogg
     * page header or not. If not remove it from the data stream.
@@ -298,6 +300,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    unsigned char *header;
    size_t avail;
 
+   handle->need_more = AAX_FALSE;
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
    *bytes = res;
 
@@ -333,7 +336,13 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
                handle->fmt = NULL;
             }
             rv = _aaxFormatDriverReadHeader(handle);
-            if (rv <= 0) break;
+            if (rv <= 0)
+            {
+               if (rv == __F_NEED_MORE) {
+                  handle->need_more = AAX_TRUE;
+               }
+               break;
+            }
          }
          else
          {
@@ -351,6 +360,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    }
    while (avail && handle->oggBuffer->avail);
 
+printf("ogg_fill: %i\n", rv);
    return rv;
 }
 
@@ -367,9 +377,28 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    _driver_t *handle = ext->id;
    size_t rv = __F_EOF;
 
-   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->packet_offset[0]);
-   rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+   if (handle->need_more)
+   {
+      *num = 0;
+      rv = __F_NEED_MORE;
+   }
+   else
+   {
+      size_t packet_size;
+      do
+      {
+         packet_size = handle->packet_offset[handle->packet_no];
 
+         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, packet_size);
+         rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+
+         if (rv > 0) handle->packet_no++;
+         assert(handle->packet_no <= handle->no_packets);
+      }
+      while ( rv == __F_NEED_MORE && handle->oggBuffer->avail >= packet_size);
+   }
+
+printf("ogg_cvt_from: %i\n", rv);
    return rv;
 }
 
@@ -730,7 +759,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 
                handle->page_sequence_no = curr;
 
-#if 0
+#if 1
 {
    char *ch = (char*)header;
    unsigned int i;
@@ -778,6 +807,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                {
                   unsigned int p = 0;
 
+                  handle->no_packets = 0;
                   handle->segment_size = 0;
                   handle->packet_offset[p] = 0;
                   for (i=0; i<no_segments; ++i)
@@ -786,11 +816,13 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 
                      handle->segment_size += ps;
                      handle->packet_offset[p] += ps;
-                     if (ps < 0xFF) {
+                     if (ps < 0xFF)
+                     {
                         handle->packet_offset[++p] = handle->segment_size;
+                        handle->no_packets++;
                      }
                   }
-                  handle->no_packets = p-1;
+                  handle->packet_no = 0;
                   handle->page_size = handle->header_size+handle->segment_size;
 #if 0
   printf("no. packets: %i\n", handle->no_packets);
@@ -930,9 +962,11 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
 static int
 _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
 {
+   int32_t *x = (int32_t*)h;
    int rv = __F_EOF;
 
-   if (len >= OPUS_ID_HEADER_SIZE)
+   //                                       'Opus'                'Head'
+   if (len >= OPUS_ID_HEADER_SIZE && x[0] == 0x7375704f && x[1] == 0x64616548)
    {
       int version = h[8];
       if (version == 1)
@@ -1156,93 +1190,98 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
 {
    uint32_t *header = (uint32_t*)ch;
    char field[COMMENT_SIZE+1];
+   int32_t *x = (int32_t*)ch;
    unsigned char *ptr;
    size_t i, size;
    int rv = len;
 
-#if 0
-   printf("\n--Opus Comment Header:\n");
-   printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
-
-   size = header[2];
-   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
-   printf("  2: %08x Vendor: '%s'\n", header[2], field);
-
-   i = 12+size;
-   ptr = ch+i;
-   size = *(uint32_t*)ptr;
-// printf("User comment list length: %i\n", size);
-
-   ptr += 4;
-   for (i=0; i<size; i++)
+   //                      'Opus'                'Tags'
+   if (len > 12 && x[0] == 0x7375704f && x[1] == 0x73676154)
    {
-      size_t slen = *(uint32_t*)ptr;
+#if 0
+      printf("\n--Opus Comment Header:\n");
+      printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
+
+      size = header[2];
+      snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
+      printf("  2: %08x Vendor: '%s'\n", header[2], field);
+
+      i = 12+size;
+      ptr = ch+i;
+      size = *(uint32_t*)ptr;
+//    printf("User comment list length: %i\n", size);
+
       ptr += 4;
-      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
-      printf("\t'%s'\n", field);
-      ptr += slen;
-   }
+      for (i=0; i<size; i++)
+      {
+         size_t slen = *(uint32_t*)ptr;
+         ptr += 4;
+         snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+         printf("\t'%s'\n", field);
+         ptr += slen;
+      }
 #endif
 
-   field[COMMENT_SIZE] = 0;
+      field[COMMENT_SIZE] = 0;
 
-   size = header[2];
-   snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
-// handle->vendor = strdup(field);
+      size = header[2];
+      snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", ch+12);
+//    handle->vendor = strdup(field);
 
-   i = 12+size;
-   ptr = ch+i;
-   size = *(uint32_t*)ptr;
+      i = 12+size;
+      ptr = ch+i;
+      size = *(uint32_t*)ptr;
 
-   ptr += 4;
-   for (i=0; i<size; i++)
-   {
-      uint32_t slen = *(uint32_t*)ptr;
-
-      ptr += sizeof(uint32_t);
-      if ((size_t)(ptr+slen-ch) > len) {
-          return __F_NEED_MORE;
-      }
-
-      snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
-      ptr += slen;
-
-      if (!STRCMP(field, "TITLE"))
+      ptr += 4;
+      for (i=0; i<size; i++)
       {
-          handle->title = stradd(handle->title, field+strlen("TITLE="));
-          handle->title_changed = AAX_TRUE;
+         uint32_t slen = *(uint32_t*)ptr;
+
+         ptr += sizeof(uint32_t);
+         if ((size_t)(ptr+slen-ch) > len) {
+            return __F_NEED_MORE;
+         }
+
+         snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+         ptr += slen;
+
+         if (!STRCMP(field, "TITLE"))
+         {
+            handle->title = stradd(handle->title, field+strlen("TITLE="));
+            handle->title_changed = AAX_TRUE;
+         }
+         else if (!STRCMP(field, "ARTIST")) {
+            handle->artist = stradd(handle->artist, field+strlen("ARTIST="));
+            handle->artist_changed = AAX_TRUE;
+         }
+//       else if (!STRCMP(field, "PERFORMER"))
+//       {
+//          handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
+//          handle->artist_changed = AAX_TRUE;
+//       }
+         else if (!STRCMP(field, "ALBUM")) {
+            handle->album = stradd(handle->album, field+strlen("ALBUM="));
+         } else if (!STRCMP(field, "TRACKNUMBER")) {
+            handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
+         } else if (!STRCMP(field, "COPYRIGHT")) {
+            handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
+         } else if (!STRCMP(field, "GENRE")) {
+            handle->genre = stradd(handle->genre, field+strlen("GENRE="));
+         } else if (!STRCMP(field, "DATE")) {
+            handle->date = stradd(handle->date, field+strlen("DATE="));
+         } else if (!STRCMP(field, "CONTACT")) {
+            handle->website = stradd(handle->website, field+strlen("CONTACT="));
+         } else if (!STRCMP(field, "DESCRIPTION")) {
+            handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
+         }
+         else if (!STRCMP(field, "R128_TRACK_GAIN"))
+         {
+            int gain = atoi(field+strlen("R128_TRACK_GAIN="));
+            handle->gain = pow(10, (float)gain/(20.0f*256.0f));
+         }
       }
-      else if (!STRCMP(field, "ARTIST")) {
-          handle->artist = stradd(handle->artist, field+strlen("ARTIST="));
-          handle->artist_changed = AAX_TRUE;
-      }
-//    else if (!STRCMP(field, "PERFORMER"))
-//    {
-//        handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
-//        handle->artist_changed = AAX_TRUE;
-//    }
-      else if (!STRCMP(field, "ALBUM")) {
-          handle->album = stradd(handle->album, field+strlen("ALBUM="));
-      } else if (!STRCMP(field, "TRACKNUMBER")) {
-          handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
-      } else if (!STRCMP(field, "COPYRIGHT")) {
-          handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
-      } else if (!STRCMP(field, "GENRE")) {
-          handle->genre = stradd(handle->genre, field+strlen("GENRE="));
-      } else if (!STRCMP(field, "DATE")) {
-          handle->date = stradd(handle->date, field+strlen("DATE="));
-      } else if (!STRCMP(field, "CONTACT")) {
-          handle->website = stradd(handle->website, field+strlen("CONTACT="));
-      } else if (!STRCMP(field, "DESCRIPTION")) {
-          handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
-      }
-      else if (!STRCMP(field, "R128_TRACK_GAIN"))
-      {
-          int gain = atoi(field+strlen("R128_TRACK_GAIN="));
-          handle->gain = pow(10, (float)gain/(20.0f*256.0f));
-      }
+      rv = ptr-ch;
    }
-   rv = ptr-ch;
 
    return rv;
 }
