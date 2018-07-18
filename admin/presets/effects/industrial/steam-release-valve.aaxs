@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Steam Valve" frequency="80" duration="3.33">
+  <waveform src="white-noise" ratio="40.0 " pitch="0.7"/>
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">4.0</param>
+    <param n="1">0.5</param>
+    <param n="2">0.1</param>
+    <param n="3">0.8</param>
+   </slot>
+  </effect>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="5.5">80</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.1</param>
+    <param n="1">inf</param>
+    <param n="2">0.1</param>
+    <param n="3">0.03</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.5</param>
+   </slot>
+  </effect>
+  <effect type="phasing">
+   <slot n="0">
+    <param n="0">0.3</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.62</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
