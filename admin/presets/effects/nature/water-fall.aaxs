@@ -9,7 +9,16 @@
 <aeonwave>
 
  <sound name="Waterfall" program="123" bank="4" frequency="220" duration="2.9">
-  <waveform src="white-noise" ratio="7.5" pitch="0.2"/>
+  <waveform src="white-noise" ratio="7.5" pitch="0.33"/>
+  <filter type="frequency" src="12db">
+   <slot n="0">
+    <param n="0">33</param>
+    <param n="1">1.2</param>
+    <param n="2">0.1</param>
+    <param n="3">7.5</param>
+   </slot>
+  </filter>
+  <waveform src="white-noise" processing="add" ratio="7.5" pitch="0.2"/>
   <waveform src="white-noise" processing="add" ratio="15.0" pitch="0.05" staticity="0.9"/>
   <filter type="frequency" src="12db">
    <slot n="0">
