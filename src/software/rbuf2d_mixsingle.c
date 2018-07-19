@@ -158,21 +158,24 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 
    /** Volume */
    genv = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
-   if (srbi->playing == 0 && srbi->stopped == 1)
+   if (!genv)
    {
-      /* The emitter was already flagged as stopped */
-      ret = -1;
-   }
-   else if (!genv && srbi->stopped == 1)
-   {
-      /*
-       * Distance delay induced stopping of playback
-       * In the event that distance delay is not active dist_delay_sec equals
-       * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
-       */
-      ep2d->dist_delay_sec -= drbi->sample->duration_sec;
-      if (ep2d->dist_delay_sec <= 0.0f) {
+      if (srbi->playing == 0 && srbi->stopped == 1)
+      {
+         /* The emitter was already flagged as stopped */
          ret = -1;
+      }
+      else if (srbi->stopped == 1)
+      {
+         /*
+          * Distance delay induced stopping of playback
+          * In the event that distance delay is not active dist_delay_sec equals
+          * to 0 so detracting duration_sec instantly turns dist_delay_sec < 0.0
+          */
+         ep2d->dist_delay_sec -= drbi->sample->duration_sec;
+         if (ep2d->dist_delay_sec <= 0.0f) {
+            ret = -1;
+         }
       }
    }
 
