@@ -636,6 +636,10 @@ _aaxRingBufferDataMixNoiseFn(struct _aaxRingBuffer_t*, enum aaxWaveformType, flo
 typedef void
 _aaxRingBufferDataLimiterFn(struct _aaxRingBuffer_t*, enum _aaxLimiterType);
 
+/**
+ */
+typedef void
+_aaxRingBufferDataDitherFn(struct _aaxRingBuffer_t*, unsigned int bits);
 
 
 typedef struct _aaxRingBuffer_t
@@ -668,6 +672,7 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferDataMixNoiseFn *data_mix_noise;
    _aaxRingBufferDataMultiplyFn *data_multiply;
    _aaxRingBufferDataLimiterFn *limit;
+   _aaxRingBufferDataDitherFn *dither;
 
 // private:	/* TODO: Get rid of these */
    _aaxRingBufferMixMonoFn *mix3d;

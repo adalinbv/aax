@@ -37,6 +37,7 @@
 
 #include <base/types.h>
 #include <base/logging.h>
+#include <base/random.h>
 
 #include <api.h>
 #include <arch.h>
@@ -1416,6 +1417,30 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
    rbi->peak[_AAX_MAX_SPEAKERS] = maxpeak;
 }
 
+void // linear dithering
+_aaxRingBufferDataDither(_aaxRingBuffer *rb, unsigned int bits)
+{
+   if (bits < 24)
+   {
+      _aaxRingBufferData *rbi = rb->handle;
+      _aaxRingBufferSample *rbd = rbi->sample;
+      unsigned int s, track, no_tracks = rbd->no_tracks;
+      size_t no_samples = rbd->no_samples;
+      MIX_T **tracks;
+      float fact;
+
+      fact = (float)(1 << ((24 - bits)+1));
+      tracks = (MIX_T**)rbd->track;
+      for (track=0; track<no_tracks; track++)
+      {
+         MIX_T *dptr = tracks[track];
+         for (s=0; s<no_samples; ++s) {
+            dptr[s] += fact*_aax_rand_sample();
+         }
+      }
+   }
+}
+
 
 /* -------------------------------------------------------------------------- */
 
@@ -1484,6 +1509,7 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->data_mix_noise = _aaxRingBufferDataMixNoise;
    rb->data_mix = _aaxRingBufferDataMixData;
    rb->limit = _aaxRingBufferDataLimiter;
+   rb->dither = _aaxRingBufferDataDither;
 
    /* private */
    rb->mix2d = _aaxRingBufferMixMulti16;
