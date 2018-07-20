@@ -25,6 +25,7 @@ CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
 CREATE_TEST(testmemory)
 CREATE_TEST(testtypes)
+CREATE_TEST(testdsp)
 CREATE_TEST(testurl)
 
 CREATE_TEST(matrix_test)
