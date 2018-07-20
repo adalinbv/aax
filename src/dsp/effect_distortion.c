@@ -86,25 +86,20 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
       effect->slot[0]->destroy(data);
-      if (data == NULL)
-      {
-         data = malloc(sizeof(_aaxRingBufferDistoritonData) +
-                       sizeof(_aaxLFOData));
-         effect->slot[0]->data = data;
-         if (data)
-         {
-            char *ptr = (char*)data + sizeof(_aaxRingBufferDistoritonData);
-            data->lfo = (_aaxLFOData*)ptr;
-         }
-      }
-
+      data = malloc(sizeof(_aaxRingBufferDistoritonData) + sizeof(_aaxLFOData));
+      effect->slot[0]->data = data;
       if (data)
       {
-         _aaxLFOData *lfo = data->lfo;
+         _aaxLFOData *lfo;
          int constant;
+         char *ptr;
+
+         ptr = (char*)data + sizeof(_aaxRingBufferDistoritonData);
+         data->lfo = (_aaxLFOData*)ptr;
 
          data->run = _distortion_run;
 
+         lfo = data->lfo;
          lfo->convert = _linear; // _log2lin;
          lfo->state = effect->state;
          lfo->fs = effect->info->frequency;
@@ -131,12 +126,8 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
       effect->slot[0]->destroy(data);
-      if (data == NULL)
-      {
-         data = malloc(sizeof(_aaxRingBufferDistoritonData));
-         effect->slot[0]->data = data;
-      }
-
+      data = malloc(sizeof(_aaxRingBufferDistoritonData));
+      effect->slot[0]->data = data;
       if (data)
       {
          data->run = _distortion_run;
