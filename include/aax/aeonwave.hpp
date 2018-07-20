@@ -82,54 +82,55 @@ inline void free(void *ptr) {
 }
 
 
-class Param
+template <typename T>
+class Tieable
 {
 public:
-    Param(float v=0.0f) : val(v), tied(0) {}
+    Tieable(T v=T(0)) : val(v), tied(0) {}
 
-    Param(const Param& p) : Param(p.val) {}
+    Tieable(const Tieable& p) : Tieable(p.val) {}
 
-    virtual ~Param() = default;
+    virtual ~Tieable() = default;
 
-    // float operators
-    inline float operator+(float v) { return (val + v); }
-    inline float operator-(float v) { return (val - v); }
-    inline float operator*(float v) { return (val * v); }
-    inline float operator/(float v) { return (val / v); }
-    inline float operator=(float v) { val = v; fire(); return val; }
-    inline float operator+=(float v) { val += v; fire(); return val; }
-    inline float operator-=(float v) { val += v; fire(); return val; }
-    inline float operator*=(float v) { val += v; fire(); return val; }
-    inline float operator/=(float v) { val += v; fire(); return val; }
+    // type operators
+    inline T operator+(T v) { return (val + v); }
+    inline T operator-(T v) { return (val - v); }
+    inline T operator*(T v) { return (val * v); }
+    inline T operator/(T v) { return (val / v); }
+    inline T operator=(T v) { val = v; fire(); return val; }
+    inline T operator+=(T v) { val += v; fire(); return val; }
+    inline T operator-=(T v) { val += v; fire(); return val; }
+    inline T operator*=(T v) { val += v; fire(); return val; }
+    inline T operator/=(T v) { val += v; fire(); return val; }
 
-    inline bool operator==(float v) { val += v; fire(); return val; }
-    inline bool operator!=(float v) { val += v; fire(); return val; }
-    inline bool operator<(float v) { return (val < v); }
-    inline bool operator>(float v) { return (val > v); }
-    inline bool operator<=(float v) { return (val <= v); }
-    inline bool operator>=(float v) { return (val >= v); }
+    inline bool operator==(T v) { val += v; fire(); return val; }
+    inline bool operator!=(T v) { val += v; fire(); return val; }
+    inline bool operator<(T v) { return (val < v); }
+    inline bool operator>(T v) { return (val > v); }
+    inline bool operator<=(T v) { return (val <= v); }
+    inline bool operator>=(T v) { return (val >= v); }
 
-    // Param operators
-    inline Param operator-() { return -val; }
-    inline Param operator+(const Param& v) { return (val + v.val); }
-    inline Param operator-(const Param& v) { return (val - v.val); }
-    inline Param operator*(const Param& v) { return (val * v.val); }
-    inline Param operator/(const Param& v) { return (val / v.val); }
-    inline Param operator=(const Param& v) { val = v.val; fire(); return val; }
-    inline Param operator+=(const Param& v) { val+=v.val; fire(); return val; }
-    inline Param operator-=(const Param& v) { val+=v.val; fire(); return val; }
-    inline Param operator*=(const Param& v) { val+=v.val; fire(); return val; }
-    inline Param operator/=(const Param& v) { val+=v.val; fire(); return val; }
+    // Tieable operators
+    inline Tieable operator-() { return -val; }
+    inline Tieable operator+(const Tieable& v) { return (val + v.val); }
+    inline Tieable operator-(const Tieable& v) { return (val - v.val); }
+    inline Tieable operator*(const Tieable& v) { return (val * v.val); }
+    inline Tieable operator/(const Tieable& v) { return (val / v.val); }
+    inline Tieable operator=(const Tieable& v) { val = v.val; fire(); return val; }
+    inline Tieable operator+=(const Tieable& v) { val+=v.val; fire(); return val; }
+    inline Tieable operator-=(const Tieable& v) { val+=v.val; fire(); return val; }
+    inline Tieable operator*=(const Tieable& v) { val+=v.val; fire(); return val; }
+    inline Tieable operator/=(const Tieable& v) { val+=v.val; fire(); return val; }
 
-    inline bool operator==(const Param& v) { return (val == v.val); }
-    inline bool operator!=(const Param& v) { return (val != v.val); }
-    inline bool operator<(const Param& v) { return (val < v.val); }
-    inline bool operator>(const Param& v) { return (val > v.val); }
-    inline bool operator<=(const Param& v) { return (val <= v.val); }
-    inline bool operator>=(const Param& v) { return (val >= v.val); }
+    inline bool operator==(const Tieable& v) { return (val == v.val); }
+    inline bool operator!=(const Tieable& v) { return (val != v.val); }
+    inline bool operator<(const Tieable& v) { return (val < v.val); }
+    inline bool operator>(const Tieable& v) { return (val > v.val); }
+    inline bool operator<=(const Tieable& v) { return (val <= v.val); }
+    inline bool operator>=(const Tieable& v) { return (val >= v.val); }
 
-    operator const float*() const { return &val; }
-    operator float() { return val; }
+    operator const T*() const { return &val; }
+    operator T() { return val; }
 
     typedef int set_filter(void*, aaxFilter);
     typedef int set_effect(void*, aaxEffect);
@@ -171,7 +172,7 @@ protected:
     }
 
 private:
-    float val;
+    T val;
     bool tied;
 
     bool filter;
@@ -190,6 +191,8 @@ private:
     } type;
    int param;
 };
+typedef Tieable<float> Param;
+typedef Tieable<int> Status;
 
 
 class Obj
