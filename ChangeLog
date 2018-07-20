@@ -12,6 +12,8 @@
    properly after the emitter is requested to stop playing.
  * Overhaul of the C++ classes to make them C++11 compliant.
  * Remove support for an ancient way of handling config files.
+ * Prevent a crash when the state of the timed-gain filter or timed-pitch effect
+   is not set before it is registered the the sensor, audioframe or emitter.
 
 -- Erik Hofman <tech@adalin.org>  Tue 17 Jul  2018 10:06:00 + 0200
 
