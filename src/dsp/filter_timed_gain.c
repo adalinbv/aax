@@ -176,29 +176,31 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 
       i = 0;
       env = (_aaxEnvelopeData*)p2d->filter[rv->pos].data;
-
-      if (env->max_pos[1] > env->max_pos[0]) i = 1;
-      dt = p2d->filter[rv->pos].param[2*i+1] / env->max_pos[i];
-
-      no_steps = env->max_pos[1];
-      value = p2d->filter[rv->pos].param[AAX_LEVEL1];
-      value += env->step[1] * no_steps;
-
-      stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
-      for (i=1; i<stages; i++)
+      if (env)
       {
-         _aaxFilterInfo* slot = rv->slot[i];
+         if (env->max_pos[1] > env->max_pos[0]) i = 1;
+         dt = p2d->filter[rv->pos].param[2*i+1] / env->max_pos[i];
 
-         no_steps = env->max_pos[2*i];
-         slot->param[0] = value;
-         slot->param[1] = no_steps * dt;
+         no_steps = env->max_pos[1];
+         value = p2d->filter[rv->pos].param[AAX_LEVEL1];
+         value += env->step[1] * no_steps;
 
-         value += env->step[2*i] * no_steps;
-         no_steps = env->max_pos[2*i+1];
-         slot->param[2] = value;
-         slot->param[3] = no_steps * dt;
+         stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
+         for (i=1; i<stages; i++)
+         {
+            _aaxFilterInfo* slot = rv->slot[i];
 
-         value += env->step[2*i+1] * no_steps;
+            no_steps = env->max_pos[2*i];
+            slot->param[0] = value;
+            slot->param[1] = no_steps * dt;
+
+            value += env->step[2*i] * no_steps;
+            no_steps = env->max_pos[2*i+1];
+            slot->param[2] = value;
+            slot->param[3] = no_steps * dt;
+
+            value += env->step[2*i+1] * no_steps;
+         }
       }
    }
    return rv;
@@ -234,10 +236,10 @@ _aaxTimedGainFilterMinMax(float val, int slot, unsigned char param)
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxTimedGainRange[slot].min[param],
                        _aaxTimedGainRange[slot].max[param]);
 }

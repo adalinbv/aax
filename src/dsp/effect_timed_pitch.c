@@ -173,29 +173,31 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 
       i = 0;
       env = (_aaxEnvelopeData*)p2d->effect[rv->pos].data;
-
-      if (env->max_pos[1] > env->max_pos[0]) i = 1;
-      dt = p2d->effect[rv->pos].param[2*i+1] / env->max_pos[i];
-
-      no_steps = env->max_pos[1];
-      value = p2d->effect[rv->pos].param[AAX_LEVEL1]; 
-      value += env->step[1] * no_steps;
-
-      stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
-      for (i=1; i<stages; i++)
+      if (env)
       {
-         _aaxEffectInfo* slot = rv->slot[i];
+         if (env->max_pos[1] > env->max_pos[0]) i = 1;
+         dt = p2d->effect[rv->pos].param[2*i+1] / env->max_pos[i];
 
-         no_steps = env->max_pos[2*i];
-         slot->param[0] = value;
-         slot->param[1] = no_steps * dt;
+         no_steps = env->max_pos[1];
+         value = p2d->effect[rv->pos].param[AAX_LEVEL1];
+         value += env->step[1] * no_steps;
 
-         value += env->step[2*i] * no_steps;
-         no_steps = env->max_pos[2*i+1];
-         slot->param[2] = value;
-         slot->param[3] = no_steps * dt;
+         stages = _MIN(1+env->max_stages/2, _MAX_ENVELOPE_STAGES/2);
+         for (i=1; i<stages; i++)
+         {
+            _aaxEffectInfo* slot = rv->slot[i];
 
-         value += env->step[2*i+1] * no_steps;
+            no_steps = env->max_pos[2*i];
+            slot->param[0] = value;
+            slot->param[1] = no_steps * dt;
+
+            value += env->step[2*i] * no_steps;
+            no_steps = env->max_pos[2*i+1];
+            slot->param[2] = value;
+            slot->param[3] = no_steps * dt;
+
+            value += env->step[2*i+1] * no_steps;
+         }
       }
    }
    return rv;
@@ -203,14 +205,14 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 
 static float
 _aaxTimedPitchEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
-   
+
 static float
 _aaxTimedPitchEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
-{  
+{
    float rv = val;
    return rv;
 }
@@ -225,10 +227,10 @@ _aaxTimedPitchEffectMinMax(float val, int slot, unsigned char param)
     { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } },
     { {  0.0f, 0.0f, 0.0f, 0.0f }, { 4.0f, FLT_MAX, 4.0f, FLT_MAX } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxTimedPitchRange[slot].min[param],
                        _aaxTimedPitchRange[slot].max[param]);
 }
