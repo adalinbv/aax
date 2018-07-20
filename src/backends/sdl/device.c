@@ -1101,6 +1101,10 @@ _aaxSDLDriverThread(void* config)
          }
          while (0);
 #endif
+
+         if (handle->finished) {
+            _aaxSemaphoreRelease(handle->finished);
+         }
       }
 
       res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
