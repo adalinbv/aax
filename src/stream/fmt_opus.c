@@ -122,8 +122,9 @@ static int _aaxReadOpusHeader(_driver_t*);
 int
 _opus_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
-   void *audio = NULL;
    int rv = AAX_FALSE;
+#if 0
+   void *audio = NULL;
 
    audio = _aaxIsLibraryPresent("opus", "0");
    if (!audio) {
@@ -166,6 +167,7 @@ _opus_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
          }
       }
    }
+#endif
 
    return rv;
 }
@@ -301,6 +303,7 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
 
+printf("  opus_fill: %li\n", *bytes);
    if (_aaxDataAdd(handle->opusBuffer, sptr, *bytes)  == 0) {
       *bytes = 0;
    }
@@ -419,28 +422,47 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       opusbuf = handle->opusBuffer->data;
       ret = popus_decode_float(handle->id, opusbuf, packet_size,
                               (float*)(pcmbuf+pcmbufoffs), frame_space, 0);
+
+printf("  opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
       if (ret > 0)
       {
-         unsigned int max;
+         if (handle->pre_skip > ret)
+         {
+            handle->pre_skip -= ret;
+//          rv = __F_NEED_MORE;
+         }
+         else
+         {
+            ret -= handle->pre_skip;
+            handle->pre_skip = 0;
+         }
+printf("! opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
 
-         rv += _aaxDataMove(handle->opusBuffer, NULL, packet_size);
+         if (!handle->pre_skip)
+         {
+            unsigned int max;
 
-         handle->pcmBuffer->avail += ret*sizeof(float);
-         assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);
+            rv += _aaxDataMove(handle->opusBuffer, NULL, packet_size);
 
-         max = _MIN(req, handle->pcmBuffer->avail/sizeof(float));
+            handle->pcmBuffer->avail += ret*sizeof(float);
+            assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);
 
-         _batch_cvt24_ps_intl(dptr, pcmbuf, dptr_offs, tracks, max);
-         _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(float));
-         handle->no_samples += max;
-         dptr_offs += max;
-         req -= max;
-         *num += max;
+            max = _MIN(req, handle->pcmBuffer->avail/sizeof(float));
+
+            _batch_cvt24_ps_intl(dptr, pcmbuf, dptr_offs, tracks, max);
+            _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(float));
+            handle->no_samples += max;
+            dptr_offs += max;
+            req -= max;
+            *num += max;
+         }
       }
       else {
          rv = __F_NEED_MORE;
       }
    }
+
+printf("  opus_cvt_from: %li\n", rv);
    return rv;
 }
 
@@ -623,7 +645,7 @@ _aaxReadOpusHeader(_driver_t *handle)
          handle->nb_streams = 1;
          handle->nb_coupled = handle->no_tracks/2;
          handle->frequency = *((uint32_t*)h+3);
-//       handle->pre_skip = (unsigned)h[10] << 8 | h[11];
+         handle->pre_skip = (unsigned)h[10] << 8 | h[11];
 //       handle->no_samples = -handle->pre_skip;
 
 //       gain = (int)h[16] << 8 | h[17];

@@ -89,7 +89,7 @@ typedef struct
    size_t max_samples;
 
    _fmt_type_t format_type;
-   enum oggFormat ogg_format;
+// enum oggFormat ogg_format;
 
    char need_more;
 
@@ -398,7 +398,7 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
       while ( rv == __F_NEED_MORE && handle->oggBuffer->avail >= packet_size);
    }
 
-printf("ogg_cvt_from: %i\n", rv);
+printf("ogg_cvt_from: %li\n", rv);
    return rv;
 }
 
@@ -759,7 +759,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 
                handle->page_sequence_no = curr;
 
-#if 1
+#if 0
 {
    char *ch = (char*)header;
    unsigned int i;
@@ -1140,7 +1140,7 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
    if ((len > 5) && !strncmp(h, "\177FLAC", 5))
    {
       handle->keep_header = AAX_FALSE;
-      handle->ogg_format = FLAC_OGG_FILE;
+//    handle->ogg_format = FLAC_OGG_FILE;
       handle->format_type = _FMT_FLAC;
       handle->format = AAX_PCM16S;
       rv = 0;
@@ -1149,14 +1149,14 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
    {
       handle->keep_header = AAX_TRUE;
       handle->format_type = _FMT_VORBIS;
-      handle->ogg_format = VORBIS_OGG_FILE;
+//    handle->ogg_format = VORBIS_OGG_FILE;
       rv = _aaxFormatDriverReadVorbisHeader(handle, h, len);
    }
    else if ((len > 8) && !strncmp(h, "OpusHead", 8))
    {
       handle->keep_header = AAX_FALSE;
       handle->format_type = _FMT_OPUS;
-      handle->ogg_format = OPUS_OGG_FILE;
+//    handle->ogg_format = OPUS_OGG_FILE;
       rv = _aaxFormatDriverReadOpusHeader(handle, h, len);
    }
 #if 0

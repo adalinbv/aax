@@ -22,6 +22,7 @@
 #ifndef __FILE_EXT_OGG_H
 #define __FILE_EXT_OGG_H 1
 
+#if 0
 enum oggFormat
 {
    UNSUPPORTED = 0,
@@ -31,6 +32,7 @@ enum oggFormat
    OPUS_OGG_FILE,
    FLAC_OGG_FILE
 };
+#endif
 
 
 // https://www.ietf.org/rfc/rfc3533.txt
