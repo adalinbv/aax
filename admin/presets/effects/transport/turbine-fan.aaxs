@@ -9,6 +9,7 @@
 <aeonwave>
 
  <sound name="Turbine Fan" frequency="220" duration="3.33">
+
   <waveform src="pink-noise" ratio="0.1" pitch="0.5"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -21,31 +22,6 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">10.0</param>
-    <param n="2">1.0</param>
-    <param n="3">inf</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">30.0</param>
-   </slot>
-  </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">30.0</param>
-    <param n="2">1.0</param>
-    <param n="3">inf</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">30.0</param>
-    <param n="2">0.2</param>
-   </slot>
-  </effect>
  </emitter>
 
 </aeonwave>
