@@ -23,6 +23,7 @@
 #define AAX_AEONWAVE_HPP 1
 
 #include <unordered_map>
+#include <type_traits>
 #include <algorithm>
 #include <vector>
 
@@ -58,19 +59,19 @@ inline const char* strerror(enum aaxErrorType e=error_no()) {
 }
 
 inline enum aaxType type(const char *s) {
-   return aaxGetTypeByName(s);
+    return aaxGetTypeByName(s);
 }
 
 inline enum aaxWaveformType waveform_type(const char *s) {
-   return aaxGetWaveformTypeByName(s);
+    return aaxGetWaveformTypeByName(s);
 }
 
 inline enum aaxFrequencyFilterType frequency_filter_type(const char *s) {
-   return aaxGetFrequencyFilterTypeByName(s);
+    return aaxGetFrequencyFilterTypeByName(s);
 }
 
 inline enum aaxDistanceModel distance_model(const char *s) {
-   return aaxGetDistanceModelByName(s);
+    return aaxGetDistanceModelByName(s);
 }
 
 inline bool is_valid(void* c, enum aaxHandleType t=AAX_CONFIG) {
@@ -81,6 +82,15 @@ inline void free(void *ptr) {
     aaxFree(ptr);
 }
 
+
+union dsptype
+{
+    dsptype(enum aaxFilterType f=AAX_FILTER_NONE) : filter(f) {};
+    dsptype(enum aaxEffectType e) : effect(e) {};
+    enum aaxFilterType filter;
+    enum aaxEffectType effect;
+    int eftype;
+};
 
 template <typename T>
 class Tieable
@@ -140,7 +150,7 @@ public:
     bool tie(set_filter sfn, get_filter gfn, void* o, aaxFilterType f, int p) {
         if (!tied) {
             set.filter = sfn; get.filter = gfn;
-            obj = o; type.filter = f; param = p;
+            obj = o; dsptype.filter = f; param = p;
             filter = true; tied = true; fire();
             return true;
         }
@@ -149,7 +159,7 @@ public:
     bool tie(set_effect sfn, get_effect gfn, void* o, aaxEffectType e, int p) {
         if (!tied) {
             set.effect = sfn; get.effect = gfn;
-            obj = o; type.effect = e; param = p;
+            obj = o; dsptype.effect = e; param = p;
             filter = false; tied = true; fire();
             return true;
         }
@@ -161,12 +171,20 @@ protected:
     void fire() {
         if (!tied) return;
         if (filter) {
-            aaxFilter flt = get.filter(obj, type.filter);
-            aaxFilterSetParam(flt, param, AAX_LINEAR, val);
+            aaxFilter flt = get.filter(obj, dsptype.filter);
+            if (std::is_same<T,float>::value) {
+              aaxFilterSetParam(flt, param, AAX_LINEAR, val);
+            } else if (std::is_same<T,int>::value) {
+               aaxFilterSetState(flt, val);
+            }
             set.filter(obj, flt); aaxFilterDestroy(flt);
         } else {
-            aaxEffect eff = get.effect(obj, type.effect);
-            aaxEffectSetParam(eff, param, AAX_LINEAR, val);
+            aaxEffect eff = get.effect(obj, dsptype.effect);
+            if (std::is_same<T,float>::value) {
+               aaxEffectSetParam(eff, param, AAX_LINEAR, val);
+            } else if (std::is_same<T,int>::value) {
+               aaxEffectSetState(eff, val);
+            }
             set.effect(obj, eff); aaxEffectDestroy(eff);
         }
     }
@@ -185,15 +203,11 @@ private:
         get_filter* filter;
         get_effect* effect;
     } get;
-    union type {
-        enum aaxFilterType filter;
-        enum aaxEffectType effect;
-    } type;
-   int param;
+    union  dsptype dsptype;
+    int param;
 };
 typedef Tieable<float> Param;
 typedef Tieable<int> Status;
-
 
 class Obj
 {
@@ -213,10 +227,9 @@ public:
     }
 
     virtual ~Obj() {
-        for (size_t i=0; i<ties.size(); ++i) {
-            ties[i]->untie();
-        }
-        ties.clear();
+        for (size_t i=0; i<fties.size(); ++i) fties[i]->untie();
+        for (size_t i=0; i<ities.size(); ++i) ities[i]->untie();
+        fties.clear(); ities.clear();
         if (!!closefn) closefn(ptr);
     }
 
@@ -227,8 +240,23 @@ public:
     }
 
     void ties_add(Param& pm) {
-        auto pi = std::find(ties.begin(),ties.end(),&pm);
-        if (pi == ties.end()) ties.push_back(&pm);
+        auto pi = std::find(fties.begin(),fties.end(),&pm);
+        if (pi == fties.end()) fties.push_back(&pm);
+    }
+
+    void ties_add(Status& pm) {
+        auto pi = std::find(ities.begin(),ities.end(),&pm);
+        if (pi == ities.end()) ities.push_back(&pm);
+    }
+
+    void untie(Param& pm) {
+        auto pi = std::find(fties.begin(),fties.end(),&pm);
+        if (pi != fties.end()) fties.erase(pi); pm.untie();
+    }
+
+    void untie(Status& pm) {
+        auto pi = std::find(ities.begin(),ities.end(),&pm);
+        if (pi != ities.end()) ities.erase(pi); pm.untie();
     }
 
     friend void swap(Obj& o1, Obj& o2) {
@@ -252,7 +280,8 @@ public:
 protected:
     void* ptr;
     mutable close_fn* closefn;
-    std::vector<Param*> ties;
+    std::vector<Param*> fties;
+    std::vector<Status*> ities;
 };
 
 
@@ -331,19 +360,19 @@ private:
 class dsp : public Obj
 {
 public:
-    dsp() : Obj(), filter(true), fetype(0) {}
+    dsp() : Obj(), filter(true) {}
 
     dsp(aaxConfig c, enum aaxFilterType f) :
-        Obj(c,aaxFilterDestroy), filter(true), fetype(f) {
+        Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
     dsp(aaxConfig c, enum aaxEffectType e) :
-        Obj(c,aaxEffectDestroy), filter(false), fetype(e) {
+        Obj(c,aaxEffectDestroy), filter(false), dsptype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
-    dsp(const dsp& o) : Obj(o), filter(o.filter), fetype(o.fetype) {}
+    dsp(const dsp& o) : Obj(o), filter(o.filter), dsptype(o.dsptype) {}
 
     virtual ~dsp() = default;
 
@@ -392,7 +421,7 @@ public:
     friend void swap(dsp& o1, dsp& o2) {
         swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         std::swap(o1.filter, o2.filter);
-        std::swap(o1.fetype, o2.fetype);
+        std::swap(o1.dsptype, o2.dsptype);
     }
     dsp& operator=(dsp o) {
         swap(*this, o);
@@ -400,7 +429,7 @@ public:
     }
 
     inline int type() {
-        return fetype;
+        return dsptype.eftype;
     }
     inline bool is_filter() {
         return filter;
@@ -408,7 +437,7 @@ public:
 
 private:
     bool filter;
-    int fetype;
+    union  dsptype dsptype;
 };
 
 
@@ -450,15 +479,13 @@ public:
         return dsp(aaxEmitterGetEffect(ptr,e),e);
     }
 
-    bool tie(Param& pm, enum aaxFilterType f, int p) { ties_add(pm);
+    template <typename T>
+    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
         return pm.tie(aaxEmitterSetFilter, aaxEmitterGetFilter, ptr, f, p);
     }
-    bool tie(Param& pm, enum aaxEffectType e, int p) { ties_add(pm);
+    template <typename T>
+    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
         return pm.tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
-    }
-    void untie(Param& pm) {
-        auto pi = std::find(ties.begin(),ties.end(),&pm);
-        if (pi != ties.end()) ties.erase(pi); pm.untie();
     }
 
     // ** position and orientation ******
@@ -586,23 +613,21 @@ public:
         return dsp(e,t);
     }
 
-    bool tie(Param& pm, enum aaxFilterType f, int p) { ties_add(pm);
+    template <typename T>
+    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
         if (scenery_filter(f)) {
             return pm.tie(aaxScenerySetFilter, aaxSceneryGetFilter,ptr,f,p);
         } else {
             return pm.tie(aaxMixerSetFilter, aaxMixerGetFilter, ptr, f, p);
         }
     }
-    bool tie(Param& pm, enum aaxEffectType e, int p) { ties_add(pm);
+    template <typename T>
+    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
         if (scenery_effect(e)) {
             return pm.tie(aaxScenerySetEffect, aaxSceneryGetEffect,ptr,e,p);
         } else {
             return pm.tie(aaxMixerSetEffect, aaxMixerGetEffect, ptr, e, p);
         }
-    }
-    void untie(Param& pm) {
-        auto pi = std::find(ties.begin(),ties.end(),&pm);
-        if (pi != ties.end()) ties.erase(pi); pm.untie();
     }
 
     // ** position and orientation ******
@@ -756,15 +781,13 @@ public:
         return dsp(aaxAudioFrameGetEffect(ptr,t),t);
     }
 
-    bool tie(Param& pm, enum aaxFilterType f, int p) { ties_add(pm);
+    template <typename T>
+    bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
         return pm.tie(aaxAudioFrameSetFilter, aaxAudioFrameGetFilter, ptr, f, p);
     }
-    bool tie(Param& pm, enum aaxEffectType e, int p) { ties_add(pm);
+    template <typename T>
+    bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
         return pm.tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
-    }
-    void untie(Param& pm) {
-        auto pi = std::find(ties.begin(),ties.end(),&pm);
-        if (pi != ties.end()) ties.erase(pi); pm.untie();
     }
 
     // ** sub-mixing ******
