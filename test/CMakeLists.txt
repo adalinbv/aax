@@ -20,6 +20,9 @@ FUNCTION(CREATE_TEST TEST_NAME)
 ENDFUNCTION()
 
 CREATE_CPP_TEST(testposition)
+set_property(SOURCE testposition.cpp APPEND
+             PROPERTY COMPILE_FLAGS "-std=c++11"
+)
 
 CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
@@ -38,7 +41,7 @@ elseif(X86)
                PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
   )
 elseif(ARM)
-   set_property(SOURCE matrix_test.c APPEND
+  set_property(SOURCE matrix_test.c APPEND
                 PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
   )
 endif()
