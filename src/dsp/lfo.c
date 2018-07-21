@@ -485,23 +485,26 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
       }
 
       // Only the timed-gain-filter supports env->repeat > 1
-      if ((!stopped && env->repeat > 1) &&
+      if ((env->repeat > 1) &&
           ((env->stage == env->max_stages) || (rv < -1e-3f)))
       {
-         if (rv < -1e-3f) rv = 0.0f;
-         env->value = env->value0;
-         env->stage = 0;
-         env->stage = 0;
-         env->pos = 0;
-         env->ctr = 0.0f;
-         env->repeat--;
-         if (penv)
+         if (!stopped || (env->repeat == AAX_REPEAT-1))
          {
-            penv->value = penv->value0;
-            penv->stage = 0;
-            penv->stage = 0;
-            penv->pos = 0;
-            penv->ctr = 0.0f;
+            if (rv < -1e-3f) rv = 0.0f;
+            env->value = env->value0;
+            env->stage = 0;
+            env->stage = 0;
+            env->pos = 0;
+            env->ctr = 0.0f;
+            env->repeat--;
+            if (penv)
+            {
+               penv->value = penv->value0;
+               penv->stage = 0;
+               penv->stage = 0;
+               penv->pos = 0;
+               penv->ctr = 0.0f;
+            }
          }
       }
 
