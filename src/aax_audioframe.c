@@ -478,7 +478,6 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_BITCRUSHER_FILTER:
-      case AAX_TIMED_GAIN_FILTER:
       case AAX_COMPRESSOR:
       {
          _aax2dProps *p2d = handle->submix->props2d;
@@ -552,11 +551,11 @@ aaxAudioFrameGetFilter(aaxFrame frame, enum aaxFilterType type)
    {
       switch(type)
       {
+      case AAX_EQUALIZER:
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_BITCRUSHER_FILTER:
       case AAX_VOLUME_FILTER:
-      case AAX_TIMED_GAIN_FILTER:
       case AAX_DISTANCE_FILTER:
       case AAX_DIRECTIONAL_FILTER:
       case AAX_COMPRESSOR:
