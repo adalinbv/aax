@@ -20,7 +20,7 @@
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="10.0">3500</param>
+    <param n="0" pitch="20.0">6000</param>
     <param n="1">1.0</param>
     <param n="2">0.25</param>
     <param n="3">5.5</param>
@@ -51,7 +51,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.12</param>
+    <param n="0">0.97</param>
     <param n="1" factor="velocity">2.2</param>
     <param n="2">0.87</param>
     <param n="3">0.4</param>
