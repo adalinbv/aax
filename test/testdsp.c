@@ -41,11 +41,12 @@ int main()
       TRY( aaxMixerRegisterAudioFrame(config, frame) );
       TRY( aaxAudioFrameRegisterEmitter(frame, emitter) );
 
+      /* emitters */
       for (i=AAX_VOLUME_FILTER; i<AAX_GRAPHIC_EQUALIZER; i++)
       {
          aaxFilter filter;
 
-         printf("filter: %-30s: ", aaxFilterGetNameByType(config, i));
+         printf("emitter filter: %-30s: ", aaxFilterGetNameByType(config, i));
          TRY( filter = aaxFilterCreate(config, i) );
          TRY( aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
          TRY( aaxEmitterSetFilter(emitter, filter) );
@@ -68,7 +69,7 @@ int main()
       {
          aaxEffect effect;
 
-         printf("effect: %-30s: ", aaxEffectGetNameByType(config, i));
+         printf("emitter effect: %-30s: ", aaxEffectGetNameByType(config, i));
          TRY( effect = aaxEffectCreate(config, i) );
          TRY( aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
          TRY( aaxEmitterSetEffect(emitter, effect) );
@@ -86,7 +87,165 @@ int main()
 
          printf("ok\n");
       }
+      printf("\n");
 
+      /* audio-frames */
+      for (i=AAX_EQUALIZER; i<AAX_FILTER_MAX; i++)
+      {
+         aaxFilter filter;
+
+         if (i == AAX_GRAPHIC_EQUALIZER) continue;
+         if (i == AAX_TIMED_GAIN_FILTER) continue;
+
+         printf("frame filter: %-32s: ", aaxFilterGetNameByType(config, i));
+         TRY( filter = aaxFilterCreate(config, i) );
+         TRY( aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
+         TRY( aaxAudioFrameSetFilter(frame, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         TRY( filter = aaxAudioFrameGetFilter(frame, i) );
+         TRY( aaxFilterSetState(filter, AAX_TRUE) );
+         TRY( aaxAudioFrameSetFilter(frame, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         TRY( filter = aaxAudioFrameGetFilter(frame, i) );
+         TRY( aaxFilterSetState(filter, AAX_FALSE) );
+         TRY( aaxAudioFrameSetFilter(frame, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         printf("ok\n");
+      }
+
+      for (i=AAX_PITCH_EFFECT; i<AAX_CONVOLUTION_EFFECT; i++)
+      {
+         aaxEffect effect;
+
+         if (i == AAX_TIMED_PITCH_EFFECT) continue;
+         if (i == AAX_VELOCITY_EFFECT) break;
+
+         printf("frame effect: %-32s: ", aaxEffectGetNameByType(config, i));
+         TRY( effect = aaxEffectCreate(config, i) );
+         TRY( aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
+         TRY( aaxAudioFrameSetEffect(frame, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         TRY( effect = aaxAudioFrameGetEffect(frame, i) );
+         TRY( aaxEffectSetState(effect, AAX_TRUE) );
+         TRY( aaxAudioFrameSetEffect(frame, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         TRY( effect = aaxAudioFrameGetEffect(frame, i) );
+         TRY( aaxEffectSetState(effect, AAX_FALSE) );
+         TRY( aaxAudioFrameSetEffect(frame, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         printf("ok\n");
+      }
+      printf("\n");
+
+      /* scenery */
+      for (i=AAX_DISTANCE_FILTER; i<AAX_BITCRUSHER_FILTER; i++)
+      {
+         aaxFilter filter;
+
+         printf("scenery filter: %-30s: ", aaxFilterGetNameByType(config, i));
+         TRY( filter = aaxFilterCreate(config, i) );
+         TRY( aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
+         TRY( aaxScenerySetFilter(config, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         TRY( filter = aaxSceneryGetFilter(config, i) );
+         TRY( aaxFilterSetState(filter, AAX_TRUE) );
+         TRY( aaxScenerySetFilter(config, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         TRY( filter = aaxSceneryGetFilter(config, i) );
+         TRY( aaxFilterSetState(filter, AAX_FALSE) );
+         TRY( aaxScenerySetFilter(config, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         printf("ok\n");
+      }
+
+      for (i=AAX_VELOCITY_EFFECT; i<AAX_REVERB_EFFECT; i++)
+      {
+         aaxEffect effect;
+
+         printf("scenery effect: %-30s: ", aaxEffectGetNameByType(config, i));
+         TRY( effect = aaxEffectCreate(config, i) );
+         TRY( aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
+         TRY( aaxScenerySetEffect(config, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         TRY( effect = aaxSceneryGetEffect(config, i) );
+         TRY( aaxEffectSetState(effect, AAX_TRUE) );
+         TRY( aaxScenerySetEffect(config, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         TRY( effect = aaxSceneryGetEffect(config, i) );
+         TRY( aaxEffectSetState(effect, AAX_FALSE) );
+         TRY( aaxScenerySetEffect(config, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         printf("ok\n");
+      }
+      printf("\n");
+
+      /* mixer */
+      for (i=AAX_EQUALIZER; i<AAX_FILTER_MAX; i++)
+      {
+         aaxFilter filter;
+
+         if (i == AAX_TIMED_GAIN_FILTER) continue;
+         if (i == AAX_DIRECTIONAL_FILTER) continue;
+         if (i == AAX_DISTANCE_FILTER) continue;
+         if (i == AAX_FREQUENCY_FILTER) continue;
+
+         printf("mixer filter: %-32s: ", aaxFilterGetNameByType(config, i));
+         TRY( filter = aaxFilterCreate(config, i) );
+         TRY( aaxFilterSetSlot(filter, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
+         TRY( aaxMixerSetFilter(config, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         TRY( filter = aaxMixerGetFilter(config, i) );
+         TRY( aaxFilterSetState(filter, AAX_TRUE) );
+         TRY( aaxMixerSetFilter(config, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         TRY( filter = aaxMixerGetFilter(config, i) );
+         TRY( aaxFilterSetState(filter, AAX_FALSE) );
+         TRY( aaxMixerSetFilter(config, filter) );
+         TRY( aaxFilterDestroy(filter) );
+
+         printf("ok\n");
+      }
+
+      for (i=AAX_PITCH_EFFECT; i<AAX_EFFECT_MAX; i++)
+      {
+         aaxEffect effect;
+
+         if (i == AAX_TIMED_PITCH_EFFECT) continue;
+         if (i == AAX_VELOCITY_EFFECT) continue;
+
+         printf("mixer effect: %-32s: ", aaxEffectGetNameByType(config, i));
+         TRY( effect = aaxEffectCreate(config, i) );
+         TRY( aaxEffectSetSlot(effect, 0, AAX_LINEAR, 0.0f, 1.0f, 0.0f, 1.0f) );
+         TRY( aaxMixerSetEffect(config, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         TRY( effect = aaxMixerGetEffect(config, i) );
+         TRY( aaxEffectSetState(effect, AAX_TRUE) );
+         TRY( aaxMixerSetEffect(config, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         TRY( effect = aaxMixerGetEffect(config, i) );
+         TRY( aaxEffectSetState(effect, AAX_FALSE) );
+         TRY( aaxMixerSetEffect(config, effect) );
+         TRY( aaxEffectDestroy(effect) );
+
+         printf("ok\n");
+      }
+      printf("\n");
 
       TRY( aaxEmitterSetState(emitter, AAX_PROCESSED) );
       TRY( aaxAudioFrameSetState(frame, AAX_STOPPED) );
