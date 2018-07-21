@@ -1,4 +1,15 @@
-* Tue Jul 17 2018 - tech@adalin.org
+
+* Sat Jul 21 2018 - tech@adalin.org
+- AeonWave (3.3.1) stable; urgency=low
+
+ * If the source has stopped then finish the current time enveelope and stop,
+   otherwise an evelope with repeat set to max will never stop until the
+   emitter is set to processed.
+
+-- Erik Hofman <tech@adalin.org>  Sat 21 Jul  2018 10:11:01 + 0200
+
+
+* Fri Jul 20 2018 - tech@adalin.org
 - AeonWave (3.3.0) stable; urgency=low
 
  * Automatically convert an effect name like "effects/nature/birds" to a full
@@ -15,7 +26,7 @@
  * Prevent a crash when the state of the timed-gain filter or timed-pitch effect
    is not set before it is registered the the sensor, audioframe or emitter.
 
--- Erik Hofman <tech@adalin.org>  Tue 17 Jul  2018 10:06:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri 20 Jul  2018 14:01:00 + 0200
 
 * Tue Jul 03 2018 - tech@adalin.org
 - AeonWave (3.2.3) stable; urgency=low
