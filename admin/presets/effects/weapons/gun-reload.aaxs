@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <sound name="Gun Reload" frequency="220" duration="0.10">
-  <waveform src="sine" ratio="8" pitch="1.1"/>
-  <waveform src="white-noise" processing="add" ratio="8.0" pitch="0.125"/>
-  <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="17.7587"/>
+ <sound name="Gun Reload" frequency="190" duration="0.10">
+  <waveform src="sine" ratio="2.0" pitch="0.996"/>
+  <waveform src="white-noise" processing="add" ratio="4.0" pitch="0.125"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="7.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="25.0">9480</param>
@@ -26,7 +26,7 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">3.0</param>
+    <param n="0">2.0</param>
     <param n="1">0.03</param>
     <param n="2">0.9</param>
     <param n="3">0.15</param>
@@ -38,7 +38,7 @@
     <param n="3">0.04</param>
    </slot>
    <slot n="2">
-    <param n="0">3.0</param>
+    <param n="0">2.0</param>
     <param n="1">0.01</param>
     <param n="2">0.4</param>
     <param n="3">0.4</param>
@@ -46,19 +46,19 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.9</param>
+    <param n="0">1.4</param>
     <param n="1">0.02</param>
-    <param n="2">0.6</param>
+    <param n="2">1.0</param>
     <param n="3">0.21</param>
    </slot>
    <slot n="1">
-    <param n="0">0.7</param>
+    <param n="0">0.9</param>
     <param n="1">0.01</param>
     <param n="2">1.5</param>
     <param n="3">0.04</param>
    </slot>
    <slot n="2">
-    <param n="0">0.25</param>
+    <param n="0">0.95</param>
    </slot>
   </effect>
  </emitter>
