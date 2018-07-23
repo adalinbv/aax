@@ -48,14 +48,14 @@
 #define UPDATE_DELAY		0.00033f
 #define SPEED_OF_SOUND		343.0f
 #define SPEED			(0.145f*SPEED_OF_SOUND)
-#define STEP			(SPEED*UPDATE_DELAY)
+#define STEP			10*(SPEED*UPDATE_DELAY)
 
 #define FILE_PATH		SRC_PATH"/wasp.wav"
 #define SXPOS			1000.0f
 #define SYPOS			1000.0f
 #define SZPOS			-500.0f
 
-#define INITIAL_DIST		 200.0f
+#define INITIAL_DIST		10000.0f
 #define EXPOS			(SXPOS-INITIAL_DIST)
 #define EYPOS			(SYPOS+20.0f)
 #define EZPOS			(SZPOS-50.0f)
@@ -153,6 +153,9 @@ int main(int argc, char **argv)
             res = aaxFilterSetParam(filter, AAX_MAX_DISTANCE, AAX_LINEAR, 5000.0f);
             testForState(res, "aaxEmitterSetMaxDistance");
 
+            res = aaxFilterSetState(filter, AAX_ISO9613_DISTANCE);
+            testForState(res, "aaxEmitterSetDistanceModel");
+
             res = aaxEmitterSetFilter(emitter, filter);
             testForState(res, "aaxScenerySetDistanceModel");
             aaxFilterDestroy(filter);
@@ -197,7 +200,7 @@ int main(int argc, char **argv)
 
                 EmitterPos[0] = (SXPOS-dist);
                 dist -= STEP;
-#if 1
+#if 0
                 printf("dist: %5.4f\tpos (% f, % f, % f)\n",
                        _vec3dMagnitude(EmitterPos)-_vec3dMagnitude(EmitterOrg),
                         EmitterPos[0]-SensorPos[0],
