@@ -232,40 +232,28 @@ _aaxDistInvExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff
 static float
 _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, float unit_m)
 {
+    static float pa = 101.325f;
+    static float T = 293.15f;
+    static float hr = 60.0f;
     static float a = 0.0f;
     float gain;
 
-    if (a == 0.0f)
+    if (a == 0.0f) // or any of T, pa or hr has changed.
     {
+       static const float pr = 101.325f;
+       static const float To = 293.15f;
+       float pa_pr, psat;
+       float T_To, To1;
        float h, y, z;
        float frO, frN;
        float f, f2;
-       float hr;
 
        f = 5000.0f;
        f2 = f*f;
 
-       hr = 60.0f;          // Relative Humidity, in pct.
-
-#if 1
-       // Simplified model, T == To == 293.15f and pa == pr == 101.325f
-       h = 4.945424e-3f*hr;
-       frO = (24.0f+4.04e4f*h*((0.02f+h)/(0.391f+h)));
-       frN = (9.0f+280.0f*h);
-       z = 1.155222e-6f*powf(frN+f2*frN,-1.0f);
-       y = (6.14241e-6f*powf(frO+f2/frO,-1.0f)+z);
-       a = 8.686f*f2*(1.84e-11f+y);
-#else
-       float pr, pa, pa_pr, psat;
-       float T, To, To1, T_To;
-
-       T =
-       To = 293.15f;   // Temperature, in K
        T_To = T/To;
        To1 = To+0.01f;
 
-       pa =
-       pr = 101.325f; // Atmospheric pressure, in kPa
        pa_pr = pa/pr;
 
        psat = pr*powf(10.0f,-6.8346f*powf(To1/T,1.261f)+4.6151f);
@@ -276,13 +264,11 @@ _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rollof
        z = 0.1068f*expf(-3352.0f/T)*powf(frN+f2*frN,-1.0f);
 
        y = powf(T_To,-2.5f)*(0.01275f*expf(-2239.1f/T)*powf(frO+f2/frO,-1.0f)+z);
-
        a = 8.686f*f2*((1.84e-11f*powf(pa_pr, -1.0f)*powf(T_To, 0.5f))+y);
-#endif
     }
 
     dist = _MAX(dist, 1.0f) / _MAX(ref_dist*unit_m, 1.0f);
-    gain = _db2lin(dist * -1.0f*a*rolloff);
+    gain = _db2lin(dist * -a*rolloff);
 
     return gain;
 }
