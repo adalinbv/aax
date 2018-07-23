@@ -40,6 +40,9 @@
 #include "filters.h"
 #include "api.h"
 
+// "Attenuation is generally proportional to the square of sound frequency."
+// https://www.nde-ed.org/EducationResources/CommunityCollege/Ultrasonics/Physics/attenuation.htm
+
 // https://en.wikipedia.org/wiki/Attenuation#Attenuation_coefficient
 // https://physics.stackexchange.com/questions/87751/do-low-frequency-sounds-really-carry-longer-distances
 
@@ -75,8 +78,7 @@ _aaxDistanceFilterSetState(_filter_t* filter, int state)
    if ((state & ~AAX_DISTANCE_DELAY) < AAX_AL_DISTANCE_MODEL_MAX)
    {
       int pos = state & ~AAX_DISTANCE_DELAY;
-      if ((pos >= AAX_AL_INVERSE_DISTANCE)
-          && (pos < AAX_AL_DISTANCE_MODEL_MAX))
+      if ((pos >= AAX_AL_INVERSE_DISTANCE) && (pos < AAX_AL_DISTANCE_MODEL_MAX))
       {
          pos -= AAX_AL_INVERSE_DISTANCE;
          filter->slot[0]->state = state;
@@ -150,7 +152,7 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDistanceFilter =
 {
    AAX_TRUE,
-   "AAX_distance_filter_1.01", 1.01f,
+   "AAX_distance_filter_1.02", 1.02f,
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
    (_aaxFilterSetState*)&_aaxDistanceFilterSetState,
@@ -163,6 +165,7 @@ _flt_function_tbl _aaxDistanceFilter =
 /* Forward declartations */
 static _aaxDistFn _aaxDistNone;
 static _aaxDistFn _aaxDistInvExp;
+static _aaxDistFn _aaxDistISO9613;
 
 static _aaxDistFn _aaxALDistInv;
 static _aaxDistFn _aaxALDistInvClamped;
@@ -174,7 +177,8 @@ static _aaxDistFn _aaxALDistExpClamped;
 _aaxDistFn *_aaxDistanceFn[AAX_DISTANCE_MODEL_MAX] =
 {
    (_aaxDistFn *)&_aaxDistNone,
-   (_aaxDistFn *)&_aaxDistInvExp
+   (_aaxDistFn *)&_aaxDistInvExp,
+   (_aaxDistFn *)&_aaxDistISO9613
 };
 
 #define AL_DISTANCE_MODEL_MAX AAX_AL_DISTANCE_MODEL_MAX-AAX_AL_INVERSE_DISTANCE
@@ -189,7 +193,7 @@ _aaxDistFn *_aaxALDistanceFn[AL_DISTANCE_MODEL_MAX] =
 };
 
 static float
-_aaxDistNone(UNUSED(float dist), UNUSED(float ref_dist), UNUSED(float max_dist), UNUSED(float rolloff))
+_aaxDistNone(UNUSED(float dist), UNUSED(float ref_dist), UNUSED(float max_dist), UNUSED(float rolloff), UNUSED(float unit_m))
 {
    return 1.0f;
 }
@@ -215,22 +219,79 @@ _aaxDistNone(UNUSED(float dist), UNUSED(float ref_dist), UNUSED(float max_dist),
  * Lp = Ln - 20log(r) * K', where K' = -11
  */
 static float
-_aaxDistInvExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff)
+_aaxDistInvExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float unit_m))
 {
-#if 1
    float fraction = 0.0f, gain = 1.0f;
    if (ref_dist) fraction = _MAX(dist, 1.0f) / _MAX(ref_dist, 1.0f);
    if (fraction) gain = powf(fraction, -rolloff);
    return gain;
-#else
-   return powf(dist/ref_dist, -rolloff);
-#endif
 }
+
+
+// http://www.sengpielaudio.com/AirdampingFormula.htm
+static float
+_aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, float unit_m)
+{
+    static float a = 0.0f;
+    float gain;
+
+    if (a == 0.0f)
+    {
+       float h, y, z;
+       float frO, frN;
+       float f, f2;
+       float hr;
+
+       f = 5000.0f;
+       f2 = f*f;
+
+       hr = 60.0f;          // Relative Humidity, in pct.
+
+#if 1
+       // Simplified model, T == To == 293.15f and pa == pr == 101.325f
+       h = 4.945424e-3f*hr;
+       frO = (24.0f+4.04e4f*h*((0.02f+h)/(0.391f+h)));
+       frN = (9.0f+280.0f*h);
+       z = 1.155222e-6f*powf(frN+f2*frN,-1.0f);
+       y = (6.14241e-6f*powf(frO+f2/frO,-1.0f)+z);
+       a = 8.686f*f2*(1.84e-11f+y);
+#else
+       float pr, pa, pa_pr, psat;
+       float T, To, To1, T_To;
+
+       T =
+       To = 293.15f;   // Temperature, in K
+       T_To = T/To;
+       To1 = To+0.01f;
+
+       pa =
+       pr = 101.325f; // Atmospheric pressure, in kPa
+       pa_pr = pa/pr;
+
+       psat = pr*powf(10.0f,-6.8346f*powf(To1/T,1.261f)+4.6151f);
+       h = hr*(psat/pa);
+
+       frO = (pa_pr)*(24.0f+4.04e4f*h*((0.02f+h)/(0.391f+h)));
+       frN = (pa_pr)*powf(T_To,-0.5f)*(9.0f+280.0f*h*expf(-4.170f*(powf(T_To,-1.0f/3.0f)-1.0f)));
+       z = 0.1068f*expf(-3352.0f/T)*powf(frN+f2*frN,-1.0f);
+
+       y = powf(T_To,-2.5f)*(0.01275f*expf(-2239.1f/T)*powf(frO+f2/frO,-1.0f)+z);
+
+       a = 8.686f*f2*((1.84e-11f*powf(pa_pr, -1.0f)*powf(T_To, 0.5f))+y);
+#endif
+    }
+
+    dist = _MAX(dist, 1.0f) / _MAX(ref_dist*unit_m, 1.0f);
+    gain = _db2lin(dist * -1.0f*a*rolloff);
+
+    return gain;
+}
+
 
 /* --- OpenAL support --- */
 
 static float
-_aaxALDistInv(float dist, float ref_dist, UNUSED(float max_dist), float rolloff)
+_aaxALDistInv(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float unit_m))
 {
    float gain = 1.0f;
    float denom = ref_dist + rolloff * (dist - ref_dist);
@@ -239,7 +300,7 @@ _aaxALDistInv(float dist, float ref_dist, UNUSED(float max_dist), float rolloff)
 }
 
 static float
-_aaxALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff)
+_aaxALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
 {
    float gain = 1.0f;
    float denom;
@@ -251,7 +312,7 @@ _aaxALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff)
 }
 
 static float
-_aaxALDistLin(float dist, float ref_dist, float max_dist, float rolloff)
+_aaxALDistLin(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -260,7 +321,7 @@ _aaxALDistLin(float dist, float ref_dist, float max_dist, float rolloff)
 }
 
 static float
-_aaxALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff)
+_aaxALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
 {
    float gain = 1.0f;
    float denom = max_dist - ref_dist;
@@ -271,7 +332,7 @@ _aaxALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff)
 }
 
 static float
-_aaxALDistExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff)
+_aaxALDistExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float unit_m))
 {
    float fraction = 0.0f, gain = 1.0f;
    if (ref_dist) fraction = dist / ref_dist;
@@ -280,7 +341,7 @@ _aaxALDistExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff)
 }
 
 static float
-_aaxALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff)
+_aaxALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
 {
    float fraction = 0.0f, gain = 1.0f;
    dist = _MAX(dist, ref_dist);
@@ -382,15 +443,17 @@ _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3
    _aaxDistFn* distfn;
    float refdist, maxdist, rolloff;
 
+   assert(info->unit_m > 0.0f);
+
    *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
    assert(distfn);
 
    /*
     * Distance queues for every speaker (volume)
     */
-   refdist = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_REF_DISTANCE);
-   maxdist = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_MAX_DISTANCE);
    rolloff = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_ROLLOFF_FACTOR);
+   maxdist = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_MAX_DISTANCE);
+   refdist = _FILTER_GET(ep3d, DISTANCE_FILTER, AAX_REF_DISTANCE);
 
    // If the parent frame is defined indoor then directional sound
    // propagation goes out the door. Note that the scenery frame is
@@ -402,5 +465,5 @@ _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3
       _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
    }
 
-   return distfn(dist_ef, refdist, maxdist, rolloff);
+   return distfn(dist_ef, refdist, maxdist, rolloff, info->unit_m);
 }
