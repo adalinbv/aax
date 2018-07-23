@@ -1,12 +1,13 @@
 
-* Sat Jul 21 2018 - tech@adalin.org
+* Mon Jul 23 2018 - tech@adalin.org
 - AeonWave (3.3.1) stable; urgency=low
 
+ * Add support for the ISO9613-1 specified distance attenuation model.
  * If the source has stopped then finish the current time enveelope and stop,
    otherwise an evelope with repeat set to max will never stop until the
    emitter is set to processed.
 
--- Erik Hofman <tech@adalin.org>  Sat 21 Jul  2018 10:11:01 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon 23 Jul  2018 11:03:21 + 0200
 
 
 * Fri Jul 20 2018 - tech@adalin.org
