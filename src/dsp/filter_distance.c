@@ -237,7 +237,6 @@ _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rollof
     static float hr = 60.0f;		// Relative Humidity in percents
     static float f = 5000.0f;		// Midband frequency in Hz
     static float a = 0.0f;
-    float fraction = 0.0f;
     float gain = 1.0f;
 
     if (a == 0.0f) // or any of T, pa or hr has changed.
@@ -267,10 +266,8 @@ _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rollof
        a = 8.686f*f2*((1.84e-11f*pr_pa*powf(T_To,0.5f))+y);
     }
 
-    if (ref_dist) fraction = _MAX(dist, 1.0f) / _MAX(ref_dist*unit_m, 1.0f);
-    gain = _db2lin(fraction * -a*rolloff);
+    gain = _db2lin(_MAX(dist-ref_dist, 0.0f) * -a*rolloff);
 
-printf("dist: %f, gain: %f, a: %f\n", dist, gain, a);
     return gain;
 }
 
