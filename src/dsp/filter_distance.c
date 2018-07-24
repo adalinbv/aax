@@ -232,44 +232,45 @@ _aaxDistInvExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff
 static float
 _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, float unit_m)
 {
-    static float pa = 101.325f;
-    static float T = 293.15f;
-    static float hr = 60.0f;
+    static float pa = 101.325f;		// Atmospheric pressure in kPa
+    static float T = 293.15f;		// Temperature in K
+    static float hr = 60.0f;		// Relative Humidity in percents
+    static float f = 5000.0f;		// Midband frequency in Hz
     static float a = 0.0f;
-    float gain;
+    float fraction = 0.0f;
+    float gain = 1.0f;
 
     if (a == 0.0f) // or any of T, pa or hr has changed.
     {
-       static const float pr = 101.325f;
+       static const float To1 = 273.16f;
        static const float To = 293.15f;
-       float pa_pr, psat;
-       float T_To, To1;
+       static const float pr = 101.325f;
+       float pa_pr, pr_pa, psat;
+       float frO, frN, T_To;
        float h, y, z;
-       float frO, frN;
-       float f, f2;
+       float f2;
 
-       f = 5000.0f;
        f2 = f*f;
 
        T_To = T/To;
-       To1 = To+0.01f;
-
        pa_pr = pa/pr;
+       pr_pa = pr/pa;
 
        psat = pr*powf(10.0f,-6.8346f*powf(To1/T,1.261f)+4.6151f);
        h = hr*(psat/pa);
 
-       frO = (pa_pr)*(24.0f+4.04e4f*h*((0.02f+h)/(0.391f+h)));
-       frN = (pa_pr)*powf(T_To,-0.5f)*(9.0f+280.0f*h*expf(-4.170f*(powf(T_To,-1.0f/3.0f)-1.0f)));
-       z = 0.1068f*expf(-3352.0f/T)*powf(frN+f2*frN,-1.0f);
+       frO = pa_pr*(24.0f+4.04e4f*h*((0.02f+h)/(0.391f+h)));
+       frN = pa_pr*powf(T_To,-0.5f)*(9.0f+280.0f*h*expf(-4.170f*(powf(T_To,-0.33333f)-1.0f)));
 
-       y = powf(T_To,-2.5f)*(0.01275f*expf(-2239.1f/T)*powf(frO+f2/frO,-1.0f)+z);
-       a = 8.686f*f2*((1.84e-11f*powf(pa_pr, -1.0f)*powf(T_To, 0.5f))+y);
+       z = 0.1068f*expf(-3352.0f/T)*(frN/(frN+f2));
+       y = powf(T_To,-2.5f)*(0.01275f*exp(-2239.1f/T)*(frO/(frO*frO+f2))+z);
+       a = 8.686f*f2*((1.84e-11f*pr_pa*powf(T_To,0.5f))+y);
     }
 
-    dist = _MAX(dist, 1.0f) / _MAX(ref_dist*unit_m, 1.0f);
-    gain = _db2lin(dist * -a*rolloff);
+    if (ref_dist) fraction = _MAX(dist, 1.0f) / _MAX(ref_dist*unit_m, 1.0f);
+    gain = _db2lin(fraction * -a*rolloff);
 
+printf("dist: %f, gain: %f, a: %f\n", dist, gain, a);
     return gain;
 }
 
