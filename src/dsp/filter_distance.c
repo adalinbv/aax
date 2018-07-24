@@ -233,7 +233,7 @@ static float
 _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, float unit_m)
 {
     static float pa = 101.325f;		// Atmospheric pressure in kPa
-    static float T = 293.15f;		// Temperature in K
+    static float T = 293.15f;		// Temperature in K (273.15 + C)
     static float hr = 60.0f;		// Relative Humidity in percents
     static float f = 5000.0f;		// Midband frequency in Hz
     static float a = 0.0f;
