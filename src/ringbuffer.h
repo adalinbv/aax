@@ -281,6 +281,12 @@ typedef struct
 
 } _aaxRingBufferConvolutionData;
 
+typedef struct
+{
+   float phase[_AAX_MAX_SPEAKERS];
+   float step;
+} _aaxRingModulatorData;
+
 
 /**
  * Function type definitions

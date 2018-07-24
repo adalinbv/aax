@@ -52,8 +52,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    _aaxRingBufferReverbData *reverb;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)drb;
    _aax2dProps *p2d = (_aax2dProps*)props2d;
+   int bps, dist_state, ringmodulator;
    float maxgain, gain;
-   int bps, dist_state;
 
    assert(rb != 0);
 
@@ -63,9 +63,11 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
    delay_effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    freq_filter = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
    dist_state = _EFFECT_GET_STATE(p2d, DISTORTION_EFFECT);
+   ringmodulator = _EFFECT_GET_STATE(p2d, RINGMODULATE_EFFECT);
    occlusion = _FILTER_GET_DATA(p2d, VOLUME_FILTER);
    reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
-   if (delay_effect || freq_filter || dist_state || occlusion || reverb)
+   if (delay_effect || freq_filter || dist_state || ringmodulator ||
+      occlusion || reverb)
    {
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;

@@ -20,6 +20,7 @@ set(DSP_SOURCES
   effect_reverb.c
   effect_convolution.c
   effect_timed_pitch.c
+  effect_ringmodulate.c
   effect_velocity.c
   filter_directional.c
   filter_compressor.c

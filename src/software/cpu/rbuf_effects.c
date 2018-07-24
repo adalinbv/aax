@@ -117,6 +117,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
    _aaxRingBufferBitCrusherData *bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
+   _aaxRingModulatorData *ringmodulator = _EFFECT_GET_DATA(p2d, RINGMODULATE_EFFECT);
    static const size_t bps = sizeof(MIX_T);
    size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
    void *distort_data = NULL;
@@ -147,6 +148,21 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       occlusion->run(rbd, pdst, psrc, scratch, no_samples, track, occlusion);
       BUFSWAP(pdst, psrc);
+   }
+
+   if (ringmodulator)
+   {
+      unsigned int i;
+      float p, step;
+
+      p = ringmodulator->phase[track];
+      step = ringmodulator->step;
+      for (i=0; i<no_samples; ++i)
+      {
+         psrc[i] *= sinf(p);
+         p += step;
+      }
+      ringmodulator->phase[track] = fmodf(p, GMATH_2PI);
    }
 
    // Note: bitcrushing takes two steps.
