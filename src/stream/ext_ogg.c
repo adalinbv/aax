@@ -360,7 +360,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    }
    while (avail && handle->oggBuffer->avail);
 
-printf("ogg_fill: %i\n", rv);
+// printf("ogg_fill: %i\n", rv);
    return rv;
 }
 
@@ -398,7 +398,7 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
       while ( rv == __F_NEED_MORE && handle->oggBuffer->avail >= packet_size);
    }
 
-printf("ogg_cvt_from: %li\n", rv);
+// printf("ogg_cvt_from: %li\n", rv);
    return rv;
 }
 

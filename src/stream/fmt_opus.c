@@ -303,7 +303,7 @@ _opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
 
-printf("  opus_fill: %li\n", *bytes);
+// printf("  opus_fill: %li\n", *bytes);
    if (_aaxDataAdd(handle->opusBuffer, sptr, *bytes)  == 0) {
       *bytes = 0;
    }
@@ -423,7 +423,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       ret = popus_decode_float(handle->id, opusbuf, packet_size,
                               (float*)(pcmbuf+pcmbufoffs), frame_space, 0);
 
-printf("  opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
+// printf("  opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
       if (ret > 0)
       {
          if (handle->pre_skip > ret)
@@ -436,7 +436,7 @@ printf("  opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
             ret -= handle->pre_skip;
             handle->pre_skip = 0;
          }
-printf("! opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
+// printf("! opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
 
          if (!handle->pre_skip)
          {
@@ -462,7 +462,7 @@ printf("! opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
       }
    }
 
-printf("  opus_cvt_from: %li\n", rv);
+// printf("  opus_cvt_from: %li\n", rv);
    return rv;
 }
 
