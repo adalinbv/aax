@@ -150,22 +150,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       BUFSWAP(pdst, psrc);
    }
 
-   if (ringmodulator)
-   {
-      float f = ringmodulator->lfo.get(&ringmodulator->lfo, NULL, NULL, 0, 0);
-      unsigned int i;
-      float p, step;
-
-      step = f/(GMATH_2PI*no_samples);
-      p = ringmodulator->phase[track];
-      for (i=0; i<no_samples; ++i)
-      {
-         psrc[i] *= sinf(p);
-         p += step;
-      }
-      ringmodulator->phase[track] = fmodf(p, GMATH_2PI);
-   }
-
    // Note: bitcrushing takes two steps.
    //       noise is added after the frequency filter.
    if (bitcrush)
@@ -181,6 +165,22 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
          _batch_cvtps24_24(psrc, psrc, no_samples);
          _batch_fmul_value(psrc, bps, no_samples, level);
       }
+   }
+
+   if (ringmodulator)
+   {
+      float f = ringmodulator->lfo.get(&ringmodulator->lfo, NULL, NULL, 0, 0);
+      unsigned int i;
+      float p, step;
+
+      step = f/(GMATH_2PI*no_samples);
+      p = ringmodulator->phase[track];
+      for (i=0; i<no_samples; ++i)
+      {
+         psrc[i] *= sinf(p);
+         p += step;
+      }
+      ringmodulator->phase[track] = fmodf(p, GMATH_2PI);
    }
 
    if (freq)
