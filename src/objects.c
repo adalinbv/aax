@@ -73,6 +73,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
    info->mode = AAX_MODE_WRITE_STEREO;
    info->max_emitters = _AAX_MAX_MIXER_REGISTERED;
    info->max_registered = 0;
+   info->unit_m = 1.0f;
 
    info->update_rate = 0;
    info->sse_level = _aaxGetSIMDSupportLevel();
