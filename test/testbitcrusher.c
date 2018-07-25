@@ -89,13 +89,32 @@ int main(int argc, char **argv)
             res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
             testForState(res, "aaxEmitterSetMode");
 
+#if 1
+            /* ringmodulator effect for emitter */
+            effect = aaxEffectCreate(config, AAX_RINGMODULATOR_EFFECT);
+            testForError(effect, "aaxFilterCreate");
 
+            res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
+                                              0.0f, 0.01f, 100.0f, 50.0f);
+            testForState(res, "aaxEffectSetSlot 0");
+
+            res = aaxEffectSetState(effect, AAX_SINE_WAVE);
+            testForState(res, "aaxEffectSetState");
+
+            res = aaxEmitterSetEffect(emitter, effect);
+            testForState(res, "aaxEmitterSetEffect");
+
+            res = aaxEffectDestroy(effect);
+            testForState(res, "aaxEffectDestroy");
+#endif
+
+#if 1
             /* bitcrusher filter for emitter */
             filter = aaxFilterCreate(config, AAX_BITCRUSHER_FILTER);
             testForError(filter, "aaxFilterCreate");
 
             res = aaxFilterSetSlot(filter, 0, AAX_LINEAR,
-                                              0.05f, 0.01f, 0.8f, 0.3f);
+                                              0.15f, 0.01f, 0.8f, 0.3f);
             testForState(res, "aaxFilterSetSlot 0");
 
             res = aaxFilterSetState(filter, AAX_SINE_WAVE|AAX_ENVELOPE_FOLLOW);
@@ -106,6 +125,7 @@ int main(int argc, char **argv)
 
             res = aaxFilterDestroy(filter);
             testForState(res, "aaxFilterDestroy");
+#endif
 
             /* frequency filter for emitter */
             filter = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
