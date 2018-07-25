@@ -65,9 +65,12 @@ int main()
          printf("ok\n");
       }
 
-      for (i=AAX_PITCH_EFFECT; i<AAX_REVERB_EFFECT; i++)
+      for (i=AAX_PITCH_EFFECT; i<AAX_EFFECT_MAX; i++)
       {
          aaxEffect effect;
+
+         if (i == AAX_REVERB_EFFECT) continue;
+         if (i == AAX_CONVOLUTION_EFFECT) continue;
 
          printf("emitter effect: %-30s: ", aaxEffectGetNameByType(config, i));
          TRY( effect = aaxEffectCreate(config, i) );
@@ -220,7 +223,7 @@ int main()
          printf("ok\n");
       }
 
-      for (i=AAX_PITCH_EFFECT; i<AAX_EFFECT_MAX; i++)
+      for (i=AAX_PITCH_EFFECT; i<AAX_RINGMODULATOR_EFFECT; i++)
       {
          aaxEffect effect;
 
