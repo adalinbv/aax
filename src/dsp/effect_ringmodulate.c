@@ -50,6 +50,7 @@ _aaxRingModulateEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
+      eff->slot[0]->destroy = destroy;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -58,35 +59,87 @@ _aaxRingModulateEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxRingModulateEffectDestroy(_effect_t* effect)
 {
+   effect->slot[0]->destroy(effect->slot[0]->data);
+   effect->slot[0]->data = NULL;
    free(effect);
+
    return AAX_TRUE;
 }
 
 static aaxEffect
 _aaxRingModulateEffectSetState(_effect_t* effect, int state)
 {
-   _aaxRingModulatorData *data = effect->slot[0]->data;
-   if (state)
-   {
-      if (!data)
-      {
-         data = calloc(1, sizeof(_aaxRingModulatorData));
-         effect->slot[0]->data = data;
-      }
-      if (data)
-      {
-         float f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         float fs = effect->info->frequency;
-         data->step = GMATH_2PI*fs/f;
-      }
-   }
-   else
-   {
-      free(data);
-      effect->slot[0]->data = NULL;
-   }
+   void *handle = effect->handle;
+   aaxFilter rv = AAX_FALSE;
+   int stereo;
 
-   return  effect;
+   assert(effect->info);
+
+   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   state &= ~AAX_LFO_STEREO;
+
+   effect->state = state;
+   switch (state & ~(AAX_INVERSE|AAX_ENVELOPE_FOLLOW))
+   {
+   case AAX_CONSTANT_VALUE:
+   case AAX_TRIANGLE_WAVE:
+   case AAX_SINE_WAVE:
+   case AAX_SQUARE_WAVE:
+   case AAX_IMPULSE_WAVE:
+   case AAX_SAWTOOTH_WAVE:
+   {
+      _aaxRingModulatorData *modulator = effect->slot[0]->data;
+      if (modulator == NULL)
+      {
+         modulator = calloc(1, sizeof(_aaxRingModulatorData));
+         effect->slot[0]->data = modulator;
+      }
+
+      if (modulator)
+      {
+         float offs, depth;
+         int constant;
+
+         modulator->lfo.convert = _linear;
+         modulator->lfo.state = effect->state & ~AAX_ENVELOPE_FOLLOW;
+         modulator->lfo.fs = effect->info->frequency;
+         modulator->lfo.period_rate = effect->info->period_rate;
+         modulator->lfo.stereo_lnk = !stereo;
+
+         offs = effect->slot[0]->param[AAX_LFO_OFFSET];
+         depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         if ((offs + depth) > 1.0f) {
+            depth = 1.0f - offs;
+         }
+
+         modulator->lfo.min_sec = offs/modulator->lfo.fs;
+         modulator->lfo.max_sec= modulator->lfo.min_sec+depth/modulator->lfo.fs;
+         modulator->lfo.depth = 1.0f;
+         modulator->lfo.offset = 0.0f;
+         modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
+         modulator->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+
+         constant = _lfo_set_timing(&modulator->lfo);
+         modulator->lfo.envelope = AAX_FALSE;
+         if (!_lfo_set_function(&modulator->lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+      }
+      else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      break;
+   }
+   case AAX_FALSE:
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+      break;
+   }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      break;
+   }
+   rv = effect;
+   return rv;
 }
 
 static _effect_t*
@@ -101,7 +154,8 @@ _aaxNewRingModulateEffectHandle(const aaxConfig config, enum aaxEffectType type,
       unsigned int size = sizeof(_aaxEffectInfo);
 
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-//    rv->slot[0]->data = ;
+      rv->slot[0]->destroy = p2d->effect[rv->pos].destroy;
+      rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;
    }
@@ -127,10 +181,10 @@ _aaxRingModulateEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxRingModulateRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                /* max[4] */
-    { { 10.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 10000.0f, 0.0f, 0.0f } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f,     0.0f, 0.0f, 0.0f } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f,     0.0f, 0.0f, 0.0f } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f,     0.0f, 0.0f, 0.0f } }
+    { { 0.0f,  0.0f, 10.0f, 10.0f }, { 0.0f, 50.0f, 10000.0f, 10000.0f } },
+    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
+    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
+    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);

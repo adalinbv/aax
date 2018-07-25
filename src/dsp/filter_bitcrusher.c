@@ -89,7 +89,8 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)
       {
-         filter->slot[0]->data = bitcrush = calloc(1, sizeof(_aaxRingBufferBitCrusherData));
+         bitcrush = calloc(1, sizeof(_aaxRingBufferBitCrusherData));
+         filter->slot[0]->data = bitcrush;
       }
 
       if (bitcrush)
