@@ -104,9 +104,14 @@ _lfo_set_timing(_aaxLFOData *lfo)
 
    depth *= range * fs; 
    constant = (depth > 0.05f) ? AAX_FALSE : AAX_TRUE;
-   
+
    lfo->min = (range * offset + min)*fs;
    lfo->max = lfo->min + depth;
+
+#if 0
+ printf("offset: %f, range: %f, min: %f, fs: %f\n", offset, range, min, fs);
+ printf("lfo min: %f, max: %f\n", lfo->min, lfo->max);
+#endif
 
    if (!constant)
    {
