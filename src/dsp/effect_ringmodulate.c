@@ -107,8 +107,8 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
          modulator->lfo.envelope = AAX_FALSE;
          modulator->lfo.stereo_lnk = !stereo;
 
-         modulator->lfo.min_sec = 0.0f;
-         modulator->lfo.max_sec = effect->slot[0]->param[AAX_LFO_DEPTH]/modulator->lfo.fs;
+         modulator->lfo.min_sec = effect->slot[0]->param[AAX_LFO_OFFSET]/modulator->lfo.fs;
+         modulator->lfo.max_sec = modulator->lfo.min_sec + effect->slot[0]->param[AAX_LFO_DEPTH]/modulator->lfo.fs;
          modulator->lfo.depth = 1.0f;
          modulator->lfo.offset = 0.0f;
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];

@@ -379,6 +379,9 @@ aaxEffectGetByName(UNUSED(aaxConfig handle), const char *name)
             !strncasecmp(name, "envelope", slen)) {
       rv = AAX_TIMED_PITCH_EFFECT;
    }
+   else if (!strncasecmp(name, "ringmodulator", slen)) {
+      rv = AAX_RINGMODULATOR_EFFECT;
+   }
    else if (!strncasecmp(name, "distortion", slen)) {
       rv = AAX_DISTORTION_EFFECT;
    }
