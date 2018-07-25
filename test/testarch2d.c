@@ -215,6 +215,24 @@ int main()
         memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
         GLUE(_batch_fmul_value, SIMD2)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
         TEST("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
+
+        /*
+         * sinf versus _aax_sin (purely for speed comparisson
+         */
+        t = clock();
+        for (i=0; i<MAXNUM; ++i) {
+            src[i] = sinf(GMATH_2PI*rand()/RAND_MAX);
+        }
+        cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nsinf:  %f ms\n", cpu*1000.0f);
+
+        t = clock();
+        for (i=0; i<MAXNUM; ++i) {
+            src[i] = fast_sin(GMATH_2PI*rand()/RAND_MAX);
+        }
+        eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fast_sin:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+
     }
 
     _aax_aligned_free(dst2);

@@ -5,7 +5,7 @@
  * Add a RingModulator effect, mainly to be able to simulate atmospheric
    anomalies for wireless communications. But useful for other purposes too.
  * Add support for the ISO9613-1 specified distance attenuation model.
- * If the source has stopped then finish the current time enveelope and stop,
+ * If the source has stopped then finish the current time envelope and stop,
    otherwise an evelope with repeat set to max will never stop until the
    emitter is set to processed.
  * Remove debugging output from ogg streaming code.

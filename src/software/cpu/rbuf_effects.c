@@ -177,7 +177,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       p = ringmodulator->phase[track];
       for (i=0; i<no_samples; ++i)
       {
-         psrc[i] *= sinf(p);
+         psrc[i] *= fast_sin(p);
          p += step;
       }
       ringmodulator->phase[track] = fmodf(p, GMATH_2PI);
