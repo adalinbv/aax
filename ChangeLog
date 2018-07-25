@@ -2,7 +2,8 @@
 * Tue Jul 24 2018 - tech@adalin.org
 - AeonWave (3.4.0) stable; urgency=low
 
- * Add a RingModulator effect.
+ * Add a RingModulator effect, mainly to be able to simulate atmospheric
+   anomalies for wireless communications. But useful for other purposes too.
  * Add support for the ISO9613-1 specified distance attenuation model.
  * If the source has stopped then finish the current time enveelope and stop,
    otherwise an evelope with repeat set to max will never stop until the
@@ -27,7 +28,7 @@
  * Overhaul of the C++ classes to make them C++11 compliant.
  * Remove support for an ancient way of handling config files.
  * Prevent a crash when the state of the timed-gain filter or timed-pitch effect
-   is not set before it is registered the the sensor, audioframe or emitter.
+   is not set before it is registered the sensor, audioframe or emitter.
 
 -- Erik Hofman <tech@adalin.org>  Fri 20 Jul  2018 14:01:00 + 0200
 
