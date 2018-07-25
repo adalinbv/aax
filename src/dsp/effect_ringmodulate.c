@@ -79,7 +79,7 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
    state &= ~AAX_LFO_STEREO;
 
    effect->state = state;
-   switch (state & ~(AAX_INVERSE|AAX_ENVELOPE_FOLLOW))
+   switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -87,6 +87,7 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingModulatorData *modulator = effect->slot[0]->data;
       if (modulator == NULL)
@@ -97,30 +98,29 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
 
       if (modulator)
       {
-         float offs, depth;
          int constant;
 
          modulator->lfo.convert = _linear;
-         modulator->lfo.state = effect->state & ~AAX_ENVELOPE_FOLLOW;
+         modulator->lfo.state = effect->state;
          modulator->lfo.fs = effect->info->frequency;
          modulator->lfo.period_rate = effect->info->period_rate;
+         modulator->lfo.envelope = AAX_FALSE;
          modulator->lfo.stereo_lnk = !stereo;
 
-         offs = effect->slot[0]->param[AAX_LFO_OFFSET];
-         depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         if ((offs + depth) > 1.0f) {
-            depth = 1.0f - offs;
-         }
-
-         modulator->lfo.min_sec = offs/modulator->lfo.fs;
-         modulator->lfo.max_sec= modulator->lfo.min_sec+depth/modulator->lfo.fs;
+         modulator->lfo.min_sec = 0.0f;
+         modulator->lfo.max_sec = effect->slot[0]->param[AAX_LFO_DEPTH]/modulator->lfo.fs;
          modulator->lfo.depth = 1.0f;
          modulator->lfo.offset = 0.0f;
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          modulator->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
+         if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
+         {
+            modulator->lfo.min_sec = 0.5f*effect->slot[0]->param[AAX_LFO_OFFSET]/modulator->lfo.fs;
+            modulator->lfo.max_sec = 0.5f*effect->slot[0]->param[AAX_LFO_DEPTH]/modulator->lfo.fs + modulator->lfo.min_sec;
+         }
+
          constant = _lfo_set_timing(&modulator->lfo);
-         modulator->lfo.envelope = AAX_FALSE;
          if (!_lfo_set_function(&modulator->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }

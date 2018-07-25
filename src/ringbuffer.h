@@ -284,8 +284,9 @@ typedef struct
 typedef struct
 {
    float phase[_AAX_MAX_SPEAKERS];
-   float step;
-} _aaxRingModulatorData;
+   _aaxLFOData lfo;
+}
+_aaxRingModulatorData;
 
 
 /**

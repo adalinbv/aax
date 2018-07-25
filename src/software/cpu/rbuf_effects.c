@@ -152,11 +152,12 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    if (ringmodulator)
    {
+      float f = ringmodulator->lfo.get(&ringmodulator->lfo, NULL, NULL, 0, 0);
       unsigned int i;
       float p, step;
 
+      step = f/(GMATH_2PI*no_samples);
       p = ringmodulator->phase[track];
-      step = ringmodulator->step;
       for (i=0; i<no_samples; ++i)
       {
          psrc[i] *= sinf(p);
