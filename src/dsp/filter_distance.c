@@ -49,7 +49,7 @@
 static aaxFilter
 _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -59,14 +59,10 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
       flt->slot[0]->destroy = destroy;
 
-      data = malloc(sizeof(_aaxRingBufferDistanceData));
+      data = calloc(1, sizeof(_aaxRingBufferDistanceData));
       flt->slot[0]->data = data;
-      if (data)
-      {
-         data->run = _aaxDistanceFn[1]; // *(void**)&_aaxDistanceFn[1];
-         data->T_K = 293.15f;
-         data->pa_kPa = 101.325f;
-         data->hr_pct = 60.0f;
+      if (data) {
+         data->run = _aaxDistanceFn[1];
       }
       
       rv = (aaxFilter)flt;
@@ -91,17 +87,19 @@ _aaxDistanceFilterSetState(_filter_t* filter, int state)
    if ((state & ~AAX_DISTANCE_DELAY) < AAX_AL_DISTANCE_MODEL_MAX)
    {
       _aaxRingBufferDistanceData *data = filter->slot[0]->data;
+      assert(data);
+
       int pos = state & ~AAX_DISTANCE_DELAY;
       if ((pos >= AAX_AL_INVERSE_DISTANCE) && (pos < AAX_AL_DISTANCE_MODEL_MAX))
       {
          pos -= AAX_AL_INVERSE_DISTANCE;
          filter->slot[0]->state = state;
-         data->run = *(void**)&_aaxALDistanceFn[pos];
+         data->run = _aaxALDistanceFn[pos];
       }
       else if (pos < AAX_DISTANCE_MODEL_MAX)
       {
          filter->slot[0]->state = state;
-         data->run = *(void**)&_aaxALDistanceFn[pos];
+         data->run = _aaxDistanceFn[pos];
          data->T_K = filter->slot[1]->param[AAX_TEMPERATURE - 0x10];
          data->pa_kPa = filter->slot[1]->param[AAX_ATMOSPHERIC_PRESSURE - 0x10];
          data->hr_pct = filter->slot[1]->param[AAX_RELATIVE_HUMIDITY - 0x10];
@@ -118,7 +116,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
 
    if (rv)
    {
@@ -128,17 +126,11 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
       memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
       rv->slot[0]->destroy = destroy;
 
-      data = malloc(sizeof(_aaxRingBufferDistanceData));
+      data = calloc(1, sizeof(_aaxRingBufferDistanceData));
       rv->slot[0]->data = data;
-      if (data)
-      {
-         data->run = *(void**)&_aaxDistanceFn[1];
-         data->T_K = 293.15f;
-         data->pa_kPa = 101.325f;
-         data->hr_pct = 60.0f;
+      if (data) {
+         data->run = _aaxDistanceFn[1];
       }
-
-
       rv->state = p3d->filter[rv->pos].state;
    }
    return rv;
@@ -314,11 +306,8 @@ _aaxDistISO9613(void *data)
     static float a = 0.0f;
     float gain = 1.0f;
 
-    if (a == 0.0f) // or any of T, pa or hr has changed.
-    if (a == 0.0f || fabsf(d->T_K - T) > FLT_EPSILON || 
-                     fabsf(d->pa_kPa - pa) > FLT_EPSILON ||
-                     fabsf(d->hr_pct - hr) > FLT_EPSILON)
-
+    if (fabsf(d->T_K - T) > FLT_EPSILON || fabsf(d->pa_kPa - pa) > FLT_EPSILON
+        || fabsf(d->hr_pct - hr) > FLT_EPSILON)
     {
        static const float To1 = 273.16f;
        static const float To = 293.15f;
@@ -329,6 +318,13 @@ _aaxDistISO9613(void *data)
        float f2;
 
        f2 = f*f;
+
+       if (d->T_K != 0.0f) T = d->T_K;
+       else d->T_K = T;
+       if (d->pa_kPa != 0.0f) pa = d->pa_kPa;
+       else d->pa_kPa = pa;
+       if (d->hr_pct != 0.0f) hr = d->hr_pct;
+       else d->hr_pct = hr;
 
        T_To = T/To;
        pa_pr = pa/pr;

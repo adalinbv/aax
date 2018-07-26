@@ -142,10 +142,15 @@ float _2acos_rad2deg(float v);
 float _cos_2(float v);
 float _2acos(float v);
 float _degC2K(float v);
+float _K2degC(float v);
 float _degF2K(float v);
+float _K2degF(float v);
 float _atm2kpa(float v);
+float _kpa2atm(float v);
 float _bar2kpa(float v);
+float _kpa2bar(float v);
 float _psi2kpa(float v);
+float _kpa2psi(float v);
 
 typedef float (*cvtfn_t)(float);
 
