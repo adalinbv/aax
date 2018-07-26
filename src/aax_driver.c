@@ -932,10 +932,8 @@ _open_handle(aaxConfig config)
                if (smixer->props3d)
                {
                   smixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
-                  _EFFECT_SETD3D_DATA(smixer, VELOCITY_EFFECT,
-                                      *(void**)&_aaxDopplerFn[0]);
-                  _FILTER_SETD3D_DATA(smixer, DISTANCE_FILTER,
-                                      *(void**)&_aaxDistanceFn[AAX_EXPONENTIAL_DISTANCE]);
+                  _aaxSetDefaultEffect3d(&smixer->props3d->effect[VELOCITY_EFFECT], VELOCITY_EFFECT, 0);
+                  _aaxSetDefaultFilter3d(&smixer->props3d->filter[DISTANCE_FILTER], DISTANCE_FILTER, 0);
                }
 
                res = _intBufCreate(&smixer->emitters_3d, _AAX_EMITTER);
