@@ -182,7 +182,7 @@ static float
 _aaxGraphicEqualizerSet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
+   if (ptype == AAX_DECIBEL) {
       rv = _lin2db(val);
    }
    return rv;
@@ -192,7 +192,7 @@ static float
 _aaxGraphicEqualizerGet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
+   if (ptype == AAX_DECIBEL) {
       rv = _db2lin(val);
    }
    return rv;

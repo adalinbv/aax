@@ -210,7 +210,7 @@ static float
 _aaxTimedGainFilterSet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
+   if (ptype == AAX_DECIBEL) {
       rv = _lin2db(val);
    }
    return rv;
@@ -220,7 +220,7 @@ static float
 _aaxTimedGainFilterGet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
-   if (ptype == AAX_LOGARITHMIC) {
+   if (ptype == AAX_DECIBEL) {
       rv = _db2lin(val);
    }
    return rv;

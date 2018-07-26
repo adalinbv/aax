@@ -157,8 +157,6 @@ _aaxDistanceFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
    case AAX_PSI:
       rv = _kpa2psi(val);
       break;
-   case AAX_KPA:
-   case AAX_KELVIN:
    default:
       break;
    }
@@ -186,8 +184,6 @@ _aaxDistanceFilterGet(float val, int ptype, UNUSED(unsigned char param))
    case AAX_PSI:
       rv = _psi2kpa(val);
       break;
-   case AAX_KPA:
-   case AAX_KELVIN:
    default:
       break;
    }

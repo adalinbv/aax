@@ -201,7 +201,7 @@ static float
 _aaxFlangingEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+   if ((param == 0) && (ptype == AAX_DECIBEL)) {
       rv = _lin2db(val);
    }
    return rv;
@@ -211,7 +211,7 @@ static float
 _aaxFlangingEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if ((param == 0) && (ptype == AAX_LOGARITHMIC)) {
+   if ((param == 0) && (ptype == AAX_DECIBEL)) {
       rv = _db2lin(val);
    }
    return rv;
