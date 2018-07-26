@@ -475,6 +475,20 @@ aaxGetTypeByName(const char *name)
       } else if (!strcasecmp(name, "usec") || !strcasecmp(name, "μsec") ||
                  !strcasecmp(name, "microseconds")) {
          rv = AAX_MICROSECONDS;
+      } else if (!strcasecmp(name, "degC")) {
+         rv = AAX_DEGREES_CELSIUS;
+      } else if (!strcasecmp(name, "degF")) {
+         rv = AAX_DEGREES_FAHRENHEIT;
+      } else if (!strcasecmp(name, "K")) {
+         rv = AAX_KELVIN;
+      } else if (!strcasecmp(name, "atm") || !strcasecmp(name, "atmosphere")) {
+         rv = AAX_ATMOSPHERE;
+      } else if (!strcasecmp(name, "bar")) {
+         rv = AAX_BAR;
+      } else if (!strcasecmp(name, "psi")) {
+         rv = AAX_PSI;
+      } else if (!strcasecmp(name, "kPa")) {
+         rv = AAX_KPA;
       } else {
          rv = AAX_LINEAR;
       } 

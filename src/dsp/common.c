@@ -52,5 +52,15 @@ inline float _cos_deg2rad_2(float v) { return cosf(_deg2rad(v)/2); }
 inline float _2acos_rad2deg(float v) { return 2*_rad2deg(acosf(v)); }
 inline float _cos_2(float v) { return cosf(v/2); }
 inline float _2acos(float v) { return 2*acosf(v); }
+inline float _degC2K(float v) { return 273.15f+v; }
+inline float _K2degC(float v) { return v-273.15f; }
+inline float _degF2K(float v) { return (v+459.67f)*5.0f/9.0f; }
+inline float _K2degF(float v) { return v*9.0f/5.0f - 459.67f; }
+inline float _atm2kpa(float v) { return v*0.0098692327f; }
+inline float _kpa2atm(float v) { return v*101.325f; }
+inline float _bar2kpa(float v) { return v*0.01f; }
+inline float _kpa2bar(float v) { return v*100.0f; }
+inline float _psi2kpa(float v) { return v*0.1450377377f; }
+inline float _kpa2psi(float v) { return v*6.8947572932f; }
 
 inline FLOAT _lorentz(FLOAT v2, FLOAT c2) { return sqrt(1.0 - (v2/c2)) - 1.0f; }

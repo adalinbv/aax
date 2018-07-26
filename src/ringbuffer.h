@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -32,6 +32,7 @@ extern "C" {
 
 #include <base/geometry.h>
 
+#include <dsp/common.h>
 #include <dsp/lfo.h>
 #include <objects.h>
 
@@ -128,8 +129,8 @@ typedef struct
 {
    _aaxLFOData lfo;
    _aaxLFOData env;
-}
-_aaxRingBufferBitCrusherData;
+
+} _aaxRingBufferBitCrusherData;
 
 typedef struct
 {
@@ -146,6 +147,16 @@ typedef struct
    signed char type;
 
 } _aaxRingBufferFreqFilterData;
+
+typedef struct
+{
+   _aaxDistFn *run;
+   float T_K, pa_kPa, hr_pct;	// static data
+
+   float dist, ref_dist, max_dist, rolloff;
+   float unit_m;
+
+} _aaxRingBufferDistanceData;
 
 typedef struct
 {

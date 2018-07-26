@@ -54,8 +54,21 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
    if (flt)
    {
-      flt->slot[0]->data = *(void**)&_aaxDistanceFn[1];
+      _aaxRingBufferDistanceData *data;
+
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
+      flt->slot[0]->destroy = destroy;
+
+      data = malloc(sizeof(_aaxRingBufferDistanceData));
+      flt->slot[0]->data = data;
+      if (data)
+      {
+         data->run = _aaxDistanceFn[1]; // *(void**)&_aaxDistanceFn[1];
+         data->T_K = 293.15f;
+         data->pa_kPa = 101.325f;
+         data->hr_pct = 60.0f;
+      }
+      
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -77,17 +90,21 @@ _aaxDistanceFilterSetState(_filter_t* filter, int state)
 
    if ((state & ~AAX_DISTANCE_DELAY) < AAX_AL_DISTANCE_MODEL_MAX)
    {
+      _aaxRingBufferDistanceData *data = filter->slot[0]->data;
       int pos = state & ~AAX_DISTANCE_DELAY;
       if ((pos >= AAX_AL_INVERSE_DISTANCE) && (pos < AAX_AL_DISTANCE_MODEL_MAX))
       {
          pos -= AAX_AL_INVERSE_DISTANCE;
          filter->slot[0]->state = state;
-         filter->slot[0]->data = *(void**)&_aaxALDistanceFn[pos];
+         data->run = *(void**)&_aaxALDistanceFn[pos];
       }
       else if (pos < AAX_DISTANCE_MODEL_MAX)
       {
          filter->slot[0]->state = state;
-         filter->slot[0]->data = *(void**)&_aaxDistanceFn[pos];
+         data->run = *(void**)&_aaxALDistanceFn[pos];
+         data->T_K = filter->slot[1]->param[AAX_TEMPERATURE - 0x10];
+         data->pa_kPa = filter->slot[1]->param[AAX_ATMOSPHERIC_PRESSURE - 0x10];
+         data->hr_pct = filter->slot[1]->param[AAX_RELATIVE_HUMIDITY - 0x10];
       }
       else _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
@@ -106,9 +123,21 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
    if (rv)
    {
       unsigned int size = sizeof(_aaxFilterInfo);
+      _aaxRingBufferDistanceData *data;
 
       memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
-      rv->slot[0]->data = *(void**)&_aaxDistanceFn[1];
+      rv->slot[0]->destroy = destroy;
+
+      data = malloc(sizeof(_aaxRingBufferDistanceData));
+      rv->slot[0]->data = data;
+      if (data)
+      {
+         data->run = *(void**)&_aaxDistanceFn[1];
+         data->T_K = 293.15f;
+         data->pa_kPa = 101.325f;
+         data->hr_pct = 60.0f;
+      }
+
 
       rv->state = p3d->filter[rv->pos].state;
    }
@@ -119,13 +148,57 @@ static float
 _aaxDistanceFilterSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {
    float rv = val;
+   switch (ptype)
+   {
+   case AAX_DEGREES_CELSIUS:
+      rv = _K2degC(val);
+      break;
+   case AAX_DEGREES_FAHRENHEIT:
+       rv = _K2degF(val);
+       break;
+   case AAX_ATMOSPHERE:
+      rv = _kpa2atm(val);
+      break;
+   case AAX_BAR:
+      rv = _kpa2bar(val);
+      break;
+   case AAX_PSI:
+      rv = _kpa2psi(val);
+      break;
+   case AAX_KPA:
+   case AAX_KELVIN:
+   default:
+      break;
+   }
    return rv;
 }
 
 static float
-_aaxDistanceFilterGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxDistanceFilterGet(float val, int ptype, UNUSED(unsigned char param))
 {
    float rv = val;
+   switch (ptype)
+   {
+   case AAX_DEGREES_CELSIUS:
+      rv = _degC2K(val);
+      break;
+   case AAX_DEGREES_FAHRENHEIT:
+       rv = _degF2K(val);
+       break;
+   case AAX_ATMOSPHERE:
+      rv = _atm2kpa(val);
+      break;
+   case AAX_BAR:
+      rv = _bar2kpa(val);
+      break;
+   case AAX_PSI:
+      rv = _psi2kpa(val);
+      break;
+   case AAX_KPA:
+   case AAX_KELVIN:
+   default:
+      break;
+   }
    return rv;
 }
 
@@ -193,7 +266,7 @@ _aaxDistFn *_aaxALDistanceFn[AL_DISTANCE_MODEL_MAX] =
 };
 
 static float
-_aaxDistNone(UNUSED(float dist), UNUSED(float ref_dist), UNUSED(float max_dist), UNUSED(float rolloff), UNUSED(float unit_m))
+_aaxDistNone(UNUSED(void *data))
 {
    return 1.0f;
 }
@@ -219,19 +292,21 @@ _aaxDistNone(UNUSED(float dist), UNUSED(float ref_dist), UNUSED(float max_dist),
  * Lp = Ln - 20log(r) * K', where K' = -11
  */
 static float
-_aaxDistInvExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float unit_m))
+_aaxDistInvExp(void *data)
 {
+   _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
    float fraction = 0.0f, gain = 1.0f;
-   if (ref_dist) fraction = _MAX(dist, 1.0f) / _MAX(ref_dist, 1.0f);
-   if (fraction) gain = powf(fraction, -rolloff);
+   if (d->ref_dist) fraction = _MAX(d->dist, 1.0f) / _MAX(d->ref_dist, 1.0f);
+   if (fraction) gain = powf(fraction, -d->rolloff);
    return gain;
 }
 
 
 // http://www.sengpielaudio.com/AirdampingFormula.htm
 static float
-_aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, float unit_m)
+_aaxDistISO9613(void *data)
 {
+    _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
     static float pa = 101.325f;		// Atmospheric pressure in kPa
     static float T = 293.15f;		// Temperature in K (273.15 + C)
     static float hr = 60.0f;		// Relative Humidity in percents
@@ -240,6 +315,10 @@ _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rollof
     float gain = 1.0f;
 
     if (a == 0.0f) // or any of T, pa or hr has changed.
+    if (a == 0.0f || fabsf(d->T_K - T) > FLT_EPSILON || 
+                     fabsf(d->pa_kPa - pa) > FLT_EPSILON ||
+                     fabsf(d->hr_pct - hr) > FLT_EPSILON)
+
     {
        static const float To1 = 273.16f;
        static const float To = 293.15f;
@@ -266,7 +345,7 @@ _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rollof
        a = 8.686f*f2*((1.84e-11f*pr_pa*powf(T_To,0.5f))+y);
     }
 
-    gain = _db2lin(_MAX(dist-ref_dist, 0.0f) * -a*rolloff);
+    gain = _db2lin(_MAX(d->dist - d->ref_dist, 0.0f) * -a*d->rolloff);
 
     return gain;
 }
@@ -275,63 +354,69 @@ _aaxDistISO9613(float dist, float ref_dist, UNUSED(float max_dist), float rollof
 /* --- OpenAL support --- */
 
 static float
-_aaxALDistInv(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float unit_m))
+_aaxALDistInv(void *data)
 {
+   _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
    float gain = 1.0f;
-   float denom = ref_dist + rolloff * (dist - ref_dist);
-   if (denom) gain = ref_dist/denom;
+   float denom = d->ref_dist + d->rolloff * (d->dist - d->ref_dist);
+   if (denom) gain = d->ref_dist/denom;
    return gain;
 }
 
 static float
-_aaxALDistInvClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
+_aaxALDistInvClamped(void *data)
 {
+   _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
    float gain = 1.0f;
    float denom;
-   dist = _MAX(dist, ref_dist);
-   dist = _MIN(dist, max_dist);
-   denom = ref_dist + rolloff * (dist - ref_dist);
-   if (denom) gain = ref_dist/denom;
+   d->dist = _MAX(d->dist, d->ref_dist);
+   d->dist = _MIN(d->dist, d->max_dist);
+   denom = d->ref_dist + d->rolloff * (d->dist - d->ref_dist);
+   if (denom) gain = d->ref_dist/denom;
    return gain;
 }
 
 static float
-_aaxALDistLin(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
+_aaxALDistLin(void *data)
 {
+   _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
    float gain = 1.0f;
-   float denom = max_dist - ref_dist;
-   if (denom) gain = (1-rolloff)*(dist-ref_dist)/denom;
+   float denom = d->max_dist - d->ref_dist;
+   if (denom) gain = (1.0f - d->rolloff)*(d->dist - d->ref_dist)/denom;
    return gain;
 }
 
 static float
-_aaxALDistLinClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
+_aaxALDistLinClamped(void *data)
 {
+   _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
    float gain = 1.0f;
-   float denom = max_dist - ref_dist;
-   dist = _MAX(dist, ref_dist);
-   dist = _MIN(dist, max_dist);
-   if (denom) gain = (1-rolloff)*(dist-ref_dist)/denom;
+   float denom = d->max_dist - d->ref_dist;
+   d->dist = _MAX(d->dist, d->ref_dist);
+   d->dist = _MIN(d->dist, d->max_dist);
+   if (denom) gain = (1.0f - d->rolloff)*(d->dist - d->ref_dist)/denom;
    return gain;
 }
 
 static float
-_aaxALDistExp(float dist, float ref_dist, UNUSED(float max_dist), float rolloff, UNUSED(float unit_m))
+_aaxALDistExp(void *data)
 {
+   _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
    float fraction = 0.0f, gain = 1.0f;
-   if (ref_dist) fraction = dist / ref_dist;
-   if (fraction) gain = powf(fraction, -rolloff);
+   if (d->ref_dist) fraction = d->dist / d->ref_dist;
+   if (fraction) gain = powf(fraction, -d->rolloff);
    return gain;
 }
 
 static float
-_aaxALDistExpClamped(float dist, float ref_dist, float max_dist, float rolloff, UNUSED(float unit_m))
+_aaxALDistExpClamped(void *data)
 {
+   _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
    float fraction = 0.0f, gain = 1.0f;
-   dist = _MAX(dist, ref_dist);
-   dist = _MIN(dist, max_dist);
-   if (ref_dist) fraction = dist / ref_dist;
-   if (fraction) gain = powf(fraction, -rolloff);
+   d->dist = _MAX(d->dist, d->ref_dist);
+   d->dist = _MIN(d->dist, d->max_dist);
+   if (d->ref_dist) fraction = d->dist / d->ref_dist;
+   if (fraction) gain = powf(fraction, -d->rolloff);
 
    return gain;
 }
@@ -424,13 +509,12 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
 float
 _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, vec4f_ptr speaker, const _aaxMixerInfo* info)
 {
-   _aaxDistFn* distfn;
+   _aaxRingBufferDistanceData *data;
    float refdist, maxdist, rolloff;
 
    assert(info->unit_m > 0.0f);
 
-   *(void**)(&distfn) = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
-   assert(distfn);
+   data = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
 
    /*
     * Distance queues for every speaker (volume)
@@ -449,5 +533,10 @@ _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3
       _aaxSetupSpeakersFromDistanceVector(epos, dfact, speaker, ep2d, info);
    }
 
-   return distfn(dist_ef, refdist, maxdist, rolloff, info->unit_m);
+   data->dist = dist_ef;
+   data->ref_dist = refdist;
+   data->max_dist = maxdist;
+   data->rolloff = rolloff;
+   data->unit_m = info->unit_m;
+   return data->run(data);
 }
