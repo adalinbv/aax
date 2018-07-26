@@ -169,7 +169,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    if (ringmodulator)
    {
-      float f = ringmodulator->lfo.get(&ringmodulator->lfo, NULL, NULL, 0, 0);
+      _aaxEnvelopeData *genv = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+      float f = ringmodulator->lfo.get(&ringmodulator->lfo, genv, psrc, 0, end);
       unsigned int i;
       float p, step;
 
