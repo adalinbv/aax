@@ -63,6 +63,9 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[0]->data = data;
       if (data) {
          data->run = _aaxDistanceFn[1];
+         data->prev.pa_kPa = 101.325f;
+         data->prev.T_K = 293.15f;
+         data->prev.hr_pct = 60.0f;
       }
       
       rv = (aaxFilter)flt;
@@ -100,9 +103,9 @@ _aaxDistanceFilterSetState(_filter_t* filter, int state)
       {
          filter->slot[0]->state = state;
          data->run = _aaxDistanceFn[pos];
-         data->T_K = filter->slot[1]->param[AAX_TEMPERATURE - 0x10];
-         data->pa_kPa = filter->slot[1]->param[AAX_ATMOSPHERIC_PRESSURE - 0x10];
-         data->hr_pct = filter->slot[1]->param[AAX_RELATIVE_HUMIDITY - 0x10];
+         data->next.T_K = filter->slot[1]->param[AAX_TEMPERATURE - 0x10];
+         data->next.pa_kPa = filter->slot[1]->param[AAX_ATMOSPHERIC_PRESSURE - 0x10];
+         data->next.hr_pct = filter->slot[1]->param[AAX_RELATIVE_HUMIDITY - 0x10];
       }
       else _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
@@ -295,32 +298,31 @@ static float
 _aaxDistISO9613(void *data)
 {
     _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
-    static float pa = 101.325f;		// Atmospheric pressure in kPa
-    static float T = 293.15f;		// Temperature in K (273.15 + C)
-    static float hr = 60.0f;		// Relative Humidity in percents
     static float f = 5000.0f;		// Midband frequency in Hz
     static float a = 0.0f;
     float gain = 1.0f;
 
-    if (fabsf(d->T_K - T) > FLT_EPSILON || fabsf(d->pa_kPa - pa) > FLT_EPSILON
-        || fabsf(d->hr_pct - hr) > FLT_EPSILON)
+    if (fabsf(d->prev.T_K - d->next.T_K) > FLT_EPSILON ||
+        fabsf(d->prev.pa_kPa - d->next.pa_kPa) > FLT_EPSILON ||
+        fabsf(d->prev.hr_pct - d->next.hr_pct) > FLT_EPSILON)
     {
        static const float To1 = 273.16f;
        static const float To = 293.15f;
        static const float pr = 101.325f;
        float pa_pr, pr_pa, psat;
        float frO, frN, T_To;
+       float T, pa, hr;
        float h, y, z;
-       float f2;
+       float f2 = f*f;
 
-       f2 = f*f;
+       if (d->next.T_K == 0.0f) d->next.T_K = d->prev.T_K;
+       if (d->next.pa_kPa == 0.0f) d->next.pa_kPa = d->prev.pa_kPa;
+       if (d->next.hr_pct == 0.0f) d->next.hr_pct = d->prev.hr_pct;
+       d->prev = d->next;
 
-       if (d->T_K != 0.0f) T = d->T_K;
-       else d->T_K = T;
-       if (d->pa_kPa != 0.0f) pa = d->pa_kPa;
-       else d->pa_kPa = pa;
-       if (d->hr_pct != 0.0f) hr = d->hr_pct;
-       else d->hr_pct = hr;
+       T = d->next.T_K;
+       pa = d->next.pa_kPa;
+       hr = d->next.hr_pct;
 
        T_To = T/To;
        pa_pr = pa/pr;

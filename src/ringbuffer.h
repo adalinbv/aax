@@ -151,7 +151,9 @@ typedef struct
 typedef struct
 {
    _aaxDistFn *run;
-   float T_K, pa_kPa, hr_pct;	// static data
+   struct {
+      float T_K, pa_kPa, hr_pct;
+   } prev, next;
 
    float dist, ref_dist, max_dist, rolloff;
    float unit_m;
