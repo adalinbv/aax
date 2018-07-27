@@ -130,7 +130,7 @@
    <instrument n="118" name="Melodic Tom" file=".aaxs"/>
    <instrument n="119" name="Synth Drum" file=".aaxs"/>
    <instrument n="120" name="Reverse Cymbal" file="instruments/cymbal-reverse.aaxs"/>
-   <instrument n="121" name="Guitar Fret Noise" file=".aaxs"/>
+   <instrument n="121" name="Guitar Fret Noise" file="instruments/guitar-fret-noise.aaxs"/>
    <instrument n="122" name="Breath Noise" file="effecst/humans/human-breathing.aaxs"/>
    <instrument n="123" name="Seashore" file="effecst/nature/water-seashore.aaxs"/>
    <instrument n="124" name="Bird Tweet" file="effecst/nature/birds.aaxs"/>
