@@ -156,7 +156,6 @@ typedef struct
    } prev, next;
 
    float dist, ref_dist, max_dist, rolloff;
-   float unit_m;
 
 } _aaxRingBufferDistanceData;
 
