@@ -141,6 +141,7 @@
   </bank>
 
   <bank n="1">
+   <instrument n="121" name="Guitar Cut Noise" file="instruments/guitar-cut-noise.aaxs"/>
    <instrument n="123" name="Rain" file="effecst/nature/weather-rain.aaxs"/>
    <instrument n="125" name="Telephone Buzz" file="effecst/domestic/telephone-buzz.aaxs"/>
    <instrument n="126" name="Car Engine" file="effecst/transport/car-engine.aaxs"/>
