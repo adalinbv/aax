@@ -137,6 +137,20 @@ aaxSceneryGetDimensions(aaxConfig config, aaxVec3f dimensions)
 #endif
 
 AAX_API int AAX_APIENTRY
+aaxScenerySetSetup(UNUSED(aaxConfig config), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
+{
+   int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API unsigned int AAX_APIENTRY
+aaxSceneryGetSetup(UNUSED(const aaxConfig config), UNUSED(enum aaxSetupType type))
+{
+   unsigned int rv = AAX_FALSE;
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
 aaxScenerySetFilter(aaxConfig config, aaxFilter f)
 {
    _handle_t* handle = get_handle(config, __func__);

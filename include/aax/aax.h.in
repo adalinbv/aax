@@ -616,6 +616,9 @@ AAX_API int AAX_APIENTRY aaxMixerDeregisterAudioFrame(const aaxConfig, const aax
 /*
  * Scenery setup
  */
+AAX_API int AAX_APIENTRY aaxScenerySetSetup(aaxConfig, enum aaxSetupType, unsigned int);
+AAX_API unsigned int AAX_APIENTRY aaxSceneryGetSetup(const aaxConfig, enum aaxSetupType);
+
 AAX_API int AAX_APIENTRY aaxScenerySetFilter(aaxConfig, aaxFilter);
 AAX_API aaxFilter AAX_APIENTRY aaxSceneryGetFilter(const aaxConfig, enum aaxFilterType);
 
