@@ -76,6 +76,8 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxDistanceFilterDestroy(_filter_t* filter)
 {
+   filter->slot[0]->destroy(filter->slot[0]->data);
+   filter->slot[0]->data = NULL;
    free(filter);
 
    return AAX_TRUE;
@@ -506,8 +508,6 @@ _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3
    _aaxRingBufferDistanceData *data;
    float refdist, maxdist, rolloff;
 
-   assert(info->unit_m > 0.0f);
-
    data = _FILTER_GET_DATA(ep3d, DISTANCE_FILTER);
 
    /*
@@ -531,6 +531,5 @@ _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3
    data->ref_dist = refdist;
    data->max_dist = maxdist;
    data->rolloff = rolloff;
-   data->unit_m = info->unit_m;
    return data->run(data);
 }
