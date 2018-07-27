@@ -165,23 +165,21 @@ _aaxDopplerShift(float ve, float vsound)
 #endif
 }
 
-// http://www.who.int/occupational_health/publications/noise1.pdf?ua=1
 #if 0
+// http://www.who.int/occupational_health/publications/noise1.pdf?ua=1
 static float
-_aaxDopplerShift1(float ve, float vsound)
+_aaxDopplerShiftPrepare(float T_K, float hr_pct)
 {
-    static const float Rvapor = 461.4f; // Water vapos: individual gas constant
-    static const float Rair = 286.9f;   // Air: individual gas constant
-    static const float y = 1.402f;	// Air: Ratio of specific heat
-    static float T = 293.15f;           // Temperature in K (273.15 + C)
-    static float hr = 60.0f;            // Relative Humidity in percents
-    float R, c;
+   static const float Rvapor = 461.4f; // Water vapos: individual gas constant
+   static const float Rair = 286.9f;   // Air: individual gas constant
+   static const float y = 1.402f;	// Air: Ratio of specific heat
+   float R;
 
-   R = Rair + hr*(Rvapor-Rair)/100.0f;
-   c = sqrtf(T*y*R);    // speed of sound in m/s
-   _EFFECT_SET(ep3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY, c)
+   R = Rair + hr_pct*(Rvapor-Rair)/100.0f;
+   return sqrtf(T_K*y*R);    // speed of sound in m/s
 }
 #endif
+
 
 FLOAT
 _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf)
