@@ -114,12 +114,6 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          modulator->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-         if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
-         {
-            modulator->lfo.min_sec = 0.5f*effect->slot[0]->param[AAX_LFO_OFFSET]/modulator->lfo.fs;
-            modulator->lfo.max_sec = 0.5f*effect->slot[0]->param[AAX_LFO_DEPTH]/modulator->lfo.fs + modulator->lfo.min_sec;
-         }
-
          constant = _lfo_set_timing(&modulator->lfo);
          if (!_lfo_set_function(&modulator->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
