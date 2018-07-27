@@ -33,8 +33,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.05</param>
-    <param n="1" factor="velocity">0.05</param>
+    <param n="0" factor="soften">4.0</param>
    </slot>
   </effect>
   <effect type="ringmodulator" src="envelope">
