@@ -18,6 +18,17 @@
   <waveform src="sine" processing="add" ratio="0.25" pitch="10.0"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="12.0"/>
   <waveform src="sine" processing="add" ratio="0.001" pitch="16.0"/>
+  <!-- drive -->
+<!--
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.0</param>
+    <param n="2">0.2</param>
+    <param n="3">1.0</param>
+   </slot>
+  </effect>
+-->
  </sound>
 
  <instrument>
@@ -42,7 +53,7 @@
     <param n="1">0.2</param>
    </slot>
   </filter>
-  <effect type="chorus" src="true">
+  <effect type="chorus" src="true"> <!-- reverb -->
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.05</param>

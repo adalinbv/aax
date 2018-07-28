@@ -9,15 +9,23 @@
 <aeonwave>
 
  <sound name="Rock Organ"  program="19" bank="0" frequency="220" duration="0.10">
-  <waveform src="sine" ratio="1.5" pitch="1.0"/>
-  <waveform src="sine" processing="add" ratio="1.5" pitch="1.5"/>
-  <waveform src="sine" processing="add" ratio="1.5" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="1.5" pitch="4.0"/>
+  <waveform src="sine" ratio="1.0" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="1.0" pitch="1.5"/>
+  <waveform src="sine" processing="add" ratio="1.0" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="1.0" pitch="4.0"/>
   <waveform src="sine" processing="add" ratio="0.001" pitch="6.0"/>
   <waveform src="sine" processing="add" ratio="0.001" pitch="8.0"/>
   <waveform src="sine" processing="add" ratio="0.001" pitch="10.0"/>
   <waveform src="sine" processing="add" ratio="0.001" pitch="12.0"/>
   <waveform src="sine" processing="add" ratio="0.001" pitch="16.0"/>
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.0</param>
+    <param n="2">0.2</param>
+    <param n="3">1.0</param>
+   </slot>
+  </effect>
  </sound>
 
  <instrument>
