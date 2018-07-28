@@ -9,9 +9,15 @@
 <aeonwave>
 
  <sound name="Drawbar Organ"  program="17" bank="0" frequency="220" duration="0.10">
-  <waveform src="sine" ratio="0.48"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="1.0"/>
-  <waveform src="triangle" processing="add" ratio="0.2" pitch="0.49"/>
+  <waveform src="sine" ratio="1.0" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="1.0" pitch="1.5"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="8.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="10.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="12.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="16.0"/>
  </sound>
 
  <instrument>
@@ -21,9 +27,40 @@
  <emitter looping="true">
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.96</param>
+    <param n="0">0.48</param>
+   </slot>
+  </effect>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.05</param>
+    <param n="2">2.0</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2.0</param>
+    <param n="1">0.2</param>
+   </slot>
+  </filter>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.05</param>
+    <param n="2">0.3</param>
+    <param n="3">0.4</param>
    </slot>
   </effect>
  </emitter>
+
+ <audioframe> <!-- leslie box -->
+  <effect type="phasing" src="sine">
+   <slot n="0">
+    <param n="0">0.383</param>
+    <param n="1">5.537</param>
+    <param n="2">0.15</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>

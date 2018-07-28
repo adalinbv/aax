@@ -8,11 +8,16 @@
 
 <aeonwave>
 
- <sound name="Rock Percussive"  program="19" bank="0" frequency="220">
-  <!-- "classic" Jimmy Smith sound -->
-  <waveform src="sine" ratio="1.0" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="1.0" pitch="1.33333"/>
-  <waveform src="sine" processing="add" ratio="1.0" pitch="1.0"/>
+ <sound name="Percussive Organ"  program="17" bank="0" frequency="220" duration="0.10">
+  <waveform src="sine" ratio="1.0" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="1.0" pitch="1.5"/>
+  <waveform src="sine" processing="add" ratio="1.0" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="1.0" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="8.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="10.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="12.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="16.0"/>
  </sound>
 
  <instrument>
@@ -20,31 +25,23 @@
  </instrument>
 
  <emitter looping="true">
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.5</param>
+   </slot>
+  </effect>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">4.0</param>
     <param n="1">0.05</param>
-    <param n="2">1.0</param>
+    <param n="2">2.0</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
+    <param n="0">2.0</param>
     <param n="1">0.2</param>
    </slot>
   </filter>
  </emitter>
-
-<!--
- <audioframe>
-  <effect type="phasing" src="sine">
-   <slot n="0">
-    <param n="0">0.383</param>
-    <param n="1">5.537</param>
-    <param n="2">0.15</param>
-    <param n="3">0.5</param>
-   </slot>
-  </effect>
- </audioframe>
--->
 
 </aeonwave>
