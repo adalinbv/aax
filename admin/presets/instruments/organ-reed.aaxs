@@ -9,7 +9,7 @@
 <aeonwave>
 
  <sound name="Reed Organ"  program="21" bank="0" frequency="220" duration="0.5">
-  <waveform src="triangle"/>
+  <waveform src="impulse"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="0.5"/>
  </sound>
 
@@ -33,5 +33,16 @@
    </slot>
   </filter>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="48db">
+   <slot n="0">
+    <param n="0">4000</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>
