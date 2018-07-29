@@ -150,11 +150,13 @@ typedef struct
 
 typedef struct
 {
-   _aaxDistFn *run;
-   struct {
-      float T_K, pa_kPa, hr_pct;
-   } prev, next;
+   float T_K, pa_kPa, hr_pct;
+} _aaxSceneData;
 
+typedef struct
+{
+   _aaxDistFn *run;
+   _aaxSceneData prev, next;
    float dist, ref_dist, max_dist, rolloff;
 
 } _aaxRingBufferDistanceData;

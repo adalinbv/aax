@@ -155,5 +155,8 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
     P->effect[f].destroy = F->slot[s]->destroy;                         \
     if (!s) aaxEffectSetState(F, P->effect[f].state); } while (0);
 
+float _velocity_calculcate_vs(_aaxSceneData*);
+FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
+
 #endif /* _AAX_EFFECTS_H */
 

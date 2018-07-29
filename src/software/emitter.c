@@ -36,9 +36,6 @@
 #include "renderer.h"
 #include "audio.h"
 
-float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);
-float _directional_prepare(_aax3dProps*,  _aaxDelayed3dProps*, _aaxDelayed3dProps*);
-FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
 
 /**
  * The following code renders all emitters attached to an audio-frame object

@@ -105,9 +105,12 @@ _aaxDistanceFilterSetState(_filter_t* filter, int state)
       {
          filter->slot[0]->state = state;
          data->run = _aaxDistanceFn[pos];
-         data->next.T_K = filter->slot[1]->param[AAX_TEMPERATURE - 0x10];
-         data->next.pa_kPa = filter->slot[1]->param[AAX_ATMOSPHERIC_PRESSURE - 0x10];
-         data->next.hr_pct = filter->slot[1]->param[AAX_RELATIVE_HUMIDITY - 0x10];
+         data->next.T_K = filter->slot[1]->param[AAX_TEMPERATURE & 0xF];
+         data->next.pa_kPa = filter->slot[1]->param[AAX_ATMOSPHERIC_PRESSURE & 0xF];
+         data->next.hr_pct = filter->slot[1]->param[AAX_RELATIVE_HUMIDITY & 0xF];
+#if 0
+ printf("Temp: %5.2f K, atm. pressure: %6.2f kPA, humidity: %f4.1%%\n", data->next.T_K, data->next.pa_kPa, data->next.hr_pct);
+#endif
       }
       else _aaxErrorSet(AAX_INVALID_PARAMETER);
    }
@@ -200,10 +203,10 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxDistanceRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.1f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX, 1.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.1f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX,   1.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { FLT_MAX, FLT_MAX, 100.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,   0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, {    0.0f,    0.0f,   0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

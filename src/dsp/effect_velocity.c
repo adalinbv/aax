@@ -165,21 +165,20 @@ _aaxDopplerShift(float ve, float vsound)
 #endif
 }
 
-#if 0
 // http://www.who.int/occupational_health/publications/noise1.pdf?ua=1
-static float
-_aaxDopplerShiftPrepare(float T_K, float hr_pct)
+float
+_velocity_calculcate_vs(_aaxSceneData *data)
 {
-   static const float Rvapor = 461.4f; // Water vapos: individual gas constant
-   static const float Rair = 286.9f;   // Air: individual gas constant
+   static const float Rvapor = 461.52f; // Water vapor: individual gas constant
+   static const float Rair = 287.5f;   // Air: individual gas constant
    static const float y = 1.402f;	// Air: Ratio of specific heat
-   float R;
+   float T, R, hr;
 
-   R = Rair + hr_pct*(Rvapor-Rair)/100.0f;
-   return sqrtf(T_K*y*R);    // speed of sound in m/s
+   T = data->T_K;
+   hr = 0.01f*data->hr_pct;
+   R = Rair + 0.04f*hr*Rvapor;
+   return sqrtf(y*R*T);    // speed of sound in m/s
 }
-#endif
-
 
 FLOAT
 _velocity_prepare(_aax3dProps *ep3d, _aaxDelayed3dProps *edp3d, _aaxDelayed3dProps *edp3d_m, _aaxDelayed3dProps *fdp3d_m, vec3f_ptr epos, float dist_ef, float vs, float sdf)

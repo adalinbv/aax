@@ -45,6 +45,7 @@
 #include "arch.h"
 #include "ringbuffer.h"
 
+
 static void _aaxFreeEmitterBuffer(void *);
 static int _emitterSetFilter(_aaxEmitter*, _filter_t*);
 static int _emitterSetEffect(_aaxEmitter*, _effect_t*);
@@ -1299,13 +1300,22 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
    }
    case AAX_DISTANCE_FILTER:
    {
+      _aaxRingBufferDistanceData *data;
       _aax3dProps *p3d = src->props3d;
+
       _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
       _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
       _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
       _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
       _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
       _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+
+      data = _FILTER_GET_DATA(p3d, DISTANCE_FILTER);
+      if (data->next.T_K != 0.0f && data->next.hr_pct != 0.0f)
+      {
+        float vs = _velocity_calculcate_vs(&data->next);
+         _EFFECT_SET(p3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY, vs);
+      }
       break;
    }
    case AAX_DIRECTIONAL_FILTER:
