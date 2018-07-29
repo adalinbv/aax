@@ -8,25 +8,30 @@
 
 <aeonwave>
 
+ <!-- Booker T. -->
  <sound name="Drawbar Organ"  program="17" bank="0" frequency="220" duration="0.10">
-  <waveform src="sine" ratio="0.5" pitch="0.5"/>
+  <waveform src="sine" ratio="0.375" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="6.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="8.0"/>
+  <waveform src="sine" processing="add" ratio="0.375" pitch="2.0"/>
+<!--
+  <waveform src="sine" processing="add" ratio="0.001" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.001" pitch="8.0"/>
+-->
   <!-- drive -->
+<!--
   <effect type="distortion">
    <slot n="0">
-    <param n="0">0.05</param>
+    <param n="0">0.2</param>
     <param n="1">0.0</param>
-    <param n="2">0.05</param>
+    <param n="2">0.2</param>
     <param n="3">1.0</param>
    </slot>
   </effect>
+-->
  </sound>
 
  <instrument>
@@ -46,11 +51,6 @@
     <param n="1">0.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">0.987</param>
-   </slot>
-  </effect>
   <effect type="chorus" src="true">
    <slot n="0">
     <param n="0">0.6</param>
