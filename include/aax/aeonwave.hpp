@@ -893,8 +893,9 @@ public:
              aaxMixerDeregisterEmitter(ptr,emitters[i]);
         }
         emitters.clear();
-        for(auto it=buffers.begin(); it!=buffers.end(); it++){
-             aaxBufferDestroy(it->second.second); buffers.erase(it);
+        for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
+             aaxBufferDestroy(it->second.second); it->second.first = 0;
+             buffers.erase(it);
         }
     }
 
@@ -994,9 +995,9 @@ public:
         return it->second.second;
     }
     void destroy(Buffer& b) {
-        for(auto it=buffers.begin(); it!=buffers.end(); it++)
+        for(auto it=buffers.begin(); it!=buffers.end(); ++it)
         {
-            if (it->second.second == b && !(--it->second.first)) {
+            if ((it->second.second == b) && it->second.first && !(--it->second.first)) {
                 aaxBufferDestroy(it->second.second);
                 buffers.erase(it);
             }
