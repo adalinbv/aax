@@ -929,11 +929,8 @@ _open_handle(aaxConfig config)
                _EFFECT_SET2D(smixer,PITCH_EFFECT,AAX_PITCH,handle->info->pitch);
 
                smixer->props3d = _aax3dPropsCreate();
-               if (smixer->props3d)
-               {
+               if (smixer->props3d) {
                   smixer->props3d->dprops3d->velocity.m4[VELOCITY][3] = 0.0f;
-                  _aaxSetDefaultEffect3d(&smixer->props3d->effect[VELOCITY_EFFECT], VELOCITY_EFFECT, 0);
-                  _aaxSetDefaultFilter3d(&smixer->props3d->filter[DISTANCE_FILTER], DISTANCE_FILTER, 0);
                }
 
                res = _intBufCreate(&smixer->emitters_3d, _AAX_EMITTER);
