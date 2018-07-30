@@ -1,0 +1,35 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Bass Fret Noise" program="121" bank="2" frequency="220" duration="0.10">
+  <waveform src="sawtooth" pitch="0.9997"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="9.999"/>
+  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.299"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.3</param>
+    <param n="1">0.01</param>
+    <param n="2">1.50</param>
+    <param n="3">0.225</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">6.0</param>
+    <param n="1">0.025</param>
+    <param n="2">4.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
