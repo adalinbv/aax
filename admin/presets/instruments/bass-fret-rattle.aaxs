@@ -9,25 +9,43 @@
 <aeonwave>
 
  <sound name="Bass Fret Rattle" program="121" bank="2" frequency="220" duration="0.10">
-  <waveform src="sawtooth" pitch="0.9997"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="9.999"/>
-  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.099"/>
+  <waveform src="sawtooth" ratio="0.9"/>
+  <waveform src="square" processing="add" ratio="0.6" pitch="9.0"/>
+  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="5.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.3</param>
+    <param n="0">1.6</param>
     <param n="1">0.01</param>
-    <param n="2">1.50</param>
-    <param n="3">0.225</param>
+    <param n="2">0.55</param>
+    <param n="3">0.65</param>
    </slot>
   </filter>
+  <effect type="dynamic-pitch" src="sawtooth">
+   <slot n="0">
+    <param n="1">33.0</param>
+    <param n="2">1.5</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">6.0</param>
-    <param n="1">0.025</param>
-    <param n="2">4.0</param>
+    <param n="0">1.9</param>
+    <param n="1">0.05</param>
+    <param n="2">0.4</param>
+    <param n="1">0.15</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.3</param>
+   </slot>
+  </effect>
+  <effect type="ringmodulator" src="envelope">
+   <slot n="0">
+    <param n="1">0.1</param>
+    <param n="2" pitch="1.0">1.0</param>
+    <param n="3" pitch="0.5">0.5</param>
    </slot>
   </effect>
  </emitter>
