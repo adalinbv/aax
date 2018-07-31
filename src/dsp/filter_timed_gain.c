@@ -115,6 +115,10 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
             }
+            else {
+               env->sustain = AAX_TRUE;
+            }
+
             if (max_pos == 0)
             {
                env->max_stages = stage;
@@ -134,6 +138,10 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
             }
+            else {
+               env->sustain = AAX_TRUE;
+            }
+
             if (max_pos == 0)
             {
                env->max_stages = stage;
