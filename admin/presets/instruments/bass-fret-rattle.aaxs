@@ -26,15 +26,15 @@
   <effect type="dynamic-pitch" src="sawtooth">
    <slot n="0">
     <param n="1">33.0</param>
-    <param n="2">1.5</param>
-    <param n="3">0.5</param>
+    <param n="2">0.5</param>
+    <param n="3">0.75</param>
    </slot>
   </effect>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.9</param>
-    <param n="1">0.05</param>
-    <param n="2">0.4</param>
+    <param n="0">0.85</param>
+    <param n="1">0.15</param>
+    <param n="2">0.6</param>
     <param n="1">0.15</param>
    </slot>
    <slot n="1">
