@@ -118,7 +118,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             if (max_pos == 0)
             {
                env->max_stages = stage;
-               break;
+               max_pos = 1;
             }
 
             nextval = filter->slot[i]->param[AAX_LEVEL1];
@@ -137,7 +137,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             if (max_pos == 0)
             {
                env->max_stages = stage;
-               break;
+               max_pos = 1;
             }
 
             value = nextval;
