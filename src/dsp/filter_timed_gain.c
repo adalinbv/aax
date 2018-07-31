@@ -92,6 +92,12 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
 
          if (state & AAX_REPEAT) {
             env->repeat = (state & ~AAX_REPEAT);
+            if (env->repeat > 1) {
+               env->sustain = AAX_TRUE;
+            }
+         }
+         else if (state & AAX_ENVELOPE_FOLLOW) {
+            env->sustain = AAX_TRUE;
          }
 
          stage = 0;

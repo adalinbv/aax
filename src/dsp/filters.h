@@ -114,16 +114,20 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 /* filters */
 #define _FILTER_GET_SLOT(F, s, p)       F->slot[s]->param[p]
 #define _FILTER_GET_SLOT_STATE(F)       F->slot[0]->state
+#define _FILTER_GET_SLOT_UPDATED(E)     F->slot[0]->updated
 #define _FILTER_GET_SLOT_DATA(F, s)     F->slot[s]->data
 #define _FILTER_SET_SLOT(F, s, p, v)    F->slot[s]->param[p] = v
 #define _FILTER_SET_SLOT_DATA(F, s, v)  F->slot[s]->data = v
+#define _FILTER_SET_SLOT_UPDATED(E)     if (!F->slot[0]->updated) F->slot[0]->updated = 1
 
 #define _FILTER_GET(P, f, p)            P->filter[f].param[p]
 #define _FILTER_GET_STATE(P, f)         P->filter[f].state
+#define _FILTER_GET_UPDATED(P, f)       P->filter[f].updated
 #define _FILTER_GET_DATA(P, f)          P->filter[f].data
 #define _FILTER_FREE_DATA(P, f)		if (P->filter[f].destroy) P->filter[f].destroy(P->filter[f].data)
 #define _FILTER_SET(P, f, p, v)         P->filter[f].param[p] = v
 #define _FILTER_SET_STATE(P, f, v)      P->filter[f].state = v
+#define _FILTER_SET_UPDATED(P, f, v)    P->filter[f].updated = v
 #define _FILTER_SET_DATA(P, f, v)       P->filter[f].data = v
 #define _FILTER_COPY(P1, P2, f, p)      P1->filter[f].param[p] = P2->filter[f].param[p]
 #define _FILTER_COPY_DATA(P1, P2, f)    P1->filter[f].data = P2->filter[f].data

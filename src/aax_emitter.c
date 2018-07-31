@@ -1300,7 +1300,6 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
    }
    case AAX_DISTANCE_FILTER:
    {
-      _aaxRingBufferDistanceData *data;
       _aax3dProps *p3d = src->props3d;
 
       _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
@@ -1310,11 +1309,15 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
       _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
       _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
 
-      data = _FILTER_GET_DATA(p3d, DISTANCE_FILTER);
-      if (data->next.T_K != 0.0f && data->next.hr_pct != 0.0f)
+      if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
       {
-        float vs = _velocity_calculcate_vs(&data->next);
-         _EFFECT_SET(p3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY, vs);
+         _aaxRingBufferDistanceData *data;
+         data = _FILTER_GET_DATA(p3d, DISTANCE_FILTER);
+         if (data->next.T_K != 0.0f && data->next.hr_pct != 0.0f)
+         {
+            float vs = _velocity_calculcate_vs(&data->next);
+            _EFFECT_SET(p3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY, vs);
+         }
       }
       break;
    }
@@ -1438,6 +1441,7 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
       _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
       _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
       _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
+      _EFFECT_SET_UPDATED(p3d, type, _EFFECT_GET_SLOT_UPDATED(effect));
       _EFFECT_SWAP_SLOT_DATA(p3d,  type, effect, 0);
       break;
    }

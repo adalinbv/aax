@@ -83,10 +83,10 @@ typedef struct
 {
    float ctr;
    float value0, value, value_total;
-   uint32_t pos;
-   unsigned int stage, max_stages, repeat;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
+   uint32_t pos, repeat;
+   char stage, max_stages, sustain;
 } _aaxEnvelopeData;
 
 float _aaxEnvelopeGet(_aaxEnvelopeData*, char, float*, _aaxEnvelopeData*);

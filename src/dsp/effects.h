@@ -60,6 +60,7 @@ typedef struct
    unsigned int id;
    int pos;
    int state;
+   int updated;
    enum aaxEffectType type;
    _aaxEffectInfo* slot[_MAX_FE_SLOTS];
    _aaxMixerInfo* info;
@@ -114,16 +115,20 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 /* effects */
 #define _EFFECT_GET_SLOT(E, s, p)       E->slot[s]->param[p]
 #define _EFFECT_GET_SLOT_STATE(E)       E->slot[0]->state
+#define _EFFECT_GET_SLOT_UPDATED(E)     E->slot[0]->updated
 #define _EFFECT_GET_SLOT_DATA(E, s)     E->slot[s]->data
 #define _EFFECT_SET_SLOT(E, s, p, v)    E->slot[s]->param[p] = v
 #define _EFFECT_SET_SLOT_DATA(E, s, v)  E->slot[s]->data = v
+#define _EFFECT_SET_SLOT_UPDATED(E)     if (!E->slot[0]->updated) E->slot[0]->updated = 1
 
 #define _EFFECT_GET(P, f, p)            P->effect[f].param[p]
 #define _EFFECT_GET_STATE(P, f)         P->effect[f].state
+#define _EFFECT_GET_UPDATED(P, f)	P->effect[f].updated
 #define _EFFECT_GET_DATA(P, f)          P->effect[f].data
 #define _EFFECT_FREE_DATA(P, f)         if (P->effect[f].destroy) P->effect[f].destroy(P->effect[f].data)
 #define _EFFECT_SET(P, f, p, v)         P->effect[f].param[p] = v
 #define _EFFECT_SET_STATE(P, f, v)      P->effect[f].state = v
+#define _EFFECT_SET_UPDATED(P, f, v)    P->effect[f].updated = v
 #define _EFFECT_SET_DATA(P, f, v)       P->effect[f].data = v
 #define _EFFECT_COPY(P1, P2, f, p)      \
                                 P1->effect[f].param[p] = P2->effect[f].param[p]
@@ -155,7 +160,7 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
     P->effect[f].destroy = F->slot[s]->destroy;                         \
     if (!s) aaxEffectSetState(F, P->effect[f].state); } while (0);
 
-float _velocity_calculcate_vs(_aaxSceneData*);
+float _velocity_calculcate_vs(_aaxEnvData*);
 FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
 
 #endif /* _AAX_EFFECTS_H */

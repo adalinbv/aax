@@ -106,8 +106,10 @@ enum _aaxFreqFilterType
 
 typedef struct
 {
-   float param[4];
    int state;
+   int updated;
+   float param[4];
+
    void* data;          /* filter and effect specific interal data structure */
    void (*destroy)(void*); /* function to call to free the data structure */
 

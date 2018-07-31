@@ -150,14 +150,17 @@ typedef struct
 
 typedef struct
 {
-   float T_K, pa_kPa, hr_pct;
-} _aaxSceneData;
+   float T_K;		/* Temperature in Kelvin             */
+   float pa_kPa;	/* Atmospherik pressure in kilpascal */
+   float hr_pct;	/* relative humitidy in percents     */
+
+} _aaxEnvData;
 
 typedef struct
 {
    _aaxDistFn *run;
-   _aaxSceneData prev, next;
    float dist, ref_dist, max_dist, rolloff;
+   _aaxEnvData prev, next;
 
 } _aaxRingBufferDistanceData;
 

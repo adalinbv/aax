@@ -64,8 +64,9 @@ _aaxVelocityEffectDestroy(_effect_t* effect)
 }
 
 static aaxEffect
-_aaxVelocityEffectSetState(UNUSED(_effect_t* effect), UNUSED(int state))
+_aaxVelocityEffectSetState(_effect_t* effect, UNUSED(int state))
 {
+   effect->slot[0]->updated = AAX_TRUE;
    return  effect;
 }
 
@@ -84,6 +85,7 @@ _aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, UNU
       rv->slot[0]->data = *(void**)&_aaxDopplerFn[0];
 
       rv->state = p3d->effect[rv->pos].state;
+      rv->updated = p3d->effect[rv->pos].updated;
    }
    return rv;
 }
@@ -167,7 +169,7 @@ _aaxDopplerShift(float ve, float vsound)
 
 // http://www.who.int/occupational_health/publications/noise1.pdf?ua=1
 float
-_velocity_calculcate_vs(_aaxSceneData *data)
+_velocity_calculcate_vs(_aaxEnvData *data)
 {
    static const float Rvapor = 461.52f; // Water vapor: individual gas constant
    static const float Rair = 287.5f;   // Air: individual gas constant

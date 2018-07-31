@@ -92,6 +92,7 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
          int i, stage;
 
          stage = 0;
+         env->sustain = AAX_TRUE;
          env->value0 = env->value = nextval;
          env->max_stages = _MAX_ENVELOPE_STAGES-1;
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
