@@ -35,7 +35,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0" factor="soften">1.25</param>
-    <param n="1" factor="velocity">0.03</param>
+    <param n="1" factor="velocity">0.02</param>
     <param n="2">0.95</param>
     <param n="3">0.03</param>
    </slot>

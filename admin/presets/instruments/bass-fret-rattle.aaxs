@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Bass Fret Noise" program="121" bank="2" frequency="220" duration="0.10">
+ <sound name="Bass Fret Rattle" program="121" bank="2" frequency="220" duration="0.10">
   <waveform src="sawtooth" pitch="0.9997"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="9.999"/>
-  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.299"/>
+  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.099"/>
  </sound>
 
  <emitter looping="true">
