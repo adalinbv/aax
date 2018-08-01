@@ -404,7 +404,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    if (req > 0)
    {
       unsigned char *opusbuf;
-      int32_t packet_size;
+      size_t packet_size;
       int32_t pcmbufremain;
       int32_t pcmbufoffs;
       int frame_space;
@@ -426,7 +426,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 // printf("  opus_decode: %i, pre_skip: %li\n", ret, handle->pre_skip);
       if (ret > 0)
       {
-         if (handle->pre_skip > ret)
+         if (handle->pre_skip > (size_t)ret)
          {
             handle->pre_skip -= ret;
 //          rv = __F_NEED_MORE;

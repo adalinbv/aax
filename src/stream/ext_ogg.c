@@ -385,17 +385,20 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    else
    {
       size_t packet_size;
+      int ret;
+
       do
       {
          packet_size = handle->packet_offset[handle->packet_no];
 
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, packet_size);
-         rv = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+         ret = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
 
          if (rv > 0) handle->packet_no++;
          assert(handle->packet_no <= handle->no_packets);
       }
-      while ( rv == __F_NEED_MORE && handle->oggBuffer->avail >= packet_size);
+      while (ret == __F_NEED_MORE && handle->oggBuffer->avail >= packet_size);
+      rv = ret;
    }
 
 // printf("ogg_cvt_from: %li\n", rv);
