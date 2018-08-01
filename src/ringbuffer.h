@@ -159,7 +159,7 @@ typedef struct
 typedef struct
 {
    _aaxDistFn *run;
-   float dist, ref_dist, max_dist, rolloff;
+   float dist, ref_dist, max_dist, rolloff, unit_m;
    _aaxEnvData prev, next;
 
 } _aaxRingBufferDistanceData;

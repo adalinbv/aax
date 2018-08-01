@@ -1637,6 +1637,16 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
          void *xeid, *xfid = xmlMarkId(xmid);
 
+#if 0
+         if (xmlAttributeExists(xmid, "stereo") &&
+             xmlAttributeGetBool(xmid, "stereo") == 0)
+         {
+            _aax3dProps *fp3d = handle->submix->props3d;
+            _PROP_MONO_SET_DEFINED(fp3d);
+            _PROP_INDOOR_SET_DEFINED(fp3d);
+         }
+#endif
+
          if (clear)
          {
             _aaxAudioFrame* fmixer = handle->submix;

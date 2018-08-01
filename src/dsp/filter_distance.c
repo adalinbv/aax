@@ -344,7 +344,7 @@ _aaxDistISO9613(void *data)
        a = 8.686f*f2*((1.84e-11f*pr_pa*powf(T_To,0.5f))+y);
     }
 
-    gain = _db2lin(_MAX(d->dist - d->ref_dist, 0.0f) * -a*d->rolloff);
+    gain = _db2lin(_MAX(d->dist - d->ref_dist, 0.0f) * -a*d->unit_m*d->rolloff);
 
     return gain;
 }
@@ -534,5 +534,6 @@ _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3
    data->ref_dist = refdist;
    data->max_dist = maxdist;
    data->rolloff = rolloff;
+   data->unit_m = info->unit_m;
    return data->run(data);
 }
