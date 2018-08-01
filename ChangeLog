@@ -2,12 +2,14 @@
 * Tue Jul 24 2018 - tech@adalin.org
 - AeonWave (3.4.0) stable; urgency=low
 
- * Add a RingModulator effect, mainly to be able to simulate atmospheric
-   anomalies for wireless communications. But useful for other purposes too.
  * Add support for the ISO9613-1 specified distance attenuation model.
+ * If the ISO9613-1 distance  model is applied, and the velocity effect was not
+   yet set, then the corresponding speed of sound will be set automatically.
  * If the source has stopped then finish the current time envelope and stop,
    otherwise an evelope with repeat set to max will never stop until the
    emitter is set to processed.
+ * Add a RingModulator effect, mainly to be able to simulate atmospheric
+   anomalies for wireless communications. But useful for other purposes too.
  * Remove debugging output from ogg streaming code.
 
 -- Erik Hofman <tech@adalin.org>  Tue 24 Jul  2018 11:17:21 + 0200

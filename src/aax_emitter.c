@@ -1315,8 +1315,11 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
          data = _FILTER_GET_DATA(p3d, DISTANCE_FILTER);
          if (data->next.T_K != 0.0f && data->next.hr_pct != 0.0f)
          {
-            float vs = _velocity_calculcate_vs(&data->next);
-            _EFFECT_SET(p3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY, vs);
+            if (_FILTER_GET_SLOT_STATE(filter) & AAX_ISO9613_DISTANCE)
+            {
+               float vs = _velocity_calculcate_vs(&data->next);
+               _EFFECT_SET(p3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY, vs);
+            }
          }
       }
       break;
@@ -1441,8 +1444,10 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
       _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
       _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
       _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-      _EFFECT_SET_UPDATED(p3d, type, _EFFECT_GET_SLOT_UPDATED(effect));
       _EFFECT_SWAP_SLOT_DATA(p3d,  type, effect, 0);
+
+      // Must be after _EFFECT_SWAP_SLOT_DATA which calls effect->state()
+      _EFFECT_SET_UPDATED(p3d, type, _EFFECT_GET_SLOT_UPDATED(effect));
       break;
    }
    default:

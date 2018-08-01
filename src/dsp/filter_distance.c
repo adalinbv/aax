@@ -61,11 +61,14 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
       data = calloc(1, sizeof(_aaxRingBufferDistanceData));
       flt->slot[0]->data = data;
-      if (data) {
+      if (data)
+      {
          data->run = _aaxDistanceFn[1];
          data->prev.pa_kPa = 101.325f;
          data->prev.T_K = 293.15f;
          data->prev.hr_pct = 60.0f;
+         data->prev.unit_m = flt->info->unit_m;
+         data->next.unit_m = flt->info->unit_m;
       }
       
       rv = (aaxFilter)flt;
@@ -136,8 +139,14 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
 
       data = calloc(1, sizeof(_aaxRingBufferDistanceData));
       rv->slot[0]->data = data;
-      if (data) {
+      if (data) 
+      {
          data->run = _aaxDistanceFn[1];
+         data->prev.pa_kPa = 101.325f;
+         data->prev.T_K = 293.15f;
+         data->prev.hr_pct = 60.0f;
+         data->prev.unit_m = rv->info->unit_m;
+         data->next.unit_m = rv->info->unit_m;
       }
       rv->state = p3d->filter[rv->pos].state;
    }
@@ -319,6 +328,7 @@ _aaxDistISO9613(void *data)
        float T, pa, hr;
        float h, y, z;
        float f2 = f*f;
+       float unit_m;
 
        if (d->next.T_K == 0.0f) d->next.T_K = d->prev.T_K;
        if (d->next.pa_kPa == 0.0f) d->next.pa_kPa = d->prev.pa_kPa;
@@ -328,6 +338,7 @@ _aaxDistISO9613(void *data)
        T = d->next.T_K;
        pa = d->next.pa_kPa;
        hr = d->next.hr_pct;
+       unit_m = d->next.unit_m;
 
        T_To = T/To;
        pa_pr = pa/pr;
@@ -342,9 +353,10 @@ _aaxDistISO9613(void *data)
        z = 0.1068f*expf(-3352.0f/T)*(frN/(frN+f2));
        y = powf(T_To,-2.5f)*(0.01275f*exp(-2239.1f/T)*(frO/(frO*frO+f2))+z);
        a = 8.686f*f2*((1.84e-11f*pr_pa*powf(T_To,0.5f))+y);
+       a *= unit_m;
     }
 
-    gain = _db2lin(_MAX(d->dist - d->ref_dist, 0.0f) * -a*d->unit_m*d->rolloff);
+    gain = _db2lin(_MAX(d->dist - d->ref_dist, 0.0f) * -a*d->rolloff);
 
     return gain;
 }
@@ -534,6 +546,6 @@ _distance_prepare(_aax2dProps *ep2d, _aax3dProps *ep3d, _aaxDelayed3dProps *fdp3
    data->ref_dist = refdist;
    data->max_dist = maxdist;
    data->rolloff = rolloff;
-   data->unit_m = info->unit_m;
+   data->next.unit_m = info->unit_m;
    return data->run(data);
 }

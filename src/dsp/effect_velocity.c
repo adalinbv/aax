@@ -66,7 +66,7 @@ _aaxVelocityEffectDestroy(_effect_t* effect)
 static aaxEffect
 _aaxVelocityEffectSetState(_effect_t* effect, UNUSED(int state))
 {
-   effect->slot[0]->updated = AAX_TRUE;
+   _EFFECT_SET_SLOT_UPDATED(effect);
    return  effect;
 }
 
@@ -85,7 +85,9 @@ _aaxNewVelocityEffectHandle(const aaxConfig config, enum aaxEffectType type, UNU
       rv->slot[0]->data = *(void**)&_aaxDopplerFn[0];
 
       rv->state = p3d->effect[rv->pos].state;
-      rv->updated = p3d->effect[rv->pos].updated;
+      if (_EFFECT_GET_UPDATED(p3d, rv->pos)) {
+         _EFFECT_SET_SLOT_UPDATED(rv);
+      }
    }
    return rv;
 }
@@ -171,15 +173,17 @@ _aaxDopplerShift(float ve, float vsound)
 float
 _velocity_calculcate_vs(_aaxEnvData *data)
 {
-   static const float Rvapor = 461.52f; // Water vapor: individual gas constant
-   static const float Rair = 287.5f;   // Air: individual gas constant
+   static const float Rvapor = 461.52f;	// Water vapor: individual gas constant
+   static const float Rair = 287.5f;	// Air: individual gas constant
    static const float y = 1.402f;	// Air: Ratio of specific heat
-   float T, R, hr;
+   float T, R, hr, rv;
 
    T = data->T_K;
    hr = 0.01f*data->hr_pct;
    R = Rair + 0.04f*hr*Rvapor;
-   return sqrtf(y*R*T);    // speed of sound in m/s
+   rv = sqrtf(y*R*T);			// speed of sound in m/s
+
+   return rv*data->unit_m;
 }
 
 FLOAT

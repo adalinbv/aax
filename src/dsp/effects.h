@@ -60,7 +60,6 @@ typedef struct
    unsigned int id;
    int pos;
    int state;
-   int updated;
    enum aaxEffectType type;
    _aaxEffectInfo* slot[_MAX_FE_SLOTS];
    _aaxMixerInfo* info;

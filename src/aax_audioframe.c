@@ -494,13 +494,47 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
          break;
       }
       case AAX_DISTANCE_FILTER:
-      case AAX_DIRECTIONAL_FILTER:
       {
          _aax3dProps *p3d = handle->submix->props3d;
          _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
          _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
          _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
          _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
+         _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
+         _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+
+         if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
+         {
+            _aaxRingBufferDistanceData *data;
+            data = _FILTER_GET_DATA(p3d, DISTANCE_FILTER);
+            if (data->next.T_K != 0.0f && data->next.hr_pct != 0.0f)
+            {
+               if (_FILTER_GET_SLOT_STATE(filter) & AAX_ISO9613_DISTANCE)
+               {
+                  float vs = _velocity_calculcate_vs(&data->next);
+                  _EFFECT_SET(p3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY, vs);
+               }
+            }
+         }
+         break;
+      }
+      case AAX_DIRECTIONAL_FILTER:
+      {
+         _aax3dProps *p3d = handle->submix->props3d;
+         float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
+         float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
+         float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
+         float forward_gain = _FILTER_GET_SLOT(filter, 0, 3);
+
+         if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
+            _PROP_CONE_CLEAR_DEFINED(p3d);
+         } else {
+            _PROP_CONE_SET_DEFINED(p3d);
+         }
+         _FILTER_SET(p3d, type, 0, inner_vec);
+         _FILTER_SET(p3d, type, 1, outer_vec);
+         _FILTER_SET(p3d, type, 2, outer_gain);
+         _FILTER_SET(p3d, type, 3, forward_gain);
          _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
          _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
          break;
