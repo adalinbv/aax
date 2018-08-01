@@ -1,5 +1,5 @@
 
-* Tue Jul 24 2018 - tech@adalin.org
+* Wed Aug 01 2018 - tech@adalin.org
 - AeonWave (3.4.0) stable; urgency=low
 
  * Add support for the ISO9613-1 specified distance attenuation model.
@@ -12,7 +12,7 @@
    anomalies for wireless communications. But useful for other purposes too.
  * Remove debugging output from ogg streaming code.
 
--- Erik Hofman <tech@adalin.org>  Tue 24 Jul  2018 11:17:21 + 0200
+-- Erik Hofman <tech@adalin.org>  Wed 01 Aug  2018 11:00:00 + 0200
 
 
 * Fri Jul 20 2018 - tech@adalin.org
