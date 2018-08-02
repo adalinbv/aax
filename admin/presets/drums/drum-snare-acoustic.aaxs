@@ -9,7 +9,7 @@
 <aeonwave>
 
  <sound name="Acoustic Snare" frequency="95" duration="0.20">
-  <waveform src="pink-noise" ratio="0.6" pitch="0.20"/>
+  <waveform src="white-noise" ratio="0.6" pitch="0.20"/>
   <waveform src="sine" processing="add" ratio="0.43"/>
   <waveform src="triangle" processing="add" ratio="0.47" pitch="0.53"/>
  </sound>
@@ -18,7 +18,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.50</param>
-    <param n="1">0.01</param>
+    <param n="1">0.10</param>
     <param n="2">1.00</param>
     <param n="3">0.20</param>
    </slot>
@@ -29,7 +29,9 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.50</param>
+    <param n="0">2.50</param>
+    <param n="1">0.02</param>
+    <param n="2">1.50</param>
    </slot>
   </effect>
  </emitter>
