@@ -25,7 +25,7 @@
  <emitter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.50</param>
+    <param n="0">1.20</param>
     <param n="1">0.03</param>
     <param n="2">1.1</param>
     <param n="3">0.2</param>
@@ -34,9 +34,16 @@
     <param n="0">0.55</param>
     <param n="1">0.30</param>
     <param n="2">0.45</param>
-    <param n="3">1.00</param>
+    <param n="3">0.50</param>
    </slot>
   </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.10</param>
+    <param n="1">0.01</param>
+    <param n="2">1.00</param>
+   </slot>
+  </effect>
  </emitter>
 
 </aeonwave>
