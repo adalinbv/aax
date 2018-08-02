@@ -34,4 +34,21 @@
   </filter>
  </emitter>
 
+ <audioframe>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">100</param>
+    <param n="1">0.8</param>
+    <param n="2">1.0</param>
+    <param n="3">1.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1200</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
+
 </aeonwave>
