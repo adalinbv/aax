@@ -14,7 +14,7 @@
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="5.0"/>
   <filter type="frequency" src="true">
    <slot n="0">
-    <param n="0" pitch="8.0">8800</param>
+    <param n="0" pitch="8.0">1760</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>
