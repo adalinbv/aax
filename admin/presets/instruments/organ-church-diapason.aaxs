@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Diapason Organ" program="20" bank="8" frequency="220" duration="0.10">
+  <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="0.4375" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.375" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.3125" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.1875" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.125" pitch="8.0"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="10" min="36" max="96" step="12"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.05</param>
+    <param n="2">2.0</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2.0</param>
+    <param n="1">0.2</param>
+   </slot>
+  </filter>
+ </emitter>
+
+ <audioframe>
+  <effect type="reverb">
+   <slot n="0">
+    <param n="1">0.037</param>
+    <param n="2">0.5</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+</aeonwave>
