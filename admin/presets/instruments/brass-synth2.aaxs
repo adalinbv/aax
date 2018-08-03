@@ -14,7 +14,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="4" min="36" max="96" step="1"/>
+  <note polyphony="4" min="36" max="96" step="12"/>
  </instrument>
 
  <emitter looping="true">

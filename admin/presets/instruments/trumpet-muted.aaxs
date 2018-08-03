@@ -29,7 +29,7 @@
  </sound>
 
  <instrument>
-  <note polyphony="1" min="58" max="82" step="1"/>
+  <note polyphony="1" min="58" max="82" step="12"/>
  </instrument>
 
  <emitter looping="true">
