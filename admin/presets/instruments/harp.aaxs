@@ -29,7 +29,7 @@
    <slot n="1">
     <param n="0">0.80</param>
     <param n="1" auto-sustain="1.0" factor="sustain">3.1</param>
-    <param n="2">0.15</param>
+    <param n="2">0.25</param>
     <param n="3">0.10</param>
    </slot>
   </filter>
