@@ -52,7 +52,7 @@
   <filter type="dynamic-gain" src="sine">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">7.5</param>
+    <param n="1">10.0</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>

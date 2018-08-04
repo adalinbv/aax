@@ -9,6 +9,15 @@
 <aeonwave>
 
  <sound name="French Horn" program="61" bank="0" frequency="220" duration="0.10">
+<!--
+  <waveform src="sine" ratio="0.4375" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="0.375" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.3125" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.1875" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.125" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.0625" pitch="8.0"/>
+-->
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">
