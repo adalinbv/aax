@@ -31,9 +31,11 @@ class Note
 {
 public:
     Note(AeonWave& ptr, Buffer buffer)
-        : aax(ptr), emitter(Emitter(AAX_RELATIVE))
+        : aax(ptr), emitter(Emitter(AAX_RELATIVE)), pitch(1.0f), gain(1.0f)
     {
         emitter.add(buffer);
+        emitter.tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
+        emitter.tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
     }
 
     ~Note() {
@@ -42,9 +44,7 @@ public:
 
     void play(unsigned char note)
     {
-        dsp pitch(aax, AAX_PITCH_EFFECT);
-        pitch.set(AAX_PITCH, NoteToPitch(note));
-        emitter.set(pitch);
+        pitch = NoteToPitch(note);
         emitter.set(AAX_PLAYING);
     }
 
@@ -72,6 +72,7 @@ private:
     }
 
     Emitter emitter;
+    Param pitch, gain;
     AeonWave &aax;
 };
 
