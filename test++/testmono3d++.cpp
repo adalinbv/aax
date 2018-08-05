@@ -196,6 +196,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerStop");
 
             config.destroy(buffer);
+            config.destroy(buffer);
         }
     }
 
