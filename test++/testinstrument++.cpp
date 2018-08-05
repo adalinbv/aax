@@ -151,7 +151,7 @@ int main(int argc, char **argv)
 #if SAX
         res = dsp.set(0, 0.0f, 0.05f, 1.0f, 0.05f);
         testForState(res, "aaxFilterSetSlot 0");
-        res = dsp.set(1, 0.9f, 9.0f, 0.8f, 0.2f);
+        res = dsp.set(1, 0.9f, 1.0f, 0.8f, 0.2f);
         testForState(res, "aaxFilterSetSlot 1");
         res = dsp.set(2, 0.0f, 0.0f, 0.0f, 0.0f);
         testForState(res, "aaxFilterSetSlot 2");
@@ -164,11 +164,11 @@ int main(int argc, char **argv)
         testForState(res, "aaxFilterSetSlot 2");
 #endif
 
-        res = dsp.set(AAX_TRUE);
-        testForState(res, "aaxFilterSetState");
-
         res = emitter.set(dsp);
         testForState(res, "aaxEmitterSetFilter");
+
+        aax::Status status = AAX_TRUE;
+        emitter.tie(status,  AAX_TIMED_GAIN_FILTER);
 #endif
 
 #if ENABLE_TIMED_PITCH_EFFECT
@@ -270,6 +270,7 @@ int main(int argc, char **argv)
             state = emitter.state();
         }
         while (state == AAX_PLAYING);
+        emitter.untie(pitch);
 
         res = emitter.set(AAX_STOPPED);
         do
