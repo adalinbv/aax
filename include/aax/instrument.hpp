@@ -19,8 +19,8 @@
  *  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifndef AEONWAVE_MIDI_HPP
-#define AEONWAVE_MIDI_HPP 1
+#ifndef AEONWAVE_INSTRUMENT_HPP
+#define AEONWAVE_INSTRUMENT_HPP 1
 
 #include <aax/aeonwave.hpp> 
 
@@ -30,8 +30,8 @@ namespace aax
 class Note
 {
 public:
-    Note(Aeonwave& ptr, Buffer buffer)
-        : aax(ptr), emitter(Emitter(AAX_MODE_RELATIVE))
+    Note(AeonWave& ptr, Buffer buffer)
+        : aax(ptr), emitter(Emitter(AAX_RELATIVE))
     {
         emitter.add(buffer);
     }
@@ -43,8 +43,8 @@ public:
     void play(unsigned char note)
     {
         dsp pitch(aax, AAX_PITCH_EFFECT);
-        dsp.set(AAX_PITCH, NoteToPitch(note));
-        emitter.set(dsp);
+        pitch.set(AAX_PITCH, NoteToPitch(note));
+        emitter.set(pitch);
         emitter.set(AAX_PLAYING);
     }
 
@@ -52,7 +52,17 @@ public:
         emitter.set(AAX_STOPPED);
     }
 
-    operator Emitter&() const {
+    friend void swap(Note& n1, Note& n2) {
+        std::swap(n1.emitter, n2.emitter);
+        std::swap(n1.aax, n2.aax);
+    }
+
+    Note& operator=(Note n) {
+        swap(*this, n);
+        return *this;
+    }
+
+    operator Emitter&() {
         return emitter;
     }
 
@@ -62,14 +72,14 @@ private:
     }
 
     Emitter emitter;
-    Aeonwave &aax;
+    AeonWave &aax;
 };
 
 
 class Instrument
 {
 public:
-    Instrument(Aeonwave& ptr, std::string& name)
+    Instrument(AeonWave& ptr, std::string& name)
         : frame(Frame(ptr)), buffer(ptr.buffer(name)), aax(ptr)
     {
         frame.add(buffer);
@@ -98,7 +108,7 @@ public:
     {
         if (id) {
             frame.remove(notes[--id]);
-            notes.erase[id];
+            notes.erase(notes.begin()+id);
         }
     }
 
@@ -115,7 +125,7 @@ private:
     Frame frame;
 
     Buffer& buffer;
-    Aeonwave &aax;
+    AeonWave &aax;
 };
 
 } // namespace aax
