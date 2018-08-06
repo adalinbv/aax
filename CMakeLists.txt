@@ -512,6 +512,7 @@ install(FILES
         include/aax/aeonwave.hpp
         include/aax/strings.hpp
         include/aax/matrix.hpp
+        include/aax/instrument.hpp
         DESTINATION "include/${AEONWAVE_DIR}"
         COMPONENT Headers
 )
