@@ -28,6 +28,15 @@
 #if HAVE_SYS_TIME_H
 # include <sys/time.h>         /* for struct timeval */
 #endif
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# include <string.h>
+# if HAVE_STRINGS_H
+#  include <strings.h>
+# endif
+#endif
+#include <assert.h>
 #include <errno.h>
 #include <math.h>
 
@@ -111,33 +120,58 @@ int msecSleep(unsigned int dt_ms)
 #include <poll.h>
 int usecSleep(unsigned int dt_us)
 {
-#if 1
    struct timeval delay;
    delay.tv_sec = 0;
    delay.tv_usec = dt_us;
    do {
       (void) select(0, NULL, NULL, NULL, &delay);
    } while ((delay.tv_usec > 0) || (delay.tv_sec > 0));
-#else
-   static struct timespec s;
-   if (dt_us > 0)
-   {
-      s.tv_sec = (dt_us/1000000);
-      s.tv_nsec = (dt_us % 1000000)*1000L;
-      while(nanosleep(&s,&s)==-1 && errno == EINTR)
-         continue;
-   }
-   else
-   {
-      s.tv_sec = 0;
-      s.tv_nsec = 500000L;
-      return nanosleep(&s, 0);
-   }
-#endif
    return 0;
 }
 
 /* end of highres timing code */
 
 #endif	/* if defined(_WIN32) */
+
+
+_aaxTimer* _aaxTimerCreate()
+{
+   return calloc(1, sizeof(_aaxTimer));  
+}
+
+void _aaxTimerDestroy(_aaxTimer* timer)
+{
+    free(timer);
+}
+
+int _aaxTimerStartRepeatable(_aaxTimer* timer, unsigned int us)
+{
+   assert(timer);
+   timer->step_us = 1000;
+   gettimeofday(&timer->start, NULL);
+   return 0;
+}
+
+int _aaxTimerStop(_aaxTimer* timer)
+{
+   return 1;
+}
+
+int _aaxTimerWait(_aaxTimer* time)
+{
+   struct timeval now;
+   ssize_t diff_us;
+   int rv = 0;
+
+   gettimeofday(&now, NULL);
+   diff_us = now.tv_sec * 1000000 + now.tv_usec;
+   diff_us -= time->start.tv_sec * 1000000 + time->start.tv_usec;
+   time->start = now;
+
+   diff_us = time->step_us - diff_us;
+   if (diff_us > 0) {
+      rv = usecSleep(diff_us);
+   }
+   return rv;
+}
 

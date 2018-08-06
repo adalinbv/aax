@@ -76,49 +76,18 @@ int setTimerResolution(unsigned int);
 int resetTimerResolution(unsigned int);
 
 
-/** highres timing code */
-#ifdef _WIN32
-# include <windows.h>
 typedef struct
 {
-   double tfreq;
-   LARGE_INTEGER timerOverhead;
-   LARGE_INTEGER prevTimerCount;
-   LARGE_INTEGER timerCount;
-
-   /* repeatable */
-   HANDLE Event[2];	/* if Event != NULL the timer is repeatable */
-   LARGE_INTEGER dueTime;
-   LONG Period;
+   struct timeval start;
+   unsigned int step_us;
 
 } _aaxTimer;
-#else
-typedef struct
-{
-   double tfreq;
-   struct timespec timerOverhead;
-   struct timespec prevTimerCount;
-   struct timespec timerCount;
-
-   /* repeatable */
-   float dt;
-   void *signal;		/* repeatable when signal->condition != NULL */
-   char user_condition;
-
-} _aaxTimer;
-#endif
 
 _aaxTimer* _aaxTimerCreate();
 void _aaxTimerDestroy(_aaxTimer*);
-double _aaxTimerGetFrequency(_aaxTimer*);
-double _aaxTimerElapsed(_aaxTimer*);
-void _aaxTimerStart(_aaxTimer*);
-
-/* repeatable */
-int _aaxTimerSetCondition(_aaxTimer*, void*);
-int _aaxTimerStartRepeatable(_aaxTimer*, float);
+int _aaxTimerStartRepeatable(_aaxTimer*, unsigned int);
 int _aaxTimerStop(_aaxTimer*);
-int _aaxTimerWait(_aaxTimer*, void*);
+int _aaxTimerWait(_aaxTimer*);
 
 /* end of highres timing code */
 
