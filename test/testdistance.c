@@ -55,7 +55,7 @@
 #define SYPOS			1000.0f
 #define SZPOS			-500.0f
 
-#define INITIAL_DIST		10000.0f
+#define INITIAL_DIST		2000.0f
 #define EXPOS			(SXPOS-INITIAL_DIST)
 #define EYPOS			(SYPOS+20.0f)
 #define EZPOS			(SZPOS-50.0f)
@@ -102,7 +102,7 @@ int main(int argc, char **argv)
 
             /** scenery settings */
 
-            /** doppler settings */
+            /** doppler settings  for the Scenery */
             effect = aaxEffectCreate(config, AAX_VELOCITY_EFFECT);
             testForError(effect, "Unable to create the velocity effect");
 
@@ -143,18 +143,36 @@ int main(int argc, char **argv)
             res = aaxEmitterSetVelocity(emitter, EmitterVel);
             testForState(res, "aaxEmitterSetVelocity");
 
+#if 0
+            /** doppler settings for the Emitter */
+            effect = aaxEffectCreate(config, AAX_VELOCITY_EFFECT);
+            testForError(effect, "Unable to create the velocity effect");
+
+            res = aaxEffectSetParam(effect, AAX_SOUND_VELOCITY, AAX_LINEAR, SPEED_OF_SOUND);
+            testForState(res, "aaxScenerySetSoundVelocity");
+
+            res = aaxEmitterSetEffect(emitter, effect);
+            testForState(res, "aaxScenerySetEffect");
+            aaxEffectDestroy(effect);
+#endif
+
             /* distance filter */
             filter = aaxFilterCreate(config, AAX_DISTANCE_FILTER);
             testForError(filter, "Unable to create the distance filter");
 
-            res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 45.0f);
+            res = aaxFilterSetParam(filter, AAX_REF_DISTANCE, AAX_LINEAR, 250.0f);
             testForState(res, "aaxEmitterSetReferenceDistance");
 
             res = aaxFilterSetParam(filter, AAX_MAX_DISTANCE, AAX_LINEAR, 5000.0f);
             testForState(res, "aaxEmitterSetMaxDistance");
 
+            res = aaxFilterSetParam(filter, AAX_TEMPERATURE, AAX_DEGREES_CELSIUS, 20.0f);
+            res = aaxFilterSetParam(filter, AAX_RELATIVE_HUMIDITY, AAX_LINEAR, 40.0f);
+
+#if 1
             res = aaxFilterSetState(filter, AAX_ISO9613_DISTANCE);
             testForState(res, "aaxEmitterSetDistanceModel");
+#endif
 
             res = aaxEmitterSetFilter(emitter, filter);
             testForState(res, "aaxScenerySetDistanceModel");
