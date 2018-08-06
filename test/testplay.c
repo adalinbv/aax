@@ -185,7 +185,7 @@ int main(int argc, char **argv)
             }
             while (state != AAX_PROCESSED);
 
-            res = aaxAudioFrameSetState(config, AAX_STOPPED);
+            res = aaxAudioFrameSetState(frame, AAX_STOPPED);
             res = aaxAudioFrameDeregisterEmitter(frame, emitter);
             res = aaxMixerDeregisterAudioFrame(config, frame);
             res = aaxMixerSetState(config, AAX_STOPPED);
