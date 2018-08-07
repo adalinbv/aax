@@ -34,7 +34,7 @@ class byte_stream
 public:
     byte_stream() : pos(0) {}
 
-    byte_stream(buffer_map<uint8_t>& buffer) : map(buffer), pos(0) {}
+    byte_stream(const buffer_map<uint8_t>& buffer) : map(buffer), pos(0) {}
 
     byte_stream(const byte_stream& s) : byte_stream(s.map, s.pos) {}
 
@@ -78,7 +78,7 @@ public:
     inline const buffer_map<uint8_t>& map() { return map; }
 
 private:
-    buffer_map<uint8_t> map;
+    const buffer_map<uint8_t> map;
     size_t pos;
 };
 
