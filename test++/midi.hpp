@@ -38,6 +38,32 @@
 #include <buffer_map.hpp>
 #include <byte_stream.hpp>
 
+#define MIDI_SEQUENCE_NUMBER		0x00
+#define MIDI_TEXT			0x01
+#define MIDI_COPYRIGHT			0x02
+#define MIDI_TRACK_NAME			0x03
+#define MIDI_INSTRUMENT_NAME		0x04
+#define MIDI_LYRICS			0x05
+#define MIDI_MARKER			0x06
+#define MIDI_CUE_MARKER			0x07
+#define MIDI_DEVICE_NAME		0x09
+#define MIDI_CHANNEL_PREFIX		0x20
+#define MIDI_END_OF_TRACK		0x2f
+#define MIDI_SET_TEMPO			0x51
+#define MIDI_SAMPLE_OFFSET		0x54
+#define MIDI_TIME_SIGNATURE		0x58
+#define MIDI_KEY_SIGNATURE		0x59
+
+#define MIDI_NOTE_OFF			0x80
+#define MIDI_NOTE_ON			0x90
+#define MIDI_POLYPHONIC_PRESSURE	0xa0
+#define MIDI_CONTROL_CHANGE		0xb0
+#define MIDI_PROGRAM_CHANGE		0xc0
+#define MIDI_CHANNEL_PRESSURE		0xd0
+#define MIDI_PITCH_BEND			0xe0
+
+#define MIDI_SYSTEM_MESSAGE		0xff
+
 
 typedef buffer_map<uint8_t> MIDIBuffer;
 
@@ -45,7 +71,7 @@ class MIDIStream : public byte_stream
 {
 public:
     MIDIStream(const byte_stream& stream, uint16_t channel, uint16_t ppqn)
-        : track(stream.map()), track_no(channel), PPQN(ppqn), omni(false)
+        : track(stream.map()), track_no(channel), PPQN(ppqn)
     {
         timestamp = get_message();
     }
@@ -63,20 +89,20 @@ private:
     }
 
     const MIDIBuffer track;
-    uint32_t timestamp;
-    uint16_t track_no;
-    uint16_t PPQN;
-    uint16_t QN;
-    uint16_t bpm;
-    uint8_t previous;
-    bool poly;
-    bool omni;
+    uint32_t timestamp = 0;
+    uint16_t track_no = 0;
+    uint16_t PPQN = 24;
+    uint16_t QN = 24;
+    uint16_t bpm = 120;
+    uint8_t previous = 0;
+    bool poly = true;
+    bool omni = false;
 }
 
 class MIDIFile
 {
 public:
-    MIDIFile() : time_pos(0), no_tracks(0), format(0) {}
+    MIDIFile() = default;
 
     MIDIFile(const char *filename);
 
@@ -94,9 +120,9 @@ private:
     std::vector<uint8_t> midi_data;
     std::vector<MIDITrack*> track;
 
-    uint32_t time_pos;
-    uint16_t no_tracks;
-    uint16_t format;
+    uint32_t time_pos = 0;
+    uint16_t no_tracks = 0;
+    uint16_t format = 0;
 };
 
 #endif

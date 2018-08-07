@@ -74,7 +74,7 @@ MIDIStream::process(uint32_t time_pos)
             uint8_t size = get_byte();
             forward(size);
             break;
-        case 0xff:	// system messages
+        case MIDI_SYSTEM_MESSAGE:
         {
             // http://mido.readthedocs.io/en/latest/meta_message_types.html
             uint8_t meta = get_byte();
@@ -82,36 +82,36 @@ MIDIStream::process(uint32_t time_pos)
 
             switch(meta)
             {
-            case 0x00:	// sequence_number
+            case MIDI_SEQUENCE_NUMBER:
             {
                 uint8_t sequence = get_byte();
                 break;
             }
-            case 0x01:	// text
-            case 0x02:  // copyright
-            case 0x03:	// track_name
-            case 0x04:	// instrument_name
-            case 0x05:	// lyrics
-            case 0x06:	// marker
-            case 0x07:	// cue_marker
-            case 0x09:	// device_name
+            case MIDI_TEXT:
+            case MIDI_COPYRIGHT:
+            case MIDI_TRACK_NAME:
+            case MIDI_INSTRUMENT_NAME:
+            case MIDI_LYRICS:
+            case MIDI_MARKER:
+            case MIDI_CUE_MARKER:
+            case MIDI_DEVICE_NAME:
                 forward(size);			// not implemented yet
                 // for (uint8_t i=0; i<size; ++i) printf("%c", get_byte());
                 break;
-            case 0x20:	// channel_prefix
+            case MIDI_CHANNEL_PREFIX:
                 track = get_byte();
                 break;
-            case 0x2f:	// end_of_track
+            case MIDI_END_OF_TRACK:
                 forward();
                 break;
-            case 0x51:	// set_tempo
+            case MIDI_SET_TEMPO:
             {
                 uint32_t tempo;
                 tempo = (get_byte() << 16) | (get_byte() << 8) | get_byte();
                 bpm = tempo2bpm(tempo);
                 break;
             }
-            case 0x54:	// smpte_offset
+            case MIDI_SAMPLE_OFFSET:
             {
                 uint8_t frame_rate = get_byte();
                 uint8_t hours = get_byte();
@@ -121,14 +121,14 @@ MIDIStream::process(uint32_t time_pos)
                 uint8_t sub_frames = get_byte();
                 break;
             }
-            case 0x58:	// time_signature
+            case MIDI_TIME_SIGNATURE:
             {
                 uint8_t numerator = get_byte();
                 uint8_t denominator = get_byte();
                 uint8_t clocks_per_click = get_byte();
                 uint8_t notated_32nd_notes_per_beat = get_byte();
             }
-            case 0x59:	// key_signature
+            case MIDI_KEY_SIGNATURE:
             default:	// unsupported
                 forward(size);
                 break;
@@ -141,8 +141,8 @@ MIDIStream::process(uint32_t time_pos)
             switch(message & 0xf0)
             {
             case 
-            case 0x80:	// note off
-            case 0x90:	// note on
+            case MIDI_NOTE_OFF:
+            case MIDI_NOTE_ON:
             {
                 uint8_t key = get_byte();
                 uint8_t velocity = get_byte();
@@ -150,27 +150,27 @@ MIDIStream::process(uint32_t time_pos)
                 // and whether the note needs to sart or stop.
                 break;
             }
-            case 0xa0:	// polyphonic pressure
+            case MIDI_POLYPHONIC_PRESSURE:
             {
                 uint8_t key = get_byte();
                 uint8_t pressure = get_byte();
                 // we now have the channel, the key and the pressure
                 break;
             }
-            case 0xb0:	// control change
+            case MIDI_CONTROL_CHANGE:
                 uint8_t controller = get_byte();
                 uint8_t value = get_byte();
                 // we now have the channel, the controller and the new value
                 break;
-            case 0xc0:	// program change
+            case MIDI_PROGRAM_CHANGE:
                 uint8_t program = get_byte();
                 // we now have the channel and the program
                 break;
-            case 0xd0:	// channel pressure
+            case MIDI_CHANNEL_PRESSURE:
                 uint8_t pressure = get_byte();
                 // we now have the channel and the pressure
                 break;
-            case 0xe0:	// pitch bend
+            case MIDI_PITCH_BEND:
             {
                 uint16_t pitch = get_byte() << 7 | get_byte();
                 // we now have the channel and the pitch
