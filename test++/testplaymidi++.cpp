@@ -208,9 +208,7 @@ public:
         return rv;
     }
 
-    inline void Back()
-    {
-        assert(pos > 0);
+    inline void Back() {
         pos--;
     }
 
