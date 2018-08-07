@@ -32,9 +32,9 @@
 class byte_stream
 {
 public:
-    byte_stream() : pos(0) {}
+    byte_stream() = default;
 
-    byte_stream(const buffer_map<uint8_t>& buffer) : map(buffer), pos(0) {}
+    byte_stream(const buffer_map<uint8_t>& buffer) : map(buffer) {}
 
     byte_stream(const byte_stream& s) : byte_stream(s.map, s.pos) {}
 
@@ -50,7 +50,7 @@ public:
     }
 
     byte_stream& operator=(byte_stream s) {
-        swap(*this, ss;
+        swap(*this, s);
         return *this;
     }
 
@@ -71,15 +71,15 @@ public:
     }
     inline void put_long() { pos -= 4; }
 
+    inline const buffer_map<uint8_t>& map() { return map; }
+
     inline size_t size() { return map.size(); }
 
     inline bool eof() { return (pos == map.size()); }
 
-    inline const buffer_map<uint8_t>& map() { return map; }
-
 private:
     const buffer_map<uint8_t> map;
-    size_t pos;
+    size_t pos = 0;
 };
 
 #endif

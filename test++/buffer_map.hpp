@@ -31,9 +31,9 @@ template<typename T>
 class buffer_map
 {
 public:
-    buffer_map() : length(0), buf(nullptr) {}
+    buffer_map() = default;
 
-    buffer_map(const T* ptr, size_t size) : length(size), buf(ptr) {}
+    buffer_map(T* ptr, size_t size) : length(size), buf(ptr) {}
 
     buffer_map(const buffer_map& b) : buffer_map(b.buf, b.length) {}
 
@@ -44,7 +44,8 @@ public:
     ~buffer_map() = default;
 
     void assign(T* ptr, size_t size) {
-        buf = ptr; length = size;
+        length = size;
+        buf = ptr;
     }
 
     size_t size() {
@@ -52,8 +53,8 @@ public:
     }
 
     friend void swap(buffer_map& b1, buffer_map& b2) {
-        std::swap(b1.ptr, b2.ptr);
         std::swap(b1.length, b2.length);
+        std::swap(b1.ptr, b2.ptr);
     }
 
     buffer_map& operator=(buffer_map b) {
@@ -72,8 +73,8 @@ public:
     }
 
 private:
-    size_t length;
-    const T *buf;
+    size_t length = 0;
+    T *buf = nullptr;
 };
 
 #endif
