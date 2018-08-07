@@ -275,29 +275,26 @@ printf("m_nextTime: %f (%f)\n", m_nextTime, seconds);
                 unsigned char metaType = GetByte();
                 unsigned char length = GetByte();
 
-                if (verbose)
-                {
-                   LOG("    meta: 0x%02x", metaType);
-                   LOG("    length: 0x%02x", length);
+                LOG("    meta: 0x%02x", metaType);
+                LOG("    length: 0x%02x", length);
 
-                   if (metaType == 0x01)
-                   {
-                       LOG("    text event: ");
-                       for (int i = 0; i<length; i++)
-                           LOG("%c", GetByte());
-                   }
-                   else if (metaType == 0x03)
-                   {
-                       LOG("    track name: ");
-                       for (int i = 0; i<length; i++)
-                           LOG("%c", GetByte());
-                   }
-                   else if (metaType == 0x09)
-                   {
-                       LOG("    inst: ");
-                       for (int i = 0; i<length; i++)
-                           LOG("%c", GetByte());
-                   }
+                if (metaType == 0x01)
+                {
+                    LOG("    text event: ");
+                    for (int i = 0; i<length; i++)
+                        LOG("%c", GetByte());
+                }
+                else if (metaType == 0x03)
+                {
+                    LOG("    track name: ");
+                    for (int i = 0; i<length; i++)
+                        LOG("%c", GetByte());
+                }
+                else if (metaType == 0x09)
+                {
+                    LOG("    inst: ");
+                    for (int i = 0; i<length; i++)
+                    LOG("%c", GetByte());
                 }
                 else if (metaType == 0x20)
                 {

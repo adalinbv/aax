@@ -54,8 +54,8 @@ public:
         return *this;
     }
 
-    inline void forward(size_t offs) { pos += offs; }
-    inline void rewind(size_t offs) { pos -= offs; }
+    inline void forward(size_t offs = (map.size()-pos)) { pos += offs; }
+    inline void rewind(size_t offs = pos) { pos -= offs; }
 
     inline uint8_t get_byte() { return map[pos++]; }
     inline void put_byte() { return --pos; }

@@ -38,14 +38,13 @@
 #include <buffer_map.hpp>
 #include <byte_stream.hpp>
 
-#define MAX_MIDI_TRACKS		64
 
 typedef buffer_map<uint8_t> MIDIBuffer;
 
 class MIDIStream : public byte_stream
 {
 public:
-    MIDIStream(const ByteStream& stream, uint16_t channel, uint16_t ppqn)
+    MIDIStream(const byte_stream& stream, uint16_t channel, uint16_t ppqn)
         : track(stream.map()), track_no(channel), PPQN(ppqn), omni(false)
     {
         timestamp = get_message();
@@ -55,9 +54,15 @@ public:
 
 private:
     uint32_t get_message();
-    uint32_t get_message_shifted();
 
-    const MIDIBuffer& track;
+    inline uint16_t tempo2bpm(uint32_t tempo) {
+        return (60 * 1000000 / tempo);
+    }
+    inline uint32_t bpm2tempo(uint16_t bpm) {
+        return (60 * 1000000 / bpm);
+    }
+
+    const MIDIBuffer track;
     uint32_t timestamp;
     uint16_t track_no;
     uint16_t PPQN;
@@ -71,13 +76,13 @@ private:
 class MIDIFile
 {
 public:
-    MIDI() : time_pos(0), no_tracks(0), format(0) {}
+    MIDIFile() : time_pos(0), no_tracks(0), format(0) {}
 
-    MIDI(const char *filename);
+    MIDIFile(const char *filename);
 
-    MIDI(std::string& filename) : MIDI(filename.c_str());
+    MIDIFile(std::string& filename) : MIDI(filename.c_str());
 
-    ~MIDI() = default;
+    ~MIDIFile() = default;
 
     inline operator bool() {
         return midi_data.size();
@@ -87,8 +92,8 @@ public:
 
 private:
     std::vector<uint8_t> midi_data;
+    std::vector<MIDITrack*> track;
 
-    MIDITrack* track[MAX_MIDI_TRACKS];
     uint32_t time_pos;
     uint16_t no_tracks;
     uint16_t format;

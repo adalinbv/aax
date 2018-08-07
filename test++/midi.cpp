@@ -53,105 +53,196 @@ MIDIStream::get_message()
     return rv;
 }
 
-uint32_t
-MIDIStream::get_message_shifted()
-{
-    uint32_t rv = 0;
-
-    for (int i=24; i>=0; i -= 8)
-    {
-        uint8_t bytes = get_byte();
-
-        rv |= (byte & 0x7f) << i;
-        if ((byte & 0x80) == 0) {
-            break;
-        }
-    }
-    
-    return rv;
-}
-
 void
 MIDIStream::process(uint32_t time_pos)
 {
     if (!eof() && (timestamp < time_pos))
     {
-        uint32_t message = get_message_shifted();
-        if (message) {
+        uint8_t message = get_byte();
+        if ((message & 0x80) == 0) {
+           push_byte();
            message = previous;
         } else {
            previous = message;
         }
 
+        // https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
         switch(message)
         {
-           case 0xf0:
-              break;
-           case 0xf7:
-              break;
-           case 0xff:
-              break;
-           default:
-              break;
+        case 0xf0:	// system exclusive messages
+        case 0xf7:
+            uint8_t size = get_byte();
+            forward(size);
+            break;
+        case 0xff:	// system messages
+        {
+            // http://mido.readthedocs.io/en/latest/meta_message_types.html
+            uint8_t meta = get_byte();
+            uint8_t size = get_byte();
+
+            switch(meta)
+            {
+            case 0x00:	// sequence_number
+            {
+                uint8_t sequence = get_byte();
+                break;
+            }
+            case 0x01:	// text
+            case 0x02:  // copyright
+            case 0x03:	// track_name
+            case 0x04:	// instrument_name
+            case 0x05:	// lyrics
+            case 0x06:	// marker
+            case 0x07:	// cue_marker
+            case 0x09:	// device_name
+                forward(size);			// not implemented yet
+                // for (uint8_t i=0; i<size; ++i) printf("%c", get_byte());
+                break;
+            case 0x20:	// channel_prefix
+                track = get_byte();
+                break;
+            case 0x2f:	// end_of_track
+                forward();
+                break;
+            case 0x51:	// set_tempo
+            {
+                uint32_t tempo;
+                tempo = (get_byte() << 16) | (get_byte() << 8) | get_byte();
+                bpm = tempo2bpm(tempo);
+                break;
+            }
+            case 0x54:	// smpte_offset
+            {
+                uint8_t frame_rate = get_byte();
+                uint8_t hours = get_byte();
+                uint8_t minutes = get_byte();
+                uint8_t seconds = get_byte();
+                uint8_t frames = get_byte();
+                uint8_t sub_frames = get_byte();
+                break;
+            }
+            case 0x58:	// time_signature
+            {
+                uint8_t numerator = get_byte();
+                uint8_t denominator = get_byte();
+                uint8_t clocks_per_click = get_byte();
+                uint8_t notated_32nd_notes_per_beat = get_byte();
+            }
+            case 0x59:	// key_signature
+            default:	// unsupported
+                forward(size);
+                break;
+            }
+        }
+        default:
+        {
+            // https://learn.sparkfun.com/tutorials/midi-tutorial/messages
+            uint8_t channel = message & 0xf;
+            switch(message & 0xf0)
+            {
+            case 
+            case 0x80:	// note off
+            case 0x90:	// note on
+            {
+                uint8_t key = get_byte();
+                uint8_t velocity = get_byte();
+                // we now have the channel, the key and the velocity
+                // and whether the note needs to sart or stop.
+                break;
+            }
+            case 0xa0:	// polyphonic pressure
+            {
+                uint8_t key = get_byte();
+                uint8_t pressure = get_byte();
+                // we now have the channel, the key and the pressure
+                break;
+            }
+            case 0xb0:	// control change
+                uint8_t controller = get_byte();
+                uint8_t value = get_byte();
+                // we now have the channel, the controller and the new value
+                break;
+            case 0xc0:	// program change
+                uint8_t program = get_byte();
+                // we now have the channel and the program
+                break;
+            case 0xd0:	// channel pressure
+                uint8_t pressure = get_byte();
+                // we now have the channel and the pressure
+                break;
+            case 0xe0:	// pitch bend
+            {
+                uint16_t pitch = get_byte() << 7 | get_byte();
+                // we now have the channel and the pitch
+                break;
+            }
+            default:
+                break;
+            }
+            break;
         }
     }
 }
 
 
-MIDI::MIDI(const char *filename) : MIDI()
+MIDIFile::MIDIFile(const char *filename) : MIDI()
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     size_t size = file.tellg();
-    std::streamsize fileSize = size;
     file.seekg(0, std::ios::beg);
 
-    midi_data.resize(size);
-    if (midi_data.size() && file.read((char*)midi_data.data(), fileSize))
+    midi_data.reserve(size);
+    if (midi_data.size() == size)
     {
-        MidiBuffer map(midi.data(), size);
-        ByteStream stream(map);
-
-        try
+        std::streamsize fileSize = size;
+        if (file.read((char*)midi_data.data(), fileSize))
         {
-            uint32_t header = stream.get_long();
-            uint16_t PPQN = 24;
+            const MIDIBuffer map(midi.data(), size);
+            const MIDIStream stream(map);
 
-            if (header == 0x8be09764) // "MThd"
+            try
             {
-                stream.forward(4); // skip the size;
+                uint32_t header = stream.get_long();
+                uint16_t PPQN = 24;
+                uint16_t track = 0;
 
-                format = stream.getWord();
-                no_tracks = stream.getWord();
-                PPQN = stream.getWord();
-            }
-                
-            no_tracks = 0;
-            while (no_tracks < MAX_MIDI_TRACKS && !stream.eof())
-            {
-                header = stream.get_long();
-                if (header == 0xaae2e764) // "MTrk"
+                if (header == 0x8be09764) // "MThd"
                 {
-                    uint32_t size = stream.get_long();
-                    track[no_tracks] = new MidiStream(stream, no_tracks, PPQN);
-                    stream.forward(size);
-                    no_tracks++;
-                }
-            }
+                    stream.forward(4); // skip the size;
 
-        } catch (const std::overflow_error& e) {
-            std::cerr << "Error while processing the MIDI file: " << e.what()
-                      << std::endl;
+                    format = stream.getWord();
+                    no_tracks = stream.getWord();
+                    PPQN = stream.getWord();
+                }
+                
+                while (!stream.eof())
+                {
+                    header = stream.get_long();
+                    if (header == 0xaae2e764) // "MTrk"
+                    {
+                        uint32_t size = stream.get_long();
+                        tracks.push_back(new MidiStream(stream, track++, PPQN));
+                        stream.forward(size);
+                    }
+                }
+                no_tracks = track;
+
+            } catch (const std::overflow_error& e) {
+                std::cerr << "Error while processing the MIDI file: "
+                          << e.what() << std::endl;
+            }
+        }
+        else {
+            std::cerr << "Error: Unable to open: " << filename << std::endl;
         }
     }
     else if (!midi_data.size()) {
         std::cerr << "Error: Out of memory." << std::endl;
-    else {
-        std::cerr << "Error: Unable to open file: " << filename << std::endl;
     }
 }
 
 bool
-MIDI::render(aax::AeonWave &aax)
+MIDIFile::render(aax::AeonWave &aax)
 {
    static const float dt = 1e-3f;
    _aaxTimer *timer = _aaxTimerCreate();
@@ -161,7 +252,7 @@ MIDI::render(aax::AeonWave &aax)
    for(;;)
    {
       for (unsigned int t=0; t<no_tracks; ++t) {
-         track[t]->play(time);
+         tracks[t]->play(time);
       }
       time += dt;
       _aaxTimerWait(timer);
