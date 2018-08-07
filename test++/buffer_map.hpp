@@ -33,7 +33,7 @@ class buffer_map
 public:
     buffer_map() : length(0), buf(nullptr) {}
 
-    buffer_map(T* ptr, size_t size) : length(size), buf(ptr) {}
+    buffer_map(const T* ptr, size_t size) : length(size), buf(ptr) {}
 
     buffer_map(const buffer_map& b) : buffer_map(b.buf, b.length) {}
 
@@ -61,7 +61,7 @@ public:
         return *this;
     }
 
-    T& operator[](size_t idx) {
+    const T& operator[](size_t idx) {
         if (idx < length) return buf[idx];
         throw(std::out_of_range("index beyond buffer length"));
     }
@@ -73,7 +73,7 @@ public:
 
 private:
     size_t length;
-    T *buf;
+    const T *buf;
 };
 
 #endif
