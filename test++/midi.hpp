@@ -66,13 +66,17 @@
 
 
 typedef buffer_map<uint8_t> MIDIBuffer;
+typedef byte_stream  MIDIChannel;
 
 class MIDIStream : public byte_stream
 {
 public:
     MIDIStream(byte_stream& stream, uint16_t channel, uint16_t ppqn)
-        : track(stream.map()), timestamp(pull_message()),
-          track_no(channel), PPQN(ppqn) {}
+        : byte_stream(stream), timestamp(pull_message()),
+          track_no(channel), PPQN(ppqn)
+    {
+        forward(stream.offset());
+    }
 
     bool process(uint32_t);
 
@@ -86,7 +90,6 @@ private:
         return (60 * 1000000 / bpm);
     }
 
-    MIDIBuffer track;
     uint32_t timestamp = 0;
     uint16_t track_no = 0;
     uint16_t PPQN = 24;
@@ -109,7 +112,7 @@ public:
     ~MIDIFile() = default;
 
     inline operator bool() {
-        return midi_data.size();
+        return midi_data.capacity();
     }
 
     bool process(float);

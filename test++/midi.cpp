@@ -212,13 +212,13 @@ MIDIFile::MIDIFile(const char *filename)
     file.seekg(0, std::ios::beg);
 
     midi_data.reserve(size);
-    if (midi_data.size() == size)
+    if (midi_data.capacity() == size)
     {
         std::streamsize fileSize = size;
         if (file.read((char*)midi_data.data(), fileSize))
         {
             MIDIBuffer map(midi_data.data(), size);
-            byte_stream stream(map);
+            MIDIChannel stream(map);
 
             try
             {
@@ -226,7 +226,7 @@ MIDIFile::MIDIFile(const char *filename)
                 uint16_t PPQN = 24;
                 uint16_t track = 0;
 
-                if (header == 0x8be09764) // "MThd"
+                if (header == 0x4d546864) // "MThd"
                 {
                     stream.forward(4); // skip the size;
 
@@ -238,7 +238,7 @@ MIDIFile::MIDIFile(const char *filename)
                 while (!stream.eof())
                 {
                     header = stream.pull_long();
-                    if (header == 0xaae2e764) // "MTrk"
+                    if (header == 0x4d54726b) // "MTrk"
                     {
                         uint32_t size = stream.pull_long();
                         channel.push_back(new MIDIStream(stream,track++,PPQN));
@@ -264,7 +264,7 @@ MIDIFile::MIDIFile(const char *filename)
 bool
 MIDIFile::process(float time)
 {
-    bool rv = false;
+    bool rv = true;
     for (size_t t=0; t<no_channels; ++t) {
         rv &= channel[t]->process(1000*time);
     }

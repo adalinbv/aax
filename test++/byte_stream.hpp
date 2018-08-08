@@ -77,6 +77,8 @@ public:
 
     inline buffer_map<uint8_t>& map() { return buffer; }
 
+    inline size_t offset() { return pos; }
+
     inline size_t size() { return buffer.size(); }
 
     inline bool eof() { return (pos == buffer.size()); }
