@@ -27,25 +27,25 @@
 #ifndef BYTE_STREAM
 #define BYTE_STREAM
 
-#include <buffer_map.hpp>
+#include "buffer_map.hpp"
 
 class byte_stream
 {
 public:
     byte_stream() = default;
 
-    byte_stream(const buffer_map<uint8_t>& buffer) : map(buffer) {}
+    byte_stream(buffer_map<uint8_t>& map) : buffer(map) {}
 
-    byte_stream(const byte_stream& s) : byte_stream(s.map, s.pos) {}
+    byte_stream(const byte_stream& s) : buffer(s.buffer), pos(s.pos) {}
 
-    byte_stream(const byte_stream&& s) {
+    byte_stream(byte_stream&& s) {
         swap(*this, s);
     }
 
-    ~byte_stream = default;
+    ~byte_stream() = default;
 
     friend void swap(byte_stream& s1, byte_stream& s2) {
-        std::swap(s1.map, s2.map);
+        swap(s1.buffer, s2.buffer);
         std::swap(s1.pos, s2.pos);
     }
 
@@ -54,31 +54,35 @@ public:
         return *this;
     }
 
-    inline void forward(size_t offs = (map.size()-pos)) { pos += offs; }
-    inline void rewind(size_t offs = pos) { pos -= offs; }
-
-    inline uint8_t get_byte() { return map[pos++]; }
-    inline void put_byte() { return --pos; }
-
-    inline uint16_t get_word() {
-        return (uint16_t(map[pos++]) << 8 | map[pos++]);
+    inline void forward(size_t offs = -1) {
+        pos = (offs == -1) ? buffer.size() : pos+offs;
     }
-    inline void put_word() { pos -= 2; }
-
-    inline uint32_t get_long() {
-        return (uint32_t(map[pos++]) << 24 | uint32_t(map[pos++]) << 16 |
-                uint32_t(map[pos++]) << 8  | map[pos++]);
+    inline void rewind(size_t offs = -1) {
+        pos = (offs == -1) ? 0 : pos-offs;
     }
-    inline void put_long() { pos -= 4; }
 
-    inline const buffer_map<uint8_t>& map() { return map; }
+    inline uint8_t pull_byte() { return buffer[pos++]; }
+    inline void push_byte() { --pos; }
 
-    inline size_t size() { return map.size(); }
+    inline uint16_t pull_word() {
+        return (uint16_t(buffer[pos++]) << 8 | buffer[pos++]);
+    }
+    inline void push_word() { pos -= 2; }
 
-    inline bool eof() { return (pos == map.size()); }
+    inline uint32_t pull_long() {
+        return (uint32_t(buffer[pos++]) << 24 | uint32_t(buffer[pos++]) << 16 |
+                uint32_t(buffer[pos++]) << 8  | buffer[pos++]);
+    }
+    inline void push_long() { pos -= 4; }
+
+    inline buffer_map<uint8_t>& map() { return buffer; }
+
+    inline size_t size() { return buffer.size(); }
+
+    inline bool eof() { return (pos == buffer.size()); }
 
 private:
-    const buffer_map<uint8_t> map;
+    buffer_map<uint8_t> buffer;
     size_t pos = 0;
 };
 

@@ -33,16 +33,16 @@
 #include <iostream>
 
 #include <base/timer.h>
-#include <midi.hpp>
+#include "midi.hpp"
 
 uint32_t
-MIDIStream::get_message()
+MIDIStream::pull_message()
 {
     uint32_t rv = 0;
 
     for (int i=0; i<4; ++i)
     {
-        uint8_t bytes = get_byte();
+        uint8_t byte = pull_byte();
 
         rv = (rv << 7) | (byte & 0x7f);
         if ((byte & 0x80) == 0) {
@@ -53,12 +53,14 @@ MIDIStream::get_message()
     return rv;
 }
 
-void
+bool
 MIDIStream::process(uint32_t time_pos)
 {
+    bool rv = true;
+
     if (!eof() && (timestamp < time_pos))
     {
-        uint8_t message = get_byte();
+        uint8_t channel, message = pull_byte();
         if ((message & 0x80) == 0) {
            push_byte();
            message = previous;
@@ -66,25 +68,29 @@ MIDIStream::process(uint32_t time_pos)
            previous = message;
         }
 
+        rv = false;
+
         // https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
         switch(message)
         {
         case 0xf0:	// system exclusive messages
         case 0xf7:
-            uint8_t size = get_byte();
+        {
+            uint8_t size = pull_byte();
             forward(size);
             break;
+        }
         case MIDI_SYSTEM_MESSAGE:
         {
             // http://mido.readthedocs.io/en/latest/meta_message_types.html
-            uint8_t meta = get_byte();
-            uint8_t size = get_byte();
+            uint8_t meta = pull_byte();
+            uint8_t size = pull_byte();
 
             switch(meta)
             {
             case MIDI_SEQUENCE_NUMBER:
             {
-                uint8_t sequence = get_byte();
+                uint8_t sequence = pull_byte();
                 break;
             }
             case MIDI_TEXT:
@@ -96,37 +102,38 @@ MIDIStream::process(uint32_t time_pos)
             case MIDI_CUE_MARKER:
             case MIDI_DEVICE_NAME:
                 forward(size);			// not implemented yet
-                // for (uint8_t i=0; i<size; ++i) printf("%c", get_byte());
+                // for (uint8_t i=0; i<size; ++i) printf("%c", pull_byte());
                 break;
             case MIDI_CHANNEL_PREFIX:
-                track = get_byte();
+                track_no = pull_byte();
                 break;
             case MIDI_END_OF_TRACK:
+                rv = true;
                 forward();
                 break;
             case MIDI_SET_TEMPO:
             {
                 uint32_t tempo;
-                tempo = (get_byte() << 16) | (get_byte() << 8) | get_byte();
+                tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
                 bpm = tempo2bpm(tempo);
                 break;
             }
             case MIDI_SAMPLE_OFFSET:
             {
-                uint8_t frame_rate = get_byte();
-                uint8_t hours = get_byte();
-                uint8_t minutes = get_byte();
-                uint8_t seconds = get_byte();
-                uint8_t frames = get_byte();
-                uint8_t sub_frames = get_byte();
+                uint8_t frame_rate = pull_byte();
+                uint8_t hours = pull_byte();
+                uint8_t minutes = pull_byte();
+                uint8_t seconds = pull_byte();
+                uint8_t frames = pull_byte();
+                uint8_t sub_frames = pull_byte();
                 break;
             }
             case MIDI_TIME_SIGNATURE:
             {
-                uint8_t numerator = get_byte();
-                uint8_t denominator = get_byte();
-                uint8_t clocks_per_click = get_byte();
-                uint8_t notated_32nd_notes_per_beat = get_byte();
+                uint8_t numerator = pull_byte();
+                uint8_t denominator = pull_byte();
+                uint8_t clocks_per_click = pull_byte();
+                uint8_t notated_32nd_notes_per_beat = pull_byte();
             }
             case MIDI_KEY_SIGNATURE:
             default:	// unsupported
@@ -135,44 +142,48 @@ MIDIStream::process(uint32_t time_pos)
             }
         }
         default:
-        {
             // https://learn.sparkfun.com/tutorials/midi-tutorial/messages
-            uint8_t channel = message & 0xf;
+            channel = message & 0xf;
             switch(message & 0xf0)
             {
-            case 
             case MIDI_NOTE_OFF:
             case MIDI_NOTE_ON:
             {
-                uint8_t key = get_byte();
-                uint8_t velocity = get_byte();
+                uint8_t key = pull_byte();
+                uint8_t velocity = pull_byte();
                 // we now have the channel, the key and the velocity
                 // and whether the note needs to sart or stop.
                 break;
             }
             case MIDI_POLYPHONIC_PRESSURE:
             {
-                uint8_t key = get_byte();
-                uint8_t pressure = get_byte();
+                uint8_t key = pull_byte();
+                uint8_t pressure = pull_byte();
                 // we now have the channel, the key and the pressure
                 break;
             }
             case MIDI_CONTROL_CHANGE:
-                uint8_t controller = get_byte();
-                uint8_t value = get_byte();
+            {
+                uint8_t controller = pull_byte();
+                uint8_t value = pull_byte();
                 // we now have the channel, the controller and the new value
                 break;
+            }
             case MIDI_PROGRAM_CHANGE:
-                uint8_t program = get_byte();
+            {
+                uint8_t program = pull_byte();
                 // we now have the channel and the program
                 break;
+            }
             case MIDI_CHANNEL_PRESSURE:
-                uint8_t pressure = get_byte();
+            {
+                uint8_t pressure = pull_byte();
                 // we now have the channel and the pressure
                 break;
+            }
             case MIDI_PITCH_BEND:
             {
-                uint16_t pitch = get_byte() << 7 | get_byte();
+                uint16_t pitch = pull_byte() << 7 | pull_byte();
                 // we now have the channel and the pitch
                 break;
             }
@@ -181,11 +192,20 @@ MIDIStream::process(uint32_t time_pos)
             }
             break;
         }
+
+        if (!eof())
+        {
+            float c = (float)(bpm * PPQN) / 60.0f;
+            uint32_t dT = pull_message();
+            if (c > 0) {
+                timestamp += 1000*dT / c;
+            }
+        }
     }
+    return rv;
 }
 
-
-MIDIFile::MIDIFile(const char *filename) : MIDI()
+MIDIFile::MIDIFile(const char *filename)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     size_t size = file.tellg();
@@ -197,12 +217,12 @@ MIDIFile::MIDIFile(const char *filename) : MIDI()
         std::streamsize fileSize = size;
         if (file.read((char*)midi_data.data(), fileSize))
         {
-            const MIDIBuffer map(midi.data(), size);
-            const MIDIStream stream(map);
+            MIDIBuffer map(midi_data.data(), size);
+            byte_stream stream(map);
 
             try
             {
-                uint32_t header = stream.get_long();
+                uint32_t header = stream.pull_long();
                 uint16_t PPQN = 24;
                 uint16_t track = 0;
 
@@ -210,22 +230,22 @@ MIDIFile::MIDIFile(const char *filename) : MIDI()
                 {
                     stream.forward(4); // skip the size;
 
-                    format = stream.getWord();
-                    no_tracks = stream.getWord();
-                    PPQN = stream.getWord();
+                    format = stream.pull_word();
+                    no_channels = stream.pull_word();
+                    PPQN = stream.pull_word();
                 }
                 
                 while (!stream.eof())
                 {
-                    header = stream.get_long();
+                    header = stream.pull_long();
                     if (header == 0xaae2e764) // "MTrk"
                     {
-                        uint32_t size = stream.get_long();
-                        tracks.push_back(new MidiStream(stream, track++, PPQN));
+                        uint32_t size = stream.pull_long();
+                        channel.push_back(new MIDIStream(stream,track++,PPQN));
                         stream.forward(size);
                     }
                 }
-                no_tracks = track;
+                no_channels = track;
 
             } catch (const std::overflow_error& e) {
                 std::cerr << "Error while processing the MIDI file: "
@@ -242,24 +262,12 @@ MIDIFile::MIDIFile(const char *filename) : MIDI()
 }
 
 bool
-MIDIFile::render(aax::AeonWave &aax)
+MIDIFile::process(float time)
 {
-   static const float dt = 1e-3f;
-   _aaxTimer *timer = _aaxTimerCreate();
-   _aaxTimerStartRepeatable(timer, dt*1000000);
-   float time = 0.0f;
-
-   for(;;)
-   {
-      for (unsigned int t=0; t<no_tracks; ++t) {
-         tracks[t]->play(time);
-      }
-      time += dt;
-      _aaxTimerWait(timer);
-   }
-   _aaxTimerDestroy(timer);
-
-   return true;
+    bool rv = false;
+    for (size_t t=0; t<no_channels; ++t) {
+        rv &= channel[t]->process(1000*time);
+    }
+    return rv;
 }
 
-#endif

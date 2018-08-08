@@ -500,24 +500,13 @@ public:
         return midi.size();
     }
 
-    bool render(aax::AeonWave &aax)
+    bool process(float time)
     {
-       static const float dt = 1e-3f;
-       _aaxTimer *timer = _aaxTimerCreate();
-       _aaxTimerStartRepeatable(timer, dt*1000000);
-       float time = 0.0f;
-
-       for(;;)
-       {
-          for (unsigned int t=0; t<no_tracks; ++t) {
-             track[t]->play(time);
-          }
-          time += dt;
-          _aaxTimerWait(timer);
-       }
-       _aaxTimerDestroy(timer);
-
-       return true;
+        bool rv = false;
+        for (unsigned int t=0; t<no_tracks; ++t) {
+            rv &= track[t]->play(time);
+        }
+        return rv;
     }
 
 private:
@@ -544,13 +533,24 @@ int main(int argc, char **argv)
     Midi file(infile);
     if (file)
     {
+        static const float dt = 1e-3f;
+        _aaxTimer *timer = _aaxTimerCreate();
+        _aaxTimerStartRepeatable(timer, dt*1000000);
+        float time = 0.0f;
+
         aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
         aax.set(AAX_INITIALIZED);
         aax.set(AAX_PLAYING);
 
-        while(file.render(aax)) {}
+        do
+        {
+            if (file.process(time)) break;
+            time += dt;
+        }
+        while(_aaxTimerWait(timer));
 
         aax.set(AAX_PROCESSED);
+        _aaxTimerDestroy(timer);
     }
     return 0;
 }

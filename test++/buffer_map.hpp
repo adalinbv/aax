@@ -43,18 +43,9 @@ public:
 
     ~buffer_map() = default;
 
-    void assign(T* ptr, size_t size) {
-        length = size;
-        buf = ptr;
-    }
-
-    size_t size() {
-        return length;
-    }
-
     friend void swap(buffer_map& b1, buffer_map& b2) {
         std::swap(b1.length, b2.length);
-        std::swap(b1.ptr, b2.ptr);
+        std::swap(b1.buf, b2.buf);
     }
 
     buffer_map& operator=(buffer_map b) {
@@ -70,6 +61,15 @@ public:
     T operator[](size_t idx) const {
         if (idx < length) return buf[idx];
         throw(std::out_of_range("index beyond buffer length"));
+    }
+
+    void assign(T* ptr, size_t size) {
+        length = size;
+        buf = ptr;
+    }
+
+    size_t size() {
+        return length;
     }
 
 private:

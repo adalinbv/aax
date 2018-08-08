@@ -35,8 +35,8 @@
 #include <aax/aeonwave.hpp>
 #include <aax/instrument.hpp>
 
-#include <buffer_map.hpp>
-#include <byte_stream.hpp>
+#include "buffer_map.hpp"
+#include "byte_stream.hpp"
 
 #define MIDI_SEQUENCE_NUMBER		0x00
 #define MIDI_TEXT			0x01
@@ -70,16 +70,14 @@ typedef buffer_map<uint8_t> MIDIBuffer;
 class MIDIStream : public byte_stream
 {
 public:
-    MIDIStream(const byte_stream& stream, uint16_t channel, uint16_t ppqn)
-        : track(stream.map()), track_no(channel), PPQN(ppqn)
-    {
-        timestamp = get_message();
-    }
+    MIDIStream(byte_stream& stream, uint16_t channel, uint16_t ppqn)
+        : track(stream.map()), timestamp(pull_message()),
+          track_no(channel), PPQN(ppqn) {}
 
-    void process(uint32_t timestamp);
+    bool process(uint32_t);
 
 private:
-    uint32_t get_message();
+    uint32_t pull_message();
 
     inline uint16_t tempo2bpm(uint32_t tempo) {
         return (60 * 1000000 / tempo);
@@ -88,7 +86,7 @@ private:
         return (60 * 1000000 / bpm);
     }
 
-    const MIDIBuffer track;
+    MIDIBuffer track;
     uint32_t timestamp = 0;
     uint16_t track_no = 0;
     uint16_t PPQN = 24;
@@ -97,7 +95,7 @@ private:
     uint8_t previous = 0;
     bool poly = true;
     bool omni = false;
-}
+};
 
 class MIDIFile
 {
@@ -106,7 +104,7 @@ public:
 
     MIDIFile(const char *filename);
 
-    MIDIFile(std::string& filename) : MIDI(filename.c_str());
+    MIDIFile(std::string& filename) : MIDIFile(filename.c_str()) {}
 
     ~MIDIFile() = default;
 
@@ -114,14 +112,14 @@ public:
         return midi_data.size();
     }
 
-    bool render(aax::AeonWave &aax);
+    bool process(float);
 
 private:
     std::vector<uint8_t> midi_data;
-    std::vector<MIDITrack*> track;
+    std::vector<MIDIStream*> channel;
 
     uint32_t time_pos = 0;
-    uint16_t no_tracks = 0;
+    uint16_t no_channels = 0;
     uint16_t format = 0;
 };
 
