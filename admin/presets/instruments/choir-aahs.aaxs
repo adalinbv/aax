@@ -70,12 +70,12 @@
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="envelope">
+  <effect type="chorus" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.6</param>
-    <param n="1">0.5</param>
-    <param n="2">0.4</param>
-    <param n="3">0.2</param>
+    <param n="1">0.025</param>
+    <param n="2">0.8</param>
+    <param n="3">0.6</param>
    </slot>
   </effect>
  </audioframe>
