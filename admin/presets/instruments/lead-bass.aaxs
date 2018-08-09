@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Lead 8 (bass+lead)" program="88" bank="0" frequency="220" duration="3.3">
+  
+  <waveform src="sawtooth" processing="add" ratio="0.6" pitch="1.0917"/>
+  <waveform src="sine" processing="modulate" ratio="1.5" pitch="0.5"/>
+  <waveform src="sawtooth" processing="add" ratio="1.0" pitch="0.4978" voices="5"/>
+ </sound>
+
+ <instrument>
+  <note polyphony="1" min="21" max="108" step="12"/>
+ </instrument>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.20</param>
+    <param n="1" factor="velocity">0.30</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.90</param>
+    <param n="1">inf</param>
+    <param n="2">0.90</param>
+    <param n="3">0.50</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">0.92</param>
+    <param n="1" factor="velocity">0.15</param>
+    <param n="2">1.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.995</param>
+   </slot>
+  </effect>
+  <effect type="phasing" src="envelope">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.1</param>
+    <param n="2">0.7</param>
+    <param n="3">0.2</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.025</param>
+    <param n="2">0.8</param>
+    <param n="3">0.6</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+</aeonwave>

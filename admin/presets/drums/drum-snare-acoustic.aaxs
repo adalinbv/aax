@@ -17,21 +17,21 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.50</param>
+    <param n="0">1.20</param>
     <param n="1">0.10</param>
     <param n="2">1.00</param>
-    <param n="3">0.20</param>
+    <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.40</param>
-    <param n="1">0.40</param>
+    <param n="0">0.25</param>
+    <param n="1">0.20</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">2.50</param>
     <param n="1">0.02</param>
-    <param n="2">1.50</param>
+    <param n="2">1.00</param>
    </slot>
   </effect>
  </emitter>

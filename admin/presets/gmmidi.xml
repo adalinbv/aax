@@ -97,7 +97,7 @@
    <instrument n="85" name="Lead 5 (charang)" file="instruments/lead-charang"/>
    <instrument n="86" name="Lead 6 (voice)" file="instruments/lead-voice"/>
    <instrument n="87" name="Lead 7 (fifths)" file="instruments/lead-fifths"/>
-   <instrument n="88" name="Lead 8 (bass + lead)" file=""/>
+   <instrument n="88" name="Lead 8 (bass + lead)" file="instruments/lead-bass"/>
    <instrument n="89" name="Pad 1 (new age)" file="instruments/pad-newwave"/>
    <instrument n="90" name="Pad 2 (warm)" file="instruments/pad-warm"/>
    <instrument n="91" name="Pad 3 (polysynth)" file="instruments/pad-polysynth"/>
