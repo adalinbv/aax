@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="PPad 3 (polysynth)" program="91" bank="0" frequency="220" duration="1.5" voices="5" spread="0.3">
+ <sound name="Pad 3 (polysynth)" program="91" bank="0" frequency="220" duration="1.5" voices="5" spread="0.3">
   <waveform src="square"/>
   <waveform src="square" processing="add" ratio="1.0" pitch="0.987"/>
   <waveform src="impulse" processing="mix" ratio="0.5" pitch="1.4889"/>

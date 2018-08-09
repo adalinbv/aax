@@ -37,7 +37,7 @@
    </slot>
    <slot n="1">
     <param n="0">1.00</param>
-    <param n="1">inf</param>
+    <param n="1">5.5</param>
    </slot>
   </filter>
   <effect type="phasing" src="inverse-sine">
