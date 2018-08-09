@@ -34,9 +34,9 @@ class byte_stream : public buffer_map<uint8_t>
 public:
     byte_stream() = default;
 
-    byte_stream(buffer_map<uint8_t>& map) : buffer_map<uint8_t>(map) {}
+    byte_stream(buffer_map<uint8_t>& b) : buffer_map<uint8_t>(b) {}
 
-    byte_stream(const byte_stream& s) : buffer_map<uint8_t>(*this), pos(s.pos) {}
+    byte_stream(const byte_stream& s) : buffer_map<uint8_t>(s), pos(s.pos) {}
 
     byte_stream(byte_stream&& s) {
         swap(*this, s);
