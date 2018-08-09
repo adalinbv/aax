@@ -8,10 +8,10 @@
 
 <aeonwave>
 
- <sound name="Pan Flute" program="76" bank="0" frequency="220" duration="0.33">
-  <waveform src="triangle"/>
-  <waveform src="brownian-noise" processing="mix" ratio="0.1"/>
-  <waveform src="triangle" processing="add" ratio="0.1" pitch="2.0"/>
+ <sound name="Pan Flute" program="76" bank="0" frequency="220">
+  <waveform src="sine"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="3.0"/>
+  <waveform src="brownian-noise" processing="mix" ratio="0.15" pitch="0.25"/>
  </sound>
 
  <instrument>
@@ -21,8 +21,8 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.40</param>
-    <param n="1" factor="velocity">0.15</param>
+    <param n="0">0.10</param>
+    <param n="1" factor="velocity">0.20</param>
     <param n="2" factor="soften">1.00</param>
     <param n="3">0.05</param>
    </slot>
@@ -35,15 +35,13 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">0.97</param>
-    <param n="1" factor="velocity">0.25</param>
+    <param n="0" factor="soften">1.25</param>
+    <param n="1" factor="velocity">0.05</param>
     <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
-    <param n="1">4.5</param>
-    <param n="2">0.995</param>
+    <param n="0">0.995</param>
    </slot>
   </effect>
  </emitter>
