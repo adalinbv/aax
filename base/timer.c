@@ -313,8 +313,8 @@ int usecSleep(unsigned int dt_us)
 {
 #if 1
    struct timeval delay;
-   delay.tv_sec = 0;
-   delay.tv_usec = dt_us;
+   delay.tv_sec = dt_us / 1000000;
+   delay.tv_usec = dt_us % 1000000;
    do {
       (void) select(0, NULL, NULL, NULL, &delay);
    } while ((delay.tv_usec > 0) || (delay.tv_sec > 0));
