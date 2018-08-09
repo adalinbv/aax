@@ -18,7 +18,7 @@
     <param n="0" pitch="7.0">1540</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.5</param>
+    <param n="3">2.5</param>
    </slot>
   </filter>
  </sound>
@@ -28,9 +28,9 @@
  </instrument>
 
  <emitter looping="true">
-  <filter type="envelope">
+  <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.2</param>
+    <param n="0">1.0</param>
     <param n="1" factor="velocity">0.04</param>
     <param n="2" factor="soften">1.2</param>
     <param n="3">0.05</param>
@@ -54,7 +54,7 @@
   <effect type="phasing" src="triangle">
    <slot n="0">
     <param n="0">0.5</param>
-    <param n="1">0.03</param>
+    <param n="1">0.05</param>
     <param n="2">0.7</param>
     <param n="3">0.0</param>
    </slot>
