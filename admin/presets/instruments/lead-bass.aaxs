@@ -10,7 +10,7 @@
 
  <sound name="Lead 8 (bass+lead)" program="88" bank="0" frequency="220" duration="3.3">
   
-  <waveform src="sawtooth" processing="add" ratio="0.6" pitch="1.0917"/>
+  <waveform src="sawtooth" processing="add" ratio="0.6" pitch="2.0917"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="0.5"/>
   <waveform src="sawtooth" processing="add" ratio="1.0" pitch="0.4978" voices="5"/>
  </sound>
@@ -60,8 +60,8 @@
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.025</param>
-    <param n="2">0.8</param>
-    <param n="3">0.6</param>
+    <param n="2">0.9</param>
+    <param n="3">0.3</param>
    </slot>
   </effect>
  </audioframe>
