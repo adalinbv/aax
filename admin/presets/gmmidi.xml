@@ -79,7 +79,7 @@
    <instrument n="67" name="Tenor Sax" file="instruments/saxophone"/>
    <instrument n="68" name="Baritone Sax" file="instruments/saxophone"/>
    <instrument n="69" name="Oboe" file="instruments/oboe"/>
-   <instrument n="70" name="English Horn" file=""/>
+   <instrument n="70" name="English Horn" file="instruments/horn-english"/>
    <instrument n="71" name="Bassoon" file=""/>
    <instrument n="72" name="Clarinet" file="instruments/clarinet"/>
    <instrument n="73" name="Piccolo" file="instruments/flute"/>
