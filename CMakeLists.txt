@@ -139,6 +139,7 @@ FIND_PACKAGE(XML COMPONENTS xml REQUIRED)
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${aax-utils_SOURCE_DIR}"
     base
+    include
     ${AAX_INCLUDE_DIR}
     ${RMALLOC_INCLUDE_DIR}
     "${aax-utils_BINARY_DIR}/include"
