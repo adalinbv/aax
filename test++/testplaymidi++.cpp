@@ -57,9 +57,8 @@ int main(int argc, char **argv)
     MIDIFile file(infile);
     if (file)
     {
-        static const float dt = 1e-3f;
         _aaxTimer *timer = _aaxTimerCreate();
-        _aaxTimerStartRepeatable(timer, dt*1000000);
+        _aaxTimerStartRepeatable(timer, 1000.0f);	// 1000 usec
         uint32_t time = 0;
 
         aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
@@ -67,7 +66,7 @@ int main(int argc, char **argv)
         aax.set(AAX_PLAYING);
 
         do {
-            if (file.process(time++)) break;
+            if (!file.process(time++)) break;
         }
         while(_aaxTimerWait(timer));
 

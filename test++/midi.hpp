@@ -35,9 +35,16 @@
 #include <aax/aeonwave.hpp>
 #include <aax/instrument.hpp>
 
-#include "buffer_map.hpp"
-#include "byte_stream.hpp"
+#include <buffer_map.hpp>
+#include <byte_stream.hpp>
 
+/* status messages */
+#define MIDI_EXCLUSIVE_MESSAGE		0xf0
+#define MIDI_EXCLUSIVE_MESSAGE_END	0xf7
+#define MIDI_SYSTEM_MESSAGE		0xff
+
+// https://www.recordingblogs.com/wiki/midi-meta-messages
+/* meta messages */
 #define MIDI_SEQUENCE_NUMBER		0x00
 #define MIDI_TEXT			0x01
 #define MIDI_COPYRIGHT			0x02
@@ -45,15 +52,17 @@
 #define MIDI_INSTRUMENT_NAME		0x04
 #define MIDI_LYRICS			0x05
 #define MIDI_MARKER			0x06
-#define MIDI_CUE_MARKER			0x07
+#define MIDI_CUE_POINT			0x07
 #define MIDI_DEVICE_NAME		0x09
 #define MIDI_CHANNEL_PREFIX		0x20
+#define MIDI_PORT_PREFERENCE		0x21
 #define MIDI_END_OF_TRACK		0x2f
 #define MIDI_SET_TEMPO			0x51
-#define MIDI_SAMPLE_OFFSET		0x54
+#define MIDI_SMPTE_OFFSET		0x54
 #define MIDI_TIME_SIGNATURE		0x58
 #define MIDI_KEY_SIGNATURE		0x59
 
+/* channel messages */
 #define MIDI_NOTE_OFF			0x80
 #define MIDI_NOTE_ON			0x90
 #define MIDI_POLYPHONIC_PRESSURE	0xa0
@@ -61,8 +70,15 @@
 #define MIDI_PROGRAM_CHANGE		0xc0
 #define MIDI_CHANNEL_PRESSURE		0xd0
 #define MIDI_PITCH_BEND			0xe0
+#define MIDI_SYSTEM			0xf0
 
-#define MIDI_SYSTEM_MESSAGE		0xff
+/* real-time messages */
+#define MIDI_TIMING_CLOCK		0x08
+#define MIDI_START			0x0a
+#define MIDI_CONTINUE			0x0b
+#define MIDI_STOP			0x0c
+#define MIDI_ACTIVE_SENSE		0x0e
+#define MIDI_SYSTEM_RESET		0x0f
 
 
 typedef buffer_map<uint8_t> MIDIBuffer;
@@ -71,11 +87,11 @@ typedef byte_stream  MIDIChannel;
 class MIDIStream : public byte_stream
 {
 public:
-    MIDIStream(byte_stream& stream, uint16_t channel, uint16_t ppqn)
-        : byte_stream(stream), timestamp(pull_message()),
-          track_no(channel), PPQN(ppqn)
+    MIDIStream(byte_stream& stream, size_t length,  uint16_t track_no, uint16_t ppqn)
+        : byte_stream(stream, length), channel(track_no), PPQN(ppqn)
     {
-        forward(stream.offset());
+printf("pos: %i, size: %i\n", offset(), size());
+        timestamp = pull_message();
     }
 
     bool process(uint32_t);
@@ -91,7 +107,7 @@ private:
     }
 
     uint32_t timestamp = 0;
-    uint16_t track_no = 0;
+    uint16_t channel = 0;
     uint16_t PPQN = 24;
     uint16_t QN = 24;
     uint16_t bpm = 120;
@@ -115,7 +131,7 @@ public:
         return midi_data.capacity();
     }
 
-    bool process(float);
+    bool process(uint32_t);
 
 private:
     std::vector<uint8_t> midi_data;

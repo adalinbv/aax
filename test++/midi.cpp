@@ -35,6 +35,8 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
+#define LOG	1
+
 uint32_t
 MIDIStream::pull_message()
 {
@@ -58,9 +60,10 @@ MIDIStream::process(uint32_t time_pos)
 {
     bool rv = true;
 
-    if (!eof() && (timestamp < time_pos))
+    while (!eof() && (timestamp <= time_pos))
     {
-        uint8_t channel, message = pull_byte();
+        uint8_t data, message = pull_byte();
+
         if ((message & 0x80) == 0) {
            push_byte();
            message = previous;
@@ -70,11 +73,21 @@ MIDIStream::process(uint32_t time_pos)
 
         rv = false;
 
+#if LOG
+ printf("%02i ", channel);
+ printf("%08i ms ", time_pos);
+ printf("0x%02x ", message);
+#endif
+
         // https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
         switch(message)
         {
-        case 0xf0:	// system exclusive messages
-        case 0xf7:
+//      case MIDI_SEQUENCE_NUMBER:
+//      {
+//          uint8_t sequence_no = pull_byte();
+//      }
+        case MIDI_EXCLUSIVE_MESSAGE:
+        case MIDI_EXCLUSIVE_MESSAGE_END:
         {
             uint8_t size = pull_byte();
             forward(size);
@@ -85,7 +98,10 @@ MIDIStream::process(uint32_t time_pos)
             // http://mido.readthedocs.io/en/latest/meta_message_types.html
             uint8_t meta = pull_byte();
             uint8_t size = pull_byte();
-
+#if LOG
+ printf("  meta: 0x%02x", meta);
+ printf("  length: 0x%02x", size);
+#endif
             switch(meta)
             {
             case MIDI_SEQUENCE_NUMBER:
@@ -99,28 +115,38 @@ MIDIStream::process(uint32_t time_pos)
             case MIDI_INSTRUMENT_NAME:
             case MIDI_LYRICS:
             case MIDI_MARKER:
-            case MIDI_CUE_MARKER:
+            case MIDI_CUE_POINT:
             case MIDI_DEVICE_NAME:
+#if LOG
+                printf("  ");
+                for (uint8_t i=0; i<size; ++i) printf("%c", pull_byte());
+#else
                 forward(size);			// not implemented yet
-                // for (uint8_t i=0; i<size; ++i) printf("%c", pull_byte());
+#endif
                 break;
             case MIDI_CHANNEL_PREFIX:
-                track_no = pull_byte();
+                channel = (channel & 0xff00) | pull_byte();
+                break;
+            case MIDI_PORT_PREFERENCE:
+                channel = (channel & 0xff) | pull_byte() << 8;
                 break;
             case MIDI_END_OF_TRACK:
-                rv = true;
-                forward();
+//              rv = true;
+//              forward();
                 break;
             case MIDI_SET_TEMPO:
             {
                 uint32_t tempo;
                 tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
                 bpm = tempo2bpm(tempo);
+#if LOG
+ printf("  tempo: %i bpm", bpm);
+#endif
                 break;
             }
-            case MIDI_SAMPLE_OFFSET:
+            case MIDI_SMPTE_OFFSET:
             {
-                uint8_t frame_rate = pull_byte();
+//              uint8_t frame_rate = pull_byte();
                 uint8_t hours = pull_byte();
                 uint8_t minutes = pull_byte();
                 uint8_t seconds = pull_byte();
@@ -131,19 +157,35 @@ MIDIStream::process(uint32_t time_pos)
             case MIDI_TIME_SIGNATURE:
             {
                 uint8_t numerator = pull_byte();
-                uint8_t denominator = pull_byte();
+                uint32_t denominator = 1 << pull_byte();
                 uint8_t clocks_per_click = pull_byte();
                 uint8_t notated_32nd_notes_per_beat = pull_byte();
+  
+                QN = 100000/clocks_per_click;
+#if LOG
+  printf("  time sig: %i/%i MIDI clocks per quarter-dotted %i",
+              numerator, denominator, clocks_per_click);
+#endif
+              break;
             }
             case MIDI_KEY_SIGNATURE:
+            {
+                uint8_t sharps = pull_byte();
+                uint8_t major = pull_byte();
+                break;
+            }
             default:	// unsupported
                 forward(size);
+#if LOG
+ printf("  unknown meta: 0x%02x", meta);
+#endif
                 break;
             }
         }
         default:
+        {
             // https://learn.sparkfun.com/tutorials/midi-tutorial/messages
-            channel = message & 0xf;
+            uint8_t channel = message & 0xf;
             switch(message & 0xf0)
             {
             case MIDI_NOTE_OFF:
@@ -153,6 +195,11 @@ MIDIStream::process(uint32_t time_pos)
                 uint8_t velocity = pull_byte();
                 // we now have the channel, the key and the velocity
                 // and whether the note needs to sart or stop.
+#if LOG
+ const char *notes[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
+ printf("  ac: %c ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', channel);
+ printf("%s%i", notes[key % 12], (key / 12)-1);
+#endif
                 break;
             }
             case MIDI_POLYPHONIC_PRESSURE:
@@ -187,11 +234,32 @@ MIDIStream::process(uint32_t time_pos)
                 // we now have the channel and the pitch
                 break;
             }
+            case MIDI_SYSTEM:
+                switch(channel)
+                {
+                case MIDI_TIMING_CLOCK:
+                case MIDI_START:
+                case MIDI_CONTINUE:
+                case MIDI_STOP:
+                case MIDI_ACTIVE_SENSE:
+                case MIDI_SYSTEM_RESET:
+                    break;
+                default:
+#if LOG
+ printf("unknown real-time message: 0x%02x", channel);
+#endif
+                    break;
+                }
+                break;
             default:
+#if LOG
+ printf("  unknown message: 0x%02x", message);
+#endif
                 break;
             }
             break;
-        }
+        } // switch
+        } // default
 
         if (!eof())
         {
@@ -201,7 +269,11 @@ MIDIStream::process(uint32_t time_pos)
                 timestamp += 1000*dT / c;
             }
         }
+#if LOG
+        printf("\n");
+#endif
     }
+
     return rv;
 }
 
@@ -217,8 +289,8 @@ MIDIFile::MIDIFile(const char *filename)
         std::streamsize fileSize = size;
         if (file.read((char*)midi_data.data(), fileSize))
         {
-            MIDIBuffer map(midi_data.data(), size);
-            MIDIChannel stream(map);
+            buffer_map<uint8_t> map(midi_data.data(), size);
+            byte_stream stream(map);
 
             try
             {
@@ -240,9 +312,9 @@ MIDIFile::MIDIFile(const char *filename)
                     header = stream.pull_long();
                     if (header == 0x4d54726b) // "MTrk"
                     {
-                        uint32_t size = stream.pull_long();
-                        channel.push_back(new MIDIStream(stream,track++,PPQN));
-                        stream.forward(size);
+                        uint32_t length = stream.pull_long();
+                        channel.push_back(new MIDIStream(stream, length, track++, PPQN));
+                        stream.forward(length);
                     }
                 }
                 no_channels = track;
@@ -262,11 +334,11 @@ MIDIFile::MIDIFile(const char *filename)
 }
 
 bool
-MIDIFile::process(float time)
+MIDIFile::process(uint32_t time)
 {
     bool rv = true;
     for (size_t t=0; t<no_channels; ++t) {
-        rv &= channel[t]->process(1000*time);
+        rv &= channel[t]->process(time);
     }
     return rv;
 }
