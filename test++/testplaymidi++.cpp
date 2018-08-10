@@ -67,8 +67,9 @@ int main(int argc, char **argv)
 
         do {
             if (!file.process(time++)) break;
+            _aaxTimerWait(timer);
         }
-        while(_aaxTimerWait(timer));
+        while(1);
 
         aax.set(AAX_PROCESSED);
         _aaxTimerDestroy(timer);

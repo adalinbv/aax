@@ -90,7 +90,6 @@ public:
     MIDIStream(byte_stream& stream, size_t length,  uint16_t track_no, uint16_t ppqn)
         : byte_stream(stream, length), channel(track_no), PPQN(ppqn)
     {
-printf("pos: %i, size: %i\n", offset(), size());
         timestamp = pull_message();
     }
 

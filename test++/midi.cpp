@@ -58,7 +58,7 @@ MIDIStream::pull_message()
 bool
 MIDIStream::process(uint32_t time_pos)
 {
-    bool rv = true;
+    bool rv = ~eof();
 
     while (!eof() && (timestamp <= time_pos))
     {
@@ -71,7 +71,7 @@ MIDIStream::process(uint32_t time_pos)
            previous = message;
         }
 
-        rv = false;
+        rv = true;
 
 #if LOG
  printf("%02i ", channel);
@@ -131,8 +131,7 @@ MIDIStream::process(uint32_t time_pos)
                 channel = (channel & 0xff) | pull_byte() << 8;
                 break;
             case MIDI_END_OF_TRACK:
-//              rv = true;
-//              forward();
+                forward();
                 break;
             case MIDI_SET_TEMPO:
             {
@@ -336,9 +335,9 @@ MIDIFile::MIDIFile(const char *filename)
 bool
 MIDIFile::process(uint32_t time)
 {
-    bool rv = true;
+    bool rv = false;
     for (size_t t=0; t<no_channels; ++t) {
-        rv &= channel[t]->process(time);
+        rv |= channel[t]->process(time);
     }
     return rv;
 }
