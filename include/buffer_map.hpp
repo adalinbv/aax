@@ -35,7 +35,8 @@ public:
 
     buffer_map(T* ptr, size_t size) : length(size), buf(ptr) {}
 
-    buffer_map(const buffer_map& b) : buffer_map(b.buf, b.length) {}
+    buffer_map(const buffer_map& b, size_t size = 0)
+        : length(size ? size : b.length), buf(b.buf) {}
 
     buffer_map(const buffer_map&& b) {
         swap(*this, b);
@@ -71,6 +72,10 @@ public:
     inline T& get(size_t idx) {
         if (idx < length) return buf[idx];
         throw(std::out_of_range("index beyond buffer length"));
+    }
+
+    operator T*() const {
+        return buf;
     }
 
     size_t size() {
