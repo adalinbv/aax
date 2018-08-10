@@ -34,9 +34,11 @@ class byte_stream : public buffer_map<uint8_t>
 public:
     byte_stream() = default;
 
-    byte_stream(buffer_map<uint8_t>& b) : buffer_map<uint8_t>(b) {}
+    byte_stream(buffer_map<uint8_t>& b, size_t length = 0)
+        : buffer_map<uint8_t>(b, length) {}
 
-    byte_stream(const byte_stream& s) : buffer_map<uint8_t>(s), pos(s.pos) {}
+    byte_stream(const byte_stream& s, size_t length = 0)
+        : buffer_map<uint8_t>(s+s.pos, length), pos(0) {}
 
     byte_stream(byte_stream&& s) {
         swap(*this, s);
@@ -56,9 +58,15 @@ public:
 
     inline void forward(size_t offs = -1) {
         pos = (offs == -1) ? size() : pos+offs;
+        if (pos > size()) {
+            throw(std::out_of_range("index beyond buffer length"));
+        }
     }
     inline void rewind(size_t offs = -1) {
         pos = (offs == -1) ? 0 : pos-offs;
+        if (pos > size()) {
+            throw(std::out_of_range("index beyond buffer length"));
+        }
     }
 
     inline uint8_t pull_byte() { return get(pos++); }
@@ -77,7 +85,12 @@ public:
 
     inline size_t offset() { return pos; }
 
-    inline bool eof() { return (pos == size()); }
+    inline bool eof() {
+        if (pos > size()) {
+            throw(std::out_of_range("index beyond buffer length"));
+        }
+        return (pos >= size());
+    }
 
 private:
     size_t pos = 0;
