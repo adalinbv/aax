@@ -58,7 +58,7 @@ MIDIStream::pull_message()
 bool
 MIDIStream::process(uint32_t time_pos)
 {
-    bool rv = ~eof();
+    bool rv = !eof();
 
     while (!eof() && (timestamp <= time_pos))
     {
