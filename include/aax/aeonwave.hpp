@@ -880,6 +880,10 @@ public:
         frames(o.frames), sensors(o.sensors), emitters(o.emitters),
         buffers(o.buffers) {}
 
+    AeonWave(AeonWave&& o) {
+        swap(*this, o);
+    }
+
     virtual ~AeonWave() {
         for (size_t i=0; i<frames.size(); ++i) {
              aaxMixerDeregisterAudioFrame(ptr,frames[i]);
