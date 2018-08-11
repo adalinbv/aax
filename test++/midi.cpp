@@ -71,6 +71,19 @@ MIDIStream::drum(uint8_t message, uint8_t key, uint8_t velocity)
 bool
 MIDIStream::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity)
 {
+    switch(message)
+    {
+    case MIDI_NOTE_ON:
+        port.at(port_no).play(channel, 0, key);
+printf("MIDI_NOTE_ON\n");
+        break;
+    case MIDI_NOTE_OFF:
+        port.at(port_no).stop(channel, 0);
+printf("MIDI_NOTE_OFF\n");
+        break;
+    default:
+        break;
+    }
     return true;
 }
 
@@ -214,7 +227,7 @@ MIDIStream::process(uint32_t time_pos)
                 // channel 10 is for drum instruments and key defines which one.
 #if LOG
  const char *notes[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
- printf("  ac: %c ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', channel);
+ printf("  ac: %c port: %i ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', port_no, channel);
  printf("%s%i", notes[key % 12], (key / 12)-1);
 #endif
                 if (channel == 0x9) drum(message, key, velocity);

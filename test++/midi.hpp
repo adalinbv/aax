@@ -33,6 +33,7 @@
 #define __AAX_MIDI
 
 #include <vector>
+#include <map>
 
 #include <aax/aeonwave.hpp>
 #include <aax/instrument.hpp>
@@ -147,35 +148,37 @@ class MIDIPort : public aax::Mixer
 public:
     MIDIPort() = default;
 
-    MIDIPort(aax::AeonWave& aax, uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
-        : aax::Mixer(aax)
+    MIDIPort(aax::AeonWave& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr), aax(ptr)
     {
-        program.resize(channel_no+1);
-
-        std::string name = get_name(bank_no, program_no);
-        program.at(channel_no) = aax::Instrument(aax, name);
+        name = get_name(bank_no, program_no);
     }
 
-    ~MIDIPort() = default;
+//  ~MIDIPort() = default;
 
     void play(uint8_t channel_no, uint8_t id, uint8_t note) {
-        if (channel_no < program.size()) {
-            add(program.at(channel_no));
-            program.at(channel_no).play(id, note);
+        auto it = program.find(channel_no);
+        if (it == program.end()) {
+            aax::Instrument inst(aax, name);
+            program.insert({channel_no, inst});
+            it = program.find(channel_no);
+            add(it->second);
         }
+        it->second.play(id, note);
     }
 
     void stop(uint8_t channel_no, uint8_t id) {
-        if (channel_no < program.size()) {
-            program.at(channel_no).stop(id);
-            remove(program.at(channel_no));
+        auto it = program.find(channel_no);
+        if (it != program.end()) {
+            it->second.stop(id);
         }
     }
 
 private:
     std::string get_name(uint8_t bank_no, uint8_t program_no);
 
-    std::vector<aax::Instrument> program;
+    std::map<uint8_t,aax::Instrument> program;
+    aax::AeonWave aax;
+    std::string name;
 };
 
 
