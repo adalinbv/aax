@@ -80,35 +80,60 @@ private:
 class Instrument
 {
 public:
+    Instrument() = default;
+
     Instrument(AeonWave& ptr, std::string& name)
-        : frame(Frame(ptr)), buffer(ptr.buffer(name)), aax(ptr)
+        : mixer(Mixer(ptr)), buffer(ptr.buffer(name)), aax(ptr)
     {
-        frame.add(buffer);
-        frame.set(AAX_PLAYING);
-        aax.add(frame);
+        mixer.add(buffer);
+        mixer.set(AAX_PLAYING);
+        aax.add(mixer);
+    }
+
+    Instrument(const Instrument& i)
+        : notes(i.notes), mixer(i.mixer), buffer(i.buffer), aax(i.aax) {}
+
+    Instrument(Instrument&& i) {
+        swap(*this, i);
     }
 
     ~Instrument()
     {
-        frame.set(AAX_PROCESSED);
+        mixer.set(AAX_PROCESSED);
         for (size_t i=0; i<notes.size(); ++i) {
-            frame.remove(notes[i]);
+            mixer.remove(notes[i]);
         }
-        aax.remove(frame);
+        aax.remove(mixer);
         aax.destroy(buffer);
+    }
+
+    friend void swap(Instrument& i1, Instrument& i2) {
+        std::swap(i1.notes, i2.notes);
+        std::swap(i1.mixer, i2.mixer);
+        std::swap(i1.buffer, i2.buffer);
+        std::swap(i1.aax, i2.aax);
+    }
+
+    Instrument& operator=(Instrument i) {
+        swap(*this, i);
+        return *this;
+    }
+
+    operator Frame&() {
+        return mixer;
     }
 
     size_t create()
     {
         notes.push_back(Note(aax, buffer));
-        frame.add(notes.back());
+        mixer.add(notes.back());
         return notes.size()+1;
     }
 
     void remove(size_t id)
     {
         if (id) {
-            frame.remove(notes[--id]);
+            mixer.remove(notes[--id]);
             notes.erase(notes.begin()+id);
         }
     }
@@ -123,10 +148,10 @@ public:
 
 private:
     std::vector<Note> notes;
-    Frame frame;
+    Mixer mixer;
 
-    Buffer& buffer;
-    AeonWave &aax;
+    Buffer buffer;
+    AeonWave aax;
 };
 
 } // namespace aax
