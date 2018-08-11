@@ -27,43 +27,36 @@
 namespace aax
 {
 
-class Note
+class Note : public Emitter
 {
 public:
-    Note(AeonWave& ptr, Buffer buffer)
-        : aax(ptr), emitter(Emitter(AAX_RELATIVE)), pitch(1.0f), gain(1.0f)
+    Note(Buffer& buffer) : Emitter(AAX_RELATIVE), pitch(1.0f), gain(1.0f)
     {
-        emitter.add(buffer);
-        emitter.tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
-        emitter.tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
+        add(buffer);
+        tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
+        tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
     }
 
-    ~Note() {
-        emitter.set(AAX_PROCESSED);
+    Note(const Note& n) = default;
+
+    friend void swap(Note& n1, Note& n2) {
+        std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
+        std::swap(n1.pitch, n2.pitch);
+        std::swap(n1.gain, n2.gain);
+    }
+
+    operator Emitter&() {
+        return *this;
     }
 
     void play(unsigned char note)
     {
         pitch = NoteToPitch(note);
-        emitter.set(AAX_PLAYING);
+        set(AAX_PLAYING);
     }
 
     void stop() {
-        emitter.set(AAX_STOPPED);
-    }
-
-    friend void swap(Note& n1, Note& n2) {
-        std::swap(n1.emitter, n2.emitter);
-        std::swap(n1.aax, n2.aax);
-    }
-
-    Note& operator=(Note n) {
-        swap(*this, n);
-        return *this;
-    }
-
-    operator Emitter&() {
-        return emitter;
+        set(AAX_STOPPED);
     }
 
 private:
@@ -71,85 +64,65 @@ private:
         return 2.0f*powf(2.0f, (note-49)/12.0f);
     }
 
-    Emitter emitter;
     Param pitch, gain;
-    AeonWave &aax;
 };
 
 
-class Instrument
+class Instrument : public Mixer
 {
 public:
-    Instrument() = default;
-
     Instrument(AeonWave& ptr, std::string& name)
-        : mixer(Mixer(ptr)), buffer(ptr.buffer(name)), aax(ptr)
+        : Mixer(ptr), buffer(ptr.buffer(name)), aax(ptr)
     {
-        mixer.add(buffer);
-        mixer.set(AAX_PLAYING);
-        aax.add(mixer);
+        add(buffer);
+        set(AAX_PLAYING);
+        aax.add(*this);
     }
 
-    Instrument(const Instrument& i)
-        : notes(i.notes), mixer(i.mixer), buffer(i.buffer), aax(i.aax) {}
-
-    Instrument(Instrument&& i) {
-        swap(*this, i);
-    }
+    Instrument(const Instrument& i) = default;
 
     ~Instrument()
     {
-        mixer.set(AAX_PROCESSED);
-        for (size_t i=0; i<notes.size(); ++i) {
-            mixer.remove(notes[i]);
-        }
-        aax.remove(mixer);
+        aax.remove(*this);
         aax.destroy(buffer);
     }
 
     friend void swap(Instrument& i1, Instrument& i2) {
+        std::swap(static_cast<Mixer&>(i1), static_cast<Mixer&>(i2));
         std::swap(i1.notes, i2.notes);
-        std::swap(i1.mixer, i2.mixer);
         std::swap(i1.buffer, i2.buffer);
         std::swap(i1.aax, i2.aax);
     }
 
-    Instrument& operator=(Instrument i) {
-        swap(*this, i);
-        return *this;
-    }
-
     operator Frame&() {
-        return mixer;
+        return *this;
     }
 
     size_t create()
     {
-        notes.push_back(Note(aax, buffer));
-        mixer.add(notes.back());
+        notes.push_back(Note(buffer));
+        add(notes.back());
         return notes.size()+1;
     }
 
     void remove(size_t id)
     {
         if (id) {
-            mixer.remove(notes[--id]);
+            Mixer::remove(notes.at(--id));
             notes.erase(notes.begin()+id);
         }
     }
 
     inline void play(size_t id, unsigned char note) {
-        if (id) notes[id-1].play(note);
+        if (id) notes.at(id-1).play(note);
     }
 
     inline void stop(size_t id) {
-        if (id) notes[id-1].stop();
+        if (id) notes.at(id-1).stop();
     }
 
 private:
     std::vector<Note> notes;
-    Mixer mixer;
-
     Buffer buffer;
     AeonWave aax;
 };

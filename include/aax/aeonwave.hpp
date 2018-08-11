@@ -214,7 +214,7 @@ class Obj
 public:
     typedef int close_fn(void*);
 
-    Obj() : ptr(nullptr), closefn(nullptr) {}
+    Obj() = default;
 
     Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
@@ -222,9 +222,7 @@ public:
         o.closefn = nullptr;
     }
 
-    Obj(Obj&& o) : Obj() {
-        swap(*this, o);
-    }
+    Obj(Obj&& o) = default;
 
     virtual ~Obj() {
         for (size_t i=0; i<fties.size(); ++i) fties[i]->untie();
@@ -278,8 +276,8 @@ public:
     }
 
 protected:
-    void* ptr;
-    mutable close_fn* closefn;
+    void* ptr = nullptr;
+    mutable close_fn* closefn = nullptr;
     std::vector<Param*> fties;
     std::vector<Status*> ities;
 };
@@ -288,15 +286,13 @@ protected:
 class Buffer : public Obj
 {
 public:
-    Buffer() : Obj() {}
+    Buffer() = default;
 
     Buffer(aaxBuffer b, bool o=true) :
         Obj(b, o ? aaxBufferDestroy : 0) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
         Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
-
-    Buffer(const Buffer& o) : Obj(o) {}
 
     Buffer(aaxConfig c, const char* name) {
         ptr = aaxBufferReadFromStream(c, name);
@@ -312,8 +308,6 @@ public:
     }
 
     Buffer(aaxConfig c, std::string& name) : Buffer(c, name.c_str()) {}
-
-    virtual ~Buffer() = default;
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
@@ -342,12 +336,6 @@ public:
         return aaxBufferProcessWaveform(ptr,f,t,r,p);
     }
 
-    // ** support ******
-    Buffer& operator=(Buffer o) {
-        swap(*this, o);
-        return *this;
-    }
-
 private:
     std::string preset_file(aaxConfig c, const char* name) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
@@ -360,8 +348,6 @@ private:
 class dsp : public Obj
 {
 public:
-    dsp() : Obj(), filter(true) {}
-
     dsp(aaxConfig c, enum aaxFilterType f) :
         Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
@@ -372,9 +358,7 @@ public:
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
-    dsp(const dsp& o) : Obj(o), filter(o.filter), dsptype(o.dsptype) {}
-
-    virtual ~dsp() = default;
+    dsp(const dsp& o) = default;
 
     inline bool add(Buffer& b) {
         return (filter) ? aaxFilterAddBuffer(ptr,b) : aaxEffectAddBuffer(ptr,b);
@@ -423,10 +407,6 @@ public:
         std::swap(o1.filter, o2.filter);
         std::swap(o1.dsptype, o2.dsptype);
     }
-    dsp& operator=(dsp o) {
-        swap(*this, o);
-        return *this;
-    }
 
     inline int type() {
         return dsptype.eftype;
@@ -436,23 +416,19 @@ public:
     }
 
 private:
-    bool filter;
-    union  dsptype dsptype;
+    bool filter = true;
+    union dsptype dsptype;
 };
 
 
 class Emitter : public Obj
 {
 public:
-    Emitter() : Obj() {}
+    Emitter() = default;
 
     Emitter(enum aaxEmitterMode m) : Obj(aaxEmitterCreate(), aaxEmitterDestroy){
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
     }
-
-    Emitter(const Emitter& o) : Obj(o) {}
-
-    virtual ~Emitter() = default;
 
     inline bool set(enum aaxModeType t, int m) {
         return aaxEmitterSetMode(ptr,t,m);
@@ -527,19 +503,13 @@ public:
     inline float offset() {
         return aaxEmitterGetOffsetSec(ptr);
     }
-
-    // ** support ******
-    Emitter& operator=(Emitter o) {
-        swap(*this, o);
-        return *this;
-    }
 };
 
 
 class Sensor : public Obj
 {
 public:
-    Sensor() : mode(AAX_MODE_READ) {}
+    Sensor() = default;
 
     Sensor(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ) :
         Obj(c, aaxDriverDestroy), mode(m) {}
@@ -550,9 +520,7 @@ public:
     Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         Sensor(s.empty() ? NULL : s.c_str(),m) {}
 
-    Sensor(const Sensor& o) : Obj(o), mode(o.mode) {}
-
-    virtual ~Sensor() = default;
+    Sensor(const Sensor& o) = default;
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
@@ -695,13 +663,9 @@ public:
         swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         std::swap(o1.mode, o2.mode);
     }
-    Sensor& operator=(Sensor o) {
-        swap(*this, o);
-        return *this;
-    }
 
 protected:
-    enum aaxRenderMode mode;
+    enum aaxRenderMode mode = AAX_MODE_READ;
 
 private:
     inline bool scenery_filter(enum aaxFilterType type) {
@@ -726,8 +690,7 @@ public:
 
     Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
 
-    Frame(const Frame& o) : Obj(o),
-        frames(o.frames), sensors(o.sensors), emitters(o.emitters) {}
+    Frame(const Frame& o) = default;
 
     virtual ~Frame() {
         for (size_t i=0; i<frames.size(); ++i) {
@@ -849,11 +812,6 @@ public:
         o1.emitters.swap(o2.emitters);
     }
 
-    Frame& operator=(Frame o) {
-        swap(*this, o);
-        return *this;
-    }
-
 private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
@@ -865,10 +823,10 @@ typedef Frame Mixer;
 class AeonWave : public Sensor
 {
 public:
-    AeonWave() : Sensor(), _ec(0) { std::fill(_e, _e+3, 0); }
+    AeonWave() = default;
 
     AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(n,m), _ec(0) { std::fill(_e, _e+3, 0); }
+        Sensor(n,m) {}
 
     AeonWave(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         AeonWave(s.empty() ? 0 : s.c_str(),m) {}
@@ -876,13 +834,7 @@ public:
     AeonWave(enum aaxRenderMode m) :
         AeonWave(0, m) {}
 
-    AeonWave(const AeonWave& o) : Sensor(o),
-        frames(o.frames), sensors(o.sensors), emitters(o.emitters),
-        buffers(o.buffers) {}
-
-    AeonWave(AeonWave&& o) {
-        swap(*this, o);
-    }
+    AeonWave(const AeonWave& o) = default;
 
     virtual ~AeonWave() {
         for (size_t i=0; i<frames.size(); ++i) {
@@ -943,11 +895,6 @@ public:
         o1.emitters.swap(o2.emitters);
         o1.buffers.swap(o2.buffers);
         std::swap(o1.play, o2.play);
-    }
-
-    AeonWave& operator=(AeonWave o) {
-        swap(*this, o);
-        return *this;
     }
 
     inline unsigned long offset(enum aaxType t) {
@@ -1042,10 +989,10 @@ private:
     Sensor play;
 
     // enumeration
-    enum aaxRenderMode _em;
-    unsigned int _e[3];
-    const char* _ed;
-    aaxConfig _ec;
+    enum aaxRenderMode _em = AAX_MODE_WRITE_STEREO;
+    unsigned int _e[3] = {0, 0, 0};
+    const char* _ed = nullptr;
+    aaxConfig _ec = nullptr;
 };
 
 } // namespace aax
