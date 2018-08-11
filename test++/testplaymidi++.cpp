@@ -54,16 +54,16 @@ int main(int argc, char **argv)
 {
     char *infile = getInputFile(argc, argv, IFILE_PATH);
 
-    MIDIFile file(infile);
+    aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
+    aax.set(AAX_INITIALIZED);
+    aax.set(AAX_PLAYING);
+
+    MIDIFile file(aax, infile);
     if (file)
     {
         _aaxTimer *timer = _aaxTimerCreate();
         _aaxTimerStartRepeatable(timer, 1000.0f);	// 1000 usec
         uint32_t time = 0;
-
-        aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
-        aax.set(AAX_INITIALIZED);
-        aax.set(AAX_PLAYING);
 
         do {
             if (!file.process(time++)) break;
@@ -71,9 +71,10 @@ int main(int argc, char **argv)
         }
         while(1);
 
-        aax.set(AAX_PROCESSED);
         _aaxTimerDestroy(timer);
     }
+    aax.set(AAX_PROCESSED);
+
     return 0;
 }
 

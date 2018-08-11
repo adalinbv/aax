@@ -32,6 +32,8 @@
 #ifndef __AAX_MIDI
 #define __AAX_MIDI
 
+#include <vector>
+
 #include <aax/aeonwave.hpp>
 #include <aax/instrument.hpp>
 
@@ -39,12 +41,13 @@
 #include <byte_stream.hpp>
 
 /* status messages */
+// https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
 #define MIDI_EXCLUSIVE_MESSAGE		0xf0
 #define MIDI_EXCLUSIVE_MESSAGE_END	0xf7
 #define MIDI_SYSTEM_MESSAGE		0xff
 
-// https://www.recordingblogs.com/wiki/midi-meta-messages
 /* meta messages */
+// https://www.recordingblogs.com/wiki/midi-meta-messages
 #define MIDI_SEQUENCE_NUMBER		0x00
 #define MIDI_TEXT			0x01
 #define MIDI_COPYRIGHT			0x02
@@ -63,6 +66,7 @@
 #define MIDI_KEY_SIGNATURE		0x59
 
 /* channel messages */
+// https://learn.sparkfun.com/tutorials/midi-tutorial/messages
 #define MIDI_NOTE_OFF			0x80
 #define MIDI_NOTE_ON			0x90
 #define MIDI_POLYPHONIC_PRESSURE	0xa0
@@ -71,6 +75,63 @@
 #define MIDI_CHANNEL_PRESSURE		0xd0
 #define MIDI_PITCH_BEND			0xe0
 #define MIDI_SYSTEM			0xf0
+
+/* controller messages */
+// https://www.recordingblogs.com/wiki/midi-controller-message
+#define MIDI_COARSE			0x00
+#define MIDI_FINE			0x20
+#define MIDI_BANK_SELECT		0x00
+#define MIDI_MODULATION_WHEEL		0x01
+#define MIDI_BREATH_CONTROLLER		0x02
+#define MIDI_FOOT_CONTROLLER		0x04
+#define MIDI_PORTAMENTO_TIME		0x05
+#define MIDI_DATA_ENTRY			0x06
+#define MIDI_CHANNEL_VOLUME		0x07
+#define MIDI_BALANCE			0x08
+#define MIDI_PAN			0x0a
+#define MIDI_EXPRESSION			0x0b
+#define MIDI_EFFECT_CONTROL1		0x0c
+#define MIDI_EFFECT_CONTROL2		0x0d
+
+#define MIDI_GENERAL_PURPOSE_CONTROL1	0x10
+#define MIDI_GENERAL_PURPOSE_CONTROL2	0x11
+#define MIDI_GENERAL_PURPOSE_CONTROL3	0x12
+#define MIDI_GENERAL_PURPOSE_CONTROL4	0X13
+#define MIDI_HOLD_PEDAL1		0x40
+#define MIDI_PORTAMENTO_PEDAL		0x41
+#define MIDI_SOSTENUTO_PEDAL		0x42
+#define MIDI_SOFT_PEDAL			0x43
+#define MIDI_LEGATO_PEDAL		0x44
+#define MIDI_HOLD_PEDAL2		0x45
+#define MIDI_SOUND_CONTROL1		0x46
+#define MIDI_SOUND_CONTROL2		0x47
+#define MIDI_SOUND_CONTROL3		0x49
+#define MIDI_SOUND_CONTROL4		0x49
+#define MIDI_SOUND_CONTROL5		0x4a
+#define MIDI_SOUND_CONTROL6		0x4b
+#define MIDI_SOUND_CONTROL7		0x4c
+#define MIDI_SOUND_CONTROL8		0x4d
+#define MIDI_SOUND_CONTROL9		0x4e
+#define MIDI_SOUND_CONTROL10		0x4f
+#define MIDI_GENERAL_PURPOSE_CONTROL5	0x50
+#define MIDI_GENERAL_PURPOSE_CONTROL6	0x51
+#define MIDI_GENERAL_PURPOSE_CONTROL7	0x52
+#define MIDI_GENERAL_PURPOSE_CONTROL8	0x53
+#define MIDI_PORTAMENTO_CONTROL		0x54
+#define MIDI_HIGHRES_VELOCITY_PREFIX	0x58
+#define MIDI_EFFECT1_DEPTH		0x5b
+#define MIDI_EFFECT2_DEPTH		0x5c
+#define MIDI_EFFECT3_DEPTH		0x5d
+#define MIDI_EFFECT4_DEPTH		0x5e
+#define MIDI_EFFECT5_DEPTH		0x5f
+#define MIDI_ALL_SOUND_OFF		0x78
+#define MIDI_ALL_CONTROLLERS_OFF	0x79
+#define MIDI_LOCAL_CONTROLL		0x7a
+#define MIDI_ALL_NOTES_OFF		0x7b
+#define MIDI_OMNI_OFF			0x7c
+#define MIDI_OMNI_ON			0x7d
+#define MIDI_MONO_ALL_NOTES_OFF		0x7e
+#define MIDI_POLY_ALL_NOTES_OFF		0x7f
 
 /* real-time messages */
 #define MIDI_TIMING_CLOCK		0x08
@@ -81,22 +142,62 @@
 #define MIDI_SYSTEM_RESET		0x0f
 
 
-typedef buffer_map<uint8_t> MIDIBuffer;
-typedef byte_stream  MIDIChannel;
+class MIDIPort : public aax::Mixer
+{
+public:
+    MIDIPort() = default;
+
+    MIDIPort(aax::AeonWave& aax, uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
+        : aax::Mixer(aax)
+    {
+        program.resize(channel_no+1);
+
+        std::string name = get_name(bank_no, program_no);
+        program.at(channel_no) = aax::Instrument(aax, name);
+    }
+
+    ~MIDIPort() = default;
+
+    void play(uint8_t channel_no, uint8_t id, uint8_t note) {
+        if (channel_no < program.size()) {
+            add(program.at(channel_no));
+            program.at(channel_no).play(id, note);
+        }
+    }
+
+    void stop(uint8_t channel_no, uint8_t id) {
+        if (channel_no < program.size()) {
+            program.at(channel_no).stop(id);
+            remove(program.at(channel_no));
+        }
+    }
+
+private:
+    std::string get_name(uint8_t bank_no, uint8_t program_no);
+
+    std::vector<aax::Instrument> program;
+};
+
 
 class MIDIStream : public byte_stream
 {
 public:
-    MIDIStream(byte_stream& stream, size_t length,  uint16_t track_no, uint16_t ppqn)
-        : byte_stream(stream, length), channel(track_no), PPQN(ppqn)
+    MIDIStream(aax::AeonWave& aax, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
+        : byte_stream(stream, len), channel_no(track), PPQN(ppqn)
     {
+        port.resize(port_no+1);
+        port.at(port_no) = MIDIPort(aax, channel_no, bank_no, program_no);
         timestamp = pull_message();
     }
+
+    ~MIDIStream() = default;
 
     bool process(uint32_t);
 
 private:
     uint32_t pull_message();
+    bool drum(uint8_t message, uint8_t key, uint8_t velocity);
+    bool instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
 
     inline uint16_t tempo2bpm(uint32_t tempo) {
         return (60 * 1000000 / tempo);
@@ -105,8 +206,14 @@ private:
         return (60 * 1000000 / bpm);
     }
 
+    std::vector<MIDIPort> port;
+
+    uint8_t port_no = 0;
+    uint8_t channel_no = 0;
+    uint8_t program_no = 0;
+    uint8_t bank_no = 0;
+
     uint32_t timestamp = 0;
-    uint16_t channel = 0;
     uint16_t PPQN = 24;
     uint16_t QN = 24;
     uint16_t bpm = 120;
@@ -120,9 +227,10 @@ class MIDIFile
 public:
     MIDIFile() = default;
 
-    MIDIFile(const char *filename);
+    MIDIFile(aax::AeonWave& aax, const char *filename);
 
-    MIDIFile(std::string& filename) : MIDIFile(filename.c_str()) {}
+    MIDIFile(aax::AeonWave& aax, std::string& filename)
+       :  MIDIFile(aax, filename.c_str()) {}
 
     ~MIDIFile() = default;
 
