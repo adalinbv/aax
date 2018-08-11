@@ -348,6 +348,8 @@ private:
 class dsp : public Obj
 {
 public:
+    dsp() = default;
+
     dsp(aaxConfig c, enum aaxFilterType f) :
         Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
