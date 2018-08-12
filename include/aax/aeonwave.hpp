@@ -96,7 +96,7 @@ template <typename T>
 class Tieable
 {
 public:
-    Tieable(T v=T(0)) : val(v), tied(0) {}
+    Tieable(T v=T(0)) : val(v) {}
 
     Tieable(const Tieable& p) = default;
 
@@ -208,10 +208,10 @@ protected:
 
 private:
     T val;
-    bool tied;
+    bool tied = 0;
 
-    bool filter;
-    void *obj;
+    bool filter = false;
+    void *obj = nullptr;
     union setter {
         set_filter* filter;
         set_effect* effect;
@@ -220,7 +220,7 @@ private:
         get_filter* filter;
         get_effect* effect;
     } get;
-    union  dsptype dsptype;
+    union dsptype dsptype;
     int param;
 };
 typedef Tieable<float> Param;
@@ -249,6 +249,16 @@ public:
         if (!!closefn) closefn(ptr);
     }
 
+    friend void swap(Obj& o1, Obj& o2) noexcept {
+        std::swap(o1.ptr, o2.ptr);
+        std::swap(o1.closefn, o2.closefn);
+    }
+
+    Obj& operator=(Obj o) {
+        swap(*this, o);
+        return *this;
+    }
+
     bool close() {
         bool rv = (!!closefn) ? closefn(ptr) : false;
         closefn = nullptr;
@@ -273,16 +283,6 @@ public:
     void untie(Status& pm) {
         auto pi = std::find(ities.begin(),ities.end(),&pm);
         if (pi != ities.end()) ities.erase(pi); pm.untie();
-    }
-
-    friend void swap(Obj& o1, Obj& o2) noexcept {
-        std::swap(o1.ptr, o2.ptr);
-        std::swap(o1.closefn, o2.closefn);
-    }
-
-    Obj& operator=(Obj o) {
-        swap(*this, o);
-        return *this;
     }
 
     operator void*() const {
@@ -423,7 +423,7 @@ public:
 
     // ** support ******
     friend void swap(dsp& o1, dsp& o2)  noexcept {
-        swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
+        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         std::swap(o1.filter, o2.filter);
         std::swap(o1.dsptype, o2.dsptype);
     }
@@ -541,6 +541,11 @@ public:
         Sensor(s.empty() ? NULL : s.c_str(),m) {}
 
     Sensor(const Sensor& o) = default;
+
+    friend void swap(Sensor& o1, Sensor& o2) noexcept {
+        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
+        std::swap(o1.mode, o2.mode);
+    }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
@@ -679,11 +684,6 @@ public:
         return aaxSensorGetOffset(ptr,t);
     }
 
-    friend void swap(Sensor& o1, Sensor& o2) noexcept {
-        swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        std::swap(o1.mode, o2.mode);
-    }
-
 protected:
     enum aaxRenderMode mode = AAX_MODE_READ;
 
@@ -725,6 +725,13 @@ public:
              aaxAudioFrameDeregisterEmitter(ptr,emitters[i]);
         }
         emitters.clear();
+    }
+
+    friend void swap(Frame& o1, Frame& o2) noexcept {
+        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
+        std::swap(o1.frames, o2.frames);
+        std::swap(o1.sensors, o2.sensors);
+        std::swap(o1.emitters, o2.emitters);
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -824,14 +831,6 @@ public:
         return Buffer(aaxAudioFrameGetBuffer(ptr));
     }
 
-    // ** support ******
-    friend void swap(Frame& o1, Frame& o2) noexcept {
-        swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        o1.frames.swap(o2.frames);
-        o1.sensors.swap(o2.sensors);
-        o1.emitters.swap(o2.emitters);
-    }
-
 private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
@@ -875,6 +874,15 @@ public:
         }
     }
 
+    friend void swap(AeonWave& o1, AeonWave& o2) noexcept {
+        std::swap(static_cast<Sensor&>(o1), static_cast<Sensor&>(o2));
+        std::swap(o1.frames, o2.frames);
+        std::swap(o1.sensors, o2.sensors);
+        std::swap(o1.emitters, o2.emitters);
+        std::swap(o1.buffers, o2.buffers);
+        std::swap(o1.play, o2.play);
+    }
+
     // ** position and orientation ******
     inline bool sensor_matrix(Matrix64& m) {
         return matrix(m);
@@ -908,15 +916,6 @@ public:
     }
 
     // ** support ******
-    friend void swap(AeonWave& o1, AeonWave& o2) noexcept {
-        swap(static_cast<Sensor&>(o1), static_cast<Sensor&>(o2));
-        o1.frames.swap(o2.frames);
-        o1.sensors.swap(o2.sensors);
-        o1.emitters.swap(o2.emitters);
-        o1.buffers.swap(o2.buffers);
-        std::swap(o1.play, o2.play);
-    }
-
     inline unsigned long offset(enum aaxType t) {
         return aaxSensorGetOffset(ptr,t);
     }
