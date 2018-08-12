@@ -22,24 +22,26 @@
 #ifndef AEONWAVE_INSTRUMENT_HPP
 #define AEONWAVE_INSTRUMENT_HPP 1
 
+#include <map>
+
 #include <aax/aeonwave.hpp> 
 
 namespace aax
 {
 
-class Note : public Emitter
+class Key : public Emitter
 {
 public:
-    Note(Buffer& buffer) : Emitter(AAX_RELATIVE), pitch(1.0f), gain(1.0f)
+    Key(Buffer& buffer) : Emitter(AAX_STEREO), pitch(1.0f), gain(1.0f)
     {
-        add(buffer);
+        Emitter::add(buffer);
         tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
     }
 
-    Note(const Note& n) = default;
+    Key(const Key& n) = default;
 
-    friend void swap(Note& n1, Note& n2) noexcept {
+    friend void swap(Key& n1, Key& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
         std::swap(n1.pitch, n2.pitch);
         std::swap(n1.gain, n2.gain);
@@ -49,19 +51,19 @@ public:
         return *this;
     }
 
-    void play(unsigned char note)
+    bool play(uint8_t note)
     {
         pitch = NoteToPitch(note);
-        set(AAX_PLAYING);
+        return Emitter::set(AAX_PLAYING);
     }
 
-    void stop() {
-        set(AAX_STOPPED);
+    bool stop() {
+        return Emitter::set(AAX_STOPPED);
     }
 
 private:
-    inline float NoteToPitch(unsigned char note) {
-        return 2.0f*powf(2.0f, (note-49)/12.0f);
+    inline float NoteToPitch(uint8_t note) {
+        return powf(2.0f, (note-49)/12.0f);
     }
 
     Param pitch, gain;
@@ -74,8 +76,8 @@ public:
     Instrument(AeonWave& ptr, std::string& name)
         : Mixer(ptr), buffer(ptr.buffer(name)), aax(ptr)
     {
-        add(buffer);
-        set(AAX_PLAYING);
+        Mixer::add(buffer);
+        Mixer::set(AAX_PLAYING);
         aax.add(*this);
     }
 
@@ -89,40 +91,33 @@ public:
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         std::swap(static_cast<Mixer&>(i1), static_cast<Mixer&>(i2));
-        std::swap(i1.notes, i2.notes);
+        std::swap(i1.key, i2.key);
         std::swap(i1.buffer, i2.buffer);
         std::swap(i1.aax, i2.aax);
     }
 
-    operator Frame&() {
+    operator Mixer&() {
         return *this;
     }
 
-    size_t create()
-    {
-        notes.push_back(Note(buffer));
-        add(notes.back());
-        return notes.size()+1;
+    void play(size_t key_no, uint8_t note) {
+        auto it = key.find(key_no);
+        if (it == key.end()) {
+            key.insert({key_no, Key(buffer)});
+            it = key.find(key_no);
+        }
+        it->second.play(note);
     }
 
-    void remove(size_t id)
-    {
-        if (id) {
-            Mixer::remove(notes.at(--id));
-            notes.erase(notes.begin()+id);
+    void stop(size_t key_no) {
+        auto it = key.find(key_no);
+        if (it != key.end()) {
+            it->second.stop();
         }
     }
 
-    inline void play(size_t id, unsigned char note) {
-        if (id) notes.at(id-1).play(note);
-    }
-
-    inline void stop(size_t id) {
-        if (id) notes.at(id-1).stop();
-    }
-
 private:
-    std::vector<Note> notes;
+    std::map<uint8_t,Key> key;
     Buffer buffer;
     AeonWave aax;
 };
