@@ -98,9 +98,27 @@ class Tieable
 public:
     Tieable(T v=T(0)) : val(v), tied(0) {}
 
-    Tieable(const Tieable& p) : Tieable(p.val) {}
+    Tieable(const Tieable& p) = default;
+
+    Tieable(Tieable&& p) = default;
 
     virtual ~Tieable() = default;
+
+    friend void swap(Tieable& t1, Tieable& t2) noexcept {
+        std::swap(t1.val, t2.val);
+        std::swap(t1.tied, t2.tied);
+        std::swap(t1.filter, t2.filter);
+        std::swap(t1.obj, t2.obj);
+        std::swap(t1.set, t2.set);
+        std::swap(t1.get, t2.get);
+        std::swap(t1.dsptype, t2.dsptype);
+        std::swap(t1.param, t2.param);
+    }
+
+    Tieable& operator=(Tieable v) {
+        swap(*this, v); fire();
+        return *this;
+    }
 
     // type operators
     inline T operator+(T v) { return (val + v); }
@@ -126,7 +144,6 @@ public:
     inline Tieable operator-(const Tieable& v) { return (val - v.val); }
     inline Tieable operator*(const Tieable& v) { return (val * v.val); }
     inline Tieable operator/(const Tieable& v) { return (val / v.val); }
-    inline Tieable operator=(const Tieable& v) { val = v.val; fire(); return val; }
     inline Tieable operator+=(const Tieable& v) { val+=v.val; fire(); return val; }
     inline Tieable operator-=(const Tieable& v) { val+=v.val; fire(); return val; }
     inline Tieable operator*=(const Tieable& v) { val+=v.val; fire(); return val; }
@@ -208,6 +225,7 @@ private:
 };
 typedef Tieable<float> Param;
 typedef Tieable<int> Status;
+
 
 class Obj
 {
