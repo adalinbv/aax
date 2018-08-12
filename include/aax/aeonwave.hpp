@@ -257,7 +257,7 @@ public:
         if (pi != ities.end()) ities.erase(pi); pm.untie();
     }
 
-    friend void swap(Obj& o1, Obj& o2) {
+    friend void swap(Obj& o1, Obj& o2) noexcept {
         std::swap(o1.ptr, o2.ptr);
         std::swap(o1.closefn, o2.closefn);
     }
@@ -404,7 +404,7 @@ public:
     }
 
     // ** support ******
-    friend void swap(dsp& o1, dsp& o2) {
+    friend void swap(dsp& o1, dsp& o2)  noexcept {
         swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         std::swap(o1.filter, o2.filter);
         std::swap(o1.dsptype, o2.dsptype);
@@ -661,7 +661,7 @@ public:
         return aaxSensorGetOffset(ptr,t);
     }
 
-    friend void swap(Sensor& o1, Sensor& o2) {
+    friend void swap(Sensor& o1, Sensor& o2) noexcept {
         swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         std::swap(o1.mode, o2.mode);
     }
@@ -807,7 +807,7 @@ public:
     }
 
     // ** support ******
-    friend void swap(Frame& o1, Frame& o2) {
+    friend void swap(Frame& o1, Frame& o2) noexcept {
         swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         o1.frames.swap(o2.frames);
         o1.sensors.swap(o2.sensors);
@@ -890,7 +890,7 @@ public:
     }
 
     // ** support ******
-    friend void swap(AeonWave& o1, AeonWave& o2) {
+    friend void swap(AeonWave& o1, AeonWave& o2) noexcept {
         swap(static_cast<Sensor&>(o1), static_cast<Sensor&>(o2));
         o1.frames.swap(o2.frames);
         o1.sensors.swap(o2.sensors);

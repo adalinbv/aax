@@ -39,7 +39,7 @@ public:
 
     Note(const Note& n) = default;
 
-    friend void swap(Note& n1, Note& n2) {
+    friend void swap(Note& n1, Note& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
         std::swap(n1.pitch, n2.pitch);
         std::swap(n1.gain, n2.gain);
@@ -87,7 +87,7 @@ public:
         aax.destroy(buffer);
     }
 
-    friend void swap(Instrument& i1, Instrument& i2) {
+    friend void swap(Instrument& i1, Instrument& i2) noexcept {
         std::swap(static_cast<Mixer&>(i1), static_cast<Mixer&>(i2));
         std::swap(i1.notes, i2.notes);
         std::swap(i1.buffer, i2.buffer);
