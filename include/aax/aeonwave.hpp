@@ -96,9 +96,11 @@ template <typename T>
 class Tieable
 {
 public:
-    Tieable(T v=T(0)) : val(v) {}
+    Tieable() = default;
 
-    Tieable(const Tieable&) = default;
+    Tieable(T v) : val(v) {}
+
+    Tieable(Tieable&) = default;
 
     Tieable(Tieable&&) = default;
 
@@ -108,11 +110,11 @@ public:
         std::swap(t1.val, t2.val);
         std::swap(t1.tied, t2.tied);
         std::swap(t1.filter, t2.filter);
-        std::swap(t1.obj, t2.obj);
         std::swap(t1.set, t2.set);
         std::swap(t1.get, t2.get);
         std::swap(t1.dsptype, t2.dsptype);
         std::swap(t1.param, t2.param);
+        std::swap(t1.obj, t2.obj);
     }
 
     Tieable& operator=(Tieable&&) = default;
@@ -208,17 +210,17 @@ private:
     bool tied = 0;
 
     bool filter = false;
-    void *obj = nullptr;
+    void* obj = nullptr;
     union setter {
         set_filter* filter;
         set_effect* effect;
-    } set;
+    } set = nullptr;
     union getter {
         get_filter* filter;
         get_effect* effect;
-    } get;
-    union dsptype dsptype;
-    int param;
+    } get = nullptr;
+    union dsptype dsptype = 0;
+    int param = 0;
 };
 typedef Tieable<float> Param;
 typedef Tieable<int> Status;
@@ -229,21 +231,21 @@ class Obj
 public:
     typedef int close_fn(void*);
 
-    Obj() = default;
+    Obj() : ptr(nullptr), closefn(nullptr) {}
 
     Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
-    Obj(const Obj& o) noexcept : ptr(o.ptr), closefn(o.closefn),
-                                 fties(o.fties), ities(o.ities)
-    {
+    Obj(const Obj& o) noexcept : ptr(o.ptr), closefn(o.closefn) {
+        fties = std::move(o.fties);
+        ities = std::move(o.ities);
         o.closefn = nullptr;
     }
 
-    Obj(Obj&& o) = default;
+    Obj(Obj&& o) : Obj() {
+        swap(*this, o);
+    }
 
     virtual ~Obj() {
-        for (size_t i=0; i<fties.size(); ++i) fties[i]->untie();
-        for (size_t i=0; i<ities.size(); ++i) ities[i]->untie();
         fties.clear(); ities.clear();
         if (!!closefn) closefn(ptr);
     }
@@ -251,6 +253,8 @@ public:
     friend void swap(Obj& o1, Obj& o2) noexcept {
         std::swap(o1.ptr, o2.ptr);
         std::swap(o1.closefn, o2.closefn);
+        o1.fties = std::move(o2.fties);
+        o1.ities = std::move(o2.ities);
     }
 
     Obj& operator=(Obj o) noexcept {
@@ -311,7 +315,7 @@ public:
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
         Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
 
-    Buffer(aaxConfig c, const char* name) {
+    Buffer(aaxConfig c, const char* name, bool o=true) {
         ptr = aaxBufferReadFromStream(c, name);
         if (!ptr) { aaxGetErrorNo();
             ptr = aaxBufferReadFromStream(c, preset_file(c, name).c_str());
@@ -319,12 +323,13 @@ public:
         if (!ptr) { aaxGetErrorNo();
             ptr = aaxBufferCreate(c ,1, 1, AAX_PCM16S);
         }
-        if (ptr) {
+        if (ptr && o) {
             closefn = aaxBufferDestroy;
         }
     }
 
-    Buffer(aaxConfig c, std::string& name) : Buffer(c, name.c_str()) {}
+    Buffer(aaxConfig c, std::string& name, bool o=true)
+        : Buffer(c, name.c_str(), o) {}
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
@@ -421,7 +426,7 @@ public:
     }
 
     // ** support ******
-    friend void swap(dsp& o1, dsp& o2)  noexcept {
+    friend void swap(dsp& o1, dsp& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         std::swap(o1.filter, o2.filter);
         std::swap(o1.dsptype, o2.dsptype);
@@ -728,9 +733,9 @@ public:
 
     friend void swap(Frame& o1, Frame& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        std::swap(o1.frames, o2.frames);
-        std::swap(o1.sensors, o2.sensors);
-        std::swap(o1.emitters, o2.emitters);
+        o1.frames = std::move(o2.frames);
+        o1.sensors = std::move(o2.sensors);
+        o1.emitters = std::move(o2.emitters);
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -868,17 +873,17 @@ public:
         }
         emitters.clear();
         for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
-             aaxBufferDestroy(it->second.second); it->second.first = 0;
-             buffers.erase(it);
+            aaxBufferDestroy(it->second.second); it->second.first = 0;
         }
+        buffers.clear();
     }
 
     friend void swap(AeonWave& o1, AeonWave& o2) noexcept {
         std::swap(static_cast<Sensor&>(o1), static_cast<Sensor&>(o2));
-        std::swap(o1.frames, o2.frames);
-        std::swap(o1.sensors, o2.sensors);
-        std::swap(o1.emitters, o2.emitters);
-        std::swap(o1.buffers, o2.buffers);
+        o1.frames = std::move(o2.frames);
+        o1.sensors = std::move(o2.sensors);
+        o1.emitters = std::move(o2.emitters);
+        o1.buffers = std::move(o2.buffers);
         std::swap(o1.play, o2.play);
     }
 
@@ -957,7 +962,7 @@ public:
     Buffer& buffer(std::string name) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            auto ret = buffers.insert({name,{0,Buffer(ptr,name)}});
+            auto ret = buffers.insert({name,{0,Buffer(ptr,name,false)}});
             it = ret.first;
         }
         it->second.first++;
