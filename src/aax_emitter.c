@@ -163,41 +163,52 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    _buffer_t* buffer = get_buffer(buf, __func__);
    int rv = __release_mode;
 
-   if (!rv && handle)
+   if (!rv)
    {
-      if (!buffer) {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      if (!handle) {
+          _aaxErrorSet(AAX_INVALID_HANDLE);
       }
       else
       {
-         _aaxRingBuffer *rb = buffer->ringbuffer;
-         if (rb)
+         if (!buffer) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+         else
          {
-            rb->set_parami(rb, RB_LOOPING, handle->looping);
-            if (!rb->get_state(rb, RB_IS_VALID)) {
-               _aaxErrorSet(AAX_INVALID_STATE);
-            } else if (handle->track >= rb->get_parami(rb, RB_NO_TRACKS)) {
+            _aaxRingBuffer *rb = buffer->ringbuffer;
+            if (rb)
+            {
+               if (!rb->get_state(rb, RB_IS_VALID)) {
+                  _aaxErrorSet(AAX_INVALID_STATE);
+               } else if (handle->track >= rb->get_parami(rb, RB_NO_TRACKS)) {
+                  _aaxErrorSet(AAX_INVALID_STATE);
+               } else {
+                  rv = AAX_TRUE;
+               }
+            } else if (!buffer->aaxs) {
                _aaxErrorSet(AAX_INVALID_STATE);
             } else {
                rv = AAX_TRUE;
             }
-         } else if (buffer->aaxs) {
-            rv = AAX_TRUE;
-         }
-         if (!buffer->root) {
-            buffer->root = handle->root;
          }
       }
    }
 
    if (rv)
    {
-      _aaxRingBuffer *rb = buffer->ringbuffer;
+      _aaxRingBuffer *rb;
+
+      if (!buffer->root) {
+         buffer->root = handle->root;
+      }
+
+      rb = buffer->ringbuffer;
       if (rb)
       {
          const _aaxEmitter *src = handle->source;
          _embuffer_t* embuf;
 
+         rb->set_parami(rb, RB_LOOPING, handle->looping);
          embuf = calloc(1, sizeof(_embuffer_t));
          if (embuf)
          {
