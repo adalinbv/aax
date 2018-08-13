@@ -38,21 +38,16 @@ public:
     buffer_map(const buffer_map& b, size_t size = 0)
         : length(size ? size : b.length), buf(b.buf) {}
 
-    buffer_map(const buffer_map&& b) {
-        swap(*this, b);
-    }
+    buffer_map(buffer_map&& b) = default;
 
-    ~buffer_map() = default;
+    virtual ~buffer_map() = default;
 
-    friend void swap(buffer_map& b1, buffer_map& b2) {
+    friend void swap(buffer_map& b1, buffer_map& b2) noexcept {
         std::swap(b1.length, b2.length);
         std::swap(b1.buf, b2.buf);
     }
 
-    buffer_map& operator=(buffer_map b) {
-        swap(*this, b);
-        return *this;
-    }
+    buffer_map& operator=(const buffer_map& b) = default;
 
     void assign(T* ptr, size_t size) {
         length = size;

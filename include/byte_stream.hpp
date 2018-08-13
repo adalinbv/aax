@@ -29,31 +29,19 @@
 
 #include "buffer_map.hpp"
 
-class byte_stream : public buffer_map<uint8_t>
+typedef buffer_map<uint8_t> uint8_map;
+
+class byte_stream : public uint8_map
 {
 public:
-    byte_stream() = default;
-
-    byte_stream(buffer_map<uint8_t>& b, size_t length = 0)
-        : buffer_map<uint8_t>(b, length) {}
+    byte_stream(uint8_map& b, size_t length = 0) : uint8_map(b, length) {}
 
     byte_stream(const byte_stream& s, size_t length = 0)
-        : buffer_map<uint8_t>(s+s.pos, length), pos(0) {}
+        : uint8_map(s+s.pos, length), pos(0) {}
 
-    byte_stream(byte_stream&& s) {
-        swap(*this, s);
-    }
-
-    ~byte_stream() = default;
-
-    friend void swap(byte_stream& s1, byte_stream& s2) {
-        swap(s1, s2);
+    friend void swap(byte_stream& s1, byte_stream& s2) noexcept {
         std::swap(s1.pos, s2.pos);
-    }
-
-    byte_stream& operator=(byte_stream s) {
-        swap(*this, s);
-        return *this;
+        swap(s1, s2);
     }
 
     inline void forward(size_t offs = -1) {
