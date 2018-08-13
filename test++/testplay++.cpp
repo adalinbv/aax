@@ -46,33 +46,38 @@ int main(int argc, char **argv)
 {
     // Open the default device for playback
     aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
-    aax.set(AAX_INITIALIZED);
-    aax.set(AAX_PLAYING);
+    TRY( aax.set(AAX_INITIALIZED) );
+    TRY( aax.set(AAX_PLAYING) );
 
     // Start the background music (file or http-stream)
     int i = 0;
     if (argc > 1) {
         aax::Frame frame(aax);
 
-        frame.set(AAX_PLAYING);
-        aax.add(frame);
+        TRY( frame.set(AAX_PLAYING) );
+        TRY( aax.add(frame) );
+
         while (++i < argc)
         {
             aax::Buffer& buffer = aax.buffer(argv[i]);
-            aax::Emitter emitter(AAX_STEREO);
-            emitter.add(buffer);
-            emitter.set(AAX_PLAYING);
-
-            frame.add(buffer);
-            frame.add(emitter);
-            do
+            if (buffer)
             {
-                // Your (game) code could be placed here
-                printf("\rposition: %5.1f", emitter.offset());
-                msecSleep(50);
+               aax::Emitter emitter(AAX_STEREO);
+
+               TRY( emitter.add(buffer) );
+               TRY( emitter.set(AAX_PLAYING) );
+
+               TRY( frame.add(emitter) );
+               do
+               {
+                   // Your (game) code could be placed here
+                   printf("\rposition: %5.1f", emitter.offset());
+                   msecSleep(50);
+               }
+               while (emitter.state() == AAX_PLAYING);
+               TRY( frame.remove(emitter) );
             }
-            while (emitter.state() == AAX_PLAYING);
-            frame.remove(emitter);
+            else printf("Unable to load: %s\n", argv[i]);
         }
     }
     else {

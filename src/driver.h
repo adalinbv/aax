@@ -50,6 +50,10 @@ extern "C" {
 #include <base/types.h>
 #include <base/timer.h>
 
+#define TRY(a) do { \
+    if (!(a)) printf("Error at line %i: %s\n", __LINE__, aax.strerror()); \
+} while(0)
+
 void set_mode(int want_key);
 int get_key();
 

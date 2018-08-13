@@ -40,10 +40,9 @@
 #include <aax/aeonwave.hpp>
 #include <aax/strings.hpp>
 
+#include <driver.h> 
+
 #define IFILE_PATH		SRC_PATH"/stereo.wav"
-#define TRY(a,b) do { \
-    if (!(a)) printf("Error (%s): %s\n", (b), aax.strerror()); \
-} while(0)
 
 int main(int argc, char **argv)
 {
@@ -52,27 +51,27 @@ int main(int argc, char **argv)
     aax::AeonWave aax;
 
     aax = aax::AeonWave(AAX_MODE_WRITE_STEREO);
-    TRY( aax.set(AAX_INITIALIZED), "mixer initializing" );
-    TRY( aax.set(AAX_PLAYING), "mixer playing" );
+    TRY( aax.set(AAX_INITIALIZED) );
+    TRY( aax.set(AAX_PLAYING) );
 
     printf("\n--- Emitter ---\n");
     aax::Emitter emitter, emitter2(AAX_ABSOLUTE);
     emitter = aax::Emitter(AAX_ABSOLUTE);
-//  TRY( emitter.set(AAX_LOOPING), "emitter looping" );
+//  TRY( emitter.set(AAX_LOOPING) );
 
 
 
     printf("\n--- Buffer ---\n");
     aax::Buffer& buffer = aax.buffer(IFILE_PATH);
 
-    TRY( emitter.add(buffer), "emitter1 buffer" );
-    TRY( emitter2.add(buffer), "emitter2 buffer" );
-    TRY( emitter.remove_buffer(), "emitter1 remove_buffer" );
+    TRY( emitter.add(buffer) );
+    TRY( emitter2.add(buffer) );
+    TRY( emitter.remove_buffer() );
 
     printf("\nassign emitter = emitter2;\n");
     emitter = emitter2;
-    TRY( emitter.remove_buffer(), "emitter2 remove_buffer" );
-    TRY( emitter2.remove_buffer(), "emitter1 remove_buffer, should provide an error" );
+    TRY( emitter.remove_buffer() );
+    TRY( emitter2.remove_buffer() );
    
     printf("\n");
 
