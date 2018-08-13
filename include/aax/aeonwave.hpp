@@ -98,9 +98,9 @@ class Tieable
 public:
     Tieable(T v=T(0)) : val(v) {}
 
-    Tieable(const Tieable& p) = default;
+    Tieable(const Tieable&) = default;
 
-    Tieable(Tieable&& p) = default;
+    Tieable(Tieable&&) = default;
 
     virtual ~Tieable() = default;
 
@@ -115,10 +115,7 @@ public:
         std::swap(t1.param, t2.param);
     }
 
-    Tieable& operator=(Tieable v) {
-        swap(*this, v); fire();
-        return *this;
-    }
+    Tieable& operator=(Tieable&&) = default;
 
     // type operators
     inline T operator+(T v) { return (val + v); }
@@ -236,7 +233,9 @@ public:
 
     Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
-    Obj(const Obj& o) : ptr(o.ptr), closefn(o.closefn) {
+    Obj(const Obj& o) noexcept : ptr(o.ptr), closefn(o.closefn),
+                                 fties(o.fties), ities(o.ities)
+    {
         o.closefn = nullptr;
     }
 
@@ -254,7 +253,7 @@ public:
         std::swap(o1.closefn, o2.closefn);
     }
 
-    Obj& operator=(Obj o) {
+    Obj& operator=(Obj o) noexcept {
         swap(*this, o);
         return *this;
     }
