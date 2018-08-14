@@ -189,7 +189,7 @@ int main(int argc, char **argv)
             std::cout << "  using audio-mixers" << std::endl;
 
             /** audio mixer */
-            mixer = aax::Mixer(config);
+            mixer = std::move(aax::Mixer(config));
             testForError(mixer, "Unable to create a new audio mixer");   
 
             /** register audio mixer */

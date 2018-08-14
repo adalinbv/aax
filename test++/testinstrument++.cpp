@@ -103,7 +103,7 @@ int main(int argc, char **argv)
     int rv = 0;
 
     devname = getDeviceName(argc, argv);
-    config = aax::AeonWave(devname, AAX_MODE_WRITE_STEREO);
+    config = std::move(aax::AeonWave(devname, AAX_MODE_WRITE_STEREO));
     testForError(config, "No default audio device available.");
 
     if (!aax::is_valid(config, AAX_CONFIG_HD))

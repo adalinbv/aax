@@ -74,11 +74,11 @@ MIDIStream::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t ve
     switch(message)
     {
     case MIDI_NOTE_ON:
-        port.at(port_no).play(channel, 0, key);
+        port.at(port_no)->play(channel, 0, key);
 printf("MIDI_NOTE_ON\n");
         break;
     case MIDI_NOTE_OFF:
-        port.at(port_no).stop(channel, 0);
+        port.at(port_no)->stop(channel, 0);
 printf("MIDI_NOTE_OFF\n");
         break;
     default:

@@ -146,8 +146,6 @@
 class MIDIPort : public aax::Mixer
 {
 private:
-    MIDIPort() {}
-
     MIDIPort(const MIDIPort&) = delete;
 
     MIDIPort& operator=(const MIDIPort&) = delete;
@@ -166,7 +164,7 @@ public:
     }
 
     friend void swap(MIDIPort& p1, MIDIPort& p2) noexcept {
-        std::swap(static_cast<aax::Mixer&>(p1), static_cast<aax::Mixer&>(p2));
+//      std::swap(static_cast<aax::Mixer&>(p1), static_cast<aax::Mixer&>(p2));
         p1.program = std::move(p2.program);
         p1.aax = std::move(p2.aax);
         p1.name = std::move(p2.name);

@@ -71,7 +71,7 @@ int main(int argc, char **argv)
 
     if (config)
     {
-        aax::Buffer buffer = config.buffer(infile);
+        aax::Buffer& buffer = config.buffer(infile);
         if (buffer)
         {
             aax::Emitter emitter[256];

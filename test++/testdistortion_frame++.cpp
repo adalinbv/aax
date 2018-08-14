@@ -74,7 +74,7 @@ int main(int argc, char **argv)
 
     if (config && (rv >= 0))
     {
-        aax::Buffer buffer = config.buffer(infile);
+        aax::Buffer& buffer = config.buffer(infile);
         if (buffer)
         {
             float dt = 0.0f;

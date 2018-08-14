@@ -48,15 +48,13 @@ int main(int argc, char **argv)
 {
     printf("\n--- AeonWave ---\n");
     // Open the default device for playback
-    aax::AeonWave aax;
-
-    aax = aax::AeonWave(AAX_MODE_WRITE_STEREO);
+    aax::AeonWave aax(AAX_MODE_WRITE_STEREO);
     TRY( aax.set(AAX_INITIALIZED) );
     TRY( aax.set(AAX_PLAYING) );
 
     printf("\n--- Emitter ---\n");
-    aax::Emitter emitter, emitter2(AAX_ABSOLUTE);
-    emitter = aax::Emitter(AAX_ABSOLUTE);
+    aax::Emitter emitter(AAX_ABSOLUTE);
+    aax::Emitter emitter2(AAX_ABSOLUTE);
 //  TRY( emitter.set(AAX_LOOPING) );
 
 
@@ -69,7 +67,7 @@ int main(int argc, char **argv)
     TRY( emitter.remove_buffer() );
 
     printf("\nassign emitter = emitter2;\n");
-    emitter = emitter2;
+    emitter = std::move(emitter2);
     TRY( emitter.remove_buffer() );
     TRY( emitter2.remove_buffer() );
    
