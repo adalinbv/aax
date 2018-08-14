@@ -237,18 +237,29 @@ typedef Tieable<int> Status;
 
 class Obj
 {
+private:
+    Obj() {}
+
+    Obj(const Obj&) = delete;
+
+    Obj& operator=(const Obj&) = delete;
+
 public:
     typedef int close_fn(void*);
 
+#if 0
     Obj() = default;
+#endif
 
     Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
+#if 0
     Obj(const Obj& o) noexcept : ptr(o.ptr), closefn(o.closefn) {
         fties = std::move(o.fties);
         ities = std::move(o.ities);
         o.closefn = nullptr;
     }
+#endif
 
     Obj(Obj&& o) noexcept : Obj() {
         swap(*this, o);
@@ -266,10 +277,14 @@ public:
         o1.ities = std::move(o2.ities);
     }
 
+#if 0
     Obj& operator=(Obj o) noexcept {
         swap(*this, o);
         return *this;
     }
+#endif
+
+    Obj& operator=(Obj&&) = default;
 
     bool close() {
         bool rv = (!!closefn) ? closefn(ptr) : false;
@@ -316,15 +331,15 @@ protected:
 class Buffer : public Obj
 {
 public:
-    Buffer() = default;
+//  Buffer() = default;
 
-    Buffer(aaxBuffer b, bool o=true) :
-        Obj(b, o ? aaxBufferDestroy : 0) {}
+    Buffer(aaxBuffer b, bool o=true)
+        : Obj(b, o ? aaxBufferDestroy : 0) {}
 
-    Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) :
-        Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
+    Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f)
+        : Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
 
-    Buffer(aaxConfig c, const char* name, bool o=true) {
+    Buffer(aaxConfig c, const char* name, bool o=true) : Obj(nullptr, nullptr) {
         ptr = aaxBufferReadFromStream(c, name);
         if (!ptr) { aaxGetErrorNo();
             ptr = aaxBufferReadFromStream(c, preset_file(c, name).c_str());
@@ -379,19 +394,19 @@ private:
 class dsp : public Obj
 {
 public:
-    dsp() = default;
+//  dsp() = default;
 
-    dsp(aaxConfig c, enum aaxFilterType f) :
-        Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
+    dsp(aaxConfig c, enum aaxFilterType f)
+        : Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
-    dsp(aaxConfig c, enum aaxEffectType e) :
-        Obj(c,aaxEffectDestroy), filter(false), dsptype(e) {
+    dsp(aaxConfig c, enum aaxEffectType e)
+        : Obj(c,aaxEffectDestroy), filter(false), dsptype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
-    dsp(const dsp& o) = default;
+//  dsp(const dsp& o) = default;
 
     friend void swap(dsp& o1, dsp& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
@@ -457,7 +472,7 @@ private:
 class Emitter : public Obj
 {
 public:
-    Emitter() = default;
+//  Emitter() = default;
 
     Emitter(enum aaxEmitterMode m) : Obj(aaxEmitterCreate(), aaxEmitterDestroy){
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
@@ -542,18 +557,18 @@ public:
 class Sensor : public Obj
 {
 public:
-    Sensor() = default;
+//  Sensor() = default;
 
-    Sensor(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ) :
-        Obj(c, aaxDriverDestroy), mode(m) {}
+    explicit Sensor(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ)
+        : Obj(c, aaxDriverDestroy), mode(m) {}
 
-    Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(aaxDriverOpenByName(n,m), m) {}
+    explicit Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+        : Sensor(aaxDriverOpenByName(n,m), m) {}
 
-    Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(s.empty() ? NULL : s.c_str(),m) {}
+    explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+        : Sensor(s.empty() ? NULL : s.c_str(),m) {}
 
-    Sensor(const Sensor& o) = default;
+//  Sensor(const Sensor& o) = default;
 
     friend void swap(Sensor& o1, Sensor& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
@@ -719,11 +734,11 @@ private:
 class Frame : public Obj
 {
 public:
-    Frame() = default;
+//  Frame() = default;
 
     Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
 
-    Frame(const Frame& o) = default;
+//  Frame(const Frame& o) = default;
 
     virtual ~Frame() {
         for (size_t i=0; i<frames.size(); ++i) {
@@ -855,20 +870,21 @@ typedef Frame Mixer;
 class AeonWave : public Sensor
 {
 public:
-    AeonWave() = default;
+//  AeonWave() = default;
 
-    AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        Sensor(n,m) {}
+   explicit  AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+        : Sensor(n,m) {}
 
-    AeonWave(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
-        AeonWave(s.empty() ? 0 : s.c_str(),m) {}
+    explicit AeonWave(std::string& s,enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+        : AeonWave(s.empty() ? nullptr : s.c_str(),m) {}
 
-    AeonWave(enum aaxRenderMode m) :
-        AeonWave(0, m) {}
+    explicit AeonWave(enum aaxRenderMode m)
+        : AeonWave(0,m) {}
 
-    AeonWave(const AeonWave& o) = default;
+//  AeonWave(const AeonWave& o) = default;
 
     virtual ~AeonWave() {
+printf("\n\t~AeonWave()\n");
         for (size_t i=0; i<frames.size(); ++i) {
              aaxMixerDeregisterAudioFrame(ptr,frames[i]);
         }
@@ -941,6 +957,7 @@ public:
     bool remove(Frame& m) {
         auto fi = std::find(frames.begin(),frames.end(),m);
         if (fi != frames.end()) frames.erase(fi);
+printf("\t\nremove(Frame& m)\n");
         return aaxMixerDeregisterAudioFrame(ptr,m);
     }
     bool add(Sensor& s) {
@@ -971,16 +988,16 @@ public:
     Buffer& buffer(std::string name) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            auto ret = buffers.insert({name,{0,Buffer(ptr,name,false)}});
+            auto ret = buffers.insert({name,{0,new Buffer(ptr,name,false)}});
             it = ret.first;
         }
         it->second.first++;
-        return it->second.second;
+        return *it->second.second;
     }
     void destroy(Buffer& b) {
         for(auto it=buffers.begin(); it!=buffers.end(); ++it)
         {
-            if ((it->second.second == b) && it->second.first && !(--it->second.first)) {
+            if ((it->second.second == &b) && it->second.first && !(--it->second.first)) {
                 aaxBufferDestroy(it->second.second);
                 buffers.erase(it);
             }
@@ -1015,7 +1032,7 @@ private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
-    std::unordered_map<std::string,std::pair<size_t,Buffer> > buffers;
+    std::unordered_map<std::string,std::pair<size_t,Buffer*> > buffers;
 
     // background music stream
     Sensor play;
