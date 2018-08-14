@@ -31,6 +31,13 @@ namespace aax
 
 class Key : public Emitter
 {
+private:
+    Key() {}
+
+    Key(const Key&) = delete;
+
+    Key& operator=(const Key&) = delete;
+
 public:
     Key(uint8_t key_no, Buffer& buffer) : Emitter(AAX_STEREO), key(key_no)
     {
@@ -41,14 +48,14 @@ public:
         tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
     }
 
-    Key(const Key& n) = default;
-
     friend void swap(Key& n1, Key& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
         n1.pitch = std::move(n2.pitch);
         n1.gain = std::move(n2.gain);
         n1.key = std::move(n2.key);
     }
+
+    Key& operator=(Key&&) = default;
 
     operator Emitter&() {
         return *this;
@@ -79,21 +86,24 @@ private:
 
 class Instrument : public Mixer
 {
+private:
+    Instrument() {}
+
+    Instrument(const Instrument& i) = delete;
+
+    Instrument& operator=(const Instrument&) = delete;
+
 public:
     Instrument(AeonWave& ptr, std::string& name)
-        : Mixer(ptr), buffer(ptr.buffer(name)), aax(ptr)
+        : Mixer(ptr), buffer(ptr.buffer(name)), aax(&ptr)
     {
         Mixer::add(buffer);
         Mixer::set(AAX_PLAYING);
-        aax.add(*this);
     }
-
-    Instrument(const Instrument& i) = default;
 
     ~Instrument()
     {
-        aax.remove(*this);
-        aax.destroy(buffer);
+        if (aax) aax->destroy(buffer);
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
@@ -103,6 +113,8 @@ public:
         i1.aax = std::move(i2.aax);
     }
 
+    Instrument& operator=(Instrument&&) = default;
+
     operator Mixer&() {
         return *this;
     }
@@ -110,24 +122,24 @@ public:
     void play(size_t key_no, uint8_t velocity) {
         auto it = key.find(key_no);
         if (it == key.end()) {
-            auto ret = key.insert({key_no, Key(key_no, buffer)});
+            auto ret = key.insert({key_no, new Key(key_no, buffer)});
             it = ret.first;
-            Mixer::add(it->second);
+            Mixer::add(*it->second);
         }
-        it->second.play(velocity);
+        it->second->play(velocity);
     }
 
     void stop(size_t key_no) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second.stop();
+            it->second->stop();
         }
     }
 
 private:
-    std::map<uint8_t,Key> key;
+    std::map<uint8_t,Key*> key;
     Buffer buffer;
-    AeonWave aax;
+    AeonWave* aax;
 };
 
 } // namespace aax
