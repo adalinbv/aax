@@ -25,6 +25,8 @@
 #include <unordered_map>
 #include <type_traits>
 #include <algorithm>
+#include <iostream>
+#include <utility>
 #include <vector>
 
 #include <aax/matrix.hpp>
@@ -100,24 +102,29 @@ public:
 
     Tieable(T v) : val(v) {}
 
-    Tieable(Tieable&) = default;
+    Tieable(const Tieable&) = default;
 
     Tieable(Tieable&&) = default;
 
     virtual ~Tieable() = default;
 
     friend void swap(Tieable& t1, Tieable& t2) noexcept {
-        std::swap(t1.val, t2.val);
-        std::swap(t1.tied, t2.tied);
-        std::swap(t1.filter, t2.filter);
-        std::swap(t1.set, t2.set);
-        std::swap(t1.get, t2.get);
-        std::swap(t1.dsptype, t2.dsptype);
-        std::swap(t1.param, t2.param);
-        std::swap(t1.obj, t2.obj);
+        t1.val = std::move(t2.val);
+        t1.tied = std::move(t2.tied);
+        t1.param = std::move(t2.param);
+        t1.filter = std::move(t2.filter);
+        t1.obj = std::move(t2.obj);
+        t1.set = std::move(t2.set);
+        t1.get = std::move(t2.get);
+        t1.dsptype = std::move(t2.dsptype);
     }
 
     Tieable& operator=(Tieable&&) = default;
+
+    friend std::ostream& operator<<(std::ostream& os, const Tieable& v) {
+        os << v.val;
+        return os;
+    }
 
     // type operators
     inline T operator+(T v) { return (val + v); }
@@ -208,19 +215,21 @@ protected:
 private:
     T val;
     bool tied = 0;
-
+    int param = 0;
     bool filter = false;
     void* obj = nullptr;
+
     union setter {
+        setter() : filter(nullptr) {}
         set_filter* filter;
         set_effect* effect;
-    } set = nullptr;
+    } set;
     union getter {
+        getter() : filter(nullptr) {}
         get_filter* filter;
         get_effect* effect;
-    } get = nullptr;
-    union dsptype dsptype = 0;
-    int param = 0;
+    } get;
+    union dsptype dsptype;
 };
 typedef Tieable<float> Param;
 typedef Tieable<int> Status;
@@ -231,7 +240,7 @@ class Obj
 public:
     typedef int close_fn(void*);
 
-    Obj() : ptr(nullptr), closefn(nullptr) {}
+    Obj() = default;
 
     Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
@@ -241,7 +250,7 @@ public:
         o.closefn = nullptr;
     }
 
-    Obj(Obj&& o) : Obj() {
+    Obj(Obj&& o) noexcept : Obj() {
         swap(*this, o);
     }
 
@@ -384,6 +393,12 @@ public:
 
     dsp(const dsp& o) = default;
 
+    friend void swap(dsp& o1, dsp& o2) noexcept {
+        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
+        o1.filter = std::move(o2.filter);
+        o1.dsptype = std::move(o2.dsptype);
+    }
+
     inline bool add(Buffer& b) {
         return (filter) ? aaxFilterAddBuffer(ptr,b) : aaxEffectAddBuffer(ptr,b);
     }
@@ -426,12 +441,6 @@ public:
     }
 
     // ** support ******
-    friend void swap(dsp& o1, dsp& o2) noexcept {
-        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        std::swap(o1.filter, o2.filter);
-        std::swap(o1.dsptype, o2.dsptype);
-    }
-
     inline int type() {
         return dsptype.eftype;
     }
@@ -548,7 +557,7 @@ public:
 
     friend void swap(Sensor& o1, Sensor& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        std::swap(o1.mode, o2.mode);
+        o1.mode = std::move(o2.mode);
     }
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
