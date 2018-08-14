@@ -32,8 +32,6 @@ namespace aax
 class Key : public Emitter
 {
 private:
-    Key() {}
-
     Key(const Key&) = delete;
 
     Key& operator=(const Key&) = delete;
@@ -87,8 +85,6 @@ private:
 class Instrument : public Mixer
 {
 private:
-    Instrument() {}
-
     Instrument(const Instrument& i) = delete;
 
     Instrument& operator=(const Instrument&) = delete;
@@ -107,7 +103,7 @@ public:
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
-        std::swap(static_cast<Mixer&>(i1), static_cast<Mixer&>(i2));
+//      std::swap(static_cast<Frame&>(i1), static_cast<Frame&>(i2));
         i1.key = std::move(i2.key);
         i1.buffer = std::move(i2.buffer);
         i1.aax = std::move(i2.aax);
@@ -138,7 +134,7 @@ public:
 
 private:
     std::map<uint8_t,Key*> key;
-    Buffer buffer;
+    Buffer &buffer;
     AeonWave* aax;
 };
 
