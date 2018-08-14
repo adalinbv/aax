@@ -45,7 +45,7 @@
 #include "driver.h"
 #include "midi.hpp"
 
-#define IFILE_PATH		SRC_PATH"/DaFunk.mid"
+#define IFILE_PATH		SRC_PATH"/beethoven_opus10_3.mid"
 #define INSTRUMENT		"instruments/piano-accoustic"
 #define INSTRUMENTS		"gmmidi.xml"
 
