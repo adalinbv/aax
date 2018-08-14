@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <sound name="Low Bongo" frequency="1135" duration="0.10">
+ <sound name="Low Bongo" frequency="800" duration="0.10">
   <waveform src="pink-noise" ratio="1.2" pitch="0.25"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>
@@ -17,17 +17,17 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.21</param>
-    <param n="1">0.4</param>
+    <param n="0">1.4</param>
+    <param n="1">0.18</param>
+    <param n="1">0.7</param>
     <param n="1">0.30</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.0</param>
+    <param n="0">1.4</param>
     <param n="1">0.01</param>
-    <param n="2">0.45</param>
+    <param n="2">0.30</param>
    </slot>
   </effect>
  </emitter>
