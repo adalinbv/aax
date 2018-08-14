@@ -32,9 +32,11 @@ namespace aax
 class Key : public Emitter
 {
 public:
-    Key(Buffer& buffer) : Emitter(AAX_STEREO), pitch(1.0f), gain(1.0f)
+    Key(uint8_t key_no, Buffer& buffer) : Emitter(AAX_STEREO), key(key_no)
     {
         Emitter::add(buffer);
+
+        pitch = NoteToPitch(key_no);
         tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
     }
@@ -43,17 +45,17 @@ public:
 
     friend void swap(Key& n1, Key& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
-        std::swap(n1.pitch, n2.pitch);
-        std::swap(n1.gain, n2.gain);
+        n1.pitch = std::move(n2.pitch);
+        n1.gain = std::move(n2.gain);
+        n1.key = std::move(n2.key);
     }
 
     operator Emitter&() {
         return *this;
     }
 
-    bool play(uint8_t note)
+    bool play(uint8_t velocity)
     {
-        pitch = NoteToPitch(note);
         return Emitter::set(AAX_PLAYING);
     }
 
@@ -62,11 +64,16 @@ public:
     }
 
 private:
-    inline float NoteToPitch(uint8_t note) {
-        return powf(2.0f, (note-49)/12.0f);
+    inline float NoteToFrequency(uint8_t d) {
+        return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
+    }
+    inline float NoteToPitch(uint8_t d) {
+        return 2.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
     }
 
-    Param pitch, gain;
+    Param pitch = 1.0f;
+    Param gain = 1.0f;
+    uint8_t key = 0;
 };
 
 
@@ -91,22 +98,23 @@ public:
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         std::swap(static_cast<Mixer&>(i1), static_cast<Mixer&>(i2));
-        std::swap(i1.key, i2.key);
-        std::swap(i1.buffer, i2.buffer);
-        std::swap(i1.aax, i2.aax);
+        i1.key = std::move(i2.key);
+        i1.buffer = std::move(i2.buffer);
+        i1.aax = std::move(i2.aax);
     }
 
     operator Mixer&() {
         return *this;
     }
 
-    void play(size_t key_no, uint8_t note) {
+    void play(size_t key_no, uint8_t velocity) {
         auto it = key.find(key_no);
         if (it == key.end()) {
-            key.insert({key_no, Key(buffer)});
-            it = key.find(key_no);
+            auto ret = key.insert({key_no, Key(key_no, buffer)});
+            it = ret.first;
+            Mixer::add(it->second);
         }
-        it->second.play(note);
+        it->second.play(velocity);
     }
 
     void stop(size_t key_no) {
