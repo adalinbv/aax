@@ -10,14 +10,14 @@
 
  <sound name="High Tom" frequency="208" duration="0.10">
   <waveform src="pink-noise" ratio="0.8" pitch="0.12"/>
-  <waveform src="sine" processing="add" ratio="0.45"/>
-  <waveform src="sine" processing="add" ratio="0.4" pitch="0.48"/>
+  <waveform src="triangle" processing="add" ratio="0.5"/>
+  <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.40</param>
+    <param n="0">1.30</param>
     <param n="1">0.10</param>
     <param n="2">1.00</param>
     <param n="3">0.10</param>
