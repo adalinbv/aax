@@ -145,55 +145,93 @@
 
 class MIDIPort : public aax::Mixer
 {
-public:
-    MIDIPort() = default;
+private:
+    MIDIPort() {}
 
-    MIDIPort(aax::AeonWave& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr), aax(ptr)
+    MIDIPort(const MIDIPort&) = delete;
+
+    MIDIPort& operator=(const MIDIPort&) = delete;
+
+public:
+    MIDIPort(aax::AeonWave& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr), aax(&ptr), name(get_name(bank_no, program_no))
     {
-        name = get_name(bank_no, program_no);
+        aax::Mixer::set(AAX_PLAYING);
+        aax->add(*this);
     }
 
-//  ~MIDIPort() = default;
+    MIDIPort(MIDIPort&&) = default;
 
-    void play(uint8_t channel_no, uint8_t id, uint8_t note) {
+    ~MIDIPort() {
+        if (aax) aax->remove(*this);
+    }
+
+    friend void swap(MIDIPort& p1, MIDIPort& p2) noexcept {
+        std::swap(static_cast<aax::Mixer&>(p1), static_cast<aax::Mixer&>(p2));
+        p1.program = std::move(p2.program);
+        p1.aax = std::move(p2.aax);
+        p1.name = std::move(p2.name);
+    }
+
+    MIDIPort& operator=(MIDIPort&&) = default;
+
+    void play(uint8_t channel_no, uint8_t key, uint8_t velocity) {
         auto it = program.find(channel_no);
         if (it == program.end()) {
-            aax::Instrument inst(aax, name);
-            program.insert({channel_no, inst});
-            it = program.find(channel_no);
-            add(it->second);
+            auto ret = program.insert({channel_no, new aax::Instrument(*aax, name)});
+            it = ret.first;
+            aax::Mixer::add(*it->second);
         }
-        it->second.play(id, note);
+        it->second->play(key, velocity);
     }
 
-    void stop(uint8_t channel_no, uint8_t id) {
+    void stop(uint8_t channel_no, uint8_t key) {
         auto it = program.find(channel_no);
         if (it != program.end()) {
-            it->second.stop(id);
+            it->second->stop(key);
         }
     }
 
 private:
     std::string get_name(uint8_t bank_no, uint8_t program_no);
 
-    std::map<uint8_t,aax::Instrument> program;
-    aax::AeonWave aax;
     std::string name;
+    std::map<uint8_t,aax::Instrument*> program;
+    aax::AeonWave* aax = nullptr;
 };
 
 
 class MIDIStream : public byte_stream
 {
 public:
-    MIDIStream(aax::AeonWave& aax, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
-        : byte_stream(stream, len), channel_no(track), PPQN(ppqn)
+    MIDIStream() = default;
+
+    MIDIStream(aax::AeonWave& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
+        : byte_stream(stream, len), channel_no(track), PPQN(ppqn), aax(&ptr)
     {
         port.resize(port_no+1);
-        port.at(port_no) = MIDIPort(aax, channel_no, bank_no, program_no);
+        port.at(port_no) = new MIDIPort(ptr, channel_no, bank_no, program_no);
         timestamp = pull_message();
     }
 
+    MIDIStream(const MIDIStream&) = default;
+
     ~MIDIStream() = default;
+
+    friend void swap(MIDIStream& s1, MIDIStream& s2) noexcept {
+        std::swap(static_cast<byte_stream&>(s1), static_cast<byte_stream&>(s2));
+        s1.port = std::move(s2.port);
+        s1.port_no = std::move(s2.port_no);
+        s1.channel_no = std::move(s2.channel_no);
+        s1.program_no = std::move(s2.program_no);
+        s1.bank_no = std::move(s2.bank_no);
+        s1.timestamp = std::move(s2.timestamp);
+        s1.PPQN = std::move(s2.PPQN);
+        s1.QN = std::move(s2.QN);
+        s1.bpm = std::move(s2.bpm);
+        s1.previous = std::move(s2.previous);
+        s1.poly = std::move(s2.poly);
+        s1.omni = std::move(s2.omni);
+    }
 
     bool process(uint32_t);
 
@@ -209,7 +247,7 @@ private:
         return (60 * 1000000 / bpm);
     }
 
-    std::vector<MIDIPort> port;
+    std::vector<MIDIPort*> port;
 
     uint8_t port_no = 0;
     uint8_t channel_no = 0;
@@ -223,6 +261,7 @@ private:
     uint8_t previous = 0;
     bool poly = true;
     bool omni = false;
+    aax::AeonWave *aax = nullptr;
 };
 
 class MIDIFile
