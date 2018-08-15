@@ -143,6 +143,7 @@
 #define MIDI_ACTIVE_SENSE		0x0e
 #define MIDI_SYSTEM_RESET		0x0f
 
+class MIDIChannel;
 
 class MIDI
 {
@@ -166,8 +167,13 @@ public:
         return *ptr;
     }
 
+    inline std::vector<MIDIChannel*>& channel() {
+        return cptr;
+    }
+
 private:
     aax::AeonWave* ptr;
+    std::vector<MIDIChannel*> cptr;
 };
 
 
@@ -180,7 +186,8 @@ private:
 
 public:
     MIDIChannel(MIDI& ptr, uint8_t channel, std::string instr)
-        : aax::Instrument(ptr.aax(), instr), midi(ptr), name(instr)
+        : aax::Instrument(ptr.aax(), instr), midi(ptr),
+          name(instr), channel_no(channel)
     {
         aax::Mixer::set(AAX_PLAYING);
         midi.aax().add(*this);
@@ -196,37 +203,20 @@ public:
     }
 
     friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
-//      std::swap(static_cast<aax::Mixer&>(p1), static_cast<aax::Mixer&>(p2));
+//      std::swap(static_cast<aax::Instrument&>(p1), static_cast<aax::Instrument&>(p2));
         p1.midi = std::move(p2.midi);
-        p1.program = std::move(p2.program);
         p1.name = std::move(p2.name);
+        p1.channel_no = std::move(p2.channel_no);
     }
 
     MIDIChannel& operator=(MIDIChannel&&) = default;
-
-    void play(uint8_t channel_no, uint8_t key, uint8_t velocity) {
-        auto it = program.find(channel_no);
-        if (it == program.end()) {
-            auto ret = program.insert({channel_no, new aax::Instrument(midi.aax(), name)});
-            it = ret.first;
-            aax::Mixer::add(*it->second);
-        }
-        it->second->play(key, velocity);
-    }
-
-    void stop(uint8_t channel_no, uint8_t key) {
-        auto it = program.find(channel_no);
-        if (it != program.end()) {
-            it->second->stop(key);
-        }
-    }
 
 private:
     std::string get_name(uint8_t bank_no, uint8_t program_no);
 
     MIDI &midi;
     std::string name;
-    std::map<uint8_t,aax::Instrument*> program;
+    uint8_t channel_no;
 };
 
 
@@ -238,8 +228,6 @@ public:
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
         : byte_stream(stream, len), midi(ptr), channel_no(track), PPQN(ppqn)
     {
-        channel.resize(channel_no+1);
-        channel.at(channel_no) = new MIDIChannel(midi, channel_no, bank_no, program_no);
         timestamp = pull_message();
     }
 
@@ -250,7 +238,6 @@ public:
     friend void swap(MIDITrack& s1, MIDITrack& s2) noexcept {
         std::swap(static_cast<byte_stream&>(s1), static_cast<byte_stream&>(s2));
         s1.midi = std::move(s2.midi);
-        s1.channel = std::move(s2.channel);
         s1.port_no = std::move(s2.port_no);
         s1.channel_no = std::move(s2.channel_no);
         s1.program_no = std::move(s2.program_no);
@@ -277,7 +264,6 @@ private:
     }
 
     MIDI& midi;
-    std::vector<MIDIChannel*> channel;
 
     uint8_t port_no = 0;
     uint8_t channel_no = 0;

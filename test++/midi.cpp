@@ -49,12 +49,12 @@ MIDI::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity
     switch(message)
     {
     case MIDI_NOTE_ON:
-//      port.at(port_no)->play(channel, 0, key);
-printf("MIDI_NOTE_ON\n");
+        cptr.at(channel)->play(key, velocity);
+printf(" MIDI_NOTE_ON\n");
         break;
     case MIDI_NOTE_OFF:
-//      port.at(port_no)->stop(channel, 0);
-printf("MIDI_NOTE_OFF\n");
+        cptr.at(channel)->stop(key);
+printf(" MIDI_NOTE_OFF\n");
         break;
     default:
         break;
@@ -264,6 +264,8 @@ MIDITrack::process(uint32_t time_pos)
                 uint8_t program_no = pull_byte();
                 // we now have the channel and the program number
                 // so we can assign an instrument to the specific channel
+                midi.channel().resize(channel+1);
+                midi.channel().at(channel) = new MIDIChannel(midi, channel_no, bank_no, program_no);
                 break;
             }
             case MIDI_CHANNEL_PRESSURE:
