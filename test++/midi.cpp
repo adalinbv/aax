@@ -325,56 +325,62 @@ MIDIStream::process(uint32_t time_pos)
 MIDIFile::MIDIFile(aax::AeonWave& aax, const char *filename)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
-    size_t size = file.tellg();
+    ssize_t size = file.tellg();
     file.seekg(0, std::ios::beg);
 
-    midi_data.reserve(size);
-    if (midi_data.capacity() == size)
+    if (size > 0)
     {
-        std::streamsize fileSize = size;
-        if (file.read((char*)midi_data.data(), fileSize))
+        midi_data.reserve(size);
+        if (midi_data.capacity() == size)
         {
-            buffer_map<uint8_t> map(midi_data.data(), size);
-            byte_stream stream(map);
-
-            try
+            std::streamsize fileSize = size;
+            if (file.read((char*)midi_data.data(), fileSize))
             {
-                uint32_t header = stream.pull_long();
-                uint16_t PPQN = 24;
-                uint16_t track = 0;
+                buffer_map<uint8_t> map(midi_data.data(), size);
+                byte_stream stream(map);
 
-                if (header == 0x4d546864) // "MThd"
+                try
                 {
-                    stream.forward(4); // skip the size;
+                    uint32_t header = stream.pull_long();
+                    uint16_t PPQN = 24;
+                    uint16_t track = 0;
 
-                    format = stream.pull_word();
-                    no_channels = stream.pull_word();
-                    PPQN = stream.pull_word();
-                }
-                
-                while (!stream.eof())
-                {
-                    header = stream.pull_long();
-                    if (header == 0x4d54726b) // "MTrk"
+                    if (header == 0x4d546864) // "MThd"
                     {
-                        uint32_t length = stream.pull_long();
-                        channel.push_back(new MIDIStream(aax, stream, length, track++, PPQN));
-                        stream.forward(length);
-                    }
-                }
-                no_channels = track;
+                        stream.forward(4); // skip the size;
 
-            } catch (const std::overflow_error& e) {
-                std::cerr << "Error while processing the MIDI file: "
-                          << e.what() << std::endl;
+                        format = stream.pull_word();
+                        no_channels = stream.pull_word();
+                        PPQN = stream.pull_word();
+                    }
+                
+                    while (!stream.eof())
+                    {
+                        header = stream.pull_long();
+                        if (header == 0x4d54726b) // "MTrk"
+                        {
+                            uint32_t length = stream.pull_long();
+                            channel.push_back(new MIDIStream(aax, stream, length, track++, PPQN));
+                            stream.forward(length);
+                        }
+                    }
+                    no_channels = track;
+
+                } catch (const std::overflow_error& e) {
+                    std::cerr << "Error while processing the MIDI file: "
+                              << e.what() << std::endl;
+                }
+            }
+            else {
+                std::cerr << "Error: Unable to open: " << filename << std::endl;
             }
         }
-        else {
-            std::cerr << "Error: Unable to open: " << filename << std::endl;
+        else if (!midi_data.size()) {
+            std::cerr << "Error: Out of memory." << std::endl;
         }
     }
-    else if (!midi_data.size()) {
-        std::cerr << "Error: Out of memory." << std::endl;
+    else {
+        std::cerr << "Error: Unable to open: " << filename << std::endl;
     }
 }
 
