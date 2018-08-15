@@ -237,29 +237,18 @@ typedef Tieable<int> Status;
 
 class Obj
 {
-private:
-    Obj() {}
-
-    Obj(const Obj&) = delete;
-
-    Obj& operator=(const Obj&) = delete;
-
 public:
     typedef int close_fn(void*);
 
-#if 0
     Obj() = default;
-#endif
 
     Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
 
-#if 0
     Obj(const Obj& o) noexcept : ptr(o.ptr), closefn(o.closefn) {
         fties = std::move(o.fties);
         ities = std::move(o.ities);
         o.closefn = nullptr;
     }
-#endif
 
     Obj(Obj&& o) noexcept : Obj() {
         swap(*this, o);
@@ -277,14 +266,10 @@ public:
         o1.ities = std::move(o2.ities);
     }
 
-#if 0
     Obj& operator=(Obj o) noexcept {
         swap(*this, o);
         return *this;
     }
-#endif
-
-    Obj& operator=(Obj&&) = default;
 
     bool close() {
         bool rv = (!!closefn) ? closefn(ptr) : false;
@@ -331,7 +316,7 @@ protected:
 class Buffer : public Obj
 {
 public:
-//  Buffer() = default;
+    Buffer() = default;
 
     Buffer(aaxBuffer b, bool o=true)
         : Obj(b, o ? aaxBufferDestroy : 0) {}
@@ -354,6 +339,10 @@ public:
 
     Buffer(aaxConfig c, std::string& name, bool o=true)
         : Buffer(c, name.c_str(), o) {}
+
+    Buffer(Buffer&&) = default;
+
+    Buffer& operator=(Buffer&&) = default;
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
         ptr = aaxBufferCreate(c,n,t,f); closefn = aaxBufferDestroy;
@@ -394,7 +383,7 @@ private:
 class dsp : public Obj
 {
 public:
-//  dsp() = default;
+    dsp() = default;
 
     dsp(aaxConfig c, enum aaxFilterType f)
         : Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
@@ -406,13 +395,15 @@ public:
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
-//  dsp(const dsp& o) = default;
+    dsp(dsp&&) = default;
 
     friend void swap(dsp& o1, dsp& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         o1.filter = std::move(o2.filter);
         o1.dsptype = std::move(o2.dsptype);
     }
+
+    dsp& operator=(dsp&&) = default;
 
     inline bool add(Buffer& b) {
         return (filter) ? aaxFilterAddBuffer(ptr,b) : aaxEffectAddBuffer(ptr,b);
@@ -472,11 +463,15 @@ private:
 class Emitter : public Obj
 {
 public:
-//  Emitter() = default;
+    Emitter() = default;
 
     Emitter(enum aaxEmitterMode m) : Obj(aaxEmitterCreate(), aaxEmitterDestroy){
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
     }
+
+    Emitter(Emitter&&) = default;
+
+    Emitter& operator=(Emitter&&) = default;
 
     inline bool set(enum aaxModeType t, int m) {
         return aaxEmitterSetMode(ptr,t,m);
@@ -557,7 +552,7 @@ public:
 class Sensor : public Obj
 {
 public:
-//  Sensor() = default;
+    Sensor() = default;
 
     explicit Sensor(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ)
         : Obj(c, aaxDriverDestroy), mode(m) {}
@@ -568,12 +563,14 @@ public:
     explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : Sensor(s.empty() ? NULL : s.c_str(),m) {}
 
-//  Sensor(const Sensor& o) = default;
+    Sensor(Sensor&&) = default;
 
     friend void swap(Sensor& o1, Sensor& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
         o1.mode = std::move(o2.mode);
     }
+
+    Sensor& operator=(Sensor&&) = default;
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
@@ -734,11 +731,11 @@ private:
 class Frame : public Obj
 {
 public:
-//  Frame() = default;
+    Frame() = default;
 
     Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
 
-//  Frame(const Frame& o) = default;
+    Frame(Frame&&) = default;
 
     virtual ~Frame() {
         for (size_t i=0; i<frames.size(); ++i) {
@@ -761,6 +758,8 @@ public:
         o1.sensors = std::move(o2.sensors);
         o1.emitters = std::move(o2.emitters);
     }
+
+    Frame& operator=(Frame&&) = default;
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxAudioFrameSetSetup(ptr,t,s);
@@ -870,7 +869,7 @@ typedef Frame Mixer;
 class AeonWave : public Sensor
 {
 public:
-//  AeonWave() = default;
+   AeonWave() = default;
 
    explicit  AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : Sensor(n,m) {}
@@ -881,7 +880,7 @@ public:
     explicit AeonWave(enum aaxRenderMode m)
         : AeonWave(0,m) {}
 
-//  AeonWave(const AeonWave& o) = default;
+    AeonWave(AeonWave&&) = default;
 
     virtual ~AeonWave() {
 printf("\n\t~AeonWave()\n");
@@ -911,6 +910,8 @@ printf("\n\t~AeonWave()\n");
         o1.buffers = std::move(o2.buffers);
         std::swap(o1.play, o2.play);
     }
+
+    AeonWave& operator=(AeonWave&&) = default;
 
     // ** position and orientation ******
     inline bool sensor_matrix(Matrix64& m) {
