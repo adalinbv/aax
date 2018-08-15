@@ -81,6 +81,7 @@
 // https://www.recordingblogs.com/wiki/midi-controller-message
 #define MIDI_COARSE			0x00
 #define MIDI_FINE			0x20
+
 #define MIDI_BANK_SELECT		0x00
 #define MIDI_MODULATION_WHEEL		0x01
 #define MIDI_BREATH_CONTROLLER		0x02
@@ -143,6 +144,31 @@
 #define MIDI_SYSTEM_RESET		0x0f
 
 
+class MIDI
+{
+private:
+    MIDI() {}
+
+    MIDI(const MIDI&) = delete;
+
+    MIDI& operator=(const MIDI&) = delete;
+
+public:
+    MIDI(aax::AeonWave& aax) : ptr(&aax) {}
+
+
+    bool drum(uint8_t message, uint8_t key, uint8_t velocity);
+    bool instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
+
+    inline aax::AeonWave& aax() {
+        return *ptr;
+    }
+
+private:
+    aax::AeonWave* ptr;
+};
+
+
 class MIDIPort : public aax::Mixer
 {
 private:
@@ -203,11 +229,11 @@ class MIDITrack : public byte_stream
 public:
     MIDITrack() = default;
 
-    MIDITrack(aax::AeonWave& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
-        : byte_stream(stream, len), channel_no(track), PPQN(ppqn), aax(&ptr)
+    MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
+        : byte_stream(stream, len), midi(&ptr), channel_no(track), PPQN(ppqn)
     {
         port.resize(port_no+1);
-        port.at(port_no) = new MIDIPort(ptr, channel_no, bank_no, program_no);
+        port.at(port_no) = new MIDIPort(midi->aax(), channel_no, bank_no, program_no);
         timestamp = pull_message();
     }
 
@@ -217,6 +243,7 @@ public:
 
     friend void swap(MIDITrack& s1, MIDITrack& s2) noexcept {
         std::swap(static_cast<byte_stream&>(s1), static_cast<byte_stream&>(s2));
+        s1.midi = std::move(s2.midi);
         s1.port = std::move(s2.port);
         s1.port_no = std::move(s2.port_no);
         s1.channel_no = std::move(s2.channel_no);
@@ -235,8 +262,6 @@ public:
 
 private:
     uint32_t pull_message();
-    bool drum(uint8_t message, uint8_t key, uint8_t velocity);
-    bool instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
 
     inline uint16_t tempo2bpm(uint32_t tempo) {
         return (60 * 1000000 / tempo);
@@ -245,6 +270,7 @@ private:
         return (60 * 1000000 / bpm);
     }
 
+    MIDI *midi = nullptr;
     std::vector<MIDIPort*> port;
 
     uint8_t port_no = 0;
@@ -259,20 +285,16 @@ private:
     uint8_t previous = 0;
     bool poly = true;
     bool omni = false;
-    aax::AeonWave *aax = nullptr;
 };
 
-class MIDIFile
+
+class MIDIFile : public MIDI
 {
 public:
-    MIDIFile() = default;
-
     MIDIFile(aax::AeonWave& aax, const char *filename);
 
     MIDIFile(aax::AeonWave& aax, std::string& filename)
        :  MIDIFile(aax, filename.c_str()) {}
-
-    ~MIDIFile() = default;
 
     inline operator bool() {
         return midi_data.capacity();

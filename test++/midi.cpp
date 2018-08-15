@@ -37,6 +37,31 @@
 
 #define LOG	1
 
+bool
+MIDI::drum(uint8_t message, uint8_t key, uint8_t velocity)
+{
+    return true;
+}
+
+bool
+MIDI::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity)
+{
+    switch(message)
+    {
+    case MIDI_NOTE_ON:
+//      port.at(port_no)->play(channel, 0, key);
+printf("MIDI_NOTE_ON\n");
+        break;
+    case MIDI_NOTE_OFF:
+//      port.at(port_no)->stop(channel, 0);
+printf("MIDI_NOTE_OFF\n");
+        break;
+    default:
+        break;
+    }
+    return true;
+}
+
 std::string
 MIDIPort::get_name(uint8_t bank_no, uint8_t program_no)
 {
@@ -60,31 +85,6 @@ MIDITrack::pull_message()
     }
 
     return rv;
-}
-
-bool
-MIDITrack::drum(uint8_t message, uint8_t key, uint8_t velocity)
-{
-    return true;
-}
-
-bool
-MIDITrack::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity)
-{
-    switch(message)
-    {
-    case MIDI_NOTE_ON:
-        port.at(port_no)->play(channel, 0, key);
-printf("MIDI_NOTE_ON\n");
-        break;
-    case MIDI_NOTE_OFF:
-        port.at(port_no)->stop(channel, 0);
-printf("MIDI_NOTE_OFF\n");
-        break;
-    default:
-        break;
-    }
-    return true;
 }
 
 bool
@@ -230,8 +230,8 @@ MIDITrack::process(uint32_t time_pos)
  printf("  ac: %c port: %i ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', port_no, channel);
  printf("%s%i", notes[key % 12], (key / 12)-1);
 #endif
-                if (channel == 0x9) drum(message, key, velocity);
-                else instrument(channel, message, key, velocity);
+                if (channel == 0x9) midi->drum(message, key, velocity);
+                else midi->instrument(channel, message, key, velocity);
                 break;
             }
             case MIDI_POLYPHONIC_PRESSURE:
@@ -322,7 +322,7 @@ MIDITrack::process(uint32_t time_pos)
 }
 
 
-MIDIFile::MIDIFile(aax::AeonWave& aax, const char *filename)
+MIDIFile::MIDIFile(aax::AeonWave& aax, const char *filename) : MIDI(aax)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     ssize_t size = file.tellg();
@@ -360,7 +360,7 @@ MIDIFile::MIDIFile(aax::AeonWave& aax, const char *filename)
                         if (header == 0x4d54726b) // "MTrk"
                         {
                             uint32_t length = stream.pull_long();
-                            track.push_back(new MIDITrack(aax, stream, length, track_no++, PPQN));
+                            track.push_back(new MIDITrack(*this, stream, length, track_no++, PPQN));
                             stream.forward(length);
                         }
                     }
