@@ -171,7 +171,7 @@ private:
 };
 
 
-class MIDIChannel : public aax::Mixer
+class MIDIChannel : public aax::Instrument
 {
 private:
     MIDIChannel(const MIDIChannel&) = delete;
@@ -179,11 +179,15 @@ private:
     MIDIChannel& operator=(const MIDIChannel&) = delete;
 
 public:
-    MIDIChannel(MIDI& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr.aax()), midi(ptr), name(get_name(bank_no, program_no))
+    MIDIChannel(MIDI& ptr, uint8_t channel, std::string instr)
+        : aax::Instrument(ptr.aax(), instr), midi(ptr), name(instr)
     {
         aax::Mixer::set(AAX_PLAYING);
         midi.aax().add(*this);
     }
+
+    MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
+       : MIDIChannel(ptr, channel, get_name(bank, program)) {}
 
     MIDIChannel(MIDIChannel&&) = default;
 
