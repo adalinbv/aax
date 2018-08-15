@@ -230,8 +230,8 @@ MIDITrack::process(uint32_t time_pos)
  printf("  ac: %c port: %i ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', port_no, channel);
  printf("%s%i", notes[key % 12], (key / 12)-1);
 #endif
-                if (channel == 0x9) midi->drum(message, key, velocity);
-                else midi->instrument(channel, message, key, velocity);
+                if (channel == 0x9) midi.drum(message, key, velocity);
+                else midi.instrument(channel, message, key, velocity);
                 break;
             }
             case MIDI_POLYPHONIC_PRESSURE:

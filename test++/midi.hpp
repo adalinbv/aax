@@ -156,6 +156,8 @@ private:
 public:
     MIDI(aax::AeonWave& aax) : ptr(&aax) {}
 
+    MIDI& operator=(MIDI&&) = default;
+
 
     bool drum(uint8_t message, uint8_t key, uint8_t velocity);
     bool instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
@@ -177,22 +179,22 @@ private:
     MIDIPort& operator=(const MIDIPort&) = delete;
 
 public:
-    MIDIPort(aax::AeonWave& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr), aax(&ptr), name(get_name(bank_no, program_no))
+    MIDIPort(MIDI& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr.aax()), midi(ptr), name(get_name(bank_no, program_no))
     {
         aax::Mixer::set(AAX_PLAYING);
-        aax->add(*this);
+        midi.aax().add(*this);
     }
 
     MIDIPort(MIDIPort&&) = default;
 
     ~MIDIPort() {
-        if (aax) aax->remove(*this);
+        midi.aax().remove(*this);
     }
 
     friend void swap(MIDIPort& p1, MIDIPort& p2) noexcept {
 //      std::swap(static_cast<aax::Mixer&>(p1), static_cast<aax::Mixer&>(p2));
+        p1.midi = std::move(p2.midi);
         p1.program = std::move(p2.program);
-        p1.aax = std::move(p2.aax);
         p1.name = std::move(p2.name);
     }
 
@@ -201,7 +203,7 @@ public:
     void play(uint8_t channel_no, uint8_t key, uint8_t velocity) {
         auto it = program.find(channel_no);
         if (it == program.end()) {
-            auto ret = program.insert({channel_no, new aax::Instrument(*aax, name)});
+            auto ret = program.insert({channel_no, new aax::Instrument(midi.aax(), name)});
             it = ret.first;
             aax::Mixer::add(*it->second);
         }
@@ -218,9 +220,9 @@ public:
 private:
     std::string get_name(uint8_t bank_no, uint8_t program_no);
 
+    MIDI &midi;
     std::string name;
     std::map<uint8_t,aax::Instrument*> program;
-    aax::AeonWave* aax = nullptr;
 };
 
 
@@ -230,10 +232,10 @@ public:
     MIDITrack() = default;
 
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
-        : byte_stream(stream, len), midi(&ptr), channel_no(track), PPQN(ppqn)
+        : byte_stream(stream, len), midi(ptr), channel_no(track), PPQN(ppqn)
     {
         port.resize(port_no+1);
-        port.at(port_no) = new MIDIPort(midi->aax(), channel_no, bank_no, program_no);
+        port.at(port_no) = new MIDIPort(midi, channel_no, bank_no, program_no);
         timestamp = pull_message();
     }
 
@@ -270,7 +272,7 @@ private:
         return (60 * 1000000 / bpm);
     }
 
-    MIDI *midi = nullptr;
+    MIDI& midi;
     std::vector<MIDIPort*> port;
 
     uint8_t port_no = 0;
