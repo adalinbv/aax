@@ -63,7 +63,7 @@ printf("MIDI_NOTE_OFF\n");
 }
 
 std::string
-MIDIPort::get_name(uint8_t bank_no, uint8_t program_no)
+MIDIChannel::get_name(uint8_t bank_no, uint8_t program_no)
 {
     // for now
     return std::string("instruments/piano-accoustic");

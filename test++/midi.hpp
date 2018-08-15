@@ -171,34 +171,34 @@ private:
 };
 
 
-class MIDIPort : public aax::Mixer
+class MIDIChannel : public aax::Mixer
 {
 private:
-    MIDIPort(const MIDIPort&) = delete;
+    MIDIChannel(const MIDIChannel&) = delete;
 
-    MIDIPort& operator=(const MIDIPort&) = delete;
+    MIDIChannel& operator=(const MIDIChannel&) = delete;
 
 public:
-    MIDIPort(MIDI& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr.aax()), midi(ptr), name(get_name(bank_no, program_no))
+    MIDIChannel(MIDI& ptr, uint8_t channel_no, uint8_t bank_no, uint8_t program_no) : aax::Mixer(ptr.aax()), midi(ptr), name(get_name(bank_no, program_no))
     {
         aax::Mixer::set(AAX_PLAYING);
         midi.aax().add(*this);
     }
 
-    MIDIPort(MIDIPort&&) = default;
+    MIDIChannel(MIDIChannel&&) = default;
 
-    ~MIDIPort() {
+    ~MIDIChannel() {
         midi.aax().remove(*this);
     }
 
-    friend void swap(MIDIPort& p1, MIDIPort& p2) noexcept {
+    friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
 //      std::swap(static_cast<aax::Mixer&>(p1), static_cast<aax::Mixer&>(p2));
         p1.midi = std::move(p2.midi);
         p1.program = std::move(p2.program);
         p1.name = std::move(p2.name);
     }
 
-    MIDIPort& operator=(MIDIPort&&) = default;
+    MIDIChannel& operator=(MIDIChannel&&) = default;
 
     void play(uint8_t channel_no, uint8_t key, uint8_t velocity) {
         auto it = program.find(channel_no);
@@ -234,8 +234,8 @@ public:
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
         : byte_stream(stream, len), midi(ptr), channel_no(track), PPQN(ppqn)
     {
-        port.resize(port_no+1);
-        port.at(port_no) = new MIDIPort(midi, channel_no, bank_no, program_no);
+        channel.resize(channel_no+1);
+        channel.at(channel_no) = new MIDIChannel(midi, channel_no, bank_no, program_no);
         timestamp = pull_message();
     }
 
@@ -246,7 +246,7 @@ public:
     friend void swap(MIDITrack& s1, MIDITrack& s2) noexcept {
         std::swap(static_cast<byte_stream&>(s1), static_cast<byte_stream&>(s2));
         s1.midi = std::move(s2.midi);
-        s1.port = std::move(s2.port);
+        s1.channel = std::move(s2.channel);
         s1.port_no = std::move(s2.port_no);
         s1.channel_no = std::move(s2.channel_no);
         s1.program_no = std::move(s2.program_no);
@@ -273,7 +273,7 @@ private:
     }
 
     MIDI& midi;
-    std::vector<MIDIPort*> port;
+    std::vector<MIDIChannel*> channel;
 
     uint8_t port_no = 0;
     uint8_t channel_no = 0;
