@@ -198,12 +198,12 @@ private:
 };
 
 
-class MIDIStream : public byte_stream
+class MIDITrack : public byte_stream
 {
 public:
-    MIDIStream() = default;
+    MIDITrack() = default;
 
-    MIDIStream(aax::AeonWave& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
+    MIDITrack(aax::AeonWave& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
         : byte_stream(stream, len), channel_no(track), PPQN(ppqn), aax(&ptr)
     {
         port.resize(port_no+1);
@@ -211,11 +211,11 @@ public:
         timestamp = pull_message();
     }
 
-    MIDIStream(const MIDIStream&) = default;
+    MIDITrack(const MIDITrack&) = default;
 
-    ~MIDIStream() = default;
+    ~MIDITrack() = default;
 
-    friend void swap(MIDIStream& s1, MIDIStream& s2) noexcept {
+    friend void swap(MIDITrack& s1, MIDITrack& s2) noexcept {
         std::swap(static_cast<byte_stream&>(s1), static_cast<byte_stream&>(s2));
         s1.port = std::move(s2.port);
         s1.port_no = std::move(s2.port_no);
@@ -282,10 +282,10 @@ public:
 
 private:
     std::vector<uint8_t> midi_data;
-    std::vector<MIDIStream*> channel;
+    std::vector<MIDITrack*> track;
 
     uint32_t time_pos = 0;
-    uint16_t no_channels = 0;
+    uint16_t no_tracks = 0;
     uint16_t format = 0;
 };
 

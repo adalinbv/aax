@@ -45,7 +45,7 @@ MIDIPort::get_name(uint8_t bank_no, uint8_t program_no)
 }
 
 uint32_t
-MIDIStream::pull_message()
+MIDITrack::pull_message()
 {
     uint32_t rv = 0;
 
@@ -63,13 +63,13 @@ MIDIStream::pull_message()
 }
 
 bool
-MIDIStream::drum(uint8_t message, uint8_t key, uint8_t velocity)
+MIDITrack::drum(uint8_t message, uint8_t key, uint8_t velocity)
 {
     return true;
 }
 
 bool
-MIDIStream::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity)
+MIDITrack::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity)
 {
     switch(message)
     {
@@ -88,7 +88,7 @@ printf("MIDI_NOTE_OFF\n");
 }
 
 bool
-MIDIStream::process(uint32_t time_pos)
+MIDITrack::process(uint32_t time_pos)
 {
     bool rv = !eof();
 
@@ -342,15 +342,15 @@ MIDIFile::MIDIFile(aax::AeonWave& aax, const char *filename)
                 try
                 {
                     uint32_t header = stream.pull_long();
+                    uint16_t track_no = 0;
                     uint16_t PPQN = 24;
-                    uint16_t track = 0;
 
                     if (header == 0x4d546864) // "MThd"
                     {
                         stream.forward(4); // skip the size;
 
                         format = stream.pull_word();
-                        no_channels = stream.pull_word();
+                        no_tracks = stream.pull_word();
                         PPQN = stream.pull_word();
                     }
                 
@@ -360,11 +360,11 @@ MIDIFile::MIDIFile(aax::AeonWave& aax, const char *filename)
                         if (header == 0x4d54726b) // "MTrk"
                         {
                             uint32_t length = stream.pull_long();
-                            channel.push_back(new MIDIStream(aax, stream, length, track++, PPQN));
+                            track.push_back(new MIDITrack(aax, stream, length, track_no++, PPQN));
                             stream.forward(length);
                         }
                     }
-                    no_channels = track;
+                    no_tracks = track_no;
 
                 } catch (const std::overflow_error& e) {
                     std::cerr << "Error while processing the MIDI file: "
@@ -388,8 +388,8 @@ bool
 MIDIFile::process(uint32_t time)
 {
     bool rv = false;
-    for (size_t t=0; t<no_channels; ++t) {
-        rv |= channel[t]->process(time);
+    for (size_t t=0; t<no_tracks; ++t) {
+        rv |= track[t]->process(time);
     }
     return rv;
 }
