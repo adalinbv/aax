@@ -44,7 +44,10 @@ MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
     if (channel_no >= channels.size()) {
         channels.resize(channel_no+1);
     }
+
     channels.at(channel_no) = new MIDIChannel(*this, channel_no, bank_no, program_no);
+    aax::AeonWave::add(channel(channel_no));
+
     return *channels.at(channel_no);
 }
 
@@ -87,7 +90,7 @@ std::string
 MIDIChannel::get_name(uint8_t bank_no, uint8_t program_no)
 {
     // for now
-    return std::string("instruments/piano-accoustic");
+    return std::string("instruments/piano-acoustic");
 }
 
 uint32_t

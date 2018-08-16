@@ -180,17 +180,12 @@ public:
           name(instr), channel_no(channel)
     {
         aax::Mixer::set(AAX_PLAYING);
-        midi.add(*this);
     }
 
     MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
        : MIDIChannel(ptr, channel, get_name(bank, program)) {}
 
     MIDIChannel(MIDIChannel&&) = default;
-
-    ~MIDIChannel() {
-        midi.remove(*this);
-    }
 
     friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
 //      std::swap(static_cast<aax::Instrument&>(p1), static_cast<aax::Instrument&>(p2));
