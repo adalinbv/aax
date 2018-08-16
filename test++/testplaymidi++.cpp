@@ -55,25 +55,32 @@ int main(int argc, char **argv)
     char *devname = getDeviceName(argc, argv);
     char *infile = getInputFile(argc, argv, IFILE_PATH);
 
-    MIDIFile midi(devname, infile);
-    if (midi)
+    try
     {
-        _aaxTimer *timer = _aaxTimerCreate();
-        _aaxTimerStartRepeatable(timer, 1000.0f);	// 1000 usec
-        uint32_t time = 0;
+        MIDIFile midi(devname, infile);
+        if (midi)
+        {
+            _aaxTimer *timer = _aaxTimerCreate();
+            _aaxTimerStartRepeatable(timer, 1000.0f);	// 1000 usec
+            uint32_t time = 0;
 
-        midi.set(AAX_INITIALIZED);
-        midi.set(AAX_PLAYING);
+            midi.set(AAX_INITIALIZED);
+            midi.set(AAX_PLAYING);
 
-        do {
-            if (!midi.process(time++)) break;
-            _aaxTimerWait(timer);
+            do {
+                if (!midi.process(time++)) break;
+                _aaxTimerWait(timer);
+            }
+            while(1);
+            _aaxTimerDestroy(timer);
+
+            midi.set(AAX_PROCESSED);
         }
-        while(1);
-        _aaxTimerDestroy(timer);
-
-        midi.set(AAX_PROCESSED);
+    } catch (const std::exception& e) {
+        std::cerr << "Error while processing the MIDI file: "
+                  << e.what() << std::endl;
     }
+
 
     return 0;
 }
