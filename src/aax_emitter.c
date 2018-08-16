@@ -411,6 +411,12 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          }
          rv = AAX_TRUE;
          break;
+      case AAX_SUSPENDED:
+         if (_IS_PLAYING(src->props3d)) {
+            _SET_PAUSED(src->props3d);
+         }
+         rv = AAX_TRUE;
+         break;
       case AAX_PROCESSED:
          if (_IS_PLAYING(src->props3d))
          {
@@ -418,13 +424,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             src->buffer_pos = UINT_MAX;
          }
          rv = AAX_TRUE;
-         break;
-      case AAX_SUSPENDED:
-         if (_IS_PLAYING(src->props3d)) {
-            _SET_PAUSED(src->props3d);
-         }
-         rv = AAX_TRUE;
-         break;
+         // intentional fallthrough
       case AAX_INITIALIZED:	/* or rewind */
       {
          const _intBufferData* dptr;
