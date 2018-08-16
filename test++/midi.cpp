@@ -74,11 +74,9 @@ MIDI::instrument(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t veloc
     {
     case MIDI_NOTE_ON:
         channel(channel_no).play(key, velocity);
-printf(" MIDI_NOTE_ON\n");
         break;
     case MIDI_NOTE_OFF:
         channel(channel_no).stop(key);
-printf(" MIDI_NOTE_OFF\n");
         break;
     default:
         break;
