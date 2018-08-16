@@ -1,0 +1,34 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <sound name="Low Agogo" frequency="440" duration="0.10">
+  <waveform src="triangle" pitch="2.0"/>
+  <waveform src="square" processing="modulate" ratio="1.0" pitch="3.5987"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.50</param>
+    <param n="1" factor="velocity">0.05</param>
+    <param n="2" factor="soften">1.00</param>
+    <param n="3" auto-sustain="0.1" factor="sustain">0.75</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" factor="soften">1.05</param>
+    <param n="1" factor="velocity">0.005</param>
+    <param n="2">0.98</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
