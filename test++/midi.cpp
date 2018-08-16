@@ -342,7 +342,7 @@ MIDITrack::process(uint32_t time_pos)
 }
 
 
-MIDIFile::MIDIFile(aax::AeonWave& aax, const char *filename) : MIDI(aax)
+MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     ssize_t size = file.tellg();

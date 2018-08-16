@@ -145,27 +145,14 @@
 
 class MIDIChannel;
 
-class MIDI
+class MIDI : public aax::AeonWave
 {
-private:
-    MIDI() {}
-
-    MIDI(const MIDI&) = delete;
-
-    MIDI& operator=(const MIDI&) = delete;
-
 public:
-    MIDI(aax::AeonWave& aax) : ptr(&aax) {}
-
-    MIDI& operator=(MIDI&&) = default;
+    MIDI(const char* n) : aax::AeonWave(n) {}
 
     bool drum(uint8_t message, uint8_t key, uint8_t velocity);
 
     bool instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
-
-    inline aax::AeonWave& aax() {
-        return *ptr;
-    }
 
     MIDIChannel& new_channel(uint8_t channel, uint8_t bank, uint8_t program);
 
@@ -176,7 +163,6 @@ public:
     }
 
 private:
-    aax::AeonWave* ptr;
     std::vector<MIDIChannel*> channels;
 };
 
@@ -190,11 +176,11 @@ private:
 
 public:
     MIDIChannel(MIDI& ptr, uint8_t channel, std::string instr)
-        : aax::Instrument(ptr.aax(), instr), midi(ptr),
+        : aax::Instrument(ptr, instr), midi(ptr),
           name(instr), channel_no(channel)
     {
         aax::Mixer::set(AAX_PLAYING);
-        midi.aax().add(*this);
+        midi.add(*this);
     }
 
     MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
@@ -203,7 +189,7 @@ public:
     MIDIChannel(MIDIChannel&&) = default;
 
     ~MIDIChannel() {
-        midi.aax().remove(*this);
+        midi.remove(*this);
     }
 
     friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
@@ -285,10 +271,12 @@ private:
 class MIDIFile : public MIDI
 {
 public:
-    MIDIFile(aax::AeonWave& aax, const char *filename);
+    MIDIFile(const char *filename) : MIDIFile(nullptr, filename) {}
 
-    MIDIFile(aax::AeonWave& aax, std::string& filename)
-       :  MIDIFile(aax, filename.c_str()) {}
+    MIDIFile(const char *devname, const char *filename);
+
+    MIDIFile(std::string& devname, std::string& filename)
+       :  MIDIFile(devname.c_str(), filename.c_str()) {}
 
     inline operator bool() {
         return midi_data.capacity();
