@@ -41,7 +41,7 @@ public:
     {
         Emitter::add(buffer);
 
-        pitch = NoteToPitch(key_no);
+        pitch = note2freq(key_no)/buffer.get(AAX_FREQUENCY);
         tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
     }
@@ -61,6 +61,8 @@ public:
 
     bool play(uint8_t velocity)
     {
+        Emitter::set(AAX_PROCESSED);
+        gain = 2.0f*velocity/255.0f;
         return Emitter::set(AAX_PLAYING);
     }
 
@@ -71,11 +73,8 @@ public:
     inline void set_pressure(uint8_t p) { pressure = p; }
 
 private:
-    inline float NoteToFrequency(uint8_t d) {
+    inline float note2freq(uint8_t d) {
         return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
-    }
-    inline float NoteToPitch(uint8_t d) {
-        return 2.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
     }
 
     Param pitch = 1.0f;
