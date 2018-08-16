@@ -394,6 +394,8 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, packet_size);
          ret = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
 
+         if (handle->packet_no == handle->no_packets) break;
+
          if (rv > 0) handle->packet_no++;
          assert(handle->packet_no <= handle->no_packets);
       }
