@@ -183,7 +183,7 @@ public:
     }
 
     MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
-       : MIDIChannel(ptr, channel, get_name(bank, program)) {}
+       : MIDIChannel(ptr, channel, get_name(channel, bank, program)) {}
 
     MIDIChannel(MIDIChannel&&) = default;
 
@@ -197,7 +197,7 @@ public:
     MIDIChannel& operator=(MIDIChannel&&) = default;
 
 private:
-    std::string get_name(uint8_t bank_no, uint8_t program_no);
+    std::string get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no);
 
     MIDI &midi;
     std::string name;
