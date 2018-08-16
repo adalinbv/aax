@@ -68,6 +68,8 @@ public:
         return Emitter::set(AAX_STOPPED);
     }
 
+    inline void set_pressure(uint8_t p) { pressure = p; }
+
 private:
     inline float NoteToFrequency(uint8_t d) {
         return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
@@ -79,6 +81,7 @@ private:
     Param pitch = 1.0f;
     Param gain = 1.0f;
     uint8_t key = 0;
+    uint8_t pressure = 0;
 };
 
 
@@ -132,10 +135,24 @@ public:
         }
     }
 
+    inline void set_pitch(uint8_t p) { pitch= p; }
+
+    inline void set_pressure(uint8_t p) { pressure = p; }
+
+    void set_pressure(uint8_t key_no, uint8_t pressure) {
+        auto it = key.find(key_no);
+        if (it != key.end()) {
+            it->second->set_pressure(pressure);
+        }
+    }
+
 private:
     std::map<uint8_t,Key*> key;
     Buffer &buffer;
     AeonWave* aax;
+
+    uint8_t pressure;
+    uint8_t pitch;
 };
 
 } // namespace aax
