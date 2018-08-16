@@ -37,6 +37,27 @@
 
 #define LOG	1
 
+
+MIDIChannel&
+MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
+{
+    if (channel_no >= channels.size()) {
+        channels.resize(channel_no+1);
+    }
+    channels.at(channel_no) = new MIDIChannel(*this, channel_no, bank_no, program_no);
+    return *channels.at(channel_no);
+}
+
+MIDIChannel&
+MIDI::channel(uint8_t channel_no)
+{
+    if (channel_no >= channels.size()) {
+        throw(std::out_of_range("index beyond buffer length"));
+        channels.resize(channel_no+1);
+    }
+    return *channels.at(channel_no);
+}
+
 bool
 MIDI::drum(uint8_t message, uint8_t key, uint8_t velocity)
 {
@@ -44,16 +65,16 @@ MIDI::drum(uint8_t message, uint8_t key, uint8_t velocity)
 }
 
 bool
-MIDI::instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity)
+MIDI::instrument(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity)
 {
     switch(message)
     {
     case MIDI_NOTE_ON:
-        cptr.at(channel)->play(key, velocity);
+        channel(channel_no).play(key, velocity);
 printf(" MIDI_NOTE_ON\n");
         break;
     case MIDI_NOTE_OFF:
-        cptr.at(channel)->stop(key);
+        channel(channel_no).stop(key);
 printf(" MIDI_NOTE_OFF\n");
         break;
     default:
@@ -155,10 +176,10 @@ MIDITrack::process(uint32_t time_pos)
 #endif
                 break;
             case MIDI_CHANNEL_PREFIX:
-                channel_no = pull_byte();
+                channel_no = (channel_no & 0xF0) | pull_byte();
                 break;
             case MIDI_PORT_PREFERENCE:
-                port_no = pull_byte();
+                channel_no = (channel_no & 0xF) | pull_byte() << 8;
                 break;
             case MIDI_END_OF_TRACK:
                 forward();
@@ -227,7 +248,7 @@ MIDITrack::process(uint32_t time_pos)
                 // channel 10 is for drum instruments and key defines which one.
 #if LOG
  const char *notes[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
- printf("  ac: %c port: %i ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', port_no, channel);
+ printf("  ac: %c ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', channel);
  printf("%s%i", notes[key % 12], (key / 12)-1);
 #endif
                 if (channel == 0x9) midi.drum(message, key, velocity);
@@ -238,7 +259,7 @@ MIDITrack::process(uint32_t time_pos)
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
-                // we now have the channel, the key and the pressure
+                midi.channel(channel).set_pressure(key, pressure);
                 break;
             }
             case MIDI_CONTROL_CHANGE:
@@ -262,22 +283,19 @@ MIDITrack::process(uint32_t time_pos)
             case MIDI_PROGRAM_CHANGE:
             {
                 uint8_t program_no = pull_byte();
-                // we now have the channel and the program number
-                // so we can assign an instrument to the specific channel
-                midi.channel().resize(channel+1);
-                midi.channel().at(channel) = new MIDIChannel(midi, channel_no, bank_no, program_no);
+                midi.new_channel(channel, bank_no, program_no);
                 break;
             }
             case MIDI_CHANNEL_PRESSURE:
             {
                 uint8_t pressure = pull_byte();
-                // we now have the channel and the pressure
+                midi.channel(channel).set_pressure(pressure);
                 break;
             }
             case MIDI_PITCH_BEND:
             {
                 uint16_t pitch = pull_byte() << 7 | pull_byte();
-                // we now have the channel and the pitch
+                midi.channel(channel).set_pitch(pitch);
                 break;
             }
             case MIDI_SYSTEM:

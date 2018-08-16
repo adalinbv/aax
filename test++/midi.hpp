@@ -159,21 +159,25 @@ public:
 
     MIDI& operator=(MIDI&&) = default;
 
-
     bool drum(uint8_t message, uint8_t key, uint8_t velocity);
+
     bool instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
 
     inline aax::AeonWave& aax() {
         return *ptr;
     }
 
+    MIDIChannel& new_channel(uint8_t channel, uint8_t bank, uint8_t program);
+
+    MIDIChannel& channel(uint8_t channel_no);
+
     inline std::vector<MIDIChannel*>& channel() {
-        return cptr;
+        return channels;
     }
 
 private:
     aax::AeonWave* ptr;
-    std::vector<MIDIChannel*> cptr;
+    std::vector<MIDIChannel*> channels;
 };
 
 
@@ -238,7 +242,6 @@ public:
     friend void swap(MIDITrack& s1, MIDITrack& s2) noexcept {
         std::swap(static_cast<byte_stream&>(s1), static_cast<byte_stream&>(s2));
         s1.midi = std::move(s2.midi);
-        s1.port_no = std::move(s2.port_no);
         s1.channel_no = std::move(s2.channel_no);
         s1.program_no = std::move(s2.program_no);
         s1.bank_no = std::move(s2.bank_no);
@@ -265,7 +268,6 @@ private:
 
     MIDI& midi;
 
-    uint8_t port_no = 0;
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
     uint8_t bank_no = 0;
