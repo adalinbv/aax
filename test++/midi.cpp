@@ -40,10 +40,18 @@
 #define LOG	1
 
 
+MIDI::MIDI(const char* n) : aax::AeonWave(n)
+{
+    channels.resize(16);
+    channels.at(0x9) = new MIDIChannel(*this, 0x9, 0, 0);
+    aax::AeonWave::add(channel(0x9));
+}
+
 MIDIChannel&
 MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
 {
     if (channel_no >= channels.size()) {
+        throw(std::out_of_range("index beyond buffer length"));
         channels.resize(channel_no+1);
     }
 
@@ -325,7 +333,7 @@ MIDITrack::process(uint32_t time_pos)
  printf("  ac: %c ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', channel);
  printf("%s%i", notes[key % 12], (key / 12)-1);
 #endif
-                 midi.process(channel, message, key, velocity);
+                 midi.process(channel, message & 0xf0, key, velocity);
                 break;
             }
             case MIDI_POLYPHONIC_PRESSURE:
