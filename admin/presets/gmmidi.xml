@@ -10,177 +10,177 @@
 
  <midi>
   <bank n="0">
-   <instrument n="1" name="Acoustic Grand Piano" file="instruments/piano-acoustic"/>
-   <instrument n="2" name="Bright Acoustic Piano" file="instruments/piano-bright"/>
-   <instrument n="3" name="Electric Grand Piano" file="instruments/piano-electric"/>
-   <instrument n="4" name="Honky-tonk Piano" file="instruments/piano-honky-tonk"/>
-   <instrument n="5" name="Electric Piano 1" file="instruments/piano-electric1"/>
-   <instrument n="6" name="Electric Piano 2" file="instruments/piano-electric2"/>
-   <instrument n="7" name="Harpsichord" file="instruments/harpsichord"/>
-   <instrument n="8" name="Clavi" file="instruments/clavinet"/>
-   <instrument n="9" name="Celesta" file="instruments/celesta"/>
-   <instrument n="10" name="Glockenspiel" file="instruments/glockenspiel"/>
-   <instrument n="11" name="Music Box" file="instruments/musicbox"/>
-   <instrument n="12" name="Vibraphone" file="instruments/vibraphone"/>
-   <instrument n="13" name="Marimba" file="instruments/marimba"/>
-   <instrument n="14" name="Xylophone" file="instruments/xylophone"/>
-   <instrument n="15" name="Tubular Bells" file="instruments/bell-tubular"/>
-   <instrument n="16" name="Dulcimer" file=""/>
-   <instrument n="17" name="Drawbar Organ" file="instruments/organ-drawbar"/>
-   <instrument n="18" name="Percussive Organ" file="instruments/organ-percussive"/>
-   <instrument n="19" name="Rock Organ" file="instruments/organ-rock"/>
-   <instrument n="20" name="Church Organ" file="instruments/organ-church"/>
-   <instrument n="21" name="Reed Organ" file="instruments/organ-reed"/>
-   <instrument n="22" name="French Accordion" file="instruments/accordion-french"/>
-   <instrument n="23" name="Harmonica" file="instruments/harmonica"/>
-   <instrument n="24" name="Tango Accordion" file=""/>
-   <instrument n="25" name="Acoustic Guitar (nylon)" file="instruments/guitar-nylon"/>
-   <instrument n="26" name="Acoustic Guitar (steel)" file="instruments/guitar-steel"/>
-   <instrument n="27" name="Electric Guitar (jazz)" file="instruments/guitar-jazz"/>
-   <instrument n="28" name="Electric Guitar (clean)" file="instruments/guitar-clean"/>
-   <instrument n="29" name="Electric Guitar (muted)" file="instruments/guitar-muted"/>
-   <instrument n="30" name="Overdriven Guitar" file="instruments/guitar-overdriven"/>
-   <instrument n="31" name="Distortion Guitar" file="instruments/guitar-distorted"/>
-   <instrument n="32" name="Guitar harmonics" file="instruments/guitar-harmonics"/>
-   <instrument n="33" name="Acoustic Bass" file="instruments/bass-acoustic"/>
-   <instrument n="34" name="Electric Bass (finger)" file="instruments/bass-finger"/>
-   <instrument n="35" name="Electric Bass (pick)" file="instruments/bass-pick"/>
-   <instrument n="36" name="Fretless Bass" file=""/>
-   <instrument n="37" name="Slap Bass 1" file="instruments/bass-slap1"/>
-   <instrument n="38" name="Slap Bass 2" file="instruments/bass-slap2"/>
-   <instrument n="39" name="Synth Bass 1" file="instruments/bass-synth1"/>
-   <instrument n="40" name="Synth Bass 2" file="instruments/bass-synth3"/>
-   <instrument n="41" name="Violin" file="instruments/violin"/>
-   <instrument n="42" name="Viola" file="instruments/violin"/>
-   <instrument n="43" name="Cello" file="instruments/violin"/>
-   <instrument n="44" name="Contrabass" file="instruments/violin"/>
-   <instrument n="45" name="Tremolo Strings" file="instruments/string-tremolo"/>
-   <instrument n="46" name="Pizzicato Strings" file="instruments/string-pizzicato"/>
-   <instrument n="47" name="Orchestral Harp" file="instruments/harp"/>
-   <instrument n="48" name="Timpani" file=""/>
-   <instrument n="49" name="String Ensemble 1" file="instruments/string-ensamble1"/>
-   <instrument n="50" name="String Ensemble 2" file="instruments/string-ensamble2"/>
-   <instrument n="51" name="SynthStrings 1" file="instruments/strings-synth1"/>
-   <instrument n="52" name="SynthStrings 2" file="instruments/strings-synth2"/>
-   <instrument n="53" name="Choir Aahs" file="instruments/choir-aahs"/>
-   <instrument n="54" name="Voice Oohs" file="instruments/voice-oohs"/>
-   <instrument n="55" name="Synth Voice" file=""/>
-   <instrument n="56" name="Orchestra Hit" file=""/>
-   <instrument n="57" name="Trumpet" file="instruments/trumpet"/>
-   <instrument n="58" name="Trombone" file="instruments/trumpet"/>
-   <instrument n="59" name="Tuba" file="instruments/trumpet"/>
-   <instrument n="60" name="Muted Trumpet" file="instruments/trumpet-muted"/>
-   <instrument n="61" name="French Horn" file="instruments/horn-french"/>
-   <instrument n="62" name="Brass Section" file="instruments/brass-section"/>
-   <instrument n="63" name="SynthBrass 1" file="instruments/brass-synth1"/>
-   <instrument n="64" name="SynthBrass 2" file="instruments/brass-synth2"/>
-   <instrument n="65" name="Soprano Sax" file=""/>
-   <instrument n="66" name="Alto Sax" file="instruments/saxophone"/>
-   <instrument n="67" name="Tenor Sax" file="instruments/saxophone"/>
-   <instrument n="68" name="Baritone Sax" file="instruments/saxophone"/>
-   <instrument n="69" name="Oboe" file="instruments/oboe"/>
-   <instrument n="70" name="English Horn" file="instruments/horn-english"/>
-   <instrument n="71" name="Bassoon" file=""/>
-   <instrument n="72" name="Clarinet" file="instruments/clarinet"/>
-   <instrument n="73" name="Piccolo" file="instruments/flute"/>
-   <instrument n="74" name="Flute" file="instruments/flute"/>
-   <instrument n="75" name="Recorder" file="instruments/flute"/>
-   <instrument n="76" name="Pan Flute" file="instruments/flute-pan"/>
-   <instrument n="77" name="Blown Bottle" file="effects/humans/blow-bottle"/>
-   <instrument n="78" name="Shakuhachi" file=""/>
-   <instrument n="79" name="Whistle" file="effects/humans/human-whistle"/>
-   <instrument n="80" name="Ocarina" file=""/>
-   <instrument n="81" name="Lead 1 (square)" file="instruments/lead-square"/>
-   <instrument n="82" name="Lead 2 (sawtooth)" file="instruments/lead-sawtooth"/>
-   <instrument n="83" name="Lead 3 (calliope)" file="instruments/lead-calliope"/>
-   <instrument n="84" name="Lead 4 (chiff)" file="instruments/lead-chiff"/>
-   <instrument n="85" name="Lead 5 (charang)" file="instruments/lead-charang"/>
-   <instrument n="86" name="Lead 6 (voice)" file="instruments/lead-voice"/>
-   <instrument n="87" name="Lead 7 (fifths)" file="instruments/lead-fifths"/>
-   <instrument n="88" name="Lead 8 (bass + lead)" file="instruments/lead-bass"/>
-   <instrument n="89" name="Pad 1 (new age)" file="instruments/pad-newwave"/>
-   <instrument n="90" name="Pad 2 (warm)" file="instruments/pad-warm"/>
-   <instrument n="91" name="Pad 3 (polysynth)" file="instruments/pad-polysynth"/>
-   <instrument n="92" name="Pad 4 (choir)" file="instruments/pad-choir"/>
-   <instrument n="93" name="Pad 5 (bowed)" file="instruments/pad-bowed"/>
-   <instrument n="94" name="Pad 6 (metallic)" file="instruments/pad-metallic"/>
-   <instrument n="95" name="Pad 7 (halo)" file="instruments/pad-halo"/>
-   <instrument n="96" name="Pad 8 (sweep)" file="instruments/pad-sweep"/>
-   <instrument n="97" name="FX 1 (rain)" file="instruments/fx-rain"/>
-   <instrument n="98" name="FX 2 (soundtrack)" file=""/>
-   <instrument n="99" name="FX 3 (crystal)" file=""/>
-   <instrument n="100" name="FX 4 (atmosphere)" file=""/>
-   <instrument n="101" name="FX 5 (brightness)" file=""/>
-   <instrument n="102" name="FX 6 (goblins)" file=""/>
-   <instrument n="103" name="FX 7 (echoes)" file=""/>
-   <instrument n="104" name="FX 8 (sci-fi)" file=""/>
-   <instrument n="105" name="Sitar" file=""/>
-   <instrument n="106" name="Banjo" file=""/>
-   <instrument n="107" name="Shamisen" file=""/>
-   <instrument n="108" name="Koto" file=""/>
-   <instrument n="109" name="Kalimba" file=""/>
-   <instrument n="110" name="Bag pipe" file=""/>
-   <instrument n="111" name="Fiddle" file="instruments/fiddle"/>
-   <instrument n="112" name="Shanai" file=""/>
-   <instrument n="113" name="Tinkle Bell" file=""/>
-   <instrument n="114" name="Agogo" file=""/>
-   <instrument n="115" name="Steel Drums" file="instruments/drum-steel"/>
-   <instrument n="116" name="Woodblock" file=""/>
-   <instrument n="117" name="Taiko Drum" file="instruments/drum-taiko"/>
-   <instrument n="118" name="Melodic Tom" file=""/>
-   <instrument n="119" name="Synth Drum" file=""/>
-   <instrument n="120" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
-   <instrument n="121" name="Guitar Fret Noise" file="instruments/guitar-fret-noise"/>
-   <instrument n="122" name="Breath Noise" file="effecst/humans/human-breathing"/>
-   <instrument n="123" name="Seashore" file="effecst/nature/water-seashore"/>
-   <instrument n="124" name="Bird Tweet" file="effecst/nature/birds"/>
-   <instrument n="125" name="Telephone Ring" file="effecst/domestic/telephone-bell"/>
-   <instrument n="126" name="Helicopter" file="effecst/transport/helicopter"/>
-   <instrument n="127" name="Applause" file="effects/"/>
-   <instrument n="128" name="Gunshot" file="effecst/weapons/gun-pistol"/>
+   <instrument n="0" name="Acoustic Grand Piano" file="instruments/piano-acoustic"/>
+   <instrument n="1" name="Bright Acoustic Piano" file="instruments/piano-bright"/>
+   <instrument n="2" name="Electric Grand Piano" file="instruments/piano-electric"/>
+   <instrument n="3" name="Honky-tonk Piano" file="instruments/piano-honky-tonk"/>
+   <instrument n="4" name="Electric Piano 1" file="instruments/piano-electric1"/>
+   <instrument n="5" name="Electric Piano 2" file="instruments/piano-electric2"/>
+   <instrument n="6" name="Harpsichord" file="instruments/harpsichord"/>
+   <instrument n="7" name="Clavi" file="instruments/clavinet"/>
+   <instrument n="8" name="Celesta" file="instruments/celesta"/>
+   <instrument n="9" name="Glockenspiel" file="instruments/glockenspiel"/>
+   <instrument n="10" name="Music Box" file="instruments/musicbox"/>
+   <instrument n="11" name="Vibraphone" file="instruments/vibraphone"/>
+   <instrument n="12" name="Marimba" file="instruments/marimba"/>
+   <instrument n="13" name="Xylophone" file="instruments/xylophone"/>
+   <instrument n="14" name="Tubular Bells" file="instruments/bell-tubular"/>
+   <instrument n="15" name="Dulcimer" file="instruments/dulcimer"/>
+   <instrument n="16" name="Drawbar Organ" file="instruments/organ-drawbar"/>
+   <instrument n="17" name="Percussive Organ" file="instruments/organ-percussive"/>
+   <instrument n="18" name="Rock Organ" file="instruments/organ-rock"/>
+   <instrument n="19" name="Church Organ" file="instruments/organ-church"/>
+   <instrument n="20" name="Reed Organ" file="instruments/organ-reed"/>
+   <instrument n="21" name="French Accordion" file="instruments/accordion-french"/>
+   <instrument n="22" name="Harmonica" file="instruments/harmonica"/>
+   <instrument n="23" name="Tango Accordion" file="instruments/accordion-tango"/>
+   <instrument n="24" name="Acoustic Guitar (nylon)" file="instruments/guitar-nylon"/>
+   <instrument n="25" name="Acoustic Guitar (steel)" file="instruments/guitar-steel"/>
+   <instrument n="26" name="Electric Guitar (jazz)" file="instruments/guitar-jazz"/>
+   <instrument n="27" name="Electric Guitar (clean)" file="instruments/guitar-clean"/>
+   <instrument n="28" name="Electric Guitar (muted)" file="instruments/guitar-muted"/>
+   <instrument n="29" name="Overdriven Guitar" file="instruments/guitar-overdriven"/>
+   <instrument n="30" name="Distortion Guitar" file="instruments/guitar-distorted"/>
+   <instrument n="31" name="Guitar harmonics" file="instruments/guitar-harmonics"/>
+   <instrument n="32" name="Acoustic Bass" file="instruments/bass-acoustic"/>
+   <instrument n="33" name="Electric Bass (finger)" file="instruments/bass-finger"/>
+   <instrument n="34" name="Electric Bass (pick)" file="instruments/bass-pick"/>
+   <instrument n="35" name="Fretless Bass" file="instruments/bass-fretless"/>
+   <instrument n="36" name="Slap Bass 1" file="instruments/bass-slap1"/>
+   <instrument n="37" name="Slap Bass 2" file="instruments/bass-slap2"/>
+   <instrument n="38" name="Synth Bass 1" file="instruments/bass-synth1"/>
+   <instrument n="39" name="Synth Bass 2" file="instruments/bass-synth3"/>
+   <instrument n="40" name="Violin" file="instruments/violin"/>
+   <instrument n="41" name="Viola" file="instruments/violin"/>
+   <instrument n="42" name="Cello" file="instruments/violin"/>
+   <instrument n="43" name="Contrabass" file="instruments/violin"/>
+   <instrument n="44" name="Tremolo Strings" file="instruments/string-tremolo"/>
+   <instrument n="45" name="Pizzicato Strings" file="instruments/string-pizzicato"/>
+   <instrument n="46" name="Orchestral Harp" file="instruments/harp"/>
+   <instrument n="47" name="Timpani" file="instruments/timpani"/>
+   <instrument n="48" name="String Ensemble 1" file="instruments/string-ensamble1"/>
+   <instrument n="49" name="String Ensemble 2" file="instruments/string-ensamble2"/>
+   <instrument n="50" name="SynthStrings 1" file="instruments/strings-synth1"/>
+   <instrument n="51" name="SynthStrings 2" file="instruments/strings-synth2"/>
+   <instrument n="52" name="Choir Aahs" file="instruments/choir-aahs"/>
+   <instrument n="53" name="Voice Oohs" file="instruments/voice-oohs"/>
+   <instrument n="54" name="Synth Voice" file="instruments/voice-synth"/>
+   <instrument n="55" name="Orchestra Hit" file="instruments/orchestra-hit"/>
+   <instrument n="56" name="Trumpet" file="instruments/trumpet"/>
+   <instrument n="57" name="Trombone" file="instruments/trumpet"/>
+   <instrument n="58" name="Tuba" file="instruments/trumpet"/>
+   <instrument n="59" name="Muted Trumpet" file="instruments/trumpet-muted"/>
+   <instrument n="60" name="French Horn" file="instruments/horn-french"/>
+   <instrument n="61" name="Brass Section" file="instruments/brass-section"/>
+   <instrument n="62" name="SynthBrass 1" file="instruments/brass-synth1"/>
+   <instrument n="63" name="SynthBrass 2" file="instruments/brass-synth2"/>
+   <instrument n="64" name="Soprano Sax" file="instruments/saxophone"/>
+   <instrument n="65" name="Alto Sax" file="instruments/saxophone"/>
+   <instrument n="66" name="Tenor Sax" file="instruments/saxophone"/>
+   <instrument n="67" name="Baritone Sax" file="instruments/saxophone"/>
+   <instrument n="68" name="Oboe" file="instruments/oboe"/>
+   <instrument n="69" name="English Horn" file="instruments/horn-english"/>
+   <instrument n="70" name="Bassoon" file="instruments/bassoon"/>
+   <instrument n="71" name="Clarinet" file="instruments/clarinet"/>
+   <instrument n="72" name="Piccolo" file="instruments/flute"/>
+   <instrument n="73" name="Flute" file="instruments/flute"/>
+   <instrument n="74" name="Recorder" file="instruments/flute"/>
+   <instrument n="75" name="Pan Flute" file="instruments/flute-pan"/>
+   <instrument n="76" name="Blown Bottle" file="effects/humans/blow-bottle"/>
+   <instrument n="77" name="Shakuhachi" file="instruments/shakuhachi"/>
+   <instrument n="78" name="Whistle" file="effects/humans/human-whistle"/>
+   <instrument n="79" name="Ocarina" file="instruments/ocarina"/>
+   <instrument n="80" name="Lead 1 (square)" file="instruments/lead-square"/>
+   <instrument n="81" name="Lead 2 (sawtooth)" file="instruments/lead-sawtooth"/>
+   <instrument n="82" name="Lead 3 (calliope)" file="instruments/lead-calliope"/>
+   <instrument n="83" name="Lead 4 (chiff)" file="instruments/lead-chiff"/>
+   <instrument n="84" name="Lead 5 (charang)" file="instruments/lead-charang"/>
+   <instrument n="85" name="Lead 6 (voice)" file="instruments/lead-voice"/>
+   <instrument n="86" name="Lead 7 (fifths)" file="instruments/lead-fifths"/>
+   <instrument n="87" name="Lead 8 (bass + lead)" file="instruments/lead-bass"/>
+   <instrument n="88" name="Pad 1 (new age)" file="instruments/pad-newwave"/>
+   <instrument n="89" name="Pad 2 (warm)" file="instruments/pad-warm"/>
+   <instrument n="90" name="Pad 3 (polysynth)" file="instruments/pad-polysynth"/>
+   <instrument n="91" name="Pad 4 (choir)" file="instruments/pad-choir"/>
+   <instrument n="92" name="Pad 5 (bowed)" file="instruments/pad-bowed"/>
+   <instrument n="93" name="Pad 6 (metallic)" file="instruments/pad-metallic"/>
+   <instrument n="94" name="Pad 7 (halo)" file="instruments/pad-halo"/>
+   <instrument n="95" name="Pad 8 (sweep)" file="instruments/pad-sweep"/>
+   <instrument n="96" name="FX 1 (rain)" file="instruments/fx-rain"/>
+   <instrument n="97" name="FX 2 (soundtrack)" file="instruments/fx-soundtrack"/>
+   <instrument n="98" name="FX 3 (crystal)" file="instruments/fx-crystal"/>
+   <instrument n="99" name="FX 4 (atmosphere)" file="instruments/fx-atmosphere"/>
+   <instrument n="100" name="FX 5 (brightness)" file="instruments/fx-brightness"/>
+   <instrument n="101" name="FX 6 (goblins)" file="instruments/fx-goblins"/>
+   <instrument n="102" name="FX 7 (echoes)" file="instruments/fx-echoes"/>
+   <instrument n="103" name="FX 8 (sci-fi)" file="instruments/fx-scifi"/>
+   <instrument n="104" name="Sitar" file="instruments/sitar"/>
+   <instrument n="105" name="Banjo" file="instruments/banjo"/>
+   <instrument n="106" name="Shamisen" file="instruments/shamisen"/>
+   <instrument n="107" name="Koto" file="instruments/koto"/>
+   <instrument n="108" name="Kalimba" file="instruments/kalimba"/>
+   <instrument n="109" name="Bag pipe" file="instruments/bag-pipe"/>
+   <instrument n="110" name="Fiddle" file="instruments/fiddle"/>
+   <instrument n="111" name="Shanai" file="instruments/shanai"/>
+   <instrument n="112" name="Tinkle Bell" file="instruments/bell-tinkle"/>
+   <instrument n="113" name="Agogo" file="instruments/agogo"/>
+   <instrument n="114" name="Steel Drums" file="instruments/drum-steel"/>
+   <instrument n="115" name="Woodblock" file="instruments/woodblock"/>
+   <instrument n="116" name="Taiko Drum" file="instruments/drum-taiko"/>
+   <instrument n="117" name="Melodic Tom" file="instruments/tom-melodic"/>
+   <instrument n="118" name="Synth Drum" file="instruments/drum-synth"/>
+   <instrument n="119" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
+   <instrument n="120" name="Guitar Fret Noise" file="instruments/guitar-fret-noise"/>
+   <instrument n="121" name="Breath Noise" file="effecst/humans/human-breathing"/>
+   <instrument n="122" name="Seashore" file="effecst/nature/water-seashore"/>
+   <instrument n="123" name="Bird Tweet" file="effecst/nature/birds"/>
+   <instrument n="124" name="Telephone Ring" file="effecst/domestic/telephone-bell"/>
+   <instrument n="125" name="Helicopter" file="effecst/transport/helicopter"/>
+   <instrument n="126" name="Applause" file="effects/applause"/>
+   <instrument n="127" name="Gunshot" file="effecst/weapons/gun-pistol"/>
   </bank>
 
   <bank n="1">
-   <instrument n="121" name="Guitar Cut Noise" file="instruments/guitar-cut-noise"/>
-   <instrument n="123" name="Rain" file="effecst/nature/weather-rain"/>
-   <instrument n="125" name="Telephone Buzz" file="effecst/domestic/telephone-buzz"/>
-   <instrument n="126" name="Car Engine" file="effecst/transport/car-engine"/>
-   <instrument n="128" name="Machinegun" file="effecst/weapons/gun-machine"/>
+   <instrument n="120" name="Guitar Cut Noise" file="instruments/guitar-cut-noise"/>
+   <instrument n="122" name="Rain" file="effecst/nature/weather-rain"/>
+   <instrument n="124" name="Telephone Buzz" file="effecst/domestic/telephone-buzz"/>
+   <instrument n="125" name="Car Engine" file="effecst/transport/car-engine"/>
+   <instrument n="127" name="Machinegun" file="effecst/weapons/gun-machine"/>
   </bank>
 
   <bank n="2">
-   <instrument n="123" name="Thunder" file="effecst/nature/weather-thunder"/>
-   <instrument n="128" name="Lasergun" file="effecst/weapons/gun-laser"/>
+   <instrument n="122" name="Thunder" file="effecst/nature/weather-thunder"/>
+   <instrument n="127" name="Lasergun" file="effecst/weapons/gun-laser"/>
   </bank>
 
   <bank n="3">
-   <instrument n="123" name="Wind Blowing" file="effecst/nature/weather-wind"/>
-   <instrument n="125" name="Creaking Door" file="effecst/domestic/creaking-door"/>
-   <instrument n="126" name="Car Pass" file="instruments/car-pass"/>
-   <instrument n="127" name="Punch" file="effecst/humans/punch-body"/>
-   <instrument n="128" name="Explosion" file="effecst/weapons/explosion"/>
+   <instrument n="122" name="Wind Blowing" file="effecst/nature/weather-wind"/>
+   <instrument n="124" name="Creaking Door" file="effecst/domestic/creaking-door"/>
+   <instrument n="125" name="Car Pass" file="instruments/car-pass"/>
+   <instrument n="126" name="Punch" file="effecst/humans/punch-body"/>
+   <instrument n="127" name="Explosion" file="effecst/weapons/explosion"/>
   </bank>
 
   <bank n="4">
-   <instrument n="123" name="Water Stream" file="effecst/nature/water-stream"/>
-   <instrument n="125" name="Scratch" file="instruments/scratch"/>
-   <instrument n="127" name="Heart Beat" file="effecst/humans/human-heartbeat"/>
+   <instrument n="122" name="Water Stream" file="effecst/nature/water-stream"/>
+   <instrument n="124" name="Scratch" file="instruments/scratch"/>
+   <instrument n="126" name="Heart Beat" file="effecst/humans/human-heartbeat"/>
   </bank>
 
   <bank n="5">
-   <instrument n="123" name="Water Bubbles" file="effecst/nature/water-bubbles"/>
-   <instrument n="126" name="Siren" file="effecst/transport/siren"/>
-   <instrument n="127" name="Footstep" file="effecst/humans/human-footsteps-concrete"/>
+   <instrument n="122" name="Water Bubbles" file="effecst/nature/water-bubbles"/>
+   <instrument n="125" name="Siren" file="effecst/transport/siren"/>
+   <instrument n="126" name="Footstep" file="effecst/humans/human-footsteps-concrete"/>
   </bank>
 
   <bank n="8">
-   <instrument n="5" name="Detuned Electric Piano 1" file="instruments/piano-electric1-detuned"/>
-   <instrument n="6" name="Detuned Electric Piano 2" file="instruments/piano-electric2-detuned"/>
-   <instrument n="7" name="Coupled Harpsichord" file="instruments/harpsichord-coupled"/>
-   <instrument n="15" name="Church Bell" file="effects/domestic/bell-church"/>
-   <instrument n="17" name="Detuned Drawbar Organ" file="instruments/organ-drawbar-detuned"/>
-   <instrument n="22" name="Italian Accordion" file="instruments/accordion-italian"/>
-   <instrument n="126" name="Starship" file="effects/scifi/spaceship"/>
+   <instrument n="4" name="Detuned Electric Piano 1" file="instruments/piano-electric1-detuned"/>
+   <instrument n="5" name="Detuned Electric Piano 2" file="instruments/piano-electric2-detuned"/>
+   <instrument n="6" name="Coupled Harpsichord" file="instruments/harpsichord-coupled"/>
+   <instrument n="14" name="Church Bell" file="effects/domestic/bell-church"/>
+   <instrument n="16" name="Detuned Drawbar Organ" file="instruments/organ-drawbar-detuned"/>
+   <instrument n="21" name="Italian Accordion" file="instruments/accordion-italian"/>
+   <instrument n="125" name="Starship" file="effects/scifi/spaceship"/>
   </bank>
  </midi>
 
