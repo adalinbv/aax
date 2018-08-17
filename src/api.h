@@ -224,6 +224,7 @@ typedef struct
    unsigned int loop_start, loop_end;
    enum aaxFormat format;
    float frequency;
+   float rate;
 
    char to_mixer;
    char mipmap;

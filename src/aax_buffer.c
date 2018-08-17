@@ -280,6 +280,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_FREQUENCY:
          rv = (unsigned int)handle->frequency;
          break;
+      case AAX_UPDATE_RATE:
+         rv = (unsigned int)handle->rate;
+         break;
       case AAX_TRACKS:
          rv = handle->no_tracks;
          break;
@@ -1222,6 +1225,7 @@ _bufAAXSThread(void *d)
 
          if (!freq) {
             freq = xmlAttributeGetDouble(xsid, "frequency");
+            handle->rate = freq;
          }
          if (xmlAttributeExists(xsid, "voices")) {
             voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
