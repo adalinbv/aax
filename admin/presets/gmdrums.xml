@@ -1,0 +1,86 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+ 
+<aeonwave>
+
+ <midi>
+  <bank n="0">
+   <drum n="27" name="High Q" file="drums/high-q"/>
+   <drum n="28" name="Slap" file="drums/slap"/>
+   <drum n="29" name="Scratch 1" file="drums/scratch1"/>
+   <drum n="30" name="Scratch 2" file="drums/scratch2"/>
+   <drum n="31" name="Sticks" file="drums/sticks"/>
+   <drum n="32" name="Square Click" file="drums/click-square"/>
+   <drum n="33" name="Metronome Click" file="drums/click-metronome"/>
+   <drum n="34" name="Metronome Bell" file="drums/bell-metronome"/>
+   <drum n="35" name="Acoustic Bass Drum" file="drums/drum-bass-acoustic"/>
+   <drum n="36" name="Bass Drum 1" file="drums/drum-bass1"/>
+   <drum n="37" name="Side Stick" file="drums/stick-side"/>
+   <drum n="38" name="Acoustic Snare" file="drums/drum-snare-acoustic"/>
+   <drum n="39" name="Hand Clap" file="drums/clap-hand"/>
+   <drum n="40" name="Electric Snare" file="drums/drum-snare-electric"/>
+   <drum n="41" name="Low Floor Tom" file="drums/tom-floor-low"/>
+   <drum n="42" name="Closed Hi-Hat" file="drums/hi-hat-closed"/>
+   <drum n="43" name="High Floor Tom" file="drums/tom-floor-high"/>
+   <drum n="44" name="Pedal Hi-Hat" file="drums/hi-hat-pedal"/>
+   <drum n="45" name="Low Tom" file="drums/tom-low"/>
+   <drum n="46" name="Open Hi-Hat" file="drums/hi-hat-open"/>
+   <drum n="47" name="Low Mid-Tom" file="drums/tom-mid-low"/>
+   <drum n="48" name="Hi Mid-Tom" file="drums/tom-mid-high"/>
+   <drum n="49" name="Crash Cymbal" file="drums/cymbal-crash"/>
+   <drum n="50" name="High Tom" file="drums/tom-high"/>
+   <drum n="51" name="Ride Cymbal 1" file="drums/cymbal-ride"/>
+   <drum n="52" name="Chinese Cymbal" file="drums/cymbal-chinese"/>
+   <drum n="53" name="Ride Bell" file="drums/bell-ride"/>
+   <drum n="54" name="Tambourine" file="drums/tambourine"/>
+   <drum n="55" name="Splash Cymbal" file="drums/cymbal-splash"/>
+   <drum n="56" name="Cowbell" file="drums/cowbell"/>
+   <drum n="57" name="Crash Cymbal 2" file="drums/cymbal-crash2"/>
+   <drum n="58" name="Vibraslap" file="drums/vibraslap"/>
+   <drum n="59" name="Ride Cymbal 2" file="drums/cymbal-ride2"/>
+   <drum n="60" name="Hi Bongo" file="drums/bongo-high"/>
+   <drum n="61" name="Low Bongo" file="drums/bongo-low"/>
+   <drum n="62" name="Mute Hi Conga" file="drums/conga-high-mute"/>
+   <drum n="63" name="Open Hi Conga" file="drums/conga-high"/>
+   <drum n="64" name="Low Conga" file="drums/conga-low"/>
+   <drum n="65" name="High Timbale" file="drums/timbale-high"/>
+   <drum n="66" name="Low Timbale" file="drums/timbale-low"/>
+   <drum n="67" name="High Agogo" file="drums/agogo-high"/>
+   <drum n="68" name="Low Agogo" file="drums/agogo-low"/>
+   <drum n="69" name="Cabasa" file="drums/cabasa"/>
+   <drum n="70" name="Maracas" file="drums/maracas"/>
+   <drum n="71" name="Short Whistle" file="drums/whistle-short"/>
+   <drum n="72" name="Long Whistle" file="drums/whistle-long"/>
+   <drum n="73" name="Short Guiro" file="drums/guiro-short"/>
+   <drum n="74" name="Long Guiro" file="drums/guiro-long"/>
+   <drum n="75" name="Claves" file="drums/claves"/>
+   <drum n="76" name="Hi Wood Block" file="drums/wood-block-high"/>
+   <drum n="77" name="Low  Wood Block" file="drums/wood-block-low"/>
+   <drum n="78" name="Mute Cuica" file="drums/cuica-muted"/>
+   <drum n="79" name="Open Cuica" file="drums/cuica-open"/>
+   <drum n="80" name="Mute Triangle" file="drums/triangle-muted"/>
+   <drum n="81" name="Open Triangle" file="drums/triangle"/>
+   <drum n="82" name="Shaker" file="drums/shaker"/>
+   <drum n="83" name="Jingle Bell" file="drums/bell-jingle"/>
+   <drum n="84" name="Bell Tree" file="drums/bell-tree"/>
+   <drum n="85" name="Castanets" file="drums/castanets"/>
+   <drum n="86" name="Mute Surdo" file="drums/surdo-muted"/>
+   <drum n="87" name="Open Surdo" file="drums/surdo-open"/>
+   <drum n="88" name="Slap High Conga" file="drums/conga-high-slap"/>
+   <drum n="89" name="Small Gong" file="drums/gong-small"/>
+   <drum n="90" name="Big Gong" file="drums/gong-big"/>
+   <drum n="91" name="Mute Pandiero" file="drums/pandiero-muted"/>
+   <drum n="92" name="Open Pandiero" file="drums/pandiero-open"/>
+   <drum n="93" name="Tambourin" file="drums/tambourin"/>
+   <drum n="94" name="Tree Chime" file="drums/chime-tree"/>
+   <drum n="95" name="caxixi" file="drums/caxixi"/>
+  </bank>
+ </midi>
+
+</aeonwave>
+
