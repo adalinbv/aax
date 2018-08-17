@@ -324,7 +324,7 @@ public:
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f)
         : Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
 
-    Buffer(aaxConfig c, const char* name, bool s=false, bool o=true)
+    Buffer(aaxConfig c, const char* name, bool o=true, bool s=false)
         : Obj(nullptr, nullptr)
     {
         ptr = aaxBufferReadFromStream(c, name);
@@ -339,8 +339,8 @@ public:
         }
     }
 
-    Buffer(aaxConfig c, std::string& name, bool s=false, bool o=true)
-        : Buffer(c, name.c_str(), s, o) {}
+    Buffer(aaxConfig c, std::string& name, bool o=true, bool s=false)
+        : Buffer(c, name.c_str(), o, s) {}
 
     Buffer(Buffer&&) = default;
 
@@ -991,7 +991,7 @@ printf("\t\nremove(Frame& m)\n");
     Buffer& buffer(std::string name, bool strict=false) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            Buffer *b = new Buffer(ptr,name,strict,false);
+            Buffer *b = new Buffer(ptr,name,false,strict);
             if (b) {
                 auto ret = buffers.insert({name,{0,b}});
                 it = ret.first;
