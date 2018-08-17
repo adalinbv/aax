@@ -58,13 +58,16 @@ public:
 
     bool play(uint8_t velocity)
     {
-        Emitter::set(AAX_PROCESSED);
+        Emitter::set(AAX_INITIALIZED);
         gain_param = 2.0f*velocity/255.0f;
         pitch_param = pitch = note2freq(key_no)/(float)frequency;
-        return Emitter::set(AAX_PLAYING);
+        if (!playing) Emitter::set(AAX_PLAYING);
+        playing = true;
+        return true;
     }
 
     bool stop() {
+        playing = false;
         return Emitter::set(AAX_STOPPED);
     }
 
@@ -88,6 +91,7 @@ private:
     float pitch = 1.0f;
     uint8_t key_no = 0;
     uint8_t pressure = 0;
+    bool playing = false;
 };
 
 
