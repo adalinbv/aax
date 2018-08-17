@@ -150,9 +150,7 @@ class MIDI : public aax::AeonWave
 public:
     MIDI(const char* n) : aax::AeonWave(n) {}
 
-    bool drum(uint8_t message, uint8_t key, uint8_t velocity);
-
-    bool instrument(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
+    bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
 
     MIDIChannel& new_channel(uint8_t channel, uint8_t bank, uint8_t program);
 
@@ -175,36 +173,42 @@ private:
     MIDIChannel& operator=(const MIDIChannel&) = delete;
 
 public:
-    MIDIChannel(MIDI& ptr, uint8_t channel, std::string instr)
-        : aax::Instrument(ptr, instr), midi(ptr),
-          name(instr), channel_no(channel)
+    MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
+       : aax::Instrument(ptr), midi(ptr), bank_no(bank), program_no(program)
     {
-        if (!valid_buffer()) {
-            throw(std::invalid_argument("Instrument file "+instr+" not found"));
-        }
         aax::Mixer::set(AAX_PLAYING);
     }
-
-    MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
-       : MIDIChannel(ptr, channel, get_name(channel, bank, program)) {}
 
     MIDIChannel(MIDIChannel&&) = default;
 
     friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
         p1.midi = std::move(p2.midi);
-        p1.name = std::move(p2.name);
         p1.channel_no = std::move(p2.channel_no);
+        p1.program_no = std::move(p2.program_no);
+        p1.bank_no = std::move(p2.bank_no);
     }
 
     MIDIChannel& operator=(MIDIChannel&&) = default;
+
+    void play(size_t key_no, uint8_t velocity)
+    {
+        std::string name = get_name(channel_no, bank_no, program_no);
+        aax::Buffer &buffer = midi.buffer(name, true);
+        if (buffer) {
+            aax::Instrument::play(key_no, velocity, buffer);
+        } else {
+            throw(std::invalid_argument("Instrument file "+name+" not found"));
+        }
+    }
 
 private:
     std::string get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no);
     std::string get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no);
 
     MIDI &midi;
-    std::string name;
-    uint8_t channel_no;
+    uint8_t channel_no = 0;
+    uint8_t program_no = 0;
+    uint8_t bank_no = 0;
 };
 
 
@@ -257,6 +261,7 @@ private:
     uint8_t bank_no = 0;
 
     uint32_t timestamp = 0;
+    uint32_t tempo = ((60*1000000)/110);
     uint16_t PPQN = 24;
     uint16_t QN = 24;
     uint16_t bpm = 120;

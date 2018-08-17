@@ -68,13 +68,7 @@ MIDI::channel(uint8_t channel_no)
 }
 
 bool
-MIDI::drum(uint8_t message, uint8_t key, uint8_t velocity)
-{
-    return true;
-}
-
-bool
-MIDI::instrument(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity)
+MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity)
 {
     switch(message)
     {
@@ -89,6 +83,7 @@ MIDI::instrument(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t veloc
     }
     return true;
 }
+
 
 std::string
 MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no)
@@ -167,6 +162,7 @@ MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
         return get_name_from_xml(path, "instrument", bank_no, program_no);
     }
 }
+
 
 uint32_t
 MIDITrack::pull_message()
@@ -264,7 +260,6 @@ MIDITrack::process(uint32_t time_pos)
                 break;
             case MIDI_SET_TEMPO:
             {
-                uint32_t tempo;
                 tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
                 bpm = tempo2bpm(tempo);
 #if LOG
@@ -329,8 +324,7 @@ MIDITrack::process(uint32_t time_pos)
  printf("  ac: %c ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', channel);
  printf("%s%i", notes[key % 12], (key / 12)-1);
 #endif
-                if (channel == 0x9) midi.drum(message, key, velocity);
-                else midi.instrument(channel, message, key, velocity);
+                 midi.process(channel, message, key, velocity);
                 break;
             }
             case MIDI_POLYPHONIC_PRESSURE:
@@ -409,10 +403,9 @@ MIDITrack::process(uint32_t time_pos)
 
         if (!eof())
         {
-            float c = (float)(bpm * PPQN) / 60.0f;
             uint32_t dT = pull_message();
-            if (c > 0) {
-                timestamp += 1000*dT / c;
+            if (dT > 0) {
+                timestamp += dT*tempo/PPQN;
             }
         }
 #if LOG
