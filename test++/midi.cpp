@@ -260,7 +260,7 @@ MIDITrack::process(uint32_t time_pos)
                 break;
             case MIDI_SET_TEMPO:
             {
-                tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
+                uint32_t tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
                 bpm = tempo2bpm(tempo);
 #if LOG
  printf("  tempo: %i bpm", bpm);
@@ -371,7 +371,8 @@ MIDITrack::process(uint32_t time_pos)
             case MIDI_PITCH_BEND:
             {
                 uint16_t pitch = pull_byte() << 7 | pull_byte();
-                midi.channel(channel).set_pitch(pitch);
+                float p = 2.0f*(pitch-8192.0f)/8192.0f;
+                midi.channel(channel).set_pitch(powf(2.0f, p/12.0f));
                 break;
             }
             case MIDI_SYSTEM:
@@ -403,10 +404,8 @@ MIDITrack::process(uint32_t time_pos)
 
         if (!eof())
         {
-            uint32_t dT = pull_message();
-            if (dT > 0) {
-                timestamp += dT*tempo/PPQN;
-            }
+            uint32_t ticks = pull_message();
+            timestamp += ticks*(60000/(bpm*PPQN));
         }
 #if LOG
         printf("\n");

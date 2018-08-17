@@ -248,10 +248,10 @@ private:
     uint32_t pull_message();
 
     inline uint16_t tempo2bpm(uint32_t tempo) {
-        return (60 * 1000000 / tempo);
+        return (60000000/tempo);
     }
     inline uint32_t bpm2tempo(uint16_t bpm) {
-        return (60 * 1000000 / bpm);
+        return (60000000/bpm);
     }
 
     MIDI& midi;
@@ -261,7 +261,6 @@ private:
     uint8_t bank_no = 0;
 
     uint32_t timestamp = 0;
-    uint32_t tempo = ((60*1000000)/110);
     uint16_t PPQN = 24;
     uint16_t QN = 24;
     uint16_t bpm = 120;
