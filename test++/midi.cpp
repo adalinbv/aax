@@ -260,7 +260,8 @@ MIDITrack::process(uint32_t time_pos)
                 break;
             case MIDI_SET_TEMPO:
             {
-                uint32_t tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
+                uint32_t tempo;
+                tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
                 bpm = tempo2bpm(tempo);
 #if LOG
  printf("  tempo: %i bpm", bpm);
@@ -405,7 +406,7 @@ MIDITrack::process(uint32_t time_pos)
         if (!eof())
         {
             uint32_t ticks = pull_message();
-            timestamp += ticks*(60000/(bpm*PPQN));
+            timestamp += ticks*(60000.0f/(bpm*PPQN));
         }
 #if LOG
         printf("\n");
