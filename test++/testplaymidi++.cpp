@@ -67,12 +67,14 @@ int main(int argc, char **argv)
             midi.set(AAX_INITIALIZED);
             midi.set(AAX_PLAYING);
 
+            set_mode(1);
             do {
                 if (!midi.process(time++)) break;
                 _aaxTimerWait(timer);
             }
-            while(1);
+            while(!get_key());
             _aaxTimerDestroy(timer);
+            set_mode(0);
 
             midi.set(AAX_PROCESSED);
         }
