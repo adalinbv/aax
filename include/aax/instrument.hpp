@@ -37,11 +37,8 @@ private:
     Key& operator=(const Key&) = delete;
 
 public:
-    Key(uint8_t key_no, Buffer& buffer) : Emitter(AAX_STEREO), key(key_no)
+    Key(uint8_t key) : Emitter(AAX_STEREO), key_no(key)
     {
-        Emitter::add(buffer);
-
-        pitch = note2freq(key_no)/buffer.get(AAX_FREQUENCY);
         tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
     }
@@ -50,7 +47,7 @@ public:
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
         n1.pitch = std::move(n2.pitch);
         n1.gain = std::move(n2.gain);
-        n1.key = std::move(n2.key);
+        n1.key_no = std::move(n2.key_no);
     }
 
     Key& operator=(Key&&) = default;
@@ -63,11 +60,18 @@ public:
     {
         Emitter::set(AAX_PROCESSED);
         gain = 2.0f*velocity/255.0f;
+        pitch = note2freq(key_no)/(float)frequency;
         return Emitter::set(AAX_PLAYING);
     }
 
     bool stop() {
         return Emitter::set(AAX_STOPPED);
+    }
+
+    bool buffer(Buffer& buffer) {
+        Emitter::remove_buffer();
+        frequency = buffer.get(AAX_UPDATE_RATE);
+        return Emitter::add(buffer);
     }
 
     inline void set_pressure(uint8_t p) { pressure = p; }
@@ -79,7 +83,8 @@ private:
 
     Param pitch = 1.0f;
     Param gain = 1.0f;
-    uint8_t key = 0;
+    float frequency = 220.0f;
+    uint8_t key_no = 0;
     uint8_t pressure = 0;
 };
 
@@ -92,22 +97,14 @@ private:
     Instrument& operator=(const Instrument&) = delete;
 
 public:
-    Instrument(AeonWave& ptr, std::string& name)
-        : Mixer(ptr), buffer(ptr.buffer(name,true)), aax(&ptr)
+    Instrument(AeonWave& ptr)
+        : Mixer(ptr), aax(&ptr)
     {
-        Mixer::add(buffer);
         Mixer::set(AAX_PLAYING);
     }
 
-    ~Instrument()
-    {
-        if (aax) aax->destroy(buffer);
-    }
-
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
-//      std::swap(static_cast<Frame&>(i1), static_cast<Frame&>(i2));
         i1.key = std::move(i2.key);
-        i1.buffer = std::move(i2.buffer);
         i1.aax = std::move(i2.aax);
     }
 
@@ -117,12 +114,14 @@ public:
         return *this;
     }
 
-    void play(size_t key_no, uint8_t velocity) {
+    void play(size_t key_no, uint8_t velocity, Buffer& buffer) {
         auto it = key.find(key_no);
         if (it == key.end()) {
-            auto ret = key.insert({key_no, new Key(key_no, buffer)});
+            auto ret = key.insert({key_no, new Key(key_no)});
             it = ret.first;
             Mixer::add(*it->second);
+            Mixer::add(buffer);
+            it->second->buffer(buffer);
         }
         it->second->play(velocity);
     }
@@ -145,11 +144,8 @@ public:
         }
     }
 
-    inline bool valid_buffer() { return !!buffer; }
-
 private:
     std::map<uint8_t,Key*> key;
-    Buffer& buffer;
     AeonWave* aax;
 
     uint8_t pressure;
