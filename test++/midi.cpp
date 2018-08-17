@@ -50,8 +50,7 @@ MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
     try {
         channels.at(channel_no) = new MIDIChannel(*this, channel_no, bank_no, program_no);
         aax::AeonWave::add(channel(channel_no));
-    } catch(const std::exception& e) {
-        std::cout << e.what() << '\n';
+    } catch(const std::invalid_argument& e) {
         throw;
     }
 
@@ -92,68 +91,81 @@ MIDI::instrument(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t veloc
 }
 
 std::string
-MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
+MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no)
 {
-    if (channel == 0x9)	// drums
+    void *xid = xmlOpen(path.c_str());
+    if (xid)
     {
-    }
-    else		// instruments
-    {
-//      std::string path(midi.info(AAX_SHARED_DATA_DIR));
-        std::string path("/usr/share/aax");
-        path.append("/");
-        path.append("gmmidi.xml");
-
-        void *xid = xmlOpen(path.c_str());
-        if (xid)
+        void *xaid = xmlNodeGet(xid, "aeonwave/midi");
+        char file[64] = "";
+        if (xaid)
         {
-            void *xaid = xmlNodeGet(xid, "aeonwave/midi");
-            char file[64] = "";
-            if (xaid)
+            unsigned int bnum = xmlNodeGetNum(xaid, "bank");
+            void *xbid = xmlMarkId(xaid);
+            for (unsigned int b=0; b<bnum; b++)
             {
-                unsigned int bnum = xmlNodeGetNum(xaid, "bank");
-                void *xbid = xmlMarkId(xaid);
-                for (unsigned int b=0; b<bnum; b++)
+                if (xmlNodeGetPos(xaid, xbid, "bank", b) != 0)
                 {
-                    if (xmlNodeGetPos(xaid, xbid, "bank", b) != 0)
+                    long int n = xmlAttributeGetInt(xbid, "n");
+                    if (n == bank_no)
                     {
-                        long int n = xmlAttributeGetInt(xbid, "n");
-                        if (n == bank_no)
+                        unsigned int inum=xmlNodeGetNum(xbid, type);
+                        void *xiid = xmlMarkId(xbid);
+                        for (unsigned int i=0; i<inum; i++)
                         {
-                            unsigned int inum=xmlNodeGetNum(xbid, "instrument");
-                            void *xiid = xmlMarkId(xbid);
-                            for (unsigned int i=0; i<inum; i++)
+                            if (xmlNodeGetPos(xbid, xiid, type, i) != 0)
                             {
-                                if (xmlNodeGetPos(xbid, xiid, "instrument", i) != 0)
+                                long int n = xmlAttributeGetInt(xiid, "n");
+                                if (n == program_no)
                                 {
-                                    long int n = xmlAttributeGetInt(xiid, "n");
-                                    if (n == program_no)
-                                    {
-                                        unsigned int slen;
+                                    unsigned int slen;
 
-                                        slen = xmlAttributeCopyString(xiid, "file", file, 64);
-                                        if (slen) {
-                                            file[slen] = 0;
-                                        }
-                                        break;
+                                    slen = xmlAttributeCopyString(xiid, "file", file, 64);
+                                    if (slen) {
+                                        file[slen] = 0;
                                     }
+                                    break;
                                 }
                             }
-                            xmlFree(xiid);
                         }
-                        break;
+                        xmlFree(xiid);
                     }
+                    break;
                 }
-                xmlFree(xbid);
-                xmlFree(xaid);
             }
-            xmlClose(xid);
-            if (file[0] != 0) {
-                return file;
-            }
+            xmlFree(xbid);
+            xmlFree(xaid);
+        }
+        else {
+            std::cerr << "aeonwave/midi not found in: " << path << std::endl;
+        }
+        xmlClose(xid);
+        if (file[0] != 0) {
+            return file;
         }
     }
+    else {
+        std::cerr << "Unable to open: " << path << std::endl;
+    }
     return std::string("instruments/piano-acoustic");
+}
+
+std::string
+MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
+{
+//      std::string path(midi.info(AAX_SHARED_DATA_DIR));
+    std::string path("/usr/share/aax");
+    path.append("/");
+    if (channel == 0x9) // drums
+    {
+        path.append("gmdrums.xml");
+        return get_name_from_xml(path, "drum", bank_no, program_no);
+    }
+    else                // instruments
+    {
+        path.append("gmmidi.xml");
+        return get_name_from_xml(path, "instrument", bank_no, program_no);
+    }
 }
 
 uint32_t
@@ -349,7 +361,11 @@ MIDITrack::process(uint32_t time_pos)
             case MIDI_PROGRAM_CHANGE:
             {
                 uint8_t program_no = pull_byte();
-                midi.new_channel(channel, bank_no, program_no);
+                try {
+                    midi.new_channel(channel, bank_no, program_no);
+                } catch(const std::invalid_argument& e) {
+                    std::cerr << "Error: " << e.what() << std::endl;
+                }
                 break;
             }
             case MIDI_CHANNEL_PRESSURE:

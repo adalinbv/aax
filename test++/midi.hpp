@@ -179,6 +179,9 @@ public:
         : aax::Instrument(ptr, instr), midi(ptr),
           name(instr), channel_no(channel)
     {
+        if (!valid_buffer()) {
+            throw(std::invalid_argument("Instrument file "+instr+" not found"));
+        }
         aax::Mixer::set(AAX_PLAYING);
     }
 
@@ -188,7 +191,6 @@ public:
     MIDIChannel(MIDIChannel&&) = default;
 
     friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
-//      std::swap(static_cast<aax::Instrument&>(p1), static_cast<aax::Instrument&>(p2));
         p1.midi = std::move(p2.midi);
         p1.name = std::move(p2.name);
         p1.channel_no = std::move(p2.channel_no);
@@ -197,6 +199,7 @@ public:
     MIDIChannel& operator=(MIDIChannel&&) = default;
 
 private:
+    std::string get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no);
     std::string get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no);
 
     MIDI &midi;
