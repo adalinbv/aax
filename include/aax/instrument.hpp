@@ -39,14 +39,14 @@ private:
 public:
     Key(uint8_t key) : Emitter(AAX_STEREO), key_no(key)
     {
-        tie(pitch, AAX_PITCH_EFFECT, AAX_PITCH);
-        tie(gain, AAX_VOLUME_FILTER, AAX_GAIN);
+        tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
+        tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
     }
 
     friend void swap(Key& n1, Key& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
-        n1.pitch = std::move(n2.pitch);
-        n1.gain = std::move(n2.gain);
+        n1.pitch_param = std::move(n2.pitch_param);
+        n1.gain_param = std::move(n2.gain_param);
         n1.key_no = std::move(n2.key_no);
     }
 
@@ -59,8 +59,8 @@ public:
     bool play(uint8_t velocity)
     {
         Emitter::set(AAX_PROCESSED);
-        gain = 2.0f*velocity/255.0f;
-        pitch = note2freq(key_no)/(float)frequency;
+        gain_param = 2.0f*velocity/255.0f;
+        pitch_param = pitch = note2freq(key_no)/(float)frequency;
         return Emitter::set(AAX_PLAYING);
     }
 
@@ -74,6 +74,7 @@ public:
         return Emitter::add(buffer);
     }
 
+    inline void set_pitch(float bend) { pitch_param = bend*pitch; }
     inline void set_pressure(uint8_t p) { pressure = p; }
 
 private:
@@ -81,9 +82,10 @@ private:
         return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
     }
 
-    Param pitch = 1.0f;
-    Param gain = 1.0f;
+    Param pitch_param = 1.0f;
+    Param gain_param = 1.0f;
     float frequency = 220.0f;
+    float pitch = 1.0f;
     uint8_t key_no = 0;
     uint8_t pressure = 0;
 };
@@ -133,7 +135,12 @@ public:
         }
     }
 
-    inline void set_pitch(uint8_t p) { pitch= p; }
+    inline void set_pitch(float p) {
+        pitch = p;
+        for (auto& it : key) {
+            it.second->set_pitch(pitch);
+        }
+    }
 
     inline void set_pressure(uint8_t p) { pressure = p; }
 
@@ -149,7 +156,7 @@ private:
     AeonWave* aax;
 
     uint8_t pressure;
-    uint8_t pitch;
+    float pitch;
 };
 
 } // namespace aax
