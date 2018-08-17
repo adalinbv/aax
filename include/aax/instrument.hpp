@@ -93,7 +93,7 @@ private:
 
 public:
     Instrument(AeonWave& ptr, std::string& name)
-        : Mixer(ptr), buffer(ptr.buffer(name)), aax(&ptr)
+        : Mixer(ptr), buffer(ptr.buffer(name,true)), aax(&ptr)
     {
         Mixer::add(buffer);
         Mixer::set(AAX_PLAYING);
@@ -145,9 +145,11 @@ public:
         }
     }
 
+    inline bool valid_buffer() { return !!buffer; }
+
 private:
     std::map<uint8_t,Key*> key;
-    Buffer &buffer;
+    Buffer& buffer;
     AeonWave* aax;
 
     uint8_t pressure;

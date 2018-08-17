@@ -324,12 +324,14 @@ public:
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f)
         : Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
 
-    Buffer(aaxConfig c, const char* name, bool o=true) : Obj(nullptr, nullptr) {
+    Buffer(aaxConfig c, const char* name, bool s=false, bool o=true)
+        : Obj(nullptr, nullptr)
+    {
         ptr = aaxBufferReadFromStream(c, name);
         if (!ptr) { aaxGetErrorNo();
             ptr = aaxBufferReadFromStream(c, preset_file(c, name).c_str());
         }
-        if (!ptr) { aaxGetErrorNo();
+        if (!ptr && !s) { aaxGetErrorNo();
             ptr = aaxBufferCreate(c ,1, 1, AAX_PCM16S);
         }
         if (ptr && o) {
@@ -337,8 +339,8 @@ public:
         }
     }
 
-    Buffer(aaxConfig c, std::string& name, bool o=true)
-        : Buffer(c, name.c_str(), o) {}
+    Buffer(aaxConfig c, std::string& name, bool s=false, bool o=true)
+        : Buffer(c, name.c_str(), s, o) {}
 
     Buffer(Buffer&&) = default;
 
@@ -986,11 +988,17 @@ printf("\t\nremove(Frame& m)\n");
     // The name can be an URL or a path to a file or just a reference-id.
     // In the case of an URL of a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
-    Buffer& buffer(std::string name) {
+    Buffer& buffer(std::string name, bool strict=false) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            auto ret = buffers.insert({name,{0,new Buffer(ptr,name,false)}});
-            it = ret.first;
+            Buffer *b = new Buffer(ptr,name,strict,false);
+            if (b) {
+                auto ret = buffers.insert({name,{0,b}});
+                it = ret.first;
+            } else {
+                delete b;
+                return nullBuffer;
+            }
         }
         it->second.first++;
         return *it->second.second;
@@ -1034,6 +1042,7 @@ private:
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
     std::unordered_map<std::string,std::pair<size_t,Buffer*> > buffers;
+    Buffer nullBuffer;
 
     // background music stream
     Sensor play;
