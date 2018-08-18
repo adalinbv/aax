@@ -76,15 +76,27 @@ MIDI::channel(uint8_t channel_no)
 }
 
 bool
-MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity)
+MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity, bool omni)
 {
     switch(message)
     {
     case MIDI_NOTE_ON:
-        channel(channel_no).play(key, velocity);
+        if (omni) {
+            for (auto& it : channels) {
+                it->play(key, velocity);
+            }
+        } else {
+            channel(channel_no).play(key, velocity);
+        }
         break;
     case MIDI_NOTE_OFF:
-        channel(channel_no).stop(key);
+        if (omni) {
+            for (auto& it : channels) {
+                it->stop(key);
+            }
+        } else {
+            channel(channel_no).stop(key);
+        }
         break;
     default:
         break;
@@ -150,7 +162,7 @@ MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank
     else {
         std::cerr << "Unable to open: " << path << std::endl;
     }
-    return std::string("instruments/piano-acoustic");
+    return ""; // "instruments/piano-acoustic"
 }
 
 std::string
@@ -333,7 +345,7 @@ MIDITrack::process(uint32_t time_pos)
  printf("  ac: %c ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', channel);
  printf("%s%i", notes[key % 12], (key / 12)-1);
 #endif
-                 midi.process(channel, message & 0xf0, key, velocity);
+                 midi.process(channel, message & 0xf0, key, velocity, omni);
                 break;
             }
             case MIDI_POLYPHONIC_PRESSURE:

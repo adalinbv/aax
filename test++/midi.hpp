@@ -150,7 +150,7 @@ class MIDI : public aax::AeonWave
 public:
     MIDI(const char* n);
 
-    bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity);
+    bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni);
 
     MIDIChannel& new_channel(uint8_t channel, uint8_t bank, uint8_t program);
 
@@ -174,7 +174,7 @@ private:
 
 public:
     MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
-       : aax::Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank), program_no(program)
+       : aax::Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank), program_no(program), is_drums(channel == 0x9)
     {
         aax::Mixer::set(AAX_PLAYING);
     }
@@ -196,7 +196,7 @@ public:
         std::string name = get_name(channel_no, bank_no, pn);
         aax::Buffer &buffer = midi.buffer(name, true);
         if (buffer) {
-            aax::Instrument::play(key_no, velocity, buffer);
+            aax::Instrument::play(key_no, velocity, buffer, true); // is_drums);
         } else {
 //          throw(std::invalid_argument("Instrument file "+name+" not found"));
         }
@@ -210,6 +210,7 @@ private:
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
     uint8_t bank_no = 0;
+    bool is_drums = false;
 };
 
 
