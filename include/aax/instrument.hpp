@@ -56,11 +56,11 @@ public:
         return *this;
     }
 
-    bool play(uint8_t velocity, bool sustain = false)
+    bool play(uint8_t velocity, bool is_drums = false)
     {
-        if (!sustain) Emitter::set(AAX_PROCESSED);
+        Emitter::set(AAX_INITIALIZED);
         gain_param = 2.0f*velocity/255.0f;
-        pitch_param = pitch = note2freq(key_no)/(float)frequency;
+        if (!is_drums) pitch_param = pitch = note2freq(key_no)/(float)frequency;
         if (!playing) Emitter::set(AAX_PLAYING);
         playing = true;
         return true;
@@ -120,7 +120,7 @@ public:
         return *this;
     }
 
-    void play(size_t key_no, uint8_t velocity, Buffer& buffer, bool sustain = false) {
+    void play(size_t key_no, uint8_t velocity, Buffer& buffer, bool is_drums = false) {
         auto it = key.find(key_no);
         if (it == key.end()) {
             auto ret = key.insert({key_no, new Key(key_no)});
@@ -129,7 +129,7 @@ public:
             Mixer::add(buffer);
             it->second->buffer(buffer);
         }
-        it->second->play(velocity, sustain);
+        it->second->play(velocity, is_drums);
     }
 
     void stop(size_t key_no) {
