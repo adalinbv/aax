@@ -86,6 +86,7 @@ typedef struct
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
    uint32_t pos, repeat;
+   int state;
    char stage, max_stages, sustain;
 } _aaxEnvelopeData;
 
