@@ -37,8 +37,6 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
-#define LOG	1
-
 
 MIDI::MIDI(const char* n) : aax::AeonWave(n)
 {
@@ -220,12 +218,6 @@ MIDITrack::process(uint32_t time_pos)
 
         rv = true;
 
-#if LOG
- printf("%02i ", channel_no);
- printf("%08i ms ", time_pos);
- printf("0x%02x ", message);
-#endif
-
         switch(message)
         {
 //      case MIDI_SEQUENCE_NUMBER:
@@ -243,10 +235,6 @@ MIDITrack::process(uint32_t time_pos)
         {
             uint8_t meta = pull_byte();
             uint8_t size = pull_byte();
-#if LOG
- printf("  meta: 0x%02x", meta);
- printf("  length: 0x%02x", size);
-#endif
             switch(meta)
             {
             case MIDI_SEQUENCE_NUMBER:
@@ -262,12 +250,7 @@ MIDITrack::process(uint32_t time_pos)
             case MIDI_MARKER:
             case MIDI_CUE_POINT:
             case MIDI_DEVICE_NAME:
-#if LOG
-                printf("  ");
-                for (uint8_t i=0; i<size; ++i) printf("%c", pull_byte());
-#else
                 forward(size);			// not implemented yet
-#endif
                 break;
             case MIDI_CHANNEL_PREFIX:
                 channel_no = (channel_no & 0xF0) | pull_byte();
@@ -283,9 +266,6 @@ MIDITrack::process(uint32_t time_pos)
                 uint32_t tempo;
                 tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
                 bpm = tempo2bpm(tempo);
-#if LOG
- printf("  tempo: %i bpm", bpm);
-#endif
                 break;
             }
             case MIDI_SMPTE_OFFSET:
@@ -306,10 +286,6 @@ MIDITrack::process(uint32_t time_pos)
                 uint8_t notated_32nd_notes_per_beat = pull_byte();
   
                 QN = 100000/clocks_per_click;
-#if LOG
-  printf("  time sig: %i/%i MIDI clocks per quarter-dotted %i",
-              numerator, denominator, clocks_per_click);
-#endif
               break;
             }
             case MIDI_KEY_SIGNATURE:
@@ -320,9 +296,6 @@ MIDITrack::process(uint32_t time_pos)
             }
             default:	// unsupported
                 forward(size);
-#if LOG
- printf("  unknown meta: 0x%02x", meta);
-#endif
                 break;
             }
         }
@@ -340,11 +313,6 @@ MIDITrack::process(uint32_t time_pos)
                 // messages), the key and the velocity and whether the note
                 // needs to sart or stop.
                 // channel 10 is for drum instruments and key defines which one.
-#if LOG
- const char *notes[] = { "C", "C#", "D", "D#", "E", "F", "F#", "G", "G#", "A", "A#", "B" };
- printf("  ac: %c ch: %i note: ", ((message >> 4) == 8) ? '^' : 'v', channel);
- printf("%s%i", notes[key % 12], (key / 12)-1);
-#endif
                  midi.process(channel, message & 0xf0, key, velocity, omni);
                 break;
             }
@@ -407,16 +375,10 @@ MIDITrack::process(uint32_t time_pos)
                 case MIDI_SYSTEM_RESET:
                     break;
                 default:
-#if LOG
- printf("unknown real-time message: 0x%02x", channel);
-#endif
                     break;
                 }
                 break;
             default:
-#if LOG
- printf("  unknown message: 0x%02x", message);
-#endif
                 break;
             }
             break;
@@ -428,9 +390,6 @@ MIDITrack::process(uint32_t time_pos)
             uint32_t ticks = pull_message();
             timestamp += ticks*(60000.0f/(bpm*PPQN));
         }
-#if LOG
-        printf("\n");
-#endif
     }
 
     return rv;

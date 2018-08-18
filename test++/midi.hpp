@@ -196,7 +196,7 @@ public:
         std::string name = get_name(channel_no, bank_no, pn);
         aax::Buffer &buffer = midi.buffer(name, true);
         if (buffer) {
-            aax::Instrument::play(key_no, velocity, buffer, true); // is_drums);
+            aax::Instrument::play(key_no, velocity, buffer, is_drums);
         } else {
 //          throw(std::invalid_argument("Instrument file "+name+" not found"));
         }
