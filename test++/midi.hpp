@@ -237,7 +237,6 @@ public:
         s1.bank_no = std::move(s2.bank_no);
         s1.timestamp = std::move(s2.timestamp);
         s1.PPQN = std::move(s2.PPQN);
-        s1.QN = std::move(s2.QN);
         s1.bpm = std::move(s2.bpm);
         s1.previous = std::move(s2.previous);
         s1.poly = std::move(s2.poly);
@@ -262,11 +261,11 @@ private:
     uint8_t program_no = 0;
     uint8_t bank_no = 0;
 
-    uint32_t timestamp = 0;
-    uint16_t PPQN = 24;
-    uint16_t QN = 24;
-    uint16_t bpm = 120;
     uint8_t previous = 0;
+    uint64_t timestamp = 0;
+    uint16_t PPQN = 24;
+    uint16_t bpm = 120;
+    float semi_tones = 2.0f;
     bool poly = true;
     bool omni = false;
 };
@@ -292,7 +291,7 @@ private:
     std::vector<uint8_t> midi_data;
     std::vector<MIDITrack*> track;
 
-    uint32_t time_pos = 0;
+    uint64_t time_pos = 0;
     uint16_t no_tracks = 0;
     uint16_t format = 0;
 };

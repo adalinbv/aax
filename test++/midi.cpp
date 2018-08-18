@@ -220,10 +220,6 @@ MIDITrack::process(uint32_t time_pos)
 
         switch(message)
         {
-//      case MIDI_SEQUENCE_NUMBER:
-//      {
-//          uint8_t sequence_no = pull_byte();
-//      }
         case MIDI_EXCLUSIVE_MESSAGE:
         case MIDI_EXCLUSIVE_MESSAGE_END:
         {
@@ -237,11 +233,6 @@ MIDITrack::process(uint32_t time_pos)
             uint8_t size = pull_byte();
             switch(meta)
             {
-            case MIDI_SEQUENCE_NUMBER:
-            {
-                uint8_t sequence = pull_byte();
-                break;
-            }
             case MIDI_TEXT:
             case MIDI_COPYRIGHT:
             case MIDI_TRACK_NAME:
@@ -268,32 +259,10 @@ MIDITrack::process(uint32_t time_pos)
                 bpm = tempo2bpm(tempo);
                 break;
             }
+            case MIDI_SEQUENCE_NUMBER:
+            case MIDI_TIME_SIGNATURE: 
             case MIDI_SMPTE_OFFSET:
-            {
-//              uint8_t frame_rate = pull_byte();
-                uint8_t hours = pull_byte();
-                uint8_t minutes = pull_byte();
-                uint8_t seconds = pull_byte();
-                uint8_t frames = pull_byte();
-                uint8_t sub_frames = pull_byte();
-                break;
-            }
-            case MIDI_TIME_SIGNATURE:
-            {
-                uint8_t numerator = pull_byte();
-                uint32_t denominator = 1 << pull_byte();
-                uint8_t clocks_per_click = pull_byte();
-                uint8_t notated_32nd_notes_per_beat = pull_byte();
-  
-                QN = 100000/clocks_per_click;
-              break;
-            }
             case MIDI_KEY_SIGNATURE:
-            {
-                uint8_t sharps = pull_byte();
-                uint8_t major = pull_byte();
-                break;
-            }
             default:	// unsupported
                 forward(size);
                 break;
@@ -309,10 +278,6 @@ MIDITrack::process(uint32_t time_pos)
             {
                 uint8_t key = pull_byte();
                 uint8_t velocity = pull_byte();
-                // we now have the channel and omni (listen to all channel
-                // messages), the key and the velocity and whether the note
-                // needs to sart or stop.
-                // channel 10 is for drum instruments and key defines which one.
                  midi.process(channel, message & 0xf0, key, velocity, omni);
                 break;
             }
@@ -360,7 +325,9 @@ MIDITrack::process(uint32_t time_pos)
             case MIDI_PITCH_BEND:
             {
                 uint16_t pitch = pull_byte() << 7 | pull_byte();
-                float p = 2.0f*(pitch-8192.0f)/8192.0f;
+                float p = semi_tones*((float)pitch-8192);
+                if (p < 0) p /= 8192.0f;
+                else p /= 8191.0f;
                 midi.channel(channel).set_pitch(powf(2.0f, p/12.0f));
                 break;
             }
@@ -387,8 +354,8 @@ MIDITrack::process(uint32_t time_pos)
 
         if (!eof())
         {
-            uint32_t ticks = pull_message();
-            timestamp += ticks*(60000.0f/(bpm*PPQN));
+            uint32_t parts = pull_message();
+            timestamp += parts*(60000.0f/(bpm*PPQN));
         }
     }
 
