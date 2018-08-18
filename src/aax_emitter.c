@@ -424,7 +424,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             src->buffer_pos = UINT_MAX;
          }
          rv = AAX_TRUE;
-         // intentional fallthrough
+         break;
       case AAX_INITIALIZED:	/* or rewind */
       {
          const _intBufferData* dptr;
@@ -445,15 +445,39 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             env = _FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER);
             if (env)
             {
-               env->value = _FILTER_GET(src->props2d, TIMED_GAIN_FILTER, 0);
-               env->stage =  env->pos = 0;
+               env->value = env->value0;
+               env->stage = 0;
+               env->pos = 0;
+               env->ctr = 0.0f;
+               if (env->state & AAX_REPEAT)
+               {
+                  env->repeat = (env->state & ~AAX_REPEAT);
+                  if (env->repeat > 1) {
+                     env->sustain = AAX_TRUE;
+                  }
+               }
+               else if (state & AAX_ENVELOPE_FOLLOW) {
+                  env->sustain = AAX_TRUE;
+               }
             }
 
             env = _EFFECT_GET2D_DATA(src, TIMED_PITCH_EFFECT);
             if (env)
             {
-               env->value = _EFFECT_GET(src->props2d, TIMED_PITCH_EFFECT, 0);
-               env->stage =  env->pos = 0;
+               env->value = env->value0;
+               env->stage = 0;
+               env->pos = 0;
+               env->ctr = 0.0f;
+               if (env->state & AAX_REPEAT)
+               {
+                  env->repeat = (env->state & ~AAX_REPEAT);
+                  if (env->repeat > 1) {
+                     env->sustain = AAX_TRUE;
+                  }
+               }
+               else if (state & AAX_ENVELOPE_FOLLOW) {
+                  env->sustain = AAX_TRUE;
+               }
             }
          }
          rv = AAX_TRUE;
