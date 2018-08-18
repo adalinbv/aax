@@ -190,17 +190,7 @@ public:
 
     MIDIChannel& operator=(MIDIChannel&&) = default;
 
-    void play(size_t key_no, uint8_t velocity)
-    {
-        uint8_t pn = (channel_no == 0x9) ? key_no : program_no;
-        std::string name = get_name(channel_no, bank_no, pn);
-        aax::Buffer &buffer = midi.buffer(name, true);
-        if (buffer) {
-            aax::Instrument::play(key_no, velocity, buffer, is_drums);
-        } else {
-//          throw(std::invalid_argument("Instrument file "+name+" not found"));
-        }
-    }
+    void play(size_t key_no, uint8_t velocity);
 
 private:
     std::string get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no);

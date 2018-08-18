@@ -181,6 +181,26 @@ MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
     }
 }
 
+void
+MIDIChannel::play(size_t key_no, uint8_t velocity)
+{
+    if (!velocity) {
+        stop(key_no);
+    }
+    else
+    {
+        uint8_t pn = (channel_no == 0x9) ? key_no : program_no;
+        std::string name = get_name(channel_no, bank_no, pn);
+        aax::Buffer &buffer = midi.buffer(name, true);
+
+        if (buffer) {
+            aax::Instrument::play(key_no, velocity, buffer, is_drums);
+        } else {
+//          throw(std::invalid_argument("Instrument file "+name+" not found"));
+        }
+    }
+}
+
 
 uint32_t
 MIDITrack::pull_message()
