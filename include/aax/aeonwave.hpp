@@ -885,7 +885,6 @@ public:
     AeonWave(AeonWave&&) = default;
 
     virtual ~AeonWave() {
-printf("\n\t~AeonWave()\n");
         for (size_t i=0; i<frames.size(); ++i) {
              aaxMixerDeregisterAudioFrame(ptr,frames[i]);
         }
@@ -960,7 +959,6 @@ printf("\n\t~AeonWave()\n");
     bool remove(Frame& m) {
         auto fi = std::find(frames.begin(),frames.end(),m);
         if (fi != frames.end()) frames.erase(fi);
-printf("\t\nremove(Frame& m)\n");
         return aaxMixerDeregisterAudioFrame(ptr,m);
     }
     bool add(Sensor& s) {
