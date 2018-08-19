@@ -159,6 +159,10 @@ public:
 
     MIDIChannel& channel(uint8_t channel_no);
 
+    friend void swap(MIDI& p1, MIDI& p2) {
+        p1.channels = std::move(p2.channels);
+    }
+
     inline std::vector<MIDIChannel*>& channel() {
         return channels;
     }
@@ -177,7 +181,8 @@ private:
 
 public:
     MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
-       : aax::Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank), program_no(program), is_drums(channel == MIDI_DRUMS_CHANNEL)
+       : aax::Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank),
+         program_no(program), is_drums(channel == MIDI_DRUMS_CHANNEL)
     {
         aax::Mixer::set(AAX_PLAYING);
     }
@@ -185,10 +190,12 @@ public:
     MIDIChannel(MIDIChannel&&) = default;
 
     friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
+        p1.name_map = std::move(p2.name_map);
         p1.midi = std::move(p2.midi);
         p1.channel_no = std::move(p2.channel_no);
         p1.program_no = std::move(p2.program_no);
         p1.bank_no = std::move(p2.bank_no);
+        p1.is_drums = std::move(p2.is_drums);
     }
 
     MIDIChannel& operator=(MIDIChannel&&) = default;
@@ -230,10 +237,11 @@ public:
         s1.channel_no = std::move(s2.channel_no);
         s1.program_no = std::move(s2.program_no);
         s1.bank_no = std::move(s2.bank_no);
+        s1.previous = std::move(s2.previous);
         s1.timestamp = std::move(s2.timestamp);
         s1.PPQN = std::move(s2.PPQN);
         s1.bpm = std::move(s2.bpm);
-        s1.previous = std::move(s2.previous);
+        s1.semi_tones = std::move(s2.semi_tones);
         s1.poly = std::move(s2.poly);
         s1.omni = std::move(s2.omni);
     }

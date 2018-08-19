@@ -402,8 +402,8 @@ MIDITrack::process(uint32_t time_pos)
 
         if (!eof())
         {
-            uint32_t parts = pull_message();
-            timestamp += parts*(60000.0f/(bpm*PPQN));
+            uint64_t parts = pull_message();
+            timestamp += parts*(60000/(bpm*PPQN));
         }
     }
 
