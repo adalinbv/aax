@@ -64,7 +64,7 @@ public:
     bool play(uint8_t velocity, bool is_drums = false)
     {
         Emitter::set(AAX_INITIALIZED);
-        float attack = velocity/128.0f;
+        float attack = (1+velocity)/128.0f;
         gain_param = sqrtf(attack);
         if (!is_drums) pitch_param = pitch = note2freq(key_no)/(float)frequency;
         if (!playing) Emitter::set(AAX_PLAYING);
