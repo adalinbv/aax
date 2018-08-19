@@ -48,6 +48,11 @@ public:
         n1.pitch_param = std::move(n2.pitch_param);
         n1.gain_param = std::move(n2.gain_param);
         n1.key_no = std::move(n2.key_no);
+        n1.frequency = std::move(n2.frequency);
+        n1.pitch = std::move(n2.pitch);
+        n1.key_no = std::move(n2.key_no);
+        n1.pressure = std::move(n2.pressure);
+        n2.playing = std::move(n2.playing);
     }
 
     Key& operator=(Key&&) = default;
@@ -59,7 +64,7 @@ public:
     bool play(uint8_t velocity, bool is_drums = false)
     {
         Emitter::set(AAX_INITIALIZED);
-        float attack = velocity/127.0f;
+        float attack = velocity/128.0f;
         gain_param = sqrtf(attack);
         if (!is_drums) pitch_param = pitch = note2freq(key_no)/(float)frequency;
         if (!playing) Emitter::set(AAX_PLAYING);
@@ -113,6 +118,9 @@ public:
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
+        i1.pitch = std::move(i2.pitch);
+        i1.pressure = std::move(i2.pressure);
+        i1.playing = std::move(i2.playing);
     }
 
     Instrument& operator=(Instrument&&) = default;
@@ -127,7 +135,10 @@ public:
             auto ret = key.insert({key_no, new Key(key_no)});
             it = ret.first;
             Mixer::add(*it->second);
-            Mixer::add(buffer);
+            if (!playing && !is_drums) {
+                Mixer::add(buffer);
+                playing = true;
+            }
             it->second->buffer(buffer);
         }
         it->second->play(velocity, is_drums);
@@ -160,8 +171,9 @@ private:
     std::map<uint8_t,Key*> key;
     AeonWave* aax;
 
-    uint8_t pressure;
-    float pitch;
+    float pitch = 1.0f;
+    uint8_t pressure = 0;
+    bool playing = false;
 };
 
 } // namespace aax
