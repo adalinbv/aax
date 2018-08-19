@@ -246,7 +246,7 @@ MIDITrack::pull_message()
 }
 
 bool
-MIDITrack::process(uint32_t time_pos)
+MIDITrack::process(uint64_t time_pos)
 {
     bool rv = !eof();
 
@@ -403,7 +403,11 @@ MIDITrack::process(uint32_t time_pos)
         if (!eof())
         {
             uint64_t parts = pull_message();
-            timestamp += parts*(60000/(bpm*PPQN));
+            if (parts > 0)
+            {
+                timestamp += parts*(60000000/(bpm*PPQN));
+                break;
+            }
         }
     }
 
@@ -478,7 +482,7 @@ MIDIFile::process(uint32_t time)
 {
     bool rv = false;
     for (size_t t=0; t<no_tracks; ++t) {
-        rv |= track[t]->process(time);
+        rv |= track[t]->process(time*1000);
     }
     return rv;
 }

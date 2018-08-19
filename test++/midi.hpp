@@ -246,7 +246,7 @@ public:
         s1.omni = std::move(s2.omni);
     }
 
-    bool process(uint32_t);
+    bool process(uint64_t);
 
 private:
     uint32_t pull_message();
