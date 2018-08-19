@@ -192,7 +192,7 @@ public:
 
 protected:
     void fire() {
-        if (!tied) return;
+        if (!tied || val == prev) return;
         if (filter) {
             aaxFilter flt = get.filter(obj, dsptype.filter);
             if (std::is_same<T,float>::value) {
@@ -210,10 +210,11 @@ protected:
             }
             set.effect(obj, eff); aaxEffectDestroy(eff);
         }
+        prev = val;
     }
 
 private:
-    T val;
+    T val, prev = 0;
     bool tied = 0;
     int param = 0;
     bool filter = false;
