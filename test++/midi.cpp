@@ -41,8 +41,8 @@
 MIDI::MIDI(const char* n) : aax::AeonWave(n)
 {
     channels.resize(16);
-    channels.at(0x9) = new MIDIChannel(*this, 0x9, 0, 0);
-    aax::AeonWave::add(channel(0x9));
+    channels.at(MIDI_DRUMS_CHANNEL) = new MIDIChannel(*this, MIDI_DRUMS_CHANNEL, 0, 0);
+    aax::AeonWave::add(channel(MIDI_DRUMS_CHANNEL));
 }
 
 MIDIChannel&
@@ -169,12 +169,12 @@ MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
 //      std::string path(midi.info(AAX_SHARED_DATA_DIR));
     std::string path("/usr/share/aax");
     path.append("/");
-    if (channel == 0x9) // drums
+    if (channel == MIDI_DRUMS_CHANNEL)
     {
         path.append("gmdrums.xml");
         return get_name_from_xml(path, "drum", bank_no, program_no);
     }
-    else                // instruments
+    else
     {
         path.append("gmmidi.xml");
         return get_name_from_xml(path, "instrument", bank_no, program_no);
@@ -182,22 +182,47 @@ MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
 }
 
 void
-MIDIChannel::play(size_t key_no, uint8_t velocity)
+MIDIChannel::play(uint8_t key_no, uint8_t velocity)
 {
-    if (!velocity) {
-        stop(key_no);
-    }
-    else
+    if (velocity)
     {
-        uint8_t pn = (channel_no == 0x9) ? key_no : program_no;
-        std::string name = get_name(channel_no, bank_no, pn);
-        aax::Buffer &buffer = midi.buffer(name, true);
+        auto it = name_map.begin();
+        if (channel_no == MIDI_DRUMS_CHANNEL)
+        {
+            it = name_map.find(key_no);
+            if (it == name_map.end())
+            {
+                std::string name = get_name(channel_no, bank_no, key_no);
+                aax::Buffer &buffer = midi.buffer(name, true);
+                if (buffer)
+                {
+                    auto ret = name_map.insert({key_no,buffer});
+                    it = ret.first;
+                }
+            }
+        }
+        else
+        {
+            if (it == name_map.end())
+            {
+                std::string name = get_name(channel_no, bank_no, program_no);
+                aax::Buffer &buffer = midi.buffer(name, true);
+                if (buffer)
+                {
+                    auto ret = name_map.insert({program_no,buffer});
+                    it = ret.first;
+                }
+            }
+        }
 
-        if (buffer) {
-            aax::Instrument::play(key_no, velocity, buffer, is_drums);
+        if (it != name_map.end()) {
+            aax::Instrument::play(key_no, velocity, it->second, is_drums);
         } else {
 //          throw(std::invalid_argument("Instrument file "+name+" not found"));
         }
+    }
+    else {
+       stop(key_no);
     }
 }
 
@@ -244,6 +269,9 @@ MIDITrack::process(uint32_t time_pos)
         case MIDI_EXCLUSIVE_MESSAGE_END:
         {
             uint8_t size = pull_byte();
+            // GM1 reset: F0 7E 7F 09 01 F7
+            // GM2 reset: F0 7E 7F 09 03 F7
+            // GS  reset: F0 41 10 42 12 40 00 7F 00 41 F7
             forward(size);
             break;
         }

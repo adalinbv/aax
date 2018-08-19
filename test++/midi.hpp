@@ -143,6 +143,9 @@
 #define MIDI_ACTIVE_SENSE		0x0e
 #define MIDI_SYSTEM_RESET		0x0f
 
+/* our own */
+#define MIDI_DRUMS_CHANNEL		0x9
+
 class MIDIChannel;
 
 class MIDI : public aax::AeonWave
@@ -174,7 +177,7 @@ private:
 
 public:
     MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
-       : aax::Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank), program_no(program), is_drums(channel == 0x9)
+       : aax::Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank), program_no(program), is_drums(channel == MIDI_DRUMS_CHANNEL)
     {
         aax::Mixer::set(AAX_PLAYING);
     }
@@ -190,11 +193,13 @@ public:
 
     MIDIChannel& operator=(MIDIChannel&&) = default;
 
-    void play(size_t key_no, uint8_t velocity);
+    void play(uint8_t key_no, uint8_t velocity);
 
 private:
     std::string get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no);
     std::string get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no);
+
+    std::map<uint8_t,aax::Buffer&> name_map;
 
     MIDI &midi;
     uint8_t channel_no = 0;
