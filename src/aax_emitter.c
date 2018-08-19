@@ -449,15 +449,8 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                env->stage = 0;
                env->pos = 0;
                env->ctr = 0.0f;
-               if (env->state & AAX_REPEAT)
-               {
+               if (env->state & AAX_REPEAT) {
                   env->repeat = (env->state & ~AAX_REPEAT);
-                  if (env->repeat > 1) {
-                     env->sustain = AAX_TRUE;
-                  }
-               }
-               else if (state & AAX_ENVELOPE_FOLLOW) {
-                  env->sustain = AAX_TRUE;
                }
             }
 
@@ -468,16 +461,6 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                env->stage = 0;
                env->pos = 0;
                env->ctr = 0.0f;
-               if (env->state & AAX_REPEAT)
-               {
-                  env->repeat = (env->state & ~AAX_REPEAT);
-                  if (env->repeat > 1) {
-                     env->sustain = AAX_TRUE;
-                  }
-               }
-               else if (state & AAX_ENVELOPE_FOLLOW) {
-                  env->sustain = AAX_TRUE;
-               }
             }
          }
          rv = AAX_TRUE;
