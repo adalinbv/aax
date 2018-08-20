@@ -337,14 +337,14 @@ MIDITrack::process(uint64_t time_pos)
                 case MIDI_ALL_SOUND_OFF:
                 case MIDI_MONO_ALL_NOTES_OFF:
                 case MIDI_POLY_ALL_NOTES_OFF:
-                    midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
+                    midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     break;
                 case MIDI_OMNI_OFF:
-                    midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
+                    midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     omni = false;
                     break;
                 case MIDI_OMNI_ON:
-                    midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
+                    midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     omni = true;
                     break;
                 case MIDI_HOLD_PEDAL1:
