@@ -41,6 +41,9 @@
 #include <buffer_map.hpp>
 #include <byte_stream.hpp>
 
+namespace aax
+{
+
 /* status messages */
 // https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
 #define MIDI_EXCLUSIVE_MESSAGE		0xf0
@@ -149,7 +152,7 @@
 
 class MIDIChannel;
 
-class MIDI : public aax::AeonWave
+class MIDI : public AeonWave
 {
 public:
     MIDI(const char* n);
@@ -173,7 +176,7 @@ private:
 };
 
 
-class MIDIChannel : public aax::Instrument
+class MIDIChannel : public Instrument
 {
 private:
     MIDIChannel(const MIDIChannel&) = delete;
@@ -182,10 +185,10 @@ private:
 
 public:
     MIDIChannel(MIDI& ptr, uint8_t channel, uint8_t bank, uint8_t program)
-       : aax::Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank),
+       : Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank),
          program_no(program), is_drums(channel == MIDI_DRUMS_CHANNEL)
     {
-        aax::Mixer::set(AAX_PLAYING);
+        Mixer::set(AAX_PLAYING);
     }
 
     MIDIChannel(MIDIChannel&&) = default;
@@ -207,7 +210,7 @@ private:
     std::string get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no);
     std::string get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no);
 
-    std::map<uint8_t,aax::Buffer&> name_map;
+    std::map<uint8_t,Buffer&> name_map;
 
     MIDI &midi;
     uint8_t channel_no = 0;
@@ -299,5 +302,8 @@ private:
     uint16_t no_tracks = 0;
     uint16_t format = 0;
 };
+
+} // namespace aax
+
 
 #endif

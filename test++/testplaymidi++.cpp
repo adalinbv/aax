@@ -57,7 +57,7 @@ int main(int argc, char **argv)
 
     try
     {
-        MIDIFile midi(devname, infile);
+        aax::MIDIFile midi(devname, infile);
         if (midi)
         {
             _aaxTimer *timer = _aaxTimerCreate();

@@ -39,12 +39,13 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
+using namespace aax;
 
-MIDI::MIDI(const char* n) : aax::AeonWave(n)
+MIDI::MIDI(const char* n) : AeonWave(n)
 {
     channels.resize(16);
     channels.at(MIDI_DRUMS_CHANNEL) = new MIDIChannel(*this, MIDI_DRUMS_CHANNEL, 0, 0);
-    aax::AeonWave::add(channel(MIDI_DRUMS_CHANNEL));
+    AeonWave::add(channel(MIDI_DRUMS_CHANNEL));
 }
 
 MIDIChannel&
@@ -57,7 +58,7 @@ MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
 
     try {
         channels.at(channel_no) = new MIDIChannel(*this, channel_no, bank_no, program_no);
-        aax::AeonWave::add(channel(channel_no));
+        AeonWave::add(channel(channel_no));
     } catch(const std::invalid_argument& e) {
         throw;
     }
@@ -192,7 +193,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         if (it == name_map.end())
         {
             std::string name = get_name(channel_no, bank_no, key_no);
-            aax::Buffer &buffer = midi.buffer(name, true);
+            Buffer &buffer = midi.buffer(name, true);
             if (buffer)
             {
                 auto ret = name_map.insert({key_no,buffer});
@@ -205,7 +206,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         if (it == name_map.end())
         {
             std::string name = get_name(channel_no, bank_no, program_no);
-            aax::Buffer &buffer = midi.buffer(name, true);
+            Buffer &buffer = midi.buffer(name, true);
             if (buffer)
             {
                 auto ret = name_map.insert({program_no,buffer});
@@ -215,7 +216,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
     }
 
     if (it != name_map.end()) {
-        aax::Instrument::play(key_no, velocity, it->second, is_drums);
+        Instrument::play(key_no, velocity, it->second, is_drums);
     } else {
 //      throw(std::invalid_argument("Instrument file "+name+" not found"));
     }
