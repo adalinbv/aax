@@ -107,7 +107,7 @@ _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxPitchRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 2.0f, 2.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 2.0f, 4.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
