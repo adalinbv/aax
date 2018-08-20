@@ -87,7 +87,7 @@ typedef struct
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
    uint32_t pos, repeat;
    int state;
-   char stage, max_stages, sustain;
+   char sustain, stage, max_stages;
 } _aaxEnvelopeData;
 
 float _aaxEnvelopeGet(_aaxEnvelopeData*, char, float*, _aaxEnvelopeData*);
