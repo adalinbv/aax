@@ -237,11 +237,11 @@ MIDITrack::pull_message()
 }
 
 bool
-MIDITrack::process(uint64_t time_pos)
+MIDITrack::process(uint64_t time_offs_us)
 {
     bool rv = !eof();
 
-    while (!eof() && (timestamp <= time_pos))
+    while (!eof() && (timestamp_us <= time_offs_us))
     {
         uint8_t data, message = pull_byte();
 
@@ -295,7 +295,7 @@ MIDITrack::process(uint64_t time_pos)
             {
                 uint32_t tempo;
                 tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
-                bpm = tempo2bpm(tempo);
+                uspp = tempo2uspp(tempo);
                 break;
             }
             case MIDI_SEQUENCE_NUMBER:
@@ -406,7 +406,7 @@ MIDITrack::process(uint64_t time_pos)
             uint64_t parts = pull_message();
             if (parts > 0)
             {
-                timestamp += parts*(60000000/(bpm*PPQN));
+                timestamp_us += parts*uspp;
                 break;
             }
         }
@@ -437,7 +437,6 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                 {
                     uint32_t header = stream.pull_long();
                     uint16_t track_no = 0;
-                    uint16_t PPQN = 24;
 
                     if (header == 0x4d546864) // "MThd"
                     {
@@ -479,11 +478,11 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 }
 
 bool
-MIDIFile::process(uint32_t time)
+MIDIFile::process(uint32_t time_ms)
 {
     bool rv = false;
     for (size_t t=0; t<no_tracks; ++t) {
-        rv |= track[t]->process(time*1000);
+        rv |= track[t]->process(1000*time_ms);
     }
     return rv;
 }

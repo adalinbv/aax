@@ -60,20 +60,31 @@ int main(int argc, char **argv)
         aax::MIDIFile midi(devname, infile);
         if (midi)
         {
-            _aaxTimer *timer = _aaxTimerCreate();
-            _aaxTimerStartRepeatable(timer, 1000.0f);	// 1000 usec
-            uint32_t time = 0;
+            int64_t sleep_us, dt_us, wait_us = 1000;
+            struct timeval now;
+            uint32_t time_ms = 0;
 
+            midi.set(AAX_REFRESH_RATE, 90.0f);
             midi.set(AAX_INITIALIZED);
             midi.set(AAX_PLAYING);
 
             set_mode(1);
-            do {
-                if (!midi.process(time++)) break;
-                _aaxTimerWait(timer);
+            do
+            {
+                gettimeofday(&now, NULL);
+                dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
+
+                if (!midi.process(time_ms++)) break;
+
+                gettimeofday(&now, NULL);
+                dt_us += now.tv_sec * 1000000 + now.tv_usec;
+
+                sleep_us = wait_us - dt_us;
+                if (sleep_us > 0) {
+                   usecSleep(sleep_us);
+                }
             }
             while(!get_key());
-            _aaxTimerDestroy(timer);
             set_mode(0);
 
             midi.set(AAX_PROCESSED);

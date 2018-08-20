@@ -228,7 +228,8 @@ public:
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
         : byte_stream(stream, len), midi(ptr), channel_no(track), PPQN(ppqn)
     {
-        timestamp = pull_message();
+        timestamp_us = pull_message();
+        uspp = (60000000/120)/PPQN;
     }
 
     MIDITrack(const MIDITrack&) = default;
@@ -242,9 +243,9 @@ public:
         s1.program_no = std::move(s2.program_no);
         s1.bank_no = std::move(s2.bank_no);
         s1.previous = std::move(s2.previous);
-        s1.timestamp = std::move(s2.timestamp);
+        s1.timestamp_us = std::move(s2.timestamp_us);
         s1.PPQN = std::move(s2.PPQN);
-        s1.bpm = std::move(s2.bpm);
+        s1.uspp = std::move(s2.uspp);
         s1.semi_tones = std::move(s2.semi_tones);
         s1.poly = std::move(s2.poly);
         s1.omni = std::move(s2.omni);
@@ -255,11 +256,8 @@ public:
 private:
     uint32_t pull_message();
 
-    inline uint16_t tempo2bpm(uint32_t tempo) {
+    inline uint16_t tempo2uspp(uint32_t tempo) {
         return (60000000/tempo);
-    }
-    inline uint32_t bpm2tempo(uint16_t bpm) {
-        return (60000000/bpm);
     }
 
     MIDI& midi;
@@ -269,9 +267,9 @@ private:
     uint8_t bank_no = 0;
 
     uint8_t previous = 0;
-    uint64_t timestamp = 0;
+    uint64_t timestamp_us = 0;
     uint16_t PPQN = 24;
-    uint16_t bpm = 120;
+    uint16_t uspp = 22727;
     float semi_tones = 2.0f;
     bool poly = true;
     bool omni = false;
@@ -294,6 +292,8 @@ public:
 
     bool process(uint32_t);
 
+    inline uint16_t get_ppqn() { return PPQN; }
+
 private:
     std::vector<uint8_t> midi_data;
     std::vector<MIDITrack*> track;
@@ -301,6 +301,7 @@ private:
     uint64_t time_pos = 0;
     uint16_t no_tracks = 0;
     uint16_t format = 0;
+    uint16_t PPQN = 24;
 };
 
 } // namespace aax
