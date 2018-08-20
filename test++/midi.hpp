@@ -155,24 +155,24 @@ class MIDIChannel;
 class MIDI : public AeonWave
 {
 public:
-    MIDI(const char* n);
+    MIDI(const char* n) : AeonWave(n) {}
 
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni);
 
     MIDIChannel& new_channel(uint8_t channel, uint8_t bank, uint8_t program);
 
-    MIDIChannel& channel(uint8_t channel_no);
-
     friend void swap(MIDI& p1, MIDI& p2) {
         p1.channels = std::move(p2.channels);
     }
 
-    inline std::vector<MIDIChannel*>& channel() {
+    MIDIChannel& channel(uint8_t channel_no);
+
+    inline std::map<uint8_t,MIDIChannel*>& channel() {
         return channels;
     }
 
 private:
-    std::vector<MIDIChannel*> channels;
+    std::map<uint8_t,MIDIChannel*> channels;
 };
 
 

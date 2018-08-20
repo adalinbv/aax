@@ -41,39 +41,34 @@
 
 using namespace aax;
 
-MIDI::MIDI(const char* n) : AeonWave(n)
-{
-    channels.resize(16);
-    channels.at(MIDI_DRUMS_CHANNEL) = new MIDIChannel(*this, MIDI_DRUMS_CHANNEL, 0, 0);
-    AeonWave::add(channel(MIDI_DRUMS_CHANNEL));
-}
-
 MIDIChannel&
 MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
 {
-    if (channel_no >= channels.size()) {
-        throw(std::out_of_range("index beyond buffer length"));
-        channels.resize(channel_no+1);
+    auto it = channels.find(channel_no);
+    if (it != channels.end())
+    {
+        AeonWave::remove(*it->second);
+        channels.erase(it);
     }
 
     try {
-        channels.at(channel_no) = new MIDIChannel(*this, channel_no, bank_no, program_no);
-        AeonWave::add(channel(channel_no));
+        auto ret = channels.insert({channel_no, new MIDIChannel(*this, channel_no, bank_no, program_no)});
+        it = ret.first;
+        AeonWave::add(*it->second);
     } catch(const std::invalid_argument& e) {
         throw;
     }
-
-    return *channels.at(channel_no);
+    return *it->second;
 }
 
 MIDIChannel&
 MIDI::channel(uint8_t channel_no)
 {
-    if (channel_no >= channels.size()) {
-        throw(std::out_of_range("index beyond buffer length"));
-        channels.resize(channel_no+1);
+    auto it = channels.find(channel_no);
+    if (it == channels.end()) {
+        return new_channel(channel_no, 0, 0);
     }
-    return *channels.at(channel_no);
+    return *it->second;
 }
 
 bool
@@ -83,7 +78,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
     {
         if (omni) {
             for (auto& it : channels) {
-                it->play(key, velocity);
+                it.second->play(key, velocity);
             }
         } else {
             channel(channel_no).play(key, velocity);
@@ -93,7 +88,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
     {
         if (omni) {
             for (auto& it : channels) {
-                it->stop(key);
+                it.second->stop(key);
             }
         } else {
             channel(channel_no).stop(key);
