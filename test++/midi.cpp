@@ -29,9 +29,11 @@
  * policies, either expressed or implied, of Adalin B.V.
  */
 
+
 #include <fstream>
 #include <iostream>
 
+#include <assert.h>
 #include <xml.h>
 
 #include <base/timer.h>
@@ -76,9 +78,8 @@ MIDI::channel(uint8_t channel_no)
 bool
 MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity, bool omni)
 {
-    switch(message)
+    if (message == MIDI_NOTE_ON && velocity)
     {
-    case MIDI_NOTE_ON:
         if (omni) {
             for (auto& it : channels) {
                 it->play(key, velocity);
@@ -86,8 +87,9 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
         } else {
             channel(channel_no).play(key, velocity);
         }
-        break;
-    case MIDI_NOTE_OFF:
+    }
+    else
+    {
         if (omni) {
             for (auto& it : channels) {
                 it->stop(key);
@@ -95,9 +97,6 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
         } else {
             channel(channel_no).stop(key);
         }
-        break;
-    default:
-        break;
     }
     return true;
 }
@@ -184,45 +183,41 @@ MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
 void
 MIDIChannel::play(uint8_t key_no, uint8_t velocity)
 {
-    if (velocity)
-    {
-        auto it = name_map.begin();
-        if (channel_no == MIDI_DRUMS_CHANNEL)
-        {
-            it = name_map.find(key_no);
-            if (it == name_map.end())
-            {
-                std::string name = get_name(channel_no, bank_no, key_no);
-                aax::Buffer &buffer = midi.buffer(name, true);
-                if (buffer)
-                {
-                    auto ret = name_map.insert({key_no,buffer});
-                    it = ret.first;
-                }
-            }
-        }
-        else
-        {
-            if (it == name_map.end())
-            {
-                std::string name = get_name(channel_no, bank_no, program_no);
-                aax::Buffer &buffer = midi.buffer(name, true);
-                if (buffer)
-                {
-                    auto ret = name_map.insert({program_no,buffer});
-                    it = ret.first;
-                }
-            }
-        }
+    assert (velocity);
 
-        if (it != name_map.end()) {
-            aax::Instrument::play(key_no, velocity, it->second, is_drums);
-        } else {
-//          throw(std::invalid_argument("Instrument file "+name+" not found"));
+    auto it = name_map.begin();
+    if (channel_no == MIDI_DRUMS_CHANNEL)
+    {
+        it = name_map.find(key_no);
+        if (it == name_map.end())
+        {
+            std::string name = get_name(channel_no, bank_no, key_no);
+            aax::Buffer &buffer = midi.buffer(name, true);
+            if (buffer)
+            {
+                auto ret = name_map.insert({key_no,buffer});
+                it = ret.first;
+            }
         }
     }
-    else {
-       stop(key_no);
+    else
+    {
+        if (it == name_map.end())
+        {
+            std::string name = get_name(channel_no, bank_no, program_no);
+            aax::Buffer &buffer = midi.buffer(name, true);
+            if (buffer)
+            {
+                auto ret = name_map.insert({program_no,buffer});
+                it = ret.first;
+            }
+        }
+    }
+
+    if (it != name_map.end()) {
+        aax::Instrument::play(key_no, velocity, it->second, is_drums);
+    } else {
+//      throw(std::invalid_argument("Instrument file "+name+" not found"));
     }
 }
 
@@ -338,16 +333,26 @@ MIDITrack::process(uint64_t time_pos)
             }
             case MIDI_CONTROL_CHANGE:
             {
+                // http://www.lim.di.unimi.it/IEEE/MIDI/SOT5.HTM#Further
                 uint8_t controller = pull_byte();
                 uint8_t value = pull_byte();
                 switch(controller)
                 {
                 case MIDI_ALL_SOUND_OFF:
+                case MIDI_MONO_ALL_NOTES_OFF:
+                case MIDI_POLY_ALL_NOTES_OFF:
+                    midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
+                    break;
                 case MIDI_OMNI_OFF:
+                    midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
                     omni = false;
                     break;
                 case MIDI_OMNI_ON:
+                    midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
                     omni = true;
+                    break;
+                case MIDI_HOLD_PEDAL1:
+                    midi.channel(channel).set_hold(value);
                     break;
                 default:
                     break;
