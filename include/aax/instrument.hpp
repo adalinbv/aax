@@ -61,7 +61,7 @@ public:
         return *this;
     }
 
-    bool play(uint8_t velocity, bool is_drums = false)
+    bool play(uint8_t velocity, bool hold, bool is_drums = false)
     {
         Emitter::set(AAX_INITIALIZED);
         float attack = (1+velocity)/128.0f;
@@ -129,7 +129,7 @@ public:
         return *this;
     }
 
-    void play(size_t key_no, uint8_t velocity, Buffer& buffer, bool is_drums = false) {
+    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, bool hold, bool is_drums = false) {
         auto it = key.find(key_no);
         if (it == key.end()) {
             auto ret = key.insert({key_no, new Key(key_no)});
@@ -141,13 +141,15 @@ public:
             }
             it->second->buffer(buffer);
         }
-        it->second->play(velocity, is_drums);
+        it->second->play(velocity, hold, is_drums);
     }
 
-    void stop(size_t key_no) {
-        auto it = key.find(key_no);
-        if (it != key.end()) {
-            it->second->stop();
+    void stop(uint8_t key_no) {
+        if (hold == false) {
+            auto it = key.find(key_no);
+            if (it != key.end()) {
+                it->second->stop();
+            }
         }
     }
 
@@ -159,6 +161,15 @@ public:
     }
 
     inline void set_pressure(uint8_t p) { pressure = p; }
+
+    void set_hold(bool sustain) {
+        hold = sustain;
+        if (!hold) {
+            for (auto& it : key) {
+                it.second->stop();
+            }
+        }
+    }
 
     void set_pressure(uint8_t key_no, uint8_t pressure) {
         auto it = key.find(key_no);
@@ -174,6 +185,7 @@ private:
     float pitch = 1.0f;
     uint8_t pressure = 0;
     bool playing = false;
+    bool hold = false;
 };
 
 } // namespace aax
