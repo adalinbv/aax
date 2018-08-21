@@ -257,13 +257,30 @@ MIDITrack::process(uint64_t time_offs_us)
         switch(message)
         {
         case MIDI_EXCLUSIVE_MESSAGE:
-        case MIDI_EXCLUSIVE_MESSAGE_END:
         {
             uint8_t size = pull_byte();
+            uint8_t byte = pull_byte();
             // GM1 reset: F0 7E 7F 09 01 F7
             // GM2 reset: F0 7E 7F 09 03 F7
             // GS  reset: F0 41 10 42 12 40 00 7F 00 41 F7
-            forward(size);
+            if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
+            {
+                if (pull_byte() == 0x01) {
+                    std::cout << "General MIDI standard 1.0" << std::endl;
+                } else if (pull_byte() == 0x03) {
+                    std::cout << "General MIDI standard 2.0" << std::endl;
+                }
+            }
+            else if (byte == 0x41 && pull_byte() == 0x10 &&
+                       pull_byte() == 0x42 && pull_byte() == 0x12 &&
+                       pull_byte() == 0x40 && pull_byte() == 0x00 &&
+                       pull_byte() == 0x7f && pull_byte() == 0x00 &&
+                       pull_byte() == 0x41)
+            {
+                std::cout << "General Standard MIDI" << std::endl;
+            }
+            else push_byte();
+            while (pull_byte() != MIDI_EXCLUSIVE_MESSAGE_END);
             break;
         }
         case MIDI_SYSTEM_MESSAGE:
