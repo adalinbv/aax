@@ -649,11 +649,9 @@ aaxBufferGetData(const aaxBuffer buffer)
          }
       }
 
-#if 1
       if (handle->format == AAX_AAXS16S || handle->format == AAX_AAXS24S) {
          data = (void**)_bufCreateAAXS(handle, data, buf_samples);
       }
-#endif
    }
 
    return data;
@@ -1187,6 +1185,9 @@ _bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency)
    return AAX_TRUE;
 }
 
+static inline float note2freq(uint8_t d) {
+   return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
+}
 
 static void*
 _bufAAXSThread(void *d)
@@ -1207,7 +1208,17 @@ _bufAAXSThread(void *d)
    xid = xmlInitBuffer(handle->aaxs, strlen(handle->aaxs));
    if (xid)
    {
-      void *xsid = xmlNodeGet(xid, "aeonwave/sound");
+      void *xsid = xmlNodeGet(xid, "aeonwave/instrument/note");
+      float max_frequency = 0.0f;
+      if (xsid)
+      {
+         if (xmlAttributeExists(xsid, "max")) {
+            max_frequency = note2freq(xmlAttributeGetInt(xsid, "max"));
+         }
+         xmlFree(xsid);
+      }
+
+      xsid = xmlNodeGet(xid, "aeonwave/sound");
       if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
       if (xsid)
       {
@@ -1263,6 +1274,7 @@ _bufAAXSThread(void *d)
             float f = rb->get_paramf(rb, RB_FREQUENCY);
             size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+            rb->set_paramf(rb, RB_MAX_PITCH, max_frequency/freq);
          }
 
          xwid = xmlMarkId(xsid);
@@ -1352,7 +1364,6 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    return rv;
 }
 
-#if 1
 static char**
 _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 {
@@ -1369,7 +1380,6 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 
    return rv;
 }
-#endif
 
 static int
 _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)

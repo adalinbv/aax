@@ -726,6 +726,9 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
    case RB_AGC_VALUE:
       rbi->gain_agc = fval;
       break;
+   case RB_MAX_PITCH:
+       rbd->max_pitch = fval;
+       break;
    case RB_FREQUENCY:
       rbd->frequency_hz = fval;
       rbd->duration_sec = (fval > 0) ? (float)rbd->no_samples/fval : 0.0f;
@@ -977,7 +980,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
 float
 _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
-// _aaxRingBufferSample *rbd = rbi->sample;
+   _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
    float rv = AAX_NONE;
 
@@ -987,6 +990,7 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    assert(rbi != NULL);
    assert(rbi->parent == rb);
 
+   rbd = rbi->sample;
    switch(param)
    {
    case RB_VOLUME:
@@ -1001,6 +1005,9 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    case RB_AGC_VALUE:
       rv = rbi->gain_agc;
       break;
+   case RB_MAX_PITCH:
+       rv = rbd->max_pitch;
+       break;
    case RB_FREQUENCY:
       rv = rbi->sample->frequency_hz;
       break;

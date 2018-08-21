@@ -100,6 +100,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     unsigned char bytes_sample;
     unsigned short ref_counter;
 
+    float max_pitch;
     float frequency_hz;
     float duration_sec;
     float loop_start_sec;
