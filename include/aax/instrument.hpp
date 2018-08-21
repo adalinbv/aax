@@ -29,44 +29,40 @@
 namespace aax
 {
 
-class Key : public Emitter
+class Note : public Emitter
 {
 private:
-    Key(const Key&) = delete;
+    Note(const Note&) = delete;
 
-    Key& operator=(const Key&) = delete;
+    Note& operator=(const Note&) = delete;
 
 public:
-    Key(uint8_t key) : Emitter(AAX_STEREO), key_no(key)
+    Note(float p) : Emitter(AAX_STEREO)
     {
+        pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
     }
 
-    friend void swap(Key& n1, Key& n2) noexcept {
+    friend void swap(Note& n1, Note& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
         n1.pitch_param = std::move(n2.pitch_param);
         n1.gain_param = std::move(n2.gain_param);
-        n1.key_no = std::move(n2.key_no);
-        n1.frequency = std::move(n2.frequency);
         n1.pitch = std::move(n2.pitch);
-        n1.key_no = std::move(n2.key_no);
         n1.pressure = std::move(n2.pressure);
         n2.playing = std::move(n2.playing);
     }
 
-    Key& operator=(Key&&) = default;
+    Note& operator=(Note&&) = default;
 
     operator Emitter&() {
         return *this;
     }
 
-    bool play(uint8_t velocity, bool hold, bool is_drums = false)
+    bool play(float gain)
     {
         Emitter::set(AAX_INITIALIZED);
-        float attack = (1+velocity)/128.0f;
-        gain_param = sqrtf(attack);
-        if (!is_drums) pitch_param = pitch = note2freq(key_no)/(float)frequency;
+        gain_param = gain;
         if (!playing) Emitter::set(AAX_PLAYING);
         playing = true;
         return true;
@@ -79,7 +75,6 @@ public:
 
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
-        frequency = buffer.get(AAX_UPDATE_RATE);
         return Emitter::add(buffer);
     }
 
@@ -87,15 +82,9 @@ public:
     inline void set_pressure(uint8_t p) { pressure = p; }
 
 private:
-    inline float note2freq(uint8_t d) {
-        return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
-    }
-
     Param pitch_param = 1.0f;
     Param gain_param = 1.0f;
-    float frequency = 220.0f;
-    float pitch = 1.0f;
-    uint8_t key_no = 0;
+    float pitch = 0.0f;
     uint8_t pressure = 0;
     bool playing = false;
 };
@@ -129,10 +118,13 @@ public:
         return *this;
     }
 
-    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, bool hold, bool is_drums = false) {
+    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, bool is_drums = false) {
         auto it = key.find(key_no);
         if (it == key.end()) {
-            auto ret = key.insert({key_no, new Key(key_no)});
+            float pitch = 1.0f;
+            float frequency = buffer.get(AAX_UPDATE_RATE);
+            if (!is_drums) pitch = note2freq(key_no)/(float)frequency;
+            auto ret = key.insert({key_no, new Note(pitch)});
             it = ret.first;
             Mixer::add(*it->second);
             if (!playing && !is_drums) {
@@ -141,7 +133,8 @@ public:
             }
             it->second->buffer(buffer);
         }
-        it->second->play(velocity, hold, is_drums);
+        float gain = sqrtf((1+velocity)/128.0f);
+        it->second->play(gain);
     }
 
     void stop(uint8_t key_no) {
@@ -179,7 +172,11 @@ public:
     }
 
 private:
-    std::map<uint8_t,Key*> key;
+    inline float note2freq(uint8_t d) {
+        return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
+    }
+
+    std::map<uint8_t,Note*> key;
     AeonWave* aax;
 
     float pitch = 1.0f;
