@@ -229,6 +229,7 @@ public:
         : byte_stream(stream, len), midi(ptr), channel_no(track), PPQN(ppqn)
     {
         timestamp_us = pull_message();
+        uSPP = 500000/PPQN;
     }
 
     MIDITrack(const MIDITrack&) = default;
@@ -244,7 +245,7 @@ public:
         s1.previous = std::move(s2.previous);
         s1.timestamp_us = std::move(s2.timestamp_us);
         s1.PPQN = std::move(s2.PPQN);
-        s1.tempo = std::move(s2.tempo);
+        s1.uSPP = std::move(s2.uSPP);
         s1.semi_tones = std::move(s2.semi_tones);
         s1.poly = std::move(s2.poly);
         s1.omni = std::move(s2.omni);
@@ -264,7 +265,7 @@ private:
     uint8_t previous = 0;
     uint64_t timestamp_us = 0;
     uint16_t PPQN = 24;
-    uint32_t tempo = 500000;
+    uint32_t uSPP = 500000/24;
     float semi_tones = 1.0f;
     bool poly = true;
     bool omni = false;

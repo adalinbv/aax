@@ -310,7 +310,8 @@ MIDITrack::process(uint64_t time_offs_us)
                 break;
             case MIDI_SET_TEMPO:
             {
-                tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
+                uSPP = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
+                uSPP /= PPQN;
                 break;
             }
             case MIDI_SEQUENCE_NUMBER:
@@ -421,7 +422,7 @@ MIDITrack::process(uint64_t time_offs_us)
             uint32_t parts = pull_message();
             if (parts > 0)
             {
-                timestamp_us += tempo*parts/PPQN;
+                timestamp_us += parts*uSPP;
                 break;
             }
         }
