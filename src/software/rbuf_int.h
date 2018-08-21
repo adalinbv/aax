@@ -100,7 +100,6 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     unsigned char bytes_sample;
     unsigned short ref_counter;
 
-    float max_pitch;
     float frequency_hz;
     float duration_sec;
     float loop_start_sec;
@@ -135,6 +134,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
    _aaxRingBufferMixMNFn *mixmn;
 
    unsigned char mixer_fmt;	/* 1 if the ringbuffer is part of the mixer */
+   unsigned char no_pitch;
 
 } _aaxRingBufferSample;
 

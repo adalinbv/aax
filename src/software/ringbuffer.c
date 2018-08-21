@@ -253,6 +253,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       tracksize = SIZE_ALIGNED(tracksize);
 
       tracks = rbd->no_tracks;
+printf("tracks: %i, max_pitch: %i (%i)\n", tracks, rbd->no_pitch, 1 << rbd->no_pitch);
 
       offs = tracks * sizeof(void*);
       ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
@@ -726,9 +727,6 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
    case RB_AGC_VALUE:
       rbi->gain_agc = fval;
       break;
-   case RB_MAX_PITCH:
-       rbd->max_pitch = fval;
-       break;
    case RB_FREQUENCY:
       rbd->frequency_hz = fval;
       rbd->duration_sec = (fval > 0) ? (float)rbd->no_samples/fval : 0.0f;
@@ -876,6 +874,9 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       else printf("Unable set the no. tracks rbd->track == NULL\n");
 #endif
       break;
+   case RB_NO_PITCH:
+       rbd->no_pitch = val;
+       break;
    case RB_LOOPING:
       rbi->looping = val ? AAX_TRUE : AAX_FALSE;
       rbi->loop_max = (val > AAX_TRUE) ? val : 0;
@@ -980,7 +981,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
 float
 _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
-   _aaxRingBufferSample *rbd;
+// _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
    float rv = AAX_NONE;
 
@@ -990,7 +991,7 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    assert(rbi != NULL);
    assert(rbi->parent == rb);
 
-   rbd = rbi->sample;
+// rbd = rbi->sample;
    switch(param)
    {
    case RB_VOLUME:
@@ -1005,9 +1006,6 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    case RB_AGC_VALUE:
       rv = rbi->gain_agc;
       break;
-   case RB_MAX_PITCH:
-       rv = rbd->max_pitch;
-       break;
    case RB_FREQUENCY:
       rv = rbi->sample->frequency_hz;
       break;
@@ -1077,6 +1075,9 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    case RB_LOOPING:
       rv = rbi->loop_max ? rbi->loop_max : rbi->looping;
       break;
+   case RB_NO_PITCH:
+       rv = rbd->no_pitch;
+       break;
    case RB_FORMAT:
       rv = rbd->format;
       break;
