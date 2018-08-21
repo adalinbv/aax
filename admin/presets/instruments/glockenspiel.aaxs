@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Glockenspiel" program="10" bank="0" frequency="220" duration="0.10">
+ <instrument program="9" bank="0">
+  <note polyphony="8" min="72" max="108" step="12"/>
+ </instrument>
+
+ <sound name="Glockenspiel" frequency="220" duration="0.10">
   <waveform src="square" pitch="5"/>
   <waveform src="triangle" processing="modulate" ratio="0.7" pitch="5.0"/>
   <waveform src="triangle" processing="add" ratio="0.8"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="72" max="108" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

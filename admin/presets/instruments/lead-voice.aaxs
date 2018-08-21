@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Lead 6 (voice)" program="86" bank="0" frequency="220">
+ <instrument program="85" bank="0">
+  <note polyphony="8" min="48" max="84" step="12"/>
+ </instrument>
+
+ <sound name="Lead 6 (voice)" frequency="220">
   <waveform src="triangle" pitch="0.98"/>
   <waveform src="sine" processing="modulate" ratio="0.3" pitch="8.0"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="1.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="48" max="84" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

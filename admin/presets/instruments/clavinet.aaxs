@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Clavinet" program="8" bank="0" frequency="220" duration="0.10">
+ <instrument program="7" bank="0">
+  <note polyphony="6" min="36" max="96" step="12"/>
+ </instrument>
+
+ <sound name="Clavinet" frequency="220" duration="0.10">
   <waveform src="impulse" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.4" pitch="1.0"/>
   <filter type="frequency" src="48db">
@@ -20,10 +24,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="6" min="36" max="96" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope|48db">

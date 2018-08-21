@@ -8,16 +8,16 @@
 
 <aeonwave>
 
- <sound name="Acoustic Grand Piano" program="1" bank="0" frequency="220" duration="0.10">
+ <instrument program="1" bank="0">
+  <note polyphony="16" min="21" max="108" step="6"/>
+ </instrument>
+
+ <sound name="Acoustic Grand Piano" frequency="220" duration="0.10">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
   <waveform src="triangle" processing="mix" ratio="0.333" pitch="2.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="88" min="21" max="108" step="6"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

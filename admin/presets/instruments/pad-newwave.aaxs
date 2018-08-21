@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Pad 1 (new-wave)" program="89" bank="0" frequency="220" duration="0.33">
+ <instrument program="88" bank="0">
+  <note polyphony="8" min="36" max="96" step="12"/>
+ </instrument>
+
+ <sound name="Pad 1 (new-wave)" frequency="220" duration="0.33">
   <waveform src="triangle" pitch="1.0" voices="7" spred="0.3"/>
   <waveform src="sine" processing="mix" ratio="0.2" pitch="0.9399"/>
   <waveform src="sine" processing="modulate" ratio="0.7" pitch="5.9987"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="36" max="96" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

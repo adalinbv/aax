@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Detuned Electric Piano 1" program="5" bank="8" frequency="220" duration="0.10">
+ <instrument program="4" bank="8">
+  <note polyphony="8" min="28" max="103" step="12"/>
+ </instrument>
+
+ <sound name="Detuned Electric Piano 1" frequency="220" duration="0.10">
   <waveform src="sawtooth" ratio="0.4" pitch="0.995"/>
   <waveform src="sine" processing="mix" ratio="0.48"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="28" max="103" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope">

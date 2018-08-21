@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="English Horn" program="70" bank="0" frequency="220" duration="0.10">
+ <instrument program="69" bank="0">
+  <note polyphony="1" min="52" max="81" step="12"/>
+ </instrument>
+
+ <sound name="English Horn" frequency="220" duration="0.10">
   <waveform src="sine" ratio="0.1875" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="0.3125" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.4375" pitch="3.0"/>
@@ -16,10 +20,6 @@
   <waveform src="sine" processing="add" ratio="0.3125" pitch="5.0"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="6.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="1" min="52" max="81" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

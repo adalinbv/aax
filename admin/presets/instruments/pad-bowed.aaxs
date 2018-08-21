@@ -8,16 +8,16 @@
 
 <aeonwave>
 
- <sound name="Pad 5 (bowed)" program="93" bank="0" frequency="220" duration="3.0" voices="5" spread="0.075">
+ <instrument program="92" bank="0">
+  <note polyphony="8" min="48" max="96" step="12"/>
+ </instrument>
+
+ <sound name="Pad 5 (bowed)" frequency="220" duration="3.0" voices="5" spread="0.075">
   <waveform src="sine" ratio="1.0" pitch="0.5"/>
   <waveform src="triangle" processing="mix" ratio="0.7" phase="0.33"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="5.0"/>
   <waveform src="triangle" processing="modulate" ratio="2.5" pitch="7.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="48" max="96" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">

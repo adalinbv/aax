@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Bright Piano" program="2" bank="0" frequency="220" duration="0.10">
+ <instrument program="1" bank="0">
+  <note polyphony="88" min="21" max="108" step="6"/>
+ </instrument>
+
+ <sound name="Bright Piano" frequency="220" duration="0.10">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="88" min="21" max="108" step="6"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

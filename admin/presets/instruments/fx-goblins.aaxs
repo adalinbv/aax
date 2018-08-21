@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Effects (Goblin)" program="102" bank="0" frequency="220" duration="0.5">
+ <instrument program="101" bank="0">
+  <note polyphony="4" min="36" max="96" step="12"/>
+ </instrument>
+
+ <sound name="Effects (Goblin)" frequency="220" duration="0.5">
   <waveform src="sawtooth" ratio="0.5"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="1.493"/>
   <waveform src="brownian-noise" processing="add" ratio="15.0" pitch="0.07" staticity="0.9"/>
  </sound>
-
- <instrument>
-  <note polyphony="4" min="36" max="96" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Vibraphone" program="12" bank="0" frequency="220" duration="0.10">
+ <instrument program="11" bank="0">
+  <note polyphony="8" min="53" max="89" step="12"/>
+ </instrument>
+
+ <sound name="Vibraphone" frequency="220" duration="0.10">
   <waveform src="sine" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="0.8" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="2.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="53" max="89" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

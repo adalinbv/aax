@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="French Horn" program="61" bank="0" frequency="220" duration="0.10">
+ <instrument program="60" bank="0">
+  <note polyphony="1" min="41" max="77" step="12"/>
+ </instrument>
+
+ <sound name="French Horn" frequency="220" duration="0.10">
 <!--
   <waveform src="sine" ratio="0.4375" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="0.375" pitch="2.0"/>
@@ -28,10 +32,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="1" min="41" max="77" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

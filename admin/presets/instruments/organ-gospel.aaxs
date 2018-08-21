@@ -7,7 +7,12 @@
 -->
 
 <aeonwave>
- <sound name="Gospel Organ"  program="17" bank="0" frequency="220" duration="0.10">
+
+ <instrument program="16" bank="0">
+  <note polyphony="10" min="36" max="96" step="12"/>
+ </instrument>
+
+ <sound name="Gospel Organ" frequency="220" duration="0.10">
   <waveform src="sine" ratio="0.4375" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
@@ -16,10 +21,6 @@
   <waveform src="sine" processing="add" ratio="0.5" pitch="4.0"/>
   <waveform src="sine" processing="add" ratio="0.375" pitch="8.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="10" min="36" max="96" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

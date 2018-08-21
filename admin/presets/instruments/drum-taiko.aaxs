@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Taike Drum" program="117" bank="0" frequency="22" duration="0.10">
+ <instrument program="117" bank="0">
+  <note polyphony="1" min="60" max="77" step="1"/>
+ </instrument>
+
+ <sound name="Taiko Drum" frequency="22" duration="0.10">
   <waveform src="sine" pitch="0.996"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
  </sound>
-
- <instrument>
-  <note polyphony="1" min="60" max="77" step="1"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

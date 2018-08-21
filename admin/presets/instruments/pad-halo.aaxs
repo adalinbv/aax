@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Pad 7 (halo)" program="89" bank="0" frequency="220" duration="3.0">
+ <instrument program="88" bank="0">
+  <note polyphony="8" min="36" max="96" step="12"/>
+ </instrument>
+
+ <sound name="Pad 7 (halo)" frequency="220" duration="3.0">
   <waveform src="triangle" pitch="0.51" voices="5" spread="0.9"/>
   <waveform src="square" processing="modulate" ratio="0.8" pitch="7.9987"/>
   <waveform src="triangle" processing="add" ratio="0.3" pitch="0.9399"/>
@@ -22,10 +26,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="36" max="96" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

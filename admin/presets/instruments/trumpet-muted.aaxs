@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Muted Trumpet" program="60" bank="0" frequency="220" duration="0.10">
+ <instrument program="59" bank="0">
+  <note polyphony="1" min="58" max="82" step="12"/>
+ </instrument>
+
+ <sound name="Muted Trumpet" frequency="220" duration="0.10">
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -27,10 +31,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="1" min="58" max="82" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

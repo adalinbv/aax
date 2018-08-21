@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Bassoon" program="71" bank="0" frequency="220" duration="0.1">
+ <instrument program="70" bank="0">
+  <note polyphony="1" min="34" max="72" step="12"/>
+ </instrument>
+
+ <sound name="Bassoon" frequency="220" duration="0.1">
   <waveform src="sine" ratio="0.5" pitch="0.25"/>
   <waveform src="sine" processing="add" ratio="0.375" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
@@ -27,10 +31,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="1" min="34" max="72" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

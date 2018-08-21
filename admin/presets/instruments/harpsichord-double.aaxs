@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Coupled Harpsichord" program="7" bank="8" frequency="220" duration="0.10">
+ <instrument program="6" bank="8">
+  <note polyphony="72" min="41" max="89" step="12"/>
+ </instrument>
+
+ <sound name="Coupled Harpsichord" frequency="220" duration="0.10">
   <waveform src="square" ratio="0.6"/>
   <waveform src="sawtooth" processing="add" ratio="-0.5" pitch="3.0"/>
   <waveform src="square" processing="modulate" ratio="1.5" pitch="3.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="72" min="41" max="89" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope">

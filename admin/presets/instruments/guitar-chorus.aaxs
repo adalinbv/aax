@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Chorus Guitar" program="28" bank="8" frequency="220" duration="0.10">
+ <instrument program="27" bank="8">
+  <note polyphony="6" min="40" max="86" step="12"/>
+ </instrument>
+
+ <sound name="Chorus Guitar" frequency="220" duration="0.10">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="5.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="6" min="40" max="86" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Tubular Bells" program="15" bank="0" frequency="220" duration="0.10">
+ <instrument program="14" bank="0">
+  <note polyphony="17" min="60" max="77" step="1"/>
+ </instrument>
+
+ <sound name="Tubular Bells" frequency="220" duration="0.10">
   <waveform src="sine" pitch="1.199998"/>
   <waveform src="sine" processing="add" ratio="0.4"  pitch="2.59987"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.4587"/>
  </sound>
-
- <instrument>
-  <note polyphony="17" min="60" max="77" step="1"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

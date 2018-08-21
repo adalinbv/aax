@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="Italian Accordion" program="22" bank="8" frequency="220" duration="0.75">
+ <instrument program="21" bank="8">
+  <note polyphony="6" min="53" max="89" step="12"/>
+ </instrument>
+
+ <sound name="Italian Accordion" frequency="220" duration="0.75">
   <waveform src="square" ratio="0.5"/>
   <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="2.995"/>
  </sound>
-
- <instrument>
-  <note polyphony="6" min="53" max="89" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

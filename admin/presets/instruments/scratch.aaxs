@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Scratch" program="125" bank="4" frequency="66.0" duration="3.33">
+ <instrument program="124" bank="4">
+  <note polyphony="1" min="39" max="45" step="12"/>
+ </instrument>
+
+ <sound name="Scratch" frequency="66.0" duration="3.33">
   <waveform src="pink-noise" ratio="10.0" pitch="0.25" staticity="0.3"/>
   <filter type="frequency" src="12db">
    <slot n="0">

@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Lead 1 (square)" program="81" bank="0" frequency="220" duration="1.0">
+ <instrument program="80" bank="0">
+  <note polyphony="8" min="21" max="108" step="12"/>
+ </instrument>
+
+ <sound name="Lead 1 (square)" frequency="220" duration="1.0">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="4.9897"/>
   <waveform src="triangle" processing="modulate" ratio="1.0" pitch="3.4991"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="21" max="108" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">

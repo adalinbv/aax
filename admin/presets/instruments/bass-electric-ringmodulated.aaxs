@@ -8,16 +8,16 @@
 
 <aeonwave>
 
- <sound name="Ring Modulated Electric Bass" program="34" bank="0" frequency="110" duration="0.10">
+ <instrument program="33" bank="0">
+  <note polyphony="6" min="28" max="55" step="12"/>
+ </instrument>
+
+ <sound name="Ring Modulated Electric Bass" frequency="110" duration="0.10">
   <waveform src="square" pitch="1.0"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="2.0"/>
  </sound>
-
- <instrument>
-  <note polyphony="6" min="28" max="55" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="24db">

@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Oboe"  program="69" bank="0" frequency="220" duration="0.10">
+ <instrument program="68" bank="0">
+  <note polyphony="1" min="58" max="91" step="12"/>
+ </instrument>
+
+ <sound name="Oboe" frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="square" processing="modulate" ratio="0.6" pitch="5.0"/>
   <filter type="frequency" src="24db">
@@ -20,10 +24,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="1" min="58" max="91" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

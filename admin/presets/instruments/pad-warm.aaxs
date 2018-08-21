@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Pad 2 (Warm)" program="89" bank="0" frequency="220" duration="1.0">
+ <instrument program="88" bank="0">
+  <note polyphony="8" min="36" max="96" step="12"/>
+ </instrument>
+
+ <sound name="Pad 2 (Warm)" frequency="220" duration="1.0">
   <waveform src="brownian-noise" pitch="0.125"/>
   <waveform src="sine" processing="mix" pitch="0.501" voices="5" spread="0.71"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899" voices="3" spread="0.05"/>
  </sound>
-
- <instrument>
-  <note polyphony="8" min="36" max="96" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope">

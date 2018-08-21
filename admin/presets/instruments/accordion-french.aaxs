@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <sound name="French Accordion" program="22" bank="0" frequency="220" duration="0.75">
+ <instrument program="21" bank="0">
+  <note polyphony="6" min="53" max="89" step="12"/>
+ </instrument>
+
+ <sound name="French Accordion" frequency="220" duration="0.75">
   <waveform src="square" ratio="0.6"/>
   <waveform src="sawtooth" processing="mix" ratio="0.25" pitch="2.999"/>
  </sound>
-
- <instrument>
-  <note polyphony="6" min="53" max="89" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

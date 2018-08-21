@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Acoustic Guitar (Steel)" program="26" bank="0" frequency="220" duration="0.10">
+ <instrument program="25" bank="0">
+  <note polyphony="6" min="40" max="84" step="12"/>
+ </instrument>
+
+ <sound name="Acoustic Guitar (Steel)" frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="2.999"/>
@@ -21,10 +25,6 @@
    </slot>
   </filter>
  </sound>
-
- <instrument>
-  <note polyphony="6" min="40" max="84" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">

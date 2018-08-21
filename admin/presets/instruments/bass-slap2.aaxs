@@ -8,15 +8,15 @@
 
 <aeonwave>
 
- <sound name="Slapped Electric Bass 2" program="38" bank="0" frequency="110" duration="0.75">
+ <instrument program="37" bank="0">
+  <note polyphony="4" min="28" max="55" step="12"/>
+ </instrument>
+
+ <sound name="Slapped Electric Bass 2" frequency="110" duration="0.75">
   <waveform src="sawtooth" pitch="0.9997"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="9.999"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="1.999"/>
  </sound>
-
- <instrument>
-  <note polyphony="4" min="28" max="55" step="12"/>
- </instrument>
 
  <emitter looping="true">
   <filter type="timed-gain">
