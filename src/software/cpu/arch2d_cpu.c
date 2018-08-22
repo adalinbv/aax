@@ -1138,7 +1138,7 @@ _batch_endianswap64_cpu(void* data, size_t num)
  * Note: smax is only used in the *Loop mixing functions
  */
 static inline void
-_aaxBufResampleSkip_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleDecimate_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr s = (int32_ptr)sptr;
    int32_ptr d = dptr;
@@ -1353,7 +1353,7 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, fl
       _aaxBufResampleLinear_cpu(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_cpu(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleDecimate_cpu(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_cpu(d, s, dmin, dmax, smu, fact);
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
@@ -1362,7 +1362,7 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, fl
 
 
 static inline void
-_aaxBufResampleSkip_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleDecimate_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
@@ -1576,7 +1576,7 @@ _batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, size_t dmin, size_
       _aaxBufResampleLinear_float_cpu(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_float_cpu(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleDecimate_float_cpu(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_cpu(d, s, dmin, dmax, smu, fact);
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));

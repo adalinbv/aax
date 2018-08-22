@@ -555,7 +555,7 @@ _batch_freqfilter_float_avx2(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
 #if !RB_FLOAT_DATA
 static inline void
-_aaxBufResampleSkip_avx2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleDecimate_avx2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    int32_ptr sptr = (int32_ptr)s;
    int32_ptr dptr = d;
@@ -740,7 +740,7 @@ _batch_resample_avx2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, f
       _aaxBufResampleLinear_avx2(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_avx2(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleDecimate_avx2(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_avx2(d, s, dmin, dmax, smu, fact);
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
@@ -749,7 +749,7 @@ _batch_resample_avx2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, f
 #else
 
 static inline void
-_aaxBufResampleSkip_float_avx2(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+_aaxBufResampleDecimate_float_avx2(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    float32_ptr s = (float32_ptr)sptr;
    float32_ptr d = dptr;
@@ -933,7 +933,7 @@ _batch_resample_float_avx2(float32_ptr d, const_float32_ptr s, size_t dmin, size
       _aaxBufResampleLinear_float_avx2(d, s, dmin, dmax, smu, fact);
    }
    else if (fact > 1.0f) {
-      _aaxBufResampleSkip_float_avx2(d, s, dmin, dmax, smu, fact);
+      _aaxBufResampleDecimate_float_avx2(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_avx2(d, s, dmin, dmax, smu, fact);
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
