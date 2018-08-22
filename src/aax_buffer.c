@@ -1433,7 +1433,6 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
          no_samples = floorf((no_samples/samps_period)+1)*samps_period;
          rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
          rb->init(rb, AAX_FALSE);
-printf("rb->init(rb, AAX_FALSE)\n");
       }
 
       switch (ptype)
