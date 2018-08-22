@@ -37,9 +37,8 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float p) : Emitter(AAX_STEREO)
-    {
-        pitch_param = p;
+    Note(float p) : Emitter(AAX_STEREO) {
+        pitch_param = pitch = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
     }
@@ -59,13 +58,11 @@ public:
         return *this;
     }
 
-    bool play(float gain)
-    {
-        Emitter::set(AAX_INITIALIZED);
+    bool play(float gain) {
         gain_param = gain;
-        if (!playing) Emitter::set(AAX_PLAYING);
-        playing = true;
-        return true;
+        Emitter::set(AAX_INITIALIZED);
+        if (!playing) playing = Emitter::set(AAX_PLAYING);
+        return playing;
     }
 
     bool stop() {
@@ -84,7 +81,7 @@ public:
 private:
     Param pitch_param = 1.0f;
     Param gain_param = 1.0f;
-    float pitch = 0.0f;
+    float pitch = 1.0f;
     uint8_t pressure = 0;
     bool playing = false;
 };
@@ -98,16 +95,13 @@ private:
     Instrument& operator=(const Instrument&) = delete;
 
 public:
-    Instrument(AeonWave& ptr)
-        : Mixer(ptr), aax(&ptr)
-    {
+    Instrument(AeonWave& ptr) : Mixer(ptr), aax(&ptr) {
         Mixer::set(AAX_PLAYING);
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
-        i1.pitch = std::move(i2.pitch);
         i1.pressure = std::move(i2.pressure);
         i1.playing = std::move(i2.playing);
     }
@@ -146,8 +140,7 @@ public:
         }
     }
 
-    inline void set_pitch(float p) {
-        pitch = p;
+    inline void set_pitch(float pitch) {
         for (auto& it : key) {
             it.second->set_pitch(pitch);
         }
@@ -179,7 +172,6 @@ private:
     std::map<uint8_t,Note*> key;
     AeonWave* aax;
 
-    float pitch = 1.0f;
     uint8_t pressure = 0;
     bool playing = false;
     bool hold = false;
