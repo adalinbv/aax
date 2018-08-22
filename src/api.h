@@ -229,7 +229,8 @@ typedef struct
    char to_mixer;
    char mipmap;
 
-   _aaxRingBuffer *ringbuffer;
+   char pitch_levels;
+   _aaxRingBuffer *ringbuffer[5];
    _aaxMixerInfo **info;
    void *root;			/* reference to the mixer object */
    void *aaxs;

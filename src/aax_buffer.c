@@ -99,7 +99,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->frequency = 0.0f;
          buf->info = VALID_HANDLE(handle) ? &handle->info : &_info;
          buf->root = handle;
-         buf->ringbuffer = _bufGetRingBuffer(buf, handle);
+         buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle);
          buf->to_mixer = AAX_FALSE;
          rv = (aaxBuffer)buf;
       }
@@ -468,7 +468,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
          handle->to_mixer = AAX_TRUE;
       }
       rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
-      handle->ringbuffer = rb;
+      handle->ringbuffer[0] = rb;
 
       rv = AAX_TRUE;
       _aax_free(ptr);
@@ -801,7 +801,7 @@ free_buffer(_buffer_t* handle)
    {
       if (--handle->ref_counter == 0)
       {
-         handle->ringbuffer = _bufDestroyRingBuffer(handle);
+         handle->ringbuffer[0] = _bufDestroyRingBuffer(handle);
          free(handle->aaxs);
          free(handle->url);
 
@@ -817,7 +817,7 @@ free_buffer(_buffer_t* handle)
 static _aaxRingBuffer*
 _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
 {
-   _aaxRingBuffer *rb = buf->ringbuffer;
+   _aaxRingBuffer *rb = buf->ringbuffer[0];
    if (!rb && handle && (VALID_HANDLE(handle) ||
                          (buf->info && *buf->info &&
                           VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
@@ -855,7 +855,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
 static _aaxRingBuffer*
 _bufDestroyRingBuffer(_buffer_t* buf)
 {
-   _aaxRingBuffer *rb = buf->ringbuffer;
+   _aaxRingBuffer *rb = buf->ringbuffer[0];
    if (rb && (buf->info && *buf->info &&
               VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
       )
@@ -1236,6 +1236,7 @@ _bufAAXSThread(void *d)
 
          if (!freq) {
             freq = xmlAttributeGetDouble(xsid, "frequency");
+            handle->pitch_levels = _MIN((unsigned char)log2i(max_frequency/freq), 5);
             handle->rate = freq;
          }
          if (xmlAttributeExists(xsid, "voices")) {

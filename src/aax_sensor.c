@@ -299,7 +299,7 @@ aaxSensorGetBuffer(const aaxConfig config)
 
                buf->info = &_info;
                rb->set_parami(rb, RB_IS_MIXER_BUFFER, AAX_FALSE);
-               buf->ringbuffer = rb;
+               buf->ringbuffer[0] = rb;
 
                buffer = (aaxBuffer)buf;
             }

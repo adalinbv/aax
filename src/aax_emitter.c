@@ -175,7 +175,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          }
          else
          {
-            _aaxRingBuffer *rb = buffer->ringbuffer;
+            _aaxRingBuffer *rb = buffer->ringbuffer[0];
             if (rb)
             {
                if (!rb->get_state(rb, RB_IS_VALID)) {
@@ -196,13 +196,15 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 
    if (rv)
    {
+      _aax2dProps *ep2d = handle->source->props2d;
+      float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
       _aaxRingBuffer *rb;
 
       if (!buffer->root) {
          buffer->root = handle->root;
       }
 
-      rb = buffer->ringbuffer;
+      rb = buffer->ringbuffer[0];
       if (rb)
       {
          const _aaxEmitter *src = handle->source;
@@ -227,8 +229,10 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       }
 
 #if 0
+      // This is done when the buffer is being used for the first time
+      // in software/emitters.c
       if (rv && buffer->aaxs) {
-         rv = _emitterCreateEFFromAAXS(handle, buffer->aaxs);
+         rv = _emitterCreateEFFromAAXS(handle, embuf, buffer->aaxs);
       }
 #endif
    }
@@ -631,7 +635,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          if (dptr)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
-            _aaxRingBuffer *rb = embuf->buffer->ringbuffer;
+            _aaxRingBuffer *rb = embuf->buffer->ringbuffer[0];
             if (mode < (int)rb->get_parami(rb, RB_NO_TRACKS))
             {
                handle->track = mode;
@@ -1487,12 +1491,14 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
+      _aax2dProps *ep2d = handle->source->props2d;
+      float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
       void *xmid = xmlNodeGet(xid, "aeonwave/sound");
       float freq = 0.0f;
 
       if (xmid)
       {
-         freq = xmlAttributeGetDouble(xmid, "frequency");
+         freq = pitch*xmlAttributeGetDouble(xmid, "frequency");
          xmlFree(xmid);
       }
 
