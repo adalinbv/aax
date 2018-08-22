@@ -253,8 +253,6 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       tracksize = SIZE_ALIGNED(tracksize);
 
       tracks = rbd->no_tracks;
-printf("tracks: %i, max_pitch: %i (%i)\n", tracks, rbd->no_pitch, 1 << rbd->no_pitch);
-
       offs = tracks * sizeof(void*);
       ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
 #else
@@ -874,9 +872,6 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       else printf("Unable set the no. tracks rbd->track == NULL\n");
 #endif
       break;
-   case RB_NO_PITCH:
-       rbd->no_pitch = val;
-       break;
    case RB_LOOPING:
       rbi->looping = val ? AAX_TRUE : AAX_FALSE;
       rbi->loop_max = (val > AAX_TRUE) ? val : 0;
@@ -1075,9 +1070,6 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    case RB_LOOPING:
       rv = rbi->loop_max ? rbi->loop_max : rbi->looping;
       break;
-   case RB_NO_PITCH:
-       rv = rbd->no_pitch;
-       break;
    case RB_FORMAT:
       rv = rbd->format;
       break;

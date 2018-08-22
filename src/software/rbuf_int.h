@@ -134,7 +134,6 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
    _aaxRingBufferMixMNFn *mixmn;
 
    unsigned char mixer_fmt;	/* 1 if the ringbuffer is part of the mixer */
-   unsigned char no_pitch;
 
 } _aaxRingBufferSample;
 

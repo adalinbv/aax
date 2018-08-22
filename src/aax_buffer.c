@@ -1274,7 +1274,6 @@ _bufAAXSThread(void *d)
             float f = rb->get_paramf(rb, RB_FREQUENCY);
             size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-            rb->set_parami(rb, RB_NO_PITCH, log2i(max_frequency/freq));
          }
 
          xwid = xmlMarkId(xsid);
