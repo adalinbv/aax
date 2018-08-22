@@ -198,13 +198,16 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    {
       _aax2dProps *ep2d = handle->source->props2d;
       float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+      unsigned char pitch_level;
       _aaxRingBuffer *rb;
 
       if (!buffer->root) {
          buffer->root = handle->root;
       }
 
-      rb = buffer->ringbuffer[0];
+      pitch_level = _MIN(log2i(pitch), 5);
+      ep2d->pitch_fact = 1.0f/(float)(1 << pitch_level);
+      rb = buffer->ringbuffer[pitch_level];
       if (rb)
       {
          const _aaxEmitter *src = handle->source;

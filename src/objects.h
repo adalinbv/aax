@@ -339,6 +339,8 @@ typedef ALIGN16 struct
    float bufpos3dq;             /* distance delay queue buffer position      */
 
    float curr_pos_sec;
+   float pitch_fact;
+
 #ifdef MIDI
    struct {
       float velocity;

@@ -49,9 +49,9 @@
 #include "arch.h"
 #include "api.h"
 
-static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*);
-static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*);
-static int _bufProcessWaveform(aaxBuffer, float, float, float, float, int, float, enum aaxWaveformType, float, enum aaxProcessingType);
+static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
+static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
+static int _bufProcessWaveform(aaxBuffer, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
@@ -99,7 +99,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->frequency = 0.0f;
          buf->info = VALID_HANDLE(handle) ? &handle->info : &_info;
          buf->root = handle;
-         buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle);
+         buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
          buf->to_mixer = AAX_FALSE;
          rv = (aaxBuffer)buf;
       }
@@ -126,7 +126,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
 
    if (!rv && handle)
    {
-      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
       if (!rb) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
@@ -136,7 +136,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
 
    if (rv)
    {
-      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
       unsigned int tmp;
 
       switch(type)
@@ -264,7 +264,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
 
    if (!rv && handle)
    {
-      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
       if (!rb) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
@@ -274,7 +274,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
 
    if (rv)
    {
-      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
       switch(type)
       {
       case AAX_FREQUENCY:
@@ -352,7 +352,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       }
       else if ((handle->format & AAX_SPECIAL) != 0)
       {
-         _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL);
+         _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
          if (!rb || rb->get_parami(rb, RB_NO_SAMPLES) == 0) {
             _aaxErrorSet(AAX_INVALID_STATE);
          } else {
@@ -379,7 +379,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
    }
    else if (rv)
    {
-      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL);
+      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
       unsigned int tracks, no_samples, buf_samples;
       unsigned blocksize =  handle->blocksize;
       unsigned int format = handle->format;
@@ -478,7 +478,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, 1, 0.0f, wtype, ratio, ptype);
+   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, 0, 1, 0.0f, wtype, ratio, ptype);
 }
 
 AAX_API void** AAX_APIENTRY
@@ -499,7 +499,7 @@ aaxBufferGetData(const aaxBuffer buffer)
          }
          else
          {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
             if (!rb) {
                _aaxErrorSet(AAX_INVALID_STATE);
             } else {
@@ -543,7 +543,7 @@ aaxBufferGetData(const aaxBuffer buffer)
       char *ptr, bps;
       float fact;
 
-      rb = _bufGetRingBuffer(handle, NULL);
+      rb = _bufGetRingBuffer(handle, NULL, 0);
       fact = handle->frequency / rb->get_paramf(rb, RB_FREQUENCY);
       pos = (unsigned int)(fact*handle->pos);
 
@@ -553,7 +553,7 @@ aaxBufferGetData(const aaxBuffer buffer)
       buf_samples = tracks*no_samples;
 
       data = (void**)_aax_malloc(&ptr, sizeof(void*), no_samples*tracks*bps);
-      if (data == NULL) 
+      if (data == NULL)
       {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          return data;
@@ -579,7 +579,7 @@ aaxBufferGetData(const aaxBuffer buffer)
                free(data);
                data = ndata;
             }
-         } 
+         }
 
          if (native_fmt != AAX_PCM24S)	/* then convert to requested format */
          {
@@ -600,7 +600,7 @@ aaxBufferGetData(const aaxBuffer buffer)
             }
          }
       } /* rb_format != native_fmt */
- 
+
 			/* do we need to convert to non-native format? */
       if (user_format & ~AAX_FORMAT_NATIVE)
       {
@@ -733,7 +733,7 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 
 #if 0
       _buffer_t* handle = get_buffer(buffer, __func__);
-      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
       _aaxRingBufferData *rbi = rb->root;
       _aaxRingBufferSample *rbd = rbi->sample;
       const int32_t **data;
@@ -801,7 +801,10 @@ free_buffer(_buffer_t* handle)
    {
       if (--handle->ref_counter == 0)
       {
-         handle->ringbuffer[0] = _bufDestroyRingBuffer(handle);
+         unsigned char b;
+         for (b=0; b<handle->pitch_levels; ++b) {
+            handle->ringbuffer[b] = _bufDestroyRingBuffer(handle, b);
+         }
          free(handle->aaxs);
          free(handle->url);
 
@@ -815,9 +818,9 @@ free_buffer(_buffer_t* handle)
 }
 
 static _aaxRingBuffer*
-_bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
+_bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
 {
-   _aaxRingBuffer *rb = buf->ringbuffer[0];
+   _aaxRingBuffer *rb = buf->ringbuffer[pos];
    if (!rb && handle && (VALID_HANDLE(handle) ||
                          (buf->info && *buf->info &&
                           VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
@@ -832,7 +835,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
       } else {
          be = ((_handle_t*)((*buf->info)->backend))->backend.ptr;
       }
- 
+
       rb = be->get_ringbuffer(0.0f, mode);
       if (rb)
       {
@@ -853,9 +856,9 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle)
 }
 
 static _aaxRingBuffer*
-_bufDestroyRingBuffer(_buffer_t* buf)
+_bufDestroyRingBuffer(_buffer_t* buf, unsigned char pos)
 {
-   _aaxRingBuffer *rb = buf->ringbuffer[0];
+   _aaxRingBuffer *rb = buf->ringbuffer[pos];
    if (rb && (buf->info && *buf->info &&
               VALID_HANDLE((_handle_t*)((*buf->info)->backend)))
       )
@@ -979,7 +982,7 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
 
    if (data)
    {
-      _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, NULL);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, NULL, 0);
 
       /* the internal buffer format for .aaxs files is signed 24-bit */
       {
@@ -1011,7 +1014,7 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
 }
 
 static int
-_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, int voices, float spread)
+_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsigned int pitch_level, int voices, float spread)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
@@ -1129,7 +1132,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, int 
    spread = spread*_log2lin(_lin2log(freq)/3.3f);
    if (ptype == AAX_RINGMODULATE) voices = 1;
    return _bufProcessWaveform(handle, freq, phase, pitch, staticity,
-                                      voices, spread, wtype, ratio, ptype);
+                              pitch_level, voices, spread, wtype, ratio, ptype);
 }
 
 static int
@@ -1222,7 +1225,7 @@ _bufAAXSThread(void *d)
       if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
       if (xsid)
       {
-         unsigned int i, num, bits = 24;
+         unsigned int b, i, num, bits = 24;
          double duration = 1.0f;
          float spread = 0;
          int voices = 1;
@@ -1269,52 +1272,61 @@ _bufAAXSThread(void *d)
             }
          }
 
-         if (duration >= 0.099f)
+         for (b=0; b<handle->pitch_levels; ++b)
          {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-            float f = rb->get_paramf(rb, RB_FREQUENCY);
-            size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
-            rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-         }
-
-         xwid = xmlMarkId(xsid);
-         num = xmlNodeGetNum(xsid, "*");
-         for (i=0; i<num; i++)
-         {
-            if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
+            float mul = (float)(1 << b);
+            float frequency = mul*freq;
+            float pitch_fact = 1.0f/mul;
+            if (duration >= 0.099f)
             {
-               char *name = xmlNodeGetName(xwid);
-               if (!strcasecmp(name, "waveform")) {
-                  rv = _bufCreateWaveformFromAAXS(handle, xwid, freq, voices, spread);
-               } else if (!strcasecmp(name, "filter")) {
-                  rv = _bufCreateFilterFromAAXS(handle, xwid, freq);
-               } else if (!strcasecmp(name, "effect")) {
-                  rv = _bufCreateEffectFromAAXS(handle, xwid, freq);
+               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
+               float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
+               size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
+               rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+               handle->ringbuffer[b] = rb;
+            }
+
+            xwid = xmlMarkId(xsid);
+            num = xmlNodeGetNum(xsid, "*");
+            for (i=0; i<num; i++)
+            {
+               if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
+               {
+                  char *name = xmlNodeGetName(xwid);
+                  if (!strcasecmp(name, "waveform")) {
+                     rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency, b,
+                                                     voices, spread);
+                  } else if (!strcasecmp(name, "filter")) {
+                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
+                  } else if (!strcasecmp(name, "effect")) {
+                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency);
+                  }
+                  free(name);
+                  if (rv == AAX_FALSE) break;
                }
-               free(name);
-               if (rv == AAX_FALSE) break;
+            }
+
+            if (bits == 16)
+            {
+               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+               _aaxRingBufferData *rbi = rb->handle;
+               _aaxRingBufferSample *rbd = rbi->sample;
+               void *dptr = rbd->track[0];
+               unsigned int no_samples;
+
+               // 32-bit aligned 24-bit is smaller than 16-bit
+               // TODO: return the freed space,
+               //       but how does aligned realloc work?
+               no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+               _batch_cvt16_24(dptr, dptr, no_samples);
+               rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
+               handle->format = AAX_PCM16S;
             }
          }
          xmlFree(xwid);
          xmlFree(xsid);
-
-         if (bits == 16)
-         {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
-            _aaxRingBufferData *rbi = rb->handle;
-            _aaxRingBufferSample *rbd = rbi->sample; 
-            void *dptr = rbd->track[0];
-            unsigned int no_samples;
-
-            // this works because 32-bit aligned 24-bit is smaller than 16-bit
-            // TODO: return the freed space, but how does aligned realloc work?
-            no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-            _batch_cvt16_24(dptr, dptr, no_samples);
-            rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
-            handle->format = AAX_PCM16S;
-         }
+         xmlClose(xid);
       }
-      xmlClose(xid);
    }
    else {
       aax_buf->error = AAX_INVALID_PARAMETER;
@@ -1367,7 +1379,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
 static char**
 _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 {
-   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
    float fs, **freqs;
    char **rv;
 
@@ -1382,7 +1394,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 }
 
 static int
-_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
+_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
@@ -1396,7 +1408,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
    }
    else if (handle && handle->info && (*handle->info && ((*handle->info)->id == INFO_ID)))
    {
-      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
       float samps_period, fs, fw, fs_mixer, rate;
       unsigned int no_samples, i, bit = 1;
       int q, hvoices;
@@ -1421,6 +1433,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
          no_samples = floorf((no_samples/samps_period)+1)*samps_period;
          rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
          rb->init(rb, AAX_FALSE);
+printf("rb->init(rb, AAX_FALSE)\n");
       }
 
       switch (ptype)
@@ -1514,7 +1527,7 @@ _aaxMuLaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
 
 static void
 _aaxALaw2Linear(int32_t*ndata, uint8_t* data, unsigned int i)
-{  
+{
    do {
       *ndata++ = _alaw2linear(*data++) << 8;
    } while (--i);
@@ -1881,7 +1894,7 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
-      break; 
+      break;
    case AAX_FLOAT:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_ps_intl(tracks, data, 0, no_tracks, no_samples);
@@ -1960,7 +1973,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
    {
       unsigned int size = samples*bps;
       char *p;
-      
+
       if (fmt == AAX_PCM24S)
       {
          size_t offs = no_tracks*sizeof(void*);
@@ -2043,7 +2056,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
 static void
 _bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter)
 {
-   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
    int32_t **sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
    _aaxFilterInfo* slot = filter->slot[0];
    float ratio = slot->param[AAX_NOISE_LEVEL];
@@ -2080,7 +2093,7 @@ _bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter)
 static void
 _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 {
-   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int bps, no_samples;
@@ -2138,7 +2151,7 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 static void
 _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
 {
-   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL);
+   _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
    int32_t **sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
