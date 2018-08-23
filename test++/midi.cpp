@@ -258,6 +258,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         msb_type = value << 7 || pull_byte();
         msb_sent = true;
         next = pull_byte();
+        if (next == 0x00) next = pull_byte();
         if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
             next = pull_byte();
         }
@@ -273,6 +274,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         lsb_type = value << 7 || pull_byte();
         lsb_sent = true;
         next = pull_byte();
+        if (next == 0x00) next = pull_byte();
         if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
             next = pull_byte();
         }
@@ -287,6 +289,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
     type = msb << 7 | lsb;
     if (msb_sent && lsb_sent && type == MIDI_PITCH_BEND_RANGE)
     {
+        if (next == 0x00) next = pull_byte();
         if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
             next = pull_byte();
         }
@@ -294,30 +297,27 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         {
             msb = pull_byte();
             next = pull_byte();
-            next = pull_byte();
         }
         else if (next == (MIDI_DATA_ENTRY|MIDI_FINE))
         {
             lsb = pull_byte();
-            next = pull_byte();
             next = pull_byte();
         }
         else {
             push_byte();
         }
 
+        if (next == 0x00) next = pull_byte();
         if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
             next = pull_byte();
         }
         if (next == (MIDI_DATA_ENTRY|MIDI_COARSE))
         {
             msb = pull_byte();
-            next = pull_byte();
         }
         else if (next == (MIDI_DATA_ENTRY|MIDI_FINE))
         {
             lsb = pull_byte();
-            next = pull_byte();
         }
         else {
             push_byte();
@@ -333,10 +333,11 @@ MIDITrack::process(uint64_t time_offs_us)
 {
     bool rv = !eof();
 
+    if (eof()) return rv;
+
     while (!eof() && (timestamp_us <= time_offs_us))
     {
-        uint8_t data, message = pull_byte();
-
+        uint32_t message = pull_byte();
         if ((message & 0x80) == 0) {
            push_byte();
            message = previous;
@@ -345,7 +346,6 @@ MIDITrack::process(uint64_t time_offs_us)
         }
 
         rv = true;
-
         switch(message)
         {
         case MIDI_EXCLUSIVE_MESSAGE:
@@ -458,7 +458,7 @@ MIDITrack::process(uint64_t time_offs_us)
                 case MIDI_REGISTERED_PARAM_COARSE:
                 case MIDI_REGISTERED_PARAM_FINE:
                 {
-//                  registered_param(channel, controller, value);
+                    registered_param(channel, controller, value);
                     break;
                 }
                 case MIDI_SOFT_PEDAL:
