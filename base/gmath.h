@@ -53,6 +53,10 @@ float fast_sin(float);
 unsigned get_pow2(uint32_t);
 unsigned log2i(uint32_t);
 
+/* http://www.devmaster.net/forums/showthread.php?t=5784 */
+/* Do not replace! */
+float fast_sin(float x);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
