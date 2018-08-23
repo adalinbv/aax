@@ -236,6 +236,98 @@ MIDITrack::pull_message()
     return rv;
 }
 
+void
+MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
+{
+    bool msb_sent = false, lsb_sent = false;
+    uint16_t msb_type = 0, lsb_type = 0;
+    uint16_t msb = 0, lsb = 0;
+    uint8_t next = 0;
+    uint16_t type;
+
+#if 0
+ printf("%x %x %x ", 0xb0|channel, controller, value);
+ uint8_t *p = (uint8_t*)*this;
+ p += offset();
+ for (int i=0; i<20; ++i) printf("%x ", p[i]);
+ printf("\n");
+#endif
+
+    if (controller == MIDI_REGISTERED_PARAM_COARSE)
+    {
+        msb_type = value << 7 || pull_byte();
+        msb_sent = true;
+        next = pull_byte();
+        if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
+            next = pull_byte();
+        }
+        if (next == MIDI_REGISTERED_PARAM_FINE)
+        {
+            lsb_type = pull_byte() << 7 || pull_byte();
+            lsb_sent = true;
+            next = pull_byte();
+        }
+    }
+    else if (controller == MIDI_REGISTERED_PARAM_FINE)
+    {
+        lsb_type = value << 7 || pull_byte();
+        lsb_sent = true;
+        next = pull_byte();
+        if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
+            next = pull_byte();
+        }
+        if (next == MIDI_REGISTERED_PARAM_COARSE)
+        {
+            msb_type = pull_byte() << 7 || pull_byte();
+            msb_sent = true;
+            next = pull_byte();
+        }
+    }
+
+    type = msb << 7 | lsb;
+    if (msb_sent && lsb_sent && type == MIDI_PITCH_BEND_RANGE)
+    {
+        if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
+            next = pull_byte();
+        }
+        if (next == (MIDI_DATA_ENTRY|MIDI_COARSE))
+        {
+            msb = pull_byte();
+            next = pull_byte();
+            next = pull_byte();
+        }
+        else if (next == (MIDI_DATA_ENTRY|MIDI_FINE))
+        {
+            lsb = pull_byte();
+            next = pull_byte();
+            next = pull_byte();
+        }
+        else {
+            push_byte();
+        }
+
+        if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
+            next = pull_byte();
+        }
+        if (next == (MIDI_DATA_ENTRY|MIDI_COARSE))
+        {
+            msb = pull_byte();
+            next = pull_byte();
+        }
+        else if (next == (MIDI_DATA_ENTRY|MIDI_FINE))
+        {
+            lsb = pull_byte();
+            next = pull_byte();
+        }
+        else {
+            push_byte();
+        }
+printf("set semi_tones: %f\n", (float)lsb + (float)msb/100.0f);
+        midi.channel(channel).set_semi_tones((float)lsb + (float)msb/100.0f);
+    }
+
+}
+
 bool
 MIDITrack::process(uint64_t time_offs_us)
 {
@@ -266,9 +358,9 @@ MIDITrack::process(uint64_t time_offs_us)
             if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
             {
                 if (pull_byte() == 0x01) {
-                    std::cout << "General MIDI standard 1.0" << std::endl;
+                    std::cout << "General MIDI 1.0" << std::endl;
                 } else if (pull_byte() == 0x03) {
-                    std::cout << "General MIDI standard 2.0" << std::endl;
+                    std::cout << "General MIDI 2.0" << std::endl;
                 }
             }
             else if (byte == 0x41 && pull_byte() == 0x10 &&
@@ -277,7 +369,7 @@ MIDITrack::process(uint64_t time_offs_us)
                        pull_byte() == 0x7f && pull_byte() == 0x00 &&
                        pull_byte() == 0x41)
             {
-                std::cout << "General Standard MIDI" << std::endl;
+                std::cout << "General Standard" << std::endl;
             }
             else push_byte();
             while (pull_byte() != MIDI_EXCLUSIVE_MESSAGE_END);
@@ -363,8 +455,19 @@ MIDITrack::process(uint64_t time_offs_us)
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     omni = true;
                     break;
+                case MIDI_REGISTERED_PARAM_COARSE:
+                case MIDI_REGISTERED_PARAM_FINE:
+                {
+//                  registered_param(channel, controller, value);
+                    break;
+                }
+                case MIDI_SOFT_PEDAL:
                 case MIDI_HOLD_PEDAL1:
+                case MIDI_HOLD_PEDAL2:
                     midi.channel(channel).set_hold(value);
+                    break;
+                case MIDI_SOSTENUTO_PEDAL:
+                    midi.channel(channel).set_sustain(value);
                     break;
                 default:
                     break;
@@ -390,6 +493,7 @@ MIDITrack::process(uint64_t time_offs_us)
             case MIDI_PITCH_BEND:
             {
                 uint16_t pitch = pull_byte() << 7 | pull_byte();
+                float semi_tones = midi.channel(channel).get_semi_tones();
                 float p = semi_tones*((float)pitch-8192);
                 if (p < 0) p /= 8192.0f;
                 else p /= 8191.0f;
@@ -451,16 +555,32 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 
                 try
                 {
-                    uint32_t header = stream.pull_long();
+                    uint32_t size, header = stream.pull_long();
                     uint16_t track_no = 0;
 
                     if (header == 0x4d546864) // "MThd"
                     {
-                        stream.forward(4); // skip the size;
+                        size = stream.pull_long();
+                        if (size != 6) return;
 
                         format = stream.pull_word();
+                        if (format != 0 && format != 1) return;
+
                         no_tracks = stream.pull_word();
+                        if (format == 0 && no_tracks != 1) return;
+
                         PPQN = stream.pull_word();
+                        if (PPQN & 0x8000)
+                        {
+                            uint8_t fps = (PPQN >> 8) & 0xff;
+                            uint8_t resolution = PPQN & 0xff;
+                            if (fps == 232) fps = 24;
+                            else if (fps == 231) fps = 25;
+                            else if (fps == 227) fps = 29;
+                            else if (fps == 226) fps = 30;
+                            else fps = 0;
+                            PPQN = fps*resolution;
+                        }
                     }
                 
                     while (!stream.eof())

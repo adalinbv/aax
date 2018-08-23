@@ -97,7 +97,6 @@ namespace aax
 #define MIDI_EXPRESSION			0x0b
 #define MIDI_EFFECT_CONTROL1		0x0c
 #define MIDI_EFFECT_CONTROL2		0x0d
-
 #define MIDI_GENERAL_PURPOSE_CONTROL1	0x10
 #define MIDI_GENERAL_PURPOSE_CONTROL2	0x11
 #define MIDI_GENERAL_PURPOSE_CONTROL3	0x12
@@ -130,6 +129,12 @@ namespace aax
 #define MIDI_EFFECT3_DEPTH		0x5d
 #define MIDI_EFFECT4_DEPTH		0x5e
 #define MIDI_EFFECT5_DEPTH		0x5f
+#define MIDI_DATA_INCREMENT		0x60
+#define MIDI_DATA_DECREMENT		0x61
+#define MIDI_UNREGISTERED_PARAM_FINE	0x62
+#define MIDI_UNREGISTERED_PARAM_COARSE	0x63
+#define MIDI_REGISTERED_PARAM_FINE	0x64
+#define MIDI_REGISTERED_PARAM_COARSE	0x65
 #define MIDI_ALL_SOUND_OFF		0x78
 #define MIDI_ALL_CONTROLLERS_OFF	0x79
 #define MIDI_LOCAL_CONTROLL		0x7a
@@ -138,6 +143,14 @@ namespace aax
 #define MIDI_OMNI_ON			0x7d
 #define MIDI_MONO_ALL_NOTES_OFF		0x7e
 #define MIDI_POLY_ALL_NOTES_OFF		0x7f
+
+/* RPN messages */
+#define MIDI_PITCH_BEND_RANGE		0x0000
+#define MIDI_FINE_TUNING		0x0001
+#define MIDI_COARSE_TUNING		0x0002
+#define MIDI_TUNING_PROGRAM_CHANGE	0x0003
+#define MIDI_TUNING_BANK_SELECT		0x0004
+#define MIDI_MODULATION_DEPTH_RANGE	0x0005
 
 /* real-time messages */
 #define MIDI_TIMING_CLOCK		0x08
@@ -196,6 +209,7 @@ public:
     friend void swap(MIDIChannel& p1, MIDIChannel& p2) noexcept {
         p1.name_map = std::move(p2.name_map);
         p1.midi = std::move(p2.midi);
+        p1.semi_tones = std::move(p2.semi_tones);
         p1.channel_no = std::move(p2.channel_no);
         p1.program_no = std::move(p2.program_no);
         p1.bank_no = std::move(p2.bank_no);
@@ -206,6 +220,9 @@ public:
 
     void play(uint8_t key_no, uint8_t velocity);
 
+    inline void set_semi_tones(float s) { semi_tones = s; }
+    inline float get_semi_tones() { return semi_tones; }
+
 private:
     std::string get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no);
     std::string get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no);
@@ -213,6 +230,7 @@ private:
     std::map<uint8_t,Buffer&> name_map;
 
     MIDI &midi;
+    float semi_tones = 2.0f;
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
     uint8_t bank_no = 0;
@@ -246,7 +264,6 @@ public:
         s1.timestamp_us = std::move(s2.timestamp_us);
         s1.PPQN = std::move(s2.PPQN);
         s1.uSPP = std::move(s2.uSPP);
-        s1.semi_tones = std::move(s2.semi_tones);
         s1.poly = std::move(s2.poly);
         s1.omni = std::move(s2.omni);
     }
@@ -255,6 +272,7 @@ public:
 
 private:
     uint32_t pull_message();
+    void registered_param(uint8_t, uint8_t, uint8_t);
 
     MIDI& midi;
 
@@ -266,7 +284,6 @@ private:
     uint64_t timestamp_us = 0;
     uint16_t PPQN = 24;
     uint32_t uSPP = 500000/24;
-    float semi_tones = 1.0f;
     bool poly = true;
     bool omni = false;
 };
@@ -289,6 +306,7 @@ public:
     bool process(uint32_t);
 
     inline uint16_t get_ppqn() { return PPQN; }
+    inline bool is_good() { return good; }
 
 private:
     std::vector<uint8_t> midi_data;
@@ -298,6 +316,7 @@ private:
     uint16_t no_tracks = 0;
     uint16_t format = 0;
     uint16_t PPQN = 24;
+    bool good = false;
 };
 
 } // namespace aax
