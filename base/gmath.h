@@ -49,14 +49,7 @@ int detect_nan_mtx4d(double[4][4]);
 int detect_inf_vec3(float[3]);
 int detect_zero_vec3(float[3]);
 
-#if 0
-#define fast_abs(a)            ((a) > 0) ? (a) : -(a)
-float fast_abs(float);
-#endif
-typedef float (*fast_sin_proc)(float);
-extern fast_sin_proc fast_sin;
-
-float fast_sin_cpu(float);
+float fast_sin(float);
 unsigned get_pow2(uint32_t);
 unsigned log2i(uint32_t);
 

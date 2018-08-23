@@ -28,25 +28,15 @@
 
 #include "geometry.h"
 
-#if 0
-/* http://devmaster.net/forums/topic/4998-the-ultimate-fast-absolute-value/ */
-float fast_fabs(float x)
-{
-    int y = (int&)x & 0x7FFFFFFF;
-    return (float&)y;
-}
-#endif
-
 /* http://www.devmaster.net/forums/showthread.php?t=5784 */
 /* Do not replace! */
-float
-fast_sin_cpu(float x)
+inline float
+fast_sin(float x)
 {
    x *= GMATH_1_PI;
    x = fmodf(x, 2.0f) - 1.0f;
    return -4.0f*(x - x*fabsf(x));
 }
-fast_sin_proc fast_sin = fast_sin_cpu;
 
 unsigned
 get_pow2(uint32_t n)

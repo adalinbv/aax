@@ -361,7 +361,6 @@ _aaxGetSIMDSupportLevel()
    if (_aax_arch_capabilities & AAX_ARCH_SSE2)
    {
 //    _aax_memcpy = _aax_memcpy_sse2;
-      fast_sin = fast_sin_sse2;
 
       mtx4dMul = _mtx4dMul_sse2;
       mtx4dMulVec4 = _mtx4dMulVec4_sse2;
@@ -411,7 +410,6 @@ _aaxGetSIMDSupportLevel()
 #  if SIZEOF_SIZE_T == 8
    if (_aax_arch_capabilities & AAX_ARCH_AVX)
    {
-      fast_sin = fast_sin_sse_vex;
       _batch_get_average_rms = _batch_get_average_rms_sse_vex;
 
       /* SSE/VEX */

@@ -54,6 +54,10 @@ static void _aax_resample_float(float32_ptr, const_float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
 static float* _aax_generate_waveform(size_t, float, float, float, float*);
+static float* _aax_generate_sawtooth(size_t, float, float, float);
+static float* _aax_generate_triangle(size_t, float, float, float);
+static float* _aax_generate_square(size_t, float, float, float);
+static float* _aax_generate_sine(size_t, float, float, float);
 static float* _aax_generate_noise(size_t, float, unsigned char);
 
 
@@ -64,7 +68,8 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
    gain = fabsf(gain) * _gains[_SINE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SINE_WAVE]);
+//    float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SINE_WAVE]);
+      float *ptr = _aax_generate_sine(no_samples, freq, phase, gain);
       if (ptr)
       {
          if (ringmodulate) {
@@ -84,7 +89,8 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
    gain = fabsf(gain) * _gains[_SQUARE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SQUARE_WAVE]);
+//    float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SQUARE_WAVE]);
+      float *ptr = _aax_generate_square(no_samples, freq, phase, gain);
       if (ptr)
       {
          if (ringmodulate) {
@@ -104,7 +110,8 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
    gain = fabsf(gain) * _gains[_TRIANGLE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_TRIANGLE_WAVE]);
+//    float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_TRIANGLE_WAVE]);
+      float *ptr = _aax_generate_triangle(no_samples, freq, phase, gain);
       if (ptr)
       {
          if (ringmodulate) {
@@ -124,7 +131,8 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
    gain = fabsf(gain) * _gains[_SAWTOOTH_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SAWTOOTH_WAVE]);
+//    float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SAWTOOTH_WAVE]);
+      float *ptr = _aax_generate_sawtooth(no_samples, freq, phase, gain);
       if (ptr)
       {
          if (ringmodulate) {
@@ -316,6 +324,105 @@ _aax_generate_waveform(size_t no_samples, float freq, float phase, float gain, f
    return rv;
 }
 
+static float *
+_aax_generate_sine(size_t no_samples, float freq, float phase, float gain)
+{
+   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
+   if (rv)
+   {
+      memset(rv, 0, no_samples*sizeof(float));
+      if (gain)
+      {
+         int i = no_samples;
+         float hdt = GMATH_2PI/freq;
+         float s = phase;
+         float *ptr = rv;
+
+         do
+         {
+            *ptr++ += gain * fast_sin(s);
+            s = fmodf(s+hdt, GMATH_2PI);
+         }
+         while (--i);
+      }
+   }
+   return rv;
+}
+
+static float *
+_aax_generate_triangle(size_t no_samples, float freq, float phase, float gain)
+{
+   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
+   if (rv)
+   {
+      memset(rv, 0, no_samples*sizeof(float));
+      if (gain)
+      {
+         int i = no_samples;
+         float hdt = GMATH_2PI/freq;
+         float s = phase;
+         float *ptr = rv;
+
+         do
+         {
+            *ptr++ += gain * tanf(fast_sin(s));
+            s = fmodf(s+hdt, GMATH_2PI);
+         }
+         while (--i);
+      }
+   }
+   return rv;
+}
+
+static float *
+_aax_generate_square(size_t no_samples, float freq, float phase, float gain)
+{
+   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
+   if (rv)
+   {
+      memset(rv, 0, no_samples*sizeof(float));
+      if (gain)
+      {
+         int i = no_samples;
+         float hdt = GMATH_2PI/freq;
+         float s = phase;
+         float *ptr = rv;
+
+         do
+         {
+            *ptr++ += gain * atanf(20.0f*fast_sin(s));
+            s = fmodf(s+hdt, GMATH_2PI);
+         }
+         while (--i);
+      }
+   }
+   return rv;
+}
+
+static float *
+_aax_generate_sawtooth(size_t no_samples, float freq, float phase, float gain)
+{
+   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
+   if (rv)
+   {
+      memset(rv, 0, no_samples*sizeof(float));
+      if (gain)
+      {
+         int i = no_samples;
+         float hdt = GMATH_2PI/freq;
+         float s = GMATH_PI+phase;
+         float *ptr = rv;
+
+         do
+         {
+            *ptr++ += gain * fast_sin(tanf((s-GMATH_PI)/2.4884f));
+            s = fmodf(s+hdt, GMATH_2PI);
+         }
+         while (--i);
+      }
+   }
+   return rv;
+}
 
 /**
  * Generate an array of random samples
@@ -367,7 +474,7 @@ _aax_resample_float(float32_ptr dptr, const_float32_ptr sptr, size_t dmax, float
          if (smu >= 1.0f)
          {
             smu -= 1.0f;
-            samp = *s++; 
+            samp = *s++;
             dsamp = *s - samp;
          }
       }
@@ -457,7 +564,7 @@ _aax_mul_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
          } while (--i);
       }
       else if (bps == 3 || bps == 4)
-      {  
+      {
          static const float max = 255.0f*32765.0f;
          static const float mul = 255.0f*32765.0f / GMATH_PI_2;
          int32_t *d = data[track];
