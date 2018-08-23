@@ -148,6 +148,7 @@ public:
 
     inline void set_pressure(uint8_t p) { pressure = p; }
 
+    // notes hold until sustain becomes false, even after a stop message
     void set_hold(bool sustain) {
         hold = sustain;
         if (!hold) {
@@ -155,6 +156,10 @@ public:
                 it.second->stop();
             }
         }
+    }
+
+    // only notes started after this command shold hold
+    void set_sustain(bool sustain) {
     }
 
     void set_pressure(uint8_t key_no, uint8_t pressure) {
