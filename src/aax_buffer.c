@@ -1229,7 +1229,6 @@ _bufAAXSThread(void *d)
          double duration = 1.0f;
          float spread = 0;
          int voices = 1;
-         void *xwid;
 
          if (xmlAttributeExists(xsid, "bits"))
          {
@@ -1277,6 +1276,8 @@ _bufAAXSThread(void *d)
             float mul = (float)(1 << b);
             float frequency = mul*freq;
             float pitch_fact = 1.0f/mul;
+            void *xwid;
+
             if (duration >= 0.099f)
             {
                _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
@@ -1305,6 +1306,7 @@ _bufAAXSThread(void *d)
                   if (rv == AAX_FALSE) break;
                }
             }
+            xmlFree(xwid);
 
             if (bits == 16)
             {
@@ -1323,10 +1325,9 @@ _bufAAXSThread(void *d)
                handle->format = AAX_PCM16S;
             }
          }
-         xmlFree(xwid);
          xmlFree(xsid);
-         xmlClose(xid);
       }
+      xmlClose(xid);
    }
    else {
       aax_buf->error = AAX_INVALID_PARAMETER;
