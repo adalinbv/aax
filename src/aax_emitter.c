@@ -213,6 +213,8 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          const _aaxEmitter *src = handle->source;
          _embuffer_t* embuf;
 
+         _EFFECT_SET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH,
+                           _MAX(4.0f, (float)(1 << buffer->pitch_levels)));
          rb->set_parami(rb, RB_LOOPING, handle->looping);
          embuf = calloc(1, sizeof(_embuffer_t));
          if (embuf)

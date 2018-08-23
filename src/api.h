@@ -212,6 +212,7 @@ void _aaxAudioFrameFree(void*);
 #define DEFAULT_IMA4_BLOCKSIZE		36
 #define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
 #define IMA4_BLOCKSIZE_TO_SMP(a)	((a) > 1) ? (((a)-4)*2) : 1
+#define MAX_PITCH_LEVELS		5
 
 typedef struct
 {
@@ -230,7 +231,7 @@ typedef struct
    char mipmap;
 
    char pitch_levels;
-   _aaxRingBuffer *ringbuffer[5];
+   _aaxRingBuffer *ringbuffer[MAX_PITCH_LEVELS];
    _aaxMixerInfo **info;
    void *root;			/* reference to the mixer object */
    void *aaxs;

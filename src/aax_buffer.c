@@ -1238,7 +1238,7 @@ _bufAAXSThread(void *d)
 
          if (!freq) {
             freq = xmlAttributeGetDouble(xsid, "frequency");
-            handle->pitch_levels = _MIN((unsigned char)log2i(max_frequency/freq), 5);
+            handle->pitch_levels =_MIN((unsigned char)log2i(ceilf(max_frequency/freq)), MAX_PITCH_LEVELS);
             handle->rate = freq;
          }
          if (xmlAttributeExists(xsid, "voices")) {
