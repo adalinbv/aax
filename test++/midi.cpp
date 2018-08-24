@@ -148,6 +148,10 @@ MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank
             std::cerr << "aeonwave/midi not found in: " << path << std::endl;
         }
         xmlClose(xid);
+
+#if 1
+ printf("Loading: %s\n", file);
+#endif
         if (file[0] != 0) {
             return file;
         }
@@ -161,8 +165,7 @@ MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank
 std::string
 MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
 {
-//      std::string path(midi.info(AAX_SHARED_DATA_DIR));
-    std::string path("/usr/share/aax");
+    std::string path(midi.info(AAX_SHARED_DATA_DIR));
     path.append("/");
     if (channel == MIDI_DRUMS_CHANNEL)
     {
