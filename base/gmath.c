@@ -28,12 +28,14 @@
 
 #include "geometry.h"
 
+// https://web.archive.org/web/20060503192740/www.devmaster.net/forums/showthread.php?t=5784
 // http://lab.polygonal.de/2007/07/18/fast-and-accurate-sinecosine-approximation
+// Domain for x: -GMATH_PI .. GMATH_PI
 float fast_sin(float x)
 {
    assert(x >= -GMATH_PI);
    assert(x <= GMATH_PI);
-   return (1.27323954f*x - 0.405284735f*x*fabsf(x));
+   return (DIV4_GMATH_PI*x + DIV4_GMATH_PI2*x*fabsf(x));
 }
 
 unsigned
