@@ -34,6 +34,7 @@
 #endif
 
 #include <stdio.h>
+#include <math.h>
 
 #include <aax/aax.h>
 
@@ -65,6 +66,10 @@ int main(int argc, char **argv)
 
         buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to create a buffer");
+
+        printf("RMS: %lf, peak: %f\n",
+                aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE)/8388608.0f,
+                aaxBufferGetSetup(buffer, AAX_PEAK_VALUE)/8388608.0f);
 
         ofile = getOutputFile(argc, argv, NULL);
         if (!ofile && buffer)
