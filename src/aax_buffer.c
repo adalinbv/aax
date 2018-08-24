@@ -332,6 +332,12 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_POSITION:
          rv = handle->pos;
          break;
+      case AAX_PEAK_VALUE:
+         rv = handle->peak;
+         break;
+      case AAX_AVERAGE_VALUE:
+         rv = handle->rms;
+         break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1307,6 +1313,17 @@ _bufAAXSThread(void *d)
                }
             }
             xmlFree(xwid);
+
+            if (b == 0)
+            {
+               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+               void **ptr = (void**)rb->get_tracks_ptr(rb, RB_READ);
+               size_t num = rb->get_parami(rb, RB_NO_SAMPLES);
+               _batch_cvtps24_24(ptr[0], ptr[0], num);
+               _batch_get_average_rms(ptr[0], num, &handle->rms, &handle->peak);
+               _batch_cvt24_ps24(ptr[0], ptr[0], num);
+               rb->release_tracks_ptr(rb);
+            }
 
             if (bits == 16)
             {
