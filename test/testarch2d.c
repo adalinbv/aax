@@ -228,7 +228,8 @@ int main()
 
         t = clock();
         for (i=0; i<MAXNUM; ++i) {
-            src[i] = fast_sin(GMATH_2PI*rand()/RAND_MAX);
+            float p = fmodf(-GMATH_2PI + 2*GMATH_2PI*rand()/RAND_MAX, GMATH_2PI);
+            src[i] = fast_sin(p);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("fast_sin:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
