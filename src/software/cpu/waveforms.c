@@ -316,7 +316,7 @@ _aax_generate_waveform(size_t no_samples, float freq, float phase, float gain, f
             do
             {
                *ptr++ += ngain * fast_sin(s);
-               s = fmodf(s+hdt, GMATH_2PI);
+               s = fmodf(s+hdt+GMATH_PI, GMATH_2PI)-GMATH_PI;
             }
             while (--i);
          }
@@ -343,7 +343,7 @@ _aax_generate_sine(size_t no_samples, float freq, float phase, float gain)
          do
          {
             *ptr++ += gain * fast_sin(s);
-            s = fmodf(s+hdt, GMATH_2PI);
+            s = fmodf(s+hdt+GMATH_PI, GMATH_2PI)-GMATH_PI;
          }
          while (--i);
       }
