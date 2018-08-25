@@ -58,8 +58,8 @@ public:
         return *this;
     }
 
-    bool play(float gain) {
-        gain_param = gain;
+    bool play(float g) {
+        gain_param = gain = g;
         Emitter::set(AAX_INITIALIZED);
         if (!playing) playing = Emitter::set(AAX_PLAYING);
         return playing;
@@ -76,12 +76,14 @@ public:
     }
 
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
+    inline void set_gain(float expr) { gain_param = expr*gain; }
     inline void set_pressure(float p) { pressure = p; }
 
 private:
     Param pitch_param = 1.0f;
     Param gain_param = 1.0f;
     float pitch = 1.0f;
+    float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
 };
@@ -147,6 +149,12 @@ public:
     }
 
     inline void set_gain(float g) { gain = g; }
+
+    inline void set_expression(float g) {
+        for (auto& it : key) {
+            it.second->set_gain(g*gain);
+        }
+    }
 
     inline void set_pressure(float p) { pressure = p; }
 
