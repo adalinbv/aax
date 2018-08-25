@@ -76,13 +76,13 @@ public:
     }
 
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
-    inline void set_pressure(uint8_t p) { pressure = p; }
+    inline void set_pressure(float p) { pressure = p; }
 
 private:
     Param pitch_param = 1.0f;
     Param gain_param = 1.0f;
     float pitch = 1.0f;
-    uint8_t pressure = 0;
+    float pressure = 0.0f;
     bool playing = false;
 };
 
@@ -127,8 +127,8 @@ public:
             }
             it->second->buffer(buffer);
         }
-        float gain = sqrtf((1+velocity)/128.0f);
-        it->second->play(gain);
+        float g = sqrtf((1+velocity)/128.0f);
+        it->second->play(gain*g);
     }
 
     void stop(uint8_t key_no) {
@@ -146,7 +146,9 @@ public:
         }
     }
 
-    inline void set_pressure(uint8_t p) { pressure = p; }
+    inline void set_gain(float g) { gain = g; }
+
+    inline void set_pressure(float p) { pressure = p; }
 
     // notes hold until sustain becomes false, even after a stop message
     void set_hold(bool sustain) {
@@ -162,7 +164,7 @@ public:
     void set_sustain(bool sustain) {
     }
 
-    void set_pressure(uint8_t key_no, uint8_t pressure) {
+    void set_pressure(uint8_t key_no, float pressure) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->set_pressure(pressure);
@@ -177,7 +179,8 @@ private:
     std::map<uint8_t,Note*> key;
     AeonWave* aax;
 
-    uint8_t pressure = 0;
+    float gain = 0.0f;
+    float pressure = 0.0f;
     bool playing = false;
     bool hold = false;
 };
