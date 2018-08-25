@@ -572,6 +572,7 @@ AAX_API const char* AAX_APIENTRY aaxDriverGetDeviceNameByPos(const aaxConfig, un
 AAX_API unsigned AAX_APIENTRY aaxDriverGetInterfaceCount(const aaxConfig, const char*, enum aaxRenderMode);
 AAX_API const char* AAX_APIENTRY aaxDriverGetInterfaceNameByPos(const aaxConfig, const char*, unsigned, enum aaxRenderMode);
 AAX_API const char* AAX_APIENTRY aaxDriverGetSetup(const aaxConfig, enum aaxSetupType);
+AAX_API int AAX_APIENTRY aaxDriverSetSetup(const aaxConfig, enum aaxSetupType,  const char*);
 AAX_API int AAX_APIENTRY aaxDriverGetSupport(const aaxConfig, enum aaxRenderMode);
 AAX_API enum aaxErrorType AAX_APIENTRY aaxDriverGetErrorNo(aaxConfig);
 

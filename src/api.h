@@ -144,6 +144,7 @@ typedef struct
    void *root;			/* reference to the mixer object             */
 
    char *devname[2];
+   char *data_dir;
    _aaxMixerInfo *info;
    _intBuffers *sensors;		/* locked sensor and scene properies */
    _intBuffers *backends;

@@ -593,6 +593,12 @@ public:
     inline bool get(enum aaxRenderMode m) {
         return aaxDriverGetSupport(ptr,m);
     }
+    inline bool set(enum aaxSetupType t, const char* s) {
+        aaxDriverSetSetup(ptr,t,s);
+    }
+    inline bool set(enum aaxSetupType t, std::string& s) {
+        set(t,s.c_str());
+    }
     inline const char* info(enum aaxSetupType t) {
         return aaxDriverGetSetup(ptr,t);
     }

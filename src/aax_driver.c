@@ -107,21 +107,8 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
          }
          break;
       case AAX_SHARED_DATA_DIR:
-      {
-         static char _data_dir[128] = "\0";
-         if (_data_dir[0] == '\0')
-         {
-            char *s = systemDataFile("");
-            if (s)
-            {
-               snprintf(_data_dir, 128, "%s", s);
-               _data_dir[127] = 0;
-               free(s);
-            }
-         }
-         rv = _data_dir;
+         rv = handle->data_dir;
          break;
-      }
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
       case AAX_MUSIC_GENRE_STRING:
@@ -144,6 +131,27 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
    }
    return (const char*)rv;
 }
+
+AAX_API int AAX_APIENTRY
+aaxDriverSetSetup(const aaxConfig config, enum aaxSetupType type, const char *setup)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = AAX_FALSE;
+   if (handle)
+   {
+      switch(type)
+      {
+      case AAX_SHARED_DATA_DIR:
+         free(handle->data_dir);
+         handle->data_dir = strdup(setup);
+         break;
+      default:
+         break;
+      }
+   }
+   return rv;
+}
+
 
 AAX_API unsigned AAX_APIENTRY
 aaxDriverGetCount(enum aaxRenderMode mode)
@@ -764,6 +772,7 @@ new_handle()
       handle->info = (_aaxMixerInfo*)ptr2;
       _aaxSetDefaultInfo(handle->info, handle);
 
+      handle->data_dir = strdup(systemDataFile(""));
       handle->timer = _aaxTimerCreate();
 
       rv = handle;
