@@ -45,7 +45,7 @@
    <drum n="59" name="Ride Cymbal 2" file="drums/cymbal-ride2"/>
    <drum n="60" name="Hi Bongo" file="drums/bongo-high"/>
    <drum n="61" name="Low Bongo" file="drums/bongo-low"/>
-   <drum n="62" name="Mute Hi Conga" file="drums/conga-high-mute"/>
+   <drum n="62" name="Mute Hi Conga" file="drums/conga-high-muted"/>
    <drum n="63" name="Open Hi Conga" file="drums/conga-high"/>
    <drum n="64" name="Low Conga" file="drums/conga-low"/>
    <drum n="65" name="High Timbale" file="drums/timbale-high"/>
