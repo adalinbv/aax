@@ -450,6 +450,9 @@ MIDITrack::process(uint64_t time_offs_us)
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     omni = true;
                     break;
+                case MIDI_CHANNEL_VOLUME:
+                    midi.channel(channel).set_gain((float)value/127.0f);
+                    break;
                 case MIDI_REGISTERED_PARAM_COARSE:
                 case MIDI_REGISTERED_PARAM_FINE:
                 {
@@ -459,10 +462,10 @@ MIDITrack::process(uint64_t time_offs_us)
                 case MIDI_SOFT_PEDAL:
                 case MIDI_HOLD_PEDAL1:
                 case MIDI_HOLD_PEDAL2:
-                    midi.channel(channel).set_hold(value);
+                    midi.channel(channel).set_hold(value >= 64);
                     break;
                 case MIDI_SOSTENUTO_PEDAL:
-                    midi.channel(channel).set_sustain(value);
+                    midi.channel(channel).set_sustain(value >= 64);
                     break;
                 default:
                     break;
@@ -482,7 +485,7 @@ MIDITrack::process(uint64_t time_offs_us)
             case MIDI_CHANNEL_PRESSURE:
             {
                 uint8_t pressure = pull_byte();
-                midi.channel(channel).set_pressure(pressure);
+                midi.channel(channel).set_pressure((float)pressure/127.0f);
                 break;
             }
             case MIDI_PITCH_BEND:
