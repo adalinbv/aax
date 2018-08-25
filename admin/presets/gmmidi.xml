@@ -131,46 +131,46 @@
    <instrument n="118" name="Synth Drum" file="instruments/drum-synth"/>
    <instrument n="119" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
    <instrument n="120" name="Guitar Fret Noise" file="instruments/guitar-fret-noise"/>
-   <instrument n="121" name="Breath Noise" file="effecst/humans/human-breathing"/>
-   <instrument n="122" name="Seashore" file="effecst/nature/water-seashore"/>
-   <instrument n="123" name="Bird Tweet" file="effecst/nature/birds"/>
-   <instrument n="124" name="Telephone Ring" file="effecst/domestic/telephone-bell"/>
-   <instrument n="125" name="Helicopter" file="effecst/transport/helicopter"/>
+   <instrument n="121" name="Breath Noise" file="effects/humans/human-breathing"/>
+   <instrument n="122" name="Seashore" file="effects/nature/water-seashore"/>
+   <instrument n="123" name="Bird Tweet" file="effects/nature/birds"/>
+   <instrument n="124" name="Telephone Ring" file="effects/domestic/telephone-bell"/>
+   <instrument n="125" name="Helicopter" file="effects/transport/helicopter"/>
    <instrument n="126" name="Applause" file="effects/applause"/>
-   <instrument n="127" name="Gunshot" file="effecst/weapons/gun-pistol"/>
+   <instrument n="127" name="Gunshot" file="effects/weapons/gun-pistol"/>
   </bank>
 
   <bank n="1">
    <instrument n="120" name="Guitar Cut Noise" file="instruments/guitar-cut-noise"/>
-   <instrument n="122" name="Rain" file="effecst/nature/weather-rain"/>
-   <instrument n="124" name="Telephone Buzz" file="effecst/domestic/telephone-buzz"/>
-   <instrument n="125" name="Car Engine" file="effecst/transport/car-engine"/>
-   <instrument n="127" name="Machinegun" file="effecst/weapons/gun-machine"/>
+   <instrument n="122" name="Rain" file="effects/nature/weather-rain"/>
+   <instrument n="124" name="Telephone Buzz" file="effects/domestic/telephone-buzz"/>
+   <instrument n="125" name="Car Engine" file="effects/transport/car-engine"/>
+   <instrument n="127" name="Machinegun" file="effects/weapons/gun-machine"/>
   </bank>
 
   <bank n="2">
-   <instrument n="122" name="Thunder" file="effecst/nature/weather-thunder"/>
-   <instrument n="127" name="Lasergun" file="effecst/weapons/gun-laser"/>
+   <instrument n="122" name="Thunder" file="effects/nature/weather-thunder"/>
+   <instrument n="127" name="Lasergun" file="effects/weapons/gun-laser"/>
   </bank>
 
   <bank n="3">
-   <instrument n="122" name="Wind Blowing" file="effecst/nature/weather-wind"/>
-   <instrument n="124" name="Creaking Door" file="effecst/domestic/creaking-door"/>
+   <instrument n="122" name="Wind Blowing" file="effects/nature/weather-wind"/>
+   <instrument n="124" name="Creaking Door" file="effects/domestic/creaking-door"/>
    <instrument n="125" name="Car Pass" file="instruments/car-pass"/>
-   <instrument n="126" name="Punch" file="effecst/humans/punch-body"/>
-   <instrument n="127" name="Explosion" file="effecst/weapons/explosion"/>
+   <instrument n="126" name="Punch" file="effects/humans/punch-body"/>
+   <instrument n="127" name="Explosion" file="effects/weapons/explosion"/>
   </bank>
 
   <bank n="4">
-   <instrument n="122" name="Water Stream" file="effecst/nature/water-stream"/>
+   <instrument n="122" name="Water Stream" file="effects/nature/water-stream"/>
    <instrument n="124" name="Scratch" file="instruments/scratch"/>
-   <instrument n="126" name="Heart Beat" file="effecst/humans/human-heartbeat"/>
+   <instrument n="126" name="Heart Beat" file="effects/humans/human-heartbeat"/>
   </bank>
 
   <bank n="5">
-   <instrument n="122" name="Water Bubbles" file="effecst/nature/water-bubbles"/>
-   <instrument n="125" name="Siren" file="effecst/transport/siren"/>
-   <instrument n="126" name="Footstep" file="effecst/humans/human-footsteps-concrete"/>
+   <instrument n="122" name="Water Bubbles" file="effects/nature/water-bubbles"/>
+   <instrument n="125" name="Siren" file="effects/transport/siren"/>
+   <instrument n="126" name="Footstep" file="effects/humans/human-footsteps-concrete"/>
   </bank>
 
   <bank n="8">

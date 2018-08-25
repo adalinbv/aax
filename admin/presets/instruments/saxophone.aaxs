@@ -18,7 +18,7 @@
   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="2.0"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">4400</param>
+    <param n="0">6600</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
@@ -45,7 +45,7 @@
    <slot n="0">
      <param n="0">0.995</param>
      <param n="1">0.03</param>
-     <param n="2">1.05</param>
+     <param n="2">1.10</param>
      <param n="3">0.05</param>
    </slot>
    <slot n="1">

@@ -8,9 +8,9 @@
 
 <aeonwave>
 
- <sound name="Electric Snare" frequency="99" duration="0.50">
-  <waveform src="pink-noise" ratio="0.33" pitch="0.22"/>
-  <waveform src="triangle" processing="mix" ratio="0.35" pitch="1.2"/>
+ <sound name="Electric Snare" frequency="260" duration="0.50">
+  <waveform src="pink-noise" ratio="1.0" pitch="0.20"/>
+  <waveform src="triangle" processing="mix" ratio="0.70"/>
  </sound>
 
  <emitter looping="true">
@@ -19,21 +19,21 @@
     <param n="0">0.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.45</param>
+    <param n="3">0.7</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.50</param>
-    <param n="1">0.10</param>
-    <param n="2">1.20</param>
-    <param n="3">0.50</param>
+    <param n="0">1.20</param>
+    <param n="1">0.05</param>
+    <param n="2">0.90</param>
+    <param n="3">0.30</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.50</param>
-    <param n="1">0.02</param>
+    <param n="0">1.30</param>
+    <param n="1">0.03</param>
     <param n="2">1.00</param>
    </slot>
   </effect>

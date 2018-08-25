@@ -43,7 +43,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.4</param>
-    <param n="1" factor="velocity">1.04</param>
+    <param n="1" factor="velocity">0.54</param>
     <param n="2" factor="soften">1.2</param>
     <param n="3">1.95</param>
    </slot>

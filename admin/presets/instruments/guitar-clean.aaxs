@@ -33,8 +33,8 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.05</param>
-    <param n="1" factor="velocity">0.05</param>
+    <param n="0" factor="soften">1.17</param>
+    <param n="1" factor="velocity">0.03</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
@@ -43,30 +43,5 @@
    </slot>
   </effect>
  </emitter>
-
- <audioframe>
-  <effect type="phasing" src="true">
-   <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.09</param>
-   </slot>
-  </effect>
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">60</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1500</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>
