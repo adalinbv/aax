@@ -450,6 +450,9 @@ MIDITrack::process(uint64_t time_offs_us)
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     omni = true;
                     break;
+                case MIDI_EXPRESSION:
+                    midi.channel(channel).set_expression((float)value/127.0f);
+                    break;
                 case MIDI_CHANNEL_VOLUME:
                     midi.channel(channel).set_gain((float)value/127.0f);
                     break;
