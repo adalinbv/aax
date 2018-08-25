@@ -52,7 +52,7 @@ MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
     }
 
     try {
-        auto ret = channels.insert({channel_no, new MIDIChannel(*this, channel_no, bank_no, program_no)});
+        auto ret = channels.insert({channel_no, new MIDIChannel(*this, path, instr, drum, channel_no, bank_no, program_no)});
         it = ret.first;
         AeonWave::add(*it->second);
     } catch(const std::invalid_argument& e) {
@@ -99,9 +99,9 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 
 
 std::string
-MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank_no, uint8_t program_no)
+MIDIChannel::get_name_from_xml(std::string& file, const char* type, uint8_t bank_no, uint8_t program_no)
 {
-    void *xid = xmlOpen(path.c_str());
+    void *xid = xmlOpen(file.c_str());
     if (xid)
     {
         void *xaid = xmlNodeGet(xid, "aeonwave/midi");
@@ -145,7 +145,7 @@ MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank
             xmlFree(xaid);
         }
         else {
-            std::cerr << "aeonwave/midi not found in: " << path << std::endl;
+            std::cerr << "aeonwave/midi not found in: " << file << std::endl;
         }
         xmlClose(xid);
 
@@ -157,7 +157,7 @@ MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank
         }
     }
     else {
-        std::cerr << "Unable to open: " << path << std::endl;
+        std::cerr << "Unable to open: " << file << std::endl;
     }
     return ""; // "instruments/piano-acoustic"
 }
@@ -165,17 +165,10 @@ MIDIChannel::get_name_from_xml(std::string& path, const char* type, uint8_t bank
 std::string
 MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
 {
-    std::string path(midi.info(AAX_SHARED_DATA_DIR));
-    path.append("/");
-    if (channel == MIDI_DRUMS_CHANNEL)
-    {
-        path.append("gmdrums.xml");
-        return get_name_from_xml(path, "drum", bank_no, program_no);
-    }
-    else
-    {
-        path.append("gmmidi.xml");
-        return get_name_from_xml(path, "instrument", bank_no, program_no);
+    if (channel == MIDI_DRUMS_CHANNEL) {
+        return get_name_from_xml(drum, "drum", bank_no, program_no);
+    } else {
+        return get_name_from_xml(instr, "instrument", bank_no, program_no);
     }
 }
 
@@ -325,7 +318,6 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         else {
             push_byte();
         }
-printf("set semi_tones: %f\n", (float)lsb + (float)msb/100.0f);
         midi.channel(channel).set_semi_tones((float)lsb + (float)msb/100.0f);
     }
 

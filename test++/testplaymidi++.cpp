@@ -48,6 +48,7 @@
 #define IFILE_PATH		SRC_PATH"/beethoven_opus10_3.mid"
 #define INSTRUMENT		"instruments/piano-accoustic"
 #define INSTRUMENTS		"gmmidi.xml"
+#define DRUMS			"gmdrums.xml"
 
 
 int main(int argc, char **argv)
@@ -63,6 +64,12 @@ int main(int argc, char **argv)
             int64_t sleep_us, dt_us, wait_us = 1000;
             struct timeval now;
             uint32_t time_ms = 0;
+
+#if 1
+            midi.set_file_path(SRC_PATH"/midi");
+            midi.set_instrument_file(INSTRUMENTS);
+            midi.set_drum_file(DRUMS);
+#endif
 
             midi.set(AAX_REFRESH_RATE, 90.0f);
             midi.set(AAX_INITIALIZED);
