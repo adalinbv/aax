@@ -182,9 +182,11 @@ public:
         return channels;
     }
 
-    inline void set_file_path(std::string p) { path = p; }
-    inline void set_instrument_file(std::string p) { instr = p; }
     inline void set_drum_file(std::string p) { drum = p; }
+    inline void set_instrument_file(std::string p) { instr = p; }
+    inline void set_file_path(std::string p) {
+        set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
+    }
 
 private:
     std::map<uint8_t,MIDIChannel*> channels;
