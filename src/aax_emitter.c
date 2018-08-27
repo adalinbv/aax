@@ -1532,12 +1532,19 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
             {
-               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
-               if (flt)
+               int non_optional = AAX_TRUE;
+               if (xmlAttributeExists(xfid, "optional")) {
+                  non_optional = !xmlAttributeGetBool(xfid, "optional");
+               }
+               if (non_optional || !__low_resource)
                {
-                  _filter_t* filter = get_filter(flt);
-                  _emitterSetFilter(handle->source, filter);
-                  aaxFilterDestroy(flt);
+                   aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
+                   if (flt)
+                   {
+                     _filter_t* filter = get_filter(flt);
+                      _emitterSetFilter(handle->source, filter);
+                      aaxFilterDestroy(flt);
+                   }
                }
             }
          }
@@ -1549,12 +1556,19 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
             {
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
-               if (eff)
+               int non_optional = AAX_TRUE;
+               if (xmlAttributeExists(xeid, "optional")) {
+                  non_optional = !xmlAttributeGetBool(xeid, "optional");
+               }
+               if (non_optional || !__low_resource)
                {
-                  _effect_t* effect = get_effect(eff);
-                  _emitterSetEffect(handle->source, effect);
-                  aaxEffectDestroy(eff);
+                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
+                  if (eff)
+                  {
+                     _effect_t* effect = get_effect(eff);
+                     _emitterSetEffect(handle->source, effect);
+                     aaxEffectDestroy(eff);
+                  }
                }
             }
          }

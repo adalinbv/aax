@@ -1390,7 +1390,7 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
       }
    }
 
-   if (rv)
+   if (rv && !__low_resource)
    {
       rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
       if (!buffer->root) {

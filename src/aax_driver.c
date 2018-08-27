@@ -58,6 +58,11 @@ static void _aaxFreeSensor(void *);
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
+# ifdef __x86_64__
+int __low_resource = (_aax_get_free_memory() || (_aaxGetNoCores()<3));
+#else
+int __low_resource = AAX_TRUE;
+#endif
 int __release_mode = AAX_FALSE;
 _aaxMixerInfo* _info = NULL;
 _intBuffers* _backends = NULL;
