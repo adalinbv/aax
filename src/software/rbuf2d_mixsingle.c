@@ -136,7 +136,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
-   pitch = _MINMAX(pitch*ep2d->pitch_fact, 0.0f, max);
+   pitch = _MINMAX(pitch*ep2d->pitch_factor, 0.0f, max);
 
    /** DECODE, resample and apply effects */
    offs = 0;

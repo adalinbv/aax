@@ -250,8 +250,8 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
    ep2d = src->props2d;
 
    /* aplly pitch and gain before it is pushed to the delay queue */
-   edp3d->pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH)*ep2d->pitch_fact;
-   edp3d->gain = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+   edp3d->pitch = 1.0f; // _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+   edp3d->gain = 1.0f; // _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    edp3d_m->state3d = edp3d->state3d;
 
    // _aaxEmitterProcessDelayQueue

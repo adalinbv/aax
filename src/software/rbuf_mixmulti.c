@@ -115,7 +115,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
-   pitch = _MINMAX(pitch*ep2d->pitch_fact, 0.01f, max);
+   pitch = _MINMAX(pitch*ep2d->pitch_factor, 0.01f, max);
 
    /** Resample */
    offs = 0;
