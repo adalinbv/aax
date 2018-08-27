@@ -37,7 +37,11 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float p) : Emitter(AAX_STEREO) {
+    Note(float p) : Emitter(AAX_RELATIVE) {
+        Vector64 pos( 0.0, 0.0, -1.0);
+        Vector dir(0.0f, 0.0f, 1.0f);
+        Matrix64 mtx(pos, dir);
+        Emitter::matrix(mtx);
         pitch_param = pitch = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
@@ -98,6 +102,7 @@ private:
 
 public:
     Instrument(AeonWave& ptr) : Mixer(ptr), aax(&ptr) {
+        Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
     }
 
@@ -154,6 +159,15 @@ public:
         for (auto& it : key) {
             it.second->set_gain(g*gain);
         }
+    }
+
+    inline void set_pan(float p) {
+        Vector64 pos(0.0, 0.0, 0.0);
+        Vector dir(0.0f, 0.0f, 1.0f);
+        Matrix64 mtx(pos, dir);
+        mtx.translate(0.0, 1.0, -1.0);
+        mtx.rotate(1.57f*p, 0.0f, 1.0f, 0.0f);
+        Mixer::matrix(mtx);
     }
 
     inline void set_pressure(float p) { pressure = p; }
