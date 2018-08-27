@@ -206,7 +206,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       }
 
       pitch_level = _MIN(log2i(_MIN(ceilf(pitch),1.0f)), buffer->pitch_levels);
-      ep2d->pitch_fact = 1.0f/(float)(1 << pitch_level);
+      ep2d->pitch_factor = 1.0f/(float)(1 << pitch_level);
       rb = buffer->ringbuffer[pitch_level];
       if (rb)
       {
