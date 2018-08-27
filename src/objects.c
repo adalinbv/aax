@@ -143,7 +143,7 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    p2d->bufpos3dq = 0.0f;
 
    p2d->curr_pos_sec = 0.0f;
-   p2d->pitch_fact = 1.0f;
+   p2d->pitch_factor = 1.0f;
 #ifdef MIDI
    p2d->note.velocity = 1.0f;		/* MIDI */
    p2d->note.pressure = 1.0f;
@@ -168,9 +168,11 @@ _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps *dp3d)
    mtx4dSetIdentity(dp3d->matrix.m4);
    mtx4dSetIdentity(dp3d->imatrix.m4);
 #endif
+   _PROP3D_MTX_SET_CHANGED(dp3d);
 
    /* velocity     */
    mtx4fSetIdentity(dp3d->velocity.m4);
+   _PROP3D_SPEED_SET_CHANGED(dp3d);
 
    /* occlusion */
    memset(dp3d->occlusion.v4, 0, sizeof(vec4f_t));
