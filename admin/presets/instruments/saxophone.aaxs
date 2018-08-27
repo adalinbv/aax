@@ -13,15 +13,16 @@
  </instrument>
 
  <sound name="Saxophone" frequency="220" duration="0.10">
-  <waveform src="impulse"/>
-  <waveform src="square" processing="modulate" ratio="2.0" pitch="2.0"/>
-  <waveform src="sawtooth" processing="add" ratio="0.3" pitch="2.0"/>
+  <waveform src="impulse" pitch="0.5"/>
+  <waveform src="impulse" processing="mix" ratio="0.9"/>
+  <waveform src="square" processing="modulate" ratio="3.0" pitch="2.0"/>
+  <waveform src="sawtooth" processing="add" ratio="0.3" pitch="1.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">5000</param>
+    <param n="0">2500</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.0</param>
@@ -55,11 +56,11 @@
      <param n="3">5.00</param>
    </slot>
   </effect>
-  <effect type="chorus" src="true">
+  <effect type="chorus" src="inverse-envelope">
    <slot n="0">
     <param n="0">0.2</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="1">0.02</param>
+    <param n="2">0.3</param>
     <param n="3">0.2</param>
    </slot>
   </effect>
