@@ -168,9 +168,7 @@ class MIDIChannel;
 class MIDI : public AeonWave
 {
 public:
-    MIDI(const char* n) : AeonWave(n) {
-        path = info(AAX_SHARED_DATA_DIR);
-    }
+    MIDI(const char* n);
 
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni);
 

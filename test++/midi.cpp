@@ -41,6 +41,12 @@
 
 using namespace aax;
 
+MIDI::MIDI(const char* n) : AeonWave(n)
+{
+    path = info(AAX_SHARED_DATA_DIR);
+}
+
+
 MIDIChannel&
 MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
 {
@@ -450,6 +456,9 @@ MIDITrack::process(uint64_t time_offs_us)
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     omni = true;
                     break;
+                case MIDI_PAN:
+                    midi.channel(channel).set_pan(((float)value-64.0f)/64.0f);
+                    break;
                 case MIDI_EXPRESSION:
                     midi.channel(channel).set_expression((float)value/127.0f);
                     break;
@@ -465,10 +474,10 @@ MIDITrack::process(uint64_t time_offs_us)
                 case MIDI_SOFT_PEDAL:
                 case MIDI_HOLD_PEDAL1:
                 case MIDI_HOLD_PEDAL2:
-                    midi.channel(channel).set_hold(value >= 64);
+                    midi.channel(channel).set_hold(value >= 0x40);
                     break;
                 case MIDI_SOSTENUTO_PEDAL:
-                    midi.channel(channel).set_sustain(value >= 64);
+                    midi.channel(channel).set_sustain(value >= 0x40);
                     break;
                 default:
                     break;
