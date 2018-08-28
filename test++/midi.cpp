@@ -238,7 +238,7 @@ MIDITrack::pull_message()
     return rv;
 }
 
-void
+float
 MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 {
     bool msb_sent = false, lsb_sent = false;
@@ -246,6 +246,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
     uint16_t msb = 0, lsb = 0;
     uint8_t next = 0;
     uint16_t type;
+    float rv = 0.0f;
 
 #if 0
  printf("%x %x %x ", 0xb0|channel, controller, value);
@@ -257,7 +258,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 
     if (controller == MIDI_REGISTERED_PARAM_COARSE)
     {
-        msb_type = value << 7 || pull_byte();
+        msb_type = value;
         msb_sent = true;
         next = pull_byte();
         if (next == 0x00) next = pull_byte();
@@ -266,14 +267,14 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
         if (next == MIDI_REGISTERED_PARAM_FINE)
         {
-            lsb_type = pull_byte() << 7 || pull_byte();
+            lsb_type = pull_byte();
             lsb_sent = true;
             next = pull_byte();
         }
     }
     else if (controller == MIDI_REGISTERED_PARAM_FINE)
     {
-        lsb_type = value << 7 || pull_byte();
+        lsb_type = value;
         lsb_sent = true;
         next = pull_byte();
         if (next == 0x00) next = pull_byte();
@@ -282,13 +283,13 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
         if (next == MIDI_REGISTERED_PARAM_COARSE)
         {
-            msb_type = pull_byte() << 7 || pull_byte();
+            msb_type = pull_byte();
             msb_sent = true;
             next = pull_byte();
         }
     }
 
-    type = msb << 7 | lsb;
+    type = msb_type << 7 | lsb_type;
     if (msb_sent && lsb_sent && type == MIDI_PITCH_BEND_RANGE)
     {
         if (next == 0x00) next = pull_byte();
@@ -313,20 +314,17 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
             next = pull_byte();
         }
-        if (next == (MIDI_DATA_ENTRY|MIDI_COARSE))
-        {
+        if (next == (MIDI_DATA_ENTRY|MIDI_COARSE)) {
             msb = pull_byte();
-        }
-        else if (next == (MIDI_DATA_ENTRY|MIDI_FINE))
-        {
+        } else if (next == (MIDI_DATA_ENTRY|MIDI_FINE)) {
             lsb = pull_byte();
-        }
-        else {
+        } else {
             push_byte();
         }
-        midi.channel(channel).set_semi_tones((float)lsb + (float)msb/100.0f);
+        rv = (float)msb + (float)lsb*0.01f;
+        midi.channel(channel).set_semi_tones(rv);
     }
-
+    return rv;
 }
 
 bool
@@ -502,12 +500,12 @@ MIDITrack::process(uint64_t time_offs_us)
             }
             case MIDI_PITCH_BEND:
             {
-                uint16_t pitch = pull_byte() << 7 | pull_byte();
                 float semi_tones = midi.channel(channel).get_semi_tones();
-                float p = semi_tones*((float)pitch-8192);
-                if (p < 0) p /= 8192.0f;
-                else p /= 8191.0f;
-                midi.channel(channel).set_pitch(powf(2.0f, p/12.0f));
+                int16_t pitchbend = pull_byte() | pull_byte() << 7;
+                float pitch = semi_tones*(pitchbend-8192);
+                if (pitch < 0) pitch /= 8192.0f;
+                else pitch /= 8191.0f;
+                midi.channel(channel).set_pitch(powf(2.0f, pitch/12.0f));
                 break;
             }
             case MIDI_SYSTEM:

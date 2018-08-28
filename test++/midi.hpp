@@ -151,6 +151,7 @@ namespace aax
 #define MIDI_TUNING_PROGRAM_CHANGE	0x0003
 #define MIDI_TUNING_BANK_SELECT		0x0004
 #define MIDI_MODULATION_DEPTH_RANGE	0x0005
+#define MIDI_PARAMETER_RESET		0x7f7f
 
 /* real-time messages */
 #define MIDI_TIMING_CLOCK		0x08
@@ -259,7 +260,7 @@ public:
 
 private:
     uint32_t pull_message();
-    void registered_param(uint8_t, uint8_t, uint8_t);
+    float registered_param(uint8_t, uint8_t, uint8_t);
 
     MIDI& midi;
 
