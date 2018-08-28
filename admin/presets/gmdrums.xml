@@ -11,7 +11,7 @@
  <midi>
   <bank n="0">
    <drum n="27" name="High Q" file="drums/high-q"/>
-   <drum n="28" name="Slap" file="drums/slap"/>
+   <drum n="28" name="Virbraslap" file="drums/vibraslap"/>
    <drum n="29" name="Scratch 1" file="drums/scratch1"/>
    <drum n="30" name="Scratch 2" file="drums/scratch2"/>
    <drum n="31" name="Sticks" file="drums/sticks"/>
