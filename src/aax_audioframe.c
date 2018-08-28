@@ -1390,7 +1390,7 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
       }
    }
 
-   if (rv && !__low_resource)
+   if (rv)
    {
       rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
       if (!buffer->root) {
@@ -1691,11 +1691,18 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          {
             if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
             {
-               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
-               if (flt)
+               int non_optional = AAX_TRUE;
+               if (xmlAttributeExists(xfid, "optional")) {
+                  non_optional = !xmlAttributeGetBool(xfid, "optional");
+               }
+               if (non_optional || !__low_resource)
                {
-                  aaxAudioFrameSetFilter(frame, flt);
-                  aaxFilterDestroy(flt);
+                  aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
+                  if (flt)
+                  {
+                     aaxAudioFrameSetFilter(frame, flt);
+                     aaxFilterDestroy(flt);
+                  }
                }
             }
          }
@@ -1706,12 +1713,18 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          for (i=0; i<num; i++)
          {
             if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
-            {
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
-               if (eff)
+            {int non_optional = AAX_TRUE;
+               if (xmlAttributeExists(xeid, "optional")) {
+                  non_optional = !xmlAttributeGetBool(xeid, "optional");
+               }
+               if (non_optional || !__low_resource)
                {
-                  aaxAudioFrameSetEffect(frame, eff);
-                  aaxEffectDestroy(eff);
+                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
+                  if (eff)
+                  {
+                     aaxAudioFrameSetEffect(frame, eff);
+                     aaxEffectDestroy(eff);
+                  }
                }
             }
          }

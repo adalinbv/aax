@@ -58,11 +58,7 @@ static void _aaxFreeSensor(void *);
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
-# ifdef __x86_64__
-int __low_resource = (_aax_get_free_memory() || (_aaxGetNoCores()<3));
-#else
 int __low_resource = AAX_TRUE;
-#endif
 int __release_mode = AAX_FALSE;
 _aaxMixerInfo* _info = NULL;
 _intBuffers* _backends = NULL;
@@ -756,8 +752,18 @@ new_handle()
 {
    _handle_t *rv = NULL;
    size_t offs, size;
+   const char *env;
    void *ptr1;
    char *ptr2;
+
+   // This is for AAXS generated sound effects only
+   env = getenv("AAX_USE_LOW_RESOURCE");
+   if (!env || !_aax_getbool(env)) {
+#ifdef __x86_64__
+      __low_resource = (_aax_get_free_memory() < (50*1024*1024) ||
+                       (_aaxGetNoCores() < 3));
+#endif
+   }
 
    offs = sizeof(_handle_t);
    size = sizeof(_aaxMixerInfo);
