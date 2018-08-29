@@ -166,7 +166,7 @@ public:
     }
 
     inline void set_pan(float p) {
-        Vector64 pos(-4.0+8*p, 1.0, -2.0);
+        Vector64 pos(4.0*p, 1.0, -2.0);
         Vector dir(0.0f, 0.0f, 1.0f);
         Matrix64 mtx(pos, dir);
         Mixer::matrix(mtx);
