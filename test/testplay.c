@@ -74,72 +74,82 @@ int main(int argc, char **argv)
         ofile = getOutputFile(argc, argv, NULL);
         if (!ofile && buffer)
         {
-            aaxFrame frame;
-            aaxEmitter emitter;
+            aaxFrame frame[4];
+            aaxEmitter emitter[64];
             aaxFilter filter;
             aaxEffect effect;
+            int q, state, nsrc;
             float pitch, gain, duration;
             float dt = 0.0f;
-            int q, state;
 
+            nsrc = _MINMAX(getNumEmitters(argc, argv), 1, 64);
             duration = getDuration(argc, argv);
 
             /** emitter */
-            emitter = aaxEmitterCreate();
-            testForError(emitter, "Unable to create a new emitter");
+            for (q=0; q<nsrc; q++)
+            {
+                emitter[q] = aaxEmitterCreate();
+                testForError(emitter[q], "Unable to create a new emitter");
 
-            res = aaxEmitterSetMode(emitter, AAX_POSITION, AAX_ABSOLUTE);
-            testForError(emitter, "Unable to set emitter mode");
+                res = aaxEmitterSetMode(emitter[q], AAX_POSITION, AAX_ABSOLUTE);
+                testForError(emitter[q], "Unable to set emitter mode");
 
-            /* gain */
-            gain = getGain(argc, argv);
-            filter = aaxFilterCreate(config, AAX_VOLUME_FILTER);
-            testForError(filter, "Unable to create the volume filter");
+                /* gain */
+                gain = getGain(argc, argv);
+                filter = aaxFilterCreate(config, AAX_VOLUME_FILTER);
+                testForError(filter, "Unable to create the volume filter");
 
-            res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, gain);
-            testForState(res, "aaxFilterSetParam");
+                res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, gain);
+                testForState(res, "aaxFilterSetParam");
 
-            res = aaxEmitterSetFilter(emitter, filter);
-            testForState(res, "aaxEmitterSetGain");
-            aaxFilterDestroy(filter);
+                res = aaxEmitterSetFilter(emitter[q], filter);
+                testForState(res, "aaxEmitterSetGain");
+                aaxFilterDestroy(filter);
 
-            /* pitch */
-            pitch = getPitch(argc, argv);
-            effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
-            testForError(effect, "Unable to create the pitch effect");
+                /* pitch */
+                pitch = getPitch(argc, argv);
+                effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
+                testForError(effect, "Unable to create the pitch effect");
 
-            res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
-            testForState(res, "aaxEffectSetParam");
+                res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
+                testForState(res, "aaxEffectSetParam");
 
-            res = aaxEmitterSetEffect(emitter, effect);
-            testForState(res, "aaxEmitterSetPitch");
-            aaxEffectDestroy(effect);
+                res = aaxEmitterSetEffect(emitter[q], effect);
+                testForState(res, "aaxEmitterSetPitch");
+                aaxEffectDestroy(effect);
 
-            /* buffer */
-            res = aaxEmitterAddBuffer(emitter, buffer);
-            testForState(res, "aaxEmitterAddBuffer");
+                /* buffer */
+                res = aaxEmitterAddBuffer(emitter[q], buffer);
+                testForState(res, "aaxEmitterAddBuffer");
 
-            res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_TRUE);
-            testForState(res, "aaxEmitterSetMode");
+                res = aaxEmitterSetMode(emitter[q], AAX_LOOPING, AAX_TRUE);
+                testForState(res, "aaxEmitterSetMode");
+            }
 
             /** audio-frame */
             res = aaxMixerSetState(config, AAX_INITIALIZED);
             testForState(res, "aaxMixerInit");
 
-            frame = aaxAudioFrameCreate(config);
-            testForError(frame, "Unable to create a new audio frame");
+            for (q=0; q<4; ++q)
+            {
+                frame[q] = aaxAudioFrameCreate(config);
+                testForError(frame[q], "Unable to create a new audio frame");
 
-            res = aaxMixerRegisterAudioFrame(config, frame);
-            testForState(res, "aaxMixerRegisterAudioFrame");
+                res = aaxMixerRegisterAudioFrame(config, frame[q]);
+                testForState(res, "aaxMixerRegisterAudioFrame");
 
-            res = aaxAudioFrameSetState(frame, AAX_PLAYING);
-            testForState(res, "aaxAudioFrameStart");
+                res = aaxAudioFrameSetState(frame[q], AAX_PLAYING);
+                testForState(res, "aaxAudioFrameStart");
 
-            res = aaxAudioFrameAddBuffer(frame, buffer);
-            // testForState(res, "aaxAudioFrameAddBuffer");
+                res = aaxAudioFrameAddBuffer(frame[q], buffer);
+                // testForState(res, "aaxAudioFrameAddBuffer");
+            }
 
-            res = aaxAudioFrameRegisterEmitter(frame, emitter);
-            testForState(res, "aaxAudioFrameRegisterEmitter");
+            for (q=0; q<nsrc; q++)
+            {
+                res = aaxAudioFrameRegisterEmitter(frame[q % 4], emitter[q]);
+                testForState(res, "aaxAudioFrameRegisterEmitter");
+            }
 
             /** mixer */
             res = aaxMixerAddBuffer(config, buffer);
@@ -148,9 +158,12 @@ int main(int argc, char **argv)
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
-            /** schedule the emitter for playback */
-            res = aaxEmitterSetState(emitter, AAX_PLAYING);
-            testForState(res, "aaxEmitterStart");
+            for (q=0; q<nsrc; q++)
+            {
+                /** schedule the emitter for playback */
+                res = aaxEmitterSetState(emitter[q], AAX_PLAYING);
+                testForState(res, "aaxEmitterStart");
+            }
 
             printf("Playing sound for %3.1f seconds or until a key is pressed\n", duration);
             q = 0;
@@ -166,36 +179,48 @@ int main(int argc, char **argv)
                     float off_s;
                     q = 0;
 
-                    off_s = aaxEmitterGetOffsetSec(emitter);
-                    offs = aaxEmitterGetOffset(emitter, AAX_SAMPLES);
-                    offs_bytes = aaxEmitterGetOffset(emitter, AAX_BYTES);
+                    off_s = aaxEmitterGetOffsetSec(emitter[0]);
+                    offs = aaxEmitterGetOffset(emitter[0], AAX_SAMPLES);
+                    offs_bytes = aaxEmitterGetOffset(emitter[0], AAX_BYTES);
                     printf("playing time: %5.2f, buffer position: %5.2f "
                            "(%li samples/ %li bytes)\n", dt, off_s,
                            offs, offs_bytes);
                 }
-                state = aaxEmitterGetState(emitter);
+                state = aaxEmitterGetState(emitter[0]);
 
                 if (get_key()) break;
             }
             while ((dt < duration) && (state == AAX_PLAYING));
             set_mode(0);
 
-            res = aaxEmitterSetState(emitter, AAX_STOPPED);
+            for (q=0; q<nsrc; ++q) {
+                res = aaxEmitterSetState(emitter[q], AAX_STOPPED);
+            }
             testForState(res, "aaxEmitterStop");
 
             do
             {
                 msecSleep(50);
-                state = aaxEmitterGetState(emitter);
+                state = aaxEmitterGetState(emitter[0]);
             }
             while (state != AAX_PROCESSED);
 
-            res = aaxAudioFrameSetState(frame, AAX_STOPPED);
-            res = aaxAudioFrameDeregisterEmitter(frame, emitter);
-            res = aaxMixerDeregisterAudioFrame(config, frame);
+            for (q=0; q<4; ++q) {
+                res = aaxAudioFrameSetState(frame[q], AAX_STOPPED);
+            }
+            for (q=0; q<nsrc; ++q) {
+                res = aaxAudioFrameDeregisterEmitter(frame[q % 4], emitter[q]);
+            }
+            for (q=0; q<4; ++q) {
+                res = aaxMixerDeregisterAudioFrame(config, frame[q]);
+            }
             res = aaxMixerSetState(config, AAX_STOPPED);
-            res = aaxAudioFrameDestroy(frame);
-            res = aaxEmitterDestroy(emitter);
+            for (q=0; q<4; ++q) {
+                res = aaxAudioFrameDestroy(frame[q]);
+            }
+            for (q=0; q<nsrc; ++q) {
+                res = aaxEmitterDestroy(emitter[q]);
+            }
             res = aaxBufferDestroy(buffer);
         }
         else if (buffer)
