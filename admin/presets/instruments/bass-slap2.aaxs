@@ -15,7 +15,7 @@
  <sound name="Slapped Electric Bass 2" frequency="110" duration="0.75">
   <waveform src="sawtooth" pitch="0.9997"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="9.999"/>
-  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="1.999"/>
+  <waveform src="triangle" processing="modulate" ratio="1.9" pitch="1.999"/>
  </sound>
 
  <emitter looping="true">
