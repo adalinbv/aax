@@ -107,6 +107,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 std::string
 MIDIChannel::get_name_from_xml(std::string& file, const char* type, uint8_t bank_no, uint8_t program_no)
 {
+printf("Loading bank: %3i, program: %3i .. ", bank_no, program_no);
     void *xid = xmlOpen(file.c_str());
     if (xid)
     {
@@ -116,6 +117,7 @@ MIDIChannel::get_name_from_xml(std::string& file, const char* type, uint8_t bank
         {
             unsigned int bnum = xmlNodeGetNum(xaid, "bank");
             void *xbid = xmlMarkId(xaid);
+default_bank:
             for (unsigned int b=0; b<bnum; b++)
             {
                 if (xmlNodeGetPos(xaid, xbid, "bank", b) != 0)
@@ -147,6 +149,11 @@ MIDIChannel::get_name_from_xml(std::string& file, const char* type, uint8_t bank
                     break;
                 }
             }
+            if (file[0] == 0 && bank_no > 0)
+            {
+                bank_no = 0;
+                goto default_bank;
+            }
             xmlFree(xbid);
             xmlFree(xaid);
         }
@@ -156,7 +163,7 @@ MIDIChannel::get_name_from_xml(std::string& file, const char* type, uint8_t bank
         xmlClose(xid);
 
 #if 1
- printf("Loading: %s\n", file);
+ printf("%s\n", file);
 #endif
         if (file[0] != 0) {
             return file;
@@ -165,6 +172,7 @@ MIDIChannel::get_name_from_xml(std::string& file, const char* type, uint8_t bank
     else {
         std::cerr << "Unable to open: " << file << std::endl;
     }
+printf("not found.\n");
     return ""; // "instruments/piano-acoustic"
 }
 
@@ -289,8 +297,8 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
     }
 
-    type = msb_type << 7 | lsb_type;
-    if (msb_sent && lsb_sent && type == MIDI_PITCH_BEND_RANGE)
+    type = msb_type << 8 | lsb_type;
+    if (msb_sent && lsb_sent)
     {
         if (next == 0x00) next = pull_byte();
         if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
@@ -321,8 +329,25 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         } else {
             push_byte();
         }
-        rv = (float)msb + (float)lsb*0.01f;
-        midi.channel(channel).set_semi_tones(rv);
+
+printf("type: %08x\n", type);
+        switch(type)
+        {
+        case MIDI_PITCH_BEND_RANGE:
+            rv = (float)msb + (float)lsb*0.01f;
+            midi.channel(channel).set_semi_tones(rv);
+            break;
+        case MIDI_PARAMETER_RESET:
+            midi.channel(channel).set_semi_tones(2.0f);
+            break;
+        case MIDI_FINE_TUNING:
+        case MIDI_COARSE_TUNING:
+        case MIDI_TUNING_PROGRAM_CHANGE:
+        case MIDI_TUNING_BANK_SELECT:
+        case MIDI_MODULATION_DEPTH_RANGE:
+        default:
+            break;
+        }
     }
     return rv;
 }
@@ -453,6 +478,9 @@ MIDITrack::process(uint64_t time_offs_us)
                 case MIDI_OMNI_ON:
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     omni = true;
+                    break;
+                case MIDI_BANK_SELECT:
+                    bank_no = value;
                     break;
                 case MIDI_PAN:
                     midi.channel(channel).set_pan(((float)value-64.0f)/64.0f);
