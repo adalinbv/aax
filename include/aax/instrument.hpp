@@ -201,7 +201,7 @@ private:
     std::map<uint8_t,Note*> key;
     AeonWave* aax;
 
-    float gain = 0.0f;
+    float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
     bool hold = false;
