@@ -56,14 +56,17 @@
      <param n="3">5.00</param>
    </slot>
   </effect>
-  <effect type="chorus" src="inverse-envelope">
+ </emitter>
+
+ <audioframe>
+  <effect type="chorus" src="true" optional="true">
    <slot n="0">
     <param n="0">0.2</param>
     <param n="1">0.02</param>
-    <param n="2">0.3</param>
+    <param n="2">0.2</param>
     <param n="3">0.2</param>
    </slot>
   </effect>
- </emitter>
+ </audioframe>
 
 </aeonwave>

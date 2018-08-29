@@ -64,7 +64,7 @@
    <drum n="78" name="Mute Cuica" file="drums/cuica-muted"/>
    <drum n="79" name="Open Cuica" file="drums/cuica-open"/>
    <drum n="80" name="Mute Triangle" file="drums/triangle-muted"/>
-   <drum n="81" name="Open Triangle" file="drums/triangle"/>
+   <drum n="81" name="Open Triangle" file="drums/triangle-open"/>
    <drum n="82" name="Shaker" file="drums/shaker"/>
    <drum n="83" name="Jingle Bell" file="drums/bell-jingle"/>
    <drum n="84" name="Bell Tree" file="drums/bell-tree"/>
