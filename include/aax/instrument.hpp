@@ -103,6 +103,10 @@ private:
 public:
     Instrument(AeonWave& ptr) : Mixer(ptr), aax(&ptr) {
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
+        Vector64 pos(0.0, 1.0, -2.0);
+        Vector dir(0.0f, 0.0f, 1.0f);
+        Matrix64 mtx(pos, dir);
+        Mixer::matrix(mtx);
         Mixer::set(AAX_PLAYING);
     }
 
@@ -162,11 +166,9 @@ public:
     }
 
     inline void set_pan(float p) {
-        Vector64 pos(0.0, 0.0, 0.0);
+        Vector64 pos(-4.0+8*p, 1.0, -2.0);
         Vector dir(0.0f, 0.0f, 1.0f);
         Matrix64 mtx(pos, dir);
-        mtx.translate(0.0, 1.0, -1.0);
-        mtx.rotate(1.57f*p, 0.0f, 1.0f, 0.0f);
         Mixer::matrix(mtx);
     }
 
