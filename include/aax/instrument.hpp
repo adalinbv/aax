@@ -38,9 +38,7 @@ private:
 
 public:
     Note(float p) : Emitter(AAX_RELATIVE) {
-        Vector64 pos( 0.0, 0.0, -1.0);
-        Vector dir(0.0f, 0.0f, 1.0f);
-        Matrix64 mtx(pos, dir);
+        Matrix64 mtx;
         Emitter::matrix(mtx);
         pitch_param = pitch = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
@@ -103,7 +101,7 @@ private:
 public:
     Instrument(AeonWave& ptr) : Mixer(ptr), aax(&ptr) {
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
-        Vector64 pos(0.0, 1.0, -2.0);
+        Vector64 pos(0.0, 1.0, -1.0);
         Vector dir(0.0f, 0.0f, 1.0f);
         Matrix64 mtx(pos, dir);
         Mixer::matrix(mtx);
@@ -166,7 +164,7 @@ public:
     }
 
     inline void set_pan(float p) {
-        Vector64 pos(4.0*p, 1.0, -2.0);
+        Vector64 pos(1.0*p, 1.0, -1.0);
         Vector dir(0.0f, 0.0f, 1.0f);
         Matrix64 mtx(pos, dir);
         Mixer::matrix(mtx);
