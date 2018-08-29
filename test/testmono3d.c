@@ -122,7 +122,7 @@ int main(int argc, char **argv)
             num = getNumEmitters(argc, argv);
 
             /* Set emitters to located in a circle around the sensor */
-            anglestep = (2 * GMATH_PI) / (float)num;
+            anglestep = GMATH_2PI / (float)num;
             printf("Starting %i emitters\n", num);
             i = 0;
             do
