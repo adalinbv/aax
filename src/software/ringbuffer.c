@@ -1469,13 +1469,16 @@ static int
 _aaxRingBufferClear(_aaxRingBufferData *rbi)
 {
    _aaxRingBufferSample *rbd;
+   size_t dde_bytes;
    unsigned int i;
 
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
 
    rbd = rbi->sample;
+   dde_bytes = rbd->dde_samples*rbd->bytes_sample;
    for (i=0; i<rbd->no_tracks; i++) {
-      memset((void *)rbd->track[i], 0, rbd->track_len_bytes);
+      memset((void *)((char*)rbd->track[i]-dde_bytes), 0,
+             rbd->track_len_bytes+dde_bytes);
    }
 
    return AAX_TRUE;
