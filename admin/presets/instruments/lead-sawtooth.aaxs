@@ -18,7 +18,7 @@
   <waveform src="sawtooth" processing="modulate" ratio="0.8" pitch="2.4987"/>
  </sound>
 
- <emitter>
+ <emitter looping="true">
   <filter type="frequency" src="envelope">
    <slot n="0">
     <param n="0" pitch="0.1">22</param>
