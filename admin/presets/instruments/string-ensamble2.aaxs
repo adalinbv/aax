@@ -12,15 +12,10 @@
   <note polyphony="4" min="28" max="96" step="12"/>
  </instrument>
 
- <sound name="String Ensamble 2 (slow)" frequency="220" duration="1.5" voices="5" spread="0.3">
-<!--
-  <waveform src="sawtooth" ratio="0.75"/>
-  <waveform src="sawtooth" processing="add" ratio="0.25" pitch="0.99"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.35" pitch="1.4889"/>
--->
-  <waveform src="sawtooth" ratio="0.5" pitch="0.5"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="0.987"/>
-  <waveform src="impulse" processing="add" ratio="0.2" pitch="1.5"/>
+ <sound name="String Ensamble 2 (slow)" frequency="220" duration="1.0" voices="5" spread="0.3">
+  <waveform src="sawtooth" ratio="1.0" pitch="0.5"/>
+  <waveform src="sawtooth" processing="mix" ratio="1.0" pitch="0.987"/>
+  <waveform src="impulse" processing="add" ratio="0.8" pitch="1.5"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
