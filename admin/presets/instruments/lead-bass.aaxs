@@ -23,7 +23,7 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.20</param>
-    <param n="1" factor="velocity">0.30</param>
+    <param n="1" factor="velocity">0.08</param>
     <param n="2" factor="soften">1.00</param>
     <param n="3">0.05</param>
    </slot>
@@ -36,7 +36,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">0.92</param>
+    <param n="0" factor="soften">1.12</param>
     <param n="1" factor="velocity">0.15</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
@@ -45,7 +45,7 @@
     <param n="0">0.995</param>
    </slot>
   </effect>
-  <effect type="phasing" src="inverse-sine">
+  <effect type="phasing" src="inverse-sine" optional="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.1</param>
