@@ -1268,6 +1268,7 @@ _bufAAXSThread(void *d)
          {
             char *file = xmlAttributeGetString(xsid, "file");
             char **ptr = _bufGetDataFromAAXS(handle, file);
+            unsigned long loop_start, loop_end;
             xmlFree(file);
 
             if (ptr)
@@ -1278,6 +1279,15 @@ _bufAAXSThread(void *d)
             else {
                aax_buf->error = AAX_INVALID_REFERENCE;
             }
+
+            loop_start = xmlAttributeGetInt(xsid, "loop-start");
+            if (xmlAttributeExists(xsid, "loop-end")) {
+               loop_end = xmlAttributeGetInt(xsid, "loop-end");
+            } else {
+               loop_end = handle->no_samples;
+            }
+            aaxBufferSetSetup(handle, AAX_LOOP_END, loop_end);
+            aaxBufferSetSetup(handle, AAX_LOOP_START, loop_start);
          }
          else if (xmlAttributeExists(xsid, "duration"))
          {
