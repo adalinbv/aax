@@ -1,3 +1,22 @@
+* Sat Sep 01 2018 - tech@adalin.org
+- AeonWave (3.5.0) stable; urgency=low
+
+ * Add the option to set the location of the shared-data directory at runtime
+   using the new aaxDriverSetSetup function.
+ * Add a C++ instrument header file which can be used to simulate a single,
+   complete, musical instrument. And use it for the MIDI playback code.
+ * Re-initialize the emitter after it is set to suspended. This makes the
+   emitter ready for the next playing state.
+ * Fix some issues with the timed gain filter and timed pitch effect.
+ * Fix an issue when two registered audio-frames both use a delay effect.
+ * Add the option to define the loop staring point and loop end point in AAXS
+   files that include a file in the sound section.
+ * Allow AAXS defined filters and effects to be set as optional, in which case
+   they will be omitted on systems which are low on resources (CPU and memory).
+ * AAXS generated buffers will now use mipmapping to extend the pitch range
+   beyond a pitch level of 32.
+
+-- Erik Hofman <tech@adalin.org>  Sat 01 Sep  2018 09:13:00 + 0200
 
 * Wed Aug 01 2018 - tech@adalin.org
 - AeonWave (3.4.0) stable; urgency=low
