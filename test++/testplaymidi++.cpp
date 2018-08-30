@@ -61,9 +61,10 @@ int main(int argc, char **argv)
         aax::MIDIFile midi(devname, infile);
         if (midi)
         {
-            int64_t sleep_us, dt_us, wait_us = 1000;
+            int64_t sleep_us, dt_us;
+            uint64_t time_us = 0;
+            uint32_t wait_us;
             struct timeval now;
-            uint32_t time_ms = 0;
 
 #if 1
             midi.set_file_path(SRC_PATH"/midi");
@@ -75,20 +76,29 @@ int main(int argc, char **argv)
             midi.set(AAX_INITIALIZED);
             midi.set(AAX_PLAYING);
 
+            wait_us = 1000;
             set_mode(1);
+
+            gettimeofday(&now, NULL);
+            dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
             do
             {
-                gettimeofday(&now, NULL);
-                dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
+                if (!midi.process(time_us, wait_us)) break;
 
-                if (!midi.process(time_ms++)) break;
+                if (wait_us > 0)
+                {
+                    gettimeofday(&now, NULL);
+                    dt_us += now.tv_sec * 1000000 + now.tv_usec;
 
-                gettimeofday(&now, NULL);
-                dt_us += now.tv_sec * 1000000 + now.tv_usec;
+                    sleep_us = wait_us - dt_us;
+                    if (sleep_us > 0) {
+                       usecSleep(sleep_us);
+                    }
 
-                sleep_us = wait_us - dt_us;
-                if (sleep_us > 0) {
-                   usecSleep(sleep_us);
+                    gettimeofday(&now, NULL);
+                    dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
+
+                    time_us += wait_us;
                 }
             }
             while(!get_key());

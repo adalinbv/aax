@@ -330,7 +330,6 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
             push_byte();
         }
 
-printf("type: %08x\n", type);
         switch(type)
         {
         case MIDI_PITCH_BEND_RANGE:
@@ -353,7 +352,7 @@ printf("type: %08x\n", type);
 }
 
 bool
-MIDITrack::process(uint64_t time_offs_us)
+MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
 {
     bool rv = !eof();
 
@@ -562,11 +561,13 @@ MIDITrack::process(uint64_t time_offs_us)
             uint32_t parts = pull_message();
             if (parts > 0)
             {
-                timestamp_us += parts*uSPP;
-                break;
+                uint64_t usec = parts*uSPP;
+                timestamp_us += usec;
             }
         }
     }
+
+    next = _MAX(1, (timestamp_us  - time_offs_us));
 
     return rv;
 }
@@ -606,7 +607,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                         if (format == 0 && no_tracks != 1) return;
 
                         PPQN = stream.pull_word();
-                        if (PPQN & 0x8000)
+                        if (PPQN & 0x8000) // SMPTE
                         {
                             uint8_t fps = (PPQN >> 8) & 0xff;
                             uint8_t resolution = PPQN & 0xff;
@@ -650,11 +651,19 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 }
 
 bool
-MIDIFile::process(uint32_t time_ms)
+MIDIFile::process(uint64_t time_us, uint32_t& next)
 {
+    uint32_t wait_us;
     bool rv = false;
-    for (size_t t=0; t<no_tracks; ++t) {
-        rv |= track[t]->process(1000*time_ms);
+
+    next = 10000000;
+    for (size_t t=0; t<no_tracks; ++t)
+    {
+        wait_us = 1000000;
+        rv |= track[t]->process(time_us, wait_us);
+        if (next > wait_us) {
+            next = wait_us;
+        }
     }
     return rv;
 }

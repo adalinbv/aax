@@ -256,7 +256,7 @@ public:
 
     ~MIDITrack() = default;
 
-    bool process(uint64_t);
+    bool process(uint64_t, uint32_t&);
 
 private:
     uint32_t pull_message();
@@ -291,7 +291,7 @@ public:
         return midi_data.capacity();
     }
 
-    bool process(uint32_t);
+    bool process(uint64_t, uint32_t&);
 
     inline uint16_t get_ppqn() { return PPQN; }
     inline bool is_good() { return good; }
