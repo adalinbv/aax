@@ -51,7 +51,6 @@
     <param n="1">4.5</param>
     <param n="2">0.975</param>
    </slot>
-  </filter>
   </effect>
   <effect type="chorus" src="inverse-envelope" optional="true">
    <slot n="0">
