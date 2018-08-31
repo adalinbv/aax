@@ -52,9 +52,6 @@
     <param n="2">0.995</param>
    </slot>
   </effect>
- </emitter>
-
- <audioframe>
   <effect type="chorus" src="envelope" optional="true">
    <slot n="0">
     <param n="0">0.8</param>
@@ -63,6 +60,6 @@
     <param n="3">0.305</param>
    </slot>
   </effect>
- </audioframe>
+ </emitter>
 
 </aeonwave>

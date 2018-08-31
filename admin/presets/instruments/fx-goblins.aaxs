@@ -45,7 +45,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="envelope">
+  <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
     <param n="0">880</param>
     <param n="1">0.6</param>

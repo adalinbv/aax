@@ -11,9 +11,6 @@
  <sound name="Acoustic Base Drum" frequency="55" duration="0.10">
   <waveform src="triangle" ratio="0.4"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
- </sound>
-
- <emitter looping="true">
   <filter type="bitcrusher">
    <slot n="0">
     <param n="0">0.0</param>
@@ -22,6 +19,9 @@
     <param n="3">0.5</param>
    </slot>
   </filter>
+ </sound>
+
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.00</param>

@@ -12,7 +12,6 @@
   <waveform src="square"/>
   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="9.1"/>
-
   <filter type="frequency">
    <slot n="0">
     <param n="0">2500</param>
@@ -23,7 +22,7 @@
   </filter>
  </sound>
 
- <emitter>
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.7</param>

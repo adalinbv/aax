@@ -55,7 +55,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer">
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">60</param>
     <param n="1">0.0</param>

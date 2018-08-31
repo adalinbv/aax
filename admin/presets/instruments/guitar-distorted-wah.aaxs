@@ -27,7 +27,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope|24db">
+  <filter type="frequency" src="envelope|24db" optional="true">
    <slot n="0">
     <param n="0" pitch="0.5">110</param>
     <param n="1">1.0</param>
@@ -67,7 +67,7 @@
  </emitter>
 
  <audioframe>
-  <effect type="phasing" src="true">
+  <effect type="phasing" src="true" optional="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.0</param>
@@ -83,7 +83,7 @@
     <param n="3">0.7</param>
    </slot>
   </effect>
-  <filter type="equalizer">
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">60</param>
     <param n="1">0.0</param>

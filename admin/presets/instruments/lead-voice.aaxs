@@ -33,7 +33,7 @@
     <param n="3">0.5</param>
    </slot>
   </filter>
-  <effect type="phasing" src="envelope">
+  <effect type="phasing" src="envelope"  optional="true">
    <slot n="0">
     <param n="0">0.3</param>
     <param n="1">0.05</param>
@@ -44,7 +44,7 @@
  </emitter>
 
  <audioframe>
-  <effect type="flanging" src="inverse-sine">
+  <effect type="flanging" src="inverse-sine" optional="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.05</param>

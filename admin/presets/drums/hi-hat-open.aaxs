@@ -15,7 +15,7 @@
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="17.7"/>
  </sound>
 
- <emitter>
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.2</param>

@@ -34,7 +34,7 @@
  </emitter>
 
  <audioframe> <!-- leslie box -->
-  <effect type="phasing" src="sine">
+  <effect type="phasing" src="sine" optional="true">
    <slot n="0">
     <param n="0">0.383</param>
     <param n="1">5.537</param>

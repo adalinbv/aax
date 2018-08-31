@@ -11,9 +11,6 @@
  <sound name="Electric Snare" frequency="260" duration="0.50">
   <waveform src="pink-noise" ratio="1.0" pitch="0.20"/>
   <waveform src="triangle" processing="mix" ratio="0.70"/>
- </sound>
-
- <emitter looping="true">
   <filter type="bitcrusher">
    <slot n="0">
     <param n="0">0.0</param>
@@ -22,6 +19,9 @@
     <param n="3">0.7</param>
    </slot>
   </filter>
+ </sound>
+
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.20</param>

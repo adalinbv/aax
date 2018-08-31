@@ -27,7 +27,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="48db">
+  <filter type="frequency" src="48db" optional="true">
    <slot n="0">
     <param n="0">2050</param>
     <param n="1">0.4</param>
@@ -58,10 +58,26 @@
     <param n="0">0.975</param>
    </slot>
   </effect>
+  <effect type="chorus" src="inverse-envelope" optional="true">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.2</param>
+    <param n="2">0.2</param>
+    <param n="3">0.3</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe>
-  <filter type="equalizer">
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">1.5</param>
+    <param n="1">0.5</param>
+    <param n="2">0.5</param>
+    <param n="3">0.5</param>
+   </slot>
+  </effect>
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">60</param>
     <param n="1">0.0</param>
@@ -75,22 +91,6 @@
     <param n="3">8.5</param>
    </slot>
   </filter>
-  <effect type="distortion">
-   <slot n="0">
-    <param n="0">1.5</param>
-    <param n="1">0.5</param>
-    <param n="2">0.5</param>
-    <param n="3">0.5</param>
-   </slot>
-  </effect>
-  <effect type="chorus" src="inverse-envelope">
-   <slot n="0">
-    <param n="0">0.6</param>
-    <param n="1">0.2</param>
-    <param n="2">0.2</param>
-    <param n="3">0.3</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>

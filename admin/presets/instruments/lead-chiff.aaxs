@@ -20,7 +20,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope">
+  <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
     <param n="1">1.0</param>
@@ -50,7 +50,7 @@
     <param n="1">0.5</param>
    </slot>
   </filter>
-  <effect type="phasing" src="inverse-envelope">
+  <effect type="phasing" src="inverse-envelope" optional="true">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.03</param>

@@ -50,7 +50,7 @@
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="true">
+  <effect type="chorus" src="true" optional="true">
    <slot n="0">
     <param n="0">0.5</param>
     <param n="1">0.0</param>

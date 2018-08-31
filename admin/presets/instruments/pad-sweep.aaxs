@@ -34,7 +34,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="sine">
+  <filter type="frequency" src="sine"  optional="true">
    <slot n="0">
     <param n="0" pitch="2.0">440</param>
     <param n="1">3.0</param>
@@ -46,7 +46,7 @@
     <param n="3">0.115</param>
    </slot>
   </filter>
-  <effect type="phasing" src="inverse-sine">
+  <effect type="phasing" src="inverse-sine"  optional="true">
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.09</param>

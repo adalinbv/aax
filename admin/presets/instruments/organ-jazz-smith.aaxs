@@ -32,7 +32,7 @@
     <param n="1">0.2</param>
    </slot>
   </filter>
-  <effect type="chorus" src="true"> <!-- reverb -->
+  <effect type="chorus" src="true" optional="true"> <!-- reverb -->
    <slot n="0">
     <param n="0">0.2</param>
     <param n="1">0.05</param>
@@ -43,7 +43,7 @@
  </emitter>
 
  <audioframe> <!-- leslie box -->
-  <effect type="phasing" src="sine">
+  <effect type="phasing" src="sine" optional="true">
    <slot n="0">
     <param n="0">0.383</param>
     <param n="1">1.537</param>

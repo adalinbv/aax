@@ -40,10 +40,7 @@
     <param n="1">3.00</param>
    </slot>
   </filter>
- </emitter>
-
- <audioframe>
-  <effect type="chorus" src="envelope">
+  <effect type="chorus" src="envelope" optional="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.05</param>
@@ -51,7 +48,10 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <filter type="equalizer">
+ </emitter>
+
+ <audioframe>
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100</param>
     <param n="1">0.8</param>

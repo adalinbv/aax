@@ -15,7 +15,7 @@
  <sound name="Acoustic Guitar (Nylon)" frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
-  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="0.999"/>
+  <waveform src="triangle" processing="modulate" ratio="1.9" pitch="0.999"/>
   <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
@@ -42,7 +42,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer">
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100</param>
     <param n="1">0.0</param>

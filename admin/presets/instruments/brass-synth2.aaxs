@@ -18,7 +18,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope">
+  <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
     <param n="1">1.0</param>
@@ -44,7 +44,7 @@
     <param n="3">1.50</param>
    </slot>
   </filter>
-  <effect type="chorus" src="envelope">
+  <effect type="chorus" src="envelope" optional="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.08</param>

@@ -40,7 +40,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="48db">
+  <filter type="frequency" src="48db" optional="true">
    <slot n="0">
     <param n="0">4000</param>
     <param n="1">1.0</param>

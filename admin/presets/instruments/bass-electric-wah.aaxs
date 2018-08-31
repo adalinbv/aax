@@ -20,7 +20,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope|24db">
+  <filter type="frequency" src="envelope|24db" optional="true">
    <slot n="0">
     <param n="0" pitch="0.1">22</param>
     <param n="1">1.0</param>
@@ -47,7 +47,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer">
+  <filter type="equalizer" optional="true">
    <slot n="0">    
     <param n="0">100</param>
     <param n="1">0.8</param>

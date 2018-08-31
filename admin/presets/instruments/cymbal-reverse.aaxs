@@ -8,7 +8,11 @@
 
 <aeonwave>
 
- <sound name="Reverse Cymbal" program="120" bank="0" frequency="770" duration="0.10">
+ <instrument program="119" bank="0">
+  <note polyphony="1" min="21" max="108" step="6"/>
+ </instrument>
+
+ <sound name="Reverse Cymbal" frequency="770" duration="0.10">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>
@@ -23,11 +27,7 @@
   </filter>
  </sound>
 
- <instrument>
-  <note polyphony="1" min="36" max="84" step="1"/>
- </instrument>
-
- <emitter>
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>

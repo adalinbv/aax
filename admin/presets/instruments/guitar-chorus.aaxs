@@ -45,7 +45,7 @@
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="sine">
+  <effect type="chorus" src="sine" optional="true">
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.25</param>
@@ -53,7 +53,7 @@
     <param n="3">0.35</param>
    </slot>
   </effect>
-  <filter type="equalizer">
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">60</param>
     <param n="1">0.0</param>

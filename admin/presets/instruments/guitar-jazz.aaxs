@@ -45,7 +45,7 @@
  </emitter>
 
  <audioframe>
-  <effect type="phasing" src="true">
+  <effect type="phasing" src="true" optional="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.0</param>
@@ -53,7 +53,7 @@
     <param n="3">0.4</param>
    </slot>
   </effect>
-  <filter type="equalizer">
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">90</param>
     <param n="1">0.2</param>

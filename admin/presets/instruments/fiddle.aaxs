@@ -49,7 +49,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="equalizer">
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">390</param>
     <param n="1">0.9</param>

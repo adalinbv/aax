@@ -13,7 +13,6 @@
   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
   <waveform src="pink-noise" processing="add" ratio="1.2"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
-
   <filter type="frequency">
    <slot n="0">
     <param n="0">2000</param>
@@ -24,7 +23,7 @@
   </filter>
  </sound>
 
- <emitter>
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.50</param>

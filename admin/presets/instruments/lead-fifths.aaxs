@@ -18,7 +18,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope">
+  <filter type="frequency" src="inverse-envelope" optional="true">
    <slot n="0">
     <param n="0" pitch="0.1">22</param>
     <param n="1">0.0</param>
