@@ -169,7 +169,9 @@ class MIDIChannel;
 class MIDI : public AeonWave
 {
 public:
-    MIDI(const char* n);
+    MIDI(const char* n)  : AeonWave(n) {
+        path = info(AAX_SHARED_DATA_DIR);
+    }
 
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni);
 
@@ -187,9 +189,16 @@ public:
         set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
     }
 
+    void read_instruments();
+    std::string get_drum(uint8_t bank, uint8_t key);
+    std::string get_instrument(uint8_t bank, uint8_t program);
+
 private:
     std::map<uint8_t,MIDIChannel*> channels;
+    std::map<uint8_t,std::map<uint8_t,std::string>> drums;
+    std::map<uint8_t,std::map<uint8_t,std::string>> instruments;
 
+    std::string empty_str = "";
     std::string instr = "gmmidi.xml";
     std::string drum = "gmdrums.xml";
     std::string path;
@@ -209,8 +218,6 @@ public:
          program_no(program), is_drums(channel == MIDI_DRUMS_CHANNEL)
     {
         Mixer::set(AAX_PLAYING);
-        instr = dir; instr.append("/"); instr.append(ifile);
-        drum = dir; drum.append("/"); drum.append(dfile);
     }
 
     MIDIChannel(MIDIChannel&&) = default;
@@ -223,13 +230,7 @@ public:
     inline float get_semi_tones() { return semi_tones; }
 
 private:
-    std::string get_name_from_xml(std::string& file, const char* type, uint8_t bank_no, uint8_t program_no);
-    std::string get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no);
-
     std::map<uint8_t,Buffer&> name_map;
-
-    std::string instr;
-    std::string drum;
 
     MIDI &midi;
     float semi_tones = 2.0f;

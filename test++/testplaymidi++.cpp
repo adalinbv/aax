@@ -71,6 +71,7 @@ int main(int argc, char **argv)
             midi.set_instrument_file(INSTRUMENTS);
             midi.set_drum_file(DRUMS);
 #endif
+            midi.read_instruments();
 
             midi.set(AAX_REFRESH_RATE, 90.0f);
             midi.set(AAX_INITIALIZED);

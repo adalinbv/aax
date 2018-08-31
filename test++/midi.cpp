@@ -41,11 +41,150 @@
 
 using namespace aax;
 
-MIDI::MIDI(const char* n) : AeonWave(n)
+void
+MIDI::read_instruments()
 {
-    path = info(AAX_SHARED_DATA_DIR);
+    const char *filename, *type = "instrument";
+    auto map = instruments;
+
+    std::string iname = path;
+    iname.append("/");
+    iname.append(instr);
+
+    filename = iname.c_str();
+    for(unsigned int i=0; i<2; ++i)
+    {
+        void *xid = xmlOpen(filename);
+        if (xid)
+        {
+            void *xaid = xmlNodeGet(xid, "aeonwave/midi");
+            char file[64] = "";
+            if (xaid)
+            {
+                unsigned int bnum = xmlNodeGetNum(xaid, "bank");
+                void *xbid = xmlMarkId(xaid);
+                for (unsigned int b=0; b<bnum; b++)
+                {
+                    if (xmlNodeGetPos(xaid, xbid, "bank", b) != 0)
+                    {
+                        long int bank_no = xmlAttributeGetInt(xbid, "n");
+                        unsigned int inum = xmlNodeGetNum(xbid, type);
+                        void *xiid = xmlMarkId(xbid);
+
+                        std::map<uint8_t,std::string> bank;
+                        for (unsigned int i=0; i<inum; i++)
+                        {
+                            if (xmlNodeGetPos(xbid, xiid, type, i) != 0)
+                            {
+                                long int n = xmlAttributeGetInt(xiid, "n");
+                                unsigned int slen;
+
+                                slen = xmlAttributeCopyString(xiid, "file", file, 64);
+                                if (slen)
+                                {
+                                    file[slen] = 0;
+                                    std::string inst(file);
+                                    bank.insert({n,inst});
+                                }
+                            }
+                        }
+                        map.insert({bank_no,bank});
+                        xmlFree(xiid);
+                    }
+                }
+                xmlFree(xbid);
+                xmlFree(xaid);
+#if 0
+for (auto& b : map) {
+    for (auto& i : b.second) {
+        printf("%i %i %s\n", b.first, i.first, i.second.c_str());
+    }
+}
+#endif
+            }
+            else {
+                std::cerr << "aeonwave/midi not found in: " << filename << std::endl;
+            }
+            xmlClose(xid);
+        }
+        else {
+            std::cerr << "Unable to open: " << filename << std::endl;
+        }
+
+        if (i == 0)
+        {
+            instruments = map;
+
+            iname = path;
+            iname.append("/");
+            iname.append(drum);
+            filename = iname.c_str();
+            type = "drum";
+            map = drums;
+        }
+        else {
+            drums = map;
+        }
+    }
 }
 
+std::string
+MIDI::get_drum(uint8_t bank_no, uint8_t program_no) 
+{
+    auto itb = drums.find(bank_no);
+    if (itb == drums.end() && bank_no > 0) {
+        itb = drums.find(0);
+    }
+
+    if (itb != drums.end()) 
+    {
+        do
+        {   
+            auto bank = itb->second;
+            auto iti = bank.find(program_no);
+            if (iti != bank.end()) {
+                return iti->second;
+            }
+
+            if (bank_no > 0) {
+                itb = drums.find(0);
+            } else {
+                break;
+            }
+        }
+        while (bank_no > 0);
+    }
+    return empty_str;
+}
+
+std::string
+MIDI::get_instrument(uint8_t bank_no, uint8_t program_no)
+{
+    auto itb = instruments.find(bank_no);
+    if (itb == instruments.end() && bank_no > 0) {
+        itb = instruments.find(0);
+    }
+
+    if (itb != instruments.end())
+    {
+        do
+        {
+            auto bank = itb->second;
+            auto iti = bank.find(program_no);
+            if (iti != bank.end()) {
+                return iti->second;
+            }
+ 
+            if (bank_no > 0) {
+                itb = instruments.find(0);
+            } else {
+                break;
+            }
+        }
+        while (bank_no > 0);
+    }
+    return empty_str;
+}
 
 MIDIChannel&
 MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
@@ -103,89 +242,6 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
     return true;
 }
 
-
-std::string
-MIDIChannel::get_name_from_xml(std::string& file, const char* type, uint8_t bank_no, uint8_t program_no)
-{
-printf("Loading bank: %3i, program: %3i .. ", bank_no, program_no);
-    void *xid = xmlOpen(file.c_str());
-    if (xid)
-    {
-        void *xaid = xmlNodeGet(xid, "aeonwave/midi");
-        char file[64] = "";
-        if (xaid)
-        {
-            unsigned int bnum = xmlNodeGetNum(xaid, "bank");
-            void *xbid = xmlMarkId(xaid);
-default_bank:
-            for (unsigned int b=0; b<bnum; b++)
-            {
-                if (xmlNodeGetPos(xaid, xbid, "bank", b) != 0)
-                {
-                    long int n = xmlAttributeGetInt(xbid, "n");
-                    if (n == bank_no)
-                    {
-                        unsigned int inum=xmlNodeGetNum(xbid, type);
-                        void *xiid = xmlMarkId(xbid);
-                        for (unsigned int i=0; i<inum; i++)
-                        {
-                            if (xmlNodeGetPos(xbid, xiid, type, i) != 0)
-                            {
-                                long int n = xmlAttributeGetInt(xiid, "n");
-                                if (n == program_no)
-                                {
-                                    unsigned int slen;
-
-                                    slen = xmlAttributeCopyString(xiid, "file", file, 64);
-                                    if (slen) {
-                                        file[slen] = 0;
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                        xmlFree(xiid);
-                    }
-                    break;
-                }
-            }
-            if (file[0] == 0 && bank_no > 0)
-            {
-                bank_no = 0;
-                goto default_bank;
-            }
-            xmlFree(xbid);
-            xmlFree(xaid);
-        }
-        else {
-            std::cerr << "aeonwave/midi not found in: " << file << std::endl;
-        }
-        xmlClose(xid);
-
-#if 1
- printf("%s\n", file);
-#endif
-        if (file[0] != 0) {
-            return file;
-        }
-    }
-    else {
-        std::cerr << "Unable to open: " << file << std::endl;
-    }
-printf("not found.\n");
-    return ""; // "instruments/piano-acoustic"
-}
-
-std::string
-MIDIChannel::get_name(uint8_t channel, uint8_t bank_no, uint8_t program_no)
-{
-    if (channel == MIDI_DRUMS_CHANNEL) {
-        return get_name_from_xml(drum, "drum", bank_no, program_no);
-    } else {
-        return get_name_from_xml(instr, "instrument", bank_no, program_no);
-    }
-}
-
 void
 MIDIChannel::play(uint8_t key_no, uint8_t velocity)
 {
@@ -197,12 +253,16 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            std::string name = get_name(channel_no, bank_no, key_no);
-            Buffer &buffer = midi.buffer(name, true);
-            if (buffer)
+            std::string name = midi.get_drum(bank_no, program_no);
+            if (!name.empty())
             {
-                auto ret = name_map.insert({key_no,buffer});
-                it = ret.first;
+                printf("Loading drum bank: %3i, program: %3i: %s\n", bank_no, program_no, name.c_str());
+                Buffer &buffer = midi.buffer(name, true);
+                if (buffer)
+                {
+                    auto ret = name_map.insert({key_no,buffer});
+                    it = ret.first;
+                }
             }
         }
     }
@@ -210,12 +270,16 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
     {
         if (it == name_map.end())
         {
-            std::string name = get_name(channel_no, bank_no, program_no);
-            Buffer &buffer = midi.buffer(name, true);
-            if (buffer)
+            std::string name = midi.get_instrument(bank_no, program_no);
+            if (!name.empty())
             {
-                auto ret = name_map.insert({program_no,buffer});
-                it = ret.first;
+                printf("Loading instrument bank: %3i, program: %3i: %s\n", bank_no, program_no, name.c_str());
+                Buffer &buffer = midi.buffer(name, true);
+                if (buffer)
+                {
+                    auto ret = name_map.insert({program_no,buffer});
+                    it = ret.first;
+                }
             }
         }
     }
