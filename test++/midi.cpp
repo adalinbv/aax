@@ -253,10 +253,11 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            std::string name = midi.get_drum(bank_no, program_no);
+            std::string name = midi.get_drum(bank_no, key_no);
             if (!name.empty())
             {
-                printf("Loading drum bank: %3i, program: %3i: %s\n", bank_no, program_no, name.c_str());
+                printf("Loading drum       bank: %3i, key    : %3i: %s\n",
+                        bank_no, key_no, name.c_str());
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
@@ -273,7 +274,8 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             std::string name = midi.get_instrument(bank_no, program_no);
             if (!name.empty())
             {
-                printf("Loading instrument bank: %3i, program: %3i: %s\n", bank_no, program_no, name.c_str());
+                printf("Loading instrument bank: %3i, program: %3i: %s\n",
+                        bank_no, program_no, name.c_str());
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
