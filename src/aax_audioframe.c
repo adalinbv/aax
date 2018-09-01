@@ -1028,7 +1028,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
       }
    }
 
-   if (rv && emitter->mixer_pos == UINT_MAX)
+   if (rv && emitter)
    {
       _aaxAudioFrame* fmixer = handle->submix;
       _aaxEmitter *src = emitter->source;
