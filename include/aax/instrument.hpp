@@ -127,9 +127,9 @@ public:
             float pitch = 1.0f;
             float frequency = buffer.get(AAX_UPDATE_RATE);
             if (!is_drums) pitch = note2freq(key_no)/(float)frequency;
+            else Mixer::set(AAX_MONO_EMITTERS, 10);
             auto ret = key.insert({key_no, new Note(pitch)});
             it = ret.first;
-            Mixer::set(AAX_MONO_EMITTERS, 10);
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
                 playing = true;
