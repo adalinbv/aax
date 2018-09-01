@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="1" bank="0">
-  <note polyphony="16" min="21" max="108" step="6"/>
+  <note polyphony="88" min="21" max="108" step="6"/>
  </instrument>
 
  <sound name="Acoustic Grand Piano" frequency="220" duration="0.10">
@@ -34,7 +34,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.15</param>
+    <param n="0" factor="soften">1.08</param>
     <param n="1" factor="velocity">0.01</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
@@ -48,7 +48,7 @@
  <audioframe>
   <filter type="frequency" src="48db" optional="true">
    <slot n="0">
-    <param n="0">4000</param>
+    <param n="0">5500</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>

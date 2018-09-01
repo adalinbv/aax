@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="56-58" bank="0">
-  <note polyphony="1" min="48" max="94" step="12"/>
+  <note polyphony="2" min="48" max="94" step="12"/>
  </instrument>
 
  <sound name="Trumpet" frequency="220" duration="0.10">

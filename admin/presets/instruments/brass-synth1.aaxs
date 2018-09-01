@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="63" bank="0">
-  <note polyphony="1" min="35" max="96" step="12"/>
+  <note polyphony="2" min="35" max="96" step="12"/>
  </instrument>
 
  <sound name="Synthesizer Brass 1" frequency="220" duration="0.25">

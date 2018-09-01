@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="71" bank="0">
-  <note polyphony="1" min="50" max="91" step="12"/>
+  <note polyphony="2" min="50" max="91" step="12"/>
  </instrument>
 
  <sound name="Clarinet" frequency="220" duration="0.1">

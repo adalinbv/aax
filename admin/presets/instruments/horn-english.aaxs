@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="69" bank="0">
-  <note polyphony="1" min="52" max="81" step="12"/>
+  <note polyphony="2" min="52" max="81" step="12"/>
  </instrument>
 
  <sound name="English Horn" frequency="220" duration="0.10">

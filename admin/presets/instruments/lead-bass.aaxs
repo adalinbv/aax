@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="87" bank="0">
-  <note polyphony="1" min="21" max="108" step="12"/>
+  <note polyphony="8" min="21" max="108" step="12"/>
  </instrument>
 
  <sound name="Lead 8 (bass+lead)" frequency="220" duration="3.3">

@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="47" bank="0">
-  <note polyphony="1" min="60" max="77" step="1"/>
+  <note polyphony="4" min="60" max="77" step="1"/>
  </instrument>
 
  <sound name="Timpani" frequency="220" duration="0.10">
