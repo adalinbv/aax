@@ -1047,30 +1047,43 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
       {
          if (_aaxIncreaseEmitterCounter())
          {
+            int max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
             int no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
             if (no_emitters > handle->max_emitters)
             {
-               unsigned int i, pos = 0;
-               float oldest = 0.0f;
+               unsigned int i, num = 0, pos = 0;
+               float lowest_gain = 10.0f;
                _emitter_t *ptr;
 
-               for (i=0; i<no_emitters; ++i)
+               for (i=0; i<max_emitters; ++i)
                {
-                  _intBufferData *dptr_src;
-                  if ((dptr_src = _intBufGet(he, _AAX_EMITTER, pos++)) != NULL)
+                  _intBufferData *dptr_src = _intBufGet(he, _AAX_EMITTER, i);
+                  if (dptr_src != NULL)
                   {
                      _emitter_t *emitter = _intBufGetDataPtr(dptr_src);
                      _aaxEmitter *src = emitter->source;
-                     if (src->curr_pos_sec > oldest)
+                     _aax2dProps *ep2d = src->props2d;
+
+                     // first replace an already processed emitter
+                     if (_IS_PROCESSED(src->props3d))
                      {
-                        oldest = src->curr_pos_sec;
+                        _intBufReleaseData(dptr_src, _AAX_EMITTER);
+                        pos = emitter->mixer_pos;
+                        break;
+                     }
+
+                     // second replace the emitter with the lowest gain
+                     if (ep2d->final.gain < lowest_gain)
+                     {
+                        lowest_gain = ep2d->final.gain;
                         pos = emitter->mixer_pos;
                      }
                      _intBufReleaseData(dptr_src, _AAX_EMITTER);
+                     if (++num == no_emitters) break;
                   }
                }
+               _intBufReleaseNum(he, _AAX_EMITTER);
 
-               _intBufRelease(he, _AAX_EMITTER, pos);
                ptr = _intBufRemove(he, _AAX_EMITTER, pos, AAX_FALSE);
                if (ptr)
                {
@@ -1080,7 +1093,9 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
                    ptr->root = NULL;
                }
             }
-            _intBufReleaseNum(he, _AAX_EMITTER);
+            else {
+               _intBufReleaseNum(he, _AAX_EMITTER);
+            }
 
             pos = _intBufAddData(he, _AAX_EMITTER, emitter);
             fmixer->no_registered++;
@@ -1722,9 +1737,10 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
       {
          if (xmlAttributeExists(xmid, "polyphony"))
          {
-            unsigned int max = get_low_resource() ? 8 : 24;
+            unsigned int min = get_low_resource() ? 2 : 6;
+            unsigned int max = get_low_resource() ? 24 : 88;
             handle->max_emitters = xmlAttributeGetInt(xmid, "polyphony");
-            handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
+            handle->max_emitters = _MINMAX(handle->max_emitters, min, max);
          }
          xmlFree(xmid);
       }
