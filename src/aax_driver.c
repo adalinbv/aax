@@ -58,7 +58,6 @@ static void _aaxFreeSensor(void *);
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
-int __low_resource = AAX_TRUE;
 int __release_mode = AAX_FALSE;
 _aaxMixerInfo* _info = NULL;
 _intBuffers* _backends = NULL;
@@ -732,6 +731,25 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
 static const char* _aax_default_devname = "None";
 
+int get_low_resource()
+{
+   static int low_resource = -1;
+   if (low_resource == -1)
+   {
+      char * env = getenv("AAX_USE_LOW_RESOURCE");
+
+      low_resource = AAX_TRUE;
+      if (!env || !_aax_getbool(env)) {
+#ifdef __x86_64__
+         if (_aax_get_free_memory() > (50*1024*1024) || (_aaxGetNoCores() > 2)){
+             low_resource = AAX_FALSE;
+         }
+#endif
+      }
+   }
+   return low_resource;
+}
+
 void
 _aaxDriverFree(void *handle)
 {
@@ -755,15 +773,6 @@ new_handle()
    const char *env;
    void *ptr1;
    char *ptr2;
-
-   // This is for AAXS generated sound effects only
-   env = getenv("AAX_USE_LOW_RESOURCE");
-   if (!env || !_aax_getbool(env)) {
-#ifdef __x86_64__
-      __low_resource = (_aax_get_free_memory() < (50*1024*1024) ||
-                       (_aaxGetNoCores() < 3));
-#endif
-   }
 
    offs = sizeof(_handle_t);
    size = sizeof(_aaxMixerInfo);

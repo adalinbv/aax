@@ -112,7 +112,6 @@ typedef struct
 #define VALID_MIXER(h)		(VALID_HANDLE(h) && ((h)->valid & AAX_TRUE))
 #define INTERVAL(a)		(rintf((a)/64)*64)
 
-extern int __low_resource;
 extern int __release_mode;
 extern _aaxMixerInfo* _info;
 
@@ -181,6 +180,7 @@ _handle_t* get_valid_handle(aaxConfig, const char*);
 _handle_t* get_read_handle(aaxConfig, const char*);
 _handle_t* get_write_handle(aaxConfig, const char*);
 void _aaxDriverFree(void*);
+int get_low_resource();
 
 /* --- AudioFrame --- */
 #define AUDIOFRAME_ID   0x3137ABFF
@@ -190,6 +190,7 @@ typedef struct
    unsigned int id;
 
    unsigned int mixer_pos;
+   unsigned int max_emitters;
 
    void *parent;		/* assigned when registered to a (sub)mixer */
    _handle_t *root;		/* reference to the mixer object            */
@@ -214,7 +215,7 @@ void _aaxAudioFrameFree(void*);
 #define DEFAULT_IMA4_BLOCKSIZE		36
 #define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
 #define IMA4_BLOCKSIZE_TO_SMP(a)	((a) > 1) ? (((a)-4)*2) : 1
-#define MAX_PITCH_LEVELS		5
+#define MAX_PITCH_LEVELS		6
 
 typedef struct
 {

@@ -1536,7 +1536,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
                if (xmlAttributeExists(xfid, "optional")) {
                   non_optional = !xmlAttributeGetBool(xfid, "optional");
                }
-               if (non_optional || !__low_resource)
+               if (non_optional || !get_low_resource())
                {
                    aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
                    if (flt)
@@ -1560,7 +1560,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
                if (xmlAttributeExists(xeid, "optional")) {
                   non_optional = !xmlAttributeGetBool(xeid, "optional");
                }
-               if (non_optional || !__low_resource)
+               if (non_optional || !get_low_resource())
                {
                   aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
                   if (eff)

@@ -129,13 +129,14 @@ public:
             if (!is_drums) pitch = note2freq(key_no)/(float)frequency;
             auto ret = key.insert({key_no, new Note(pitch)});
             it = ret.first;
-            Mixer::add(*it->second);
+            Mixer::set(AAX_MONO_EMITTERS, 10);
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
                 playing = true;
             }
             it->second->buffer(buffer);
         }
+        Mixer::add(*it->second);
         float g = sqrtf((1+velocity)/128.0f);
         it->second->play(gain*g);
     }

@@ -264,10 +264,13 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
             num = 1+(no_emitters/_AAX_MIN_EMITTERS_PER_WORKER);
             num = _MIN(handle->no_workers, num);
             _aaxAtomicIntAdd(&handle->workers_busy, num);
-            do {
-               _aaxSemaphoreRelease(handle->worker_start);
+            if (num)
+            {
+               do {
+                  _aaxSemaphoreRelease(handle->worker_start);
+               }
+               while (--num);
             }
-            while (--num);
 
             // Wait until al worker threads are finished
             _aaxSemaphoreWait(handle->worker_ready);

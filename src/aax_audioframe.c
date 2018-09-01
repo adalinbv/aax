@@ -71,6 +71,7 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->id = AUDIOFRAME_ID;
          frame->root = handle->root;
          frame->mixer_pos = UINT_MAX;
+         frame->max_emitters = get_low_resource() ? 32 : 256;
 
          size = sizeof(_frame_t);
          submix = (_aaxAudioFrame*)((char*)frame + size);
@@ -370,7 +371,20 @@ aaxAudioFrameGetVelocity(aaxFrame frame, aaxVec3f velocity)
 AAX_API int AAX_APIENTRY
 aaxAudioFrameSetSetup(UNUSED(aaxFrame frame), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
 {
+   _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    int rv = AAX_FALSE;
+
+   switch(type)
+   {
+   case AAX_MONO_EMITTERS:
+       rv = handle->max_emitters;
+      break;
+   case AAX_STEREO_EMITTERS:
+      rv = handle->max_emitters/2;
+      break;
+   default:
+      break;
+   }
    return rv;
 }
 
@@ -388,34 +402,45 @@ aaxAudioFrameGetSetup(const aaxFrame frame, enum aaxSetupType type)
       } else if (track >= _AAX_MAX_SPEAKERS) {
          _aaxErrorSet(AAX_INVALID_ENUM);
       } else {
-         rv = AAX_TRUE; 
+         rv = AAX_TRUE;
       }
    }
-   
+
    if (rv)
    {
-      if (type & AAX_COMPRESSION_VALUE)
+      switch(type)
       {
-         _aaxAudioFrame* fmixer = handle->submix;
-         _aaxLFOData *lfo;
+      case AAX_MONO_EMITTERS:
+         rv = handle->max_emitters;
+         break;
+      case AAX_STEREO_EMITTERS:
+         rv = handle->max_emitters/2;
+         break;
+      default:
+         if (type & AAX_COMPRESSION_VALUE)
+         {
+            _aaxAudioFrame* fmixer = handle->submix;
+            _aaxLFOData *lfo;
 
-         lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
-         if (lfo) {
-            rv = 256*32768*lfo->compression[track];
+            lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+            if (lfo) {
+               rv = 256*32768*lfo->compression[track];
+            }
          }
-      }
-      else if (type & AAX_GATE_ENABLED)
-      {
-         _aaxAudioFrame* fmixer = handle->submix;
-         _aaxLFOData *lfo;
+         else if (type & AAX_GATE_ENABLED)
+         {
+            _aaxAudioFrame* fmixer = handle->submix;
+            _aaxLFOData *lfo;
 
-         lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
-         if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
-            rv = AAX_TRUE;
+            lfo = _FILTER_GET2D_DATA(fmixer, DYNAMIC_GAIN_FILTER);
+            if (lfo && (lfo->average[track] <= lfo->gate_threshold)) {
+               rv = AAX_TRUE;
+            }
          }
-      }
-      else {
-         _aaxErrorSet(AAX_INVALID_ENUM);
+         else {
+            _aaxErrorSet(AAX_INVALID_ENUM);
+         }
+         break;
       }
    }
 
@@ -429,7 +454,7 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
    _filter_t* filter = get_filter(f);
    int rv = __release_mode;
 
-   if (!rv) 
+   if (!rv)
    {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
@@ -790,7 +815,7 @@ aaxAudioFrameGetMode(const aaxFrame frame, enum aaxModeType type)
    default:
       _aaxErrorSet(AAX_INVALID_ENUM);
    }
-   
+
    return rv;
 }
 
@@ -915,7 +940,7 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
                rb->set_paramf(rb, RB_DURATION_SEC, delay_sec*1.0f);
                rb->init(rb, AAX_TRUE);
 
-               /* 
+               /*
                 * Now set the actual duration, this will not alter the
                 * allocated space since it is lower that the initial
                 * duration.
@@ -1022,6 +1047,41 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
       {
          if (_aaxIncreaseEmitterCounter())
          {
+            int no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
+            if (no_emitters > handle->max_emitters)
+            {
+               unsigned int i, pos = 0;
+               float oldest = 0.0f;
+               _emitter_t *ptr;
+
+               for (i=0; i<no_emitters; ++i)
+               {
+                  _intBufferData *dptr_src;
+                  if ((dptr_src = _intBufGet(he, _AAX_EMITTER, pos++)) != NULL)
+                  {
+                     _emitter_t *emitter = _intBufGetDataPtr(dptr_src);
+                     _aaxEmitter *src = emitter->source;
+                     if (src->curr_pos_sec > oldest)
+                     {
+                        oldest = src->curr_pos_sec;
+                        pos = emitter->mixer_pos;
+                     }
+                     _intBufReleaseData(dptr_src, _AAX_EMITTER);
+                  }
+               }
+
+               _intBufRelease(he, _AAX_EMITTER, pos);
+               ptr = _intBufRemove(he, _AAX_EMITTER, pos, AAX_FALSE);
+               if (ptr)
+               {
+                   fmixer->no_registered--;
+                   ptr->mixer_pos = UINT_MAX;
+                   ptr->parent = NULL;
+                   ptr->root = NULL;
+               }
+            }
+            _intBufReleaseNum(he, _AAX_EMITTER);
+
             pos = _intBufAddData(he, _AAX_EMITTER, emitter);
             fmixer->no_registered++;
          }
@@ -1325,9 +1385,9 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
    return rv;
 }
 
-AAX_API int AAX_APIENTRY 
+AAX_API int AAX_APIENTRY
 aaxAudioFrameGetState(UNUSED(const aaxFrame frame))
-{  
+{
    enum aaxState ret = AAX_STATE_NONE;
    return ret;
 }
@@ -1463,7 +1523,7 @@ get_frame(aaxFrame f, int lock, const char *func)
 {
    _frame_t* frame = (_frame_t*)f;
    _frame_t* rv = NULL;
- 
+
    if (frame && (frame->id == AUDIOFRAME_ID))
    {
       if (frame->parent)
@@ -1578,7 +1638,7 @@ _aaxAudioFrameResetDistDelay(_aaxAudioFrame *frame, _aaxAudioFrame *mixer)
       vs = _EFFECT_GET(pp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
 
       /**
-       * Align the modified frame matrix with the sensor by multiplying 
+       * Align the modified frame matrix with the sensor by multiplying
        * the frame matrix by the modified parent matrix.
        */
 #ifdef ARCH32
@@ -1655,9 +1715,21 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/sound");
+      void *xmid = xmlNodeGet(xid, "aeonwave/instrument/note");
       float freq = 0.0f;
 
+      if (xmid)
+      {
+         if (xmlAttributeExists(xmid, "polyphony"))
+         {
+            unsigned int max = get_low_resource() ? 8 : 24;
+            handle->max_emitters = xmlAttributeGetInt(xmid, "polyphony");
+            handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
+         }
+         xmlFree(xmid);
+      }
+
+      xmid = xmlNodeGet(xid, "aeonwave/sound");
       if (xmid)
       {
          freq = xmlAttributeGetDouble(xmid, "frequency");
@@ -1681,6 +1753,13 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          }
 #endif
 
+         if (xmlAttributeExists(xmid, "max-emitters"))
+         {
+            unsigned int max = get_low_resource() ? 32 : 256;
+            handle->max_emitters = xmlAttributeGetInt(xmid, "max-emitters");
+            handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
+         }
+
          if (clear)
          {
             _aaxAudioFrame* fmixer = handle->submix;
@@ -1695,7 +1774,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
                if (xmlAttributeExists(xfid, "optional")) {
                   non_optional = !xmlAttributeGetBool(xfid, "optional");
                }
-               if (non_optional || !__low_resource)
+               if (non_optional || !get_low_resource())
                {
                   aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
                   if (flt)
@@ -1717,7 +1796,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
                if (xmlAttributeExists(xeid, "optional")) {
                   non_optional = !xmlAttributeGetBool(xeid, "optional");
                }
-               if (non_optional || !__low_resource)
+               if (non_optional || !get_low_resource())
                {
                   aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
                   if (eff)
