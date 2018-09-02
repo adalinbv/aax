@@ -15,7 +15,7 @@
  <sound name="Vibraphone" frequency="220" duration="0.10">
   <waveform src="sine" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="0.8" pitch="3.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.0" pitch="2.0"/>
+  <waveform src="sine" processing="modulate" ratio="0.9" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
@@ -33,8 +33,8 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">0.995</param>
-    <param n="1" factor="velocity">0.1</param>
+    <param n="0" factor="soften">1.125</param>
+    <param n="1" factor="velocity">0.01</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
