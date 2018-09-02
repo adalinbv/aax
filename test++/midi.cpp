@@ -85,6 +85,7 @@ MIDI::read_instruments()
                                     file[slen] = 0;
                                     std::string inst(file);
                                     bank.insert({n,inst});
+// pre-cache:                       AeonWave::buffer(inst, true);
                                 }
                             }
                         }
@@ -94,13 +95,6 @@ MIDI::read_instruments()
                 }
                 xmlFree(xbid);
                 xmlFree(xaid);
-#if 0
-for (auto& b : map) {
-    for (auto& i : b.second) {
-        printf("%i %i %s\n", b.first, i.first, i.second.c_str());
-    }
-}
-#endif
             }
             else {
                 std::cerr << "aeonwave/midi not found in: " << filename << std::endl;
@@ -287,7 +281,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
     }
 
     if (it != name_map.end()) {
-        Instrument::play(key_no, velocity, it->second, is_drums);
+        Instrument::play(key_no, velocity, it->second);
     } else {
 //      throw(std::invalid_argument("Instrument file "+name+" not found"));
     }

@@ -214,8 +214,8 @@ private:
 
 public:
     MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, uint8_t channel, uint8_t bank, uint8_t program)
-       : Instrument(ptr), midi(ptr), channel_no(channel), bank_no(bank),
-         program_no(program), is_drums(channel == MIDI_DRUMS_CHANNEL)
+       : Instrument(ptr, channel == MIDI_DRUMS_CHANNEL), midi(ptr),
+         channel_no(channel), bank_no(bank), program_no(program)
     {
         Mixer::set(AAX_PLAYING);
     }
@@ -237,7 +237,6 @@ private:
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
     uint8_t bank_no = 0;
-    bool is_drums = false;
 };
 
 
