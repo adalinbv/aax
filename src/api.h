@@ -200,6 +200,8 @@ typedef struct
    /* parametric equalizer **/
    _aaxFilterInfo *filter;
 
+   char mtx_set;
+
 } _frame_t;
 
 _frame_t* get_frame(aaxFrame, int, const char*);

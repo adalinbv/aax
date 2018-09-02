@@ -770,7 +770,6 @@ new_handle()
 {
    _handle_t *rv = NULL;
    size_t offs, size;
-   const char *env;
    void *ptr1;
    char *ptr2;
 

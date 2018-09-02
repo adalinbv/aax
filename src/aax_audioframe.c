@@ -233,6 +233,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
          fdp3d->matrix.m4[LOCATION][3] = 1.0;
       }
       _PROP_MTX_SET_CHANGED(fp3d);
+      handle->mtx_set = AAX_TRUE;
 
       if (_IS_RELATIVE(fp3d))
       {
@@ -1730,19 +1731,42 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/instrument/note");
+      void *xmid = xmlNodeGet(xid, "aeonwave/instrument");
       float freq = 0.0f;
 
       if (xmid)
       {
-         if (xmlAttributeExists(xmid, "polyphony"))
+         void *xnid = xmlNodeGet(xmid, "note");
+         if (xnid)
          {
-            unsigned int min = get_low_resource() ? 2 : 6;
-            unsigned int max = get_low_resource() ? 24 : 88;
-            handle->max_emitters = xmlAttributeGetInt(xmid, "polyphony");
-            handle->max_emitters = _MINMAX(handle->max_emitters, min, max);
+            if (xmlAttributeExists(xnid, "polyphony"))
+            {
+               unsigned int min = get_low_resource() ? 2 : 6;
+               unsigned int max = get_low_resource() ? 24 : 88;
+               handle->max_emitters = xmlAttributeGetInt(xnid, "polyphony");
+               handle->max_emitters = _MINMAX(handle->max_emitters, min, max);
+            }
+            xmlFree(xnid);
          }
-         xmlFree(xmid);
+
+         if (!handle->mtx_set)
+         {
+            xnid = xmlNodeGet(xmid, "position");
+            if (xnid)
+            {
+               static float dir[3] = { 0.0f, 0.0f, 1.0f };
+               aaxMtx4d mtx64;
+               double pos[3];
+
+               pos[0] = xmlAttributeGetDouble(xnid, "x");
+               pos[1] = xmlAttributeGetDouble(xnid, "y");
+               pos[2] = xmlAttributeGetDouble(xnid, "z");
+               xmlFree(xnid);
+               aaxMatrix64SetDirection(mtx64, pos, dir);
+               aaxAudioFrameSetMatrix64(frame, mtx64);
+            }
+            xmlFree(xmid);
+         }
       }
 
       xmid = xmlNodeGet(xid, "aeonwave/sound");
