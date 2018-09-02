@@ -99,13 +99,18 @@ private:
     Instrument& operator=(const Instrument&) = delete;
 
 public:
-    Instrument(AeonWave& ptr) : Mixer(ptr), aax(&ptr) {
-        Mixer::set(AAX_POSITION, AAX_RELATIVE);
-        Vector64 pos(0.0, 1.0, -1.0);
-        Vector dir(0.0f, 0.0f, 1.0f);
+    Instrument(AeonWave& ptr, bool drums = false)
+        : Mixer(ptr), aax(&ptr), is_drums(drums)
+    {
+        static Vector dir(0.0f, 0.0f, 1.0f);
+        Vector64 pos(0.0, 1.0, -2.0);
         Matrix64 mtx(pos, dir);
         Mixer::matrix(mtx);
+        Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
+        if (is_drums) {
+            Mixer::set(AAX_MONO_EMITTERS, 10);
+        }
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
@@ -121,13 +126,12 @@ public:
         return *this;
     }
 
-    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, bool is_drums = false) {
+    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer) {
         auto it = key.find(key_no);
         if (it == key.end()) {
             float pitch = 1.0f;
             float frequency = buffer.get(AAX_UPDATE_RATE);
             if (!is_drums) pitch = note2freq(key_no)/(float)frequency;
-            else Mixer::set(AAX_MONO_EMITTERS, 10);
             auto ret = key.insert({key_no, new Note(pitch)});
             it = ret.first;
             if (!playing && !is_drums) {
@@ -165,8 +169,8 @@ public:
     }
 
     inline void set_pan(float p) {
-        Vector64 pos(1.0*p, 1.0, -1.0);
-        Vector dir(0.0f, 0.0f, 1.0f);
+        static Vector dir(0.0f, 0.0f, 1.0f);
+        Vector64 pos(2.0*p, 1.0, -2.0);
         Matrix64 mtx(pos, dir);
         Mixer::matrix(mtx);
     }
@@ -202,6 +206,7 @@ private:
     std::map<uint8_t,Note*> key;
     AeonWave* aax;
 
+    bool is_drums;
     float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
