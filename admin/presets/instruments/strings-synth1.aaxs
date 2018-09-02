@@ -24,13 +24,13 @@
    <slot n="0">
     <param n="0">0.3</param>
     <param n="1" factor="velocity">0.08</param>
-    <param n="2" factor="soften">1.2</param>
+    <param n="2" factor="soften">1.1</param>
     <param n="3">0.35</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
+    <param n="0">0.90</param>
     <param n="1">inf</param>
-    <param n="2">1.00</param>
+    <param n="2">0.90</param>
     <param n="3">0.20</param>
    </slot>
   </filter>

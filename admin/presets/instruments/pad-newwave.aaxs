@@ -15,7 +15,7 @@
  <sound name="Pad 1 (new-wave)" frequency="220" duration="0.33">
   <waveform src="triangle" pitch="1.0" voices="7" spred="0.3"/>
   <waveform src="sine" processing="mix" ratio="0.2" pitch="0.9399"/>
-  <waveform src="sine" processing="modulate" ratio="0.7" pitch="5.9987"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="5.9987"/>
  </sound>
 
  <emitter looping="true">

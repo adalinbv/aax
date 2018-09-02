@@ -9,7 +9,7 @@
 <aeonwave>
 
  <instrument program="19" bank="0">
-  <note polyphony="10" min="21" max="108" step="12"/>
+  <note polyphony="88" min="21" max="108" step="12"/>
  </instrument>
 
  <sound name="Church Organ" frequency="220" duration="0.1">

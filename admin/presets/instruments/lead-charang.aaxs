@@ -13,10 +13,10 @@
  </instrument>
 
  <sound name="Lead 5 (charang)" frequency="220" duration="0.5">
-  <waveform src="sine" pitch="0.5"/>
-  <waveform src="square" processing="add" ratio="-0.5" pitch="1.0"/>
-  <waveform src="triangle" processing="modulate" ratio="1.0" pitch="1.0"/>
-  <waveform src="sine" processing="modulate" ratio="0.5" pitch="2.0"/>
+  <waveform src="sine" pitch="1.0"/>
+  <waveform src="square" processing="add" ratio="-0.5" pitch="2.0"/>
+  <waveform src="triangle" processing="modulate" ratio="1.0" pitch="2.0"/>
+  <waveform src="sine" processing="modulate" ratio="0.5" pitch="1.5"/>
  </sound>
 
  <emitter looping="true">
