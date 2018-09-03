@@ -21,7 +21,7 @@
    <slot n="0">
     <param n="0">1.50</param>
     <param n="1">0.10</param>
-    <param n="2">1.00</param>
+    <param n="2">1.10</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
