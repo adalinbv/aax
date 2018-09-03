@@ -13,7 +13,7 @@
  <sound frequency="1540" duration="0.10">
   <waveform src="square"/>
   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
-  <waveform src="square" processing="modulate" ratio="1.0" pitch="4.1"/>
+  <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>
   <filter type="frequency">
    <slot n="0">
     <param n="0">3500</param>
