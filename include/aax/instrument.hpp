@@ -103,7 +103,7 @@ public:
         : Mixer(ptr), aax(&ptr), is_drums(drums)
     {
         static Vector dir(0.0f, 0.0f, 1.0f);
-        Vector64 pos(0.0, 1.0, -2.0);
+        static Vector64 pos(0.0, 2.0, -3.0);
         Matrix64 mtx(pos, dir);
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
@@ -170,9 +170,12 @@ public:
 
     inline void set_pan(float p) {
         static Vector dir(0.0f, 0.0f, 1.0f);
-        Vector64 pos(2.0*p, 1.0, -2.0);
-        Matrix64 mtx(pos, dir);
-        Mixer::matrix(mtx);
+        static Vector64 pos(0.0, 2.0, -3.0);
+        static Matrix64 mtx(pos, dir);
+        Matrix64 m;
+        m.rotate(p, 0.0f, 1.0f, 0.0f);
+        m.multiply(mtx);
+        Mixer::matrix(m);
     }
 
     inline void set_pressure(float p) { pressure = p; }
