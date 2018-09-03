@@ -12,7 +12,7 @@
   <note polyphony="43" min="48" max="96" step="6"/>
  </instrument>
 
- <sound frequency="220" duration="1.0">
+ <sound frequency="880" duration="1.0">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
   <waveform src="sine" processing="mix" ratio="0.048"/>
@@ -20,14 +20,14 @@
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
     <param n="1">0.0</param>
-    <param n="2">1.0</param>
+    <param n="2">0.4</param>
     <param n="3">70.0</param>
    </slot>
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0">8000</param>
-    <param n="1">0.8</param>
+    <param n="1">0.4</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>

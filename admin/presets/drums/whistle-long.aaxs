@@ -29,7 +29,7 @@
     <param n="0" factor="soften">0.90</param>
     <param n="1" factor="velocity">0.125</param>
     <param n="2">1.0</param>
-    <param n="3">0.3</param>
+    <param n="3">inf</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
