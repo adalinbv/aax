@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="63" bank="0">
+ <instrument program="63" bank="0" name="Synth Brass 1">
   <note polyphony="2" min="35" max="96" step="12"/>
  </instrument>
 
- <sound name="Synthesizer Brass 1" frequency="220" duration="0.25">
+ <sound frequency="220" duration="0.25">
   <waveform src="impulse"/>
   <waveform src="impulse" processing="add" pitch="1.407"/>
   <waveform src="impulse" processing="add" pitch="0.993"/>

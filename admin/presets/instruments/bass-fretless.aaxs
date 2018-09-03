@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="35" bank="0">
+ <instrument program="35" bank="0" name="Fretless Bass">
   <note polyphony="6" min="28" max="55" step="12"/>
  </instrument>
 
- <sound name="Fretless Bass" frequency="110" duration="0.10">
+ <sound frequency="110" duration="0.10">
   <waveform src="square" pitch="1.0"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>

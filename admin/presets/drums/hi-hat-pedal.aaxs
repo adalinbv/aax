@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Pedal Hi-Hat" frequency="1540" duration="0.33">
+ <instrument name="Pedal Hi-Hat"/>
+
+ <sound frequency="1540" duration="0.33">
   <waveform src="square"/>
   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.0" pitch="9.1"/>

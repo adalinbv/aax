@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="110" bank="0">
+ <instrument program="110" bank="0" name="Fiddle">
   <note polyphony="4" min="55" max="96" step="12"/>
  </instrument>
 
- <sound name="Fiddle" frequency="220" duration="0.75">
+ <sound frequency="220" duration="0.75">
   <waveform src="impulse"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="2.0"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>

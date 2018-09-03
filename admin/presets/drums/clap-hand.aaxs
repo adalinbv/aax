@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Handclap" frequency="220" duration="0.2">
+ <instrument name="Handclap"/>
+
+ <sound frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <filter type="frequency" src="24db">
    <slot n="0">

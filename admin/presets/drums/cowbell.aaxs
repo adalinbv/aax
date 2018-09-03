@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Cowbel" frequency="220" duration="0.10">
+ <instrument name="Cowbel"/>
+
+ <sound frequency="220" duration="0.10">
   <waveform src="triangle" pitch="1.696"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="4.0987"/>
  </sound>

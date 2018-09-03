@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Sticks" frequency="220" duration="0.10">
+ <instrument name="Sidestick"/>
+
+ <sound frequency="220" duration="0.10">
   <waveform src="pink-noise" pitch="0.22"/>
   <filter type="frequency">
    <slot n="0">

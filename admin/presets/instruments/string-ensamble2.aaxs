@@ -8,11 +8,12 @@
 
 <aeonwave>
 
- <instrument program="49" bank="0">
+ <instrument program="49" bank="0" name="String Ensamble 2 (slow)">
   <note polyphony="4" min="28" max="96" step="12"/>
+  <position x="2.0" y="0.0" z="-1.0"/>
  </instrument>
 
- <sound name="String Ensamble 2 (slow)" frequency="220" duration="1.0" voices="5" spread="0.3">
+ <sound frequency="220" duration="1.0" voices="5" spread="0.3">
   <waveform src="sawtooth" ratio="1.0" pitch="0.5"/>
   <waveform src="sawtooth" processing="mix" ratio="1.0" pitch="0.987"/>
   <waveform src="impulse" processing="add" ratio="0.8" pitch="1.5"/>

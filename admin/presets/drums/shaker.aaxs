@@ -8,11 +8,13 @@
 
 <aeonwave>
 
- <sound name="Shaker" frequency="880" duration="0.10">
+ <instrument name="Shaker"/>
+
+ <sound frequency="880" duration="0.10">
   <waveform src="pink-noise" ratio="19.0" pitch="0.33" staticity="0.2"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0">3300</param>
+    <param n="0">4400</param>
     <param n="1">0.0</param>
     <param n="2">0.5</param>
     <param n="3">1.5</param>
@@ -26,7 +28,7 @@
     <param n="0">0.50</param>
     <param n="1">0.03</param>
     <param n="2">1.0</param>
-    <param n="3">0.23</param>
+    <param n="3">0.33</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Cabasa" frequency="440" duration="0.10">
+ <instrument name="Cabasa"/>
+
+ <sound frequency="440" duration="0.10">
   <waveform src="pink-noise" ratio="19.0" pitch="0.23" staticity="0.5"/>
   <filter type="frequency" src="48db">
    <slot n="0">

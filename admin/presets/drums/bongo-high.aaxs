@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="High Bongo" frequency="1400" duration="0.10">
+ <instrument name="High Bongo"/>
+
+ <sound frequency="1400" duration="0.10">
   <waveform src="pink-noise" ratio="1.0" pitch="0.25"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>

@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="CLosed Hi-Hat" frequency="1540" duration="0.10">
+ <instrument name="CLosed Hi-Hat"/>
+
+ <sound frequency="1540" duration="0.10">
   <waveform src="square"/>
   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="4.1"/>

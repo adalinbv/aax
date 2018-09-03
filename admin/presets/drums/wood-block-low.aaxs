@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Woodblock Low" frequency="220" duration="0.10">
+ <instrument name="Woodblock (Low)"/>
+
+ <sound frequency="220" duration="0.10">
   <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="11.7587"/>
   <filter type="frequency" src="24db">

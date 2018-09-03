@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="7" bank="0">
+ <instrument program="7" bank="0" name="Clavinet (Wah)">
   <note polyphony="60" min="36" max="96" step="12"/>
  </instrument>
 
- <sound name="Wah Clavinet" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="impulse" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.4" pitch="1.0"/>
   <filter type="frequency" src="48db">

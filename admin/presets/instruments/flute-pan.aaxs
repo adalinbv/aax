@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="75" bank="0">
+ <instrument program="75" bank="0" name="Pan Flute">
   <note polyphony="2" min="60" max="96" step="12"/>
  </instrument>
 
- <sound name="Pan Flute" frequency="220">
+ <sound frequency="220" duration="0.25">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="3.0"/>
   <waveform src="brownian-noise" processing="mix" ratio="0.15" pitch="0.15"/>

@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="61" bank="0">
+ <instrument program="61" bank="0" name="Brass Section">
   <note polyphony="4" min="36" max="96" step="6"/>
  </instrument>
 
- <sound name="Brass Section" frequency="220" duration="3.0">
+ <sound frequency="220" duration="3.0">
   <waveform src="impulse" ratio="1.0" voices="3" spread="0.17"/>
   <waveform src="impulse" processing="mix" ratio="0.5" pitch="0.9857"/>
   <waveform src="impulse" processing="mix" ratio="0.5" pitch="0.9990"/>

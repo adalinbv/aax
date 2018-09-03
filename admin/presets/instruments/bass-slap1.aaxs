@@ -8,11 +8,11 @@
 
 <aeonwave>
  
- <instrument program="36" bank="0">
+ <instrument program="36" bank="0" name="Electric Bass (Slapped)">
   <note polyphony="4" min="28" max="55" step="12"/>
  </instrument>
 
- <sound name="Slapped Electric Bass" frequency="110" duration="0.10">
+ <sound frequency="110" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.8" pitch="4.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="1.999"/>

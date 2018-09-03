@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Open Triangle" frequency="1600" duration="0.10">
+ <instrument name="Triangle"/>
+
+ <sound frequency="1600" duration="0.10">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="add" ratio="0.8" pitch="2.9"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.9"/>

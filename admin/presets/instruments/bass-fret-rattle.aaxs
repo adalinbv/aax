@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="120" bank="2">
+ <instrument program="120" bank="2" name="Bass Fret Rattle">
   <note polyphony="1" min="39" max="45" step="12"/>
  </instrument>
 
- <sound name="Bass Fret Rattle" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="9.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="5.0"/>

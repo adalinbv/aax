@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="72-74" bank="0">
+ <instrument program="72-74" bank="0" name="Flute">
   <note polyphony="2" min="60" max="108" step="12"/>
  </instrument>
 
- <sound name="Flute" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="sine" ratio="0.5" pitch="1.0"/>
  </sound>
 

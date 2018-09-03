@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Crash Cymbal" frequency="500" duration="0.20">
+ <instrument name="Crash Cymbal"/>
+
+ <sound frequency="500" duration="0.20">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>

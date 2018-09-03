@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="119" bank="0">
+ <instrument program="119" bank="0" name="Reverse Cymbal">
   <note polyphony="1" min="21" max="108" step="6"/>
  </instrument>
 
- <sound name="Reverse Cymbal" frequency="770" duration="0.10">
+ <sound frequency="770" duration="0.10">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>

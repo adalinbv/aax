@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument  program="19" bank="8">
+ <instrument  program="19" bank="8" name="Diapason Organ">
   <note polyphony="10" min="36" max="96" step="12"/>
  </instrument>
 
- <sound name="Diapason Organ" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="0.4375" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.375" pitch="3.0"/>

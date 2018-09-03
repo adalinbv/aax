@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="59" bank="0">
+ <instrument program="59" bank="0" name="Trumpet (Muted)">
   <note polyphony="2" min="58" max="82" step="12"/>
  </instrument>
 
- <sound name="Muted Trumpet" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">

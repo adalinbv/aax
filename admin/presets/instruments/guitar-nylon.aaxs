@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="24" bank="0">
+ <instrument program="24" bank="0" name="Acoustic Guitar (Nylon)">
   <note polyphony="6" min="40" max="84" step="12"/>
  </instrument>
 
- <sound name="Acoustic Guitar (Nylon)" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" ratio="1.9" pitch="0.999"/>

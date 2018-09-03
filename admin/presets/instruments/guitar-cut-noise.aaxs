@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="120" bank="1">
+ <instrument program="120" bank="1" name="Guitar Cut Noise">
   <note polyphony="1" min="39" max="45" step="12"/>
  </instrument>
 
- <sound name="Guitar Cut Noise" frequency="880" duration="0.10">
+ <sound frequency="880" duration="0.10">
   <waveform src="sine" ratio="1.0" pitch="1.0"/>
   <waveform src="sine" processing="add" ratio="1.0" pitch="1.5"/>
   <waveform src="sine" processing="add" ratio="1.0" pitch="2.0"/>

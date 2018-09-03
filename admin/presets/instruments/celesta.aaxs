@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="8" bank="0">
+ <instrument program="8" bank="0" name="Celesta">
   <note polyphony="48" min="60" max="108" step="12"/>
  </instrument>
 
- <sound name="Celesta" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="sine" pitch="10"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="10.0"/>
   <waveform src="sine" processing="mix" ratio="0.8"/>

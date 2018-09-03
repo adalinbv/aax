@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="High Timbale" frequency="1200" duration="0.10">
+ <instrument name="High Timbale"/>
+
+ <sound frequency="1200" duration="0.10">
   <waveform src="pink-noise" ratio="0.8" pitch="0.25"/>
   <waveform src="sine" processing="add" ratio="0.6"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>

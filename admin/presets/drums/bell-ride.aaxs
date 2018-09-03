@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Bell Ride" frequency="885" duration="0.10">
+ <instrument name="Bell Ride"/>
+
+ <sound frequency="885" duration="0.10">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="add" ratio="0.8" pitch="1.9"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.3"/>

@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Electric Snare" frequency="260" duration="0.50">
+ <instrument name="Electric Snare"/>
+
+ <sound frequency="260" duration="0.50">
   <waveform src="pink-noise" ratio="1.0" pitch="0.20"/>
   <waveform src="triangle" processing="mix" ratio="0.70"/>
   <filter type="bitcrusher">

@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="81" bank="0">
+ <instrument program="81" bank="0" name="Lead 2 (saw wave)">
   <note polyphony="8" min="21" max="108" step="12"/>
  </instrument>
 
- <sound name="Lead 2 (saw wave)" frequency="220" duration="1.0">
+ <sound frequency="220" duration="1.0">
   <waveform src="square"/>
   <waveform src="square" processing="mix" ratio="0.5" pitch="1.9987"/>
   <waveform src="sawtooth" processing="modulate" ratio="0.8" pitch="2.4987"/>

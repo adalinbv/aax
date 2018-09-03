@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="33" bank="0">
+ <instrument program="33" bank="0" name="Electric Bass (Octaver)">
   <note polyphony="6" min="28" max="55" step="12"/>
  </instrument>
 
- <sound name="Electric Bass w. Octave effect" frequency="82.5" duration="0.10">
+ <sound frequency="82.5" duration="0.10">
   <waveform src="square" processing="mix" pitch="0.5"/>
   <waveform src="sawtooth" processing="mix" pitch="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="1.5"/>

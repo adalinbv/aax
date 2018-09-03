@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="28" bank="0">
+ <instrument program="28" bank="0" name="Electric Guitar (Muted)">
   <note polyphony="6" min="40" max="86" step="12"/>
  </instrument>
 
- <sound name="Muted Electric Guitar" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="triangle" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.4" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="2.0"/>

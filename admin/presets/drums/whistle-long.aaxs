@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Long Whistle" frequency="300" duration="0.1">
+ <instrument name="Whistle (Long)"/>
+
+ <sound frequency="300" duration="0.1">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">

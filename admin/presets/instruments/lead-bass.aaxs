@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="87" bank="0">
+ <instrument program="87" bank="0" name="Lead 8 (bass+lead)">
   <note polyphony="8" min="21" max="108" step="12"/>
  </instrument>
 
- <sound name="Lead 8 (bass+lead)" frequency="220" duration="3.3">
+ <sound frequency="220" duration="3.3">
   <waveform src="sine" pitch="1.0" voices="7" spread="0.9"/>
   <waveform src="square" processing="add" ratio="0.4" pitch="2.0917"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="0.5"/>

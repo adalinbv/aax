@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="45" bank="0">
+ <instrument program="45" bank="0" name="Pizzicato String">
   <note polyphony="6" min="28" max="96" step="12"/>
  </instrument>
 
- <sound name="Pizzicato String" frequency="220" duration="0.10">
+ <sound frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.989"/>

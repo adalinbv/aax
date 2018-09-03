@@ -8,7 +8,9 @@
 
 <aeonwave>
 
- <sound name="Short Whistle" frequency="350" duration="0.1">
+ <instrument name="Whistle (Short)"/>
+
+ <sound frequency="350" duration="0.1">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">
