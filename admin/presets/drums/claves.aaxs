@@ -12,7 +12,7 @@
 
  <sound frequency="440" duration="0.10">
   <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
-  <waveform src="sine" processing="modulate" ratio="0.9" pitch="11.7587"/>
+  <waveform src="sine" processing="modulate" ratio="0.8" pitch="11.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="4.0">1320</param>
@@ -34,7 +34,7 @@
    <slot n="0">
     <param n="0">1.2</param>
     <param n="1">0.01</param>
-    <param n="2">0.84</param>
+    <param n="2">0.87</param>
    </slot>
   </effect>
  </emitter>
