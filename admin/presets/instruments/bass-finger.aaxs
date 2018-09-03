@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="33" bank="0">
+ <instrument program="33" bank="0" name="Electric Bass (Finger)">
   <note polyphony="6" min="28" max="55" step="12"/>
  </instrument>
 
- <sound name="Electric Bass (Finger)" frequency="110" duration="0.10">
+ <sound frequency="110" duration="0.10">
   <waveform src="square" pitch="1.0"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
@@ -29,7 +29,9 @@
    </slot>
    <slot n="1">
     <param n="0">0.80</param>
-    <param n="1">3.00</param>
+    <param n="1">inf</param>
+    <param n="2">0.80</param>
+    <param n="3">0.4</param>
    </slot>
   </filter>
  </emitter>

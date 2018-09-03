@@ -41,7 +41,9 @@
    </slot>
    <slot n="1">
     <param n="0">0.95</param>
-    <param n="1">4.00</param>
+    <param n="1">inf</param>
+    <param n="2">0.95</param>
+    <param n="3">0.4</param>
    </slot>
   </filter>
  </emitter>

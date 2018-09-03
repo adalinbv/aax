@@ -28,7 +28,9 @@
    </slot>
    <slot n="1">
     <param n="0">0.70</param>
-    <param n="1">2.50</param>
+    <param n="1">inf</param>
+    <param n="2">0.70</param>
+    <param n="3">0.4</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
