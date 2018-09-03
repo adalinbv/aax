@@ -15,7 +15,7 @@
  <sound frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
-  <waveform src="sine" processing="modulate" ratio="2.1" pitch="2.999"/>
+  <waveform src="sine" processing="modulate" ratio="0.8" pitch="2.999"/>
   <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="4.0">880</param>
@@ -31,9 +31,9 @@
    <slot n="0">
     <param n="0" factor="soften">1.20</param>
     <param n="1" factor="velocity">0.02</param>
-    <param n="2">0.80</param>
+    <param n="2">0.60</param>
     <param n="1">inf</param>
-    <param n="2">0.80</param>
+    <param n="2">0.60</param>
     <param n="3">0.4</param>
    </slot>
   </filter>

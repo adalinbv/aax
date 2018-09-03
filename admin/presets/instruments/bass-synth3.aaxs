@@ -38,9 +38,9 @@
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.50</param>
+    <param n="0">0.60</param>
     <param n="1">inf</param>
-    <param n="2">0.50</param>
+    <param n="2">0.60</param>
     <param n="3">0.4</param>
    </slot>
   </filter>

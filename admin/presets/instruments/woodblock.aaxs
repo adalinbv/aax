@@ -14,7 +14,7 @@
 
  <sound frequency="220" duration="0.10">
   <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="11.7587"/>
+  <waveform src="sine" processing="modulate" ratio="1.0" pitch="11.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="4.0">880</param>
@@ -34,9 +34,9 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.4</param>
+    <param n="0">0.476</param>
     <param n="1">0.01</param>
-    <param n="2">0.74</param>
+    <param n="2">0.26</param>
    </slot>
   </effect>
  </emitter>
