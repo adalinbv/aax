@@ -10,7 +10,7 @@
 
  <instrument name="Low Timbale"/>
 
- <sound name="Low Timbale" frequency="800" duration="0.10">
+ <sound name="Low Timbale" frequency="800" duration="0.10" gain="1.98">
   <waveform src="pink-noise" ratio="0.8" pitch="0.25"/>
   <waveform src="sine" processing="add" ratio="0.6"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>

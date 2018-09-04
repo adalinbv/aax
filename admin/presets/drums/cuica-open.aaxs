@@ -10,7 +10,7 @@
 
  <instrument name="Cuica (Open)"/>
 
- <sound frequency="1008" duration="0.01">
+ <sound frequency="1008" duration="0.01" gain="1.82">
   <waveform src="sawtooth" ratio="0.8" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.8" pitch="1.0"/>
   <waveform src="triangle" processing="add" ratio="0.7" pitch="3.0"/>

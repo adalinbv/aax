@@ -12,7 +12,7 @@
 
  <instrument name="High Floor Tom"/>
 
- <sound name="High Floor Tom" frequency="126" duration="0.10">
+ <sound name="High Floor Tom" frequency="126" duration="0.10" gain="2.49">
   <waveform src="pink-noise" ratio="0.5" pitch="0.12"/>
   <waveform src="triangle" processing="add" ratio="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>

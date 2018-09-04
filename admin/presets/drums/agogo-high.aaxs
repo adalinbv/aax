@@ -10,7 +10,7 @@
 
  <instrument name="High Agogo"/>
 
- <sound frequency="600" duration="0.10">
+ <sound frequency="600" duration="0.10" gain="1.92">
   <waveform src="triangle" pitch="1.696"/>
   <waveform src="square" processing="modulate" ratio="0.7" pitch="3.0987"/>
  </sound>

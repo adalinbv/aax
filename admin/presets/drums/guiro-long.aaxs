@@ -10,7 +10,7 @@
 
  <instrument name="Guiro (Short)"/>
 
- <sound frequency="220" duration="0.2">
+ <sound frequency="220" duration="0.20" gain="7.49">
   <waveform src="pink-noise" ratio="80.0" pitch="0.1" staticity="0.8"/>
   <filter type="frequency" src="48db">
    <slot n="0">

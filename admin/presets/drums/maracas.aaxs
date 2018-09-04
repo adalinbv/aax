@@ -10,7 +10,7 @@
 
  <instrument name="Maracas"/>
 
- <sound frequency="880" duration="0.10">
+ <sound frequency="880" duration="0.10" gain="5.91">
   <waveform src="pink-noise" ratio="19.0" pitch="0.33" staticity="0.2"/>
   <filter type="frequency" src="48db">
    <slot n="0">

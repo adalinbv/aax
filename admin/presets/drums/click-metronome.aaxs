@@ -10,7 +10,7 @@
 
  <instrument name="Metronome Click"/>
 
- <sound frequency="880" duration="0.10">
+ <sound frequency="880" duration="0.10" gain="3.51">
   <waveform src="white-noise" ratio="40.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="17.7587"/>

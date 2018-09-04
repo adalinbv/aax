@@ -10,7 +10,7 @@
 
  <instrument name="Base Drum 1"/>
 
- <sound frequency="55" duration="0.10">
+ <sound frequency="55" duration="0.10" gain="1.63">
   <waveform src="triangle" ratio="0.4"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
   <filter type="bitcrusher">

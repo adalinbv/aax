@@ -10,7 +10,7 @@
 
  <instrument name="Whistle (Short)"/>
 
- <sound frequency="350" duration="0.1">
+ <sound frequency="350" duration="0.10" gain="1.18">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">

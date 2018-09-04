@@ -10,7 +10,7 @@
 
  <instrument name="Low Tom"/>
 
- <sound frequency="125" duration="0.10">
+ <sound frequency="125" duration="0.10" gain="2.32">
   <waveform src="pink-noise" ratio="0.5" pitch="0.12"/>
   <waveform src="triangle" processing="add" ratio="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>

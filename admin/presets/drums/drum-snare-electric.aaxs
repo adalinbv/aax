@@ -10,7 +10,7 @@
 
  <instrument name="Electric Snare"/>
 
- <sound frequency="260" duration="0.50">
+ <sound frequency="260" duration="0.50" gain="2.59">
   <waveform src="pink-noise" ratio="1.0" pitch="0.20"/>
   <waveform src="triangle" processing="mix" ratio="0.70"/>
   <filter type="bitcrusher">

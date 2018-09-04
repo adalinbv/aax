@@ -10,7 +10,7 @@
 
  <instrument name="Pedal Hi-Hat"/>
 
- <sound frequency="1540" duration="0.33">
+ <sound frequency="1540" duration="0.33" gain="3.55">
   <waveform src="square"/>
   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.3" pitch="9.1"/>

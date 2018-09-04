@@ -10,7 +10,7 @@
 
  <instrument name="Woodblock (High)"/>
 
- <sound frequency="330" duration="0.10">
+ <sound frequency="330" duration="0.10" gain="2.40">
   <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="1.9" pitch="11.7587"/>
   <filter type="frequency" src="24db">

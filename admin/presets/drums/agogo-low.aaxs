@@ -10,7 +10,7 @@
 
  <instrument name="Low Agogo"/>
 
- <sound frequency="440" duration="0.10">
+ <sound frequency="440" duration="0.10" gain="1.94">
   <waveform src="triangle" pitch="2.0"/>
   <waveform src="square" processing="modulate" ratio="0.7" pitch="3.5987"/>
  </sound>
