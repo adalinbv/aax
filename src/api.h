@@ -229,7 +229,7 @@ typedef struct
    unsigned int no_tracks, no_samples;
    unsigned int loop_start, loop_end;
    enum aaxFormat format;
-   float rms, peak;
+   float rms, peak, gain;
    float frequency;
    float rate;
 

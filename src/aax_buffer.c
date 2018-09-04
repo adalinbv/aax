@@ -97,6 +97,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->pos = 0;
          buf->format = format;
          buf->frequency = 0.0f;
+         buf->gain = 1.0f;
          buf->info = VALID_HANDLE(handle) ? &handle->info : &_info;
          buf->root = handle;
          buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
@@ -1295,6 +1296,10 @@ _bufAAXSThread(void *d)
             if (duration < 0.1f) {
                duration = 0.1f;
             }
+         }
+
+         if (xmlAttributeExists(xsid, "gain")) {
+            handle->gain = xmlAttributeGetDouble(xsid, "gain");
          }
 
          for (b=0; b<handle->pitch_levels; ++b)

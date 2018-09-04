@@ -107,6 +107,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
       {
          _embuffer_t *embuf = _intBufGetDataPtr(dptr_sbuf);
          _aaxRingBuffer *srb = embuf->ringbuffer;
+         float buffer_gain = embuf->buffer->gain;
          int res = 0;
          int ctr;
 
@@ -157,14 +158,14 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
                res = AAX_FALSE;
                if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
                   res = drb->mix3d(drb, srb, ep2d, data, emitter->track, ctr,
-                                             src->history);
+                                             buffer_gain, src->history);
                }
             }
             else
             {
                assert(!_IS_POSITIONAL(src->props3d));
                res = drb->mix2d(drb, srb, data->info, ep2d, data->fp2d,  ctr,
-                                          src->history);
+                                          buffer_gain, src->history);
             }
 
             /*

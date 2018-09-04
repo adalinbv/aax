@@ -74,7 +74,7 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float gain, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
 {
    _aaxRendererData *renderer = data;
    const _aaxMixerInfo *info =  renderer->info;
@@ -86,7 +86,6 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
-   float gain; // gain0;
    float pnvel, gnvel;
    FLOAT pitch, max;
    int ret = 0;
@@ -180,7 +179,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Apply envelope filter */
-   gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0
+   gain *= _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0
 #ifdef MIDI
    gain *= ep2d->note.pressure;
 #endif
