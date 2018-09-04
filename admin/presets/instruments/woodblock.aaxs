@@ -12,15 +12,15 @@
   <note polyphony="2" min="36" max="84" step="12"/>
  </instrument>
 
- <sound frequency="220" duration="0.10">
+ <sound frequency="880" duration="0.10">
   <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
-  <waveform src="sine" processing="modulate" ratio="1.0" pitch="11.7587"/>
+  <waveform src="sine" processing="modulate" ratio="0.8" pitch="2.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="4.0">880</param>
+    <param n="0" pitch="1.0">220</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">15.0</param>
+    <param n="3">20.0</param>
    </slot>
   </filter>
  </sound>
@@ -28,15 +28,21 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.05</param>
+    <param n="0">2.0</param>
+    <param n="1">0.01</param>
+    <param n="2">0.8</param>
+    <param n="3">0.25</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.476</param>
+    <param n="0">3.0</param>
     <param n="1">0.01</param>
-    <param n="2">0.26</param>
+    <param n="2">1.0</param>
+    <param n="3">0.2</param>
+   </slot>
+   <slot n="1">
+    <param n="3">0.1</param>
    </slot>
   </effect>
  </emitter>

@@ -15,7 +15,7 @@
  <sound frequency="220" duration="0.10">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
-  <waveform src="triangle" processing="modulate" ratio="1.2" pitch="0.999"/>
+  <waveform src="triangle" processing="modulate" ratio="1.5" pitch="0.999"/>
   <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
