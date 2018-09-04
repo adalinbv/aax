@@ -38,7 +38,6 @@ private:
 
 public:
     Note(float p) : Emitter(AAX_RELATIVE) {
-        Matrix64 mtx;
         Emitter::matrix(mtx);
         pitch_param = pitch = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
@@ -82,6 +81,7 @@ public:
     inline void set_pressure(float p) { pressure = p; }
 
 private:
+    Matrix64 mtx;
     Param pitch_param = 1.0f;
     Param gain_param = 1.0f;
     float pitch = 1.0f;
@@ -102,9 +102,6 @@ public:
     Instrument(AeonWave& ptr, bool drums = false)
         : Mixer(ptr), aax(&ptr), is_drums(drums)
     {
-        static Vector dir(0.0f, 0.0f, 1.0f);
-        static Vector64 pos(0.0, 2.0, -3.0);
-        Matrix64 mtx(pos, dir);
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
@@ -169,9 +166,6 @@ public:
     }
 
     inline void set_pan(float p) {
-        static Vector dir(0.0f, 0.0f, 1.0f);
-        static Vector64 pos(0.0, 2.0, -3.0);
-        static Matrix64 mtx(pos, dir);
         Matrix64 m;
         m.rotate(p, 0.0f, 1.0f, 0.0f);
         m.multiply(mtx);
@@ -208,6 +202,10 @@ private:
 
     std::map<uint8_t,Note*> key;
     AeonWave* aax;
+
+    Vector dir = Vector(0.0f, 0.0f, 1.0f);
+    Vector64 pos = Vector64(0.0, 2.0, -3.0);
+    Matrix64 mtx = Matrix64(pos, dir);
 
     bool is_drums;
     float gain = 1.0f;
