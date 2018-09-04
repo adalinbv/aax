@@ -12,7 +12,7 @@
   <note polyphony="8" min="28" max="103" step="12"/>
  </instrument>
 
- <sound frequency="220" duration="0.10">
+ <sound frequency="440" duration="0.10">
   <waveform src="impulse" ratio="0.6"/>
   <waveform src="square" processing="add" ratio="-0.4"/>
  </sound>

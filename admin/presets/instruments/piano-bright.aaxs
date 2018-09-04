@@ -12,10 +12,10 @@
   <note polyphony="88" min="21" max="108" step="6"/>
  </instrument>
 
- <sound frequency="220" duration="0.10">
+ <sound frequency="440" duration="0.50">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.1" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" ratio="1.1" pitch="3.01"/>
  </sound>
 
  <emitter looping="true">
@@ -45,7 +45,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="48db" optional="true">
+  <filter type="frequency" src="24db" optional="true">
    <slot n="0">
     <param n="0" pitch="20">4400</param>
     <param n="1">1.0</param>
