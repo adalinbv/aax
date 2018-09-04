@@ -66,8 +66,8 @@ void fill_instrument(struct instrument_t *inst, void *xid)
 void print_instrument(struct instrument_t *inst)
 {
     printf(" <instrument");
-    if (inst->program) printf(" program=\"%i\"", inst->program);
-    if (inst->bank) printf(" bank=\"%i\"", inst->bank);
+    printf(" program=\"%i\"", inst->program);
+    printf(" bank=\"%i\"", inst->bank);
     if (inst->name) printf(" name=\"%s\"", inst->name);
     printf(">\n");
 
@@ -174,6 +174,8 @@ void print_dsp(struct dsp_t *dsp)
        printf("   <slot n=\"%i\">\n", s);
        for(p=0; p<4; ++p)
        {
+           char buf[32];
+
            printf("    <param n=\"%i\"", p);
            if (dsp->slot[s].param[p].pitch) {
                printf(" pitch=\"%3.2f\"", dsp->slot[s].param[p].pitch);
@@ -181,7 +183,16 @@ void print_dsp(struct dsp_t *dsp)
            if (dsp->slot[s].param[p].sustain) {
                printf(" auto-sustain=\"%3.2f\"", dsp->slot[s].param[p].sustain);
            }
-           printf(">%4.3f</param>\n", dsp->slot[s].param[p].value);
+
+           if (dsp->slot[s].param[p].value > 1.0f) {
+               sprintf(buf, "%.1f", dsp->slot[s].param[p].value);
+           } else {
+               sprintf(buf, "%.3g", dsp->slot[s].param[p].value);
+           }
+           if (!strchr(buf, '.')) {
+               strcat(buf, ".0");
+           }
+           printf(">%s</param>\n", buf);
        }
        printf("   </slot>\n");
    }
@@ -217,8 +228,8 @@ void print_waveform(struct waveform_t *wave)
 {
     printf("  <waveform src=\"%s\"", wave->src);
     if (wave->processing) printf(" processing=\"%s\"", wave->processing);
-    if (wave->ratio) printf(" ratio=\"%3.1f\"", wave->ratio);
-    if (wave->pitch) printf(" pitch=\"%3.1f\"", wave->pitch);
+    if (wave->ratio) printf(" ratio=\"%3.2f\"", wave->ratio);
+    if (wave->pitch) printf(" pitch=\"%3.2f\"", wave->pitch);
     if (wave->voices)
     {
         printf(" voices=\"%i\"", wave->voices);
@@ -230,7 +241,7 @@ void print_waveform(struct waveform_t *wave)
 struct sound_t
 {
     float gain;
-    float frequency;
+    int frequency;
     float duration;
     int voices;
     float spread;
@@ -253,7 +264,7 @@ void fill_sound(struct sound_t *sound, void *xid)
     void *xeid;
 
     sound->gain = xmlAttributeGetDouble(xid, "gain");
-    sound->frequency = xmlAttributeGetDouble(xid, "frequency");
+    sound->frequency = xmlAttributeGetInt(xid, "frequency");
     sound->duration = xmlAttributeGetDouble(xid, "duration");
     sound->voices = xmlAttributeGetInt(xid, "voices");
     sound->spread = xmlAttributeGetDouble(xid, "spread");
@@ -295,13 +306,14 @@ void print_sound(struct sound_t *sound)
 
     printf(" <sound");
     if (sound->gain) printf(" gain=\"%3.2f\"", sound->gain);
-    if (sound->frequency) printf(" frequency=\"%5.0f\"", sound->frequency);
+    if (sound->frequency) printf(" frequency=\"%i\"", sound->frequency);
     if (sound->duration) printf(" duration=\"%3.2f\"", sound->duration);
     if (sound->voices)
     {
-        printf(" gain=\"%i\"", sound->voices);
+        printf(" voices=\"%i\"", sound->voices);
         if (sound->spread) printf(" spread=\"%2.1f\"", sound->spread);
     }
+    printf(">\n");
 
     for (e=0; e<sound->no_entries; ++e)
     {
@@ -372,7 +384,7 @@ void print_object(struct object_t *obj, enum type_t type)
         print_dsp(&obj->dsp[d]);
     }
     if (type == EMITTER) {
-        printf(" </emitter>\n");
+        printf(" </emitter>\n\n");
     } else {
         printf(" </audioframe>\n");
     }
@@ -471,8 +483,8 @@ int main(int argc, char **argv)
         rms = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE)/8388608.0f;
         peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE)/8388608.0f;
         gain = 1.0f/rms;
-        printf("%s\n", infile);
-        printf("    peak: %f, rms: %f, gain=\"%3.2f\"\n", peak, rms, gain);
+//      printf("%s\n", infile);
+//      printf("    peak: %f, rms: %f, gain=\"%3.2f\"\n", peak, rms, gain);
 
         fill_aax(&aax, infile);
         print_aax(&aax);
