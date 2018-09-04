@@ -28,7 +28,7 @@
     <param n="3">3.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="10">1100</param>
+    <param n="0" pitch="20">2200</param>
     <param n="3">5.0</param>
    </slot>
   </filter>
