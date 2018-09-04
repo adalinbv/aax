@@ -18,7 +18,7 @@
   <waveform src="triangle" processing="add" ratio="2.0" pitch="0.4993"/>
   <waveform src="triangle" processing="modulate" ratio="1.2" pitch="0.5"/>
   <waveform src="brownian-noise" processing="mix" ratio="0.1"/>
-  <filter type="frequency" src="48db">
+  <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0">1760</param>
     <param n="1">0.5</param>

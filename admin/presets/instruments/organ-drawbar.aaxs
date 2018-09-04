@@ -13,15 +13,15 @@
  </instrument>
 
  <sound frequency="220" duration="0.10">
-  <waveform src="sine" ratio="0.5" pitch="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="6.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="8.0"/>
+  <waveform src="sine" ratio="0.25" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="0.75"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="8.0"/>
   <!-- drive -->
   <effect type="distortion">
    <slot n="0">

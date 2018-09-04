@@ -16,7 +16,7 @@
   <waveform src="sine"/>
   <waveform src="square" processing="add" ratio="-0.5" pitch="1.01"/>
   <waveform src="triangle" processing="modulate" ratio="1.0" pitch="1.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.5" pitch="2.0"/>
+  <waveform src="sine" processing="modulate" ratio="1.8" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">

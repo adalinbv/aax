@@ -20,7 +20,7 @@
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="1.0">220</param>
-    <param n="1">1.4</param>
+    <param n="1">1.2</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
