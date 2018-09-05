@@ -24,6 +24,7 @@ option(RELEASE "Enable for final release builds" OFF)
 option(DLOPEN "Check for the dlopen API for loading optional libs" ON)
 option(WERROR "Treat compile warnings as errors"   OFF)
 option(RMALLOC "Enable memory debugging functions" OFF)
+option(BUILD_TESTING "Enable buildig test utilities" OFF)
 
 add_definitions(-D_XOPEN_SOURCE=600)
 if(WIN32)
