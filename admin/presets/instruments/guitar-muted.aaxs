@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Electric Guitar (Muted)" bank="0" program="28">
-  <note polyphony="6" min="40" max="86" min="12"/>
+  <note polyphony="6" min="40" max="86" step="12"/>
  </info>
 
- <sound gain="0.86" frequency="220" duration="0.1">
+ <sound gain="1.26" frequency="220" duration="0.1">
   <waveform src="triangle" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.4" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="2.0"/>

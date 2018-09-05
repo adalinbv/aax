@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Synth Strings 1" bank="0" program="48">
-  <note polyphony="4" min="28" max="96" min="12"/>
+  <note polyphony="4" min="28" max="96" step="12"/>
  </info>
 
- <sound gain="0.98" frequency="220" duration="0.5">
+ <sound gain="1.79" frequency="220" duration="0.5">
   <waveform src="sawtooth" ratio="0.8"/>
   <waveform src="sawtooth" processing="add" ratio="0.4" pitch="1.5003"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="1.9889"/>

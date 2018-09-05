@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Reverse Cymbal" bank="0" program="119">
-  <note polyphony="1" min="21" max="108" min="6"/>
+  <note polyphony="1" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="0.24" frequency="770" duration="0.1">
+ <sound gain="0.48" frequency="770" duration="0.1">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>

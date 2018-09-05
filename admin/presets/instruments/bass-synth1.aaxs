@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Synth Bass 1" bank="0" program="38">
-  <note polyphony="6" min="28" max="55" min="12"/>
+  <note polyphony="6" min="28" max="55" step="12"/>
  </info>
 
- <sound gain="0.89" frequency="110">
+ <sound gain="1.69" frequency="110">
   <waveform src="sawtooth" pitch="2.0"/>
   <waveform src="impulse" processing="mix" ratio="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5"/>

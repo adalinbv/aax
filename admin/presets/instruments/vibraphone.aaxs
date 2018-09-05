@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Vibraphone" bank="0" program="11">
-  <note polyphony="8" min="53" max="89" min="12"/>
+  <note polyphony="8" min="53" max="89" step="12"/>
  </info>
 
- <sound gain="1.02" frequency="220" duration="0.1">
+ <sound gain="1.44" frequency="220" duration="0.1">
   <waveform src="sine"/>
   <waveform src="sine" processing="add" ratio="0.8" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="0.9" pitch="2.0"/>

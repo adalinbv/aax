@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Electric Bass (Octaver)" bank="0" program="33">
-  <note polyphony="6" min="28" max="55" min="12"/>
+  <note polyphony="6" min="28" max="55" step="12"/>
  </info>
 
- <sound gain="1.10" frequency="82" duration="0.1">
+ <sound gain="1.67" frequency="82" duration="0.1">
   <waveform src="square" processing="mix" pitch="0.5"/>
   <waveform src="sawtooth" processing="mix" pitch="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="1.5"/>

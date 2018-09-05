@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Clarinet" bank="0" program="71">
-  <note polyphony="2" min="50" max="91" min="12"/>
+  <note polyphony="2" min="50" max="91" step="12"/>
  </info>
 
- <sound gain="1.33" frequency="220" duration="0.1">
+ <sound gain="1.92" frequency="220" duration="0.1">
   <waveform src="sine" ratio="0.4375"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.125" pitch="3.0"/>

@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Electric Bass (Wah)" bank="0" program="33">
-  <note polyphony="6" min="28" max="55" min="12"/>
+  <note polyphony="6" min="28" max="55" step="12"/>
  </info>
 
- <sound gain="1.14" frequency="110" duration="0.1">
+ <sound gain="1.70" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>

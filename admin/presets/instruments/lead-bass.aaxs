@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Lead 8 (bass+lead)" bank="0" program="87">
-  <note polyphony="8" min="21" max="108" min="12"/>
+  <note polyphony="8" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="2.09" frequency="220" duration="3.3">
+ <sound gain="4.26" frequency="220" duration="3.3">
   <waveform src="sine" voices="7" spread="0.9"/>
   <waveform src="square" processing="add" ratio="0.4" pitch="2.0917"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="0.5"/>

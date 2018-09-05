@@ -9,11 +9,11 @@
 <aeonwave>
 
  <info name="String Ensamble 2 (slow)" bank="0" program="49">
-  <note polyphony="4" min="28" max="96" min="12"/>
+  <note polyphony="4" min="28" max="96" step="12"/>
   <position x="2.0" y="0.0" z="-1.0"/>
  </info>
 
- <sound gain="0.58" frequency="220" duration="1.0" voices="5" spread="0.3">
+ <sound gain="1.09" frequency="220" duration="1.0" voices="5" spread="0.3">
   <waveform src="sawtooth" ratio="0.2" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.2" pitch="1.487"/>
   <waveform src="sawtooth" processing="mix" ratio="0.8"/>

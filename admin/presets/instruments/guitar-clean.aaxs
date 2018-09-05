@@ -9,11 +9,11 @@
 <aeonwave>
 
  <info name="Electric Guitar (Clean)" bank="0" program="27">
-  <note polyphony="6" min="40" max="86" min="12"/>
+  <note polyphony="6" min="40" max="86" step="12"/>
   <position x="0.0" y="1.0" z="-2.0"/>
  </info>
 
- <sound gain="1.35" frequency="440" duration="0.1">
+ <sound gain="2.06" frequency="440" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="5.0"/>

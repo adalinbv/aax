@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Acoustic Grand Piano" bank="0" program="1">
-  <note polyphony="88" min="21" max="108" min="6"/>
+  <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="2.50" frequency="440" duration="0.1">
+ <sound gain="4.23" frequency="440" duration="0.1">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
   <waveform src="sawtooth" processing="mix" ratio="0.333" pitch="2.0"/>

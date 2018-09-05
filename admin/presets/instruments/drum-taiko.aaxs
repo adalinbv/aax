@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Taiko Drum" bank="0" program="117">
-  <note polyphony="4" min="60" max="77" min="1"/>
+  <note polyphony="4" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="0.61" frequency="22" duration="0.1">
+ <sound gain="0.88" frequency="22" duration="0.1">
   <waveform src="sine" pitch="0.996"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
  </sound>

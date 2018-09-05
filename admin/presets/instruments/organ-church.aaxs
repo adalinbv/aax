@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Church Organ" bank="0" program="19">
-  <note polyphony="88" min="21" max="108" min="12"/>
+  <note polyphony="88" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="1.58" frequency="220" duration="0.1">
+ <sound gain="2.27" frequency="220" duration="0.1">
   <waveform src="sine" ratio="0.5" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.5"/>

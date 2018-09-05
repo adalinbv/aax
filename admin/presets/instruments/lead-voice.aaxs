@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Lead 6 (voice)" bank="0" program="85">
-  <note polyphony="8" min="48" max="84" min="12"/>
+  <note polyphony="8" min="48" max="84" step="12"/>
  </info>
 
- <sound gain="1.77" frequency="220">
+ <sound gain="2.58" frequency="220">
   <waveform src="triangle" pitch="0.98"/>
   <waveform src="sine" processing="modulate" ratio="0.3" pitch="8.0"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>

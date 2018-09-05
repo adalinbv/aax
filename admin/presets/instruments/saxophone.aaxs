@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Saxophone" bank="0" program="64">
-  <note polyphony="2" min="37" max="87" min="12"/>
+  <note polyphony="2" min="37" max="87" step="12"/>
  </info>
 
- <sound gain="0.72" frequency="220" duration="0.1">
+ <sound gain="1.49" frequency="220" duration="0.1">
   <waveform src="impulse" pitch="0.5"/>
   <waveform src="impulse" processing="mix" ratio="0.9"/>
   <waveform src="square" processing="modulate" ratio="3.0" pitch="2.0"/>

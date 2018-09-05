@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="French Horn" bank="0" program="60">
-  <note polyphony="2" min="41" max="77" min="12"/>
+  <note polyphony="2" min="41" max="77" step="12"/>
  </info>
 
- <sound gain="1.80" frequency="220" duration="0.1">
+ <sound gain="2.79" frequency="220" duration="0.1">
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">

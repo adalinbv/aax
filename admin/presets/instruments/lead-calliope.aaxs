@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Lead 3 (calliope)" bank="0" program="82">
-  <note polyphony="43" min="48" max="96" min="6"/>
+  <note polyphony="43" min="48" max="96" step="6"/>
  </info>
 
- <sound gain="0.16" frequency="880" duration="1.0">
+ <sound gain="0.24" frequency="880" duration="1.0">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
   <waveform src="sine" processing="mix" ratio="0.048"/>

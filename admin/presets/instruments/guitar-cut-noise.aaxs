@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Guitar Cut Noise" bank="1" program="120">
-  <note polyphony="1" min="39" max="45" min="12"/>
+  <note polyphony="1" min="39" max="45" step="12"/>
  </info>
 
- <sound gain="0.60" frequency="880" duration="0.1">
+ <sound gain="inf" frequency="880" duration="0.1">
   <waveform src="sine" ratio="1.0"/>
   <waveform src="sine" processing="add" ratio="1.0" pitch="1.5"/>
   <waveform src="sine" processing="add" ratio="1.0" pitch="2.0"/>

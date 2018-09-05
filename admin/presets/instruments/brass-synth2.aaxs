@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Synth Brass 2" bank="0" program="63">
-  <note polyphony="4" min="36" max="96" min="12"/>
+  <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.40" frequency="220" duration="0.1">
+ <sound gain="0.62" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="2.0"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="1.493"/>
  </sound>

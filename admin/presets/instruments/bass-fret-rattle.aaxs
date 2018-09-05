@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Bass Fret Rattle" bank="2" program="120">
-  <note polyphony="1" min="39" max="45" min="12"/>
+  <note polyphony="1" min="39" max="45" step="12"/>
  </info>
 
- <sound gain="0.69" frequency="220" duration="0.1">
+ <sound gain="inf" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="9.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="5.0"/>

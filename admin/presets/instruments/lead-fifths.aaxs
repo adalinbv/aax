@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Lead 7 (fifths)" bank="0" program="86">
-  <note polyphony="8" min="36" max="96" min="12"/>
+  <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.68" frequency="220" duration="0.1">
+ <sound gain="4.18" frequency="220" duration="0.1">
   <waveform src="square" ratio="0.3"/>
   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="1.4989"/>
  </sound>

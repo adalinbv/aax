@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Bright Piano" bank="0" program="1">
-  <note polyphony="88" min="21" max="108" min="6"/>
+  <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="1.34" frequency="440" duration="0.5">
+ <sound gain="2.00" frequency="440" duration="0.5">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.1" pitch="3.01"/>

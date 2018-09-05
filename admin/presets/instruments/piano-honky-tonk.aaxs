@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Honky-Tonk Piano" bank="0" program="3">
-  <note polyphony="88" min="21" max="108" min="6"/>
+  <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="0.73" frequency="440" duration="0.5">
+ <sound gain="1.08" frequency="440" duration="0.5">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="3.03"/>

@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Fiddle" bank="0" program="110">
-  <note polyphony="4" min="55" max="96" min="12"/>
+  <note polyphony="4" min="55" max="96" step="12"/>
  </info>
 
- <sound gain="1.31" frequency="220" duration="0.75">
+ <sound gain="2.37" frequency="220" duration="0.75">
   <waveform src="impulse"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="2.0"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>

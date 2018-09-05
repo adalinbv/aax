@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Steel Drums" bank="0" program="114">
-  <note polyphony="4" min="21" max="108" min="6"/>
+  <note polyphony="4" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="0.77" frequency="220" duration="0.33">
+ <sound gain="1.24" frequency="220" duration="0.33">
   <waveform src="sine" pitch="1.696"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="5.0"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="5.0587"/>

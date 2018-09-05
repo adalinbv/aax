@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Electric Piano 1 (Detuned)" bank="8" program="4">
-  <note polyphony="8" min="28" max="103" min="12"/>
+  <note polyphony="8" min="28" max="103" step="12"/>
  </info>
 
- <sound gain="0.98" frequency="440" duration="0.1">
+ <sound gain="1.43" frequency="440" duration="0.1">
   <waveform src="sawtooth" ratio="0.4" pitch="0.995"/>
   <waveform src="sine" processing="mix" ratio="0.48"/>
  </sound>

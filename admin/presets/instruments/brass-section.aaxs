@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Brass Section" bank="0" program="61">
-  <note polyphony="4" min="36" max="96" min="6"/>
+  <note polyphony="4" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="1.97" frequency="220" duration="3.0">
+ <sound gain="4.02" frequency="220" duration="3.0">
   <waveform src="impulse" ratio="1.0" voices="3" spread="0.2"/>
   <waveform src="impulse" processing="mix" ratio="0.5" pitch="0.9857"/>
   <waveform src="impulse" processing="mix" ratio="0.5" pitch="0.999"/>

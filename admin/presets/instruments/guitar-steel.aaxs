@@ -9,10 +9,10 @@
 <aeonwave>
 
  <info name="Acoustic Guitar (Steel)" bank="0" program="25">
-  <note polyphony="6" min="40" max="84" min="12"/>
+  <note polyphony="6" min="40" max="84" step="12"/>
  </info>
 
- <sound gain="1.85" frequency="220" duration="0.1">
+ <sound gain="2.97" frequency="220" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="2.999"/>
