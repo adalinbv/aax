@@ -527,6 +527,8 @@ aaxDriverDestroy(aaxConfig config)
          _aaxRingBufferFree(handle->ringbuffer);
       }
 
+      free(handle->data_dir);
+
       if (handle->timer) {
          _aaxTimerDestroy(handle->timer);
       }
@@ -791,7 +793,7 @@ new_handle()
       handle->info = (_aaxMixerInfo*)ptr2;
       _aaxSetDefaultInfo(handle->info, handle);
 
-      handle->data_dir = strdup(systemDataFile(""));
+      handle->data_dir = systemDataFile("");
       handle->timer = _aaxTimerCreate();
 
       rv = handle;
@@ -1357,6 +1359,8 @@ _aaxFreeSensor(void *ssr)
    for (i=0; i<MAX_STEREO_FILTER; ++i) {
       _FILTER_FREE2D_DATA(smixer, i);
    }
+   _FILTER_FREE3D_DATA(smixer, DISTANCE_FILTER);
+
    for (i=0; i<MAX_STEREO_EFFECT; ++i) {
       _EFFECT_FREE2D_DATA(smixer, i);
    }

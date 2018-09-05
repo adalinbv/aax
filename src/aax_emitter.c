@@ -133,6 +133,8 @@ aaxEmitterDestroy(aaxEmitter emitter)
          for (i=0; i<MAX_STEREO_FILTER; ++i) {
             _FILTER_FREE2D_DATA(src, i);
          }
+         _FILTER_FREE3D_DATA(src, DISTANCE_FILTER);
+
          for (i=0; i<MAX_STEREO_EFFECT; ++i) {
             _EFFECT_FREE2D_DATA(src, i);
          }
