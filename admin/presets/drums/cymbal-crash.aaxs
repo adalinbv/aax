@@ -11,7 +11,7 @@
  <info name="Crash Cymbal">
  </info>
 
- <sound gain="0.69" frequency="500" duration="0.2">
+ <sound gain="1.26" frequency="500" duration="0.2">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>

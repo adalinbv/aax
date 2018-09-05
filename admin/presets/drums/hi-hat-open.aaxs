@@ -11,7 +11,7 @@
  <info name="Open Hi-Hat">
  </info>
 
- <sound gain="0.96" frequency="550" duration="0.25">
+ <sound gain="1.94" frequency="550" duration="0.25">
   <waveform src="triangle" pitch="0.985"/>
   <waveform src="sawtooth" processing="mix" ratio="0.8" pitch="1.9"/>
   <waveform src="pink-noise" processing="add" ratio="1.2"/>
