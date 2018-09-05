@@ -1,22 +1,23 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="Finger Snap"/>
+ <info name="Finger Snap">
+ </info>
 
- <sound frequency="880" duration="0.10" gain="2.00">
+ <sound gain="0.66" frequency="880" duration="0.1">
   <waveform src="white-noise" ratio="40.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="17.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="12.0">10560</param>
+    <param n="0" pitch="12.0">10560.0</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
     <param n="3">2.5</param>
@@ -38,6 +39,7 @@
     <param n="0">1.4</param>
     <param n="1">0.01</param>
     <param n="2">0.4</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

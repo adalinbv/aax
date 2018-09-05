@@ -8,12 +8,12 @@
 
 <aeonwave>
 
- <instrument program="17" bank="0" name="Drawbar Organ">
-  <note polyphony="10" min="36" max="96" step="12"/>
- </instrument>
+ <info name="Drawbar Organ" bank="0" program="17">
+  <note polyphony="10" min="36" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
-  <waveform src="sine" processing="add" ratio="0.25" pitch="1.0"/>
+ <sound gain="5.25" frequency="220" duration="0.1">
+  <waveform src="sine" processing="add" ratio="0.25"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.1875" pitch="3.0"/>
   <waveform src="sine" processing="add" ratio="0.125" pitch="4.0"/>
@@ -30,6 +30,8 @@
    <slot n="1">
     <param n="0">1.0</param>
     <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>

@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument program="127" bank="0" name="Car Pass">
-  <note polyphony="1" min="39" max="45" step="12"/>
- </instrument>
+ <info name="Car Pass" bank="0" program="127">
+  <note polyphony="1" min="39" max="45" min="12"/>
+ </info>
 
- <sound frequency="220" duration="1.33">
+ <sound gain="0.38" frequency="220" duration="1.33">
   <waveform src="white-noise" ratio="0.25" pitch="0.25"/>
   <waveform src="sawtooth" processing="modulate" ratio="2.0" pitch="0.5"/>
   <waveform src="sawtooth" processing="mix" ratio="0.97" pitch="0.5"/>
@@ -35,6 +35,8 @@
    <slot n="2">
     <param n="0">0.5</param>
     <param n="1">0.3</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -46,6 +48,9 @@
    </slot>
    <slot n="1">
     <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

@@ -8,13 +8,14 @@
 
 <aeonwave>
 
- <instrument name="Handclap"/>
+ <info name="Handclap">
+ </info>
 
- <sound frequency="220" duration="0.2" gain="3.31">
+ <sound gain="0.39" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="18.0">80</param>
+    <param n="0" pitch="18.0">3960.0</param>
     <param n="1">0.6</param>
     <param n="2">0.1</param>
     <param n="3">2.5</param>
@@ -40,6 +41,9 @@
    </slot>
    <slot n="1">
     <param n="0">0.85</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

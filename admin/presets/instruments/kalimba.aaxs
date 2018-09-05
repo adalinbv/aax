@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument program="108" bank="0" name="Kalimba">
-  <note polyphony="8" min="48" max="79" step="6"/>
- </instrument>
+ <info name="Kalimba" bank="0" program="108">
+  <note polyphony="8" min="48" max="79" min="6"/>
+ </info>
 
- <sound frequency="440" duration="0.10">
+ <sound gain="2.78" frequency="440" duration="0.1">
   <waveform src="sine" pitch="0.996"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="11.7587"/>
@@ -33,6 +33,7 @@
     <param n="0">0.665</param>
     <param n="1">0.015</param>
     <param n="2">0.45</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

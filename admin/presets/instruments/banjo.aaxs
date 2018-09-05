@@ -8,17 +8,17 @@
 
 <aeonwave>
 
- <instrument program="105" bank="0" name="Banjo">
-  <note polyphony="6" min="48" max="84" step="12"/>
- </instrument>
+ <info name="Banjo" bank="0" program="105">
+  <note polyphony="6" min="48" max="84" min="12"/>
+ </info>
 
- <sound frequency="440" duration="0.10">
+ <sound gain="1.59" frequency="440" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="4.999"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="8.0">3520</param>
+    <param n="0" pitch="8.0">3520.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.2</param>
@@ -29,17 +29,18 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0" factor="soften">1.80</param>
-    <param n="1" factor="velocity">0.02</param>
-    <param n="2">0.40</param>
+    <param n="0">1.8</param>
     <param n="1">1.0</param>
+    <param n="2">0.4</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.25</param>
-    <param n="1" factor="velocity">0.01</param>
+    <param n="0">1.25</param>
+    <param n="1">0.01</param>
     <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="phasing" src="inverse-envelope" optional="true">

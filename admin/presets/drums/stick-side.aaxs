@@ -1,21 +1,22 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="Sidestick"/>
+ <info name="Sidestick">
+ </info>
 
- <sound frequency="220" duration="0.10" gain="3.34">
+ <sound gain="1.16" frequency="220" duration="0.1">
   <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="11.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">1400</param>
+    <param n="0">1400.0</param>
     <param n="1">1.0</param>
     <param n="2">0.5</param>
     <param n="3">15.0</param>
@@ -40,6 +41,9 @@
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.1</param>
    </slot>
   </effect>

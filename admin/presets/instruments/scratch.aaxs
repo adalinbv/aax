@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument program="124" bank="4" name="Scratch">
-  <note polyphony="1" min="39" max="45" step="12"/>
- </instrument>
+ <info name="Scratch" bank="4" program="124">
+  <note polyphony="1" min="39" max="45" min="12"/>
+ </info>
 
- <sound frequency="66.0" duration="3.33">
-  <waveform src="pink-noise" ratio="10.0" pitch="0.25" staticity="0.3"/>
+ <sound gain="0.10" frequency="66" duration="3.33">
+  <waveform src="pink-noise" ratio="10.0" pitch="0.25"/>
   <filter type="frequency" src="12db">
    <slot n="0">
     <param n="0">500.0</param>
@@ -50,6 +50,7 @@
     <param n="0">0.1</param>
     <param n="1">0.2</param>
     <param n="2">3.2</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

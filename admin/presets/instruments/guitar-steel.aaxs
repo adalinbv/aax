@@ -8,17 +8,17 @@
 
 <aeonwave>
 
- <instrument program="25" bank="0" name="Acoustic Guitar (Steel)">
-  <note polyphony="6" min="40" max="84" step="12"/>
- </instrument>
+ <info name="Acoustic Guitar (Steel)" bank="0" program="25">
+  <note polyphony="6" min="40" max="84" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="1.85" frequency="220" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="2.999"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="4.0">880</param>
+    <param n="0" pitch="4.0">880.0</param>
     <param n="1">1.0</param>
     <param n="2">0.5</param>
     <param n="3">1.2</param>
@@ -29,17 +29,18 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0" factor="soften">1.20</param>
-    <param n="1" factor="velocity">0.02</param>
-    <param n="2">0.60</param>
-    <param n="3">2.50</param>
+    <param n="0">1.2</param>
+    <param n="1">0.02</param>
+    <param n="2">0.6</param>
+    <param n="3">2.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.15</param>
-    <param n="1" factor="velocity">0.01</param>
+    <param n="0">1.15</param>
+    <param n="1">0.01</param>
     <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
@@ -47,18 +48,17 @@
  <audioframe>
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">100</param>
+    <param n="0">100.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">2.1</param>
    </slot>
    <slot n="1">
-    <param n="0">2500</param>
+    <param n="0">2500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.6</param>
     <param n="3">1.1</param>
    </slot>
   </filter>
  </audioframe>
-
 </aeonwave>

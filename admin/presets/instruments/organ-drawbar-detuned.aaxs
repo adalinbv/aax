@@ -8,21 +8,20 @@
 
 <aeonwave>
 
- <instrument program="16" bank="0" name="Drawbar Organ">
-  <note polyphony="10" min="36" max="96" step="12"/>
- </instrument>
+ <info name="Drawbar Organ" bank="0" program="16">
+  <note polyphony="10" min="36" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="0.66" frequency="220" duration="0.1">
   <waveform src="sine" ratio="0.5" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="3.0"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="4.0"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="5.0"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="6.0"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="8.0"/>
-  <!-- drive -->
   <effect type="distortion">
    <slot n="0">
     <param n="0">0.05</param>
@@ -44,11 +43,16 @@
    <slot n="1">
     <param n="0">1.0</param>
     <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.987</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="chorus" src="true" optional="true">
@@ -61,7 +65,7 @@
   </effect>
  </emitter>
 
- <audioframe> <!-- leslie box -->
+ <audioframe>
   <effect type="phasing" src="sine" optional="true">
    <slot n="0">
     <param n="0">0.383</param>
@@ -71,5 +75,4 @@
    </slot>
   </effect>
  </audioframe>
-
 </aeonwave>

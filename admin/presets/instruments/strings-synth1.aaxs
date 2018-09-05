@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="48" bank="0" name="Synth Strings 1">
-  <note polyphony="4" min="28" max="96" step="12"/>
- </instrument>
+ <info name="Synth Strings 1" bank="0" program="48">
+  <note polyphony="4" min="28" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.5">
+ <sound gain="0.98" frequency="220" duration="0.5">
   <waveform src="sawtooth" ratio="0.8"/>
   <waveform src="sawtooth" processing="add" ratio="0.4" pitch="1.5003"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="1.9889"/>
@@ -23,26 +23,29 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.3</param>
-    <param n="1" factor="velocity">0.08</param>
-    <param n="2" factor="soften">1.1</param>
+    <param n="1">0.08</param>
+    <param n="2">1.1</param>
     <param n="3">0.35</param>
    </slot>
    <slot n="1">
-    <param n="0">0.90</param>
+    <param n="0">0.9</param>
     <param n="1">inf</param>
-    <param n="2">0.90</param>
-    <param n="3">0.20</param>
+    <param n="2">0.9</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.14</param>
-    <param n="1" factor="velocity">0.05</param>
+    <param n="0">1.14</param>
+    <param n="1">0.05</param>
     <param n="2">1.0</param>
     <param n="3">2.5</param>
    </slot>
    <slot n="1">
     <param n="0">0.975</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
@@ -57,5 +60,4 @@
    </slot>
   </effect>
  </audioframe>
-
 </aeonwave>

@@ -8,15 +8,16 @@
 
 <aeonwave>
 
- <instrument name="Triangle (Muted)"/>
+ <info name="Triangle (Muted)">
+ </info>
 
- <sound frequency="1600" duration="0.10" gain="2.53">
+ <sound gain="0.86" frequency="1600" duration="0.1">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="add" ratio="0.8" pitch="2.9"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.5"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">2000</param>
+    <param n="0">2000.0</param>
     <param n="1">0.0</param>
     <param n="2">0.8</param>
     <param n="3">5.0</param>
@@ -27,10 +28,10 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.20</param>
+    <param n="0">1.2</param>
     <param n="1">0.03</param>
     <param n="2">0.7</param>
-    <param n="3">0.30</param>
+    <param n="3">0.3</param>
    </slot>
   </filter>
  </emitter>

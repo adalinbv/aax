@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="Low Conga"/>
+ <info name="Low Conga">
+ </info>
 
- <sound frequency="1135" duration="0.10" gain="2.45">
+ <sound gain="0.81" frequency="1135" duration="0.1">
   <waveform src="pink-noise" ratio="1.0" pitch="0.18"/>
   <waveform src="triangle" processing="add" ratio="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>
@@ -20,9 +21,9 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.2</param>
-    <param n="1">0.21</param>
-    <param n="1">0.7</param>
-    <param n="1">0.50</param>
+    <param n="1">0.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -30,6 +31,7 @@
     <param n="0">0.6</param>
     <param n="1">0.01</param>
     <param n="2">0.145</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

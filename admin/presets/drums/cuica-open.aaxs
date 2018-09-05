@@ -8,24 +8,27 @@
 
 <aeonwave>
 
- <instrument name="Cuica (Open)"/>
+ <info name="Cuica (Open)">
+ </info>
 
- <sound frequency="1008" duration="0.01" gain="1.82">
+ <sound gain="0.38" frequency="1008" duration="0.01">
   <waveform src="sawtooth" ratio="0.8" pitch="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.8" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="0.8"/>
   <waveform src="triangle" processing="add" ratio="0.7" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
-    <param n="0" pitch="1.0">22</param>
+    <param n="0" pitch="1.0">1008.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="5.0">1200</param>
+    <param n="0" pitch="5.0">5040.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.02</param>
    </slot>
   </filter>
@@ -39,6 +42,8 @@
    <slot n="1">
     <param n="0">0.6</param>
     <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -46,6 +51,7 @@
     <param n="0">1.03</param>
     <param n="1">0.09</param>
     <param n="2">0.95</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="phasing" src="inverse-envelope" optional="true">

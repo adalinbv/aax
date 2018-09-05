@@ -8,16 +8,16 @@
 
 <aeonwave>
 
- <instrument program="7" bank="0" name="Clavinet">
-  <note polyphony="6" min="36" max="96" step="12"/>
- </instrument>
+ <info name="Clavinet" bank="0" program="7">
+  <note polyphony="6" min="36" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="0.77" frequency="220" duration="0.1">
   <waveform src="impulse" pitch="0.5"/>
-  <waveform src="impulse" processing="add" ratio="0.4" pitch="1.0"/>
+  <waveform src="impulse" processing="add" ratio="0.4"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="1.0">220</param>
+    <param n="0" pitch="1.0">220.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
@@ -28,33 +28,38 @@
  <emitter looping="true">
   <filter type="frequency" src="envelope|48db" optional="true">
    <slot n="0">
-    <param n="0" pitch="0.1">22</param>
+    <param n="0" pitch="0.1">22.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="40">8800</param>
+    <param n="0" pitch="40.0">8800.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">4.0</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.50</param>
-    <param n="1" factor="velocity">0.11</param>
-    <param n="2" factor="soften">1.20</param>
+    <param n="0">1.5</param>
+    <param n="1">0.11</param>
+    <param n="2">1.2</param>
     <param n="3">0.52</param>
    </slot>
    <slot n="1">
-    <param n="0">0.80</param>
-    <param n="1" auto-sustain="1.0" factor="sustain">4.5</param>
+    <param n="0">0.8</param>
+    <param n="1" auto-sustain="1.0">4.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.2</param>
-    <param n="1" factor="velocity">0.03</param>
+    <param n="0">1.2</param>
+    <param n="1">0.03</param>
     <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

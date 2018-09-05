@@ -1,37 +1,24 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument program="88" bank="0" name="Pad 1 (new-wave)">
-  <note polyphony="8" min="36" max="96" step="12"/>
- </instrument>
+ <info name="Pad 1 (new-wave)" bank="0" program="88">
+  <note polyphony="8" min="36" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.33">
-  <waveform src="triangle" pitch="1.0" voices="7" spred="0.3"/>
+ <sound gain="1.24" frequency="220" duration="0.33">
+  <waveform src="triangle" voices="7"/>
   <waveform src="sine" processing="mix" ratio="0.2" pitch="0.9399"/>
   <waveform src="sine" processing="modulate" ratio="1.4" pitch="5.9987"/>
  </sound>
 
- <emitter looping="true">
-  <filter type="timed-gain">
-   <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1" factor="velocity">1.04</param>
-    <param n="2" factor="soften">1.0</param>
-    <param n="3">1.95</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.80</param>
-    <param n="1">3.4</param>
-   </slot>
-  </filter>
- </emitetr>
+ <emitter/>
 
  <audioframe>
   <effect type="flanging" src="inverse-sine" optional="true">
@@ -43,5 +30,4 @@
    </slot>
   </effect>
  </audioframe>
-
 </aeonwave>

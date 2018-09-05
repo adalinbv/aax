@@ -8,14 +8,14 @@
 
 <aeonwave>
 
- <instrument program="16" bank="0" name="Percussive Organ">
-  <note polyphony="10" min="36" max="96" step="12"/>
- </instrument>
+ <info name="Percussive Organ" bank="0" program="16">
+  <note polyphony="10" min="36" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="1.77" frequency="220" duration="0.1">
   <waveform src="sine" ratio="0.5" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.125" pitch="5.0"/>
   <waveform src="sine" processing="add" ratio="0.125" pitch="6.0"/>
@@ -32,11 +32,13 @@
    <slot n="1">
     <param n="0">1.0</param>
     <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
 
- <audioframe> <!-- leslie box -->
+ <audioframe>
   <effect type="phasing" src="sine" optional="true">
    <slot n="0">
     <param n="0">0.383</param>
@@ -46,5 +48,4 @@
    </slot>
   </effect>
  </audioframe>
-
 </aeonwave>

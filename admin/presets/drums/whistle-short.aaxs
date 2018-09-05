@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="Whistle (Short)"/>
+ <info name="Whistle (Short)">
+ </info>
 
- <sound frequency="350" duration="0.10" gain="1.18">
+ <sound gain="0.09" frequency="350" duration="0.1">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="10">3000</param>
+    <param n="0" pitch="10.0">3500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">30.0</param>
@@ -26,18 +27,21 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0" factor="soften">0.98</param>
-    <param n="1" factor="velocity">0.05</param>
+    <param n="0">0.98</param>
+    <param n="1">0.05</param>
     <param n="2">1.0</param>
     <param n="3">0.35</param>
    </slot>
    <slot n="1">
     <param n="0">0.15</param>
     <param n="1">0.15</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth" optional="true">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">50.0</param>
     <param n="2">0.4</param>
     <param n="3">0.6</param>
@@ -45,9 +49,10 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.08</param>
-    <param n="1" factor="velocity">1.8</param>
-    <param n="2">0.98</param> 
+    <param n="0">1.08</param>
+    <param n="1">1.8</param>
+    <param n="2">0.98</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="1" bank="0" name="Bright Piano">
-  <note polyphony="88" min="21" max="108" step="6"/>
- </instrument>
+ <info name="Bright Piano" bank="0" program="1">
+  <note polyphony="88" min="21" max="108" min="6"/>
+ </info>
 
- <sound frequency="440" duration="0.50">
+ <sound gain="1.34" frequency="440" duration="0.5">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.1" pitch="3.01"/>
@@ -22,24 +22,29 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.15</param>
-    <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">0.95</param>
+    <param n="1">0.01</param>
+    <param n="2">0.95</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
-    <param n="1" auto-sustain="1.0" factor="sustain">4.5</param>
+    <param n="0">1.0</param>
+    <param n="1" auto-sustain="1.0">4.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.1</param>
-    <param n="1" factor="velocity">0.01</param>
+    <param n="0">1.1</param>
+    <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
     <param n="0">0.975</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
@@ -47,12 +52,11 @@
  <audioframe>
   <filter type="frequency" src="24db" optional="true">
    <slot n="0">
-    <param n="0" pitch="20">4400</param>
+    <param n="0" pitch="20.0">8800.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>
-
 </aeonwave>

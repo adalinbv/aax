@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="High Bongo"/>
+ <info name="High Bongo">
+ </info>
 
- <sound frequency="1400" duration="0.10" gain="3.09">
+ <sound gain="1.20" frequency="1400" duration="0.1">
   <waveform src="pink-noise" ratio="1.0" pitch="0.25"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>
@@ -22,7 +23,7 @@
     <param n="0">1.5</param>
     <param n="1">0.08</param>
     <param n="2">0.3</param>
-    <param n="3">0.20</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -30,6 +31,7 @@
     <param n="0">1.4</param>
     <param n="1">0.01</param>
     <param n="2">0.525</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

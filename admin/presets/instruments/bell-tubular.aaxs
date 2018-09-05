@@ -8,38 +8,43 @@
 
 <aeonwave>
 
- <instrument program="14" bank="0" name="Tubular Bells">
-  <note polyphony="17" min="60" max="77" step="1"/>
- </instrument>
+ <info name="Tubular Bells" bank="0" program="14">
+  <note polyphony="17" min="60" max="77" min="1"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
-  <waveform src="sine" pitch="1.199998"/>
-  <waveform src="sine" processing="add" ratio="0.4"  pitch="2.59987"/>
+ <sound gain="0.89" frequency="220" duration="0.1">
+  <waveform src="sine" pitch="1.2"/>
+  <waveform src="sine" processing="add" ratio="0.4" pitch="2.59987"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.4587"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.50</param>
-    <param n="1" factor="velocity">0.05</param>
-    <param n="2" factor="soften">1.20</param>
+    <param n="0">1.5</param>
+    <param n="1">0.05</param>
+    <param n="2">1.2</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.80</param>
-    <param n="1" auto-sustain="1.0" factor="sustain">5.5</param>
+    <param n="0">0.8</param>
+    <param n="1" auto-sustain="1.0">5.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.14</param>
-    <param n="1" factor="velocity">0.03</param>
-    <param n="2">1.10</param>
+    <param n="0">1.14</param>
+    <param n="1">0.03</param>
+    <param n="2">1.1</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
     <param n="0">1.12</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

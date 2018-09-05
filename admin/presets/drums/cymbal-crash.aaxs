@@ -8,16 +8,17 @@
 
 <aeonwave>
 
- <instrument name="Crash Cymbal"/>
+ <info name="Crash Cymbal">
+ </info>
 
- <sound frequency="500" duration="0.20" gain="3.53">
+ <sound gain="0.69" frequency="500" duration="0.2">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="6.3"/>
   <waveform src="white-noise" processing="mix" ratio="0.7" pitch="0.25"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="5.0"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">1000</param>
+    <param n="0">1000.0</param>
     <param n="1">0.1</param>
     <param n="2">1.2</param>
     <param n="3">5.0</param>
@@ -28,7 +29,7 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.50</param>
+    <param n="0">1.5</param>
     <param n="1">0.03</param>
     <param n="2">0.9</param>
     <param n="3">0.1</param>
@@ -36,8 +37,8 @@
    <slot n="1">
     <param n="0">0.65</param>
     <param n="1">inf</param>
-    <param n="2">0.40</param>
-    <param n="3">1.00</param>
+    <param n="2">0.4</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </emitter>

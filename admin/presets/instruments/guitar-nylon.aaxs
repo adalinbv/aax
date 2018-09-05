@@ -8,17 +8,17 @@
 
 <aeonwave>
 
- <instrument program="24" bank="0" name="Acoustic Guitar (Nylon)">
-  <note polyphony="6" min="40" max="84" step="12"/>
- </instrument>
+ <info name="Acoustic Guitar (Nylon)" bank="0" program="24">
+  <note polyphony="6" min="40" max="84" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="1.15" frequency="220" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="0.999"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="1.0">220</param>
+    <param n="0" pitch="1.0">220.0</param>
     <param n="1">1.0</param>
     <param n="2">0.5</param>
     <param n="3">1.2</param>
@@ -29,14 +29,16 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.00</param>
-    <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">1.20</param>
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.2</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
     <param n="0">0.75</param>
     <param n="1">2.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
@@ -44,18 +46,17 @@
  <audioframe>
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">100</param>
+    <param n="0">100.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">2.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1500</param>
+    <param n="0">1500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.6</param>
     <param n="3">1.1</param>
    </slot>
   </filter>
  </audioframe>
-
 </aeonwave>

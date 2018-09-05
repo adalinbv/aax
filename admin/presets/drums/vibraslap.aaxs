@@ -1,20 +1,21 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="Vibraslap"/>
+ <info name="Vibraslap">
+ </info>
 
- <sound frequency="220" duration="0.2" gain="7.85">
-  <waveform src="pink-noise" ratio="19.0" pitch="0.1" staticity="0.8"/>
+ <sound gain="0.28" frequency="220" duration="0.2">
+  <waveform src="pink-noise" ratio="19.0" pitch="0.1"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0">1500</param>
+    <param n="0">1500.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.5</param>
@@ -22,7 +23,7 @@
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0">4000</param>
+    <param n="0">4000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>
@@ -34,16 +35,17 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.8</param>
-    <param n="1" factor="velocity">1.0</param>
+    <param n="1">1.0</param>
     <param n="2">1.0</param>
     <param n="3">0.9</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.8</param>
+    <param n="0">1.8</param>
     <param n="1">0.25</param>
     <param n="2">1.6</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

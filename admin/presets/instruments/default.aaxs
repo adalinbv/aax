@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="0" bank="0" name="">
-  <note polyphony="6" min="36" max="96" step="12"/>
- </instrument>
+ <info name="" bank="0" program="0">
+  <note polyphony="6" min="36" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="0.47" frequency="220" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" pitch="1.4889"/>
  </sound>

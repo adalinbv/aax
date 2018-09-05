@@ -1,21 +1,22 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="Woodblock (Low)"/>
+ <info name="Woodblock (Low)">
+ </info>
 
- <sound frequency="220" duration="0.10" gain="3.06">
+ <sound gain="0.36" frequency="220" duration="0.1">
   <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="11.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="4.0">880</param>
+    <param n="0" pitch="4.0">880.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">15.0</param>
@@ -28,6 +29,8 @@
    <slot n="0">
     <param n="0">1.2</param>
     <param n="1">0.05</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -35,6 +38,7 @@
     <param n="0">1.4</param>
     <param n="1">0.01</param>
     <param n="2">0.74</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

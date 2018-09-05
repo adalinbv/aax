@@ -1,16 +1,17 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument name="Low Bongo"/>
+ <info name="Low Bongo">
+ </info>
 
- <sound frequency="800" duration="0.10" gain="3.00">
+ <sound gain="1.12" frequency="800" duration="0.1">
   <waveform src="pink-noise" ratio="1.2" pitch="0.25"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>
@@ -20,14 +21,17 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.4</param>
-    <param n="1">0.30</param>
+    <param n="1">0.3</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.4</param>
     <param n="1">0.01</param>
-    <param n="2">0.30</param>
+    <param n="2">0.3</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

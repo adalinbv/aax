@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="40-43" bank="0" name="Violin">
-  <note polyphony="4" min="28" max="96" step="12"/>
- </instrument>
+ <info name="Violin" bank="0" program="40">
+  <note polyphony="4" min="28" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="1.28" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.6"/>
   <waveform src="square" processing="modulate" ratio="1.6" pitch="3.0"/>
   <waveform src="inverse-impulse" processing="mix" ratio="0.4" pitch="0.9899"/>
@@ -21,32 +21,49 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.40</param>
-    <param n="1" factor="velocity">0.15</param>
-    <param n="2" factor="soften">1.00</param>
+    <param n="0">0.4</param>
+    <param n="1">0.15</param>
+    <param n="2">1.0</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.90</param>
+    <param n="0">0.9</param>
     <param n="1">inf</param>
-    <param n="2">0.90</param>
-    <param n="3">0.20</param>
+    <param n="2">0.9</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">0.97</param>
-    <param n="1" factor="velocity">0.25</param>
+    <param n="0">0.97</param>
+    <param n="1">0.25</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
     <param n="0">0.995</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
  <audioframe>
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">390.0</param>
+    <param n="1">0.9</param>
+    <param n="2">1.0</param>
+    <param n="3">2.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">750.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.6</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
   <effect type="chorus" src="true" optional="true">
    <slot n="0">
     <param n="0">0.8</param>
@@ -55,20 +72,5 @@
     <param n="3">0.553</param>
    </slot>
   </effect>
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">390</param>
-    <param n="1">0.9</param>
-    <param n="2">1.0</param>
-    <param n="3">2.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">750</param>
-    <param n="1">1.0</param>
-    <param n="2">0.6</param>
-    <param n="3">0.1</param>
-   </slot>
-  </filter>
  </audioframe>
-
 </aeonwave>

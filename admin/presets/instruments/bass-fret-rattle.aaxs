@@ -1,18 +1,18 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument program="120" bank="2" name="Bass Fret Rattle">
-  <note polyphony="1" min="39" max="45" step="12"/>
- </instrument>
+ <info name="Bass Fret Rattle" bank="2" program="120">
+  <note polyphony="1" min="39" max="45" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="0.69" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="9.0"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="5.0"/>
@@ -29,6 +29,7 @@
   </filter>
   <effect type="dynamic-pitch" src="sawtooth">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">33.0</param>
     <param n="2">0.5</param>
     <param n="3">0.75</param>
@@ -39,17 +40,21 @@
     <param n="0">0.85</param>
     <param n="1">0.15</param>
     <param n="2">0.6</param>
-    <param n="1">0.15</param>
+    <param n="3">0.0</param>
    </slot>
    <slot n="1">
     <param n="0">0.3</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="ringmodulator" src="envelope">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.1</param>
-    <param n="2" pitch="1.0">1.0</param>
-    <param n="3" pitch="0.5">0.5</param>
+    <param n="2" pitch="1.0">220.0</param>
+    <param n="3" pitch="0.5">110.0</param>
    </slot>
   </effect>
  </emitter>

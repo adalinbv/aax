@@ -8,21 +8,21 @@
 
 <aeonwave>
 
- <instrument program="64-67" bank="0" name="Saxophone">
-  <note polyphony="2" min="37" max="87" step="12"/>
- </instrument>
+ <info name="Saxophone" bank="0" program="64">
+  <note polyphony="2" min="37" max="87" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
+ <sound gain="0.72" frequency="220" duration="0.1">
   <waveform src="impulse" pitch="0.5"/>
   <waveform src="impulse" processing="mix" ratio="0.9"/>
   <waveform src="square" processing="modulate" ratio="3.0" pitch="2.0"/>
-  <waveform src="sawtooth" processing="add" ratio="0.3" pitch="1.0"/>
+  <waveform src="sawtooth" processing="add" ratio="0.3"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="24db" optional="true">
    <slot n="0">
-    <param n="0">2500</param>
+    <param n="0">2500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.0</param>
@@ -30,30 +30,30 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-     <param n="0">0.00</param>
-     <param n="1">0.05</param>
-     <param n="2">1.20</param>
-     <param n="3">0.05</param>
+    <param n="0">0.0</param>
+    <param n="1">0.05</param>
+    <param n="2">1.2</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-     <param n="0">1.00</param>
-     <param n="1">inf</param>
-     <param n="2">1.00</param>
-     <param n="3">0.20</param>
+    <param n="0">1.0</param>
+    <param n="1">inf</param>
+    <param n="2">1.0</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-     <param n="0">0.995</param>
-     <param n="1">0.03</param>
-     <param n="2">1.10</param>
-     <param n="3">0.05</param>
+    <param n="0">0.995</param>
+    <param n="1">0.03</param>
+    <param n="2">1.1</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-     <param n="0">1.00</param>
-     <param n="1">0.10</param>
-     <param n="2">0.99</param>
-     <param n="3">5.00</param>
+    <param n="0">1.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.99</param>
+    <param n="3">5.0</param>
    </slot>
   </effect>
  </emitter>
@@ -68,5 +68,4 @@
    </slot>
   </effect>
  </audioframe>
-
 </aeonwave>

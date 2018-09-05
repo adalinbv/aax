@@ -8,17 +8,17 @@
 
 <aeonwave>
 
- <instrument program="31" bank="0" name="Guitar Harmonics">
-  <note polyphony="6" min="40" max="86" step="12"/>
- </instrument>
+ <info name="Guitar Harmonics" bank="0" program="31">
+  <note polyphony="6" min="40" max="86" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.20">
+ <sound gain="0.10" frequency="220" duration="0.2">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="2.0"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="3.0">660</param>
+    <param n="0" pitch="3.0">660.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">40.0</param>
@@ -29,27 +29,30 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.00</param>
-    <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">1.20</param>
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.2</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.70</param>
+    <param n="0">0.7</param>
     <param n="1">inf</param>
-    <param n="2">0.70</param>
+    <param n="2">0.7</param>
     <param n="3">0.4</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.05</param>
-    <param n="1" factor="velocity">0.05</param>
+    <param n="0">1.05</param>
+    <param n="1">0.05</param>
     <param n="2">1.0</param>
     <param n="3">6.5</param>
    </slot>
    <slot n="1">
     <param n="0">0.975</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

@@ -8,13 +8,14 @@
 
 <aeonwave>
 
- <instrument name="Maracas"/>
+ <info name="Maracas">
+ </info>
 
- <sound frequency="880" duration="0.10" gain="5.91">
-  <waveform src="pink-noise" ratio="19.0" pitch="0.33" staticity="0.2"/>
+ <sound gain="0.88" frequency="880" duration="0.1">
+  <waveform src="pink-noise" ratio="19.0" pitch="0.33"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0">3300</param>
+    <param n="0">3300.0</param>
     <param n="1">0.0</param>
     <param n="2">0.3</param>
     <param n="3">1.5</param>
@@ -25,7 +26,7 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.50</param>
+    <param n="0">0.5</param>
     <param n="1">0.03</param>
     <param n="2">1.0</param>
     <param n="3">0.23</param>
@@ -36,6 +37,7 @@
     <param n="0">2.5</param>
     <param n="1">0.02</param>
     <param n="2">1.2</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

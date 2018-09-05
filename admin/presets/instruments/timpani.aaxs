@@ -8,31 +8,31 @@
 
 <aeonwave>
 
- <instrument program="47" bank="0" name="Timpani">
-  <note polyphony="4" min="60" max="77" step="1"/>
- </instrument>
+ <info name="Timpani" bank="0" program="47">
+  <note polyphony="4" min="60" max="77" min="1"/>
+ </info>
 
- <sound frequency="110" duration="0.20">
+ <sound gain="0.61" frequency="110" duration="0.2">
   <waveform src="pink-noise" ratio="0.8" pitch="0.08"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.5"/>
-  <waveform src="triangle" processing="add" ratio="0.8" pitch="1.0"/>
+  <waveform src="triangle" processing="add" ratio="0.8"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="1.6"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.60</param>
-    <param n="1">0.10</param>
-    <param n="2">1.20</param>
-    <param n="3">0.80</param>
+    <param n="0">1.6</param>
+    <param n="1">0.1</param>
+    <param n="2">1.2</param>
+    <param n="3">0.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.20</param>
+    <param n="0">1.2</param>
     <param n="1">0.03</param>
-    <param n="2">1.00</param>
+    <param n="2">1.0</param>
     <param n="3">0.05</param>
    </slot>
   </effect>

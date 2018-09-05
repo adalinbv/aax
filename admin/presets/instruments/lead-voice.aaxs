@@ -1,39 +1,39 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument program="85" bank="0" name="Lead 6 (voice)">
-  <note polyphony="8" min="48" max="84" step="12"/>
- </instrument>
+ <info name="Lead 6 (voice)" bank="0" program="85">
+  <note polyphony="8" min="48" max="84" min="12"/>
+ </info>
 
- <sound frequency="220">
+ <sound gain="1.77" frequency="220">
   <waveform src="triangle" pitch="0.98"/>
   <waveform src="sine" processing="modulate" ratio="0.3" pitch="8.0"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="1.0"/>
+  <waveform src="triangle" processing="add" ratio="0.4"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.2</param>
-    <param n="1" factor="velocity">0.2</param>
-    <param n="2" factor="soften">1.2</param>
+    <param n="1">0.2</param>
+    <param n="2">1.2</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
+    <param n="0">1.0</param>
     <param n="1">inf</param>
     <param n="2">0.9</param>
     <param n="3">0.5</param>
    </slot>
   </filter>
-  <effect type="phasing" src="envelope"  optional="true">
+  <effect type="phasing" src="envelope" optional="true">
    <slot n="0">
     <param n="0">0.3</param>
     <param n="1">0.05</param>
@@ -53,5 +53,4 @@
    </slot>
   </effect>
  </audioframe>
-
 </aeonwave>

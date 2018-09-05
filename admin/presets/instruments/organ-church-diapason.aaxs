@@ -8,12 +8,12 @@
 
 <aeonwave>
 
- <instrument  program="19" bank="8" name="Diapason Organ">
-  <note polyphony="10" min="36" max="96" step="12"/>
- </instrument>
+ <info name="Diapason Organ" bank="8" program="19">
+  <note polyphony="10" min="36" max="96" min="12"/>
+ </info>
 
- <sound frequency="220" duration="0.10">
-  <waveform src="sine" processing="add" ratio="0.5" pitch="1.0"/>
+ <sound gain="3.48" frequency="220" duration="0.1">
+  <waveform src="sine" processing="add" ratio="0.5"/>
   <waveform src="sine" processing="add" ratio="0.4375" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.375" pitch="3.0"/>
   <waveform src="sine" processing="add" ratio="0.3125" pitch="4.0"/>
@@ -33,6 +33,8 @@
    <slot n="1">
     <param n="0">2.0</param>
     <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
@@ -40,11 +42,11 @@
  <audioframe>
   <effect type="reverb" optional="true">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.037</param>
     <param n="2">0.5</param>
     <param n="3">0.5</param>
    </slot>
   </effect>
  </audioframe>
-
 </aeonwave>

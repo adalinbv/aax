@@ -1,19 +1,19 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <instrument program="120" bank="1" name="Guitar Cut Noise">
-  <note polyphony="1" min="39" max="45" step="12"/>
- </instrument>
+ <info name="Guitar Cut Noise" bank="1" program="120">
+  <note polyphony="1" min="39" max="45" min="12"/>
+ </info>
 
- <sound frequency="880" duration="0.10">
-  <waveform src="sine" ratio="1.0" pitch="1.0"/>
+ <sound gain="0.60" frequency="880" duration="0.1">
+  <waveform src="sine" ratio="1.0"/>
   <waveform src="sine" processing="add" ratio="1.0" pitch="1.5"/>
   <waveform src="sine" processing="add" ratio="1.0" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="1.0" pitch="4.0"/>
@@ -26,7 +26,7 @@
    <slot n="0">
     <param n="0">1.0</param>
     <param n="1">0.01</param>
-    <param n="2">0.50</param>
+    <param n="2">0.5</param>
     <param n="3">0.15</param>
    </slot>
   </filter>
@@ -35,6 +35,7 @@
     <param n="0">1.1</param>
     <param n="1">0.01</param>
     <param n="2">0.4</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

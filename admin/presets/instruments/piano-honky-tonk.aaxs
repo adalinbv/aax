@@ -8,11 +8,11 @@
 
 <aeonwave>
 
- <instrument program="3" bank="0" name="Honky-Tonk Piano">
-  <note polyphony="88" min="21" max="108" step="6"/>
- </instrument>
+ <info name="Honky-Tonk Piano" bank="0" program="3">
+  <note polyphony="88" min="21" max="108" min="6"/>
+ </info>
 
- <sound frequency="440" duration="0.50">
+ <sound gain="0.73" frequency="440" duration="0.5">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="3.03"/>
@@ -22,24 +22,29 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.15</param>
-    <param n="1" factor="velocity">0.01</param>
-    <param n="2" factor="soften">0.95</param>
+    <param n="1">0.01</param>
+    <param n="2">0.95</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
-    <param n="1" auto-sustain="1.0" factor="sustain">3.8</param>
+    <param n="0">1.0</param>
+    <param n="1" auto-sustain="1.0">3.8</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.1</param>
-    <param n="1" factor="velocity">0.02</param>
+    <param n="0">1.1</param>
+    <param n="1">0.02</param>
     <param n="2">0.98</param>
-    <param n="3">4.50</param>
+    <param n="3">4.5</param>
    </slot>
    <slot n="1">
     <param n="0">0.975</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="phasing" src="inverse-envelope" optional="true">
@@ -55,12 +60,11 @@
  <audioframe>
   <filter type="frequency" src="24db" optional="true">
    <slot n="0">
-    <param n="0" pitch="15">4400</param>
+    <param n="0" pitch="15.0">6600.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>
-
 </aeonwave>

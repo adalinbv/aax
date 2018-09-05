@@ -8,9 +8,10 @@
 
 <aeonwave>
 
- <instrument name="Tambourine"/>
+ <info name="Tambourine">
+ </info>
 
- <sound frequency="880" duration="0.10" gain="2.61">
+ <sound gain="1.33" frequency="880" duration="0.1">
   <waveform src="square" pitch="3.0"/>
   <waveform src="white-noise" processing="mix" ratio="0.6" pitch="0.15"/>
   <waveform src="square" processing="modulate" ratio="1.0" pitch="6.3"/>
@@ -19,7 +20,7 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.50</param>
+    <param n="0">0.5</param>
     <param n="1">0.03</param>
     <param n="2">1.0</param>
     <param n="3">0.3</param>
@@ -30,6 +31,7 @@
     <param n="0">1.8</param>
     <param n="1">0.02</param>
     <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

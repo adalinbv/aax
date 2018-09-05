@@ -8,40 +8,41 @@
 
 <aeonwave>
 
- <instrument name="Cuica (Muted)"/>
+ <info name="Cuica (Muted)">
+ </info>
 
- <sound frequency="336" duration="0.01" gain="1.82">
+ <sound gain="0.38" frequency="336" duration="0.01">
   <waveform src="sawtooth" ratio="0.8" pitch="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.8" pitch="1.0"/>
+  <waveform src="sine" processing="add" ratio="0.8"/>
   <waveform src="triangle" processing="add" ratio="0.7" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
-    <param n="0" pitch="0.2">22</param>
+    <param n="0" pitch="0.2">67.2</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="3.0">1200</param>
+    <param n="0" pitch="3.0">1008.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.03</param>
    </slot>
   </filter>
-
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.10</param>
+    <param n="0">1.1</param>
     <param n="1">0.02</param>
-    <param n="2">1.50</param>
-    <param n="3">0.30</param>
+    <param n="2">1.5</param>
+    <param n="3">0.3</param>
    </slot>
   </filter>
-
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.10</param>
+    <param n="0">1.1</param>
     <param n="1">0.08</param>
     <param n="2">0.95</param>
     <param n="3">0.08</param>
