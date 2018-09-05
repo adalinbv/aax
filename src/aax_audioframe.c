@@ -1733,7 +1733,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {
-      void *xmid = xmlNodeGet(xid, "aeonwave/instrument");
+      void *xmid = xmlNodeGet(xid, "aeonwave/info");
       float freq = 0.0f;
 
       if (xmid)

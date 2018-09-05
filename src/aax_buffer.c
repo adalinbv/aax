@@ -1218,7 +1218,7 @@ _bufAAXSThread(void *d)
    xid = xmlInitBuffer(handle->aaxs, strlen(handle->aaxs));
    if (xid)
    {
-      void *xsid = xmlNodeGet(xid, "aeonwave/instrument/note");
+      void *xsid = xmlNodeGet(xid, "aeonwave/info/note");
       float max_frequency = 0.0f;
       if (xsid)
       {
