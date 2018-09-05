@@ -31,7 +31,7 @@ const char* format_float(float f)
     }
     else
     {
-        snprintf(buf, 20, "%.3g", f);
+        snprintf(buf, 20, "%.6g", f);
         if (!strchr(buf, '.')) {
             strcat(buf, ".0");
         }
@@ -39,7 +39,7 @@ const char* format_float(float f)
     return buf;
 }
 
-struct instrument_t
+struct info_t
 {
     uint8_t program;
     uint8_t bank;
@@ -56,60 +56,67 @@ struct instrument_t
     } position;
 };
 
-void fill_instrument(struct instrument_t *inst, void *xid)
+void fill_info(struct info_t *info, void *xid)
 {
     void *xtid;
 
-    inst->program = xmlAttributeGetInt(xid, "program");
-    inst->bank = xmlAttributeGetInt(xid, "bank");
-    inst->name = xmlAttributeGetString(xid, "name");
+    info->program = xmlAttributeGetInt(xid, "program");
+    info->bank = xmlAttributeGetInt(xid, "bank");
+    info->name = xmlAttributeGetString(xid, "name");
 
     xtid = xmlNodeGet(xid, "note");
     if (xtid)
     {
-        inst->note.polyphony = xmlAttributeGetInt(xtid, "polyphony");
-        inst->note.min = xmlAttributeGetInt(xtid, "min");
-        inst->note.max = xmlAttributeGetInt(xtid, "max");
-        inst->note.step = xmlAttributeGetInt(xtid, "step");
+        info->note.polyphony = xmlAttributeGetInt(xtid, "polyphony");
+        info->note.min = xmlAttributeGetInt(xtid, "min");
+        info->note.max = xmlAttributeGetInt(xtid, "max");
+        info->note.step = xmlAttributeGetInt(xtid, "step");
         xmlFree(xtid);
     }
 
     xtid = xmlNodeGet(xid, "position");
     if (xtid)
     {
-        inst->position.x = xmlAttributeGetDouble(xtid, "x");
-        inst->position.y = xmlAttributeGetDouble(xtid, "y");
-        inst->position.z = xmlAttributeGetDouble(xtid, "z");
+        info->position.x = xmlAttributeGetDouble(xtid, "x");
+        info->position.y = xmlAttributeGetDouble(xtid, "y");
+        info->position.z = xmlAttributeGetDouble(xtid, "z");
         xmlFree(xtid);
     }
 }
 
-void print_instrument(struct instrument_t *inst, FILE *output)
+void print_info(struct info_t *info, FILE *output)
 {
-    fprintf(output, " <instrument");
-    fprintf(output, " program=\"%i\"", inst->program);
-    fprintf(output, " bank=\"%i\"", inst->bank);
-    if (inst->name) fprintf(output, " name=\"%s\"", inst->name);
+    fprintf(output, " <info");
+    if (info->name) fprintf(output, " name=\"%s\"", info->name);
+    if (info->note.polyphony)
+    {
+        fprintf(output, " bank=\"%i\"", info->bank);
+        fprintf(output, " program=\"%i\"", info->program);
+    }
     fprintf(output, ">\n");
 
-    fprintf(output, "  <note");
-    if (inst->note.polyphony) fprintf(output, " polyphony=\"%i\"", inst->note.polyphony);
-    if (inst->note.min) fprintf(output, " min=\"%i\"", inst->note.min);
-    if (inst->note.max) fprintf(output, " max=\"%i\"", inst->note.max);
-    if (inst->note.step) fprintf(output, " min=\"%i\"", inst->note.step);
-    fprintf(output, "/>\n");
+    if (info->note.polyphony)
+    {
+        fprintf(output, "  <note polyphony=\"%i\"", info->note.polyphony);
+        if (info->note.min) fprintf(output, " min=\"%i\"", info->note.min);
+        if (info->note.max) fprintf(output, " max=\"%i\"", info->note.max);
+        if (info->note.step) fprintf(output, " step=\"%i\"", info->note.step);
+        fprintf(output, "/>\n");
+    }
 
-    if (inst->position.x && inst->position.y && inst->position.z) {
-        fprintf(output, "  <position x=\"%3.f\" y=\"%3.1f\" z=\"%3.1f\"/>",
-                  inst->position.x, inst->position.y, inst->position.z);
+    if (info->position.x || info->position.y || info->position.z)
+    {
+        fprintf(output, "  <position x=\"%s\"", format_float(info->position.x));
+        fprintf(output, " y=\"%s\"", format_float(info->position.y));
+        fprintf(output, " z=\"%s\"/>\n", format_float(info->position.z));
     };
 
-    fprintf(output, " </instrument>\n\n");
+    fprintf(output, " </info>\n\n");
 }
 
-void free_instrument(struct instrument_t *inst)
+void free_info(struct info_t *info)
 {
-    aaxFree(inst->name);
+    aaxFree(info->name);
 }
 
 struct dsp_t
@@ -204,7 +211,7 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
             float pitch = dsp->slot[s].param[p].pitch;
 
             fprintf(output, "    <param n=\"%i\"", p);
-            if (pitch && pitch != 1.0f)
+            if (pitch)
             {
                 fprintf(output, " pitch=\"%s\"", format_float(pitch));
                 dsp->slot[s].param[p].value = freq*pitch;
@@ -320,7 +327,7 @@ void fill_sound(struct sound_t *sound, void *xid, float gain)
                 sound->entry[p].type = FILTER;
                 fill_dsp(&sound->entry[p++].slot.dsp, xeid, FILTER);
             }
-            else if (!strcasecmp(name, "filter"))
+            else if (!strcasecmp(name, "effect"))
             {
                 sound->entry[p].type = EFFECT;
                 fill_dsp(&sound->entry[p++].slot.dsp, xeid, EFFECT);
@@ -449,7 +456,7 @@ void free_object(struct object_t *obj)
 
 struct aax_t
 {
-    struct instrument_t instrument;
+    struct info_t info;
     struct sound_t sound;
     struct object_t emitter;
     struct object_t audioframe;
@@ -467,9 +474,10 @@ void fill_aax(struct aax_t *aax, const char *filename, float gain)
         if (xaid)
         {
             void *xtid = xmlNodeGet(xaid, "instrument");
+            if (!xtid) xtid = xmlNodeGet(xaid, "info");
             if (xtid)
             {
-                fill_instrument(&aax->instrument, xtid);
+                fill_info(&aax->info, xtid);
                 xmlFree(xtid);
             }
 
@@ -534,8 +542,8 @@ void print_aax(struct aax_t *aax, const char *outfile)
     fprintf(output, " * All rights reserved.\n");
     fprintf(output, "-->\n\n");
 
-    fprintf(output, "<aeonwave>\n");
-    print_instrument(&aax->instrument, output);
+    fprintf(output, "<aeonwave>\n\n");
+    print_info(&aax->info, output);
     print_sound(&aax->sound, output);
     print_object(&aax->emitter, EMITTER, output);
     print_object(&aax->audioframe, FRAME, output);
@@ -548,7 +556,7 @@ void print_aax(struct aax_t *aax, const char *outfile)
 
 void free_aax(struct aax_t *aax)
 {
-    free_instrument(&aax->instrument);
+    free_info(&aax->info);
     free_sound(&aax->sound);
     free_object(&aax->emitter);
     free_object(&aax->audioframe);
@@ -591,13 +599,15 @@ int main(int argc, char **argv)
     {
         struct aax_t aax;
         aaxBuffer buffer;
-        float rms;
+        float rms, peak;
 
         config = aaxDriverOpenDefault(AAX_MODE_WRITE_STEREO);
         testForError(config, "No default audio device available.");
 
         buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to create a buffer");
+
+        peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
         rms = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
         aaxBufferDestroy(buffer);
 
