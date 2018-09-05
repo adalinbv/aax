@@ -1,13 +1,18 @@
 
+#include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
+#include <time.h>
 
 #include <xml.h>
 #include <aax/aax.h>
 
 #include "driver.h"
 #include "wavfile.h"
+
+static float freq = 22.0f;
+static FILE *output;
 
 enum type_t
 {
@@ -17,6 +22,23 @@ enum type_t
    EMITTER,
    FRAME
 };
+
+const char* format_float(float f)
+{
+    static char buf[32];
+
+    if (f >= 100.0f) {
+        snprintf(buf, 20, "%.1f", f);
+    }
+    else
+    {
+        snprintf(buf, 20, "%.3g", f);
+        if (!strchr(buf, '.')) {
+            strcat(buf, ".0");
+        }
+    }
+    return buf;
+}
 
 struct instrument_t
 {
@@ -65,25 +87,25 @@ void fill_instrument(struct instrument_t *inst, void *xid)
 
 void print_instrument(struct instrument_t *inst)
 {
-    printf(" <instrument");
-    printf(" program=\"%i\"", inst->program);
-    printf(" bank=\"%i\"", inst->bank);
-    if (inst->name) printf(" name=\"%s\"", inst->name);
-    printf(">\n");
+    fprintf(output, " <instrument");
+    fprintf(output, " program=\"%i\"", inst->program);
+    fprintf(output, " bank=\"%i\"", inst->bank);
+    if (inst->name) fprintf(output, " name=\"%s\"", inst->name);
+    fprintf(output, ">\n");
 
-    printf("  <note");
-    if (inst->note.polyphony) printf(" polyphony=\"%i\"", inst->note.polyphony);
-    if (inst->note.min) printf(" min=\"%i\"", inst->note.min);
-    if (inst->note.max) printf(" max=\"%i\"", inst->note.max);
-    if (inst->note.step) printf(" min=\"%i\"", inst->note.step);
-    printf("/>\n");
+    fprintf(output, "  <note");
+    if (inst->note.polyphony) fprintf(output, " polyphony=\"%i\"", inst->note.polyphony);
+    if (inst->note.min) fprintf(output, " min=\"%i\"", inst->note.min);
+    if (inst->note.max) fprintf(output, " max=\"%i\"", inst->note.max);
+    if (inst->note.step) fprintf(output, " min=\"%i\"", inst->note.step);
+    fprintf(output, "/>\n");
 
     if (inst->position.x && inst->position.y && inst->position.z) {
-        printf("  <position x=\"%3.f\" y=\"%3.1f\" z=\"%3.1f\"/>",
+        fprintf(output, "  <position x=\"%3.f\" y=\"%3.1f\" z=\"%3.1f\"/>",
                   inst->position.x, inst->position.y, inst->position.z);
     };
 
-    printf(" </instrument>\n\n");
+    fprintf(output, " </instrument>\n\n");
 }
 
 struct dsp_t
@@ -159,48 +181,43 @@ void print_dsp(struct dsp_t *dsp)
    unsigned int s, p;
 
    if (dsp->dtype == FILTER) {
-      printf("  <filter type=\"%s\"", dsp->type);
+      fprintf(output, "  <filter type=\"%s\"", dsp->type);
    } else {
-      printf("  <effect type=\"%s\"", dsp->type);
+      fprintf(output, "  <effect type=\"%s\"", dsp->type);
    }
-   if (dsp->src) printf(" src=\"%s\"", dsp->src);
-   if (dsp->repeat) printf(" repeat=\"%i\"", dsp->repeat);
-   if (dsp->stereo) printf(" stereo=\"true\"");
-   if (dsp->optional) printf(" optional=\"true\"");
-   printf(">\n");
+   if (dsp->src) fprintf(output, " src=\"%s\"", dsp->src);
+   if (dsp->repeat) fprintf(output, " repeat=\"%i\"", dsp->repeat);
+   if (dsp->stereo) fprintf(output, " stereo=\"true\"");
+   if (dsp->optional) fprintf(output, " optional=\"true\"");
+   fprintf(output, ">\n");
 
    for(s=0; s<dsp->no_slots; ++s)
    {
-       printf("   <slot n=\"%i\">\n", s);
+       fprintf(output, "   <slot n=\"%i\">\n", s);
        for(p=0; p<4; ++p)
        {
-           char buf[32];
+           float sustain = dsp->slot[s].param[p].sustain;
+           float pitch = dsp->slot[s].param[p].pitch;
 
-           printf("    <param n=\"%i\"", p);
-           if (dsp->slot[s].param[p].pitch) {
-               printf(" pitch=\"%3.2f\"", dsp->slot[s].param[p].pitch);
+           fprintf(output, "    <param n=\"%i\"", p);
+           if (pitch && pitch != 1.0f)
+           {
+               fprintf(output, " pitch=\"%s\"", format_float(pitch));
+               dsp->slot[s].param[p].value = freq*pitch;
            }
-           if (dsp->slot[s].param[p].sustain) {
-               printf(" auto-sustain=\"%3.2f\"", dsp->slot[s].param[p].sustain);
+           if (sustain) {
+               fprintf(output, " auto-sustain=\"%s\"", format_float(sustain));
            }
 
-           if (dsp->slot[s].param[p].value > 1.0f) {
-               sprintf(buf, "%.1f", dsp->slot[s].param[p].value);
-           } else {
-               sprintf(buf, "%.3g", dsp->slot[s].param[p].value);
-           }
-           if (!strchr(buf, '.')) {
-               strcat(buf, ".0");
-           }
-           printf(">%s</param>\n", buf);
+           fprintf(output, ">%s</param>\n", format_float(dsp->slot[s].param[p].value));
        }
-       printf("   </slot>\n");
+       fprintf(output, "   </slot>\n");
    }
 
    if (dsp->dtype == FILTER) {
-      printf("  </filter>\n");
+      fprintf(output, "  </filter>\n");
    } else {
-      printf("  </effect>\n");
+      fprintf(output, "  </effect>\n");
    }
 }
 
@@ -226,16 +243,16 @@ void fill_waveform(struct waveform_t *wave, void *xid)
 
 void print_waveform(struct waveform_t *wave)
 {
-    printf("  <waveform src=\"%s\"", wave->src);
-    if (wave->processing) printf(" processing=\"%s\"", wave->processing);
-    if (wave->ratio) printf(" ratio=\"%3.2f\"", wave->ratio);
-    if (wave->pitch) printf(" pitch=\"%3.2f\"", wave->pitch);
+    fprintf(output, "  <waveform src=\"%s\"", wave->src);
+    if (wave->processing) fprintf(output, " processing=\"%s\"", wave->processing);
+    if (wave->ratio) fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
+    if (wave->pitch && wave->pitch != 1.0f) fprintf(output, " pitch=\"%s\"", format_float(wave->pitch));
     if (wave->voices)
     {
-        printf(" voices=\"%i\"", wave->voices);
-        if (wave->spread) printf(" spread=\"%2.1f\"", wave->spread);
+        fprintf(output, " voices=\"%i\"", wave->voices);
+        if (wave->spread) fprintf(output, " spread=\"%2.1f\"", wave->spread);
     }
-    printf("/>\n");
+    fprintf(output, "/>\n");
 }
 
 struct sound_t
@@ -258,12 +275,12 @@ struct sound_t
     } entry[32];
 };
 
-void fill_sound(struct sound_t *sound, void *xid)
+void fill_sound(struct sound_t *sound, void *xid, float gain)
 {
     unsigned int p, e, emax;
     void *xeid;
 
-    sound->gain = xmlAttributeGetDouble(xid, "gain");
+    sound->gain = gain; // xmlAttributeGetDouble(xid, "gain");
     sound->frequency = xmlAttributeGetInt(xid, "frequency");
     sound->duration = xmlAttributeGetDouble(xid, "duration");
     sound->voices = xmlAttributeGetInt(xid, "voices");
@@ -304,16 +321,20 @@ void print_sound(struct sound_t *sound)
 {
     unsigned int e;
 
-    printf(" <sound");
-    if (sound->gain) printf(" gain=\"%3.2f\"", sound->gain);
-    if (sound->frequency) printf(" frequency=\"%i\"", sound->frequency);
-    if (sound->duration) printf(" duration=\"%3.2f\"", sound->duration);
+    fprintf(output, " <sound");
+    if (sound->gain) fprintf(output, " gain=\"%3.2f\"", sound->gain);
+    if (sound->frequency)
+    {
+        freq = sound->frequency;
+        fprintf(output, " frequency=\"%i\"", sound->frequency);
+    }
+    if (sound->duration) fprintf(output, " duration=\"%s\"", format_float(sound->duration));
     if (sound->voices)
     {
-        printf(" voices=\"%i\"", sound->voices);
-        if (sound->spread) printf(" spread=\"%2.1f\"", sound->spread);
+        fprintf(output, " voices=\"%i\"", sound->voices);
+        if (sound->spread) fprintf(output, " spread=\"%2.1f\"", sound->spread);
     }
-    printf(">\n");
+    fprintf(output, ">\n");
 
     for (e=0; e<sound->no_entries; ++e)
     {
@@ -323,7 +344,7 @@ void print_sound(struct sound_t *sound)
             print_dsp(&sound->entry[e].slot.dsp);
         }
     }
-    printf(" </sound>\n\n");
+    fprintf(output, " </sound>\n\n");
 }
 
 struct object_t		// emitter and audioframe
@@ -370,23 +391,34 @@ void print_object(struct object_t *obj, enum type_t type)
 {
     unsigned int d;
 
-    if (type == EMITTER) {
-        printf(" <emitter");
-    } else {
-        printf(" <audioframe");
+    if (type == FRAME)
+    {
+        if (!obj->no_dsps) return;
+        fprintf(output, " <audioframe");
+    }
+    else {
+        fprintf(output, " <emitter");
     }
 
-    if (obj->mode) printf(" mode=\"%s\"", obj->mode);
-    if (obj->looping) printf(" looping=\"true\"");
-    printf(">\n");
+    if (obj->mode) fprintf(output, " mode=\"%s\"", obj->mode);
+    if (obj->looping) fprintf(output, " looping=\"true\"");
 
-    for (d=0; d<obj->no_dsps; ++d) {
-        print_dsp(&obj->dsp[d]);
+    if (obj->no_dsps)
+    {
+        fprintf(output, ">\n");
+
+        for (d=0; d<obj->no_dsps; ++d) {
+            print_dsp(&obj->dsp[d]);
+        }
+
+        if (type == EMITTER) {
+            fprintf(output, " </emitter>\n\n");
+        } else {
+            fprintf(output, " </audioframe>\n");
+        }
     }
-    if (type == EMITTER) {
-        printf(" </emitter>\n\n");
-    } else {
-        printf(" </audioframe>\n");
+    else {
+        fprintf(output, "/>\n\n");
     }
 }
 
@@ -398,7 +430,7 @@ struct aax_t
     struct object_t audioframe;
 };
 
-void fill_aax(struct aax_t *aax, const char *filename)
+void fill_aax(struct aax_t *aax, const char *filename, float gain)
 {
     void *xid;
 
@@ -419,7 +451,7 @@ void fill_aax(struct aax_t *aax, const char *filename)
             xtid = xmlNodeGet(xaid, "sound");
             if (xtid)
             {
-                fill_sound(&aax->sound, xtid);
+                fill_sound(&aax->sound, xtid, gain);
                 xmlFree(xtid);
             }
 
@@ -440,58 +472,110 @@ void fill_aax(struct aax_t *aax, const char *filename)
             xmlFree(xaid);
         }
         else {
-            printf("%s does not seem to be AAXS compatible.\n", filename);
+            fprintf(output, "%s does not seem to be AAXS compatible.\n", filename);
         }
         xmlClose(xid);
     }
     else {
-        printf("%s not found.\n", filename);
+        fprintf(output, "%s not found.\n", filename);
     }
 }
 
 void print_aax(struct aax_t *aax)
 {
-    printf("<?xml version=\"1.0\"?>\n");
-    printf("<aeonwave>\n");
+    struct tm* tm_info;
+    time_t timer;
+    char year[5];
+
+    time(&timer);
+    tm_info = localtime(&timer);
+    strftime(year, 5, "%Y", tm_info);
+
+    fprintf(output, "<?xml version=\"1.0\"?>\n\n");
+
+    fprintf(output, "<!--\n");
+    fprintf(output, " * Copyright (C) 2017-%s by Erik Hofman.\n", year);
+    fprintf(output, " * Copyright (C) 2017-%s by Adalin B.V.\n", year);
+    fprintf(output, " * All rights reserved.\n");
+    fprintf(output, "-->\n\n");
+
+    fprintf(output, "<aeonwave>\n");
     print_instrument(&aax->instrument);
     print_sound(&aax->sound);
     print_object(&aax->emitter, EMITTER);
     print_object(&aax->audioframe, FRAME);
-    printf("</aeonwave>\n");
+    fprintf(output, "</aeonwave>\n");
+}
+
+void help()
+{
+    printf("aaxsstandardize version %i.%i.%i\n\n", AAX_UTILS_MAJOR_VERSION,
+                                                   AAX_UTILS_MINOR_VERSION,
+                                                  AAX_UTILS_MICRO_VERSION);
+    printf("Usage: aaxsstandardize [options]\n");
+    printf("Reads a user generated .aaxs configuration file and outputs a\n");
+    printf("standardized version of the file.\n");
+
+    printf("\nOptions:\n");
+    printf("  -i, --input <file>\t\tthe .aaxs configuration file to standardize.\n");
+    printf("  -o, --output <file>\t\twrite the new .aaxs configuration to this file.\n");
+    printf("  -h, --help\t\t\tprint this message and exit\n");
+
+    printf("\nWhen no output file is specified then stdout will be used.\n");
+
+    printf("\n");
+    exit(-1);
 }
 
 int main(int argc, char **argv)
 {
+    char *infile, *outfile;
     aaxConfig config;
-    char *infile;
-    int res;
+
+    if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
+                     getCommandLineOption(argc, argv, "--help"))
+    {
+        help();
+    }
+
+    outfile = getOutputFile(argc, argv, NULL);
+    if (outfile)
+    {
+        output = fopen(outfile, "w");
+        testForError(output, "Output file could not be created.");
+    }
+    else {
+        output = stdout;
+    }
 
     config = aaxDriverOpenDefault(AAX_MODE_WRITE_STEREO);
     testForError(config, "No default audio device available.");
 
     infile = getInputFile(argc, argv, NULL);
+    outfile = getOutputFile(argc, argv, NULL);
     if (infile)
     {
         struct aax_t aax;
         aaxBuffer buffer;
-        float rms, peak;
-        float gain;
+        float rms;
 
         buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to create a buffer");
 
-        rms = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE)/8388608.0f;
-        peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE)/8388608.0f;
-        gain = 1.0f/rms;
-//      printf("%s\n", infile);
-//      printf("    peak: %f, rms: %f, gain=\"%3.2f\"\n", peak, rms, gain);
-
-        fill_aax(&aax, infile);
+        rms = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
+        fill_aax(&aax, infile, 838860.8f/rms);
         print_aax(&aax);
     }
+    else {
+        help();
+    }
 
-    res = aaxDriverClose(config);
-    res = aaxDriverDestroy(config);
+    aaxDriverClose(config);
+    aaxDriverDestroy(config);
+
+    if (output != stdout) {
+        fclose(output);
+    }
 
     return 0;
 }
