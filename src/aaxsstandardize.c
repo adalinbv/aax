@@ -624,8 +624,14 @@ int main(int argc, char **argv)
         config = aaxDriverOpenByName(tmpfile, AAX_MODE_WRITE_STEREO);
         testForError(config, "unable to open the temporary file.");
 
-        res = aaxMixerSetSetup(config, AAX_REFRESH_RATE, 90.0f);
-        testForState(res, "aaxMixerSetSetup");
+        res = aaxMixerSetSetup(config, AAX_FORMAT, AAX_FLOAT);
+        testForState(res, "aaxMixerSetSetup, format");
+
+        res = aaxMixerSetSetup(config, AAX_TRACKS, 1);
+        testForState(res, "aaxMixerSetSetup, no_tracks");
+
+        res = aaxMixerSetSetup(config, AAX_REFRESH_RATE, 90);
+        testForState(res, "aaxMixerSetSetup, refresh rate");
 
         res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
@@ -639,7 +645,7 @@ int main(int argc, char **argv)
         testForError(buffer, "Unable to create a buffer from an aaxs file.");
 
         rms1 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-        rms1 = 838860.8f/rms1;
+        rms1 = 83886.08f/rms1;
 
         /* emitter */
         emitter = aaxEmitterCreate();
@@ -690,9 +696,9 @@ int main(int argc, char **argv)
             aaxMixerSetState(config, AAX_UPDATE);
             dt += step;
         }
-        while (dt < 2.5f && aaxEmitterGetState(emitter) == AAX_PLAYING);
+        while (dt < 0.25f && aaxEmitterGetState(emitter) == AAX_PLAYING);
 
-        res = aaxEmitterSetState(emitter, AAX_STOPPED);
+        res = aaxEmitterSetState(emitter, AAX_SUSPENDED);
         testForState(res, "aaxEmitterStop");
 
         res = aaxAudioFrameSetState(frame, AAX_STOPPED);
@@ -716,14 +722,14 @@ int main(int argc, char **argv)
 
 //      peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
         rms2 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-        rms2 = 838860.8f/rms2;
+        rms2 = 83886.08f/rms2;
         aaxBufferDestroy(buffer);
 
         aaxDriverClose(config);
         aaxDriverDestroy(config);
 
         printf("%s: %5.4f, %5.4f", infile, rms1, rms2);
-        rms1 = 0.5f*(0.1f*rms1 + 10.0f*rms2)/LEVEL_16DB;
+        rms1 = (0.1f*rms1 + 0.9f*rms2)/LEVEL_16DB;
         printf(", new gain: %f\n", rms1);
         fill_aax(&aax, infile, rms1);
         print_aax(&aax, outfile);
