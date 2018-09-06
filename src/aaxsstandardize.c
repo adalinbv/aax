@@ -17,6 +17,7 @@
 # define TEMP_DIR		"/tmp"
 #endif
 #define LEVEL_16DB		0.15848931670f
+#define LEVEL_20DB		0.1f
 
 static float freq = 22.0f;
 
@@ -645,7 +646,7 @@ int main(int argc, char **argv)
         testForError(buffer, "Unable to create a buffer from an aaxs file.");
 
         rms1 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-        rms1 = 83886.08f/rms1;
+        rms1 = rms1/8388608.0f;
 
         /* emitter */
         emitter = aaxEmitterCreate();
@@ -722,14 +723,14 @@ int main(int argc, char **argv)
 
 //      peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
         rms2 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-        rms2 = 83886.08f/rms2;
+        rms2 = rms2/8388608.0f;
         aaxBufferDestroy(buffer);
 
         aaxDriverClose(config);
         aaxDriverDestroy(config);
 
-        printf("%s: %5.4f, %5.4f", infile, rms1, rms2);
-        rms1 = (0.1f*rms1 + 0.9f*rms2)/LEVEL_16DB;
+        printf("%s: (%5.4f) %5.4f, %5.4f", infile, LEVEL_20DB, rms1, rms2);
+        rms1 = 0.5f*LEVEL_20DB/(0.75f*rms1 + 0.25f*rms2);
         printf(", new gain: %f\n", rms1);
         fill_aax(&aax, infile, rms1);
         print_aax(&aax, outfile);
