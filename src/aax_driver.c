@@ -741,13 +741,17 @@ int get_low_resource()
       char * env = getenv("AAX_USE_LOW_RESOURCE");
 
       low_resource = AAX_TRUE;
-      if (!env || !_aax_getbool(env)) {
 #ifdef __x86_64__
+      if (!env || !_aax_getbool(env)) {
          if (_aax_get_free_memory() > (50*1024*1024) || (_aaxGetNoCores() > 2)){
              low_resource = AAX_FALSE;
          }
-#endif
       }
+#else
+      if (env && !_aax_getbool(env)) {
+         low_resource = AAX_FALSE;
+      }
+#endif
    }
    return low_resource;
 }
