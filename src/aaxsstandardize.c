@@ -11,6 +11,13 @@
 #include "driver.h"
 #include "wavfile.h"
 
+#if defined(WIN32)
+# define TEMP_DIR		getenv("TEMP")
+#else   /* !WIN32 */
+# define TEMP_DIR		"/tmp"
+#endif
+#define LEVEL_16DB		0.15848931670f
+
 static float freq = 22.0f;
 
 enum type_t
@@ -303,7 +310,11 @@ void fill_sound(struct sound_t *sound, void *xid, float gain)
     unsigned int p, e, emax;
     void *xeid;
 
-    sound->gain = gain; // xmlAttributeGetDouble(xid, "gain");
+    if (gain == 0.0f) {
+        sound->gain = xmlAttributeGetDouble(xid, "gain");
+    } else {
+        sound->gain = gain; // xmlAttributeGetDouble(xid, "gain");
+    }
     sound->frequency = xmlAttributeGetInt(xid, "frequency");
     sound->duration = xmlAttributeGetDouble(xid, "duration");
     sound->voices = xmlAttributeGetInt(xid, "voices");
@@ -584,8 +595,8 @@ void help()
 
 int main(int argc, char **argv)
 {
+    char tmpfile[128], aaxsfile[128];
     char *infile, *outfile;
-    aaxConfig config;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
                      getCommandLineOption(argc, argv, "--help"))
@@ -593,29 +604,130 @@ int main(int argc, char **argv)
         help();
     }
 
+    snprintf(aaxsfile, 120, "%s/aaxsstandardize.aaxs", TEMP_DIR);
+    snprintf(tmpfile, 120, "AeonWave on Audio Files: %s/aaxsstandardize.wav", TEMP_DIR);
+
     infile = getInputFile(argc, argv, NULL);
     outfile = getOutputFile(argc, argv, NULL);
     if (infile)
     {
+        float gain, rms1, rms2, dt, step;
         struct aax_t aax;
         aaxBuffer buffer;
-        float rms, peak;
+        aaxConfig config;
+        aaxEmitter emitter;
+        aaxFilter filter;
+        aaxFrame frame;
+        int res;
 
-        config = aaxDriverOpenDefault(AAX_MODE_WRITE_STEREO);
+        /* mixer */
+        config = aaxDriverOpenByName(tmpfile, AAX_MODE_WRITE_STEREO);
+        testForError(config, "unable to open the temporary file.");
+
+        res = aaxMixerSetSetup(config, AAX_REFRESH_RATE, 90.0f);
+        testForState(res, "aaxMixerSetSetup");
+
+        res = aaxMixerSetState(config, AAX_INITIALIZED);
+        testForState(res, "aaxMixerInit");
+
+        fill_aax(&aax, infile, 1.0f);
+        print_aax(&aax, aaxsfile);
+        free_aax(&aax);
+
+        /* buffer */
+        buffer = aaxBufferReadFromStream(config, aaxsfile);
+        testForError(buffer, "Unable to create a buffer from an aaxs file.");
+
+        rms1 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
+        rms1 = 838860.8f/rms1;
+
+        /* emitter */
+        emitter = aaxEmitterCreate();
+        testForError(emitter, "Unable to create a new emitter");
+
+        res = aaxEmitterAddBuffer(emitter, buffer);
+        testForState(res, "aaxEmitterAddBuffer");
+
+        res = aaxEmitterSetState(emitter, AAX_PLAYING);
+        testForState(res, "aaxEmitterStart");
+
+#if 0
+        /* gain */
+        filter = aaxFilterCreate(config, AAX_VOLUME_FILTER);
+        testForError(filter, "Unable to create the volume filter");
+
+        res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, 1.0f/gain);
+        testForState(res, "aaxFilterSetParam");
+
+        res = aaxEmitterSetFilter(emitter, filter);
+        testForState(res, "aaxEmitterSetGain");
+        aaxFilterDestroy(filter);
+#endif
+
+        /* frame */
+        frame = aaxAudioFrameCreate(config);
+        testForError(frame, "Unable to create a new audio frame");
+
+        res = aaxMixerRegisterAudioFrame(config, frame);
+        testForState(res, "aaxMixerRegisterAudioFrame");
+
+        res = aaxAudioFrameRegisterEmitter(frame, emitter);
+        testForState(res, "aaxAudioFrameRegisterEmitter");
+
+        res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+        testForState(res, "aaxAudioFrameStart");
+
+        res = aaxAudioFrameAddBuffer(frame, buffer);
+
+        /* playback */
+        res = aaxMixerSetState(config, AAX_PLAYING);
+        testForState(res, "aaxMixerStart");
+
+        dt = 0.0f;
+        step = 1.0f/aaxMixerGetSetup(config, AAX_REFRESH_RATE);
+        do
+        {
+            aaxMixerSetState(config, AAX_UPDATE);
+            dt += step;
+        }
+        while (dt < 2.5f && aaxEmitterGetState(emitter) == AAX_PLAYING);
+
+        res = aaxEmitterSetState(emitter, AAX_STOPPED);
+        testForState(res, "aaxEmitterStop");
+
+        res = aaxAudioFrameSetState(frame, AAX_STOPPED);
+        res = aaxAudioFrameDeregisterEmitter(frame, emitter);
+        res = aaxMixerDeregisterAudioFrame(config, frame);
+        res = aaxMixerSetState(config, AAX_STOPPED);
+        res = aaxAudioFrameDestroy(frame);
+        res = aaxEmitterDestroy(emitter);
+        res = aaxBufferDestroy(buffer);
+
+        res = aaxDriverClose(config);
+        res = aaxDriverDestroy(config);
+
+
+        config = aaxDriverOpenByName("None", AAX_MODE_WRITE_STEREO);
         testForError(config, "No default audio device available.");
 
-        buffer = bufferFromFile(config, infile);
-        testForError(buffer, "Unable to create a buffer");
+        snprintf(tmpfile, 120, "%s/aaxsstandardize.wav", TEMP_DIR);
+        buffer = aaxBufferReadFromStream(config, tmpfile);
+        testForError(buffer, "Unable to read the buffer.");
 
-        peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
-        rms = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
+//      peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
+        rms2 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
+        rms2 = 838860.8f/rms2;
         aaxBufferDestroy(buffer);
 
         aaxDriverClose(config);
         aaxDriverDestroy(config);
 
-        fill_aax(&aax, infile, 838860.8f/rms);
+        printf("%s: %5.4f, %5.4f", infile, rms1, rms2);
+        rms1 = 0.5f*(0.1f*rms1 + 10.0f*rms2)/LEVEL_16DB;
+        printf(", new gain: %f\n", rms1);
+        fill_aax(&aax, infile, rms1);
         print_aax(&aax, outfile);
+        free_aax(&aax);
     }
     else {
         help();
