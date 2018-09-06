@@ -339,11 +339,26 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          {
             if (handle->rms == 0.0)
             {
-               MIX_T **ptr = (MIX_T**)rb->get_tracks_ptr(rb, RB_READ);
+               MIX_T **track = (MIX_T**)rb->get_tracks_ptr(rb, RB_READ);
                size_t num = rb->get_parami(rb, RB_NO_SAMPLES);
-               _batch_cvtps24_24(ptr[0], ptr[0], num);
-               _batch_get_average_rms(ptr[0], num, &handle->rms, &handle->peak);
-               _batch_cvt24_ps24(ptr[0], ptr[0], num);
+               unsigned int rb_format = rb->get_parami(rb, RB_FORMAT);
+               if (rb_format != AAX_PCM24S)
+               {
+                  void *data = _aax_aligned_alloc(num*sizeof(int32_t));
+                  if (data)
+                  {
+                     _bufConvertDataToPCM24S(data, track[0], num, rb_format);
+                     _batch_cvtps24_24(data, data, num);
+                     _batch_get_average_rms(data, num, &handle->rms, &handle->peak);
+                     _aax_aligned_free(data);
+                  }
+               }
+               else
+               {
+                  _batch_cvtps24_24(track[0], track[0], num);
+                  _batch_get_average_rms(track[0], num, &handle->rms, &handle->peak);
+                  _batch_cvt24_ps24(track[0], track[0], num);
+               }
                rb->release_tracks_ptr(rb);
             }
             rv = (type == AAX_AVERAGE_VALUE) ? handle->rms : handle->peak;
