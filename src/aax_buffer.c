@@ -334,10 +334,22 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = handle->pos;
          break;
       case AAX_PEAK_VALUE:
-         rv = handle->peak;
-         break;
       case AAX_AVERAGE_VALUE:
-         rv = handle->rms;
+         if (rb->get_state(rb, RB_IS_VALID))
+         {
+            if (handle->rms == 0.0)
+            {
+               MIX_T **ptr = (MIX_T**)rb->get_tracks_ptr(rb, RB_READ);
+               size_t num = rb->get_parami(rb, RB_NO_SAMPLES);
+               _batch_cvtps24_24(ptr[0], ptr[0], num);
+               _batch_get_average_rms(ptr[0], num, &handle->rms, &handle->peak);
+               _batch_cvt24_ps24(ptr[0], ptr[0], num);
+               rb->release_tracks_ptr(rb);
+            }
+            rv = (type == AAX_AVERAGE_VALUE) ? handle->rms : handle->peak;
+         } else {
+            _aaxErrorSet(AAX_INVALID_STATE);
+         }
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1338,17 +1350,6 @@ _bufAAXSThread(void *d)
                }
             }
             xmlFree(xwid);
-
-            if (b == 0)
-            {
-               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-               void **ptr = (void**)rb->get_tracks_ptr(rb, RB_READ);
-               size_t num = rb->get_parami(rb, RB_NO_SAMPLES);
-               _batch_cvtps24_24(ptr[0], ptr[0], num);
-               _batch_get_average_rms(ptr[0], num, &handle->rms, &handle->peak);
-               _batch_cvt24_ps24(ptr[0], ptr[0], num);
-               rb->release_tracks_ptr(rb);
-            }
 
             if (bits == 16)
             {
