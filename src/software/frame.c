@@ -209,7 +209,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
          {
             char res = _aaxAudioFrameRender(dest_rb, fmixer,fp2d, fp3d, hf, i,
                                             ssv, sdf, be, be_handle, batched);
-            process &= res;
+            process |= res;
             if (res && --cnt == 0) break;
          }
          _intBufReleaseNum(hf, _AAX_FRAME);
