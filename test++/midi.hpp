@@ -256,6 +256,7 @@ public:
 
     ~MIDITrack() = default;
 
+    void rewind();
     bool process(uint64_t, uint32_t&);
 
 private:
@@ -291,7 +292,9 @@ public:
         return midi_data.capacity();
     }
 
+    void rewind();
     bool process(uint64_t, uint32_t&);
+    void read_instruments();
 
     inline uint16_t get_ppqn() { return PPQN; }
     inline bool is_good() { return good; }
@@ -300,7 +303,6 @@ private:
     std::vector<uint8_t> midi_data;
     std::vector<MIDITrack*> track;
 
-    uint64_t time_pos = 0;
     uint16_t no_tracks = 0;
     uint16_t format = 0;
     uint16_t PPQN = 24;

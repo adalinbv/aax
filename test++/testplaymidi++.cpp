@@ -73,7 +73,7 @@ int main(int argc, char **argv)
 #endif
             midi.read_instruments();
 
-            midi.set(AAX_REFRESH_RATE, 90.0f);
+            midi.set(AAX_REFRESH_RATE, 30.0f);
             midi.set(AAX_INITIALIZED);
             midi.set(AAX_PLAYING);
 

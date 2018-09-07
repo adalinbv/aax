@@ -263,6 +263,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
     }
     else
     {
+        it = name_map.find(program_no);
         if (it == name_map.end())
         {
             std::string name = midi.get_instrument(bank_no, program_no);
@@ -409,6 +410,18 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
     }
     return rv;
+}
+
+void
+MIDITrack::rewind()
+{
+    uint32_t uSPPi = uSPP;
+    byte_stream::rewind();
+    previous = 0;
+    timestamp_us = 0;
+    uSPP = uSPPi;
+    poly = true;
+    omni = false;
 }
 
 bool
@@ -710,6 +723,14 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
     }
 }
 
+void
+MIDIFile::rewind()
+{
+    for (auto it : track) {
+        it->rewind();
+    }
+}
+
 bool
 MIDIFile::process(uint64_t time_us, uint32_t& next)
 {
@@ -728,3 +749,15 @@ MIDIFile::process(uint64_t time_us, uint32_t& next)
     return rv;
 }
 
+void
+MIDIFile::read_instruments()
+{
+    MIDI::read_instruments();
+
+    uint64_t time_us = 0;
+    uint32_t wait_us = 1000000;
+    while (process(time_us, wait_us)) {
+        time_us += wait_us;
+    }
+    rewind();
+}
