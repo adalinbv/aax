@@ -596,7 +596,6 @@ void help()
 
 int main(int argc, char **argv)
 {
-    char tmpfile[128], aaxsfile[128];
     char *infile, *outfile;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
@@ -605,21 +604,24 @@ int main(int argc, char **argv)
         help();
     }
 
-    snprintf(aaxsfile, 120, "%s/aaxsstandardize.aaxs", TEMP_DIR);
-    snprintf(tmpfile, 120, "AeonWave on Audio Files: %s/aaxsstandardize.wav", TEMP_DIR);
-
     infile = getInputFile(argc, argv, NULL);
     outfile = getOutputFile(argc, argv, NULL);
     if (infile)
     {
-        float gain, rms1, rms2, dt, step;
+        char tmpfile[128], aaxsfile[128];
+        float rms, rms1, rms2;
+        float gain, dt, step;
         struct aax_t aax;
         aaxBuffer buffer;
         aaxConfig config;
         aaxEmitter emitter;
         aaxFilter filter;
         aaxFrame frame;
+        char *ptr;
         int res;
+
+        snprintf(aaxsfile, 120, "%s/%s.aaxs", TEMP_DIR, infile);
+        snprintf(tmpfile, 120, "AeonWave on Audio Files: %s/%s.wav", TEMP_DIR, infile);
 
         /* mixer */
         config = aaxDriverOpenByName(tmpfile, AAX_MODE_WRITE_STEREO);
@@ -717,7 +719,7 @@ int main(int argc, char **argv)
         config = aaxDriverOpenByName("None", AAX_MODE_WRITE_STEREO);
         testForError(config, "No default audio device available.");
 
-        snprintf(tmpfile, 120, "%s/aaxsstandardize.wav", TEMP_DIR);
+        snprintf(tmpfile, 120, "%s/%s.wav", TEMP_DIR, infile);
         buffer = aaxBufferReadFromStream(config, tmpfile);
         testForError(buffer, "Unable to read the buffer.");
 
@@ -729,12 +731,17 @@ int main(int argc, char **argv)
         aaxDriverClose(config);
         aaxDriverDestroy(config);
 
-        printf("%s: (%5.4f) %5.4f, %5.4f", infile, LEVEL_20DB, rms1, rms2);
-        rms1 = 0.5f*LEVEL_20DB/(0.75f*rms1 + 0.25f*rms2);
-        printf(", new gain: %f\n", rms1);
-        fill_aax(&aax, infile, rms1);
+        rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
+
+        printf("% 32s: (%5.4f) %5.4f, %5.4f", infile, LEVEL_20DB, rms1, rms2);
+        printf(", new gain: %f\n", rms);
+
+        fill_aax(&aax, infile, rms);
         print_aax(&aax, outfile);
         free_aax(&aax);
+
+        remove(aaxsfile);
+        remove(tmpfile);
     }
     else {
         help();
