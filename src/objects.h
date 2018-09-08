@@ -340,6 +340,7 @@ typedef ALIGN16 struct
 
    float curr_pos_sec;
    float pitch_factor;
+   int pitch_levels;
 
 #ifdef MIDI
    struct {
