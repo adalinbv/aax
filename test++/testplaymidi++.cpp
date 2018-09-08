@@ -71,11 +71,7 @@ int main(int argc, char **argv)
             midi.set_instrument_file(INSTRUMENTS);
             midi.set_drum_file(DRUMS);
 #endif
-            midi.read_instruments();
-
-            midi.set(AAX_REFRESH_RATE, 30.0f);
-            midi.set(AAX_INITIALIZED);
-            midi.set(AAX_PLAYING);
+            midi.start();
 
             wait_us = 1000;
             set_mode(1);
@@ -105,7 +101,7 @@ int main(int argc, char **argv)
             while(!get_key());
             set_mode(0);
 
-            midi.set(AAX_PROCESSED);
+            midi.stop();
         }
     } catch (const std::exception& e) {
         std::cerr << "Error while processing the MIDI file: "

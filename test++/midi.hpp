@@ -190,6 +190,9 @@ public:
     }
 
     void read_instruments();
+
+    inline void reset() { channels.clear(); }
+
     std::string get_drum(uint8_t bank, uint8_t key);
     std::string get_instrument(uint8_t bank, uint8_t program);
 
@@ -256,7 +259,7 @@ public:
 
     ~MIDITrack() = default;
 
-    void rewind();
+    void reset();
     bool process(uint64_t, uint32_t&);
 
 private:
@@ -292,12 +295,13 @@ public:
         return midi_data.capacity();
     }
 
-    void rewind();
+    void start();
+    inline void stop() { set(AAX_PROCESSED); }
+    void reset();
+
     bool process(uint64_t, uint32_t&);
-    void read_instruments();
 
     inline uint16_t get_ppqn() { return PPQN; }
-    inline bool is_good() { return good; }
 
 private:
     std::vector<uint8_t> midi_data;
@@ -306,7 +310,6 @@ private:
     uint16_t no_tracks = 0;
     uint16_t format = 0;
     uint16_t PPQN = 24;
-    bool good = false;
 };
 
 } // namespace aax

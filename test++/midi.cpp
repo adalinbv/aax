@@ -236,6 +236,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
     return true;
 }
 
+
 void
 MIDIChannel::play(uint8_t key_no, uint8_t velocity)
 {
@@ -413,13 +414,16 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 }
 
 void
-MIDITrack::rewind()
+MIDITrack::reset()
 {
-    uint32_t uSPPi = uSPP;
     byte_stream::rewind();
+    timestamp_us = pull_message();
+    uSPP = 500000/PPQN;
+
+    channel_no = 0;
+    program_no = 0;
+    bank_no = 0;
     previous = 0;
-    timestamp_us = 0;
-    uSPP = uSPPi;
     poly = true;
     omni = false;
 }
@@ -724,10 +728,11 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 }
 
 void
-MIDIFile::rewind()
+MIDIFile::reset()
 {
+    MIDI::reset();
     for (auto it : track) {
-        it->rewind();
+        it->reset();
     }
 }
 
@@ -750,7 +755,7 @@ MIDIFile::process(uint64_t time_us, uint32_t& next)
 }
 
 void
-MIDIFile::read_instruments()
+MIDIFile::start()
 {
     MIDI::read_instruments();
 
@@ -759,5 +764,9 @@ MIDIFile::read_instruments()
     while (process(time_us, wait_us)) {
         time_us += wait_us;
     }
-    rewind();
+    reset();
+
+    MIDI::set(AAX_REFRESH_RATE, 90.0f);
+    MIDI::set(AAX_INITIALIZED);
+    MIDI::set(AAX_PLAYING);
 }
