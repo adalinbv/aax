@@ -159,7 +159,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    if (fmixer->devices)
    {
       _aaxMixerInfo* info = fmixer->info;
-      process &= _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track,
+      process |= _aaxSensorsProcess(dest_rb, fmixer->devices, fp2d, info->track,
                                     batched);
    }
 
