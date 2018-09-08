@@ -39,6 +39,12 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
+#ifndef NDEBUG
+# define LOG(...)  printf(__VA_ARGS__)
+#else
+# define LOG
+#endif
+
 using namespace aax;
 
 void
@@ -251,8 +257,8 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             std::string name = midi.get_drum(bank_no, key_no);
             if (!name.empty())
             {
-                printf("Loading drum       bank: %3i, key    : %3i: %s\n",
-                        bank_no, key_no, name.c_str());
+                LOG("Loading drum       bank: %3i, key    : %3i: %s\n",
+                     bank_no, key_no, name.c_str());
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
@@ -270,8 +276,8 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             std::string name = midi.get_instrument(bank_no, program_no);
             if (!name.empty())
             {
-                printf("Loading instrument bank: %3i, program: %3i: %s\n",
-                        bank_no, program_no, name.c_str());
+                LOG("Loading instrument bank: %3i, program: %3i: %s\n",
+                     bank_no, program_no, name.c_str());
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
@@ -458,9 +464,9 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
             if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
             {
                 if (pull_byte() == 0x01) {
-                    std::cout << "General MIDI 1.0" << std::endl;
+                    LOG("General MIDI 1.0");
                 } else if (pull_byte() == 0x03) {
-                    std::cout << "General MIDI 2.0" << std::endl;
+                    LOG("General MIDI 2.0");
                 }
             }
             else if (byte == 0x41 && pull_byte() == 0x10 &&
@@ -469,7 +475,7 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                        pull_byte() == 0x7f && pull_byte() == 0x00 &&
                        pull_byte() == 0x41)
             {
-                std::cout << "General Standard" << std::endl;
+                LOG("General Standard");
             }
             else push_byte();
             while (pull_byte() != MIDI_EXCLUSIVE_MESSAGE_END);
