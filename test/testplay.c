@@ -59,6 +59,7 @@ int main(int argc, char **argv)
     if (config)
     {
         aaxBuffer buffer;
+        float rms, peak, gain;
         char *ofile;
 
         res = aaxMixerSetSetup(config, AAX_REFRESH_RATE, 90.0f);
@@ -67,9 +68,10 @@ int main(int argc, char **argv)
         buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to create a buffer");
 
-        printf("RMS: %lf, peak: %f\n",
-                aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE)/8388608.0f,
-                aaxBufferGetSetup(buffer, AAX_PEAK_VALUE)/8388608.0f);
+        rms = aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE)/8388608.0f;
+        peak = aaxBufferGetSetup(buffer, AAX_PEAK_VALUE)/8388608.0f;
+        gain = 2.0f/rms; // peak/rms;
+        printf("%s : gain=\"%3.2f\"\n", infile, gain);
 
         ofile = getOutputFile(argc, argv, NULL);
         if (!ofile && buffer)

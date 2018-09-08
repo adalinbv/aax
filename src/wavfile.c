@@ -49,7 +49,6 @@
 
 #include "driver.h"
 #include "wavfile.h"
-#include "audio_tune.h"
 
 #define PRINT_DEBUG_MSG		0
 #define PRINT_INFO_MSG		1

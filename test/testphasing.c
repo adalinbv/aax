@@ -44,6 +44,7 @@
 
 #define ENABLE_EMITTER_EFFECTS		1
 #define ENABLE_FRAME_EFFECTS		1
+#define ENABLE_MIXER_EFFECTS		1
 
 #define ENABLE_MIXER_PHASING		1
 #define ENABLE_MIXER_CHORUS		1
@@ -149,6 +150,7 @@ int main(int argc, char **argv)
             res = aaxEmitterSetState(emitter, AAX_PLAYING);
             testForState(res, "aaxEmitterStart");
 
+#if 0
 # if ENABLE_EMITTER_FLANGING
             /* flanging effect */
             printf("emitter flanging.. (envelope following)\n");
@@ -199,6 +201,7 @@ int main(int argc, char **argv)
 
             DELAY;
 # endif
+#endif
 
 #if ENABLE_EMITTER_EFFECTS
             /* emitter effects */
@@ -453,7 +456,8 @@ int main(int argc, char **argv)
             testForError(filter, "aaxFilterCreate");
 #endif
 
-#if ENABLE_MIXER_PHASING
+#if ENABLE_MIXER_EFFECTS
+# if ENABLE_MIXER_PHASING
             /* phasing effect */
             printf("mixer phasing.. (square wave)\n");
             effect = aaxMixerGetEffect(config, AAX_PHASING_EFFECT);
@@ -466,9 +470,9 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerSetEffect");
 
             DELAY;
-#endif
+# endif
 
-#if ENABLE_MIXER_CHORUS
+# if ENABLE_MIXER_CHORUS
             /* chorus effect */
             printf("mixer chorus.. (sawtooth wave)\n");
             effect = aaxMixerGetEffect(config, AAX_CHORUS_EFFECT);
@@ -481,10 +485,9 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerSetEffect");
 
             DELAY;
-#endif
+# endif
 
-#if ENABLE_MIXER_FLANGING
-#if 1
+# if ENABLE_MIXER_FLANGING
             /* flanging effect */
             printf("mixer flanging.. (sawtooth wave)\n");
             effect = aaxMixerGetEffect(config, AAX_FLANGING_EFFECT);
@@ -497,7 +500,7 @@ int main(int argc, char **argv)
             testForState(res, "aaxMixerSetEffect");
 
             DELAY;
-#endif
+# endif
 #endif
 
             res = aaxEmitterSetState(emitter, AAX_STOPPED);

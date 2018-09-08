@@ -363,7 +363,9 @@ void print_sound(struct sound_t *sound, FILE *output)
         freq = sound->frequency;
         fprintf(output, " frequency=\"%i\"", sound->frequency);
     }
-    if (sound->duration) fprintf(output, " duration=\"%s\"", format_float(sound->duration));
+    if (sound->duration && sound->duration != 1.0f) {
+        fprintf(output, " duration=\"%s\"", format_float(sound->duration));
+    }
     if (sound->voices)
     {
         fprintf(output, " voices=\"%i\"", sound->voices);
@@ -453,7 +455,7 @@ void print_object(struct object_t *obj, enum type_t type, FILE *output)
         if (type == EMITTER) {
             fprintf(output, " </emitter>\n\n");
         } else {
-            fprintf(output, " </audioframe>\n");
+            fprintf(output, " </audioframe>\n\n");
         }
     }
     else {
@@ -660,13 +662,13 @@ int main(int argc, char **argv)
         res = aaxEmitterSetState(emitter, AAX_PLAYING);
         testForState(res, "aaxEmitterStart");
 
-#if 0
-        /* gain */
-        filter = aaxFilterCreate(config, AAX_VOLUME_FILTER);
-        testForError(filter, "Unable to create the volume filter");
+#if 1
+        /* disable the timed-gain filter */
+        filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
+        testForError(filter, "Unable to create the timed-gain filter");
 
-        res = aaxFilterSetParam(filter, AAX_GAIN, AAX_LINEAR, 1.0f/gain);
-        testForState(res, "aaxFilterSetParam");
+        res = aaxFilterSetState(filter, AAX_FALSE);
+        testForState(res, "aaxFilterSetState");
 
         res = aaxEmitterSetFilter(emitter, filter);
         testForState(res, "aaxEmitterSetGain");
