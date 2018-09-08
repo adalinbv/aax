@@ -12,7 +12,7 @@
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="4.09" frequency="220" duration="0.1">
+ <sound gain="3.74" frequency="220" duration="0.1">
   <waveform src="sine" ratio="0.25" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.25"/>
@@ -67,4 +67,5 @@
    </slot>
   </effect>
  </audioframe>
+
 </aeonwave>

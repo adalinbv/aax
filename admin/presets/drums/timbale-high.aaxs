@@ -11,7 +11,7 @@
  <info name="High Timbale">
  </info>
 
- <sound gain="0.81" frequency="1200" duration="0.1">
+ <sound gain="1.14" frequency="1200" duration="0.1">
   <waveform src="pink-noise" ratio="0.8" pitch="0.25"/>
   <waveform src="sine" processing="add" ratio="0.6"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>

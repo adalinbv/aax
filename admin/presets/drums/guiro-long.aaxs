@@ -11,7 +11,7 @@
  <info name="Guiro (Short)">
  </info>
 
- <sound gain="0.20" frequency="220" duration="0.2">
+ <sound gain="0.27" frequency="220" duration="0.2">
   <waveform src="pink-noise" ratio="80.0" pitch="0.1"/>
   <filter type="frequency" src="48db">
    <slot n="0">

@@ -12,7 +12,7 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="19.41" frequency="220" duration="0.25" voices="5" spread="0.3">
+ <sound gain="6.47" frequency="220" duration="0.25" voices="5" spread="0.3">
   <waveform src="sine"/>
   <waveform src="impulse" processing="mix" pitch="1.5"/>
   <waveform src="impulse" processing="mix" pitch="2.0"/>
@@ -50,13 +50,6 @@
     <param n="3">0.115</param>
    </slot>
   </filter>
-  <effect type="phasing" src="inverse-sine" optional="true">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.09</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </audioframe>
+
 </aeonwave>

@@ -12,7 +12,7 @@
   <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="4.23" frequency="440" duration="0.1">
+ <sound gain="3.74" frequency="440" duration="0.1">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
   <waveform src="sawtooth" processing="mix" ratio="0.333" pitch="2.0"/>
@@ -60,4 +60,5 @@
    </slot>
   </filter>
  </audioframe>
+
 </aeonwave>

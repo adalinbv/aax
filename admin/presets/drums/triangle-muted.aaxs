@@ -11,7 +11,7 @@
  <info name="Triangle (Muted)">
  </info>
 
- <sound gain="1.41" frequency="1600" duration="0.1">
+ <sound gain="2.12" frequency="1600" duration="0.1">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="add" ratio="0.8" pitch="2.9"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="6.5"/>

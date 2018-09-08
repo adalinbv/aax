@@ -12,7 +12,7 @@
   <note polyphony="6" min="40" max="86" step="12"/>
  </info>
 
- <sound gain="1.26" frequency="220" duration="0.1">
+ <sound gain="1.75" frequency="220" duration="0.1">
   <waveform src="triangle" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.4" pitch="2.0"/>
   <waveform src="sine" processing="modulate" ratio="1.5" pitch="2.0"/>
@@ -49,16 +49,4 @@
   </effect>
  </emitter>
 
-<!--
- <audioframe>
-  <effect type="phasing" optional="true">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.2</param>
-   </slot>
-  </effect>
- </audioframe>
--->
 </aeonwave>

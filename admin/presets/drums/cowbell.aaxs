@@ -11,7 +11,7 @@
  <info name="Cowbel">
  </info>
 
- <sound gain="2.33" frequency="220" duration="0.1">
+ <sound gain="2.54" frequency="220" duration="0.1">
   <waveform src="triangle" pitch="1.696"/>
   <waveform src="square" processing="modulate" ratio="0.8" pitch="4.0987"/>
  </sound>

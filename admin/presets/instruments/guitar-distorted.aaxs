@@ -13,7 +13,7 @@
   <position x="1.0" y="1.0" z="-2.0"/>
  </info>
 
- <sound gain="8.61" frequency="220" duration="0.1">
+ <sound gain="2.28" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sawtooth" processing="modulate" ratio="0.7" pitch="5.0"/>
@@ -90,4 +90,5 @@
    </slot>
   </effect>
  </audioframe>
+
 </aeonwave>
