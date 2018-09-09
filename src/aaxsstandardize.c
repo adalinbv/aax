@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <strings.h>
+#include <math.h>
 #include <time.h>
 
 #include <xml.h>
@@ -19,7 +20,7 @@
 #define LEVEL_16DB		0.15848931670f
 #define LEVEL_20DB		0.1f
 
-static float freq = 22.0f;
+static float freq = 220.0f;
 
 enum type_t
 {
@@ -30,7 +31,7 @@ enum type_t
    FRAME
 };
 
-const char* format_float(float f)
+static const char* format_float(float f)
 {
     static char buf[32];
 
@@ -46,6 +47,24 @@ const char* format_float(float f)
     }
     return buf;
 }
+
+static float note2freq(uint8_t d) {
+    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
+}
+
+static uint8_t freq2note(float freq) {
+    return 12.0f*log2f(freq/440.0f)+69.0f;
+}
+
+#if 0
+static float note2pitch(uint8_t d, float freq) {
+    return note2freq(d)/freq;
+}
+
+static uint8_t pitch2note(float pitch, float freq) {
+    return freq2note(pitch*freq);
+}
+#endif
 
 struct info_t
 {
@@ -352,7 +371,7 @@ void fill_sound(struct sound_t *sound, void *xid, float gain)
     xmlFree(xeid);
 }
 
-void print_sound(struct sound_t *sound, FILE *output)
+void print_sound(struct sound_t *sound, struct info_t *info, FILE *output)
 {
     unsigned int e;
 
@@ -360,7 +379,12 @@ void print_sound(struct sound_t *sound, FILE *output)
     if (sound->gain) fprintf(output, " gain=\"%3.2f\"", sound->gain);
     if (sound->frequency)
     {
+        uint8_t note;
+
         freq = sound->frequency;
+        note = _MINMAX(freq2note(freq), info->note.min, info->note.max);
+        freq = sound->frequency = note2freq(note);
+
         fprintf(output, " frequency=\"%i\"", sound->frequency);
     }
     if (sound->duration && sound->duration != 1.0f) {
@@ -558,7 +582,7 @@ void print_aax(struct aax_t *aax, const char *outfile)
 
     fprintf(output, "<aeonwave>\n\n");
     print_info(&aax->info, output);
-    print_sound(&aax->sound, output);
+    print_sound(&aax->sound, &aax->info, output);
     print_object(&aax->emitter, EMITTER, output);
     print_object(&aax->audioframe, FRAME, output);
     fprintf(output, "</aeonwave>\n");
@@ -612,14 +636,13 @@ int main(int argc, char **argv)
     {
         char tmpfile[128], aaxsfile[128];
         float rms, rms1, rms2;
-        float gain, dt, step;
+        float dt, step;
         struct aax_t aax;
         aaxBuffer buffer;
         aaxConfig config;
         aaxEmitter emitter;
         aaxFilter filter;
         aaxFrame frame;
-        char *ptr;
         int res;
 
         snprintf(aaxsfile, 120, "%s/%s.aaxs", TEMP_DIR, infile);
@@ -662,7 +685,6 @@ int main(int argc, char **argv)
         res = aaxEmitterSetState(emitter, AAX_PLAYING);
         testForState(res, "aaxEmitterStart");
 
-#if 1
         /* disable the timed-gain filter */
         filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
         testForError(filter, "Unable to create the timed-gain filter");
@@ -673,7 +695,6 @@ int main(int argc, char **argv)
         res = aaxEmitterSetFilter(emitter, filter);
         testForState(res, "aaxEmitterSetGain");
         aaxFilterDestroy(filter);
-#endif
 
         /* frame */
         frame = aaxAudioFrameCreate(config);
@@ -735,7 +756,7 @@ int main(int argc, char **argv)
 
         rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
 
-        printf("% 32s: (%5.4f) %5.4f, %5.4f", infile, LEVEL_20DB, rms1, rms2);
+        printf("%-32s: (%5.4f) %5.4f, %5.4f", infile, LEVEL_20DB, rms1, rms2);
         printf(", new gain: %f\n", rms);
 
         fill_aax(&aax, infile, rms);
