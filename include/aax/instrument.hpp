@@ -139,7 +139,7 @@ public:
         }
         Mixer::add(*it->second);
         float g = sqrtf((1+velocity)/128.0f);
-        it->second->play(gain*g);
+        it->second->play(gain*g*soft);
     }
 
     void stop(uint8_t key_no) {
@@ -174,6 +174,8 @@ public:
 
     inline void set_pressure(float p) { pressure = p; }
 
+    inline void set_soft(bool s) { soft = s ? 0.5f : 1.0f; }
+
     // notes hold until sustain becomes false, even after a stop message
     void set_hold(bool sustain) {
         hold = sustain;
@@ -184,7 +186,7 @@ public:
         }
     }
 
-    // only notes started after this command shold hold
+    // only notes started before this command shold hold until stop arrives
     void set_sustain(bool sustain) {
     }
 
@@ -208,6 +210,7 @@ private:
     Matrix64 mtx = Matrix64(pos, dir);
 
     bool is_drums;
+    float soft = 1.0f;
     float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
