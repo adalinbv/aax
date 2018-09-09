@@ -575,11 +575,11 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                     break;
                 case MIDI_REGISTERED_PARAM_COARSE:
                 case MIDI_REGISTERED_PARAM_FINE:
-                {
                     registered_param(channel, controller, value);
                     break;
-                }
                 case MIDI_SOFT_PEDAL:
+                    midi.channel(channel).set_soft(value >= 0x40);
+                    break;
                 case MIDI_HOLD_PEDAL1:
                 case MIDI_HOLD_PEDAL2:
                     midi.channel(channel).set_hold(value >= 0x40);
