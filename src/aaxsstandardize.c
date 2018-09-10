@@ -786,7 +786,8 @@ int main(int argc, char **argv)
 //      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
         rms = _db2lin(-20.0f)/_db2lin(loudness);
 
-        printf("% 32s: %5.4f, %5.4f | % -3.1f", infile, rms1, rms2, loudness);
+//      printf("% 32s: %5.4f, %5.4f | % -3.1f", infile, rms1, rms2, loudness);
+        printf("% 32s: % -3.1f", infile, loudness);
         printf(", new gain: %4.1f\n", rms);
 
         fill_aax(&aax, infile, rms, 1);
