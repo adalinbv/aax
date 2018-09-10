@@ -6,6 +6,8 @@
 #include <math.h>
 #include <time.h>
 
+#include <ebur128.h>
+
 #include <xml.h>
 #include <aax/aax.h>
 
@@ -21,6 +23,9 @@
 #define LEVEL_20DB		0.1f
 
 static float freq = 220.0f;
+
+float _lin2db(float v) { return 20.0f*log10f(v); }
+float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
 
 enum type_t
 {
@@ -143,7 +148,7 @@ void print_info(struct info_t *info, FILE *output)
 
 void free_info(struct info_t *info)
 {
-    aaxFree(info->name);
+//  aaxFree(info->name);
 }
 
 struct dsp_t
@@ -167,14 +172,19 @@ struct dsp_t
     } slot[4];
 };
 
-void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t)
+void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain)
 {
     unsigned int s, snum;
     void *xsid;
 
     dsp->dtype = t;
     dsp->type = xmlAttributeGetString(xid, "type");
-    dsp->src = xmlAttributeGetString(xid, "src");
+
+    if (!timed_gain && !strcasecmp(dsp->type, "timed-gain")) {
+        dsp->src = strdup("false");
+    } else {
+        dsp->src = xmlAttributeGetString(xid, "src");
+    }
     dsp->stereo = xmlAttributeGetInt(xid, "stereo");
     dsp->repeat = xmlAttributeGetInt(xid, "repeat");
     dsp->optional = xmlAttributeGetBool(xid, "optional");
@@ -289,7 +299,13 @@ void print_waveform(struct waveform_t *wave, FILE *output)
 {
     fprintf(output, "  <waveform src=\"%s\"", wave->src);
     if (wave->processing) fprintf(output, " processing=\"%s\"", wave->processing);
-    if (wave->ratio) fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
+    if (wave->ratio) {
+        if (wave->processing && !strcasecmp(wave->processing, "modulate") && wave->ratio != 0.5f) {
+            fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
+        } else if (wave->ratio != 1.0f) {
+            fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
+        }
+    }
     if (wave->pitch && wave->pitch != 1.0f) fprintf(output, " pitch=\"%s\"", format_float(wave->pitch));
     if (wave->voices)
     {
@@ -356,12 +372,12 @@ void fill_sound(struct sound_t *sound, void *xid, float gain)
             else if (!strcasecmp(name, "filter"))
             {
                 sound->entry[p].type = FILTER;
-                fill_dsp(&sound->entry[p++].slot.dsp, xeid, FILTER);
+                fill_dsp(&sound->entry[p++].slot.dsp, xeid, FILTER, 1);
             }
             else if (!strcasecmp(name, "effect"))
             {
                 sound->entry[p].type = EFFECT;
-                fill_dsp(&sound->entry[p++].slot.dsp, xeid, EFFECT);
+                fill_dsp(&sound->entry[p++].slot.dsp, xeid, EFFECT, 1);
             }
 
             xmlFree(name);
@@ -382,9 +398,11 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output)
         uint8_t note;
 
         freq = sound->frequency;
-        note = _MINMAX(freq2note(freq), info->note.min, info->note.max);
-        freq = sound->frequency = note2freq(note);
-
+        if (info->note.min && info->note.max)
+        {
+            note = _MINMAX(freq2note(freq), info->note.min, info->note.max);
+            freq = sound->frequency = note2freq(note);
+        }
         fprintf(output, " frequency=\"%i\"", sound->frequency);
     }
     if (sound->duration && sound->duration != 1.0f) {
@@ -421,7 +439,7 @@ struct object_t		// emitter and audioframe
     struct dsp_t dsp[16];
 };
 
-void fill_object(struct object_t *obj, void *xid)
+void fill_object(struct object_t *obj, void *xid, char timed_gain)
 {
     unsigned int p, d, dnum;
     void *xdid;
@@ -435,7 +453,7 @@ void fill_object(struct object_t *obj, void *xid)
     for (d=0; d<dnum; d++)
     {
         if (xmlNodeGetPos(xid, xdid, "filter", d) != 0) {
-            fill_dsp(&obj->dsp[p++], xdid, FILTER);
+            fill_dsp(&obj->dsp[p++], xdid, FILTER, timed_gain);
         }
     }
     xmlFree(xdid);
@@ -445,7 +463,7 @@ void fill_object(struct object_t *obj, void *xid)
     for (d=0; d<dnum; d++)
     {
         if (xmlNodeGetPos(xid, xdid, "effect", d) != 0) {
-            fill_dsp(&obj->dsp[p++], xdid, EFFECT);
+            fill_dsp(&obj->dsp[p++], xdid, EFFECT, timed_gain);
         }
     }
     xmlFree(xdid);
@@ -500,7 +518,7 @@ struct aax_t
     struct object_t audioframe;
 };
 
-void fill_aax(struct aax_t *aax, const char *filename, float gain)
+void fill_aax(struct aax_t *aax, const char *filename, float gain, char timed_gain)
 {
     void *xid;
 
@@ -529,14 +547,14 @@ void fill_aax(struct aax_t *aax, const char *filename, float gain)
             xtid = xmlNodeGet(xaid, "emitter");
             if (xtid)
             {
-                fill_object(&aax->emitter, xtid);
+                fill_object(&aax->emitter, xtid, timed_gain);
                 xmlFree(xtid);
             }
 
             xtid = xmlNodeGet(xaid, "audioframe");
             if (xtid)
             {
-                fill_object(&aax->audioframe, xtid);
+                fill_object(&aax->audioframe, xtid, timed_gain);
                 xmlFree(xtid);
             }
 
@@ -635,7 +653,8 @@ int main(int argc, char **argv)
     if (infile)
     {
         char tmpfile[128], aaxsfile[128];
-        float rms, rms1, rms2;
+        float rm; // rms1, rms2;
+        double loudness;
         float dt, step;
         struct aax_t aax;
         aaxBuffer buffer;
@@ -643,6 +662,7 @@ int main(int argc, char **argv)
         aaxEmitter emitter;
         aaxFilter filter;
         aaxFrame frame;
+        void **data;
         int res;
 
         snprintf(aaxsfile, 120, "%s/%s.aaxs", TEMP_DIR, infile);
@@ -664,7 +684,7 @@ int main(int argc, char **argv)
         res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
-        fill_aax(&aax, infile, 1.0f);
+        fill_aax(&aax, infile, 1.0f, 0);
         print_aax(&aax, aaxsfile);
         free_aax(&aax);
 
@@ -672,8 +692,8 @@ int main(int argc, char **argv)
         buffer = aaxBufferReadFromStream(config, aaxsfile);
         testForError(buffer, "Unable to create a buffer from an aaxs file.");
 
-        rms1 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-        rms1 = rms1/8388608.0f;
+//      rms1 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
+//      rms1 = rms1/8388608.0f;
 
         /* emitter */
         emitter = aaxEmitterCreate();
@@ -681,20 +701,6 @@ int main(int argc, char **argv)
 
         res = aaxEmitterAddBuffer(emitter, buffer);
         testForState(res, "aaxEmitterAddBuffer");
-
-        res = aaxEmitterSetState(emitter, AAX_PLAYING);
-        testForState(res, "aaxEmitterStart");
-
-        /* disable the timed-gain filter */
-        filter = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
-        testForError(filter, "Unable to create the timed-gain filter");
-
-        res = aaxFilterSetState(filter, AAX_FALSE);
-        testForState(res, "aaxFilterSetState");
-
-        res = aaxEmitterSetFilter(emitter, filter);
-        testForState(res, "aaxEmitterSetGain");
-        aaxFilterDestroy(filter);
 
         /* frame */
         frame = aaxAudioFrameCreate(config);
@@ -706,12 +712,15 @@ int main(int argc, char **argv)
         res = aaxAudioFrameRegisterEmitter(frame, emitter);
         testForState(res, "aaxAudioFrameRegisterEmitter");
 
-        res = aaxAudioFrameSetState(frame, AAX_PLAYING);
-        testForState(res, "aaxAudioFrameStart");
-
         res = aaxAudioFrameAddBuffer(frame, buffer);
 
         /* playback */
+        res = aaxEmitterSetState(emitter, AAX_PLAYING);
+        testForState(res, "aaxEmitterStart");
+
+        res = aaxAudioFrameSetState(frame, AAX_PLAYING);
+        testForState(res, "aaxAudioFrameStart");
+
         res = aaxMixerSetState(config, AAX_PLAYING);
         testForState(res, "aaxMixerStart");
 
@@ -722,7 +731,7 @@ int main(int argc, char **argv)
             aaxMixerSetState(config, AAX_UPDATE);
             dt += step;
         }
-        while (dt < 0.25f && aaxEmitterGetState(emitter) == AAX_PLAYING);
+        while (dt < 2.5f && aaxEmitterGetState(emitter) == AAX_PLAYING);
 
         res = aaxEmitterSetState(emitter, AAX_SUSPENDED);
         testForState(res, "aaxEmitterStop");
@@ -738,7 +747,6 @@ int main(int argc, char **argv)
         res = aaxDriverClose(config);
         res = aaxDriverDestroy(config);
 
-
         config = aaxDriverOpenByName("None", AAX_MODE_WRITE_STEREO);
         testForError(config, "No default audio device available.");
 
@@ -747,19 +755,41 @@ int main(int argc, char **argv)
         testForError(buffer, "Unable to read the buffer.");
 
 //      peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
-        rms2 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-        rms2 = rms2/8388608.0f;
+//      rms2 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
+//      rms2 = rms2/8388608.0f;
+
+        loudness = 0.0;
+        aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
+        data = aaxBufferGetData(buffer);
+        if (data)
+        {
+            size_t tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
+            size_t freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
+            size_t i, no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+            float *buffer = data[0];
+            ebur128_state *st;
+
+            st = ebur128_init(tracks, freq, EBUR128_MODE_I);
+            if (st)
+            {
+                ebur128_add_frames_float(st, buffer, no_samples);
+                ebur128_loudness_global(st, &loudness);
+                ebur128_destroy(&st);
+            }
+            aaxFree(data);
+        }
         aaxBufferDestroy(buffer);
 
         aaxDriverClose(config);
         aaxDriverDestroy(config);
 
-        rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
+//      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
+        rms = _db2lin(-20.0f)/_db2lin(loudness);
 
-        printf("%-32s: (%5.4f) %5.4f, %5.4f", infile, LEVEL_20DB, rms1, rms2);
-        printf(", new gain: %f\n", rms);
+        printf("% 32s: %5.4f, %5.4f | % -3.1f", infile, rms1, rms2, loudness);
+        printf(", new gain: %4.1f\n", rms);
 
-        fill_aax(&aax, infile, rms);
+        fill_aax(&aax, infile, rms, 1);
         print_aax(&aax, outfile);
         free_aax(&aax);
 
