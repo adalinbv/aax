@@ -177,8 +177,8 @@ public:
     inline void set_soft(bool s) { soft = s ? 0.5f : 1.0f; }
 
     // notes hold until sustain becomes false, even after a stop message
-    void set_hold(bool sustain) {
-        hold = sustain;
+    void set_hold(bool h) {
+        hold = h;
         if (!hold) {
             for (auto& it : key) {
                 it.second->stop();
@@ -187,7 +187,10 @@ public:
     }
 
     // only notes started before this command shold hold until stop arrives
-    void set_sustain(bool sustain) {
+    void set_sustain(bool s) {
+    }
+
+    void set_modulation(float m) {
     }
 
     void set_pressure(uint8_t key_no, float pressure) {
