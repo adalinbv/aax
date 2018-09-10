@@ -663,6 +663,7 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
+      case AAX_RINGMODULATOR_EFFECT:
       {
          _aax2dProps *p2d = fmixer->props2d;
          _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
@@ -729,6 +730,7 @@ aaxAudioFrameGetEffect(aaxFrame frame, enum aaxEffectType type)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
+      case AAX_RINGMODULATOR_EFFECT:
       case AAX_REVERB_EFFECT:
       {
          _aaxAudioFrame* fmixer = handle->submix;

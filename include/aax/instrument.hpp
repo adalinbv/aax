@@ -108,6 +108,12 @@ public:
         if (is_drums) {
             Mixer::set(AAX_MONO_EMITTERS, 10);
         }
+
+        dsp mod = get(AAX_RINGMODULATOR_EFFECT);
+        mod.set(AAX_LFO_FREQUENCY, 0.05f);
+        set(mod);
+        tie(modulation_param, AAX_RINGMODULATOR_EFFECT, AAX_LFO_DEPTH);
+        tie(modulation_state, AAX_RINGMODULATOR_EFFECT);
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
@@ -191,6 +197,10 @@ public:
     }
 
     void set_modulation(float m) {
+        modulation_param = m;
+        if ((m && !modulation_state) || (!m && modulation_state)) {
+            modulation_state = m ? AAX_SINE_WAVE : AAX_FALSE;
+        }
     }
 
     void set_pressure(uint8_t key_no, float pressure) {
@@ -211,6 +221,9 @@ private:
     Vector dir = Vector(0.0f, 0.0f, 1.0f);
     Vector64 pos = Vector64(0.0, 2.0, -3.0);
     Matrix64 mtx = Matrix64(pos, dir);
+
+    Param modulation_param = 0.0f;
+    Status modulation_state = AAX_FALSE;
 
     bool is_drums;
     float soft = 1.0f;
