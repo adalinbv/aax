@@ -71,6 +71,8 @@ int main(int argc, char **argv)
             midi.set_instrument_file(INSTRUMENTS);
             midi.set_drum_file(DRUMS);
 #endif
+
+            midi.initialize();
             midi.start();
 
             wait_us = 1000;

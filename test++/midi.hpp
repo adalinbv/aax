@@ -47,8 +47,15 @@ namespace aax
 /* status messages */
 // https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
 #define MIDI_EXCLUSIVE_MESSAGE		0xf0
-#define MIDI_EXCLUSIVE_MESSAGE_END	0xf7
 #define MIDI_SYSTEM_MESSAGE		0xff
+
+/* midi exclusive non-real time message */
+#define MIDI_EOF			0x7b
+#define MIDI_WAIT			0x7c
+#define MIDI_CANCEL			0x7d
+#define MIDI_NAK			0x7e
+#define MIDI_ACK			0x7f
+#define MIDI_EXCLUSIVE_MESSAGE_END	0xf7
 
 /* meta messages */
 // https://www.recordingblogs.com/wiki/midi-meta-messages
@@ -191,7 +198,7 @@ public:
 
     void read_instruments();
 
-    inline void reset() { channels.clear(); }
+    inline void rewind() { channels.clear(); }
 
     std::string get_drum(uint8_t bank, uint8_t key);
     std::string get_instrument(uint8_t bank, uint8_t program);
@@ -259,7 +266,7 @@ public:
 
     ~MIDITrack() = default;
 
-    void reset();
+    void rewind();
     bool process(uint64_t, uint32_t&);
 
 private:
@@ -276,7 +283,7 @@ private:
     uint64_t timestamp_us = 0;
     uint16_t PPQN = 24;
     uint32_t uSPP = 500000/24;
-    bool poly = true;
+    bool polyphony = true;
     bool omni = false;
 };
 
@@ -295,9 +302,10 @@ public:
         return midi_data.capacity();
     }
 
-    void start();
-    inline void stop() { set(AAX_PROCESSED); }
-    void reset();
+    void initialize();
+    inline void start() { MIDI::set(AAX_PLAYING); }
+    inline void stop() { MIDI::set(AAX_PROCESSED); }
+    void rewind();
 
     bool process(uint64_t, uint32_t&);
 

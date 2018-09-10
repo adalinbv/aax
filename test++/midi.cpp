@@ -413,6 +413,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         case MIDI_TUNING_BANK_SELECT:
         case MIDI_MODULATION_DEPTH_RANGE:
         default:
+            LOG("Unsupported registered parameter: %x\n", type);
             break;
         }
     }
@@ -420,7 +421,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 }
 
 void
-MIDITrack::reset()
+MIDITrack::rewind()
 {
     byte_stream::rewind();
     timestamp_us = pull_message();
@@ -430,7 +431,7 @@ MIDITrack::reset()
     program_no = 0;
     bank_no = 0;
     previous = 0;
-    poly = true;
+    polyphony = true;
     omni = false;
 }
 
@@ -458,15 +459,15 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
         {
             uint8_t size = pull_byte();
             uint8_t byte = pull_byte();
-            // GM1 reset: F0 7E 7F 09 01 F7
-            // GM2 reset: F0 7E 7F 09 03 F7
-            // GS  reset: F0 41 10 42 12 40 00 7F 00 41 F7
+            // GM1 rewind: F0 7E 7F 09 01 F7
+            // GM2 rewind: F0 7E 7F 09 03 F7
+            // GS  rewind: F0 41 10 42 12 40 00 7F 00 41 F7
             if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
             {
                 if (pull_byte() == 0x01) {
-                    LOG("General MIDI 1.0");
+                    LOG("General MIDI 1.0\n");
                 } else if (pull_byte() == 0x03) {
-                    LOG("General MIDI 2.0");
+                    LOG("General MIDI 2.0\n");
                 }
             }
             else if (byte == 0x41 && pull_byte() == 0x10 &&
@@ -475,10 +476,13 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                        pull_byte() == 0x7f && pull_byte() == 0x00 &&
                        pull_byte() == 0x41)
             {
-                LOG("General Standard");
+                LOG("General Standard\n");
             }
-            else push_byte();
-            while (pull_byte() != MIDI_EXCLUSIVE_MESSAGE_END);
+
+            push_byte();
+            do {
+                byte = pull_byte();
+            } while (byte != MIDI_EXCLUSIVE_MESSAGE_END && byte != MIDI_EOF);
             break;
         }
         case MIDI_SYSTEM_MESSAGE:
@@ -507,16 +511,15 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                 forward();
                 break;
             case MIDI_SET_TEMPO:
-            {
                 uSPP = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
                 uSPP /= PPQN;
                 break;
-            }
             case MIDI_SEQUENCE_NUMBER:
             case MIDI_TIME_SIGNATURE: 
             case MIDI_SMPTE_OFFSET:
             case MIDI_KEY_SIGNATURE:
             default:	// unsupported
+                LOG("Unsupported system message: %x\n", meta);
                 forward(size);
                 break;
             }
@@ -543,11 +546,20 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
             }
             case MIDI_CONTROL_CHANGE:
             {
-                // http://www.lim.di.unimi.it/IEEE/MIDI/SOT5.HTM#Further
+                // http://midi.teragonaudio.com/tech/midispec/ctllist.htm
                 uint8_t controller = pull_byte();
                 uint8_t value = pull_byte();
                 switch(controller)
                 {
+                case MIDI_ALL_CONTROLLERS_OFF:
+                     midi.channel(channel).set_expression(1.0f);
+                     midi.channel(channel).set_hold(false);
+                     midi.channel(channel).set_sustain(false);
+                     midi.channel(channel).set_gain(100.0f/127.0f);
+                     midi.channel(channel).set_pan(0.0f);
+                     midi.channel(channel).set_semi_tones(2.0f);
+                     midi.channel(channel).set_pressure(0.0f);
+                    // intentional falltrough
                 case MIDI_ALL_SOUND_OFF:
                 case MIDI_MONO_ALL_NOTES_OFF:
                 case MIDI_POLY_ALL_NOTES_OFF:
@@ -570,6 +582,11 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                 case MIDI_EXPRESSION:
                     midi.channel(channel).set_expression((float)value/127.0f);
                     break;
+                case MIDI_MODULATION_WHEEL:
+                {
+                    midi.channel(channel).set_modulation((float)(value << 7)/16383.0f);
+                    break;
+                }
                 case MIDI_CHANNEL_VOLUME:
                     midi.channel(channel).set_gain((float)value/127.0f);
                     break;
@@ -621,18 +638,29 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
             case MIDI_SYSTEM:
                 switch(channel)
                 {
+                case MIDI_SYSTEM_RESET:
+#if 0
+                    omni = true;
+                    polyphony = true;
+                    for(auto& it : midi.channel())
+                    {
+                        midi.process(it.first, MIDI_NOTE_OFF, 0, 0, true);
+                        midi.channel(channel).set_semi_tones(2.0f);
+                    }
+#endif
+                    break;
                 case MIDI_TIMING_CLOCK:
                 case MIDI_START:
                 case MIDI_CONTINUE:
                 case MIDI_STOP:
                 case MIDI_ACTIVE_SENSE:
-                case MIDI_SYSTEM_RESET:
-                    break;
                 default:
+                    LOG("Unsupported real-time System message: %x - %x\n", message, channel);
                     break;
                 }
                 break;
             default:
+                LOG("Unsupported message: %x\n", message);
                 break;
             }
             break;
@@ -734,11 +762,11 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 }
 
 void
-MIDIFile::reset()
+MIDIFile::rewind()
 {
-    MIDI::reset();
+    MIDI::rewind();
     for (auto it : track) {
-        it->reset();
+        it->rewind();
     }
 }
 
@@ -761,7 +789,7 @@ MIDIFile::process(uint64_t time_us, uint32_t& next)
 }
 
 void
-MIDIFile::start()
+MIDIFile::initialize()
 {
     MIDI::read_instruments();
 
@@ -770,9 +798,8 @@ MIDIFile::start()
     while (process(time_us, wait_us)) {
         time_us += wait_us;
     }
-    reset();
+    rewind();
 
     MIDI::set(AAX_REFRESH_RATE, 90.0f);
     MIDI::set(AAX_INITIALIZED);
-    MIDI::set(AAX_PLAYING);
 }
