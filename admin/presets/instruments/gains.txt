@@ -1,134 +1,126 @@
-           accordion-french.aaxs: (0.1000) 0.0641, 0.0225, new gain: 2.068456
-          accordion-italian.aaxs: (0.1000) 0.0513, 0.0180, new gain: 2.581641
-                      banjo.aaxs: (0.1000) 0.0373, 0.0573, new gain: 1.231465
-              bass-acoustic.aaxs: (0.1000) 0.0906, 0.0467, new gain: 1.159261
-       bass-electric-octave.aaxs: (0.1000) 0.0599, 0.0189, new gain: 2.346720
-bass-electric-ringmodulated.aaxs: (0.1000) 0.0590, 0.0138, new gain: 2.760856
-          bass-electric-wah.aaxs: (0.1000) 0.0590, 0.0404, new gain: 1.468561
-                bass-finger.aaxs: (0.1000) 0.0914, 0.0304, new gain: 1.493834
-              bass-fretless.aaxs: (0.1000) 0.1853, 0.0808, new gain: 0.629803
-aaxEmitterAddBuffer:		0
-(64) aaxEmitterAddBuffer: Invalid internal state
-
-                    bassoon.aaxs: (0.1000) 0.0355, 0.0142, new gain: 3.463599
-                  bass-pick.aaxs: (0.1000) 0.1105, 0.0448, new gain: 1.103928
-                 bass-slap1.aaxs: (0.1000) 0.0763, 0.0395, new gain: 1.372456
-                 bass-slap2.aaxs: (0.1000) 0.0995, 0.0547, new gain: 1.011752
-                bass-synth1.aaxs: (0.1000) 0.0592, 0.0502, new gain: 1.250906
-                bass-synth3.aaxs: (0.1000) 0.0753, 0.0319, new gain: 1.579236
-               bell-tubular.aaxs: (0.1000) 0.0732, 0.0432, new gain: 1.311316
-              brass-section.aaxs: (0.1000) 0.0996, 0.0314, new gain: 1.410418
-               brass-synth1.aaxs: (0.1000) 0.1800, 0.0783, new gain: 0.649675
-               brass-synth2.aaxs: (0.1000) 0.1610, 0.0898, new gain: 0.619373
-aaxEmitterAddBuffer:		0
-(64) aaxEmitterAddBuffer: Invalid internal state
-
-                    celesta.aaxs: (0.1000) 0.1832, 0.0796, new gain: 0.638452
-                 choir-aahs.aaxs: (0.1000) 0.0348, 0.0062, new gain: 5.241679
-                   clarinet.aaxs: (0.1000) 0.0521, 0.0270, new gain: 2.009451
-                   clavinet.aaxs: (0.1000) 0.0447, 0.0363, new gain: 1.709072
-               clavinet-wah.aaxs: (0.1000) 0.0447, 0.1392, new gain: 0.549611
-             cymbal-reverse.aaxs: (0.1000) 0.6272, 0.0006, new gain: 0.476790
-                    default.aaxs: (0.1000) 0.1433, 0.0696, new gain: 0.761472
-                 drum-steel.aaxs: (0.1000) 0.0807, 0.0573, new gain: 1.045046
-                 drum-taiko.aaxs: (0.1000) 0.1142, 0.0484, new gain: 1.040461
-                   dulcimer.aaxs: (0.1000) 0.0122, 0.0226, new gain: 3.211037
-                     fiddle.aaxs: (0.1000) 0.0421, 0.0107, new gain: 3.723875
-                      flute.aaxs: (0.1000) 0.0739, 0.0257, new gain: 1.803142
-                  flute-pan.aaxs: (0.1000) 0.0507, 0.0206, new gain: 2.400729
-              fx-brightness.aaxs: (0.1000) 0.0363, 0.0112, new gain: 3.916058
-                 fx-goblins.aaxs: (0.1000) 0.5594, 0.1129, new gain: 0.310619
-               glockenspiel.aaxs: (0.1000) 0.1823, 0.0746, new gain: 0.665553
-              guitar-chorus.aaxs: (0.1000) 0.0485, 0.0170, new gain: 2.736651
-               guitar-clean.aaxs: (0.1000) 0.0485, 0.0161, new gain: 2.820354
-           guitar-clean-wah.aaxs: (0.1000) 0.0485, 0.0244, new gain: 2.201698
-aaxEmitterAddBuffer:		0
-(64) aaxEmitterAddBuffer: Invalid internal state
-
-           guitar-distorted.aaxs: (0.1000) 0.0071, 0.0346, new gain: 2.281419
-       guitar-distorted-wah.aaxs: (0.1000) 0.0343, 0.0623, new gain: 1.160190
-            guitar-feedback.aaxs: (0.1000) 0.0635, 0.2950, new gain: 0.266530
-            guitar-flanging.aaxs: (0.1000) 0.0485, 0.0175, new gain: 2.686546
-aaxEmitterAddBuffer:		0
-(64) aaxEmitterAddBuffer: Invalid internal state
-
-                guitar-funk.aaxs: (0.1000) 0.0547, 0.0226, new gain: 2.205391
-                guitar-fuzz.aaxs: (0.1000) 0.5165, 0.0625, new gain: 0.404710
-           guitar-harmonics.aaxs: (0.1000) 0.1063, 0.2040, new gain: 0.356835
-                guitar-jazz.aaxs: (0.1000) 0.0482, 0.0170, new gain: 2.743695
-               guitar-muted.aaxs: (0.1000) 0.0795, 0.0256, new gain: 1.746725
-               guitar-nylon.aaxs: (0.1000) 0.0603, 0.0130, new gain: 2.797657
-          guitar-overdriven.aaxs: (0.1000) 0.0220, 0.0396, new gain: 1.821074
-               guitar-steel.aaxs: (0.1000) 0.0338, 0.0099, new gain: 4.330197
-                  harmonica.aaxs: (0.1000) 0.0182, 0.0072, new gain: 6.801751
-                       harp.aaxs: (0.1000) 0.1095, 0.0206, new gain: 1.634250
-                harpsichord.aaxs: (0.1000) 0.0279, 0.0140, new gain: 3.835057
-         harpsichord-double.aaxs: (0.1000) 0.0625, 0.0319, new gain: 1.691440
-               horn-english.aaxs: (0.1000) 0.0376, 0.0118, new gain: 3.739794
-                horn-french.aaxs: (0.1000) 0.0359, 0.0143, new gain: 3.432302
-                    kalimba.aaxs: (0.1000) 0.0208, 0.0105, new gain: 5.115265
-                  lead-bass.aaxs: (0.1000) 0.0235, 0.0202, new gain: 3.116063
-              lead-calliope.aaxs: (0.1000) 0.3900, 0.1219, new gain: 0.361997
-               lead-charang.aaxs: (0.1000) 0.0033, 0.0866, new gain: 0.951819
-                 lead-chiff.aaxs: (0.1000) 0.0437, 0.0305, new gain: 1.952142
-                lead-fifths.aaxs: (0.1000) 0.0239, 0.0132, new gain: 4.205033
-              lead-sawtooth.aaxs: (0.1000) 0.0182, 0.0114, new gain: 5.066250
-                lead-square.aaxs: (0.1000) 0.0341, 0.0217, new gain: 2.669224
-                 lead-voice.aaxs: (0.1000) 0.0388, 0.0227, new gain: 2.490846
-                    marimba.aaxs: (0.1000) 0.0851, 0.0319, new gain: 1.499313
-                   musicbox.aaxs: (0.1000) 0.1526, 0.0797, new gain: 0.682710
-                       oboe.aaxs: (0.1000) 0.0286, 0.0114, new gain: 4.303813
-              orchestra-hit.aaxs: (0.1000) 0.3304, 0.0814, new gain: 0.481261
-                organ-blues.aaxs: (0.1000) 0.0913, 0.0516, new gain: 1.082509
-               organ-church.aaxs: (0.1000) 0.0441, 0.0814, new gain: 0.890226
-      organ-church-diapason.aaxs: (0.1000) 0.0168, 0.0000, new gain: 17.857729
-              organ-drawbar.aaxs: (0.1000) 0.0254, 0.0152, new gain: 3.737447
-      organ-drawbar-detuned.aaxs: (0.1000) 0.0955, 0.0672, new gain: 0.889112
-        organ-funk-booker-t.aaxs: (0.1000) 0.0694, 0.0384, new gain: 1.445279
-               organ-gospel.aaxs: (0.1000) 0.0721, 0.0344, new gain: 1.531713
-        organ-gospel-praise.aaxs: (0.1000) 0.0368, 0.0172, new gain: 3.038308
-         organ-jazz-earland.aaxs: (0.1000) 0.0929, 0.0623, new gain: 0.946159
-          organ-jazz-garner.aaxs: (0.1000) 0.0932, 0.0475, new gain: 1.134846
-          organ-jazz-holmes.aaxs: (0.1000) 0.0927, 0.0487, new gain: 1.119785
-           organ-jazz-smith.aaxs: (0.1000) 0.0909, 0.0621, new gain: 0.954322
-           organ-percussive.aaxs: (0.1000) 0.0379, 0.0343, new gain: 1.860693
-   organ-percussive-detuned.aaxs: (0.1000) 0.0379, 0.0319, new gain: 1.963682
-                  organ-pop.aaxs: (0.1000) 0.0397, 0.0149, new gain: 3.210358
-                 organ-reed.aaxs: (0.1000) 0.0256, 0.0098, new gain: 4.927550
-                 organ-rock.aaxs: (0.1000) 0.2353, 0.0403, new gain: 0.788315
-                 organ-soul.aaxs: (0.1000) 0.0797, 0.0379, new gain: 1.389054
-          organ-soul-hodges.aaxs: (0.1000) 0.0354, 0.0272, new gain: 2.251039
-                  pad-bowed.aaxs: (0.1000) 0.0723, 0.0125, new gain: 2.557480
-                  pad-choir.aaxs: (0.1000) 0.0363, 0.0168, new gain: 3.103118
-                   pad-halo.aaxs: (0.1000) 3.2759, 0.3753, new gain: 0.064835
-               pad-metallic.aaxs: (0.1000) 0.0296, 0.0300, new gain: 2.180978
-                pad-newwave.aaxs: (0.1000) 0.0528, 0.0329, new gain: 1.752744
-              pad-polysynth.aaxs: (0.1000) 0.0499, 0.0016, new gain: 5.401602
-                  pad-sweep.aaxs: (0.1000) 0.0052, 0.0114, new gain: 6.472166
-                   pad-warm.aaxs: (0.1000) 0.0176, 0.0054, new gain: 8.069715
-             piano-acoustic.aaxs: (0.1000) 0.0236, 0.0157, new gain: 3.742106
-               piano-bright.aaxs: (0.1000) 0.0501, 0.0240, new gain: 2.195292
-            piano-electric1.aaxs: (0.1000) 0.0855, 0.0408, new gain: 1.291519
-    piano-electric1-detuned.aaxs: (0.1000) 0.0698, 0.0330, new gain: 1.590566
-            piano-electric2.aaxs: (0.1000) 0.0888, 0.0317, new gain: 1.477609
-    piano-electric2-detuned.aaxs: (0.1000) 0.0888, 0.0317, new gain: 1.478349
-             piano-electric.aaxs: (0.1000) 0.0465, 0.0239, new gain: 2.262411
-           piano-honky-tonk.aaxs: (0.1000) 0.0922, 0.0446, new gain: 1.186287
-                  saxophone.aaxs: (0.1000) 0.0672, 0.0400, new gain: 1.419474
-                    scratch.aaxs: (0.1000) 1.6592, 0.3062, new gain: 0.108632
-                   shamisen.aaxs: (0.1000) 0.0544, 0.0181, new gain: 2.508107
-           string-ensamble1.aaxs: (0.1000) 0.0760, 0.0208, new gain: 1.988647
-           string-ensamble2.aaxs: (0.1000) 0.1477, 0.0035, new gain: 1.871659
-           string-pizzicato.aaxs: (0.1000) 0.0492, 0.0151, new gain: 2.899431
-             strings-synth1.aaxs: (0.1000) 0.0558, 0.0262, new gain: 1.997443
-             strings-synth2.aaxs: (0.1000) 0.0387, 0.0013, new gain: 6.923369
-             string-tremolo.aaxs: (0.1000) 0.0436, 0.0023, new gain: 5.782147
-                    timpani.aaxs: (0.1000) 0.1041, 0.0911, new gain: 0.694099
-                    trumpet.aaxs: (0.1000) 0.0923, 0.0463, new gain: 1.158379
-              trumpet-muted.aaxs: (0.1000) 0.0956, 0.0508, new gain: 1.076798
-                 vibraphone.aaxs: (0.1000) 0.0694, 0.0342, new gain: 1.558867
-                     violin.aaxs: (0.1000) 0.0527, 0.0160, new gain: 2.721498
-                 voice-oohs.aaxs: (0.1000) 0.1216, 0.0440, new gain: 1.070761
-                voice-synth.aaxs: (0.1000) 0.0277, 0.0113, new gain: 4.392704
-                  woodblock.aaxs: (0.1000) 0.1847, 0.0853, new gain: 0.609989
-                  xylophone.aaxs: (0.1000) 0.0913, 0.0346, new gain: 1.389900
+           accordion-french.aaxs: -29.5, new gain:  3.0
+          accordion-italian.aaxs: -31.2, new gain:  3.6
+                      banjo.aaxs: -31.1, new gain:  3.6
+              bass-acoustic.aaxs: -28.7, new gain:  2.7
+       bass-electric-octave.aaxs: -33.3, new gain:  4.6
+bass-electric-ringmodulated.aaxs: -41.3, new gain: 11.6
+          bass-electric-wah.aaxs: -23.5, new gain:  1.5
+                bass-finger.aaxs: -27.6, new gain:  2.4
+              bass-fretless.aaxs: -28.9, new gain:  2.8
+           bass-fret-rattle.aaxs: -29.9, new gain:  3.1
+                    bassoon.aaxs: -34.8, new gain:  5.5
+                  bass-pick.aaxs: -25.7, new gain:  1.9
+                 bass-slap1.aaxs: -28.8, new gain:  2.7
+                 bass-slap2.aaxs: -26.9, new gain:  2.2
+                bass-synth1.aaxs: -27.7, new gain:  2.4
+                bass-synth3.aaxs: -24.6, new gain:  1.7
+               bell-tubular.aaxs: -26.9, new gain:  2.2
+              brass-section.aaxs: -25.2, new gain:  1.8
+               brass-synth1.aaxs: -15.1, new gain:  0.6
+               brass-synth2.aaxs: -21.0, new gain:  1.1
+                   car-pass.aaxs: -23.0, new gain:  1.4
+                    celesta.aaxs: -20.7, new gain:  1.1
+                 choir-aahs.aaxs: -33.7, new gain:  4.8
+                   clarinet.aaxs: -31.5, new gain:  3.8
+                   clavinet.aaxs: -31.1, new gain:  3.6
+               clavinet-wah.aaxs: -45.4, new gain: 18.6
+             cymbal-reverse.aaxs: -3.3, new gain:  0.1
+                    default.aaxs: -inf, new gain:  inf
+                 drum-steel.aaxs: -28.2, new gain:  2.6
+                 drum-taiko.aaxs: -23.9, new gain:  1.6
+                   dulcimer.aaxs: -44.0, new gain: 15.9
+                     fiddle.aaxs: -34.2, new gain:  5.2
+                      flute.aaxs: -28.6, new gain:  2.7
+                  flute-pan.aaxs: -31.8, new gain:  3.9
+              fx-brightness.aaxs: -34.9, new gain:  5.6
+                 fx-goblins.aaxs: -24.3, new gain:  1.6
+               glockenspiel.aaxs: -21.3, new gain:  1.2
+              guitar-chorus.aaxs: -30.7, new gain:  3.4
+               guitar-clean.aaxs: -29.6, new gain:  3.0
+           guitar-clean-wah.aaxs: -27.7, new gain:  2.4
+           guitar-cut-noise.aaxs: -25.0, new gain:  1.8
+           guitar-distorted.aaxs: -21.8, new gain:  1.2
+       guitar-distorted-wah.aaxs: -20.8, new gain:  1.1
+            guitar-feedback.aaxs: -5.0, new gain:  0.2
+            guitar-flanging.aaxs: -29.4, new gain:  2.9
+          guitar-fret-noise.aaxs: -37.6, new gain:  7.5
+                guitar-funk.aaxs: -29.4, new gain:  3.0
+                guitar-fuzz.aaxs: -10.0, new gain:  0.3
+           guitar-harmonics.aaxs: -9.6, new gain:  0.3
+                guitar-jazz.aaxs: -31.7, new gain:  3.9
+               guitar-muted.aaxs: -28.4, new gain:  2.6
+               guitar-nylon.aaxs: -34.4, new gain:  5.3
+          guitar-overdriven.aaxs: -25.7, new gain:  1.9
+               guitar-steel.aaxs: -34.4, new gain:  5.3
+                  harmonica.aaxs: -40.0, new gain: 10.0
+                       harp.aaxs: -30.0, new gain:  3.2
+                harpsichord.aaxs: -37.2, new gain:  7.2
+         harpsichord-double.aaxs: -31.8, new gain:  3.9
+               horn-english.aaxs: -33.5, new gain:  4.7
+                horn-french.aaxs: -34.0, new gain:  5.0
+                    kalimba.aaxs: -37.8, new gain:  7.8
+                  lead-bass.aaxs: -37.2, new gain:  7.2
+              lead-calliope.aaxs: -13.5, new gain:  0.5
+               lead-charang.aaxs: -47.8, new gain: 24.6
+                 lead-chiff.aaxs: -28.6, new gain:  2.7
+                lead-fifths.aaxs: -40.3, new gain: 10.4
+              lead-sawtooth.aaxs: -39.1, new gain:  9.0
+                lead-square.aaxs: -30.6, new gain:  3.4
+                 lead-voice.aaxs: -32.5, new gain:  4.2
+                    marimba.aaxs: -27.4, new gain:  2.4
+                   musicbox.aaxs: -21.5, new gain:  1.2
+                       oboe.aaxs: -35.6, new gain:  6.1
+              orchestra-hit.aaxs: -16.5, new gain:  0.7
+                organ-blues.aaxs: -22.6, new gain:  1.3
+               organ-church.aaxs: -30.5, new gain:  3.3
+      organ-church-diapason.aaxs: -40.5, new gain: 10.6
+              organ-drawbar.aaxs: -33.4, new gain:  4.7
+      organ-drawbar-detuned.aaxs: -20.5, new gain:  1.1
+        organ-funk-booker-t.aaxs: -27.7, new gain:  2.4
+               organ-gospel.aaxs: -27.3, new gain:  2.3
+        organ-gospel-praise.aaxs: -34.1, new gain:  5.1
+         organ-jazz-earland.aaxs: -26.0, new gain:  2.0
+          organ-jazz-garner.aaxs: -23.5, new gain:  1.5
+          organ-jazz-holmes.aaxs: -23.8, new gain:  1.5
+           organ-jazz-smith.aaxs: -26.8, new gain:  2.2
+           organ-percussive.aaxs: -34.1, new gain:  5.1
+   organ-percussive-detuned.aaxs: -34.3, new gain:  5.2
+                  organ-pop.aaxs: -34.3, new gain:  5.2
+                 organ-reed.aaxs: -36.8, new gain:  6.9
+                 organ-rock.aaxs: -18.9, new gain:  0.9
+                 organ-soul.aaxs: -28.0, new gain:  2.5
+          organ-soul-hodges.aaxs: -31.0, new gain:  3.5
+                  pad-bowed.aaxs: -27.5, new gain:  2.4
+                  pad-choir.aaxs: -33.7, new gain:  4.8
+                   pad-halo.aaxs: -5.4, new gain:  0.2
+               pad-metallic.aaxs: -31.9, new gain:  3.9
+                pad-newwave.aaxs: -28.4, new gain:  2.6
+              pad-polysynth.aaxs: -31.9, new gain:  3.9
+                  pad-sweep.aaxs: -36.4, new gain:  6.6
+                   pad-warm.aaxs: -39.8, new gain:  9.8
+             piano-acoustic.aaxs: -38.1, new gain:  8.0
+               piano-bright.aaxs: -30.2, new gain:  3.2
+            piano-electric1.aaxs: -27.1, new gain:  2.3
+    piano-electric1-detuned.aaxs: -28.9, new gain:  2.8
+            piano-electric2.aaxs: -26.8, new gain:  2.2
+    piano-electric2-detuned.aaxs: -26.8, new gain:  2.2
+             piano-electric.aaxs: -31.7, new gain:  3.8
+           piano-honky-tonk.aaxs: -22.7, new gain:  1.4
+                  saxophone.aaxs: -27.1, new gain:  2.3
+                    scratch.aaxs: -7.6, new gain:  0.2
+                   shamisen.aaxs: -33.8, new gain:  4.9
+           string-ensamble1.aaxs: -28.3, new gain:  2.6
+           string-ensamble2.aaxs: -22.6, new gain:  1.4
+           string-pizzicato.aaxs: -32.1, new gain:  4.0
+             strings-synth1.aaxs: -30.7, new gain:  3.4
+             strings-synth2.aaxs: -34.0, new gain:  5.0
+             string-tremolo.aaxs: -43.9, new gain: 15.7
+                    timpani.aaxs: -25.7, new gain:  1.9
+                    trumpet.aaxs: -23.7, new gain:  1.5
+              trumpet-muted.aaxs: -36.3, new gain:  6.5
+                 vibraphone.aaxs: -28.9, new gain:  2.8
+                     violin.aaxs: -32.7, new gain:  4.3
+                 voice-oohs.aaxs: -26.3, new gain:  2.1
+                voice-synth.aaxs: -36.6, new gain:  6.8
+                  woodblock.aaxs: -26.9, new gain:  2.2
+                  xylophone.aaxs: -23.5, new gain:  1.5

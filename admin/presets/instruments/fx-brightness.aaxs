@@ -12,8 +12,8 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="3.92" frequency="220" voices="5" spread="0.3">
-  <waveform src="sine" ratio="1.0" pitch="0.5"/>
+ <sound gain="5.56" frequency="220" voices="5" spread="0.3">
+  <waveform src="sine" pitch="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="2.0"/>
  </sound>
 
