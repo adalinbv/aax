@@ -32,6 +32,7 @@
 #ifndef __AAX_MIDI
 #define __AAX_MIDI
 
+#include <stdexcept>
 #include <vector>
 #include <map>
 
@@ -177,7 +178,11 @@ class MIDI : public AeonWave
 {
 public:
     MIDI(const char* n)  : AeonWave(n) {
-        path = info(AAX_SHARED_DATA_DIR);
+        if (*this) {
+            path = AeonWave::info(AAX_SHARED_DATA_DIR);
+        } else {
+            throw(std::runtime_error("Unable to open device "+std::string(n)));
+        }
     }
 
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni);
