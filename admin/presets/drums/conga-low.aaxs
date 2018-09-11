@@ -11,8 +11,8 @@
  <info name="Low Conga">
  </info>
 
- <sound gain="1.45" frequency="1135" duration="0.1">
-  <waveform src="pink-noise" ratio="1.0" pitch="0.18"/>
+ <sound gain="3.03" frequency="1135" duration="0.1">
+  <waveform src="pink-noise" pitch="0.18"/>
   <waveform src="triangle" processing="add" ratio="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>
  </sound>

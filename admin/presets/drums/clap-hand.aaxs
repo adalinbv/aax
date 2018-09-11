@@ -11,7 +11,7 @@
  <info name="Handclap">
  </info>
 
- <sound gain="1.11" frequency="220" duration="0.2">
+ <sound gain="1.01" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <filter type="frequency" src="24db">
    <slot n="0">

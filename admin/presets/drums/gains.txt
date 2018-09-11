@@ -1,53 +1,53 @@
-                 agogo-high.aaxs: (0.1000) 0.0329, 0.0168, new gain: 3.211299
-                  agogo-low.aaxs: (0.1000) 0.0329, 0.0174, new gain: 3.136102
-                  bell-ride.aaxs: (0.1000) 0.0849, 0.0237, new gain: 1.762320
-                 bongo-high.aaxs: (0.1000) 0.0511, 0.0215, new gain: 2.331344
-                  bongo-low.aaxs: (0.1000) 0.0520, 0.0295, new gain: 1.896390
-                     cabasa.aaxs: (0.1000) 0.2503, 0.0684, new gain: 0.604184
-                  clap-hand.aaxs: (0.1000) 0.1517, 0.0331, new gain: 1.108301
-                     claves.aaxs: (0.1000) 0.2096, 0.0636, new gain: 0.684012
-            click-metronome.aaxs: (0.1000) 0.4675, 0.0902, new gain: 0.378766
-                 conga-high.aaxs: (0.1000) 0.0890, 0.0280, new gain: 1.581481
-           conga-high-muted.aaxs: (0.1000) 0.1129, 0.0458, new gain: 1.080101
-                  conga-low.aaxs: (0.1000) 0.0742, 0.0370, new gain: 1.445858
-                    cowbell.aaxs: (0.1000) 0.0429, 0.0209, new gain: 2.537106
-                cuica-muted.aaxs: (0.1000) 0.1800, 0.0809, new gain: 0.636776
-                 cuica-open.aaxs: (0.1000) 0.1800, 0.0834, new gain: 0.624872
-             cymbal-chinese.aaxs: (0.1000) 0.1753, 0.0562, new gain: 0.794230
-              cymbal-crash2.aaxs: (0.1000) 0.0776, 0.0427, new gain: 1.296246
-               cymbal-crash.aaxs: (0.1000) 0.0797, 0.0359, new gain: 1.435864
-               cymbal-ride2.aaxs: (0.1000) 0.0445, 0.0231, new gain: 2.351237
-                cymbal-ride.aaxs: (0.1000) 0.0431, 0.0225, new gain: 2.414116
-              cymbal-splash.aaxs: (0.1000) 0.2032, 0.0577, new gain: 0.730069
-                 drum-bass1.aaxs: (0.1000) 0.0978, 0.0349, new gain: 1.342467
-         drum-bass-acoustic.aaxs: (0.1000) 0.0723, 0.0785, new gain: 0.845592
-        drum-snare-acoustic.aaxs: (0.1000) 0.0764, 0.0526, new gain: 1.128400
-        drum-snare-electric.aaxs: (0.1000) 0.0900, 0.0321, new gain: 1.459032
-                 guiro-long.aaxs: (0.1000) 0.4711, 0.1787, new gain: 0.269196
-                guiro-short.aaxs: (0.1000) 0.5003, 0.1925, new gain: 0.251400
-              hi-hat-closed.aaxs: (0.1000) 0.0310, 0.0140, new gain: 3.689436
-                hi-hat-open.aaxs: (0.1000) 0.0523, 0.0256, new gain: 2.074350
-               hi-hat-pedal.aaxs: (0.1000) 0.0499, 0.0283, new gain: 1.975823
-                    maracas.aaxs: (0.1000) 0.1718, 0.0458, new gain: 0.890809
-                     shaker.aaxs: (0.1000) 0.1001, 0.0304, new gain: 1.430781
-                snap-finger.aaxs: (0.1000) 0.1011, 0.1023, new gain: 0.639205
-                     sticks.aaxs: (0.1000) 0.0176, 0.0118, new gain: 5.010221
-                 stick-side.aaxs: (0.1000) 0.0507, 0.0129, new gain: 3.088055
-                surdo-muted.aaxs: (0.1000) 0.0613, 0.0247, new gain: 1.995875
-                 surdo-open.aaxs: (0.1000) 0.0605, 0.0274, new gain: 1.883450
-                 tambourine.aaxs: (0.1000) 0.0458, 0.0138, new gain: 3.145470
-               timbale-high.aaxs: (0.1000) 0.1243, 0.0388, new gain: 1.136977
-                timbale-low.aaxs: (0.1000) 0.1248, 0.0676, new gain: 0.814836
-             tom-floor-high.aaxs: (0.1000) 0.0728, 0.0475, new gain: 1.230081
-              tom-floor-low.aaxs: (0.1000) 0.0720, 0.0566, new gain: 1.087767
-                   tom-high.aaxs: (0.1000) 0.0707, 0.0376, new gain: 1.454864
-                    tom-low.aaxs: (0.1000) 0.0733, 0.0485, new gain: 1.210120
-               tom-mid-high.aaxs: (0.1000) 0.0724, 0.0422, new gain: 1.337334
-                tom-mid-low.aaxs: (0.1000) 0.0708, 0.0421, new gain: 1.349863
-             triangle-muted.aaxs: (0.1000) 0.0711, 0.0197, new gain: 2.115212
-              triangle-open.aaxs: (0.1000) 0.0734, 0.0342, new gain: 1.526806
-                  vibraslap.aaxs: (0.1000) 0.7768, 0.2243, new gain: 0.189347
-               whistle-long.aaxs: (0.1000) 0.8115, 0.3076, new gain: 0.156343
-              whistle-short.aaxs: (0.1000) 0.7910, 0.2497, new gain: 0.177511
-            wood-block-high.aaxs: (0.1000) 0.3609, 0.2012, new gain: 0.276450
-             wood-block-low.aaxs: (0.1000) 0.1590, 0.0776, new gain: 0.684494
+                 agogo-high.aaxs: -33.0, new gain:  4.5
+                  agogo-low.aaxs: -33.2, new gain:  4.6
+                  bell-ride.aaxs: -23.4, new gain:  1.5
+                 bongo-high.aaxs: -31.9, new gain:  3.9
+                  bongo-low.aaxs: -32.4, new gain:  4.2
+                     cabasa.aaxs: -13.9, new gain:  0.5
+                  clap-hand.aaxs: -20.1, new gain:  1.0
+                     claves.aaxs: -17.7, new gain:  0.8
+            click-metronome.aaxs: -12.9, new gain:  0.4
+                 conga-high.aaxs: -27.0, new gain:  2.2
+           conga-high-muted.aaxs: -24.9, new gain:  1.8
+                  conga-low.aaxs: -29.6, new gain:  3.0
+                    cowbell.aaxs: -31.8, new gain:  3.9
+                cuica-muted.aaxs: -21.9, new gain:  1.2
+                 cuica-open.aaxs: -14.2, new gain:  0.5
+             cymbal-chinese.aaxs: -18.3, new gain:  0.8
+              cymbal-crash2.aaxs: -24.5, new gain:  1.7
+               cymbal-crash.aaxs: -24.2, new gain:  1.6
+               cymbal-ride2.aaxs: -29.2, new gain:  2.9
+                cymbal-ride.aaxs: -28.8, new gain:  2.8
+              cymbal-splash.aaxs: -15.1, new gain:  0.6
+                 drum-bass1.aaxs: -28.6, new gain:  2.7
+         drum-bass-acoustic.aaxs: -31.4, new gain:  3.7
+        drum-snare-acoustic.aaxs: -28.9, new gain:  2.8
+        drum-snare-electric.aaxs: -26.7, new gain:  2.2
+                 guiro-long.aaxs: -9.5, new gain:  0.3
+                guiro-short.aaxs: -9.4, new gain:  0.3
+              hi-hat-closed.aaxs: -31.7, new gain:  3.8
+                hi-hat-open.aaxs: -27.6, new gain:  2.4
+               hi-hat-pedal.aaxs: -27.8, new gain:  2.5
+                    maracas.aaxs: -16.6, new gain:  0.7
+                     shaker.aaxs: -20.9, new gain:  1.1
+                snap-finger.aaxs: -22.7, new gain:  1.4
+                     sticks.aaxs: -37.1, new gain:  7.2
+                 stick-side.aaxs: -31.6, new gain:  3.8
+                surdo-muted.aaxs: -30.8, new gain:  3.5
+                 surdo-open.aaxs: -31.6, new gain:  3.8
+                 tambourine.aaxs: -28.4, new gain:  2.6
+               timbale-high.aaxs: -24.1, new gain:  1.6
+                timbale-low.aaxs: -24.5, new gain:  1.7
+             tom-floor-high.aaxs: -30.4, new gain:  3.3
+              tom-floor-low.aaxs: -30.7, new gain:  3.4
+                   tom-high.aaxs: -29.1, new gain:  2.8
+                    tom-low.aaxs: -30.2, new gain:  3.2
+               tom-mid-high.aaxs: -29.6, new gain:  3.0
+                tom-mid-low.aaxs: -29.4, new gain:  3.0
+             triangle-muted.aaxs: -24.8, new gain:  1.7
+              triangle-open.aaxs: -24.6, new gain:  1.7
+                  vibraslap.aaxs: -6.7, new gain:  0.2
+               whistle-long.aaxs: -6.2, new gain:  0.2
+              whistle-short.aaxs: -5.5, new gain:  0.2
+            wood-block-high.aaxs: -13.7, new gain:  0.5
+             wood-block-low.aaxs: -22.2, new gain:  1.3

@@ -11,7 +11,7 @@
  <info name="Low Timbale">
  </info>
 
- <sound gain="0.81" frequency="800" duration="0.1">
+ <sound gain="1.67" frequency="800" duration="0.1">
   <waveform src="pink-noise" ratio="0.8" pitch="0.25"/>
   <waveform src="sine" processing="add" ratio="0.6"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>

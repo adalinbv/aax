@@ -11,7 +11,7 @@
  <info name="Base Drum 1">
  </info>
 
- <sound gain="1.34" frequency="55" duration="0.1">
+ <sound gain="2.69" frequency="55" duration="0.1">
   <waveform src="triangle" ratio="0.4"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
   <filter type="bitcrusher">

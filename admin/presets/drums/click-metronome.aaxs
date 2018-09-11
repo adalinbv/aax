@@ -11,7 +11,7 @@
  <info name="Metronome Click">
  </info>
 
- <sound gain="0.38" frequency="880" duration="0.1">
+ <sound gain="0.44" frequency="880" duration="0.1">
   <waveform src="white-noise" ratio="40.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.0" pitch="17.7587"/>
@@ -28,7 +28,7 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.8</param>
+    <param n="0">1.2</param>
     <param n="1">0.03</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

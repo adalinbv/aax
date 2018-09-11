@@ -11,8 +11,8 @@
  <info name="Slap Conga">
  </info>
 
- <sound gain="1.08" frequency="1140" duration="0.1">
-  <waveform src="pink-noise" ratio="1.0" pitch="0.22"/>
+ <sound gain="1.76" frequency="1140" duration="0.1">
+  <waveform src="pink-noise" pitch="0.22"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.65"/>
  </sound>
 
