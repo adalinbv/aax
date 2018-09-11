@@ -653,7 +653,7 @@ int main(int argc, char **argv)
     if (infile)
     {
         char tmpfile[128], aaxsfile[128];
-        float rm; // rms1, rms2;
+        float rms; // rms1, rms2;
         double loudness;
         float dt, step;
         struct aax_t aax;
