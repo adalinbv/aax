@@ -27,15 +27,15 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.8</param>
+    <param n="0">0.2</param>
     <param n="1">0.08</param>
-    <param n="2">1.6</param>
+    <param n="2">1.0</param>
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
     <param n="0">0.01</param>
     <param n="1">0.05</param>
-    <param n="2">1.6</param>
+    <param n="2">1.0</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
