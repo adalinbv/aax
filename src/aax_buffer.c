@@ -1270,19 +1270,17 @@ _bufAAXSThread(void *d)
             if (bits != 16) bits = 24;
          }
 
+         handle->pitch_levels = 1;
          if (!freq)
          {
             freq = xmlAttributeGetDouble(xsid, "frequency");
             handle->rate = freq;
             if (max_frequency > 0.0f)
             {
-               handle->pitch_levels = log2i(ceilf(max_frequency/freq));
+               handle->pitch_levels = _MAX(1, log2i(ceilf(max_frequency/freq)));
                if (handle->pitch_levels > MAX_PITCH_LEVELS) {
                   handle->pitch_levels = MAX_PITCH_LEVELS;
                }
-            }
-            else {
-               handle->pitch_levels = 1;
             }
          }
          if (xmlAttributeExists(xsid, "voices")) {

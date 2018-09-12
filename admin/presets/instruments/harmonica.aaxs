@@ -12,11 +12,11 @@
   <note polyphony="4" min="60" max="84" step="12"/>
  </info>
 
- <sound gain="6.80" frequency="220" duration="0.75">
+ <sound gain="8.86" frequency="261" duration="0.75">
   <waveform src="sawtooth"/>
   <waveform src="pink-noise" processing="mix" ratio="0.1"/>
   <waveform src="sawtooth" processing="mix" ratio="0.3" pitch="3.9836"/>
-  <waveform src="square" processing="modulate" ratio="1.0" pitch="3.0"/>
+  <waveform src="square" processing="modulate" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
@@ -24,13 +24,13 @@
    <slot n="0">
     <param n="0">0.5</param>
     <param n="1">0.06</param>
-    <param n="2">1.0</param>
+    <param n="2">0.8</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.9</param>
+    <param n="0">0.6</param>
     <param n="1">inf</param>
-    <param n="2">0.9</param>
+    <param n="2">0.6</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

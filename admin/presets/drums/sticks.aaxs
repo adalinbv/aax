@@ -11,8 +11,8 @@
  <info name="Sticks">
  </info>
 
- <sound gain="5.01" frequency="880" duration="0.1">
-  <waveform src="white-noise" ratio="1.0" pitch="0.05"/>
+ <sound gain="8.23" frequency="880" duration="0.1">
+  <waveform src="white-noise" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="11.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">

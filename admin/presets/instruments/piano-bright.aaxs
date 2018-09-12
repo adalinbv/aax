@@ -12,7 +12,7 @@
   <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="2.20" frequency="440" duration="0.5">
+ <sound gain="3.38" frequency="220" duration="0.5">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="-0.2" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="1.1" pitch="3.01"/>
@@ -52,7 +52,7 @@
  <audioframe>
   <filter type="frequency" src="24db" optional="true">
    <slot n="0">
-    <param n="0" pitch="20.0">8800.0</param>
+    <param n="0" pitch="20.0">4400.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>

@@ -11,7 +11,7 @@
  <info name="Whistle (Short)">
  </info>
 
- <sound gain="0.18" frequency="350" duration="0.1">
+ <sound gain="0.75" frequency="350" duration="0.1">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -27,13 +27,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.98</param>
+    <param n="0">1.98</param>
     <param n="1">0.05</param>
-    <param n="2">1.0</param>
+    <param n="2">2.0</param>
     <param n="3">0.35</param>
    </slot>
    <slot n="1">
-    <param n="0">0.15</param>
+    <param n="0">1.15</param>
     <param n="1">0.15</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

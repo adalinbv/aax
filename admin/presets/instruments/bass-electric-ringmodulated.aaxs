@@ -12,7 +12,7 @@
   <note polyphony="6" min="28" max="55" step="12"/>
  </info>
 
- <sound gain="2.76" frequency="110" duration="0.1">
+ <sound gain="10.33" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
@@ -32,19 +32,19 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>
-    <param n="2">1.0</param>
+    <param n="2">0.5</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.8</param>
+    <param n="0">0.3</param>
     <param n="1">inf</param>
-    <param n="2">0.8</param>
+    <param n="2">0.3</param>
     <param n="3">0.4</param>
    </slot>
   </filter>
   <effect type="ringmodulator" src="envelope">
    <slot n="0">
-    <param n="0">0.0</param>
+    <param n="0">0.5</param>
     <param n="1">0.1</param>
     <param n="2" pitch="0.4">44.0</param>
     <param n="3" pitch="0.375">41.25</param>

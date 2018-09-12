@@ -13,7 +13,7 @@
   <position x="2.0" y="0.0" z="-1.0"/>
  </info>
 
- <sound gain="1.87" frequency="220" voices="5" spread="0.3">
+ <sound gain="3.20" frequency="220" voices="5" spread="0.3">
   <waveform src="sawtooth" ratio="0.2" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.2" pitch="1.487"/>
   <waveform src="sawtooth" processing="mix" ratio="0.8"/>

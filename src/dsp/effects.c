@@ -130,6 +130,9 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       effect->param[AAX_CLIPPING_FACTOR] = 0.3f;
       effect->param[AAX_ASYMMETRY] = 0.7f;
       break;
+   case RINGMODULATE_EFFECT:
+      effect->param[AAX_GAIN] = 1.0f;
+      break;
    case REVERB_EFFECT:
       if (slot == 0) {
          effect->param[AAX_CUTOFF_FREQUENCY] = 15000.0f;

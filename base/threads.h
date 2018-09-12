@@ -62,6 +62,7 @@ typedef struct
 #else
    struct timespec ts;
 #endif
+
 } _aaxSignal;
 
 int _aaxProcessSetPriority(int);
@@ -180,7 +181,12 @@ _aaxSignal *_aaxSignalCreate();
 void _aaxSignalInit(_aaxSignal *);
 void _aaxSignalDestroy(_aaxSignal*);
 void _aaxSignalFree(_aaxSignal*);
+#ifndef NDEBUG
+int _aaxSignalTriggerDebug(_aaxSignal*, char *, int);
+#define _aaxSignalTrigger(a)	_aaxSignalTriggerDebug(a, __FILE__, __LINE__)
+#else
 int _aaxSignalTrigger(_aaxSignal*);
+#endif
 int _aaxSignalWait(_aaxSignal*);
 int _aaxSignalWaitTimed(_aaxSignal*, float);
 

@@ -11,7 +11,7 @@
  <info name="Maracas">
  </info>
 
- <sound gain="0.89" frequency="880" duration="0.1">
+ <sound gain="2.30" frequency="880" duration="0.1">
   <waveform src="pink-noise" ratio="19.0" pitch="0.33"/>
   <filter type="frequency" src="48db">
    <slot n="0">
@@ -26,9 +26,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.5</param>
+    <param n="0">1.0</param>
     <param n="1">0.03</param>
-    <param n="2">1.0</param>
+    <param n="2">1.5</param>
     <param n="3">0.23</param>
    </slot>
   </filter>
