@@ -267,14 +267,14 @@ _aaxMutexCreateDebug(void *mutex, const char *name, const char *fn)
 }
 #endif
 
+#ifndef NDEBUG
 _aaxMutex *
 _aaxMutexCreateInt(_aaxMutex *m)
 {
    if (m && m->initialized == 0)
    {
-      int status;
-#if 1
       pthread_mutexattr_t mta;
+      int status;
 
       status = pthread_mutexattr_init(&mta);
       if (!status)
@@ -288,9 +288,6 @@ _aaxMutexCreateInt(_aaxMutex *m)
             status = pthread_mutex_init(&m->mutex, &mta);
          }
       }
-#else
-      status = pthread_mutex_init(&m->mutex, NULL);
-#endif
 
       if (!status) {
          m->initialized = 1;
@@ -299,6 +296,21 @@ _aaxMutexCreateInt(_aaxMutex *m)
 
    return m;
 }
+#else
+_aaxMutex *
+_aaxMutexCreateInt(_aaxMutex *m)
+{
+   if (m && m->initialized == 0)
+   {
+      int status = pthread_mutex_init(&m->mutex, NULL);
+      if (!status) {
+         m->initialized = 1;
+      }
+   }
+
+   return m;
+}
+#endif
 
 void
 _aaxMutexDestroy(void *mutex)
@@ -374,11 +386,11 @@ _aaxMutexLockDebug(void *mutex, char *file, int line)
 #ifndef NDEBUG
 # ifdef __GNUC__
          unsigned int mtx;
- 
+
          mtx = m->mutex.__data.__count;	/* only works for recursive locks */
          if (mtx != 0 && mtx != 1) {
             printf("1. lock mutex = %i\n  %s line %i, for: %s in %s\n"
-                   "last called from: %s line %zu\n", mtx, file, line, 
+                   "last called from: %s line %zu\n", mtx, file, line,
                    m->name, m->function, m->last_file, m->last_line);
             r = -mtx;
             abort();
@@ -492,7 +504,7 @@ _aaxSignalInit(_aaxSignal *signal)
    if (!signal->condition) return;
 
    pthread_cond_init(signal->condition, 0);
-   
+
    signal->mutex = _aaxMutexCreate(signal->mutex);
 }
 
@@ -501,7 +513,7 @@ _aaxSignalFree(_aaxSignal *signal)
 {
    _aaxMutexDestroy(signal->mutex);
 
-   if (signal->condition) 
+   if (signal->condition)
    {
       pthread_cond_destroy(signal->condition);
       free(signal->condition);
@@ -575,7 +587,7 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
          signal->ts.tv_sec++;
          signal->ts.tv_nsec -= 1000000000L;
       }
-   
+
       signal->waiting = AAX_TRUE;
       do {
          rv = pthread_cond_timedwait(signal->condition, &m->mutex, &signal->ts);
@@ -606,6 +618,27 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
    return rv;
 }
 
+
+#ifndef NDEBUG
+int
+_aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
+{
+  int rv = 0;
+
+   _aaxMutexLockDebug(signal->mutex, file, line);
+   if (!signal->triggered)
+   {
+      /* signaling a condition which isn't waiting gets lost */
+      /* try to prevent this situation anyhow.               */
+      signal->triggered = 1;
+      signal->waiting = AAX_FALSE;
+      rv =  pthread_cond_signal(signal->condition);
+   }
+   _aaxMutexUnLock(signal->mutex);
+
+   return rv;
+}
+#else
 int
 _aaxSignalTrigger(_aaxSignal *signal)
 {
@@ -624,6 +657,7 @@ _aaxSignalTrigger(_aaxSignal *signal)
 
    return rv;
 }
+#endif
 
 
 inline _aaxSemaphore *
@@ -684,7 +718,7 @@ _aaxSemaphoreRelease(_aaxSemaphore *sem)
 
 #elif defined( WIN32 )	/* HAVE_PTHREAD_H */
 
-#include <base/dlsym.h> 
+#include <base/dlsym.h>
 
 # ifndef __MINGW32__
 int
@@ -755,7 +789,7 @@ _aaxThreadCreate()
 }
 
 int
-_aaxThreadSetAffinity(void *t, int core) 
+_aaxThreadSetAffinity(void *t, int core)
 {
    _aaxThread *thread = t;
    DWORD_PTR rv;
@@ -821,7 +855,7 @@ _aaxThreadDestroy(void *t)
 
 static DWORD WINAPI
 _callback_handler(LPVOID t)
-{ 
+{
    _aaxThread *thread = t;
 
    if (pAvSetMmThreadCharacteristicsA)
@@ -953,7 +987,7 @@ _aaxMutexCreateInt(_aaxMutex *m)
 #endif
    }
 
-   return m;  
+   return m;
 }
 
 void
@@ -1197,6 +1231,28 @@ _aaxSignalWaitTimed(_aaxSignal *signal, float timeout)
    return rv;
 }
 
+#ifndef NDEBUG
+int
+_aaxSignalTriggerDebug(_aaxSignal *signal, char *file, int line)
+{
+   BOOL rv = 0;
+
+   _aaxMutexLockDebug(signal->mutex, file, line);
+   if (!signal->triggered)
+   {
+      signal->triggered = 1;
+      signal->waiting = AAX_FALSE;
+      rv = SetEvent(signal->condition);
+
+      /* same return value as pthread_cond_signal() */
+      if (rv) rv = 0;
+      else rv = GetLastError();
+   }
+   _aaxMutexUnLock(signal->mutex);
+
+   return rv;
+}
+#else
 int
 _aaxSignalTrigger(_aaxSignal *signal)
 {
@@ -1217,6 +1273,7 @@ _aaxSignalTrigger(_aaxSignal *signal)
 
    return rv;
 }
+#endif
 
 inline _aaxSemaphore *
 _aaxSemaphoreCreate(unsigned initial)
