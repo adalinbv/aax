@@ -11,7 +11,7 @@
  <info name="Shaker">
  </info>
 
- <sound gain="1.11" frequency="880" duration="0.1">
+ <sound gain="2.74" frequency="880" duration="0.1">
   <waveform src="pink-noise" ratio="19.0" pitch="0.33"/>
   <filter type="frequency" src="48db">
    <slot n="0">

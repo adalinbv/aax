@@ -11,7 +11,7 @@
  <info name="Cabasa">
  </info>
 
- <sound gain="0.49" frequency="440" duration="0.1">
+ <sound gain="2.19" frequency="440" duration="0.1">
   <waveform src="pink-noise" ratio="19.0" pitch="0.23"/>
   <filter type="frequency" src="48db">
    <slot n="0">

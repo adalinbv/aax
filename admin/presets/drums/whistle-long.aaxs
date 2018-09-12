@@ -11,7 +11,7 @@
  <info name="Whistle (Long)">
  </info>
 
- <sound gain="0.20" frequency="300" duration="0.1">
+ <sound gain="0.72" frequency="300" duration="0.1">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">

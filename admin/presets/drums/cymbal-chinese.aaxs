@@ -11,9 +11,9 @@
  <info name="Chinese Cymbal">
  </info>
 
- <sound gain="0.82" frequency="440" duration="0.2">
+ <sound gain="2.35" frequency="440" duration="0.2">
   <waveform src="sawtooth" pitch="1.297"/>
-  <waveform src="square" processing="modulate" ratio="1.0" pitch="2.5"/>
+  <waveform src="square" processing="modulate" pitch="2.5"/>
   <waveform src="white-noise" processing="mix" ratio="0.5" pitch="0.25"/>
   <waveform src="sine" processing="modulate" ratio="2.5" pitch="2.5"/>
   <filter type="frequency">

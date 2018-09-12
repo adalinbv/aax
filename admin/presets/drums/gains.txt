@@ -1,53 +1,53 @@
-                 agogo-high.aaxs: -33.0, new gain:  4.5
-                  agogo-low.aaxs: -33.2, new gain:  4.6
-                  bell-ride.aaxs: -23.4, new gain:  1.5
-                 bongo-high.aaxs: -31.9, new gain:  3.9
-                  bongo-low.aaxs: -32.4, new gain:  4.2
-                     cabasa.aaxs: -13.9, new gain:  0.5
-                  clap-hand.aaxs: -20.1, new gain:  1.0
-                     claves.aaxs: -17.7, new gain:  0.8
-            click-metronome.aaxs: -12.9, new gain:  0.4
-                 conga-high.aaxs: -27.0, new gain:  2.2
-           conga-high-muted.aaxs: -24.9, new gain:  1.8
-                  conga-low.aaxs: -29.6, new gain:  3.0
-                    cowbell.aaxs: -31.8, new gain:  3.9
-                cuica-muted.aaxs: -21.9, new gain:  1.2
-                 cuica-open.aaxs: -14.2, new gain:  0.5
-             cymbal-chinese.aaxs: -18.3, new gain:  0.8
-              cymbal-crash2.aaxs: -24.5, new gain:  1.7
-               cymbal-crash.aaxs: -24.2, new gain:  1.6
-               cymbal-ride2.aaxs: -29.2, new gain:  2.9
-                cymbal-ride.aaxs: -28.8, new gain:  2.8
-              cymbal-splash.aaxs: -15.1, new gain:  0.6
-                 drum-bass1.aaxs: -28.6, new gain:  2.7
-         drum-bass-acoustic.aaxs: -31.4, new gain:  3.7
-        drum-snare-acoustic.aaxs: -28.9, new gain:  2.8
-        drum-snare-electric.aaxs: -26.7, new gain:  2.2
-                 guiro-long.aaxs: -9.5, new gain:  0.3
-                guiro-short.aaxs: -9.4, new gain:  0.3
-              hi-hat-closed.aaxs: -31.7, new gain:  3.8
-                hi-hat-open.aaxs: -27.6, new gain:  2.4
-               hi-hat-pedal.aaxs: -27.8, new gain:  2.5
-                    maracas.aaxs: -16.6, new gain:  0.7
-                     shaker.aaxs: -20.9, new gain:  1.1
-                snap-finger.aaxs: -22.7, new gain:  1.4
-                     sticks.aaxs: -37.1, new gain:  7.2
-                 stick-side.aaxs: -31.6, new gain:  3.8
-                surdo-muted.aaxs: -30.8, new gain:  3.5
-                 surdo-open.aaxs: -31.6, new gain:  3.8
-                 tambourine.aaxs: -28.4, new gain:  2.6
-               timbale-high.aaxs: -24.1, new gain:  1.6
-                timbale-low.aaxs: -24.5, new gain:  1.7
-             tom-floor-high.aaxs: -30.4, new gain:  3.3
-              tom-floor-low.aaxs: -30.7, new gain:  3.4
-                   tom-high.aaxs: -29.1, new gain:  2.8
-                    tom-low.aaxs: -30.2, new gain:  3.2
-               tom-mid-high.aaxs: -29.6, new gain:  3.0
-                tom-mid-low.aaxs: -29.4, new gain:  3.0
-             triangle-muted.aaxs: -24.8, new gain:  1.7
-              triangle-open.aaxs: -24.6, new gain:  1.7
-                  vibraslap.aaxs: -6.7, new gain:  0.2
-               whistle-long.aaxs: -6.2, new gain:  0.2
-              whistle-short.aaxs: -5.5, new gain:  0.2
-            wood-block-high.aaxs: -13.7, new gain:  0.5
-             wood-block-low.aaxs: -22.2, new gain:  1.3
+                 agogo-high.aaxs: peak:  0.0, R128: -33.0, new gain:  4.0
+                  agogo-low.aaxs: peak:  0.0, R128: -33.2, new gain:  4.1
+                  bell-ride.aaxs: peak:  0.1, R128: -23.4, new gain:  1.5
+                 bongo-high.aaxs: peak:  0.1, R128: -31.7, new gain:  3.4
+                  bongo-low.aaxs: peak:  0.1, R128: -32.4, new gain:  3.7
+                     cabasa.aaxs: peak:  0.5, R128: -14.0, new gain:  2.2
+                  clap-hand.aaxs: peak:  0.3, R128: -19.5, new gain:  2.3
+                     claves.aaxs: peak:  0.2, R128: -17.4, new gain:  1.6
+            click-metronome.aaxs: peak:  0.5, R128: -11.4, new gain:  1.7
+                 conga-high.aaxs: peak:  0.1, R128: -27.1, new gain:  2.3
+           conga-high-muted.aaxs: peak:  0.1, R128: -25.1, new gain:  2.0
+                  conga-low.aaxs: peak:  0.1, R128: -29.6, new gain:  2.9
+                    cowbell.aaxs: peak:  0.0, R128: -31.8, new gain:  3.5
+                cuica-muted.aaxs: peak:  0.1, R128: -21.9, new gain:  1.6
+                 cuica-open.aaxs: peak:  0.3, R128: -14.2, new gain:  1.3
+             cymbal-chinese.aaxs: peak:  0.3, R128: -18.2, new gain:  2.3
+              cymbal-crash2.aaxs: peak:  0.2, R128: -24.2, new gain:  2.3
+               cymbal-crash.aaxs: peak:  0.2, R128: -24.6, new gain:  2.3
+               cymbal-ride2.aaxs: peak:  0.1, R128: -29.1, new gain:  2.5
+                cymbal-ride.aaxs: peak:  0.1, R128: -28.8, new gain:  2.4
+              cymbal-splash.aaxs: peak:  0.4, R128: -15.2, new gain:  2.1
+                 drum-bass1.aaxs: peak:  0.1, R128: -28.6, new gain:  2.4
+         drum-bass-acoustic.aaxs: peak:  0.1, R128: -31.5, new gain:  3.3
+        drum-snare-acoustic.aaxs: peak:  0.1, R128: -29.0, new gain:  2.9
+        drum-snare-electric.aaxs: peak:  0.1, R128: -26.6, new gain:  2.4
+                 guiro-long.aaxs: peak:  0.5, R128: -9.3, new gain:  1.4
+                guiro-short.aaxs: peak:  0.5, R128: -9.3, new gain:  1.4
+              hi-hat-closed.aaxs: peak:  0.1, R128: -32.0, new gain:  3.5
+                hi-hat-open.aaxs: peak:  0.1, R128: -27.3, new gain:  2.3
+               hi-hat-pedal.aaxs: peak:  0.1, R128: -28.1, new gain:  2.4
+                    maracas.aaxs: peak:  0.4, R128: -17.1, new gain:  2.3
+                     shaker.aaxs: peak:  0.3, R128: -21.7, new gain:  2.7
+                snap-finger.aaxs: peak:  0.1, R128: -22.8, new gain:  1.4
+                     sticks.aaxs: peak:  0.0, R128: -39.3, new gain:  8.2
+                 stick-side.aaxs: peak:  0.1, R128: -31.3, new gain:  3.3
+                surdo-muted.aaxs: peak:  0.1, R128: -30.7, new gain:  3.0
+                 surdo-open.aaxs: peak:  0.1, R128: -31.7, new gain:  3.4
+                 tambourine.aaxs: peak:  0.1, R128: -28.8, new gain:  2.5
+               timbale-high.aaxs: peak:  0.1, R128: -24.1, new gain:  2.1
+                timbale-low.aaxs: peak:  0.1, R128: -24.4, new gain:  2.1
+             tom-floor-high.aaxs: peak:  0.1, R128: -30.1, new gain:  2.8
+              tom-floor-low.aaxs: peak:  0.1, R128: -30.9, new gain:  3.1
+                   tom-high.aaxs: peak:  0.1, R128: -29.2, new gain:  2.6
+                    tom-low.aaxs: peak:  0.1, R128: -30.5, new gain:  3.0
+               tom-mid-high.aaxs: peak:  0.1, R128: -29.6, new gain:  2.7
+                tom-mid-low.aaxs: peak:  0.1, R128: -29.5, new gain:  2.7
+             triangle-muted.aaxs: peak:  0.1, R128: -24.8, new gain:  1.5
+              triangle-open.aaxs: peak:  0.1, R128: -24.6, new gain:  1.6
+                  vibraslap.aaxs: peak:  0.6, R128: -6.9, new gain:  1.1
+               whistle-long.aaxs: peak:  0.5, R128: -4.3, new gain:  0.7
+              whistle-short.aaxs: peak:  0.5, R128: -4.7, new gain:  0.7
+            wood-block-high.aaxs: peak:  0.5, R128: -15.5, new gain:  2.4
+             wood-block-low.aaxs: peak:  0.2, R128: -23.0, new gain:  2.6

@@ -11,7 +11,7 @@
  <info name="High Mid Tom">
  </info>
 
- <sound gain="3.03" frequency="163" duration="0.1">
+ <sound gain="2.69" frequency="163" duration="0.1">
   <waveform src="pink-noise" ratio="0.5" pitch="0.12"/>
   <waveform src="triangle" processing="add" ratio="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>

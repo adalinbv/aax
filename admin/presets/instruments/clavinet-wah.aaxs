@@ -12,7 +12,7 @@
   <note polyphony="60" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="18.60" frequency="220" duration="0.1">
+ <sound gain="16.58" frequency="220" duration="0.1">
   <waveform src="impulse" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.4"/>
   <filter type="frequency" src="48db">

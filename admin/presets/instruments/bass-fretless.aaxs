@@ -12,7 +12,7 @@
   <note polyphony="6" min="28" max="55" step="12"/>
  </info>
 
- <sound gain="2.77" frequency="110" duration="0.1">
+ <sound gain="3.98" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
@@ -42,14 +42,6 @@
     <param n="3">0.4</param>
    </slot>
   </filter>
-  <effect type="chorus" src="envelope" optional="true">
-   <slot n="0">
-    <param n="0">0.6</param>
-    <param n="1">0.05</param>
-    <param n="2">0.2</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </emitter>
 
  <audioframe>

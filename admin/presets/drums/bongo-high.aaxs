@@ -11,7 +11,7 @@
  <info name="High Bongo">
  </info>
 
- <sound gain="3.94" frequency="1400" duration="0.1">
+ <sound gain="3.44" frequency="1400" duration="0.1">
   <waveform src="pink-noise" pitch="0.25"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>
