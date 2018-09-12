@@ -12,7 +12,7 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="3.38" frequency="220" voices="5" spread="0.3">
+ <sound gain="4.70" frequency="220" voices="5" spread="0.3">
   <waveform src="triangle" processing="add" ratio="0.5" voices="3" spread="0.7"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.4993"/>
   <filter type="bitcrusher">
