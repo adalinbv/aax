@@ -180,7 +180,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain)
     dsp->dtype = t;
     dsp->type = xmlAttributeGetString(xid, "type");
 
-    if (!timed_gain && !strcasecmp(dsp->type, "timed-gain")) {
+    if (!timed_gain && (!strcasecmp(dsp->type, "timed-gain") || !strcasecmp(dsp->type, "dynamic-gain"))) {
         dsp->src = strdup("false");
     } else {
         dsp->src = xmlAttributeGetString(xid, "src");
@@ -300,7 +300,7 @@ void print_waveform(struct waveform_t *wave, FILE *output)
     fprintf(output, "  <waveform src=\"%s\"", wave->src);
     if (wave->processing) fprintf(output, " processing=\"%s\"", wave->processing);
     if (wave->ratio) {
-        if (wave->processing && !strcasecmp(wave->processing, "modulate") && wave->ratio != 0.5f) {
+        if (wave->processing && !strcasecmp(wave->processing, "mix") && wave->ratio != 0.5f) {
             fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
         } else if (wave->ratio != 1.0f) {
             fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
@@ -654,7 +654,7 @@ int main(int argc, char **argv)
     {
         char tmpfile[128], aaxsfile[128];
         float rms; // rms1, rms2;
-        double loudness;
+        double loudness, peak;
         float dt, step;
         struct aax_t aax;
         aaxBuffer buffer;
@@ -769,11 +769,12 @@ int main(int argc, char **argv)
             float *buffer = data[0];
             ebur128_state *st;
 
-            st = ebur128_init(tracks, freq, EBUR128_MODE_I);
+            st = ebur128_init(tracks, freq, EBUR128_MODE_I|EBUR128_MODE_SAMPLE_PEAK);
             if (st)
             {
                 ebur128_add_frames_float(st, buffer, no_samples);
                 ebur128_loudness_global(st, &loudness);
+                ebur128_sample_peak(st, 0, &peak);
                 ebur128_destroy(&st);
             }
             aaxFree(data);
@@ -784,10 +785,10 @@ int main(int argc, char **argv)
         aaxDriverDestroy(config);
 
 //      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
-        rms = _db2lin(-20.0f)/_db2lin(loudness);
+        rms = 10.0f*_MAX(peak, 0.1f)*(_db2lin(-21.0f)/_db2lin(loudness));
 
 //      printf("% 32s: %5.4f, %5.4f | % -3.1f", infile, rms1, rms2, loudness);
-        printf("% 32s: % -3.1f", infile, loudness);
+        printf("% 32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
         printf(", new gain: %4.1f\n", rms);
 
         fill_aax(&aax, infile, rms, 1);
