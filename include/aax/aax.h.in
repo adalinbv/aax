@@ -416,6 +416,7 @@ enum aaxParameter {	/* Filter & Effect parameter number definitions */
 
    /** AAX_BITCRUSHER_FILTER, first parameter is noise level **/
    AAX_NOISE_LEVEL = 0,
+   /** AAX_RINGMODULATOR_EFFECT, first parameter is AAX_GAIN **/
    /** AAX_DYNAMIC_GAIN_FILTER, ignores AAX_DELAY_GAIN  **/
    /** AAX_DYNAMIC_PITCH_EFFECT, ignores AAX_DELAY_GAIN **/
    /** AAX_PHASING_EFFECT  **/

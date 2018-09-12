@@ -41,6 +41,9 @@
 #include "arch.h"
 
 
+static void _ringmodulate_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+
+
 static aaxEffect
 _aaxRingModulateEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
@@ -99,16 +102,25 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
       if (modulator)
       {
          int constant;
+         float gain;
+
+         modulator->run = _ringmodulate_run;
+
+         gain = effect->slot[0]->param[AAX_GAIN];
+         modulator->amplitude = (gain < 0.0f) ? AAX_TRUE : AAX_FALSE;
+         modulator->gain = fabsf(gain);
 
          modulator->lfo.convert = _linear;
          modulator->lfo.state = effect->state;
          modulator->lfo.fs = effect->info->frequency;
          modulator->lfo.period_rate = effect->info->period_rate;
+         modulator->lfo.min = effect->slot[0]->param[AAX_LFO_OFFSET];
+         modulator->lfo.max = modulator->lfo.min + effect->slot[0]->param[AAX_LFO_DEPTH];
          modulator->lfo.envelope = AAX_FALSE;
          modulator->lfo.stereo_lnk = !stereo;
 
-         modulator->lfo.min_sec = effect->slot[0]->param[AAX_LFO_OFFSET]/modulator->lfo.fs;
-         modulator->lfo.max_sec = modulator->lfo.min_sec + effect->slot[0]->param[AAX_LFO_DEPTH]/modulator->lfo.fs;
+         modulator->lfo.min_sec = modulator->lfo.min/modulator->lfo.fs;
+         modulator->lfo.max_sec = modulator->lfo.max/modulator->lfo.fs;
          modulator->lfo.depth = 1.0f;
          modulator->lfo.offset = 0.0f;
          modulator->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
@@ -175,10 +187,10 @@ _aaxRingModulateEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxRingModulateRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                /* max[4] */
-    { { 0.0f,  0.0f, 10.0f, 10.0f }, { 0.0f, 50.0f, 10000.0f, 10000.0f } },
-    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
-    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
-    { { 0.0f,  0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } }
+    { {-1.0f,  0.01f, 0.01f, 0.01f }, { 1.0f, 50.0f, 10000.0f, 10000.0f } },
+    { { 0.0f,   0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
+    { { 0.0f,   0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
+    { { 0.0f,   0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
@@ -204,3 +216,34 @@ _eff_function_tbl _aaxRingModulateEffect =
    (_aaxEffectConvert*)&_aaxRingModulateEffectMinMax
 };
 
+void
+_ringmodulate_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env, unsigned int track)
+{
+      _aaxRingModulatorData *modulate = data;
+      float f, gain, p, step;
+      unsigned int i;
+
+      gain = modulate->gain;
+      f = modulate->lfo.get(&modulate->lfo, env, s, track, end);
+      step = f/(GMATH_2PI*no_samples);
+
+      p = modulate->phase[track];
+      if (modulate->amplitude)
+      {
+         gain *= 0.5f;
+         for (i=0; i<no_samples; ++i)
+         {
+            s[i] *= (1.0f - gain*(1.0f + fast_sin(p)));
+            p = fmodf(p+step, GMATH_2PI);
+         }
+      }
+      else
+      {
+         for (i=0; i<no_samples; ++i)
+         {
+            s[i] *= gain*fast_sin(p);
+            p = fmodf(p+step, GMATH_2PI);
+         }
+      }
+      modulate->phase[track] = p;
+}

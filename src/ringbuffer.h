@@ -301,8 +301,13 @@ typedef struct
 
 typedef struct
 {
+   void (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+
+   float gain;
    float phase[_AAX_MAX_SPEAKERS];
    _aaxLFOData lfo;
+
+   char amplitude;
 }
 _aaxRingModulatorData;
 

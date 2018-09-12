@@ -167,21 +167,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       }
    }
 
-   if (ringmodulator)
-   {
-      _aaxEnvelopeData *genv = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
-      float f = ringmodulator->lfo.get(&ringmodulator->lfo, genv, psrc, 0, end);
-      unsigned int i;
-      float p, step;
-
-      step = f/(GMATH_2PI*no_samples);
-      p = ringmodulator->phase[track];
-      for (i=0; i<no_samples; ++i)
-      {
-         psrc[i] *= fast_sin(p);
-         p = fmodf(p+step, GMATH_2PI);
-      }
-      ringmodulator->phase[track] = fmodf(p, GMATH_2PI);
+   if (ringmodulator) {
+       ringmodulator->run(psrc, end, no_samples, ringmodulator, env, track);
    }
 
    if (freq)
