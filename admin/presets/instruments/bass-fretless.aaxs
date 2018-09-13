@@ -12,11 +12,11 @@
   <note polyphony="6" min="28" max="55" step="12"/>
  </info>
 
- <sound gain="2.10" frequency="110" duration="0.1">
+ <sound gain="13.61" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="3.0"/>
-  <waveform src="sine" processing="modulate" ratio="1.0"/>
+  <waveform src="sine" processing="modulate"/>
   <filter type="frequency" src="true">
    <slot n="0">
     <param n="0" pitch="2.5">275.0</param>
