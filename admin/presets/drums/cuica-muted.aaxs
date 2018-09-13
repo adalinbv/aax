@@ -11,7 +11,7 @@
  <info name="Cuica (Muted)">
  </info>
 
- <sound gain="1.64" frequency="336" duration="0.01">
+ <sound gain="1.30" frequency="336" duration="0.01">
   <waveform src="sawtooth" ratio="0.8" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.8"/>
   <waveform src="triangle" processing="add" ratio="0.7" pitch="3.0"/>
@@ -34,9 +34,9 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.1</param>
+    <param n="0">1.0</param>
     <param n="1">0.02</param>
-    <param n="2">1.5</param>
+    <param n="2">1.25</param>
     <param n="3">0.3</param>
    </slot>
   </filter>

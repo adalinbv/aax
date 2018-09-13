@@ -11,7 +11,7 @@
  <info name="Cuica (Open)">
  </info>
 
- <sound gain="1.27" frequency="1008" duration="0.01">
+ <sound gain="1.01" frequency="1008" duration="0.01">
   <waveform src="sawtooth" ratio="0.8" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.8"/>
   <waveform src="triangle" processing="add" ratio="0.7" pitch="3.0"/>
@@ -48,7 +48,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.03</param>
+    <param n="0">1.0</param>
     <param n="1">0.09</param>
     <param n="2">0.95</param>
     <param n="3">0.0</param>

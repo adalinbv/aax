@@ -12,7 +12,7 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="9.23" frequency="220" duration="0.1">
+ <sound gain="7.33" frequency="220" duration="0.1">
   <waveform src="square" ratio="0.3"/>
   <waveform src="sawtooth" processing="add" ratio="0.3" pitch="1.4989"/>
  </sound>

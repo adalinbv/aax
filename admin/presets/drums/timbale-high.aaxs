@@ -11,7 +11,7 @@
  <info name="High Timbale">
  </info>
 
- <sound gain="2.09" frequency="1200" duration="0.1">
+ <sound gain="1.60" frequency="1200" duration="0.1">
   <waveform src="pink-noise" ratio="0.8" pitch="0.25"/>
   <waveform src="sine" processing="add" ratio="0.6"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>
@@ -20,9 +20,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.0</param>
+    <param n="0">1.4</param>
     <param n="1">0.15</param>
-    <param n="2">0.6</param>
+    <param n="2">1.0</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

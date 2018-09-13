@@ -11,9 +11,9 @@
  <info name="Woodblock (Low)">
  </info>
 
- <sound gain="2.63" frequency="220" duration="0.1">
+ <sound gain="2.10" frequency="220" duration="0.1">
   <waveform src="white-noise" pitch="0.05"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="11.7587"/>
+  <waveform src="sine" processing="modulate" pitch="11.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="4.0">880.0</param>
@@ -27,7 +27,7 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.2</param>
+    <param n="0">1.9</param>
     <param n="1">0.05</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
