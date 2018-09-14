@@ -23,12 +23,11 @@
 # include "config.h"
 #endif
 
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
-#else
-# ifdef HAVE_UNISTD_H
-#  include <unistd.h>
-# endif
 #endif
 #ifdef HAVE_SYS_RANDOM_H
 # include <sys/random.h>

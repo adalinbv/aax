@@ -15,7 +15,6 @@
  <sound gain="12.79" frequency="440">
   <waveform src="sine" pitch="0.4993"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="0.5"/>
-  <waveform src="white-noise" processing="add" ratio="0.05" pitch="0.01"/>
   <filter type="bitcrusher">
    <slot n="0">
     <param n="0">0.1</param>
@@ -24,7 +23,7 @@
     <param n="3">0.53</param>
    </slot>
   </filter>
-  <waveform src="square" processing="mix" ratio="0.25"/>
+  <waveform src="square" processing="mix" ratio="0.25" voices="7"/>
  </sound>
 
  <emitter looping="true">
@@ -62,6 +61,14 @@
     <param n="1">4.5</param>
     <param n="2">0.975</param>
     <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="flanging" src="inverse-envelope" optional="false">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.15</param>
+    <param n="2">0.3</param>
+    <param n="3">0.5</param>
    </slot>
   </effect>
  </emitter>
