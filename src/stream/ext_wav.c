@@ -485,14 +485,14 @@ _wav_close(_ext_t *ext)
 
    if (handle)
    {
-      free(handle->artist);
-      free(handle->title);
-      free(handle->album);
-      free(handle->trackno);
-      free(handle->date);
-      free(handle->genre);
-      free(handle->copyright);
-      free(handle->comments);
+      if (handle->artist) free(handle->artist);
+      if (handle->title) free(handle->title);
+      if (handle->album) free(handle->album);
+      if (handle->trackno) free(handle->trackno);
+      if (handle->date) free(handle->date);
+      if (handle->genre) free(handle->genre);
+      if (handle->copyright) free(handle->copyright);
+      if (handle->comments) free(handle->comments);
 
 //    _aaxDataDestroy(handle->wavBuffer);
       _aax_free(handle->wavptr);

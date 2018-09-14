@@ -514,18 +514,18 @@ _mp3_close(_fmt_t *fmt)
       }
       _aaxDataDestroy(handle->mp3Buffer);
 
-      free(handle->trackno);
-      free(handle->artist);
-      free(handle->title);
-      free(handle->album);
-      free(handle->date);
-      free(handle->genre);
-      free(handle->comments);
-      free(handle->composer);
-      free(handle->copyright);
-      free(handle->original);
-      free(handle->website);
-      free(handle->image);
+      if (handle->trackno) free(handle->trackno);
+      if (handle->artist) free(handle->artist);
+      if (handle->title) free(handle->title);
+      if (handle->album) free(handle->album);
+      if (handle->date) free(handle->date);
+      if (handle->genre) free(handle->genre);
+      if (handle->comments) free(handle->comments);
+      if (handle->composer) free(handle->composer);
+      if (handle->copyright) free(handle->copyright);
+      if (handle->original) free(handle->original);
+      if (handle->website) free(handle->website);
+      if (handle->image) free(handle->image);
       free(handle);
    }
 }

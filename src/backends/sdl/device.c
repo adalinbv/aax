@@ -430,6 +430,7 @@ static int
 _aaxSDLDriverDisconnect(void *id)
 {
    _driver_t *handle = (_driver_t *)id;
+   char *ifname;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -456,7 +457,8 @@ _aaxSDLDriverDisconnect(void *id)
       }
       _aaxDataDestroy(handle->dataBuffer);
 
-      free(handle->ifname[(handle->mode == AAX_MODE_READ) ? 1 : 0]);
+      ifname = handle->ifname[(handle->mode == AAX_MODE_READ) ? 1 : 0];
+      if (ifname) free(ifname);
       free(handle);
    }
 

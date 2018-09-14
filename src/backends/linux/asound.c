@@ -694,8 +694,8 @@ _aaxALSADriverDisconnect(void *id)
          free(handle->default_name[m]);
       }
 
-      free(handle->ifname[0]);
-      free(handle->ifname[1]);
+      if (handle->ifname[0]) free(handle->ifname[0]);
+      if (handle->ifname[1]) free(handle->ifname[1]);
       if (handle->devname)
       {
          if (handle->devname != handle->default_name[m]) {
@@ -718,10 +718,13 @@ _aaxALSADriverDisconnect(void *id)
       }
 
       _alsa_pcm_close(handle);
-      _aax_free(handle->outMixer);
-      handle->outMixer = NULL;
+      if (handle->outMixer)
+      {
+         _aax_free(handle->outMixer);
+         handle->outMixer = NULL;
+      }
 
-      _aax_free(handle->ptr);
+      if (handle->ptr) _aax_free(handle->ptr);
       handle->ptr = 0;
       handle->pcm = 0;
       free(handle);
@@ -2500,7 +2503,7 @@ _alsa_get_volume_range_element(_driver_t *handle, const char *elem_name1,
       long min, max, init;
       if (m)
       {
-         free(handle->outMixer);
+         if (handle->outMixer) free(handle->outMixer);
          handle->outMixer = _aax_strdup(mixer_name);
 
          rv = psnd_mixer_selem_get_playback_volume(elem, SND_MIXER_SCHN_MONO, &init);

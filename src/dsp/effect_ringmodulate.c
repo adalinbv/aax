@@ -62,8 +62,11 @@ _aaxRingModulateEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxRingModulateEffectDestroy(_effect_t* effect)
 {
-   effect->slot[0]->destroy(effect->slot[0]->data);
-   effect->slot[0]->data = NULL;
+   if (effect->slot[0]->data)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
    free(effect);
 
    return AAX_TRUE;
@@ -135,11 +138,12 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
       break;
    }
    case AAX_FALSE:
-   {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
+      if (effect->slot[0]->data)
+      {
+         effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data = NULL;
+      }
       break;
-   }
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
@@ -231,7 +235,7 @@ _ringmodulate_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *
       if (modulate->amplitude)
       {
          gain *= 0.5f;
-         for (i=0; i<no_samples; ++i)
+         for (i=0; i<end; ++i)
          {
             s[i] *= (1.0f - gain*(1.0f + fast_sin(p)));
             p = fmodf(p+step, GMATH_2PI);
@@ -239,7 +243,7 @@ _ringmodulate_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *
       }
       else
       {
-         for (i=0; i<no_samples; ++i)
+         for (i=0; i<end; ++i)
          {
             s[i] *= gain*fast_sin(p);
             p = fmodf(p+step, GMATH_2PI);

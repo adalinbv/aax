@@ -382,8 +382,8 @@ _aaxOSSDriverDisconnect(void *id)
 
    if (handle)
    {
-      free(handle->ifname[0]);
-      free(handle->ifname[1]);
+      if (handle->ifname[0]) free(handle->ifname[0]);
+      if (handle->ifname[1]) free(handle->ifname[1]);
 
       if (handle->name != _const_oss_default_name) {
          free(handle->name);
@@ -409,7 +409,7 @@ _aaxOSSDriverDisconnect(void *id)
       }
 
       close(handle->fd);
-      free(handle->ptr);
+      if (handle->ptr) free(handle->ptr);
       free(handle);
 
       return AAX_TRUE;

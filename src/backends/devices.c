@@ -359,7 +359,7 @@ _aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *confi
                dev = xmlNodeGetString(xoid, "device");
                if (dev)
                {
-                  free(config->node[n].devname);
+                  if (config->node[n].devname) free(config->node[n].devname);
                   config->node[n].devname = _aax_strdup(dev);
                   xmlFree(dev);
                }
@@ -593,17 +593,17 @@ _aaxDriverBackendClearConfigSettings(_aaxConfig *config)
    for (i=0; i<config->no_nodes; i++)
    {
       int q;
-      free(config->node[i].setup);
-      free(config->node[i].devname);
-      xmlFree(config->node[i].hrtf);
+      if (config->node[i].setup) free(config->node[i].setup);
+      if (config->node[i].devname) free(config->node[i].devname);
+      if (config->node[i].hrtf) xmlFree(config->node[i].hrtf);
       for (q=0; q<config->node[i].no_speakers; q++) {
-         xmlFree(config->node[i].speaker[q]);
+         if (config->node[i].speaker[q]) xmlFree(config->node[i].speaker[q]);
       }
    }
 
-   free(config->backend.driver);
-   xmlFree(config->backend.input);
-   xmlFree(config->backend.output);
+   if (config->backend.driver) free(config->backend.driver);
+   if (config->backend.input) xmlFree(config->backend.input);
+   if (config->backend.output) xmlFree(config->backend.output);
 
    free(config);
 }

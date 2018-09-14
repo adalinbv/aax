@@ -46,8 +46,11 @@ void
 _lfo_destroy(void *data)
 {
    _aaxLFOData *lfo = data;
-   if (lfo) lfo->envelope = AAX_FALSE;
-   free(lfo);
+   if (lfo)
+   {
+      lfo->envelope = AAX_FALSE;
+      free(lfo);
+   }
 }
 
 int

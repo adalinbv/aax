@@ -115,7 +115,7 @@ _ext_create(_ext_type_t extension)
 void*
 _ext_free(_ext_t *ext)
 {
-   free(ext);
+   if (ext) free(ext);
    return NULL;
 }
 

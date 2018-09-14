@@ -467,6 +467,7 @@ _aaxLinuxDriverDisconnect(void *id)
    if (handle)
    {
       int page_size = _get_pagesize();
+      char *ifname;
 
       if (handle->fd >= 0) {
          close(handle->fd);
@@ -485,7 +486,8 @@ _aaxLinuxDriverDisconnect(void *id)
          }
       }
 
-      free(handle->ifname[handle->mode ? 1 : 0]);
+      ifname = handle->ifname[handle->mode ? 1 : 0];
+      if (ifname) free(ifname);
 
       if (handle->name != _const_kernel_default_name) {
          free(handle->name);
@@ -501,7 +503,7 @@ _aaxLinuxDriverDisconnect(void *id)
          free(handle->render);
       }
 
-      free(handle->ptr);
+      if (handle->ptr) free(handle->ptr);
       free(handle);
 
       return AAX_TRUE;
@@ -988,7 +990,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain
    {
       char *p;
 
-      _aax_free(handle->ptr);
+      if (handle->ptr) _aax_free(handle->ptr);
       handle->buf_len = outbuf_size;
 
       handle->ptr = (void**)_aax_malloc(&p, 0, outbuf_size);

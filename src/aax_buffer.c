@@ -731,7 +731,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
          buf = aaxBufferCreate(config, no_samples, tracks, fmt);
          if (buf)
          {
-             free(buf->url);
+             if(buf->url) free(buf->url);
              buf->url = strdup(url);
 
              aaxBufferSetSetup(buf, AAX_FREQUENCY, freq);

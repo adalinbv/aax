@@ -519,7 +519,9 @@ aaxDriverDestroy(aaxConfig config)
          handle->devname[0] = (char *)_aax_default_devname;
       }
 
-      if (handle->backend.driver != _default_renderer) {
+      if (handle->backend.driver &&
+          handle->backend.driver != _default_renderer)
+      {
          free(handle->backend.driver);
       }
 
@@ -631,7 +633,9 @@ aaxDriverGetDeviceNameByPos(const aaxConfig config, unsigned pos, enum aaxRender
             be_handle = be->new_handle(mode);
             handle->backend.handle = be_handle;
 
-            if (handle->backend.driver != _default_renderer) {
+            if (handle->backend.driver &&
+                handle->backend.driver != _default_renderer)
+            {
                free(handle->backend.driver);
             }
             renderer = be->name(handle->backend.handle, mode?1:0);
@@ -1094,7 +1098,7 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             handle->backend.ptr = be;
          }
 
-         free(handle->backend.driver);
+         if (handle->backend.driver) free(handle->backend.driver);
          handle->backend.driver = _aax_strdup(config->backend.driver);
 
          if (config->node[0].no_emitters)
@@ -1355,10 +1359,14 @@ _aaxFreeSensor(void *ssr)
    int i;
 
    /* frees both EQUALIZER_LF and EQUALIZER_HF */
-   free(sensor->filter[EQUALIZER_LF].data);
+   if (sensor->filter[EQUALIZER_LF].data) {
+      free(sensor->filter[EQUALIZER_LF].data);
+   }
 
    /* frees both HRTF_HEADSHADOW and SURROUND_CROSSOVER_LP **/
-   free(sensor->filter[HRTF_HEADSHADOW].data);
+   if (sensor->filter[HRTF_HEADSHADOW].data) {
+      free(sensor->filter[HRTF_HEADSHADOW].data);
+   }
 
    for (i=0; i<MAX_STEREO_FILTER; ++i) {
       _FILTER_FREE2D_DATA(smixer, i);

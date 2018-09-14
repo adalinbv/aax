@@ -376,7 +376,9 @@ _aaxStreamDriverDisconnect(void *id)
       if (handle->prot) {
          handle->prot = _prot_free(handle->prot);
       }
-      free(handle->out_header);
+      if (handle->out_header) {
+         free(handle->out_header);
+      }
 
       if (handle->render)
       {
@@ -385,7 +387,9 @@ _aaxStreamDriverDisconnect(void *id)
       }
 
       _aaxDataDestroy(handle->threadBuffer);
-      free(handle->interfaces);
+      if (handle->interfaces) {
+         free(handle->interfaces);
+      }
       free(handle);
    }
 
@@ -609,7 +613,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          }
          while (handle->mode == AAX_MODE_READ && buf && headerSize);
 
-         free(header);
+         if (header) {
+            free(header);
+         }
 
          if (headerSize && res == (int)headerSize)
          {

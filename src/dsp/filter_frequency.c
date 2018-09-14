@@ -318,7 +318,7 @@ _freqfilter_destroy(void *ptr)
    _aaxRingBufferFreqFilterData *flt = ptr;
    if (flt)
    {
-      free(flt->lfo);
+      if (flt->lfo) free(flt->lfo);
       free(flt);
    }
 }

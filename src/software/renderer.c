@@ -53,7 +53,7 @@ _aaxSoftwareInitRenderer(float dt, enum aaxRenderMode mode, int registered)
          if (type && type->detect()) {
             found = i;
          }
-         free(type);
+         if (type) free(type);
       }
 
       if (found >= 0)
