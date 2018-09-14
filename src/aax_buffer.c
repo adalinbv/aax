@@ -1344,25 +1344,28 @@ _bufAAXSThread(void *d)
             }
 
             xwid = xmlMarkId(xsid);
-            num = xmlNodeGetNum(xsid, "*");
-            for (i=0; i<num; i++)
+            if (xwid)
             {
-               if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
+               num = xmlNodeGetNum(xsid, "*");
+               for (i=0; i<num; i++)
                {
-                  char *name = xmlNodeGetName(xwid);
-                  if (!strcasecmp(name, "waveform")) {
-                     rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency, b,
-                                                     voices, spread);
-                  } else if (!strcasecmp(name, "filter")) {
-                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
-                  } else if (!strcasecmp(name, "effect")) {
-                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency);
+                  if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
+                  {
+                     char *name = xmlNodeGetName(xwid);
+                     if (!strcasecmp(name, "waveform")) {
+                        rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
+                                                        b, voices, spread);
+                     } else if (!strcasecmp(name, "filter")) {
+                        rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
+                     } else if (!strcasecmp(name, "effect")) {
+                        rv = _bufCreateEffectFromAAXS(handle, xwid, frequency);
+                     }
+                     xmlFree(name);
+                     if (rv == AAX_FALSE) break;
                   }
-                  free(name);
-                  if (rv == AAX_FALSE) break;
                }
+               xmlFree(xwid);
             }
-            xmlFree(xwid);
 
             if (bits == 16)
             {

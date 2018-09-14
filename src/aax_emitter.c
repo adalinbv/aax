@@ -1522,7 +1522,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
       {
          int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
-         void *xeid, *xfid = xmlMarkId(xmid);
+         void *xeid, *xfid;
 
          if (xmlAttributeExists(xmid, "looping"))
          {
@@ -1538,51 +1538,58 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
             _aaxSetDefault2dFiltersEffects(src->props2d);
          }
 
-         for (i=0; i<num; i++)
+         xfid = xmlMarkId(xmid);
+         if (xfid)
          {
-            if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+            for (i=0; i<num; i++)
             {
-               int non_optional = AAX_TRUE;
-               if (xmlAttributeExists(xfid, "optional")) {
-                  non_optional = !xmlAttributeGetBool(xfid, "optional");
-               }
-               if (non_optional || !get_low_resource())
+               if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
                {
-                   aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
-                   if (flt)
-                   {
-                     _filter_t* filter = get_filter(flt);
-                      _emitterSetFilter(handle->source, filter);
-                      aaxFilterDestroy(flt);
+                  int non_optional = AAX_TRUE;
+                  if (xmlAttributeExists(xfid, "optional")) {
+                     non_optional = !xmlAttributeGetBool(xfid, "optional");
+                  }
+                  if (non_optional || !get_low_resource())
+                  {
+                      aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
+                      if (flt)
+                      {
+                        _filter_t* filter = get_filter(flt);
+                         _emitterSetFilter(handle->source, filter);
+                         aaxFilterDestroy(flt);
+                      }
                    }
                }
             }
+            xmlFree(xfid);
          }
-         xmlFree(xfid);
 
          xeid = xmlMarkId(xmid);
-         num = xmlNodeGetNum(xmid, "effect");
-         for (i=0; i<num; i++)
+         if (xeid)
          {
-            if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
+            num = xmlNodeGetNum(xmid, "effect");
+            for (i=0; i<num; i++)
             {
-               int non_optional = AAX_TRUE;
-               if (xmlAttributeExists(xeid, "optional")) {
-                  non_optional = !xmlAttributeGetBool(xeid, "optional");
-               }
-               if (non_optional || !get_low_resource())
+               if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
                {
-                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
-                  if (eff)
+                  int non_optional = AAX_TRUE;
+                  if (xmlAttributeExists(xeid, "optional")) {
+                     non_optional = !xmlAttributeGetBool(xeid, "optional");
+                  }
+                  if (non_optional || !get_low_resource())
                   {
-                     _effect_t* effect = get_effect(eff);
-                     _emitterSetEffect(handle->source, effect);
-                     aaxEffectDestroy(eff);
+                     aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
+                     if (eff)
+                     {
+                        _effect_t* effect = get_effect(eff);
+                        _emitterSetEffect(handle->source, effect);
+                        aaxEffectDestroy(eff);
+                     }
                   }
                }
             }
+            xmlFree(xeid);
          }
-         xmlFree(xeid);
          xmlFree(xmid);
       }
       xmlClose(xid);

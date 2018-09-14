@@ -1655,7 +1655,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
       {
          int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
-         void *xeid, *xfid = xmlMarkId(xmid);
+         void *xeid, *xfid;
 
          if (clear)
          {
@@ -1672,52 +1672,62 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
             }
          }
 
-         for (i=0; i<num; i++)
+         xfid = xmlMarkId(xmid);
+         if (xfid)
          {
-            if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+            for (i=0; i<num; i++)
             {
-               aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
-               if (flt)
+               if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
                {
-                  aaxMixerSetFilter(handle, flt);
-                  aaxFilterDestroy(flt);
+                  aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
+                  if (flt)
+                  {
+                     aaxMixerSetFilter(handle, flt);
+                     aaxFilterDestroy(flt);
+                  }
                }
             }
+            xmlFree(xfid);
          }
-         xmlFree(xfid);
 
          xeid = xmlMarkId(xmid);
-         num = xmlNodeGetNum(xmid, "effect");
-         for (i=0; i<num; i++)
+         if (xeid)
          {
-            if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
+            num = xmlNodeGetNum(xmid, "effect");
+            for (i=0; i<num; i++)
             {
-               char *file = xmlAttributeGetString(xeid, "file");
-               aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
-               if (eff)
+               if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
                {
-                  _effect_t* effect = get_effect(eff);
-                  if (file && effect->type == AAX_CONVOLUTION_EFFECT)
+                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
+                  if (eff)
                   {
-                     aaxBuffer buf;
-
-                     buf = _aaxCreateBufferFromAAXS(handle, buffer, file);
-                     if (buf)
+                     _effect_t* effect = get_effect(eff);
+                     if (effect->type == AAX_CONVOLUTION_EFFECT)
                      {
-                        aaxEffectAddBuffer(eff, buf);
-                        handle->buffer = buf;
+                        char *file = xmlAttributeGetString(xeid, "file");
+                        if (file)
+                        {
+                           aaxBuffer buf;
+
+                           buf = _aaxCreateBufferFromAAXS(handle, buffer, file);
+                           if (buf)
+                           {
+                              aaxEffectAddBuffer(eff, buf);
+                              handle->buffer = buf;
+                           }
+                           else {
+                              _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+                           }
+                           xmlFree(file);
+                        }
                      }
-                     else {
-                        _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-                     }
+                     aaxMixerSetEffect(handle, eff);
+                     aaxEffectDestroy(eff);
                   }
-                  aaxMixerSetEffect(handle, eff);
-                  aaxEffectDestroy(eff);
                }
-               xmlFree(file);
             }
+            xmlFree(xeid);
          }
-         xmlFree(xeid);
          xmlFree(xmid);
       }
       xmlClose(xid);

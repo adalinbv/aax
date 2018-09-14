@@ -386,7 +386,10 @@ static void
 _aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, aaxVec4f), void *id)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
-   void *xsid = xmlMarkId(xid);
+   void *xsid;
+
+   xsid = xmlMarkId(xid);
+   if (!xsid) return;
 
    for (s=0; s<snum; s++)
    {
@@ -427,8 +430,11 @@ static int
 _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id, float freq)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
-   void *xsid = xmlMarkId(xid);
    int rv = AAX_FALSE;
+   void *xsid;
+
+   xsid = xmlMarkId(xid);
+   if (!xsid) return rv;
 
    for (s=0; s<snum; s++)
    {
@@ -438,10 +444,10 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
          if (pnum)
          {
             enum aaxType type = AAX_LINEAR;
-            void *xpid = xmlMarkId(xsid);
             unsigned int slen;
             long int sn = s;
             char src[65];
+            void *xpid;
 
             if (xmlAttributeExists(xsid, "n")) {
                sn = xmlAttributeGetInt(xsid, "n");
@@ -454,45 +460,49 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
                type = aaxGetTypeByName(src);
             }
 
-            for (p=0; p<pnum; p++)
-            {  
-               if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
-               {
-                  int slotnum[_MAX_FE_SLOTS] = { 0x00, 0x10, 0x20, 0x30 };
-                  double value = xmlGetDouble(xpid);
-                  long int pn = p;
-
-                  if (xmlAttributeExists(xpid, "n")) {
-                     pn = xmlAttributeGetInt(xpid, "n");
-                  }
-
-                  if (freq != 0.0f)
+            xpid = xmlMarkId(xsid);
+            if (xpid)
+            {
+               for (p=0; p<pnum; p++)
+               {  
+                  if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
                   {
-                     float pitch, sustain;
+                     int slotnum[_MAX_FE_SLOTS] = { 0x00, 0x10, 0x20, 0x30 };
+                     double value = xmlGetDouble(xpid);
+                     long int pn = p;
 
-                     pitch = xmlAttributeGetDouble(xpid, "pitch");
-                     if (pitch != 0.0f) {
-                        value = pitch*freq;
+                     if (xmlAttributeExists(xpid, "n")) {
+                        pn = xmlAttributeGetInt(xpid, "n");
                      }
+
+                     if (freq != 0.0f)
+                     {
+                        float pitch, sustain;
+
+                        pitch = xmlAttributeGetDouble(xpid, "pitch");
+                        if (pitch != 0.0f) {
+                           value = pitch*freq;
+                        }
  
-                     sustain = xmlAttributeGetDouble(xpid, "auto-sustain");
-                     if (sustain != 0.0f) {
-                        value = _MAX(value - sustain*_lin2log(freq), 0.1f);
+                        sustain = xmlAttributeGetDouble(xpid, "auto-sustain");
+                        if (sustain != 0.0f) {
+                           value = _MAX(value - sustain*_lin2log(freq), 0.1f);
+                        }
                      }
-                  }
 
-                  slen = xmlAttributeCopyString(xpid, "type", src, 64);
-                  if (slen)
-                  {
-                     src[slen] = 0;
-                     type = aaxGetTypeByName(src);
-                  }
+                     slen = xmlAttributeCopyString(xpid, "type", src, 64);
+                     if (slen)
+                     {
+                        src[slen] = 0;
+                        type = aaxGetTypeByName(src);
+                     }
             
-                  pn |= slotnum[sn];
-                  setParamFn(id, pn, type, value);
+                     pn |= slotnum[sn];
+                     setParamFn(id, pn, type, value);
+                  }
                }
+               xmlFree(xpid);
             }
-            xmlFree(xpid);
             rv = AAX_TRUE;
          }
       }
