@@ -25,10 +25,11 @@
 
 #include <stdio.h>
 #include <assert.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
-#else
-# include <string.h>
 #endif
 
 #include <base/memory.h>
@@ -1295,7 +1296,6 @@ _wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, unsigned int tracks, size_t
 #include <fcntl.h>              /* SEEK_*, O_* */
 #include <errno.h>
 #include <stdio.h>
-#include <unistd.h>
 void
 _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
                           void *data, size_t no_samples,

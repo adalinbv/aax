@@ -25,13 +25,15 @@
 
 #include <sys/types.h>
 #include <sys/stat.h>
-#include <unistd.h>
 #include <fcntl.h>
 #include <errno.h>
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
 # include <string.h>
+# ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+# endif
 #endif
 
 

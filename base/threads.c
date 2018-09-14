@@ -23,6 +23,13 @@
 #include "config.h"
 #endif
 
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
+#else
+# ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+# endif
+#endif
 #include <stdio.h>
 #if HAVE_ASSERT_H
 # include <assert.h>
@@ -32,9 +39,6 @@
 #endif
 #if HAVE_MATH_H
 # include <math.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
 #endif
 #if HAVE_VALUES_H
 # include <values.h>     /* for EM_VALUE_MAX */

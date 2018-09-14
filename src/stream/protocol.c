@@ -23,11 +23,13 @@
 #include "config.h"
 #endif
 
-#include <unistd.h>	// access
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #else
 # include <string.h>
+# ifdef HAVE_UNISTD_H
+#  include <unistd.h>	// access
+# endif
 #endif
 
 

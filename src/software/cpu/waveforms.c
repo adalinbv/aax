@@ -27,9 +27,9 @@
 # include <rmalloc.h>
 #else
 # include <stdlib.h>
-#endif
-#ifdef HAVE_UNISTD_H
-# include <unistd.h>
+# ifdef HAVE_UNISTD_H
+#  include <unistd.h>
+# endif
 #endif
 #include <math.h>	/* for floorf() */
 #include <time.h>	/* for time() */

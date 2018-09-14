@@ -22,12 +22,13 @@
 #include "config.h"
 #endif
 
-#include <assert.h>
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>
+#endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
-#else
-# include <string.h>
 #endif
+#include <assert.h>
 
 #include <xml.h>
 

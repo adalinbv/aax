@@ -1,3 +1,6 @@
+MP3 audio decoder. Based off minimp3.
+https://github.com/mackron/dr_libs/blob/master/dr_mp3.h
+
 minimp3 - Public domain mp3 decoder with SIMD support:
 https://github.com/lieff/minimp3
 

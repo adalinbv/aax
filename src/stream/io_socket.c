@@ -30,12 +30,10 @@
 #include <error.h>
 
 #ifdef HAVE_UNISTD_H
-# include <unistd.h>           /* read, write, close, lseek, access */
+# include <unistd.h>		/* read, write, close, lseek, access */
 #endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
-#else
-# include <string.h>
 #endif
 #include <stdio.h>
 #if HAVE_SYS_SOCKET_H

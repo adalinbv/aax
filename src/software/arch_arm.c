@@ -23,8 +23,11 @@
 #include "config.h"
 #endif
 
-#if HAVE_UNISTD_H
-# include <unistd.h>    /* sysconf */
+#ifdef HAVE_UNISTD_H
+# include <unistd.h>		// sysconf
+#endif
+#ifdef HAVE_RMALLOC_H
+# include <rmalloc.h>
 #endif
 #if defined(__MINGW32__)
 # include <mm_malloc.h>
