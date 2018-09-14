@@ -119,11 +119,6 @@ aaxEmitterDestroy(aaxEmitter emitter)
       _aaxRingBufferDelayEffectData* data;
       _aaxEmitter *src = handle->source;
 
-      data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
-      if (data && data->history_ptr) {
-         free(data->history_ptr);
-      }
-
       if (!handle->parent && _IS_PROCESSED(src->props3d))
       {
          int i;
@@ -1432,10 +1427,11 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
          {
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
-            size_t samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+
+            data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
             _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
                                               data->delay_history,
-                                              samples, tracks);
+                                              data->history_samples, tracks);
          }
       }
       break;

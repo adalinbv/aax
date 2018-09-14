@@ -186,6 +186,7 @@ typedef struct
 
    int32_t* delay_history[_AAX_MAX_SPEAKERS];
    void* history_ptr;
+   size_t history_samples;
 
    /* temporary storage, track specific. */
    size_t curr_noffs[_AAX_MAX_SPEAKERS];

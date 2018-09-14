@@ -133,6 +133,9 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    /* streaming emitters with delay effects need the source history */
    if (delay && !delay->loopback && delay->history_ptr)
    {
+      assert(ds <= delay->history_samples);
+      assert(bps <= sizeof(MIX_T));
+
       // copy the delay effects history to src
 //    DBG_MEMCLR(1, src-ds, ds, bps);
       _aax_memcpy(src-ds, delay->delay_history[track], ds*bps);
@@ -235,7 +238,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
 /* -------------------------------------------------------------------------- */
 
-// size is the number of sampler for every track
+// size is the number of samples for every track
 size_t
 _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], size_t size, int tracks)
 {

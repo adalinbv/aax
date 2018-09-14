@@ -98,19 +98,8 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
       if (data == NULL)
       {
-         int t;
-
-         data  = malloc(sizeof(_aaxRingBufferDelayEffectData));
+         data = calloc(1, sizeof(_aaxRingBufferDelayEffectData));
          effect->slot[0]->data = data;
-         if (data)
-         {
-            data->history_ptr = 0;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               data->lfo.value[t] = 0.0f;
-               data->lfo.step[t] = 0.0f;
-            }
-         }
       }
 
       if (data)
@@ -120,16 +109,15 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          data->run = _flanging_run;
          data->loopback = AAX_TRUE;
 
-         if (data->history_ptr == 0)
+         if (data->history_ptr == NULL)
          {
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
-            size_t samples;
 
-            samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+            data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
             _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
                                               data->delay_history,
-                                              samples, tracks);
+                                              data->history_samples, tracks);
          }
 
          data->lfo.convert = _linear;
@@ -257,7 +245,11 @@ _flanging_destroy(void *ptr)
    _aaxRingBufferDelayEffectData* data = ptr;
    if (data)
    {
-      free(data->history_ptr);
+      if (data->history_ptr)
+      {
+         _aax_free(data->history_ptr);
+         data->history_ptr = NULL;
+      }
       free(data);
    }
 }
