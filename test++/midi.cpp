@@ -33,6 +33,7 @@
 #include <fstream>
 #include <iostream>
 
+#include <limits.h>
 #include <assert.h>
 #include <xml.h>
 
@@ -425,7 +426,8 @@ MIDITrack::rewind()
 {
     byte_stream::rewind();
     timestamp_us = pull_message();
-    uSPP = 500000/PPQN;
+    uSPQN = 500000;
+    uSPP = uSPQN/PPQN;
 
     channel_no = 0;
     program_no = 0;
@@ -436,11 +438,17 @@ MIDITrack::rewind()
 }
 
 bool
-MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
+MIDITrack::process(uint64_t time_offs_us, uint32_t& next, uint32_t& new_uSPP)
 {
     bool rv = !eof();
 
     if (eof()) return rv;
+
+    if (new_uSPP) {
+        uSPP = new_uSPP;
+    } else {
+        new_uSPP = uSPP;
+    }
 
     while (!eof() && (timestamp_us <= time_offs_us))
     {
@@ -511,8 +519,8 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                 forward();
                 break;
             case MIDI_SET_TEMPO:
-                uSPP = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
-                uSPP /= PPQN;
+                uSPQN = (((pull_byte() << 8) | pull_byte()) << 8) | pull_byte();
+                new_uSPP = uSPP = uSPQN/PPQN;
                 break;
             case MIDI_SEQUENCE_NUMBER:
             case MIDI_TIME_SIGNATURE: 
@@ -773,14 +781,14 @@ MIDIFile::rewind()
 bool
 MIDIFile::process(uint64_t time_us, uint32_t& next)
 {
-    uint32_t wait_us;
+    uint32_t wait_us, uSPP = 0;
     bool rv = false;
 
-    next = 10000000;
+    next = UINT_MAX;
     for (size_t t=0; t<no_tracks; ++t)
     {
-        wait_us = 1000000;
-        rv |= track[t]->process(time_us, wait_us);
+        wait_us = UINT_MAX;
+        rv |= track[t]->process(time_us, wait_us, uSPP);
         if (next > wait_us) {
             next = wait_us;
         }

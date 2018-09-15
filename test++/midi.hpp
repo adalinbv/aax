@@ -264,7 +264,7 @@ public:
         : byte_stream(stream, len), midi(ptr), channel_no(track), PPQN(ppqn)
     {
         timestamp_us = pull_message();
-        uSPP = 500000/PPQN;
+        uSPP = uSPQN/PPQN;
     }
 
     MIDITrack(const MIDITrack&) = default;
@@ -272,7 +272,7 @@ public:
     ~MIDITrack() = default;
 
     void rewind();
-    bool process(uint64_t, uint32_t&);
+    bool process(uint64_t, uint32_t&, uint32_t&);
 
 private:
     uint32_t pull_message();
@@ -286,8 +286,9 @@ private:
 
     uint8_t previous = 0;
     uint64_t timestamp_us = 0;
-    uint16_t PPQN = 24;
-    uint32_t uSPP = 500000/24;
+    uint32_t uSPQN = 500000;
+    uint32_t PPQN = 24;
+    uint32_t uSPP;
     bool polyphony = true;
     bool omni = false;
 };
