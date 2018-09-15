@@ -12,11 +12,11 @@
   <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="5.67" frequency="220" duration="0.1">
+ <sound gain="9.06" frequency="110" duration="0.1">
   <waveform src="triangle"/>
   <waveform src="sine" processing="add" ratio="-0.2" pitch="4.0"/>
   <waveform src="sawtooth" processing="mix" ratio="0.333" pitch="2.0"/>
-  <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.0"/>
+  <waveform src="triangle" processing="modulate" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
@@ -29,7 +29,7 @@
    </slot>
    <slot n="1">
     <param n="0">0.9</param>
-    <param n="1" auto-sustain="1.5">6.0</param>
+    <param n="1" auto-sustain="1.5">5.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -51,7 +51,7 @@
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="48db" optional="true">
+  <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">5500.0</param>
     <param n="1">1.0</param>
