@@ -65,8 +65,11 @@ _aaxChorusEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxChorusEffectDestroy(_effect_t* effect)
 {
-   effect->slot[0]->destroy(effect->slot[0]->data);
-   effect->slot[0]->data = NULL;
+   if (effect->slot[0]->data)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
    free(effect);
 
    return AAX_TRUE;
@@ -159,8 +162,11 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    }
    case AAX_FALSE:
    {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
+      if (effect->slot[0]->data)
+      {
+         effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data = NULL;
+      }
       break;
    }
    default:

@@ -61,8 +61,11 @@ _aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxTimedGainFilterDestroy(_filter_t* filter)
 {
-   filter->slot[0]->destroy(filter->slot[0]->data);
-   filter->slot[0]->data = NULL;
+   if (filter->slot[0]->data)
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+   }
    free(filter);
 
    return AAX_TRUE;
@@ -163,8 +166,11 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
    }
    else
    {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
+      if (filter->slot[0]->data)
+      {
+         filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data = NULL;
+      }
    }
    rv = filter;
    return rv;

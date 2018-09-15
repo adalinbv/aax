@@ -61,8 +61,11 @@ _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxDistortionEffectDestroy(_effect_t* effect)
 {
-   effect->slot[0]->destroy(effect->slot[0]->data);
-   effect->slot[0]->data = NULL;
+   if (effect->slot[0]->data)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
    free(effect);
 
    return AAX_TRUE;
@@ -85,7 +88,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    {
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
-      effect->slot[0]->destroy(data);
+      if (data) effect->slot[0]->destroy(data);
       data = malloc(sizeof(_aaxRingBufferDistoritonData) + sizeof(_aaxLFOData));
       effect->slot[0]->data = data;
       if (data)

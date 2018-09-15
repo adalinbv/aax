@@ -62,8 +62,11 @@ _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxTimedPitchEffectDestroy(_effect_t* effect)
 {
-   effect->slot[0]->destroy(effect->slot[0]->data);
-   effect->slot[0]->data = NULL;
+   if (effect->slot[0]->data)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
    free(effect);
 
    return AAX_TRUE;
@@ -144,8 +147,11 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
    }
    else
    {
-      effect->slot[0]->destroy(effect->slot[0]->data);
-      effect->slot[0]->data = NULL;
+      if (effect->slot[0]->data)
+      {
+         effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data = NULL;
+      }
    }
    rv = effect;
    return rv;

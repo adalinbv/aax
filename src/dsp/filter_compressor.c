@@ -62,8 +62,11 @@ _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxCompressorDestroy(_filter_t* filter)
 {
-   filter->slot[0]->destroy(filter->slot[0]->data);
-   filter->slot[0]->data = NULL;
+   if (filter->slot[0]->data)
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+   }
    free(filter);
 
    return AAX_TRUE;
@@ -194,8 +197,11 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       break;
    }
    case AAX_FALSE:
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
+      if (filter->slot[0]->data)
+      {
+         filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data = NULL;
+      }
       break;
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);

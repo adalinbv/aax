@@ -79,8 +79,11 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxDistanceFilterDestroy(_filter_t* filter)
 {
-   filter->slot[0]->destroy(filter->slot[0]->data);
-   filter->slot[0]->data = NULL;
+   if (filter->slot[0]->data)
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+   }
    free(filter);
 
    return AAX_TRUE;

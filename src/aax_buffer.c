@@ -505,7 +505,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       handle->ringbuffer[0] = rb;
 
       rv = AAX_TRUE;
-      _aax_free(ptr);
+      if (ptr) _aax_free(ptr);
    }
    return rv;
 }
@@ -839,8 +839,8 @@ free_buffer(_buffer_t* handle)
          for (b=0; b<handle->pitch_levels; ++b) {
             handle->ringbuffer[b] = _bufDestroyRingBuffer(handle, b);
          }
-         free(handle->aaxs);
-         free(handle->url);
+         if (handle->aaxs) free(handle->aaxs);
+         if (handle->url) free(handle->url);
 
          /* safeguard against using already destroyed handles */
          handle->id = FADEDBAD;

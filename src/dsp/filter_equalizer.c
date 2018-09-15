@@ -59,9 +59,12 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxEqualizerDestroy(_filter_t* filter)
 {
-   filter->slot[0]->destroy(filter->slot[0]->data);
-   filter->slot[0]->data = NULL;
-   filter->slot[1]->data = NULL;
+   if (filter->slot[0]->data)
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+      filter->slot[1]->data = NULL;
+   }
    free(filter);
 
    return AAX_TRUE;
@@ -239,9 +242,12 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
    }
    else if (state == AAX_FALSE)
    {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-      filter->slot[1]->data = NULL;
+      if (filter->slot[0]->data)
+      {
+         filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data = NULL;
+         filter->slot[1]->data = NULL;
+      }
       rv = filter;
    }
    else {

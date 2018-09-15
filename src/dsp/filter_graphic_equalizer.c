@@ -61,10 +61,16 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxGraphicEqualizerDestroy(_filter_t* filter)
 {
-   filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
-   filter->slot[EQUALIZER_LF]->data = NULL;
-   filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
-   filter->slot[EQUALIZER_HF]->data = NULL;
+   if (filter->slot[EQUALIZER_LF]->data)
+   {
+      filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
+      filter->slot[EQUALIZER_LF]->data = NULL;
+   }
+   if (filter->slot[EQUALIZER_HF]->data)
+   {
+      filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
+      filter->slot[EQUALIZER_HF]->data = NULL;
+   }
    free(filter);
 
    return AAX_TRUE;
@@ -144,10 +150,16 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
    }
    else if (state == AAX_FALSE)
    {
-      filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
-      filter->slot[EQUALIZER_LF]->data = NULL;
-      filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
-      filter->slot[EQUALIZER_HF]->data = NULL;
+      if (filter->slot[EQUALIZER_LF]->data)
+      {
+         filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
+         filter->slot[EQUALIZER_LF]->data = NULL;
+      }
+      if (filter->slot[EQUALIZER_HF]->data)
+      {
+         filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
+         filter->slot[EQUALIZER_HF]->data = NULL;
+      }
       rv = filter;
    }
    else {

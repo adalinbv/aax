@@ -67,7 +67,11 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxVolumeFilterDestroy(_filter_t* filter)
 {
-   filter->slot[0]->destroy(filter->slot[0]->data);
+   if (filter->slot[0]->data)
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+   }
    free(filter);
 
    return AAX_TRUE;

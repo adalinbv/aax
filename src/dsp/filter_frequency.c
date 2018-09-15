@@ -63,9 +63,12 @@ _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxFrequencyFilterDestroy(_filter_t* filter)
 {
-   filter->slot[0]->destroy(filter->slot[0]->data);
-   filter->slot[0]->data = NULL;
-   filter->slot[1]->data = NULL;
+   if (filter->slot[0]->data)
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+      filter->slot[1]->data = NULL;
+   }
    free(filter);
 
    return AAX_TRUE;
@@ -214,9 +217,12 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    }
    else if (wstate == AAX_FALSE)
    {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-      filter->slot[1]->data = NULL;
+      if (filter->slot[0]->data)
+      {
+         filter->slot[0]->destroy(filter->slot[0]->data);
+         filter->slot[0]->data = NULL;
+         filter->slot[1]->data = NULL;
+      }
    }
    else {
       _aaxErrorSet(AAX_INVALID_PARAMETER);
