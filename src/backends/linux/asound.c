@@ -2931,7 +2931,7 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, UNUSED(float pitch), flo
       size_t offs, size;
       char *p;
 
-      _aax_free(handle->ptr);
+      if (handle->ptr) _aax_free(handle->ptr);
       handle->buf_len = outbuf_size;
       
       outbuf_size = SIZE_ALIGNED((period_frames*hw_bits)/8);

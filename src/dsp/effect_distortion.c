@@ -125,7 +125,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    {
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
-      effect->slot[0]->destroy(data);
+      if (data) effect->slot[0]->destroy(data);
       data = malloc(sizeof(_aaxRingBufferDistoritonData));
       effect->slot[0]->data = data;
       if (data)
