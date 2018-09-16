@@ -5,23 +5,23 @@
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  *    1. Redistributions of source code must retain the above copyright notice,
  *        this list of conditions and the following disclaimer.
- * 
+ *
  *    2. Redistributions in binary form must reproduce the above copyright
  *        notice, this list of conditions and the following disclaimer in the
  *        documentation and/or other materials provided with the distribution.
- * 
+ *
  * THIS SOFTWARE IS PROVIDED BY ADALIN B.V. ``AS IS'' AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
  * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
  * NO EVENT SHALL ADALIN B.V. OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
- * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES 
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
  * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
  * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR 
- * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE 
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  *
  * The views and conclusions contained in the software and documentation are
@@ -53,6 +53,7 @@ MIDI::rewind()
 {
     channels.clear();
     uSPP = 500000/PPQN;
+    new_uSPP = 500000/PPQN;
 }
 
 void
@@ -137,17 +138,17 @@ MIDI::read_instruments()
 }
 
 std::string
-MIDI::get_drum(uint8_t bank_no, uint8_t program_no) 
+MIDI::get_drum(uint8_t bank_no, uint8_t program_no)
 {
     auto itb = drums.find(bank_no);
     if (itb == drums.end() && bank_no > 0) {
         itb = drums.find(0);
     }
 
-    if (itb != drums.end()) 
+    if (itb != drums.end())
     {
         do
-        {   
+        {
             auto bank = itb->second;
             auto iti = bank.find(program_no);
             if (iti != bank.end()) {
@@ -182,7 +183,7 @@ MIDI::get_instrument(uint8_t bank_no, uint8_t program_no)
             if (iti != bank.end()) {
                 return iti->second;
             }
- 
+
             if (bank_no > 0) {
                 itb = instruments.find(0);
             } else {
@@ -522,7 +523,7 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                 midi.set_uspp(uSPQN/midi.get_ppqn());
                 break;
             case MIDI_SEQUENCE_NUMBER:
-            case MIDI_TIME_SIGNATURE: 
+            case MIDI_TIME_SIGNATURE:
             case MIDI_SMPTE_OFFSET:
             case MIDI_KEY_SIGNATURE:
             default:	// unsupported
@@ -685,7 +686,11 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
         }
     }
 
-    next = _MAX(1, (timestamp_us  - time_offs_us));
+    if (timestamp_us < time_offs_us) {
+        next = 0;
+    } else {
+        next = timestamp_us  - time_offs_us;
+    }
 
     return rv;
 }
@@ -738,7 +743,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                         }
                         MIDI::set_ppqn(PPQN);
                     }
-                
+
                     while (!stream.eof())
                     {
                         header = stream.pull_long();
@@ -787,7 +792,7 @@ MIDIFile::process(uint64_t time_us, uint32_t& next)
     next = UINT_MAX;
     for (size_t t=0; t<no_tracks; ++t)
     {
-        wait_us = UINT_MAX;
+        wait_us = next;
         rv |= track[t]->process(time_us, wait_us);
         if (next > wait_us) {
             next = wait_us;
@@ -800,13 +805,13 @@ void
 MIDIFile::initialize()
 {
     MIDI::read_instruments();
-#if 0
+
     uint64_t time_us = 0;
     uint32_t wait_us = 1000000;
     while (process(time_us, wait_us)) {
         time_us += wait_us;
     }
-#endif
+
     rewind();
 
     MIDI::set(AAX_REFRESH_RATE, 90.0f);
