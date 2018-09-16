@@ -62,8 +62,8 @@ int main(int argc, char **argv)
         if (midi)
         {
             int64_t sleep_us, dt_us;
-            uint64_t time_us = 0;
-            uint32_t wait_us;
+            uint64_t time_parts = 0;
+            uint32_t wait_parts;
             struct timeval now;
 
 #if 1
@@ -75,20 +75,23 @@ int main(int argc, char **argv)
             midi.initialize();
             midi.start();
 
-            wait_us = 1000;
+            wait_parts = 1000;
             set_mode(1);
 
             gettimeofday(&now, NULL);
             dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
             do
             {
-                if (!midi.process(time_us, wait_us)) break;
+                if (!midi.process(time_parts, wait_parts)) break;
 
-                if (wait_us > 0)
+                if (wait_parts > 0)
                 {
+                    uint32_t wait_us;
+
                     gettimeofday(&now, NULL);
                     dt_us += now.tv_sec * 1000000 + now.tv_usec;
 
+                    wait_us = wait_parts*midi.get_uspp();
                     sleep_us = wait_us - dt_us;
                     if (sleep_us > 0) {
                        usecSleep(sleep_us);
@@ -97,7 +100,7 @@ int main(int argc, char **argv)
                     gettimeofday(&now, NULL);
                     dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
 
-                    time_us += wait_us;
+                    time_parts += wait_parts;
                 }
             }
             while(!get_key());

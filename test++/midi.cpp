@@ -53,7 +53,6 @@ MIDI::rewind()
 {
     channels.clear();
     uSPP = 500000/PPQN;
-    new_uSPP = 500000/PPQN;
 }
 
 void
@@ -433,7 +432,7 @@ void
 MIDITrack::rewind()
 {
     byte_stream::rewind();
-    timestamp_us = pull_message();
+    timestamp_parts = pull_message()*24/600000;
 
 //  channel_no = 0;
     program_no = 0;
@@ -444,13 +443,20 @@ MIDITrack::rewind()
 }
 
 bool
-MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
+MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next)
 {
     bool rv = !eof();
 
     if (eof()) return rv;
 
-    while (!eof() && (timestamp_us <= time_offs_us))
+    if (elapsed_parts < wait_parts)
+    {
+        wait_parts -= elapsed_parts;
+        next = wait_parts;
+        return rv;
+    }
+
+    while (!eof() && (timestamp_parts <= time_offs_parts))
     {
         uint32_t message = pull_byte();
         if ((message & 0x80) == 0) {
@@ -519,9 +525,12 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
                 forward();
                 break;
             case MIDI_SET_TEMPO:
-                uSPQN = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
-                midi.set_uspp(uSPQN/midi.get_ppqn());
+            {
+                uint32_t tempo;
+                tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
+                midi.set_tempo(tempo);
                 break;
+            }
             case MIDI_SEQUENCE_NUMBER:
             case MIDI_TIME_SIGNATURE:
             case MIDI_SMPTE_OFFSET:
@@ -677,20 +686,11 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
 
         if (!eof())
         {
-            uint32_t parts = pull_message();
-            if (parts > 0)
-            {
-                uint64_t usec = parts*midi.get_uspp();
-                timestamp_us += usec;
-            }
+            wait_parts = pull_message();
+            timestamp_parts += wait_parts;
         }
     }
-
-    if (timestamp_us < time_offs_us) {
-        next = 0;
-    } else {
-        next = timestamp_us  - time_offs_us;
-    }
+    next = wait_parts;
 
     return rv;
 }
@@ -716,7 +716,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                 try
                 {
                     uint32_t size, header = stream.pull_long();
-                    uint16_t track_no = 0;
+                    uint16_t format, track_no = 0;
 
                     if (header == 0x4d546864) // "MThd"
                     {
@@ -728,6 +728,8 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 
                         no_tracks = stream.pull_word();
                         if (format == 0 && no_tracks != 1) return;
+
+                        MIDI::set_format(format);
 
                         uint16_t PPQN = stream.pull_word();
                         if (PPQN & 0x8000) // SMPTE
@@ -775,6 +777,23 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 }
 
 void
+MIDIFile::initialize()
+{
+    MIDI::read_instruments();
+
+    uint64_t time_parts = 0;
+    uint32_t wait_parts = 1000000;
+    while (process(time_parts, wait_parts)) {
+        time_parts += wait_parts;
+    }
+
+    rewind();
+
+    MIDI::set(AAX_REFRESH_RATE, 90.0f);
+    MIDI::set(AAX_INITIALIZED);
+}
+
+void
 MIDIFile::rewind()
 {
     MIDI::rewind();
@@ -784,36 +803,20 @@ MIDIFile::rewind()
 }
 
 bool
-MIDIFile::process(uint64_t time_us, uint32_t& next)
+MIDIFile::process(uint64_t time_parts, uint32_t& next)
 {
-    uint32_t wait_us;
+    uint32_t elapsed_parts = next;
+    uint32_t wait_parts;
     bool rv = false;
 
     next = UINT_MAX;
     for (size_t t=0; t<no_tracks; ++t)
     {
-        wait_us = next;
-        rv |= track[t]->process(time_us, wait_us);
-        if (next > wait_us) {
-            next = wait_us;
+        wait_parts = next;
+        rv |= track[t]->process(time_parts, elapsed_parts, wait_parts);
+        if (next > wait_parts) {
+            next = wait_parts;
         }
     }
     return rv;
-}
-
-void
-MIDIFile::initialize()
-{
-    MIDI::read_instruments();
-
-    uint64_t time_us = 0;
-    uint32_t wait_us = 1000000;
-    while (process(time_us, wait_us)) {
-        time_us += wait_us;
-    }
-
-    rewind();
-
-    MIDI::set(AAX_REFRESH_RATE, 90.0f);
-    MIDI::set(AAX_INITIALIZED);
 }
