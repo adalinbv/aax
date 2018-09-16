@@ -49,6 +49,13 @@
 using namespace aax;
 
 void
+MIDI::rewind()
+{
+    channels.clear();
+    uSPP = 500000/PPQN;
+}
+
+void
 MIDI::read_instruments()
 {
     const char *filename, *type = "instrument";
@@ -426,10 +433,8 @@ MIDITrack::rewind()
 {
     byte_stream::rewind();
     timestamp_us = pull_message();
-    uSPQN = 500000;
-    uSPP = uSPQN/PPQN;
 
-    channel_no = 0;
+//  channel_no = 0;
     program_no = 0;
     bank_no = 0;
     previous = 0;
@@ -438,17 +443,11 @@ MIDITrack::rewind()
 }
 
 bool
-MIDITrack::process(uint64_t time_offs_us, uint32_t& next, uint32_t& new_uSPP)
+MIDITrack::process(uint64_t time_offs_us, uint32_t& next)
 {
     bool rv = !eof();
 
     if (eof()) return rv;
-
-    if (new_uSPP) {
-        uSPP = new_uSPP;
-    } else {
-        new_uSPP = uSPP;
-    }
 
     while (!eof() && (timestamp_us <= time_offs_us))
     {
@@ -519,8 +518,8 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next, uint32_t& new_uSPP)
                 forward();
                 break;
             case MIDI_SET_TEMPO:
-                uSPQN = (((pull_byte() << 8) | pull_byte()) << 8) | pull_byte();
-                new_uSPP = uSPP = uSPQN/PPQN;
+                uSPQN = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
+                midi.set_uspp(uSPQN/midi.get_ppqn());
                 break;
             case MIDI_SEQUENCE_NUMBER:
             case MIDI_TIME_SIGNATURE: 
@@ -680,7 +679,7 @@ MIDITrack::process(uint64_t time_offs_us, uint32_t& next, uint32_t& new_uSPP)
             uint32_t parts = pull_message();
             if (parts > 0)
             {
-                uint64_t usec = parts*uSPP;
+                uint64_t usec = parts*midi.get_uspp();
                 timestamp_us += usec;
             }
         }
@@ -725,7 +724,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                         no_tracks = stream.pull_word();
                         if (format == 0 && no_tracks != 1) return;
 
-                        PPQN = stream.pull_word();
+                        uint16_t PPQN = stream.pull_word();
                         if (PPQN & 0x8000) // SMPTE
                         {
                             uint8_t fps = (PPQN >> 8) & 0xff;
@@ -737,6 +736,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                             else fps = 0;
                             PPQN = fps*resolution;
                         }
+                        MIDI::set_ppqn(PPQN);
                     }
                 
                     while (!stream.eof())
@@ -745,7 +745,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                         if (header == 0x4d54726b) // "MTrk"
                         {
                             uint32_t length = stream.pull_long();
-                            track.push_back(new MIDITrack(*this, stream, length, track_no++, PPQN));
+                            track.push_back(new MIDITrack(*this, stream, length, track_no++));
                             stream.forward(length);
                         }
                     }
@@ -781,14 +781,14 @@ MIDIFile::rewind()
 bool
 MIDIFile::process(uint64_t time_us, uint32_t& next)
 {
-    uint32_t wait_us, uSPP = 0;
+    uint32_t wait_us;
     bool rv = false;
 
     next = UINT_MAX;
     for (size_t t=0; t<no_tracks; ++t)
     {
         wait_us = UINT_MAX;
-        rv |= track[t]->process(time_us, wait_us, uSPP);
+        rv |= track[t]->process(time_us, wait_us);
         if (next > wait_us) {
             next = wait_us;
         }
@@ -800,12 +800,13 @@ void
 MIDIFile::initialize()
 {
     MIDI::read_instruments();
-
+#if 0
     uint64_t time_us = 0;
     uint32_t wait_us = 1000000;
     while (process(time_us, wait_us)) {
         time_us += wait_us;
     }
+#endif
     rewind();
 
     MIDI::set(AAX_REFRESH_RATE, 90.0f);

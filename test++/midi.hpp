@@ -203,10 +203,16 @@ public:
 
     void read_instruments();
 
-    inline void rewind() { channels.clear(); }
+    void rewind();
 
     std::string get_drum(uint8_t bank, uint8_t key);
     std::string get_instrument(uint8_t bank, uint8_t program);
+
+    inline void set_ppqn(uint16_t ppqn) { PPQN = ppqn; }
+    inline uint16_t get_ppqn() { return PPQN; }
+
+    inline void set_uspp(uint32_t uspp) { uSPP = uspp; }
+    inline int32_t get_uspp() { return uSPP; }
 
 private:
     std::map<uint8_t,MIDIChannel*> channels;
@@ -217,6 +223,9 @@ private:
     std::string instr = "gmmidi.xml";
     std::string drum = "gmdrums.xml";
     std::string path;
+
+    uint16_t PPQN = 24;
+    uint32_t uSPP = 500000/24;
 };
 
 
@@ -260,11 +269,10 @@ class MIDITrack : public byte_stream
 public:
     MIDITrack() = default;
 
-    MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track, uint16_t ppqn)
-        : byte_stream(stream, len), midi(ptr), channel_no(track), PPQN(ppqn)
+    MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track)
+        : byte_stream(stream, len), midi(ptr), channel_no(track)
     {
         timestamp_us = pull_message();
-        uSPP = uSPQN/PPQN;
     }
 
     MIDITrack(const MIDITrack&) = default;
@@ -272,7 +280,7 @@ public:
     ~MIDITrack() = default;
 
     void rewind();
-    bool process(uint64_t, uint32_t&, uint32_t&);
+    bool process(uint64_t, uint32_t&);
 
 private:
     uint32_t pull_message();
@@ -287,8 +295,6 @@ private:
     uint8_t previous = 0;
     uint64_t timestamp_us = 0;
     uint32_t uSPQN = 500000;
-    uint32_t PPQN = 24;
-    uint32_t uSPP;
     bool polyphony = true;
     bool omni = false;
 };
@@ -315,15 +321,12 @@ public:
 
     bool process(uint64_t, uint32_t&);
 
-    inline uint16_t get_ppqn() { return PPQN; }
-
 private:
     std::vector<uint8_t> midi_data;
     std::vector<MIDITrack*> track;
 
     uint16_t no_tracks = 0;
     uint16_t format = 0;
-    uint16_t PPQN = 24;
 };
 
 } // namespace aax
