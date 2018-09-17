@@ -11,7 +11,7 @@
  <info name="High Agogo">
  </info>
 
- <sound gain="3.17" frequency="600" duration="0.1">
+ <sound gain="1.15" frequency="600" duration="0.1">
   <waveform src="triangle" pitch="1.696"/>
   <waveform src="square" processing="modulate" ratio="0.7" pitch="3.0987"/>
  </sound>

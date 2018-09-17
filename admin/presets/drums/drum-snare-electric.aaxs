@@ -11,7 +11,7 @@
  <info name="Electric Snare">
  </info>
 
- <sound gain="1.50" frequency="250" duration="0.5">
+ <sound gain="1.17" frequency="250" duration="0.5">
   <waveform src="white-noise" ratio="0.2" pitch="0.2"/>
   <waveform src="triangle" processing="add" ratio="0.8"/>
   <filter type="bitcrusher">

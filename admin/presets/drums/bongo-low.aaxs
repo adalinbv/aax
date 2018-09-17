@@ -11,7 +11,7 @@
  <info name="Low Bongo">
  </info>
 
- <sound gain="2.83" frequency="800" duration="0.1">
+ <sound gain="1.63" frequency="800" duration="0.1">
   <waveform src="pink-noise" ratio="1.2" pitch="0.25"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>

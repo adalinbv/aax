@@ -11,7 +11,7 @@
  <info name="Chinese Cymbal">
  </info>
 
- <sound gain="3.51" frequency="440" duration="0.2">
+ <sound gain="2.15" frequency="440" duration="0.2">
   <waveform src="sawtooth" pitch="1.297"/>
   <waveform src="square" processing="modulate" pitch="2.5"/>
   <waveform src="white-noise" processing="mix" ratio="0.5" pitch="0.25"/>

@@ -11,7 +11,7 @@
  <info name="Pedal Hi-Hat">
  </info>
 
- <sound gain="2.79" frequency="1540" duration="0.33">
+ <sound gain="1.77" frequency="1540" duration="0.33">
   <waveform src="square"/>
   <waveform src="white-noise" processing="mix" ratio="0.8" pitch="0.25"/>
   <waveform src="square" processing="modulate" ratio="0.9" pitch="4.1"/>

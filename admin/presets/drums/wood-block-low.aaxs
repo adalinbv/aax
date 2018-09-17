@@ -11,7 +11,7 @@
  <info name="Woodblock (Low)">
  </info>
 
- <sound gain="2.10" frequency="220" duration="0.1">
+ <sound gain="2.56" frequency="220" duration="0.1">
   <waveform src="white-noise" pitch="0.05"/>
   <waveform src="sine" processing="modulate" pitch="11.7587"/>
   <filter type="frequency" src="24db">

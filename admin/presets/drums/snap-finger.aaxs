@@ -11,7 +11,7 @@
  <info name="Finger Snap">
  </info>
 
- <sound gain="1.10" frequency="880" duration="0.1">
+ <sound gain="0.99" frequency="880" duration="0.1">
   <waveform src="white-noise" ratio="40.0" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="17.7587"/>
