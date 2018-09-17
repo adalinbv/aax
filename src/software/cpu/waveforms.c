@@ -50,7 +50,6 @@
 static float _gains[MAX_WAVE];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
-static void _aax_resample_float(float32_ptr, const_float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
 static float* _aax_generate_waveform(size_t, float, float, float, float*);
@@ -179,7 +178,7 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
 
       if (ptr && ptr2)
       {
-         _aax_resample_float(ptr, ptr2, no_samples, pitch);
+         _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
          if (ringmodulate) {
             _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
          } else {
@@ -211,7 +210,7 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
       {
          _aax_pinknoise_filter(ptr2, noise_samples, fs);
          _batch_fmul_value(ptr2, sizeof(float), noise_samples, 1.5f);
-         _aax_resample_float(ptr, ptr2+32, no_samples, pitch);
+         _batch_resample_float(ptr, ptr2+32, 0, no_samples, 0, pitch);
 
          if (ringmodulate) {
             _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
@@ -245,7 +244,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
 
          _batch_movingaverage_float(ptr2, ptr2, noise_samples, &hist, k);
          _batch_fmul_value(ptr2, sizeof(int32_t), noise_samples, 3.5f);
-         _aax_resample_float(ptr, ptr2, no_samples, pitch);
+         _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
 
          if (ringmodulate) {
             _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
@@ -456,12 +455,13 @@ _aax_generate_noise(size_t no_samples, UNUSED(float gain), unsigned char skip)
    return rv;
 }
 
-#define AVERAGE_SAMPS		8
+#if 0
+#define AVERAGE_SAMPS          8
 static void
-_aax_resample_float(float32_ptr dptr, const_float32_ptr sptr, size_t dmax, float freq_factor)
+_aax_resample_float(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, UNUSED(float smu), float freq_factor)
 {
    size_t i, smax = floorf(dmax * freq_factor);
-   const float *s = sptr;
+   const float *s = sptr + dmin;
    float *d = dptr;
    float smu = 0.0f;
    float samp, dsamp;
@@ -495,6 +495,7 @@ _aax_resample_float(float32_ptr dptr, const_float32_ptr sptr, size_t dmax, float
       }
    }
 }
+#endif
 
 static void
 _aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int no_samples, char bps, float gain)
