@@ -52,8 +52,8 @@ static float _gains[MAX_WAVE];
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
-static float* _aax_generate_waveform(size_t, float, float, float, float*);
-static float* _aax_generate_noise(size_t, float, unsigned char);
+static float* _aax_generate_waveform_float(size_t, float, float, float*);
+static float* _aax_generate_noise_float(size_t, unsigned char);
 
 #if 0
 static float* _aax_generate_sawtooth(size_t, float, float, float);
@@ -90,7 +90,7 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
    gain = fabsf(gain) * _gains[_SQUARE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SQUARE_WAVE]);
+      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SQUARE_WAVE]);
 //    float *ptr = _aax_generate_square(no_samples, freq, phase, gain);
       if (ptr)
       {
@@ -111,7 +111,7 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
    gain = fabsf(gain) * _gains[_TRIANGLE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_TRIANGLE_WAVE]);
+      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_TRIANGLE_WAVE]);
 //    float *ptr = _aax_generate_triangle(no_samples, freq, phase, gain);
       if (ptr)
       {
@@ -132,7 +132,7 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
    gain = fabsf(gain) * _gains[_SAWTOOTH_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_SAWTOOTH_WAVE]);
+      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SAWTOOTH_WAVE]);
 //    float *ptr = _aax_generate_sawtooth(no_samples, freq, phase, gain);
       if (ptr)
       {
@@ -153,7 +153,7 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
    gain = fabsf(gain) * _gains[_IMPULSE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform(no_samples, freq, phase, gain, _harmonics[_IMPULSE_WAVE]);
+      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_IMPULSE_WAVE]);
       if (ptr)
       {
          if (ringmodulate) {
@@ -173,7 +173,8 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
    gain = fabsf(gain);
    if (data && gain)
    {
-      float *ptr2 = _aax_generate_noise(pitch*no_samples, gain, skip);
+      size_t noise_samples = pitch*no_samples + 64;
+      float *ptr2 = _aax_generate_noise_float(noise_samples, skip);
       float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
 
       if (ptr && ptr2)
@@ -204,7 +205,7 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
       pitch = ((unsigned int)(pitch*no_samples/100.0f)*100.0f)/no_samples;
 
       noise_samples = pitch*no_samples + 64;
-      ptr2 = _aax_generate_noise(2*noise_samples, gain, skip);
+      ptr2 = _aax_generate_noise_float(2*noise_samples, skip);
       ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
@@ -235,7 +236,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
       float *ptr, *ptr2;
 
       noise_samples = pitch*no_samples + 64;
-      ptr2 = _aax_generate_noise(noise_samples, gain, skip);
+      ptr2 = _aax_generate_noise_float(noise_samples, skip);
       ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
@@ -293,7 +294,7 @@ float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
  * output range is -1.0 .. 1.0
  */
 static float *
-_aax_generate_waveform(size_t no_samples, float freq, float phase, float gain, float *harmonics)
+_aax_generate_waveform_float(size_t no_samples, float freq, float phase, float *harmonics)
 {
    float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
@@ -304,7 +305,7 @@ _aax_generate_waveform(size_t no_samples, float freq, float phase, float gain, f
       do
       {
          float nfreq = freq/h--;
-         float ngain = gain * harmonics[h];
+         float ngain = harmonics[h];
          if (ngain)
          {
             int i = no_samples;
@@ -432,7 +433,7 @@ _aax_generate_sawtooth(size_t no_samples, float freq, float phase, float gain)
  * output range is -1.0 .. 1.0
  */
 static float *
-_aax_generate_noise(size_t no_samples, UNUSED(float gain), unsigned char skip)
+_aax_generate_noise_float(size_t no_samples, unsigned char skip)
 {
    float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
