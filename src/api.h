@@ -162,7 +162,7 @@ typedef struct
    /* timing */
    _aaxTimer *timer;
    float elapsed;
- 
+
    /* parametric equalizer **/
    _aaxFilterInfo filter[EQUALIZER_MAX];
 
@@ -217,7 +217,7 @@ void _aaxAudioFrameFree(void*);
 #define DEFAULT_IMA4_BLOCKSIZE		36
 #define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
 #define IMA4_BLOCKSIZE_TO_SMP(a)	((a) > 1) ? (((a)-4)*2) : 1
-#define MAX_PITCH_LEVELS		6
+#define MAX_PITCH_LEVELS		8
 
 typedef struct
 {
