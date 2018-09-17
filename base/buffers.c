@@ -204,6 +204,7 @@ _intBufAddDataNormal(_intBuffers *buffer, unsigned int id, const void *data, cha
             buffer->data[pos] = b;
             buffer->num_allocated++;
 
+            assert(pos+1 < buffer->max_allocations);
             if (buffer->data[++pos] != 0)
             {
                 unsigned int i, max = buffer->max_allocations - buffer->start;
@@ -938,7 +939,8 @@ __intBufFreeSpace(_intBuffers *buffer, int id, char locked)
     num = buffer->num_allocated;
     max = buffer->max_allocations;
 
-    if (((start+num) == max) || ((start+buffer->first_free) == max))
+    assert((start+num) <= max);
+    if (((start+num+1) == max) || ((start+buffer->first_free+1) == max))
     {
         _intBufferData **ptr = buffer->data;
 
