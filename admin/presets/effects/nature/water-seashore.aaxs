@@ -8,25 +8,31 @@
 
 <aeonwave>
 
- <sound name="Seashore"  program="123" bank="0" frequency="220" duration="3.33">
+ <info name="Seashore">
+ </info>
+
+ <sound gain="1.95" frequency="220" duration="3.33">
   <waveform src="white-noise" ratio="0.8" pitch="0.33"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="sine">
    <slot n="0">
-    <param n="0" pitch="4.0">220</param>
+    <param n="0" pitch="4.0">880.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.1</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="30.0">8800</param>
+    <param n="0" pitch="30.0">6600.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.05</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.163</param>
     <param n="2">0.5</param>
     <param n="3">0.0</param>
@@ -37,6 +43,7 @@
  <audioframe>
   <filter type="dynamic-gain" src="triangle">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.014</param>
     <param n="2">0.5</param>
     <param n="3">0.173</param>

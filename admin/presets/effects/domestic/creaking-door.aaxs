@@ -1,18 +1,21 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <sound name="Creaking Wooden Door" frequency="330">
+ <info name="Creaking Door">
+ </info>
+
+ <sound gain="1.58" frequency="330">
   <waveform src="white-noise" ratio="40.0" pitch="0.02" staticity="0.95"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="1.0">300</param>
+    <param n="0" pitch="1.0">330.0</param>
     <param n="1">0.0</param>
     <param n="2">0.75</param>
     <param n="3">7.5</param>
@@ -20,7 +23,7 @@
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="20.0">6000</param>
+    <param n="0" pitch="20.0">6600.0</param>
     <param n="1">1.0</param>
     <param n="2">0.25</param>
     <param n="3">5.5</param>
@@ -28,7 +31,7 @@
   </filter>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0" pitch="1.0">300</param>
+    <param n="0" pitch="1.0">330.0</param>
     <param n="1">0.0</param>
     <param n="2">0.5</param>
     <param n="3">1.5</param>
@@ -40,24 +43,29 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.3</param>
-    <param n="1" factor="velocity">1.4</param>
-    <param n="2">0.8</param>
+    <param n="1">1.4</param>
+    <param n="2">1.0</param>
     <param n="3">1.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
+    <param n="0">0.7</param>
     <param n="1">0.1</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.97</param>
-    <param n="1" factor="velocity">2.2</param>
+    <param n="1">2.2</param>
     <param n="2">0.87</param>
     <param n="3">0.4</param>
    </slot>
    <slot n="1">
-    <param n="0">0.90</param>
+    <param n="0">0.9</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

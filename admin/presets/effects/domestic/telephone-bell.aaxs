@@ -8,7 +8,10 @@
 
 <aeonwave>
 
- <sound name="Telephone Ring"  program="125" bank="0" frequency="1250" duration="0.10">
+ <info name="Telephone">
+ </info>
+
+ <sound gain="0.93" frequency="1250" duration="0.1">
   <waveform src="square" pitch="2.985"/>
   <waveform src="sawtooth" processing="mix" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="2.4" pitch="6.5"/>
@@ -17,6 +20,7 @@
  <emitter looping="true">
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">15.0</param>
     <param n="2">0.6</param>
     <param n="3">0.5</param>

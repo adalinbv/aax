@@ -8,12 +8,16 @@
 
 <aeonwave>
 
- <sound name="Blown Bottle" program="77" bank="0" frequency="220" duration="2.10">
+ <info bank="0" program="0">
+  <note polyphony="1" min="60" max="96" step="1"/>
+ </info>
+
+ <sound gain="2.67" frequency="261" duration="2.1">
   <waveform src="triangle"/>
   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="1.0">220</param>
+    <param n="0" pitch="1.0">261.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">5.0</param>
@@ -21,36 +25,33 @@
   </filter>
  </sound>
 
- <instrument>
-  <note polyphony="1" min="60" max="96" step="1"/>
- </instrument>
-
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.00</param>
-    <param n="1" factor="velocity">0.15</param>
-    <param n="2" factor="soften">0.80</param>
+    <param n="0">0.0</param>
+    <param n="1">0.15</param>
+    <param n="2">0.8</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
     <param n="0">0.65</param>
     <param n="1">inf</param>
     <param n="2">0.65</param>
-    <param n="3">0.20</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.07</param>
-    <param n="1" factor="velocity">0.03</param>
+    <param n="0">1.07</param>
+    <param n="1">0.03</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1.00</param>
+    <param n="0">1.0</param>
     <param n="1">4.5</param>
     <param n="2">0.995</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

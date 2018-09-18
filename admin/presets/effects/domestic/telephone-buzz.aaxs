@@ -8,7 +8,10 @@
 
 <aeonwave>
 
- <sound name="Telephone Buzz"  program="125" bank="0" frequency="1250" duration="0.10">
+ <info>
+ </info>
+
+ <sound gain="1.07" frequency="1250" duration="0.1">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
  </sound>
@@ -16,8 +19,10 @@
  <emitter looping="true">
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">15.0</param>
     <param n="2">1.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="timed-gain" repeat="max">

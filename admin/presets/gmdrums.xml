@@ -22,7 +22,7 @@
    <drum n="36" name="Bass Drum 1" file="drums/drum-bass1"/>
    <drum n="37" name="Side Stick" file="drums/stick-side"/>
    <drum n="38" name="Acoustic Snare" file="drums/drum-snare-acoustic"/>
-   <drum n="39" name="Hand Clap" file="drums/clap-hand"/>
+   <drum n="39" name="Hand Clap" file="effects/humans/clap-hand"/>
    <drum n="40" name="Electric Snare" file="drums/drum-snare-electric"/>
    <drum n="41" name="Low Floor Tom" file="drums/tom-floor-low"/>
    <drum n="42" name="Closed Hi-Hat" file="drums/hi-hat-closed"/>
@@ -78,7 +78,7 @@
    <drum n="92" name="Open Pandiero" file="drums/pandiero-open"/>
    <drum n="93" name="Tambourin" file="drums/tambourin"/>
    <drum n="94" name="Tree Chime" file="drums/chime-tree"/>
-   <drum n="95" name="caxixi" file="drums/caxixi"/>
+   <drum n="95" name="Caxixi" file="drums/caxixi"/>
   </bank>
  </midi>
 

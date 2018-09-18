@@ -8,11 +8,14 @@
 
 <aeonwave>
 
- <sound name="Licht Machine Gun" program="128" bank="0" frequency="220" duration="0.2">
+ <info>
+ </info>
+
+ <sound gain="1.27" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.25"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0" pitch="40.0">8800</param>
+    <param n="0" pitch="40.0">8800.0</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
     <param n="3">1.0</param>
@@ -24,16 +27,17 @@
   <filter type="timed-gain" repeat="max">
    <slot n="0">
     <param n="0">2.0</param>
-    <param n="1" factor="velocity">0.03</param>
-    <param n="2" factor="soften">0.8</param>
+    <param n="1">0.03</param>
+    <param n="2">0.8</param>
     <param n="3">0.005</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.8</param>
-    <param n="1" factor="velocity">0.01</param>
+    <param n="0">1.8</param>
+    <param n="1">0.01</param>
     <param n="2">0.7</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

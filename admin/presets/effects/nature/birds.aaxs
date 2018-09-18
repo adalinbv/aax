@@ -8,13 +8,16 @@
 
 <aeonwave>
 
- <sound name="Birds" program="124" bank="0" frequency="220" duration="2.9">
+ <info name="Birds">
+ </info>
+
+ <sound gain="4.51" frequency="220" duration="2.9">
   <waveform src="white-noise" ratio="2.0" pitch="0.2"/>
-  <waveform src="impulse" processing="modulate" ratio="1.0" pitch="0.4729"/>
+  <waveform src="impulse" processing="modulate" pitch="0.4729"/>
   <waveform src="square" processing="modulate" ratio="-2.0" pitch="0.0329"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">50</param>
+    <param n="0">50.0</param>
     <param n="1">0.0</param>
     <param n="2">0.5</param>
     <param n="3">15.0</param>
@@ -22,7 +25,7 @@
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">150</param>
+    <param n="0">150.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.0</param>
@@ -33,25 +36,29 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">2070</param>
+    <param n="0">2070.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">50.0</param>
    </slot>
    <slot n="1">
-    <param n="0">4800</param>
+    <param n="0">4800.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">1.1</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="square">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.17923</param>
-    <param n="2">1.0</param>
+    <param n="2">0.7</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="dynamic-pitch" src="square">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.412983</param>
     <param n="2">0.8</param>
     <param n="3">0.0</param>
@@ -60,6 +67,9 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.09</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
@@ -67,32 +77,34 @@
  <audioframe>
   <filter type="dynamic-gain" src="inverse-square">
    <slot n="0">
-    <param n="1">0.7829137</param>
+    <param n="0">0.0</param>
+    <param n="1">0.782914</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="dynamic-pitch" src="square">
-   <slot n="0">
-    <param n="1">0.058101</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
   <filter type="equalizer">
    <slot n="0">
-    <param n="0">2700</param>
+    <param n="0">2700.0</param>
     <param n="1">0.0</param>
     <param n="2">0.6</param>
     <param n="3">10.0</param>
    </slot>
    <slot n="1">
-    <param n="0">3300</param>
+    <param n="0">3300.0</param>
     <param n="1">0.6</param>
     <param n="2">0.0</param>
     <param n="3">6.0</param>
    </slot>
   </filter>
+  <effect type="dynamic-pitch" src="square">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.058101</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

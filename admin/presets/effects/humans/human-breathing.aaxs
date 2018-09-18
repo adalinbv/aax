@@ -1,40 +1,47 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <sound name="Breathing" frequency="220" duration="3.33">
-  <waveform src="brownian-noise" ratio="0.25" pitch="0.02"/>
+ <info name="Breathing">
+ </info>
+
+ <sound gain="7.00" frequency="220" duration="3.33">
+  <waveform src="brownian-noise" pitch="0.15"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope">
    <slot n="0">
-    <param n="0">800</param>
+    <param n="0">800.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.2</param>
+    <param n="2">0.1</param>
     <param n="3">1.5</param>
    </slot>
    <slot n="1">
-    <param n="0">4800</param>
+    <param n="0">4800.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">1.5</param>
    </slot>
   </filter>
   <filter type="timed-gain" repeat="max">
    <slot n="0">
-    <param n="0">0.1</param>
+    <param n="0">0.05</param>
     <param n="1">1.0</param>
-    <param n="2">1.1</param>
+    <param n="2">0.15</param>
     <param n="3">0.9</param>
    </slot>
    <slot n="1">
-    <param n="0">0.1</param>
+    <param n="0">0.08</param>
     <param n="1">0.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="phasing">

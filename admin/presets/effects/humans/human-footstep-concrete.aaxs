@@ -1,15 +1,18 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <sound name="Footsteps On Concrete" program="127" bank="4" frequency="220">
-  <waveform src="white-noise" ratio="1.5" pitch="0.25"/>
+ <info>
+ </info>
+
+ <sound gain="11.42" frequency="220">
+  <waveform src="white-noise" ratio="20.0" pitch="0.25"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0" pitch="3.0">660.0</param>
@@ -18,15 +21,26 @@
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
-  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
-  <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
+  <waveform src="impulse" processing="modulate" pitch="0.02"/>
+  <waveform src="impulse" processing="modulate" pitch="0.02"/>
+  <waveform src="impulse" processing="modulate" pitch="0.02"/>
  </sound>
 
  <emitter looping="true">
+  <filter type="volume">
+   <slot n="0">
+    <param n="0">0.08</param>
+    <param n="1">0.0</param>
+    <param n="2">2.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.37</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

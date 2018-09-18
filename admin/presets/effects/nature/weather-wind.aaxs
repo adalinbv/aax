@@ -8,20 +8,25 @@
 
 <aeonwave>
 
- <sound name="Blowing Wind"  program="123" bank="0" frequency="220" duration="3.33">
+ <info>
+ </info>
+
+ <sound gain="2.51" frequency="220" duration="3.33">
   <waveform src="white-noise"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="sine">
    <slot n="0">
-    <param n="0" pitch="8.0">1760</param>
+    <param n="0" pitch="8.0">1760.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">4.1</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="12.0">2640</param>
+    <param n="0" pitch="12.0">2640.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.0232</param>
    </slot>
   </filter>
@@ -29,16 +34,19 @@
    <slot n="0">
     <param n="0">0.15</param>
     <param n="1">0.4</param>
-    <param n="2">1.0</param>
+    <param n="2">0.8</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
+    <param n="0">0.8</param>
     <param n="1">1.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="triangle">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.113</param>
     <param n="2">0.9</param>
     <param n="3">0.1</param>
@@ -49,6 +57,7 @@
  <audioframe>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">0.014</param>
     <param n="2">0.9</param>
     <param n="3">0.073</param>

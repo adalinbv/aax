@@ -8,14 +8,16 @@
 
 <aeonwave>
 
- <info>
+ <info name="Finger Snap">
  </info>
 
- <sound gain="2.13" frequency="220" duration="0.2">
-  <waveform src="white-noise" pitch="0.25"/>
+ <sound gain="0.99" frequency="880" duration="0.1">
+  <waveform src="white-noise" ratio="40.0" pitch="0.05"/>
+  <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
+  <waveform src="sine" processing="modulate" ratio="1.2" pitch="17.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="10.0">2200.0</param>
+    <param n="0" pitch="12.0">10560.0</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
     <param n="3">2.5</param>
@@ -26,17 +28,17 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">2.0</param>
-    <param n="1">0.03</param>
-    <param n="2">1.0</param>
-    <param n="3">0.4</param>
+    <param n="0">1.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.2</param>
+    <param n="3">0.15</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">2.8</param>
-    <param n="1">0.02</param>
-    <param n="2">0.9</param>
+    <param n="0">1.4</param>
+    <param n="1">0.01</param>
+    <param n="2">0.4</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
