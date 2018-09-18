@@ -117,7 +117,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
    _aaxRingBufferReverbData *reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
    _aaxRingBufferBitCrusherData *bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
-   _aaxRingModulatorData *ringmodulator = _EFFECT_GET_DATA(p2d, RINGMODULATE_EFFECT);
+   _aaxRingBufferModulatorData *modulator;
    static const size_t bps = sizeof(MIX_T);
    size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
    void *distort_data = NULL;
@@ -170,8 +170,9 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       }
    }
 
-   if (ringmodulator) {
-       ringmodulator->run(psrc, end, no_samples, ringmodulator, env, track);
+   modulator = _EFFECT_GET_DATA(p2d, RINGMODULATE_EFFECT);
+   if (modulator) {
+       modulator->run(psrc, end, no_samples, modulator, env, track);
    }
 
    if (freq)

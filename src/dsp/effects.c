@@ -78,7 +78,7 @@ _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX] =
    &_aaxVelocityEffect,
    &_aaxReverbEffect,
    &_aaxConvolutionEffect,
-   &_aaxRingModulateEffect,
+   &_aaxModulatorEffect,
 };
 
 _effect_t*

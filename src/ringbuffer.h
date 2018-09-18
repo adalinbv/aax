@@ -309,8 +309,8 @@ typedef struct
    _aaxLFOData lfo;
 
    char amplitude;
-}
-_aaxRingModulatorData;
+
+} _aaxRingBufferModulatorData;
 
 
 /**

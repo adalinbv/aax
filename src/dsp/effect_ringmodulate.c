@@ -41,11 +41,11 @@
 #include "arch.h"
 
 
-static void _ringmodulate_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static void _modulator_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
 
 static aaxEffect
-_aaxRingModulateEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
+_aaxModulatorEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
    _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
    aaxEffect rv = NULL;
@@ -60,7 +60,7 @@ _aaxRingModulateEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 }
 
 static int
-_aaxRingModulateEffectDestroy(_effect_t* effect)
+_aaxModulatorEffectDestroy(_effect_t* effect)
 {
    if (effect->slot[0]->data)
    {
@@ -73,7 +73,7 @@ _aaxRingModulateEffectDestroy(_effect_t* effect)
 }
 
 static aaxEffect
-_aaxRingModulateEffectSetState(_effect_t* effect, int state)
+_aaxModulatorEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxFilter rv = AAX_FALSE;
@@ -95,10 +95,10 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_ENVELOPE_FOLLOW:
    {
-      _aaxRingModulatorData *modulator = effect->slot[0]->data;
+      _aaxRingBufferModulatorData *modulator = effect->slot[0]->data;
       if (modulator == NULL)
       {
-         modulator = calloc(1, sizeof(_aaxRingModulatorData));
+         modulator = calloc(1, sizeof(_aaxRingBufferModulatorData));
          effect->slot[0]->data = modulator;
       }
 
@@ -107,7 +107,7 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
          int constant;
          float gain;
 
-         modulator->run = _ringmodulate_run;
+         modulator->run = _modulator_run;
 
          gain = effect->slot[0]->param[AAX_GAIN];
          modulator->amplitude = (gain < 0.0f) ? AAX_TRUE : AAX_FALSE;
@@ -153,7 +153,7 @@ _aaxRingModulateEffectSetState(_effect_t* effect, int state)
 }
 
 static _effect_t*
-_aaxNewRingModulateEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
+_aaxNewModulatorEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
@@ -173,23 +173,23 @@ _aaxNewRingModulateEffectHandle(const aaxConfig config, enum aaxEffectType type,
 }
 
 static float
-_aaxRingModulateEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxModulatorEffectSet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {  
    float rv = val;
    return rv;
 }
    
 static float
-_aaxRingModulateEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
+_aaxModulatorEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 {  
    float rv = val;
    return rv;
 }
 
 static float
-_aaxRingModulateEffectMinMax(float val, int slot, unsigned char param)
+_aaxModulatorEffectMinMax(float val, int slot, unsigned char param)
 {
-   static const _eff_minmax_tbl_t _aaxRingModulateRange[_MAX_FE_SLOTS] =
+   static const _eff_minmax_tbl_t _aaxModulatorRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                /* max[4] */
     { {-1.0f,  0.01f, 0.01f, 0.01f }, { 1.0f, 50.0f, 10000.0f, 10000.0f } },
     { { 0.0f,   0.0f,  0.0f,  0.0f }, { 0.0f,  0.0f,     0.0f,     0.0f } },
@@ -200,30 +200,30 @@ _aaxRingModulateEffectMinMax(float val, int slot, unsigned char param)
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
    
-   return _MINMAX(val, _aaxRingModulateRange[slot].min[param],
-                       _aaxRingModulateRange[slot].max[param]);
+   return _MINMAX(val, _aaxModulatorRange[slot].min[param],
+                       _aaxModulatorRange[slot].max[param]);
 }
 
 /* -------------------------------------------------------------------------- */
 
-_eff_function_tbl _aaxRingModulateEffect =
+_eff_function_tbl _aaxModulatorEffect =
 {
    AAX_TRUE,
    "AAX_ringmodulator_effect", 1.0f,
-   (_aaxEffectCreate*)&_aaxRingModulateEffectCreate,
-   (_aaxEffectDestroy*)&_aaxRingModulateEffectDestroy,
-   (_aaxEffectSetState*)&_aaxRingModulateEffectSetState,
+   (_aaxEffectCreate*)&_aaxModulatorEffectCreate,
+   (_aaxEffectDestroy*)&_aaxModulatorEffectDestroy,
+   (_aaxEffectSetState*)&_aaxModulatorEffectSetState,
    NULL,
-   (_aaxNewEffectHandle*)&_aaxNewRingModulateEffectHandle,
-   (_aaxEffectConvert*)&_aaxRingModulateEffectSet,
-   (_aaxEffectConvert*)&_aaxRingModulateEffectGet,
-   (_aaxEffectConvert*)&_aaxRingModulateEffectMinMax
+   (_aaxNewEffectHandle*)&_aaxNewModulatorEffectHandle,
+   (_aaxEffectConvert*)&_aaxModulatorEffectSet,
+   (_aaxEffectConvert*)&_aaxModulatorEffectGet,
+   (_aaxEffectConvert*)&_aaxModulatorEffectMinMax
 };
 
 void
-_ringmodulate_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env, unsigned int track)
+_modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env, unsigned int track)
 {
-      _aaxRingModulatorData *modulate = data;
+      _aaxRingBufferModulatorData *modulate = data;
       float f, gain, p, step;
       unsigned int i;
 
