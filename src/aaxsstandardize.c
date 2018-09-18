@@ -23,6 +23,7 @@
 #define LEVEL_20DB		0.1f
 
 static float freq = 220.0f;
+static char* false_const = "false";
 
 float _lin2db(float v) { return 20.0f*log10f(v); }
 float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
@@ -157,7 +158,7 @@ struct dsp_t
     char *type;
     char *src;
     int stereo;
-    int repeat;
+    char *repeat;
     int optional;
 
     uint8_t no_slots;
@@ -179,14 +180,13 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain)
 
     dsp->dtype = t;
     dsp->type = xmlAttributeGetString(xid, "type");
-
-    if (!timed_gain && (!strcasecmp(dsp->type, "timed-gain") || !strcasecmp(dsp->type, "dynamic-gain"))) {
-        dsp->src = strdup("false");
+    if (!timed_gain && (!strcasecmp(dsp->type, "volume") || !strcasecmp(dsp->type, "timed-gain") || !strcasecmp(dsp->type, "dynamic-gain"))) {
+        dsp->src = false_const;
     } else {
-        dsp->src = xmlAttributeGetString(xid, "src");
+       dsp->src = xmlAttributeGetString(xid, "src");
     }
     dsp->stereo = xmlAttributeGetInt(xid, "stereo");
-    dsp->repeat = xmlAttributeGetInt(xid, "repeat");
+    dsp->repeat = xmlAttributeGetString(xid, "repeat");
     dsp->optional = xmlAttributeGetBool(xid, "optional");
 
     xsid = xmlMarkId(xid);
@@ -228,13 +228,17 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
 {
     unsigned int s, p;
 
+    if (dsp->src == false_const) {
+        return;
+    }
+
     if (dsp->dtype == FILTER) {
         fprintf(output, "  <filter type=\"%s\"", dsp->type);
     } else {
         fprintf(output, "  <effect type=\"%s\"", dsp->type);
     }
     if (dsp->src) fprintf(output, " src=\"%s\"", dsp->src);
-    if (dsp->repeat) fprintf(output, " repeat=\"%i\"", dsp->repeat);
+    if (dsp->repeat) fprintf(output, " repeat=\"%s\"", dsp->repeat);
     if (dsp->stereo) fprintf(output, " stereo=\"true\"");
     if (dsp->optional) fprintf(output, " optional=\"true\"");
     fprintf(output, ">\n");
@@ -272,7 +276,8 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
 void free_dsp(struct dsp_t *dsp)
 {
     aaxFree(dsp->type);
-    aaxFree(dsp->src);
+    aaxFree(dsp->repeat);
+    if (dsp->src != false_const) aaxFree(dsp->src);
 }
 
 struct waveform_t
@@ -281,6 +286,7 @@ struct waveform_t
     char *processing;
     float ratio;
     float pitch;
+    float staticity;
     int voices;
     float spread;
 };
@@ -291,6 +297,7 @@ void fill_waveform(struct waveform_t *wave, void *xid)
     wave->processing = xmlAttributeGetString(xid, "processing");
     wave->ratio = xmlAttributeGetDouble(xid, "ratio");
     wave->pitch = xmlAttributeGetDouble(xid, "pitch");
+    wave->staticity = xmlAttributeGetDouble(xid, "staticity");
     wave->voices = xmlAttributeGetInt(xid, "voices");
     wave->spread = xmlAttributeGetDouble(xid, "spread");
 }
@@ -307,6 +314,7 @@ void print_waveform(struct waveform_t *wave, FILE *output)
         }
     }
     if (wave->pitch && wave->pitch != 1.0f) fprintf(output, " pitch=\"%s\"", format_float(wave->pitch));
+    if (wave->staticity > 0) fprintf(output, " staticity=\"%s\"", format_float(wave->staticity));
     if (wave->voices)
     {
         fprintf(output, " voices=\"%i\"", wave->voices);
@@ -785,7 +793,7 @@ int main(int argc, char **argv)
         aaxDriverDestroy(config);
 
 //      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
-        rms = 10.0f*_MAX(peak, 0.1f)*(_db2lin(-21.0f)/_db2lin(loudness));
+        rms = 10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/_db2lin(loudness));
 
 //      printf("% 32s: %5.4f, %5.4f | % -3.1f", infile, rms1, rms2, loudness);
         printf("% 32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
