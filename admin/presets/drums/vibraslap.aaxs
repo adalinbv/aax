@@ -11,8 +11,8 @@
  <info name="Vibraslap">
  </info>
 
- <sound gain="0.73" frequency="220" duration="0.2">
-  <waveform src="pink-noise" ratio="19.0" pitch="0.1"/>
+ <sound gain="3.00" frequency="220" duration="0.2">
+  <waveform src="pink-noise" ratio="19.0" pitch="0.1" staticity="0.75"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">1500.0</param>
@@ -34,9 +34,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.9</param>
+    <param n="0">0.4</param>
     <param n="1">1.0</param>
-    <param n="2">1.0</param>
+    <param n="2">0.5</param>
     <param n="3">0.9</param>
    </slot>
   </filter>

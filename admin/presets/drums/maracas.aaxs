@@ -11,8 +11,8 @@
  <info name="Maracas">
  </info>
 
- <sound gain="1.70" frequency="880" duration="0.1">
-  <waveform src="pink-noise" ratio="19.0" pitch="0.33"/>
+ <sound gain="2.97" frequency="880" duration="0.1">
+  <waveform src="pink-noise" ratio="19.0" pitch="0.33" staticity="0.5"/>
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">3300.0</param>
