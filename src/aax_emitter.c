@@ -125,12 +125,18 @@ aaxEmitterDestroy(aaxEmitter emitter)
 
          _intBufErase(&src->buffers, _AAX_EMITTER_BUFFER,_aaxFreeEmitterBuffer);
 
-         for (i=0; i<MAX_STEREO_FILTER; ++i) {
+         for (i=0; i<MAX_STEREO_FILTER; ++i)
+         {
+            _FILTER_LOCK2D_DATA(src, i);
+            _FILTER_FREE2D_DATA(src, i);
             _FILTER_FREE2D_DATA(src, i);
          }
          _FILTER_FREE3D_DATA(src, DISTANCE_FILTER);
 
-         for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+         for (i=0; i<MAX_STEREO_EFFECT; ++i)
+         {
+            _EFFECT_LOCK2D_DATA(src, i);
+            _EFFECT_FREE2D_LOCK(src, i);
             _EFFECT_FREE2D_DATA(src, i);
          }
 

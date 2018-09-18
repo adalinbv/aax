@@ -120,44 +120,52 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_SET_SLOT_DATA(E, s, v)  E->slot[s]->data = v
 #define _EFFECT_SET_SLOT_UPDATED(E)     if (!E->slot[0]->updated) E->slot[0]->updated = 1
 
-#define _EFFECT_GET(P, f, p)            P->effect[f].param[p]
-#define _EFFECT_GET_STATE(P, f)         P->effect[f].state
-#define _EFFECT_GET_UPDATED(P, f)	P->effect[f].updated
-#define _EFFECT_GET_DATA(P, f)          P->effect[f].data
-#define _EFFECT_FREE_DATA(P, f)         if (P->effect[f].destroy) P->effect[f].destroy(P->effect[f].data)
-#define _EFFECT_SET(P, f, p, v)         P->effect[f].param[p] = v
-#define _EFFECT_SET_STATE(P, f, v)      P->effect[f].state = v
-#define _EFFECT_SET_UPDATED(P, f, v)    P->effect[f].updated = v
-#define _EFFECT_SET_DATA(P, f, v)       P->effect[f].data = v
-#define _EFFECT_COPY(P1, P2, f, p)      \
-                                P1->effect[f].param[p] = P2->effect[f].param[p]
-#define _EFFECT_COPY_DATA(P1, P2, f)    P1->effect[f].data = P2->effect[f].data
+#define _EFFECT_GET(P, e, p)            P->effect[e].param[p]
+#define _EFFECT_GET_STATE(P, e)         P->effect[e].state
+#define _EFFECT_GET_UPDATED(P, e)	P->effect[e].updated
+#define _EFFECT_LOCK_DATA(P, e)		_aaxMutexLock(P->effect[e].mutex)
+#define _EFFECT_UNLOCK_DATA(P, e)	_aaxMutexUnLock(P->effect[e].mutex)
+#define _EFFECT_FREE_LOCK(P, e)		_aaxMutexDestroy(P->effect[e].mutex)
+#define _EFFECT_GET_DATA(P, e)          P->effect[e].data
+#define _EFFECT_FREE_DATA(P, e)         if (P->effect[e].destroy) P->effect[e].destroy(P->effect[e].data)
+#define _EFFECT_SET(P, e, p, v)         P->effect[e].param[p] = v
+#define _EFFECT_SET_STATE(P, e, v)      P->effect[e].state = v
+#define _EFFECT_SET_UPDATED(P, e, v)    P->effect[e].updated = v
+#define _EFFECT_SET_DATA(P, e, v)       P->effect[e].data = v
+#define _EFFECT_COPY(P1, P2, e, p)      \
+                                P1->effect[e].param[p] = P2->effect[e].param[p]
+#define _EFFECT_COPY_DATA(P1, P2, e)    P1->effect[e].data = P2->effect[e].data
 
-#define _EFFECT_GET2D(G, f, p)          _EFFECT_GET(G->props2d, f, p)
-#define _EFFECT_GET2D_DATA(G, f)        _EFFECT_GET_DATA(G->props2d, f)
-#define _EFFECT_FREE2D_DATA(G, f)	_EFFECT_FREE_DATA(G->props2d, f)
-#define _EFFECT_GET3D(G, f, p)          _EFFECT_GET(G->props3d, f, p)
-#define _EFFECT_GET3D_DATA(G, f)        _EFFECT_GET_DATA(G->props3d, f)
-#define _EFFECT_FREE3D_DATA(G, f)	_EFFECT_FREE_DATA(G->props3d, f)
-#define _EFFECT_SET2D(G, f, p, v)       _EFFECT_SET(G->props2d, f, p, v)
-#define _EFFECT_SET2D_DATA(G, f, v)     _EFFECT_SET_DATA(G->props2d, f, v)
-#define _EFFECT_SET3D(G, f, p, v)       _EFFECT_SET(G->props3d, f, p, v)
-#define _EFFECT_SET3D_DATA(G, f, v)     _EFFECT_SET_DATA(G->props3d, f, v)
-#define _EFFECT_COPY2D(G1, G2, f, p)    _EFFECT_COPY(G1->props2d, G2->props2d, f, p)
-#define _EFFECT_COPY3D(G1, G2, f, p)    _EFFECT_COPY(G1->props3d, G2->props3d, f, p)
-#define _EFFECT_COPY2D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->props2d, G2->props2d, f)
-#define _EFFECT_COPY3D_DATA(G1, G2, f)  _EFFECT_COPY_DATA(G1->props3d, G2->props3d, f)
+#define _EFFECT_GET2D(G, e, p)          _EFFECT_GET(G->props2d, e, p)
+#define _EFFECT_LOCK2D_DATA(G, e)	_EFFECT_LOCK_DATA(G->props2d, e)
+#define _EFFECT_UNLOCK2D_DATA(G, e)	_EFFECT_UNLOCK_DATA(G->props2d, e)
+#define _EFFECT_FREE2D_LOCK(G, e)	_EFFECT_FREE_LOCK(G->props2d, e)
+#define _EFFECT_GET2D_DATA(G, e)        _EFFECT_GET_DATA(G->props2d, e)
+#define _EFFECT_FREE2D_DATA(G, e)	_EFFECT_FREE_DATA(G->props2d, e)
+#define _EFFECT_GET3D(G, e, p)          _EFFECT_GET(G->props3d, e, p)
+#define _EFFECT_GET3D_DATA(G, e)        _EFFECT_GET_DATA(G->props3d, e)
+#define _EFFECT_FREE3D_DATA(G, e)	_EFFECT_FREE_DATA(G->props3d, e)
+#define _EFFECT_SET2D(G, e, p, v)       _EFFECT_SET(G->props2d, e, p, v)
+#define _EFFECT_SET2D_DATA(G, e, v)     _EFFECT_SET_DATA(G->props2d, e, v)
+#define _EFFECT_SET3D(G, e, p, v)       _EFFECT_SET(G->props3d, e, p, v)
+#define _EFFECT_SET3D_DATA(G, e, v)     _EFFECT_SET_DATA(G->props3d, e, v)
+#define _EFFECT_COPY2D(G1, G2, e, p)    _EFFECT_COPY(G1->props2d, G2->props2d, e, p)
+#define _EFFECT_COPY3D(G1, G2, e, p)    _EFFECT_COPY(G1->props3d, G2->props3d, e, p)
+#define _EFFECT_COPY2D_DATA(G1, G2, e)  _EFFECT_COPY_DATA(G1->props2d, G2->props2d, e)
+#define _EFFECT_COPY3D_DATA(G1, G2, e)  _EFFECT_COPY_DATA(G1->props3d, G2->props3d, e)
 
-#define _EFFECT_GETD3D(G, f, p)         _EFFECT_GET(G->props3d, f, p)
-#define _EFFECT_SETD3D_DATA(G, f, v)    _EFFECT_SET_DATA(G->props3d, f, v)
-#define _EFFECT_COPYD3D(G1, G2, f, p)   _EFFECT_COPY(G1->props3d, G2->props3d, f, p)
-#define _EFFECT_COPYD3D_DATA(G1, G2, f) _EFFECT_COPY_DATA(G1->props3d, G2->props3d, f)
+#define _EFFECT_GETD3D(G, e, p)         _EFFECT_GET(G->props3d, e, p)
+#define _EFFECT_SETD3D_DATA(G, e, v)    _EFFECT_SET_DATA(G->props3d, e, v)
+#define _EFFECT_COPYD3D(G1, G2, e, p)   _EFFECT_COPY(G1->props3d, G2->props3d, e, p)
+#define _EFFECT_COPYD3D_DATA(G1, G2, e) _EFFECT_COPY_DATA(G1->props3d, G2->props3d, e)
 
-#define _EFFECT_SWAP_SLOT_DATA(P, f, F, s)                              \
-    do { void* ptr = P->effect[f].data;                                 \
-    P->effect[f].data = F->slot[s]->data; F->slot[s]->data = ptr;       \
-    P->effect[f].destroy = F->slot[s]->destroy;                         \
-    if (!s) aaxEffectSetState(F, P->effect[f].state); } while (0);
+#define _EFFECT_SWAP_SLOT_DATA(P, e, F, s)                              \
+    do { void* ptr;                                                     \
+    _EFFECT_LOCK_DATA(P, e); ptr = P->effect[e].data;                   \
+    P->effect[e].data = F->slot[s]->data; F->slot[s]->data = ptr;       \
+    _EFFECT_UNLOCK_DATA(P, e);                                          \
+    P->effect[e].destroy = F->slot[s]->destroy;                         \
+    if (!s) aaxEffectSetState(F, P->effect[e].state); } while (0);
 
 float _velocity_calculcate_vs(_aaxEnvData*);
 FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);

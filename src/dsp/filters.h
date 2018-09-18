@@ -115,6 +115,9 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 #define _FILTER_GET_SLOT(F, s, p)       F->slot[s]->param[p]
 #define _FILTER_GET_SLOT_STATE(F)       F->slot[0]->state
 #define _FILTER_GET_SLOT_UPDATED(E)     F->slot[0]->updated
+#define _FILTER_LOCK_DATA(P, f)         _aaxMutexLock(P->filter[f].mutex)
+#define _FILTER_UNLOCK_DATA(P, f)       _aaxMutexUnLock(P->filter[f].mutex)
+#define _FILTER_FREE_LOCK(P, f)         _aaxMutexDestroy(P->filter[f].mutex)
 #define _FILTER_GET_SLOT_DATA(F, s)     F->slot[s]->data
 #define _FILTER_SET_SLOT(F, s, p, v)    F->slot[s]->param[p] = v
 #define _FILTER_SET_SLOT_DATA(F, s, v)  F->slot[s]->data = v
@@ -134,6 +137,9 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 #define _FILTER_COPY_STATE(P1, P2, f)   P1->filter[f].state = P2->filter[f].state
 
 #define _FILTER_GET2D(G, f, p)          _FILTER_GET(G->props2d, f, p)
+#define _FILTER_LOCK2D_DATA(G, f)       _FILTER_LOCK_DATA(G->props2d, f)
+#define _FILTER_UNLOCK2D_DATA(G, f)     _FILTER_UNLOCK_DATA(G->props2d, f)
+#define _FILTER_FREE2D_LOCK(G, f)       _FILTER_FREE_LOCK(G->props2d, f)
 #define _FILTER_GET2D_DATA(G, f)        _FILTER_GET_DATA(G->props2d, f)
 #define _FILTER_FREE2D_DATA(G, f)	_FILTER_FREE_DATA(G->props2d, f)
 #define _FILTER_GET3D(G, f, p)          _FILTER_GET(G->dprops3d, f, p)
@@ -151,8 +157,10 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 #define _FILTER_COPYD3D_DATA(G1, G2, f) _FILTER_COPY_DATA(G1->props3d, G2->props3d, f)
 
 #define _FILTER_SWAP_SLOT_DATA(P, f, F, s)                               \
-    do { void* ptr = P->filter[f].data;                                  \
+    do { void* ptr;                                                      \
+    _FILTER_LOCK_DATA(P, f); ptr = P->filter[f].data;                    \
     P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr;        \
+    _FILTER_UNLOCK_DATA(P, f);                                           \
     P->filter[f].destroy = F->slot[s]->destroy;                          \
     if (!s) aaxFilterSetState(F, P->filter[f].state); } while (0);
 

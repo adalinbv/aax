@@ -1368,13 +1368,19 @@ _aaxFreeSensor(void *ssr)
       free(sensor->filter[HRTF_HEADSHADOW].data);
    }
 
-   for (i=0; i<MAX_STEREO_FILTER; ++i) {
+   for (i=0; i<MAX_STEREO_FILTER; ++i)
+   {
+      _FILTER_LOCK2D_DATA(smixer, i);
       _FILTER_FREE2D_DATA(smixer, i);
+      _FILTER_UNLOCK2D_DATA(smixer, i);
    }
    _FILTER_FREE3D_DATA(smixer, DISTANCE_FILTER);
 
-   for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+   for (i=0; i<MAX_STEREO_EFFECT; ++i)
+   {
+      _EFFECT_LOCK2D_DATA(smixer, i);
       _EFFECT_FREE2D_DATA(smixer, i);
+      _EFFECT_UNLOCK2D_DATA(smixer, i);
    }
 
    _intBufErase(&smixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);

@@ -157,12 +157,18 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
       _aaxAudioFrame* fmixer = handle->submix;
 
-      for (i=0; i<MAX_STEREO_FILTER; ++i) {
+      for (i=0; i<MAX_STEREO_FILTER; ++i)
+      {
+         _FILTER_LOCK2D_DATA(fmixer, i);
+         _FILTER_FREE2D_DATA(fmixer, i);
          _FILTER_FREE2D_DATA(fmixer, i);
       }
       _FILTER_FREE3D_DATA(fmixer, DISTANCE_FILTER);
 
-      for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+      for (i=0; i<MAX_STEREO_EFFECT; ++i)
+      {
+         _EFFECT_LOCK2D_DATA(fmixer, i);
+         _EFFECT_FREE2D_DATA(fmixer, i);
          _EFFECT_FREE2D_DATA(fmixer, i);
       }
 
