@@ -31,11 +31,11 @@
    <slot n="0">
     <param n="0">0.2</param>
     <param n="1">1.54</param>
-    <param n="2">1.2</param>
+    <param n="2">0.7</param>
     <param n="3">1.95</param>
    </slot>
    <slot n="1">
-    <param n="0">0.9</param>
+    <param n="0">0.5</param>
     <param n="1">2.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

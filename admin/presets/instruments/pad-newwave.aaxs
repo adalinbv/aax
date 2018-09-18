@@ -18,7 +18,36 @@
   <waveform src="sine" processing="modulate" ratio="1.4" pitch="5.9987"/>
  </sound>
 
- <emitter looping="true"/>
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.2</param>
+    <param n="2">1.0</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.9</param>
+    <param n="1">5.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.07</param>
+    <param n="1">0.07</param>
+    <param n="2">0.96</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">4.5</param>
+    <param n="2">0.995</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
 
  <audioframe>
   <effect type="flanging" src="inverse-sine" optional="true">

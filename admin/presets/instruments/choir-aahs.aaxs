@@ -19,6 +19,14 @@
   <waveform src="sine" processing="add" ratio="0.25" pitch="3.4978"/>
   <waveform src="sine" processing="modulate" ratio="1.9" pitch="0.5001"/>
   <waveform src="brownian-noise" processing="mix" ratio="0.1" pitch="0.12"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.225</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
