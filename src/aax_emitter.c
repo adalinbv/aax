@@ -116,7 +116,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
    int rv = AAX_FALSE;
    if (handle)
    {
-      _aaxRingBufferDelayEffectData* data;
+//    _aaxRingBufferDelayEffectData* data;
       _aaxEmitter *src = handle->source;
 
       if (!handle->parent && _IS_PROCESSED(src->props3d))
@@ -1314,6 +1314,8 @@ _aaxFreeEmitterBuffer(void *sbuf)
 static int
 _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
 {
+   _aax2dProps *p2d = src->props2d;
+   _aax3dProps *p3d = src->props3d;
    int type = filter->pos;
    int rv = AAX_TRUE;
 
@@ -1326,27 +1328,10 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
    case AAX_FREQUENCY_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:
    case AAX_BITCRUSHER_FILTER:
-   {
-      _aax2dProps *p2d = src->props2d;
-      _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-      _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-      _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-      _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-      _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-      _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+      _FILTER_SWAP_SLOT(p2d, type, filter, 0)
       break;
-   }
    case AAX_DISTANCE_FILTER:
-   {
-      _aax3dProps *p3d = src->props3d;
-
-      _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-      _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-      _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-      _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-      _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-      _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
-
+      _FILTER_SWAP_SLOT(p3d, type, filter, 0)
       if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
       {
          _aaxRingBufferDistanceData *data;
@@ -1361,26 +1346,18 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
          }
       }
       break;
-   }
    case AAX_DIRECTIONAL_FILTER:
    {
-      _aax3dProps *p3d = src->props3d;
       float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
-      float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
       float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
-      float forward_gain = _FILTER_GET_SLOT(filter, 0, 3);
 
       if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
          _PROP_CONE_CLEAR_DEFINED(p3d);
       } else {
          _PROP_CONE_SET_DEFINED(p3d);
       }
-      _FILTER_SET(p3d, type, 0, inner_vec);
-      _FILTER_SET(p3d, type, 1, outer_vec);
-      _FILTER_SET(p3d, type, 2, outer_gain);
-      _FILTER_SET(p3d, type, 3, forward_gain);
-      _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-      _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+
+      _FILTER_SWAP_SLOT(p3d, type, filter, 0);
       break;
    }
    default:
@@ -1394,6 +1371,8 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
 static int
 _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
 {
+   _aax2dProps *p2d = src->props2d;
+   _aax3dProps *p3d = src->props3d;
    int type = effect->pos;
    int rv = AAX_TRUE;
 
@@ -1405,27 +1384,13 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
       // intentional fallthrough
    case AAX_DISTORTION_EFFECT:
    case AAX_RINGMODULATOR_EFFECT:
-   {
-      _aax2dProps *p2d = src->props2d;
-      _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-      _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-      _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-      _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-      _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-      _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+      _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
       break;
-   }
    case AAX_FLANGING_EFFECT:
    case AAX_PHASING_EFFECT:
    case AAX_CHORUS_EFFECT:
-   {
-      _aax2dProps *p2d = src->props2d;
-      _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-      _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-      _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-      _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-      _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-      _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+      _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
+      do
       {
          _aaxRingBufferDelayEffectData* data;
          data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
@@ -1439,21 +1404,13 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
                                               data->delay_history,
                                               data->history_samples, tracks);
          }
-      }
+      } while (0);
       break;
-   }
    case AAX_DYNAMIC_PITCH_EFFECT:
    {
-      _aax2dProps *p2d = src->props2d;
       _aaxLFOData *lfo;
 
-      _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-      _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-      _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-      _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-      _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-      _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-
+      _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
       lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
       if (lfo) /* enabled */
       {
@@ -1476,19 +1433,10 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
       break;
    }
    case AAX_VELOCITY_EFFECT:
-   {
-      _aax3dProps *p3d = src->props3d;
-      _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-      _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-      _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-      _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-      _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-      _EFFECT_SWAP_SLOT_DATA(p3d,  type, effect, 0);
-
+      _EFFECT_SWAP_SLOT(p3d, type, effect, 0);
       // Must be after _EFFECT_SWAP_SLOT_DATA which calls effect->state()
       _EFFECT_SET_UPDATED(p3d, type, _EFFECT_GET_SLOT_UPDATED(effect));
       break;
-   }
    default:
       rv = AAX_FALSE;
       break;

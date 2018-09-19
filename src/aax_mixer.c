@@ -493,13 +493,13 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
       if (dptr)
       {
          _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxAudioFrame *mixer = sensor->mixer;
+         _aax2dProps *p2d = mixer->props2d;
          int type = filter->pos;
+
          switch (filter->type)
          {
          case AAX_VOLUME_FILTER:
-         {
-            _aaxAudioFrame *mixer = sensor->mixer;
-            _aax2dProps *p2d = mixer->props2d;
             _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
                 /* gain min and gain max are read-only for the mixer      */
             /* _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1)); */
@@ -508,44 +508,21 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
             _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
             break;
-         }
          case AAX_COMPRESSOR:
          case AAX_DYNAMIC_GAIN_FILTER:
          case AAX_BITCRUSHER_FILTER:
          case AAX_TIMED_GAIN_FILTER:
-         {
-            _aaxAudioFrame *mixer = sensor->mixer;
-            _aax2dProps *p2d = mixer->props2d;
-            _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-            _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-            _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-            _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+            _FILTER_SWAP_SLOT(p2d, type, filter, 0);
             if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
                 filter->type == AAX_COMPRESSOR)
             {
                p2d->final.gain_lfo = 1.0f;
             }
             break;
-         }
          case AAX_EQUALIZER:
          case AAX_GRAPHIC_EQUALIZER:
-            type = EQUALIZER_HF;
-            _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
-            _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
-            _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
-            _FILTER_SET(sensor, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
-            _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 1);
-
-            /* frees both EQUALIZER_LF and EQUALIZER_HF */
-            type = EQUALIZER_LF;
-            _FILTER_SET(sensor, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-            _FILTER_SET(sensor, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-            _FILTER_SET(sensor, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET(sensor, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-            _FILTER_SET_STATE(sensor, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(sensor, type, filter, 0);
+            _FILTER_SWAP_SLOT(sensor, EQUALIZER_HF, filter, 1);
+            _FILTER_SWAP_SLOT(sensor, EQUALIZER_LF, filter, 0);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);
@@ -634,12 +611,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
             _aaxAudioFrame *mixer = sensor->mixer;
             _aax2dProps *p2d = mixer->props2d;
             int type = effect->pos;
-            _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-            _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-            _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-            _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-            _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-            _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+            _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
             if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT)
             {
                p2d->final.pitch_lfo = 1.0f;

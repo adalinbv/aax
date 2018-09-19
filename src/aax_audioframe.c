@@ -476,67 +476,39 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 
    if (rv)
    {
+      _aax2dProps *p2d = handle->submix->props2d;
+      _aax3dProps *p3d = handle->submix->props3d;
       int type = filter->pos;
       switch (filter->type)
       {
 //    case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
-      {
          if (!handle->filter) {		/* EQUALIZER_LF & EQUALIZER_HF */
             handle->filter = calloc(2, sizeof(_aaxFilterInfo));
          }
 
          if (handle->filter)
          {
-            type = EQUALIZER_HF;
-            _FILTER_SET(handle, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
-            _FILTER_SET(handle, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
-            _FILTER_SET(handle, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
-            _FILTER_SET(handle, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
-            _FILTER_SWAP_SLOT_DATA(handle, EQUALIZER_HF, filter, 1);
-
-            type = EQUALIZER_LF;
-            _FILTER_SET(handle, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-            _FILTER_SET(handle, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-            _FILTER_SET(handle, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-            _FILTER_SET(handle, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-            _FILTER_SET_STATE(handle, type, _FILTER_GET_SLOT_STATE(filter));
-            _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
+            _FILTER_SWAP_SLOT(handle, EQUALIZER_HF, filter, 1);
+            _FILTER_SWAP_SLOT(handle, EQUALIZER_LF, filter, 0);
             break;
          }
          else {
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          }
          break;
-      }
       case AAX_FREQUENCY_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
       case AAX_BITCRUSHER_FILTER:
       case AAX_COMPRESSOR:
-      {
-         _aax2dProps *p2d = handle->submix->props2d;
-         _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-         _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-         _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-         _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-         _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-         _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+         _FILTER_SWAP_SLOT(p2d, type, filter, 0);
          if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
              filter->type == AAX_COMPRESSOR) {
             p2d->final.gain_lfo = 1.0f;
          }
          break;
-      }
       case AAX_DISTANCE_FILTER:
-      {
-         _aax3dProps *p3d = handle->submix->props3d;
-         _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-         _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-         _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-         _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-         _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-         _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
-
+         _FILTER_SWAP_SLOT(p3d, type, filter, 0);
          if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
          {
             _aaxRingBufferDistanceData *data;
@@ -551,55 +523,31 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
             }
          }
          break;
-      }
       case AAX_DIRECTIONAL_FILTER:
       {
-         _aax3dProps *p3d = handle->submix->props3d;
          float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
-         float outer_vec = _FILTER_GET_SLOT(filter, 0, 1);
          float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
-         float forward_gain = _FILTER_GET_SLOT(filter, 0, 3);
-
          if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
             _PROP_CONE_CLEAR_DEFINED(p3d);
          } else {
             _PROP_CONE_SET_DEFINED(p3d);
          }
-         _FILTER_SET(p3d, type, 0, inner_vec);
-         _FILTER_SET(p3d, type, 1, outer_vec);
-         _FILTER_SET(p3d, type, 2, outer_gain);
-         _FILTER_SET(p3d, type, 3, forward_gain);
-         _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-         _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
+         _FILTER_SWAP_SLOT(p3d, type, filter, 0);
          break;
       }
       case AAX_VOLUME_FILTER:
-      {
-         _aax2dProps *p2d = handle->submix->props2d;
-         _aax3dProps *p3d = handle->submix->props3d;
-
-         _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-         _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-         _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-         _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-         _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-         _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+         _FILTER_SWAP_SLOT(p2d, type, filter, 0);
          if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
              filter->type == AAX_COMPRESSOR) {
             p2d->final.gain_lfo = 1.0f;
          }
 
-         _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 1, 0));
-         _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 1, 1));
-         _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 1, 2));
-         _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 1, 3));
-         _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
+         _FILTER_SWAP_SLOT(p3d, type, filter, 1);
          _FILTER_COPY_DATA(p3d, p2d, type);
          if (_FILTER_GET_DATA(p3d, type)) {
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
          break;
-      }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
          rv = AAX_FALSE;
@@ -660,6 +608,8 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
    if (rv)
    {
       _aaxAudioFrame* fmixer = handle->submix;
+      _aax2dProps *p2d = fmixer->props2d;
+      _aax3dProps *p3d = fmixer->props3d;
       int type = effect->pos;
       switch (effect->type)
       {
@@ -670,47 +620,21 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
       case AAX_RINGMODULATOR_EFFECT:
-      {
-         _aax2dProps *p2d = fmixer->props2d;
-         _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-         _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-         _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-         _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-         _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-         _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
+         _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
          if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
             p2d->final.pitch_lfo = 1.0f;
          }
          break;
-      }
       case AAX_REVERB_EFFECT:
-      {
-         _aax2dProps *p2d = fmixer->props2d;
-         _aax3dProps *p3d = fmixer->props3d;
-         _aaxRingBufferReverbData *reverb;
-
-         _EFFECT_SET(p2d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-         _EFFECT_SET(p2d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-         _EFFECT_SET(p2d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-         _EFFECT_SET(p2d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-         _EFFECT_SET_STATE(p2d, type, _EFFECT_GET_SLOT_STATE(effect));
-         _EFFECT_SWAP_SLOT_DATA(p2d, type, effect, 0);
-
-         _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 1, 0));
-         _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 1, 1));
-         _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 1, 2));
-         _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 1, 3));
-         _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-
-         reverb = _EFFECT_GET_DATA(p2d, type);
-         _EFFECT_SET_DATA(p3d, type, reverb);
-         if (reverb) {
+         _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
+         _EFFECT_SWAP_SLOT(p3d, type, effect, 1);
+         _EFFECT_COPY_DATA(p3d, p2d, type);
+         if (_EFFECT_GET_DATA(p2d, type)) {
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
 
          // TODO: add _aaxRingBufferReflectionData to all registered emitters
          break;
-      }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
          rv = AAX_FALSE;

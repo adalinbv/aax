@@ -166,31 +166,17 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
          {
             _sensor_t* sensor = _intBufGetDataPtr(dptr);
             _aaxAudioFrame* mixer = sensor->mixer;
+            _aax2dProps *p2d = mixer->props2d;
+            _aax3dProps *p3d = mixer->props3d;
             int type = filter->pos;
             switch (filter->type)
             {
             case AAX_FREQUENCY_FILTER:
-            {
-               _aax2dProps *p2d = mixer->props2d;
-               _FILTER_SET(p2d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-               _FILTER_SET(p2d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-               _FILTER_SET(p2d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-               _FILTER_SET(p2d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-               _FILTER_SET_STATE(p2d, type, _FILTER_GET_SLOT_STATE(filter));
-               _FILTER_SWAP_SLOT_DATA(p2d, type, filter, 0);
+               _FILTER_SWAP_SLOT(p2d, type, filter, 0);
                rv = AAX_TRUE;
                break;
-            }
             case AAX_DISTANCE_FILTER:
-            {
-               _aax3dProps *p3d = mixer->props3d;
-               _FILTER_SET(p3d, type, 0, _FILTER_GET_SLOT(filter, 0, 0));
-               _FILTER_SET(p3d, type, 1, _FILTER_GET_SLOT(filter, 0, 1));
-               _FILTER_SET(p3d, type, 2, _FILTER_GET_SLOT(filter, 0, 2));
-               _FILTER_SET(p3d, type, 3, _FILTER_GET_SLOT(filter, 0, 3));
-               _FILTER_SET_STATE(p3d, type, _FILTER_GET_SLOT_STATE(filter));
-               _FILTER_SWAP_SLOT_DATA(p3d, type, filter, 0);
-
+               _FILTER_SWAP_SLOT(p3d, type, filter, 0);
                if (_EFFECT_GET_UPDATED(p3d, VELOCITY_EFFECT) == AAX_FALSE)
                {
                   _aaxRingBufferDistanceData *data;
@@ -206,7 +192,6 @@ aaxScenerySetFilter(aaxConfig config, aaxFilter f)
                }
                rv = AAX_TRUE;
                break;
-            }
             default:
                _aaxErrorSet(AAX_INVALID_ENUM);
             }
@@ -280,12 +265,7 @@ aaxScenerySetEffect(aaxConfig config, aaxEffect e)
                {
                   float c, vs;
 
-                  _EFFECT_SET(p3d, type, 0, _EFFECT_GET_SLOT(effect, 0, 0));
-                  _EFFECT_SET(p3d, type, 1, _EFFECT_GET_SLOT(effect, 0, 1));
-                  _EFFECT_SET(p3d, type, 2, _EFFECT_GET_SLOT(effect, 0, 2));
-                  _EFFECT_SET(p3d, type, 3, _EFFECT_GET_SLOT(effect, 0, 3));
-                  _EFFECT_SET_STATE(p3d, type, _EFFECT_GET_SLOT_STATE(effect));
-                  _EFFECT_SWAP_SLOT_DATA(p3d, type, effect, 0);
+                  _EFFECT_SWAP_SLOT(p3d, type, effect, 0);
 
                   c = _EFFECT_GET(p3d, type, AAX_LIGHT_VELOCITY);
                   vs = _EFFECT_GET(p3d, type, AAX_SOUND_VELOCITY);
