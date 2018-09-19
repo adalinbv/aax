@@ -24,7 +24,7 @@
 
 #include <map>
 
-#include <aax/aeonwave.hpp> 
+#include <aax/aeonwave.hpp>
 
 namespace aax
 {
@@ -68,7 +68,7 @@ public:
 
     bool stop() {
         playing = false;
-        return Emitter::set(AAX_STOPPED);
+        return damper ? Emitter::set(AAX_STOPPED) : true;
     }
 
     bool buffer(Buffer& buffer) {
@@ -79,6 +79,7 @@ public:
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
     inline void set_gain(float expr) { gain_param = expr*gain; }
     inline void set_pressure(float p) { pressure = p; }
+    inline void set_damper(bool d) { damper = d; }
 
 private:
     Matrix64 mtx;
@@ -88,6 +89,7 @@ private:
     float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
+    bool damper = false;
 };
 
 
@@ -146,11 +148,9 @@ public:
     }
 
     void stop(uint8_t key_no) {
-        if (hold == false) {
-            auto it = key.find(key_no);
-            if (it != key.end()) {
-                it->second->stop();
-            }
+        auto it = key.find(key_no);
+        if (it != key.end()) {
+            it->second->stop();
         }
     }
 
@@ -179,17 +179,14 @@ public:
 
     inline void set_soft(bool s) { soft = s ? 0.5f : 1.0f; }
 
-    // notes hold until sustain becomes false, even after a stop message
-    void set_hold(bool h) {
-        hold = h;
-        if (!hold) {
-            for (auto& it : key) {
-                it.second->stop();
-            }
+    // notes hold until damper becomes true, even after a stop message
+    void set_damper(bool d) {
+        for (auto& it : key) {
+            it.second->set_damper(d);
         }
     }
 
-    // only notes started before this command shold hold until stop arrives
+    // only notes started before this command should hold until stop arrives
     void set_sustain(bool s) {
     }
 
@@ -229,7 +226,6 @@ private:
     float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
-    bool hold = false;
 };
 
 } // namespace aax
