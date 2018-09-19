@@ -60,6 +60,7 @@ public:
     }
 
     bool play(float g) {
+        hold = false;
         gain_param = gain = g;
         Emitter::set(AAX_INITIALIZED);
         if (!playing) playing = Emitter::set(AAX_PLAYING);
@@ -68,7 +69,18 @@ public:
 
     bool stop() {
         playing = false;
-        return damper ? Emitter::set(AAX_STOPPED) : true;
+        return hold ? true : Emitter::set(AAX_STOPPED);
+    }
+
+    // notes hold until hold becomes false, even after a stop message
+    void set_hold(bool h) {
+        if (hold && !h) Emitter::set(AAX_STOPPED);
+        hold = h;
+    }
+
+    // only notes started before this command should hold until stop arrives
+    void set_sustain(bool s) {
+        hold = s;
     }
 
     bool buffer(Buffer& buffer) {
@@ -79,7 +91,6 @@ public:
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
     inline void set_gain(float expr) { gain_param = expr*gain; }
     inline void set_pressure(float p) { pressure = p; }
-    inline void set_damper(bool d) { damper = d; }
 
 private:
     Matrix64 mtx;
@@ -89,7 +100,7 @@ private:
     float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
-    bool damper = true;
+    bool hold = true;
 };
 
 
@@ -179,15 +190,16 @@ public:
 
     inline void set_soft(bool s) { soft = s ? 0.5f : 1.0f; }
 
-    // notes hold until damper becomes true, even after a stop message
-    void set_damper(bool d) {
+    void set_hold(bool h) {
         for (auto& it : key) {
-            it.second->set_damper(d);
+            it.second->set_hold(h);
         }
     }
 
-    // only notes started before this command should hold until stop arrives
     void set_sustain(bool s) {
+        for (auto& it : key) {
+            it.second->set_sustain(s);
+        }
     }
 
     inline void set_modulation_depth(float d) { modulation_range = d; }
