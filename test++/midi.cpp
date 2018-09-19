@@ -582,7 +582,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 {
                 case MIDI_ALL_CONTROLLERS_OFF:
                      midi.channel(channel).set_expression(1.0f);
-                     midi.channel(channel).set_damper(true);
+                     midi.channel(channel).set_hold(true);
                      midi.channel(channel).set_sustain(false);
                      midi.channel(channel).set_gain(100.0f/127.0f);
                      midi.channel(channel).set_pan(0.0f);
@@ -627,7 +627,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_soft(value >= 0x40);
                     break;
                 case MIDI_HOLD_PEDAL1:
-                    midi.channel(channel).set_damper(value >= 0x40);
+                    midi.channel(channel).set_hold(value >= 0x40);
                     break;
                 case MIDI_HOLD_PEDAL2:
                     break;
