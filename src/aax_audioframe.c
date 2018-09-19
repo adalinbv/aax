@@ -161,7 +161,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
       {
          _FILTER_LOCK2D_DATA(fmixer, i);
          _FILTER_FREE2D_DATA(fmixer, i);
-         _FILTER_FREE2D_DATA(fmixer, i);
+         _FILTER_UNLOCK2D_DATA(fmixer, i);
       }
       _FILTER_FREE3D_DATA(fmixer, DISTANCE_FILTER);
 
@@ -169,7 +169,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
       {
          _EFFECT_LOCK2D_DATA(fmixer, i);
          _EFFECT_FREE2D_DATA(fmixer, i);
-         _EFFECT_FREE2D_DATA(fmixer, i);
+         _EFFECT_UNLOCK2D_DATA(fmixer, i);
       }
 
       _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);

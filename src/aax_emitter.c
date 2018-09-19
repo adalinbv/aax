@@ -129,7 +129,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          {
             _FILTER_LOCK2D_DATA(src, i);
             _FILTER_FREE2D_DATA(src, i);
-            _FILTER_FREE2D_DATA(src, i);
+            _FILTER_UNLOCK2D_DATA(src, i);
          }
          _FILTER_FREE3D_DATA(src, DISTANCE_FILTER);
 
@@ -137,7 +137,7 @@ aaxEmitterDestroy(aaxEmitter emitter)
          {
             _EFFECT_LOCK2D_DATA(src, i);
             _EFFECT_FREE2D_LOCK(src, i);
-            _EFFECT_FREE2D_DATA(src, i);
+            _EFFECT_UNLOCK2D_DATA(src, i);
          }
 
          _intBufErase(&src->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
