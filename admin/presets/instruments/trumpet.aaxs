@@ -12,7 +12,7 @@
   <note polyphony="2" min="48" max="94" step="12"/>
  </info>
 
- <sound gain="2.02" frequency="220" duration="0.1">
+ <sound gain="1.93" frequency="220" duration="0.1">
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -62,5 +62,16 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="24db" optional="true">
+   <slot n="0">
+    <param n="0">2200.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">2.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>
