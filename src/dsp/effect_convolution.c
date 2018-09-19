@@ -220,11 +220,11 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
             no_samples += convolution->no_samples;
 
-            free(convolution->sample_ptr);
+            if (convolution->sample_ptr) free(convolution->sample_ptr);
             convolution->sample_ptr = data;
             convolution->sample = *data;
 
-            free(convolution->history_ptr);
+            if (convolution->history_ptr) free(convolution->history_ptr);
             _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
                                               (int32_t**)convolution->history,
                                               2*no_samples, tracks);
@@ -340,9 +340,9 @@ _convolution_destroy(void *ptr)
          }
       }
 
-      free(data->history_ptr);
-      free(data->sample_ptr);
-      free(data->freq_filter);
+      if (data->history_ptr) free(data->history_ptr);
+      if (data->sample_ptr) free(data->sample_ptr);
+      if (data->freq_filter) free(data->freq_filter);
       free(data);
    }
 }
