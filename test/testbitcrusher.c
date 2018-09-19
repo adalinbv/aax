@@ -95,7 +95,7 @@ int main(int argc, char **argv)
             testForError(effect, "aaxFilterCreate");
 
             res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              0.0f, 0.01f, 100.0f, 50.0f);
+                                              1.0f, 0.01f, 100.0f, 50.0f);
             testForState(res, "aaxEffectSetSlot 0");
 
             res = aaxEffectSetState(effect, AAX_SINE_WAVE);
