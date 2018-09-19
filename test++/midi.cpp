@@ -327,7 +327,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 {
     bool msb_sent = false, lsb_sent = false;
     uint16_t msb_type = 0, lsb_type = 0;
-    uint16_t msb = 0, lsb = 0;
+//  uint16_t msb = 0, lsb = 0;
     uint8_t next = 0;
     uint16_t type;
     float rv = 0.0f;
@@ -373,6 +373,11 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
     }
 
+
+    if (msb_type >= MAX_REGISTERED_PARAM || lsb_type >= MAX_REGISTERED_PARAM) {
+        return rv;
+    }
+
     type = msb_type << 8 | lsb_type;
     if (msb_sent && lsb_sent)
     {
@@ -382,12 +387,12 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
         if (next == (MIDI_DATA_ENTRY|MIDI_COARSE))
         {
-            msb = pull_byte();
+            param[msb_type].coarse = pull_byte();
             next = pull_byte();
         }
         else if (next == (MIDI_DATA_ENTRY|MIDI_FINE))
         {
-            lsb = pull_byte();
+            param[lsb_type].fine = pull_byte();
             next = pull_byte();
         }
         else {
@@ -399,9 +404,9 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
             next = pull_byte();
         }
         if (next == (MIDI_DATA_ENTRY|MIDI_COARSE)) {
-            msb = pull_byte();
+            param[msb_type].coarse = pull_byte();
         } else if (next == (MIDI_DATA_ENTRY|MIDI_FINE)) {
-            lsb = pull_byte();
+            param[lsb_type].fine = pull_byte();
         } else {
             push_byte();
         }
@@ -409,8 +414,14 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         switch(type)
         {
         case MIDI_PITCH_BEND_RANGE:
-            rv = (float)msb + (float)lsb*0.01f;
+            rv = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
+                 (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
             midi.channel(channel).set_semi_tones(rv);
+            break;
+        case MIDI_MODULATION_DEPTH_RANGE:
+            rv = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
+                 (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
+            midi.channel(channel).set_modulation_depth(rv);
             break;
         case MIDI_PARAMETER_RESET:
             midi.channel(channel).set_semi_tones(2.0f);
@@ -419,7 +430,6 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         case MIDI_COARSE_TUNING:
         case MIDI_TUNING_PROGRAM_CHANGE:
         case MIDI_TUNING_BANK_SELECT:
-        case MIDI_MODULATION_DEPTH_RANGE:
         default:
             LOG("Unsupported registered parameter: %x\n", type);
             break;
@@ -531,10 +541,12 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 midi.set_tempo(tempo);
                 break;
             }
-            case MIDI_SEQUENCE_NUMBER:
+            case MIDI_SEQUENCE_NUMBER:	// sequencer software only
             case MIDI_TIME_SIGNATURE:
             case MIDI_SMPTE_OFFSET:
             case MIDI_KEY_SIGNATURE:
+                forward(size);
+                break;
             default:	// unsupported
                 LOG("Unsupported system message: %x\n", meta);
                 forward(size);
@@ -570,7 +582,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 {
                 case MIDI_ALL_CONTROLLERS_OFF:
                      midi.channel(channel).set_expression(1.0f);
-                     midi.channel(channel).set_hold(false);
+                     midi.channel(channel).set_damper(true);
                      midi.channel(channel).set_sustain(false);
                      midi.channel(channel).set_gain(100.0f/127.0f);
                      midi.channel(channel).set_pan(0.0f);
@@ -615,8 +627,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_soft(value >= 0x40);
                     break;
                 case MIDI_HOLD_PEDAL1:
+                    midi.channel(channel).set_damper(value >= 0x40);
+                    break;
                 case MIDI_HOLD_PEDAL2:
-                    midi.channel(channel).set_hold(value >= 0x40);
                     break;
                 case MIDI_SOSTENUTO_PEDAL:
                     midi.channel(channel).set_sustain(value >= 0x40);
