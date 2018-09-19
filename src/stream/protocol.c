@@ -81,13 +81,13 @@ _prot_create(_protocol_t protocol)
 void*
 _prot_free(_prot_t *prot)
 {
-   free(prot->path);
-   free(prot->content_type);
-   free(prot->station);
-   free(prot->description);
-   free(prot->genre);
-   free(prot->website);
-   free(prot);
+   if (prot->path) free(prot->path);
+   if (prot->content_type) free(prot->content_type);
+   if (prot->station) free(prot->station);
+   if (prot->description) free(prot->description);
+   if (prot->genre) free(prot->genre);
+   if (prot->website) free(prot->website);
+   if (prot) free(prot);
    return 0;
 }
 
