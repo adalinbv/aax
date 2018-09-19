@@ -190,9 +190,11 @@ public:
     void set_sustain(bool s) {
     }
 
+    inline void set_modulation_depth(float d) { modulation_range = d; }
+
     void set_modulation(float m) {
         bool enabled = (m > 0.05f);
-        modulate_depth = -m;
+        modulate_depth = -m*modulation_range;
         if ((enabled && !modulate_state) || (!enabled && modulate_state)) {
             modulate_state = enabled;
         }
@@ -224,6 +226,7 @@ private:
     bool is_drums;
     float soft = 1.0f;
     float gain = 1.0f;
+    float modulation_range = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
 };
