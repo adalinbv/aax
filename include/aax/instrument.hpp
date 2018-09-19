@@ -89,7 +89,7 @@ private:
     float gain = 1.0f;
     float pressure = 0.0f;
     bool playing = false;
-    bool damper = false;
+    bool damper = true;
 };
 
 
