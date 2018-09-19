@@ -172,6 +172,12 @@ namespace aax
 /* our own */
 #define MIDI_DRUMS_CHANNEL		0x9
 
+struct param_t
+{
+   float coarse;
+   float fine;
+};
+
 class MIDIChannel;
 
 class MIDI : public AeonWave
@@ -271,6 +277,8 @@ private:
 };
 
 
+#define MAX_REGISTERED_PARAM 	6
+
 class MIDITrack : public byte_stream
 {
 public:
@@ -304,6 +312,10 @@ private:
     uint64_t timestamp_parts = 0;
     bool polyphony = true;
     bool omni = false;
+
+    struct param_t param[MAX_REGISTERED_PARAM] = {
+        { 2, 0 }, { 0x20, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
+    };
 };
 
 
