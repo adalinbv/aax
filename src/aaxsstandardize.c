@@ -74,8 +74,8 @@ static uint8_t pitch2note(float pitch, float freq) {
 
 struct info_t
 {
-    uint8_t program;
-    uint8_t bank;
+    int16_t program;
+    int16_t bank;
     char* name;
 
     struct note_t
@@ -93,8 +93,14 @@ void fill_info(struct info_t *info, void *xid)
 {
     void *xtid;
 
-    info->program = xmlAttributeGetInt(xid, "program");
-    info->bank = xmlAttributeGetInt(xid, "bank");
+    info->program = info->bank = -1;
+  
+    if (xmlAttributeExists(xid, "program")) {
+        info->program = xmlAttributeGetInt(xid, "program");
+    }
+    if (xmlAttributeExists(xid, "bank")) {
+        info->bank = xmlAttributeGetInt(xid, "bank");
+    }
     info->name = xmlAttributeGetString(xid, "name");
 
     xtid = xmlNodeGet(xid, "note");
@@ -106,6 +112,7 @@ void fill_info(struct info_t *info, void *xid)
         info->note.step = xmlAttributeGetInt(xtid, "step");
         xmlFree(xtid);
     }
+    if (info->note.polyphony == 0) info->note.polyphony = 1;
 
     xtid = xmlNodeGet(xid, "position");
     if (xtid)
@@ -121,11 +128,8 @@ void print_info(struct info_t *info, FILE *output)
 {
     fprintf(output, " <info");
     if (info->name) fprintf(output, " name=\"%s\"", info->name);
-    if (info->note.polyphony)
-    {
-        fprintf(output, " bank=\"%i\"", info->bank);
-        fprintf(output, " program=\"%i\"", info->program);
-    }
+    if (info->bank >= 0) fprintf(output, " bank=\"%i\"", info->bank);
+    if (info->program >= 0) fprintf(output, " program=\"%i\"", info->program);
     fprintf(output, ">\n");
 
     if (info->note.polyphony)
@@ -349,10 +353,20 @@ struct sound_t
     } entry[32];
 };
 
-void fill_sound(struct sound_t *sound, void *xid, float gain)
+void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gain)
 {
     unsigned int p, e, emax;
     void *xeid;
+
+    if (!info->program && xmlAttributeExists(xid, "program")) {
+        info->program = xmlAttributeGetInt(xid, "program");
+    }
+    if (!info->bank && xmlAttributeExists(xid, "bank")) {
+        info->bank = xmlAttributeGetInt(xid, "bank");
+    }
+    if (!info->name && xmlAttributeExists(xid, "name")) {
+        info->name = xmlAttributeGetString(xid, "name");
+    }
 
     if (gain == 0.0f) {
         sound->gain = xmlAttributeGetDouble(xid, "gain");
@@ -548,7 +562,7 @@ void fill_aax(struct aax_t *aax, const char *filename, float gain, char timed_ga
             xtid = xmlNodeGet(xaid, "sound");
             if (xtid)
             {
-                fill_sound(&aax->sound, xtid, gain);
+                fill_sound(&aax->sound, &aax->info, xtid, gain);
                 xmlFree(xtid);
             }
 
@@ -668,7 +682,6 @@ int main(int argc, char **argv)
         aaxBuffer buffer;
         aaxConfig config;
         aaxEmitter emitter;
-        aaxFilter filter;
         aaxFrame frame;
         void **data;
         int res;
@@ -773,7 +786,7 @@ int main(int argc, char **argv)
         {
             size_t tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
             size_t freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
-            size_t i, no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+            size_t no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
             float *buffer = data[0];
             ebur128_state *st;
 
