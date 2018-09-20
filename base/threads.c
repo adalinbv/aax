@@ -728,6 +728,11 @@ int
 __sync_fetch_and_add(int *variable, int value) {
    return InterlockedExchangeAdd(variable, value);
 }
+
+void*
+__sync_lock_test_and_set(void **ptr, void *value) {
+   return InterlockedExchangePointer(ptr, value);
+}
 #endif
 
 							/* --- WINDOWS --- */
