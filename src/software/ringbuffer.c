@@ -1475,7 +1475,7 @@ _aaxRingBufferClear(_aaxRingBufferData *rbi)
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
 
    rbd = rbi->sample;
-   dde_bytes = rbd->dde_samples*rbd->bytes_sample;
+   dde_bytes = 0; // rbd->dde_samples*rbd->bytes_sample;
    for (i=0; i<rbd->no_tracks; i++) {
       memset((void *)((char*)rbd->track[i]-dde_bytes), 0,
              rbd->track_len_bytes+dde_bytes);
