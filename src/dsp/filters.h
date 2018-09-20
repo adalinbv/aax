@@ -157,12 +157,10 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 #define _FILTER_COPYD3D_DATA(G1, G2, f) _FILTER_COPY_DATA(G1->props3d, G2->props3d, f)
 
 #define _FILTER_SWAP_SLOT_DATA(P, f, F, s)                               \
-    do { void* ptr;                                                      \
-    _FILTER_LOCK_DATA(P, f); ptr = P->filter[f].data;                    \
-    P->filter[f].data = F->slot[s]->data; F->slot[s]->data = ptr;        \
+    do {                                                                 \
+    F->slot[s]->data = _aaxAtomicPointerSwap(&P->filter[f].data, F->slot[s]->data); \
     P->filter[f].destroy = F->slot[s]->destroy;                          \
-    if (!s) aaxFilterSetState(F, P->filter[f].state);                    \
-    _FILTER_UNLOCK_DATA(P, f); } while (0);
+    if (!s) aaxFilterSetState(F, P->filter[f].state); } while (0);
 
 #define _FILTER_SWAP_SLOT(P, t, f, s)                                    \
     _FILTER_SET(P, t, 0, _FILTER_GET_SLOT(f, s, 0));                     \

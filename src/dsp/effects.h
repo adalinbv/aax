@@ -160,12 +160,10 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_COPYD3D_DATA(G1, G2, e) _EFFECT_COPY_DATA(G1->props3d, G2->props3d, e)
 
 #define _EFFECT_SWAP_SLOT_DATA(P, e, E, s)                              \
-    do { void* ptr;                                                     \
-    _EFFECT_LOCK_DATA(P, e); ptr = P->effect[e].data;                   \
-    P->effect[e].data = E->slot[s]->data; E->slot[s]->data = ptr;       \
+    do {                                                                \
+    E->slot[s]->data = _aaxAtomicPointerSwap(&P->filter[e].data, E->slot[s]->data); \
     P->effect[e].destroy = E->slot[s]->destroy;                         \
-    if (!s) aaxEffectSetState(E, P->effect[e].state);                   \
-    _EFFECT_UNLOCK_DATA(P, e); } while (0);
+    if (!s) aaxEffectSetState(E, P->effect[e].state); } while (0);
 
 #define _EFFECT_SWAP_SLOT(P, t, f, s)                                    \
     _EFFECT_SET(P, t, 0, _EFFECT_GET_SLOT(f, s, 0));                     \
