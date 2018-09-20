@@ -61,6 +61,7 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
       for (s=0; s<slots; ++s) {
          flt->slot[s] = (_aaxFilterInfo*)(ptr + s*size);
       }
+      flt->slot[0]->mutex = _aaxMutexCreate(flt->slot[0]->mutex);
 
       rv = (aaxFilter)flt;
    }

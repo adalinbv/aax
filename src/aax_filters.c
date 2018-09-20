@@ -67,7 +67,10 @@ aaxFilterDestroy(aaxFilter f)
    int rv = AAX_FALSE;
    if (filter)
    {
-      _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+     _flt_function_tbl *flt = _aaxFilters[filter->type-1];
+//    _aaxMutexLock(filter->slot[0]->mutex);
+//    _aaxMutexDestroy(filter->slot[0]->mutex);
+      filter->slot[0]->mutex = NULL;
       rv = flt->destroy(filter);
    }
    return rv;

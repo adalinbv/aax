@@ -60,6 +60,7 @@ _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned sl
       for (s=0; s<slots; ++s) {
          eff->slot[s] = (_aaxEffectInfo*)(ptr + s*size);
       }
+      eff->slot[0]->mutex = _aaxMutexCreate(NULL);
 
       rv = (aaxEffect)eff;
    }
