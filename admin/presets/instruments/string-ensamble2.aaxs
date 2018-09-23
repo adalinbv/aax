@@ -13,7 +13,7 @@
   <position x="2.0" y="0.0" z="-1.0"/>
  </info>
 
- <sound gain="1.83" frequency="220" voices="5" spread="0.3">
+ <sound gain="1.86" frequency="220" voices="5" spread="0.3">
   <waveform src="sawtooth" ratio="0.2" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.2" pitch="1.487"/>
   <waveform src="sawtooth" processing="mix" ratio="0.8"/>
@@ -40,13 +40,13 @@
    <slot n="0">
     <param n="0">0.2</param>
     <param n="1">1.24</param>
-    <param n="2">0.9</param>
+    <param n="2">0.7</param>
     <param n="3">1.95</param>
    </slot>
    <slot n="1">
-    <param n="0">0.7</param>
+    <param n="0">0.5</param>
     <param n="1">inf</param>
-    <param n="2">0.7</param>
+    <param n="2">0.5</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

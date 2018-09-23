@@ -12,7 +12,7 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="3.04" frequency="440">
+ <sound gain="2.85" frequency="440">
   <waveform src="sine" pitch="0.4993"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="0.5"/>
   <filter type="bitcrusher">

@@ -12,7 +12,7 @@
   <note polyphony="43" min="48" max="96" step="6"/>
  </info>
 
- <sound gain="1.58" frequency="880">
+ <sound gain="1.20" frequency="880">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
   <waveform src="sine" processing="mix" ratio="0.025"/>
