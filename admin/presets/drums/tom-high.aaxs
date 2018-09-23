@@ -9,6 +9,7 @@
 <aeonwave>
 
  <info name="High Tom">
+  <note polyphony="1"/>
  </info>
 
  <sound gain="1.37" frequency="208" duration="0.1">

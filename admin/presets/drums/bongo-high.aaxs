@@ -9,9 +9,10 @@
 <aeonwave>
 
  <info name="High Bongo">
+  <note polyphony="1"/>
  </info>
 
- <sound gain="1.61" frequency="1400" duration="0.1">
+ <sound gain="1.56" frequency="1400" duration="0.1">
   <waveform src="pink-noise" pitch="0.25"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.6"/>

@@ -9,9 +9,10 @@
 <aeonwave>
 
  <info name="Triangle (Muted)">
+  <note polyphony="1"/>
  </info>
 
- <sound gain="1.08" frequency="1600" duration="0.1">
+ <sound gain="1.07" frequency="1600" duration="0.1">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="add" ratio="0.8" pitch="2.9"/>
   <waveform src="sine" processing="modulate" pitch="6.5"/>

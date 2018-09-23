@@ -9,11 +9,13 @@
 <aeonwave>
 
  <info name="Electric Snare">
+  <note polyphony="1"/>
  </info>
 
- <sound gain="1.17" frequency="250" duration="0.5">
-  <waveform src="white-noise" ratio="0.2" pitch="0.2"/>
-  <waveform src="triangle" processing="add" ratio="0.8"/>
+ <sound gain="2.11" frequency="250" duration="0.5">
+  <waveform src="pink-noise" ratio="0.8" pitch="0.1"/>
+  <waveform src="triangle" processing="add" ratio="0.3"/>
+  <waveform src="triangle" processing="add" ratio="0.1" pitch="0.5"/>
   <filter type="bitcrusher">
    <slot n="0">
     <param n="0">0.0</param>

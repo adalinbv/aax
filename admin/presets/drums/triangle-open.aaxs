@@ -9,6 +9,7 @@
 <aeonwave>
 
  <info name="Triangle">
+  <note polyphony="1"/>
  </info>
 
  <sound gain="1.11" frequency="1600" duration="0.1">

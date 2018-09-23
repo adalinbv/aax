@@ -9,6 +9,7 @@
 <aeonwave>
 
  <info name="Cuica (Muted)">
+  <note polyphony="1"/>
  </info>
 
  <sound gain="1.24" frequency="336" duration="0.01">

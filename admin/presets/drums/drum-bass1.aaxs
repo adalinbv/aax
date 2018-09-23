@@ -9,6 +9,7 @@
 <aeonwave>
 
  <info name="Base Drum 1">
+  <note polyphony="1"/>
  </info>
 
  <sound gain="1.98" frequency="55" duration="0.1">

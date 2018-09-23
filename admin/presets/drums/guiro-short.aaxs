@@ -9,9 +9,10 @@
 <aeonwave>
 
  <info name="Guiro (Short)">
+  <note polyphony="1"/>
  </info>
 
- <sound gain="1.22" frequency="220" duration="0.2">
+ <sound gain="1.17" frequency="220" duration="0.2">
   <waveform src="pink-noise" ratio="80.0" pitch="0.1"/>
   <filter type="frequency" src="48db">
    <slot n="0">

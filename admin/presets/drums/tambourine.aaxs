@@ -9,9 +9,10 @@
 <aeonwave>
 
  <info name="Tambourine">
+  <note polyphony="1"/>
  </info>
 
- <sound gain="1.06" frequency="880" duration="0.1">
+ <sound gain="1.04" frequency="880" duration="0.1">
   <waveform src="square" pitch="3.0"/>
   <waveform src="white-noise" processing="mix" ratio="0.6" pitch="0.15"/>
   <waveform src="square" processing="modulate" pitch="6.3"/>

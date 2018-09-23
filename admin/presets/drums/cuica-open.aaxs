@@ -9,6 +9,7 @@
 <aeonwave>
 
  <info name="Cuica (Open)">
+  <note polyphony="1"/>
  </info>
 
  <sound gain="0.85" frequency="1008" duration="0.01">
