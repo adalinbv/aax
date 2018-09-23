@@ -952,6 +952,7 @@ _open_handle(aaxConfig config)
                _aaxAudioFrame* smixer;
 
                sensor->filter = handle->filter;
+               sensor->mutex = _aaxMutexCreate(NULL);
                _aaxSetDefaultEqualizer(handle->filter);
 
                size = sizeof(_sensor_t);
@@ -1359,7 +1360,9 @@ _aaxFreeSensor(void *ssr)
    int i;
 
    /* frees both EQUALIZER_LF and EQUALIZER_HF */
-   if (sensor->filter[EQUALIZER_LF].data) {
+   if (sensor->filter[EQUALIZER_LF].data)
+   {
+      _aaxMutexDestroy(sensor->mutex);
       free(sensor->filter[EQUALIZER_LF].data);
    }
 

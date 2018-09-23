@@ -121,8 +121,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    src += start;
    dst += start;
 
-   _aaxMutexLock(p2d->mutex);
-
    /* streaming emitters with delay effects need the source history */
    state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
    if (state)
@@ -153,6 +151,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    psrc = src; /* might change further in the code */
    pdst = dst; /* might change further in the code */
+
+   _aaxMutexLock(p2d->mutex);
 
    /* occlusion */
    state = _FILTER_GET_STATE(p2d, VOLUME_FILTER);

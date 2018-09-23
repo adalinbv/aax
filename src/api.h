@@ -97,6 +97,7 @@ typedef struct
    _aaxAudioFrame *mixer;
 
    /* parametric equalizer, located at _handle_t **/
+   void *mutex;
    _aaxFilterInfo *filter;
 
 } _sensor_t;
@@ -198,6 +199,7 @@ typedef struct
    _aaxAudioFrame *submix;
 
    /* parametric equalizer **/
+   void *mutex;
    _aaxFilterInfo *filter;
 
    char mtx_set;
