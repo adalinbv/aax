@@ -73,6 +73,7 @@ enum _aaxRingBufferParam
 enum _aaxRingBufferState
 {
    RB_CLEARED = 0,
+   RB_CLEARED_DDE,
    RB_REWINDED,
    RB_FORWARDED,
    RB_STARTED,

@@ -53,7 +53,7 @@
 # define _DEBUG		0
 #endif
 
-static int _aaxRingBufferClear(_aaxRingBufferData*);
+static int _aaxRingBufferClear(_aaxRingBufferData*, char);
 static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
 
 static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX];
@@ -563,7 +563,8 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
    switch (state)
    {
    case RB_CLEARED:
-      _aaxRingBufferClear(rbi);
+   case RB_CLEARED_DDE:
+      _aaxRingBufferClear(rbi, (state == RB_CLEARED) ? AAX_FALSE : AAX_TRUE);
 
       rbi->elapsed_sec = 0.0f;
       rbi->pitch_norm = 1.0;
@@ -1323,7 +1324,7 @@ int
 _aaxRingBufferDataClear(_aaxRingBuffer *rb)
 {
    _aaxRingBufferData *rbi = rb->handle;
-   return _aaxRingBufferClear(rbi);
+   return _aaxRingBufferClear(rbi, AAX_FALSE);
 }
 
 void
@@ -1466,7 +1467,7 @@ float _compress(float v, float f) { return powf(f, 1.0f-v); }
 
 
 static int
-_aaxRingBufferClear(_aaxRingBufferData *rbi)
+_aaxRingBufferClear(_aaxRingBufferData *rbi, char dde)
 {
    _aaxRingBufferSample *rbd;
    size_t dde_bytes;
@@ -1475,7 +1476,7 @@ _aaxRingBufferClear(_aaxRingBufferData *rbi)
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
 
    rbd = rbi->sample;
-   dde_bytes = 0; // rbd->dde_samples*rbd->bytes_sample;
+   dde_bytes = dde ? rbd->dde_samples*rbd->bytes_sample : 0;
    for (i=0; i<rbd->no_tracks; i++) {
       memset((void *)((char*)rbd->track[i]-dde_bytes), 0,
              rbd->track_len_bytes+dde_bytes);
