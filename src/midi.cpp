@@ -816,7 +816,7 @@ MIDIFile::initialize()
 
     bool verbose = MIDI::get_verbose();
     MIDI::set_verbose(false);
-    MIDI::set_initialize(true);
+    MIDI::set_initialize(verbose);
 
     uint64_t time_parts = 0;
     uint32_t wait_parts = 1000000;
