@@ -214,6 +214,9 @@ public:
     std::string get_drum(uint8_t bank, uint8_t key);
     std::string get_instrument(uint8_t bank, uint8_t program);
 
+    inline void set_initialize(bool i) { initialize = i; };
+    inline bool get_initialize() { return initialize; }
+
     inline void set_verbose(bool v) { verbose = v; }
     inline bool get_verbose() { return verbose; }
 
@@ -243,6 +246,7 @@ private:
     uint16_t PPQN = 24;
     uint32_t uSPP = 500000/24;
 
+    bool initialize = false;
     bool verbose = false;
 };
 
