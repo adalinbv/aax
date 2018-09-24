@@ -20,7 +20,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="3">
    <slot n="0">
     <param n="0">0.5</param>
     <param n="1">0.01</param>
@@ -37,7 +37,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.17</param>
-    <param n="1">0.03</param>
+    <param n="1">0.02</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
