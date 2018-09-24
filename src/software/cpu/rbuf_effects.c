@@ -127,7 +127,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferDelayEffectData *delay;
 
-      _EFFECT_LOCK_DATA(p2d, DELAY_EFFECT);
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
       if (delay && !delay->loopback && delay->history_ptr)
@@ -135,17 +134,12 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
          assert(ds <= delay->history_samples);
          assert(bps <= sizeof(MIX_T));
 
-         _EFFECT_UNLOCK_DATA(p2d, DELAY_EFFECT);
-
          // copy the delay effects history to src
 //       DBG_MEMCLR(1, src-ds, ds, bps);
          _aax_memcpy(src-ds, delay->delay_history[track], ds*bps);
 
          // copy the new delay effects history back
          _aax_memcpy(delay->delay_history[track], src+no_samples-ds, ds*bps);
-      }
-      else {
-         _EFFECT_UNLOCK_DATA(p2d, DELAY_EFFECT);
       }
    }
 
@@ -160,14 +154,12 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferOcclusionData *occlusion;
 
-      _FILTER_LOCK_DATA(p2d, VOLUME_FILTER);
       occlusion = _FILTER_GET_DATA(p2d, VOLUME_FILTER);
       if (occlusion)
       {
          occlusion->run(rbd, pdst, psrc, scratch, no_samples, track, occlusion);
          BUFSWAP(pdst, psrc);
       }
-      _FILTER_UNLOCK_DATA(p2d, VOLUME_FILTER);
    }
 
    /* bitcrusher filter */
@@ -178,14 +170,12 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferBitCrusherData *bitcrush;
 
-      _FILTER_LOCK_DATA(p2d, BITCRUSHER_FILTER);
       bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
       if (bitcrush)
       {
          float level;
 
          level = bitcrush->lfo.get(&bitcrush->lfo, NULL, NULL, 0, 0);
-         _FILTER_UNLOCK_DATA(p2d, BITCRUSHER_FILTER);
 
          if (level > 0.01f)
          {
@@ -198,9 +188,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
             _batch_fmul_value(psrc, bps, no_samples, level);
          }
       }
-      else {
-         _FILTER_UNLOCK_DATA(p2d, BITCRUSHER_FILTER);
-      }
    }
 
    /* modulator effect */
@@ -209,12 +196,10 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferModulatorData *modulator;
 
-      _EFFECT_LOCK_DATA(p2d, RINGMODULATE_EFFECT);
       modulator = _EFFECT_GET_DATA(p2d, RINGMODULATE_EFFECT);
       if (modulator) {
          modulator->run(psrc, end, no_samples, modulator, env, track);
       }
-      _EFFECT_UNLOCK_DATA(p2d, RINGMODULATE_EFFECT);
    }
 
    /* frequency filter */
@@ -223,14 +208,12 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferFreqFilterData *freq;
 
-      _FILTER_LOCK_DATA(p2d, FREQUENCY_FILTER);
       freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
       if (freq)
       {
          freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, ctr);
          BUFSWAP(pdst, psrc);
       }
-      _FILTER_UNLOCK_DATA(p2d, FREQUENCY_FILTER);
    }
 
    /* bitcrusher: add noise */
@@ -239,7 +222,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferBitCrusherData *bitcrush;
 
-      _FILTER_LOCK_DATA(p2d, BITCRUSHER_FILTER);
       bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
       if (bitcrush)
       {
@@ -251,16 +233,12 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
             if (bitcrush->env.envelope) {
                ratio *= bitcrush->env.get(&bitcrush->env, env, psrc, 0, end);
             }
-            _FILTER_UNLOCK_DATA(p2d, BITCRUSHER_FILTER);
 
             ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
             for (i=0; i<no_samples; ++i) {
                psrc[i] += ratio*xorshift128plus();
             }
          }
-      }
-      else {
-         _FILTER_UNLOCK_DATA(p2d, BITCRUSHER_FILTER);
       }
    }
 
@@ -271,13 +249,11 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       _aaxRingBufferDistoritonData *distort;
       _aaxFilterInfo *dist_effect;
 
-      _EFFECT_LOCK_DATA(p2d, DISTORTION_EFFECT);
       dist_effect = &p2d->effect[DISTORTION_EFFECT];
       distort = dist_effect->data;
       if (distort) {
          distort->run(rbd, pdst, psrc, 0, end, ds, track, dist_effect, env);
       }
-      _EFFECT_UNLOCK_DATA(p2d, DISTORTION_EFFECT);
       BUFSWAP(pdst, psrc);
    }
 
@@ -287,7 +263,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferDelayEffectData *delay;
 
-      _EFFECT_LOCK_DATA(p2d, DELAY_EFFECT);
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       if (delay)
       {
@@ -303,7 +278,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
             BUFSWAP(pdst, psrc);
          }
       }
-      _EFFECT_UNLOCK_DATA(p2d, DELAY_EFFECT);
    }
 
    /* reverb */
@@ -312,7 +286,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    {
       _aaxRingBufferReverbData *reverb;
 
-      _EFFECT_LOCK_DATA(p2d, REVERB_EFFECT);
       reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
       if (reverb)
       {
@@ -320,7 +293,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
                      track, reverb, NULL, mono);
          BUFSWAP(pdst, psrc);
       }
-      _EFFECT_UNLOCK_DATA(p2d, REVERB_EFFECT);
    }
 
    _aaxMutexUnLock(p2d->mutex);
