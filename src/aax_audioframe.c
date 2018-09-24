@@ -493,10 +493,8 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
 
          if (handle->filter)
          {
-            _aaxMutexLock(handle->mutex);
             _FILTER_SWAP_SLOT(handle, EQUALIZER_HF, filter, 1);
             _FILTER_SWAP_SLOT(handle, EQUALIZER_LF, filter, 0);
-            _aaxMutexUnLock(handle->mutex);
             break;
          }
          else {
@@ -626,22 +624,18 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
       case AAX_RINGMODULATOR_EFFECT:
-         _aaxMutexLock(p2d->mutex);
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
          if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
             p2d->final.pitch_lfo = 1.0f;
          }
-         _aaxMutexUnLock(p2d->mutex);
          break;
       case AAX_REVERB_EFFECT:
-         _aaxMutexLock(p2d->mutex);
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
          _EFFECT_SWAP_SLOT(p3d, type, effect, 1);
          _EFFECT_COPY_DATA(p3d, p2d, type);
          if (_EFFECT_GET_DATA(p2d, type)) {
             _PROP_OCCLUSION_SET_DEFINED(p3d);
          }
-         _aaxMutexUnLock(p2d->mutex);
 
          // TODO: add _aaxRingBufferReflectionData to all registered emitters
          break;

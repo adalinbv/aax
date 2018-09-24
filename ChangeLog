@@ -7,6 +7,7 @@
    complete, musical instrument. And use it for the MIDI playback code.
  * Re-initialize the emitter after it is set to suspended. This makes the
    emitter ready for the next playing state.
+ * Fix a possible race condition when using tied properties.
  * Fix some issues with the timed gain filter and timed pitch effect.
  * Fix an issue when two registered audio-frames both use a delay effect.
  * Add the option to define the loop staring point and loop end point in AAXS

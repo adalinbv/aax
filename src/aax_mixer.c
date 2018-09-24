@@ -521,10 +521,8 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             break;
          case AAX_EQUALIZER:
          case AAX_GRAPHIC_EQUALIZER:
-            _aaxMutexLock(sensor->mutex);
             _FILTER_SWAP_SLOT(sensor, EQUALIZER_HF, filter, 1);
             _FILTER_SWAP_SLOT(sensor, EQUALIZER_LF, filter, 0);
-            _aaxMutexUnLock(sensor->mutex);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);

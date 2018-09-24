@@ -170,14 +170,13 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
  P->filter[f].destroy = F->slot[s]->destroy;                                   \
  if (!s) aaxFilterSetState(F, P->filter[f].state); } while (0);
 
-#define _FILTER_SWAP_SLOT(P, t, f, s)                                          \
+#define _FILTER_SWAP_SLOT(P, t, f, s) _aaxMutexLock(P->mutex);                 \
  _FILTER_SET(P, t, 0, _FILTER_GET_SLOT(f, s, 0));                              \
  _FILTER_SET(P, t, 1, _FILTER_GET_SLOT(f, s, 1));                              \
  _FILTER_SET(P, t, 2, _FILTER_GET_SLOT(f, s, 2));                              \
  _FILTER_SET(P, t, 3, _FILTER_GET_SLOT(f, s, 3));                              \
  _FILTER_SET_STATE(P, t, _FILTER_GET_SLOT_STATE(f));                           \
- _FILTER_SWAP_MUTEX(P, t, f, s);                                               \
- _FILTER_SWAP_SLOT_DATA(P, t, f, s);
+ _FILTER_SWAP_SLOT_DATA(P, t, f, s); _aaxMutexUnLock(P->mutex);
 
 
 float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);

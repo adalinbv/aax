@@ -204,8 +204,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    }
 
    /* modulator effect */
-// state = _EFFECT_GET_STATE(p2d, RINGMODULATE_EFFECT);
-// if (state)
+   state = _EFFECT_GET_STATE(p2d, RINGMODULATE_EFFECT);
+   if (state)
    {
       _aaxRingBufferModulatorData *modulator;
 

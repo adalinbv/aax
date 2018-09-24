@@ -1384,14 +1384,11 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
       // intentional fallthrough
    case AAX_DISTORTION_EFFECT:
    case AAX_RINGMODULATOR_EFFECT:
-      _aaxMutexLock(p2d->mutex);
       _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
-      _aaxMutexUnLock(p2d->mutex);
       break;
    case AAX_FLANGING_EFFECT:
    case AAX_PHASING_EFFECT:
    case AAX_CHORUS_EFFECT:
-      _aaxMutexLock(p2d->mutex);
       _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
       do
       {
@@ -1408,13 +1405,11 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
                                               data->history_samples, tracks);
          }
       } while (0);
-      _aaxMutexUnLock(p2d->mutex);
       break;
    case AAX_DYNAMIC_PITCH_EFFECT:
    {
       _aaxLFOData *lfo;
 
-      _aaxMutexLock(p2d->mutex);
       _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
       lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
       if (lfo) /* enabled */
@@ -1435,15 +1430,12 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
          _PROP_DYNAMIC_PITCH_CLEAR_DEFINED(src->props3d);
          src->update_rate = 0;
       }
-      _aaxMutexUnLock(p2d->mutex);
       break;
    }
    case AAX_VELOCITY_EFFECT:
-      _aaxMutexUnLock(p3d->mutex);
       _EFFECT_SWAP_SLOT(p3d, type, effect, 0);
       // Must be after _EFFECT_SWAP_SLOT_DATA which calls effect->state()
       _EFFECT_SET_UPDATED(p3d, type, _EFFECT_GET_SLOT_UPDATED(effect));
-      _aaxMutexUnLock(p3d->mutex);
       break;
    default:
       rv = AAX_FALSE;
