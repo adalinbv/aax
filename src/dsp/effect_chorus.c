@@ -279,7 +279,6 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferDelayEffectData* effect = data;
    size_t offs, noffs;
-   MIX_T *sptr, *dptr;
    float pitch, volume;
    ssize_t doffs;
 
@@ -289,9 +288,6 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    assert(d != 0);
    assert(start < end);
    assert(data != NULL);
-
-   sptr = (MIX_T*)s + start;
-   dptr = d + start;
 
    volume =  effect->delay.gain;
    offs = effect->delay.sample_offs[track];
@@ -311,18 +307,26 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
 
    assert(s != d);
 
-   doffs = noffs - offs;
-   pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
-
-   _aax_memcpy(dptr, sptr, no_samples*bps);
-   if (pitch == 1.0f) {
-      rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
-   }
-   else
+   if (offs && volume > LEVEL_96DB)
    {
-//    DBG_MEMCLR(1, scratch-ds, ds+end, sizeof(MIX_T));
-      rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, pitch);
-      rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
+      MIX_T *sptr, *dptr;
+
+      sptr = (MIX_T*)s + start;
+      dptr = d + start;
+
+      doffs = noffs - offs;
+      pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+
+      _aax_memcpy(dptr, sptr, no_samples*bps);
+      if (pitch == 1.0f) {
+         rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
+      }
+      else
+      {
+//       DBG_MEMCLR(1, scratch-ds, ds+end, sizeof(MIX_T));
+         rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, pitch);
+         rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
+      }
    }
 }
 

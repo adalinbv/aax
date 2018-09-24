@@ -277,10 +277,7 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* effect = data;
-   ssize_t doffs, coffs;
-   size_t i, sign, step;
    ssize_t offs, noffs;
-   MIX_T *sptr, *dptr, *ptr;
    float volume;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -289,10 +286,6 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
    assert(d != 0);
    assert(start < end);
    assert(data != NULL);
-
-   sptr = (MIX_T*)s + start;
-   dptr = d + start;
-   ptr = dptr;
 
    volume = effect->delay.gain;
    offs = effect->delay.sample_offs[track];
@@ -313,47 +306,58 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
    assert(s == d);
 // assert(noffs >= offs);
 
-   sign = (noffs < offs) ? -1 : 1;
-   doffs = labs(noffs - offs);
-   i = no_samples;
-   coffs = offs;
-   step = end;
+   if (offs && volume > LEVEL_96DB)
+   {
+      MIX_T *sptr, *dptr, *ptr;
+      ssize_t doffs, coffs;
+      size_t i, sign, step;
 
-   if (start)
-   {
-      step = effect->curr_step[track];
-      coffs = effect->curr_coffs[track];
-   }
-   else
-   {
-      if (doffs)
+      sptr = (MIX_T*)s + start;
+      dptr = d + start;
+      ptr = dptr;
+
+      sign = (noffs < offs) ? -1 : 1;
+      doffs = labs(noffs - offs);
+      i = no_samples;
+      coffs = offs;
+      step = end;
+
+      if (start)
       {
-         step = end/doffs;
-         if (step < 2) step = end;
+         step = effect->curr_step[track];
+         coffs = effect->curr_coffs[track];
       }
-   }
-   effect->curr_step[track] = step;
-
-//  DBG_MEMCLR(1, s-ds, ds+start, bps);
-   _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
-   if (i >= step)
-   {
-      do
+      else
       {
-         rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
-
-         ptr += step;
-         coffs += sign;
-         i -= step;
+         if (doffs)
+         {
+            step = end/doffs;
+            if (step < 2) step = end;
+         }
       }
-      while(i >= step);
-   }
-   if (i) {
-      rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
-   }
+      effect->curr_step[track] = step;
+
+//     DBG_MEMCLR(1, s-ds, ds+start, bps);
+      _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
+      if (i >= step)
+      {
+         do
+         {
+            rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
+
+            ptr += step;
+            coffs += sign;
+            i -= step;
+         }
+         while(i >= step);
+      }
+      if (i) {
+         rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
+      }
 
 // DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
-   _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
-   effect->curr_coffs[track] = coffs;
+      _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
+      effect->curr_coffs[track] = coffs;
+   }
 }
 
