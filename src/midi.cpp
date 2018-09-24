@@ -40,7 +40,8 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
-#define DISPLAY(...)	if(midi.get_verbose()) printf(__VA_ARGS__)
+#define DISPLAY(...)	if(midi.get_initialize()) printf(__VA_ARGS__)
+#define MESSAGE(...)	if(midi.get_verbose()) printf(__VA_ARGS__)
 #ifndef NDEBUG
 # define LOG(...)	printf(__VA_ARGS__)
 #else
@@ -266,8 +267,8 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             std::string name = midi.get_drum(bank_no, key_no);
             if (!name.empty())
             {
-                LOG("Loading drum       bank: %3i, key    : %3i: %s\n",
-                     bank_no, key_no, name.c_str());
+                DISPLAY("Loading drum       bank: %3i, key    : %3i: %s\n",
+                         bank_no, key_no, name.c_str());
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
@@ -285,8 +286,8 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             std::string name = midi.get_instrument(bank_no, program_no);
             if (!name.empty())
             {
-                LOG("Loading instrument bank: %3i, program: %3i: %s\n",
-                     bank_no, program_no, name.c_str());
+                DISPLAY("Loading instrument bank: %3i, program: %3i: %s\n",
+                         bank_no, program_no, name.c_str());
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
@@ -490,9 +491,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
             {
                 if (pull_byte() == 0x01) {
-                    DISPLAY("General MIDI 1.0\n");
+                    MESSAGE("General MIDI 1.0\n");
                 } else if (pull_byte() == 0x03) {
-                    DISPLAY("General MIDI 2.0\n");
+                    MESSAGE("General MIDI 2.0\n");
                 }
             }
             else if (byte == 0x41 && pull_byte() == 0x10 &&
@@ -501,7 +502,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                        pull_byte() == 0x7f && pull_byte() == 0x00 &&
                        pull_byte() == 0x41)
             {
-                DISPLAY("General Standard\n");
+                MESSAGE("General Standard\n");
             }
 
             push_byte();
@@ -520,11 +521,20 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_COPYRIGHT:
             case MIDI_TRACK_NAME:
             case MIDI_INSTRUMENT_NAME:
-            case MIDI_LYRICS:
                 if (midi.get_verbose()) {
                     printf("%-10s: ", type_name[meta-1].c_str());
                     for (int i=0; i<size; ++i) printf("%c", pull_byte());
-                    printf("%c", (meta == MIDI_LYRICS) ? '\r' : '\n');
+                    printf("\n");
+                }
+                else {
+                    forward(size);
+                }
+                break;
+            case MIDI_LYRICS:
+                if (midi.get_verbose()) {
+                    // printf("%-10s:\n", type_name[meta-1].c_str());
+                    for (int i=0; i<size; ++i) printf("%c", pull_byte());
+                    fflush(stdout);
                 }
                 else {
                     forward(size);
@@ -806,6 +816,7 @@ MIDIFile::initialize()
 
     bool verbose = MIDI::get_verbose();
     MIDI::set_verbose(false);
+    MIDI::set_initialize(true);
 
     uint64_t time_parts = 0;
     uint32_t wait_parts = 1000000;
@@ -813,6 +824,7 @@ MIDIFile::initialize()
         time_parts += wait_parts;
     }
 
+    MIDI::set_initialize(false);
     MIDI::set_verbose(verbose);
     rewind();
 
