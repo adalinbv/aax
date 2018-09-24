@@ -214,6 +214,9 @@ public:
     std::string get_drum(uint8_t bank, uint8_t key);
     std::string get_instrument(uint8_t bank, uint8_t program);
 
+    inline void set_verbose(bool v) { verbose = v; }
+    inline bool get_verbose() { return verbose; }
+
     inline void set_format(uint16_t fmt) { format = fmt; }
     inline uint16_t get_format() { return format; }
 
@@ -239,6 +242,8 @@ private:
     uint16_t format = 0;
     uint16_t PPQN = 24;
     uint32_t uSPP = 500000/24;
+
+    bool verbose = false;
 };
 
 
@@ -316,6 +321,7 @@ private:
     struct param_t param[MAX_REGISTERED_PARAM] = {
         { 2, 0 }, { 0x20, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
     };
+    std::string type_name[5] = {"Text", "Copyright", "Track", "Instrument", "Lyrics" };
 };
 
 

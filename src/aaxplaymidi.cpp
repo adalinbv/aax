@@ -50,12 +50,39 @@
 #define INSTRUMENTS		"gmmidi.xml"
 #define DRUMS			"gmdrums.xml"
 
+void
+help()
+{
+    aaxConfig cfgi, cfgo;
 
+    printf("aaxplaymidi version %i.%i.%i\n\n", AAX_UTILS_MAJOR_VERSION,
+                                           AAX_UTILS_MINOR_VERSION,
+                                           AAX_UTILS_MICRO_VERSION);
+    printf("Usage: aaxplaymidi [options]\n");
+    printf("Plays a midi file to an audio input device.\n");
+
+    printf("\nOptions:\n");
+    printf("  -i, --input <file>\t\tplayback audio from a file\n");
+    printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
+//  printf("  -v, --verbose\t\t\tshow extra playback information\n");
+    printf("  -h, --help\t\t\tprint this message and exit\n");
+
+    printf("\n");
+
+    exit(-1);
+}
+
+int verbose = 0;
 int main(int argc, char **argv)
 {
+    if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
+                     getCommandLineOption(argc, argv, "--help"))
+    {
+        help();
+    }
+
     char *devname = getDeviceName(argc, argv);
     char *infile = getInputFile(argc, argv, IFILE_PATH);
-
     try
     {
         aax::MIDIFile midi(devname, infile);
@@ -65,6 +92,12 @@ int main(int argc, char **argv)
             uint64_t time_parts = 0;
             uint32_t wait_parts;
             struct timeval now;
+
+            if (getCommandLineOption(argc, argv, "-v") ||
+                getCommandLineOption(argc, argv, "--verbose"))
+            {
+               midi.set_verbose(true);
+            }
 
 #if 1
             midi.set_file_path(SRC_PATH"/midi");

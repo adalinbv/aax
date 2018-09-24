@@ -40,8 +40,9 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
+#define DISPLAY(...)	if(midi.get_verbose()) printf(__VA_ARGS__)
 #ifndef NDEBUG
-# define LOG(...)  printf(__VA_ARGS__)
+# define LOG(...)	printf(__VA_ARGS__)
 #else
 # define LOG
 #endif
@@ -489,9 +490,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
             {
                 if (pull_byte() == 0x01) {
-                    LOG("General MIDI 1.0\n");
+                    DISPLAY("General MIDI 1.0\n");
                 } else if (pull_byte() == 0x03) {
-                    LOG("General MIDI 2.0\n");
+                    DISPLAY("General MIDI 2.0\n");
                 }
             }
             else if (byte == 0x41 && pull_byte() == 0x10 &&
@@ -500,7 +501,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                        pull_byte() == 0x7f && pull_byte() == 0x00 &&
                        pull_byte() == 0x41)
             {
-                LOG("General Standard\n");
+                DISPLAY("General Standard\n");
             }
 
             push_byte();
@@ -520,10 +521,19 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_TRACK_NAME:
             case MIDI_INSTRUMENT_NAME:
             case MIDI_LYRICS:
+                if (midi.get_verbose()) {
+                    printf("%-10s: ", type_name[meta-1].c_str());
+                    for (int i=0; i<size; ++i) printf("%c", pull_byte());
+                    printf("%c", (meta == MIDI_LYRICS) ? '\r' : '\n');
+                }
+                else {
+                    forward(size);
+                }
+                break;
             case MIDI_MARKER:
             case MIDI_CUE_POINT:
             case MIDI_DEVICE_NAME:
-                forward(size);			// not implemented yet
+                forward(size);
                 break;
             case MIDI_CHANNEL_PREFIX:
                 channel_no = (channel_no & 0xF0) | pull_byte();
@@ -794,12 +804,16 @@ MIDIFile::initialize()
 {
     MIDI::read_instruments();
 
+    bool verbose = MIDI::get_verbose();
+    MIDI::set_verbose(false);
+
     uint64_t time_parts = 0;
     uint32_t wait_parts = 1000000;
     while (process(time_parts, wait_parts)) {
         time_parts += wait_parts;
     }
 
+    MIDI::set_verbose(verbose);
     rewind();
 
     MIDI::set(AAX_REFRESH_RATE, 90.0f);
