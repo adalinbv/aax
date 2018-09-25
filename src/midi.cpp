@@ -491,9 +491,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
             {
                 if (pull_byte() == 0x01) {
-                    MESSAGE("General MIDI 1.0\n");
+                    MESSAGE("Format    : General MIDI 1.0\n");
                 } else if (pull_byte() == 0x03) {
-                    MESSAGE("General MIDI 2.0\n");
+                    MESSAGE("Format    : General MIDI 2.0\n");
                 }
             }
             else if (byte == 0x41 && pull_byte() == 0x10 &&
@@ -502,7 +502,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                        pull_byte() == 0x7f && pull_byte() == 0x00 &&
                        pull_byte() == 0x41)
             {
-                MESSAGE("General Standard\n");
+                MESSAGE("Format    : General Standard\n");
             }
 
             push_byte();
@@ -842,9 +842,9 @@ MIDIFile::initialize()
         minutes = floorf(seconds/60.0f);
         seconds -= minutes*60.0f;
         if (hour) {
-            printf("Duration : %02.0f:%02.0f:%02.0f\n", hour, minutes, seconds);
+            printf("Duration  : %02.0f:%02.0f:%02.0f\n", hour, minutes, seconds);
         } else {
-            printf("Duration : %02.0f:%02.0f\n", minutes, seconds);
+            printf("Duration  : %02.0f:%02.0f\n", minutes, seconds);
         }
     }
 
