@@ -99,7 +99,7 @@ int main(int argc, char **argv)
                midi.set_verbose(true);
             }
 
-#if 1
+#ifndef NDEBUG
             midi.set_file_path(SRC_PATH"/midi");
             midi.set_instrument_file(INSTRUMENTS);
             midi.set_drum_file(DRUMS);
