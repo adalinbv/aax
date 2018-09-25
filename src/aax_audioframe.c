@@ -157,7 +157,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
 
       _aaxAudioFrame* fmixer = handle->submix;
 
-      _aaxMutexLock(fmixer->props2d);
+      _aaxMutexLock(fmixer->props2d->mutex);
       for (i=0; i<MAX_STEREO_FILTER; ++i) {
          _FILTER_FREE2D_DATA(fmixer, i);
       }
@@ -165,11 +165,11 @@ aaxAudioFrameDestroy(aaxFrame frame)
       for (i=0; i<MAX_STEREO_EFFECT; ++i) {
          _EFFECT_FREE2D_DATA(fmixer, i);
       }
-      _aaxMutexDestroy(fmixer->props2d);
+      _aaxMutexDestroy(fmixer->props2d->mutex);
 
-      _aaxMutexLock(fmixer->props2d);
+      _aaxMutexLock(fmixer->props3d->mutex);
       _FILTER_FREE3D_DATA(fmixer, DISTANCE_FILTER);
-      _aaxMutexDestroy(fmixer->props2d);
+      _aaxMutexDestroy(fmixer->props3d->mutex);
 
       _intBufErase(&fmixer->p3dq, _AAX_DELAYED3D, _aax_aligned_free);
       _aax_aligned_free(fmixer->props3d->dprops3d);
