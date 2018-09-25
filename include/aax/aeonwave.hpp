@@ -197,23 +197,27 @@ protected:
             if (!tied) return;
             if (filter) {
                 aaxFilter flt = get.filter(obj, dsptype.filter);
-                aaxFilterSetParam(flt, param, AAX_LINEAR, val);
-                set.filter(obj, flt); aaxFilterDestroy(flt);
+                if (aaxFilterSetParam(flt, param, AAX_LINEAR, val)) {
+                     set.filter(obj, flt);
+                }
+                aaxFilterDestroy(flt);
             } else {
                 aaxEffect eff = get.effect(obj, dsptype.effect);
-                aaxEffectSetParam(eff, param, AAX_LINEAR, val);
-                set.effect(obj, eff); aaxEffectDestroy(eff);
+                if (aaxEffectSetParam(eff, param, AAX_LINEAR, val)) {
+                    set.effect(obj, eff);
+                }
+                aaxEffectDestroy(eff);
             }
         } else if (std::is_same<T,int>::value) {
             if (!enabled) return;
             if (filter) {
                 aaxFilter flt = get.filter(obj, dsptype.filter);
-                aaxFilterSetState(flt, val);
-                set.filter(obj, flt); aaxFilterDestroy(flt);
+                if (aaxFilterSetState(flt, val)) set.filter(obj, flt);
+                aaxFilterDestroy(flt);
             } else {
                 aaxEffect eff = get.effect(obj, dsptype.effect);
-                aaxEffectSetState(eff, val);
-                set.effect(obj, eff); aaxEffectDestroy(eff);
+                if (aaxEffectSetState(eff, val)) set.effect(obj, eff);
+                aaxEffectDestroy(eff);
             }
             enabled = tied;
         }

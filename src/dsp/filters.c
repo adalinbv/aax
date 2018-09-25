@@ -61,7 +61,6 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
       for (s=0; s<slots; ++s) {
          flt->slot[s] = (_aaxFilterInfo*)(ptr + s*size);
       }
-      flt->slot[0]->mutex = _aaxMutexCreate(flt->slot[0]->mutex);
 
       rv = (aaxFilter)flt;
    }
@@ -135,17 +134,10 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
 void
 _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigned slot))
 {
-    void *mutex = filter->mutex;
-
    assert(type < MAX_STEREO_FILTER);
    assert(slot < _MAX_FE_SLOTS);
 
    memset(filter, 0, sizeof(_aaxFilterInfo));
-   if (!mutex) {
-       mutex = _aaxMutexCreate(mutex);
-   }
-   filter->mutex = mutex;
-
    switch(type)
    {
    case VOLUME_FILTER:

@@ -153,9 +153,6 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_COPYD3D(G1, G2, e, p)   _EFFECT_COPY(G1->props3d, G2->props3d, e, p)
 #define _EFFECT_COPYD3D_DATA(G1, G2, e) _EFFECT_COPY_DATA(G1->props3d, G2->props3d, e)
 
-#define _EFFECT_SWAP_MUTEX(P, e, E, s)                                         \
- E->slot[s]->mutex=_aaxAtomicPointerSwap(&P->effect[e].mutex,E->slot[s]->mutex);
-
 #define _EFFECT_SWAP_SLOT_DATA(P, e, E, s) do {                                \
  E->slot[s]->data=_aaxAtomicPointerSwap(&P->effect[e].data,E->slot[s]->data);  \
  P->effect[e].destroy = E->slot[s]->destroy;                                   \

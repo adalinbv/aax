@@ -66,8 +66,6 @@ aaxEffectDestroy(aaxEffect e)
    if (effect)
    {
       _eff_function_tbl *eff = _aaxEffects[effect->type-1];
-//    _aaxMutexLock(effect->slot[0]->mutex);
-//    _aaxMutexDestroy(effect->slot[0]->mutex);
       rv = eff->destroy(e);
    }
    return rv;

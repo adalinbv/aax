@@ -146,8 +146,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    psrc = src; /* might change further in the code */
    pdst = dst; /* might change further in the code */
 
-   _aaxMutexLock(p2d->mutex);
-
    /* occlusion */
    state = _FILTER_GET_STATE(p2d, VOLUME_FILTER);
    if (state)
@@ -294,8 +292,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
          BUFSWAP(pdst, psrc);
       }
    }
-
-   _aaxMutexUnLock(p2d->mutex);
 
    /* copy the data back to the dst buffer, if necessary */
    if (dst == pdst)
