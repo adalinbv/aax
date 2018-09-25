@@ -174,7 +174,7 @@ public:
         if (!tied) {
             set.filter = sfn; get.filter = gfn;
             obj = o; dsptype.filter = f; param = p;
-            filter = true; tied = true; fire();
+            filter = true; tied = enabled = true; fire();
             return true;
         }
         return false;
@@ -183,7 +183,7 @@ public:
         if (!tied) {
             set.effect = sfn; get.effect = gfn;
             obj = o; dsptype.effect = e; param = p;
-            filter = false; tied = true; fire();
+            filter = false; tied = enabled = true; fire();
             return true;
         }
         return false;
@@ -192,23 +192,30 @@ public:
 
 protected:
     void fire() {
-        if (!tied || val == prev) return;
-        if (filter) {
-            aaxFilter flt = get.filter(obj, dsptype.filter);
-            if (std::is_same<T,float>::value) {
-              aaxFilterSetParam(flt, param, AAX_LINEAR, val);
-            } else if (std::is_same<T,int>::value) {
-               aaxFilterSetState(flt, val);
+        if (val == prev) return;
+        if (std::is_same<T,float>::value) {
+            if (!tied) return;
+            if (filter) {
+                aaxFilter flt = get.filter(obj, dsptype.filter);
+                aaxFilterSetParam(flt, param, AAX_LINEAR, val);
+                set.filter(obj, flt); aaxFilterDestroy(flt);
+            } else {
+                aaxEffect eff = get.effect(obj, dsptype.effect);
+                aaxEffectSetParam(eff, param, AAX_LINEAR, val);
+                set.effect(obj, eff); aaxEffectDestroy(eff);
             }
-            set.filter(obj, flt); aaxFilterDestroy(flt);
-        } else {
-            aaxEffect eff = get.effect(obj, dsptype.effect);
-            if (std::is_same<T,float>::value) {
-               aaxEffectSetParam(eff, param, AAX_LINEAR, val);
-            } else if (std::is_same<T,int>::value) {
-               aaxEffectSetState(eff, val);
+        } else if (std::is_same<T,int>::value) {
+            if (!enabled) return;
+            if (filter) {
+                aaxFilter flt = get.filter(obj, dsptype.filter);
+                aaxFilterSetState(flt, val);
+                set.filter(obj, flt); aaxFilterDestroy(flt);
+            } else {
+                aaxEffect eff = get.effect(obj, dsptype.effect);
+                aaxEffectSetState(eff, val);
+                set.effect(obj, eff); aaxEffectDestroy(eff);
             }
-            set.effect(obj, eff); aaxEffectDestroy(eff);
+            enabled = tied;
         }
         prev = val;
     }
@@ -218,6 +225,7 @@ private:
     bool tied = 0;
     int param = 0;
     bool filter = false;
+    bool enabled = false;
     void* obj = nullptr;
 
     union setter {
