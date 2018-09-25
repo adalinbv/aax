@@ -348,6 +348,8 @@ public:
     inline void stop() { MIDI::set(AAX_PROCESSED); }
     void rewind();
 
+    inline float get_duration_sec() { return duration_sec; }
+
     bool process(uint64_t, uint32_t&);
 
 private:
@@ -355,6 +357,7 @@ private:
     std::vector<MIDITrack*> track;
 
     uint16_t no_tracks = 0;
+    float duration_sec = 0.0f;
 };
 
 } // namespace aax

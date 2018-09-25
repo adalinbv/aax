@@ -818,15 +818,35 @@ MIDIFile::initialize()
     MIDI::set_verbose(false);
     MIDI::set_initialize(verbose);
 
+    duration_sec = 0.0f;
+
     uint64_t time_parts = 0;
     uint32_t wait_parts = 1000000;
-    while (process(time_parts, wait_parts)) {
+    while (process(time_parts, wait_parts))
+    {
         time_parts += wait_parts;
+        duration_sec += wait_parts*MIDI::get_uspp()*1e-6f;
     }
 
     MIDI::set_initialize(false);
     MIDI::set_verbose(verbose);
     rewind();
+
+    if (verbose)
+    {
+        float hour, minutes, seconds;
+
+        seconds = duration_sec;
+        hour = floorf(seconds/(60.0f*60.0f));
+        seconds -= hour*60.0f*60.0f;
+        minutes = floorf(seconds/60.0f);
+        seconds -= minutes*60.0f;
+        if (hour) {
+            printf("Duration : %02.0f:%02.0f:%02.0f\n", hour, minutes, seconds);
+        } else {
+            printf("Duration : %02.0f:%02.0f\n", minutes, seconds);
+        }
+    }
 
     MIDI::set(AAX_REFRESH_RATE, 90.0f);
     MIDI::set(AAX_INITIALIZED);
