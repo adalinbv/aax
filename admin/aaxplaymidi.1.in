@@ -1,0 +1,28 @@
+.\" Manpage for aaxplay.
+.\" Contact tech@adalin.com to correct errors or typos.
+.TH man 1 "25 Sep 2018" "@AAX_UTILS_MAJOR_VERSION@.@AAX_UTILS_MINOR_VERSION@.@AAX_UTILS_MICRO_VERSION@" "aaxplaymidi man page"
+.SH NAME
+aaxplay \- Plays audio from a file or from an audio input device.
+.SH SYNOPSIS
+.B aaxplaymidi
+[\fIOPTION\fR]...
+.SH DESCRIPTION
+.PP
+Plays a midi file to an audio input device.
+.TP
+\fB\-i\fR, \fB\-\-input \fRFILE\fR
+playback audio from a file
+.TP
+\fB\-d\fR, \fB\-\-device \fRDEVICE\fR
+playback device (default if not specified)
+.TP
+\fB\-v\fR, \fB\-\-verbose
+show extra playback information
+.TP
+\fB\-h\fR, \fB\-\-help
+print this message and exit
+.PP
+Written by Erik Hofman <tech@adalin.com>
+.SH SEE ALSO
+aaxplay(1)
+

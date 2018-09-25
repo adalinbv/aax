@@ -64,7 +64,7 @@ help()
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
-//  printf("  -v, --verbose\t\t\tshow extra playback information\n");
+    printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
     printf("\n");

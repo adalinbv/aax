@@ -54,12 +54,12 @@ ELSE(WIN32)
 
   # DEBIAN
   SET(CPACK_DEBIAN_PACKAGE_SECTION "utils")
-  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax3-bin (>= 3.0.0)")
+  SET(CPACK_DEBIAN_PACKAGE_DEPENDS "libc6 (>= 2.1), libaax3-bin (>= 3.0.0), libaax3-data (>= 3.4.0)")
 
   # RPM
   SET(CPACK_RPM_PACKAGE_LICENSE "BSD")
   SET(CPACK_RPM_PACKAGE_GROUP "System/System/GUI/KDE")
-  SET(CPACK_RPM_PACKAGE_REQUIRES "libaax3-bin >= 3.0.0")
+  SET(CPACK_RPM_PACKAGE_REQUIRES "libaax3-bin >= 3.0.0, libaax3-data >= 3.4.0")
 ENDIF(WIN32)
 
 # ZIP
@@ -169,11 +169,15 @@ IF (UNIX AND NOT WIN32)
       "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxplay.1.in"
       "${CMAKE_CURRENT_BINARY_DIR}/aaxplay.1")
   CONFIGURE_FILE(
+      "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxplaymidi.1.in"
+      "${CMAKE_CURRENT_BINARY_DIR}/aaxplaymidi.1")
+  CONFIGURE_FILE(
       "${CMAKE_CURRENT_SOURCE_DIR}/admin/aaxinfo.1.in"
       "${CMAKE_CURRENT_BINARY_DIR}/aaxinfo.1")
 
   INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/aaxcvt.1
                 ${CMAKE_CURRENT_BINARY_DIR}/aaxplay.1
+                ${CMAKE_CURRENT_BINARY_DIR}/aaxplaymidi.1
                 ${CMAKE_CURRENT_BINARY_DIR}/aaxinfo.1
           DESTINATION "${CMAKE_INSTALL_PREFIX}/man/man1"
           COMPONENT Applications)
