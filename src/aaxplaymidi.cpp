@@ -59,7 +59,7 @@ help()
                                            AAX_UTILS_MINOR_VERSION,
                                            AAX_UTILS_MICRO_VERSION);
     printf("Usage: aaxplaymidi [options]\n");
-    printf("Plays a midi file to an audio input device.\n");
+    printf("Plays a midi file to an audio output device.\n");
 
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
