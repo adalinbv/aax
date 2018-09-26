@@ -206,9 +206,12 @@ public:
 
     void set_modulation(float m) {
         bool enabled = (m > 0.05f);
-        modulate_depth = -m*modulation_range;
+        mdepth = -m*modulation_range;
         if ((enabled && !modulate_state) || (!enabled && modulate_state)) {
             modulate_state = enabled;
+        }
+        if (modulate_state) {
+            modulate_depth = mdepth;
         }
     }
 
@@ -234,6 +237,9 @@ private:
     Param modulate_freq = 1.5f;
     Param modulate_depth = 0.0f;
     Status modulate_state = AAX_FALSE;
+
+    float mfreq = 1.5f;
+    float mdepth = 0.0f;
 
     bool is_drums;
     float soft = 1.0f;
