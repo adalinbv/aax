@@ -13,9 +13,9 @@
  </info>
 
  <sound gain="1.57" frequency="220" duration="0.1">
-  <waveform src="sine" ratio="0.5" pitch="0.5"/>
+  <waveform src="sine" ratio="0.5" pitch="0.5" voices="3"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.5" voices="3"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="2.0"/>
   <waveform src="sine" processing="add" ratio="0.125" pitch="3.0"/>
   <waveform src="sine" processing="add" ratio="0.375" pitch="4.0"/>
@@ -25,7 +25,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="7">
    <slot n="0">
     <param n="0">0.2</param>
     <param n="1">0.05</param>
@@ -34,7 +34,7 @@
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">0.2</param>
+    <param n="1">0.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
