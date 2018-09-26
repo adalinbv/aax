@@ -413,7 +413,7 @@ _aaxSubFramePostProcess(const void *id, const void *hid, void *d, const void *f,
       _aaxMutexUnLock(subframe->mutex);
    }
 
-   rb->limit(rb, RB_LIMITER_ELECTRONIC);
+// rb->limit(rb, RB_LIMITER_ELECTRONIC);
 }
 
 int
