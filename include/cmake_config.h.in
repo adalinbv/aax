@@ -25,6 +25,8 @@
 #undef HAVE_RMALLOC_H
 #cmakedefine HAVE_RMALLOC_H @HAVE_RMALLOC_H@
 
+#cmakedefine HAVE_EBUR128 @HAVE_EBUR128@
+
 /* Define if you have a version of the snprintf function with semantics as
    specified by the ISO C99 standard. */
 #undef HAVE_C99_SNPRINTF

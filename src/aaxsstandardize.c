@@ -6,7 +6,9 @@
 #include <math.h>
 #include <time.h>
 
+#if HAVE_EBUR128
 #include <ebur128.h>
+#endif
 
 #include <xml.h>
 #include <aax/aax.h>
@@ -788,6 +790,7 @@ int main(int argc, char **argv)
             size_t freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
             size_t no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
             float *buffer = data[0];
+#if HAVE_EBUR128
             ebur128_state *st;
 
             st = ebur128_init(tracks, freq, EBUR128_MODE_I|EBUR128_MODE_SAMPLE_PEAK);
@@ -797,7 +800,12 @@ int main(int argc, char **argv)
                 ebur128_loudness_global(st, &loudness);
                 ebur128_sample_peak(st, 0, &peak);
                 ebur128_destroy(&st);
+                loudness = _db2lin(loudness);
             }
+#else
+            peak = aaxBufferGetSetup(buffer, AAX_PEAK_VALUE)/8388608.0f;
+            loudness = aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE)/8388608.0f;
+#endif
             aaxFree(data);
         }
         aaxBufferDestroy(buffer);
@@ -806,7 +814,7 @@ int main(int argc, char **argv)
         aaxDriverDestroy(config);
 
 //      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
-        rms = 10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/_db2lin(loudness));
+        rms = 10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
 
 //      printf("% 32s: %5.4f, %5.4f | % -3.1f", infile, rms1, rms2, loudness);
         printf("% 32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
