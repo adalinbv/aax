@@ -1,7 +1,5 @@
 
 find_package(XML COMPONENTS xml REQUIRED)
-find_package(EBUR128 COMPONENTS ebur128)
-set(HAVE_EBUR128 EBUR128_FOUND)
 
 set( DRIVER_OBJS
      driver.c

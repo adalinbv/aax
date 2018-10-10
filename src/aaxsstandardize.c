@@ -1,4 +1,39 @@
+/*
+ * Copyright (C) 2018 by Erik Hofman.
+ * Copyright (C) 2018 by Adalin B.V.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *    1. Redistributions of source code must retain the above copyright notice,
+ *        this list of conditions and the following disclaimer.
+ *
+ *    2. Redistributions in binary form must reproduce the above copyright
+ *        notice, this list of conditions and the following disclaimer in the
+ *        documentation and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY ADALIN B.V. ``AS IS'' AND ANY EXPRESS OR
+ * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+ * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN
+ * NO EVENT SHALL ADALIN B.V. OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+ * INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ * (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ * LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR
+ * TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUTOF THE USE
+ * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ *
+ * The views and conclusions contained in the software and documentation are
+ * those of the authors and should not be interpreted as representing official
+ * policies, either expressed or implied, of Adalin B.V.
+ */
 
+#if HAVE_CONFIG_H
+#include "config.h"
+#endif
+
+#include <assert.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -18,7 +53,7 @@
 
 #if defined(WIN32)
 # define TEMP_DIR		getenv("TEMP")
-#else   /* !WIN32 */
+#else    /* !WIN32 */
 # define TEMP_DIR		"/tmp"
 #endif
 #define LEVEL_16DB		0.15848931670f
@@ -32,11 +67,11 @@ float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
 
 enum type_t
 {
-   WAVEFORM = 0,
-   FILTER,
-   EFFECT,
-   EMITTER,
-   FRAME
+    WAVEFORM = 0,
+    FILTER,
+    EFFECT,
+    EMITTER,
+    FRAME
 };
 
 static const char* format_float(float f)
@@ -86,7 +121,7 @@ struct info_t
         uint8_t min, max, step;
     } note;
 
-     struct position_t {
+struct position_t {
         double x, y, z;
     } position;
 };
@@ -96,7 +131,7 @@ void fill_info(struct info_t *info, void *xid)
     void *xtid;
 
     info->program = info->bank = -1;
-  
+
     if (xmlAttributeExists(xid, "program")) {
         info->program = xmlAttributeGetInt(xid, "program");
     }
@@ -155,6 +190,7 @@ void print_info(struct info_t *info, FILE *output)
 
 void free_info(struct info_t *info)
 {
+    assert(info);
 //  aaxFree(info->name);
 }
 
@@ -166,15 +202,16 @@ struct dsp_t
     int stereo;
     char *repeat;
     int optional;
+    float release_factor;
 
     uint8_t no_slots;
     struct slot_t
     {
         struct param_t
         {
-           float value;
-           float pitch;
-           float sustain;
+            float value;
+            float pitch;
+            float sustain;
         } param[4];
     } slot[4];
 };
@@ -189,11 +226,14 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain)
     if (!timed_gain && (!strcasecmp(dsp->type, "volume") || !strcasecmp(dsp->type, "timed-gain") || !strcasecmp(dsp->type, "dynamic-gain"))) {
         dsp->src = false_const;
     } else {
-       dsp->src = xmlAttributeGetString(xid, "src");
+        dsp->src = xmlAttributeGetString(xid, "src");
     }
     dsp->stereo = xmlAttributeGetInt(xid, "stereo");
     dsp->repeat = xmlAttributeGetString(xid, "repeat");
     dsp->optional = xmlAttributeGetBool(xid, "optional");
+    if (!strcasecmp(dsp->type, "timed-gain")) {
+        dsp->release_factor = xmlAttributeGetDouble(xid, "release-factor");
+    }
 
     xsid = xmlMarkId(xid);
     dsp->no_slots = snum = xmlNodeGetNum(xid, "slot");
@@ -247,6 +287,9 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
     if (dsp->repeat) fprintf(output, " repeat=\"%s\"", dsp->repeat);
     if (dsp->stereo) fprintf(output, " stereo=\"true\"");
     if (dsp->optional) fprintf(output, " optional=\"true\"");
+    if (dsp->release_factor > 0.1f) {
+        fprintf(output, " release-factor=\"%s\"", format_float(dsp->release_factor));
+    }
     fprintf(output, ">\n");
 
     for(s=0; s<dsp->no_slots; ++s)
@@ -452,6 +495,7 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output)
 
 void free_sound(struct sound_t *sound)
 {
+    assert(sound);
 }
 
 struct object_t		// emitter and audioframe
@@ -645,16 +689,16 @@ void free_aax(struct aax_t *aax)
 void help()
 {
     printf("aaxsstandardize version %i.%i.%i\n\n", AAX_UTILS_MAJOR_VERSION,
-                                                   AAX_UTILS_MINOR_VERSION,
-                                                  AAX_UTILS_MICRO_VERSION);
+                                                    AAX_UTILS_MINOR_VERSION,
+                                                    AAX_UTILS_MICRO_VERSION);
     printf("Usage: aaxsstandardize [options]\n");
     printf("Reads a user generated .aaxs configuration file and outputs a\n");
     printf("standardized version of the file.\n");
 
     printf("\nOptions:\n");
-    printf("  -i, --input <file>\t\tthe .aaxs configuration file to standardize.\n");
-    printf("  -o, --output <file>\t\twrite the new .aaxs configuration to this file.\n");
-    printf("  -h, --help\t\t\tprint this message and exit\n");
+    printf(" -i, --input <file>\t\tthe .aaxs configuration file to standardize.\n");
+    printf(" -o, --output <file>\t\twrite the new .aaxs configuration to this file.\n");
+    printf(" -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nWhen no output file is specified then stdout will be used.\n");
 
@@ -667,7 +711,7 @@ int main(int argc, char **argv)
     char *infile, *outfile;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
-                     getCommandLineOption(argc, argv, "--help"))
+                    getCommandLineOption(argc, argv, "--help"))
     {
         help();
     }
@@ -714,9 +758,6 @@ int main(int argc, char **argv)
         /* buffer */
         buffer = aaxBufferReadFromStream(config, aaxsfile);
         testForError(buffer, "Unable to create a buffer from an aaxs file.");
-
-//      rms1 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-//      rms1 = rms1/8388608.0f;
 
         /* emitter */
         emitter = aaxEmitterCreate();
@@ -777,20 +818,16 @@ int main(int argc, char **argv)
         buffer = aaxBufferReadFromStream(config, tmpfile);
         testForError(buffer, "Unable to read the buffer.");
 
-//      peak = (float)aaxBufferGetSetup(buffer, AAX_PEAK_VALUE);
-//      rms2 = (float)aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE);
-//      rms2 = rms2/8388608.0f;
-
-        loudness = 0.0;
+        peak = loudness = 0.0;
         aaxBufferSetSetup(buffer, AAX_FORMAT, AAX_FLOAT);
         data = aaxBufferGetData(buffer);
         if (data)
         {
+#if HAVE_EBUR128
             size_t tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
             size_t freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
             size_t no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
             float *buffer = data[0];
-#if HAVE_EBUR128
             ebur128_state *st;
 
             st = ebur128_init(tracks, freq, EBUR128_MODE_I|EBUR128_MODE_SAMPLE_PEAK);
@@ -816,8 +853,7 @@ int main(int argc, char **argv)
 //      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
         rms = 10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
 
-//      printf("% 32s: %5.4f, %5.4f | % -3.1f", infile, rms1, rms2, loudness);
-        printf("% 32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
+        printf("%-32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
         printf(", new gain: %4.1f\n", rms);
 
         fill_aax(&aax, infile, rms, 1);

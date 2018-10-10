@@ -5,7 +5,6 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-
 INCLUDE(CheckLibraryExists)
 INCLUDE(CheckIncludeFile)
 INCLUDE (CheckIncludeFiles)
@@ -46,6 +45,11 @@ SET(CMAKE_MODULE_PATH "${aax-utils_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}
 
 INCLUDE(CPack_Modules)
 INCLUDE(CPack_Defaults)
+
+find_package(EBUR128 COMPONENTS ebur128)
+if (EBUR128_FOUND)
+  set(HAVE_EBUR128 1)
+endif()
 
 IF(WIN32)
 

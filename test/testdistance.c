@@ -212,7 +212,7 @@ int main(int argc, char **argv)
             dist = INITIAL_DIST;
             while(dist > -INITIAL_DIST)
             {
-                static aaxVec3d EmitterOrg = { EXPOS+INITIAL_DIST, EYPOS, EZPOS };
+//              static aaxVec3d EmitterOrg = {EXPOS+INITIAL_DIST, EYPOS, EZPOS};
 
                 msecSleep((int)(ceilf(UPDATE_DELAY*1000.0f)));
 
