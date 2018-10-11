@@ -12,11 +12,11 @@
   <note polyphony="2" min="48" max="94" step="12"/>
  </info>
 
- <sound gain="2.09" frequency="220" duration="0.1">
+ <sound gain="1.93" frequency="220" duration="0.1">
   <waveform src="impulse"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="5.0">1100.0</param>
+    <param n="0" pitch="8.0">1760.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>
@@ -66,7 +66,7 @@
  <audioframe>
   <filter type="frequency" src="24db" optional="true">
    <slot n="0">
-    <param n="0">2200.0</param>
+    <param n="0">5500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>
