@@ -157,13 +157,14 @@ int main(int argc, char **argv)
                 res = aaxFilterSetState(filter, AAX_EXPONENTIAL_DISTANCE_DELAY);
                 testForState(res, "aaxFilterSetState");
 
-                res = aaxScenerySetFilter(config, filter);
-                testForState(res, "aaxScenerySetDistanceModel");
+                res = aaxEmitterSetFilter(emitter[i], filter);
+                testForState(res, "aaxEmitterSetDistanceModel");
+
                 aaxFilterDestroy(filter);
 
                 /* pitch */
                 effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
-                testForError(filter, "Unable to create the pitch effect");
+                testForError(effect, "Unable to create the pitch effect");
 
                 res = aaxEffectSetParam(effect, AAX_PITCH, AAX_LINEAR, pitch);
                 testForState(res, "aaxEffectSetParam");
