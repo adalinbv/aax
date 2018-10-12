@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+-->
+
+<aeonwave>
+
+ <info name="Small Gong">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="1.79" frequency="260" duration="0.1">
+  <waveform src="sine" pitch="0.993"/>
+  <waveform src="sine" processing="add" ratio="0.4" pitch="2.01"/>
+  <waveform src="triangle" processing="modulate" pitch="2.0"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.0</param>
+    <param n="1">0.05</param>
+    <param n="2">0.6</param>
+    <param n="3" auto-sustain="1.0">5.5</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">1.2</param>
+    <param n="1">0.04</param>
+    <param n="2">0.95</param>
+    <param n="3">0.04</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">2.5</param>
+    <param n="2">0.975</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
