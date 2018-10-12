@@ -106,7 +106,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             env->sustain = AAX_TRUE;
          }
          else if (state & AAX_RELEASE_FACTOR) {
-             release_factor = (float)(state & ~AAX_RELEASE_FACTOR);
+             release_factor = 0.1f*(state & ~AAX_RELEASE_FACTOR);
          }
 
          stage = 0;

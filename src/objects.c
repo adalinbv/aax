@@ -555,8 +555,8 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
             }
             else if (xmlAttributeExists(xid, "release-factor"))
             {
-               state = xmlAttributeGetInt(xid, "release-factor");
-               if (state < 1) state = 1;
+               state = (10.0f*xmlAttributeGetDouble(xid, "release-factor"));
+               if (state < 10) state = 10;
                state |= AAX_RELEASE_FACTOR;
             }
          }
