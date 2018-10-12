@@ -12,24 +12,24 @@
   <note polyphony="4" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="1.57" frequency="261" duration="0.2">
-  <waveform src="pink-noise" ratio="0.8" pitch="0.1"/>
-  <waveform src="sine" processing="add" pitch="0.0996"/>
-  <waveform src="sine" processing="modulate" pitch="0.37587"/>
+ <sound gain="1.47" frequency="293" duration="0.1">
+  <waveform src="pink-noise" ratio="0.8" pitch="0.08"/>
+  <waveform src="triangle" processing="add" ratio="0.8"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="1.6"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.6</param>
-    <param n="1">0.1</param>
-    <param n="2">1.2</param>
+    <param n="0">1.2</param>
+    <param n="1">0.03</param>
+    <param n="2">0.8</param>
     <param n="3">0.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.2</param>
+    <param n="0">1.9</param>
     <param n="1">0.03</param>
     <param n="2">1.0</param>
     <param n="3">0.05</param>

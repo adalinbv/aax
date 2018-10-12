@@ -12,10 +12,10 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.11" frequency="250" duration="0.5">
-  <waveform src="pink-noise" ratio="0.8" pitch="0.1"/>
-  <waveform src="triangle" processing="add" ratio="0.3"/>
-  <waveform src="triangle" processing="add" ratio="0.1" pitch="0.5"/>
+ <sound gain="1.53" frequency="270" duration="0.5">
+  <waveform src="pink-noise" pitch="0.1"/>
+  <waveform src="sine" processing="add" ratio="0.7"/>
+  <waveform src="sine" processing="add" ratio="0.3" pitch="0.5"/>
   <filter type="bitcrusher">
    <slot n="0">
     <param n="0">0.0</param>
@@ -31,8 +31,8 @@
    <slot n="0">
     <param n="0">1.5</param>
     <param n="1">0.05</param>
-    <param n="2">1.2</param>
-    <param n="3">0.3</param>
+    <param n="2">0.8</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

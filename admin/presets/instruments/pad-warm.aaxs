@@ -12,32 +12,32 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="3.93" frequency="220">
+ <sound gain="4.51" frequency="220">
   <waveform src="brownian-noise" pitch="0.125"/>
   <waveform src="sine" processing="mix" pitch="0.501" voices="5" spread="0.7"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899" voices="3" spread="0.1"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope" optional="true">
+  <filter type="frequency" src="inverse-envelope" optional="true">
    <slot n="0">
     <param n="0" pitch="1.0">220.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">3.0</param>
+    <param n="2">0.01</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
     <param n="0" pitch="5.0">1100.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.05</param>
+    <param n="3">1.05</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.84</param>
-    <param n="2">0.7</param>
+    <param n="2">1.0</param>
     <param n="3">1.95</param>
    </slot>
    <slot n="1">
