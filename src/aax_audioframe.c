@@ -618,15 +618,34 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
       {
       case AAX_PITCH_EFFECT:
       case AAX_DYNAMIC_PITCH_EFFECT:
-      case AAX_DISTORTION_EFFECT:
-      case AAX_PHASING_EFFECT:
-      case AAX_CHORUS_EFFECT:
-      case AAX_FLANGING_EFFECT:
-      case AAX_RINGMODULATOR_EFFECT:
-         _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
+         _PROP_PITCH_SET_CHANGED(p3d);
          if ((enum aaxEffectType)effect->type == AAX_DYNAMIC_PITCH_EFFECT) {
             p2d->final.pitch_lfo = 1.0f;
          }
+         // intentional fallthrough
+      case AAX_DISTORTION_EFFECT:
+      case AAX_RINGMODULATOR_EFFECT:
+         _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
+         break;
+      case AAX_PHASING_EFFECT:
+      case AAX_CHORUS_EFFECT:
+      case AAX_FLANGING_EFFECT:
+         _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
+          do
+         {
+            _aaxRingBufferDelayEffectData* data;
+            data = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
+            if (data && !data->history_ptr)
+            {
+               unsigned int tracks = effect->info->no_tracks;
+               float fs = effect->info->frequency;
+
+               data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+               _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
+                                                 data->delay_history,
+                                                 data->history_samples, tracks);
+            }
+         } while (0);
          break;
       case AAX_REVERB_EFFECT:
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);

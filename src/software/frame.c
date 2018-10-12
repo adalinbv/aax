@@ -401,7 +401,7 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       _aax_memcpy(&sfp2d.hrtf, fp2d->hrtf, 2*sizeof(vec4f_t));
 
       /* clear the buffer for use by the subframe */
-      dest_rb->set_state(frame_rb, RB_CLEARED_DDE);
+      dest_rb->set_state(frame_rb, RB_CLEARED);
       dest_rb->set_state(frame_rb, RB_STARTED);
 
       /*

@@ -1379,12 +1379,10 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
    {
    case AAX_PITCH_EFFECT:
    case AAX_TIMED_PITCH_EFFECT:
-      _PROP_PITCH_SET_CHANGED(src->props3d);
+      _PROP_PITCH_SET_CHANGED(p3d);
       // intentional fallthrough
    case AAX_DISTORTION_EFFECT:
    case AAX_RINGMODULATOR_EFFECT:
-if (effect->type == AAX_RINGMODULATOR_EFFECT)
-printf("em. AAX_RINGMODULATOR_EFFECT: %p\n", p2d);
       _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
       break;
    case AAX_FLANGING_EFFECT:

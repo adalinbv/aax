@@ -121,7 +121,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    src += start;
    dst += start;
 
-   /* streaming emitters with delay effects need the source history */
+   // audio-frames, and streaming emitters, with delay effects need
+   // the source history
    state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
    if (state)
    {
