@@ -199,7 +199,7 @@ _intBufAddDataNormal(_intBuffers *buffer, unsigned int id, const void *data, cha
             rv = buffer->first_free++;
             pos = buffer->start + rv;
 
-            assert(buffer->data[pos] == NULL);
+//          assert(buffer->data[pos] == NULL);
 
             buffer->data[pos] = b;
             buffer->num_allocated++;
@@ -999,7 +999,7 @@ __intBufFreeSpace(_intBuffers *buffer, int id, char locked)
     }
 
     assert(buffer->start+buffer->first_free < buffer->max_allocations);
-    assert(buffer->data[buffer->start+buffer->first_free] == 0);
+//  assert(buffer->data[buffer->start+buffer->first_free] == 0);
 #endif
 
     if (!locked) {

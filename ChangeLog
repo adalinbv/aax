@@ -1,4 +1,13 @@
-* Sat Sep 01 2018 - tech@adalin.org
+* Sat Oct 13 2018 - tech@adalin.org
+- AeonWave (3.5.1) stable; urgency=low
+
+ * Improve various instrument configurations.
+ * Fix some more issues with the timed gain filter and timed pitch effect.
+ * Remove a debugging statement.
+
+-- Erik Hofman <tech@adalin.org>  Sat 13 oct  2018 10:37:00 + 0200
+
+* Thu Sep 27 2018 - tech@adalin.org
 - AeonWave (3.5.0) stable; urgency=low
 
  * Add the option to set the location of the shared-data directory at runtime
@@ -17,7 +26,7 @@
  * AAXS generated buffers will now use mipmapping to extend the pitch range
    beyond a pitch level of 32.
 
--- Erik Hofman <tech@adalin.org>  Sat 01 Sep  2018 09:13:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Thu 27 Sep  2018 09:13:00 + 0200
 
 * Wed Aug 01 2018 - tech@adalin.org
 - AeonWave (3.4.0) stable; urgency=low
@@ -33,7 +42,6 @@
  * Remove debugging output from ogg streaming code.
 
 -- Erik Hofman <tech@adalin.org>  Wed 01 Aug  2018 11:00:00 + 0200
-
 
 * Fri Jul 20 2018 - tech@adalin.org
 - AeonWave (3.3.0) stable; urgency=low
