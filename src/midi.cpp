@@ -842,9 +842,9 @@ MIDIFile::initialize()
         minutes = floorf(seconds/60.0f);
         seconds -= minutes*60.0f;
         if (hour) {
-            printf("Duration  : %02.0f:%02.0f:%02.0f\n", hour, minutes, seconds);
+            printf("Duration  : %02.0f:%02.0f:%02.0f hours\n", hour, minutes, seconds);
         } else {
-            printf("Duration  : %02.0f:%02.0f\n", minutes, seconds);
+            printf("Duration  : %02.0f:%02.0f minutes\n", minutes, seconds);
         }
     }
 
