@@ -6,8 +6,8 @@
   <waveform src="sine"/>
  </sound>
 
- <emitter>
-  <effect type="chorus" src="triangle">
+ <emitter looping="true">
+  <effect type="chorus" src="true">
    <slot n="0">
     <param n="0">0.5</param>
     <param n="1">0.3</param>
@@ -16,5 +16,16 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <effect type="phasing" src="true">
+   <slot n="0">
+    <param n="0">0.5</param>
+    <param n="1">0.3</param>
+    <param n="2">0.05</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>
