@@ -38,9 +38,8 @@
 
 #include <aax/aeonwave.hpp>
 #include <aax/instrument.hpp>
-
-#include <buffer_map.hpp>
-#include <byte_stream.hpp>
+#include <aax/buffer_map.hpp>
+#include <aax/byte_stream.hpp>
 
 namespace aax
 {
