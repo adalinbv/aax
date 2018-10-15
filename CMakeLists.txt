@@ -214,8 +214,6 @@ ENDIF(NOT SINGLE_PACKAGE)
 add_custom_target(midi_package
   WORKING_DIRECTORY ${aax-utils_SOURCE_DIR}
   COMMAND ${CMAKE_COMMAND} -E tar "cf" "${aax-utils_BINARY_DIR}/midi_source.zip" --format=zip
-  include/buffer_map.hpp
-  include/byte_stream.hpp
   include/midi.hpp
   src/midi.cpp
   src/aaxplaymidi.cpp
