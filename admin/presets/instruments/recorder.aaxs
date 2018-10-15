@@ -8,28 +8,19 @@
 
 <aeonwave>
 
- <info name="Flute" bank="0" program="72">
-  <note polyphony="2" min="60" max="108" step="12"/>
+ <info name="Recorder" bank="0" program="74">
+  <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="1.03" frequency="261">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="add" ratio="0.2" pitch="2.0"/>
-  <waveform src="brownian-noise" processing="add" ratio="0.1" pitch="0.1"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.01</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.125</param>
-   </slot>
-  </filter>
+ <sound gain="0.91" frequency="261" duration="0.1">
+  <waveform src="sine" ratio="0.8"/>
+  <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.7</param>
+    <param n="0">0.4</param>
     <param n="1">0.15</param>
     <param n="2">1.9</param>
     <param n="3">0.05</param>
@@ -43,8 +34,8 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.07</param>
-    <param n="1">0.15</param>
+    <param n="0">0.97</param>
+    <param n="1">0.25</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
    </slot>

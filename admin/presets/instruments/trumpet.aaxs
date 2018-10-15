@@ -29,13 +29,13 @@
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.15</param>
-    <param n="2">0.8</param>
+    <param n="2">1.8</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
+    <param n="0">0.9</param>
     <param n="1">inf</param>
-    <param n="2">0.5</param>
+    <param n="2">0.9</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
