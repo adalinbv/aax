@@ -12,7 +12,7 @@
   <note polyphony="1" min="60" max="96" step="1"/>
  </info>
 
- <sound gain="2.67" frequency="261" duration="2.1">
+ <sound gain="2.32" frequency="261" duration="2.1">
   <waveform src="triangle"/>
   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
   <filter type="frequency">
@@ -20,7 +20,7 @@
     <param n="0" pitch="1.0">261.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">5.0</param>
+    <param n="3">60.0</param>
    </slot>
   </filter>
  </sound>

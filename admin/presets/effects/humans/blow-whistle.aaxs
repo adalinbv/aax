@@ -1,18 +1,22 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
 -->
 
 <aeonwave>
 
- <sound name="(Ball) Whistle Blow" frequency="300" duration="0.1">
+ <info name="(Ball) Whistle Blow" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="0.52" frequency="300" duration="0.1">
   <waveform src="white-noise"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="10">3000</param>
+    <param n="0" pitch="10.0">3000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">30.0</param>
@@ -24,6 +28,7 @@
  <emitter looping="true">
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">50.0</param>
     <param n="2">0.3</param>
     <param n="3">0.7</param>
