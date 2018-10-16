@@ -98,6 +98,7 @@ help()
         printf("  - output: %s\n", s);
         aaxDriverDestroy(cfgo);
     }
+    printf("\nUse aaxplaymidi for playing MIDI files.\n");
 
     printf("\nDuring playback the stream can be suspened and resumed using "
            "the spacebar key.\n");

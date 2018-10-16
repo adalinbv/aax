@@ -42,8 +42,9 @@
 #include <aax/aeonwave.hpp>
 #include <aax/instrument.hpp>
 
+#include <midi/midi.hpp>
+
 #include "driver.h"
-#include "midi.hpp"
 
 #define IFILE_PATH		SRC_PATH"/beethoven_opus10_3.mid"
 #define INSTRUMENT		"instruments/piano-accoustic"
@@ -59,13 +60,15 @@ help()
                                            AAX_UTILS_MINOR_VERSION,
                                            AAX_UTILS_MICRO_VERSION);
     printf("Usage: aaxplaymidi [options]\n");
-    printf("Plays a midi file to an audio output device.\n");
+    printf("Plays a MIDI file to an audio output device.\n");
 
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
     printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
+
+    printf("\nUse aaxplay for playing other audio file formats.\n");
 
     printf("\n");
 

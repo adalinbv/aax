@@ -24,5 +24,5 @@ print this message and exit
 .PP
 Written by Erik Hofman <tech@adalin.com>
 .SH SEE ALSO
-aaxplay(1)
+aaxplay(1), aaxinfo(1)
 

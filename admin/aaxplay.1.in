@@ -42,5 +42,5 @@ During playback the stream can be suspened and resumed using the spacebar key.
 .SH AUTHOR
 Written by Erik Hofman <tech@adalin.com>
 .SH SEE ALSO
-aaxinfo(1), aaxcvt(1)
+aaxplaymidi(1), aaxinfo(1), aaxcvt(1)
 

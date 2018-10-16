@@ -877,5 +877,26 @@ MIDIFile::process(uint64_t time_parts, uint32_t& next)
             next = wait_parts;
         }
     }
+
+    if (MIDI::get_verbose())
+    {
+        float hour, minutes, seconds;
+
+        pos_sec += elapsed_parts*MIDI::get_uspp()*1e-6f;
+
+        seconds = pos_sec;
+        hour = floorf(seconds/(60.0f*60.0f));
+        seconds -= hour*60.0f*60.0f;
+        minutes = floorf(seconds/60.0f);
+        seconds -= minutes*60.0f;
+        if (hour) {
+            printf("pos: %02.0f:%02.0f:%02.0f hours\r", hour, minutes, seconds);
+        } else {
+            printf("pos: %02.0f:%02.0f minutes\r", minutes, seconds);
+        }
+        if (!rv) printf("\n\n");
+        fflush(stdout);
+    }
+
     return rv;
 }

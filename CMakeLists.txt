@@ -46,6 +46,7 @@ SET(CMAKE_MODULE_PATH "${aax-utils_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}
 INCLUDE(CPack_Modules)
 INCLUDE(CPack_Defaults)
 
+find_package(XML COMPONENTS xml REQUIRED)
 find_package(EBUR128 COMPONENTS ebur128)
 if (EBUR128_FOUND)
   set(HAVE_EBUR128 1)
@@ -200,9 +201,17 @@ ELSE(WIN32)
   SET(EXTRA_LIBS "-ldriver -lm")
 ENDIF(WIN32)
 
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src)
-LINK_DIRECTORIES(${PROJECT_BINARY_DIR}/src)
+INCLUDE_DIRECTORIES(
+  ${PROJECT_SOURCE_DIR}/src
+)
+LINK_DIRECTORIES(
+  ${PROJECT_BINARY_DIR}/base
+  ${PROJECT_BINARY_DIR}/src
+  ${PROJECT_BINARY_DIR}/midi
+)
 
+ADD_SUBDIRECTORY(base)
+ADD_SUBDIRECTORY(midi)
 ADD_SUBDIRECTORY(src)
 ADD_SUBDIRECTORY(test)
 ADD_SUBDIRECTORY(test++)
@@ -214,11 +223,11 @@ ENDIF(NOT SINGLE_PACKAGE)
 add_custom_target(midi_package
   WORKING_DIRECTORY ${aax-utils_SOURCE_DIR}
   COMMAND ${CMAKE_COMMAND} -E tar "cf" "${aax-utils_BINARY_DIR}/midi_source.zip" --format=zip
-  include/midi.hpp
-  src/midi.cpp
+  midi/midi.hpp
+  midi/midi.cpp
   src/aaxplaymidi.cpp
   base/timer.h
-  src/timer.c
+  base/timer.c
 )
 
 #-----------------------------------------------------------------------------
