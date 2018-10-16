@@ -4,6 +4,6 @@ Utilities to show the capabilities of AeonWave
  . 
  aaxinfo can show all settings of AeonWave for a particular output device.
  .
- aaxplay can automatically stream audio files (wav and mp3 if  libmpg123 is
- installed).
-
+ aaxplay can automatically stream audio files (wav, ogg and mp3).
+ .
+ aaxplaymidi can play MIDI files using the synthesizer provided by AeonWave.

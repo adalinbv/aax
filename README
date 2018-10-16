@@ -7,3 +7,6 @@ To build AeonWave-utils type the following;
 
 mkdir build; cd build; cmake ..
 make install
+
+It is also possible to use the following command to make system packages:
+make package
