@@ -1432,7 +1432,7 @@ static int Process_ID3v2_Frame(pdmp3_handle *id) {
       }
 
       size = id->id3v2_frame_size;
-      id->id3v2->text[texts].text.p = malloc(size);
+      id->id3v2->text[texts].text.p = malloc(size+1);
       if(id->id3v2->text[texts].text.p == 0) {
         ERR("Not enough memory to store ID3v2 information");
         id->id3v2_processing = 0;
