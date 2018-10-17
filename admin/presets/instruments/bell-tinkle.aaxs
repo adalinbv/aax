@@ -12,10 +12,9 @@
   <note polyphony="1" min="72" max="84" step="1"/>
  </info>
 
- <sound gain="1.35" frequency="523" duration="0.1">
+ <sound gain="1.13" frequency="523" duration="0.1">
   <waveform src="triangle"/>
-  <waveform src="square" processing="mix" ratio="0.5" pitch="5.0"/>
-  <waveform src="triangle" processing="modulate" pitch="7.5"/>
+  <waveform src="square" processing="mix" ratio="0.1" pitch="4.987"/>
  </sound>
 
  <emitter looping="true">
