@@ -12,7 +12,7 @@
   <note polyphony="2" min="41" max="77" step="12"/>
  </info>
 
- <sound gain="2.35" frequency="220" duration="0.1">
+ <sound gain="2.39" frequency="220" duration="0.1">
   <waveform src="impulse"/>
   <filter type="frequency" src="48db">
    <slot n="0">
@@ -25,7 +25,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="2.0">
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.2</param>

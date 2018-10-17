@@ -12,12 +12,12 @@
   <note polyphony="2" min="58" max="91" step="12"/>
  </info>
 
- <sound gain="0.68" frequency="659" duration="0.1">
+ <sound gain="0.87" frequency="233" duration="0.1">
   <waveform src="square"/>
   <waveform src="square" processing="modulate" pitch="5.0"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="10.0">6590.0</param>
+    <param n="0" pitch="10.0">2330.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
@@ -30,13 +30,13 @@
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.05</param>
-    <param n="2">1.2</param>
+    <param n="2">2.1</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
+    <param n="0">1.8</param>
     <param n="1">inf</param>
-    <param n="2">1.0</param>
+    <param n="2">1.8</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
