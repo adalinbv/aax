@@ -14,7 +14,7 @@
 
  <sound gain="2.35" frequency="220" duration="0.1">
   <waveform src="impulse"/>
-  <filter type="frequency" src="24db">
+  <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0" pitch="3.0">660.0</param>
     <param n="1">1.0</param>
@@ -36,7 +36,7 @@
     <param n="0">0.8</param>
     <param n="1">inf</param>
     <param n="2">0.8</param>
-    <param n="3">0.2</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -55,12 +55,23 @@
   </effect>
   <effect type="chorus" src="envelope" optional="true">
    <slot n="0">
-    <param n="0">0.8</param>
+    <param n="0">0.4</param>
     <param n="1">0.17</param>
-    <param n="2">0.41</param>
-    <param n="3">0.435</param>
+    <param n="2">0.235</param>
+    <param n="3">0.21</param>
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="12db">
+   <slot n="0">
+    <param n="0">2700.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>
