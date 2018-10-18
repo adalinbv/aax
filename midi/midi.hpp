@@ -219,6 +219,9 @@ public:
     inline void set_verbose(bool v) { verbose = v; }
     inline bool get_verbose() { return verbose; }
 
+    inline void set_lyrics(bool v) { lyrics = v; }
+    inline bool get_lyrics() { return lyrics; }
+
     inline void set_format(uint16_t fmt) { format = fmt; }
     inline uint16_t get_format() { return format; }
 
@@ -247,6 +250,7 @@ private:
 
     bool initialize = false;
     bool verbose = false;
+    bool lyrics = false;
 };
 
 

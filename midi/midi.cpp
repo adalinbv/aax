@@ -535,6 +535,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     // printf("%-10s:\n", type_name[meta-1].c_str());
                     for (int i=0; i<size; ++i) printf("%c", pull_byte());
                     fflush(stdout);
+                    midi.set_lyrics(true);
                 }
                 else {
                     forward(size);
@@ -878,7 +879,7 @@ MIDIFile::process(uint64_t time_parts, uint32_t& next)
         }
     }
 
-    if (MIDI::get_verbose())
+    if (MIDI::get_verbose() && !MIDI::get_lyrics())
     {
         float hour, minutes, seconds;
 
