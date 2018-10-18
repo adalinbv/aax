@@ -84,7 +84,7 @@
    <instrument n="71" name="Clarinet" file="instruments/clarinet"/>
    <instrument n="72" name="Piccolo" file="instruments/flute"/>
    <instrument n="73" name="Flute" file="instruments/flute"/>
-   <instrument n="74" name="Recorder" file="instruments/flute"/>
+   <instrument n="74" name="Recorder" file="instruments/recorder"/>
    <instrument n="75" name="Pan Flute" file="instruments/flute-pan"/>
    <instrument n="76" name="Blown Bottle" file="effects/humans/blow-bottle"/>
    <instrument n="77" name="Shakuhachi" file="instruments/shakuhachi"/>
