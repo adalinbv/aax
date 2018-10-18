@@ -12,16 +12,16 @@
   <note polyphony="2" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="2.57" frequency="220" duration="0.33">
+ <sound gain="1.81" frequency="220" duration="0.33">
   <waveform src="sine"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">0.1</param>
-    <param n="2">0.2</param>
+    <param n="0">1.0</param>
+    <param n="1">0.3</param>
+    <param n="2">0.5</param>
     <param n="3">0.8</param>
    </slot>
   </filter>
