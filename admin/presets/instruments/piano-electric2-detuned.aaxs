@@ -8,33 +8,53 @@
 
 <aeonwave>
 
- <info name="Electric Piano 2 (Detuned)" bank="0" program="5">
+ <info name="Electric Piano 2" bank="0" program="5">
   <note polyphony="8" min="28" max="103" step="12"/>
  </info>
 
- <sound gain="1.05" frequency="440" duration="0.1">
-  <waveform src="impulse" ratio="0.4" pitch="1.01"/>
-  <waveform src="triangle" processing="add" ratio="0.6" pitch="0.9972"/>
+ <sound gain="1.04" frequency="440" duration="0.1">
+  <waveform src="impulse" ratio="0.8" pitch="0.995"/>
+  <waveform src="triangle" processing="mix" ratio="0.93"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.04</param>
-    <param n="2">1.0</param>
-    <param n="3">0.05</param>
+    <param n="0" pitch="1.0">440.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">3.0</param>
    </slot>
    <slot n="1">
-    <param n="0">0.8</param>
-    <param n="1">2.5</param>
+    <param n="0" pitch="40.0">17600.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">4.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" release-factor="3.0">
+   <slot n="0">
+    <param n="0">1.4</param>
+    <param n="1">0.04</param>
+    <param n="2">1.2</param>
+    <param n="3">0.35</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1" auto-sustain="1.5">4.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.96</param>
+    <param n="0">1.15</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.975</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
