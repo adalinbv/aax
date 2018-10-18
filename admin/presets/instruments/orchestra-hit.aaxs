@@ -41,11 +41,11 @@
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="chorus" src="envelope" optional="true">
+  <effect type="chorus" src="inverse-envelope" optional="true">
    <slot n="0">
-    <param n="0">0.6</param>
+    <param n="0">1.0</param>
     <param n="1">0.01</param>
-    <param n="2">0.6</param>
+    <param n="2">0.8</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
