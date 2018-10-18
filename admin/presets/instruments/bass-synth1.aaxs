@@ -9,7 +9,7 @@
 <aeonwave>
 
  <info name="Synth Bass 1" bank="0" program="38">
-  <note polyphony="6" min="28" max="55" step="12"/>
+  <note polyphony="6" min="28" max="88" step="12"/>
  </info>
 
  <sound gain="6.00" frequency="55">
