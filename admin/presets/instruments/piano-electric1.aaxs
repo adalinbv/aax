@@ -34,14 +34,14 @@
   </filter>
   <filter type="timed-gain" release-factor="3.0">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">1.6</param>
     <param n="1">0.04</param>
-    <param n="2">1.8</param>
+    <param n="2">1.4</param>
     <param n="3">0.35</param>
    </slot>
    <slot n="1">
-    <param n="0">1.5</param>
-    <param n="1">2.5</param>
+    <param n="0">1.2</param>
+    <param n="1" auto-sustain="1.5">4.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
