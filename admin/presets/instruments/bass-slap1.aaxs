@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <info name="Slap Bass 1" bank="0" program="33">
+ <info name="Electric Bass (Slapped 1)" bank="0" program="33">
   <note polyphony="6" min="28" max="55" step="12"/>
  </info>
 
@@ -36,7 +36,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">10.9</param>
+    <param n="0">4.0</param>
     <param n="1">0.02</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
