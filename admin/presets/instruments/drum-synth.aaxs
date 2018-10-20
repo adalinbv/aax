@@ -8,7 +8,7 @@
 
 <aeonwave>
 
- <info name="Synth Drums" bank="0" program="114">
+ <info name="Synth Drums" bank="0" program="118">
   <note polyphony="2" min="36" max="96" step="6"/>
  </info>
 
