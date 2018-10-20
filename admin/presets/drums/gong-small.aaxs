@@ -30,7 +30,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.2</param>
-    <param n="1">0.04</param>
+    <param n="1">0.01</param>
     <param n="2">0.95</param>
     <param n="3">0.04</param>
    </slot>
