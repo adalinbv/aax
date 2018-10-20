@@ -12,17 +12,9 @@
   <note polyphony="2" min="58" max="91" step="12"/>
  </info>
 
- <sound gain="0.87" frequency="233" duration="0.1">
+ <sound gain="0.91" frequency="440" duration="0.1">
   <waveform src="square"/>
   <waveform src="square" processing="modulate" pitch="5.0"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="10.0">2330.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">
@@ -55,5 +47,16 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">2200.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>
