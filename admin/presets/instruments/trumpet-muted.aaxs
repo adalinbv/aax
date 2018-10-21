@@ -12,17 +12,25 @@
   <note polyphony="2" min="58" max="82" step="12"/>
  </info>
 
- <sound gain="2.87" frequency="440" duration="0.1">
+ <sound gain="3.28" frequency="440" duration="0.1">
   <waveform src="impulse"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="1.5">660.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.4</param>
+    <param n="0">0.1</param>
     <param n="1">0.15</param>
-    <param n="2">0.8</param>
-    <param n="3">0.05</param>
+    <param n="2">0.3</param>
+    <param n="3">0.15</param>
    </slot>
    <slot n="1">
     <param n="0">0.5</param>
@@ -33,7 +41,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.1</param>
+    <param n="0">0.9</param>
     <param n="1">0.02</param>
     <param n="2">0.95</param>
     <param n="3">0.1</param>
@@ -54,22 +62,5 @@
    </slot>
   </effect>
  </emitter>
-
- <audioframe>
-  <filter type="equalizer">
-   <slot n="0">
-    <param n="0">110.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">880.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
- </audioframe>
 
 </aeonwave>
