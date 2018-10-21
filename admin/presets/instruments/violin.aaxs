@@ -12,10 +12,9 @@
   <note polyphony="4" min="28" max="96" step="12"/>
  </info>
 
- <sound gain="8.52" frequency="440" duration="0.1">
+ <sound gain="5.73" frequency="440" duration="0.75">
   <waveform src="sawtooth" ratio="0.6"/>
-  <waveform src="square" processing="modulate" pitch="3.0"/>
-  <waveform src="impulse" processing="mix" ratio="0.15" pitch="0.9899"/>
+  <waveform src="triangle" processing="modulate" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">

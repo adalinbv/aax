@@ -12,10 +12,10 @@
   <note polyphony="4" min="55" max="96" step="12"/>
  </info>
 
- <sound gain="1.37" frequency="220" duration="0.75">
-  <waveform src="impulse"/>
-  <waveform src="square" processing="modulate" pitch="2.0"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899"/>
+ <sound gain="3.50" frequency="440" duration="0.75">
+  <waveform src="sawtooth" ratio="0.6"/>
+  <waveform src="square" processing="modulate" pitch="3.0"/>
+  <waveform src="impulse" processing="mix" ratio="0.15" pitch="0.9899"/>
  </sound>
 
  <emitter looping="true">
@@ -33,20 +33,6 @@
     <param n="3">0.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">0.97</param>
-    <param n="1">0.25</param>
-    <param n="2">1.0</param>
-    <param n="3">0.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">4.5</param>
-    <param n="2">0.995</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
  </emitter>
 
  <audioframe>
