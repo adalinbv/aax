@@ -12,7 +12,7 @@
   <note polyphony="6" min="40" max="86" step="12"/>
  </info>
 
- <sound gain="1.47" frequency="110" duration="0.1">
+ <sound gain="1.74" frequency="110" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" pitch="3.0"/>
@@ -35,8 +35,8 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.05</param>
-    <param n="1">0.05</param>
+    <param n="0">1.25</param>
+    <param n="1">0.02</param>
     <param n="2">1.0</param>
     <param n="3">4.5</param>
    </slot>
@@ -53,12 +53,12 @@
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">90.0</param>
-    <param n="1">1.2</param>
+    <param n="1">1.7</param>
     <param n="2">1.0</param>
     <param n="3">2.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1000.0</param>
+    <param n="0">1350.0</param>
     <param n="1">1.0</param>
     <param n="2">0.2</param>
     <param n="3">2.1</param>
