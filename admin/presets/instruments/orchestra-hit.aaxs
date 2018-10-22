@@ -12,9 +12,17 @@
   <note polyphony="4" min="48" max="72" step="6"/>
  </info>
 
- <sound gain="1.93" frequency="220" voices="9" spread="0.5">
+ <sound gain="1.89" frequency="220" voices="9" spread="0.5">
   <waveform src="impulse" ratio="0.2" pitch="0.5"/>
   <waveform src="sawtooth" processing="add" ratio="0.7" voices="3"/>
+  <filter type="frequency" src="36db" optional="true">
+   <slot n="0">
+    <param n="0">2700.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
