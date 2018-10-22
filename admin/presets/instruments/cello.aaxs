@@ -8,14 +8,13 @@
 
 <aeonwave>
 
- <info name="Violin" bank="0" program="40">
-  <note polyphony="4" min="55" max="96" step="12"/>
+ <info name="Cello" bank="0" program="42">
+  <note polyphony="4" min="36" max="72" step="12"/>
  </info>
 
- <sound gain="6.51" frequency="246" duration="0.75">
-  <waveform src="sawtooth" ratio="0.6" voices="3"/>
+ <sound gain="2.04" frequency="110" duration="0.75">
+  <waveform src="sawtooth" ratio="0.6"/>
   <waveform src="triangle" processing="modulate" pitch="3.0"/>
-  <waveform src="impulse" processing="mix" ratio="0.15" pitch="0.9899"/>
  </sound>
 
  <emitter looping="true">
@@ -23,13 +22,13 @@
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.15</param>
-    <param n="2">1.1</param>
+    <param n="2">1.2</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.05</param>
+    <param n="0">1.1</param>
     <param n="1">inf</param>
-    <param n="2">1.05</param>
+    <param n="2">1.1</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
@@ -45,8 +44,8 @@
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.03</param>
-    <param n="2">0.1</param>
-    <param n="3">0.449</param>
+    <param n="2">0.05</param>
+    <param n="3">0.454</param>
    </slot>
   </effect>
  </emitter>
@@ -54,13 +53,13 @@
  <audioframe>
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">760.0</param>
+    <param n="0">390.0</param>
     <param n="1">2.0</param>
     <param n="2">1.0</param>
     <param n="3">1.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1750.0</param>
+    <param n="0">3750.0</param>
     <param n="1">1.0</param>
     <param n="2">0.2</param>
     <param n="3">1.0</param>
