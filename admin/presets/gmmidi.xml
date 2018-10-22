@@ -51,9 +51,9 @@
    <instrument n="38" name="Synth Bass 1" file="instruments/bass-synth1"/>
    <instrument n="39" name="Synth Bass 2" file="instruments/bass-synth3"/>
    <instrument n="40" name="Violin" file="instruments/violin"/>
-   <instrument n="41" name="Viola" file="instruments/violin"/>
-   <instrument n="42" name="Cello" file="instruments/violin"/>
-   <instrument n="43" name="Contrabass" file="instruments/violin"/>
+   <instrument n="41" name="Viola" file="instruments/viola"/>
+   <instrument n="42" name="Cello" file="instruments/cello"/>
+   <instrument n="43" name="Contrabass" file="instruments/bass-contra"/>
    <instrument n="44" name="Tremolo Strings" file="instruments/string-tremolo"/>
    <instrument n="45" name="Pizzicato Strings" file="instruments/string-pizzicato"/>
    <instrument n="46" name="Orchestral Harp" file="instruments/harp"/>
@@ -120,7 +120,7 @@
    <instrument n="107" name="Koto" file="instruments/koto"/>
    <instrument n="108" name="Kalimba" file="instruments/kalimba"/>
    <instrument n="109" name="Bag pipe" file="instruments/bag-pipe"/>
-   <instrument n="110" name="Fiddle" file="instruments/fiddle"/>
+   <instrument n="110" name="Fiddle" file="instruments/kokyu"/>
    <instrument n="111" name="Shanai" file="instruments/shanai"/>
    <instrument n="112" name="Tinkle Bell" file="instruments/bell-tinkle"/>
    <instrument n="113" name="Agogo" file="instruments/agogo"/>
