@@ -13,26 +13,10 @@
   <position x="2.0" y="0.0" z="-1.0"/>
  </info>
 
- <sound gain="1.70" frequency="220" voices="5" spread="0.3">
-  <waveform src="sawtooth" ratio="0.2" pitch="0.5" voices="3"/>
-  <waveform src="impulse" processing="add" ratio="0.2" pitch="1.487"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.5" voices="3"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="1.0">220.0</param>
-    <param n="1">1.2</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="20.0">4400.0</param>
-    <param n="1">1.1</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
+ <sound gain="2.18" frequency="220" voices="5" spread="0.2">
+  <waveform src="impulse" ratio="0.2" pitch="1.487"/>
+  <waveform src="sawtooth" processing="add" ratio="0.5" pitch="0.5" voices="3" spread="0.4"/>
+  <waveform src="sawtooth" processing="add" ratio="0.5" voices="3"/>
  </sound>
 
  <emitter looping="true">
