@@ -12,16 +12,8 @@
   <note polyphony="4" min="48" max="72" step="6"/>
  </info>
 
- <sound gain="1.93" frequency="220" voices="9" spread="0.5">
+ <sound gain="1.95" frequency="220" voices="9" spread="0.4">
   <waveform src="impulse" ratio="0.2" pitch="0.5"/>
-  <filter type="frequency" src="12db" optional="true">
-   <slot n="0">
-    <param n="0" pitch="8.0">1760.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
   <waveform src="sawtooth" processing="add" ratio="0.7" voices="3"/>
  </sound>
 
@@ -34,8 +26,8 @@
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
-    <param n="1" auto-sustain="1.0">4.0</param>
+    <param n="0">0.4</param>
+    <param n="1" auto-sustain="1.0">3.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
