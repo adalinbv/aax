@@ -13,7 +13,7 @@
   <position x="-1.0" y="1.0" z="-2.0"/>
  </info>
 
- <sound gain="1.45" frequency="220" duration="0.1">
+ <sound gain="1.22" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" pitch="4.0"/>
@@ -36,7 +36,7 @@
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.2</param>
+    <param n="0">1.5</param>
     <param n="1" auto-sustain="1.5">18.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -61,7 +61,7 @@
  <audioframe>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">1000.0</param>
+    <param n="0">2000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.2</param>
     <param n="3">1.1</param>
@@ -69,7 +69,7 @@
   </filter>
   <effect type="distortion">
    <slot n="0">
-    <param n="0">0.5</param>
+    <param n="0">2.0</param>
     <param n="1">0.2</param>
     <param n="2">0.4</param>
     <param n="3">0.7</param>
