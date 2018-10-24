@@ -2,7 +2,7 @@
 
 <aeonwave>
 
- <sound name="Test" frequency="800">
+ <sound name="Test" frequency="231" duration="0.1">
   <waveform src="sine" ratio="1.2"/>
 <!--
   <waveform src="square" processing="add"/>
