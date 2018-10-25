@@ -105,15 +105,18 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    new_srb_pos_sec = srb_pos_sec + dduration*pitch;
    src_loops = (srbi->looping && !srbi->streaming);
 
-   /* destination time offset */
-   dadvance = (sduration - srb_pos_sec)/pitch_norm;
-   drb->set_paramd(drb, RB_FORWARD_SEC, dadvance);
+   if (srbi->streaming)
+   {
+      /* destination time offset */
+      dadvance = (sduration - srb_pos_sec)/pitch_norm;
+      drb->set_paramd(drb, RB_FORWARD_SEC, dadvance);
 
-   /* destination time remaining after fast forwarding */
-   dremain = drb->get_paramf(drb, RB_DURATION_SEC);
-   dremain -= drb->get_paramf(drb, RB_OFFSET_SEC);
-   if (!srbi->streaming || dremain == 0.0f) {
-      drb->set_state(drb, RB_REWINDED);
+      /* destination time remaining after fast forwarding */
+      dremain = drb->get_paramf(drb, RB_DURATION_SEC);
+      dremain -= drb->get_paramf(drb, RB_OFFSET_SEC);
+      if (dremain == 0.0f) {
+         drb->set_state(drb, RB_REWINDED);
+      }
    }
 
    /* sample conversion factor */
