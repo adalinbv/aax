@@ -50,11 +50,11 @@
    <slot n="0">
     <param n="0">1.05</param>
     <param n="1">0.01</param>
-    <param n="2">0.975</param>
+    <param n="2">0.985</param>
     <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.955</param>
+    <param n="0">0.975</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
