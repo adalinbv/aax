@@ -12,7 +12,7 @@
   <note polyphony="2" min="58" max="91" step="12"/>
  </info>
 
- <sound gain="0.99" frequency="233" duration="0.1">
+ <sound gain="0.49" frequency="233" duration="0.1">
   <waveform src="square"/>
   <waveform src="square" processing="modulate" pitch="5.0"/>
   <filter type="frequency" src="24db">
