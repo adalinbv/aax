@@ -231,7 +231,7 @@ private:
     AeonWave* aax;
 
     Vector dir = Vector(0.0f, 0.0f, 1.0f);
-    Vector64 pos = Vector64(0.0, 2.0, -3.0);
+    Vector64 pos = Vector64(0.0, 0.0, -0.5);
     Matrix64 mtx = Matrix64(pos, dir);
 
     Param modulate_freq = 1.5f;
