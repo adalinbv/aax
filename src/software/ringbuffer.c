@@ -228,7 +228,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
    rbd = rbi->sample;
 
    /*
-    * When moving playing registered sensors from one output devcie
+    * When moving playing registered sensors from one output device
     * to another rbd->track != NULL.  calculate it's new size, free
     * the previous buffer and create a new one with the proper size
     */
@@ -359,7 +359,6 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
       rbi->elapsed_sec = 0.0f;
       rbi->curr_pos_sec = 0.0;
       rbi->curr_sample = 0;
-// TODO: Is this really what we want? Looks suspiceous to me
       rbi->sample->scratch = NULL;
 
 #ifndef NDEBUG
