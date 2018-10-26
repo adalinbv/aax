@@ -23,11 +23,6 @@
  * 1:N ringbuffer mixer functions.
  */
 
-/*
- * Sources:
- * http://en.wikipedia.org/wiki/Doppler_effect
- */
-
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
