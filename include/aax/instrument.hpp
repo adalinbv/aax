@@ -181,7 +181,7 @@ public:
 
     inline void set_pan(float p) {
         Matrix64 m;
-        m.rotate(p, 0.0f, 1.0f, 0.0f);
+        m.rotate(1.57f*p, 0.0f, 1.0f, 0.0f);
         m.multiply(mtx);
         Mixer::matrix(m);
     }
@@ -231,7 +231,7 @@ private:
     AeonWave* aax;
 
     Vector dir = Vector(0.0f, 0.0f, 1.0f);
-    Vector64 pos = Vector64(0.0, 0.0, -0.5);
+    Vector64 pos = Vector64(0.0, 1.0, -3.0);
     Matrix64 mtx = Matrix64(pos, dir);
 
     Param modulate_freq = 1.5f;
