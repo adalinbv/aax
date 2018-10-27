@@ -12,7 +12,7 @@
   <note polyphony="17" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="0.62" frequency="261" duration="0.1">
+ <sound gain="0.99" frequency="261" duration="0.1">
   <waveform src="sine" pitch="1.2"/>
   <waveform src="sine" processing="add" ratio="0.4" pitch="2.59987"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.4587"/>

@@ -12,7 +12,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.22" frequency="220" duration="0.2">
+ <sound gain="3.77" frequency="220" duration="0.2">
   <waveform src="white-noise" pitch="0.1"/>
  </sound>
 
