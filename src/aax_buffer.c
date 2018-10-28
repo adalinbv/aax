@@ -1277,7 +1277,7 @@ _bufAAXSThread(void *d)
             handle->rate = freq;
             if (max_frequency > 0.0f)
             {
-               handle->pitch_levels = _MAX(1, log2i(ceilf(max_frequency/freq)));
+               handle->pitch_levels =_MAX(1,1+log2i(ceilf(max_frequency/freq)));
                if (handle->pitch_levels > MAX_PITCH_LEVELS) {
                   handle->pitch_levels = MAX_PITCH_LEVELS;
                }
