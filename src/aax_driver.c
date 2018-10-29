@@ -789,6 +789,7 @@ new_handle()
    if (ptr1)
    {
       _handle_t* handle = (_handle_t*)ptr1;
+      char *env;
 
       handle->id = HANDLE_ID;
       handle->backends = get_backends();
@@ -801,7 +802,12 @@ new_handle()
       handle->info = (_aaxMixerInfo*)ptr2;
       _aaxSetDefaultInfo(handle->info, handle);
 
-      handle->data_dir = systemDataFile("");
+      env = getenv("AAX_SHARED_DATA_DIR");
+      if (env) {
+         handle->data_dir = strdup(env);
+      } else {
+         handle->data_dir = systemDataFile("");
+      }
       handle->timer = _aaxTimerCreate();
 
       rv = handle;
