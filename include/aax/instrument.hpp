@@ -181,7 +181,7 @@ public:
 
     inline void set_pan(float p) {
         Matrix64 m;
-        m.rotate(1.57f*p, 0.0f, 1.0f, 0.0f);
+        m.rotate(1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
         Mixer::matrix(m);
     }
@@ -230,7 +230,7 @@ private:
     std::map<uint8_t,Note*> key;
     AeonWave* aax;
 
-    Vector dir = Vector(0.0f, 0.0f, 1.0f);
+    Vector dir = Vector(0.0f, 0.0f, -1.0f);
     Vector64 pos = Vector64(0.0, 1.0, -2.75);
     Matrix64 mtx = Matrix64(pos, dir);
 
