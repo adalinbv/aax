@@ -77,6 +77,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
       if (buf)
       {
          int blocksize;
+         char *env;
 
          switch(native_fmt)
          {
@@ -102,6 +103,23 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->root = handle;
          buf->ringbuffer[0] = _bufGetRingBuffer(buf, handle, 0);
          buf->to_mixer = AAX_FALSE;
+
+         /* explicit request not to convert */
+         env = getenv("AAX_USE_MIXER_FMT");
+         if (env && !_aax_getbool(env)) {
+            buf->to_mixer = AAX_FALSE;
+         }
+
+         /* sound is not mono */
+         else if (tracks != 1) {
+            buf->to_mixer = AAX_FALSE;
+         }
+
+         /* more than 500Mb free memory is available, convert */
+         else if (_aax_get_free_memory() > (500*1024*1024)) {
+            buf->to_mixer = AAX_TRUE;
+         }
+
          rv = (aaxBuffer)buf;
       }
       if (buf == NULL) {
@@ -420,7 +438,6 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       void *data = (void*)d, *ptr = NULL;
       unsigned int native_fmt;
       char fmt_bps, *m;
-      const char *env;
 
       rb->init(rb, AAX_FALSE);
       tracks = rb->get_parami(rb, RB_NO_TRACKS);
@@ -486,21 +503,6 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
          }
       }
 
-      /* explicit request not to convert */
-      env = getenv("AAX_USE_MIXER_FMT");
-      if (env && !_aax_getbool(env)) {
-         handle->to_mixer = AAX_FALSE;
-      }
-
-      /* sound is not mono or larger than 4Mb, do not convert */
-      else if (tracks != 1 || rb->get_parami(rb, RB_TRACKSIZE) > (4*1024)) {
-         handle->to_mixer = AAX_FALSE;
-      }
-
-      /* more than 500Mb free memory is available, convert */
-      else if (_aax_get_free_memory() > (500*1024*1024)) {
-         handle->to_mixer = AAX_TRUE;
-      }
       rb = _bufSetDataInterleaved(handle, rb, data, blocksize);
       handle->ringbuffer[0] = rb;
 
@@ -1367,7 +1369,12 @@ _bufAAXSThread(void *d)
                xmlFree(xwid);
             }
 
-            if (bits == 16)
+            if (0) // handle->to_mixer)
+            {
+               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+               _bufConvertDataToMixerFormat(handle, rb);
+            }
+            else if (bits == 16)
             {
                _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
                _aaxRingBufferData *rbi = rb->handle;
@@ -1946,7 +1953,6 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _aaxRingBufferIMA4ToPCM16(tracks, data, no_tracks, blocksize, no_samples);
       rb->release_tracks_ptr(rb);
-      if (buf->to_mixer) rv = _bufConvertDataToMixerFormat(buf, rb);
       break;
    case AAX_PCM24S:
    case AAX_PCM32S:
