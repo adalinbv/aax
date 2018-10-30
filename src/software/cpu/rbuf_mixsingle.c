@@ -23,6 +23,8 @@
  * 1:N ringbuffer mixer functions.
  */
 
+#define PURE_STEREO
+
 #if HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -79,7 +81,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
        * 0.8776 = cosf(0.5)
        */
 #ifdef PURE_STEREO
-      dir_fact = _MINMAX(ep2d->speaker[t][DIR_RIGHT], 0.0f, 1.0f);
+      dir_fact = _MINMAX(0.5f+ep2d->speaker[t].v4[DIR_RIGHT], 0.0f, 1.0f);
 #else
       dir_fact = _MIN(0.8776f + ep2d->speaker[t].v4[DIR_RIGHT], 1.0f);
 #endif
