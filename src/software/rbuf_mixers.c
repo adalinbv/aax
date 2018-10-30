@@ -178,10 +178,11 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          rdesamps = (size_t)(dde*fact);
       }
 
-      /* number of samples */
+      /* destonation number of samples */
       dend = drb->get_parami(drb, RB_NO_SAMPLES);
       dno_samples = dend - dest_pos;
 
+      /* number of samples to convert */
       cno_samples = rintf(dno_samples*fact);
       if (!src_loops && (cno_samples > (sno_samples-src_pos)))
       {
@@ -212,7 +213,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 #endif
       if (track_ptr && dno_samples)
       {
-         char eff = (reflections || delay_effect || freq_filter || dist_state || ringmodulator || bitcrush) ? 1 : 0;
+         char eff = (reflections || delay_effect || freq_filter || dist_state ||
+                     ringmodulator || bitcrush) ? 1 : 0;
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
          unsigned int track;
@@ -226,7 +228,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
             /* short-cut for automatic file streaming with registered sensors */
             if (srbd->mixer_fmt) {
-                scratch0 = sptr+src_pos; // -1;
+                scratch0 = sptr+src_pos;
             }
             else
             {
