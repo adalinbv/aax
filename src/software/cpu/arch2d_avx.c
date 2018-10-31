@@ -965,7 +965,7 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
 FN_PREALIGN void
 _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   int need_step = (vstep <=  LEVEL_96DB) ? 0 : 1;
+   int need_step = (fabsf(vstep) <=  LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
@@ -974,6 +974,18 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
    if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_avx(dst, src, num);
+      return;
+   }
+
+   // volume change requested
+   if (need_step)
+   {
+      i = num;
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      }
+      while (--i);
       return;
    }
 
@@ -987,7 +999,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          num -= i;
          do {
             *d++ += *s++ * v;
-            v += vstep;
          } while(--i);
       }
    }
@@ -1003,7 +1014,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       __m256 *dptr = (__m256*)d;
       __m256 tv = _mm256_set1_ps(v);
 
-      vstep *= 0.5f*step;
       num -= i*step;
       s += i*step;
       d += i*step;
@@ -1015,11 +1025,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             ymm1 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
             ymm2 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
             ymm3 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
-
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
 
             ymm4 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
             ymm5 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
@@ -1043,11 +1048,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             _mm256_store_ps((float*)dptr++, ymm5);
             _mm256_store_ps((float*)dptr++, ymm6);
             _mm256_store_ps((float*)dptr++, ymm7);
-
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
          }
          while(--i);
       }
@@ -1059,11 +1059,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             ymm1 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
             ymm2 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
             ymm3 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
-
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
 
             ymm4 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
             ymm5 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
@@ -1087,15 +1082,9 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             _mm256_store_ps((float*)dptr++, ymm5);
             _mm256_store_ps((float*)dptr++, ymm6);
             _mm256_store_ps((float*)dptr++, ymm7);
-
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
          }
          while(--i);
       }
-      vstep /= step;
    }
 
    step = 2*sizeof(__m256)/sizeof(float);
@@ -1106,7 +1095,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       __m256* dptr = (__m256*)d;
       __m256 ymm0, ymm1;
 
-      vstep *= step;
       num -= i*step;
       s += i*step;
       d += i*step;
@@ -1120,11 +1108,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
 
             ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
             ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
-
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
 
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
@@ -1142,18 +1125,12 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             ymm0 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+0)),ymm0);
             ymm1 =_mm256_add_ps(_mm256_load_ps((const float*)(dptr+1)),ymm1);
 
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
-
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
 
          }
          while(--i);
       }
-      vstep /= step;
    }
    _mm256_zeroupper();
 
@@ -1162,7 +1139,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
       i = num;
       do {
          *d++ += *s++ * v;
-         v += vstep;
       } while(--i);
    }
    _mm256_zeroall();

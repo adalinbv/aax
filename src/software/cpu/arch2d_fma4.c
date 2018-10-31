@@ -34,14 +34,26 @@
 FN_PREALIGN void
 _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   int need_step = (vstep <=  LEVEL_96DB) ? 0 : 1;
+   int need_step = (fabsf(vstep) <=  LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
    if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+
    if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_avx(dst, src, num);
+      return;
+   }
+
+   if (need_step)
+   {
+      i = num;
+      do {
+         *d++ += *s++ * v;
+         v += vstep;
+      }
+      while (--i);
       return;
    }
 
@@ -55,7 +67,6 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
          num -= i;
          do {
             *d++ += *s++ * v;
-            v += vstep;
          } while(--i);
       }
    }
@@ -71,7 +82,6 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
       __m256 *sptr = (__m256 *)s;
       __m256 *dptr = (__m256 *)d;
 
-      vstep *= step;
       num -= i*step;
       s += i*step;
       d += i*step;
@@ -83,11 +93,6 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
             ymm1 = _mm256_loadu_ps((const float*)sptr++);
             ymm2 = _mm256_loadu_ps((const float*)sptr++);
             ymm3 = _mm256_loadu_ps((const float*)sptr++);
-
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
 
             ymm4 = _mm256_loadu_ps((const float*)sptr++);
             ymm5 = _mm256_loadu_ps((const float*)sptr++);
@@ -102,11 +107,6 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
             ymm5 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+5)), ymm5, tv);
             ymm6 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+6)), ymm6, tv);
             ymm7 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+7)), ymm7, tv);
-
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
 
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
@@ -128,11 +128,6 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
             ymm2 = _mm256_load_ps((const float*)sptr++);
             ymm3 = _mm256_load_ps((const float*)sptr++);
 
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
-
             ymm4 = _mm256_load_ps((const float*)sptr++);
             ymm5 = _mm256_load_ps((const float*)sptr++);
             ymm6 = _mm256_load_ps((const float*)sptr++);
@@ -147,11 +142,6 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
             ymm6 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+6)), ymm6, tv);
             ymm7 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+7)), ymm7, tv);
 
-            if (need_step) {
-               v += vstep;
-               tv = _mm256_set1_ps(v);
-            }
-
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
             _mm256_store_ps((float*)dptr++, ymm2);
@@ -163,18 +153,17 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
          }
          while(--i);
       }
-      vstep /= step;
    }
 
    step = 2*sizeof(__m256)/sizeof(float);
    i = num/step;
    if (i)
    {
+      __m256 tv = _mm256_set1_ps(v);
       __m256* sptr = (__m256*)s;
       __m256* dptr = (__m256*)d;
       __m256 ymm0, ymm1;
 
-      vstep *= step;
       num -= i*step;
       s += i*step;
       d += i*step;
@@ -183,15 +172,11 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
       {
          do
          {
-            __m256 tv = _mm256_set1_ps(v);
-
             ymm0 = _mm256_loadu_ps((const float*)sptr++);
             ymm1 = _mm256_loadu_ps((const float*)sptr++);
 
             ymm0 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
             ymm1 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1, tv);
-
-            v += vstep;
 
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
@@ -202,22 +187,17 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
       {
          do
          {
-            __m256 tv = _mm256_set1_ps(v);
-
             ymm0 = _mm256_load_ps((const float*)sptr++);
             ymm1 = _mm256_load_ps((const float*)sptr++);
 
             ymm0 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
             ymm1 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1, tv);
 
-            v += vstep;
-
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
          }
          while(--i);
       }
-      vstep /= step;
    }
    _mm256_zeroall();
 
@@ -226,7 +206,6 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
       i = num;
       do {
          *d++ += *s++ * v;
-         v += vstep;
       } while(--i);
    }
 }

@@ -112,6 +112,7 @@ int main()
         /*
          * batch fmadd by a value
          */
+        printf("\nfixed volume:");
         memcpy(dst1, src, MAXNUM*sizeof(float));
         _batch_fmadd = _batch_fmadd_cpu;
         t = clock();
@@ -134,6 +135,37 @@ int main()
             _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
               _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
+        }
+
+        /*
+         * batch fmadd by a value, with a volume step
+         */
+        printf("\nwith a volume ramp:");
+        memcpy(dst1, src, MAXNUM*sizeof(float));
+        _batch_fmadd = _batch_fmadd_cpu;
+        t = clock();
+          _batch_fmadd(dst1, dst1, MAXNUM, 0.8723678263f, -0.01f);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
+
+        if (simd)
+        {
+#ifdef __x86_64__
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_fmadd = _batch_fmadd_sse2;
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, -0.01f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fmadd sse2: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            TEST("float fadd+fmadd sse2", dst1, dst2);
+#endif
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, -0.01f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);

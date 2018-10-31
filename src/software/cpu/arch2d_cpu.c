@@ -89,7 +89,7 @@ _batch_hmadd_cpu(float32_ptr dptr, const_float16_ptr sptr, size_t num, float v, 
 void
 _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
 {
-   int need_step = (vstep <=  LEVEL_90DB) ? 0 : 1;
+   int need_step = (fabsf(vstep) <=  LEVEL_90DB) ? 0 : 1;
    float *s = (float*)sptr;
    float *d = dptr;
    size_t i = num;
