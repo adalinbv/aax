@@ -1261,10 +1261,10 @@ _bufAAXSThread(void *d)
       if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
       if (xsid)
       {
-         unsigned int b, i, num, bits = 24;
+         unsigned int i, num, bits = 24;
          double duration = 1.0f;
          float spread = 0;
-         int voices = 1;
+         int b, voices = 1;
 
          if (xmlAttributeExists(xsid, "bits"))
          {

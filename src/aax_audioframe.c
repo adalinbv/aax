@@ -1004,8 +1004,8 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
       {
          if (_aaxIncreaseEmitterCounter())
          {
-            int max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
-            int no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
+            unsigned int max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
+            unsigned int no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
             if (no_emitters > handle->max_emitters)
             {
                unsigned int i, num = 0, pos = 0;

@@ -365,7 +365,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
 }
 
 static void
-_aaxSubFramePostProcess(const void *id, const void *hid, void *d, const void *f, void *i)
+_aaxSubFramePostProcess(UNUSED(const void *id), UNUSED(const void *hid), void *d, const void *f, UNUSED(void *i))
 {
    _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
    const _frame_t *subframe = (_frame_t*)f;
