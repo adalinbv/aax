@@ -885,13 +885,14 @@ _batch_hmadd_avx(float32_ptr dst, const_float16_ptr src, size_t num, float v, fl
 FN_PREALIGN void
 _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   int need_step = (fabsf(vstep) <=  LEVEL_96DB) ? 0 : 1;
+   int need_step = (fabsf(vstep) <= LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
    PRINTFUNC;
-   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+   if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
+
    if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_avx(dst, src, num);
       return;
