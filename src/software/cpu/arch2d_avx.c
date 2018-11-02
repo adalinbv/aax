@@ -941,7 +941,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             do
             {
                ymm0 = _mm256_mul_ps(_mm256_loadu_ps((const float*)sptr++), tv);
-               ymm0 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr)), ymm0);
+               ymm0 = _mm256_add_ps(_mm256_load_ps((const float*)dptr), ymm0);
 
                tv = _mm256_add_ps(tv, dv);
 
@@ -954,7 +954,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             do
             {
                ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
-               ymm0 = _mm256_add_ps(_mm256_load_ps((const float*)(dptr)), ymm0);
+               ymm0 = _mm256_add_ps(_mm256_load_ps((const float*)dptr), ymm0);
 
                tv = _mm256_add_ps(tv, dv);
 

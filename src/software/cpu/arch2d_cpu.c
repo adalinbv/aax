@@ -106,7 +106,7 @@ _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, 
    else if (need_step)
    {
       do {
-         *d++ += *s++ * v;
+         *d++ += (*s++ * v);
          v += vstep;
       }
       while (--i);
@@ -114,7 +114,7 @@ _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, 
    else
    {
       do {
-         *d++ += *s++ * v;
+         *d++ += (*s++ * v);
       }
       while (--i);
    }

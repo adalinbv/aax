@@ -931,7 +931,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             do
             {
                xmm0 = _mm_mul_ps(_mm_loadu_ps((const float*)sptr++), tv);
-               xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr)), xmm0);
+               xmm1 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
 
                tv = _mm_add_ps(tv, dv);
 
@@ -944,7 +944,7 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             do
             {
                xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), tv);
-               xmm1 = _mm_add_ps(_mm_load_ps((const float*)(dptr)), xmm0);
+               xmm1 = _mm_add_ps(_mm_load_ps((const float*)dptr), xmm0);
 
                tv = _mm_add_ps(tv, dv);
 
