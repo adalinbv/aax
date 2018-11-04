@@ -380,6 +380,7 @@ void free_waveform(struct waveform_t *wave)
 
 struct sound_t
 {
+    int live;
     float gain;
     int frequency;
     float duration;
@@ -413,6 +414,9 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
         info->name = xmlAttributeGetString(xid, "name");
     }
 
+    if (xmlAttributeExists(xid, "live")) {
+       sound->live = xmlAttributeGetBool(xid, "live") ? 1 : -1;
+    }
     if (gain == 0.0f) {
         sound->gain = xmlAttributeGetDouble(xid, "gain");
     } else {
@@ -459,7 +463,12 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output)
     unsigned int e;
 
     fprintf(output, " <sound");
-    if (sound->gain) fprintf(output, " gain=\"%3.2f\"", sound->gain);
+    if (sound->live) {
+        fprintf(output, " live=\"%s\"", (sound->live > 0) ? "true" : "false");
+    }
+    if (sound->gain) {
+        fprintf(output, " gain=\"%3.2f\"", sound->gain);
+    }
     if (sound->frequency)
     {
         uint8_t note;
@@ -851,7 +860,7 @@ int main(int argc, char **argv)
         aaxDriverDestroy(config);
 
 //      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
-        rms = 10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
+        rms = 0.8f*10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
 
         printf("%-32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
         printf(", new gain: %4.1f\n", rms);
