@@ -264,7 +264,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            std::string name = midi.get_drum(program_no, key_no);
+            std::string name = midi.get_drum(program_no & 0xF8, key_no);
             if (!name.empty())
             {
                 DISPLAY("Loading drum       bank: %3i, key    : %3i: %s\n",
