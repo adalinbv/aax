@@ -268,7 +268,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             if (!name.empty())
             {
                 DISPLAY("Loading drum       bank: %3i, key    : %3i: %s\n",
-                         bank_no, key_no, name.c_str());
+                         program_no, key_no, name.c_str());
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
