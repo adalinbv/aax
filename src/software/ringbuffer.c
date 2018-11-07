@@ -396,6 +396,8 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
       drbi = drb->handle;
       drbd = drbi->sample;
 
+      _aaxRingBufferInitFunctions(drb);
+
       _aax_memcpy(drbi, srbi, sizeof(_aaxRingBufferData));
       drbi->access = RB_RW_MAX;
       drbi->sample = drbd;
@@ -425,7 +427,6 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
          }
       }
 
-      _aaxRingBufferInitFunctions(drb);
       _aaxRingBufferInit(drb, add_scratchbuf);
 
       if (copy || dde)
@@ -1215,7 +1216,7 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, enum aaxWaveformType type, float 
       rv = AAX_TRUE;
       break;
    case AAX_PINK_NOISE:
-      if (f) 
+      if (f)
       {
          _bufferMixPinkNoise(data, no_samples, bps, tracks, pitch, ratio, f, skip);
          rv = AAX_TRUE;
@@ -1374,7 +1375,7 @@ _aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb
 void
 _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
 {
-   static const float _val[RB_LIMITER_MAX][2] = 
+   static const float _val[RB_LIMITER_MAX][2] =
    {
       { 0.5f, 0.0f },		// Electronic
       { 0.9f, 0.0f }, 		// Digital
@@ -1402,7 +1403,7 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
       rms = 0;
       peak = no_samples;
       dptr = tracks[track];
-      _aaxRingBufferLimiter(dptr, &rms, &peak, _val[type][0], _val[type][1]); 
+      _aaxRingBufferLimiter(dptr, &rms, &peak, _val[type][0], _val[type][1]);
 
       avg = rbi->average[track];
       avg = (rms_rr*avg + (1.0f-rms_rr)*rms);
