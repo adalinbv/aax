@@ -4,9 +4,9 @@
  * Improve various instrument configurations.
  * Speed and acuracy improvements for volume ramps (also used by the timed-gain
    filter).
- * Fix a glitch when rendering audio-frames.
+ * Fix an audible glitch when resetting (re-initializing) emitters.
 
--- Erik Hofman <tech@adalin.org>  Wed 07 Nov  2018 10:05:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Wed 07 Nov  2018 14:05:08 + 0100
 
 * Sat Oct 13 2018 - tech@adalin.org
 - AeonWave (3.5.1) stable; urgency=low
