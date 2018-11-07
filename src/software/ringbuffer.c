@@ -1402,7 +1402,6 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
 
       rms = 0;
       peak = no_samples;
-      dptr = tracks[track];
       _aaxRingBufferLimiter(dptr, &rms, &peak, _val[type][0], _val[type][1]);
 
       avg = rbi->average[track];
