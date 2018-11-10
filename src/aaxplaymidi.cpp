@@ -48,8 +48,6 @@
 
 #define IFILE_PATH		SRC_PATH"/beethoven_opus10_3.mid"
 #define INSTRUMENT		"instruments/piano-accoustic"
-#define INSTRUMENTS		"gmmidi.xml"
-#define DRUMS			"gmdrums.xml"
 
 void
 help()
@@ -65,6 +63,7 @@ help()
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
+//  printf("  -b, --batch\t\t\tprocess as fast as possible (Audio Files only)\n");
     printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
@@ -95,18 +94,21 @@ int main(int argc, char **argv)
             uint64_t time_parts = 0;
             uint32_t wait_parts;
             struct timeval now;
+#if 1
+            char batch = AAX_FALSE;
+#else
+            char batch = getCommandLineOption(argc, argv, "-b") ||
+                         getCommandLineOption(argc, argv, "--batch");
+            if (batch && !midi.get(AAX_BATCHED_MODE)) {
+                printf("Warning: Batched mode not supported for this backend\n");
+            }
+#endif
 
             if (getCommandLineOption(argc, argv, "-v") ||
                 getCommandLineOption(argc, argv, "--verbose"))
             {
                midi.set_verbose(true);
             }
-
-#ifndef NDEBUG
-            midi.set_file_path(SRC_PATH"/midi");
-            midi.set_instrument_file(INSTRUMENTS);
-            midi.set_drum_file(DRUMS);
-#endif
 
             midi.initialize();
             midi.start();
@@ -129,7 +131,10 @@ int main(int argc, char **argv)
 
                     wait_us = wait_parts*midi.get_uspp();
                     sleep_us = wait_us - dt_us;
-                    if (sleep_us > 0) {
+                    if (batch) {
+                        midi.set(AAX_UPDATE);
+                    }
+                    else if (sleep_us > 0) {
                        usecSleep(sleep_us);
                     }
 
