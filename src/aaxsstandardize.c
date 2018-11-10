@@ -211,7 +211,7 @@ struct dsp_t
         {
             float value;
             float pitch;
-            float sustain;
+            float adjust;
         } param[4];
     } slot[4];
 };
@@ -261,7 +261,10 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain)
 
                     dsp->slot[sn].param[pn].value = xmlGetDouble(xpid);
                     dsp->slot[sn].param[pn].pitch = xmlAttributeGetDouble(xpid, "pitch");
-                    dsp->slot[sn].param[pn].sustain = xmlAttributeGetDouble(xpid, "auto-sustain");
+                    dsp->slot[sn].param[pn].adjust = xmlAttributeGetDouble(xpid, "auto");
+                    if (dsp->slot[sn].param[pn].adjust == 0.0f) {
+                       dsp->slot[sn].param[pn].adjust = xmlAttributeGetDouble(xpid, "auto-sustain");
+                    }
                 }
             }
             xmlFree(xpid);
@@ -297,7 +300,7 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
         fprintf(output, "   <slot n=\"%i\">\n", s);
         for(p=0; p<4; ++p)
         {
-            float sustain = dsp->slot[s].param[p].sustain;
+            float adjust = dsp->slot[s].param[p].adjust;
             float pitch = dsp->slot[s].param[p].pitch;
 
             fprintf(output, "    <param n=\"%i\"", p);
@@ -306,8 +309,8 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
                 fprintf(output, " pitch=\"%s\"", format_float(pitch));
                 dsp->slot[s].param[p].value = freq*pitch;
             }
-            if (sustain) {
-                fprintf(output, " auto-sustain=\"%s\"", format_float(sustain));
+            if (adjust) {
+                fprintf(output, " auto=\"%s\"", format_float(adjust));
             }
 
             fprintf(output, ">%s</param>\n", format_float(dsp->slot[s].param[p].value));
