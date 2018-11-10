@@ -479,16 +479,19 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
 
                      if (freq != 0.0f)
                      {
-                        float pitch, sustain;
+                        float pitch, adjust;
 
                         pitch = xmlAttributeGetDouble(xpid, "pitch");
                         if (pitch != 0.0f) {
                            value = pitch*freq;
                         }
  
-                        sustain = xmlAttributeGetDouble(xpid, "auto-sustain");
-                        if (sustain != 0.0f) {
-                           value = _MAX(value - sustain*_lin2log(freq), 0.1f);
+                        adjust = xmlAttributeGetDouble(xpid, "auto");
+                        if (adjust == 0.0f) {
+                           adjust = xmlAttributeGetDouble(xpid, "auto-adjust");
+                        }
+                        if (adjust != 0.0f) {
+                           value = _MAX(value - adjust*_lin2log(freq), 0.1f);
                         }
                      }
 
