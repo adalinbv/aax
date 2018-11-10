@@ -57,6 +57,10 @@ MIDI::rewind()
     uSPP = 500000/PPQN;
 }
 
+/*
+ * Create map of instrument banks and program numbers with their associated
+ * file names from the XML files for a quick access during playback.
+ */
 void
 MIDI::read_instruments()
 {
@@ -101,7 +105,6 @@ MIDI::read_instruments()
                                     file[slen] = 0;
                                     std::string inst(file);
                                     bank.insert({n,inst});
-// pre-cache:                       AeonWave::buffer(inst, true);
                                 }
                             }
                         }
@@ -138,12 +141,23 @@ MIDI::read_instruments()
     }
 }
 
+/*
+ * For drum mapping the program_no is stored in the bank number of the map
+ * and the key_no in the program number of the map.
+ */
 std::string
-MIDI::get_drum(uint8_t bank_no, uint8_t program_no)
+MIDI::get_drum(uint8_t program_no, uint8_t key_no)
 {
-    auto itb = drums.find(bank_no);
-    if (itb == drums.end() && bank_no > 0) {
-        itb = drums.find(0);
+    auto itb = drums.find(program_no);
+    if (itb == drums.end() && program_no > 0)
+    {
+        program_no &= 0xF8;
+        itb = drums.find(program_no);
+        if (itb == drums.end() && program_no > 0)
+        {
+            program_no = 0;
+            itb = drums.find(program_no);
+        }
     }
 
     if (itb != drums.end())
@@ -151,18 +165,23 @@ MIDI::get_drum(uint8_t bank_no, uint8_t program_no)
         do
         {
             auto bank = itb->second;
-            auto iti = bank.find(program_no);
+            auto iti = bank.find(key_no);
             if (iti != bank.end()) {
                 return iti->second;
             }
 
-            if (bank_no > 0) {
-                itb = drums.find(0);
-            } else {
-                break;
+            if (program_no > 0)
+            {
+                program_no &= 0xF8;
+                itb = drums.find(program_no);
+                if (itb == drums.end())
+                {
+                    program_no = 0;
+                    itb = drums.find(program_no);
+                }
             }
         }
-        while (bank_no > 0);
+        while (program_no >= 0);
     }
     return empty_str;
 }
@@ -185,13 +204,13 @@ MIDI::get_instrument(uint8_t bank_no, uint8_t program_no)
                 return iti->second;
             }
 
-            if (bank_no > 0) {
-                itb = instruments.find(0);
-            } else {
-                break;
+            if (bank_no > 0)
+            {
+                bank_no = 0;
+                itb = instruments.find(bank_no);
             }
         }
-        while (bank_no > 0);
+        while (bank_no >= 0);
     }
     return empty_str;
 }
@@ -207,7 +226,10 @@ MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
     }
 
     try {
-        auto ret = channels.insert({channel_no, new MIDIChannel(*this, path, instr, drum, channel_no, bank_no, program_no)});
+        auto ret = channels.insert(
+            { channel_no, new MIDIChannel(*this, path, instr, drum,
+                                          channel_no, bank_no, program_no)
+            } );
         it = ret.first;
         AeonWave::add(*it->second);
     } catch(const std::invalid_argument& e) {
@@ -264,7 +286,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            std::string name = midi.get_drum(program_no & 0xF8, key_no);
+            std::string name = midi.get_drum(program_no, key_no);
             if (!name.empty())
             {
                 DISPLAY("Loading drum       bank: %3i, key    : %3i: %s\n",
@@ -329,7 +351,6 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 {
     bool msb_sent = false, lsb_sent = false;
     uint16_t msb_type = 0, lsb_type = 0;
-//  uint16_t msb = 0, lsb = 0;
     uint8_t next = 0;
     uint16_t type;
     float rv = 0.0f;
@@ -446,7 +467,6 @@ MIDITrack::rewind()
     byte_stream::rewind();
     timestamp_parts = pull_message()*24/600000;
 
-//  channel_no = 0;
     program_no = 0;
     bank_no = 0;
     previous = 0;

@@ -328,7 +328,10 @@ private:
     struct param_t param[MAX_REGISTERED_PARAM] = {
         { 2, 0 }, { 0x20, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
     };
-    std::string type_name[5] = {"Text", "Copyright", "Track", "Instrument", "Lyrics" };
+
+    const std::string type_name[5] = {
+        "Text", "Copyright", "Track", "Instrument", "Lyrics"
+    };
 };
 
 
