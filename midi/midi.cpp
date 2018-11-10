@@ -153,7 +153,7 @@ MIDI::get_drum(uint8_t program_no, uint8_t key_no)
     {
         program_no &= 0xF8;
         itb = drums.find(program_no);
-        if (itb == drums.end() && program_no > 0)
+        if (itb == drums.end())
         {
             program_no = 0;
             itb = drums.find(program_no);
@@ -180,9 +180,11 @@ MIDI::get_drum(uint8_t program_no, uint8_t key_no)
                     itb = drums.find(program_no);
                 }
             }
+            else break;
         }
         while (program_no >= 0);
     }
+    LOG("Drum not found\n");
     return empty_str;
 }
 
@@ -209,9 +211,11 @@ MIDI::get_instrument(uint8_t bank_no, uint8_t program_no)
                 bank_no = 0;
                 itb = instruments.find(bank_no);
             }
+            else break;
         }
         while (bank_no >= 0);
     }
+    LOG("Instrument not found\n");
     return empty_str;
 }
 
