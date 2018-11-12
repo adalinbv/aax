@@ -455,6 +455,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
             break;
         case MIDI_FINE_TUNING:
         case MIDI_COARSE_TUNING:
+            break;
         case MIDI_TUNING_PROGRAM_CHANGE:
         case MIDI_TUNING_BANK_SELECT:
         default:
@@ -606,8 +607,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_NOTE_OFF:
             case MIDI_NOTE_ON:
             {
-                uint8_t key = pull_byte();
+                int16_t key = pull_byte();
                 uint8_t velocity = pull_byte();
+                 key = (key-0x20) + param[MIDI_COARSE_TUNING].coarse;
                  midi.process(channel, message & 0xf0, key, velocity, omni);
                 break;
             }

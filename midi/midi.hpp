@@ -173,8 +173,8 @@ namespace aax
 
 struct param_t
 {
-   float coarse;
-   float fine;
+   uint8_t coarse;
+   uint8_t fine;
 };
 
 class MIDIChannel;
