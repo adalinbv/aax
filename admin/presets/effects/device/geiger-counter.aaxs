@@ -1,18 +1,26 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Geiger-Muller Counte" frequency="440" duration="3.3">
+ <info name="Geiger-Muller Counte" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="2.33" frequency="440" duration="3.3">
   <waveform src="white-noise" ratio="40.0" pitch="0.02" staticity="0.95"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0">420</param>
+    <param n="0">420.0</param>
     <param n="1">0.0</param>
     <param n="2">0.75</param>
     <param n="3">11.0</param>
@@ -20,7 +28,7 @@
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0">3500</param>
+    <param n="0">3500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.25</param>
     <param n="3">4.5</param>
@@ -28,7 +36,6 @@
   </filter>
  </sound>
 
- <emitter looping="true">
- </emitter>
+ <emitter looping="true"/>
 
 </aeonwave>

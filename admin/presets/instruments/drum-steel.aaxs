@@ -4,6 +4,10 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
@@ -44,7 +48,7 @@
     <param n="0">1.0</param>
     <param n="1">0.3</param>
     <param n="2">0.65</param>
-    <param n="3" auto-sustain="1.0">4.0</param>
+    <param n="3" auto="1.0">4.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

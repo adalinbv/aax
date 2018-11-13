@@ -4,6 +4,10 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
@@ -12,7 +16,7 @@
   <note polyphony="8" min="48" max="84" step="12"/>
  </info>
 
- <sound gain="1.82" frequency="220">
+ <sound gain="1.72" frequency="220">
   <waveform src="pink-noise"/>
   <waveform src="triangle" processing="add" ratio="0.5" voices="3" spread="0.7"/>
   <waveform src="triangle" processing="add" ratio="2.0" pitch="0.4993"/>
