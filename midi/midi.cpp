@@ -617,13 +617,17 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
-                midi.channel(channel).set_pressure(key, (float)pressure/127.0f);
+                float semi_tones = midi.channel(channel).get_semi_tones();
+                float pitch = semi_tones*((float)pressure/127.0f);
+                midi.channel(channel).set_pitch(key, (float)pressure/127.0f);
                 break;
             }
             case MIDI_CHANNEL_PRESSURE:
             {
                 uint8_t pressure = pull_byte();
-                midi.channel(channel).set_pressure((float)pressure/127.0f);
+                float semi_tones = midi.channel(channel).get_semi_tones();
+                float pitch = semi_tones*((float)pressure/127.0f);
+                midi.channel(channel).set_pitch(powf(2.0f, pitch/12.0f));
                 break;
             }
             case MIDI_CONTROL_CHANGE:
@@ -640,7 +644,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                      midi.channel(channel).set_gain(100.0f/127.0f);
                      midi.channel(channel).set_pan(0.0f);
                      midi.channel(channel).set_semi_tones(2.0f);
-                     midi.channel(channel).set_pressure(0.0f);
+                     midi.channel(channel).set_pitch(1.0f);
                     // intentional falltrough
                 case MIDI_ALL_SOUND_OFF:
                 case MIDI_MONO_ALL_NOTES_OFF:
