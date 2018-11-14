@@ -617,7 +617,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
-                midi.channel(channel).set_pressure(key, pressure);
+                midi.channel(channel).set_pressure(key, (float)pressure/127.0f);
+                break;
+            }
+            case MIDI_CHANNEL_PRESSURE:
+            {
+                uint8_t pressure = pull_byte();
+                midi.channel(channel).set_pressure((float)pressure/127.0f);
                 break;
             }
             case MIDI_CONTROL_CHANGE:
@@ -695,12 +701,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 } catch(const std::invalid_argument& e) {
                     std::cerr << "Error: " << e.what() << std::endl;
                 }
-                break;
-            }
-            case MIDI_CHANNEL_PRESSURE:
-            {
-                uint8_t pressure = pull_byte();
-                midi.channel(channel).set_pressure((float)pressure/127.0f);
                 break;
             }
             case MIDI_PITCH_BEND:
