@@ -89,7 +89,6 @@ public:
 
     inline void set_gain(float expr) { gain_param = expr*gain; }
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
-    inline void set_pressure(float p) { pitch_param = powf(2.0f, 2*p/12.0f)*pitch; }
 
 private:
     Matrix64 mtx;
@@ -168,6 +167,13 @@ public:
         }
     }
 
+    void set_pitch(uint8_t key_no, float pitch) {
+        auto it = key.find(key_no);
+        if (it != key.end()) {
+            it->second->set_pitch(pitch);
+        }
+    }
+
     inline void set_gain(float g) { gain = g; }
 
     inline void set_expression(float g) {
@@ -207,19 +213,6 @@ public:
         }
         if (modulate_state) {
             modulate_depth = mdepth;
-        }
-    }
-
-    void set_pressure(float pressure) {
-        for (auto& it : key) {
-            it.second->set_pressure(pressure);
-        }
-    }
-
-    void set_pressure(uint8_t key_no, float pressure) {
-        auto it = key.find(key_no);
-        if (it != key.end()) {
-            it->second->set_pressure(pressure);
         }
     }
 
