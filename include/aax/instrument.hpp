@@ -49,7 +49,6 @@ public:
         n1.pitch_param = std::move(n2.pitch_param);
         n1.gain_param = std::move(n2.gain_param);
         n1.pitch = std::move(n2.pitch);
-        n1.pressure = std::move(n2.pressure);
         n2.playing = std::move(n2.playing);
     }
 
@@ -88,9 +87,9 @@ public:
         return Emitter::add(buffer);
     }
 
-    inline void set_pitch(float bend) { pitch_param = bend*pitch; }
     inline void set_gain(float expr) { gain_param = expr*gain; }
-    inline void set_pressure(float p) { pressure = p; }
+    inline void set_pitch(float bend) { pitch_param = bend*pitch; }
+    inline void set_pressure(float p) { pitch_param = powf(2.0f, 2*p/12.0f)*pitch; }
 
 private:
     Matrix64 mtx;
@@ -98,7 +97,6 @@ private:
     Param gain_param = 1.0f;
     float pitch = 1.0f;
     float gain = 1.0f;
-    float pressure = 0.0f;
     bool playing = false;
     bool hold = true;
 };
@@ -129,7 +127,6 @@ public:
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
-        i1.pressure = std::move(i2.pressure);
         i1.playing = std::move(i2.playing);
     }
 
@@ -186,8 +183,6 @@ public:
         Mixer::matrix(m);
     }
 
-    inline void set_pressure(float p) { pressure = p; }
-
     inline void set_soft(bool s) { soft = s ? 0.5f : 1.0f; }
 
     void set_hold(bool h) {
@@ -212,6 +207,12 @@ public:
         }
         if (modulate_state) {
             modulate_depth = mdepth;
+        }
+    }
+
+    void set_pressure(float pressure) {
+        for (auto& it : key) {
+            it.second->set_pressure(pressure);
         }
     }
 
@@ -245,7 +246,6 @@ private:
     float soft = 1.0f;
     float gain = 1.0f;
     float modulation_range = 1.0f;
-    float pressure = 0.0f;
     bool playing = false;
 };
 
