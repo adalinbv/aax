@@ -211,26 +211,28 @@ int main()
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nrms cpu:  %f\n", cpu*1000.0f);
 
+	if (simd)
+        {
 #ifdef __x86_64__
-        _batch_get_average_rms = _batch_get_average_rms_sse2;
-        t = clock();
-          _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("rms sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            _batch_get_average_rms = _batch_get_average_rms_sse2;
+            t = clock();
+              _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("rms sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 #endif
 
-        _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
-        t = clock();
-          _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
-          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("rms "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-        if (rms1 != rms2) {
-           printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
+            _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
+            t = clock();
+              _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("rms "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            if (rms1 != rms2) {
+               printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
+            }
+            if (peak1 != peak2) {
+               printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
+            }
         }
-        if (peak1 != peak2) {
-           printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
-        }
-
 
         /*
          * batch fmul by a value for doubles
@@ -245,9 +247,12 @@ int main()
         memcpy(ddst1, dsrc, MAXNUM*sizeof(double));
 
         _batch_fmul_value_cpu(ddst1, sizeof(double), MAXNUM, 0.8723678263f);
-        memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
-        GLUE(_batch_fmul_value, SIMD2)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
-        TEST("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
+        if (simd)
+        {
+            memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
+            GLUE(_batch_fmul_value, SIMD2)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
+            TEST("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
+        }
 
         /*
          * sinf versus _aax_sin (purely for speed comparisson
