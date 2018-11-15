@@ -118,6 +118,7 @@ endif(WIN32)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
 #$ Required libraries
+find_package(SSE REQUIRED)
 find_package(XML REQUIRED)
 if(NOT XML_FOUND)
   MESSAGE(FATAL_ERROR "ERROR: required XML library is not installed, aborting.")

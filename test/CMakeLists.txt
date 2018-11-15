@@ -32,7 +32,7 @@ CREATE_TEST(testdsp)
 CREATE_TEST(testurl)
 
 CREATE_TEST(matrix_test)
-if(X86_64)
+if(AVX_FOUND)
   set_property(SOURCE matrix_test.c APPEND
                PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
   )
