@@ -53,13 +53,14 @@ _batch_get_average_rms_proc _batch_get_average_rms;
 int main()
 {
     float *src, *dst1, *dst2;
-    char simd = 0;
+    char simd = 0, simd2 = 0;
     clock_t t;
 
 #if defined(__i386__)
     simd = _aaxArchDetectSSE2();
 #elif defined(__x86_64__)
-    simd = _aaxArchDetectAVX();
+    simd = 1;
+    simd2 = _aaxArchDetectAVX();
 #elif defined(__arm__) || defined(_M_ARM)
     simd = _aaxArchDetectNEON();
 #endif
@@ -94,14 +95,15 @@ int main()
 
         if (simd)
         {
-#ifdef __x86_64__
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = _batch_fmadd_sse2;
             t = clock();
               _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fadd sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-#endif
+        }
+        if (simd2)
+        {
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
@@ -123,7 +125,6 @@ int main()
 
         if (simd)
         {
-#ifdef __x86_64__
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = _batch_fmadd_sse2;
             t = clock();
@@ -131,7 +132,9 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd sse2: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd sse2", dst1, dst2);
-#endif
+        }
+        if (simd2)
+        {
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
@@ -154,7 +157,6 @@ int main()
 
         if (simd)
         {
-#ifdef __x86_64__
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = _batch_fmadd_sse2;
             t = clock();
@@ -162,7 +164,9 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd sse2: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd sse2", dst1, dst2);
-#endif
+        }
+        if (simd2)
+        {
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
@@ -184,7 +188,6 @@ int main()
 
         if (simd)
         {
-#ifdef __x86_64__
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmul_value = _batch_fmul_value_sse2;
             t = clock();
@@ -192,7 +195,9 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmul sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fmul sse2", dst1, dst2);
-#endif
+        }
+        if (simd2)
+        {
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmul_value = GLUE(_batch_fmul_value, SIMD2);
             t = clock();
@@ -213,13 +218,11 @@ int main()
 
 	if (simd)
         {
-#ifdef __x86_64__
             _batch_get_average_rms = _batch_get_average_rms_sse2;
             t = clock();
               _batch_get_average_rms(src, MAXNUM, &rms1, &peak1);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("rms sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-#endif
 
             _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
             t = clock();
@@ -247,7 +250,7 @@ int main()
         memcpy(ddst1, dsrc, MAXNUM*sizeof(double));
 
         _batch_fmul_value_cpu(ddst1, sizeof(double), MAXNUM, 0.8723678263f);
-        if (simd)
+        if (simd2)
         {
             memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
             GLUE(_batch_fmul_value, SIMD2)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
