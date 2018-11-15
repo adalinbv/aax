@@ -60,7 +60,7 @@
 #define MAX_ID_STRLEN		96
 
 #define DEFAULT_OUTPUT_RATE	48000
-#define DEFAULT_DEVNAME		"Default"
+#define DEFAULT_DEVNAME		NULL
 #define DEFAULT_RENDERER	"SDL"
 #define DEFAULT_REFRESH		25.0f
 
@@ -392,6 +392,7 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
       uint32_t device;
 
       memcpy(&req, &handle->spec, sizeof(SDL_AudioSpec));
+printf("handle->devname: %s\n", handle->devname);
       device = pSDL_OpenAudioDevice(handle->devname, m, &req, &handle->spec,
               SDL_AUDIO_ALLOW_FREQUENCY_CHANGE|SDL_AUDIO_ALLOW_CHANNELS_CHANGE);
       if (device != 0)
