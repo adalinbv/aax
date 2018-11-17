@@ -362,19 +362,23 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
       _aax2dProps sfp2d;
       _aax3dProps sfp3d;
       char mono, indoor;
-      int res;
+      int res, need_lock;
 
       _aaxAudioFrameProcessDelayQueue(sfmixer);
 
       // This lock is needed because filters and effects gets detached from
       // the real counter part which could lead to their data structure being
-      // destroyed while in use in the copioed version.
+      // destroyed while in use in the copied version.
       // Note: This only affects operations where _FILTER_SWAP_SLOT or
       //       _EFFECT_SWAP_SLOT are performed: setting new filters or effects
       //       parameters, which is a very short time period for us.
-      // TODO: dind a solution where the mutex could be locked for a much
-      //       shorter time period.
-      _aaxMutexLock(sfmixer->props2d->mutex);
+      // TODO: find a solution where the mutex could be locked for a much
+      //       shorter time period, or not at all.
+      need_lock = _EFFECT_GET_STATE(sfmixer->props2d, DELAY_EFFECT) ||
+                  _EFFECT_GET_STATE(sfmixer->props2d, DISTORTION_EFFECT);
+      if (need_lock) {
+         _aaxMutexLock(sfmixer->props2d->mutex);
+      }
 
       _aax_memcpy(&sfp2d, sfmixer->props2d, sizeof(_aax2dProps));
       _aax_memcpy(&sfp3d, sfmixer->props3d, sizeof(_aax3dProps));
@@ -413,7 +417,9 @@ _aaxAudioFrameRender(_aaxRingBuffer *dest_rb, _aaxAudioFrame *fmixer,
                                   be, be_handle, batched, mono);
       _PROP3D_CLEAR(sfmixer->props3d->m_dprops3d);
 
-      _aaxMutexUnLock(sfmixer->props2d->mutex);
+      if (need_lock) {
+         _aaxMutexUnLock(sfmixer->props2d->mutex);
+      }
 
       /* if the subframe actually did render something, mix the data */
       if (res)
