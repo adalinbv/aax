@@ -1,0 +1,5 @@
+
+
+Note:
+Filters or effects should not declare memory for themselves but instead should
+be relying on _aaxFilterCreateHandle and _aaxEffectCreateHandle to do so.
