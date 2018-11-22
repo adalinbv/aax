@@ -224,9 +224,8 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
             convolution->sample_ptr = data;
             convolution->sample = *data;
 
-            if (convolution->history_ptr) free(convolution->history_ptr);
-            _aaxRingBufferCreateHistoryBuffer(&convolution->history_ptr,
-                                              (int32_t**)convolution->history,
+            if (convolution->history) free(convolution->history);
+            _aaxRingBufferCreateHistoryBuffer(&convolution->history,
                                               2*no_samples, tracks);
             convolution->history_samples = no_samples;
             convolution->history_max = 2*no_samples;
@@ -340,7 +339,7 @@ _convolution_destroy(void *ptr)
          }
       }
 
-      if (data->history_ptr) free(data->history_ptr);
+      if (data->history) free(data->history);
       if (data->sample_ptr) free(data->sample_ptr);
       if (data->freq_filter) free(data->freq_filter);
       free(data);
@@ -364,7 +363,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    _aaxRingBufferData *rbi;
 
    convolution = d->be_handle;
-   hptr = convolution->history[track];
+   hptr = (MIX_T*)convolution->history->history[track];
    hpos = convolution->history_start[track];
    cnum = convolution->no_samples - hpos;
    occlusion = convolution->occlusion;

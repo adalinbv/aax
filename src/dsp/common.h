@@ -129,7 +129,7 @@ extern _aaxDistFn* _aaxALDistanceFn[];
 
 void _aaxRingBufferDelaysAdd(void**, float, unsigned int, const float*, const float*, size_t, float, float, float);
 void _aaxRingBufferDelaysRemove(void**);
-size_t _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], size_t, int);
+//size_t _aaxRingBufferCreateHistoryBuffer(void**, int32_t*[_AAX_MAX_SPEAKERS], size_t, int);
 
 float _lin(float v);
 float _lin2db(float v);

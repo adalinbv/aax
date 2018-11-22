@@ -107,7 +107,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          effect->slot[0]->data = data;
          if (data)
          {
-            data->history_ptr = 0;
+            data->history = 0;
             for (t=0; t<_AAX_MAX_SPEAKERS; t++)
             {
                data->lfo.value[t] = 0.0f;
@@ -123,10 +123,10 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          data->run = _chorus_run;
          data->loopback = AAX_FALSE;
 
-         if (data->history_ptr)
+         if (data->history)
          {
-            free(data->history_ptr);
-            data->history_ptr = 0;
+            free(data->history);
+            data->history = 0;
          }
 
          data->lfo.convert = _linear;

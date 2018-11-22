@@ -369,7 +369,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          size_t bytes = ds*sizeof(MIX_T);
          int q;
 
-         _aax_memcpy(scratch-ds, reverb->reverb_history[track], bytes);
+         _aax_memcpy(scratch-ds, reverb->reverb->history[track], bytes);
          filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
          for(q=0; q<snum; ++q)
          {
@@ -382,7 +382,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
                }
             }
          }
-         _aax_memcpy(reverb->reverb_history[track], scratch+no_samples-ds, bytes);
+         _aax_memcpy(reverb->reverb->history[track], scratch+no_samples-ds, bytes);
       }
 
       filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL,0);
@@ -506,11 +506,10 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
       reverb->prepare = _reverb_prepare;
       reverb->run = _reverb_run;
 
-      if (reverb->history_ptr == 0)
+      if (reverb->reverb == 0)
       {
          size_t samples = TIME_TO_SAMPLES(fs, REVERB_EFFECTS_TIME);
-         _aaxRingBufferCreateHistoryBuffer(&reverb->history_ptr,
-                                           reverb->reverb_history,
+         _aaxRingBufferCreateHistoryBuffer(&reverb->reverb,
                                            samples, tracks);
       }
 
@@ -576,13 +575,13 @@ _reverb_destroy_delays(void **data)
       reverb->reflections.delay[0].gain = 1.0f;
       reverb->no_loopbacks = 0;
 #if BYTE_ALIGN
-      _aax_free(reverb->history_ptr);
+      _aax_free(reverb->reverb);
 #else
-      free(reverb->history_ptr);
+      free(reverb->reverb);
 #endif
       _aax_aligned_free(reverb->occlusion);
       free(reverb->freq_filter);
       reverb->freq_filter = 0;
-      reverb->history_ptr = 0;
+      reverb->reverb = 0;
    }
 }

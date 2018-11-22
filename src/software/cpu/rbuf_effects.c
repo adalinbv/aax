@@ -130,17 +130,17 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
-      if (delay && !delay->loopback && delay->history_ptr)
+      if (delay && !delay->loopback && delay->history->ptr)
       {
          assert(ds <= delay->history_samples);
          assert(bps <= sizeof(MIX_T));
 
          // copy the delay effects history to src
 //       DBG_MEMCLR(1, src-ds, ds, bps);
-         _aax_memcpy(src-ds, delay->delay_history[track], ds*bps);
+         _aax_memcpy(src-ds, delay->history->history[track], ds*bps);
 
          // copy the new delay effects history back
-         _aax_memcpy(delay->delay_history[track], src+no_samples-ds, ds*bps);
+         _aax_memcpy(delay->history->history[track], src+no_samples-ds, ds*bps);
       }
    }
 
@@ -306,10 +306,14 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
 // size is the number of samples for every track
 size_t
-_aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKERS], size_t size, int tracks)
+_aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size, int tracks)
 {
    char *ptr, *p;
+   size_t offs;
    int i;
+
+   assert(data);
+   assert(*data == NULL);
 
    size *= sizeof(MIX_T);
 #if BYTE_ALIGN
@@ -319,16 +323,22 @@ _aaxRingBufferCreateHistoryBuffer(void **hptr, int32_t *history[_AAX_MAX_SPEAKER
       size++;
    }
 
-   ptr = _aax_calloc(&p, 0, tracks, size);
+   offs = sizeof(_aaxRingBufferHistoryData);
+   size += offs;
+ 
+   ptr = _aax_calloc(&p, offs, tracks, size);
 #else
-   ptr = p = calloc(tracks, size);
+   ptr = calloc(tracks, size);
+   p = ptr+offs;
 #endif
    if (ptr)
    {
-      *hptr = ptr;
+      _aaxRingBufferHistoryData *history = (_aaxRingBufferHistoryData*)ptr;
+      *data = history;
+      history->ptr = p;
       for (i=0; i<tracks; ++i)
       {
-         history[i] = (int32_t*)p;
+         history->history[i] = (int32_t*)p;
          p += size;
       }
    }

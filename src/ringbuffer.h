@@ -179,14 +179,18 @@ typedef struct
 
 typedef struct
 {
+   int32_t* history[_AAX_MAX_SPEAKERS];
+   void* ptr;
+} _aaxRingBufferHistoryData;
+
+typedef struct
+{
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
                size_t, size_t, void*, void*, unsigned int);
 
    _aaxLFOData lfo;
    _aaxRingBufferDelayData delay;
-
-   int32_t* delay_history[_AAX_MAX_SPEAKERS];
-   void* history_ptr;
+   _aaxRingBufferHistoryData *history;
    size_t history_samples;
 
    /* temporary storage, track specific. */
@@ -238,8 +242,7 @@ typedef struct
     /* 2nd roder reflections */
     unsigned int no_loopbacks;
     _aaxRingBufferDelayData loopback[_AAX_MAX_LOOPBACKS];
-    int32_t* reverb_history[_AAX_MAX_SPEAKERS];
-    void* history_ptr;
+    _aaxRingBufferHistoryData *reverb;
 
    _aaxRingBufferFreqFilterData *freq_filter;
    float fc;
@@ -273,8 +276,7 @@ typedef struct
    float delay_gain;
    float threshold;
 
-   void* history_ptr;
-   MIX_T* history[_AAX_MAX_SPEAKERS];
+   _aaxRingBufferHistoryData *history;
    int history_start[_AAX_MAX_SPEAKERS];
    unsigned int history_samples;
    unsigned int history_max;
@@ -672,6 +674,10 @@ _aaxRingBufferDataLimiterFn(struct _aaxRingBuffer_t*, enum _aaxLimiterType);
  */
 typedef void
 _aaxRingBufferDataDitherFn(struct _aaxRingBuffer_t*, unsigned int bits);
+
+/**
+ */
+size_t _aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData**, size_t, int);
 
 
 typedef struct _aaxRingBuffer_t

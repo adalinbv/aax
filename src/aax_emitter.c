@@ -1396,14 +1396,13 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
       {
          _aaxRingBufferDelayEffectData* data;
          data = _EFFECT_GET2D_DATA(src, DELAY_EFFECT);
-         if (data && !data->history_ptr)
+         if (data && !data->history)
          {
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
 
             data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
-            _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
-                                              data->delay_history,
+            _aaxRingBufferCreateHistoryBuffer(&data->history,
                                               data->history_samples, tracks);
          }
       } while (0);

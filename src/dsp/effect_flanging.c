@@ -112,14 +112,13 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          data->run = _flanging_run;
          data->loopback = AAX_TRUE;
 
-         if (data->history_ptr == NULL)
+         if (data->history == NULL)
          {
             unsigned int tracks = effect->info->no_tracks;
             float fs = effect->info->frequency;
 
             data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
-            _aaxRingBufferCreateHistoryBuffer(&data->history_ptr,
-                                              data->delay_history,
+            _aaxRingBufferCreateHistoryBuffer(&data->history,
                                               data->history_samples, tracks);
          }
 
@@ -251,10 +250,10 @@ _flanging_destroy(void *ptr)
    _aaxRingBufferDelayEffectData* data = ptr;
    if (data)
    {
-      if (data->history_ptr)
+      if (data->history)
       {
-         _aax_free(data->history_ptr);
-         data->history_ptr = NULL;
+         _aax_free(data->history);
+         data->history = NULL;
       }
       free(data);
    }
@@ -338,7 +337,7 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
       effect->curr_step[track] = step;
 
 //     DBG_MEMCLR(1, s-ds, ds+start, bps);
-      _aax_memcpy(sptr-ds, effect->delay_history[track], ds*bps);
+      _aax_memcpy(sptr-ds, effect->history->history[track], ds*bps);
       if (i >= step)
       {
          do
@@ -355,8 +354,8 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
          rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
       }
 
-// DBG_MEMCLR(1, effect->delay_history[track], ds, bps);
-      _aax_memcpy(effect->delay_history[track], dptr+no_samples-ds, ds*bps);
+// DBG_MEMCLR(1, effect->history->history[track], ds, bps);
+      _aax_memcpy(effect->history->history[track], dptr+no_samples-ds, ds*bps);
       effect->curr_coffs[track] = coffs;
    }
 }

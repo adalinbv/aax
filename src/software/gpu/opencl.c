@@ -245,7 +245,7 @@ _aaxOpenCLRunConvolution(_aax_opencl_t *handle, _aaxRingBufferConvolutionData *c
        pclSetKernelArg(handle->kernel, 0, sizeof(cl_mem), &handle->sample);
    }
 
-   hptr = convolution->history[t];
+   hptr = (MIX_T*)convolution->history->history[t];
    hpos = convolution->history_start[t];
    hcptr = hptr + hpos;
 
