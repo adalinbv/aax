@@ -36,9 +36,13 @@
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
+#include <arch.h>
+
 #include "common.h"
 #include "filters.h"
 #include "api.h"
+
+void _freqfilter_destroy(void*);
 
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -52,7 +56,7 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
       flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
       flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
-      flt->slot[EQUALIZER_HF]->destroy = destroy;
+      flt->slot[EQUALIZER_HF]->destroy = _freqfilter_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -92,9 +96,38 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
        */
       if (eq == NULL)
       {
+         char *ptr;
+
          eq = calloc(1, sizeof(_aaxRingBufferEqualizerData));
+         if (!eq) return rv;
+
          filter->slot[EQUALIZER_LF]->data = NULL;
          filter->slot[EQUALIZER_HF]->data = eq;
+
+         ptr = _aax_aligned_alloc(_AAX_MAX_EQBANDS*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN));
+         if (ptr)
+         {
+            int i;
+
+            for (i=0; i<_AAX_MAX_EQBANDS; ++i)
+            {
+               size_t tmp;
+
+               eq->band[i].freqfilter = (_aaxRingBufferFreqFilterHistoryData*)ptr;
+               ptr += sizeof(_aaxRingBufferFreqFilterHistoryData);
+               tmp = (size_t)ptr & MEMMASK;
+               if (tmp)
+               {
+                  tmp = MEMALIGN - tmp;
+                  ptr += tmp;
+               }
+            }
+         }
+         else
+         {
+            free(eq);
+            return rv;
+         }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
 
@@ -183,7 +216,7 @@ _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _
       rv->slot[0]->param[2] = 1.0f; rv->slot[1]->param[2] = 1.0f;
       rv->slot[0]->param[3] = 1.0f; rv->slot[1]->param[3] = 1.0f;
       rv->slot[0]->data = NULL;     rv->slot[1]->data = NULL;
-      rv->slot[EQUALIZER_HF]->destroy = destroy;
+      rv->slot[EQUALIZER_HF]->destroy = _freqfilter_destroy;
 
       rv->state = p2d->filter[rv->pos].state;
    }

@@ -37,6 +37,8 @@
 #include <base/gmath.h>
 
 #include <software/rbuf_int.h>
+#include <arch.h>
+
 #include "common.h"
 #include "filters.h"
 #include "effects.h"
@@ -46,6 +48,7 @@
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
+void _occlusion_destroy(void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxFilter
@@ -58,7 +61,7 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
       _aaxSetDefaultFilter3d(flt->slot[1], flt->pos, 1);
-      flt->slot[0]->destroy = aligned_destroy;
+      flt->slot[0]->destroy = _occlusion_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -104,7 +107,7 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSE
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
       memcpy(rv->slot[1], &p3d->filter[rv->pos], size);
-      rv->slot[0]->destroy = aligned_destroy;
+      rv->slot[0]->destroy = _occlusion_destroy;
       rv->slot[0]->data = NULL;
 
       rv->state = p3d->filter[rv->pos].state;
@@ -211,6 +214,19 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
    {
       if (!occlusion) {
          occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+         if (occlusion)
+         {
+            memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
+            occlusion->freq_filter.freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+            if (occlusion->freq_filter.freqfilter) {
+               memset(occlusion->freq_filter.freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+            }
+            else
+            {
+               _aax_aligned_free(occlusion);
+               occlusion = NULL;
+            }
+         }
       }
 
       if (occlusion)
@@ -230,7 +246,6 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
          occlusion->level = 0.0f;
          occlusion->inverse = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-         memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
          occlusion->freq_filter.run = _freqfilter_run;
          occlusion->freq_filter.lfo = 0;
          occlusion->freq_filter.fs = fs;
@@ -419,6 +434,17 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
       }
       while (nfp3d);
    } /* pdp3d_m != NULL */
+}
+
+void
+_occlusion_destroy(void *ptr)
+{
+   if (ptr)
+   {
+      _aaxRingBufferOcclusionData *occlusion = ptr;
+      _aax_aligned_free(occlusion->freq_filter.freqfilter);
+      _aax_aligned_free(occlusion);
+   }
 }
 
 void

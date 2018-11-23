@@ -42,7 +42,7 @@
 #include "arch.h"
 
 static void _reverb_destroy(void*);
-static void _reverb_destroy_delays(void**);
+static void _reverb_destroy_delays(_aaxRingBufferReverbData*);
 static void _reverb_add_reflections(void*, float, unsigned int, float, int);
 static void _reverb_add_reverb(void**, float, unsigned int, float, float);
 static void _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
@@ -51,6 +51,7 @@ static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, si
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
+void _occlusion_destroy(void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxEffect
@@ -113,8 +114,21 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
          _reverb_add_reflections(&reverb->reflections, fs, tracks, depth, state);
 
-         if (!flt) {
+         if (!flt)
+         {
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
+            if (flt)
+            {
+               flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+               if (flt->freqfilter) {
+                  memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+               }
+               else
+               {
+                  free(flt);
+                  flt = NULL;
+               }
+            }
          }
 
          if (flt)
@@ -244,7 +258,10 @@ _eff_function_tbl _aaxReverbEffect =
 static void
 _reverb_destroy(void *ptr)
 {  
-   _reverb_destroy_delays(&ptr);
+   _aaxRingBufferReverbData *reverb = (_aaxRingBufferReverbData*)ptr;
+   _occlusion_destroy(reverb->occlusion);
+   _aax_aligned_free(reverb->freq_filter->freqfilter);
+   _reverb_destroy_delays(reverb);
    free(ptr);
 }
 
@@ -562,13 +579,9 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
 }
 
 static void
-_reverb_destroy_delays(void **data)
+_reverb_destroy_delays(_aaxRingBufferReverbData *reverb)
 {
-   _aaxRingBufferReverbData *reverb;
-
-   assert(data != 0);
-
-   reverb = *data;
+   assert(reverb != 0);
    if (reverb)
    {
       reverb->reflections.no_delays = 0;
@@ -579,7 +592,6 @@ _reverb_destroy_delays(void **data)
 #else
       free(reverb->reverb);
 #endif
-      _aax_aligned_free(reverb->occlusion);
       free(reverb->freq_filter);
       reverb->freq_filter = 0;
       reverb->reverb = 0;

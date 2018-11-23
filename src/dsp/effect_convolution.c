@@ -49,7 +49,9 @@ static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
+void _occlusion_destroy(void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
+void _freqfilter_destroy(void*);
 
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -102,7 +104,6 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
       if (convolution)
       {
          _aaxRingBufferFreqFilterData *flt = convolution->freq_filter;
-         _aaxRingBufferOcclusionData *occlusion = convolution->occlusion;
          float  fs = 48000.0f;
 
          convolution->run = _convolution_run;
@@ -111,12 +112,21 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
             fs = effect->info->frequency;
          }
 
-         if (!flt) {
+         if (!flt)
+         {
             flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
-         }
-
-         if (!occlusion) {
-            occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+            if (flt)
+            {
+               flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+               if (flt->freqfilter) {
+                  memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+               }
+               else
+               {
+                  free(flt);
+                  flt = NULL;
+               }
+            }
          }
 
          convolution->info = effect->info;
@@ -341,7 +351,8 @@ _convolution_destroy(void *ptr)
 
       if (data->history) free(data->history);
       if (data->sample_ptr) free(data->sample_ptr);
-      if (data->freq_filter) free(data->freq_filter);
+      _occlusion_destroy(data->occlusion);
+      _freqfilter_destroy(data->freq_filter);
       free(data);
    }
 }

@@ -42,7 +42,7 @@
 #include "filters.h"
 #include "api.h"
 
-static void _freqfilter_destroy(void*);
+void _freqfilter_destroy(void*);
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxFilter
@@ -118,8 +118,18 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          filter->slot[0]->data = flt;
 
-         flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
-         memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+         if (flt)
+         {
+            flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+            if (flt->freqfilter) {
+               memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+            }
+            else
+            {
+               free(flt);
+               flt = NULL;
+            }
+         }
       }
 
       if (flt)
@@ -321,7 +331,7 @@ _flt_function_tbl _aaxFrequencyFilter =
    (_aaxFilterConvert*)&_aaxFrequencyFilterMinMax
 };
 
-static void
+void
 _freqfilter_destroy(void *ptr)
 {
    _aaxRingBufferFreqFilterData *flt = ptr;

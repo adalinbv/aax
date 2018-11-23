@@ -36,9 +36,13 @@
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
 
+#include <arch.h>
+
 #include "common.h"
 #include "filters.h"
 #include "api.h"
+
+void _freqfilter_destroy(void*);
 
 static aaxFilter
 _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -50,7 +54,7 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       _aaxSetDefaultFilter2d(flt->slot[1], flt->pos, 1);
-      flt->slot[0]->destroy = destroy;
+      flt->slot[0]->destroy = _freqfilter_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -82,14 +86,39 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
       _aaxRingBufferFreqFilterData *flt_hf = filter->slot[EQUALIZER_HF]->data;
       if (flt_lf == NULL)
       {
+         size_t tmp;
          char *ptr;
+
          flt_lf = calloc(EQUALIZER_MAX,sizeof(_aaxRingBufferFreqFilterData));
+         if (!flt_lf) return rv;
+
          flt_lf->no_stages = 1;
+
+         tmp = 2*sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN;
+         flt_lf->freqfilter = _aax_aligned_alloc(tmp);
+         if (flt_lf->freqfilter) {
+            memset(flt_lf->freqfilter, 0, tmp);
+         }
+         else
+         {
+            free(flt_lf);
+            return rv;
+         }
          filter->slot[EQUALIZER_LF]->data = flt_lf;
 
          ptr = (char*)flt_lf + sizeof(_aaxRingBufferFreqFilterData);
          flt_hf = (_aaxRingBufferFreqFilterData*)ptr;
-         flt_lf->no_stages = 1;
+         flt_hf->no_stages = 1;
+
+         ptr = (char*)flt_lf->freqfilter;
+         ptr += sizeof(_aaxRingBufferFreqFilterHistoryData);
+         tmp = (size_t)ptr & MEMMASK;
+         if (tmp)
+         {
+            tmp = MEMALIGN - tmp;
+            ptr += tmp;
+         }
+         flt_hf->freqfilter = (_aaxRingBufferFreqFilterHistoryData*)ptr;
          filter->slot[EQUALIZER_HF]->data = flt_hf;
       }
 
@@ -272,7 +301,7 @@ _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dPr
       rv->slot[1]->data = NULL;
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-      rv->slot[0]->destroy = destroy;
+      rv->slot[0]->destroy = _freqfilter_destroy;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;
@@ -304,10 +333,10 @@ _aaxEqualizerMinMax(float val, int slot, unsigned char param)
     { {  0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f,  0.0f,   0.0f } },
     { {  0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,  0.0f,  0.0f,   0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxEqualizerRange[slot].min[param],
                        _aaxEqualizerRange[slot].max[param]);
 }
