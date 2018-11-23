@@ -117,6 +117,9 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       {
          flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
          filter->slot[0]->data = flt;
+
+         flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+         memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
       }
 
       if (flt)
@@ -325,6 +328,7 @@ _freqfilter_destroy(void *ptr)
    if (flt)
    {
       if (flt->lfo) free(flt->lfo);
+      _aax_aligned_free(flt->freqfilter);
       free(flt);
    }
 }
@@ -455,7 +459,7 @@ _batch_freqfilter_iir_cpu(int32_ptr dptr, const_int32_ptr sptr, int t, size_t nu
       int stage;
 
       cptr = filter->coeff;
-      hist = filter->freqfilter_history[t];
+      hist = filter->freqfilter->history[t];
       stage = filter->no_stages;
       if (!stage) stage++;
 
@@ -509,7 +513,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
       int stage;
 
       cptr = filter->coeff;
-      hist = filter->freqfilter_history[t];
+      hist = filter->freqfilter->history[t];
       stage = filter->no_stages;
       if (!stage) stage++;
 

@@ -133,14 +133,18 @@ typedef struct
 
 } _aaxRingBufferBitCrusherData;
 
+typedef struct {
+   float history[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES];
+} _aaxRingBufferFreqFilterHistoryData;
+
 typedef struct
 {
    _aaxLFOData *lfo;
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
                unsigned int, void*, void*, unsigned char);
 
+   _aaxRingBufferFreqFilterHistoryData *freqfilter;
    float coeff[4*_AAX_MAX_STAGES];
-   float freqfilter_history[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES];
    float Q, k, fs, high_gain, low_gain;
 
    unsigned int state;
@@ -683,6 +687,7 @@ size_t _aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData**, size_t, in
 typedef struct _aaxRingBuffer_t
 {
 // public:
+   unsigned int id;
    void *handle;
 
    _aaxRingBufferInitFn *init;

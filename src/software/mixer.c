@@ -335,7 +335,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
          float *hist, k;
 
          filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
-         hist = filter->freqfilter_history[t];
+         hist = filter->freqfilter->history[t];
          stages = filter->no_stages;
          k = filter->k;
 

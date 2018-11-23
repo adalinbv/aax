@@ -587,6 +587,7 @@ void
 _aax_pinknoise_filter(float32_ptr data, size_t no_samples, float fs)
 {
    float f = (float)logf(fs/100.0f)/(float)NO_FILTER_STEPS;
+   _aaxRingBufferFreqFilterHistoryData freqfilter;
    _aaxRingBufferFreqFilterData filter;
    unsigned int q = NO_FILTER_STEPS;
    float *dst, *tmp, *ptr = data;
@@ -605,10 +606,12 @@ _aax_pinknoise_filter(float32_ptr data, size_t no_samples, float fs)
       v2 = powf(0.90f, q);
       filter.high_gain = v1-v2;
       filter.low_gain = 0.0f;
-      filter.freqfilter_history[0][0] = 0.0f;
-      filter.freqfilter_history[0][1] = 0.0f;
       filter.state = AAX_TRUE;
       filter.k = 1.0f;
+
+      freqfilter.history[0][0] = 0.0f;
+      freqfilter.history[0][1] = 0.0f;
+      filter.freqfilter = &freqfilter;
 
       fc = expf((float)(q-1)*f)*100.0f;
       _aax_bessel_compute(fc, &filter);

@@ -840,7 +840,7 @@ _batch_freqfilter_sse_vex(int32_ptr dptr, const_int32_ptr sptr, int t, size_t nu
       int stages;
 
       cptr = filter->coeff;
-      hist = filter->freqfilter_history[t];
+      hist = filter->freqfilter->history[t];
       stages = filter->no_stages;
       if (!stages) stages++;
 
@@ -919,7 +919,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
       int stages;
 
       cptr = filter->coeff;
-      hist = filter->freqfilter_history[t];
+      hist = filter->freqfilter->history[t];
       stages = filter->no_stages;
       if (!stages) stages++;
 
