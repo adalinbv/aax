@@ -52,6 +52,7 @@
 #ifndef _DEBUG
 # define _DEBUG		0
 #endif
+#define RB_ID		0x81726354
 
 static int _aaxRingBufferClear(_aaxRingBufferData*, char);
 static void _aaxRingBufferInitFunctions(_aaxRingBuffer*);
@@ -76,6 +77,8 @@ _aaxRingBufferAlloc()
 
       ptr = (char*)rb;
       rbi = (_aaxRingBufferData*)(ptr + sizeof(_aaxRingBuffer));
+
+      rb->id = RB_ID;
       rb->handle = rbi;
 
       rbd = (_aaxRingBufferSample *)calloc(1, sizeof(_aaxRingBufferSample));
@@ -185,6 +188,7 @@ _aaxRingBufferDestroy(_aaxRingBuffer *rb)
    _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(rb != 0);
+   assert(rb->id == RB_ID);
 
    rbi = rb->handle;
    assert(rbi->sample != 0);
@@ -204,6 +208,7 @@ _aaxRingBufferDestroy(_aaxRingBuffer *rb)
          free(rbi->sample);
          rbi->sample = NULL;
       }
+      rb->id = FADEDBAD;
       free(rb);
    }
 }
@@ -347,6 +352,8 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
       char *ptr = (char*)rb;
 
       rbi = (_aaxRingBufferData*)(ptr + sizeof(_aaxRingBuffer));
+
+      rb->id = RB_ID;
       rb->handle = rbi;
 
       memcpy(rbi, ringbuffer->handle, sizeof(_aaxRingBufferData));
