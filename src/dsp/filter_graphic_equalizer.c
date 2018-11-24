@@ -44,6 +44,7 @@
 
 
 static void _grapheq_destroy(void*);
+static void _grapheq_swap(void*,void*);
 
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -58,6 +59,7 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
       flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
       flt->slot[EQUALIZER_HF]->destroy = _grapheq_destroy;
+      flt->slot[EQUALIZER_HF]->swap = _grapheq_swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -210,6 +212,7 @@ _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _
       rv->slot[0]->param[3] = 1.0f; rv->slot[1]->param[3] = 1.0f;
       rv->slot[0]->data = NULL;     rv->slot[1]->data = NULL;
       rv->slot[EQUALIZER_HF]->destroy = _grapheq_destroy;
+      rv->slot[EQUALIZER_HF]->swap = _grapheq_swap;
 
       rv->state = p2d->filter[rv->pos].state;
    }
@@ -268,6 +271,24 @@ _flt_function_tbl _aaxGraphicEqualizer =
    (_aaxFilterConvert*)&_aaxGraphicEqualizerGet,
    (_aaxFilterConvert*)&_aaxGraphicEqualizerMinMax
 };
+
+void
+_grapheq_swap(void *d, void *s)
+{
+   _aaxRingBufferEqualizerData *deq,*seq;
+   _aaxFilterInfo *dst = d;
+   _aaxFilterInfo *src = s;
+
+   dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+   dst->destroy = src->destroy;
+
+   deq = dst->data;
+   seq = src->data;
+   if (seq) {
+      seq->band[0].freqfilter = _aaxAtomicPointerSwap(&deq->band[0].freqfilter,seq->band[0].freqfilter);
+   }
+}
+
 
 static void
 _grapheq_destroy(void *ptr)

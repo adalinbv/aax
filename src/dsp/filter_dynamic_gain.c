@@ -52,6 +52,7 @@ _aaxDynamicGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       flt->slot[0]->destroy = _lfo_destroy;
+      flt->slot[0]->swap = swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -192,6 +193,7 @@ _aaxNewDynamicGainFilterHandle(const aaxConfig config, enum aaxFilterType type, 
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
       rv->slot[0]->destroy = p2d->filter[rv->pos].destroy;
+      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;

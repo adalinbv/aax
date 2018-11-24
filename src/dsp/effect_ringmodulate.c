@@ -54,6 +54,7 @@ _aaxModulatorEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
       eff->slot[0]->destroy = destroy;
+      eff->slot[0]->swap = swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -165,6 +166,7 @@ _aaxNewModulatorEffectHandle(const aaxConfig config, enum aaxEffectType type, _a
 
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
       rv->slot[0]->destroy = destroy;
+      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;

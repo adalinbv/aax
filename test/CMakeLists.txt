@@ -32,15 +32,18 @@ CREATE_TEST(testdsp)
 CREATE_TEST(testurl)
 
 CREATE_TEST(matrix_test)
+message("SSE2: ${SSE2_FOUND}, AVX: ${AVX_FOUND}")
 if(AVX_FOUND)
   set_property(SOURCE matrix_test.c APPEND
                PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
   )
-elseif(X86)
+endif()
+if(NOT X86_64 AND SSE2_FOUND)
   set_property(SOURCE matrix_test.c APPEND
                PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
   )
-elseif(ARM)
+endif()
+if(ARM)
   set_property(SOURCE matrix_test.c APPEND
                 PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
   )

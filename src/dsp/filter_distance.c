@@ -58,6 +58,7 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
       flt->slot[0]->destroy = destroy;
+      flt->slot[0]->swap = swap;
 
       data = calloc(1, sizeof(_aaxRingBufferDistanceData));
       flt->slot[0]->data = data;
@@ -139,6 +140,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
 
       memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
       rv->slot[0]->destroy = destroy;
+      rv->slot[0]->swap = swap;
 
       data = calloc(1, sizeof(_aaxRingBufferDistanceData));
       rv->slot[0]->data = data;

@@ -33,12 +33,19 @@
 
 #include <base/types.h>
 #include <base/geometry.h>
+#include <base/threads.h>
 
 #include "arch.h"
 #include "common.h"
 
 void destroy(void *ptr) { if (ptr) free(ptr); }
 void aligned_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
+void swap(void *d, void *s)
+{
+   _aaxFilterInfo *dst = d, *src = s;
+   dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+   dst->destroy = src->destroy;
+}
 
 inline float _lin(float v) { return v; }
 inline float _square(float v) { return v*v; }

@@ -153,18 +153,17 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
 #define _EFFECT_COPYD3D(G1, G2, e, p)   _EFFECT_COPY(G1->props3d, G2->props3d, e, p)
 #define _EFFECT_COPYD3D_DATA(G1, G2, e) _EFFECT_COPY_DATA(G1->props3d, G2->props3d, e)
 
-#define _EFFECT_SWAP_SLOT_DATA(P, e, E, s) do {                                \
- E->slot[s]->data=_aaxAtomicPointerSwap(&P->effect[e].data,E->slot[s]->data);  \
- P->effect[e].destroy = E->slot[s]->destroy;                                   \
- if (!s) aaxEffectSetState(E, P->effect[e].state); } while (0);
+#define _EFFECT_SWAP_SLOT_DATA(P, t, E, s) do {                                \
+ if (E->slot[s]->swap) E->slot[s]->swap(&P->effect[t], E->slot[s]);            \
+ if (!s) aaxEffectSetState(E, P->effect[t].state); } while (0);
 
-#define _EFFECT_SWAP_SLOT(P, t, f, s) _aaxMutexLock(P->mutex);                 \
- _EFFECT_SET(P, t, 0, _EFFECT_GET_SLOT(f, s, 0));                              \
- _EFFECT_SET(P, t, 1, _EFFECT_GET_SLOT(f, s, 1));                              \
- _EFFECT_SET(P, t, 2, _EFFECT_GET_SLOT(f, s, 2));                              \
- _EFFECT_SET(P, t, 3, _EFFECT_GET_SLOT(f, s, 3));                              \
- _EFFECT_SET_STATE(P, t, _EFFECT_GET_SLOT_STATE(f));                           \
- _EFFECT_SWAP_SLOT_DATA(P, t, f, s); _aaxMutexUnLock(P->mutex);
+#define _EFFECT_SWAP_SLOT(P, t, E, s) _aaxMutexLock(P->mutex);                 \
+ _EFFECT_SET(P, t, 0, _EFFECT_GET_SLOT(E, s, 0));                              \
+ _EFFECT_SET(P, t, 1, _EFFECT_GET_SLOT(E, s, 1));                              \
+ _EFFECT_SET(P, t, 2, _EFFECT_GET_SLOT(E, s, 2));                              \
+ _EFFECT_SET(P, t, 3, _EFFECT_GET_SLOT(E, s, 3));                              \
+ _EFFECT_SET_STATE(P, t, _EFFECT_GET_SLOT_STATE(E));                           \
+ _EFFECT_SWAP_SLOT_DATA(P, t, E, s); _aaxMutexUnLock(P->mutex);
 
 float _velocity_calculcate_vs(_aaxEnvData*);
 FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);

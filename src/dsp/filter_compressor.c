@@ -54,6 +54,7 @@ _aaxCompressorCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[1]->param[AAX_GATE_THRESHOLD & 0xF] = 0.0f;
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       flt->slot[0]->destroy = _lfo_destroy;
+      flt->slot[0]->swap = swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -224,6 +225,7 @@ _aaxNewCompressorHandle(const aaxConfig config, enum aaxFilterType type, _aax2dP
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
       rv->slot[0]->destroy = destroy;
+      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->slot[1]->param[AAX_GATE_PERIOD & 0xF] = 0.25f;

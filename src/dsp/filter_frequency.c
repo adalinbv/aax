@@ -54,6 +54,7 @@ _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    {
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       flt->slot[0]->destroy = _freqfilter_destroy;
+      flt->slot[0]->swap = _freqfilter_swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -257,6 +258,7 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
       rv->slot[0]->destroy = _freqfilter_destroy;
+      rv->slot[0]->swap = _freqfilter_swap;
       rv->slot[0]->data = NULL;
 
       /* reconstruct rv->slot[1] */
@@ -329,6 +331,23 @@ _flt_function_tbl _aaxFrequencyFilter =
    (_aaxFilterConvert*)&_aaxFrequencyFilterGet,
    (_aaxFilterConvert*)&_aaxFrequencyFilterMinMax
 };
+
+void
+_freqfilter_swap(void *d, void *s)
+{
+   _aaxRingBufferFreqFilterData *dflt,*sflt;
+   _aaxFilterInfo *dst = d;
+   _aaxFilterInfo *src = s;
+
+   dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+   dst->destroy = src->destroy;
+
+   dflt = dst->data;
+   sflt = src->data;
+   if (sflt) {
+      dflt->freqfilter = _aaxAtomicPointerSwap(&sflt->freqfilter, dflt->freqfilter);
+   }
+}
 
 void
 _freqfilter_destroy(void *ptr)

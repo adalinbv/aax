@@ -41,6 +41,7 @@ void _aax_bessel_compute(float, void*);
 void _aax_butterworth_compute(float, void*);
 
 void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
+void _freqfilter_swap(void*, void*);
 void _freqfilter_destroy(void*);
 
 // occlusion

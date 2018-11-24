@@ -112,13 +112,17 @@ typedef struct
 
    void* data;          /* filter and effect specific interal data structure */
    void (*destroy)(void*); /* function to call to free the data structure    */
+   void (*swap)(void*,void*); /* function to swap the data structures        */
 
 } _aaxDSPInfo;
 
 typedef _aaxDSPInfo _aaxFilterInfo;
 typedef _aaxDSPInfo _aaxEffectInfo;
+
+
 void aligned_destroy(void *ptr);
 void destroy(void *ptr);
+void swap(void*, void*);
 
 typedef float _aaxPitchShiftFn(float, float);
 extern _aaxPitchShiftFn* _aaxDopplerFn[];

@@ -54,6 +54,7 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
       _aaxSetDefaultFilter2d(flt->slot[1], flt->pos, 1);
       flt->slot[0]->destroy = _freqfilter_destroy;
+      flt->slot[0]->swap = _freqfilter_swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -300,6 +301,7 @@ _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dPr
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
       rv->slot[0]->destroy = _freqfilter_destroy;
+      rv->slot[0]->swap = _freqfilter_swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;

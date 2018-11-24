@@ -150,18 +150,17 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
 #define _FILTER_SETD3D_DATA(G, f, v)    _FILTER_SET_DATA(G->props3d, f, v)
 #define _FILTER_COPYD3D_DATA(G1, G2, f) _FILTER_COPY_DATA(G1->props3d, G2->props3d, f)
 
-#define _FILTER_SWAP_SLOT_DATA(P, f, F, s) do {                                \
- F->slot[s]->data=_aaxAtomicPointerSwap(&P->filter[f].data,F->slot[s]->data);  \
- P->filter[f].destroy = F->slot[s]->destroy;                                   \
- if (!s) aaxFilterSetState(F, P->filter[f].state); } while (0);
+#define _FILTER_SWAP_SLOT_DATA(P, t, F, s) do {                                \
+ if (F->slot[s]->swap) F->slot[s]->swap(&P->filter[t], F->slot[s]);            \
+ if (!s) aaxFilterSetState(F, P->filter[t].state); } while (0);
 
-#define _FILTER_SWAP_SLOT(P, t, f, s) _aaxMutexLock(P->mutex);                 \
- _FILTER_SET(P, t, 0, _FILTER_GET_SLOT(f, s, 0));                              \
- _FILTER_SET(P, t, 1, _FILTER_GET_SLOT(f, s, 1));                              \
- _FILTER_SET(P, t, 2, _FILTER_GET_SLOT(f, s, 2));                              \
- _FILTER_SET(P, t, 3, _FILTER_GET_SLOT(f, s, 3));                              \
- _FILTER_SET_STATE(P, t, _FILTER_GET_SLOT_STATE(f));                           \
- _FILTER_SWAP_SLOT_DATA(P, t, f, s); _aaxMutexUnLock(P->mutex);
+#define _FILTER_SWAP_SLOT(P, t, F, s) _aaxMutexLock(P->mutex);                 \
+ _FILTER_SET(P, t, 0, _FILTER_GET_SLOT(F, s, 0));                              \
+ _FILTER_SET(P, t, 1, _FILTER_GET_SLOT(F, s, 1));                              \
+ _FILTER_SET(P, t, 2, _FILTER_GET_SLOT(F, s, 2));                              \
+ _FILTER_SET(P, t, 3, _FILTER_GET_SLOT(F, s, 3));                              \
+ _FILTER_SET_STATE(P, t, _FILTER_GET_SLOT_STATE(F));                           \
+ _FILTER_SWAP_SLOT_DATA(P, t, F, s); _aaxMutexUnLock(P->mutex);
 
 
 float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);
