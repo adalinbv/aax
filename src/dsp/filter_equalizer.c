@@ -88,10 +88,8 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          size_t tmp;
          char *ptr;
 
-         flt_lf = calloc(EQUALIZER_MAX,sizeof(_aaxRingBufferFreqFilterData));
+         flt_lf = calloc(EQUALIZER_MAX, sizeof(_aaxRingBufferFreqFilterData));
          if (!flt_lf) return rv;
-
-         flt_lf->no_stages = 1;
 
          tmp = 2*sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN;
          flt_lf->freqfilter = _aax_aligned_alloc(tmp);
@@ -103,11 +101,9 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             free(flt_lf);
             return rv;
          }
-         filter->slot[EQUALIZER_LF]->data = flt_lf;
 
-         ptr = (char*)flt_lf + sizeof(_aaxRingBufferFreqFilterData);
-         flt_hf = (_aaxRingBufferFreqFilterData*)ptr;
-         flt_hf->no_stages = 1;
+         flt_lf->no_stages = 1;
+         filter->slot[EQUALIZER_LF]->data = flt_lf;
 
          ptr = (char*)flt_lf->freqfilter;
          ptr += sizeof(_aaxRingBufferFreqFilterHistoryData);
@@ -117,7 +113,10 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             tmp = MEMALIGN - tmp;
             ptr += tmp;
          }
+
+         flt_hf = flt_lf+1;
          flt_hf->freqfilter = (_aaxRingBufferFreqFilterHistoryData*)ptr;
+         flt_hf->no_stages = 1;
          filter->slot[EQUALIZER_HF]->data = flt_hf;
       }
 

@@ -1366,20 +1366,12 @@ _aaxFreeSensor(void *ssr)
    _aaxAudioFrame* smixer = sensor->mixer;
    int i;
 
-   /* frees both EQUALIZER_LF and EQUALIZER_HF */
-   if (sensor->filter[EQUALIZER_LF].data)
-   {
+   if (sensor->filter[EQUALIZER_LF].data) {
       _aaxMutexDestroy(sensor->mutex);
-      free(sensor->filter[EQUALIZER_LF].data);
    }
-
-   /* frees both HRTF_HEADSHADOW and SURROUND_CROSSOVER_LP **/
-   if (sensor->filter[HRTF_HEADSHADOW].data) {
-      free(sensor->filter[HRTF_HEADSHADOW].data);
-   }
-
    _FILTER_FREE_DATA(sensor, EQUALIZER_LF);
    _FILTER_FREE_DATA(sensor, EQUALIZER_HF);
+   _FILTER_FREE_DATA(sensor, HRTF_HEADSHADOW);
 
    _aaxMutexLock(smixer->props2d->mutex);
    for (i=0; i<MAX_STEREO_FILTER; ++i) {
