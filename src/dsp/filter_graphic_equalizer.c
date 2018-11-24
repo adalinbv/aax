@@ -43,6 +43,8 @@
 #include "api.h"
 
 
+static void _grapheq_destroy(void*);
+
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
@@ -55,7 +57,7 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
       flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
       flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
-      flt->slot[EQUALIZER_HF]->destroy = _freqfilter_destroy;
+      flt->slot[EQUALIZER_HF]->destroy = _grapheq_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -64,11 +66,7 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxGraphicEqualizerDestroy(_filter_t* filter)
 {
-   if (filter->slot[EQUALIZER_LF]->data)
-   {
-      filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
-      filter->slot[EQUALIZER_LF]->data = NULL;
-   }
+   assert(filter->slot[EQUALIZER_LF]->data == NULL);
    if (filter->slot[EQUALIZER_HF]->data)
    {
       filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
@@ -182,11 +180,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
    }
    else if (state == AAX_FALSE)
    {
-      if (filter->slot[EQUALIZER_LF]->data)
-      {
-         filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_LF]->data);
-         filter->slot[EQUALIZER_LF]->data = NULL;
-      }
+      assert(filter->slot[EQUALIZER_LF]->data == NULL);
       if (filter->slot[EQUALIZER_HF]->data)
       {
          filter->slot[EQUALIZER_HF]->destroy(filter->slot[EQUALIZER_HF]->data);
@@ -215,7 +209,7 @@ _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _
       rv->slot[0]->param[2] = 1.0f; rv->slot[1]->param[2] = 1.0f;
       rv->slot[0]->param[3] = 1.0f; rv->slot[1]->param[3] = 1.0f;
       rv->slot[0]->data = NULL;     rv->slot[1]->data = NULL;
-      rv->slot[EQUALIZER_HF]->destroy = _freqfilter_destroy;
+      rv->slot[EQUALIZER_HF]->destroy = _grapheq_destroy;
 
       rv->state = p2d->filter[rv->pos].state;
    }
@@ -275,3 +269,13 @@ _flt_function_tbl _aaxGraphicEqualizer =
    (_aaxFilterConvert*)&_aaxGraphicEqualizerMinMax
 };
 
+static void
+_grapheq_destroy(void *ptr)
+{
+   _aaxRingBufferEqualizerData *eq = (_aaxRingBufferEqualizerData*)ptr;
+   if (eq)
+   {
+      _aax_aligned_free(eq->band[0].freqfilter);
+      free(eq);
+   }
+}

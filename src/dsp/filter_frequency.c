@@ -43,8 +43,6 @@
 #include "dsp.h"
 #include "api.h"
 
-void _freqfilter_destroy(void*);
-void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxFilter
 _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)

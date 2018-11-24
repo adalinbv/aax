@@ -1378,6 +1378,9 @@ _aaxFreeSensor(void *ssr)
       free(sensor->filter[HRTF_HEADSHADOW].data);
    }
 
+   _FILTER_FREE_DATA(sensor, EQUALIZER_LF);
+   _FILTER_FREE_DATA(sensor, EQUALIZER_HF);
+
    _aaxMutexLock(smixer->props2d->mutex);
    for (i=0; i<MAX_STEREO_FILTER; ++i) {
       _FILTER_FREE2D_DATA(smixer, i);
