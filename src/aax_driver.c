@@ -42,6 +42,7 @@
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/dsp.h>
 
 #include <backends/devices.h>
 #include "ringbuffer.h"

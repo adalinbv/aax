@@ -37,6 +37,7 @@
 
 #include <api.h>
 #include <ringbuffer.h>
+#include <dsp/dsp.h>
 
 #include "software/rbuf_int.h"
 

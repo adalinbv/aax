@@ -38,11 +38,10 @@
 
 #include <arch.h>
 
-#include "common.h"
 #include "filters.h"
+#include "dsp.h"
 #include "api.h"
 
-void _freqfilter_destroy(void*);
 
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)

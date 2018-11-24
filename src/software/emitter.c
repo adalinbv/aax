@@ -30,6 +30,7 @@
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
+#include <dsp/dsp.h>
 
 #include "ringbuffer.h"
 #include "rbuf_int.h"

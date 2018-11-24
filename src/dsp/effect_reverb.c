@@ -38,8 +38,9 @@
 
 #include <software/rbuf_int.h>
 #include "effects.h"
-#include "api.h"
 #include "arch.h"
+#include "dsp.h"
+#include "api.h"
 
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(_aaxRingBufferReverbData*);
@@ -48,11 +49,6 @@ static void _reverb_add_reverb(void**, float, unsigned int, float, float);
 static void _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
 static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
 
-_aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
-void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
-void _occlusion_destroy(void*);
-void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
 
 static aaxEffect
 _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -259,10 +255,13 @@ static void
 _reverb_destroy(void *ptr)
 {  
    _aaxRingBufferReverbData *reverb = (_aaxRingBufferReverbData*)ptr;
-   _occlusion_destroy(reverb->occlusion);
-   _aax_aligned_free(reverb->freq_filter->freqfilter);
-   _reverb_destroy_delays(reverb);
-   free(ptr);
+   if (reverb)
+   {
+      _occlusion_destroy(reverb->occlusion);
+      _aax_aligned_free(reverb->freq_filter->freqfilter);
+      _reverb_destroy_delays(reverb);
+      free(ptr);
+   }
 }
 
 

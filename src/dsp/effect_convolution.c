@@ -39,19 +39,14 @@
 #include <software/rbuf_int.h>
 #include <software/renderer.h>
 #include <software/gpu/gpu.h>
+
 #include "effects.h"
-#include "api.h"
 #include "arch.h"
+#include "dsp.h"
+#include "api.h"
 
 static void _convolution_destroy(void*);
 static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*, void*);
-
-_aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
-void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, float);
-void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
-void _occlusion_destroy(void*);
-void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, unsigned char);
-void _freqfilter_destroy(void*);
 
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)

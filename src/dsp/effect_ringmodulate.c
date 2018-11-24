@@ -249,5 +249,6 @@ _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env
             p = fmodf(p+step, GMATH_2PI);
          }
       }
+      assert(track < _AAX_MAX_SPEAKERS);
       modulate->phase[track] = p;
 }

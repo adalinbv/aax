@@ -38,8 +38,9 @@
 
 #include <software/rbuf_int.h>
 
-#include "lfo.h"
 #include "filters.h"
+#include "lfo.h"
+#include "dsp.h"
 #include "api.h"
 
 void _freqfilter_destroy(void*);

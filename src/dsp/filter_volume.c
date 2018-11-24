@@ -39,10 +39,10 @@
 #include <software/rbuf_int.h>
 #include <arch.h>
 
-#include "common.h"
+#include "arch.h"
 #include "filters.h"
 #include "effects.h"
-#include "arch.h"
+#include "dsp.h"
 #include "api.h"
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);

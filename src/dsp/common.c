@@ -37,8 +37,8 @@
 #include "arch.h"
 #include "common.h"
 
-void destroy(void *ptr) { free(ptr); }
-void aligned_destroy(void *ptr) { _aax_aligned_free(ptr); }
+void destroy(void *ptr) { if (ptr) free(ptr); }
+void aligned_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
 
 inline float _lin(float v) { return v; }
 inline float _square(float v) { return v*v; }

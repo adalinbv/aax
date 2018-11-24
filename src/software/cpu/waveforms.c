@@ -44,6 +44,7 @@
 #include <api.h>
 #include <arch.h>
 #include <analyze.h>
+#include <dsp/dsp.h>
 
 #define MAX_HARMONICS		16
 

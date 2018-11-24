@@ -33,6 +33,7 @@
 #include <dsp/lfo.h>
 
 #include <backends/driver.h>
+#include <dsp/dsp.h>
 #include <objects.h>
 #include <api.h>
 
