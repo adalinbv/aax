@@ -149,9 +149,7 @@ _aaxNewDynamicPitchEffectHandle(const aaxConfig config, enum aaxEffectType type,
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxEffectInfo);
-
-      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _lfo_destroy;
       rv->slot[0]->data = NULL;
 

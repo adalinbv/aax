@@ -44,6 +44,10 @@ void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, 
 void _freqfilter_swap(void*, void*);
 void _freqfilter_destroy(void*);
 
+// delay effects
+void _delay_swap(void*, void*);
+void _delay_destroy(void *);
+
 // occlusion
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);

@@ -38,15 +38,15 @@
 
 #include <software/rbuf_int.h>
 #include "effects.h"
-#include "api.h"
 #include "arch.h"
+#include "dsp.h"
+#include "api.h"
 
 
 #define PHASING_MIN	50e-6f
 #define PHASING_MAX	10e-3f
 
 
-static void _phasing_destroy(void*);
 static void _phasing_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 static aaxEffect
@@ -58,7 +58,8 @@ _aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
-      eff->slot[0]->destroy = _phasing_destroy;
+      eff->slot[0]->destroy = _delay_destroy;
+      eff->slot[0]->swap = _delay_swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -188,10 +189,9 @@ _aaxNewPhasingEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxEffectInfo);
-
-      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-      rv->slot[0]->destroy = _phasing_destroy;
+      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
+      rv->slot[0]->destroy = _delay_destroy;
+      rv->slot[0]->swap = _delay_swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;
@@ -253,13 +253,35 @@ _eff_function_tbl _aaxPhasingEffect =
    (_aaxEffectConvert*)&_aaxPhasingEffectMinMax
 };
 
-static void
-_phasing_destroy(void *ptr)
+void
+_delay_swap(void *d, void *s)
+{
+   _aaxRingBufferDelayEffectData *ddef,*sdef;
+   _aaxFilterInfo *dst = d;
+   _aaxFilterInfo *src = s;
+
+   dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+   dst->destroy = src->destroy;
+
+   ddef = dst->data;
+   sdef = src->data;
+   if (sdef) {
+      ddef->history = _aaxAtomicPointerSwap(&sdef->history, ddef->history);
+   }
+}
+
+void
+_delay_destroy(void *ptr)
 {
    _aaxRingBufferDelayEffectData *data = ptr;
    if (data)
    {
       data->lfo.envelope = AAX_FALSE;
+      if (data->history)
+      {
+         _aax_free(data->history);
+         data->history = NULL;
+      }
       free(data);
    }
 }

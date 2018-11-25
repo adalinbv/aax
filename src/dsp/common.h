@@ -122,6 +122,7 @@ typedef _aaxDSPInfo _aaxEffectInfo;
 
 void _aax_dsp_aligned_destroy(void *ptr);
 void _aax_dsp_destroy(void *ptr);
+void _aax_dsp_copy(void*, void*);
 void _aax_dsp_swap(void*, void*);
 
 typedef float _aaxPitchShiftFn(float, float);

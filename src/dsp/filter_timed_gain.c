@@ -188,13 +188,12 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxFilterInfo);
       _aaxEnvelopeData *env;
       unsigned int no_steps;
       float dt, value;
       int i, stages;
 
-      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;

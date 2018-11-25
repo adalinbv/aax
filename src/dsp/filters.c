@@ -33,6 +33,7 @@
 
 #include "common.h"
 #include "filters.h"
+#include "dsp.h"
 
 aaxFilter
 _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned slots)
@@ -140,7 +141,10 @@ _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
    assert(type < MAX_STEREO_FILTER);
    assert(slot < _MAX_FE_SLOTS);
 
-   memset(filter, 0, sizeof(_aaxFilterInfo));
+   filter->state = 0;
+   filter->updated = 0;
+   filter->data = NULL;
+   memset(filter->param, 0, sizeof(float[4]));
    switch(type)
    {
    case VOLUME_FILTER:
@@ -166,7 +170,10 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
 {
    assert(type < MAX_3D_FILTER);
 
-   memset(filter, 0, sizeof(_aaxFilterInfo));
+   filter->state = 0;
+   filter->updated = 0;
+   filter->data = NULL;
+   memset(filter->param, 0, sizeof(float[4]));
    switch(type)
    {
    case DISTANCE_FILTER:

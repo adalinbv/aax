@@ -191,10 +191,8 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSE
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxEffectInfo);
-
-      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-      memcpy(rv->slot[1], &p3d->effect[rv->pos], size);
+      _aax_dsp_copy(rv->slot[1], &p2d->effect[rv->pos]);
+      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _reverb_destroy;
       rv->slot[0]->data = NULL;
 

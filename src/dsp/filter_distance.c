@@ -133,10 +133,9 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxFilterInfo);
       _aaxRingBufferDistanceData *data;
 
-      memcpy(rv->slot[0], &p3d->filter[rv->pos], size);
+      _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
 
       data = calloc(1, sizeof(_aaxRingBufferDistanceData));
       rv->slot[0]->data = data;

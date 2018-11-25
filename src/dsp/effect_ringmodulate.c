@@ -160,9 +160,7 @@ _aaxNewModulatorEffectHandle(const aaxConfig config, enum aaxEffectType type, _a
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxEffectInfo);
-
-      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;

@@ -165,13 +165,12 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxEffectInfo);
       _aaxEnvelopeData *env;
       unsigned int no_steps;
       float dt, value;
       int i, stages;
 
-      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
+      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;

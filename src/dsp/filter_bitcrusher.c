@@ -164,9 +164,7 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxFilterInfo);
-
-      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;

@@ -34,6 +34,7 @@ extern "C" {
 
 #include "objects.h"
 #include "common.h"
+#include "dsp.h"
 #include "api.h"
 
 #define DELAY_EFFECTS_TIME      	0.070f

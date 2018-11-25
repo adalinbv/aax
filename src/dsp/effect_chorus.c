@@ -38,13 +38,13 @@
 
 #include <software/rbuf_int.h>
 #include "effects.h"
-#include "api.h"
 #include "arch.h"
+#include "dsp.h"
+#include "api.h"
 
 #define CHORUS_MIN	10e-3f
 #define CHORUS_MAX	60e-3f
 
-static void _chorus_destroy(void*);
 static void _chorus_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 static aaxEffect
@@ -56,7 +56,8 @@ _aaxChorusEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
-      eff->slot[0]->destroy = _chorus_destroy;
+      eff->slot[0]->destroy = _delay_destroy;
+      eff->slot[0]->swap = _delay_swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -186,10 +187,9 @@ _aaxNewChorusEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2
 
    if (rv)
    {
-      unsigned int size = sizeof(_aaxEffectInfo);
-
-      memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-      rv->slot[0]->destroy = _chorus_destroy;
+      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
+      rv->slot[0]->destroy = _delay_destroy;
+      rv->slot[0]->swap = _delay_swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;
@@ -250,17 +250,6 @@ _eff_function_tbl _aaxChorusEffect =
    (_aaxEffectConvert*)&_aaxChorusEffectGet,
    (_aaxEffectConvert*)&_aaxChorusEffectMinMax
 };
-
-static void
-_chorus_destroy(void *ptr)
-{
-   _aaxRingBufferDelayEffectData *data = ptr;
-   if (data)
-   {
-      data->lfo.envelope = AAX_FALSE;
-      free(data);
-   }
-}
 
 /**
  * - d and s point to a buffer containing the delay effects buffer prior to

@@ -40,11 +40,17 @@
 
 void _aax_dsp_destroy(void *ptr) { if (ptr) free(ptr); }
 void _aax_dsp_aligned_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
-void _aax_dsp_swap(void *d, void *s)
-{
+void _aax_dsp_copy(void *d, void *s) {
+   _aaxFilterInfo *dst = d, *src = s;
+   dst->state = src->state;
+   dst->updated = src->updated;
+   memcpy(dst->param, src->param, sizeof(float[4]));
+}
+void _aax_dsp_swap(void *d, void *s) {
    _aaxFilterInfo *dst = d, *src = s;
    dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
    dst->destroy = src->destroy;
+   dst->swap = src->swap;
 }
 
 inline float _lin(float v) { return v; }

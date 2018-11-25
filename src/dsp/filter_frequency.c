@@ -253,10 +253,9 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 
    if (rv)
    { 
-      unsigned int size = sizeof(_aaxFilterInfo);
       _aaxRingBufferFreqFilterData *freq;
 
-      memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
+      _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _freqfilter_destroy;
       rv->slot[0]->swap = _freqfilter_swap;
       rv->slot[0]->data = NULL;
