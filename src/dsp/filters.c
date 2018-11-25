@@ -58,8 +58,11 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
       flt->type = type;
 
       size = sizeof(_aaxFilterInfo);
-      for (s=0; s<slots; ++s) {
+      for (s=0; s<slots; ++s)
+      {
          flt->slot[s] = (_aaxFilterInfo*)(ptr + s*size);
+         flt->slot[s]->swap = _aax_dsp_swap;
+         flt->slot[s]->destroy = _aax_dsp_destroy;
       }
 
       rv = (aaxFilter)flt;

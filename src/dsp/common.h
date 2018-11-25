@@ -120,9 +120,9 @@ typedef _aaxDSPInfo _aaxFilterInfo;
 typedef _aaxDSPInfo _aaxEffectInfo;
 
 
-void aligned_destroy(void *ptr);
-void destroy(void *ptr);
-void swap(void*, void*);
+void _aax_dsp_aligned_destroy(void *ptr);
+void _aax_dsp_destroy(void *ptr);
+void _aax_dsp_swap(void*, void*);
 
 typedef float _aaxPitchShiftFn(float, float);
 extern _aaxPitchShiftFn* _aaxDopplerFn[];

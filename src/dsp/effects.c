@@ -57,8 +57,11 @@ _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned sl
       eff->type = type;
 
       size = sizeof(_aaxEffectInfo);
-      for (s=0; s<slots; ++s) {
+      for (s=0; s<slots; ++s)
+      {
          eff->slot[s] = (_aaxEffectInfo*)(ptr + s*size);
+         eff->slot[s]->swap = _aax_dsp_swap;
+         eff->slot[s]->destroy = _aax_dsp_destroy;
       }
 
       rv = (aaxEffect)eff;

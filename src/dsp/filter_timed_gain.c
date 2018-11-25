@@ -52,8 +52,6 @@ _aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
          _aaxSetDefaultFilter2d(flt->slot[s], flt->pos, s);
       }
-      flt->slot[0]->destroy = destroy;
-      flt->slot[0]->swap = swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -197,8 +195,6 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
       int i, stages;
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-      rv->slot[0]->destroy = destroy;
-      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;

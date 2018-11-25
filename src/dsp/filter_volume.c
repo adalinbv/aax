@@ -62,7 +62,6 @@ _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
       _aaxSetDefaultFilter3d(flt->slot[1], flt->pos, 1);
       flt->slot[0]->destroy = _occlusion_destroy;
-      flt->slot[0]->swap = swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -109,7 +108,6 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSE
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
       memcpy(rv->slot[1], &p3d->filter[rv->pos], size);
       rv->slot[0]->destroy = _occlusion_destroy;
-      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p3d->filter[rv->pos].state;

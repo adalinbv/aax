@@ -52,8 +52,6 @@ _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
-      eff->slot[0]->destroy = destroy;
-      eff->slot[0]->swap = swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -159,8 +157,6 @@ _aaxNewDistortionEffectHandle(const aaxConfig config, enum aaxEffectType type, _
       unsigned int size = sizeof(_aaxEffectInfo);
 
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-      rv->slot[0]->destroy = destroy;
-      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;

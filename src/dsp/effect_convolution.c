@@ -60,7 +60,6 @@ _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
       _aaxSetDefaultEffect3d(eff->slot[1], eff->pos, 1);
       eff->slot[0]->destroy = _convolution_destroy;
-      eff->slot[0]->swap = swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -268,7 +267,6 @@ _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, 
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
       memcpy(rv->slot[1], &p3d->effect[rv->pos], size);
       rv->slot[0]->destroy = _convolution_destroy;
-      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;

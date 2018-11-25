@@ -38,9 +38,9 @@
 #include "arch.h"
 #include "common.h"
 
-void destroy(void *ptr) { if (ptr) free(ptr); }
-void aligned_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
-void swap(void *d, void *s)
+void _aax_dsp_destroy(void *ptr) { if (ptr) free(ptr); }
+void _aax_dsp_aligned_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
+void _aax_dsp_swap(void *d, void *s)
 {
    _aaxFilterInfo *dst = d, *src = s;
    dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);

@@ -53,8 +53,6 @@ _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
       for (s=0; s<_MAX_ENVELOPE_STAGES/2; s++) {
          _aaxSetDefaultEffect2d(eff->slot[s], eff->pos, s);
       }
-      eff->slot[0]->destroy = destroy;
-      eff->slot[0]->swap = swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -174,8 +172,6 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
       int i, stages;
 
       memcpy(rv->slot[0], &p2d->effect[rv->pos], size);
-      rv->slot[0]->destroy = destroy;
-      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;

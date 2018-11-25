@@ -48,8 +48,6 @@ _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
    if (flt)
    {
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
-      flt->slot[0]->destroy = destroy;
-      flt->slot[0]->swap = swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -169,8 +167,6 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
       unsigned int size = sizeof(_aaxFilterInfo);
 
       memcpy(rv->slot[0], &p2d->filter[rv->pos], size);
-      rv->slot[0]->destroy = destroy;
-      rv->slot[0]->swap = swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;
