@@ -260,8 +260,7 @@ _delay_swap(void *d, void *s)
    _aaxFilterInfo *dst = d;
    _aaxFilterInfo *src = s;
 
-   dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
-   dst->destroy = src->destroy;
+   _aax_dsp_swap(d, s);
 
    ddef = dst->data;
    sdef = src->data;
