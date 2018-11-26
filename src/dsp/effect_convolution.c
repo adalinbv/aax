@@ -45,6 +45,7 @@
 #include "dsp.h"
 #include "api.h"
 
+static void _convolution_swap(void*, void*);
 static void _convolution_destroy(void*);
 static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*, void*);
 
@@ -60,6 +61,7 @@ _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
       _aaxSetDefaultEffect3d(eff->slot[1], eff->pos, 1);
       eff->slot[0]->destroy = _convolution_destroy;
+      eff->slot[0]->swap = _convolution_swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -265,6 +267,7 @@ _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, 
       _aax_dsp_copy(rv->slot[1], &p2d->effect[rv->pos]);
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _convolution_destroy;
+      rv->slot[0]->swap = _convolution_swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;
@@ -325,6 +328,36 @@ _eff_function_tbl _aaxConvolutionEffect =
    (_aaxEffectConvert*)&_aaxConvolutionEffectGet,
    (_aaxEffectConvert*)&_aaxConvolutionEffectMinMax
 };
+
+void
+_convolution_swap(void *d, void *s)
+{
+   _aaxRingBufferConvolutionData *dconv, *sconv;
+   _aaxFilterInfo *dst = d;
+   _aaxFilterInfo *src = s;
+
+   _aax_dsp_swap(d, s);
+
+   dconv = dst->data;
+   sconv = src->data;
+   if (sconv)
+   {
+      _aaxRingBufferOcclusionData *docc, *socc;
+      _aaxRingBufferFreqFilterData *dflt, *sflt;
+
+      dconv->history = _aaxAtomicPointerSwap(&sconv->history, dconv->history);
+
+      dflt = dconv->freq_filter;
+      sflt = sconv->freq_filter;
+      dconv->freq_filter = _aaxAtomicPointerSwap(&sconv->freq_filter, dconv->freq_filter);
+
+      docc = dconv->occlusion;
+      socc = sconv->occlusion;
+      dflt = &docc->freq_filter;
+      sflt = &socc->freq_filter;
+      dflt->freqfilter = _aaxAtomicPointerSwap(&sflt->freqfilter, dflt->freqfilter);
+   }
+}
 
 static void
 _convolution_destroy(void *ptr)

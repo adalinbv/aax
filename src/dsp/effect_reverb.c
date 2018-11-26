@@ -42,6 +42,7 @@
 #include "dsp.h"
 #include "api.h"
 
+static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(_aaxRingBufferReverbData*);
 static void _reverb_add_reflections(void*, float, unsigned int, float, int);
@@ -61,6 +62,7 @@ _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
       _aaxSetDefaultEffect3d(eff->slot[0], eff->pos, 0);
       _aaxSetDefaultEffect3d(eff->slot[1], eff->pos, 1);
       eff->slot[0]->destroy = _reverb_destroy;
+      eff->slot[0]->swap = _reverb_swap;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -194,6 +196,7 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSE
       _aax_dsp_copy(rv->slot[1], &p2d->effect[rv->pos]);
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _reverb_destroy;
+      rv->slot[0]->swap = _reverb_swap;
       rv->slot[0]->data = NULL;
 
       rv->state = p3d->effect[rv->pos].state;
@@ -248,6 +251,36 @@ _eff_function_tbl _aaxReverbEffect =
    (_aaxEffectConvert*)&_aaxReverbEffectGet,
    (_aaxEffectConvert*)&_aaxReverbEffectMinMax
 };
+
+void
+_reverb_swap(void *d, void *s)
+{
+   _aaxRingBufferReverbData *drev,*srev;
+   _aaxFilterInfo *dst = d;
+   _aaxFilterInfo *src = s;
+
+   _aax_dsp_swap(d, s);
+
+   drev = dst->data;
+   srev = src->data;
+   if (srev)
+   {
+      _aaxRingBufferOcclusionData *docc, *socc;
+      _aaxRingBufferFreqFilterData *dflt, *sflt;
+
+      drev->reverb = _aaxAtomicPointerSwap(&srev->reverb, drev->reverb);
+
+      dflt = drev->freq_filter;
+      sflt = srev->freq_filter;
+      drev->freq_filter = _aaxAtomicPointerSwap(&srev->freq_filter, drev->freq_filter);
+
+      docc = drev->occlusion;
+      socc = srev->occlusion;
+      dflt = &docc->freq_filter;
+      sflt = &socc->freq_filter;
+      dflt->freqfilter = _aaxAtomicPointerSwap(&sflt->freqfilter, dflt->freqfilter);
+   }
+}
 
 static void
 _reverb_destroy(void *ptr)
