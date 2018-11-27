@@ -24,17 +24,13 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
+
+#include <software/rbuf_int.h>
 
 #include <arch.h>
 
@@ -42,19 +38,23 @@
 #include "dsp.h"
 #include "api.h"
 
+#define DSIZE	EQUALIZER_MAX*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN)
+
+static void _equalizer_swap(void*, void*);
 
 static aaxFilter
 _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
    {
-      _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
-      _aaxSetDefaultFilter2d(flt->slot[1], flt->pos, 1);
-      flt->slot[0]->destroy = _freqfilter_destroy;
-      flt->slot[0]->swap = _freqfilter_swap;
+      _aaxSetDefaultFilter2d(flt->slot[EQUALIZER_LF], flt->pos, 0);
+      _aaxSetDefaultFilter2d(flt->slot[EQUALIZER_HF], flt->pos, 1);
+      flt->slot[EQUALIZER_LF]->destroy = _freqfilter_destroy;
+      flt->slot[EQUALIZER_LF]->swap = _equalizer_swap;
+      flt->slot[EQUALIZER_HF]->swap = _equalizer_swap;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -86,25 +86,32 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
       _aaxRingBufferFreqFilterData *flt_hf = filter->slot[EQUALIZER_HF]->data;
       if (flt_lf == NULL)
       {
-         size_t tmp;
-         char *ptr;
-
-         flt_lf = calloc(EQUALIZER_MAX, sizeof(_aaxRingBufferFreqFilterData));
+         flt_lf = _aax_aligned_alloc(DSIZE);
          if (!flt_lf) return rv;
 
-         tmp = 2*sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN;
-         flt_lf->freqfilter = _aax_aligned_alloc(tmp);
+         memset(flt_lf, 0, DSIZE);
+         flt_lf->no_stages = 1;
+         filter->slot[EQUALIZER_LF]->data = flt_lf;
+      }
+
+      if (!flt_lf->freqfilter)
+      {
+         size_t dsize = EQUALIZER_MAX*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN);
+         flt_lf->freqfilter = _aax_aligned_alloc(dsize);
          if (flt_lf->freqfilter) {
-            memset(flt_lf->freqfilter, 0, tmp);
+            memset(flt_lf->freqfilter, 0, dsize);
          }
          else
          {
-            free(flt_lf);
+            _aax_aligned_free(flt_lf);
             return rv;
          }
+      }
 
-         flt_lf->no_stages = 1;
-         filter->slot[EQUALIZER_LF]->data = flt_lf;
+      if (flt_lf && !flt_hf)
+      {
+         size_t tmp;
+         char *ptr;
 
          ptr = (char*)flt_lf->freqfilter;
          ptr += sizeof(_aaxRingBufferFreqFilterHistoryData);
@@ -290,17 +297,15 @@ _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dPr
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, DSIZE);
 
    if (rv)
    {
-      _aax_dsp_copy(rv->slot[1], &p2d->filter[rv->pos]);
-      rv->slot[1]->data = NULL;
-
-      _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
-      rv->slot[0]->destroy = _freqfilter_destroy;
-      rv->slot[0]->swap = _freqfilter_swap;
-      rv->slot[0]->data = NULL;
+      _aax_dsp_copy(rv->slot[EQUALIZER_LF], &p2d->filter[rv->pos]);
+      _aax_dsp_copy(rv->slot[EQUALIZER_HF], &p2d->filter[rv->pos]);
+      rv->slot[EQUALIZER_LF]->destroy = _freqfilter_destroy;
+      rv->slot[EQUALIZER_LF]->swap = _equalizer_swap;
+      rv->slot[EQUALIZER_HF]->swap = _equalizer_swap;
 
       rv->state = p2d->filter[rv->pos].state;
    }
@@ -354,3 +359,65 @@ _flt_function_tbl _aaxEqualizer =
    (_aaxFilterConvert*)&_aaxEqualizerMinMax
 };
 
+static void
+_equalizer_swap(void *d, void *s)
+{
+   _aaxRingBufferFreqFilterData *dflt;
+   _aaxFilterInfo *dst = d, *src = s;
+   void *freqfilter = NULL;
+
+   dflt = dst->data;
+   if (dflt) {
+      freqfilter = dflt->freqfilter;
+   }
+
+   if (src->data)
+   {
+      if (!dst->data)
+      {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else if (dst->data_size)
+      {
+         assert(dst->data_size == src->data_size);
+         memcpy(dst->data, src->data, src->data_size);
+      }
+   }
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
+
+   if (freqfilter) dflt->freqfilter = freqfilter;
+}
+
+void
+_equalizer_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr,
+                              size_t dmin, size_t dmax, unsigned int track,
+                              void *data_lf, void *data_hf)
+{
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxRingBufferFreqFilterData *filter_lf = data_lf;
+   _aaxRingBufferFreqFilterData *filter_hf = data_hf;
+   size_t no_samples;
+
+   assert(sptr != 0);
+   assert(dptr != 0);
+   assert(data_lf != NULL);
+   assert(data_hf != NULL);
+   assert(dmin < dmax);
+   assert(track < _AAX_MAX_SPEAKERS);
+
+   sptr += dmin;
+   no_samples = dmax - dmin;
+   if (filter_lf->type == LOWPASS && filter_hf->type == HIGHPASS)
+   {
+      rbd->freqfilter(sptr, dptr, track, no_samples, filter_lf);
+      rbd->freqfilter(dptr, dptr, track, no_samples, filter_hf);
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+   }
+   else
+   {
+      rbd->freqfilter(dptr, dptr, track, no_samples, filter_lf);
+      rbd->freqfilter(dptr, dptr, track, no_samples, filter_hf);
+   }
+}

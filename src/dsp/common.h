@@ -110,6 +110,7 @@ typedef struct
    int updated;
    float param[4];
 
+   size_t data_size;
    void* data;          /* filter and effect specific interal data structure */
    void (*destroy)(void*); /* function to call to free the data structure    */
    void (*swap)(void*,void*); /* function to swap the data structures        */

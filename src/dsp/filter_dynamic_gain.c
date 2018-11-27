@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -40,12 +34,14 @@
 #include "filters.h"
 #include "api.h"
 
+#define DSIZE	sizeof(_aaxLFOData)
+
 static float _aaxDynamicGainFilterMinMax(float, int, unsigned char);
 
 static aaxFilter
 _aaxDynamicGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -184,7 +180,7 @@ _aaxNewDynamicGainFilterHandle(const aaxConfig config, enum aaxFilterType type, 
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    { 

@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -45,6 +39,8 @@
 #include "dsp.h"
 #include "api.h"
 
+#define DSIZE	sizeof(_aaxRingBufferConvolutionData)
+
 static void _convolution_swap(void*, void*);
 static void _convolution_destroy(void*);
 static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*, void*);
@@ -52,7 +48,7 @@ static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -94,8 +90,9 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 
       if (!convolution)
       {
-         convolution = calloc(1, sizeof(_aaxRingBufferConvolutionData));
+         convolution = _aax_aligned_alloc(DSIZE);
          effect->slot[0]->data = convolution;
+         if (convolution) memset(convolution, 0, DSIZE);
       }
 
       if (convolution)
@@ -111,16 +108,17 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 
          if (!flt)
          {
-            flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
+            flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
             if (flt)
             {
+               memset(flt, 0, sizeof(_aaxRingBufferFreqFilterData));
                flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
                if (flt->freqfilter) {
                   memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
                }
                else
                {
-                  free(flt);
+                  _aax_aligned_free(flt);
                   flt = NULL;
                }
             }
@@ -181,8 +179,9 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
    if (!convolution)
    {
-      convolution = calloc(1, sizeof(_aaxRingBufferConvolutionData));
+      convolution = _aax_aligned_alloc(DSIZE);
       effect->slot[0]->data = convolution;
+      if (convolution) memset(convolution, 0, DSIZE);
    }
 
    if (convolution && info)
@@ -227,7 +226,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
             no_samples += convolution->no_samples;
 
-            if (convolution->sample_ptr) free(convolution->sample_ptr);
+            if (convolution->sample_ptr) _aax_aligned_free(convolution->sample_ptr);
             convolution->sample_ptr = data;
             convolution->sample = *data;
 
@@ -260,7 +259,7 @@ _aaxNewConvolutionEffectHandle(const aaxConfig config, enum aaxEffectType type, 
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
    {
@@ -332,31 +331,26 @@ _eff_function_tbl _aaxConvolutionEffect =
 void
 _convolution_swap(void *d, void *s)
 {
-   _aaxRingBufferConvolutionData *dconv, *sconv;
+   _aaxRingBufferConvolutionData *dconv;
    _aaxFilterInfo *dst = d;
-   _aaxFilterInfo *src = s;
+   void *history = NULL;
+   void *freqfilter = NULL;
+   void *occlusion = NULL;
+
+   dconv = dst->data;
+   if (dconv)
+   {
+      history = dconv->history;
+      if (dconv->freq_filter) freqfilter = dconv->freq_filter->freqfilter;
+      if (dconv->occlusion) occlusion = dconv->occlusion->freq_filter.freqfilter;
+   }
 
    _aax_dsp_swap(d, s);
 
-   dconv = dst->data;
-   sconv = src->data;
-   if (sconv)
-   {
-      _aaxRingBufferOcclusionData *docc, *socc;
-      _aaxRingBufferFreqFilterData *dflt, *sflt;
+   if (history) dconv->history = history;
+   if (dconv->freq_filter) dconv->freq_filter->freqfilter = freqfilter;
+   if (dconv->occlusion) dconv->occlusion->freq_filter.freqfilter = occlusion;
 
-      dconv->history = _aaxAtomicPointerSwap(&sconv->history, dconv->history);
-
-      dflt = dconv->freq_filter;
-      sflt = sconv->freq_filter;
-      dconv->freq_filter = _aaxAtomicPointerSwap(&sconv->freq_filter, dconv->freq_filter);
-
-      docc = dconv->occlusion;
-      socc = sconv->occlusion;
-      dflt = &docc->freq_filter;
-      sflt = &socc->freq_filter;
-      dflt->freqfilter = _aaxAtomicPointerSwap(&sflt->freqfilter, dflt->freqfilter);
-   }
 }
 
 static void
@@ -376,10 +370,10 @@ _convolution_destroy(void *ptr)
       }
 
       if (data->history) free(data->history);
-      if (data->sample_ptr) free(data->sample_ptr);
+      if (data->sample_ptr) _aax_aligned_free(data->sample_ptr);
       _occlusion_destroy(data->occlusion);
       _freqfilter_destroy(data->freq_filter);
-      free(data);
+      _aax_aligned_free(data);
    }
 }
 

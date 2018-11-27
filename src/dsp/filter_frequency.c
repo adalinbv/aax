@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -43,11 +37,12 @@
 #include "dsp.h"
 #include "api.h"
 
+#define DSIZE	sizeof(_aaxRingBufferFreqFilterData)
 
 static aaxFilter
 _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -115,20 +110,23 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
       if (flt == NULL)
       {
-         flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
+         flt = _aax_aligned_alloc(DSIZE);
          filter->slot[0]->data = flt;
+         if (flt) memset(flt, 0, DSIZE);
+      }
 
-         if (flt)
+      if (flt && !flt->freqfilter)
+      {
+         size_t dsize = sizeof(_aaxRingBufferFreqFilterHistoryData);
+
+         flt->freqfilter = _aax_aligned_alloc(dsize);
+         if (flt->freqfilter) {
+            memset(flt->freqfilter, 0, dsize);
+         }
+         else
          {
-            flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
-            if (flt->freqfilter) {
-               memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
-            }
-            else
-            {
-               free(flt);
-               flt = NULL;
-            }
+            free(flt);
+            flt = NULL;
          }
       }
 
@@ -249,7 +247,7 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
    { 
@@ -334,28 +332,33 @@ _flt_function_tbl _aaxFrequencyFilter =
 void
 _freqfilter_swap(void *d, void *s)
 {
-   _aaxRingBufferFreqFilterData *dflt,*sflt;
+   _aaxRingBufferFreqFilterData *dflt;
    _aaxFilterInfo *dst = d;
-   _aaxFilterInfo *src = s;
+   void *freqfilter = NULL;
+   void *lfo = NULL;
+
+   dflt = dst->data;
+   if (dflt)
+   {
+      lfo = dflt->lfo;
+      freqfilter = dflt->freqfilter;
+   }
 
    _aax_dsp_swap(d, s);
 
-   dflt = dst->data;
-   sflt = src->data;
-   if (sflt) {
-      dflt->freqfilter = _aaxAtomicPointerSwap(&sflt->freqfilter, dflt->freqfilter);
-   }
+   if (lfo) dflt->lfo = lfo;
+   if (freqfilter) dflt->freqfilter = freqfilter;
 }
 
 void
 _freqfilter_destroy(void *ptr)
 {
-   _aaxRingBufferFreqFilterData *flt = ptr;
-   if (flt)
+   _aaxRingBufferFreqFilterData *data = ptr;
+   if (data)
    {
-      if (flt->lfo) free(flt->lfo);
-      _aax_aligned_free(flt->freqfilter);
-      free(flt);
+      _lfo_destroy(data->lfo);
+      _aax_aligned_free(data->freqfilter);
+      _aax_aligned_free(data);
    }
 }
 
@@ -963,9 +966,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    assert(s != 0);
    assert(d != 0);
-   assert(data != 0);
-   assert(dmin < dmax);
    assert(data != NULL);
+   assert(dmin < dmax);
    assert(track < _AAX_MAX_SPEAKERS);
 
    if (filter->lfo && !ctr)

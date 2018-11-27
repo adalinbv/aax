@@ -39,7 +39,9 @@
 _aaxLFOData*
 _lfo_create()
 {
-   return calloc(1, sizeof(_aaxLFOData));
+   _aaxLFOData *rv = _aax_aligned_alloc(sizeof(_aaxLFOData));
+   if (rv) memset(rv, 0, sizeof(_aaxLFOData));
+   return rv;
 }
 
 void
@@ -49,7 +51,7 @@ _lfo_destroy(void *data)
    if (lfo)
    {
       lfo->envelope = AAX_FALSE;
-      free(lfo);
+      _aax_aligned_free(lfo);
    }
 }
 

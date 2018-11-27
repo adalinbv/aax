@@ -33,10 +33,11 @@
 
 #include "common.h"
 #include "filters.h"
+#include "arch.h"
 #include "dsp.h"
 
 aaxFilter
-_aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned slots)
+_aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned slots, size_t dsize)
 {
    aaxFilter rv = NULL;
    unsigned int size;
@@ -59,11 +60,16 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
       flt->type = type;
 
       size = sizeof(_aaxFilterInfo);
-      for (s=0; s<slots; ++s)
-      {
+      for (s=0; s<slots; ++s) {
          flt->slot[s] = (_aaxFilterInfo*)(ptr + s*size);
-         flt->slot[s]->swap = _aax_dsp_swap;
-         flt->slot[s]->destroy = _aax_dsp_destroy;
+      }
+      flt->slot[0]->swap = _aax_dsp_swap;
+      flt->slot[0]->destroy = _aax_dsp_destroy;
+
+      flt->slot[0]->data_size = dsize;
+      flt->slot[0]->data = _aax_aligned_alloc(dsize);
+      if (flt->slot[0]->data) {
+         memset(flt->slot[0]->data, 0, dsize);
       }
 
       rv = (aaxFilter)flt;
@@ -143,7 +149,6 @@ _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
 
    filter->state = 0;
    filter->updated = 0;
-   filter->data = NULL;
    memset(filter->param, 0, sizeof(float[4]));
    switch(type)
    {
@@ -172,21 +177,23 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
 
    filter->state = 0;
    filter->updated = 0;
-   filter->data = NULL;
    memset(filter->param, 0, sizeof(float[4]));
    switch(type)
    {
    case DISTANCE_FILTER:
    {
-      _aaxRingBufferDistanceData *data;
+      _aaxRingBufferDistanceData *data = filter->data;
+      size_t dsize = sizeof(_aaxRingBufferDistanceData);
       filter->param[AAX_REF_DISTANCE] = 1.0f;
       filter->param[AAX_MAX_DISTANCE] = FLT_MAX;
       filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
       filter->state = AAX_FALSE; // AAX_EXPONENTIAL_DISTANCE;
-      data = calloc(1, sizeof(_aaxRingBufferDistanceData));
-      filter->data = data;
+      if (!data) data = _aax_aligned_alloc(dsize);
       if (data) {
+         memset(data, 0, dsize);
          data->run = _aaxDistanceFn[1];
+         filter->data_size = dsize;
+         filter->data = data;
       }
       break;
    }

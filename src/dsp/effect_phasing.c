@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -45,6 +39,7 @@
 
 #define PHASING_MIN	50e-6f
 #define PHASING_MAX	10e-3f
+#define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 
 static void _phasing_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
@@ -52,7 +47,7 @@ static void _phasing_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, s
 static aaxEffect
 _aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -104,19 +99,9 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
       if (data == NULL)
       {
-         int t;
-
-         data  = malloc(sizeof(_aaxRingBufferDelayEffectData));
+         data  = _aax_aligned_alloc(DSIZE);
          effect->slot[0]->data = data;
-         if (data)
-         {
-            data->history = 0;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               data->lfo.value[t] = 0.0f;
-               data->lfo.step[t] = 0.0f;
-            }
-         }
+         if (data) memset(data, 0, DSIZE);
       }
 
       if (data)
@@ -185,7 +170,7 @@ _aaxNewPhasingEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {
@@ -256,17 +241,16 @@ _eff_function_tbl _aaxPhasingEffect =
 void
 _delay_swap(void *d, void *s)
 {
-   _aaxRingBufferDelayEffectData *ddef,*sdef;
+   _aaxRingBufferDelayEffectData *ddef;
    _aaxFilterInfo *dst = d;
-   _aaxFilterInfo *src = s;
+   void *history = NULL;
+
+   ddef = dst->data;
+   if (ddef) history = ddef->history;
 
    _aax_dsp_swap(d, s);
 
-   ddef = dst->data;
-   sdef = src->data;
-   if (sdef) {
-      ddef->history = _aaxAtomicPointerSwap(&sdef->history, ddef->history);
-   }
+   if (history) ddef->history = history;
 }
 
 void
@@ -278,10 +262,10 @@ _delay_destroy(void *ptr)
       data->lfo.envelope = AAX_FALSE;
       if (data->history)
       {
-         _aax_free(data->history);
+         free(data->history);
          data->history = NULL;
       }
-      free(data);
+      _aax_aligned_free(data);
    }
 }
 

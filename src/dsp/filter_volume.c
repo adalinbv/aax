@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -45,6 +39,8 @@
 #include "dsp.h"
 #include "api.h"
 
+#define DSIZE	sizeof(_aaxRingBufferOcclusionData)
+
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
 void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
@@ -55,7 +51,7 @@ void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, 
 static aaxFilter
 _aaxVolumeFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2, 0);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -101,7 +97,7 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSE
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, 0);
 
    if (rv)
    {
@@ -213,14 +209,17 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
         (slot->param[1] >= 0.1f && slot->param[2] >= 0.1f)) &&
        slot->param[3] > LEVEL_64DB)
    {
-      if (!occlusion) {
-         occlusion = _aax_aligned_alloc(sizeof(_aaxRingBufferOcclusionData));
+      if (!occlusion)
+      {
+         occlusion = _aax_aligned_alloc(DSIZE);
          if (occlusion)
          {
-            memset(&occlusion->freq_filter, 0, sizeof(_aaxRingBufferFreqFilterData));
-            occlusion->freq_filter.freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+            size_t dsize = sizeof(_aaxRingBufferFreqFilterHistoryData);
+
+            memset(occlusion, 0, DSIZE);
+            occlusion->freq_filter.freqfilter = _aax_aligned_alloc(dsize);
             if (occlusion->freq_filter.freqfilter) {
-               memset(occlusion->freq_filter.freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+               memset(occlusion->freq_filter.freqfilter, 0, dsize);
             }
             else
             {
@@ -440,17 +439,16 @@ _occlusion_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
 void
 _occlusion_swap(void *d, void *s)
 {
-   _aaxRingBufferConvolutionData *docc, *socc;
+   _aaxRingBufferConvolutionData *docc;
    _aaxFilterInfo *dst = d;
-   _aaxFilterInfo *src = s;
+   void *ffhist = NULL;
+
+   docc = dst->data;
+   if (docc) ffhist = docc->freq_filter->freqfilter;
 
    _aax_dsp_swap(d, s);
 
-   docc = dst->data;
-   socc = src->data;
-   if (socc) {
-      docc->freq_filter = _aaxAtomicPointerSwap(&socc->freq_filter, docc->freq_filter);
-   }
+   if (ffhist) docc->freq_filter->freqfilter = ffhist;
 }
 
 void

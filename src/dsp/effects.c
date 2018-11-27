@@ -32,9 +32,10 @@
 
 #include "common.h"
 #include "effects.h"
+#include "arch.h"
 
 aaxEffect
-_aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned slots)
+_aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned slots, size_t dsize)
 {
    aaxEffect rv = NULL;
    unsigned int size;
@@ -57,11 +58,16 @@ _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned sl
       eff->type = type;
 
       size = sizeof(_aaxEffectInfo);
-      for (s=0; s<slots; ++s)
-      {
+      for (s=0; s<slots; ++s) {
          eff->slot[s] = (_aaxEffectInfo*)(ptr + s*size);
-         eff->slot[s]->swap = _aax_dsp_swap;
-         eff->slot[s]->destroy = _aax_dsp_destroy;
+      }
+      eff->slot[0]->swap = _aax_dsp_swap;
+      eff->slot[0]->destroy = _aax_dsp_destroy;
+
+      eff->slot[0]->data_size = dsize;
+      eff->slot[0]->data = _aax_aligned_alloc(dsize);
+      if (eff->slot[0]->data) {
+         memset(eff->slot[0]->data, 0, dsize);
       }
 
       rv = (aaxEffect)eff;
@@ -119,7 +125,6 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
 
    effect->state = 0;
    effect->updated = 0;
-   effect->data = NULL;
    memset(effect->param, 0, sizeof(float[4]));
    switch(type)
    {
@@ -165,7 +170,6 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, UNUSED(unsigne
 
    effect->state = 0;
    effect->updated = 0;
-   effect->data = NULL;
    memset(effect->param, 0, sizeof(float[4]));
    switch(type)
    {

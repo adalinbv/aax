@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -40,6 +34,7 @@
 #include "api.h"
 #include "arch.h"
 
+#define DSIZE	sizeof(_aaxRingBufferModulatorData)
 
 static void _modulator_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
@@ -47,7 +42,7 @@ static void _modulator_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int
 static aaxEffect
 _aaxModulatorEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -97,8 +92,9 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferModulatorData *modulator = effect->slot[0]->data;
       if (modulator == NULL)
       {
-         modulator = calloc(1, sizeof(_aaxRingBufferModulatorData));
+         modulator = _aax_aligned_alloc(DSIZE);
          effect->slot[0]->data = modulator;
+         if (modulator) memset(modulator, 0, DSIZE);
       }
 
       if (modulator)
@@ -156,7 +152,7 @@ _aaxNewModulatorEffectHandle(const aaxConfig config, enum aaxEffectType type, _a
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {

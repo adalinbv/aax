@@ -24,25 +24,22 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
 #include "common.h"
 #include "filters.h"
+#include "arch.h"
 #include "api.h"
+
+#define DSIZE	sizeof(_aaxRingBufferBitCrusherData)
 
 static float _aaxBitCrusherFilterMinMax(float, int, unsigned char);
 
 static aaxFilter
 _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -91,8 +88,9 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)
       {
-         bitcrush = calloc(1, sizeof(_aaxRingBufferBitCrusherData));
+         bitcrush = _aax_aligned_alloc(DSIZE);
          filter->slot[0]->data = bitcrush;
+         if (bitcrush) memset(bitcrush, 0, DSIZE);
       }
 
       if (bitcrush)
@@ -160,7 +158,7 @@ _aaxNewBitCrusherFilterHandle(const aaxConfig config, enum aaxFilterType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {

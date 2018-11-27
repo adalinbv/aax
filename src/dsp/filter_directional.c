@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -43,7 +37,7 @@
 static aaxFilter
 _aaxDirectionalFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1, 0);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -73,7 +67,7 @@ _aaxNewDirectionalFilterHandle(const aaxConfig config, enum aaxFilterType type, 
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, 0);
 
    if (rv)
    {

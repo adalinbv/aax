@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -40,11 +34,12 @@
 #include "api.h"
 #include "arch.h"
 
+#define	DSIZE	sizeof(_aaxEnvelopeData)
 
 static aaxEffect
 _aaxTimedPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -82,8 +77,9 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
       _aaxEnvelopeData* env = effect->slot[0]->data;
       if (env == NULL)
       {
-         env =  calloc(1, sizeof(_aaxEnvelopeData));
+         env =  _aax_aligned_alloc(DSIZE);
          effect->slot[0]->data = env;
+         if (env) memset(env, 0, DSIZE);
       }
 
       if (env)
@@ -161,7 +157,7 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2, DSIZE);
 
    if (rv)
    {

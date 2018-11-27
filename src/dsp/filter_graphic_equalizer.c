@@ -24,17 +24,13 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
+
+#include <software/rbuf_int.h>
 
 #include <arch.h>
 
@@ -42,6 +38,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define DSIZE	sizeof(_aaxRingBufferEqualizerData)
 
 static void _grapheq_destroy(void*);
 static void _grapheq_swap(void*,void*);
@@ -49,7 +46,7 @@ static void _grapheq_swap(void*,void*);
 static aaxFilter
 _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -58,8 +55,17 @@ _aaxGraphicEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[0]->param[1] = 1.0f; flt->slot[1]->param[1] = 1.0f;
       flt->slot[0]->param[2] = 1.0f; flt->slot[1]->param[2] = 1.0f;
       flt->slot[0]->param[3] = 1.0f; flt->slot[1]->param[3] = 1.0f;
+
+      flt->slot[EQUALIZER_LF]->destroy = NULL;
+      flt->slot[EQUALIZER_LF]->swap = NULL;
+
       flt->slot[EQUALIZER_HF]->destroy = _grapheq_destroy;
       flt->slot[EQUALIZER_HF]->swap = _grapheq_swap;
+
+      assert(flt->slot[EQUALIZER_HF]->data == NULL);
+      flt->slot[EQUALIZER_HF]->data = flt->slot[EQUALIZER_LF]->data;
+      flt->slot[EQUALIZER_LF]->data = NULL;
+
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -95,19 +101,25 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
        */
       if (eq == NULL)
       {
-         char *ptr;
-
-         eq = calloc(1, sizeof(_aaxRingBufferEqualizerData));
+         eq = _aax_aligned_alloc(DSIZE);
          if (!eq) return rv;
 
          filter->slot[EQUALIZER_LF]->data = NULL;
          filter->slot[EQUALIZER_HF]->data = eq;
+         memset(eq, 0, DSIZE);
+      }
 
-         ptr = _aax_aligned_alloc(_AAX_MAX_EQBANDS*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN));
+      if (eq && !eq->band[0].freqfilter)
+      {
+         size_t dsize = _AAX_MAX_EQBANDS*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN);
+         char *ptr;
+
+         ptr = _aax_aligned_alloc(dsize);
          if (ptr)
          {
             int i;
 
+            memset(ptr, 0, dsize);
             for (i=0; i<_AAX_MAX_EQBANDS; ++i)
             {
                size_t tmp;
@@ -124,7 +136,7 @@ _aaxGraphicEqualizerSetState(_filter_t* filter, int state)
          }
          else
          {
-            free(eq);
+            _aax_aligned_free(eq);
             return rv;
          }
       }
@@ -202,7 +214,7 @@ _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, DSIZE);
 
    if (rv)
    {
@@ -210,9 +222,15 @@ _aaxNewGraphicEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _
       rv->slot[0]->param[1] = 1.0f; rv->slot[1]->param[1] = 1.0f;
       rv->slot[0]->param[2] = 1.0f; rv->slot[1]->param[2] = 1.0f;
       rv->slot[0]->param[3] = 1.0f; rv->slot[1]->param[3] = 1.0f;
-      rv->slot[0]->data = NULL;     rv->slot[1]->data = NULL;
+
+      rv->slot[EQUALIZER_LF]->destroy = NULL;
+      rv->slot[EQUALIZER_LF]->swap = NULL;
+
       rv->slot[EQUALIZER_HF]->destroy = _grapheq_destroy;
       rv->slot[EQUALIZER_HF]->swap = _grapheq_swap;
+
+      rv->slot[EQUALIZER_HF]->data = rv->slot[EQUALIZER_LF]->data;
+      rv->slot[EQUALIZER_LF]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;
    }
@@ -275,16 +293,41 @@ _flt_function_tbl _aaxGraphicEqualizer =
 void
 _grapheq_swap(void *d, void *s)
 {
-   _aaxRingBufferEqualizerData *deq,*seq;
-   _aaxFilterInfo *dst = d;
-   _aaxFilterInfo *src = s;
+   _aaxRingBufferEqualizerData *deq;
+   _aaxFilterInfo *dst = d, *src = s;
+   void *ff[_AAX_MAX_EQBANDS];
+   int i;
 
-   _aax_dsp_swap(d, s);
-
+   ff[0] = NULL;
    deq = dst->data;
-   seq = src->data;
-   if (seq) {
-      seq->band[0].freqfilter = _aaxAtomicPointerSwap(&deq->band[0].freqfilter,seq->band[0].freqfilter);
+   if (deq)
+   {
+      for (i=0; i<_AAX_MAX_EQBANDS; ++i) {
+         ff[i] = deq->band[i].freqfilter;
+      }
+   }
+
+   if (src->data)
+   {
+      if (!dst->data)
+      {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else if (dst->data_size)
+      {
+         assert(dst->data_size == src->data_size);
+         memcpy(dst->data, src->data, src->data_size);
+      }
+   }
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
+
+   if (ff[0])
+   {
+      for (i=0; i<_AAX_MAX_EQBANDS; ++i) {
+         deq->band[i].freqfilter = ff[i];
+      }
    }
 }
 
@@ -296,6 +339,36 @@ _grapheq_destroy(void *ptr)
    if (eq)
    {
       _aax_aligned_free(eq->band[0].freqfilter);
-      free(eq);
+      _aax_aligned_free(eq);
    }
+}
+
+// _aaxRingBuffer *rb, MIX_T **tracks, MIX_T **scratch, _aaxRingBufferEqualizerData *eq)
+
+void
+_grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,
+             size_t dmin, size_t dmax, unsigned int track,
+             _aaxRingBufferEqualizerData *eq)
+{
+   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+   _aaxRingBufferFreqFilterData* filter;
+   size_t no_samples;
+   int band;
+
+   sptr += dmin;
+   no_samples = dmax - dmin;
+
+   // first band, straight into dptr to save a bzero() and rbd->add()
+   band = _AAX_MAX_EQBANDS;
+   filter = &eq->band[--band];
+   rbd->freqfilter(dptr, sptr, track, no_samples, filter);
+
+   // next 7 bands
+   do
+   {
+      filter = &eq->band[--band];
+      rbd->freqfilter(tmp, sptr, track, no_samples, filter);
+      rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
+   }
+   while(band);
 }

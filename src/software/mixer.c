@@ -151,80 +151,6 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
 /* -------------------------------------------------------------------------- */
 
 static void
-_aaxApplyParametricEqualizer(_aaxRingBuffer *rb, MIX_T **tracks, MIX_T **scratch, _aaxRingBufferFreqFilterData *lf, _aaxRingBufferFreqFilterData *hf)
-{
-   MIX_T *sptr = scratch[SCRATCH_BUFFER0];
-   _aaxRingBufferSample *rbd;
-   _aaxRingBufferData *rbi;
-   unsigned char t, no_tracks;
-   size_t no_samples;
-
-   rbi = rb->handle;
-   rbd = rbi->sample;
-
-   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-
-   for (t=0; t<no_tracks; t++)
-   {
-      MIX_T *dptr = tracks[t];
-
-      if (lf->type == LOWPASS && hf->type == HIGHPASS)
-      {
-         rbd->freqfilter(sptr, dptr, t, no_samples, lf);
-         rbd->freqfilter(dptr, dptr, t, no_samples, hf);
-         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-      }
-      else
-      {
-         rbd->freqfilter(dptr, dptr, t, no_samples, lf);
-         rbd->freqfilter(dptr, dptr, t, no_samples, hf);
-      }
-   }
-}
-
-static void
-_aaxApplyGraphicEqualizer(_aaxRingBuffer *rb, MIX_T **tracks, MIX_T **scratch, _aaxRingBufferEqualizerData *eq)
-{
-   MIX_T *sptr = scratch[SCRATCH_BUFFER0];
-   MIX_T *tmp = scratch[SCRATCH_BUFFER1];
-   _aaxRingBufferSample *rbd;
-   _aaxRingBufferData *rbi;
-   unsigned char t, no_tracks;
-   size_t no_samples, track_len_bytes;
-
-   rbi = rb->handle;
-   rbd = rbi->sample;
-
-   track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
-   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-
-   for (t=0; t<no_tracks; t++)
-   {
-      _aaxRingBufferFreqFilterData* filter;
-      MIX_T *dptr = tracks[t];
-      int band;
-
-      _aax_memcpy(sptr, dptr, track_len_bytes);
-
-      // first band, straight into dptr to save a bzero() and rbd->add()
-      band = _AAX_MAX_EQBANDS;
-      filter = &eq->band[--band];
-      rbd->freqfilter(dptr, sptr, t, no_samples, filter);
-
-      // next 7 bands
-      do
-      {
-         filter = &eq->band[--band];
-         rbd->freqfilter(tmp, sptr, t, no_samples, filter);
-         rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
-      }
-      while(band);
-   }
-}
-
-static void
 _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, void *i)
 {
    _aaxRingBufferConvolutionData *convolution;
@@ -312,14 +238,24 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
 
       lf = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
       hf = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-      _aaxApplyParametricEqualizer(rb, tracks, scratch, hf, lf);
+      for (t=0; t<no_tracks; t++) {
+         _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
+                        0, no_samples, t, lf, hf);
+      }
    }
    else if (graphic)
    {
       _aaxRingBufferEqualizerData *eq;
+      size_t track_len_bytes;
 
       eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
-      _aaxApplyGraphicEqualizer(rb, tracks, scratch, eq);
+      track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
+      for (t=0; t<no_tracks; t++)
+      {
+         _aax_memcpy(scratch[SCRATCH_BUFFER0], tracks[t], track_len_bytes);
+         _grapheq_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
+                      scratch[SCRATCH_BUFFER1], 0, no_samples, t, eq);
+      }
    }
    _aaxMutexUnLock(sensor->mutex);
 
@@ -397,17 +333,35 @@ _aaxSubFramePostProcess(UNUSED(const void *id), UNUSED(const void *hid), void *d
       if (parametric)
       {
          _aaxRingBufferFreqFilterData *lf, *hf;
+         unsigned int t, no_tracks;
+         size_t no_samples;
 
          lf = _FILTER_GET_DATA(subframe, EQUALIZER_LF);
          hf = _FILTER_GET_DATA(subframe, EQUALIZER_HF);
-         _aaxApplyParametricEqualizer(rb, tracks, scratch, hf, lf);
+         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+         no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+         for (t=0; t<no_tracks; t++) {
+            _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0], 
+                           0, no_samples, t, lf, hf);
+         }
       }
       else if (graphic)
       {
          _aaxRingBufferEqualizerData *eq;
+         unsigned int t, no_tracks;
+         size_t track_len_bytes;
+         size_t no_samples;
 
          eq = _FILTER_GET_DATA(subframe, EQUALIZER_HF);
-         _aaxApplyGraphicEqualizer(rb, tracks, scratch, eq);
+         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+         no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+         track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
+         for (t=0; t<no_tracks; t++)
+         {
+            _aax_memcpy(scratch[SCRATCH_BUFFER0], tracks[t], track_len_bytes);
+            _grapheq_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
+                         scratch[SCRATCH_BUFFER1], 0, no_samples, t, eq);
+         }
       }
 
       _aaxMutexUnLock(subframe->mutex);

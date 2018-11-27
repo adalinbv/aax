@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -41,6 +35,8 @@
 #include "arch.h"
 #include "dsp.h"
 #include "api.h"
+
+#define DSIZE	sizeof(_aaxRingBufferReverbData)
 
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
@@ -54,7 +50,7 @@ static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, si
 static aaxEffect
 _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -114,16 +110,17 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
          if (!flt)
          {
-            flt = calloc(1, sizeof(_aaxRingBufferFreqFilterData));
+            flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
             if (flt)
             {
+               memset(flt, 0, sizeof(_aaxRingBufferFreqFilterData));
                flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
                if (flt->freqfilter) {
                   memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
                }
                else
                {
-                  free(flt);
+                  _aax_aligned_free(flt);
                   flt = NULL;
                }
             }
@@ -189,7 +186,7 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSE
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
    {
@@ -255,31 +252,26 @@ _eff_function_tbl _aaxReverbEffect =
 void
 _reverb_swap(void *d, void *s)
 {
-   _aaxRingBufferReverbData *drev,*srev;
+   _aaxRingBufferReverbData *drev;
    _aaxFilterInfo *dst = d;
-   _aaxFilterInfo *src = s;
+   void *reverb = NULL;
+   void *freqfilter = NULL;
+   void *occlusion = NULL;
+
+   drev = dst->data;
+   if (drev)
+   {
+      reverb = drev->reverb;
+      if (drev->freq_filter) freqfilter = drev->freq_filter->freqfilter;
+      if (drev->occlusion) occlusion = drev->occlusion->freq_filter.freqfilter;
+   }
 
    _aax_dsp_swap(d, s);
 
-   drev = dst->data;
-   srev = src->data;
-   if (srev)
-   {
-      _aaxRingBufferOcclusionData *docc, *socc;
-      _aaxRingBufferFreqFilterData *dflt, *sflt;
+   if (reverb)  drev->reverb = reverb;
+   if (freqfilter) drev->freq_filter->freqfilter = freqfilter;
+   if (occlusion) drev->occlusion->freq_filter.freqfilter = occlusion;
 
-      drev->reverb = _aaxAtomicPointerSwap(&srev->reverb, drev->reverb);
-
-      dflt = drev->freq_filter;
-      sflt = srev->freq_filter;
-      drev->freq_filter = _aaxAtomicPointerSwap(&srev->freq_filter, drev->freq_filter);
-
-      docc = drev->occlusion;
-      socc = srev->occlusion;
-      dflt = &docc->freq_filter;
-      sflt = &socc->freq_filter;
-      dflt->freqfilter = _aaxAtomicPointerSwap(&sflt->freqfilter, dflt->freqfilter);
-   }
 }
 
 static void
@@ -291,7 +283,7 @@ _reverb_destroy(void *ptr)
       _occlusion_destroy(reverb->occlusion);
       _aax_aligned_free(reverb->freq_filter->freqfilter);
       _reverb_destroy_delays(reverb);
-      free(ptr);
+      _aax_aligned_free(ptr);
    }
 }
 
@@ -544,7 +536,8 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
    assert(ptr != 0);
 
    if (*ptr == NULL) {
-      *ptr = calloc(1, sizeof(_aaxRingBufferReverbData));
+      *ptr = _aax_aligned_alloc(DSIZE);
+      if (*ptr) memset(*ptr, 0, DSIZE);
    }
 
    reverb = *ptr;

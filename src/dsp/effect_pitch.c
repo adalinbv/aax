@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -44,7 +38,7 @@
 static aaxEffect
 _aaxPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, 0);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -74,7 +68,7 @@ _aaxNewPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2d
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, 0);
 
    if (rv)
    {

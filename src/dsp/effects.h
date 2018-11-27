@@ -41,7 +41,7 @@ extern "C" {
 #define FRAME_REVERB_EFFECTS_TIME	0.210f
 #define REVERB_EFFECTS_TIME     	0.700f
 
-aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned);
+aaxEffect _aaxEffectCreateHandle(_aaxMixerInfo*, enum aaxEffectType, unsigned, size_t);
 
 void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int, unsigned slot);

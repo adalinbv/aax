@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -38,12 +32,15 @@
 
 #include "lfo.h"
 #include "filters.h"
+#include "arch.h"
 #include "api.h"
+
+#define DSIZE	sizeof(_aaxEnvelopeData)
 
 static aaxFilter
 _aaxTimedGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -81,8 +78,9 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
       _aaxEnvelopeData* env = filter->slot[0]->data;
       if (env == NULL)
       {
-         env =  calloc(1, sizeof(_aaxEnvelopeData));
+         env = _aax_aligned_alloc(DSIZE);
          filter->slot[0]->data = env;
+         if (env) memset(env, 0, DSIZE);
       }
 
       if (env)
@@ -184,7 +182,7 @@ _aaxNewTimedGainFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2, DSIZE);
 
    if (rv)
    {

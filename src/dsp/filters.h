@@ -39,7 +39,7 @@ extern "C" {
 
 #define _AAX_MAX_FILTERS	2
 
-aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned);
+aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned, size_t);
 
 void _aaxSetDefaultFilter2d(_aaxFilterInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultFilter3d(_aaxFilterInfo*, unsigned int, unsigned slot);

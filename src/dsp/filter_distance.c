@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -38,7 +32,10 @@
 
 #include "common.h"
 #include "filters.h"
+#include "arch.h"
 #include "api.h"
+
+#define DSIZE	sizeof(_aaxRingBufferDistanceData)
 
 // "Attenuation is generally proportional to the square of sound frequency."
 // https://www.nde-ed.org/EducationResources/CommunityCollege/Ultrasonics/Physics/attenuation.htm
@@ -49,7 +46,7 @@
 static aaxFilter
 _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -58,10 +55,11 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
 
-      data = calloc(1, sizeof(_aaxRingBufferDistanceData));
+      data = _aax_aligned_alloc(DSIZE);
       flt->slot[0]->data = data;
       if (data)
       {
+         memset(data, 0, DSIZE);
          data->run = _aaxDistanceFn[1];
          data->prev.pa_kPa = 101.325f;
          data->prev.T_K = 293.15f;
@@ -129,7 +127,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
    {
@@ -137,10 +135,11 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
 
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
 
-      data = calloc(1, sizeof(_aaxRingBufferDistanceData));
+      data = _aax_aligned_alloc(DSIZE);
       rv->slot[0]->data = data;
       if (data) 
       {
+         memset(data, 0, DSIZE);
          data->run = _aaxDistanceFn[1];
          data->prev.pa_kPa = 101.325f;
          data->prev.T_K = 293.15f;

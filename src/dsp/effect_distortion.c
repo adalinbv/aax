@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -41,12 +35,14 @@
 #include "api.h"
 #include "arch.h"
 
+#define DSIZE	sizeof(_aaxRingBufferDistoritonData)
+
 static void _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);
 
 static aaxEffect
 _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -88,7 +84,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
       if (data) effect->slot[0]->destroy(data);
-      data = malloc(sizeof(_aaxRingBufferDistoritonData) + sizeof(_aaxLFOData));
+      data = _aax_aligned_alloc(DSIZE + sizeof(_aaxLFOData));
       effect->slot[0]->data = data;
       if (data)
       {
@@ -96,7 +92,9 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          int constant;
          char *ptr;
 
-         ptr = (char*)data + sizeof(_aaxRingBufferDistoritonData);
+         memset(data, 0, DSIZE + sizeof(_aaxLFOData));
+
+         ptr = (char*)data + DSIZE;
          data->lfo = (_aaxLFOData*)ptr;
 
          data->run = _distortion_run;
@@ -128,10 +126,11 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
 
       if (data) effect->slot[0]->destroy(data);
-      data = malloc(sizeof(_aaxRingBufferDistoritonData));
+      data = _aax_aligned_alloc(DSIZE);
       effect->slot[0]->data = data;
       if (data)
       {
+         memset(data, 0, DSIZE);
          data->run = _distortion_run;
          data->lfo = NULL;
       }
@@ -150,7 +149,7 @@ _aaxNewDistortionEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {

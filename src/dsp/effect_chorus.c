@@ -24,12 +24,6 @@
 #endif
 
 #include <assert.h>
-#ifdef HAVE_RMALLOC_H
-# include <rmalloc.h>
-#else
-# include <stdlib.h>
-# include <malloc.h>
-#endif
 
 #include <aax/aax.h>
 
@@ -44,13 +38,14 @@
 
 #define CHORUS_MIN	10e-3f
 #define CHORUS_MAX	60e-3f
+#define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static void _chorus_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 static aaxEffect
 _aaxChorusEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -102,19 +97,9 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
       if (data == NULL)
       {
-         int t;
-
-         data  = malloc(sizeof(_aaxRingBufferDelayEffectData));
+         data  = _aax_aligned_alloc(DSIZE);
          effect->slot[0]->data = data;
-         if (data)
-         {
-            data->history = 0;
-            for (t=0; t<_AAX_MAX_SPEAKERS; t++)
-            {
-               data->lfo.value[t] = 0.0f;
-               data->lfo.step[t] = 0.0f;
-            }
-         }
+         if (data) memset(data, 0, DSIZE);
       }
 
       if (data)
@@ -183,7 +168,7 @@ _aaxNewChorusEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {

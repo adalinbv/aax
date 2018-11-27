@@ -38,7 +38,7 @@
 #include "arch.h"
 #include "common.h"
 
-void _aax_dsp_destroy(void *ptr) { if (ptr) free(ptr); }
+void _aax_dsp_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
 void _aax_dsp_aligned_destroy(void *ptr) { if (ptr) _aax_aligned_free(ptr); }
 void _aax_dsp_copy(void *d, void *s) {
    _aaxFilterInfo *dst = d, *src = s;
@@ -48,7 +48,15 @@ void _aax_dsp_copy(void *d, void *s) {
 }
 void _aax_dsp_swap(void *d, void *s) {
    _aaxFilterInfo *dst = d, *src = s;
-   dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+   if (src->data && src->data_size) {
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      } else {
+         assert(dst->data_size == src->data_size);
+         memcpy(dst->data, src->data, src->data_size);
+      }
+   }
    dst->destroy = src->destroy;
    dst->swap = src->swap;
 }
