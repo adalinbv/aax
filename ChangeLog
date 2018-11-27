@@ -1,7 +1,11 @@
 * Wed Nov 14 2018 - tech@adalin.org
 - AeonWave (3.5.3) stable; urgency=low
 
- * Implement aftertouch using pitch in the Instrument class
+ * Implement aftertouch using pitch in the Instrument class.
+ * Switch from swapping data structure-pointers to copying the contents of the
+   data structure when assinging filters and effects. This prevents that the
+   dsp destory function will destroy a data structure which might still be in
+   use.
 
 -- Erik Hofman <tech@adalin.org>  Wed 14 Nov  2018 14:49:08 + 0100
 
