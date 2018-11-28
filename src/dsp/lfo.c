@@ -27,6 +27,7 @@
 #else
 # include <stdlib.h>
 # include <malloc.h>
+# include <string.h>
 #endif
 
 #include <base/geometry.h>
