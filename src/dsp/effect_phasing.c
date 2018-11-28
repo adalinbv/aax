@@ -114,7 +114,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          if (data->history)
          {
             free(data->history);
-            data->history = 0;
+            data->history = NULL;
          }
 
          data->lfo.convert = _linear;
@@ -242,15 +242,31 @@ void
 _delay_swap(void *d, void *s)
 {
    _aaxRingBufferDelayEffectData *ddef;
-   _aaxFilterInfo *dst = d;
+   _aaxFilterInfo *dst = d, *src = s;
    void *history = NULL;
 
    ddef = dst->data;
-   if (ddef) history = ddef->history;
+   if (ddef) {
+      history = ddef->history;
+   }
 
    _aax_dsp_swap(d, s);
 
-   if (history) ddef->history = history;
+   ddef = dst->data;
+   if (src->data) {
+      _aaxRingBufferDelayEffectData *sdef = src->data;
+      if (history) {
+         ddef->history = history;
+      }
+      if (ddef->history == sdef->history) {
+         sdef->history = NULL;
+      }
+   }
+   else if (history)
+   {
+      if (!ddef->loopback) free(history);
+      ddef->history = NULL;
+   }
 }
 
 void

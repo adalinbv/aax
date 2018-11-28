@@ -627,26 +627,10 @@ aaxAudioFrameSetEffect(aaxFrame frame, aaxEffect e)
          // intentional fallthrough
       case AAX_DISTORTION_EFFECT:
       case AAX_RINGMODULATOR_EFFECT:
-         _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
-         break;
+      case AAX_FLANGING_EFFECT:
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
-      case AAX_FLANGING_EFFECT:
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
-          do
-         {
-            _aaxRingBufferDelayEffectData* data;
-            data = _EFFECT_GET2D_DATA(fmixer, DELAY_EFFECT);
-            if (data && !data->history)
-            {
-               unsigned int tracks = effect->info->no_tracks;
-               float fs = effect->info->frequency;
-
-               data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
-               _aaxRingBufferCreateHistoryBuffer(&data->history,
-                                                 data->history_samples, tracks);
-            }
-         } while (0);
          break;
       case AAX_REVERB_EFFECT:
          _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
