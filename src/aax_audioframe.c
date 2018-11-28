@@ -189,10 +189,10 @@ aaxAudioFrameDestroy(aaxFrame frame)
       /* frees both EQUALIZER_LF and EQUALIZER_HF */
       if (handle->filter)
       {
-         _aaxMutexDestroy(handle->mutex);
          if (handle->filter[EQUALIZER_LF].data) {
-            free(handle->filter[EQUALIZER_LF].data);
+            _aaxMutexDestroy(handle->mutex);
          }
+         _FILTER_FREE_DATA(handle, EQUALIZER_LF);
       }
 
       /* safeguard against using already destroyed handles */
