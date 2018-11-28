@@ -67,9 +67,12 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
       flt->slot[0]->destroy = _aax_dsp_destroy;
 
       flt->slot[0]->data_size = dsize;
-      flt->slot[0]->data = _aax_aligned_alloc(dsize);
-      if (flt->slot[0]->data) {
-         memset(flt->slot[0]->data, 0, dsize);
+      if (dsize)
+      {
+         flt->slot[0]->data = _aax_aligned_alloc(dsize);
+         if (flt->slot[0]->data) {
+            memset(flt->slot[0]->data, 0, dsize);
+         }
       }
 
       rv = (aaxFilter)flt;
@@ -187,7 +190,6 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       filter->param[AAX_REF_DISTANCE] = 1.0f;
       filter->param[AAX_MAX_DISTANCE] = FLT_MAX;
       filter->param[AAX_ROLLOFF_FACTOR] = 1.0f;
-      filter->state = AAX_FALSE; // AAX_EXPONENTIAL_DISTANCE;
       if (!data) data = _aax_aligned_alloc(dsize);
       if (data) {
          memset(data, 0, dsize);
@@ -208,7 +210,6 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       if (slot == 0) {
          filter->param[AAX_GAIN] = 1.0f;
          filter->param[AAX_MAX_GAIN] = 1.0f;
-         filter->state = AAX_TRUE;
       }
       break;
    default:

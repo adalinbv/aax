@@ -65,9 +65,12 @@ _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned sl
       eff->slot[0]->destroy = _aax_dsp_destroy;
 
       eff->slot[0]->data_size = dsize;
-      eff->slot[0]->data = _aax_aligned_alloc(dsize);
-      if (eff->slot[0]->data) {
-         memset(eff->slot[0]->data, 0, dsize);
+      if (dsize)
+      {
+         eff->slot[0]->data = _aax_aligned_alloc(dsize);
+         if (eff->slot[0]->data) {
+            memset(eff->slot[0]->data, 0, dsize);
+         }
       }
 
       rv = (aaxEffect)eff;

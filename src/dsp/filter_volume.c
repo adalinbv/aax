@@ -87,7 +87,14 @@ _aaxVolumeFilterSetState(_filter_t* filter, int state)
       fs = filter->info->frequency;
    }
 
-   filter->slot[0]->data = _occlusion_create(filter->slot[0]->data, filter->slot[1], state, fs);
+   if (state) {
+      filter->slot[0]->data = _occlusion_create(filter->slot[0]->data, filter->slot[1], state, fs);
+   }
+   else
+   {
+      filter->slot[0]->destroy(filter->slot[0]->data);
+      filter->slot[0]->data = NULL;
+   }
 
    return filter;
 }
@@ -105,7 +112,6 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSE
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _occlusion_destroy;
       rv->slot[0]->swap = _occlusion_swap;
-      rv->slot[0]->data = NULL;
 
       rv->state = p3d->filter[rv->pos].state;
    }
