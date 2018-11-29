@@ -177,8 +177,15 @@ typedef struct
 
 typedef struct
 {
-   float gain;
-   size_t sample_offs[_AAX_MAX_SPEAKERS];
+   size_t noffs[_AAX_MAX_SPEAKERS];
+   size_t coffs[_AAX_MAX_SPEAKERS];
+   size_t step[_AAX_MAX_SPEAKERS];
+} _aaxRingBufferOffsetData;
+
+typedef struct
+{
+  float gain;
+  size_t sample_offs[_AAX_MAX_SPEAKERS];
 } _aaxRingBufferDelayData;
 
 typedef struct
@@ -193,14 +200,10 @@ typedef struct
                size_t, size_t, void*, void*, unsigned int);
 
    _aaxLFOData lfo;
-   _aaxRingBufferDelayData delay;
+   _aaxRingBufferOffsetData *offset;
    _aaxRingBufferHistoryData *history;
+   _aaxRingBufferDelayData delay;
    size_t history_samples;
-
-   /* temporary storage, track specific. */
-   size_t curr_noffs[_AAX_MAX_SPEAKERS];
-   size_t curr_coffs[_AAX_MAX_SPEAKERS];
-   size_t curr_step[_AAX_MAX_SPEAKERS];
 
    char loopback;
 } _aaxRingBufferDelayEffectData;

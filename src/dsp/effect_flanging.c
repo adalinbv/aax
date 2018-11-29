@@ -95,29 +95,15 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      if (data == NULL)
-      {
-         data = _aax_aligned_alloc(DSIZE);
-         effect->slot[0]->data = data;
-         if (data) memset(data, 0, DSIZE);
-      }
 
+      data = _delay_create(data, effect->info);
+      effect->slot[0]->data = data;
       if (data)
       {
          int t, constant;
 
          data->run = _flanging_run;
          data->loopback = AAX_TRUE;
-
-         if (data->history == NULL)
-         {
-            unsigned int tracks = effect->info->no_tracks;
-            float fs = effect->info->frequency;
-
-            data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
-            _aaxRingBufferCreateHistoryBuffer(&data->history,
-                                              data->history_samples, tracks);
-         }
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
@@ -273,13 +259,13 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
 // if (offs >= (ssize_t)ds) offs = ds-1;
 
    if (start) {
-      noffs = effect->curr_noffs[track];
+      noffs = effect->offset->noffs[track];
    }
    else
    {
       noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
       effect->delay.sample_offs[track] = noffs;
-      effect->curr_noffs[track] = noffs;
+      effect->offset->noffs[track] = noffs;
    }
 
    assert(s == d);
@@ -303,8 +289,8 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
 
       if (start)
       {
-         step = effect->curr_step[track];
-         coffs = effect->curr_coffs[track];
+         step = effect->offset->step[track];
+         coffs = effect->offset->coffs[track];
       }
       else
       {
@@ -314,7 +300,7 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
             if (step < 2) step = end;
          }
       }
-      effect->curr_step[track] = step;
+      effect->offset->step[track] = step;
 
 //     DBG_MEMCLR(1, s-ds, ds+start, bps);
       _aax_memcpy(sptr-ds, effect->history->history[track], ds*bps);
@@ -336,7 +322,7 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
 
 // DBG_MEMCLR(1, effect->history->history[track], ds, bps);
       _aax_memcpy(effect->history->history[track], dptr+no_samples-ds, ds*bps);
-      effect->curr_coffs[track] = coffs;
+      effect->offset->coffs[track] = coffs;
    }
 }
 

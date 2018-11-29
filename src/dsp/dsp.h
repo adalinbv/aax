@@ -49,6 +49,7 @@ void _equalizer_run(void*, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, v
 void _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, _aaxRingBufferEqualizerData*);
 
 // delay effects
+void* _delay_create(void*, void*);
 void _delay_swap(void*, void*);
 void _delay_destroy(void *);
 

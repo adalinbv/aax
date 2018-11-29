@@ -97,25 +97,15 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
    case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      if (data == NULL)
-      {
-         data  = _aax_aligned_alloc(DSIZE);
-         effect->slot[0]->data = data;
-         if (data) memset(data, 0, DSIZE);
-      }
 
+      data = _delay_create(data, effect->info);
+      effect->slot[0]->data = data;
       if (data)
       {
          int t, constant;
 
          data->run = _phasing_run;
          data->loopback = AAX_FALSE;
-
-         if (data->history)
-         {
-            free(data->history);
-            data->history = NULL;
-         }
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
@@ -238,35 +228,70 @@ _eff_function_tbl _aaxPhasingEffect =
    (_aaxEffectConvert*)&_aaxPhasingEffectMinMax
 };
 
+void*
+_delay_create(void *d, void *i)
+{
+   _aaxRingBufferDelayEffectData *data = d;
+   _aaxMixerInfo *info = i;
+
+   if (data == NULL)
+   {
+      data  = _aax_aligned_alloc(DSIZE);
+      if (data) memset(data, 0, DSIZE);
+   }
+
+   if (data && data->offset == NULL)
+   {
+      data->offset = calloc(1, sizeof(_aaxRingBufferOffsetData));
+      if (!data->offset)
+      {
+         _aax_aligned_free(data);
+         data = NULL;
+      }
+   }
+
+
+   if (data && data->history == NULL)
+   {
+      unsigned int tracks = info->no_tracks;
+      float fs = info->frequency;
+
+      data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+      _aaxRingBufferCreateHistoryBuffer(&data->history,
+                                        data->history_samples, tracks);
+
+      if (!data->history)
+      {
+         free(data->offset);
+         data->offset = NULL;
+
+         _aax_aligned_free(data);
+         data = NULL;
+      }
+   }
+
+   return data;
+}
+
 void
 _delay_swap(void *d, void *s)
 {
    _aaxRingBufferDelayEffectData *ddef;
-   _aaxFilterInfo *dst = d, *src = s;
+   _aaxFilterInfo *dst = d;
    void *history = NULL;
+   void *offset = NULL;
 
    ddef = dst->data;
-   if (ddef) {
+   if (ddef)
+   {
       history = ddef->history;
+      offset = ddef->offset;
    }
 
    _aax_dsp_swap(d, s);
 
-   ddef = dst->data;
-   if (src->data) {
-      _aaxRingBufferDelayEffectData *sdef = src->data;
-      if (history) {
-         ddef->history = history;
-      }
-      if (ddef->history == sdef->history) {
-         sdef->history = NULL;
-      }
-   }
-   else if (history)
-   {
-      if (!ddef->loopback) free(history);
-      ddef->history = NULL;
-   }
+   if (history) ddef->history = history;
+   if (offset) ddef->offset = offset;
 }
 
 void
@@ -276,6 +301,11 @@ _delay_destroy(void *ptr)
    if (data)
    {
       data->lfo.envelope = AAX_FALSE;
+      if (data->offset)
+      {
+         free(data->offset);
+         data->offset = NULL;
+      }
       if (data->history)
       {
          free(data->history);
@@ -318,13 +348,13 @@ _phasing_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    if (offs >= ds) offs = ds-1;
 
    if (start) {
-      noffs = effect->curr_noffs[track];
+      noffs = effect->offset->noffs[track];
    }
    else
    {
       noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
       effect->delay.sample_offs[track] = noffs;
-      effect->curr_noffs[track] = noffs;
+      effect->offset->noffs[track] = noffs;
    }
 
    assert(s != d);

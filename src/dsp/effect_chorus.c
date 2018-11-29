@@ -95,25 +95,15 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      if (data == NULL)
-      {
-         data  = _aax_aligned_alloc(DSIZE);
-         effect->slot[0]->data = data;
-         if (data) memset(data, 0, DSIZE);
-      }
 
+      data = _delay_create(data, effect->info);
+      effect->slot[0]->data = data;
       if (data)
       {
          int t, constant;
 
          data->run = _chorus_run;
          data->loopback = AAX_FALSE;
-
-         if (data->history)
-         {
-            free(data->history);
-            data->history = 0;
-         }
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
@@ -270,13 +260,13 @@ _chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
 // if (offs >= ds) offs = ds-1;
 
    if (start) {
-      noffs = effect->curr_noffs[track];
+      noffs = effect->offset->noffs[track];
    }
    else
    {
       noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
       effect->delay.sample_offs[track] = noffs;
-      effect->curr_noffs[track] = noffs;
+      effect->offset->noffs[track] = noffs;
    }
 
    assert(s != d);
