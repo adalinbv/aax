@@ -432,7 +432,6 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
    {
       void* be_handle = handle->backend.handle;
       void* fbe_handle = handle->file.handle;
-      _aaxAudioFrame *smixer = NULL;
 
       if (handle->info->mode == AAX_MODE_READ)
       {
@@ -444,8 +443,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
          if (dptr_sensor)
          {
             _sensor_t *sensor = _intBufGetDataPtr(dptr_sensor);
+            _aaxAudioFrame *smixer = sensor->mixer;
 
-            smixer = sensor->mixer;
             if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
             {
                _aaxDelayed3dProps sdp3d, *sdp3d_m;
@@ -564,6 +563,8 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
       {
          if (handle->info->mode != AAX_MODE_READ)
          {
+            _sensor_t *sensor = _intBufGetDataPtr(dptr_sensor);
+            _aaxAudioFrame *smixer = sensor->mixer;
             if (smixer->emitters_3d || smixer->emitters_2d || smixer->frames)
             {
                dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
