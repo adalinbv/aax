@@ -1,13 +1,14 @@
-* Wed Nov 14 2018 - tech@adalin.org
-- AeonWave (3.5.3) stable; urgency=low
+* Fri Nov 30 2018 - tech@adalin.org
+- AeonWave (3.5.3) stable; urgency=high
 
  * Implement aftertouch using pitch in the Instrument class.
+ * Fix a number of memory related issues as reported by valgrind.
  * Switch from swapping data structure-pointers to copying the contents of the
    data structure when assinging filters and effects. This prevents that the
-   dsp destory function will destroy a data structure which might still be in
-   use.
+   dsp destory-function will destroy a data structure which might still be in
+   use by a thread.
 
--- Erik Hofman <tech@adalin.org>  Wed 14 Nov  2018 14:49:08 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 30 Nov 2018 13:49:08 + 0100
 
 * Wed Nov 07 2018 - tech@adalin.org
 - AeonWave (3.5.2) stable; urgency=low
@@ -17,7 +18,7 @@
    filter).
  * Fix an audible glitch when resetting (re-initializing) emitters.
 
--- Erik Hofman <tech@adalin.org>  Wed 07 Nov  2018 14:05:08 + 0100
+-- Erik Hofman <tech@adalin.org>  Wed 07 Nov 2018 14:05:08 + 0100
 
 * Sat Oct 13 2018 - tech@adalin.org
 - AeonWave (3.5.1) stable; urgency=low
@@ -26,7 +27,7 @@
  * Fix some more issues with the timed gain filter and timed pitch effect.
  * Remove a debugging statement.
 
--- Erik Hofman <tech@adalin.org>  Sat 13 Oct  2018 10:37:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 13 Oct 2018 10:37:00 + 0200
 
 * Thu Sep 27 2018 - tech@adalin.org
 - AeonWave (3.5.0) stable; urgency=low
@@ -47,7 +48,7 @@
  * AAXS generated buffers will now use mipmapping to extend the pitch range
    beyond a pitch level of 32.
 
--- Erik Hofman <tech@adalin.org>  Thu 27 Sep  2018 09:13:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Thu 27 Sep 2018 09:13:00 + 0200
 
 * Wed Aug 01 2018 - tech@adalin.org
 - AeonWave (3.4.0) stable; urgency=low
@@ -62,7 +63,7 @@
    anomalies for wireless communications. But useful for other purposes too.
  * Remove debugging output from ogg streaming code.
 
--- Erik Hofman <tech@adalin.org>  Wed 01 Aug  2018 11:00:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Wed 01 Aug 2018 11:00:00 + 0200
 
 * Fri Jul 20 2018 - tech@adalin.org
 - AeonWave (3.3.0) stable; urgency=low
@@ -81,14 +82,14 @@
  * Prevent a crash when the state of the timed-gain filter or timed-pitch effect
    is not set before it is registered the sensor, audioframe or emitter.
 
--- Erik Hofman <tech@adalin.org>  Fri 20 Jul  2018 14:01:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri 20 Jul 2018 14:01:00 + 0200
 
 * Tue Jul 03 2018 - tech@adalin.org
 - AeonWave (3.2.3) stable; urgency=low
  * Fix a missing offset(enum aaxType) error for the AeonWave class.
  * Fix a problem with AAX_SHARED_DATA_DIR support for Windows.
 
--- Erik Hofman <tech@adalin.org>  Tue 03 Jul  2018 08:49:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue 03 Jul 2018 08:49:00 + 0200
 
 * Sat Jun 30 2018 - tech@adalin.org
 - AeonWave (3.2.2) stable; urgency=medium
@@ -98,7 +99,7 @@
  * Fix a possible stream synchronization problem at the start of streams
    that support ICY metadata song information.
 
--- Erik Hofman <tech@adalin.org>  Sat 30 Jun  2018 11:06:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 30 Jun 2018 11:06:00 + 0200
 
 * Sat Jun 23 2018 - tech@adalin.org
 - AeonWave (3.2.1) stable; urgency=low
@@ -113,7 +114,7 @@
    recognized internally and the library is binary compatible with previous
    versions.
 
--- Erik Hofman <tech@adalin.org>  Sat 23 Jun  2018 12:31:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 23 Jun 2018 12:31:00 + 0200
 
 * Sat Jun 16 2018 - tech@adalin.org
 - AeonWave (3.2.0) stable; urgency=high
@@ -129,7 +130,7 @@
    backend interfaces.
  * Fix a number of one-off memory leaks.
 
--- Erik Hofman <tech@adalin.org>  Sat 16 Jun  2018 13:30:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 16 Jun 2018 13:30:00 + 0200
 
 * Tue Jun 05 2018 - tech@adalin.org
 - AeonWave (3.1.2) stable; urgency=low
@@ -138,7 +139,7 @@
    case aaxBufferReadFromStream fails when calling buffer() from the
    aeonwave class.
 
--- Erik Hofman <tech@adalin.org>  Tue 05 Jun  2018 20:48:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue 05 Jun 2018 20:48:00 + 0200
 
 * Fri Jun 01 2018 - tech@adalin.org
 - AeonWave (3.1.1) stable; urgency=medium
@@ -153,7 +154,7 @@
  * Fix a case where LFO filters and/or effects could be initialized improperly
    for use with audio-frames.
 
--- Erik Hofman <tech@adalin.org>  Fri 01 Jun  2018 15:15:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri 01 Jun 2018 15:15:00 + 0200
 
 * Sat May 21 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=high
@@ -187,20 +188,20 @@
  * Increase the http stream timeout value. The default was too low.
  * Protect against deregistering an unregistered audio-frame or emitter.
 
--- Erik Hofman <tech@adalin.org>  Sat 21 May  2018 13:44:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat 21 May 2018 13:44:00 + 0200
 
 
-* Fri Jan 05  2018 - tech@adalin.org
+* Fri Jan 05 2018 - tech@adalin.org
 - AeonWave (3.0.11) stable; urgency=low
  * Fix a speed regression for matrix multiplications.
  * Add the 'auto-sustain' option for filters and effects which calculates the
    sustain time by subtracting the logarithmic frequency value multiplied by
    the auto-sustain value from the original value.
 
--- Erik Hofman <tech@adalin.org>  Fri 05 Jan  2018 13:57:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 05 Jan 2018 13:57:00 + 0100
 
 
-* Sun Dec 24  2017 - tech@adalin.org
+* Sun Dec 24 2017 - tech@adalin.org
 - AeonWave (3.0.10) stable; urgency=medium
  * Considerably speed up envelope following calcualtion.
  * Add the option to define the duration of the waveform generated by the sound
@@ -213,7 +214,7 @@
  * Fix the case where filters in the sound section of AAXS files could only
    be 12db/oct.
 
--- Erik Hofman <tech@adalin.org>  Sun 24 Dec  2017 14:32:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Sun 24 Dec 2017 14:32:00 + 0100
 
 
 * Thu Dec 05 2017 - tech@adalin.org
@@ -225,7 +226,7 @@
  * Fix static frequency filter anomalies at the loop points of AAXS defined
    waveforms.
 
--- Erik Hofman <tech@adalin.org>  Tue 05 Dec  2017 11:22:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue 05 Dec 2017 11:22:00 + 0100
 
 
 * Thu Nov 11 2017 - tech@adalin.org
@@ -234,7 +235,7 @@
  * Fix detecting directories with a dot in the name as not being a remote host.
    e.g. 'sound.dir/file.mp3"
 
--- Erik Hofman <tech@adalin.org>  Thu, 11 Nov  2017 13:44:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Thu, 11 Nov 2017 13:44:00 + 0100
 
 
 * Tue Nov  7 2017 - tech@adalin.org
@@ -245,7 +246,7 @@
  * Add support for a static frequency filter and a static distortion effect
    within the <sound/> section.
 
--- Erik Hofman <tech@adalin.org>  Tue,  7 Nov  2017 13:19:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue,  7 Nov 2017 13:19:00 + 0100
 
 
 * Tue Oct 31 2017 - tech@adalin.org
@@ -257,7 +258,7 @@
  * Reduce getaddrinfo timeout considerably by specifying ai_family = AF_INET
  * Fix a bug where a suspended configuration could not be resumed.
 
--- Erik Hofman <tech@adalin.org>  Tue, 31 Oct  2017 10:03:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue, 31 Oct 2017 10:03:00 + 0200
 
 
 * Sat Oct 21 2017 - tech@adalin.org
@@ -268,7 +269,7 @@
  * Add function to the C++ support class to get the type, waveform_type,
    frequency_filter_type and distance_model by name
 
--- Erik Hofman <tech@adalin.org>  Sat, 21 Oct  2017 13:39:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat, 21 Oct 2017 13:39:00 + 0200
 
 
 * Mon Oct  9 2017 - tech@adalin.org
@@ -280,7 +281,7 @@
  * Fix the buffer length when a file is specified for the sound section of an
    AAXS file.
 
--- Erik Hofman <tech@adalin.org>  Mon, 09 Oct  2017 14:16:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon, 09 Oct 2017 14:16:00 + 0200
 
 
 * Tue Oct  3 2017 - tech@adalin.org
@@ -293,7 +294,7 @@
    definition.
  * Fix a possible segmentation fault when a requested WAV file was not found.
 
--- Erik Hofman <tech@adalin.org>  Tue, 03 Oct  2017 13:33:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue, 03 Oct 2017 13:33:00 + 0200
 
 
 * Fri Sep 29 2017 - tech@adalin.org
@@ -301,7 +302,7 @@
  * Add a function to add a buffer to the dsp class.
  * Fix a bug in the matrix code which could create a stack smash.
 
--- Erik Hofman <tech@adalin.org>  Fri, 29 Sep  2017 09:08:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri, 29 Sep 2017 09:08:00 + 0200
 
 * Sat Sep 23 2017 - tech@adalin.org
 - AeonWave (3.0.1) stable; urgency=medium
@@ -312,7 +313,7 @@
    aaxBufferGetData when the buffer format is AAX_AAXS16S or AAX_AAXS24S.
  * Fix a few bugs for unusual situations in the new streaming code.
 
--- Erik Hofman <tech@adalin.org>  Sat, 23 Sep  2017 09:08:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sat, 23 Sep 2017 09:08:00 + 0200
 
 
 * Sun Sep 17 2017 - tech@adalin.org
@@ -356,9 +357,9 @@
    inactive and active again.
  * Fix reporting of min/max tracks and frequency for OSS v3
 
--- Erik Hofman <tech@adalin.org>  Sun, 17 Sep  2017 09:51:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Sun, 17 Sep 2017 09:51:00 + 0200
 
-* Fri Jul 29  2016 - tech@adalin.org
+* Fri Jul 29 2016 - tech@adalin.org
 - AeonWave (2.7.0) stable; urgency=low
  * Add aeonwave.hpp, a header file only AeonWave C++ abstraction API.
  * Add AAX_RELEASE_MODE to disable most of the error checking.
@@ -368,9 +369,9 @@
  * Prevent a segmentation fault when handle == 0 for aaxAudioFrameDestroy,
    aaxEmitterAddBuffer and aaxEmitterRemoveBuffer.
 
--- Erik Hofman <tech@adalin.org>  Fri, 29 Jul  2016 11:13:00 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri, 29 Jul 2016 11:13:00 + 0100
 
-* Fri Oct 15  2015 - tech@adalin.org
+* Fri Oct 15 2015 - tech@adalin.org
 - AeonWave (2.6.1) stable; urgency=low
  * Fix a few border case tests for mixer configuration.
  * Make sure testing for 'AAX_frequency_filter' also works even though 
@@ -378,9 +379,9 @@
  * Fix a mostly unnoticeable mistake for envelope following distortion filter.
  * Provide a more verbose renderer string for ALSA
 
--- Erik Hofman <tech@adalin.org>  Fri, 15 Oct  2015 10:49:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Fri, 15 Oct 2015 10:49:00 + 0200
 
-* Mon Aug 31  2015 - tech@adalin.org
+* Mon Aug 31 2015 - tech@adalin.org
 - AeonWave (2.6.0) stable; urgency=low
  * Rewrote the loop-point and buffer switching code for better loop handling.
  * Don't use hardware volume when the number of subdevices exceeds 1 for ALSA.
@@ -403,7 +404,7 @@
  * Fix a possible segmentation fault for audio-frame-registered emitters that
    use delay effects.
 
--- Erik Hofman <tech@adalin.org>  Mon, 31 Aug  2015 17:53:00 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon, 31 Aug 2015 17:53:00 + 0200
 
 * Wed Mar 25 2015 - tech@adalin.org
 - AeonWave (2.5.3) stable; urgency=low
