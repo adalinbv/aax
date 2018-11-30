@@ -383,7 +383,7 @@ _batch_freqfilter_vfpv2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
       int stages;
 
       cptr = filter->coeff;
-      hist = filter->freqfilter.history[t];
+      hist = filter->freqfilter->history[t];
       stages = filter->no_stages;
       if (!stages) stages++;
 
@@ -440,7 +440,7 @@ _batch_freqfilter_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, int t, s
       int stages;
 
       cptr = filter->coeff;
-      hist = filter->freqfilter.history[t];
+      hist = filter->freqfilter->history[t];
       stages = filter->no_stages;
 
       if (filter->state == AAX_BESSEL) {
