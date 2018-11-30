@@ -370,21 +370,10 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
 
-   if (!num || (v <= LEVEL_128DB && vstep <= LEVEL_128DB)) return;
+   if (!num || (fabsf(v) <= LEVEL_128DB && !need_step)) return;
 
    if (fabsf(v - 1.0f) < LEVEL_96DB && !need_step) {
       _batch_fadd_neon(dst, src, num);
-      return;
-   }
-
-   if (need_step)
-   {
-      i = num;
-      do {
-         *d++ += *s++ * v;
-         v += vstep;
-      }
-      while (--i);
       return;
    }
 
@@ -392,35 +381,78 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
    i = num/step;
    num -= i*step;
+
    if (i)
    {
-      float32x4x4_t sfr4, dfr4;
-      float32x4_t tv;
-
-      tv = vdupq_n_f32(v);
-      do
+      if (need_step)
       {
-         sfr4 = vld4q_f32(s);   // load s
-         dfr4 = vld4q_f32(d);   // load d
+         const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
+         float32x4x4_t sfr4, dfr4;
+         float32x4_t tv, dvstep;
 
-         s += step;
+         dvstep = ld1q_f32(fact);
+         dvstep = vmulq_f32(dvstep, vdupq_n_f32(vstep));
 
-         dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
-         dfr4.val[1] = vmlaq_f32(dfr4.val[1], sfr4.val[1], tv);
-         dfr4.val[2] = vmlaq_f32(dfr4.val[2], sfr4.val[2], tv);
-         dfr4.val[3] = vmlaq_f32(dfr4.val[3], sfr4.val[3], tv);
+         vstep *= step;
+         dv = vdupq_n_f32(vstep);
+         tv = vaddq_f32(vdupq_n_f32(v), dvstep);
+         v += i*vstep;
+         vstep /= step;
 
-         vst4q_f32(d, dfr4);    // store d
-         d += step;
+         num -= i*step;
+         s += i*step;
+         do
+         {
+            sfr4 = vld4q_f32(s);   // load s
+            dfr4 = vld4q_f32(d);   // load d
+
+            dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
+            tv = vaddq_f32(tv, dv);
+
+            dfr4.val[1] = vmlaq_f32(dfr4.val[1], sfr4.val[1], tv);
+            tv = vaddq_f32(tv, dv);
+
+            dfr4.val[2] = vmlaq_f32(dfr4.val[2], sfr4.val[2], tv);
+            tv = vaddq_f32(tv, dv);
+
+            dfr4.val[3] = vmlaq_f32(dfr4.val[3], sfr4.val[3], tv);
+            tv = vaddq_f32(tv, dv);
+
+            vst4q_f32(d, dfr4);    // store d
+            d += step;
+         }
+         while(--i);
       }
-      while(--i);
-   }
+      else
+      {
+         tv = vdupq_n_f32(v);
 
-   if (num) {
-      i = num;
-      do {
-         *d++ += *s++ * v;
-      } while(--i);
+         vstep *= step;
+         num -= i*step;
+         s += i*step;
+
+         do
+         {
+            sfr4 = vld4q_f32(s);   // load s
+            dfr4 = vld4q_f32(d);   // load d
+
+            dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
+            dfr4.val[1] = vmlaq_f32(dfr4.val[1], sfr4.val[1], tv);
+            dfr4.val[2] = vmlaq_f32(dfr4.val[2], sfr4.val[2], tv);
+            dfr4.val[3] = vmlaq_f32(dfr4.val[3], sfr4.val[3], tv);
+
+            vst4q_f32(d, dfr4);    // store d
+            d += step;
+         }
+         while(--i);
+      }
+
+      if (num) {
+         i = num;
+         do {
+            *d++ += *s++ * v;
+         } while(--i);
+      }
    }
 }
 
