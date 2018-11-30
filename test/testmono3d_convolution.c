@@ -241,12 +241,13 @@ int main(int argc, char **argv)
             res = aaxBufferDestroy(buffer);
             testForState(res, "aaxBufferDestroy");
 
+            res = aaxBufferDestroy(irbuffer);
+            testForState(res, "aaxBufferDestroy");
+
             res = aaxMixerSetState(config, AAX_STOPPED);
             testForState(res, "aaxMixerStop");
-        }
 
-        aaxBufferDestroy(irbuffer);
-        aaxBufferDestroy(buffer);
+        }
     }
 
     res = aaxDriverClose(config);
