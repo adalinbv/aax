@@ -281,9 +281,8 @@ _reverb_destroy(void *ptr)
    if (reverb)
    {
       _occlusion_destroy(reverb->occlusion);
-      _aax_aligned_free(reverb->freq_filter->freqfilter);
       _reverb_destroy_delays(reverb);
-      _aax_aligned_free(ptr);
+      _aax_aligned_free(reverb);
    }
 }
 
@@ -615,8 +614,7 @@ _reverb_destroy_delays(_aaxRingBufferReverbData *reverb)
 #else
       free(reverb->reverb);
 #endif
-      free(reverb->freq_filter);
-      reverb->freq_filter = 0;
+      _freqfilter_destroy(reverb->freq_filter);
       reverb->reverb = 0;
    }
 }
