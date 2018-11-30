@@ -348,8 +348,8 @@ _convolution_swap(void *d, void *s)
    _aax_dsp_swap(d, s);
 
    if (history) dconv->history = history;
-   if (dconv->freq_filter) dconv->freq_filter->freqfilter = freqfilter;
-   if (dconv->occlusion) dconv->occlusion->freq_filter.freqfilter = occlusion;
+   if (freqfilter) dconv->freq_filter->freqfilter = freqfilter;
+   if (occlusion) dconv->occlusion->freq_filter.freqfilter = occlusion;
 
 }
 
@@ -370,7 +370,7 @@ _convolution_destroy(void *ptr)
       }
 
       if (data->history) free(data->history);
-      if (data->sample_ptr) _aax_aligned_free(data->sample_ptr);
+      if (data->sample_ptr) free(data->sample_ptr);
       _occlusion_destroy(data->occlusion);
       _freqfilter_destroy(data->freq_filter);
       _aax_aligned_free(data);
