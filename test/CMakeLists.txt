@@ -19,10 +19,12 @@ FUNCTION(CREATE_TEST TEST_NAME)
   add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
 ENDFUNCTION()
 
-CREATE_CPP_TEST(testposition)
-set_property(SOURCE testposition.cpp APPEND
+if(NOT ARM)
+ CREATE_CPP_TEST(testposition)
+ set_property(SOURCE testposition.cpp APPEND
              PROPERTY COMPILE_FLAGS "-std=c++11"
-)
+ )
+endif()
 
 CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
