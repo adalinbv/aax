@@ -227,7 +227,11 @@ int main()
 
             if (simd2)
             {
+#ifdef SIMD1
                 _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD1);
+#else
+                _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
+#endif
                 t = clock();
                   _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
                   eps = (double)(clock() - t)/ CLOCKS_PER_SEC;

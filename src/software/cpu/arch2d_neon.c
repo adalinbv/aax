@@ -329,26 +329,23 @@ _batch_fadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
 
-   step = sizeof(float32x4x4_t)/sizeof(float);
+   step = sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    num -= i*step;
    if (i)
    {
-      float32x4x4_t sfr4, dfr4;
+      float32x4_t sfr4, dfr4;
 
       do
       {
-         sfr4 = vld4q_f32(s);   // load s
-         dfr4 = vld4q_f32(d);   // load d
+         sfr4 = vld1q_f32(s);   // load s
+         dfr4 = vld1q_f32(d);   // load d
          s += step;
 
-         dfr4.val[0] = vaddq_f32(dfr4.val[0], sfr4.val[0]);
-         dfr4.val[1] = vaddq_f32(dfr4.val[1], sfr4.val[1]);
-         dfr4.val[2] = vaddq_f32(dfr4.val[2], sfr4.val[2]);
-         dfr4.val[3] = vaddq_f32(dfr4.val[3], sfr4.val[3]);
+         dfr4 = vaddq_f32(dfr4, sfr4);
 
-         vst4q_f32(d, dfr4);    // store d
+         vst1q_f32(d, dfr4);    // store d
          d += step;
       }
       while(--i);
@@ -388,24 +385,23 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       {
          const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
          float32x4x4_t sfr4, dfr4;
-         float32x4_t tv, dvstep;
+         float32x4_t dv, tv, dvstep;
 
-         dvstep = ld1q_f32(fact);
-         dvstep = vmulq_f32(dvstep, vdupq_n_f32(vstep));
+         dvstep = vld1q_f32(fact);
+         dv = vdupq_n_f32(vstep);
+         dvstep = vmulq_f32(dvstep, dv);
 
          vstep *= step;
-         dv = vdupq_n_f32(vstep);
          tv = vaddq_f32(vdupq_n_f32(v), dvstep);
          v += i*vstep;
          vstep /= step;
 
-         num -= i*step;
-         s += i*step;
          do
          {
             sfr4 = vld4q_f32(s);   // load s
             dfr4 = vld4q_f32(d);   // load d
 
+            s += step;
             dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
             tv = vaddq_f32(tv, dv);
 
@@ -422,20 +418,26 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             d += step;
          }
          while(--i);
+
+         if (num) {
+            i = num;
+            do {
+               *d++ += *s++ * v;
+               v += vstep;
+            } while(--i);
+         }
       }
       else
       {
-         tv = vdupq_n_f32(v);
-
-         vstep *= step;
-         num -= i*step;
-         s += i*step;
+         float32x4_t tv = vdupq_n_f32(v);
+         float32x4x4_t sfr4, dfr4;
 
          do
          {
             sfr4 = vld4q_f32(s);   // load s
             dfr4 = vld4q_f32(d);   // load d
 
+            s += step;
             dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
             dfr4.val[1] = vmlaq_f32(dfr4.val[1], sfr4.val[1], tv);
             dfr4.val[2] = vmlaq_f32(dfr4.val[2], sfr4.val[2], tv);
@@ -445,13 +447,13 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             d += step;
          }
          while(--i);
-      }
 
-      if (num) {
-         i = num;
-         do {
-            *d++ += *s++ * v;
-         } while(--i);
+         if (num) {
+            i = num;
+            do {
+               *d++ += *s++ * v;
+            } while(--i);
+         }
       }
    }
 }
