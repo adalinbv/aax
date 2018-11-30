@@ -481,7 +481,7 @@ _batch_freqfilter_float_avx2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       int stages;
 
       cptr = filter->coeff;
-      hist = filter->freqfilter_history[t];
+      hist = filter->freqfilter.history[t];
       stages = filter->no_stages;
       if (!stages) stages++;
 
