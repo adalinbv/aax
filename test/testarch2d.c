@@ -23,7 +23,8 @@
 # define SIMD2	sse2
 char _aaxArchDetectSSE2();
 #elif defined(__x86_64__)
-# define SIMD   sse_vex
+# define SIMD   sse2
+# define SIMD1	sse_vex
 # define SIMD2	avx
 char _aaxArchDetectAVX();
 #elif defined(__arm__) || defined(_M_ARM)
@@ -226,11 +227,11 @@ int main()
 
             if (simd2)
             {
-                _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD2);
+                _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD1);
                 t = clock();
                   _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
                   eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-                printf("rms "MKSTR(SIMD)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+                printf("rms "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
                 if (rms1 != rms2) {
                    printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
                 }
