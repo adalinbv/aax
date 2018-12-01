@@ -158,13 +158,13 @@ extern _eff_function_tbl *_aaxEffects[AAX_EFFECT_MAX];
  if (E->slot[s]->swap) E->slot[s]->swap(&P->effect[t], E->slot[s]);            \
  if (!s) aaxEffectSetState(E, P->effect[t].state); } while (0);
 
-#define _EFFECT_SWAP_SLOT(P, t, E, s) _aaxMutexLock(P->mutex);                 \
+#define _EFFECT_SWAP_SLOT(P, t, E, s)                                          \
  _EFFECT_SET(P, t, 0, _EFFECT_GET_SLOT(E, s, 0));                              \
  _EFFECT_SET(P, t, 1, _EFFECT_GET_SLOT(E, s, 1));                              \
  _EFFECT_SET(P, t, 2, _EFFECT_GET_SLOT(E, s, 2));                              \
  _EFFECT_SET(P, t, 3, _EFFECT_GET_SLOT(E, s, 3));                              \
  _EFFECT_SET_STATE(P, t, _EFFECT_GET_SLOT_STATE(E));                           \
- _EFFECT_SWAP_SLOT_DATA(P, t, E, s); _aaxMutexUnLock(P->mutex);
+ _EFFECT_SWAP_SLOT_DATA(P, t, E, s);
 
 float _velocity_calculcate_vs(_aaxEnvData*);
 FLOAT _velocity_prepare(_aax3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, float, float);
