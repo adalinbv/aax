@@ -302,12 +302,12 @@ public:
 
     void untie(Param& pm) {
         auto pi = std::find(fties.begin(),fties.end(),&pm);
-        if (pi != fties.end()) fties.erase(pi); pm.untie();
+        if (pi != fties.end()) { fties.erase(pi); } pm.untie();
     }
 
     void untie(Status& pm) {
         auto pi = std::find(ities.begin(),ities.end(),&pm);
-        if (pi != ities.end()) ities.erase(pi); pm.untie();
+        if (pi != ities.end()) { ities.erase(pi); } pm.untie();
     }
 
     operator void*() const {
