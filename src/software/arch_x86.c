@@ -142,8 +142,8 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 };
 
 static char check_cpuid_ebx(unsigned int);
-static char check_cpuid_ecx(unsigned int);
-static char check_extcpuid_ecx(unsigned int);
+char check_cpuid_ecx(unsigned int);
+char check_extcpuid_ecx(unsigned int);
 # ifndef __x86_64__
 static char check_cpuid_edx(unsigned int);
 # endif
@@ -463,11 +463,11 @@ _aaxGetSIMDSupportLevel()
 
    /* Prefer FMA3 over FMA4 so detect FMA4 first */
    if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-//    _batch_fmadd = _batch_fma4_float_avx;
+      _batch_fmadd = _batch_fmadd_fma4;
    }
 
    if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-//    _batch_fmadd = _batch_fma3_float_avx;
+      _batch_fmadd = _batch_fmadd_fma3;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_AVX2)
@@ -548,7 +548,7 @@ check_cpuid_ebx(unsigned int type)
    return (regs[EBX] & type) ? 1 : 0;
 }
 
-static char
+char
 check_cpuid_ecx(unsigned int type)
 {
    if (detect_cpuid()) {
@@ -568,7 +568,7 @@ check_cpuid_edx(unsigned int type)
 }
 # endif
 
-static char
+char
 check_extcpuid_ecx(unsigned int type)
 {
    regs[ECX] = 0;

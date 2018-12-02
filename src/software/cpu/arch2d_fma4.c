@@ -32,7 +32,7 @@
 # define CACHE_ADVANCE_FF	 (2*32)
 
 FN_PREALIGN void
-_batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
+_batch_fmadd_fma4(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
    int need_step = (fabsf(vstep) <=  LEVEL_96DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
@@ -92,7 +92,7 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
             {
                ymm0 = _mm256_loadu_ps((const float*)sptr++);
 
-               ymm0 =_mm256_macc_ps(_mm256_load_ps((const float*)dptr), ymm0, tv);
+               ymm0 =_mm256_macc_ps(ymm0, tv, _mm256_load_ps((const float*)dptr));
                tv = _mm256_add_ps(tv, dv);
 
                _mm256_store_ps((float*)dptr++, ymm0);
@@ -105,7 +105,7 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
             {
                ymm0 = _mm256_load_ps((const float*)sptr++);
 
-               ymm0 =_mm256_macc_ps(_mm256_load_ps((const float*)dptr), ymm0, tv);
+               ymm0 =_mm256_macc_ps(ymm0, tv, _mm256_load_ps((const float*)dptr));
                tv = _mm256_add_ps(tv, dv);
 
                _mm256_store_ps((float*)dptr++, ymm0);
@@ -161,8 +161,8 @@ _batch_fma4_float_avx(float32_ptr dst, const_float32_ptr src, size_t num, float 
                ymm0 = _mm256_loadu_ps((const float*)sptr++);
                ymm1 = _mm256_loadu_ps((const float*)sptr++);
 
-               ymm0 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+0)), ymm0, tv);
-               ymm1 =_mm256_macc_ps(_mm256_load_ps((const float*)(dptr+1)), ymm1, tv);
+               ymm0 =_mm256_macc_ps(ymm0, tv, _mm256_load_ps((const float*)(dptr+0)));
+               ymm1 =_mm256_macc_ps(ymm1, tv, _mm256_load_ps((const float*)(dptr+1)));
 
                _mm256_store_ps((float*)dptr++, ymm0);
                _mm256_store_ps((float*)dptr++, ymm1);

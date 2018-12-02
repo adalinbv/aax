@@ -388,13 +388,11 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          float32x4_t dv, tv, dvstep;
 
          dvstep = vld1q_f32(fact);
-         dv = vdupq_n_f32(vstep);
-         dvstep = vmulq_f32(dvstep, dv);
+         dvstep = vmulq_f32(dvstep, vdupq_n_f32(vstep));
 
-         vstep *= step;
+         dv = vdupq_n_f32(vstep*step);
          tv = vaddq_f32(vdupq_n_f32(v), dvstep);
-         v += i*vstep;
-         vstep /= step;
+         v += i*step*vstep;
 
          do
          {
