@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2018 by Erik Hofman.
+ * Copyright 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -962,6 +962,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             }
             while(--i);
          }
+         _mm256_zeroupper();
       }
 
       if (num)
@@ -972,6 +973,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             v += vstep;
          } while(--i);
       }
+      _mm256_zeroall();
    }
    else
    {
@@ -1019,7 +1021,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
          }
          else
          {
-         __m256 tv = _mm256_set1_ps(v);
+            __m256 tv = _mm256_set1_ps(v);
             do
             {
                ymm0 = _mm256_mul_ps(_mm256_load_ps((const float*)sptr++), tv);
@@ -1043,7 +1045,7 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             *d++ += *s++ * v;
          } while(--i);
       }
-       _mm256_zeroall();
+      _mm256_zeroall();
    }
 }
 

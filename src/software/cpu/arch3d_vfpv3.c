@@ -1,5 +1,6 @@
 /*
- * Copyright (C) 2005-2017 by Erik Hofman <erik@ehofman.com>
+ * Copyright (C) 2005-2018 by Erik Hofman <erik@ehofman.com>
+ * Copyright (C) 2009-2018 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
