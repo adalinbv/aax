@@ -174,7 +174,6 @@ _aaxWorkerSetup(int dt)
       // Assign a worker thread to every physical core but reserve
       // one core for processing of the mixer and audio-frames.
       handle->no_workers = _MIN(_aaxGetNoCores(), _AAX_MAX_NO_WORKERS);
-      if (handle->no_workers > 1) handle->no_workers--;
 
       handle->mutex = _aaxMutexCreate(NULL);
       handle->worker_start = _aaxSemaphoreCreate(0);
