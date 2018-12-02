@@ -26,7 +26,13 @@ char _aaxArchDetectSSE2();
 # define SIMD   sse2
 # define SIMD1	sse_vex
 # define SIMD2	avx
+# define FMA3	fma3
+# define FMA4	fma4
+# define CPUID_FEAT_ECX_FMA3	(1 << 12)
+# define CPUID_FEAT_ECX_FMA4	(1 << 16)
 char _aaxArchDetectAVX();
+char check_extcpuid_ecx(unsigned int);
+char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
 # define SIMD	neon
 # define SIMD2	neon
@@ -54,7 +60,9 @@ _batch_get_average_rms_proc _batch_get_average_rms;
 int main()
 {
     float *src, *dst1, *dst2;
-    char simd = 0, simd2 = 0;
+    char simd = 0;
+    char simd2 = 0;
+    char simd3 = 0;
     clock_t t;
 
 #if defined(__i386__)
@@ -62,6 +70,12 @@ int main()
 #elif defined(__x86_64__)
     simd = 1;
     simd2 = _aaxArchDetectAVX();
+    if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+       simd3 = 4;
+    }
+    if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
+       simd3 = 3;
+    }
 #elif defined(__arm__) || defined(_M_ARM)
     simd = _aaxArchDetectNEON();
 #endif
@@ -112,6 +126,18 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fadd "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
+        if (simd3)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
+            else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+
+            if (simd3 == 3) printf("fadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            else printf("fadd "MKSTR(FMA4)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
 
         /*
          * batch fmadd by a value
@@ -143,6 +169,23 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
+        }
+        if (simd3)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
+            else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+
+            if (simd3 == 3) {
+               printf("float fadd+fmadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+               TEST("float fadd+fmadd "MKSTR(FMA3), dst1, dst2);
+            } else {
+               printf("float fadd+fmadd "MKSTR(FMA4)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+               TEST("float fadd+fmadd "MKSTR(FMA4), dst1, dst2);
+            }
         }
 
         /*
@@ -176,6 +219,24 @@ int main()
             printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
         }
+        if (simd3)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
+            else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
+            t = clock();
+              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, VSTEP);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+
+            if (simd3 == 3) {
+               printf("float fadd+fmadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+               TEST("float fadd+fmadd "MKSTR(FMA3), dst1, dst2);
+            } else {
+               printf("float fadd+fmadd "MKSTR(FMA4)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+               TEST("float fadd+fmadd "MKSTR(FMA4), dst1, dst2);
+            }
+        }
+
 
         /*
          * batch fmul by a value for floats
