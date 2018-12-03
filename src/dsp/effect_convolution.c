@@ -331,26 +331,28 @@ _eff_function_tbl _aaxConvolutionEffect =
 void
 _convolution_swap(void *d, void *s)
 {
-   _aaxRingBufferConvolutionData *dconv;
-   _aaxFilterInfo *dst = d;
-   void *history = NULL;
-   void *freqfilter = NULL;
-   void *occlusion = NULL;
+   _aaxFilterInfo *dst = d, *src = s;
 
-   dconv = dst->data;
-   if (dconv)
+   if (src->data && src->data_size)
    {
-      history = dconv->history;
-      if (dconv->freq_filter) freqfilter = dconv->freq_filter->freqfilter;
-      if (dconv->occlusion) occlusion = dconv->occlusion->freq_filter.freqfilter;
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {
+         _aaxRingBufferConvolutionData *dconv = dst->data;
+         _aaxRingBufferConvolutionData *sconv = src->data;
+
+         assert(dst->data_size == src->data_size);
+
+         dconv->fc = sconv->fc;
+         dconv->delay_gain = sconv->delay_gain;
+         dconv->threshold = dconv->threshold;
+      }
    }
-
-   _aax_dsp_swap(d, s);
-
-   if (history) dconv->history = history;
-   if (freqfilter) dconv->freq_filter->freqfilter = freqfilter;
-   if (occlusion) dconv->occlusion->freq_filter.freqfilter = occlusion;
-
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
 }
 
 static void

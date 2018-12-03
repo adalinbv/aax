@@ -332,22 +332,35 @@ _flt_function_tbl _aaxFrequencyFilter =
 void
 _freqfilter_swap(void *d, void *s)
 {
-   _aaxRingBufferFreqFilterData *dflt;
-   _aaxFilterInfo *dst = d;
-   void *freqfilter = NULL;
-   void *lfo = NULL;
-
-   dflt = dst->data;
-   if (dflt)
+   _aaxFilterInfo *dst = d, *src = s;
+   
+   if (src->data && src->data_size)
    {
-      lfo = dflt->lfo;
-      freqfilter = dflt->freqfilter;
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {  
+         _aaxRingBufferFreqFilterData *dflt = dst->data;
+         _aaxRingBufferFreqFilterData *sflt = src->data;
+         
+         assert(dst->data_size == src->data_size);
+
+         _lfo_swap(dflt->lfo, sflt->lfo);
+         memcpy(dflt->coeff, sflt->coeff, sizeof(float[4*_AAX_MAX_STAGES]));
+         dflt->Q = sflt->Q;
+         dflt->k = sflt->k;
+         dflt->fs = sflt->fs;
+         dflt->high_gain = sflt->high_gain;
+         dflt->low_gain = sflt->low_gain;
+         dflt->state = sflt->state;
+         dflt->no_stages = sflt->no_stages;
+         dflt->type = sflt->type;
+      }
    }
-
-   _aax_dsp_swap(d, s);
-
-   if (lfo) dflt->lfo = lfo;
-   if (freqfilter) dflt->freqfilter = freqfilter;
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
 }
 
 void

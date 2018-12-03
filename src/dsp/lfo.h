@@ -55,24 +55,29 @@ _aaxLFOGetFn _aaxLFOGetPitchFollow;
 typedef struct
 {
    int state;
-   float fs, period_rate, offset, depth;
+   float offset, depth;
    float min_sec, max_sec;
 
    float f, min, max;
    float gate_threshold, gate_period;
-   float step[_AAX_MAX_SPEAKERS];       /* step = frequency / refresh_rate */
-   float down[_AAX_MAX_SPEAKERS];       /* compressor release rate         */
-   float value[_AAX_MAX_SPEAKERS];      /* current value                   */
-   float average[_AAX_MAX_SPEAKERS];    /* average value over time         */
-   float compression[_AAX_MAX_SPEAKERS];        /* compression level       */
+
+   float step[_AAX_MAX_SPEAKERS];	/* step = frequency / refresh_rate */
+   float down[_AAX_MAX_SPEAKERS];	/* compressor release rate         */
+
    _aaxLFOGetFn *get;
    _convert_fn *convert;
    void *data;
    char inv, envelope, stereo_lnk;
+
+   float fs, period_rate;
+   float value[_AAX_MAX_SPEAKERS];      /* current value                   */
+   float average[_AAX_MAX_SPEAKERS];    /* average value over time         */
+   float compression[_AAX_MAX_SPEAKERS];        /* compression level       */
 } _aaxLFOData;
 
 _aaxLFOData* _lfo_create(void);
 void _lfo_destroy(void*);
+void _lfo_swap(_aaxLFOData*, _aaxLFOData*);
 
 int _lfo_set_function(_aaxLFOData*, int);
 int _lfo_set_timing(_aaxLFOData*);

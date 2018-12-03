@@ -276,22 +276,30 @@ _delay_create(void *d, void *i)
 void
 _delay_swap(void *d, void *s)
 {
-   _aaxRingBufferDelayEffectData *ddef;
-   _aaxFilterInfo *dst = d;
-   void *history = NULL;
-   void *offset = NULL;
+   _aaxFilterInfo *dst = d, *src = s;
 
-   ddef = dst->data;
-   if (ddef)
+   if (src->data && src->data_size)
    {
-      history = ddef->history;
-      offset = ddef->offset;
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {
+         _aaxRingBufferDelayEffectData *ddef = dst->data;
+         _aaxRingBufferDelayEffectData *sdef = src->data;
+
+         assert(dst->data_size == src->data_size);
+
+         _lfo_swap(&ddef->lfo, &sdef->lfo);
+         ddef->delay = sdef->delay;
+         ddef->history_samples = sdef->history_samples;
+         ddef->loopback = sdef->loopback;
+         ddef->run = sdef->run;
+      }
    }
-
-   _aax_dsp_swap(d, s);
-
-   if (history) ddef->history = history;
-   if (offset) ddef->offset = offset;
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
 }
 
 void

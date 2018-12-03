@@ -267,10 +267,10 @@ _aaxGraphicEqualizerMinMax(float val, int slot, unsigned char param)
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxGraphicEqualizerRange[slot].min[param],
                        _aaxGraphicEqualizerRange[slot].max[param]);
 }
@@ -293,42 +293,29 @@ _flt_function_tbl _aaxGraphicEqualizer =
 void
 _grapheq_swap(void *d, void *s)
 {
-   _aaxRingBufferEqualizerData *deq;
    _aaxFilterInfo *dst = d, *src = s;
-   void *ff[_AAX_MAX_EQBANDS];
-   int i;
-
-   ff[0] = NULL;
-   deq = dst->data;
-   if (deq)
-   {
-      for (i=0; i<_AAX_MAX_EQBANDS; ++i) {
-         ff[i] = deq->band[i].freqfilter;
-      }
-   }
 
    if (src->data)
    {
-      if (!dst->data)
-      {
+      if (!dst->data) {
           dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
           dst->data_size = src->data_size;
       }
-      else if (dst->data_size)
+      else
       {
+         _aaxRingBufferEqualizerData *deq = dst->data;
+         _aaxRingBufferEqualizerData *seq = src->data;
+         int i;
+
          assert(dst->data_size == src->data_size);
-         memcpy(dst->data, src->data, src->data_size);
+
+         for (i=0; i<_AAX_MAX_EQBANDS; ++i) {
+            _freqfilter_swap(&deq->band[i], &seq->band[i]);
+         }
       }
    }
    dst->destroy = src->destroy;
    dst->swap = src->swap;
-
-   if (ff[0])
-   {
-      for (i=0; i<_AAX_MAX_EQBANDS; ++i) {
-         deq->band[i].freqfilter = ff[i];
-      }
-   }
 }
 
 
@@ -342,8 +329,6 @@ _grapheq_destroy(void *ptr)
       _aax_aligned_free(eq);
    }
 }
-
-// _aaxRingBuffer *rb, MIX_T **tracks, MIX_T **scratch, _aaxRingBufferEqualizerData *eq)
 
 void
 _grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,

@@ -252,6 +252,30 @@ _eff_function_tbl _aaxReverbEffect =
 void
 _reverb_swap(void *d, void *s)
 {
+#if 1
+   _aaxFilterInfo *dst = d, *src = s;
+
+   if (src->data && src->data_size)
+   {
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {
+         _aaxRingBufferReverbData *drev = dst->data;
+         _aaxRingBufferReverbData *srev = src->data;
+
+         assert(dst->data_size == src->data_size);
+
+         drev->reflections = srev->reflections;
+         drev->no_loopbacks = srev->no_loopbacks;
+         memcpy(&drev->loopback, &srev->loopback, sizeof(_aaxRingBufferDelayData[_AAX_MAX_LOOPBACKS]));
+      }
+   }
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
+#else
    _aaxRingBufferReverbData *drev;
    _aaxFilterInfo *dst = d;
    void *reverb = NULL;
@@ -271,7 +295,7 @@ _reverb_swap(void *d, void *s)
    if (reverb)  drev->reverb = reverb;
    if (freqfilter) drev->freq_filter->freqfilter = freqfilter;
    if (occlusion) drev->occlusion->freq_filter.freqfilter = occlusion;
-
+#endif
 }
 
 static void
@@ -610,9 +634,9 @@ _reverb_destroy_delays(_aaxRingBufferReverbData *reverb)
       reverb->reflections.delay[0].gain = 1.0f;
       reverb->no_loopbacks = 0;
 #if BYTE_ALIGN
-      _aax_free(reverb->reverb);
+      if (reverb->reverb) _aax_free(reverb->reverb);
 #else
-      free(reverb->reverb);
+      if (reverb->reverb) free(reverb->reverb);
 #endif
       _freqfilter_destroy(reverb->freq_filter);
       reverb->reverb = 0;

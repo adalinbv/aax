@@ -56,6 +56,34 @@ _lfo_destroy(void *data)
    }
 }
 
+void
+_lfo_swap(_aaxLFOData *dlfo, _aaxLFOData *slfo)
+{
+   if (dlfo && slfo)
+   {
+      dlfo->state = slfo->state;
+      dlfo->offset = slfo->offset;
+      dlfo->depth = slfo->depth;
+      dlfo->min_sec = slfo->min_sec;
+      dlfo->max_sec = slfo->max_sec;
+
+      dlfo->f = slfo->f;
+      dlfo->min = slfo->min;
+      dlfo->max = slfo->max;
+      dlfo->gate_threshold = slfo->gate_threshold;
+      dlfo->gate_period = slfo->gate_period;
+
+      memcpy(dlfo->step, slfo->step, sizeof(float[_AAX_MAX_SPEAKERS]));
+      memcpy(dlfo->down, slfo->down, sizeof(float[_AAX_MAX_SPEAKERS]));
+
+      dlfo->get = slfo->get;
+      dlfo->convert = slfo->convert;
+      dlfo->inv = slfo->inv;
+      dlfo->envelope = slfo->envelope;
+      dlfo->stereo_lnk = slfo->stereo_lnk;
+   }
+}
+
 int
 _lfo_set_function(_aaxLFOData *lfo, int constant)
 {

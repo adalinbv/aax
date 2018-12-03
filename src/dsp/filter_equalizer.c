@@ -362,32 +362,23 @@ _flt_function_tbl _aaxEqualizer =
 static void
 _equalizer_swap(void *d, void *s)
 {
-   _aaxRingBufferFreqFilterData *dflt;
    _aaxFilterInfo *dst = d, *src = s;
-   void *freqfilter = NULL;
-
-   dflt = dst->data;
-   if (dflt) {
-      freqfilter = dflt->freqfilter;
-   }
 
    if (src->data)
    {
       if (!dst->data)
       {
-          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
-          dst->data_size = src->data_size;
+         dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+         dst->data_size = src->data_size;
       }
       else if (dst->data_size)
       {
          assert(dst->data_size == src->data_size);
-         memcpy(dst->data, src->data, src->data_size);
+        _freqfilter_swap(dst->data, src->data);
       }
    }
    dst->destroy = src->destroy;
    dst->swap = src->swap;
-
-   if (freqfilter) dflt->freqfilter = freqfilter;
 }
 
 void
