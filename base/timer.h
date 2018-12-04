@@ -39,6 +39,8 @@ extern "C" {
 
 #ifdef _WIN32
 
+# include <Windows.h>
+
 # ifdef HAVE_TIME_H
 #  include <time.h>             /* for nanosleep */
 # endif
