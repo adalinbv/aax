@@ -1,7 +1,8 @@
 * Fri Dec 05 2018 - tech@adalin.org
 - AeonWave (3.5.3) stable; urgency=high
 
- * Fix a bug where data of filters or effects could be accessen when it
+ * Add support for the fma3 and fma4 instructions.
+ * Fix a bug where data of filters or effects could be accessed when it
    was freed already. This was a leftover of the data swapping change.
  * Improve the way filters and effects swap their data structures.
 
