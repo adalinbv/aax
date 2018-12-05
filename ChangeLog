@@ -1,4 +1,13 @@
-* Fri Nov 30 2018 - tech@adalin.org
+* Fri Dec 05 2018 - tech@adalin.org
+- AeonWave (3.5.3) stable; urgency=high
+
+ * Fix a bug where data of filters or effects could be accessen when it
+   was freed already. This was a leftover of the data swapping change.
+ * Improve the way filters and effects swap their data structures.
+
+-- Erik Hofman <tech@adalin.org>  Fri 05 Dec 2018 10:06:08 + 0100
+
+* Fri Dec 01 2018 - tech@adalin.org
 - AeonWave (3.5.3) stable; urgency=high
 
  * Implement after-touch using pitch in the Instrument class.
@@ -8,7 +17,7 @@
    filter or effcect destroy-function will destroy a data structure which might
    still be in use by a thread.
 
--- Erik Hofman <tech@adalin.org>  Fri 30 Nov 2018 13:49:08 + 0100
+-- Erik Hofman <tech@adalin.org>  Fri 01 Dec 2018 13:49:08 + 0100
 
 * Wed Nov 07 2018 - tech@adalin.org
 - AeonWave (3.5.2) stable; urgency=low
