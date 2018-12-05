@@ -96,17 +96,13 @@ _aaxSetDefault2dFiltersEffects(_aax2dProps *p2d)
    unsigned int pos;
 
    /* Note: skips the volume filter */
-   for (pos=DYNAMIC_GAIN_FILTER; pos<MAX_STEREO_FILTER; pos++)
-   {
+   for (pos=DYNAMIC_GAIN_FILTER; pos<MAX_STEREO_FILTER; pos++) {
       _aaxSetDefaultFilter2d(&p2d->filter[pos], pos, 0);
-      _FILTER_FREE_DATA(p2d, pos);
    }
 
    /* Note: skips the pitch effect */
-   for (pos=REVERB_EFFECT; pos<MAX_STEREO_EFFECT; pos++)
-   {
+   for (pos=REVERB_EFFECT; pos<MAX_STEREO_EFFECT; pos++) {
       _aaxSetDefaultEffect2d(&p2d->effect[pos], pos, 0);
-      _EFFECT_FREE_DATA(p2d, pos);
    }
 }
 
