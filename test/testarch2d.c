@@ -126,6 +126,7 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fadd "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
+#if defined(__x86_64__)
         if (simd3)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -138,6 +139,7 @@ int main()
             if (simd3 == 3) printf("fadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             else printf("fadd "MKSTR(FMA4)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
+#endif
 
         /*
          * batch fmadd by a value
@@ -170,6 +172,7 @@ int main()
             printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
         }
+#if defined(__x86_64__)
         if (simd3)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -187,6 +190,7 @@ int main()
                TEST("float fadd+fmadd "MKSTR(FMA4), dst1, dst2);
             }
         }
+#endif
 
         /*
          * batch fmadd by a value, with a volume step
@@ -219,6 +223,7 @@ int main()
             printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TEST("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
         }
+#if defined(__x86_64__)
         if (simd3)
         {
             memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -236,7 +241,7 @@ int main()
                TEST("float fadd+fmadd "MKSTR(FMA4), dst1, dst2);
             }
         }
-
+#endif
 
         /*
          * batch fmul by a value for floats
