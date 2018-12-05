@@ -176,6 +176,13 @@ public:
 
     inline void set_gain(float g) { gain = g; }
 
+    void set_gain(uint8_t key_no, float gain) {
+        auto it = key.find(key_no);
+        if (it != key.end()) {
+            it->second->set_gain(gain);
+        }
+    }
+
     inline void set_expression(float g) {
         for (auto& it : key) {
             it.second->set_gain(g*gain);
