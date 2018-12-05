@@ -1,0 +1,9 @@
+
+AeonWave requires ZeroXML to be installed which can be found at:
+https://github.com/adalinbv/zeroxml
+
+To install:
+
+mkdir build; cd build; cmake ..
+
+and then run either 'make install' or 'make package'
