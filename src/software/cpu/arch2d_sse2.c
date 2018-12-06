@@ -46,15 +46,13 @@ _batch_get_average_rms_sse2(const_float32_ptr s, size_t num, float *rms, float *
    size_t stmp, step, total;
    double rms_total = 0.0;
    float peak_cur = 0.0f;
-   unsigned int i, j, k;
+   unsigned int i;
 
    *rms = *peak = 0;
 
    if (!num) return;
 
    total = num;
-#if 0
-// TODO: this code is slower than compiler optimized CPU ony code.
    stmp = (size_t)s & MEMMASK16;
    if (stmp)
    {
@@ -76,45 +74,47 @@ _batch_get_average_rms_sse2(const_float32_ptr s, size_t num, float *rms, float *
    {
       __m128* sptr = (__m128*)s;
 
-      step = 4*sizeof(__m128)/sizeof(float);
+      step = 2*sizeof(__m128)/sizeof(float);
 
       i = num/step;
       if (i)
       {
-          __m128 xmm0, xmm1, xmm2, xmm3;
-          union {
-             __m128 x[4];
-             float f[4][4];
-          } v;
+         union {
+             __m128 ps;
+             float f[4];
+         } rms1, rms2, peak1, peak2;
 
-         num -= i*step;
+         peak1.ps = _mm_setzero_ps();
+         rms1.ps = _mm_setzero_ps();
+
          s += i*step;
+         num -= i*step;
          do
          {
-            xmm0 = _mm_load_ps((const float*)sptr++);
-            xmm1 = _mm_load_ps((const float*)sptr++);
-            xmm2 = _mm_load_ps((const float*)sptr++);
-            xmm3 = _mm_load_ps((const float*)sptr++);
+            __m128 smp1 = _mm_load_ps((const float*)sptr++);
+            __m128 smp2 = _mm_load_ps((const float*)sptr++);
+            __m128 val1, val2;
 
-            _mm_store_ps(v.f[0], _mm_mul_ps(xmm0, xmm0));
-            _mm_store_ps(v.f[1], _mm_mul_ps(xmm1, xmm1));
-            _mm_store_ps(v.f[2], _mm_mul_ps(xmm2, xmm2));
-            _mm_store_ps(v.f[3], _mm_mul_ps(xmm3, xmm3));
+            val1 = _mm_mul_ps(smp1, smp1);
+            val2 = _mm_mul_ps(smp2, smp2);
 
-            for (j=0; j<4; ++j)
-            {
-               for (k=0; k<4; ++k)
-               {
-                  float val = v.f[j][k];
+            rms1.ps = _mm_add_ps(rms1.ps, val1);
+            rms2.ps = _mm_add_ps(rms2.ps, val2);
 
-                  rms_total += val;
-                  if (val > peak_cur) peak_cur = val;
-               }
-            }
+            peak1.ps = _mm_max_ps(peak1.ps, val1);
+            peak2.ps = _mm_max_ps(peak2.ps, val2);
          }
          while(--i);
+
+         rms1.ps = _mm_add_ps(rms1.ps, rms2.ps);
+         peak1.ps = _mm_max_ps(peak1.ps, peak2.ps);
+
+         rms_total = rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
+         if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
+         if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
+         if (peak1.f[2] > peak_cur) peak_cur = peak1.f[2];
+         if (peak1.f[3] > peak_cur) peak_cur = peak1.f[3];
       }
-#endif
 
       if (num)
       {
@@ -128,7 +128,7 @@ _batch_get_average_rms_sse2(const_float32_ptr s, size_t num, float *rms, float *
          }
          while (--i);
       }
-// }
+   }
 
    *rms = (float)sqrt(rms_total/total);
    *peak = sqrtf(peak_cur);
