@@ -1,12 +1,19 @@
-* Fri Dec 05 2018 - tech@adalin.org
-- AeonWave (3.5.3) stable; urgency=high
+* Thu Dec 06 2018 - tech@adalin.org
+- AeonWave (3.5.5) stable; urgency=high
+
+ * Speedup of 6x to 8x speedup of batched RMS calculation.
+
+-- Erik Hofman <tech@adalin.org>  Thu 06 Dec 2018 15:16:08 + 0100
+
+* Wed Dec 05 2018 - tech@adalin.org
+- AeonWave (3.5.4) stable; urgency=high
 
  * Add support for the fma3 and fma4 instructions.
  * Fix a bug where data of filters or effects could be accessed when it
    was freed already. This was a leftover of the data swapping change.
  * Improve the way filters and effects swap their data structures.
 
--- Erik Hofman <tech@adalin.org>  Fri 05 Dec 2018 10:06:08 + 0100
+-- Erik Hofman <tech@adalin.org>  Wed 05 Dec 2018 10:06:08 + 0100
 
 * Fri Dec 01 2018 - tech@adalin.org
 - AeonWave (3.5.3) stable; urgency=high

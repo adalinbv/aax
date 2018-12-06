@@ -681,7 +681,7 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
    }
    stmp = (size_t)s & MEMMASK;
 
-   step = 3*sizeof(__m256)/sizeof(float);
+   step = 2*sizeof(__m256)/sizeof(float);
    i = num/step;
    if (i)
    {
