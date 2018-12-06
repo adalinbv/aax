@@ -84,8 +84,8 @@ _batch_get_average_rms_sse2(const_float32_ptr s, size_t num, float *rms, float *
              float f[4];
          } rms1, rms2, peak1, peak2;
 
-         peak1.ps = _mm_setzero_ps();
-         rms1.ps = _mm_setzero_ps();
+         peak1.ps = peak2.ps = _mm_setzero_ps();
+         rms1.ps = rms2.ps = _mm_setzero_ps();
 
          s += i*step;
          num -= i*step;
@@ -106,10 +106,10 @@ _batch_get_average_rms_sse2(const_float32_ptr s, size_t num, float *rms, float *
          }
          while(--i);
 
-         rms1.ps = _mm_add_ps(rms1.ps, rms2.ps);
-         peak1.ps = _mm_max_ps(peak1.ps, peak2.ps);
+         rms_total += rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
+         rms_total += rms2.f[0] + rms2.f[1] + rms2.f[2] + rms2.f[3];
 
-         rms_total = rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
+         peak1.ps = _mm_max_ps(peak1.ps, peak2.ps);
          if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
          if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
          if (peak1.f[2] > peak_cur) peak_cur = peak1.f[2];

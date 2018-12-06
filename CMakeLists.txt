@@ -286,28 +286,28 @@ else(MSVC)
      if(X86_64)
        message("Build environment: X86_64")
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -mfma -march=haswell -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mxop -mfma4 -march=bdver1 -Ofast -falign-functions=32 -falign-loops=32"
+                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -mfma4 -march=bdver1 -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"

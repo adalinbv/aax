@@ -39,7 +39,7 @@ fast_sin_sse_vex(float x)
    return -4.0f*(x - x*fabsf(x));
 }
 
-void
+FN_PREALIGN void
 _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, float *peak)
 {
    size_t stmp, step, total;
@@ -73,7 +73,7 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
    {
       __m128* sptr = (__m128*)s;
 
-      step = 2*sizeof(__m128)/sizeof(float);
+      step = 3*sizeof(__m128)/sizeof(float);
 
       i = num/step;
       if (i)
@@ -81,10 +81,10 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
          union {
              __m128 ps;
              float f[4];
-         } rms1, rms2, peak1, peak2;
+         } rms1, rms2, rms3, peak1, peak2, peak3;
 
-         peak1.ps = _mm_setzero_ps();
-         rms1.ps = _mm_setzero_ps();
+         peak1.ps = peak2.ps = peak3.ps = _mm_setzero_ps();
+         rms1.ps = rms2.ps = rms3.ps = _mm_setzero_ps();
 
          s += i*step;
          num -= i*step;
@@ -92,23 +92,30 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
          {
             __m128 smp1 = _mm_load_ps((const float*)sptr++);
             __m128 smp2 = _mm_load_ps((const float*)sptr++);
-            __m128 val1, val2;
+            __m128 smp3 = _mm_load_ps((const float*)sptr++);
+            __m128 val1, val2, val3;
 
             val1 = _mm_mul_ps(smp1, smp1);
             val2 = _mm_mul_ps(smp2, smp2);
+            val3 = _mm_mul_ps(smp3, smp3);
 
             rms1.ps = _mm_add_ps(rms1.ps, val1);
             rms2.ps = _mm_add_ps(rms2.ps, val2);
+            rms3.ps = _mm_add_ps(rms3.ps, val3);
 
             peak1.ps = _mm_max_ps(peak1.ps, val1);
             peak2.ps = _mm_max_ps(peak2.ps, val2);
+            peak3.ps = _mm_max_ps(peak3.ps, val3);
          }
          while(--i);
 
-         rms1.ps = _mm_add_ps(rms1.ps, rms2.ps);
-         peak1.ps = _mm_max_ps(peak1.ps, peak2.ps);
+         rms_total += rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
+         rms_total += rms2.f[0] + rms2.f[1] + rms2.f[2] + rms2.f[3];
+         rms_total += rms3.f[0] + rms3.f[1] + rms3.f[2] + rms3.f[3];
 
-         rms_total = rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
+         peak1.ps = _mm_max_ps(peak1.ps, peak2.ps);
+         peak1.ps = _mm_max_ps(peak1.ps, peak3.ps);
+
          if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
          if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
          if (peak1.f[2] > peak_cur) peak_cur = peak1.f[2];
@@ -130,7 +137,7 @@ _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, floa
    }
 
    *rms = (float)sqrt(rms_total/total);
-   *peak = sqrtf(peak_cur);;
+   *peak = sqrtf(peak_cur);
 }
 
 void
@@ -171,12 +178,12 @@ _batch_cvt24_ps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
          d += i*step;
          do
          {
-            xmm0 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
-            xmm1 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
-            xmm2 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
-            xmm3 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
-            xmm4 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
-            xmm5 = _mm_mul_ps(_mm_load_ps((const float*)sptr++), mul);
+            xmm0 = _mm_mul_ps(mul, _mm_load_ps((const float*)sptr++));
+            xmm1 = _mm_mul_ps(mul, _mm_load_ps((const float*)sptr++));
+            xmm2 = _mm_mul_ps(mul, _mm_load_ps((const float*)sptr++));
+            xmm3 = _mm_mul_ps(mul, _mm_load_ps((const float*)sptr++));
+            xmm4 = _mm_mul_ps(mul, _mm_load_ps((const float*)sptr++));
+            xmm5 = _mm_mul_ps(mul, _mm_load_ps((const float*)sptr++));
 
             _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm0));
             _mm_store_si128(dptr++, _mm_cvtps_epi32(xmm1));
@@ -409,8 +416,8 @@ _batch_iadd_sse_vex(int32_ptr dst, const_int32_ptr src, size_t num)
          xmm0i = _mm_load_si128(sptr++);
          xmm4i = _mm_load_si128(sptr++);
 
-         xmm0i = _mm_add_epi32(_mm_load_si128(dptr+0), xmm0i);
-         xmm4i = _mm_add_epi32(_mm_load_si128(dptr+1), xmm4i);
+         xmm0i = _mm_add_epi32(xmm0i, _mm_load_si128(dptr+0));
+         xmm4i = _mm_add_epi32(xmm4i, _mm_load_si128(dptr+1));
 
          _mm_store_si128(dptr++, xmm0i);
          _mm_store_si128(dptr++, xmm4i);
@@ -496,8 +503,8 @@ _batch_imadd_sse_vex(int32_ptr dst, const_int32_ptr src, size_t num, float v, fl
          xmm3i = _mm_cvtps_epi32(xmm1);
          xmm7i = _mm_cvtps_epi32(xmm5);
 
-         xmm0i = _mm_add_epi32(_mm_load_si128(dptr+0), xmm3i);
-         xmm4i = _mm_add_epi32(_mm_load_si128(dptr+1), xmm7i);
+         xmm0i = _mm_add_epi32(xmm3i, _mm_load_si128(dptr+0));
+         xmm4i = _mm_add_epi32(xmm7i, _mm_load_si128(dptr+1));
 
          v += vstep;
 
@@ -774,10 +781,10 @@ _batch_cvt16_intl_24_sse_vex(void_ptr dst, const_int32_ptrptr src,
       s2 += 2*i*step;
       do
       {
-         xmm2 = _mm_and_si128(_mm_load_si128(sptr1++), mask);
-         xmm3 = _mm_and_si128(_mm_load_si128(sptr2++), mask);
-         xmm6 = _mm_and_si128(_mm_load_si128(sptr1++), mask);
-         xmm7 = _mm_and_si128(_mm_load_si128(sptr2++), mask);
+         xmm2 = _mm_and_si128(mask, _mm_load_si128(sptr1++));
+         xmm3 = _mm_and_si128(mask, _mm_load_si128(sptr2++));
+         xmm6 = _mm_and_si128(mask, _mm_load_si128(sptr1++));
+         xmm7 = _mm_and_si128(mask, _mm_load_si128(sptr2++));
 
          xmm0 = _mm_srli_epi32(xmm2, 8);
          xmm1 = _mm_slli_epi32(xmm3, 8);
@@ -947,7 +954,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          h = _mm_shuffle_ps(h, h, _MM_SHUFFLE(1,1,0,0));
 
          do
-         {     
+         {
             __m128 pz, smp, nsmp, tmp;
 
             smp = _mm_load_ss(s);
@@ -1177,17 +1184,17 @@ _aaxBufResampleDecimate_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, 
       else
       {
          do
-         {  
+         {
             size_t step;
-            
+
             *d++ = samp + (dsamp * smu);
-    
+
             smu += freq_factor;
             step = (size_t)floorf(smu);
-     
+
             smu -= step;
             s += step-1;
-            samp = *s++; 
+            samp = *s++;
             dsamp = *s - samp;
          }
          while (--i);
