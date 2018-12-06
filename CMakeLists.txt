@@ -286,28 +286,28 @@ else(MSVC)
      if(X86_64)
        message("Build environment: X86_64")
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3"
+                    PROPERTY COMPILE_FLAGS "-msse3 -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3"
+                    PROPERTY COMPILE_FLAGS "-msse3 -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfma -march=haswell -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mxop -mfma4 -march=bdver1"
+                   PROPERTY COMPILE_FLAGS "-mxop -mfma4 -march=bdver1 -Ofast -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
@@ -315,25 +315,25 @@ else(MSVC)
      elseif(X86)
        message("Build environment: X86")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m -Ofast -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse march=pentium3m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m -Ofast -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott -Ofast -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m -Ofast -falign-functions=16 -falign-loops=16"
        )
      elseif(ARM)
        message("Build environment: ARM")
@@ -341,7 +341,7 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2 -Ofast"
        )
        set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
@@ -353,10 +353,10 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
        )
        set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations -funsafe-math-optimizations"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations -funsafe-math-optimizations -Ofast"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations -Ofast"
        )
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
@@ -494,14 +494,14 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
     SetOverwrite IfNewer
     ${If} ${RunningX64}
       !define LIBRARY_X64
-      !insertmacro installLib DLL $ALREADY_INSTALLED REBOOT_PROTECTED \\\"${AeonWave_BINARY_DIR}\\\\${LIBAEONWAVE}.dll\\\" \\\"${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\" 
+      !insertmacro installLib DLL $ALREADY_INSTALLED REBOOT_PROTECTED \\\"${AeonWave_BINARY_DIR}\\\\${LIBAEONWAVE}.dll\\\" \\\"${LIBAEONWAVE}.dll\\\" \\\"$SYSDIR\\\"
       !undef LIBRARY_X64
     ${EndIf}
   ")
   set(CPACK_NSIS_EXTRA_UNINSTALL_COMMANDS "
     !include Library.nsh
-    !include x64.nsh 
-    SetOutPath \\\"$SYSDIR\\\" 
+    !include x64.nsh
+    SetOutPath \\\"$SYSDIR\\\"
     ${If} ${RunningX64}
       !define LIBRARY_X64
       !insertmacro uninstallLib DLL SHARED REBOOT_NOTPROTECTED \\\"$SYSDIR\\\\bin\\\\${LIBAEONWAVE}.dll\\\"
@@ -509,7 +509,7 @@ if(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
   ")
 endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
-install(FILES 
+install(FILES
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
         include/aax/aeonwave.hpp
         include/aax/strings.hpp
