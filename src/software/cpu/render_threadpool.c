@@ -103,6 +103,7 @@ typedef struct
    int no_workers;
    int workers_busy;
    int max_emitters;
+   int processed;
    int stage;
    
    struct threat_t thread[_AAX_MAX_NO_WORKERS];
@@ -277,7 +278,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
             // Wait until al worker threads are finished
             _aaxSemaphoreWait(handle->worker_ready);
 
-            rv = AAX_TRUE;
+            rv = _aaxAtomicPointerSwap(&handle->processed, 0);
          }
          _intBufReleaseNum(he, _AAX_EMITTER);
 
@@ -373,6 +374,7 @@ _aaxWorkerThread(void *id)
          else if (handle->max_emitters)
          {
             int max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
+            int r = 0;
 
              /*
              * It might be possible that other threads aleady processed
@@ -392,13 +394,14 @@ _aaxWorkerThread(void *id)
                      {
                         // _aaxProcessEmitter calls
                         // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-                        data->callback(drb, data, dptr_src, handle->stage);
+                        r += data->callback(drb, data, dptr_src, handle->stage);
                      }
                   }
                   while(++pos < max);
                   max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
                }
                while (max > 0);
+               _aaxAtomicIntAdd(&handle->processed, r);
 
                /* mix our own ringbuffer with that of the mixer */
                _aaxMutexLock(handle->mutex);
