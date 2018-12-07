@@ -644,44 +644,42 @@ aaxGetFrequencyFilterTypeByName(const char *type)
          }
 
          len = last-name;
-         if (!strncasecmp(name, "BESSEL", len)) {
+         if (!strncasecmp(name, "bessel", len)) {
             rv |= AAX_BESSEL;
          }
-         else
-         {
-            if (!strncasecmp(name+len-5, "ORDER", 5))
-            {
-               if (*(name+len-6) == '_' || *(name+len-6) == '-') {
-                  len -= 6;
-               }
-            }
-            else if (!strncasecmp(name+len-3, "OCT", 3))
-            {
-               if (*(name+len-4) == '_' || *(name+len-4) == '/') {
-                  len -= 4;
-               }
-            }
 
-            if (!strncasecmp(name, "1st", len) ||
-                !strncasecmp(name, "6db", len)) {
-               rv |= AAX_1ST_ORDER;
+         if (!strncasecmp(name+len-5, "ORDER", 5))
+         {
+            if (*(name+len-6) == '_' || *(name+len-6) == '-') {
+               len -= 6;
             }
-            else if (!strncasecmp(name, "2nd", len) ||
-                     !strncasecmp(name, "12db", len)) {
-               rv |= AAX_2ND_ORDER;
+         }
+         else if (!strncasecmp(name+len-3, "OCT", 3))
+         {
+            if (*(name+len-4) == '_' || *(name+len-4) == '/') {
+               len -= 4;
             }
-            else if (!strncasecmp(name, "4th", len) ||
-                     !strncasecmp(name, "24db", len)) {
-               rv |= AAX_4TH_ORDER;
-            }
-            else if (!strncasecmp(name, "6th", len) ||
-                     !strncasecmp(name, "36db", len)) {
-               rv |= AAX_6TH_ORDER;
-            }
-            else if (!strncasecmp(name, "8th", len) ||
-                     !strncasecmp(name, "48db", len)) {
-               rv |= AAX_8TH_ORDER;
-            }
+         }
+
+         if (!strncasecmp(name, "1st", len) ||
+             !strncasecmp(name, "6db", len)) {
+            rv |= AAX_1ST_ORDER;
+         }
+         else if (!strncasecmp(name, "2nd", len) ||
+                  !strncasecmp(name, "12db", len)) {
+            rv |= AAX_2ND_ORDER;
+         }
+         else if (!strncasecmp(name, "4th", len) ||
+                  !strncasecmp(name, "24db", len)) {
+            rv |= AAX_4TH_ORDER;
+         }
+         else if (!strncasecmp(name, "6th", len) ||
+                  !strncasecmp(name, "36db", len)) {
+            rv |= AAX_6TH_ORDER;
+         }
+         else if (!strncasecmp(name, "8th", len) ||
+                  !strncasecmp(name, "48db", len)) {
+            rv |= AAX_8TH_ORDER;
          }
 
          if (last == name+strlen(name)) break;

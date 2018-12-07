@@ -86,6 +86,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    state &= ~AAX_LFO_STEREO;
 
    istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL);
+   if (istate == 0) istate = AAX_12DB_OCT;
    wstate = istate & mask;
 
    if (wstate == AAX_6DB_OCT         ||
@@ -108,6 +109,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
       int stages;
 
+printf("B\n");
       if (flt == NULL)
       {
          flt = _aax_aligned_alloc(DSIZE);
