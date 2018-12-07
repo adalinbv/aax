@@ -1405,6 +1405,82 @@ void
 _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+#if 1
+   // The compiler generates much better code for regular SSE2.
+   if (num)
+   {
+      const_float32_ptr s = sptr;
+      float k, *cptr, *hist;
+      float c0, c1, c2, c3;
+      float smp, h0, h1;
+      int stage;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_64DB) return;
+      if (fabsf(k) < LEVEL_64DB)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      do
+      {
+         float32_ptr d = dptr;
+         size_t i = num;
+
+         // for original code see _batch_freqfilter_iir_cpu
+         c0 = *cptr++;
+         c1 = *cptr++;
+         c2 = *cptr++;
+         c3 = *cptr++;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp       + ((h0 * c2) + (h1 * c3));
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+
+         *hist++ = h0;
+         *hist++ = h1;
+         k = 1.0f;
+         s = dptr;
+      }
+      while (--stage);
+   }
+#else
    const_float32_ptr s = sptr;
 
    if (num)
@@ -1412,17 +1488,28 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       __m128 c, h, mk;
       float *cptr, *hist;
       int stages;
+      float k;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_96DB) return;
+      if (fabsf(k) < LEVEL_96DB)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+      mk = _mm_set_ss(k);
 
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
       stages = filter->no_stages;
       if (!stages) stages++;
 
-      if (filter->state == AAX_BESSEL) {
-         mk = _mm_set_ss(filter->k * (filter->high_gain - filter->low_gain));
-      } else {
-         mk = _mm_set_ss(filter->k * filter->high_gain);
-      }
+      assert(((size_t)cptr & MEMMASK16) == 0);
 
       do
       {
@@ -1430,11 +1517,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          size_t i = num;
 
 //       c = _mm_set_ps(cptr[3], cptr[1], cptr[2], cptr[0]);
-         if (((size_t)cptr & MEMMASK16) == 0) {
-            c = _mm_load_ps(cptr);
-         } else {
-            c = _mm_loadu_ps(cptr);
-         }
+         c = _mm_load_ps(cptr);
          c = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3,1,2,0));
 
 //       h = _mm_set_ps(hist[1], hist[1], hist[0], hist[0]);
@@ -1482,6 +1565,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       }
       while (--stages);
    }
+#endif
 }
 
 

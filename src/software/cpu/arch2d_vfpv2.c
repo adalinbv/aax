@@ -439,15 +439,23 @@ _batch_freqfilter_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, int t, s
       float smp, h0, h1;
       int stages;
 
-      cptr = filter->coeff;
-      hist = filter->freqfilter->history[t];
-      stages = filter->no_stages;
-
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
       } else {
          k = filter->k * filter->high_gain;
       }
+
+      if (fabsf(k-1.0f) < LEVEL_64DB) return;
+      if (fabsf(k) < LEVEL_64DB)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
 
       do
       {
@@ -463,15 +471,30 @@ _batch_freqfilter_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, int t, s
          h0 = hist[0];
          h1 = hist[1];
 
-         do
+         if (filter->state == AAX_BUTTERWORTH)
          {
-            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-            *d++ = smp       + ((h0 * c2) + (h1 * c3));
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp       + ((h0 * c2) + (h1 * c3));
 
-            h1 = h0;
-            h0 = smp;
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
          }
-         while (--i);
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
 
          *hist++ = h0;
          *hist++ = h1;

@@ -1,4 +1,4 @@
-sudo perf record ./aaxplaymidi -v -i ../../sounds/mid/sound/classic/Vivaldi-Spring.mid 
+sudo perf record -g ./aaxplaymidi -i ../../sounds/mid/sound/classic/Vivaldi-Spring.mid 
 
 sudo perf report
 
