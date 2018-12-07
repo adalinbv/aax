@@ -278,7 +278,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
             // Wait until al worker threads are finished
             _aaxSemaphoreWait(handle->worker_ready);
 
-            rv = _aaxAtomicPointerSwap(&handle->processed, 0);
+            rv = _aaxAtomicPointerSwap(&handle->processed, AAX_FALSE);
          }
          _intBufReleaseNum(he, _AAX_EMITTER);
 
@@ -374,7 +374,7 @@ _aaxWorkerThread(void *id)
          else if (handle->max_emitters)
          {
             int max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
-            int r = 0;
+            int r = AAX_FALSE;
 
              /*
              * It might be possible that other threads aleady processed
@@ -394,14 +394,17 @@ _aaxWorkerThread(void *id)
                      {
                         // _aaxProcessEmitter calls
                         // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-                        r += data->callback(drb, data, dptr_src, handle->stage);
+                        r |= data->callback(drb, data, dptr_src, handle->stage);
                      }
                   }
                   while(++pos < max);
                   max = _aaxAtomicIntSub(num, _AAX_MIN_EMITTERS_PER_WORKER);
                }
                while (max > 0);
-               _aaxAtomicIntAdd(&handle->processed, r);
+
+               if (r) {
+                  _aaxAtomicPointerSwap(&handle->processed, AAX_TRUE);
+               }
 
                /* mix our own ringbuffer with that of the mixer */
                _aaxMutexLock(handle->mutex);

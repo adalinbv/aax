@@ -161,12 +161,10 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
                {
                   // _aaxProcessEmitter calls
                   // _intBufReleaseData(dptr_src, _AAX_EMITTER);
-                  _aaxProcessEmitter(data->drb, data, dptr_src, stage);
+                  rv |= _aaxProcessEmitter(data->drb, data, dptr_src, stage);
                }
             }
             while (--no_emitters);
-
-            rv = AAX_TRUE;
          }
          _intBufReleaseNum(he, _AAX_EMITTER);
 
