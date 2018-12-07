@@ -6,6 +6,8 @@
 #include <base/types.h>
 #include <base/geometry.h>
 #include <base/timer.h>
+#include <src/ringbuffer.h>
+#include <src/dsp/dsp.h>
 #include <src/software/cpu/arch2d_simd.h>
 #include <arch.h>
 
@@ -55,7 +57,7 @@ int _aaxArchDetectNEON()
 _batch_fmadd_proc _batch_fmadd;
 _batch_mul_value_proc _batch_fmul_value;
 _batch_get_average_rms_proc _batch_get_average_rms;
-
+_batch_freqfilter_float_proc _batch_freqfilter_float;
 
 int main()
 {
@@ -88,6 +90,8 @@ int main()
 
     if (src && dst1 && dst2)
     {
+        _aaxRingBufferFreqFilterHistoryData history;
+        _aaxRingBufferFreqFilterData flt;
         float rms1, rms2, peak1, peak2;
         double *dsrc, *ddst1, *ddst2;
         double cpu, eps;
@@ -308,6 +312,52 @@ int main()
                 if (peak1 != peak2) {
                    printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
                 }
+            }
+        }
+
+        /*
+         * batch freqfilter calulculation
+         */
+        memset(&flt, 0, sizeof(_aaxRingBufferFreqFilterData));
+        flt.freqfilter = &history;
+        flt.fs = 44100.0f;
+        flt.run = _freqfilter_run;
+        flt.high_gain = 1.0f;
+        flt.low_gain = 0.0f;
+        flt.no_stages = 1;
+        flt.state = AAX_BUTTERWORTH; // or AAX_BESSEL;
+        flt.Q = 2.5f;
+        flt.type = HIGHPASS;
+        _aax_butterworth_compute(2200.0f, &flt);
+
+        memcpy(dst2, src, MAXNUM*sizeof(float));
+        _batch_freqfilter_float = _batch_freqfilter_iir_float_cpu;
+        t = clock();
+          _batch_freqfilter_float(dst2, dst2, 0, MAXNUM, &flt);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nfreqfilter cpu:  %f\n", cpu*1000.0f);
+
+        if (simd)
+        {
+            memcpy(dst2, src, MAXNUM*sizeof(float));
+            _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD);
+            t = clock();
+              _batch_freqfilter_float(dst2, dst2, 0, MAXNUM, &flt);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("freqfilter %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
+
+            if (simd2)
+            {
+                memcpy(dst2, src, MAXNUM*sizeof(float));
+#ifdef SIMD1
+                _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD1);
+#else
+                _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD);
+#endif
+                t = clock();
+                  _batch_freqfilter_float(dst2, dst2, 0, MAXNUM, &flt);
+                  eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+                printf("freqfilter "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             }
         }
 

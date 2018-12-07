@@ -109,7 +109,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
       int stages;
 
-printf("B\n");
       if (flt == NULL)
       {
          flt = _aax_aligned_alloc(DSIZE);
@@ -556,11 +555,6 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
       float smp, h0, h1;
       int stage;
 
-      cptr = filter->coeff;
-      hist = filter->freqfilter->history[t];
-      stage = filter->no_stages;
-      if (!stage) stage++;
-
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
       } else {
@@ -568,6 +562,16 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
       }
 
       if (fabsf(k-1.0f) < LEVEL_64DB) return;
+      if (fabsf(k) < LEVEL_64DB)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
 
       do
       {

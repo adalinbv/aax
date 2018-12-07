@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <math.h>	/* for floorf */
 
 
@@ -924,17 +925,28 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
       __m128 c, h, mk;
       float *cptr, *hist;
       int stages;
+      float k;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_96DB) return;
+      if (fabsf(k) < LEVEL_96DB)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+      mk = _mm_set_ss(k);
 
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
       stages = filter->no_stages;
       if (!stages) stages++;
 
-      if (filter->state == AAX_BESSEL) {
-         mk = _mm_set_ss(filter->k * (filter->high_gain - filter->low_gain));
-      } else {
-         mk = _mm_set_ss(filter->k * filter->high_gain);
-      }
+      assert(((size_t)cptr & MEMMASK16) == 0);
 
       do
       {
@@ -942,11 +954,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          size_t i = num;
 
 //       c = _mm_set_ps(cptr[3], cptr[1], cptr[2], cptr[0]);
-         if (((size_t)cptr & MEMMASK16) == 0) {
-            c = _mm_load_ps(cptr);
-         } else {
-            c = _mm_loadu_ps(cptr);
-         }
+         c = _mm_load_ps(cptr);
          c = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3,1,2,0));
 
 //       h = _mm_set_ps(hist[1], hist[1], hist[0], hist[0]);
