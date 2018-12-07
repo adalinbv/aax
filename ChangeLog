@@ -1,7 +1,8 @@
 * Thu Dec 06 2018 - tech@adalin.org
 - AeonWave (3.5.5) stable; urgency=high
 
- * Speedup of 6x to 8x speedup of batched RMS calculation.
+ * 3x to 8x speedup of batched RMS calculation.
+ * Speed up of about 25% for frequency filters.
  * Allow Bessel filters with orders other than 12db/oct in aaxs files.
 
 -- Erik Hofman <tech@adalin.org>  Thu 06 Dec 2018 15:16:08 + 0100
