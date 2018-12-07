@@ -567,6 +567,8 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
          k = filter->k * filter->high_gain;
       }
 
+      if (fabsf(k-1.0f) < LEVEL_64DB) return;
+
       do
       {
          float32_ptr d = dptr;
@@ -582,15 +584,30 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
          h1 = hist[1];
 
          // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
-         do
+         if (filter->state == AAX_BUTTERWORTH)
          {
-            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-            *d++ = smp       + ((h0 * c2) + (h1 * c3));
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp       + ((h0 * c2) + (h1 * c3));
 
-            h1 = h0;
-            h0 = smp;
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
          }
-         while (--i);
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
 
          *hist++ = h0;
          *hist++ = h1;
