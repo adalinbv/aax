@@ -922,10 +922,9 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
    if (num)
    {
-      __m128 c, h, mk;
-      float *cptr, *hist;
-      int stages;
-      float k;
+      float k, *cptr, *hist;
+      float smp, h0, h1;
+      int stage;
 
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
@@ -933,21 +932,69 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          k = filter->k * filter->high_gain;
       }
 
-      if (fabsf(k-1.0f) < LEVEL_96DB) return;
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
       if (fabsf(k) < LEVEL_96DB)
       {
          memset(dptr, 0, num*sizeof(float));
          return;
       }
-      mk = _mm_set_ss(k);
 
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
-      stages = filter->no_stages;
-      if (!stages) stages++;
+      stage = filter->no_stages;
+      if (!stage) stage++;
 
       assert(((size_t)cptr & MEMMASK16) == 0);
 
+#if 1
+      do
+      {
+         float32_ptr d = dptr;
+         size_t i = num;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            do
+            {
+               smp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp       + h0 * cptr[2] + h1 * cptr[3];
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+
+         *hist++ = h0;
+         *hist++ = h1;
+         k = 1.0f;
+         s = dptr;
+      }
+      while (--stage);
+#else
+      __m128 c, h, mk;
+
+      mk = _mm_set_ss(k);
       do
       {
          float32_ptr d = dptr;
@@ -1000,7 +1047,8 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          mk = _mm_set_ss(1.0f);
          s = dptr;
       }
-      while (--stages);
+      while (--stage);
+#endif
    }
 }
 

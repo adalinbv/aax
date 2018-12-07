@@ -561,7 +561,11 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
          k = filter->k * filter->high_gain;
       }
 
-      if (fabsf(k-1.0f) < LEVEL_64DB) return;
+      if (fabsf(k-1.0f) < LEVEL_96DB) 
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
       if (fabsf(k) < LEVEL_64DB)
       {
          memset(dptr, 0, num*sizeof(float));

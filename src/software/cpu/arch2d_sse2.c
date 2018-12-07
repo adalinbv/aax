@@ -1411,7 +1411,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
    {
       const_float32_ptr s = sptr;
       float k, *cptr, *hist;
-      float c0, c1, c2, c3;
       float smp, h0, h1;
       int stage;
 
@@ -1421,7 +1420,11 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          k = filter->k * filter->high_gain;
       }
 
-      if (fabsf(k-1.0f) < LEVEL_64DB) return;
+      if (fabsf(k-1.0f) < LEVEL_96DB) 
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
       if (fabsf(k) < LEVEL_64DB)
       {
          memset(dptr, 0, num*sizeof(float));
@@ -1438,12 +1441,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          float32_ptr d = dptr;
          size_t i = num;
 
-         // for original code see _batch_freqfilter_iir_cpu
-         c0 = *cptr++;
-         c1 = *cptr++;
-         c2 = *cptr++;
-         c3 = *cptr++;
-
          h0 = hist[0];
          h1 = hist[1];
 
@@ -1452,8 +1449,8 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-               *d++ = smp       + ((h0 * c2) + (h1 * c3));
+               smp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp       + h0 * cptr[2] + h1 * cptr[3];
 
                h1 = h0;
                h0 = smp;
@@ -1464,7 +1461,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
                *d++ = smp;
 
                h1 = h0;

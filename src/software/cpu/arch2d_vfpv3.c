@@ -378,14 +378,8 @@ _batch_freqfilter_vfpv3(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
    if (num)
    {
       float k, *cptr, *hist;
-      float c0, c1, c2, c3;
       float smp, h0, h1;
       int stages;
-
-      cptr = filter->coeff;
-      hist = filter->freqfilter->history[t];
-      stages = filter->no_stages;
-      if (!stages) stages++;
 
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
@@ -393,29 +387,54 @@ _batch_freqfilter_vfpv3(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
          k = filter->k * filter->high_gain;
       }
 
+      if (fabsf(k-1.0f) < LEVEL_96DB) 
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
+      if (fabsf(k) < LEVEL_96DB)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stages = filter->no_stages;
+      if (!stages) stages++;
+
       do
       {
          int32_ptr d = dptr;
          size_t i = num;
 
-         // for original code see _batch_freqfilter_cpu
-         c0 = *cptr++;
-         c1 = *cptr++;
-         c2 = *cptr++;
-         c3 = *cptr++;
-
          h0 = hist[0];
          h1 = hist[1];
 
-         do
+         if (filter->state == AAX_BUTTERWORTH)
          {
-            smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-            *d++ = smp       + ((h0 * c2) + (h1 * c3));
+            do
+            {
+               smp = (*s++ * k) + hist[0] * cptr[0] + hist[1] * cptr[1];
+               *d++ = smp       + hist[0] * cptr[2] + hist[1] * cptr[3];
 
-            h1 = h0;
-            h0 = smp;
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
          }
-         while (--i);
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
 
          *hist++ = h0;
          *hist++ = h1;
@@ -445,7 +464,11 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
          k = filter->k * filter->high_gain;
       }
 
-      if (fabsf(k-1.0f) < LEVEL_64DB) return;
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
       if (fabsf(k) < LEVEL_64DB)
       {
          memset(dptr, 0, num*sizeof(float));
@@ -462,12 +485,6 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
          float32_ptr d = dptr;
          size_t i = num;
 
-         // for original code see _batch_freqfilter_cpu
-         c0 = *cptr++;
-         c1 = *cptr++;
-         c2 = *cptr++;
-         c3 = *cptr++;
-
          h0 = hist[0];
          h1 = hist[1];
 
@@ -475,8 +492,8 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-               *d++ = smp       + ((h0 * c2) + (h1 * c3));
+               smp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp       + h0 * cptr[2] + h1 * cptr[3];
 
                h1 = h0;
                h0 = smp;
@@ -487,7 +504,7 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
                *d++ = smp;
 
                h1 = h0;
