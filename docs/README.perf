@@ -1,0 +1,10 @@
+sudo perf record ./aaxplaymidi -v -i ../../sounds/mid/sound/classic/Vivaldi-Spring.mid 
+
+sudo perf report
+
+Samples: 167K of event 'cycles:ppp', Event count (approx.): 32890174815
+Overhead  Command       Shared Object           Symbol
+  42.39%  aaxplaymidi   libaax.so.3.5.4         [.] _batch_freqfilter_float_sse_
+  15.54%  aaxplaymidi   libaax.so.3.5.4         [.] _batch_resample_float_sse_ve
+   1.81%  aaxplaymidi   libc-2.27.so            [.] __memmove_sse2_unaligned_erm
+   1.74%  aaxplaymidi   libaax.so.3.5.4         [.] _aaxRingBufferLimiter
