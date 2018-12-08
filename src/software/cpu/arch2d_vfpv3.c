@@ -454,9 +454,8 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
    if (num)
    {
       float k, *cptr, *hist;
-      float c0, c1, c2, c3;
       float smp, h0, h1;
-      int stages;
+      int stage;
 
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
@@ -518,7 +517,7 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
          k = 1.0f;
          s = dptr;
       }
-      while (--stages);
+      while (--stage);
    }
 }
 

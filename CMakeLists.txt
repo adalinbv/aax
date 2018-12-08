@@ -318,7 +318,7 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast -march=pentium3m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse march=pentium3m -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Ofast -march=pentium-m -falign-functions=16 -falign-loops=16"
