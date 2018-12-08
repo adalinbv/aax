@@ -379,7 +379,7 @@ _batch_freqfilter_vfpv2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
    {
       float k, *cptr, *hist;
       float smp, h0, h1;
-      int stages;
+      int stage;
 
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
@@ -400,8 +400,8 @@ _batch_freqfilter_vfpv2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
 
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
-      stages = filter->no_stages;
-      if (!stages) stages++;
+      stage = filter->no_stages;
+      if (!stage) stage++;
 
       do
       {
@@ -443,7 +443,7 @@ _batch_freqfilter_vfpv2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
          k = 1.0f;
          s = dptr;
       }
-      while (--stages);
+      while (--stage);
    }
 }
 
@@ -456,9 +456,8 @@ _batch_freqfilter_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, int t, s
    if (num)
    {
       float k, *cptr, *hist;
-      float c0, c1, c2, c3;
       float smp, h0, h1;
-      int stages;
+      int stage;
 
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
@@ -520,7 +519,7 @@ _batch_freqfilter_float_vfpv2(float32_ptr dptr, const_float32_ptr sptr, int t, s
          k = 1.0f;
          s = dptr;
       }
-      while (--stages);
+      while (--stage);
    }
 }
 

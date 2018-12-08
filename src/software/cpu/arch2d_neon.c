@@ -65,43 +65,42 @@ _batch_get_average_rms_neon(const_float32_ptr s, size_t num, float *rms, float *
    if (!num) return;
 
    total = num;
-   step = 4*sizeof(float32x4_t)/sizeof(float);
+   step = 2*sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    if (i)
    {
-      float32x4x4_t nfr4;
       union {
-         float32x4x4_t x;
-         float f[4][4];
-      } v;
-      int j, k;
+         float32x4_t ps;
+         float f[4];
+      } rms1, rms2, peak1, peak2;
 
       num -= i*step;
       do
       {
-         nfr4 = vld4q_f32(s);
-         s += 4*4;
+         float32x4_t smp1 = vld1q_f32(s);
+         float32x4_t smp2 = vld1q_f32(s+4);
+         float32x4_t val1, val2;
 
-         nfr4.val[0] = vmulq_f32(nfr4.val[0], nfr4.val[0]);
-         nfr4.val[1] = vmulq_f32(nfr4.val[1], nfr4.val[1]);
-         nfr4.val[2] = vmulq_f32(nfr4.val[2], nfr4.val[2]);
-         nfr4.val[3] = vmulq_f32(nfr4.val[3], nfr4.val[3]);
+         val1 = vmulq_f32(smp1, smp1);
+         val2 = vmulq_f32(smp2, smp2);
 
-         vst4q_f32((float*)v.f, nfr4);
+         rms1.ps = vaddq_f32(rms1.ps, val1);
+         rms2.ps = vaddq_f32(rms2.ps, val2);
 
-         for (j=0; j<4; ++j)
-         {
-            for (k=0; k<4; ++k)
-            {
-               float val = v.f[j][k];
-
-               rms_total += val;
-               if (val > peak_cur) peak_cur = val;
-            }
-         }
+         peak1.ps = vmaxq_f32(peak1.ps, val1);
+         peak2.ps = vmaxq_f32(peak2.ps, val2);
       }
       while(--i);
+
+      rms_total += rms1.f[0] + rms1.f[1] + rms1.f[2] + rms1.f[3];
+      rms_total += rms2.f[0] + rms2.f[1] + rms2.f[2] + rms2.f[3];
+
+      peak1.ps = vmaxq_f32(peak1.ps, peak2.ps);
+      if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
+      if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
+      if (peak1.f[2] > peak_cur) peak_cur = peak1.f[2];
+      if (peak1.f[3] > peak_cur) peak_cur = peak1.f[3];
    }
 
    if (num)
@@ -374,7 +373,7 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       return;
    }
 
-   step = sizeof(float32x4x4_t)/sizeof(float);
+   step = sizeof(float32x4_t)/sizeof(float);
 
    i = num/step;
    num -= i*step;
@@ -384,7 +383,7 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       if (need_step)
       {
          const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
-         float32x4x4_t sfr4, dfr4;
+         float32x4_t sfr4, dfr4;
          float32x4_t dv, tv, dvstep;
 
          dvstep = vld1q_f32(fact);
@@ -396,23 +395,15 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
 
          do
          {
-            sfr4 = vld4q_f32(s);   // load s
-            dfr4 = vld4q_f32(d);   // load d
+            sfr4 = vld1q_f32(s);   // load s
+            dfr4 = vld1q_f32(d);   // load d
 
             s += step;
-            dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
+            dfr4 = vmlaq_f32(dfr4, sfr4, tv);
+
             tv = vaddq_f32(tv, dv);
 
-            dfr4.val[1] = vmlaq_f32(dfr4.val[1], sfr4.val[1], tv);
-            tv = vaddq_f32(tv, dv);
-
-            dfr4.val[2] = vmlaq_f32(dfr4.val[2], sfr4.val[2], tv);
-            tv = vaddq_f32(tv, dv);
-
-            dfr4.val[3] = vmlaq_f32(dfr4.val[3], sfr4.val[3], tv);
-            tv = vaddq_f32(tv, dv);
-
-            vst4q_f32(d, dfr4);    // store d
+            vst1q_f32(d, dfr4);    // store d
             d += step;
          }
          while(--i);
@@ -428,20 +419,17 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       else
       {
          float32x4_t tv = vdupq_n_f32(v);
-         float32x4x4_t sfr4, dfr4;
+         float32x4_t sfr4, dfr4;
 
          do
          {
-            sfr4 = vld4q_f32(s);   // load s
-            dfr4 = vld4q_f32(d);   // load d
+            sfr4 = vld1q_f32(s);   // load s
+            dfr4 = vld1q_f32(d);   // load d
 
             s += step;
-            dfr4.val[0] = vmlaq_f32(dfr4.val[0], sfr4.val[0], tv);
-            dfr4.val[1] = vmlaq_f32(dfr4.val[1], sfr4.val[1], tv);
-            dfr4.val[2] = vmlaq_f32(dfr4.val[2], sfr4.val[2], tv);
-            dfr4.val[3] = vmlaq_f32(dfr4.val[3], sfr4.val[3], tv);
+            dfr4 = vmlaq_f32(dfr4, sfr4, tv);
 
-            vst4q_f32(d, dfr4);    // store d
+            vst1q_f32(d, dfr4);    // store d
             d += step;
          }
          while(--i);
@@ -660,10 +648,8 @@ _batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
 
    if (num)
    {
-      float32x4_t c, h;
-      float32x2_t h2;
       float k, *cptr, *hist;
-      int stages;
+      int stage;
 
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
@@ -690,7 +676,10 @@ _batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
 #if 1
       do
       {
-         float32_ptr d = dptr;
+         float h0, h1;
+         float smp;
+
+         int32_ptr d = dptr;
          size_t i = num;
 
          h0 = hist[0];
@@ -731,6 +720,8 @@ _batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
 #else
       do
       {
+         float32x4_t c, h;
+         float32x2_t h2;
          int32_ptr d = dptr;
          size_t i = num;
 
@@ -767,7 +758,7 @@ _batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
          k = 1.0f;
          s = dptr;
       }
-      while (--stages);
+      while (--stage);
 #endif
    }
 }
@@ -780,15 +771,8 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
    if (num)
    {
-      float32x4_t c, h;
-      float32x2_t h2;
       float k, *cptr, *hist;
-      int stages;
-
-      cptr = filter->coeff;
-      hist = filter->freqfilter->history[t];
-      stages = filter->no_stages;
-      if (!stages) stages++;
+      int stage;
 
       if (filter->state == AAX_BESSEL) {
          k = filter->k * (filter->high_gain - filter->low_gain);
@@ -796,8 +780,75 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
          k = filter->k * filter->high_gain;
       }
 
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
+      if (fabsf(k) < LEVEL_96DB)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+#if 0
       do
       {
+         float32_ptr d = dptr;
+         float c0, c1, c2, c3;
+         float h0, h1, smp;
+         size_t i = num;
+
+         c0 = *cptr++;
+         c1 = *cptr++;
+         c2 = *cptr++;
+         c3 = *cptr++;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp       + ((h0 * c2) + (h1 * c3));
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+
+         *hist++ = h0;
+         *hist++ = h1;
+         k = 1.0f;
+         s = dptr;
+      }
+      while (--stage);
+#else
+      do
+      {
+         float32x4_t c, h;
+         float32x2_t h2;
          float32_ptr d = dptr;
          size_t i = num;
 
@@ -834,7 +885,8 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
          k = 1.0f;
          s = dptr;
       }
-      while (--stages);
+      while (--stage);
+#endif
    }
 }
 
@@ -858,26 +910,23 @@ _batch_fmul_value_neon(void* data, unsigned bps, size_t num, float f)
          float32_ptr d = (float32_ptr)data;
          size_t i, step;
 
-         step = sizeof(float32x4x4_t)/sizeof(float);
+         step = sizeof(float32x4_t)/sizeof(float);
 
          i = num/step;
          num -= i*step;
          if (i)
          {
             float32x4_t sfact = vdupq_n_f32(f);
-            float32x4x4_t sfr4;
+            float32x4_t sfr4;
 
             do
             {
-               sfr4 = vld4q_f32(s);   // load s
+               sfr4 = vld1q_f32(s);   // load s
                s += step;
 
-               sfr4.val[0] = vmulq_f32(sfr4.val[0], sfact);
-               sfr4.val[1] = vmulq_f32(sfr4.val[1], sfact);
-               sfr4.val[2] = vmulq_f32(sfr4.val[2], sfact);
-               sfr4.val[3] = vmulq_f32(sfr4.val[3], sfact);
+               sfr4 = vmulq_f32(sfr4, sfact);
 
-               vst4q_f32(d, sfr4);    // store d
+               vst1q_f32(d, sfr4);    // store d
                d += step;
             }
             while(--i);
