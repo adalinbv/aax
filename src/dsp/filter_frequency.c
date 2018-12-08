@@ -566,7 +566,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
          memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
-      if (fabsf(k) < LEVEL_64DB)
+      if (fabsf(k) < LEVEL_96DB)
       {
          memset(dptr, 0, num*sizeof(float));
          return;

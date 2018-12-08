@@ -1354,11 +1354,10 @@ void
 _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
    _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
-#if 1
-   // The compiler generates much better code for regular SSE2.
+   const_float32_ptr s = sptr;
+
    if (num)
    {
-      const_float32_ptr s = sptr;
       float k, *cptr, *hist;
       float smp, h0, h1;
       int stage;
@@ -1374,7 +1373,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
-      if (fabsf(k) < LEVEL_64DB)
+      if (fabsf(k) < LEVEL_96DB)
       {
          memset(dptr, 0, num*sizeof(float));
          return;
@@ -1399,7 +1398,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
             do
             {
                float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp       + h0 * cptr[2] + h1 * cptr[3];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
 
                h1 = h0;
                h0 = nsmp;
@@ -1426,92 +1425,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       }
       while (--stage);
    }
-#else
-   const_float32_ptr s = sptr;
-
-   if (num)
-   {
-      __m128 c, h, mk;
-      float *cptr, *hist;
-      int stages;
-      float k;
-
-      if (filter->state == AAX_BESSEL) {
-         k = filter->k * (filter->high_gain - filter->low_gain);
-      } else {
-         k = filter->k * filter->high_gain;
-      }
-
-      if (fabsf(k-1.0f) < LEVEL_96DB) return;
-      if (fabsf(k) < LEVEL_96DB)
-      {
-         memset(dptr, 0, num*sizeof(float));
-         return;
-      }
-      mk = _mm_set_ss(k);
-
-      cptr = filter->coeff;
-      hist = filter->freqfilter->history[t];
-      stages = filter->no_stages;
-      if (!stages) stages++;
-
-      assert(((size_t)cptr & MEMMASK16) == 0);
-
-      do
-      {
-         float32_ptr d = dptr;
-         size_t i = num;
-
-//       c = _mm_set_ps(cptr[3], cptr[1], cptr[2], cptr[0]);
-         c = _mm_load_ps(cptr);
-         c = _mm_shuffle_ps(c, c, _MM_SHUFFLE(3,1,2,0));
-
-//       h = _mm_set_ps(hist[1], hist[1], hist[0], hist[0]);
-         h = _mm_loadl_pi(_mm_setzero_ps(), (__m64*)hist);
-         h = _mm_shuffle_ps(h, h, _MM_SHUFFLE(1,1,0,0));
-
-         do
-         {     
-            __m128 pz, smp, nsmp, tmp;
-
-            smp = _mm_load_ss(s);
-
-            // pz = { c[3]*h1, -c[1]*h1, c[2]*h0, -c[0]*h0 };
-            pz = _mm_mul_ps(c, h); // poles and zeros
-
-            // smp = *s++ * k;
-            smp = _mm_mul_ss(smp, mk);
-
-            // tmp[0] = -c[0]*h0 + -c[1]*h1;
-            tmp = _mm_add_ps(pz, _mm_shuffle_ps(pz, pz, _MM_SHUFFLE(1,3,0,2)));
-            s++;
-
-            // nsmp = smp - h0*c[0] - h1*c[1];
-            nsmp = _mm_add_ss(smp, tmp);
-
-            // h1 = h0, h0 = smp: h = { h0, h0, smp, smp };
-            h = _mm_shuffle_ps(nsmp, h, _MM_SHUFFLE(0,0,0,0));
-
-            // tmp[0] = -c[0]*h0 + -c[1]*h1 + c[2]*h0 + c[3]*h1;
-            tmp = _mm_add_ps(tmp, _mm_shuffle_ps(tmp, tmp, _MM_SHUFFLE(0,1,2,3)));
-
-            // smp = smp - h0*c[0] - h1*c[1] + h0*c[2] + h1*c[3];
-            smp = _mm_add_ss(smp, tmp);
-            _mm_store_ss(d++, smp);
-         }
-         while (--i);
-
-         h = _mm_shuffle_ps(h, h, _MM_SHUFFLE(3,1,2,0));
-         _mm_storel_pi((__m64*)hist, h);
-
-         hist += 2;
-         cptr += 4;
-         mk = _mm_set_ss(1.0f);
-         s = dptr;
-      }
-      while (--stages);
-   }
-#endif
 }
 
 
