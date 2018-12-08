@@ -270,7 +270,7 @@ else(MSVC)
          FORCE)
 
      # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -O2 -fstack-protector-strong -g -DNDEBUG" CACHE STRING
+     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -s -fomit-frame-pointer -fstack-protector-strong -g -DNDEBUG" CACHE STRING
          "Flags used by the compiler during Release with Debug Info builds."
          FORCE)
      set(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
@@ -292,22 +292,22 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -mfma -march=haswell -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -mfma -march=haswell -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -mfma4 -march=bdver1 -Ofast -falign-functions=32 -falign-loops=32"
+                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -Ofast -mfma4 -march=bdver1 -falign-functions=32 -falign-loops=32"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
@@ -315,25 +315,25 @@ else(MSVC)
      elseif(X86)
        message("Build environment: X86")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m -Ofast -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast -march=pentium3m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse march=pentium3m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m -Ofast -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Ofast -march=pentium-m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott -Ofast -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Ofast -march=prescott -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott -falign-functions=16 -falign-loops=16"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m -Ofast -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast -march=pentium3m -falign-functions=16 -falign-loops=16"
        )
      elseif(ARM)
        message("Build environment: ARM")
@@ -341,22 +341,22 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2 -Ofast"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -Ofast -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -Ofast -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
        )
        set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations -funsafe-math-optimizations -Ofast"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -Ofast -funsafe-math-optimizations"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations -Ofast"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -Ofast"
        )
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
