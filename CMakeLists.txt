@@ -344,19 +344,19 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -Ofast -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=vfpv3-d16 -mfloat-abi=hard -Ofast -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -Ofast -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon"
        )
        set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -Ofast -funsafe-math-optimizations"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -Ofast -funsafe-math-optimizations"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -Ofast"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -Ofast"
        )
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
