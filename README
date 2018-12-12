@@ -27,3 +27,11 @@ that want to combine and distribute those FOSS applications with AeonWave
 open source software licensed under either the GPLv2 or the the GPLv3 is the
 best option.
 
+AeonWave has defined the FLOSS or FOSS license exception. FLOSS stands for
+Free/Libre and Open Source Software. Open source projects that exist under a
+license that is part of the FOSS exception are permitted to integrate the
+AeonWave library into their code without the GPL restrictions coming into play.
+
+Further details on these license exceptions can be found in the
+COPYING.foss_exception file.
+
