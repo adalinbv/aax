@@ -392,7 +392,7 @@ _batch_freqfilter_vfpv2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
          memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
-      if (fabsf(k) < LEVEL_96DB)
+      if (fabsf(k) < LEVEL_128DB)
       {
          memset(dptr, 0, num*sizeof(float));
          return;
