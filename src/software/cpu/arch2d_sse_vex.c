@@ -937,11 +937,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
-      if (fabsf(k) < LEVEL_128DB)
-      {
-         memset(dptr, 0, num*sizeof(float));
-         return;
-      }
 
       cptr = filter->coeff;
       hist = filter->freqfilter->history[t];
