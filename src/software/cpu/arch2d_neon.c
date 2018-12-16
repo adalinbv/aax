@@ -785,7 +785,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
          memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
-      if (fabsf(k) < LEVEL_128DB)
+      if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
       {
          memset(dptr, 0, num*sizeof(float));
          return;
