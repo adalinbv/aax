@@ -418,11 +418,15 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     }
 
     if (xmlAttributeExists(xid, "live")) {
-       sound->live = xmlAttributeGetBool(xid, "live") ? 1 : -1;
+        sound->live = xmlAttributeGetBool(xid, "live") ? 1 : -1;
     }
-    if (gain == 0.0f) {
+
+    if (xmlAttributeExists(xid, "fixed-gain")) {
+        sound->gain = -1.0*xmlAttributeGetDouble(xid, "fixed-gain");
+    } else if (gain == 0.0f) {
         sound->gain = xmlAttributeGetDouble(xid, "gain");
-    } else {
+    }
+    else {
         sound->gain = gain; // xmlAttributeGetDouble(xid, "gain");
     }
     sound->frequency = xmlAttributeGetInt(xid, "frequency");
@@ -469,7 +473,9 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output)
     if (sound->live) {
         fprintf(output, " live=\"%s\"", (sound->live > 0) ? "true" : "false");
     }
-    if (sound->gain) {
+    if (sound->gain < 0.0) {
+        fprintf(output, " fixed-gain=\"%3.2f\"", -1.0*sound->gain);
+    } else {
         fprintf(output, " gain=\"%3.2f\"", sound->gain);
     }
     if (sound->frequency)
@@ -676,6 +682,12 @@ void print_aax(struct aax_t *aax, const char *outfile)
     fprintf(output, " * Copyright (C) 2017-%s by Erik Hofman.\n", year);
     fprintf(output, " * Copyright (C) 2017-%s by Adalin B.V.\n", year);
     fprintf(output, " * All rights reserved.\n");
+#if 0
+    fprintf(output, " *\n");
+    fprintf(output, " * This file is part of AeonWave and covered by the\n");
+    fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
+    fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
+#endif
     fprintf(output, "-->\n\n");
 
     fprintf(output, "<aeonwave>\n\n");
