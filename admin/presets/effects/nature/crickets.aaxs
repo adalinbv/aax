@@ -1,28 +1,45 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Crickets" frequency="220" duration="3.33">
+ <info name="Crickets" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="59.15" frequency="220" duration="3.33">
   <waveform src="pink-noise" ratio="0.05" pitch="0.3" staticity="0.9"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="20">4400</param>
+    <param n="0" pitch="20.0">4400.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3" pitch="0.15">10.0</param>
+    <param n="3" pitch="0.15">33.0</param>
+   </slot>
+  </filter>
+  <filter type="envelope">
+   <slot n="0">
+    <param n="0">0.3</param>
+    <param n="1">inf</param>
+    <param n="2">0.3</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sine">
    <slot n="0">
+    <param n="0">0.0</param>
     <param n="1">8.0</param>
     <param n="2">0.8</param>
     <param n="3">0.0</param>

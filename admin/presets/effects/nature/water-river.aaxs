@@ -1,18 +1,26 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="River" program="123" bank="4" frequency="220" duration="2.9">
+ <info name="River" bank="4" program="123">
+  <note polyphony="1"/>
+ </info>
+
+ <sound fixed-gain="1.00" frequency="220" duration="2.9">
   <waveform src="white-noise" ratio="7.5" pitch="0.1"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0">21</param>
+    <param n="0">21.0</param>
     <param n="1">1.5</param>
     <param n="2">0.1</param>
     <param n="3">5.5</param>
@@ -22,7 +30,7 @@
   <waveform src="brownian-noise" processing="add" ratio="5.0" pitch="0.05" staticity="0.9"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0">3300</param>
+    <param n="0">3300.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.2</param>
@@ -33,13 +41,15 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">330</param>
+    <param n="0">330.0</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
     <param n="3">10.5</param>
    </slot>
    <slot n="1">
-    <param n="0">17500</param>
+    <param n="0">17500.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">2.0</param>
    </slot>
   </filter>

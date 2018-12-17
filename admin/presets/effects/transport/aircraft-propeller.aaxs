@@ -1,23 +1,31 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Propeller Aircraft" program="126" bank="0" frequency="220">
+ <info name="Propeller Aircraft" bank="0" program="126">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="3.93" frequency="220">
   <waveform src="white-noise" pitch="0.25"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.96" pitch="1.0"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.96"/>
   <waveform src="sawtooth" processing="modulate" ratio="1.2" pitch="0.5"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">125</param>
+    <param n="0">125.0</param>
     <param n="1">1.5</param>
     <param n="2">1.0</param>
     <param n="3">8.0</param>
@@ -26,6 +34,9 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.225</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

@@ -1,14 +1,22 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Glass Click" frequency="440" duration="0.10">
+ <info name="Glass Click" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="2.96" frequency="440" duration="0.1">
   <waveform src="triangle" pitch="0.996"/>
   <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="17.7587"/>
@@ -28,6 +36,7 @@
     <param n="0">1.4</param>
     <param n="1">0.01</param>
     <param n="2">0.95</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

@@ -1,21 +1,29 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Gun Reload" frequency="190" duration="0.10">
+ <info name="Gun Reload" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="1.15" frequency="190" duration="0.1">
   <waveform src="sine" ratio="2.0" pitch="0.996"/>
   <waveform src="white-noise" processing="add" ratio="4.0" pitch="0.125"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="7.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="25.0">9480</param>
+    <param n="0" pitch="25.0">4750.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.5</param>
@@ -59,6 +67,9 @@
    </slot>
    <slot n="2">
     <param n="0">0.95</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

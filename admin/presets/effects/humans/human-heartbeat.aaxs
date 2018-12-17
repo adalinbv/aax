@@ -4,14 +4,19 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
  <info>
+  <note polyphony="1"/>
  </info>
 
- <sound gain="7.30" frequency="220">
+ <sound gain="5.33" frequency="220">
   <waveform src="white-noise" pitch="0.25"/>
   <waveform src="impulse" processing="modulate" ratio="0.8" pitch="0.2"/>
  </sound>

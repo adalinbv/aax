@@ -16,8 +16,8 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.33" frequency="440" duration="3.3">
-  <waveform src="white-noise" ratio="40.0" pitch="0.02" staticity="0.95"/>
+ <sound gain="6.95" frequency="430" duration="3.3">
+  <waveform src="white-noise" ratio="40.0" pitch="0.01" staticity="0.975"/>
   <filter type="frequency" src="12db">
    <slot n="0">
     <param n="0">420.0</param>
@@ -29,8 +29,8 @@
   <filter type="frequency" src="48db">
    <slot n="0">
     <param n="0">3500.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.25</param>
+    <param n="1">0.2</param>
+    <param n="2">0.05</param>
     <param n="3">4.5</param>
    </slot>
   </filter>

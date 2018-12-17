@@ -1,18 +1,42 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Water Dripping" program="" bank="0" frequency="1" duration="3.3">
-  <waveform src="white-noise" ratio="25.0" pitch="0.025" staticity="0.9"/>
+ <info name="Water Dripping" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound fixed-gain="1.61" frequency="1" duration="10.0">
+  <waveform src="pink-noise" ratio="5.0" pitch="0.0025" staticity="0.995"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.965</param>
+   </slot>
+  </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">10</param>
+    <param n="0">15.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="50.0">50.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">14.0</param>
@@ -20,9 +44,9 @@
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">100</param>
+    <param n="0">100.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.001</param>
+    <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
@@ -31,13 +55,15 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">330</param>
-    <param n="1">0.2</param>
+    <param n="0">330.0</param>
+    <param n="1">0.0</param>
     <param n="2">0.3</param>
     <param n="3">80.0</param>
    </slot>
    <slot n="1">
-    <param n="0">8800</param>
+    <param n="0">8800.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">2.0</param>
    </slot>
   </filter>

@@ -1,14 +1,22 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Footsteps On Dirt" program="127" bank="4" frequency="220">
+ <info name="Footsteps On Dirt" bank="4" program="127">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="11.14" frequency="220">
   <waveform src="pink-noise" ratio="1.5" pitch="0.25"/>
   <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
   <waveform src="impulse" processing="modulate" ratio="1.5" pitch="0.02"/>
@@ -18,6 +26,9 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.37</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

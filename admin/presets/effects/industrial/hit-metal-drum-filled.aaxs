@@ -1,20 +1,28 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Filled Metal Drum Hit" frequency="55" duration="1.0">
+ <info name="Filled Metal Drum Hit" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="2.06" frequency="55">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="0.0897"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="9.4991"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="5.5">301.5</param>
+    <param n="0" pitch="5.5">302.5</param>
     <param n="1">0.0</param>
     <param n="2">2.0</param>
     <param n="3">2.0</param>
@@ -22,7 +30,7 @@
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="10">550</param>
+    <param n="0" pitch="10.0">550.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
@@ -34,13 +42,15 @@
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.0</param>
-    <param n="1" factor="velocity">0.04</param>
-    <param n="2" factor="soften">0.9</param>
+    <param n="1">0.04</param>
+    <param n="2">0.9</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
     <param n="0">0.8</param>
     <param n="1">0.7</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -52,6 +62,9 @@
    </slot>
    <slot n="1">
     <param n="0">0.36</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

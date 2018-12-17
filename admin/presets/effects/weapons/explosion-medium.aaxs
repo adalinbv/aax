@@ -1,14 +1,22 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Medium Fast Explosion" frequency="66.0">
+ <info name="Medium Fast Explosion" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="1.06" frequency="66">
   <waveform src="white-noise" ratio="10.0" pitch="0.0125"/>
   <filter type="frequency" src="36db">
    <slot n="0">
@@ -26,11 +34,13 @@
     <param n="0">0.8</param>
     <param n="1">0.08</param>
     <param n="2">1.9</param>
-    <param n="3" auto-sustain="1.0">2.2</param>
+    <param n="3" auto="1.0">2.2</param>
    </slot>
    <slot n="1">
     <param n="0">1.1</param>
-    <param n="1" auto-sustain="1.0">2.7</param>
+    <param n="1" auto="1.0">2.7</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -44,6 +54,7 @@
     <param n="0">1.1</param>
     <param n="1">2.0</param>
     <param n="2">0.8</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

@@ -1,14 +1,22 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Air Release" frequency="80" duration="3.33">
+ <info name="Air Release" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="1.09" frequency="80" duration="3.33">
   <waveform src="white-noise" pitch="0.2"/>
  </sound>
 
@@ -31,6 +39,7 @@
    <slot n="1">
     <param n="0">1.0</param>
     <param n="1">0.5</param>
+    <param n="2">0.0</param>
     <param n="3">0.5</param>
    </slot>
   </effect>

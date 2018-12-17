@@ -4,11 +4,19 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Bowl Ride" frequency="220" duration="0.10">
+ <info name="Bowl Ride" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="1.07" frequency="220" duration="0.1">
   <waveform src="sine" pitch="1.696"/>
   <waveform src="sine" processing="add" ratio="0.4" pitch="5.0"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="4.0587"/>
@@ -17,25 +25,30 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.50</param>
-    <param n="1" factor="velocity">0.05</param>
-    <param n="2" factor="soften">1.20</param>
+    <param n="0">1.5</param>
+    <param n="1">0.05</param>
+    <param n="2">1.2</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.80</param>
-    <param n="1" auto-sustain="1.0" factor="sustain">5.5</param>
+    <param n="0">0.8</param>
+    <param n="1" auto="1.0">5.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" factor="soften">1.02</param>
-    <param n="1" factor="velocity">0.03</param>
+    <param n="0">1.02</param>
+    <param n="1">0.03</param>
     <param n="2">0.98</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>

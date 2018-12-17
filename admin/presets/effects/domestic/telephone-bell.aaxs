@@ -4,14 +4,19 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
  <info name="Telephone">
+  <note polyphony="1"/>
  </info>
 
- <sound gain="0.93" frequency="1250" duration="0.1">
+ <sound gain="0.75" frequency="1250" duration="0.1">
   <waveform src="square" pitch="2.985"/>
   <waveform src="sawtooth" processing="mix" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="2.4" pitch="6.5"/>

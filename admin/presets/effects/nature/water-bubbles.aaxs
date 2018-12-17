@@ -4,18 +4,23 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
  <info>
+  <note polyphony="1"/>
  </info>
 
- <sound gain="13.03" frequency="220" duration="2.9">
+ <sound gain="9.52" frequency="220" duration="2.9">
   <waveform src="brownian-noise" ratio="20.0" pitch="0.05" staticity="0.9"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">45.0</param>
+    <param n="0" pitch="0.4">88.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">15.0</param>
@@ -23,7 +28,7 @@
   </filter>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">250.0</param>
+    <param n="0" pitch="0.5">110.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.0</param>
@@ -34,13 +39,13 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">220.0</param>
+    <param n="0" pitch="1.0">220.0</param>
     <param n="1">0.2</param>
     <param n="2">0.4</param>
     <param n="3">50.0</param>
    </slot>
    <slot n="1">
-    <param n="0">8200.0</param>
+    <param n="0" pitch="37.0">8140.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">2.1</param>
@@ -50,7 +55,7 @@
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.0</param>
-    <param n="2">2.0</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>

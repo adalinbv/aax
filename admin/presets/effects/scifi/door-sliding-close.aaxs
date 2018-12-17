@@ -4,16 +4,24 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
- <sound name="Electric door sliding close" frequency="220" duration="1.0">
-  <waveform src="impulse" ratio="1.0" voices="3" spread="0.17"/>
+ <info name="Electric door sliding close" bank="0" program="0">
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="0.71" frequency="220">
+  <waveform src="impulse" voices="3" spread="0.2"/>
   <waveform src="square" processing="mix" ratio="0.5" pitch="0.9857"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="1.0">220</param>
+    <param n="0" pitch="1.0">220.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">7.0</param>
@@ -21,7 +29,7 @@
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="36.36">8000</param>
+    <param n="0" pitch="36.36">7999.2</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
@@ -32,27 +40,30 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.20</param>
-    <param n="1">0.20</param>
-    <param n="2">0.50</param> 
+    <param n="0">0.2</param>
+    <param n="1">0.2</param>
+    <param n="2">0.5</param>
     <param n="3">2.0</param>
    </slot>
    <slot n="1">
-     <param n="0">0.5</param>
-     <param n="1">0.15</param>
-     <param n="2" factor="soften">0.60</param>
-     <param n="3" factor="velocity">0.5</param>
+    <param n="0">0.5</param>
+    <param n="1">0.15</param>
+    <param n="2">0.6</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.00</param>
+    <param n="0">1.0</param>
     <param n="1">2.35</param>
-    <param n="2">1.00</param>
-    <param n="3" factor="velocity">0.5</param>
+    <param n="2">1.0</param>
+    <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0" factor="soften">0.75</param>
+    <param n="0">0.75</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="chorus" src="inverse-envelope">
