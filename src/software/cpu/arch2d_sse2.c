@@ -1383,6 +1383,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       hist = filter->freqfilter->history[t];
       stage = filter->no_stages;
       if (!stage) stage++;
+      
 
       do
       {
