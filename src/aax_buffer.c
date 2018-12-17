@@ -1327,6 +1327,8 @@ _bufAAXSThread(void *d)
 
          if (xmlAttributeExists(xsid, "gain")) {
             handle->gain = xmlAttributeGetDouble(xsid, "gain");
+         } else if (xmlAttributeExists(xsid, "fixed-gain")) {
+            handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
          }
 
          for (b=0; b<handle->pitch_levels; ++b)
