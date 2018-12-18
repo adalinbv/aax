@@ -51,7 +51,7 @@
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
-static int _bufProcessWaveform(aaxBuffer, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType);
+static int _bufProcessWaveform(aaxBuffer, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
@@ -514,7 +514,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, 0, 1, 0.0f, wtype, ratio, ptype);
+   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, 0, 1, 0.0f, wtype, ratio, ptype, 0);
 }
 
 AAX_API void** AAX_APIENTRY
@@ -1050,7 +1050,7 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
 }
 
 static int
-_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsigned int pitch_level, int voices, float spread)
+_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
@@ -1168,7 +1168,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    spread = spread*_log2lin(_lin2log(freq)/3.3f);
    if (ptype == AAX_RINGMODULATE) voices = 1;
    return _bufProcessWaveform(handle, freq, phase, pitch, staticity,
-                              pitch_level, voices, spread, wtype, ratio, ptype);
+                   pitch_level, voices, spread, wtype, ratio, ptype, limiter);
 }
 
 static int
@@ -1224,6 +1224,27 @@ _bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency)
    return AAX_TRUE;
 }
 
+static void
+_bufLimit(_aaxRingBuffer* rb)
+{
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   unsigned int track, no_tracks = rbd->no_tracks;
+   size_t no_samples = rbd->no_samples;
+   int32_t **tracks;
+
+   tracks = (int32_t**)rbd->track;
+   for (track=0; track<no_tracks; track++)
+   {
+      int32_t *dptr = tracks[track];
+      size_t i;
+
+      for (i=0; i<no_samples; ++i) {
+         dptr[i] = (1<<23)*atanf(dptr[i]*GMATH_1_PI_2/(1<<23));
+      }
+   }
+}
+
 static inline float note2freq(uint8_t d) {
    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
 }
@@ -1265,7 +1286,9 @@ _bufAAXSThread(void *d)
          double duration = 1.0f;
          float spread = 0;
          int b, voices = 1;
+         limitType limiter;
 
+         limiter = WAVEFORM_LIMIT_NORMAL;
          if (xmlAttributeExists(xsid, "bits"))
          {
             bits = xmlAttributeGetInt(xsid, "bits");
@@ -1358,7 +1381,7 @@ _bufAAXSThread(void *d)
                      char *name = xmlNodeGetName(xwid);
                      if (!strcasecmp(name, "waveform")) {
                         rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
-                                                        b, voices, spread);
+                                                  b, voices, spread, limiter);
                      } else if (!strcasecmp(name, "filter")) {
                         rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
                      } else if (!strcasecmp(name, "effect")) {
@@ -1369,6 +1392,12 @@ _bufAAXSThread(void *d)
                   }
                }
                xmlFree(xwid);
+            }
+
+            if (limiter)
+            {
+               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+               _bufLimit(rb);
             }
 
             if (0) // handle->to_mixer)
@@ -1463,7 +1492,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 }
 
 static int
-_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
+_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
@@ -1562,13 +1591,13 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
                nphase = phase + q*GMATH_2PI/voices;
                nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
 
-               rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase);
+               rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase, limiter);
             }
             break;
          case AAX_WHITE_NOISE:
          case AAX_PINK_NOISE:
          case AAX_BROWNIAN_NOISE:
-            rv = rb->data_mix_noise(rb, wtype & bit, fs_mixer, pitch, ratio, skip);
+            rv = rb->data_mix_noise(rb, wtype & bit, fs_mixer, pitch, ratio, skip, limiter);
             break;
          default:
             break;

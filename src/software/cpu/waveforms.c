@@ -51,8 +51,8 @@
 static float _gains[MAX_WAVE];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
-static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
-static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float);
+static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
+static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
 static float* _aax_generate_waveform_float(size_t, float, float, float*);
 static float* _aax_generate_noise_float(size_t, unsigned char);
 
@@ -63,9 +63,17 @@ static float* _aax_generate_square(size_t, float, float, float);
 #endif
 static float* _aax_generate_sine(size_t, float, float, float);
 
+static float _aax_linear(float v) {
+   return v;
+}
+
+static float
+_aax_atanf(float v) {
+   return atanf(v)*GMATH_1_PI_2;
+}
 
 void
-_bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
+_bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain) * _gains[_SINE_WAVE];
@@ -75,9 +83,9 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
       if (ptr)
       {
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
          _aax_aligned_free(ptr);
       }
@@ -85,7 +93,7 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
 }
 
 void
-_bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
+_bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain) * _gains[_SQUARE_WAVE];
@@ -96,9 +104,9 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
       if (ptr)
       {
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
          _aax_aligned_free(ptr);
       }
@@ -106,7 +114,7 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
 }
 
 void
-_bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
+_bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain) * _gains[_TRIANGLE_WAVE];
@@ -117,9 +125,9 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
       if (ptr)
       {
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
          _aax_aligned_free(ptr);
       }
@@ -127,7 +135,7 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
 }
 
 void
-_bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
+_bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain) * _gains[_SAWTOOTH_WAVE];
@@ -138,9 +146,9 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
       if (ptr)
       {
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
          _aax_aligned_free(ptr);
       }
@@ -148,7 +156,7 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
 }
 
 void
-_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase)
+_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain) * _gains[_IMPULSE_WAVE];
@@ -158,9 +166,9 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
       if (ptr)
       {
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
          _aax_aligned_free(ptr);
       }
@@ -168,7 +176,7 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
 }
 
 void
-_bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, unsigned char skip)
+_bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, unsigned char skip, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain);
@@ -182,9 +190,9 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
       {
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
 
          _aax_aligned_free(ptr);
@@ -194,7 +202,7 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
 }
 
 void
-_bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip)
+_bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain);
@@ -215,9 +223,9 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
          _batch_resample_float(ptr, ptr2+32, 0, no_samples, 0, pitch);
 
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
 
          _aax_aligned_free(ptr);
@@ -227,7 +235,7 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
 }
 
 void
-_bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip)
+_bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, limitType limiter)
 {
    char ringmodulate = (gain < 0.0f) ? 1 : 0;
    gain = fabsf(gain);
@@ -249,9 +257,9 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
 
          if (ringmodulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain);
+            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
 
          _aax_aligned_free(ptr);
@@ -384,6 +392,7 @@ _aax_generate_square(size_t no_samples, float freq, float phase, float gain)
    float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
    {
+      float (*_aax_limit)(float) = _aax_atanf;
       memset(rv, 0, no_samples*sizeof(float));
       if (gain)
       {
@@ -394,7 +403,7 @@ _aax_generate_square(size_t no_samples, float freq, float phase, float gain)
 
          do
          {
-            *ptr++ += gain * atanf(20.0f*fast_sin(s));
+            *ptr++ += gain * _aax_limit(20.0f*fast_sin(s));
             s = fmodf(s+hdt, GMATH_2PI);
          }
          while (--i);
@@ -500,41 +509,43 @@ _aax_resample_float(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_
 #endif
 
 static void
-_aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int no_samples, char bps, float gain)
+_aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int no_samples, char bps, float gain, limitType limiter)
 {
+   float (*_aax_limit)(float) = limiter ? _aax_linear : _aax_atanf;
    int track;
+
    for(track=0; track<tracks; track++)
    {
       unsigned int i  = no_samples;
       const float *m = mix;
       if (bps == 1)
       {
-         static const float max = 1.0f/128.0f;
-         static const float mul = 127.0f / GMATH_PI_2;
+         static const float div = 1.0f/128.0f;
+         static const float mul = 127.0f;
          int8_t *d = data[track];
          do {
-            float v = (float)*d * max + *m++ * gain;
-            *d++ = mul * atanf(v);
+            float v = (float)*d * div + *m++ * gain;
+            *d++ = mul * _aax_limit(v);
          } while (--i);
       }
       else if (bps == 2)
       {
-         static const float max = 1.0f/32768.0f;
-         static const float mul = 32767.0f / GMATH_PI_2;
+         static const float div = 1.0f/32768.0f;
+         static const float mul = 32767.0f;
          int16_t *d = data[track];
          do {
-            float v = (float)*d * max + *m++ * gain;
-            *d++ = mul * atanf(v);
+            float v = (float)*d * div + *m++ * gain;
+            *d++ = mul * _aax_limit(v);
          } while (--i);
       }
       else if (bps == 3 || bps == 4)
       {
-         static const float max = 1.0f/8388608.0f;
-         static const float mul = 8388607.0f / GMATH_PI_2;
+         static const float div = 1.0f/8388608.0f;
+         static const float mul = 8388607.0f;
          int32_t *d = data[track];
          do {
-            float v = (float)*d * max + *m++ * gain;
-            *d++ = mul * atanf(v);
+            float v = (float)*d * div + *m++ * gain;
+            *d++ = mul * _aax_limit(v);
          } while (--i);
       }
    }
@@ -543,40 +554,42 @@ _aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
 
 #define RINGMODULATE(a,b,c,d)	((c)*(((float)(a)/(d))*((b)/(c))))
 static void
-_aax_mul_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int no_samples, char bps, float gain)
+_aax_mul_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int no_samples, char bps, float gain, limitType limiter)
 {
+   float (*_aax_limit)(float) = limiter ? _aax_linear : _aax_atanf;
    int track;
+
    for(track=0; track<tracks; track++)
    {
       unsigned int i  = no_samples;
       const float *m = mix;
       if (bps == 1)
       {
-         static const float max = 127.0f;
-         static const float mul = 127.0f / GMATH_PI_2;
+         static const float div = 1.0f/127.0f;
+         static const float mul = 127.0f;
          int8_t *d = data[track];
          do {
-            *d = mul * atanf(*d/max * *m++ * gain);
+            *d = mul * _aax_limit(*d*div * *m++ * gain);
             ++d;
          } while (--i);
       }
       else if (bps == 2)
       {
-         static const float max = 32765.0f;
-         static const float mul = 32765.0f / GMATH_PI_2;
+         static const float div = 1.0f/32765.0f;
+         static const float mul = 32765.0f;
          int16_t *d = data[track];
          do {
-            *d = mul * atanf(*d/max * *m++ * gain);
+            *d = mul * _aax_limit(*d*div * *m++ * gain);
             ++d;
          } while (--i);
       }
       else if (bps == 3 || bps == 4)
       {
-         static const float max = 255.0f*32765.0f;
-         static const float mul = 255.0f*32765.0f / GMATH_PI_2;
+         static const float div = 1.0f/(255.0f*32765.0f);
+         static const float mul = 255.0f*32765.0f;
          int32_t *d = data[track];
          do {
-            *d = mul * atanf(*d/max * *m++ * gain);
+            *d = mul * _aax_limit(*d*div * *m++ * gain);
             ++d;
          } while (--i);
       }

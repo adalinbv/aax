@@ -36,6 +36,7 @@ extern "C" {
 
 #include <ringbuffer.h>
 #include <arch.h>
+#include <api.h>
 
 #define BYTE_ALIGN		1
 #define CUBIC_SAMPS		4
@@ -207,14 +208,14 @@ void _aaxRingBufferLimiter(MIX_PTR_T, size_t*, size_t*, float, float);
 
 
 /** BUFFER */
-void _bufferMixWhiteNoise(void**, size_t, char, int, float, float, unsigned char);
-void _bufferMixPinkNoise(void**, size_t, char, int, float, float, float, unsigned char);
-void _bufferMixBrownianNoise(void**, size_t, char, int, float, float, float, unsigned char);
-void _bufferMixSineWave(void**, float, char, size_t, int, float, float);
-void _bufferMixSquareWave(void**, float, char, size_t, int, float, float);
-void _bufferMixTriangleWave(void**, float, char, size_t, int, float, float);
-void _bufferMixSawtooth(void**, float, char, size_t, int, float, float);
-void _bufferMixImpulse(void**, float, char, size_t, int, float, float);
+void _bufferMixWhiteNoise(void**, size_t, char, int, float, float, unsigned char, limitType);
+void _bufferMixPinkNoise(void**, size_t, char, int, float, float, float, unsigned char, limitType);
+void _bufferMixBrownianNoise(void**, size_t, char, int, float, float, float, unsigned char, limitType);
+void _bufferMixSineWave(void**, float, char, size_t, int, float, float, limitType);
+void _bufferMixSquareWave(void**, float, char, size_t, int, float, float, limitType);
+void _bufferMixTriangleWave(void**, float, char, size_t, int, float, float, limitType);
+void _bufferMixSawtooth(void**, float, char, size_t, int, float, float, limitType);
+void _bufferMixImpulse(void**, float, char, size_t, int, float, float, limitType);
 
 
 #if defined(__cplusplus)

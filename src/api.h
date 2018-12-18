@@ -221,6 +221,12 @@ void _aaxAudioFrameFree(void*);
 #define IMA4_BLOCKSIZE_TO_SMP(a)	((a) > 1) ? (((a)-4)*2) : 1
 #define MAX_PITCH_LEVELS		8
 
+typedef enum
+{
+   WAVEFORM_LIMIT_NORMAL = 0,
+   WAVEFORM_LIMIT_DELAYED
+} limitType;
+
 typedef struct
 {
    unsigned int id;	/* always first */
