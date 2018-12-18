@@ -656,7 +656,7 @@ void fill_aax(struct aax_t *aax, const char *filename, float gain, char timed_ga
     }
 }
 
-void print_aax(struct aax_t *aax, const char *outfile)
+void print_aax(struct aax_t *aax, const char *outfile, char commons)
 {
     FILE *output;
     struct tm* tm_info;
@@ -682,12 +682,13 @@ void print_aax(struct aax_t *aax, const char *outfile)
     fprintf(output, " * Copyright (C) 2017-%s by Erik Hofman.\n", year);
     fprintf(output, " * Copyright (C) 2017-%s by Adalin B.V.\n", year);
     fprintf(output, " * All rights reserved.\n");
-#if 0
-    fprintf(output, " *\n");
-    fprintf(output, " * This file is part of AeonWave and covered by the\n");
-    fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
-    fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
-#endif
+    if (commons)
+    {
+        fprintf(output, " *\n");
+        fprintf(output, " * This file is part of AeonWave and covered by the\n");
+        fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
+        fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
+    }
     fprintf(output, "-->\n\n");
 
     fprintf(output, "<aeonwave>\n\n");
@@ -733,11 +734,16 @@ void help()
 int main(int argc, char **argv)
 {
     char *infile, *outfile;
+    char commons = 1;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
                     getCommandLineOption(argc, argv, "--help"))
     {
         help();
+    }
+
+    if (getCommandLineOption(argc, argv, "--commercial")) {
+        commons = 0;
     }
 
     infile = getInputFile(argc, argv, NULL);
@@ -776,7 +782,7 @@ int main(int argc, char **argv)
         testForState(res, "aaxMixerInit");
 
         fill_aax(&aax, infile, 1.0f, 0);
-        print_aax(&aax, aaxsfile);
+        print_aax(&aax, aaxsfile, commons);
         free_aax(&aax);
 
         /* buffer */
@@ -881,7 +887,7 @@ int main(int argc, char **argv)
         printf(", new gain: %4.1f\n", rms);
 
         fill_aax(&aax, infile, rms, 1);
-        print_aax(&aax, outfile);
+        print_aax(&aax, outfile, commons);
         free_aax(&aax);
 
         remove(aaxsfile);
