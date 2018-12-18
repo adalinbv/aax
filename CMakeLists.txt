@@ -230,6 +230,11 @@ add_custom_target(midi_package
   base/timer.c
 )
 
+message("Build type: ${CMAKE_BUILD_TYPE}")
+message("C flags: ${CMAKE_C_FLAGS}")
+message("C++ flags: ${CMAKE_CXX_FLAGS}")
+message("Linker flags: ${CMAKE_SHARED_LINKER_FLAGS}")
+
 #-----------------------------------------------------------------------------
 ### uninstall target
 #-----------------------------------------------------------------------------
