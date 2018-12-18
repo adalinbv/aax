@@ -1,0 +1,13 @@
+AeonWave Utils requires ZeroXML to be installed which can be found at:
+https://github.com/adalinbv/zeroxml
+
+To be able build AeonWave Utils in debug mode ZeroXML must also be installed in
+debug mode.
+
+
+To install move into the package source directory and run:
+
+mkdir build; cd build; cmake ..
+
+and then run either 'make install' or 'make package'
+
