@@ -11,3 +11,18 @@ To install move into the package source directory and run:
 mkdir build; cd build; cmake ..
 
 and then run either 'make install' or 'make package'
+
+
+
+The AeonWave Utils (aax-utils) package can be found at the following location:
+https://github.com/adalinbv/aax-utils
+
+and contains the following utilities:
+ * aaxinfo     - shows the capabilities of AoenWave for your system
+ * aaxplay     - plays streaming audio from file or webstream in any supported
+                 audio format.
+ * aaxplaymidi - plays midi files using the built-in synthesizer and provided
+                 instrument coniguration files (requires libaax3-*-data.*)
+
+In addition aax-utils contains a utility to play back AAXS configuration files
+at any pitch or gain and is located in aax-utils/test/tesplay
