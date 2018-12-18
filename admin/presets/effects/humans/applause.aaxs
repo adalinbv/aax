@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Applause" program="126">
+  <note polyphony="1"/>
+ </info>
+
+ <sound fixed-gain="1.00" frequency="100" duration="3.3">
+  <waveform src="white-noise" ratio="25.0" pitch="0.05"/>
+  <waveform src="brownian-noise" processing="modulate" ratio="4.0" pitch="0.5"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.89</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="4.0">400.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.8</param>
+    <param n="3">1.8</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="25.0">2500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">3.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="frequency" src="sine|24db">
+   <slot n="0">
+    <param n="0">2000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">3500.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">15.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.7</param>
+    <param n="2">1.0</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.7</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.9</param>
+    <param n="1">1.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>

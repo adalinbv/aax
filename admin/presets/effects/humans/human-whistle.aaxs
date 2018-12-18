@@ -16,15 +16,23 @@
   <note polyphony="1" min="60" max="96" step="1"/>
  </info>
 
- <sound gain="2.24" frequency="440" duration="0.33">
-  <waveform src="sine"/>
-  <waveform src="brownian-noise" processing="mix" ratio="0.15"/>
+ <sound fixed-gain="1.00" frequency="220" duration="3.33">
+  <waveform src="sine" ratio="0.3"/>
+  <waveform src="brownian-noise" processing="mix" ratio="0.1"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0">0.1</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.3</param>
+   </slot>
+  </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="1.0">440.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">3.0</param>
+    <param n="3">15.0</param>
    </slot>
   </filter>
  </sound>

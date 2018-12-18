@@ -16,7 +16,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="6.25" frequency="220" duration="3.33">
+ <sound fixed-gain="1.0" frequency="220" duration="3.33">
   <waveform src="brownian-noise" pitch="0.15"/>
  </sound>
 
@@ -39,7 +39,7 @@
    <slot n="0">
     <param n="0">0.05</param>
     <param n="1">1.0</param>
-    <param n="2">0.15</param>
+    <param n="2">0.5</param>
     <param n="3">0.9</param>
    </slot>
    <slot n="1">

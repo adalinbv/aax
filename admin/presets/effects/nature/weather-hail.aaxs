@@ -12,27 +12,35 @@
 
 <aeonwave>
 
- <info>
+ <info name="Hail" program="126">
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="4.81" frequency="25">
-  <waveform src="white-noise" ratio="1.25" pitch="0.125"/>
-  <waveform src="triangle" processing="modulate" ratio="0.8" pitch="6.4991"/>
-  <filter type="frequency" src="24db">
+ <sound fixed-gain="1.20" frequency="100" duration="3.3">
+  <waveform src="white-noise" ratio="12.5" pitch="0.2"/>
+  <waveform src="pink-noise" processing="modulate" ratio="3.0" pitch="0.1"/>
+  <filter type="bitcrusher">
    <slot n="0">
-    <param n="0" pitch="5.0">125.0</param>
+    <param n="0">0.0</param>
     <param n="1">0.0</param>
-    <param n="2">2.5</param>
-    <param n="3">3.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.75</param>
    </slot>
   </filter>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="27.5">687.5</param>
+    <param n="0" pitch="3.0">300.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.8</param>
+    <param n="3">1.1</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="30.0">3000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.3</param>
+    <param n="3">3.0</param>
    </slot>
   </filter>
  </sound>
@@ -40,29 +48,23 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">0.03</param>
-    <param n="2">0.6</param>
-    <param n="3">0.1</param>
+    <param n="0">0.6</param>
+    <param n="1">0.7</param>
+    <param n="2">1.0</param>
+    <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.1</param>
-    <param n="1">0.2</param>
+    <param n="0">1.0</param>
+    <param n="1">0.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.9</param>
-    <param n="1">0.01</param>
-    <param n="2">0.4</param>
-    <param n="3">0.3</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.26</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="0">0.9</param>
+    <param n="1">1.0</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

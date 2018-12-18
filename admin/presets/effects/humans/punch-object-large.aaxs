@@ -16,7 +16,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.92" frequency="33">
+ <sound fixed-gain="2.92" frequency="33">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.1" pitch="3.9897"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="9.4991"/>
