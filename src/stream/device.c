@@ -549,6 +549,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       res = handle->ext->setup(handle->ext, handle->mode, &headerSize, rate,
                                *tracks, format, period_frames, *bitrate);
       handle->ext->set_param(handle->ext,__F_COPY_DATA, handle->copy_to_buffer);
+      handle->ext->set_param(handle->ext, __F_NO_BYTES, handle->no_bytes);
       if (handle->io->protocol == PROTOCOL_HTTP) {
          handle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
       }

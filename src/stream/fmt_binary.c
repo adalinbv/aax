@@ -95,7 +95,7 @@ _binary_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fs
          handle->frequency = 44100;
          handle->bitrate = 0;
          handle->blocksize = 1;
-         handle->format = AAX_PCM16S;
+         handle->format = AAX_PCM8U;
          handle->no_samples = 0;
          handle->max_samples = 0;
       }
@@ -266,6 +266,7 @@ _binary_set(_fmt_t *fmt, int type, off_t value)
    case __F_TRACKS:
 //    handle->no_tracks = rv = value;
       break;
+   case __F_NO_BYTES:
    case __F_NO_SAMPLES:
       handle->no_samples = value;
       handle->max_samples = rv = value;
