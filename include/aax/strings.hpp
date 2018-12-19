@@ -228,7 +228,7 @@ inline std::string to_string(enum aaxDistanceModel model)
     case AAX_EXPONENTIAL_DISTANCE: return "natural exponential distance attenuation";
     case AAX_ISO9613_DISTANCE: return "ISO9613-1 based distance attenuation";
     case AAX_EXPONENTIAL_DISTANCE_DELAY: return "natural exponential distance attenuation with distance delay";
-    case AAX_ISO9613_DISTANCE_DELAY: return "ISO9613-1 based distance deca with distance delayy";
+    case AAX_ISO9613_DISTANCE_DELAY: return "ISO9613-1 based distance decay with distance delay";
     case AAX_AL_INVERSE_DISTANCE: return "AL inverse distance attenuation";
     case AAX_AL_INVERSE_DISTANCE_CLAMPED: return "AL clamped inverse distance attenuation";
     case AAX_AL_LINEAR_DISTANCE: return "AL linear distance attenuation";
