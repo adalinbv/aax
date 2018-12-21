@@ -74,7 +74,7 @@ enum type_t
     FRAME
 };
 
-static const char* format_float(float f)
+static const char* format_float3(float f)
 {
     static char buf[32];
 
@@ -84,6 +84,23 @@ static const char* format_float(float f)
     else
     {
         snprintf(buf, 20, "%.3g", f);
+        if (!strchr(buf, '.')) {
+            strcat(buf, ".0");
+        }
+    }
+    return buf;
+}
+
+static const char* format_float6(float f)
+{
+    static char buf[32];
+
+    if (f >= 100.0f) {
+        snprintf(buf, 20, "%.1f", f);
+    }
+    else
+    {
+        snprintf(buf, 20, "%.6g", f);
         if (!strchr(buf, '.')) {
             strcat(buf, ".0");
         }
@@ -180,9 +197,9 @@ void print_info(struct info_t *info, FILE *output)
 
     if (info->position.x || info->position.y || info->position.z)
     {
-        fprintf(output, "  <position x=\"%s\"", format_float(info->position.x));
-        fprintf(output, " y=\"%s\"", format_float(info->position.y));
-        fprintf(output, " z=\"%s\"/>\n", format_float(info->position.z));
+        fprintf(output, "  <position x=\"%s\"", format_float6(info->position.x));
+        fprintf(output, " y=\"%s\"", format_float6(info->position.y));
+        fprintf(output, " z=\"%s\"/>\n", format_float6(info->position.z));
     };
 
     fprintf(output, " </info>\n\n");
@@ -302,7 +319,7 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
     if (dsp->stereo) fprintf(output, " stereo=\"true\"");
     if (dsp->optional) fprintf(output, " optional=\"true\"");
     if (dsp->release_factor > 0.1f) {
-        fprintf(output, " release-factor=\"%s\"", format_float(dsp->release_factor));
+        fprintf(output, " release-factor=\"%s\"", format_float3(dsp->release_factor));
     }
     fprintf(output, ">\n");
 
@@ -317,14 +334,14 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
             fprintf(output, "    <param n=\"%i\"", p);
             if (pitch)
             {
-                fprintf(output, " pitch=\"%s\"", format_float(pitch));
+                fprintf(output, " pitch=\"%s\"", format_float3(pitch));
                 dsp->slot[s].param[p].value = freq*pitch;
             }
             if (adjust) {
-                fprintf(output, " auto=\"%s\"", format_float(adjust));
+                fprintf(output, " auto=\"%s\"", format_float3(adjust));
             }
 
-            fprintf(output, ">%s</param>\n", format_float(dsp->slot[s].param[p].value));
+            fprintf(output, ">%s</param>\n", format_float3(dsp->slot[s].param[p].value));
         }
         fprintf(output, "   </slot>\n");
     }
@@ -371,13 +388,13 @@ void print_waveform(struct waveform_t *wave, FILE *output)
     if (wave->processing) fprintf(output, " processing=\"%s\"", wave->processing);
     if (wave->ratio) {
         if (wave->processing && !strcasecmp(wave->processing, "mix") && wave->ratio != 0.5f) {
-            fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
+            fprintf(output, " ratio=\"%s\"", format_float6(wave->ratio));
         } else if (wave->ratio != 1.0f) {
-            fprintf(output, " ratio=\"%s\"", format_float(wave->ratio));
+            fprintf(output, " ratio=\"%s\"", format_float6(wave->ratio));
         }
     }
-    if (wave->pitch && wave->pitch != 1.0f) fprintf(output, " pitch=\"%s\"", format_float(wave->pitch));
-    if (wave->staticity > 0) fprintf(output, " staticity=\"%s\"", format_float(wave->staticity));
+    if (wave->pitch && wave->pitch != 1.0f) fprintf(output, " pitch=\"%s\"", format_float6(wave->pitch));
+    if (wave->staticity > 0) fprintf(output, " staticity=\"%s\"", format_float3(wave->staticity));
     if (wave->voices)
     {
         fprintf(output, " voices=\"%i\"", wave->voices);
@@ -504,7 +521,7 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
         fprintf(output, " frequency=\"%i\"", sound->frequency);
     }
     if (sound->duration && sound->duration != 1.0f) {
-        fprintf(output, " duration=\"%s\"", format_float(sound->duration));
+        fprintf(output, " duration=\"%s\"", format_float3(sound->duration));
     }
     if (sound->voices)
     {
@@ -898,10 +915,10 @@ int main(int argc, char **argv)
         rms = 0.8f*10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
 
         printf("%-32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
-        printf(", new gain: %4.1f\n", rms);
+        printf(", new gain: %4.1f\n", (gain > 0.0f) ? rms : -gain);
 
         env_fact = 1.0f;
-        if (fabsf(gain-rms) > 0.1f)
+        if (gain > 0.0f && fabsf(gain-rms) > 0.1f)
         {
             env_fact = gain/rms;
             gain = rms;
