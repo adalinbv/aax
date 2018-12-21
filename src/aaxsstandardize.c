@@ -423,10 +423,9 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
 
     if (xmlAttributeExists(xid, "fixed-gain")) {
         sound->gain = -1.0*xmlAttributeGetDouble(xid, "fixed-gain");
-    } else if (gain == 0.0f) {
+    } else if (gain == 1.0f) {
         sound->gain = xmlAttributeGetDouble(xid, "gain");
-    }
-    else {
+    } else {
         sound->gain = gain; // xmlAttributeGetDouble(xid, "gain");
     }
     sound->frequency = xmlAttributeGetInt(xid, "frequency");
@@ -753,7 +752,7 @@ int main(int argc, char **argv)
         char tmpfile[128], aaxsfile[128];
         float rms; // rms1, rms2;
         double loudness, peak;
-        float dt, step;
+        float dt, step, gain;
         struct aax_t aax;
         aaxBuffer buffer;
         aaxConfig config;
@@ -783,6 +782,7 @@ int main(int argc, char **argv)
 
         fill_aax(&aax, infile, 1.0f, 0);
         print_aax(&aax, aaxsfile, commons);
+        gain = aax.sound.gain;
         free_aax(&aax);
 
         /* buffer */
@@ -886,7 +886,8 @@ int main(int argc, char **argv)
         printf("%-32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
         printf(", new gain: %4.1f\n", rms);
 
-        fill_aax(&aax, infile, rms, 1);
+        if (fabsf(gain-rms) > 0.1f) gain = rms;
+        fill_aax(&aax, infile, gain, 1);
         print_aax(&aax, outfile, commons);
         free_aax(&aax);
 
