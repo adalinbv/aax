@@ -59,11 +59,14 @@
 #define LEVEL_16DB		0.15848931670f
 #define LEVEL_20DB		0.1f
 
+static char debug = 0;
 static float freq = 220.0f;
 static char* false_const = "false";
 
-float _lin2db(float v) { return 20.0f*log10f(v); }
-float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
+static float _lin2log(float v) { return log10f(v); }
+//  static float _log2lin(float v) { return powf(10.f,v); }
+// static float _lin2db(float v) { return 20.f*log10f(v); }
+static float _db2lin(float v) { return _MINMAX(powf(10.f,v/20.f),0.f,10.f); }
 
 enum type_t
 {
@@ -341,7 +344,16 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
                 fprintf(output, " auto=\"%s\"", format_float3(adjust));
             }
 
-            fprintf(output, ">%s</param>\n", format_float3(dsp->slot[s].param[p].value));
+            fprintf(output, ">%s</param>", format_float3(dsp->slot[s].param[p].value));
+            if (debug && adjust)
+            {
+               float value = dsp->slot[s].param[p].value;
+               float lin1 = _MAX(value - adjust*_lin2log(110.0f), 0.1f);
+               float lin2 = _MAX(value - adjust*_lin2log(5500.0f), 0.1f);
+               fprintf(output, "  <!-- 110Hz: %s - ", format_float3(lin1));
+               fprintf(output, "5500Hz: %s -->" , format_float3(lin2));
+            }
+            fprintf(output, "\n");
         }
         fprintf(output, "   </slot>\n");
     }
@@ -772,8 +784,12 @@ int main(int argc, char **argv)
         help();
     }
 
-    if (getCommandLineOption(argc, argv, "--commercial")) {
+    if (getCommandLineOption(argc, argv, "--omit-by-cc")) {
         commons = 0;
+    }
+
+    if (getCommandLineOption(argc, argv, "--debug")) {
+        debug = 1;
     }
 
     infile = getInputFile(argc, argv, NULL);
