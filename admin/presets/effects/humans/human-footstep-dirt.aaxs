@@ -16,11 +16,11 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.0" frequency="220">
+ <sound fixed-gain="1.00" frequency="220">
   <waveform src="brownian-noise" pitch="0.35"/>
   <filter type="frequency" src="12db">
    <slot n="0">
-    <param n="0" pitch="3.0">880.0</param>
+    <param n="0" pitch="3.0">660.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">3.5</param>

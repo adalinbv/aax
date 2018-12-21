@@ -16,7 +16,7 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.62" frequency="440">
+ <sound gain="3.31" frequency="440">
   <waveform src="sine" pitch="0.4993"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="0.5"/>
   <filter type="bitcrusher">
@@ -41,15 +41,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.4</param>
+    <param n="0">0.317</param>
     <param n="1">0.05</param>
-    <param n="2">1.2</param>
+    <param n="2">0.95</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
+    <param n="0">0.792</param>
     <param n="1">inf</param>
-    <param n="2">1.0</param>
+    <param n="2">0.792</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

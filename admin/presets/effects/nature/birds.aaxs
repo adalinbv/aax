@@ -56,7 +56,7 @@
   <filter type="dynamic-gain" src="square">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.17923</param>
+    <param n="1">0.179</param>
     <param n="2">0.7</param>
     <param n="3">0.0</param>
    </slot>
@@ -64,7 +64,7 @@
   <effect type="dynamic-pitch" src="square">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.412983</param>
+    <param n="1">0.413</param>
     <param n="2">0.8</param>
     <param n="3">0.0</param>
    </slot>
@@ -83,7 +83,7 @@
   <filter type="dynamic-gain" src="inverse-square">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.782914</param>
+    <param n="1">0.783</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -105,7 +105,7 @@
   <effect type="dynamic-pitch" src="square">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.058101</param>
+    <param n="1">0.0581</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>

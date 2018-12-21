@@ -51,7 +51,7 @@
     <param n="0">0.5</param>
     <param n="1">0.1</param>
     <param n="2" pitch="0.4">22.0</param>
-    <param n="3" pitch="0.375">20.625</param>
+    <param n="3" pitch="0.375">20.6</param>
    </slot>
   </effect>
  </emitter>
