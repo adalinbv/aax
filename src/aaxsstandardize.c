@@ -304,7 +304,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
     xmlFree(xsid);
 }
 
-void print_dsp(struct dsp_t *dsp, FILE *output)
+void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
 {
     unsigned int s, p;
 
@@ -347,11 +347,22 @@ void print_dsp(struct dsp_t *dsp, FILE *output)
             fprintf(output, ">%s</param>", format_float3(dsp->slot[s].param[p].value));
             if (debug && adjust)
             {
-               float value = dsp->slot[s].param[p].value;
-               float lin1 = _MAX(value - adjust*_lin2log(110.0f), 0.1f);
-               float lin2 = _MAX(value - adjust*_lin2log(5500.0f), 0.1f);
-               fprintf(output, "  <!-- 110Hz: %s - ", format_float3(lin1));
-               fprintf(output, "5500Hz: %s -->" , format_float3(lin2));
+               if (info->note.min && info->note.max)
+               {
+                   float freq1 = note2freq(info->note.min);
+                   float freq2 = note2freq(info->note.max);
+                   float value = dsp->slot[s].param[p].value;
+                   float lin1 = _MAX(value - adjust*_lin2log(freq1), 0.1f);
+                   float lin2 = _MAX(value - adjust*_lin2log(freq2), 0.1f);
+                   fprintf(output, "  <!-- %iHz: %s", (int)freq1, format_float3(lin1));
+                   fprintf(output, " - %iHz: %s -->" , (int)freq2, format_float3(lin2));
+               }
+               else
+               {
+                   float value = dsp->slot[s].param[p].value;
+                   float lin = _MAX(value - adjust*_lin2log(freq), 0.1f);
+                   fprintf(output, "  <!-- %s -->", format_float3(lin));
+               }
             }
             fprintf(output, "\n");
         }
@@ -547,7 +558,7 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
         if (sound->entry[e].type == WAVEFORM) {
             print_waveform(&sound->entry[e].slot.waveform, output);
         } else {
-            print_dsp(&sound->entry[e].slot.dsp, output);
+            print_dsp(&sound->entry[e].slot.dsp, info, output);
         }
     }
     fprintf(output, " </sound>\n\n");
@@ -598,7 +609,7 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
     obj->no_dsps = p;
 }
 
-void print_object(struct object_t *obj, enum type_t type, FILE *output)
+void print_object(struct object_t *obj, enum type_t type, struct info_t *info, FILE *output)
 {
     unsigned int d;
 
@@ -619,7 +630,7 @@ void print_object(struct object_t *obj, enum type_t type, FILE *output)
         fprintf(output, ">\n");
 
         for (d=0; d<obj->no_dsps; ++d) {
-            print_dsp(&obj->dsp[d], output);
+            print_dsp(&obj->dsp[d], info, output);
         }
 
         if (type == EMITTER) {
@@ -736,8 +747,8 @@ void print_aax(struct aax_t *aax, const char *outfile, char commons, char tmp)
     fprintf(output, "<aeonwave>\n\n");
     print_info(&aax->info, output);
     print_sound(&aax->sound, &aax->info, output, tmp);
-    print_object(&aax->emitter, EMITTER, output);
-    print_object(&aax->audioframe, FRAME, output);
+    print_object(&aax->emitter, EMITTER, &aax->info, output);
+    print_object(&aax->audioframe, FRAME, &aax->info, output);
     fprintf(output, "</aeonwave>\n");
 
     if (outfile) {
