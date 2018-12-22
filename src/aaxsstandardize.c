@@ -776,6 +776,8 @@ void help()
     printf("\nOptions:\n");
     printf(" -i, --input <file>\t\tthe .aaxs configuration file to standardize.\n");
     printf(" -o, --output <file>\t\twrite the new .aaxs configuration to this file.\n");
+    printf("     --debug\t\t\tAdd some debug information to the AAXS file.\n");
+    printf("     --omit-cc-by\t\tDo not add the CC-BY license reference.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nWhen no output file is specified then stdout will be used.\n");
