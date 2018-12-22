@@ -795,7 +795,7 @@ int main(int argc, char **argv)
         help();
     }
 
-    if (getCommandLineOption(argc, argv, "--omit-by-cc")) {
+    if (getCommandLineOption(argc, argv, "--omit-cc-by")) {
         commons = 0;
     }
 
