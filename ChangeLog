@@ -1,3 +1,9 @@
+* Mon Dev 24 2018 - <tech@adalin.org>
+- Add aaxplaymidi
+- Add aaxsstandardize
+
+ -- Erik Hofman <info@adalin.org>  Mon, 24 Dec 2018 10:04:00 +0100
+
 * Thu Aug 04 2016 - <tech@adalin.org>
 - Add test programs for the new C++ API
 
