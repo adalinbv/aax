@@ -4,6 +4,7 @@
  * Fix a segmentation fault in case of a (intentionally) corrupt AAXS file.
    Parse the socket or file reported size to the binary-format so the number
    of samples (with pcm8u samples) matches the number of bytes it reports back.
+ * Add a few new instruments.
 
 -- Erik Hofman <tech@adalin.org>  Wed 19 Dec 2018 13:55:31 + 0100
 
