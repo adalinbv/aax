@@ -106,7 +106,7 @@
    <instrument n="93" name="Pad 6 (metallic)" file="instruments/pad-metallic"/>
    <instrument n="94" name="Pad 7 (halo)" file="instruments/pad-halo"/>
    <instrument n="95" name="Pad 8 (sweep)" file="instruments/pad-sweep"/>
-   <instrument n="96" name="FX 1 (rain)" file="instruments/fx-rain"/>
+   <instrument n="96" name="FX 1 (rain)" file="instruments/fx-icerain"/>
    <instrument n="97" name="FX 2 (soundtrack)" file="instruments/fx-soundtrack"/>
    <instrument n="98" name="FX 3 (crystal)" file="instruments/fx-crystal"/>
    <instrument n="99" name="FX 4 (atmosphere)" file="instruments/fx-atmosphere"/>
