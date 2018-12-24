@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2018 by Erik Hofman.
+ * Copyright (C) 2017-2018 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Melodic Tom" bank="0" program="117">
+  <note polyphony="4" min="36" max="96" step="6"/>
+ </info>
+
+ <sound gain="1.17" frequency="110">
+  <waveform src="white-noise" ratio="0.45" pitch="0.11"/>
+  <waveform src="triangle" processing="add" ratio="0.6"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.4</param>
+    <param n="1">0.03</param>
+    <param n="2">0.9</param>
+    <param n="3">0.15</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.4</param>
+    <param n="1" auto="1.5">3.6</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0" auto="-1.0">-2.0</param>
+    <param n="1">0.03</param>
+    <param n="2">1.1</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.998</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+</aeonwave>
