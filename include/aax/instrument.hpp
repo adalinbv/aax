@@ -151,7 +151,7 @@ public:
         }
         Mixer::add(*it->second);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
-        it->second->play(gain*g*soft);
+        it->second->play(volume*g*soft);
     }
 
     void stop(uint8_t key_no) {
@@ -174,18 +174,19 @@ public:
         }
     }
 
-    inline void set_gain(float g) { gain = g; }
+    inline void set_gain(float v) { volume = v; }
 
-    void set_gain(uint8_t key_no, float gain) {
+    inline void set_pressure(float p) { pressure = p; }
+    void set_pressure(uint8_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->set_gain(gain);
+            it->second->set_gain(p*pressure*soft*volume);
         }
     }
 
-    inline void set_expression(float g) {
+    inline void set_expression(float e) {
         for (auto& it : key) {
-            it.second->set_gain(g*gain);
+            it.second->set_gain(e*pressure*soft*volume);
         }
     }
 
@@ -244,7 +245,8 @@ private:
 
     bool is_drums;
     float soft = 1.0f;
-    float gain = 1.0f;
+    float volume = 1.0f;
+    float pressure = 1.0f;
     float modulation_range = 1.0f;
     bool playing = false;
 };
