@@ -150,7 +150,7 @@ public:
             it->second->buffer(buffer);
         }
         Mixer::add(*it->second);
-        float g = sqrtf((1+velocity)/128.0f);
+        float g = ((1+velocity)/128.0f); // sqrtf?
         it->second->play(gain*g*soft);
     }
 
