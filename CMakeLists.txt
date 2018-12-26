@@ -108,6 +108,10 @@ else(WIN32)
   set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA "${AeonWave_SOURCE_DIR}/admin/deb/postinst;${AeonWave_SOURCE_DIR}/admin/deb/postrm;")
   set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
 
+  execute_process(COMMAND "cp" -f -p ChangeLog debian/ChangeLog
+                  COMMAND "gzip" -f -9 debian/ChangeLog
+                 WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} RESULT_VARIABLE varRes)
+
   # RPM
   set(CPACK_RPM_PACKAGE_LICENSE "GPL")
   set(CPACK_RPM_PACKAGE_GROUP "System/Libraries")
@@ -565,7 +569,6 @@ configure_file(
   "${AeonWave_SOURCE_DIR}/include/config.h.in"
   "${AeonWave_BINARY_DIR}/include/config.h"
 )
-
 
 #-----------------------------------------------------------------------------
 ### uninstall target
