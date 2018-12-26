@@ -620,7 +620,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 float semi_tones = midi.channel(channel).get_semi_tones();
                 float pitch = semi_tones*((float)pressure/127.0f);
                 midi.channel(channel).set_pitch(key, (float)pressure/127.0f);
-                midi.channel(channel).set_gain(key, 1.0f-0.33f*pressure/127.0f);
+                midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
                 break;
             }
             case MIDI_CHANNEL_PRESSURE:
@@ -629,7 +629,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 float semi_tones = midi.channel(channel).get_semi_tones();
                 float pitch = semi_tones*((float)pressure/127.0f);
                 midi.channel(channel).set_pitch(powf(2.0f, pitch/12.0f));
-                midi.channel(channel).set_gain(1.0f-0.33f*pressure/127.0f);
+                midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 break;
             }
             case MIDI_CONTROL_CHANGE:
