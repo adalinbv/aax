@@ -54,7 +54,7 @@ static const char* format_float6(float f)
     return buf;
 }
 
-void print_aaxs(const char* outfile, float db[9], char commons, char percussive, char distortion, char leslie)
+void print_aaxs(const char* outfile, float db[9], char commons, char percussive, char distortion, char leslie, char chorus)
 {
     float pitch[9] = { 0.5f, 0.75f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 8.0f };
     FILE *output;
@@ -132,21 +132,32 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
     fprintf(output, "  </filter>\n");
     fprintf(output, " </emitter>\n\n");
 
-    if (distortion || leslie)
+    if (distortion || leslie || chorus)
     {
         fprintf(output, "  <audioframe>\n");
         if (distortion)
         {
-            fprintf(output, "<effect type=\"distortion\">\n");
-            fprintf(output, "   <slot n=\"0\">\n");
-            fprintf(output, "    <param n=\"0\">0.4</param>\n");
-            fprintf(output, "    <param n=\"1\">0.0</param>\n");
-            fprintf(output, "    <param n=\"2\">0.3</param>\n");
-            fprintf(output, "    <param n=\"3\">1.0</param>\n");
-            fprintf(output, "   </slot>\n");
-            fprintf(output, "  </effect>\n");
+            fprintf(output, "   <effect type=\"distortion\" optional=\"true\">\n");
+            fprintf(output, "    <slot n=\"0\">\n");
+            fprintf(output, "     <param n=\"0\">0.4</param>\n");
+            fprintf(output, "     <param n=\"1\">0.0</param>\n");
+            fprintf(output, "     <param n=\"2\">0.3</param>\n");
+            fprintf(output, "     <param n=\"3\">1.0</param>\n");
+            fprintf(output, "    </slot>\n");
+            fprintf(output, "   </effect>\n");
         }
-        if (leslie)
+        if (chorus)
+        {
+            fprintf(output, "   <effect type=\"chorus\" optional=\"true\">\n");
+            fprintf(output, "    <slot n=\"0\">\n");
+            fprintf(output, "     <param n=\"0\">0.6</param>\n");
+            fprintf(output, "     <param n=\"1\">0.0</param>\n");
+            fprintf(output, "     <param n=\"2\">0.0</param>\n");
+            fprintf(output, "     <param n=\"3\">0.9</param>\n");
+            fprintf(output, "    </slot>\n");
+            fprintf(output, "   </effect>\n");
+        }
+        else if (leslie)
         {
             fprintf(output, "    <effect type=\"phasing\" src=\"sine\" optional=\"true\">\n");
             fprintf(output, "     <slot n=\"0\">\n");
@@ -157,10 +168,10 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
             fprintf(output, "     </slot>\n");
             fprintf(output, "    </effect>\n");
         }
-        fprintf(output, "   </audioframe>\n");
+        fprintf(output, "  </audioframe>\n\n");
     }
 
-    fprintf(output, "</aeonwave>\n\n");
+    fprintf(output, "</aeonwave>\n");
 
     if (outfile) {
         fclose(output);
@@ -198,6 +209,7 @@ int main(int argc, char **argv)
     char distortion = 0;
     char commons = 1;
     char leslie = 0;
+    char chorus = 0;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
                     getCommandLineOption(argc, argv, "--help"))
@@ -213,11 +225,15 @@ int main(int argc, char **argv)
         percussive = 1;
     }
 
+    if (getCommandLineOption(argc, argv, "--chorus")) {
+        chorus = 1;
+    }
+
     if (getCommandLineOption(argc, argv, "--leslie")) {
         leslie = 1;
     }
 
-    if (getCommandLineOption(argc, argv, "--disortion")) {
+    if (getCommandLineOption(argc, argv, "--distortion")) {
         distortion = 1;
     }
 
@@ -238,7 +254,7 @@ int main(int argc, char **argv)
             db[i] = (drawbar[i] - '0')/8.0f;
         }
 
-        print_aaxs(outfile, db, commons, percussive, distortion, leslie);
+        print_aaxs(outfile, db, commons, percussive, distortion, leslie, chorus);
     }
     else {
         help();
