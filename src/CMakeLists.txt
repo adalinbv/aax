@@ -46,6 +46,12 @@ INSTALL(TARGETS aaxsstandardize
         COMPONENT Applications
 )
 
+CREATE_UTIL(drawbar2aaxs)
+INSTALL(TARGETS drawbar2aaxs
+        RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
+        COMPONENT Applications
+)
+
 CREATE_CPP_UTIL(aaxplaymidi)
 INSTALL(TARGETS aaxplaymidi
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
