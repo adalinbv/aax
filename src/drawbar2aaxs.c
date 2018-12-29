@@ -102,7 +102,7 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
     fprintf(output, "  <note polyphony=\"10\" min=\"36\" max=\"96\" step=\"12\"/>\n");
     fprintf(output, " </info>\n\n");
 
-    fprintf(output, " <sound frequency=\"220\" duration=\"0.1\">\n");
+    fprintf(output, " <sound gain=\"1.0\" frequency=\"220\" duration=\"0.1\">\n");
 
     num = 0;
     total = 0.0f;
@@ -110,6 +110,7 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
         if (db[i] > 0.f) ++num;
         total += _db2lin(-3.0f*(8.0f-db[i]));
     }
+    total *= 0.5f;
 
     if (num)
     {
@@ -118,7 +119,11 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
             float v = _db2lin(-3.0f*(8.0f-db[i]))/total;
             if (db[i] > 0.f)
             {
-                fprintf(output, "  <waveform src=\"sine\" ratio=\"%s\"", format_float6(v));
+                if (!i) {
+                    fprintf(output, "  <waveform src=\"sine\" ratio=\"%s\"", format_float6(v));
+                } else {
+                    fprintf(output, "  <waveform src=\"sine\" processing=\"add\" ratio=\"%s\"", format_float6(v));
+                }
                 fprintf(output, " pitch=\"%s\"/>\n", format_float6(pitch[i]));
             }
         }
