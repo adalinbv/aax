@@ -33,9 +33,13 @@
 #include "config.h"
 #endif
 
+#include <stdio.h>
 #include <time.h>
+#include <math.h>
 
 #include "driver.h"
+
+inline float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
 
 static const char* format_float6(float f)
 {
@@ -61,6 +65,7 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
     struct tm* tm_info;
     time_t timer;
     char year[5];
+    float total;
     int i, num;
 
     time(&timer);
@@ -100,15 +105,20 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
     fprintf(output, " <sound frequency=\"220\" duration=\"0.1\">\n");
 
     num = 0;
+    total = 0.0f;
     for (i=0; i<9; ++i) {
         if (db[i] > 0.f) ++num;
+        total += _db2lin(-3.0f*(8.0f-db[i]));
     }
 
     if (num)
     {
-        for (i=0; i<9; ++i) {
-            if (db[i] > 0.f) {
-                fprintf(output, "  <waveform src=\"sine\" ratio=\"%s\"", format_float6(db[i]/(float)num));
+        for (i=0; i<9; ++i)
+        {
+            float v = _db2lin(-3.0f*(8.0f-db[i]))/total;
+            if (db[i] > 0.f)
+            {
+                fprintf(output, "  <waveform src=\"sine\" ratio=\"%s\"", format_float6(v));
                 fprintf(output, " pitch=\"%s\"/>\n", format_float6(pitch[i]));
             }
         }
@@ -193,10 +203,12 @@ void help()
     printf("     --omit-cc-by\t\tDo not add the CC-BY license reference.\n");
     printf("     --percussive\t\tAdd percussiveness.\n");
     printf("     --distortion\t\tAdd distortion.\n");
+    printf("     --chorus\t\t\tAdd a chorus effect.\n");
     printf("     --leslie\t\t\tAdd the Leslie speaker.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nWhen no output file is specified then stdout will be used.\n");
+    printf("Note: Either Leslie speaker or chorus can be used but not both.\n");
 
     printf("\n");
     exit(-1);
@@ -251,7 +263,7 @@ int main(int argc, char **argv)
         max = strlen(drawbar);
         if (max > 9) i = 9;
         for(i=0; i<max; ++i) {
-            db[i] = (drawbar[i] - '0')/8.0f;
+            db[i] = (float)(drawbar[i] - '0');
         }
 
         print_aaxs(outfile, db, commons, percussive, distortion, leslie, chorus);
