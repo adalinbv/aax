@@ -36,6 +36,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <math.h>
+#include <strings.h>
 
 #include "driver.h"
 
@@ -58,7 +59,7 @@ static const char* format_float6(float f)
     return buf;
 }
 
-void print_aaxs(const char* outfile, float db[9], char commons, char percussive, char distortion, char leslie, char chorus)
+void print_aaxs(const char* outfile, float db[9], char commons, char percussion, char overdrive, char leslie, char chorus, char reverb)
 {
     float pitch[9] = { 0.5f, 0.75f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 8.0f };
     FILE *output;
@@ -124,67 +125,86 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
                 } else {
                     fprintf(output, "  <waveform src=\"sine\" processing=\"add\" ratio=\"%s\"", format_float6(v));
                 }
-                fprintf(output, " pitch=\"%s\"/>\n", format_float6(pitch[i]));
+                if (pitch[i] != 1.0f) {
+                    fprintf(output, " pitch=\"%s\"", format_float6(pitch[i]));
+                }
+                else if (reverb) {
+                    fprintf(output, " voices=\"3\"");
+                }
+                fprintf(output, "/>\n");
             }
         }
     }
     fprintf(output, " </sound>\n\n");
 
     fprintf(output, " <emitter looping=\"true\">\n");
-    fprintf(output, "  <filter type=\"timed-gain\">\n");
+    fprintf(output, "  <filter type=\"timed-gain\"");
+    if (reverb) fprintf(output, " release-factor=\"7.0\"");
+    fprintf(output, ">\n");
     fprintf(output, "   <slot n=\"0\">\n");
-    fprintf(output, "    <param n=\"0\">%g</param>\n", percussive ? 1.5f : 0.25f);
+    fprintf(output, "    <param n=\"0\">%g</param>\n", percussion ? 1.5f : 0.25f);
     fprintf(output, "    <param n=\"1\">0.08</param>\n");
     fprintf(output, "    <param n=\"2\">1.2</param>\n");
     fprintf(output, "    <param n=\"3\">inf</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "   <slot n=\"1\">\n");
     fprintf(output, "    <param n=\"0\">1.2</param>\n");
-    fprintf(output, "    <param n=\"1\">0.2</param>\n");
+    fprintf(output, "    <param n=\"1\">%g</param>\n", reverb ? 0.7 : 0.2);
     fprintf(output, "    <param n=\"2\">0.0</param>\n");
     fprintf(output, "    <param n=\"3\">0.0</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "  </filter>\n");
     fprintf(output, " </emitter>\n\n");
 
-    if (distortion || leslie || chorus)
+    fprintf(output, " <audioframe>\n");
+    fprintf(output, "  <filter type=\"equalizer\" optional=\"true\">\n");
+    fprintf(output, "   <slot n=\"0\">\n");
+    fprintf(output, "    <param n=\"0\">100.0</param>\n");
+    fprintf(output, "    <param n=\"1\">0.1</param>\n");
+    fprintf(output, "    <param n=\"2\">1.0</param>\n");
+    fprintf(output, "    <param n=\"3\">1.0</param>\n");
+    fprintf(output, "   </slot>\n");
+    fprintf(output, "   <slot n=\"1\">\n");
+    fprintf(output, "    <param n=\"0\">3700.0</param>\n");
+    fprintf(output, "    <param n=\"1\">1.0</param>\n");
+    fprintf(output, "    <param n=\"2\">0.0</param>\n");
+    fprintf(output, "    <param n=\"3\">1.0</param>\n");
+    fprintf(output, "   </slot>\n");
+    fprintf(output, "  </filter>\n");
+    if (overdrive)
     {
-        fprintf(output, "  <audioframe>\n");
-        if (distortion)
-        {
-            fprintf(output, "   <effect type=\"distortion\" optional=\"true\">\n");
-            fprintf(output, "    <slot n=\"0\">\n");
-            fprintf(output, "     <param n=\"0\">0.4</param>\n");
-            fprintf(output, "     <param n=\"1\">0.0</param>\n");
-            fprintf(output, "     <param n=\"2\">0.3</param>\n");
-            fprintf(output, "     <param n=\"3\">1.0</param>\n");
-            fprintf(output, "    </slot>\n");
-            fprintf(output, "   </effect>\n");
-        }
-        if (chorus)
-        {
-            fprintf(output, "   <effect type=\"chorus\" optional=\"true\">\n");
-            fprintf(output, "    <slot n=\"0\">\n");
-            fprintf(output, "     <param n=\"0\">0.6</param>\n");
-            fprintf(output, "     <param n=\"1\">0.0</param>\n");
-            fprintf(output, "     <param n=\"2\">0.0</param>\n");
-            fprintf(output, "     <param n=\"3\">0.9</param>\n");
-            fprintf(output, "    </slot>\n");
-            fprintf(output, "   </effect>\n");
-        }
-        else if (leslie)
-        {
-            fprintf(output, "    <effect type=\"phasing\" src=\"sine\" optional=\"true\">\n");
-            fprintf(output, "     <slot n=\"0\">\n");
-            fprintf(output, "      <param n=\"0\">0.383</param>\n");
-            fprintf(output, "      <param n=\"1\">1.54</param>\n");
-            fprintf(output, "      <param n=\"2\">0.15</param>\n");
-            fprintf(output, "      <param n=\"3\">0.5</param>\n");
-            fprintf(output, "     </slot>\n");
-            fprintf(output, "    </effect>\n");
-        }
-        fprintf(output, "  </audioframe>\n\n");
+        fprintf(output, "  <effect type=\"distortion\" optional=\"true\">\n");
+        fprintf(output, "   <slot n=\"0\">\n");
+        fprintf(output, "    <param n=\"0\">%g</param>\n", 0.1f+0.1f*overdrive);
+        fprintf(output, "    <param n=\"1\">0.0</param>\n");
+        fprintf(output, "    <param n=\"2\">0.15</param>\n");
+        fprintf(output, "    <param n=\"3\">1.0</param>\n");
+        fprintf(output, "   </slot>\n");
+        fprintf(output, "  </effect>\n");
     }
+    if (chorus)
+    {
+        fprintf(output, "  <effect type=\"chorus\" optional=\"true\">\n");
+        fprintf(output, "   <slot n=\"0\">\n");
+        fprintf(output, "    <param n=\"0\">0.6</param>\n");
+        fprintf(output, "    <param n=\"1\">0.0</param>\n");
+        fprintf(output, "    <param n=\"2\">0.0</param>\n");
+        fprintf(output, "    <param n=\"3\">0.9</param>\n");
+        fprintf(output, "   </slot>\n");
+        fprintf(output, "  </effect>\n");
+    }
+    else if (leslie)
+    {
+        fprintf(output, "  <effect type=\"phasing\" src=\"sine\" optional=\"true\">\n");
+        fprintf(output, "   <slot n=\"0\">\n");
+        fprintf(output, "    <param n=\"0\">0.383</param>\n");
+        fprintf(output, "    <param n=\"1\">%g</param>\n", (leslie == 1) ? 1.54f : 5.54f);
+        fprintf(output, "    <param n=\"2\">0.15</param>\n");
+        fprintf(output, "    <param n=\"3\">0.5</param>\n");
+        fprintf(output, "   </slot>\n");
+        fprintf(output, "  </effect>\n");
+    }
+    fprintf(output, " </audioframe>\n\n");
 
     fprintf(output, "</aeonwave>\n");
 
@@ -195,25 +215,27 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussive,
 
 void help()
 {
-    printf("aaxsstandardize version %i.%i.%i\n\n", AAX_UTILS_MAJOR_VERSION,
+    printf("drawbar2aaxs version %i.%i.%i\n\n", AAX_UTILS_MAJOR_VERSION,
                                                     AAX_UTILS_MINOR_VERSION,
                                                     AAX_UTILS_MICRO_VERSION);
     printf("Usage: drawbar2aaxs [options]\n");
-    printf("Creates an AAX configuration files based on the drawbar organ\n");
+    printf("Creates an AAXS configuration file based on the drawbar organ\n");
     printf("drawbar settings.\n");
 
     printf("\nOptions:\n");
-    printf(" -d, --drawbar <XXXXXXXXX>\tUde these drawbar settings.\n");
     printf(" -o, --output <file>\t\twrite the new .aaxs configuration to this file.\n");
+    printf(" -d, --drawbar <XXXXXXXXX>\tUse these drawbar settings.\n");
     printf("     --omit-cc-by\t\tDo not add the CC-BY license reference.\n");
-    printf("     --percussive\t\tAdd percussiveness.\n");
-    printf("     --distortion\t\tAdd distortion.\n");
-    printf("     --chorus\t\t\tAdd a chorus effect.\n");
-    printf("     --leslie\t\t\tAdd the Leslie speaker.\n");
+//  printf("     --chorus\t\t\tAdd the chorus effect.\n");
+    printf("     --leslie <slow|fast>\tAdd the Leslie speaker in slow or fast mode.\n");
+    printf("     --overdrive <mild|strong>\tAdd a mild or strong tube overdrive effect.\n");
+    printf("     --percussion\t\tAdd the percussion effect.\n");
+    printf("     --reverb\t\t\tAdd the reverb effect.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nWhen no output file is specified then stdout will be used.\n");
-    printf("Note: Either Leslie speaker or chorus can be used but not both.\n");
+    printf("Note: Either Leslie speaker or reverb can be used but not both.\n");
+//  printf("      Reverb also turns on chorus automatically.\n");
 
     printf("\n");
     exit(-1);
@@ -221,12 +243,13 @@ void help()
 
 int main(int argc, char **argv)
 {
-    char *outfile, *drawbar;
-    char percussive = 0;
-    char distortion = 0;
+    char *s, *outfile, *drawbar;
+    char percussion = 0;
+    char overdrive = 0;
     char commons = 1;
     char leslie = 0;
     char chorus = 0;
+    char reverb = 0;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
                     getCommandLineOption(argc, argv, "--help"))
@@ -238,20 +261,31 @@ int main(int argc, char **argv)
         commons = 0;
     }
 
-    if (getCommandLineOption(argc, argv, "--percussive")) {
-        percussive = 1;
+    if (getCommandLineOption(argc, argv, "--percussion")) {
+        percussion = 1;
     }
 
     if (getCommandLineOption(argc, argv, "--chorus")) {
         chorus = 1;
     }
 
-    if (getCommandLineOption(argc, argv, "--leslie")) {
-        leslie = 1;
+    if (getCommandLineOption(argc, argv, "--reverb")) {
+        reverb = 1; chorus = 1;
     }
 
-    if (getCommandLineOption(argc, argv, "--distortion")) {
-        distortion = 1;
+    s = getCommandLineOption(argc, argv, "--leslie");
+    if (s)
+    {
+        if (!strcasecmp(s, "fast")) leslie = 2;
+        else leslie = 1;
+    }
+
+    s = getCommandLineOption(argc, argv, "--overdrive");
+    if (s)
+    {
+        if (!strcasecmp(s, "strong")) overdrive = 3;
+        else if (!strcasecmp(s, "medium")) overdrive = 2;
+        else overdrive = 1;
     }
 
     outfile = getOutputFile(argc, argv, NULL);
@@ -271,7 +305,7 @@ int main(int argc, char **argv)
             db[i] = (float)(drawbar[i] - '0');
         }
 
-        print_aaxs(outfile, db, commons, percussive, distortion, leslie, chorus);
+        print_aaxs(outfile, db, commons, percussion, overdrive, leslie, chorus, reverb);
     }
     else {
         help();
