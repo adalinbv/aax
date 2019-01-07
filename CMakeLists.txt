@@ -342,25 +342,25 @@ else(MSVC)
      elseif(ARM)
        message("Build environment: ARM")
        set_property(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -D__ARM_VFPV2"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ftree-vectorize -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -Ofast -D__ARM_VFPV2"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ftree-vectorize -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -Ofast -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ftree-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -Ofast -funsafe-math-optimizations"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize -funsafe-math-optimizations"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -Ofast"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize"
        )
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
