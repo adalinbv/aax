@@ -311,7 +311,7 @@ public:
 
 private:
     uint32_t pull_message();
-    float registered_param(uint8_t, uint8_t, uint8_t);
+    float registered_param(uint8_t);
 
     MIDI& midi;
 
@@ -325,7 +325,9 @@ private:
     bool polyphony = true;
     bool omni = false;
 
-    struct param_t param[MAX_REGISTERED_PARAM] = {
+    uint16_t msb_type = 0;
+    uint16_t lsb_type = 0;
+    struct param_t param[MAX_REGISTERED_PARAM+1] = {
         { 2, 0 }, { 0x20, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
     };
 
