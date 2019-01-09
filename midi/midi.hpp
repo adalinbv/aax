@@ -80,10 +80,10 @@ namespace aax
 // https://learn.sparkfun.com/tutorials/midi-tutorial/messages
 #define MIDI_NOTE_OFF			0x80
 #define MIDI_NOTE_ON			0x90
-#define MIDI_POLYPHONIC_PRESSURE	0xa0
+#define MIDI_POLYPHONIC_AFTERTOUCH	0xa0
 #define MIDI_CONTROL_CHANGE		0xb0
 #define MIDI_PROGRAM_CHANGE		0xc0
-#define MIDI_CHANNEL_PRESSURE		0xd0
+#define MIDI_CHANNEL_AFTERTOUCH		0xd0
 #define MIDI_PITCH_BEND			0xe0
 #define MIDI_SYSTEM			0xf0
 
@@ -299,7 +299,7 @@ public:
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track)
         : byte_stream(stream, len), midi(ptr), channel_no(track)
     {
-        timestamp_parts = pull_message()*24/600000;
+        abstime = pull_message()*24/600000;
     }
 
     MIDITrack(const MIDITrack&) = default;
@@ -320,8 +320,8 @@ private:
     uint8_t bank_no = 0;
 
     uint8_t previous = 0;
-    uint32_t wait_parts = 0;
-    uint64_t timestamp_parts = 0;
+    uint32_t tlapse = 0;
+    uint64_t abstime = 0;
     bool polyphony = true;
     bool omni = false;
 

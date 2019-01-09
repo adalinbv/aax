@@ -500,7 +500,7 @@ void
 MIDITrack::rewind()
 {
     byte_stream::rewind();
-    timestamp_parts = pull_message()*24/600000;
+    abstime = pull_message()*24/600000;
 
     program_no = 0;
     bank_no = 0;
@@ -516,18 +516,18 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
     if (eof()) return rv;
 
-    if (elapsed_parts < wait_parts)
+    if (elapsed_parts < tlapse)
     {
-        wait_parts -= elapsed_parts;
-        next = wait_parts;
+        tlapse -= elapsed_parts;
+        next = tlapse;
         return rv;
     }
 
-    while (!eof() && (timestamp_parts <= time_offs_parts))
+    while (!eof() && (abstime <= time_offs_parts))
     {
         uint32_t message = pull_byte();
 
-        CSV("%d, %ld, ", channel_no+1, timestamp_parts);
+        CSV("%d, %ld, ", channel_no+1, abstime);
 
         // Handle running status; if the next byte is a data byte
         // reuse the last command seen in the track
@@ -663,7 +663,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("Note_on_c, %d, %d, %d\n", channel, key, velocity);
                 break;
             }
-            case MIDI_POLYPHONIC_PRESSURE:
+            case MIDI_POLYPHONIC_AFTERTOUCH:
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
@@ -674,7 +674,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("Poly_aftertouch_c, %d, %d, %d\n", channel, key, pressure);
                 break;
             }
-            case MIDI_CHANNEL_PRESSURE:
+            case MIDI_CHANNEL_AFTERTOUCH:
             {
                 uint8_t pressure = pull_byte();
                 float semi_tones = midi.channel(channel).get_semi_tones();
@@ -809,11 +809,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
         if (!eof())
         {
-            wait_parts = pull_message();
-            timestamp_parts += wait_parts;
+            tlapse = pull_message();
+            abstime += tlapse;
         }
     }
-    next = wait_parts;
+    next = tlapse;
 
     return rv;
 }
