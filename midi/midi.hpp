@@ -46,8 +46,8 @@ namespace aax
 
 /* status messages */
 // https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
-#define MIDI_EXCLUSIVE_MESSAGE		0xf0
-#define MIDI_SYSTEM_MESSAGE		0xff
+#define MIDI_SYSTEM_EXCLUSIVE_PACKET	0xf0
+#define MIDI_FILE_META_EVENT		0xff
 
 /* midi exclusive non-real time message */
 #define MIDI_EOF			0x7b
@@ -55,7 +55,7 @@ namespace aax
 #define MIDI_CANCEL			0x7d
 #define MIDI_NAK			0x7e
 #define MIDI_ACK			0x7f
-#define MIDI_EXCLUSIVE_MESSAGE_END	0xf7
+#define MIDI_SYSTEM_EXCLUSIVE_PACKET_END 0xf7
 
 /* meta messages */
 // https://www.recordingblogs.com/wiki/midi-meta-messages
@@ -75,6 +75,7 @@ namespace aax
 #define MIDI_SMPTE_OFFSET		0x54
 #define MIDI_TIME_SIGNATURE		0x58
 #define MIDI_KEY_SIGNATURE		0x59
+#define MIDI_SEQUENCERSPECIFICMETAEVENT	0x7f
 
 /* channel messages */
 // https://learn.sparkfun.com/tutorials/midi-tutorial/messages
@@ -333,6 +334,9 @@ private:
 
     const std::string type_name[5] = {
         "Text", "Copyright", "Track", "Instrument", "Lyrics"
+    };
+    const std::string csv_name[5] = {
+        "Text_t", "Copyright_t", "Title_t", "Instrument_name_t", "Lyrics_t"
     };
 };
 
