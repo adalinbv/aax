@@ -362,10 +362,12 @@ MIDITrack::pull_message()
 }
 
 float
-MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t type)
+MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 {
-    uint8_t value = pull_byte();
+    uint16_t type = value;
     float rv = 0.0f;
+
+    value = pull_byte();
 
 #if 0
  printf("\t1: %x %x %x %x", 0xb0|channel, controller, type, value);
@@ -374,7 +376,6 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t type)
  for (int i=0; i<20; ++i) printf("%x ", p[i]);
  printf("\n");
 #endif
-
 
     if (type > MAX_REGISTERED_PARAM) {
         type = MAX_REGISTERED_PARAM;
@@ -484,7 +485,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
         {
             uint8_t size = pull_byte();
             uint8_t byte = pull_byte();
-            const char *s;
+            const char *s = NULL;
             // GM1 rewind: F0 7E 7F 09 01 F7
             // GM2 rewind: F0 7E 7F 09 03 F7
             // GS  rewind: F0 41 10 42 12 40 00 7F 00 41 F7
@@ -506,7 +507,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 s = "General Standard";
             }
 
-            MESSAGE("Format    : %s\n", s);
+            if (s) MESSAGE("Format    : %s\n", s);
             push_byte();
             do {
                 byte = pull_byte();
@@ -753,6 +754,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_SOSTENUTO_PEDAL:
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
+                case MIDI_PORTAMENTO_TIME:
+                case MIDI_DATA_ENTRY:
+                case MIDI_BALANCE:
+                case MIDI_BALANCE|MIDI_FINE:
                 case MIDI_EXTERNAL_EFFECT_DEPTH:
                 case MIDI_TREMOLO_EFFECT_DEPTH:
                 case MIDI_CHORUS_EFFECT_DEPTH:
@@ -770,6 +775,16 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_SOUND_CONTROL10:
                 case MIDI_UNREGISTERED_PARAM_COARSE:
                 case MIDI_UNREGISTERED_PARAM_FINE:
+                case MIDI_PORTAMENTO_PEDAL:
+                case MIDI_PORTAMENTO_CONTROL:
+                case MIDI_GENERAL_PURPOSE_CONTROL1:
+                case MIDI_GENERAL_PURPOSE_CONTROL2:
+                case MIDI_GENERAL_PURPOSE_CONTROL3:
+                case MIDI_GENERAL_PURPOSE_CONTROL4:
+                case MIDI_GENERAL_PURPOSE_CONTROL5:
+                case MIDI_GENERAL_PURPOSE_CONTROL6:
+                case MIDI_GENERAL_PURPOSE_CONTROL7:
+                case MIDI_GENERAL_PURPOSE_CONTROL8:
                     break;
                 default:
                     LOG("Unsupported control change: 0x%x\n", controller);
