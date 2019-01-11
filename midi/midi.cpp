@@ -762,6 +762,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_SOSTENUTO_PEDAL:
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
+                case MIDI_ALL_NOTES_OFF:
+                    for(auto& it : midi.channel())
+                    {
+                        midi.process(it.first, MIDI_NOTE_OFF, 0, 0, true);
+                        midi.channel(channel).set_semi_tones(2.0f);
+                    }
+                    break;
                 case MIDI_PORTAMENTO_TIME:
                 case MIDI_PAN|MIDI_FINE:
                 case MIDI_BALANCE|MIDI_FINE:
