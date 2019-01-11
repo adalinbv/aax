@@ -274,12 +274,16 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
     }
     else
     {
+        if (message == MIDI_NOTE_ON) {
+            velocity = 64;
+        }
+
         if (omni) {
             for (auto& it : channels) {
-                it.second->stop(key);
+                it.second->stop(key, velocity);
             }
         } else {
-            channel(channel_no).stop(key);
+            channel(channel_no).stop(key, velocity);
         }
     }
     return true;
@@ -358,125 +362,61 @@ MIDITrack::pull_message()
 }
 
 float
-MIDITrack::registered_param(uint8_t channel)
+MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t type)
 {
-    bool msb_sent = false, lsb_sent = false;
-    uint8_t controller, value, next = 0;
-    uint16_t type;
+    uint8_t value = pull_byte();
     float rv = 0.0f;
 
-    controller = pull_byte();
-    while (controller == MIDI_REGISTERED_PARAM_COARSE ||
-           controller == MIDI_REGISTERED_PARAM_FINE)
-    {
-        value = pull_byte();
-
 #if 0
- printf("\t1: %x %x %x ", 0xb0|channel, controller, value);
+ printf("\t1: %x %x %x %x", 0xb0|channel, controller, type, value);
  uint8_t *p = (uint8_t*)*this;
  p += offset();
  for (int i=0; i<20; ++i) printf("%x ", p[i]);
  printf("\n");
 #endif
 
-        if (controller == MIDI_REGISTERED_PARAM_COARSE)
-        {
-            msb_type = value;
-            msb_sent = true;
-            next = pull_byte();
-            if (next == 0x00) next = pull_byte();
-            if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
-                next = pull_byte();
-            }
-            if (next == MIDI_REGISTERED_PARAM_FINE)
-            {
-                lsb_type = pull_byte();
-                lsb_sent = true;
-                next = pull_byte();
-            }
-        }
-        else if (controller == MIDI_REGISTERED_PARAM_FINE)
-        {
-            lsb_type = value;
-            lsb_sent = true;
-            next = pull_byte();
-            if (next == 0x00) next = pull_byte();
-            if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
-                next = pull_byte();
-            }
-            if (next == MIDI_REGISTERED_PARAM_COARSE)
-            {
-                msb_type = pull_byte();
-                msb_sent = true;
-                next = pull_byte();
-            }
-        }
 
+    if (type > MAX_REGISTERED_PARAM) {
+        type = MAX_REGISTERED_PARAM;
+    }
 
-        if (msb_type > MAX_REGISTERED_PARAM) msb_type = MAX_REGISTERED_PARAM;
-        if (lsb_type > MAX_REGISTERED_PARAM) lsb_type = MAX_REGISTERED_PARAM;
+    if (controller == MIDI_REGISTERED_PARAM_COARSE)
+    {
+        msb_type = type;
+        param[type].coarse = value;
+    }
+    else if (controller == MIDI_REGISTERED_PARAM_FINE)
+    {
+        lsb_type = type;
+        param[type].fine = value;
+    }
 
-        type = msb_type << 8 | lsb_type;
-        if (msb_sent && lsb_sent)
-        {
-            if (next == 0x00) next = pull_byte();
-            if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
-                next = pull_byte();
-            }
-            if (next == (MIDI_DATA_ENTRY|MIDI_COARSE))
-            {
-                param[msb_type].coarse = pull_byte();
-                next = pull_byte();
-            }
-            else if (next == (MIDI_DATA_ENTRY|MIDI_FINE))
-            {
-                param[lsb_type].fine = pull_byte();
-                next = pull_byte();
-            }
-            else {
-                push_byte();
-            }
-
-            if (next == 0x00) next = pull_byte();
-            if ((next & 0xf0) == MIDI_CONTROL_CHANGE) {
-                next = pull_byte();
-            }
-            if (next == (MIDI_DATA_ENTRY|MIDI_COARSE)) {
-                param[msb_type].coarse = pull_byte();
-            } else if (next == (MIDI_DATA_ENTRY|MIDI_FINE)) {
-                param[lsb_type].fine = pull_byte();
-            } else {
-                push_byte();
-            }
-
-            if (next == MIDI_REGISTERED_PARAM_COARSE) push_byte();
-            else if (next == MIDI_REGISTERED_PARAM_FINE) push_byte();
-
-            switch(type)
-            {
-            case MIDI_PITCH_BEND_RANGE:
-                rv = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
-                     (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
-                midi.channel(channel).set_semi_tones(rv);
-                break;
-            case MIDI_MODULATION_DEPTH_RANGE:
-                rv = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
-                     (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
-                midi.channel(channel).set_modulation_depth(rv);
-                break;
-            case MIDI_PARAMETER_RESET:
-                midi.channel(channel).set_semi_tones(2.0f);
-                break;
-            case MIDI_FINE_TUNING:
-            case MIDI_COARSE_TUNING:
-                break;
-            case MIDI_TUNING_PROGRAM_CHANGE:
-            case MIDI_TUNING_BANK_SELECT:
-            default:
-                LOG("Unsupported registered parameter: %x\n", type);
-                break;
-            }
-        }
+    type = msb_type << 8 | lsb_type;
+    switch(type)
+    {
+    case MIDI_PITCH_BEND_RANGE:
+        rv = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
+             (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
+        midi.channel(channel).set_semi_tones(rv);
+        break;
+    case MIDI_MODULATION_DEPTH_RANGE:
+        rv = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
+             (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
+        midi.channel(channel).set_modulation_depth(rv);
+        break;
+    case MIDI_PARAMETER_RESET:
+        midi.channel(channel).set_semi_tones(2.0f);
+        break;
+    case MIDI_FINE_TUNING:
+    case MIDI_COARSE_TUNING:
+        break;
+    case MIDI_TUNING_PROGRAM_CHANGE:
+    case MIDI_TUNING_BANK_SELECT:
+        break;
+    default:
+        LOG("Unsupported registered parameter: 0x%x\n", type);
+        break;
+    }
 
 #if 0
  printf("\t9: ");
@@ -485,13 +425,6 @@ MIDITrack::registered_param(uint8_t channel)
  for (int i=0; i<20; ++i) printf("%x ", p[i]);
  printf("\n");
 #endif
-
-        controller = pull_byte();
-        if ((controller & 0xf0) == MIDI_CONTROL_CHANGE) {
-            controller = pull_byte();
-        }
-    }
-    push_byte();
 
     return rv;
 }
@@ -577,7 +510,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             push_byte();
             do {
                 byte = pull_byte();
+                CSV(", %d", byte);
             } while (byte != MIDI_SYSTEM_EXCLUSIVE_PACKET_END && byte != MIDI_EOF);
+            CSV("\n");
             break;
         }
         case MIDI_FILE_META_EVENT:
@@ -618,16 +553,25 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 break;
             case MIDI_MARKER:
                 CSV("Marker_t, ");
-                for (int i=0; i<size; ++i) CSV("%c", pull_byte());
+                for (int i=0; i<size; ++i) {
+                    uint8_t c = pull_byte();
+                    CSV("%c", c);
+                }
                 CSV("\n");
                 break;
             case MIDI_CUE_POINT:
                 CSV("Cue_point_t, ");
-                for (int i=0; i<size; ++i) CSV("%c", pull_byte());
+                for (int i=0; i<size; ++i) {
+                    uint8_t c = pull_byte();
+                    CSV("%c", c);
+                }
                 CSV("\n");
             case MIDI_DEVICE_NAME:
                 CSV("Device_name_t, ");
-                for (int i=0; i<size; ++i) CSV("%c", pull_byte());
+                for (int i=0; i<size; ++i) {
+                    uint8_t c = pull_byte();
+                    CSV("%c", c);
+                }
                 CSV("\n");
                 break;
             case MIDI_CHANNEL_PREFIX:
@@ -653,25 +597,51 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 break;
             }
             case MIDI_SEQUENCE_NUMBER:	// sequencer software only
-                CSV("Sequence_number, %d\n", (pull_byte() << 8) | pull_byte());
+            {
+                uint8_t mm = pull_byte();
+                uint8_t ll = pull_byte(); 
+                CSV("Sequence_number, %d\n", (mm << 8) | ll);
                 forward(size);
                 break;
+            }
             case MIDI_TIME_SIGNATURE:
-                CSV("Time_signature, %d, %d, %d, %d\n",  pull_byte(), pull_byte(), pull_byte(), pull_byte());
+            {
+                uint8_t nn = pull_byte();
+                uint8_t dd = pull_byte();
+                uint8_t cc = pull_byte(); // 1 << cc
+                uint8_t bb = pull_byte();
+                uint16_t QN = 100000.0f / (float)cc;
+                CSV("Time_signature, %d, %d, %d, %d\n", nn, dd, cc, bb);
+                
                 break;
+            }
             case MIDI_SMPTE_OFFSET:
-                CSV( "SMPTE_offset, %d, %d, %d, %d, %d\n", pull_byte(), pull_byte(), pull_byte(), pull_byte(), pull_byte());
+            {
+                uint8_t hr = pull_byte();
+                uint8_t mn = pull_byte();
+                uint8_t se = pull_byte();
+                uint8_t fr = pull_byte();
+                uint8_t ff = pull_byte();
+                CSV( "SMPTE_offset, %d, %d, %d, %d, %d\n", hr, mn, se, fr, ff);
                 break;
+            }
             case MIDI_KEY_SIGNATURE:
-                CSV("Key_signature, %d, \"%s\"\n", pull_byte(), pull_byte() ? "minor" : "major");
+            {
+                uint8_t sf = pull_byte();
+                uint8_t mi = pull_byte();
+                CSV("Key_signature, %d, \"%s\"\n", sf, mi ? "minor" : "major");
                 break;
+            }
             case MIDI_SEQUENCERSPECIFICMETAEVENT:
                 CSV("Sequencer_specific, %lu", size);
-                for (int i=0; i<size; ++i) CSV("%c", pull_byte());
+                for (int i=0; i<size; ++i) {
+                    uint8_t c = pull_byte();
+                    CSV("%c", c);
+                }
                 CSV("\n");
                 break;
             default:	// unsupported
-                LOG("Unsupported system message: %x\n", meta);
+                LOG("Unsupported system message: 0x%x\n", meta);
                 forward(size);
                 break;
             }
@@ -770,9 +740,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_REGISTERED_PARAM_COARSE:
                 case MIDI_REGISTERED_PARAM_FINE:
-                    push_byte(); push_byte();
-                    registered_param(channel);
-                    break;
+                    registered_param(channel, controller, value);
+                    continue;
                 case MIDI_SOFT_PEDAL:
                     midi.channel(channel).set_soft(value >= 0x40);
                     break;
@@ -784,7 +753,26 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_SOSTENUTO_PEDAL:
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
+                case MIDI_EXTERNAL_EFFECT_DEPTH:
+                case MIDI_TREMOLO_EFFECT_DEPTH:
+                case MIDI_CHORUS_EFFECT_DEPTH:
+                case MIDI_CELESTE_EFFECT_DEPTH:
+                case MIDI_PHASER_EFFECT_DEPTH:
+                case MIDI_SOUND_VARIATION_CONTROL:
+                case MIDI_TIMBRE_INTENSITY_CONTROL:
+                case MIDI_RELEASE_TIME_CONTROL:
+                case MIDI_ATTACK_TIME_CONTROL:
+                case MIDI_SOUND_BRIGHTNESS_CONTROL:
+                case MIDI_SOUND_CONTROL6:
+                case MIDI_SOUND_CONTROL7:
+                case MIDI_SOUND_CONTROL8:
+                case MIDI_SOUND_CONTROL9:
+                case MIDI_SOUND_CONTROL10:
+                case MIDI_UNREGISTERED_PARAM_COARSE:
+                case MIDI_UNREGISTERED_PARAM_FINE:
+                    break;
                 default:
+                    LOG("Unsupported control change: 0x%x\n", controller);
                     break;
                 }
                 break;
@@ -830,13 +818,14 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_CONTINUE:
                 case MIDI_STOP:
                 case MIDI_ACTIVE_SENSE:
+                    break;
                 default:
-                    LOG("Unsupported real-time System message: %x - %x\n", message, channel);
+                    LOG("Unsupported real-time System message: 0x%x - 0x%x\n", message, channel);
                     break;
                 }
                 break;
             default:
-                LOG("Unsupported message: %x\n", message);
+                LOG("Unsupported message: 0x%x\n", message);
                 break;
             }
             break;

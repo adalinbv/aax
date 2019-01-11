@@ -90,6 +90,7 @@ namespace aax
 
 /* controller messages */
 // https://www.recordingblogs.com/wiki/midi-controller-message
+// http://www.personal.kent.edu/~sbirch/Music_Production/MP-II/MIDI/midi_control_change_messages.htm
 #define MIDI_COARSE			0x00
 #define MIDI_FINE			0x20
 
@@ -116,11 +117,11 @@ namespace aax
 #define MIDI_SOFT_PEDAL			0x43
 #define MIDI_LEGATO_PEDAL		0x44
 #define MIDI_HOLD_PEDAL2		0x45
-#define MIDI_SOUND_CONTROL1		0x46
-#define MIDI_SOUND_CONTROL2		0x47
-#define MIDI_SOUND_CONTROL3		0x49
-#define MIDI_SOUND_CONTROL4		0x49
-#define MIDI_SOUND_CONTROL5		0x4a
+#define MIDI_SOUND_VARIATION_CONTROL	0x46
+#define MIDI_TIMBRE_INTENSITY_CONTROL	0x47
+#define MIDI_RELEASE_TIME_CONTROL	0x48
+#define MIDI_ATTACK_TIME_CONTROL	0x49
+#define MIDI_SOUND_BRIGHTNESS_CONTROL	0x4a
 #define MIDI_SOUND_CONTROL6		0x4b
 #define MIDI_SOUND_CONTROL7		0x4c
 #define MIDI_SOUND_CONTROL8		0x4d
@@ -132,11 +133,11 @@ namespace aax
 #define MIDI_GENERAL_PURPOSE_CONTROL8	0x53
 #define MIDI_PORTAMENTO_CONTROL		0x54
 #define MIDI_HIGHRES_VELOCITY_PREFIX	0x58
-#define MIDI_EFFECT1_DEPTH		0x5b
-#define MIDI_EFFECT2_DEPTH		0x5c
-#define MIDI_EFFECT3_DEPTH		0x5d
-#define MIDI_EFFECT4_DEPTH		0x5e
-#define MIDI_EFFECT5_DEPTH		0x5f
+#define MIDI_EXTERNAL_EFFECT_DEPTH	0x5b
+#define MIDI_TREMOLO_EFFECT_DEPTH	0x5c
+#define MIDI_CHORUS_EFFECT_DEPTH	0x5d
+#define MIDI_CELESTE_EFFECT_DEPTH	0x5e
+#define MIDI_PHASER_EFFECT_DEPTH	0x5f
 #define MIDI_DATA_INCREMENT		0x60
 #define MIDI_DATA_DECREMENT		0x61
 #define MIDI_UNREGISTERED_PARAM_FINE	0x62
@@ -312,7 +313,7 @@ public:
 
 private:
     uint32_t pull_message();
-    float registered_param(uint8_t);
+    float registered_param(uint8_t, uint8_t, uint8_t);
 
     MIDI& midi;
 
