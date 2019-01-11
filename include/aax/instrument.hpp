@@ -158,7 +158,8 @@ public:
     void stop(uint8_t key_no, uint8_t velocity) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->stop();
+            float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
+            it->second->stop(0.33f+0.66f*volume*g*soft);
         }
     }
 
