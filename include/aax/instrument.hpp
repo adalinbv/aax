@@ -66,8 +66,9 @@ public:
         return playing;
     }
 
-    bool stop() {
+    bool stop(float g = -1.0f) {
         playing = false;
+        if (g > 0.0f) gain_param = gain = g;
         return hold ? true : Emitter::set(AAX_STOPPED);
     }
 
@@ -154,7 +155,7 @@ public:
         it->second->play(volume*g*soft);
     }
 
-    void stop(uint8_t key_no) {
+    void stop(uint8_t key_no, uint8_t velocity) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->stop();
