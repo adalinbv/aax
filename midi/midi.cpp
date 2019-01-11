@@ -361,16 +361,19 @@ MIDITrack::pull_message()
     return rv;
 }
 
+
+// https://www.midi.org/specifications-old/item/table-3-control-change-messages-data-bytes-2
 float
 MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 {
     uint16_t type = value;
     float rv = 0.0f;
+    char data = 0;
 
     value = pull_byte();
 
 #if 0
- printf("\t1: %x %x %x %x", 0xb0|channel, controller, type, value);
+ printf("\t1: %x %x %x %x ", 0xb0|channel, controller, type, value);
  uint8_t *p = (uint8_t*)*this;
  p += offset();
  for (int i=0; i<20; ++i) printf("%x ", p[i]);
@@ -381,42 +384,44 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         type = MAX_REGISTERED_PARAM;
     }
 
-    if (controller == MIDI_REGISTERED_PARAM_COARSE)
-    {
+    if (controller == MIDI_REGISTERED_PARAM_COARSE) {
         msb_type = type;
-        param[type].coarse = value;
-    }
-    else if (controller == MIDI_REGISTERED_PARAM_FINE)
-    {
+    } else if (controller == MIDI_REGISTERED_PARAM_FINE) {
         lsb_type = type;
-        param[type].fine = value;
+    } else if (controller == MIDI_DATA_ENTRY) {
+        param[msb_type].coarse = value; data = 1;
+    } else if (controller == MIDI_DATA_ENTRY|MIDI_FINE) {
+        param[lsb_type].fine = value; data = 1;
     }
 
-    type = msb_type << 8 | lsb_type;
-    switch(type)
+    if (data)
     {
-    case MIDI_PITCH_BEND_RANGE:
-        rv = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
-             (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
-        midi.channel(channel).set_semi_tones(rv);
-        break;
-    case MIDI_MODULATION_DEPTH_RANGE:
-        rv = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
-             (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
-        midi.channel(channel).set_modulation_depth(rv);
-        break;
-    case MIDI_PARAMETER_RESET:
-        midi.channel(channel).set_semi_tones(2.0f);
-        break;
-    case MIDI_FINE_TUNING:
-    case MIDI_COARSE_TUNING:
-        break;
-    case MIDI_TUNING_PROGRAM_CHANGE:
-    case MIDI_TUNING_BANK_SELECT:
-        break;
-    default:
-        LOG("Unsupported registered parameter: 0x%x\n", type);
-        break;
+        type = msb_type << 8 | lsb_type;
+        switch(type)
+        {
+        case MIDI_PITCH_BEND_RANGE:
+            rv = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
+                 (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
+            midi.channel(channel).set_semi_tones(rv);
+            break;
+        case MIDI_MODULATION_DEPTH_RANGE:
+            rv = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
+                 (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
+            midi.channel(channel).set_modulation_depth(rv);
+            break;
+        case MIDI_PARAMETER_RESET:
+            midi.channel(channel).set_semi_tones(2.0f);
+            break;
+        case MIDI_FINE_TUNING:
+        case MIDI_COARSE_TUNING:
+            break;
+        case MIDI_TUNING_PROGRAM_CHANGE:
+        case MIDI_TUNING_BANK_SELECT:
+            break;
+        default:
+            LOG("Unsupported registered parameter: 0x%x\n", type);
+            break;
+        }
     }
 
 #if 0
@@ -742,6 +747,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_REGISTERED_PARAM_COARSE:
                 case MIDI_REGISTERED_PARAM_FINE:
+                case MIDI_DATA_ENTRY:
+                case MIDI_DATA_ENTRY|MIDI_FINE:
                     registered_param(channel, controller, value);
                     continue;
                 case MIDI_SOFT_PEDAL:
@@ -756,7 +763,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
                 case MIDI_PORTAMENTO_TIME:
-                case MIDI_DATA_ENTRY:
                 case MIDI_PAN|MIDI_FINE:
                 case MIDI_BALANCE|MIDI_FINE:
                 case MIDI_EXTERNAL_EFFECT_DEPTH:
