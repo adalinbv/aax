@@ -796,7 +796,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
       stage = filter->no_stages;
       if (!stage) stage++;
 
-#if 0
+#if 1
       do
       {
          float32_ptr d = dptr;
