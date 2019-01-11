@@ -726,6 +726,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     bank_no = value;
                     break;
                 case MIDI_PAN:
+                case MIDI_BALANCE:
                     midi.channel(channel).set_pan(((float)value-64.0f)/64.0f);
                     break;
                 case MIDI_EXPRESSION:
@@ -756,7 +757,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_PORTAMENTO_TIME:
                 case MIDI_DATA_ENTRY:
-                case MIDI_BALANCE:
+                case MIDI_PAN|MIDI_FINE:
                 case MIDI_BALANCE|MIDI_FINE:
                 case MIDI_EXTERNAL_EFFECT_DEPTH:
                 case MIDI_TREMOLO_EFFECT_DEPTH:
