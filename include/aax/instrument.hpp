@@ -49,7 +49,8 @@ public:
         n1.pitch_param = std::move(n2.pitch_param);
         n1.gain_param = std::move(n2.gain_param);
         n1.pitch = std::move(n2.pitch);
-        n2.playing = std::move(n2.playing);
+        n1.gain = std::move(n2.gain);
+        n1.playing = std::move(n2.playing);
     }
 
     Note& operator=(Note&&) = default;
@@ -68,7 +69,7 @@ public:
 
     bool stop(float g = 1.0f) {
         playing = false;
-        if (fabsf(g - gain) > 0.1f) gain_param = gain = g;
+        if (fabsf(g - 1.0f) > 0.1f) gain_param = (gain *= g);
         return hold ? true : Emitter::set(AAX_STOPPED);
     }
 
