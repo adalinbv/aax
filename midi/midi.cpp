@@ -363,35 +363,56 @@ MIDITrack::pull_message()
 
 
 // https://www.midi.org/specifications-old/item/table-3-control-change-messages-data-bytes-2
-float
+bool
 MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 {
     uint16_t type = value;
-    float rv = 0.0f;
-    char data = 0;
+    bool data = false;
+    bool rv = true;
 
-    value = pull_byte();
-
-#if 0
+#if 1
+ value = pull_byte();
  printf("\t1: %x %x %x %x ", 0xb0|channel, controller, type, value);
  uint8_t *p = (uint8_t*)*this;
  p += offset();
  for (int i=0; i<20; ++i) printf("%x ", p[i]);
  printf("\n");
+ push_byte();
 #endif
 
     if (type > MAX_REGISTERED_PARAM) {
         type = MAX_REGISTERED_PARAM;
     }
 
-    if (controller == MIDI_REGISTERED_PARAM_COARSE) {
+    switch(controller)
+    {
+    case MIDI_REGISTERED_PARAM_COARSE:
         msb_type = type;
-    } else if (controller == MIDI_REGISTERED_PARAM_FINE) {
+	break;
+    case MIDI_REGISTERED_PARAM_FINE:
         lsb_type = type;
-    } else if (controller == MIDI_DATA_ENTRY) {
-        param[msb_type].coarse = value; data = 1;
-    } else if (controller == MIDI_DATA_ENTRY|MIDI_FINE) {
-        param[lsb_type].fine = value; data = 1;
+	break;
+    case MIDI_DATA_ENTRY:
+        if (registered)
+        {
+	    param[type].coarse = value;
+            data = true;
+	}
+	break;
+    case MIDI_DATA_ENTRY|MIDI_FINE:
+        if (registered)
+        {
+	    param[type].fine = value;
+	    data = true;
+	}
+	break;
+    case MIDI_UNREGISTERED_PARAM_COARSE:
+    case MIDI_UNREGISTERED_PARAM_FINE:
+        break;
+    default:
+	LOG("Unsupported registered parameter: %x\n", controller);
+	rv = false;
+	break;
     }
 
     if (data)
@@ -400,15 +421,21 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         switch(type)
         {
         case MIDI_PITCH_BEND_RANGE:
-            rv = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
-                 (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
-            midi.channel(channel).set_semi_tones(rv);
+        {
+	    float val;
+            val = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
+                  (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
+            midi.channel(channel).set_semi_tones(val);
             break;
+	}
         case MIDI_MODULATION_DEPTH_RANGE:
-            rv = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
-                 (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
-            midi.channel(channel).set_modulation_depth(rv);
+	{
+	    float val;
+            val = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
+                  (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
+            midi.channel(channel).set_modulation_depth(val);
             break;
+	}
         case MIDI_PARAMETER_RESET:
             midi.channel(channel).set_semi_tones(2.0f);
             break;
@@ -424,7 +451,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
     }
 
-#if 0
+#if 1
  printf("\t9: ");
  p = (uint8_t*)*this;
  p += offset();
@@ -439,7 +466,7 @@ void
 MIDITrack::rewind()
 {
     byte_stream::rewind();
-    abstime = pull_message()*24/600000;
+    timestamp_parts = pull_message()*24/600000;
 
     program_no = 0;
     bank_no = 0;
@@ -455,18 +482,18 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
     if (eof()) return rv;
 
-    if (elapsed_parts < tlapse)
+    if (elapsed_parts < wait_parts)
     {
-        tlapse -= elapsed_parts;
-        next = tlapse;
+        wait_parts -= elapsed_parts;
+        next = wait_parts;
         return rv;
     }
 
-    while (!eof() && (abstime <= time_offs_parts))
+    while (!eof() && (timestamp_parts <= time_offs_parts))
     {
         uint32_t message = pull_byte();
 
-        CSV("%d, %ld, ", channel_no+1, abstime);
+        CSV("%d, %ld, ", channel_no+1, timestamp_parts);
 
         // Handle running status; if the next byte is a data byte
         // reuse the last command seen in the track
@@ -705,13 +732,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 switch(controller)
                 {
                 case MIDI_ALL_CONTROLLERS_OFF:
-                     midi.channel(channel).set_expression(1.0f);
-                     midi.channel(channel).set_hold(true);
-                     midi.channel(channel).set_sustain(false);
-                     midi.channel(channel).set_gain(100.0f/127.0f);
-                     midi.channel(channel).set_pan(0.0f);
-                     midi.channel(channel).set_semi_tones(2.0f);
-                     midi.channel(channel).set_pitch(1.0f);
+                    midi.channel(channel).set_expression(1.0f);
+                    midi.channel(channel).set_hold(true);
+                    midi.channel(channel).set_sustain(false);
+                    midi.channel(channel).set_gain(100.0f/127.0f);
+                    midi.channel(channel).set_pan(0.0f);
+                    midi.channel(channel).set_semi_tones(2.0f);
+                    midi.channel(channel).set_pitch(1.0f);
                     // intentional falltrough
                 case MIDI_ALL_SOUND_OFF:
                 case MIDI_MONO_ALL_NOTES_OFF:
@@ -738,19 +765,25 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_expression((float)value/127.0f);
                     break;
                 case MIDI_MODULATION_WHEEL:
-                {
                     midi.channel(channel).set_modulation((float)(value << 7)/16383.0f);
                     break;
-                }
                 case MIDI_CHANNEL_VOLUME:
                     midi.channel(channel).set_gain((float)value/127.0f);
                     break;
+		case MIDI_UNREGISTERED_PARAM_COARSE:
+                case MIDI_UNREGISTERED_PARAM_FINE:
+		    registered = false;
+		    registered_param(channel, controller, value);
+		    break;
                 case MIDI_REGISTERED_PARAM_COARSE:
                 case MIDI_REGISTERED_PARAM_FINE:
+		    registered = true;
+		    registered_param(channel, controller, value);
+		    break;
                 case MIDI_DATA_ENTRY:
                 case MIDI_DATA_ENTRY|MIDI_FINE:
                     registered_param(channel, controller, value);
-                    continue;
+                    break;
                 case MIDI_SOFT_PEDAL:
                     midi.channel(channel).set_soft(value >= 0x40);
                     break;
@@ -771,6 +804,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_PORTAMENTO_TIME:
                 case MIDI_PAN|MIDI_FINE:
+		case MIDI_EXPRESSION|MIDI_FINE:
                 case MIDI_BALANCE|MIDI_FINE:
                 case MIDI_EXTERNAL_EFFECT_DEPTH:
                 case MIDI_TREMOLO_EFFECT_DEPTH:
@@ -787,10 +821,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_SOUND_CONTROL8:
                 case MIDI_SOUND_CONTROL9:
                 case MIDI_SOUND_CONTROL10:
-                case MIDI_UNREGISTERED_PARAM_COARSE:
-                case MIDI_UNREGISTERED_PARAM_FINE:
                 case MIDI_PORTAMENTO_PEDAL:
                 case MIDI_PORTAMENTO_CONTROL:
+		case MIDI_HIGHRES_VELOCITY_PREFIX:
                 case MIDI_GENERAL_PURPOSE_CONTROL1:
                 case MIDI_GENERAL_PURPOSE_CONTROL2:
                 case MIDI_GENERAL_PURPOSE_CONTROL3:
@@ -831,6 +864,18 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_SYSTEM:
                 switch(channel)
                 {
+		case MIDI_TIMING_CODE:
+	            pull_byte();
+	            break;
+		case MIDI_POSITION_POINTER:
+	            pull_byte();
+	            pull_byte();
+	            break;
+		case MIDI_SONG_SELECT:
+	            pull_byte();
+	            break;
+		case MIDI_TUNE_REQUEST:
+	            break;
                 case MIDI_SYSTEM_RESET:
 #if 0
                     omni = true;
@@ -849,7 +894,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_ACTIVE_SENSE:
                     break;
                 default:
-                    LOG("Unsupported real-time System message: 0x%x - 0x%x\n", message, channel);
+                    LOG("Unsupported real-time System message: 0x%x - %d\n", message, channel);
                     break;
                 }
                 break;
@@ -863,11 +908,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
         if (!eof())
         {
-            tlapse = pull_message();
-            abstime += tlapse;
+            wait_parts = pull_message();
+            timestamp_parts += wait_parts;
         }
     }
-    next = tlapse;
+    next = wait_parts;
 
     return rv;
 }

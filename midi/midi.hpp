@@ -110,7 +110,6 @@ namespace aax
 #define MIDI_GENERAL_PURPOSE_CONTROL2	0x11
 #define MIDI_GENERAL_PURPOSE_CONTROL3	0x12
 #define MIDI_GENERAL_PURPOSE_CONTROL4	0X13
-#define MIDI_FOOT_PEDAL			0x24
 #define MIDI_HOLD_PEDAL1		0x40
 #define MIDI_PORTAMENTO_PEDAL		0x41
 #define MIDI_SOSTENUTO_PEDAL		0x42
@@ -161,6 +160,12 @@ namespace aax
 #define MIDI_TUNING_BANK_SELECT		0x0004
 #define MIDI_MODULATION_DEPTH_RANGE	0x0005
 #define MIDI_PARAMETER_RESET		0x7f7f
+
+/* system common messages */
+#define MIDI_TIMING_CODE		0x01
+#define MIDI_POSITION_POINTER		0x02
+#define MIDI_SONG_SELECT		0x03
+#define MIDI_TUNE_REQUEST		0x06
 
 /* real-time messages */
 #define MIDI_TIMING_CLOCK		0x08
@@ -301,7 +306,7 @@ public:
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track)
         : byte_stream(stream, len), midi(ptr), channel_no(track)
     {
-        abstime = pull_message()*24/600000;
+        timestamp_parts = pull_message()*24/600000;
     }
 
     MIDITrack(const MIDITrack&) = default;
@@ -313,7 +318,7 @@ public:
 
 private:
     uint32_t pull_message();
-    float registered_param(uint8_t, uint8_t, uint8_t);
+    bool registered_param(uint8_t, uint8_t, uint8_t);
 
     MIDI& midi;
 
@@ -322,11 +327,12 @@ private:
     uint8_t bank_no = 0;
 
     uint8_t previous = 0;
-    uint32_t tlapse = 0;
-    uint64_t abstime = 0;
+    uint32_t wait_parts = 0;
+    uint64_t timestamp_parts = 0;
     bool polyphony = true;
     bool omni = false;
 
+    bool registered = false;
     uint16_t msb_type = 0;
     uint16_t lsb_type = 0;
     struct param_t param[MAX_REGISTERED_PARAM+1] = {
