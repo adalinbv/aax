@@ -260,7 +260,7 @@ else(MSVC)
          FORCE)
    elseif (MIPSPRO)
      set(CMAKE_C_COMPILER c99)
-     set(C_FLAGS "${C_FLAGS} -c99 -Ofast -n32 -IPA" CACHE STRING
+     set(C_FLAGS "${C_FLAGS} -c99 -O2 -n32 -IPA" CACHE STRING
          "fastest options"
          FORCE)
    endif(CLANG)
@@ -290,28 +290,28 @@ else(MSVC)
      if(X86_64)
        message("Build environment: X86_64")
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Ofast -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -O2 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -O2 -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -Ofast -march=sandybridge -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -O2 -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -Ofast -mfma -march=haswell -falign-functions=32 -falign-loops=32"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -O2 -mfma -march=haswell -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -Ofast -mfma4 -march=bdver1 -falign-functions=32 -falign-loops=32"
+                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -O2 -mfma4 -march=bdver1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
@@ -319,48 +319,48 @@ else(MSVC)
      elseif(X86)
        message("Build environment: X86")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast -march=pentium3m -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -O2 -march=pentium3m -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -march=pentium3m -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -Ofast -march=pentium-m -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -O2 -march=pentium-m -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse2 -mfpmath=sse -march=pentium-m -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -Ofast -march=prescott -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -O2 -march=prescott -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -Ofast -march=pentium3m -falign-functions=16 -falign-loops=16"
+                    PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -O2 -march=pentium3m -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
      elseif(ARM)
        message("Build environment: ARM")
        set_property(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ftree-vectorize -D__ARM_VFPV2"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -D__ARM_VFPV2"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV2"
        )
        set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ftree-vectorize -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV3"
        )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ftree-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize -funsafe-math-optimizations"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -funsafe-math-optimizations"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize"
        )
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
