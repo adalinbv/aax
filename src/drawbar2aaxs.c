@@ -40,7 +40,7 @@
 
 #include "driver.h"
 
-inline float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
+static float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
 
 static const char* format_float6(float f)
 {
