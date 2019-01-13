@@ -41,12 +41,12 @@
 #include "midi.hpp"
 
 #if 0
-# define CSV(...)      printf(__VA_ARGS__)
+# define CSV(...)      if(midi.get_initialize()) printf(__VA_ARGS__)
 #else
 # define CSV(...)
 #endif
 
-#define DISPLAY(...)	if(midi.get_initialize()) printf(__VA_ARGS__)
+#define DISPLAY(...)	if(midi.get_initialize() && midi.get_verbose()) printf(__VA_ARGS__)
 #define MESSAGE(...)	if(midi.get_verbose()) printf(__VA_ARGS__)
 
 #ifndef NDEBUG
@@ -158,7 +158,8 @@ MIDI::get_drum(uint8_t program_no, uint8_t key_no)
     auto itb = drums.find(program_no);
     if (itb == drums.end() && program_no > 0)
     {
-        program_no &= 0xF8;
+        if ((program_no & 0xF8) == program_no) program_no = 0;
+        else program_no &= 0xF8;
         itb = drums.find(program_no);
         if (itb == drums.end())
         {
@@ -179,7 +180,8 @@ MIDI::get_drum(uint8_t program_no, uint8_t key_no)
 
             if (program_no > 0)
             {
-                program_no &= 0xF8;
+                if ((program_no & 0xF8) == program_no) program_no = 0;
+                else program_no &= 0xF8;
                 itb = drums.find(program_no);
                 if (itb == drums.end())
                 {
@@ -370,7 +372,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
     bool data = false;
     bool rv = true;
 
-#if 1
+#if 0
  value = pull_byte();
  printf("\t1: %x %x %x %x ", 0xb0|channel, controller, type, value);
  uint8_t *p = (uint8_t*)*this;
@@ -406,8 +408,22 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
 	    data = true;
 	}
 	break;
-    case MIDI_UNREGISTERED_PARAM_COARSE:
+    case MIDI_DATA_INCREMENT:
+        if (++param[type].fine == 128) {
+            param[type].coarse++;
+            param[type].fine = 0;
+        }
+        break;
+    case MIDI_DATA_DECREMENT:
+        if (param[type].fine == 0) {
+            param[type].coarse--;
+            param[type].fine = 127;
+        } else {
+            param[type].fine--;
+        }
+        break;
     case MIDI_UNREGISTERED_PARAM_FINE:
+    case MIDI_UNREGISTERED_PARAM_COARSE:
         break;
     default:
 	LOG("Unsupported registered parameter: %x\n", controller);
@@ -451,7 +467,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         }
     }
 
-#if 1
+#if 0
  printf("\t9: ");
  p = (uint8_t*)*this;
  p += offset();
@@ -666,7 +682,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 break;
             }
             case MIDI_SEQUENCERSPECIFICMETAEVENT:
-                CSV("Sequencer_specific, %lu", size);
+                CSV("Sequencer_specific, %u", size);
                 for (int i=0; i<size; ++i) {
                     uint8_t c = pull_byte();
                     CSV("%c", c);
@@ -782,6 +798,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 		    break;
                 case MIDI_DATA_ENTRY:
                 case MIDI_DATA_ENTRY|MIDI_FINE:
+                case MIDI_DATA_INCREMENT:
+                case MIDI_DATA_DECREMENT:
                     registered_param(channel, controller, value);
                     break;
                 case MIDI_SOFT_PEDAL:
@@ -976,7 +994,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                             uint32_t length = stream.pull_long();
                             track.push_back(new MIDITrack(*this, stream, length, track_no++));
                             stream.forward(length);
-                            CSV("%d, 0, Start_track\n", track_no);
+//                          CSV("%d, 0, Start_track\n", track_no);
                         }
                     }
                     no_tracks = track_no;
@@ -1006,7 +1024,7 @@ MIDIFile::initialize()
 
     bool verbose = MIDI::get_verbose();
     MIDI::set_verbose(false);
-    MIDI::set_initialize(verbose);
+    MIDI::set_initialize(true); // verbose);
 
     duration_sec = 0.0f;
 
