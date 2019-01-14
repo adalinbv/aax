@@ -922,8 +922,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 float semi_tones = midi.channel(channel).get_semi_tones();
                 int16_t pitch = pull_byte() | pull_byte() << 7;
-
-                pitch_bend = semi_tones*(pitch-8192);
+                float pitch_bend = semi_tones*(pitch-8192);
                 if (pitch_bend < 0) pitch_bend /= 8192.0f;
                 else pitch_bend /= 8191.0f;
                 pitch_bend = powf(2.0f, pitch_bend/12.0f);
