@@ -534,6 +534,12 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             uint8_t size = pull_byte();
             uint8_t byte = pull_byte();
             const char *s = NULL;
+#if 1
+ uint8_t *p = (uint8_t*)*this;
+ p += offset();
+ for (int i=0; i<20; ++i) printf("%d, ", p[i]);
+ printf("\n");
+#endif
 
             CSV("System_exclusive, %u, %d", size, byte);
             switch(byte)
@@ -606,7 +612,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             do {
                 byte = pull_byte();
                 CSV(", %d", byte);
-            } while (byte != MIDI_SYSTEM_EXCLUSIVE_END && byte != MIDI_EOF);
+            } while (byte != MIDI_SYSTEM_EXCLUSIVE_END);
             CSV("\n");
             break;
         }
