@@ -534,7 +534,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             uint8_t size = pull_byte();
             uint8_t byte = pull_byte();
             const char *s = NULL;
-#if 1
+#if 0
  uint8_t *p = (uint8_t*)*this;
  p += offset();
  for (int i=0; i<20; ++i) printf("%d, ", p[i]);
