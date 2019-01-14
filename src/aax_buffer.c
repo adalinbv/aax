@@ -1288,7 +1288,7 @@ _bufAAXSThread(void *d)
          int b, voices = 1;
          limitType limiter;
 
-         limiter = WAVEFORM_LIMIT_NORMAL;
+         limiter = xmlAttributeGetInt(xsid, "mode");
          if (xmlAttributeExists(xsid, "bits"))
          {
             bits = xmlAttributeGetInt(xsid, "bits");
@@ -1381,7 +1381,7 @@ _bufAAXSThread(void *d)
                      char *name = xmlNodeGetName(xwid);
                      if (!strcasecmp(name, "waveform")) {
                         rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
-                                                  b, voices, spread, limiter);
+                                                b, voices, spread, limiter & 1);
                      } else if (!strcasecmp(name, "filter")) {
                         rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
                      } else if (!strcasecmp(name, "effect")) {

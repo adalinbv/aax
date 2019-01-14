@@ -223,8 +223,9 @@ void _aaxAudioFrameFree(void*);
 
 typedef enum
 {
-   WAVEFORM_LIMIT_NORMAL = 0,
-   WAVEFORM_LIMIT_DELAYED
+   WAVEFORM_LIMIT_NORMAL  = 0x00,
+   WAVEFORM_LIMIT_DELAYED = 0x01,
+   WAVEFORM_LIMIT_STRONG  = 0x02
 } limitType;
 
 typedef struct
