@@ -160,7 +160,7 @@ public:
     void stop(uint8_t key_no, uint8_t velocity) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            float g = std::min(0.25f + 0.75f*2*velocity/128.0f, 1.25f);
+            float g = std::min(0.25f + 0.75f*2*velocity/128.0f, 1.0f);
             it->second->stop(volume*g*soft);
         }
     }
