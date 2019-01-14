@@ -775,8 +775,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
                 float semi_tones = midi.channel(channel).get_semi_tones();
-                float pitch = semi_tones*((float)pressure/127.0f);
-                midi.channel(channel).set_pitch(key, (float)pressure/127.0f);
+//              midi.channel(channel).set_pitch(key, (float)pressure/127.0f);
                 midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
                 CSV("Poly_aftertouch_c, %d, %d, %d\n", channel, key, pressure);
                 break;
@@ -785,8 +784,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 uint8_t pressure = pull_byte();
                 float semi_tones = midi.channel(channel).get_semi_tones();
-                float pitch = semi_tones*((float)pressure/127.0f);
-                midi.channel(channel).set_pitch(powf(2.0f, pitch/12.0f));
+//              midi.channel(channel).set_pitch(powf(2.0f, pitch/12.0f));
                 midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
                 break;
@@ -923,11 +921,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_PITCH_BEND:
             {
                 float semi_tones = midi.channel(channel).get_semi_tones();
-                int16_t pitchbend = pull_byte() | pull_byte() << 7;
-                float pitch = semi_tones*(pitchbend-8192);
-                if (pitch < 0) pitch /= 8192.0f;
-                else pitch /= 8191.0f;
-                midi.channel(channel).set_pitch(powf(2.0f, pitch/12.0f));
+                int16_t pitch = pull_byte() | pull_byte() << 7;
+
+                pitch_bend = semi_tones*(pitch-8192);
+                if (pitch_bend < 0) pitch_bend /= 8192.0f;
+                else pitch_bend /= 8191.0f;
+                pitch_bend = powf(2.0f, pitch_bend/12.0f);
+                midi.channel(channel).set_pitch(pitch_bend);
                 CSV("Pitch_bend_c, %d, %d\n", channel, pitchbend);
                 break;
             }
