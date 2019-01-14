@@ -44,18 +44,32 @@
 namespace aax
 {
 
-/* status messages */
-// https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
-#define MIDI_SYSTEM_EXCLUSIVE_PACKET	0xf0
-#define MIDI_FILE_META_EVENT		0xff
+/* system exclusive */
+#define MIDI_SYSTEM_EXCLUSIVE			0xf0
+#define MIDI_SYSTEM_EXCLUSIVE_END		0xf7
+#define MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME	0x7e
+#define MIDI_SYSTEM_EXCLUSIVE_REALTIME		0x7f
 
-/* midi exclusive non-real time message */
+#define MIDI_SYSTEM_EXCLUSIVE_ROLAND		0x41
+
+/* system exclusive non-real time message */
+#define GENERAL_MIDI_SYSTEM		0x09
 #define MIDI_EOF			0x7b
 #define MIDI_WAIT			0x7c
 #define MIDI_CANCEL			0x7d
 #define MIDI_NAK			0x7e
 #define MIDI_ACK			0x7f
-#define MIDI_SYSTEM_EXCLUSIVE_PACKET_END 0xf7
+
+/* system exclusive real time message */
+#define MIDI_DEVICE_CONTROL		0x04
+#define MIDI_DEVICE_MASTER_VOLUME	0x01
+#define MIDI_DEVICE_MASTER_BALANCE	0x02
+
+#define MIDI_TUNING_STANDARD		0x08
+#define MIDI_TUNING_SINGLE_NOTE		0x02
+#define MIDI_TUNING_SINGLE_NOTE_BANK	0x07
+#define MIDI_TUNING_OCTAVE1		0x08
+#define MIDI_TUNING_OCTAVE2		0x09
 
 /* meta messages */
 // https://www.recordingblogs.com/wiki/midi-meta-messages
@@ -174,6 +188,10 @@ namespace aax
 #define MIDI_STOP			0x0c
 #define MIDI_ACTIVE_SENSE		0x0e
 #define MIDI_SYSTEM_RESET		0x0f
+
+/* status messages */
+// https://learn.sparkfun.com/tutorials/midi-tutorial/advanced-messages
+#define MIDI_FILE_META_EVENT            0xff
 
 /* our own */
 #define MIDI_DRUMS_CHANNEL		0x9
@@ -373,6 +391,7 @@ public:
     bool process(uint64_t, uint32_t&);
 
 private:
+    MIDI &midi = *this;
     std::vector<uint8_t> midi_data;
     std::vector<MIDITrack*> track;
 

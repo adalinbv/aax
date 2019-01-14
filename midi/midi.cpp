@@ -47,7 +47,7 @@
 #endif
 
 #define DISPLAY(...)	if(midi.get_initialize() && midi.get_verbose()) printf(__VA_ARGS__)
-#define MESSAGE(...)	if(midi.get_verbose()) printf(__VA_ARGS__)
+#define MESSAGE(...)	if(!midi.get_initialize() && midi.get_verbose()) printf(__VA_ARGS__)
 
 #ifndef NDEBUG
 # define LOG(...)	printf(__VA_ARGS__)
@@ -529,38 +529,84 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
         rv = true;
         switch(message)
         {
-        case MIDI_SYSTEM_EXCLUSIVE_PACKET:
+        case MIDI_SYSTEM_EXCLUSIVE:
         {
             uint8_t size = pull_byte();
             uint8_t byte = pull_byte();
             const char *s = NULL;
-            // GM1 rewind: F0 7E 7F 09 01 F7
-            // GM2 rewind: F0 7E 7F 09 03 F7
-            // GS  rewind: F0 41 10 42 12 40 00 7F 00 41 F7
-            CSV("System_exclusive, %u", size);
-            if (byte == 0x7e && pull_byte() == 0x7f && pull_byte() == 0x09)
+
+            CSV("System_exclusive, %u, %d", size, byte);
+            switch(byte)
             {
-                if (pull_byte() == 0x01) {
-                    s = "General MIDI 1.0";
-                } else if (pull_byte() == 0x03) {
-                    s = "General MIDI 2.0";
+            case MIDI_SYSTEM_EXCLUSIVE_ROLAND:
+                if (pull_byte() == 0x10 && pull_byte() == 0x42 &&
+                    pull_byte() == 0x12 && pull_byte() == 0x40 &&
+                    pull_byte() == 0x00 && pull_byte() == 0x7f &&
+                    pull_byte() == 0x00 && pull_byte() == 0x41)
+                {
+                    s = "General Standard";
+                    MESSAGE("Format    : %s\n", s);
+                    CSV(", %d, %d, %d, %d, %d, %d, %d, %d, %d",
+                         0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41);
                 }
-            }
-            else if (byte == 0x41 && pull_byte() == 0x10 &&
-                       pull_byte() == 0x42 && pull_byte() == 0x12 &&
-                       pull_byte() == 0x40 && pull_byte() == 0x00 &&
-                       pull_byte() == 0x7f && pull_byte() == 0x00 &&
-                       pull_byte() == 0x41)
-            {
-                s = "General Standard";
+                break;
+            case MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME:
+                // GM1 rewind: F0 7E 7F 09 01 F7
+                // GM2 rewind: F0 7E 7F 09 03 F7
+                // GS  rewind: F0 41 10 42 12 40 00 7F 00 41 F7
+                byte = pull_byte(); 	// device id.
+                if (byte == 0x7F)
+                {
+                    byte = pull_byte();
+                    switch(byte)
+                    {
+                    case GENERAL_MIDI_SYSTEM:
+                        byte = pull_byte();
+                        if (byte == 0x01)  s = "General MIDI 1";
+                        else if (byte == 0x03) s = "General MIDI 2";
+                        if (s) MESSAGE("Format    : %s\n", s);
+                        CSV(", %d, %d, %d, %d", 0x7E, 0x7F, 0x09, byte);
+                        break;
+                    case MIDI_EOF:
+                    case MIDI_WAIT:
+                    case MIDI_CANCEL:
+                    case MIDI_NAK:
+                    case MIDI_ACK:
+                        break;
+                    default:
+                        break;
+                    }
+                }
+                break;
+            case MIDI_SYSTEM_EXCLUSIVE_REALTIME:
+                byte = pull_byte();
+                switch(byte)
+                {
+                case MIDI_DEVICE_CONTROL:
+                    byte = pull_byte();
+                    switch(byte)
+                    {
+                    case MIDI_DEVICE_MASTER_VOLUME:
+                    case MIDI_DEVICE_MASTER_BALANCE:
+                        byte = pull_byte();
+                        break;
+                    default:
+                        byte = pull_byte();
+                        break;
+                    }
+                    break;
+                default:
+                    break;
+                }
+            case MIDI_SYSTEM_EXCLUSIVE_END:
+            default:
+                break;
             }
 
-            if (s) MESSAGE("Format    : %s\n", s);
-            push_byte();
             do {
                 byte = pull_byte();
                 CSV(", %d", byte);
-            } while (byte != MIDI_SYSTEM_EXCLUSIVE_PACKET_END && byte != MIDI_EOF);
+            } while (byte != MIDI_SYSTEM_EXCLUSIVE_END && byte != MIDI_EOF);
             CSV("\n");
             break;
         }
@@ -576,16 +622,14 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_TRACK_NAME:
             case MIDI_INSTRUMENT_NAME:
                 CSV("%s, \"", csv_name[meta-1].c_str());
-                if (midi.get_verbose()) {
-                    printf("%-10s: ", type_name[meta-1].c_str());
-                }
+                MESSAGE("%-10s: ", type_name[meta-1].c_str());
                 for (int i=0; i<size; ++i)
                 {
                     c = pull_byte();
-                    if (midi.get_verbose()) printf("%c", c);
+                    MESSAGE("%c", c);
                     CSV("%c", c);
                 }
-                if (midi.get_verbose()) printf("\n");
+                MESSAGE("\n");
                 CSV("\"\n");
                 break;
             case MIDI_LYRICS:
@@ -594,10 +638,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 for (int i=0; i<size; ++i)
                 {
                     c = pull_byte();
-                    if (midi.get_verbose()) printf("%c", c);
+                    MESSAGE("%c", c);
                     CSV("%c", c);
                 }
-                if (midi.get_verbose()) fflush(stdout);
+                if (!midi.get_initialize() && midi.get_verbose()) fflush(stdout);
                 CSV("\n");
                 break;
             case MIDI_MARKER:
@@ -648,7 +692,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_SEQUENCE_NUMBER:	// sequencer software only
             {
                 uint8_t mm = pull_byte();
-                uint8_t ll = pull_byte(); 
+                uint8_t ll = pull_byte();
                 CSV("Sequence_number, %d\n", (mm << 8) | ll);
                 forward(size);
                 break;
@@ -661,7 +705,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t bb = pull_byte();
                 uint16_t QN = 100000.0f / (float)cc;
                 CSV("Time_signature, %d, %d, %d, %d\n", nn, dd, cc, bb);
-                
+
                 break;
             }
             case MIDI_SMPTE_OFFSET:
@@ -1022,10 +1066,7 @@ MIDIFile::initialize()
 {
     MIDI::read_instruments();
 
-    bool verbose = MIDI::get_verbose();
-    MIDI::set_verbose(false);
-    MIDI::set_initialize(true); // verbose);
-
+    MIDI::set_initialize(true);
     duration_sec = 0.0f;
 
     uint64_t time_parts = 0;
@@ -1037,10 +1078,9 @@ MIDIFile::initialize()
     }
 
     MIDI::set_initialize(false);
-    MIDI::set_verbose(verbose);
     rewind();
 
-    if (verbose)
+    if (MIDI::get_verbose())
     {
         float hour, minutes, seconds;
 
@@ -1050,14 +1090,15 @@ MIDIFile::initialize()
         minutes = floorf(seconds/60.0f);
         seconds -= minutes*60.0f;
         if (hour) {
-            printf("Duration  : %02.0f:%02.0f:%02.0f hours\n", hour, minutes, seconds);
+            MESSAGE("Duration  : %02.0f:%02.0f:%02.0f hours\n", hour, minutes, seconds);
         } else {
-            printf("Duration  : %02.0f:%02.0f minutes\n", minutes, seconds);
+            MESSAGE("Duration  : %02.0f:%02.0f minutes\n", minutes, seconds);
         }
     }
 
     MIDI::set(AAX_REFRESH_RATE, 90.0f);
     MIDI::set(AAX_INITIALIZED);
+    pos_sec = 0;
 }
 
 void
@@ -1098,11 +1139,11 @@ MIDIFile::process(uint64_t time_parts, uint32_t& next)
         minutes = floorf(seconds/60.0f);
         seconds -= minutes*60.0f;
         if (hour) {
-            printf("pos: %02.0f:%02.0f:%02.0f hours\r", hour, minutes, seconds);
+            MESSAGE("pos: %02.0f:%02.0f:%02.0f hours\r", hour, minutes, seconds);
         } else {
-            printf("pos: %02.0f:%02.0f minutes\r", minutes, seconds);
+            MESSAGE("pos: %02.0f:%02.0f minutes\r", minutes, seconds);
         }
-        if (!rv) printf("\n\n");
+        if (!rv) MESSAGE("\n\n");
         fflush(stdout);
     }
 
