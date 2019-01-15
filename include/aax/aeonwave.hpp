@@ -1022,7 +1022,7 @@ public:
         {
             if ((it->second.second == &b) && it->second.first && !(--it->second.first)) {
                 aaxBufferDestroy(it->second.second);
-                buffers.erase(it);
+                buffers.erase(it); break;
             }
         }
     }
