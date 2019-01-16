@@ -78,6 +78,7 @@ void* __sync_lock_test_and_set(void**, void*);
 # define _aaxAtomicIntDecrement(a)	(_aaxAtomicIntAdd((a),-1)-1)
 # define _aaxAtomicIntSub(a,b)		_aaxAtomicIntAdd((a),-(b))
 # define _aaxAtomicIntAdd(a,b)		__sync_fetch_and_add((a),(b))
+# define _aaxAtomicIntSet(a,b)		_aaxAtomicPointerSwap(a,b)
 # define _aaxAtomicPointerSwap(a,b)	__sync_lock_test_and_set((a),(b))
 
 #if HAVE_PTHREAD_H

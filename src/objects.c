@@ -340,8 +340,8 @@ _aaxGetSetMonoSources(unsigned int max, int num)
    if (max)
    {
       if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
-      _max_sources = max;
-      _sources = max;
+      _aaxAtomicIntSet(&_max_sources, max);	// _max_sources = max;
+      _aaxAtomicIntSet(&_sources, max);		// _sources = max;
       ret = max;
    }
 
@@ -350,7 +350,7 @@ _aaxGetSetMonoSources(unsigned int max, int num)
       unsigned int _src = _sources - num;
       if ((_sources >= (unsigned int)num) && (_src < _max_sources))
       {
-         _sources = _src;
+         _aaxAtomicIntSet(&_sources, _src);	// _sources = _src;
          ret = abs_num;
       }
    }
