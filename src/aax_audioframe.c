@@ -1638,6 +1638,7 @@ _aaxAudioFrameStart(_frame_t *frame)
    fp3d = frame->submix->props3d;
    if (_IS_INITIAL(fp3d) || _IS_PROCESSED(fp3d))
    {
+      frame->mtx_set = AAX_FALSE;
       frame->submix->capturing = AAX_TRUE;
       rv = AAX_TRUE;
    }
@@ -1673,7 +1674,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    if (xid)
    {
       void *xmid = xmlNodeGet(xid, "aeonwave/info");
-      float pan, freq = 0.0f;
+      float freq = 0.0f;
 
       if (xmid)
       {
@@ -1690,25 +1691,28 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
             xmlFree(xnid);
          }
 
-        pan = xmlAttributeGetDouble(xmid, "pan");
-        if (fabsf(pan) > 0.01f)
-        {
-            static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
-            aaxMtx4d mtx641, mtx642;
-            aaxVec3f at, up;
-            aaxVec3d pos;
+         if (!handle->mtx_set)
+         {
+            float pan = xmlAttributeGetDouble(xmid, "pan");
+            if (fabsf(pan) > 0.01f)
+            {
+                static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
+                aaxMtx4d mtx641, mtx642;
+                aaxVec3f at, up;
+                aaxVec3d pos;
 
-            aaxAudioFrameGetMatrix64(frame, mtx641);
-            aaxMatrix64GetOrientation(mtx641, pos, at, up);
+                aaxAudioFrameGetMatrix64(frame, mtx641);
+                aaxMatrix64GetOrientation(mtx641, pos, at, up);
 
-            aaxMatrix64SetIdentityMatrix(mtx641);
-            aaxMatrix64SetDirection(mtx641, pos, _at);
+                aaxMatrix64SetIdentityMatrix(mtx641);
+                aaxMatrix64SetDirection(mtx641, pos, _at);
 
-            aaxMatrix64SetIdentityMatrix(mtx642);
-            aaxMatrix64Rotate(mtx642, 1.57*pan, 0.0, 1.0, 0.0);
+                aaxMatrix64SetIdentityMatrix(mtx642);
+                aaxMatrix64Rotate(mtx642, 1.57*pan, 0.0, 1.0, 0.0);
 
-            aaxMatrix64Multiply(mtx642, mtx641);
-            aaxAudioFrameSetMatrix64(frame, mtx642);
+                aaxMatrix64Multiply(mtx642, mtx641);
+                aaxAudioFrameSetMatrix64(frame, mtx642);
+            }
          }
          xmlFree(xmid);
       }
