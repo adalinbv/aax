@@ -269,7 +269,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 }
 
 AAX_API int AAX_APIENTRY
-aaxAudioFrameGetMatrix(aaxFrame frame, aaxMtx4d mtx64)
+aaxAudioFrameGetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 {
    _frame_t *handle = get_frame(frame, _NOLOCK, __func__);
    int rv = __release_mode;
@@ -1673,7 +1673,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
    if (xid)
    {
       void *xmid = xmlNodeGet(xid, "aeonwave/info");
-      float freq = 0.0f;
+      float pan, freq = 0.0f;
 
       if (xmid)
       {
@@ -1690,24 +1690,27 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
             xmlFree(xnid);
          }
 
-         if (!handle->mtx_set)
-         {
-            xnid = xmlNodeGet(xmid, "position");
-            if (xnid)
-            {
-               static float dir[3] = { 0.0f, 0.0f, 1.0f };
-               aaxMtx4d mtx64;
-               double pos[3];
+        pan = xmlAttributeGetDouble(xmid, "pan");
+        if (fabsf(pan) > 0.01f)
+        {
+            static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
+            aaxMtx4d mtx641, mtx642;
+            aaxVec3f at, up;
+            aaxVec3d pos;
 
-               pos[0] = xmlAttributeGetDouble(xnid, "x");
-               pos[1] = xmlAttributeGetDouble(xnid, "y");
-               pos[2] = xmlAttributeGetDouble(xnid, "z");
-               xmlFree(xnid);
-               aaxMatrix64SetDirection(mtx64, pos, dir);
-               aaxAudioFrameSetMatrix64(frame, mtx64);
-            }
-            xmlFree(xmid);
+            aaxAudioFrameGetMatrix64(frame, mtx641);
+            aaxMatrix64GetOrientation(mtx641, pos, at, up);
+
+            aaxMatrix64SetIdentityMatrix(mtx641);
+            aaxMatrix64SetDirection(mtx641, pos, _at);
+
+            aaxMatrix64SetIdentityMatrix(mtx642);
+            aaxMatrix64Rotate(mtx642, 1.57*pan, 0.0, 1.0, 0.0);
+
+            aaxMatrix64Multiply(mtx642, mtx641);
+            aaxAudioFrameSetMatrix64(frame, mtx642);
          }
+         xmlFree(xmid);
       }
 
       xmid = xmlNodeGet(xid, "aeonwave/sound");
