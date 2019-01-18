@@ -385,6 +385,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             {
                src->buffer_pos = 0;
                _SET_PLAYING(src->props3d);
+               handle->mtx_set = AAX_FALSE;
             }
          }
          else if (_IS_PAUSED(src->props3d)) {
@@ -706,6 +707,7 @@ aaxEmitterSetMatrix64(aaxEmitter emitter, aaxMtx4d mtx64)
          edp3d->matrix.m4[LOCATION][3] = 1.0;
       }
       _PROP_MTX_SET_CHANGED(ep3d);
+      handle->mtx_set = AAX_TRUE;
    }
    put_emitter(handle);
 
@@ -1465,6 +1467,54 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
             _embuffer_t *embuf = (_embuffer_t*)buf;
             _aaxRingBuffer *rb = embuf->ringbuffer;
             rb->set_parami(rb, RB_LOOPING, mode);
+         }
+
+         if (!handle->mtx_set)
+         {
+            float pan = xmlAttributeGetDouble(xmid, "pan");
+            if (fabsf(pan) > 0.01f)
+            {
+                static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
+                _aaxEmitter *src = handle->source;
+                _aax3dProps *ep3d = src->props3d;
+                _aaxDelayed3dProps *edp3d = ep3d->dprops3d;
+                aaxMtx4d mtx641, mtx642;
+                aaxVec3f at, up;
+                aaxVec3d pos;
+
+//              aaxEmitterGetMatrix64(emitter, mtx641);
+#ifdef ARCH32
+                mtx4dFillf(mtx641, edp3d->matrix.m4);
+#else
+                mtx4dFill(mtx641, edp3d->matrix.m4);
+#endif
+
+                aaxMatrix64GetOrientation(mtx641, pos, at, up);
+
+                aaxMatrix64SetIdentityMatrix(mtx641);
+                aaxMatrix64SetDirection(mtx641, pos, _at);
+
+                aaxMatrix64SetIdentityMatrix(mtx642);
+                aaxMatrix64Rotate(mtx642, 1.57*pan, 0.0, 1.0, 0.0);
+
+                aaxMatrix64Multiply(mtx642, mtx641);
+
+//              aaxEmitterSetMatrix64(emitter, mtx642);
+#ifdef ARCH32
+                mtx4fFilld(edp3d->matrix.m4, mtx642);
+#else
+                mtx4dFill(edp3d->matrix.m4, mtx642);
+#endif
+                if (_IS_RELATIVE(ep3d) &&
+                    handle->parent && (handle->parent == handle->root))
+                {
+                   edp3d->matrix.m4[LOCATION][3] = 0.0;
+                } else {
+                   edp3d->matrix.m4[LOCATION][3] = 1.0;
+                }
+                _PROP_MTX_SET_CHANGED(ep3d);
+                handle->mtx_set = AAX_TRUE;
+            }
          }
 
          if (clear)

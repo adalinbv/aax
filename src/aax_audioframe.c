@@ -1690,30 +1690,6 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
             }
             xmlFree(xnid);
          }
-
-         if (!handle->mtx_set)
-         {
-            float pan = xmlAttributeGetDouble(xmid, "pan");
-            if (fabsf(pan) > 0.01f)
-            {
-                static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
-                aaxMtx4d mtx641, mtx642;
-                aaxVec3f at, up;
-                aaxVec3d pos;
-
-                aaxAudioFrameGetMatrix64(frame, mtx641);
-                aaxMatrix64GetOrientation(mtx641, pos, at, up);
-
-                aaxMatrix64SetIdentityMatrix(mtx641);
-                aaxMatrix64SetDirection(mtx641, pos, _at);
-
-                aaxMatrix64SetIdentityMatrix(mtx642);
-                aaxMatrix64Rotate(mtx642, 1.57*pan, 0.0, 1.0, 0.0);
-
-                aaxMatrix64Multiply(mtx642, mtx641);
-                aaxAudioFrameSetMatrix64(frame, mtx642);
-            }
-         }
          xmlFree(xmid);
       }
 
@@ -1740,6 +1716,31 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
             _PROP_INDOOR_SET_DEFINED(fp3d);
          }
 #endif
+
+         if (!handle->mtx_set)
+         {
+            float pan = xmlAttributeGetDouble(xmid, "pan");
+            if (fabsf(pan) > 0.01f)
+            {
+                static aaxVec3f _at = { 0.0f, 0.0f, -1.0f };
+                aaxMtx4d mtx641, mtx642;
+                aaxVec3f at, up;
+                aaxVec3d pos;
+
+                aaxAudioFrameGetMatrix64(frame, mtx641);
+                aaxMatrix64GetOrientation(mtx641, pos, at, up);
+
+                aaxMatrix64SetIdentityMatrix(mtx641);
+                aaxMatrix64SetDirection(mtx641, pos, _at);
+                
+                aaxMatrix64SetIdentityMatrix(mtx642);
+                aaxMatrix64Rotate(mtx642, 1.57*pan, 0.0, 1.0, 0.0);
+                
+                aaxMatrix64Multiply(mtx642, mtx641);
+                aaxAudioFrameSetMatrix64(frame, mtx642);
+                handle->mtx_set = AAX_TRUE;
+            }
+         }
 
          if (xmlAttributeExists(xmid, "max-emitters"))
          {
