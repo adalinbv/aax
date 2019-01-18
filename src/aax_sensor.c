@@ -87,7 +87,7 @@ aaxSensorSetMatrix64(aaxConfig config, aaxMtx4d mtx64)
 }
 
 AAX_API int AAX_APIENTRY
-aaxSensorGetMatrix(const aaxConfig config, aaxMtx4d mtx64)
+aaxSensorGetMatrix64(const aaxConfig config, aaxMtx4d mtx64)
 {
    _handle_t *handle = get_handle(config, __func__);
    int rv = __release_mode;
