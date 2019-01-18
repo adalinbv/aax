@@ -85,6 +85,11 @@ public:
         hold = s;
     }
 
+    void matrix(Matrix64& m) {
+        Emitter::set(AAX_POSITION, AAX_ABSOLUTE);
+        Emitter::matrix(m);
+    }
+
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
         return Emitter::add(buffer);
@@ -150,6 +155,7 @@ public:
                 Mixer::add(buffer);
                 playing = true;
             }
+            if (is_drums) it->second->matrix(mtx);
             it->second->buffer(buffer);
         }
         Mixer::add(*it->second);
