@@ -68,6 +68,10 @@ public:
         return playing;
     }
 
+    bool finished() {
+        return Emitter::get(AAX_PROCESSED);
+    }
+
     bool stop(float g = 1.0f) {
         playing = false;
         if (fabsf(g - 1.0f) > 0.1f) gain_param = (gain *= g);
@@ -141,6 +145,13 @@ public:
 
     operator Mixer&() {
         return *this;
+    }
+
+    bool finished() {
+        for (auto& it : key) {
+            if (!it.second->finished()) return false;
+        }
+        return true;
     }
 
     void play(uint8_t key_no, uint8_t velocity, Buffer& buffer) {
