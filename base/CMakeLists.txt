@@ -10,6 +10,7 @@ set(BASE_HEADERS
   timer.h
   types.h
   random.h
+  MurmurHash3.h
 )
 
 set(BASE_SOURCES
@@ -23,6 +24,7 @@ set(BASE_SOURCES
   timer.c
   types.c
   random.c
+  MurmurHash3.c
 )
 
 set(SOURCES "")
