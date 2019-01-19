@@ -33,6 +33,8 @@ void _aax_srandom();
 uint64_t xorshift128plus();
 float _aax_rand_sample();
 
+uint32_t _aax_murmur3_32(const uint8_t*, size_t, uint32_t);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
