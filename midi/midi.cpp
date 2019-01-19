@@ -64,6 +64,14 @@ MIDI::rewind()
     uSPP = 500000/PPQN;
 }
 
+bool
+MIDI::finished(uint8_t n)
+{
+    if (initialize) return true;
+    if (n >= channels.size() || !channels[n]) return true;
+    return channels[n]->finished();
+}
+
 /*
  * Create map of instrument banks and program numbers with their associated
  * file names from the XML files for a quick access during playback.
@@ -498,7 +506,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 {
     bool rv = !eof();
 
-    if (eof()) return rv;
+    if (eof())
+    {
+        next = 1000;
+        return !midi.finished(channel_no);
+    }
 
     if (elapsed_parts < wait_parts)
     {

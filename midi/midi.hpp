@@ -235,6 +235,8 @@ public:
 
     void rewind();
 
+    bool finished(uint8_t n);
+
     std::string get_drum(uint8_t bank, uint8_t key);
     std::string get_instrument(uint8_t bank, uint8_t program);
 
