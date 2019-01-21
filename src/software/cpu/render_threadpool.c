@@ -278,7 +278,16 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
             // Wait until al worker threads are finished
             _aaxSemaphoreWait(handle->worker_ready);
 
-            rv = _aaxAtomicPointerSwap(&handle->processed, AAX_FALSE);
+            // In DEBUG mode handle->processed is too slow to be set
+            // causing rv to be AAX_FALSE always because we set it here.
+            // As a result the audio-frame will not get rendered even if
+            // there are active emitters, which causes silence.
+            // So alwars return AAX_TRUE in DEBUG mode.
+#ifndef NDEBUG
+            rv = AAX_TRUE;
+#else
+            rv = _aaxAtomicIntSet(&handle->processed, AAX_FALSE);
+#endif
          }
          _intBufReleaseNum(he, _AAX_EMITTER);
 
@@ -403,7 +412,7 @@ _aaxWorkerThread(void *id)
                while (max > 0);
 
                if (r) {
-                  _aaxAtomicPointerSwap(&handle->processed, AAX_TRUE);
+                  _aaxAtomicIntSet(&handle->processed, AAX_TRUE);
                }
 
                /* mix our own ringbuffer with that of the mixer */
