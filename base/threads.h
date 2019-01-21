@@ -69,8 +69,10 @@ int _aaxProcessSetPriority(int);
 
 #if defined( __WIN32__ ) || defined( __TINYC__ )
 # ifndef __MINGW32__
-int __sync_fetch_and_add(int*, int);
-void* __sync_lock_test_and_set(void**, void*);
+#  define __sync_fetch_and_add(a,b)		InterlockedExchangeAdd(a,b)
+#  define __sync_lock_test_and_set((a,b)	InterlockedExchangePointer(a,b)
+// int __sync_fetch_and_add(int*, int);
+// void* __sync_lock_test_and_set(void**, void*);
 # endif
 #endif
 
