@@ -266,15 +266,15 @@ else(MSVC)
    endif(CLANG)
 
    if (GCC OR CLANG)
-     set(CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
+     set(CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11" CACHE STRING
          "Flags used by al build types."
          FORCE)
-     set(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
+     set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
          "Flags used by al build types."
          FORCE)
 
      # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -s -fomit-frame-pointer -g -DNDEBUG" CACHE STRING
+     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
          "Flags used by the compiler during Release with Debug Info builds."
          FORCE)
      set(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
