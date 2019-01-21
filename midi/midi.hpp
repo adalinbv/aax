@@ -237,8 +237,8 @@ public:
 
     bool finished(uint8_t n);
 
-    inline void set_file_mode(uint8_t m) { mode = m; }
-    inline uint8_t get_file_mode() { return mode; }
+    inline void set_mode(uint8_t m) { mode = m; }
+    inline uint8_t get_mode() { return mode; }
 
     std::string get_drum(uint8_t bank, uint8_t key);
     std::string get_instrument(uint8_t bank, uint8_t program);
