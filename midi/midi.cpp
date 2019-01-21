@@ -67,7 +67,6 @@ MIDI::rewind()
 bool
 MIDI::finished(uint8_t n)
 {
-    if (initialize) return true;
     if (n >= channels.size() || !channels[n]) return true;
     return channels[n]->finished();
 }
@@ -508,7 +507,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
     if (eof())
     {
-        if (midi.get_file_mode() && channel_no) return rv;
+        if (channel_no) return rv;
         return !midi.finished(channel_no);
     }
 
