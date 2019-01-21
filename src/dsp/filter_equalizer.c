@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2007-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -38,7 +38,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define DSIZE	EQUALIZER_MAX*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN)
+#define DSIZE	EQUALIZER_MAX*(sizeof(_aaxRingBufferFreqFilterData)+MEMALIGN)
 
 static void _equalizer_swap(void*, void*);
 
@@ -113,6 +113,16 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          size_t tmp;
          char *ptr;
 
+         ptr = (char*)flt_lf;
+         ptr += sizeof(_aaxRingBufferFreqFilterData);
+         tmp = (size_t)ptr & MEMMASK;
+         if (tmp)
+         {
+            tmp = MEMALIGN - tmp;
+            ptr += tmp;
+         }
+         flt_hf = (_aaxRingBufferFreqFilterData*)ptr;
+
          ptr = (char*)flt_lf->freqfilter;
          ptr += sizeof(_aaxRingBufferFreqFilterHistoryData);
          tmp = (size_t)ptr & MEMMASK;
@@ -121,8 +131,6 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             tmp = MEMALIGN - tmp;
             ptr += tmp;
          }
-
-         flt_hf = flt_lf+1;
          flt_hf->freqfilter = (_aaxRingBufferFreqFilterHistoryData*)ptr;
          flt_hf->no_stages = 1;
          filter->slot[EQUALIZER_HF]->data = flt_hf;
