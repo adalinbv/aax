@@ -131,6 +131,7 @@ static uint8_t pitch2note(float pitch, float freq) {
 
 struct info_t
 {
+    float pan;
     int16_t program;
     int16_t bank;
     char* name;
@@ -150,6 +151,7 @@ void fill_info(struct info_t *info, void *xid)
 {
     void *xtid;
 
+    info->pan = xmlAttributeGetDouble(xid, "pan");
     info->program = info->bank = -1;
 
     if (xmlAttributeExists(xid, "program")) {
@@ -434,7 +436,7 @@ void free_waveform(struct waveform_t *wave)
 
 struct sound_t
 {
-    int live;
+    int mode;
     float gain;
     int frequency;
     float duration;
@@ -469,7 +471,9 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     }
 
     if (xmlAttributeExists(xid, "live")) {
-        sound->live = xmlAttributeGetBool(xid, "live") ? 1 : -1;
+        sound->mode = xmlAttributeGetBool(xid, "live") ? 1 : -1;
+    } else if (xmlAttributeExists(xid, "mode")) {
+        sound->mode = xmlAttributeGetInt(xid, "mode");
     }
 
     if (xmlAttributeExists(xid, "fixed-gain")) {
@@ -520,8 +524,8 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
     unsigned int e;
 
     fprintf(output, " <sound");
-    if (sound->live) {
-        fprintf(output, " live=\"%s\"", (sound->live > 0) ? "true" : "false");
+    if (sound->mode) {
+        fprintf(output, " mode=\"%i\"", sound->mode);
     }
     if (!tmp)
     {
@@ -573,6 +577,7 @@ struct object_t		// emitter and audioframe
 {
     char *mode;
     int looping;
+    float pan;
 
     uint8_t no_dsps;
     struct dsp_t dsp[16];
@@ -585,6 +590,7 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
 
     obj->mode = xmlAttributeGetString(xid, "mode");
     obj->looping = xmlAttributeGetBool(xid, "looping");
+    obj->pan = xmlAttributeGetDouble(xid, "pan");
 
     p = 0;
     xdid = xmlMarkId(xid);
@@ -624,6 +630,10 @@ void print_object(struct object_t *obj, enum type_t type, struct info_t *info, F
 
     if (obj->mode) fprintf(output, " mode=\"%s\"", obj->mode);
     if (obj->looping) fprintf(output, " looping=\"true\"");
+    if (type == FRAME && info->pan) {
+        fprintf(output, " pan=\"%s\"", format_float3(-info->pan));
+    }
+    if (obj->pan) fprintf(output, " pan=\"%s\"", format_float3(obj->pan));
 
     if (obj->no_dsps)
     {
