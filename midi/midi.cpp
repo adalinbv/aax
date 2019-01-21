@@ -508,7 +508,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
     if (eof())
     {
-        next = 1000;
+        if (midi.get_file_mode() && channel_no) return rv;
         return !midi.finished(channel_no);
     }
 
@@ -582,8 +582,18 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     {
                     case GENERAL_MIDI_SYSTEM:
                         byte = pull_byte();
-                        if (byte == 0x01)  s = "General MIDI 1";
-                        else if (byte == 0x03) s = "General MIDI 2";
+                        midi.set_file_mode(byte);
+                        switch(byte)
+                        {
+                        case 0x01:
+                            s = "General MIDI 1";
+                            break;
+                        case 0x03:
+                            s = "General MIDI 2";
+                            break;
+                        default:
+                            break;
+                        }
                         if (s) MESSAGE("Format    : %s\n", s);
                         CSV(", %d, %d, %d, %d", 0x7E, 0x7F, 0x09, byte);
                         break;
