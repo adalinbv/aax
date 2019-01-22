@@ -355,7 +355,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         }
     }
 
-    if (it != name_map.end()) {
+    if (!midi.get_initialize() & it != name_map.end()) {
         Instrument::play(key_no, velocity, it->second);
     } else {
 //      throw(std::invalid_argument("Instrument file "+name+" not found"));
