@@ -147,6 +147,12 @@ public:
         return *this;
     }
 
+    void finish() {
+        for (auto& it : key) {
+            it.second->stop();
+        }
+    }
+
     bool finished() {
         for (auto& it : key) {
             if (!it.second->finished()) return false;
