@@ -40,9 +40,12 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
-#if 0
+#define ENABLE_CSV	0
+#if ENABLE_CSV
+# define PRINT_CSV(...)	printf(__VA_ARGS__)
 # define CSV(...)	if(midi.get_initialize()) printf(__VA_ARGS__)
 #else
+# define PRINT_CSV(...)
 # define CSV(...)
 #endif
 
@@ -948,7 +951,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 else pitch_bend /= 8191.0f;
                 pitch_bend = powf(2.0f, pitch_bend/12.0f);
                 midi.channel(channel).set_pitch(pitch_bend);
-                CSV("Pitch_bend_c, %d, %d\n", channel, pitchbend);
+                CSV("Pitch_bend_c, %d, %d\n", channel, pitch);
                 break;
             }
             case MIDI_SYSTEM:
@@ -1066,7 +1069,10 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                             uint32_t length = stream.pull_long();
                             track.push_back(new MIDITrack(*this, stream, length, track_no++));
                             stream.forward(length);
-//                          CSV("%d, 0, Start_track\n", track_no);
+                            PRINT_CSV("%d, 0, Start_track\n", track_no);
+                        }
+                        else {
+                            break;
                         }
                     }
                     no_tracks = track_no;
