@@ -1335,6 +1335,9 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
          rv = _aaxAudioFrameStop(handle);
          if (rv) _SET_PROCESSED(fp3d);
          break;
+      case AAX_INITIALIZED:
+         handle->mtx_set = AAX_FALSE;
+         break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1652,7 +1655,6 @@ int
 _aaxAudioFrameStop(UNUSED(_frame_t *frame))
 {
    int rv = AAX_TRUE;
-   frame->mtx_set = AAX_FALSE;
    return rv;
 }
 
