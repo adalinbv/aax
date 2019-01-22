@@ -235,6 +235,7 @@ public:
 
     void rewind();
 
+    void finish(uint8_t n);
     bool finished(uint8_t n);
 
     inline void set_mode(uint8_t m) { mode = m; }
@@ -387,8 +388,8 @@ public:
     }
 
     void initialize();
-    inline void start() { MIDI::set(AAX_PLAYING); }
-    inline void stop() { MIDI::set(AAX_PROCESSED); }
+    inline void start() { midi.set(AAX_PLAYING); }
+    inline void stop() { midi.set(AAX_PROCESSED); }
     void rewind();
 
     inline float get_duration_sec() { return duration_sec; }

@@ -67,6 +67,14 @@ MIDI::rewind()
     uSPP = 500000/PPQN;
 }
 
+void MIDI::finish(uint8_t n)
+{
+    if (n >= channels.size() || !channels[n]) return;
+    if (!channels[n]->finished()) {
+        channels[n]->finish();
+    }
+}
+
 bool
 MIDI::finished(uint8_t n)
 {
@@ -510,8 +518,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
     if (eof())
     {
-        if (channel_no) return rv;
-        return !midi.finished(channel_no);
+        if (midi.get_format() && !channel_no) return rv;
+        bool rv = midi.finished(channel_no);
+        if (rv) next = 1000;
+        return !rv;
     }
 
     if (elapsed_parts < wait_parts)
