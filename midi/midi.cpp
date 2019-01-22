@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2018-2019 by Erik Hofman.
+ * Copyright (C) 2018-2019 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -566,8 +566,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     pull_byte() == 0x00 && pull_byte() == 0x7f &&
                     pull_byte() == 0x00 && pull_byte() == 0x41)
                 {
+                    midi.set_mode(MIDI_SYSTEM_EXCLUSIVE_ROLAND);
                     s = "General Standard";
-                    MESSAGE("Format    : %s\n", s);
+                    MESSAGE("Mode      : %s\n", s);
                     CSV(", %d, %d, %d, %d, %d, %d, %d, %d, %d",
                          0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41);
                 }
@@ -584,7 +585,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     {
                     case GENERAL_MIDI_SYSTEM:
                         byte = pull_byte();
-                        midi.set_file_mode(byte);
+                        midi.set_mode(byte);
                         switch(byte)
                         {
                         case 0x01:
@@ -596,7 +597,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         default:
                             break;
                         }
-                        if (s) MESSAGE("Format    : %s\n", s);
+                        if (s) MESSAGE("Mode      : %s\n", s);
                         CSV(", %d, %d, %d, %d", 0x7E, 0x7F, 0x09, byte);
                         break;
                     case MIDI_EOF:
@@ -1044,7 +1045,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                         no_tracks = stream.pull_word();
                         if (format == 0 && no_tracks != 1) return;
 
-                        MIDI::set_format(format);
+                        midi.set_format(format);
 
                         uint16_t PPQN = stream.pull_word();
                         if (PPQN & 0x8000) // SMPTE
@@ -1058,7 +1059,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                             else fps = 0;
                             PPQN = fps*resolution;
                         }
-                        MIDI::set_ppqn(PPQN);
+                        midi.set_ppqn(PPQN);
                     }
 
                     while (!stream.eof())
@@ -1098,9 +1099,9 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
 void
 MIDIFile::initialize()
 {
-    MIDI::read_instruments();
+    midi.read_instruments();
 
-    MIDI::set_initialize(true);
+    midi.set_initialize(true);
     duration_sec = 0.0f;
 
     uint64_t time_parts = 0;
@@ -1108,15 +1109,18 @@ MIDIFile::initialize()
     while (process(time_parts, wait_parts))
     {
         time_parts += wait_parts;
-        duration_sec += wait_parts*MIDI::get_uspp()*1e-6f;
+        duration_sec += wait_parts*midi.get_uspp()*1e-6f;
     }
 
-    MIDI::set_initialize(false);
+    midi.set_initialize(false);
     rewind();
 
-    if (MIDI::get_verbose())
+    if (midi.get_verbose())
     {
         float hour, minutes, seconds;
+
+        MESSAGE("Format    : %i\n", midi.get_format());
+        MESSAGE("MIDI Mode : 0x%x\n", midi.get_mode());
 
         seconds = duration_sec;
         hour = floorf(seconds/(60.0f*60.0f));
@@ -1130,15 +1134,15 @@ MIDIFile::initialize()
         }
     }
 
-    MIDI::set(AAX_REFRESH_RATE, 90.0f);
-    MIDI::set(AAX_INITIALIZED);
+    midi.set(AAX_REFRESH_RATE, 90.0f);
+    midi.set(AAX_INITIALIZED);
     pos_sec = 0;
 }
 
 void
 MIDIFile::rewind()
 {
-    MIDI::rewind();
+    midi.rewind();
     for (auto it : track) {
         it->rewind();
     }
@@ -1161,11 +1165,11 @@ MIDIFile::process(uint64_t time_parts, uint32_t& next)
         }
     }
 
-    if (MIDI::get_verbose() && !MIDI::get_lyrics())
+    if (midi.get_verbose() && !midi.get_lyrics())
     {
         float hour, minutes, seconds;
 
-        pos_sec += elapsed_parts*MIDI::get_uspp()*1e-6f;
+        pos_sec += elapsed_parts*midi.get_uspp()*1e-6f;
 
         seconds = pos_sec;
         hour = floorf(seconds/(60.0f*60.0f));
