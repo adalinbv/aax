@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2017 by Erik Hofman.
- * Copyright 2011-2017 by Adalin B.V.
+ * Copyright 2011-2019 by Erik Hofman.
+ * Copyright 2011-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1330,6 +1330,7 @@ aaxAudioFrameSetState(aaxFrame frame, enum aaxState state)
          handle = get_frame(frame, _LOCK, __func__);
          if (rv) _SET_PLAYING(fp3d);
          break;
+      case AAX_PROCESSED:
       case AAX_STOPPED:
          rv = _aaxAudioFrameStop(handle);
          if (rv) _SET_PROCESSED(fp3d);
@@ -1638,7 +1639,6 @@ _aaxAudioFrameStart(_frame_t *frame)
    fp3d = frame->submix->props3d;
    if (_IS_INITIAL(fp3d) || _IS_PROCESSED(fp3d))
    {
-      frame->mtx_set = AAX_FALSE;
       frame->submix->capturing = AAX_TRUE;
       rv = AAX_TRUE;
    }
@@ -1652,6 +1652,7 @@ int
 _aaxAudioFrameStop(UNUSED(_frame_t *frame))
 {
    int rv = AAX_TRUE;
+   frame->mtx_set = AAX_FALSE;
    return rv;
 }
 

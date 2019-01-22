@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -385,7 +385,6 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             {
                src->buffer_pos = 0;
                _SET_PLAYING(src->props3d);
-               handle->mtx_set = AAX_FALSE;
             }
          }
          else if (_IS_PAUSED(src->props3d)) {
@@ -450,6 +449,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          const _intBufferData* dptr;
 
          src->buffer_pos = 0;
+         handle->mtx_set = AAX_FALSE;
          dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
          {
