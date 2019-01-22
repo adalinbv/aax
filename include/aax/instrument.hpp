@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2018-2019 by Erik Hofman.
+ * Copyright (C) 2018-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -221,7 +221,13 @@ public:
         Matrix64 m;
         m.rotate(1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
-        Mixer::matrix(m);
+        if (!is_drums) {
+            Mixer::matrix(m);
+        } else {
+             for (auto& it : key) {
+                 it.second->matrix(m);
+             }
+        }
     }
 
     inline void set_soft(bool s) { soft = s ? 0.5f : 1.0f; }
