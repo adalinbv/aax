@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2018-2019 by Erik Hofman.
+ * Copyright (C) 2018-2019 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -306,6 +306,10 @@ public:
     MIDIChannel& operator=(MIDIChannel&&) = default;
 
     void play(uint8_t key_no, uint8_t velocity);
+
+    inline uint8_t get_channel_no() { return channel_no; }
+    inline uint8_t get_program_no() { return program_no; }
+    inline uint8_t get_bank_no() { return bank_no; }
 
     inline void set_semi_tones(float s) { semi_tones = s; }
     inline float get_semi_tones() { return semi_tones; }
