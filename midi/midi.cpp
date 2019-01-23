@@ -300,7 +300,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 
         if (omni) {
             for (auto& it : channels) {
-                it.second->stop(key, velocity);
+                if (it.second) it.second->stop(key, velocity);
             }
         } else {
             channel(channel_no).stop(key, velocity);
