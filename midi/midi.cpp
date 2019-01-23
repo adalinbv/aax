@@ -252,7 +252,7 @@ MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
     auto it = channels.find(channel_no);
     if (it != channels.end())
     {
-        AeonWave::remove(*it->second);
+        if (it->second) AeonWave::remove(*it->second);
         channels.erase(it);
     }
 
