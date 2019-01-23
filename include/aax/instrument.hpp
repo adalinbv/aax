@@ -172,7 +172,7 @@ public:
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (is_drums) it->second->matrix(mtx);
+            if (is_drums && !panned) it->second->matrix(mtx);
             it->second->buffer(buffer);
         }
         Mixer::add(*it->second);
@@ -218,7 +218,7 @@ public:
     }
 
     inline void set_pan(float p) {
-        Matrix64 m;
+        Matrix64 m; panned = true;
         m.rotate(1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
         if (!is_drums) {
@@ -277,6 +277,7 @@ private:
     float mdepth = 0.0f;
 
     bool is_drums;
+    bool panned = false;
     float soft = 1.0f;
     float volume = 1.0f;
     float pressure = 1.0f;
