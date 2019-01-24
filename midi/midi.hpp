@@ -51,6 +51,7 @@ namespace aax
 #define MIDI_SYSTEM_EXCLUSIVE_REALTIME		0x7f
 
 #define MIDI_SYSTEM_EXCLUSIVE_ROLAND		0x41
+#define MIDI_SYSTEM_EXCLUSIVE_YAMAHA		0x43
 
 /* system exclusive non-real time message */
 #define GENERAL_MIDI_SYSTEM		0x09

@@ -581,10 +581,23 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     pull_byte() == 0x00 && pull_byte() == 0x41)
                 {
                     midi.set_mode(MIDI_SYSTEM_EXCLUSIVE_ROLAND);
-                    s = "General Standard";
+                    s = "GS MIDI";
                     MESSAGE("Mode      : %s\n", s);
                     CSV(", %d, %d, %d, %d, %d, %d, %d, %d, %d",
                          0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41);
+                }
+                break;
+            case MIDI_SYSTEM_EXCLUSIVE_YAMAHA:
+                byte = pull_byte();
+                if ((byte & 0x10) && pull_byte() == 0x4c &&
+                    pull_byte() == 0x00 && pull_byte() == 0x00 &&
+                    pull_byte() == 0x7e && pull_byte() == 0x00)
+                {
+                    midi.set_mode(MIDI_SYSTEM_EXCLUSIVE_YAMAHA);
+                    s = "XG MIDI";
+                    MESSAGE("Mode      : %s\n", s);
+                    CSV(", %d, %d, %d, %d, %d, %d, %d, %d, %d",
+                         0x43, byte, 0x00, 0x00, 0x7E, 0x00);
                 }
                 break;
             case MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME:
@@ -603,10 +616,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         switch(byte)
                         {
                         case 0x01:
-                            s = "General MIDI 1";
+                            s = "GM MIDI 1";
                             break;
                         case 0x03:
-                            s = "General MIDI 2";
+                            s = "GM MIDI 2";
                             break;
                         default:
                             break;
