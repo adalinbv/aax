@@ -859,8 +859,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     omni = true;
                     break;
                 case MIDI_BANK_SELECT:
+                    bank_no = value * 128;
+                    break;
                 case MIDI_BANK_SELECT|MIDI_FINE:
-                    bank_no = value;
+                    bank_no += value;
                     break;
                 case MIDI_PAN:
                 case MIDI_BALANCE:
