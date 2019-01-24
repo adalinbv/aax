@@ -1026,6 +1026,11 @@ public:
             }
         }
     }
+    bool buffer_avail(std::string &name) {
+        auto it = buffers.find(name);
+        if (it == buffers.end()) return false;
+        return true;
+    }
 
     bool playback() {
        return aaxPlaySoundLogo(play.info(AAX_RENDERER_STRING));
