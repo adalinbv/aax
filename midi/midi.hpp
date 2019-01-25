@@ -65,6 +65,19 @@ namespace aax
 #define MIDI_DEVICE_CONTROL		0x04
 #define MIDI_DEVICE_MASTER_VOLUME	0x01
 #define MIDI_DEVICE_MASTER_BALANCE	0x02
+// master fine tuning
+// master coarse tuning
+// reverb type
+// reverb time
+// chorus type
+// chorus mod rate
+// chorus mod depth
+// chorus feedback
+// chorus send to reverb
+// controller destination setting
+// scale/octave tuning adjust
+// key-based instrument controllers
+// GM2 system on
 
 #define MIDI_TUNING_STANDARD		0x08
 #define MIDI_TUNING_SINGLE_NOTE		0x02
@@ -104,13 +117,12 @@ namespace aax
 #define MIDI_SYSTEM			0xf0
 
 /* controller messages */
-// https://www.recordingblogs.com/wiki/midi-controller-message
-// http://www.personal.kent.edu/~sbirch/Music_Production/MP-II/MIDI/midi_control_change_messages.htm
+// https://www.midi.org/specifications-old/item/table-3-control-change-messages-data-bytes-2
 #define MIDI_COARSE			0x00
 #define MIDI_FINE			0x20
 
 #define MIDI_BANK_SELECT		0x00
-#define MIDI_MODULATION_WHEEL		0x01
+#define MIDI_MODULATION_DEPTH		0x01
 #define MIDI_BREATH_CONTROLLER		0x02
 #define MIDI_FOOT_CONTROLLER		0x04
 #define MIDI_PORTAMENTO_TIME		0x05
@@ -125,21 +137,21 @@ namespace aax
 #define MIDI_GENERAL_PURPOSE_CONTROL2	0x11
 #define MIDI_GENERAL_PURPOSE_CONTROL3	0x12
 #define MIDI_GENERAL_PURPOSE_CONTROL4	0X13
-#define MIDI_HOLD_PEDAL1		0x40
-#define MIDI_PORTAMENTO_PEDAL		0x41
-#define MIDI_SOSTENUTO_PEDAL		0x42
-#define MIDI_SOFT_PEDAL			0x43
-#define MIDI_LEGATO_PEDAL		0x44
-#define MIDI_HOLD_PEDAL2		0x45
-#define MIDI_SOUND_VARIATION_CONTROL	0x46
-#define MIDI_TIMBRE_INTENSITY_CONTROL	0x47
-#define MIDI_RELEASE_TIME_CONTROL	0x48
-#define MIDI_ATTACK_TIME_CONTROL	0x49
-#define MIDI_SOUND_BRIGHTNESS_CONTROL	0x4a
-#define MIDI_SOUND_CONTROL6		0x4b
-#define MIDI_SOUND_CONTROL7		0x4c
-#define MIDI_SOUND_CONTROL8		0x4d
-#define MIDI_SOUND_CONTROL9		0x4e
+#define MIDI_DAMPER_PEDAL_SWITCH	0x40
+#define MIDI_PORTAMENTO_SWITCH		0x41
+#define MIDI_SOSTENUTO_SWITCH		0x42
+#define MIDI_SOFT_PEDAL_SWITCH		0x43
+#define MIDI_LEGATO_SWITCH		0x44
+#define MIDI_HOLD2			0x45
+#define MIDI_SOUND_VARIATION		0x46
+#define MIDI_FILTER_RESONANCE		0x47
+#define MIDI_RELEASE_TIME		0x48
+#define MIDI_ATTACK_TIME		0x49
+#define MIDI_BRIGHTNESS			0x4a
+#define MIDI_DECAY_TIME			0x4b
+#define MIDI_VIBRATO_RATE		0x4c
+#define MIDI_VIBRATO_DEPTH		0x4d
+#define MIDI_VIBRATO_DELAY		0x4e
 #define MIDI_SOUND_CONTROL10		0x4f
 #define MIDI_GENERAL_PURPOSE_CONTROL5	0x50
 #define MIDI_GENERAL_PURPOSE_CONTROL6	0x51
@@ -147,9 +159,9 @@ namespace aax
 #define MIDI_GENERAL_PURPOSE_CONTROL8	0x53
 #define MIDI_PORTAMENTO_CONTROL		0x54
 #define MIDI_HIGHRES_VELOCITY_PREFIX	0x58
-#define MIDI_EXTERNAL_EFFECT_DEPTH	0x5b
+#define MIDI_REVERB_SEND_LEVEL		0x5b
 #define MIDI_TREMOLO_EFFECT_DEPTH	0x5c
-#define MIDI_CHORUS_EFFECT_DEPTH	0x5d
+#define MIDI_CHORUS_SEND_LEVEL		0x5d
 #define MIDI_CELESTE_EFFECT_DEPTH	0x5e
 #define MIDI_PHASER_EFFECT_DEPTH	0x5f
 #define MIDI_DATA_INCREMENT		0x60
@@ -168,9 +180,9 @@ namespace aax
 #define MIDI_POLY_ALL_NOTES_OFF		0x7f
 
 /* RPN messages */
-#define MIDI_PITCH_BEND_RANGE		0x0000
-#define MIDI_FINE_TUNING		0x0001
-#define MIDI_COARSE_TUNING		0x0002
+#define MIDI_PITCH_BEND_SENSITIVITY	0x0000
+#define MIDI_CHANNEL_FINE_TUNING	0x0001
+#define MIDI_CHANNEL_COARSE_TUNING	0x0002
 #define MIDI_TUNING_PROGRAM_CHANGE	0x0003
 #define MIDI_TUNING_BANK_SELECT		0x0004
 #define MIDI_MODULATION_DEPTH_RANGE	0x0005

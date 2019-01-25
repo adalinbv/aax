@@ -460,11 +460,11 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         type = msb_type << 8 | lsb_type;
         switch(type)
         {
-        case MIDI_PITCH_BEND_RANGE:
+        case MIDI_PITCH_BEND_SENSITIVITY:
         {
             float val;
-            val = (float)param[MIDI_PITCH_BEND_RANGE].coarse +
-                  (float)param[MIDI_PITCH_BEND_RANGE].fine*0.01f;
+            val = (float)param[MIDI_PITCH_BEND_SENSITIVITY].coarse +
+                  (float)param[MIDI_PITCH_BEND_SENSITIVITY].fine*0.01f;
             midi.channel(channel).set_semi_tones(val);
             break;
         }
@@ -479,8 +479,8 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         case MIDI_PARAMETER_RESET:
             midi.channel(channel).set_semi_tones(2.0f);
             break;
-        case MIDI_FINE_TUNING:
-        case MIDI_COARSE_TUNING:
+        case MIDI_CHANNEL_FINE_TUNING:			// MIDI 2.0
+        case MIDI_CHANNEL_COARSE_TUNING:		// MIDI 2.0
             break;
         case MIDI_TUNING_PROGRAM_CHANGE:
         case MIDI_TUNING_BANK_SELECT:
@@ -644,8 +644,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     byte = pull_byte();
                     switch(byte)
                     {
-                    case MIDI_DEVICE_MASTER_VOLUME:
-                    case MIDI_DEVICE_MASTER_BALANCE:
+                    case MIDI_DEVICE_MASTER_VOLUME:	// MIDI 2.0
+                    case MIDI_DEVICE_MASTER_BALANCE:	// MIDI 2.0
                         byte = pull_byte();
                         break;
                     default:
@@ -806,7 +806,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 int16_t key = pull_byte();
                 uint8_t velocity = pull_byte();
-                key = (key-0x20) + param[MIDI_COARSE_TUNING].coarse;
+                key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
                 midi.process(channel, message & 0xf0, key, velocity, omni);
                 CSV("Note_off_c, %d, %d, %d\n", channel, key, velocity);
                 break;
@@ -815,7 +815,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 int16_t key = pull_byte();
                 uint8_t velocity = pull_byte();
-                key = (key-0x20) + param[MIDI_COARSE_TUNING].coarse;
+                key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
                 midi.process(channel, message & 0xf0, key, velocity, omni);
                 CSV("Note_on_c, %d, %d, %d\n", channel, key, velocity);
                 break;
@@ -882,7 +882,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_EXPRESSION:
                     midi.channel(channel).set_expression((float)value/127.0f);
                     break;
-                case MIDI_MODULATION_WHEEL:
+                case MIDI_MODULATION_DEPTH:
                     midi.channel(channel).set_modulation((float)(value << 7)/16383.0f);
                     break;
                 case MIDI_CHANNEL_VOLUME:
@@ -904,15 +904,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_DATA_DECREMENT:
                     registered_param(channel, controller, value);
                     break;
-                case MIDI_SOFT_PEDAL:
+                case MIDI_SOFT_PEDAL_SWITCH:
                     midi.channel(channel).set_soft(value >= 0x40);
                     break;
-                case MIDI_HOLD_PEDAL1:
+                case MIDI_DAMPER_PEDAL_SWITCH:
                     midi.channel(channel).set_hold(value >= 0x40);
                     break;
-                case MIDI_HOLD_PEDAL2:
-                    break;
-                case MIDI_SOSTENUTO_PEDAL:
+                case MIDI_SOSTENUTO_SWITCH:
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
                 case MIDI_ALL_NOTES_OFF:
@@ -922,27 +920,28 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         midi.channel(channel).set_semi_tones(2.0f);
                     }
                     break;
+                case MIDI_REVERB_SEND_LEVEL:		// MIDI 2.0
+                case MIDI_CHORUS_SEND_LEVEL:		// MIDI 2.0
+                case MIDI_FILTER_RESONANCE:		// MIDI 2.0
+                case MIDI_RELEASE_TIME:			// MIDI 2.0
+                case MIDI_ATTACK_TIME:			// MIDI 2.0
+                case MIDI_BRIGHTNESS:			// MIDI 2.0
+                case MIDI_DECAY_TIME:			// MIDI 2.0
+                case MIDI_VIBRATO_RATE:			// MIDI 2.0
+                case MIDI_VIBRATO_DEPTH:		// MIDI 2.0
+                case MIDI_VIBRATO_DELAY:		// MIDI 2.0
+                case MIDI_PORTAMENTO_SWITCH:		// MIDI 2.0
+                case MIDI_TREMOLO_EFFECT_DEPTH:
+                case MIDI_CELESTE_EFFECT_DEPTH:
+                case MIDI_PHASER_EFFECT_DEPTH:
+                case MIDI_PORTAMENTO_CONTROL:
                 case MIDI_PORTAMENTO_TIME:
+                case MIDI_HOLD2:
                 case MIDI_PAN|MIDI_FINE:
                 case MIDI_EXPRESSION|MIDI_FINE:
                 case MIDI_BALANCE|MIDI_FINE:
-                case MIDI_EXTERNAL_EFFECT_DEPTH:
-                case MIDI_TREMOLO_EFFECT_DEPTH:
-                case MIDI_CHORUS_EFFECT_DEPTH:
-                case MIDI_CELESTE_EFFECT_DEPTH:
-                case MIDI_PHASER_EFFECT_DEPTH:
-                case MIDI_SOUND_VARIATION_CONTROL:
-                case MIDI_TIMBRE_INTENSITY_CONTROL:
-                case MIDI_RELEASE_TIME_CONTROL:
-                case MIDI_ATTACK_TIME_CONTROL:
-                case MIDI_SOUND_BRIGHTNESS_CONTROL:
-                case MIDI_SOUND_CONTROL6:
-                case MIDI_SOUND_CONTROL7:
-                case MIDI_SOUND_CONTROL8:
-                case MIDI_SOUND_CONTROL9:
+                case MIDI_SOUND_VARIATION:
                 case MIDI_SOUND_CONTROL10:
-                case MIDI_PORTAMENTO_PEDAL:
-                case MIDI_PORTAMENTO_CONTROL:
                 case MIDI_HIGHRES_VELOCITY_PREFIX:
                 case MIDI_GENERAL_PURPOSE_CONTROL1:
                 case MIDI_GENERAL_PURPOSE_CONTROL2:
