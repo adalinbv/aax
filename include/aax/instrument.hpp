@@ -69,7 +69,8 @@ public:
     }
 
     bool finished() {
-        return Emitter::get(AAX_PROCESSED);
+        aaxState s = Emitter::state();
+        return (s == AAX_PROCESSED || s == AAX_INITIALIZED);
     }
 
     bool stop(float g = 1.0f) {
