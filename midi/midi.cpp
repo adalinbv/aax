@@ -523,9 +523,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
     if (eof())
     {
         if (midi.get_format() && !channel_no) return rv;
-        bool rv = midi.finished(channel_no);
-        if (rv) next = 1000;
-        return !rv;
+        return !midi.finished(channel_no);
     }
 
     if (elapsed_parts < wait_parts)
@@ -1192,6 +1190,10 @@ MIDIFile::process(uint64_t time_parts, uint32_t& next)
         if (next > wait_parts) {
             next = wait_parts;
         }
+    }
+
+    if (next == UINT_MAX) {
+        next = 100;
     }
 
     if (midi.get_verbose() && !midi.get_lyrics())
