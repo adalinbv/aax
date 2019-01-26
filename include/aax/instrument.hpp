@@ -258,6 +258,42 @@ public:
         }
     }
 
+    void set_reverb_level(float lvl) {
+        aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
+        if (lvl > 0) {
+            dsp.set(AAX_CUTOFF_FREQUENCY, 2500.0f+7500.0f*lvl);
+            dsp.set(AAX_DELAY_DEPTH, 0.07f*lvl);
+            dsp.set(AAX_DECAY_LEVEL, 0.5f*lvl);
+            dsp.set(AAX_DECAY_DEPTH, 0.21*lvl);
+        }
+        dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
+//      Mixer::set(dsp);
+    }
+
+    void set_chorus_level(float lvl) {
+        aax::dsp dsp = Mixer::get(AAX_CHORUS_EFFECT);
+        if (lvl > 0) {
+            dsp.set(AAX_DELAY_GAIN, 0.8f);
+            dsp.set(AAX_LFO_OFFSET, lvl);
+        }
+        dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
+        Mixer::set(dsp);
+    }
+
+    void set_filter_resonance(float lvl) {
+        aax::dsp dsp = Mixer::get(AAX_EQUALIZER);
+        float Q = (lvl > 1.0f) ? 100.0f*(lvl-1.0f) : lvl;
+        dsp.set(AAX_CUTOFF_FREQUENCY_HF, fc);
+        dsp.set(AAX_RESONANCE_HF, Q);
+        dsp.set((fc < 20000.0f) ? AAX_TRUE : AAX_FALSE);
+        Mixer::set(dsp);
+    }
+
+    void set_filter_cutoff(float lvl) {
+        aax::dsp dsp = Mixer::get(AAX_EQUALIZER);
+        fc = lvl*dsp.get(AAX_CUTOFF_FREQUENCY_HF);
+    }
+
 private:
     inline float note2freq(uint8_t d) {
         return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
@@ -276,6 +312,7 @@ private:
 
     float mfreq = 1.5f;
     float mdepth = 0.0f;
+    float fc = 22000.0f;
 
     bool is_drums;
     bool panned = false;
