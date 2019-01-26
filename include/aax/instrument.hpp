@@ -267,7 +267,7 @@ public:
             dsp.set(AAX_DECAY_DEPTH, 0.15);
         }
         dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
-        Mixer::set(dsp);
+//      Mixer::set(dsp);
     }
 
     void set_chorus_level(float lvl) {
@@ -281,17 +281,17 @@ public:
     }
 
     void set_filter_resonance(float lvl) {
-        aax::dsp dsp = Mixer::get(AAX_EQUALIZER);
+        aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
         float Q = (lvl > 1.0f) ? 100.0f*(lvl-1.0f) : lvl;
-        dsp.set(AAX_CUTOFF_FREQUENCY_HF, fc);
-        dsp.set(AAX_RESONANCE_HF, Q);
+        dsp.set(AAX_CUTOFF_FREQUENCY, fc);
+        dsp.set(AAX_RESONANCE, Q);
         dsp.set((fc < 20000.0f) ? AAX_TRUE : AAX_FALSE);
         Mixer::set(dsp);
     }
 
     void set_filter_cutoff(float lvl) {
-        aax::dsp dsp = Mixer::get(AAX_EQUALIZER);
-        fc = lvl*dsp.get(AAX_CUTOFF_FREQUENCY_HF);
+        aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
+        fc = lvl*dsp.get(AAX_CUTOFF_FREQUENCY);
     }
 
 private:
