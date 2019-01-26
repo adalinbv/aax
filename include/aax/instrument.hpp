@@ -261,20 +261,20 @@ public:
     void set_reverb_level(float lvl) {
         aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
         if (lvl > 0) {
-            dsp.set(AAX_CUTOFF_FREQUENCY, 2500.0f+7500.0f*lvl);
-            dsp.set(AAX_DELAY_DEPTH, 0.07f*lvl);
-            dsp.set(AAX_DECAY_LEVEL, 0.5f*lvl);
-            dsp.set(AAX_DECAY_DEPTH, 0.21*lvl);
+            dsp.set(AAX_CUTOFF_FREQUENCY, 790.0f);
+            dsp.set(AAX_DELAY_DEPTH, 0.035f);
+            dsp.set(AAX_DECAY_LEVEL, 0.89f*lvl);
+            dsp.set(AAX_DECAY_DEPTH, 0.15);
         }
         dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
-//      Mixer::set(dsp);
+        Mixer::set(dsp);
     }
 
     void set_chorus_level(float lvl) {
         aax::dsp dsp = Mixer::get(AAX_CHORUS_EFFECT);
         if (lvl > 0) {
-            dsp.set(AAX_DELAY_GAIN, 0.8f);
-            dsp.set(AAX_LFO_OFFSET, lvl);
+            dsp.set(AAX_DELAY_GAIN, lvl);
+            dsp.set(AAX_LFO_OFFSET, 0.4f);
         }
         dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
         Mixer::set(dsp);
