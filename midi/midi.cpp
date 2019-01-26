@@ -481,6 +481,7 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
             break;
         case MIDI_CHANNEL_FINE_TUNING:			// MIDI 2.0
         case MIDI_CHANNEL_COARSE_TUNING:		// MIDI 2.0
+            LOG("Unsupported registered parameter: MIDI_CHANNEL_TUNING\n");
             break;
         case MIDI_TUNING_PROGRAM_CHANGE:
         case MIDI_TUNING_BANK_SELECT:
@@ -645,7 +646,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     switch(byte)
                     {
                     case MIDI_DEVICE_MASTER_VOLUME:	// MIDI 2.0
+                        LOG("Unsupported sysex parameter: MIDI_DEVICE_MASTER_VOLUME\n");
+                        byte = pull_byte();
+                        break;
                     case MIDI_DEVICE_MASTER_BALANCE:	// MIDI 2.0
+                        LOG("Unsupported sysex parameter: MIDI_DEVICE_MASTER_BALANCE\n");
                         byte = pull_byte();
                         break;
                     default:
@@ -921,16 +926,39 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     }
                     break;
                 case MIDI_REVERB_SEND_LEVEL:		// MIDI 2.0
+                    midi.channel(channel).set_reverb_level((float)value/127.0f);
+                    break;
                 case MIDI_CHORUS_SEND_LEVEL:		// MIDI 2.0
+                    midi.channel(channel).set_chorus_level((float)value/127.0f);
+                    break;
                 case MIDI_FILTER_RESONANCE:		// MIDI 2.0
+                    midi.channel(channel).set_filter_resonance((float)value/64.0f);
+                    break;
                 case MIDI_RELEASE_TIME:			// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_RELEASE_TIME, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_ATTACK_TIME:			// MIDI 2.0
+//                  midi.channel(channel).set_attack_time((float)value/64.0f);
+                    LOG("Unsupported control change: MIDI_ATTACK_TIME, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_BRIGHTNESS:			// MIDI 2.0
+                    midi.channel(channel).set_filter_cutoff((float)value/64.0f);
+                    break;
                 case MIDI_DECAY_TIME:			// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_DECAY_TIME, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_VIBRATO_RATE:			// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_VIBRATO_RATE, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_VIBRATO_DEPTH:		// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_VIBRATO_DEPTH, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_VIBRATO_DELAY:		// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_VIBRATO_DELAY, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_PORTAMENTO_SWITCH:		// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_TREMOLO_EFFECT_DEPTH:
                 case MIDI_CELESTE_EFFECT_DEPTH:
                 case MIDI_PHASER_EFFECT_DEPTH:
