@@ -82,6 +82,14 @@ MIDI::finished(uint8_t n)
     return channels[n]->finished();
 }
 
+void
+MIDI::set_gain(float g)
+{
+    aax::dsp dsp = AeonWave::get(AAX_VOLUME_FILTER);
+    dsp.set(AAX_GAIN, g);
+    AeonWave::set(dsp);
+}
+
 /*
  * Create map of instrument banks and program numbers with their associated
  * file names from the XML files for a quick access during playback.
@@ -646,8 +654,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     switch(byte)
                     {
                     case MIDI_DEVICE_MASTER_VOLUME:	// MIDI 2.0
-                        LOG("Unsupported sysex parameter: MIDI_DEVICE_MASTER_VOLUME\n");
                         byte = pull_byte();
+                        midi.set_gain((float)byte/127.0f);
                         break;
                     case MIDI_DEVICE_MASTER_BALANCE:	// MIDI 2.0
                         LOG("Unsupported sysex parameter: MIDI_DEVICE_MASTER_BALANCE\n");
@@ -934,18 +942,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_FILTER_RESONANCE:		// MIDI 2.0
                     midi.channel(channel).set_filter_resonance((float)value/64.0f);
                     break;
-                case MIDI_RELEASE_TIME:			// MIDI 2.0
-                    LOG("Unsupported control change: MIDI_RELEASE_TIME, ch: %u, value: %u\n", channel, value);
-                    break;
-                case MIDI_ATTACK_TIME:			// MIDI 2.0
-//                  midi.channel(channel).set_attack_time((float)value/64.0f);
-                    LOG("Unsupported control change: MIDI_ATTACK_TIME, ch: %u, value: %u\n", channel, value);
-                    break;
-                case MIDI_BRIGHTNESS:			// MIDI 2.0
+                case MIDI_CUTOFF:			// MIDI 2.0
                     midi.channel(channel).set_filter_cutoff((float)value/64.0f);
-                    break;
-                case MIDI_DECAY_TIME:			// MIDI 2.0
-                    LOG("Unsupported control change: MIDI_DECAY_TIME, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_VIBRATO_RATE:			// MIDI 2.0
                     LOG("Unsupported control change: MIDI_VIBRATO_RATE, ch: %u, value: %u\n", channel, value);
@@ -958,6 +956,15 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_PORTAMENTO_SWITCH:		// MIDI 2.0
                     LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
+                    break;
+                case MIDI_RELEASE_TIME:			// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_RELEASE_TIME, ch: %u, value: %u\n", channel, value);
+                    break;
+                case MIDI_ATTACK_TIME:			// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_ATTACK_TIME, ch: %u, value: %u\n", channel, value);
+                    break;
+                case MIDI_DECAY_TIME:			// MIDI 2.0
+                    LOG("Unsupported control change: MIDI_DECAY_TIME, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_TREMOLO_EFFECT_DEPTH:
                 case MIDI_CELESTE_EFFECT_DEPTH:

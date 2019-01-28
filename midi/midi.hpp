@@ -147,7 +147,7 @@ namespace aax
 #define MIDI_FILTER_RESONANCE		0x47
 #define MIDI_RELEASE_TIME		0x48
 #define MIDI_ATTACK_TIME		0x49
-#define MIDI_BRIGHTNESS			0x4a
+#define MIDI_CUTOFF			0x4a
 #define MIDI_DECAY_TIME			0x4b
 #define MIDI_VIBRATO_RATE		0x4c
 #define MIDI_VIBRATO_DEPTH		0x4d
@@ -250,6 +250,8 @@ public:
 
     void finish(uint8_t n);
     bool finished(uint8_t n);
+
+    void set_gain(float);
 
     inline void set_mode(uint8_t m) { mode = m; }
     inline uint8_t get_mode() { return mode; }
