@@ -262,8 +262,8 @@ public:
         aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
         if (lvl > 0) {
             dsp.set(AAX_CUTOFF_FREQUENCY, 790.0f);
-            dsp.set(AAX_DELAY_DEPTH, 0.035f);
-            dsp.set(AAX_DECAY_LEVEL, 0.89f*lvl);
+            dsp.set(AAX_DELAY_DEPTH, 0.025f);
+            dsp.set(AAX_DECAY_LEVEL, 0.75f*lvl);
             dsp.set(AAX_DECAY_DEPTH, 0.15);
         }
         dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
@@ -280,21 +280,28 @@ public:
         Mixer::set(dsp);
     }
 
-    void set_filter_resonance(float lvl) {
+    void set_filter_cutoff(float dfc) {
         aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
-        float Q = (lvl > 1.0f) ? 100.0f*(lvl-1.0f) : lvl;
-        dsp.set(AAX_CUTOFF_FREQUENCY, fc);
-        dsp.set(AAX_RESONANCE, Q);
-        dsp.set((fc < 20000.0f) ? AAX_TRUE : AAX_FALSE);
+        if (fc == 0.0f) fc = _lin2log(dsp.get(AAX_CUTOFF_FREQUENCY));
+        cutoff = _log2lin(_lin2log(dfc)+fc);
+        dsp.set(AAX_CUTOFF_FREQUENCY, cutoff);
+        if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
+        else if (dsp.state()) dsp.set(AAX_FALSE);
         Mixer::set(dsp);
     }
 
-    void set_filter_cutoff(float lvl) {
+    void set_filter_resonance(float dQ) {
         aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
-        fc = lvl*dsp.get(AAX_CUTOFF_FREQUENCY);
+        if (!Q) Q = dsp.get(AAX_RESONANCE);
+        dsp.set(AAX_RESONANCE, dQ*Q);
+        if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
+        else if (dsp.state()) dsp.set(AAX_FALSE);
+        Mixer::set(dsp);
     }
 
 private:
+    inline float _lin2log(float v) { return log10f(v); }
+    inline float _log2lin(float v) { return powf(10.0f,v); }
     inline float note2freq(uint8_t d) {
         return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
     }
@@ -312,7 +319,10 @@ private:
 
     float mfreq = 1.5f;
     float mdepth = 0.0f;
-    float fc = 22000.0f;
+
+    float cutoff = 0.0f;
+    float fc = 0.0f;
+    float Q = 0.0f;
 
     bool is_drums;
     bool panned = false;
