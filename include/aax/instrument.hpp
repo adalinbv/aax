@@ -231,7 +231,7 @@ public:
         }
     }
 
-    inline void set_soft(bool s) { soft = s ? 0.5f : 1.0f; }
+    inline void set_soft(bool s) { soft = (s && !is_drums) ? 0.5f : 1.0f; }
 
     void set_hold(bool h) {
         for (auto& it : key) {
@@ -240,23 +240,33 @@ public:
     }
 
     void set_sustain(bool s) {
-        for (auto& it : key) {
-            it.second->set_sustain(s);
+        if (!is_drums) {
+            for (auto& it : key) it.second->set_sustain(s);
         }
     }
 
     inline void set_modulation_depth(float d) { modulation_range = d; }
 
     void set_modulation(float m) {
-        bool enabled = (m > 0.05f);
-        mdepth = -m*modulation_range;
-        if ((enabled && !modulate_state) || (!enabled && modulate_state)) {
-            modulate_state = enabled;
-        }
-        if (modulate_state) {
-            modulate_depth = mdepth;
+        if (!is_drums) {
+            bool enabled = (m > 0.05f);
+            mdepth = -m*modulation_range;
+            if ((enabled && !modulate_state) || (!enabled && modulate_state)) {
+                modulate_state = enabled;
+            }
+            if (modulate_state) {
+                modulate_depth = mdepth;
+            }
         }
     }
+
+    // not for !is_drums
+    void set_vibrato_rate(float r) {}
+    void set_vibrato_depth(float d) {}
+    void set_vibrato_delay(float d) {}
+
+    void set_tremolo_depth(float d) {}
+    void set_phaser_depth(float d) {}
 
     void set_reverb_level(float lvl) {
         aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
@@ -281,22 +291,26 @@ public:
     }
 
     void set_filter_cutoff(float dfc) {
-        aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
-        if (fc == 0.0f) fc = _lin2log(dsp.get(AAX_CUTOFF_FREQUENCY));
-        cutoff = _log2lin(_lin2log(dfc)+fc);
-        dsp.set(AAX_CUTOFF_FREQUENCY, cutoff);
-        if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
-        else if (dsp.state()) dsp.set(AAX_FALSE);
-        Mixer::set(dsp);
+        if (!is_drums) {
+            aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
+            if (fc == 0.0f) fc = _lin2log(4400.0f); // dsp.get(AAX_CUTOFF_FREQUENCY));
+            cutoff = _log2lin(_lin2log(dfc)+fc);
+            dsp.set(AAX_CUTOFF_FREQUENCY, cutoff);
+            if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
+            else if (dsp.state()) dsp.set(AAX_FALSE);
+            Mixer::set(dsp);
+        }
     }
 
     void set_filter_resonance(float dQ) {
-        aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
-        if (!Q) Q = dsp.get(AAX_RESONANCE);
-        dsp.set(AAX_RESONANCE, dQ*Q);
-        if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
-        else if (dsp.state()) dsp.set(AAX_FALSE);
-        Mixer::set(dsp);
+        if (!is_drums) {
+            aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
+            if (!Q) Q = dsp.get(AAX_RESONANCE);
+            dsp.set(AAX_RESONANCE, dQ*Q);
+            if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
+            else if (dsp.state()) dsp.set(AAX_FALSE);
+            Mixer::set(dsp);
+        }
     }
 
 private:
