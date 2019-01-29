@@ -660,10 +660,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         switch(byte)
                         {
                         case 0x01:
-                            s = "GM MIDI 1";
+                            s = "General MIDI 1";
                             break;
                         case 0x03:
-                            s = "GM MIDI 2";
+                            s = "General MIDI 2";
                             break;
                         default:
                             break;

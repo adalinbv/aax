@@ -400,7 +400,7 @@ public:
 
     MIDIFile(const char *devname, const char *filename);
 
-    MIDIFile(std::string& devname, std::string& filename)
+    explicit MIDIFile(std::string& devname, std::string& filename)
        :  MIDIFile(devname.c_str(), filename.c_str()) {}
 
     inline operator bool() {
