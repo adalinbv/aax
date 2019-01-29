@@ -818,7 +818,7 @@ _aax_butterworth_compute(float fc, void *flt)
  *       filters but digital bilinear filters use prewrapping which spoils
  *       the advantage.
  *
- *       Because of this Bessel is now implemented using cascading
+ * Note: Because of this Bessel is now implemented using cascading
  *       exponential moving average filters.
  *
  * Note: coef[0] and coef[1] are negate to prevent this is required every

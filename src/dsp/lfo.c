@@ -137,7 +137,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
    int constant;
 
    depth *= range * fs; 
-   constant = (depth > 0.05f) ? AAX_FALSE : AAX_TRUE;
+   constant = (depth > 0.01f) ? AAX_FALSE : AAX_TRUE;
 
    lfo->min = (range * offset + min)*fs;
    lfo->max = lfo->min + depth;

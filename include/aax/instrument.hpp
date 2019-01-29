@@ -125,9 +125,9 @@ public:
     Instrument(AeonWave& ptr, bool drums = false)
         : Mixer(ptr), aax(&ptr), is_drums(drums)
     {
-        Mixer::tie(modulate_freq, AAX_RINGMODULATOR_EFFECT, AAX_LFO_OFFSET);
-        Mixer::tie(modulate_depth, AAX_RINGMODULATOR_EFFECT, AAX_GAIN);
-        Mixer::tie(modulate_state, AAX_RINGMODULATOR_EFFECT);
+        Mixer::tie(modulate_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
+        Mixer::tie(modulate_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
+        Mixer::tie(modulate_state, AAX_DYNAMIC_PITCH_EFFECT);
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
@@ -250,11 +250,12 @@ public:
     void set_modulation(float m) {
         if (!is_drums) {
             bool enabled = (m > 0.05f);
-            mdepth = -m*modulation_range;
+            mdepth = m*modulation_range;
             if ((enabled && !modulate_state) || (!enabled && modulate_state)) {
-                modulate_state = enabled;
+                int state = enabled ? AAX_SINE_WAVE : AAX_FALSE;
+                modulate_state = state;
             }
-            if (modulate_state) {
+            if ((int)modulate_state != AAX_FALSE) {
                 modulate_depth = mdepth;
             }
         }
@@ -268,6 +269,9 @@ public:
     void set_tremolo_depth(float d) {}
     void set_phaser_depth(float d) {}
 
+    // The whole device must have one chorus effect and one reverb effect.
+    // Each Channel must have its own adjustable send levels to the chorus
+    // and the reverb. A connection from chorus to reverb must be provided.
     void set_reverb_level(float lvl) {
         aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
         if (lvl > 0) {
@@ -327,7 +331,7 @@ private:
     Vector64 pos = Vector64(0.0, 1.0, -2.75);
     Matrix64 mtx = Matrix64(pos, dir);
 
-    Param modulate_freq = 1.5f;
+    Param modulate_freq = 5.0f;
     Param modulate_depth = 0.0f;
     Status modulate_state = AAX_FALSE;
 
