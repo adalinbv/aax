@@ -1520,9 +1520,9 @@ detect_pcm(_driver_t *handle, char m)
 {
    const char *devname = handle->name;
    int fd, rv = AAX_FALSE;
-   char fn[256];
 
-   if (devname  && strcasecmp(devname, "default"))
+   handle->pcm = (char*)_const_kernel_default_pcm;
+   if (devname && strcasecmp(devname, "default"))
    {
       int card = 0, device = 0;
       char *ifname;
@@ -1530,6 +1530,8 @@ detect_pcm(_driver_t *handle, char m)
       ifname = strstr(devname, ": ");
       if (ifname)
       {
+         char fn[256];
+
          *ifname = 0;
          ifname += 2;
 
@@ -1560,16 +1562,16 @@ detect_pcm(_driver_t *handle, char m)
 
          ifname -= 2;
          *ifname = ':';
+
+         handle->pcm = _aax_strdup(fn);
       }
 
       handle->cardnum = card;
       handle->devnum = device;
-      handle->pcm = _aax_strdup(fn);
       rv = AAX_TRUE;
    }
    else
    {
-      handle->pcm = (char*)_const_kernel_default_pcm;
       handle->cardnum = 0;
       handle->devnum = 0;
       rv = AAX_TRUE;
