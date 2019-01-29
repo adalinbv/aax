@@ -252,6 +252,7 @@ public:
     bool finished(uint8_t n);
 
     void set_gain(float);
+    void set_balance(float);
 
     inline void set_mode(uint8_t m) { mode = m; }
     inline uint8_t get_mode() { return mode; }

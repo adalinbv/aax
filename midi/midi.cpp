@@ -90,6 +90,15 @@ MIDI::set_gain(float g)
     AeonWave::set(dsp);
 }
 
+void
+MIDI::set_balance(float b)
+{
+    Matrix64 m;
+    m.rotate(1.57*b, 0.0, 1.0, 0.0);
+    m.inverse();
+    AeonWave::matrix(m);
+}
+
 /*
  * Create map of instrument banks and program numbers with their associated
  * file names from the XML files for a quick access during playback.
@@ -287,6 +296,34 @@ MIDI::channel(uint8_t channel_no)
     return *it->second;
 }
 
+/**
+ * Note Off messages are ignored on Rhythm Channels, with the exception of the
+ * ORCHESTRA SET (specifically, Note number 88) and the SFX SET
+ * (Note numbers 47-84).
+ *
+ * Some percussion timbres require a mutually exclusive Note On/Off assignment.
+ * For example, when a Note On message for Note number 42 (Closed Hi Hat) is
+ * received while Note number 46 (Open Hi Hat) is sounding, Note number 46 is
+ * promptly muted and Note number 42 sounds.
+ *
+ * <Standard Set> (1)
+ * Scratch Push(29)  | Scratch Pull(30)
+ * Closed HH(42)     | Pedal HH(44)     | Open HH(46)
+ * Short Whistle(71) | Long Whistle(72)
+ * Short Guiro(73)   | Long Guiro(74)
+ * Mute Cuica(78)    | Open Cuica(79)
+ * Mute Triangle(80) | Open Triangle(81)
+ * Mute Surdo(86)    | Open Surdo(87)
+ *
+ * <Analog Set> (26)
+ * Analog CHH 1(42) | Analog C HH 2(44) | Analog OHH (46)
+ *
+ * <Orchestra Set> (49)
+ * Closed HH 2(27) | Pedal HH (28) | Open HH 2 (29)
+ *
+ * <SFX Set> (57)
+ * Scratch Push(41) | Scratch Pull (42)
+ */
 bool
 MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity, bool omni)
 {
@@ -658,10 +695,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         midi.set_gain((float)byte/127.0f);
                         break;
                     case MIDI_DEVICE_MASTER_BALANCE:	// MIDI 2.0
-                        LOG("Unsupported sysex parameter: MIDI_DEVICE_MASTER_BALANCE\n");
                         byte = pull_byte();
+                        midi.set_balance(((float)byte-64.0f)/64.0f);
                         break;
                     default:
+                        LOG("Unsupported sysex parameter: %x\n", byte);
                         byte = pull_byte();
                         break;
                     }
@@ -896,10 +934,22 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_expression((float)value/127.0f);
                     break;
                 case MIDI_MODULATION_DEPTH:
-                    midi.channel(channel).set_modulation((float)(value << 7)/16383.0f);
+                {
+                    float semi_tones = midi.channel(channel).get_semi_tones();
+                    float range = (float)(value << 7)/16383.0f;
+                    range = 2.0f*powf(2.0f, range/12.0f) - 2.0f;
+                    midi.channel(channel).set_modulation(range);
                     break;
+                }
                 case MIDI_CHANNEL_VOLUME:
                     midi.channel(channel).set_gain((float)value/127.0f);
+                    break;
+                case MIDI_ALL_NOTES_OFF:
+                    for(auto& it : midi.channel())
+                    {
+                        midi.process(it.first, MIDI_NOTE_OFF, 0, 0, true);
+                        midi.channel(channel).set_semi_tones(2.0f);
+                    }
                     break;
                 case MIDI_UNREGISTERED_PARAM_COARSE:
                 case MIDI_UNREGISTERED_PARAM_FINE:
@@ -926,13 +976,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_SOSTENUTO_SWITCH:
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
-                case MIDI_ALL_NOTES_OFF:
-                    for(auto& it : midi.channel())
-                    {
-                        midi.process(it.first, MIDI_NOTE_OFF, 0, 0, true);
-                        midi.channel(channel).set_semi_tones(2.0f);
-                    }
-                    break;
                 case MIDI_REVERB_SEND_LEVEL:		// MIDI 2.0
                     midi.channel(channel).set_reverb_level((float)value/127.0f);
                     break;
@@ -946,15 +989,15 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_filter_cutoff((float)value/64.0f);
                     break;
                 case MIDI_VIBRATO_RATE:			// MIDI 2.0
-                    LOG("Unsupported control change: MIDI_VIBRATO_RATE, ch: %u, value: %u\n", channel, value);
+                    midi.channel(channel).set_vibrato_rate((float)value/64.0f);
                     break;
                 case MIDI_VIBRATO_DEPTH:		// MIDI 2.0
-                    LOG("Unsupported control change: MIDI_VIBRATO_DEPTH, ch: %u, value: %u\n", channel, value);
+                    midi.channel(channel).set_vibrato_depth((float)value/64.0f);
                     break;
                 case MIDI_VIBRATO_DELAY:		// MIDI 2.0
-                    LOG("Unsupported control change: MIDI_VIBRATO_DELAY, ch: %u, value: %u\n", channel, value);
+                    midi.channel(channel).set_vibrato_delay((float)value/64.0f);
                     break;
-                case MIDI_PORTAMENTO_SWITCH:		// MIDI 2.0
+                case MIDI_PORTAMENTO_SWITCH:            // MIDI 2.0
                     LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_RELEASE_TIME:			// MIDI 2.0
@@ -967,8 +1010,14 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     LOG("Unsupported control change: MIDI_DECAY_TIME, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_TREMOLO_EFFECT_DEPTH:
-                case MIDI_CELESTE_EFFECT_DEPTH:
+//                  midi.channel(channel).set_tremolo_depth((float)value/64.0f);
+                    break;
                 case MIDI_PHASER_EFFECT_DEPTH:
+//                  midi.channel(channel).set_phaser_depth((float)value/64.0f);
+                    break;
+                case MIDI_CELESTE_EFFECT_DEPTH:
+                    LOG("Unsupported control change: MIDI_CELESTE_EFFECT_DEPTH, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_PORTAMENTO_CONTROL:
                 case MIDI_PORTAMENTO_TIME:
                 case MIDI_HOLD2:
@@ -986,6 +1035,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_GENERAL_PURPOSE_CONTROL6:
                 case MIDI_GENERAL_PURPOSE_CONTROL7:
                 case MIDI_GENERAL_PURPOSE_CONTROL8:
+                    LOG("Unsupported control change: %x, ch: %u, value: %u\n", controller ,channel, value);
                     break;
                 default:
                     LOG("Unsupported control change: 0x%x\n", controller);
