@@ -524,8 +524,8 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         case MIDI_PARAMETER_RESET:
             midi.channel(channel).set_semi_tones(2.0f);
             break;
-        case MIDI_CHANNEL_FINE_TUNING:			// MIDI 2.0
-        case MIDI_CHANNEL_COARSE_TUNING:		// MIDI 2.0
+        case MIDI_CHANNEL_FINE_TUNING:			// GM 2.0
+        case MIDI_CHANNEL_COARSE_TUNING:		// GM 2.0
             LOG("Unsupported registered parameter: MIDI_CHANNEL_TUNING\n");
             break;
         case MIDI_TUNING_PROGRAM_CHANGE:
@@ -624,9 +624,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     pull_byte() == 0x00 && pull_byte() == 0x7f &&
                     pull_byte() == 0x00 && pull_byte() == 0x41)
                 {
-                    midi.set_mode(MIDI_SYSTEM_EXCLUSIVE_ROLAND);
-                    s = "GS MIDI";
-                    MESSAGE("Mode      : %s\n", s);
+                    midi.set_mode(MIDI_GENERAL_STANDARD);
                     CSV(", %d, %d, %d, %d, %d, %d, %d, %d, %d",
                          0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41);
                 }
@@ -637,9 +635,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     pull_byte() == 0x00 && pull_byte() == 0x00 &&
                     pull_byte() == 0x7e && pull_byte() == 0x00)
                 {
-                    midi.set_mode(MIDI_SYSTEM_EXCLUSIVE_YAMAHA);
-                    s = "XG MIDI";
-                    MESSAGE("Mode      : %s\n", s);
+                    midi.set_mode(MIDI_XG_MIDI);
                     CSV(", %d, %d, %d, %d, %d, %d, %d, %d, %d",
                          0x43, byte, 0x00, 0x00, 0x7E, 0x00);
                 }
@@ -660,15 +656,14 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         switch(byte)
                         {
                         case 0x01:
-                            s = "General MIDI 1";
+                            midi.set_mode(MIDI_GENERAL_MIDI1);
                             break;
                         case 0x03:
-                            s = "General MIDI 2";
+                            midi.set_mode(MIDI_GENERAL_MIDI2);
                             break;
                         default:
                             break;
                         }
-                        if (s) MESSAGE("Mode      : %s\n", s);
                         CSV(", %d, %d, %d, %d", 0x7E, 0x7F, 0x09, byte);
                         break;
                     case MIDI_EOF:
@@ -690,13 +685,17 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     byte = pull_byte();
                     switch(byte)
                     {
-                    case MIDI_DEVICE_MASTER_VOLUME:	// MIDI 2.0
+                    case MIDI_DEVICE_MASTER_VOLUME:
                         byte = pull_byte();
-                        midi.set_gain((float)byte/127.0f);
+                        if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
+                            midi.set_gain((float)byte/127.0f);
+                        }
                         break;
-                    case MIDI_DEVICE_MASTER_BALANCE:	// MIDI 2.0
+                    case MIDI_DEVICE_MASTER_BALANCE:
                         byte = pull_byte();
-                        midi.set_balance(((float)byte-64.0f)/64.0f);
+                        if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
+                            midi.set_balance(((float)byte-64.0f)/64.0f);
+                        }
                         break;
                     default:
                         LOG("Unsupported sysex parameter: %x\n", byte);
@@ -875,8 +874,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
-                float semi_tones = midi.channel(channel).get_semi_tones();
-//              midi.channel(channel).set_pitch(key, (float)pressure/127.0f);
+//              midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f), channel);
                 midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
                 CSV("Poly_aftertouch_c, %d, %d, %d\n", channel, key, pressure);
                 break;
@@ -884,8 +882,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_CHANNEL_AFTERTOUCH:
             {
                 uint8_t pressure = pull_byte();
-                float semi_tones = midi.channel(channel).get_semi_tones();
-//              midi.channel(channel).set_pitch(powf(2.0f, pitch/12.0f));
+//              midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f), channel);
                 midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
                 break;
@@ -935,9 +932,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_MODULATION_DEPTH:
                 {
-                    float semi_tones = midi.channel(channel).get_semi_tones();
                     float range = (float)(value << 7)/16383.0f;
-                    range = 2.0f*powf(2.0f, range/12.0f) - 2.0f;
+                    range = pitch2cents(range, channel) - 1.0f;
                     midi.channel(channel).set_modulation(range);
                     break;
                 }
@@ -976,37 +972,58 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_SOSTENUTO_SWITCH:
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
-                case MIDI_REVERB_SEND_LEVEL:		// MIDI 2.0
-                    midi.channel(channel).set_reverb_level((float)value/127.0f);
+                case MIDI_REVERB_SEND_LEVEL:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        float val = (float)value/127.0f;
+                        midi.channel(channel).set_reverb_level(val);
+                    }
                     break;
-                case MIDI_CHORUS_SEND_LEVEL:		// MIDI 2.0
-                    midi.channel(channel).set_chorus_level((float)value/127.0f);
+                case MIDI_CHORUS_SEND_LEVEL:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        float val = (float)value/127.0f;
+                        midi.channel(channel).set_chorus_level(val);
+                    }
                     break;
-                case MIDI_FILTER_RESONANCE:		// MIDI 2.0
-                    midi.channel(channel).set_filter_resonance((float)value/64.0f);
+                case MIDI_FILTER_RESONANCE:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        float val = (float)value/64.0f;
+                        midi.channel(channel).set_filter_resonance(val);
+                    }
                     break;
-                case MIDI_CUTOFF:			// MIDI 2.0
-                    midi.channel(channel).set_filter_cutoff((float)value/64.0f);
+                case MIDI_CUTOFF:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        float val = (float)value/64.0f;
+                        midi.channel(channel).set_filter_cutoff(val);
+                    }
                     break;
-                case MIDI_VIBRATO_RATE:			// MIDI 2.0
-                    midi.channel(channel).set_vibrato_rate((float)value/64.0f);
+                case MIDI_VIBRATO_RATE:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        float val = (float)value/64.0f;
+                        midi.channel(channel).set_vibrato_rate(val);
+                    }
                     break;
-                case MIDI_VIBRATO_DEPTH:		// MIDI 2.0
-                    midi.channel(channel).set_vibrato_depth((float)value/64.0f);
+                case MIDI_VIBRATO_DEPTH:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        float val = (float)value/64.0f;
+                        midi.channel(channel).set_vibrato_depth(val);
+                    }
                     break;
-                case MIDI_VIBRATO_DELAY:		// MIDI 2.0
-                    midi.channel(channel).set_vibrato_delay((float)value/64.0f);
+                case MIDI_VIBRATO_DELAY:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        float val = (float)value/64.0f;
+                        midi.channel(channel).set_vibrato_delay(val);
+                    }
                     break;
-                case MIDI_PORTAMENTO_SWITCH:            // MIDI 2.0
+                case MIDI_PORTAMENTO_SWITCH:            // GM 2.0
                     LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
                     break;
-                case MIDI_RELEASE_TIME:			// MIDI 2.0
+                case MIDI_RELEASE_TIME:			// GM 2.0
                     LOG("Unsupported control change: MIDI_RELEASE_TIME, ch: %u, value: %u\n", channel, value);
                     break;
-                case MIDI_ATTACK_TIME:			// MIDI 2.0
+                case MIDI_ATTACK_TIME:			// GM 2.0
                     LOG("Unsupported control change: MIDI_ATTACK_TIME, ch: %u, value: %u\n", channel, value);
                     break;
-                case MIDI_DECAY_TIME:			// MIDI 2.0
+                case MIDI_DECAY_TIME:			// GM 2.0
                     LOG("Unsupported control change: MIDI_DECAY_TIME, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_TREMOLO_EFFECT_DEPTH:
@@ -1056,12 +1073,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             }
             case MIDI_PITCH_BEND:
             {
-                float semi_tones = midi.channel(channel).get_semi_tones();
                 int16_t pitch = pull_byte() | pull_byte() << 7;
-                float pitch_bend = semi_tones*(pitch-8192);
+                float pitch_bend = (float)pitch-8192.0f;
                 if (pitch_bend < 0) pitch_bend /= 8192.0f;
                 else pitch_bend /= 8191.0f;
-                pitch_bend = powf(2.0f, pitch_bend/12.0f);
+                pitch_bend = pitch2cents(pitch_bend, channel);
                 midi.channel(channel).set_pitch(pitch_bend);
                 CSV("Pitch_bend_c, %d, %d\n", channel, pitch);
                 break;
@@ -1230,8 +1246,13 @@ MIDIFile::initialize()
     {
         float hour, minutes, seconds;
 
-        MESSAGE("Format    : %i\n", midi.get_format());
-        MESSAGE("MIDI Mode : 0x%x\n", midi.get_mode());
+        unsigned int format = midi.get_format();
+        if (format >= MIDI_FILE_FORMAT_MAX) format = MIDI_FILE_FORMAT_MAX;
+        MESSAGE("Format    : %s\n", format_name[format].c_str());
+
+        unsigned int mode = midi.get_mode();
+        assert(mode < MIDI_MODE_MAX);
+        MESSAGE("MIDI Mode : %s\n", mode_name[mode].c_str());
 
         seconds = duration_sec;
         hour = floorf(seconds/(60.0f*60.0f));
