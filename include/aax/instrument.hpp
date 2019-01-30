@@ -125,9 +125,12 @@ public:
     Instrument(AeonWave& ptr, bool drums = false)
         : Mixer(ptr), aax(&ptr), is_drums(drums)
     {
-        Mixer::tie(modulate_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
-        Mixer::tie(modulate_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
-        Mixer::tie(modulate_state, AAX_DYNAMIC_PITCH_EFFECT);
+        Mixer::tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
+        Mixer::tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
+        Mixer::tie(vibrato_state, AAX_DYNAMIC_PITCH_EFFECT);
+        Mixer::tie(tremolo_freq, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_FREQUENCY);
+        Mixer::tie(tremolo_depth, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_DEPTH);
+        Mixer::tie(tremolo_state, AAX_DYNAMIC_GAIN_FILTER);
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
@@ -245,18 +248,20 @@ public:
         }
     }
 
-    inline void set_modulation_depth(float d) { modulation_range = d; }
+    inline void set_modulation_depth(float d) { 
+        mrange = d;
+    }
 
     void set_modulation(float m) {
         if (!is_drums) {
             bool enabled = (m > 0.05f);
-            mdepth = m*modulation_range;
-            if ((enabled && !modulate_state) || (!enabled && modulate_state)) {
+            mdepth = m*mrange;
+            if ((enabled && !vibrato_state) || (!enabled && vibrato_state)) {
                 int state = enabled ? AAX_SINE_WAVE : AAX_FALSE;
-                modulate_state = state;
+                vibrato_state = tremolo_state = state;
             }
-            if ((int)modulate_state != AAX_FALSE) {
-                modulate_depth = mdepth;
+            if ((int)vibrato_state != AAX_FALSE) {
+                vibrato_depth = tremolo_depth = mdepth;
             }
         }
     }
@@ -331,12 +336,17 @@ private:
     Vector64 pos = Vector64(0.0, 1.0, -2.75);
     Matrix64 mtx = Matrix64(pos, dir);
 
-    Param modulate_freq = 5.0f;
-    Param modulate_depth = 0.0f;
-    Status modulate_state = AAX_FALSE;
+    Param vibrato_freq = 5.0f;
+    Param vibrato_depth = 0.0f;
+    Status vibrato_state = AAX_FALSE;
+
+    Param tremolo_freq = 5.0f;
+    Param tremolo_depth = 0.0f;
+    Status tremolo_state = AAX_FALSE;
 
     float mfreq = 1.5f;
     float mdepth = 0.0f;
+    float mrange = 1.0f;
 
     float cutoff = 0.0f;
     float fc = 0.0f;
@@ -347,7 +357,6 @@ private:
     float soft = 1.0f;
     float volume = 1.0f;
     float pressure = 1.0f;
-    float modulation_range = 1.0f;
     bool playing = false;
 };
 

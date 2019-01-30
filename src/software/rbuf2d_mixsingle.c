@@ -194,10 +194,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 
    /* Apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
-   if (fp2d)
-   {
+   if (fp2d) {
       gain *= _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN);
-      max *= fp2d->final.gain_lfo;
    }
 
    /* Tremolo and envelope following gain filter */
@@ -213,6 +211,10 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       else {
          max *= lfo->get(lfo, genv, NULL, 0, 0);
       }
+      if (fp2d) max *= fp2d->final.gain_lfo;
+   }
+   else if (fp2d && fabsf(fp2d->final.gain_lfo - 1.0f) > 0.1f) {
+       gain *= 1.0f - fp2d->final.gain_lfo;
    }
 
    /* Tremolo was defined */
