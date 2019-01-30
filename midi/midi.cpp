@@ -524,9 +524,8 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
         case MIDI_PARAMETER_RESET:
             midi.channel(channel).set_semi_tones(2.0f);
             break;
-        case MIDI_CHANNEL_FINE_TUNING:			// GM 2.0
-        case MIDI_CHANNEL_COARSE_TUNING:		// GM 2.0
-            LOG("Unsupported registered parameter: MIDI_CHANNEL_TUNING\n");
+        case MIDI_CHANNEL_FINE_TUNING:
+        case MIDI_CHANNEL_COARSE_TUNING:
             break;
         case MIDI_TUNING_PROGRAM_CHANGE:
         case MIDI_TUNING_BANK_SELECT:
@@ -657,6 +656,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         {
                         case 0x01:
                             midi.set_mode(MIDI_GENERAL_MIDI1);
+                            break;
+                        case 0x02:
+                            midi.set_mode(MIDI_MODE0);
                             break;
                         case 0x03:
                             midi.set_mode(MIDI_GENERAL_MIDI2);
