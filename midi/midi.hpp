@@ -208,6 +208,17 @@ namespace aax
 
 /* our own */
 #define MIDI_DRUMS_CHANNEL		0x9
+#define MIDI_FILE_FORMAT_MAX		0x3
+
+enum {
+    MIDI_MODE0 = 0,
+    MIDI_GENERAL_MIDI1,
+    MIDI_GENERAL_MIDI2,
+    MIDI_GENERAL_STANDARD,
+    MIDI_XG_MIDI,
+
+    MIDI_MODE_MAX
+};
 
 struct param_t
 {
@@ -254,7 +265,7 @@ public:
     void set_gain(float);
     void set_balance(float);
 
-    inline void set_mode(uint8_t m) { mode = m; }
+    inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
     std::string get_drum(uint8_t bank, uint8_t key);
@@ -295,7 +306,7 @@ private:
     uint16_t PPQN = 24;
     uint32_t uSPP = 500000/24;
 
-    uint8_t mode = 0;
+    uint8_t mode = MIDI_MODE0;
     bool initialize = false;
     bool verbose = false;
     bool lyrics = false;
@@ -362,6 +373,11 @@ public:
     bool process(uint64_t, uint32_t&, uint32_t&);
 
 private:
+    inline float pitch2cents(float p, uint8_t channel) {
+        float r = midi.channel(channel).get_semi_tones();
+        return powf(2.0f, p*r/12.0f);
+    }
+
     uint32_t pull_message();
     bool registered_param(uint8_t, uint8_t, uint8_t);
 
@@ -425,6 +441,14 @@ private:
     uint16_t no_tracks = 0;
     float duration_sec = 0.0f;
     float pos_sec = 0.0f;
+
+    const std::string format_name[MIDI_FILE_FORMAT_MAX+1] = {
+        "MIDI File 0", "MIDI File 1", "MIDI File 2",
+        "Unknown MIDI File format"
+    };
+    const std::string mode_name[MIDI_MODE_MAX] = {
+        "MIDI", "General MIDI 1.0", "General MIDI 2.0", "GS MIDI", "XG MIDI"
+    };
 };
 
 } // namespace aax
