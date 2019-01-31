@@ -63,11 +63,11 @@ _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 static int
 _aaxEqualizerDestroy(_filter_t* filter)
 {
-   if (filter->slot[0]->data)
+   if (filter->slot[EQUALIZER_LF]->data)
    {
-      filter->slot[0]->destroy(filter->slot[0]->data);
-      filter->slot[0]->data = NULL;
-      filter->slot[1]->data = NULL;
+      filter->slot[EQUALIZER_LF]->destroy(filter->slot[EQUALIZER_LF]->data);
+      filter->slot[EQUALIZER_LF]->data = NULL;
+      filter->slot[EQUALIZER_HF]->data = NULL;
    }
    free(filter);
 
@@ -151,21 +151,28 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          if (fch < fcl)
          {
             size_t plen, dlen = sizeof(_aaxRingBufferFreqFilterData);
-            _aaxRingBufferFreqFilterData data;
+            _aaxRingBufferFreqFilterData *dlf, *dhf, data;
             _aaxFilterInfo slot;
+            void *freqfilter;
 
             plen = sizeof(slot.param);
             memcpy(&slot.param, filter->slot[EQUALIZER_LF]->param, plen);
-            memcpy(&data, filter->slot[EQUALIZER_LF]->data, dlen);
+
+            dlf = filter->slot[EQUALIZER_LF]->data;
+            freqfilter = dlf->freqfilter;
+            memcpy(&data, dlf, dlen);
 
             memcpy(filter->slot[EQUALIZER_LF]->param,
                    filter->slot[EQUALIZER_HF]->param, plen);
-            memcpy(filter->slot[EQUALIZER_LF]->data,
-                   filter->slot[EQUALIZER_HF]->data, dlen);
+
+            dhf = filter->slot[EQUALIZER_HF]->data;
+            memcpy(dlf, dhf, dlen);
 
             memcpy(filter->slot[EQUALIZER_HF]->param, &slot.param, plen);
-            memcpy(filter->slot[EQUALIZER_HF]->data, &data, dlen);
+            memcpy(dhf, &data, dlen);
 
+            dhf->freqfilter = dlf->freqfilter;
+            dlf->freqfilter = freqfilter;
          }
 
          if (fabsf(fch - fcl) < 200.0f)
@@ -285,11 +292,11 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
    }
    else if (state == AAX_FALSE)
    {
-      if (filter->slot[0]->data)
+      if (filter->slot[EQUALIZER_LF]->data)
       {
-         filter->slot[0]->destroy(filter->slot[0]->data);
-         filter->slot[0]->data = NULL;
-         filter->slot[1]->data = NULL;
+         filter->slot[EQUALIZER_LF]->destroy(filter->slot[EQUALIZER_LF]->data);
+         filter->slot[EQUALIZER_LF]->data = NULL;
+         filter->slot[EQUALIZER_HF]->data = NULL;
       }
       rv = filter;
    }

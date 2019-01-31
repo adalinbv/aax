@@ -61,7 +61,11 @@ enum _aax3dFiltersEffects
 
 enum _aax2dFiltersEffects
 {
-    /* final mixer stage */
+    /* *
+     * final mixer stage for the mixer and frames
+     * These filters are stored in a different location than the stereo
+     * filters blow and hence do not interfere with eachtoher.
+     */
     EQUALIZER_LF = 0,
     EQUALIZER_HF,
     HRTF_HEADSHADOW,
