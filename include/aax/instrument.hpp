@@ -250,7 +250,7 @@ public:
 
     void set_modulation(float m) {
         if (!is_drums) {
-            bool enabled = (m > 0.05f);
+            bool enabled = (m != 0.0f);
             mdepth = m;
             if ((enabled && !vibrato_state) || (!enabled && vibrato_state)) {
                 int state = enabled ? AAX_SINE_WAVE : AAX_FALSE;
