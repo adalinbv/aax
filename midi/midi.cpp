@@ -934,11 +934,14 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_MODULATION_DEPTH:
                 {
-                    float range = (float)(value << 7)/16383.0f;
-                    range = pitch2cents(range, channel) - 1.0f;
-                    midi.channel(channel).set_modulation(range);
+                    float depth = (float)(value << 7)/16383.0f;
+                    depth = modulation2cents(depth, channel) - 1.0f;
+                    midi.channel(channel).set_modulation(depth);
                     break;
                 }
+                case MIDI_CELESTE_EFFECT_DEPTH:
+                    LOG("Unsupported control change: MIDI_CELESTE_EFFECT_DEPTH, ch: %u, value: %u\n", channel, value);
+                    break;
                 case MIDI_CHANNEL_VOLUME:
                     midi.channel(channel).set_gain((float)value/127.0f);
                     break;
@@ -1033,9 +1036,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_PHASER_EFFECT_DEPTH:
 //                  midi.channel(channel).set_phaser_depth((float)value/64.0f);
-                    break;
-                case MIDI_CELESTE_EFFECT_DEPTH:
-                    LOG("Unsupported control change: MIDI_CELESTE_EFFECT_DEPTH, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_PORTAMENTO_CONTROL:
                 case MIDI_PORTAMENTO_TIME:

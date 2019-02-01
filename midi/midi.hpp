@@ -341,10 +341,14 @@ public:
     inline void set_semi_tones(float s) { semi_tones = s; }
     inline float get_semi_tones() { return semi_tones; }
 
+    inline void set_modulation_depth(float d) { modulation_range = d; }
+    inline float get_modulation_depth() { return modulation_range; }
+
 private:
     std::map<uint8_t,Buffer&> name_map;
 
     MIDI &midi;
+    float modulation_range = 2.0f;
     float semi_tones = 2.0f;
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
@@ -375,6 +379,10 @@ public:
 private:
     inline float pitch2cents(float p, uint8_t channel) {
         float r = midi.channel(channel).get_semi_tones();
+        return powf(2.0f, p*r/12.0f);
+    }
+    inline float modulation2cents(float p, uint8_t channel) {
+        float r = midi.channel(channel).get_modulation_depth();
         return powf(2.0f, p*r/12.0f);
     }
 
