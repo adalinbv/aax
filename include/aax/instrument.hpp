@@ -248,14 +248,10 @@ public:
         }
     }
 
-    inline void set_modulation_depth(float d) { 
-        mrange = d;
-    }
-
     void set_modulation(float m) {
         if (!is_drums) {
             bool enabled = (m > 0.05f);
-            mdepth = m*mrange;
+            mdepth = m;
             if ((enabled && !vibrato_state) || (!enabled && vibrato_state)) {
                 int state = enabled ? AAX_SINE_WAVE : AAX_FALSE;
                 vibrato_state = tremolo_state = state;
