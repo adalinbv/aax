@@ -133,7 +133,7 @@ MIDI::read_instruments()
                         unsigned int inum = xmlNodeGetNum(xbid, type);
                         void *xiid = xmlMarkId(xbid);
 
-                        std::map<uint8_t,std::string> bank;
+                        std::map<uint16_t,std::string> bank;
                         for (unsigned int i=0; i<inum; i++)
                         {
                             if (xmlNodeGetPos(xbid, xiid, type, i) != 0)
@@ -188,7 +188,7 @@ MIDI::read_instruments()
  * and the key_no in the program number of the map.
  */
 std::string
-MIDI::get_drum(uint8_t program_no, uint8_t key_no)
+MIDI::get_drum(uint16_t program_no, uint8_t key_no)
 {
     auto itb = drums.find(program_no);
     if (itb == drums.end() && program_no > 0)
@@ -233,7 +233,7 @@ MIDI::get_drum(uint8_t program_no, uint8_t key_no)
 }
 
 std::string
-MIDI::get_instrument(uint8_t bank_no, uint8_t program_no)
+MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
 {
     auto itb = instruments.find(bank_no);
     if (itb == instruments.end() && bank_no > 0) {
@@ -264,7 +264,7 @@ MIDI::get_instrument(uint8_t bank_no, uint8_t program_no)
 }
 
 MIDIChannel&
-MIDI::new_channel(uint8_t channel_no, uint8_t bank_no, uint8_t program_no)
+MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
 {
     auto it = channels.find(channel_no);
     if (it != channels.end())
@@ -773,12 +773,14 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         switch(byte)
                         {
                         case 0x01:
+                            midi.process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
                             midi.set_mode(MIDI_GENERAL_MIDI1);
                             break;
                         case 0x02:
-                            midi.set_mode(MIDI_MODE0);
+                            // midi.set_mode(MIDI_MODE0);
                             break;
                         case 0x03:
+                            midi.process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
                             midi.set_mode(MIDI_GENERAL_MIDI2);
                             break;
                         default:
@@ -998,26 +1000,29 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
-printf("MIDI_POLYPHONIC_AFTERTOUCH: %f\n", (float)pressure/127.0f);
-                midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f, channel));
-                midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
+                if (!midi.channel(channel).is_drums()) {
+                    midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f, channel));
+                    midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
+                }
                 CSV("Poly_aftertouch_c, %d, %d, %d\n", channel, key, pressure);
                 break;
             }
             case MIDI_CHANNEL_AFTERTOUCH:
             {
                 uint8_t pressure = pull_byte();
-printf("MIDI_CHANNEL_AFTERTOUCH: %f\n", (float)pressure/127.0f);
-                midi.channel(channel).set_pitch(pitch2cents((float)pressure/127.0f, channel));
-                midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
+                if (!midi.channel(channel).is_drums()) {
+                    midi.channel(channel).set_pitch(pitch2cents((float)pressure/127.0f, channel));
+                    midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
+                }
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
                 break;
             }
             case MIDI_BREATH_CONTROLLER:
             {
                 uint8_t pressure = pull_byte();
-printf("MIDI_BREATH_CONTROLLER: %f\n", (float)pressure/127.0f);
-                midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
+                if (!midi.channel(channel).is_drums()) {
+                    midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
+                }
                 break;
             }
             case MIDI_CONTROL_CHANGE:
@@ -1061,7 +1066,7 @@ printf("MIDI_BREATH_CONTROLLER: %f\n", (float)pressure/127.0f);
                     omni = true;
                     break;
                 case MIDI_BANK_SELECT:
-                    bank_no = value * 128;
+                    bank_no = (uint16_t)value * 128;
                     break;
                 case MIDI_BANK_SELECT|MIDI_FINE:
                     bank_no += value;

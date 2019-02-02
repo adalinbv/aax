@@ -54,7 +54,6 @@ namespace aax
 #define MIDI_SYSTEM_EXCLUSIVE_YAMAHA		0x43
 
 /* system exclusive non-real time message */
-#define GENERAL_MIDI_SYSTEM		0x09
 #define MIDI_EOF			0x7b
 #define MIDI_WAIT			0x7c
 #define MIDI_CANCEL			0x7d
@@ -63,8 +62,32 @@ namespace aax
 
 /* system exclusive real time message */
 #define MIDI_DEVICE_CONTROL		0x04
+
 #define MIDI_DEVICE_MASTER_VOLUME	0x01
 #define MIDI_DEVICE_MASTER_BALANCE	0x02
+
+#define MIDI_GLOBAL_PARAMETER_CONTROL	0x05
+
+/* global parameters */
+#define MIDI_REVERB_PARAMETER		0x0101
+#define MIDI_CHORUS_PARAMETER		0x0102
+
+
+#define GENERAL_MIDI_SYSTEM		0x09
+#define MIDI_CONTROLLER_DESTINATION	0x09
+
+/* controller type */
+#define MIDI_CHANNEL_PRESSURE		0x01
+#define MIDI_CONTROLLER_CHANGE		0x03
+
+/* control change */
+#define MIDI_PARAM_PITCH		0x00
+#define MIDI_PARAM_FILTER_CUTOFF	0x01
+#define MIDI_PARAM_AMPLITUDE		0x02
+#define MIDI_PARAM_LFO_PITCH_DEPTH	0x03
+#define MIDI_PARAM_LFO_FILTER_DEPTH	0x04
+#define MIDI_PARAM_LFO_AMPLITUDE_DEPTH	0x05
+
 // master fine tuning
 // master coarse tuning
 // reverb type
@@ -74,7 +97,6 @@ namespace aax
 // chorus mod depth
 // chorus feedback
 // chorus send to reverb
-// controller destination setting
 // scale/octave tuning adjust
 // key-based instrument controllers
 // GM2 system on
@@ -246,7 +268,7 @@ public:
 
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni);
 
-    MIDIChannel& new_channel(uint8_t channel, uint8_t bank, uint8_t program);
+    MIDIChannel& new_channel(uint8_t channel, uint16_t bank, uint8_t program);
 
     MIDIChannel& channel(uint8_t channel_no);
 
@@ -273,8 +295,8 @@ public:
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
-    std::string get_drum(uint8_t bank, uint8_t key);
-    std::string get_instrument(uint8_t bank, uint8_t program);
+    std::string get_drum(uint16_t bank, uint8_t key);
+    std::string get_instrument(uint16_t bank, uint8_t program);
 
     inline void set_initialize(bool i) { initialize = i; };
     inline bool get_initialize() { return initialize; }
@@ -299,8 +321,8 @@ public:
 
 private:
     std::map<uint8_t,MIDIChannel*> channels;
-    std::map<uint8_t,std::map<uint8_t,std::string>> drums;
-    std::map<uint8_t,std::map<uint8_t,std::string>> instruments;
+    std::map<uint8_t,std::map<uint16_t,std::string>> drums;
+    std::map<uint8_t,std::map<uint16_t,std::string>> instruments;
 
     std::string empty_str = "";
     std::string instr = "gmmidi.xml";
@@ -326,7 +348,7 @@ private:
     MIDIChannel& operator=(const MIDIChannel&) = delete;
 
 public:
-    MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, uint8_t channel, uint8_t bank, uint8_t program)
+    MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, uint8_t channel, uint16_t bank, uint8_t program)
        : Instrument(ptr, channel == MIDI_DRUMS_CHANNEL), midi(ptr),
          channel_no(channel), bank_no(bank), program_no(program)
     {
@@ -344,7 +366,7 @@ public:
 
     inline uint8_t get_channel_no() { return channel_no; }
     inline uint8_t get_program_no() { return program_no; }
-    inline uint8_t get_bank_no() { return bank_no; }
+    inline uint16_t get_bank_no() { return bank_no; }
 
     inline void set_semi_tones(float s) { semi_tones = s; }
     inline float get_semi_tones() { return semi_tones; }
@@ -360,7 +382,7 @@ private:
     float semi_tones = 2.0f;
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
-    uint8_t bank_no = 0;
+    uint16_t bank_no = 0;
     bool drum_channel = false;
 };
 
@@ -403,7 +425,7 @@ private:
     uint8_t mode = 0;
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
-    uint8_t bank_no = 0;
+    uint16_t bank_no = 0;
 
     uint8_t previous = 0;
     uint32_t wait_parts = 0;
