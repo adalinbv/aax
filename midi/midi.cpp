@@ -398,6 +398,9 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             switch(program_no)
             {
             case 0:	// Standard Set
+            case 16:	// Power set
+            case 32:	// Jazz set
+            case 40:	// Brush set
                 switch(key_no)
                 {
                 case 29: // EXC7
@@ -995,6 +998,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
+printf("MIDI_POLYPHONIC_AFTERTOUCH: %f\n", (float)pressure/127.0f);
                 midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f, channel));
                 midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
                 CSV("Poly_aftertouch_c, %d, %d, %d\n", channel, key, pressure);
@@ -1003,6 +1007,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_CHANNEL_AFTERTOUCH:
             {
                 uint8_t pressure = pull_byte();
+printf("MIDI_CHANNEL_AFTERTOUCH: %f\n", (float)pressure/127.0f);
                 midi.channel(channel).set_pitch(pitch2cents((float)pressure/127.0f, channel));
                 midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
@@ -1011,6 +1016,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_BREATH_CONTROLLER:
             {
                 uint8_t pressure = pull_byte();
+printf("MIDI_BREATH_CONTROLLER: %f\n", (float)pressure/127.0f);
                 midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 break;
             }
