@@ -327,29 +327,16 @@ MIDI::channel(uint8_t channel_no)
 bool
 MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity, bool omni)
 {
-    if (message == MIDI_NOTE_ON && velocity)
-    {
-        if (omni) {
-            for (auto& it : channels) {
-                it.second->play(key, velocity);
-            }
-        } else {
-            channel(channel_no).play(key, velocity);
-        }
+    // Omni mode: Device responds to MIDI data regardless of channel
+    if (message == MIDI_NOTE_ON && velocity) {
+        channel(channel_no).play(key, velocity);
     }
     else
     {
         if (message == MIDI_NOTE_ON) {
             velocity = 64;
         }
-
-        if (omni) {
-            for (auto& it : channels) {
-                if (it.second) it.second->stop(key, velocity);
-            }
-        } else {
-            channel(channel_no).stop(key, velocity);
-        }
+        channel(channel_no).stop(key, velocity);
     }
     return true;
 }
@@ -361,7 +348,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
     assert (velocity);
 
     auto it = name_map.begin();
-    if (channel_no == MIDI_DRUMS_CHANNEL)
+    if (midi.channel(channel_no).is_drums())
     {
         it = name_map.find(key_no);
         if (it == name_map.end())
@@ -404,7 +391,135 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         }
     }
 
-    if (!midi.get_initialize() & it != name_map.end()) {
+    if (!midi.get_initialize() & it != name_map.end())
+    {
+        if (midi.channel(channel_no).is_drums())
+        {
+            switch(program_no)
+            {
+            case 0:	// Standard Set
+                switch(key_no)
+                {
+                case 29: // EXC7
+                    Instrument::stop(30, 0);
+                    break;
+                case 30: // EXC7
+                    Instrument::stop(29, 0);
+                    break;
+                case 42: // EXC1
+                    Instrument::stop(44, 0);
+                    Instrument::stop(46, 0);
+                    break;
+                case 44: // EXC1
+                    Instrument::stop(42, 0);
+                    Instrument::stop(46, 0);
+                    break;
+                case 46: // EXC1
+                    Instrument::stop(42, 0);
+                    Instrument::stop(44, 0);
+                    break;
+                case 71: // EXC2
+                    Instrument::stop(72, 0);
+                    break;
+                case 72: // EXC2
+                    Instrument::stop(71, 0);
+                    break;
+                case 73: // EXC3
+                    Instrument::stop(74, 0);
+                    break;
+                case 74: // EXC3
+                    Instrument::stop(73, 0);
+                    break;
+                case 78: // EXC4
+                    Instrument::stop(79, 0);
+                    break;
+                case 79: // EXC4
+                    Instrument::stop(78, 0);
+                    break;
+                case 80: // EXC5
+                    Instrument::stop(81, 0);
+                    break;
+                case 81: // EXC5
+                    Instrument::stop(80, 0);
+                    break;
+                case 86: // EXC6
+                    Instrument::stop(87, 0);
+                    break;
+                case 87: // EXC6
+                    Instrument::stop(86, 0);
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case 26:	// Analog Set
+                switch(key_no)
+                {
+                case 42: // EXC1
+                    Instrument::stop(44, 0);
+                    Instrument::stop(46, 0);
+                    break;
+                case 44: // EXC1
+                    Instrument::stop(42, 0);
+                    Instrument::stop(46, 0);
+                    break;
+                case 46: // EXC1
+                    Instrument::stop(42, 0);
+                    Instrument::stop(44, 0);
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case 48:	// Orchestra Set
+                switch(key_no)
+                {
+                case 27: // EXC1
+                    Instrument::stop(28, 0);
+                    Instrument::stop(29, 0);
+                    break;
+                case 28: // EXC1
+                    Instrument::stop(27, 0);
+                    Instrument::stop(29, 0);
+                    break;
+                case 29: // EXC1
+                    Instrument::stop(27, 0);
+                    Instrument::stop(28, 0);
+                    break;
+                case 42: // EXC1
+                    Instrument::stop(44, 0);
+                    Instrument::stop(46, 0);
+                    break;
+                case 44: // EXC1
+                    Instrument::stop(42, 0);
+                    Instrument::stop(46, 0);
+                    break;
+                case 46: // EXC1
+                    Instrument::stop(42, 0);
+                    Instrument::stop(44, 0);
+                    break;
+                default:
+                    break;
+                }
+                break;
+            case 57:	// SFX Set
+                switch(key_no)
+                {
+                case 41: // EXC7
+                    Instrument::stop(42, 0);
+                    break;
+                case 42: // EXC7
+                    Instrument::stop(41, 0);
+                    break;
+                default:
+                    break;
+                }
+                break;
+            default:
+                break;
+            }
+        }
+
         Instrument::play(key_no, velocity, it->second);
     } else {
 //      throw(std::invalid_argument("Instrument file "+name+" not found"));
@@ -557,7 +672,7 @@ MIDITrack::rewind()
     bank_no = 0;
     previous = 0;
     polyphony = true;
-    omni = false;
+    omni = true;
 }
 
 bool
@@ -858,7 +973,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 int16_t key = pull_byte();
                 uint8_t velocity = pull_byte();
-                key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+                if (!midi.channel(channel).is_drums()) {
+                    key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+                }
                 midi.process(channel, message & 0xf0, key, velocity, omni);
                 CSV("Note_off_c, %d, %d, %d\n", channel, key, velocity);
                 break;
@@ -867,7 +984,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 int16_t key = pull_byte();
                 uint8_t velocity = pull_byte();
-                key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+                if (!midi.channel(channel).is_drums()) {
+                    key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+                }
                 midi.process(channel, message & 0xf0, key, velocity, omni);
                 CSV("Note_on_c, %d, %d, %d\n", channel, key, velocity);
                 break;
@@ -876,7 +995,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
                 uint8_t key = pull_byte();
                 uint8_t pressure = pull_byte();
-//              midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f), channel);
+                midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f, channel));
                 midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
                 CSV("Poly_aftertouch_c, %d, %d, %d\n", channel, key, pressure);
                 break;
@@ -884,9 +1003,15 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_CHANNEL_AFTERTOUCH:
             {
                 uint8_t pressure = pull_byte();
-//              midi.channel(channel).set_pitch(key, pitch2cents((float)pressure/127.0f), channel);
+                midi.channel(channel).set_pitch(pitch2cents((float)pressure/127.0f, channel));
                 midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
+                break;
+            }
+            case MIDI_BREATH_CONTROLLER:
+            {
+                uint8_t pressure = pull_byte();
+                midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 break;
             }
             case MIDI_CONTROL_CHANGE:
@@ -898,17 +1023,27 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 switch(controller)
                 {
                 case MIDI_ALL_CONTROLLERS_OFF:
+                    midi.channel(channel).set_modulation(0.0f);
                     midi.channel(channel).set_expression(1.0f);
-                    midi.channel(channel).set_hold(true);
+                    midi.channel(channel).set_hold(false);
+//                  midi.channel(channel).set_portamento(false);
                     midi.channel(channel).set_sustain(false);
-                    midi.channel(channel).set_gain(100.0f/127.0f);
-                    midi.channel(channel).set_pan(0.0f);
+                    midi.channel(channel).set_soft(false);
                     midi.channel(channel).set_semi_tones(2.0f);
                     midi.channel(channel).set_pitch(1.0f);
+                    msb_type = lsb_type = 0x7F;
+                    // midi.channel(channel).set_gain(100.0f/127.0f);
+                    // midi.channel(channel).set_pan(0.0f);
                     // intentional falltrough
-                case MIDI_ALL_SOUND_OFF:
                 case MIDI_MONO_ALL_NOTES_OFF:
+                    midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
+                    mode = MIDI_MONOPHONIC;
+                    break;
                 case MIDI_POLY_ALL_NOTES_OFF:
+                    midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
+                    mode = MIDI_POLYPHONIC;
+                    break;
+                case MIDI_ALL_SOUND_OFF:
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     break;
                 case MIDI_OMNI_OFF:
@@ -925,8 +1060,15 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_BANK_SELECT|MIDI_FINE:
                     bank_no += value;
                     break;
-                case MIDI_PAN:
                 case MIDI_BALANCE:
+                    // If a MultiTimbral device, then each Part usually has its
+                    // own Balance. This is generally when Balance becomes
+                    // useful, because then you can use Pan, Volume, and Balance
+                    // controllers to internally mix all of the Parts to the
+                    // device's stereo outputs
+                    LOG("Unsupported control change: MIDI_BALANCE, ch: %u, value: %u\n", channel, value);
+                    break;
+                case MIDI_PAN:
                     midi.channel(channel).set_pan(((float)value-64.0f)/64.0f);
                     break;
                 case MIDI_EXPRESSION:
@@ -940,8 +1082,12 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 }
                 case MIDI_CELESTE_EFFECT_DEPTH:
-                    LOG("Unsupported control change: MIDI_CELESTE_EFFECT_DEPTH, ch: %u, value: %u\n", channel, value);
+                {
+                    float level = (float)value/127.0f;
+                    level = pitch2cents(level, channel);
+                    midi.channel(channel).set_detune(level);
                     break;
+                }
                 case MIDI_CHANNEL_VOLUME:
                     midi.channel(channel).set_gain((float)value/127.0f);
                     break;
@@ -970,6 +1116,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_SOFT_PEDAL_SWITCH:
                     midi.channel(channel).set_soft(value >= 0x40);
+                    break;
+                case MIDI_LEGATO_SWITCH:
+                    LOG("Unsupported control change: MIDI_LEGATO_SWITCH, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_DAMPER_PEDAL_SWITCH:
                     midi.channel(channel).set_hold(value >= 0x40);
@@ -1003,7 +1152,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_VIBRATO_RATE:
                     if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
-                        float val = (float)value/64.0f;
+                        float val = 0.5f + (float)value/64.0f;
                         midi.channel(channel).set_vibrato_rate(val);
                     }
                     break;
@@ -1018,6 +1167,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         float val = (float)value/64.0f;
                         midi.channel(channel).set_vibrato_delay(val);
                     }
+                    break;
+                case MIDI_PORTAMENTO_TIME:
+                    LOG("Unsupported control change: MIDI_PORTAMENTO_TIME, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_PORTAMENTO_SWITCH:            // GM 2.0
                     LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
@@ -1038,10 +1190,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 //                  midi.channel(channel).set_phaser_depth((float)value/64.0f);
                     break;
                 case MIDI_PORTAMENTO_CONTROL:
-                case MIDI_PORTAMENTO_TIME:
                 case MIDI_HOLD2:
                 case MIDI_PAN|MIDI_FINE:
                 case MIDI_EXPRESSION|MIDI_FINE:
+                case MIDI_BREATH_CONTROLLER|MIDI_FINE:
                 case MIDI_BALANCE|MIDI_FINE:
                 case MIDI_SOUND_VARIATION:
                 case MIDI_SOUND_CONTROL10:

@@ -220,6 +220,11 @@ enum {
     MIDI_MODE_MAX
 };
 
+enum {
+    MIDI_POLYPHONIC = 3,
+    MIDI_MONOPHONIC
+};
+
 struct param_t
 {
    uint8_t coarse;
@@ -325,6 +330,7 @@ public:
        : Instrument(ptr, channel == MIDI_DRUMS_CHANNEL), midi(ptr),
          channel_no(channel), bank_no(bank), program_no(program)
     {
+        drum_channel = (channel == MIDI_DRUMS_CHANNEL);
         Mixer::set(AAX_PLAYING);
     }
 
@@ -333,6 +339,8 @@ public:
     MIDIChannel& operator=(MIDIChannel&&) = default;
 
     void play(uint8_t key_no, uint8_t velocity);
+
+    inline bool is_drums() { return drum_channel; }
 
     inline uint8_t get_channel_no() { return channel_no; }
     inline uint8_t get_program_no() { return program_no; }
@@ -353,6 +361,7 @@ private:
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
     uint8_t bank_no = 0;
+    bool drum_channel = false;
 };
 
 
@@ -391,6 +400,7 @@ private:
 
     MIDI& midi;
 
+    uint8_t mode = 0;
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
     uint8_t bank_no = 0;
@@ -399,7 +409,7 @@ private:
     uint32_t wait_parts = 0;
     uint64_t timestamp_parts = 0;
     bool polyphony = true;
-    bool omni = false;
+    bool omni = true;
 
     bool registered = false;
     uint16_t msb_type = 0;
