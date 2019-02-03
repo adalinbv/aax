@@ -4,16 +4,19 @@
  * Copyright (C) 2017-2018 by Erik Hofman.
  * Copyright (C) 2017-2018 by Adalin B.V.
  * All rights reserved.
+ *
+ * Reference: https://en.wikipedia.org/wiki/General_MIDI_Level_2
 -->
  
 <aeonwave>
 
  <midi>
   <bank n="0">
+   <drum n="26" name="Finger Snap" file="effects/humans/snap-finger"/>
    <drum n="27" name="High Q" file="drums/high-q"/>
-   <drum n="28" name="Virbraslap" file="drums/vibraslap"/>
-   <drum n="29" name="Scratch 1" file="drums/scratch1"/>
-   <drum n="30" name="Scratch 2" file="drums/scratch2"/>
+   <drum n="28" name="Slap" file="drums/slap"/>
+   <drum n="29" name="Scratch Push" file="drums/scratch-push"/>
+   <drum n="30" name="Scratch Pull" file="drums/scratch-pull"/>
    <drum n="31" name="Sticks" file="drums/sticks"/>
    <drum n="32" name="Square Click" file="drums/click-square"/>
    <drum n="33" name="Metronome Click" file="drums/click-metronome"/>
@@ -79,6 +82,60 @@
    <drum n="93" name="Tambourin" file="drums/tambourin"/>
    <drum n="94" name="Tree Chime" file="drums/chime-tree"/>
    <drum n="95" name="Caxixi" file="drums/caxixi"/>
+  </bank>
+
+  <bank n="16">
+   <drum n="36" name="Bass Drum 1" file="drums/power/drum-bass1"/>
+   <drum n="38" name="Acoustic Snare" file="drums/power/drum-snare-acoustic"/>
+   <drum n="41" name="Low Floor Tom" file="drums/power/tom-floor-low"/>
+   <drum n="43" name="High Floor Tom" file="drums/power/tom-floor-high"/>
+   <drum n="45" name="Low Tom" file="drums/power/tom-low"/>
+   <drum n="47" name="Low Mid-Tom" file="drums/power/tom-mid-low"/>
+   <drum n="48" name="Hi Mid-Tom" file="drums/power/tom-mid-high"/>
+   <drum n="50" name="High Tom" file="drums/power/tom-high"/>
+  </bank>
+
+  <bank n="32">
+   <drum n="35" name="Acoustic Bass Drum" file="drums/jazz/drum-bass-acoustic"/>
+   <drum n="36" name="Bass Drum 1" file="drums/jazz/drum-bass1"/>
+  </bank>
+
+  <bank n="40">
+   <drum n="24" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
+   <drum n="25" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
+   <drum n="35" name="Acoustic Bass Drum" file="drums/brush/drum-bass-acoustic"/>
+   <drum n="36" name="Bass Drum 1" file="drums/brush/drum-bass1"/>
+   <drum n="38" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
+   <drum n="39" name="Snare Brush Slap" file="drums/brush/drum-brush-slap"/>
+   <drum n="40" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
+  </bank>
+
+  <bank n="48">
+   <drum n="27" name="Closed Hi-Hat" file="drums/orchestra/hi-hat-closed"/>
+   <drum n="28" name="Pedal Hi-Hat" file="drums/orchestra/hi-hat-pedal"/>
+   <drum n="29" name="Open Hi-Hat" file="drums/orchestra/hi-hat-open"/>
+   <drum n="30" name="Ride Cymbal" file="drums/orchestra/cymbal-ride"/>
+   <drum n="35" name="Concert Bass Drum 2" file="drums/orchestra/drum-bass-acoustic"/>
+   <drum n="36" name="Concert Bass Drum 1" file="drums/orchestra/drum-bass1"/>
+   <drum n="38" name="Concert Snare" file="drums/orchestra/drum-snare-acoustic"/>
+   <drum n="39" name="Castanets" file="effects/humans/castanets"/>
+   <drum n="40" name="Concert Snare 2" file="drums/orchestra/drum-snare-electric"/>
+   <drum n="41" name="Timpani F1" file="drums/orchestra/timpani-f1"/>
+   <drum n="42" name="Timpani F1#" file="drums/orchestra/timpani-f1sharp"/>
+   <drum n="43" name="Timpani G1" file="drums/orchestra/timpani-g1"/>
+   <drum n="44" name="Timpani G1#" file="drums/orchestra/timpani-g1sharp"/>
+   <drum n="45" name="Timpani A1" file="drums/orchestra/timpani-a1"/>
+   <drum n="46" name="Timpani A1#" file="drums/orchestra/timpani-a1sharp"/>
+   <drum n="47" name="Timpani B1" file="drums/orchestra/timpani-b1"/>
+   <drum n="48" name="Timpani C2" file="drums/orchestra/timpani-c2"/>
+   <drum n="49" name="Timpani C2#" file="drums/orchestra/timpani-c2sharp"/>
+   <drum n="50" name="Timpani D2" file="drums/orchestra/timpani-d2"/>
+   <drum n="51" name="Timpani D2#" file="drums/orchestra/timpani-d2sharp"/>
+   <drum n="52" name="Timpani E2" file="drums/orchestra/timpani-e2"/>
+   <drum n="53" name="Timpani F2" file="drums/orchestra/timpani-f2"/>
+   <drum n="57" name="Concert Cymbal 2" file="drums/orchestra/cymbal-crash2"/>
+   <drum n="59" name="Concert Cymbal" file="drums/orchestra/cymbal-crash"/>
+   <drum n="88" name="Applause" file="effects/humans/applause"/>
   </bank>
  </midi>
 

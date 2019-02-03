@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,13 +12,13 @@
 
 <aeonwave>
 
- <info name="Big Gong">
+ <info name="Big Gong" bank="0" program="100">
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.03" frequency="88" duration="0.1">
-  <waveform src="white-noise" pitch="0.2"/>
-  <waveform src="square" processing="add" pitch="1.493"/>
+ <sound gain="2.06" frequency="44" duration="0.1">
+  <waveform src="square" pitch="1.493" voices="5"/>
+  <waveform src="white-noise" processing="add" ratio="0.8" pitch="0.2"/>
   <waveform src="triangle" processing="add" pitch="2.151"/>
   <waveform src="triangle" processing="modulate" pitch="2.387"/>
  </sound>
@@ -26,13 +26,13 @@
  <emitter looping="true">
   <filter type="frequency" src="sine" optional="true">
    <slot n="0">
-    <param n="0" pitch="25.0">2200.0</param>
+    <param n="0" pitch="12.5">550.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">5.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="60.0">5280.0</param>
+    <param n="0" pitch="80.0">3520.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.12</param>
@@ -40,13 +40,13 @@
   </filter>
   <filter type="timed-gain" release-factor="7.5">
    <slot n="0">
-    <param n="0">1.23</param>
+    <param n="0">1.27</param>
     <param n="1">0.05</param>
-    <param n="2">1.07</param>
+    <param n="2">1.06</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.963</param>
+    <param n="0">0.948</param>
     <param n="1" auto="1.0">5.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

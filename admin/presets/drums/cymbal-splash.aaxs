@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,11 +12,11 @@
 
 <aeonwave>
 
- <info name="Splash Cymbal">
+ <info name="Splash Cymbal" bank="0" program="55">
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.74" frequency="1000" duration="0.3">
+ <sound gain="1.63" frequency="1000" duration="0.3">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" pitch="6.3"/>
   <waveform src="white-noise" processing="add" pitch="0.5" staticity="0.105"/>
@@ -31,18 +31,18 @@
   </filter>
  </sound>
 
- <emitter looping="true">
+ <emitter looping="true" pan="-0.16">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">1.99</param>
     <param n="1">0.02</param>
-    <param n="2">0.5</param>
+    <param n="2">0.495</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">1.7</param>
+    <param n="0">1.68</param>
     <param n="1">0.4</param>
-    <param n="2">0.8</param>
+    <param n="2">0.792</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
