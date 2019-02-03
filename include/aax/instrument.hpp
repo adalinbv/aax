@@ -40,9 +40,14 @@ private:
 public:
     Note(float p) : Emitter(AAX_RELATIVE) {
         Emitter::matrix(mtx);
+
         pitch_param = pitch = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
+
+        tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
+        tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
+        tie(filter_state, AAX_FREQUENCY_FILTER);
     }
 
     friend void swap(Note& n1, Note& n2) noexcept {
@@ -95,6 +100,25 @@ public:
         Emitter::matrix(m);
     }
 
+    inline void set_filter_state() {
+        if (filter_cutoff > 32.f && filter_cutoff <= 10000.f) {
+            if (!filter_state) filter_state = AAX_TRUE;
+        }
+        else if (filter_state) filter_state = AAX_FALSE;
+    }
+
+    void set_filter_cutoff(float dfc) {
+            if (!fc) fc = _lin2log(0.25f*filter_cutoff);
+            filter_cutoff = _log2lin(fc + _lin2log(2.0f*dfc));
+            set_filter_state();
+    }
+
+    void set_filter_resonance(float dQ) {
+            if (!Q) Q = 0.5f*filter_resonance;
+            filter_resonance = Q+Q*dQ;
+            set_filter_state();
+    }
+
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
         return Emitter::add(buffer);
@@ -104,9 +128,21 @@ public:
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
 
 private:
+    inline float _lin2log(float v) { return log10f(v); }
+    inline float _log2lin(float v) { return powf(10.0f,v); }
+
     Matrix64 mtx;
+
     Param pitch_param = 1.0f;
     Param gain_param = 1.0f;
+
+    Param filter_cutoff = 22050.0f;
+    Param filter_resonance = 1.0f;
+    Param filter_state = AAX_FALSE;
+
+    float fc = 0.0f;
+    float Q = 0.0f;
+
     float pitch = 1.0f;
     float gain = 1.0f;
     bool playing = false;
@@ -136,10 +172,6 @@ public:
         Mixer::tie(chorus_level, AAX_CHORUS_EFFECT, AAX_DELAY_GAIN);
         Mixer::tie(chorus_depth, AAX_CHORUS_EFFECT, AAX_LFO_OFFSET);
         Mixer::tie(chorus_state, AAX_CHORUS_EFFECT);
-
-        Mixer::tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
-        Mixer::tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
-        Mixer::tie(filter_state, AAX_FREQUENCY_FILTER);
 
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
@@ -187,6 +219,10 @@ public:
                 playing = true;
             }
             if (is_drums && !panned) it->second->matrix(mtx);
+            if (!is_drums && fc) {
+                it->second->set_filter_cutoff(fc);
+                it->second->set_filter_resonance(Q);
+            }
             it->second->buffer(buffer);
         }
         Mixer::add(*it->second);
@@ -306,26 +342,15 @@ public:
         } else if (chorus_state) chorus_state = AAX_FALSE;
     }
 
-    inline void set_filter_state() {
-        if (filter_cutoff > 32.f && filter_cutoff <= 20000.f) {
-            if (!filter_state) filter_state = AAX_TRUE;
-        }
-        else if (filter_state) filter_state = AAX_FALSE;
-    }
-
     void set_filter_cutoff(float dfc) {
-        if (!is_drums) {
-            if (!fc) fc = _lin2log(filter_cutoff);
-            filter_cutoff = _log2lin(fc + _lin2log(dfc));
-            set_filter_state();
+        if (!is_drums) { fc = dfc;
+            for (auto& it : key) it.second->set_filter_cutoff(dfc);
         }
     }
 
     void set_filter_resonance(float dQ) {
-        if (!is_drums) {
-            if (!Q) Q = filter_resonance;
-            filter_resonance = Q*dQ;
-            set_filter_state();
+        if (!is_drums) { Q = dQ;
+            for (auto& it : key) it.second->set_filter_resonance(dQ);
         }
     }
 
@@ -350,10 +375,6 @@ private:
     Param tremolo_freq = 5.0f;
     Param tremolo_depth = 0.0f;
     Status tremolo_state = AAX_FALSE;
-
-    Param filter_cutoff = 22050.0f;
-    Param filter_resonance = 1.0f;
-    Param filter_state = AAX_FALSE;
 
     Param chorus_level = 0.0f;
     Param chorus_depth = 0.4f;
