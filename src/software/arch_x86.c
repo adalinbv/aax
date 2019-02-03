@@ -129,13 +129,13 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
 {
    SIMD_PREFIX"",
    SIMD_PREFIX"MMX",
-   SIMD_PREFIX"MMX/SSE",
-   SIMD_PREFIX"MMX/SSE2",
-   SIMD_PREFIX"MMX/SSE3",
-   SIMD_PREFIX"MMX/SSSE3",
-   SIMD_PREFIX"MMX/SSE4a",
-   SIMD_PREFIX"MMX/SSE4.1",
-   SIMD_PREFIX"MMX/SSE4.2",
+   SIMD_PREFIX"SSE",
+   SIMD_PREFIX"SSE2",
+   SIMD_PREFIX"SSE3",
+   SIMD_PREFIX"SSSE3",
+   SIMD_PREFIX"SSE4a",
+   SIMD_PREFIX"SSE4.1",
+   SIMD_PREFIX"SSE4.2",
    SIMD_PREFIX"SSE/AVX",
    SIMD_PREFIX"SSE/XOP",
    SIMD_PREFIX"SSE/AVX2"
@@ -147,24 +147,6 @@ char check_extcpuid_ecx(unsigned int);
 # ifndef __x86_64__
 static char check_cpuid_edx(unsigned int);
 # endif
-
-char
-_aaxArchDetectMMX()
-{
-# ifdef __x86_64__
-   static char res = AAX_SIMD_MMX;
-# else
-   static char res = 0;
-   static int8_t init = -1;
-   if (init)
-   {
-      init = 0;
-      res = check_cpuid_edx(CPUID_FEAT_EDX_MMX) ? AAX_SIMD_MMX : 0;
-   }
-# endif
-   if (res) _aax_arch_capabilities |= AAX_ARCH_MMX;
-   return res;
-}
 
 char
 _aaxArchDetectSSE()
@@ -311,9 +293,6 @@ _aaxGetSSELevel()
          _aax_calloc = _aax_calloc_aligned;
          _aax_malloc = _aax_malloc_aligned;
          
-         res = _aaxArchDetectMMX();
-         if (res) sse_level = res;
-
          res = _aaxArchDetectSSE();
          if (res) sse_level = res;
 
