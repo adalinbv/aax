@@ -128,9 +128,19 @@ public:
         Mixer::tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
         Mixer::tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
         Mixer::tie(vibrato_state, AAX_DYNAMIC_PITCH_EFFECT);
+
         Mixer::tie(tremolo_freq, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_FREQUENCY);
         Mixer::tie(tremolo_depth, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_DEPTH);
         Mixer::tie(tremolo_state, AAX_DYNAMIC_GAIN_FILTER);
+
+        Mixer::tie(chorus_level, AAX_CHORUS_EFFECT, AAX_DELAY_GAIN);
+        Mixer::tie(chorus_depth, AAX_CHORUS_EFFECT, AAX_LFO_OFFSET);
+        Mixer::tie(chorus_state, AAX_CHORUS_EFFECT);
+
+        Mixer::tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
+        Mixer::tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
+        Mixer::tie(filter_state, AAX_FREQUENCY_FILTER);
+
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
@@ -190,6 +200,10 @@ public:
             float g = std::min(0.333f + 0.667f*2.0f*velocity/128.0f, 1.0f);
             it->second->stop(volume*g*soft);
         }
+    }
+
+    inline void set_detune(float level) {
+        delay_level = level;
     }
 
     inline void set_pitch(float pitch) {
@@ -286,35 +300,32 @@ public:
     }
 
     void set_chorus_level(float lvl) {
-        aax::dsp dsp = Mixer::get(AAX_CHORUS_EFFECT);
         if (lvl > 0) {
-            dsp.set(AAX_DELAY_GAIN, lvl);
-            dsp.set(AAX_LFO_OFFSET, 0.4f);
+            chorus_level = lvl;
+            if (!chorus_state) chorus_state = AAX_TRUE;
+        } else if (chorus_state) chorus_state = AAX_FALSE;
+    }
+
+    inline void set_filter_state() {
+        if (filter_cutoff > 32.f && filter_cutoff <= 20000.f) {
+            if (!filter_state) filter_state = AAX_TRUE;
         }
-        dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
-        Mixer::set(dsp);
+        else if (filter_state) filter_state = AAX_FALSE;
     }
 
     void set_filter_cutoff(float dfc) {
         if (!is_drums) {
-            aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
-            if (fc == 0.0f) fc = _lin2log(4400.0f); // dsp.get(AAX_CUTOFF_FREQUENCY));
-            cutoff = _log2lin(_lin2log(dfc)+fc);
-            dsp.set(AAX_CUTOFF_FREQUENCY, cutoff);
-            if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
-            else if (dsp.state()) dsp.set(AAX_FALSE);
-            Mixer::set(dsp);
+            if (!fc) fc = _lin2log(filter_cutoff);
+            filter_cutoff = _log2lin(fc + _lin2log(dfc));
+            set_filter_state();
         }
     }
 
     void set_filter_resonance(float dQ) {
         if (!is_drums) {
-            aax::dsp dsp = Mixer::get(AAX_FREQUENCY_FILTER);
-            if (!Q) Q = dsp.get(AAX_RESONANCE);
-            dsp.set(AAX_RESONANCE, dQ*Q);
-            if (cutoff > 32.0f && cutoff <= 20000.0f) dsp.set(AAX_TRUE);
-            else if (dsp.state()) dsp.set(AAX_FALSE);
-            Mixer::set(dsp);
+            if (!Q) Q = filter_resonance;
+            filter_resonance = Q*dQ;
+            set_filter_state();
         }
     }
 
@@ -340,11 +351,20 @@ private:
     Param tremolo_depth = 0.0f;
     Status tremolo_state = AAX_FALSE;
 
+    Param filter_cutoff = 22050.0f;
+    Param filter_resonance = 1.0f;
+    Param filter_state = AAX_FALSE;
+
+    Param chorus_level = 0.0f;
+    Param chorus_depth = 0.4f;
+    Status chorus_state = AAX_FALSE;
+
+    float delay_level = 0.0f;
+
     float mfreq = 1.5f;
     float mdepth = 0.0f;
     float mrange = 1.0f;
 
-    float cutoff = 0.0f;
     float fc = 0.0f;
     float Q = 0.0f;
 
