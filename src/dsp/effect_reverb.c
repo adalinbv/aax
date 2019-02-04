@@ -338,9 +338,10 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
       unsigned int q;
 
       memset(dptr, 0, no_samples*sizeof(MIX_T));
-      for(q=track % snum; q<snum; q += tracks)
+      for(q=0; q<snum; ++q)
       {  
          float volume = gain*reflections->delay[q].gain;
+         volume /= (1 + (track+q) % tracks);
          if ((volume > 0.001f) || (volume < -0.001f))
          {  
             ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
@@ -448,6 +449,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       }
 
       filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL,0);
+      rbd->multiply(dptr, sizeof(MIX_T), no_samples, 2.0f);
       if (occlusion) {
          occlusion->run(rbd, dptr, sptr, scratch, no_samples, track,occlusion);
       }
@@ -478,7 +480,7 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       /* initial gains, defnining a direct path is not necessary    */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
 // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      igain = 0.50f;
+      igain = 1.0f/num;
       if (state & AAX_INVERSE)
       {
          gains[6] = igain*0.9484f;      // conrete/brick = 0.95
@@ -500,10 +502,13 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
          gains[6] = igain*0.7946f;
       }
 
-      idepth = 0.005f+0.045f*depth;
-      idepth_offs = (max_depth-idepth)*depth;
-      idepth_offs = _MINMAX(idepth_offs, 0.01f, max_depth-0.05f);
+      idepth_offs = 0.005f+0.045f*depth;
+      idepth = (max_depth-idepth_offs)*depth;
+      idepth = _MINMAX(idepth, 0.01f, max_depth-0.05f);
       assert(idepth_offs+idepth*0.9876543f <= REVERB_EFFECTS_TIME);
+
+      idepth_offs *= fs;
+      idepth *= fs;
 
       if (state & AAX_INVERSE)
       {
@@ -534,11 +539,11 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
          {
             unsigned int track;
             for (track=0; track<tracks; ++track) {
-               reflections->delay[i].sample_offs[track]=(ssize_t)(delays[i] * fs);
+               reflections->delay[i].sample_offs[track] = (ssize_t)delays[i];
             }
             reflections->delay[i].gain = gains[i];
 #if 0
- printf("delay[%zi]: %zi\n", i, reverb->delay[i].sample_offs[0]);
+ printf("reflection delay[%zi]: %zi\n", i, reflections->delay[i].sample_offs[0]);
 #endif
          }
          else {
@@ -585,6 +590,7 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          float dlb, dlbp;
 
          num = 5;
+         lb_gain /= num;
          reverb->loopback[0].gain = lb_gain*0.95015f;   // conrete/brick = 0.95
          reverb->loopback[1].gain = lb_gain*0.87075f;
          reverb->loopback[2].gain = lb_gain*0.91917f;
@@ -600,7 +606,7 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          dlb = 0.01f+lb_depth*max_depth;
          dlbp = (REVERB_EFFECTS_TIME-dlb)*lb_depth;
          dlbp = _MINMAX(dlbp, 0.01f, REVERB_EFFECTS_TIME-0.01f);
-//       dlbp = 0;
+         dlbp = 0;
 
          dlb *= fs;
          dlbp *= fs;
@@ -617,7 +623,7 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          }
 #if 0
  for (int i=0; i<7; ++i)
- printf(" loopback.offset[%i]: %zi\n", i, reverb->loopback[i].sample_offs[0]);
+ printf(" loopback offset[%i]: %zi\n", i, reverb->loopback[i].sample_offs[0]);
 #endif
       }
       *data = reverb;
