@@ -38,10 +38,10 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float p) : Emitter(AAX_RELATIVE) {
+    Note(float f, float p) : Emitter(AAX_RELATIVE), frequency(f), pitch(p) {
         Emitter::matrix(mtx);
 
-        pitch_param = pitch = p;
+        pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
 
@@ -108,14 +108,23 @@ public:
     }
 
     void set_filter_cutoff(float dfc) {
-            if (!fc) fc = _lin2log(0.25f*filter_cutoff);
-            filter_cutoff = _log2lin(fc + _lin2log(2.0f*dfc));
+            if (!fc) {
+                if (filter_cutoff == 22050.0f) {
+                    fc = _lin2log(2.0f*frequency*pitch);
+                    aax::dsp dsp = Emitter::get(AAX_FREQUENCY_FILTER);
+                    dsp.set(AAX_HF_GAIN, 0.0f);
+                    Emitter::set(dsp);
+                } else {
+                    fc = _lin2log(2.0f*filter_cutoff);
+                }
+            }
+            filter_cutoff = _log2lin(fc + _lin2log(0.01f+0.99f*dfc));
             set_filter_state();
     }
 
     void set_filter_resonance(float dQ) {
-            if (!Q) Q = 0.5f*filter_resonance;
-            filter_resonance = Q+Q*dQ;
+            if (!Q) Q = filter_resonance;
+            filter_resonance = 0.25f*Q+Q*2.0f*dQ;
             set_filter_state();
     }
 
@@ -143,7 +152,8 @@ private:
     float fc = 0.0f;
     float Q = 0.0f;
 
-    float pitch = 1.0f;
+    float frequency;
+    float pitch;
     float gain = 1.0f;
     bool playing = false;
     bool hold = true;
@@ -212,7 +222,7 @@ public:
             float pitch = 1.0f;
             float frequency = buffer.get(AAX_UPDATE_RATE);
             if (!is_drums) pitch = note2freq(key_no)/(float)frequency;
-            auto ret = key.insert({key_no, new Note(pitch)});
+            auto ret = key.insert({key_no, new Note(frequency, pitch)});
             it = ret.first;
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
@@ -355,8 +365,6 @@ public:
     }
 
 private:
-    inline float _lin2log(float v) { return log10f(v); }
-    inline float _log2lin(float v) { return powf(10.0f,v); }
     inline float note2freq(uint8_t d) {
         return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
     }
