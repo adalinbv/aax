@@ -188,7 +188,7 @@ MIDI::read_instruments()
  * and the key_no in the program number of the map.
  */
 std::string
-MIDI::get_drum(uint16_t program_no, uint8_t key_no)
+MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
 {
     auto itb = drums.find(program_no);
     if (itb == drums.end() && program_no > 0)
@@ -353,12 +353,13 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            std::string name = midi.get_drum(program_no, key_no);
+            std::string name = midi.get_drum(bank_no, program_no, key_no);
             if (!name.empty())
             {
                 if (!midi.buffer_avail(name)) {
-                    DISPLAY("Loading drum:  %3i bank: %3i, program: %3i: %s\n",
-                             key_no, bank_no, program_no, name.c_str());
+                    DISPLAY("Loading drum:  %3i bank: %3i/%3i, program: %3i: %s\n",
+                             key_no, bank_no >> 7, bank_no & 0x7F,
+                             program_no, name.c_str());
                 }
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
@@ -378,8 +379,9 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity)
             if (!name.empty())
             {
                 if (!midi.buffer_avail(name)) {
-                    DISPLAY("Loading instrument bank: %3i, program: %3i: %s\n",
-                             bank_no, program_no, name.c_str());
+                    DISPLAY("Loading instrument bank: %3i/%3i, program: %3i: %s\n",
+                             bank_no >> 7, bank_no & 0x7F, program_no,
+                             name.c_str());
                 }
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
@@ -1066,7 +1068,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     omni = true;
                     break;
                 case MIDI_BANK_SELECT:
-                    bank_no = (uint16_t)value * 128;
+                    bank_no = (uint16_t)value << 7;
                     break;
                 case MIDI_BANK_SELECT|MIDI_FINE:
                     bank_no += value;
@@ -1151,13 +1153,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_FILTER_RESONANCE:
                     if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
-                        float val = (float)value/64.0f;
+                        float val = (float)value/64.0f; // relative: 0.0 - 2.0
                         midi.channel(channel).set_filter_resonance(val);
                     }
                     break;
                 case MIDI_CUTOFF:
                     if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
-                        float val = (float)value/64.0f;
+                        float val = (float)value/64.0f; // relative: 0.0 - 2.0
                         midi.channel(channel).set_filter_cutoff(val);
                     }
                     break;

@@ -295,7 +295,7 @@ public:
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
-    std::string get_drum(uint16_t bank, uint8_t key);
+    std::string get_drum(uint16_t bank, uint16_t program, uint8_t key);
     std::string get_instrument(uint16_t bank, uint8_t program);
 
     inline void set_initialize(bool i) { initialize = i; };
