@@ -133,8 +133,11 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       if (delay && !delay->loopback && delay->history)
       {
          assert(delay->history->ptr);
-         assert(ds <= delay->history_samples);
          assert(bps <= sizeof(MIX_T));
+
+         if (ds > delay->history_samples) {
+            ds = delay->history_samples;
+         }
 
          // copy the delay effects history to src
 //       DBG_MEMCLR(1, src-ds, ds, bps);
