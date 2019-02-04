@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2007-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -502,14 +502,14 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
          gains[6] = igain*0.7946f;
       }
 
-      idepth_offs = 0.005f+0.045f*depth;
-      idepth = (max_depth-idepth_offs)*depth;
-      idepth = _MINMAX(idepth, 0.01f, max_depth-0.05f);
+      // depth definies the initial delay of the first reflections
+      idepth = 0.005f+0.045f*depth;
+      idepth_offs = (max_depth-idepth)*depth;
+      idepth_offs = _MINMAX(idepth_offs, 0.01f, max_depth-0.05f);
       assert(idepth_offs+idepth*0.9876543f <= REVERB_EFFECTS_TIME);
 
-      idepth_offs *= fs;
       idepth *= fs;
-
+      idepth_offs *= fs;
       if (state & AAX_INVERSE)
       {
          delays[0] = idepth_offs + idepth*0.9876543f;
