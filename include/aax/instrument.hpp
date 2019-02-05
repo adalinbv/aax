@@ -38,9 +38,8 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float f, float p) : Emitter(AAX_RELATIVE), frequency(f), pitch(p) {
-        Emitter::matrix(mtx);
-
+    Note(float f, float p) : Emitter(AAX_RELATIVE), frequency(f), pitch(p)
+    {
         pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
@@ -48,6 +47,8 @@ public:
         tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
         tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
         tie(filter_state, AAX_FREQUENCY_FILTER);
+
+        Emitter::matrix(mtx);
     }
 
     friend void swap(Note& n1, Note& n2) noexcept {
@@ -171,17 +172,23 @@ public:
     Instrument(AeonWave& ptr, bool drums = false)
         : Mixer(ptr), aax(&ptr), is_drums(drums)
     {
-        Mixer::tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
-        Mixer::tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
-        Mixer::tie(vibrato_state, AAX_DYNAMIC_PITCH_EFFECT);
+        tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
+        tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
+        tie(vibrato_state, AAX_DYNAMIC_PITCH_EFFECT);
 
-        Mixer::tie(tremolo_freq, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_FREQUENCY);
-        Mixer::tie(tremolo_depth, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_DEPTH);
-        Mixer::tie(tremolo_state, AAX_DYNAMIC_GAIN_FILTER);
+        tie(tremolo_freq, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_FREQUENCY);
+        tie(tremolo_depth, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_DEPTH);
+        tie(tremolo_state, AAX_DYNAMIC_GAIN_FILTER);
 
-        Mixer::tie(chorus_level, AAX_CHORUS_EFFECT, AAX_DELAY_GAIN);
-        Mixer::tie(chorus_depth, AAX_CHORUS_EFFECT, AAX_LFO_OFFSET);
-        Mixer::tie(chorus_state, AAX_CHORUS_EFFECT);
+        tie(chorus_level, AAX_CHORUS_EFFECT, AAX_DELAY_GAIN);
+        tie(chorus_depth, AAX_CHORUS_EFFECT, AAX_LFO_OFFSET);
+        tie(chorus_state, AAX_CHORUS_EFFECT);
+
+        tie(reverb_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
+        tie(reverb_delay_depth, AAX_REVERB_EFFECT, AAX_DELAY_DEPTH);
+        tie(reverb_decay_depth, AAX_REVERB_EFFECT, AAX_DECAY_DEPTH);
+        tie(reverb_cutoff_frequency, AAX_REVERB_EFFECT, AAX_CUTOFF_FREQUENCY);
+//      tie(reverb_state, AAX_REVERB_EFFECT);
 
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
@@ -216,12 +223,12 @@ public:
         return true;
     }
 
-    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer) {
+    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, float pitch = 1.0f)
+    {
         auto it = key.find(key_no);
         if (it == key.end()) {
-            float pitch = 1.0f;
             float frequency = buffer.get(AAX_UPDATE_RATE);
-            if (!is_drums) pitch = note2freq(key_no)/(float)frequency;
+            if (!is_drums) pitch *= note2freq(key_no)/(float)frequency;
             auto ret = key.insert({key_no, new Note(frequency, pitch)});
             it = ret.first;
             if (!playing && !is_drums) {
@@ -334,15 +341,10 @@ public:
     // Each Channel must have its own adjustable send levels to the chorus
     // and the reverb. A connection from chorus to reverb must be provided.
     void set_reverb_level(float lvl) {
-        aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
         if (lvl > 0) {
-            dsp.set(AAX_CUTOFF_FREQUENCY, 790.0f);
-            dsp.set(AAX_DELAY_DEPTH, 0.025f);
-            dsp.set(AAX_DECAY_LEVEL, 0.75f*lvl);
-            dsp.set(AAX_DECAY_DEPTH, 0.15);
-        }
-        dsp.set((lvl > 0) ? AAX_TRUE : AAX_FALSE);
-//      Mixer::set(dsp);
+            reverb_level = lvl;
+            if (!reverb_state) reverb_state = AAX_TRUE|AAX_INVERSE;
+        } else if (reverb_state) reverb_state = AAX_FALSE;
     }
 
     void set_chorus_level(float lvl) {
@@ -387,6 +389,12 @@ private:
     Param chorus_level = 0.0f;
     Param chorus_depth = 0.4f;
     Status chorus_state = AAX_FALSE;
+
+    Param reverb_level = 40.0f/127.0f;
+    Param reverb_delay_depth = 0.025f;
+    Param reverb_decay_depth = 0.25f;
+    Param reverb_cutoff_frequency = 790.0f;
+    Status reverb_state = AAX_FALSE;
 
     float delay_level = 0.0f;
 
