@@ -36,8 +36,6 @@
 #include "dsp.h"
 #include "api.h"
 
-#define CHORUS_MIN	10e-3f
-#define CHORUS_MAX	60e-3f
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
@@ -98,6 +96,8 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       effect->slot[0]->data = data;
       if (data)
       {
+         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
+         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
          int t, constant;
 
          data->run = _delay_run;
@@ -108,10 +108,20 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          data->lfo.fs = effect->info->frequency;
          data->lfo.period_rate = effect->info->period_rate;
 
-         data->lfo.min_sec = CHORUS_MIN;
-         data->lfo.max_sec = CHORUS_MAX;
-         data->lfo.depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
+         if ((offset+depth)/CHORUS_MAX > CHORUS_MIN)
+         {
+            data->lfo.min_sec = CHORUS_MIN;
+            data->lfo.max_sec = CHORUS_MAX;
+            data->lfo.depth = depth;
+            data->lfo.offset = offset;
+         }
+         else // switch to phasing
+         {
+            data->lfo.min_sec = PHASING_MIN;
+            data->lfo.max_sec = PHASING_MAX;
+            data->lfo.depth = depth*CHORUS_MAX/PHASING_MAX;
+            data->lfo.offset = offset*CHORUS_MAX/PHASING_MAX;
+         }
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          data->lfo.stereo_lnk = !stereo;

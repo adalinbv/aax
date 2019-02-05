@@ -36,11 +36,7 @@
 #include "dsp.h"
 #include "api.h"
 
-
-#define PHASING_MIN	50e-6f
-#define PHASING_MAX	10e-3f
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
-
 
 static aaxEffect
 _aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
