@@ -645,8 +645,17 @@ MIDITrack::registered_param(uint8_t channel, uint8_t controller, uint8_t value)
             midi.channel(channel).set_semi_tones(2.0f);
             break;
         case MIDI_CHANNEL_FINE_TUNING:
+        {
+            uint16_t tuning = param[MIDI_CHANNEL_FINE_TUNING].coarse << 7
+                              | param[MIDI_CHANNEL_FINE_TUNING].fine;
+            float pitch = (float)tuning-8192.0f;
+            if (pitch < 0) pitch /= 8192.0f;
+            else pitch /= 8191.0f;
+            midi.channel(channel).set_tuning(pitch);
+            break;
+        }
         case MIDI_CHANNEL_COARSE_TUNING:
-            // These are handled by MIDI_NOTE_ON and MIDI_NOTE_OFF
+            // This is handled by MIDI_NOTE_ON and MIDI_NOTE_OFF
             break;
         case MIDI_TUNING_PROGRAM_CHANGE:
         case MIDI_TUNING_BANK_SELECT:
@@ -810,18 +819,38 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     byte = pull_byte();
                     switch(byte)
                     {
-                    case MIDI_DEVICE_MASTER_VOLUME:
+                    case MIDI_DEVICE_VOLUME:
                         byte = pull_byte();
                         if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
                             midi.set_gain((float)byte/127.0f);
                         }
                         break;
-                    case MIDI_DEVICE_MASTER_BALANCE:
+                    case MIDI_DEVICE_BALANCE:
                         byte = pull_byte();
                         if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
                             midi.set_balance(((float)byte-64.0f)/64.0f);
                         }
                         break;
+                    case MIDI_DEVICE_FINE_TUNING:
+                    {
+                        uint16_t tuning = pull_byte() || pull_byte() << 7;
+                        float pitch = (float)tuning-8192.0f;
+                        if (pitch < 0) pitch /= 8192.0f;
+                        else pitch /= 8191.0f;
+                        midi.set_tuning(pitch);
+                        break;
+                    }
+                    case MIDI_DEVICE_COARSE_TUNING:
+                    {
+                        float pitch;
+                        byte = pull_byte();	// lsb, always zero
+                        byte = pull_byte();	// msb
+                        pitch = (float)byte-64.0f;
+                        if (pitch < 0) pitch /= 64.0f;
+                        else pitch /= 63.0f;
+                        midi.set_tuning(pitch);
+                        break;
+                    }
                     default:
                         LOG("Unsupported sysex parameter: %x\n", byte);
                         byte = pull_byte();
@@ -994,14 +1023,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t velocity = pull_byte();
                 float pitch = 1.0f;
                 if (!midi.channel(channel).is_drums()) {
-                    uint16_t tuning = param[MIDI_CHANNEL_FINE_TUNING].coarse<<7
-                                      | param[MIDI_CHANNEL_FINE_TUNING].fine;
-                    pitch = (float)tuning-8192.0f;
-                    if (pitch < 0) pitch /= 8192.0f;
-                    else pitch /= 8191.0f;
-                    pitch = powf(2.0f, 100.0f*pitch/12.0f);
+                    pitch = midi.channel(channel).get_tuning();
                     key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
                 }
+                pitch *= midi.get_tuning();
                 midi.process(channel, message & 0xf0, key, velocity, omni, pitch);
                 CSV("Note_on_c, %d, %d, %d\n", channel, key, velocity);
                 break;
@@ -1098,7 +1123,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_MODULATION_DEPTH:
                 {
                     float depth = (float)(value << 7)/16383.0f;
-                    depth = modulation2cents(depth, channel) - 1.0f;
+                    depth = cents2modulation(depth, channel) - 1.0f;
                     midi.channel(channel).set_modulation(depth);
                     break;
                 }

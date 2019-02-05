@@ -63,8 +63,10 @@ namespace aax
 /* system exclusive real time message */
 #define MIDI_DEVICE_CONTROL		0x04
 
-#define MIDI_DEVICE_MASTER_VOLUME	0x01
-#define MIDI_DEVICE_MASTER_BALANCE	0x02
+#define MIDI_DEVICE_VOLUME		0x01
+#define MIDI_DEVICE_BALANCE		0x02
+#define MIDI_DEVICE_FINE_TUNING		0x03
+#define MIDI_DEVICE_COARSE_TUNING	0x04
 
 #define MIDI_GLOBAL_PARAMETER_CONTROL	0x05
 
@@ -294,6 +296,9 @@ public:
     void set_gain(float);
     void set_balance(float);
 
+    inline void set_tuning(float pitch) { tuning = powf(2.0f, pitch/12.0f); }
+    inline float get_tuning() { return tuning; }
+
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
@@ -331,9 +336,11 @@ private:
     std::string drum = "gmdrums.xml";
     std::string path;
 
+    float tuning = 1.0f;
+
+    uint32_t uSPP = 500000/24;
     uint16_t format = 0;
     uint16_t PPQN = 24;
-    uint32_t uSPP = 500000/24;
 
     uint8_t mode = MIDI_MODE0;
     bool initialize = false;
@@ -370,6 +377,9 @@ public:
     inline uint8_t get_program_no() { return program_no; }
     inline uint16_t get_bank_no() { return bank_no; }
 
+    inline void set_tuning(float pitch) { tuning = powf(2.0f, pitch/12.0f); }
+    inline float get_tuning() { return tuning; }
+
     inline void set_semi_tones(float s) { semi_tones = s; }
     inline float get_semi_tones() { return semi_tones; }
 
@@ -380,11 +390,15 @@ private:
     std::map<uint8_t,Buffer&> name_map;
 
     MIDI &midi;
+
+    float tuning = 1.0f;
     float modulation_range = 2.0f;
     float semi_tones = 2.0f;
+
+    uint16_t bank_no = 0;
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
-    uint16_t bank_no = 0;
+
     bool drum_channel = false;
 };
 
@@ -412,7 +426,7 @@ private:
         float r = midi.channel(channel).get_semi_tones();
         return powf(2.0f, p*r/12.0f);
     }
-    inline float modulation2cents(float p, uint8_t channel) {
+    inline float cents2modulation(float p, uint8_t channel) {
         float r = midi.channel(channel).get_modulation_depth();
         return powf(2.0f, p*r/12.0f);
     }
