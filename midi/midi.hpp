@@ -208,7 +208,9 @@ namespace aax
 #define MIDI_TUNING_PROGRAM_CHANGE	0x0003
 #define MIDI_TUNING_BANK_SELECT		0x0004
 #define MIDI_MODULATION_DEPTH_RANGE	0x0005
-#define MIDI_PARAMETER_RESET		0x7f7f
+#define MIDI_PARAMETER_RESET		0x3fff
+
+#define MAX_REGISTERED_PARAM		0x0006
 
 /* system common messages */
 #define MIDI_TIMING_CODE		0x01
@@ -266,7 +268,7 @@ public:
         }
     }
 
-    bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni);
+    bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni, float pitch=1.0f);
 
     MIDIChannel& new_channel(uint8_t channel, uint16_t bank, uint8_t program);
 
@@ -360,7 +362,7 @@ public:
 
     MIDIChannel& operator=(MIDIChannel&&) = default;
 
-    void play(uint8_t key_no, uint8_t velocity);
+    void play(uint8_t key_no, uint8_t velocity, float pitch);
 
     inline bool is_drums() { return drum_channel; }
 
@@ -387,8 +389,6 @@ private:
 };
 
 
-#define MAX_REGISTERED_PARAM 	6
-
 class MIDITrack : public byte_stream
 {
 public:
@@ -408,7 +408,7 @@ public:
     bool process(uint64_t, uint32_t&, uint32_t&);
 
 private:
-    inline float pitch2cents(float p, uint8_t channel) {
+    inline float cents2pitch(float p, uint8_t channel) {
         float r = midi.channel(channel).get_semi_tones();
         return powf(2.0f, p*r/12.0f);
     }
@@ -437,7 +437,7 @@ private:
     uint16_t msb_type = 0;
     uint16_t lsb_type = 0;
     struct param_t param[MAX_REGISTERED_PARAM+1] = {
-        { 2, 0 }, { 0x20, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
+        { 2, 0 }, { 0x40, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
     };
 
     const std::string type_name[5] = {
