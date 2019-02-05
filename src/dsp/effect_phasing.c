@@ -179,7 +179,8 @@ _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
    if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _lin2db(val);
    }
-   else if ((param == AAX_LFO_DEPTH) && (ptype == AAX_MICROSECONDS)) {
+   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) && 
+            (ptype == AAX_MICROSECONDS)) {
        rv = (val*1e-6f)/PHASING_MAX;
    }
    return rv;
@@ -192,7 +193,8 @@ _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
    if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _db2lin(val);
    }
-   else if ((param == AAX_LFO_DEPTH) && (ptype == AAX_MICROSECONDS)) {
+   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) && 
+            (ptype == AAX_MICROSECONDS)) {
        rv = val*PHASING_MAX*1e6f;
    }
    return rv;
