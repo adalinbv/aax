@@ -135,6 +135,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
          assert(delay->history->ptr);
          assert(bps <= sizeof(MIX_T));
 
+         // When reverb is defined ds will be larger than delay->history_samples
+         // but reverb has it's own history buffer management so just limit it.
          if (ds > delay->history_samples) {
             ds = delay->history_samples;
          }
