@@ -176,8 +176,11 @@ static float
 _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if ((param == 0) && (ptype == AAX_DECIBEL)) {
+   if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _lin2db(val);
+   }
+   else if ((param == AAX_LFO_DEPTH) && (ptype == AAX_MICROSECONDS)) {
+       rv = (val*1e-6f)/PHASING_MAX;
    }
    return rv;
 }
@@ -186,8 +189,11 @@ static float
 _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if ((param == 0) && (ptype == AAX_DECIBEL)) {
+   if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _db2lin(val);
+   }
+   else if ((param == AAX_LFO_DEPTH) && (ptype == AAX_MICROSECONDS)) {
+       rv = val*PHASING_MAX*1e6f;
    }
    return rv;
 }
