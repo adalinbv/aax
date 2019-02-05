@@ -1023,10 +1023,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t velocity = pull_byte();
                 float pitch = 1.0f;
                 if (!midi.channel(channel).is_drums()) {
-                    pitch = midi.channel(channel).get_tuning();
                     key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+                    pitch = midi.channel(channel).get_tuning();
+                    pitch *= midi.get_tuning();
                 }
-                pitch *= midi.get_tuning();
                 midi.process(channel, message & 0xf0, key, velocity, omni, pitch);
                 CSV("Note_on_c, %d, %d, %d\n", channel, key, velocity);
                 break;
