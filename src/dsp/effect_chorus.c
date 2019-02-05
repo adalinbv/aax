@@ -40,8 +40,6 @@
 #define CHORUS_MAX	60e-3f
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
-static void _chorus_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
-
 static aaxEffect
 _aaxChorusEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
@@ -102,7 +100,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       {
          int t, constant;
 
-         data->run = _chorus_run;
+         data->run = _delay_run;
          data->loopback = AAX_FALSE;
 
          data->lfo.convert = _linear;
@@ -176,8 +174,11 @@ static float
 _aaxChorusEffectSet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if ((param == 0) && (ptype == AAX_DECIBEL)) {
+   if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _lin2db(val);
+   }
+   else if ((param == AAX_LFO_DEPTH) && (ptype == AAX_MICROSECONDS)) {
+       rv = (val*1e-6f)/CHORUS_MAX;
    }
    return rv;
 }
@@ -186,8 +187,11 @@ static float
 _aaxChorusEffectGet(float val, int ptype, unsigned char param)
 {  
    float rv = val;
-   if ((param == 0) && (ptype == AAX_DECIBEL)) {
+   if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _db2lin(val);
+   }
+   else if ((param == AAX_LFO_DEPTH) && (ptype == AAX_MICROSECONDS)) {
+       rv = val*CHORUS_MAX*1e6f;
    }
    return rv;
 }
@@ -225,72 +229,4 @@ _eff_function_tbl _aaxChorusEffect =
    (_aaxEffectConvert*)&_aaxChorusEffectGet,
    (_aaxEffectConvert*)&_aaxChorusEffectMinMax
 };
-
-/**
- * - d and s point to a buffer containing the delay effects buffer prior to
- *   the pointer.
- * - start is the starting pointer
- * - end is the end pointer (end-start is the number of samples)
- * - no_samples is the number of samples to process this run
- * - dmax does not include ds
- */
-static void
-_chorus_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
-             size_t start, size_t end, size_t no_samples, size_t ds,
-             void *data, void *env, unsigned int track)
-{
-   static const size_t bps = sizeof(MIX_T);
-   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   _aaxRingBufferDelayEffectData* effect = data;
-   size_t offs, noffs;
-   float pitch, volume;
-   ssize_t doffs;
-
-   _AAX_LOG(LOG_DEBUG, __func__);
-
-   assert(s != 0);
-   assert(d != 0);
-   assert(start < end);
-   assert(data != NULL);
-
-   volume =  effect->delay.gain;
-   offs = effect->delay.sample_offs[track];
-
-   assert(start || (offs < ds));
-// if (offs >= ds) offs = ds-1;
-
-   if (start) {
-      noffs = effect->offset->noffs[track];
-   }
-   else
-   {
-      noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
-      effect->delay.sample_offs[track] = noffs;
-      effect->offset->noffs[track] = noffs;
-   }
-
-   assert(s != d);
-
-   if (offs && volume > LEVEL_96DB)
-   {
-      MIX_T *sptr, *dptr;
-
-      sptr = (MIX_T*)s + start;
-      dptr = d + start;
-
-      doffs = noffs - offs;
-      pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
-
-      _aax_memcpy(dptr, sptr, no_samples*bps);
-      if (pitch == 1.0f) {
-         rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
-      }
-      else
-      {
-//       DBG_MEMCLR(1, scratch-ds, ds+end, sizeof(MIX_T));
-         rbd->resample(scratch-ds, sptr-offs, 0, no_samples, 0.0f, pitch);
-         rbd->add(dptr, scratch-ds, no_samples, volume, 0.0f);
-      }
-   }
-}
 

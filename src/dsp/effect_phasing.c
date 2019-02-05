@@ -42,8 +42,6 @@
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 
-static void _phasing_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
-
 static aaxEffect
 _aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
@@ -104,7 +102,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       {
          int t, constant;
 
-         data->run = _phasing_run;
+         data->run = _delay_run;
          data->loopback = AAX_FALSE;
 
          data->lfo.convert = _linear;
@@ -331,8 +329,8 @@ _delay_destroy(void *ptr)
  * - no_samples is the number of samples to process this run
  * - dmax does not include ds
  */
-static void
-_phasing_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
+void
+_delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
              size_t start, size_t end, size_t no_samples, size_t ds,
              void *data, void *env, unsigned int track)
 {

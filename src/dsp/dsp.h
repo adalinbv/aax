@@ -52,6 +52,7 @@ void _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsign
 void* _delay_create(void*, void*);
 void _delay_swap(void*, void*);
 void _delay_destroy(void *);
+void _delay_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 // occlusion
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
