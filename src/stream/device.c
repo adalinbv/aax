@@ -463,8 +463,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                const char *agent = aaxGetVersionString((aaxConfig)id);
                int rv, num = 10;
                do {
+                  char *s = server;
                   rv = handle->prot->connect(handle->prot, handle->io,
-                                              server, path, agent);
+                                              &s, path, agent);
+                  if (rv == -300) {
+                      protocol = _url_split(s, &protname, &server, &path, &extension, &port);
+                  }
                } while (rv < 0 && --num);
 
                if (rv < 0)

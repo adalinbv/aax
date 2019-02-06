@@ -48,16 +48,18 @@ static const char *_get_yaml(const char*, const char*, size_t);
 
 
 size_t
-_http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, const char *agent)
+_http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const char *agent)
 {
-   int res = _http_send_request(io, "GET", server, path, agent);
+   int res = _http_send_request(io, "GET", *server, path, agent);
 
-   if (path) {
+   if (path)
+   {
+      free(prot->path);
       prot->path = strdup(path);
    }
 
 #if 0
-  printf("GET:\n server: '%s'\n path: '%s'\n agent: '%s'\n res: %i\n", server, path, agent, res);
+  printf("GET:\n server: '%s'\n path: '%s'\n agent: '%s'\n res: %i\n", *server, path, agent, res);
 #endif
 
    if (res > 0)
@@ -66,6 +68,12 @@ _http_connect(_prot_t *prot, _io_t *io, const char *server, const char *path, co
       char buf[4096];
 
       res = _http_get_response(io, buf, &max);
+      if (res > 300 && res < 310) // Moved
+      {
+           *server = _get_yaml(buf, "Location", max);
+           return -300;
+      }
+
       if (res == 200)
       {
          const char *s;
@@ -469,7 +477,7 @@ _http_get_response(_io_t *io, char *buf, int *size)
 static const char*
 _get_yaml(const char *haystack, const char *needle, size_t haystacklen)
 {
-   static char buf[64];
+   static char buf[1024];
    char *start, *end;
    size_t pos;
 
@@ -496,8 +504,8 @@ _get_yaml(const char *haystack, const char *needle, size_t haystacklen)
             end++;
          }
 
-         if ((end-start) > 63) {
-            end = start + 63;
+         if ((end-start) > 1024) {
+            end = start + 1024;
          }
          memcpy(buf, start, (end-start));
          buf[end-start] = '\0';
