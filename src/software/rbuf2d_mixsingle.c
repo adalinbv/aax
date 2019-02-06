@@ -117,10 +117,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       if (fp2d) pval *= fp2d->final.pitch_lfo;
       pitch *= NORM_TO_PITCH(pval+1.0f);
    }
-   else if (fp2d && fabsf(fp2d->final.pitch_lfo - 1.0f) > 0.0f)
-   {
-      float pval = fp2d->final.pitch_lfo;
-      pitch *= NORM_TO_PITCH(pval+1.0f);
+   else if (fp2d && fabsf(fp2d->final.pitch_lfo - 1.0f) > 0.0f) {
+      pitch *= NORM_TO_PITCH(fp2d->final.pitch_lfo);
    }
 
    if (fp2d) {

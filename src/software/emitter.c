@@ -361,7 +361,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       pitch *= _velocity_prepare(ep3d, edp3d, edp3d_m, fdp3d_m, &epos, dist_ef, vs, sdf);
 
       /*
-       * Volume filter/Reverb effect: Occlusion
+       * Volume filter/Reverb effect: Occlusion at the the parent frame
        */
       do
       {
