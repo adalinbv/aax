@@ -67,7 +67,6 @@ namespace aax
 #define MIDI_DEVICE_BALANCE		0x02
 #define MIDI_DEVICE_FINE_TUNING		0x03
 #define MIDI_DEVICE_COARSE_TUNING	0x04
-
 #define MIDI_GLOBAL_PARAMETER_CONTROL	0x05
 
 /* global parameters */
@@ -324,6 +323,10 @@ public:
 
     inline void set_ppqn(uint16_t ppqn) { PPQN = ppqn; }
     inline uint16_t get_ppqn() { return PPQN; }
+
+    void set_chorus_level(float lvl);
+    void set_chorus_depth(float depth);
+    void set_chorus_rate(float rate);
 
 
 private:

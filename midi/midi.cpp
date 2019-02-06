@@ -99,6 +99,30 @@ MIDI::set_balance(float b)
     AeonWave::matrix(m);
 }
 
+void
+MIDI::set_chorus_level(float lvl)
+{
+    for(auto& it : channels) {
+        it.second->set_chorus_level(lvl);
+    }
+}
+
+void
+MIDI::set_chorus_depth(float depth)
+{
+    for(auto& it : channels) {
+        it.second->set_chorus_depth(depth);
+    }
+}
+
+void
+MIDI::set_chorus_rate(float rate)
+{
+    for(auto& it : channels) {
+        it.second->set_chorus_rate(rate);
+    }
+}
+
 /*
  * Create map of instrument banks and program numbers with their associated
  * file names from the XML files for a quick access during playback.
@@ -851,6 +875,40 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         midi.set_tuning(pitch);
                         break;
                     }
+                    case MIDI_GLOBAL_PARAMETER_CONTROL:
+                    {
+                        uint8_t path_len = pull_byte();
+                        uint8_t id_width = pull_byte();
+                        uint8_t val_width = pull_byte();
+                        uint16_t slot = pull_byte() || pull_byte() << 7;
+                        uint8_t param =  pull_byte();
+                        uint8_t value = pull_byte();
+                        switch(slot)
+                        {
+                        case MIDI_CHORUS_PARAMETER:
+                            switch(param)
+                            {
+                            case 0:
+                                break;
+                            case 1:
+                                midi.set_chorus_rate(0.122f*value);
+                                break;
+                            case 2:
+                                midi.set_chorus_depth(0.0032f*(value+1.0f)/60e-3f);
+                                break;
+                            case 3:
+                                midi.set_chorus_level(0.00763f*value);
+                                break;
+                            default:
+                               break;
+                            }
+                            break;
+                        case MIDI_REVERB_PARAMETER:
+                        default:
+                            break;
+                        }
+                        break;
+                    }
                     default:
                         LOG("Unsupported sysex parameter: %x\n", byte);
                         byte = pull_byte();
@@ -1175,7 +1233,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_REVERB_SEND_LEVEL:
                     if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
                         float val = (float)value/127.0f;
-printf("ch: %i, MIDI_REVERB_SEND_LEVEL: %f\n", channel, val);
                         midi.channel(channel).set_reverb_level(val);
                     }
                     break;
