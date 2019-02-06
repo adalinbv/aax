@@ -70,7 +70,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
       res = _http_get_response(io, buf, &max);
       if (res > 300 && res < 310) // Moved
       {
-           *server = _get_yaml(buf, "Location", max);
+           *server = (char*)_get_yaml(buf, "Location", max);
            return -300;
       }
 
