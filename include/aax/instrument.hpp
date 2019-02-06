@@ -182,6 +182,7 @@ public:
 
         tie(chorus_level, AAX_CHORUS_EFFECT, AAX_DELAY_GAIN);
         tie(chorus_depth, AAX_CHORUS_EFFECT, AAX_LFO_OFFSET);
+        tie(chorus_rate, AAX_CHORUS_EFFECT, AAX_LFO_FREQUENCY);
         tie(chorus_state, AAX_CHORUS_EFFECT);
 
         tie(reverb_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
@@ -318,13 +319,15 @@ public:
     void set_modulation(float m) {
         if (!is_drums) {
             bool enabled = (m != 0.0f);
-            mdepth = m;
-            if ((enabled && !vibrato_state) || (!enabled && vibrato_state)) {
-                int state = enabled ? AAX_SINE_WAVE : AAX_FALSE;
-                vibrato_state = tremolo_state = state;
-            }
-            if ((int)vibrato_state != AAX_FALSE) {
-                vibrato_depth = tremolo_depth = mdepth;
+            vibrato_depth = m; tremolo_depth = m;
+            if (enabled)
+            {
+                if (!vibrato_state) {
+                    vibrato_state = AAX_SINE_WAVE;
+                    tremolo_state = AAX_SINE_WAVE;
+                }
+            } else if (vibrato_state) {
+                vibrato_state = AAX_FALSE; tremolo_state = AAX_FALSE;
             }
         }
     }
@@ -353,6 +356,9 @@ public:
             if (!chorus_state) chorus_state = AAX_TRUE;
         } else if (chorus_state) chorus_state = AAX_FALSE;
     }
+
+    inline void set_chorus_depth(float depth) { chorus_depth = depth; }
+    inline void set_chorus_rate(float rate) { chorus_rate = rate; }
 
     void set_filter_cutoff(float dfc) {
         if (!is_drums) { fc = dfc;
@@ -386,6 +392,7 @@ private:
     Param tremolo_depth = 0.0f;
     Status tremolo_state = AAX_FALSE;
 
+    Param chorus_rate = 0.0f;
     Param chorus_level = 0.0f;
     Param chorus_depth = 0.4f;
     Status chorus_state = AAX_FALSE;
@@ -399,7 +406,6 @@ private:
     float delay_level = 0.0f;
 
     float mfreq = 1.5f;
-    float mdepth = 0.0f;
     float mrange = 1.0f;
 
     float fc = 0.0f;
