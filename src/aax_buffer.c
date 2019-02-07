@@ -2065,8 +2065,8 @@ _bufGetDataPitchLevels(_buffer_t *handle)
    /**
     * format:
     * 1. an array of pointers followd by a NULL-pointer.
-    *    - each pointer in the array points the nth buffer.
-    * 2. the fille size of the buffer as a size_t type.
+    *    - each pointer in the array points to the nth buffer.
+    * 2. the full size of the buffer as a size_t type.
     * 3. followed by the data for all pitch levels.
     */
    offs = (handle->pitch_levels+2)*sizeof(void*);
@@ -2080,22 +2080,24 @@ _bufGetDataPitchLevels(_buffer_t *handle)
 
    for (b=0; b<handle->pitch_levels; ++b)
    {
+      size_t len;
+
       data[b] = (void*)ptr;
 
       rb = handle->ringbuffer[b];
       if (!rb) break;
 
-      tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
-
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      offs += no_samples*sizeof(uint32_t);
+      len = no_samples*sizeof(uint32_t);
+      offs += len;
 
       assert(offs <= size);
 
-      _aax_memcpy(ptr, tracks[0], no_samples*sizeof(uint32_t));
-      ptr += no_samples*sizeof(uint32_t);
-
+      tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
+      _aax_memcpy(ptr, tracks[0], len);
       rb->release_tracks_ptr(rb);
+
+      ptr += len;
    }
    data[b++] = NULL;
    data[b] = (void*)offs;
