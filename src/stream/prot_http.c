@@ -68,13 +68,13 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
       char buf[4096];
 
       res = _http_get_response(io, buf, &max);
-      if (res > 300 && res < 310) // Moved
+      if (res >= 300 && res < 400) // Moved
       {
            *server = (char*)_get_yaml(buf, "Location", max);
            return -300;
       }
 
-      if (res == 200)
+      if (res >= 200 && res < 300)
       {
          const char *s;
 
