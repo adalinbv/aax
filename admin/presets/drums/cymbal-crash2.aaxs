@@ -16,7 +16,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.24" frequency="660" duration="0.2">
+ <sound gain="1.48" frequency="660" duration="0.2">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" pitch="6.3"/>
   <waveform src="white-noise" processing="add" ratio="0.7" pitch="0.25"/>
@@ -34,13 +34,13 @@
  <emitter looping="true" pan="-0.31">
   <filter type="timed-gain" release-factor="1.5">
    <slot n="0">
-    <param n="0">2.59</param>
+    <param n="0">2.17</param>
     <param n="1">0.03</param>
-    <param n="2">1.75</param>
+    <param n="2">1.47</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">1.75</param>
+    <param n="0">1.47</param>
     <param n="1">1.8</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
