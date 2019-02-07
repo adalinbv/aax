@@ -1281,7 +1281,7 @@ detect_devnode(_driver_t *handle, UNUSED(char mode))
    }
    else if (handle->nodenum > 0)
    {
-      size_t len = strlen(_const_oss_default_name)+4;
+      size_t len = strlen(_const_oss_default_name)+12;
       char *name = malloc(len);
       if (name)
       {
