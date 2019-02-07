@@ -1,6 +1,6 @@
  /*
- * Copyright 2007-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2007-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -45,6 +45,8 @@
 #include <base/random.h>
 #include <base/memory.h>
 
+#include <3rdparty/MurmurHash3.h>
+
 #include "analyze.h"
 #include "arch.h"
 #include "api.h"
@@ -54,6 +56,7 @@ static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
 static int _bufProcessWaveform(aaxBuffer, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
+static void** _bufGetDataPitchLevels(_buffer_t*);
 static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigned int, float);
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
@@ -90,6 +93,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
 
          buf->id = BUFFER_ID;
          buf->ref_counter = 1;
+         buf->pitch_levels = 1;
 
          buf->no_tracks = tracks;
          buf->no_samples = samples;
@@ -571,7 +575,11 @@ aaxBufferGetData(const aaxBuffer buffer)
       }
    }
 
-   if (rv)
+   if (rv) {
+      data = _bufGetDataPitchLevels(handle);
+   }
+
+   if (rv && !data)
    {
       unsigned int buf_samples, no_samples, tracks;
       unsigned int native_fmt, rb_format, pos;
@@ -588,7 +596,7 @@ aaxBufferGetData(const aaxBuffer buffer)
       tracks = rb->get_parami(rb, RB_NO_TRACKS);
       buf_samples = tracks*no_samples;
 
-      data = (void**)_aax_malloc(&ptr, sizeof(void*), no_samples*tracks*bps);
+      data = (void**)_aax_malloc(&ptr, 3*sizeof(void*), no_samples*tracks*bps);
       if (data == NULL)
       {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -596,7 +604,8 @@ aaxBufferGetData(const aaxBuffer buffer)
       }
 
       _bufGetDataInterleaved(rb, ptr, no_samples, tracks, fact);
-      *data = (void*)(ptr + pos*tracks*bps);
+      data[0] = (void*)(ptr + pos*tracks*bps);
+      data[1] = data[2] = NULL;
 
       native_fmt = user_format & AAX_FORMAT_NATIVE;
       rb_format = rb->get_parami(rb, RB_FORMAT);
@@ -1295,7 +1304,6 @@ _bufAAXSThread(void *d)
             if (bits != 16) bits = 24;
          }
 
-         handle->pitch_levels = 1;
          if (!freq)
          {
             freq = xmlAttributeGetDouble(xsid, "frequency");
@@ -2040,6 +2048,60 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    return rv;
 }
 
+static void**
+_bufGetDataPitchLevels(_buffer_t *handle)
+{
+   _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
+   unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+   void **tracks, **data = NULL;
+   size_t b, offs, size;
+   char *ptr;
+
+   if (handle->no_tracks != 1) return data;
+   if (handle->pitch_levels <= 1) return data;
+   if (handle->format != AAX_FLOAT) return data;
+   if (rb->get_parami(rb, RB_FORMAT) != AAX_PCM24S) return data;
+
+   /**
+    * format:
+    * 1. an array of pointers followd by a NULL-pointer.
+    *    - each pointer in the array points the nth buffer.
+    * 2. the fille size of the buffer as a size_t type.
+    * 3. followed by the data for all pitch levels.
+    */
+   offs = (handle->pitch_levels+2)*sizeof(void*);
+   size = 2*no_samples*sizeof(uint32_t);
+   data = (void**)_aax_malloc(&ptr, offs, size);
+   if (data == NULL)
+   {
+      _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      return data;
+   }
+
+   for (b=0; b<handle->pitch_levels; ++b)
+   {
+      data[b] = (void*)ptr;
+
+      rb = handle->ringbuffer[b];
+      if (!rb) break;
+
+      tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
+
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      offs += no_samples*sizeof(uint32_t);
+
+      assert(offs <= size);
+
+      _aax_memcpy(ptr, tracks[0], no_samples*sizeof(uint32_t));
+      ptr += no_samples*sizeof(uint32_t);
+
+      rb->release_tracks_ptr(rb);
+   }
+   data[b++] = NULL;
+   data[b] = (void*)offs;
+
+   return data;
+}
 
 void
 _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, unsigned int channels, float fact)
