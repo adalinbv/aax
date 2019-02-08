@@ -62,8 +62,9 @@
 # define USER_DIR		getenv("USERPROFILE")
 
 #else	/* !WIN32 */
-# include <sys/stat.h>
 # include <sys/types.h>
+# include <sys/stat.h>
+# include <unistd.h>
 # define TEMP_DIR		"/tmp"
 # define SYSTEM_DIR		"/etc"
 # define USR_SYSTEM_DIR		"/usr"SYSTEM_DIR
@@ -187,6 +188,30 @@ systemDataFile(const char *file)
    }
 
    return rv;
+}
+
+size_t getFileSize(const char *fname)
+{
+#ifndef WIN32
+   struct stat st;
+   stat(fname, &st);
+   return st.st_size;
+#else
+   size_t rv = 0;
+   HANDLE hFile;
+
+   hFile = CreateFile(fname, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING,
+                      FILE_ATTRIBUTE_NORMAL, NULL);
+   if (hFile != INVALID_HANDLE_VALUE)
+   {
+      LARGE_INTEGER size;
+      if (!GetFileSizeEx(hFile, &size)) {
+         rv = size.QuadPart;
+      }
+      CloseHandle(hFile);
+   }
+   return rv;
+#endif
 }
 
 int

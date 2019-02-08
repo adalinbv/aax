@@ -385,14 +385,17 @@ void _aaxConnectorDeviceToDeviceConnector(char *);
 void _aaxURLSplit(char*, char**, char**, char**, char**, int*);
 char *_aaxURLConstruct(char*, char*);
 
+int mkDir(const char*);
+size_t getFileSize(const char*);
+
+char* systemLanguage(char**);
+
 const char* tmpDir();
 const char* userHomeDir();
 char* systemDataFile(const char*);
 char* systemConfigFile(const char*);
 char* userConfigFile();
 char* userCacheFile(const char*);
-int mkDir(const char*);
-char* systemLanguage(char**);
 
 #ifdef WIN32
 char* _aaxGetEnv(const char*);

@@ -54,7 +54,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
 
    if (path)
    {
-      free(prot->path);
+      if (prot->path) free(prot->path);
       prot->path = strdup(path);
    }
 
