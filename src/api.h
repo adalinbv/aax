@@ -390,6 +390,8 @@ const char* userHomeDir();
 char* systemDataFile(const char*);
 char* systemConfigFile(const char*);
 char* userConfigFile();
+char* userCacheFile(const char*);
+int mkDir(const char*);
 char* systemLanguage(char**);
 
 #ifdef WIN32

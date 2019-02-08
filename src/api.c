@@ -28,6 +28,8 @@
 #endif
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
+#else
+# include <strings.h>
 #endif
 #include <errno.h>
 #include <assert.h>
@@ -54,11 +56,14 @@
 # define AAX_DIR		"\\"AEONWAVE_DIR"\\"
 
 # define LOCALAPP_DIR		getenv("LOCALAPPDATA")
-# define USER_AAX_DIR		"\\adalin\\"AEONWAVE_DIR"\\"
+# define VENDOR_DIR             "\\Adalin\\"
+# define USER_AAX_DIR		"\\Adalin\\"AEONWAVE_DIR"\\"
 
 # define USER_DIR		getenv("USERPROFILE")
 
 #else	/* !WIN32 */
+# include <sys/stat.h>
+# include <sys/types.h>
 # define TEMP_DIR		"/tmp"
 # define SYSTEM_DIR		"/etc"
 # define USR_SYSTEM_DIR		"/usr"SYSTEM_DIR
@@ -81,6 +86,34 @@ const char*
 tmpDir()
 {
    return TEMP_DIR;
+}
+
+char*
+userCacheFile(const char *file)
+{
+   const char *app_path = LOCALAPP_DIR;
+   char *rv = NULL;
+
+   if (app_path)
+   {
+      size_t len;
+
+      len = strlen(app_path);
+      len += strlen(USER_AAX_DIR);
+      len += strlen("cache/");
+      len += strlen(file);
+      len++;
+
+      rv = malloc(len);
+      if (rv) {
+         snprintf(rv, len, "%s%scache", app_path, USER_AAX_DIR);
+         mkDir(rv);
+
+         snprintf(rv, len, "%s%scache/%s", app_path, USER_AAX_DIR, file);
+      }
+   }
+
+   return rv;
 }
 
 char*
@@ -154,6 +187,50 @@ systemDataFile(const char *file)
    }
 
    return rv;
+}
+
+int
+mkDir(const char *directory)
+{
+#ifndef WIN32
+   int mode = strtol("0700", 0, 8);
+   char path[1025];
+
+   snprintf(path, 1024, "%s%s", USER_DIR, USER_AAX_DIR);
+   assert(!strncmp(directory, path, strlen(path)));
+
+   mkdir(path, mode);
+   return mkdir(directory, mode);
+#else
+  /*
+   * Note:
+   * There is a default string size limit for paths of 248 characters.
+   * This limit is related to how the CreateDirectory function parses
+   * paths.
+   */
+   SECURITY_ATTRIBUTES sa;
+   char path[256];
+   int rv = 0;
+
+   sa.nLength = sizeof(SECURITY_ATTRIBUTES);
+   sa.bInheritHandle = FALSE;
+   if(createDACL(&sa))
+   {
+       snprintf(path, 248, "%s", LOCALAPP_DIR);
+       assert(!strncasecmp(directory, path, strlen(path)))
+
+       CreateDirectory(path, &sa);
+
+       snprintf(path, 248, "%s%s", LOCALAPP_DIR, VENDOR_DIR);
+       assert(!strncasecmp(directory, path, strlen(path)));
+
+       CreateDirectory(path, &sa);
+       rv = CreateDirectory(directory, &sa);
+
+       LocalFree(sa.lpSecurityDescriptor);
+   }
+   return !rv;
+#endif
 }
 
 char*
