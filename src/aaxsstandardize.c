@@ -621,7 +621,7 @@ void print_object(struct object_t *obj, enum type_t type, struct info_t *info, F
 
     if (type == FRAME)
     {
-        if (!obj->no_dsps) return;
+//      if (!obj->no_dsps) return;
         fprintf(output, " <audioframe");
     }
     else {
