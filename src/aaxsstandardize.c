@@ -423,7 +423,7 @@ void print_waveform(struct waveform_t *wave, FILE *output)
     if (wave->voices)
     {
         fprintf(output, " voices=\"%i\"", wave->voices);
-        if (wave->spread) fprintf(output, " spread=\"%2.1f\"", wave->spread);
+        if (wave->spread) fprintf(output, " spread=\"%s\"", format_float3(wave->spread));
     }
     fprintf(output, "/>\n");
 }
@@ -553,7 +553,7 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
     if (sound->voices)
     {
         fprintf(output, " voices=\"%i\"", sound->voices);
-        if (sound->spread) fprintf(output, " spread=\"%2.1f\"", sound->spread);
+        if (sound->spread) fprintf(output, " spread=\"%s\"", format_float3(sound->spread));
     }
     fprintf(output, ">\n");
 
