@@ -26,6 +26,7 @@
 extern "C" {
 #endif
 
+#include <base/types.h>
 
 #define _aax_random()		((double)xorshift128plus()/UINT64_MAX)
 
