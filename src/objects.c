@@ -34,6 +34,8 @@
 #include <stdio.h>		/* for NULL */
 #include <xml.h>
 
+#include <base/random.h>
+
 #include <software/gpu/gpu.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>
@@ -475,11 +477,16 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
 
                      if (freq != 0.0f)
                      {
-                        float pitch, adjust;
+                        float pitch, adjust, random;
 
                         pitch = xmlAttributeGetDouble(xpid, "pitch");
                         if (pitch != 0.0f) {
                            value = pitch*freq;
+                        }
+
+                        random = xmlAttributeGetDouble(xpid, "random");
+                        if (random != 0.0f) {
+                           value += random*_aax_random();
                         }
  
                         adjust = xmlAttributeGetDouble(xpid, "auto");
