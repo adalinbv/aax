@@ -1258,13 +1258,270 @@ static inline float note2freq(uint8_t d) {
    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
 }
 
+static int
+_bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fsize)
+{
+   _buffer_t* handle = aax_buf->parent;
+   int rv = AAX_FALSE;
+   FILE *infile;
+
+   infile = fopen(fname, "r");
+   if (infile)
+   {
+      void **data = malloc(fsize);
+      if (data)
+      {
+         char *end = (char*)data + fsize;
+         int b = 0, pitch_levels = 0;
+         size_t *d = (size_t*)data;
+         size_t size;
+
+         size = fread(data, fsize, 1, infile);
+         if (size == 1)
+         {
+            while(*d != 0)
+            {
+               size_t offs = *d++;
+
+               // make sure the level-offsets are in ascending order
+               if (((char*)d >= end) || (*d && (offs >= *d)))
+               {
+                  b = -1;
+                  break;
+               }
+               pitch_levels++;
+            }
+
+            // make sure the file-size matches the included data size
+            if (b >= 0)
+            {
+               *d++ = fsize;		// was 0, to be used below.
+               if ((char*)d < end)
+               {
+                  size = *d;
+                  if (size != fsize) b = -1;
+               }
+            }
+
+            if (b >= 0)
+            {
+                d = (size_t*)data;
+                if (pitch_levels > MAX_PITCH_LEVELS) {
+                   pitch_levels = MAX_PITCH_LEVELS;
+                }
+                handle->pitch_levels = pitch_levels;
+
+                for (b=0; b<pitch_levels; ++b)
+                {
+                   unsigned int no_samples;
+                   _aaxRingBuffer *rb;
+                   void **tracks;
+                   char *ptr;
+
+                   rb = _bufGetRingBuffer(handle, handle->root, b);
+
+                   ptr = (char*)data + d[b];
+                   size = d[b+1] - d[b];
+                   no_samples = size/sizeof(float);
+
+                   if (rb->get_state(rb, RB_IS_VALID) == AAX_FALSE)
+                   {
+                      rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+                      rb->init(rb, AAX_FALSE);
+                      handle->ringbuffer[b] = rb;
+                   }
+                   assert(size <= rb->get_parami(rb, RB_TRACKSIZE));
+
+                   tracks = (void**)rb->get_tracks_ptr(rb, RB_WRITE);
+                   _aax_memcpy(tracks[0], ptr, size);
+                   rb->release_tracks_ptr(rb);
+                }
+                rv = AAX_TRUE;
+            }
+         }
+         free(data);
+      }
+   }
+
+   return rv;
+}
+
+static int
+_bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
+{
+   _buffer_t* handle = aax_buf->parent;
+   float freq = aax_buf->frequency;
+   float max_frequency = 0.0f;
+   int rv = AAX_FALSE;
+   void *xsid;
+
+   xsid = xmlNodeGet(xid, "aeonwave/info/note");
+   if (xsid)
+   {
+      if (xmlAttributeExists(xsid, "max")) {
+         max_frequency = note2freq(xmlAttributeGetInt(xsid, "max"));
+      }
+      xmlFree(xsid);
+   }
+
+   xsid = xmlNodeGet(xid, "aeonwave/sound");
+   if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
+   if (xsid)
+   {
+      unsigned int i, num, bits = 24;
+      double duration = 1.0f;
+      float spread = 0;
+      int b, voices = 1;
+      limitType limiter;
+
+      limiter = xmlAttributeGetInt(xsid, "mode");
+      if (xmlAttributeExists(xsid, "bits"))
+      {
+         bits = xmlAttributeGetInt(xsid, "bits");
+         if (bits != 16) bits = 24;
+      }
+
+      if (!freq)
+      {
+         freq = xmlAttributeGetDouble(xsid, "frequency");
+         handle->rate = freq;
+         if (max_frequency > 0.0f)
+         {
+            handle->pitch_levels =_MAX(1,1+log2i(ceilf(max_frequency/freq)));
+            if (handle->pitch_levels > MAX_PITCH_LEVELS) {
+               handle->pitch_levels = MAX_PITCH_LEVELS;
+            }
+         }
+      }
+      if (xmlAttributeExists(xsid, "voices")) {
+         voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
+      }
+      if (xmlAttributeExists(xsid, "spread")) {
+         spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
+      }
+
+      if (xmlAttributeExists(xsid, "file"))
+      {
+         char *file = xmlAttributeGetString(xsid, "file");
+         char **ptr = _bufGetDataFromAAXS(handle, file);
+         unsigned long loop_start, loop_end;
+         xmlFree(file);
+
+         if (ptr)
+         {
+            rv = aaxBufferSetData(handle, ptr[0]);
+            free(ptr);
+         }
+         else {
+            aax_buf->error = AAX_INVALID_REFERENCE;
+         }
+
+         loop_start = xmlAttributeGetInt(xsid, "loop-start");
+         if (xmlAttributeExists(xsid, "loop-end")) {
+            loop_end = xmlAttributeGetInt(xsid, "loop-end");
+         } else {
+            loop_end = handle->no_samples;
+         }
+         aaxBufferSetSetup(handle, AAX_LOOP_END, loop_end);
+         aaxBufferSetSetup(handle, AAX_LOOP_START, loop_start);
+      }
+      else if (xmlAttributeExists(xsid, "duration"))
+      {
+         duration = xmlAttributeGetDouble(xsid, "duration");
+         if (duration < 0.1f) {
+            duration = 0.1f;
+         }
+      }
+
+      if (xmlAttributeExists(xsid, "gain")) {
+         handle->gain = xmlAttributeGetDouble(xsid, "gain");
+      } else if (xmlAttributeExists(xsid, "fixed-gain")) {
+         handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
+      }
+
+      for (b=0; b<handle->pitch_levels; ++b)
+      {
+         float mul = (float)(1 << b);
+         float frequency = mul*freq;
+         float pitch_fact = 1.0f/mul;
+         void *xwid;
+
+         if (duration >= 0.099f)
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
+            float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
+            size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
+            rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+            handle->ringbuffer[b] = rb;
+         }
+
+         xwid = xmlMarkId(xsid);
+         if (xwid)
+         {
+            num = xmlNodeGetNum(xsid, "*");
+            for (i=0; i<num; i++)
+            {
+               if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
+               {
+                  char *name = xmlNodeGetName(xwid);
+                  if (!strcasecmp(name, "waveform")) {
+                     rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
+                                             b, voices, spread, limiter & 1);
+                  } else if (!strcasecmp(name, "filter")) {
+                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
+                  } else if (!strcasecmp(name, "effect")) {
+                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency);
+                  }
+                  xmlFree(name);
+                  if (rv == AAX_FALSE) break;
+               }
+            }
+            xmlFree(xwid);
+         }
+
+         if (limiter)
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+            _bufLimit(rb);
+         }
+
+         if (0) // handle->to_mixer)
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+            _bufConvertDataToMixerFormat(handle, rb);
+         }
+         else if (bits == 16)
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+            _aaxRingBufferData *rbi = rb->handle;
+            _aaxRingBufferSample *rbd = rbi->sample;
+            void *dptr = rbd->track[0];
+            unsigned int no_samples;
+
+            // 32-bit aligned 24-bit is smaller than 16-bit
+            // TODO: return the freed space,
+            //       but how does aligned realloc work?
+            no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+            _batch_cvt16_24(dptr, dptr, no_samples);
+            rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
+            handle->format = AAX_PCM16S;
+         }
+      }
+      xmlFree(xsid);
+   }
+   else {
+      aax_buf->error = AAX_INVALID_PARAMETER;
+   }
+
+   return rv;
+}
+
 static void*
 _bufAAXSThread(void *d)
 {
    _buffer_aax_t *aax_buf = (_buffer_aax_t*)d;
    _buffer_t* handle = aax_buf->parent;
    const void *aaxs =  aax_buf->aaxs;
-   float freq = aax_buf->frequency;
    int rv = AAX_FALSE;
    void *xid;
 
@@ -1277,162 +1534,80 @@ _bufAAXSThread(void *d)
    xid = xmlInitBuffer(handle->aaxs, strlen(handle->aaxs));
    if (xid)
    {
-      void *xsid = xmlNodeGet(xid, "aeonwave/info/note");
-      float max_frequency = 0.0f;
-      if (xsid)
+      char *a = xmlNodeGetString(xid, "aeonwave");
+      uint32_t hash[4] = {0, 0, 0, 0};
+      char have_hash = 0;
+      char hstr[64];
+      if (a)
       {
-         if (xmlAttributeExists(xsid, "max")) {
-            max_frequency = note2freq(xmlAttributeGetInt(xsid, "max"));
-         }
-         xmlFree(xsid);
+          char *s = strcasestr(a, "<sound");
+          if (s)
+          {
+              char *e = strcasestr(s, "</sound>");
+              if (e)
+              {
+                  e += strlen("</sound>");
+#ifdef ARCH32
+                  MurmurHash3_x86_32(s, e-s, 0x27918072, &hash);
+                  snprintf(hstr, 64, "%08x", hash[0]);
+#else
+                  MurmurHash3_x64_128(s, e-s, 0x27918072, &hash);
+                  snprintf(hstr, 64, "%08x%08x%08x%08x", hash[0], hash[1], hash[2], hash[3]);
+#endif
+                  have_hash = 1;
+              }
+          }
+          free(a);
       }
 
-      xsid = xmlNodeGet(xid, "aeonwave/sound");
-      if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
-      if (xsid)
+      if (have_hash)
       {
-         unsigned int i, num, bits = 24;
-         double duration = 1.0f;
-         float spread = 0;
-         int b, voices = 1;
-         limitType limiter;
+         char *fname;
 
-         limiter = xmlAttributeGetInt(xsid, "mode");
-         if (xmlAttributeExists(xsid, "bits"))
+         fname = userCacheFile(hstr);
+         if (fname)
          {
-            bits = xmlAttributeGetInt(xsid, "bits");
-            if (bits != 16) bits = 24;
-         }
+            size_t fsize = getFileSize(fname);
+            if (fsize) {
+//             rv = _bufAAXSThreadReadFromCache(aax_buf, fname, fsize);
+            }
 
-         if (!freq)
-         {
-            freq = xmlAttributeGetDouble(xsid, "frequency");
-            handle->rate = freq;
-            if (max_frequency > 0.0f)
+            if (!rv)
             {
-               handle->pitch_levels =_MAX(1,1+log2i(ceilf(max_frequency/freq)));
-               if (handle->pitch_levels > MAX_PITCH_LEVELS) {
-                  handle->pitch_levels = MAX_PITCH_LEVELS;
-               }
-            }
-         }
-         if (xmlAttributeExists(xsid, "voices")) {
-            voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
-         }
-         if (xmlAttributeExists(xsid, "spread")) {
-            spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
-         }
-
-         if (xmlAttributeExists(xsid, "file"))
-         {
-            char *file = xmlAttributeGetString(xsid, "file");
-            char **ptr = _bufGetDataFromAAXS(handle, file);
-            unsigned long loop_start, loop_end;
-            xmlFree(file);
-
-            if (ptr)
-            {
-               rv = aaxBufferSetData(handle, ptr[0]);
-               free(ptr);
-            }
-            else {
-               aax_buf->error = AAX_INVALID_REFERENCE;
-            }
-
-            loop_start = xmlAttributeGetInt(xsid, "loop-start");
-            if (xmlAttributeExists(xsid, "loop-end")) {
-               loop_end = xmlAttributeGetInt(xsid, "loop-end");
-            } else {
-               loop_end = handle->no_samples;
-            }
-            aaxBufferSetSetup(handle, AAX_LOOP_END, loop_end);
-            aaxBufferSetSetup(handle, AAX_LOOP_START, loop_start);
-         }
-         else if (xmlAttributeExists(xsid, "duration"))
-         {
-            duration = xmlAttributeGetDouble(xsid, "duration");
-            if (duration < 0.1f) {
-               duration = 0.1f;
-            }
-         }
-
-         if (xmlAttributeExists(xsid, "gain")) {
-            handle->gain = xmlAttributeGetDouble(xsid, "gain");
-         } else if (xmlAttributeExists(xsid, "fixed-gain")) {
-            handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
-         }
-
-         for (b=0; b<handle->pitch_levels; ++b)
-         {
-            float mul = (float)(1 << b);
-            float frequency = mul*freq;
-            float pitch_fact = 1.0f/mul;
-            void *xwid;
-
-            if (duration >= 0.099f)
-            {
-               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
-               float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
-               size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
-               rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-               handle->ringbuffer[b] = rb;
-            }
-
-            xwid = xmlMarkId(xsid);
-            if (xwid)
-            {
-               num = xmlNodeGetNum(xsid, "*");
-               for (i=0; i<num; i++)
+               rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);
+               if (rv)
                {
-                  if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
+                  // create the cache file
+                  void **data = _bufGetDataPitchLevels(handle);
+                  if (data)
                   {
-                     char *name = xmlNodeGetName(xwid);
-                     if (!strcasecmp(name, "waveform")) {
-                        rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
-                                                b, voices, spread, limiter & 1);
-                     } else if (!strcasecmp(name, "filter")) {
-                        rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
-                     } else if (!strcasecmp(name, "effect")) {
-                        rv = _bufCreateEffectFromAAXS(handle, xwid, frequency);
+                     FILE *output = fopen(fname, "w");
+                     if (output)
+                     {
+                        size_t *d = (size_t*)data;
+                        char *s = (char*)data;
+                        size_t datasize;
+
+                        while (*d)
+                        {
+                           char *c = (char*)*d;
+                           *d++ = (size_t)(c - s); // make offsets relative
+                        }
+                        datasize = *(d+1);
+
+                        fwrite(data, datasize, 1, output);
+                        fclose(output);
                      }
-                     xmlFree(name);
-                     if (rv == AAX_FALSE) break;
+                     free(data);
                   }
                }
-               xmlFree(xwid);
             }
-
-            if (limiter)
-            {
-               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-               _bufLimit(rb);
-            }
-
-            if (0) // handle->to_mixer)
-            {
-               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-               _bufConvertDataToMixerFormat(handle, rb);
-            }
-            else if (bits == 16)
-            {
-               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-               _aaxRingBufferData *rbi = rb->handle;
-               _aaxRingBufferSample *rbd = rbi->sample;
-               void *dptr = rbd->track[0];
-               unsigned int no_samples;
-
-               // 32-bit aligned 24-bit is smaller than 16-bit
-               // TODO: return the freed space,
-               //       but how does aligned realloc work?
-               no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-               _batch_cvt16_24(dptr, dptr, no_samples);
-               rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
-               handle->format = AAX_PCM16S;
-            }
+            free(fname);
          }
-         xmlFree(xsid);
       }
-      xmlClose(xid);
+      else {
+         aax_buf->error = AAX_INVALID_PARAMETER;
+      }
    }
    else {
       aax_buf->error = AAX_INVALID_PARAMETER;
@@ -2052,25 +2227,29 @@ static void**
 _bufGetDataPitchLevels(_buffer_t *handle)
 {
    _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-   void **tracks, **data = NULL;
-   size_t b, offs, size;
+   int format = handle->format & ~AAX_SPECIAL;
+   uint32_t b, offs, size;
+   void **data = NULL;
+   void **tracks;
+   size_t *d;
    char *ptr;
 
    if (handle->no_tracks != 1) return data;
    if (handle->pitch_levels <= 1) return data;
-   if (handle->format != AAX_FLOAT) return data;
+   if (format != AAX_PCM24S && format != AAX_FLOAT) return data;
    if (rb->get_parami(rb, RB_FORMAT) != AAX_PCM24S) return data;
-
    /**
     * format:
-    * 1. an array of pointers followd by a NULL-pointer.
-    *    - each pointer in the array points to the nth buffer.
+    * 1. an array of offsets to the nth buffer followd by a value of zero.
     * 2. the full size of the buffer as a size_t type.
     * 3. followed by the data for all pitch levels.
+    *    - the data format is AAX_PCM24S
     */
    offs = (handle->pitch_levels+2)*sizeof(void*);
-   size = 2*no_samples*sizeof(uint32_t);
+   size = 2*no_samples*sizeof(int32_t);
    data = (void**)_aax_malloc(&ptr, offs, size);
    if (data == NULL)
    {
@@ -2078,17 +2257,19 @@ _bufGetDataPitchLevels(_buffer_t *handle)
       return data;
    }
 
+
+   d = (size_t*)data;
    for (b=0; b<handle->pitch_levels; ++b)
    {
-      size_t len;
+      uint32_t len;
 
-      data[b] = (void*)ptr;
+      d[b] = (size_t)ptr;
 
       rb = handle->ringbuffer[b];
       if (!rb) break;
 
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      len = no_samples*sizeof(uint32_t);
+      len = no_samples*sizeof(int32_t);
       offs += len;
 
       assert(offs <= size);
@@ -2097,10 +2278,13 @@ _bufGetDataPitchLevels(_buffer_t *handle)
       _aax_memcpy(ptr, tracks[0], len);
       rb->release_tracks_ptr(rb);
 
+      if (fabsf(handle->gain - 1.0f) > 0.05f) {
+         _batch_imul_value(ptr, sizeof(int32_t), no_samples, handle->gain);
+      }
       ptr += len;
    }
-   data[b++] = NULL;
-   data[b] = (void*)offs;
+   d[b++] = 0;
+   d[b] = offs;
 
    return data;
 }
