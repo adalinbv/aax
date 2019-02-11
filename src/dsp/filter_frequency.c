@@ -445,6 +445,7 @@ _aax_EMA_compute(float fc, float fs, float *a)
 
 /**
  * 2nd order, 12dB/octave biquad IIR Butterworth filter
+ * http://www.earlevel.com/main/2003/02/28/biquads/
  *
  * A common practice is to chain several 2nd order sections in order to achieve
  * a higher order filter. So, for a 4th order (24dB/oct) filter  we need 2 of
@@ -688,6 +689,7 @@ void
 _aax_butterworth_compute(float fc, void *flt)
 {
    // http://www.ti.com/lit/an/sloa049b/sloa049b.pdf
+   // double Q = -0.5/cos(pi/2.0*(1.0+(1.0+(2.0*phase+1.0)/order)));
    static const float _Q[_AAX_MAX_STAGES][_AAX_MAX_STAGES] = {
       { 0.7071f, 1.0f,    1.0f,    1.0f    },	// 2nd order
       { 0.5412f, 1.3605f, 1.0f,    1.0f    },	// 4th order
