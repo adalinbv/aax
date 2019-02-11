@@ -3,6 +3,8 @@
 - AeonWave (3.5.7) stable; urgency=medium
 
  * Support URL redirects for the HTTP protocol.
+ * Skip frequencies which are higher than the nyquist frequency when
+   synthesizing sounds.
  * Fix a bug where an incorect data pointer was freed when the code decided
    to swap the low-frequecny part and high-frequency part of the equalizer.
  * Leave the loop when finished destroying the buffer in the AeonWave class,
