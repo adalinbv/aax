@@ -315,6 +315,7 @@ _aax_generate_waveform_float(size_t no_samples, float freq, float phase, float *
       {
          float nfreq = freq/h--;
          float ngain = harmonics[h];
+         if (nfreq < 2.0f) continue; // higher than the nyquist-frequency
          if (ngain)
          {
             int i = no_samples;
