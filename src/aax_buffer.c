@@ -1569,12 +1569,13 @@ _bufAAXSThread(void *d)
          {
             size_t fsize = getFileSize(fname);
             if (fsize) {
-//             rv = _bufAAXSThreadReadFromCache(aax_buf, fname, fsize);
+               rv = _bufAAXSThreadReadFromCache(aax_buf, fname, fsize);
             }
 
             if (!rv)
             {
                rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);
+#if 0
                if (rv)
                {
                   // create the cache file
@@ -1601,6 +1602,7 @@ _bufAAXSThread(void *d)
                      free(data);
                   }
                }
+#endif
             }
             free(fname);
          }
