@@ -36,9 +36,14 @@
 
 #include <base/types.h>
 
-static int
+static inline int
 _aax_hash3(unsigned int h1, unsigned int h2, unsigned int h3) {
     return (((h1 * 2654435789U) + h2) * 2654435789U) + h3;
+}
+
+static inline uint64_t
+rotl(const uint64_t x, int k) {
+   return (x << k) | (x >> (64 - k));
 }
 
 // https://en.wikipedia.org/wiki/Xorshift#xorshift+
@@ -56,6 +61,23 @@ xorshift128plus()
    x ^= x << 23;
    _xor_s[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
    return _xor_s[1] + y;
+}
+
+// https://en.wikipedia.org/wiki/Xoroshiro128%2B
+// xoroshiro128+ (named after its operations: XOR, rotate, shift, rotate)
+// is a pseudorandom number generator intended as a successor to xorshift+
+uint64_t
+xoroshiro128plus(void)
+{
+   const uint64_t s0 = _xor_s[0];
+   uint64_t s1 = _xor_s[1];
+   const uint64_t result = s0 + s1;
+
+   s1 ^= s0;
+   _xor_s[0] = rotl(s0, 24) ^ s1 ^ (s1 << 16); // a, b
+   _xor_s[1] = rotl(s1, 37); // c
+
+   return result;
 }
 
 float

@@ -241,7 +241,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
             ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
             for (i=0; i<no_samples; ++i) {
-               psrc[i] += ratio*xorshift128plus();
+               psrc[i] += ratio*xoroshiro128plus();
             }
          }
       }

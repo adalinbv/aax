@@ -28,10 +28,11 @@ extern "C" {
 
 #include <base/types.h>
 
-#define _aax_random()		((double)xorshift128plus()/UINT64_MAX)
+#define _aax_random()		((double)xoroshiro128plus()/UINT64_MAX)
 
 void _aax_srandom();
 uint64_t xorshift128plus();
+uint64_t xoroshiro128plus();
 float _aax_rand_sample();
 
 #if defined(__cplusplus)
