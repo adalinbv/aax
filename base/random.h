@@ -33,6 +33,8 @@ extern "C" {
 void _aax_srandom();
 uint64_t xorshift128plus();
 uint64_t xoroshiro128plus();
+uint32_t xoshiro128plus();
+
 float _aax_rand_sample();
 
 #if defined(__cplusplus)
