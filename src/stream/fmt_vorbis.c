@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -419,6 +419,7 @@ _vorbis_cvt_to_intl(_fmt_t *fmt, UNUSED(void_ptr dptr), const_int32_ptrptr sptr,
 
    handle->no_samples += *num;
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
+   _batch_dither(dptr, 2, *num * handle->no_tracks);
 
 #if 0
    res = vorbis_encode(handle->id, scratch, *num,

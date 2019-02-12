@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -51,6 +51,8 @@ typedef char* (*_aax_calloc_proc)(char**, size_t, size_t, size_t);
 typedef char* (*_aax_malloc_proc)(char**, size_t, size_t);
 typedef void (*_aax_free_proc)(void*);
 
+typedef void (*_batch_dither_proc)(void*, unsigned, size_t);
+
 typedef void (*_batch_cvt_proc)(void*, size_t);
 typedef void (*_batch_cvt_from_proc)(void_ptr, const_void_ptr, size_t);
 typedef void (*_batch_cvt_from_intl_proc)(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
@@ -96,6 +98,7 @@ extern _batch_resample_proc _batch_resample;
 extern _batch_resample_float_proc _batch_resample_float;
 
 extern _batch_get_average_rms_proc _batch_get_average_rms;
+extern _batch_dither_proc _batch_dither;
 extern _batch_cvt_proc _batch_saturate24;
 
 extern _batch_cvt_proc _batch_cvt8u_8s;

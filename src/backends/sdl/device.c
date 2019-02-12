@@ -1,6 +1,6 @@
 /*
- * Copyright 2018 by Erik Hofman.
- * Copyright 2018 by Adalin B.V.
+ * Copyright 2018-2019 by Erik Hofman.
+ * Copyright 2018-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -690,6 +690,8 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
+
+      _batch_dither(data, 2, no_tracks*period_frames);
 
       handle->dataBuffer->avail += size;
       _aaxMutexUnLock(handle->mutex);

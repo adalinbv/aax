@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -167,6 +167,7 @@ typedef struct
     char shared_volume;
     char use_timer;
 
+    _batch_dither_proc dither;
     _batch_cvt_to_proc cvt_to;
     _batch_cvt_from_proc cvt_from;
     _batch_cvt_to_intl_proc cvt_to_intl;
@@ -910,6 +911,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->cvt_from = _batch_cvt24_16;
          handle->cvt_to_intl = _batch_cvt16_intl_24;
          handle->cvt_from_intl = _batch_cvt24_16_intl;
+         handle->dither = _batch_dither;
          *fmt = AAX_PCM16S;
          break;
       case 3:				/* SND_PCM_FORMAT_S24_3LE */
@@ -924,6 +926,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->cvt_from = _batch_cvt24_8;
          handle->cvt_to_intl = _batch_cvt8_intl_24;
          handle->cvt_from_intl = _batch_cvt24_8_intl;
+         handle->dither = _batch_dither;
          *fmt = AAX_PCM8S;
          break;
       default:
@@ -2768,6 +2771,9 @@ _aaxALSADriverPlayback_mmap_ni(const void *id, void *src, UNUSED(float pitch), f
          p = (((unsigned char *)area[t].addr) + (area[t].first/8));
          p += (mmap_offs*handle->bits_sample)/8;
          handle->cvt_to(p, sbuf[t]+offs, frames);
+         if (handle->dither) {
+            handle->dither(p, handle->bits_sample/8, frames);
+         }
       }
 
       res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
@@ -2872,6 +2878,9 @@ _aaxALSADriverPlayback_mmap_il(const void *id, void *src, UNUSED(float pitch), f
 
       p = (char *)area->addr + ((area->first + area->step*mmap_offs) >> 3);
       handle->cvt_to_intl(p, sbuf, offs, no_tracks, frames);
+      if (handle->dither) {
+         handle->dither(p, handle->bits_sample/8, no_tracks*frames);
+      }
 
       res = psnd_pcm_mmap_commit(handle->pcm, mmap_offs, frames);
       if (res < 0 || res != (int)frames)
@@ -2981,6 +2990,9 @@ _aaxALSADriverPlayback_rw_ni(const void *id, void *src, UNUSED(float pitch), flo
    {
       data[t] = handle->ptr[t];
       handle->cvt_to(data[t], sbuf[t]+offs, period_frames);
+      if (handle->dither) {
+         handle->dither(data[t], handle->bits_sample/8, period_frames);
+      }
    }
    rbs->release_tracks_ptr(rbs);
 
@@ -3087,6 +3099,10 @@ _aaxALSADriverPlayback_rw_il(const void *id, void *src, UNUSED(float pitch), flo
    sbuf = (const int32_t**)rbs->get_tracks_ptr(rbs, RB_READ);
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
    rbs->release_tracks_ptr(rbs);
+
+   if (handle->dither) {
+      handle->dither(data, handle->bits_sample/8, no_tracks*period_frames);
+   }
 
    if (avail < period_frames) {
       usecSleep(500);

@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -75,6 +75,7 @@ void _batch_resample_cpu(int32_ptr, const_int32_ptr, size_t, size_t, float, floa
 #endif
 
 void _batch_get_average_rms_cpu(const_float32_ptr, size_t, float*, float*);
+void _batch_dither_cpu(void*, unsigned, size_t);
 void _batch_saturate24_cpu(void*, size_t);
 
 void _batch_cvt8u_8s_cpu(void*, size_t);

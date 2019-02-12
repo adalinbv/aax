@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -25,6 +25,7 @@
 
 #include <math.h>	/* rinft */
 
+#include <base/random.h>
 #include <dsp/common.h>
 #include "arch2d_simd.h"
 
@@ -744,7 +745,7 @@ _batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
          int32_t *s = (int32_t *)sptr[t] + offset;
          int16_t *d = (int16_t *)dptr + t;
          size_t i = num;
-       
+
          do
          {
             *d = *s++ >> 8;
@@ -762,12 +763,12 @@ _batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset,
    {
       size_t t;
 
-      for (t=0; t<tracks; t++) 
+      for (t=0; t<tracks; t++)
       {
          int32_t *s = (int32_t *)sptr[t] + offset;
          int8_t *d = (int8_t *)dptr + 3*t;
          size_t i = num;
-      
+
          do
          {
             *d++ = *s & 0xFF;
@@ -776,8 +777,8 @@ _batch_cvt24_3intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset,
          }
          while (--i);
       }
-   }     
-} 
+   }
+}
 
 void
 _batch_cvt24_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, unsigned int tracks, size_t num)
@@ -888,7 +889,7 @@ _batch_cvtpd_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
          double *d = (double*)dptr + t;
          size_t i = num;
 
-         do 
+         do
          {
             *d = (double)*s++ * mul;
             d += tracks;
@@ -1049,6 +1050,52 @@ _batch_cvt32s_32u_cpu(void *data, size_t num)
       do {
          *p++ += (uint32_t)2147483647;
       } while (--i);
+   }
+}
+
+// You could create a triangular probability density function by getting a
+// random number between -1 and 0 and another between 0 and 1 and summing them.
+// When noise shaping is added to dithering, there is less noise at low
+// frequency and more noise at high frequency.
+// Note: apply this after converting to a lower number of bits.
+static inline int sign(int32_t x) { return (x==0) ? 0 : ((x<0) ? -1 : 1); }
+void
+_batch_dither_cpu(void *data, unsigned new_bps, size_t num)
+{
+   size_t i = num;
+   if (num)
+   {
+      switch (new_bps)
+      {
+      case 1:
+      {
+         int8_t* d = (int8_t*)data;
+         do
+         {
+            uint32_t s1 = xoroshiro128plus() >> 63;
+            uint32_t s2 = xoroshiro128plus() >> 63;
+            int32_t tpdf = (s1 - s2);
+            *d += sign(tpdf);
+         }
+         while (--i);
+         break;
+      }
+      case 2:
+      {
+         int16_t* d = (int16_t*)data;
+         do
+         {
+            uint32_t s1 = xoroshiro128plus() >> 63;
+            uint32_t s2 = xoroshiro128plus() >> 63;
+            int32_t tpdf = (s1 - s2);
+            *d += sign(tpdf);
+         }
+         while (--i);
+         break;
+      }
+      default:
+         break;
+      }
    }
 }
 
@@ -1396,17 +1443,17 @@ _aaxBufResampleDecimate_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size
       else
       {
          do
-         {  
+         {
             size_t step;
-            
+
             *d++ = samp + (dsamp * smu);
-    
+
             smu += freq_factor;
             step = (size_t)floorf(smu);
-     
+
             smu -= step;
             s += step-1;
-            samp = *s++; 
+            samp = *s++;
             dsamp = *s - samp;
          }
          while (--i);

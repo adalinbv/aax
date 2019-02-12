@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -770,6 +770,8 @@ _aaxDMediaDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gai
    }
    _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
    rb->release_tracks_ptr(rb);
+
+   _batch_dither(data, 2, no_tracks*no_samples);
 
    if (is_bigendian()) {
       _batch_endianswap16((uint16_t*)data, no_tracks*no_samples);

@@ -2054,6 +2054,7 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
          }
       }
 
+      // convert to the requested format
       switch(native_fmt)
       {
       case AAX_PCM8S:
@@ -2089,6 +2090,22 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
          }
          break;
       }
+      default:
+         break;
+      }
+
+      // Do we need to dither?
+      switch(native_fmt)
+      {
+      case AAX_PCM8S:
+         _batch_dither(data, 1, samples);
+         break;
+      case AAX_ALAW:
+      case AAX_MULAW:
+      case AAX_IMA4_ADPCM:
+      case AAX_PCM16S:
+         _batch_dither(data, 2, samples);
+         break;
       default:
          break;
       }
@@ -2229,8 +2246,8 @@ static void**
 _bufGetDataPitchLevels(_buffer_t *handle)
 {
    _aaxRingBuffer *rb = _bufGetRingBuffer(handle, NULL, 0);
-   _aaxRingBufferData *rbi = rb->handle;
-   _aaxRingBufferSample *rbd = rbi->sample;
+// _aaxRingBufferData *rbi = rb->handle;
+// _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    int format = handle->format & ~AAX_SPECIAL;
    uint32_t b, offs, size;

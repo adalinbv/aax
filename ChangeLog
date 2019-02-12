@@ -5,6 +5,7 @@
  * Support URL redirects for the HTTP protocol.
  * Skip frequencies which are higher than the nyquist frequency when
    synthesizing sounds.
+ * Add dithering when converting to a lower number of bits in the final mix.
  * Fix a bug where an incorect data pointer was freed when the code decided
    to swap the low-frequecny part and high-frequency part of the equalizer.
  * Leave the loop when finished destroying the buffer in the AeonWave class,

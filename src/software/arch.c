@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -70,6 +70,8 @@ _batch_cvt_proc _batch_cvt24u_24s = _batch_cvt24u_24s_cpu;
 _batch_cvt_proc _batch_cvt24s_24u = _batch_cvt24s_24u_cpu;
 _batch_cvt_proc _batch_cvt32u_32s = _batch_cvt32u_32s_cpu;
 _batch_cvt_proc _batch_cvt32s_32u = _batch_cvt32s_32u_cpu;
+
+_batch_dither_proc _batch_dither = _batch_dither_cpu;
 
 _batch_cvt_proc _batch_endianswap16 = _batch_endianswap16_cpu;
 _batch_cvt_proc _batch_endianswap24 = _batch_endianswap24_cpu;
