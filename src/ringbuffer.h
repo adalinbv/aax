@@ -719,7 +719,6 @@ typedef struct _aaxRingBuffer_t
    _aaxRingBufferDataMixNoiseFn *data_mix_noise;
    _aaxRingBufferDataMultiplyFn *data_multiply;
    _aaxRingBufferDataLimiterFn *limit;
-   _aaxRingBufferDataDitherFn *dither;
 
 // private:	/* TODO: Get rid of these */
    _aaxRingBufferMixMonoFn *mix3d;

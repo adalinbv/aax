@@ -61,7 +61,6 @@ typedef struct
    _data_t *pcmBuffer;
 
    /* data conversion */
-   _batch_dither_proc dither;
    _batch_cvt_proc cvt_to_signed;
    _batch_cvt_proc cvt_from_signed;
    _batch_cvt_proc cvt_endianness;
@@ -165,7 +164,6 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
       case AAX_PCM8S:
          handle->cvt_to_intl = _batch_cvt8_intl_24;
          handle->cvt_from_intl = _batch_cvt24_8_intl;
-         handle->dither = _batch_dither;
          if (need_sign_swap)
          {
             handle->cvt_to_signed = _batch_cvt8u_8s;
@@ -176,7 +174,6 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
       case AAX_PCM16S:
          handle->cvt_to_intl = _batch_cvt16_intl_24;
          handle->cvt_from_intl = _batch_cvt24_16_intl;
-         handle->dither = _batch_dither;
          if (need_endian_swap) {
             handle->cvt_endianness = _batch_endianswap16;
          }
@@ -417,10 +414,6 @@ _pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 
    if (handle->cvt_to_signed) {
       handle->cvt_to_signed(dptr, *num * tracks);
-   }
-
-   if (handle->dither) {
-      handle->dither(dptr, handle->bits_sample/8, *num);
    }
 
    if (handle->cvt_endianness) {

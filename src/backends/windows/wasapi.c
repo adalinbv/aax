@@ -169,7 +169,6 @@ typedef struct
    _aaxRenderer *render;
    enum aaxRenderMode setup;
 
-   _batch_dither_proc dither;
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_from_intl_proc cvt_from_intl;
 
@@ -713,7 +712,6 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
       switch (bits)
       {
       case 16:
-         handle->dither = _batch_dither;
          handle->cvt_to_intl = _batch_cvt16_intl_24;
          handle->cvt_from_intl = _batch_cvt24_16_intl;
          break;
@@ -740,7 +738,6 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->cvt_from_intl = _batch_cvt24_24_3intl;
          break;
       case 8:
-         handle->dither = _batch_dither;
          handle->cvt_to_intl = _batch_cvt8_intl_24;
          handle->cvt_from_intl = _batch_cvt24_8_intl;
          break;
@@ -922,10 +919,6 @@ _aaxWASAPIDriverPlayback(const void *id, void *src, float pitch, float gain,
          {
             handle->cvt_to_intl(data, (const int32_t**)sbuf,
                                       offs, no_tracks, no_samples);
-            if (handle->dither) {
-               handle->dither(dptr, handle->bits_sample/8, no_tracks*no_samples);
-            }
-
             hr = pIAudioRenderClient_ReleaseBuffer(handle->uType.pRender,
                                                    frames, 0);
             if (hr != S_OK) {

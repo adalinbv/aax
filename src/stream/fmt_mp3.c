@@ -653,7 +653,6 @@ _mp3_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 
    handle->no_samples += *num;
    _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
-   _batch_dither(dptr, 2, *num * handle->no_tracks);
    res = plame_encode_buffer_interleaved(handle->id, scratch, *num,
                               handle->mp3Buffer->data, handle->mp3Buffer->size);
    _aax_memcpy(dptr, handle->mp3Buffer->data, res);

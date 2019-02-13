@@ -180,7 +180,6 @@ typedef struct
    struct snd_pcm_sync_ptr *sync;
    void *mmap_buffer;
 
-   _batch_dither_proc dither;
    _batch_cvt_to_intl_proc cvt_to_intl;
 
    struct {
@@ -587,7 +586,6 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
       {
       case 8:
          handle->cvt_to_intl = _batch_cvt8_intl_24;
-         handle->dither = _batch_dither;
          format = SND_PCM_FORMAT_S8;
          *fmt = AAX_PCM8S;
          break;
@@ -605,7 +603,6 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
       default:
          handle->cvt_to_intl = _batch_cvt16_intl_24;
          format = SND_PCM_FORMAT_S16_LE;
-         handle->dither = _batch_dither;
          *fmt = AAX_PCM16S;
       }
       _set_mask(&hwparams, SNDRV_PCM_HW_PARAM_FORMAT, format);
@@ -1009,10 +1006,6 @@ _aaxLinuxDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain
    sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
    handle->cvt_to_intl(data, sbuf, offs, no_tracks, period_frames);
    rb->release_tracks_ptr(rb);
-
-   if (handle->dither) {
-      handle->dither(data, handle->bits_sample/8, period_frames);
-   }
 
    count = 8;
    bufsize = handle->no_periods*handle->period_frames;

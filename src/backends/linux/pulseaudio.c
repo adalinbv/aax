@@ -662,7 +662,6 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
    sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);
    _batch_cvt16_intl_24(data, (const int32_t**)sbuf, offs, no_tracks, no_samples);
    rb->release_tracks_ptr(rb);
-   _batch_dither(data, 2, no_samples*no_tracks);
 
    res = ppa_stream_write(handle->str, data, outbuf_size, NULL, 0, PA_SEEK_RELATIVE);
 

@@ -669,6 +669,7 @@ _batch_cvt8_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
       int8_t* d = (int8_t*)dptr;
       size_t i = num;
 
+      _batch_dither_cpu(s, 1, num);
       do {
          *d++ = *s++ >> 16;
       }
@@ -685,6 +686,7 @@ _batch_cvt16_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
       int16_t* d = (int16_t*)dptr;
       size_t i = num;
 
+      _batch_dither_cpu(s, 2, num);
       do {
          *d++ = *s++ >> 8;
       }
@@ -724,6 +726,7 @@ _batch_cvt8_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, u
          int8_t *d = (int8_t *)dptr + t;
          size_t i = num;
 
+         _batch_dither_cpu(s, 1, num);
          do
          {
             *d = (*s++ >> 16) - 128;
@@ -746,6 +749,7 @@ _batch_cvt16_intl_24_cpu(void_ptr dptr, const_int32_ptrptr sptr, size_t offset, 
          int16_t *d = (int16_t *)dptr + t;
          size_t i = num;
 
+         _batch_dither_cpu(s, 2, num);
          do
          {
             *d = *s++ >> 8;
@@ -1058,7 +1062,7 @@ _batch_cvt32s_32u_cpu(void *data, size_t num)
 // When noise shaping is added to dithering, there is less noise at low
 // frequency and more noise at high frequency.
 // Note: apply this after converting to a lower number of bits.
-static inline int sign(int32_t x) { return (x==0) ? 0 : ((x<0) ? -1 : 1); }
+static inline int sign(int32_t x) { return (!x) ? 0 : ((x<0) ? -1 : 1); }
 void
 _batch_dither_cpu(void *data, unsigned new_bps, size_t num)
 {
@@ -1069,26 +1073,28 @@ _batch_dither_cpu(void *data, unsigned new_bps, size_t num)
       {
       case 1:
       {
-         int8_t* d = (int8_t*)data;
+         uint32_t s1 = xoroshiro128plus() >> 63;
+         int32_t* d = (int32_t*)data;
          do
          {
-            uint32_t s1 = xoroshiro128plus() >> 63;
             uint32_t s2 = xoroshiro128plus() >> 63;
             int32_t tpdf = (s1 - s2);
-            *d += sign(tpdf);
+            *d++ += sign(tpdf) << 15;
+            s1 = s2;
          }
          while (--i);
          break;
       }
       case 2:
       {
-         int16_t* d = (int16_t*)data;
+         uint32_t s1 = xoroshiro128plus() >> 63;
+         int32_t* d = (int32_t*)data;
          do
          {
-            uint32_t s1 = xoroshiro128plus() >> 63;
             uint32_t s2 = xoroshiro128plus() >> 63;
             int32_t tpdf = (s1 - s2);
-            *d += sign(tpdf);
+            *d++ += sign(tpdf) << 7;
+            s1 = s2;
          }
          while (--i);
          break;

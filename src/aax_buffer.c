@@ -2093,22 +2093,6 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
       default:
          break;
       }
-
-      // Do we need to dither?
-      switch(native_fmt)
-      {
-      case AAX_PCM8S:
-         _batch_dither(data, 1, samples);
-         break;
-      case AAX_ALAW:
-      case AAX_MULAW:
-      case AAX_IMA4_ADPCM:
-      case AAX_PCM16S:
-         _batch_dither(data, 2, samples);
-         break;
-      default:
-         break;
-      }
    } /* ndata */
 }
 

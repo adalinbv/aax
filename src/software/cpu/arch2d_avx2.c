@@ -286,6 +286,10 @@ _batch_cvt16_24_avx2(void_ptr dst, const_void_ptr src, size_t num)
    int16_t* d = (int16_t*)dst;
    size_t tmp;
 
+   if (!num) return;
+
+   _batch_dither_cpu(s, 2, num);
+
    /*
     * work towards 16-byte aligned sptr
     */
@@ -346,8 +350,12 @@ _batch_cvt16_24_avx2(void_ptr dst, const_void_ptr src, size_t num)
       while (--i);
    }
 
-   if (num) {
-      _batch_cvt16_24_sse2(d, s, num);
+   if (num)
+   {
+      i = num;
+      do {
+         *d++ = *s++ >> 8;
+      } while (--i);
    }
 }
 
@@ -359,9 +367,15 @@ _batch_cvt16_intl_24_avx2(void_ptr dst, const_int32_ptrptr src,
    size_t i, step;
    int16_t *d = (int16_t*)dst;
    int32_t *s1, *s2;
-   size_t tmp;
+   size_t t, tmp;
 
    if (!num) return;
+
+   for (t=0; t<tracks; t++)
+   {
+      int32_t *s = (int32_t *)src[t] + offset;
+      _batch_dither_cpu(s, 2, num);
+   }
 
    if (tracks != 2)
    {

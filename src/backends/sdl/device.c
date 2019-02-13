@@ -691,8 +691,6 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
       _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
-      _batch_dither(data, 2, no_tracks*period_frames);
-
       handle->dataBuffer->avail += size;
       _aaxMutexUnLock(handle->mutex);
 

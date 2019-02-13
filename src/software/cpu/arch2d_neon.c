@@ -509,6 +509,8 @@ _batch_cvt16_24_neon(void_ptr dst, const_void_ptr sptr, size_t num)
 
    if (!num) return;
 
+   _batch_dither_cpu(s, 2, num);
+
    step = sizeof(int32x4x2_t)/sizeof(int32_t);
 
    i = num/step;
@@ -559,10 +561,34 @@ _batch_cvt16_intl_24_neon(void_ptr dst, const_int32_ptrptr src,
                                 size_t num)
 {
    int16_t* d = (int16_t*)dst;
-   size_t i, step;
+   size_t i, t, step;
    int32_t *s1, *s2;
 
    if (!num) return;
+
+   for (t=0; t<tracks; ++t)
+   {
+      int32_t *s = (int32_t *)src[t] + offset;
+      _batch_dither_cpu(s, 2, num);
+   }
+
+   if (tracks != 2)
+   {
+      for (t=0; t<tracks; t++)
+      {
+         int32_t *s = (int32_t *)src[t] + offset;
+         int16_t *d = (int16_t *)dst + t;
+         size_t i = num;
+
+         do
+         {
+            *d = *s++ >> 8;
+            d += tracks;
+         }
+         while (--i);
+      }
+      return;
+   }
 
    s1 = (int32_t *)src[0] + offset;
    s2 = (int32_t *)src[1] + offset;
