@@ -49,18 +49,22 @@ rotl(const uint64_t x, int k) {
 // https://en.wikipedia.org/wiki/Xorshift#xorshift+
 /* This generator is one of the fastest generators passing BigCrush */
 /* The state must be seeded so that it is not all zero */
-static uint64_t _xor_s[2];
+static union
+{
+   uint64_t xs[2];
+   uint32_t s[4];
+} _xor;
 
 uint64_t
 xorshift128plus()
 {
-   uint64_t x = _xor_s[0];
-   uint64_t const y = _xor_s[1];
+   uint64_t x = _xor.xs[0];
+   uint64_t const y = _xor.xs[1];
 
-   _xor_s[0] = y;
+   _xor.xs[0] = y;
    x ^= x << 23;
-   _xor_s[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
-   return _xor_s[1] + y;
+   _xor.xs[1] = x ^ y ^ (x >> 17) ^ (y >> 26);
+   return _xor.xs[1] + y;
 }
 
 // https://en.wikipedia.org/wiki/Xoroshiro128%2B
@@ -69,21 +73,41 @@ xorshift128plus()
 uint64_t
 xoroshiro128plus(void)
 {
-   const uint64_t s0 = _xor_s[0];
-   uint64_t s1 = _xor_s[1];
+   const uint64_t s0 = _xor.xs[0];
+   uint64_t s1 = _xor.xs[1];
    const uint64_t result = s0 + s1;
 
    s1 ^= s0;
-   _xor_s[0] = rotl(s0, 24) ^ s1 ^ (s1 << 16); // a, b
-   _xor_s[1] = rotl(s1, 37); // c
+   _xor.xs[0] = rotl(s0, 24) ^ s1 ^ (s1 << 16); // a, b
+   _xor.xs[1] = rotl(s1, 37); // c
 
    return result;
 }
 
+// http://xoshiro.di.unimi.it/xoshiro128plus.c
+uint32_t
+xoshiro128plus(void)
+{
+   const uint32_t result = _xor.s[0] + _xor.s[3];
+   const uint32_t t = _xor.s[1] << 9;
+
+   _xor.s[2] ^= _xor.s[0];
+   _xor.s[3] ^= _xor.s[1];
+   _xor.s[1] ^= _xor.s[2];
+   _xor.s[0] ^= _xor.s[3];
+
+   _xor.s[2] ^= t;
+
+   _xor.s[3] = rotl(_xor.s[3], 11);
+
+   return result;
+}
+
+
 float
 _aax_rand_sample()
 {
-   float r = (double)(int64_t)xorshift128plus()/(double)INT64_MAX;
+   float r = (double)(int64_t)xoroshiro128plus()/(double)INT64_MAX;
    return r;
 }
 
@@ -97,7 +121,7 @@ _aax_srandom()
       unsigned int num = 0;
 
 #ifdef HAVE_SYS_RANDOM_H
-      num = getrandom(_xor_s, size, 0);
+      num = getrandom(_xor.xs, size, 0);
 #endif
 
       if (num < size)
@@ -106,8 +130,8 @@ _aax_srandom()
 
          gettimeofday(&time, NULL);
          srand(_aax_hash3(time.tv_sec, time.tv_usec, getpid()));
-         _xor_s[0] = (uint64_t)rand() * rand();
-         _xor_s[1] = ((uint64_t)rand() * rand()) ^ _xor_s[0];
+         _xor.xs[0] = (uint64_t)rand() * rand();
+         _xor.xs[1] = ((uint64_t)rand() * rand()) ^ _xor.xs[0];
       }
    }
 }
