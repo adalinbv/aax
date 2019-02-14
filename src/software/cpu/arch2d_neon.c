@@ -739,6 +739,7 @@ _batch_freqfilter_neon(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
 
          *hist++ = h0;
          *hist++ = h1;
+         cptr += 4;
          k = 1.0f;
          s = dptr;
       }
@@ -866,6 +867,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
          *hist++ = h0;
          *hist++ = h1;
+         cptr += 4;
          k = 1.0f;
          s = dptr;
       }

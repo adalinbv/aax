@@ -1430,6 +1430,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
          *hist++ = h0;
          *hist++ = h1;
+         cptr += 4;
          k = 1.0f;
          s = dptr;
       }

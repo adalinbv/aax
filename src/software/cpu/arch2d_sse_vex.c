@@ -996,6 +996,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
          *hist++ = h0;
          *hist++ = h1;
+         cptr += 4;
          k = 1.0f;
          s = dptr;
       }
