@@ -461,7 +461,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->prot)
             {
                const char *agent = aaxGetVersionString((aaxConfig)id);
-               int rv, num = 10;
+               ssize_t rv;
+               int num = 10;
                do {
                   char *s = server;
                   rv = handle->prot->connect(handle->prot, handle->io,

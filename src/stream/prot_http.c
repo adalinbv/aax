@@ -47,7 +47,7 @@ static int _http_get_response(_io_t*, char*, int*);
 static const char *_get_yaml(const char*, const char*, size_t);
 
 
-size_t
+ssize_t
 _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const char *agent)
 {
    int res = _http_send_request(io, "GET", *server, path, agent);

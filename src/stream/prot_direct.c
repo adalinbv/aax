@@ -34,7 +34,7 @@
 
 #include "audio.h"
 
-size_t
+ssize_t
 _direct_connect(_prot_t *prot, UNUSED(_io_t *io), UNUSED(char **server), const char *path, UNUSED(const char *agent))
 {
    if (path) {
