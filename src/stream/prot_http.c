@@ -139,57 +139,63 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
 int
 _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
 {
-   unsigned int slen = 0;
+   unsigned int meta_len = 0;
 
    if (prot->meta_interval)
    {
-      // The ICY data length did extend beyond the buffer size,
-      // skip the remaining data.
+      // The ICY data length did extend beyond the buffer size in the previous
+      // run: skip the remaining data and ignore this ICY data.
       if (prot->meta_size)
       {
-         size_t skip = _MIN(prot->meta_size, bytes_avail);
+         ssize_t skip = _MIN(prot->meta_size, bytes_avail);
 
+         assert(skip > 0);
          buf += skip;	// memmove(buf, buf+skip, bytes_avail-skip);
          bytes_avail -= skip;
          prot->meta_size -= skip;
+         if (prot->meta_size) { // the ICY data is still larger than the buffer
+            return skip;
+         }
       }
 
       prot->meta_pos += res;
-      while (prot->meta_pos > prot->meta_interval)
+      while (prot->meta_pos >= prot->meta_interval)
       {
-         size_t offs = prot->meta_pos - prot->meta_interval;
+         ssize_t offs = prot->meta_pos - prot->meta_interval;
          uint8_t *ptr = buf;
-         size_t blen;
+         ssize_t blen;
 
          ptr += bytes_avail;
          ptr -= offs;
+         assert(offs >= 0);
          assert(ptr >= buf);
 
-         prot->meta_size = slen = *ptr * 16;
+         prot->meta_size = meta_len = *ptr * 16;
 
          // The ICY data length extends beyond the buffer size,
          // skip the part of the ICY data which is in the buffer now.
-         if ((size_t)(ptr+slen) >= (size_t)(buf+bytes_avail))
+         if ((size_t)ptr+meta_len >= (size_t)buf+bytes_avail)
          {
-            size_t skip = (size_t)(buf+bytes_avail) - (size_t)ptr;
+            ssize_t skip = (size_t)buf+bytes_avail - (size_t)ptr;
 
+            assert(skip >= 0);
             prot->meta_size -= skip;
-            slen = skip;
+            meta_len = skip;
             break;
          }
-         if ((size_t)(ptr+slen) >= (size_t)(buf+IOBUF_THRESHOLD)) {
+         if ((size_t)ptr+meta_len >= (size_t)buf+IOBUF_THRESHOLD) {
             break;
          }
 
          blen = strlen("StreamTitle=''");
-         if (slen > blen && !strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
+         if (meta_len > blen && !strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
          {
             char *artist = (char*)ptr+1 + strlen("StreamTitle='");
             if (artist)
             {
-               char *title = strnstr(artist, " - ", slen);
-               char *end = strnstr(artist, "\';", slen);
-               if (!end) end = strnstr(artist, "\'\0", slen);
+               char *title = strnstr(artist, " - ", meta_len);
+               char *end = strnstr(artist, "\';", meta_len);
+               if (!end) end = strnstr(artist, "\'\0", meta_len);
                if (title)
                {
                   *title = '\0';
@@ -224,26 +230,29 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
                   prot->title[1] = '\0';
                   prot->title[0] = AAX_TRUE;
                }
-               prot->meta_size -= slen;
+               prot->meta_size -= meta_len;
                prot->metadata_changed = AAX_TRUE;
             }
          }
 
-         slen++;     // add the slen-byte itself
-         prot->meta_pos -= (prot->meta_interval+slen);
+         meta_len++;     // add the slen-byte itself
+         prot->meta_pos -= (prot->meta_interval+meta_len);
 
-         /* move the rest of the buffer slen-bytes back */
-         assert(bytes_avail >= slen);
-         bytes_avail -= slen;
+         /* move the rest of the buffer meta_len-bytes back */
+         assert(bytes_avail >= meta_len);
+         bytes_avail -= meta_len;
          blen = bytes_avail;
          blen -= (ptr - buf);
+         assert(blen >= 0);
 
 // TODO: Could lead to a buffer overflow
          assert(blen <= bytes_avail);
-         memmove(ptr, ptr+slen, blen);
+         if (blen < bytes_avail) {
+            memmove(ptr, ptr+meta_len, blen);
+         }
       }
    }
-   return slen;
+   return meta_len;
 }
 
 int
