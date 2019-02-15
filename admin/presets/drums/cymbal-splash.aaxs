@@ -16,7 +16,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.62" frequency="1000" duration="0.3">
+ <sound gain="1.49" frequency="1000" duration="0.3">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" pitch="6.3"/>
   <waveform src="white-noise" processing="add" pitch="0.5" staticity="0.105"/>
@@ -55,5 +55,7 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe/>
 
 </aeonwave>
