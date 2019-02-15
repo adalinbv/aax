@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,19 +12,20 @@
 
 <aeonwave>
 
- <info bank="0" program="0">
+ <info name="Bottle Blow" bank="0" program="0">
   <note polyphony="1" min="60" max="96" step="1"/>
  </info>
 
- <sound gain="1.64" frequency="261" duration="2.1">
+ <sound gain="0.61" frequency="1760" duration="2.1">
   <waveform src="triangle"/>
   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
+  <waveform src="square" processing="add" ratio="0.01"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="1.0">261.0</param>
+    <param n="0" pitch="1.0">1760.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">60.0</param>
+    <param n="3">20.0</param>
    </slot>
   </filter>
  </sound>
@@ -59,5 +60,7 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe/>
 
 </aeonwave>

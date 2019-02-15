@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -16,7 +16,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.33" frequency="220" duration="0.2">
+ <sound gain="1.09" frequency="220" duration="0.2">
   <waveform src="pink-noise" pitch="0.25"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -45,13 +45,13 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.921</param>
+    <param n="0">1.05</param>
     <param n="1">0.1</param>
-    <param n="2">0.691</param>
+    <param n="2">0.786</param>
     <param n="3">0.4</param>
    </slot>
    <slot n="1">
-    <param n="0">0.384</param>
+    <param n="0">0.437</param>
     <param n="1">0.08</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -66,5 +66,7 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe/>
 
 </aeonwave>

@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -16,7 +16,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.06" frequency="55">
+ <sound gain="1.13" frequency="55">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="0.0897"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="9.4991"/>
@@ -68,5 +68,7 @@
    </slot>
   </effect>
  </emitter>
+
+ <audioframe/>
 
 </aeonwave>
