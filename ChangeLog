@@ -11,6 +11,8 @@
  * Leave the loop when finished destroying the buffer in the AeonWave class,
    preventing a possible segnemtnation fault.
  * Allow setting a default panning value in the info section of AAXS files.
+ * Fix frequency filter cutoff behavior for > 12dB/oct filters, the coefficients
+   where not selected properly.
  * Fix the naming of aaxSensorGetMatrix64 and aaxAudioFrameGetMatrix64.
 
 -- Erik Hofman <tech@adalin.org>  Tue 15 Jan 2019 16:05:19 + 0100
