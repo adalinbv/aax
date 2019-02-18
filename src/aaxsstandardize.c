@@ -291,7 +291,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
                     dsp->slot[sn].param[pn].adjust = xmlAttributeGetDouble(xpid, "auto");
 
                     dsp->slot[sn].param[pn].value = xmlGetDouble(xpid);
-                    if (env && (pn % 2) == 0)
+                    if (!getenv("KEEP_VOLUME") && env && (pn % 2) == 0)
                     {
                         if (dsp->slot[sn].param[pn].adjust) {
                             dsp->slot[sn].param[pn].adjust *= env_fact;
