@@ -69,17 +69,20 @@ MIDI::rewind()
 
 void MIDI::finish(uint8_t n)
 {
-    if (n >= channels.size() || !channels[n]) return;
-    if (!channels[n]->finished()) {
-        channels[n]->finish();
+    auto it = channels.find(n);
+    if (it == channels.end()) return;
+
+    if (it->second->finished() == false) {
+        it->second->finish();
     }
 }
 
 bool
 MIDI::finished(uint8_t n)
 {
-    if (n >= channels.size() || !channels[n]) return true;
-    return channels[n]->finished();
+    auto it = channels.find(n);
+    if (it == channels.end()) return true;
+    return it->second->finished();
 }
 
 void
@@ -314,10 +317,10 @@ MIDIChannel&
 MIDI::channel(uint8_t channel_no)
 {
     auto it = channels.find(channel_no);
-    if (it == channels.end()) {
-        return new_channel(channel_no, 0, 0);
+    if (it != channels.end()) {
+        return *it->second;
     }
-    return *it->second;
+    return new_channel(channel_no, 0, 0);
 }
 
 /**
