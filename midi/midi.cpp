@@ -1456,8 +1456,12 @@ MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
                         if (header == 0x4d54726b) // "MTrk"
                         {
                             uint32_t length = stream.pull_long();
-                            track.push_back(new MIDITrack(*this, stream, length, track_no++));
-                            stream.forward(length);
+                            if (length > sizeof(uint32_t))
+                            {
+                                track.push_back(new MIDITrack(*this, stream,
+                                                           length, track_no++));
+                                stream.forward(length);
+                            }
                             PRINT_CSV("%d, 0, Start_track\n", track_no);
                         }
                         else {
