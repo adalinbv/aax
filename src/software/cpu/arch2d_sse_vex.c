@@ -922,7 +922,9 @@ _batch_freqfilter_sse_vex(int32_ptr dptr, const_int32_ptr sptr, int t, size_t nu
    }
 }
 
-
+// https://en.wikipedia.org/wiki/Digital_biquad_filter#Direct_form_1
+// z[n] = k*x[n] + c0*x[n-1] + c1*x[n-2] + -c2*z[n-1] + -c3*z[n-2];
+// note: c2 and c3 are negated by the frequency filter code.
 void
 _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
@@ -968,7 +970,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          h0 = hist[0];
          h1 = hist[1];
 
-         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
          if (filter->state == AAX_BUTTERWORTH)
          {
             do
