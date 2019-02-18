@@ -47,9 +47,17 @@ typedef int size_t;
 # endif
 #endif
 
+#ifdef _WIN32
+# ifndef WIN32
+#  define WIN32
+# endif
+#endif
+
 #define _MIN(a,b)	(((a)<(b)) ? (a) : (b))
 #define _MAX(a,b)       (((a)>(b)) ? (a) : (b))
 #define _MINMAX(a,b,c)  (((a)>(c)) ? (c) : (((a)<(b)) ? (b) : (a)))
+
+char* _aax_strcasestr(const char*, const char*);
 
 #if _MSC_VER
 # include <Windows.h>

@@ -22,6 +22,10 @@
 #include "config.h"
 #endif
 
+#include <strings.h>
+#include <string.h>
+#include <ctype.h>
+
 #include "types.h"
 
 #if 0
@@ -70,3 +74,21 @@ uint64_t _bswap64(uint64_t x)
    return x;
 }
 
+char*
+_aax_strcasestr(const char *dst, const char *src)
+{
+   int len, dc, sc;
+
+   if(src[0] == '\0')
+      return (char*)(uintptr_t)dst;
+
+   len = strlen(src) - 1;
+   sc  = tolower(src[0]);
+   for(; (dc = *dst); dst++)
+   {
+      dc = tolower(dc);
+      if(sc == dc && (len == 0 || !strncasecmp(dst+1, src+1, len)))
+         return (char*)(uintptr_t)dst;
+   }
+   return NULL;
+}
