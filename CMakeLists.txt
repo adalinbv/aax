@@ -146,6 +146,7 @@ INCLUDE_DIRECTORIES("${aax-utils_SOURCE_DIR}"
     base
     include
     ${AAX_INCLUDE_DIR}
+    ${EBUR_INCLUDE_DIR}
     ${RMALLOC_INCLUDE_DIR}
     "${aax-utils_BINARY_DIR}/include"
 )
