@@ -86,7 +86,7 @@ getDeviceName(int argc, char **argv)
 char *
 getCaptureName(int argc, char **argv)
 {
-    static char devname[255];
+    static char devname[256];
     int len = 255;
     char *s;
 
@@ -371,7 +371,7 @@ char *strDup(const char *s)
 aaxBuffer
 setFiltersEffects(int argc, char **argv, aaxConfig c, aaxConfig m, aaxFrame f, aaxEmitter e)
 {
-    static char fname[255];
+    static char fname[256];
     aaxBuffer buffer = NULL;
     int len = 255;
     char *s;
