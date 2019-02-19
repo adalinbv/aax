@@ -59,4 +59,4 @@ if(HAVE_EBUR128)
           RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
           COMPONENT Applications
   )
-}
+endif()
