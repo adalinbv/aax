@@ -1,21 +1,25 @@
 
-* Tue Jan 15 2019 - tech@adalin.org
+* Tue Feb 19 2019 - tech@adalin.org
 - AeonWave (3.5.7) stable; urgency=medium
 
  * Support URL redirects for the HTTP protocol.
  * Skip frequencies which are higher than the nyquist frequency when
    synthesizing sounds.
  * Add dithering when converting to a lower number of bits in the final mix.
- * Fix a bug where an incorect data pointer was freed when the code decided
-   to swap the low-frequecny part and high-frequency part of the equalizer.
- * Leave the loop when finished destroying the buffer in the AeonWave class,
-   preventing a possible segnemtnation fault.
+ * Support General MIDI 2.0 specifications, add support for setting modulation,
+   chorus and frequency filter parameters in the instrument class. Do not
+   apply many effects to the drum channels.
  * Allow setting a default panning value in the info section of AAXS files.
- * Fix frequency filter cutoff behavior for > 12dB/oct filters, the coefficients
+ * Fix a bug where an incorrect data pointer was freed when the code decided
+   to swap the low-frequency part and high-frequency part of the equalizer.
+ * Leave the loop when finished destroying the buffer in the AeonWave class,
+   preventing a possible segmentation fault.
+ * Fix frequency filter cutoff behavior for > 12dB/Oct filters, the coefficients
    where not selected properly.
  * Fix the naming of aaxSensorGetMatrix64 and aaxAudioFrameGetMatrix64.
 
--- Erik Hofman <tech@adalin.org>  Tue 15 Jan 2019 16:05:19 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue 19 Feb 2019 10:03:19 + 0100
+
 
 * Wed Dec 19 2018 - tech@adalin.org
 - AeonWave (3.5.6) stable; urgency=medium
@@ -27,6 +31,7 @@
 
 -- Erik Hofman <tech@adalin.org>  Wed 19 Dec 2018 13:55:31 + 0100
 
+
 * Sat Dec 08 2018 - tech@adalin.org
 - AeonWave (3.5.5) stable; urgency=low
 
@@ -37,6 +42,7 @@
 
 -- Erik Hofman <tech@adalin.org>  Sat 08 Dec 2018 10:17:08 + 0100
 
+
 * Wed Dec 05 2018 - tech@adalin.org
 - AeonWave (3.5.4) stable; urgency=high
 
@@ -46,6 +52,7 @@
  * Improve the way filters and effects swap their data structures.
 
 -- Erik Hofman <tech@adalin.org>  Wed 05 Dec 2018 10:06:08 + 0100
+
 
 * Fri Dec 01 2018 - tech@adalin.org
 - AeonWave (3.5.3) stable; urgency=high
@@ -59,6 +66,7 @@
 
 -- Erik Hofman <tech@adalin.org>  Fri 01 Dec 2018 13:49:08 + 0100
 
+
 * Wed Nov 07 2018 - tech@adalin.org
 - AeonWave (3.5.2) stable; urgency=low
 
@@ -69,6 +77,7 @@
 
 -- Erik Hofman <tech@adalin.org>  Wed 07 Nov 2018 14:05:08 + 0100
 
+
 * Sat Oct 13 2018 - tech@adalin.org
 - AeonWave (3.5.1) stable; urgency=low
 
@@ -77,6 +86,7 @@
  * Remove a debugging statement.
 
 -- Erik Hofman <tech@adalin.org>  Sat 13 Oct 2018 10:37:00 + 0200
+
 
 * Thu Sep 27 2018 - tech@adalin.org
 - AeonWave (3.5.0) stable; urgency=low
@@ -99,6 +109,7 @@
 
 -- Erik Hofman <tech@adalin.org>  Thu 27 Sep 2018 09:13:00 + 0200
 
+
 * Wed Aug 01 2018 - tech@adalin.org
 - AeonWave (3.4.0) stable; urgency=low
 
@@ -113,6 +124,7 @@
  * Remove debugging output from ogg streaming code.
 
 -- Erik Hofman <tech@adalin.org>  Wed 01 Aug 2018 11:00:00 + 0200
+
 
 * Fri Jul 20 2018 - tech@adalin.org
 - AeonWave (3.3.0) stable; urgency=low
@@ -133,12 +145,14 @@
 
 -- Erik Hofman <tech@adalin.org>  Fri 20 Jul 2018 14:01:00 + 0200
 
+
 * Tue Jul 03 2018 - tech@adalin.org
 - AeonWave (3.2.3) stable; urgency=low
  * Fix a missing offset(enum aaxType) error for the AeonWave class.
  * Fix a problem with AAX_SHARED_DATA_DIR support for Windows.
 
 -- Erik Hofman <tech@adalin.org>  Tue 03 Jul 2018 08:49:00 + 0200
+
 
 * Sat Jun 30 2018 - tech@adalin.org
 - AeonWave (3.2.2) stable; urgency=medium
@@ -149,6 +163,7 @@
    that support ICY metadata song information.
 
 -- Erik Hofman <tech@adalin.org>  Sat 30 Jun 2018 11:06:00 + 0200
+
 
 * Sat Jun 23 2018 - tech@adalin.org
 - AeonWave (3.2.1) stable; urgency=low
@@ -164,6 +179,7 @@
    versions.
 
 -- Erik Hofman <tech@adalin.org>  Sat 23 Jun 2018 12:31:00 + 0200
+
 
 * Sat Jun 16 2018 - tech@adalin.org
 - AeonWave (3.2.0) stable; urgency=high
@@ -181,6 +197,7 @@
 
 -- Erik Hofman <tech@adalin.org>  Sat 16 Jun 2018 13:30:00 + 0200
 
+
 * Tue Jun 05 2018 - tech@adalin.org
 - AeonWave (3.1.2) stable; urgency=low
  * Add the bitcrusher filter to simulate (communication line) sound degradation.
@@ -189,6 +206,7 @@
    aeonwave class.
 
 -- Erik Hofman <tech@adalin.org>  Tue 05 Jun 2018 20:48:00 + 0200
+
 
 * Fri Jun 01 2018 - tech@adalin.org
 - AeonWave (3.1.1) stable; urgency=medium
@@ -204,6 +222,7 @@
    for use with audio-frames.
 
 -- Erik Hofman <tech@adalin.org>  Fri 01 Jun 2018 15:15:00 + 0200
+
 
 * Sat May 21 2018 - tech@adalin.org
 - AeonWave (3.1.0) stable; urgency=high
