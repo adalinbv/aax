@@ -266,7 +266,7 @@ mkDir(const char *directory)
    if(createDACL(&sa))
    {
        snprintf(path, 248, "%s", LOCALAPP_DIR);
-       assert(!strncasecmp(directory, path, strlen(path)))
+       assert(!strncasecmp(directory, path, strlen(path)));
 
        CreateDirectory(path, &sa);
 
