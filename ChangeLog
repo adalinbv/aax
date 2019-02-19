@@ -18,6 +18,10 @@
    where not selected properly.
  * Fix the naming of aaxSensorGetMatrix64 and aaxAudioFrameGetMatrix64.
 
+ In loving memory of my beloved cat Tux who was always there for me for the last
+ eighteen years if things didn't work out they way I was hoping for.
+ Rest in peace my little friend.
+
 -- Erik Hofman <tech@adalin.org>  Tue 19 Feb 2019 10:03:19 + 0100
 
 
