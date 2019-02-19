@@ -442,11 +442,11 @@ _aaxGetSIMDSupportLevel()
 
    /* Prefer FMA3 over FMA4 so detect FMA4 first */
    if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-      _batch_fmadd = _batch_fmadd_fma4;
+//    _batch_fmadd = _batch_fmadd_fma4;
    }
 
    if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-      _batch_fmadd = _batch_fmadd_fma3;
+//    _batch_fmadd = _batch_fmadd_fma3;
    }
 
    if (_aax_arch_capabilities & AAX_ARCH_AVX2)
