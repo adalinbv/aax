@@ -54,10 +54,8 @@ extern "C" {
 # define CLOCK_REALTIME			0
 # define CLOCK_MONOTONIC		1
 
-enum {
-    WAITABLE_TIMER_EVENT = 0,
-    CONDITION_EVENT = 1
-} _Event_e;
+#define WAITABLE_TIMER_EVENT		0
+#define CONDITION_EVENT			1
 
 int gettimeofday(struct timeval*, void*);
 int clock_gettime(int, struct timespec*);
