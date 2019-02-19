@@ -291,7 +291,7 @@ public:
 
     void set_pan(float p) {
         Matrix64 m; panned = true;
-        m.rotate(0.5*1.57*p, 0.0, 1.0, 0.0);
+        m.rotate(1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
         if (!is_drums) {
             Mixer::matrix(m);
