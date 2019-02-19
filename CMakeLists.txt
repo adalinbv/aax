@@ -46,12 +46,6 @@ SET(CMAKE_MODULE_PATH "${aax-utils_SOURCE_DIR}/CMakeModules;${CMAKE_MODULE_PATH}
 INCLUDE(CPack_Modules)
 INCLUDE(CPack_Defaults)
 
-find_package(XML COMPONENTS xml REQUIRED)
-find_package(EBUR128 COMPONENTS ebur128)
-if (EBUR128_FOUND)
-  set(HAVE_EBUR128 1)
-endif()
-
 IF(WIN32)
 
 ELSE(WIN32)
@@ -138,18 +132,23 @@ e         "Flags used by al build types."
 ENDIF(MSVC)
 
 # Required libraries
-FIND_PACKAGE(AAX COMPONENTS aax REQUIRED)
-FIND_PACKAGE(XML COMPONENTS xml REQUIRED)
+find_package(AAX COMPONENTS aax REQUIRED)
+find_package(XML COMPONENTS xml REQUIRED)
+find_package(EBUR128 COMPONENTS ebur128)
 
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${aax-utils_SOURCE_DIR}"
     base
     include
     ${AAX_INCLUDE_DIR}
-    ${EBUR_INCLUDE_DIR}
     ${RMALLOC_INCLUDE_DIR}
     "${aax-utils_BINARY_DIR}/include"
 )
+
+if (EBUR128_FOUND)
+  include_directories("${EBUR128_INCLUDE_DIR}")
+  set(HAVE_EBUR128 1)
+endif()
 
 CHECK_INCLUDE_FILE(inttypes.h HAVE_INTTYPES_H)
 CHECK_INCLUDE_FILE(stdint.h HAVE_STDINT_H)
