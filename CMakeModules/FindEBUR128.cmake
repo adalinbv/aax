@@ -11,14 +11,14 @@ set(ProgramFilesx86 "ProgramFiles(x86)")
 find_path(EBUR128_INCLUDE_DIR
   NAMES ebur128.h
   HINTS
-  $ENV{ProgramFilesx86}/libebur128
+  $ENV{${ProgramFilesx86}}/libebur128
   PATH_SUFFIXES include
 )
 
 find_library(EBUR128_LIBRARY
   NAMES ebur128
   HINTS
-  $ENV{ProgramFilesx86}/libebur128
+  $ENV{${ProgramFilesx86}}/libebur128
   PATH_SUFFIXES lib
 )
 
