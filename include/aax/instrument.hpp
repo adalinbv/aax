@@ -266,7 +266,7 @@ public:
         }
     }
 
-    void set_pitch(uint8_t key_no, float pitch) {
+    inline void set_pitch(uint8_t key_no, float pitch) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->set_pitch(pitch);
@@ -276,7 +276,7 @@ public:
     inline void set_gain(float v) { volume = v; }
 
     inline void set_pressure(float p) { pressure = p; }
-    void set_pressure(uint8_t key_no, float p) {
+    inline void set_pressure(uint8_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->set_gain(p*pressure*soft*volume);
@@ -289,9 +289,9 @@ public:
         }
     }
 
-    inline void set_pan(float p) {
+    void set_pan(float p) {
         Matrix64 m; panned = true;
-        m.rotate(1.57*p, 0.0, 1.0, 0.0);
+        m.rotate(0.5*1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
         if (!is_drums) {
             Mixer::matrix(m);
@@ -304,13 +304,13 @@ public:
 
     inline void set_soft(bool s) { soft = (s && !is_drums) ? 0.5f : 1.0f; }
 
-    void set_hold(bool h) {
+    inline void set_hold(bool h) {
         for (auto& it : key) {
             it.second->set_hold(h);
         }
     }
 
-    void set_sustain(bool s) {
+    inline void set_sustain(bool s) {
         if (!is_drums) {
             for (auto& it : key) it.second->set_sustain(s);
         }
@@ -323,11 +323,10 @@ public:
             if (enabled)
             {
                 if (!vibrato_state) {
-                    vibrato_state = AAX_SINE_WAVE;
-                    tremolo_state = AAX_SINE_WAVE;
+                    vibrato_state = tremolo_state = AAX_SINE_WAVE;
                 }
             } else if (vibrato_state) {
-                vibrato_state = AAX_FALSE; tremolo_state = AAX_FALSE;
+                vibrato_state = tremolo_state = AAX_FALSE;
             }
         }
     }
@@ -360,13 +359,13 @@ public:
     inline void set_chorus_depth(float depth) { chorus_depth = depth; }
     inline void set_chorus_rate(float rate) { chorus_rate = rate; }
 
-    void set_filter_cutoff(float dfc) {
+    inline void set_filter_cutoff(float dfc) {
         if (!is_drums) { fc = dfc;
             for (auto& it : key) it.second->set_filter_cutoff(dfc);
         }
     }
 
-    void set_filter_resonance(float dQ) {
+    inline void set_filter_resonance(float dQ) {
         if (!is_drums) { Q = dQ;
             for (auto& it : key) it.second->set_filter_resonance(dQ);
         }
