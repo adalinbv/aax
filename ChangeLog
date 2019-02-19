@@ -1,6 +1,8 @@
-* Mon Dec 24 2018 - <tech@adalin.org>
-- Add aaxplaymidi
-- Add aaxsstandardize
+* Tue Feb 19 2019 - <tech@adalin.org>
+- Add aaxplaymidi - play back midi files using AeonWave
+- Add aaxsstandardize - standardize AAXS configuration files
+- Add drawbar2aaxs - convert drawbar settings to an AAXS instrument file
+- Add GM 2.0 ready midi playback code.
 
  -- Erik Hofman <info@adalin.org>  Mon, 24 Dec 2018 10:04:00 +0100
 
