@@ -214,6 +214,30 @@ size_t getFileSize(const char *fname)
 #endif
 }
 
+#if defined(WIN32)
+#include <sddl.h>
+
+int
+createDACL(SECURITY_ATTRIBUTES * pSA)
+{
+    PULONG nSize = 0;
+    TCHAR *szSD = TEXT("D:")
+       TEXT("(D;OICI;GA;;;BG)") /* Allow all to built-in Administrators group */
+       TEXT("(D;OICI;GRGX;;;AN)") /* Allow all to Authenticated users         */
+       TEXT("(A;OICI;GA;;;AU)")   /* Allow read/execute to anonymous logon    */
+       TEXT("(A;OICI;GA;;;BA)");  /* Deny all for built-in guests             */
+
+    if (pSA == NULL) {
+        return -1;
+    }
+
+    return ConvertStringSecurityDescriptorToSecurityDescriptor(
+                            szSD, SDDL_REVISION_1,
+                            (PSECURITY_DESCRIPTOR*)&(pSA->lpSecurityDescriptor),
+                            nSize);
+}
+#endif
+
 int
 mkDir(const char *directory)
 {
