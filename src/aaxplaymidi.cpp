@@ -28,6 +28,9 @@
 #include "config.h"
 #endif
 
+#include <chrono>
+#include <thread>
+
 #include <stdio.h>
 #include <assert.h>
 #ifdef HAVE_RMALLOC_H
@@ -63,7 +66,6 @@ help()
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
-//  printf("  -b, --batch\t\t\tprocess as fast as possible (Audio Files only)\n");
     printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
@@ -72,6 +74,55 @@ help()
     printf("\n");
 
     exit(-1);
+}
+
+void play(char *devname, char *infile, bool verbose)
+{
+    aax::MIDIFile midi(devname, infile);
+    if (midi)
+    {
+        int64_t sleep_us, dt_us;
+        uint64_t time_parts = 0;
+        uint32_t wait_parts;
+        struct timeval now;
+
+        midi.set_verbose(verbose);
+        midi.initialize();
+        midi.start();
+
+        wait_parts = 1000;
+        set_mode(1);
+
+        gettimeofday(&now, NULL);
+        dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
+        do
+        {
+            if (!midi.process(time_parts, wait_parts)) break;
+
+            if (wait_parts > 0)
+            {
+                uint32_t wait_us;
+
+                gettimeofday(&now, NULL);
+                dt_us += now.tv_sec * 1000000 + now.tv_usec;
+
+                wait_us = wait_parts*midi.get_uspp();
+                sleep_us = wait_us - dt_us;
+                if (sleep_us > 0) {
+                   std::this_thread::sleep_for(std::chrono::microseconds(sleep_us));
+                }
+
+                gettimeofday(&now, NULL);
+                dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
+
+                time_parts += wait_parts;
+            }
+        }
+        while(!get_key());
+        set_mode(0);
+
+        midi.stop();
+    }
 }
 
 int verbose = 0;
@@ -85,70 +136,18 @@ int main(int argc, char **argv)
 
     char *devname = getDeviceName(argc, argv);
     char *infile = getInputFile(argc, argv, IFILE_PATH);
+    bool verbose = false;
     try
     {
-        aax::MIDIFile midi(devname, infile);
-        if (midi)
+        if (getCommandLineOption(argc, argv, "-v") ||
+            getCommandLineOption(argc, argv, "--verbose"))
         {
-            int64_t sleep_us, dt_us;
-            uint64_t time_parts = 0;
-            uint32_t wait_parts;
-            struct timeval now;
-#if 1
-            char batch = AAX_FALSE;
-#else
-            char batch = getCommandLineOption(argc, argv, "-b") ||
-                         getCommandLineOption(argc, argv, "--batch");
-            if (batch && !midi.get(AAX_BATCHED_MODE)) {
-                printf("Warning: Batched mode not supported for this backend\n");
-            }
-#endif
-
-            if (getCommandLineOption(argc, argv, "-v") ||
-                getCommandLineOption(argc, argv, "--verbose"))
-            {
-               midi.set_verbose(true);
-            }
-
-            midi.initialize();
-            midi.start();
-
-            wait_parts = 1000;
-            set_mode(1);
-
-            gettimeofday(&now, NULL);
-            dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
-            do
-            {
-                if (!midi.process(time_parts, wait_parts)) break;
-
-                if (wait_parts > 0)
-                {
-                    uint32_t wait_us;
-
-                    gettimeofday(&now, NULL);
-                    dt_us += now.tv_sec * 1000000 + now.tv_usec;
-
-                    wait_us = wait_parts*midi.get_uspp();
-                    sleep_us = wait_us - dt_us;
-                    if (batch) {
-                        midi.set(AAX_UPDATE);
-                    }
-                    else if (sleep_us > 0) {
-                       usecSleep(sleep_us);
-                    }
-
-                    gettimeofday(&now, NULL);
-                    dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
-
-                    time_parts += wait_parts;
-                }
-            }
-            while(!get_key());
-            set_mode(0);
-
-            midi.stop();
+            verbose = true;
         }
+
+        std::thread midiThread(play, devname, infile, verbose);
+        midiThread.join();
+
     } catch (const std::exception& e) {
         std::cerr << "Error while processing the MIDI file: "
                   << e.what() << std::endl;

@@ -47,6 +47,7 @@ INSTALL(TARGETS drawbar2aaxs
 )
 
 CREATE_CPP_UTIL(aaxplaymidi)
+SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
 INSTALL(TARGETS aaxplaymidi
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Applications
