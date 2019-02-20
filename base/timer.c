@@ -93,7 +93,12 @@ int msecSleep(unsigned int dt_ms)
 
 int usecSleep(unsigned int dt_us)
 {
-    DWORD res = SleepEx((DWORD)dt_us/1000, 0);
+    unsigned int dt_ms = (unsigned int)rintf((float)dt_us/1000.0f);
+    DWORD res;
+
+    timeBeginPeriod(dt_ms);
+    res = SleepEx((DWORD)dt_ms, 0);
+    timeEndPeriod(dt_ms);
     return (res != 0) ? -1 : 0;
 }
 
