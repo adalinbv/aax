@@ -93,7 +93,7 @@ int msecSleep(unsigned int dt_ms)
 
 int usecSleep(unsigned int dt_us)
 {
-    DWORD res = SleepEx((DWORD)dt_us*1000, 0);
+    DWORD res = SleepEx((DWORD)dt_us/1000, 0);
     return (res != 0) ? -1 : 0;
 }
 
