@@ -201,7 +201,7 @@ SET(BASE_OBJS
 
 IF(WIN32)
   SET(KERNEL_LIBRARY Kernel32)
-  SET(EXTRA_LIBS "-ldriver")
+  SET(EXTRA_LIBS "-ldriver -lwinmm")
 ELSE(WIN32)
   SET(EXTRA_LIBS "-ldriver -lm")
 ENDIF(WIN32)
