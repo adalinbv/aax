@@ -59,4 +59,11 @@ if(HAVE_EBUR128)
           RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
           COMPONENT Applications
   )
+  install(CODE "
+    function(gp_resolved_file_type_override resolved_file type_var)
+       set(\${type_var} local PARENT_SCOPE)
+    endfunction()
+    include(BundleUtilities)
+    fixup_bundle(\"\${CMAKE_INSTALL_PREFIX}/${CMAKE_INSTALL_BINDIR}/aaxsstandardize\" \"\" \"\")
+" COMPONENT Applications)
 endif()
