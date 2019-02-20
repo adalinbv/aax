@@ -91,23 +91,21 @@ IF(MSVC)
 ELSE(MSVC)
     IF(MINGW)
        ADD_DEFINITIONS(-U__STRICT_ANSI__)
+       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++" CACHE STRING
+          "Flags used by MingW."
+          FORCE)
+       set(CMAKE_C_FLAGS "${C_FLAGS} -static -static-libgcc" CACHE STRING
+          "Flags used by MingW."
+          FORCE)
     ENDIF(MINGW)
  
     if (GCC OR CLANG)
       set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" CACHE STRING
           "Flags used by al build types."
           FORCE)
-      set(C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
+      set(CMAKE_C_FLAGS "${C_FLAGS} -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
 e         "Flags used by al build types."
           FORCE)
-      if (WIN32)
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -static -static-libstdc++" CACHE STRING
-          "Flags used by MingW."
-          FORCE)
-      set(C_FLAGS "${C_FLAGS} -static -static-libgcc" CACHE STRING
-          "Flags used by MingW."
-          FORCE)
-      endif (WIN32)
     endif (GCC OR CLANG)
 
     IF(X86_64)
