@@ -79,8 +79,26 @@ int msecSleep(unsigned int dt_ms)
 
 int usecSleep(unsigned int dt_us)
 {
-   DWORD res = SleepEx((DWORD)dt_us*1000, 0);
-   return (res != 0) ? -1 : 0;
+   /* Declarations */
+   LONGLONG ns = dt_us*10;
+   HANDLE timer;       /* Timer handle */
+   LARGE_INTEGER li;   /* Time defintion */
+   /* Create timer */
+   if(!(timer = CreateWaitableTimer(NULL, TRUE, NULL))) {
+      return -1;
+   }
+   /* Set timer properties */
+   li.QuadPart = -ns;
+   if(!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)) {
+      CloseHandle(timer);
+      return -1;
+   }
+   /* Start & wait for timer */
+   WaitForSingleObject(timer, INFINITE);
+   /* Clean resources */
+   CloseHandle(timer);
+   /* Slept without problems */
+   return 0;
 }
 
 unsigned int
@@ -289,36 +307,28 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
  * dt_ms == 0 is a special case which make the time-slice available for other
  * waiting processes
  */
+#include <poll.h>
+#include <unistd.h>
 int msecSleep(unsigned int dt_ms)
 {
-   static struct timespec s;
-   if (dt_ms > 0)
-   {
-      s.tv_sec = (dt_ms/1000);
-      s.tv_nsec = (dt_ms % 1000)*1000000L;
-      while(nanosleep(&s,&s)==-1 && errno == EINTR)
-         continue;
-   }
-   else
-   {
-      s.tv_sec = 0;
-      s.tv_nsec = 500000L;
-      return nanosleep(&s, 0);
-   }
-   return 0;
+    if (dt_ms > 0)
+    {
+        struct timeval delay;
+        delay.tv_sec = 0;
+        delay.tv_usec = dt_ms*1000;
+        do {
+            (void) select(0, NULL, NULL, NULL, &delay);
+        } while ((delay.tv_usec > 0) || (delay.tv_sec > 0));
+        return 0;
+    }
+    else {
+        return sleep(0);
+    }
+    return 0;
 }
 
-#include <poll.h>
 int usecSleep(unsigned int dt_us)
 {
-#if 1
-   struct timeval delay;
-   delay.tv_sec = dt_us / 1000000;
-   delay.tv_usec = dt_us % 1000000;
-   do {
-      (void) select(0, NULL, NULL, NULL, &delay);
-   } while ((delay.tv_usec > 0) || (delay.tv_sec > 0));
-#else
    static struct timespec s;
    if (dt_us > 0)
    {
@@ -327,13 +337,9 @@ int usecSleep(unsigned int dt_us)
       while(nanosleep(&s,&s)==-1 && errno == EINTR)
          continue;
    }
-   else
-   {
-      s.tv_sec = 0;
-      s.tv_nsec = 500000L;
-      return nanosleep(&s, 0);
+   else {
+      sleep(0);
    }
-#endif
    return 0;
 }
 
