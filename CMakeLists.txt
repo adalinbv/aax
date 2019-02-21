@@ -143,7 +143,6 @@ find_package(EBUR128 COMPONENTS ebur128)
 
 # Add definitions, compiler switches, etc.
 INCLUDE_DIRECTORIES("${aax-utils_SOURCE_DIR}"
-    base
     include
     ${AAX_INCLUDE_DIR}
     ${RMALLOC_INCLUDE_DIR}
@@ -202,6 +201,7 @@ SET(BASE_OBJS
 IF(WIN32)
   SET(KERNEL_LIBRARY Kernel32)
   SET(EXTRA_LIBS "-ldriver -lwinmm")
+  INCLUDE_DIRECTORIES(base)
 ELSE(WIN32)
   SET(EXTRA_LIBS "-ldriver -lm")
 ENDIF(WIN32)
