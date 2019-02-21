@@ -26,41 +26,43 @@ ENDFUNCTION()
 
 
 CREATE_UTIL(aaxinfo)
-INSTALL(TARGETS aaxinfo
+install(TARGETS aaxinfo
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Applications
 )
 CREATE_UTIL(aaxplay)
-INSTALL(TARGETS aaxplay
+install(TARGETS aaxplay
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Applications
 )
 CREATE_UTIL(aaxcvt)
-INSTALL(TARGETS aaxcvt
+install(TARGETS aaxcvt
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Applications
 )
 CREATE_UTIL(drawbar2aaxs)
-INSTALL(TARGETS drawbar2aaxs
+install(TARGETS drawbar2aaxs
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Applications
 )
 
 CREATE_CPP_UTIL(aaxplaymidi)
-SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-INSTALL(TARGETS aaxplaymidi
+if (GCC OR CLANG)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
+endif(GCC OR CLANG)
+install(TARGETS aaxplaymidi
         RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
         COMPONENT Applications
 )
 
 if(HAVE_EBUR128)
-  SET(EXTRA_LIBS "${EXTRA_LIBS} \"${EBUR128_LIBRARY}\"")
   CREATE_UTIL(aaxsstandardize)
-  INSTALL(TARGETS aaxsstandardize
+  target_link_libraries(aaxsstandardize "${EBUR128_LIBRARY}")
+  install(TARGETS aaxsstandardize
           RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}"
           COMPONENT Applications
   )
-  INSTALL(FILES "${EBUR128_LIBRARY}"
+  install(FILES "${EBUR128_LIBRARY}"
 	  DESTINATION "${CMAKE_INSTALL_BINDIR}"
           COMPONENT Applications)
 endif()
