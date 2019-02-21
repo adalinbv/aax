@@ -353,12 +353,26 @@ namespace this_thread
         using namespace std::chrono;
         using rep = milliseconds::rep;
         rep ms = duration_cast<milliseconds>(sleep_duration).count();
+        static UINT wTimerRes = 10;
+        static TIMECAPS tc;
+        if (wTimerRes == 0) {
+            if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) == TIMERR_NOERROR) {
+                wTimerRes = min(max(tc.wPeriodMin, 10, tc.wPeriodMax);
+            }
+        }
+        if (wTimerRes != 0) {
+            wTimerRes = min(max(tc.wPeriodMin, static_cast<DWORD>(sleepTime)), tc.wPeriodMax);
+            timeBeginPeriod(wTimerRes);
+        }
         while (ms > 0)
         {
             constexpr rep kMaxRep = static_cast<rep>(INFINITE - 1);
             auto sleepTime = (ms < kMaxRep) ? ms : kMaxRep;
             Sleep(static_cast<DWORD>(sleepTime));
             ms -= sleepTime;
+        }
+        if (wTimerRes != 0) {
+            timeEndPeriod(wTimerRes);
         }
     }
     template <class Clock, class Duration>
