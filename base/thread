@@ -24,6 +24,8 @@
 #error A C++11 compiler is required!
 #endif
 
+#include <base/timer.h>
+
 //  Use the standard classes for std::, if available.
 #include <thread>
 
@@ -37,6 +39,8 @@
 #include <memory>       //  For std::unique_ptr
 #include <ostream>      //  Stream output for thread ids.
 #include <utility>      //  For std::swap, std::forward
+#include <algorithm>	//  For std::min, std::max
+using namespace std;
 
 //  For the invoke implementation only:
 #include <type_traits>  //  For std::result_of, etc.
@@ -352,27 +356,13 @@ namespace this_thread
     {
         using namespace std::chrono;
         using rep = milliseconds::rep;
-        rep ms = duration_cast<milliseconds>(sleep_duration).count();
-        static UINT wTimerRes = 10;
-        static TIMECAPS tc;
-        if (wTimerRes == 0) {
-            if (timeGetDevCaps(&tc, sizeof(TIMECAPS)) == TIMERR_NOERROR) {
-                wTimerRes = min(max(tc.wPeriodMin, 10, tc.wPeriodMax);
-            }
-        }
-        if (wTimerRes != 0) {
-            wTimerRes = min(max(tc.wPeriodMin, static_cast<DWORD>(sleepTime)), tc.wPeriodMax);
-            timeBeginPeriod(wTimerRes);
-        }
-        while (ms > 0)
+        rep us = duration_cast<microseconds>(sleep_duration).count();
+        while (us > 0)
         {
             constexpr rep kMaxRep = static_cast<rep>(INFINITE - 1);
-            auto sleepTime = (ms < kMaxRep) ? ms : kMaxRep;
-            Sleep(static_cast<DWORD>(sleepTime));
-            ms -= sleepTime;
-        }
-        if (wTimerRes != 0) {
-            timeEndPeriod(wTimerRes);
+            auto sleepTime = (us < kMaxRep) ? us : kMaxRep;
+            usecSleep(static_cast<DWORD>(sleepTime));
+            us -= sleepTime;
         }
     }
     template <class Clock, class Duration>
