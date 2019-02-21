@@ -76,6 +76,19 @@ help()
     exit(-1);
 }
 
+typedef std::chrono::high_resolution_clock hr_clock;
+template <typename T>
+using duration = std::chrono::duration<T>;
+
+static void sleep_for(float dt)
+{
+    static constexpr duration<float> MinSleepDuration(0);
+    hr_clock::time_point start = hr_clock::now();
+    while (duration<float>(hr_clock::now() - start).count() < dt) {
+        std::this_thread::sleep_for(MinSleepDuration);
+    }
+}
+
 void play(char *devname, char *infile, bool verbose)
 {
     aax::MIDIFile midi(devname, infile);
@@ -109,7 +122,7 @@ void play(char *devname, char *infile, bool verbose)
                 wait_us = wait_parts*midi.get_uspp();
                 sleep_us = wait_us - dt_us;
                 if (sleep_us > 0) {
-                   std::this_thread::sleep_for(std::chrono::microseconds(sleep_us));
+                   sleep_for(sleep_us*1e-6f);
                 }
 
                 gettimeofday(&now, NULL);

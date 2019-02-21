@@ -91,15 +91,30 @@ int msecSleep(unsigned int dt_ms)
     return (res != 0) ? -1 : 0;
 }
 
+// https://gist.github.com/Youka/4153f12cf2e17a77314c
+/* Windows sleep in 100ns units */
 int usecSleep(unsigned int dt_us)
 {
-    unsigned int dt_ms = (unsigned int)rintf((float)dt_us/1000.0f);
-    DWORD res;
-
-    timeBeginPeriod(dt_ms);
-    res = SleepEx((DWORD)dt_ms, 0);
-    timeEndPeriod(dt_ms);
-    return (res != 0) ? -1 : 0;
+    /* Declarations */
+    LONGLONG ns = dt_us*10;
+    HANDLE timer;	/* Timer handle */
+    LARGE_INTEGER li;	/* Time defintion */
+    /* Create timer */
+    if(!(timer = CreateWaitableTimer(NULL, TRUE, NULL))) {
+    	return -1;
+    }
+    /* Set timer properties */
+    li.QuadPart = -ns;
+    if(!SetWaitableTimer(timer, &li, 0, NULL, NULL, FALSE)) {
+    	CloseHandle(timer);
+    	return -1;
+    }
+    /* Start & wait for timer */
+    WaitForSingleObject(timer, INFINITE);
+    /* Clean resources */
+    CloseHandle(timer);
+    /* Slept without problems */
+    return 0;
 }
 
 /* end of highres timing code */
