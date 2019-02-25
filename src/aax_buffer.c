@@ -1373,8 +1373,15 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       float spread = 0;
       int b, voices = 1;
       limitType limiter;
+      char *env;
 
-      limiter = xmlAttributeGetInt(xsid, "mode");
+      env = getenv("AAX_INSTRUMENT_MODE");
+      if (env && !_aax_getbool(env)) {
+         limiter = xmlAttributeGetInt(xsid, "mode");
+      } else {
+         limiter = atoi(env);
+      }
+
       if (xmlAttributeExists(xsid, "bits"))
       {
          bits = xmlAttributeGetInt(xsid, "bits");
