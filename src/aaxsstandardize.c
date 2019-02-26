@@ -183,13 +183,29 @@ void fill_info(struct info_t *info, void *xid)
     }
 }
 
-void print_info(struct info_t *info, FILE *output)
+void print_info(struct info_t *info, FILE *output, char commons)
 {
+    struct tm* tm_info;
+    time_t timer;
+    char year[5];
+
     fprintf(output, " <info");
     if (info->name) fprintf(output, " name=\"%s\"", info->name);
     if (info->bank >= 0) fprintf(output, " bank=\"%i\"", info->bank);
     if (info->program >= 0) fprintf(output, " program=\"%i\"", info->program);
     fprintf(output, ">\n");
+
+    if (commons) {
+        fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
+    } else {
+        fprintf(output, "  <license type=\"Proprietary/Commercial\"/>\n");
+    }
+
+    time(&timer);
+    tm_info = localtime(&timer);
+    strftime(year, 5, "%Y", tm_info);
+    fprintf(output, "  <copyright from=\"2017\" to=\"%s\" by=\"Erik Hofman\"/>\n", year);
+    fprintf(output, "  <copyright from=\"2017\" to=\"%s\" by=\"Adalin B.V.\"/>\n", year);
 
     if (info->note.polyphony)
     {
@@ -755,7 +771,7 @@ void print_aax(struct aax_t *aax, const char *outfile, char commons, char tmp)
     fprintf(output, "-->\n\n");
 
     fprintf(output, "<aeonwave>\n\n");
-    print_info(&aax->info, output);
+    print_info(&aax->info, output, commons);
     print_sound(&aax->sound, &aax->info, output, tmp);
     print_object(&aax->emitter, EMITTER, &aax->info, output);
     print_object(&aax->audioframe, FRAME, &aax->info, output);
