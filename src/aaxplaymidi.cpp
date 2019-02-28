@@ -76,16 +76,23 @@ help()
     exit(-1);
 }
 
-typedef std::chrono::high_resolution_clock hr_clock;
-template <typename T>
-using duration = std::chrono::duration<T>;
-
 static void sleep_for(float dt)
 {
-    static constexpr duration<float> MinSleepDuration(0);
-    hr_clock::time_point start = hr_clock::now();
-    while (duration<float>(hr_clock::now() - start).count() < dt) {
-        std::this_thread::sleep_for(MinSleepDuration);
+    if (dt > 1e-6f)
+    {
+        int64_t sleep_us = dt/1e-6f;
+        std::this_thread::sleep_for(std::chrono::microseconds(sleep_us));
+    }
+    else // sub-microsecond
+    {
+        std::chrono::high_resolution_clock::time_point start;
+        std::chrono::nanoseconds min_duration;
+
+        min_duration = std::chrono::nanoseconds::zero();
+        start = std::chrono::high_resolution_clock::now();
+        while (std::chrono::duration<float>(std::chrono::high_resolution_clock::now() - start).count() < dt) {
+            std::this_thread::sleep_for(min_duration);
+        }
     }
 }
 
