@@ -168,74 +168,85 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
          ptr += bytes_avail;
          ptr -= offs;
          assert(offs >= 0);
-         assert(ptr >= buf);
 
          prot->meta_size = meta_len = *ptr * 16;
-
-         // The ICY data length extends beyond the buffer size,
-         // skip the part of the ICY data which is in the buffer now.
-         if ((size_t)ptr+meta_len >= (size_t)buf+bytes_avail)
+         if (meta_len > 0)
          {
-            ssize_t skip = (size_t)buf+bytes_avail - (size_t)ptr;
-
-            assert(skip >= 0);
-            prot->meta_size -= skip;
-            meta_len = skip;
-            break;
-         }
-         if ((size_t)ptr+meta_len >= (size_t)buf+IOBUF_THRESHOLD) {
-            break;
-         }
-
-         blen = strlen("StreamTitle=''");
-         if (meta_len > blen && !strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
-         {
-            char *artist = (char*)ptr+1 + strlen("StreamTitle='");
-            if (artist)
+            blen = strlen("StreamTitle=''");
+            if (ptr < buf || strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
             {
-               char *title = strnstr(artist, " - ", meta_len);
-               char *end = strnstr(artist, "\';", meta_len);
-               if (!end) end = strnstr(artist, "\'\0", meta_len);
-               if (title)
-               {
-                  *title = '\0';
-                  title += strlen(" - ");
-               }
-               if (end) {
-                  *end = '\0';
-               }
-
-               if (artist && end)
-               {
-                  int len = _MIN(strlen(artist)+1, MAX_ID_STRLEN);
-                  memcpy(prot->artist+1, artist, len);
-                  prot->artist[len] = '\0';
-                  prot->artist[0] = AAX_TRUE;
-               }
-               else if (prot->artist[1] != '\0')
-               {
-                  prot->artist[1] = '\0';
-                  prot->artist[0] = AAX_TRUE;
-               }
-
-               if (title && end)
-               {
-                  int len = _MIN(strlen(title)+1, MAX_ID_STRLEN);
-                  memcpy(prot->title+1, title, len);
-                  prot->title[len] = '\0';
-                  prot->title[0] = AAX_TRUE;
-               }
-               else if (prot->title[1] != '\0')
-               {
-                  prot->title[1] = '\0';
-                  prot->title[0] = AAX_TRUE;
-               }
-               prot->meta_size -= meta_len;
-               prot->metadata_changed = AAX_TRUE;
+               // In case of a mangled stream the ICY data might not be where
+               // we expect it. Search the complete buffer for the StreamTitle
+               // in this case, until it is found and reset the meta_pos
+               ptr =(uint8_t*)strnstr((char*)buf, "StreamTitle='", bytes_avail);
+               if (!ptr || ptr == buf) break;
+               ptr--;
             }
-         }
 
-         meta_len++;     // add the slen-byte itself
+            // The ICY data length extends beyond the buffer size,
+            // skip the part of the ICY data which is in the buffer now.
+            if ((size_t)ptr+meta_len >= (size_t)buf+bytes_avail)
+            {
+               ssize_t skip = (size_t)buf+bytes_avail - (size_t)ptr;
+
+               assert(skip >= 0);
+               prot->meta_size -= skip;
+               meta_len = skip;
+               break;
+            }
+            if ((size_t)ptr+meta_len >= (size_t)buf+IOBUF_THRESHOLD) {
+               break;
+            }
+
+            if (meta_len > blen && !strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
+            {
+               char *artist = (char*)ptr+1 + strlen("StreamTitle='");
+               if (artist)
+               {
+                  char *title = strnstr(artist, " - ", meta_len);
+                  char *end = strnstr(artist, "\';", meta_len);
+                  if (!end) end = strnstr(artist, "\'\0", meta_len);
+                  if (title)
+                  {
+                     *title = '\0';
+                     title += strlen(" - ");
+                  }
+                  if (end) {
+                     *end = '\0';
+                  }
+
+                  if (artist && end)
+                  {
+                     int len = _MIN(strlen(artist)+1, MAX_ID_STRLEN);
+                     memcpy(prot->artist+1, artist, len);
+                     prot->artist[len] = '\0';
+                     prot->artist[0] = AAX_TRUE;
+                  }
+                  else if (prot->artist[1] != '\0')
+                  {
+                     prot->artist[1] = '\0';
+                     prot->artist[0] = AAX_TRUE;
+                  }
+
+                  if (title && end)
+                  {
+                     int len = _MIN(strlen(title)+1, MAX_ID_STRLEN);
+                     memcpy(prot->title+1, title, len);
+                     prot->title[len] = '\0';
+                     prot->title[0] = AAX_TRUE;
+                  }
+                  else if (prot->title[1] != '\0')
+                  {
+                     prot->title[1] = '\0';
+                     prot->title[0] = AAX_TRUE;
+                  }
+                  prot->meta_size -= meta_len;
+                  prot->metadata_changed = AAX_TRUE;
+               }
+            }
+         } // if (meta_len > 0)
+
+         meta_len++;     // add the meta_len-byte itself
          prot->meta_pos -= (prot->meta_interval+meta_len);
 
          /* move the rest of the buffer meta_len-bytes back */
@@ -245,12 +256,11 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
          blen -= (ptr - buf);
          assert(blen >= 0);
 
-// TODO: Could lead to a buffer overflow
          assert(blen <= bytes_avail);
          if (blen < bytes_avail) {
             memmove(ptr, ptr+meta_len, blen);
          }
-      }
+      } // while (prot->meta_pos >= prot->meta_interval)
    }
    return meta_len;
 }
