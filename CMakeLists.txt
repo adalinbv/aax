@@ -149,6 +149,7 @@ if(WERROR)
 endif()
 
 set(C_FLAGS "${CMAKE_C_FLAGS}")
+set(CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 if(RELEASE)
   set(C_FLAGS "${C_FLAGS} -DRELEASE=1")
 endif(RELEASE)
@@ -215,6 +216,11 @@ if(MSVC)
   set(CMAKE_C_FLAGS_RELWITHDEBINFO "/LD /MD /Zi /DNDEBUG ${SPEED_OPTIMIZATIONS}")
   set(CMAKE_C_FLAGS_MINSIZEREL "/LD /MD /DNDEBUG ${SIZE_OPTIMIZATIONS}")
 
+  set(CMAKE_CXX_FLAGS_DEBUG "/LDd /MDd /Zi /D_DEBUG ${MIN_OPTIMIZATIONS}")
+  set(CMAKE_CXX_FLAGS_RELEASE "/LD /MD /Zi /D NDEBUG ${SPEED_OPTIMIZATIONS}")
+  set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "/LD /MD /Zi /DNDEBUG ${SPEED_OPTIMIZATIONS}")
+  set(CMAKE_CXX_FLAGS_MINSIZEREL "/LD /MD /DNDEBUG ${SIZE_OPTIMIZATIONS}")
+
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
 
@@ -266,7 +272,7 @@ else(MSVC)
    endif(CLANG)
 
    if (GCC OR CLANG)
-     set(CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -std=c++11" CACHE STRING
+     set(CXX_FLAGS "${CXX_FLAGS} -g -std=c++11" CACHE STRING
          "Flags used by al build types."
          FORCE)
      set(C_FLAGS "${C_FLAGS} -g -Werror=format-security -std=c99 -Wall -fvisibility=hidden -funroll-loops" CACHE STRING
@@ -284,6 +290,19 @@ else(MSVC)
              CACHE STRING "Flags used by the compiler during release builds"
             FORCE)
      set(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
+         "Flags used by the compiler during debug builds."
+         FORCE)
+
+     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+         "Flags used by the compiler during Release with Debug Info builds."
+         FORCE)
+     set(CMAKE_CXX_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+         "Flags used by the compiler during release minsize builds."
+         FORCE)
+     set(CMAKE_CXX_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+             CACHE STRING "Flags used by the compiler during release builds"
+            FORCE)
+     set(CMAKE_CXX_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
          "Flags used by the compiler during debug builds."
          FORCE)
 
