@@ -308,38 +308,24 @@ _aaxTimerWait(_aaxTimer* tm, void* mutex)
  * waiting processes
  */
 #include <poll.h>
-#include <unistd.h>
 int msecSleep(unsigned int dt_ms)
 {
-    if (dt_ms > 0)
-    {
-        struct timeval delay;
-        delay.tv_sec = 0;
-        delay.tv_usec = dt_ms*1000;
-        do {
-            (void) select(0, NULL, NULL, NULL, &delay);
-        } while ((delay.tv_usec > 0) || (delay.tv_sec > 0));
-        return 0;
-    }
-    else {
-        return sleep(0);
-    }
-    return 0;
+   struct timeval delay;
+   delay.tv_sec = 0;
+   delay.tv_usec = dt_ms*1000;
+   do {
+      (void) select(0, NULL, NULL, NULL, &delay);
+   } while ((delay.tv_usec > 0) || (delay.tv_sec > 0));
+   return 0;
 }
 
 int usecSleep(unsigned int dt_us)
 {
    static struct timespec s;
-   if (dt_us > 0)
-   {
-      s.tv_sec = (dt_us/1000000);
-      s.tv_nsec = (dt_us % 1000000)*1000L;
-      while(nanosleep(&s,&s)==-1 && errno == EINTR)
-         continue;
-   }
-   else {
-      sleep(0);
-   }
+   s.tv_sec = (dt_us/1000000);
+   s.tv_nsec = (dt_us % 1000000)*1000L;
+   while(nanosleep(&s,&s)==-1 && errno == EINTR)
+      continue;
    return 0;
 }
 
