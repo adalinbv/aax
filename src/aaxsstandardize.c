@@ -204,8 +204,8 @@ void print_info(struct info_t *info, FILE *output, char commons)
     time(&timer);
     tm_info = localtime(&timer);
     strftime(year, 5, "%Y", tm_info);
-    fprintf(output, "  <copyright from=\"2017\" to=\"%s\" by=\"Erik Hofman\"/>\n", year);
-    fprintf(output, "  <copyright from=\"2017\" to=\"%s\" by=\"Adalin B.V.\"/>\n", year);
+    fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Erik Hofman\"/>\n", year);
+    fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Adalin B.V.\"/>\n", year);
 
     if (info->note.polyphony)
     {
