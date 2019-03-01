@@ -561,8 +561,16 @@ int main(int argc, char **argv)
         }
         else
         {
-            res = aaxMixerDeregisterSensor(config, record);
-            testForState(res, "aaxMixerDeregisterSensor");
+            if (record)
+            {
+                res = aaxMixerDeregisterSensor(config, record);
+                testForState(res, "aaxMixerDeregisterSensor");
+            }
+            else
+            {
+                res = aaxMixerDeregisterEmitter(config, emitter);
+                testForState(res, "aaxMixerDeregisterEmitter");
+            }
         }
     }
     else {
