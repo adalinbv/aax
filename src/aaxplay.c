@@ -35,6 +35,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h>
 #include <math.h>
 
@@ -112,6 +113,8 @@ int main(int argc, char **argv)
     char *devname, *idevname;
     char ibuf[256], obuf[256];
     char *infile, *outfile;
+    aaxEmitter emitter = NULL;
+    aaxBuffer buffer = NULL;
     aaxConfig config = NULL;
     aaxConfig record = NULL;
     aaxConfig file = NULL;
@@ -136,8 +139,11 @@ int main(int argc, char **argv)
     {
        if (infile)
        {
-           snprintf(ibuf, 256, "AeonWave on Audio Files: %s", infile);
-           idevname = ibuf;
+           if (!strstr(infile+strlen(infile)-5, ".aaxs"))
+           {
+               snprintf(ibuf, 256, "AeonWave on Audio Files: %s", infile);
+               idevname = ibuf;
+           }
        }
        else {
           help();
@@ -150,11 +156,17 @@ int main(int argc, char **argv)
 
     if (config)
     {
-        record = aaxDriverOpenByName(idevname, AAX_MODE_READ);
-        if (!record)
+        if (idevname)
         {
-            printf("File not found: %s\n", infile);
-            exit(-1);
+            record = aaxDriverOpenByName(idevname, AAX_MODE_READ);
+            if (!record)
+            {
+                printf("File not found: %s\n", infile);
+                exit(-1);
+            }
+        }
+        else {
+            buffer = bufferFromFile(config, infile);
         }
     }
 
@@ -168,7 +180,7 @@ int main(int argc, char **argv)
         file = NULL;
     }
 
-    if (config && record && (rv >= 0))
+    if (config && (record || buffer) && (rv >= 0))
     {
         char batch = getCommandLineOption(argc, argv, "-b") ||
                      getCommandLineOption(argc, argv, "--batch");
@@ -184,6 +196,7 @@ int main(int argc, char **argv)
 //      aaxFilter filter;
         char tstr[80];
         int state;
+        float dt;
 
         if (batch && !aaxMixerGetSetup(config, AAX_BATCHED_MODE)) {
             printf("Warning: Batched mode not supported for this backend\n");
@@ -259,13 +272,34 @@ int main(int argc, char **argv)
 #endif
 
             /** sensor */
-            res = aaxMixerRegisterSensor(config, record);
-            testForState(res, "aaxMixerRegisterSensor");
+            if (record)
+            {
+                res = aaxMixerRegisterSensor(config, record);
+                testForState(res, "aaxMixerRegisterSensor");
+            }
+            else
+            {
+                emitter = aaxEmitterCreate();
+                testForError(emitter, "Unable to create a new emitter");
+
+                res = aaxEmitterAddBuffer(emitter, buffer);
+                testForState(res, "aaxEmitterAddBuffer");
+
+                res = aaxMixerRegisterEmitter(config, emitter);
+                testForState(res, "aaxMixerRegisterEmitter");
+
+                res = aaxEmitterSetState(emitter, AAX_PLAYING);
+                testForState(res, "aaxEmitterStart");
+            }
         }
 
         if (pitch != 1.0f)
         {
-            effect = aaxMixerGetEffect(record, AAX_DYNAMIC_PITCH_EFFECT);
+            if (record) {
+                effect = aaxMixerGetEffect(record, AAX_DYNAMIC_PITCH_EFFECT);
+            } else {
+                effect = aaxEmitterGetEffect(emitter, AAX_DYNAMIC_PITCH_EFFECT);
+            }
             testForError(effect, "aaxEffectCreate");
 
             res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
@@ -275,7 +309,11 @@ int main(int argc, char **argv)
             res = aaxEffectSetState(effect, AAX_TRIANGLE_WAVE);
             testForState(res, "aaxEffectSetState");
 
-            res = aaxMixerSetEffect(record, effect);
+            if (record) {
+                res = aaxMixerSetEffect(record, effect);
+            } else {
+                res = aaxEmitterSetEffect(emitter, effect);
+            }
             testForState(res, "aaxEmitterSetEffect");
 
             res = aaxEffectDestroy(effect);
@@ -300,15 +338,20 @@ int main(int argc, char **argv)
 #endif
 
         /** must be called after aaxMixerRegisterSensor */
-        res = aaxMixerSetState(record, AAX_INITIALIZED);
-        testForState(res, "aaxMixerSetInitialize");
+        if (record)
+        {
+            res = aaxMixerSetState(record, AAX_INITIALIZED);
+            testForState(res, "aaxMixerSetInitialize");
 
-        res = aaxSensorSetState(record, AAX_CAPTURING);
-        testForState(res, "aaxSensorCaptureStart");
+            res = aaxSensorSetState(record, AAX_CAPTURING);
+            testForState(res, "aaxSensorCaptureStart");
+        }
 
-        if (verbose)
+        if (record && verbose)
         {
             unsigned int samples = aaxMixerGetSetup(record, AAX_SAMPLES_MAX);
+            const char *s;
+
             if (samples) {
               printf(" Audio format: %i Hz, %i bits/sample, %i tracks, %i samples\n",
                      aaxMixerGetSetup(record, AAX_FREQUENCY),
@@ -320,11 +363,6 @@ int main(int argc, char **argv)
                      aaxGetBitsPerSample(aaxMixerGetSetup(record, AAX_FORMAT)),
                      aaxMixerGetSetup(record, AAX_TRACKS));
            }
-        }
-
-        if (record && verbose)
-        {
-            const char *s;
 
             s = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_STRING);
             if (s) printf(" Performer: %s\n", s);
@@ -365,9 +403,13 @@ int main(int argc, char **argv)
             testForState(res, "aaxSensorCaptureStart");
         }
 
-        set_mode(1);
-        freq = (float)aaxMixerGetSetup(record, AAX_FREQUENCY);
-        max_samples = aaxMixerGetSetup(record, AAX_SAMPLES_MAX);
+        freq = 0;
+        max_samples = 0;
+        if (record)
+        {
+            freq = (float)aaxMixerGetSetup(record, AAX_FREQUENCY);
+            max_samples = aaxMixerGetSetup(record, AAX_SAMPLES_MAX);
+        }
         if (max_samples)
         {
             duration = (float)max_samples/freq;
@@ -392,22 +434,33 @@ int main(int argc, char **argv)
            snprintf(tstr, 80, "%s\r", "pos: % 5.1f (%02.0f:%02.0f:%04.1f)");
         }
 
+        dt = 0.0f;
         paused = AAX_FALSE;
+        set_mode(1);
         do
         {
             if (verbose)
             {
-                float pos = (float)aaxSensorGetOffset(record, AAX_SAMPLES)/freq;
-                const char *p, *t;
+                float pos;
 
-                p = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_UPDATE);
-                t = aaxDriverGetSetup(record, AAX_TRACK_TITLE_UPDATE);
-                if (p && t) {
-                    printf("\r\033[K Playing  : %s - %s\n", p, t);
-                } else if (p) {
-                    printf("\r\033[K Performer: %s\n", p);
-                } else if (t) {
-                    printf("\r\033[K Title    : %s\n", t);
+                if (record)
+                {
+                    const char *p, *t;
+
+                    pos = (float)aaxSensorGetOffset(record, AAX_SAMPLES)/freq;
+
+                    p = aaxDriverGetSetup(record, AAX_MUSIC_PERFORMER_UPDATE);
+                    t = aaxDriverGetSetup(record, AAX_TRACK_TITLE_UPDATE);
+                    if (p && t) {
+                        printf("\r\033[K Playing  : %s - %s\n", p, t);
+                    } else if (p) {
+                        printf("\r\033[K Performer: %s\n", p);
+                    } else if (t) {
+                        printf("\r\033[K Title    : %s\n", t);
+                    }
+                }
+                else {
+                    pos = (float)aaxEmitterGetOffsetSec(emitter);
                 }
 
                 if (duration != AAX_FPINFINITE)
@@ -463,9 +516,15 @@ int main(int argc, char **argv)
             } else {
                 msecSleep(250);
             }
-            state = aaxMixerGetState(record);
+            dt += 0.25f;
+
+            if (record) {
+                state = aaxMixerGetState(record);
+            } else {
+                state = aaxEmitterGetState(emitter);
+            }
         }
-        while (state == AAX_PLAYING);
+        while (state == AAX_PLAYING && dt < 30.0f);
         printf("\n");
         set_mode(0);
 
@@ -478,8 +537,16 @@ int main(int argc, char **argv)
             testForState(res, "aaxAudioFrameSetState");
         }
 
-        res = aaxSensorSetState(record, AAX_STOPPED);
-        testForState(res, "aaxSensorCaptureStop");
+        if (record)
+        {
+            res = aaxSensorSetState(record, AAX_STOPPED);
+            testForState(res, "aaxSensorCaptureStop");
+        }
+        else
+        {
+            res = aaxEmitterSetState(emitter, AAX_PROCESSED);
+            testForState(res, "aaxEmitterStop");
+        }
 
         if (frame)
         {
@@ -506,6 +573,11 @@ int main(int argc, char **argv)
     {
         res = aaxDriverClose(record);
         res = aaxDriverDestroy(record);
+    }
+    else
+    {
+        res = aaxEmitterDestroy(emitter);
+        res = aaxBufferDestroy(buffer);
     }
 
     if (file)
