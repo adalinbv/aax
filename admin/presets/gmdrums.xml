@@ -84,6 +84,15 @@
    <drum n="95" name="Caxixi" file="drums/caxixi"/>
   </bank>
 
+  <bank n="8">
+   <drum n="41" name="Low Floor Tom" file="drums/room/tom-floor-low"/>
+   <drum n="43" name="High Floor Tom" file="drums/room/tom-floor-high"/>
+   <drum n="45" name="Low Tom" file="drums/room/tom-low"/>
+   <drum n="47" name="Low Mid-Tom" file="drums/room/tom-mid-low"/>
+   <drum n="48" name="Hi Mid-Tom" file="drums/room/tom-mid-high"/>
+   <drum n="50" name="High Tom" file="drums/room/tom-high"/>
+  </bank>
+
   <bank n="16">
    <drum n="36" name="Bass Drum 1" file="drums/power/drum-bass1"/>
    <drum n="38" name="Acoustic Snare" file="drums/power/drum-snare-acoustic"/>
