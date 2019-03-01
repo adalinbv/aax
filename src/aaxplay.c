@@ -516,12 +516,13 @@ int main(int argc, char **argv)
             } else {
                 msecSleep(250);
             }
-            dt += 0.25f;
 
             if (record) {
                 state = aaxMixerGetState(record);
-            } else {
+            }
+            else {
                 state = aaxEmitterGetState(emitter);
+                dt += 0.25f;
             }
         }
         while (state == AAX_PLAYING && dt < 30.0f);
