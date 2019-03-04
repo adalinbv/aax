@@ -32,6 +32,7 @@
 
 #include <fstream>
 #include <iostream>
+#include <cstring>
 
 #include <limits.h>
 #include <assert.h>
@@ -356,7 +357,9 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 {
     // Omni mode: Device responds to MIDI data regardless of channel
     if (message == MIDI_NOTE_ON && velocity) {
-        channel(channel_no).play(key, velocity, pitch);
+        if (track_no < 0 || track_no == channel_no) {
+            channel(channel_no).play(key, velocity, pitch);
+        }
     }
     else
     {
@@ -940,9 +943,26 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             uint8_t c;
             switch(meta)
             {
-            case MIDI_TEXT:
-            case MIDI_COPYRIGHT:
             case MIDI_TRACK_NAME:
+            {
+                const char *tname = midi.get_track_name();
+                int slen = tname ? strlen(tname) : 0;
+                int cntr = 0;
+                CSV("%s, \"", csv_name[meta-1].c_str());
+                MESSAGE("%-10s: ", type_name[meta-1].c_str());
+                for (int i=0; i<size; ++i)
+                {
+                    c = pull_byte();
+                    MESSAGE("%c", c);
+                    CSV("%c", c);
+                    if (size == slen && c == tname[i]) cntr++;
+                }
+                if (cntr == size) midi.set_track_no(channel_no);
+                MESSAGE("\n");
+                CSV("\"\n");
+                break;
+            }
+            case MIDI_COPYRIGHT:
             case MIDI_INSTRUMENT_NAME:
                 CSV("%s, \"", csv_name[meta-1].c_str());
                 MESSAGE("%-10s: ", type_name[meta-1].c_str());
@@ -955,6 +975,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 MESSAGE("\n");
                 CSV("\"\n");
                 break;
+            case MIDI_TEXT:
             case MIDI_LYRICS:
                 midi.set_lyrics(true);
                 CSV("%s, ", csv_name[meta-1].c_str());
@@ -1400,7 +1421,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 }
 
 
-MIDIFile::MIDIFile(const char *devname, const char *filename) : MIDI(devname)
+MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
+    : MIDI(devname, tname)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     ssize_t size = file.tellg();

@@ -66,6 +66,7 @@ help()
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
+    printf("  -t, --track <name|num>\tonly play the track with this name or number\n");
     printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
@@ -96,9 +97,9 @@ static void sleep_for(float dt)
     }
 }
 
-void play(char *devname, char *infile, bool verbose)
+void play(char *devname, char *infile, bool verbose, const char *track)
 {
-    aax::MIDIFile midi(devname, infile);
+    aax::MIDIFile midi(devname, infile, track);
     if (midi)
     {
         int64_t sleep_us, dt_us;
@@ -165,7 +166,12 @@ int main(int argc, char **argv)
             verbose = true;
         }
 
-        std::thread midiThread(play, devname, infile, verbose);
+        const char *track = getCommandLineOption(argc, argv, "-t");
+        if (!track) {
+            track = getCommandLineOption(argc, argv, "--track");
+        }
+
+        std::thread midiThread(play, devname, infile, verbose, track);
         midiThread.join();
 
     } catch (const std::exception& e) {

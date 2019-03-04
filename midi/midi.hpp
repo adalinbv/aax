@@ -32,6 +32,7 @@
 #ifndef __AAX_MIDI
 #define __AAX_MIDI
 
+#include <cstdlib>
 #include <stdexcept>
 #include <vector>
 #include <map>
@@ -261,11 +262,15 @@ class MIDIChannel;
 class MIDI : public AeonWave
 {
 public:
-    MIDI(const char* n) : AeonWave(n) {
+    MIDI(const char* n, const char *tname = nullptr)
+        : AeonWave(n), track_name(tname)  {
         if (*this) {
             path = AeonWave::info(AAX_SHARED_DATA_DIR);
         } else {
             throw(std::runtime_error("Unable to open device "+std::string(n)));
+        }
+        if (track_name) {
+            track_no = atoi(track_name)-1;
         }
     }
 
@@ -284,6 +289,10 @@ public:
     inline void set_file_path(std::string p) {
         set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
     }
+
+    inline const char* get_track_name() { return track_name; }
+    inline void set_track_no(int16_t t) { track_no = t-1; }
+    inline int16_t get_track_no() { return track_no; }
 
     void read_instruments();
 
@@ -334,6 +343,7 @@ private:
     std::map<uint8_t,std::map<uint16_t,std::string>> drums;
     std::map<uint8_t,std::map<uint16_t,std::string>> instruments;
 
+    const char* track_name;
     std::string empty_str = "";
     std::string instr = "gmmidi.xml";
     std::string drum = "gmdrums.xml";
@@ -344,6 +354,7 @@ private:
     uint32_t uSPP = 500000/24;
     uint16_t format = 0;
     uint16_t PPQN = 24;
+    int16_t track_no = -1;
 
     uint8_t mode = MIDI_MODE0;
     bool initialize = false;
@@ -443,6 +454,7 @@ private:
     uint8_t channel_no = 0;
     uint8_t program_no = 0;
     uint16_t bank_no = 0;
+    int16_t track_no = -1;
 
     uint8_t previous = 0;
     uint32_t wait_parts = 0;
@@ -471,7 +483,7 @@ class MIDIFile : public MIDI
 public:
     MIDIFile(const char *filename) : MIDIFile(nullptr, filename) {}
 
-    MIDIFile(const char *devname, const char *filename);
+    MIDIFile(const char *devname, const char *filename, const char *track=nullptr);
 
     explicit MIDIFile(std::string& devname, std::string& filename)
        :  MIDIFile(devname.c_str(), filename.c_str()) {}
