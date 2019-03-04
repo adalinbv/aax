@@ -314,14 +314,21 @@ _aaxDriverBackendSetConfigSettings(_intBuffers *bs, char** devname, _aaxConfig *
 }
 
 void
-_aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *config, UNUSED(const char *path), int m)
+_aaxDriverBackendReadConfigSettings(void *xid, char **devname, _aaxConfig *config, char **path, int m)
 {
    void *xcid = xmlNodeGet(xid, "/configuration");
+
+   assert(devname);
+   assert(config);
 
    if (xcid != NULL && config != NULL)
    {
       unsigned int n, num;
       void *xoid, *xiid;
+
+      if (path) {
+         *path = xmlNodeGetString(xcid, "data-dir");
+      }
 
       if (!m)
       {

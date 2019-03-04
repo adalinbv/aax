@@ -1045,8 +1045,14 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             if (xmlNodeTest(xid, "/configuration"))
             {
                int m = (mode > 0) ? 1 : 0;
+               char *data_dir;
                _aaxDriverBackendReadConfigSettings(xid, handle->devname, config,
-                                                   path, m);
+                                                   &data_dir, m);
+               if (data_dir)
+               {
+                  free(handle->data_dir);
+                  handle->data_dir = data_dir;
+               }
             }
             else {
                _AAX_SYSLOG("Invalid system configuration file.");
@@ -1066,8 +1072,14 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
             if (xmlNodeTest(xid, "/configuration"))
             {
                int m = (mode > 0) ? 1 : 0;
+                char *data_dir;
                _aaxDriverBackendReadConfigSettings(xid, handle->devname,
-                                                   config, path, m);
+                                                   config, &data_dir, m);
+               if (data_dir)
+               {
+                  free(handle->data_dir);
+                  handle->data_dir = data_dir;
+               }
             }
             else {
                _AAX_SYSLOG("Invalid user configuration file.");
