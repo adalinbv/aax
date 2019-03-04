@@ -13,28 +13,29 @@
 <aeonwave>
 
  <info name="Timpani A#1" bank="48" program="47">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.02" frequency="117" duration="0.2">
+ <sound gain="1.85" frequency="117" duration="0.2">
   <waveform src="pink-noise" pitch="0.11"/>
-  <waveform src="sine" processing="add" ratio="0.9"/>
+  <waveform src="square" processing="add" ratio="0.3"/>
   <waveform src="sine" processing="add" ratio="0.45" pitch="1.7"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="2.8"/>
-  <waveform src="sine" processing="add" ratio="0.1" pitch="3.9"/>
-  <waveform src="sine" processing="add" ratio="0.1" pitch="5.4"/>
  </sound>
 
  <emitter looping="true" pan="-0.47">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0" auto="0.55">2.9</param>
+    <param n="0" auto="0.6">3.16</param>
     <param n="1">0.03</param>
-    <param n="2" auto="0.25">2.2</param>
+    <param n="2" auto="0.273">2.4</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.25">2.35</param>
+    <param n="0" auto="0.273">2.56</param>
     <param n="1" auto="1.0">2.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -56,6 +57,15 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <filter type="frequency" src="36db">
+   <slot n="0">
+    <param n="0">880.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

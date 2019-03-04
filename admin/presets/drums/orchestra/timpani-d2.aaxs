@@ -13,16 +13,17 @@
 <aeonwave>
 
  <info name="Timpani D2" bank="48" program="51">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
  <sound gain="1.99" frequency="147" duration="0.2">
   <waveform src="pink-noise" pitch="0.11"/>
-  <waveform src="sine" processing="add" ratio="0.9"/>
+  <waveform src="square" processing="add" ratio="0.3"/>
   <waveform src="sine" processing="add" ratio="0.45" pitch="1.7"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="2.8"/>
-  <waveform src="sine" processing="add" ratio="0.1" pitch="3.9"/>
-  <waveform src="sine" processing="add" ratio="0.1" pitch="5.4"/>
  </sound>
 
  <emitter looping="true" pan="-0.47">
@@ -56,6 +57,15 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <filter type="frequency" src="36db">
+   <slot n="0">
+    <param n="0">880.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>
