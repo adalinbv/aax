@@ -381,7 +381,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 {
     // Omni mode: Device responds to MIDI data regardless of channel
     if (message == MIDI_NOTE_ON && velocity) {
-        if (is_track_active(channel_no)) {
+        if (is_track_active(channel_no+1)) {
             channel(channel_no).play(key, velocity, pitch);
         }
     }
