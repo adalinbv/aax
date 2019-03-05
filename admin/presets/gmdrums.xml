@@ -104,6 +104,19 @@
    <drum n="50" name="High Tom" file="drums/power/tom-high"/>
   </bank>
 
+  <bank n="24">
+   <drum n="36" name="Bass Drum 1" file="drums/electronic/drum-bass1"/>
+   <drum n="38" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
+   <drum n="40" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
+   <drum n="41" name="Low Floor Tom" file="drums/electronic/tom-floor-low"/>
+   <drum n="43" name="High Floor Tom" file="drums/electronic/tom-floor-high"/>
+   <drum n="45" name="Low Tom" file="drums/electronic/tom-low"/>
+   <drum n="47" name="Low Mid-Tom" file="drums/electronic/tom-mid-low"/>
+   <drum n="48" name="Hi Mid-Tom" file="drums/electronic/tom-mid-high"/>
+   <drum n="50" name="High Tom" file="drums/electronic/tom-high"/>
+   <drum n="52" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
+  </bank>
+
   <bank n="32">
    <drum n="35" name="Acoustic Bass Drum" file="drums/jazz/drum-bass-acoustic"/>
    <drum n="36" name="Bass Drum 1" file="drums/jazz/drum-bass1"/>

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="High Tom" bank="0" program="50">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="1.11" frequency="146" duration="0.1">
+  <waveform src="sine" ratio="1.2"/>
+  <waveform src="sine" processing="add" ratio="0.3" pitch="0.8"/>
+  <waveform src="white-noise" processing="add" ratio="0.15"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0">0.05</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true" pan="0.47">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">1.54</param>
+    <param n="1">0.1</param>
+    <param n="2">1.18</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.592</param>
+    <param n="1">0.3</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">2.7</param>
+    <param n="1">0.01</param>
+    <param n="2">2.0</param>
+    <param n="3">0.07</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.4</param>
+    <param n="1">0.4</param>
+    <param n="2">0.7</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe/>
+
+</aeonwave>
