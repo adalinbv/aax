@@ -30,6 +30,7 @@
  */
 
 
+#include <regex>
 #include <fstream>
 #include <iostream>
 #include <cstring>
@@ -60,6 +61,29 @@
 #endif
 
 using namespace aax;
+
+MIDI::MIDI(const char* n, const char *tnames)
+        : AeonWave(n)
+{
+    if (*this) {
+        path = AeonWave::info(AAX_SHARED_DATA_DIR);
+    } else {
+        throw(std::runtime_error("Unable to open device "+std::string(n)));
+    }
+
+    if (tnames)
+    {
+        std::string s(tnames);
+        std::regex regex{R"(,+)"}; // split on a comma
+        std::sregex_token_iterator it{s.begin(), s.end(), regex, -1};
+        track_names = std::vector<std::string>{it, {}};
+
+        for(auto s : track_names) {
+            uint16_t t = atoi(s.c_str());
+            if (t) active_track.push_back(t);
+        }
+    }
+}
 
 void
 MIDI::rewind()
@@ -357,7 +381,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 {
     // Omni mode: Device responds to MIDI data regardless of channel
     if (message == MIDI_NOTE_ON && velocity) {
-        if (track_no < 0 || track_no == channel_no) {
+        if (is_track_active(channel_no)) {
             channel(channel_no).play(key, velocity, pitch);
         }
     }
@@ -945,7 +969,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
             case MIDI_TRACK_NAME:
             {
-                const char *tname = midi.get_track_name();
+                const char *tname = midi.get_track_name(channel_no);
                 int slen = tname ? strlen(tname) : 0;
                 int cntr = 0;
                 CSV("%s, \"", csv_name[meta-1].c_str());
@@ -957,7 +981,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     CSV("%c", c);
                     if (size == slen && c == tname[i]) cntr++;
                 }
-                if (cntr == size) midi.set_track_no(channel_no);
+                if (cntr == size) midi.set_track_active(channel_no);
                 MESSAGE("\n");
                 CSV("\"\n");
                 break;

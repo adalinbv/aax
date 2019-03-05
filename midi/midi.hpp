@@ -262,17 +262,7 @@ class MIDIChannel;
 class MIDI : public AeonWave
 {
 public:
-    MIDI(const char* n, const char *tname = nullptr)
-        : AeonWave(n), track_name(tname)  {
-        if (*this) {
-            path = AeonWave::info(AAX_SHARED_DATA_DIR);
-        } else {
-            throw(std::runtime_error("Unable to open device "+std::string(n)));
-        }
-        if (track_name) {
-            track_no = atoi(track_name)-1;
-        }
-    }
+    MIDI(const char* n, const char *tnames = nullptr);
 
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni, float pitch=1.0f);
 
@@ -290,9 +280,17 @@ public:
         set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
     }
 
-    inline const char* get_track_name() { return track_name; }
-    inline void set_track_no(int16_t t) { track_no = t-1; }
-    inline int16_t get_track_no() { return track_no; }
+    inline std::vector<std::string>& get_track_names() { return track_names; }
+
+    inline const char* get_track_name(uint16_t t) {
+        return (!t || track_names.size()<t) ? nullptr : track_names[t-1].c_str();
+    }
+    inline void set_track_active(uint16_t t) {
+        active_track.push_back(t);
+    }
+    inline bool is_track_active(uint16_t t) {
+        return active_track.empty() ? true : std::find(active_track.begin(), active_track.end(), t) != active_track.end();
+    }
 
     void read_instruments();
 
@@ -343,7 +341,9 @@ private:
     std::map<uint8_t,std::map<uint16_t,std::string>> drums;
     std::map<uint8_t,std::map<uint16_t,std::string>> instruments;
 
-    const char* track_name;
+    std::vector<std::string> track_names;
+    std::vector<uint16_t> active_track;
+
     std::string empty_str = "";
     std::string instr = "gmmidi.xml";
     std::string drum = "gmdrums.xml";
@@ -354,7 +354,6 @@ private:
     uint32_t uSPP = 500000/24;
     uint16_t format = 0;
     uint16_t PPQN = 24;
-    int16_t track_no = -1;
 
     uint8_t mode = MIDI_MODE0;
     bool initialize = false;
