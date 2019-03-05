@@ -973,7 +973,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 int slen = tname ? strlen(tname) : 0;
                 int cntr = 0;
                 CSV("%s, \"", csv_name[meta-1].c_str());
-                MESSAGE("%-10s: ", type_name[meta-1].c_str());
+                MESSAGE("%s % 3i : ", type_name[meta-1].c_str(), channel_no);
                 for (int i=0; i<size; ++i)
                 {
                     c = pull_byte();
