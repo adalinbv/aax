@@ -136,15 +136,18 @@ struct info_t
     int16_t bank;
     char* name;
 
+    char *license;
+    struct copyright_t
+    {
+        unsigned from, until;
+        char *by;
+    } copyright[2];
+
     struct note_t
     {
         uint8_t polyphony;
         uint8_t min, max, step;
     } note;
-
-struct position_t {
-        double x, y, z;
-    } position;
 };
 
 void fill_info(struct info_t *info, void *xid)
@@ -173,12 +176,24 @@ void fill_info(struct info_t *info, void *xid)
     }
     if (info->note.polyphony == 0) info->note.polyphony = 1;
 
-    xtid = xmlNodeGet(xid, "position");
+    xtid = xmlNodeGet(xid, "license");
     if (xtid)
     {
-        info->position.x = xmlAttributeGetDouble(xtid, "x");
-        info->position.y = xmlAttributeGetDouble(xtid, "y");
-        info->position.z = xmlAttributeGetDouble(xtid, "z");
+        unsigned int c, cnum = xmlNodeGetNum(xid, "copyright");
+        void *xcid = xmlMarkId(xtid);
+
+        for (c=0; c<cnum; c++)
+        {
+            if (c == 2) break;
+            if (xmlNodeGetPos(xid, xcid, "copyright", c) != 0)
+            {
+                info->copyright[c].from = xmlAttributeGetInt(xcid, "from");
+                info->copyright[c].until = xmlAttributeGetInt(xcid, "until");
+                info->copyright[c].by = xmlAttributeGetString(xcid, "by");
+            }
+        }
+        info->license = xmlAttributeGetString(xtid, "type");
+        xmlFree(xcid);
         xmlFree(xtid);
     }
 }
@@ -188,6 +203,7 @@ void print_info(struct info_t *info, FILE *output, char commons)
     struct tm* tm_info;
     time_t timer;
     char year[5];
+    int c, i;
 
     fprintf(output, " <info");
     if (info->name) fprintf(output, " name=\"%s\"", info->name);
@@ -195,17 +211,35 @@ void print_info(struct info_t *info, FILE *output, char commons)
     if (info->program >= 0) fprintf(output, " program=\"%i\"", info->program);
     fprintf(output, ">\n");
 
-    if (commons) {
-        fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
-    } else {
-        fprintf(output, "  <license type=\"Proprietary/Commercial\"/>\n");
+    if (info->license && strcmp(info->license, "Attribution-ShareAlike 4.0 International")) {
+        fprintf(output, "  <license type=\"%s\"/>\n", info->license);
+    }
+    else
+    {
+        if (commons) {
+            fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
+        } else {
+            fprintf(output, "  <license type=\"Proprietary/Commercial\"/>\n");
+        }
     }
 
     time(&timer);
     tm_info = localtime(&timer);
     strftime(year, 5, "%Y", tm_info);
-    fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Erik Hofman\"/>\n", year);
-    fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Adalin B.V.\"/>\n", year);
+    c = 0;
+    for (i=0; i<2; ++i)
+    {
+       if (info->copyright[i].by)
+       {
+           fprintf(output, "  <copyright from=\"%i\" until=\"%i\" by=\"%s\"/>\n", info->copyright[i].from, info->copyright[i].until, info->copyright[i].by);
+           c++;
+       }
+    }
+    if (c == 0)
+    {  
+        fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Erik Hofman\"/>\n", year);
+        fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Adalin B.V.\"/>\n", year);
+    }
 
     if (info->note.polyphony)
     {
@@ -215,21 +249,21 @@ void print_info(struct info_t *info, FILE *output, char commons)
         if (info->note.step) fprintf(output, " step=\"%i\"", info->note.step);
         fprintf(output, "/>\n");
     }
-
-    if (info->position.x || info->position.y || info->position.z)
-    {
-        fprintf(output, "  <position x=\"%s\"", format_float6(info->position.x));
-        fprintf(output, " y=\"%s\"", format_float6(info->position.y));
-        fprintf(output, " z=\"%s\"/>\n", format_float6(info->position.z));
-    };
-
     fprintf(output, " </info>\n\n");
 }
 
 void free_info(struct info_t *info)
 {
+    int i;
+
     assert(info);
-//  aaxFree(info->name);
+
+    if (info->name) aaxFree(info->name);
+    if (info->license) aaxFree(info->license);
+    for (i=0; i<2; ++i) {
+       if (info->copyright[i].by) aaxFree(info->copyright[i].by);
+    }
+
 }
 
 struct dsp_t
@@ -761,12 +795,14 @@ void print_aax(struct aax_t *aax, const char *outfile, char commons, char tmp)
     fprintf(output, " * Copyright (C) 2017-%s by Erik Hofman.\n", year);
     fprintf(output, " * Copyright (C) 2017-%s by Adalin B.V.\n", year);
     fprintf(output, " * All rights reserved.\n");
-    if (commons)
+    if ((!aax->info.license || !strcmp(aax->info.license, "Attribution-ShareAlike 4.0 International")) && commons)
     {
-        fprintf(output, " *\n");
-        fprintf(output, " * This file is part of AeonWave and covered by the\n");
-        fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
-        fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
+        {
+            fprintf(output, " *\n");
+            fprintf(output, " * This file is part of AeonWave and covered by the\n");
+            fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
+            fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
+        }
     }
     fprintf(output, "-->\n\n");
 
