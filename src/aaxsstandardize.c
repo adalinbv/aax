@@ -205,6 +205,10 @@ void print_info(struct info_t *info, FILE *output, char commons)
     char year[5];
     int c, i;
 
+    time(&timer);
+    tm_info = localtime(&timer);
+    strftime(year, 5, "%Y", tm_info);
+
     fprintf(output, " <info");
     if (info->name) fprintf(output, " name=\"%s\"", info->name);
     if (info->bank >= 0) fprintf(output, " bank=\"%i\"", info->bank);
@@ -223,15 +227,12 @@ void print_info(struct info_t *info, FILE *output, char commons)
         }
     }
 
-    time(&timer);
-    tm_info = localtime(&timer);
-    strftime(year, 5, "%Y", tm_info);
     c = 0;
     for (i=0; i<2; ++i)
     {
        if (info->copyright[i].by)
        {
-           fprintf(output, "  <copyright from=\"%i\" until=\"%i\" by=\"%s\"/>\n", info->copyright[i].from, info->copyright[i].until, info->copyright[i].by);
+           fprintf(output, "  <copyright from=\"%i\" until=\"%s\" by=\"%s\"/>\n", info->copyright[i].from, year, info->copyright[i].by);
            c++;
        }
     }
