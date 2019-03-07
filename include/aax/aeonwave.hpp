@@ -1000,7 +1000,7 @@ public:
     // Get a shared buffer from the buffer cache if it's name is already
     // in the cache. Otherwise create a new one and add it to the cache.
     // The name can be an URL or a path to a file or just a reference-id.
-    // In the case of an URL of a path the data is read automatically,
+    // In the case of an URL or a path the data is read automatically,
     // otherwise the application should add the audio-data itself.
     Buffer& buffer(std::string name, bool strict=false) {
         auto it = buffers.find(name);

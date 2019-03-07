@@ -1517,7 +1517,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       xmlFree(xsid);
    }
    else {
-      aax_buf->error = AAX_INVALID_PARAMETER;
+//    aax_buf->error = AAX_INVALID_PARAMETER;
    }
 
    return rv;
@@ -1615,7 +1615,7 @@ _bufAAXSThread(void *d)
          }
       }
       else {
-         aax_buf->error = AAX_INVALID_PARAMETER;
+//       aax_buf->error = AAX_INVALID_PARAMETER;
       }
    }
    else {
