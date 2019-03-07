@@ -804,9 +804,12 @@ new_handle()
       _aaxSetDefaultInfo(handle->info, handle);
 
       env = getenv("AAX_SHARED_DATA_DIR");
-      if (env) {
+      if (env)
+      {
+         free(handle->data_dir);
          handle->data_dir = strdup(env);
-      } else {
+      }
+      else if (!handle->data_dir) {
          handle->data_dir = systemDataFile("");
       }
       handle->timer = _aaxTimerCreate();
