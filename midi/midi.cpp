@@ -288,7 +288,7 @@ MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
         }
         while (program_no >= 0);
     }
-    LOG("Drum not found\n");
+    LOG("Drum not found (bank: %i, key: %i)\n", program_no, key_no);
     return empty_str;
 }
 
