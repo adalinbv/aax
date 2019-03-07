@@ -338,6 +338,7 @@ public:
 
 private:
     std::map<uint8_t,MIDIChannel*> channels;
+    std::map<uint8_t,std::string> frames;
     std::map<uint8_t,std::map<uint16_t,std::string>> drums;
     std::map<uint8_t,std::map<uint16_t,std::string>> instruments;
 
@@ -370,11 +371,14 @@ private:
     MIDIChannel& operator=(const MIDIChannel&) = delete;
 
 public:
-    MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, uint8_t channel, uint16_t bank, uint8_t program)
+    MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, Buffer &buffer, uint8_t channel, uint16_t bank, uint8_t program)
        : Instrument(ptr, channel == MIDI_DRUMS_CHANNEL), midi(ptr),
          channel_no(channel), bank_no(bank), program_no(program)
     {
         drum_channel = (channel == MIDI_DRUMS_CHANNEL);
+        if (drum_channel && buffer) {
+           Mixer::add(buffer);
+        }
         Mixer::set(AAX_PLAYING);
     }
 

@@ -182,8 +182,16 @@ MIDI::read_instruments()
                     if (xmlNodeGetPos(xaid, xbid, "bank", b) != 0)
                     {
                         long int bank_no = xmlAttributeGetInt(xbid, "n");
-                        unsigned int inum = xmlNodeGetNum(xbid, type);
+                        unsigned int slen, inum = xmlNodeGetNum(xbid, type);
                         void *xiid = xmlMarkId(xbid);
+
+                        slen = xmlAttributeCopyString(xbid, "file", file, 64);
+                        if (slen)
+                        {
+                            file[slen] = 0;
+                            std::string inst(file);
+                            frames.insert({bank_no,inst});
+                        }
 
                         std::map<uint16_t,std::string> bank;
                         for (unsigned int i=0; i<inum; i++)
@@ -191,7 +199,6 @@ MIDI::read_instruments()
                             if (xmlNodeGetPos(xbid, xiid, type, i) != 0)
                             {
                                 long int n = xmlAttributeGetInt(xiid, "n");
-                                unsigned int slen;
 
                                 slen = xmlAttributeCopyString(xiid, "file", file, 64);
                                 if (slen)
@@ -220,8 +227,9 @@ MIDI::read_instruments()
 
         if (i == 0)
         {
-            instruments = map;
+            instruments = std::move(map);
 
+            // next up: drums
             iname = path;
             iname.append("/");
             iname.append(drum);
@@ -230,7 +238,7 @@ MIDI::read_instruments()
             map = drums;
         }
         else {
-            drums = map;
+            drums = std::move(map);
         }
     }
 }
@@ -325,9 +333,21 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
         channels.erase(it);
     }
 
+    std::string name = "";
+    if (channel_no == MIDI_DRUMS_CHANNEL && !frames.empty())
+    {
+        auto it = frames.find(program_no);
+        if (it != frames.end()) {
+            name = it->second;
+        }
+    }
+    Buffer &buffer = AeonWave::buffer(name, true);
+    if (buffer) {
+    }
+
     try {
         auto ret = channels.insert(
-            { channel_no, new MIDIChannel(*this, path, instr, drum,
+            { channel_no, new MIDIChannel(*this, path, instr, drum, buffer,
                                           channel_no, bank_no, program_no)
             } );
         it = ret.first;
@@ -986,6 +1006,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("\"\n");
                 break;
             }
+            case MIDI_TEXT:
             case MIDI_COPYRIGHT:
             case MIDI_INSTRUMENT_NAME:
                 CSV("%s, \"", csv_name[meta-1].c_str());
@@ -999,7 +1020,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 MESSAGE("\n");
                 CSV("\"\n");
                 break;
-            case MIDI_TEXT:
             case MIDI_LYRICS:
                 midi.set_lyrics(true);
                 CSV("%s, ", csv_name[meta-1].c_str());
