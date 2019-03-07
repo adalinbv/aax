@@ -1,0 +1,39 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Claves" bank="0" program="75">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="0.55" frequency="2470" duration="0.1">
+  <waveform src="triangle"/>
+ </sound>
+
+ <emitter looping="true" pan="0.31">
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">3.67</param>
+    <param n="1">0.035</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+ </emitter>
+
+ <audioframe/>
+
+</aeonwave>

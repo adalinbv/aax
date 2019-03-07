@@ -117,6 +117,28 @@
    <drum n="52" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
   </bank>
 
+  <bank n="25">
+   <drum n="36" name="Bass Drum 1" file="drums/analog/drum-bass1"/>
+   <drum n="37" name="Side Stick" file="drums/analog/stick-side"/>
+   <drum n="38" name="Acoustic Snare" file="drums/analog/drum-snare-acoustic"/>
+   <drum n="40" name="Electric Snare" file="drums/analog/drum-snare-electric"/>
+   <drum n="41" name="Low Floor Tom" file="drums/analog/tom-floor-low"/>
+   <drum n="42" name="Closed Hi-Hat" file="drums/analog/hi-hat-closed"/>
+   <drum n="43" name="High Floor Tom" file="drums/analog/tom-floor-high"/>
+   <drum n="44" name="Pedal Hi-Hat" file="drums/analog/hi-hat-pedal"/>
+   <drum n="45" name="Low Tom" file="drums/analog/tom-low"/>
+   <drum n="46" name="Open Hi-Hat" file="drums/analog/hi-hat-open"/>
+   <drum n="47" name="Low Mid-Tom" file="drums/analog/tom-mid-low"/>
+   <drum n="48" name="Hi Mid-Tom" file="drums/analog/tom-mid-high"/>
+   <drum n="49" name="Crash Cymbal" file="drums/analog/cymbal-crash"/>
+   <drum n="50" name="High Tom" file="drums/analog/tom-high"/>
+   <drum n="56" name="Cowbell" file="drums/analog/cowbell"/>
+   <drum n="61" name="Low Bongo" file="drums/analog/bongo-low"/>
+   <drum n="62" name="Mute Hi Conga" file="drums/analog/conga-mid"/>
+   <drum n="63" name="Open Hi Conga" file="drums/analog/conga-high"/>
+   <drum n="75" name="Claves" file="drums/analog/claves"/>
+  </bank>
+
   <bank n="32">
    <drum n="35" name="Acoustic Bass Drum" file="drums/jazz/drum-bass-acoustic"/>
    <drum n="36" name="Bass Drum 1" file="drums/jazz/drum-bass1"/>
