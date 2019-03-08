@@ -97,15 +97,28 @@ static void sleep_for(float dt)
     }
 }
 
-void play(char *devname, char *infile, bool verbose, const char *track)
+void play(char *devname, char *infile, char *outfile, bool verbose, const char *track)
 {
     aax::MIDIFile midi(devname, infile, track);
     if (midi)
     {
+        aax::Sensor file;
         int64_t sleep_us, dt_us;
         uint64_t time_parts = 0;
         uint32_t wait_parts;
         struct timeval now;
+        char obuf[256];
+
+        if (outfile)
+        {
+            snprintf(obuf, 256, "AeonWave on Audio Files: %s", outfile);
+
+            file = aax::Sensor(obuf);
+            midi.add(file);
+
+            file.set(AAX_INITIALIZED);
+            file.set(AAX_PLAYING);
+        }
 
         midi.set_verbose(verbose);
         midi.initialize();
@@ -160,6 +173,8 @@ int main(int argc, char **argv)
     bool verbose = false;
     try
     {
+        char *outfile = getOutputFile(argc, argv, NULL);
+
         if (getCommandLineOption(argc, argv, "-v") ||
             getCommandLineOption(argc, argv, "--verbose"))
         {
@@ -171,7 +186,7 @@ int main(int argc, char **argv)
             track = getCommandLineOption(argc, argv, "--track");
         }
 
-        std::thread midiThread(play, devname, infile, verbose, track);
+        std::thread midiThread(play, devname, infile, outfile, verbose, track);
         midiThread.join();
 
     } catch (const std::exception& e) {
