@@ -498,6 +498,12 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
       {
          float step = env->step[stage];
 
+         if (env->state & AAX_ENVELOPE_FOLLOW) {
+             if (rv > 1.0f) {
+                step *= powf(rv, GMATH_E1);
+             }
+         }
+
          if (stopped && !env->sustain) env->value += env->step_finish;
          else env->value += step;
 

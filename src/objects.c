@@ -565,6 +565,10 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
                if (state < 10) state = 10;
                state |= AAX_RELEASE_FACTOR;
             }
+            slen = xmlAttributeCopyString(xid, "src", src, 64);
+            if (slen) {
+               state = aaxGetWaveformTypeByName(src);
+            }
          }
          else
          {
