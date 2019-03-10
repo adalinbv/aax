@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -179,6 +179,7 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
                // we expect it. Search the complete buffer for the StreamTitle
                // in this case, until it is found and reset the meta_pos
                ptr =(uint8_t*)strnstr((char*)buf, "StreamTitle='", bytes_avail);
+printf("StreamTitle= %p\n", ptr);
                if (!ptr || ptr == buf) break;
                ptr--;
             }

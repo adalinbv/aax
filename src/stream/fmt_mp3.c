@@ -121,6 +121,7 @@ typedef struct
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
+   size_t file_size;
 
    _data_t *mp3Buffer;
 
@@ -269,6 +270,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
       if (fmt->id)
       {
          handle->mode = mode;
+         handle->file_size = fsize;
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = sizeof(int16_t);
          handle->internal = audio ? AAX_FALSE : AAX_TRUE;
@@ -580,7 +582,31 @@ _mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       _detect_mp3_song_info(handle);
    }
 
-   if (ret == MP3_OK || ret == MP3_NEED_MORE)
+   if (ret == MP3_NEW_FORMAT)
+   {
+      int enc, channels;
+      long rate;
+
+      ret = pmp3_getformat(handle->id, &rate, &channels, &enc);
+      if ((ret == MP3_OK) &&
+             (1000 <= rate) && (rate <= 192000) &&
+             (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
+      {
+         handle->frequency = rate;
+         handle->no_tracks = channels;
+         handle->format = _getFormatFromMP3Format(enc);
+         handle->bits_sample = aaxGetBitsPerSample(handle->format);
+         handle->blocksize = handle->no_tracks*handle->bits_sample/8;
+
+         struct pdpm3_frameinfo info;
+         if (pdmp3_info(handle->id,&info) == MP3_OK)
+         {
+            double q = (double)rate/(info.bitrate/8.0) * handle->file_size;
+            handle->max_samples = q;
+         }
+      }
+   }
+   else if (ret == MP3_OK || ret == MP3_NEED_MORE)
    {
       unsigned char *ptr = (unsigned char*)dptr;
 
@@ -626,7 +652,31 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
       _detect_mp3_song_info(handle);
    }
 
-   if (ret == MP3_OK || ret == MP3_NEED_MORE)
+   if (ret == MP3_NEW_FORMAT)
+   {
+      int enc, channels;
+      long rate;
+
+      ret = pmp3_getformat(handle->id, &rate, &channels, &enc);
+      if ((ret == MP3_OK) &&
+             (1000 <= rate) && (rate <= 192000) &&
+             (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
+      {
+         handle->frequency = rate;
+         handle->no_tracks = channels;
+         handle->format = _getFormatFromMP3Format(enc);
+         handle->bits_sample = aaxGetBitsPerSample(handle->format);
+         handle->blocksize = handle->no_tracks*handle->bits_sample/8;
+
+         struct pdpm3_frameinfo info;
+         if (pdmp3_info(handle->id,&info) == MP3_OK)
+         {
+            double q = (double)rate/(info.bitrate/8.0) * handle->file_size;
+            handle->max_samples = q;
+         }
+      }
+   }
+   else if (ret == MP3_OK || ret == MP3_NEED_MORE)
    {
       *num = size/blocksize;
       _batch_cvt24_16_intl(dptr, buf, dptr_offs, tracks, *num);
