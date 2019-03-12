@@ -254,7 +254,7 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
    _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(s != 0);
-   assert(d != 0);
+   assert(s == d);
    assert(start < end);
    assert(data != NULL);
 
@@ -262,7 +262,7 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
    offs = effect->delay.sample_offs[track];
 
    assert(start || (offs < (ssize_t)ds));
-// if (offs >= (ssize_t)ds) offs = ds-1;
+   if (offs >= (ssize_t)ds) offs = ds-1;
 
    if (start) {
       noffs = effect->offset->noffs[track];
@@ -274,17 +274,14 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
       effect->offset->noffs[track] = noffs;
    }
 
-   assert(s == d);
 // assert(noffs >= offs);
 
    if (offs && volume > LEVEL_96DB)
    {
-      MIX_T *sptr, *dptr;
+      const MIX_T *sptr = s + start;
+      MIX_T *dptr = d + start;
       ssize_t doffs, coffs;
       size_t i, sign, step;
-
-      sptr = (MIX_T*)s + start;
-      dptr = d + start;
 
       sign = (noffs < offs) ? -1 : 1;
       doffs = labs(noffs - offs);
@@ -308,12 +305,12 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
       effect->offset->step[track] = step;
 
 //     DBG_MEMCLR(1, s-ds, ds+start, bps);
-      _aax_memcpy(sptr-ds, effect->history->history[track], ds*bps);
+      _aax_memcpy(dptr-ds, effect->history->history[track], ds*bps);
       if (i >= step)
       {
          do
          {
-            rbd->add(sptr, sptr-coffs, step, volume, 0.0f);
+            rbd->add(dptr, dptr-coffs, step, volume, 0.0f);
 
             dptr += step;
             coffs += sign;
@@ -322,12 +319,11 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
          while(i >= step);
       }
       if (i) {
-         rbd->add(sptr, sptr-coffs, i, volume, 0.0f);
+         rbd->add(dptr, dptr-coffs, i, volume, 0.0f);
       }
 
 // DBG_MEMCLR(1, effect->history->history[track], ds, bps);
       _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
-      _aax_memcpy(dptr, sptr, no_samples*bps);
       effect->offset->coffs[track] = coffs;
    }
 }
