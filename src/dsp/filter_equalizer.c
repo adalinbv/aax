@@ -38,14 +38,14 @@
 #include "dsp.h"
 #include "api.h"
 
-#define DSIZE	EQUALIZER_MAX*(sizeof(_aaxRingBufferFreqFilterData)+MEMALIGN)
+#define DSIZE	2*(sizeof(_aaxRingBufferFreqFilterData)+MEMALIGN)
 
 static void _equalizer_swap(void*, void*);
 
 static aaxFilter
 _aaxEqualizerCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, DSIZE);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
@@ -96,7 +96,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
       if (!flt_lf->freqfilter)
       {
-         size_t dsize = EQUALIZER_MAX*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN);
+         size_t dsize= 2*(sizeof(_aaxRingBufferFreqFilterHistoryData)+MEMALIGN);
          flt_lf->freqfilter = _aax_aligned_alloc(dsize);
          if (flt_lf->freqfilter) {
             memset(flt_lf->freqfilter, 0, dsize);
@@ -312,7 +312,7 @@ _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dPr
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, EQUALIZER_MAX, DSIZE);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
    {
