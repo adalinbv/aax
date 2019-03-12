@@ -371,11 +371,9 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    
    if (offs && volume > LEVEL_96DB)
    {
-      MIX_T *sptr, *dptr;
+      const MIX_T *sptr = s + start;
+      MIX_T *dptr = d + start;
       ssize_t doffs;
-
-      sptr = (MIX_T*)s + start;
-      dptr = d + start;
 
       doffs = noffs - offs;
       pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
