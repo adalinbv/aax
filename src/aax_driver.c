@@ -806,7 +806,7 @@ new_handle()
       env = getenv("AAX_SHARED_DATA_DIR");
       if (env)
       {
-         free(handle->data_dir);
+         if (handle->data_dir) free(handle->data_dir);
          handle->data_dir = strdup(env);
       }
       else if (!handle->data_dir) {
