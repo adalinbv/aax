@@ -101,7 +101,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          int t, constant;
 
          data->run = _flanging_run;
-         data->loopback = AAX_TRUE;
+         data->feedback = -1.0f;
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
@@ -279,13 +279,12 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
 
    if (offs && volume > LEVEL_96DB)
    {
-      MIX_T *sptr, *dptr, *ptr;
+      MIX_T *sptr, *dptr;
       ssize_t doffs, coffs;
       size_t i, sign, step;
 
       sptr = (MIX_T*)s + start;
       dptr = d + start;
-      ptr = dptr;
 
       sign = (noffs < offs) ? -1 : 1;
       doffs = labs(noffs - offs);
@@ -314,20 +313,21 @@ _flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch
       {
          do
          {
-            rbd->add(ptr, ptr-coffs, step, volume, 0.0f);
+            rbd->add(sptr, sptr-coffs, step, volume, 0.0f);
 
-            ptr += step;
+            dptr += step;
             coffs += sign;
             i -= step;
          }
          while(i >= step);
       }
       if (i) {
-         rbd->add(ptr, ptr-coffs, i, volume, 0.0f);
+         rbd->add(sptr, sptr-coffs, i, volume, 0.0f);
       }
 
 // DBG_MEMCLR(1, effect->history->history[track], ds, bps);
-      _aax_memcpy(effect->history->history[track], dptr+no_samples-ds, ds*bps);
+      _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
+      _aax_memcpy(dptr, sptr, no_samples*bps);
       effect->offset->coffs[track] = coffs;
    }
 }
