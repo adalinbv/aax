@@ -24,7 +24,7 @@
  </sound>
 
  <emitter looping="true" pan="0.28">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">1.5</param>
     <param n="1">0.28</param>

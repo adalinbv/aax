@@ -19,12 +19,12 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.77" frequency="130" duration="0.1">
+ <sound gain="0.77" frequency="228" duration="0.1">
   <waveform src="sine" ratio="1.2"/>
  </sound>
 
  <emitter looping="true" pan="0.28">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">2.25</param>
     <param n="1">0.2</param>
