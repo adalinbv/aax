@@ -53,8 +53,10 @@
 
 #if defined(WIN32)
 # define TEMP_DIR		getenv("TEMP")
+# define PATH_SEPARATOR		'\\'
 #else    /* !WIN32 */
 # define TEMP_DIR		"/tmp"
+# define PATH_SEPARATOR		'/'
 #endif
 #define LEVEL_16DB		0.15848931670f
 #define LEVEL_20DB		0.1f
@@ -237,7 +239,7 @@ void print_info(struct info_t *info, FILE *output, char commons)
        }
     }
     if (c == 0)
-    {  
+    {
         fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Erik Hofman\"/>\n", year);
         fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Adalin B.V.\"/>\n", year);
     }
@@ -798,12 +800,17 @@ void print_aax(struct aax_t *aax, const char *outfile, char commons, char tmp)
     fprintf(output, " * All rights reserved.\n");
     if ((!aax->info.license || !strcmp(aax->info.license, "Attribution-ShareAlike 4.0 International")) && commons)
     {
-        {
-            fprintf(output, " *\n");
-            fprintf(output, " * This file is part of AeonWave and covered by the\n");
-            fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
-            fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
-        }
+        fprintf(output, " *\n");
+        fprintf(output, " * This file is part of AeonWave and covered by the\n");
+        fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
+        fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
+    }
+    else
+    {
+        fprintf(output, " *\n");
+        fprintf(output, " * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may\n");
+        fprintf(output, " * not be disclosed to third parties, copied or duplicated in any form, in\n");
+        fprintf(output, " * whole or in part, without the prior written permission of the author.\n");
     }
     fprintf(output, "-->\n\n");
 
@@ -882,10 +889,13 @@ int main(int argc, char **argv)
         aaxEmitter emitter;
         aaxFrame frame;
         void **data;
+        char *ptr;
         int res;
 
-        snprintf(aaxsfile, 120, "%s/%s.aaxs", TEMP_DIR, infile);
-        snprintf(tmpfile, 120, "AeonWave on Audio Files: %s/%s.wav", TEMP_DIR, infile);
+        ptr = strrchr(infile, PATH_SEPARATOR);
+        if (!ptr) ptr = infile;
+        snprintf(aaxsfile, 120, "%s/%s.aaxs", TEMP_DIR, ptr);
+        snprintf(tmpfile, 120, "AeonWave on Audio Files: %s/%s.wav", TEMP_DIR, ptr);
 
         /* mixer */
         config = aaxDriverOpenByName(tmpfile, AAX_MODE_WRITE_STEREO);
@@ -967,7 +977,7 @@ int main(int argc, char **argv)
         config = aaxDriverOpenByName("None", AAX_MODE_WRITE_STEREO);
         testForError(config, "No default audio device available.");
 
-        snprintf(tmpfile, 120, "%s/%s.wav", TEMP_DIR, infile);
+        snprintf(tmpfile, 120, "%s/%s.wav", TEMP_DIR, ptr);
         buffer = aaxBufferReadFromStream(config, tmpfile);
         testForError(buffer, "Unable to read the buffer.");
 
