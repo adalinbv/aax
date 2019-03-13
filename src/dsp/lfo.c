@@ -501,7 +501,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
 
          if (env->state & AAX_ENVELOPE_FOLLOW) {
              if (rv > 1.0f) {
-                fact = powf(rv, GMATH_E1);
+                fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);
              } else if (rv > 0.0f) {
                 fact = powf(rv, GMATH_1_E1);
              }
