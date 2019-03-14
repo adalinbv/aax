@@ -67,6 +67,7 @@ help()
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
     printf("  -t, --track <name|num>\tonly play the track with this name or number\n");
+    printf("  -b, --batched\t\t\tprocess the file in batched (high-speed) mode.\n");
     printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
@@ -97,7 +98,7 @@ static void sleep_for(float dt)
     }
 }
 
-void play(char *devname, char *infile, char *outfile, bool verbose, const char *track)
+void play(char *devname, char *infile, char *outfile, const char *track, bool verbose, bool batched)
 {
     aax::MIDIFile midi(devname, infile, track);
     if (midi)
@@ -124,6 +125,11 @@ void play(char *devname, char *infile, char *outfile, bool verbose, const char *
         midi.initialize();
         midi.start();
 
+        if (batched) {
+            midi.sensor(AAX_CAPTURING);
+        }
+
+
         wait_parts = 1000;
         set_mode(1);
 
@@ -142,8 +148,19 @@ void play(char *devname, char *infile, char *outfile, bool verbose, const char *
 
                 wait_us = wait_parts*midi.get_uspp();
                 sleep_us = wait_us - dt_us;
-                if (sleep_us > 0) {
-                   sleep_for(sleep_us*1e-6f);
+
+                if (sleep_us > 0)
+                {
+                    if (batched)
+                    {
+                        midi.sensor(AAX_UPDATE);
+                        midi.wait(sleep_us*1e-6f);
+                        midi.get_buffer();
+                    }
+                    else
+                    {
+                        sleep_for(sleep_us*1e-6f);
+                    }
                 }
 
                 gettimeofday(&now, NULL);
@@ -171,9 +188,14 @@ int main(int argc, char **argv)
     char *devname = getDeviceName(argc, argv);
     char *infile = getInputFile(argc, argv, IFILE_PATH);
     bool verbose = false;
+    bool batched = false;
     try
     {
         char *outfile = getOutputFile(argc, argv, NULL);
+        const char *track = getCommandLineOption(argc, argv, "-t");
+        if (!track) {
+            track = getCommandLineOption(argc, argv, "--track");
+        }
 
         if (getCommandLineOption(argc, argv, "-v") ||
             getCommandLineOption(argc, argv, "--verbose"))
@@ -181,12 +203,13 @@ int main(int argc, char **argv)
             verbose = true;
         }
 
-        const char *track = getCommandLineOption(argc, argv, "-t");
-        if (!track) {
-            track = getCommandLineOption(argc, argv, "--track");
+        if (getCommandLineOption(argc, argv, "-b") ||
+            getCommandLineOption(argc, argv, "--batched"))
+        {
+            batched = true;
         }
 
-        std::thread midiThread(play, devname, infile, outfile, verbose, track);
+        std::thread midiThread(play, devname, infile, outfile, track, verbose, batched);
         midiThread.join();
 
     } catch (const std::exception& e) {
