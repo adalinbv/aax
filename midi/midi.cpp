@@ -68,7 +68,11 @@ MIDI::MIDI(const char* n, const char *tnames)
     if (*this) {
         path = AeonWave::info(AAX_SHARED_DATA_DIR);
     } else {
-        throw(std::runtime_error("Unable to open device "+std::string(n)));
+        if (n) {
+            throw(std::runtime_error("Unable to open device "+std::string(n)));
+        } else {
+            throw(std::runtime_error("Unable to open the default device"));
+        }
     }
 
     if (tnames)
