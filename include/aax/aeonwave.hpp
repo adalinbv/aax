@@ -695,6 +695,9 @@ public:
     inline Buffer buffer() {
         return Buffer(aaxSensorGetBuffer(ptr));
     }
+    inline Buffer get_buffer() {
+        return Buffer(aaxSensorGetBuffer(ptr));
+    }
 
     // ** enumeration ******
     inline const char* device(unsigned d) {
