@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Scratch Pull" bank="0" program="30">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.74" frequency="77" duration="3.33">
+ <sound gain="0.73" frequency="77" duration="3.33">
   <waveform src="pink-noise" ratio="10.0" pitch="0.25"/>
   <filter type="frequency" src="12db">
    <slot n="0">
@@ -31,13 +34,13 @@
  <emitter looping="true" pan="-0.16">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.0741</param>
+    <param n="0">0.0751</param>
     <param n="1">0.08</param>
-    <param n="2">0.297</param>
+    <param n="2">0.301</param>
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
-    <param n="0">0.00741</param>
+    <param n="0">0.00751</param>
     <param n="1">0.05</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

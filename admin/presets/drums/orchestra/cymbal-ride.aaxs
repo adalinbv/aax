@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Cymbal Ride" bank="48" program="51">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.47" frequency="550" duration="0.2">
+ <sound gain="1.54" frequency="550" duration="0.2">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
   <waveform src="pink-noise" processing="add" ratio="1.2"/>
@@ -34,15 +37,15 @@
  <emitter looping="true" pan="-0.31">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.53</param>
+    <param n="0">1.85</param>
     <param n="1">0.03</param>
-    <param n="2">1.05</param>
+    <param n="2">1.26</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.825</param>
+    <param n="0">0.996</param>
     <param n="1">0.3</param>
-    <param n="2">0.589</param>
+    <param n="2">0.711</param>
     <param n="3">1.5</param>
    </slot>
   </filter>

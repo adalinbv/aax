@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Splash Cymbal" bank="0" program="55">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.49" frequency="1000" duration="0.3">
+ <sound gain="1.72" frequency="1000" duration="0.3">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" pitch="6.3"/>
   <waveform src="white-noise" processing="add" pitch="0.5" staticity="0.105"/>
@@ -34,15 +37,15 @@
  <emitter looping="true" pan="-0.16">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">1.88</param>
     <param n="1">0.02</param>
-    <param n="2">0.5</param>
+    <param n="2">0.47</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">1.7</param>
+    <param n="0">1.6</param>
     <param n="1">0.4</param>
-    <param n="2">0.8</param>
+    <param n="2">0.751</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

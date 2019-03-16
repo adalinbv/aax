@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Maracas" bank="0" program="70">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="3.93" frequency="880" duration="0.1">
+ <sound gain="4.57" frequency="880" duration="0.1">
   <waveform src="pink-noise" ratio="5.5" pitch="0.33" staticity="0.3"/>
   <filter type="frequency" src="48db">
    <slot n="0">
@@ -31,9 +34,9 @@
  <emitter looping="true" pan="-0.63">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.475</param>
+    <param n="0">0.44</param>
     <param n="1">0.03</param>
-    <param n="2">0.76</param>
+    <param n="2">0.703</param>
     <param n="3">0.43</param>
    </slot>
   </filter>

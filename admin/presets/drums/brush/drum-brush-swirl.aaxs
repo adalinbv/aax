@@ -13,6 +13,9 @@
 <aeonwave>
 
  <info name="Snare Brush Swirl" bank="40" program="40">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
@@ -31,9 +34,9 @@
  <emitter looping="true">
   <filter type="timed-gain" release-factor="2.0">
    <slot n="0">
-    <param n="0">0.33</param>
+    <param n="0">0.13</param>
     <param n="1">0.15</param>
-    <param n="2">0.897</param>
+    <param n="2">0.597</param>
     <param n="3">0.73</param>
    </slot>
   </filter>

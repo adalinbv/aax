@@ -13,6 +13,9 @@
 <aeonwave>
 
  <info name="Castanets" bank="0" program="85">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 

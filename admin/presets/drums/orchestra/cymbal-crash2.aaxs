@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Crash Cymbal 2" bank="48" program="49">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" gain="1.42" frequency="140" duration="0.2">
+ <sound mode="1" gain="1.37" frequency="140" duration="0.2">
   <waveform src="sine"/>
   <waveform src="sine" processing="modulate" ratio="0.6" pitch="9.5"/>
   <waveform src="pink-noise" processing="add" ratio="1.8" pitch="0.8"/>
@@ -34,13 +37,13 @@
  <emitter looping="true" pan="-0.47">
   <filter type="timed-gain" release-factor="1.5">
    <slot n="0">
-    <param n="0">3.83</param>
+    <param n="0">3.54</param>
     <param n="1">0.03</param>
-    <param n="2">2.97</param>
+    <param n="2">2.74</param>
     <param n="3">0.3</param>
    </slot>
    <slot n="1">
-    <param n="0">2.62</param>
+    <param n="0">2.42</param>
     <param n="1">1.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

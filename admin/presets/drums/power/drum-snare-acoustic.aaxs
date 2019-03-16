@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Acoustic Snare" bank="16" program="38">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" gain="1.27" frequency="230" duration="0.5">
+ <sound mode="1" gain="1.30" frequency="230" duration="0.5">
   <waveform src="white-noise" ratio="0.5" pitch="0.3"/>
   <waveform src="sine" processing="add" ratio="0.55"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>
@@ -33,9 +36,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.8</param>
+    <param n="0">2.17</param>
     <param n="1">0.2</param>
-    <param n="2">0.7</param>
+    <param n="2">0.842</param>
     <param n="3">0.27</param>
    </slot>
   </filter>

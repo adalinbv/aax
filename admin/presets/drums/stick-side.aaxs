@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Sidestick" bank="0" program="37">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.10" frequency="220" duration="0.1">
+ <sound gain="2.02" frequency="220" duration="0.1">
   <waveform src="white-noise" pitch="0.05"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="11.7587"/>
   <filter type="frequency" src="24db">
@@ -32,9 +35,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.406</param>
+    <param n="0">0.527</param>
     <param n="1">0.01</param>
-    <param n="2">0.366</param>
+    <param n="2">0.475</param>
     <param n="3">0.25</param>
    </slot>
   </filter>

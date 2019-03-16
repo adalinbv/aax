@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Acoustic Bass Drum" bank="0" program="35">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.61" frequency="88" duration="0.1">
+ <sound gain="1.59" frequency="88" duration="0.1">
   <waveform src="pink-noise" ratio="0.5" pitch="0.12"/>
   <waveform src="triangle" processing="add" ratio="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="0.6"/>
@@ -25,15 +28,15 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.2</param>
+    <param n="0">1.44</param>
     <param n="1">0.1</param>
-    <param n="2">1.0</param>
+    <param n="2">1.2</param>
     <param n="3">0.08</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
+    <param n="0">0.601</param>
     <param n="1">0.3</param>
-    <param n="2">0.1</param>
+    <param n="2">0.12</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

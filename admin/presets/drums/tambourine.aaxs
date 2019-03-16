@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Tambourine" bank="0" program="54">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.02" frequency="1000" duration="0.1">
+ <sound gain="1.04" frequency="1000" duration="0.1">
   <waveform src="square" pitch="3.0"/>
   <waveform src="white-noise" processing="mix" ratio="0.6" pitch="0.15"/>
   <waveform src="square" processing="modulate" pitch="6.3"/>
@@ -25,13 +28,13 @@
  <emitter looping="true" pan="-0.1">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.2</param>
+    <param n="0">1.03</param>
     <param n="1">0.03</param>
-    <param n="2">2.2</param>
+    <param n="2">1.89</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.2</param>
+    <param n="0">0.172</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

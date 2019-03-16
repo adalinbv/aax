@@ -13,6 +13,9 @@
 <aeonwave>
 
  <info name="Electric Snare" bank="0" program="40">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
@@ -33,9 +36,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.8</param>
+    <param n="0">2.14</param>
     <param n="1">0.15</param>
-    <param n="2">0.6</param>
+    <param n="2">0.713</param>
     <param n="3">0.33</param>
    </slot>
   </filter>

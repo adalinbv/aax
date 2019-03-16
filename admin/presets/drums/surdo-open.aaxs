@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Surdo (Open)" bank="0" program="87">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.65" frequency="220" duration="0.1">
+ <sound gain="1.54" frequency="220" duration="0.1">
   <waveform src="pink-noise" ratio="1.2" pitch="0.15"/>
   <waveform src="sine" processing="add" ratio="0.4"/>
   <waveform src="sine" processing="add" ratio="0.4" pitch="1.6"/>
@@ -25,9 +28,9 @@
  <emitter looping="true" pan="-0.31">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.2</param>
+    <param n="0">1.29</param>
     <param n="1">0.03</param>
-    <param n="2">0.9</param>
+    <param n="2">0.966</param>
     <param n="3">0.6</param>
    </slot>
   </filter>
