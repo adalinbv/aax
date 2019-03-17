@@ -383,7 +383,8 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
       } else {
          rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
       }
-      rbd->add(dptr, sptr, no_samples, volume, 0.0f);
+      rbd->multiply(dptr, bps, no_samples, volume);
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
 }
 
