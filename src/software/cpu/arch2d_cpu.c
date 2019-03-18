@@ -122,7 +122,7 @@ _batch_fmadd_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, 
 }
 
 void
-_batch_imul_value_cpu(void* data, unsigned bps, size_t num, float f)
+_batch_imul_value_cpu(void* dptr, const void* sptr, unsigned bps, size_t num, float f)
 {
    size_t i = num;
    if (num)
@@ -131,27 +131,30 @@ _batch_imul_value_cpu(void* data, unsigned bps, size_t num, float f)
       {
       case 1:
       {
-         int8_t* d = (int8_t*)data;
+         int8_t* s = (int8_t*)sptr;
+         int8_t* d = (int8_t*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
       }
       case 2:
       {
-         int16_t* d = (int16_t*)data;
+         int16_t* s = (int16_t*)sptr;
+         int16_t* d = (int16_t*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
       }
       case 4:
       {
-         int32_t* d = (int32_t*)data;
+         int32_t* s = (int32_t*)sptr;
+         int32_t* d = (int32_t*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
@@ -163,12 +166,12 @@ _batch_imul_value_cpu(void* data, unsigned bps, size_t num, float f)
 }
 
 void
-_batch_fmul_value_cpu(void* data, unsigned bps, size_t num, float f)
+_batch_fmul_value_cpu(void* dptr, const void* sptr, unsigned bps, size_t num, float f)
 {
    if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
    if (f <= LEVEL_90DB) {
-      memset(data, 0, num*bps);
+      memset(dptr, 0, num*bps);
    }
    else if (num)
    {
@@ -178,18 +181,20 @@ _batch_fmul_value_cpu(void* data, unsigned bps, size_t num, float f)
       {
       case 4:
       {
-         float *d = (float*)data;
+         float *s = (float*)sptr;
+         float *d = (float*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
       }
       case 8:
       {
-         double *d = (double*)data;
+         double *s = (double*)sptr;
+         double *d = (double*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;

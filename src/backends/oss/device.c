@@ -1207,9 +1207,10 @@ _oss_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_fra
    if (sbuf && fabsf(hwgain - gain) > 4e-3f)
    {
       unsigned int t;
-      for (t=0; t<no_tracks; t++) {
-         _batch_imul_value((void*)(sbuf[t]+offset), sizeof(int32_t),
-                           no_frames, gain);
+      for (t=0; t<no_tracks; t++)
+      {
+         int32_t *ptr = (int32_t*)sbuf[t]+offset;
+         _batch_imul_value(ptr, ptr, sizeof(int32_t), no_frames, gain);
       }
    }
 }

@@ -780,8 +780,10 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    if (fabsf(gain - 1.0f) > LEVEL_32DB)
    {
       unsigned int t;
-      for (t=0; t<file_tracks; t++) {
-         _batch_imul_value(sbuf[t]+offs, sizeof(int32_t), no_samples, gain);
+      for (t=0; t<file_tracks; t++)
+      {
+         int32_t *ptr = (int32_t*)sbuf[t]+offs;
+         _batch_imul_value(ptr, ptr, sizeof(int32_t), no_samples, gain);
       }
    }
    res = handle->ext->cvt_to_intl(handle->ext, databuf, (const int32_t**)sbuf,
@@ -928,8 +930,10 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
          if (fabsf(gain - 1.0f) > 0.05f)
          {
             int t;
-            for (t=0; t<file_tracks; t++) {
-               _batch_imul_value(sbuf[t] + *offset, sizeof(int32_t), *frames, gain);
+            for (t=0; t<file_tracks; t++)
+            {
+               int32_t *ptr = (int32_t*)sbuf[t] + offs;
+               _batch_imul_value(ptr, ptr, sizeof(int32_t), *frames, gain);
             }
          }
       }

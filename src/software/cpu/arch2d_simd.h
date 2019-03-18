@@ -58,8 +58,8 @@ char* _aax_calloc_aligned(char**, size_t, size_t, size_t);
 char* _aax_malloc_aligned(char**, size_t, size_t);
 void _batch_cvt24_24_cpu(void_ptr, const void*, size_t);
 
-void _batch_imul_value_cpu(void*, unsigned, size_t, float);
-void _batch_fmul_value_cpu(void*, unsigned, size_t, float);
+void _batch_imul_value_cpu(void*, const void*, unsigned, size_t, float);
+void _batch_fmul_value_cpu(void*, const void*, unsigned, size_t, float);
 void _batch_imadd_cpu(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_cpu(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float);
@@ -132,7 +132,7 @@ void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_sse2(void*, size_t);
 
-void _batch_fmul_value_sse2(void*, unsigned, size_t, float);
+void _batch_fmul_value_sse2(void*, const void*, unsigned, size_t, float);
 void _batch_imadd_sse2(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
@@ -153,7 +153,7 @@ void _batch_cvt16_24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* SSE3 */
-void _batch_imul_value_sse3(void*, unsigned, size_t, float);
+void _batch_imul_value_sse3(void*, const void*, unsigned, size_t, float);
 // void _batch_fmul_value_sse3(void*, unsigned, size_t, float);
 #if RB_FLOAT_DATA
 void _batch_resample_float_sse3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
@@ -182,7 +182,7 @@ void _batch_cvt16_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 void* _aax_memcpy_avx(void_ptr, const_void_ptr, size_t);
-void _batch_fmul_value_avx(void*, unsigned, size_t, float);
+void _batch_fmul_value_avx(void*, const void*, unsigned, size_t, float);
 void _batch_fadd_avx(float32_ptr, const_float32_ptr, size_t);
 // void _batch_hmadd_avx(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_avx(float32_ptr, const_float32_ptr, size_t, float, float);
@@ -199,8 +199,8 @@ void _batch_fmadd_fma3(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmadd_fma4(float32_ptr, const_float32_ptr, size_t, float, float);
 
 /* VFPv2 */
-void _batch_imul_value_vfpv2(void*, unsigned, size_t, float);
-void _batch_fmul_value_vfpv2(void*, unsigned, size_t, float);
+void _batch_imul_value_vfpv2(void*, const void*, unsigned, size_t, float);
+void _batch_fmul_value_vfpv2(void*, const void*, unsigned, size_t, float);
 // void _batch_hmadd_vfpv2(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_vfpv2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_vfpv2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
@@ -223,8 +223,8 @@ void _batch_cvtps_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned i
 void _batch_cvtpd_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* VFPv3 */
-void _batch_imul_value_vfpv3(void*, unsigned, size_t, float);
-void _batch_fmul_value_vfpv3(void*, unsigned, size_t, float);
+void _batch_imul_value_vfpv3(void*, const void*, unsigned, size_t, float);
+void _batch_fmul_value_vfpv3(void*, const void*, unsigned, size_t, float);
 // void _batch_hmadd_vfpv3(float32_ptr, const_float16_ptr, size_t, float, float);
 void _batch_fmadd_vfpv3(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_vfpv3(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
@@ -255,7 +255,7 @@ void _batch_fmadd_neon(float32_ptr, const_float32_ptr, unsigned in, float, float
 void _batch_ema_iir_float_neon(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_neon(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, void*);
-void _batch_fmul_value_neon(void*, unsigned, size_t, float);
+void _batch_fmul_value_neon(void*, const void*, unsigned, size_t, float);
 
 #if RB_FLOAT_DATA
 void _batch_cvtps24_24_neon(void_ptr, const_void_ptr, size_t);

@@ -187,10 +187,10 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
             unsigned bps = sizeof(MIX_T);
 
             level = powf(2.0f, 8+sqrtf(level)*13.5f); // (24-bits/sample)
-            _batch_fmul_value(psrc, bps, no_samples, 1.0f/level);
+            _batch_fmul_value(psrc, psrc, bps, no_samples, 1.0f/level);
             _batch_cvt24_ps24(psrc, psrc, no_samples);
             _batch_cvtps24_24(psrc, psrc, no_samples);
-            _batch_fmul_value(psrc, bps, no_samples, level);
+            _batch_fmul_value(psrc, psrc, bps, no_samples, level);
          }
       }
    }

@@ -264,7 +264,7 @@ int main()
         memcpy(dst1, src, MAXNUM*sizeof(float));
         _batch_fmul_value = _batch_fmul_value_cpu;
         t = clock();
-          _batch_fmul_value(dst1, sizeof(float), MAXNUM, 0.8723678263f);
+          _batch_fmul_value(dst1, dst1, sizeof(float), MAXNUM, 0.8723678263f);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nfmul cpu:  %f ms\n", cpu*1000.0f);
 
@@ -273,7 +273,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmul_value = GLUE(_batch_fmul_value, SIMD);
             t = clock();
-              _batch_fmul_value(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+              _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, 0.8723678263f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmul %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
             TESTF("float fmul simd", dst1, dst2);
@@ -283,7 +283,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmul_value = GLUE(_batch_fmul_value, SIMD2);
             t = clock();
-              _batch_fmul_value(dst2, sizeof(float), MAXNUM, 0.8723678263f);
+              _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, 0.8723678263f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmul "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTF("float fmul "MKSTR(SIMD2), dst1, dst2);
@@ -386,11 +386,11 @@ int main()
         }
         memcpy(ddst1, dsrc, MAXNUM*sizeof(double));
 
-        _batch_fmul_value_cpu(ddst1, sizeof(double), MAXNUM, 0.8723678263f);
+        _batch_fmul_value_cpu(ddst1, ddst1, sizeof(double), MAXNUM, 0.8723678263f);
         if (simd2)
         {
             memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
-            GLUE(_batch_fmul_value, SIMD2)(ddst2, sizeof(double), MAXNUM, 0.8723678263f);
+            GLUE(_batch_fmul_value, SIMD2)(ddst2, ddst2, sizeof(double), MAXNUM, 0.8723678263f);
             TESTLF("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
         }
 

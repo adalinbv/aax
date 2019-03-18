@@ -1264,7 +1264,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
    for (t=0; t<tracks; t++)
    {
       data = rbd->track[t];
-      rbd->multiply(data+offs, bps, no_samples, ratio_orig);
+      rbd->multiply(data+offs, data+offs, bps, no_samples, ratio_orig);
    }
    return AAX_TRUE;
 }

@@ -219,7 +219,7 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
       if (ptr && ptr2)
       {
          _aax_pinknoise_filter(ptr2, noise_samples, fs);
-         _batch_fmul_value(ptr2, sizeof(float), noise_samples, 1.5f);
+         _batch_fmul_value(ptr2, ptr2, sizeof(float), noise_samples, 1.5f);
          _batch_resample_float(ptr, ptr2+32, 0, no_samples, 0, pitch);
 
          if (ringmodulate) {
@@ -253,7 +253,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
          float hist = 0.0f;
 
          _batch_movingaverage_float(ptr2, ptr2, noise_samples, &hist, k);
-         _batch_fmul_value(ptr2, sizeof(int32_t), noise_samples, 3.5f);
+         _batch_fmul_value(ptr2, ptr2, sizeof(int32_t), noise_samples, 3.5f);
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
 
          if (ringmodulate) {

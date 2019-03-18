@@ -700,16 +700,17 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 }
 
 void
-_batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
+_batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, float f)
 {
    if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
    if (f <= LEVEL_128DB) {
-      memset(data, 0, num*bps);
+      memset(dptr, 0, num*bps);
    }
    else if (bps == 4)
    {
-      float32_ptr d = (float32_ptr)data;
+      const_float32_ptr s = (float32_ptr)sptr;
+      float32_ptr d = (float32_ptr)dptr;
       size_t i, step, dtmp;
 
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
@@ -721,7 +722,7 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          {
             num -= i;
             do {
-               *d++ *=  f;
+               *d++ = *s++ * f;
             } while(--i);
          }
       }
@@ -731,17 +732,19 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
       i = num/step;
       if (i)
       {
+         __m128* sptr = (__m128*)s;
          __m128* dptr = (__m128*)d;
          __m128 tv = _mm_set1_ps(f);
          __m128 xmm0, xmm1, xmm2;
 
          num -= i*step;
+         s += i*step;
          d += i*step;
          do
          {
-            xmm0 = _mm_load_ps((const float*)(dptr+0));
-            xmm1 = _mm_load_ps((const float*)(dptr+1));
-            xmm2 = _mm_load_ps((const float*)(dptr+2));
+            xmm0 = _mm_load_ps((const float*)(sptr++));
+            xmm1 = _mm_load_ps((const float*)(sptr++));
+            xmm2 = _mm_load_ps((const float*)(sptr++));
 
             xmm0 = _mm_mul_ps(xmm0, tv);
             xmm1 = _mm_mul_ps(xmm1, tv);
@@ -758,13 +761,14 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
       {
          i = num;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          } while(--i);
       }
    }
    else if (bps == 8)
    {
-      double64_ptr d = (double64_ptr)data;
+      const_double64_ptr s = (double64_ptr)sptr;
+      double64_ptr d = (double64_ptr)dptr;
       size_t i, step, dtmp;
 
       dtmp = (size_t)d & MEMMASK16;
@@ -775,7 +779,7 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
          {
             num -= i;
             do {
-               *d++ *=  f;
+               *d++ = *s++ * f;
             } while(--i);
          }
       }
@@ -785,15 +789,17 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
       i = num/step;
       if (i)
       {
+         __m128d* sptr = (__m128d*)s;
          __m128d* dptr = (__m128d*)d;
          __m128d tv = _mm_set1_pd(f);
          __m128d xmm0;
 
          num -= i*step;
+         s += i*step;
          d += i*step;
          do
          {
-            xmm0 = _mm_load_pd((const double*)(dptr+0));
+            xmm0 = _mm_load_pd((const double*)(sptr++));
 
             xmm0 = _mm_mul_pd(xmm0, tv);
 
@@ -806,12 +812,12 @@ _batch_fmul_value_sse2(void* data, unsigned bps, size_t num, float f)
       {
          i = num;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          } while(--i);
       }
    }
    else {
-      _batch_fmul_value_cpu(data, bps, num, f);
+      _batch_fmul_value_cpu(dptr, sptr, bps, num, f);
    }
 }
 

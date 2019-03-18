@@ -632,9 +632,10 @@ _aaxSDLDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frame
    if (gain < 0.99f || gain > 1.01f)
    {
       int t;
-      for (t=0; t<tracks; t++) {
-         _batch_imul_value((int32_t**)data[t]+offs, sizeof(int32_t), nframes,
-                           gain);
+      for (t=0; t<tracks; t++)
+      {
+         int32_t *ptr = (int32_t*)data[t]+offs;
+         _batch_imul_value(ptr, ptr, sizeof(int32_t), nframes, gain);
       }
    }
    *frames = nframes;

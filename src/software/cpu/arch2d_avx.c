@@ -403,16 +403,17 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 }
 
 FN_PREALIGN void
-_batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
+_batch_fmul_value_avx(void* dptr, const void *sptr, unsigned bps, size_t num, float f)
 {
    if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
    if (f <= LEVEL_128DB) {
-      memset(data, 0, num*bps);
+      memset(dptr, 0, num*bps);
    }
    else if (bps == 4)
    {
-      float32_ptr d = (float32_ptr)data;
+      const_float32_ptr s = (float32_ptr)sptr;
+      float32_ptr d = (float32_ptr)dptr;
       size_t i, step, dtmp;
 
       dtmp = (size_t)d & MEMMASK;
@@ -424,7 +425,7 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
          {
             num -= i;
             do {
-               *d++ *= f;
+               *d++ = *s++ * f;
             } while(--i);
          }
       }
@@ -434,15 +435,17 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
       if (i)
       {
          __m256 tv = _mm256_set1_ps(f);
+         __m256* sptr = (__m256*)s;
          __m256* dptr = (__m256*)d;
          __m256 ymm0, ymm1;
 
          num -= i*step;
+         s += i*step;
          d += i*step;
          do
          {
-            ymm0 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(dptr+0)));
-            ymm1 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(dptr+1)));
+            ymm0 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(sptr++)));
+            ymm1 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(sptr++)));
 
             _mm256_store_ps((float*)dptr++, ymm0);
             _mm256_store_ps((float*)dptr++, ymm1);
@@ -455,13 +458,14 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
       {
          i = num;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          } while(--i);
       }
    }
    else
    {
-      double64_ptr d = (double64_ptr)data;
+      const_double64_ptr s = (double64_ptr)sptr;
+      double64_ptr d = (double64_ptr)dptr;
       size_t i, step, dtmp;
 
       dtmp = (size_t)d & MEMMASK;
@@ -472,59 +476,28 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
          {
             num -= i;
             do {
-               *d++ *=  f;
+               *d++ = *s++ * f;
             } while(--i);
          }
       }
 
-      step = 8*sizeof(__m256d)/sizeof(double);
-
-      i = num/step;
-      if (i)
-      {
-         __m256d ymm0, ymm1, ymm2, ymm3, ymm4, ymm5, ymm6, ymm7;
-         __m256d tv = _mm256_set1_pd(f);
-         __m256d* dptr = (__m256d*)d;
-
-         num -= i*step;
-         d += i*step;
-         do
-         {
-            ymm0 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+0)), tv);
-            ymm1 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+1)), tv);
-            ymm2 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+2)), tv);
-            ymm3 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+3)), tv);
-            ymm4 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+4)), tv);
-            ymm5 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+5)), tv);
-            ymm6 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+6)), tv);
-            ymm7 = _mm256_mul_pd(_mm256_load_pd((const double*)(dptr+7)), tv);
-
-            _mm256_store_pd((double*)dptr++, ymm0);
-            _mm256_store_pd((double*)dptr++, ymm1);
-            _mm256_store_pd((double*)dptr++, ymm2);
-            _mm256_store_pd((double*)dptr++, ymm3);
-            _mm256_store_pd((double*)dptr++, ymm4);
-            _mm256_store_pd((double*)dptr++, ymm5);
-            _mm256_store_pd((double*)dptr++, ymm6);
-            _mm256_store_pd((double*)dptr++, ymm7);
-         }
-         while(--i);
-      }
-
       step = 2*sizeof(__m256d)/sizeof(double);
+
       i = num/step;
       if (i)
       {
-         __m256d tv = _mm256_set1_pd(f);
-         __m256d* dptr = (__m256d*)d;
          __m256d ymm0, ymm1;
+         __m256d tv = _mm256_set1_pd(f);
+         __m256d* sptr = (__m256d*)s;
+         __m256d* dptr = (__m256d*)d;
 
          num -= i*step;
+         s += i*step;
          d += i*step;
          do
          {
-            ymm0 =_mm256_mul_pd(_mm256_load_pd((const double*)(dptr+0)), tv);
-            ymm1 =_mm256_mul_pd(_mm256_load_pd((const double*)(dptr+1)), tv);
+            ymm0 = _mm256_mul_pd(_mm256_load_pd((const double*)(sptr++)), tv);
+            ymm1 = _mm256_mul_pd(_mm256_load_pd((const double*)(sptr++)), tv);
 
             _mm256_store_pd((double*)dptr++, ymm0);
             _mm256_store_pd((double*)dptr++, ymm1);
@@ -537,7 +510,7 @@ _batch_fmul_value_avx(void* data, unsigned bps, size_t num, float f)
       {
          i = num;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          } while(--i);
       }
    }

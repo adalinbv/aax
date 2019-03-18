@@ -1377,8 +1377,10 @@ if (corr)
       if (gain > 0)
       {
          unsigned int i;
-         for (i=0; i<tracks; i++) {
-            _batch_imul_value(sbuf[i]+init_offs, sizeof(int32_t), offs, gain);
+         for (i=0; i<tracks; i++)
+         {
+            int32_t *ptr = (int32_t*)sbuf[i]+offs;
+            _batch_imul_value(ptr, ptr, sizeof(int32_t), offs, gain);
          }
       }
    }

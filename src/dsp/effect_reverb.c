@@ -355,7 +355,7 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
    {
       _aax_memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
       if (gain < (1.0f-LEVEL_64DB)) {
-         rbd->multiply(dptr, sizeof(MIX_T), no_samples, gain);
+         rbd->multiply(dptr, dptr, sizeof(MIX_T), no_samples, gain);
       }
    }
 }
@@ -449,7 +449,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       }
 
       filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL,0);
-      rbd->multiply(dptr, sizeof(MIX_T), no_samples, 2.0f);
+      rbd->multiply(dptr, dptr, sizeof(MIX_T), no_samples, 2.0f);
       if (occlusion) {
          occlusion->run(rbd, dptr, sptr, scratch, no_samples, track,occlusion);
       }

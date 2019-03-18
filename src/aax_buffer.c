@@ -2289,7 +2289,7 @@ _bufGetDataPitchLevels(_buffer_t *handle)
       rb->release_tracks_ptr(rb);
 
       if (fabsf(handle->gain - 1.0f) > 0.05f) {
-         _batch_imul_value(ptr, sizeof(int32_t), no_samples, handle->gain);
+         _batch_imul_value(ptr, ptr, sizeof(int32_t), no_samples, handle->gain);
       }
       ptr += len;
    }
@@ -2425,8 +2425,8 @@ _bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter)
       if (level > 0.01f)
       {
          level = powf(2.0f, 8+sqrtf(level)*13.5f);      // (24-bits/sample)
-         _batch_imul_value(dptr, bps, no_samples, 1.0f/level);
-         _batch_imul_value(dptr, bps, no_samples, level);
+         _batch_imul_value(dptr, dptr, bps, no_samples, 1.0f/level);
+         _batch_imul_value(dptr, dptr, bps, no_samples, level);
       }
 
       if (ratio > 0.01f)
@@ -2531,7 +2531,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
 
          /* make dptr the wet signal */
          if (fact > 0.0013f) {
-            rbd->multiply(dptr, bps, no_samples, 1.0f+64.f*fact);
+            rbd->multiply(dptr, dptr, bps, no_samples, 1.0f+64.f*fact);
          }
 
          if ((fact > 0.01f) || (asym > 0.01f))
@@ -2543,7 +2543,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
 
          /* mix with the dry signal */
          mix_factor = mix/(0.5f+powf(fact, 0.25f));
-         rbd->multiply(dptr, bps, no_samples, mix_factor);
+         rbd->multiply(dptr, dptr, bps, no_samples, mix_factor);
          if (mix < 0.99f) {
             rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
          }
