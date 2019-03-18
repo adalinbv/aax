@@ -195,7 +195,7 @@ _aaxNewPhasingEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
    {
