@@ -414,8 +414,9 @@ _batch_fmul_value_avx(void* dptr, const void *sptr, unsigned bps, size_t num, fl
    {
       const_float32_ptr s = (float32_ptr)sptr;
       float32_ptr d = (float32_ptr)dptr;
-      size_t i, step, dtmp;
+      size_t i, step, dtmp, stmp;
 
+      stmp = (size_t)s & MEMMASK;
       dtmp = (size_t)d & MEMMASK;
       /* work towards a 32-byte aligned d (and hence 32-byte aligned s) */
       if (dtmp && num)
@@ -442,15 +443,31 @@ _batch_fmul_value_avx(void* dptr, const void *sptr, unsigned bps, size_t num, fl
          num -= i*step;
          s += i*step;
          d += i*step;
-         do
-         {
-            ymm0 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(sptr++)));
-            ymm1 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(sptr++)));
 
-            _mm256_store_ps((float*)dptr++, ymm0);
-            _mm256_store_ps((float*)dptr++, ymm1);
+         if (stmp)
+         {
+            do
+            {
+               ymm0 =_mm256_mul_ps(tv, _mm256_loadu_ps((const float*)(sptr++)));
+               ymm1 =_mm256_mul_ps(tv, _mm256_loadu_ps((const float*)(sptr++)));
+
+               _mm256_store_ps((float*)dptr++, ymm0);
+               _mm256_store_ps((float*)dptr++, ymm1);
+            }
+            while(--i);
          }
-         while(--i);
+         else
+         {
+            do
+            {
+               ymm0 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(sptr++)));
+               ymm1 = _mm256_mul_ps(tv, _mm256_load_ps((const float*)(sptr++)));
+
+               _mm256_store_ps((float*)dptr++, ymm0);
+               _mm256_store_ps((float*)dptr++, ymm1);
+            }
+            while(--i);
+         }
       }
       _mm256_zeroupper();
 
@@ -466,8 +483,9 @@ _batch_fmul_value_avx(void* dptr, const void *sptr, unsigned bps, size_t num, fl
    {
       const_double64_ptr s = (double64_ptr)sptr;
       double64_ptr d = (double64_ptr)dptr;
-      size_t i, step, dtmp;
+      size_t i, step, dtmp, stmp;
 
+      stmp = (size_t)s & MEMMASK;
       dtmp = (size_t)d & MEMMASK;
       if (dtmp && num)
       {
@@ -494,15 +512,30 @@ _batch_fmul_value_avx(void* dptr, const void *sptr, unsigned bps, size_t num, fl
          num -= i*step;
          s += i*step;
          d += i*step;
-         do
+         if (stmp)
          {
-            ymm0 = _mm256_mul_pd(_mm256_load_pd((const double*)(sptr++)), tv);
-            ymm1 = _mm256_mul_pd(_mm256_load_pd((const double*)(sptr++)), tv);
+            do
+            {
+               ymm0 =_mm256_mul_pd(_mm256_loadu_pd((const double*)(sptr++)),tv);
+               ymm1 =_mm256_mul_pd(_mm256_loadu_pd((const double*)(sptr++)),tv);
 
-            _mm256_store_pd((double*)dptr++, ymm0);
-            _mm256_store_pd((double*)dptr++, ymm1);
+               _mm256_store_pd((double*)dptr++, ymm0);
+               _mm256_store_pd((double*)dptr++, ymm1);
+            }
+            while(--i);
          }
-         while(--i);
+         else
+         {
+            do
+            {
+               ymm0 =_mm256_mul_pd(_mm256_load_pd((const double*)(sptr++)), tv);
+               ymm1 =_mm256_mul_pd(_mm256_load_pd((const double*)(sptr++)), tv);
+
+               _mm256_store_pd((double*)dptr++, ymm0);
+               _mm256_store_pd((double*)dptr++, ymm1);
+            }
+            while(--i);
+         }
       }
       _mm256_zeroupper();
 

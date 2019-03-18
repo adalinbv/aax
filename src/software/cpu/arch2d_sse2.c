@@ -682,7 +682,7 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 
             xmm0 = _mm_add_ps(xmm0, xmm2);
             xmm1 = _mm_add_ps(xmm1, xmm3);
-            
+
             _mm_store_ps((float*)dptr++, xmm0);
             _mm_store_ps((float*)dptr++, xmm1);
          }
@@ -711,10 +711,11 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
    {
       const_float32_ptr s = (float32_ptr)sptr;
       float32_ptr d = (float32_ptr)dptr;
-      size_t i, step, dtmp;
+      size_t i, step, dtmp, stmp;
 
       /* work towards a 16-byte aligned d (and hence 16-byte aligned s) */
       dtmp = (size_t)d & MEMMASK16;
+      stmp = (size_t)s & MEMMASK16;
       if (dtmp && num)
       {
          i = (MEMALIGN16 - dtmp)/sizeof(float);
@@ -740,21 +741,42 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
          num -= i*step;
          s += i*step;
          d += i*step;
-         do
+         if (stmp)
          {
-            xmm0 = _mm_load_ps((const float*)(sptr++));
-            xmm1 = _mm_load_ps((const float*)(sptr++));
-            xmm2 = _mm_load_ps((const float*)(sptr++));
+            do
+            {
+               xmm0 = _mm_loadu_ps((const float*)(sptr++));
+               xmm1 = _mm_loadu_ps((const float*)(sptr++));
+               xmm2 = _mm_loadu_ps((const float*)(sptr++));
 
-            xmm0 = _mm_mul_ps(xmm0, tv);
-            xmm1 = _mm_mul_ps(xmm1, tv);
-            xmm2 = _mm_mul_ps(xmm2, tv);
+               xmm0 = _mm_mul_ps(xmm0, tv);
+               xmm1 = _mm_mul_ps(xmm1, tv);
+               xmm2 = _mm_mul_ps(xmm2, tv);
 
-            _mm_store_ps((float*)dptr++, xmm0);
-            _mm_store_ps((float*)dptr++, xmm1);
-            _mm_store_ps((float*)dptr++, xmm2);
+               _mm_store_ps((float*)dptr++, xmm0);
+               _mm_store_ps((float*)dptr++, xmm1);
+               _mm_store_ps((float*)dptr++, xmm2);
+            }
+            while(--i);
          }
-         while(--i);
+         else
+         {
+            do
+            {
+               xmm0 = _mm_load_ps((const float*)(sptr++));
+               xmm1 = _mm_load_ps((const float*)(sptr++));
+               xmm2 = _mm_load_ps((const float*)(sptr++));
+
+               xmm0 = _mm_mul_ps(xmm0, tv);
+               xmm1 = _mm_mul_ps(xmm1, tv);
+               xmm2 = _mm_mul_ps(xmm2, tv);
+
+               _mm_store_ps((float*)dptr++, xmm0);
+               _mm_store_ps((float*)dptr++, xmm1);
+               _mm_store_ps((float*)dptr++, xmm2);
+            }
+            while(--i);
+         }
       }
 
       if (num)
@@ -769,8 +791,9 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
    {
       const_double64_ptr s = (double64_ptr)sptr;
       double64_ptr d = (double64_ptr)dptr;
-      size_t i, step, dtmp;
+      size_t i, step, dtmp, stmp;
 
+      stmp = (size_t)s & MEMMASK16;
       dtmp = (size_t)d & MEMMASK16;
       if (dtmp && num)
       {
@@ -797,15 +820,30 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
          num -= i*step;
          s += i*step;
          d += i*step;
-         do
+         if (stmp)
          {
-            xmm0 = _mm_load_pd((const double*)(sptr++));
+            do
+            {
+               xmm0 = _mm_loadu_pd((const double*)(sptr++));
 
-            xmm0 = _mm_mul_pd(xmm0, tv);
+               xmm0 = _mm_mul_pd(xmm0, tv);
 
-            _mm_store_pd((double*)dptr++, xmm0);
+               _mm_store_pd((double*)dptr++, xmm0);
+            }
+            while(--i);
          }
-         while(--i);
+         else
+         {
+            do
+            {
+               xmm0 = _mm_load_pd((const double*)(sptr++));
+
+               xmm0 = _mm_mul_pd(xmm0, tv);
+
+               _mm_store_pd((double*)dptr++, xmm0);
+            }
+            while(--i);
+         }
       }
 
       if (num)
@@ -1383,7 +1421,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          k = filter->k * filter->high_gain;
       }
 
-      if (fabsf(k-1.0f) < LEVEL_96DB) 
+      if (fabsf(k-1.0f) < LEVEL_96DB)
       {
          memcpy(dptr, sptr, num*sizeof(float));
          return;
@@ -1398,7 +1436,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
       hist = filter->freqfilter->history[t];
       stage = filter->no_stages;
       if (!stage) stage++;
-      
 
       do
       {
