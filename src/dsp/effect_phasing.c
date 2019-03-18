@@ -379,11 +379,13 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
       pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
 
       if (pitch == 1.0f) {
-         _aax_memcpy(dptr, sptr-offs, no_samples*bps);
-      } else {
-         rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
+         rbd->multiply(dptr, sptr-offs, bps, no_samples, volume);
       }
-      rbd->multiply(dptr, dptr, bps, no_samples, volume);
+      else
+      {
+         rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
+         rbd->multiply(dptr, dptr, bps, no_samples, volume);
+      }
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
 }
