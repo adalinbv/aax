@@ -41,7 +41,7 @@
 static aaxEffect
 _aaxChorusEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -96,11 +96,37 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       effect->slot[0]->data = data;
       if (data)
       {
+         _aaxRingBufferFreqFilterData *flt = data->freq_filter;
+         float fc = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         float fs = 48000.0f;
          int t, constant;
 
+         if (effect->info) {
+            fs = effect->info->frequency;
+         }
+
+         if (fc >= 100.0f && !flt)
+         {
+            flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
+            if (flt)
+            {
+               memset(flt, 0, sizeof(_aaxRingBufferFreqFilterData));
+               flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+               if (flt->freqfilter) {
+                  memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+               }
+               else
+               {
+                  _aax_aligned_free(flt);
+                  flt = NULL;
+               }
+            }
+         }
+
          data->run = _delay_run;
+         data->freq_filter = flt;
          data->loopback = AAX_FALSE;
 
          data->lfo.convert = _linear;
@@ -139,6 +165,21 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
          if (!_lfo_set_function(&data->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+         else if (flt)
+         {
+            flt->run = _freqfilter_run;
+
+            flt->lfo = 0;
+            flt->fs = fs;
+            flt->Q = effect->slot[1]->param[AAX_RESONANCE];
+            flt->no_stages = 1;
+
+            flt->high_gain = LEVEL_128DB;
+            flt->low_gain = data->delay.gain;
+            flt->k = flt->low_gain/flt->high_gain;
+
+            _aax_butterworth_compute(fc, flt);
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -213,10 +254,10 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxChorusRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 1.0f, 10.0f, 1.0f, 1.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.01f, 0.0f, 0.0f  }, {     1.0f, 10.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.01f }, { 22050.0f,  0.0f, 0.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,  0.0f, 0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
