@@ -170,14 +170,14 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          {
             flt->run = _freqfilter_run;
 
-            flt->lfo = 0;
             flt->fs = fs;
-            flt->Q = effect->slot[1]->param[AAX_RESONANCE];
+            flt->lfo = 0;
             flt->no_stages = 1;
+            flt->type = LOWPASS;
 
+            flt->Q = effect->slot[1]->param[AAX_RESONANCE];
             flt->high_gain = LEVEL_128DB;
             flt->low_gain = data->delay.gain;
-            flt->k = flt->low_gain/flt->high_gain;
 
             _aax_butterworth_compute(fc, flt);
          }

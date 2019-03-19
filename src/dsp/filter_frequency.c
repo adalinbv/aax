@@ -702,6 +702,7 @@ _aax_butterworth_compute(float fc, void *flt)
    float fs, Q, *coef;
    float a2, a1, a0;
 
+   filter->state = AAX_BUTTERWORTH;
    stages = filter->no_stages;
    if (!stages) stages++;
 
@@ -835,6 +836,7 @@ _aax_bessel_compute(float fc, void *flt)
    float beta, fs, *coef;
    int stages, type;
 
+   filter->state = AAX_BESSEL;
    fs = filter->fs;
    coef = filter->coeff;
    stages = filter->no_stages;
