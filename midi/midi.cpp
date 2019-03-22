@@ -333,34 +333,11 @@ void
 MIDI::grep(std::string& filename, const char *grep)
 {
     std::string g = grep;
-    bool found = false;
-
-    for (auto itb : instruments)
+    for (auto it : loaded)
     {
-        for (auto it : itb.second)
-        {
-            if (it.second.find(g) != std::string::npos)
-            {
-                printf("%s found instrument: %s\n", filename.c_str(), it.second.c_str());
-                found = true;
-                break;
-            }
+        if (it.find(g) != std::string::npos) {
+            printf("%s found: %s\n", filename.c_str(), it.c_str());
         }
-        if (found) break;
-    }
-
-    for (auto itb : drums) 
-    {
-        for (auto it : itb.second)
-        {
-            if (it.second.find(g) != std::string::npos)
-            {   
-                printf("%s found drum: %s\n", filename.c_str(), it.second.c_str());
-                found = true;
-                break;
-            }
-        }
-        if (found) break;
     }
 }
 
@@ -475,6 +452,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
                     DISPLAY("Loading drum:  %3i bank: %3i/%3i, program: %3i: %s\n",
                              key_no, bank_no >> 7, bank_no & 0x7F,
                              program_no, name.c_str());
+                    midi.load(name);
                 }
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
@@ -497,6 +475,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
                     DISPLAY("Loading instrument bank: %3i/%3i, program: %3i: %s\n",
                              bank_no >> 7, bank_no & 0x7F, program_no,
                              name.c_str());
+                    midi.load(name);
                 }
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)

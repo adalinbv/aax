@@ -293,7 +293,9 @@ public:
     }
 
     void read_instruments();
+
     void grep(std::string& filename, const char *grep);
+    inline void load(std::string& name) { loaded.push_back(name); }
 
     void rewind();
 
@@ -343,6 +345,7 @@ private:
     std::map<uint8_t,std::string> frames;
     std::map<uint8_t,std::map<uint16_t,std::string>> drums;
     std::map<uint8_t,std::map<uint16_t,std::string>> instruments;
+    std::vector<std::string> loaded;
 
     std::vector<std::string> track_names;
     std::vector<uint16_t> active_track;
