@@ -98,7 +98,7 @@ static void sleep_for(float dt)
     }
 }
 
-void play(char *devname, char *infile, char *outfile, const char *track, bool verbose, bool batched)
+void play(char *devname, char *infile, char *outfile, const char *track, const char *grep, bool verbose, bool batched)
 {
     aax::MIDIFile midi(devname, infile, track);
     if (midi)
@@ -122,57 +122,58 @@ void play(char *devname, char *infile, char *outfile, const char *track, bool ve
         }
 
         midi.set_verbose(verbose);
-        midi.initialize();
-        midi.start();
-
-        if (batched) {
-            midi.sensor(AAX_CAPTURING);
-        }
-
-
-        wait_parts = 1000;
-        set_mode(1);
-
-        gettimeofday(&now, NULL);
-        dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
-        do
+        midi.initialize(grep);
+        if (!grep)
         {
-            if (!midi.process(time_parts, wait_parts)) break;
+            midi.start();
 
-            if (wait_parts > 0)
-            {
-                uint32_t wait_us;
-
-                gettimeofday(&now, NULL);
-                dt_us += now.tv_sec * 1000000 + now.tv_usec;
-
-                wait_us = wait_parts*midi.get_uspp();
-                sleep_us = wait_us - dt_us;
-
-                if (sleep_us > 0)
-                {
-                    if (batched)
-                    {
-                        midi.sensor(AAX_UPDATE);
-                        midi.wait(sleep_us*1e-6f);
-                        midi.get_buffer();
-                    }
-                    else
-                    {
-                        sleep_for(sleep_us*1e-6f);
-                    }
-                }
-
-                gettimeofday(&now, NULL);
-                dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
-
-                time_parts += wait_parts;
+            if (batched) {
+                midi.sensor(AAX_CAPTURING);
             }
-        }
-        while(!get_key());
-        set_mode(0);
 
-        midi.stop();
+
+            wait_parts = 1000;
+            set_mode(1);
+
+            gettimeofday(&now, NULL);
+            dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
+            do
+            {
+                if (!midi.process(time_parts, wait_parts)) break;
+
+                if (wait_parts > 0)
+                {
+                    uint32_t wait_us;
+
+                    gettimeofday(&now, NULL);
+                    dt_us += now.tv_sec * 1000000 + now.tv_usec;
+
+                    wait_us = wait_parts*midi.get_uspp();
+                    sleep_us = wait_us - dt_us;
+
+                    if (sleep_us > 0)
+                    {
+                        if (batched)
+                        {
+                            midi.sensor(AAX_UPDATE);
+                            midi.wait(sleep_us*1e-6f);
+                            midi.get_buffer();
+                        }
+                        else {
+                            sleep_for(sleep_us*1e-6f);
+                        }
+                    }
+
+                    gettimeofday(&now, NULL);
+                    dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
+
+                    time_parts += wait_parts;
+                }
+            }
+            while(!get_key());
+            set_mode(0);
+            midi.stop();
+        }
     }
 }
 
@@ -192,9 +193,16 @@ int main(int argc, char **argv)
     try
     {
         char *outfile = getOutputFile(argc, argv, NULL);
-        const char *track = getCommandLineOption(argc, argv, "-t");
+        const char *track, *grep;
+
+        track = getCommandLineOption(argc, argv, "-t");
         if (!track) {
             track = getCommandLineOption(argc, argv, "--track");
+        }
+
+        grep = getCommandLineOption(argc, argv, "-g");
+        if (!track) {
+            track = getCommandLineOption(argc, argv, "--grep");
         }
 
         if (getCommandLineOption(argc, argv, "-v") ||
@@ -209,7 +217,7 @@ int main(int argc, char **argv)
             batched = true;
         }
 
-        std::thread midiThread(play, devname, infile, outfile, track, verbose, batched);
+        std::thread midiThread(play, devname, infile, outfile, track, grep, verbose, batched);
         midiThread.join();
 
     } catch (const std::exception& e) {

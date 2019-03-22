@@ -277,6 +277,7 @@ MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
                 return iti->second;
             }
 
+            MESSAGE("Drum %i not found in bank %i\n", key_no, program_no);
             if (program_no > 0)
             {
                 if ((program_no & 0xF8) == program_no) program_no = 0;
@@ -314,6 +315,7 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
                 return iti->second;
             }
 
+            MESSAGE("Instrument %i not found in bank %i\n", program_no, bank_no);
             if (bank_no > 0)
             {
                 bank_no = 0;
@@ -325,6 +327,41 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
     }
     LOG("Instrument not found\n");
     return empty_str;
+}
+
+void
+MIDI::grep(std::string& filename, const char *grep)
+{
+    std::string g = grep;
+    bool found = false;
+
+    for (auto itb : instruments)
+    {
+        for (auto it : itb.second)
+        {
+            if (it.second.find(g) != std::string::npos)
+            {
+                printf("%s found instrument: %s\n", filename.c_str(), it.second.c_str());
+                found = true;
+                break;
+            }
+        }
+        if (found) break;
+    }
+
+    for (auto itb : drums) 
+    {
+        for (auto it : itb.second)
+        {
+            if (it.second.find(g) != std::string::npos)
+            {   
+                printf("%s found drum: %s\n", filename.c_str(), it.second.c_str());
+                found = true;
+                break;
+            }
+        }
+        if (found) break;
+    }
 }
 
 MIDIChannel&
@@ -1470,7 +1507,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
 
 MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
-    : MIDI(devname, tname)
+    : MIDI(devname, tname), file(filename)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     ssize_t size = file.tellg();
@@ -1559,7 +1596,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
 }
 
 void
-MIDIFile::initialize()
+MIDIFile::initialize(const char *grep)
 {
     midi.read_instruments();
 
@@ -1575,35 +1612,42 @@ MIDIFile::initialize()
     }
 
     midi.set_initialize(false);
-    rewind();
 
-    if (midi.get_verbose())
+    if (!grep)
     {
-        float hour, minutes, seconds;
+        rewind();
 
-        unsigned int format = midi.get_format();
-        if (format >= MIDI_FILE_FORMAT_MAX) format = MIDI_FILE_FORMAT_MAX;
-        MESSAGE("Format    : %s\n", format_name[format].c_str());
+        if (midi.get_verbose())
+        {
+            float hour, minutes, seconds;
 
-        unsigned int mode = midi.get_mode();
-        assert(mode < MIDI_MODE_MAX);
-        MESSAGE("MIDI Mode : %s\n", mode_name[mode].c_str());
+            unsigned int format = midi.get_format();
+            if (format >= MIDI_FILE_FORMAT_MAX) format = MIDI_FILE_FORMAT_MAX;
+            MESSAGE("Format    : %s\n", format_name[format].c_str());
 
-        seconds = duration_sec;
-        hour = floorf(seconds/(60.0f*60.0f));
-        seconds -= hour*60.0f*60.0f;
-        minutes = floorf(seconds/60.0f);
-        seconds -= minutes*60.0f;
-        if (hour) {
-            MESSAGE("Duration  : %02.0f:%02.0f:%02.0f hours\n", hour, minutes, seconds);
-        } else {
-            MESSAGE("Duration  : %02.0f:%02.0f minutes\n", minutes, seconds);
+            unsigned int mode = midi.get_mode();
+            assert(mode < MIDI_MODE_MAX);
+            MESSAGE("MIDI Mode : %s\n", mode_name[mode].c_str());
+
+            seconds = duration_sec;
+            hour = floorf(seconds/(60.0f*60.0f));
+            seconds -= hour*60.0f*60.0f;
+            minutes = floorf(seconds/60.0f);
+            seconds -= minutes*60.0f;
+            if (hour) {
+                MESSAGE("Duration  : %02.0f:%02.0f:%02.0f hours\n", hour, minutes, seconds);
+            } else {
+                MESSAGE("Duration  : %02.0f:%02.0f minutes\n", minutes, seconds);
+            }
         }
-    }
 
-    midi.set(AAX_REFRESH_RATE, 90.0f);
-    midi.set(AAX_INITIALIZED);
-    pos_sec = 0;
+        midi.set(AAX_REFRESH_RATE, 90.0f);
+        midi.set(AAX_INITIALIZED);
+        pos_sec = 0;
+    }
+    else {
+        midi.grep(file, grep);
+    }
 }
 
 void

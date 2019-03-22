@@ -293,6 +293,7 @@ public:
     }
 
     void read_instruments();
+    void grep(std::string& filename, const char *grep);
 
     void rewind();
 
@@ -336,6 +337,7 @@ public:
     void set_chorus_rate(float rate);
 
 
+    MIDI &midi = *this;
 private:
     std::map<uint8_t,MIDIChannel*> channels;
     std::map<uint8_t,std::string> frames;
@@ -495,7 +497,7 @@ public:
         return midi_data.capacity();
     }
 
-    void initialize();
+    void initialize(const char *grep = nullptr);
     inline void start() { midi.set(AAX_PLAYING); }
     inline void stop() { midi.set(AAX_PROCESSED); }
     void rewind();
@@ -506,7 +508,7 @@ public:
     bool process(uint64_t, uint32_t&);
 
 private:
-    MIDI &midi = *this;
+    std::string file;
     std::vector<uint8_t> midi_data;
     std::vector<MIDITrack*> track;
 
