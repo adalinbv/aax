@@ -993,7 +993,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 break;
             }
 
-            do {
+            do
+            {
+                if (eof()) break;
                 byte = pull_byte();
                 CSV(", %d", byte);
             } while (byte != MIDI_SYSTEM_EXCLUSIVE_END);
