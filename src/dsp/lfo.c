@@ -136,7 +136,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
    float fs = lfo->fs;
    int constant;
 
-   depth *= range * fs; 
+   depth *= range * fs;
    constant = (depth > 0.01f) ? AAX_FALSE : AAX_TRUE;
 
    lfo->min = (range * offset + min)*fs;
@@ -211,7 +211,7 @@ _compressor_set_timing(_aaxLFOData *lfo)
       lfo->step[t] *= (lfo->max - lfo->min);
       lfo->step[t] /= lfo->period_rate;
       lfo->value[t] = 1.0f;
-      
+
       /*
        * We're implementing an upward dynamic range
        * compressor, which means that attack is down!
@@ -272,7 +272,7 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
-          || ((lfo->value[track] >= lfo->max) && (step > 0))) 
+          || ((lfo->value[track] >= lfo->max) && (step > 0)))
       {
          lfo->step[track] *= -1.0f;
          lfo->value[track] -= step;
@@ -419,7 +419,7 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
             lvl = _MINMAX(rms*div, 0.0f, 1.0f);
          }
          else
-         {  
+         {
             _aaxEnvelopeData *genv = (_aaxEnvelopeData*)env;
             lvl = genv->value_total;
          }
@@ -499,12 +499,14 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          float step = env->step[stage];
          float fact = 1.0f;
 
-         if (env->state & AAX_ENVELOPE_FOLLOW) {
+         if (fabsf(step) > LEVEL_128DB && env->state & AAX_ENVELOPE_FOLLOW)
+         {
              if (rv > 1.0f) {
                 fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);
              } else if (rv > 0.0f) {
                 fact = powf(rv, GMATH_1_E1);
              }
+             if (step > 0.0f) fact = 1.0f/fact;
          }
 
          if (stopped && !env->sustain) env->value += env->step_finish*fact;
