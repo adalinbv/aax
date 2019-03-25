@@ -158,16 +158,71 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          {
             flt->run = _freqfilter_run;
 
-            flt->lfo = 0;
             flt->fs = fs;
-            flt->Q = effect->slot[1]->param[AAX_RESONANCE];
+            flt->lfo = NULL;
             flt->no_stages = 1;
+            flt->Q = effect->slot[1]->param[AAX_RESONANCE];
 
-            flt->high_gain = LEVEL_128DB;
             flt->low_gain = data->delay.gain;
+            flt->high_gain = LEVEL_128DB;
             flt->k = flt->low_gain/flt->high_gain;
 
             _aax_butterworth_compute(fc, flt);
+
+            if (data->lfo.f)
+            {
+               float fmax = effect->slot[1]->param[AAX_LFO_FREQUENCY];
+               _aaxLFOData* lfo = flt->lfo;
+
+               if (fmax > 20.0f)
+               {
+                  if (lfo == NULL) {
+                     lfo = flt->lfo = _lfo_create();
+                  }
+               }
+               else if (lfo)
+               {
+                  _lfo_destroy(flt->lfo);
+                   lfo = flt->lfo = NULL;
+               }
+
+               if (lfo)
+               {
+                  memcpy(lfo, &data->lfo, sizeof(_aaxLFOData));
+
+                  lfo->min = fc;
+                  lfo->max = fmax;
+                  if (lfo->max == 0.0f) {
+                      lfo->max = 22050.0f;
+                  }
+                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  {
+                     lfo->min = 0.5f*(lfo->min + lfo->max);
+                     lfo->max = lfo->min;
+                  }
+                  else if (lfo->max < lfo->min)
+                  {
+                     float f = lfo->max;
+                     lfo->max = lfo->min;
+                     lfo->min = f;
+                  }
+
+                  lfo->min_sec = lfo->min/lfo->fs;
+                  lfo->max_sec = lfo->max/lfo->fs;
+                  lfo->depth = 1.0f;
+                  lfo->offset = 0.0f;
+                  lfo->f = flt->Q;
+                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+                  lfo->stereo_lnk = !stereo;
+
+                  constant = _lfo_set_timing(lfo);
+                  lfo->envelope = AAX_FALSE;
+
+                  if (!_lfo_set_function(lfo, constant)) {
+                     _aaxErrorSet(AAX_INVALID_PARAMETER);
+                  }
+               }
+            }
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -242,10 +297,10 @@ _aaxPhasingEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxPhasingRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.01f, 0.0f, 0.0f  }, {     1.0f, 10.0f, 1.0f, 1.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.01f }, { 22050.0f,  0.0f, 0.0f, 1.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,  0.0f, 0.0f, 0.0f } }
+    { {  0.0f, 0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f, 1.0f } },
+    { { 20.0f, 0.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 0.0f, 1.0f } },
+    { {  0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } },
+    { {  0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
