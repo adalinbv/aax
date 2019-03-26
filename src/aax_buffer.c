@@ -1711,7 +1711,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(staticity, 0.0f, 1.0f));
 
       phase *= GMATH_PI;
-      if (ratio < 0.0f) phase = GMATH_PI - phase;
+//    if (ratio < 0.0f) phase = GMATH_PI - phase;
 
       fs = rb->get_paramf(rb, RB_FREQUENCY);
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);

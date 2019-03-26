@@ -60,8 +60,8 @@ static float* _aax_generate_noise_float(size_t, unsigned char);
 static float* _aax_generate_sawtooth(size_t, float, float, float);
 static float* _aax_generate_triangle(size_t, float, float, float);
 static float* _aax_generate_square(size_t, float, float, float);
-#endif
 static float* _aax_generate_sine(size_t, float, float, float);
+#endif
 
 static float _aax_linear(float v) {
    return v;
@@ -78,11 +78,12 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
    gain *= _gains[_SINE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_sine(no_samples, freq, phase, gain);
+      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
+//    float *ptr = _aax_generate_sine(no_samples, freq, phase, gain);
       if (ptr)
       {
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -102,7 +103,7 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
       if (ptr)
       {
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -122,7 +123,7 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
       if (ptr)
       {
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -142,7 +143,7 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
       if (ptr)
       {
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -161,7 +162,7 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
       if (ptr)
       {
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -184,7 +185,7 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
       {
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -216,7 +217,7 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
          _batch_resample_float(ptr, ptr2+32, 0, no_samples, 0, pitch);
 
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -249,7 +250,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
 
          if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, gain, limiter);
+            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
@@ -312,7 +313,7 @@ _aax_generate_waveform_float(size_t no_samples, float freq, float phase, float *
          {
             int i = no_samples;
             float hdt = GMATH_2PI/nfreq;
-            float s = ratio*phase;
+            float s = phase;
             float *ptr = rv;
 
             do
@@ -328,6 +329,7 @@ _aax_generate_waveform_float(size_t no_samples, float freq, float phase, float *
    return rv;
 }
 
+#if 0
 static float *
 _aax_generate_sine(size_t no_samples, float freq, float phase, float gain)
 {
@@ -353,7 +355,6 @@ _aax_generate_sine(size_t no_samples, float freq, float phase, float gain)
    return rv;
 }
 
-#if 0
 static float *
 _aax_generate_triangle(size_t no_samples, float freq, float phase, float gain)
 {
