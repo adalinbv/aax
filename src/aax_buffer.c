@@ -1703,9 +1703,10 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       unsigned int no_samples, i, bit = 1;
       int q, hvoices;
       unsigned skip;
+      char modulate;
 
+      modulate = 0;
       rate = freq * pitch;
-      ratio = fabsf(ratio);
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(staticity, 0.0f, 1.0f));
 
@@ -1749,7 +1750,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
          break;
       }
       case AAX_RINGMODULATE:
-         ratio = -ratio;
+         modulate = 1;
          break;
       case AAX_ADD:
       default:
@@ -1783,13 +1784,13 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
                nphase = phase + q*GMATH_2PI/voices;
                nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
 
-               rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase, limiter);
+               rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase, modulate, limiter);
             }
             break;
          case AAX_WHITE_NOISE:
          case AAX_PINK_NOISE:
          case AAX_BROWNIAN_NOISE:
-            rv = rb->data_mix_noise(rb, wtype & bit, fs_mixer, pitch, ratio, skip, limiter);
+            rv = rb->data_mix_noise(rb, wtype & bit, fs_mixer, pitch, ratio, skip, modulate, limiter);
             break;
          default:
             break;

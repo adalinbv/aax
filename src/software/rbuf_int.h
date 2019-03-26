@@ -208,14 +208,14 @@ void _aaxRingBufferLimiter(MIX_PTR_T, size_t*, size_t*, float, float);
 
 
 /** BUFFER */
-void _bufferMixWhiteNoise(void**, size_t, char, int, float, float, unsigned char, limitType);
-void _bufferMixPinkNoise(void**, size_t, char, int, float, float, float, unsigned char, limitType);
-void _bufferMixBrownianNoise(void**, size_t, char, int, float, float, float, unsigned char, limitType);
-void _bufferMixSineWave(void**, float, char, size_t, int, float, float, limitType);
-void _bufferMixSquareWave(void**, float, char, size_t, int, float, float, limitType);
-void _bufferMixTriangleWave(void**, float, char, size_t, int, float, float, limitType);
-void _bufferMixSawtooth(void**, float, char, size_t, int, float, float, limitType);
-void _bufferMixImpulse(void**, float, char, size_t, int, float, float, limitType);
+void _bufferMixWhiteNoise(void**, size_t, char, int, float, float, unsigned char, unsigned char, limitType);
+void _bufferMixPinkNoise(void**, size_t, char, int, float, float, float, unsigned char, unsigned char, limitType);
+void _bufferMixBrownianNoise(void**, size_t, char, int, float, float, float, unsigned char, unsigned char, limitType);
+void _bufferMixSineWave(void**, float, char, size_t, int, float, float, unsigned char, limitType);
+void _bufferMixSquareWave(void**, float, char, size_t, int, float, float, unsigned char, limitType);
+void _bufferMixTriangleWave(void**, float, char, size_t, int, float, float, unsigned char, limitType);
+void _bufferMixSawtooth(void**, float, char, size_t, int, float, float, unsigned char, limitType);
+void _bufferMixImpulse(void**, float, char, size_t, int, float, float, unsigned char, limitType);
 
 
 #if defined(__cplusplus)
