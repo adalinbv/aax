@@ -13,6 +13,9 @@
 <aeonwave>
 
  <info name="Flute" bank="0" program="72">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="2" min="60" max="108" step="12"/>
  </info>
 

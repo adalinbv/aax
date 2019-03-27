@@ -13,11 +13,13 @@
 <aeonwave>
 
  <info name="Electric Guitar (Overdriven)" bank="0" program="29">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="6" min="40" max="86" step="12"/>
-  <position x="-1.0" y="1.0" z="-2.0"/>
  </info>
 
- <sound gain="1.29" frequency="220" duration="0.1">
+ <sound gain="1.09" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="triangle" processing="modulate" pitch="5.0"/>
@@ -36,11 +38,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>
-    <param n="2">0.49</param>
+    <param n="2">0.58</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.294</param>
+    <param n="0">0.348</param>
     <param n="1" auto="1.5">18.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

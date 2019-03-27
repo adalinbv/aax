@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Effects (Ice Rain)" bank="0" program="96">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="4.22" frequency="220" duration="0.5" voices="3">
+ <sound gain="3.70" frequency="220" duration="0.5" voices="3">
   <waveform src="triangle" ratio="1.5" voices="7" spread="0.5"/>
   <waveform src="sine" processing="add" ratio="0.5" pitch="1.493"/>
   <waveform src="sawtooth" processing="add" ratio="0.35" pitch="0.05"/>
@@ -25,13 +28,13 @@
  <emitter looping="true">
   <filter type="timed-gain" release-factor="8.0">
    <slot n="0">
-    <param n="0">0.111</param>
+    <param n="0">0.127</param>
     <param n="1">0.05</param>
-    <param n="2">0.557</param>
+    <param n="2">0.636</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.446</param>
+    <param n="0">0.509</param>
     <param n="1">8.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

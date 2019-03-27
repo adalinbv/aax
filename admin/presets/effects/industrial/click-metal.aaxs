@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Metal Click" bank="0" program="0">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.73" frequency="440" duration="0.1">
+ <sound gain="2.05" frequency="440" duration="0.1">
   <waveform src="sine" pitch="0.996"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="11.7587"/>
@@ -26,9 +29,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.5</param>
+    <param n="0">2.0</param>
     <param n="1">0.05</param>
-    <param n="2">0.9</param>
+    <param n="2">1.2</param>
     <param n="3">0.05</param>
    </slot>
   </filter>

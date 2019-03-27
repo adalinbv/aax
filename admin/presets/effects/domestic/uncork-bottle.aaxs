@@ -13,37 +13,30 @@
 <aeonwave>
 
  <info name="Metronome Click" bank="0" program="0">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.76" frequency="220" duration="0.1">
-  <waveform src="white-noise" ratio="40.0" pitch="0.05"/>
-  <waveform src="sine" processing="modulate" ratio="0.7" pitch="11.7587"/>
-  <waveform src="sine" processing="modulate" ratio="1.2" pitch="17.7587"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="4.0">880.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">20.0</param>
-   </slot>
-  </filter>
+ <sound mode="1" gain="0.72" frequency="660" duration="0.1">
+  <waveform src="sine"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.5</param>
-    <param n="1">0.075</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">7.51</param>
+    <param n="1">0.05</param>
+    <param n="2">1.2</param>
+    <param n="3">0.5</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.45</param>
+    <param n="0">4.0</param>
     <param n="1">0.01</param>
-    <param n="2">1.2</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

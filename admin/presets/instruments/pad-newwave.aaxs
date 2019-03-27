@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Pad 1 (new-wave)" bank="0" program="88">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.32" frequency="220" duration="0.33">
+ <sound gain="1.42" frequency="220" duration="0.33">
   <waveform src="triangle" voices="7"/>
   <waveform src="sine" processing="mix" ratio="0.2" pitch="0.9399"/>
   <waveform src="sine" processing="modulate" ratio="1.4" pitch="5.9987"/>
@@ -25,13 +28,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.2</param>
+    <param n="0">0.186</param>
     <param n="1">0.2</param>
-    <param n="2">1.0</param>
+    <param n="2">0.928</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.9</param>
+    <param n="0">0.835</param>
     <param n="1">5.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

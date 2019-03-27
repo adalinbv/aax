@@ -13,6 +13,9 @@
 <aeonwave>
 
  <info name="Lead 2 (saw wave)" bank="0" program="81">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="8" min="21" max="108" step="12"/>
  </info>
 

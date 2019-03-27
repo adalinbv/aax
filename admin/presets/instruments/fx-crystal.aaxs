@@ -13,6 +13,9 @@
 <aeonwave>
 
  <info name="Effects (Crystal)" bank="0" program="98">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="4" min="60" max="108" step="12"/>
  </info>
 
@@ -24,10 +27,10 @@
  <emitter looping="true">
   <filter type="timed-gain" release-factor="6.0">
    <slot n="0">
-    <param n="0">4.82</param>
+    <param n="0">2.42</param>
     <param n="1">0.05</param>
-    <param n="2">2.41</param>
-    <param n="3">8.2</param>
+    <param n="2">1.21</param>
+    <param n="3">5.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

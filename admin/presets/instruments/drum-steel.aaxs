@@ -13,10 +13,13 @@
 <aeonwave>
 
  <info name="Steel Drums" bank="0" program="114">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="4" min="52" max="76" step="6"/>
  </info>
 
- <sound gain="1.55" frequency="220" duration="0.33">
+ <sound gain="1.81" frequency="220" duration="0.33">
   <waveform src="sine" pitch="1.696"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="5.0"/>
   <waveform src="sine" processing="modulate" pitch="5.0587"/>
@@ -39,15 +42,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.41</param>
+    <param n="0">1.2</param>
     <param n="1">0.04</param>
-    <param n="2">1.03</param>
+    <param n="2">0.88</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1.08</param>
+    <param n="0">0.922</param>
     <param n="1">0.3</param>
-    <param n="2">0.705</param>
+    <param n="2">0.602</param>
     <param n="3" auto="1.0">4.0</param>
    </slot>
   </filter>

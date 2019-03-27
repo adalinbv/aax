@@ -13,8 +13,10 @@
 <aeonwave>
 
  <info name="Electric Guitar (Distorted)" bank="0" program="30">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="6" min="40" max="86" step="12"/>
-  <position x="1.0" y="1.0" z="-2.0"/>
  </info>
 
  <sound gain="1.11" frequency="220" duration="0.1">
