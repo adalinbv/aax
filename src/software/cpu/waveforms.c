@@ -56,11 +56,11 @@ static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, cha
 static float* _aax_generate_waveform_float(size_t, float, float, float*);
 static float* _aax_generate_noise_float(size_t, unsigned char);
 
+static float* _aax_generate_sine(size_t, float, float);
 #if 0
-static float* _aax_generate_sawtooth(size_t, float, float, float);
-static float* _aax_generate_triangle(size_t, float, float, float);
-static float* _aax_generate_square(size_t, float, float, float);
-static float* _aax_generate_sine(size_t, float, float, float);
+static float* _aax_generate_sawtooth(size_t, float, float);
+static float* _aax_generate_triangle(size_t, float, float);
+static float* _aax_generate_square(size_t, float, float);
 #endif
 
 static float _aax_linear(float v) {
@@ -78,8 +78,8 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
    gain *= _gains[_SINE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
-//    float *ptr = _aax_generate_sine(no_samples, freq, phase, gain);
+//    float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
+      float *ptr = _aax_generate_sine(no_samples, freq, phase);
       if (ptr)
       {
          if (modulate) {
@@ -99,7 +99,7 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
    if (data && gain)
    {
       float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SQUARE_WAVE]);
-//    float *ptr = _aax_generate_square(no_samples, freq, phase, gain);
+//    float *ptr = _aax_generate_square(no_samples, freq, phase);
       if (ptr)
       {
          if (modulate) {
@@ -119,7 +119,7 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
    if (data && gain)
    {
       float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_TRIANGLE_WAVE]);
-//    float *ptr = _aax_generate_triangle(no_samples, freq, phase, gain);
+//    float *ptr = _aax_generate_triangle(no_samples, freq, phase);
       if (ptr)
       {
          if (modulate) {
@@ -139,7 +139,7 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
    if (data && gain)
    {
       float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SAWTOOTH_WAVE]);
-//    float *ptr = _aax_generate_sawtooth(no_samples, freq, phase, gain);
+//    float *ptr = _aax_generate_sawtooth(no_samples, freq, phase);
       if (ptr)
       {
          if (modulate) {
@@ -329,15 +329,37 @@ _aax_generate_waveform_float(size_t no_samples, float freq, float phase, float *
    return rv;
 }
 
+static float *
+_aax_generate_sine(size_t no_samples, float freq, float phase)
+{
+   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
+   if (rv)
+   {
+      int i = no_samples;
+      float hdt = GMATH_2PI/freq;
+      float s = phase;
+      float *ptr = rv;
+
+      memset(rv, 0, no_samples*sizeof(float));
+      do
+      {
+         *ptr++ += fast_sin(s);
+         s = fmodf(s+hdt, GMATH_2PI);
+      }
+      while (--i);
+   }
+   return rv;
+}
+
 #if 0
 static float *
-_aax_generate_sine(size_t no_samples, float freq, float phase, float gain)
+_aax_generate_triangle(size_t no_samples, float freq, float phase)
 {
    float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
    {
       memset(rv, 0, no_samples*sizeof(float));
-      if (gain)
+      if (1)
       {
          int i = no_samples;
          float hdt = GMATH_2PI/freq;
@@ -346,7 +368,7 @@ _aax_generate_sine(size_t no_samples, float freq, float phase, float gain)
 
          do
          {
-            *ptr++ += gain * fast_sin(s);
+            *ptr++ += tanf(fast_sin(s));
             s = fmodf(s+hdt, GMATH_2PI);
          }
          while (--i);
@@ -356,39 +378,14 @@ _aax_generate_sine(size_t no_samples, float freq, float phase, float gain)
 }
 
 static float *
-_aax_generate_triangle(size_t no_samples, float freq, float phase, float gain)
-{
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
-   if (rv)
-   {
-      memset(rv, 0, no_samples*sizeof(float));
-      if (gain)
-      {
-         int i = no_samples;
-         float hdt = GMATH_2PI/freq;
-         float s = phase;
-         float *ptr = rv;
-
-         do
-         {
-            *ptr++ += gain * tanf(fast_sin(s));
-            s = fmodf(s+hdt, GMATH_2PI);
-         }
-         while (--i);
-      }
-   }
-   return rv;
-}
-
-static float *
-_aax_generate_square(size_t no_samples, float freq, float phase, float gain)
+_aax_generate_square(size_t no_samples, float freq, float phase)
 {
    float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
    {
       float (*_aax_limit)(float) = _aax_atanf;
       memset(rv, 0, no_samples*sizeof(float));
-      if (gain)
+      if (1)
       {
          int i = no_samples;
          float hdt = GMATH_2PI/freq;
@@ -397,7 +394,7 @@ _aax_generate_square(size_t no_samples, float freq, float phase, float gain)
 
          do
          {
-            *ptr++ += gain * _aax_limit(20.0f*fast_sin(s));
+            *ptr++ += _aax_limit(20.0f*fast_sin(s));
             s = fmodf(s+hdt, GMATH_2PI);
          }
          while (--i);
@@ -407,22 +404,23 @@ _aax_generate_square(size_t no_samples, float freq, float phase, float gain)
 }
 
 static float *
-_aax_generate_sawtooth(size_t no_samples, float freq, float phase, float gain)
+_aax_generate_sawtooth(size_t no_samples, float freq, float phase)
 {
    float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
    {
       memset(rv, 0, no_samples*sizeof(float));
-      if (gain)
+      if (1)
       {
          int i = no_samples;
          float hdt = GMATH_2PI/freq;
          float s = GMATH_PI+phase;
          float *ptr = rv;
 
+         // y=sin(tan((x)/2.4884)
          do
          {
-            *ptr++ += gain * fast_sin(tanf((s-GMATH_PI)/2.4884f));
+            *ptr++ += fast_sin(tanf((s-GMATH_PI)/2.4884f));
             s = fmodf(s+hdt, GMATH_2PI);
          }
          while (--i);
