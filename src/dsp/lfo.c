@@ -412,16 +412,17 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
       {
          float lvl, fact;
 
+         lvl = (track % 2) ? 1.1f : 1.0f;
          if (!env)
          {
             float rms, peak;
             _batch_get_average_rms(ptr, num, &rms, &peak);
-            lvl = _MINMAX(rms*div, 0.0f, 1.0f);
+            lvl *= _MINMAX(rms*div, 0.0f, 1.0f);
          }
          else
          {
             _aaxEnvelopeData *genv = (_aaxEnvelopeData*)env;
-            lvl = genv->value_total;
+            lvl *= genv->value_total;
          }
 
          olvl = lfo->value[track];
