@@ -359,7 +359,7 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
             name = it->second;
         }
     }
-    Buffer &buffer = AeonWave::buffer(name, true);
+    Buffer &buffer = AeonWave::buffer(name, false);
     if (buffer) {
     }
 
