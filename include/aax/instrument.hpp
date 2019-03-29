@@ -38,7 +38,8 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float f, float p) : Emitter(AAX_RELATIVE), frequency(f), pitch(p)
+    Note(float f, float p, bool is_wide = false)
+        : Emitter(is_wide ? AAX_ABSOLUTE : AAX_RELATIVE), frequency(f), pitch(p)
     {
         pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
@@ -48,7 +49,18 @@ public:
         tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
         tie(filter_state, AAX_FREQUENCY_FILTER);
 
-        Emitter::matrix(mtx);
+        if (is_wide) {
+            Vector dir = Vector(0.0f, 0.0f, -1.0f);
+            Vector64 pos = Vector64(0.0, 1.0, -2.75);
+            Matrix64 mtx = Matrix64(pos, dir);
+            Matrix64 m;
+            p = 2.17f - _lin2log(f*p);
+            m.rotate(p, 0.0, 1.0, 0.0);
+            m.multiply(mtx);
+            Emitter::matrix(m);
+        } else {
+            Emitter::matrix(mtx);
+        }
     }
 
     friend void swap(Note& n1, Note& n2) noexcept {
@@ -169,8 +181,8 @@ private:
     Instrument& operator=(const Instrument&) = delete;
 
 public:
-    Instrument(AeonWave& ptr, bool drums = false)
-        : Mixer(ptr), aax(&ptr), is_drums(drums)
+    Instrument(AeonWave& ptr, bool drums = false, bool wide = false)
+        : Mixer(ptr), aax(&ptr), is_drums(drums), is_wide(wide)
     {
         tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
         tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
@@ -230,7 +242,7 @@ public:
         if (it == key.end()) {
             float frequency = buffer.get(AAX_UPDATE_RATE);
             if (!is_drums) pitch *= note2freq(key_no)/(float)frequency;
-            auto ret = key.insert({key_no, new Note(frequency, pitch)});
+            auto ret = key.insert({key_no, new Note(frequency,pitch,is_wide)});
             it = ret.first;
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
@@ -290,6 +302,7 @@ public:
     }
 
     void set_pan(float p) {
+        if (is_wide) return;
         Matrix64 m; panned = true;
         m.rotate(1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
@@ -371,6 +384,9 @@ public:
         }
     }
 
+    inline void set_wide(bool w = true) { is_wide = w; }
+    inline bool get_wide() { return is_wide; }
+
 private:
     inline float note2freq(uint8_t d) {
         return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
@@ -410,6 +426,7 @@ private:
     float fc = 0.0f;
     float Q = 0.0f;
 
+    bool is_wide;
     bool is_drums;
     bool panned = false;
     float soft = 1.0f;
