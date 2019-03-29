@@ -305,14 +305,16 @@ public:
     void set_gain(float);
     void set_balance(float);
 
+    bool is_drums(uint8_t);
+
     inline void set_tuning(float pitch) { tuning = powf(2.0f, pitch/12.0f); }
     inline float get_tuning() { return tuning; }
 
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
-    std::string get_drum(uint16_t bank, uint16_t program, uint8_t key);
-    std::string get_instrument(uint16_t bank, uint8_t program);
+    std::pair<std::string,bool> get_drum(uint16_t bank, uint16_t program, uint8_t key);
+    std::pair<std::string,bool> get_instrument(uint16_t bank, uint8_t program);
 
     inline void set_initialize(bool i) { initialize = i; };
     inline bool get_initialize() { return initialize; }
@@ -338,19 +340,18 @@ public:
     void set_chorus_depth(float depth);
     void set_chorus_rate(float rate);
 
-
     MIDI &midi = *this;
 private:
     std::map<uint8_t,MIDIChannel*> channels;
     std::map<uint8_t,std::string> frames;
-    std::map<uint8_t,std::map<uint16_t,std::string>> drums;
-    std::map<uint8_t,std::map<uint16_t,std::string>> instruments;
+    std::map<uint8_t,std::map<uint16_t,std::pair<std::string,bool>>> drums;
+    std::map<uint8_t,std::map<uint16_t,std::pair<std::string,bool>>> instruments;
     std::vector<std::string> loaded;
 
     std::vector<std::string> track_names;
     std::vector<uint16_t> active_track;
 
-    std::string empty_str = "";
+    std::pair<std::string,bool> empty_map = {"", false};
     std::string instr = "gmmidi.xml";
     std::string drum = "gmdrums.xml";
     std::string path;
@@ -376,11 +377,11 @@ private:
     MIDIChannel& operator=(const MIDIChannel&) = delete;
 
 public:
-    MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, Buffer &buffer, uint8_t channel, uint16_t bank, uint8_t program)
+    MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, Buffer &buffer, uint8_t channel, uint16_t bank, uint8_t program, bool is_drums)
        : Instrument(ptr, channel == MIDI_DRUMS_CHANNEL), midi(ptr),
-         channel_no(channel), bank_no(bank), program_no(program)
+         channel_no(channel), bank_no(bank), program_no(program),
+         drum_channel(is_drums)
     {
-        drum_channel = (channel == MIDI_DRUMS_CHANNEL);
         if (drum_channel && buffer) {
            Mixer::add(buffer);
         }
@@ -393,6 +394,7 @@ public:
 
     void play(uint8_t key_no, uint8_t velocity, float pitch);
 
+    inline void set_drums(bool d = true) { drum_channel = d; }
     inline bool is_drums() { return drum_channel; }
 
     inline uint8_t get_channel_no() { return channel_no; }

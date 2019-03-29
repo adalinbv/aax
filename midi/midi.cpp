@@ -122,6 +122,14 @@ MIDI::set_gain(float g)
     AeonWave::set(dsp);
 }
 
+bool
+MIDI::is_drums(uint8_t n)
+{
+    auto it = channels.find(n);
+    if (it == channels.end()) return false;
+    return it->second->is_drums();
+}
+
 void
 MIDI::set_balance(float b)
 {
@@ -193,23 +201,22 @@ MIDI::read_instruments()
                         if (slen)
                         {
                             file[slen] = 0;
-                            std::string inst(file);
-                            frames.insert({bank_no,inst});
+                            frames.insert({bank_no,std::string(file)});
                         }
 
-                        std::map<uint16_t,std::string> bank;
+                        std::map<uint16_t,std::pair<std::string,bool>> bank;
                         for (unsigned int i=0; i<inum; i++)
                         {
                             if (xmlNodeGetPos(xbid, xiid, type, i) != 0)
                             {
+                                bool wide = xmlAttributeGetBool(xiid, "wide");
                                 long int n = xmlAttributeGetInt(xiid, "n");
 
                                 slen = xmlAttributeCopyString(xiid, "file", file, 64);
                                 if (slen)
                                 {
                                     file[slen] = 0;
-                                    std::string inst(file);
-                                    bank.insert({n,inst});
+                                    bank.insert({n,{file,wide}});
                                 }
                             }
                         }
@@ -251,7 +258,7 @@ MIDI::read_instruments()
  * For drum mapping the program_no is stored in the bank number of the map
  * and the key_no in the program number of the map.
  */
-std::string
+std::pair<std::string,bool>
 MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
 {
     auto itb = drums.find(program_no);
@@ -294,10 +301,10 @@ MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
         while (program_no >= 0);
     }
     LOG("Drum not found (bank: %i, key: %i)\n", program_no, key_no);
-    return empty_str;
+    return empty_map;
 }
 
-std::string
+std::pair<std::string,bool>
 MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
 {
     auto itb = instruments.find(bank_no);
@@ -326,7 +333,7 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
         while (bank_no >= 0);
     }
     LOG("Instrument not found\n");
-    return empty_str;
+    return empty_map;
 }
 
 void
@@ -352,13 +359,15 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
     }
 
     std::string name = "";
-    if (channel_no == MIDI_DRUMS_CHANNEL && !frames.empty())
+    bool drums = is_drums(channel_no);
+    if (drums && !frames.empty())
     {
         auto it = frames.find(program_no);
         if (it != frames.end()) {
             name = it->second;
         }
     }
+
     Buffer &buffer = AeonWave::buffer(name, false);
     if (buffer) {
     }
@@ -366,7 +375,7 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
     try {
         auto ret = channels.insert(
             { channel_no, new MIDIChannel(*this, path, instr, drum, buffer,
-                                          channel_no, bank_no, program_no)
+                                         channel_no, bank_no, program_no, drums)
             } );
         it = ret.first;
         AeonWave::add(*it->second);
@@ -445,7 +454,9 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            std::string name = midi.get_drum(bank_no, program_no, key_no);
+            std::pair<std::string,bool> inst;
+            inst = midi.get_drum(bank_no, program_no, key_no);
+            std::string name = inst.first;
             if (!name.empty())
             {
                 if (!midi.buffer_avail(name)) {
@@ -468,7 +479,9 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
         it = name_map.find(program_no);
         if (it == name_map.end())
         {
-            std::string name = midi.get_instrument(bank_no, program_no);
+            std::pair<std::string,bool> inst;
+            inst = midi.get_instrument(bank_no, program_no);
+            std::string name = inst.first;
             if (!name.empty())
             {
                 if (!midi.buffer_avail(name)) {
@@ -483,6 +496,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
                     auto ret = name_map.insert({program_no,buffer});
                     it = ret.first;
                 }
+                midi.channel(channel_no).set_wide(inst.second);
             }
         }
     }
