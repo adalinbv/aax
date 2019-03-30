@@ -380,7 +380,7 @@ public:
     MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, Buffer &buffer, uint8_t channel, uint16_t bank, uint8_t program, bool is_drums)
        : Instrument(ptr, channel == MIDI_DRUMS_CHANNEL), midi(ptr),
          channel_no(channel), bank_no(bank), program_no(program),
-         drum_channel(is_drums)
+         drum_channel(channel == MIDI_DRUMS_CHANNEL ? true : is_drums)
     {
         if (drum_channel && buffer) {
            Mixer::add(buffer);
