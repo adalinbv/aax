@@ -270,7 +270,7 @@ public:
 
     MIDIChannel& channel(uint8_t channel_no);
 
-    inline std::map<uint8_t,MIDIChannel*>& channel() {
+    inline std::map<uint16_t,MIDIChannel*>& channel() {
         return channels;
     }
 
