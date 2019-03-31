@@ -342,10 +342,10 @@ public:
 
     MIDI &midi = *this;
 private:
-    std::map<uint8_t,MIDIChannel*> channels;
-    std::map<uint8_t,std::string> frames;
-    std::map<uint8_t,std::map<uint16_t,std::pair<std::string,bool>>> drums;
-    std::map<uint8_t,std::map<uint16_t,std::pair<std::string,bool>>> instruments;
+    std::map<uint16_t,MIDIChannel*> channels;
+    std::map<uint16_t,std::string> frames;
+    std::map<uint16_t,std::map<uint16_t,std::pair<std::string,bool>>> drums;
+    std::map<uint16_t,std::map<uint16_t,std::pair<std::string,bool>>> instruments;
     std::vector<std::string> loaded;
 
     std::vector<std::string> track_names;
@@ -445,7 +445,10 @@ public:
     void rewind();
     bool process(uint64_t, uint32_t&, uint32_t&);
 
+    MIDI& midi;
 private:
+    static const std::map<std::string,void(*)(MIDITrack&,uint8_t)> sysex;
+
     inline float cents2pitch(float p, uint8_t channel) {
         float r = midi.channel(channel).get_semi_tones();
         return powf(2.0f, p*r/12.0f);
@@ -457,8 +460,6 @@ private:
 
     uint32_t pull_message();
     bool registered_param(uint8_t, uint8_t, uint8_t);
-
-    MIDI& midi;
 
     uint8_t mode = 0;
     uint8_t channel_no = 0;
