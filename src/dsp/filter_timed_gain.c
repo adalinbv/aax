@@ -112,8 +112,8 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
          env->max_stages = _MAX_ENVELOPE_STAGES-1;
          for (i=0; i<_MAX_ENVELOPE_STAGES/2; i++)
          {
-            float dt, value = nextval;
             uint32_t max_pos;
+            float dt, value;
 
             max_pos = (uint32_t)-1;
             dt = filter->slot[i]->param[AAX_TIME0];
@@ -132,8 +132,9 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                max_pos = 1;
             }
 
+            value = _MAX(nextval, 0.0f);
             nextval = filter->slot[i]->param[AAX_LEVEL1];
-            if (nextval == 0.0f) nextval = -1e-2f;
+            if (nextval == 0.0f) nextval = -5e-2f;
             env->step[stage] = (nextval - value)/max_pos;
             env->max_pos[stage] = max_pos;
             stage++;
@@ -155,9 +156,9 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                max_pos = 1;
             }
 
-            value = nextval;
+            value = _MAX(nextval, 0.0f);
             nextval = (i < 2) ? filter->slot[i+1]->param[AAX_LEVEL0] : 0.0f;
-            if (nextval == 0.0f) nextval = -1e-2f;
+            if (nextval == 0.0f) nextval = -5e-2f;
             env->step[stage] = (nextval - value)/max_pos;
             env->max_pos[stage] = max_pos;
             stage++;
