@@ -227,7 +227,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    if (genv) genv->value_total = gain;
 
-   if (gain > LEVEL_96DB)
+// if (gain >= LEVEL_128DB)
    {
       float svol, evol;
 
