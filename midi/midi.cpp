@@ -300,7 +300,7 @@ MIDI::read_instruments()
                                 {
                                     file[slen] = 0;
                                     bank.insert({n,{file,wide}});
-//                                  if(id == 0) printf("{%x, {%i, {%s, %i}}}\n", bank_no, n, file, wide);
+//                                  if (id == 0) printf("{%x, {%i, {%s, %i}}}\n", bank_no, n, file, wide);
                                 }
                             }
                         }
@@ -365,7 +365,11 @@ MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
             auto bank = itb->second;
             auto iti = bank.find(key_no);
             if (iti != bank.end()) {
-                return iti->second;
+                if (track_names.empty() || std::find(track_names.begin(), track_names.end(), iti->second.first) != track_names.end()) {
+                    return iti->second;
+                } else {
+                    return empty_map;
+                }
             }
 
             MESSAGE("Drum %i not found in bank %i\n", key_no, program_no);
@@ -402,8 +406,13 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
         {
             auto bank = itb->second;
             auto iti = bank.find(program_no);
-            if (iti != bank.end()) {
-                return iti->second;
+            if (iti != bank.end())
+            {
+                if (track_names.empty() || std::find(track_names.begin(), track_names.end(), iti->second.first) != track_names.end()) {
+                    return iti->second;
+                } else {
+                    return empty_map;
+                }
             }
 
             MESSAGE("Instrument %i not found in bank %i\n", program_no, bank_no);
