@@ -19,34 +19,29 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.16" frequency="110" duration="0.1">
-  <waveform src="white-noise" pitch="0.8"/>
+ <sound gain="1.00" frequency="400" duration="0.1">
+  <waveform src="square" ratio="0.15"/>
+  <waveform src="white-noise" processing="add" pitch="0.4"/>
  </sound>
 
  <emitter looping="true" pan="-0.23">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.7</param>
-    <param n="1">0.01</param>
-    <param n="2">0.7</param>
-    <param n="3">0.03</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.01</param>
-    <param n="1">0.1</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">2.07</param>
+    <param n="1">0.15</param>
+    <param n="2">0.689</param>
+    <param n="3">0.33</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.8</param>
-    <param n="1">0.01</param>
+    <param n="0">1.4</param>
+    <param n="1">0.02</param>
     <param n="2">0.6</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <effect type="phasing" src="envelope" optional="true">
+  <effect type="phasing" src="true" optional="true">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.1</param>
