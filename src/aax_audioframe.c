@@ -1686,7 +1686,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          {
             if (xmlAttributeExists(xnid, "polyphony"))
             {
-               unsigned int min = get_low_resource() ? 2 : 6;
+               unsigned int min = get_low_resource() ? 8 : 12;
                unsigned int max = get_low_resource() ? 24 : 88;
                handle->max_emitters = xmlAttributeGetInt(xnid, "polyphony");
                handle->max_emitters = _MINMAX(handle->max_emitters, min, max);
