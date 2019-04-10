@@ -21,12 +21,12 @@
 
  <sound gain="0.88" frequency="770" duration="0.1">
   <waveform src="sine"/>
-  <waveform src="sine" processing="add" ratio="0.8" pitch="2.92"/>
-  <waveform src="sine" processing="modulate" pitch="7.0"/>
+  <waveform src="triangle" processing="add" ratio="0.8" pitch="3.0"/>
+  <waveform src="sine" processing="modulate" pitch="6.98"/>
  </sound>
 
  <emitter looping="true" pan="-0.63">
-  <filter type="timed-gain" release-factor="2.0">
+  <filter type="timed-gain" src="envelope" release-factor="2.0">
    <slot n="0">
     <param n="0">1.1</param>
     <param n="1">0.03</param>

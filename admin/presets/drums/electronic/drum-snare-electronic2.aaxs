@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Electronic Snare 2" bank="0" program="40">
+ <info name="Electronic Snare 2" bank="24" program="40">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>

@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Open Hi-Hat" bank="0" program="46">
+ <info name="Open Hi-Hat" bank="25" program="46">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>

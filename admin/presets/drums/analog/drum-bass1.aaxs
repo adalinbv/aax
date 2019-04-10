@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Analog Base Drum 1" bank="0" program="36">
+ <info name="Analog Base Drum 1" bank="25" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
@@ -27,7 +27,7 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.169</param>
+    <param n="0">0.269</param>
     <param n="1">0.07</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
