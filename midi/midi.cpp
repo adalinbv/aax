@@ -42,7 +42,7 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
-#define ENABLE_CSV	0
+#define ENABLE_CSV	1
 #if ENABLE_CSV
 # define PRINT_CSV(...)	printf(__VA_ARGS__)
 # define CSV(...)	if(midi.get_initialize()) printf(__VA_ARGS__)
@@ -65,6 +65,7 @@ using namespace aax;
 static void
 SysEXMode(MIDITrack& track, uint8_t id)
 {
+    MIDI &midi = track.midi;
     if (id == MIDI_SYSTEM_EXCLUSIVE_YAMAHA)
     {
         track.midi.set_mode(MIDI_XG_MIDI);
@@ -99,6 +100,7 @@ SysEXMode(MIDITrack& track, uint8_t id)
 static void
 SysEXGSVolume(MIDITrack& track, uint8_t id)
 {
+    MIDI &midi = track.midi;
     uint8_t byte2 = track.pull_byte();
     uint8_t byte1 = track.pull_byte();
     if (byte1 == 0x7F && byte2 == 0x3D) {
@@ -120,6 +122,7 @@ SysEXGSVolume(MIDITrack& track, uint8_t id)
 static void
 SysEXDrumChannel(MIDITrack& track, uint8_t id)
 {
+    MIDI &midi = track.midi;
     uint8_t byte = track.pull_byte();
     if (byte == 0x10)  track.midi.channel(9).set_drums(true);
     else if (byte == 0x0F) track.midi.channel(11).set_drums(true);
@@ -985,8 +988,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     pull_byte() == 0x7e && pull_byte() == 0x00)
                 {
                     midi.set_mode(MIDI_XG_MIDI);
-                    CSV(", %d, %d, %d, %d, %d, %d, %d, %d, %d",
-                         0x43, byte, 0x00, 0x00, 0x7E, 0x00);
+                    CSV(", 0x43 %d, 0x00, 0x00, 0x7E, 0x00", byte);
                 }
                 break;
             case MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME:
