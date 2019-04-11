@@ -447,8 +447,6 @@ public:
 
     MIDI& midi;
 private:
-    static const std::map<std::string,void(*)(MIDITrack&,uint8_t)> sysex;
-
     inline float cents2pitch(float p, uint8_t channel) {
         float r = midi.channel(channel).get_semi_tones();
         return powf(2.0f, p*r/12.0f);

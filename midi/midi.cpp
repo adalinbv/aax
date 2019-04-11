@@ -42,7 +42,7 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
-#define ENABLE_CSV	1
+#define ENABLE_CSV	0
 #if ENABLE_CSV
 # define PRINT_CSV(...)	printf(__VA_ARGS__)
 # define CSV(...)	if(midi.get_initialize()) printf(__VA_ARGS__)
@@ -61,92 +61,6 @@
 #endif
 
 using namespace aax;
-
-static void
-SysEXMode(MIDITrack& track, uint8_t id)
-{
-    MIDI &midi = track.midi;
-    if (id == MIDI_SYSTEM_EXCLUSIVE_YAMAHA)
-    {
-        track.midi.set_mode(MIDI_XG_MIDI);
-        CSV(", 0x43, 0x10, 0x4C, 0x00, 0x00, 0x7E, 0x00");
-    }
-    else
-    {
-        uint8_t byte = track.pull_byte();
-        switch(byte)
-        {
-        case 0x01:
-            track.midi.set_mode(MIDI_GENERAL_MIDI1);
-            CSV(", 0x7E, 0x7F, 0x09, 0x01");
-            break;
-        case 0x02:
-//           track.midi.set_mode(MIDI_GENERAL_MIDI0);
-            CSV(", 0x7E, 0x7F, 0x09, 0x02");
-        case 0x03:
-            track.midi.set_mode(MIDI_GENERAL_MIDI2);
-            CSV(", 0x7E, 0x7F, 0x09, 0x03");
-            break;
-        case 0x41:
-            track.midi.set_mode(MIDI_GENERAL_STANDARD);
-            CSV(", 0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x7F, 0x00, 0x41");
-            break;
-        default:
-            break;
-       }
-    }
-}
-
-static void
-SysEXGSVolume(MIDITrack& track, uint8_t id)
-{
-    MIDI &midi = track.midi;
-    uint8_t byte2 = track.pull_byte();
-    uint8_t byte1 = track.pull_byte();
-    if (byte1 == 0x7F && byte2 == 0x3D) {
-        track.midi.set_gain(1.0f);
-    } else if (byte1 == 0x72 && byte2 == 0x4A) {
-        track.midi.set_gain(0.9f);
-    } else if (byte1 == 0x65 && byte2 == 0x57) {
-        track.midi.set_gain(0.8f);
-    } else if (byte1 == 0x59 && byte2 == 0x63) {
-        track.midi.set_gain(0.7f);
-    } else if (byte1 == 0x4C && byte2 == 0x70) {
-        track.midi.set_gain(0.6f);
-    } else if (byte1 == 0x40 && byte2 == 0x7C) {
-        track.midi.set_gain(0.5f);
-    }
-    CSV("0x41, 0x10, 0x42, 0x12, 0x40, 0x00, 0x04, %d, %d", byte1, byte2);
-}
-
-static void
-SysEXDrumChannel(MIDITrack& track, uint8_t id)
-{
-    MIDI &midi = track.midi;
-    uint8_t byte = track.pull_byte();
-    if (byte == 0x10)  track.midi.channel(9).set_drums(true);
-    else if (byte == 0x0F) track.midi.channel(11).set_drums(true);
-    CSV("0x41, 0x10, 0x42, 0x12, 0x40, 0x19, 0x15, 0x02, %d", byte);
-}
-
-// http://www.synthfont.com/SysEx.txt
-// http://www.bandtrax.com.au/sysex.htm
-const std::map<std::string,void(*)(MIDITrack&,uint8_t)>
-MIDITrack::sysex =
-{
- // GM
- { "\x7E\x7F\x09", SysEXMode },
- { "\x7E\x7F\x09", SysEXMode },
-
- // GS
- { "\x41\x10\x42\x12\x40\x00\x7F\x00", SysEXMode },
- { "\x41\x10\x42\x12\x40\x00\x04", SysEXGSVolume },
- { "\x41\x10\x42\x12\x40\x19\x15\x02", SysEXDrumChannel },
- { "\x41\x10\x42\x12\x40\x1A\x15\x02", SysEXDrumChannel },
-
- // XG
- { "\x43\x10\x4C\x00\x00\x7E\x00", SysEXMode }
-};
 
 MIDI::MIDI(const char* n, const char *tnames)
         : AeonWave(n)
@@ -938,12 +852,14 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
         {
         case MIDI_SYSTEM_EXCLUSIVE:
         {
-            uint8_t size = pull_byte();
+            uint32_t size = pull_message();
             uint8_t byte = pull_byte();
             const char *s = NULL;
+
 #if 0
  uint8_t *p = (uint8_t*)*this;
  p += offset();
+ printf("System_exclusive, %u, %d, ", size, byte);
  for (int i=0; i<20; ++i) printf("%d, ", p[i]);
  printf("\n");
 #endif
@@ -1133,7 +1049,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
         case MIDI_FILE_META_EVENT:
         {
             uint8_t meta = pull_byte();
-            uint8_t size = pull_byte();
+            uint32_t size = pull_message();
             uint8_t c;
             switch(meta)
             {
