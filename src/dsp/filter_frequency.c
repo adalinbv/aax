@@ -201,6 +201,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                   float f = lfo->max;
                   lfo->max = lfo->min;
                   lfo->min = f;
+                  state ^= AAX_INVERSE;
                }
 
                lfo->min_sec = lfo->min/lfo->fs;

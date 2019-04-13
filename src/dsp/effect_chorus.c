@@ -178,6 +178,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             flt->low_gain = data->delay.gain;
             flt->high_gain = LEVEL_128DB;
             flt->Q = effect->slot[1]->param[AAX_RESONANCE];
+            flt->k = flt->low_gain/flt->high_gain;
 
             _aax_butterworth_compute(fc, flt);
 
@@ -217,6 +218,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
                      float f = lfo->max;
                      lfo->max = lfo->min;
                      lfo->min = f;
+                     state ^= AAX_INVERSE;
                   }
 
                   lfo->min_sec = lfo->min/lfo->fs;
