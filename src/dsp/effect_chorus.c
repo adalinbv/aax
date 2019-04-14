@@ -172,11 +172,11 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
             flt->fs = fs;
             flt->lfo = NULL;
-            flt->no_stages = 1;
-            flt->type = LOWPASS;
+            flt->no_stages = 0;
+            flt->type = HIGHPASS;
 
             flt->low_gain = data->delay.gain;
-            flt->high_gain = LEVEL_128DB;
+            flt->high_gain = LEVEL_64DB;
             flt->Q = effect->slot[1]->param[AAX_RESONANCE];
             flt->k = flt->low_gain/flt->high_gain;
 
