@@ -203,6 +203,10 @@ namespace aax
 #define MIDI_MONO_ALL_NOTES_OFF		0x7e
 #define MIDI_POLY_ALL_NOTES_OFF		0x7f
 
+/* General MIDI 2 */
+#define MIDI_BANK_RYTHM			0x78
+#define MIDI_BANK_MELODY		0x79
+
 /* RPN messages */
 #define MIDI_PITCH_BEND_SENSITIVITY	0x0000
 #define MIDI_CHANNEL_FINE_TUNING	0x0001

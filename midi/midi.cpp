@@ -42,7 +42,7 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
-#define ENABLE_CSV	0
+#define ENABLE_CSV	1
 #if ENABLE_CSV
 # define PRINT_CSV(...)	printf(__VA_ARGS__)
 # define CSV(...)	if(midi.get_initialize()) printf(__VA_ARGS__)
@@ -871,7 +871,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     pull_byte() == 0x12 && pull_byte() == 0x40)
                 {
                     byte = pull_byte();
-                    CSV(", 0x41, 0x10, 0x42, 0x12, 0x40, %d", byte);
+                    CSV(", %d, %d, %d, %d, %d", 0x10, 0x42, 0x12, 0x40, byte);
                     switch(byte)
                     {
                     case 0x00:
@@ -879,7 +879,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                             pull_byte() == 0x41)
                         {
                             midi.set_mode(MIDI_GENERAL_STANDARD);
-                            CSV(", 0x7F, 0x00, 0x41");
+                            CSV(", %d, %d, %d", 0x7F, 0x00, 0x41);
                         }
                         break;
                     case 0x19:
@@ -889,7 +889,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                             byte = pull_byte();
                             if (byte == 0x10) midi.channel(9).set_drums(true);
                             else if (byte == 0xf) midi.channel(11).set_drums(true);
-                            CSV(", 0x15, 0x02, %d", byte);
+                            CSV(", %d, %d, %d", 0x15, 0x02, byte);
                         }
                         break;
                     default:
@@ -904,7 +904,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     pull_byte() == 0x7e && pull_byte() == 0x00)
                 {
                     midi.set_mode(MIDI_XG_MIDI);
-                    CSV(", 0x43 %d, 0x00, 0x00, 0x7E, 0x00", byte);
+                    CSV("%d, %d, %d, %d, %d", 0x00, 0x00, 0x7E, 0x00, byte);
                 }
                 break;
             case MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME:
@@ -1293,6 +1293,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     omni = true;
                     break;
                 case MIDI_BANK_SELECT:
+                    if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
+                        if (value == MIDI_BANK_RYTHM) {
+                            midi.channel(channel).set_drums(true);
+                        } else if (value == MIDI_BANK_MELODY) {
+                            midi.channel(channel).set_drums(false);
+                        }
+                    }
                     bank_no = (uint16_t)value << 7;
                     break;
                 case MIDI_BANK_SELECT|MIDI_FINE:
