@@ -880,29 +880,55 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             switch(byte)
             {
             case MIDI_SYSTEM_EXCLUSIVE_ROLAND:
-                if (pull_byte() == 0x10 && pull_byte() == 0x42 &&
-                    pull_byte() == 0x12 && pull_byte() == 0x40)
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte != 0x10) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte != 0x42) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte != 0x12) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte == 0x40)
                 {
                     byte = pull_byte();
-                    CSV(", %d, %d, %d, %d, %d", 0x10, 0x42, 0x12, 0x40, byte);
+                    CSV(", %d", byte);
                     switch(byte)
                     {
                     case 0x00:
-                        if (pull_byte() == 0x7f && pull_byte() == 0x00 &&
-                            pull_byte() == 0x41)
-                        {
+                        byte = pull_byte();
+                        CSV(", %d", byte);
+                        if (byte != 0x7f) break;
+
+                        byte = pull_byte();
+                        CSV(", %d", byte);
+                        if (byte != 0x00) break;
+
+                        byte = pull_byte();
+                        CSV(", %d", byte);
+                        if (byte == 0x41) {
                             midi.set_mode(MIDI_GENERAL_STANDARD);
-                            CSV(", %d, %d, %d", 0x7F, 0x00, 0x41);
                         }
                         break;
                     case 0x19:
                     case 0x1a:
-                        if (pull_byte() == 0x15 && pull_byte() == 0x02)
+                        byte = pull_byte();
+                        CSV(", %d", byte);
+                        if (byte != 0x15) break;
+
+                        byte = pull_byte();
+                        CSV(", %d", byte);
+                        if (byte == 0x02)
                         {
                             byte = pull_byte();
                             if (byte == 0x10) midi.channel(9).set_drums(true);
                             else if (byte == 0xf) midi.channel(11).set_drums(true);
-                            CSV(", %d, %d, %d", 0x15, 0x02, byte);
+                            CSV(",%d", byte);
                         }
                         break;
                     default:
@@ -912,26 +938,46 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 break;
             case MIDI_SYSTEM_EXCLUSIVE_YAMAHA:
                 byte = pull_byte();
-                if ((byte & 0x10) && pull_byte() == 0x4c &&
-                    pull_byte() == 0x00 && pull_byte() == 0x00 &&
-                    pull_byte() == 0x7e && pull_byte() == 0x00)
-                {
+                CSV(", %d", byte);
+                if (byte != 0x10) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte != 0x4c) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte != 0x00) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte != 0x00) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte != 0x7e) break;
+
+                byte = pull_byte();
+                CSV(", %d", byte);
+                if (byte == 0x00) {
                     midi.set_mode(MIDI_XG_MIDI);
-                    CSV("%d, %d, %d, %d, %d", 0x00, 0x00, 0x7E, 0x00, byte);
                 }
                 break;
             case MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME:
                 // GM1 rewind: F0 7E 7F 09 01 F7
                 // GM2 rewind: F0 7E 7F 09 03 F7
                 // GS  rewind: F0 41 10 42 12 40 00 7F 00 41 F7
-                byte = pull_byte();         // device id.
+                byte = pull_byte();
+                CSV(", %d", byte);
                 if (byte == 0x7F)
                 {
                     byte = pull_byte();
+                    CSV(", %d", byte);
                     switch(byte)
                     {
                     case GENERAL_MIDI_SYSTEM:
                         byte = pull_byte();
+                        CSV(", %d", byte);
                         midi.set_mode(byte);
                         switch(byte)
                         {
@@ -949,7 +995,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                         default:
                             break;
                         }
-                        CSV(", %d, %d, %d, %d", 0x7E, 0x7F, 0x09, byte);
                         break;
                     case MIDI_EOF:
                     case MIDI_WAIT:
@@ -1051,8 +1096,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
             size -= (offset() - offs);
 #if ENABLE_CSV
-            if (size) while (--size) CSV(", %d", pull_byte());
-            CSV("\n");
+            if (size) {
+                while (size--) CSV(", %d", pull_byte());
+                CSV("\n");
+            }
 #else
             if (size) forward(size);
 #endif
@@ -1064,7 +1111,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             uint64_t size = pull_message();
             uint64_t offs = offset();
             uint8_t c;
-
+#if 0
+            forward(size);
+#else
             switch(meta)
             {
             case MIDI_TRACK_NAME:
@@ -1203,6 +1252,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 size -= (offset() - offs);
                 if (size) forward(size);
             }
+#endif
         }
         default:
         {
