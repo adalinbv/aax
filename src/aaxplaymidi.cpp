@@ -67,7 +67,7 @@ help()
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
     printf("  -t, --track <name|num>\tonly play the track with this name or number\n");
-    printf("  -b, --batched\t\t\tprocess the file in batched (high-speed) mode.\n");
+//  printf("  -b, --batched\t\t\tprocess the file in batched (high-speed) mode.\n");
     printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
 
@@ -201,8 +201,8 @@ int main(int argc, char **argv)
         }
 
         grep = getCommandLineOption(argc, argv, "-g");
-        if (!track) {
-            track = getCommandLineOption(argc, argv, "--grep");
+        if (!grep) {
+            grep = getCommandLineOption(argc, argv, "--grep");
         }
 
         if (getCommandLineOption(argc, argv, "-v") ||
@@ -225,8 +225,6 @@ int main(int argc, char **argv)
                   << e.what() << std::endl;
     }
 
-
     return 0;
 }
-
 
