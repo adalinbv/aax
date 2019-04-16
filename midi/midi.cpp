@@ -60,6 +60,10 @@
 # define LOG
 #endif
 
+#define ISOPRINT(c)	if ((c<' ')||((c>'~')&&(c<=160))) {		\
+                            MESSAGE("\\%03o", c); CSV("\\%03o", c);	\
+                        } else { MESSAGE("%c", c); CSV("%c", c); }
+
 using namespace aax;
 
 MIDI::MIDI(const char* n, const char *tnames)
@@ -828,12 +832,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 
     while (!eof() && (timestamp_parts <= time_offs_parts))
     {
-        uint32_t message = pull_byte();
-
         CSV("%d, %ld, ", channel_no+1, timestamp_parts);
 
         // Handle running status; if the next byte is a data byte
         // reuse the last command seen in the track
+        uint32_t message = pull_byte();
         if ((message & 0x80) == 0)
         {
             push_byte();
@@ -850,9 +853,19 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
         rv = true;
         switch(message)
         {
+        case MIDI_SYSTEM_EXCLUSIVE_END:
+        {
+            uint64_t size = pull_message();
+            CSV("System_exclusive_packet, %lu", size);
+            while(--size) {
+                CSV(", %d", pull_byte());
+            }
+            CSV("\n");
+        }
         case MIDI_SYSTEM_EXCLUSIVE:
         {
-            uint32_t size = pull_message();
+            uint64_t size = pull_message();
+            uint64_t offs = offset();
             uint8_t byte = pull_byte();
             const char *s = NULL;
 
@@ -863,7 +876,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
  for (int i=0; i<20; ++i) printf("%d, ", p[i]);
  printf("\n");
 #endif
-            CSV("System_exclusive, %u, %d", size, byte);
+            CSV("System_exclusive, %lu, %d", size, byte);
             switch(byte)
             {
             case MIDI_SYSTEM_EXCLUSIVE_ROLAND:
@@ -1032,25 +1045,26 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 default:
                     break;
                 }
-            case MIDI_SYSTEM_EXCLUSIVE_END:
             default:
                 break;
             }
 
-            do
-            {
-                if (eof()) break;
-                byte = pull_byte();
-                CSV(", %d", byte);
-            } while (byte != MIDI_SYSTEM_EXCLUSIVE_END);
+            size -= (offset() - offs);
+#if ENABLE_CSV
+            if (size) while (--size) CSV(", %d", pull_byte());
             CSV("\n");
+#else
+            if (size) forward(size);
+#endif
             break;
         }
         case MIDI_FILE_META_EVENT:
         {
             uint8_t meta = pull_byte();
-            uint32_t size = pull_message();
+            uint64_t size = pull_message();
+            uint64_t offs = offset();
             uint8_t c;
+
             switch(meta)
             {
             case MIDI_TRACK_NAME:
@@ -1063,8 +1077,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 for (int i=0; i<size; ++i)
                 {
                     c = pull_byte();
-                    MESSAGE("%c", c);
-                    CSV("%c", c);
+                    ISOPRINT(c);
                     if (size == slen && c == tname[i]) cntr++;
                 }
                 if (cntr == size) midi.set_track_active(channel_no);
@@ -1077,11 +1090,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_INSTRUMENT_NAME:
                 CSV("%s, \"", csv_name[meta-1].c_str());
                 MESSAGE("%-10s: ", type_name[meta-1].c_str());
-                for (int i=0; i<size; ++i)
-                {
+                for (int i=0; i<size; ++i) {
                     c = pull_byte();
-                    MESSAGE("%c", c);
-                    CSV("%c", c);
+                    ISOPRINT(c);
                 }
                 MESSAGE("\n");
                 CSV("\"\n");
@@ -1089,11 +1100,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_LYRICS:
                 midi.set_lyrics(true);
                 CSV("%s, ", csv_name[meta-1].c_str());
-                for (int i=0; i<size; ++i)
-                {
-                    c = pull_byte();
-                    MESSAGE("%c", c);
-                    CSV("%c", c);
+                for (int i=0; i<size; ++i) {
+                     c = pull_byte();
+                    ISOPRINT(c);
                 }
                 if (!midi.get_initialize() && midi.get_verbose()) fflush(stdout);
                 CSV("\n");
@@ -1101,23 +1110,23 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_MARKER:
                 CSV("Marker_t, ");
                 for (int i=0; i<size; ++i) {
-                    uint8_t c = pull_byte();
-                    CSV("%c", c);
+                     c = pull_byte();
+                    ISOPRINT(c);
                 }
                 CSV("\n");
                 break;
             case MIDI_CUE_POINT:
                 CSV("Cue_point_t, ");
                 for (int i=0; i<size; ++i) {
-                    uint8_t c = pull_byte();
-                    CSV("%c", c);
+                     c = pull_byte();
+                    ISOPRINT(c);
                 }
                 CSV("\n");
             case MIDI_DEVICE_NAME:
                 CSV("Device_name_t, ");
                 for (int i=0; i<size; ++i) {
-                    uint8_t c = pull_byte();
-                    CSV("%c", c);
+                     c = pull_byte();
+                    ISOPRINT(c);
                 }
                 CSV("\n");
                 break;
@@ -1148,7 +1157,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t mm = pull_byte();
                 uint8_t ll = pull_byte();
                 CSV("Sequence_number, %d\n", (mm << 8) | ll);
-                forward(size);
                 break;
             }
             case MIDI_TIME_SIGNATURE:
@@ -1180,17 +1188,20 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 break;
             }
             case MIDI_SEQUENCERSPECIFICMETAEVENT:
-                CSV("Sequencer_specific, %u", size);
+                CSV("Sequencer_specific, %lu", size);
                 for (int i=0; i<size; ++i) {
-                    uint8_t c = pull_byte();
-                    CSV("%c", c);
+                    CSV("%c", pull_byte());
                 }
                 CSV("\n");
                 break;
             default:        // unsupported
                 LOG("Unsupported system message: 0x%x\n", meta);
-                forward(size);
                 break;
+            }
+
+            if (meta != MIDI_END_OF_TRACK) {
+                size -= (offset() - offs);
+                if (size) forward(size);
             }
         }
         default:
@@ -1242,14 +1253,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
                 }
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
-                break;
-            }
-            case MIDI_BREATH_CONTROLLER:
-            {
-                uint8_t pressure = pull_byte();
-                if (!midi.channel(channel).is_drums()) {
-                    midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
-                }
                 break;
             }
             case MIDI_CONTROL_CHANGE:
@@ -1304,6 +1307,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 case MIDI_BANK_SELECT|MIDI_FINE:
                     bank_no += value;
+                    break;
+                case MIDI_BREATH_CONTROLLER:
+                    if (!midi.channel(channel).is_drums()) {
+                        midi.channel(channel).set_pressure(1.0f-0.33f*value/127.0f);
+                    }
                     break;
                 case MIDI_BALANCE:
                     // If a MultiTimbral device, then each Part usually has its
@@ -1589,7 +1597,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
                         midi.set_ppqn(PPQN);
                     }
 
-                    while (!stream.eof())
+                    while ((stream.size() - stream.offset()) >= sizeof(header))
                     {
                         header = stream.pull_long();
                         if (header == 0x4d54726b) // "MTrk"
