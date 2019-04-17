@@ -42,7 +42,7 @@
 #include <base/timer.h>
 #include "midi.hpp"
 
-#define ENABLE_CSV	1
+#define ENABLE_CSV	0
 #if ENABLE_CSV
 # define PRINT_CSV(...)	printf(__VA_ARGS__)
 # define CSV(...)	if(midi.get_initialize()) printf(__VA_ARGS__)
@@ -1477,20 +1477,26 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_PORTAMENTO_SWITCH:            // GM 2.0
                     LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
                     break;
-                case MIDI_RELEASE_TIME:			// GM 2.0 recommended
-                    LOG("Unsupported control change: MIDI_RELEASE_TIME, ch: %u, value: %u\n", channel, value);
+                case MIDI_RELEASE_TIME:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        midi.channel(channel).set_release_time(value);
+                    }
                     break;
-                case MIDI_ATTACK_TIME:			// GM 2.0 recommended
-                    LOG("Unsupported control change: MIDI_ATTACK_TIME, ch: %u, value: %u\n", channel, value);
+                case MIDI_ATTACK_TIME:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        midi.channel(channel).set_attack_time(value);
+                    }
                     break;
-                case MIDI_DECAY_TIME:			// GM 2.0 recommended recommended
-                    LOG("Unsupported control change: MIDI_DECAY_TIME, ch: %u, value: %u\n", channel, value);
+                case MIDI_DECAY_TIME:
+                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                        midi.channel(channel).set_decay_time(value);
+                    }
                     break;
                 case MIDI_TREMOLO_EFFECT_DEPTH:
-//                  midi.channel(channel).set_tremolo_depth((float)value/64.0f);
+                    midi.channel(channel).set_tremolo_depth((float)value/64.0f);
                     break;
                 case MIDI_PHASER_EFFECT_DEPTH:
-//                  midi.channel(channel).set_phaser_depth((float)value/64.0f);
+                    midi.channel(channel).set_phaser_depth((float)value/64.0f);
                     break;
                 case MIDI_PORTAMENTO_CONTROL:
                 case MIDI_HOLD2:
