@@ -78,6 +78,11 @@ public:
         return *this;
     }
 
+    void matrix(Matrix64& m) {
+        Emitter::set(AAX_POSITION, AAX_ABSOLUTE);
+        Emitter::matrix(m);
+    }
+
     bool play(float g) {
         hold = false;
         gain_param = gain = g;
@@ -104,14 +109,13 @@ public:
     }
 
     // only notes started before this command should hold until stop arrives
-    void set_sustain(bool s) {
-        hold = s;
-    }
+    inline void set_sustain(bool s) { hold = s; }
 
-    void matrix(Matrix64& m) {
-        Emitter::set(AAX_POSITION, AAX_ABSOLUTE);
-        Emitter::matrix(m);
-    }
+    // envelope control
+    inline void set_attack_time(unsigned t) { set(AAX_ATTACK_FACTOR, t); }
+    inline void set_release_time(unsigned t) { set(AAX_RELEASE_FACTOR, t); }
+    inline void set_decay_time(unsigned t) { set(AAX_DECAY_FACTOR, t); }
+
 
     inline void set_filter_state() {
         if (filter_cutoff > 32.f && filter_cutoff <= 10000.f) {
@@ -241,7 +245,7 @@ public:
         auto it = key.find(key_no);
         if (it == key.end()) {
             float frequency = buffer.get(AAX_UPDATE_RATE);
-            if (!is_drums) pitch *= note2freq(key_no)/(float)frequency;
+            if (!is_drums) pitch *= note2freq(key_no)/float(frequency);
             auto ret = key.insert({key_no, new Note(frequency,pitch,is_wide)});
             it = ret.first;
             if (!playing && !is_drums) {
@@ -256,6 +260,8 @@ public:
             it->second->buffer(buffer);
         }
         Mixer::add(*it->second);
+        it->second->set_attack_time(attack_time);
+        it->second->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
         it->second->play(volume*g*soft);
     }
@@ -352,6 +358,22 @@ public:
     void set_tremolo_depth(float d) {}
     void set_phaser_depth(float d) {}
 
+    void set_attack_time(unsigned t) {
+        if (!is_drums) { attack_time = t;
+            for (auto& it : key) it.second->set_attack_time(t);
+        }
+    }
+    void set_release_time(unsigned t) {
+        if (!is_drums) { release_time = t;
+            for (auto& it : key) it.second->set_release_time(t);
+        }
+    }
+    void set_decay_time(unsigned t) {
+        if (!is_drums) { decay_time = t;
+            for (auto& it : key) it.second->set_decay_time(t);
+        }
+    }
+
     // The whole device must have one chorus effect and one reverb effect.
     // Each Channel must have its own adjustable send levels to the chorus
     // and the reverb. A connection from chorus to reverb must be provided.
@@ -389,7 +411,7 @@ public:
 
 private:
     inline float note2freq(uint8_t d) {
-        return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
+        return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
     }
 
     std::map<uint8_t,Note*> key;
@@ -417,6 +439,10 @@ private:
     Param reverb_decay_depth = 0.25f;
     Param reverb_cutoff_frequency = 790.0f;
     Status reverb_state = AAX_FALSE;
+
+    unsigned attack_time = 64;
+    unsigned release_time = 64;
+    unsigned decay_time = 64;
 
     float delay_level = 0.0f;
 

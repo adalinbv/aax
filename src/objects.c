@@ -427,7 +427,7 @@ _aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, a
 
 
 static int
-_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id, float freq)
+_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id, float freq, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
    int rv = AAX_FALSE;
@@ -504,8 +504,13 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
                         src[slen] = 0;
                         type = aaxGetTypeByName(src);
                      }
-            
+
                      pn |= slotnum[sn];
+                     if (midi)
+                     {
+                         if (pn ==  AAX_TIME0) value *= midi->attack_factor;
+                         if (pn ==  AAX_TIME1) value *= midi->release_factor;
+                     }
                      setParamFn(id, pn, type, value);
                   }
                }
@@ -521,7 +526,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
 }
 
 aaxFilter
-_aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
+_aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, _midi_t *midi)
 {
    aaxFilter rv = NULL;
    char src[65];
@@ -536,15 +541,20 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
 
       src[slen] = 0;
       ftype = aaxFilterGetByName(config, src);
+      if (ftype != AAX_TIMED_GAIN_FILTER) {
+          midi = NULL;
+      }
       flt = aaxFilterCreate(config, ftype);
       if (flt)
       {
-         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt, freq)) {
+         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt, freq, midi)) {
             _aaxSetSlotFromAAXSOld(xid, aaxFilterSetSlotParams, flt);
          }
 
          if (ftype == AAX_TIMED_GAIN_FILTER)
          {
+            float release_factor = midi ? midi->release_factor : 1.0f;
+
             if (xmlAttributeExists(xid, "repeat"))
             {
                if (!xmlAttributeCompareString(xid, "repeat", "inf") ||
@@ -559,9 +569,13 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
                }
                state |= AAX_REPEAT;
             }
-            else if (xmlAttributeExists(xid, "release-factor"))
+            else if (xmlAttributeExists(xid, "release-factor")) {
+                release_factor *= xmlAttributeGetDouble(xid, "release-factor");
+            }
+
+            if (release_factor != 1.0f)
             {
-               state = (10.0f*xmlAttributeGetDouble(xid, "release-factor"));
+               state = 10.0f*release_factor;
                if (state >= AAX_ENVELOPE_FOLLOW) state = AAX_ENVELOPE_FOLLOW-1;
                else if (state < 1) state = 0;
                state |= AAX_RELEASE_FACTOR;
@@ -601,7 +615,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq)
 }
 
 aaxEffect
-_aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq)
+_aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq, _midi_t *midi)
 {
    aaxEffect rv = NULL;
    char src[65];
@@ -616,10 +630,13 @@ _aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq)
 
       src[slen] = 0;
       etype = aaxEffectGetByName(config, src);
+      if (etype != AAX_TIMED_PITCH_EFFECT) {
+          midi = NULL;
+      }
       eff = aaxEffectCreate(config, etype);
       if (eff)
       {
-         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff, freq)) {
+         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff, freq, midi)) {
             _aaxSetSlotFromAAXSOld(xid, aaxEffectSetSlotParams, eff);
          }
 

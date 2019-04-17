@@ -494,6 +494,12 @@ public:
     inline int get(enum aaxModeType t) {
         return aaxEmitterGetMode(ptr,t);
     }
+    inline bool set(enum aaxSetupType t, unsigned int s) {
+        return aaxEmitterSetSetup(ptr,t,s);
+    }
+    inline unsigned int get(enum aaxSetupType t) {
+        return aaxEmitterGetSetup(ptr,t);
+    }
     inline bool set(enum aaxState s) {
         return aaxEmitterSetState(ptr,s);
     }

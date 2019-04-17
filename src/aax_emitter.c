@@ -91,6 +91,10 @@ aaxEmitterCreate()
             handle->looping = AAX_FALSE;
             _SET_INITIAL(src->props3d);
 
+            handle->midi.attack_factor = 1.0f;
+            handle->midi.release_factor = 1.0f;
+            handle->midi.decay_factor = 1.0f;
+
             rv = (aaxEmitter)handle;
          }
       }
@@ -241,15 +245,14 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             rv = AAX_FALSE;
          }
-      }
-
 #if 0
-      // This is done when the buffer is being used for the first time
-      // in software/emitters.c
-      if (rv && buffer->aaxs) {
-         rv = _emitterCreateEFFromAAXS(handle, embuf, buffer->aaxs);
-      }
+         // This is done when the buffer is being used for the first time
+         // in software/emitters.c
+         if (rv && buffer->aaxs) {
+            rv = _emitterCreateEFFromAAXS(handle, embuf, buffer->aaxs);
+         }
 #endif
+      }
    }
    put_emitter(handle);
 
@@ -1104,16 +1107,48 @@ aaxEmitterGetOffsetSec(const aaxEmitter emitter)
 }
 
 AAX_API int AAX_APIENTRY
-aaxEmitterSetSetup(UNUSED(aaxEmitter emitter), UNUSED(enum aaxSetupType type), UNUSED(unsigned int setup))
+aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setup)
 {  
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    int rv = AAX_FALSE;
+   switch(type)
+   {
+   case AAX_ATTACK_FACTOR:
+      handle->midi.attack_factor = (float)setup/64.0f;
+      break;
+   case AAX_RELEASE_FACTOR:
+      handle->midi.release_factor = (float)setup/64.0f;
+      break;
+   case AAX_DECAY_FACTOR:
+      handle->midi.decay_factor = (float)setup/64.0f;
+      break;
+   default:
+      break;
+   }
+   put_emitter(handle);
    return rv;
 }
 
 AAX_API unsigned int AAX_APIENTRY
-aaxEmitterGetSetup(UNUSED(const aaxEmitter emitter), UNUSED(enum aaxSetupType type))
+aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
 {
+   _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    unsigned int rv = AAX_FALSE;
+   switch(type)
+   {
+   case AAX_ATTACK_FACTOR:
+      rv = 64.0f*handle->midi.attack_factor;
+      break;
+   case AAX_RELEASE_FACTOR:
+      rv = 64.0f*handle->midi.release_factor;
+      break;
+   case AAX_DECAY_FACTOR:
+      rv = 64.0f*handle->midi.decay_factor;
+      break;
+   default:
+      break;
+   }
+   put_emitter(handle);
    return rv;
 }
 
@@ -1536,7 +1571,8 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
                   }
                   if (non_optional || !get_low_resource())
                   {
-                      aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq);
+                      aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq,
+                                                            &handle->midi);
                       if (flt)
                       {
                         _filter_t* filter = get_filter(flt);
@@ -1563,7 +1599,8 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
                   }
                   if (non_optional || !get_low_resource())
                   {
-                     aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq);
+                     aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq,
+                                                           &handle->midi);
                      if (eff)
                      {
                         _effect_t* effect = get_effect(eff);

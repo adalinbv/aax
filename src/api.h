@@ -288,6 +288,8 @@ typedef struct
    void *parent;		/* assigned when registered to a (sub)mixer */
    _handle_t *root;		/* reference to the mixer                   */
 
+   _midi_t midi;
+
 } _emitter_t;
 
 typedef struct

@@ -239,6 +239,16 @@ enum
    HRTF_OFFSET
 };
 
+/* --- MIDI --- */
+typedef struct
+{
+    /* midi support */
+   float attack_factor;
+   float release_factor;
+   float decay_factor;
+
+} _midi_t;
+
 typedef ALIGN16  struct {
    vec3f_t box;				/* bounding box */
    float radius_sq;			/* bounding radius squared */
@@ -439,8 +449,8 @@ unsigned int _aaxSetNoEmitters(unsigned int);
 unsigned int _aaxIncreaseEmitterCounter(void);
 unsigned int _aaxDecreaseEmitterCounter(void);
 
-aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*, float);
-aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const char*, float);
+aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*, float, _midi_t*);
+aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const char*, float, _midi_t*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
