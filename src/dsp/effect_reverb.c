@@ -480,7 +480,7 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       /* initial gains, defnining a direct path is not necessary    */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
 // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      igain = 1.0f/num;
+      igain = 2.0f/num;
       if (state & AAX_INVERSE)
       {
          gains[6] = igain*0.9484f;      // conrete/brick = 0.95
