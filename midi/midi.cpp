@@ -1017,15 +1017,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     {
                     case MIDI_DEVICE_VOLUME:
                         byte = pull_byte();
-                        if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
-                            midi.set_gain((float)byte/127.0f);
-                        }
+                        midi.set_gain((float)byte/127.0f);
                         break;
                     case MIDI_DEVICE_BALANCE:
                         byte = pull_byte();
-                        if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
-                            midi.set_balance(((float)byte-64.0f)/64.0f);
-                        }
+                        midi.set_balance(((float)byte-64.0f)/64.0f);
                         break;
                     case MIDI_DEVICE_FINE_TUNING:
                     {
@@ -1346,12 +1342,10 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     omni = true;
                     break;
                 case MIDI_BANK_SELECT:
-                    if (midi.get_mode() == MIDI_GENERAL_MIDI2) {
-                        if (value == MIDI_BANK_RYTHM) {
-                            midi.channel(channel).set_drums(true);
-                        } else if (value == MIDI_BANK_MELODY) {
-                            midi.channel(channel).set_drums(false);
-                        }
+                    if (value == MIDI_BANK_RYTHM) {
+                        midi.channel(channel).set_drums(true);
+                    } else if (value == MIDI_BANK_MELODY) {
+                        midi.channel(channel).set_drums(false);
                     }
                     bank_no = (uint16_t)value << 7;
                     break;
@@ -1430,43 +1424,43 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
                 case MIDI_REVERB_SEND_LEVEL:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                    {
                         float val = (float)value/127.0f;
                         midi.channel(channel).set_reverb_level(val);
                     }
                     break;
                 case MIDI_CHORUS_SEND_LEVEL:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                    {
                         float val = (float)value/127.0f;
                         midi.channel(channel).set_chorus_level(val);
                     }
                     break;
                 case MIDI_FILTER_RESONANCE:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                    {
                         float val = (float)value/64.0f; // relative: 0.0 - 2.0
                         midi.channel(channel).set_filter_resonance(val);
                     }
                     break;
                 case MIDI_CUTOFF:	// Brightness
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                    {
                         float val = (float)value/64.0f; // relative: 0.0 - 2.0
                         midi.channel(channel).set_filter_cutoff(val);
                     }
                     break;
                 case MIDI_VIBRATO_RATE:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                    {
                         float val = 0.5f + (float)value/64.0f;
                         midi.channel(channel).set_vibrato_rate(val);
                     }
                     break;
                 case MIDI_VIBRATO_DEPTH:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                    {
                         float val = (float)value/64.0f;
                         midi.channel(channel).set_vibrato_depth(val);
                     }
                     break;
                 case MIDI_VIBRATO_DELAY:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
+                    {
                         float val = (float)value/64.0f;
                         midi.channel(channel).set_vibrato_delay(val);
                     }
@@ -1478,19 +1472,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
                     break;
                 case MIDI_RELEASE_TIME:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
-                        midi.channel(channel).set_release_time(value);
-                    }
+                    midi.channel(channel).set_release_time(value);
                     break;
                 case MIDI_ATTACK_TIME:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
-                        midi.channel(channel).set_attack_time(value);
-                    }
+                    midi.channel(channel).set_attack_time(value);
                     break;
                 case MIDI_DECAY_TIME:
-                    if (midi.get_mode() >= MIDI_GENERAL_MIDI2) {
-                        midi.channel(channel).set_decay_time(value);
-                    }
+                    midi.channel(channel).set_decay_time(value);
                     break;
                 case MIDI_TREMOLO_EFFECT_DEPTH:
                     midi.channel(channel).set_tremolo_depth((float)value/64.0f);
