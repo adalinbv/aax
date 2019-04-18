@@ -220,10 +220,10 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {50.0f, 0.0f, 0.0f, 0.0f }, { 22000.0f,   0.07f,    1.0f, 0.7f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
+    { {50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,   0.07f,    1.0f, 0.7f } },
+    { { 0.0f,   0.0f, 0.0f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
+    { { 0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
+    { { 0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
@@ -585,12 +585,12 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
       // https://web.archive.org/web/20150416071915/http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       if ((lb_depth != 0) && (lb_gain != 0))
       {
-         static const float max_depth = REVERB_EFFECTS_TIME*0.6877777f;
+         static const float max_depth = REVERB_EFFECTS_TIME; // *0.6877777f;
          unsigned int track;
          float dlb, dlbp;
 
          num = 5;
-         lb_gain /= num;
+//       lb_gain /= num;
          reverb->loopback[0].gain = lb_gain*0.95015f;   // conrete/brick = 0.95
          reverb->loopback[1].gain = lb_gain*0.87075f;
          reverb->loopback[2].gain = lb_gain*0.91917f;
