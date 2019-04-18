@@ -380,7 +380,7 @@ public:
     void set_reverb_level(float lvl) {
         if (lvl > 0) {
             reverb_level = lvl;
-            if (!reverb_state) reverb_state = AAX_TRUE|AAX_INVERSE;
+            if (!reverb_state) reverb_state = AAX_TRUE;
         } else if (reverb_state) reverb_state = AAX_FALSE;
     }
 
@@ -435,8 +435,8 @@ private:
     Status chorus_state = AAX_FALSE;
 
     Param reverb_level = 40.0f/127.0f;
-    Param reverb_delay_depth = 0.025f;
-    Param reverb_decay_depth = 0.25f;
+    Param reverb_delay_depth = 0.035f;
+    Param reverb_decay_depth = 0.15f;
     Param reverb_cutoff_frequency = 790.0f;
     Status reverb_state = AAX_FALSE;
 
