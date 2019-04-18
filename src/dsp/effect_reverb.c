@@ -512,23 +512,23 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       idepth_offs *= fs;
       if (state & AAX_INVERSE)
       {
-         delays[0] = idepth_offs + idepth*0.9876543f;
-         delays[2] = idepth_offs + idepth*0.5019726f;
-         delays[1] = idepth_offs + idepth*0.3333333f;
-         delays[6] = idepth_offs + idepth*0.1992736f;
-         delays[4] = idepth_offs + idepth*0.1428571f;
-         delays[5] = idepth_offs + idepth*0.0909091f;
-         delays[3] = idepth_offs + idepth*0.0769231f;
+         delays[0] = idepth_offs + idepth/1.0f;
+         delays[2] = idepth_offs + idepth/2.0f;
+         delays[1] = idepth_offs + idepth/3.0f;
+         delays[6] = idepth_offs + idepth/5.0f;
+         delays[4] = idepth_offs + idepth/7.0f;
+         delays[5] = idepth_offs + idepth/11.0f;
+         delays[3] = idepth_offs + idepth/13.0f;
       }
       else
       {
-         delays[6] = idepth_offs + idepth*0.9876543f;
-         delays[4] = idepth_offs + idepth*0.5019726f;
-         delays[5] = idepth_offs + idepth*0.3333333f;
-         delays[0] = idepth_offs + idepth*0.1992736f;
-         delays[2] = idepth_offs + idepth*0.1428571f;
-         delays[1] = idepth_offs + idepth*0.0909091f;
-         delays[3] = idepth_offs + idepth*0.0769231f;
+         delays[6] = idepth_offs + idepth/1.0f;
+         delays[4] = idepth_offs + idepth/2.0f;
+         delays[5] = idepth_offs + idepth/3.0f;
+         delays[0] = idepth_offs + idepth/5.0f;
+         delays[2] = idepth_offs + idepth/7.0f;
+         delays[1] = idepth_offs + idepth/11.0f;
+         delays[3] = idepth_offs + idepth/13.0f;
       }
 
       reflections->gain = igain;
@@ -606,20 +606,19 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          dlb = 0.01f+lb_depth*max_depth;
          dlbp = (REVERB_EFFECTS_TIME-dlb)*lb_depth;
          dlbp = _MINMAX(dlbp, 0.01f, REVERB_EFFECTS_TIME-0.01f);
-         dlbp = 0;
 
          dlb *= fs;
          dlbp *= fs;
          reverb->no_loopbacks = num;
          for (track=0; track<tracks; ++track)
          {
-            reverb->loopback[0].sample_offs[track] = (dlbp + dlb*0.9876543f);
-            reverb->loopback[1].sample_offs[track] = (dlbp + dlb*0.4901861f);
-            reverb->loopback[2].sample_offs[track] = (dlbp + dlb*0.3333333f);
-            reverb->loopback[3].sample_offs[track] = (dlbp + dlb*0.2001743f);
-            reverb->loopback[4].sample_offs[track] = (dlbp + dlb*0.1428571f);
-            reverb->loopback[5].sample_offs[track] = (dlbp + dlb*0.0909091f);
-            reverb->loopback[6].sample_offs[track] = (dlbp + dlb*0.0769231f);
+            reverb->loopback[0].sample_offs[track] = dlb/1.0f;
+            reverb->loopback[1].sample_offs[track] = dlb/2.0f;
+            reverb->loopback[2].sample_offs[track] = dlb/3.0f;
+            reverb->loopback[3].sample_offs[track] = dlb/5.0f;
+            reverb->loopback[4].sample_offs[track] = dlb/7.0f;
+            reverb->loopback[5].sample_offs[track] = dlb/11.0f;
+            reverb->loopback[6].sample_offs[track] = dlb/13.0f;
          }
 #if 0
  for (int i=0; i<7; ++i)
