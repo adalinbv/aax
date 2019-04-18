@@ -73,6 +73,8 @@ public:
 
     inline size_t offset() { return pos; }
 
+    inline size_t remaining() { return size() - pos; }
+
     inline bool eof() {
         if (pos > size()) {
             throw(std::out_of_range("index beyond buffer length"));
