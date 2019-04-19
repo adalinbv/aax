@@ -169,6 +169,35 @@ MIDI::set_chorus_rate(float rate)
     }
 }
 
+void
+MIDI::set_reverb_type(uint8_t value)
+{
+    reverb_type = value;
+    switch (value)
+    {
+    case 0:
+        midi.set_reverb("reverb/room-small");
+        break;
+    case 1:
+        midi.set_reverb("reverb/room-medium");
+        break;
+    case 2:
+        midi.set_reverb("reverb/room-large");
+        break;
+    case 3:
+        midi.set_reverb("reverb/concerthall");
+        break;
+    case 4:
+        midi.set_reverb("reverb/concerthall-large");
+        break;
+    case 8:
+        midi.set_reverb("reverb/plate");
+        break;
+    default:
+        break;
+    }
+}
+
 /*
  * Create map of instrument banks and program numbers with their associated
  * file names from the XML files for a quick access during playback.
@@ -1077,35 +1106,12 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                             switch(param)
                             {
                             case 0:	// Reverb Typ
-                                reverb_type = value;
-                                switch (value)
-                                {
-                                case 0:
-                                    midi.set_reverb("reverb/room-small");
-                                    break;
-                                case 1:
-                                    midi.set_reverb("reverb/room-medium");
-                                    break;
-                                case 2:
-                                    midi.set_reverb("reverb/room-large");
-                                    break;
-                                case 3:
-                                    midi.set_reverb("reverb/concerthall");
-                                    break;
-                                case 4:
-                                    midi.set_reverb("reverb/concerthall-large");
-                                    break;
-                                case 8:
-                                    midi.set_reverb("reverb/plate");
-                                    break;
-                                default:
-                                    break;
-                                }
+                                midi.set_reverb_type(value);
                                 break;
                             case 1:	//Reverb Time
                             {
                                 float rt = expf((value-40)*0.025);
-                                decay_depth = 0.1f*rt/decay_level;
+                                midi.set_decay_depth(rt);
                             }
                             default:
                                break;

@@ -344,10 +344,12 @@ public:
     void set_chorus_depth(float depth);
     void set_chorus_rate(float rate);
 
+    void set_reverb_type(uint8_t value);
     void set_reverb(const char *t) {
         Buffer &buf = AeonWave::buffer(t);
         Sensor::add(buf);
     }
+    inline void set_decay_depth(float rt) { decay_depth = 0.1f*rt/decay_level; }
 
     MIDI &midi = *this;
 private:
