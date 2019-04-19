@@ -123,8 +123,9 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
             }
          }
 
-         data->run = _delay_run;
          data->freq_filter = flt;
+         data->run = _delay_run;
+         data->flanger = AAX_FALSE;
          data->feedback = AAX_FALSE;
 
          data->lfo.convert = _linear;
@@ -445,7 +446,7 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferDelayEffectData* effect = data;
-   size_t offs, noffs;
+   ssize_t offs, noffs;
    float pitch, volume;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -458,7 +459,7 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    volume =  effect->delay.gain;
    offs = effect->delay.sample_offs[track];
 
-   assert(start || (offs < ds));
+   assert(start || (offs < (ssize_t)ds));
    if (offs >= ds) offs = ds-1;
 
    if (start) {
@@ -501,15 +502,56 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
          }
       }
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+   }
 
-      if (effect->feedback)
+   volume = effect->feedback;
+   if (offs && volume > LEVEL_96DB)
+   {
+      const MIX_T *sptr = s + start;
+      MIX_T *dptr = d + start;
+      ssize_t coffs, doffs;
+      int i, step, sign;
+
+      sign = (noffs < offs) ? -1 : 1;
+      doffs = labs(noffs - offs);
+      i = no_samples;
+      coffs = offs;
+      step = end;
+
+      if (start)
       {
-         size_t ds = 100; // effect->lfo.value[track];
-printf("ds: %i\n", ds);
-         _aax_memcpy(dptr-ds, effect->history->history[track], ds*bps);
-         rbd->add(dptr, dptr-ds, no_samples, effect->feedback, 0.0f);
-         _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
+         step = effect->offset->step[track];
+         coffs = effect->offset->coffs[track];
       }
+      else
+      {
+         if (doffs)
+         {
+            step = end/doffs;
+            if (step < 2) step = end;
+         }
+      }
+      effect->offset->step[track] = step;
+
+      _aax_memcpy(dptr-ds, effect->history->history[track], ds*bps);
+      if (i >= step)
+      {
+         do
+         {
+            rbd->add(dptr, dptr-coffs, step, volume, 0.0f);
+
+            dptr += step;
+            coffs += sign;
+            i -= step;
+         }
+         while(i >= step);
+      }
+      if (i) {
+         rbd->add(dptr, dptr-coffs, i, volume, 0.0f);
+      }
+
+      _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
+      effect->offset->coffs[track] = coffs;
    }
 }
 
