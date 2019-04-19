@@ -74,10 +74,12 @@ int main(int argc, char **argv)
             aaxEmitter emitter[64];
             aaxFilter filter;
             aaxEffect effect;
+            aaxBuffer xbuffer;
             int q, state, nsrc;
             float pitch, gain, duration;
             float dt = 0.0f;
 
+            xbuffer = setFiltersEffects(argc, argv, config, config, NULL, emitter);
             nsrc = _MINMAX(getNumEmitters(argc, argv), 1, 64);
             duration = getDuration(argc, argv);
 
@@ -151,6 +153,10 @@ int main(int argc, char **argv)
             res = aaxMixerAddBuffer(config, buffer);
             // testForState(res, "aaxMixerAddBuffer");
 
+            if (xbuffer) {
+                res = aaxMixerAddBuffer(config, xbuffer);
+            }
+
             res = aaxMixerSetState(config, AAX_PLAYING);
             testForState(res, "aaxMixerStart");
 
@@ -218,6 +224,9 @@ int main(int argc, char **argv)
                 res = aaxEmitterDestroy(emitter[q]);
             }
             res = aaxBufferDestroy(buffer);
+            if (xbuffer) {
+                res = aaxBufferDestroy(xbuffer);
+            }
         }
         else if (buffer)
         {
