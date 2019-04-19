@@ -265,7 +265,7 @@ int main(int argc, char **argv)
                 printf("emitter chorus.. (sine wave)\n");
                 effect = aaxEmitterGetEffect(emitter, AAX_CHORUS_EFFECT);
                 res = aaxEffectSetSlot(effect, 0, AAX_LINEAR,
-                                              1.0f, 2.5f, 1.0f, 0.0f);
+                                              0.4f, 2.5f, 1.0f, 0.0f);
                 res = aaxEffectSetState(effect, AAX_SINE_WAVE);
                 res = aaxEmitterSetEffect(emitter, effect);
                 res = aaxEffectDestroy(effect);

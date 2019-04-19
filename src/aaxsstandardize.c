@@ -304,7 +304,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
     } else {
         dsp->src = xmlAttributeGetString(xid, "src");
     }
-    dsp->stereo = xmlAttributeGetInt(xid, "stereo");
+    dsp->stereo = xmlAttributeGetBool(xid, "stereo");
     dsp->repeat = xmlAttributeGetString(xid, "repeat");
     dsp->optional = xmlAttributeGetBool(xid, "optional");
     if (!strcasecmp(dsp->type, "timed-gain")) {
