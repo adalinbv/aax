@@ -3,7 +3,7 @@
 <aeonwave>
 
  <audioframe>
-  <effect type="chorus" src="true">
+  <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.49</param>
     <param n="1">0.2</param>
@@ -14,7 +14,7 @@
  </audioframe>
 
  <mixer>
-  <effect type="chorus" src="true">
+  <effect type="chorus" src="sine">
    <slot n="0">
     <param n="0">0.49</param>
     <param n="1">0.2</param>
