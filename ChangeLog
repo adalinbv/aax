@@ -1,4 +1,18 @@
 
+* Fri Apr 19 2019 - tech@adalin.org
+- AeonWave (3.6.0) stable; urgency=low
+
+ * Fix reverb, the volume of the delayed signal was handled improperly.
+ * Introduce envelope-following timed gain filters (with exponential decay).
+ * Implement frequency-filtering of the feedback signal for phasing and chorus.
+ * Allow to override the shared data directory path in the configurtion file.
+ * Improvements to the handling of mangled audio-streams.
+ * Small code speedups.
+ * Further work to support General MIDI 2.0
+
+-- Erik Hofman <tech@adalin.org>  Tue 19 Apr 2019 09:34:19 + 0200
+
+
 * Tue Feb 19 2019 - tech@adalin.org
 - AeonWave (3.5.7) stable; urgency=medium
 

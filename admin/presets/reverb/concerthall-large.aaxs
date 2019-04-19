@@ -7,8 +7,8 @@
    <slot n="0">
     <param n="0">790.0</param>
     <param n="1">0.035</param>
-    <param n="2">0.66</param>
-    <param n="3">0.10</param>
+    <param n="2">0.89</param>
+    <param n="3">0.15</param>
    </slot>
   </effect>
  </audioframe>
@@ -18,8 +18,8 @@
    <slot n="0">
     <param n="0">790.0</param>
     <param n="1">0.035</param>
-    <param n="2">0.66</param>
-    <param n="3">0.10</param>
+    <param n="2">0.89</param>
+    <param n="3">0.15</param>
    </slot>
   </effect>
  </mixer>
