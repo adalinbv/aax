@@ -60,7 +60,7 @@
 # define LOG
 #endif
 
-#define ISOPRINT(c)	if ((c<' ')||((c>'~')&&(c<=160))) {		\
+#define CSV_ISOPRINT(c)	if ((c<' ')||((c>'~')&&(c<=160))) {		\
                             MESSAGE("\\%03o", c); CSV("\\%03o", c);	\
                         } else { MESSAGE("%c", c); CSV("%c", c); }
 
@@ -91,6 +91,8 @@ MIDI::MIDI(const char* n, const char *tnames)
             if (t) active_track.push_back(t);
         }
     }
+
+//  set_reverb("reverb/concerthall-large");
 }
 
 void
@@ -1072,6 +1074,43 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                             }
                             break;
                         case MIDI_REVERB_PARAMETER:
+                            switch(param)
+                            {
+                            case 0:	// Reverb Typ
+                                reverb_type = value;
+                                switch (value)
+                                {
+                                case 0:
+                                    midi.set_reverb("reverb/room-small");
+                                    break;
+                                case 1:
+                                    midi.set_reverb("reverb/room-medium");
+                                    break;
+                                case 2:
+                                    midi.set_reverb("reverb/room-large");
+                                    break;
+                                case 3:
+                                    midi.set_reverb("reverb/concerthall");
+                                    break;
+                                case 4:
+                                    midi.set_reverb("reverb/concerthall-large");
+                                    break;
+                                case 8:
+                                    midi.set_reverb("reverb/plate");
+                                    break;
+                                default:
+                                    break;
+                                }
+                                break;
+                            case 1:	//Reverb Time
+                            {
+                                float rt = expf((value-40)*0.025);
+                                decay_depth = 0.1f*rt/decay_level;
+                            }
+                            default:
+                               break;
+                            }
+                            break;
                         default:
                             break;
                         }
@@ -1122,7 +1161,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 for (int i=0; i<size; ++i)
                 {
                     c = pull_byte();
-                    ISOPRINT(c);
+                    CSV_ISOPRINT(c);
                     if (size == slen && c == tname[i]) cntr++;
                 }
                 if (cntr == size) midi.set_track_active(channel_no);
@@ -1137,7 +1176,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 MESSAGE("%-10s: ", type_name[meta-1].c_str());
                 for (int i=0; i<size; ++i) {
                     c = pull_byte();
-                    ISOPRINT(c);
+                    CSV_ISOPRINT(c);
                 }
                 MESSAGE("\n");
                 CSV("\"\n");
@@ -1146,8 +1185,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 midi.set_lyrics(true);
                 CSV("%s, ", csv_name[meta-1].c_str());
                 for (int i=0; i<size; ++i) {
-                     c = pull_byte();
-                    ISOPRINT(c);
+                    c = pull_byte();
+                    CSV_ISOPRINT(c);
                 }
                 if (!midi.get_initialize() && midi.get_verbose()) fflush(stdout);
                 CSV("\n");
@@ -1155,23 +1194,23 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_MARKER:
                 CSV("Marker_t, ");
                 for (int i=0; i<size; ++i) {
-                     c = pull_byte();
-                    ISOPRINT(c);
+                    c = pull_byte();
+                    CSV_ISOPRINT(c);
                 }
                 CSV("\n");
                 break;
             case MIDI_CUE_POINT:
                 CSV("Cue_point_t, ");
                 for (int i=0; i<size; ++i) {
-                     c = pull_byte();
-                    ISOPRINT(c);
+                    c = pull_byte();
+                    CSV_ISOPRINT(c);
                 }
                 CSV("\n");
             case MIDI_DEVICE_NAME:
                 CSV("Device_name_t, ");
                 for (int i=0; i<size; ++i) {
-                     c = pull_byte();
-                    ISOPRINT(c);
+                    c = pull_byte();
+                    CSV_ISOPRINT(c);
                 }
                 CSV("\n");
                 break;
@@ -1235,7 +1274,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_SEQUENCERSPECIFICMETAEVENT:
                 CSV("Sequencer_specific, %lu", size);
                 for (int i=0; i<size; ++i) {
-                    CSV("%c", pull_byte());
+                    c = pull_byte();
+                    CSV("%c", c);
                 }
                 CSV("\n");
                 break;
@@ -1424,47 +1464,50 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     midi.channel(channel).set_sustain(value >= 0x40);
                     break;
                 case MIDI_REVERB_SEND_LEVEL:
-                    {
-                        float val = (float)value/127.0f;
-                        midi.channel(channel).set_reverb_level(val);
-                    }
+                {
+                    float val = (float)value/127.0f;
+printf("MIDI_REVERB_SEND_LEVEL: %f\n", val);
+                    midi.channel(channel).set_reverb_level(val);
                     break;
+                }
                 case MIDI_CHORUS_SEND_LEVEL:
-                    {
-                        float val = (float)value/127.0f;
-                        midi.channel(channel).set_chorus_level(val);
-                    }
+                {
+                    float val = (float)value/127.0f;
+                    midi.channel(channel).set_chorus_level(val);
                     break;
+                }
                 case MIDI_FILTER_RESONANCE:
-                    {
-                        float val = (float)value/64.0f; // relative: 0.0 - 2.0
-                        midi.channel(channel).set_filter_resonance(val);
-                    }
+                {
+                    float val = (float)value/64.0f; // relative: 0.0 - 2.0
+printf("MIDI_FILTER_RESONANCE: %f\n", val);
+                    midi.channel(channel).set_filter_resonance(val);
                     break;
+                }
                 case MIDI_CUTOFF:	// Brightness
-                    {
-                        float val = (float)value/64.0f; // relative: 0.0 - 2.0
-                        midi.channel(channel).set_filter_cutoff(val);
-                    }
+                {
+                    float val = (float)value/64.0f; // relative: 0.0 - 2.0
+printf("MIDI_CUTOFF: %f\n", val);
+                    midi.channel(channel).set_filter_cutoff(val);
                     break;
+                }
                 case MIDI_VIBRATO_RATE:
-                    {
-                        float val = 0.5f + (float)value/64.0f;
-                        midi.channel(channel).set_vibrato_rate(val);
-                    }
+                {
+                    float val = 0.5f + (float)value/64.0f;
+                    midi.channel(channel).set_vibrato_rate(val);
                     break;
+                }
                 case MIDI_VIBRATO_DEPTH:
-                    {
-                        float val = (float)value/64.0f;
-                        midi.channel(channel).set_vibrato_depth(val);
-                    }
+                {
+                    float val = (float)value/64.0f;
+                    midi.channel(channel).set_vibrato_depth(val);
                     break;
+                }
                 case MIDI_VIBRATO_DELAY:
-                    {
-                        float val = (float)value/64.0f;
-                        midi.channel(channel).set_vibrato_delay(val);
-                    }
+                {
+                    float val = (float)value/64.0f;
+                    midi.channel(channel).set_vibrato_delay(val);
                     break;
+                }
                 case MIDI_PORTAMENTO_TIME:
                     LOG("Unsupported control change: MIDI_PORTAMENTO_TIME, ch: %u, value: %u\n", channel, value);
                     break;
@@ -1641,7 +1684,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
                         midi.set_ppqn(PPQN);
                     }
 
-                    while ((stream.size() - stream.offset()) >= sizeof(header))
+                    while (stream.remaining() >= sizeof(header))
                     {
                         header = stream.pull_long();
                         if (header == 0x4d54726b) // "MTrk"

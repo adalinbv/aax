@@ -344,6 +344,11 @@ public:
     void set_chorus_depth(float depth);
     void set_chorus_rate(float rate);
 
+    void set_reverb(const char *t) {
+        Buffer &buf = AeonWave::buffer(t);
+        Sensor::add(buf);
+    }
+
     MIDI &midi = *this;
 private:
     std::map<uint16_t,MIDIChannel*> channels;
@@ -370,6 +375,10 @@ private:
     bool initialize = false;
     bool verbose = false;
     bool lyrics = false;
+
+    uint8_t reverb_type = 4;
+    float decay_level = 1.0f;
+    Param decay_depth;
 };
 
 
@@ -439,7 +448,8 @@ public:
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track)
         : byte_stream(stream, len), midi(ptr), channel_no(track)
     {
-        timestamp_parts = pull_message()*24/600000;
+        timestamp_parts = pull_message(); // *24/600000;
+printf("track: %i, timestamp_parts: %lu\n", track, timestamp_parts);
     }
 
     MIDITrack(const MIDITrack&) = default;
