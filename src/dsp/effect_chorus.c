@@ -127,7 +127,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
          data->run = _delay_run;
          data->freq_filter = flt;
-         data->loopback = AAX_FALSE;
+         data->feedback = effect->slot[1]->param[AAX_MAX_GAIN];
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
@@ -311,10 +311,10 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxChorusRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {  0.0f, 0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f, 1.0f } },
-    { { 20.0f, 0.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 0.0f, 1.0f } },
-    { {  0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } },
-    { {  0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } }
+    { {  0.0f, 0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
+    { { 20.0f, 0.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
+    { {  0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
+    { {  0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

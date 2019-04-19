@@ -206,8 +206,7 @@ typedef struct
    _aaxRingBufferFreqFilterData *freq_filter;
    _aaxRingBufferDelayData delay;
    size_t history_samples;
-
-   char loopback;
+   float feedback;
 } _aaxRingBufferDelayEffectData;
 
 typedef struct

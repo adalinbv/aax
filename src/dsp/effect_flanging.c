@@ -101,7 +101,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
          int t, constant;
 
          data->run = _flanging_run;
-         data->loopback = AAX_TRUE;
+         data->feedback = effect->slot[0]->param[AAX_DELAY_GAIN];
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;

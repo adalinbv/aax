@@ -125,7 +125,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 
          data->run = _delay_run;
          data->freq_filter = flt;
-         data->loopback = AAX_FALSE;
+         data->feedback = AAX_FALSE;
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
@@ -395,7 +395,7 @@ _delay_swap(void *d, void *s)
          _lfo_swap(&ddef->lfo, &sdef->lfo);
          ddef->delay = sdef->delay;
          ddef->history_samples = sdef->history_samples;
-         ddef->loopback = sdef->loopback;
+         ddef->feedback = sdef->feedback;
          ddef->run = sdef->run;
       }
    }
@@ -501,6 +501,15 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
          }
       }
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+
+      if (effect->feedback)
+      {
+         size_t ds = 100; // effect->lfo.value[track];
+printf("ds: %i\n", ds);
+         _aax_memcpy(dptr-ds, effect->history->history[track], ds*bps);
+         rbd->add(dptr, dptr-ds, no_samples, effect->feedback, 0.0f);
+         _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
+      }
    }
 }
 

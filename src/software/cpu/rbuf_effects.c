@@ -130,7 +130,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
-      if (delay && !delay->loopback && delay->history)
+      if (delay && !delay->feedback && delay->history)
       {
          assert(delay->history->ptr);
          assert(bps <= sizeof(MIX_T));
@@ -272,7 +272,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       if (delay)
       {
          /* Apply delay effects */
-         if (delay->loopback) {		/*    flanging     */
+         if (delay->feedback) {		/*    flanging     */
             delay->run(rbd, psrc, psrc, scratch, 0, end, no_samples, ds,
                        delay, env, track);
          }
