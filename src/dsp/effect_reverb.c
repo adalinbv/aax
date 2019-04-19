@@ -449,7 +449,6 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       }
 
       filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL,0);
-      rbd->multiply(dptr, dptr, sizeof(MIX_T), no_samples, 2.0f);
       if (occlusion) {
          occlusion->run(rbd, dptr, sptr, scratch, no_samples, track,occlusion);
       }
@@ -480,7 +479,7 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       /* initial gains, defnining a direct path is not necessary    */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
 // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      igain = 2.0f/num;
+      igain = 4.0f/num;
       if (state & AAX_INVERSE)
       {
          gains[6] = igain*0.9484f;      // conrete/brick = 0.95
@@ -590,7 +589,6 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          float dlb, dlbp;
 
          num = 5;
-//       lb_gain /= num;
          reverb->loopback[0].gain = lb_gain*0.95015f;   // conrete/brick = 0.95
          reverb->loopback[1].gain = lb_gain*0.87075f;
          reverb->loopback[2].gain = lb_gain*0.91917f;
