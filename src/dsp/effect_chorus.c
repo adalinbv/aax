@@ -125,8 +125,9 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             }
          }
 
-         data->run = _delay_run;
          data->freq_filter = flt;
+         data->run = _delay_run;
+         data->flanger = AAX_FALSE;
          data->feedback = effect->slot[1]->param[AAX_MAX_GAIN];
 
          data->lfo.convert = _linear;

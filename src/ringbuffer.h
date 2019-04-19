@@ -207,6 +207,7 @@ typedef struct
    _aaxRingBufferDelayData delay;
    size_t history_samples;
    float feedback;
+   char flanger;
 } _aaxRingBufferDelayEffectData;
 
 typedef struct

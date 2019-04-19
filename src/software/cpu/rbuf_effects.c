@@ -272,7 +272,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       if (delay)
       {
          /* Apply delay effects */
-         if (delay->feedback) {		/*    flanging     */
+         if (delay->flanger) {		/*    flanging     */
             delay->run(rbd, psrc, psrc, scratch, 0, end, no_samples, ds,
                        delay, env, track);
          }
