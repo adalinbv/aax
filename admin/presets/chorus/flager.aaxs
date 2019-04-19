@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <audioframe>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.86</param>
+    <param n="1">0.1</param>
+    <param n="2" type="usec">1900.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+ <mixer>
+  <effect type="chorus" src="true">
+   <slot n="0">
+    <param n="0">0.86</param>
+    <param n="1">0.1</param>
+    <param n="2" type="usec">1900.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </mixer>
+
+</aeonwave>
