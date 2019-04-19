@@ -478,28 +478,15 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       /* initial delay in seconds (should be between 10ms en 70 ms) */
       /* initial gains, defnining a direct path is not necessary    */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
-// http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
+      // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       igain = 4.0f/num;
-      if (state & AAX_INVERSE)
-      {
-         gains[6] = igain*0.9484f;      // conrete/brick = 0.95
-         gains[5] = igain*0.8935f;      // wood floor    = 0.90
-         gains[4] = igain*0.8254f;      // carpet        = 0.853
-         gains[3] = igain*0.8997f;
-         gains[2] = igain*0.8346f;
-         gains[1] = igain*0.7718f;
-         gains[0] = igain*0.7946f;
-      }
-      else
-      {
-         gains[0] = igain*0.9484f;      // conrete/brick = 0.95
-         gains[1] = igain*0.8935f;      // wood floor    = 0.90
-         gains[2] = igain*0.8254f;      // carpet        = 0.853
-         gains[3] = igain*0.8997f;
-         gains[4] = igain*0.8346f;
-         gains[5] = igain*0.7718f;
-         gains[6] = igain*0.7946f;
-      }
+      gains[0] = igain*0.9484f;      // conrete/brick = 0.95
+      gains[1] = igain*0.8935f;      // wood floor    = 0.90
+      gains[2] = igain*0.8254f;      // carpet        = 0.853
+      gains[3] = igain*0.8997f;
+      gains[4] = igain*0.8346f;
+      gains[5] = igain*0.7718f;
+      gains[6] = igain*0.7946f;
 
       // depth definies the initial delay of the first reflections
       idepth = 0.005f+0.045f*depth;
@@ -521,13 +508,13 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       }
       else
       {
-         delays[6] = idepth_offs + idepth/1.0f;
-         delays[4] = idepth_offs + idepth/2.0f;
-         delays[5] = idepth_offs + idepth/3.0f;
-         delays[0] = idepth_offs + idepth/5.0f;
-         delays[2] = idepth_offs + idepth/7.0f;
-         delays[1] = idepth_offs + idepth/11.0f;
-         delays[3] = idepth_offs + idepth/13.0f;
+         delays[5] = idepth_offs + idepth/1.0f;
+         delays[3] = idepth_offs + idepth/2.0f;
+         delays[1] = idepth_offs + idepth/3.0f;
+         delays[6] = idepth_offs + idepth/5.0f;
+         delays[4] = idepth_offs + idepth/7.0f;
+         delays[2] = idepth_offs + idepth/11.0f;
+         delays[0] = idepth_offs + idepth/13.0f;
       }
 
       reflections->gain = igain;
