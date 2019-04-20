@@ -458,7 +458,6 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    assert(start < end);
    assert(data != NULL);
 
-   volume =  effect->delay.gain;
    offs = effect->delay.sample_offs[track];
 
    assert(start || (offs < (ssize_t)ds));
@@ -476,9 +475,9 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
    assert(s != d);
    
-   if (offs && effect->feedback > LEVEL_96DB)
+   volume = effect->feedback;
+   if (offs && volume > LEVEL_96DB)
    {
-      float volume = effect->feedback;
       const MIX_T *sptr = s + start;
       MIX_T *dptr = s + start;
       ssize_t coffs, doffs;
@@ -526,6 +525,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       effect->offset->coffs[track] = coffs;
    }
 
+   volume =  effect->delay.gain;
    if (offs && volume > LEVEL_96DB)
    {
       _aaxRingBufferFreqFilterData *freq_flt = effect->freq_filter;

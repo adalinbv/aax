@@ -128,7 +128,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 
          constant = _lfo_set_timing(&data->lfo);
 
-         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
+         data->delay.gain = 0.0f;
          for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
             data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
          }
