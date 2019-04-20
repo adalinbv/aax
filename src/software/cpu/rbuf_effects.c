@@ -271,17 +271,9 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       if (delay)
       {
-         /* Apply delay effects */
-         if (delay->flanger) {		/*    flanging     */
-            delay->run(rbd, psrc, psrc, scratch, 0, end, no_samples, ds,
-                       delay, env, track);
-         }
-         else				/* phasing, chorus */
-         {
-            delay->run(rbd, pdst, psrc, scratch, 0, end, no_samples, ds,
-                       delay, env, track);
-            BUFSWAP(pdst, psrc);
-         }
+         delay->run(rbd, pdst, psrc, scratch, 0, end, no_samples, ds,
+                    delay, env, track);
+         if (!delay->flanger) BUFSWAP(pdst, psrc);
       }
    }
 

@@ -98,6 +98,8 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferFreqFilterData *flt = data->freq_filter;
          float fc = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
+         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
          int t, constant;
 
@@ -126,17 +128,17 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          data->freq_filter = flt;
          data->run = _delay_run;
          data->flanger = AAX_FALSE;
-         data->feedback = AAX_FALSE;
+         data->feedback = effect->slot[1]->param[AAX_MAX_GAIN];
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
-         data->lfo.fs = effect->info->frequency;
+         data->lfo.fs = fs;
          data->lfo.period_rate = effect->info->period_rate;
 
          data->lfo.min_sec = PHASING_MIN;
          data->lfo.max_sec = PHASING_MAX;
-         data->lfo.depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
+         data->lfo.depth = depth;
+         data->lfo.offset = offset;
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          data->lfo.stereo_lnk = !stereo;
@@ -439,7 +441,7 @@ _delay_destroy(void *ptr)
  * - dmax does not include ds
  */
 void
-_delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
+_delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
              size_t start, size_t end, size_t no_samples, size_t ds,
              void *data, void *env, unsigned int track)
 {
@@ -460,7 +462,7 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
    offs = effect->delay.sample_offs[track];
 
    assert(start || (offs < (ssize_t)ds));
-   if (offs >= ds) offs = ds-1;
+   if (offs >= (ssize_t)ds) offs = ds-1;
 
    if (start) {
       noffs = effect->offset->noffs[track];
@@ -474,41 +476,11 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
 
    assert(s != d);
    
-   if (offs && volume > LEVEL_96DB)
+   if (offs && effect->feedback > LEVEL_96DB)
    {
-      _aaxRingBufferFreqFilterData *freq_flt = effect->freq_filter;
+      float volume = effect->feedback;
       const MIX_T *sptr = s + start;
-      MIX_T *dptr = d + start;
-      ssize_t doffs;
-
-      doffs = noffs - offs;
-      pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
-
-      if (pitch == 1.0f)
-      {
-         if (freq_flt) {
-            freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 0);
-         } else {
-            rbd->multiply(dptr, sptr-offs, bps, no_samples, volume);
-         }
-      }
-      else
-      {
-         rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
-         if (freq_flt) {
-            freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
-         } else {
-            rbd->multiply(dptr, dptr, bps, no_samples, volume);
-         }
-      }
-      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-   }
-
-   volume = effect->feedback;
-   if (offs && volume > LEVEL_96DB)
-   {
-      const MIX_T *sptr = s + start;
-      MIX_T *dptr = d + start;
+      MIX_T *dptr = s + start;
       ssize_t coffs, doffs;
       int i, step, sign;
 
@@ -552,6 +524,36 @@ _delay_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, MIX_PTR_T scratch,
 
       _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
       effect->offset->coffs[track] = coffs;
+   }
+
+   if (offs && volume > LEVEL_96DB)
+   {
+      _aaxRingBufferFreqFilterData *freq_flt = effect->freq_filter;
+      const MIX_T *sptr = s + start;
+      MIX_T *dptr = d + start;
+      ssize_t doffs;
+
+      doffs = noffs - offs;
+      pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+
+      if (pitch == 1.0f)
+      {
+         if (freq_flt) {
+            freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 0);
+         } else {
+            rbd->multiply(dptr, sptr-offs, bps, no_samples, volume);
+         }
+      }
+      else
+      {
+         rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
+         if (freq_flt) {
+            freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
+         } else {
+            rbd->multiply(dptr, dptr, bps, no_samples, volume);
+         }
+      }
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
    }
 }
 

@@ -38,8 +38,6 @@
 
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
-static void _flanging_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
-
 static aaxEffect
 _aaxFlangingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
@@ -98,21 +96,28 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
       effect->slot[0]->data = data;
       if (data)
       {
+         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
+         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         float fs = 48000.0f;
          int t, constant;
 
-         data->run = _flanging_run;
+         if (effect->info) {
+            fs = effect->info->frequency;
+         }
+
+         data->run = _delay_run;
          data->flanger = AAX_TRUE;
          data->feedback = effect->slot[0]->param[AAX_DELAY_GAIN];
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
-         data->lfo.fs = effect->info->frequency;
+         data->lfo.fs = fs;
          data->lfo.period_rate = effect->info->period_rate;
 
          data->lfo.min_sec = FLANGING_MIN;
          data->lfo.max_sec = FLANGING_MAX;
-         data->lfo.depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         data->lfo.offset = effect->slot[0]->param[AAX_LFO_OFFSET];
+         data->lfo.depth = depth;
+         data->lfo.offset = offset;
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          data->lfo.stereo_lnk = !stereo;
@@ -232,100 +237,4 @@ _eff_function_tbl _aaxFlangingEffect =
    (_aaxEffectConvert*)&_aaxFlangingEffectGet,
    (_aaxEffectConvert*)&_aaxFlangingEffectMinMax
 };
-
-/**
- * - d and s point to a buffer containing the delay effects buffer prior to
- *   the pointer.
- * - start is the starting pointer
- * - end is the end pointer (end-start is the number of samples)
- * - no_samples is the number of samples to process this run
- * - dmax does not include ds
- */
-void
-_flanging_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s, UNUSED(MIX_PTR_T scratch),
-             size_t start, size_t end, size_t no_samples, size_t ds,
-             void *data, void *env, unsigned int track)
-{
-   _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-   static const size_t bps = sizeof(MIX_T);
-   _aaxRingBufferDelayEffectData* effect = data;
-   ssize_t offs, noffs;
-   float volume;
-
-   _AAX_LOG(LOG_DEBUG, __func__);
-
-   assert(s != 0);
-   assert(s == d);
-   assert(start < end);
-   assert(data != NULL);
-
-   volume = effect->delay.gain;
-   offs = effect->delay.sample_offs[track];
-
-   assert(start || (offs < (ssize_t)ds));
-   if (offs >= (ssize_t)ds) offs = ds-1;
-
-   if (start) {
-      noffs = effect->offset->noffs[track];
-   }
-   else
-   {
-      noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
-      effect->delay.sample_offs[track] = noffs;
-      effect->offset->noffs[track] = noffs;
-   }
-
-// assert(noffs >= offs);
-
-   if (offs && volume > LEVEL_96DB)
-   {
-      const MIX_T *sptr = s + start;
-      MIX_T *dptr = d + start;
-      ssize_t doffs, coffs;
-      size_t i, sign, step;
-
-      sign = (noffs < offs) ? -1 : 1;
-      doffs = labs(noffs - offs);
-      i = no_samples;
-      coffs = offs;
-      step = end;
-
-      if (start)
-      {
-         step = effect->offset->step[track];
-         coffs = effect->offset->coffs[track];
-      }
-      else
-      {
-         if (doffs)
-         {
-            step = end/doffs;
-            if (step < 2) step = end;
-         }
-      }
-      effect->offset->step[track] = step;
-
-//     DBG_MEMCLR(1, s-ds, ds+start, bps);
-      _aax_memcpy(dptr-ds, effect->history->history[track], ds*bps);
-      if (i >= step)
-      {
-         do
-         {
-            rbd->add(dptr, dptr-coffs, step, volume, 0.0f);
-
-            dptr += step;
-            coffs += sign;
-            i -= step;
-         }
-         while(i >= step);
-      }
-      if (i) {
-         rbd->add(dptr, dptr-coffs, i, volume, 0.0f);
-      }
-
-// DBG_MEMCLR(1, effect->history->history[track], ds, bps);
-      _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
-      effect->offset->coffs[track] = coffs;
-   }
-}
 

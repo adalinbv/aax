@@ -132,7 +132,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
-         data->lfo.fs = effect->info->frequency;
+         data->lfo.fs = fs;
          data->lfo.period_rate = effect->info->period_rate;
 
          if ((offset+depth)/CHORUS_MAX > CHORUS_MIN)
