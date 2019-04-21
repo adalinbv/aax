@@ -1025,6 +1025,7 @@ int main(int argc, char **argv)
             env_fact = gain/rms;
             gain = rms;
         }
+        env_fact *= getGain(argc, argv);
         fill_aax(&aax, infile, gain, env_fact, 1);
         print_aax(&aax, outfile, commons, 0);
         free_aax(&aax);
