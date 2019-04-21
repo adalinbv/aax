@@ -330,7 +330,7 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxChorusEffect =
 {
    AAX_FALSE,
-   "AAX_chorus_effect", 1.0f,
+   "AAX_chorus_effect_1.1", 1.1f,
    (_aaxEffectCreate*)&_aaxChorusEffectCreate,
    (_aaxEffectDestroy*)&_aaxChorusEffectDestroy,
    (_aaxEffectSetState*)&_aaxChorusEffectSetState,
