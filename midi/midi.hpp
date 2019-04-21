@@ -450,8 +450,7 @@ public:
     MIDITrack(MIDI& ptr, byte_stream& stream, size_t len,  uint16_t track)
         : byte_stream(stream, len), midi(ptr), channel_no(track)
     {
-        timestamp_parts = pull_message(); // *24/600000;
-printf("track: %i, timestamp_parts: %lu\n", track, timestamp_parts);
+        timestamp_parts = pull_message()*24/600000;
     }
 
     MIDITrack(const MIDITrack&) = default;
