@@ -79,7 +79,7 @@ int main(int argc, char **argv)
             float pitch, gain, duration;
             float dt = 0.0f;
 
-            xbuffer = setFiltersEffects(argc, argv, config, config, NULL, emitter);
+            xbuffer = setFiltersEffects(argc, argv, config, config, NULL, NULL);
             nsrc = _MINMAX(getNumEmitters(argc, argv), 1, 64);
             duration = getDuration(argc, argv);
 
