@@ -1381,10 +1381,16 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     // intentional falltrough
                 case MIDI_MONO_ALL_NOTES_OFF:
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-                    mode = MIDI_MONOPHONIC;
+                    if (value == 1) {
+                        mode = MIDI_MONOPHONIC;
+                        midi.midi.channel(channel).set_monophonic(true);
+printf("channel: %i, MIDI_MONOPHONIC\n", channel);
+                    }
                     break;
                 case MIDI_POLY_ALL_NOTES_OFF:
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
+                    midi.midi.channel(channel).set_monophonic(false);;
+printf("channel: %i, MIDI_POLYPHONIC\n", channel);
                     mode = MIDI_POLYPHONIC;
                     break;
                 case MIDI_ALL_SOUND_OFF:
@@ -1523,10 +1529,15 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     break;
                 }
                 case MIDI_PORTAMENTO_TIME:
-                    LOG("Unsupported control change: MIDI_PORTAMENTO_TIME, ch: %u, value: %u\n", channel, value);
+                {
+                    float val = powf(10.0f, 2.0f-3.0f*value/127.0f);
+                    val = cents2pitch(val, channel)*1e-3f;
+                    midi.channel(channel).set_pitch_slide(val);
+printf("MIDI_PORTAMENTO_TIME: %f (%i)\n", val, value);
                     break;
-                case MIDI_PORTAMENTO_SWITCH:            // GM 2.0
-                    LOG("Unsupported control change: MIDI_PORTAMENTO_SWITCH, ch: %u, value: %u\n", channel, value);
+                }
+                case MIDI_PORTAMENTO_SWITCH:
+                    midi.channel(channel).set_pitch_slide(0.0f);
                     break;
                 case MIDI_RELEASE_TIME:
                     midi.channel(channel).set_release_time(value);
