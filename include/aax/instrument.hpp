@@ -43,6 +43,10 @@ public:
     {
         pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
+        tie(pitch_start, AAX_PITCH_EFFECT, AAX_PITCH_START);
+        tie(pitch_slide, AAX_PITCH_EFFECT, AAX_PITCH_SLIDE);
+        tie(pitch_state, AAX_PITCH_EFFECT);
+
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
 
         tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
@@ -83,9 +87,12 @@ public:
         Emitter::matrix(m);
     }
 
-    bool play(float g) {
+    bool play(float g, float start_pitch = 1.0f, float slide = 0.0f) {
         hold = false;
         gain_param = gain = g;
+        pitch_slide = slide;
+        pitch_start = start_pitch;
+        pitch_state = AAX_TRUE;
         Emitter::set(AAX_INITIALIZED);
         if (!playing) playing = Emitter::set(AAX_PLAYING);
         return playing;
@@ -159,8 +166,12 @@ private:
 
     Matrix64 mtx;
 
-    Param pitch_param = 1.0f;
     Param gain_param = 1.0f;
+
+    Param pitch_param = 1.0f;
+    Param pitch_start = 1.0f;
+    Param pitch_slide = 0.0f;
+    Status pitch_state = AAX_FALSE;
 
     Param filter_cutoff = 22050.0f;
     Param filter_resonance = 1.0f;
@@ -242,10 +253,15 @@ public:
 
     void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, float pitch = 1.0f)
     {
+        float frequency = buffer.get(AAX_UPDATE_RATE);
+        if (!is_drums) pitch *= note2freq(key_no)/float(frequency);
+        if (monophonic) {
+            auto it = key.find(key_prev);
+            if (it != key.end()) it->second->stop();
+            key_prev = key_no;
+        }
         auto it = key.find(key_no);
         if (it == key.end()) {
-            float frequency = buffer.get(AAX_UPDATE_RATE);
-            if (!is_drums) pitch *= note2freq(key_no)/float(frequency);
             auto ret = key.insert({key_no, new Note(frequency,pitch,is_wide)});
             it = ret.first;
             if (!playing && !is_drums) {
@@ -263,7 +279,8 @@ public:
         it->second->set_attack_time(attack_time);
         it->second->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
-        it->second->play(volume*g*soft);
+        it->second->play(volume*g*soft, pitch_last/pitch, pitch_slide);
+        pitch_last = pitch;
     }
 
     void stop(uint8_t key_no, uint8_t velocity) {
@@ -273,6 +290,8 @@ public:
             it->second->stop(volume*g*soft);
         }
     }
+
+    inline void set_monophonic(bool m) { if (!is_drums) monophonic = m; }
 
     inline void set_detune(float level) {
         delay_level = level;
@@ -350,7 +369,10 @@ public:
         }
     }
 
-    // not for !is_drums
+    inline void set_pitch_slide(float t) {
+        if (!is_drums) { pitch_slide = t; }
+    }
+
     void set_vibrato_rate(float r) {}
     void set_vibrato_depth(float d) {}
     void set_vibrato_delay(float d) {}
@@ -452,12 +474,18 @@ private:
     float fc = 0.0f;
     float Q = 0.0f;
 
-    bool is_wide;
-    bool is_drums;
-    bool panned = false;
     float soft = 1.0f;
     float volume = 1.0f;
     float pressure = 1.0f;
+
+    float pitch_slide = 0.0f;
+    float pitch_last = 1.0f;
+    uint8_t key_prev = 0;
+
+    bool is_wide;
+    bool is_drums;
+    bool panned = false;
+    bool monophonic = false;
     bool playing = false;
 };
 

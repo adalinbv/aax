@@ -34,6 +34,7 @@
 #include "api.h"
 #include "arch.h"
 
+#define DSIZE	sizeof(_aaxEnvelopeData)
 
 static aaxEffect
 _aaxPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -52,6 +53,11 @@ _aaxPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 static int
 _aaxPitchEffectDestroy(_effect_t* effect)
 {
+   if (effect->slot[0]->data)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
    free(effect);
 
    return AAX_TRUE;
@@ -60,6 +66,46 @@ _aaxPitchEffectDestroy(_effect_t* effect)
 static aaxEffect
 _aaxPitchEffectSetState(_effect_t* effect, UNUSED(int state))
 {
+   void *handle = effect->handle;
+   float pitch_slide = effect->slot[0]->param[AAX_PITCH_SLIDE];
+   if (pitch_slide > 0.0f)
+   {
+      _aaxEnvelopeData* env = effect->slot[0]->data;
+      if (env == NULL)
+      {
+         env =  _aax_aligned_alloc(DSIZE);
+         effect->slot[0]->data = env;
+         if (env) memset(env, 0, DSIZE);
+      }
+
+      if (env)
+      {
+         float value = effect->slot[0]->param[AAX_PITCH_START];
+         float period = effect->info->period_rate;
+         uint32_t max_pos;
+         float dt;
+
+         env->max_stages = 1;
+         env->state = AAX_TRUE;
+         env->sustain = AAX_TRUE;
+         env->value0 = env->value = value;
+
+         dt = pitch_slide*fabsf(1.0f - value);
+         max_pos = rintf(dt * period);
+
+         env->step[0] = (1.0f - value)/max_pos;
+         env->max_pos[0] = max_pos;
+      }
+      else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+   }
+   else
+   {
+      if (effect->slot[0]->data)
+      {
+         effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data = NULL;
+      }
+   }
    return effect;
 }
 
@@ -101,10 +147,10 @@ _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxPitchRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { PMAX, PMAX, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.0f, 0.0f, -FLT_MAX }, { PMAX, PMAX, PMAX, FLT_MAX } },
+    { { 0.0f, 0.0f, 0.0f,     0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } },
+    { { 0.0f, 0.0f, 0.0f,     0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } },
+    { { 0.0f, 0.0f, 0.0f,     0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
