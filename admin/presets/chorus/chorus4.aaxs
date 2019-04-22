@@ -5,7 +5,7 @@
  <audioframe>
   <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">0.53</param>
+    <param n="0">0.27</param>
     <param n="1">1.1</param>
     <param n="2" type="usec">5300.0</param>
     <param n="3">0.0</param>
@@ -22,7 +22,7 @@
  <mixer>
   <effect type="chorus" src="sine">
    <slot n="0">
-    <param n="0">0.53</param>
+    <param n="0">0.27</param>
     <param n="1">1.1</param>
     <param n="2" type="usec">5300.0</param>
     <param n="3">0.0</param>
