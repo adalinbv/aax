@@ -60,9 +60,8 @@
 # define LOG
 #endif
 
-#define CSV_ISOPRINT(c)	if ((c<' ')||((c>'~')&&(c<=160))) {		\
-                            MESSAGE("\\%03o", c); CSV("\\%03o", c);	\
-                        } else { MESSAGE("%c", c); CSV("%c", c); }
+#define CSV_ISOPRINT(c)	if ((c<' ')||((c>'~')&&(c<=160))) { CSV("\\%03o", c); }\
+                        else { CSV("%c", c); }
 
 using namespace aax;
 
@@ -1167,6 +1166,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 for (int i=0; i<size; ++i)
                 {
                     c = pull_byte();
+                    MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
                     if (size == slen && c == tname[i]) cntr++;
                 }
@@ -1175,24 +1175,32 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("\"\n");
                 break;
             }
-            case MIDI_TEXT:
             case MIDI_COPYRIGHT:
             case MIDI_INSTRUMENT_NAME:
                 CSV("%s, \"", csv_name[meta-1].c_str());
                 MESSAGE("%-10s: ", type_name[meta-1].c_str());
-                for (int i=0; i<size; ++i) {
+             for (int i=0; i<size; ++i) {
                     c = pull_byte();
+                    MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
                 }
                 MESSAGE("\n");
                 CSV("\"\n");
+                break;
+            case MIDI_TEXT:
+                for (int i=0; i<size; ++i) {
+                    c = pull_byte();
+                    CSV_ISOPRINT(c);
+                }
                 break;
             case MIDI_LYRICS:
                 midi.set_lyrics(true);
                 CSV("%s, ", csv_name[meta-1].c_str());
                 for (int i=0; i<size; ++i) {
                     c = pull_byte();
+                    MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
+                    if (c == '\r') MESSAGE("\n");
                 }
                 if (!midi.get_initialize() && midi.get_verbose()) fflush(stdout);
                 CSV("\n");
@@ -1201,6 +1209,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("Marker_t, ");
                 for (int i=0; i<size; ++i) {
                     c = pull_byte();
+                    MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
                 }
                 CSV("\n");
@@ -1209,6 +1218,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("Cue_point_t, ");
                 for (int i=0; i<size; ++i) {
                     c = pull_byte();
+                    MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
                 }
                 CSV("\n");
@@ -1216,6 +1226,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("Device_name_t, ");
                 for (int i=0; i<size; ++i) {
                     c = pull_byte();
+                    MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
                 }
                 CSV("\n");
@@ -1472,7 +1483,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 case MIDI_REVERB_SEND_LEVEL:
                 {
                     float val = (float)value/127.0f;
-printf("MIDI_REVERB_SEND_LEVEL: %f\n", val);
                     midi.channel(channel).set_reverb_level(val);
                     break;
                 }
@@ -1485,14 +1495,12 @@ printf("MIDI_REVERB_SEND_LEVEL: %f\n", val);
                 case MIDI_FILTER_RESONANCE:
                 {
                     float val = (float)value/64.0f; // relative: 0.0 - 2.0
-printf("MIDI_FILTER_RESONANCE: %f\n", val);
                     midi.channel(channel).set_filter_resonance(val);
                     break;
                 }
                 case MIDI_CUTOFF:	// Brightness
                 {
                     float val = (float)value/64.0f; // relative: 0.0 - 2.0
-printf("MIDI_CUTOFF: %f\n", val);
                     midi.channel(channel).set_filter_cutoff(val);
                     break;
                 }
@@ -1762,7 +1770,7 @@ MIDIFile::initialize(const char *grep)
             assert(mode < MIDI_MODE_MAX);
             MESSAGE("MIDI Mode : %s\n", mode_name[mode].c_str());
 
-            seconds = duration_sec;
+            seconds = duration_sec+1.0f;
             hour = floorf(seconds/(60.0f*60.0f));
             seconds -= hour*60.0f*60.0f;
             minutes = floorf(seconds/60.0f);
