@@ -276,7 +276,7 @@ public:
         it->second->set_attack_time(attack_time);
         it->second->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
-        it->second->play(volume*g*soft, pitch_last/pitch, pitch_slide_state ? pitch_slide : 0.0f);
+        it->second->play(volume*g*soft, pitch_last, pitch_slide_state ? pitch_slide : 0.0f);
         pitch_last = pitch;
     }
 
