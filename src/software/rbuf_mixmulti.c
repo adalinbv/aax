@@ -62,7 +62,8 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    _aaxRingBufferSample *drbd, *srbd;
    size_t offs, dno_samples;
    _aaxRingBufferData *drbi, *srbi;
-   _aaxEnvelopeData *genv, *penv;
+   _aaxEnvelopeData *penv, *pslide;
+   _aaxEnvelopeData *genv;
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    float svol, evol, max;
@@ -89,6 +90,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    /** Pitch */
    pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
 
+   pslide = _EFFECT_GET_DATA(ep2d, PITCH_EFFECT);
    penv = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
    lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
    if (lfo)
@@ -113,6 +115,12 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    pitch *= ep2d->note.pressure;
 #endif
    pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
+
+   if (pslide)
+   {
+      pnvel = 1.0f;
+      pitch *= _aaxEnvelopeGet(pslide, srbi->stopped, &pnvel, NULL);
+   }
 
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
    pitch = _MINMAX(pitch*ep2d->pitch_factor, 0.01f, max);

@@ -39,7 +39,7 @@
 static aaxEffect
 _aaxPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, 0);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -114,7 +114,7 @@ _aaxNewPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2d
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, 0);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {
@@ -147,10 +147,10 @@ _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxPitchRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.0f, 0.0f, -FLT_MAX }, { PMAX, PMAX, PMAX, FLT_MAX } },
-    { { 0.0f, 0.0f, 0.0f,     0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } },
-    { { 0.0f, 0.0f, 0.0f,     0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } },
-    { { 0.0f, 0.0f, 0.0f,     0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } }
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { PMAX, PMAX, PMAX, FLT_MAX } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } },
+    { { 0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,    0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -166,7 +166,7 @@ _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxPitchEffect =
 {
    AAX_TRUE,
-   "AAX_pitch_effect", 1.0f,
+   "AAX_pitch_effect_1.01", 1.01f,
    (_aaxEffectCreate*)&_aaxPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,
    (_aaxEffectSetState*)&_aaxPitchEffectSetState,

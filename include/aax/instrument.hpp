@@ -43,9 +43,6 @@ public:
     {
         pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
-        tie(pitch_start, AAX_PITCH_EFFECT, AAX_PITCH_START);
-        tie(pitch_slide, AAX_PITCH_EFFECT, AAX_PITCH_SLIDE);
-        tie(pitch_state, AAX_PITCH_EFFECT);
 
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
 
@@ -90,9 +87,13 @@ public:
     bool play(float g, float start_pitch = 1.0f, float slide = 0.0f) {
         hold = false;
         gain_param = gain = g;
-        pitch_slide = slide;
-        pitch_start = start_pitch;
-        pitch_state = AAX_TRUE;
+        if (slide > 0.0f && start_pitch != 1.0f) {
+           aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
+           dsp.set(AAX_PITCH_START, start_pitch);
+           dsp.set(AAX_PITCH_SLIDE, slide);
+           dsp.set(AAX_TRUE|AAX_ENVELOPE_FOLLOW);
+           Emitter::set(dsp);
+        }
         Emitter::set(AAX_INITIALIZED);
         if (!playing) playing = Emitter::set(AAX_PLAYING);
         return playing;
@@ -167,11 +168,7 @@ private:
     Matrix64 mtx;
 
     Param gain_param = 1.0f;
-
     Param pitch_param = 1.0f;
-    Param pitch_start = 1.0f;
-    Param pitch_slide = 0.0f;
-    Status pitch_state = AAX_FALSE;
 
     Param filter_cutoff = 22050.0f;
     Param filter_resonance = 1.0f;
@@ -279,7 +276,7 @@ public:
         it->second->set_attack_time(attack_time);
         it->second->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
-        it->second->play(volume*g*soft, pitch_last/pitch, pitch_slide);
+        it->second->play(volume*g*soft, pitch_last/pitch, pitch_slide_state ? pitch_slide : 0.0f);
         pitch_last = pitch;
     }
 
@@ -369,6 +366,9 @@ public:
         }
     }
 
+    inline void set_pitch_slide(bool s) {
+        if (!is_drums) { pitch_slide_state = s; }
+    }
     inline void set_pitch_slide(float t) {
         if (!is_drums) { pitch_slide = t; }
     }
@@ -487,6 +487,7 @@ private:
     bool panned = false;
     bool monophonic = false;
     bool playing = false;
+    bool pitch_slide_state = false;
 };
 
 } // namespace aax

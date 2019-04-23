@@ -134,6 +134,7 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
    case PITCH_EFFECT:
       effect->param[AAX_PITCH] = 1.0f;
       effect->param[AAX_MAX_PITCH] = 4.0f;
+      effect->param[AAX_PITCH_START] = 1.0f;
       effect->state = AAX_TRUE;
       break;
    case TIMED_PITCH_EFFECT:
