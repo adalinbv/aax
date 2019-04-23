@@ -1533,11 +1533,11 @@ printf("channel: %i, MIDI_POLYPHONIC\n", channel);
                     float val = powf(10.0f, 2.0f-3.0f*value/127.0f);
                     val = cents2pitch(val, channel)*1e-3f;
                     midi.channel(channel).set_pitch_slide(val);
-printf("MIDI_PORTAMENTO_TIME: %f (%i)\n", val, value);
                     break;
                 }
                 case MIDI_PORTAMENTO_SWITCH:
-                    midi.channel(channel).set_pitch_slide(0.0f);
+                    if (value > 63) midi.channel(channel).set_pitch_slide(true);
+                    else midi.channel(channel).set_pitch_slide(false);
                     break;
                 case MIDI_RELEASE_TIME:
                     midi.channel(channel).set_release_time(value);
