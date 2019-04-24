@@ -44,7 +44,12 @@ _aaxPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 
    if (eff)
    {
+      _aaxEnvelopeData* env = eff->slot[0]->data;
+
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
+      if (env) {
+         env->value0 = env->value = 1.0f;
+      }
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -67,7 +72,7 @@ static aaxEffect
 _aaxPitchEffectSetState(_effect_t* effect, UNUSED(int state))
 {
    void *handle = effect->handle;
-   float pitch_slide = effect->slot[0]->param[AAX_PITCH_SLIDE];
+   float pitch_slide = effect->slot[0]->param[AAX_PITCH_RATE];
    if (pitch_slide > 0.0f)
    {
       _aaxEnvelopeData* env = effect->slot[0]->data;

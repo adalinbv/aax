@@ -66,11 +66,19 @@ public:
 
     friend void swap(Note& n1, Note& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
-        n1.pitch_param = std::move(n2.pitch_param);
+        n1.mtx = std::move(n2.mtx);
         n1.gain_param = std::move(n2.gain_param);
+        n1.pitch_param = std::move(n2.pitch_param);
+        n1.filter_cutoff = std::move(n2.filter_cutoff);
+        n1.filter_resonance = std::move(n2.filter_resonance);
+        n1.filter_state = std::move(n2.filter_state);
+        n1.fc = std::move(n2.fc);
+        n1.Q = std::move(n2.Q);
+        n1.frequency = std::move(n2.frequency);
         n1.pitch = std::move(n2.pitch);
         n1.gain = std::move(n2.gain);
         n1.playing = std::move(n2.playing);
+        n1.hold = std::move(n2.hold);
     }
 
     Note& operator=(Note&&) = default;
@@ -84,13 +92,13 @@ public:
         Emitter::matrix(m);
     }
 
-    bool play(float g, float start_pitch = 1.0f, float slide = 0.0f) {
+    bool play(float g, float start_pitch = 1.0f, float rate = 0.0f) {
         hold = false;
         gain_param = gain = g;
-        if (slide > 0.0f && start_pitch != 1.0f) {
+        if (rate > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
-           dsp.set(AAX_PITCH_SLIDE, slide);
+           dsp.set(AAX_PITCH_RATE, rate);
            dsp.set(AAX_TRUE|AAX_ENVELOPE_FOLLOW);
            Emitter::set(dsp);
         }
@@ -226,7 +234,44 @@ public:
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
-        i1.playing = std::move(i2.playing);
+        i1.dir = std::move(i2.dir);
+        i1.pos = std::move(i2.pos);
+        i1.mtx = std::move(i2.mtx);
+        i1.vibrato_freq = std::move(i2.vibrato_freq);
+        i1.vibrato_depth = std::move(i2.vibrato_depth);
+        i1.vibrato_state = std::move(i2.vibrato_state);
+        i1.tremolo_freq = std::move(i2.tremolo_freq);
+        i1.tremolo_depth = std::move(i2.tremolo_depth);
+        i1.tremolo_state = std::move(i2.tremolo_state);
+        i1.chorus_rate = std::move(i2.chorus_rate);
+        i1.chorus_level = std::move(i2.chorus_level);
+        i1.chorus_depth = std::move(i2.chorus_depth);
+        i1.chorus_state = std::move(i2.chorus_state);
+        i1.reverb_level = std::move(i2.reverb_level);
+        i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
+        i1.reverb_decay_depth = std::move(i2.reverb_decay_depth);
+        i1.reverb_cutoff_frequency = std::move(i2.reverb_cutoff_frequency);
+        i1.reverb_state = std::move(i2.reverb_state);
+        i1.attack_time = std::move(i2.attack_time);
+        i1.release_time = std::move(i2.release_time);
+        i1.decay_time = std::move(i2.decay_time);
+        i1.delay_level = std::move(i2.delay_level);
+        i1.mfreq = std::move(i2.mfreq);
+        i1.mrange = std::move(i2.mrange);
+        i1.fc = std::move(i2.fc);
+        i1.Q = std::move(i2.Q);
+        i1.soft = std::move(i2.soft);
+        i1.volume = std::move(i2.volume);
+        i1.pressure = std::move(i2.pressure);
+        i1.pitch_rate = std::move(i2.pitch_rate);
+        i1.pitch_last = std::move(i2.pitch_last);
+        i1.key_prev = std::move(i2.key_prev);
+        i1.is_wide = std::move(i2.is_wide);
+        i1.is_drums = std::move(i2.is_drums);
+        i1.panned = std::move(i2.panned);
+        i1.monophonic = std::move(i2.monophonic);
+        i1.playing= std::move(i2.playing);
+        i1.slide_state = std::move(i2.slide_state);
     }
 
     Instrument& operator=(Instrument&&) = default;
@@ -276,7 +321,7 @@ public:
         it->second->set_attack_time(attack_time);
         it->second->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
-        it->second->play(volume*g*soft, pitch_last, pitch_slide_state ? pitch_slide : 0.0f);
+        it->second->play(volume*g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
         pitch_last = pitch;
     }
 
@@ -366,11 +411,11 @@ public:
         }
     }
 
-    inline void set_pitch_slide(bool s) {
-        if (!is_drums) { pitch_slide_state = s; }
+    inline void set_pitch_rate(bool s) {
+        if (!is_drums) { slide_state = s; }
     }
-    inline void set_pitch_slide(float t) {
-        if (!is_drums) { pitch_slide = t; }
+    inline void set_pitch_rate(float t) {
+        if (!is_drums) { pitch_rate = t; }
     }
 
     void set_vibrato_rate(float r) {}
@@ -478,7 +523,7 @@ private:
     float volume = 1.0f;
     float pressure = 1.0f;
 
-    float pitch_slide = 0.0f;
+    float pitch_rate = 0.0f;
     float pitch_last = 1.0f;
     uint8_t key_prev = 0;
 
@@ -487,7 +532,7 @@ private:
     bool panned = false;
     bool monophonic = false;
     bool playing = false;
-    bool pitch_slide_state = false;
+    bool slide_state = false;
 };
 
 } // namespace aax
