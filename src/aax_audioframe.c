@@ -1734,10 +1734,10 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
                 aaxMatrix64GetOrientation(mtx641, pos, at, up);
 
                 aaxMatrix64SetIdentityMatrix(mtx641);
-                aaxMatrix64SetDirection(mtx641, pos, _at);
+                aaxMatrix64SetOrientation(mtx641, pos, _at, up);
                 
                 aaxMatrix64SetIdentityMatrix(mtx642);
-                aaxMatrix64Rotate(mtx642, 1.57*pan, 0.0, 1.0, 0.0);
+                aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
                 
                 aaxMatrix64Multiply(mtx642, mtx641);
                 aaxAudioFrameSetMatrix64(frame, mtx642);

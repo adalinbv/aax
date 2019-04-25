@@ -51,9 +51,10 @@ public:
         tie(filter_state, AAX_FREQUENCY_FILTER);
 
         if (is_wide) {
-            Vector dir = Vector(0.0f, 0.0f, -1.0f);
+            Vector at = Vector(0.0f, 0.0f, -1.0f);
+            Vector up = Vector(0.0f, 1.0f, 0.0f);
             Vector64 pos = Vector64(0.0, 1.0, -2.75);
-            Matrix64 mtx = Matrix64(pos, dir);
+            Matrix64 mtx = Matrix64(pos, at, up);
             Matrix64 m;
             p = 2.17f - _lin2log(f*p);
             m.rotate(p, 0.0, 1.0, 0.0);
@@ -234,7 +235,8 @@ public:
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
-        i1.dir = std::move(i2.dir);
+        i1.at = std::move(i2.at);
+        i1.up = std::move(i2.up);
         i1.pos = std::move(i2.pos);
         i1.mtx = std::move(i2.mtx);
         i1.vibrato_freq = std::move(i2.vibrato_freq);
@@ -371,7 +373,7 @@ public:
     void set_pan(float p) {
         if (is_wide) return;
         Matrix64 m; panned = true;
-        m.rotate(1.57*p, 0.0, 1.0, 0.0);
+        m.rotate(-1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
         if (!is_drums) {
             Mixer::matrix(m);
@@ -484,9 +486,10 @@ private:
     std::map<uint8_t,Note*> key;
     AeonWave* aax;
 
-    Vector dir = Vector(0.0f, 0.0f, -1.0f);
+    Vector at = Vector(0.0f, 0.0f, -1.0f);
+    Vector up = Vector(0.0f, 1.0f, 0.0f);
     Vector64 pos = Vector64(0.0, 1.0, -2.75);
-    Matrix64 mtx = Matrix64(pos, dir);
+    Matrix64 mtx = Matrix64(pos, at, up);
 
     Param vibrato_freq = 5.0f;
     Param vibrato_depth = 0.0f;
