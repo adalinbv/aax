@@ -1292,7 +1292,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 CSV("Sequencer_specific, %lu", size);
                 for (int i=0; i<size; ++i) {
                     c = pull_byte();
-                    CSV("%c", c);
+                    CSV(", %d", c);
                 }
                 CSV("\n");
                 break;
@@ -1714,7 +1714,7 @@ MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
                         if (header == 0x4d54726b) // "MTrk"
                         {
                             uint32_t length = stream.pull_long();
-                            if (length > sizeof(uint32_t))
+                            if (length >= sizeof(uint32_t))
                             {
                                 track.push_back(new MIDITrack(*this, stream,
                                                            length, track_no++));
