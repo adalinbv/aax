@@ -1283,7 +1283,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             }
             case MIDI_KEY_SIGNATURE:
             {
-                uint8_t sf = pull_byte();
+                int8_t sf = pull_byte();
                 uint8_t mi = pull_byte();
                 CSV("Key_signature, %d, \"%s\"\n", sf, mi ? "minor" : "major");
                 break;
