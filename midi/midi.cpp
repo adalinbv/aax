@@ -1384,13 +1384,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     if (value == 1) {
                         mode = MIDI_MONOPHONIC;
                         midi.midi.channel(channel).set_monophonic(true);
-printf("channel: %i, MIDI_MONOPHONIC\n", channel);
                     }
                     break;
                 case MIDI_POLY_ALL_NOTES_OFF:
                     midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
                     midi.midi.channel(channel).set_monophonic(false);;
-printf("channel: %i, MIDI_POLYPHONIC\n", channel);
                     mode = MIDI_POLYPHONIC;
                     break;
                 case MIDI_ALL_SOUND_OFF:
