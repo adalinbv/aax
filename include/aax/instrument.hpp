@@ -23,6 +23,7 @@
 #define AEONWAVE_INSTRUMENT_HPP 1
 
 #include <map>
+#include <memory>
 #include <algorithm>
 
 #include <aax/aeonwave.hpp>
@@ -111,6 +112,11 @@ public:
     bool finished() {
         aaxState s = Emitter::state();
         return (s == AAX_PROCESSED || s == AAX_INITIALIZED);
+    }
+
+    void finish() {
+        playing = false;
+        Emitter::set(AAX_STOPPED);
     }
 
     bool stop(float g = 1.0f) {
@@ -284,13 +290,13 @@ public:
 
     void finish() {
         for (auto& it : key) {
-            it.second->stop();
+            for (auto& it2: it.second) it2->stop();
         }
     }
 
     bool finished() {
         for (auto& it : key) {
-            if (!it.second->finished()) return false;
+            for (auto& it2: it.second) if (!it2->finished()) return false;
         }
         return true;
     }
@@ -301,29 +307,50 @@ public:
         if (!is_drums) pitch *= note2freq(key_no)/float(frequency);
         if (monophonic) {
             auto it = key.find(key_prev);
-            if (it != key.end()) it->second->stop();
+            if (it != key.end()) it->second.back()->stop();
             key_prev = key_no;
         }
         auto it = key.find(key_no);
+        std::shared_ptr<Note> note;
         if (it == key.end()) {
-            auto ret = key.insert({key_no, new Note(frequency,pitch,is_wide)});
-            it = ret.first;
+            auto ret = key.insert({key_no, std::vector<std::shared_ptr<Note>>{std::shared_ptr<Note>{new Note(frequency,pitch,is_wide)}}});
+            note = ret.first->second.back();
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (is_drums && !panned) it->second->matrix(mtx);
+            if (is_drums && !panned) note->matrix(mtx);
             if (!is_drums && fc) {
-                it->second->set_filter_cutoff(fc);
-                it->second->set_filter_resonance(Q);
+                note->set_filter_cutoff(fc);
+                note->set_filter_resonance(Q);
             }
-            it->second->buffer(buffer);
+            note->buffer(buffer);
+        } else {
+            note = it->second.back();
+            if (!is_drums) {
+                note->finish();
+                if (!note->finished()) {
+                    auto it2 = it->second;
+                    auto r = std::find_if(it2.begin(), it2.end(), [](std::shared_ptr<Note> k){ return k->finished(); });
+                    if (r != it2.end()) { note = *r; }
+                    else {
+                        it2.push_back(std::shared_ptr<Note>{new Note(frequency,pitch,is_wide)});
+                        note = it2.back();
+                        Mixer::add(buffer);
+                        if (fc) {
+                            note->set_filter_cutoff(fc);
+                            note->set_filter_resonance(Q);
+                        }
+                        note->buffer(buffer);
+                    }
+                }
+            }
         }
-        Mixer::add(*it->second);
-        it->second->set_attack_time(attack_time);
-        it->second->set_release_time(release_time);
+        Mixer::add(*note);
+        note->set_attack_time(attack_time);
+        note->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
-        it->second->play(volume*g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
+        note->play(volume*g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
         pitch_last = pitch;
     }
 
@@ -331,7 +358,7 @@ public:
         auto it = key.find(key_no);
         if (it != key.end()) {
             float g = std::min(0.333f + 0.667f*2.0f*velocity/128.0f, 1.0f);
-            it->second->stop(volume*g*soft);
+            it->second.back()->stop(volume*g*soft);
         }
     }
 
@@ -343,14 +370,14 @@ public:
 
     inline void set_pitch(float pitch) {
         for (auto& it : key) {
-            it.second->set_pitch(pitch);
+            it.second.back()->set_pitch(pitch);
         }
     }
 
     inline void set_pitch(uint8_t key_no, float pitch) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->set_pitch(pitch);
+            it->second.back()->set_pitch(pitch);
         }
     }
 
@@ -360,13 +387,13 @@ public:
     inline void set_pressure(uint8_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->set_gain(p*pressure*soft*volume);
+            it->second.back()->set_gain(p*pressure*soft*volume);
         }
     }
 
     inline void set_expression(float e) {
         for (auto& it : key) {
-            it.second->set_gain(e*pressure*soft*volume);
+            it.second.back()->set_gain(e*pressure*soft*volume);
         }
     }
 
@@ -379,7 +406,7 @@ public:
             Mixer::matrix(m);
         } else {
              for (auto& it : key) {
-                 it.second->matrix(m);
+                 it.second.back()->matrix(m);
              }
         }
     }
@@ -388,13 +415,13 @@ public:
 
     inline void set_hold(bool h) {
         for (auto& it : key) {
-            it.second->set_hold(h);
+            it.second.back()->set_hold(h);
         }
     }
 
     inline void set_sustain(bool s) {
         if (!is_drums) {
-            for (auto& it : key) it.second->set_sustain(s);
+            for (auto& it : key) it.second.back()->set_sustain(s);
         }
     }
 
@@ -429,17 +456,17 @@ public:
 
     void set_attack_time(unsigned t) {
         if (!is_drums) { attack_time = t;
-            for (auto& it : key) it.second->set_attack_time(t);
+            for (auto& it : key) it.second.back()->set_attack_time(t);
         }
     }
     void set_release_time(unsigned t) {
         if (!is_drums) { release_time = t;
-            for (auto& it : key) it.second->set_release_time(t);
+            for (auto& it : key) it.second.back()->set_release_time(t);
         }
     }
     void set_decay_time(unsigned t) {
         if (!is_drums) { decay_time = t;
-            for (auto& it : key) it.second->set_decay_time(t);
+            for (auto& it : key) it.second.back()->set_decay_time(t);
         }
     }
 
@@ -465,13 +492,13 @@ public:
 
     inline void set_filter_cutoff(float dfc) {
         if (!is_drums) { fc = dfc;
-            for (auto& it : key) it.second->set_filter_cutoff(dfc);
+            for (auto& it : key) it.second.back()->set_filter_cutoff(dfc);
         }
     }
 
     inline void set_filter_resonance(float dQ) {
         if (!is_drums) { Q = dQ;
-            for (auto& it : key) it.second->set_filter_resonance(dQ);
+            for (auto& it : key) it.second.back()->set_filter_resonance(dQ);
         }
     }
 
@@ -483,7 +510,7 @@ private:
         return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
     }
 
-    std::map<uint8_t,Note*> key;
+    std::map<uint8_t,std::vector<std::shared_ptr<Note>>> key;
     AeonWave* aax;
 
     Vector at = Vector(0.0f, 0.0f, -1.0f);
