@@ -116,7 +116,7 @@ public:
 
     void finish() {
         playing = false;
-        Emitter::set(AAX_STOPPED);
+        Emitter::set(AAX_PROCESSED);
     }
 
     bool stop(float g = 1.0f) {
