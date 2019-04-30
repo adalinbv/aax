@@ -302,26 +302,29 @@ public:
             if (it != key.end()) it->second->stop();
             key_prev = key_no;
         }
+        std::shared_ptr<Note> note;
         auto it = key.find(key_no);
-        if (it == key.end()) {
+        if (it != key.end()) {
+            note = it->second;
+        } else {
             auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,is_wide)}});
-            it = ret.first;
+            note = ret.first->second;
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (is_drums && !panned) it->second->matrix(mtx);
+            if (is_drums && !panned) note->matrix(mtx);
             if (!is_drums && fc) {
-                it->second->set_filter_cutoff(fc);
-                it->second->set_filter_resonance(Q);
+                note->set_filter_cutoff(fc);
+                note->set_filter_resonance(Q);
             }
-            it->second->buffer(buffer);
+            note->buffer(buffer);
         }
-        Mixer::add(*it->second);
-        it->second->set_attack_time(attack_time);
-        it->second->set_release_time(release_time);
+        Mixer::add(*note);
+        note->set_attack_time(attack_time);
+        note->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
-        it->second->play(volume*g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
+        note->play(volume*g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
         pitch_last = pitch;
     }
 
