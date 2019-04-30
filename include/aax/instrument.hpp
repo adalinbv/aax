@@ -108,6 +108,12 @@ public:
         return playing;
     }
 
+    bool finish() {
+        hold = false;
+        playing = false;
+        return Emitter::set(AAX_STOPPED);
+    }
+
     bool finished() {
         aaxState s = Emitter::state();
         return (s == AAX_PROCESSED || s == AAX_INITIALIZED);
@@ -117,6 +123,11 @@ public:
         playing = false;
         if (fabsf(g - 1.0f) > 0.1f) gain_param = (gain *= g);
         return hold ? true : Emitter::set(AAX_STOPPED);
+    }
+
+    bool stopped() {
+        aaxState s = Emitter::state();
+        return (s != AAX_PLAYING);
     }
 
     // notes hold until hold becomes false, even after a stop message
@@ -296,7 +307,7 @@ public:
     void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, float pitch = 1.0f)
     {
         float frequency = buffer.get(AAX_UPDATE_RATE);
-        if (!is_drums) pitch *= note2freq(key_no)/float(frequency);
+        if (!is_drums) pitch *= note2freq(key_no)/frequency;
         if (monophonic) {
             auto it = key.find(key_prev);
             if (it != key.end()) it->second->stop();
