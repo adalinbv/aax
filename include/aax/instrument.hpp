@@ -104,6 +104,7 @@ public:
            Emitter::set(dsp);
         }
         Emitter::set(AAX_INITIALIZED);
+        Emitter::set(AAX_VELOCITY_FACTOR, 127.0f*g);
         if (!playing) playing = Emitter::set(AAX_PLAYING);
         return playing;
     }

@@ -127,16 +127,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 
-#ifndef MIDI
    pnvel = gnvel = 1.0f;
-#else
-   if (ep2d->note.velocity == 1.0f) {
-      pnvel = gnvel = 1.0f;
-   } else {
-      pnvel = gnvel = powf(ep2d->note.velocity, ep2d->curr_pos_sec);
-   }
-   pitch *= ep2d->note.pressure;
-#endif
    pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
 
    if (pslide)
@@ -190,10 +181,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Apply envelope filter */
-   gain *= _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0
-#ifdef MIDI
-   gain *= ep2d->note.pressure;
-#endif
+   gnvel = ep2d->note.velocity;
+   gain *= _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
    if (gain <= -1e-3f) {
       ret = -2;
    }
@@ -263,11 +252,6 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 #endif
       }
 
-#if 0
-      if (gain0 != 0.0f) {
-         evol *= (gnvel/gain0);
-      }
-#endif
       if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
          drbd->mix1(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,

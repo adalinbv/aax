@@ -1132,7 +1132,7 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
       handle->midi.decay_factor = (float)setup/64.0f;
       break;
    case AAX_VELOCITY_FACTOR:
-      p2d->note.velocity = (float)setup/127.0f;
+      p2d->note.velocity = 0.74f + 0.33f*(float)setup/127.0f;
       break;
    case AAX_PRESSURE_FACTOR:
       p2d->note.pressure = (float)setup/127.0f;

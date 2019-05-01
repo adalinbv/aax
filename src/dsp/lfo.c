@@ -513,12 +513,15 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          if (stopped && !env->sustain) env->value += env->step_finish*fact;
          else env->value += step*fact;
 
+         if (stage < 2 && step < 0.0f) {
+            env->value *= *velocity;
+         }
          if (stage > 3) {
             env->pos++;
          }
          else
          {
-            env->ctr += *velocity;
+            env->ctr += 1.0f; // *velocity;
             if (env->ctr >= 1.0f)
             {
                env->pos++;
