@@ -1118,6 +1118,7 @@ AAX_API int AAX_APIENTRY
 aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setup)
 {  
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
+   _aax2dProps *p2d = handle->source->props2d;
    int rv = AAX_FALSE;
    switch(type)
    {
@@ -1130,6 +1131,12 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    case AAX_DECAY_FACTOR:
       handle->midi.decay_factor = (float)setup/64.0f;
       break;
+   case AAX_VELOCITY_FACTOR:
+      p2d->note.velocity = (float)setup/127.0f;
+      break;
+   case AAX_PRESSURE_FACTOR:
+      p2d->note.pressure = (float)setup/127.0f;
+      break;
    default:
       break;
    }
@@ -1141,6 +1148,7 @@ AAX_API unsigned int AAX_APIENTRY
 aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
 {
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
+   _aax2dProps *p2d = handle->source->props2d;
    unsigned int rv = AAX_FALSE;
    switch(type)
    {
@@ -1152,6 +1160,12 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
       break;
    case AAX_DECAY_FACTOR:
       rv = 64.0f*handle->midi.decay_factor;
+      break;
+   case AAX_VELOCITY_FACTOR:
+      rv = 127.0f*p2d->note.velocity;
+      break;
+   case AAX_PRESSURE_FACTOR:
+      rv = 127.0f*p2d->note.pressure;
       break;
    default:
       break;

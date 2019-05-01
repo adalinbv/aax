@@ -354,12 +354,10 @@ typedef ALIGN16 struct
    float pitch_factor;
    int pitch_levels;
 
-#ifdef MIDI
    struct {
       float velocity;
       float pressure;
    } note;
-#endif
 
    struct {
       FLOAT pitch;
