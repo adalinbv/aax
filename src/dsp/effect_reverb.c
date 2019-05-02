@@ -433,7 +433,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          int q;
 
          _aax_memcpy(scratch-ds, reverb->reverb->history[track], bytes);
-         filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 0);
+         filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
          for(q=0; q<snum; ++q)
          {
             float volume = gain * reverb->loopback[q].gain / (snum+1);
@@ -448,7 +448,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          _aax_memcpy(reverb->reverb->history[track], scratch+no_samples-ds, bytes);
       }
 
-      filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL,0);
+      filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
       if (occlusion) {
          occlusion->run(rbd, dptr, sptr, scratch, no_samples, track,occlusion);
       }

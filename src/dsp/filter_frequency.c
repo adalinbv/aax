@@ -1002,7 +1002,7 @@ void
 _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
                               size_t dmin, size_t dmax, size_t ds,
                               unsigned int track, void *data, void *env,
-                              unsigned char ctr)
+                              float velocity, unsigned char ctr)
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *filter = data;

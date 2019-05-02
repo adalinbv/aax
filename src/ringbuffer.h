@@ -148,7 +148,7 @@ typedef ALIGN16 struct
 
    _aaxLFOData *lfo;
    void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
-               unsigned int, void*, void*, unsigned char);
+               unsigned int, void*, void*, float, unsigned char);
 
    _aaxRingBufferFreqFilterHistoryData *freqfilter;
 

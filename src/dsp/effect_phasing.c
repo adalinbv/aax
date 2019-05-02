@@ -540,7 +540,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       if (pitch == 1.0f)
       {
          if (freq_flt) {
-            freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 0);
+            freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
          } else {
             rbd->multiply(dptr, sptr-offs, bps, no_samples, volume);
          }
@@ -549,7 +549,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       {
          rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
          if (freq_flt) {
-            freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 0);
+            freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
          } else {
             rbd->multiply(dptr, dptr, bps, no_samples, volume);
          }

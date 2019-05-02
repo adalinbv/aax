@@ -216,7 +216,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
       if (freq)
       {
-         freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, ctr);
+         float v = p2d->note.velocity;
+         freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, v, ctr);
          BUFSWAP(pdst, psrc);
       }
    }
