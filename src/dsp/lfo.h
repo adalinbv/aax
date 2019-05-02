@@ -86,7 +86,7 @@ int _compressor_set_timing(_aaxLFOData*);
 
 typedef struct
 {
-   float ctr, step_finish;
+   float step_finish;
    float value0, value, value_total;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];

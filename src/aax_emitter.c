@@ -474,7 +474,6 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                env->value = env->value0;
                env->stage = 0;
                env->pos = 0;
-               env->ctr = 0.0f;
                if (env->state & AAX_REPEAT) {
                   env->repeat = (env->state & ~AAX_REPEAT);
                }
@@ -486,7 +485,6 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                env->value = env->value0 = 1.0f;
                env->stage = 0;
                env->pos = 0;
-               env->ctr = 0.0f;
             }
             env = _EFFECT_GET2D_DATA(src, TIMED_PITCH_EFFECT);
             if (env)
@@ -494,7 +492,6 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                env->value = env->value0;
                env->stage = 0;
                env->pos = 0;
-               env->ctr = 0.0f;
             }
          }
          rv = AAX_TRUE;

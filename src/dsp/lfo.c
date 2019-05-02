@@ -518,24 +518,11 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          if (stopped && !env->sustain) env->value += env->step_finish*fact;
          else env->value += step*fact;
 
-         if (stage > 3) {
-            env->pos++;
-         }
-         else
-         {
-            env->ctr += 1.0f; // *velocity;
-            if (env->ctr >= 1.0f)
-            {
-               env->pos++;
-               env->ctr -= 1.0f;
-            }
-         }
-
          // If the number-of-steps for this stage is reached go to the next.
          // If the duration of a stage == (uint32_t)-1 then we keep looping
          // the sample until stopped becomes true. After that the rest of the
          // stages get processed.
-         if ((env->pos == env->max_pos[stage])
+         if ((++env->pos == env->max_pos[stage])
              || (stopped && env->max_pos[stage] == (uint32_t)-1))
          {
             env->pos = 0;
@@ -557,7 +544,6 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
                env->value = env->value0;
                env->stage = 0;
                env->pos = 0;
-               env->ctr = 0.0f;
                env->repeat--;
                if (penv)
                {
@@ -565,7 +551,6 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
                   penv->stage = 0;
                   penv->stage = 0;
                   penv->pos = 0;
-                  penv->ctr = 0.0f;
                }
             }
          }
