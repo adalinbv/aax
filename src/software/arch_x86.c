@@ -348,6 +348,8 @@ _aaxGetSIMDSupportLevel()
       mtx4dMulVec4 = _mtx4dMulVec4_sse2;
       vec3dAltitudeVector = _vec3dAltitudeVector_sse2;
 
+      _aax_generate_waveform_float = _aax_generate_waveform_sse2;
+
       _batch_get_average_rms = _batch_get_average_rms_sse2;
       _batch_saturate24 = _batch_saturate24_sse2;
 
@@ -394,6 +396,7 @@ _aaxGetSIMDSupportLevel()
 #  if SIZEOF_SIZE_T == 8
    if (_aax_arch_capabilities & AAX_ARCH_AVX)
    {
+      _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
       _batch_get_average_rms = _batch_get_average_rms_sse_vex;
 
       /* SSE/VEX */

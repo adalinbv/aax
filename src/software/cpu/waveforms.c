@@ -46,14 +46,13 @@
 #include <analyze.h>
 #include <dsp/dsp.h>
 
-#define MAX_HARMONICS		16
+#include "arch2d_simd.h"
 
 static float _gains[MAX_WAVE];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
-static float* _aax_generate_waveform_float(size_t, float, float, float*);
 static float* _aax_generate_noise_float(size_t, unsigned char);
 
 static float* _aax_generate_sine(size_t, float, float);
@@ -62,6 +61,8 @@ static float* _aax_generate_sawtooth(size_t, float, float);
 static float* _aax_generate_triangle(size_t, float, float);
 static float* _aax_generate_square(size_t, float, float);
 #endif
+
+_aax_generate_waveform_proc _aax_generate_waveform_float = _aax_generate_waveform_cpu;
 
 static float _aax_linear(float v) {
    return v;
@@ -290,44 +291,6 @@ float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
     0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f }
 
 };
-
-/**
- * Generate a waveform based on the harminics list
- * output range is -1.0 .. 1.0
- */
-static float *
-_aax_generate_waveform_float(size_t no_samples, float freq, float phase, float *harmonics)
-{
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
-   if (rv)
-   {
-      unsigned int h = MAX_HARMONICS;
-
-      memset(rv, 0, no_samples*sizeof(float));
-      do
-      {
-         float nfreq = freq/h--;
-         float ngain = harmonics[h];
-         if (nfreq < 2.0f) continue; // higher than the nyquist-frequency
-         if (ngain)
-         {
-            int i = no_samples;
-            float hdt = GMATH_2PI/nfreq;
-            float s = phase;
-            float *ptr = rv;
-
-            do
-            {
-               *ptr++ += ngain * fast_sin(s);
-               s = fmodf(s+hdt, GMATH_2PI);
-            }
-            while (--i);
-         }
-      }
-      while (h);
-   }
-   return rv;
-}
 
 static float *
 _aax_generate_sine(size_t no_samples, float freq, float phase)

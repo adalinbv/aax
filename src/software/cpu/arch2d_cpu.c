@@ -29,6 +29,45 @@
 #include <dsp/common.h>
 #include "arch2d_simd.h"
 
+/**
+ * Generate a waveform based on the harminics list
+ * output range is -1.0 .. 1.0
+ */
+float *
+_aax_generate_waveform_cpu(size_t no_samples, float freq, float phase, float *harmonics)
+{
+   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
+   if (rv)
+   {
+      unsigned int h = MAX_HARMONICS;
+
+      memset(rv, 0, no_samples*sizeof(float));
+      do
+      {
+         float nfreq = freq/h--;
+         float ngain = harmonics[h];
+         if (nfreq < 2.0f) continue; // higher than the nyquist-frequency
+         if (ngain)
+         {
+            int i = no_samples;
+            float hdt = GMATH_2PI/nfreq;
+            float s = phase;
+            float *ptr = rv;
+
+            do
+            {
+               *ptr++ += ngain * fast_sin(s);
+               s = fmodf(s+hdt, GMATH_2PI);
+            }
+            while (--i);
+         }
+      }
+      while (h);
+   }
+   return rv;
+}
+
+
 void
 _batch_imadd_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t num, float v, float vstep)
 {

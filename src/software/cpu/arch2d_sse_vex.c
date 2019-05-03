@@ -40,6 +40,40 @@ fast_sin_sse_vex(float x)
    return -4.0f*(x - x*fabsf(x));
 }
 
+float *
+_aax_generate_waveform_sse_vex(size_t no_samples, float freq, float phase, float *harmonics)
+{
+   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
+   if (rv)
+   {
+      unsigned int h = MAX_HARMONICS;
+
+      memset(rv, 0, no_samples*sizeof(float));
+      do
+      {
+         float nfreq = freq/h--;
+         float ngain = harmonics[h];
+         if (nfreq < 2.0f) continue; // higher than the nyquist-frequency
+         if (ngain)
+         {
+            int i = no_samples;
+            float hdt = GMATH_2PI/nfreq;
+            float s = phase;
+            float *ptr = rv;
+
+            do
+            {
+               *ptr++ += ngain * fast_sin_sse_vex(s);
+               s = fmodf(s+hdt, GMATH_2PI);
+            }
+            while (--i);
+         }
+      }
+      while (h);
+   }
+   return rv;
+}
+
 FN_PREALIGN void
 _batch_get_average_rms_sse_vex(const_float32_ptr s, size_t num, float *rms, float *peak)
 {
