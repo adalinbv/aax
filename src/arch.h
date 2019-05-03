@@ -141,6 +141,7 @@ extern _batch_cvt_to_proc _batch_cvtps_24;
 extern _batch_cvt_to_proc _batch_cvtps24_24;
 extern _batch_cvt_to_proc _batch_cvtpd_24;
 extern _batch_cvt_to_proc _batch_cvt24_24;
+extern _batch_cvt_to_proc _batch_roundps;
 extern _batch_cvt_to_intl_proc _batch_cvt8_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvt16_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvt24_3intl_24;

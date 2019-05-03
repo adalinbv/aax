@@ -85,6 +85,7 @@ _batch_cvt_to_proc _batch_cvt32_24 = _batch_cvt32_24_cpu;
 _batch_cvt_to_proc _batch_cvtps_24 = _batch_cvtps_24_cpu;
 _batch_cvt_to_proc _batch_cvtpd_24 = _batch_cvtpd_24_cpu;
 _batch_cvt_to_proc _batch_cvt24_24 = _batch_cvt24_24_cpu;
+_batch_cvt_to_proc _batch_roundps = _batch_roundps_cpu;
 _batch_cvt_to_intl_proc _batch_cvt8_intl_24 = _batch_cvt8_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt16_intl_24 = _batch_cvt16_intl_24_cpu;
 _batch_cvt_to_intl_proc _batch_cvt24_3intl_24 = _batch_cvt24_3intl_24_cpu;

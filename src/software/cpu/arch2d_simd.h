@@ -138,6 +138,7 @@ void _batch_fmadd_sse2(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_float_sse2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_sse2(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse2(float32_ptr, const_float32_ptr, int, size_t, void*);
+void _batch_roundps_cpu(void_ptr, const_void_ptr, size_t);
 #if RB_FLOAT_DATA
 void _batch_cvtps24_24_sse2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_sse2(void_ptr, const_void_ptr, size_t);
@@ -160,6 +161,9 @@ void _batch_resample_float_sse3(float32_ptr, const_float32_ptr, size_t, size_t, 
 #else
 void _batch_resample_sse3(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
+
+/* SSE4 */
+void _batch_roundps_sse4(void_ptr, const_void_ptr, size_t);
 
 /* AVX & SSE/VEX */
 float fast_sin_sse_vex(float);

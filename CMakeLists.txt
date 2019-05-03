@@ -186,6 +186,9 @@ if(MSVC)
   set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE3__"
   )
+  set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:SSE2 /fp:fast -D__SSE4__"
+  )
   set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
   )
@@ -314,6 +317,9 @@ else(MSVC)
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
+       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
+                    PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -march=silvermont -O2 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+       )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -O2 -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
@@ -354,6 +360,9 @@ else(MSVC)
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -march=prescott -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
+       )
+       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
+                    PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -O2 -march=silvermont -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -O2 -march=pentium3m -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"

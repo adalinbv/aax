@@ -30,15 +30,19 @@
 #if defined(__i386__)
 # define SIMD	sse2
 # define SIMD2	sse2
+# define SIMD4	sse4
 char _aaxArchDetectSSE2();
+char _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
 # define SIMD   sse2
 # define SIMD1	sse_vex
 # define SIMD2	avx
+# define SIMD4	sse4
 # define FMA3	fma3
 # define FMA4	fma4
 # define CPUID_FEAT_ECX_FMA3	(1 << 12)
 # define CPUID_FEAT_ECX_FMA4	(1 << 16)
+char _aaxArchDetectSSE4();
 char _aaxArchDetectAVX();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
@@ -62,6 +66,7 @@ int _aaxArchDetectNEON()
 # define GLUE(FUNC,NAME)	__GLUE(FUNC,NAME)
 
 _batch_fmadd_proc _batch_fmadd;
+_batch_cvt_to_proc _batch_roundps;
 _batch_mul_value_proc _batch_fmul_value;
 _batch_get_average_rms_proc _batch_get_average_rms;
 _batch_freqfilter_float_proc _batch_freqfilter_float;
@@ -75,13 +80,16 @@ int main()
     char simd = 0;
     char simd2 = 0;
     char simd3 = 0;
+    char simd4 = 0;
     clock_t t;
 
 #if defined(__i386__)
     simd = _aaxArchDetectSSE2();
+    simd4 = _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
     simd = 1;
     simd2 = _aaxArchDetectAVX();
+    simd4 = _aaxArchDetectSSE4();
     if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
        simd3 = 4;
     }
@@ -287,6 +295,24 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmul "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTF("float fmul "MKSTR(SIMD2), dst1, dst2);
+        }
+
+        /*
+         * batch round floats
+         */
+        _batch_roundps = _batch_roundps_cpu;
+        memcpy(dst2, src, MAXNUM*sizeof(float));
+        t = clock();
+          _batch_roundps(src, src, MAXNUM);
+          cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\nround cpu:  %f\n", cpu*1000.0f);
+        if (simd4)
+        {
+           _batch_roundps = _batch_roundps_sse4;
+           t = clock();
+              _batch_roundps(dst2, dst2, MAXNUM);
+              eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
         }
 
         /*
