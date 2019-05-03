@@ -55,8 +55,8 @@ static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, cha
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
 static float* _aax_generate_noise_float(size_t, unsigned char);
 
-static float* _aax_generate_sine(size_t, float, float);
 #if 0
+static float* _aax_generate_sine(size_t, float, float);
 static float* _aax_generate_sawtooth(size_t, float, float);
 static float* _aax_generate_triangle(size_t, float, float);
 static float* _aax_generate_square(size_t, float, float);
@@ -79,8 +79,8 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
    gain *= _gains[_SINE_WAVE];
    if (data && gain)
    {
-//    float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
-      float *ptr = _aax_generate_sine(no_samples, freq, phase);
+      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
+//    float *ptr = _aax_generate_sine(no_samples, freq, phase);
       if (ptr)
       {
          if (modulate) {
@@ -292,6 +292,7 @@ float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
 
 };
 
+#if 0
 static float *
 _aax_generate_sine(size_t no_samples, float freq, float phase)
 {
@@ -314,7 +315,6 @@ _aax_generate_sine(size_t no_samples, float freq, float phase)
    return rv;
 }
 
-#if 0
 static float *
 _aax_generate_triangle(size_t no_samples, float freq, float phase)
 {
