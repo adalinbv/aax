@@ -121,6 +121,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 
             lfo->min = filter->slot[0]->param[AAX_THRESHOLD];
             lfo->max = filter->slot[0]->param[AAX_LFO_DEPTH];
+            lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
             lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
             _compressor_set_timing(lfo);
@@ -143,6 +144,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             lfo->depth = 1.0f;
             lfo->offset = 0.0f;
             lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
+            lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
             lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
             if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
@@ -212,10 +214,10 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxDynamicGainRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 0.0f, 50.0f, 1.0f, 1.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f, 0.0f,  0.0f, 0.0f }, { 0.0f,  0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 10.0f, 50.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);

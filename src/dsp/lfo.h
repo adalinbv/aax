@@ -69,6 +69,7 @@ typedef struct
    void *data;
    char inv, envelope, stereo_lnk;
 
+   float delay, dt;
    float fs, period_rate;
    float value[_AAX_MAX_SPEAKERS];      /* current value                   */
    float average[_AAX_MAX_SPEAKERS];    /* average value over time         */

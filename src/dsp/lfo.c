@@ -270,6 +270,15 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       rv = lfo->convert(lfo->value[track], 1.0f);
       rv = lfo->inv ? lfo->max-(rv-lfo->min) : rv;
 
+      if (lfo->dt < lfo->delay)
+      {
+          float f;
+
+          lfo->dt += 1.0f/lfo->period_rate;
+          f = lfo->dt/lfo->delay;
+          rv *= f*f;
+      }
+
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
           || ((lfo->value[track] >= lfo->max) && (step > 0)))
@@ -317,6 +326,16 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
 
       rv = lfo->convert(_fast_sin1(v), max);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+
+      if (lfo->dt < lfo->delay)
+      {
+          float f;
+
+          lfo->dt += 1.0f/lfo->period_rate;
+          f = lfo->dt/lfo->delay;
+          rv *= f*f;
+      }
+
       lfo->compression[track] = 1.0f - rv;
    }
    return rv;
@@ -333,6 +352,15 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
 
       rv = lfo->convert((step >= 0.0f ) ? lfo->max-lfo->min : 0, 1.0f);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+
+      if (lfo->dt < lfo->delay)
+      {
+          float f;
+
+          lfo->dt += 1.0f/lfo->period_rate;
+          f = lfo->dt/lfo->delay;
+          rv *= f*f;
+      }
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -361,6 +389,15 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
       rv = lfo->convert((step >= 0.0f ) ? lfo->max-lfo->min : 0, 1.0f);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
 
+      if (lfo->dt < lfo->delay)
+      {
+          float f;
+
+          lfo->dt += 1.0f/lfo->period_rate;
+          f = lfo->dt/lfo->delay;
+          rv *= f*f;
+      }
+
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
           || ((lfo->value[track] >= lfo->max) && (step > 0)))
@@ -385,6 +422,15 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = lfo->convert(lfo->value[track], 1.0f);
       rv = lfo->inv ? lfo->max-(rv-lfo->min) : rv;
+
+      if (lfo->dt < lfo->delay)
+      {
+          float f;
+
+          lfo->dt += 1.0f/lfo->period_rate;
+          f = lfo->dt/lfo->delay;
+          rv *= f*f;
+      }
 
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {
