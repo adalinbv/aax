@@ -232,7 +232,7 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDynamicGainFilter =
 {
    AAX_FALSE,
-   "AAX_dynamic_gain_filter", 1.0f,
+   "AAX_dynamic_gain_filter_1.01", 1.01f,
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,
    (_aaxFilterSetState*)&_aaxDynamicGainFilterSetState,
