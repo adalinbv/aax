@@ -79,7 +79,7 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
    gain *= _gains[_SINE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
+      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
 //    float *ptr = _aax_generate_sine(no_samples, freq, phase);
       if (ptr)
       {
@@ -99,7 +99,7 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
    gain *= _gains[_SQUARE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SQUARE_WAVE]);
+      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_SQUARE_WAVE]);
 //    float *ptr = _aax_generate_square(no_samples, freq, phase);
       if (ptr)
       {
@@ -119,7 +119,7 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
    gain *= _gains[_TRIANGLE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_TRIANGLE_WAVE]);
+      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_TRIANGLE_WAVE]);
 //    float *ptr = _aax_generate_triangle(no_samples, freq, phase);
       if (ptr)
       {
@@ -139,7 +139,7 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
    gain *= _gains[_SAWTOOTH_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_SAWTOOTH_WAVE]);
+      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_SAWTOOTH_WAVE]);
 //    float *ptr = _aax_generate_sawtooth(no_samples, freq, phase);
       if (ptr)
       {
@@ -159,7 +159,7 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
    gain *= _gains[_IMPULSE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_float(no_samples, freq, phase, _harmonics[_IMPULSE_WAVE]);
+      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_IMPULSE_WAVE]);
       if (ptr)
       {
          if (modulate) {
