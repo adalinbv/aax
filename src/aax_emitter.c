@@ -459,6 +459,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
             _aaxEnvelopeData* env;
+            _aaxLFOData *lfo;
 
             // Rewinding the ringbuffer produces audible artefacts
             if (!_IS_PLAYING(src->props3d)) {
@@ -467,6 +468,10 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             src->buffer_pos = 0;
             src->curr_pos_sec = 0.0f;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
+
+            // TODO: give filters and effects data a reset function
+            lfo = _FILTER_GET2D_DATA(src, DYNAMIC_GAIN_FILTER);
+            if (lfo) lfo->dt = 0.0f;
 
             env = _FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER);
             if (env)
@@ -486,6 +491,10 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
                env->stage = 0;
                env->pos = 0;
             }
+
+            lfo = _EFFECT_GET2D_DATA(src, DYNAMIC_PITCH_EFFECT);
+            if (lfo) lfo->dt = 0.0f;
+
             env = _EFFECT_GET2D_DATA(src, TIMED_PITCH_EFFECT);
             if (env)
             {
