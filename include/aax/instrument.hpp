@@ -131,9 +131,13 @@ public:
         return (s != AAX_PLAYING);
     }
 
-    // notes hold until hold becomes false, even after a stop message
+    // notes hold until hold becomes false, even after a stop message.
+    // already stopped notes can be caught by hold again.
     void set_hold(bool h) {
-        if (hold && !h) Emitter::set(AAX_STOPPED);
+        if (!h && hold) Emitter::set(AAX_STOPPED);
+        else if (h && Emitter::state() == AAX_STOPPED) {
+            Emitter::set(AAX_PLAYING);
+        }
         hold = h;
     }
 
