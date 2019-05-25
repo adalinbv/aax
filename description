@@ -3,8 +3,3 @@ Cross platform, hardware accelerated, multi-channel and 4D capable audio renderi
  audio library designed for professional studio and simulation solutions.
  It can handle 4D (where 4th dimension is time delay) positional audio and
  multi-channel mixing equally well.
- .
- The separately available OpenAL layer makes the library ready for most of
- the current software while it's native API makes it ready for future audio
- demands.
-
