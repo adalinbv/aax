@@ -58,7 +58,7 @@
   </filter>
   <filter type="dynamic-gain" src="square">
    <slot n="0">
-    <param n="0">0.0</param>
+    <param n="0">0.3</param>
     <param n="1">0.179</param>
     <param n="2">0.7</param>
     <param n="3">0.0</param>

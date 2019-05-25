@@ -54,7 +54,7 @@
   </filter>
   <filter type="dynamic-gain" src="triangle">
    <slot n="0">
-    <param n="0">0.0</param>
+    <param n="0">3.0</param>
     <param n="1">0.113</param>
     <param n="2">0.9</param>
     <param n="3">0.1</param>

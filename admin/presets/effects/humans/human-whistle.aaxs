@@ -20,20 +20,12 @@
  </info>
 
  <sound fixed-gain="1.00" frequency="261" duration="3.33">
-  <waveform src="sine" ratio="0.4"/>
+  <waveform src="sine" ratio="0.05"/>
   <waveform src="brownian-noise" processing="add" ratio="0.075"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="1.0">261.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.7</param>
-    <param n="3">60.0</param>
-   </slot>
-  </filter>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">8000.0</param>
-    <param n="1">0.7</param>
+    <param n="0">5000.0</param>
+    <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
@@ -41,6 +33,14 @@
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="1.0">261.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">6.0</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>

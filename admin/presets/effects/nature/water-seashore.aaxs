@@ -21,12 +21,20 @@
 
  <sound fixed-gain="1.00" frequency="220" duration="3.33">
   <waveform src="white-noise" pitch="0.33"/>
+  <filter type="frequency" src="12db">
+   <slot n="0">
+    <param n="0">100.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.1</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="sine">
    <slot n="0">
-    <param n="0" pitch="4.0">880.0</param>
+    <param n="0" pitch="8.0">880.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.1</param>
@@ -40,10 +48,10 @@
   </filter>
   <filter type="dynamic-gain" src="sawtooth">
    <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.173</param>
-    <param n="2">0.5</param>
-    <param n="3">0.0</param>
+    <param n="0">2.0</param>
+    <param n="1">0.273</param>
+    <param n="2">0.7</param>
+    <param n="3">0.3</param>
    </slot>
   </filter>
  </emitter>
@@ -52,7 +60,7 @@
   <filter type="dynamic-gain" src="inverse-sawtooth">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.014</param>
+    <param n="1">0.028</param>
     <param n="2">0.5</param>
     <param n="3">0.173</param>
    </slot>

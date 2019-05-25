@@ -19,31 +19,24 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.00" frequency="130" duration="3.3">
-  <waveform src="white-noise" ratio="3.0" pitch="0.35" staticity="0.0175"/>
-  <waveform src="brownian-noise" processing="modulate" ratio="4.0" pitch="0.35"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.625</param>
-   </slot>
-  </filter>
+ <sound fixed-gain="1.00" frequency="110" duration="3.3">
+  <waveform src="white-noise" ratio="1.5" pitch="0.35" staticity="0.0175"/>
+  <waveform src="brownian-noise" processing="mix" pitch="0.75"/>
+  <waveform src="square" processing="modulate" pitch="0.15"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="3.75">487.5</param>
+    <param n="0" pitch="3.75">412.5</param>
     <param n="1">0.1</param>
-    <param n="2">0.7</param>
+    <param n="2">1.0</param>
     <param n="3">3.0</param>
    </slot>
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="30.0">3900.0</param>
+    <param n="0" pitch="30.0">3300.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">3.0</param>
+    <param n="3">2.0</param>
    </slot>
   </filter>
  </sound>
@@ -90,7 +83,7 @@
  <audioframe>
   <effect type="distortion">
    <slot n="0">
-    <param n="0">2.25</param>
+    <param n="0">1.25</param>
     <param n="1">0.2</param>
     <param n="2">0.3</param>
     <param n="3">0.8</param>
