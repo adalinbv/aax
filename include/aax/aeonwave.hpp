@@ -578,11 +578,11 @@ public:
     explicit Sensor(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ)
         : Obj(c, aaxDriverDestroy), mode(m) {}
 
-    explicit Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+    explicit Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_READ)
         : Sensor(aaxDriverOpenByName(n,m), m) {}
 
-    explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
-        : Sensor(s.empty() ? NULL : s.c_str(),m) {}
+    explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_READ)
+        : Sensor(s.empty() ? nullptr : s.c_str(),m) {}
 
     Sensor(Sensor&&) = default;
 
@@ -905,7 +905,7 @@ public:
         : AeonWave(s.empty() ? nullptr : s.c_str(),m) {}
 
     explicit AeonWave(enum aaxRenderMode m)
-        : AeonWave(0,m) {}
+        : AeonWave(nullptr,m) {}
 
     AeonWave(AeonWave&&) = default;
 
@@ -949,7 +949,7 @@ public:
 
     // ** enumeration ******
     const char* drivers(enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) {
-        aaxDriverDestroy(_ec);
+        aaxDriverDestroy(_ec); if (m != _em) _e[0] = 0;
         _em = m; _ec = nullptr; _e[1] = 0; _e[2] = 0;
         if (_e[0] < aaxDriverGetCount(_em)) {
             _ec = aaxDriverGetByPos(_e[0]++,_em);
@@ -1069,7 +1069,7 @@ private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
-    std::unordered_map<std::string,std::pair<size_t,Buffer*> > buffers;
+    std::unordered_map<std::string,std::pair<size_t,Buffer*>> buffers;
     Buffer nullBuffer;
 
     // background music stream
