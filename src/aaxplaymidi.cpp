@@ -100,6 +100,7 @@ static void sleep_for(float dt)
 
 void play(char *devname, char *infile, char *outfile, const char *track, const char *grep, bool verbose, bool batched)
 {
+    if (grep) devname = (char*)"None"; // fastest for searching
     aax::MIDIFile midi(devname, infile, track);
     if (midi)
     {
