@@ -24,7 +24,6 @@
 #endif
 
 #include <assert.h>
-#include <math.h>	/* tan */
 
 #include <base/logging.h>
 #include <base/geometry.h>
@@ -53,6 +52,7 @@
  */
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 
+#if 0
 void
 _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, UNUSED(MIX_PTR_T scratch),
@@ -89,7 +89,7 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
       _aax_memcpy(dst, src, no_samples*bps);
    }
 }
-
+#endif
 
 /**
  * 2nd order effects:

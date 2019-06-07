@@ -171,7 +171,7 @@ typedef struct _aaxRingBufferData_t
    enum _aaxRingBufferMode access;
 
    _aaxProcessCodecFn *codec;
-   _aaxEffectsApplyFn *effects_1st;
+// _aaxEffectsApplyFn *effects_1st;
    _aaxEffectsApplyFn *effects_2nd;
    _aaxProcessMixerFn *mix;
 
@@ -189,7 +189,7 @@ typedef struct {
 extern _batch_codec_proc _aaxRingBufferCodecs[];
 
 void _aaxRingBufferProcessCodec(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
-void _aaxRingBufferEffectsApply1st(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, _aax2dProps*, unsigned char, unsigned char);
+// void _aaxRingBufferEffectsApply1st(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, _aax2dProps*, unsigned char, unsigned char);
 void _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, _aax2dProps*, unsigned char, unsigned char);
 
 

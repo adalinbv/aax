@@ -1169,7 +1169,7 @@ _batch_resample_neon(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, f
    else if (fact < 1.0f) {
       _aaxBufResampleLinear_neon(d, s, dmin, dmax, smu, fact);
    }
-   else if (fact > 1.0f) {
+   else if (fact >= 1.0f) {
       _aaxBufResampleDecimate_neon(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_neon(d, s, dmin, dmax, smu, fact);
@@ -1373,7 +1373,7 @@ _batch_resample_float_neon(float32_ptr d, const_float32_ptr s, size_t dmin, size
    else if (fact < 1.0f) {
       _aaxBufResampleLinear_float_neon(d, s, dmin, dmax, smu, fact);
    }
-   else if (fact > 1.0f) {
+   else if (fact >= 1.0f) {
       _aaxBufResampleDecimate_float_neon(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_neon(d, s, dmin, dmax, smu, fact);

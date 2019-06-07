@@ -1243,7 +1243,7 @@ _batch_resample_sse_vex(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax
    else if (fact < 1.0f) {
       _aaxBufResampleLinear_sse_vex(d, s, dmin, dmax, smu, fact);
    }
-   else if (fact > 1.0f) {
+   else if (fact >= 1.0f) {
       _aaxBufResampleDecimate_sse_vex(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_sse_vex(d, s, dmin, dmax, smu, fact);
@@ -1489,7 +1489,7 @@ _batch_resample_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t dmin, s
    else if (fact < 1.0f) {
       _aaxBufResampleLinear_float_sse_vex(d, s, dmin, dmax, smu, fact);
    }
-   else if (fact > 1.0f) {
+   else if (fact >= 1.0f) {
       _aaxBufResampleDecimate_float_sse_vex(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_sse_vex(d, s, dmin, dmax, smu, fact);

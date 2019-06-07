@@ -122,7 +122,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbi->volume_min = 0.0f;
          rbi->volume_max = 1.0f;
          rbi->codec = _aaxRingBufferProcessCodec;	// always cvt to 24-bit
-         rbi->effects_1st = _aaxRingBufferEffectsApply1st;
+//       rbi->effects_1st = _aaxRingBufferEffectsApply1st;
          rbi->effects_2nd = _aaxRingBufferEffectsApply2nd;
          rbi->mix = _aaxRingBufferProcessMixer;		// uses the above funcs
 

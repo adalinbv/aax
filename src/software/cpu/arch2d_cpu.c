@@ -1457,7 +1457,7 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, fl
    else if (fact < 1.0f) {
       _aaxBufResampleLinear_cpu(d, s, dmin, dmax, smu, fact);
    }
-   else if (fact > 1.0f) {
+   else if (fact >= 1.0f) {
       _aaxBufResampleDecimate_cpu(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_cpu(d, s, dmin, dmax, smu, fact);
@@ -1680,7 +1680,7 @@ _batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, size_t dmin, size_
    else if (fact < 1.0f) {
       _aaxBufResampleLinear_float_cpu(d, s, dmin, dmax, smu, fact);
    }
-   else if (fact > 1.0f) {
+   else if (fact >= 1.0f) {
       _aaxBufResampleDecimate_float_cpu(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_cpu(d, s, dmin, dmax, smu, fact);
