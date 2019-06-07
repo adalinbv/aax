@@ -6,8 +6,9 @@
  * Combine phasing, chorus and flagining into the chorus effect.
  * Implement frequency-filtering of the delayed signal for phasing and chorus.
  * Introduce envelope-following timed gain filters (with exponential decay).
- * Allow to override the shared data directory path in the configurtion file.
+ * Allow one to override the shared data directory in the configurtion file.
  * Improvements to the handling of mangled audio-streams.
+ * Fix a hardly noticeable sound artefact when the resampling factor == 1.0
  * Fix reverb, the volume of the delayed signal was handled improperly.
  * Small code speedups.
 
