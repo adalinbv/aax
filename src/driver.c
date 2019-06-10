@@ -137,9 +137,9 @@ getPitch(int argc, char **argv)
 }
 
 float
-getPitchMax(int argc, char **argv)
+getPitchRange(int argc, char **argv)
 {
-    float num = 1.0f;
+    float num = 0.0f;
     char *ret = getCommandLineOption(argc, argv, "-p");
     if (!ret) ret = getCommandLineOption(argc, argv, "--pitch");
     if (ret) {

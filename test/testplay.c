@@ -107,7 +107,7 @@ int main(int argc, char **argv)
 
                 /* pitch */
                 pitch = getPitch(argc, argv);
-                pitch2 = getPitchMax(argc, argv);
+                pitch2 = getPitchRange(argc, argv);
                 effect = aaxEffectCreate(config, AAX_PITCH_EFFECT);
                 testForError(effect, "Unable to create the pitch effect");
 
@@ -118,7 +118,7 @@ int main(int argc, char **argv)
                    res = aaxEffectSetSlot(effect, 0, AAX_LINEAR, pitch2, pitch2, pitch, 7.0f);
                    testForState(res, "aaxEffectSetParam");
 
-                   res = aaxEffectSetState(effect, AAX_TRUE);
+                   res = aaxEffectSetState(effect, AAX_INVERSE|AAX_ENVELOPE_FOLLOW);
                    testForState(res, "aaxEffectSetState");
                 }
 
