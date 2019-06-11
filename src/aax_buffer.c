@@ -1070,6 +1070,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
       voices = _MINMAX(xmlAttributeGetInt(xwid, "voices"), 1, 11);
       if (xmlAttributeExists(xwid, "spread")) {
          spread = _MAX(xmlNodeGetDouble(xwid, "spread"), 0.01f);
+         if (xmlAttributeGetBool(xwid, "phasing")) spread = -spread;
       }
    }
 
@@ -1405,6 +1406,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       }
       if (xmlAttributeExists(xsid, "spread")) {
          spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
+         if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
       }
 
       if (xmlAttributeExists(xsid, "file"))
@@ -1704,6 +1706,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       int q, hvoices;
       unsigned skip;
       char modulate;
+      char phasing;
 
       modulate = 0;
       rate = freq * pitch;
@@ -1764,6 +1767,8 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
          fs_mixer = 0.0f;
       }
 
+      phasing = (spread <0.0f);
+      spread = fabsf(spread);
       for (i=0; i<AAX_MAX_WAVE; i++)
       {
          switch (wtype & bit)
@@ -1778,6 +1783,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
                float ffact, nfw, nphase, nratio;
 
                nfw = (fw - hvoices*spread);
+               if (phasing) nfw += (float)q*spread;
                samps_period = fs/nfw;
                ffact = (float)no_samples/(float)samps_period;
                nfw = nfw*ceilf(ffact)/ffact;
