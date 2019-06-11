@@ -361,7 +361,7 @@ int main()
         flt.run = _freqfilter_run;
         flt.high_gain = 1.0f;
         flt.low_gain = 0.0f;
-        flt.no_stages = 1;
+        flt.no_stages = 2;
         flt.state = AAX_BUTTERWORTH; // or AAX_BESSEL;
         flt.Q = 2.5f;
         flt.type = HIGHPASS;
