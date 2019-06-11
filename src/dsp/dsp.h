@@ -56,7 +56,7 @@ void _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsign
 #define FLANGING_MIN	10e-3f
 #define FLANGING_MAX	60e-3f
 
-void* _delay_create(void*, void*);
+void* _delay_create(void*, void*, char, char);
 void _delay_swap(void*, void*);
 void _delay_destroy(void *);
 void _delay_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);

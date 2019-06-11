@@ -92,7 +92,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
 
-      data = _delay_create(data, effect->info);
+      data = _delay_create(data, effect->info, AAX_FALSE, AAX_TRUE);
       effect->slot[0]->data = data;
       if (data)
       {

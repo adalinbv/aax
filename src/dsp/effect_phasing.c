@@ -91,8 +91,10 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
    case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
+      float feedback = effect->slot[1]->param[AAX_MAX_GAIN];
+      char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
-      data = _delay_create(data, effect->info);
+      data = _delay_create(data, effect->info, AAX_TRUE, fbhist);
       effect->slot[0]->data = data;
       if (data)
       {
@@ -128,7 +130,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          data->freq_filter = flt;
          data->run = _delay_run;
          data->flanger = AAX_FALSE;
-         data->feedback = effect->slot[1]->param[AAX_MAX_GAIN];
+         data->feedback = feedback;
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
@@ -333,7 +335,7 @@ _eff_function_tbl _aaxPhasingEffect =
 };
 
 void*
-_delay_create(void *d, void *i)
+_delay_create(void *d, void *i, char delay, char feedback)
 {
    _aaxRingBufferDelayEffectData *data = d;
    _aaxMixerInfo *info = i;
@@ -354,17 +356,24 @@ _delay_create(void *d, void *i)
       }
    }
 
-
-   if (data && data->history == NULL)
+   if (data)
    {
       unsigned int tracks = info->no_tracks;
       float fs = info->frequency;
 
       data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
-      _aaxRingBufferCreateHistoryBuffer(&data->history,
-                                        data->history_samples, tracks);
 
-      if (!data->history)
+      if (delay && data->history == NULL) {
+         _aaxRingBufferCreateHistoryBuffer(&data->history,
+                                           data->history_samples, tracks);
+      }
+
+      if (feedback && data->feedback_history == NULL) {
+         _aaxRingBufferCreateHistoryBuffer(&data->feedback_history,
+                                           data->history_samples, tracks);
+      }
+
+      if (!data->history && !data->feedback_history)
       {
          free(data->offset);
          data->offset = NULL;
@@ -505,7 +514,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       }
       effect->offset->step[track] = step;
 
-      _aax_memcpy(dptr-ds, effect->history->history[track], ds*bps);
+      _aax_memcpy(dptr-ds, effect->feedback_history->history[track], ds*bps);
       if (i >= step)
       {
          do
@@ -522,7 +531,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          rbd->add(dptr, dptr-coffs, i, volume, 0.0f);
       }
 
-      _aax_memcpy(effect->history->history[track], sptr+no_samples-ds, ds*bps);
+      _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
       effect->offset->coffs[track] = coffs;
    }
 

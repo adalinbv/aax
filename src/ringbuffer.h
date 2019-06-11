@@ -203,6 +203,7 @@ typedef struct
    _aaxLFOData lfo;
    _aaxRingBufferOffsetData *offset;
    _aaxRingBufferHistoryData *history;
+   _aaxRingBufferHistoryData *feedback_history;
    _aaxRingBufferFreqFilterData *freq_filter;
    _aaxRingBufferDelayData delay;
    size_t history_samples;

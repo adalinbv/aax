@@ -91,8 +91,10 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
+      float feedback = effect->slot[1]->param[AAX_MAX_GAIN];
+      char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
-      data = _delay_create(data, effect->info);
+      data = _delay_create(data, effect->info, AAX_TRUE, fbhist);
       effect->slot[0]->data = data;
       if (data)
       {
@@ -128,7 +130,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          data->freq_filter = flt;
          data->run = _delay_run;
          data->flanger = AAX_FALSE;
-         data->feedback = effect->slot[1]->param[AAX_MAX_GAIN];
+         data->feedback = feedback;
 
          data->lfo.convert = _linear;
          data->lfo.state = effect->state;
