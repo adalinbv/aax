@@ -274,26 +274,26 @@ _aaxNewPhasingEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax
 
 static float
 _aaxPhasingEffectSet(float val, int ptype, unsigned char param)
-{  
+{
    float rv = val;
    if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _lin2db(val);
    }
-   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) && 
+   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
        rv = (val*1e-6f)/PHASING_MAX;
    }
    return rv;
 }
-   
+
 static float
 _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
-{  
+{
    float rv = val;
    if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _db2lin(val);
    }
-   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) && 
+   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
        rv = val*PHASING_MAX*1e6f;
    }
@@ -310,10 +310,10 @@ _aaxPhasingEffectMinMax(float val, int slot, unsigned char param)
     { {    0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } },
     { {    0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxPhasingRange[slot].min[param],
                        _aaxPhasingRange[slot].max[param]);
 }
@@ -363,17 +363,44 @@ _delay_create(void *d, void *i, char delay, char feedback)
 
       data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
 
-      if (delay && data->history == NULL) {
+#if 1
+      if (data->history == NULL) {
          _aaxRingBufferCreateHistoryBuffer(&data->history,
                                            data->history_samples, tracks);
       }
-
-      if (feedback && data->feedback_history == NULL) {
+      if (data->feedback_history == NULL) {
          _aaxRingBufferCreateHistoryBuffer(&data->feedback_history,
                                            data->history_samples, tracks);
       }
+#else
+      if (delay && data->history == NULL)
+      {
+         if (!feedback && data->feedback_history)
+         {
+            data->history = data->feedback_history;
+            data->feedback_history = NULL;
+         }
+         else {
+            _aaxRingBufferCreateHistoryBuffer(&data->history,
+                                              data->history_samples, tracks);
+         }
+      }
 
-      if (!data->history && !data->feedback_history)
+      if (feedback && data->feedback_history == NULL)
+      {
+         if (!delay && data->history)
+         {
+            data->feedback_history = data->history;
+            data->history = NULL;
+         }
+         else {
+            _aaxRingBufferCreateHistoryBuffer(&data->feedback_history,
+                                              data->history_samples, tracks);
+         }
+      }
+#endif
+
+      if (!data->history || !data->feedback_history)
       {
          free(data->offset);
          data->offset = NULL;
@@ -433,6 +460,11 @@ _delay_destroy(void *ptr)
          free(data->history);
          data->history = NULL;
       }
+      if (data->feedback_history)
+      {
+         free(data->feedback_history);
+         data->feedback_history = NULL;
+      }
       if (data->freq_filter)
       {
          _freqfilter_destroy(data->freq_filter);
@@ -484,7 +516,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    }
 
    assert(s != d);
-   
+
    volume = effect->feedback;
    if (offs && volume > LEVEL_96DB)
    {
