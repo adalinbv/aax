@@ -137,6 +137,20 @@ getPitch(int argc, char **argv)
 }
 
 float
+getPitchRange(int argc, char **argv)
+{
+    float num = 0.0f;
+    char *ret = getCommandLineOption(argc, argv, "-p");
+    if (!ret) ret = getCommandLineOption(argc, argv, "--pitch");
+    if (ret) {
+       ret = strchr(ret, '-');
+       if (ret) ret++;
+    }
+    if (ret) num = (float)atof(ret);
+    return num;
+}
+
+float
 getGain(int argc, char **argv)
 {
     float num = 1.0f;
