@@ -447,6 +447,7 @@ struct waveform_t
     float staticity;
     int voices;
     float spread;
+    char phasing;
 };
 
 void fill_waveform(struct waveform_t *wave, void *xid)
@@ -458,6 +459,7 @@ void fill_waveform(struct waveform_t *wave, void *xid)
     wave->staticity = xmlAttributeGetDouble(xid, "staticity");
     wave->voices = xmlAttributeGetInt(xid, "voices");
     wave->spread = xmlAttributeGetDouble(xid, "spread");
+    wave->phasing = xmlAttributeGetBool(xid, "phasing");
 }
 
 void print_waveform(struct waveform_t *wave, FILE *output)
@@ -476,7 +478,10 @@ void print_waveform(struct waveform_t *wave, FILE *output)
     if (wave->voices)
     {
         fprintf(output, " voices=\"%i\"", wave->voices);
-        if (wave->spread) fprintf(output, " spread=\"%s\"", format_float3(wave->spread));
+        if (wave->spread) {
+            fprintf(output, " spread=\"%s\"", format_float3(wave->spread));
+            if (wave->phasing) fprintf(output, " phasing=\"true\"");
+        }
     }
     fprintf(output, "/>\n");
 }
@@ -495,6 +500,7 @@ struct sound_t
     float duration;
     int voices;
     float spread;
+    char phasing;
 
     uint8_t no_entries;
     struct entry_t
@@ -540,6 +546,7 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     sound->duration = xmlAttributeGetDouble(xid, "duration");
     sound->voices = xmlAttributeGetInt(xid, "voices");
     sound->spread = xmlAttributeGetDouble(xid, "spread");
+    sound->phasing = xmlAttributeGetBool(xid, "phasing");
 
     p = 0;
     xeid = xmlMarkId(xid);
@@ -606,7 +613,10 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
     if (sound->voices)
     {
         fprintf(output, " voices=\"%i\"", sound->voices);
-        if (sound->spread) fprintf(output, " spread=\"%s\"", format_float3(sound->spread));
+        if (sound->spread) {
+            fprintf(output, " spread=\"%s\"", format_float3(sound->spread));
+            if (sound->phasing) fprintf(output, " phasing=\"true\"");
+        }
     }
     fprintf(output, ">\n");
 
