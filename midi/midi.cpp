@@ -65,8 +65,8 @@
 
 using namespace aax;
 
-MIDI::MIDI(const char* n, const char *tnames)
-        : AeonWave(n)
+MIDI::MIDI(const char* n, const char *tnames, enum aaxRenderMode m)
+        : AeonWave(n, m)
 {
     if (*this) {
         path = AeonWave::info(AAX_SHARED_DATA_DIR);
@@ -323,7 +323,7 @@ MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
                 }
             }
 
-            MESSAGE("Drum %i not found in bank %i\n", key_no, program_no);
+            LOG("Drum %i not found in bank %i\n", key_no, program_no);
             if (program_no > 0)
             {
                 if ((program_no & 0xF8) == program_no) program_no = 0;
@@ -366,7 +366,7 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
                 }
             }
 
-            MESSAGE("Instrument %i not found in bank %i\n", program_no, bank_no);
+            LOG("Instrument %i not found in bank %i\n", program_no, bank_no);
             if (bank_no > 0)
             {
                 bank_no = 0;
@@ -1768,7 +1768,7 @@ MIDIFile::initialize(const char *grep)
 
         if (midi.get_verbose())
         {
-            float hour, minutes, seconds;
+            int hour, minutes, seconds;
 
             unsigned int format = midi.get_format();
             if (format >= MIDI_FILE_FORMAT_MAX) format = MIDI_FILE_FORMAT_MAX;
@@ -1778,15 +1778,15 @@ MIDIFile::initialize(const char *grep)
             assert(mode < MIDI_MODE_MAX);
             MESSAGE("MIDI Mode : %s\n", mode_name[mode].c_str());
 
-            seconds = duration_sec+1.0f;
-            hour = floorf(seconds/(60.0f*60.0f));
-            seconds -= hour*60.0f*60.0f;
-            minutes = floorf(seconds/60.0f);
-            seconds -= minutes*60.0f;
+            seconds = duration_sec;
+            hour = seconds/(60*60);
+            seconds -= hour*60*60;
+            minutes = seconds/60;
+            seconds -= minutes*60;
             if (hour) {
-                MESSAGE("Duration  : %02.0f:%02.0f:%02.0f hours\n", hour, minutes, seconds);
+                MESSAGE("Duration  : %02i:%02i:%02i hours\n", hour, minutes, seconds);
             } else {
-                MESSAGE("Duration  : %02.0f:%02.0f minutes\n", minutes, seconds);
+                MESSAGE("Duration  : %02i:%02i minutes\n", minutes, seconds);
             }
         }
 
@@ -1831,19 +1831,19 @@ MIDIFile::process(uint64_t time_parts, uint32_t& next)
 
     if (midi.get_verbose() && !midi.get_lyrics())
     {
-        float hour, minutes, seconds;
+        int hour, minutes, seconds;
 
         pos_sec += elapsed_parts*midi.get_uspp()*1e-6f;
 
         seconds = pos_sec;
-        hour = floorf(seconds/(60.0f*60.0f));
-        seconds -= hour*60.0f*60.0f;
-        minutes = floorf(seconds/60.0f);
-        seconds -= minutes*60.0f;
+        hour = seconds/(60*60);
+        seconds -= hour*60*60;
+        minutes = seconds/60;
+        seconds -= minutes*60;
         if (hour) {
-            MESSAGE("pos: %02.0f:%02.0f:%02.0f hours\r", hour, minutes, seconds);
+            MESSAGE("pos: %02i:%02i:%02i hours\r", hour, minutes, seconds);
         } else {
-            MESSAGE("pos: %02.0f:%02.0f minutes\r", minutes, seconds);
+            MESSAGE("pos: %02i:%02i minutes\r", minutes, seconds);
         }
         if (!rv) MESSAGE("\n\n");
         fflush(stdout);

@@ -266,7 +266,10 @@ class MIDIChannel;
 class MIDI : public AeonWave
 {
 public:
-    MIDI(const char* n, const char *tnames = nullptr);
+    MIDI(const char* n, const char *tnames = nullptr,
+         enum aaxRenderMode m=AAX_MODE_WRITE_STEREO);
+    MIDI(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
+        MIDI(n, nullptr, m) {}
 
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni, float pitch=1.0f);
 
