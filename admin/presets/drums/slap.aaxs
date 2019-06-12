@@ -12,24 +12,24 @@
 
 <aeonwave>
 
- <info name="Slap" bank="25" program="28">
+ <info name="Slap" bank="0" program="28">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="0.99" frequency="400" duration="0.1">
-  <waveform src="sine" ratio="0.6"/>
+ <sound gain="1.00" frequency="400" duration="0.1">
+  <waveform src="sawtooth" ratio="0.35"/>
   <waveform src="white-noise" processing="add" pitch="0.4"/>
  </sound>
 
  <emitter looping="true" pan="-0.23">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">2.09</param>
+    <param n="0">2.07</param>
     <param n="1">0.15</param>
-    <param n="2">0.695</param>
+    <param n="2">0.689</param>
     <param n="3">0.33</param>
    </slot>
   </filter>

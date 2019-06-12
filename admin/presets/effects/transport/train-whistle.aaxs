@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.64" frequency="220">
+ <sound gain="0.64" frequency="220" duration="3.3">
   <waveform src="impulse" ratio="5.0"/>
   <waveform src="pink-noise" processing="mix"/>
   <filter type="frequency" src="24db">
@@ -41,7 +41,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.4</param>
     <param n="1">0.15</param>
@@ -49,13 +49,13 @@
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.5</param>
+    <param n="0">0.8</param>
     <param n="1">inf</param>
     <param n="2">0.5</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.5</param>
