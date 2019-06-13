@@ -238,19 +238,23 @@ MIDI::read_instruments()
                             frames.insert({bank_no,std::string(file)});
                         }
 
-                        std::map<uint16_t,std::pair<std::string,bool>> bank;
+                        std::map<uint16_t,std::pair<std::string,int>> bank;
                         for (unsigned int i=0; i<inum; i++)
                         {
                             if (xmlNodeGetPos(xbid, xiid, type, i) != 0)
                             {
-                                bool wide = xmlAttributeGetBool(xiid, "wide");
                                 long int n = xmlAttributeGetInt(xiid, "n");
+                                int stereo = xmlAttributeGetInt(xiid, "wide");
+                                if (!stereo && xmlAttributeGetBool(xiid, "wide"))
+                                {
+                                    stereo = 1;
+                                }
 
                                 slen = xmlAttributeCopyString(xiid, "file", file, 64);
                                 if (slen)
                                 {
                                     file[slen] = 0;
-                                    bank.insert({n,{file,wide}});
+                                    bank.insert({n,{file,stereo}});
 //                                  if (id == 0) printf("{%x, {%i, {%s, %i}}}\n", bank_no, n, file, wide);
                                 }
                             }
@@ -293,7 +297,7 @@ MIDI::read_instruments()
  * For drum mapping the program_no is stored in the bank number of the map
  * and the key_no in the program number of the map.
  */
-std::pair<std::string,bool>
+std::pair<std::string,int>
 MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
 {
     auto itb = drums.find(program_no);
@@ -343,7 +347,7 @@ MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
     return empty_map;
 }
 
-std::pair<std::string,bool>
+std::pair<std::string,int>
 MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
 {
     auto itb = instruments.find(bank_no);
@@ -498,8 +502,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            std::pair<std::string,bool> inst;
-            inst = midi.get_drum(bank_no, program_no, key_no);
+            auto inst = midi.get_drum(bank_no, program_no, key_no);
             std::string name = inst.first;
             if (!name.empty())
             {
@@ -523,8 +526,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
         it = name_map.find(program_no);
         if (it == name_map.end())
         {
-            std::pair<std::string,bool> inst;
-            inst = midi.get_instrument(bank_no, program_no);
+            auto inst = midi.get_instrument(bank_no, program_no);
             std::string name = inst.first;
             if (!name.empty())
             {

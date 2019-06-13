@@ -320,8 +320,8 @@ public:
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
-    std::pair<std::string,bool> get_drum(uint16_t bank, uint16_t program, uint8_t key);
-    std::pair<std::string,bool> get_instrument(uint16_t bank, uint8_t program);
+    std::pair<std::string,int> get_drum(uint16_t bank, uint16_t program, uint8_t key);
+    std::pair<std::string,int> get_instrument(uint16_t bank, uint8_t program);
 
     inline void set_initialize(bool i) { initialize = i; };
     inline bool get_initialize() { return initialize; }
@@ -358,14 +358,14 @@ public:
 private:
     std::map<uint16_t,MIDIChannel*> channels;
     std::map<uint16_t,std::string> frames;
-    std::map<uint16_t,std::map<uint16_t,std::pair<std::string,bool>>> drums;
-    std::map<uint16_t,std::map<uint16_t,std::pair<std::string,bool>>> instruments;
+    std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> drums;
+    std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> instruments;
     std::vector<std::string> loaded;
 
     std::vector<std::string> track_names;
     std::vector<uint16_t> active_track;
 
-    std::pair<std::string,bool> empty_map = {"", false};
+    std::pair<std::string,int> empty_map = {"", 0};
     std::string instr = "gmmidi.xml";
     std::string drum = "gmdrums.xml";
     std::string path;
