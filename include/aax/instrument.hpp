@@ -259,6 +259,7 @@ public:
         i1.up = std::move(i2.up);
         i1.pos = std::move(i2.pos);
         i1.mtx = std::move(i2.mtx);
+        i1.mtx_panned = std::move(i2.mtx_panned);
         i1.vibrato_freq = std::move(i2.vibrato_freq);
         i1.vibrato_depth = std::move(i2.vibrato_depth);
         i1.vibrato_state = std::move(i2.vibrato_state);
@@ -334,6 +335,7 @@ public:
                 playing = true;
             }
             if (is_drums && !panned) note->matrix(mtx);
+            else if (is_stereo && panned) note->matrix(mtx_panned);
             if (!is_drums && fc) {
                 note->set_filter_cutoff(fc);
                 note->set_filter_resonance(Q);
@@ -388,15 +390,15 @@ public:
     }
 
     void set_pan(float p) {
-        if (is_stereo) return;
         Matrix64 m; panned = true;
         m.rotate(-1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
-        if (!is_drums) {
+        if (!is_drums && !is_stereo) {
             Mixer::matrix(m);
         } else {
              for (auto& it : key) it.second->matrix(m);
         }
+        mtx_panned = m;
     }
 
     inline void set_soft(bool s) { soft = (s && !is_drums) ? 0.5f : 1.0f; }
@@ -503,6 +505,7 @@ private:
     Vector up = Vector(0.0f, 1.0f, 0.0f);
     Vector64 pos = Vector64(0.0, 1.0, -2.75);
     Matrix64 mtx = Matrix64(pos, at, up);
+    Matrix64 mtx_panned = Matrix64(pos, at, up);
 
     Param vibrato_freq = 5.0f;
     Param vibrato_depth = 0.0f;
