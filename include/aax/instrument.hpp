@@ -38,8 +38,8 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float f, float p, bool is_wide = false)
-        : Emitter(is_wide ? AAX_ABSOLUTE : AAX_RELATIVE), frequency(f), pitch(p)
+    Note(float f, float p, int stereo = 0)
+        : Emitter(stereo ? AAX_ABSOLUTE : AAX_RELATIVE), frequency(f), pitch(p)
     {
         pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
@@ -50,14 +50,18 @@ public:
         tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
         tie(filter_state, AAX_FREQUENCY_FILTER);
 
-        if (is_wide) {
+        if (stereo) { // p*f ranges from: 8 - 12544 Hz
             Vector at = Vector(0.0f, 0.0f, -1.0f);
             Vector up = Vector(0.0f, 1.0f, 0.0f);
             Vector64 pos = Vector64(0.0, 1.0, -2.75);
             Matrix64 mtx = Matrix64(pos, at, up);
             Matrix64 m;
-            p = 2.17f - _lin2log(f*p);
-            m.rotate(p, 0.0, 1.0, 0.0);
+            float n = _lin2log(p*f);
+            float s = _lin2log(12544.0f)/abs(stereo);
+            if (abs(stereo) != 1) n = floorf(n/s)*s;
+            if (stereo < 0) n = -2.17f + n;
+            else n = 2.17f - n;
+            m.rotate(n, 0.0, 1.0, 0.0);
             m.multiply(mtx);
             Emitter::matrix(m);
         } else {
@@ -218,8 +222,8 @@ private:
     Instrument& operator=(const Instrument&) = delete;
 
 public:
-    Instrument(AeonWave& ptr, bool drums = false, bool wide = false)
-        : Mixer(ptr), aax(&ptr), is_drums(drums), is_wide(wide)
+    Instrument(AeonWave& ptr, bool drums = false, int stereo = 0)
+        : Mixer(ptr), aax(&ptr), is_drums(drums), is_stereo(stereo)
     {
         tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
         tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
@@ -284,7 +288,7 @@ public:
         i1.pitch_rate = std::move(i2.pitch_rate);
         i1.pitch_last = std::move(i2.pitch_last);
         i1.key_prev = std::move(i2.key_prev);
-        i1.is_wide = std::move(i2.is_wide);
+        i1.is_stereo = std::move(i2.is_stereo);
         i1.is_drums = std::move(i2.is_drums);
         i1.panned = std::move(i2.panned);
         i1.monophonic = std::move(i2.monophonic);
@@ -323,7 +327,7 @@ public:
         if (it != key.end()) {
             note = it->second;
         } else {
-            auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,is_wide)}});
+            auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,is_stereo)}});
             note = ret.first->second;
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
@@ -384,7 +388,7 @@ public:
     }
 
     void set_pan(float p) {
-        if (is_wide) return;
+        if (is_stereo) return;
         Matrix64 m; panned = true;
         m.rotate(-1.57*p, 0.0, 1.0, 0.0);
         m.multiply(mtx);
@@ -484,8 +488,8 @@ public:
         }
     }
 
-    inline void set_wide(bool w = true) { is_wide = w; }
-    inline bool get_wide() { return is_wide; }
+    inline void set_wide(int s = 1) { is_stereo = s; }
+    inline int get_wide() { return is_stereo; }
 
 private:
     inline float note2freq(uint8_t d) {
@@ -539,7 +543,7 @@ private:
     float pitch_last = 1.0f;
     uint8_t key_prev = 0;
 
-    bool is_wide;
+    int is_stereo;
     bool is_drums;
     bool panned = false;
     bool monophonic = false;
