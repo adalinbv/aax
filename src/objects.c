@@ -434,6 +434,9 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
    xsid = xmlMarkId(xid);
    if (!xsid) return rv;
 
+   if (min > 0.0f && freq < min) freq = min;
+   if (max > 0.0f && freq > max) freq = max;
+
    for (s=0; s<snum; s++)
    {
       if (xmlNodeGetPos(xid, xsid, "slot", s) != 0)
@@ -492,7 +495,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
                            adjust = xmlAttributeGetDouble(xpid, "auto-sustain");
                         }
                         if (adjust != 0.0f) {
-                           value = _MAX(value - adjust*_lin2log(_MINMAX(freq, min, max)), 0.1f);
+                           value = _MAX(value - adjust*_lin2log(freq), 0.1f);
                         }
                      }
 
