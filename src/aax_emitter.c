@@ -1600,7 +1600,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
                   if (non_optional || !get_low_resource())
                   {
                       aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq,
-                                                            &handle->midi);
+                                                     0.0f, 0.0f, &handle->midi);
                       if (flt)
                       {
                         _filter_t* filter = get_filter(flt);
@@ -1628,7 +1628,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
                   if (non_optional || !get_low_resource())
                   {
                      aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq,
-                                                           &handle->midi);
+                                                     0.0f, 0.0f, &handle->midi);
                      if (eff)
                      {
                         _effect_t* effect = get_effect(eff);

@@ -425,7 +425,7 @@ _aaxSetSlotFromAAXSOld(const char *xid, int (*setSlotFn)(void*, unsigned, int, a
 
 
 static int
-_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id, float freq, _midi_t *midi)
+_aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), void *id, float freq, float min, float max, _midi_t *midi)
 {
    unsigned int s, snum = xmlNodeGetNum(xid, "slot");
    int rv = AAX_FALSE;
@@ -492,7 +492,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
                            adjust = xmlAttributeGetDouble(xpid, "auto-sustain");
                         }
                         if (adjust != 0.0f) {
-                           value = _MAX(value - adjust*_lin2log(freq), 0.1f);
+                           value = _MAX(value - adjust*_lin2log(_MINMAX(freq, min, max)), 0.1f);
                         }
                      }
 
@@ -524,7 +524,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
 }
 
 aaxFilter
-_aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, _midi_t *midi)
+_aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, float max, _midi_t *midi)
 {
    aaxFilter rv = NULL;
    char src[65];
@@ -545,7 +545,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, _midi_t *mi
       flt = aaxFilterCreate(config, ftype);
       if (flt)
       {
-         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt, freq, midi)) {
+         if (!_aaxSetSlotFromAAXS(xid, aaxFilterSetParam, flt, freq, min, max, midi)) {
             _aaxSetSlotFromAAXSOld(xid, aaxFilterSetSlotParams, flt);
          }
 
@@ -613,7 +613,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, _midi_t *mi
 }
 
 aaxEffect
-_aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq, _midi_t *midi)
+_aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq, float min, float max, _midi_t *midi)
 {
    aaxEffect rv = NULL;
    char src[65];
@@ -634,7 +634,7 @@ _aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq, _midi_t *mi
       eff = aaxEffectCreate(config, etype);
       if (eff)
       {
-         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff, freq, midi)) {
+         if (!_aaxSetSlotFromAAXS(xid, aaxEffectSetParam, eff, freq, min, max, midi)) {
             _aaxSetSlotFromAAXSOld(xid, aaxEffectSetSlotParams, eff);
          }
 

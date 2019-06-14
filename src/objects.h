@@ -447,8 +447,8 @@ unsigned int _aaxSetNoEmitters(unsigned int);
 unsigned int _aaxIncreaseEmitterCounter(void);
 unsigned int _aaxDecreaseEmitterCounter(void);
 
-aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*, float, _midi_t*);
-aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const char*, float, _midi_t*);
+aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*, float, float, float, _midi_t*);
+aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const char*, float, float, float, _midi_t*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

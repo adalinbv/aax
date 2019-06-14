@@ -1768,7 +1768,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
                }
                if (non_optional || !get_low_resource())
                {
-                  aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, NULL);
+                  aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
                   if (flt)
                   {
                      aaxAudioFrameSetFilter(frame, flt);
@@ -1790,7 +1790,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
                }
                if (non_optional || !get_low_resource())
                {
-                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, NULL);
+                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
                   if (eff)
                   {
                      aaxAudioFrameSetEffect(frame, eff);

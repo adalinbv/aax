@@ -1651,7 +1651,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
             {
                if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
                {
-                  aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, NULL);
+                  aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
                   if (flt)
                   {
                      aaxMixerSetFilter(handle, flt);
@@ -1670,7 +1670,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
             {
                if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
                {
-                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, NULL);
+                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
                   if (eff)
                   {
                      _effect_t* effect = get_effect(eff);

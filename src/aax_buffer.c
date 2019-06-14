@@ -1182,9 +1182,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
 }
 
 static int
-_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
+_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency, float min, float max)
 {
-   aaxFilter flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, NULL);
+   aaxFilter flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, min, max, NULL);
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
@@ -1219,10 +1219,10 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
 }
 
 static int
-_bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency)
+_bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency, float min, float max)
 {
 
-   aaxEffect eff = _aaxGetEffectFromAAXS(handle->root, xeid, frequency, NULL);
+   aaxEffect eff = _aaxGetEffectFromAAXS(handle->root, xeid, frequency, min, max, NULL);
    if (eff)
    {
       _effect_t* effect = get_effect(eff);
@@ -1352,6 +1352,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 {
    _buffer_t* handle = aax_buf->parent;
    float freq = aax_buf->frequency;
+   float min_frequency = 0.0f;
    float max_frequency = 0.0f;
    int rv = AAX_FALSE;
    void *xsid;
@@ -1359,6 +1360,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    xsid = xmlNodeGet(xid, "aeonwave/info/note");
    if (xsid)
    {
+      if (xmlAttributeExists(xsid, "min")) {
+         min_frequency = note2freq(xmlAttributeGetInt(xsid, "min"));
+      }
       if (xmlAttributeExists(xsid, "max")) {
          max_frequency = note2freq(xmlAttributeGetInt(xsid, "max"));
       }
@@ -1477,9 +1481,11 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                      rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
                                              b, voices, spread, limiter & 1);
                   } else if (!strcasecmp(name, "filter")) {
-                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
+                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency,
+                                                  min_frequency, max_frequency);
                   } else if (!strcasecmp(name, "effect")) {
-                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency);
+                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
+                                                  min_frequency, max_frequency);
                   }
                   xmlFree(name);
                   if (rv == AAX_FALSE) break;
