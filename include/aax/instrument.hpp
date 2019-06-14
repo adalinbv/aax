@@ -335,7 +335,7 @@ public:
                 playing = true;
             }
             if (is_drums && !panned) note->matrix(mtx);
-            else if (is_stereo && panned) note->matrix(mtx_panned);
+            else if (panned && abs(is_stereo) > 1) note->matrix(mtx_panned);
             if (!is_drums && fc) {
                 note->set_filter_cutoff(fc);
                 note->set_filter_resonance(Q);
