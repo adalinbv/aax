@@ -434,8 +434,8 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
    xsid = xmlMarkId(xid);
    if (!xsid) return rv;
 
-   if (min > 0.0f && freq < min) freq = min;
-   if (max > 0.0f && freq > max) freq = max;
+   if (min != 0.0f && freq < min) freq = min;
+   if (max != 0.0f && freq > max) freq = max;
 
    for (s=0; s<snum; s++)
    {
@@ -487,7 +487,7 @@ _aaxSetSlotFromAAXS(const char *xid, int (*setParamFn)(void*, int, int, float), 
 
                         random = xmlAttributeGetDouble(xpid, "random");
                         if (random != 0.0f) {
-                           value += random*_aax_random();
+                           value += random*2.0f*(_aax_random()-0.5f);
                         }
  
                         adjust = xmlAttributeGetDouble(xpid, "auto");
