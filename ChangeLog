@@ -8,6 +8,8 @@
  * Introduce envelope-following timed gain filters (with exponential decay).
  * Allow one to override the shared data directory in the configurtion file.
  * Improvements to the handling of mangled audio-streams.
+ * Fix a buffer issue where small parts f the buffer where added twice when
+   the frequency filter and the flanging effect were applied to anj audio-frame.
  * Fix a hardly noticeable sound artefact when the resampling factor == 1.0
  * Fix reverb, the volume of the delayed signal was handled improperly.
  * Small code speedups.
