@@ -128,6 +128,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          }
 
          data->freq_filter = flt;
+         data->prepare = _delay_prepare;
          data->run = _delay_run;
          data->flanger = AAX_FALSE;
          data->feedback = feedback;

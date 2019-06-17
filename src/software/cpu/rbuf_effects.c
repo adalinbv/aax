@@ -130,24 +130,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
-      if (delay && !delay->feedback)
-      {
-         assert(delay->history);
-         assert(delay->history->ptr);
-         assert(bps <= sizeof(MIX_T));
-
-         // When reverb is defined ds will be larger than delay->history_samples
-         // but reverb has it's own history buffer management so just limit it.
-         if (ds > delay->history_samples) {
-            ds = delay->history_samples;
-         }
-
-         // copy the delay effects history to src
-//       DBG_MEMCLR(1, src-ds, ds, bps);
-         _aax_memcpy(src-ds, delay->history->history[track], ds*bps);
-
-         // copy the new delay effects history back
-         _aax_memcpy(delay->history->history[track], src+no_samples-ds, ds*bps);
+      if (delay) {
+         delay->prepare(dst, src, no_samples, ds, delay, track);
       }
    }
 

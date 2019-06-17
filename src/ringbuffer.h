@@ -197,6 +197,7 @@ typedef struct
 
 typedef struct
 {
+   void (*prepare)(MIX_PTR_T, MIX_PTR_T, size_t, size_t, void*, unsigned int);
    void (*run)(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t,
                size_t, size_t, void*, void*, unsigned int);
 

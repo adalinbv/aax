@@ -105,6 +105,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
             fs = effect->info->frequency;
          }
 
+         data->prepare = _delay_prepare;
          data->run = _delay_run;
          data->flanger = AAX_TRUE;
          data->feedback = effect->slot[0]->param[AAX_DELAY_GAIN];
