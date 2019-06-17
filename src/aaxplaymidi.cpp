@@ -115,9 +115,8 @@ void play(char *devname, char *infile, char *outfile, const char *track, const c
         {
             snprintf(obuf, 256, "AeonWave on Audio Files: %s", outfile);
 
-            file = aax::Sensor(obuf);
+            file = aax::Sensor(obuf, AAX_MODE_WRITE_STEREO);
             midi.add(file);
-
             file.set(AAX_INITIALIZED);
             file.set(AAX_PLAYING);
         }
