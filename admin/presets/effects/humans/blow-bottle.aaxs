@@ -19,32 +19,32 @@
   <note polyphony="1" min="60" max="96" step="1"/>
  </info>
 
- <sound gain="0.61" frequency="1760" duration="2.1">
+ <sound gain="0.75" frequency="261" duration="2.1">
   <waveform src="triangle"/>
   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
   <waveform src="square" processing="add" ratio="0.01"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="1.0">1760.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">20.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="1.0">261.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">10.0</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.15</param>
-    <param n="2" auto="0.5">2.2</param>
+    <param n="2" auto="0.409">1.8</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.5">2.5</param>
+    <param n="0" auto="0.409">2.04</param>
     <param n="1">inf</param>
-    <param n="2">0.85</param>
+    <param n="2">0.695</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
