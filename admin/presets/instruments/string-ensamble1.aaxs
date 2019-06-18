@@ -19,31 +19,23 @@
   <note polyphony="4" min="28" max="96" step="12"/>
  </info>
 
- <sound gain="1.59" frequency="220" voices="5" spread="0.2">
-  <waveform src="impulse" ratio="0.2" pitch="0.5"/>
+ <sound gain="2.15" frequency="220" voices="5" spread="0.2" phasing="true">
+  <waveform src="sawtooth" ratio="0.2" pitch="0.5"/>
   <waveform src="sawtooth" processing="add" ratio="0.7" voices="3"/>
-  <filter type="frequency" src="24db" optional="true">
-   <slot n="0">
-    <param n="0">440.0</param>
-    <param n="1">1.2</param>
-    <param n="2">1.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.3</param>
+    <param n="0">0.333</param>
     <param n="1">0.05</param>
-    <param n="2">0.5</param>
+    <param n="2">0.555</param>
     <param n="3">0.25</param>
    </slot>
    <slot n="1">
-    <param n="0">0.4</param>
+    <param n="0">0.444</param>
     <param n="1">inf</param>
-    <param n="2">0.4</param>
+    <param n="2">0.444</param>
     <param n="3">0.5</param>
    </slot>
   </filter>
@@ -61,14 +53,6 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <effect type="chorus" src="envelope" optional="true">
-   <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.03</param>
-    <param n="2">0.45</param>
-    <param n="3">0.054</param>
-   </slot>
-  </effect>
  </emitter>
 
  <audioframe>
@@ -80,6 +64,14 @@
     <param n="3">1.0</param>
    </slot>
   </filter>
+  <effect type="chorus" src="envelope" optional="true">
+   <slot n="0">
+    <param n="0">0.4</param>
+    <param n="1">0.03</param>
+    <param n="2">0.45</param>
+    <param n="3">0.054</param>
+   </slot>
+  </effect>
  </audioframe>
 
 </aeonwave>

@@ -21,7 +21,7 @@
 
  <sound gain="0.93" frequency="220" duration="0.75">
   <waveform src="square" ratio="0.6"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.25" pitch="2.999"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.15" pitch="2.999"/>
  </sound>
 
  <emitter looping="true">
