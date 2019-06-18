@@ -28,13 +28,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.2</param>
+    <param n="0">0.0852</param>
     <param n="1">0.05</param>
-    <param n="2">1.0</param>
+    <param n="2">0.426</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.7</param>
+    <param n="0">0.298</param>
     <param n="1">4.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -59,16 +59,16 @@
  <audioframe>
   <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
-    <param n="0" pitch="4.0">880.0</param>
-    <param n="1">0.6</param>
+    <param n="0">880.0</param>
+    <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">50.0</param>
+    <param n="3">40.0</param>
    </slot>
    <slot n="1">
     <param n="0">3300.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">2.8</param>
+    <param n="3">0.8</param>
    </slot>
   </filter>
   <effect type="chorus" src="triangle" optional="true">
