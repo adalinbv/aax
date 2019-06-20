@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.89" frequency="1250" duration="0.1">
+ <sound gain="0.89" frequency="1200" duration="0.1">
   <waveform src="square" pitch="2.985"/>
   <waveform src="sawtooth" processing="mix" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="2.4" pitch="6.5"/>
@@ -38,16 +38,24 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>
-    <param n="2">0.839</param>
+    <param n="2">1.51</param>
     <param n="3">1.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.839</param>
+    <param n="0">1.51</param>
     <param n="1">0.1</param>
-    <param n="2">0.126</param>
+    <param n="2">0.357</param>
     <param n="3">1.8</param>
    </slot>
   </filter>
+  <effect type="chorus" src="true" optional="true">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.15</param>
+    <param n="2">0.25</param>
+    <param n="3">0.25</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe/>
