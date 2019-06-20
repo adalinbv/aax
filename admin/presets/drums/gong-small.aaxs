@@ -21,15 +21,15 @@
 
  <sound gain="1.32" frequency="330" duration="0.1">
   <waveform src="square" pitch="0.993"/>
-  <waveform src="white-noise" processing="add" pitch="0.02"/>
+  <waveform src="white-noise" processing="add" ratio="0.8" pitch="0.02"/>
   <waveform src="triangle" processing="add" pitch="2.051"/>
-  <waveform src="triangle" processing="modulate" pitch="3.0"/>
+  <waveform src="triangle" processing="modulate" pitch="2.981"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="sine" optional="true">
+  <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
-    <param n="0" pitch="50.0">16500.0</param>
+    <param n="0" pitch="20.0">6600.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">9.0</param>
@@ -38,19 +38,19 @@
     <param n="0" pitch="60.0">19800.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.2</param>
+    <param n="3">0.18</param>
    </slot>
   </filter>
-  <filter type="timed-gain" release-factor="4.5">
+  <filter type="timed-gain" src="envelope" release-factor="4.5">
    <slot n="0">
     <param n="0">1.35</param>
-    <param n="1">0.05</param>
-    <param n="2">1.08</param>
-    <param n="3">0.05</param>
+    <param n="1">0.2</param>
+    <param n="2">1.8</param>
+    <param n="3">2.3</param>
    </slot>
    <slot n="1">
-    <param n="0">0.975</param>
-    <param n="1" auto="1.0">5.0</param>
+    <param n="0">0.075</param>
+    <param n="1">1.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
@@ -58,9 +58,9 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">1.12</param>
-    <param n="1">0.06</param>
+    <param n="1">0.02</param>
     <param n="2">1.08</param>
-    <param n="3">0.04</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>

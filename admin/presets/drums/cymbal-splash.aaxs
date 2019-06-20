@@ -44,9 +44,9 @@
    </slot>
    <slot n="1">
     <param n="0">1.95</param>
-    <param n="1">0.4</param>
-    <param n="2">0.919</param>
-    <param n="3">0.2</param>
+    <param n="1">1.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

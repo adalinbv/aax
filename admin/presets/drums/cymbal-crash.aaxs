@@ -39,11 +39,11 @@
    <slot n="0">
     <param n="0">2.53</param>
     <param n="1">0.03</param>
-    <param n="2">1.73</param>
-    <param n="3">0.2</param>
+    <param n="2">0.73</param>
+    <param n="3">0.09</param>
    </slot>
    <slot n="1">
-    <param n="0">1.73</param>
+    <param n="0">1.53</param>
     <param n="1">1.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
