@@ -41,6 +41,8 @@
 #include "audio.h"
 
 #define MAX_BUFFER	512
+#define STREAMTITLE	"StreamTitle='"
+#define HEADERLEN	strlen(STREAMTITLE)
 
 static int _http_send_request(_io_t*, const char*, const char*, const char*, const char*);
 static int _http_get_response(_io_t*, char*, int*);
@@ -137,7 +139,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
 }
 
 int
-_http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
+_http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t buffer_len)
 {
    unsigned int meta_len = 0;
 
@@ -147,11 +149,11 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
       // run: skip the remaining data and ignore this ICY data.
       if (prot->meta_size)
       {
-         ssize_t skip = _MIN(prot->meta_size, bytes_avail);
+         ssize_t skip = _MIN(prot->meta_size, buffer_len);
 
          assert(skip > 0);
-         buf += skip;	// memmove(buf, buf+skip, bytes_avail-skip);
-         bytes_avail -= skip;
+         buf += skip;	// memmove(buf, buf+skip, buffer_len-skip);
+         buffer_len -= skip;
          prot->meta_size -= skip;
          if (prot->meta_size) { // the ICY data is still larger than the buffer
             return skip;
@@ -161,47 +163,53 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t bytes_avail)
       prot->meta_pos += res;
       while (prot->meta_pos >= prot->meta_interval)
       {
-         ssize_t offs = prot->meta_pos - prot->meta_interval;
-         uint8_t *ptr = buf;
-         ssize_t blen;
+         size_t meta_offs = prot->meta_pos - prot->meta_interval;
+         uint8_t *buffer = buf;
+         ssize_t block_len;
 
-         ptr += bytes_avail;
-         ptr -= offs;
-         assert(offs >= 0);
+         buffer += buffer_len;
+         buffer -= meta_offs;
 
-         prot->meta_size = meta_len = *ptr * 16;
+         // The first byte indicates the length devided by 16
+         // Empty meta information is indicated by a size of 0
+         prot->meta_size = meta_len = *buffer * 16;
          if (meta_len > 0)
          {
-            blen = strlen("StreamTitle=''");
-            if (ptr < buf || strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
+            uint8_t *metaptr = buffer+1; // skip the size byte
+            block_len = HEADERLEN+1;
+
+            // In case of a mangled stream the ICY data might not be where
+            // we expect it. Search the complete buffer for the StreamTitle
+            // in this case, until it is found and reset the meta_pos
+            if (buffer < buf ||
+                strncasecmp((char*)metaptr, STREAMTITLE, block_len-1) != 0)
             {
-               // In case of a mangled stream the ICY data might not be where
-               // we expect it. Search the complete buffer for the StreamTitle
-               // in this case, until it is found and reset the meta_pos
-               ptr =(uint8_t*)strnstr((char*)buf, "StreamTitle='", bytes_avail);
-printf("StreamTitle= %p\n", ptr);
-               if (!ptr || ptr == buf) break;
-               ptr--;
+               metaptr = (uint8_t*)strnstr((char*)buf, STREAMTITLE, buffer_len);
+               if (!metaptr || metaptr == buf) break;
             }
 
             // The ICY data length extends beyond the buffer size,
             // skip the part of the ICY data which is in the buffer now.
-            if ((size_t)ptr+meta_len >= (size_t)buf+bytes_avail)
+            if ((size_t)metaptr+meta_len >= (size_t)buf+buffer_len)
             {
-               ssize_t skip = (size_t)buf+bytes_avail - (size_t)ptr;
+               ssize_t skip = (size_t)buf+buffer_len - (size_t)metaptr;
 
-               assert(skip >= 0);
                prot->meta_size -= skip;
                meta_len = skip;
                break;
             }
-            if ((size_t)ptr+meta_len >= (size_t)buf+IOBUF_THRESHOLD) {
+
+            if ((size_t)metaptr+meta_len >= (size_t)buf+IOBUF_THRESHOLD) {
                break;
             }
 
-            if (meta_len > blen && !strncasecmp((char*)ptr+1, "StreamTitle='", blen-1))
+            // meta_len > block_len means it's not an empty stream title.
+            // So we now have a continuous block of memory containing the
+            // stream title data.
+            if (meta_len > block_len &&
+                !strncasecmp((char*)metaptr, STREAMTITLE, block_len-1))
             {
-               char *artist = (char*)ptr+1 + strlen("StreamTitle='");
+               char *artist = (char*)metaptr + HEADERLEN;
                if (artist)
                {
                   char *title = strnstr(artist, " - ", meta_len);
@@ -251,15 +259,15 @@ printf("StreamTitle= %p\n", ptr);
          prot->meta_pos -= (prot->meta_interval+meta_len);
 
          /* move the rest of the buffer meta_len-bytes back */
-         assert(bytes_avail >= meta_len);
-         bytes_avail -= meta_len;
-         blen = bytes_avail;
-         blen -= (ptr - buf);
-         assert(blen >= 0);
+         assert(buffer_len >= meta_len);
+         buffer_len -= meta_len;
+         block_len = buffer_len;
+         block_len -= (buffer - buf);
+         assert(block_len >= 0);
 
-         assert(blen <= bytes_avail);
-         if (blen < bytes_avail) {
-            memmove(ptr, ptr+meta_len, blen);
+         assert(block_len <= buffer_len);
+         if (block_len < buffer_len) {
+            memmove(buffer, buffer+meta_len, block_len);
          }
       } // while (prot->meta_pos >= prot->meta_interval)
    }
