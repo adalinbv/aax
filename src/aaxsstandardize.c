@@ -261,10 +261,10 @@ void free_info(struct info_t *info)
 
     assert(info);
 
-    if (info->name) aaxFree(info->name);
-    if (info->license) aaxFree(info->license);
+    if (info->name) xmlFree(info->name);
+    if (info->license) xmlFree(info->license);
     for (i=0; i<2; ++i) {
-       if (info->copyright[i].by) aaxFree(info->copyright[i].by);
+       if (info->copyright[i].by) xmlFree(info->copyright[i].by);
     }
 
 }
@@ -433,9 +433,9 @@ void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
 
 void free_dsp(struct dsp_t *dsp)
 {
-    aaxFree(dsp->type);
-    aaxFree(dsp->repeat);
-    if (dsp->src != false_const) aaxFree(dsp->src);
+    xmlFree(dsp->type);
+    xmlFree(dsp->repeat);
+    if (dsp->src != false_const) xmlFree(dsp->src);
 }
 
 struct waveform_t
@@ -488,8 +488,8 @@ void print_waveform(struct waveform_t *wave, FILE *output)
 
 void free_waveform(struct waveform_t *wave)
 {
-    aaxFree(wave->src);
-    aaxFree(wave->processing);
+    xmlFree(wave->src);
+    xmlFree(wave->processing);
 }
 
 struct sound_t
