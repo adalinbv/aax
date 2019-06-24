@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.60" frequency="147" duration="0.2">
+ <sound gain="1.60" frequency="147" duration="0.3">
   <waveform src="pink-noise" pitch="0.11"/>
   <waveform src="square" processing="add" ratio="0.3"/>
   <waveform src="sine" processing="add" ratio="0.45" pitch="1.7"/>

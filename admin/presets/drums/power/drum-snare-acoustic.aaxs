@@ -34,12 +34,12 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">2.36</param>
     <param n="1">0.2</param>
-    <param n="2">0.915</param>
-    <param n="3">0.27</param>
+    <param n="2">1.5</param>
+    <param n="3">0.7</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

@@ -19,7 +19,7 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.70" frequency="220">
+ <sound gain="1.70" frequency="220" duration="0.3">
   <waveform src="brownian-noise" pitch="0.125"/>
   <waveform src="sine" processing="mix" pitch="0.501" voices="5" spread="0.7"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899" voices="3" spread="0.1"/>

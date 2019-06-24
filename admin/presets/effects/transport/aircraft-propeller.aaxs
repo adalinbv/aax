@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.60" frequency="220">
+ <sound fixed-gain="1.60" frequency="220" duration="0.3">
   <waveform src="white-noise" pitch="0.25"/>
   <waveform src="sawtooth" processing="mix" ratio="0.96"/>
   <waveform src="sawtooth" processing="modulate" pitch="0.5"/>
