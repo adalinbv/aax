@@ -141,6 +141,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
 int
 _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t buffer_len)
 {
+   uint8_t *bufend = buf + buffer_len;
    unsigned int meta_len = 0;
 
    if (prot->meta_interval)
@@ -259,13 +260,7 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t buffer_len)
          prot->meta_pos -= (prot->meta_interval+meta_len);
 
          /* move the rest of the buffer meta_len-bytes back */
-         assert(buffer_len >= meta_len);
-         buffer_len -= meta_len;
-         block_len = buffer_len;
-         block_len -= (buffer - buf);
-         assert(block_len >= 0);
-
-         assert(block_len <= buffer_len);
+         block_len = bufend - (buffer+meta_len);
          if (block_len < buffer_len) {
             memmove(buffer, buffer+meta_len, block_len);
          }
