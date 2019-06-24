@@ -34,6 +34,7 @@
 #endif
 
 #include <assert.h>
+#include <ctype.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -69,6 +70,11 @@ static float _lin2log(float v) { return log10f(v); }
 //  static float _log2lin(float v) { return powf(10.f,v); }
 // static float _lin2db(float v) { return 20.f*log10f(v); }
 static float _db2lin(float v) { return _MINMAX(powf(10.f,v/20.f),0.f,10.f); }
+
+static char* lwrstr(char *s) {
+    if (s) for (int i=0; s[i]; ++i) { s[i] = tolower(s[i]); }
+    return s;
+}
 
 enum type_t
 {
@@ -165,7 +171,7 @@ void fill_info(struct info_t *info, void *xid)
     if (xmlAttributeExists(xid, "bank")) {
         info->bank = xmlAttributeGetInt(xid, "bank");
     }
-    info->name = xmlAttributeGetString(xid, "name");
+    info->name = lwrstr(xmlAttributeGetString(xid, "name"));
 
     xtid = xmlNodeGet(xid, "note");
     if (xtid)
@@ -298,14 +304,14 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
     void *xsid;
 
     dsp->dtype = t;
-    dsp->type = xmlAttributeGetString(xid, "type");
+    dsp->type = lwrstr(xmlAttributeGetString(xid, "type"));
     if (!timed_gain && (!strcasecmp(dsp->type, "volume") || !strcasecmp(dsp->type, "timed-gain") || !strcasecmp(dsp->type, "dynamic-gain"))) {
         dsp->src = false_const;
     } else {
-        dsp->src = xmlAttributeGetString(xid, "src");
+        dsp->src = lwrstr(xmlAttributeGetString(xid, "src"));
     }
     dsp->stereo = xmlAttributeGetBool(xid, "stereo");
-    dsp->repeat = xmlAttributeGetString(xid, "repeat");
+    dsp->repeat = lwrstr(xmlAttributeGetString(xid, "repeat"));
     dsp->optional = xmlAttributeGetBool(xid, "optional");
     if (!strcasecmp(dsp->type, "timed-gain")) {
         dsp->release_factor = xmlAttributeGetDouble(xid, "release-factor");
@@ -450,16 +456,18 @@ struct waveform_t
     char phasing;
 };
 
-void fill_waveform(struct waveform_t *wave, void *xid)
+char fill_waveform(struct waveform_t *wave, void *xid)
 {
-    wave->src = xmlAttributeGetString(xid, "src");
-    wave->processing = xmlAttributeGetString(xid, "processing");
+    wave->src = lwrstr(xmlAttributeGetString(xid, "src"));
+    wave->processing = lwrstr(xmlAttributeGetString(xid, "processing"));
     wave->ratio = xmlAttributeGetDouble(xid, "ratio");
     wave->pitch = xmlAttributeGetDouble(xid, "pitch");
     wave->staticity = xmlAttributeGetDouble(xid, "staticity");
     wave->voices = xmlAttributeGetInt(xid, "voices");
     wave->spread = xmlAttributeGetDouble(xid, "spread");
     wave->phasing = xmlAttributeGetBool(xid, "phasing");
+
+    return strstr(wave->src, "noise") ? 1 : 0;
 }
 
 void print_waveform(struct waveform_t *wave, FILE *output)
@@ -517,6 +525,7 @@ struct sound_t
 void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gain)
 {
     unsigned int p, e, emax;
+    char noise;
     void *xeid;
 
     if (!info->program && xmlAttributeExists(xid, "program")) {
@@ -549,6 +558,7 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     sound->phasing = xmlAttributeGetBool(xid, "phasing");
 
     p = 0;
+    noise = 0;
     xeid = xmlMarkId(xid);
     emax = xmlNodeGetNum(xid, "*");
     for (e=0; e<emax; e++)
@@ -559,7 +569,7 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
             if (!strcasecmp(name, "waveform"))
             {
                 sound->entry[p].type = WAVEFORM;
-                fill_waveform(&sound->entry[p++].slot.waveform, xeid);
+                noise |= fill_waveform(&sound->entry[p++].slot.waveform, xeid);
             }
             else if (!strcasecmp(name, "filter"))
             {
@@ -577,6 +587,8 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     }
     sound->no_entries = p;
     xmlFree(xeid);
+
+    if (noise) sound->duration = _MAX(sound->duration, 0.3f);
 }
 
 void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char tmp)
@@ -651,7 +663,7 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
     unsigned int p, d, dnum;
     void *xdid;
 
-    obj->mode = xmlAttributeGetString(xid, "mode");
+    obj->mode = lwrstr(xmlAttributeGetString(xid, "mode"));
     obj->looping = xmlAttributeGetBool(xid, "looping");
     obj->pan = xmlAttributeGetDouble(xid, "pan");
 
