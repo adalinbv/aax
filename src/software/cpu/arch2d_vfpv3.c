@@ -57,36 +57,39 @@ _batch_fmadd_vfpv3(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v
 }
 
 void
-_batch_imul_value_vfpv3(void* data, unsigned bps, size_t num, float f)
+_batch_imul_value_vfpv3(void* dptr, const void* sptr, unsigned bps, size_t num, float f)
 {
-   size_t i = num;
+  size_t i = num;
    if (num)
    {
       switch (bps)
       {
       case 1:
       {
-         int8_t* d = (int8_t*)data;
+         int8_t* s = (int8_t*)sptr;
+         int8_t* d = (int8_t*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
       }
       case 2:
       {
-         int16_t* d = (int16_t*)data;
+         int16_t* s = (int16_t*)sptr;
+         int16_t* d = (int16_t*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
       }
       case 4:
       {
-         int32_t* d = (int32_t*)data;
+         int32_t* s = (int32_t*)sptr;
+         int32_t* d = (int32_t*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
