@@ -101,12 +101,12 @@ _batch_imul_value_vfpv2(void* dptr, const void* sptr, unsigned bps, size_t num, 
 }
 
 void
-_batch_fmul_value_vfpv2(void* data, unsigned bps, size_t num, float f)
+_batch_fmul_value_vfpv2(void* dptr, const void* sptr, unsigned bps, size_t num, float f)
 {
    if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
-   if (f <= LEVEL_128DB) {
-      memset(data, 0, num*bps);
+   if (f <= LEVEL_90DB) {
+      memset(dptr, 0, num*bps);
    }
    else if (num)
    {
@@ -116,18 +116,20 @@ _batch_fmul_value_vfpv2(void* data, unsigned bps, size_t num, float f)
       {
       case 4:
       {
-         float *d = (float*)data;
+         float *s = (float*)sptr;
+         float *d = (float*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
-      }
+      }   
       case 8:
       {
-         double *d = (double*)data;
+         double *s = (double*)sptr;
+         double *d = (double*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;

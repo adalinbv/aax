@@ -919,12 +919,12 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 }
 
 void
-_batch_fmul_value_neon(void* data, unsigned bps, size_t num, float f)
+_batch_fmul_value_neon(void* dptr, const void* sptr, unsigned bps, size_t num, float f)
 {
    if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
 
    if (f <= LEVEL_128DB) {
-      memset(data, 0, num*bps);
+      memset(dptr, 0, num*bps);
    }
    else if (num)
    {
@@ -934,8 +934,8 @@ _batch_fmul_value_neon(void* data, unsigned bps, size_t num, float f)
       {
       case 4:
       {
-         float32_ptr s = (float32_ptr)data;
-         float32_ptr d = (float32_ptr)data;
+         float32_ptr s = (float32_ptr)sptr;
+         float32_ptr d = (float32_ptr)dptr;
          size_t i, step;
 
          step = sizeof(float32x4_t)/sizeof(float);
@@ -970,9 +970,10 @@ _batch_fmul_value_neon(void* data, unsigned bps, size_t num, float f)
       }
       case 8:
       {
-         double *d = (double*)data;
+         double *s = (double*)sptr;
+         double *d = (double*)dptr;
          do {
-            *d++ *= f;
+            *d++ = *s++ * f;
          }
          while (--i);
          break;
