@@ -2053,7 +2053,7 @@ _wasapi_set_volume(_driver_t *handle, int32_t **sbuf, ssize_t offset, size_t no_
    {
       int t;
       for (t=0; t<no_tracks; t++) {
-         _batch_imul_value(sbuf[t]+offset, sizeof(int32_t), no_samples, gain);
+         _batch_imul_value(sbuf[t]+offset, sbuf[t]+offset, sizeof(int32_t), no_samples, gain);
       }
    }
 
