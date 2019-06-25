@@ -1,28 +1,28 @@
 
-* Sat Jun 22 2019 - tech@adalin.org
+* Tue Jun 25 2019 - tech@adalin.org
 - AeonWave (3.6.0) stable; urgency=low
 
  * Further work to support General MIDI 2.0
- * Combine phasing, chorus and flagining into the chorus effect.
+ * Combine phasing, chorus and flanging into the chorus effect.
  * Implement frequency-filtering of the delayed signal for phasing and chorus.
  * Introduce envelope-following timed gain filters (with exponential decay).
- * Allow one to override the shared data directory in the configurtion file.
+ * Allow one to override the shared data directory in the configuration file.
  * Improvements to the handling of mangled audio-streams and harden the ICY
    stream data handling code.
  * Fix a buffer issue where small parts f the buffer where added twice when
-   the frequency filter and the flanging effect were applied to anj audio-frame.
+   the frequency filter and the flanging effect were applied to an audio-frame.
  * Fix a hardly noticeable sound artefact when the resampling factor == 1.0
  * Fix reverb, the volume of the delayed signal was handled improperly.
  * Small code speedups.
 
--- Erik Hofman <tech@adalin.org>  Sat 22 Jun 2019 14:42:47 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue 25 Jun 2019 09:30:11 + 0200
 
 
 * Tue Feb 19 2019 - tech@adalin.org
 - AeonWave (3.5.7) stable; urgency=medium
 
  * Support URL redirects for the HTTP protocol.
- * Skip frequencies which are higher than the nyquist frequency when
+ * Skip frequencies which are higher than the Nyquist frequency when
    synthesizing sounds.
  * Add dithering when converting to a lower number of bits in the final mix.
  * Support General MIDI 2.0 specifications, add support for setting modulation,
