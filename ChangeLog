@@ -9,7 +9,7 @@
  * Allow one to override the shared data directory in the configuration file.
  * Improvements to the handling of mangled audio-streams and harden the ICY
    stream data handling code.
- * Fix a buffer issue where small parts f the buffer where added twice when
+ * Fix a buffer issue where small parts of the buffer where added twice when
    the frequency filter and the flanging effect were applied to an audio-frame.
  * Fix a hardly noticeable sound artefact when the resampling factor == 1.0
  * Fix reverb, the volume of the delayed signal was handled improperly.
