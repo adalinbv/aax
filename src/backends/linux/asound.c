@@ -118,6 +118,8 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
    NULL,
 
+   ( _aaxDriverGetSetSources*)_aaxSoftwareDriverGetSetSources,
+
    (_aaxDriverState *)&_aaxALSADriverState,
    (_aaxDriverParam *)&_aaxALSADriverParam,
    (_aaxDriverLog *)&_aaxALSADriverLog
@@ -1516,6 +1518,9 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MAX_PERIODS:
          rv = (float)handle->max_periods;
+         break;
+      case DRIVER_MAX_SOURCES:
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

@@ -113,6 +113,8 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
    (_aaxDriverSetPosition *)&_aaxStreamDriverSetPosition,
 
+   ( _aaxDriverGetSetSources*)_aaxSoftwareDriverGetSetSources,
+
    (_aaxDriverState *)&_aaxStreamDriverState,
    (_aaxDriverParam *)&_aaxStreamDriverParam,
    (_aaxDriverLog *)&_aaxStreamDriverLog
@@ -1161,6 +1163,9 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = 1.0f;
+         break;
+      case DRIVER_MAX_SOURCES:
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = (float)handle->ext->get_param(handle->ext, __F_NO_SAMPLES);

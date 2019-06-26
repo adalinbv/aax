@@ -67,7 +67,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          setup *= 2;
          // intentional fallthrough
       case AAX_MONO_EMITTERS:
-         rv = (setup <= _aaxGetNoEmitters()) ? AAX_TRUE : AAX_FALSE;
+         rv = (setup <= _aaxGetNoEmitters(NULL)) ? AAX_TRUE : AAX_FALSE;
          break;
       case AAX_RELEASE_MODE:
          __release_mode = setup ? AAX_TRUE : AAX_FALSE;
@@ -229,10 +229,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
       switch(type)
       {
       case AAX_MONO_EMITTERS:
-         rv = _aaxGetNoEmitters();
+         rv = _aaxGetNoEmitters(NULL);
          break;
       case AAX_STEREO_EMITTERS:
-         rv = _aaxGetNoEmitters()/2;
+         rv = _aaxGetNoEmitters(NULL)/2;
          break;
       case AAX_AUDIO_FRAMES:
          rv = 0;
@@ -1061,7 +1061,8 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
 
             if (mixer->no_registered < mixer->info->max_registered)
             {
-               if (_aaxIncreaseEmitterCounter())
+               const _aaxDriverBackend *be = handle->backend.ptr;
+               if (_aaxIncreaseEmitterCounter(be))
                {
                   mixer->no_registered++;
                   pos = _intBufAddData(he, _AAX_EMITTER, emitter);
@@ -1195,7 +1196,8 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
                ptr = _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, AAX_FALSE);
                if (ptr)
                {
-                  _aaxDecreaseEmitterCounter();
+                  const _aaxDriverBackend *be = handle->backend.ptr;
+                  _aaxDecreaseEmitterCounter(be);
                   mixer->no_registered--;
                   emitter->root = NULL;
                   emitter->parent = NULL;

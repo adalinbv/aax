@@ -987,7 +987,9 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
       if (fmixer->no_registered < fmixer->info->max_registered)
       {
-         if (_aaxIncreaseEmitterCounter())
+         _handle_t *driver = get_driver_handle(frame);
+         const _aaxDriverBackend *be = driver->backend.ptr;
+         if (_aaxIncreaseEmitterCounter(be))
          {
             unsigned int max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
             unsigned int no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
@@ -1138,6 +1140,8 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
    if (rv)
    {
+      _handle_t *driver = get_driver_handle(frame);
+       const _aaxDriverBackend *be = driver->backend.ptr;
       _aaxAudioFrame* fmixer = handle->submix;
       _aaxEmitter *src = emitter->source;
       _intBuffers *he;
@@ -1154,7 +1158,7 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
       /* proper order by _intBufRemove                               */
       _intBufRelease(he, _AAX_EMITTER, emitter->mixer_pos);
       _intBufRemove(he, _AAX_EMITTER, emitter->mixer_pos, AAX_FALSE);
-      _aaxDecreaseEmitterCounter();
+      _aaxDecreaseEmitterCounter(be);
       fmixer->no_registered--;
       emitter->mixer_pos = UINT_MAX;
       emitter->parent = NULL;

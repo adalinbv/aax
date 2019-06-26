@@ -60,6 +60,7 @@ static _aaxDriverPrepare3d _aaxNoneDriver3dPrepare;
 static _aaxDriverPrepare _aaxNoneDriverPrepare;
 static _aaxDriverPostProcess _aaxNoneDriverPostProcess;
 static _aaxDriverThread _aaxNoneDriverThread;
+static _aaxDriverGetSetSources _aaxNoneDriverGetSetSources;
 static _aaxDriverState _aaxNoneDriverState;
 static _aaxDriverParam _aaxNoneDriverParam;
 static _aaxDriverLog _aaxNoneDriverLog;
@@ -93,6 +94,8 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverPostProcess *)&_aaxNoneDriverPostProcess,
    (_aaxDriverPrepare *)&_aaxNoneDriverPrepare,		/* effects */
    NULL,
+
+   (_aaxDriverGetSetSources*)_aaxNoneDriverGetSetSources,
 
    (_aaxDriverState *)_aaxNoneDriverState,
    (_aaxDriverParam *)&_aaxNoneDriverParam,
@@ -155,6 +158,8 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
    NULL,
+
+   ( _aaxDriverGetSetSources*)_aaxSoftwareDriverGetSetSources,
 
    (_aaxDriverState *)_aaxNoneDriverState,
    (_aaxDriverParam *)&_aaxLoopbackDriverParam,
@@ -225,6 +230,11 @@ _aaxNoneDriverRender(UNUSED(const void* config))
    return NULL;
 }
 
+static unsigned int
+_aaxNoneDriverGetSetSources(unsigned int max, int num)
+{
+   return 0;
+}
 
 static int
 _aaxNoneDriverState(UNUSED(const void *id), enum _aaxDriverState state)
@@ -283,6 +293,9 @@ _aaxNoneDriverParam(UNUSED(const void *id), enum _aaxDriverParam param)
    case DRIVER_MIN_PERIODS:
    case DRIVER_MAX_PERIODS:
       rv = 1.0f;
+      break;
+   case DRIVER_MAX_SOURCES:
+      rv = 0;
       break;
    case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;
@@ -449,6 +462,9 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = 1.0f;
+         break;
+      case DRIVER_MAX_SOURCES:
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;
@@ -846,4 +862,34 @@ _aaxSoftwareMixerThread(void* config)
    return handle;
 }
 
+unsigned int
+_aaxSoftwareDriverGetSetSources(unsigned int max, int num)
+{
+   static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
+   static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
+   unsigned int abs_num = abs(num);
+   unsigned int ret = _sources;
 
+   if (max)
+   {
+      int resource = get_low_resource();
+
+      if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
+      if (resource > 1 && resource <= 4) max = 512;
+      _aaxAtomicIntSet(&_max_sources, max);     // _max_sources = max;
+      _aaxAtomicIntSet(&_sources, max);         // _sources = max;
+      ret = max;
+   }
+
+   if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
+   {
+      unsigned int _src = _sources - num;
+      if ((_sources >= (unsigned int)num) && (_src < _max_sources))
+      {
+         _aaxAtomicIntSet(&_sources, _src);     // _sources = _src;
+         ret = abs_num;
+      }
+   }
+
+   return ret;
+}

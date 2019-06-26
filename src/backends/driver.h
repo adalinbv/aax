@@ -82,6 +82,7 @@ enum _aaxDriverParam {
    DRIVER_MAX_TRACKS,
    DRIVER_MIN_PERIODS,
    DRIVER_MAX_PERIODS,
+   DRIVER_MAX_SOURCES,
    DRIVER_MAX_SAMPLES,	/* no. samples in the file or UINT_MAX */
    DRIVER_SAMPLE_DELAY,	/* no samples to go before the next sample is played */
 
@@ -129,6 +130,8 @@ typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*)
 typedef void _aaxDriverPostProcess(const void*, const void*, void*, const void*, const void*, void*);
 typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*, char, char);
 
+typedef unsigned int _aaxDriverGetSetSources(unsigned int, int);
+
 typedef void *_aaxDriverRingBufferCreate(float, enum aaxRenderMode);
 typedef void _aaxDriverRingBufferDestroy(void*);
 
@@ -167,6 +170,8 @@ typedef struct
     _aaxDriverPrepare *effects;
     _aaxDriverSetPosition *set_position;
 
+    _aaxDriverGetSetSources *getset_sources;
+
     _aaxDriverState *state;
     _aaxDriverParam *param;
     _aaxDriverLog *log;
@@ -176,10 +181,12 @@ typedef struct
 
 /* ---  software device helper functions --- */
 
-extern _aaxDriverPostProcess _aaxSoftwareDriverPostProcess;
-extern _aaxDriverPrepare _aaxSoftwareDriverApplyEffects;
-extern _aaxDriverPrepare3d _aaxSoftwareDriver3dPrepare;
-extern _aaxDriverThread _aaxSoftwareMixerThread;
+
+_aaxDriverPostProcess _aaxSoftwareDriverPostProcess;
+_aaxDriverPrepare _aaxSoftwareDriverApplyEffects;
+_aaxDriverPrepare3d _aaxSoftwareDriver3dPrepare;
+_aaxDriverThread _aaxSoftwareMixerThread;
+_aaxDriverGetSetSources _aaxSoftwareDriverGetSetSources;
 
 void _aaxNoneDriverProcessFrame(void*);
 

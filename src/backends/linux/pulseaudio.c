@@ -113,6 +113,8 @@ const _aaxDriverBackend _aaxPulseAudioDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
    NULL,
 
+   ( _aaxDriverGetSetSources*)_aaxSoftwareDriverGetSetSources,
+
    (_aaxDriverState *)&_aaxPulseAudioDriverState,
    (_aaxDriverParam *)&_aaxPulseAudioDriverParam,
    (_aaxDriverLog *)&_aaxPulseAudioDriverLog
@@ -773,6 +775,9 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = (float)NO_FRAGMENTS;
+         break;
+      case DRIVER_MAX_SOURCES:
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

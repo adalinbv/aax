@@ -328,9 +328,8 @@ float _aaxDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4] =
    { 0.00f, 0.00f, 0.00f, 1.0f }        /* right side speaker    */
 };
 
-
 static unsigned int
-_aaxGetSetMonoSources(unsigned int max, int num)
+_aaxGetSetNoMonoEmitters(const _aaxDriverBackend *be, unsigned int max, int num)
 {
    static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
    static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
@@ -355,29 +354,33 @@ _aaxGetSetMonoSources(unsigned int max, int num)
       }
    }
 
+   if (be) {
+      ret = be->getset_sources(_max_sources, num);
+   }
+
    return ret;
 }
 
 unsigned int
-_aaxGetNoEmitters() {
-   int rv = _aaxGetSetMonoSources(0, 0);
+_aaxGetNoEmitters(const _aaxDriverBackend *be) {
+   int rv = _aaxGetSetNoMonoEmitters(be, 0, 0);
    if (rv > _AAX_MAX_MIXER_REGISTERED) rv = _AAX_MAX_MIXER_REGISTERED;
    return rv;
 }
 
 unsigned int
-_aaxSetNoEmitters(unsigned int max) {
-   return _aaxGetSetMonoSources(max, 0);
+_aaxSetNoEmitters(const _aaxDriverBackend *be, unsigned int max) {
+   return _aaxGetSetNoMonoEmitters(be, max, 0);
 }
 
 unsigned int
-_aaxIncreaseEmitterCounter() {
-   return _aaxGetSetMonoSources(0, 1);
+_aaxIncreaseEmitterCounter(const _aaxDriverBackend *be) {
+   return _aaxGetSetNoMonoEmitters(be, 0, 1);
 }
 
 unsigned int
-_aaxDecreaseEmitterCounter() {
-   return _aaxGetSetMonoSources(0, -1);
+_aaxDecreaseEmitterCounter(const _aaxDriverBackend *be) {
+   return _aaxGetSetNoMonoEmitters(be, 0, -1);
 }
 
 static void

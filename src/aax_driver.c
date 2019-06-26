@@ -736,6 +736,7 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
 /* -------------------------------------------------------------------------- */
 
+char _aaxArchDetectAVX();
 static const char* _aax_default_devname = "None";
 
 int get_low_resource()
@@ -743,16 +744,24 @@ int get_low_resource()
    static int low_resource = -1;
    if (low_resource == -1)
    {
-      char * env = getenv("AAX_USE_LOW_RESOURCE");
+      char *env = getenv("AAX_USE_LOW_RESOURCE");
 
-      low_resource = AAX_TRUE;
+      low_resource = _aaxGetNoCores();
 #ifdef __x86_64__
-      if (!env || !_aax_getbool(env)) {
-         if (_aax_get_free_memory() > (50*1024*1024) || (_aaxGetNoCores() > 2)){
+      // 64-bit
+      if (!env || !_aax_getbool(env))
+      {
+         size_t mem = _aax_get_free_memory()/(50*1024*1024);	// at least 50Mb
+         int avx = _aaxArchDetectAVX();
+         int cores = low_resource/4;
+
+         if (avx) low_resource &= 0xF0000;
+         if (mem && (avx || cores)) { // AVX or at least 4 cores without AVX
              low_resource = AAX_FALSE;
          }
       }
 #else
+      // 32-bit
       if (env && !_aax_getbool(env)) {
          low_resource = AAX_FALSE;
       }
@@ -996,7 +1005,7 @@ _open_handle(aaxConfig config)
                   {
                      unsigned int num;
 
-                     num = _aaxGetNoEmitters();
+                     num = _aaxGetNoEmitters(NULL);
                      sensor->mixer->info->max_emitters = num;
                      num = _AAX_MAX_MIXER_REGISTERED;
                      sensor->mixer->info->max_registered = num;
@@ -1127,13 +1136,13 @@ _aaxReadConfig(_handle_t *handle, const char *devname, int mode)
          if (config->node[0].no_emitters)
          {
             unsigned int emitters = config->node[0].no_emitters;
-            unsigned int system_max = _aaxGetNoEmitters();
+            unsigned int system_max = _aaxGetNoEmitters(be);
 
             handle->info->max_emitters = _MINMAX(emitters, 4, system_max);
-            _aaxSetNoEmitters(handle->info->max_emitters);
+            _aaxSetNoEmitters(NULL, handle->info->max_emitters);
          }
          else {
-            handle->info->max_emitters = _aaxGetNoEmitters();
+            handle->info->max_emitters = _aaxGetNoEmitters(be);
          }
 
          ptr = config->node[0].setup;

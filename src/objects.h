@@ -442,10 +442,11 @@ void _aaxSetDefaultDelayed3dProps(_aaxDelayed3dProps*);
 
 void _aaxSetupSpeakersFromDistanceVector(vec3f_ptr, float, vec4f_ptr, _aax2dProps*, const _aaxMixerInfo*);
 
-unsigned int _aaxGetNoEmitters(void);
-unsigned int _aaxSetNoEmitters(unsigned int);
-unsigned int _aaxIncreaseEmitterCounter(void);
-unsigned int _aaxDecreaseEmitterCounter(void);
+unsigned int _aaxGetNoMonoEmitters();
+unsigned int _aaxGetNoEmitters(const _aaxDriverBackend*);
+unsigned int _aaxSetNoEmitters(const _aaxDriverBackend*, unsigned int);
+unsigned int _aaxIncreaseEmitterCounter(const _aaxDriverBackend*);
+unsigned int _aaxDecreaseEmitterCounter(const _aaxDriverBackend*);
 
 aaxFilter _aaxGetFilterFromAAXS(aaxConfig, const char*, float, float, float, _midi_t*);
 aaxEffect _aaxGetEffectFromAAXS(aaxConfig, const char*, float, float, float, _midi_t*);

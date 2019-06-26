@@ -124,6 +124,8 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
    NULL,
 
+   ( _aaxDriverGetSetSources*)_aaxSoftwareDriverGetSetSources,
+
    (_aaxDriverState *)&_aaxWASAPIDriverState,
    (_aaxDriverParam *)&_aaxWASAPIDriverParam,
    (_aaxDriverLog *)&_aaxWASAPIDriverLog
@@ -1068,6 +1070,9 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = (float)DEFAULT_PERIODS;
+         break;
+      case DRIVER_MAX_SOURCES:
+         rv = handle->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

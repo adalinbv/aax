@@ -101,6 +101,8 @@ const _aaxDriverBackend _aaxCoreAudioDriverBackend =
    (_aaxDriverPrepare *)&_aaxSoftwareMixerApplyEffects,
    NULL,
 
+   ( _aaxDriverGetSetSources*)_aaxSoftwareDriverGetSetSources,
+
    (_aaxDriverState *)&_aaxCoreAudioDriverState,
    (_aaxDriverParam *)&_aaxCoreAudioDriverParam,
    (_aaxDriverLog *)&_aaxCoreAudioDriverLog
@@ -476,6 +478,9 @@ _aaxCoreAudioDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = 1.0f;
+         break;
+      case DRIVER_MAX_SOURCES:
+         rv = handle->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;
