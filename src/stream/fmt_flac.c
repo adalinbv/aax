@@ -115,7 +115,7 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
          handle->blocksize = sizeof(int32_t);
          handle->format = AAX_PCM32S;
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
-      }             
+      }
       else {
          _AAX_FILEDRVLOG("FLAC: Insufficient memory");
       }
@@ -132,7 +132,6 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
          if (!handle->pcmBuffer) {
             handle->pcmBuffer = _aaxDataCreate(MAX_PCMBUFSIZE, 1);
          }
-         
 
          if (handle->flacBuffer && handle->pcmBuffer)
          {
@@ -146,9 +145,13 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
             res = _aaxDataAdd(handle->flacBuffer, buf, size);
             *bufsize -= res;
 
-            if (!handle->id) {
-               handle->id = drflac_open(_flac_callback_read,
-                                        _flac_callback_seek, handle);
+            if (!handle->id)
+            {
+               drflac_container type = drflac_container_native;
+                // or drflac_container_ogg
+               handle->id = drflac_open_relaxed(_flac_callback_read,
+                                                _flac_callback_seek,
+                                                 type, handle);
             }
 
             handle->rv = 0;
@@ -278,13 +281,15 @@ _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 
    if (req > 0 && handle->flacBuffer->avail > 0)
    {
+      size_t frame_size = tracks*sizeof(int32_t);
       size_t avail = handle->pcmBuffer->avail;
       size_t bufsize = handle->pcmBuffer->size - avail;
+      size_t no_frames = bufsize/frame_size;
       int32_t *pcmbuf = (int32_t*)(buf+avail);
 
       // store the next chunk into the pcmBuffer;
-      ret = drflac_read_s32(handle->id, bufsize, pcmbuf);
-      handle->pcmBuffer->avail += ret;
+      ret = drflac_read_pcm_frames_s32(handle->id, no_frames, pcmbuf);
+      handle->pcmBuffer->avail += ret*frame_size;
 
       assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);
 
@@ -295,7 +300,7 @@ _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       }
 
       if (handle->pcmBuffer->avail)
-      {  
+      {
          unsigned int max = _MIN(ret, handle->pcmBuffer->avail/sizeof(int32_t));
 
          _batch_cvt24_32_intl(dptr, buf, dptr_offs, tracks, max);
