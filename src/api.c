@@ -194,8 +194,8 @@ size_t getFileSize(const char *fname)
 {
 #ifndef WIN32
    struct stat st;
-   stat(fname, &st);
-   return st.st_size;
+   if (!stat(fname, &st)) return st.st_size;
+   return 0;
 #else
    size_t rv = 0;
    HANDLE hFile;
