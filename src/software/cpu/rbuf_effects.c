@@ -127,9 +127,14 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    if (state)
    {
       _aaxRingBufferDelayEffectData *delay;
+      float f = rbd->frequency_hz;
 
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-      ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
+
+      // 0 for frequency filtering
+      // Can't use ddesamps for it when reverb is defined
+      ds = delay ? (size_t)ceilf(f * DELAY_EFFECTS_TIME) : 0;
+
       if (delay) {
          delay->prepare(dst, src, no_samples, ds, delay, track);
       }
