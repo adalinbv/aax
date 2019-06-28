@@ -46,6 +46,8 @@
 #define LOOPBACK_RENDERER	AAX_NAME_STR" Loopback"
 #define DEFAULT_OUTPUT_RATE	44100
 
+char _aaxArchDetectAVX();
+
 static _aaxDriverDetect _aaxNoneDriverDetect;
 static _aaxDriverNewHandle _aaxNoneDriverNewHandle;
 static _aaxDriverGetDevices _aaxNoneDriverGetDevices;
@@ -872,10 +874,13 @@ _aaxSoftwareDriverGetSetSources(unsigned int max, int num)
 
    if (max)
    {
-      int resource = get_low_resource();
+      int low_resource = get_low_resource();
+      int avx = _aaxArchDetectAVX();
+      int cores = _aaxGetNoCores();
 
       if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
-      if (resource > 1 && resource <= 4) max = 512;
+      if (!avx) max=128*cores;
+      if (low_resource) max = 128;
       _aaxAtomicIntSet(&_max_sources, max);     // _max_sources = max;
       _aaxAtomicIntSet(&_sources, max);         // _sources = max;
       ret = max;

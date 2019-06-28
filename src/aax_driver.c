@@ -755,7 +755,6 @@ int get_low_resource()
          int avx = _aaxArchDetectAVX();
          int cores = low_resource/4;
 
-         if (avx) low_resource &= 0xF0000;
          if (mem && (avx || cores)) { // AVX or at least 4 cores without AVX
              low_resource = AAX_FALSE;
          }
