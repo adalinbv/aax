@@ -100,7 +100,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       lb_gain = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
       _reverb_add_reverb(&effect->slot[0]->data, fs, tracks, lb_depth, lb_gain);
 
-      do
+      if (effect->slot[0]->data)
       {
          _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
@@ -162,7 +162,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          reverb->freq_filter = flt;
          reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
       }
-      while(0);
 
       break;
    }
