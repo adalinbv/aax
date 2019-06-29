@@ -462,7 +462,7 @@ public:
     // Each Channel must have its own adjustable send levels to the chorus
     // and the reverb. A connection from chorus to reverb must be provided.
     void set_reverb_level(float lvl) {
-        if (lvl > 0) {
+        if (lvl > 1e-5f) {
             reverb_level = lvl;
             if (!reverb_state) reverb_state = AAX_TRUE;
         } else if (reverb_state) reverb_state = AAX_FALSE;
