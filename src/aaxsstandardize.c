@@ -413,15 +413,15 @@ void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
                    float freq1 = note2freq(info->note.min);
                    float freq2 = note2freq(info->note.max);
                    float value = dsp->slot[s].param[p].value;
-                   float lin1 = _MAX(value - adjust*_lin2log(freq1), 0.1f);
-                   float lin2 = _MAX(value - adjust*_lin2log(freq2), 0.1f);
+                   float lin1 = _MAX(value - adjust*_lin2log(freq1), 0.01f);
+                   float lin2 = _MAX(value - adjust*_lin2log(freq2), 0.01f);
                    fprintf(output, "  <!-- %iHz: %s", (int)freq1, format_float3(lin1));
                    fprintf(output, " - %iHz: %s -->" , (int)freq2, format_float3(lin2));
                }
                else
                {
                    float value = dsp->slot[s].param[p].value;
-                   float lin = _MAX(value - adjust*_lin2log(freq), 0.1f);
+                   float lin = _MAX(value - adjust*_lin2log(freq), 0.01f);
                    fprintf(output, "  <!-- %s -->", format_float3(lin));
                }
             }
