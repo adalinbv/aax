@@ -1,10 +1,10 @@
-* Fri Jun 28 2019 - tech@adalin.org
+* Tue Jul 02 2019 - tech@adalin.org
 - AeonWave (3.6.1) stable; urgency=high
 
  * Fix a massive buffer overflow when both reverb and delay are defined for
    and audio frame. This was discovered by valgrind.
 
--- Erik Hofman <tech@adalin.org>  Fri 28 Jun 2019 14:22:57 + 0200
+-- Erik Hofman <tech@adalin.org>  Tue 02 Jul 2019 14:14:03 + 0200
 
 
 * Tue Jun 25 2019 - tech@adalin.org
