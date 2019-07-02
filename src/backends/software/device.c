@@ -875,7 +875,11 @@ _aaxSoftwareDriverGetSetSources(unsigned int max, int num)
    if (max)
    {
       int low_resource = get_low_resource();
+#if defined(__x86_64__)
       int avx = _aaxArchDetectAVX();
+#else
+      int avx = 0;
+#endif
       int cores = _aaxGetNoCores();
 
       if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
