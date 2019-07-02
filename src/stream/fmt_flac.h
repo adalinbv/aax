@@ -33,5 +33,11 @@
 #define DR_FLAC_NO_OGG		1
 #include "3rdparty/dr_flac.h"
 
+#define FRAME_SIZE	960
+#define MAX_FRAME_SIZE	(6*960)
+#define MAX_PACKET_SIZE	(3*1276)
+#define MAX_FLACBUFSIZE	(2*DR_FLAC_BUFFER_SIZE)
+#define MAX_PCMBUFSIZE	8291
+
 #endif /* __FILE_FMT_FLAC_H */
 

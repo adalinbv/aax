@@ -39,12 +39,6 @@
 #include "audio.h"
 #include "fmt_flac.h"
 
-#define FRAME_SIZE	960
-#define MAX_FRAME_SIZE	(6*960)
-#define MAX_PACKET_SIZE	(3*1276)
-#define MAX_FLACBUFSIZE	(2*DR_FLAC_BUFFER_SIZE)
-#define MAX_PCMBUFSIZE	4096
-
 typedef struct
 {
    void *id;
@@ -74,9 +68,12 @@ typedef struct
    size_t no_samples;
    size_t max_samples;
 
-   _data_t *pcmBuffer;
    _data_t *flacBuffer;
    size_t rv;
+
+   int32_t output[MAX_PCMBUFSIZE];
+   size_t out_size;
+   size_t out_pos;
 
 } _driver_t;
 
@@ -99,7 +96,7 @@ _flac_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 }
 
 void*
-_flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
+_flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -113,8 +110,7 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
          handle->capturing = (mode == 0) ? 1 : 0;
 //       handle->blocksize = 4096;
          handle->blocksize = sizeof(int32_t);
-         handle->format = AAX_PCM32S;
-         handle->bits_sample = aaxGetBitsPerSample(handle->format);
+         handle->out_size = MAX_PCMBUFSIZE;
       }
       else {
          _AAX_FILEDRVLOG("FLAC: Insufficient memory");
@@ -129,34 +125,42 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsiz
             handle->flacBuffer = _aaxDataCreate(MAX_FLACBUFSIZE, 1);
          }
 
-         if (!handle->pcmBuffer) {
-            handle->pcmBuffer = _aaxDataCreate(MAX_PCMBUFSIZE, 1);
-         }
-
-         if (handle->flacBuffer && handle->pcmBuffer)
+         if (handle->flacBuffer)
          {
-            size_t size = *bufsize;
-            int res;
-
-            if (size > MAX_FLACBUFSIZE) {
-               size = MAX_FLACBUFSIZE;
-            }
-
-            res = _aaxDataAdd(handle->flacBuffer, buf, size);
-            *bufsize -= res;
-
-            if (!handle->id)
+            if (_flac_fill(fmt, buf, bufsize) > 0)
             {
-               drflac_container type = drflac_container_native;
-                // or drflac_container_ogg
-               handle->id = drflac_open_relaxed(_flac_callback_read,
-                                                _flac_callback_seek,
-                                                 type, handle);
-            }
+               if (!handle->id)
+               {			// or drflac_container_ogg
+                  drflac_container type = drflac_container_native;
 
-            handle->rv = 0;
-            if (!handle->id) {
-               rv = buf;
+                  if (fsize > 0) {	// file
+                     handle->id = drflac_open(_flac_callback_read,
+                                              _flac_callback_seek,
+                                              handle);
+                  } else {		// internet stream
+                     handle->id = drflac_open_relaxed(_flac_callback_read,
+                                                      _flac_callback_seek,
+                                                      type, handle);
+                  }
+
+                  if (handle->id)
+                  {
+                     drflac *ret = (drflac *)handle->id;
+
+                     handle->frequency = ret->sampleRate;
+                     handle->no_tracks = ret->channels;
+                     handle->format = AAX_PCM32S;
+                     handle->bits_sample = aaxGetBitsPerSample(handle->format);
+                     handle->blocksize = handle->no_tracks*handle->bits_sample/8;
+#if 0
+ printf("freq: %i, tracks: %i, bits/sample: %i\n", handle->frequency, handle->no_tracks, handle->bits_sample);
+#endif
+                  }
+               }
+
+               if (!handle->id) {
+                  rv = buf;
+               }
             }
          }
          else
@@ -180,10 +184,11 @@ _flac_close(_fmt_t *fmt)
 
    if (handle)
    {
-      drflac_close(handle->id);
+      if (handle->id) {
+         drflac_close(handle->id);
+      }
       handle->id = NULL;
 
-      _aaxDataDestroy(handle->pcmBuffer);
       _aaxDataDestroy(handle->flacBuffer);
 
       free(handle->trackno);
@@ -213,10 +218,8 @@ _flac_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;
-   size_t res;
 
-   res = _aaxDataAdd(handle->flacBuffer, sptr, *bytes);
-   if (res == 0) {
+   if (_aaxDataAdd(handle->flacBuffer, sptr, *bytes) == 0) {
       *bytes = 0;
    }
 
@@ -254,44 +257,37 @@ size_t
 _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bufsize, rv = __F_NEED_MORE;
-   unsigned char *buf;
-   unsigned int req, ret;
+   size_t rv = __F_NEED_MORE;
+   unsigned int req, n;
    int tracks;
 
    req = *num;
    tracks = handle->no_tracks;
    *num = 0;
 
-   buf = handle->pcmBuffer->data;
-   bufsize = handle->pcmBuffer->avail;
-
    /* there is still data left in the buffer from the previous run */
-   if (bufsize)
+   if (handle->out_pos > 0)
    {
-      unsigned int max = _MIN(req, bufsize/sizeof(int32_t));
+      unsigned int pos = handle->out_pos;
+      unsigned int max = _MIN(req, handle->out_size - pos);
 
-      _batch_cvt24_32_intl(dptr, buf, dptr_offs, tracks, max);
-      _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(int32_t));
-      handle->no_samples += max;
+      _batch_cvt24_32_intl(dptr, handle->output, dptr_offs, tracks, max);
+
       dptr_offs += max;
+      handle->out_pos += max;
+      handle->no_samples += max;
+      if (handle->out_pos == handle->out_size) {
+         handle->out_pos = 0;
+      }
       req -= max;
       *num = max;
    }
 
-   if (req > 0 && handle->flacBuffer->avail > 0)
+   if (req > 0)
    {
-      size_t frame_size = tracks*sizeof(int32_t);
-      size_t avail = handle->pcmBuffer->avail;
-      size_t bufsize = handle->pcmBuffer->size - avail;
-      size_t no_frames = bufsize/frame_size;
-      int32_t *pcmbuf = (int32_t*)(buf+avail);
+      size_t no_frames = MAX_PCMBUFSIZE/handle->blocksize;
 
-      // store the next chunk into the pcmBuffer;
-      ret = drflac_read_pcm_frames_s32(handle->id, no_frames, pcmbuf);
-      handle->pcmBuffer->avail += ret*frame_size;
-
-      assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);
+      n = drflac_read_pcm_frames_s32(handle->id, no_frames, handle->output);
 
       if (handle->rv)
       {
@@ -299,15 +295,27 @@ _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          handle->rv = 0;
       }
 
-      if (handle->pcmBuffer->avail)
+      if (n > 0)
       {
-         unsigned int max = _MIN(ret, handle->pcmBuffer->avail/sizeof(int32_t));
+         if (n > (int)req)
+         {
+            handle->out_size = n;
+            handle->out_pos = req;
+            n = req;
+            req = 0;
+         }
+         else
+         {
+            assert(handle->out_pos == 0);
+            req -= n;
+         }
 
-         _batch_cvt24_32_intl(dptr, buf, dptr_offs, tracks, max);
-         _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(int32_t));
-         handle->no_samples += max;
-         req -= max;
-         *num += max;
+         *num += n;
+         handle->no_samples += n;
+
+         _batch_cvt24_32_intl(dptr, handle->output, dptr_offs, tracks, n);
+
+         dptr_offs += n;
       }
    }
 
@@ -406,17 +414,10 @@ static size_t
 _flac_callback_read(void* pUserData, void* pBufferOut, size_t bytesToRead)
 {
    _driver_t *handle = (_driver_t *)pUserData;
-   int tries = 10240;
    size_t rv;
 
-   do
-   {
-      rv =  _aaxDataMove(handle->flacBuffer, pBufferOut, bytesToRead);
-      handle->rv += rv;
-      if (rv > 0) break;
-      msecSleep(1);
-   }
-   while (--tries);
+   rv =  _aaxDataMove(handle->flacBuffer, pBufferOut, bytesToRead);
+   if (rv > 0) handle->rv += rv;
 
    return rv;
 }
