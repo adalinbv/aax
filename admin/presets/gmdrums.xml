@@ -77,8 +77,8 @@
    <drum n="88" name="Slap High Conga" file="drums/conga-high-slap"/>
    <drum n="89" name="Small Gong" file="drums/gong-small"/>
    <drum n="90" name="Big Gong" file="drums/gong-big"/>
-   <drum n="91" name="Mute Pandiero" file="drums/pandiero-muted"/>
-   <drum n="92" name="Open Pandiero" file="drums/pandiero-open"/>
+   <drum n="91" name="Mute Pandiero" file="drums/pandeiro-muted"/>
+   <drum n="92" name="Open Pandiero" file="drums/pandeiro-open"/>
    <drum n="93" name="Tambourin" file="drums/tambourin"/>
    <drum n="94" name="Tree Chime" file="drums/chime-tree"/>
    <drum n="95" name="Caxixi" file="drums/caxixi"/>
