@@ -49,6 +49,8 @@
 #include <xml.h>
 #include <aax/aax.h>
 
+#include <base/types.h>
+
 #include "driver.h"
 #include "wavfile.h"
 
@@ -70,6 +72,21 @@ static float _lin2log(float v) { return log10f(v); }
 //  static float _log2lin(float v) { return powf(10.f,v); }
 // static float _lin2db(float v) { return 20.f*log10f(v); }
 static float _db2lin(float v) { return _MINMAX(powf(10.f,v/20.f),0.f,10.f); }
+
+static char* prttystr(char *s) {
+    if (s) {
+        char capital = 1;
+        for (int i=0; s[i]; ++i) {
+            if (isspace(s[i]) || s[i] == '(') capital = 1;
+            else {
+                if (capital) s[i] = toupper(s[i]);
+                else s[i] = tolower(s[i]);
+                capital = 0;
+            }
+        }
+    }
+    return s;
+}
 
 static char* lwrstr(char *s) {
     if (s) for (int i=0; s[i]; ++i) { s[i] = tolower(s[i]); }
@@ -162,24 +179,24 @@ void fill_info(struct info_t *info, void *xid)
 {
     void *xtid;
 
-    info->pan = xmlAttributeGetDouble(xid, "pan");
+    info->pan = _MINMAX(xmlAttributeGetDouble(xid, "pan"), -1.0f, 1.0f);
     info->program = info->bank = -1;
 
     if (xmlAttributeExists(xid, "program")) {
-        info->program = xmlAttributeGetInt(xid, "program");
+        info->program = _MINMAX(xmlAttributeGetInt(xid, "program"), 0, 127);
     }
     if (xmlAttributeExists(xid, "bank")) {
-        info->bank = xmlAttributeGetInt(xid, "bank");
+        info->bank = _MINMAX(xmlAttributeGetInt(xid, "bank"), 0, 127);
     }
-    info->name = lwrstr(xmlAttributeGetString(xid, "name"));
+    info->name = prttystr(xmlAttributeGetString(xid, "name"));
 
     xtid = xmlNodeGet(xid, "note");
     if (xtid)
     {
-        info->note.polyphony = xmlAttributeGetInt(xtid, "polyphony");
-        info->note.min = xmlAttributeGetInt(xtid, "min");
-        info->note.max = xmlAttributeGetInt(xtid, "max");
-        info->note.step = xmlAttributeGetInt(xtid, "step");
+        info->note.polyphony = _MAX(xmlAttributeGetInt(xtid, "polyphony"), 0);
+        info->note.min = _MINMAX(xmlAttributeGetInt(xtid, "min"), 0, 127);
+        info->note.max = _MINMAX(xmlAttributeGetInt(xtid, "max"), 0, 127);
+        info->note.step = _MAX(xmlAttributeGetInt(xtid, "step"), 0);
         xmlFree(xtid);
     }
     if (info->note.polyphony == 0) info->note.polyphony = 1;
@@ -314,7 +331,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
     dsp->repeat = lwrstr(xmlAttributeGetString(xid, "repeat"));
     dsp->optional = xmlAttributeGetBool(xid, "optional");
     if (!strcasecmp(dsp->type, "timed-gain")) {
-        dsp->release_factor = xmlAttributeGetDouble(xid, "release-factor");
+        dsp->release_factor = _MAX(xmlAttributeGetDouble(xid, "release-factor"), 0.0f);
         env = 1;
     }
 
@@ -329,7 +346,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
             int sn = s;
 
             if (xmlAttributeExists(xsid, "n")) {
-                sn = xmlAttributeGetInt(xsid, "n");
+                sn = _MINMAX(xmlAttributeGetInt(xsid, "n"), 0, 3);
             }
 
             for (p=0; p<pnum; p++)
@@ -339,10 +356,10 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
                     int pn = p;
 
                     if (xmlAttributeExists(xpid, "n")) {
-                        pn = xmlAttributeGetInt(xpid, "n");
+                        pn = _MINMAX(xmlAttributeGetInt(xpid, "n"), 0, 3);
                     }
 
-                    dsp->slot[sn].param[pn].pitch = xmlAttributeGetDouble(xpid, "pitch");
+                    dsp->slot[sn].param[pn].pitch = _MAX(xmlAttributeGetDouble(xpid, "pitch"), 0.0f);
                     if (dsp->slot[sn].param[pn].adjust == 0.0f) {
                        dsp->slot[sn].param[pn].adjust = xmlAttributeGetDouble(xpid, "auto-sustain");
                     }
@@ -378,7 +395,9 @@ void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
     } else {
         fprintf(output, "  <effect type=\"%s\"", dsp->type);
     }
-    if (dsp->src) fprintf(output, " src=\"%s\"", dsp->src);
+    if (dsp->src && strcmp(dsp->src, "true")) {
+        fprintf(output, " src=\"%s\"", dsp->src);
+    }
     if (dsp->repeat) fprintf(output, " repeat=\"%s\"", dsp->repeat);
     if (dsp->stereo) fprintf(output, " stereo=\"true\"");
     if (dsp->optional) fprintf(output, " optional=\"true\"");
@@ -461,10 +480,10 @@ char fill_waveform(struct waveform_t *wave, void *xid)
     wave->src = lwrstr(xmlAttributeGetString(xid, "src"));
     wave->processing = lwrstr(xmlAttributeGetString(xid, "processing"));
     wave->ratio = xmlAttributeGetDouble(xid, "ratio");
-    wave->pitch = xmlAttributeGetDouble(xid, "pitch");
-    wave->staticity = xmlAttributeGetDouble(xid, "staticity");
-    wave->voices = xmlAttributeGetInt(xid, "voices");
-    wave->spread = xmlAttributeGetDouble(xid, "spread");
+    wave->pitch = _MAX(xmlAttributeGetDouble(xid, "pitch"), 0.0f);
+    wave->staticity =_MINMAX(xmlAttributeGetDouble(xid, "staticity"),0.0f,1.0f);
+    wave->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
+    wave->spread = _MINMAX(xmlAttributeGetDouble(xid, "spread"), 0.0f, 1.0f);
     wave->phasing = xmlAttributeGetBool(xid, "phasing");
 
     return strstr(wave->src, "noise") ? 1 : 0;
@@ -483,7 +502,7 @@ void print_waveform(struct waveform_t *wave, FILE *output)
     }
     if (wave->pitch && wave->pitch != 1.0f) fprintf(output, " pitch=\"%s\"", format_float6(wave->pitch));
     if (wave->staticity > 0) fprintf(output, " staticity=\"%s\"", format_float3(wave->staticity));
-    if (wave->voices)
+    if (wave->voices > 1)
     {
         fprintf(output, " voices=\"%i\"", wave->voices);
         if (wave->spread) {
@@ -529,10 +548,10 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     void *xeid;
 
     if (!info->program && xmlAttributeExists(xid, "program")) {
-        info->program = xmlAttributeGetInt(xid, "program");
+        info->program = _MINMAX(xmlAttributeGetInt(xid, "program"), 0, 127);
     }
     if (!info->bank && xmlAttributeExists(xid, "bank")) {
-        info->bank = xmlAttributeGetInt(xid, "bank");
+        info->bank = _MINMAX(xmlAttributeGetInt(xid, "bank"), 0, 127);
     }
     if (!info->name && xmlAttributeExists(xid, "name")) {
         info->name = xmlAttributeGetString(xid, "name");
@@ -541,20 +560,20 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     if (xmlAttributeExists(xid, "live")) {
         sound->mode = xmlAttributeGetBool(xid, "live") ? 1 : -1;
     } else if (xmlAttributeExists(xid, "mode")) {
-        sound->mode = xmlAttributeGetInt(xid, "mode");
+        sound->mode = _MINMAX(xmlAttributeGetInt(xid, "mode"), 0, 2);
     }
 
     if (xmlAttributeExists(xid, "fixed-gain")) {
-        sound->gain = -1.0*xmlAttributeGetDouble(xid, "fixed-gain");
+        sound->gain = -1.0*_MAX(xmlAttributeGetDouble(xid, "fixed-gain"), 0.0f);
     } else if (gain == 1.0f) {
-        sound->gain = xmlAttributeGetDouble(xid, "gain");
+        sound->gain = _MAX(xmlAttributeGetDouble(xid, "gain"), 0.0f);
     } else {
-        sound->gain = gain; // xmlAttributeGetDouble(xid, "gain");
+        sound->gain = gain;
     }
-    sound->frequency = xmlAttributeGetInt(xid, "frequency");
-    sound->duration = xmlAttributeGetDouble(xid, "duration");
-    sound->voices = xmlAttributeGetInt(xid, "voices");
-    sound->spread = xmlAttributeGetDouble(xid, "spread");
+    sound->frequency = _MINMAX(xmlAttributeGetInt(xid, "frequency"), 8.176f, 12543.854f);
+    sound->duration = _MAX(xmlAttributeGetDouble(xid, "duration"), 0.0f);
+    sound->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
+    sound->spread = _MINMAX(xmlAttributeGetDouble(xid, "spread"), 0.0f, 1.0f);
     sound->phasing = xmlAttributeGetBool(xid, "phasing");
 
     p = 0;
@@ -665,7 +684,7 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
 
     obj->mode = lwrstr(xmlAttributeGetString(xid, "mode"));
     obj->looping = xmlAttributeGetBool(xid, "looping");
-    obj->pan = xmlAttributeGetDouble(xid, "pan");
+    obj->pan = _MINMAX(xmlAttributeGetDouble(xid, "pan"), -1.0f, 1.0f);
 
     p = 0;
     xdid = xmlMarkId(xid);
