@@ -52,6 +52,7 @@ static int _aaxMixerStart(_handle_t*);
 static int _aaxMixerStop(_handle_t*);
 static int _aaxMixerUpdate(_handle_t*);
 static int _mixerCreateEFFromAAXS(aaxConfig, _buffer_t*);
+static int _aaxGetCapabilities(const aaxConfig);
 static aaxBuffer _aaxCreateBufferFromAAXS(aaxConfig, _buffer_t*, char*);
 
 AAX_API int AAX_APIENTRY
@@ -223,6 +224,10 @@ AAX_API unsigned int AAX_APIENTRY
 aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
 {
    unsigned int rv = AAX_FALSE;
+
+   if (type == AAX_CAPABILITIES) {
+         return _aaxGetCapabilities(config);
+   }
 
    if (config == NULL)
    {
@@ -1389,6 +1394,30 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
 
 /* -------------------------------------------------------------------------- */
+static int
+_aaxGetCapabilities(UNUSED(const aaxConfig config))
+{
+   static int rv = -1;
+
+   if (rv < 0)
+   {
+      rv = _MINMAX(_aaxGetNoCores()-1, 0, 63);
+
+      if (sizeof(size_t) >= 8) {
+         rv |= AAX_64BIT;
+      }
+
+      if (_aaxArchDetectSSE2() || _aaxArchDetectNEON()) {
+         rv |= AAX_SIMD;
+      }
+
+      if (_aaxArchDetectAVX() || _aaxArchDetectHELIUM()) {
+         rv |= AAX_SIMD64;
+      }
+   }
+
+   return rv;
+}
 
 static int
 _aaxMixerInit(_handle_t *handle)

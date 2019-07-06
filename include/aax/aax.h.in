@@ -72,7 +72,7 @@ extern "C" {
 enum aaxHandleType
 {
     AAX_NONE = 0,
-    
+
     AAX_FILTER,
     AAX_EFFECT,
     AAX_CONFIG,			AAX_CONFIG_HD = AAX_CONFIG,
@@ -115,7 +115,7 @@ enum aaxFormat
    AAX_PCM32S_LE,
    AAX_FLOAT_LE,
    AAX_DOUBLE_LE,
- 
+
    AAX_FORMAT_LE_UNSIGNED = (AAX_FORMAT_LE | AAX_FORMAT_UNSIGNED),
    AAX_PCM16U_LE,
    AAX_PCM24U_LE,
@@ -247,6 +247,7 @@ enum aaxSetupType
    AAX_TIMER_MODE,
    AAX_BATCHED_MODE,
    AAX_SEEKABLE_SUPPORT,
+   AAX_CAPABILITIES,
 
    AAX_TRACKS_MIN             = 0x1200,
    AAX_TRACKS_MAX,
@@ -283,6 +284,16 @@ enum aaxSetupType
    AAX_PRESSURE_FACTOR = 0x4800000,
 
    AAX_RELEASE_MODE = -1
+};
+
+enum aaxCapabilities
+{
+   // 0 - 63 is reserved for the number of (cores-1)
+   AAX_CPU_CORES = 0x3F,
+   AAX_64BIT     = 0x40,  // 64-bit whet set, otherwise 32-bit
+
+   AAX_SIMD      = 0x100, // SSE2 or NEON is supported
+   AAX_SIMD64    = 0x200  // AVX or HELIUM is supported
 };
 
 enum aaxErrorType
@@ -521,7 +532,7 @@ enum aaxProcessingType
    AAX_MIX,
    AAX_RINGMODULATE,
    AAX_APPEND,
- 
+
    AAX_PROCESSING_MAX
 };
 

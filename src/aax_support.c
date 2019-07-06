@@ -436,17 +436,9 @@ aaxIsValid(const void* handle, enum aaxHandleType type)
 }
 
 AAX_API unsigned AAX_APIENTRY
-aaxGetNoCores(aaxConfig cfg)
+aaxGetNoCores(UNUSED(aaxConfig cfg))
 {
-   unsigned rv = 1;
-
-   if (aaxIsValid(cfg, AAX_CONFIG_HD))
-   {
-      _handle_t* handle = (_handle_t*)cfg;
-      rv = handle->info->no_cores;
-   }
-
-   return rv;
+   return _aaxGetNoCores();
 }
 
 AAX_API enum aaxType AAX_APIENTRY

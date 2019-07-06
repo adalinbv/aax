@@ -56,6 +56,7 @@ enum {
     AAX_ARCH_VFPV3    = 0x00000002,
     AAX_ARCH_VFPV4    = 0x00000004,
     AAX_ARCH_NEON     = 0x00000008,
+    AAX_ARCH_HELIUM   = 0x0000000F,
 
     AAX_ARCH_HF       = (AAX_ARCH_VFPV3|AAX_ARCH_VFPV4)
 };
@@ -68,6 +69,8 @@ enum {
    AAX_SIMD_VFPV4,
    AAX_SIMD_NEON,
    AAX_SIMD_VFPV4_NEON,
+   AAX_SIMD_HELIUM,
+   AAX_SIMD_VFPV4_HELIUM,
    AAX_SIMD_MAX
 };
 
@@ -114,43 +117,55 @@ _aaxArchDetectFeatures()
                if (features)
                {
                   ptr = strchr(features, '\n');
-                  if (ptr) *ptr = '\0';
+                  if (ptr) ptr[0] = '\0';
 
                   ptr = strstr(features, " vfp");
-                  if (ptr && (*(ptr+4) == ' ' || *(ptr+5) == '\0'))
+                  if (ptr && (ptr[4] == ' ' || ptr[4] == '\0'))
                   {
                      _aax_arch_capabilities |= AAX_ARCH_VFPV2;
                      res = AAX_SIMD_VFPV2;
                   }
                   ptr = strstr(features, " vfpv3-d16");
-                  if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
+                  if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
                   {
                      _aax_arch_capabilities |= AAX_ARCH_VFPV3;
                      res = AAX_SIMD_VFPV3;
                   }
 
                   ptr = strstr(features, " vfpv3");
-                  if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
+                  if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
                   {
                      _aax_arch_capabilities |= AAX_ARCH_VFPV3;
                      res = AAX_SIMD_VFPV3;
                   }
 
                   ptr = strstr(features, " vfpv4");
-                  if (ptr && (*(ptr+6) == ' ' || *(ptr+7) == '\0'))
+                  if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
                   {
                      _aax_arch_capabilities |= AAX_ARCH_VFPV4;
                      res = AAX_SIMD_VFPV4;
                   }
 
                   ptr = strstr(features, " neon");
-                  if (ptr && (*(ptr+5) == ' ' || *(ptr+6) == '\0'))
+                  if (ptr && (ptr[5] == ' ' || ptr[5] == '\0'))
                   {
                      _aax_arch_capabilities |= AAX_ARCH_NEON;
                      if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
                         res = AAX_SIMD_VFPV4_NEON;
                      }
                      else res = AAX_SIMD_NEON;
+                  }
+
+                  ptr = strstr(features, " helium");
+                  if (ptr && (ptr[7] == ' ' || ptr[7] == '\0'))
+                  {
+#if 0
+                     _aax_arch_capabilities |= AAX_ARCH_HELIUM;
+                     if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
+                        res = AAX_SIMD_VFPV4_HELIUM;
+                     }
+                     else res = AAX_SIMD_HELIUM;
+#endif
                   }
                }
             }
@@ -182,6 +197,10 @@ _aaxArchDetectVFPV4() {
 
 char _aaxArchDetectNEON() {
    return (_aaxArchDetectFeatures() & AAX_ARCH_NEON);
+}
+
+char _aaxArchDetectNEON() {
+   return (_aaxArchDetectFeatures() & AAX_ARCH_HELIUM);
 }
 
 uint32_t
@@ -409,6 +428,10 @@ _aaxArchDetectVFPV4() {
 }
 
 char _aaxArchDetectNEON() {
+   return 0;
+}
+
+char _aaxArchDetectHELIUM() {
    return 0;
 }
 
