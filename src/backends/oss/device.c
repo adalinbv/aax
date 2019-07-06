@@ -143,6 +143,7 @@ typedef struct
    int fd;
    float latency;
    float frequency_hz;
+   float refresh_rate;
    unsigned int format;
    unsigned int no_tracks;
    size_t buffer_size;
@@ -543,6 +544,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
    handle->format = format;
    handle->no_tracks = channels;
    handle->frequency_hz = (float)rate;
+   handle->refresh_rate = *refresh_rate;
 
    err = 0;
    handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
@@ -822,6 +824,9 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->hwgain;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -841,7 +846,7 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)NO_FRAGMENTS;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

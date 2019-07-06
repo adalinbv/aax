@@ -137,6 +137,7 @@ typedef struct
    unsigned int bits_sample;
    unsigned int no_tracks;
    unsigned int no_frames;
+   float refresh_rate;
    float frequency_hz;
    float latency;
 
@@ -421,6 +422,7 @@ _aaxSLESDriverSetup(const void *id, float *refresh_rate, int *fmt,
    } else {
       *refresh_rate = period_rate;
    }
+   handle->refresh_rate = *refresh_rate;
 
    // TODO: for now
    if (*tracks > 2)
@@ -657,6 +659,9 @@ _aaxSLESDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -676,7 +681,7 @@ _aaxSLESDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 2.0f;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = handle->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, handle->refresh_rate);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

@@ -52,7 +52,6 @@ static int _aaxMixerStart(_handle_t*);
 static int _aaxMixerStop(_handle_t*);
 static int _aaxMixerUpdate(_handle_t*);
 static int _mixerCreateEFFromAAXS(aaxConfig, _buffer_t*);
-static int _aaxGetCapabilities(const aaxConfig);
 static aaxBuffer _aaxCreateBufferFromAAXS(aaxConfig, _buffer_t*, char*);
 
 AAX_API int AAX_APIENTRY
@@ -1394,7 +1393,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
 
 /* -------------------------------------------------------------------------- */
-static int
+int
 _aaxGetCapabilities(UNUSED(const aaxConfig config))
 {
    static int rv = -1;
@@ -1478,6 +1477,8 @@ _aaxMixerInit(_handle_t *handle)
             periods = _MAX(rintf(refrate/info->refresh_rate), 1.0f);
             info->refresh_rate = refrate/periods;
             info->no_samples = TIME_TO_SAMPLES(freq, info->refresh_rate);
+
+            info->max_emitters = _aaxGetNoEmitters(be);
 
             /* copy the hardware volume from the backend */
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);

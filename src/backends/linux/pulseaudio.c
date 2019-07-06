@@ -139,6 +139,7 @@ typedef struct
 
    pa_sample_spec spec;
    pa_buffer_attr attr;
+   float refresh_rate;
 
    /* capabilities */
    unsigned int min_frequency;
@@ -577,6 +578,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    period_rate = (float)rate/period_frames;
    *refresh_rate = period_rate;
+   handle->refresh_rate = *refresh_rate;
 
    flags = PA_STREAM_START_CORKED | PA_STREAM_INTERPOLATE_TIMING |
            PA_STREAM_NOT_MONOTONIC | PA_STREAM_AUTO_TIMING_UPDATE |
@@ -758,6 +760,9 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = 1.0f;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -777,7 +782,7 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)NO_FRAGMENTS;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

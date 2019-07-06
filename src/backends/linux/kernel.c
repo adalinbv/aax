@@ -157,6 +157,7 @@ typedef struct
 
    float latency;
    float frequency_hz;
+   float refresh_rate;
    unsigned int format;
    unsigned int no_tracks;
    ssize_t period_frames;
@@ -717,6 +718,7 @@ _aaxLinuxDriverSetup(const void *id, float *refresh_rate, int *fmt,
                } else {
                   *refresh_rate = period_rate;
                }
+               handle->refresh_rate = *refresh_rate;
 
                if (!handle->use_timer)
                {
@@ -1164,6 +1166,9 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = 1.0f; // handle->hwgain;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -1185,7 +1190,7 @@ _aaxLinuxDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->max_periods;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

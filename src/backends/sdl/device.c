@@ -143,6 +143,7 @@ typedef struct
 
    unsigned int format;
    char bits_sample;
+   float refresh_rate;
    float latency;
 
    _data_t *dataBuffer;
@@ -529,6 +530,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
          } else {
             *refresh_rate = period_rate;
          }
+         handle->refresh_rate = *refresh_rate;
 
 #if USE_PID
          handle->fill.aim = FILL_FACTOR*handle->spec.samples/handle->spec.freq;
@@ -781,6 +783,9 @@ _aaxSDLDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_VOLUME:
          rv = 0.0f;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -800,7 +805,7 @@ _aaxSDLDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 2.0f;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

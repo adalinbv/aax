@@ -170,6 +170,7 @@ typedef struct
    char *ifname[2];
    _aaxRenderer *render;
    enum aaxRenderMode setup;
+   float refresh_rate;
 
    _batch_cvt_to_intl_proc cvt_to_intl;
    _batch_cvt_from_intl_proc cvt_from_intl;
@@ -710,6 +711,7 @@ _aaxWASAPIDriverSetup(const void *id, float *refresh_rate, int *fmt,
          *refresh_rate = period_rate;
          period_frames = SIZE_ALIGNED((size_t)rintf((rate*periods)/period_rate));
       }
+      handle->refresh_rate = *refresh_rate;
 
       switch (bits)
       {
@@ -1053,6 +1055,9 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_VOLUME:
          rv = handle->volumeHW;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -1072,7 +1077,7 @@ _aaxWASAPIDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)DEFAULT_PERIODS;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

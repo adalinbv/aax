@@ -74,6 +74,7 @@ enum _aaxDriverParam {
    DRIVER_AGC_LEVEL,
    DRIVER_BLOCK_SIZE,
    DRIVER_FREQUENCY,
+   DRIVER_REFRESHRATE,
 
    /* int */
    DRIVER_MIN_FREQUENCY = 0x100,
@@ -130,7 +131,7 @@ typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*)
 typedef void _aaxDriverPostProcess(const void*, const void*, void*, const void*, const void*, void*);
 typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*, char, char);
 
-typedef unsigned int _aaxDriverGetSetSources(unsigned int, int);
+typedef unsigned int _aaxDriverGetSetSources(unsigned int, int, float*);
 
 typedef void *_aaxDriverRingBufferCreate(float, enum aaxRenderMode);
 typedef void _aaxDriverRingBufferDestroy(void*);

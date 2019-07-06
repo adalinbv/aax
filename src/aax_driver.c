@@ -1001,9 +1001,7 @@ _open_handle(aaxConfig config)
                   res = _intBufAddData(handle->sensors,_AAX_SENSOR, sensor);
                   if (res != UINT_MAX)
                   {
-                     unsigned int num;
-
-                     num = _aaxGetNoEmitters(NULL);
+                     unsigned int num = _AAX_MAX_SOURCES_AVAIL;
                      sensor->mixer->info->max_emitters = num;
                      num = _AAX_MAX_MIXER_REGISTERED;
                      sensor->mixer->info->max_registered = num;

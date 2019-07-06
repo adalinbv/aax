@@ -1165,7 +1165,7 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 1.0f;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = (float)handle->ext->get_param(handle->ext, __F_NO_SAMPLES);

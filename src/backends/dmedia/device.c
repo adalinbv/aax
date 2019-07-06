@@ -156,6 +156,7 @@ typedef struct
 {
    void *handle;
    int mode;
+   float refresh_rate;
    unsigned int noPorts;
    _port_t *port;
    _aaxRenderer *render;
@@ -560,7 +561,7 @@ _aaxDMediaDriverDisconnect(void *id)
 }
 
 static int
-_aaxDMediaDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
+_aaxDMediaDriverSetup(const void *id, float *refresh_rate, int *fmt,
                       unsigned int *tracks, float *speed, UNUSED(int *bitrate),
                       int registered, float period_rate)
 {
@@ -575,8 +576,10 @@ _aaxDMediaDriverSetup(const void *id, UNUSED(float *refresh_rate), int *fmt,
    assert (id != 0);
 
    channels = *tracks;
-   if (handle->port[0]._no_channels_avail >= channels)
+   handle->refresh_rate = *refresh_rate;
+   if (handle->port[0]._no_channels_avail >= channels) {
       handle->noPorts = 1;
+   }
 
    switch(*fmt)
    {
@@ -947,6 +950,9 @@ _aaxDMediaDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_VOLUME:
          rv = 0.0f;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -966,7 +972,7 @@ _aaxDMediaDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 1.0f;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

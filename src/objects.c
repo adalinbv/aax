@@ -78,8 +78,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
    info->unit_m = 1.0f;
 
    info->update_rate = 0;
-   info->sse_level = _aaxGetSIMDSupportLevel();
-   info->no_cores = _aaxGetNoCores();
+   info->capabilities = _aaxGetCapabilities(NULL);
 
    info->id = INFO_ID;
    info->backend = handle;
@@ -331,34 +330,12 @@ float _aaxDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4] =
 static unsigned int
 _aaxGetSetNoMonoEmitters(const _aaxDriverBackend *be, unsigned int max, int num)
 {
-   static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
-   static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
-   unsigned int abs_num = abs(num);
-   unsigned int ret = _sources;
+   float refresh_rate = 0.0f;
 
-   if (max)
-   {
-      if (max > _AAX_MAX_SOURCES_AVAIL) max = _AAX_MAX_SOURCES_AVAIL;
-      _aaxAtomicIntSet(&_max_sources, max);	// _max_sources = max;
-      _aaxAtomicIntSet(&_sources, max);		// _sources = max;
-      ret = max;
-   }
+   assert(be);
 
-   if (abs_num && (abs_num < _AAX_MAX_MIXER_REGISTERED))
-   {
-      unsigned int _src = _sources - num;
-      if ((_sources >= (unsigned int)num) && (_src < _max_sources))
-      {
-         _aaxAtomicIntSet(&_sources, _src);	// _sources = _src;
-         ret = abs_num;
-      }
-   }
-
-   if (be) {
-      ret = be->getset_sources(_max_sources, num);
-   }
-
-   return ret;
+// refresh_rate = be->param(be, DRIVER_REFRESHRATE);
+   return be->getset_sources(max, num, &refresh_rate);
 }
 
 unsigned int

@@ -30,6 +30,8 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <aax/aax.h>
+
 #include <base/types.h>
 
 #ifdef _MSC_VER
@@ -152,6 +154,8 @@ extern _batch_cvt_to_intl_proc _batch_cvtps_intl_24;
 extern _batch_cvt_to_intl_proc _batch_cvtpd_intl_24;
 
 unsigned int _aaxGetNoCores();
+int _aaxGetCapabilities(const aaxConfig);
+
 uint32_t _aaxGetSIMDSupportLevel();
 const char* _aaxGetSIMDSupportString();
 

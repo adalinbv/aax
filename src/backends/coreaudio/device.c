@@ -461,6 +461,9 @@ _aaxCoreAudioDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MIN_VOLUME:
          rv = 0.0f;
          break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
+         break;
 
 		/* int */
       case DRIVER_MIN_FREQUENCY:
@@ -480,7 +483,7 @@ _aaxCoreAudioDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 1.0f;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = handle->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, handle->refresh_rate);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

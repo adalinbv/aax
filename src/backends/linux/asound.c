@@ -147,6 +147,7 @@ typedef struct
 
     float latency;
     float frequency_hz;
+    float refresh_rate;
 
     float padding;		/* for sensor clock drift correction   */
     size_t threshold;		/* sensor buffer threshold for padding */
@@ -765,6 +766,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    rate = (unsigned int)*speed;
    tracks = *channels;
+   handle->refresh_rate = *refresh_rate;
    if (tracks > handle->no_tracks) {
       tracks = handle->no_tracks;
    }
@@ -1049,6 +1051,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
             } else {
                *refresh_rate = period_rate;
             }
+            handle->refresh_rate = *refresh_rate;
 
             if (!handle->use_timer && strcmp(handle->devname, "default"))
             {
@@ -1483,7 +1486,6 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
    float rv = 0.0f;
    if (handle)
    {
-      
       switch(param)
       {
 		/* float */
@@ -1498,6 +1500,9 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_VOLUME:
          rv = handle->volumeCur;
+         break;
+      case DRIVER_REFRESHRATE:
+         rv = handle->refresh_rate;
          break;
 
 		/* int */
@@ -1520,7 +1525,7 @@ _aaxALSADriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->max_periods;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;
