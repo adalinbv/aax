@@ -155,6 +155,20 @@ unsigned int _aaxGetNoCores();
 uint32_t _aaxGetSIMDSupportLevel();
 const char* _aaxGetSIMDSupportString();
 
+char _aaxArchDetectSSE();
+char _aaxArchDetectSSE2();
+char _aaxArchDetectSSE3();
+char _aaxArchDetectSSE4();
+char _aaxArchDetectXOP();
+char _aaxArchDetectAVX();
+char _aaxArchDetectAVX2();
+
+char _aaxArchDetectHF();
+char _aaxArchDetectVFPV2();
+char _aaxArchDetectVFPV3();
+char _aaxArchDetectVFPV4();
+char _aaxArchDetectNEON();
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

@@ -160,6 +160,30 @@ _aaxArchDetectFeatures()
    return res;
 }
 
+char
+_aaxArchDetectHF() {
+   return (_aaxArchDetectFeatures() & AAX_ARCH_HF);
+}
+
+char
+_aaxArchDetectVFPV2() {
+   return (_aaxArchDetectFeatures() & AAX_ARCH_VFPV2);
+}
+
+char
+_aaxArchDetectVFPV3() {
+   return (_aaxArchDetectFeatures() & AAX_ARCH_VFPV3);
+}
+
+char
+_aaxArchDetectVFPV4() {
+   return (_aaxArchDetectFeatures() & AAX_ARCH_VFPV4);
+}
+
+char _aaxArchDetectNEON() {
+   return (_aaxArchDetectFeatures() & AAX_ARCH_NEON);
+}
+
 uint32_t
 _aaxGetSIMDSupportLevel()
 {
@@ -360,6 +384,32 @@ _aaxGetNoCores()
    cores = sysinfo.dwNumberOfProcessors;
 # endif
    return (cores > 0) ? cores : 1;
+}
+
+#else // defined(__arm__) || defined(_M_ARM)
+
+char
+_aaxArchDetectHF() {
+   return 0;
+}
+
+char
+_aaxArchDetectVFPV2() {
+   return 0;
+}
+
+char
+_aaxArchDetectVFPV3() {
+   return 0;
+}
+
+char
+_aaxArchDetectVFPV4() {
+   return 0;
+}
+
+char _aaxArchDetectNEON() {
+   return 0;
 }
 
 #endif // defined(__arm__) || defined(_M_ARM)

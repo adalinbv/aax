@@ -736,7 +736,6 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
 /* -------------------------------------------------------------------------- */
 
-char _aaxArchDetectAVX();
 static const char* _aax_default_devname = "None";
 
 int get_low_resource()
@@ -752,11 +751,7 @@ int get_low_resource()
       if (!env || !_aax_getbool(env))
       {
          size_t mem = _aax_get_free_memory()/(50*1024*1024);	// at least 50Mb
-#if defined(__x86_64__)
          int avx = _aaxArchDetectAVX();
-#else
-         int avx = 0;
-#endif
          int cores = low_resource/4;
 
          if (mem && (avx || cores)) { // AVX or at least 4 cores without AVX

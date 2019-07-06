@@ -623,5 +623,43 @@ _aaxGetNoCores()
    return (cores > 0) ? cores : 1;
 }
 
+#else	/* __i386__ || __x86_64__ */
+
+char
+_aaxArchDetectSSE() {
+   return 0;
+}
+
+char
+_aaxArchDetectSSE2() {
+   return 0;
+}
+
+char
+_aaxArchDetectSSE3() {
+   return 0;
+}
+
+char
+_aaxArchDetectSSE4() {
+   return 0;
+}
+
+char
+_aaxArchDetectXOP() {
+   return 0;
+}
+
+
+char
+_aaxArchDetectAVX() {
+   return 0;
+}
+
+char
+_aaxArchDetectAVX2() {
+   return 0;
+}
+
 #endif /* __i386__ || __x86_64__ */
 
