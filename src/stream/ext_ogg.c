@@ -524,7 +524,7 @@ _ogg_interfaces(int ext, int mode)
             break;
          case _EXT_OPUS:
             format = _FMT_OPUS;
-            break; 
+            break;
          default:
             break;
          }
@@ -756,7 +756,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
          if (curr == handle->bitstream_serial_no)
          {
             curr = (header[4] >> 16) | (header[5] << 16);
-            if (!handle->page_sequence_no || 
+            if (!handle->page_sequence_no ||
                 curr > handle->page_sequence_no)
             {
                unsigned char *ch = (unsigned char*)header;
@@ -770,11 +770,11 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
    unsigned int i;
    uint64_t i64;
    uint32_t i32;
-      
+
    printf("Read Header:\n");
-      
+
    printf("0: %08x (Magic number: \"%c%c%c%c\"\n", header[0], ch[0], ch[1], ch[2], ch[3]);
-   
+
    printf("1: %08x (Version: %i | Type: 0x%x)\n", header[1], ch[4], ch[5]);
 
    i64 = (uint64_t)(header[1] >> 16);
@@ -787,14 +787,14 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 
    i32 = (header[4] >> 16) | (header[5] << 16);
    printf("4: %08x (Sequence number: %08x)\n", header[4], i32);
-   
+
    i32 = (header[5] >> 16) | (header[6] << 16);
    printf("5: %08x (CRC cehcksum: %08x)\n", header[5], i32);
-   
+
    i32 = (header[6] >> 16) & 0xFF;
-   
+
    i64 = 0;
-   for (i=0; i<i32; ++i) { 
+   for (i=0; i<i32; ++i) {
       i64 += (uint8_t)ch[27+i];
    }
    printf("6: %08x (Page segments: %i, Total segment size: %zi)\n", header[6], i32, i64);
@@ -945,12 +945,16 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
             }
 
             if (handle->no_tracks <= 0 || handle->frequency <= 0 ||
-                (handle->blocksize > blocksize1) ||
-                (((header[7] >> 16) & 0x1) == 0))
+                (handle->blocksize > blocksize1))
+//              || (((header[7] >> 16) & 0x1) != 0))
             {
                // Failure to meet any of these conditions renders a
                // stream undecodable.
-//             _AAX_FILEDRVLOG("OGG: Invalid Vorbis stream");
+               _AAX_FILEDRVLOG("OGG: Invalid Vorbis stream");
+#if 0
+ printf("no_tracks: %i, frequency: %i, blocksize: %li (%i)\n", handle->no_tracks, handle->frequency, handle->blocksize, blocksize1);
+ printf("(header[7] >> 16) & 0x1: %i\n", (header[7] >> 16) & 0x1);
+#endif
                return __F_EOF;
             }
 
