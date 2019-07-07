@@ -1,11 +1,13 @@
 
-* Tue Jul 02 2019 - tech@adalin.org
+* Sun Jul 07 2019 - tech@adalin.org
 - AeonWave (3.6.2) stable; urgency=low
 
  * Add the option to retrieve the system capabilites by calling aaxMixerGetSetup
    with AAX_CAPABILITIES as the type parameter.
+ * Fix OGG streams, a missing OGG framing-bit is not a reason to discard a
+   stream as invalid.
 
--- Erik Hofman <tech@adalin.org>  Tue 02 Jul 2019 14:14:03 + 0200
+-- Erik Hofman <tech@adalin.org>  Sun 07 Jul 2019 11:36:28 + 0200
 
 
 * Tue Jul 02 2019 - tech@adalin.org
