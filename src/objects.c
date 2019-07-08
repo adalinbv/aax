@@ -327,37 +327,24 @@ float _aaxDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4] =
    { 0.00f, 0.00f, 0.00f, 1.0f }        /* right side speaker    */
 };
 
-static unsigned int
-_aaxGetSetNoMonoEmitters(const _aaxDriverBackend *be, unsigned int max, int num)
-{
-   float refresh_rate = 0.0f;
-
-   assert(be);
-
-// refresh_rate = be->param(be, DRIVER_REFRESHRATE);
-   return be->getset_sources(max, num, &refresh_rate);
-}
-
 unsigned int
 _aaxGetNoEmitters(const _aaxDriverBackend *be) {
-   int rv = _aaxGetSetNoMonoEmitters(be, 0, 0);
-   if (rv > _AAX_MAX_MIXER_REGISTERED) rv = _AAX_MAX_MIXER_REGISTERED;
-   return rv;
+   return _MAX(be->getset_sources(0, 0), _AAX_MAX_MIXER_REGISTERED);
 }
 
 unsigned int
 _aaxSetNoEmitters(const _aaxDriverBackend *be, unsigned int max) {
-   return _aaxGetSetNoMonoEmitters(be, max, 0);
+   return be->getset_sources(max, 0);
 }
 
 unsigned int
 _aaxIncreaseEmitterCounter(const _aaxDriverBackend *be) {
-   return _aaxGetSetNoMonoEmitters(be, 0, 1);
+   return be->getset_sources(0, 1);
 }
 
 unsigned int
 _aaxDecreaseEmitterCounter(const _aaxDriverBackend *be) {
-   return _aaxGetSetNoMonoEmitters(be, 0, -1);
+   return be->getset_sources(0, -1);
 }
 
 static void

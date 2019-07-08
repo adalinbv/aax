@@ -846,7 +846,7 @@ _aaxOSSDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)NO_FRAGMENTS;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;

@@ -232,7 +232,7 @@ _aaxNoneDriverRender(UNUSED(const void* config))
 }
 
 static unsigned int
-_aaxNoneDriverGetSetSources(unsigned int max, int num, float *refresh_rate)
+_aaxNoneDriverGetSetSources(UNUSED(unsigned int max), UNUSED(int num))
 {
    return 0;
 }
@@ -470,7 +470,7 @@ _aaxLoopbackDriverParam(const void *id, enum _aaxDriverParam param)
          rv = 1.0f;
          break;
       case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0, NULL);
+         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
          break;
       case DRIVER_MAX_SAMPLES:
          rv = AAX_FPINFINITE;
@@ -869,7 +869,7 @@ _aaxSoftwareMixerThread(void* config)
 }
 
 unsigned int
-_aaxSoftwareDriverGetSetSources(unsigned int max, int num, float *refresh_rate)
+_aaxSoftwareDriverGetSetSources(unsigned int max, int num)
 {
    static unsigned int _max_sources = _AAX_MAX_SOURCES_AVAIL;
    static unsigned int _sources = _AAX_MAX_SOURCES_AVAIL;
@@ -881,7 +881,6 @@ _aaxSoftwareDriverGetSetSources(unsigned int max, int num, float *refresh_rate)
 //    static int capabilites = _aaxGetCapabilities(NULL);
 //    static int cores = (capabilites & AAX_CPU_CORES)+1;
 //    static int simd64 = (capabilites & AAX_SIMD64);
-//    float refrate = *refresh_rate ? (1.0f / *refresh_rate) : 0.0f;
 
 //    if (!simd64) max = 64*cores;
 

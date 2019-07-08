@@ -131,7 +131,7 @@ typedef void _aaxDriverPrepare3d(void*, const void*, float, float, void*, void*)
 typedef void _aaxDriverPostProcess(const void*, const void*, void*, const void*, const void*, void*);
 typedef void _aaxDriverPrepare(const void*, const void*, void*, const void*, char, char);
 
-typedef unsigned int _aaxDriverGetSetSources(unsigned int, int, float*);
+typedef unsigned int _aaxDriverGetSetSources(unsigned int, int);
 
 typedef void *_aaxDriverRingBufferCreate(float, enum aaxRenderMode);
 typedef void _aaxDriverRingBufferDestroy(void*);
