@@ -1798,6 +1798,7 @@ MIDIFile::initialize(const char *grep)
         int capabilities = midi.get(AAX_CAPABILITIES);
         int cores = (capabilities & AAX_CPU_CORES)+1;
         int simd64 = (capabilities & AAX_SIMD64);
+        int simd = (capabilities & AAX_SIMD);
         float refrate;
 
         if (simd64 && cores >=4) refrate = 90.0f;
