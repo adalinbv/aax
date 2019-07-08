@@ -518,6 +518,9 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
                     auto ret = name_map.insert({key_no,buffer});
                     it = ret.first;
                 }
+                else {
+                    throw(std::invalid_argument("Instrument file "+name+" could not load"));
+                }
             }
         }
     }
@@ -1792,7 +1795,12 @@ MIDIFile::initialize(const char *grep)
             }
         }
 
-        midi.set(AAX_REFRESH_RATE, 90.0f);
+        int capabilities = midi.get(AAX_CAPABILITIES);
+        int cores = (capabilities & AAX_CPU_CORES)+1;
+        int simd64 = (capabilities & AAX_SIMD64);
+        float refrate = ((simd64 && cores >= 4) || (cores >= 8)) ? 90.f : 60.f;
+
+        midi.set(AAX_REFRESH_RATE, refrate);
         midi.set(AAX_INITIALIZED);
         pos_sec = 0;
     }
