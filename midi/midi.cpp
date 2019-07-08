@@ -1771,8 +1771,25 @@ MIDIFile::initialize(const char *grep)
     {
         rewind();
 
+        int capabilities = midi.get(AAX_CAPABILITIES);
+        int cores = (capabilities & AAX_CPU_CORES)+1;
+        int simd64 = (capabilities & AAX_SIMD64);
+        int simd = (capabilities & AAX_SIMD);
+        float refrate;
+
+        if (simd64 && cores >=4) refrate = 90.0f;
+        else if (simd && cores >= 4) refrate = 60.0f;
+        else refrate = 45.0f;
+
+        midi.set(AAX_REFRESH_RATE, refrate);
+        midi.set(AAX_INITIALIZED);
+        pos_sec = 0;
+
         if (midi.get_verbose())
         {
+            MESSAGE("Frequency : %i Hz\n", midi.get(AAX_FREQUENCY));
+            MESSAGE("Upd. rate : %i Hz\n", midi.get(AAX_REFRESH_RATE));
+
             int hour, minutes, seconds;
 
             unsigned int format = midi.get_format();
@@ -1794,20 +1811,6 @@ MIDIFile::initialize(const char *grep)
                 MESSAGE("Duration  : %02i:%02i minutes\n", minutes, seconds);
             }
         }
-
-        int capabilities = midi.get(AAX_CAPABILITIES);
-        int cores = (capabilities & AAX_CPU_CORES)+1;
-        int simd64 = (capabilities & AAX_SIMD64);
-        int simd = (capabilities & AAX_SIMD);
-        float refrate;
-
-        if (simd64 && cores >=4) refrate = 90.0f;
-        else if (simd && cores >= 4) refrate = 60.0f;
-        else refrate = 45.0f;
-
-        midi.set(AAX_REFRESH_RATE, refrate);
-        midi.set(AAX_INITIALIZED);
-        pos_sec = 0;
     }
     else {
         midi.grep(file, grep);
