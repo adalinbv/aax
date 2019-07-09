@@ -53,7 +53,7 @@
 
 #if defined(__i386__) || defined(__x86_64__)
 
-#define DMAc		0x444d4163 
+#define DMAc		0x444d4163
 #define htuA		0x68747541
 #define itne		0x69746e65
 
@@ -285,36 +285,32 @@ _aaxGetSSELevel()
 
    if (init)
    {
-      char *env = getenv("AAX_NO_SIMD_SUPPORT");
-      if (!_aax_getbool(env))
-      {
-         int res;
+      int res;
 
-         _aax_calloc = _aax_calloc_aligned;
-         _aax_malloc = _aax_malloc_aligned;
-         
-         res = _aaxArchDetectSSE();
-         if (res) sse_level = res;
+      _aax_calloc = _aax_calloc_aligned;
+      _aax_malloc = _aax_malloc_aligned;
 
-         res = _aaxArchDetectSSE2();
-         if (res) sse_level = res;
+      res = _aaxArchDetectSSE();
+      if (res) sse_level = res;
 
-         res = _aaxArchDetectSSE3();
-         if (res) sse_level = res;
+      res = _aaxArchDetectSSE2();
+      if (res) sse_level = res;
+
+      res = _aaxArchDetectSSE3();
+      if (res) sse_level = res;
 # if 0
 // We don't have any useful SSE4 code
-         res = _aaxArchDetectSSE4();
-         if (res) sse_level = res;
+      res = _aaxArchDetectSSE4();
+      if (res) sse_level = res;
 # endif
-         res = _aaxArchDetectAVX();
-         if (res) sse_level = res;
+      res = _aaxArchDetectAVX();
+      if (res) sse_level = res;
 
-         res = _aaxArchDetectXOP();
-         if (res) sse_level = res;
+      res = _aaxArchDetectXOP();
+      if (res) sse_level = res;
 
-         res = _aaxArchDetectAVX2();
-         if (res) sse_level = res;
-      }
+      res = _aaxArchDetectAVX2();
+      if (res) sse_level = res;
    }
 
    return sse_level;
@@ -323,145 +319,182 @@ _aaxGetSSELevel()
 uint32_t
 _aaxGetSIMDSupportLevel()
 {
-   uint32_t level = AAX_NO_SIMD;
+   static char support_simd64 = AAX_TRUE;
+   static char support_simd = AAX_TRUE;
+   static uint32_t rv = AAX_SIMD_NONE;
+   static int init = AAX_TRUE;
 
 # ifndef __TINYC__
-   level = _aaxGetSSELevel();
-   if (_aax_arch_capabilities & AAX_ARCH_SSE)
+   if (init)
    {
-      vec3fMagnitude = _vec3fMagnitude_sse;
-      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse;
-      vec3fDotProduct = _vec3fDotProduct_sse;
-      vec3fCrossProduct = _vec3fCrossProduct_sse;
-      vec3fAbsolute = _vec3fAbsolute_sse;
-      vec4fCopy = _vec4fCopy_sse;
-      vec4fMulVec4 = _vec4fMulVec4_sse;
-      mtx4fMul = _mtx4fMul_sse;
-      mtx4fMulVec4 = _mtx4fMulVec4_sse;
-      vec3fAltitudeVector = _vec3fAltitudeVector_sse;
-   }
-   if (_aax_arch_capabilities & AAX_ARCH_SSE2)
-   {
-//    _aax_memcpy = _aax_memcpy_sse2;
+      char *simd_support = getenv("AAX_NO_SIMD_SUPPORT");
+      char *simd_level = getenv("AAX_SIMD_LEVEL");
 
-      mtx4dMul = _mtx4dMul_sse2;
-      mtx4dMulVec4 = _mtx4dMulVec4_sse2;
-      vec3dAltitudeVector = _vec3dAltitudeVector_sse2;
+      init = AAX_FALSE;
+      rv = _aaxGetSSELevel();
+      if (simd_support) { // for backwards compatibility
+         support_simd = _aax_getbool(simd_support);
+         if (!support_simd) {
+            rv = AAX_SIMD_NONE;
+         }
+      }
 
-      _aax_generate_waveform_float = _aax_generate_waveform_sse2;
+      if (simd_level)
+      {
+         int level = atoi(simd_level);
+         if (level < 64)
+         {
+            support_simd64 = AAX_FALSE;
+            rv &= 0x8;
+         }
+         if (level < 32)
+         {
+            support_simd = AAX_FALSE;
+            rv = AAX_SIMD_NONE;
+         }
+      }
 
-      _batch_get_average_rms = _batch_get_average_rms_sse2;
-      _batch_saturate24 = _batch_saturate24_sse2;
+      if (support_simd)
+      {
+         if (_aax_arch_capabilities & AAX_ARCH_SSE)
+         {
+            vec3fMagnitude = _vec3fMagnitude_sse;
+            vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse;
+            vec3fDotProduct = _vec3fDotProduct_sse;
+            vec3fCrossProduct = _vec3fCrossProduct_sse;
+            vec3fAbsolute = _vec3fAbsolute_sse;
+            vec4fCopy = _vec4fCopy_sse;
+            vec4fMulVec4 = _vec4fMulVec4_sse;
+            mtx4fMul = _mtx4fMul_sse;
+            mtx4fMulVec4 = _mtx4fMulVec4_sse;
+            vec3fAltitudeVector = _vec3fAltitudeVector_sse;
+         }
+         if (_aax_arch_capabilities & AAX_ARCH_SSE2)
+         {
+//          _aax_memcpy = _aax_memcpy_sse2;
 
-      _batch_roundps = _batch_roundps_cpu;
-      _batch_cvtps_24 = _batch_cvtps_24_sse2;
-      _batch_cvt24_ps = _batch_cvt24_ps_sse2;
-      _batch_cvt24_16 = _batch_cvt24_16_sse2;
-      _batch_cvt16_24 = _batch_cvt16_24_sse2;
-      _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
+            mtx4dMul = _mtx4dMul_sse2;
+            mtx4dMulVec4 = _mtx4dMulVec4_sse2;
+            vec3dAltitudeVector = _vec3dAltitudeVector_sse2;
+
+            _aax_generate_waveform_float = _aax_generate_waveform_sse2;
+
+            _batch_get_average_rms = _batch_get_average_rms_sse2;
+            _batch_saturate24 = _batch_saturate24_sse2;
+
+            _batch_roundps = _batch_roundps_cpu;
+            _batch_cvtps_24 = _batch_cvtps_24_sse2;
+            _batch_cvt24_ps = _batch_cvt24_ps_sse2;
+            _batch_cvt24_16 = _batch_cvt24_16_sse2;
+            _batch_cvt16_24 = _batch_cvt16_24_sse2;
+            _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse2;
 
 #  if RB_FLOAT_DATA
-      _batch_fmul_value = _batch_fmul_value_sse2;
-      _batch_fmadd = _batch_fmadd_sse2;
-      _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
-      _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
-      _batch_movingaverage_float = _batch_ema_iir_float_sse2;
-      _batch_freqfilter_float = _batch_freqfilter_float_sse2;
-      _batch_resample_float = _batch_resample_float_sse2;
+            _batch_fmul_value = _batch_fmul_value_sse2;
+            _batch_fmadd = _batch_fmadd_sse2;
+            _batch_cvtps24_24 = _batch_cvtps24_24_sse2;
+            _batch_cvt24_ps24 = _batch_cvt24_ps24_sse2;
+            _batch_movingaverage_float = _batch_ema_iir_float_sse2;
+            _batch_freqfilter_float = _batch_freqfilter_float_sse2;
+            _batch_resample_float = _batch_resample_float_sse2;
 #  else
-      _batch_imadd = _batch_imadd_sse2;
-      _batch_freqfilter = _batch_freqfilter_sse2;
-      _batch_resample = _batch_resample_sse2;
+            _batch_imadd = _batch_imadd_sse2;
+            _batch_freqfilter = _batch_freqfilter_sse2;
+            _batch_resample = _batch_resample_sse2;
 #  endif
-   }
-   if (_aax_arch_capabilities & AAX_ARCH_SSE3)
-   {
-      vec3fMagnitude = _vec3fMagnitude_sse3;
-      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse3;
-      vec3fDotProduct = _vec3fDotProduct_sse3;
-      _batch_imul_value = _batch_imul_value_sse3;
+         }
+         if (_aax_arch_capabilities & AAX_ARCH_SSE3)
+         {
+            vec3fMagnitude = _vec3fMagnitude_sse3;
+            vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse3;
+            vec3fDotProduct = _vec3fDotProduct_sse3;
+            _batch_imul_value = _batch_imul_value_sse3;
 
 #  if RB_FLOAT_DATA
-//    _batch_resample_float = _batch_resample_float_sse3;
+//          _batch_resample_float = _batch_resample_float_sse3;
 #  else
-      _batch_resample = _batch_resample_sse3;
+            _batch_resample = _batch_resample_sse3;
 #  endif
-   }
+         }
 
-   if (_aax_arch_capabilities & AAX_ARCH_SSE41)
-   {
-       _batch_roundps = _batch_roundps_sse4;
-   }
+         if (_aax_arch_capabilities & AAX_ARCH_SSE41)
+         {
+          _batch_roundps = _batch_roundps_sse4;
+         }
 
 #  if SIZEOF_SIZE_T == 8
-   if (_aax_arch_capabilities & AAX_ARCH_AVX)
-   {
-      _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
-      _batch_get_average_rms = _batch_get_average_rms_sse_vex;
+         if (support_simd64)
+         {
+            if (_aax_arch_capabilities & AAX_ARCH_AVX)
+            {
+               _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
+               _batch_get_average_rms = _batch_get_average_rms_sse_vex;
 
-      /* SSE/VEX */
-      vec3fMagnitude = _vec3fMagnitude_sse_vex;
-      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse_vex;
-      vec3fDotProduct = _vec3fDotProduct_sse_vex;
-      vec3fCrossProduct = _vec3fCrossProduct_sse_vex;
-      vec3fAbsolute = _vec3fAbsolute_sse_vex;
-      vec4fCopy = _vec4fCopy_sse_vex;
-      vec4fMulVec4 = _vec4fMulVec4_sse_vex;
-      mtx4fMul = _mtx4fMul_sse_vex;
-      mtx4fMulVec4 = _mtx4fMulVec4_sse_vex;
-      vec3fAltitudeVector = _vec3fAltitudeVector_sse_vex;
+               /* SSE/VEX */
+               vec3fMagnitude = _vec3fMagnitude_sse_vex;
+               vec3fMagnitudeSquared = _vec3fMagnitudeSquared_sse_vex;
+               vec3fDotProduct = _vec3fDotProduct_sse_vex;
+               vec3fCrossProduct = _vec3fCrossProduct_sse_vex;
+               vec3fAbsolute = _vec3fAbsolute_sse_vex;
+               vec4fCopy = _vec4fCopy_sse_vex;
+               vec4fMulVec4 = _vec4fMulVec4_sse_vex;
+               mtx4fMul = _mtx4fMul_sse_vex;
+               mtx4fMulVec4 = _mtx4fMulVec4_sse_vex;
+               vec3fAltitudeVector = _vec3fAltitudeVector_sse_vex;
 
-      /* AVX */
-      mtx4dMul = _mtx4dMul_avx;
-      mtx4dMulVec4 = _mtx4dMulVec4_avx;
-      vec3dAltitudeVector = _vec3dAltitudeVector_avx;
+               /* AVX */
+               mtx4dMul = _mtx4dMul_avx;
+               mtx4dMulVec4 = _mtx4dMulVec4_avx;
+               vec3dAltitudeVector = _vec3dAltitudeVector_avx;
 
-      _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
-      _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
-      _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
+               _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
+               _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
+               _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
 
 #  if RB_FLOAT_DATA
-      _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
-      _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
-      _batch_resample_float = _batch_resample_float_sse_vex;
+               _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
+               _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
+               _batch_resample_float = _batch_resample_float_sse_vex;
 #  else
-      _batch_imadd = _batch_imadd_sse_vex;
-      _batch_freqfilter = _batch_freqfilter_sse_vex;
-      _batch_resample = _batch_resample_sse_vex;
+               _batch_imadd = _batch_imadd_sse_vex;
+               _batch_freqfilter = _batch_freqfilter_sse_vex;
+               _batch_resample = _batch_resample_sse_vex;
 #  endif
 
-//    _aax_memcpy = _aax_memcpy_avx;
-      _batch_cvtps_24 = _batch_cvtps_24_avx;
-      _batch_cvt24_ps = _batch_cvt24_ps_avx;
+//             _aax_memcpy = _aax_memcpy_avx;
+               _batch_cvtps_24 = _batch_cvtps_24_avx;
+               _batch_cvt24_ps = _batch_cvt24_ps_avx;
 
-#   if RB_FLOAT_DATA
+#  if RB_FLOAT_DATA
 // _batch_fmul_value_avx is slightly slower than the compiler optimized
 // _batch_fmul_value_cpu, _batch_fmul_value_sse2 is faster however.
-//    _batch_fmul_value = _batch_fmul_value_avx;
-      _batch_fmadd = _batch_fmadd_avx;
-      _batch_cvtps24_24 = _batch_cvtps24_24_avx;
-      _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
-#   else
-#   endif
-   }
-
-   /* Prefer FMA3 over FMA4 so detect FMA4 first */
-   if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-//    _batch_fmadd = _batch_fmadd_fma4;
-   }
-
-   if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-//    _batch_fmadd = _batch_fmadd_fma3;
-   }
-
-   if (_aax_arch_capabilities & AAX_ARCH_AVX2)
-   {
-   }
-
+//             _batch_fmul_value = _batch_fmul_value_avx;
+               _batch_fmadd = _batch_fmadd_avx;
+               _batch_cvtps24_24 = _batch_cvtps24_24_avx;
+               _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
+            }
+#  else
 #  endif
-# endif
 
-   return level;
+            /* Prefer FMA3 over FMA4 so detect FMA4 first */
+            if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
+//             _batch_fmadd = _batch_fmadd_fma4;
+            }
+
+            if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
+//             _batch_fmadd = _batch_fmadd_fma3;
+            }
+
+            if (_aax_arch_capabilities & AAX_ARCH_AVX2)
+            {
+            }
+         }
+#  endif
+      }
+   }
+# endif // __TINYC__
+
+   return rv;
 }
 
 const char *

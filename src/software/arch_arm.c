@@ -93,80 +93,77 @@ _aaxArchDetectFeatures()
    static int8_t init = -1;
    if (init)
    {
-      char *env = getenv("AAX_NO_SIMD_SUPPORT");
+      FILE *fp;
 
       init = 0;
-      if (!_aax_getbool(env))
+      fp = fopen("/proc/cpuinfo", "r");
+      if (fp)
       {
-         FILE *fp = fopen("/proc/cpuinfo", "r");
-         if (fp)
+         char cpuinfo[MAX_CPUINFO];
+         int rv;
+
+         memset(cpuinfo, 0, MAX_CPUINFO);
+         rv = fread(cpuinfo, 1, MAX_CPUINFO, fp);
+         fclose(fp);
+
+         if (rv > 0 && rv < MAX_CPUINFO)
          {
-            char cpuinfo[MAX_CPUINFO];
-            int rv;
+            char *features, *ptr;
 
-            memset(cpuinfo, 0, MAX_CPUINFO);
-            rv = fread(cpuinfo, 1, MAX_CPUINFO, fp);
-            fclose(fp);
-
-            if (rv > 0 && rv < MAX_CPUINFO)
+            cpuinfo[MAX_CPUINFO-1] = '\0';
+            features = strstr(cpuinfo, "Features");
+            if (features)
             {
-               char *features, *ptr;
+               ptr = strchr(features, '\n');
+               if (ptr) ptr[0] = '\0';
 
-               cpuinfo[MAX_CPUINFO-1] = '\0';
-               features = strstr(cpuinfo, "Features");
-               if (features)
+               ptr = strstr(features, " vfp");
+               if (ptr && (ptr[4] == ' ' || ptr[4] == '\0'))
                {
-                  ptr = strchr(features, '\n');
-                  if (ptr) ptr[0] = '\0';
+                  _aax_arch_capabilities |= AAX_ARCH_VFPV2;
+                  res = AAX_SIMD_VFPV2;
+               }
+               ptr = strstr(features, " vfpv3-d16");
+               if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
+               {
+                  _aax_arch_capabilities |= AAX_ARCH_VFPV3;
+                  res = AAX_SIMD_VFPV3;
+               }
 
-                  ptr = strstr(features, " vfp");
-                  if (ptr && (ptr[4] == ' ' || ptr[4] == '\0'))
-                  {
-                     _aax_arch_capabilities |= AAX_ARCH_VFPV2;
-                     res = AAX_SIMD_VFPV2;
-                  }
-                  ptr = strstr(features, " vfpv3-d16");
-                  if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
-                  {
-                     _aax_arch_capabilities |= AAX_ARCH_VFPV3;
-                     res = AAX_SIMD_VFPV3;
-                  }
+               ptr = strstr(features, " vfpv3");
+               if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
+               {
+                  _aax_arch_capabilities |= AAX_ARCH_VFPV3;
+                  res = AAX_SIMD_VFPV3;
+               }
 
-                  ptr = strstr(features, " vfpv3");
-                  if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
-                  {
-                     _aax_arch_capabilities |= AAX_ARCH_VFPV3;
-                     res = AAX_SIMD_VFPV3;
-                  }
+               ptr = strstr(features, " vfpv4");
+               if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
+               {
+                  _aax_arch_capabilities |= AAX_ARCH_VFPV4;
+                  res = AAX_SIMD_VFPV4;
+               }
 
-                  ptr = strstr(features, " vfpv4");
-                  if (ptr && (ptr[6] == ' ' || ptr[6] == '\0'))
-                  {
-                     _aax_arch_capabilities |= AAX_ARCH_VFPV4;
-                     res = AAX_SIMD_VFPV4;
+               ptr = strstr(features, " neon");
+               if (ptr && (ptr[5] == ' ' || ptr[5] == '\0'))
+               {
+                  _aax_arch_capabilities |= AAX_ARCH_NEON;
+                  if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
+                     res = AAX_SIMD_VFPV4_NEON;
                   }
+                  else res = AAX_SIMD_NEON;
+               }
 
-                  ptr = strstr(features, " neon");
-                  if (ptr && (ptr[5] == ' ' || ptr[5] == '\0'))
-                  {
-                     _aax_arch_capabilities |= AAX_ARCH_NEON;
-                     if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
-                        res = AAX_SIMD_VFPV4_NEON;
-                     }
-                     else res = AAX_SIMD_NEON;
-                  }
-
-                  ptr = strstr(features, " helium");
-                  if (ptr && (ptr[7] == ' ' || ptr[7] == '\0'))
-                  {
+               ptr = strstr(features, " helium");
+               if (ptr && (ptr[7] == ' ' || ptr[7] == '\0'))
+               {
 #if 0
-                     _aax_arch_capabilities |= AAX_ARCH_HELIUM;
-                     if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
-                        res = AAX_SIMD_VFPV4_HELIUM;
-                     }
-                     else res = AAX_SIMD_HELIUM;
-#endif
+                  _aax_arch_capabilities |= AAX_ARCH_HELIUM;
+                  if (_aax_arch_capabilities & AAX_ARCH_VFPV4) {
+                     res = AAX_SIMD_VFPV4_HELIUM;
                   }
+                  else res = AAX_SIMD_HELIUM;
+#endif
                }
             }
          }
@@ -206,155 +203,189 @@ char _aaxArchDetectNEON() {
 uint32_t
 _aaxGetSIMDSupportLevel()
 {
-   uint32_t level = AAX_NO_SIMD;
+   static char support_simd64 = AAX_TRUE;
+   static char support_simd = AAX_TRUE;
+   static uint32_t rv = AAX_SIMD_NONE;
+   static int init = AAX_TRUE;
 
-   level = _aaxArchDetectFeatures();
-   if (_aax_arch_capabilities & AAX_ARCH_VFPV2)
+   if (init)
    {
-      _batch_fmadd = _batch_fmadd_vfpv2;
-      _batch_imul_value = _batch_imul_value_vfpv2;
-      _batch_fmul_value = _batch_fmul_value_vfpv2;
-      _batch_cvt24_ps = _batch_cvt24_ps_vfpv2;
-      _batch_cvtps_24 = _batch_cvtps_24_vfpv2;
-      _batch_cvt24_pd = _batch_cvt24_pd_vfpv2;
-      _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv2;
-      _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv2;
-      _batch_cvtpd_24 = _batch_cvtpd_24_vfpv2;
-      _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv2;
-      _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv2;
+      char *simd_support = getenv("AAX_NO_SIMD_SUPPORT");
+      char *simd_level = getenv("AAX_SIMD_LEVEL");
 
-      _batch_movingaverage_float = _batch_ema_iir_float_vfpv2;
-      _batch_freqfilter = _batch_freqfilter_vfpv2;
-      _batch_freqfilter_float = _batch_freqfilter_float_vfpv2;
+      init = AAX_FALSE;
+      rv = _aaxGetSSELevel();
+      if (simd_support) { // for backwards compatibility
+         support_simd = _aax_getbool(simd_support);
+         if (!support_simd) {
+            rv = AAX_SIMD_NONE;
+         }
+      }
+
+      if (simd_level)
+      {
+         int level = atoi(simd_level);
+         if (level < 64)
+         {
+            support_simd64 = AAX_FALSE;
+            if (rv > AAX_SIMD_VFPV4_NEON) {
+               rv = AAX_SIMD_VFPV4_NEON;
+            }
+         }
+         if (level < 32)
+         {
+            support_simd = AAX_FALSE;
+            rv = AAX_SIMD_NONE;
+         }
+      }
+
+      if (_aax_arch_capabilities & AAX_ARCH_VFPV2)
+      {
+         _batch_fmadd = _batch_fmadd_vfpv2;
+         _batch_imul_value = _batch_imul_value_vfpv2;
+         _batch_fmul_value = _batch_fmul_value_vfpv2;
+         _batch_cvt24_ps = _batch_cvt24_ps_vfpv2;
+         _batch_cvtps_24 = _batch_cvtps_24_vfpv2;
+         _batch_cvt24_pd = _batch_cvt24_pd_vfpv2;
+         _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv2;
+         _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv2;
+         _batch_cvtpd_24 = _batch_cvtpd_24_vfpv2;
+         _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv2;
+         _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv2;
+
+         _batch_movingaverage_float = _batch_ema_iir_float_vfpv2;
+         _batch_freqfilter = _batch_freqfilter_vfpv2;
+         _batch_freqfilter_float = _batch_freqfilter_float_vfpv2;
 
 #if RB_FLOAT_DATA
-      _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv2;
-      _batch_cvtps24_24 = _batch_cvtps24_24_vfpv2;
-      _batch_resample_float = _batch_resample_float_vfpv2;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv2;
+         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv2;
+         _batch_resample_float = _batch_resample_float_vfpv2;
 #else
-      _batch_resample = _batch_resample_vfpv2;
+         _batch_resample = _batch_resample_vfpv2;
 #endif
 
-//    vec3fAdd = _vec3fAdd_vfpv2;
-//    vec3fDevide = _vec3fDevide_vfpv2;
-      vec3fMulVec3 = _vec3fMulVec3_vfpv2;
-//    vec3fSub = _vec3fSub_vfpv2;
+//       vec3fAdd = _vec3fAdd_vfpv2;
+//       vec3fDevide = _vec3fDevide_vfpv2;
+         vec3fMulVec3 = _vec3fMulVec3_vfpv2;
+//       vec3fSub = _vec3fSub_vfpv2;
 
-      vec3fMagnitude = _vec3fMagnitude_vfpv2;
-      vec3dMagnitude = _vec3dMagnitude_vfpv2;
-      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_vfpv2;
-      vec3fDotProduct = _vec3fDotProduct_vfpv2;
-      vec3dDotProduct = _vec3dDotProduct_vfpv2;
-      vec3fNormalize = _vec3fNormalize_vfpv2;
-      vec3dNormalize = _vec3dNormalize_vfpv2;
-      vec3fCrossProduct = _vec3fCrossProduct_vfpv2;
+         vec3fMagnitude = _vec3fMagnitude_vfpv2;
+         vec3dMagnitude = _vec3dMagnitude_vfpv2;
+         vec3fMagnitudeSquared = _vec3fMagnitudeSquared_vfpv2;
+         vec3fDotProduct = _vec3fDotProduct_vfpv2;
+         vec3dDotProduct = _vec3dDotProduct_vfpv2;
+         vec3fNormalize = _vec3fNormalize_vfpv2;
+         vec3dNormalize = _vec3dNormalize_vfpv2;
+         vec3fCrossProduct = _vec3fCrossProduct_vfpv2;
 
-//    vec4fAdd = _vec4fAdd_vfpv2;
-//    vec4fDevide = _vec4fDevide_vfpv2;
-      vec4fMulVec4 = _vec4fMulVec4_vfpv2;
-//    vec4fSub = _vec4fSub_vfpv2;
-      mtx4fMulVec4 = _mtx4fMulVec4_vfpv2;
-      mtx4dMulVec4 = _mtx4dMulVec4_vfpv2;
-      mtx4fMul = _mtx4fMul_vfpv2;
-      mtx4dMul = _mtx4dMul_vfpv2;
+//       vec4fAdd = _vec4fAdd_vfpv2;
+//       vec4fDevide = _vec4fDevide_vfpv2;
+         vec4fMulVec4 = _vec4fMulVec4_vfpv2;
+//       vec4fSub = _vec4fSub_vfpv2;
+         mtx4fMulVec4 = _mtx4fMulVec4_vfpv2;
+         mtx4dMulVec4 = _mtx4dMulVec4_vfpv2;
+         mtx4fMul = _mtx4fMul_vfpv2;
+         mtx4dMul = _mtx4dMul_vfpv2;
 
-//    vec4iDevide = _vec4iDevide_vfpv2;
-   }
+//       vec4iDevide = _vec4iDevide_vfpv2;
+      }
 
-   if (_aax_arch_capabilities & AAX_ARCH_HF)
-   {
-      _batch_fmadd = _batch_fmadd_vfpv3;
-      _batch_imul_value = _batch_imul_value_vfpv3;
-      _batch_fmul_value = _batch_fmul_value_vfpv3;
-      _batch_cvt24_ps = _batch_cvt24_ps_vfpv3;
-      _batch_cvtps_24 = _batch_cvtps_24_vfpv3;
-      _batch_cvt24_pd = _batch_cvt24_pd_vfpv3;
-      _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv3;
-      _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv3;
-      _batch_cvtpd_24 = _batch_cvtpd_24_vfpv3;
-      _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv3;
-      _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv3;
+      if (_aax_arch_capabilities & AAX_ARCH_HF)
+      {
+         _batch_fmadd = _batch_fmadd_vfpv3;
+         _batch_imul_value = _batch_imul_value_vfpv3;
+         _batch_fmul_value = _batch_fmul_value_vfpv3;
+         _batch_cvt24_ps = _batch_cvt24_ps_vfpv3;
+         _batch_cvtps_24 = _batch_cvtps_24_vfpv3;
+         _batch_cvt24_pd = _batch_cvt24_pd_vfpv3;
+         _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv3;
+         _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv3;
+         _batch_cvtpd_24 = _batch_cvtpd_24_vfpv3;
+         _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv3;
+         _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv3;
 
-      _batch_movingaverage_float = _batch_ema_iir_float_vfpv3;
-      _batch_freqfilter = _batch_freqfilter_vfpv3;
-      _batch_freqfilter_float = _batch_freqfilter_float_vfpv3;
+         _batch_movingaverage_float = _batch_ema_iir_float_vfpv3;
+         _batch_freqfilter = _batch_freqfilter_vfpv3;
+         _batch_freqfilter_float = _batch_freqfilter_float_vfpv3;
 
 #if RB_FLOAT_DATA
-      _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv3;
-      _batch_cvtps24_24 = _batch_cvtps24_24_vfpv3;
-      _batch_resample_float = _batch_resample_float_vfpv3;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv3;
+         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv3;
+         _batch_resample_float = _batch_resample_float_vfpv3;
 #else
-      _batch_resample = _batch_resample_vfpv3;
+         _batch_resample = _batch_resample_vfpv3;
 #endif
 
-//    vec3fAdd = _vec3fAdd_vfpv3;
-//    vec3fDevide = _vec3fDevide_vfpv3;
-      vec3fMulVec3 = _vec3fMulVec3_vfpv3;
-//    vec3fSub = _vec3fSub_vfpv3;
+//       vec3fAdd = _vec3fAdd_vfpv3;
+//       vec3fDevide = _vec3fDevide_vfpv3;
+         vec3fMulVec3 = _vec3fMulVec3_vfpv3;
+//       vec3fSub = _vec3fSub_vfpv3;
 
-      vec3fMagnitude = _vec3fMagnitude_vfpv3;
-      vec3dMagnitude = _vec3dMagnitude_vfpv3;
-      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_vfpv3;
-      vec3fDotProduct = _vec3fDotProduct_vfpv3;
-      vec3dDotProduct = _vec3dDotProduct_vfpv3;
-      vec3fNormalize = _vec3fNormalize_vfpv3;
-      vec3dNormalize = _vec3dNormalize_vfpv3;
-      vec3fCrossProduct = _vec3fCrossProduct_vfpv3;
+         vec3fMagnitude = _vec3fMagnitude_vfpv3;
+         vec3dMagnitude = _vec3dMagnitude_vfpv3;
+         vec3fMagnitudeSquared = _vec3fMagnitudeSquared_vfpv3;
+         vec3fDotProduct = _vec3fDotProduct_vfpv3;
+         vec3dDotProduct = _vec3dDotProduct_vfpv3;
+         vec3fNormalize = _vec3fNormalize_vfpv3;
+         vec3dNormalize = _vec3dNormalize_vfpv3;
+         vec3fCrossProduct = _vec3fCrossProduct_vfpv3;
 
-//    vec4fAdd = _vec4fAdd_vfpv3;
-//    vec4fDevide = _vec4fDevide_vfpv3;
-      vec4fMulVec4 = _vec4fMulVec4_vfpv3;
-//    vec4fSub = _vec4fSub_vfpv3;
-      mtx4fMulVec4 = _mtx4fMulVec4_vfpv3;
-      mtx4dMulVec4 = _mtx4dMulVec4_vfpv3;
-      mtx4fMul = _mtx4fMul_vfpv3;
-      mtx4dMul = _mtx4dMul_vfpv3;
+//       vec4fAdd = _vec4fAdd_vfpv3;
+//       vec4fDevide = _vec4fDevide_vfpv3;
+         vec4fMulVec4 = _vec4fMulVec4_vfpv3;
+//       vec4fSub = _vec4fSub_vfpv3;
+         mtx4fMulVec4 = _mtx4fMulVec4_vfpv3;
+         mtx4dMulVec4 = _mtx4dMulVec4_vfpv3;
+         mtx4fMul = _mtx4fMul_vfpv3;
+         mtx4dMul = _mtx4dMul_vfpv3;
 
-//    vec4iDevide = _vec4iDevide_vfpv3;
-   }
+//       vec4iDevide = _vec4iDevide_vfpv3;
+      }
 
-   if (_aax_arch_capabilities & AAX_ARCH_NEON)
-   {
-      _batch_get_average_rms = _batch_get_average_rms_neon;
+      if (support_simd && _aax_arch_capabilities & AAX_ARCH_NEON)
+      {
+         _batch_get_average_rms = _batch_get_average_rms_neon;
 
-      vec3fMagnitude = _vec3fMagnitude_neon;
-      vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
-      vec3fDotProduct = _vec3fDotProduct_neon;
-      vec3fCrossProduct = _vec3fCrossProduct_neon;
+         vec3fMagnitude = _vec3fMagnitude_neon;
+         vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
+         vec3fDotProduct = _vec3fDotProduct_neon;
+         vec3fCrossProduct = _vec3fCrossProduct_neon;
 
-//    vec4fAdd = _vec4fAdd_neon;
-//    vec4fSub = _vec4fSub_neon;
-      vec4fCopy = _vec4fCopy_neon;
-//    vec4fDevide = _vec4fDevide_neon;
-      vec4fMulVec4 = _vec4fMulVec4_neon;
-      mtx4fMulVec4 = _mtx4fMulVec4_neon;
-//    mtx4dMulVec4 = _mtx4dMulVec4_neon;
-      mtx4fMul = _mtx4fMul_neon;
+//       vec4fAdd = _vec4fAdd_neon;
+//       vec4fSub = _vec4fSub_neon;
+         vec4fCopy = _vec4fCopy_neon;
+//       vec4fDevide = _vec4fDevide_neon;
+         vec4fMulVec4 = _vec4fMulVec4_neon;
+         mtx4fMulVec4 = _mtx4fMulVec4_neon;
+//       mtx4dMulVec4 = _mtx4dMulVec4_neon;
+         mtx4fMul = _mtx4fMul_neon;
 
 #if 0
-      _batch_cvtps_24 = _batch_cvtps_24_sse2;
-      _batch_cvt24_ps = _batch_cvt24_ps_sse2;
-      _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
+         _batch_cvtps_24 = _batch_cvtps_24_sse2;
+         _batch_cvt24_ps = _batch_cvt24_ps_sse2;
+         _batch_cvt16_intl_24 = _batch_cvt16_inl_24_neon;
 #endif
-      _batch_cvt24_16 = _batch_cvt24_16_neon;
-      _batch_cvt16_24 = _batch_cvt16_24_neon;
-      _batch_fmul_value = _batch_fmul_value_neon;
+         _batch_cvt24_16 = _batch_cvt24_16_neon;
+         _batch_cvt16_24 = _batch_cvt16_24_neon;
+         _batch_fmul_value = _batch_fmul_value_neon;
 
 # if RB_FLOAT_DATA
-      _batch_fmadd = _batch_fmadd_neon;
-      _batch_cvtps24_24 = _batch_cvtps24_24_neon;
-      _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
-      _batch_movingaverage_float = _batch_ema_iir_float_neon;
-      _batch_freqfilter_float = _batch_freqfilter_float_neon;
-      _batch_resample_float = _batch_resample_float_neon;
+         _batch_fmadd = _batch_fmadd_neon;
+         _batch_cvtps24_24 = _batch_cvtps24_24_neon;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
+         _batch_movingaverage_float = _batch_ema_iir_float_neon;
+         _batch_freqfilter_float = _batch_freqfilter_float_neon;
+         _batch_resample_float = _batch_resample_float_neon;
 # else
-      _batch_imadd = _batch_imadd_neon;
-      _batch_freqfilter = _batch_freqfilter_neon;
-      _batch_resample = _batch_resample_neon;
+         _batch_imadd = _batch_imadd_neon;
+         _batch_freqfilter = _batch_freqfilter_neon;
+         _batch_resample = _batch_resample_neon;
 # endif
+      }
    }
 
-   return level;
+   return rv;
 }
 
 const char *
