@@ -624,10 +624,11 @@ aaxGetFrequencyFilterTypeByName(const char *type)
    if (type)
    {
       char *last, *name = (char*)type;
-      size_t len;
+      size_t len, slen;
 
+      slen = strlen(name);
       last = strchr(name, '|');
-      if (!last) last = name+strlen(name);
+      if (!last) last = name+slen;
 
       do
       {
@@ -640,15 +641,15 @@ aaxGetFrequencyFilterTypeByName(const char *type)
             rv |= AAX_BESSEL;
          }
 
-         if (!strncasecmp(name+len-5, "ORDER", 5))
+         if (len >= 5 && !strncasecmp(name+len-5, "ORDER", 5))
          {
-            if (*(name+len-6) == '_' || *(name+len-6) == '-') {
+            if (len >= 6 && (*(name+len-6) == '_' || *(name+len-6) == '-')) {
                len -= 6;
             }
          }
-         else if (!strncasecmp(name+len-3, "OCT", 3))
+         else if (len >= 3 && !strncasecmp(name+len-3, "OCT", 3))
          {
-            if (*(name+len-4) == '_' || *(name+len-4) == '/') {
+            if (len >= 4 && (*(name+len-4) == '_' || *(name+len-4) == '/')) {
                len -= 4;
             }
          }
