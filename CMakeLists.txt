@@ -280,26 +280,26 @@ else(MSVC)
          FORCE)
 
      # Note: CMAKE_C_FLAGS_RELWITHDEBINFO adds profiler flags
-     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG -DRELEASE=1" CACHE STRING
+     set(CMAKE_C_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -fomit-frame-pointer -DNDEBUG -DRELEASE=1" CACHE STRING
          "Flags used by the compiler during Release with Debug Info builds."
          FORCE)
      set(CMAKE_C_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG -DRELEASE=1" CACHE STRING
          "Flags used by the compiler during release minsize builds."
          FORCE)
-     set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG -DRELEASE=1"
+     set(CMAKE_C_FLAGS_RELEASE "${C_FLAGS} -Os -fomit-frame-pointer -DNDEBUG -DRELEASE=1"
              CACHE STRING "Flags used by the compiler during release builds"
             FORCE)
      set(CMAKE_C_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
          "Flags used by the compiler during debug builds."
          FORCE)
 
-     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
+     set(CMAKE_CXX_FLAGS_RELWITHDEBINFO "${C_FLAGS} -Os -fomit-frame-pointer -DNDEBUG" CACHE STRING
          "Flags used by the compiler during Release with Debug Info builds."
          FORCE)
      set(CMAKE_CXX_FLAGS_MINSIZEREL "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG" CACHE STRING
          "Flags used by the compiler during release minsize builds."
          FORCE)
-     set(CMAKE_CXX_FLAGS_RELEASE "${C_FLAGS} -Os -s -fomit-frame-pointer -DNDEBUG"
+     set(CMAKE_CXX_FLAGS_RELEASE "${C_FLAGS} -Os -fomit-frame-pointer -DNDEBUG"
              CACHE STRING "Flags used by the compiler during release builds"
             FORCE)
      set(CMAKE_CXX_FLAGS_DEBUG "${C_FLAGS} -g3 -D_DEBUG" CACHE STRING
