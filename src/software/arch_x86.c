@@ -332,6 +332,13 @@ _aaxGetSIMDSupportLevel()
 
       init = AAX_FALSE;
       rv = _aaxGetSSELevel();
+      if (rv >= AAX_SIMD_SSE) {
+         support_simd = AAX_TRUE;
+      }
+      if (rv >= AAX_SIMD_AVX) {
+         support_simd256 = AAX_TRUE;
+      }
+
       if (simd_support) { // for backwards compatibility
          support_simd = _aax_getbool(simd_support);
          if (!support_simd) {
