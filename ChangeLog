@@ -4,6 +4,7 @@
 
  * Add the option to retrieve the system capabilites by calling aaxMixerGetSetup
    with AAX_CAPABILITIES as the type parameter.
+ * Fix a possible read beyond a buffer length when handling AAXS files.
  * Fix OGG streams, a missing OGG framing-bit is not a reason to discard a
    stream as invalid.
 
