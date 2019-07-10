@@ -202,14 +202,14 @@ _bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, in
 
       pitch = ((unsigned int)(pitch*no_samples/100.0f)*100.0f)/no_samples;
 
-      noise_samples = pitch*no_samples + 64;
+      noise_samples = pitch*no_samples + NOISE_PADDING;
       ptr2 = _aax_generate_noise_float(scratch, 2*noise_samples, skip);
       ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
          _aax_pinknoise_filter(ptr2, noise_samples, fs);
          _batch_fmul_value(ptr2, ptr2, sizeof(float), noise_samples, 1.5f);
-         _batch_resample_float(ptr, ptr2+32, 0, no_samples, 0, pitch);
+         _batch_resample_float(ptr, ptr2+NOISE_PADDING/2, 0, no_samples, 0, pitch);
 
          if (modulate) {
             _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
