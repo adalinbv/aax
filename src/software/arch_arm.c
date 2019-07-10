@@ -222,7 +222,7 @@ _aaxGetSIMDSupportLevel()
       }
 
       if (simd_support) { // for backwards compatibility
-         support_simd = _aax_getbool(simd_support);
+         support_simd = !_aax_getbool(simd_support);
          if (!support_simd) {
             rv = AAX_SIMD_NONE;
          }
