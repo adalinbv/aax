@@ -1411,7 +1411,10 @@ _aaxGetCapabilities(UNUSED(const aaxConfig config))
       }
 
       if (_aaxArchDetectAVX() || _aaxArchDetectHELIUM()) {
-         rv |= AAX_SIMD64;
+         rv |= AAX_SIMD256;
+      }
+      if (_aaxArchDetectAVX2()) {
+         rv |= AAX_SIMD512;
       }
    }
 

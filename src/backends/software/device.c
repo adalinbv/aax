@@ -880,9 +880,9 @@ _aaxSoftwareDriverGetSetSources(unsigned int max, int num)
    {
 //    static int capabilites = _aaxGetCapabilities(NULL);
 //    static int cores = (capabilites & AAX_CPU_CORES)+1;
-//    static int simd64 = (capabilites & AAX_SIMD64);
+//    static int simd256 = (capabilites & AAX_SIMD256);
 
-//    if (!simd64) max = 64*cores;
+//    if (!simd256) max = 64*cores;
 
       _aaxAtomicIntSet(&_max_sources, max);     // _max_sources = max;
       _aaxAtomicIntSet(&_sources, max);         // _sources = max;

@@ -319,7 +319,7 @@ _aaxGetSSELevel()
 uint32_t
 _aaxGetSIMDSupportLevel()
 {
-   static char support_simd64 = AAX_TRUE;
+   static char support_simd256 = AAX_TRUE;
    static char support_simd = AAX_TRUE;
    static uint32_t rv = AAX_SIMD_NONE;
    static int init = AAX_TRUE;
@@ -342,12 +342,12 @@ _aaxGetSIMDSupportLevel()
       if (simd_level)
       {
          int level = atoi(simd_level);
-         if (level < 64)
+         if (level < 256)
          {
-            support_simd64 = AAX_FALSE;
+            support_simd256 = AAX_FALSE;
             rv &= 0x8;
          }
-         if (level < 32)
+         if (level < 128)
          {
             support_simd = AAX_FALSE;
             rv = AAX_SIMD_NONE;
@@ -423,7 +423,7 @@ _aaxGetSIMDSupportLevel()
          }
 
 #  if SIZEOF_SIZE_T == 8
-         if (support_simd64)
+         if (support_simd256)
          {
             if (_aax_arch_capabilities & AAX_ARCH_AVX)
             {

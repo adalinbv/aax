@@ -203,7 +203,7 @@ char _aaxArchDetectNEON() {
 uint32_t
 _aaxGetSIMDSupportLevel()
 {
-   static char support_simd64 = AAX_TRUE;
+   static char support_simd256 = AAX_TRUE;
    static char support_simd = AAX_TRUE;
    static uint32_t rv = AAX_SIMD_NONE;
    static int init = AAX_TRUE;
@@ -225,14 +225,14 @@ _aaxGetSIMDSupportLevel()
       if (simd_level)
       {
          int level = atoi(simd_level);
-         if (level < 64)
+         if (level < 256)
          {
-            support_simd64 = AAX_FALSE;
+            support_simd256 = AAX_FALSE;
             if (rv > AAX_SIMD_VFPV4_NEON) {
                rv = AAX_SIMD_VFPV4_NEON;
             }
          }
-         if (level < 32)
+         if (level < 128)
          {
             support_simd = AAX_FALSE;
             rv = AAX_SIMD_NONE;

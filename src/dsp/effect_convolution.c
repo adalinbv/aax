@@ -186,7 +186,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
 
    if (convolution && info)
    {
-      int simd64 = info->capabilities & AAX_SIMD64;
+      int simd256 = info->capabilities & AAX_SIMD256;
       int no_cores = (info->capabilities & AAX_CPU_CORES)+1;
       unsigned int step, freq, tracks = info->no_tracks;
       unsigned int no_samples = info->no_samples;
@@ -199,7 +199,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
        */
       freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
       step = (int)fs/freq;
-      if (no_cores == 1 || !simd64) {
+      if (no_cores == 1 || !simd256) {
          step = (int)fs/16000;
       }
       convolution->step = _MAX(step, 1);
