@@ -53,7 +53,7 @@ extern "C" {
 #define CUBIC_TRESHOLD		0.25f
 #define MAX_HARMONICS		16
 
-typedef float* (*_aax_generate_waveform_proc)(size_t, float, float, float*);
+typedef float* (*_aax_generate_waveform_proc)(float*, size_t, float, float, float*);
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
 
 /* CPU*/
@@ -62,7 +62,7 @@ char* _aax_calloc_aligned(char**, size_t, size_t, size_t);
 char* _aax_malloc_aligned(char**, size_t, size_t);
 void _batch_cvt24_24_cpu(void_ptr, const void*, size_t);
 
-float* _aax_generate_waveform_cpu(size_t, float, float, float*);
+float* _aax_generate_waveform_cpu(float*, size_t, float, float, float*);
 
 void _batch_imul_value_cpu(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_cpu(void*, const void*, unsigned, size_t, float);
@@ -133,7 +133,7 @@ void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int
 
 /* SSE2*/
 float fast_sin_sse2(float);
-float* _aax_generate_waveform_sse2(size_t, float, float, float*);
+float* _aax_generate_waveform_sse2(float*, size_t, float, float, float*);
 void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
 void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
@@ -174,7 +174,7 @@ void _batch_roundps_sse4(void_ptr, const_void_ptr, size_t);
 
 /* AVX & SSE/VEX */
 float fast_sin_sse_vex(float);
-float* _aax_generate_waveform_sse_vex(size_t, float, float, float*);
+float* _aax_generate_waveform_sse_vex(float*, size_t, float, float, float*);
 void _batch_get_average_rms_sse_vex(const_float32_ptr, size_t, float*, float*);
 void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);

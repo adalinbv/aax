@@ -53,7 +53,7 @@ static float _gains[MAX_WAVE];
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
-static float* _aax_generate_noise_float(size_t, unsigned char);
+static float* _aax_generate_noise_float(float*, size_t, unsigned char);
 
 #if 0
 static float* _aax_generate_sine(size_t, float, float);
@@ -74,12 +74,12 @@ _aax_atanf(float v) {
 }
 
 void
-_bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixSineWave(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
 {
    gain *= _gains[_SINE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_SINE_WAVE]);
+      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_SINE_WAVE]);
 //    float *ptr = _aax_generate_sine(no_samples, freq, phase);
       if (ptr)
       {
@@ -88,18 +88,17 @@ _bufferMixSineWave(void** data, float freq, char bps, size_t no_samples, int tra
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
    }
 }
 
 void
-_bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixSquareWave(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
 {
    gain *= _gains[_SQUARE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_SQUARE_WAVE]);
+      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_SQUARE_WAVE]);
 //    float *ptr = _aax_generate_square(no_samples, freq, phase);
       if (ptr)
       {
@@ -108,18 +107,17 @@ _bufferMixSquareWave(void** data, float freq, char bps, size_t no_samples, int t
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
    }
 }
 
 void
-_bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixTriangleWave(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
 {
    gain *= _gains[_TRIANGLE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_TRIANGLE_WAVE]);
+      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_TRIANGLE_WAVE]);
 //    float *ptr = _aax_generate_triangle(no_samples, freq, phase);
       if (ptr)
       {
@@ -128,18 +126,17 @@ _bufferMixTriangleWave(void** data, float freq, char bps, size_t no_samples, int
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
    }
 }
 
 void
-_bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixSawtooth(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
 {
    gain *= _gains[_SAWTOOTH_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_SAWTOOTH_WAVE]);
+      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_SAWTOOTH_WAVE]);
 //    float *ptr = _aax_generate_sawtooth(no_samples, freq, phase);
       if (ptr)
       {
@@ -148,18 +145,17 @@ _bufferMixSawtooth(void** data, float freq, char bps, size_t no_samples, int tra
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
    }
 }
 
 void
-_bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixImpulse(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
 {
    gain *= _gains[_IMPULSE_WAVE];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_cpu(no_samples, freq, phase, _harmonics[_IMPULSE_WAVE]);
+      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_IMPULSE_WAVE]);
       if (ptr)
       {
          if (modulate) {
@@ -167,19 +163,18 @@ _bufferMixImpulse(void** data, float freq, char bps, size_t no_samples, int trac
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
    }
 }
 
 void
-_bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
    {
       size_t noise_samples = pitch*no_samples + 64;
-      float *ptr2 = _aax_generate_noise_float(noise_samples, skip);
+      float *ptr2 = _aax_generate_noise_float(scratch, noise_samples, skip);
       float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
 
       if (ptr && ptr2)
@@ -190,15 +185,13 @@ _bufferMixWhiteNoise(void** data, size_t no_samples, char bps, int tracks, float
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-
          _aax_aligned_free(ptr);
-         _aax_aligned_free(ptr2);
       }
    }
 }
 
 void
-_bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -209,7 +202,7 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
       pitch = ((unsigned int)(pitch*no_samples/100.0f)*100.0f)/no_samples;
 
       noise_samples = pitch*no_samples + 64;
-      ptr2 = _aax_generate_noise_float(2*noise_samples, skip);
+      ptr2 = _aax_generate_noise_float(scratch, 2*noise_samples, skip);
       ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
@@ -222,15 +215,13 @@ _bufferMixPinkNoise(void** data, size_t no_samples, char bps, int tracks, float 
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-
          _aax_aligned_free(ptr);
-         _aax_aligned_free(ptr2);
       }
    }
 }
 
 void
-_bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -239,7 +230,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
       float *ptr, *ptr2;
 
       noise_samples = pitch*no_samples + 64;
-      ptr2 = _aax_generate_noise_float(noise_samples, skip);
+      ptr2 = _aax_generate_noise_float(scratch, noise_samples, skip);
       ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
@@ -255,9 +246,7 @@ _bufferMixBrownianNoise(void** data, size_t no_samples, char bps, int tracks, fl
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-
          _aax_aligned_free(ptr);
-         _aax_aligned_free(ptr2);
       }
    }
 }
@@ -398,9 +387,8 @@ _aax_generate_sawtooth(size_t no_samples, float freq, float phase)
  * output range is -1.0 .. 1.0
  */
 static float *
-_aax_generate_noise_float(size_t no_samples, unsigned char skip)
+_aax_generate_noise_float(float *rv, size_t no_samples, unsigned char skip)
 {
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
    {
       float rnd_skip = skip ? skip : 1.0f;

@@ -484,7 +484,7 @@ static void
 _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, void *gpuid, void *data)
 {
    _aaxRingBufferConvolutionData *convolution = data;
-   _aax_opencl_t *gpu = gpuid;
+   _aax_opencl_t *gpu = NULL; // gpuid;
    _aaxRingBuffer *rb = rbd;
 
    if (convolution->delay_gain > convolution->threshold)

@@ -1707,7 +1707,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
    else if (handle && handle->info && (*handle->info && ((*handle->info)->id == INFO_ID)))
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
-      float samps_period, fs, fw, fs_mixer, rate;
+      float samps_period, fs, fw, fs_mixer, rate, *scratch;
       unsigned int no_samples, i, bit = 1;
       int q, hvoices;
       unsigned skip;
@@ -1775,6 +1775,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
 
       phasing = (spread <0.0f);
       spread = fabsf(spread);
+      scratch = _aax_aligned_alloc(2*no_samples*sizeof(float));
       for (i=0; i<AAX_MAX_WAVE; i++)
       {
          switch (wtype & bit)
@@ -1795,19 +1796,20 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
                nfw = nfw*ceilf(ffact)/ffact;
                nphase = phase + q*GMATH_2PI/voices;
                nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
-               rv = rb->data_mix_waveform(rb, wtype&bit, nfw, nratio, nphase, modulate, limiter);
+               rv = rb->data_mix_waveform(rb, scratch, wtype&bit, nfw, nratio, nphase, modulate, limiter);
             }
             break;
          case AAX_WHITE_NOISE:
          case AAX_PINK_NOISE:
          case AAX_BROWNIAN_NOISE:
-            rv = rb->data_mix_noise(rb, wtype & bit, fs_mixer, pitch, ratio, skip, modulate, limiter);
+            rv = rb->data_mix_noise(rb, scratch, wtype & bit, fs_mixer, pitch, ratio, skip, modulate, limiter);
             break;
          default:
             break;
          }
          bit <<= 1;
       }
+      _aax_aligned_free(scratch);
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);

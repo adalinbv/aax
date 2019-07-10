@@ -41,9 +41,8 @@ fast_sin_sse_vex(float x)
 }
 
 float *
-_aax_generate_waveform_sse_vex(size_t no_samples, float freq, float phase, float *harmonics)
+_aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float phase, float *harmonics)
 {
-   float *rv = _aax_aligned_alloc(no_samples*sizeof(float));
    if (rv)
    {
       unsigned int h = MAX_HARMONICS;
