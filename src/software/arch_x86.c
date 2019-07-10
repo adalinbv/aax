@@ -319,8 +319,8 @@ _aaxGetSSELevel()
 uint32_t
 _aaxGetSIMDSupportLevel()
 {
-   static char support_simd256 = AAX_TRUE;
-   static char support_simd = AAX_TRUE;
+   static char support_simd256 = AAX_FALSE;
+   static char support_simd = AAX_FALSE;
    static uint32_t rv = AAX_SIMD_NONE;
    static int init = AAX_TRUE;
 
