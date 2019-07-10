@@ -81,8 +81,10 @@ static const char *_aaxArchSIMDSupportString[AAX_SIMD_MAX] =
    SIMD_PREFIX"VFPv2",
    SIMD_PREFIX"VFPv3",
    SIMD_PREFIX"VFPv4",
-   SIMD_PREFIX"NEON",
-   SIMD_PREFIX"VFPv4/NEON"
+   SIMD_PREFIX"Neon",
+   SIMD_PREFIX"VFPv4/Neon",
+   SIMD_PREFIX"Helium",
+   SIMD_PREFIX"VFPv4/Helium"
 };
 
 // Features    : fastmult vfp neon vfpv3 vfpv4 idiva idivt
