@@ -932,6 +932,7 @@ if (corr)
          {
             int scratchsz= scratchlen*8/(handle->no_tracks*handle->bits_sample);
 
+            x.result = 0;
             x.buf = scratch;
             x.frames = _MIN(_MIN(period_frames, avail), scratchsz);
             ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_READI_FRAMES, &x);
@@ -1043,6 +1044,7 @@ _aaxLinuxDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain
       {
          struct snd_xferi xfer;
 
+         xfer.result = 0;
          xfer.buf = data;
          xfer.frames = period_frames; // _MIN(period_frames, avail);
          ret = pioctl(handle->fd, SNDRV_PCM_IOCTL_WRITEI_FRAMES, &xfer);
