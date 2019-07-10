@@ -35,6 +35,8 @@ extern "C" {
 #include <objects.h>
 #include <api.h>
 
+#define NOISE_PADDING		64
+
 // y = 1x^2 + 0.5x + 0.5
 // #define NORM_TO_PITCH(a)	(0.5f + 0.5f*(a) + (a)*(a))
 // #define NORM_TO_PITCH(a)	((a)<=1.0f) ? (a) : ((a)*1.027f)

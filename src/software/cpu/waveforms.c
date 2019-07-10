@@ -44,6 +44,7 @@
 #include <api.h>
 #include <arch.h>
 #include <analyze.h>
+#include <software/audio.h>
 #include <dsp/dsp.h>
 
 #include "arch2d_simd.h"
@@ -173,7 +174,7 @@ _bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, i
    gain = fabsf(gain);
    if (data && gain)
    {
-      size_t noise_samples = pitch*no_samples + 64;
+      size_t noise_samples = pitch*no_samples + NOISE_PADDING;
       float *ptr2 = _aax_generate_noise_float(scratch, noise_samples, skip);
       float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
 

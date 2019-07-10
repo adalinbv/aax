@@ -1775,41 +1775,44 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
 
       phasing = (spread <0.0f);
       spread = fabsf(spread);
-      scratch = _aax_aligned_alloc(2*no_samples*sizeof(float));
-      for (i=0; i<AAX_MAX_WAVE; i++)
+      scratch = _aax_aligned_alloc(2*(no_samples+NOISE_PADDING)*sizeof(float));
+      if (scratch)
       {
-         switch (wtype & bit)
+         for (i=0; i<AAX_MAX_WAVE; i++)
          {
-         case AAX_SINE_WAVE:
-         case AAX_SQUARE_WAVE:
-         case AAX_TRIANGLE_WAVE:
-         case AAX_SAWTOOTH_WAVE:
-         case AAX_IMPULSE_WAVE:
-            for (q=0; q<voices; ++q)
+            switch (wtype & bit)
             {
-               float ffact, nfw, nphase, nratio;
+            case AAX_SINE_WAVE:
+            case AAX_SQUARE_WAVE:
+            case AAX_TRIANGLE_WAVE:
+            case AAX_SAWTOOTH_WAVE:
+            case AAX_IMPULSE_WAVE:
+               for (q=0; q<voices; ++q)
+               {
+                  float ffact, nfw, nphase, nratio;
 
-               nfw = (fw - hvoices*spread);
-               if (phasing) nfw += (float)q*spread;
-               samps_period = fs/nfw;
-               ffact = (float)no_samples/(float)samps_period;
-               nfw = nfw*ceilf(ffact)/ffact;
-               nphase = phase + q*GMATH_2PI/voices;
-               nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
-               rv = rb->data_mix_waveform(rb, scratch, wtype&bit, nfw, nratio, nphase, modulate, limiter);
+                  nfw = (fw - hvoices*spread);
+                  if (phasing) nfw += (float)q*spread;
+                  samps_period = fs/nfw;
+                  ffact = (float)no_samples/(float)samps_period;
+                  nfw = nfw*ceilf(ffact)/ffact;
+                  nphase = phase + q*GMATH_2PI/voices;
+                  nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
+                  rv = rb->data_mix_waveform(rb, scratch, wtype&bit, nfw, nratio, nphase, modulate, limiter);
+               }
+               break;
+            case AAX_WHITE_NOISE:
+            case AAX_PINK_NOISE:
+            case AAX_BROWNIAN_NOISE:
+               rv = rb->data_mix_noise(rb, scratch, wtype & bit, fs_mixer, pitch, ratio, skip, modulate, limiter);
+               break;
+            default:
+               break;
             }
-            break;
-         case AAX_WHITE_NOISE:
-         case AAX_PINK_NOISE:
-         case AAX_BROWNIAN_NOISE:
-            rv = rb->data_mix_noise(rb, scratch, wtype & bit, fs_mixer, pitch, ratio, skip, modulate, limiter);
-            break;
-         default:
-            break;
+            bit <<= 1;
          }
-         bit <<= 1;
+         _aax_aligned_free(scratch);
       }
-      _aax_aligned_free(scratch);
    }
    else {
       _aaxErrorSet(AAX_INVALID_HANDLE);
