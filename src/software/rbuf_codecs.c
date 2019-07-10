@@ -117,6 +117,9 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
     * source buffer at the current source position
     */
    sptr = s + src_pos*sbps;
+   assert(sptr+(new_len+ddesamps)*sbps <= s+sno_samples*sbps);
+   assert(dptr+new_len+ddesamps <= dst+dno_samples);
+
    codecfn(dptr, sptr, new_len+ddesamps);
    dbuflen -= new_len;
 
@@ -131,6 +134,9 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
        */
       new_len = (dbuflen > sbuflen) ? sbuflen : dbuflen;
       sptr = s + loop_start*sbps;
+      assert(sptr+new_len*sbps <= s+sno_samples*sbps);
+      assert(dptr+new_len <= dst+dno_samples);
+
       codecfn(dptr, sptr, new_len);
 
       dbuflen -= new_len;
@@ -144,6 +150,7 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
             new_len = dbuflen;
             do
             {
+               assert(start_dptr+sbuflen <= dst+dno_samples);
                _aax_memcpy(dptr, start_dptr, sbuflen*dbps);
                new_len -= sbuflen;
                dptr += sbuflen;
@@ -151,13 +158,18 @@ _aaxRingBufferProcessCodec(int32_t *dst, void *src, _batch_codec_proc codecfn,
             while(new_len > sbuflen);
 
             /* and copy the remaining samples */
-            if (new_len) {
+            if (new_len)
+            {
+               assert(start_dptr+new_len <= dst+dno_samples);
                _aax_memcpy(dptr, start_dptr, new_len*dbps);
             }
          }
          else
          {
             sptr = s + loop_start*sbps;
+            assert(sptr+dbuflen*sbps <= s+sno_samples*sbps);
+            assert(dptr+dbuflen <= dst+dno_samples);
+
             codecfn(dptr, sptr, dbuflen);
          }
       }
