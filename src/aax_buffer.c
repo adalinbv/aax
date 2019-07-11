@@ -47,7 +47,7 @@
 
 #include <3rdparty/MurmurHash3.h>
 
-#include "analyze.h"
+// #include "analyze.h"
 #include "arch.h"
 #include "api.h"
 
@@ -62,7 +62,7 @@ static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
 static char** _bufGetDataFromAAXS(_buffer_t *buffer, char *file);
-static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
+// static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
 
@@ -694,9 +694,11 @@ aaxBufferGetData(const aaxBuffer buffer)
          }
       }
 
+#if 0
       if (handle->format == AAX_AAXS16S || handle->format == AAX_AAXS24S) {
          data = (void**)_bufCreateAAXS(handle, data, buf_samples);
       }
+#endif
    }
 
    return data;
@@ -1674,6 +1676,7 @@ _bufCreateFromAAXS(_buffer_t* buffer, const void *aaxs, float freq)
    return rv;
 }
 
+#if 0
 static char**
 _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 {
@@ -1690,6 +1693,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 
    return rv;
 }
+#endif
 
 static int
 _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
@@ -1778,7 +1782,8 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       scratch = _aax_aligned_alloc(2*(no_samples+NOISE_PADDING)*sizeof(float));
       if (scratch)
       {
-         for (i=0; i<AAX_MAX_WAVE; i++)
+         // AAX_CONSTANT_VALUE == 0
+         for (i=1; i<AAX_MAX_WAVE; i++)
          {
             switch (wtype & bit)
             {

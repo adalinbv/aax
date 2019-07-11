@@ -1,6 +1,6 @@
 
 set(SRC_HEADERS
-  analyze.h
+# analyze.h
   api.h
   arch.h
   copyright.h
@@ -20,7 +20,7 @@ set(SRC_SOURCES
   aax_scenery.c
   aax_sensor.c
   aax_support.c
-  analyze.c
+# analyze.c
   api.c
   arch.c
   objects.c

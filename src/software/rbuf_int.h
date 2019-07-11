@@ -180,6 +180,19 @@ typedef struct _aaxRingBufferData_t
 
 /* --------------------------------------------------------------------------*/
 
+#define _AAX_SYNTH_MAX_WAVEFORMS	4
+#define _AAX_SYNTH_MAX_HARMONICS	16
+
+enum wave_types
+{
+   _CONSTANT_VALUE = 0,
+   _TRIANGLE_WAVE,
+   _SINE_WAVE,
+   _SQUARE_WAVE,
+   _SAWTOOTH_WAVE,
+   _IMPULSE_WAVE
+};
+
 /** CODECs */
 typedef struct {
    unsigned char bits;

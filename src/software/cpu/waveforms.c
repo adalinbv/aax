@@ -43,13 +43,15 @@
 
 #include <api.h>
 #include <arch.h>
-#include <analyze.h>
+//#include <analyze.h>
 #include <software/audio.h>
+#include <software/rbuf_int.h>
 #include <dsp/dsp.h>
 
 #include "arch2d_simd.h"
 
-static float _gains[MAX_WAVE];
+static float _gains[AAX_MAX_WAVE];
+float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
@@ -254,17 +256,25 @@ _bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps
 
 /* -------------------------------------------------------------------------- */
 
-static float _gains[MAX_WAVE] = { 0.95f, 0.9f, 0.7f, 1.1f, 1.0f };
+static float _gains[AAX_MAX_WAVE] = { 1.0f, 0.9f, 1.0f, 0.95f, 0.7f, 1.1f };
 
-float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
+float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
 {
-  /* _SQUARE_WAVE */
-  { 1.f, 0.0f, 1.f/3.f, 0.f, 1.f/5.f, 0.f, 1.f/7.f, 0.f,
-    1.f/9.f, 0.f, 1.f/11.f, 0.f, 1.f/13.f, 0.f, 1.f/15.f, 0.f },
+  /* AAX_CONSTANT_VALUE */
+  { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f },
 
   /* _TRIANGLE_WAVE */
   { 1.f, 0.f, -1.f/9.f, 0.f, 1.f/25.f, 0.f, -1.f/49.f, 0.f,
     1.f/81.f, 0.f, -1.f/121.f, 0.f, 1.f/169.f, 0.0f, -1.f/225.f, 0.f },
+
+  /* _SINE_WAVE */
+  { 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f },
+
+  /* _SQUARE_WAVE */
+  { 1.f, 0.0f, 1.f/3.f, 0.f, 1.f/5.f, 0.f, 1.f/7.f, 0.f,
+    1.f/9.f, 0.f, 1.f/11.f, 0.f, 1.f/13.f, 0.f, 1.f/15.f, 0.f },
 
   /* _SAWTOOTH_WAVE */
   { 1.f, 1.f/2.f, 1.f/3.f, 1.f/4.f, 1.f/5.f, 1.f/6.f, 1.f/7.f, 1.f/8.f,
@@ -274,12 +284,7 @@ float _harmonics[MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
   /* _IMPULSE_WAVE */
   { 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
-    1.f/16.f, 1.f/16.f },
-
-  /* _SINE_WAVE */
-  { 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f }
-
+    1.f/16.f, 1.f/16.f }
 };
 
 #if 0
