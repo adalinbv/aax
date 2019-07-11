@@ -38,14 +38,25 @@ _aax_generate_waveform_cpu(float *rv, size_t no_samples, float freq, float phase
 {
    if (rv)
    {
-      unsigned int h = MAX_HARMONICS;
+      float ngain = harmonics[0];
+      unsigned int h, i = no_samples;
+      float hdt = GMATH_2PI/freq;
+      float s = phase;
+      float *ptr = rv;
 
-      memset(rv, 0, no_samples*sizeof(float));
       do
       {
-         float nfreq = freq/h--;
-         float ngain = harmonics[h];
-         if (nfreq < 2.0f) continue; // higher than the nyquist-frequency
+         *ptr++ = ngain * fast_sin(s);
+         s = fmodf(s+hdt, GMATH_2PI);
+      }
+      while (--i);
+
+      for(h=1; h<MAX_HARMONICS; ++h)
+      {
+         float nfreq = freq/(h+1);
+         if (nfreq < 2.0f) break;       // higher than the nyquist-frequency
+
+         ngain = harmonics[h];
          if (ngain)
          {
             int i = no_samples;
@@ -55,13 +66,12 @@ _aax_generate_waveform_cpu(float *rv, size_t no_samples, float freq, float phase
 
             do
             {
-               *ptr++ += ngain * fast_sin(s);
+               *ptr++ += ngain * fast_sin_sse_vex(s);
                s = fmodf(s+hdt, GMATH_2PI);
             }
             while (--i);
          }
       }
-      while (h);
    }
    return rv;
 }
