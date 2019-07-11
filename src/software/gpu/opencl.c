@@ -57,7 +57,7 @@ _aaxOpenCLDetect()
    static void *audio = NULL;
    static int rv = AAX_FALSE;
 
-#if 1
+#if 0
    if TEST_FOR_FALSE(rv) {
       audio = _aaxIsLibraryPresent("OpenCL", "1");
    }
