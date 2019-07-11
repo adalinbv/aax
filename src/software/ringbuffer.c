@@ -1172,23 +1172,28 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
    switch (type)
    {
    case AAX_SINE_WAVE:
-      _bufferMixSineWave(data, scratch, f, bps, no_samples, tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _SINE_WAVE, f, bps, no_samples,
+                         tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_SQUARE_WAVE:
-      _bufferMixSquareWave(data, scratch, f, bps, no_samples, tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _SQUARE_WAVE, f, bps, no_samples,
+                         tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_TRIANGLE_WAVE:
-      _bufferMixTriangleWave(data, scratch, f, bps, no_samples, tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _TRIANGLE_WAVE, f, bps, no_samples,
+                         tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_SAWTOOTH_WAVE:
-      _bufferMixSawtooth(data, scratch, f, bps, no_samples, tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _SAWTOOTH_WAVE, f, bps, no_samples,
+                         tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_IMPULSE_WAVE:
-      _bufferMixImpulse(data, scratch, f, bps, no_samples, tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _IMPULSE_WAVE, f, bps, no_samples,
+                         tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    default:

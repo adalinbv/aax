@@ -77,95 +77,16 @@ _aax_atanf(float v) {
 }
 
 void
-_bufferMixSineWave(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixWaveform(void** data, float *scratch, enum wave_types wtype, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
 {
-   gain *= _gains[_SINE_WAVE];
+   gain *= _gains[wtype];
    if (data && gain)
    {
-      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_SINE_WAVE]);
-//    float *ptr = _aax_generate_sine(no_samples, freq, phase);
-      if (ptr)
-      {
-         if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
-         } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
-         }
-      }
-   }
-}
-
-void
-_bufferMixSquareWave(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
-{
-   gain *= _gains[_SQUARE_WAVE];
-   if (data && gain)
-   {
-      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_SQUARE_WAVE]);
-//    float *ptr = _aax_generate_square(no_samples, freq, phase);
-      if (ptr)
-      {
-         if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
-         } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
-         }
-      }
-   }
-}
-
-void
-_bufferMixTriangleWave(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
-{
-   gain *= _gains[_TRIANGLE_WAVE];
-   if (data && gain)
-   {
-      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_TRIANGLE_WAVE]);
-//    float *ptr = _aax_generate_triangle(no_samples, freq, phase);
-      if (ptr)
-      {
-         if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
-         } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
-         }
-      }
-   }
-}
-
-void
-_bufferMixSawtooth(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
-{
-   gain *= _gains[_SAWTOOTH_WAVE];
-   if (data && gain)
-   {
-      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_SAWTOOTH_WAVE]);
-//    float *ptr = _aax_generate_sawtooth(no_samples, freq, phase);
-      if (ptr)
-      {
-         if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
-         } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
-         }
-      }
-   }
-}
-
-void
-_bufferMixImpulse(void** data, float *scratch, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
-{
-   gain *= _gains[_IMPULSE_WAVE];
-   if (data && gain)
-   {
-      float *ptr = _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[_IMPULSE_WAVE]);
-      if (ptr)
-      {
-         if (modulate) {
-            _aax_mul_data(data, ptr, tracks, no_samples, bps, fabsf(gain), limiter);
-         } else {
-            _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
-         }
+      _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[wtype]);
+      if (modulate) {
+         _aax_mul_data(data, scratch, tracks, no_samples, bps, fabsf(gain), limiter);
+      } else {
+         _aax_add_data(data, scratch, tracks, no_samples, bps, gain, limiter);
       }
    }
 }

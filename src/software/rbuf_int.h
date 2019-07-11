@@ -221,15 +221,11 @@ void _aaxRingBufferLimiter(MIX_PTR_T, size_t*, size_t*, float, float);
 
 
 /** BUFFER */
+void _bufferMixWaveform(void**, float*, enum wave_types, float, char, size_t, int, float, float, unsigned char, limitType);
+
 void _bufferMixWhiteNoise(void**, float*, size_t, char, int, float, float, unsigned char, unsigned char, limitType);
 void _bufferMixPinkNoise(void**, float*, size_t, char, int, float, float, float, unsigned char, unsigned char, limitType);
 void _bufferMixBrownianNoise(void**, float*, size_t, char, int, float, float, float, unsigned char, unsigned char, limitType);
-void _bufferMixSineWave(void**, float*, float, char, size_t, int, float, float, unsigned char, limitType);
-void _bufferMixSquareWave(void**, float*, float, char, size_t, int, float, float, unsigned char, limitType);
-void _bufferMixTriangleWave(void**, float*, float, char, size_t, int, float, float, unsigned char, limitType);
-void _bufferMixSawtooth(void**, float*, float, char, size_t, int, float, float, unsigned char, limitType);
-void _bufferMixImpulse(void**, float*, float, char, size_t, int, float, float, unsigned char, limitType);
-
 
 #if defined(__cplusplus)
 }  /* extern "C" */
