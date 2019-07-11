@@ -53,7 +53,7 @@ _aax_generate_waveform_sse2(float *rv, size_t no_samples, float freq, float phas
 
       do
       {
-         *ptr++ = ngain * fast_sin(s);
+         *ptr++ = ngain * fast_sin_sse2(s);
          s = fmodf(s+hdt, GMATH_2PI);
       }
       while (--i);
@@ -73,7 +73,7 @@ _aax_generate_waveform_sse2(float *rv, size_t no_samples, float freq, float phas
 
             do
             {
-               *ptr++ += ngain * fast_sin_sse_vex(s);
+               *ptr++ += ngain * fast_sin_sse_sse2(s);
                s = fmodf(s+hdt, GMATH_2PI);
             }
             while (--i);

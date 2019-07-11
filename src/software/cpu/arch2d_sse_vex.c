@@ -53,7 +53,7 @@ _aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float p
 
       do
       {
-         *ptr++ = ngain * fast_sin(s);
+         *ptr++ = ngain * fast_sin_sse_vex(s);
          s = fmodf(s+hdt, GMATH_2PI);
       }
       while (--i);

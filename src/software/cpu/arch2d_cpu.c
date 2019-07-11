@@ -66,7 +66,7 @@ _aax_generate_waveform_cpu(float *rv, size_t no_samples, float freq, float phase
 
             do
             {
-               *ptr++ += ngain * fast_sin_sse_vex(s);
+               *ptr++ += ngain * fast_sin(s);
                s = fmodf(s+hdt, GMATH_2PI);
             }
             while (--i);
