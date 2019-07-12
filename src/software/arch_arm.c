@@ -194,11 +194,11 @@ _aaxArchDetectVFPV4() {
    return (_aaxArchDetectFeatures() & AAX_ARCH_VFPV4);
 }
 
-char _aaxArchDetectNEON() {
+char _aaxArchDetectNeon() {
    return (_aaxArchDetectFeatures() & AAX_ARCH_NEON);
 }
 
-char _aaxArchDetectNEON() {
+char _aaxArchDetectHelium() {
    return (_aaxArchDetectFeatures() & AAX_ARCH_HELIUM);
 }
 
@@ -460,11 +460,11 @@ _aaxArchDetectVFPV4() {
    return 0;
 }
 
-char _aaxArchDetectNEON() {
+char _aaxArchDetectNeon() {
    return 0;
 }
 
-char _aaxArchDetectHELIUM() {
+char _aaxArchDetectHelium() {
    return 0;
 }
 
