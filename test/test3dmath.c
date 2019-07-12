@@ -38,22 +38,8 @@ char _aaxArchDetectAVX();
 # define SIMD2  neon
 # define SIMD3  neon
 # define SIMD4	vfpv3
-# define AAX_ARCH_VFPV3	0x00000002
-# define AAX_ARCH_NEON  0x00000008
-char _aaxArchDetectFeatures();
-extern uint32_t _aax_arch_capabilities;
-int _aaxArchDetectVFPV3()
-{
-   _aaxArchDetectFeatures();
-   if (_aax_arch_capabilities & AAX_ARCH_VFPV3) return 1;
-   return 0;
-}
-int _aaxArchDetectNEON()
-{
-   _aaxArchDetectFeatures();
-   if (_aax_arch_capabilities & AAX_ARCH_NEON) return 1;
-   return 0;
-}
+char _aaxArchDetectVFPV3();
+char _aaxArchDetectNeon();
 #endif
 
 #define __MKSTR(X)		#X
@@ -106,7 +92,7 @@ int main()
     }
     simd3 = _aaxArchDetectSSE3();
 #elif defined(__arm__) || defined(_M_ARM)
-    simd = simd2 = simd3 = _aaxArchDetectNEON();
+    simd = simd2 = simd3 = _aaxArchDetectNeon();
     simd4 = _aaxArchDetectVFPV3();
 #endif
 

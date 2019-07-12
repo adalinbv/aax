@@ -171,8 +171,8 @@ char _aaxArchDetectHF();
 char _aaxArchDetectVFPV2();
 char _aaxArchDetectVFPV3();
 char _aaxArchDetectVFPV4();
-char _aaxArchDetectNEON();
-char _aaxArchDetectHELIUM();
+char _aaxArchDetectNeon();
+char _aaxArchDetectHelium();
 
 #if defined(__cplusplus)
 }  /* extern "C" */

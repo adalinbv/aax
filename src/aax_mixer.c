@@ -1406,11 +1406,11 @@ _aaxGetCapabilities(UNUSED(const aaxConfig config))
          rv |= AAX_64BIT;
       }
 
-      if (_aaxArchDetectSSE2() || _aaxArchDetectNEON()) {
+      if (_aaxArchDetectSSE2() || _aaxArchDetectNeon()) {
          rv |= AAX_SIMD;
       }
 
-      if (_aaxArchDetectAVX() || _aaxArchDetectHELIUM()) {
+      if (_aaxArchDetectAVX() || _aaxArchDetectHelium()) {
          rv |= AAX_SIMD256;
       }
       if (_aaxArchDetectAVX2()) {

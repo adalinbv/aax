@@ -216,7 +216,7 @@ _aaxGetSIMDSupportLevel()
       char *simd_level = getenv("AAX_SIMD_LEVEL");
 
       init = AAX_FALSE;
-      rv = _aaxGetSSELevel();
+      rv = _aaxArchDetectFeatures();
       if (rv >= AAX_ARCH_NEON) {
          support_simd = AAX_TRUE;
       }
