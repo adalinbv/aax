@@ -437,16 +437,26 @@ int main()
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nsinf:  %f ms\n", cpu*1000.0f);
 
+
+        t = clock();
+        p = 0.0f;
+        for (i=0; i<MAXNUM; ++i) {
+            src[i] = fast_sin(p);
+            p = fmodf(p+step, GMATH_2PI);
+        }
+        eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("fast_sin:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+
         t = clock();
         p = 0.0f;
         step /= GMATH_2PI;
         for (i=0; i<MAXNUM; ++i) {
-            src[i] = fast_sin_cpu(p);
+            src[i] = fast_sin(p);
             p += step;
             if (step >= 2.0f) step -= 2.0f;
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fast_sin spu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        printf("fast_sin cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 
         if (simd)
         {
