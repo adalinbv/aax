@@ -395,7 +395,7 @@ void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
     } else {
         fprintf(output, "  <effect type=\"%s\"", dsp->type);
     }
-    if (dsp->src && strcmp(dsp->src, "true")) {
+    if (dsp->src && (strcmp(dsp->src, "12db") && strcmp(dsp->src, "true"))) {
         fprintf(output, " src=\"%s\"", dsp->src);
     }
     if (dsp->repeat) fprintf(output, " repeat=\"%s\"", dsp->repeat);
@@ -641,7 +641,7 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
     if (sound->duration && sound->duration != 1.0f) {
         fprintf(output, " duration=\"%s\"", format_float3(sound->duration));
     }
-    if (sound->voices)
+    if (sound->voices > 1)
     {
         fprintf(output, " voices=\"%i\"", sound->voices);
         if (sound->spread) {
