@@ -65,6 +65,10 @@ int _aaxArchDetectNEON()
 # define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
 # define GLUE(FUNC,NAME)	__GLUE(FUNC,NAME)
 
+float fast_sin_cpu(float);
+float fast_sin_sse2(float);
+float fast_sin_sse_vex(float);
+
 _batch_fmadd_proc _batch_fmadd;
 _batch_cvt_to_proc _batch_roundps;
 _batch_mul_value_proc _batch_fmul_value;
@@ -424,20 +428,51 @@ int main()
          * sinf versus _aax_sin (purely for speed comparisson
          */
         t = clock();
+        float p = 0.0f;
+        float step = GMATH_2PI*rand()/RAND_MAX;
         for (i=0; i<MAXNUM; ++i) {
-            src[i] = sinf(GMATH_2PI*rand()/RAND_MAX);
+            src[i] = sinf(p);
+            p += step;
         }
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nsinf:  %f ms\n", cpu*1000.0f);
 
         t = clock();
+        p = 0.0f;
+        step /= GMATH_2PI;
         for (i=0; i<MAXNUM; ++i) {
-            float p = fmodf(-GMATH_2PI + 2*GMATH_2PI*rand()/RAND_MAX, GMATH_2PI);
-            src[i] = fast_sin(p);
+            src[i] = fast_sin_cpu(p);
+            p += step;
+            if (step >= 2.0f) step -= 2.0f;
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fast_sin:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        printf("fast_sin spu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
 
+        if (simd)
+        {
+            t = clock();
+            p = 0.0f; 
+            for (i=0; i<MAXNUM; ++i) {
+                src[i] = fast_sin_sse2(p);
+                p += step;
+                if (step >= 2.0f) step -= 2.0f;
+            }
+            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fast_sin sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
+
+        if (simd2)
+        {
+            t = clock();
+            p = 0.0f; 
+            for (i=0; i<MAXNUM; ++i) {
+                src[i] = fast_sin_sse_vex(p);
+                p += step;
+                if (step >= 2.0f) step -= 2.0f;
+            }
+            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("fast_sin sse_vex:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
     }
 
     _aax_aligned_free(dst2);
