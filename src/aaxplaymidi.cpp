@@ -192,7 +192,7 @@ int main(int argc, char **argv)
     bool batched = false;
     try
     {
-        float time_offs = getDuration(argc, argv);
+        float time_offs = getTime(argc, argv);
         char *outfile = getOutputFile(argc, argv, NULL);
         const char *track, *grep;
 
