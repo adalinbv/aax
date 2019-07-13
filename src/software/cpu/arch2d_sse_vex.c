@@ -32,11 +32,10 @@
 
 #ifdef __AVX__
 
-float
+float	// range 0.0f .. 2.0f
 fast_sin_sse_vex(float x)
 {
-   x *= GMATH_1_PI;
-   x = fmodf(x, 2.0f) - 1.0f;
+   x -= 1.0f;
    return -4.0f*(x - x*fabsf(x));
 }
 
@@ -47,14 +46,15 @@ _aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float p
    {
       float ngain = harmonics[0];
       unsigned int h, i = no_samples;
-      float hdt = GMATH_2PI/freq;
-      float s = phase;
+      float hdt = 2.0f/freq;
+      float s = phase/GMATH_PI;
       float *ptr = rv;
 
       do
       {
          *ptr++ = ngain * fast_sin_sse_vex(s);
-         s = fmodf(s+hdt, GMATH_2PI);
+         s = s+hdt;
+         if (s >= 2.0f) s -= 2.0f;
       }
       while (--i);
 
@@ -67,14 +67,15 @@ _aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float p
          if (ngain)
          {
             int i = no_samples;
-            float hdt = GMATH_2PI/nfreq;
-            float s = phase;
+            float hdt = 2.0f/nfreq;
+            float s = phase/GMATH_PI;
             float *ptr = rv;
 
             do
             {
                *ptr++ += ngain * fast_sin_sse_vex(s);
-               s = fmodf(s+hdt, GMATH_2PI);
+               s = s+hdt;
+               if (s >= 2.0f) s -= 2.0f;
             }
             while (--i);
          }

@@ -33,6 +33,14 @@
  * Generate a waveform based on the harminics list
  * output range is -1.0 .. 1.0
  */
+
+float	// range 0.0f .. 2.0f
+fast_sin_cpu(float x)
+{
+   x -= 1.0f;
+   return -4.0f*(x - x*fabsf(x));
+}
+
 float *
 _aax_generate_waveform_cpu(float *rv, size_t no_samples, float freq, float phase, float *harmonics)
 {
@@ -40,14 +48,15 @@ _aax_generate_waveform_cpu(float *rv, size_t no_samples, float freq, float phase
    {
       float ngain = harmonics[0];
       unsigned int h, i = no_samples;
-      float hdt = GMATH_2PI/freq;
-      float s = phase;
+      float hdt = 2.0f/freq;
+      float s = phase/GMATH_PI;
       float *ptr = rv;
 
       do
       {
-         *ptr++ = ngain * fast_sin(s);
-         s = fmodf(s+hdt, GMATH_2PI);
+         *ptr++ = ngain * fast_sin_cpu(s);
+         s = s+hdt;
+         if (s >= 2.0f) s -= 2.0f;
       }
       while (--i);
 
@@ -60,14 +69,15 @@ _aax_generate_waveform_cpu(float *rv, size_t no_samples, float freq, float phase
          if (ngain)
          {
             int i = no_samples;
-            float hdt = GMATH_2PI/nfreq;
-            float s = phase;
+            float hdt = 2.0f/nfreq;
+            float s = phase/GMATH_PI;
             float *ptr = rv;
 
             do
             {
-               *ptr++ += ngain * fast_sin(s);
-               s = fmodf(s+hdt, GMATH_2PI);
+               *ptr++ += ngain * fast_sin_cpu(s);
+               s = s+hdt;
+               if (s >= 2.0f) s -= 2.0f;
             }
             while (--i);
          }

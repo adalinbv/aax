@@ -1,10 +1,16 @@
+* Sat Jul 13 2019 - tech@adalin.org
+- AeonWave (3.6.3) stable; urgency=low
+
+ * 4x increase in waveform generation speed.
+
+-- Erik Hofman <tech@adalin.org>  Sat 13 Jul 2019 14:50:34 + 0200
 
 * Fri Jul 12 2019 - tech@adalin.org
 - AeonWave (3.6.2) stable; urgency=medium
 
  * Reduce waveform generation overhead.
- * Add the option to retrieve the system capabilites by calling aaxMixerGetSetup
-   with AAX_CAPABILITIES as the type parameter.
+ * Add the option to retrieve the system capabilities by calling
+   aaxMixerGetSetup with AAX_CAPABILITIES as the type parameter.
  * Fix a possible read beyond a buffer length when handling AAXS files.
  * Fix OGG streams, a missing OGG framing-bit is not a reason to discard a
    stream as invalid.
