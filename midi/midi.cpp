@@ -1770,6 +1770,7 @@ MIDIFile::initialize(const char *grep)
     if (!grep)
     {
         rewind();
+        pos_sec = 0;
 
         int capabilities = midi.get(AAX_CAPABILITIES);
         int cores = (capabilities & AAX_CPU_CORES)+1;
@@ -1783,7 +1784,6 @@ MIDIFile::initialize(const char *grep)
 
         midi.set(AAX_REFRESH_RATE, refrate);
         midi.set(AAX_INITIALIZED);
-        pos_sec = 0;
 
         if (midi.get_verbose())
         {

@@ -166,7 +166,26 @@ getDuration(int argc, char **argv)
     float num = 1.0f;
     char *ret = getCommandLineOption(argc, argv, "-t");
     if (!ret) ret = getCommandLineOption(argc, argv, "--time");
-    if (ret) num = (float)atof(ret);
+    if (ret)
+    {
+       char *ptr1 = strchr(ret, ':');
+       char *ptr2 = ptr1 ? strchr(ptr1+1, ':') : NULL;
+
+       if (ptr2)
+       {
+          num = atof(ptr2+1);
+          num += 60.0f*atof(ptr1+1);
+          num += 60.0f*60.0f*atof(ret);
+       }
+       else if (ptr1)
+       {
+          num = atof(ptr1+1);
+          num += 60.0f*atof(ret);
+       }
+       else {
+          num = (float)atof(ret);
+       }
+    }
     return num;
 }
 

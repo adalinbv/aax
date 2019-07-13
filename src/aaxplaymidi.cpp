@@ -66,7 +66,8 @@ help()
     printf("\nOptions:\n");
     printf("  -i, --input <file>\t\tplayback audio from a file\n");
     printf("  -d, --device <device>\t\tplayback device (default if not specified)\n");
-    printf("  -t, --track <name|num>\tonly play the track with this name or number\n");
+    printf("  -s, --select <name|num>\tonly play the track with this name or number\n");
+    printf("  -t, --time\t\t\tTime offset in seconds or (hh:)mm:ss\n");
 //  printf("  -b, --batched\t\t\tprocess the file in batched (high-speed) mode.\n");
     printf("  -v, --verbose\t\t\tshow extra playback information\n");
     printf("  -h, --help\t\t\tprint this message and exit\n");
@@ -98,7 +99,7 @@ static void sleep_for(float dt)
     }
 }
 
-void play(char *devname, char *infile, char *outfile, const char *track, const char *grep, bool verbose, bool batched)
+void play(char *devname, char *infile, char *outfile, const char *track, float time_offs, const char *grep, bool verbose, bool batched)
 {
     if (grep) devname = (char*)"None"; // fastest for searching
     aax::MIDIFile midi(devname, infile, track);
@@ -141,7 +142,7 @@ void play(char *devname, char *infile, char *outfile, const char *track, const c
             {
                 if (!midi.process(time_parts, wait_parts)) break;
 
-                if (wait_parts > 0)
+                if (wait_parts > 0 && midi.get_pos_sec() >= time_offs)
                 {
                     uint32_t wait_us;
 
@@ -166,9 +167,8 @@ void play(char *devname, char *infile, char *outfile, const char *track, const c
 
                     gettimeofday(&now, NULL);
                     dt_us = -(now.tv_sec * 1000000 + now.tv_usec);
-
-                    time_parts += wait_parts;
                 }
+                time_parts += wait_parts;
             }
             while(!get_key());
             set_mode(0);
@@ -192,12 +192,13 @@ int main(int argc, char **argv)
     bool batched = false;
     try
     {
+        float time_offs = getDuration(argc, argv);
         char *outfile = getOutputFile(argc, argv, NULL);
         const char *track, *grep;
 
-        track = getCommandLineOption(argc, argv, "-t");
+        track = getCommandLineOption(argc, argv, "-s");
         if (!track) {
-            track = getCommandLineOption(argc, argv, "--track");
+            track = getCommandLineOption(argc, argv, "--select");
         }
 
         grep = getCommandLineOption(argc, argv, "-g");
@@ -217,7 +218,7 @@ int main(int argc, char **argv)
             batched = true;
         }
 
-        std::thread midiThread(play, devname, infile, outfile, track, grep, verbose, batched);
+        std::thread midiThread(play, devname, infile, outfile, track, time_offs, grep, verbose, batched);
         midiThread.join();
 
     } catch (const std::exception& e) {
