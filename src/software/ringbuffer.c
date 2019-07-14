@@ -1340,7 +1340,7 @@ _aaxRingBufferDataClear(_aaxRingBuffer *rb)
 }
 
 void
-_aaxRingBufferCopyDelyEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb)
+_aaxRingBufferCopyDelayEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *srb)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
@@ -1504,5 +1504,5 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->mix2d = _aaxRingBufferMixMulti16;
    rb->mix3d = _aaxRingBufferMixMono16;
    rb->get_scratch = _aaxRingBufferGetScratchBufferPtr;
-   rb->copy_effectsdata = _aaxRingBufferCopyDelyEffectsData;
+   rb->copy_effectsdata = _aaxRingBufferCopyDelayEffectsData;
 }
