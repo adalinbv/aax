@@ -445,7 +445,7 @@ int main()
             p = fmodf(p+step, GMATH_2PI);
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fast_sin:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        printf("fast_sin:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
 
         t = clock();
         p = 0.0f;
@@ -453,10 +453,10 @@ int main()
         for (i=0; i<MAXNUM; ++i) {
             src[i] = fast_sin(p);
             p += step;
-            if (step >= 2.0f) step -= 2.0f;
+            if (step >= 1.0f) step -= 2.0f;
         }
         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fast_sin cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        printf("fast_sin cpu:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
 
         if (simd)
         {
@@ -465,10 +465,10 @@ int main()
             for (i=0; i<MAXNUM; ++i) {
                 src[i] = fast_sin_sse2(p);
                 p += step;
-                if (step >= 2.0f) step -= 2.0f;
+                if (step >= 1.0f) step -= 2.0f;
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fast_sin sse2:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("fast_sin sse2:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
         }
 
         if (simd2)
@@ -478,10 +478,10 @@ int main()
             for (i=0; i<MAXNUM; ++i) {
                 src[i] = fast_sin_sse_vex(p);
                 p += step;
-                if (step >= 2.0f) step -= 2.0f;
+                if (step >= 1.0f) step -= 2.0f;
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fast_sin sse_vex:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("fast_sin sse_vex:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
         }
     }
 

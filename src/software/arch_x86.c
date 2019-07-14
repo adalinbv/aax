@@ -434,7 +434,8 @@ _aaxGetSIMDSupportLevel()
          {
             if (_aax_arch_capabilities & AAX_ARCH_AVX)
             {
-               _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
+               // for some reason the SSE2 version is almost twice as fast
+//             _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
                _batch_get_average_rms = _batch_get_average_rms_sse_vex;
 
                /* SSE/VEX */

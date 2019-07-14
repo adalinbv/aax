@@ -32,7 +32,7 @@
 #ifdef __SSE2__
 
 
-float	// range -1.0f .. 1.0f
+inline float	// range -1.0f .. 1.0f
 fast_sin_sse2(float x)
 {
    return -4.0f*(x - x*fabsf(x));
