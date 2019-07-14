@@ -69,11 +69,11 @@ float fast_sin_cpu(float);
 float fast_sin_sse2(float);
 float fast_sin_sse_vex(float);
 
-_batch_fmadd_proc _batch_fmadd;
-_batch_cvt_to_proc _batch_roundps;
-_batch_mul_value_proc _batch_fmul_value;
-_batch_get_average_rms_proc _batch_get_average_rms;
-_batch_freqfilter_float_proc _batch_freqfilter_float;
+extern _batch_fmadd_proc _batch_fmadd;
+extern _batch_cvt_to_proc _batch_roundps;
+extern _batch_mul_value_proc _batch_fmul_value;
+extern _batch_get_average_rms_proc _batch_get_average_rms;
+extern _batch_freqfilter_float_proc _batch_freqfilter_float;
 
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
