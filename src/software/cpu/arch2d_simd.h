@@ -50,8 +50,9 @@ extern "C" {
 #include "base/types.h"
 #include "base/geometry.h"
 
-#define CUBIC_TRESHOLD		0.25f
+// must be a multiple of 4 because of SIMD optimizations
 #define MAX_HARMONICS		16
+#define CUBIC_TRESHOLD		0.25f
 
 typedef float* (*_aax_generate_waveform_proc)(float*, size_t, float, float, float*);
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
