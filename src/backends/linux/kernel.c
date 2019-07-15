@@ -955,7 +955,7 @@ if (corr)
       {
          *req_frames = _MAX(offs, 0);
          gain = _kernel_set_volume(handle, NULL, offs, offs, tracks, gain);
-         if (gain > 0)
+         if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
          {
             unsigned int i;
             for (i=0; i<tracks; i++)

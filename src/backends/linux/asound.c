@@ -1379,7 +1379,7 @@ if (corr)
       *req_frames = offs;
 
       gain = _alsa_set_volume(handle, NULL, init_offs, offs, tracks, gain);
-      if (gain > 0)
+      if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
       {
          unsigned int i;
          for (i=0; i<tracks; i++)
