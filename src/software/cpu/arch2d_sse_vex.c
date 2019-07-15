@@ -38,46 +38,87 @@ fast_sin_sse_vex(float x)
    return -4.0f*(x - x*fabsf(x));
 }
 
+static inline FN_PREALIGN float
+hsum_ps_sse_vex(__m128 v) {
+   __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
+   __m128 sums = _mm_add_ps(v, shuf);
+   shuf = _mm_movehl_ps(shuf, sums);
+   sums = _mm_add_ss(sums, shuf);
+   return _mm_cvtss_f32(sums);
+}
+
+float hsum_ps_sse1(__m128 v) {                                  // v = [ D C | B A ]
+    __m128 shuf   = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));  // [ C D | A B ]
+    __m128 sums   = _mm_add_ps(v, shuf);      // sums = [ D+C C+D | B+A A+B ]
+    shuf          = _mm_movehl_ps(shuf, sums);      //  [   C   D | D+C C+D ]  // let the compiler avoid a mov by reusing shuf
+    sums          = _mm_add_ss(sums, shuf);
+    return    _mm_cvtss_f32(sums);
+}
+
+static inline __m128
+_mm_abs_ps(__m128 x) {
+   return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
+}
+
+static inline __m128    // range -1.0f .. 1.0f
+fast_sin4_sse_vex(__m128 x)
+{
+   __m128 four = _mm_set1_ps(4.0f);
+   return _mm_mul_ps(four, _mm_sub_ps(x, _mm_mul_ps(x, _mm_abs_ps(x))));
+}
+
 float *
 _aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float phase, float *harmonics)
 {
    if (rv)
    {
-      float ngain = harmonics[0];
-      unsigned int h, i = no_samples;
-      float hdt = 2.0f/freq;
-      float s = -1.0f + phase/GMATH_PI;
-      float *ptr = rv;
+      __m128 phase4, freq4, h4;
+      __m128 one, two, four;
+      unsigned int h;
 
-      do
+      memset(rv, 0, no_samples*sizeof(float));
+
+      assert(MAX_HARMONICS % 4 == 0);
+
+      one = _mm_set1_ps(1.0f);
+      two = _mm_set1_ps(2.0f);
+      four = _mm_set1_ps(4.0f);
+
+      phase4 = _mm_set1_ps(-1.0f + phase/2.0f);
+      freq4 = _mm_set1_ps(freq);
+      h4 = _mm_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
+
+      for(h=0; h<MAX_HARMONICS; h += 4)
       {
-         *ptr++ = ngain * fast_sin_sse_vex(s);
-         s = s+hdt;
-         if (s >= 1.0f) s -= 2.0f;
-      }
-      while (--i);
+         __m128 ngain, nfreq;
 
-      for(h=1; h<MAX_HARMONICS; ++h)
-      {
-         float nfreq = freq/(h+1);
-         if (nfreq < 2.0f) break;	// higher than the nyquist-frequency
+         nfreq = _mm_div_ps(freq4, h4);
 
-         ngain = harmonics[h];
-         if (ngain)
+         ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics+h));
+
+         if (_mm_testz_ps(ngain, ngain))
          {
+            __m128 hdt, s;
             int i = no_samples;
-            float hdt = 2.0f/nfreq;
-            float s = -1.0f + phase/GMATH_PI;
             float *ptr = rv;
 
+            hdt = _mm_div_ps(two, nfreq);
+
+            s = phase4;
             do
             {
-               *ptr++ += ngain * fast_sin_sse_vex(s);
-               s = s+hdt;
-               if (s >= 1.0f) s -= 2.0f;
+               __m128 rv;
+
+               rv = fast_sin4_sse_vex(s);
+
+               *ptr++ += hsum_ps_sse_vex(_mm_mul_ps(ngain, rv));
+
+               s = _mm_add_ps(s, hdt);
+               s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
             }
             while (--i);
          }
+         h4 = _mm_add_ps(h4, four);
       }
    }
    return rv;
