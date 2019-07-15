@@ -35,6 +35,7 @@
 #include <iostream>
 #include <cstring>
 
+#include <time.h>
 #include <limits.h>
 #include <assert.h>
 #include <xml.h>
@@ -1752,6 +1753,9 @@ MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
 void
 MIDIFile::initialize(const char *grep)
 {
+    double eps;
+    clock_t t;
+
     midi.read_instruments();
 
     midi.set_initialize(true);
@@ -1759,11 +1763,13 @@ MIDIFile::initialize(const char *grep)
 
     uint64_t time_parts = 0;
     uint32_t wait_parts = 1000000;
+    t= clock();
     while (process(time_parts, wait_parts))
     {
         time_parts += wait_parts;
         duration_sec += wait_parts*midi.get_uspp()*1e-6f;
     }
+    eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
 
     midi.set_initialize(false);
 
@@ -1789,6 +1795,7 @@ MIDIFile::initialize(const char *grep)
         {
             MESSAGE("Frequency : %i Hz\n", midi.get(AAX_FREQUENCY));
             MESSAGE("Upd. rate : %i Hz\n", midi.get(AAX_REFRESH_RATE));
+            MESSAGE("Init time : %.1f ms\n", eps*1000.0f);
 
             int hour, minutes, seconds;
 
