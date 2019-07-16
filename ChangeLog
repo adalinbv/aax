@@ -2,6 +2,7 @@
 - AeonWave (3.6.3) stable; urgency=low
 
  * 4x increase in waveform generation speed.
+ * Fix a buffer overflow when capturing with ALSA
 
 -- Erik Hofman <tech@adalin.org>  Sat 13 Jul 2019 14:50:34 + 0200
 

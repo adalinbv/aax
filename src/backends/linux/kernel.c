@@ -861,6 +861,7 @@ _aaxLinuxDriverCapture(const void *id, void **data, ssize_t *offset, size_t *req
    _driver_t *handle = (_driver_t *)id;
    snd_pcm_sframes_t avail;
    ssize_t offs = *offset;
+   ssize_t init_offs = offs;
    ssize_t rv = AAX_FALSE;
    int ret;
  
@@ -954,13 +955,13 @@ if (corr)
       if (ret >= 0)
       {
          *req_frames = _MAX(offs, 0);
-         gain = _kernel_set_volume(handle, NULL, offs, offs, tracks, gain);
+         gain = _kernel_set_volume(handle, NULL, init_offs, offs, tracks, gain);
          if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
          {
             unsigned int i;
             for (i=0; i<tracks; i++)
             {
-               int32_t *ptr = (int32_t*)sbuf[i]+offs;
+               int32_t *ptr = (int32_t*)sbuf[i]+init_offs;
                _batch_imul_value(ptr, ptr, sizeof(int32_t), offs, gain);
             }
          }
