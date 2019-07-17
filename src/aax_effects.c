@@ -284,12 +284,15 @@ aaxEffectGetParam(const aaxEffect e, int param, int ptype)
 AAX_API int AAX_APIENTRY
 aaxEffectGetSlot(const aaxEffect e, unsigned slot, int ptype, float* p1, float* p2, float* p3, float* p4)
 {
-   aaxVec4f v;
+   aaxVec4f v = { 0.0f, 0.0f, 0.0f, 0.0f };
    int rv = aaxEffectGetSlotParams(e, slot, ptype, v);
-   if(p1) *p1 = v[0];
-   if(p2) *p2 = v[1];
-   if(p3) *p3 = v[2];
-   if(p4) *p4 = v[3];
+   if (rv)
+   {
+      if(p1) *p1 = v[0];
+      if(p2) *p2 = v[1];
+      if(p3) *p3 = v[2];
+      if(p4) *p4 = v[3];
+   }
    return rv;
 }
 

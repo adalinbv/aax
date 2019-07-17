@@ -496,6 +496,7 @@ _aaxOSSDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       _oss_get_volume(handle);
 
+      info.fragsize = 0;
       if ((err >= 0) && (handle->mode == O_WRONLY)) {
          err = pioctl(fd, SNDCTL_DSP_GETOSPACE, &info);
       }

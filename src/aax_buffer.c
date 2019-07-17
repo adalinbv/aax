@@ -1011,7 +1011,7 @@ char **
 _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
 {
    char *s, *u, *url, **data = NULL;
-   size_t no_samples, blocksize;
+   size_t blocksize, no_samples = 0;
    unsigned int tracks;
    float freq;
    int fmt;

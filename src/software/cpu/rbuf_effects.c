@@ -304,6 +304,8 @@ _aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size,
    assert(*data == NULL);
 
    size *= sizeof(MIX_T);
+   offs = sizeof(_aaxRingBufferHistoryData);
+   size += offs;
 #if BYTE_ALIGN
    if (size & MEMMASK)
    {
@@ -311,9 +313,6 @@ _aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size,
       size++;
    }
 
-   offs = sizeof(_aaxRingBufferHistoryData);
-   size += offs;
- 
    ptr = _aax_calloc(&p, offs, tracks, size);
 #else
    ptr = calloc(tracks, size);

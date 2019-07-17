@@ -89,7 +89,7 @@ _aax_generate_waveform_sse2(float *rv, size_t no_samples, float freq, float phas
       h4 = _mm_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
 
       nfreq = _mm_div_ps(freq4, h4);
-      ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics+h));
+      ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics));
       hdt = _mm_div_ps(two, nfreq);
 
       ptr = rv;
