@@ -55,7 +55,7 @@ _mm_abs_ps(__m128 x) {
 static inline __m128	// range -1.0f .. 1.0f
 fast_sin4_sse_vex(__m128 x)
 {
-   __m128 four = _mm_set1_ps(4.0f);
+   __m128 four = _mm_set1_ps(-4.0f);
    return _mm_mul_ps(four, _mm_sub_ps(x, _mm_mul_ps(x, _mm_abs_ps(x))));
 }
 
@@ -77,7 +77,7 @@ _aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float p
       two = _mm_set1_ps(2.0f);
       four = _mm_set1_ps(4.0f);
 
-      phase4 = _mm_set1_ps(-1.0f + phase/2.0f);
+      phase4 = _mm_set1_ps(-1.0f + phase/GMATH_PI);
       freq4 = _mm_set1_ps(freq);
       h4 = _mm_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
 
