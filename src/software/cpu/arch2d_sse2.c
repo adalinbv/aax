@@ -39,7 +39,7 @@ fast_sin_sse2(float x)
 }
 
 static inline FN_PREALIGN float
-hsum_ps_sse_vex(__m128 v) {
+hsum_ps_sse2(__m128 v) {
    __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
    __m128 sums = _mm_add_ps(v, shuf);
    shuf = _mm_movehl_ps(shuf, sums);
@@ -60,7 +60,7 @@ _mm_testz_ps_sse2(__m128 x)
 }
 
 static inline __m128	// range -1.0f .. 1.0f
-fast_sin4_sse_vex(__m128 x)
+fast_sin4_sse2(__m128 x)
 {
    __m128 four = _mm_set1_ps(-4.0f);
    return _mm_mul_ps(four, _mm_sub_ps(x, _mm_mul_ps(x, _mm_abs_ps(x))));
@@ -97,9 +97,9 @@ _aax_generate_waveform_sse2(float *rv, size_t no_samples, float freq, float phas
       s = phase4;
       do
       {
-         __m128 rv = fast_sin4_sse_vex(s);
+         __m128 rv = fast_sin4_sse2(s);
 
-         *ptr++ = hsum_ps_sse_vex(_mm_mul_ps(ngain, rv));
+         *ptr++ = hsum_ps_sse2(_mm_mul_ps(ngain, rv));
 
          s = _mm_add_ps(s, hdt);
          s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
@@ -120,9 +120,9 @@ _aax_generate_waveform_sse2(float *rv, size_t no_samples, float freq, float phas
             s = phase4;
             do
             {
-               __m128 rv = fast_sin4_sse_vex(s);
+               __m128 rv = fast_sin4_sse2(s);
 
-               *ptr++ += hsum_ps_sse_vex(_mm_mul_ps(ngain, rv));
+               *ptr++ += hsum_ps_sse2(_mm_mul_ps(ngain, rv));
 
                s = _mm_add_ps(s, hdt);
                s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
