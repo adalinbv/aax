@@ -68,10 +68,6 @@ int _aaxArchDetectNEON()
 #define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
 #define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
 
-float fast_sin_cpu(float);
-float fast_sin_sse2(float);
-float fast_sin_sse_vex(float);
-
 extern _batch_fmadd_proc _batch_fmadd;
 extern _batch_cvt_to_proc _batch_roundps;
 extern _batch_mul_value_proc _batch_fmul_value;
@@ -426,66 +422,6 @@ int main()
             memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
             GLUE(_batch_fmul_value, SIMD2)(ddst2, ddst2, sizeof(double), MAXNUM, 0.8723678263f);
             TESTLF("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
-        }
-
-        /*
-         * sinf versus _aax_sin (purely for speed comparisson
-         */
-        t = clock();
-        float p = 0.0f;
-        float step = GMATH_2PI*rand()/RAND_MAX;
-        for (i=0; i<MAXNUM; ++i) {
-            src[i] = sinf(p);
-            p += step;
-        }
-        cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\nsinf:  %f ms\n", cpu*1000.0f);
-
-
-        t = clock();
-        p = 0.0f;
-        for (i=0; i<MAXNUM; ++i) {
-            src[i] = fast_sin(p);
-            p = fmodf(p+step, GMATH_2PI);
-        }
-        eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fast_sin:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
-
-        t = clock();
-        p = 0.0f;
-        step /= GMATH_2PI;
-        for (i=0; i<MAXNUM; ++i) {
-            src[i] = fast_sin(p);
-            p += step;
-            if (step >= 1.0f) step -= 2.0f;
-        }
-        eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("fast_sin cpu:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
-
-        if (simd)
-        {
-            t = clock();
-            p = 0.0f; 
-            for (i=0; i<MAXNUM; ++i) {
-                src[i] = fast_sin_sse2(p);
-                p += step;
-                if (step >= 1.0f) step -= 2.0f;
-            }
-            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fast_sin sse2:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
-        }
-
-        if (simd2)
-        {
-            t = clock();
-            p = 0.0f; 
-            for (i=0; i<MAXNUM; ++i) {
-                src[i] = fast_sin_sse_vex(p);
-                p += step;
-                if (step >= 1.0f) step -= 2.0f;
-            }
-            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("fast_sin sse_vex:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
         }
 
         /*
