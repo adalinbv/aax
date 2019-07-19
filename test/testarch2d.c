@@ -8,6 +8,7 @@
 #include <base/timer.h>
 #include <src/ringbuffer.h>
 #include <src/dsp/dsp.h>
+#include <src/analyze.h>
 #include <src/software/cpu/arch2d_simd.h>
 #include <arch.h>
 
@@ -60,10 +61,13 @@ int _aaxArchDetectNEON()
 }
 #endif
 
+#define PHASE			0.1f
+#define FREQ			220.0f
+
 #define __MKSTR(X)		#X
 #define MKSTR(X)		__MKSTR(X)
-# define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
-# define GLUE(FUNC,NAME)	__GLUE(FUNC,NAME)
+#define __GLUE(FUNC,NAME)	FUNC ## _ ## NAME
+#define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
 
 float fast_sin_cpu(float);
 float fast_sin_sse2(float);
@@ -482,6 +486,33 @@ int main()
             }
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fast_sin sse_vex:  %f ms - sinf x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
+
+        /*
+         * waveform generation 
+         */
+        t = clock();
+        _aax_generate_waveform_cpu(dst1, MAXNUM, FREQ, PHASE, 
+                                   _harmonics[_SQUARE_WAVE]);
+        cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+        printf("\ngenerate_waveform cpu:  %f ms\n", cpu*1000.0f);
+
+        if (simd)
+        {
+            t = clock();
+            _aax_generate_waveform_sse2(dst2, MAXNUM, FREQ, PHASE,
+                                        _harmonics[_SQUARE_WAVE]);
+            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("generate_waveform_sse2: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+        }
+
+        if (simd2)
+        {
+            t = clock();
+            _aax_generate_waveform_sse_vex(dst2, MAXNUM, FREQ, PHASE,
+                                           _harmonics[_SQUARE_WAVE]);
+            eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+            printf("generate_waveform_sse_vex: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
     }
 
