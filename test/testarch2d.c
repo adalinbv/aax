@@ -29,6 +29,7 @@
 
 #if defined(__i386__)
 # define SIMD	sse2
+# define SIMD1	sse2
 # define SIMD2	sse2
 # define SIMD4	sse4
 char _aaxArchDetectSSE2();
@@ -48,6 +49,7 @@ char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
 # define SIMD	neon
+# define SIMD1	neon
 # define SIMD2	neon
 # define AAX_ARCH_NEON	0x00000008
 char _aaxArchDetectFeatures();
@@ -339,11 +341,7 @@ int main()
 
             if (simd2)
             {
-#ifdef SIMD1
                 _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD1);
-#else
-                _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD);
-#endif
                 t = clock();
                   _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
                   eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
@@ -392,11 +390,7 @@ int main()
             if (simd2)
             {
                 memset(&history, 0,sizeof(history));
-#ifdef SIMD1
                 _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD1);
-#else
-                _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD);
-#endif
                 t = clock();
                   _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
                   eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
