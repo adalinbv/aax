@@ -50,7 +50,7 @@
 #include "arch2d_simd.h"
 
 static float _gains[AAX_MAX_WAVE];
-float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS];
+float ALIGN _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
@@ -178,7 +178,7 @@ _bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps
 
 static float _gains[AAX_MAX_WAVE] = { 1.0f, 0.9f, 1.0f, 0.95f, 0.7f, 1.1f };
 
-float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
+ALIGN float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
 {
   /* AAX_CONSTANT_VALUE */
   { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,

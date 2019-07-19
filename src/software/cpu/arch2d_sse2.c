@@ -67,7 +67,7 @@ fast_sin4_sse2(__m128 x)
 }
 
 float *
-_aax_generate_waveform_sse2(float *rv, size_t no_samples, float freq, float phase, float *harmonics)
+_aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float phase, const_float32_ptr harmonics)
 {
    if (rv)
    {
