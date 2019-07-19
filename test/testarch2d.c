@@ -73,6 +73,7 @@ extern _batch_cvt_to_proc _batch_roundps;
 extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_get_average_rms_proc _batch_get_average_rms;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
+extern _aax_generate_waveform_proc _aax_generate_waveform_float;
 extern float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS];
 
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
@@ -428,27 +429,30 @@ int main()
          * waveform generation 
          */
         t = clock();
-        _aax_generate_waveform_cpu(dst1, MAXNUM, FREQ, PHASE, 
-                                   _harmonics[AAX_SQUARE_WAVE]);
+        _aax_generate_waveform_float = _aax_generate_waveform_cpu;
+        _aax_generate_waveform_float(dst1, MAXNUM, FREQ, PHASE, 
+                                     _harmonics[AAX_SQUARE_WAVE]);
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-        printf("\ngenerate_waveform cpu:  %f ms\n", cpu*1000.0f);
+        printf("\ngenerate waveform cpu:  %f ms\n", cpu*1000.0f);
 
         if (simd)
         {
             t = clock();
-            _aax_generate_waveform_sse2(dst2, MAXNUM, FREQ, PHASE,
-                                        _harmonics[AAX_SQUARE_WAVE]);
+            _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD);
+            _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE,
+                                         _harmonics[AAX_SQUARE_WAVE]);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("generate_waveform_sse2: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("generate waveform "MKSTR(SIMD)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
 
         if (simd2)
         {
             t = clock();
-            _aax_generate_waveform_sse_vex(dst2, MAXNUM, FREQ, PHASE,
-                                           _harmonics[AAX_SQUARE_WAVE]);
+            _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD1);
+            _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE,
+                                         _harmonics[AAX_SQUARE_WAVE]);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("generate_waveform_sse_vex: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("generate waveform "MKSTR(SIMD1)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
     }
 
