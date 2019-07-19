@@ -45,12 +45,55 @@
  * Note: In NEON, the SIMD supports up to 16 operations at the same time.
  */
 
-float
+inline float    // range -1.0f .. 1.0f
 fast_sin_neon(float x)
 {
-   x *= GMATH_1_PI;
-   x = fmodf(x, 2.0f) - 1.0f;
    return -4.0f*(x - x*fabsf(x));
+}
+
+float *
+_aax_generate_waveform_neon(float *rv, size_t no_samples, float freq, float phase, float *harmonics)
+{
+   if (rv)
+   {
+      float ngain = harmonics[0];
+      unsigned int h, i = no_samples;
+      float hdt = 2.0f/freq;
+      float s = -1.0f + phase/GMATH_PI;
+      float *ptr = rv;
+
+      do
+      {
+         *ptr++ = ngain * fast_sin_neon(s);
+         s = s+hdt;
+         if (s >= 1.0f) s -= 2.0f;
+      }
+      while (--i);
+
+      for(h=1; h<MAX_HARMONICS; ++h)
+      {
+         float nfreq = freq/(h+1);
+         if (nfreq < 2.0f) break;       // higher than the nyquist-frequency
+
+         ngain = harmonics[h];
+         if (ngain)
+         {
+            int i = no_samples;
+            float hdt = 2.0f/nfreq;
+            float s = -1.0f + phase/GMATH_PI;
+            float *ptr = rv;
+
+            do
+            {
+               *ptr++ += ngain * fast_sin_neon(s);
+               s = s+hdt;
+               if (s >= 1.0f) s -= 2.0f;
+            }
+            while (--i);
+         }
+      }
+   }
+   return rv;
 }
 
 void

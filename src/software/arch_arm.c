@@ -319,6 +319,8 @@ _aaxGetSIMDSupportLevel()
          _batch_resample = _batch_resample_vfpv3;
 #endif
 
+         _aax_generate_waveform_float = _aax_generate_waveform_vfpv3;
+
 //       vec3fAdd = _vec3fAdd_vfpv3;
 //       vec3fDevide = _vec3fDevide_vfpv3;
          vec3fMulVec3 = _vec3fMulVec3_vfpv3;
@@ -348,6 +350,7 @@ _aaxGetSIMDSupportLevel()
       if (support_simd && _aax_arch_capabilities & AAX_ARCH_NEON)
       {
          _batch_get_average_rms = _batch_get_average_rms_neon;
+         _aax_generate_waveform_float = _aax_generate_waveform_neon;
 
          vec3fMagnitude = _vec3fMagnitude_neon;
          vec3fMagnitudeSquared = _vec3fMagnitudeSquared_neon;
