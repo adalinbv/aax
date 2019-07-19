@@ -236,6 +236,7 @@ void _batch_cvtps_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned i
 void _batch_cvtpd_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* VFPv3 */
+float* _aax_generate_waveform_vfpv3(float*, size_t, float, float, float*);
 void _batch_imul_value_vfpv3(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv3(void*, const void*, unsigned, size_t, float);
 // void _batch_hmadd_vfpv3(float32_ptr, const_float16_ptr, size_t, float, float);
