@@ -36,7 +36,9 @@ extern "C" {
 #include <dsp/lfo.h>
 #include <objects.h>
 
-#define RB_FLOAT_DATA		1
+#define RB_FLOAT_DATA			1
+#define _AAX_SYNTH_MAX_WAVEFORMS	4
+#define _AAX_SYNTH_MAX_HARMONICS	16
 
 enum _aaxRingBufferParam
 {

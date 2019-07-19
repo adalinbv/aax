@@ -43,7 +43,6 @@
 
 #include <api.h>
 #include <arch.h>
-//#include <analyze.h>
 #include <software/audio.h>
 #include <software/rbuf_int.h>
 #include <dsp/dsp.h>

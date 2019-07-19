@@ -8,7 +8,6 @@
 #include <base/timer.h>
 #include <src/ringbuffer.h>
 #include <src/dsp/dsp.h>
-#include <src/analyze.h>
 #include <src/software/cpu/arch2d_simd.h>
 #include <arch.h>
 
@@ -78,6 +77,7 @@ extern _batch_cvt_to_proc _batch_roundps;
 extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_get_average_rms_proc _batch_get_average_rms;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
+extern float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS];
 
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
@@ -493,7 +493,7 @@ int main()
          */
         t = clock();
         _aax_generate_waveform_cpu(dst1, MAXNUM, FREQ, PHASE, 
-                                   _harmonics[_SQUARE_WAVE]);
+                                   _harmonics[AAX_SQUARE_WAVE]);
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\ngenerate_waveform cpu:  %f ms\n", cpu*1000.0f);
 
@@ -501,7 +501,7 @@ int main()
         {
             t = clock();
             _aax_generate_waveform_sse2(dst2, MAXNUM, FREQ, PHASE,
-                                        _harmonics[_SQUARE_WAVE]);
+                                        _harmonics[AAX_SQUARE_WAVE]);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("generate_waveform_sse2: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
@@ -510,7 +510,7 @@ int main()
         {
             t = clock();
             _aax_generate_waveform_sse_vex(dst2, MAXNUM, FREQ, PHASE,
-                                           _harmonics[_SQUARE_WAVE]);
+                                           _harmonics[AAX_SQUARE_WAVE]);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("generate_waveform_sse_vex: %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
