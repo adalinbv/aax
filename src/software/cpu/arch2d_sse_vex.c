@@ -62,48 +62,6 @@ fast_sin4_sse_vex(__m128 x)
 float *
 _aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float phase, float *harmonics)
 {
-#if 1
-   if (rv)
-   {
-      float ngain = harmonics[0];
-      unsigned int h, i = no_samples;
-      float hdt = 2.0f/freq;
-      float s = -1.0f + phase/GMATH_PI;
-      float *ptr = rv;
-
-      do
-      {
-         *ptr++ = ngain * fast_sin_sse_vex(s);
-         s = s+hdt;
-         if (s >= 1.0f) s -= 2.0f;
-      }
-      while (--i);
-
-      for(h=1; h<MAX_HARMONICS; ++h)
-      {
-         float nfreq = freq/(h+1);
-         if (nfreq < 2.0f) break;       // higher than the nyquist-frequency
-
-         ngain = harmonics[h];
-         if (ngain)
-         {
-            int i = no_samples;
-            float hdt = 2.0f/nfreq;
-            float s = -1.0f + phase/GMATH_PI;
-            float *ptr = rv;
-
-            do
-            {
-               *ptr++ += ngain * fast_sin_sse_vex(s);
-               s = s+hdt;
-               if (s >= 1.0f) s -= 2.0f;
-            }
-            while (--i);
-         }
-      }
-   }
-
-#else
    if (rv)
    {
       __m128 phase4, freq4, h4;
@@ -167,7 +125,6 @@ _aax_generate_waveform_sse_vex(float *rv, size_t no_samples, float freq, float p
          h4 = _mm_add_ps(h4, four);
       }
    }
-#endif
    return rv;
 }
 

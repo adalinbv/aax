@@ -8,6 +8,7 @@
 #include <base/timer.h>
 #include <src/ringbuffer.h>
 #include <src/dsp/dsp.h>
+#include <src/software/rbuf_int.h>
 #include <src/software/cpu/arch2d_simd.h>
 #include <arch.h>
 
@@ -425,7 +426,7 @@ int main()
         t = clock();
         _aax_generate_waveform_float = _aax_generate_waveform_cpu;
         _aax_generate_waveform_float(dst1, MAXNUM, FREQ, PHASE, 
-                                     _harmonics[AAX_SQUARE_WAVE]);
+                                     _harmonics[_SQUARE_WAVE]);
         cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\ngenerate waveform cpu:  %f ms\n", cpu*1000.0f);
 
@@ -434,7 +435,7 @@ int main()
             t = clock();
             _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD);
             _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE,
-                                         _harmonics[AAX_SQUARE_WAVE]);
+                                         _harmonics[_SQUARE_WAVE]);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("generate waveform "MKSTR(SIMD)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
@@ -444,7 +445,7 @@ int main()
             t = clock();
             _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD1);
             _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE,
-                                         _harmonics[AAX_SQUARE_WAVE]);
+                                         _harmonics[_SQUARE_WAVE]);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("generate waveform "MKSTR(SIMD1)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
         }
