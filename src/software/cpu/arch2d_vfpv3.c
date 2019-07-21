@@ -37,8 +37,9 @@ fast_sin_vfpv3(float x)
 }
 
 float *
-_aax_generate_waveform_vfpv3(float32_ptr rv, size_t no_samples, float freq, float phase, const_float32_ptr harmonics)
+_aax_generate_waveform_vfpv3(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
 {
+   const_float32_ptr harmonics = _harmonics[wtype];
    if (rv)
    {
       float ngain = harmonics[0];

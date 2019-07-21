@@ -60,9 +60,13 @@ fast_sin4_sse_vex(__m128 x)
 }
 
 float *
-_aax_generate_waveform_sse_vex(float32_ptr rv, size_t no_samples, float freq, float phase, const_float32_ptr harmonics)
+_aax_generate_waveform_sse_vex(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
 {
-   if (rv)
+   const_float32_ptr harmonics = _harmonics[wtype];
+   if (wtype == _SINE_WAVE) {
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+   }
+   else if (rv)
    {
       __m128 phase4, freq4, h4;
       __m128 one, two, four;

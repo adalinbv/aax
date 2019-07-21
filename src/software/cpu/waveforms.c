@@ -48,9 +48,9 @@
 #include <dsp/dsp.h>
 
 #include "arch2d_simd.h"
+#include "waveforms.h"
 
 static float _gains[AAX_MAX_WAVE];
-float ALIGN _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
@@ -81,7 +81,7 @@ _bufferMixWaveform(void** data, float *scratch, enum wave_types wtype, float fre
    gain *= _gains[wtype];
    if (data && gain)
    {
-      _aax_generate_waveform_float(scratch, no_samples, freq, phase, _harmonics[wtype]);
+      _aax_generate_waveform_float(scratch, no_samples, freq, phase, wtype);
       if (modulate) {
          _aax_mul_data(data, scratch, tracks, no_samples, bps, fabsf(gain), limiter);
       } else {

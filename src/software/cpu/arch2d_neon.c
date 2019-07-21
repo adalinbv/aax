@@ -52,9 +52,13 @@ fast_sin_neon(float x)
 }
 
 float *
-_aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float phase, const_float32_ptr harmonics)
+_aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
 {
-   if (rv)
+   const_float32_ptr harmonics = _harmonics[wtype];
+   if (wtype == _SINE_WAVE) {
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+   }
+   else if (rv)
    {
       float ngain = harmonics[0];
       unsigned int h, i = no_samples;

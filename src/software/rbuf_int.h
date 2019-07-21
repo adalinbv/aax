@@ -34,6 +34,7 @@ extern "C" {
 #include <base/geometry.h>
 #include <base/types.h>
 
+#include <software/cpu/waveforms.h>
 #include <ringbuffer.h>
 #include <arch.h>
 #include <api.h>
@@ -180,18 +181,7 @@ typedef struct _aaxRingBufferData_t
 
 /* --------------------------------------------------------------------------*/
 
-#define _AAX_SYNTH_MAX_WAVEFORMS	4
-#define _AAX_SYNTH_MAX_HARMONICS	16
-
-enum wave_types
-{
-   _CONSTANT_VALUE = 0,
-   _TRIANGLE_WAVE,
-   _SINE_WAVE,
-   _SQUARE_WAVE,
-   _SAWTOOTH_WAVE,
-   _IMPULSE_WAVE
-};
+#define CUBIC_TRESHOLD		0.25f
 
 /** CODECs */
 typedef struct {

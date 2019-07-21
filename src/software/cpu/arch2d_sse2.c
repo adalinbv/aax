@@ -56,7 +56,7 @@ static inline int
 _mm_testz_ps_sse2(__m128 x)
 {
    __m128i zero = _mm_setzero_si128();
-   return _mm_movemask_epi8(_mm_cmpeq_epi32(_mm_castps_si128(x), zero));
+   return (_mm_movemask_epi8(_mm_cmpeq_epi32(_mm_castps_si128(x), zero)) != 0xFFFF);
 }
 
 static inline __m128	// range -1.0f .. 1.0f
@@ -67,9 +67,14 @@ fast_sin4_sse2(__m128 x)
 }
 
 float *
-_aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float phase, const_float32_ptr harmonics)
+_aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
 {
-   if (rv)
+   const_float32_ptr harmonics = _harmonics[wtype];
+
+   if (wtype == _SINE_WAVE) {
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+   }
+   else if (rv)
    {
       __m128 phase4, freq4, h4;
       __m128 one, two, four;
