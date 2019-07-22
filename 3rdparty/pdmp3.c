@@ -225,7 +225,7 @@ typedef struct
 }
 pdmp3_handle;
 
-struct pdpm3_frameinfo
+struct pdmp3_frameinfo
 {
   unsigned version;
   unsigned layer;
@@ -247,7 +247,7 @@ int pdmp3_feed(pdmp3_handle *id,const unsigned char *in,size_t size);
 int pdmp3_read(pdmp3_handle *id,unsigned char *outmemory,size_t outsize,size_t *done);
 int pdmp3_decode(pdmp3_handle *id,const unsigned char *in,size_t insize,unsigned char *out,size_t outsize,size_t *done);
 int pdmp3_getformat(pdmp3_handle *id,long *rate,int *channels,int *encoding);
-int pdmp3_info(pdmp3_handle *id,struct pdpm3_frameinfo *info);
+int pdmp3_info(pdmp3_handle *id,struct pdmp3_frameinfo *info);
 int pdmp3_id3(pdmp3_handle *id,pdmp3_id3v1 **v1,pdmp3_id3v2 **v2);
 int pdmp3_meta_check(pdmp3_handle *id);
 /** end of the subset of a libmpg123 compatible streaming API */
@@ -2966,7 +2966,7 @@ int pdmp3_getformat(pdmp3_handle *id,long *rate,int *channels,int *encoding){
   return(PDMP3_ERR);
 }
 
-int pdmp3_info(pdmp3_handle *id,struct pdpm3_frameinfo *info)
+int pdmp3_info(pdmp3_handle *id,struct pdmp3_frameinfo *info)
 {
   if(id){
     long rate = g_sampling_frequency[id->g_frame_header.sampling_frequency];
@@ -3052,7 +3052,7 @@ void pdmp3(char * const *mp3s){
           if(pdmp3_getformat(id, &rate, &channels, &enc) == PDMP3_OK) {
             struct stat st;
             if(stat(filename, &st) == 0) {
-              struct pdpm3_frameinfo info;
+              struct pdmp3_frameinfo info;
               if(pdmp3_info(id,&info) == PDMP3_OK) {
                 float duration = (float)st.st_size/(info.bitrate/8.0f);
                 DBG("sample rate: %li Hz, no. channels: %i, duration: %.1f sec.",
