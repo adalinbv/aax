@@ -12,15 +12,16 @@
 #include <src/software/cpu/arch2d_simd.h>
 #include <arch.h>
 
-#define WAVE_TYPE	_SQUARE_WAVE
+#define WAVE_TYPE	_TRIANGLE_WAVE
 #define VSTEP		-0.000039f
 #define MAXNUM		(199*4096)
-#define TESTF(a,d1,d2) { int n = 0; \
+#define TESTFN(a,d1,d2,m) { int n = 0; \
     for (i=0; i<MAXNUM; ++i) { \
-        if (fabsf(d1[i]-d2[i]) > 4) { \
+        if (fabsf(d1[i]-d2[i]) > m) { \
             printf(" # %s %i: %f != %f\n", a, i, d1[i], d2[i]); \
             if (++n == 8) break; \
         } } }
+#define TESTF(a,d1,d2)	TESTFN(a,d1,d2,4.0f)
 
 #define TESTLF(a,d1,d2) { int n = 0; \
     for (i=0; i<MAXNUM; ++i) { \
@@ -436,7 +437,7 @@ int main()
             _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("generate waveform "MKSTR(SIMD)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("waveform "MKSTR(SIMD), dst1, dst2);
+            TESTFN("waveform "MKSTR(SIMD), dst1, dst2, 1e-3f);
         }
 
         if (simd2)
@@ -446,7 +447,7 @@ int main()
             _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("generate waveform "MKSTR(SIMD1)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("waveform "MKSTR(SIMD1), dst1, dst2);
+            TESTFN("waveform "MKSTR(SIMD1), dst1, dst2, 1e-3f);
         }
     }
 

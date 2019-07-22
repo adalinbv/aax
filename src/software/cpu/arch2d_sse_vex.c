@@ -52,6 +52,13 @@ _mm_abs_ps(__m128 x) {
    return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
 }
 
+static inline int
+_mm_testz_ps_sse_vex(__m128 x)
+{
+   __m128i zero = _mm_setzero_si128();
+   return (_mm_movemask_epi8(_mm_cmpeq_epi32(_mm_castps_si128(x), zero)) != 0xFFFF);
+}
+
 static inline __m128	// range -1.0f .. 1.0f
 fast_sin4_sse_vex(__m128 x)
 {
@@ -108,7 +115,7 @@ _aax_generate_waveform_sse_vex(float32_ptr rv, size_t no_samples, float freq, fl
       {
          nfreq = _mm_div_ps(freq4, h4);
          ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics+h));
-         if (_mm_testz_ps(ngain, ngain))
+         if (_mm_testz_ps_sse_vex(ngain))
          {
             hdt = _mm_div_ps(two, nfreq);
 
