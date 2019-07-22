@@ -148,6 +148,21 @@ enum mp3_errors
 #define	MP3_ID3	0x3
 #define MP3_NEW_ID3	0x1
 
+struct mp3_frameinfo
+{
+  unsigned version;
+  unsigned layer;
+  long rate;
+  unsigned mode;
+  unsigned mode_ext;
+  unsigned framesize;
+  unsigned flags;
+  unsigned emphasis;
+  unsigned bitrate;
+  unsigned abr_rate;
+  unsigned vbr;
+};
+
 typedef struct {
    char* p;
    size_t size;
@@ -211,6 +226,7 @@ typedef int (*mp3_param_proc)(void*, enum mp3_parms, long, double);
 typedef int (*mp3_getparam_proc)(void*, enum mp3_parms, long*, double*);
 typedef int (*mp3_feature_proc)(const enum mp3_feature_set);
 typedef int (*mp3_format_proc)(void*, long, int, int);
+typedef int (*mp3_info_proc)(void*, struct mp3_frameinfo*);
 typedef int (*mp3_getformat_proc)(void*, long*, int*, int*);
 typedef int (*mp3_set_filesize_proc)(void*, off_t);
 typedef off_t (*mp3_length_proc)(void*);
@@ -235,6 +251,7 @@ typedef int (*mpg123_param_proc)(void*, enum mp3_parms, long, double);
 typedef int (*mpg123_getparam_proc)(void*, enum mp3_parms, long*, double*);
 typedef int (*mpg123_feature_proc)(const enum mp3_feature_set);
 typedef int (*mpg123_format_proc)(void*, long, int, int);
+typedef int (*mpg123_info_proc)(void*, struct mp3_frameinfo*);
 typedef int (*mpg123_getformat_proc)(void*, long*, int*, int*);
 typedef int (*mpg123_set_filesize_proc)(void*, off_t);
 typedef off_t (*mpg123_length_proc)(void*);

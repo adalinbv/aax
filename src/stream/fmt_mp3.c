@@ -50,6 +50,7 @@ DECL_FUNCTION(mp3_feed);
 DECL_FUNCTION(mp3_read);
 DECL_FUNCTION(mp3_delete);
 DECL_FUNCTION(mp3_format);
+DECL_FUNCTION(mp3_info);
 DECL_FUNCTION(mp3_getformat);
 DECL_FUNCTION(mp3_length);
 DECL_FUNCTION(mp3_set_filesize);
@@ -69,6 +70,7 @@ DECL_FUNCTION(mpg123_feed);
 DECL_FUNCTION(mpg123_read);
 DECL_FUNCTION(mpg123_delete);
 DECL_FUNCTION(mpg123_format);
+DECL_FUNCTION(mpg123_info);
 DECL_FUNCTION(mpg123_getformat);
 DECL_FUNCTION(mpg123_length);
 DECL_FUNCTION(mpg123_set_filesize);
@@ -159,6 +161,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
          pmp3_feed = (mp3_feed_proc)pdmp3_feed;
          pmp3_read = (mp3_read_proc)pdmp3_read;
          pmp3_delete = (mp3_delete_proc)pdmp3_delete;
+         pmp3_info = (mp3_info_proc)pdmp3_info;
          pmp3_getformat = (mp3_getformat_proc)pdmp3_getformat;
          pmp3_meta_check = (mp3_meta_check_proc)pdmp3_meta_check;
          pmp3_id3 = (mp3_id3_proc)pdmp3_id3;
@@ -182,6 +185,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(mpg123_read);
             TIE_FUNCTION(mpg123_delete);
             TIE_FUNCTION(mpg123_format);
+            TIE_FUNCTION(mpg123_info);
             TIE_FUNCTION(mpg123_getformat);
 
             pmp3_init = pmpg123_init;
@@ -194,6 +198,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             pmp3_read = pmpg123_read;
             pmp3_delete = pmpg123_delete;
             pmp3_format = pmpg123_format;
+            pmp3_info = pmpg123_info;
             pmp3_getformat = pmpg123_getformat;
 
             error = _aaxGetSymError(0);
@@ -390,8 +395,8 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
                   handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
-                  struct pdpm3_frameinfo info;
-                  if (pdmp3_info(handle->id,&info) == MP3_OK)
+                  struct mp3_frameinfo info;
+                  if (pmp3_info(handle->id,&info) == MP3_OK)
                   {
                      double q = (double)rate/(info.bitrate/8.0) * fsize;
                      handle->max_samples = q;
@@ -598,8 +603,8 @@ _mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
          handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
-         struct pdpm3_frameinfo info;
-         if (pdmp3_info(handle->id,&info) == MP3_OK)
+         struct mp3_frameinfo info;
+         if (pmp3_info(handle->id,&info) == MP3_OK)
          {
             double q = (double)rate/(info.bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
@@ -668,8 +673,8 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
          handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
-         struct pdpm3_frameinfo info;
-         if (pdmp3_info(handle->id,&info) == MP3_OK)
+         struct mp3_frameinfo info;
+         if (pmp3_info(handle->id,&info) == MP3_OK)
          {
             double q = (double)rate/(info.bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
