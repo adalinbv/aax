@@ -1,0 +1,61 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
+ * not be disclosed to third parties, copied or duplicated in any form, in
+ * whole or in part, without the prior written permission of the author.
+-->
+
+<aeonwave>
+
+ <info name="Effects (Ice Rain)" bank="0" program="96">
+  <license type="Proprietary/Commercial"/>
+  <copyright from="2017" until="2019" by="Erik Hofman"/>
+  <copyright from="2017" until="2019" by="Adalin B.V."/>
+  <note polyphony="4" min="36" max="96" step="12"/>
+ </info>
+
+ <sound gain="0.74" frequency="220" duration="0.5">
+  <waveform src="sine"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" release-factor="1.0">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.05</param>
+    <param n="2">1.0</param>
+    <param n="3">9.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="true">
+   <slot n="0">
+    <param n="0">1600.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.9</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <effect type="flanging" src="true">
+   <slot n="0">
+    <param n="0">0.6</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.1</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe/>
+
+</aeonwave>
