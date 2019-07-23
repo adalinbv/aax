@@ -1,9 +1,7 @@
 <?xml version="1.0"?>
 
 <aeonwave>
-
  <sound frequency="3000">
   <waveform src="square"/>
  </sound>
-
 </aeonwave>
