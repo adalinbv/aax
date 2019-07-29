@@ -12,7 +12,7 @@
 #include <src/software/cpu/arch2d_simd.h>
 #include <arch.h>
 
-#define WAVE_TYPE	_TRIANGLE_WAVE
+#define WAVE_TYPE	_SAWTOOTH_WAVE
 #define VSTEP		-0.000039f
 #define MAXNUM		(199*4096)
 #define TESTFN(a,d1,d2,m) { int n = 0; \
