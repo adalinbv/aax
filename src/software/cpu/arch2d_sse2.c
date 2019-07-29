@@ -1548,7 +1548,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
          if (filter->state == AAX_BUTTERWORTH)
          {
-#if 1
+#if 0
             do
             {
                float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
@@ -1559,29 +1559,30 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
             }
             while (--i);
 #else
-            __m128 mul = _mm_load_ps(cptr);
-            __m128 hist = _mm_set_ps(h1, h0, h1, h0);
+            __m128 cp01 = _mm_load_ps(cptr);
+            __m128 cp23 = _mm_movehl_ps(cp01, cp01);
+            __m128 hist = _mm_set_ps(0.0f, 0.0f, h1, h0);
 
             do
             {
-               __m128 d4, sums, v = _mm_mul_ps(hist, mul);
-               __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
+               __m128 v23, v01 = _mm_mul_ps(hist, cp01);
+               __m128 d4 = _mm_set_ss(*s++ * k);
+               __m128 shuf = _mm_shuffle_ps(v01, v01, _MM_SHUFFLE(2, 3, 0, 1));
+               __m128 sums = _mm_add_ps(v01, d4);
 
-               sums = _mm_add_ps(v, shuf);
-               d4 = _mm_add_ps(sums, _mm_set_ss(*s++ * k));
+               v23 = _mm_mul_ps(hist, cp23);
+               d4 = _mm_add_ps(sums, shuf);
 
-               sums = _mm_movehl_ps(sums, sums);
-               sums = _mm_add_ps(sums, d4);
+               shuf = _mm_shuffle_ps(v23, v23, _MM_SHUFFLE(2, 3, 0, 1));
+               sums = _mm_add_ps(v23, d4);
+
+               hist =_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(hist),4));
+//             hist = _mm_shuffle_ps(hist, hist, _MM_SHUFFLE(0, 0, 0, 0));
+
+               sums = _mm_add_ps(sums, shuf);
                *d++ = _mm_cvtss_f32(sums);
 
-               // shift one register
-               hist =_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(hist),4));
-
-               // load the new d
                hist = _mm_move_ss(hist, d4);
-
-               // _mm_set_ps(h1, h0, h1, h0);
-               hist = _mm_movelh_ps(hist, hist);
             }
             while (--i);
 #endif
