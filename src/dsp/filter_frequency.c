@@ -593,7 +593,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
          h0 = hist[0];
          h1 = hist[1];
 
-         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
+         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c3*z[n-2];
          if (filter->state == AAX_BUTTERWORTH)
          {
             do
