@@ -321,7 +321,7 @@ int main()
            t = clock();
               _batch_roundps(dst2, dst2, MAXNUM);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
+            printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD4), eps*1000.0f, cpu/eps);
         }
 
         /*
