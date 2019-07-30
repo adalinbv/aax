@@ -1512,7 +1512,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
    if (num)
    {
       float k, *cptr, *hist;
-      float smp, h0, h1;
+      float h0, h1;
       int stage;
 
       if (filter->state == AAX_BESSEL) {
@@ -1564,7 +1564,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
                shuf = _mm_shuffle_ps(v23, v23, _MM_SHUFFLE(2, 3, 0, 1));
                sums = _mm_add_ps(v23, d4);
 
-               hist =_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(hist),4));
+               hist = _mm_shuffle_ps(hist, hist, _MM_SHUFFLE(1, 1, 0, 0));
 
                sums = _mm_add_ps(sums, shuf);
                *d++ = _mm_cvtss_f32(sums);
@@ -1578,15 +1578,26 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          }
          else
          {
+            __m128 cp01 = _mm_load_ps(cptr);
+            __m128 hist = _mm_set_ps(0.0f, 0.0f, h1, h0);
+
             do
             {
-               smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
-               *d++ = smp;
+               __m128 v01 = _mm_mul_ps(hist, cp01);
+               __m128 d4 = _mm_set_ss(*s++ * k);
+               __m128 shuf = _mm_shuffle_ps(v01, v01, _MM_SHUFFLE(2, 3, 0, 1));
+               __m128 sums = _mm_add_ps(v01, d4);
 
-               h1 = h0;
-               h0 = smp;
+               hist = _mm_shuffle_ps(hist, hist, _MM_SHUFFLE(1, 1, 0, 0));
+
+               d4 = _mm_add_ps(sums, shuf);
+               hist = _mm_move_ss(hist, d4);
+               *d++ = _mm_cvtss_f32(d4);
             }
             while (--i);
+
+            h0 = hist[0];
+            h1 = hist[1];
          }
 
          *hist++ = h0;

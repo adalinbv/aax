@@ -367,10 +367,15 @@ int main()
         flt.high_gain = 1.0f;
         flt.low_gain = 0.0f;
         flt.no_stages = 2;
-        flt.state = AAX_BUTTERWORTH; // or AAX_BESSEL;
         flt.Q = 2.5f;
-        flt.type = HIGHPASS;
+        flt.type = LOWPASS;
+#if 1
+        flt.state = AAX_BUTTERWORTH;
         _aax_butterworth_compute(2200.0f, &flt);
+#else
+        flt.state = AAX_BESSEL;
+        _aax_bessel_compute(2200.0f, &flt);
+#endif
 
         memset(&history, 0, sizeof(history));
         _batch_freqfilter_float = _batch_freqfilter_iir_float_cpu;
