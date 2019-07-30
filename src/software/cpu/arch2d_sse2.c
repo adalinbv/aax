@@ -1545,20 +1545,8 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          h0 = hist[0];
          h1 = hist[1];
 
-         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
          if (filter->state == AAX_BUTTERWORTH)
          {
-#if 0
-            do
-            {
-               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
-
-               h1 = h0;
-               h0 = nsmp;
-            }
-            while (--i);
-#else
             __m128 cp01 = _mm_load_ps(cptr);
             __m128 cp23 = _mm_movehl_ps(cp01, cp01);
             __m128 hist = _mm_set_ps(0.0f, 0.0f, h1, h0);
@@ -1577,7 +1565,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
                sums = _mm_add_ps(v23, d4);
 
                hist =_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(hist),4));
-//             hist = _mm_shuffle_ps(hist, hist, _MM_SHUFFLE(0, 0, 0, 0));
 
                sums = _mm_add_ps(sums, shuf);
                *d++ = _mm_cvtss_f32(sums);
@@ -1588,8 +1575,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
             h0 = hist[0];
             h1 = hist[1];
-#endif
-
          }
          else
          {

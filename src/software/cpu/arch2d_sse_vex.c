@@ -1059,7 +1059,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
       assert(((size_t)cptr & MEMMASK16) == 0);
 
-#if 1
       do
       {
          float32_ptr d = dptr;
@@ -1071,17 +1070,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
          if (filter->state == AAX_BUTTERWORTH)
          {
-#if 0
-            do
-            {
-               smp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = smp       + h0 * cptr[2] + h1 * cptr[3];
-
-               h1 = h0;
-               h0 = smp;
-            }
-            while (--i);
-#else
             __m128 cp01 = _mm_load_ps(cptr);
             __m128 cp23 = _mm_movehl_ps(cp01, cp01);
             __m128 hist = _mm_set_ps(0.0f, 0.0f, h1, h0);
@@ -1110,7 +1098,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
             h0 = hist[0];
             h1 = hist[1];
-#endif
          }
          else
          {
@@ -1132,49 +1119,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          s = dptr;
       }
       while (--stage);
-#else
-
-      __m128 kc01 = _mm_set_ps(0.0f, cptr[1], cptr[0], k);
-      __m128 c23 = _mm_set_ps(0.0f, cptr[3], cptr[2], 0.0f);
-      __m128 sh01 = _mm_set_ps(0.0f, hist[1], hist[0], 0.0f);
-
-      do
-      {
-         float32_ptr d = dptr;
-         size_t i = num;
-
-         do
-         {
-            float nsmp;
-            // float nsmp = *s++ * k + h0 * cptr[0] + h1 * cptr[1] + 0.0f;
-            // float hsmp =     0.0f + h0 * cptr[2] + h1 * cptr[3] + 0.0f;
-            // *d++ = nsmp + hsmp;
-
-            sh01 = _mm_move_ss(sh01, _mm_load_ss((const float*)s++));
-            nsmp = hsum_ps_sse_vex(_mm_mul_ps(sh01, kc01));
-            *d++ = nsmp + hsum_ps_sse_vex(_mm_mul_ps(sh01, c23));
-
-            // h1 = h0;  h0 = nsmp;
-            sh01 = _mm_move_ss(sh01, _mm_set_ss(nsmp));
-            sh01 = _mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(sh01), 4));
-         }
-         while (--i);
-
-         *hist++ = sh01[1];
-         *hist++ = sh01[2];
-         if (--stage)
-         {
-            cptr += 4;
-            k = 1.0f;
-            s = dptr;
-
-            sh01 = _mm_set_ps(0.0f, hist[1], hist[0], 0.0f);
-            kc01 = _mm_set_ps(0.0f, cptr[1], cptr[0], k);
-            c23 = _mm_set_ps(0.0f, cptr[3], cptr[2], 0.0f);
-         }
-      }
-      while (stage);
-#endif
    }
 }
 
