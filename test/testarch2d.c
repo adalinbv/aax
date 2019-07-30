@@ -366,7 +366,7 @@ int main()
         flt.run = _freqfilter_run;
         flt.high_gain = 1.0f;
         flt.low_gain = 0.0f;
-        flt.no_stages = 2;
+        flt.no_stages = 4;
         flt.Q = 2.5f;
         flt.type = LOWPASS;
 #if 1
