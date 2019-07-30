@@ -1071,7 +1071,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
          if (filter->state == AAX_BUTTERWORTH)
          {
-#if 1
+#if 0
             do
             {
                smp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
@@ -1082,33 +1082,34 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
             }
             while (--i);
 #else
-            __m128 mul = _mm_load_ps(cptr);
-            __m128 hist = _mm_set_ps(h1, h0, h1, h0);
+            __m128 cp01 = _mm_load_ps(cptr);
+            __m128 cp23 = _mm_movehl_ps(cp01, cp01);
+            __m128 hist = _mm_set_ps(0.0f, 0.0f, h1, h0);
 
             do
             {
-               __m128 d4, sums, v = _mm_mul_ps(hist, mul);
-//             __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
-               __m128 shuf = _mm_movehdup_ps(v);
+               __m128 v23, v01 = _mm_mul_ps(hist, cp01);
+               __m128 d4 = _mm_set_ss(*s++ * k);
+               __m128 shuf = _mm_movehdup_ps(v01);
+               __m128 sums = _mm_add_ps(v01, d4);
 
-               sums = _mm_add_ps(v, shuf);
-               d4 = _mm_add_ps(sums, _mm_set_ss(*s++ * k));
+               v23 = _mm_mul_ps(hist, cp23);
+               d4 = _mm_add_ps(sums, shuf);
 
-               sums = _mm_movehl_ps(sums, sums);
-               sums = _mm_add_ps(sums, d4);
-               *d++ = _mm_cvtss_f32(sums);
+               shuf = _mm_movehdup_ps(v23);
+               sums = _mm_add_ps(v23, d4);
 
-               // shift one register
-//             hist =_mm_castsi128_ps(_mm_slli_si128(_mm_castps_si128(hist),4));
                hist = _mm_moveldup_ps(hist);
 
-               // load the new d
-               hist = _mm_move_ss(hist, d4);
+               sums = _mm_add_ps(sums, shuf);
+               *d++ = _mm_cvtss_f32(sums);
 
-               // _mm_set_ps(h1, h0, h1, h0);
-               hist = _mm_movelh_ps(hist, hist);
+               hist = _mm_move_ss(hist, d4);
             }
             while (--i);
+
+            h0 = hist[0];
+            h1 = hist[1];
 #endif
          }
          else

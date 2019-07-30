@@ -1585,6 +1585,9 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
                hist = _mm_move_ss(hist, d4);
             }
             while (--i);
+
+            h0 = hist[0];
+            h1 = hist[1];
 #endif
 
          }
