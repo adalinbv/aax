@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -51,6 +51,49 @@ fast_sin_neon(float x)
    return -4.0f*(x - x*fabsf(x));
 }
 
+static inline float32x4_t
+vandq_f32(float32x4_t a, float32x4_t b)
+{
+   return (float32x4_t)vandq_s32((int32x4_t)a, (int32x4_t)b);
+}
+
+static inline float
+hsum_float32x4_neon(float32x4_t v)
+{
+   float32x2_t r = vadd_f32(vget_high_f32(v), vget_low_f32(v));
+   return vget_lane_f32(vpadd_f32(r, r), 0);
+}
+
+static inline float32x4_t
+vdivq_f32(float32x4_t a, float32x4_t b)
+{
+   float32x4_t reciprocal = vrecpeq_f32(b);
+
+   // use Newton-Raphson steps to refine the estimate.  Depending on your
+   // application's accuracy requirements, you may be able to get away with only
+   // one refinement (instead of the two used here).  Be sure to test!
+   reciprocal = vmulq_f32(vrecpsq_f32(b, reciprocal), reciprocal);
+   reciprocal = vmulq_f32(vrecpsq_f32(b, reciprocal), reciprocal);
+
+   // and finally, compute a/b = a*(1/b)
+   return vmulq_f32(a,reciprocal);
+}
+
+static inline int
+vtestzq_f32(float32x4_t x)
+{
+   uint32x4_t v = (uint32x4_t)x;
+   uint32x2_t tmp = vorr_u32(vget_low_u32(v), vget_high_u32(v));
+   return vget_lane_u32(vpmax_u32(tmp, tmp), 0);
+}
+
+static inline float32x4_t    // range -1.0f .. 1.0f
+fast_sin4_neon(float32x4_t x)
+{
+   float32x4_t four = vdupq_n_f32(-4.0f);
+   return vmulq_f32(four, vsubq_f32(x, vmulq_f32(x, vabsq_f32(x))));
+}
+
 float *
 _aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
 {
@@ -60,41 +103,66 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float
    }
    else if (rv)
    {
-      float ngain = harmonics[0];
-      unsigned int h, i = no_samples;
-      float hdt = 2.0f/freq;
-      float s = -1.0f + phase/GMATH_PI;
-      float *ptr = rv;
+      static const float fact[4] = { 1.0f, 2.0f, 3.0f, 4.0f };
+      float32x4_t phase4, freq4, h4;
+      float32x4_t one, two, four;
+      float32x4_t ngain, nfreq;
+      float32x4_t hdt, s;
+      unsigned int i, h;
+      float *ptr;
 
+      assert(MAX_HARMONICS % 4 == 0);
+
+      one = vdupq_n_f32(1.0f);
+      two = vdupq_n_f32(2.0f);
+      four = vdupq_n_f32(4.0f);
+
+      phase4 = vdupq_n_f32(-1.0f + phase/GMATH_PI);
+      freq4 = vdupq_n_f32(freq);
+      h4 = vld1q_f32(fact);
+
+      nfreq = vdivq_f32(freq4, h4);
+      ngain = vandq_f32((float32x4_t)vcltq_f32(two, nfreq), vld1q_f32(harmonics));
+      hdt = vdivq_f32(two, nfreq);
+
+      ptr = rv;
+      i = no_samples;
+      s = phase4;
       do
       {
-         *ptr++ = ngain * fast_sin_neon(s);
-         s = s+hdt;
-         if (s >= 1.0f) s -= 2.0f;
+         float32x4_t rv = fast_sin4_neon(s);
+
+         *ptr++ = hsum_float32x4_neon(vmulq_f32(ngain, rv));
+
+         s = vaddq_f32(s, hdt);
+         s = vsubq_f32(s, vandq_f32(two, (float32x4_t)vcgeq_f32(s, one)));
       }
       while (--i);
 
-      for(h=1; h<MAX_HARMONICS; ++h)
+      h4 = vaddq_f32(h4, four);
+      for(h=4; h<MAX_HARMONICS; h += 4)
       {
-         float nfreq = freq/(h+1);
-         if (nfreq < 2.0f) break;       // higher than the nyquist-frequency
-
-         ngain = harmonics[h];
-         if (ngain)
+         nfreq = vdivq_f32(freq4, h4);
+         ngain = vandq_f32((float32x4_t)vcltq_f32(two, nfreq), vld1q_f32(harmonics+h));
+         if (vtestzq_f32(ngain))
          {
-            int i = no_samples;
-            float hdt = 2.0f/nfreq;
-            float s = -1.0f + phase/GMATH_PI;
-            float *ptr = rv;
+            hdt = vdivq_f32(two, nfreq);
 
+            ptr = rv;
+            i = no_samples;
+            s = phase4;
             do
             {
-               *ptr++ += ngain * fast_sin_neon(s);
-               s = s+hdt;
-               if (s >= 1.0f) s -= 2.0f;
+               float32x4_t rv = fast_sin4_neon(s);
+
+               *ptr++ += hsum_float32x4_neon(vmulq_f32(ngain, rv));
+
+               s = vaddq_f32(s, hdt);
+               s = vsubq_f32(s, vandq_f32(two, (float32x4_t)vcgeq_f32(s, one)));
             }
             while (--i);
          }
+         h4 = vaddq_f32(h4, four);
       }
    }
    return rv;
@@ -216,7 +284,7 @@ _batch_cvtps24_24_neon(void_ptr dst, const_void_ptr src, size_t num)
 void
 _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
-   int32_t *d = (int32_t*)dptr;
+   float *d = (float*)dptr;
    float *s = (float*)sptr;
    size_t i, step;
 
@@ -480,7 +548,7 @@ _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
    {
       if (need_step)
       {
-         const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
+         static const float fact[4] = { 0.0f, 1.0f, 2.0f, 3.0f };
          float32x4_t sfr4, dfr4;
          float32x4_t dv, tv, dvstep;
 

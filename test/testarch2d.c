@@ -14,7 +14,7 @@
 
 #define WAVE_TYPE	_SAWTOOTH_WAVE
 #define VSTEP		-0.000039f
-#define MAXNUM		(199*4096)
+#define MAXNUM		(199*4096*10)
 #define FACTOR		0.7723678263f
 
 
@@ -58,6 +58,7 @@ char check_cpuid_ecx(unsigned int);
 # define SIMD	neon
 # define SIMD1	neon
 # define SIMD2	neon
+# define SIMD4  neon
 # define AAX_ARCH_NEON	0x00000008
 char _aaxArchDetectFeatures();
 extern uint32_t _aax_arch_capabilities;
