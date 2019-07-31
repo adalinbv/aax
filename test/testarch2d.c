@@ -15,6 +15,10 @@
 #define WAVE_TYPE	_SAWTOOTH_WAVE
 #define VSTEP		-0.000039f
 #define MAXNUM		(199*4096)
+#define FACTOR		0.7723678263f
+
+
+
 #define TESTFN(a,d1,d2,m) { int n = 0; \
     for (i=0; i<MAXNUM; ++i) { \
         if (fabsf(d1[i]-d2[i]) > m) { \
@@ -180,7 +184,7 @@ int main()
         memcpy(dst1, src, MAXNUM*sizeof(float));
         _batch_fmadd = _batch_fmadd_cpu;
         t = clock();
-          _batch_fmadd(dst1, dst1, MAXNUM, 0.8723678263f, 0.0f);
+          _batch_fmadd(dst1, dst1, MAXNUM, FACTOR, 0.0f);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
 
@@ -189,7 +193,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD);
             t = clock();
-              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+              _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd %s: %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
             TESTF("float fadd+fmadd simd", dst1, dst2);
@@ -199,7 +203,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
-              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+              _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTF("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
@@ -211,7 +215,7 @@ int main()
             if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
             else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
             t = clock();
-              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, 0.0f);
+              _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
 
             if (simd3 == 3) {
@@ -231,7 +235,7 @@ int main()
         memcpy(dst1, src, MAXNUM*sizeof(float));
         _batch_fmadd = _batch_fmadd_cpu;
         t = clock();
-          _batch_fmadd(dst1, dst1, MAXNUM, 0.8723678263f, VSTEP);
+          _batch_fmadd(dst1, dst1, MAXNUM, FACTOR, VSTEP);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nfmadd cpu: %f ms\n", cpu*1000.0f);
 
@@ -240,7 +244,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD);
             t = clock();
-              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, VSTEP);
+              _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd %s: %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
             TESTF("float fadd+fmadd simd", dst1, dst2);
@@ -250,7 +254,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmadd = GLUE(_batch_fmadd, SIMD2);
             t = clock();
-              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, VSTEP);
+              _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmadd "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTF("float fadd+fmadd "MKSTR(SIMD2), dst1, dst2);
@@ -262,7 +266,7 @@ int main()
             if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
             else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
             t = clock();
-              _batch_fmadd(dst2, dst2, MAXNUM, 0.8723678263f, VSTEP);
+              _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
 
             if (simd3 == 3) {
@@ -281,7 +285,7 @@ int main()
         memcpy(dst1, src, MAXNUM*sizeof(float));
         _batch_fmul_value = _batch_fmul_value_cpu;
         t = clock();
-          _batch_fmul_value(dst1, dst1, sizeof(float), MAXNUM, 0.8723678263f);
+          _batch_fmul_value(dst1, dst1, sizeof(float), MAXNUM, FACTOR);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nfmul cpu:  %f ms\n", cpu*1000.0f);
 
@@ -290,7 +294,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmul_value = GLUE(_batch_fmul_value, SIMD);
             t = clock();
-              _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, 0.8723678263f);
+              _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, FACTOR);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmul %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
             TESTF("float fmul simd", dst1, dst2);
@@ -300,7 +304,7 @@ int main()
             memcpy(dst2, src, MAXNUM*sizeof(float));
             _batch_fmul_value = GLUE(_batch_fmul_value, SIMD2);
             t = clock();
-              _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, 0.8723678263f);
+              _batch_fmul_value(dst2, dst2, sizeof(float), MAXNUM, FACTOR);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("fmul "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             TESTF("float fmul "MKSTR(SIMD2), dst1, dst2);
@@ -430,11 +434,11 @@ int main()
         }
         memcpy(ddst1, dsrc, MAXNUM*sizeof(double));
 
-        _batch_fmul_value_cpu(ddst1, ddst1, sizeof(double), MAXNUM, 0.8723678263f);
+        _batch_fmul_value_cpu(ddst1, ddst1, sizeof(double), MAXNUM, FACTOR);
         if (simd2)
         {
             memcpy(ddst2, dsrc, MAXNUM*sizeof(double));
-            GLUE(_batch_fmul_value, SIMD2)(ddst2, ddst2, sizeof(double), MAXNUM, 0.8723678263f);
+            GLUE(_batch_fmul_value, SIMD2)(ddst2, ddst2, sizeof(double), MAXNUM, FACTOR);
             TESTLF("double fmul "MKSTR(SIMD2), (float)ddst1, (float)ddst2);
         }
 
