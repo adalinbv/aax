@@ -551,6 +551,94 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    }
 }
 
+void
+_batch_roundps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   float *d = (float*)dptr;
+   float *s = (float*)sptr;
+   size_t i, step;
+   size_t dtmp, stmp;
+
+   if (!num) return;
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      i = num;
+      do {
+         *d++ += (float)(int32_t)*s++;
+      }
+      while (--i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+   if (dtmp && num)
+   {
+      i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
+      if (i <= num)
+      {
+         num -= i;
+         do {
+            *d++ += (int32_t)*s++;
+         } while(--i);
+      }
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = 4*sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         __m128i xmm4i, xmm5i, xmm6i, xmm7i;
+         __m128 xmm0, xmm1, xmm2, xmm3;
+
+         num -= i*step;;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            xmm0 = _mm_load_ps((const float*)sptr++);
+            xmm1 = _mm_load_ps((const float*)sptr++);
+            xmm2 = _mm_load_ps((const float*)sptr++);
+            xmm3 = _mm_load_ps((const float*)sptr++);
+
+            
+            xmm4i = _mm_cvtps_epi32(xmm0);
+            xmm5i = _mm_cvtps_epi32(xmm1);
+            xmm6i = _mm_cvtps_epi32(xmm2);
+            xmm7i = _mm_cvtps_epi32(xmm3);
+
+            xmm0 = _mm_cvtepi32_ps(xmm4i);
+            xmm1 = _mm_cvtepi32_ps(xmm5i);
+            xmm2 = _mm_cvtepi32_ps(xmm6i);
+            xmm3 = _mm_cvtepi32_ps(xmm7i);
+
+            _mm_store_ps((float*)dptr++, xmm0);
+            _mm_store_ps((float*)dptr++, xmm1);
+            _mm_store_ps((float*)dptr++, xmm2);
+            _mm_store_ps((float*)dptr++, xmm3);
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (int32_t)*s++;
+         } while (--i);
+      }
+   }
+}
+
+
 static void
 _batch_iadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num)
 {
