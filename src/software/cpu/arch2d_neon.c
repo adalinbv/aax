@@ -216,8 +216,8 @@ _batch_cvtps24_24_neon(void_ptr dst, const_void_ptr src, size_t num)
 void
 _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
-   int32_t *d = (int32_t*)dst;
-   float *s = (float*)src;
+   int32_t *d = (int32_t*)dptr;
+   float *s = (float*)sptr;
    size_t i, step;
 
    assert(s != 0);
