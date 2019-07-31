@@ -310,16 +310,15 @@ int main()
          * batch round floats
          */
         _batch_roundps = _batch_roundps_cpu;
-        memcpy(dst1, src, MAXNUM*sizeof(float));
         t = clock();
-          _batch_roundps(dst1, dst1, MAXNUM);
+          _batch_roundps(dst1, src, MAXNUM);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nround cpu:  %f\n", cpu*1000.0f);
         if (simd)
         {
            _batch_roundps = GLUE(_batch_roundps, SIMD);
            t = clock();
-              _batch_roundps(dst2, dst2, MAXNUM);
+              _batch_roundps(dst2, src, MAXNUM);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
             TESTF("round "MKSTR(SIMD), dst1, dst2);
@@ -328,7 +327,7 @@ int main()
         {
            _batch_roundps = GLUE(_batch_roundps, SIMD4);
            t = clock();
-              _batch_roundps(dst2, dst2, MAXNUM);
+              _batch_roundps(dst2, src, MAXNUM);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD4), eps*1000.0f, cpu/eps);
             TESTF("round "MKSTR(SIMD4), dst1, dst2);

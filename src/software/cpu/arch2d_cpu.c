@@ -338,7 +338,7 @@ _batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 void _batch_roundps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    _batch_cvt24_ps24(dptr, sptr, num);
-   _batch_cvtps24_24(dptr, sptr, num);
+   _batch_cvtps24_24(dptr, dptr, num);
 }
 
 #if 0
