@@ -315,18 +315,18 @@ int main()
           _batch_roundps(dst1, dst1, MAXNUM);
           cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
         printf("\nround cpu:  %f\n", cpu*1000.0f);
-        if (simd2)
+        if (simd)
         {
-           _batch_roundps = _batch_roundps_sse2;
+           _batch_roundps = GLUE(_batch_roundps, SIMD);
            t = clock();
               _batch_roundps(dst2, dst2, MAXNUM);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD2), eps*1000.0f, cpu/eps);
-            TESTF("round "MKSTR(SIMD2), dst1, dst2);
+            printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
+            TESTF("round "MKSTR(SIMD), dst1, dst2);
         }
         if (simd4)
         {
-           _batch_roundps = _batch_roundps_sse4;
+           _batch_roundps = GLUE(_batch_roundps, SIMD4);
            t = clock();
               _batch_roundps(dst2, dst2, MAXNUM);
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
