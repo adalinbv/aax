@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1545,6 +1545,32 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          h0 = hist[0];
          h1 = hist[1];
 
+#if 1
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            do
+            {
+               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+
+               h1 = h0;
+               h0 = nsmp;
+            }
+            while (--i);
+         }
+         else
+         {
+            do
+            {
+               float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+#else
          if (filter->state == AAX_BUTTERWORTH)
          {
             __m128 cp01 = _mm_load_ps(cptr);
@@ -1599,6 +1625,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
             h0 = hist[0];
             h1 = hist[1];
          }
+#endif
 
          *hist++ = h0;
          *hist++ = h1;
