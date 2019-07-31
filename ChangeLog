@@ -2,6 +2,8 @@
 - AeonWave (3.6.4) stable; urgency=medium
 
  * Use the fastest path for waveform generation which might or might not be SIMD
+ * Speed up the bitcrusher filter for SSE2 and NEON systems by a factor of two.
+ * Fix the bitcrisher filter for non-accelerated architectures.
  * Fix a streaming problem where the pdmp3_info function was always used,
    even with libmpg123 installed.
 

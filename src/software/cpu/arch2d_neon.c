@@ -214,6 +214,57 @@ _batch_cvtps24_24_neon(void_ptr dst, const_void_ptr src, size_t num)
 }
 
 void
+_batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   int32_t *d = (int32_t*)dst;
+   float *s = (float*)src;
+   size_t i, step;
+
+   assert(s != 0);
+   assert(d != 0);
+
+   if (!num) return;
+
+   step = sizeof(float32x4x4_t)/sizeof(float32_t);
+
+   i = num/step;
+   num -= i*step;
+   if (i)
+   {
+      float32x4x4_t nir4;
+      int32x4x4_t nfr4d;
+
+      do
+      {
+         nir4 = vld4q_f32(s);
+         s += 4*4;
+
+         nfr4d.val[0] = vcvtq_s32_f32(nir4.val[0]);
+         nfr4d.val[1] = vcvtq_s32_f32(nir4.val[1]);
+         nfr4d.val[2] = vcvtq_s32_f32(nir4.val[2]);
+         nfr4d.val[3] = vcvtq_s32_f32(nir4.val[3]);
+
+         nir4.val[0] = vcvtq_f32_s32(nfr4d.val[0]);
+         nir4.val[1] = vcvtq_f32_s32(nfr4d.val[1]);
+         nir4.val[2] = vcvtq_f32_s32(nfr4d.val[2]);
+         nir4.val[3] = vcvtq_f32_s32(nfr4d.val[3]);
+
+         vst4q_s32(d, nir4);
+         d += step;
+      }
+      while(--i);
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (int32_t)*s++;
+         } while (--i);
+      }
+   }
+}
+
+void
 _batch_cvt24_ps24_neon(void_ptr dst, const_void_ptr src, size_t num)
 {
    int32_t *d = (int32_t*)dst;

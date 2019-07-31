@@ -272,6 +272,7 @@ void _batch_freqfilter_float_neon(float32_ptr, const_float32_ptr, int, size_t, v
 void _batch_fmul_value_neon(void*, const void*, unsigned, size_t, float);
 
 #if RB_FLOAT_DATA
+void _batch_roundps_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps24_neon(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_neon(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
