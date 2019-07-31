@@ -249,7 +249,7 @@ _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
          nir4.val[2] = vcvtq_f32_s32(nfr4d.val[2]);
          nir4.val[3] = vcvtq_f32_s32(nfr4d.val[3]);
 
-         vst4q_s32(d, nir4);
+         vst4q_f32(d, nir4);
          d += step;
       }
       while(--i);
