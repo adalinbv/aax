@@ -293,7 +293,7 @@ _aaxGetSIMDSupportLevel()
 //       vec4iDevide = _vec4iDevide_vfpv2;
       }
 
-      if (_aax_arch_capabilities & AAX_ARCH_HF)
+      if (_aax_arch_capabilities & AAX_ARCH_VFPV3)
       {
          _batch_fmadd = _batch_fmadd_vfpv3;
          _batch_imul_value = _batch_imul_value_vfpv3;
@@ -345,6 +345,60 @@ _aaxGetSIMDSupportLevel()
          mtx4dMul = _mtx4dMul_vfpv3;
 
 //       vec4iDevide = _vec4iDevide_vfpv3;
+      }
+
+      if (_aax_arch_capabilities & AAX_ARCH_VFPV4)
+      {
+         _batch_fmadd = _batch_fmadd_vfpv4;
+         _batch_imul_value = _batch_imul_value_vfpv4;
+         _batch_fmul_value = _batch_fmul_value_vfpv4;
+         _batch_cvt24_ps = _batch_cvt24_ps_vfpv4;
+         _batch_cvtps_24 = _batch_cvtps_24_vfpv4;
+         _batch_cvt24_pd = _batch_cvt24_pd_vfpv4;
+         _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv4;
+         _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv4;
+         _batch_cvtpd_24 = _batch_cvtpd_24_vfpv4;
+         _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv4;
+         _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv4;
+
+         _batch_movingaverage_float = _batch_ema_iir_float_vfpv4;
+         _batch_freqfilter = _batch_freqfilter_vfpv4;
+         _batch_freqfilter_float = _batch_freqfilter_float_vfpv4;
+
+#if RB_FLOAT_DATA
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv4;
+         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv4;
+         _batch_resample_float = _batch_resample_float_vfpv4;
+#else
+         _batch_resample = _batch_resample_vfpv4;
+#endif
+
+         _aax_generate_waveform_float = _aax_generate_waveform_vfpv4;
+
+//       vec3fAdd = _vec3fAdd_vfpv4;
+//       vec3fDevide = _vec3fDevide_vfpv4;
+  //     vec3fMulVec3 = _vec3fMulVec3_vfpv4;
+//       vec3fSub = _vec3fSub_vfpv4;
+
+   //    vec3fMagnitude = _vec3fMagnitude_vfpv4;
+   //    vec3dMagnitude = _vec3dMagnitude_vfpv4;
+   //    vec3fMagnitudeSquared = _vec3fMagnitudeSquared_vfpv4;
+   //    vec3fDotProduct = _vec3fDotProduct_vfpv4;
+   //    vec3dDotProduct = _vec3dDotProduct_vfpv4;
+   //    vec3fNormalize = _vec3fNormalize_vfpv4;
+   //    vec3dNormalize = _vec3dNormalize_vfpv4;
+   //    vec3fCrossProduct = _vec3fCrossProduct_vfpv4;
+
+//       vec4fAdd = _vec4fAdd_vfpv4;
+//       vec4fDevide = _vec4fDevide_vfpv4;
+   //    vec4fMulVec4 = _vec4fMulVec4_vfpv4;
+//       vec4fSub = _vec4fSub_vfpv4;
+   //    mtx4fMulVec4 = _mtx4fMulVec4_vfpv4;
+   //    mtx4dMulVec4 = _mtx4dMulVec4_vfpv4;
+   //    mtx4fMul = _mtx4fMul_vfpv4;
+   //    mtx4dMul = _mtx4dMul_vfpv4;
+
+//       vec4iDevide = _vec4iDevide_vfpv4;
       }
 
       if (support_simd && _aax_arch_capabilities & AAX_ARCH_NEON)

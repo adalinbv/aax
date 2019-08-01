@@ -541,17 +541,23 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
       do
       {
          float32_ptr d = dptr;
+         float c0, c1, c2, c3;
          size_t i = num;
 
          h0 = hist[0];
          h1 = hist[1];
 
+         c0 = *cptr++;
+         c1 = *cptr++;
+         c2 = *cptr++;
+         c3 = *cptr++;
+
          if (filter->state == AAX_BUTTERWORTH)
          {
             do
             {
-               smp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = smp       + h0 * cptr[2] + h1 * cptr[3];
+               smp = (*s++ * k) + h0 * c0 + h1 * c1;
+               *d++ = smp       + h0 * c2 + h1 * c3;
 
                h1 = h0;
                h0 = smp;
@@ -562,7 +568,7 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
                *d++ = smp;
 
                h1 = h0;
@@ -573,7 +579,6 @@ _batch_freqfilter_float_vfpv3(float32_ptr dptr, const_float32_ptr sptr, int t, s
 
          *hist++ = h0;
          *hist++ = h1;
-         cptr += 4;
          k = 1.0f;
          s = dptr;
       }

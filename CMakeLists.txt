@@ -378,6 +378,9 @@ else(MSVC)
        set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV3"
        )
+       set_property(SOURCE src/software/cpu/arch2d_vfpv4.c APPEND
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv4 -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV4"
+       )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ftree-vectorize"
        )

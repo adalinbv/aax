@@ -995,19 +995,25 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
       do
       {
+         float c0, c1, c2, c3;
          float32_ptr d = dptr;
          size_t i = num;
 
          h0 = hist[0];
          h1 = hist[1];
 
-#if 0
+#if 1
+         c0 = *cptr++;
+         c1 = *cptr++;
+         c2 = *cptr++;
+         c3 = *cptr++;
+
          if (filter->state == AAX_BUTTERWORTH)
          {
             do
             {
-               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+               float nsmp = (*s++ * k) + h0 * c0 + h1 * c1;
+               *d++ = nsmp             + h0 * c2 + h1 * c3;
 
                h1 = h0;
                h0 = nsmp;
@@ -1018,7 +1024,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
          {
             do
             {
-               float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+               float smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
                *d++ = smp;
 
                h1 = h0;
@@ -1036,7 +1042,8 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
             do
             {
                float32x4_t v23, v01 = vmulq_f32(hist, cp01);
-               float32x4_t d4 = vsetq_lane_f32(*s++ * k, vdupq_n_f32(0), 0);
+//             float32x4_t d4 = vsetq_lane_f32(*s++ * k, vdupq_n_f32(0), 0);
+               float32x4_t d4 = vdupq_n_f32(*s++ * k);
                float32x4_t shuf = vrev64q_f32(v01);
                float32x4_t sums = vaddq_f32(v01, d4);
 
@@ -1081,11 +1088,12 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
             h0 = hist[0];
             h1 = hist[1];
          }
+
+         cptr += 4;
 #endif
 
          *hist++ = h0;;
          *hist++ = h1;
-         cptr += 4;
          k = 1.0f;
          s = dptr;
       }
