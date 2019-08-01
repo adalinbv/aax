@@ -43,6 +43,9 @@
  *  KEEP (retained), STRM (streaming)
  *
  * Note: In NEON, the SIMD supports up to 16 operations at the same time.
+ *
+ * SSE intrinsics to their ARM NEON equivalent:
+ * http://codesuppository.blogspot.com/2015/02/
  */
 
 inline float    // range -1.0f .. 1.0f
@@ -965,6 +968,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
    if (num)
    {
       float k, *cptr, *hist;
+      float h0, h1;
       int stage;
 
       if (filter->state == AAX_BESSEL) {
@@ -989,32 +993,24 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
       stage = filter->no_stages;
       if (!stage) stage++;
 
-#if 1
       do
       {
          float32_ptr d = dptr;
-         float c0, c1, c2, c3;
-         float h0, h1, smp;
          size_t i = num;
-
-         c0 = *cptr++;
-         c1 = *cptr++;
-         c2 = *cptr++;
-         c3 = *cptr++;
 
          h0 = hist[0];
          h1 = hist[1];
 
-         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c2*z[n-2];
+#if 0
          if (filter->state == AAX_BUTTERWORTH)
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
-               *d++ = smp       + ((h0 * c2) + (h1 * c3));
+               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
 
                h1 = h0;
-               h0 = smp;
+               h0 = nsmp;
             }
             while (--i);
          }
@@ -1022,7 +1018,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
          {
             do
             {
-               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
                *d++ = smp;
 
                h1 = h0;
@@ -1030,57 +1026,70 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
             }
             while (--i);
          }
+#else
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            float32x4_t hist = { h0, h1, 0.0f, 0.0f };
+            float32x4_t cp01 = vld1q_f32(cptr);
+            float32x4_t cp23 = vcombine_f32(vget_high_f32(cp01),vget_low_f32(cp01));
 
-         *hist++ = h0;
+            do
+            {
+               float32x4_t v23, v01 = vmulq_f32(hist, cp01);
+               float32x4_t d4 = vset_lane_f32(*s++ * k, vdupq_n_s32(0));
+               float32x4_t shuf = vrev64_f32(v01);
+               float32x4_t sums = vaddq_f32(v01, d4);
+
+               v23 = vmulq_f32(hist, cp23);
+               d4 = vaddq_f32(sums, shuf);
+
+               shuf = vrev64_f32(v23);
+               sums = vaddq_f32(v23, d4);
+
+               hist = vsetq_lane_f32(vget_lane_f32(hist, 0));
+
+               sums = vaddq_f32(sums, shuf);
+               *d++ = vget_lane_f32(sums, 0);
+
+               hist = vset_lane_f32(vget_lane_f32(d4, 0), hist);
+            }
+            while (--i);
+
+            h0 = hist[0];
+            h1 = hist[1];
+         }
+         else
+         {
+            float32x4_t hist = { h0, h1, 0.0f, 0.0f };
+            float32x4_t cp01 = vld1q_f32(cptr);
+
+            do
+            {
+               float32x4_t v01 = vmulq_f32(hist, cp01);
+               float32x4_t d4 = vset_lane_f32(*s++ * k, vdupq_n_s32(0));
+               float32x4_t shuf = vrev64_f32(v01);
+               float32x4_t sums = vaddq_f32(v01, d4);
+
+               hist = vsetq_lane_f32(vget_lane_f32(hist, 0));
+
+               d4 = vaddq_f32(sums, shuf);
+               hist = vset_lane_f32(vget_lane_f32(d4, 0), hist);
+               *d++ = vget_lane_f32(d4, 0);
+            }
+            while (--i);
+
+            h0 = hist[0];
+            h1 = hist[1];
+         }
+#endif
+
+         *hist++ = h0;;
          *hist++ = h1;
          cptr += 4;
          k = 1.0f;
          s = dptr;
       }
       while (--stage);
-#else
-      do
-      {
-         float32x4_t c, h;
-         float32x2_t h2;
-         float32_ptr d = dptr;
-         size_t i = num;
-
-         c = vld1q_f32(cptr);
-
-         h2 = vld1_f32(hist);
-         h = vcombine_f32(h2, h2);
-
-         do
-         {
-            float32x4_t pz;
-            float32x2_t half;
-            float smp, tmp;
-
-            smp = *s++ * k;
-
-            pz = vmulq_f32(c, h); // poles and zeros
-            half = vget_low_f32(pz);
-            tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
-
-            hist[1] = hist[0];
-            hist[0] = smp + tmp;
-            h2 = vld1_f32(hist);
-            h = vcombine_f32(h2, h2);
-
-            half = vget_high_f32(pz);
-            tmp = vget_lane_f32(half, 0) + vget_lane_f32(half, 1);
-            *d++ = smp + tmp;
-         }
-         while (--i);
-
-         hist += 2;
-         cptr += 4;
-         k = 1.0f;
-         s = dptr;
-      }
-      while (--stage);
-#endif
    }
 }
 
