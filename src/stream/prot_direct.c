@@ -44,7 +44,7 @@ _direct_connect(_prot_t *prot, UNUSED(_io_t *io), UNUSED(char **server), const c
 }
 
 int
-_direct_process(UNUSED(_prot_t *prot), UNUSED(uint8_t *buf), UNUSED(size_t res), UNUSED(size_t bytes_avail))
+_direct_process(UNUSED(_prot_t *prot), UNUSED(_data_t *buf), UNUSED(size_t res))
 {
    return 0;
 }

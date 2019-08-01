@@ -139,10 +139,11 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
 }
 
 int
-_http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t buffer_len)
+_http_process(_prot_t *prot, _data_t *buf, size_t res)
 {
-   uint8_t *bufend = buf + buffer_len;
+   size_t buffer_len = buf->avail;
    unsigned int meta_len = 0;
+   ssize_t offset = 0;
 
    if (prot->meta_interval)
    {
@@ -153,8 +154,7 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t buffer_len)
          ssize_t skip = _MIN(prot->meta_size, buffer_len);
 
          assert(skip > 0);
-         buf += skip;	// memmove(buf, buf+skip, buffer_len-skip);
-         buffer_len -= skip;
+         offset += skip;	// memmove(buf, buf+skip, buffer_len-skip);
          prot->meta_size -= skip;
          if (prot->meta_size) { // the ICY data is still larger than the buffer
             return skip;
@@ -165,28 +165,30 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t buffer_len)
       while (prot->meta_pos >= prot->meta_interval)
       {
          size_t meta_offs = prot->meta_pos - prot->meta_interval;
-         uint8_t *buffer = buf;
          ssize_t block_len;
+         uint8_t msize = 0;
 
-         buffer += buffer_len;
-         buffer -= meta_offs;
+         offset += buffer_len;
+         offset -= meta_offs;
 
          // The first byte indicates the length devided by 16
          // Empty meta information is indicated by a size of 0
-         prot->meta_size = meta_len = *buffer * 16;
+         _aaxDataCopy(buf, &msize, offset, 1);
+         prot->meta_size = meta_len = msize*16;
          if (meta_len > 0)
          {
+            uint8_t *buffer = buf->data+offset;
             uint8_t *metaptr = buffer+1; // skip the size byte
             block_len = HEADERLEN+1;
 
             // In case of a mangled stream the ICY data might not be where
             // we expect it. Search the complete buffer for the StreamTitle
             // in this case, until it is found and reset the meta_pos
-            if (buffer < buf ||
+            if (offset >= 0 ||
                 strncasecmp((char*)metaptr, STREAMTITLE, block_len-1) != 0)
             {
-               metaptr = (uint8_t*)strnstr((char*)buf, STREAMTITLE, buffer_len);
-               if (!metaptr || metaptr == buf) break;
+               metaptr = (uint8_t*)strnstr((char*)buffer, STREAMTITLE, buffer_len);
+               if (!metaptr || metaptr == buffer) break;
             }
 
             // The ICY data length extends beyond the buffer size,
@@ -260,10 +262,8 @@ _http_process(_prot_t *prot, uint8_t *buf, size_t res, size_t buffer_len)
          prot->meta_pos -= (prot->meta_interval+meta_len);
 
          /* move the rest of the buffer meta_len-bytes back */
-         block_len = bufend - (buffer+meta_len);
-         if (block_len < buffer_len) {
-            memmove(buffer, buffer+meta_len, block_len);
-         }
+         _aaxDataMoveOffset(buf, NULL, offset, meta_len);
+
       } // while (prot->meta_pos >= prot->meta_interval)
    }
    return meta_len;

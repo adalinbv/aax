@@ -30,6 +30,7 @@ extern "C" {
 #include "config.h"
 #endif
 
+#include <api.h>
 #include "audio.h"
 
 typedef enum
@@ -43,7 +44,7 @@ struct _io_st;
 struct _prot_st;
 
 typedef ssize_t _prot_connect_fn(struct _prot_st*, struct _io_st*, char**, const char*, const char*);
-typedef int _prot_process_fn(struct _prot_st*, uint8_t*, size_t, size_t);
+typedef int _prot_process_fn(struct _prot_st*, _data_t*, size_t);
 typedef int _prot_set_param_fn(struct _prot_st*, enum _aaxStreamParam, ssize_t);
 typedef int _prot_get_param_fn(struct _prot_st*, enum _aaxStreamParam);
 typedef char* _prot_name_fn(struct _prot_st*, enum _aaxStreamParam);
@@ -82,14 +83,14 @@ void* _prot_free(_prot_t*);
 
 /* http protocol */
 ssize_t _http_connect(_prot_t*, struct _io_st*, char**, const char*, const char*);
-int _http_process(_prot_t*, uint8_t*, size_t, size_t);
+int _http_process(struct _prot_st*, _data_t*, size_t);
 int _http_set(_prot_t*, enum _aaxStreamParam, ssize_t);
 int _http_get(_prot_t*, enum _aaxStreamParam);
 char* _http_name(_prot_t*, enum _aaxStreamParam);
 
 /* direct protocol */
 ssize_t _direct_connect(_prot_t*, struct _io_st*, char**, const char*, const char*);
-int _direct_process(_prot_t*, uint8_t*, size_t, size_t);
+int _direct_process(struct _prot_st*, _data_t*, size_t);
 int _direct_set(_prot_t*, enum _aaxStreamParam, ssize_t);
 int _direct_get(_prot_t*, enum _aaxStreamParam);
 char* _direct_name(_prot_t*, enum _aaxStreamParam);

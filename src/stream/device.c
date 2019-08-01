@@ -458,7 +458,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->io->set_param(handle->io, __F_PORT, port);
          handle->io->set_param(handle->io, __F_TIMEOUT, (int)period_ms);
          if (handle->io->open(handle->io, server) >= 0)
-         {   
+         {
             handle->prot = _prot_create(protocol);
             if (handle->prot)
             {
@@ -599,7 +599,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                {
                   int r;
 
-                  r = handle->prot->process(handle->prot, header, res, res);
+                  _aaxDataAdd(handle->threadBuffer, header, res);
+                  r = handle->prot->process(handle->prot, handle->threadBuffer, res);
                   res -= r;
                }
             }
@@ -712,7 +713,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 static size_t
 _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float gain, UNUSED(char batched))
 {
-   _driver_t *handle = (_driver_t *)id;  
+   _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
    size_t no_samples, offs, outbuf_size, scratchsize;
    unsigned int rb_bps, file_bps, file_tracks;
@@ -1253,7 +1254,7 @@ _aaxStreamDriverGetInterfaces(const void *id, UNUSED(const char *devname), int m
             _ext_free(ext);
          }
       }
-      
+
       if (ptr != interfaces)
       {
          *(ptr-1) = '\0';
@@ -1398,7 +1399,7 @@ _aaxStreamDriverWriteChunk(const void *id)
    }
    handle->dataAvailWrite = 0;
 
-}  
+}
 
 static void*
 _aaxStreamDriverWriteThread(void *id)
@@ -1419,7 +1420,7 @@ _aaxStreamDriverWriteThread(void *id)
       if (!handle->dataAvailWrite) {
          continue;
       }
-   
+
       _aaxStreamDriverWriteChunk(id);
    }
    while(handle->thread.started);
@@ -1430,7 +1431,7 @@ _aaxStreamDriverWriteThread(void *id)
 
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
-   return handle; 
+   return handle;
 }
 
 static ssize_t
@@ -1459,26 +1460,17 @@ _aaxStreamDriverReadChunk(const void *id)
    res = handle->io->read(handle->io, buffer, size);
    if (res > 0)
    {
-      unsigned char *data;
-
 #if USE_CAPTURE_THREAD
       _aaxMutexLock(handle->threadbuf_lock);
 #endif
-      data = handle->threadBuffer->data;
 
-      avail = handle->threadBuffer->avail;
-      assert(avail+res <= handle->threadBuffer->size);
-
-      memcpy(data+avail, buffer, res);
-      avail += res;
+      _aaxDataAdd(handle->threadBuffer, buffer, res);
 
       if (handle->prot)
       {
-         int slen = handle->prot->process(handle->prot, data, res, avail);
-         avail -= slen;
+         handle->prot->process(handle->prot, handle->threadBuffer, res);
       }
 
-      handle->threadBuffer->avail = avail;
 #if USE_CAPTURE_THREAD
       _aaxMutexUnLock(handle->threadbuf_lock);
 #endif

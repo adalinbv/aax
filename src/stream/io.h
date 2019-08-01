@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2017 by Erik Hofman.
- * Copyright 2012-2017 by Adalin B.V.
+ * Copyright 2012-2019 by Erik Hofman.
+ * Copyright 2012-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -77,7 +77,6 @@ struct _io_st
    _io_set_param_fn *set_param;
    _io_wait_fn *wait;
 
-
    unsigned error_ctr;
    unsigned error_max;
 
@@ -85,6 +84,8 @@ struct _io_st
    int param[_IO_PARAM_MAX];
    struct pollfd fds;
 
+   void *timer;
+   float update_dt;
 };
 typedef struct _io_st _io_t;
 

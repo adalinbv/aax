@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2019 by Erik Hofman.
+ * Copyright 2009-2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -39,6 +39,7 @@
 
 #include <aax/aax.h>
 
+#include <base/timer.h>
 #include "audio.h"
 
 #ifndef O_BINARY
@@ -49,6 +50,7 @@ int
 _file_open(_io_t *io, const char* pathname)
 {
    io->fds.fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
+   io->timer = _aaxTimerCreate();
    return io->fds.fd;
 }
 
@@ -56,6 +58,7 @@ int
 _file_close(_io_t *io)
 {
    int rv = 0;
+   _aaxTimerDestroy(io->timer);
    if (io->fds.fd != -1) close(io->fds.fd);
    io->fds.fd = -1;
    return rv;
@@ -79,6 +82,14 @@ _file_write(_io_t *io, const void* buf, size_t count)
 {
    ssize_t rv = write(io->fds.fd, buf, count);
    if (rv == EINTR) rv = write(io->fds.fd, buf, count);
+
+   io->update_dt += _aaxTimerElapsed(io->timer);
+   if (io->update_dt >= 0.5f)
+   {
+      io->update_dt -= 0.5f;
+      fdatasync(io->fds.fd);
+   }
+
    return rv;
 }
 
