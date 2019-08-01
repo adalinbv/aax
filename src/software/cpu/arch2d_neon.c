@@ -1036,22 +1036,22 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
             do
             {
                float32x4_t v23, v01 = vmulq_f32(hist, cp01);
-               float32x4_t d4 = vset_lane_f32(*s++ * k, vdupq_n_s32(0));
-               float32x4_t shuf = vrev64_f32(v01);
+               float32x4_t d4 = vsetq_lane_f32(*s++ * k, vdupq_n_f32(0), 0);
+               float32x4_t shuf = vrev64q_f32(v01);
                float32x4_t sums = vaddq_f32(v01, d4);
 
                v23 = vmulq_f32(hist, cp23);
                d4 = vaddq_f32(sums, shuf);
 
-               shuf = vrev64_f32(v23);
+               shuf = vrev64q_f32(v23);
                sums = vaddq_f32(v23, d4);
 
-               hist = vsetq_lane_f32(vget_lane_f32(hist, 0));
+               hist = vdupq_n_f32(vgetq_lane_f32(hist, 0));
 
                sums = vaddq_f32(sums, shuf);
-               *d++ = vget_lane_f32(sums, 0);
+               *d++ = vgetq_lane_f32(sums, 0);
 
-               hist = vset_lane_f32(vget_lane_f32(d4, 0), hist);
+               hist = vsetq_lane_f32(vgetq_lane_f32(d4, 0), hist, 0);
             }
             while (--i);
 
@@ -1066,15 +1066,15 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
             do
             {
                float32x4_t v01 = vmulq_f32(hist, cp01);
-               float32x4_t d4 = vset_lane_f32(*s++ * k, vdupq_n_s32(0));
-               float32x4_t shuf = vrev64_f32(v01);
+               float32x4_t d4 = vsetq_lane_f32(*s++ * k, vdupq_n_f32(0), 0);
+               float32x4_t shuf = vrev64q_f32(v01);
                float32x4_t sums = vaddq_f32(v01, d4);
 
-               hist = vsetq_lane_f32(vget_lane_f32(hist, 0));
+               hist = vdupq_n_f32(vgetq_lane_f32(hist, 0));
 
                d4 = vaddq_f32(sums, shuf);
-               hist = vset_lane_f32(vget_lane_f32(d4, 0), hist);
-               *d++ = vget_lane_f32(d4, 0);
+               hist = vsetq_lane_f32(vgetq_lane_f32(d4, 0), hist, 0);
+               *d++ = vgetq_lane_f32(d4, 0);
             }
             while (--i);
 
