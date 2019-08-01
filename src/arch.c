@@ -124,6 +124,40 @@ _aaxDataAdd(_data_t* buf, void* data, size_t size)
 }
 
 /**
+ * Copy data from the start of a previously created data structure.
+ *
+ * buf: the previously created data structure.
+ * data: the buffer to move the data to. If NULL the data will just be erased.
+ * size: size (in bytes) of the data to be (re)moved.
+ *
+ * returns the actual number of bytes that where moved.
+ */
+size_t
+_aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
+{
+   size_t rv = size;
+
+   assert(buf);
+   assert(buf->id == DATA_ID);
+   assert(offset+size < buf->avail);
+
+   if (offset+size >= buf->avail) {
+      rv = 0;
+   }
+   else if (size >= buf->blocksize)
+   {
+      size_t remain = buf->avail - offset;
+
+      rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
+      if (data) {
+         memcpy(data, buf->data+offset, rv);
+      }
+   }
+
+   return rv;
+}
+
+/**
  * (Re)Move data from the start of a previously created data structure.
  *
  * buf: the previously created data structure.
@@ -150,6 +184,47 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
       buf->avail -= rv;
       if (buf->avail > 0) {
          memmove(buf->data, buf->data+rv, buf->avail);
+      }
+   }
+
+   return rv;
+}
+
+/**
+ * (Re)Move data from an offset of a previously created data structure.
+ *
+ * buf: the previously created data structure.
+ * data: the buffer to move the data to. If NULL the data will just be erased.
+ * size: size (in bytes) of the data to be (re)moved.
+ * offset: offset in the data buffer.
+ *
+ * returns the actual number of bytes that where moved.
+ */
+size_t
+_aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
+{
+   size_t rv = size;
+
+   assert(buf);
+   assert(buf->id == DATA_ID);
+   assert(offset+size < buf->avail);
+
+   if (offset+size >= buf->avail) {
+      rv = 0;
+   }
+   else if (size >= buf->blocksize)
+   {
+      size_t remain = buf->avail - offset;
+
+      rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
+      if (data) {
+         memcpy(data, buf->data+offset, rv);
+      }
+
+      remain -= rv;
+      buf->avail -= rv;
+      if (buf->avail > 0) { 
+         memmove(buf->data, buf->data+offset+rv, remain);
       }
    }
 
@@ -195,4 +270,3 @@ _aaxDataMoveData(_data_t* src, _data_t* dst, size_t size)
 
    return rv;
 }
-
