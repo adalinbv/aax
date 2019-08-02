@@ -63,13 +63,17 @@ struct _prot_st
    size_t meta_size;
    size_t meta_pos;
 
+   size_t metadata_len;
+   char metadata_changed;
+   char *metadata;
+
    char *path;
    char *station;
    char *description;
    char *genre;
    char *website;
    char *content_type;
-   char metadata_changed;
+
       // artist[0] = AAX_TRUE if changed since the last get
    char artist[MAX_ID_STRLEN+1];
       // title[0] = AAX_TRUE if changed since the last get

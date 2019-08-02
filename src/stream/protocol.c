@@ -53,6 +53,7 @@ _prot_create(_protocol_t protocol)
          rv->get_param = _http_get;
 
          rv->protocol = protocol;
+         rv->metadata_len = 0;
          rv->meta_interval = 0;
          rv->meta_pos = 0;
       }
@@ -68,6 +69,7 @@ _prot_create(_protocol_t protocol)
          rv->get_param = _direct_get;
 
          rv->protocol = protocol;
+         rv->metadata_len = 0;
          rv->meta_interval = 0;
          rv->meta_pos = 0;
       }
@@ -87,6 +89,7 @@ _prot_free(_prot_t *prot)
    if (prot->description) free(prot->description);
    if (prot->genre) free(prot->genre);
    if (prot->website) free(prot->website);
+   if (prot->metadata) free(prot->metadata);
    if (prot) free(prot);
    return 0;
 }

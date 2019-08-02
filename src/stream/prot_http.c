@@ -141,74 +141,52 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
 int
 _http_process(_prot_t *prot, _data_t *buf, size_t res)
 {
-   size_t buffer_len = buf->avail;
+   size_t buffer_avail = buf->avail;
    unsigned int meta_len = 0;
-   ssize_t offset = 0;
 
    if (prot->meta_interval)
    {
-      // The ICY data length did extend beyond the buffer size in the previous
-      // run: skip the remaining data and ignore this ICY data.
-      if (prot->meta_size)
-      {
-         ssize_t skip = _MIN(prot->meta_size, buffer_len);
-
-         assert(skip > 0);
-         offset += skip;	// memmove(buf, buf+skip, buffer_len-skip);
-         prot->meta_size -= skip;
-         if (prot->meta_size) { // the ICY data is still larger than the buffer
-            return skip;
-         }
-      }
-
       prot->meta_pos += res;
       while (prot->meta_pos >= prot->meta_interval)
       {
-         size_t meta_offs = prot->meta_pos - prot->meta_interval;
-         ssize_t block_len;
+         ssize_t meta_offs, block_len;
+         ssize_t offset = 0;
          uint8_t msize = 0;
 
-         offset += buffer_len;
+         meta_offs = prot->meta_pos - prot->meta_interval;
+         if (meta_offs >= buffer_avail) break;
+
+         offset += buffer_avail;
          offset -= meta_offs;
 
          // The first byte indicates the length devided by 16
          // Empty meta information is indicated by a size of 0
          _aaxDataCopy(buf, &msize, offset, 1);
          prot->meta_size = meta_len = msize*16;
+         if (meta_offs+meta_len >= buffer_avail) break;
+
          if (meta_len > 0)
          {
-            uint8_t *buffer = buf->data+offset;
-            uint8_t *metaptr = buffer+1; // skip the size byte
-            block_len = HEADERLEN+1;
+            char *metaptr = prot->metadata;
 
-            // In case of a mangled stream the ICY data might not be where
-            // we expect it. Search the complete buffer for the StreamTitle
-            // in this case, until it is found and reset the meta_pos
-            if (offset >= 0 ||
-                strncasecmp((char*)metaptr, STREAMTITLE, block_len-1) != 0)
+            if (meta_len > prot->metadata_len)
             {
-               metaptr = (uint8_t*)strnstr((char*)buffer, STREAMTITLE, buffer_len);
-               if (!metaptr || metaptr == buffer) break;
+               if ((metaptr = realloc(prot->metadata, meta_len)) == NULL) {
+                  break;
+               }
+
+               prot->metadata = metaptr;
+               prot->metadata_len = meta_len;
             }
 
-            // The ICY data length extends beyond the buffer size,
-            // skip the part of the ICY data which is in the buffer now.
-            if ((size_t)metaptr+meta_len >= (size_t)buf+buffer_len)
-            {
-               ssize_t skip = (size_t)buf+buffer_len - (size_t)metaptr;
-
-               prot->meta_size -= skip;
-               meta_len = skip;
-               break;
-            }
-
-            if ((size_t)metaptr+meta_len >= (size_t)buf+IOBUF_THRESHOLD) {
+            if (!_aaxDataCopy(buf, metaptr, offset+1, meta_len)) {
                break;
             }
 
             // meta_len > block_len means it's not an empty stream title.
             // So we now have a continuous block of memory containing the
             // stream title data.
+            block_len = HEADERLEN+1;
             if (meta_len > block_len &&
                 !strncasecmp((char*)metaptr, STREAMTITLE, block_len-1))
             {
