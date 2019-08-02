@@ -124,10 +124,11 @@ _aaxDataAdd(_data_t* buf, void* data, size_t size)
 }
 
 /**
- * Copy data from the start of a previously created data structure.
+ * Copy data from an offset of a previously created data structure.
  *
  * buf: the previously created data structure.
  * data: the buffer to move the data to. If NULL the data will just be erased.
+ * offset: offset in the data buffer.
  * size: size (in bytes) of the data to be (re)moved.
  *
  * returns the actual number of bytes that where moved.
@@ -139,9 +140,9 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
 
    assert(buf);
    assert(buf->id == DATA_ID);
-   assert(offset+size < buf->avail);
+   assert(data);
 
-   if (offset+size >= buf->avail) {
+   if (!data || offset+size >= buf->avail) {
       rv = 0;
    }
    else if (size >= buf->blocksize)
@@ -149,9 +150,7 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
       size_t remain = buf->avail - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
-      if (data) {
-         memcpy(data, buf->data+offset, rv);
-      }
+      memcpy(data, buf->data+offset, rv);
    }
 
    return rv;
@@ -195,8 +194,8 @@ _aaxDataMove(_data_t* buf, void* data, size_t size)
  *
  * buf: the previously created data structure.
  * data: the buffer to move the data to. If NULL the data will just be erased.
- * size: size (in bytes) of the data to be (re)moved.
  * offset: offset in the data buffer.
+ * size: size (in bytes) of the data to be (re)moved.
  *
  * returns the actual number of bytes that where moved.
  */
@@ -207,14 +206,13 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
 
    assert(buf);
    assert(buf->id == DATA_ID);
-   assert(offset+size < buf->avail);
 
    if (offset+size >= buf->avail) {
       rv = 0;
    }
    else if (size >= buf->blocksize)
    {
-      size_t remain = buf->avail - offset;
+      ssize_t remain = buf->avail - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
       if (data) {
@@ -222,9 +220,11 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
       }
 
       remain -= rv;
+      assert(remain > 0);
+
       buf->avail -= rv;
       if (buf->avail > 0) { 
-         memmove(buf->data, buf->data+offset+rv, remain);
+         memmove(buf->data+offset, buf->data+offset+rv, remain);
       }
    }
 

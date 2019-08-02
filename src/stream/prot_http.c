@@ -40,7 +40,7 @@
 #include "device.h"
 #include "audio.h"
 
-#define MAX_BUFFER	512
+#define MAX_HEADER	512
 #define STREAMTITLE	"StreamTitle='"
 #define HEADERLEN	strlen(STREAMTITLE)
 
@@ -159,8 +159,8 @@ _http_process(_prot_t *prot, _data_t *buf, size_t res)
          offset += buffer_avail;
          offset -= meta_offs;
 
-         // The first byte indicates the length devided by 16
-         // Empty meta information is indicated by a size of 0
+         // The first byte indicates the meta length devided by 16
+         // Empty meta information is indicated by a meta_len of 0
          _aaxDataCopy(buf, &msize, offset, 1);
          prot->meta_size = meta_len = msize*16;
          if (meta_offs+meta_len >= buffer_avail) break;
@@ -430,10 +430,10 @@ _http_get_response_data(_io_t *io, char *response, int size)
 int
 _http_send_request(_io_t *io, const char *command, const char *server, const char *path, const char *user_agent)
 {
-   char header[MAX_BUFFER];
+   char header[MAX_HEADER];
    int hlen, rv = 0;
 
-   snprintf(header, MAX_BUFFER,
+   snprintf(header, MAX_HEADER,
             "%s /%.256s HTTP/1.0\r\n"
             "User-Agent: %s\r\n"
             "Accept: */*\r\n"
@@ -442,7 +442,7 @@ _http_send_request(_io_t *io, const char *command, const char *server, const cha
             "Icy-MetaData:1\r\n"
             "\r\n",
             command, path, user_agent, server);
-   header[MAX_BUFFER-1] = '\0';
+   header[MAX_HEADER-1] = '\0';
 
    hlen = strlen(header);
    rv = io->write(io, header, hlen);
