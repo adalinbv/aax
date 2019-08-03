@@ -173,6 +173,8 @@ struct info_t
         uint8_t polyphony;
         uint8_t min, max, step;
     } note;
+
+    int aftertouch_mode;
 };
 
 void fill_info(struct info_t *info, void *xid)
@@ -189,6 +191,13 @@ void fill_info(struct info_t *info, void *xid)
         info->bank = _MINMAX(xmlAttributeGetInt(xid, "bank"), 0, 127);
     }
     info->name = prttystr(xmlAttributeGetString(xid, "name"));
+
+    xtid = xmlNodeGet(xid, "aftertouch");
+    if (xtid)
+    {
+        info->aftertouch_mode = xmlAttributeGetInt(xtid, "mode");
+        xmlFree(xtid);
+    }
 
     xtid = xmlNodeGet(xid, "note");
     if (xtid)
@@ -274,6 +283,10 @@ void print_info(struct info_t *info, FILE *output, char commons)
         if (info->note.max) fprintf(output, " max=\"%i\"", info->note.max);
         if (info->note.step) fprintf(output, " step=\"%i\"", info->note.step);
         fprintf(output, "/>\n");
+    }
+
+    if (info->aftertouch_mode) {
+        fprintf(output, "  <aftertouch mode=\"%i\"/>\n", info->aftertouch_mode);
     }
     fprintf(output, " </info>\n\n");
 }
