@@ -388,6 +388,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
             _aaxErrorSet(AAX_INVALID_STATE);
          }
          break;
+      case AAX_PRESSURE_MODE:
+         rv = handle->pressure_mode;
+         break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1540,7 +1543,7 @@ _bufAAXSThread(void *d)
    _buffer_t* handle = aax_buf->parent;
    const void *aaxs =  aax_buf->aaxs;
    int rv = AAX_FALSE;
-   void *xid;
+   void *xid, *xiid;
 
    assert(handle);
    assert(aaxs);
@@ -1574,7 +1577,14 @@ _bufAAXSThread(void *d)
                   have_hash = 1;
               }
           }
-          free(a);
+          xmlFree(a);
+      }
+
+      xiid = xmlNodeGet(xid, "aeonwave/info/aftertouch");
+      if (xiid)
+      {
+         handle->pressure_mode = xmlAttributeGetInt(xiid, "mode");
+         xmlFree(xiid);
       }
 
       if (have_hash)

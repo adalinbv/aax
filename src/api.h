@@ -247,6 +247,7 @@ typedef struct
    char to_mixer;
    char mipmap;
 
+   char pressure_mode;
    char pitch_levels;
    _aaxRingBuffer *ringbuffer[MAX_PITCH_LEVELS];
    _aaxMixerInfo **info;
