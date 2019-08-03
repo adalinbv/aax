@@ -428,6 +428,8 @@ public:
     inline void set_modulation_depth(float d) { modulation_range = d; }
     inline float get_modulation_depth() { return modulation_range; }
 
+    inline bool get_pressure_pitch_bend() { return pressure_pitch_bend; }
+
 private:
     std::map<uint8_t,Buffer&> name_map;
 
@@ -442,6 +444,7 @@ private:
     uint8_t program_no = 0;
 
     bool drum_channel = false;
+    bool pressure_pitch_bend = false;
 };
 
 
