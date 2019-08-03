@@ -417,7 +417,6 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
         }
     }
 
-    int pressure_mode = 0;
     Buffer &buffer = AeonWave::buffer(name, false);
     if (buffer) {
     }
@@ -546,7 +545,15 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
                 {
                     auto ret = name_map.insert({program_no,buffer});
                     it = ret.first;
-                    if (buffer.get(AAX_PRESSURE_MODE)) {
+
+                    // mode == 0: volume bend only
+                    // mode == 1: pitch bend only
+                    // mode == 2: volume and pitch bend
+                    int pressure_mode = buffer.get(AAX_PRESSURE_MODE);
+                    if (pressure_mode == 0 || pressure_mode == 2) {
+                       pressure_volume_bend = true;
+                    }
+                    if (pressure_mode > 0) {
                        pressure_pitch_bend = true;
                     }
                 }
@@ -1353,9 +1360,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t pressure = pull_byte();
                 if (!midi.channel(channel).is_drums()) {
                     if (midi.channel(channel).get_pressure_pitch_bend()) {
-                       midi.channel(channel).set_pitch(key, cents2pitch((float)pressure/127.0f, channel));
+                        midi.channel(channel).set_pitch(key, cents2pitch((float)pressure/127.0f, channel));
                     }
-                    midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
+                    if (midi.channel(channel).get_pressure_volume_bend()) {
+                        midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
+                    }
                 }
                 CSV("Poly_aftertouch_c, %d, %d, %d\n", channel, key, pressure);
                 break;
@@ -1365,9 +1374,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t pressure = pull_byte();
                 if (!midi.channel(channel).is_drums()) {
                     if (midi.channel(channel).get_pressure_pitch_bend()) {
-                       midi.channel(channel).set_pitch(cents2pitch((float)pressure/127.0f, channel));
+                        midi.channel(channel).set_pitch(cents2pitch((float)pressure/127.0f, channel));
                     }
-                    midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
+                    if (midi.channel(channel).get_pressure_volume_bend()) {
+                        midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
+                    }
                 }
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
                 break;

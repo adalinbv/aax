@@ -428,6 +428,7 @@ public:
     inline void set_modulation_depth(float d) { modulation_range = d; }
     inline float get_modulation_depth() { return modulation_range; }
 
+    inline bool get_pressure_volume_bend() { return pressure_volume_bend; }
     inline bool get_pressure_pitch_bend() { return pressure_pitch_bend; }
 
 private:
@@ -444,6 +445,7 @@ private:
     uint8_t program_no = 0;
 
     bool drum_channel = false;
+    bool pressure_volume_bend = true;
     bool pressure_pitch_bend = false;
 };
 
