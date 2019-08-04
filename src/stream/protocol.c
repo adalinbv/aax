@@ -53,9 +53,6 @@ _prot_create(_protocol_t protocol)
          rv->get_param = _http_get;
 
          rv->protocol = protocol;
-         rv->metadata_len = 0;
-         rv->meta_interval = 0;
-         rv->meta_pos = 0;
       }
       break;
    case PROTOCOL_DIRECT:
@@ -69,9 +66,6 @@ _prot_create(_protocol_t protocol)
          rv->get_param = _direct_get;
 
          rv->protocol = protocol;
-         rv->metadata_len = 0;
-         rv->meta_interval = 0;
-         rv->meta_pos = 0;
       }
       break;
    default:

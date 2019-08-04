@@ -63,6 +63,7 @@ struct _prot_st
    size_t meta_size;
    size_t meta_pos;
 
+   size_t metadata_offs;
    size_t metadata_len;
    char metadata_changed;
    char *metadata;

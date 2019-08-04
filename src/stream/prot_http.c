@@ -151,22 +151,39 @@ _http_process(_prot_t *prot, _data_t *buf, size_t res)
       {
          ssize_t meta_offs, block_len;
          ssize_t offset = 0;
-         uint8_t msize = 0;
 
          meta_offs = prot->meta_pos - prot->meta_interval;
-         if (meta_offs >= buffer_avail) break;
+         if (meta_offs >= buffer_avail) {
+// TODO
+            break;
+         }
 
          offset += buffer_avail;
          offset -= meta_offs;
 
-         // The first byte indicates the meta length devided by 16
-         // Empty meta information is indicated by a meta_len of 0
-         _aaxDataCopy(buf, &msize, offset, 1);
-         prot->meta_size = meta_len = msize*16;
-         if (meta_offs+meta_len >= buffer_avail) break;
+         meta_len = prot->meta_size;
+         if (prot->metadata_offs == 0)
+         {
+            uint8_t msize = 0;
+
+            // The first byte indicates the meta length devided by 16
+            // Empty meta information is indicated by a meta_len of 0
+            _aaxDataMoveOffset(buf, &msize, offset, 1);
+            meta_len = prot->meta_size = msize*16;
+
+            // add the meta_len-byte itself
+            prot->meta_pos -= (prot->meta_interval+meta_len+1);
+         }
+
+         if (meta_offs+meta_len >= buffer_avail)
+         {
+            meta_len = buffer_avail - meta_offs+meta_len;
+            prot->metadata_offs = meta_len;
+         }
 
          if (meta_len > 0)
          {
+            size_t len, moffs = prot->metadata_offs;
             char *metaptr = prot->metadata;
 
             if (meta_len > prot->metadata_len)
@@ -179,9 +196,17 @@ _http_process(_prot_t *prot, _data_t *buf, size_t res)
                prot->metadata_len = meta_len;
             }
 
-            if (!_aaxDataCopy(buf, metaptr, offset+1, meta_len)) {
+            len = _aaxDataMoveOffset(buf, metaptr+moffs, offset, meta_len);
+            if (!len) {
                break;
             }
+
+            if (prot->metadata_offs)
+            {
+               prot->metadata_offs -= len;
+               if (prot->metadata_offs) break;
+            }
+
 
             // meta_len > block_len means it's not an empty stream title.
             // So we now have a continuous block of memory containing the
@@ -235,12 +260,6 @@ _http_process(_prot_t *prot, _data_t *buf, size_t res)
                }
             }
          } // if (meta_len > 0)
-
-         meta_len++;     // add the meta_len-byte itself
-         prot->meta_pos -= (prot->meta_interval+meta_len);
-
-         /* move the rest of the buffer meta_len-bytes back */
-         _aaxDataMoveOffset(buf, NULL, offset, meta_len);
 
       } // while (prot->meta_pos >= prot->meta_interval)
    }
