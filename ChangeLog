@@ -1,6 +1,8 @@
 * Tue Jul 23 2019 - tech@adalin.org
-- AeonWave (3.6.4) stable; urgency=medium
+- AeonWave (3.6.4) stable; urgency=high
 
+ * Switch to using the data-buffer handling code when handling stream ICY data
+   to get much safer stream data handling.
  * Use the fastest path for waveform generation which might or might not be SIMD
  * Get ARM support up to par with x86 support again, and add support for VFPv4.
  * Speed up the bitcrusher filter for SSE2 and NEON systems by a factor of two.
