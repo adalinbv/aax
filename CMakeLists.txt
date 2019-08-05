@@ -261,7 +261,7 @@ else(MSVC)
    endif(NOT MINGW)
 
    if (CLANG)
-     set(C_FLAGS "${C_FLAGS} -Qunused-arguments -ffp-contract=fast" CACHE STRING
+     set(C_FLAGS "${C_FLAGS} -ffp-contract=fast" CACHE STRING
          "Hide unused clang options"
          FORCE)
    elseif (MIPSPRO)
