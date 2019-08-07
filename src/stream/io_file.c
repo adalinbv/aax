@@ -83,12 +83,15 @@ _file_write(_io_t *io, const void* buf, size_t count)
    ssize_t rv = write(io->fds.fd, buf, count);
    if (rv == EINTR) rv = write(io->fds.fd, buf, count);
 
+   // sync messes up writing data to a file
+#if 0
    io->update_dt += _aaxTimerElapsed(io->timer);
    if (io->update_dt >= 0.5f)
    {
       io->update_dt -= 0.5f;
       fdatasync(io->fds.fd);
    }
+#endif
 
    return rv;
 }
