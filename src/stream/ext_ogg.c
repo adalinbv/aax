@@ -609,27 +609,27 @@ crc32_init(void)
 static void
 _aaxOggFreeInfo(_driver_t *handle)
 {
-   free(handle->trackno);
+   if (handle->trackno) free(handle->trackno);
    handle->trackno = NULL;
-   free(handle->artist);
+   if (handle->artist) free(handle->artist);
    handle->artist = NULL;
-   free(handle->title);
+   if (handle->title) free(handle->title);
    handle->title = NULL;
-   free(handle->album);
+   if (handle->album) free(handle->album);
    handle->album = NULL;
-   free(handle->date);
+   if (handle->date) free(handle->date);
    handle->date = NULL;
-   free(handle->genre);
+   if (handle->genre) free(handle->genre);
    handle->genre = NULL;
-   free(handle->composer);
+   if (handle->composer) free(handle->composer);
    handle->composer = NULL;
-   free(handle->comments);
+   if (handle->comments) free(handle->comments);
    handle->comments = NULL;
-   free(handle->copyright);
+   if (handle->copyright) free(handle->copyright);
    handle->copyright = NULL;
-   free(handle->original);
+   if (handle->original) free(handle->original);
    handle->original = NULL;
-   free(handle->website);
+   if (handle->website) free(handle->website);
    handle->website = NULL;
 }
 
