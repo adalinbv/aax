@@ -1465,11 +1465,7 @@ _aaxStreamDriverReadChunk(const void *id)
 #endif
 
       _aaxDataAdd(handle->threadBuffer, buffer, res);
-
-      if (handle->prot)
-      {
-         handle->prot->process(handle->prot, handle->threadBuffer, res);
-      }
+      handle->prot->process(handle->prot, handle->threadBuffer, res);
 
 #if USE_CAPTURE_THREAD
       _aaxMutexUnLock(handle->threadbuf_lock);
