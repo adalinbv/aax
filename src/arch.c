@@ -142,7 +142,7 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
    assert(buf->id == DATA_ID);
    assert(data);
 
-   if (!data || offset+size >= buf->avail) {
+   if (!data || offset+size > buf->avail) {
       rv = 0;
    }
    else if (size >= buf->blocksize)
@@ -150,7 +150,9 @@ _aaxDataCopy(_data_t* buf, void* data, size_t offset, size_t size)
       size_t remain = buf->avail - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
-      memcpy(data, buf->data+offset, rv);
+      if (rv) {
+         memcpy(data, buf->data+offset, rv);
+      }
    }
 
    return rv;
@@ -207,7 +209,7 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
    assert(buf);
    assert(buf->id == DATA_ID);
 
-   if (offset+size >= buf->avail) {
+   if (offset+size > buf->avail) {
       rv = 0;
    }
    else if (size >= buf->blocksize)
@@ -215,7 +217,7 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
       ssize_t remain = buf->avail - offset;
 
       rv = _MIN((size/buf->blocksize)*buf->blocksize, remain);
-      if (data) {
+      if (data && rv) {
          memcpy(data, buf->data+offset, rv);
       }
 
