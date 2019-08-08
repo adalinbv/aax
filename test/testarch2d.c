@@ -39,7 +39,7 @@
 # define SIMD1	sse2
 # define SIMD2	sse2
 # define SIMD4	sse4
-# define SIMD5	sse4
+# define SIMD5	sse2
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
