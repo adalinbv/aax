@@ -39,6 +39,7 @@
 # define SIMD1	sse2
 # define SIMD2	sse2
 # define SIMD4	sse4
+# define SIMD5	sse4
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
@@ -46,12 +47,14 @@ char _aaxArchDetectSSE4();
 # define SIMD1	sse_vex
 # define SIMD2	avx
 # define SIMD4	sse4
+# define SIMD5	avx2
 # define FMA3	fma3
 # define FMA4	fma4
 # define CPUID_FEAT_ECX_FMA3	(1 << 12)
 # define CPUID_FEAT_ECX_FMA4	(1 << 16)
 char _aaxArchDetectSSE4();
 char _aaxArchDetectAVX();
+char _aaxArchDetectAVX2();
 char check_extcpuid_ecx(unsigned int);
 char check_cpuid_ecx(unsigned int);
 #elif defined(__arm__) || defined(_M_ARM)
@@ -59,6 +62,7 @@ char check_cpuid_ecx(unsigned int);
 # define SIMD1	neon
 # define SIMD2	neon
 # define SIMD4  neon
+# define SIMD5	neon
 # define AAX_ARCH_NEON	0x00000008
 char _aaxArchDetectFeatures();
 extern uint32_t _aax_arch_capabilities;
@@ -95,6 +99,7 @@ int main()
    char simd2 = 0;
    char simd3 = 0;
    char simd4 = 0;
+   char simd5 = 0;
    clock_t t;
 
 #if defined(__i386__)
@@ -104,6 +109,7 @@ int main()
    simd = 1;
    simd2 = _aaxArchDetectAVX();
    simd4 = _aaxArchDetectSSE4();
+   simd5 = _aaxArchDetectAVX2();
    if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
       simd3 = 4;
    }
@@ -477,6 +483,16 @@ int main()
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
          printf("generate waveform "MKSTR(SIMD1)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTFN("waveform "MKSTR(SIMD1), dst1, dst2, 1e-3f);
+      }
+
+      if (simd5)
+      {
+         t = clock();
+         _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD5);
+         _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("generate waveform "MKSTR(SIMD5)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTFN("waveform "MKSTR(SIMD5), dst1, dst2, 1e-3f);
       }
    }
 

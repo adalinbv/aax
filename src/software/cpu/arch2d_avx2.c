@@ -31,6 +31,191 @@
 
 #ifdef __AVX2__
 
+inline float    // range -1.0f .. 1.0f
+fast_sin_avx2(float x)
+{
+   return -4.0f*(x - x*fabsf(x));
+}
+
+static inline FN_PREALIGN float
+hsum_ps_avx2(__m128 v) {
+   __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
+   __m128 sums = _mm_add_ps(v, shuf);
+   shuf = _mm_movehl_ps(shuf, sums);
+   sums = _mm_add_ss(sums, shuf);
+   return _mm_cvtss_f32(sums);
+}
+
+static inline __m128
+_mm_abs_ps(__m128 x) {
+   return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
+}
+
+static inline int
+_mm_testz_ps_avx2(__m128 x)
+{
+   __m128i zero = _mm_setzero_si128();
+   return (_mm_movemask_epi8(_mm_cmpeq_epi32(_mm_castps_si128(x), zero)) != 0xFFFF);
+}
+
+static inline __m128    // range -1.0f .. 1.0f
+fast_sin4_avx2(__m128 x)
+{
+   __m128 four = _mm_set1_ps(-4.0f);
+   return _mm_mul_ps(four, _mm_sub_ps(x, _mm_mul_ps(x, _mm_abs_ps(x))));
+}
+
+float *
+_aax_generate_waveform_avx2(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+{
+   const_float32_ptr harmonics = _harmonics[wtype];
+   if (wtype == _SINE_WAVE) {
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+   }
+   else if (rv)
+   {
+      __m128 phase4, freq4, h4;
+      __m128 one, two, four;
+      __m128 ngain, nfreq;
+      __m128 hdt, s;
+      unsigned int i, h;
+      float *ptr;
+
+      assert(MAX_HARMONICS % 4 == 0);
+
+      one = _mm_set1_ps(1.0f);
+      two = _mm_set1_ps(2.0f);
+      four = _mm_set1_ps(4.0f);
+
+      phase4 = _mm_set1_ps(-1.0f + phase/GMATH_PI);
+      freq4 = _mm_set1_ps(freq);
+      h4 = _mm_set_ps(4.0f, 3.0f, 2.0f, 1.0f);
+
+      nfreq = _mm_div_ps(freq4, h4);
+      ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics));
+      hdt = _mm_div_ps(two, nfreq);
+
+      ptr = rv;
+      i = no_samples;
+      s = phase4;
+      do
+      {
+         __m128 rv = fast_sin4_avx2(s);
+
+         *ptr++ = hsum_ps_avx2(_mm_mul_ps(ngain, rv));
+
+         s = _mm_add_ps(s, hdt);
+         s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
+      }
+      while (--i);
+
+      h4 = _mm_add_ps(h4, four);;
+      for(h=4; h<MAX_HARMONICS; h += 4)
+      {
+         nfreq = _mm_div_ps(freq4, h4);
+         ngain = _mm_and_ps(_mm_cmplt_ps(two, nfreq), _mm_load_ps(harmonics+h));
+         if (_mm_testz_ps_avx2(ngain))
+         {
+            hdt = _mm_div_ps(two, nfreq);
+
+            ptr = rv;
+            i = no_samples;
+            s = phase4;
+            do
+            {
+               __m128 rv = fast_sin4_avx2(s);
+
+               *ptr++ += hsum_ps_avx2(_mm_mul_ps(ngain, rv));
+
+               s = _mm_add_ps(s, hdt);
+               s = _mm_sub_ps(s, _mm_and_ps(two, _mm_cmpge_ps(s, one)));
+            }
+            while (--i);
+         }
+         h4 = _mm_add_ps(h4, four);
+      }
+   }
+   return rv;
+}
+
+void
+_batch_freqfilter_float_avx2(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
+{
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_float32_ptr s = sptr;
+
+   if (num)
+   {
+      float k, *cptr, *hist;
+      float h0, h1;
+      int stage;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
+      if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      do
+      {
+         float32_ptr d = dptr;
+         size_t i = num;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            do
+            {
+               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+
+               h1 = h0;
+               h0 = nsmp;
+            }
+            while (--i);
+         }
+         else
+         {
+            do
+            {
+               float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+
+         *hist++ = h0;
+         *hist++ = h1;
+         cptr += 4;
+         k = 1.0f;
+         s = dptr;
+      }
+      while (--stage);
+   }
+}
+
+
 static void
 _batch_iadd_avx2(int32_ptr dst, const_int32_ptr src, size_t num)
 {
@@ -480,91 +665,6 @@ _batch_cvt16_intl_24_avx2(void_ptr dst, const_int32_ptrptr src,
       while (--i);
    }
 }
-
-
-void
-_batch_freqfilter_float_avx2(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
-{
-   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
-   const_float32_ptr s = sptr;
-
-   if (num)
-   {
-      __m256 c, h, mk;
-      float *cptr, *hist;
-      int stages;
-
-      cptr = filter->coeff;
-      hist = filter->freqfilter.history[t];
-      stages = filter->no_stages;
-      if (!stages) stages++;
-
-      if (filter->state == AAX_BESSEL) {
-         mk = _mm256_set_ss(filter->k * (filter->high_gain - filter->low_gain));
-      } else {
-         mk = _mm256_set_ss(filter->k * filter->high_gain);
-      }
-
-      do
-      {
-         float32_ptr d = dptr;
-         size_t i = num;
-
-//       c = _mm256_set_ps(cptr[3], cptr[1], cptr[2], cptr[0]);
-         if (((size_t)cptr & 0x1F) == 0) {
-            c = _mm256_load_ps(cptr);
-         } else {
-            c = _mm256_loadu_ps(cptr);
-         }
-         c = _mm256_shuffle_ps(c, c, _MM_SHUFFLE(3,1,2,0));
-
-//       h = _mm256_set_ps(hist[1], hist[1], hist[0], hist[0]);
-         h = _mm256_loadl_pi(_mm256_setzero_ps(), (__m64*)hist);
-         h = _mm256_shuffle_ps(h, h, _MM_SHUFFLE(1,1,0,0));
-
-         do
-         {     
-            __m256 pz, smp, nsmp, tmp;
-
-            smp = _mm256_load_ss(s);
-
-            // pz = { c[3]*h1, -c[1]*h1, c[2]*h0, -c[0]*h0 };
-            pz = _mm256_mul_ps(c, h); // poles and zeros
-
-            // smp = *s++ * k;
-            smp = _mm256_mul_ss(smp, mk);
-
-            // tmp[0] = -c[0]*h0 + -c[1]*h1;
-            tmp = _mm256_add_ps(pz, _mm256_shuffle_ps(pz, pz, _MM_SHUFFLE(1,3,0,2)));
-            s++;
-
-            // nsmp = smp - h0*c[0] - h1*c[1];
-            nsmp = _mm256_add_ss(smp, tmp);
-
-            // h1 = h0, h0 = smp: h = { h0, h0, smp, smp };
-            h = _mm256_shuffle_ps(nsmp, h, _MM_SHUFFLE(0,0,0,0));
-
-            // tmp[0] = -c[0]*h0 + -c[1]*h1 + c[2]*h0 + c[3]*h1;
-            tmp = _mm256_add_ps(tmp, _mm256_shuffle_ps(tmp, tmp, _MM_SHUFFLE(0,1,2,3)));
-
-            // smp = smp - h0*c[0] - h1*c[1] + h0*c[2] + h1*c[3];
-            smp = _mm256_add_ss(smp, tmp);
-            _mm256_store_ss(d++, smp);
-         }
-         while (--i);
-
-         h = _mm256_shuffle_ps(h, h, _MM_SHUFFLE(3,1,2,0));
-         _mm256_storel_pi((__m64*)hist, h);
-
-         hist += 2;
-         cptr += 4;
-         mk = _mm256_set_ss(1.0f);
-         s = dptr;
-      }
-      while (--stages);
-   }
-}
-#endif
 
 
 #if !RB_FLOAT_DATA

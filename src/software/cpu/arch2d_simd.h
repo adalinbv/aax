@@ -207,6 +207,16 @@ void _batch_cvt24_ps24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_avx(void_ptr, const_void_ptr, size_t);
 
+/* AVX2 */
+float* _aax_generate_waveform_avx2(float32_ptr, size_t, float, float, enum wave_types);
+#if RB_FLOAT_DATA
+void _batch_freqfilter_float_avx2(float32_ptr, const_float32_ptr, int, size_t, void*);
+void _batch_resample_float_avx2(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+#else
+void _batch_freqfilter_avx2(float32_ptr, const_float32_ptr, int, size_t, void*);
+void _batch_resample_avx2(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
+#endif
+
 void _batch_fmadd_fma3(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_fmadd_fma4(float32_ptr, const_float32_ptr, size_t, float, float);
 

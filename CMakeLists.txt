@@ -198,6 +198,9 @@ if(MSVC)
   set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX /fp:fast -D__AVX__"
   )
+  set_property(SOURCE src/software/cpu/arch2d_avx2.c APPEND
+               PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__AVX2__"
+  )
   set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:AVX2 /fp:fast -D__FMA__"
   )
@@ -328,6 +331,9 @@ else(MSVC)
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+       )
+       set_property(SOURCE src/software/cpu/arch2d_avx2.c APPEND
+                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -O2 -march=haswell -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
                     PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -O2 -mfma -march=haswell -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"

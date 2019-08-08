@@ -494,6 +494,14 @@ _aaxGetSIMDSupportLevel()
 
             if (_aax_arch_capabilities & AAX_ARCH_AVX2)
             {
+               _aax_generate_waveform_float = _aax_generate_waveform_avx2;
+#  if RB_FLOAT_DATA
+               _batch_freqfilter_float = _batch_freqfilter_float_avx2;
+               _batch_resample_float = _batch_resample_float_avx2;
+#  else
+               _batch_freqfilter = _batch_freqfilter_avx2;
+               _batch_resample = _batch_resample_avx2;
+#  endif
             }
          }
 #  endif
