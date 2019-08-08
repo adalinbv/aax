@@ -76,7 +76,6 @@ enum {
     CPUID_FEAT_ECX_XOP          = 1 << 11,
     CPUID_FEAT_ECX_FMA3         = 1 << 12,
     CPUID_FEAT_ECX_CX16         = 1 << 13,
-    CPUID_FEAT_ECX_FMA4         = 1 << 16,
     CPUID_FEAT_ECX_SSE4_1       = 1 << 19,
     CPUID_FEAT_ECX_SSE4_2       = 1 << 20,
     CPUID_FEAT_ECX_POPCNT       = 1 << 23,
@@ -482,11 +481,6 @@ _aaxGetSIMDSupportLevel()
             }
 #  else
 #  endif
-
-            /* Prefer FMA3 over FMA4 so detect FMA4 first */
-            if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-               _batch_fmadd = _batch_fmadd_fma4;
-            }
 
             if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
                _batch_fmadd = _batch_fmadd_fma3;
