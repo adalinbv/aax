@@ -41,7 +41,7 @@
     <param n="3">0.0</param>
    </slot>
   </effect>
-  <effect type="phasing" src="true" optional="true">
+  <effect type="phasing" optional="true">
    <slot n="0">
     <param n="0">0.8</param>
     <param n="1">0.1</param>
