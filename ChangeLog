@@ -510,7 +510,7 @@
 * Fri Oct 15 2015 - tech@adalin.org
 - AeonWave (2.6.1) stable; urgency=low
  * Fix a few border case tests for mixer configuration.
- * Make sure testing for 'AAX_frequency_filter' also works even though 
+ * Make sure testing for 'AAX_frequency_filter' also works even though
    'AAX_frequency_filter_1.1' is defined.
  * Fix a mostly unnoticeable mistake for envelope following distortion filter.
  * Provide a more verbose renderer string for ALSA
@@ -610,7 +610,7 @@
    (depending of the computer hardware, older hardware profit the most).
  * Add the option to use timer-based rendering instead of interrupt-based
    rendering for ALSA (experimental).
- * Fix a problem where the WASAPI device period could become lower than the 
+ * Fix a problem where the WASAPI device period could become lower than the
    minimum allowed period for that particular device.
  * Switched to a new xml configuration file format.
    Both the old and the new formats will be supported up to version 3.0.0
@@ -625,7 +625,7 @@
 * Sat Dec 21 2013 - tech@adalin.org
 - AeonWave (2.3.4) stable; urgency=high
  * Fix a problem where distance delayed objects that where registered at
-   the mixer or an audio-frame in non-playing mode started with the wrong 
+   the mixer or an audio-frame in non-playing mode started with the wrong
    position and orientation matrix causing unwanted delays.
  * Fix an incorrect header problem while streaming mp3 files.
  * Fix a stupid error where AeonWave-Lite didn't initialize correctly.
