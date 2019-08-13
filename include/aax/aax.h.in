@@ -497,7 +497,8 @@ enum aaxWaveformType
 // AAX_RELEASE_FACTOR = 0x4000000,
    AAX_REPEAT = 0x8000000,
 
-   AAX_MAX_WAVE		= 9
+   AAX_MAX_WAVE		= 6,
+   AAX_MAX_WAVE_NOISE   = (AAX_MAX_WAVE+4)
 };
 
 enum aaxFrequencyFilterType

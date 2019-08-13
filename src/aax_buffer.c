@@ -1793,7 +1793,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       if (scratch)
       {
          // AAX_CONSTANT_VALUE == 0
-         for (i=1; i<AAX_MAX_WAVE; i++)
+         for (i=1; i<AAX_MAX_WAVE_NOISE; i++)
          {
             switch (wtype & bit)
             {
