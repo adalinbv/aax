@@ -61,7 +61,7 @@ static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigne
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static char** _bufGetDataFromAAXS(_buffer_t *buffer, char *file);
+static int _bufSetDataFromAAXS(_buffer_t *buffer, char *file);
 // static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -1010,14 +1010,14 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
    return ptr;
 }
 
-char **
-_bufGetDataFromAAXS(_buffer_t *buffer, char *file)
+int
+_bufSetDataFromAAXS(_buffer_t *buffer, char *file)
 {
    char *s, *u, *url, **data = NULL;
    size_t blocksize, no_samples = 0;
    unsigned int tracks;
    float freq;
-   int fmt;
+   int fmt, rv;
 
    u = strdup(buffer->url);
    url = _aaxURLConstruct(u, file);
@@ -1027,6 +1027,9 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
    if (!s || strcasecmp(s, ".aaxs")) {
       data = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
                                         &no_samples, &blocksize);
+#if 0
+ printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, fmt, tracks, freq, no_samples, blocksize);
+#endif
    }
    free(url);
 
@@ -1060,7 +1063,10 @@ _bufGetDataFromAAXS(_buffer_t *buffer, char *file)
       rb->set_parami(rb, RB_NO_SAMPLES, buffer->no_samples);
    }
 
-   return data;
+   rv = aaxBufferSetData(buffer, data[0]);
+   free(data);
+
+   return rv;
 }
 
 static int
@@ -1421,18 +1427,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (xmlAttributeExists(xsid, "file"))
       {
          char *file = xmlAttributeGetString(xsid, "file");
-         char **ptr = _bufGetDataFromAAXS(handle, file);
          unsigned long loop_start, loop_end;
-         xmlFree(file);
 
-         if (ptr)
-         {
-            rv = aaxBufferSetData(handle, ptr[0]);
-            free(ptr);
-         }
-         else {
+         rv = _bufSetDataFromAAXS(handle, file);
+         if (!rv) {
             aax_buf->error = AAX_INVALID_REFERENCE;
          }
+         xmlFree(file);
 
          loop_start = xmlAttributeGetInt(xsid, "loop-start");
          if (xmlAttributeExists(xsid, "loop-end")) {
