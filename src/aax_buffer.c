@@ -1635,7 +1635,7 @@ _bufAAXSThread(void *d)
          }
       }
       else {
-//       aax_buf->error = AAX_INVALID_PARAMETER;
+         rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);
       }
    }
    else {
