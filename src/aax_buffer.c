@@ -1428,7 +1428,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       {
          char *file = xmlAttributeGetString(xsid, "file");
          unsigned long loop_start, loop_end;
+         float peak;
 
+         duration = 0.0f;
          rv = _bufSetDataFromAAXS(handle, file);
          if (!rv) {
             aax_buf->error = AAX_INVALID_REFERENCE;
@@ -1443,6 +1445,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          }
          aaxBufferSetSetup(handle, AAX_LOOP_END, loop_end);
          aaxBufferSetSetup(handle, AAX_LOOP_START, loop_start);
+
+         peak = aaxBufferGetSetup(handle, AAX_PEAK_VALUE)/8388608.0f;
+         handle->gain = 0.1f/peak;
       }
       else if (xmlAttributeExists(xsid, "duration"))
       {
@@ -1473,7 +1478,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
             handle->ringbuffer[b] = rb;
          }
-
          xwid = xmlMarkId(xsid);
          if (xwid)
          {
