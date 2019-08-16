@@ -1335,6 +1335,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 uint8_t velocity = pull_byte();
                 if (!midi.channel(channel).is_drums()) {
                     key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+                } else {
+                    midi.channel(channel).set_hold(key, true);
                 }
                 midi.process(channel, message & 0xf0, key, velocity, omni);
                 CSV("Note_off_c, %d, %d, %d\n", channel, key, velocity);
