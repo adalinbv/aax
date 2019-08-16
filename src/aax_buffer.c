@@ -1450,7 +1450,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          handle->gain = 0.1f/peak;
 
          rb = _bufGetRingBuffer(handle, handle->root, b);
-         duration = rb->get_paramf(rb, RB_DURATION_SEC);
+         duration = 0.0f;
       }
       else if (xmlAttributeExists(xsid, "duration"))
       {
