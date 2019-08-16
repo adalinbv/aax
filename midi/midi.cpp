@@ -1336,7 +1336,11 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 if (!midi.channel(channel).is_drums()) {
                     key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
                 } else {
+#if (AAX_PATCH_LEVEL > 190814)
                     midi.channel(channel).set_hold(key, true);
+#else
+                    midi.channel(channel).set_hold(true);
+#endif
                 }
                 midi.process(channel, message & 0xf0, key, velocity, omni);
                 CSV("Note_off_c, %d, %d, %d\n", channel, key, velocity);
