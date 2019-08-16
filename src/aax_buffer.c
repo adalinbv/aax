@@ -1428,9 +1428,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       {
          char *file = xmlAttributeGetString(xsid, "file");
          unsigned long loop_start, loop_end;
+         _aaxRingBuffer* rb;
          float peak;
 
-         duration = 0.0f;
          rv = _bufSetDataFromAAXS(handle, file);
          if (!rv) {
             aax_buf->error = AAX_INVALID_REFERENCE;
@@ -1448,6 +1448,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
          peak = aaxBufferGetSetup(handle, AAX_PEAK_VALUE)/8388608.0f;
          handle->gain = 0.1f/peak;
+
+         rb = _bufGetRingBuffer(handle, handle->root, b);
+         duration = rb->get_paramf(rb, RB_DURATION_SEC);
       }
       else if (xmlAttributeExists(xsid, "duration"))
       {
