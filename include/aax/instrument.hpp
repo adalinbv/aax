@@ -403,6 +403,13 @@ public:
 
     inline void set_soft(bool s) { soft = (s && !is_drums) ? 0.5f : 1.0f; }
 
+    inline void set_hold(uint8_t key_no, bool h) {
+       auto it = key.find(key_no);
+       if (it != key.end()) {
+            it->second->set_hold(h);
+        }
+    }
+
     inline void set_hold(bool h) {
         for (auto& it : key) it.second->set_hold(h);
     }
