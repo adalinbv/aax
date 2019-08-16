@@ -264,7 +264,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       }
    }
 
-   if (ret >= -1.0f && drbi->playing == 0 && drbi->stopped == 1) {
+   if (ret >= -1 && drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;
    }
 
