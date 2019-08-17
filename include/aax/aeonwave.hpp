@@ -342,6 +342,9 @@ public:
     {
         ptr = aaxBufferReadFromStream(c, name);
         if (!ptr) { aaxGetErrorNo();
+            ptr = aaxBufferReadFromStream(c, aaxs_file(c, name).c_str());
+        }
+        if (!ptr) { aaxGetErrorNo();
             ptr = aaxBufferReadFromStream(c, preset_file(c, name).c_str());
         }
         if (!ptr && !s) { aaxGetErrorNo();
@@ -388,6 +391,12 @@ public:
 
 private:
     std::string preset_file(aaxConfig c, const char* name) {
+        std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
+        rv.append("/"); rv.append(name);
+        return rv;
+    }
+
+    std::string aaxs_file(aaxConfig c, const char* name) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
         rv.append("/"); rv.append(name); rv.append(".aaxs");
         return rv;
