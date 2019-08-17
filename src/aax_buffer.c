@@ -1429,7 +1429,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          char *file = xmlAttributeGetString(xsid, "file");
          unsigned long loop_start, loop_end;
          _aaxRingBuffer* rb;
-         float peak;
+         int32_t **d;
 
          rv = _bufSetDataFromAAXS(handle, file);
          if (!rv) {
@@ -1446,10 +1446,11 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          aaxBufferSetSetup(handle, AAX_LOOP_END, loop_end);
          aaxBufferSetSetup(handle, AAX_LOOP_START, loop_start);
 
-         peak = aaxBufferGetSetup(handle, AAX_PEAK_VALUE)/8388608.0f;
-         handle->gain = 0.1f/peak;
+         rb = _bufGetRingBuffer(handle, handle->root, 0);
+         d = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
+         _batch_imul_value(*d, *d, sizeof(int32_t), handle->no_samples, 256.0f);
+         rb->release_tracks_ptr(rb);
 
-         rb = _bufGetRingBuffer(handle, handle->root, b);
          duration = 0.0f;
       }
       else if (xmlAttributeExists(xsid, "duration"))
