@@ -61,7 +61,7 @@ static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigne
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static int _bufSetDataFromAAXS(_buffer_t *buffer, char *file);
+static int _bufSetDataFromAAXS(_buffer_t*, char*, int);
 // static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -1011,7 +1011,7 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
 }
 
 int
-_bufSetDataFromAAXS(_buffer_t *buffer, char *file)
+_bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 {
    char *s, *u, *url, **data = NULL;
    size_t blocksize, no_samples = 0;
@@ -1035,7 +1035,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file)
 
    if (data)
    {
-      _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, NULL, 0);
+      _aaxRingBuffer* rb = _bufGetRingBuffer(buffer, buffer->root, level);
 
       /* the internal buffer format for .aaxs files is signed 24-bit */
       {
@@ -1050,6 +1050,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file)
             free(data);
             data = ndata;
          }
+         _batch_imul_value(*data, *data, sizeof(int32_t), no_samples, 256.0f);
       }
 
       buffer->format = AAX_PCM24S;
@@ -1366,43 +1367,46 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    float freq = aax_buf->frequency;
    float min_frequency = 0.0f;
    float max_frequency = 0.0f;
-   int rv = AAX_FALSE;
-   void *xsid;
+   int s, nsound, rv = AAX_FALSE;
+   limitType limiter;
+   void *xaid, *xsid;
+   char *env;
 
-   xsid = xmlNodeGet(xid, "aeonwave/info/note");
-   if (xsid)
-   {
-      if (xmlAttributeExists(xsid, "min")) {
-         min_frequency = note2freq(xmlAttributeGetInt(xsid, "min"));
-      }
-      if (xmlAttributeExists(xsid, "max")) {
-         max_frequency = note2freq(xmlAttributeGetInt(xsid, "max"));
-      }
-      xmlFree(xsid);
+   env = getenv("AAX_INSTRUMENT_MODE");
+   if (env) {
+      limiter = atoi(env);
    }
 
-   xsid = xmlNodeGet(xid, "aeonwave/sound");
-   if (!xsid) xsid = xmlNodeGet(xid, "sound"); // pre v3.0 format
-   if (xsid)
+   xaid = xmlNodeGet(xid, "aeonwave/info/note");
+   if (xaid)
+   {
+      if (xmlAttributeExists(xaid, "min")) {
+         min_frequency = note2freq(xmlAttributeGetInt(xaid, "min"));
+      }
+      if (xmlAttributeExists(xaid, "max")) {
+         max_frequency = note2freq(xmlAttributeGetInt(xaid, "max"));
+      }
+      xmlFree(xaid);
+   }
+
+   xaid = xmlNodeGet(xid, "aeonwave");
+   if (!xaid) xaid = xid;
+
+   nsound = 1; // xmlNodeGetNum(xaid, "sound");
+   xsid = xmlMarkId(xaid);
+   for (s=0; s<nsound; ++s)
    {
       unsigned int i, num, bits = 24;
       double duration = 1.0f;
       float spread = 0;
       int b, voices = 1;
-      limitType limiter;
-      char *env;
 
-      env = getenv("AAX_INSTRUMENT_MODE");
-      if (env) {
-         limiter = atoi(env);
-      } else {
-         limiter = xmlAttributeGetInt(xsid, "mode");
-      }
+      if (!xmlNodeGetPos(xaid, xsid, "sound", s)) continue;
 
-      if (xmlAttributeExists(xsid, "bits"))
-      {
-         bits = xmlAttributeGetInt(xsid, "bits");
-         if (bits != 16) bits = 24;
+      if (xmlAttributeExists(xsid, "gain")) {
+         handle->gain = xmlAttributeGetDouble(xsid, "gain");
+      } else if (xmlAttributeExists(xsid, "fixed-gain")) {
+         handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
       }
 
       if (!freq)
@@ -1417,22 +1421,14 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             }
          }
       }
-      if (xmlAttributeExists(xsid, "voices")) {
-         voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
-      }
-      if (xmlAttributeExists(xsid, "spread")) {
-         spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
-         if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
-      }
 
       if (xmlAttributeExists(xsid, "file"))
       {
          char *file = xmlAttributeGetString(xsid, "file");
          unsigned long loop_start, loop_end;
          _aaxRingBuffer* rb;
-         int32_t **d;
 
-         rv = _bufSetDataFromAAXS(handle, file);
+         rv = _bufSetDataFromAAXS(handle, file, s);
          if (!rv) {
             aax_buf->error = AAX_INVALID_REFERENCE;
          }
@@ -1444,17 +1440,18 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          } else {
             loop_end = handle->no_samples;
          }
-         aaxBufferSetSetup(handle, AAX_LOOP_END, loop_end);
-         aaxBufferSetSetup(handle, AAX_LOOP_START, loop_start);
 
-         rb = _bufGetRingBuffer(handle, handle->root, 0);
-         d = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
-         _batch_imul_value(*d, *d, sizeof(int32_t), handle->no_samples, 256.0f);
-         rb->release_tracks_ptr(rb);
+         rb = _bufGetRingBuffer(handle, handle->root, s);
 
-         duration = 0.0f;
+         rb->set_parami(rb, RB_LOOPPOINT_START, loop_start);
+         rb->set_parami(rb, RB_LOOPPOINT_END, loop_end);
+         rb->set_parami(rb, RB_LOOPING, loop_end > loop_start);
+         handle->pitch_levels = s;
+
+         continue;
       }
-      else if (xmlAttributeExists(xsid, "duration"))
+
+      if (xmlAttributeExists(xsid, "duration"))
       {
          duration = xmlAttributeGetDouble(xsid, "duration");
          if (duration < 0.1f) {
@@ -1462,10 +1459,22 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          }
       }
 
-      if (xmlAttributeExists(xsid, "gain")) {
-         handle->gain = xmlAttributeGetDouble(xsid, "gain");
-      } else if (xmlAttributeExists(xsid, "fixed-gain")) {
-         handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
+      if (xmlAttributeExists(xsid, "bits"))
+      {
+         bits = xmlAttributeGetInt(xsid, "bits");
+         if (bits != 16) bits = 24;
+      }
+
+      if (!env) {
+         limiter = xmlAttributeGetInt(xsid, "mode");
+      }
+
+      if (xmlAttributeExists(xsid, "voices")) {
+         voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
+      }
+      if (xmlAttributeExists(xsid, "spread")) {
+         spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
+         if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
       }
 
       for (b=0; b<handle->pitch_levels; ++b)
@@ -1537,11 +1546,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             handle->format = AAX_PCM16S;
          }
       }
-      xmlFree(xsid);
    }
-   else {
-//    aax_buf->error = AAX_INVALID_PARAMETER;
-   }
+   xmlFree(xsid);
+   if (xaid != xid) xmlFree(xaid);
 
    return rv;
 }
