@@ -1,6 +1,8 @@
 * Tue Aug 13 2019 - tech@adalin.org
 - AeonWave (3.6.5) stable; urgency=low
 
+ * Fix a possible incorrect playback pitch for files included in the sound
+   section of an aaxs file.
  * Fix support for brownian noise.
 
 -- Erik Hofman <tech@adalin.org>  Tue 13 Aug 2019 20:08:27 + 0200

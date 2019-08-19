@@ -1061,6 +1061,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file)
 //    rb->set_format(rb, fmt, AAX_FALSE);
       rb->set_parami(rb, RB_NO_TRACKS, buffer->no_tracks);
       rb->set_parami(rb, RB_NO_SAMPLES, buffer->no_samples);
+      rb->set_paramf(rb, RB_FREQUENCY, buffer->frequency);
    }
 
    rv = aaxBufferSetData(buffer, data[0]);
