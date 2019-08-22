@@ -157,5 +157,5 @@ detect_inf_vec3(float vec[3])
 int
 detect_zero_vec3(float vec[3])
 {
-   return ((fabs(vec[0]) + fabs(vec[1]) + fabs(vec[2])) < 0.05);
+   return ((fabsf(vec[0]) + fabsf(vec[1]) + fabsf(vec[2])) < 0.05);
 }
