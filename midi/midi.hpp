@@ -320,8 +320,9 @@ public:
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
-    std::pair<std::string,int> get_drum(uint16_t bank, uint16_t program, uint8_t key);
-    std::pair<std::string,int> get_instrument(uint16_t bank, uint8_t program);
+    const std::pair<std::string,int> get_drum(uint16_t program, uint8_t key);
+    const std::pair<std::string,int> get_instrument(uint16_t bank, uint8_t program);
+    std::map<std::string,std::map<uint8_t,std::string>>& get_patches() { return patches; }
 
     inline void set_initialize(bool i) { initialize = i; };
     inline bool get_initialize() { return initialize; }
@@ -356,10 +357,14 @@ public:
 
     MIDI &midi = *this;
 private:
+    void add_patch(const char *patch);
+
     std::map<uint16_t,MIDIChannel*> channels;
     std::map<uint16_t,std::string> frames;
     std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> drums;
     std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> instruments;
+    std::map<std::string,std::map<uint8_t,std::string>> patches;
+
     std::vector<std::string> loaded;
 
     std::vector<std::string> track_names;
@@ -432,6 +437,8 @@ public:
     inline bool get_pressure_pitch_bend() { return pressure_pitch_bend; }
 
 private:
+    std::string get_patch(std::string& name, uint8_t& key);
+
     std::map<uint8_t,Buffer&> name_map;
 
     MIDI &midi;

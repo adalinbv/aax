@@ -232,6 +232,7 @@ MIDI::read_instruments()
                         unsigned int slen, inum = xmlNodeGetNum(xbid, type);
                         void *xiid = xmlMarkId(xbid);
 
+                        // bank audio-frame filter and effects file
                         slen = xmlAttributeCopyString(xbid, "file", file, 64);
                         if (slen)
                         {
@@ -251,12 +252,31 @@ MIDI::read_instruments()
                                     stereo = 1;
                                 }
 
-                                slen = xmlAttributeCopyString(xiid, "file", file, 64);
+                                // instrument file-name
+                                slen = xmlAttributeCopyString(xiid, "file",
+                                                              file, 64);
                                 if (slen)
                                 {
                                     file[slen] = 0;
                                     bank.insert({n,{file,stereo}});
+
+                                    std::map<uint8_t,std::string> p;
+                                    p.insert({255,file});
+
+                                    patches.insert({file,p});
 //                                  if (id == 0) printf("{%x, {%i, {%s, %i}}}\n", bank_no, n, file, wide);
+                                }
+                                else
+                                {
+                                    slen = xmlAttributeCopyString(xiid, "patch",
+                                                                  file, 64);
+                                    if (slen)
+                                    {
+                                        file[slen] = 0;
+                                        bank.insert({n,{file,stereo}});
+
+                                        add_patch(file);
+                                    }
                                 }
                             }
                         }
@@ -294,12 +314,57 @@ MIDI::read_instruments()
     }
 }
 
+void
+MIDI::add_patch(const char *file)
+{
+    const char *path = midi.info(AAX_SHARED_DATA_DIR);
+
+    std::string xmlfile(path);
+    xmlfile.append("/");
+    xmlfile.append(file);
+    xmlfile.append(".xml");
+
+    void *xid = xmlOpen(xmlfile.c_str());
+    if (xid)
+    {
+        void *xlid = xmlNodeGet(xid, "instrument/layer");
+        if (xlid)
+        {
+            unsigned int pnum = xmlNodeGetNum(xlid, "patch");
+            std::map<uint8_t,std::string> p;
+            void *xpid = xmlMarkId(xlid);
+            for (unsigned int i=0; i<pnum; i++)
+            {
+                if (xmlNodeGetPos(xlid, xpid, "patch", i) != 0)
+                {
+                    unsigned int slen;
+                    char file[64] = "";
+
+                    slen = xmlAttributeCopyString(xpid, "file", file, 64);
+                    if (slen)
+                    {
+                        uint8_t max = xmlAttributeGetInt(xpid, "max");
+                        file[slen] = 0;
+
+                        p.insert({max,file});
+                    }
+                }
+            }
+            patches.insert({file,p});
+
+            xmlFree(xpid);
+            xmlFree(xlid);
+        }
+        xmlFree(xid);
+    }
+}
+
 /*
  * For drum mapping the program_no is stored in the bank number of the map
  * and the key_no in the program number of the map.
  */
-std::pair<std::string,int>
-MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
+const std::pair<std::string,int>
+MIDI::get_drum(uint16_t program_no, uint8_t key_no)
 {
     auto itb = drums.find(program_no);
     if (itb == drums.end() && program_no > 0)
@@ -348,7 +413,7 @@ MIDI::get_drum(uint16_t bank_no, uint16_t program_no, uint8_t key_no)
     return empty_map;
 }
 
-std::pair<std::string,int>
+const std::pair<std::string,int>
 MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
 {
     auto itb = instruments.find(bank_no);
@@ -492,6 +557,23 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 }
 
 
+std::string
+MIDIChannel::get_patch(std::string& name, uint8_t& key_no)
+{
+    auto patches = midi.get_patches();
+    auto it = patches.find(name);
+    if (it != patches.end())
+    {
+        auto patch = it->second.lower_bound(key_no);
+        if (patch != it->second.end()) {
+            return patch->second;
+        }
+    }
+
+    key_no = 255;
+    return name;
+}
+
 void
 MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
 {
@@ -503,7 +585,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            auto inst = midi.get_drum(bank_no, program_no, key_no);
+            auto inst = midi.get_drum(program_no, key_no);
             std::string name = inst.first;
             if (!name.empty())
             {
@@ -527,11 +609,12 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
     }
     else
     {
-        it = name_map.find(program_no);
+        uint8_t key = key_no;
+        it = name_map.lower_bound(key);
         if (it == name_map.end())
         {
             auto inst = midi.get_instrument(bank_no, program_no);
-            std::string name = inst.first;
+            std::string name = get_patch(inst.first, key);
             if (!name.empty())
             {
                 if (!midi.buffer_avail(name)) {
@@ -543,7 +626,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
                 Buffer &buffer = midi.buffer(name, true);
                 if (buffer)
                 {
-                    auto ret = name_map.insert({program_no,buffer});
+                    auto ret = name_map.insert({key,buffer});
                     it = ret.first;
 
                     // mode == 0: volume bend only
