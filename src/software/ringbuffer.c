@@ -686,7 +686,7 @@ _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOA
       if (fval >= (rbd->duration_sec-eps))
       {
          fval = rbd->duration_sec;
-         rbi->playing = 0;
+//       rbi->playing = 0;
          rbi->stopped = 1;
       }
       rbi->curr_pos_sec = fval;
