@@ -36,6 +36,7 @@
 
 #include <base/random.h>
 
+#include <backends/software/device.h>
 #include <software/gpu/gpu.h>
 #include <dsp/filters.h>
 #include <dsp/effects.h>
@@ -329,21 +330,25 @@ float _aaxDefaultSpeakersDelay[_AAX_MAX_SPEAKERS][4] =
 
 unsigned int
 _aaxGetNoEmitters(const _aaxDriverBackend *be) {
+   if (!be) be = &_aaxLoopbackDriverBackend;
    return _MAX(be->getset_sources(0, 0), _AAX_MAX_MIXER_REGISTERED);
 }
 
 unsigned int
 _aaxSetNoEmitters(const _aaxDriverBackend *be, unsigned int max) {
+   if (!be) be = &_aaxLoopbackDriverBackend;
    return be->getset_sources(max, 0);
 }
 
 unsigned int
 _aaxIncreaseEmitterCounter(const _aaxDriverBackend *be) {
+   if (!be) be = &_aaxLoopbackDriverBackend;
    return be->getset_sources(0, 1);
 }
 
 unsigned int
 _aaxDecreaseEmitterCounter(const _aaxDriverBackend *be) {
+   if (!be) be = &_aaxLoopbackDriverBackend;
    return be->getset_sources(0, -1);
 }
 
