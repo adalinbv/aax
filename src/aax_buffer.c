@@ -61,7 +61,7 @@ static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigne
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static int _bufSetDataFromAAXS(_buffer_t*, char*, int);
+static int _bufSetDataFromAAXS(_buffer_t*, char*, int, unsigned int, unsigned int);
 // static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -1011,13 +1011,13 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
 }
 
 int
-_bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
+_bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level, unsigned int loop_start, unsigned int loop_end)
 {
    char *s, *u, *url, **data = NULL;
    size_t blocksize, no_samples = 0;
    unsigned int tracks;
+   int fmt, rv = 0;
    float freq;
-   int fmt, rv;
 
    u = strdup(buffer->url);
    url = _aaxURLConstruct(u, file);
@@ -1061,12 +1061,16 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 
 //    rb->set_format(rb, fmt, AAX_FALSE);
       rb->set_parami(rb, RB_NO_TRACKS, buffer->no_tracks);
-      rb->set_parami(rb, RB_NO_SAMPLES, buffer->no_samples);
       rb->set_paramf(rb, RB_FREQUENCY, buffer->frequency);
-   }
+      rb->set_parami(rb, RB_NO_SAMPLES, buffer->no_samples);
 
-   rv = aaxBufferSetData(buffer, data[0]);
-   free(data);
+      rv = aaxBufferSetData(buffer, data[0]);
+      free(data);
+
+      rb->set_paramf(rb, RB_LOOPPOINT_START, loop_start/buffer->frequency);
+      rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/buffer->frequency);
+      rb->set_parami(rb, RB_LOOPING, loop_end > loop_start);
+   }
 
    return rv;
 }
@@ -1426,13 +1430,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       {
          char *file = xmlAttributeGetString(xsid, "file");
          unsigned long loop_start, loop_end;
-         _aaxRingBuffer* rb;
-
-         rv = _bufSetDataFromAAXS(handle, file, s);
-         if (!rv) {
-            aax_buf->error = AAX_INVALID_REFERENCE;
-         }
-         xmlFree(file);
 
          loop_start = xmlAttributeGetInt(xsid, "loop-start");
          if (xmlAttributeExists(xsid, "loop-end")) {
@@ -1441,17 +1438,17 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             loop_end = handle->no_samples;
          }
 
-         rb = _bufGetRingBuffer(handle, handle->root, s);
+         rv = _bufSetDataFromAAXS(handle, file, s, loop_start, loop_end);
+         if (!rv) {
+            aax_buf->error = AAX_INVALID_REFERENCE;
+         }
+         xmlFree(file);
 
-         rb->set_parami(rb, RB_LOOPPOINT_START, loop_start);
-         rb->set_parami(rb, RB_LOOPPOINT_END, loop_end);
-         rb->set_parami(rb, RB_LOOPING, loop_end > loop_start);
          handle->pitch_levels = s;
 
-         continue;
+         duration = 0.0f;
       }
-
-      if (xmlAttributeExists(xsid, "duration"))
+      else if (xmlAttributeExists(xsid, "duration"))
       {
          duration = xmlAttributeGetDouble(xsid, "duration");
          if (duration < 0.1f) {
