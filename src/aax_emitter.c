@@ -461,10 +461,8 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             _aaxEnvelopeData* env;
             _aaxLFOData *lfo;
 
-            // Rewinding the ringbuffer produces audible artefacts
-            if (!_IS_PLAYING(src->props3d)) {
-               rb->set_state(rb, RB_REWINDED);
-            }
+            rb->set_state(rb, RB_REWINDED);
+
             src->buffer_pos = 0;
             src->curr_pos_sec = 0.0f;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);

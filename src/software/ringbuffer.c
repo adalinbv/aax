@@ -557,6 +557,7 @@ void
 _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
 {
    _aaxRingBufferData *rbi;
+   _aaxRingBufferSample *rbd;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -584,8 +585,11 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->streaming = 0;
       break;
    case RB_REWINDED:
+      rbd = rbi->sample;
       rbi->curr_pos_sec = 0.0;
-      rbi->curr_sample = 0;
+      if (rbd->loop_start_sec || (rbd->loop_end_sec != rbd->duration_sec)) {
+         rbi->curr_sample = 0;
+      }
       break;
    case RB_FORWARDED:
       rbi->curr_pos_sec = rbi->sample->duration_sec;
