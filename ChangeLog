@@ -1,6 +1,7 @@
 * Tue Aug 13 2019 - tech@adalin.org
-- AeonWave (3.6.5) stable; urgency=low
+- AeonWave (3.6.5) stable; urgency=medium
 
+ * Prevent a crash when calling aaxMixerGetSetup with NULL as a config parameter
  * Fix a possible incorrect playback pitch for files included in the sound
    section of an aaxs file.
  * Fix support for brownian noise.
