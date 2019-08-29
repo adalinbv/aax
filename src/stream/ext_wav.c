@@ -1011,6 +1011,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          handle->max_samples = curr;
       }
       *step = rv = 2*sizeof(int32_t);
+      if (!handle->io.read.datasize) rv = __F_EOF;
    }
    else if (curr == 0x20657563 ||	/* cue  */
             curr == 0x6c706d73 ||	/* smpl */

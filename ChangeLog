@@ -1,6 +1,7 @@
 * Tue Aug 13 2019 - tech@adalin.org
 - AeonWave (3.6.5) stable; urgency=medium
 
+ * Handle WAV files with a datasize of 0 gracefully to prevent a crash.
  * Prevent a crash when calling aaxMixerGetSetup with NULL as a config parameter
  * Fix a possible incorrect playback pitch for files included in the sound
    section of an aaxs file.
