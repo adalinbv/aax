@@ -87,7 +87,7 @@ _pcm_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 }
 
 void*
-_pcm_open(_fmt_t *fmt, int mode, void *buf, UNUSED(size_t *bufsize), UNUSED(size_t fsize))
+_pcm_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -112,7 +112,10 @@ _pcm_open(_fmt_t *fmt, int mode, void *buf, UNUSED(size_t *bufsize), UNUSED(size
          handle->pcmBuffer = _aaxDataCreate(16384, 1);
       }
 
-      if (handle->pcmBuffer) {
+      if (handle->pcmBuffer)
+      {
+         int res = _aaxDataAdd(handle->pcmBuffer, buf, *bufsize);
+         *bufsize -= res;
       }
       else {
          _AAX_FILEDRVLOG("PCM: Unable to allocate the audio buffer");

@@ -153,6 +153,8 @@ _pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                if (!handle->fmt)
                {
                   _fmt_type_t fmt = _FMT_PCM;
+                  size_t headersize, size;
+                  unsigned char *header;
 
                   handle->fmt = _fmt_create(fmt, handle->mode);
                   if (!handle->fmt) {
@@ -175,6 +177,13 @@ _pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
                   handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->no_samples);
                   handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+
+                  header = (unsigned char*)handle->patBuffer->data;
+                  headersize = size = handle->patBuffer->avail;
+                  rv = handle->fmt->open(handle->fmt, handle->mode, header, &size, fsize);
+                  headersize -= size;
+                  _aaxDataMove(handle->patBuffer, NULL, headersize);
                }
             }
             else
@@ -471,6 +480,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
          break;
       }
       handle->blocksize = handle->no_tracks*handle->bits_sample/8;
+      handle->no_samples = 8*handle->patch.wave_size/handle->bits_sample;
 
 #if 0
  printf("Header:\t\t\t%s\n", handle->header.header);
@@ -517,6 +527,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
 #endif
 
       _aaxDataMove(handle->patBuffer, NULL, FILE_HEADER_SIZE);
+      rv = FILE_HEADER_SIZE;
    }
    else {
       return __F_EOF;
