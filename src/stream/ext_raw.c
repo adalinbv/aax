@@ -37,8 +37,6 @@
 
 typedef struct
 {
-   void *id;
-
    _fmt_t *fmt;
 
    int mode;

@@ -4,6 +4,7 @@ set(STREAM_HEADERS
   device.h
   extension.h
   ext_ogg.h
+  ext_pat.h
   fmt_flac.h
   fmt_mp3.h
   fmt_opus.h
@@ -19,6 +20,7 @@ set(STREAM_SOURCES
   ext_ogg.c
   ext_raw.c
   ext_wav.c
+  ext_pat.c
   fmt_binary.c
   fmt_flac.c
   fmt_mp3.c

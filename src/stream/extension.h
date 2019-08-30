@@ -43,7 +43,8 @@ typedef enum {
    _EXT_WAV,
    _EXT_OGG,
    _EXT_OPUS,
-// _EXT_SPEEX,
+   _EXT_SPEEX,
+   _EXT_PATCH,
 
    /* raw format extensions */
    _EXT_PCM,
@@ -136,6 +137,24 @@ size_t _ogg_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _ogg_fill(_ext_t*, void_ptr, size_t*);
 size_t _ogg_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _ogg_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+
+/* PAT */
+int _pat_detect(_ext_t*, int);
+int _pat_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
+void* _pat_open(_ext_t*, void*, size_t*, size_t);
+int _pat_close(_ext_t*);
+void* _pat_update(_ext_t*, size_t*, size_t*, char);
+char* _pat_name(_ext_t*, enum _aaxStreamParam);
+
+char* _pat_interfaces(int, int);
+int _pat_extension(char*);
+off_t _pat_get(_ext_t*, int);
+off_t _pat_set(_ext_t*, int, off_t);
+
+size_t _pat_copy(_ext_t*, int32_ptr, size_t, size_t*);
+size_t _pat_fill(_ext_t*, void_ptr, size_t*);
+size_t _pat_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
+size_t _pat_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
 /* RAW, MP3, FLAC */
 int _raw_detect(_ext_t*, int);

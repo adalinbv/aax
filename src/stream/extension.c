@@ -80,6 +80,30 @@ _ext_create(_ext_type_t extension)
          rv->cvt_to_intl = _ogg_cvt_to_intl;
       }
       break;
+    case _EXT_PATCH:
+      rv = calloc(1, sizeof(_ext_t));
+      if (rv)
+      {
+         rv->id = NULL;
+         rv->detect = _pat_detect;
+         rv->setup = _pat_setup;
+         rv->open = _pat_open;
+         rv->close = _pat_close;
+         rv->update = _pat_update;
+         rv->name = _pat_name;
+
+         rv->supported = _pat_extension;
+         rv->interfaces = _pat_interfaces;
+
+         rv->get_param = _pat_get;
+         rv->set_param = _pat_set;
+
+         rv->copy = _pat_copy;
+         rv->fill = _pat_fill;
+         rv->cvt_from_intl = _pat_cvt_from_intl;
+         rv->cvt_to_intl = _pat_cvt_to_intl;
+      }
+      break;
    case _EXT_PCM:
    case _EXT_MP3:
    case _EXT_FLAC:
