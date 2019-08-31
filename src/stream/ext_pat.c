@@ -501,6 +501,21 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Vibrato Sweep:\t\t%i\n", handle->patch.vibrato_sweep);
  printf("Vibrato Sweep:\t\t%i\n", handle->patch.vibrato_depth);
  printf("Vibrato Sweep:\t\t%i\n", handle->patch.vibrato_rate);
+
+ printf("Mode:\t\t\t%x\n", handle->patch.modes);
+ printf(" - Sample Format:\t%i-bit %s\n",
+            (handle->patch.modes & 0x1) ? 16 : 8,
+            (handle->patch.modes & 0x2) ? "unsigned" : "signed");
+ printf(" - Looping:\t\t%s (%s-directional %s)\n",
+            (handle->patch.modes & 0x4) ? "yes" : "no",
+            (handle->patch.modes & 0x8) ? "bi" : "uni",
+            (handle->patch.modes & 0x10) ? "backwards" : "forward");
+ printf(" - Envelope:\t\tsustain: %s, release: %s, fast-release: %s\n",
+            (handle->patch.modes & 0x20) ? "yes" : "no",
+            (handle->patch.modes & 0x40) ? "envelope" : "note-off",
+            (handle->patch.modes & 0x80) ? "yes" : "no");
+ printf("Scale Frequency:\t%i\n", handle->patch.scale_frequency);
+ printf("Scale Factor:\t\t%i\n\n", handle->patch.scale_factor);
 #endif
 
       rv = FILE_HEADER_SIZE;
