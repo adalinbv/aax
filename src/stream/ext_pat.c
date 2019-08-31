@@ -61,6 +61,8 @@ typedef struct
 
 } _driver_t;
 
+static float env_rate_to_time(unsigned char);
+static float env_offset_to_level(unsigned char);
 static int _aaxFormatDriverReadHeader(_driver_t *, unsigned char*);
 
 
@@ -309,6 +311,34 @@ _pat_set(_ext_t *ext, int type, off_t value)
 }
 
 /* -------------------------------------------------------------------------- */
+
+static float
+env_rate_to_time(unsigned char rate)
+{
+   // rate is defined as RRMMMMMM
+   // where RR is the rate and MMMMMM the mantissa
+
+   float FUR = 1.0f/(1.6f*14.0f); // 14 voices
+   float VUR = FUR/(float)(1 << 3*(rate >> 6)); // Volume Update Rate
+   float mantissa = (float)(rate & 0x3f);	// Volume Increase
+   float rv = 1.0f/(244.0f*VUR)/mantissa;
+
+   return rv;
+}
+
+static float
+env_offset_to_level(unsigned char offset)
+{
+   // offset is defined as: EEEEMMMM
+   // where EEEE is the exponent and MMMM is the mantissa
+   // val = mantissa * 2^exponent
+
+   int mantissa = offset & 0xF;
+   int exponent = offset >> 4;
+   int rv = mantissa*(1 << exponent);
+   return 2.5f*rv/491520.0;
+}
+
 static int
 _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 {
@@ -490,9 +520,20 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Root Frequency:\t\t%g Hz\n", 0.001f*handle->patch.root_frequency);
  printf("Panning:\t\t%.1f\n", (float)(handle->patch.balance - 7)/16.0f);
 
- printf("Envelope Rates:\t\t%i %i %i %i %i %i\n", handle->patch.envelope_rate[0], handle->patch.envelope_rate[1], handle->patch.envelope_rate[2], handle->patch.envelope_rate[3], handle->patch.envelope_rate[4], handle->patch.envelope_rate[5]);
+ printf("Envelope Rates:\t\t");
+ for (int i=0; i<6; ++i) {
+  float v = env_rate_to_time(handle->patch.envelope_rate[i]);
+  if (v < 0.1f) printf ("%4.2fms\t", v*1000.0f);
+  else printf("%4.2fs\t", v);
+ }
+ printf("\n");
 
- printf("Envelope Offsets:\t%i %i %i %i %i %i\n", handle->patch.envelope_offset[0], handle->patch.envelope_offset[1], handle->patch.envelope_offset[2], handle->patch.envelope_offset[3], handle->patch.envelope_offset[4], handle->patch.envelope_offset[5]);
+ printf("Envelope Offsets:\t");
+ for (int i=0; i<6; ++i) {
+  float v = env_offset_to_level(handle->patch.envelope_offset[i]);
+  printf("%6.4f\t", v);
+ }
+ printf("\n");
 
  printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_sweep,
                                          CVTSWEEP(handle->patch.tremolo_sweep));
