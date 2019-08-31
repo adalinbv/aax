@@ -112,12 +112,8 @@ _pcm_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize
          handle->pcmBuffer = _aaxDataCreate(16384, 1);
       }
 
-      if (handle->pcmBuffer)
+      if (!handle->pcmBuffer)
       {
-         int res = _aaxDataAdd(handle->pcmBuffer, buf, *bufsize);
-         *bufsize -= res;
-      }
-      else {
          _AAX_FILEDRVLOG("PCM: Unable to allocate the audio buffer");
          rv = buf;   // try again
       }
