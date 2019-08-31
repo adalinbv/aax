@@ -498,15 +498,18 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
                                          CVTSWEEP(handle->patch.tremolo_sweep));
  printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_rate,
                                            CVTRATE(handle->patch.tremolo_rate));
- printf("Tremolo Depth:\t\t%3i (%.3g dB)\n", handle->patch.tremolo_depth,
-                                   16.0f*CVTDEPTH(handle->patch.tremolo_depth));
+ printf("Tremolo Depth:\t\t%3i (%.2g, %.3gdB)\n", handle->patch.tremolo_depth,
+                                          CVTDEPTH(handle->patch.tremolo_depth),
+                                       CVTDEPT2DB(handle->patch.tremolo_depth));
 
  printf("Vibrato Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_sweep,
                                          CVTSWEEP(handle->patch.vibrato_sweep));
  printf("Vibrato Rate:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_rate,
                                            CVTRATE(handle->patch.vibrato_rate));
- printf("Vibrato Depth:\t\t%3i (%.3g octave)\n", handle->patch.vibrato_depth,
-                                         CVTDEPTH(handle->patch.vibrato_depth));
+ printf("Vibrato Depth:\t\t%3i (%.3g octave, %g cents)\n",
+                                                  handle->patch.vibrato_depth,
+                                         CVTDEPTH(handle->patch.vibrato_depth),
+                                    CVTDEPT2CENTS(handle->patch.vibrato_depth));
 
  printf("Modes:\t\t\t0x%x\n", handle->patch.modes);
  printf(" - Sample Format:\t%i-bit %s\n",

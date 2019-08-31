@@ -29,6 +29,9 @@
 #define CVTSWEEP(a)			((a)/45.0f)
 #define CVTRATE(a)			(0.05f + (a)/42.843f)
 #define CVTDEPTH(a)			((a)/255.0f)
+#define CVTDEPT2DB(a)			(16.0f*CVTDEPTH(a))
+#define CVTDEPT2CENTS(a)		(1200.0f*CVTDEPTH(a))
+
 
 #define PATCH_RESERVED_SIZE		36
 #define PATCH_HEADER_SIZE		(93 + PATCH_RESERVED_SIZE)
