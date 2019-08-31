@@ -26,22 +26,30 @@
 #include "config.h"
 #endif
 
+#define PATCH_RESERVED_SIZE		36
+#define PATCH_HEADER_SIZE		(93 + PATCH_RESERVED_SIZE)
+
+#define INSTRUMENT_RESERVED_SIZE	40
+#define INSTRUMENT_HEADER_SIZE		(23 + INSTRUMENT_RESERVED_SIZE)
+
+#define	LAYER_RESERVED_SIZE		40
+#define LAYER_HEADER_SIZE		(7 + LAYER_RESERVED_SIZE)
+
+#define PATCH_DATA_RESERVED_SIZE	36
+#define PACH_HEADER_SIZE		(60 + PATCH_DATA_RESERVED_SIZE)
+
+#define FILE_HEADER_SIZE		(PATCH_HEADER_SIZE + INSTRUMENT_HEADER_SIZE + LAYER_HEADER_SIZE + PACH_HEADER_SIZE)
+
+#define GF1_HEADER_TEXT			"GF1PATCH110"
+
+#define MAX_LAYERS			4
 #define ENVELOPES			6
+
 #define HEADER_SIZE			12
 #define ID_SIZE				10
 #define DESC_SIZE			60
-#define RESERVED_SIZE			40
-#define INSTRUMENT_HEADER_SIZE		(9 + RESERVED_SIZE)
-#define	PATCH_RESERVED_SIZE		36
-#define PATCH_HEADER_SIZE		(14 + PATCH_RESERVED_SIZE)
-#define	LAYER_RESERVED_SIZE		40
-#define LAYER_HEADER_SIZE		(8 + LAYER_RESERVED_SIZE)
-#define PATCH_DATA_RESERVED_SIZE	36
-#define PACH_HEADER_SIZE		(45 + PATCH_DATA_RESERVED_SIZE)
-#define GF1_HEADER_TEXT			"GF1PATCH110"
-#define MAX_LAYERS			4
 #define INST_NAME_SIZE			16
-#define FILE_HEADER_SIZE		(PATCH_HEADER_SIZE + INSTRUMENT_HEADER_SIZE + LAYER_HEADER_SIZE + PACH_HEADER_SIZE)
+#define WAV_NAME_SIZE			7
 
 
 typedef struct
@@ -61,7 +69,7 @@ typedef struct
 typedef struct
 {
    unsigned short instrument;
-   char name[16];
+   char name[INST_NAME_SIZE];
    int size;
    char layers;
 // char reserved[RESERVED_SIZE];
@@ -80,7 +88,7 @@ typedef struct
 
 typedef struct
 {
-   char wave_name[7];
+   char wave_name[WAV_NAME_SIZE];
 
    unsigned char fractions;
    int wave_size;

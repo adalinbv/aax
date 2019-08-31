@@ -52,9 +52,6 @@ typedef struct
 
    char copy_to_buffer;
 
-   _data_t *patBuffer;
-   size_t datasize;
-
    // We only support one instrument with one layer and one patch waveform
    // per file. So we take the first of all of them.
    _patch_header_t header;
@@ -64,7 +61,7 @@ typedef struct
 
 } _driver_t;
 
-static int _aaxFormatDriverReadHeader(_driver_t*);
+static int _aaxFormatDriverReadHeader(_driver_t *, unsigned char*);
 
 
 int
@@ -99,7 +96,7 @@ _pat_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          if (handle->capturing)
          {
             handle->no_samples = UINT_MAX;
-            *bufsize = 4096;
+            *bufsize = FILE_HEADER_SIZE;
          }
          else {
             *bufsize = 0;
@@ -134,27 +131,16 @@ _pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 				/* read: handle->capturing */
       else if (!handle->fmt || !handle->fmt->open)
       {
-         if (!handle->patBuffer) {
-            handle->patBuffer = _aaxDataCreate(16384, 1);
-         }
-
-         if (handle->patBuffer)
+         if (*bufsize >= FILE_HEADER_SIZE)
          {
-            size_t size = *bufsize;
             int res;
 
-            handle->datasize = fsize;
-            res = _aaxDataAdd(handle->patBuffer, buf, size);
-            *bufsize = res;
-
-            res = _aaxFormatDriverReadHeader(handle);
+            res = _aaxFormatDriverReadHeader(handle, buf);
             if (res > 0)
             {
                if (!handle->fmt)
                {
                   _fmt_type_t fmt = _FMT_PCM;
-                  size_t headersize, size;
-                  unsigned char *header;
 
                   handle->fmt = _fmt_create(fmt, handle->mode);
                   if (!handle->fmt) {
@@ -178,12 +164,12 @@ _pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->no_samples);
                   handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
                   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+               }
 
-                  header = (unsigned char*)handle->patBuffer->data;
-                  headersize = size = handle->patBuffer->avail;
-                  rv = handle->fmt->open(handle->fmt, handle->mode, header, &size, fsize);
-                  headersize -= size;
-                  _aaxDataMove(handle->patBuffer, NULL, headersize);
+               if (handle->fmt)
+               {
+                  size_t size = 0;
+                  handle->fmt->open(handle->fmt, handle->mode, buf, &size, fsize);
                }
             }
             else
@@ -215,8 +201,6 @@ _pat_close(_ext_t *ext)
 
    if (handle)
    {
-      _aaxDataDestroy(handle->patBuffer);
-
       if (handle->comments) free(handle->comments);
 
       if (handle->fmt)
@@ -286,8 +270,8 @@ _pat_name(_ext_t *ext, enum _aaxStreamParam param)
 
 char*
 _pat_interfaces(UNUSED(int ext), int mode)
-{
-   static const char *rd[2] = { "*.pat\0", NULL };
+{	// silently support patch files
+   static const char *rd[2] = { NULL, NULL };
    return (char *)rd[mode];
 }
 
@@ -326,17 +310,11 @@ _pat_set(_ext_t *ext, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 static int
-_aaxFormatDriverReadHeader(_driver_t *handle)
+_aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 {
-   unsigned char *header;
-   size_t bufsize;
    int rv = 0;
 
-   header = (unsigned char*)handle->patBuffer->data;
-   bufsize = handle->patBuffer->avail;
-
-   if (bufsize >= FILE_HEADER_SIZE &&
-       !memcmp(header, GF1_HEADER_TEXT, HEADER_SIZE))
+   if (!memcmp(header, GF1_HEADER_TEXT, HEADER_SIZE))
    {
       // Patch Header
       memcpy(handle->header.header, header, HEADER_SIZE);
@@ -364,13 +342,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
       handle->header.data_size += *header++ << 24;
       header += PATCH_RESERVED_SIZE;
 
-
       // Instrument Header
       handle->instrument.instrument += *header++;
       handle->instrument.instrument += *header++ << 8;
 
-      memcpy(handle->instrument.name, header, 16);
-      header += 16;
+      memcpy(handle->instrument.name, header, INST_NAME_SIZE);
+      header += INST_NAME_SIZE;
 
       handle->instrument.size += *header++;
       handle->instrument.size += *header++ << 8;
@@ -378,7 +355,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
       handle->instrument.size += *header++ << 24;
 
       handle->instrument.layers = *header++;
-      header += RESERVED_SIZE;
+      header += INSTRUMENT_RESERVED_SIZE;
 
       // Layer Header
       handle->layer.layer_duplicate = *header++;
@@ -393,8 +370,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
       header += LAYER_RESERVED_SIZE;
 
       // Wave Header
-      memcpy(handle->patch.wave_name, header, 7);
-      header += 7;
+      memcpy(handle->patch.wave_name, header, WAV_NAME_SIZE);
+      header += WAV_NAME_SIZE;
 
       handle->patch.fractions = *header++;
 
@@ -482,7 +459,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
       handle->blocksize = handle->no_tracks*handle->bits_sample/8;
       handle->no_samples = 8*handle->patch.wave_size/handle->bits_sample;
 
-#if 0
+#if 1
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
  printf("Description:\t\t%s\n", handle->header.description);
@@ -526,7 +503,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
  printf("Vibrato Sweep:\t\t%i\n", handle->patch.vibrato_rate);
 #endif
 
-      _aaxDataMove(handle->patBuffer, NULL, FILE_HEADER_SIZE);
       rv = FILE_HEADER_SIZE;
    }
    else {
