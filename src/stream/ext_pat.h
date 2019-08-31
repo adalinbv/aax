@@ -26,6 +26,9 @@
 #include "config.h"
 #endif
 
+#define SIZE2SAMPLES(h,a)		(8*(a)/(h)->bits_sample)
+#define SIZE2TIME(h,a)			(SIZE2SAMPLES(h,(float)(a))/(h)->frequency)
+
 #define CVTSWEEP(a)			((a)/45.0f)
 #define CVTRATE(a)			(0.05f + (a)/42.843f)
 #define CVTDEPTH(a)			((a)/255.0f)

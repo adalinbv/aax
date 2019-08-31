@@ -45,6 +45,8 @@ typedef struct
    int bits_sample;
    int frequency;
    int bitrate;
+   float loop_start_sec;
+   float loop_end_sec;
    enum aaxFormat format;
    size_t blocksize;
    size_t no_samples;
@@ -488,6 +490,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       }
       handle->blocksize = handle->no_tracks*handle->bits_sample/8;
       handle->no_samples = 8*handle->patch.wave_size/handle->bits_sample;
+      handle->frequency = handle->patch.sample_rate;
+
+      handle->loop_start_sec = SIZE2TIME(handle,(float)handle->patch.start_loop + (handle->patch.fractions >> 4)/15.0f);
+      handle->loop_end_sec = SIZE2TIME(handle,(float)handle->patch.end_loop + (handle->patch.fractions && 0xF)/15.0f);
 
 #if 1
  printf("Header:\t\t\t%s\n", handle->header.header);
@@ -512,8 +518,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Samples:\t\t%i\n\n", handle->layer.samples);
 
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
- printf("Loop start:\t\t%g\n", (float)handle->patch.start_loop + (handle->patch.fractions >> 4)/16.0f);
- printf("Loop end:\t\t%g\n", (float)handle->patch.end_loop + (handle->patch.fractions && 0xF)/16.0f);
+ printf("Loop start:\t\t%g (%gs)\n", SIZE2SAMPLES(handle,(float)handle->patch.start_loop + (handle->patch.fractions >> 4)/16.0f), handle->loop_start_sec);
+ printf("Loop end:\t\t%g (%gs)\n", SIZE2SAMPLES(handle,(float)handle->patch.end_loop + (handle->patch.fractions && 0xF)/16.0f), handle->loop_end_sec);
+ printf("Sample size:\t\t%i (%gs)\n", SIZE2SAMPLES(handle,handle->patch.wave_size), SIZE2TIME(handle,handle->patch.wave_size));
  printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
  printf("Low Frequency:\t\t%g Hz\n", 0.001f*handle->patch.low_frequency);
  printf("High Frequency:\t\t%g Hz\n", 0.001f*handle->patch.high_frequency);
