@@ -26,6 +26,10 @@
 #include "config.h"
 #endif
 
+#define CVTSWEEP(a)			((a)/45.0f)
+#define CVTRATE(a)			(0.05f + (a)/42.843f)
+#define CVTDEPTH(a)			((a)/255.0f)
+
 #define PATCH_RESERVED_SIZE		36
 #define PATCH_HEADER_SIZE		(93 + PATCH_RESERVED_SIZE)
 
@@ -118,9 +122,12 @@ typedef struct
    /* bit 1 : 0 = signed, 1 = unsigned data			*/
    /* bit 2 : 1 = looping enabled				*/
    /* bit 3 : 0 = uni-directional, 1 = bi-directional looping	*/
-   /* bit 4 : 0 = loop forwards, 1 = loop backward		*/
+   /* bit 4 : 0 = play forwards, 1 = play backwards		*/
    /* bit 5 : 1 = turn sustaining on (envelope points 3)	*/
-   /* bit 6 : 1 = enable envelope				*/
+   /*             eneveloping stops at point 3 until note-off   */
+   /* bit 6 : 0 = sample release after not-off message          */
+   /*         1 = sample release after last envelope point      */
+   /* bit 7 : 1 = the last three envelope points are ignored    */
    char modes;
 
    short scale_frequency;

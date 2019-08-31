@@ -484,25 +484,31 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
  printf("Loop start:\t\t%g\n", (float)handle->patch.start_loop + (handle->patch.fractions >> 4)/16.0f);
  printf("Loop end:\t\t%g\n", (float)handle->patch.end_loop + (handle->patch.fractions && 0xF)/16.0f);
- printf("Sample rate:\t\t%i\n", handle->patch.sample_rate);
- printf("Low Frequency:\t\t%g\n", 0.001f*handle->patch.low_frequency);
- printf("High Frequency:\t\t%g\n", 0.001f*handle->patch.high_frequency);
- printf("Root Frequency:\t\t%g\n", 0.001f*handle->patch.root_frequency);
- printf("Panning:\t\t%g\n", (float)(handle->patch.balance - 7)/16.0f);
+ printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
+ printf("Low Frequency:\t\t%g Hz\n", 0.001f*handle->patch.low_frequency);
+ printf("High Frequency:\t\t%g Hz\n", 0.001f*handle->patch.high_frequency);
+ printf("Root Frequency:\t\t%g Hz\n", 0.001f*handle->patch.root_frequency);
+ printf("Panning:\t\t%.1f\n", (float)(handle->patch.balance - 7)/16.0f);
 
  printf("Envelope Rates:\t\t%i %i %i %i %i %i\n", handle->patch.envelope_rate[0], handle->patch.envelope_rate[1], handle->patch.envelope_rate[2], handle->patch.envelope_rate[3], handle->patch.envelope_rate[4], handle->patch.envelope_rate[5]);
 
  printf("Envelope Offsets:\t%i %i %i %i %i %i\n", handle->patch.envelope_offset[0], handle->patch.envelope_offset[1], handle->patch.envelope_offset[2], handle->patch.envelope_offset[3], handle->patch.envelope_offset[4], handle->patch.envelope_offset[5]);
 
- printf("Tremolo Sweep:\t\t%i\n", handle->patch.tremolo_sweep);
- printf("Tremolo Sweep:\t\t%i\n", handle->patch.tremolo_depth);
- printf("Tremolo Sweep:\t\t%i\n", handle->patch.tremolo_rate);
+ printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_sweep,
+                                         CVTSWEEP(handle->patch.tremolo_sweep));
+ printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_rate,
+                                           CVTRATE(handle->patch.tremolo_rate));
+ printf("Tremolo Depth:\t\t%3i (%.3g dB)\n", handle->patch.tremolo_depth,
+                                   16.0f*CVTDEPTH(handle->patch.tremolo_depth));
 
- printf("Vibrato Sweep:\t\t%i\n", handle->patch.vibrato_sweep);
- printf("Vibrato Sweep:\t\t%i\n", handle->patch.vibrato_depth);
- printf("Vibrato Sweep:\t\t%i\n", handle->patch.vibrato_rate);
+ printf("Vibrato Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_sweep,
+                                         CVTSWEEP(handle->patch.vibrato_sweep));
+ printf("Vibrato Rate:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_rate,
+                                           CVTRATE(handle->patch.vibrato_rate));
+ printf("Vibrato Depth:\t\t%3i (%.3g octave)\n", handle->patch.vibrato_depth,
+                                         CVTDEPTH(handle->patch.vibrato_depth));
 
- printf("Mode:\t\t\t%x\n", handle->patch.modes);
+ printf("Modes:\t\t\t0x%x\n", handle->patch.modes);
  printf(" - Sample Format:\t%i-bit %s\n",
             (handle->patch.modes & 0x1) ? 16 : 8,
             (handle->patch.modes & 0x2) ? "unsigned" : "signed");
