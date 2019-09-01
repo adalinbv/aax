@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2019 by Erik Hofman.
+ * Copyright 2019 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -41,16 +41,17 @@ typedef struct
    int capturing;
    int mode;
 
+   int track_no;
    int no_tracks;
    int bits_sample;
    int frequency;
    int bitrate;
-   float loop_start_sec;
-   float loop_end_sec;
    enum aaxFormat format;
    size_t blocksize;
    size_t no_samples;
    size_t max_samples;
+   size_t loop_start;
+   size_t loop_end;
 
    char copy_to_buffer;
 
@@ -289,7 +290,24 @@ off_t
 _pat_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->get(handle->fmt, type);
+   off_t rv = 0;
+
+   switch (type)
+   {
+   case __F_LOOP_COUNT:
+      rv = (handle->patch.modes & 0x4) ? UINT_MAX : 0;
+      break;
+   case __F_LOOP_START:
+      rv = handle->loop_start >> 4;
+      break;
+   case __F_LOOP_END:
+      rv = handle->loop_end >> 4;
+      break;
+   default:
+      rv = handle->fmt->get(handle->fmt, type);
+      break;
+   }
+   return rv;
 }
 
 off_t
@@ -489,13 +507,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
          break;
       }
       handle->blocksize = handle->no_tracks*handle->bits_sample/8;
-      handle->no_samples = 8*handle->patch.wave_size/handle->bits_sample;
+      handle->no_samples = SIZE2SAMPLES(handle, handle->patch.wave_size);
       handle->frequency = handle->patch.sample_rate;
 
-      handle->loop_start_sec = SIZE2TIME(handle,(float)handle->patch.start_loop + (handle->patch.fractions >> 4)/15.0f);
-      handle->loop_end_sec = SIZE2TIME(handle,(float)handle->patch.end_loop + (handle->patch.fractions && 0xF)/15.0f);
+      handle->loop_start = SIZE2SAMPLES(handle, (handle->patch.start_loop << 4) + (handle->patch.fractions >> 4));
+      handle->loop_end = SIZE2SAMPLES(handle, (handle->patch.end_loop << 4) + (handle->patch.fractions && 0xF));
 
-#if 1
+#if 0
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
  printf("Description:\t\t%s\n", handle->header.description);
@@ -518,8 +536,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Samples:\t\t%i\n\n", handle->layer.samples);
 
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
- printf("Loop start:\t\t%g (%gs)\n", SIZE2SAMPLES(handle,(float)handle->patch.start_loop + (handle->patch.fractions >> 4)/16.0f), handle->loop_start_sec);
- printf("Loop end:\t\t%g (%gs)\n", SIZE2SAMPLES(handle,(float)handle->patch.end_loop + (handle->patch.fractions && 0xF)/16.0f), handle->loop_end_sec);
+ printf("Loop start:\t\t%g (%gs)\n", handle->loop_start/16.0f, SIZE2TIME(handle,handle->loop_start/16.0f));
+ printf("Loop end:\t\t%g (%gs)\n", handle->loop_end/16.0f, SIZE2TIME(handle,handle->loop_end/16.0f));
  printf("Sample size:\t\t%i (%gs)\n", SIZE2SAMPLES(handle,handle->patch.wave_size), SIZE2TIME(handle,handle->patch.wave_size));
  printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
  printf("Low Frequency:\t\t%g Hz\n", 0.001f*handle->patch.low_frequency);

@@ -1171,6 +1171,15 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MAX_SAMPLES:
          rv = (float)handle->ext->get_param(handle->ext, __F_NO_SAMPLES);
          break;
+      case DRIVER_LOOP_COUNT:
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_COUNT);
+         break;
+      case DRIVER_LOOP_START:
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_START);
+         break;
+      case DRIVER_LOOP_END:
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END);
+         break;
       case DRIVER_SAMPLE_DELAY:
          rv = (float)handle->no_samples;
          break;

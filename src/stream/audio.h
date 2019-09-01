@@ -81,6 +81,9 @@ enum _aaxStreamParam
    __F_BLOCK_SIZE,
    __F_BLOCK_SAMPLES,
    __F_NO_SAMPLES,
+   __F_LOOP_COUNT,
+   __F_LOOP_START,
+   __F_LOOP_END,
    __F_NO_BYTES,
 
    __F_RATE,

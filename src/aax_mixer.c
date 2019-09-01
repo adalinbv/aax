@@ -1752,10 +1752,7 @@ _aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
 {
    _buffer_t *rv = NULL;
    char *s, *u, *url, **ptr = NULL;
-   size_t no_samples, blocksize;
-   unsigned int tracks;
-   float freq;
-   int fmt;
+   _buffer_info_t info;
 
    u = strdup(buffer->url);
    url = _aaxURLConstruct(u, file);
@@ -1763,20 +1760,19 @@ _aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
 
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs")) {
-      ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
-                                       &no_samples, &blocksize);
+      ptr = _bufGetDataFromStream(url, &info);
    }
 
    if (ptr)
    {
-      rv = aaxBufferCreate(config, no_samples, tracks, fmt);
+      rv = aaxBufferCreate(config, info.no_samples, info.tracks, info.fmt);
       if (rv)
       {
           free(rv->url);
           rv->url = url;
 
-          aaxBufferSetSetup(rv, AAX_FREQUENCY, freq);
-          aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, blocksize);
+          aaxBufferSetSetup(rv, AAX_FREQUENCY, info.freq);
+          aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, info.blocksize);
           if ((aaxBufferSetData(rv, ptr[0])) == AAX_FALSE) {
              aaxBufferDestroy(rv);
              rv  = NULL;

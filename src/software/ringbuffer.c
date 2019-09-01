@@ -894,6 +894,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_LOOPPOINT_START:
    {
       float fval = val/rbd->frequency_hz;
+
       if (fval < rbd->loop_end_sec)
       {
          rbd->loop_start_sec = fval;

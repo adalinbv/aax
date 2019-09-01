@@ -734,24 +734,35 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 
    if (rv)
    {
-      size_t no_samples, blocksize;
-      unsigned int tracks;
-      float freq;
-      int fmt;
+      _buffer_info_t info;
       char **ptr;
 
-      ptr = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
-                                       &no_samples, &blocksize);
+      ptr = _bufGetDataFromStream(url, &info);
       if (ptr)
       {
-         buf = aaxBufferCreate(config, no_samples, tracks, fmt);
+         buf = aaxBufferCreate(config, info.no_samples, info.tracks, info.fmt);
          if (buf)
          {
+             _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL, 0);
+
              if(buf->url) free(buf->url);
              buf->url = strdup(url);
 
-             aaxBufferSetSetup(buf, AAX_FREQUENCY, freq);
-             aaxBufferSetSetup(buf, AAX_BLOCK_ALIGNMENT, blocksize);
+             buf->frequency = info.freq;
+             buf->blocksize = info.blocksize;
+             buf->loop_start = info.loop_start;
+             buf->loop_end = info.loop_end;
+             buf->loop_count = info.loop_count;
+
+             if (rb)
+             {
+                rb->set_paramf(rb, RB_FREQUENCY, buf->frequency);
+                rb->set_parami(rb, RB_LOOPPOINT_START, buf->loop_start);
+                rb->set_parami(rb, RB_LOOPPOINT_END, buf->loop_end);
+                rb->set_parami(rb, RB_LOOPING, buf->loop_count);
+             }
+
+
              if ((aaxBufferSetData(buf, ptr[0])) == AAX_FALSE) {
                 aaxBufferDestroy(buf);
                 buf = NULL;
@@ -923,12 +934,12 @@ _bufDestroyRingBuffer(_buffer_t* buf, unsigned char pos)
 }
 
 char**
-_bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *freq, size_t *no_samples, size_t *blocksize)
+_bufGetDataFromStream(const char *url, _buffer_info_t *info)
 {
    const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
    char **ptr = NULL;
 
-   *no_samples = 0;
+   info->no_samples = 0;
    if (stream)
    {
       static const char *xcfg = "<?xml?><"COPY_TO_BUFFER">1</"COPY_TO_BUFFER">";
@@ -946,24 +957,25 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
          int brate = _info->bitrate;
          int res;
 
-         *tracks = _info->no_tracks;
-         *freq = _info->frequency;
-         *fmt = _info->format;
+         info->tracks = _info->no_tracks;
+         info->freq = _info->frequency;
+         info->fmt = _info->format;
 
-         res = stream->setup(id, &refrate, fmt, tracks, freq, &brate,
-                                 AAX_FALSE, periodrate);
+         res = stream->setup(id, &refrate,
+                                 &info->fmt, &info->tracks, &info->freq,
+                                 &brate, AAX_FALSE, periodrate);
          if (res)
          {
             size_t no_bytes, datasize, bits;
             char *ptr2;
 
-            bits = aaxGetBitsPerSample(*fmt);
-            *blocksize = stream->param(id, DRIVER_BLOCK_SIZE);
-            *no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
-            no_bytes = (*no_samples)*bits/8;
+            bits = aaxGetBitsPerSample(info->fmt);
+            info->blocksize = stream->param(id, DRIVER_BLOCK_SIZE);
+            info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+            no_bytes = (info->no_samples)*bits/8;
 
-            no_bytes = ((no_bytes/(*blocksize))+1)*(*blocksize);
-            datasize =  SIZE_ALIGNED((*tracks)*no_bytes);
+            no_bytes = ((no_bytes/info->blocksize)+1)*info->blocksize;
+            datasize =  SIZE_ALIGNED(info->tracks*no_bytes);
 
             if (datasize < 64*1024*1024) // sanity check
             {
@@ -986,21 +998,24 @@ _bufGetDataFromStream(const char *url, int *fmt, unsigned int *tracks, float *fr
                do
                {
                   ssize_t offs = offs_packets;
-                  size_t packets = *no_samples;
+                  size_t packets = info->no_samples;
 
-                  assert(packets <= datasize*8/((*tracks)*bits));
+                  assert(packets <= datasize*8/(info->tracks*bits));
 
                   res = stream->capture(id, dst, &offs, &packets,
                                             dst[1], datasize, 1.0f, AAX_TRUE);
                   offs_packets += packets;
                   if (res > 0) {
-                     offset += res*8/(bits*(*tracks));
+                     offset += res*8/(bits*info->tracks);
                   }
                }
                while (res >= 0);
 
                // get the actual number of samples
-               *no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+               info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
+               info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
+               info->loop_start = stream->param(id, DRIVER_LOOP_START);
+               info->loop_end = stream->param(id, DRIVER_LOOP_END);
             }
          }
          stream->disconnect(id);
@@ -1014,10 +1029,8 @@ int
 _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level, unsigned int loop_start, unsigned int loop_end)
 {
    char *s, *u, *url, **data = NULL;
-   size_t blocksize, no_samples = 0;
-   unsigned int tracks;
-   int fmt, rv = 0;
-   float freq;
+   _buffer_info_t info;
+   int rv = 0;
 
    u = strdup(buffer->url);
    url = _aaxURLConstruct(u, file);
@@ -1025,10 +1038,9 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level, unsigned int loop_
 
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs")) {
-      data = _bufGetDataFromStream(url, &fmt, &tracks, &freq,
-                                        &no_samples, &blocksize);
+      data = _bufGetDataFromStream(url, &info);
 #if 0
- printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, fmt, tracks, freq, no_samples, blocksize);
+ printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, info.fmt, info.tracks, info.freq, info.no_samples, info.blocksize);
 #endif
    }
    free(url);
@@ -1042,22 +1054,22 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level, unsigned int loop_
          char **ndata;
          char *ptr;
 
-         ndata = (char**)_aax_malloc(&ptr, sizeof(void*), no_samples*sizeof(int32_t));
+         ndata = (char**)_aax_malloc(&ptr, sizeof(void*), info.no_samples*sizeof(int32_t));
          if (ndata)
          {
             *ndata = (void*)ptr;
-            _bufConvertDataToPCM24S(*ndata, *data, no_samples, fmt);
+            _bufConvertDataToPCM24S(*ndata, *data, info.no_samples, info.fmt);
             free(data);
             data = ndata;
          }
-         _batch_imul_value(*data, *data, sizeof(int32_t), no_samples, 256.0f);
+         _batch_imul_value(*data, *data, sizeof(int32_t), info.no_samples, 256.0f);
       }
 
       buffer->format = AAX_PCM24S;
-      buffer->no_samples = no_samples;
-      buffer->blocksize = blocksize;
-      buffer->no_tracks = tracks;
-      buffer->frequency = freq;
+      buffer->no_samples = info.no_samples;
+      buffer->blocksize = info.blocksize;
+      buffer->no_tracks = info.tracks;
+      buffer->frequency = info.freq;
 
 //    rb->set_format(rb, fmt, AAX_FALSE);
       rb->set_parami(rb, RB_NO_TRACKS, buffer->no_tracks);
@@ -1983,10 +1995,12 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
          nrb->set_format(nrb, AAX_PCM24S, AAX_FALSE);
          nrb->set_parami(nrb, RB_NO_TRACKS, buf->no_tracks);
          nrb->set_parami(nrb, RB_NO_SAMPLES, buf->no_samples);
-         nrb->set_parami(nrb, RB_LOOPPOINT_START, buf->loop_start);
-         nrb->set_parami(nrb, RB_LOOPPOINT_END, buf->loop_end);
          nrb->set_paramf(nrb, RB_FREQUENCY, buf->frequency);
          nrb->init(nrb, AAX_FALSE);
+
+         nrb->set_parami(nrb, RB_LOOPPOINT_END, buf->loop_end);
+         nrb->set_parami(nrb, RB_LOOPPOINT_START, buf->loop_start);
+         nrb->set_parami(nrb, RB_LOOPING, buf->loop_count);
 
          fmt = rb->get_parami(rb, RB_FORMAT);
          src = (int32_t**)rb->get_tracks_ptr(rb, RB_READ);

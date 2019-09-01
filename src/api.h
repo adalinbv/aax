@@ -238,7 +238,7 @@ typedef struct
    int blocksize;
    unsigned int pos;
    unsigned int no_tracks, no_samples;
-   unsigned int loop_start, loop_end;
+   off_t loop_start, loop_end, loop_count;
    enum aaxFormat format;
    float rms, peak, gain;
    float frequency;
@@ -266,11 +266,25 @@ typedef struct
 
 } _buffer_aax_t;
 
+
+typedef struct
+{
+   int fmt;
+   unsigned int tracks;
+   float freq;
+   size_t no_samples;
+   size_t blocksize;
+   off_t loop_count;
+   size_t loop_start;
+   size_t loop_end;
+
+} _buffer_info_t;
+
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);
 _buffer_t* get_buffer(aaxBuffer, const char*);
 int free_buffer(_buffer_t*);
 
-char** _bufGetDataFromStream(const char*, int*, unsigned int*, float*, size_t*, size_t*);
+char** _bufGetDataFromStream(const char*, _buffer_info_t*);
 void _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, size_t, size_t, char, enum aaxFormat);
 
 /* --- Emitter --- */

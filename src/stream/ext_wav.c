@@ -81,6 +81,9 @@ typedef struct
    size_t blocksize;
    size_t no_samples;
    size_t max_samples;
+   size_t loop_start;
+   size_t loop_end;
+   off_t loop_count;
 
    enum wavFormat wav_format;
    char copy_to_buffer;
@@ -669,6 +672,15 @@ _wav_get(_ext_t *ext, int type)
    case __F_NO_BYTES:
       rv = handle->io.read.datasize;
       break;
+   case __F_LOOP_COUNT:
+      rv = handle->loop_count;
+      break;
+   case __F_LOOP_START:
+      rv = handle->loop_start;
+      break;
+   case __F_LOOP_END:
+      rv = handle->loop_end;
+      break;
    default:
       rv = handle->fmt->get(handle->fmt, type);
       break;
@@ -1013,8 +1025,20 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       *step = rv = 2*sizeof(int32_t);
       if (!handle->io.read.datasize) rv = __F_EOF;
    }
+   else if (curr == 0x6c706d73)		/* smpl */
+   {
+      curr = BSWAP(header[1]);
+      *step = rv = 2*sizeof(int32_t) + curr;
+
+      curr = BSWAP(header[9]);
+      if (curr)
+      {
+         handle->loop_start = 8*header[13]/handle->bits_sample;
+         handle->loop_end = 8*header[14]/handle->bits_sample;
+         handle->loop_count = header[16];
+      }
+   }
    else if (curr == 0x20657563 ||	/* cue  */
-            curr == 0x6c706d73 ||	/* smpl */
             curr == 0x74786562)		/* bext */
    {
       curr = BSWAP(header[1]);

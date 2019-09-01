@@ -86,6 +86,9 @@ enum _aaxDriverParam {
    DRIVER_MAX_SOURCES,
    DRIVER_MAX_SAMPLES,	/* no. samples in the file or UINT_MAX */
    DRIVER_SAMPLE_DELAY,	/* no samples to go before the next sample is played */
+   DRIVER_LOOP_COUNT,
+   DRIVER_LOOP_START,
+   DRIVER_LOOP_END,
 
    /* boolean */
    DRIVER_SHARED_MODE = 0x200,
