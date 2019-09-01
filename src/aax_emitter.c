@@ -88,7 +88,7 @@ aaxEmitterCreate()
          {
             handle->id = EMITTER_ID;
             handle->mixer_pos = UINT_MAX;
-            handle->looping = AAX_FALSE;
+            handle->looping = -1;
             _SET_INITIAL(src->props3d);
 
             handle->midi.attack_factor = 1.0f;
@@ -229,7 +229,9 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
 
          _EFFECT_SET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH,
                            _MAX(4.0f, (float)(1 << buffer->pitch_levels)));
-         rb->set_parami(rb, RB_LOOPING, handle->looping);
+         if (handle->looping >= 0) {
+            rb->set_parami(rb, RB_LOOPING, handle->looping);
+         }
          embuf = calloc(1, sizeof(_embuffer_t));
          if (embuf)
          {
