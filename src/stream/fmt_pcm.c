@@ -314,6 +314,10 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          offs = (dptr_offs/blocksmp)*blocksize;
          rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
          handle->no_samples += *num;
+
+         if (handle->no_samples >= handle->max_samples) {
+            rv = __F_EOF;
+         }
       }
    }
    else {
@@ -390,6 +394,10 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
             /* skip processed data */
             rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
             handle->no_samples += *num;
+         }
+
+         if (handle->no_samples >= handle->max_samples) {
+            rv = __F_EOF;
          }
       }
    }
