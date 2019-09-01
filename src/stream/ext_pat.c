@@ -295,7 +295,7 @@ _pat_get(_ext_t *ext, int type)
    switch (type)
    {
    case __F_LOOP_COUNT:
-      rv = (handle->patch.modes & 0x4) ? UINT_MAX : 0;
+      rv = (handle->patch.modes & 0x4) ? INT_MAX : 0;
       break;
    case __F_LOOP_START:
       rv = handle->loop_start >> 4;
