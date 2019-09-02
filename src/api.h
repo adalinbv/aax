@@ -271,12 +271,29 @@ typedef struct
 {
    int fmt;
    unsigned int tracks;
-   float freq;
+   unsigned int blocksize;
+
    size_t no_samples;
-   size_t blocksize;
    off_t loop_count;
    size_t loop_start;
    size_t loop_end;
+
+   float freq;
+   float base_frequency;
+   float low_frequency;
+   float high_frequency;
+   float pitch_fraction;
+
+   float tremolo_rate;
+   float tremolo_depth;
+   float tremolo_sweep;
+
+   float vibrato_rate;
+   float vibrato_depth;
+   float vibrato_sweep;
+
+   float volume_envelope[2*_MAX_ENVELOPE_STAGES];
+// float pitch_envelope[2*_MAX_ENVELOPE_STAGES];
 
 } _buffer_info_t;
 

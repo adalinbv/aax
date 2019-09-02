@@ -117,6 +117,12 @@ enum _aaxStreamParam
 #include "extension.h"
 #include "protocol.h"
 
+/* MIDI support */
+float note2freq(uint8_t);
+
+float cents2pitch(float, float);
+float cents2modulation(float, float);
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif
