@@ -73,17 +73,10 @@ typedef struct
    int capturing;
    int mode;
 
-   int no_tracks;
-   int bits_sample;
-   int frequency;
    int bitrate;
-   enum aaxFormat format;
-   size_t blocksize;
-   size_t no_samples;
+   int bits_sample;
    size_t max_samples;
-   size_t loop_start;
-   size_t loop_end;
-   off_t loop_count;
+   _buffer_info_t info;
 
    enum wavFormat wav_format;
    char copy_to_buffer;
@@ -147,17 +140,17 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->bits_sample = bits_sample;
-         handle->blocksize = tracks*bits_sample/8;
-         handle->frequency = freq;
-         handle->no_tracks = tracks;
-         handle->format = format;
+         handle->info.blocksize = tracks*bits_sample/8;
+         handle->info.freq = freq;
+         handle->info.tracks = tracks;
+         handle->info.fmt = format;
+         handle->info.no_samples = no_samples;
          handle->bitrate = bitrate;
-         handle->no_samples = no_samples;
          handle->max_samples = 0;
 
          if (handle->capturing)
          {
-            handle->no_samples = UINT_MAX;
+            handle->info.no_samples = UINT_MAX;
             *bufsize = 4096; // 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
          }
          else /* playback */
@@ -195,7 +188,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          char *ptr;
 
          if (handle->bits_sample > 16) extfmt = AAX_TRUE;
-         else if (handle->no_tracks > 2) extfmt = AAX_TRUE;
+         else if (handle->info.tracks > 2) extfmt = AAX_TRUE;
          else if (handle->bits_sample < 8) extfmt = AAX_TRUE;
 
          if (extfmt) {
@@ -211,20 +204,20 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
          }
 
          handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
-         if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+         if (!handle->fmt->setup(handle->fmt, fmt, handle->info.fmt))
          {
             handle->fmt = _fmt_free(handle->fmt);
             return rv;
          }
 
-         handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
+         handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.freq);
          handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
-         handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-         handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
+         handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+         handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->info.no_samples);
          handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
-         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
          handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
-                  MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize, handle->no_tracks));
+           MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize, handle->info.tracks));
          rv = handle->fmt->open(handle->fmt, handle->mode, buf, bufsize, fsize);
 
 
@@ -244,7 +237,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 //             _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultExtWaveHeader, size);
                memcpy(handle->wavBuffer, _aaxDefaultExtWaveHeader, size);
 
-               s = (handle->no_tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
+               s = (handle->info.tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
                header[5] = s;
             }
             else
@@ -252,17 +245,17 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 //             _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultWaveHeader, size);
                memcpy(handle->wavBuffer, _aaxDefaultWaveHeader, size);
 
-               s = (handle->no_tracks << 16) | handle->wav_format;
+               s = (handle->info.tracks << 16) | handle->wav_format;
                header[5] = s;
             }
 
-            s = (uint32_t)handle->frequency;
+            s = (uint32_t)handle->info.freq;
             header[6] = s;
 
-            s = (s * handle->no_tracks * handle->bits_sample)/8;
+            s = (s * handle->info.tracks * handle->bits_sample)/8;
             header[7] = s;
 
-            s = handle->blocksize;
+            s = handle->info.blocksize;
             s |= handle->bits_sample << 16;
             header[8] = s;
 
@@ -271,7 +264,7 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                s = handle->bits_sample;
                header[9] = s << 16 | 22;
 
-               s = getMSChannelMask(handle->no_tracks);
+               s = getMSChannelMask(handle->info.tracks);
                header[10] = s;
 
                s = handle->wav_format;
@@ -391,28 +384,28 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                }
 
                handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
-               handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+               handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
                handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
-               if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+               if (!handle->fmt->setup(handle->fmt, fmt, handle->info.fmt))
                {
                   *bufsize = 0;
                   handle->fmt = _fmt_free(handle->fmt);
                   return rv;
                }
 
-               handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
+               handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.freq);
                handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
-               handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-               handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->no_samples);
+               handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+               handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->info.no_samples);
                handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
-               if (handle->format == AAX_IMA4_ADPCM) {
+               if (handle->info.fmt == AAX_IMA4_ADPCM) {
                   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
-                                   handle->blocksize/handle->no_tracks);
+                                   handle->info.blocksize/handle->info.tracks);
                   handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
-                                     MSIMA_BLOCKSIZE_TO_SMP(handle->blocksize,
-                                                            handle->no_tracks));
+                                  MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize,
+                                                         handle->info.tracks));
                } else {
-                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
                }
                handle->fmt->set(handle->fmt, __F_POSITION,
                                                 handle->io.read.blockbufpos);
@@ -537,13 +530,13 @@ size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 {
    _driver_t *handle = ext->id;
-   unsigned tracks = handle->no_tracks;
+   unsigned tracks = handle->info.tracks;
    size_t rv = __F_PROCESS;
 
    if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
    {
       char *dptr = (char*)handle->wavBuffer;
-      size_t blocksize = handle->blocksize;
+      size_t blocksize = handle->info.blocksize;
       size_t avail = (*bytes/blocksize)*blocksize;
       if (avail)
       {
@@ -601,8 +594,8 @@ _wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 
    rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num,
                                  scratch, scratchlen);
-   handle->no_samples += *num;
-   handle->io.write.update_dt += (float)*num/handle->frequency;
+   handle->info.no_samples += *num;
+   handle->io.write.update_dt += (float)*num/handle->info.freq;
 
    return rv;
 }
@@ -673,13 +666,13 @@ _wav_get(_ext_t *ext, int type)
       rv = handle->io.read.datasize;
       break;
    case __F_LOOP_COUNT:
-      rv = handle->loop_count;
+      rv = handle->info.loop_count;
       break;
    case __F_LOOP_START:
-      rv = handle->loop_start;
+      rv = handle->info.loop_start;
       break;
    case __F_LOOP_END:
-      rv = handle->loop_end;
+      rv = handle->info.loop_end;
       break;
    default:
       rv = handle->fmt->get(handle->fmt, type);
@@ -853,8 +846,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       if (header[2] == 0x45564157 &&            /* WAVE */
           header[3] == 0x20746d66)              /* fmt  */
       {
-         handle->frequency = header[6];
-         handle->no_tracks = header[5] >> 16;
+         handle->info.freq = header[6];
+         handle->info.tracks = header[5] >> 16;
          handle->wav_format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
          switch(handle->wav_format)
          {
@@ -867,13 +860,18 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          }
 
          if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
-             (handle->frequency >= 4000 && handle->frequency <= 256000) &&
-             (handle->no_tracks >= 1 && handle->no_tracks <= _AAX_MAX_SPEAKERS))
+             (handle->info.freq >= 4000 && handle->info.freq <= 256000) &&
+             (handle->info.tracks >= 1 && handle->info.tracks <= _AAX_MAX_SPEAKERS))
          {
-            handle->blocksize = header[8] & 0xFFFF;
+// https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#formatvariations
+//          handle->info.blocksize = header[8] & 0xFFFF;
+            handle->info.blocksize = handle->bits_sample*handle->info.tracks/8;
+
+            handle->bitrate = handle->info.freq*handle->info.blocksize;
+
             bits = handle->bits_sample;
-            handle->format = _getAAXFormatFromWAVFormat(handle->wav_format,bits);
-            switch(handle->format)
+            handle->info.fmt = _getAAXFormatFromWAVFormat(handle->wav_format,bits);
+            switch(handle->info.fmt)
             {
             case AAX_FORMAT_NONE:
                return __F_EOF;
@@ -1004,12 +1002,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    else if (curr == 0x4b414550)		/* peak */
    {
       *step = rv = 8 + (2*sizeof(int32_t) +
-                   handle->no_tracks*(sizeof(float)+sizeof(int32_t)));
+                   handle->info.tracks*(sizeof(float)+sizeof(int32_t)));
    }
    else if (curr == 0x74636166)         /* fact */
    {
       curr = BSWAP(header[2]);
-      handle->no_samples = curr;
+      handle->info.no_samples = curr;
       handle->max_samples = curr;
       *step = rv = 3*sizeof(int32_t);
    }
@@ -1018,8 +1016,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       handle->io.read.datasize = header[1];
       if (handle->max_samples == 0)
       {
-         curr = BSWAP(header[1])*8/(handle->no_tracks*handle->bits_sample);
-         handle->no_samples = curr;
+         curr = BSWAP(header[1])*8/(handle->info.tracks*handle->bits_sample);
+         handle->info.no_samples = curr;
          handle->max_samples = curr;
       }
       *step = rv = 2*sizeof(int32_t);
@@ -1027,16 +1025,49 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    }
    else if (curr == 0x6c706d73)		/* smpl */
    {
+// https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl
       curr = BSWAP(header[1]);
       *step = rv = 2*sizeof(int32_t) + curr;
 
       curr = BSWAP(header[9]);
-      if (curr)
+      if (curr && *step >= (17*4))
       {
-         handle->loop_start = 8*header[13]/handle->bits_sample;
-         handle->loop_end = 8*header[14]/handle->bits_sample;
-         handle->loop_count = header[16];
+         float semitones = 100.0f*header[6]/(float)0xFFFFFFFF;
+
+         handle->info.base_frequency = note2freq((uint8_t)header[5]);
+         handle->info.pitch_fraction = cents2pitch(semitones, 1.0f);
+         handle->info.loop_start = 8*header[13]/handle->bits_sample;
+         handle->info.loop_end = 8*header[14]/handle->bits_sample;
+         handle->info.loop_count = header[16];
+#if 0
+   printf("Base Frequency: %f\n", handle->info.base_frequency);
+   printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
+   printf("Looping: %s\n", handle->info.loop_count ? "yes" : "no");
+   if (handle->info.loop_count)
+   {
+      printf(" - Loop Count: %li\n", handle->info.loop_count);
+      printf(" - Loop Start: %lu\n", handle->info.loop_start);
+      printf(" - Loop End:   %lu\n", handle->info.loop_end);
+   }
+#endif
       }
+   }
+   else if (curr == 0x74736e69)		/* inst */
+   {
+// https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
+      curr = BSWAP(header[1]);
+      *step = rv = 2*sizeof(int32_t) + curr;
+
+      handle->info.base_frequency = note2freq((uint8_t)header[2]);
+      handle->info.pitch_fraction = cents2pitch((int)header[3], 0.5f);
+      handle->info.low_frequency = note2freq((uint8_t)header[5]);
+      handle->info.high_frequency = note2freq((uint8_t)header[6]);
+#if 0
+   printf("Base Frequency: %f\n", handle->info.base_frequency);
+   printf("Low Frequency:  %f\n", handle->info.low_frequency);
+   printf("High Frequency: %f\n", handle->info.high_frequency);
+   printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
+#endif
    }
    else if (curr == 0x20657563 ||	/* cue  */
             curr == 0x74786562)		/* bext */
@@ -1053,7 +1084,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
 {
    void *res = NULL;
 
-   if (handle->no_samples != 0)
+   if (handle->info.no_samples != 0)
    {
       char extfmt = (handle->wavBufSize == WAVE_HEADER_SIZE) ? 0 : 1;
 //    int32_t *header = (int32_t*)handle->wavBuffer->data;
@@ -1061,14 +1092,14 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
       size_t size;
       uint32_t s;
 
-      size = (handle->no_samples*handle->no_tracks*handle->bits_sample)/8;
+      size =(handle->info.no_samples*handle->info.tracks*handle->bits_sample)/8;
       s =  4*handle->wavBufSize + size - 8;
       header[1] = s;
 
       s = size;
       if (extfmt)
       {
-         header[17] = handle->no_samples;
+         header[17] = handle->info.no_samples;
          header[19] = s;
       }
       else {
