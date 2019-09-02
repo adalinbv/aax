@@ -445,10 +445,12 @@ void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
                    float freq1 = note2freq(info->note.min);
                    float freq2 = note2freq(info->note.max);
                    float value = dsp->slot[s].param[p].value;
+                   float lin = _MAX(value - adjust*_lin2log(freq), 0.01f);
                    float lin1 = _MAX(value - adjust*_lin2log(freq1), 0.01f);
                    float lin2 = _MAX(value - adjust*_lin2log(freq2), 0.01f);
                    fprintf(output, "  <!-- %iHz: %s", (int)freq1, format_float3(lin1));
-                   fprintf(output, " - %iHz: %s -->" , (int)freq2, format_float3(lin2));
+                   fprintf(output, " - %iHz: %s" , (int)freq2, format_float3(lin2));
+                   fprintf(output, ", %iHz: %s -->\n", (int)freq, format_float3(lin));
                }
                else
                {
@@ -1068,7 +1070,7 @@ int main(int argc, char **argv)
         aaxDriverDestroy(config);
 
 //      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
-        rms = 0.8f*10.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
+        rms = 6.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
 
         printf("%-32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
         printf(", new gain: %4.1f\n", (gain > 0.0f) ? rms : -gain);
