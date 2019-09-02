@@ -1032,14 +1032,14 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       curr = BSWAP(header[9]);
       if (curr && *step >= (17*4))
       {
-         float semitones = 100.0f*header[6]/(float)0xFFFFFFFF;
+         float cents = 100.0f*header[6]/(float)0xFFFFFFFF;
 
          handle->info.base_frequency = note2freq((uint8_t)header[5]);
-         handle->info.pitch_fraction = cents2pitch(semitones, 1.0f);
+         handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
          handle->info.loop_start = 8*header[13]/handle->bits_sample;
          handle->info.loop_end = 8*header[14]/handle->bits_sample;
          handle->info.loop_count = header[16];
-#if 0
+#if 1
    printf("Base Frequency: %f\n", handle->info.base_frequency);
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
    printf("Looping: %s\n", handle->info.loop_count ? "yes" : "no");

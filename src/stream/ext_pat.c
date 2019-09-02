@@ -41,17 +41,10 @@ typedef struct
    int capturing;
    int mode;
 
-   int track_no;
-   int no_tracks;
-   int bits_sample;
-   int frequency;
    int bitrate;
-   enum aaxFormat format;
-   size_t blocksize;
-   size_t no_samples;
+   int bits_sample;
    size_t max_samples;
-   size_t loop_start;
-   size_t loop_end;
+   _buffer_info_t info;
 
    char copy_to_buffer;
 
@@ -90,17 +83,17 @@ _pat_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->bits_sample = bits_sample;
-         handle->blocksize = tracks*bits_sample/8;
-         handle->frequency = freq;
-         handle->no_tracks = 1;
-         handle->format = format;
          handle->bitrate = bitrate;
-         handle->no_samples = no_samples;
          handle->max_samples = 0;
+         handle->info.freq = freq;
+         handle->info.tracks = 1;
+         handle->info.fmt = format;
+         handle->info.no_samples = no_samples;
+         handle->info.blocksize = tracks*bits_sample/8;
 
          if (handle->capturing)
          {
-            handle->no_samples = UINT_MAX;
+            handle->info.no_samples = UINT_MAX;
             *bufsize = FILE_HEADER_SIZE;
          }
          else {
@@ -154,21 +147,21 @@ _pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
                   }
 
                   handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
-                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
                   handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
-                  if (!handle->fmt->setup(handle->fmt, fmt, handle->format))
+                  if (!handle->fmt->setup(handle->fmt, fmt, handle->info.fmt))
                   {
                      *bufsize = 0;
                      handle->fmt = _fmt_free(handle->fmt);
                      return rv;
                   }
 
-                  handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
+                  handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.freq);
                   handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
-                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
-                  handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
+                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+                  handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->info.no_samples);
                   handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
-                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
                }
 
                if (handle->fmt)
@@ -298,10 +291,10 @@ _pat_get(_ext_t *ext, int type)
       rv = (handle->patch.modes & 0x4) ? INT_MAX : 0;
       break;
    case __F_LOOP_START:
-      rv = handle->loop_start >> 4;
+      rv = handle->info.loop_start >> 4;
       break;
    case __F_LOOP_END:
-      rv = handle->loop_end >> 4;
+      rv = handle->info.loop_end >> 4;
       break;
    default:
       rv = handle->fmt->get(handle->fmt, type);
@@ -366,6 +359,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 
    if (!memcmp(header, GF1_HEADER_TEXT, HEADER_SIZE))
    {
+      float cents;
+
       // Patch Header
       memcpy(handle->header.header, header, HEADER_SIZE);
       header += HEADER_SIZE;
@@ -488,30 +483,46 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       switch (handle->patch.modes & 0x3)
       {
       case 0:
-         handle->format = AAX_PCM8S;
+         handle->info.fmt = AAX_PCM8S;
          handle->bits_sample = 8;
          break;
       case 1:
-         handle->format = AAX_PCM16S;
+         handle->info.fmt = AAX_PCM16S;
          handle->bits_sample = 16;
          break;
       case 2:
-         handle->format = AAX_PCM8U;
+         handle->info.fmt = AAX_PCM8U;
          handle->bits_sample = 8;
          break;
       case 3:
-         handle->format = AAX_PCM16U;
+         handle->info.fmt = AAX_PCM16U;
          handle->bits_sample = 16;
          break;
       default:
          break;
       }
-      handle->blocksize = handle->no_tracks*handle->bits_sample/8;
-      handle->no_samples = SIZE2SAMPLES(handle, handle->patch.wave_size);
-      handle->frequency = handle->patch.sample_rate;
 
-      handle->loop_start = SIZE2SAMPLES(handle, (handle->patch.start_loop << 4) + (handle->patch.fractions >> 4));
-      handle->loop_end = SIZE2SAMPLES(handle, (handle->patch.end_loop << 4) + (handle->patch.fractions && 0xF));
+      handle->info.freq = handle->patch.sample_rate;
+      handle->info.blocksize = handle->info.tracks*handle->bits_sample/8;
+      handle->info.no_samples = SIZE2SAMPLES(handle, handle->patch.wave_size);
+
+      handle->info.loop_start = SIZE2SAMPLES(handle, (handle->patch.start_loop << 4) + (handle->patch.fractions >> 4));
+      handle->info.loop_end = SIZE2SAMPLES(handle, (handle->patch.end_loop << 4) + (handle->patch.fractions && 0xF));
+
+      handle->info.base_frequency = 0.001f*handle->patch.root_frequency;
+      handle->info.low_frequency = 0.001f*handle->patch.low_frequency;
+      handle->info.high_frequency = 0.001f*handle->patch.high_frequency;
+
+      cents = 100.0f*(handle->patch.scale_factor-1024.0f)/1024.0f;
+      handle->info.pitch_fraction = cents2pitch(cents, 1.0f);
+
+      handle->info.tremolo_rate = CVTRATE(handle->patch.tremolo_rate);
+      handle->info.tremolo_depth = CVTDEPTH(handle->patch.tremolo_depth);
+      handle->info.tremolo_sweep = CVTSWEEP(handle->patch.tremolo_sweep);
+
+      handle->info.vibrato_rate = CVTRATE(handle->patch.vibrato_rate);
+      handle->info.vibrato_depth = CVTDEPTH(handle->patch.vibrato_depth);
+      handle->info.vibrato_sweep = CVTSWEEP(handle->patch.vibrato_sweep);
 
 #if 0
  printf("Header:\t\t\t%s\n", handle->header.header);
@@ -536,8 +547,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Samples:\t\t%i\n\n", handle->layer.samples);
 
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
- printf("Loop start:\t\t%g (%gs)\n", handle->loop_start/16.0f, SIZE2TIME(handle,handle->loop_start/16.0f));
- printf("Loop end:\t\t%g (%gs)\n", handle->loop_end/16.0f, SIZE2TIME(handle,handle->loop_end/16.0f));
+ printf("Loop start:\t\t%g (%gs)\n", handle->info.loop_start/16.0f, SIZE2TIME(handle,handle->info.loop_start/16.0f));
+ printf("Loop end:\t\t%g (%gs)\n", handle->info.loop_end/16.0f, SIZE2TIME(handle,handle->info.loop_end/16.0f));
  printf("Sample size:\t\t%i (%gs)\n", SIZE2SAMPLES(handle,handle->patch.wave_size), SIZE2TIME(handle,handle->patch.wave_size));
  printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
  printf("Low Frequency:\t\t%g Hz\n", 0.001f*handle->patch.low_frequency);
@@ -561,20 +572,20 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("\n");
 
  printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_sweep,
-                                         CVTSWEEP(handle->patch.tremolo_sweep));
+                                             handle->info.tremolo_sweep);
  printf("Tremolo Rate:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_rate,
-                                           CVTRATE(handle->patch.tremolo_rate));
+                                            handle->info.tremolo_rate);
  printf("Tremolo Depth:\t\t%3i (%.2g, %.3gdB)\n", handle->patch.tremolo_depth,
-                                          CVTDEPTH(handle->patch.tremolo_depth),
+                                                  handle->info.tremolo_depth,
                                        CVTDEPT2DB(handle->patch.tremolo_depth));
 
  printf("Vibrato Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_sweep,
-                                         CVTSWEEP(handle->patch.vibrato_sweep));
+                                             handle->info.vibrato_sweep);
  printf("Vibrato Rate:\t\t%3i (%.3g Hz)\n", handle->patch.vibrato_rate,
-                                           CVTRATE(handle->patch.vibrato_rate));
+                                            handle->info.vibrato_rate);
  printf("Vibrato Depth:\t\t%3i (%.3g octave, %g cents)\n",
                                                   handle->patch.vibrato_depth,
-                                         CVTDEPTH(handle->patch.vibrato_depth),
+                                                  handle->info.vibrato_depth,
                                     CVTDEPT2CENTS(handle->patch.vibrato_depth));
 
  printf("Modes:\t\t\t0x%x\n", handle->patch.modes);
@@ -590,7 +601,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
             (handle->patch.modes & 0x40) ? "envelope" : "note-off",
             (handle->patch.modes & 0x80) ? "yes" : "no");
  printf("Scale Frequency:\t%i\n", handle->patch.scale_frequency);
- printf("Scale Factor:\t\t%i\n\n", handle->patch.scale_factor);
+ printf("Scale Factor:\t\t%i (%gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
 #endif
 
       rv = FILE_HEADER_SIZE;
