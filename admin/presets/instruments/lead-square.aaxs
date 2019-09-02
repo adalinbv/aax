@@ -12,14 +12,14 @@
 
 <aeonwave>
 
- <info name="Lead 1 (square)" bank="0" program="80">
+ <info name="Lead 1 (Square)" bank="0" program="80">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="8" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="1.89" frequency="220">
+ <sound gain="1.41" frequency="220">
   <waveform src="sawtooth"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="4.9897"/>
   <waveform src="triangle" processing="modulate" ratio="1.2" pitch="3.4991"/>
@@ -42,15 +42,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.6</param>
+    <param n="0">0.725</param>
     <param n="1">0.04</param>
-    <param n="2">0.8</param>
+    <param n="2">0.967</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.6</param>
+    <param n="0">0.725</param>
     <param n="1">inf</param>
-    <param n="2">0.6</param>
+    <param n="2">0.725</param>
     <param n="3">0.5</param>
    </slot>
   </filter>

@@ -12,14 +12,14 @@
 
 <aeonwave>
 
- <info name="Pad 8 (sweep)" bank="0" program="95">
+ <info name="Pad 8 (Sweep)" bank="0" program="95">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.68" frequency="220" duration="0.25" voices="5" spread="0.3">
+ <sound gain="1.26" frequency="220" duration="0.25" voices="5" spread="0.3">
   <waveform src="sine"/>
   <waveform src="impulse" processing="mix" pitch="1.5"/>
   <waveform src="impulse" processing="mix" pitch="2.0"/>
@@ -42,15 +42,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.237</param>
+    <param n="0">0.285</param>
     <param n="1">0.04</param>
-    <param n="2">1.19</param>
+    <param n="2">1.43</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.949</param>
+    <param n="0">1.14</param>
     <param n="1">inf</param>
-    <param n="2">0.949</param>
+    <param n="2">1.14</param>
     <param n="3">0.5</param>
    </slot>
   </filter>

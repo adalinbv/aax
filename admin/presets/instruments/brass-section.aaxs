@@ -19,7 +19,7 @@
   <note polyphony="4" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="3.43" frequency="440">
+ <sound gain="2.57" frequency="440">
   <waveform src="impulse" ratio="0.25" voices="3" spread="0.2" phasing="true"/>
   <waveform src="impulse" processing="mix" ratio="0.25" pitch="0.9857"/>
   <waveform src="impulse" processing="mix" ratio="0.25" pitch="0.999"/>
@@ -30,13 +30,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.05</param>
-    <param n="2">1.1</param>
+    <param n="2">1.32</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">1.03</param>
+    <param n="0">1.24</param>
     <param n="1">inf</param>
-    <param n="2">1.03</param>
+    <param n="2">1.24</param>
     <param n="3">0.5</param>
    </slot>
   </filter>

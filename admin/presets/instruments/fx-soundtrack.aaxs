@@ -19,8 +19,8 @@
   <note polyphony="8" min="36" max="84" step="12"/>
  </info>
 
- <sound gain="2.61" frequency="110" duration="0.5" voices="3" spread="0.4" phasing="true">
-  <waveform src="sawtooth" voices="1"/>
+ <sound gain="1.91" frequency="110" duration="0.5" voices="3" spread="0.4" phasing="true">
+  <waveform src="sawtooth"/>
   <waveform src="triangle" processing="mix" pitch="4.9897"/>
   <waveform src="sawtooth" processing="mix" ratio="0.6" pitch="0.5"/>
  </sound>
@@ -44,13 +44,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.04</param>
-    <param n="2">0.321</param>
+    <param n="2">0.395</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.401</param>
+    <param n="0">0.494</param>
     <param n="1">0.45</param>
-    <param n="2">0.241</param>
+    <param n="2">0.297</param>
     <param n="3">8.0</param>
    </slot>
   </filter>

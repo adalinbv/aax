@@ -19,7 +19,7 @@
   <note polyphony="6" min="28" max="96" step="12"/>
  </info>
 
- <sound gain="1.23" frequency="220" duration="0.1">
+ <sound gain="0.93" frequency="220" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" ratio="1.1" pitch="3.989"/>
@@ -30,13 +30,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>
-    <param n="2">1.43</param>
+    <param n="2">1.71</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.834</param>
+    <param n="0">0.997</param>
     <param n="1" auto="1.5">4.0</param>
-    <param n="2">0.0596</param>
+    <param n="2">0.0713</param>
     <param n="3">0.1</param>
    </slot>
   </filter>

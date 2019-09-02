@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.61" frequency="1" duration="10.0">
+ <sound fixed-gain="1.61" frequency="8" duration="10.0">
   <waveform src="pink-noise" ratio="5.0" pitch="0.0025" staticity="0.995"/>
   <filter type="bitcrusher">
    <slot n="0">
@@ -39,7 +39,7 @@
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="50.0">50.0</param>
+    <param n="0" pitch="50.0">400.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">14.0</param>

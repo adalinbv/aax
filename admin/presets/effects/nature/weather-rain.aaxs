@@ -23,7 +23,7 @@
   <waveform src="white-noise" pitch="0.2"/>
   <waveform src="pink-noise" processing="modulate" ratio="30.0"/>
   <waveform src="pink-noise" processing="modulate" ratio="3.0" pitch="2.0"/>
-  <filter type="frequency" src="12db">
+  <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="0.5">110.0</param>
     <param n="1">0.0</param>

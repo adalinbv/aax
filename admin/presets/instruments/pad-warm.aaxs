@@ -19,7 +19,7 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.70" frequency="220" duration="0.3">
+ <sound gain="1.28" frequency="220" duration="0.3">
   <waveform src="brownian-noise" pitch="0.125"/>
   <waveform src="sine" processing="mix" pitch="0.501" voices="5" spread="0.7"/>
   <waveform src="triangle" processing="add" ratio="0.4" pitch="0.9899" voices="3" spread="0.1"/>
@@ -42,15 +42,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.249</param>
+    <param n="0">0.297</param>
     <param n="1">0.84</param>
-    <param n="2">2.49</param>
+    <param n="2">2.97</param>
     <param n="3">1.95</param>
    </slot>
    <slot n="1">
-    <param n="0">1.24</param>
+    <param n="0">1.48</param>
     <param n="1">inf</param>
-    <param n="2">2.27</param>
+    <param n="2">2.71</param>
     <param n="3">0.5</param>
    </slot>
   </filter>

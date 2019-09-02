@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Geiger-Muller Counte" bank="0" program="0">
+ <info name="Geiger-muller Counte" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
@@ -21,7 +21,7 @@
 
  <sound fixed-gain="1.95" frequency="430" duration="3.3">
   <waveform src="white-noise" ratio="40.0" pitch="0.01" staticity="0.975"/>
-  <filter type="frequency" src="12db">
+  <filter type="frequency">
    <slot n="0">
     <param n="0">420.0</param>
     <param n="1">0.0</param>

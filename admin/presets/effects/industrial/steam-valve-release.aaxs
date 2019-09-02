@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.38" frequency="80" duration="3.33">
+ <sound gain="1.08" frequency="80" duration="3.33">
   <waveform src="white-noise" pitch="0.7"/>
   <effect type="distortion">
    <slot n="0">
@@ -44,11 +44,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.1</param>
-    <param n="2">1.03</param>
+    <param n="2">1.18</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.03</param>
+    <param n="0">1.18</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

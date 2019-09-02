@@ -12,14 +12,14 @@
 
 <aeonwave>
 
- <info name="Lead 3 (calliope)" bank="0" program="82">
+ <info name="Lead 3 (Calliope)" bank="0" program="82">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="43" min="48" max="96" step="6"/>
  </info>
 
- <sound gain="0.63" frequency="880" duration="0.3">
+ <sound gain="0.47" frequency="880" duration="0.3">
   <waveform src="pink-noise"/>
   <waveform src="white-noise" processing="modulate" ratio="2.0"/>
   <waveform src="sine" processing="mix" ratio="0.025"/>
@@ -52,15 +52,15 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.364</param>
+    <param n="0">0.44</param>
     <param n="1">0.05</param>
-    <param n="2">1.36</param>
+    <param n="2">1.64</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.91</param>
+    <param n="0">1.1</param>
     <param n="1">inf</param>
-    <param n="2">0.91</param>
+    <param n="2">1.1</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

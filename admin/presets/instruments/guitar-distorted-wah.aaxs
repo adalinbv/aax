@@ -19,11 +19,11 @@
   <note polyphony="6" min="40" max="86" step="12"/>
  </info>
 
- <sound gain="2.27" frequency="220" duration="0.1">
+ <sound gain="1.70" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" pitch="5.0"/>
-  <filter type="frequency" src="true">
+  <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="2.5">550.0</param>
     <param n="1">1.0</param>
@@ -52,11 +52,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.1</param>
-    <param n="2">1.09</param>
+    <param n="2">1.31</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.835</param>
+    <param n="0">1.0</param>
     <param n="1" auto="1.5">24.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -93,7 +93,7 @@
     <param n="3">1.5</param>
    </slot>
   </filter>
-  <effect type="phasing" src="true" optional="true">
+  <effect type="phasing" optional="true">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.0</param>

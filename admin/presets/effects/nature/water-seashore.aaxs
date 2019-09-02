@@ -21,7 +21,7 @@
 
  <sound fixed-gain="1.00" frequency="220" duration="3.33">
   <waveform src="white-noise" pitch="0.33"/>
-  <filter type="frequency" src="12db">
+  <filter type="frequency">
    <slot n="0">
     <param n="0">100.0</param>
     <param n="1">0.0</param>

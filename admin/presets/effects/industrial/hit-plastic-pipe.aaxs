@@ -12,14 +12,14 @@
 
 <aeonwave>
 
- <info name="plastic pipe Hit" bank="0" program="0">
+ <info name="Plastic Pipe Hit" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.01" frequency="110">
+ <sound gain="1.51" frequency="110">
   <waveform src="sawtooth"/>
   <waveform src="sine" processing="mix" ratio="0.5" pitch="1.9897"/>
   <waveform src="triangle" processing="modulate" pitch="1.4991"/>
@@ -50,13 +50,13 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.878</param>
+    <param n="0">1.05</param>
     <param n="1">0.04</param>
-    <param n="2">0.731</param>
+    <param n="2">0.877</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">0.658</param>
+    <param n="0">0.789</param>
     <param n="1">2.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

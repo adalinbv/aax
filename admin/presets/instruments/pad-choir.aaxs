@@ -12,14 +12,14 @@
 
 <aeonwave>
 
- <info name="Pad 4 (choir)" bank="0" program="91">
+ <info name="Pad 4 (Choir)" bank="0" program="91">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="8" min="48" max="84" step="12"/>
  </info>
 
- <sound gain="1.70" frequency="220" duration="0.3">
+ <sound gain="1.32" frequency="220" duration="0.3">
   <waveform src="triangle" pitch="0.5"/>
   <waveform src="triangle" processing="modulate" pitch="0.5"/>
   <waveform src="brownian-noise" processing="add" ratio="0.1"/>
@@ -36,15 +36,15 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.162</param>
+    <param n="0">0.188</param>
     <param n="1">0.2</param>
-    <param n="2">0.811</param>
+    <param n="2">0.943</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.728</param>
+    <param n="0">0.846</param>
     <param n="1">inf</param>
-    <param n="2">0.705</param>
+    <param n="2">0.819</param>
     <param n="3">0.6</param>
    </slot>
   </filter>

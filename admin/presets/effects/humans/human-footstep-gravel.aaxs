@@ -21,7 +21,7 @@
 
  <sound fixed-gain="1.00" frequency="220" duration="0.3">
   <waveform src="white-noise" pitch="0.35" staticity="0.45"/>
-  <filter type="frequency" src="12db">
+  <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="6.0">1320.0</param>
     <param n="1">1.2</param>
@@ -34,9 +34,9 @@
  <emitter looping="true">
   <filter type="timed-gain" repeat="max">
    <slot n="0">
-    <param n="0">1.0</param>
+    <param n="0">0.9</param>
     <param n="1">0.1</param>
-    <param n="2">0.01</param>
+    <param n="2">0.009</param>
     <param n="3" auto="1.0">3.3</param>
    </slot>
   </filter>

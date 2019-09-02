@@ -40,13 +40,13 @@
   </filter>
   <filter type="timed-gain" repeat="max">
    <slot n="0">
-    <param n="0">0.05</param>
+    <param n="0">0.045</param>
     <param n="1">1.0</param>
-    <param n="2">0.5</param>
+    <param n="2">0.45</param>
     <param n="3">0.9</param>
    </slot>
    <slot n="1">
-    <param n="0">0.08</param>
+    <param n="0">0.072</param>
     <param n="1">0.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
