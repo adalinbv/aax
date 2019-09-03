@@ -291,19 +291,19 @@ _pat_get(_ext_t *ext, int type)
       rv = (handle->patch.modes & 0x4) ? INT_MAX : 0;
       break;
    case __F_LOOP_START:
-      rv = handle->info.loop_start >> 4;
+      rv = handle->info.loop_start;
       break;
    case __F_LOOP_END:
-      rv = handle->info.loop_end >> 4;
+      rv = handle->info.loop_end;
       break;
    case __F_BASE_FREQUENCY:
-      rv = handle->info.base_frequency;
+      rv = handle->info.base_frequency*(1 << 16);
       break;
    case __F_LOW_FREQUENCY:
-      rv = handle->info.low_frequency;
+      rv = handle->info.low_frequency*(1 << 16);
       break;
    case __F_HIGH_FREQUENCY:
-      rv = handle->info.high_frequency;
+      rv = handle->info.high_frequency*(1 << 16);
       break;
    case __F_PITCH_FRACTION:
       rv = handle->info.pitch_fraction*(1 << 24);
@@ -566,7 +566,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
          handle->info.volume_envelope[2*i+1] = v;
       }
 
-#if 0
+#if 1
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
  printf("Description:\t\t%s\n", handle->header.description);

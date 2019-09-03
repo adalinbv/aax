@@ -669,19 +669,19 @@ _wav_get(_ext_t *ext, int type)
       rv = handle->info.loop_count;
       break;
    case __F_LOOP_START:
-      rv = handle->info.loop_start;
+      rv = handle->info.loop_start << 4;
       break;
    case __F_LOOP_END:
-      rv = handle->info.loop_end;
+      rv = handle->info.loop_end << 4;
       break;
    case __F_BASE_FREQUENCY:
-      rv = handle->info.base_frequency;
+      rv = handle->info.base_frequency*(1 << 16);
       break;
    case __F_LOW_FREQUENCY:
-      rv = handle->info.low_frequency;
+      rv = handle->info.low_frequency*(1 << 16);
       break;
    case __F_HIGH_FREQUENCY:
-      rv = handle->info.high_frequency;
+      rv = handle->info.high_frequency*(1 << 16);
       break;
    case __F_PITCH_FRACTION:
       rv = handle->info.pitch_fraction*(1 << 24);
