@@ -1069,7 +1069,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          handle->info.loop_start = 8*header[13]/handle->bits_sample;
          handle->info.loop_end = 8*header[14]/handle->bits_sample;
          handle->info.loop_count = header[16];
-#if 1
+#if 0
    printf("Base Frequency: %f\n", handle->info.base_frequency);
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
    printf("Looping: %s\n", handle->info.loop_count ? "yes" : "no");

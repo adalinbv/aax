@@ -566,7 +566,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
          handle->info.volume_envelope[2*i+1] = v;
       }
 
-#if 1
+#if 0
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
  printf("Description:\t\t%s\n", handle->header.description);
