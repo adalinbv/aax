@@ -1175,19 +1175,19 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_COUNT);
          break;
       case DRIVER_LOOP_START:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_START);
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_START)/(1 << 4);
          break;
       case DRIVER_LOOP_END:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END);
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END)/(1 << 4);
          break;
       case DRIVER_BASE_FREQUENCY:
-         rv = (float)handle->ext->get_param(handle->ext, __F_BASE_FREQUENCY);
+         rv = (float)handle->ext->get_param(handle->ext, __F_BASE_FREQUENCY)/(1 << 16);
          break;
       case DRIVER_LOW_FREQUENCY:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOW_FREQUENCY);
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOW_FREQUENCY)/(1 << 16);
          break;
       case DRIVER_HIGH_FREQUENCY:
-         rv = (float)handle->ext->get_param(handle->ext, __F_HIGH_FREQUENCY);
+         rv = (float)handle->ext->get_param(handle->ext, __F_HIGH_FREQUENCY)/(1 << 16);
          break;
       case DRIVER_PITCH_FRACTION:
          rv = (float)handle->ext->get_param(handle->ext, __F_PITCH_FRACTION)/(1<<24);
