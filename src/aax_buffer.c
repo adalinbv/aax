@@ -1016,6 +1016,16 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info)
                info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
                info->loop_start = stream->param(id, DRIVER_LOOP_START);
                info->loop_end = stream->param(id, DRIVER_LOOP_END);
+               info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
+               info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
+               info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);
+               info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
+               info->tremolo_rate = stream->param(id, DRIVER_TREMOLO_RATE);
+               info->tremolo_depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
+               info->tremolo_sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
+               info->vibrato_rate = stream->param(id, DRIVER_VIBRATO_RATE);
+               info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
+               info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
             }
          }
          stream->disconnect(id);

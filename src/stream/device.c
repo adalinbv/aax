@@ -1180,6 +1180,36 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_LOOP_END:
          rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END);
          break;
+      case DRIVER_BASE_FREQUENCY:
+         rv = (float)handle->ext->get_param(handle->ext, __F_BASE_FREQUENCY);
+         break;
+      case DRIVER_LOW_FREQUENCY:
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOW_FREQUENCY);
+         break;
+      case DRIVER_HIGH_FREQUENCY:
+         rv = (float)handle->ext->get_param(handle->ext, __F_HIGH_FREQUENCY);
+         break;
+      case DRIVER_PITCH_FRACTION:
+         rv = (float)handle->ext->get_param(handle->ext, __F_PITCH_FRACTION)/(1<<24);
+         break;
+      case DRIVER_TREMOLO_RATE:
+         rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_RATE)/(1<<24);
+         break;
+      case DRIVER_TREMOLO_DEPTH:
+         rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_DEPTH)/(1<<24);
+         break;
+      case DRIVER_TREMOLO_SWEEP:
+         rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_SWEEP)/(1<<24);
+         break;
+      case DRIVER_VIBRATO_RATE:
+         rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_RATE)/(1<<24);
+         break;
+      case DRIVER_VIBRATO_DEPTH:
+         rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_DEPTH)/(1<<24);
+         break;
+      case DRIVER_VIBRATO_SWEEP:
+         rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_SWEEP)/(1<<24);
+         break;
       case DRIVER_SAMPLE_DELAY:
          rv = (float)handle->no_samples;
          break;

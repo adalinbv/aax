@@ -296,6 +296,36 @@ _pat_get(_ext_t *ext, int type)
    case __F_LOOP_END:
       rv = handle->info.loop_end >> 4;
       break;
+   case __F_BASE_FREQUENCY:
+      rv = handle->info.base_frequency;
+      break;
+   case __F_LOW_FREQUENCY:
+      rv = handle->info.low_frequency;
+      break;
+   case __F_HIGH_FREQUENCY:
+      rv = handle->info.high_frequency;
+      break;
+   case __F_PITCH_FRACTION:
+      rv = handle->info.pitch_fraction*(1 << 24);
+      break;
+   case __F_TREMOLO_RATE:
+      rv = handle->info.tremolo_rate*(1 << 24);
+      break;
+   case __F_TREMOLO_DEPTH:
+      rv = handle->info.tremolo_depth*(1 << 24);
+      break;
+   case __F_TREMOLO_SWEEP:
+      rv = handle->info.tremolo_sweep*(1 << 24);
+      break;
+   case __F_VIBRATO_RATE:
+      rv = handle->info.vibrato_rate*(1 << 24);
+      break;
+   case __F_VIBRATO_DEPTH:
+      rv = handle->info.vibrato_depth*(1 << 24);
+      break;
+   case __F_VIBRATO_SWEEP:
+      rv = handle->info.vibrato_sweep*(1 << 24);
+      break;
    default:
       rv = handle->fmt->get(handle->fmt, type);
       break;
@@ -360,6 +390,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
    if (!memcmp(header, GF1_HEADER_TEXT, HEADER_SIZE))
    {
       float cents;
+      int i;
 
       // Patch Header
       memcpy(handle->header.header, header, HEADER_SIZE);
@@ -524,6 +555,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       handle->info.vibrato_depth = CVTDEPTH(handle->patch.vibrato_depth);
       handle->info.vibrato_sweep = CVTSWEEP(handle->patch.vibrato_sweep);
 
+      for (i=0; i<6; ++i)
+      {
+         float v = env_offset_to_level(handle->patch.envelope_offset[i]);
+         handle->info.volume_envelope[2*i] = v;
+      }
+      for (i=0; i<6; ++i)
+      {
+         float v = env_rate_to_time(handle->patch.envelope_rate[i]);
+         handle->info.volume_envelope[2*i+1] = v;
+      }
+
 #if 0
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
@@ -557,16 +599,16 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Panning:\t\t%.1f\n", (float)(handle->patch.balance - 7)/16.0f);
 
  printf("Envelope Rates:\t\t");
- for (int i=0; i<6; ++i) {
-  float v = env_rate_to_time(handle->patch.envelope_rate[i]);
+ for (i=0; i<6; ++i) {
+  float v = handle->info.volume_envelope[2*i+1];
   if (v < 0.1f) printf ("%4.2fms\t", v*1000.0f);
   else printf("%4.2fs\t", v);
  }
  printf("\n");
 
  printf("Envelope Offsets:\t");
- for (int i=0; i<6; ++i) {
-  float v = env_offset_to_level(handle->patch.envelope_offset[i]);
+ for (i=0; i<6; ++i) {
+  float v = handle->info.volume_envelope[2*i];
   printf("%6.4f\t", v);
  }
  printf("\n");
