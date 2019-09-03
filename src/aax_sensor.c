@@ -288,16 +288,16 @@ aaxSensorGetBuffer(const aaxConfig config)
                buf->id = BUFFER_ID;
                buf->ref_counter = 1;
 
-               buf->blocksize = 1;
+               buf->info.blocksize = 1;
                buf->pos = 0;
-               buf->no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-               buf->no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-               buf->format = rb->get_parami(rb, RB_FORMAT);
-               buf->frequency = rb->get_paramf(rb, RB_FREQUENCY);
+               buf->info.tracks = rb->get_parami(rb, RB_NO_TRACKS);
+               buf->info.no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+               buf->info.fmt = rb->get_parami(rb, RB_FORMAT);
+               buf->info.freq = rb->get_paramf(rb, RB_FREQUENCY);
 
                buf->mipmap = AAX_FALSE;
 
-               buf->info = &_info;
+               buf->mixer_info = &_info;
                rb->set_parami(rb, RB_IS_MIXER_BUFFER, AAX_FALSE);
                buf->ringbuffer[0] = rb;
 

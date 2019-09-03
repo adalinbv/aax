@@ -20,6 +20,9 @@ file extension (container format)
     + wav
       - handle container header
       * format (pcm, mp3)
+    + pat
+      - handle file structure
+      * format (pcm)
     + ogg
       - handle package headers
       * format (vorbis, opus, flac, speex)

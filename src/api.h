@@ -232,44 +232,7 @@ typedef enum
 
 typedef struct
 {
-   unsigned int id;	/* always first */
-   unsigned int ref_counter;
-
-   int blocksize;
-   unsigned int pos;
-   unsigned int no_tracks, no_samples;
-   off_t loop_start, loop_end, loop_count;
-   enum aaxFormat format;
-   float rms, peak, gain;
-   float frequency;
-   float rate;
-
-   char to_mixer;
-   char mipmap;
-
-   char pressure_mode;
-   char pitch_levels;
-   _aaxRingBuffer *ringbuffer[MAX_PITCH_LEVELS];
-   _aaxMixerInfo **info;
-   void *root;			/* reference to the mixer object */
-   void *aaxs;
-   void *url;
-
-} _buffer_t;
-
-typedef struct
-{
-   _buffer_t* parent;
-   const void *aaxs;
-   float frequency;
-   enum aaxErrorType error;
-
-} _buffer_aax_t;
-
-
-typedef struct
-{
-   int fmt;
+   enum aaxFormat fmt; 
    unsigned int tracks;
    unsigned int blocksize;
 
@@ -296,6 +259,39 @@ typedef struct
 // float pitch_envelope[2*_MAX_ENVELOPE_STAGES];
 
 } _buffer_info_t;
+
+typedef struct
+{
+   unsigned int id;	/* always first */
+   unsigned int ref_counter;
+
+   _buffer_info_t info;
+
+   unsigned int pos;
+   float rms, peak, gain;
+   float rate;
+
+   char to_mixer;
+   char mipmap;
+
+   char pressure_mode;
+   char pitch_levels;
+   _aaxRingBuffer *ringbuffer[MAX_PITCH_LEVELS];
+   _aaxMixerInfo **mixer_info;
+   void *root;			/* reference to the mixer object */
+   void *aaxs;
+   void *url;
+
+} _buffer_t;
+
+typedef struct
+{
+   _buffer_t* parent;
+   const void *aaxs;
+   float frequency;
+   enum aaxErrorType error;
+
+} _buffer_aax_t;
 
 _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);
 _buffer_t* get_buffer(aaxBuffer, const char*);
