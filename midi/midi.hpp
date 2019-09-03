@@ -265,6 +265,9 @@ class MIDIChannel;
 
 class MIDI : public AeonWave
 {
+private:
+    typedef std::map<uint8_t,std::pair<uint8_t,std::string>> _patch_t;
+
 public:
     MIDI(const char* n, const char *tnames = nullptr,
          enum aaxRenderMode m=AAX_MODE_WRITE_STEREO);
@@ -322,7 +325,7 @@ public:
 
     const std::pair<std::string,int> get_drum(uint16_t program, uint8_t key);
     const std::pair<std::string,int> get_instrument(uint16_t bank, uint8_t program);
-    std::map<std::string,std::map<uint8_t,std::string>>& get_patches() { return patches; }
+    std::map<std::string,_patch_t>& get_patches() { return patches; }
 
     inline void set_initialize(bool i) { initialize = i; };
     inline bool get_initialize() { return initialize; }
@@ -363,7 +366,7 @@ private:
     std::map<uint16_t,std::string> frames;
     std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> drums;
     std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> instruments;
-    std::map<std::string,std::map<uint8_t,std::string>> patches;
+    std::map<std::string,_patch_t> patches;
 
     std::vector<std::string> loaded;
 
@@ -437,7 +440,7 @@ public:
     inline bool get_pressure_pitch_bend() { return pressure_pitch_bend; }
 
 private:
-    std::string get_patch(std::string& name, uint8_t& key);
+    std::pair<uint8_t,std::string> get_patch(std::string& name, uint8_t& key);
 
     std::map<uint8_t,Buffer&> name_map;
 

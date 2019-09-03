@@ -260,8 +260,8 @@ MIDI::read_instruments()
                                     file[slen] = 0;
                                     bank.insert({n,{file,stereo}});
 
-                                    std::map<uint8_t,std::string> p;
-                                    p.insert({255,file});
+                                    _patch_t p;
+                                    p.insert({0,{i,file}});
 
                                     patches.insert({file,p});
 //                                  if (id == 0) printf("{%x, {%i, {%s, %i}}}\n", bank_no, n, file, wide);
@@ -331,8 +331,8 @@ MIDI::add_patch(const char *file)
         if (xlid)
         {
             unsigned int pnum = xmlNodeGetNum(xlid, "patch");
-            std::map<uint8_t,std::string> p;
             void *xpid = xmlMarkId(xlid);
+            _patch_t p;
             for (unsigned int i=0; i<pnum; i++)
             {
                 if (xmlNodeGetPos(xlid, xpid, "patch", i) != 0)
@@ -346,7 +346,7 @@ MIDI::add_patch(const char *file)
                         uint8_t max = xmlAttributeGetInt(xpid, "max");
                         file[slen] = 0;
 
-                        p.insert({max,file});
+                        p.insert({max,{i,file}});
                     }
                 }
             }
@@ -557,21 +557,21 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 }
 
 
-std::string
+std::pair<uint8_t,std::string>
 MIDIChannel::get_patch(std::string& name, uint8_t& key_no)
 {
     auto patches = midi.get_patches();
     auto it = patches.find(name);
     if (it != patches.end())
     {
-        auto patch = it->second.lower_bound(key_no);
+        auto patch = it->second.upper_bound(key_no);
         if (patch != it->second.end()) {
             return patch->second;
         }
     }
 
     key_no = 255;
-    return name;
+    return {0,name};
 }
 
 void
@@ -610,20 +610,22 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
     else
     {
         uint8_t key = key_no;
-        it = name_map.lower_bound(key);
+        it = name_map.upper_bound(key);
         if (it == name_map.end())
         {
             auto inst = midi.get_instrument(bank_no, program_no);
-            std::string name = get_patch(inst.first, key);
-            if (!name.empty())
+            auto patch = get_patch(inst.first, key);
+            std::string patch_name = patch.second;
+            uint8_t patch_level = patch.first;
+            if (!patch_name.empty())
             {
-                if (!midi.buffer_avail(name)) {
+                if (!midi.buffer_avail(patch_name)) {
                     DISPLAY("Loading instrument bank: %3i/%3i, program: %3i: %s\n",
                              bank_no >> 7, bank_no & 0x7F, program_no,
-                             name.c_str());
-                    midi.load(name);
+                             inst.first.c_str());
+                    midi.load(patch_name);
                 }
-                Buffer &buffer = midi.buffer(name, true);
+                Buffer &buffer = midi.buffer(patch_name, true);
                 if (buffer)
                 {
                     auto ret = name_map.insert({key,buffer});
