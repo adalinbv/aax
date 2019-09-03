@@ -271,7 +271,6 @@ typedef struct
 
    unsigned int pos;
    float rms, peak, gain;
-   float rate;
 
    char to_mixer;
    char mipmap;

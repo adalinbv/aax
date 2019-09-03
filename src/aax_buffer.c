@@ -304,7 +304,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = (unsigned int)handle->info.freq;
          break;
       case AAX_UPDATE_RATE:
-         rv = (unsigned int)handle->rate;
+         rv = (unsigned int)handle->info.base_frequency;
          break;
       case AAX_TRACKS:
          rv = handle->info.tracks;
@@ -1438,7 +1438,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (!freq)
       {
          freq = xmlAttributeGetDouble(xsid, "frequency");
-         handle->rate = freq;
+         handle->info.base_frequency = freq;
          if (max_frequency > 0.0f)
          {
             handle->pitch_levels =_MAX(1,1+log2i(ceilf(max_frequency/freq)));
