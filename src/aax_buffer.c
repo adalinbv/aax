@@ -748,17 +748,13 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
              if(buf->url) free(buf->url);
              buf->url = strdup(url);
 
-             buf->info.freq = info.freq;
-             buf->info.blocksize = info.blocksize;
-             buf->info.loop_start = info.loop_start;
-             buf->info.loop_end = info.loop_end;
-             buf->info.loop_count = info.loop_count;
+             memcpy(&buf->info, &info, sizeof(_buffer_info_t));
 
              if (rb)
              {
                 rb->set_paramf(rb, RB_FREQUENCY, buf->info.freq);
-                rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
                 rb->set_parami(rb, RB_LOOPPOINT_END, buf->info.loop_end);
+                rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
                 rb->set_parami(rb, RB_LOOPING, buf->info.loop_count);
              }
 
@@ -904,8 +900,8 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
          rb->set_format(rb, buf->info.fmt & AAX_FORMAT_NATIVE, AAX_FALSE);
          rb->set_parami(rb, RB_NO_TRACKS, buf->info.tracks);
          rb->set_parami(rb, RB_NO_SAMPLES, buf->info.no_samples);
-         rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
          rb->set_parami(rb, RB_LOOPPOINT_END, buf->info.loop_end);
+         rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
          rb->set_paramf(rb, RB_FREQUENCY, buf->info.freq);
 //       rb->set_paramf(rb, RB_BLOCKSIZE, buf->info.blocksize);
          /* Postpone until aaxBufferSetData gets called
@@ -1050,7 +1046,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
    if (!s || strcasecmp(s, ".aaxs")) {
       data = _bufGetDataFromStream(url, info);
 #if 0
- printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, info.fmt, info.tracks, info.freq, info.no_samples, info.blocksize);
+ printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, info->fmt, info->tracks, info->freq, info->no_samples, info->blocksize);
 #endif
    }
    free(url);
@@ -1084,8 +1080,8 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
       rv = aaxBufferSetData(buffer, data[0]);
       free(data);
 
-      rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
       rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
+      rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
       rb->set_parami(rb, RB_LOOPING, info->loop_count);
    }
 
@@ -1216,9 +1212,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
 }
 
 static int
-_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency, float min, float max)
+_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
 {
-   aaxFilter flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, min, max, NULL);
+   aaxFilter flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, handle->info.low_frequency, handle->info.high_frequency, NULL);
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
@@ -1386,8 +1382,8 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 {
    _buffer_t* handle = aax_buf->parent;
    float freq = aax_buf->frequency;
-   float min_frequency = 0.0f;
-   float max_frequency = 0.0f;
+   float low_frequency = 0.0f;
+   float high_frequency = 0.0f;
    int s, nsound, rv = AAX_FALSE;
    limitType limiter;
    void *xaid, *xsid;
@@ -1402,10 +1398,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    if (xaid)
    {
       if (xmlAttributeExists(xaid, "min")) {
-         min_frequency = note2freq(xmlAttributeGetInt(xaid, "min"));
+         low_frequency = note2freq(xmlAttributeGetInt(xaid, "min"));
       }
       if (xmlAttributeExists(xaid, "max")) {
-         max_frequency = note2freq(xmlAttributeGetInt(xaid, "max"));
+         high_frequency = note2freq(xmlAttributeGetInt(xaid, "max"));
       }
       xmlFree(xaid);
    }
@@ -1434,9 +1430,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       {
          freq = xmlAttributeGetDouble(xsid, "frequency");
          handle->info.base_frequency = freq;
-         if (max_frequency > 0.0f)
+         if (high_frequency > 0.0f)
          {
-            handle->pitch_levels =_MAX(1,1+log2i(ceilf(max_frequency/freq)));
+            handle->pitch_levels =_MAX(1,1+log2i(ceilf(high_frequency/freq)));
             if (handle->pitch_levels > MAX_PITCH_LEVELS) {
                handle->pitch_levels = MAX_PITCH_LEVELS;
             }
@@ -1447,21 +1443,34 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       {
          char *file = xmlAttributeGetString(xsid, "file");
 
-         handle->info.loop_start = xmlAttributeGetInt(xsid, "loop-start");
-         if (xmlAttributeExists(xsid, "loop-end")) {
-            handle->info.loop_end = xmlAttributeGetInt(xsid, "loop-end");
-         } else {
-            handle->info.loop_end = handle->info.no_samples;
-         }
-         if (handle->info.loop_end > handle->info.loop_start) {
-            handle->info.loop_count = INT_MAX;
-         }
-
          rv = _bufSetDataFromAAXS(handle, file, s);
          if (!rv) {
             aax_buf->error = AAX_INVALID_REFERENCE;
          }
          xmlFree(file);
+
+         if (!handle->info.loop_end) // loop was not defined in the file
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
+            unsigned int loop_start, loop_end;
+
+            loop_start = xmlAttributeGetInt(xsid, "loop-start");
+            if (xmlAttributeExists(xsid, "loop-end")) {
+               loop_end = xmlAttributeGetInt(xsid, "loop-end");
+            } else {
+               loop_end = handle->info.no_samples;
+            }
+            if (loop_end > loop_start) {
+               handle->info.loop_count = INT_MAX;
+            }
+
+            rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/handle->info.freq);
+            rb->set_paramf(rb, RB_LOOPPOINT_START,loop_start/handle->info.freq);
+            rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
+
+            handle->info.loop_start = loop_start;
+            handle->info.loop_end = loop_end;
+         }
 
          handle->pitch_levels = s;
 
@@ -1473,6 +1482,16 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          if (duration < 0.1f) {
             duration = 0.1f;
          }
+      }
+
+      if (!handle->info.base_frequency) {
+         handle->info.base_frequency = freq;
+      }
+      if (!handle->info.low_frequency) {
+         handle->info.low_frequency = low_frequency;
+      }
+      if (!handle->info.high_frequency) {
+         handle->info.high_frequency = high_frequency;
       }
 
       if (xmlAttributeExists(xsid, "bits"))
@@ -1521,11 +1540,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                      rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
                                              b, voices, spread, limiter & 1);
                   } else if (!strcasecmp(name, "filter")) {
-                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency,
-                                                  min_frequency, max_frequency);
+                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
                   } else if (!strcasecmp(name, "effect")) {
                      rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
-                                                  min_frequency, max_frequency);
+                                                 low_frequency, high_frequency);
                   }
                   xmlFree(name);
                   if (rv == AAX_FALSE) break;
