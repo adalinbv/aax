@@ -61,7 +61,7 @@ static void _bufGetDataInterleaved(_aaxRingBuffer*, void*, unsigned int, unsigne
 static void _bufConvertDataToPCM24S(void*, void*, unsigned int, enum aaxFormat);
 static void _bufConvertDataFromPCM24S(void*, void*, unsigned int, unsigned int, enum aaxFormat, unsigned int);
 static int _bufCreateFromAAXS(_buffer_t*, const void*, float);
-static int _bufSetDataFromAAXS(_buffer_t*, char*, int, unsigned int, unsigned int);
+static int _bufSetDataFromAAXS(_buffer_t*, char*, int);
 // static char** _bufCreateAAXS(_buffer_t*, void**, unsigned int);
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX];
@@ -1036,10 +1036,10 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info)
 }
 
 int
-_bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level, unsigned int loop_start, unsigned int loop_end)
+_bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 {
+   _buffer_info_t *info = &buffer->info;
    char *s, *u, *url, **data = NULL;
-   _buffer_info_t info;
    int rv = 0;
 
    u = strdup(buffer->url);
@@ -1048,7 +1048,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level, unsigned int loop_
 
    s = strrchr(url, '.');
    if (!s || strcasecmp(s, ".aaxs")) {
-      data = _bufGetDataFromStream(url, &info);
+      data = _bufGetDataFromStream(url, info);
 #if 0
  printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, info.fmt, info.tracks, info.freq, info.no_samples, info.blocksize);
 #endif
@@ -1064,34 +1064,29 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level, unsigned int loop_
          char **ndata;
          char *ptr;
 
-         ndata = (char**)_aax_malloc(&ptr, sizeof(void*), info.no_samples*sizeof(int32_t));
+         ndata = (char**)_aax_malloc(&ptr, sizeof(void*), info->no_samples*sizeof(int32_t));
          if (ndata)
          {
             *ndata = (void*)ptr;
-            _bufConvertDataToPCM24S(*ndata, *data, info.no_samples, info.fmt);
+            _bufConvertDataToPCM24S(*ndata, *data, info->no_samples, info->fmt);
             free(data);
             data = ndata;
          }
-         _batch_imul_value(*data, *data, sizeof(int32_t), info.no_samples, 256.0f);
+         _batch_imul_value(*data, *data, sizeof(int32_t), info->no_samples, 256.0f);
       }
 
-      buffer->info.fmt = AAX_PCM24S;
-      buffer->info.no_samples = info.no_samples;
-      buffer->info.blocksize = info.blocksize;
-      buffer->info.tracks = info.tracks;
-      buffer->info.freq = info.freq;
-
+      info->fmt = AAX_PCM24S;
 //    rb->set_format(rb, fmt, AAX_FALSE);
-      rb->set_parami(rb, RB_NO_TRACKS, buffer->info.tracks);
-      rb->set_paramf(rb, RB_FREQUENCY, buffer->info.freq);
-      rb->set_parami(rb, RB_NO_SAMPLES, buffer->info.no_samples);
+      rb->set_parami(rb, RB_NO_TRACKS, info->tracks);
+      rb->set_paramf(rb, RB_FREQUENCY, info->freq);
+      rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
 
       rv = aaxBufferSetData(buffer, data[0]);
       free(data);
 
-      rb->set_paramf(rb, RB_LOOPPOINT_START, loop_start/buffer->info.freq);
-      rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/buffer->info.freq);
-      rb->set_parami(rb, RB_LOOPING, loop_end > loop_start);
+      rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
+      rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
+      rb->set_parami(rb, RB_LOOPING, info->loop_count);
    }
 
    return rv;
@@ -1451,16 +1446,18 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (xmlAttributeExists(xsid, "file"))
       {
          char *file = xmlAttributeGetString(xsid, "file");
-         unsigned long loop_start, loop_end;
 
-         loop_start = xmlAttributeGetInt(xsid, "loop-start");
+         handle->info.loop_start = xmlAttributeGetInt(xsid, "loop-start");
          if (xmlAttributeExists(xsid, "loop-end")) {
-            loop_end = xmlAttributeGetInt(xsid, "loop-end");
+            handle->info.loop_end = xmlAttributeGetInt(xsid, "loop-end");
          } else {
-            loop_end = handle->info.no_samples;
+            handle->info.loop_end = handle->info.no_samples;
+         }
+         if (handle->info.loop_end > handle->info.loop_start) {
+            handle->info.loop_count = INT_MAX;
          }
 
-         rv = _bufSetDataFromAAXS(handle, file, s, loop_start, loop_end);
+         rv = _bufSetDataFromAAXS(handle, file, s);
          if (!rv) {
             aax_buf->error = AAX_INVALID_REFERENCE;
          }
