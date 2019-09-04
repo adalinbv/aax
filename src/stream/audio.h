@@ -81,6 +81,9 @@ enum _aaxStreamParam
    __F_BLOCK_SIZE,
    __F_BLOCK_SAMPLES,
    __F_NO_SAMPLES,
+   __F_NO_BYTES,
+
+   __F_PATCH_LEVEL,
    __F_LOOP_COUNT,
    __F_LOOP_START,
    __F_LOOP_END,
@@ -94,7 +97,6 @@ enum _aaxStreamParam
    __F_VIBRATO_RATE,
    __F_VIBRATO_DEPTH,
    __F_VIBRATO_SWEEP,
-   __F_NO_BYTES,
 
    __F_RATE,
    __F_PORT,

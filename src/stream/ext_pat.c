@@ -43,6 +43,7 @@ typedef struct
 
    int bitrate;
    int bits_sample;
+   int patch_level;
    size_t max_samples;
    _buffer_info_t info;
 
@@ -344,6 +345,9 @@ _pat_set(_ext_t *ext, int type, off_t value)
    case __F_COPY_DATA:
       handle->copy_to_buffer = value;
       break;
+   case __F_PATCH_LEVEL:
+      handle->patch_level = value;
+      break;
    default:
       if (handle->fmt) {
          rv = handle->fmt->set(handle->fmt, type, value);
@@ -586,7 +590,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Layer dupplicate:\t%i\n", handle->layer.layer_duplicate);
  printf("Layer number:\t\t%i\n", handle->layer.layer);
  printf("Layer size:\t\t%i\n", handle->layer.size);
- printf("Samples:\t\t%i\n\n", handle->layer.samples);
+ printf("Samples:\t\t%i\n", handle->layer.samples);
+ printf("Sample requested:\t%i\n\n", handle->patch_level);
 
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
  printf("Loop start:\t\t%g (%gs)\n", handle->info.loop_start/16.0f, SIZE2TIME(handle,handle->info.loop_start/16.0f));
