@@ -405,8 +405,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-   char *s, *protname, *server, *path, *extension;
-   int res, port, rate, size, rv = AAX_FALSE;
+   char *s, *protname, *server, *path, *extension, *patch;
+   int level = 0, rv = AAX_FALSE;
+   int res, port, rate, size;
    _protocol_t protocol;
    size_t headerSize;
    float period_ms;
@@ -425,6 +426,10 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    period_rate = 1000.0f / period_ms;
 
    s = strdup(handle->name);
+
+   patch = _url_get_param(s, "patch", NULL);
+   if (patch) level = atoi(patch);
+
    protocol = _url_split(s, &protname, &server, &path, &extension, &port);
 #if 0
  printf("\nname: '%s'\n", handle->name);
@@ -435,7 +440,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("port: %i\n", port);
  printf("timeout period: %4.1f ms\n", period_ms);
  printf("refresh rate: %f\n", *refresh_rate);
- printf("buffer size: %i bytes\n\n", size);
+ printf("buffer size: %i bytes\n", size);
+ printf("patch level: %u\n\n", level);
 #endif
 
    handle->io = _io_create(protocol);

@@ -450,7 +450,10 @@ _aaxConnectorDeviceToDeviceConnector(char *iface)
 void
 _aaxURLSplit(char *url, char **protocol, char **server, char **path, char **extension, int *port)
 {
+   char *params = strchr(url, '?');
    char *ptr;
+
+   if (params) *params = '\0';
 
    *extension = NULL;
    *protocol = NULL;

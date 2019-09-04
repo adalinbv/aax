@@ -82,6 +82,7 @@ struct _prot_st
 };
 typedef struct _prot_st _prot_t;
 
+char* _url_get_param(char*, const char*, size_t*);
 _protocol_t _url_split(char*, char**, char**, char**, char**, int*);
 _prot_t* _prot_create(_protocol_t);
 void* _prot_free(_prot_t*);

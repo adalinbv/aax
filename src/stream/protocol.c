@@ -110,3 +110,39 @@ _url_split(char *url, char **protocol, char **server, char **path, char **extens
 
    return rv;
 }
+
+char*
+_url_get_param(char *url, const char *name, size_t *len)
+{
+   char *rv = strchr(url, '?');
+   if (rv)
+   {
+      char pname[64];
+      char *ptr;
+
+      snprintf(pname, 63, "?%s=", name);
+
+      ptr = strstr(rv, pname);
+      if (ptr) {
+         rv = ptr;
+      }
+      else
+      {
+         snprintf(pname, 63, "&%s=", name);
+         rv = strstr(rv, pname);
+      }
+
+      if (rv)
+      {
+         rv += strlen(pname);
+         if (len)
+         {
+            ptr = strchr(rv, '&');
+            if (ptr) *len = (ptr-rv);
+            else *len = strlen(rv);
+         }
+      }
+   }
+
+   return rv;
+}
