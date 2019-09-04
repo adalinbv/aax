@@ -202,10 +202,19 @@ _socket_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
    switch (ptype)
    {
    case __F_NO_BYTES:
+      io->param[_IO_SOCKET_SIZE] = param;
+      rv = 0;
+      break;
    case __F_RATE:
+      io->param[_IO_SOCKET_RATE] = param;
+      rv = 0;
+      break;
    case __F_PORT:
+      io->param[_IO_SOCKET_PORT] = param;
+      rv = 0;
+      break;
    case __F_TIMEOUT:
-      io->param[ptype - __F_NO_BYTES] = param;
+      io->param[_IO_SOCKET_TIMEOUT] = param;
       rv = 0;
       break;
    default:
