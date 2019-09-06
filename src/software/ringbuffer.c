@@ -586,10 +586,10 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       break;
    case RB_REWINDED:
       rbd = rbi->sample;
-      rbi->curr_pos_sec = 0.0;
       if (!rbi->looping || rbd->loop_start_sec ||
           (rbd->loop_end_sec < rbd->duration_sec))
       {
+         rbi->curr_pos_sec = 0.0;
          rbi->curr_sample = 0;
       }
       break;
