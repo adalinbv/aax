@@ -274,6 +274,13 @@ public:
     MIDI(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO) :
         MIDI(n, nullptr, m) {}
 
+    virtual ~MIDI() {
+        for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
+            aaxBufferDestroy(it->second.second); it->second.first = 0;
+        }
+        buffers.clear();
+    }
+
     bool process(uint8_t channel, uint8_t message, uint8_t key, uint8_t velocity, bool omni, float pitch=1.0f);
 
     MIDIChannel& new_channel(uint8_t channel, uint16_t bank, uint8_t program);
@@ -323,6 +330,9 @@ public:
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
+    inline void set_grep(bool g) { grep_mode = g; }
+    inline bool get_grep() { return grep_mode; }
+
     const std::pair<std::string,int> get_drum(uint16_t program, uint8_t key);
     const std::pair<std::string,int> get_instrument(uint16_t bank, uint8_t program);
     std::map<std::string,_patch_t>& get_patches() { return patches; }
@@ -358,8 +368,52 @@ public:
     }
     inline void set_decay_depth(float rt) { decay_depth = 0.1f*rt/decay_level; }
 
+    // ** buffer management ******
+    Buffer& buffer(std::string& name, int level=0) {
+        if (level) { name = name + "?patch=" + std::to_string(level); }
+        auto it = buffers.find(name);
+        if (it == buffers.end()) {
+           Buffer *b = new Buffer(ptr,name.c_str(),false,true);
+            if (b) {
+                auto ret = buffers.insert({name,{0,b}});
+                it = ret.first;
+            } else {
+                delete b;
+                return nullBuffer;
+            }
+        }
+        it->second.first++;
+        return *it->second.second;
+    }
+    void destroy(Buffer& b) {
+        for(auto it=buffers.begin(); it!=buffers.end(); ++it)
+        {
+            if ((it->second.second == &b) && it->second.first && !(--it->second.first)) {
+                aaxBufferDestroy(it->second.second);
+                buffers.erase(it); break;
+            }
+        }
+    }
+    bool buffer_avail(std::string &name) {
+        auto it = buffers.find(name);
+        if (it == buffers.end()) return false;
+        return true;
+    }
+
     MIDI &midi = *this;
 private:
+    std::string preset_file(aaxConfig c, std::string& name) {
+        std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
+        rv.append("/"); rv.append(name);
+        return rv;
+    }
+
+    std::string aaxs_file(aaxConfig c, std::string& name) {
+        std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
+        rv.append("/"); rv.append(name); rv.append(".aaxs");
+        return rv;
+    }
+
     void add_patch(const char *patch);
 
     std::map<uint16_t,MIDIChannel*> channels;
@@ -367,6 +421,9 @@ private:
     std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> drums;
     std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> instruments;
     std::map<std::string,_patch_t> patches;
+
+    std::unordered_map<std::string,std::pair<size_t,Buffer*>> buffers;
+    Buffer nullBuffer;
 
     std::vector<std::string> loaded;
 
@@ -388,6 +445,7 @@ private:
     bool initialize = false;
     bool verbose = false;
     bool lyrics = false;
+    bool grep_mode = false;
 
     uint8_t reverb_type = 4;
     float decay_level = 1.0f;
@@ -445,6 +503,8 @@ private:
     std::map<uint8_t,Buffer&> name_map;
 
     MIDI &midi;
+
+    Buffer nullBuffer;
 
     float tuning = 1.0f;
     float modulation_range = 2.0f;

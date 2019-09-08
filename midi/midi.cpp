@@ -472,17 +472,19 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
         channels.erase(it);
     }
 
+    int level = 0;
     std::string name = "";
     bool drums = is_drums(channel_no);
     if (drums && !frames.empty())
     {
         auto it = frames.find(program_no);
         if (it != frames.end()) {
+            level = it->first;
             name = it->second;
         }
     }
 
-    Buffer &buffer = AeonWave::buffer(name, false);
+    Buffer &buffer = midi.buffer(name, level);
     if (buffer) {
     }
 
@@ -589,20 +591,30 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
             std::string name = inst.first;
             if (!name.empty())
             {
-                if (!midi.buffer_avail(name)) {
+                if (!midi.buffer_avail(name))
+                {
                     DISPLAY("Loading drum:  %3i bank: %3i/%3i, program: %3i: %s\n",
                              key_no, bank_no >> 7, bank_no & 0x7F,
                              program_no, name.c_str());
                     midi.load(name);
                 }
-                Buffer &buffer = midi.buffer(name, true);
-                if (buffer)
+
+                if (midi.get_grep())
                 {
-                    auto ret = name_map.insert({key_no,buffer});
-                    it = ret.first;
+                   auto ret = name_map.insert({key_no,nullBuffer});
+                   it = ret.first;
                 }
-                else {
-                    throw(std::invalid_argument("Instrument file "+name+" could not load"));
+                else
+                {
+                    Buffer &buffer = midi.buffer(name);
+                    if (buffer)
+                    {
+                        auto ret = name_map.insert({key_no,buffer});
+                        it = ret.first;
+                    }
+                    else {
+                        throw(std::invalid_argument("Instrument file "+name+" could not load"));
+                    }
                 }
             }
         }
@@ -616,7 +628,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
             auto inst = midi.get_instrument(bank_no, program_no);
             auto patch = get_patch(inst.first, key);
             std::string patch_name = patch.second;
-            uint8_t patch_level = patch.first;
+            uint8_t level = patch.first;
             if (!patch_name.empty())
             {
                 if (!midi.buffer_avail(patch_name)) {
@@ -625,24 +637,33 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
                              inst.first.c_str());
                     midi.load(patch_name);
                 }
-                Buffer &buffer = midi.buffer(patch_name, true);
-                if (buffer)
-                {
-                    auto ret = name_map.insert({key,buffer});
-                    it = ret.first;
 
-                    // mode == 0: volume bend only
-                    // mode == 1: pitch bend only
-                    // mode == 2: volume and pitch bend
-                    int pressure_mode = buffer.get(AAX_PRESSURE_MODE);
-                    if (pressure_mode == 0 || pressure_mode == 2) {
-                       pressure_volume_bend = true;
-                    }
-                    if (pressure_mode > 0) {
-                       pressure_pitch_bend = true;
-                    }
+                if (midi.get_grep())
+                {
+                   auto ret = name_map.insert({key,nullBuffer});
+                   it = ret.first;
                 }
-                midi.channel(channel_no).set_wide(inst.second);
+                else
+                {
+                    Buffer &buffer = midi.buffer(patch_name, level);
+                    if (buffer)
+                    {
+                        auto ret = name_map.insert({key,buffer});
+                        it = ret.first;
+
+                        // mode == 0: volume bend only
+                        // mode == 1: pitch bend only
+                        // mode == 2: volume and pitch bend
+                        int pressure_mode = buffer.get(AAX_PRESSURE_MODE);
+                        if (pressure_mode == 0 || pressure_mode == 2) {
+                           pressure_volume_bend = true;
+                        }
+                        if (pressure_mode > 0) {
+                           pressure_pitch_bend = true;
+                        }
+                    }
+                    midi.channel(channel_no).set_wide(inst.second);
+                }
             }
         }
     }
@@ -1868,6 +1889,7 @@ MIDIFile::initialize(const char *grep)
 
     midi.read_instruments();
 
+    midi.set_grep(grep);
     midi.set_initialize(true);
     duration_sec = 0.0f;
 
