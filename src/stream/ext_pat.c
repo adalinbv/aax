@@ -58,7 +58,7 @@ typedef struct
 
 } _driver_t;
 
-static float env_rate_to_time(unsigned char);
+static float env_rate_to_time(unsigned char, float, float);
 static float env_offset_to_level(unsigned char);
 static int _aaxFormatDriverReadHeader(_driver_t *, unsigned char*);
 
@@ -360,7 +360,7 @@ _pat_set(_ext_t *ext, int type, off_t value)
 /* -------------------------------------------------------------------------- */
 
 static float
-env_rate_to_time(unsigned char rate)
+env_rate_to_time(unsigned char rate, float prev, float next)
 {
    // rate is defined as RRMMMMMM
    // where RR is the rate and MMMMMM the mantissa
@@ -368,7 +368,7 @@ env_rate_to_time(unsigned char rate)
    float FUR = 1.0f/(1.6f*14.0f); // 14 voices
    float VUR = FUR/(float)(1 << 3*(rate >> 6)); // Volume Update Rate
    float mantissa = (float)(rate & 0x3f);	// Volume Increase
-   float rv = 1.0f/(244.0f*VUR)/mantissa;
+   float rv = fabsf(next-prev)/(244.0f*VUR)/mantissa;
 
    return rv;
 }
@@ -566,7 +566,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       }
       for (i=0; i<6; ++i)
       {
-         float v = env_rate_to_time(handle->patch.envelope_rate[i]);
+         float prev = i ? handle->info.volume_envelope[2*(i-1)] : 0.0f;
+         float next = handle->info.volume_envelope[2*i];
+         float v = env_rate_to_time(handle->patch.envelope_rate[i], prev, next);
          handle->info.volume_envelope[2*i+1] = v;
       }
 
