@@ -289,7 +289,7 @@ _pat_get(_ext_t *ext, int type)
    switch (type)
    {
    case __F_LOOP_COUNT:
-      rv = (handle->patch.modes & 0x4) ? INT_MAX : 0;
+      rv = (handle->patch.modes & MODE_LOOPING) ? INT_MAX : 0;
       break;
    case __F_LOOP_START:
       rv = handle->info.loop_start;
@@ -515,7 +515,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       handle->patch.scale_factor += *header++;
       handle->patch.scale_factor += *header++ << 8;
 
-      switch (handle->patch.modes & 0x3)
+      switch (handle->patch.modes & MODE_FORMAT)
       {
       case 0:
          handle->info.fmt = AAX_PCM8S;
@@ -570,7 +570,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
          handle->info.volume_envelope[2*i+1] = v;
       }
 
-#if 0
+#if 1
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
  printf("Description:\t\t%s\n", handle->header.description);
@@ -637,16 +637,16 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 
  printf("Modes:\t\t\t0x%x\n", handle->patch.modes);
  printf(" - Sample Format:\t%i-bit %s\n",
-            (handle->patch.modes & 0x1) ? 16 : 8,
-            (handle->patch.modes & 0x2) ? "unsigned" : "signed");
+            (handle->patch.modes & MODE_16BIT) ? 16 : 8,
+            (handle->patch.modes & MODE_UNSIGNED) ? "unsigned" : "signed");
  printf(" - Looping:\t\t%s (%s-directional %s)\n",
-            (handle->patch.modes & 0x4) ? "yes" : "no",
-            (handle->patch.modes & 0x8) ? "bi" : "uni",
-            (handle->patch.modes & 0x10) ? "backwards" : "forward");
+            (handle->patch.modes & MODE_LOOPING) ? "yes" : "no",
+            (handle->patch.modes & MODE_BIDIRECTIONAL) ? "bi" : "uni",
+            (handle->patch.modes & MODE_REVERSE) ? "backwards" : "forward");
  printf(" - Envelope:\t\tsustain: %s, release: %s, fast-release: %s\n",
-            (handle->patch.modes & 0x20) ? "yes" : "no",
-            (handle->patch.modes & 0x40) ? "envelope" : "note-off",
-            (handle->patch.modes & 0x80) ? "yes" : "no");
+            (handle->patch.modes & MODE_ENVELOPE_SUSTAIN) ? "yes" : "no",
+            (handle->patch.modes & MODE_ENVELOPE_RELEASE) ? "envelope" : "note-off",
+            (handle->patch.modes & MODE_FAST_RELEASE) ? "yes" : "no");
  printf("Scale Frequency:\t%i\n", handle->patch.scale_frequency);
  printf("Scale Factor:\t\t%i (%gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
 #endif

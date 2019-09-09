@@ -61,6 +61,21 @@
 #define INST_NAME_SIZE			16
 #define WAV_NAME_SIZE			7
 
+enum
+{
+   MODE_16BIT			= 0x01,
+   MODE_UNSIGNED		= 0x02,
+   MODE_FORMAT			= (MODE_16BIT|MODE_UNSIGNED),
+
+   MODE_LOOPING			= 0x04,
+   MODE_BIDIRECTIONAL		= 0x08,
+   MODE_REVERSE			= 0x10,
+
+   MODE_ENVELOPE_SUSTAIN	= 0x20,
+   MODE_ENVELOPE_RELEASE	= 0x40,
+   MODE_FAST_RELEASE		= 0x80
+
+} _modes;
 
 typedef struct
 {
