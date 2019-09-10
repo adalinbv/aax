@@ -161,7 +161,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
        * vertical positioning
        **/
       dir_fact = ep2d->speaker[t].v4[DIR_UPWD];
-      hrtf_volume[DIR_UPWD] = 0.1f + 0.125f*dir_fact;
+      hrtf_volume[DIR_UPWD] = _MAX(-0.125f*dir_fact, 0.1f);
       gain *= 0.76923f; 		/* 1.0f/0.3f */
 
       i = DIR_UPWD;			/* skip left-right and back-front */
@@ -169,10 +169,6 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
       {
          ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
          float v_start, v_step;
-
-         if (hrtf_volume[i] <= LEVEL_64DB) { // || (i > 0 && diff == 0)) {
-            continue;
-         }
 
          assert(diff < (ssize_t)drbd->dde_samples);
          assert(diff > -(ssize_t)dno_samples);
@@ -268,10 +264,6 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       {
          ssize_t diff = (ssize_t)ep2d->hrtf[t].v4[i];
          float v_start, v_end, v_step;
-
-         if (hrtf_volume[i] <= LEVEL_64DB) { // || (i > 0 && diff == 0))
-            continue;
-         }
 
          assert(diff < (ssize_t)drbd->dde_samples);
          assert(diff > -(ssize_t)dno_samples);
