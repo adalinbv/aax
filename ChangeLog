@@ -4,6 +4,8 @@
  * Handle looping as specified in the smpl chunk of WAV files.
  * Handle WAV files with a datasize of 0 gracefully to prevent a crash.
  * Prevent a crash when calling aaxMixerGetSetup with NULL as a config parameter
+ * Fix HRTF calculation, where the time delays of front-back and left-right
+   where switched which makes a fairly big difference in the perception.
  * Fix a possible incorrect playback pitch for files included in the sound
    section of an aaxs file.
  * Fix support for brownian noise.
