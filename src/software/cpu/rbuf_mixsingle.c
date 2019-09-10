@@ -217,8 +217,8 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
    }
 }
 
-// http://www.sfu.ca/sonic-studio/handbook/Binaural_Hearing.html
-// http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
+// https://www.sfu.ca/sonic-studio-webdav/handbook/Binaural_Hearing.html
+// https://web.archive.org/web/20190216004141/https://www.sfu.ca/sonic-studio-webdav/handbook/Binaural_Hearing.html
 void
 _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, UNUSED(float svol), float evol, char ctr)
 {
@@ -248,7 +248,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
        * horizontal positioning, back-front
        **/
       dir_fact[DIR_BACK] = ep2d->speaker[t].v4[DIR_BACK];
-      hrtf_volume[DIR_BACK] = 0.175f + 0.05f*dir_fact[DIR_BACK];
+      hrtf_volume[DIR_BACK] = 0.175f + 0.25f*dir_fact[DIR_BACK];
 
       /**
        * horizontal positioning, left-right
