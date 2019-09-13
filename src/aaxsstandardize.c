@@ -156,6 +156,8 @@ static uint8_t pitch2note(float pitch, float freq) {
 
 struct info_t
 {
+    char *path;
+
     float pan;
     int16_t program;
     int16_t bank;
@@ -177,9 +179,22 @@ struct info_t
     int aftertouch_mode;
 };
 
-void fill_info(struct info_t *info, void *xid)
+void fill_info(struct info_t *info, void *xid, const char *filename)
 {
     void *xtid;
+    char *ptr;
+
+    ptr = strrchr(filename, PATH_SEPARATOR);
+    if (ptr)
+    {
+        size_t size = ptr-filename;
+        info->path = malloc(size+1);
+        if (info->path)
+        {
+            memcpy(info->path, filename, size);
+            info->path[size] = 0;
+        }
+    }
 
     info->pan = _MINMAX(xmlAttributeGetDouble(xid, "pan"), -1.0f, 1.0f);
     info->program = info->bank = -1;
@@ -297,6 +312,7 @@ void free_info(struct info_t *info)
 
     assert(info);
 
+    if (info->path) free(info->path);
     if (info->name) xmlFree(info->name);
     if (info->license) xmlFree(info->license);
     for (i=0; i<2; ++i) {
@@ -473,8 +489,8 @@ void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
 
 void free_dsp(struct dsp_t *dsp)
 {
-    xmlFree(dsp->type);
-    xmlFree(dsp->repeat);
+    if (dsp->type) xmlFree(dsp->type);
+    if (dsp->repeat) xmlFree(dsp->repeat);
     if (dsp->src != false_const) xmlFree(dsp->src);
 }
 
@@ -530,19 +546,23 @@ void print_waveform(struct waveform_t *wave, FILE *output)
 
 void free_waveform(struct waveform_t *wave)
 {
-    xmlFree(wave->src);
-    xmlFree(wave->processing);
+    if (wave->src) xmlFree(wave->src);
+    if (wave->processing) xmlFree(wave->processing);
 }
 
 struct sound_t
 {
     int mode;
     float gain;
-    int frequency;
+    float frequency;
     float duration;
     int voices;
     float spread;
     char phasing;
+
+    float loop_start;
+    float loop_end;
+    char *file;
 
     uint8_t no_entries;
     struct entry_t
@@ -585,7 +605,16 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     } else {
         sound->gain = gain;
     }
-    sound->frequency = _MINMAX(xmlAttributeGetInt(xid, "frequency"), 8.176f, 12543.854f);
+
+    if (xmlAttributeExists(xid, "file")) {
+        sound->file = xmlAttributeGetString(xid, "file");
+    }
+    sound->loop_start = xmlAttributeGetDouble(xid, "loop-start");
+    if (xmlAttributeExists(xid, "loop-end")) {
+        sound->loop_end = xmlAttributeGetDouble(xid, "loop-end");
+    }
+
+    sound->frequency = _MINMAX(xmlAttributeGetDouble(xid, "frequency"), 8.176f, 12543.854f);
     sound->duration = _MAX(xmlAttributeGetDouble(xid, "duration"), 0.0f);
     sound->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
     sound->spread = _MINMAX(xmlAttributeGetDouble(xid, "spread"), 0.0f, 1.0f);
@@ -633,6 +662,19 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
     if (sound->mode) {
         fprintf(output, " mode=\"%i\"", sound->mode);
     }
+
+    if (sound->file)
+    {
+        if (tmp) {
+            fprintf(output, " file=\"%s/%s\"", info->path, sound->file);
+        } else {
+            fprintf(output, " file=\"%s\"", sound->file);
+        }
+        if (sound->gain == 0.0f) {
+            sound->gain = 1.0f;
+        }
+    }
+
     if (!tmp)
     {
        if (sound->gain < 0.0) {
@@ -641,6 +683,15 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
            fprintf(output, " gain=\"%3.2f\"", sound->gain);
        }
     }
+
+    if (sound->loop_start > 0) {
+        fprintf(output, " loop-start=\"%g\"", sound->loop_start);
+    }
+
+    if (sound->loop_end > 0) {
+        fprintf(output, " loop-start=\"%g\"", sound->loop_end);
+    }
+
     if (sound->frequency)
     {
         uint8_t note;
@@ -651,11 +702,13 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
             note = _MINMAX(freq2note(freq), info->note.min, info->note.max);
             freq = sound->frequency = note2freq(note);
         }
-        fprintf(output, " frequency=\"%i\"", sound->frequency);
+        fprintf(output, " frequency=\"%g\"", sound->frequency);
     }
+
     if (sound->duration && sound->duration != 1.0f) {
         fprintf(output, " duration=\"%s\"", format_float3(sound->duration));
     }
+
     if (sound->voices > 1)
     {
         fprintf(output, " voices=\"%i\"", sound->voices);
@@ -679,6 +732,7 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
 
 void free_sound(struct sound_t *sound)
 {
+    if (sound->file) free(sound->file);
     assert(sound);
 }
 
@@ -765,7 +819,7 @@ void print_object(struct object_t *obj, enum type_t type, struct info_t *info, F
 
 void free_object(struct object_t *obj)
 {
-    xmlFree(obj->mode);
+    if (obj->mode) xmlFree(obj->mode);
 }
 
 struct aax_t
@@ -791,7 +845,7 @@ void fill_aax(struct aax_t *aax, const char *filename, float gain, float env_fac
             if (!xtid) xtid = xmlNodeGet(xaid, "info");
             if (xtid)
             {
-                fill_info(&aax->info, xtid);
+                fill_info(&aax->info, xtid, filename);
                 xmlFree(xtid);
             }
 
@@ -950,6 +1004,7 @@ int main(int argc, char **argv)
 
         ptr = strrchr(infile, PATH_SEPARATOR);
         if (!ptr) ptr = infile;
+        else ptr++;
         snprintf(aaxsfile, 120, "%s/%s.aaxs", TEMP_DIR, ptr);
         snprintf(tmpfile, 120, "AeonWave on Audio Files: %s/%s.wav", TEMP_DIR, ptr);
 
