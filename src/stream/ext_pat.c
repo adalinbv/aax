@@ -44,6 +44,7 @@ typedef struct
    int bitrate;
    int bits_sample;
    int patch_level;
+   int sample_num;
    size_t max_samples;
    _buffer_info_t info;
 
@@ -587,7 +588,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Instrument number:\t%i\n", handle->instrument.instrument);
  printf("Instrument size:\t%i\n", handle->instrument.size);
  printf("Instrument layers:\t%i\n\n", handle->instrument.layers);
-  
 
  printf("Layer dupplicate:\t%i\n", handle->layer.layer_duplicate);
  printf("Layer number:\t\t%i\n", handle->layer.layer);
@@ -605,6 +605,14 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Root Frequency:\t\t%g Hz\n", 0.001f*handle->patch.root_frequency);
  printf("Panning:\t\t%.1f\n", (float)(handle->patch.balance - 7)/16.0f);
 
+ // Envelope:
+ // Two arrays of 6 rates and offsets to implement a 6-stage envelope.
+ // * The first three entries can be used for attack and decay.
+ // * If the sustain flag is set, then the third envelope stage will be the
+ //   sustain stage.
+ // * The last three stages are for the release and an optional "echo" effect.
+ // * If the last envelope point is left at an audible level, then a sampled
+ //   release can be heard after the last envelope point.
  printf("Envelope Rates:\t\t");
  for (i=0; i<6; ++i) {
   float v = handle->info.volume_envelope[2*i+1];
@@ -653,7 +661,15 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Scale Factor:\t\t%i (%gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
 #endif
 
-      rv = FILE_HEADER_SIZE;
+      if (handle->sample_num != handle->patch_level &&
+          handle->sample_num < handle->layer.samples)
+      {
+         handle->sample_num++;
+         rv = -handle->patch.wave_size;
+      }
+      else {
+         rv = FILE_HEADER_SIZE;
+      }
    }
    else {
       return __F_EOF;
