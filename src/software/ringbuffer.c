@@ -359,7 +359,6 @@ _aaxRingBufferReference(_aaxRingBuffer *ringbuffer)
       memcpy(rbi, ringbuffer->handle, sizeof(_aaxRingBufferData));
 
       rbi->sample->ref_counter++;
-      // rbi->looping = 0;
       rbi->playing = 0;
       rbi->stopped = 1;
       rbi->streaming = 0;
@@ -586,16 +585,19 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       break;
    case RB_REWINDED:
       rbd = rbi->sample;
+      rbi->looping = rbi->loop_mode;
       if (!rbi->looping || rbd->loop_start_sec ||
           (rbd->loop_end_sec < rbd->duration_sec))
       {
          rbi->curr_pos_sec = 0.0;
          rbi->curr_sample = 0;
+         rbi->looping = 0;
       }
       break;
    case RB_FORWARDED:
       rbi->curr_pos_sec = rbi->sample->duration_sec;
       rbi->curr_sample = rbi->sample->no_samples;
+      rbi->looping = 0;
       break;
    case RB_STARTED:
       rbi->playing = 1;
@@ -606,6 +608,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->playing = 0;
       rbi->stopped = 1;
       rbi->streaming = 0;
+      if (rbi->sampled_release) rbi->looping = 0;
       break;
    case RB_STARTED_STREAMING:
       rbi->playing = 1;
@@ -887,7 +890,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
 #endif
       break;
    case RB_LOOPING:
-      rbi->looping = val ? AAX_TRUE : AAX_FALSE;
+      rbi->looping = rbi->loop_mode = val ? AAX_TRUE : AAX_FALSE;
       rbi->loop_max = (val > AAX_TRUE) ? val : 0;
       rv = AAX_TRUE;
       break;
@@ -912,6 +915,9 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       }
       break;
    }
+   case RB_SAMPLED_RELEASE:
+      rbi->sampled_release = val ? AAX_TRUE : AAX_FALSE;
+      break;
    case RB_OFFSET_SAMPLES:
       if (val > rbd->no_samples) {
          val = rbd->no_samples;
@@ -1096,6 +1102,9 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       break;
    case RB_OFFSET_SAMPLES:
       rv = rbi->curr_sample;
+      break;
+   case RB_SAMPLED_RELEASE:
+      rv = rbi->sampled_release;
       break;
    case RB_DDE_SAMPLES:
       rv = rbd->dde_samples;

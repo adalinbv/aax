@@ -1530,6 +1530,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
             _embuffer_t *embuf = (_embuffer_t*)buf;
             _aaxRingBuffer *rb = embuf->ringbuffer;
             rb->set_parami(rb, RB_LOOPING, mode);
+            handle->looping = mode;
          }
 
          if (!handle->mtx_set)
