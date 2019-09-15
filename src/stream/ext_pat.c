@@ -298,6 +298,9 @@ _pat_get(_ext_t *ext, int type)
    case __F_LOOP_END:
       rv = handle->info.loop_end;
       break;
+   case __F_SAMPLED_RELEASE:
+      rv = (handle->patch.envelope_offset[ENVELOPES-1] > 8) ? 1 : 0;
+      break;
    case __F_BASE_FREQUENCY:
       rv = handle->info.base_frequency*(1 << 16);
       break;
@@ -627,6 +630,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
   printf("%6.4f\t", v);
  }
  printf("\n");
+ printf("Sampled release:\t%s\n", (handle->patch.envelope_offset[ENVELOPES-1] > 8) ? "yes" : "no");
 
  printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_sweep,
                                              handle->info.tremolo_sweep);

@@ -1012,6 +1012,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info)
                info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
                info->loop_start = stream->param(id, DRIVER_LOOP_START);
                info->loop_end = stream->param(id, DRIVER_LOOP_END);
+               info->sampled_release= stream->param(id, DRIVER_SAMPLED_RELEASE);
                info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
                info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
                info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);

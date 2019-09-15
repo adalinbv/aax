@@ -258,6 +258,8 @@ typedef struct
    float volume_envelope[2*_MAX_ENVELOPE_STAGES];
 // float pitch_envelope[2*_MAX_ENVELOPE_STAGES];
 
+   char sampled_release;
+
 } _buffer_info_t;
 
 typedef struct

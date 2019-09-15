@@ -87,6 +87,7 @@ enum _aaxStreamParam
    __F_LOOP_COUNT,
    __F_LOOP_START,
    __F_LOOP_END,
+   __F_SAMPLED_RELEASE,
    __F_BASE_FREQUENCY,
    __F_LOW_FREQUENCY,
    __F_HIGH_FREQUENCY,
