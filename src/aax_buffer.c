@@ -274,6 +274,9 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          break;
       case AAX_SAMPLED_RELEASE:
          handle->info.sampled_release = setup ? AAX_TRUE : AAX_FALSE;
+         if (rb) {
+            rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
+         }
          rv = AAX_TRUE;
          break;
       default:
@@ -759,6 +762,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                 rb->set_paramf(rb, RB_FREQUENCY, buf->info.freq);
                 rb->set_parami(rb, RB_LOOPPOINT_END, buf->info.loop_end);
                 rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
+                rb->set_parami(rb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
                 rb->set_parami(rb, RB_LOOPING, buf->info.loop_count);
              }
 
@@ -906,6 +910,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
          rb->set_parami(rb, RB_NO_SAMPLES, buf->info.no_samples);
          rb->set_parami(rb, RB_LOOPPOINT_END, buf->info.loop_end);
          rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
          rb->set_paramf(rb, RB_FREQUENCY, buf->info.freq);
 //       rb->set_paramf(rb, RB_BLOCKSIZE, buf->info.blocksize);
          /* Postpone until aaxBufferSetData gets called
@@ -1087,6 +1092,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 
       rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
       rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
+      rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
       rb->set_parami(rb, RB_LOOPING, info->loop_count);
    }
 
@@ -1468,13 +1474,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             if (loop_end > loop_start) {
                handle->info.loop_count = INT_MAX;
             }
+            handle->info.loop_start = loop_start;
+            handle->info.loop_end = loop_end;
 
             rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/handle->info.freq);
             rb->set_paramf(rb, RB_LOOPPOINT_START,loop_start/handle->info.freq);
+            rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
             rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
-
-            handle->info.loop_start = loop_start;
-            handle->info.loop_end = loop_end;
          }
 
          handle->pitch_levels = s;
@@ -2030,6 +2036,7 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
 
          nrb->set_parami(nrb, RB_LOOPPOINT_END, buf->info.loop_end);
          nrb->set_parami(nrb, RB_LOOPPOINT_START, buf->info.loop_start);
+         nrb->set_parami(nrb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
          nrb->set_parami(nrb, RB_LOOPING, buf->info.loop_count);
 
          fmt = rb->get_parami(rb, RB_FORMAT);
