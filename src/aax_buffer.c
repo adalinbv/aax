@@ -1032,6 +1032,23 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info)
                info->vibrato_rate = stream->param(id, DRIVER_VIBRATO_RATE);
                info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
                info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
+#if 0
+ printf("no. samples:\t\t%lu\n", info->no_samples);
+ printf("no. loops:\t\t%lu\n", info->loop_count);
+ printf("loop start:\t\t%lu\n", info->loop_start);
+ printf("loop end:\t\t%lu\n", info->loop_end);
+ printf("sampled release:\t%s\n", info->sampled_release ? "yes" : "no");
+ printf("base frequency:\t\t%g Hz\n", info->base_frequency);
+ printf("low frequency:\t\t%g Hz\n", info->low_frequency);
+ printf("high frequency:\t\t%g Hz\n", info->high_frequency);
+ printf("pitch fraction:\t\t%g\n", info->pitch_fraction);
+ printf("tremolo rate:\t\t%g Hz\n", info->tremolo_rate);
+ printf("tremolo depth:\t\t%g\n", info->tremolo_depth);
+ printf("tremolo sweep:\t\t%g Hz\n", info->tremolo_sweep);
+ printf("vibrato rate:\t\t%g Hz\n", info->vibrato_rate);
+ printf("vibrato depth:\t\t%g\n", info->vibrato_depth);
+ printf("vibrato sweep:\t\t%g Hz\n", info->vibrato_sweep);
+#endif
             }
          }
          stream->disconnect(id);
