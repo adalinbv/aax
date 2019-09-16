@@ -164,6 +164,14 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
 
       switch(type)
       {
+      case AAX_POSITION: // overlaps with AAX_NAME_STRING, not a problem
+         if (setup <= handle->info.no_samples)
+         {
+            handle->pos = setup;
+            rv = AAX_TRUE;
+         }
+         else  _aaxErrorSet(AAX_INVALID_PARAMETER);
+         break;
       case AAX_FREQUENCY:
          if ((setup >= 1000) && (setup <= 96000))
          {
@@ -264,13 +272,9 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
             rv = AAX_TRUE;
          }
          break;
-      case AAX_POSITION:
-         if (setup <= handle->info.no_samples)
-         {
-            handle->pos = setup;
-            rv = AAX_TRUE;
-         }
-         else  _aaxErrorSet(AAX_INVALID_PARAMETER);
+      case AAX_SAMPLED_RELEASE:
+         handle->info.sampled_release = setup ? AAX_TRUE : AAX_FALSE;
+         rv = AAX_TRUE;
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1012,7 +1016,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info)
                info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);
                info->loop_start = stream->param(id, DRIVER_LOOP_START);
                info->loop_end = stream->param(id, DRIVER_LOOP_END);
-               info->sampled_release= stream->param(id, DRIVER_SAMPLED_RELEASE);
+               info->sampled_release =stream->param(id, DRIVER_SAMPLED_RELEASE);
                info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
                info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
                info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);
