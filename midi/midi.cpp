@@ -550,14 +550,6 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
     }
     else
     {
-        if (midi.channel(channel_no).is_drums()) {
-#if (AAX_PATCH_LEVEL > 190814)
-            midi.channel(channel_no).set_hold(key, true);
-#else
-            midi.channel(channel_no).set_hold(true);
-#endif
-        }
-
         if (message == MIDI_NOTE_ON) {
             velocity = 64;
         }
