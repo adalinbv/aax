@@ -239,6 +239,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             embuf->id = EMBUFFER_ID;
             embuf->buffer = buffer;
             buffer->ref_counter++;
+            handle->sampled_release = buffer->info.sampled_release;
 
             _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
          }
@@ -424,7 +425,8 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
       case AAX_STOPPED:
          if (_IS_PLAYING(src->props3d))
          {
-            if (!_PROP_DISTDELAY_IS_DEFINED(src->props3d))
+            if (!handle->sampled_release &&
+                !_PROP_DISTDELAY_IS_DEFINED(src->props3d))
             {
                _SET_PROCESSED(src->props3d);
                src->buffer_pos = UINT_MAX;

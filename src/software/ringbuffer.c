@@ -605,10 +605,15 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->streaming = 0;
       break;
    case RB_STOPPED:
-      rbi->playing = 0;
-      rbi->stopped = 1;
-      rbi->streaming = 0;
-      if (rbi->sampled_release) rbi->looping = 0;
+      if (rbi->sampled_release) {
+         rbi->looping = 0;
+      }
+      else
+      {
+         rbi->playing = 0;
+         rbi->stopped = 1;
+         rbi->streaming = 0;
+      }
       break;
    case RB_STARTED_STREAMING:
       rbi->playing = 1;

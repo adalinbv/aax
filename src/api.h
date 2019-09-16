@@ -314,6 +314,7 @@ typedef struct
    unsigned int mixer_pos;	/* rigsitered emitter position            */
    unsigned char track;		/* which track to use from the buffer     */
    signed char looping;
+   char sampled_release;
    char mtx_set;
 
    _aaxEmitter *source;
