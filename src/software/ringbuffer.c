@@ -577,6 +577,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       rbi->pitch_norm = 1.0;
       rbi->curr_pos_sec = 0.0;
       rbi->curr_sample = 0;
+      rbi->loop_no = 0;
 
       rbi->playing = 0;
       rbi->stopped = 1;
@@ -585,6 +586,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
       break;
    case RB_REWINDED:
       rbd = rbi->sample;
+      rbi->loop_no = 0;
       rbi->looping = rbi->loop_mode;
       if (!rbi->looping || rbd->loop_start_sec ||
           (rbd->loop_end_sec < rbd->duration_sec))
@@ -597,6 +599,7 @@ _aaxRingBufferSetState(_aaxRingBuffer *rb, enum _aaxRingBufferState state)
    case RB_FORWARDED:
       rbi->curr_pos_sec = rbi->sample->duration_sec;
       rbi->curr_sample = rbi->sample->no_samples;
+      rbi->loop_no = rbi->loop_max;
       rbi->looping = 0;
       break;
    case RB_STARTED:
