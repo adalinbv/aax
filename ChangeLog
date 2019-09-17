@@ -1,9 +1,12 @@
 * Tue Aug 13 2019 - tech@adalin.org
 - AeonWave (3.6.5) stable; urgency=medium
 
+ * Implement support for sampled-release after an AAX_STOP message.
  * Handle looping as specified in the smpl chunk of WAV files.
  * Handle WAV files with a datasize of 0 gracefully to prevent a crash.
  * Prevent a crash when calling aaxMixerGetSetup with NULL as a config parameter
+ * Fix a case where specifying release="max" in aaxs files automatically
+   resulted in an envelope following timed-gain filter.
  * Fix HRTF calculation, where the time delays of front-back and left-right
    where switched which makes a fairly big difference in the perception.
  * Fix a possible incorrect playback pitch for files included in the sound

@@ -532,13 +532,15 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
             {
                if (!xmlAttributeCompareString(xid, "repeat", "inf") ||
                    !xmlAttributeCompareString(xid, "repeat", "max")) {
-                  state = AAX_REPEAT-1;
+                  state = (AAX_REPEAT-1) & ~AAX_ENVELOPE_FOLLOW;
                }
                else
                {
                   state = xmlAttributeGetInt(xid, "repeat");
                   if (state < 0) state = 0;
-                  else if (state >= AAX_REPEAT) state = AAX_REPEAT-1;
+                  else if (state >= AAX_REPEAT) {
+                     state = (AAX_REPEAT-1) & ~AAX_ENVELOPE_FOLLOW;
+                  }
                }
                state |= AAX_REPEAT;
             }
