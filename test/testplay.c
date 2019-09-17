@@ -130,7 +130,7 @@ int main(int argc, char **argv)
                 res = aaxEmitterAddBuffer(emitter[q], buffer);
                 testForState(res, "aaxEmitterAddBuffer");
 
-                res = aaxEmitterSetMode(emitter[q], AAX_LOOPING, AAX_TRUE);
+//              res = aaxEmitterSetMode(emitter[q], AAX_LOOPING, AAX_TRUE);
                 testForState(res, "aaxEmitterSetMode");
             }
 
