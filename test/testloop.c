@@ -64,7 +64,9 @@ int main(int argc, char **argv)
             aaxEmitter emitter;
             float dt = 0.0f;
             int q, state, num;
+            char stopped = 0;
 
+            res = aaxBufferSetSetup(buffer, AAX_SAMPLED_RELEASE, AAX_TRUE);
             res = aaxBufferSetSetup(buffer, AAX_LOOP_START, 9201);
             res = aaxBufferSetSetup(buffer, AAX_LOOP_END, 31641);
             testForState(res, "aaxBufferSetLoopPoints");
@@ -100,10 +102,11 @@ int main(int argc, char **argv)
                 msecSleep(50);
                 dt += 0.05f;
 
-                if (dt > (LOOP_START_SEC+3*LOOP_END_SEC))
+                if (!stopped && dt > (LOOP_START_SEC+3*LOOP_END_SEC))
                 {
-                    res = aaxEmitterSetMode(emitter, AAX_LOOPING, AAX_FALSE);
-                    testForState(res, "aaxEmitterSetLooping");
+                    res = aaxEmitterSetState(emitter, AAX_STOPPED);
+                    testForState(res, "aaxEmitterStop");
+                    stopped = AAX_TRUE;
                 }
 
                 if (++q > 10)
@@ -119,10 +122,9 @@ int main(int argc, char **argv)
                 }
                 state = aaxEmitterGetState(emitter);
             }
-            while (state == AAX_PLAYING);
+            while (state != AAX_PROCESSED);
 
             res = aaxMixerDeregisterEmitter(config, emitter);
-            res = aaxMixerSetState(config, AAX_STOPPED);
             res = aaxEmitterDestroy(emitter);
             res = aaxBufferDestroy(buffer);
         }
