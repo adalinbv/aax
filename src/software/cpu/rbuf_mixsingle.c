@@ -76,7 +76,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
        * If the source is at the speaker's side of the listener it will
        * always be 1.0 (normal volume) for this speaker, but if it's located
        * at the opposite side of the speaker (the listener is between the
-       * speaker and the source) it gradually silences until the source is 
+       * speaker and the source) it gradually silences until the source is
        * directly opposite of the speaker, relative to the listener.
        *
        * 0.8776 = cosf(0.5)
@@ -104,7 +104,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   /** Mix 
+   /** Mix
     * 1. Copy all channels to LFE and aplly a 40Hz-200Hz (80Hz default)
     *    low pass filter. (It’s not that 100 Hz is really that easy to localize,
     *    but that frequencies a bit above it are.)
@@ -231,30 +231,31 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
       int i;
 
       /*
-       * IID; Interaural Intensitive Difference
+       * ITD; Interaural Time Difference
        */
-
-      /**
-       * vertical positioning
-       **/
+      dir_fact[DIR_RIGHT] = ep2d->speaker[t].v4[DIR_RIGHT];
+      dir_fact[DIR_BACK] = ep2d->speaker[t].v4[DIR_BACK];
       dir_fact[DIR_UPWD] = ep2d->speaker[t].v4[DIR_UPWD];
+
+      /*
+       * ILD; Interaural Level Differences
+       */
+      hrtf_volume[DIR_RIGHT] = 0.4f + 0.4f*dir_fact[DIR_RIGHT];
+      hrtf_volume[DIR_BACK] = _MAX(0.175f + 0.25f*dir_fact[DIR_BACK], 0.1f);
       hrtf_volume[DIR_UPWD] = _MAX(-0.125f*dir_fact[DIR_UPWD], 0.1f);
 
-      /**
-       * horizontal positioning, back-front
-       **/
-      dir_fact[DIR_BACK] = ep2d->speaker[t].v4[DIR_BACK];
-      hrtf_volume[DIR_BACK] = _MAX(0.175f + 0.25f*dir_fact[DIR_BACK], 0.1f);
-
-      /**
-       * horizontal positioning, left-right
-       * WARNING: must be last: dir_fact is used for head shadow filtering
-       **/
-      dir_fact[DIR_RIGHT] = ep2d->speaker[t].v4[DIR_RIGHT];
-      hrtf_volume[DIR_RIGHT] = dir_fact[DIR_RIGHT];
-
 #if 0
- printf("t: %i, lr: %3.2f (%5.4f ms), ud: %3.2f (%5.4f ms), bf: %3.2f (%5.4f ms)\n", t, hrtf_volume[DIR_RIGHT], 1000*ep2d->hrtf[t].v4[0]/44100.0f, hrtf_volume[DIR_UPWD], 1000*ep2d->hrtf[t].v4[1]/44100.0f, hrtf_volume[DIR_BACK], 1000*ep2d->hrtf[t].v4[2]/44100.0f);
+ printf("t: %i, lr: % -3.2f, ud: % -3.2f, bf: % -3.2f, fc: %7.1f Hz\n", t,
+              hrtf_volume[DIR_RIGHT],
+              hrtf_volume[DIR_UPWD],
+              hrtf_volume[DIR_BACK],
+              20000.0f - _log2lin(-4.278754f*_MIN(dir_fact[DIR_RIGHT], 0.0f)));
+#endif
+#if 0
+ printf("t: %i, lr: %5.4f ms, ud: %5.4f ms, bf: %5.4f ms\n", t,
+              1000*ep2d->hrtf[t].v4[0]/44100.0f,
+              1000*ep2d->hrtf[t].v4[1]/44100.0f,
+              1000*ep2d->hrtf[t].v4[2]/44100.0f);
 #endif
       gain = _MIN(gain, 0.69f);	// compensate for a combined gain of 1.45 below
 
@@ -268,7 +269,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          assert(diff < (ssize_t)drbd->dde_samples);
          assert(diff > -(ssize_t)dno_samples);
          diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
- 
+
          v_start = ep2d->prev_gain[3*t+i];
          v_end = gain * hrtf_volume[i] * evol;
          v_step = (v_end - v_start)/dno_samples;
@@ -279,7 +280,10 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          ep2d->prev_gain[3*t+i] = v_end;
       }
 
-      /* HEAD shadow frequency filter */
+      /*
+       * IID; Interaural Intensitive Difference
+       * HEAD shadow frequency filter
+       */
       if (dir_fact[DIR_RIGHT] < 0.0f)
       {
          float dirfact;
