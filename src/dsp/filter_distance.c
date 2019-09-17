@@ -451,15 +451,15 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
    case AAX_MODE_WRITE_HRTF:
       for (t=0; t<info->no_tracks; t++)
       {
+         float gain = speaker[t].v4[3];
          for (i=0; i<3; i++)
          {
-            float gain = speaker[t].v4[3];
             /*
-             * IID; Interaural Intensitive Difference
+             * ILD; Interaural Level Difference
              */
             pos = 3*t + i;
             dp = vec3fDotProduct(&speaker[pos].v3, rpos);
-            ep2d->speaker[t].v4[i] = gain * dp * dist_fact;	/* -1 .. +1 */
+            ep2d->speaker[t].v4[i] = gain * dp*dist_fact;	/* -1 .. +1 */
 
             /*
              * ITD; Interaural Time Difference
