@@ -286,28 +286,26 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
        */
       if (dir_fact[DIR_RIGHT] < 0.0f)
       {
-         float dirfact;
-         float *hist;
-
-         dirfact = dir_fact[DIR_RIGHT];
+         float dirfact = dir_fact[DIR_RIGHT];
 
 // http://www.cns.nyu.edu/~david/courses/perception/lecturenotes/localization/localization-slides/Slide18.jpg
          if (!ctr)
          {
-            float fc;
-
             // dirfact = 0.0f: 20kHz, dirfact = -1.0f: 250Hz
             // log10(20000 - 1000) = 4.2787541
-            fc = 20000.0f - _log2lin(-4.278754f*dirfact);
+            float fc = 20000.0f - _log2lin(-4.278754f*dirfact);
             ep2d->k = _aax_movingaverage_compute(fc, fs);
          }
 
-         hist = &ep2d->freqfilter_history[t];
+         if (ep2d->k <= 0.8f)
+         {
+            float *hist = &ep2d->freqfilter_history[t];
 #if RB_FLOAT_DATA
-         _batch_movingaverage_float(dptr, dptr, dno_samples, hist, ep2d->k);
+            _batch_movingaverage_float(dptr, dptr, dno_samples, hist, ep2d->k);
 #else
-         _batch_movingaverage(dptr, dptr, dno_samples, hist, ep2d->k);
+            _batch_movingaverage(dptr, dptr, dno_samples, hist, ep2d->k);
 #endif
+         }
       }
    }
 }
