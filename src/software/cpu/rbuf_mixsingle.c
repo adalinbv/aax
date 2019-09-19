@@ -268,7 +268,6 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 
          assert(diff < (ssize_t)drbd->dde_samples);
          assert(diff > -(ssize_t)dno_samples);
-         diff = _MINMAX(diff, -(ssize_t)dno_samples,(ssize_t)drbd->dde_samples);
 
          v_start = ep2d->prev_gain[3*t+i];
          v_end = gain * hrtf_volume[i] * evol;

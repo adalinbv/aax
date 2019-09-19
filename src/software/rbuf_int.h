@@ -39,14 +39,15 @@ extern "C" {
 #include <arch.h>
 #include <api.h>
 
+// CUBIC_SAMPS was increased to 16 from 4 to handle HRTF properly
+#define CUBIC_SAMPS		16
 #define BYTE_ALIGN		1
-#define CUBIC_SAMPS		4
 
 /** forwrad declaration */
 typedef struct _aaxRingBufferData_t __aaxRingBufferData;
 typedef struct _aaxRingBufferSample_t __aaxRingBufferSample;
 
-typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
+typedef CONST_MIX_PTRPTR_T _aaxProcessMixerFn(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][CUBIC_SAMPS]);
 typedef void _aaxProcessCodecFn(int32_t*, void*, _batch_codec_proc, size_t, size_t, size_t, size_t, size_t, unsigned char, char);
 typedef void
 _aaxEffectsApplyFn(struct _aaxRingBufferSample_t*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, unsigned int, _aax2dProps*, unsigned char, unsigned char);
@@ -200,7 +201,7 @@ void _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample*, MIX_PTR_T, MIX_PTR_T, 
 
 /** MIXER */
 
-CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][4]);
+CONST_MIX_PTRPTR_T _aaxRingBufferProcessMixer(_aaxRingBuffer*, _aaxRingBuffer*, _aax2dProps*, FLOAT, size_t*, size_t*, unsigned char, int32_t[_AAX_MAX_SPEAKERS][CUBIC_SAMPS]);
 
 _aaxRingBufferMixMNFn _aaxRingBufferMixStereo16;
 _aaxRingBufferMix1NFn _aaxRingBufferMixMono16Mono;
