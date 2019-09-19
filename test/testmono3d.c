@@ -198,8 +198,10 @@ int main(int argc, char **argv)
                 EmitterPos[2] = ZEPOS + -RADIUS * cosf(ang);
  //             EmitterPos[1] = YEPOS + RADIUS * sinf(ang);
 
+#if 1
                 printf("deg: %03u\tpos (% f, % f, % f)\n", deg,
-                            EmitterPos[0], EmitterPos[1], EmitterPos[2]);
+                            EmitterPos[0], EmitterPos[1]-SensorPos[1], EmitterPos[2]);
+#endif
 
                 res = aaxMatrix64SetDirection(mtx64, EmitterPos, EmitterDir);
                 testForState(res, "aaxMatrixSetDirection");
