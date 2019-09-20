@@ -66,7 +66,7 @@
 
 using namespace aax;
 
-MIDI::MIDI(const char* n, const char *tnames, enum aaxRenderMode m)
+MIDI::MIDI(const char* n, const char *selections, enum aaxRenderMode m)
         : AeonWave(n, m)
 {
     if (*this) {
@@ -79,9 +79,9 @@ MIDI::MIDI(const char* n, const char *tnames, enum aaxRenderMode m)
         }
     }
 
-    if (tnames)
+    if (selections)
     {
-        std::string s(tnames);
+        std::string s(selections);
         std::regex regex{R"(,+)"}; // split on a comma
         std::sregex_token_iterator it{s.begin(), s.end(), regex, -1};
         selection = std::vector<std::string>{it, {}};
@@ -364,7 +364,7 @@ MIDI::add_patch(const char *file)
  * and the key_no in the program number of the map.
  */
 const std::pair<std::string,int>
-MIDI::get_drum(uint16_t program_no, uint8_t key_no)
+MIDI::get_drum(uint16_t program_no, uint8_t key_no, bool all)
 {
     auto itb = drums.find(program_no);
     if (itb == drums.end() && program_no > 0)
@@ -386,7 +386,7 @@ MIDI::get_drum(uint16_t program_no, uint8_t key_no)
             auto bank = itb->second;
             auto iti = bank.find(key_no);
             if (iti != bank.end()) {
-                if (selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
+                if (all || selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
                     return iti->second;
                 } else {
                     return empty_map;
@@ -414,7 +414,7 @@ MIDI::get_drum(uint16_t program_no, uint8_t key_no)
 }
 
 const std::pair<std::string,int>
-MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
+MIDI::get_instrument(uint16_t bank_no, uint8_t program_no, bool all)
 {
     auto itb = instruments.find(bank_no);
     if (itb == instruments.end() && bank_no > 0) {
@@ -429,7 +429,7 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
             auto iti = bank.find(program_no);
             if (iti != bank.end())
             {
-                if (selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
+                if (all || selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
                     return iti->second;
                 } else {
                     return empty_map;
@@ -544,7 +544,7 @@ MIDI::process(uint8_t channel_no, uint8_t message, uint8_t key, uint8_t velocity
 {
     // Omni mode: Device responds to MIDI data regardless of channel
     if (message == MIDI_NOTE_ON && velocity) {
-        if (is_track_active(channel_no+1)) {
+        if (is_track_active(channel_no)) {
             channel(channel_no).play(key, velocity, pitch);
         }
     }
@@ -581,13 +581,14 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
 {
     assert (velocity);
 
+    bool all = midi.no_active_tracks() > 0;
     auto it = name_map.begin();
     if (midi.channel(channel_no).is_drums())
     {
         it = name_map.find(key_no);
         if (it == name_map.end())
         {
-            auto inst = midi.get_drum(program_no, key_no);
+            auto inst = midi.get_drum(program_no, key_no, all);
             std::string name = inst.first;
             if (!name.empty())
             {
@@ -625,7 +626,7 @@ MIDIChannel::play(uint8_t key_no, uint8_t velocity, float pitch)
         it = name_map.upper_bound(key);
         if (it == name_map.end())
         {
-            auto inst = midi.get_instrument(bank_no, program_no);
+            auto inst = midi.get_instrument(bank_no, program_no, all);
             auto patch = get_patch(inst.first, key);
             std::string patch_name = patch.second;
             uint8_t level = patch.first;
@@ -1281,8 +1282,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             {
             case MIDI_TRACK_NAME:
             {
-                const char *tname = midi.get_track_name(channel_no);
-                int slen = tname ? strlen(tname) : 0;
+                std::string tname;
+                const char *selection = midi.get_selection(channel_no);
+                int slen = selection ? strlen(selection) : 0;
                 int cntr = 0;
                 CSV("%s, \"", csv_name[meta-1].c_str());
                 MESSAGE("%s % 3i : ", type_name[meta-1].c_str(), channel_no);
@@ -1291,9 +1293,13 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     c = pull_byte();
                     MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
-                    if (size == slen && c == tname[i]) cntr++;
+                    tname += c;
+                    if (size == slen && c == selection[i]) cntr++;
                 }
-                if (tname && cntr == size) midi.set_track_active(channel_no);
+                midi.channel(channel_no).set_track_name(tname);
+                if (selection && cntr == size) {
+                    midi.set_track_active(channel_no);
+                }
                 MESSAGE("\n");
                 CSV("\"\n");
                 break;
@@ -1786,8 +1792,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 }
 
 
-MIDIFile::MIDIFile(const char *devname, const char *filename, const char *tname)
-    : MIDI(devname, tname), file(filename)
+MIDIFile::MIDIFile(const char *devname, const char *filename, const char *selection)
+    : MIDI(devname, selection), file(filename)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     ssize_t size = file.tellg();

@@ -299,12 +299,13 @@ public:
 
     inline std::vector<std::string>& get_selection() { return selection; }
 
-    inline const char* get_track_name(uint16_t t) {
+    inline const char* get_selection(uint16_t t) {
         return (!t || selection.size()<t) ? nullptr : selection[t-1].c_str();
     }
     inline void set_track_active(uint16_t t) {
         active_track.push_back(t);
     }
+    inline uint16_t no_active_tracks() { return active_track.size(); }
     inline bool is_track_active(uint16_t t) {
         return active_track.empty() ? true : std::find(active_track.begin(), active_track.end(), t) != active_track.end();
     }
@@ -333,8 +334,8 @@ public:
     inline void set_grep(bool g) { grep_mode = g; }
     inline bool get_grep() { return grep_mode; }
 
-    const std::pair<std::string,int> get_drum(uint16_t program, uint8_t key);
-    const std::pair<std::string,int> get_instrument(uint16_t bank, uint8_t program);
+    const std::pair<std::string,int> get_drum(uint16_t program, uint8_t key, bool all=false);
+    const std::pair<std::string,int> get_instrument(uint16_t bank, uint8_t program, bool all=false);
     std::map<std::string,_patch_t>& get_patches() { return patches; }
 
     inline void set_initialize(bool i) { initialize = i; };
@@ -416,6 +417,7 @@ private:
 
     void add_patch(const char *patch);
 
+    std::string track_name;
     std::map<uint16_t,MIDIChannel*> channels;
     std::map<uint16_t,std::string> frames;
     std::map<uint16_t,std::map<uint16_t,std::pair<std::string,int>>> drums;
@@ -497,10 +499,13 @@ public:
     inline bool get_pressure_volume_bend() { return pressure_volume_bend; }
     inline bool get_pressure_pitch_bend() { return pressure_pitch_bend; }
 
+    inline void set_track_name(std::string& tname) { track_name = tname; }
+
 private:
     std::pair<uint8_t,std::string> get_patch(std::string& name, uint8_t& key);
 
     std::map<uint8_t,Buffer&> name_map;
+    std::string track_name;
 
     MIDI &midi;
 
