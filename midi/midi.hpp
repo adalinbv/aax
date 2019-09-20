@@ -297,10 +297,10 @@ public:
         set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
     }
 
-    inline std::vector<std::string>& get_track_names() { return track_names; }
+    inline std::vector<std::string>& get_selection() { return selection; }
 
     inline const char* get_track_name(uint16_t t) {
-        return (!t || track_names.size()<t) ? nullptr : track_names[t-1].c_str();
+        return (!t || selection.size()<t) ? nullptr : selection[t-1].c_str();
     }
     inline void set_track_active(uint16_t t) {
         active_track.push_back(t);
@@ -427,7 +427,7 @@ private:
 
     std::vector<std::string> loaded;
 
-    std::vector<std::string> track_names;
+    std::vector<std::string> selection;
     std::vector<uint16_t> active_track;
 
     std::pair<std::string,int> empty_map = {"", 0};

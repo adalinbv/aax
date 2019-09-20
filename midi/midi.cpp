@@ -84,9 +84,9 @@ MIDI::MIDI(const char* n, const char *tnames, enum aaxRenderMode m)
         std::string s(tnames);
         std::regex regex{R"(,+)"}; // split on a comma
         std::sregex_token_iterator it{s.begin(), s.end(), regex, -1};
-        track_names = std::vector<std::string>{it, {}};
+        selection = std::vector<std::string>{it, {}};
 
-        for(auto s : track_names) {
+        for(auto s : selection) {
             uint16_t t = atoi(s.c_str());
             if (t) active_track.push_back(t);
         }
@@ -386,7 +386,7 @@ MIDI::get_drum(uint16_t program_no, uint8_t key_no)
             auto bank = itb->second;
             auto iti = bank.find(key_no);
             if (iti != bank.end()) {
-                if (track_names.empty() || std::find(track_names.begin(), track_names.end(), iti->second.first) != track_names.end()) {
+                if (selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
                     return iti->second;
                 } else {
                     return empty_map;
@@ -429,7 +429,7 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no)
             auto iti = bank.find(program_no);
             if (iti != bank.end())
             {
-                if (track_names.empty() || std::find(track_names.begin(), track_names.end(), iti->second.first) != track_names.end()) {
+                if (selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
                     return iti->second;
                 } else {
                     return empty_map;
