@@ -297,11 +297,8 @@ public:
         set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
     }
 
-    inline std::vector<std::string>& get_selection() { return selection; }
+    inline std::vector<std::string>& get_selections() { return selection; }
 
-    inline const char* get_selection(uint16_t t) {
-        return (!t || selection.size()<t) ? nullptr : selection[t-1].c_str();
-    }
     inline void set_track_active(uint16_t t) {
         active_track.push_back(t);
     }

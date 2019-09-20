@@ -1283,9 +1283,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             case MIDI_TRACK_NAME:
             {
                 std::string tname;
-                const char *selection = midi.get_selection(channel_no);
-                int slen = selection ? strlen(selection) : 0;
-                int cntr = 0;
+                auto selections = midi.get_selections();
                 CSV("%s, \"", csv_name[meta-1].c_str());
                 MESSAGE("%s % 3i : ", type_name[meta-1].c_str(), channel_no);
                 for (int i=0; i<size; ++i)
@@ -1294,10 +1292,9 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     MESSAGE("%c", c);
                     CSV_ISOPRINT(c);
                     tname += c;
-                    if (size == slen && c == selection[i]) cntr++;
                 }
                 midi.channel(channel_no).set_track_name(tname);
-                if (selection && cntr == size) {
+                if (std::find(selections.begin(), selections.end(), tname) != selections.end()) {
                     midi.set_track_active(channel_no);
                 }
                 MESSAGE("\n");
