@@ -1293,7 +1293,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     CSV_ISOPRINT(c);
                     if (size == slen && c == tname[i]) cntr++;
                 }
-                if (cntr == size) midi.set_track_active(channel_no);
+                if (tname && cntr == size) midi.set_track_active(channel_no);
                 MESSAGE("\n");
                 CSV("\"\n");
                 break;
