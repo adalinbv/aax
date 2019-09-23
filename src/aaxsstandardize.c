@@ -264,12 +264,14 @@ void print_info(struct info_t *info, FILE *output, char commons)
     if (info->program >= 0) fprintf(output, " program=\"%i\"", info->program);
     fprintf(output, ">\n");
 
-    if (info->license && strcmp(info->license, "Attribution-ShareAlike 4.0 International")) {
+    if (commons & 0x80) {
+        fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
+    } else if (info->license && strcmp(info->license, "Attribution-ShareAlike 4.0 International")) {
         fprintf(output, "  <license type=\"%s\"/>\n", info->license);
     }
     else
     {
-        if (commons) {
+        if (commons & 0x7f) {
             fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
         } else {
             fprintf(output, "  <license type=\"Proprietary/Commercial\"/>\n");
@@ -908,7 +910,7 @@ void print_aax(struct aax_t *aax, const char *outfile, char commons, char tmp)
     fprintf(output, " * Copyright (C) 2017-%s by Erik Hofman.\n", year);
     fprintf(output, " * Copyright (C) 2017-%s by Adalin B.V.\n", year);
     fprintf(output, " * All rights reserved.\n");
-    if ((!aax->info.license || !strcmp(aax->info.license, "Attribution-ShareAlike 4.0 International")) && commons)
+    if ((!aax->info.license || (commons & 0x80) || !strcmp(aax->info.license, "Attribution-ShareAlike 4.0 International")) && commons)
     {
         fprintf(output, " *\n");
         fprintf(output, " * This file is part of AeonWave and covered by the\n");
@@ -958,6 +960,7 @@ void help()
     printf(" -o, --output <file>\t\twrite the new .aaxs configuration to this file.\n");
     printf("     --debug\t\t\tAdd some debug information to the AAXS file.\n");
     printf("     --omit-cc-by\t\tDo not add the CC-BY license reference.\n");
+    printf("     --force-cc-by\t\tForce the CC-BY license reference.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nWhen no output file is specified then stdout will be used.\n");
@@ -979,6 +982,8 @@ int main(int argc, char **argv)
 
     if (getCommandLineOption(argc, argv, "--omit-cc-by")) {
         commons = 0;
+    } else if (getCommandLineOption(argc, argv, "--force-cc-by")) {
+        commons |= 0x80;
     }
 
     if (getCommandLineOption(argc, argv, "--debug")) {
