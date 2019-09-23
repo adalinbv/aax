@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.59" frequency="44" duration="0.3">
+ <sound gain="1.60" frequency="44" duration="0.3">
   <waveform src="square" pitch="1.493"/>
   <waveform src="white-noise" processing="add" ratio="0.8" pitch="0.2"/>
   <waveform src="triangle" processing="add" pitch="2.151"/>
@@ -45,7 +45,7 @@
    <slot n="0">
     <param n="0">1.48</param>
     <param n="1">0.5</param>
-    <param n="2">0.881</param>
+    <param n="2">0.877</param>
     <param n="3">2.5</param>
    </slot>
    <slot n="1">

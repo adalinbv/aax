@@ -16,7 +16,7 @@
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
-  <note polyphony="1"/>
+  <note polyphony="1" min="28" max="57" step="12"/>
  </info>
 
  <sound fixed-gain="2.20" frequency="220" duration="2.9">
@@ -44,13 +44,13 @@
  <emitter looping="true">
   <filter type="frequency" src="inverse-envelope">
    <slot n="0">
-    <param n="0">2070.0</param>
+    <param n="0" auto="-200.0">1500.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">50.0</param>
    </slot>
    <slot n="1">
-    <param n="0">4800.0</param>
+    <param n="0" auto="-1e+03.0">2300.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">1.1</param>

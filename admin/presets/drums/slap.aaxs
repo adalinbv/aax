@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.82" frequency="400" duration="0.3">
+ <sound gain="0.83" frequency="400" duration="0.3">
   <waveform src="sawtooth" ratio="0.35"/>
   <waveform src="white-noise" processing="add" pitch="0.4"/>
  </sound>
@@ -29,7 +29,7 @@
    <slot n="0">
     <param n="0">2.27</param>
     <param n="1">0.15</param>
-    <param n="2">0.756</param>
+    <param n="2">0.955</param>
     <param n="3">0.33</param>
    </slot>
   </filter>

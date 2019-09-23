@@ -19,57 +19,58 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.83" frequency="220" duration="0.3">
-  <waveform src="pink-noise" pitch="0.25"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="16.0">3520.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
+ <sound fixed-gain="1.11" frequency="220" duration="3.33">
+  <waveform src="white-noise"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope|24db">
+  <filter type="frequency" src="sine">
    <slot n="0">
-    <param n="0" pitch="1.0">220.0</param>
+    <param n="0" pitch="2.0">440.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">7.0</param>
+    <param n="3">40.1</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="10.0">2200.0</param>
+    <param n="0" pitch="4.0">880.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">10.0</param>
+    <param n="3">0.0232</param>
    </slot>
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.24</param>
-    <param n="1">0.1</param>
-    <param n="2">0.927</param>
-    <param n="3">0.4</param>
+    <param n="0">0.135</param>
+    <param n="1">0.4</param>
+    <param n="2">0.72</param>
+    <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.516</param>
-    <param n="1">0.08</param>
+    <param n="0">0.72</param>
+    <param n="1">1.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <filter type="dynamic-gain" src="triangle">
    <slot n="0">
-    <param n="0">1.8</param>
-    <param n="1">0.02</param>
-    <param n="2">0.7</param>
-    <param n="3">0.0</param>
+    <param n="0">3.0</param>
+    <param n="1">0.113</param>
+    <param n="2">0.9</param>
+    <param n="3">0.1</param>
    </slot>
-  </effect>
+  </filter>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <filter type="dynamic-gain" src="sawtooth">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">0.014</param>
+    <param n="2">0.9</param>
+    <param n="3">0.273</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

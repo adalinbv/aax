@@ -19,7 +19,7 @@
   <note polyphony="1" min="60" max="96" step="1"/>
  </info>
 
- <sound gain="0.56" frequency="261" duration="2.1">
+ <sound gain="0.56" frequency="261.626" duration="2.1">
   <waveform src="triangle"/>
   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
   <waveform src="square" processing="add" ratio="0.01"/>
@@ -28,7 +28,7 @@
  <emitter looping="true">
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="1.0">261.0</param>
+    <param n="0" pitch="1.0">261.6</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">10.0</param>
@@ -38,13 +38,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.15</param>
-    <param n="2" auto="0.887">3.9</param>
+    <param n="2" auto="0.71">3.12</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.887">4.42</param>
+    <param n="0" auto="0.71">3.55</param>
     <param n="1">inf</param>
-    <param n="2">1.51</param>
+    <param n="2">1.21</param>
     <param n="3">0.2</param>
    </slot>
   </filter>

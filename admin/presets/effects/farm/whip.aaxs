@@ -12,40 +12,54 @@
 
 <aeonwave>
 
- <info name="Woodblock (High)" bank="0" program="76">
+ <info name="Whip" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.12" frequency="330" duration="0.3">
+ <sound gain="1.02" frequency="220" duration="0.3">
   <waveform src="white-noise" pitch="0.05"/>
-  <waveform src="sine" processing="modulate" ratio="1.9" pitch="11.7587"/>
+  <waveform src="sine" processing="modulate" ratio="0.8" pitch="10.7587"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="4.0">1320.0</param>
+    <param n="0">4200.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.575</param>
+    <param n="3">10.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">1140.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.65</param>
     <param n="3">40.0</param>
    </slot>
   </filter>
  </sound>
 
- <emitter looping="true" pan="0.55">
-  <filter type="timed-gain">
+ <emitter looping="true">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.792</param>
+    <param n="0">2.54</param>
     <param n="1">0.05</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="2">1.27</param>
+    <param n="3">1.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.01</param>
-    <param n="2">0.74</param>
+    <param n="0">0.5</param>
+    <param n="1">0.02</param>
+    <param n="2">3.0</param>
+    <param n="3">0.05</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.8</param>
+    <param n="2">0.95</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
