@@ -345,8 +345,9 @@ struct dsp_t
     } slot[4];
 };
 
-void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, float env_fact)
+void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, float env_fact, char simplify)
 {
+    char *keep_volume = getenv("KEEP_VOLUME");
     unsigned int s, snum;
     char env = 0;
     void *xsid;
@@ -384,6 +385,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
             {
                 if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
                 {
+                    float adjust, value;
                     int pn = p;
 
                     if (xmlAttributeExists(xpid, "n")) {
@@ -391,20 +393,35 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
                     }
 
                     dsp->slot[sn].param[pn].pitch = _MAX(xmlAttributeGetDouble(xpid, "pitch"), 0.0f);
+
                     if (dsp->slot[sn].param[pn].adjust == 0.0f) {
-                       dsp->slot[sn].param[pn].adjust = xmlAttributeGetDouble(xpid, "auto-sustain");
+                       adjust = xmlAttributeGetDouble(xpid, "auto-sustain");
                     }
 
-                    dsp->slot[sn].param[pn].adjust = xmlAttributeGetDouble(xpid, "auto");
+                    adjust = xmlAttributeGetDouble(xpid, "auto");
+                    value = xmlGetDouble(xpid);
 
-                    dsp->slot[sn].param[pn].value = xmlGetDouble(xpid);
-                    if (!getenv("KEEP_VOLUME") && env && (pn % 2) == 0)
+                    if (simplify)
                     {
-                        if (dsp->slot[sn].param[pn].adjust) {
-                            dsp->slot[sn].param[pn].adjust *= env_fact;
+                        if (adjust) {
+                            value = _MAX(value - adjust*_lin2log(220.0f), 0.01f);
                         }
-                        dsp->slot[sn].param[pn].value *= env_fact;
+#if 0
+                        if (env && value > 1.0f && (pn % 2)) {
+                            value = AAX_FPINFINITE;
+                        }
+#endif
+                        adjust = 0.0f;
                     }
+
+                    if (!keep_volume && env && (pn % 2) == 0)
+                    {
+                        adjust *= env_fact;
+                        value *= env_fact;
+                    }
+
+                    dsp->slot[sn].param[pn].adjust = adjust;
+                    dsp->slot[sn].param[pn].value = value;
                 }
             }
             xmlFree(xpid);
@@ -508,16 +525,19 @@ struct waveform_t
     char phasing;
 };
 
-char fill_waveform(struct waveform_t *wave, void *xid)
+char fill_waveform(struct waveform_t *wave, void *xid, char simplify)
 {
     wave->src = lwrstr(xmlAttributeGetString(xid, "src"));
     wave->processing = lwrstr(xmlAttributeGetString(xid, "processing"));
     wave->ratio = xmlAttributeGetDouble(xid, "ratio");
     wave->pitch = _MAX(xmlAttributeGetDouble(xid, "pitch"), 0.0f);
     wave->staticity =_MINMAX(xmlAttributeGetDouble(xid, "staticity"),0.0f,1.0f);
-    wave->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
-    wave->spread = _MINMAX(xmlAttributeGetDouble(xid, "spread"), 0.0f, 1.0f);
-    wave->phasing = xmlAttributeGetBool(xid, "phasing");
+    if (!simplify)
+    {
+        wave->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
+        wave->spread = _MINMAX(xmlAttributeGetDouble(xid, "spread"), 0.0f,1.0f);
+        wave->phasing = xmlAttributeGetBool(xid, "phasing");
+    }
 
     return strstr(wave->src, "noise") ? 1 : 0;
 }
@@ -578,7 +598,7 @@ struct sound_t
     } entry[32];
 };
 
-void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gain)
+void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gain, char simplify)
 {
     unsigned int p, e, emax;
     char noise;
@@ -618,9 +638,12 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
 
     sound->frequency = _MINMAX(xmlAttributeGetDouble(xid, "frequency"), 8.176f, 12543.854f);
     sound->duration = _MAX(xmlAttributeGetDouble(xid, "duration"), 0.0f);
-    sound->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
-    sound->spread = _MINMAX(xmlAttributeGetDouble(xid, "spread"), 0.0f, 1.0f);
-    sound->phasing = xmlAttributeGetBool(xid, "phasing");
+    if (!simplify)
+    {
+        sound->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
+        sound->spread = _MINMAX(xmlAttributeGetDouble(xid, "spread"),0.0f,1.0f);
+        sound->phasing = xmlAttributeGetBool(xid, "phasing");
+    }
 
     p = 0;
     noise = 0;
@@ -634,17 +657,17 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
             if (!strcasecmp(name, "waveform"))
             {
                 sound->entry[p].type = WAVEFORM;
-                noise |= fill_waveform(&sound->entry[p++].slot.waveform, xeid);
+                noise |= fill_waveform(&sound->entry[p++].slot.waveform, xeid, simplify);
             }
             else if (!strcasecmp(name, "filter"))
             {
                 sound->entry[p].type = FILTER;
-                fill_dsp(&sound->entry[p++].slot.dsp, xeid, FILTER, 1, 1.0f);
+                fill_dsp(&sound->entry[p++].slot.dsp, xeid, FILTER, 1, 1.0f, 0);
             }
             else if (!strcasecmp(name, "effect"))
             {
                 sound->entry[p].type = EFFECT;
-                fill_dsp(&sound->entry[p++].slot.dsp, xeid, EFFECT, 1, 1.0f);
+                fill_dsp(&sound->entry[p++].slot.dsp, xeid, EFFECT, 1, 1.0f, 0);
             }
 
             xmlFree(name);
@@ -748,8 +771,9 @@ struct object_t		// emitter and audioframe
     struct dsp_t dsp[16];
 };
 
-void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gain)
+void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gain, char simplify)
 {
+    char emitter = (env_fact >= 0.0f);
     unsigned int p, d, dnum;
     void *xdid;
 
@@ -762,8 +786,9 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
     dnum = xmlNodeGetNum(xdid, "filter");
     for (d=0; d<dnum; d++)
     {
-        if (xmlNodeGetPos(xid, xdid, "filter", d) != 0) {
-            fill_dsp(&obj->dsp[p++], xdid, FILTER, timed_gain, env_fact);
+        if (xmlNodeGetPos(xid, xdid, "filter", d) != 0)
+        {
+            fill_dsp(&obj->dsp[p++], xdid, FILTER, timed_gain, env_fact, simplify);
         }
     }
     xmlFree(xdid);
@@ -772,8 +797,15 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
     dnum = xmlNodeGetNum(xdid, "effect");
     for (d=0; d<dnum; d++)
     {
-        if (xmlNodeGetPos(xid, xdid, "effect", d) != 0) {
-            fill_dsp(&obj->dsp[p++], xdid, EFFECT, timed_gain, env_fact);
+        if (xmlNodeGetPos(xid, xdid, "effect", d) != 0)
+        {
+            char *type = lwrstr(xmlAttributeGetString(xdid, "type"));
+            if (!simplify || (!emitter && (!strcasecmp(type, "distortion") ||
+                                         !strcasecmp(type, "ringmodulator"))) ||
+                             (emitter && !strcasecmp(type, "timed-pitch")))
+            {
+                fill_dsp(&obj->dsp[p++], xdid, EFFECT, timed_gain, env_fact, simplify);
+            }
         }
     }
     xmlFree(xdid);
@@ -832,7 +864,7 @@ struct aax_t
     struct object_t audioframe;
 };
 
-void fill_aax(struct aax_t *aax, const char *filename, float gain, float env_fact, char timed_gain)
+void fill_aax(struct aax_t *aax, const char *filename, char simplify, float gain, float env_fact, char timed_gain)
 {
     void *xid;
 
@@ -854,21 +886,21 @@ void fill_aax(struct aax_t *aax, const char *filename, float gain, float env_fac
             xtid = xmlNodeGet(xaid, "sound");
             if (xtid)
             {
-                fill_sound(&aax->sound, &aax->info, xtid, gain);
+                fill_sound(&aax->sound, &aax->info, xtid, gain, simplify);
                 xmlFree(xtid);
             }
 
             xtid = xmlNodeGet(xaid, "emitter");
             if (xtid)
             {
-                fill_object(&aax->emitter, xtid, env_fact, timed_gain);
+                fill_object(&aax->emitter, xtid, env_fact, timed_gain, simplify);
                 xmlFree(xtid);
             }
 
             xtid = xmlNodeGet(xaid, "audioframe");
             if (xtid)
             {
-                fill_object(&aax->audioframe, xtid, 1.0f, timed_gain);
+                fill_object(&aax->audioframe, xtid, -1.f, timed_gain, simplify);
                 xmlFree(xtid);
             }
 
@@ -961,6 +993,7 @@ void help()
     printf("     --debug\t\t\tAdd some debug information to the AAXS file.\n");
     printf("     --omit-cc-by\t\tDo not add the CC-BY license reference.\n");
     printf("     --force-cc-by\t\tForce the CC-BY license reference.\n");
+    printf("     --force-simplify\t\tForce simplification of the configuration file.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nWhen no output file is specified then stdout will be used.\n");
@@ -972,6 +1005,7 @@ void help()
 int main(int argc, char **argv)
 {
     char *infile, *outfile;
+    char simplify = 0;
     char commons = 1;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
@@ -984,6 +1018,10 @@ int main(int argc, char **argv)
         commons = 0;
     } else if (getCommandLineOption(argc, argv, "--force-cc-by")) {
         commons |= 0x80;
+    }
+
+    if (getCommandLineOption(argc, argv, "--force-simplify")) {
+        simplify = 1;
     }
 
     if (getCommandLineOption(argc, argv, "--debug")) {
@@ -1029,7 +1067,7 @@ int main(int argc, char **argv)
         res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
-        fill_aax(&aax, infile, 1.0f, 1.0f, 0);
+        fill_aax(&aax, infile, simplify, 1.0f, 1.0f, 0);
         print_aax(&aax, aaxsfile, commons, 1);
         gain = aax.sound.gain;
         free_aax(&aax);
@@ -1142,7 +1180,7 @@ int main(int argc, char **argv)
             gain = rms;
         }
         env_fact *= getGain(argc, argv);
-        fill_aax(&aax, infile, gain, env_fact, 1);
+        fill_aax(&aax, infile, simplify, gain, env_fact, 1);
         print_aax(&aax, outfile, commons, 0);
         free_aax(&aax);
 
