@@ -16,50 +16,34 @@
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
-  <note polyphony="1" min="39" max="45" step="12"/>
+  <note polyphony="1" min="60" max="60" step="12"/>
+  <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.76" frequency="110" duration="0.1">
+ <sound gain="0.78" frequency="261.626" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="sine" processing="modulate" pitch="5.0"/>
-  <filter type="frequency">
-   <slot n="0">
-    <param n="0" pitch="8.0">880.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
+  <waveform src="sine" processing="add" ratio="0.2"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.08</param>
-    <param n="1">0.1</param>
-    <param n="2">0.241</param>
-    <param n="3">0.25</param>
+    <param n="0">0.502</param>
+    <param n="1">0.04</param>
+    <param n="2">2.19</param>
+    <param n="3">0.1</param>
    </slot>
-  </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">4.0</param>
-    <param n="1">0.0</param>
+   <slot n="1">
+    <param n="0">2.58</param>
+    <param n="1">0.432</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
-  </effect>
-  <effect type="ringmodulator" src="envelope">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.1</param>
-    <param n="2" pitch="16.0">1760.0</param>
-    <param n="3" pitch="14.0">1540.0</param>
-   </slot>
-  </effect>
+  </filter>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="-0.35"/>
 
 </aeonwave>

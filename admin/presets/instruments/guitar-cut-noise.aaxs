@@ -17,6 +17,7 @@
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="1" min="39" max="45" step="12"/>
+  <aftertouch mode="2"/>
  </info>
 
  <sound gain="0.83" frequency="110" duration="0.1">
@@ -31,9 +32,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.07</param>
+    <param n="0">0.856</param>
     <param n="1">0.01</param>
-    <param n="2">0.535</param>
+    <param n="2">0.428</param>
     <param n="3">0.15</param>
    </slot>
   </filter>

@@ -16,49 +16,64 @@
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
-  <note polyphony="4" min="36" max="96" step="6"/>
+  <note polyphony="16" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="2.57" frequency="440">
-  <waveform src="impulse" ratio="0.25" voices="3" spread="0.2" phasing="true"/>
-  <waveform src="impulse" processing="mix" ratio="0.25" pitch="0.9857"/>
-  <waveform src="impulse" processing="mix" ratio="0.25" pitch="0.999"/>
+ <sound mode="1" gain="1.81" frequency="220">
+  <waveform src="impulse" ratio="0.3"/>
+  <waveform src="impulse" processing="mix" ratio="0.3" pitch="0.9857"/>
+  <waveform src="impulse" processing="mix" ratio="0.05" pitch="1.499"/>
+  <waveform src="sawtooth" processing="add" ratio="0.075"/>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="12.0">2640.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.2</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="0.5">
    <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.05</param>
-    <param n="2">1.32</param>
+    <param n="0">0.441</param>
+    <param n="1">0.0196</param>
+    <param n="2">0.818</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">1.24</param>
-    <param n="1">inf</param>
-    <param n="2">1.24</param>
-    <param n="3">0.5</param>
+    <param n="0">1.06</param>
+    <param n="1">11.8</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
 
- <audioframe>
-  <filter type="frequency" src="24db" optional="true">
+ <audioframe pan="-0.8">
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">4400.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="0">150.0</param>
+    <param n="1">0.9</param>
+    <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
-  </filter>
-  <effect type="chorus" src="envelope" optional="true">
-   <slot n="0">
-    <param n="0">0.6</param>
-    <param n="1">0.05</param>
+   <slot n="1">
+    <param n="0">4500.0</param>
+    <param n="1">1.0</param>
     <param n="2">0.4</param>
-    <param n="3">0.2</param>
+    <param n="3">1.5</param>
    </slot>
-  </effect>
+  </filter>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">5000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.2</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>

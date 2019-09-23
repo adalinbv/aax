@@ -19,56 +19,57 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.03" frequency="220" duration="0.5" voices="3">
-  <waveform src="triangle" ratio="1.5" voices="7" spread="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="1.493"/>
-  <waveform src="sawtooth" processing="add" ratio="0.35" pitch="0.05"/>
+ <sound gain="2.35" frequency="220" duration="0.5">
+  <waveform src="square" ratio="0.05"/>
+  <waveform src="impulse" processing="add" ratio="0.4" pitch="0.0125"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-factor="8.0">
    <slot n="0">
-    <param n="0">0.209</param>
+    <param n="0">0.456</param>
     <param n="1">0.05</param>
-    <param n="2">1.04</param>
-    <param n="3">0.05</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.836</param>
-    <param n="1">8.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="2">0.456</param>
+    <param n="3">6.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.14</param>
-    <param n="1">0.05</param>
-    <param n="2">1.0</param>
-    <param n="3">4.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.985</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="0">1.0</param>
+    <param n="1">4.0</param>
+    <param n="2">0.98</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="envelope" optional="true">
+  <filter type="equalizer">
    <slot n="0">
-    <param n="0">760.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">50.0</param>
+    <param n="0">110.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">8800.0</param>
+    <param n="0">5500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">10.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="envelope" optional="true">
+   <slot n="0">
+    <param n="0">2760.0</param>
+    <param n="1">1.0</param>
+    <param n="2">2.0</param>
+    <param n="3">33.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">5500.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">25.0</param>
+    <param n="3">10.0</param>
    </slot>
   </filter>
  </audioframe>

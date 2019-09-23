@@ -12,33 +12,34 @@
 
 <aeonwave>
 
- <info name="Saxophone" bank="0" program="64">
+ <info name="Tenor Saxophone" bank="0" program="65">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
-  <note polyphony="2" min="37" max="87" step="12"/>
+  <note polyphony="2" min="37" max="75" step="12"/>
  </info>
 
- <sound gain="0.95" frequency="220" duration="0.1">
-  <waveform src="impulse" pitch="0.5" voices="3"/>
-  <waveform src="impulse" processing="mix" ratio="0.9"/>
-  <waveform src="square" processing="modulate" pitch="2.0"/>
-  <waveform src="sawtooth" processing="add" ratio="0.2"/>
+ <sound gain="3.61" frequency="110" duration="0.5">
+  <waveform src="triangle"/>
+  <waveform src="triangle" processing="modulate" pitch="4.0"/>
+  <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.2"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.33"/>
+  <waveform src="triangle" processing="modulate" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="0.4">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.08</param>
-    <param n="2">2.94</param>
+    <param n="2">1.02</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">2.31</param>
-    <param n="1">inf</param>
-    <param n="2">2.31</param>
-    <param n="3">0.2</param>
+    <param n="0">0.897</param>
+    <param n="1">7.5</param>
+    <param n="2">0.869</param>
+    <param n="3">3.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -50,25 +51,25 @@
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">0.1</param>
-    <param n="2">0.99</param>
-    <param n="3">5.0</param>
+    <param n="1">7.5</param>
+    <param n="2">0.98</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe>
-  <filter type="equalizer" optional="true">
+ <audioframe pan="-0.3">
+  <filter type="frequency" optional="true">
    <slot n="0">
     <param n="0">550.0</param>
-    <param n="1">0.9</param>
+    <param n="1">0.4</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">2500.0</param>
+    <param n="0">1500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.15</param>
+    <param n="2">0.5</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

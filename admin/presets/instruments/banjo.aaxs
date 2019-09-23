@@ -17,15 +17,16 @@
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="6" min="48" max="84" step="12"/>
+  <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.17" frequency="440" duration="0.1">
+ <sound gain="0.77" frequency="440" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.95" pitch="1.999"/>
   <waveform src="sine" processing="modulate" ratio="0.8" pitch="4.999"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="8.0">3520.0</param>
+    <param n="0" pitch="10.0">4400.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.2</param>
@@ -34,28 +35,20 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.76</param>
-    <param n="1">1.0</param>
-    <param n="2">0.391</param>
-    <param n="3">0.0</param>
+    <param n="0">2.19</param>
+    <param n="1">0.563</param>
+    <param n="2">0.496</param>
+    <param n="3">0.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.25</param>
+    <param n="0">1.29</param>
     <param n="1">0.01</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
-   </slot>
-  </effect>
-  <effect type="phasing" src="inverse-envelope" optional="true">
-   <slot n="0">
-    <param n="0">0.5</param>
-    <param n="1">0.1</param>
-    <param n="2">0.2</param>
-    <param n="3">0.5</param>
    </slot>
   </effect>
  </emitter>

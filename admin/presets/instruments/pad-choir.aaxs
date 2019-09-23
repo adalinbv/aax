@@ -19,33 +19,24 @@
   <note polyphony="8" min="48" max="84" step="12"/>
  </info>
 
- <sound gain="1.32" frequency="220" duration="0.3">
-  <waveform src="triangle" pitch="0.5"/>
-  <waveform src="triangle" processing="modulate" pitch="0.5"/>
-  <waveform src="brownian-noise" processing="add" ratio="0.1"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0">1760.0</param>
-    <param n="1">0.5</param>
-    <param n="2">0.1</param>
-    <param n="3">5.0</param>
-   </slot>
-  </filter>
+ <sound gain="0.91" frequency="220">
+  <waveform src="square" ratio="0.5" pitch="2.0"/>
+  <waveform src="triangle" processing="add" pitch="0.9993"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.188</param>
+    <param n="0">0.201</param>
     <param n="1">0.2</param>
-    <param n="2">0.943</param>
+    <param n="2">1.01</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.846</param>
+    <param n="0">0.912</param>
     <param n="1">inf</param>
-    <param n="2">0.819</param>
-    <param n="3">0.6</param>
+    <param n="2">0.912</param>
+    <param n="3">0.7</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -57,22 +48,28 @@
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">inf</param>
-    <param n="2">1.0</param>
-    <param n="3">0.5</param>
+    <param n="1">4.5</param>
+    <param n="2">0.995</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
  <audioframe>
-  <effect type="chorus" src="envelope" optional="true">
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.05</param>
-    <param n="2">0.25</param>
-    <param n="3">0.2</param>
+    <param n="0">100.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">1.5</param>
    </slot>
-  </effect>
+   <slot n="1">
+    <param n="0">2500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.35</param>
+    <param n="3">5.0</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>

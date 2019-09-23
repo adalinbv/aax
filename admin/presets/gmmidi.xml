@@ -49,11 +49,11 @@
    <instrument n="36" name="Slap Bass 1" file="instruments/bass-slap1"/>
    <instrument n="37" name="Slap Bass 2" file="instruments/bass-slap2"/>
    <instrument n="38" name="Synth Bass 1" file="instruments/bass-synth1"/>
-   <instrument n="39" name="Synth Bass 2" file="instruments/bass-synth3"/>
+   <instrument n="39" name="Synth Bass 2" file="instruments/bass-synth2"/>
    <instrument n="40" name="Violin" file="instruments/violin"/>
-   <instrument n="41" name="Viola" file="instruments/viola"/>
+   <instrument n="41" name="Viola" file="instruments/violin"/>
    <instrument n="42" name="Cello" file="instruments/cello"/>
-   <instrument n="43" name="Contrabass" file="instruments/bass-contra"/>
+   <instrument n="43" name="Contrabass" file="instruments/cello"/>
    <instrument n="44" name="Tremolo Strings" file="instruments/string-tremolo"/>
    <instrument n="45" name="Pizzicato Strings" file="instruments/string-pizzicato"/>
    <instrument n="46" name="Orchestral Harp" file="instruments/harp"/>
@@ -74,10 +74,10 @@
    <instrument n="61" name="Brass Section" file="instruments/brass-section"/>
    <instrument n="62" name="SynthBrass 1" file="instruments/brass-synth1"/>
    <instrument n="63" name="SynthBrass 2" file="instruments/brass-synth2"/>
-   <instrument n="64" name="Soprano Sax" file="instruments/saxophone"/>
-   <instrument n="65" name="Alto Sax" file="instruments/saxophone"/>
-   <instrument n="66" name="Tenor Sax" file="instruments/saxophone"/>
-   <instrument n="67" name="Baritone Sax" file="instruments/saxophone"/>
+   <instrument n="64" name="Soprano Sax" file="instruments/saxophone-tenor"/>
+   <instrument n="65" name="Alto Sax" file="instruments/saxophone-tenor"/>
+   <instrument n="66" name="Tenor Sax" file="instruments/saxophone-tenor"/>
+   <instrument n="67" name="Baritone Sax" file="instruments/saxophone-tenor"/>
    <instrument n="68" name="Oboe" file="instruments/oboe"/>
    <instrument n="69" name="English Horn" file="instruments/horn-english"/>
    <instrument n="70" name="Bassoon" file="instruments/bassoon"/>
@@ -120,7 +120,7 @@
    <instrument n="107" name="Koto" file="instruments/koto"/>
    <instrument n="108" name="Kalimba" file="instruments/kalimba"/>
    <instrument n="109" name="Bag pipe" file="instruments/bag-pipe"/>
-   <instrument n="110" name="Fiddle" file="instruments/kokyu"/>
+   <instrument n="110" name="Fiddle" file="instruments/fiddle"/>
    <instrument n="111" name="Shanai" file="instruments/shanai"/>
    <instrument n="112" name="Tinkle Bell" file="instruments/bell-tinkle"/>
    <instrument n="113" name="Agogo" file="instruments/agogo"/>

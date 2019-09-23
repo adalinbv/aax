@@ -19,32 +19,32 @@
   <note polyphony="2" min="58" max="91" step="12"/>
  </info>
 
- <sound gain="0.59" frequency="233" duration="0.1">
+ <sound gain="0.82" frequency="233.082" duration="0.1">
   <waveform src="square"/>
   <waveform src="square" processing="modulate" pitch="5.0"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="9.0">2097.0</param>
+    <param n="0" pitch="40.0">9323.3</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.1</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="0.2">
    <slot n="0">
-    <param n="0">0.407</param>
+    <param n="0">0.553</param>
     <param n="1">0.05</param>
-    <param n="2">1.33</param>
+    <param n="2">2.49</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.22</param>
-    <param n="1">inf</param>
-    <param n="2">1.22</param>
-    <param n="3">0.2</param>
+    <param n="0">2.07</param>
+    <param n="1">5.8</param>
+    <param n="2">1.62</param>
+    <param n="3">3.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -56,15 +56,29 @@
    </slot>
    <slot n="1">
     <param n="0">0.5</param>
-    <param n="1">4.5</param>
-    <param n="2">0.5</param>
+    <param n="1">6.5</param>
+    <param n="2">0.495</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe>
-  <filter type="frequency" src="24db">
+ <audioframe pan="0.2">
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">800.0</param>
+    <param n="1">0.3</param>
+    <param n="2">1.0</param>
+    <param n="3">2.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1750.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+  <filter type="frequency" optional="true">
    <slot n="0">
     <param n="0">2000.0</param>
     <param n="1">1.0</param>

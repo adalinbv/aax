@@ -26,17 +26,17 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.239</param>
+    <param n="0">0.272</param>
     <param n="1">0.2</param>
-    <param n="2">1.2</param>
+    <param n="2">1.35</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.956</param>
+    <param n="0">1.1</param>
     <param n="1">inf</param>
-    <param n="2">0.956</param>
+    <param n="2">1.1</param>
     <param n="3">0.5</param>
    </slot>
   </filter>

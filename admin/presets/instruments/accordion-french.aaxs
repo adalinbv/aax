@@ -19,9 +19,11 @@
   <note polyphony="6" min="53" max="89" step="12"/>
  </info>
 
- <sound gain="0.63" frequency="220" duration="0.75">
-  <waveform src="square" ratio="0.6"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.15" pitch="2.999"/>
+ <sound gain="1.01" frequency="174.614" duration="0.75">
+  <waveform src="sawtooth" ratio="0.8"/>
+  <waveform src="sawtooth" processing="add" ratio="0.15" pitch="3.0"/>
+  <waveform src="triangle" processing="mix" ratio="0.3" pitch="3.9889"/>
+  <waveform src="triangle" processing="mix" ratio="0.2" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
@@ -29,18 +31,26 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.1</param>
-    <param n="2">1.45</param>
+    <param n="2">1.25</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.32</param>
+    <param n="0">1.14</param>
     <param n="1">inf</param>
-    <param n="2">1.32</param>
+    <param n="2">1.14</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">0.98</param>
+    <param n="1">0.3</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="0.5"/>
 
 </aeonwave>

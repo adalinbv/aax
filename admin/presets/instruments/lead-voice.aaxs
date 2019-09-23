@@ -19,8 +19,8 @@
   <note polyphony="8" min="48" max="84" step="12"/>
  </info>
 
- <sound gain="1.01" frequency="220">
-  <waveform src="triangle" pitch="0.98"/>
+ <sound gain="0.88" frequency="220" duration="0.2">
+  <waveform src="square" pitch="0.98"/>
   <waveform src="sine" processing="modulate" ratio="0.3" pitch="8.0"/>
   <waveform src="triangle" processing="add" ratio="0.4"/>
  </sound>
@@ -28,37 +28,35 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.224</param>
-    <param n="1">0.2</param>
-    <param n="2">1.12</param>
+    <param n="0">0.168</param>
+    <param n="1">0.08</param>
+    <param n="2">1.33</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.897</param>
+    <param n="0">1.01</param>
     <param n="1">inf</param>
-    <param n="2">0.897</param>
+    <param n="2">1.01</param>
     <param n="3">0.5</param>
    </slot>
   </filter>
-  <effect type="phasing" src="envelope" optional="true">
-   <slot n="0">
-    <param n="0">0.3</param>
-    <param n="1">0.05</param>
-    <param n="2">0.3</param>
-    <param n="3">0.5</param>
-   </slot>
-  </effect>
  </emitter>
 
  <audioframe>
-  <effect type="flanging" src="inverse-sine" optional="true">
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">0.6</param>
-    <param n="1">0.05</param>
-    <param n="2">0.3</param>
-    <param n="3">0.4</param>
+    <param n="0">100.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">1.5</param>
    </slot>
-  </effect>
+   <slot n="1">
+    <param n="0">3500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.35</param>
+    <param n="3">5.0</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>

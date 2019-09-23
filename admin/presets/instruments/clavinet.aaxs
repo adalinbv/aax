@@ -19,12 +19,12 @@
   <note polyphony="6" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.64" frequency="220" duration="0.1">
+ <sound gain="2.99" frequency="880" duration="0.1">
   <waveform src="impulse" pitch="0.5"/>
   <waveform src="impulse" processing="add" ratio="0.4"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="0.75">165.0</param>
+    <param n="0" pitch="0.75">660.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
@@ -33,36 +33,42 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope" release-factor="3.5">
    <slot n="0">
-    <param n="0">1.72</param>
-    <param n="1">0.11</param>
-    <param n="2">1.49</param>
-    <param n="3">0.52</param>
+    <param n="0">0.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.3</param>
+    <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0">1.15</param>
-    <param n="1" auto="1.0">4.5</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">1.18</param>
+    <param n="1">0.02</param>
+    <param n="2">1.09</param>
+    <param n="3">2.38</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.03</param>
-    <param n="2">1.0</param>
+    <param n="0">2.3</param>
+    <param n="1">0.01</param>
+    <param n="2">2.0</param>
+    <param n="3">4.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.99</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe>
+ <audioframe pan="0.8">
   <filter type="frequency" src="24db" optional="true">
    <slot n="0">
-    <param n="0">3300.0</param>
+    <param n="0">1300.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.4</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

@@ -12,58 +12,75 @@
 
 <aeonwave>
 
- <info name="Flute" bank="0" program="72">
+ <info name="Flute" bank="0" program="73">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
-  <note polyphony="2" min="60" max="108" step="12"/>
+  <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="0.67" frequency="261" duration="0.3">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="add" ratio="0.2" pitch="2.0"/>
-  <waveform src="brownian-noise" processing="add" ratio="0.1" pitch="0.1"/>
+ <sound gain="0.72" frequency="1760" duration="0.5">
+  <waveform src="square" processing="add" ratio="0.6"/>
+  <waveform src="sine" processing="add" ratio="0.15" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.35" pitch="0.5"/>
   <filter type="bitcrusher">
    <slot n="0">
-    <param n="0">0.01</param>
+    <param n="0" auto="0.025">0.19</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.125</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="0.3">
    <slot n="0">
-    <param n="0">0.779</param>
-    <param n="1">0.15</param>
-    <param n="2">2.34</param>
+    <param n="0">0.676</param>
+    <param n="1">0.216</param>
+    <param n="2">1.52</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">2.0</param>
-    <param n="1">inf</param>
-    <param n="2">2.0</param>
-    <param n="3">0.2</param>
+    <param n="0">1.54</param>
+    <param n="1">9.5</param>
+    <param n="2">1.04</param>
+    <param n="3">3.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.07</param>
+    <param n="0">0.934</param>
     <param n="1">0.15</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">4.5</param>
-    <param n="2">0.998</param>
+    <param n="1">7.5</param>
+    <param n="2">0.992</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="-0.2">
+  <filter type="bitcrusher" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.0</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0">3300.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.3</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

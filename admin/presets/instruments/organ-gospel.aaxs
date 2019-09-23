@@ -12,33 +12,33 @@
 
 <aeonwave>
 
- <info name="Gospel Organ" bank="0" program="16">
+ <info name="Drawbar" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.84" frequency="220" duration="0.1">
-  <waveform src="sine" ratio="0.4375" pitch="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.375" pitch="8.0"/>
+ <sound gain="0.64" frequency="220" duration="0.1">
+  <waveform src="sine" ratio="0.451912" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.451912" pitch="0.75"/>
+  <waveform src="sine" processing="add" ratio="0.451912"/>
+  <waveform src="sine" processing="add" ratio="0.113515" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.113515" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.0402767" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.319929" pitch="8.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.699</param>
-    <param n="1">0.05</param>
-    <param n="2">1.4</param>
+    <param n="0">0.28</param>
+    <param n="1">0.08</param>
+    <param n="2">1.34</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.4</param>
+    <param n="0">1.34</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -47,14 +47,20 @@
  </emitter>
 
  <audioframe>
-  <effect type="phasing" src="sine" optional="true">
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">0.383</param>
-    <param n="1">5.54</param>
-    <param n="2">0.15</param>
-    <param n="3">0.5</param>
+    <param n="0">100.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
    </slot>
-  </effect>
+   <slot n="1">
+    <param n="0">3700.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>

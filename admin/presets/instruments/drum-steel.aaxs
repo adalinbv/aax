@@ -19,50 +19,44 @@
   <note polyphony="4" min="52" max="76" step="6"/>
  </info>
 
- <sound gain="1.36" frequency="220" duration="0.33">
-  <waveform src="sine" pitch="1.696"/>
-  <waveform src="sine" processing="add" ratio="0.6" pitch="5.0"/>
-  <waveform src="sine" processing="modulate" pitch="5.0587"/>
+ <sound mode="1" gain="1.04" frequency="220" duration="0.33">
+  <waveform src="triangle"/>
+  <waveform src="triangle" processing="modulate" pitch="1.997"/>
+  <waveform src="triangle" processing="modulate" pitch="5.0587"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope|24db" optional="true">
+  <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
-    <param n="0" pitch="1.0">220.0</param>
+    <param n="0" pitch="1.75">385.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.3</param>
     <param n="3">1.5</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="20.0">4400.0</param>
+    <param n="0" pitch="8.0">1760.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.05</param>
+    <param n="3">1.5</param>
    </slot>
   </filter>
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-factor="4.0">
    <slot n="0">
-    <param n="0">1.44</param>
-    <param n="1">0.04</param>
-    <param n="2">1.05</param>
-    <param n="3">0.1</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.1</param>
-    <param n="1">0.3</param>
-    <param n="2">0.721</param>
-    <param n="3" auto="1.0">4.0</param>
+    <param n="0">1.24</param>
+    <param n="1">2.16</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.447</param>
-    <param n="1">0.015</param>
-    <param n="2">0.277</param>
-    <param n="3">0.025</param>
+    <param n="0">1.8</param>
+    <param n="1">0.01</param>
+    <param n="2">0.45</param>
+    <param n="3">0.015</param>
    </slot>
    <slot n="1">
-    <param n="0">0.298</param>
+    <param n="0">0.948</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

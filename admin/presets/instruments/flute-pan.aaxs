@@ -19,13 +19,12 @@
   <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="0.73" frequency="440" duration="0.3">
+ <sound gain="0.56" frequency="880" duration="0.5">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="3.0"/>
-  <waveform src="brownian-noise" processing="mix" ratio="0.15" pitch="0.15"/>
   <filter type="bitcrusher">
    <slot n="0">
-    <param n="0">0.08</param>
+    <param n="0">0.09</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.5</param>
@@ -34,26 +33,26 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope" release-factor="0.3">
    <slot n="0">
-    <param n="0">0.132</param>
-    <param n="1">0.12</param>
-    <param n="2">1.85</param>
-    <param n="3">0.05</param>
+    <param n="0">0.413</param>
+    <param n="1">0.282</param>
+    <param n="2">1.88</param>
+    <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">1.32</param>
-    <param n="1">inf</param>
-    <param n="2">1.32</param>
-    <param n="3">0.2</param>
+    <param n="0">2.11</param>
+    <param n="1">7.5</param>
+    <param n="2">1.42</param>
+    <param n="3">3.2</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.15</param>
-    <param n="1">0.05</param>
+    <param n="0">0.836</param>
+    <param n="1">0.116</param>
     <param n="2">1.0</param>
-    <param n="3">4.5</param>
+    <param n="3">8.5</param>
    </slot>
    <slot n="1">
     <param n="0">0.995</param>
@@ -64,6 +63,6 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="-0.2"/>
 
 </aeonwave>

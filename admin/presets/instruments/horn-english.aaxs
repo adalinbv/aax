@@ -19,27 +19,23 @@
   <note polyphony="2" min="52" max="81" step="12"/>
  </info>
 
- <sound gain="0.89" frequency="220" duration="0.1">
-  <waveform src="sine" ratio="0.1875"/>
-  <waveform src="sine" processing="add" ratio="0.3125" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.4375" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.4375" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.3125" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.25" pitch="6.0"/>
+ <sound gain="0.94" frequency="220" duration="0.1">
+  <waveform src="square"/>
+  <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.721</param>
+    <param n="0">0.385</param>
     <param n="1">0.2</param>
-    <param n="2">1.81</param>
+    <param n="2">1.25</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.63</param>
+    <param n="0">1.15</param>
     <param n="1">inf</param>
-    <param n="2">1.44</param>
+    <param n="2">1.15</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
@@ -59,6 +55,15 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="0.3">
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">2000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

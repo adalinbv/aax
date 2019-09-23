@@ -19,25 +19,19 @@
   <note polyphony="8" min="72" max="108" step="12"/>
  </info>
 
- <sound gain="0.78" frequency="880" duration="0.5">
+ <sound gain="0.65" frequency="523.251" duration="0.5">
   <waveform src="square" pitch="5.0"/>
-  <waveform src="triangle" processing="modulate" ratio="1.7" pitch="5.0"/>
-  <waveform src="triangle" processing="add" ratio="0.8"/>
+  <waveform src="triangle" processing="modulate" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.8"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope" release-factor="4.0">
    <slot n="0">
-    <param n="0">1.42</param>
-    <param n="1">0.01</param>
-    <param n="2">1.18</param>
-    <param n="3">0.2</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.829</param>
-    <param n="1">inf</param>
-    <param n="2">0.829</param>
-    <param n="3">1.5</param>
+    <param n="0">1.34</param>
+    <param n="1">0.03</param>
+    <param n="2">1.34</param>
+    <param n="3">2.4</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
@@ -56,6 +50,6 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="-0.4"/>
 
 </aeonwave>

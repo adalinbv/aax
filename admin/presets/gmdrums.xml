@@ -119,7 +119,7 @@
 
   <bank n="25">
    <drum n="36" name="Bass Drum 1" file="drums/analog/drum-bass1"/>
-   <drum n="37" name="Side Stick" file="drums/analog/stick-side"/>
+<!--   <drum n="37" name="Side Stick" file="drums/analog/stick-side"/> -->
    <drum n="38" name="Acoustic Snare" file="drums/analog/drum-snare-acoustic"/>
    <drum n="40" name="Electric Snare" file="drums/analog/drum-snare-electric"/>
    <drum n="41" name="Low Floor Tom" file="drums/analog/tom-floor-low"/>
@@ -133,7 +133,7 @@
    <drum n="49" name="Crash Cymbal" file="drums/analog/cymbal-crash"/>
    <drum n="50" name="High Tom" file="drums/analog/tom-high"/>
    <drum n="56" name="Cowbell" file="drums/analog/cowbell"/>
-   <drum n="61" name="Low Bongo" file="drums/analog/bongo-low"/>
+<!--   <drum n="61" name="Low Bongo" file="drums/analog/bongo-low"/> -->
    <drum n="62" name="Mute Hi Conga" file="drums/analog/conga-mid"/>
    <drum n="63" name="Open Hi Conga" file="drums/analog/conga-high"/>
    <drum n="75" name="Claves" file="drums/analog/claves"/>

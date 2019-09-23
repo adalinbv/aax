@@ -16,40 +16,64 @@
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
-  <note polyphony="4" min="60" max="77" step="1"/>
+  <note polyphony="4" min="36" max="57" step="1"/>
  </info>
 
- <sound gain="0.73" frequency="261" duration="0.3">
-  <waveform src="pink-noise" ratio="0.5" pitch="0.08"/>
-  <waveform src="sine" processing="add" ratio="1.2"/>
-  <waveform src="sine" processing="add" ratio="0.6" pitch="1.6"/>
+ <sound gain="1.14" frequency="65.4064" duration="0.33">
+  <waveform src="white-noise" ratio="5.0" pitch="0.008"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="15.0">981.1</param>
+    <param n="1">0.8</param>
+    <param n="2">0.5</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <waveform src="square" processing="add" ratio="0.3"/>
+  <waveform src="sine" processing="add" ratio="0.45" pitch="1.7"/>
+  <waveform src="sine" processing="add" ratio="0.25" pitch="2.8"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.76</param>
+    <param n="0">1.38</param>
     <param n="1">0.03</param>
-    <param n="2">1.64</param>
+    <param n="2">1.33</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1.41</param>
-    <param n="1">1.5</param>
+    <param n="0">1.24</param>
+    <param n="1">0.558</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.5</param>
-    <param n="1">0.03</param>
+    <param n="0">1.29</param>
+    <param n="1">0.08</param>
     <param n="2">1.0</param>
+    <param n="3">4.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.98</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="0.6">
+  <filter type="frequency" src="36db">
+   <slot n="0">
+    <param n="0">550.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">1.2</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

@@ -17,49 +17,73 @@
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="4" min="28" max="55" step="12"/>
+  <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.38" frequency="55" duration="0.75">
-  <waveform src="sawtooth" pitch="0.9997"/>
-  <waveform src="triangle" processing="add" ratio="0.4" pitch="9.999"/>
+ <sound mode="1" gain="1.60" frequency="55" duration="0.75">
+  <waveform src="sawtooth" ratio="1.2" pitch="0.9997"/>
+  <waveform src="triangle" processing="add" ratio="0.4" pitch="3.999"/>
   <waveform src="triangle" processing="modulate" pitch="1.999"/>
+  <waveform src="triangle" processing="add" ratio="0.15" pitch="7.989"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="1.1">60.5</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-factor="2.0">
    <slot n="0">
-    <param n="0">1.22</param>
+    <param n="0">1.15</param>
     <param n="1">0.01</param>
-    <param n="2">0.489</param>
-    <param n="3">0.05</param>
+    <param n="2">0.512</param>
+    <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">0.734</param>
-    <param n="1">1.4</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">0.779</param>
+    <param n="1">0.5</param>
+    <param n="2">0.689</param>
+    <param n="3">0.689</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">4.0</param>
+    <param n="0">0.2</param>
     <param n="1">0.02</param>
-    <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="2">1.16</param>
+    <param n="3">0.01</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.5</param>
+    <param n="1">1.0</param>
+    <param n="2">0.48</param>
+    <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
- <audioframe>
+ <audioframe pan="0.1">
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100.0</param>
     <param n="1">0.8</param>
     <param n="2">1.0</param>
-    <param n="3">1.1</param>
+    <param n="3">1.3</param>
    </slot>
    <slot n="1">
-    <param n="0">1200.0</param>
+    <param n="0">2000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">2000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.5</param>

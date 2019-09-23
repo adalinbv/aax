@@ -12,28 +12,29 @@
 
 <aeonwave>
 
- <info name="Electric Piano 1" bank="0" program="5">
+ <info name="Electric Piano 2 (Detuned)" bank="0" program="5">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="8" min="28" max="103" step="12"/>
  </info>
 
- <sound gain="0.99" frequency="440" duration="0.1">
-  <waveform src="impulse" ratio="0.8" pitch="2.0"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.9"/>
+ <sound gain="1.21" frequency="110" duration="0.1">
+  <waveform src="sawtooth"/>
+  <waveform src="impulse" processing="add" ratio="0.3" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.2" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
   <filter type="frequency" src="envelope" optional="true">
    <slot n="0">
-    <param n="0" pitch="5.0">2200.0</param>
+    <param n="0" pitch="5.0">550.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">3.0</param>
    </slot>
    <slot n="1">
-    <param n="0" pitch="25.0">11000.0</param>
+    <param n="0" pitch="10.0">1100.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.5</param>
@@ -41,21 +42,21 @@
   </filter>
   <filter type="timed-gain" release-factor="2.5">
    <slot n="0">
-    <param n="0">1.68</param>
+    <param n="0">0.923</param>
     <param n="1">0.01</param>
-    <param n="2">1.2</param>
-    <param n="3">0.35</param>
+    <param n="2">0.741</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.959</param>
-    <param n="1" auto="1.5">5.0</param>
+    <param n="0">0.888</param>
+    <param n="1">1.49</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">25.0</param>
+    <param n="0">1.05</param>
     <param n="1">0.01</param>
     <param n="2">0.985</param>
     <param n="3">4.5</param>
@@ -69,6 +70,15 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe pan="0.6">
+  <filter type="frequency" src="24db" optional="true">
+   <slot n="0">
+    <param n="0">5500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

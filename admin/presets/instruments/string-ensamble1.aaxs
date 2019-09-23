@@ -16,26 +16,27 @@
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
-  <note polyphony="4" min="28" max="96" step="12"/>
+  <note polyphony="16" min="28" max="96" step="12"/>
  </info>
 
- <sound gain="1.61" frequency="220" voices="5" spread="0.2" phasing="true">
-  <waveform src="sawtooth" ratio="0.2" pitch="0.5"/>
-  <waveform src="sawtooth" processing="add" ratio="0.7" voices="3"/>
+ <sound gain="1.51" frequency="220">
+  <waveform src="sawtooth"/>
+  <waveform src="triangle" processing="modulate" pitch="4.0"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.2" pitch="0.991"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.399</param>
-    <param n="1">0.05</param>
-    <param n="2">0.666</param>
-    <param n="3">0.25</param>
+    <param n="0">0.426</param>
+    <param n="1">0.0629</param>
+    <param n="2">1.65</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.532</param>
+    <param n="0">1.51</param>
     <param n="1">inf</param>
-    <param n="2">0.532</param>
+    <param n="2">0.695</param>
     <param n="3">0.5</param>
    </slot>
   </filter>
@@ -55,23 +56,29 @@
   </effect>
  </emitter>
 
- <audioframe>
-  <filter type="frequency" src="24db" optional="true">
+ <audioframe pan="-0.7">
+  <filter type="frequency" optional="true">
    <slot n="0">
-    <param n="0">4400.0</param>
+    <param n="0">7000.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <effect type="chorus" src="envelope" optional="true">
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">0.03</param>
-    <param n="2">0.45</param>
-    <param n="3">0.054</param>
+    <param n="0">500.0</param>
+    <param n="1">0.5</param>
+    <param n="2">1.0</param>
+    <param n="3">1.1</param>
    </slot>
-  </effect>
+   <slot n="1">
+    <param n="0">3000.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.5</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
  </audioframe>
 
 </aeonwave>

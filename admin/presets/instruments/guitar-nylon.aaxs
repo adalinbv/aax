@@ -17,52 +17,62 @@
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="6" min="40" max="84" step="12"/>
+  <aftertouch mode="2"/>
  </info>
 
  <sound gain="1.77" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" pitch="0.999"/>
+  <waveform src="sawtooth" processing="add" ratio="0.0175" pitch="5.5"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency">
+  <filter type="timed-gain" src="envelope" release-factor="3.0">
    <slot n="0">
-    <param n="0" pitch="1.0">110.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.5</param>
-    <param n="3">1.2</param>
-   </slot>
-  </filter>
-  <filter type="timed-gain" release-factor="3.0">
-   <slot n="0">
-    <param n="0">0.749</param>
+    <param n="0">1.18</param>
     <param n="1">0.01</param>
-    <param n="2">1.49</param>
+    <param n="2">1.53</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.2</param>
-    <param n="1" auto="1.0">4.8</param>
+    <param n="0">1.26</param>
+    <param n="1">2.86</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.934</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
- <audioframe>
+ <audioframe pan="0.3">
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">100.0</param>
-    <param n="1">0.8</param>
+    <param n="0">200.0</param>
+    <param n="1">0.6</param>
     <param n="2">1.0</param>
-    <param n="3">1.5</param>
+    <param n="3">4.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1500.0</param>
+    <param n="0">600.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.1</param>
-    <param n="3">1.1</param>
+    <param n="2">0.8</param>
+    <param n="3">2.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">800.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.3</param>
+    <param n="3">3.0</param>
    </slot>
   </filter>
  </audioframe>

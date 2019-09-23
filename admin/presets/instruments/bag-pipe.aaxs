@@ -5,52 +5,52 @@
  * Copyright (C) 2017-2019 by Adalin B.V.
  * All rights reserved.
  *
- * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
- * not be disclosed to third parties, copied or duplicated in any form, in
- * whole or in part, without the prior written permission of the author.
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
  <info name="Bag Pipe" bank="0" program="109">
-  <license type="Proprietary/Commercial"/>
+  <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2019" by="Erik Hofman"/>
   <copyright from="2017" until="2019" by="Adalin B.V."/>
   <note polyphony="6" min="36" max="77" step="12"/>
  </info>
 
- <sound gain="0.92" frequency="220" duration="0.75">
+ <sound gain="1.24" frequency="220" duration="0.75">
   <waveform src="impulse" ratio="0.5"/>
   <waveform src="impulse" processing="add" pitch="2.0"/>
   <waveform src="impulse" processing="modulate" pitch="3.0"/>
- </sound>
-
- <emitter looping="true">
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="1.0">220.0</param>
+    <param n="0" pitch="2.0">440.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">4.0</param>
    </slot>
   </filter>
+ </sound>
+
+ <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.225</param>
+    <param n="0">0.958</param>
     <param n="1">0.1</param>
-    <param n="2">2.16</param>
-    <param n="3">0.15</param>
+    <param n="2">1.59</param>
+    <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="-0.0798">1.75</param>
+    <param n="0">1.55</param>
     <param n="1">inf</param>
-    <param n="2">1.41</param>
+    <param n="2">0.832</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
  </emitter>
 
- <audioframe>
+ <audioframe pan="-0.2">
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100.0</param>
@@ -61,18 +61,10 @@
    <slot n="1">
     <param n="0">4400.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.08</param>
+    <param n="2">0.2</param>
     <param n="3">8.3</param>
    </slot>
   </filter>
-  <effect type="chorus" src="envelope" optional="true">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.01</param>
-    <param n="2">0.47</param>
-    <param n="3">0.2</param>
-   </slot>
-  </effect>
  </audioframe>
 
 </aeonwave>
