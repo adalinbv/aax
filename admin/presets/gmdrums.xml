@@ -1,14 +1,18 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2018 by Erik Hofman.
- * Copyright (C) 2017-2018 by Adalin B.V.
+ * Copyright (C) 2017-2019 by Erik Hofman.
+ * Copyright (C) 2017-2019 by Adalin B.V.
  * All rights reserved.
  *
  * Reference: https://en.wikipedia.org/wiki/General_MIDI_Level_2
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
  
-<aeonwave>
+<aeonwave rate="45" polyphony="64">
 
  <midi>
   <bank n="0">
