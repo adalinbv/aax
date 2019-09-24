@@ -303,6 +303,7 @@ aaxDriverGetByName(const char* devname, enum aaxRenderMode mode)
             if (be) { /* be == NULL should never happen */
                handle->devname[0] = _aax_strdup(be->driver);
                handle->devname[1] = be->name(handle->backend.handle, mode?1:0);
+               handle->info->max_emitters = _aaxGetNoEmitters(be);
             }
          }
 

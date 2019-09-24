@@ -88,7 +88,8 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             setup *= 2;
             // intentional fallthrough
          case AAX_MONO_EMITTERS:
-            rv = (setup <= info->max_emitters) ? AAX_TRUE : AAX_FALSE;
+            info->max_emitters = setup;
+            rv = AAX_TRUE;
             break;
          case AAX_FREQUENCY:
             if ((setup > 1000) && (setup <= _AAX_MAX_MIXER_FREQUENCY))
@@ -1480,8 +1481,6 @@ _aaxMixerInit(_handle_t *handle)
             periods = _MAX(rintf(refrate/info->refresh_rate), 1.0f);
             info->refresh_rate = refrate/periods;
             info->no_samples = TIME_TO_SAMPLES(freq, info->refresh_rate);
-
-            info->max_emitters = _aaxGetNoEmitters(be);
 
             /* copy the hardware volume from the backend */
             dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
