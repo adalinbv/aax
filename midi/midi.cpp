@@ -69,9 +69,20 @@ using namespace aax;
 MIDI::MIDI(const char* n, const char *selections, enum aaxRenderMode m)
         : AeonWave(n, m)
 {
-    if (*this) {
+    if (*this)
+    {
         path = AeonWave::info(AAX_SHARED_DATA_DIR);
-    } else {
+
+        std::string name = path;
+        name.append("/ultrasynth/");
+        if (midi.exists(name))
+        {
+            path = name;
+            AeonWave::set(AAX_SHARED_DATA_DIR, path.c_str());
+        }
+    }
+    else
+    {
         if (n) {
             throw(std::runtime_error("Unable to open device "+std::string(n)));
         } else {
@@ -510,7 +521,7 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
 
     try {
         auto ret = channels.insert(
-            { channel_no, new MIDIChannel(*this, path, instr, drum, buffer,
+            { channel_no, new MIDIChannel(*this, instr, drum, buffer,
                                          channel_no, bank_no, program_no, drums)
             } );
         it = ret.first;

@@ -32,6 +32,7 @@
 #ifndef __AAX_MIDI
 #define __AAX_MIDI
 
+#include <sys/stat.h>
 #include <climits>
 #include <cstdlib>
 #include <stdexcept>
@@ -402,6 +403,11 @@ public:
         return true;
     }
 
+    bool exists(const std::string& path) {
+        struct stat buffer;
+        return (stat(path.c_str(), &buffer) == 0);
+    }
+
     MIDI &midi = *this;
 private:
     std::string preset_file(aaxConfig c, std::string& name) {
@@ -467,7 +473,7 @@ private:
     MIDIChannel& operator=(const MIDIChannel&) = delete;
 
 public:
-    MIDIChannel(MIDI& ptr, std::string& dir, std::string& ifile, std::string& dfile, Buffer &buffer, uint8_t channel, uint16_t bank, uint8_t program, bool is_drums)
+    MIDIChannel(MIDI& ptr, std::string& ifile, std::string& dfile, Buffer &buffer, uint8_t channel, uint16_t bank, uint8_t program, bool is_drums)
        : Instrument(ptr, channel == MIDI_DRUMS_CHANNEL), midi(ptr),
          channel_no(channel), bank_no(bank), program_no(program),
          drum_channel(channel == MIDI_DRUMS_CHANNEL ? true : is_drums)
