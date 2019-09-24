@@ -218,15 +218,34 @@ MIDI::read_instruments()
         void *xid = xmlOpen(filename);
         if (xid)
         {
-            void *xaid = xmlNodeGet(xid, "aeonwave/midi");
+            void *xaid = xmlNodeGet(xid, "aeonwave");
+            void *xmid = nullptr;
             char file[64] = "";
+
             if (xaid)
             {
-                unsigned int bnum = xmlNodeGetNum(xaid, "bank");
-                void *xbid = xmlMarkId(xaid);
+                if (xmlAttributeExists(xaid, "rate"))
+                {
+                    unsigned int rate = xmlAttributeGetInt(xaid, "rate");
+                    if (rate >= 25 && rate <= 200) {
+                       refresh_rate = rate;
+                    }
+                }
+                if (xmlAttributeExists(xaid, "polyphony"))
+                {
+                    polyphony =  xmlAttributeGetInt(xaid, "polyphony");
+                    if (polyphony < 32) polyphony = 32;
+                }
+                xmid = xmlNodeGet(xaid, "midi");
+            }
+
+            if (xmid)
+            {
+                unsigned int bnum = xmlNodeGetNum(xmid, "bank");
+                void *xbid = xmlMarkId(xmid);
                 for (unsigned int b=0; b<bnum; b++)
                 {
-                    if (xmlNodeGetPos(xaid, xbid, "bank", b) != 0)
+                    if (xmlNodeGetPos(xmid, xbid, "bank", b) != 0)
                     {
                         long int bank_no = xmlAttributeGetInt(xbid, "n");
                         unsigned int slen, inum = xmlNodeGetNum(xbid, type);
@@ -285,6 +304,7 @@ MIDI::read_instruments()
                     }
                 }
                 xmlFree(xbid);
+                xmlFree(xmid);
                 xmlFree(xaid);
             }
             else {
@@ -1913,18 +1933,30 @@ MIDIFile::initialize(const char *grep)
         int simd = (capabilities & AAX_SIMD);
         float refrate;
 
-        if (simd64 && cores >=4) refrate = 90.0f;
+        if (midi.get_refresh_rate() > 0.0f) refrate = midi.get_refresh_rate();
+        else if (simd64 && cores >=4) refrate = 90.0f;
         else if (simd && cores >= 4) refrate = 60.0f;
         else refrate = 45.0f;
 
         midi.set(AAX_REFRESH_RATE, refrate);
+        if (midi.get_polyphony() < UINT_MAX) {
+            midi.set(AAX_MONO_EMITTERS, midi.get_polyphony());
+        }
         midi.set(AAX_INITIALIZED);
 
         if (midi.get_verbose())
         {
+
             MESSAGE("Frequency : %i Hz\n", midi.get(AAX_FREQUENCY));
             MESSAGE("Upd. rate : %i Hz\n", midi.get(AAX_REFRESH_RATE));
             MESSAGE("Init time : %.1f ms\n", eps*1000.0f);
+
+            unsigned int polyphony = midi.get(AAX_MONO_EMITTERS);
+            if (polyphony == UINT_MAX) {
+                MESSAGE("Polyphony : unlimited\n");
+            } else {
+                MESSAGE("Polyphony : %u\n", midi.get(AAX_MONO_EMITTERS));
+            }
 
             int hour, minutes, seconds;
 

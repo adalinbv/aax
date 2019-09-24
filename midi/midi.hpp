@@ -32,6 +32,7 @@
 #ifndef __AAX_MIDI
 #define __AAX_MIDI
 
+#include <climits>
 #include <cstdlib>
 #include <stdexcept>
 #include <vector>
@@ -322,6 +323,9 @@ public:
 
     bool is_drums(uint8_t);
 
+    inline unsigned int get_refresh_rate() { return refresh_rate; }
+    inline unsigned int get_polyphony() { return polyphony; }
+
     inline void set_tuning(float pitch) { tuning = powf(2.0f, pitch/12.0f); }
     inline float get_tuning() { return tuning; }
 
@@ -435,6 +439,9 @@ private:
     std::string path;
 
     float tuning = 1.0f;
+
+    unsigned int refresh_rate = 0;
+    unsigned int polyphony = UINT_MAX;
 
     uint32_t uSPP = 500000/24;
     uint16_t format = 0;
