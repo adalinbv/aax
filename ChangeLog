@@ -1,3 +1,11 @@
+* Wed Sep 25 2019 - tech@adalin.org
+- AeonWave (3.6.6) stable; urgency=low
+
+ * Improved all instruments in the synthesizer instrument set.
+
+-- Erik Hofman <tech@adalin.org>  Wed 25 Sep 2019 14:08:36 + 0200
+
+
 * Thu Sep 19 2019 - tech@adalin.org
 - AeonWave (3.6.5) stable; urgency=medium
 
@@ -14,6 +22,7 @@
  * Fix support for brownian noise.
 
 -- Erik Hofman <tech@adalin.org>  Thu 19 Sep 2019 11:16:43 + 0200
+
 
 * Thu Aug 08 2019 - tech@adalin.org
 - AeonWave (3.6.4) stable; urgency=medium

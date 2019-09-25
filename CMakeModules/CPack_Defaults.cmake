@@ -133,12 +133,12 @@ ELSE(WIN32)
   SET(CPACK_DEB_COMPONENT_INSTALL ON)
 
   INSTALL(FILES
-          debian/copyright
+          "${PROJECT_SOURCE_DIR}/COPYING.v2"
           DESTINATION /usr/share/doc/${PACKAGE}-bin
           COMPONENT Libraries
   )
   INSTALL(FILES
-          debian/copyright
+          "${PROJECT_SOURCE_DIR}/COPYING.v2"
           DESTINATION /usr/share/doc/${PACKAGE}-dev
           COMPONENT Headers
   )
