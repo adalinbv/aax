@@ -812,7 +812,7 @@ new_handle()
       _aaxSetDefaultInfo(handle->info, handle);
 
       env = getenv("AAX_SHARED_DATA_DIR");
-      if (env)
+      if (env && strlen(env) > 0)
       {
          if (handle->data_dir) free(handle->data_dir);
          handle->data_dir = strdup(env);
