@@ -1830,8 +1830,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
 }
 
 
-MIDIFile::MIDIFile(const char *devname, const char *filename, const char *selection)
-    : MIDI(devname, selection), file(filename)
+MIDIFile::MIDIFile(const char *devname, const char *filename, const char *selection, enum aaxRenderMode mode)
+    : MIDI(devname, selection, mode), file(filename)
 {
     std::ifstream file(filename, std::ios::in|std::ios::binary|std::ios::ate);
     ssize_t size = file.tellg();
@@ -1978,13 +1978,12 @@ MIDIFile::initialize(const char *grep)
             } else {
                 MESSAGE("Polyphony : %u\n", midi.get(AAX_MONO_EMITTERS));
             }
-            MESSAGE("Patch set : %s\n", midi.get_patch_set().c_str());
 
             enum aaxRenderMode render_mode = aaxRenderMode(midi.render_mode());
             MESSAGE("Rendering : %s\n", to_string(render_mode).c_str());
+            MESSAGE("Patch set : %s\n", midi.get_patch_set().c_str());
 
             int hour, minutes, seconds;
-
             unsigned int format = midi.get_format();
             if (format >= MIDI_FILE_FORMAT_MAX) format = MIDI_FILE_FORMAT_MAX;
             MESSAGE("Format    : %s\n", format_name[format].c_str());
