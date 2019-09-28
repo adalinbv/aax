@@ -252,6 +252,10 @@ MIDI::read_instruments()
 
             if (xmid)
             {
+                if (xmlAttributeExists(xmid, "name")) {
+                    patch_set = xmlAttributeGetString(xmid, "name");
+                }
+
                 unsigned int bnum = xmlNodeGetNum(xmid, "bank");
                 void *xbid = xmlMarkId(xmid);
                 for (unsigned int b=0; b<bnum; b++)
@@ -1968,6 +1972,7 @@ MIDIFile::initialize(const char *grep)
             } else {
                 MESSAGE("Polyphony : %u\n", midi.get(AAX_MONO_EMITTERS));
             }
+            MESSAGE("Patch set : %s\n", midi.get_patch_set().c_str());
 
             int hour, minutes, seconds;
 

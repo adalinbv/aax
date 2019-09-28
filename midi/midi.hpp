@@ -299,6 +299,7 @@ public:
         set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
     }
 
+    inline const std::string& get_patch_set() { return patch_set; }
     inline std::vector<std::string>& get_selections() { return selection; }
 
     inline void set_track_active(uint16_t t) {
@@ -423,6 +424,8 @@ private:
     }
 
     void add_patch(const char *patch);
+
+    std::string patch_set = "default";
 
     std::string track_name;
     std::map<uint16_t,MIDIChannel*> channels;
