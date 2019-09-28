@@ -1981,7 +1981,7 @@ MIDIFile::initialize(const char *grep)
             MESSAGE("Patch set : %s\n", midi.get_patch_set().c_str());
 
             enum aaxRenderMode render_mode = aaxRenderMode(midi.render_mode());
-            MESSAGE("Renderer  : %s\n", to_string(render_mode).c_str());
+            MESSAGE("Rendering : %s\n", to_string(render_mode).c_str());
 
             int hour, minutes, seconds;
 
