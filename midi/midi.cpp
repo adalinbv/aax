@@ -39,6 +39,7 @@
 #include <limits.h>
 #include <assert.h>
 #include <xml.h>
+#include <aax/strings.hpp>
 
 #include <base/timer.h>
 #include "midi.hpp"
@@ -1978,6 +1979,9 @@ MIDIFile::initialize(const char *grep)
                 MESSAGE("Polyphony : %u\n", midi.get(AAX_MONO_EMITTERS));
             }
             MESSAGE("Patch set : %s\n", midi.get_patch_set().c_str());
+
+            enum aaxRenderMode render_mode = aaxRenderMode(midi.render_mode());
+            MESSAGE("Renderer  : %s\n", to_string(render_mode).c_str());
 
             int hour, minutes, seconds;
 
