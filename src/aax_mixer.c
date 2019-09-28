@@ -469,9 +469,11 @@ aaxMixerSetMode(UNUSED(aaxConfig config), UNUSED(enum aaxModeType type), UNUSED(
 }
 
 AAX_API int AAX_APIENTRY
-aaxMixerGetMode(UNUSED(const aaxConfig config), UNUSED(enum aaxModeType type))
+aaxMixerGetMode(const aaxConfig config, UNUSED(enum aaxModeType type))
 {
-   int rv = AAX_FALSE;
+   _handle_t* handle = get_handle(config, __func__);
+   int rv = __release_mode;
+   if (handle) rv = handle->info->mode;
    return rv;
 }
 

@@ -602,6 +602,10 @@ public:
 
     Sensor& operator=(Sensor&&) = default;
 
+    inline int render_mode() {
+        return aaxMixerGetMode(ptr,aaxModeType(0));
+    }
+
     inline bool set(enum aaxSetupType t, unsigned int s) {
         return aaxMixerSetSetup(ptr,t,s);
     }
