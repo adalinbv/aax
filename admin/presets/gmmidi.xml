@@ -12,7 +12,7 @@
  
 <aeonwave rate="45" polyphony="64">
 
- <midi>
+ <midi name="UltraSynth default instrument set">
   <bank n="0">
    <instrument n="0" name="Acoustic Grand Piano" file="instruments/piano-acoustic"/>
    <instrument n="1" name="Bright Acoustic Piano" file="instruments/piano-bright"/>
