@@ -252,8 +252,13 @@ MIDI::read_instruments()
 
             if (xmid)
             {
-                if (xmlAttributeExists(xmid, "name")) {
-                    patch_set = xmlAttributeGetString(xmid, "name");
+                if (xmlAttributeExists(xmid, "name"))
+                {
+                    char *set = xmlAttributeGetString(xmid, "name");
+                    if (set && strlen(set) != 0) {
+                        patch_set = set;
+                    }
+                    xmlFree(set);
                 }
 
                 unsigned int bnum = xmlNodeGetNum(xmid, "bank");
