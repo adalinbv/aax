@@ -49,7 +49,14 @@ int main(int argc, char **argv)
 {
     char *devname, *infile;
     aaxConfig config;
+    char verbose = 0;
     int res;
+
+    if (getCommandLineOption(argc, argv, "-v") ||
+        getCommandLineOption(argc, argv, "--verbose"))
+    {
+        verbose = 1;
+    }
 
     devname = getDeviceName(argc, argv);
     infile = getInputFile(argc, argv, FILE_PATH);
@@ -66,6 +73,12 @@ int main(int argc, char **argv)
 
         buffer = bufferFromFile(config, infile);
         testForError(buffer, "Unable to create a buffer");
+
+        if (verbose)
+        {
+            printf("Sample frequency: %i Hz\n", aaxBufferGetSetup(buffer, AAX_FREQUENCY));
+            printf("Base frequency  : %i Hz\n", aaxBufferGetSetup(buffer, AAX_UPDATE_RATE));
+        }
 
         ofile = getOutputFile(argc, argv, NULL);
         if (!ofile && buffer)
