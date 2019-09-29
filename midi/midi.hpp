@@ -603,7 +603,7 @@ class MIDIFile : public MIDI
 public:
     MIDIFile(const char *filename) : MIDIFile(nullptr, filename) {}
 
-    MIDIFile(const char *devname, const char *filename, const char *track=nullptr);
+    MIDIFile(const char *devname, const char *filename, const char *track=nullptr, enum aaxRenderMode mode=AAX_MODE_WRITE_STEREO);
 
     explicit MIDIFile(std::string& devname, std::string& filename)
        :  MIDIFile(devname.c_str(), filename.c_str()) {}
