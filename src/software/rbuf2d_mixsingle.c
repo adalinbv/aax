@@ -74,7 +74,7 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float gain, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float gain, _history_t history)
 {
    _aaxRendererData *renderer = data;
    const _aaxMixerInfo *info =  renderer->info;

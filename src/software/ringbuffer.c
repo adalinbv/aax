@@ -169,7 +169,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          }
 
          ddesamps = ceilf(dde * rbd->frequency_hz);
-         rbd->dde_samples = ddesamps ? ddesamps : CUBIC_SAMPS;
+         rbd->dde_samples = ddesamps ? ddesamps : HISTORY_SAMPS;
          rbd->scratch = NULL;
 
          _aaxRingBufferInitFunctions(rb);
@@ -418,7 +418,7 @@ _aaxRingBufferDuplicate(_aaxRingBuffer *ringbuffer, char copy, char dde)
       if (!dde)
       {
          drbd->dde_sec = 0.0f;
-         drbd->dde_samples = CUBIC_SAMPS;
+         drbd->dde_samples = HISTORY_SAMPS;
       }
 
       if (srbd->scratch)
@@ -754,7 +754,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       rbd->frequency_hz = fval;
       rbd->duration_sec = (fval > 0) ? (float)rbd->no_samples/fval : 0.0f;
       rbd->dde_samples = (size_t)ceilf(rbd->dde_sec * rbd->frequency_hz);
-      if (!rbd->dde_samples) rbd->dde_samples = CUBIC_SAMPS;
+      if (!rbd->dde_samples) rbd->dde_samples = HISTORY_SAMPS;
       break;
    case RB_DURATION_SEC:
    {

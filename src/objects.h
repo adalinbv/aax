@@ -43,6 +43,12 @@ extern "C" {
    exit(-1); \
  } while (0);
 
+// CUBIC_SAMPS was increased to 16 from 4 to handle HRTF properly
+#define CUBIC_SAMPS		4
+#define HISTORY_SAMPS		(4*CUBIC_SAMPS)
+#define BYTE_ALIGN		1
+
+typedef int32_t	_history_t[_AAX_MAX_SPEAKERS][HISTORY_SAMPS];
 
 /*
  * Beware: state can be both PLAYING and STOPPED, meaning the emitter is
@@ -415,7 +421,7 @@ typedef struct
 
    float curr_pos_sec;
 
-   int32_t history[_AAX_MAX_SPEAKERS][4];	// 4 = CUBIC_SAMPS
+   _history_t history;
 
 } _aaxEmitter;
 

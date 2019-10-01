@@ -51,7 +51,7 @@
  */
 
 CONST_MIX_PTRPTR_T
-_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, FLOAT pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, int32_t history[_AAX_MAX_SPEAKERS][CUBIC_SAMPS])
+_aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *p2d, FLOAT pitch_norm, size_t *start, size_t *no_samples, unsigned char ctr, _history_t history)
 {
    _aaxRingBufferData *drbi, *srbi;
    _aaxRingBufferSample *srbd, *drbd;
@@ -198,7 +198,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       }
 
       if (delay_effect) {
-         cno_samples += CUBIC_SAMPS;
+         cno_samples += HISTORY_SAMPS;
       }
 
 #ifdef NDEBUG
@@ -232,12 +232,12 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             }
             else
             {
-               size_t samples = cno_samples+CUBIC_SAMPS;
+               size_t samples = cno_samples+HISTORY_SAMPS;
                size_t send = sno_samples;
                MIX_T *ptr = scratch0;
 
                if (srbi->streaming) {
-                  send += CUBIC_SAMPS;
+                  send += HISTORY_SAMPS;
                }
 
 //             DBG_MEMCLR(1, scratch0, dend, sizeof(int32_t));
@@ -254,8 +254,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             /* update the history */
             if (!delay_effect && history)
             {
-               size_t size = CUBIC_SAMPS*sizeof(MIX_T);
-               MIX_T *ptr = scratch0-CUBIC_SAMPS;
+               size_t size = HISTORY_SAMPS*sizeof(MIX_T);
+               MIX_T *ptr = scratch0-HISTORY_SAMPS;
 
                _aax_memcpy(ptr, history[track], size);
                _aax_memcpy(history[track], ptr+cno_samples, size);
