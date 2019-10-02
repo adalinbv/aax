@@ -268,9 +268,12 @@ MIDI::read_instruments()
                 {
                     if (xmlNodeGetPos(xmid, xbid, "bank", b) != 0)
                     {
-                        long int bank_no = xmlAttributeGetInt(xbid, "n");
+                        long int bank_no = xmlAttributeGetInt(xbid, "n") << 7;
                         unsigned int slen, inum = xmlNodeGetNum(xbid, type);
                         void *xiid = xmlMarkId(xbid);
+
+                        bank_no = xmlAttributeGetInt(xbid, "n") << 7;
+                        bank_no += xmlAttributeGetInt(xbid, "l");
 
                         // bank audio-frame filter and effects file
                         slen = xmlAttributeCopyString(xbid, "file", file, 64);
