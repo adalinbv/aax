@@ -1,3 +1,12 @@
+* Thu Oct 03 2019 - tech@adalin.org
+- AeonWave (3.6.7) stable; urgency=low
+
+ * Disable stream ICY support for now for security reasons.
+ * Switch to the latest stb_vorbis code which contains some security fixes.
+
+-- Erik Hofman <tech@adalin.org>  Thu 03 oct 2019 09:44:28 + 0200
+
+
 * Thu Sep 26 2019 - tech@adalin.org
 - AeonWave (3.6.6) stable; urgency=low
 
