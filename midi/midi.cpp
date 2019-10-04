@@ -481,7 +481,12 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no, bool all)
             }
 
             LOG("Instrument %i not found in bank %i\n", program_no, bank_no);
-            if (bank_no > 0)
+            if (bank_no > 0x7F)
+            {
+                bank_no &= ~0x7F;
+                itb = instruments.find(bank_no);
+            }
+            else if (bank_no > 0)
             {
                 bank_no = 0;
                 itb = instruments.find(bank_no);
