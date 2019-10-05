@@ -577,7 +577,7 @@ private:
     int16_t track_no = -1;
 
     uint8_t previous = 0;
-    uint32_t wait_parts = 0;
+    uint32_t wait_parts = 1;
     uint64_t timestamp_parts = 0;
     bool polyphony = true;
     bool omni = true;
