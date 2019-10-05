@@ -437,7 +437,6 @@ MIDI::get_drum(uint16_t program_no, uint8_t key_no, bool all)
                 }
             }
 
-            LOG("Drum %i not found in bank %i\n", key_no, program_no);
             if (program_no > 0)
             {
                 if ((program_no & 0xF8) == program_no) program_no = 0;
@@ -449,7 +448,11 @@ MIDI::get_drum(uint16_t program_no, uint8_t key_no, bool all)
                     itb = drums.find(program_no);
                 }
             }
-            else break;
+            else
+            {
+               LOG("Drum %i not found in bank %i\n", key_no, program_no);
+               break;
+            }
         }
         while (program_no >= 0);
     }
@@ -480,8 +483,6 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no, bool all)
                 }
             }
 
-            LOG("Instrument %i not found in bank %i-%i\n",
-                 program_no, bank_no >> 7, bank_no & 0x7F);
             if (bank_no & 0x7F)
             {
                 bank_no &= ~0x7F;
@@ -492,7 +493,12 @@ MIDI::get_instrument(uint16_t bank_no, uint8_t program_no, bool all)
                 bank_no = 0;
                 itb = instruments.find(bank_no);
             }
-            else break;
+            else
+            {
+               LOG("Instrument %i not found in bank %i-%i\n",
+                    program_no, bank_no >> 7, bank_no & 0x7F);
+               break;
+            }
         }
         while (bank_no >= 0);
     }
