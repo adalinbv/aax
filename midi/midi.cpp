@@ -410,12 +410,12 @@ MIDI::add_patch(const char *file)
 const std::pair<std::string,int>
 MIDI::get_drum(uint16_t program_no, uint8_t key_no, bool all)
 {
-    auto itb = drums.find(program_no);
+    auto itb = drums.find(program_no << 7);
     if (itb == drums.end() && program_no > 0)
     {
         if ((program_no & 0xF8) == program_no) program_no = 0;
         else program_no &= 0xF8;
-        itb = drums.find(program_no);
+        itb = drums.find(program_no << 7);
         if (itb == drums.end())
         {
             program_no = 0;
@@ -441,7 +441,7 @@ MIDI::get_drum(uint16_t program_no, uint8_t key_no, bool all)
             {
                 if ((program_no & 0xF8) == program_no) program_no = 0;
                 else program_no &= 0xF8;
-                itb = drums.find(program_no);
+                itb = drums.find(program_no << 7);
                 if (itb == drums.end())
                 {
                     program_no = 0;
