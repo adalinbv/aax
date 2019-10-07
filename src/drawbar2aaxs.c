@@ -34,9 +34,11 @@
 #endif
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <time.h>
 #include <math.h>
 #include <strings.h>
+#include <string.h>
 
 #include "driver.h"
 
@@ -88,6 +90,25 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, " * Copyright (C) 2017-%s by Erik Hofman.\n", year);
     fprintf(output, " * Copyright (C) 2017-%s by Adalin B.V.\n", year);
     fprintf(output, " * All rights reserved.\n");
+    fprintf(output, "\n");
+
+    fprintf(output, " * Drawbar Settings: ");
+    for (i=0; i<2; ++i) fprintf(output, "%1.0f", db[i]);
+    fprintf(output, " ");
+    for (i=2; i<6; ++i) fprintf(output, "%1.0f", db[i]);
+    fprintf(output, " ");
+    for (i=6; i<9; ++i) fprintf(output, "%1.0f", db[i]);
+    fprintf(output, "\n");
+    fprintf(output, " * Percussive      : %s\n", percussion ? "yes" : "no");
+    fprintf(output, " * Overdrive       : ");
+    if (overdrive == 3) fprintf(output, "strong\n");
+    else if (overdrive == 2) fprintf(output, "medium\n");
+    else if (overdrive == 1) fprintf(output, "mild\n");
+    else fprintf(output, "no\n");
+    fprintf(output, " * Lesley          : %s\n", leslie ? ((leslie > 1) ? "fast" : "slow") : "no");
+    fprintf(output, " * Chorus          : %s\n", chorus ? "yes" : "no");
+    fprintf(output, " * Reverb          : %s\n", reverb ? "yes" : "no");
+
     if (commons)
     {
         fprintf(output, " *\n");
