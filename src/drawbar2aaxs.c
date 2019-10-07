@@ -99,7 +99,7 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, " ");
     for (i=6; i<9; ++i) fprintf(output, "%1.0f", db[i]);
     fprintf(output, "\n");
-    fprintf(output, " * Percussive      : %s\n", percussion ? "yes" : "no");
+    fprintf(output, " * Percussive      : %s\n", percussion ? ((percussion == 2) ? "fast" : "slow") : "no");
     fprintf(output, " * Overdrive       : ");
     if (overdrive == 3) fprintf(output, "strong\n");
     else if (overdrive == 2) fprintf(output, "medium\n");
@@ -166,17 +166,34 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, " </sound>\n\n");
 
     fprintf(output, " <emitter looping=\"true\">\n");
+    if (percussion)
+    {
+        fprintf(output, "  <filter type=\"frequency\" src=\"envelope\">\n");
+        fprintf(output, "   <slot n=\"0\">\n");
+        fprintf(output, "    <param n=\"0\" pitch=\"0.25\">55.0</param>\n");
+        fprintf(output, "    <param n=\"1\">1.0</param>\n");
+        fprintf(output, "    <param n=\"2\">0.0</param>\n");
+        fprintf(output, "    <param n=\"3\">1.0</param>\n");
+        fprintf(output, "   </slot>\n");
+        fprintf(output, "   <slot n=\"1\">\n");
+        fprintf(output, "    <param n=\"0\" pitch=\"8.0\">1760.0</param>\n");
+        fprintf(output, "    <param n=\"1\">0.0</param>\n");
+        fprintf(output, "    <param n=\"2\">0.0</param>\n");
+        fprintf(output, "    <param n=\"3\">%g</param>\n", (percussion == 2) ? 0.1f : 0.5f );
+        fprintf(output, "   </slot>\n");
+        fprintf(output, "  </filter>\n");
+    }
     fprintf(output, "  <filter type=\"timed-gain\"");
     if (reverb) fprintf(output, " release-factor=\"7.0\"");
     fprintf(output, ">\n");
     fprintf(output, "   <slot n=\"0\">\n");
     fprintf(output, "    <param n=\"0\">%g</param>\n", percussion ? 1.5f : 0.25f);
-    fprintf(output, "    <param n=\"1\">0.08</param>\n");
-    fprintf(output, "    <param n=\"2\">1.2</param>\n");
+    fprintf(output, "    <param n=\"1\">%g</param>\n", (percussion == 1) ? 0.16f : 0.08f);
+    fprintf(output, "    <param n=\"2\">0.8</param>\n");
     fprintf(output, "    <param n=\"3\">inf</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "   <slot n=\"1\">\n");
-    fprintf(output, "    <param n=\"0\">1.2</param>\n");
+    fprintf(output, "    <param n=\"0\">%g</param>\n", (percussion == 1) ? 0.8f : 1.2f);
     fprintf(output, "    <param n=\"1\">%g</param>\n", reverb ? 0.7 : 0.2);
     fprintf(output, "    <param n=\"2\">0.0</param>\n");
     fprintf(output, "    <param n=\"3\">0.0</param>\n");
@@ -257,7 +274,7 @@ void help()
 //  printf("     --chorus\t\t\tAdd the chorus effect.\n");
     printf("     --leslie <slow|fast>\tAdd the Leslie speaker in slow or fast mode.\n");
     printf("     --overdrive <mild|strong>\tAdd a mild or strong tube overdrive effect.\n");
-    printf("     --percussion\t\tAdd the percussion effect.\n");
+    printf("     --percussion <slow|fast>t\tAdd the percussion effect.\n");
     printf("     --reverb\t\t\tAdd the reverb effect.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
@@ -289,8 +306,11 @@ int main(int argc, char **argv)
         commons = 0;
     }
 
-    if (getCommandLineOption(argc, argv, "--percussion")) {
-        percussion = 1;
+    s = getCommandLineOption(argc, argv, "--percussion");
+    if (s)
+    {
+        if (!strcasecmp(s, "fast")) percussion = 2;
+        else percussion = 1;
     }
 
     if (getCommandLineOption(argc, argv, "--chorus")) {
