@@ -637,7 +637,11 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     }
 
     sound->frequency = _MINMAX(xmlAttributeGetDouble(xid, "frequency"), 8.176f, 12543.854f);
-    sound->duration = _MAX(xmlAttributeGetDouble(xid, "duration"), 0.0f);
+    if (xmlAttributeGetDouble(xid, "duration")) {
+        sound->duration = _MAX(xmlAttributeGetDouble(xid, "duration"), 0.0f);
+    } else {
+        sound->duration = 1.0f;
+    }
     if (!simplify)
     {
         sound->voices = _MIN(abs(xmlAttributeGetInt(xid, "voices")), 9);
