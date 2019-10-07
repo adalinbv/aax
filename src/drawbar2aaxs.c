@@ -121,6 +121,13 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, "<aeonwave>\n\n");
 
     fprintf(output, " <info name=\"Drawbar\" bank=\"0\" program=\"0\">\n");
+    if (commons) {
+        fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
+    } else {
+        fprintf(output, "  <license type=\"Proprietary/Commercial\"/>\n");
+    }
+    fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Erik Hofman\"/>\n", year);
+    fprintf(output, "  <copyright from=\"2017\" until=\"%s\" by=\"Adalin B.V.\"/>\n", year);
     fprintf(output, "  <note polyphony=\"10\" min=\"36\" max=\"96\" step=\"12\"/>\n");
     fprintf(output, " </info>\n\n");
 
