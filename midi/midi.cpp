@@ -262,6 +262,15 @@ MIDI::read_instruments()
                     xmlFree(set);
                 }
 
+                if (xmlAttributeExists(xmid, "version"))
+                {
+                    char *set = xmlAttributeGetString(xmid, "version");
+                    if (set && strlen(set) != 0) {
+                        patch_version = set;
+                    }
+                    xmlFree(set);
+                }
+
                 unsigned int bnum = xmlNodeGetNum(xmid, "bank");
                 void *xbid = xmlMarkId(xmid);
                 for (unsigned int b=0; b<bnum; b++)
@@ -1996,7 +2005,8 @@ MIDIFile::initialize(const char *grep)
 
             enum aaxRenderMode render_mode = aaxRenderMode(midi.render_mode());
             MESSAGE("Rendering : %s\n", to_string(render_mode).c_str());
-            MESSAGE("Patch set : %s\n", midi.get_patch_set().c_str());
+            MESSAGE("Patch set : %s", midi.get_patch_set().c_str());
+            MESSAGE(" instrument set version %s\n", midi.get_patch_version().c_str());
 
             int hour, minutes, seconds;
             unsigned int format = midi.get_format();
