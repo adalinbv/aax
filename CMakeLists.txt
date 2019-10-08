@@ -581,6 +581,7 @@ install( DIRECTORY
          admin/presets/
 	 DESTINATION "${SHARED_DATA_SUBDIR}"
          COMPONENT Data
+         PATTERN "*.in" EXCLUDE
 )
 
 if (UNIX AND NOT WIN32)
