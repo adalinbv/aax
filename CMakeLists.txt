@@ -604,6 +604,16 @@ endif(NOT SINGLE_PACKAGE)
 message("AAX version: ${AAX_VERSION}")
 message("API version: ${AAX_SOVERSION}")
 
+string(TIMESTAMP YEAR "%Y")
+configure_file(
+  "${AeonWave_SOURCE_DIR}/admin/presets/gmmidi.xml.in"
+  "${AeonWave_SOURCE_DIR}/admin/presets/gmmidi.xml"
+)
+
+configure_file(
+  "${AeonWave_SOURCE_DIR}/admin/presets/gmdrums.xml.in"
+  "${AeonWave_SOURCE_DIR}/admin/presets/gmdrums.xml"
+)
 configure_file(
   "${AeonWave_SOURCE_DIR}/include/config.h.in"
   "${AeonWave_BINARY_DIR}/include/config.h"

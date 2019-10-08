@@ -26,4 +26,6 @@ CTestTestfile.cmake
 *.orig
 src/copyright.h
 debian/ChangeLog.gz
+admin/presets/gmdrums.xml
+admin/presets/gmmidi.xml
 *~
