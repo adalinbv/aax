@@ -14,7 +14,7 @@
  
 <aeonwave rate="45" polyphony="64">
 
- <midi name="UltraSynth default instrument set" version="@AAX_VERSION@">
+ <midi name="UltraSynth default" version="@AAX_VERSION@">
   <bank n="0">
    <drum n="26" name="Finger Snap" file="effects/humans/snap-finger"/>
    <drum n="27" name="High Q" file="drums/high-q"/>
