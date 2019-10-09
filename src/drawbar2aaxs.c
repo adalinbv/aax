@@ -335,7 +335,6 @@ int main(int argc, char **argv)
         } else {
             len = p-s;
             param.harmonic = _MINMAX(atoi(p+1), 2, 3);
-printf("%s - %i\n", p+1, param.harmonic);
         }
         if (!strncasecmp(s, "fast", len)) param.percussion = 2;
         else param.percussion = 1;
