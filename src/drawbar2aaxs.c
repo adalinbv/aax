@@ -105,7 +105,21 @@ void print_aaxs(const char* outfile, struct params param)
     fprintf(output, " * Copyright (C) 2017-%s by Erik Hofman.\n", year);
     fprintf(output, " * Copyright (C) 2017-%s by Adalin B.V.\n", year);
     fprintf(output, " * All rights reserved.\n");
-    fprintf(output, "\n");
+    fprintf(output, " *\n");
+
+    if (!param.commons)
+    {
+        fprintf(output, " * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may\n");
+        fprintf(output, " * not be disclosed to third parties, copied or duplicated in any form, in\n");
+        fprintf(output, " * whole or in part, without the prior written permission of the author.\n");
+    }
+    else
+    {
+        fprintf(output, " * This file is part of AeonWave and covered by the\n");
+        fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
+        fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
+    }
+    fprintf(output, " *\n");
 
     fprintf(output, " * Drawbar Settings: ");
     for (i=0; i<2; ++i) fprintf(output, "%1.0f", param.db[i]);
@@ -123,14 +137,6 @@ void print_aaxs(const char* outfile, struct params param)
     fprintf(output, " * Leslie          : %s\n", param.leslie ? ((param.leslie > 1) ? "fast" : "slow") : "no");
     fprintf(output, " * Chorus          : %s\n", param.chorus ? "yes" : "no");
     fprintf(output, " * Reverb          : %s\n", param.reverb ? "yes" : "no");
-
-    if (param.commons)
-    {
-        fprintf(output, " *\n");
-        fprintf(output, " * This file is part of AeonWave and covered by the\n");
-        fprintf(output, " * Creative Commons Attribution-ShareAlike 4.0 International Public License\n");
-        fprintf(output, " * https://creativecommons.org/licenses/by-sa/4.0/legalcode\n");
-    }
     fprintf(output, "-->\n\n");
 
     fprintf(output, "<aeonwave>\n\n");
@@ -187,7 +193,7 @@ void print_aaxs(const char* outfile, struct params param)
     {
         fprintf(output, "  <filter type=\"frequency\" src=\"envelope\">\n");
         fprintf(output, "   <slot n=\"0\">\n");
-        fprintf(output, "    <param n=\"0\" pitch=\"%g\">%4.1f</param>\n", 0.8f*param.harmonic, 55.0f*param.harmonic);
+        fprintf(output, "    <param n=\"0\" pitch=\"%g\">%4.1f</param>\n", 1.2f*param.harmonic, 55.0f*param.harmonic/1.2f);
         fprintf(output, "    <param n=\"1\">1.0</param>\n");
         fprintf(output, "    <param n=\"2\">0.0</param>\n");
         fprintf(output, "    <param n=\"3\">1.0</param>\n");
@@ -206,11 +212,11 @@ void print_aaxs(const char* outfile, struct params param)
     fprintf(output, "   <slot n=\"0\">\n");
     fprintf(output, "    <param n=\"0\">%g</param>\n", param.percussion ? 1.5f : 0.25f);
     fprintf(output, "    <param n=\"1\">%g</param>\n", (param.percussion == 1) ? 0.16f : 0.08f);
-    fprintf(output, "    <param n=\"2\">%g</param>\n", param.percussion ? 0.8f : 1.2f);
+    fprintf(output, "    <param n=\"2\">1.2</param>\n");
     fprintf(output, "    <param n=\"3\">inf</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "   <slot n=\"1\">\n");
-    fprintf(output, "    <param n=\"0\">%g</param>\n", param.percussion ? 0.8f : 1.2f);
+    fprintf(output, "    <param n=\"0\">1.2</param>\n");
     fprintf(output, "    <param n=\"1\">%g</param>\n", param.reverb ? 0.7 : 0.2);
     fprintf(output, "    <param n=\"2\">0.0</param>\n");
     fprintf(output, "    <param n=\"3\">0.0</param>\n");
