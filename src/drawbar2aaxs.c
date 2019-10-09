@@ -120,7 +120,7 @@ void print_aaxs(const char* outfile, struct params param)
     else if (param.overdrive == 2) fprintf(output, "medium\n");
     else if (param.overdrive == 1) fprintf(output, "mild\n");
     else fprintf(output, "no\n");
-    fprintf(output, " * Lesley          : %s\n", param.leslie ? ((param.leslie > 1) ? "fast" : "slow") : "no");
+    fprintf(output, " * Leslie          : %s\n", param.leslie ? ((param.leslie > 1) ? "fast" : "slow") : "no");
     fprintf(output, " * Chorus          : %s\n", param.chorus ? "yes" : "no");
     fprintf(output, " * Reverb          : %s\n", param.reverb ? "yes" : "no");
 
@@ -147,9 +147,9 @@ void print_aaxs(const char* outfile, struct params param)
     fprintf(output, " </info>\n\n");
 
     if (param.reverb) {
-        fprintf(output, " <sound gain=\"4.0\" frequency=\"55\" voices=\"3\" spread=\"0.1\">\n");
+        fprintf(output, " <sound gain=\"2.0\" frequency=\"55\" voices=\"3\" spread=\"0.1\">\n");
     } else {
-        fprintf(output, " <sound gain=\"2.0\" frequency=\"55\">\n");
+        fprintf(output, " <sound gain=\"1.0\" frequency=\"55\">\n");
     }
     fprintf(output, "  <waveform src=\"white-noise\" ratio=\"0.1\"/>\n");
 
@@ -206,11 +206,11 @@ void print_aaxs(const char* outfile, struct params param)
     fprintf(output, "   <slot n=\"0\">\n");
     fprintf(output, "    <param n=\"0\">%g</param>\n", param.percussion ? 1.5f : 0.25f);
     fprintf(output, "    <param n=\"1\">%g</param>\n", (param.percussion == 1) ? 0.16f : 0.08f);
-    fprintf(output, "    <param n=\"2\">%g</param>\n", (param.percussion == 1) ? 0.8f : 1.2f);
+    fprintf(output, "    <param n=\"2\">%g</param>\n", param.percussion ? 0.8f : 1.2f);
     fprintf(output, "    <param n=\"3\">inf</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "   <slot n=\"1\">\n");
-    fprintf(output, "    <param n=\"0\">%g</param>\n", (param.percussion == 1) ? 0.8f : 1.2f);
+    fprintf(output, "    <param n=\"0\">%g</param>\n", param.percussion ? 0.8f : 1.2f);
     fprintf(output, "    <param n=\"1\">%g</param>\n", param.reverb ? 0.7 : 0.2);
     fprintf(output, "    <param n=\"2\">0.0</param>\n");
     fprintf(output, "    <param n=\"3\">0.0</param>\n");
