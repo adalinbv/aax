@@ -237,7 +237,7 @@ void print_aaxs(const char* outfile, struct params param)
     {
         fprintf(output, "  <effect type=\"distortion\" optional=\"true\">\n");
         fprintf(output, "   <slot n=\"0\">\n");
-        fprintf(output, "    <param n=\"0\">%g</param>\n", 0.1f+0.1f*param.overdrive);
+        fprintf(output, "    <param n=\"0\">%g</param>\n", 0.1f*param.overdrive);
         fprintf(output, "    <param n=\"1\">0.0</param>\n");
         fprintf(output, "    <param n=\"2\">0.15</param>\n");
         fprintf(output, "    <param n=\"3\">1.0</param>\n");
