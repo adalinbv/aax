@@ -131,7 +131,11 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, "  <note polyphony=\"10\" min=\"36\" max=\"96\" step=\"12\"/>\n");
     fprintf(output, " </info>\n\n");
 
-    fprintf(output, " <sound gain=\"1.0\" frequency=\"220\" duration=\"0.1\">\n");
+    if (reverb) {
+        fprintf(output, " <sound gain=\"4.0\" frequency=\"55\" duration=\"0.1\" voices=\"3\" spread=\"0.1\">\n");
+    } else {
+        fprintf(output, " <sound gain=\"2.0\" frequency=\"55\" duration=\"0.1\">\n");
+    }
 
     num = 0;
     total = 0.0f;
@@ -155,9 +159,6 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
                 }
                 if (pitch[i] != 1.0f) {
                     fprintf(output, " pitch=\"%s\"", format_float6(pitch[i]));
-                }
-                else if (reverb) {
-                    fprintf(output, " voices=\"3\"");
                 }
                 fprintf(output, "/>\n");
             }
@@ -229,11 +230,15 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     }
     if (chorus)
     {
-        fprintf(output, "  <effect type=\"chorus\" optional=\"true\">\n");
+        if (leslie) {
+            fprintf(output, "  <effect type=\"chorus\" src=\"sine\" optional=\"true\">\n");
+        } else {
+            fprintf(output, "  <effect type=\"chorus\" optional=\"true\">\n");
+        }
         fprintf(output, "   <slot n=\"0\">\n");
-        fprintf(output, "    <param n=\"0\">0.6</param>\n");
-        fprintf(output, "    <param n=\"1\">0.0</param>\n");
-        fprintf(output, "    <param n=\"2\">0.0</param>\n");
+        fprintf(output, "    <param n=\"0\">0.383</param>\n");
+        (fprintf(output, "    <param n=\"1\">%g</param>\n", leslie ? ((leslie == 1) ? 1.54f : 5.54f) : 0.0f));
+        fprintf(output, "    <param n=\"2\">0.03</param>\n");
         fprintf(output, "    <param n=\"3\">0.9</param>\n");
         fprintf(output, "   </slot>\n");
         fprintf(output, "  </effect>\n");
@@ -274,7 +279,7 @@ void help()
 //  printf("     --chorus\t\t\tAdd the chorus effect.\n");
     printf("     --leslie <slow|fast>\tAdd the Leslie speaker in slow or fast mode.\n");
     printf("     --overdrive <mild|strong>\tAdd a mild or strong tube overdrive effect.\n");
-    printf("     --percussion <slow|fast>t\tAdd the percussion effect.\n");
+    printf("     --percussion <slow|fast>\tAdd the percussion effect.\n");
     printf("     --reverb\t\t\tAdd the reverb effect.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
