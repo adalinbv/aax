@@ -147,10 +147,11 @@ void print_aaxs(const char* outfile, struct params param)
     fprintf(output, " </info>\n\n");
 
     if (param.reverb) {
-        fprintf(output, " <sound gain=\"4.0\" frequency=\"55\" duration=\"0.1\" voices=\"3\" spread=\"0.1\">\n");
+        fprintf(output, " <sound gain=\"4.0\" frequency=\"55\" voices=\"3\" spread=\"0.1\">\n");
     } else {
-        fprintf(output, " <sound gain=\"2.0\" frequency=\"55\" duration=\"0.1\">\n");
+        fprintf(output, " <sound gain=\"2.0\" frequency=\"55\">\n");
     }
+    fprintf(output, "  <waveform src=\"white-noise\" ratio=\"0.1\"/>\n");
 
     num = 0;
     total = 0.0f;
