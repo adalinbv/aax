@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2018 by Erik Hofman.
- * Copyright (C) 2018 by Adalin B.V.
+ * Copyright (C) 2018-2019 by Erik Hofman.
+ * Copyright (C) 2018-2019 by Adalin B.V.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,7 +42,22 @@
 
 #include "driver.h"
 
-static float _db2lin(float v) { return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f); }
+struct params {
+    char percussion;
+    char harmonic;
+    char overdrive;
+    char commons;
+    char leslie;
+    char chorus;
+    char reverb;
+
+    char *drawbar;
+    float db[9];
+};
+
+static float _db2lin(float v) {
+    return _MINMAX(powf(10.0f,v/20.0f),0.0f,10.0f);
+}
 
 static const char* format_float6(float f)
 {
@@ -61,7 +76,7 @@ static const char* format_float6(float f)
     return buf;
 }
 
-void print_aaxs(const char* outfile, float db[9], char commons, char percussion, char overdrive, char leslie, char chorus, char reverb)
+void print_aaxs(const char* outfile, struct params param)
 {
     float pitch[9] = { 0.5f, 0.75f, 1.0f, 2.0f, 3.0f, 4.0f, 5.0f, 6.0f, 8.0f };
     FILE *output;
@@ -93,23 +108,23 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, "\n");
 
     fprintf(output, " * Drawbar Settings: ");
-    for (i=0; i<2; ++i) fprintf(output, "%1.0f", db[i]);
+    for (i=0; i<2; ++i) fprintf(output, "%1.0f", param.db[i]);
     fprintf(output, " ");
-    for (i=2; i<6; ++i) fprintf(output, "%1.0f", db[i]);
+    for (i=2; i<6; ++i) fprintf(output, "%1.0f", param.db[i]);
     fprintf(output, " ");
-    for (i=6; i<9; ++i) fprintf(output, "%1.0f", db[i]);
+    for (i=6; i<9; ++i) fprintf(output, "%1.0f", param.db[i]);
     fprintf(output, "\n");
-    fprintf(output, " * Percussive      : %s\n", percussion ? ((percussion == 2) ? "fast" : "slow") : "no");
+    fprintf(output, " * Percussive      : %s, harmonic: %i\n", param.percussion ? ((param.percussion == 2) ? "fast" : "slow") : "no", param.harmonic);
     fprintf(output, " * Overdrive       : ");
-    if (overdrive == 3) fprintf(output, "strong\n");
-    else if (overdrive == 2) fprintf(output, "medium\n");
-    else if (overdrive == 1) fprintf(output, "mild\n");
+    if (param.overdrive == 3) fprintf(output, "strong\n");
+    else if (param.overdrive == 2) fprintf(output, "medium\n");
+    else if (param.overdrive == 1) fprintf(output, "mild\n");
     else fprintf(output, "no\n");
-    fprintf(output, " * Lesley          : %s\n", leslie ? ((leslie > 1) ? "fast" : "slow") : "no");
-    fprintf(output, " * Chorus          : %s\n", chorus ? "yes" : "no");
-    fprintf(output, " * Reverb          : %s\n", reverb ? "yes" : "no");
+    fprintf(output, " * Lesley          : %s\n", param.leslie ? ((param.leslie > 1) ? "fast" : "slow") : "no");
+    fprintf(output, " * Chorus          : %s\n", param.chorus ? "yes" : "no");
+    fprintf(output, " * Reverb          : %s\n", param.reverb ? "yes" : "no");
 
-    if (commons)
+    if (param.commons)
     {
         fprintf(output, " *\n");
         fprintf(output, " * This file is part of AeonWave and covered by the\n");
@@ -121,7 +136,7 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, "<aeonwave>\n\n");
 
     fprintf(output, " <info name=\"Drawbar\" bank=\"0\" program=\"0\">\n");
-    if (commons) {
+    if (param.commons) {
         fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
     } else {
         fprintf(output, "  <license type=\"Proprietary/Commercial\"/>\n");
@@ -131,7 +146,7 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, "  <note polyphony=\"10\" min=\"36\" max=\"96\" step=\"12\"/>\n");
     fprintf(output, " </info>\n\n");
 
-    if (reverb) {
+    if (param.reverb) {
         fprintf(output, " <sound gain=\"4.0\" frequency=\"55\" duration=\"0.1\" voices=\"3\" spread=\"0.1\">\n");
     } else {
         fprintf(output, " <sound gain=\"2.0\" frequency=\"55\" duration=\"0.1\">\n");
@@ -140,8 +155,8 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     num = 0;
     total = 0.0f;
     for (i=0; i<9; ++i) {
-        if (db[i] > 0.f) ++num;
-        total += _db2lin(-3.0f*(8.0f-db[i]));
+        if (param.db[i] > 0.f) ++num;
+        total += _db2lin(-3.0f*(8.0f-param.db[i]));
     }
     total *= 0.5f;
 
@@ -149,8 +164,8 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     {
         for (i=0; i<9; ++i)
         {
-            float v = _db2lin(-3.0f*(8.0f-db[i]))/total;
-            if (db[i] > 0.f)
+            float v = _db2lin(-3.0f*(8.0f-param.db[i]))/total;
+            if (param.db[i] > 0.f)
             {
                 if (!i) {
                     fprintf(output, "  <waveform src=\"sine\" ratio=\"%s\"", format_float6(v));
@@ -167,11 +182,11 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, " </sound>\n\n");
 
     fprintf(output, " <emitter looping=\"true\">\n");
-    if (percussion)
+    if (param.percussion)
     {
         fprintf(output, "  <filter type=\"frequency\" src=\"envelope\">\n");
         fprintf(output, "   <slot n=\"0\">\n");
-        fprintf(output, "    <param n=\"0\" pitch=\"0.25\">55.0</param>\n");
+        fprintf(output, "    <param n=\"0\" pitch=\"%g\">%4.1f</param>\n", 0.8f*param.harmonic, 55.0f*param.harmonic);
         fprintf(output, "    <param n=\"1\">1.0</param>\n");
         fprintf(output, "    <param n=\"2\">0.0</param>\n");
         fprintf(output, "    <param n=\"3\">1.0</param>\n");
@@ -180,22 +195,22 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
         fprintf(output, "    <param n=\"0\" pitch=\"8.0\">1760.0</param>\n");
         fprintf(output, "    <param n=\"1\">0.0</param>\n");
         fprintf(output, "    <param n=\"2\">0.0</param>\n");
-        fprintf(output, "    <param n=\"3\">%g</param>\n", (percussion == 2) ? 0.1f : 0.5f );
+        fprintf(output, "    <param n=\"3\">%g</param>\n", (param.percussion == 2) ? 0.1f : 0.5f );
         fprintf(output, "   </slot>\n");
         fprintf(output, "  </filter>\n");
     }
-    fprintf(output, "  <filter type=\"timed-gain\"");
-    if (reverb) fprintf(output, " release-factor=\"7.0\"");
+    fprintf(output, "  <filter type=\"timed-gain\" src=\"envelope\"");
+    if (param.reverb) fprintf(output, " release-factor=\"7.0\"");
     fprintf(output, ">\n");
     fprintf(output, "   <slot n=\"0\">\n");
-    fprintf(output, "    <param n=\"0\">%g</param>\n", percussion ? 1.5f : 0.25f);
-    fprintf(output, "    <param n=\"1\">%g</param>\n", (percussion == 1) ? 0.16f : 0.08f);
-    fprintf(output, "    <param n=\"2\">0.8</param>\n");
+    fprintf(output, "    <param n=\"0\">%g</param>\n", param.percussion ? 1.5f : 0.25f);
+    fprintf(output, "    <param n=\"1\">%g</param>\n", (param.percussion == 1) ? 0.16f : 0.08f);
+    fprintf(output, "    <param n=\"2\">%g</param>\n", (param.percussion == 1) ? 0.8f : 1.2f);
     fprintf(output, "    <param n=\"3\">inf</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "   <slot n=\"1\">\n");
-    fprintf(output, "    <param n=\"0\">%g</param>\n", (percussion == 1) ? 0.8f : 1.2f);
-    fprintf(output, "    <param n=\"1\">%g</param>\n", reverb ? 0.7 : 0.2);
+    fprintf(output, "    <param n=\"0\">%g</param>\n", (param.percussion == 1) ? 0.8f : 1.2f);
+    fprintf(output, "    <param n=\"1\">%g</param>\n", param.reverb ? 0.7 : 0.2);
     fprintf(output, "    <param n=\"2\">0.0</param>\n");
     fprintf(output, "    <param n=\"3\">0.0</param>\n");
     fprintf(output, "   </slot>\n");
@@ -217,38 +232,38 @@ void print_aaxs(const char* outfile, float db[9], char commons, char percussion,
     fprintf(output, "    <param n=\"3\">1.0</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "  </filter>\n");
-    if (overdrive)
+    if (param.overdrive)
     {
         fprintf(output, "  <effect type=\"distortion\" optional=\"true\">\n");
         fprintf(output, "   <slot n=\"0\">\n");
-        fprintf(output, "    <param n=\"0\">%g</param>\n", 0.1f+0.1f*overdrive);
+        fprintf(output, "    <param n=\"0\">%g</param>\n", 0.1f+0.1f*param.overdrive);
         fprintf(output, "    <param n=\"1\">0.0</param>\n");
         fprintf(output, "    <param n=\"2\">0.15</param>\n");
         fprintf(output, "    <param n=\"3\">1.0</param>\n");
         fprintf(output, "   </slot>\n");
         fprintf(output, "  </effect>\n");
     }
-    if (chorus)
+    if (param.chorus)
     {
-        if (leslie) {
+        if (param.leslie) {
             fprintf(output, "  <effect type=\"chorus\" src=\"sine\" optional=\"true\">\n");
         } else {
             fprintf(output, "  <effect type=\"chorus\" optional=\"true\">\n");
         }
         fprintf(output, "   <slot n=\"0\">\n");
         fprintf(output, "    <param n=\"0\">0.383</param>\n");
-        (fprintf(output, "    <param n=\"1\">%g</param>\n", leslie ? ((leslie == 1) ? 1.54f : 5.54f) : 0.0f));
+        (fprintf(output, "    <param n=\"1\">%g</param>\n", param.leslie ? ((param.leslie == 1) ? 1.54f : 5.54f) : 0.0f));
         fprintf(output, "    <param n=\"2\">0.03</param>\n");
         fprintf(output, "    <param n=\"3\">0.9</param>\n");
         fprintf(output, "   </slot>\n");
         fprintf(output, "  </effect>\n");
     }
-    else if (leslie)
+    else if (param.leslie)
     {
         fprintf(output, "  <effect type=\"phasing\" src=\"sine\" optional=\"true\">\n");
         fprintf(output, "   <slot n=\"0\">\n");
         fprintf(output, "    <param n=\"0\">0.383</param>\n");
-        fprintf(output, "    <param n=\"1\">%g</param>\n", (leslie == 1) ? 1.54f : 5.54f);
+        fprintf(output, "    <param n=\"1\">%g</param>\n", (param.leslie == 1) ? 1.54f : 5.54f);
         fprintf(output, "    <param n=\"2\">0.15</param>\n");
         fprintf(output, "    <param n=\"3\">0.5</param>\n");
         fprintf(output, "   </slot>\n");
@@ -279,7 +294,7 @@ void help()
 //  printf("     --chorus\t\t\tAdd the chorus effect.\n");
     printf("     --leslie <slow|fast>\tAdd the Leslie speaker in slow or fast mode.\n");
     printf("     --overdrive <mild|strong>\tAdd a mild or strong tube overdrive effect.\n");
-    printf("     --percussion <slow|fast>\tAdd the percussion effect.\n");
+    printf("     --percussion <slow|fast>,h\tAdd the percussion effect with a hamronic.\n");
     printf("     --reverb\t\t\tAdd the reverb effect.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
@@ -293,13 +308,12 @@ void help()
 
 int main(int argc, char **argv)
 {
-    char *s, *outfile, *drawbar;
-    char percussion = 0;
-    char overdrive = 0;
-    char commons = 1;
-    char leslie = 0;
-    char chorus = 0;
-    char reverb = 0;
+    char *s, *outfile;
+    struct params param;
+
+    memset(&param, 0, sizeof(struct params));
+    param.harmonic = 3;
+    param.commons = 1;
 
     if (argc == 1 || getCommandLineOption(argc, argv, "-h") ||
                     getCommandLineOption(argc, argv, "--help"))
@@ -308,57 +322,67 @@ int main(int argc, char **argv)
     }
 
     if (getCommandLineOption(argc, argv, "--omit-cc-by")) {
-        commons = 0;
+        param.commons = 0;
     }
 
     s = getCommandLineOption(argc, argv, "--percussion");
     if (s)
     {
-        if (!strcasecmp(s, "fast")) percussion = 2;
-        else percussion = 1;
+        char *p = strchr(s, ',');
+        int len;
+        if (!p)  {
+            len = strlen(s);
+        } else {
+            len = p-s;
+            param.harmonic = _MINMAX(atoi(p+1), 2, 3);
+printf("%s - %i\n", p+1, param.harmonic);
+        }
+        if (!strncasecmp(s, "fast", len)) param.percussion = 2;
+        else param.percussion = 1;
     }
 
     if (getCommandLineOption(argc, argv, "--chorus")) {
-        chorus = 1;
+        param.chorus = 1;
     }
 
-    if (getCommandLineOption(argc, argv, "--reverb")) {
-        reverb = 1; chorus = 1;
+    if (getCommandLineOption(argc, argv, "--reverb"))
+    {
+        param.reverb = 1;
+        param.chorus = 1;
     }
 
     s = getCommandLineOption(argc, argv, "--leslie");
     if (s)
     {
-        if (!strcasecmp(s, "fast")) leslie = 2;
-        else leslie = 1;
+        if (!strcasecmp(s, "fast")) param.leslie = 2;
+        else param.leslie = 1;
     }
 
     s = getCommandLineOption(argc, argv, "--overdrive");
     if (s)
     {
-        if (!strcasecmp(s, "strong")) overdrive = 3;
-        else if (!strcasecmp(s, "medium")) overdrive = 2;
-        else overdrive = 1;
+        if (!strcasecmp(s, "strong")) param.overdrive = 3;
+        else if (!strcasecmp(s, "medium")) param.overdrive = 2;
+        else param.overdrive = 1;
     }
 
     outfile = getOutputFile(argc, argv, NULL);
-    drawbar = getCommandLineOption(argc, argv, "-d");
-    if (!drawbar) {
-        drawbar = getCommandLineOption(argc, argv, "--drawbar");
+    param.drawbar = getCommandLineOption(argc, argv, "-d");
+    if (!param.drawbar) {
+        param.drawbar = getCommandLineOption(argc, argv, "--drawbar");
     }
-        
-    if (drawbar)
+
+    if (param.drawbar)
     {
-        float db[9] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
         int max, i;
 
-        max = strlen(drawbar);
+        max = strlen(param.drawbar);
         if (max > 9) i = 9;
         for(i=0; i<max; ++i) {
-            db[i] = (float)(drawbar[i] - '0');
+            param.db[i] = (float)(param.drawbar[i] - '0');
         }
 
-        print_aaxs(outfile, db, commons, percussion, overdrive, leslie, chorus, reverb);
+        print_aaxs(outfile, param);
     }
     else {
         help();
