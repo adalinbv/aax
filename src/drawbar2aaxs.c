@@ -50,6 +50,11 @@ struct params {
     char leslie;
     char chorus;
     char reverb;
+    char detuned;
+
+    char program;
+    char bank;
+    char *name;
 
     char *drawbar;
     float db[9];
@@ -141,7 +146,8 @@ void print_aaxs(const char* outfile, struct params param)
 
     fprintf(output, "<aeonwave>\n\n");
 
-    fprintf(output, " <info name=\"Drawbar\" bank=\"0\" program=\"0\">\n");
+    fprintf(output, " <info name=\"%s\" bank=\"%i\" program=\"%i\">\n",
+                      param.name, param.bank, param.program);
     if (param.commons) {
         fprintf(output, "  <license type=\"Attribution-ShareAlike 4.0 International\"/>\n");
     } else {
@@ -222,6 +228,17 @@ void print_aaxs(const char* outfile, struct params param)
     fprintf(output, "    <param n=\"3\">0.0</param>\n");
     fprintf(output, "   </slot>\n");
     fprintf(output, "  </filter>\n");
+    if (param.detuned)
+    {
+        fprintf(output, "  <effect type=\"timed-pitch\">\n");
+        fprintf(output, "   <slot n=\"0\">\n");
+        fprintf(output, "    <param n=\"0\">0.987</param>\n");
+        fprintf(output, "    <param n=\"1\">0.0</param>\n");
+        fprintf(output, "    <param n=\"2\">0.0</param>\n");
+        fprintf(output, "    <param n=\"3\">0.0</param>\n");
+        fprintf(output, "   </slot>\n");
+        fprintf(output, "  </effect>\n");
+    }
     fprintf(output, " </emitter>\n\n");
 
     fprintf(output, " <audioframe>\n");
@@ -303,6 +320,10 @@ void help()
     printf("     --overdrive <mild|strong>\tAdd a mild or strong tube overdrive effect.\n");
     printf("     --percussion <slow|fast>,h\tAdd the percussion effect with a hamronic.\n");
     printf("     --reverb\t\t\tAdd the reverb effect.\n");
+    printf(" -n, --name <s>\t\t\tProvide the display name.\n");
+    printf(" -p, --program <n>\t\t\tProvide the MIDI program number.\n");
+    printf(" -b, --bank <n>\t\t\tProvide the MIDI bank number.\n");
+    printf("     --detuned\t\t\tMake the organ detuned.\n");
     printf(" -h, --help\t\t\tprint this message and exit\n");
 
     printf("\nWhen no output file is specified then stdout will be used.\n");
@@ -377,6 +398,22 @@ int main(int argc, char **argv)
     if (!param.drawbar) {
         param.drawbar = getCommandLineOption(argc, argv, "--drawbar");
     }
+
+    s = getCommandLineOption(argc, argv, "-n");
+    if (!s) s = getCommandLineOption(argc, argv, "--name");
+    if (s) param.name = s;
+    else param.name = "Drawbar";
+
+    s = getCommandLineOption(argc, argv, "-p");
+    if (!s) s = getCommandLineOption(argc, argv, "--program");
+    if (s) param.program = atoi(s);
+
+    s = getCommandLineOption(argc, argv, "-b");
+    if (!s) s = getCommandLineOption(argc, argv, "--bank");
+    if (s) param.bank = atoi(s);
+
+    s = getCommandLineOption(argc, argv, "--detuned");
+    if (s) param.detuned = 1;
 
     if (param.drawbar)
     {
