@@ -1703,7 +1703,8 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 }
                 case MIDI_CUTOFF:	// Brightness
                 {
-                    float val = (float)value/64.0f; // relative: 0.0 - 2.0
+                    float val = (float)value/64.0f;
+                    if (val < 1.0f) val = 0.5f + 0.5f*val;
                     midi.channel(channel).set_filter_cutoff(val);
                     break;
                 }
