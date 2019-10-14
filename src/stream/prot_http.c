@@ -440,7 +440,9 @@ _http_send_request(_io_t *io, const char *command, const char *server, const cha
             "Accept: */*\r\n"
             "Host: %s\r\n"
             "Connection: Keep-Alive\r\n"
-//          "Icy-MetaData:1\r\n"
+#ifndef RELEASE
+            "Icy-MetaData:1\r\n"
+#endif
             "\r\n",
             command, path, user_agent, server);
    header[MAX_HEADER-1] = '\0';
