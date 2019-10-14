@@ -164,15 +164,15 @@ public:
     void set_filter_cutoff(float dfc) {
             if (!fc) {
                 if (filter_cutoff == 22050.0f) {
-                    fc = _lin2log(2.0f*frequency*pitch);
+                    fc = frequency*pitch;
                     aax::dsp dsp = Emitter::get(AAX_FREQUENCY_FILTER);
                     dsp.set(AAX_HF_GAIN, 0.0f);
                     Emitter::set(dsp);
                 } else {
-                    fc = _lin2log(2.0f*filter_cutoff);
+                    fc = filter_cutoff;
                 }
             }
-            filter_cutoff = _log2lin(fc + _lin2log(0.01f+0.99f*dfc));
+            filter_cutoff = dfc*fc;
             set_filter_state();
     }
 
