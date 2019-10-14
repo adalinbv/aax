@@ -1503,17 +1503,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
             uint8_t channel = message & 0xf;
             switch(message & 0xf0)
             {
-            case MIDI_NOTE_OFF:
-            {
-                int16_t key = pull_byte();
-                uint8_t velocity = pull_byte();
-                if (!midi.channel(channel).is_drums()) {
-                    key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
-                }
-                midi.process(channel, message & 0xf0, key, velocity, omni);
-                CSV("Note_off_c, %d, %d, %d\n", channel, key, velocity);
-                break;
-            }
             case MIDI_NOTE_ON:
             {
                 int16_t key = pull_byte();
@@ -1526,6 +1515,17 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 }
                 midi.process(channel, message & 0xf0, key, velocity, omni, pitch);
                 CSV("Note_on_c, %d, %d, %d\n", channel, key, velocity);
+                break;
+            }
+            case MIDI_NOTE_OFF:
+            {
+                int16_t key = pull_byte();
+                uint8_t velocity = pull_byte();
+                if (!midi.channel(channel).is_drums()) {
+                    key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+                }
+                midi.process(channel, message & 0xf0, key, velocity, omni);
+                CSV("Note_off_c, %d, %d, %d\n", channel, key, velocity);
                 break;
             }
             case MIDI_POLYPHONIC_AFTERTOUCH:
@@ -1555,6 +1555,17 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                     }
                 }
                 CSV("Channel_aftertouch_c, %d, %d\n", channel, pressure);
+                break;
+            }
+            case MIDI_PITCH_BEND:
+            {
+                int16_t pitch = pull_byte() | pull_byte() << 7;
+                float pitch_bend = (float)pitch-8192.0f;
+                if (pitch_bend < 0) pitch_bend /= 8192.0f;
+                else pitch_bend /= 8191.0f;
+                pitch_bend = cents2pitch(pitch_bend, channel);
+                midi.channel(channel).set_pitch(pitch_bend);
+                CSV("Pitch_bend_c, %d, %d\n", channel, pitch);
                 break;
             }
             case MIDI_CONTROL_CHANGE:
@@ -1785,17 +1796,6 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 } catch(const std::invalid_argument& e) {
                     std::cerr << "Error: " << e.what() << std::endl;
                 }
-                break;
-            }
-            case MIDI_PITCH_BEND:
-            {
-                int16_t pitch = pull_byte() | pull_byte() << 7;
-                float pitch_bend = (float)pitch-8192.0f;
-                if (pitch_bend < 0) pitch_bend /= 8192.0f;
-                else pitch_bend /= 8191.0f;
-                pitch_bend = cents2pitch(pitch_bend, channel);
-                midi.channel(channel).set_pitch(pitch_bend);
-                CSV("Pitch_bend_c, %d, %d\n", channel, pitch);
                 break;
             }
             case MIDI_SYSTEM:
