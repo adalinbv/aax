@@ -229,7 +229,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
 
    _aaxMutexLock(sensor->mutex);
    if (convolution) {
-      convolution->run(id, hid, rb, info->gpu, convolution);
+      convolution->run(id, hid, rb, convolution);
    }
 
    if (parametric)

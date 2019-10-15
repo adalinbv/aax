@@ -279,7 +279,7 @@ typedef struct
 
 typedef struct
 {
-   void (*run)(const _aaxDriverBackend*, const void*, void*, void*, void*);
+   void (*run)(const _aaxDriverBackend*, const void*, void*, void*);
 
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;

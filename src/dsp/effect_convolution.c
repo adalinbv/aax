@@ -32,7 +32,6 @@
 
 #include <software/rbuf_int.h>
 #include <software/renderer.h>
-#include <software/gpu/gpu.h>
 
 #include "effects.h"
 #include "arch.h"
@@ -43,7 +42,7 @@
 
 static void _convolution_swap(void*, void*);
 static void _convolution_destroy(void*);
-static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*, void*);
+static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*);
 
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -408,12 +407,6 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    scratch = rbd->scratch[0];
    dnum = rb->get_parami(rb, RB_NO_SAMPLES);
 
-   if (d->be)
-   {
-      _aax_opencl_t *gpu = (_aax_opencl_t*)d->be;
-      _aaxOpenCLRunConvolution(gpu, convolution, dptr, dnum, track);
-   }
-   else
    {
       MIX_T *hcptr, *cptr;
       float v, threshold;
@@ -481,10 +474,9 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
 }
 
 static void
-_convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, void *gpuid, void *data)
+_convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, void *data)
 {
    _aaxRingBufferConvolutionData *convolution = data;
-   _aax_opencl_t *gpu = NULL; // gpuid;
    _aaxRingBuffer *rb = rbd;
 
    if (convolution->delay_gain > convolution->threshold)
@@ -498,7 +490,7 @@ _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, 
       d.fp2d = NULL;
       d.e2d = NULL;
       d.e3d = NULL;
-      d.be = (const _aaxDriverBackend*)gpu;
+      d.be = NULL;
       d.be_handle = convolution;
 
       d.ssv = 0.0f;

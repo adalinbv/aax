@@ -292,7 +292,6 @@ typedef ALIGN16 struct
 
    unsigned int id;
    void *backend;
-   void *gpu;
 
 } _aaxMixerInfo ALIGN16C;
 

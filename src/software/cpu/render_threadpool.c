@@ -39,7 +39,6 @@
 
 #include "software/renderer.h"
 #include "software/rbuf_int.h"
-#include "software/gpu/gpu.h"
 
 // Semaphores:
 //   http://docs.oracle.com/cd/E19683-01/806-6867/sync-27385/index.html
@@ -217,7 +216,7 @@ _aaxWorkerInfo(void *id)
    {
       const char *hwstr = _aaxGetSIMDSupportString();
 #if RB_FLOAT_DATA
-      int gpu = _aaxOpenCLDetect();
+      int gpu = 0;
       snprintf(info, 32, "%s %s using %i cores", gpu ? "CL" : "FP", hwstr, handle->no_workers);
 #else
       snprintf(info, 32, "%s using %i cores", hwstr, handle->no_workers);

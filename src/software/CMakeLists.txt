@@ -28,4 +28,4 @@ foreach(src ${SOFTWARE_SOURCES})
 endforeach()
 
 aax_subdirectory(cpu)
-aax_subdirectory(gpu)
+#aax_subdirectory(gpu)

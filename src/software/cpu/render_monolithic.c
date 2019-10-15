@@ -39,7 +39,6 @@
 
 #include "software/renderer.h"
 #include "software/rbuf_int.h"
-#include "software/gpu/gpu.h"
 
 static _renderer_detect_fn _aaxCPUDetect;
 static _renderer_new_handle_fn _aaxCPUSetup;
@@ -122,7 +121,7 @@ _aaxCPUInfo(UNUSED(void *id))
    {
       const char *hwstr = _aaxGetSIMDSupportString();
 #if RB_FLOAT_DATA
-      int gpu = _aaxOpenCLDetect();
+      int gpu = 0;
       snprintf(info, 32, "%s %s", gpu ? "CL" : "FP", hwstr);
 #else
       snprintf(info, 32, "%s", hwstr);

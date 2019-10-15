@@ -37,7 +37,6 @@
 #include <ringbuffer.h>
 #include <software/rbuf_int.h>
 #include <software/renderer.h>
-#include <software/gpu/gpu.h>
 
 
 /**
