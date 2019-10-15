@@ -162,6 +162,9 @@ public:
     }
 
     void set_filter_cutoff(float dfc) {
+        if (dfc >= 1.0f) {
+            if (filter_state) filter_state = AAX_FALSE;
+        } else {
             if (!fc) {
                 if (filter_cutoff == 22050.0f) {
                     fc = frequency*pitch;
@@ -174,12 +177,13 @@ public:
             }
             filter_cutoff = dfc*fc;
             set_filter_state();
+        }
     }
 
     void set_filter_resonance(float dQ) {
-            if (!Q) Q = filter_resonance;
-            filter_resonance = 0.25f*Q+Q*2.0f*dQ;
-            set_filter_state();
+        if (!Q) Q = filter_resonance;
+        filter_resonance = 0.25f*Q+Q*2.0f*dQ;
+        set_filter_state();
     }
 
     bool buffer(Buffer& buffer) {
