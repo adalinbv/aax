@@ -171,24 +171,9 @@ int main(int argc, char **argv)
             int res, min, max;
             void *xid;
 
-            res = aaxMixerSetState(cfg, AAX_INITIALIZED);
-            testForState(res, "aaxMixerInit");
+            s = aaxDriverGetSetup(cfg, AAX_SHARED_DATA_DIR);
+            printf("Shared data directory: %s\n" , s);
 
-            s = aaxDriverGetSetup(cfg, AAX_DRIVER_STRING);
-            printf("Driver   : %s\n", s);
-
-            s = aaxDriverGetSetup(cfg, AAX_RENDERER_STRING);
-            printf("Renderer : %s\n", s);
-
-            x = aaxGetMajorVersion();
-            y = aaxGetMinorVersion();
-            s = (char *)aaxGetVersionString(cfg);
-            printf("Version  : %s (%i.%i)\n", s, x, y);
-
-            s = aaxDriverGetSetup(cfg, AAX_VENDOR_STRING);
-            printf("Vendor   : %s\n", s);
-
-	    s = aaxDriverGetSetup(cfg, AAX_SHARED_DATA_DIR);
             snprintf(filename, 255, "%s/gmmidi.xml", s);
             xid = xmlOpen(filename);
             if (!xid)
@@ -210,7 +195,24 @@ int main(int argc, char **argv)
                 }
                 xmlFree(xid);
             }
-            printf("Shared data directory: %s\n" , s);
+            printf("\n");
+
+            res = aaxMixerSetState(cfg, AAX_INITIALIZED);
+            testForState(res, "aaxMixerInit");
+
+            s = aaxDriverGetSetup(cfg, AAX_DRIVER_STRING);
+            printf("Driver   : %s\n", s);
+
+            s = aaxDriverGetSetup(cfg, AAX_RENDERER_STRING);
+            printf("Renderer : %s\n", s);
+
+            x = aaxGetMajorVersion();
+            y = aaxGetMinorVersion();
+            s = (char *)aaxGetVersionString(cfg);
+            printf("Version  : %s (%i.%i)\n", s, x, y);
+
+            s = aaxDriverGetSetup(cfg, AAX_VENDOR_STRING);
+            printf("Vendor   : %s\n", s);
 
             x = aaxMixerGetSetup(cfg, AAX_TIMER_MODE);
             printf ("Mixer timed mode support:   %s\n", x ? "yes" : "no");
