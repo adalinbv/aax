@@ -379,10 +379,10 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("rms "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             if (rms1 != rms2) {
-               printf(" | rms1: %f, rms2: %f - %f\n", rms1, rms2, rms1-rms2);
+               printf(" | rms1: %f, rms2: %f - %f (%5.4f%%)\n", rms1, rms2, rms1-rms2, fabsf((rms1-rms2)/rms1));
             }
             if (peak1 != peak2) {
-               printf(" | peak1: %f, peak2: %f - %f\n", peak1, peak2, peak1-peak2);
+               printf(" | peak1: %f, peak2: %f - %f (%5.4f%%)\n", peak1, peak2, peak1-peak2, fabsf((peak1-peak2)/peak1));
             }
          }
       }
