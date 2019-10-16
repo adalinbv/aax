@@ -30,6 +30,9 @@
 namespace aax
 {
 
+inline float lin2log(float v) { return log10f(v); }
+inline float log2lin(float v) { return powf(10.0f,v); }
+
 class Note : public Emitter
 {
 private:
@@ -45,19 +48,14 @@ public:
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
 
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
-
-        tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
-        tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
-        tie(filter_state, AAX_FREQUENCY_FILTER);
-
         if (stereo) { // p*f ranges from: 8 - 12544 Hz
             Vector at = Vector(0.0f, 0.0f, -1.0f);
             Vector up = Vector(0.0f, 1.0f, 0.0f);
             Vector64 pos = Vector64(0.0, 1.0, -2.75);
             Matrix64 mtx = Matrix64(pos, at, up);
             Matrix64 m;
-            float n = _lin2log(p*f);
-            float s = _lin2log(12544.0f)/abs(stereo);
+            float n = lin2log(p*f);
+            float s = lin2log(12544.0f)/abs(stereo);
             if (abs(stereo) != 1) n = floorf(n/s)*s;
             if (stereo < 0) n = -2.17f + n;
             else n = 2.17f - n;
@@ -74,11 +72,6 @@ public:
         n1.mtx = std::move(n2.mtx);
         n1.gain_param = std::move(n2.gain_param);
         n1.pitch_param = std::move(n2.pitch_param);
-        n1.filter_cutoff = std::move(n2.filter_cutoff);
-        n1.filter_resonance = std::move(n2.filter_resonance);
-        n1.filter_state = std::move(n2.filter_state);
-        n1.fc = std::move(n2.fc);
-        n1.Q = std::move(n2.Q);
         n1.frequency = std::move(n2.frequency);
         n1.pitch = std::move(n2.pitch);
         n1.gain = std::move(n2.gain);
@@ -153,39 +146,6 @@ public:
     inline void set_release_time(unsigned t) { set(AAX_RELEASE_FACTOR, t); }
     inline void set_decay_time(unsigned t) { set(AAX_DECAY_FACTOR, t); }
 
-
-    inline void set_filter_state() {
-        if (filter_cutoff > 32.f && filter_cutoff <= 10000.f) {
-            if (!filter_state) filter_state = AAX_TRUE;
-        }
-        else if (filter_state) filter_state = AAX_FALSE;
-    }
-
-    void set_filter_cutoff(float dfc) {
-        if (dfc >= 1.0f) {
-            if (filter_state) filter_state = AAX_FALSE;
-        } else {
-            if (!fc) {
-                if (filter_cutoff == 22050.0f) {
-                    fc = frequency*pitch;
-                    aax::dsp dsp = Emitter::get(AAX_FREQUENCY_FILTER);
-                    dsp.set(AAX_HF_GAIN, 0.0f);
-                    Emitter::set(dsp);
-                } else {
-                    fc = filter_cutoff;
-                }
-            }
-            filter_cutoff = dfc*fc;
-            set_filter_state();
-        }
-    }
-
-    void set_filter_resonance(float dQ) {
-        if (!Q) Q = filter_resonance;
-        filter_resonance = 0.25f*Q+Q*2.0f*dQ;
-        set_filter_state();
-    }
-
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
         return Emitter::add(buffer);
@@ -195,20 +155,10 @@ public:
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
 
 private:
-    inline float _lin2log(float v) { return log10f(v); }
-    inline float _log2lin(float v) { return powf(10.0f,v); }
-
     Matrix64 mtx;
 
     Param gain_param = 1.0f;
     Param pitch_param = 1.0f;
-
-    Param filter_cutoff = 22050.0f;
-    Param filter_resonance = 1.0f;
-    Param filter_state = AAX_FALSE;
-
-    float fc = 0.0f;
-    float Q = 0.0f;
 
     float frequency;
     float pitch;
@@ -242,12 +192,16 @@ public:
         tie(chorus_rate, AAX_CHORUS_EFFECT, AAX_LFO_FREQUENCY);
         tie(chorus_state, AAX_CHORUS_EFFECT);
 
+        tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
+        tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_HF_GAIN);
+        tie(filter_state, AAX_FREQUENCY_FILTER);
+#if 0
         tie(reverb_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
         tie(reverb_delay_depth, AAX_REVERB_EFFECT, AAX_DELAY_DEPTH);
         tie(reverb_decay_depth, AAX_REVERB_EFFECT, AAX_DECAY_DEPTH);
         tie(reverb_cutoff_frequency, AAX_REVERB_EFFECT, AAX_CUTOFF_FREQUENCY);
 //      tie(reverb_state, AAX_REVERB_EFFECT);
-
+#endif
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
@@ -274,11 +228,13 @@ public:
         i1.chorus_level = std::move(i2.chorus_level);
         i1.chorus_depth = std::move(i2.chorus_depth);
         i1.chorus_state = std::move(i2.chorus_state);
+#if 0
         i1.reverb_level = std::move(i2.reverb_level);
         i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
         i1.reverb_decay_depth = std::move(i2.reverb_decay_depth);
         i1.reverb_cutoff_frequency = std::move(i2.reverb_cutoff_frequency);
         i1.reverb_state = std::move(i2.reverb_state);
+#endif
         i1.attack_time = std::move(i2.attack_time);
         i1.release_time = std::move(i2.release_time);
         i1.decay_time = std::move(i2.decay_time);
@@ -340,10 +296,6 @@ public:
             }
             if (is_drums && !panned) note->matrix(mtx);
             else if (panned && abs(is_stereo) > 1) note->matrix(mtx_panned);
-            if (!is_drums && fc) {
-                note->set_filter_cutoff(fc);
-                note->set_filter_resonance(Q);
-            }
             note->buffer(buffer);
         }
         Mixer::add(*note);
@@ -473,10 +425,12 @@ public:
     // Each Channel must have its own adjustable send levels to the chorus
     // and the reverb. A connection from chorus to reverb must be provided.
     void set_reverb_level(float lvl) {
+#if 0
         if (lvl > 1e-5f) {
             reverb_level = lvl;
             if (!reverb_state) reverb_state = AAX_TRUE;
         } else if (reverb_state) reverb_state = AAX_FALSE;
+#endif
     }
 
     void set_chorus_level(float lvl) {
@@ -489,16 +443,14 @@ public:
     inline void set_chorus_depth(float depth) { chorus_depth = depth; }
     inline void set_chorus_rate(float rate) { chorus_rate = rate; }
 
-    inline void set_filter_cutoff(float dfc) {
-        if (!is_drums) { fc = dfc;
-            for (auto& it : key) it.second->set_filter_cutoff(dfc);
-        }
+    void set_filter_cutoff(float dfc) {
+        filter_cutoff = log2lin(dfc*fc);
+        if (!filter_state) filter_state = AAX_TRUE;
     }
 
     inline void set_filter_resonance(float dQ) {
-        if (!is_drums) { Q = dQ;
-            for (auto& it : key) it.second->set_filter_resonance(dQ);
-        }
+        filter_resonance = Q + dQ;
+        if (!filter_state) filter_state = AAX_TRUE;
     }
 
     inline void set_wide(int s = 1) { is_stereo = s; }
@@ -531,12 +483,17 @@ private:
     Param chorus_depth = 0.4f;
     Status chorus_state = AAX_FALSE;
 
+    Param filter_cutoff = 2048.0f;
+    Param filter_resonance = 1.0f;
+    Param filter_state = AAX_FALSE;
+
+#if 0
     Param reverb_level = 40.0f/127.0f;
     Param reverb_delay_depth = 0.035f;
     Param reverb_decay_depth = 0.15f;
     Param reverb_cutoff_frequency = 790.0f;
     Status reverb_state = AAX_FALSE;
-
+#endif
     unsigned attack_time = 64;
     unsigned release_time = 64;
     unsigned decay_time = 64;
@@ -546,8 +503,8 @@ private:
     float mfreq = 1.5f;
     float mrange = 1.0f;
 
-    float fc = 0.0f;
-    float Q = 0.0f;
+    float fc = lin2log(float(filter_cutoff));
+    float Q = float(filter_resonance);
 
     float soft = 1.0f;
     float volume = 1.0f;
