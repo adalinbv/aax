@@ -605,7 +605,9 @@ endif(NOT SINGLE_PACKAGE)
 message("AAX version: ${AAX_VERSION}")
 message("API version: ${AAX_SOVERSION}")
 
-string(TIMESTAMP YEAR "%Y")
+if (NOT TIMESTAMP)
+  string(TIMESTAMP YEAR "%Y")
+endif(NOT TIMESTAMP)
 configure_file(
   "${AeonWave_SOURCE_DIR}/admin/presets/gmmidi.xml.in"
   "${AeonWave_SOURCE_DIR}/admin/presets/gmmidi.xml"
