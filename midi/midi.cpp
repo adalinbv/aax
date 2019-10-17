@@ -35,9 +35,10 @@
 #include <iostream>
 #include <cstring>
 
-#include <time.h>
-#include <limits.h>
-#include <assert.h>
+#include <ctime>
+#include <climits>
+#include <cassert>
+#include <cstdlib>
 #include <xml.h>
 #include <aax/strings.hpp>
 
@@ -1970,6 +1971,7 @@ MIDIFile::initialize(const char *grep)
 
     if (!grep)
     {
+        char *rrate = getenv("AAX_MIDI_REFRESH_RATE");
         rewind();
         pos_sec = 0;
 
@@ -1979,7 +1981,8 @@ MIDIFile::initialize(const char *grep)
         int simd = (capabilities & AAX_SIMD);
         float refrate;
 
-        if (midi.get_refresh_rate() > 0.0f) refrate = midi.get_refresh_rate();
+        if (rrate) refrate = atof(rrate);
+        else if (midi.get_refresh_rate() > 0.0f) refrate = midi.get_refresh_rate();
         else if (simd64 && cores >=4) refrate = 90.0f;
         else if (simd && cores >= 4) refrate = 60.0f;
         else refrate = 45.0f;
