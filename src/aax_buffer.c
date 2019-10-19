@@ -1500,7 +1500,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
          }
 
-         handle->pitch_levels = s;
+         handle->pitch_levels = s+1;
 
          duration = 0.0f;
       }

@@ -2,6 +2,7 @@
 * Sat Oct 19 2019 - tech@adalin.org
 - AeonWave (3.6.8) stable; urgency=low
 
+ * Fix combining a sound file and one or more waveforms.
  * Fix support for a combination of AAX_RELEASE_FACTOR and
    AAX_(INVERSE)_ENVELOPE_FOLLOW
 
