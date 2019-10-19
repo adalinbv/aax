@@ -1,3 +1,13 @@
+
+* Sat Oct 19 2019 - tech@adalin.org
+- AeonWave (3.6.8) stable; urgency=low
+
+ * Fix support for a combination of AAX_RELEASE_FACTOR and
+   AAX_(INVERSE)_ENVELOPE_FOLLOW
+
+-- Erik Hofman <tech@adalin.org>  Thu 19 oct 2019 13:06:44 + 0200
+
+
 * Thu Oct 17 2019 - tech@adalin.org
 - AeonWave (3.6.7) stable; urgency=low
 
