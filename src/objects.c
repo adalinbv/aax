@@ -549,7 +549,14 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
             }
             slen = xmlAttributeCopyString(xid, "src", src, 64);
             if (slen) {
-               state = aaxGetWaveformTypeByName(src);
+               int s = aaxGetWaveformTypeByName(src);
+               if (s == AAX_INVERSE_ENVELOPE_FOLLOW) {
+                  state |= AAX_INVERSE_ENVELOPE_FOLLOW;
+               } else if (s == AAX_ENVELOPE_FOLLOW) {
+                  state |= AAX_ENVELOPE_FOLLOW;
+               } else {
+                  state = s;
+               }
             }
          }
          else

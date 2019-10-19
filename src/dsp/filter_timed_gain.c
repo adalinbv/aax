@@ -94,13 +94,16 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
          env->state = state;
          if (state & AAX_REPEAT)
          {
-            env->repeat = (state & ~AAX_REPEAT);
+            int mask = AAX_REPEAT|AAX_INVERSE_ENVELOPE_FOLLOW;
+            env->repeat = (state & ~mask);
             if (env->repeat > 1) {
                env->sustain = AAX_TRUE;
             }
          }
-         else if (state & AAX_RELEASE_FACTOR) {
-             release_factor = 0.1f*(state & ~AAX_RELEASE_FACTOR);
+         else if (state & AAX_RELEASE_FACTOR)
+         {
+             int mask = AAX_RELEASE_FACTOR|AAX_INVERSE_ENVELOPE_FOLLOW;
+             release_factor = 0.1f*(state & ~mask);
          }
 
          stage = 0;
