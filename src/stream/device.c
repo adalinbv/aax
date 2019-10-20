@@ -526,6 +526,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->ext)
             {
                handle->no_bytes= handle->io->get_param(handle->io,__F_NO_BYTES);
+               aaxProcessSetPriority(-20);
                res = AAX_TRUE;
             }
          }
@@ -1469,7 +1470,7 @@ _aaxStreamDriverWriteThread(void *id)
 
    _aaxMutexLock(handle->thread.signal.mutex);
 
-   _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
+// _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
    do
    {
       _aaxSignalWait(&handle->thread.signal);

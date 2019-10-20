@@ -89,7 +89,7 @@ _aaxProcessSetPriority(int prio)
    int curr_prio = getpriority(PRIO_PROCESS, pid);
    int rv = 0;
 
-   if (curr_prio < prio)
+   if (curr_prio > prio)
    {
       errno = 0;
       rv = setpriority(PRIO_PROCESS, pid, prio);
