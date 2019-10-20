@@ -1433,9 +1433,9 @@ _aaxMixerInit(_handle_t *handle)
    float ms = rintf(1000.0f/refrate);
 
    /* test if we have enough privileges to set the requested priority */
-   if (ms < 5) {
+   if (ms < 11.0) {
       res = _aaxThreadSetPriority(NULL, AAX_HIGHEST_PRIORITY);
-   } else if (ms < 11) {
+   } else if (ms < 16.0) {
       res = _aaxThreadSetPriority(NULL, AAX_HIGH_PRIORITY);
    }
    if (res != 0) {
