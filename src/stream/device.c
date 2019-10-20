@@ -526,7 +526,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             if (handle->ext)
             {
                handle->no_bytes= handle->io->get_param(handle->io,__F_NO_BYTES);
-               aaxProcessSetPriority(-20);
+               _aaxProcessSetPriority(-20);
                res = AAX_TRUE;
             }
          }
