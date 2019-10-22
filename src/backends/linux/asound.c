@@ -3160,6 +3160,7 @@ _aaxALSADriverThread(void* config)
    const _aaxDriverBackend *be;
    _aaxRingBuffer *dest_rb;
    _aaxAudioFrame *mixer;
+   _driver_t *be_handle;
    const void *id;
    int stdby_time;
    char state;
@@ -3206,13 +3207,17 @@ _aaxALSADriverThread(void* config)
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
+   be_handle = (_driver_t *)handle->backend.handle;
+   if (be_handle->use_timer) {
+      _aaxProcessSetPriority(-20);
+   }
+
    wait_us = delay_sec*1000000.0f;
 // no_samples = dest_rb->get_parami(dest_rb, RB_NO_SAMPLES);
    stdby_time = (int)(delay_sec*1000);
    _aaxMutexLock(handle->thread.signal.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
    {
-      _driver_t *be_handle = (_driver_t *)handle->backend.handle;
       int err;
 
       _aaxMutexUnLock(handle->thread.signal.mutex);

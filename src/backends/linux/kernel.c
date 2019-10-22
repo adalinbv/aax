@@ -1738,6 +1738,11 @@ _aaxLinuxDriverThread(void* config)
    be->state(handle->backend.handle, DRIVER_PAUSE);
    state = AAX_SUSPENDED;
 
+   be_handle = (_driver_t *)handle->backend.handle;
+   if (be_handle->use_timer) {
+      _aaxProcessSetPriority(-20);
+   }
+
    bufsize = be_handle->no_periods*be_handle->period_frames;
 
    wait_us = delay_sec*1000000;
@@ -1746,7 +1751,6 @@ _aaxLinuxDriverThread(void* config)
    _aaxMutexLock(handle->thread.signal.mutex);
    while TEST_FOR_TRUE(handle->thread.started)
    {
-      _driver_t *be_handle = (_driver_t *)handle->backend.handle;
       snd_pcm_sframes_t avail;
       int ret;
 
