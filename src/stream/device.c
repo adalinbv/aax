@@ -1470,7 +1470,7 @@ _aaxStreamDriverWriteThread(void *id)
 
    _aaxMutexLock(handle->thread.signal.mutex);
 
-// _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
+   _aaxThreadSetPriority(handle->thread.ptr, AAX_LOW_PRIORITY);
    do
    {
       _aaxSignalWait(&handle->thread.signal);
