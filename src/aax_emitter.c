@@ -94,6 +94,7 @@ aaxEmitterCreate()
             handle->midi.attack_factor = 1.0f;
             handle->midi.release_factor = 1.0f;
             handle->midi.decay_factor = 1.0f;
+            handle->midi.mode = AAX_RENDER_INSTRUMENT;
 
             rv = (aaxEmitter)handle;
          }
@@ -240,7 +241,6 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             embuf->buffer = buffer;
             buffer->ref_counter++;
             handle->sampled_release = buffer->info.sampled_release;
-            handle->midi.render_mode = buffer->info.render_mode;
 
             _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
          }
