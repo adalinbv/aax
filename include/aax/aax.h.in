@@ -172,7 +172,12 @@ enum aaxModeType
    AAX_POSITION,
    AAX_LOOPING,
    AAX_BUFFER_TRACK,
-   AAX_MODE_TYPE_MAX
+   AAX_MODE_TYPE_MAX,
+
+   /* buffer rendering mode */
+   AAX_RENDER_INSTRUMENT = AAX_MODE_TYPE_NONE,
+   AAX_RENDER_SYNTHESIZER,
+   AAX_RENDER_ARCADE
 };
 
 enum aaxTrackType

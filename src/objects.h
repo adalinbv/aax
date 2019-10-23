@@ -253,6 +253,8 @@ typedef struct
    float release_factor;
    float decay_factor;
 
+   char render_mode;
+
 } _midi_t;
 
 typedef ALIGN16  struct {

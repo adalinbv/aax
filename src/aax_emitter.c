@@ -240,6 +240,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             embuf->buffer = buffer;
             buffer->ref_counter++;
             handle->sampled_release = buffer->info.sampled_release;
+            handle->midi.render_mode = buffer->info.render_mode;
 
             _intBufAddData(src->buffers, _AAX_EMITTER_BUFFER, embuf);
          }

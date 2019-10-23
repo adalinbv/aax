@@ -279,6 +279,9 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          }
          rv = AAX_TRUE;
          break;
+      case AAX_CAPABILITIES:
+         handle->info.render_mode = setup;
+         rv = AAX_TRUE;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -361,6 +364,12 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          break;
       case AAX_POSITION:
          rv = handle->pos;
+         break;
+      case AAX_SAMPLED_RELEASE:
+         rv= handle->info.sampled_release;
+         break;
+      case AAX_CAPABILITIES:
+         rv = handle->info.render_mode;
          break;
       case AAX_PEAK_VALUE:
       case AAX_AVERAGE_VALUE:
