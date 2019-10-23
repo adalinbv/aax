@@ -1559,9 +1559,9 @@ _aaxMixerStart(_handle_t *handle)
          }
          else
          {
-            if (ms < 5) {
+            if (ms < 11) {
                _aaxThreadSetPriority(handle->thread.ptr, AAX_HIGHEST_PRIORITY);
-            } else if (ms < 11) {
+            } else if (ms < 16) {
                _aaxThreadSetPriority(handle->thread.ptr, AAX_HIGH_PRIORITY);
             } else {
                _aaxThreadSetPriority(handle->thread.ptr, AAX_NORMAL_PRIORITY);
