@@ -758,7 +758,16 @@ aaxMixerAddBuffer(aaxConfig config, aaxBuffer buf)
 
    if (rv)
    {
-      rv = _mixerCreateEFFromAAXS(config, buffer);
+      _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxAudioFrame *mixer = sensor->mixer;
+         if (!mixer->info->midi_mode) {
+            rv = _mixerCreateEFFromAAXS(config, buffer);
+         }
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
       if (!buffer->root) {
          buffer->root = handle->root;
       }

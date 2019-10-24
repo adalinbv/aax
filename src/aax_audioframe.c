@@ -1418,7 +1418,10 @@ aaxAudioFrameAddBuffer(aaxFrame frame, aaxBuffer buf)
 
    if (rv)
    {
-      rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
+      _aaxAudioFrame* fmixer = handle->submix;
+      if (!fmixer->info->midi_mode) {
+         rv = _frameCreateEFFromAAXS(handle, buffer->aaxs);
+      }
       if (!buffer->root) {
          buffer->root = handle->root;
       }
