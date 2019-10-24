@@ -1448,6 +1448,11 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       double duration = 1.0f;
       float spread = 0;
       int b, voices = 1;
+      int midi_mode = 0;
+
+      if (handle->mixer_info) {
+         midi_mode = (*handle->mixer_info)->midi_mode;
+      }
 
       if (!xmlNodeGetPos(xaid, xsid, "sound", s)) continue;
 
@@ -1535,7 +1540,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          limiter = xmlAttributeGetInt(xsid, "mode");
       }
 
-      if (!handle->mixer_info || !(*handle->mixer_info)->midi_mode)
+      if (!midi_mode)
       {
          if (xmlAttributeExists(xsid, "voices")) {
             voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
@@ -1564,20 +1569,30 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          xwid = xmlMarkId(xsid);
          if (xwid)
          {
+            int waves;
+
             num = xmlNodeGetNum(xsid, "*");
+            waves = midi_mode ? _MIN(3, num) : num;
             for (i=0; i<num; i++)
             {
                if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
                {
                   char *name = xmlNodeGetName(xwid);
-                  if (!strcasecmp(name, "waveform")) {
-                     rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
-                                             b, voices, spread, limiter & 1);
-                  } else if (!strcasecmp(name, "filter")) {
-                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
-                  } else if (!strcasecmp(name, "effect")) {
-                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
+                  if (!strcasecmp(name, "waveform"))
+                  {
+                     if (!midi_mode || --waves) {
+                        rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
+                                                b, voices, spread, limiter & 1);
+                     }
+                  }
+                  else if (!midi_mode)
+                  {
+                     if (!strcasecmp(name, "filter")) {
+                        rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
+                     } else if (!strcasecmp(name, "effect")) {
+                        rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
                                                  low_frequency, high_frequency);
+                     }
                   }
                   xmlFree(name);
                   if (rv == AAX_FALSE) break;
