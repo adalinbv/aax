@@ -1159,24 +1159,26 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    } else {
       phase = xmlNodeGetDouble(xwid, "phase");
    }
-   if (xmlAttributeExists(xwid, "staticity")) {
-      staticity = xmlAttributeGetDouble(xwid, "staticity");
-   } else {
-      staticity = xmlNodeGetDouble(xwid, "staticity");
+   if (!midi_mode)
+   {
+      if (xmlAttributeExists(xwid, "staticity")) {
+         staticity = xmlAttributeGetDouble(xwid, "staticity");
+      } else {
+         staticity = xmlNodeGetDouble(xwid, "staticity");
+      }
    }
-   if (midi_mode) staticity = 0.0f;
 
    if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
-       wtype = midi_mode ? AAX_WHITE_NOISE : AAX_BROWNIAN_NOISE;
-       if (midi_mode) { pitch = 1.0f; ratio = 0.7f; }
+       wtype = AAX_BROWNIAN_NOISE;
+       if (midi_mode) { pitch = 1.0f; ratio = 0.6f; }
    }
    else if (!xmlAttributeCompareString(xwid, "src","white-noise")) {
        wtype = AAX_WHITE_NOISE;
-       if (midi_mode) { pitch = 1.0f; ratio = 0.7f; }
+       if (midi_mode) { pitch = 1.0f; ratio = 0.4f; }
    }
    else if (!xmlAttributeCompareString(xwid, "src","pink-noise")) {
-       wtype = midi_mode ? AAX_WHITE_NOISE : AAX_PINK_NOISE;
-       if (midi_mode) { pitch = 1.0f; ratio = 0.7f; }
+       wtype = AAX_PINK_NOISE;
+       if (midi_mode) { pitch = 1.0f; ratio = 0.5f; }
    }
    else if (!xmlAttributeCompareString(xwid, "src", "square")) {
       wtype = AAX_SQUARE_WAVE;
