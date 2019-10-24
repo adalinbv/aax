@@ -181,6 +181,9 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
          case AAX_RELEASE_MODE:
             __release_mode = setup ? AAX_TRUE : AAX_FALSE;
             break;
+         case AAX_CAPABILITIES:
+            info->midi_mode = _MINMAX(setup, 0, AAX_RENDER_ARCADE);
+            break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);
             break;
