@@ -1124,14 +1124,23 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
-   float phase, pitch, ratio, staticity;
+   float phase, pitch, ratio;
+   float staticity = 0.0f;
+   int midi_mode = 0;
 
-   if (xmlAttributeExists(xwid, "voices"))
+   if (handle->mixer_info) {
+      midi_mode = (*handle->mixer_info)->midi_mode;
+   }
+
+   if (!midi_mode)
    {
-      voices = _MINMAX(xmlAttributeGetInt(xwid, "voices"), 1, 11);
-      if (xmlAttributeExists(xwid, "spread")) {
-         spread = _MAX(xmlNodeGetDouble(xwid, "spread"), 0.01f);
-         if (xmlAttributeGetBool(xwid, "phasing")) spread = -spread;
+      if (xmlAttributeExists(xwid, "voices"))
+      {
+         voices = _MINMAX(xmlAttributeGetInt(xwid, "voices"), 1, 11);
+         if (xmlAttributeExists(xwid, "spread")) {
+            spread = _MAX(xmlNodeGetDouble(xwid, "spread"), 0.01f);
+            if (xmlAttributeGetBool(xwid, "phasing")) spread = -spread;
+         }
       }
    }
 
@@ -1155,15 +1164,19 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    } else {
       staticity = xmlNodeGetDouble(xwid, "staticity");
    }
+   if (midi_mode) staticity = 0.0f;
 
    if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
-       wtype = AAX_BROWNIAN_NOISE;
+       wtype = midi_mode ? AAX_WHITE_NOISE : AAX_BROWNIAN_NOISE;
+       if (midi_mode) { pitch = 1.0f; ratio = 0.7f; }
    }
-   else if (!xmlAttributeCompareString(xwid, "src","white-noise")){
+   else if (!xmlAttributeCompareString(xwid, "src","white-noise")) {
        wtype = AAX_WHITE_NOISE;
+       if (midi_mode) { pitch = 1.0f; ratio = 0.7f; }
    }
    else if (!xmlAttributeCompareString(xwid, "src","pink-noise")) {
-       wtype = AAX_PINK_NOISE;
+       wtype = midi_mode ? AAX_WHITE_NOISE : AAX_PINK_NOISE;
+       if (midi_mode) { pitch = 1.0f; ratio = 0.7f; }
    }
    else if (!xmlAttributeCompareString(xwid, "src", "square")) {
       wtype = AAX_SQUARE_WAVE;
