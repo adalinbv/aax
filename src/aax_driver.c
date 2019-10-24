@@ -1010,6 +1010,19 @@ _open_handle(aaxConfig config)
                      _PROP_PITCH_SET_CHANGED(smixer->props3d);
                      _PROP_MTX_SET_CHANGED(smixer->props3d);
 
+                     if (handle->info->midi_mode == AAX_RENDER_SYNTHESIZER)
+                     {
+                        aaxFilter flt = aaxFilterCreate(config, AAX_FREQUENCY_FILTER);
+                        if (flt)
+                        {
+                           res = aaxFilterSetSlot(flt, 0, AAX_LINEAR,
+                                                     4400.0f, 1.0f, 0.3f, 1.0f);
+                           res = aaxFilterSetState(flt, AAX_TRUE);
+                           res = aaxScenerySetFilter(config, flt);
+                           res = aaxFilterDestroy(flt);
+                        }
+                     }
+
                      _aaxSignalInit(&handle->buffer_ready);
 
                      return handle;

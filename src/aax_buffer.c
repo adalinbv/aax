@@ -1535,12 +1535,15 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          limiter = xmlAttributeGetInt(xsid, "mode");
       }
 
-      if (xmlAttributeExists(xsid, "voices")) {
-         voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
-      }
-      if (xmlAttributeExists(xsid, "spread")) {
-         spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
-         if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
+      if (!handle->mixer_info || !(*handle->mixer_info)->midi_mode)
+      {
+         if (xmlAttributeExists(xsid, "voices")) {
+            voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
+         }
+         if (xmlAttributeExists(xsid, "spread")) {
+            spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
+            if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
+         }
       }
 
       for (b=0; b<handle->pitch_levels; ++b)
