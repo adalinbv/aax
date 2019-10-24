@@ -72,6 +72,14 @@ aaxAudioFrameCreate(aaxConfig config)
          frame->root = handle->root;
          frame->mixer_pos = UINT_MAX;
          frame->max_emitters = get_low_resource() ? 32 : 256;
+         if (handle->info->midi_mode)
+         {
+            if (handle->info->midi_mode == AAX_RENDER_ARCADE) {
+               frame->max_emitters = 2;
+            } else {
+               frame->max_emitters = 8;
+            }
+         }
 
          size = sizeof(_frame_t);
          submix = (_aaxAudioFrame*)((char*)frame + size);
