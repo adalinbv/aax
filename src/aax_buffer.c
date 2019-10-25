@@ -1587,7 +1587,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             int waves;
 
             num = xmlNodeGetNum(xsid, "*");
-            waves = midi_mode ? _MIN(3, num) : num;
+            waves = midi_mode ? _MIN(2, num) : num;
             for (i=0; i<num; i++)
             {
                if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
@@ -1595,7 +1595,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                   char *name = xmlNodeGetName(xwid);
                   if (!strcasecmp(name, "waveform"))
                   {
-                     if (!midi_mode || --waves) {
+                     if (!midi_mode || waves--) {
                         rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
                                                 b, voices, spread, limiter & 1);
                      }
