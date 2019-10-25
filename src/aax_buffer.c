@@ -98,6 +98,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->info.tracks = tracks;
          buf->info.no_samples = samples;
          buf->info.blocksize = blocksize;
+         buf->midi_mode = AAX_RENDER_INSTRUMENT;
          buf->mipmap = AAX_FALSE;
          buf->pos = 0;
          buf->info.fmt = format;
@@ -280,7 +281,7 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          rv = AAX_TRUE;
          break;
       case AAX_CAPABILITIES:
-            handle->info.midi_mode = _MINMAX(setup, 0, AAX_RENDER_ARCADE);
+            handle->midi_mode = _MINMAX(setup, 0, AAX_RENDER_ARCADE);
             break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1131,7 +1132,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    float staticity = 0.0f;
    int midi_mode;
 
-   midi_mode = handle->info.midi_mode;
+   midi_mode = handle->midi_mode;
    if (!midi_mode && handle->mixer_info) {
       midi_mode = (*handle->mixer_info)->midi_mode;
    }

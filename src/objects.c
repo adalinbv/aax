@@ -46,7 +46,7 @@
 void
 _aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
 {
-   char *env = getenv("AAX_RENDERING_MODE");
+   char *env = getenv("AAX_RENDER_MODE");
    unsigned int size;
 
    size = 2*sizeof(vec4f_t); 
