@@ -1961,8 +1961,18 @@ MIDIFile::MIDIFile(const char *devname, const char *filename, const char *select
 void
 MIDIFile::initialize(const char *grep)
 {
+    char *env = getenv("AAX_MIDI_MODE");
     double eps;
     clock_t t;
+
+    if (env)
+    {
+        if (!strcasecmp(env, "synthesizer")) {
+            midi.set(AAX_CAPABILITIES, AAX_RENDER_SYNTHESIZER);
+        } else if (!strcasecmp(env, "arcade")) {
+            midi.set(AAX_CAPABILITIES, AAX_RENDER_ARCADE);
+        }
+    }
 
     midi.read_instruments();
 
@@ -1984,7 +1994,6 @@ MIDIFile::initialize(const char *grep)
 
     if (!grep)
     {
-        char *env = getenv("AAX_MIDI_MODE");
         char *rrate = getenv("AAX_MIDI_REFRESH_RATE");
         rewind();
         pos_sec = 0;
@@ -2006,14 +2015,6 @@ MIDIFile::initialize(const char *grep)
             midi.set(AAX_MONO_EMITTERS, midi.get_polyphony());
         }
 
-        if (env)
-        {
-            if (!strcasecmp(env, "synthesizer")) {
-                midi.set(AAX_CAPABILITIES, AAX_RENDER_SYNTHESIZER);
-            } else if (!strcasecmp(env, "arcade")) {
-                midi.set(AAX_CAPABILITIES, AAX_RENDER_ARCADE);
-            }
-        }
         midi.set(AAX_INITIALIZED);
 
         if (midi.get_verbose())
