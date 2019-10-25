@@ -1331,6 +1331,43 @@ _bufLimit(_aaxRingBuffer* rb)
    }
 }
 
+static void
+_bufNormalize(_aaxRingBuffer* rb)
+{
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   unsigned int track, no_tracks = rbd->no_tracks;
+   size_t no_samples = rbd->no_samples;
+   int32_t **tracks;
+
+   tracks = (int32_t**)rbd->track;
+   for (track=0; track<no_tracks; track++)
+   {
+      int32_t *dptr = tracks[track];
+      double rms_total = 0.0;
+      float peak_cur = 0.0f;
+      float rms, peak, gain;
+      size_t j = no_samples;
+
+      do
+      {
+         float samp = (float)*dptr++;            // rms
+         float val = samp*samp;
+         rms_total += val;
+         if (val > peak_cur) peak_cur = val;
+      }
+      while (--j);
+
+      rms = sqrt(rms_total/no_samples);
+      peak = sqrtf(peak_cur);
+
+      dptr = tracks[track];
+      gain = 32.0f*_MAX(rms, 0.1f)*(_db2lin(-24.0f)/peak);
+      _batch_imul_value(dptr, dptr, sizeof(int32_t), no_samples, gain);
+   }
+}
+
+
 static inline float note2freq(uint8_t d) {
    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
 }
@@ -1616,7 +1653,12 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             xmlFree(xwid);
          }
 
-         if (limiter)
+         if (midi_mode)
+         {
+            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+            _bufNormalize(rb);
+         }
+         else if (limiter)
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
             _bufLimit(rb);
