@@ -279,6 +279,9 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          }
          rv = AAX_TRUE;
          break;
+      case AAX_CAPABILITIES:
+            handle->info.midi_mode = _MINMAX(setup, 0, AAX_RENDER_ARCADE);
+            break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1126,9 +1129,10 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
    float phase, pitch, ratio;
    float staticity = 0.0f;
-   int midi_mode = 0;
+   int midi_mode;
 
-   if (handle->mixer_info) {
+   midi_mode = handle->info.midi_mode;
+   if (!midi_mode && handle->mixer_info) {
       midi_mode = (*handle->mixer_info)->midi_mode;
    }
 

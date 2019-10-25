@@ -259,6 +259,7 @@ typedef struct
 // float pitch_envelope[2*_MAX_ENVELOPE_STAGES];
 
    char sampled_release;
+   char midi_mode;
 
 } _buffer_info_t;
 

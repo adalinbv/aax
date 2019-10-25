@@ -189,7 +189,10 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
                   _aaxErrorSet(AAX_INVALID_STATE);
                } else if (handle->track >= rb->get_parami(rb, RB_NO_TRACKS)) {
                   _aaxErrorSet(AAX_INVALID_STATE);
-               } else {
+               }
+               else
+               {
+                  handle->midi.mode = buffer->info.midi_mode;
                   rv = AAX_TRUE;
                }
             } else if (!buffer->aaxs) {

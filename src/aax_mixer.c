@@ -1115,7 +1115,9 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
             }
 
             src->info = handle->info;
-            emitter->midi.mode = src->info->midi_mode;
+            if (!emitter->midi.mode) {
+               emitter->midi.mode = src->info->midi_mode;
+            }
             if (src->update_rate == 0) {
                src->update_rate = handle->info->update_rate;
             }
