@@ -183,6 +183,7 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             break;
          case AAX_CAPABILITIES:
             info->midi_mode = _MINMAX(setup, 0, AAX_RENDER_ARCADE);
+            _aaxMixerSetRendering(handle);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1411,6 +1412,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 
 
 /* -------------------------------------------------------------------------- */
+
 int
 _aaxGetCapabilities(UNUSED(const aaxConfig config))
 {
@@ -1649,6 +1651,22 @@ _aaxMixerUpdate(_handle_t *handle)
    }
 
    return rv;
+}
+
+void
+_aaxMixerSetRendering(_handle_t *handle)
+{
+   if (handle->info->midi_mode == AAX_RENDER_SYNTHESIZER)
+   {
+      aaxFilter flt = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
+      if (flt)
+      {
+         aaxFilterSetSlot(flt, 0, AAX_LINEAR, 4400.0f, 1.0f, 0.3f, 1.0f);
+         aaxFilterSetState(flt, AAX_TRUE);
+         aaxScenerySetFilter(handle, flt);
+         aaxFilterDestroy(flt);
+      }
+   }
 }
 
 static int

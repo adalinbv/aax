@@ -184,6 +184,7 @@ _handle_t* get_read_handle(aaxConfig, const char*);
 _handle_t* get_write_handle(aaxConfig, const char*);
 void _aaxDriverFree(void*);
 int get_low_resource();
+void _aaxMixerSetRendering(_handle_t*);
 
 /* --- AudioFrame --- */
 #define AUDIOFRAME_ID   0x3137ABFF
