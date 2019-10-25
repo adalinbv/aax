@@ -335,6 +335,9 @@ public:
     inline void set_mode(uint8_t m) { if (m > mode) mode = m; }
     inline uint8_t get_mode() { return mode; }
 
+    inline void set_instrument_mode(enum aaxModeType m) { instrument_mode = m; }
+    inline enum aaxModeType get_instrument_mode() { return instrument_mode; }
+
     inline void set_grep(bool g) { grep_mode = g; }
     inline bool get_grep() { return grep_mode; }
 
@@ -458,6 +461,7 @@ private:
     uint16_t format = 0;
     uint16_t PPQN = 24;
 
+    enum aaxModeType instrument_mode = AAX_RENDER_INSTRUMENT;
     uint8_t mode = MIDI_MODE0;
     bool initialize = false;
     bool verbose = false;

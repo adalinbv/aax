@@ -263,6 +263,18 @@ MIDI::read_instruments()
                     xmlFree(set);
                 }
 
+                if (xmlAttributeExists(xmid, "mode"))
+                {
+                   if (!xmlAttributeCompareString(xmid, "mode", "synthesizer"))
+                   {
+                       instrument_mode = AAX_RENDER_SYNTHESIZER;
+                   }
+                   else if (!xmlAttributeCompareString(xmid, "mode", "arcade"))
+                   {
+                       instrument_mode = AAX_RENDER_ARCADE;
+                   }
+                }
+
                 if (xmlAttributeExists(xmid, "version"))
                 {
                     char *set = xmlAttributeGetString(xmid, "version");
@@ -552,6 +564,7 @@ MIDI::new_channel(uint8_t channel_no, uint16_t bank_no, uint8_t program_no)
 
     Buffer &buffer = midi.buffer(name, level);
     if (buffer) {
+        buffer.set(AAX_CAPABILITIES, int(instrument_mode));
     }
 
     try {
@@ -1709,7 +1722,7 @@ MIDITrack::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& 
                 }
                 case MIDI_FILTER_RESONANCE:
                 {
-                    float val = (float)value/64.0f; // relative: 0.0 - 2.0
+                    float val = -1.0f+(float)value/64.0f; // relative: 0.0 - 2.0
                     midi.channel(channel).set_filter_resonance(val);
                     break;
                 }
@@ -1971,6 +1984,7 @@ MIDIFile::initialize(const char *grep)
 
     if (!grep)
     {
+        char *env = getenv("AAX_MIDI_MODE");
         char *rrate = getenv("AAX_MIDI_REFRESH_RATE");
         rewind();
         pos_sec = 0;
@@ -1990,6 +2004,15 @@ MIDIFile::initialize(const char *grep)
         midi.set(AAX_REFRESH_RATE, refrate);
         if (midi.get_polyphony() < UINT_MAX) {
             midi.set(AAX_MONO_EMITTERS, midi.get_polyphony());
+        }
+
+        if (env)
+        {
+            if (!strcasecmp(env, "synthesizer")) {
+                midi.set(AAX_CAPABILITIES, AAX_RENDER_SYNTHESIZER);
+            } else if (!strcasecmp(env, "arcade")) {
+                midi.set(AAX_CAPABILITIES, AAX_RENDER_ARCADE);
+            }
         }
         midi.set(AAX_INITIALIZED);
 
