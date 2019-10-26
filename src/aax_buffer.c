@@ -1361,10 +1361,10 @@ _bufNormalize(_aaxRingBuffer* rb)
       }
       while (--j);
 
-      rms = sqrt(rms_total/no_samples);
+      rms = sqrt(rms_total/no_samples)/norm;
+      gain = _db2lin(-24.0f - _lin2db(rms));
 
       dptr = tracks[track];
-      gain = 0.3f/pow(rms/norm, 0.1);
       _batch_imul_value(dptr, dptr, sizeof(int32_t), no_samples, gain);
    }
 }
