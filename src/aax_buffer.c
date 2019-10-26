@@ -1175,15 +1175,15 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
 
    if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
        wtype = AAX_BROWNIAN_NOISE;
-       if (midi_mode) { pitch = 1.0f; ratio = 0.6f; }
+       if (midi_mode) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src","white-noise")) {
        wtype = AAX_WHITE_NOISE;
-       if (midi_mode) { pitch = 1.0f; ratio = 0.4f; }
+       if (midi_mode) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src","pink-noise")) {
        wtype = AAX_PINK_NOISE;
-       if (midi_mode) { pitch = 1.0f; ratio = 0.5f; }
+       if (midi_mode) pitch = 1.0f;
    }
    else if (!xmlAttributeCompareString(xwid, "src", "square")) {
       wtype = AAX_SQUARE_WAVE;
@@ -1634,9 +1634,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                   char *name = xmlNodeGetName(xwid);
                   if (!strcasecmp(name, "waveform"))
                   {
-                     if (!midi_mode || waves--) {
+                     if (waves) {
                         rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
                                                 b, voices, spread, limiter & 1);
+                        waves--;
                      }
                   }
                   else if (!midi_mode)
