@@ -517,7 +517,8 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
       ftype = aaxFilterGetByName(config, src);
       if (midi && (midi->mode == AAX_RENDER_ARCADE ||
                   (midi->mode == AAX_RENDER_SYNTHESIZER &&
-                   ftype != AAX_TIMED_GAIN_FILTER)))
+                   ftype != AAX_TIMED_GAIN_FILTER &&
+                   ftype != AAX_DYNAMIC_GAIN_FILTER)))
       {
          return rv;
       }
@@ -620,7 +621,10 @@ _aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
 
       src[slen] = 0;
       etype = aaxEffectGetByName(config, src);
-      if (midi && midi->mode) {
+      if (midi && (midi->mode == AAX_RENDER_ARCADE ||
+                  (midi->mode == AAX_RENDER_SYNTHESIZER &&
+                   etype != AAX_DYNAMIC_PITCH_EFFECT)))
+      {
          return rv;
       }
 
