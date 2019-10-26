@@ -20,9 +20,9 @@
  </info>
 
  <sound gain="0.81" db="-10.0" frequency="230" duration="0.5">
-  <waveform src="white-noise" ratio="0.4" pitch="0.3"/>
-  <waveform src="sine" processing="add" ratio="0.55"/>
+  <waveform src="sine" ratio="0.55"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>
+  <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.3"/>
   <filter type="bitcrusher">
    <slot n="0">
     <param n="0">0.0</param>
@@ -34,12 +34,12 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">3.17</param>
     <param n="1">0.25</param>
-    <param n="2">1.04</param>
-    <param n="3">0.33</param>
+    <param n="2">1.94</param>
+    <param n="3">0.53</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
