@@ -345,10 +345,11 @@ struct dsp_t
     } slot[4];
 };
 
-void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, float env_fact, char simplify)
+float fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, float env_fact, char simplify)
 {
     char *keep_volume = getenv("KEEP_VOLUME");
     unsigned int s, snum;
+    float max = 0.0f;
     char env = 0;
     void *xsid;
 
@@ -385,7 +386,7 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
             {
                 if (xmlNodeGetPos(xsid, xpid, "param", p) != 0)
                 {
-                    float adjust, value;
+                    float adjust, value, v;
                     int pn = p;
 
                     if (xmlAttributeExists(xpid, "n")) {
@@ -400,11 +401,14 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
 
                     adjust = xmlAttributeGetDouble(xpid, "auto");
                     value = xmlGetDouble(xpid);
+                    v = _MAX(value - adjust*_lin2log(220.0f), 0.01f);
+
+                    if (env && (p % 2 == 0) && v > max) max = v;
 
                     if (simplify)
                     {
                         if (adjust) {
-                            value = _MAX(value - adjust*_lin2log(220.0f), 0.01f);
+                            value = v;
                         }
 #if 0
                         if (env && value > 1.0f && (pn % 2)) {
@@ -428,6 +432,8 @@ void fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, floa
         }
     }
     xmlFree(xsid);
+
+    return max;
 }
 
 void print_dsp(struct dsp_t *dsp, struct info_t *info, FILE *output)
@@ -627,11 +633,13 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
     } else {
         sound->gain = gain;
     }
+#if 0
     if (sound->db == -AAX_FPINFINITE) {
         sound->db = _MIN(xmlAttributeGetDouble(xid, "db"), 0.0f);
     } else {
         sound->db = db;
     }
+#endif
 
     if (xmlAttributeExists(xid, "file")) {
         sound->file = xmlAttributeGetString(xid, "file");
@@ -781,10 +789,11 @@ struct object_t		// emitter and audioframe
     struct dsp_t dsp[16];
 };
 
-void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gain, char simplify)
+float fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gain, char simplify)
 {
     char emitter = (env_fact >= 0.0f);
     unsigned int p, d, dnum;
+    float max = 0.0f;
     void *xdid;
 
     obj->mode = lwrstr(xmlAttributeGetString(xid, "mode"));
@@ -798,7 +807,8 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
     {
         if (xmlNodeGetPos(xid, xdid, "filter", d) != 0)
         {
-            fill_dsp(&obj->dsp[p++], xdid, FILTER, timed_gain, env_fact, simplify);
+            float m = fill_dsp(&obj->dsp[p++], xdid, FILTER, timed_gain, env_fact, simplify);
+            if (!max) max = m;
         }
     }
     xmlFree(xdid);
@@ -820,6 +830,8 @@ void fill_object(struct object_t *obj, void *xid, float env_fact, char timed_gai
     }
     xmlFree(xdid);
     obj->no_dsps = p;
+
+    return max;
 }
 
 void print_object(struct object_t *obj, enum type_t type, struct info_t *info, FILE *output)
@@ -903,7 +915,8 @@ void fill_aax(struct aax_t *aax, const char *filename, char simplify, float gain
             xtid = xmlNodeGet(xaid, "emitter");
             if (xtid)
             {
-                fill_object(&aax->emitter, xtid, env_fact, timed_gain, simplify);
+                float m = fill_object(&aax->emitter, xtid, env_fact, timed_gain, simplify);
+                if (m) aax->sound.db = _lin2db(1.0f/m);
                 xmlFree(xtid);
             }
 
@@ -1177,7 +1190,7 @@ int main(int argc, char **argv)
             }
             while (--j);
 
-            db = _lin2db(sqrt(rms_total/no_samples));
+//          db = _lin2db(sqrt(rms_total/no_samples));
             aaxFree(data);
         }
         aaxBufferDestroy(buffer);
