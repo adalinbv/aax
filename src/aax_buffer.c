@@ -1362,8 +1362,7 @@ _bufNormalize(_aaxRingBuffer* rb)
       while (--j);
 
       rms = sqrt(rms_total/no_samples)/norm;
-      gain = _db2lin(-24.0f - _lin2db(rms));
-      gain = gain*gain;
+      gain = _db2lin(-21.0f - _lin2db(rms));
 
       dptr = tracks[track];
       _batch_imul_value(dptr, dptr, sizeof(int32_t), no_samples, gain);
@@ -1512,7 +1511,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (!xmlNodeGetPos(xaid, xsid, "sound", s)) continue;
 
       if (midi_mode) {
-         handle->gain = 1.0f;
+         handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
       }
       else
       {
