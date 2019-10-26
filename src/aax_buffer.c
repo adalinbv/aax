@@ -1363,6 +1363,7 @@ _bufNormalize(_aaxRingBuffer* rb)
 
       rms = sqrt(rms_total/no_samples)/norm;
       gain = _db2lin(-24.0f - _lin2db(rms));
+      gain = gain*gain;
 
       dptr = tracks[track];
       _batch_imul_value(dptr, dptr, sizeof(int32_t), no_samples, gain);
@@ -1510,10 +1511,16 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
       if (!xmlNodeGetPos(xaid, xsid, "sound", s)) continue;
 
-      if (xmlAttributeExists(xsid, "gain")) {
-         handle->gain = xmlAttributeGetDouble(xsid, "gain");
-      } else if (xmlAttributeExists(xsid, "fixed-gain")) {
-         handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
+      if (midi_mode) {
+         handle->gain = 1.0f;
+      }
+      else
+      {
+         if (xmlAttributeExists(xsid, "gain")) {
+            handle->gain = xmlAttributeGetDouble(xsid, "gain");
+         } else if (xmlAttributeExists(xsid, "fixed-gain")) {
+            handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
+         }
       }
 
       if (!freq)
