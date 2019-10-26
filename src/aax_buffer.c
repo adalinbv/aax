@@ -1348,26 +1348,23 @@ _bufNormalize(_aaxRingBuffer* rb)
    tracks = (int32_t**)rbd->track;
    for (track=0; track<no_tracks; track++)
    {
+      static const float norm = (float)(1<<24);
       int32_t *dptr = tracks[track];
-      double rms_total = 0.0;
-      float peak_cur = 0.0f;
-      float rms, peak, gain;
       size_t j = no_samples;
+      double rms_total = 0.0;
+      float rms, gain;
 
       do
       {
-         float samp = (float)*dptr++;            // rms
-         float val = samp*samp;
-         rms_total += val;
-         if (val > peak_cur) peak_cur = val;
+         float samp = (float)*dptr++;
+         rms_total += samp*samp;
       }
       while (--j);
 
       rms = sqrt(rms_total/no_samples);
-      peak = sqrtf(peak_cur);
 
       dptr = tracks[track];
-      gain = 32.0f*_MAX(rms, 0.1f)*(_db2lin(-24.0f)/peak);
+      gain = 0.3f/pow(rms/norm, 0.1);
       _batch_imul_value(dptr, dptr, sizeof(int32_t), no_samples, gain);
    }
 }
