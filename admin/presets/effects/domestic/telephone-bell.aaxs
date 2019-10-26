@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.67" frequency="1200" duration="0.1">
+ <sound gain="0.67" db="-5.1" frequency="1200" duration="0.1">
   <waveform src="square" pitch="2.985"/>
   <waveform src="sawtooth" processing="mix" pitch="3.0"/>
   <waveform src="sine" processing="modulate" ratio="2.4" pitch="6.5"/>

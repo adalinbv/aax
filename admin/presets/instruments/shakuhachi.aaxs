@@ -19,7 +19,7 @@
   <note polyphony="2" min="55" max="84" step="12"/>
  </info>
 
- <sound gain="0.50" frequency="880" duration="0.5">
+ <sound gain="0.50" db="-7.5" frequency="880" duration="0.5">
   <waveform src="triangle" ratio="0.8"/>
   <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
   <filter type="bitcrusher">

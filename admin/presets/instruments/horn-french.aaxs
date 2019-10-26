@@ -19,7 +19,7 @@
   <note polyphony="2" min="41" max="77" step="12"/>
  </info>
 
- <sound gain="1.30" frequency="110" duration="0.1">
+ <sound gain="1.30" db="0.3" frequency="110" duration="0.1">
   <waveform src="impulse"/>
   <filter type="frequency" src="36db">
    <slot n="0">

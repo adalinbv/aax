@@ -20,7 +20,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.61" frequency="220">
+ <sound gain="0.61" db="-8.8" frequency="220">
   <waveform src="square"/>
   <waveform src="sine" processing="modulate" pitch="3.0"/>
  </sound>

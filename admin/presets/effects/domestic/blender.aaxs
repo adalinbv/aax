@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" fixed-gain="1.00" frequency="130" duration="3.3">
+ <sound mode="1" fixed-gain="1.00" db="-5.9" frequency="130" duration="3.3">
   <waveform src="white-noise" ratio="3.0" pitch="0.35" staticity="0.0175"/>
   <waveform src="brownian-noise" processing="modulate" ratio="4.0" pitch="0.35"/>
   <filter type="bitcrusher">

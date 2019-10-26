@@ -19,7 +19,7 @@
   <note polyphony="1" min="60" max="96" step="1"/>
  </info>
 
- <sound gain="0.56" frequency="261.626" duration="2.1">
+ <sound gain="0.56" db="-5.5" frequency="261.626" duration="2.1">
   <waveform src="triangle"/>
   <waveform src="brownian-noise" processing="add" ratio="0.8"/>
   <waveform src="square" processing="add" ratio="0.01"/>

@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="2.65" frequency="220" duration="0.1">
+ <sound fixed-gain="2.65" db="2.9" frequency="220" duration="0.1">
   <waveform src="sawtooth"/>
   <waveform src="triangle" processing="modulate" ratio="1.5" pitch="6.99"/>
   <waveform src="impulse" processing="modulate" pitch="0.0425"/>

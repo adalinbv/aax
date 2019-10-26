@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.83" frequency="80" duration="3.33">
+ <sound gain="0.83" db="-6.1" frequency="80" duration="3.33">
   <waveform src="white-noise" pitch="0.2"/>
  </sound>
 

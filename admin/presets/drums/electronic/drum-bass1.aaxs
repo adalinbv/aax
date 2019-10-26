@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" gain="0.96" frequency="77" duration="0.1">
+ <sound mode="1" gain="0.96" db="-7.3" frequency="77" duration="0.1">
   <waveform src="sine"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="0.8"/>
   <filter type="bitcrusher">

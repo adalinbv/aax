@@ -19,7 +19,7 @@
   <note polyphony="4" min="60" max="84" step="12"/>
  </info>
 
- <sound gain="0.91" frequency="261.626" duration="0.75">
+ <sound gain="0.91" db="-7.0" frequency="261.626" duration="0.75">
   <waveform src="square"/>
   <waveform src="pink-noise" processing="mix" ratio="0.2"/>
   <waveform src="sawtooth" processing="mix" ratio="0.4" pitch="3.9986"/>

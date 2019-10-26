@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.11" frequency="220" duration="3.33">
+ <sound fixed-gain="1.11" db="2.9" frequency="220" duration="3.33">
   <waveform src="white-noise"/>
  </sound>
 
