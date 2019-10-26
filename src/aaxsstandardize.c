@@ -70,7 +70,7 @@ static char* false_const = "false";
 
 static float _lin2log(float v) { return log10f(v); }
 //  static float _log2lin(float v) { return powf(10.f,v); }
-// static float _lin2db(float v) { return 20.f*log10f(v); }
+static float _lin2db(float v) { return 20.f*log10f(v); }
 static float _db2lin(float v) { return _MINMAX(powf(10.f,v/20.f),0.f,10.f); }
 
 static char* prttystr(char *s) {
@@ -575,7 +575,7 @@ void free_waveform(struct waveform_t *wave)
 struct sound_t
 {
     int mode;
-    float gain;
+    float gain, db;
     float frequency;
     float duration;
     int voices;
@@ -598,7 +598,7 @@ struct sound_t
     } entry[32];
 };
 
-void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gain, char simplify)
+void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gain, float db, char simplify)
 {
     unsigned int p, e, emax;
     char noise;
@@ -626,6 +626,11 @@ void fill_sound(struct sound_t *sound, struct info_t *info, void *xid, float gai
         sound->gain = _MAX(xmlAttributeGetDouble(xid, "gain"), 0.0f);
     } else {
         sound->gain = gain;
+    }
+    if (sound->db == -AAX_FPINFINITE) {
+        sound->db = _MIN(xmlAttributeGetDouble(xid, "db"), 0.0f);
+    } else {
+        sound->db = db;
     }
 
     if (xmlAttributeExists(xid, "file")) {
@@ -712,6 +717,7 @@ void print_sound(struct sound_t *sound, struct info_t *info, FILE *output, char 
            fprintf(output, " gain=\"%3.2f\"", sound->gain);
        }
     }
+    fprintf(output, " db=\"%3.1f\"", sound->db);
 
     if (sound->loop_start > 0) {
         fprintf(output, " loop-start=\"%g\"", sound->loop_start);
@@ -868,7 +874,7 @@ struct aax_t
     struct object_t audioframe;
 };
 
-void fill_aax(struct aax_t *aax, const char *filename, char simplify, float gain, float env_fact, char timed_gain)
+void fill_aax(struct aax_t *aax, const char *filename, char simplify, float gain, float db, float env_fact, char timed_gain)
 {
     void *xid;
 
@@ -890,7 +896,7 @@ void fill_aax(struct aax_t *aax, const char *filename, char simplify, float gain
             xtid = xmlNodeGet(xaid, "sound");
             if (xtid)
             {
-                fill_sound(&aax->sound, &aax->info, xtid, gain, simplify);
+                fill_sound(&aax->sound, &aax->info, xtid, gain, db, simplify);
                 xmlFree(xtid);
             }
 
@@ -1038,8 +1044,8 @@ int main(int argc, char **argv)
     {
         char tmpfile[128], aaxsfile[128];
         float dt, step, gain, env_fact;
-        float rms; // rms1, rms2;
         double loudness, peak;
+        float fval, db;
         struct aax_t aax;
         aaxBuffer buffer;
         aaxConfig config;
@@ -1071,9 +1077,10 @@ int main(int argc, char **argv)
         res = aaxMixerSetState(config, AAX_INITIALIZED);
         testForState(res, "aaxMixerInit");
 
-        fill_aax(&aax, infile, simplify, 1.0f, 1.0f, 0);
+        fill_aax(&aax, infile, simplify, 1.0f, 1.0f, -AAX_FPINFINITE, 0);
         print_aax(&aax, aaxsfile, commons, 1);
         gain = aax.sound.gain;
+        db = aax.sound.db;
         free_aax(&aax);
 
         /* buffer */
@@ -1144,26 +1151,33 @@ int main(int argc, char **argv)
         data = aaxBufferGetData(buffer);
         if (data)
         {
+            double rms_total = 0.0;
+            float *bdata = data[0];
+            size_t j, no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
 #if HAVE_EBUR128
             size_t tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
             size_t freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
-            size_t no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
-            float *buffer = data[0];
             ebur128_state *st;
 
             st = ebur128_init(tracks, freq, EBUR128_MODE_I|EBUR128_MODE_SAMPLE_PEAK);
             if (st)
             {
-                ebur128_add_frames_float(st, buffer, no_samples);
+                ebur128_add_frames_float(st, bdata, no_samples);
                 ebur128_loudness_global(st, &loudness);
                 ebur128_sample_peak(st, 0, &peak);
                 ebur128_destroy(&st);
                 loudness = _db2lin(loudness);
             }
-#else
-            peak = aaxBufferGetSetup(buffer, AAX_PEAK_VALUE)/8388608.0f;
-            loudness = aaxBufferGetSetup(buffer, AAX_AVERAGE_VALUE)/8388608.0f;
 #endif
+            j = no_samples;
+            do
+            {
+                float samp = (float)*bdata++;
+                rms_total += samp*samp;
+            }
+            while (--j);
+
+            db = _lin2db(sqrt(rms_total/no_samples));
             aaxFree(data);
         }
         aaxBufferDestroy(buffer);
@@ -1171,20 +1185,19 @@ int main(int argc, char **argv)
         aaxDriverClose(config);
         aaxDriverDestroy(config);
 
-//      rms = 0.75f*LEVEL_20DB/(0.9f*rms2 + 0.25f*rms1);
-        rms = 6.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
+        fval = 6.0f*_MAX(peak, 0.1f)*(_db2lin(-24.0f)/loudness);
 
         printf("%-32s: peak: % -3.1f, R128: % -3.1f", infile, peak, loudness);
-        printf(", new gain: %4.1f\n", (gain > 0.0f) ? rms : -gain);
+        printf(", new gain: %4.1f\n", (gain > 0.0f) ? fval : -gain);
 
         env_fact = 1.0f;
-        if (gain > 0.0f && fabsf(gain-rms) > 0.1f)
+        if (gain > 0.0f && fabsf(gain-fval) > 0.1f)
         {
-            env_fact = gain/rms;
-            gain = rms;
+            env_fact = gain/fval;
+            gain = fval;
         }
         env_fact *= getGain(argc, argv);
-        fill_aax(&aax, infile, simplify, gain, env_fact, 1);
+        fill_aax(&aax, infile, simplify, gain, db, env_fact, 1);
         print_aax(&aax, outfile, commons, 0);
         free_aax(&aax);
 
