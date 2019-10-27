@@ -23,10 +23,10 @@
   <waveform src="sine" ratio="0.426288" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.426288"/>
   <waveform src="sine" processing="add" ratio="0.426288" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.107079" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.107079" pitch="6.0"/>
   <waveform src="sine" processing="add" ratio="0.426288" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.426288" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.107079" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.107079" pitch="6.0"/>
  </sound>
 
  <emitter looping="true">

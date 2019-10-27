@@ -22,8 +22,8 @@
  <sound gain="1.06" db="-0.2" frequency="220" duration="0.1">
   <waveform src="sine" ratio="0.463448" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.463448"/>
+  <waveform src="sine" processing="add" ratio="0.231048" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.463448" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.463448" pitch="0.5"/>
  </sound>
 
  <emitter looping="true">
