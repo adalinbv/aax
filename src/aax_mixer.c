@@ -1667,6 +1667,11 @@ _aaxMixerSetRendering(_handle_t *handle)
          aaxFilterDestroy(flt);
       }
    }
+   if (handle->info->midi_mode)
+   {
+      if (handle->data_dir) free(handle->data_dir);
+         handle->data_dir = systemDataFile("");
+   }
 }
 
 static int
