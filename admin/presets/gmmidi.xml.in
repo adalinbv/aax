@@ -135,7 +135,7 @@
    <instrument n="118" name="Synth Drum" file="instruments/drum-synth"/>
    <instrument n="119" name="Reverse Cymbal" file="instruments/cymbal-reverse"/>
    <instrument n="120" name="Guitar Fret Noise" file="instruments/guitar-fret-noise"/>
-   <instrument n="121" name="Breath Noise" file="effects/humans/human-breathing"/>
+   <instrument n="121" name="Breath Noise" file="instruments/breath-noise"/>
    <instrument n="122" name="Seashore" file="effects/nature/water-seashore"/>
    <instrument n="123" name="Bird Tweet" file="effects/nature/birds"/>
    <instrument n="124" name="Telephone Ring" file="effects/domestic/telephone-bell"/>
