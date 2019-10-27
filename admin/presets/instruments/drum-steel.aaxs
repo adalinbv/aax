@@ -21,8 +21,8 @@
 
  <sound mode="1" gain="1.04" db="-1.9" frequency="220" duration="0.33">
   <waveform src="triangle"/>
-  <waveform src="triangle" processing="modulate" pitch="1.997"/>
   <waveform src="triangle" processing="modulate" pitch="5.0587"/>
+  <waveform src="triangle" processing="modulate" pitch="1.997"/>
  </sound>
 
  <emitter looping="true">

@@ -20,9 +20,9 @@
  </info>
 
  <sound gain="0.92" db="-2.3" frequency="261.626" duration="0.5">
-  <waveform src="white-noise" ratio="0.25" pitch="0.364"/>
-  <waveform src="triangle" processing="add" ratio="0.5"/>
+  <waveform src="triangle" ratio="0.5"/>
   <waveform src="triangle" processing="add" ratio="0.125" pitch="0.9"/>
+  <waveform src="white-noise" processing="add" ratio="0.05" pitch="0.364"/>
  </sound>
 
  <emitter looping="true">
