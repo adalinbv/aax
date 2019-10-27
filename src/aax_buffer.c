@@ -1513,7 +1513,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (midi_mode == AAX_RENDER_SYNTHESIZER) {
          handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
       }
-      else
+      else if (!midi_mode)
       {
          if (xmlAttributeExists(xsid, "gain")) {
             handle->gain = xmlAttributeGetDouble(xsid, "gain");
