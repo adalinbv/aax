@@ -20,9 +20,9 @@
  </info>
 
  <sound gain="0.72" db="-5.7" frequency="164" duration="0.5">
-  <waveform src="white-noise" ratio="0.8"/>
-  <waveform src="sine" processing="add"/>
+  <waveform src="sine"/>
   <waveform src="sine" processing="add" ratio="0.8" pitch="2.0"/>
+  <waveform src="white-noise" processing="add" ratio="0.2"/>
  </sound>
 
  <emitter looping="true">
