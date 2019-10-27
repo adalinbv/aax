@@ -1510,7 +1510,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
       if (!xmlNodeGetPos(xaid, xsid, "sound", s)) continue;
 
-      if (midi_mode) {
+      if (midi_mode == AAX_RENDER_SYNTHESIZER) {
          handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
       }
       else
