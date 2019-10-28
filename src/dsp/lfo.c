@@ -228,6 +228,23 @@ _compressor_set_timing(_aaxLFOData *lfo)
 }
 
 
+static inline float
+_aaxLFODelay(_aaxLFOData* lfo, float rv)
+{
+   float delay = fabsf(lfo->delay);
+   if (lfo->dt < delay)
+   {
+       float f;
+
+       lfo->dt += 1.0f/lfo->period_rate;
+       f = lfo->dt/delay;
+       f = f*f;
+
+       if (lfo->delay < 0.0f) rv = 1.0f - (1.0f - rv)*f;	// pitch
+       else rv *= f;						// gain
+   }
+   return rv;
+}
 
 /*
  * Low Frequency Oscilator funtions
@@ -269,15 +286,7 @@ _aaxLFOGetTriangle(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = lfo->convert(lfo->value[track], 1.0f);
       rv = lfo->inv ? lfo->max-(rv-lfo->min) : rv;
-
-      if (lfo->dt < lfo->delay)
-      {
-          float f;
-
-          lfo->dt += 1.0f/lfo->period_rate;
-          f = lfo->dt/lfo->delay;
-          rv *= f*f;
-      }
+      rv = _aaxLFODelay(lfo, rv);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -326,15 +335,7 @@ _aaxLFOGetSine(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned 
 
       rv = lfo->convert(_fast_sin1(v), max);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-
-      if (lfo->dt < lfo->delay)
-      {
-          float f;
-
-          lfo->dt += 1.0f/lfo->period_rate;
-          f = lfo->dt/lfo->delay;
-          rv *= f*f;
-      }
+      rv = _aaxLFODelay(lfo, rv);
 
       lfo->compression[track] = 1.0f - rv;
    }
@@ -352,15 +353,7 @@ _aaxLFOGetSquare(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigne
 
       rv = lfo->convert((step >= 0.0f ) ? lfo->max-lfo->min : 0, 1.0f);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-
-      if (lfo->dt < lfo->delay)
-      {
-          float f;
-
-          lfo->dt += 1.0f/lfo->period_rate;
-          f = lfo->dt/lfo->delay;
-          rv *= f*f;
-      }
+      rv = _aaxLFODelay(lfo, rv);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -388,15 +381,7 @@ _aaxLFOGetImpulse(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsign
 
       rv = lfo->convert((step >= 0.0f ) ? lfo->max-lfo->min : 0, 1.0f);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
-
-      if (lfo->dt < lfo->delay)
-      {
-          float f;
-
-          lfo->dt += 1.0f/lfo->period_rate;
-          f = lfo->dt/lfo->delay;
-          rv *= f*f;
-      }
+      rv = _aaxLFODelay(lfo, rv);
 
       lfo->value[track] += step;
       if (((lfo->value[track] <= lfo->min) && (step < 0))
@@ -422,15 +407,7 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 
       rv = lfo->convert(lfo->value[track], 1.0f);
       rv = lfo->inv ? lfo->max-(rv-lfo->min) : rv;
-
-      if (lfo->dt < lfo->delay)
-      {
-          float f;
-
-          lfo->dt += 1.0f/lfo->period_rate;
-          f = lfo->dt/lfo->delay;
-          rv *= f*f;
-      }
+      rv = _aaxLFODelay(lfo, rv);
 
       lfo->value[track] += step;
       if (lfo->value[track] <= lfo->min) {

@@ -1,14 +1,15 @@
 
-* Sat Oct 19 2019 - tech@adalin.org
+* Mon Oct 28 2019 - tech@adalin.org
 - AeonWave (3.6.8) stable; urgency=low
 
  * Add an 80's arcade computer style playback mode for AAXS defined instruments.
  * Add a 90's synthesizer style playback mode for AAXS defined instruments.
+ * Fix initial delay support for the dynamic-pitch-effect.
  * Fix combining a sound file and one or more waveforms.
  * Fix support for a combination of AAX_RELEASE_FACTOR and
    AAX_(INVERSE)_ENVELOPE_FOLLOW
 
--- Erik Hofman <tech@adalin.org>  Thu 19 oct 2019 13:06:44 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon 28 Oct 2019 13:15:27 + 0100
 
 
 * Thu Oct 17 2019 - tech@adalin.org
@@ -18,7 +19,7 @@
  * Disable stream ICY support for now for security reasons.
  * Switch to the latest stb_vorbis code which contains some security fixes.
 
--- Erik Hofman <tech@adalin.org>  Thu 17 oct 2019 10:06:44 + 0200
+-- Erik Hofman <tech@adalin.org>  Thu 17 Oct 2019 10:06:44 + 0200
 
 
 * Thu Sep 26 2019 - tech@adalin.org

@@ -109,7 +109,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          lfo->max_sec = (1.0f + depth)/lfo->fs;
          lfo->depth = 1.0f;
          lfo->offset = 0.0f;
-         lfo->delay = effect->slot[0]->param[AAX_INITIAL_DELAY];
+         lfo->delay = -effect->slot[0]->param[AAX_INITIAL_DELAY];
          lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
