@@ -303,10 +303,10 @@ inline std::string to_string(enum aaxCapabilities type)
     switch(midi_mode)
     {
     case AAX_RENDER_SYNTHESIZER:
-        mode.append("80's FM Synthesizer style");
+        mode.append("80's FM Synthesizer mode");
         break;
     case AAX_RENDER_ARCADE:
-        mode.append("70's Arcade Game Console style");
+        mode.append("70's Arcade Game Console mode");
         break;
     default:
         break;
