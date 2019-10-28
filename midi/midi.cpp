@@ -71,17 +71,8 @@ using namespace aax;
 MIDI::MIDI(const char* n, const char *selections, enum aaxRenderMode m)
         : AeonWave(n, m)
 {
-    if (*this)
-    {
-        path = AeonWave::info(AAX_SHARED_DATA_DIR);
-
-        std::string name = path;
-        name.append("/ultrasynth/");
-        if (midi.exists(name))
-        {
-            path = name;
-            AeonWave::set(AAX_SHARED_DATA_DIR, path.c_str());
-        }
+    if (*this) {
+        set_path();
     }
     else
     {
@@ -106,6 +97,20 @@ MIDI::MIDI(const char* n, const char *selections, enum aaxRenderMode m)
     }
 
 //  set_reverb("reverb/concerthall-large");
+}
+
+void
+MIDI::set_path()
+{
+    path = AeonWave::info(AAX_SHARED_DATA_DIR);
+
+    std::string name = path;
+    name.append("/ultrasynth/");
+    if (midi.exists(name))
+    {
+        path = name;
+        AeonWave::set(AAX_SHARED_DATA_DIR, path.c_str());
+    }
 }
 
 void
@@ -1968,9 +1973,9 @@ MIDIFile::initialize(const char *grep)
     if (env)
     {
         if (!strcasecmp(env, "synthesizer")) {
-            midi.set(AAX_CAPABILITIES, AAX_RENDER_SYNTHESIZER);
+            midi.set_capabilities(AAX_RENDER_SYNTHESIZER);
         } else if (!strcasecmp(env, "arcade")) {
-            midi.set(AAX_CAPABILITIES, AAX_RENDER_ARCADE);
+            midi.set_capabilities(AAX_RENDER_ARCADE);
         }
     }
 

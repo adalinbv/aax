@@ -326,6 +326,10 @@ public:
 
     bool is_drums(uint8_t);
 
+    inline void set_capabilities(enum aaxCapabilities m) {
+        set(AAX_CAPABILITIES, m); set_path();
+    }
+
     inline unsigned int get_refresh_rate() { return refresh_rate; }
     inline unsigned int get_polyphony() { return polyphony; }
 
@@ -415,6 +419,8 @@ public:
 
     MIDI &midi = *this;
 private:
+    void set_path();
+
     std::string preset_file(aaxConfig c, std::string& name) {
         std::string rv = aaxDriverGetSetup(c, AAX_SHARED_DATA_DIR);
         rv.append("/"); rv.append(name);
