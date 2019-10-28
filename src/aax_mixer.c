@@ -182,8 +182,24 @@ aaxMixerSetSetup(aaxConfig config, enum aaxSetupType type, unsigned int setup)
             __release_mode = setup ? AAX_TRUE : AAX_FALSE;
             break;
          case AAX_CAPABILITIES:
-            info->midi_mode = _MINMAX(setup, 0, AAX_RENDER_ARCADE);
-            _aaxMixerSetRendering(handle);
+            switch(setup)
+            {
+            case AAX_RENDER_NORMAL:
+               info->midi_mode = AAX_RENDER_NORMAL;
+               _aaxMixerSetRendering(handle);
+               break;
+            case AAX_RENDER_SYNTHESIZER:
+               info->midi_mode = AAX_RENDER_SYNTHESIZER;
+               _aaxMixerSetRendering(handle);
+               break;
+            case AAX_RENDER_ARCADE:
+               info->midi_mode = AAX_RENDER_ARCADE;
+               _aaxMixerSetRendering(handle);
+               break;
+            default:
+               _aaxErrorSet(AAX_INVALID_PARAMETER);
+               break;
+            }
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1414,8 +1430,9 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 /* -------------------------------------------------------------------------- */
 
 int
-_aaxGetCapabilities(UNUSED(const aaxConfig config))
+_aaxGetCapabilities(const aaxConfig config)
 {
+   _handle_t *handle = get_handle(config, __func__);
    static int rv = -1;
 
    if (rv < 0)
@@ -1436,6 +1453,12 @@ _aaxGetCapabilities(UNUSED(const aaxConfig config))
       if (_aaxArchDetectAVX2()) {
          rv |= AAX_SIMD512;
       }
+   }
+
+   if (handle)
+   {
+      _aaxMixerInfo* info = handle->info;
+      rv |= info->midi_mode;
    }
 
    return rv;

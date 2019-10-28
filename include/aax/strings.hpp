@@ -289,6 +289,31 @@ inline std::string to_string(enum aaxProcessingType type)
     }
 }
 
+inline std::string to_string(enum aaxCapabilities type)
+{
+    int midi_mode = (type & AAX_RENDER_MODE);
+    int cores = (type & AAX_CPU_CORES);
+    std::string mode;
+
+    if (cores) {
+        mode.append(std::to_string(cores+1));
+        mode.append(" cores");
+        if (midi_mode) mode.append(" - ");
+    }
+    switch(midi_mode)
+    {
+    case AAX_RENDER_SYNTHESIZER:
+        mode.append("80's FM Synthesizer style");
+        break;
+    case AAX_RENDER_ARCADE:
+        mode.append("70's Arcade Game Console style");
+        break;
+    default:
+        break;
+    }
+    return mode;
+}
+
 } // namespace aax
 
 #endif

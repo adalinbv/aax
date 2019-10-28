@@ -98,7 +98,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->info.tracks = tracks;
          buf->info.no_samples = samples;
          buf->info.blocksize = blocksize;
-         buf->midi_mode = AAX_RENDER_INSTRUMENT;
+         buf->midi_mode = AAX_RENDER_NORMAL;
          buf->mipmap = AAX_FALSE;
          buf->pos = 0;
          buf->info.fmt = format;
@@ -281,8 +281,21 @@ aaxBufferSetSetup(aaxBuffer buffer, enum aaxSetupType type, unsigned int setup)
          rv = AAX_TRUE;
          break;
       case AAX_CAPABILITIES:
-            handle->midi_mode = _MINMAX(setup, 0, AAX_RENDER_ARCADE);
+         switch(setup)
+         {
+         case AAX_RENDER_NORMAL:
+            handle->midi_mode = AAX_RENDER_NORMAL;
             break;
+         case AAX_RENDER_SYNTHESIZER:
+            handle->midi_mode = AAX_RENDER_SYNTHESIZER;
+            break;
+         case AAX_RENDER_ARCADE:
+            handle->midi_mode = AAX_RENDER_ARCADE;
+            break;
+         default:
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+            break;
+         }
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1502,9 +1515,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       double duration = 1.0f;
       float spread = 0;
       int b, voices = 1;
-      int midi_mode = 0;
+      int midi_mode;
 
-      if (handle->mixer_info) {
+      midi_mode = handle->midi_mode;
+      if (!midi_mode && handle->mixer_info) {
          midi_mode = (*handle->mixer_info)->midi_mode;
       }
 
@@ -1805,7 +1819,7 @@ _bufAAXSThread(void *d)
       }
    }
    else {
-      aax_buf->error = AAX_INVALID_PARAMETER;
+      aax_buf->error = AAX_INVALID_PARAMETER+2;
    }
 
    return rv ? d : NULL;

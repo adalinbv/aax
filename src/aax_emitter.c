@@ -94,7 +94,7 @@ aaxEmitterCreate()
             handle->midi.attack_factor = 1.0f;
             handle->midi.release_factor = 1.0f;
             handle->midi.decay_factor = 1.0f;
-            handle->midi.mode = AAX_RENDER_INSTRUMENT;
+            handle->midi.mode = AAX_RENDER_NORMAL;
 
             rv = (aaxEmitter)handle;
          }

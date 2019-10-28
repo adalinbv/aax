@@ -286,7 +286,7 @@ typedef ALIGN16 struct
    float unit_m;			/* unit factor to convert to meters */
    enum aaxFormat format;
    enum aaxRenderMode mode;
-   enum aaxModeType midi_mode;
+   enum aaxCapabilities midi_mode;
    unsigned int max_emitters;		/* total */
    unsigned int max_registered;		/* per (sub)mixer */
 
