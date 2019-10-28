@@ -1999,6 +1999,7 @@ MIDIFile::initialize(const char *grep)
         pos_sec = 0;
 
         int capabilities = midi.get(AAX_CAPABILITIES);
+        int midi_mode = (capabilities & AAX_RENDER_MODE);
         int cores = (capabilities & AAX_CPU_CORES)+1;
         int simd64 = (capabilities & AAX_SIMD256);
         int simd = (capabilities & AAX_SIMD);
@@ -2032,7 +2033,12 @@ MIDIFile::initialize(const char *grep)
             }
 
             enum aaxRenderMode render_mode = aaxRenderMode(midi.render_mode());
-            MESSAGE("Rendering : %s\n", to_string(render_mode).c_str());
+            if (!midi_mode) {
+                MESSAGE("Rendering : %s\n", to_string(render_mode).c_str());
+            } else {
+                MESSAGE("Rendering : %s, %s\n", to_string(render_mode).c_str(),
+                              to_string(aaxCapabilities(midi_mode)).c_str());
+            }
             MESSAGE("Patch set : %s", midi.get_patch_set().c_str());
             MESSAGE(" instrument set version %s\n", midi.get_patch_version().c_str());
 
