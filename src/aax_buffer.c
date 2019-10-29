@@ -1350,7 +1350,7 @@ _bufLimit(_aaxRingBuffer* rb)
 }
 
 static float
-_bufNormalize(_aaxRingBuffer* rb)
+_bufNormalize(_aaxRingBuffer* rb, float db)
 {
    static const float norm = (float)(1<<24);
    _aaxRingBufferData *rbi = rb->handle;
@@ -1373,10 +1373,10 @@ _bufNormalize(_aaxRingBuffer* rb)
    rms = sqrt(rms_total/no_samples)/norm;
 
    peak = -3.0f - _lin2db(peak);
-   rms = -24.0f - _lin2db(rms);
-   rv = 0.33f*_db2lin(peak + rms);
+   rms = -21.0f - _lin2db(rms);
+   rv = _db2lin(-12.0f + db + peak + rms);
 #if 0
- printf("gain: %fdB (%f), rms: %fdB (%f), peak: %fdB (%f)\n", peak+rms, rv, rms, _db2lin(rms), peak, _db2lin(peak));
+ printf("gain: %fdB (%f), rms: %fdB (%f), peak: %fdB (%f), db: %fdB\n", peak+rms, rv, rms, _db2lin(rms), peak, _db2lin(peak), db);
 #endif
    return rv;
 }
@@ -1524,7 +1524,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (!xmlNodeGetPos(xaid, xsid, "sound", s)) continue;
 
       if (midi_mode == AAX_RENDER_SYNTHESIZER) {
-         handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
+         handle->gain = xmlAttributeGetDouble(xsid, "db");
       }
       else if (!midi_mode)
       {
@@ -1535,7 +1535,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          }
       }
       else {
-         handle->gain = 0.6f;
+         handle->gain = -4.4f;
       }
 
       if (!freq)
@@ -1683,8 +1683,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             if (!b)
             {
                _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-               float gain = _bufNormalize(rb);
-               handle->gain *= gain;
+               handle->gain = _bufNormalize(rb, handle->gain);
             }
          }
          else if (limiter)
