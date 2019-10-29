@@ -350,6 +350,7 @@ float fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, flo
     char *keep_volume = getenv("KEEP_VOLUME");
     unsigned int s, snum;
     float max = 0.0f;
+    char dist = 0;
     char env = 0;
     void *xsid;
 
@@ -366,6 +367,8 @@ float fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, flo
     if (!strcasecmp(dsp->type, "timed-gain")) {
         dsp->release_factor = _MAX(xmlAttributeGetDouble(xid, "release-factor"), 0.0f);
         env = 1;
+    } else if (!strcasecmp(dsp->type, "distortion")) {
+        dist = 1;
     }
 
     xsid = xmlMarkId(xid);
@@ -404,6 +407,7 @@ float fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, flo
                     v = _MAX(value - adjust*_lin2log(220.0f), 0.01f);
 
                     if (env && (p % 2 == 0) && v > max) max = v;
+                    else if (dist && !p) max = -_lin2db(3.0f*powf(v, 1.f/3.5f));
 
                     if (simplify)
                     {
@@ -824,7 +828,8 @@ float fill_object(struct object_t *obj, void *xid, float env_fact, char timed_ga
                                          !strcasecmp(type, "ringmodulator"))) ||
                              (emitter && !strcasecmp(type, "timed-pitch")))
             {
-                fill_dsp(&obj->dsp[p++], xdid, EFFECT, timed_gain, env_fact, simplify);
+                float m = fill_dsp(&obj->dsp[p++], xdid, EFFECT, timed_gain, env_fact, simplify);
+                if (!max) max = m;
             }
         }
     }
@@ -916,14 +921,15 @@ void fill_aax(struct aax_t *aax, const char *filename, char simplify, float gain
             if (xtid)
             {
                 float m = fill_object(&aax->emitter, xtid, env_fact, timed_gain, simplify);
-                if (m) aax->sound.db = _lin2db(1.0f/m);
+                if (m > 0) aax->sound.db = _lin2db(1.0f/m);
                 xmlFree(xtid);
             }
 
             xtid = xmlNodeGet(xaid, "audioframe");
             if (xtid)
             {
-                fill_object(&aax->audioframe, xtid, -1.f, timed_gain, simplify);
+                float m = fill_object(&aax->audioframe, xtid, -1.f, timed_gain, simplify);
+                if (m < 0) aax->sound.db -= m;
                 xmlFree(xtid);
             }
 
@@ -1164,9 +1170,8 @@ int main(int argc, char **argv)
         data = aaxBufferGetData(buffer);
         if (data)
         {
-            double rms_total = 0.0;
             float *bdata = data[0];
-            size_t j, no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
+            size_t no_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
 #if HAVE_EBUR128
             size_t tracks = aaxBufferGetSetup(buffer, AAX_TRACKS);
             size_t freq = aaxBufferGetSetup(buffer, AAX_FREQUENCY);
@@ -1182,7 +1187,9 @@ int main(int argc, char **argv)
                 loudness = _db2lin(loudness);
             }
 #endif
-            j = no_samples;
+#if 0
+            double rms_total = 0.0;
+            size_t j = no_samples;
             do
             {
                 float samp = (float)*bdata++;
@@ -1190,7 +1197,8 @@ int main(int argc, char **argv)
             }
             while (--j);
 
-//          db = _lin2db(sqrt(rms_total/no_samples));
+            db = _lin2db(sqrt(rms_total/no_samples));
+#endif
             aaxFree(data);
         }
         aaxBufferDestroy(buffer);
