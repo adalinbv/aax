@@ -1349,37 +1349,36 @@ _bufLimit(_aaxRingBuffer* rb)
    }
 }
 
-static void
+static float
 _bufNormalize(_aaxRingBuffer* rb)
 {
+   static const float norm = (float)(1<<24);
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
-   unsigned int track, no_tracks = rbd->no_tracks;
-   size_t no_samples = rbd->no_samples;
-   int32_t **tracks;
+   size_t j, no_samples = rbd->no_samples;
+   int32_t *dptr = ((int32_t**)rbd->track)[0];
+   double rms_total = 0.0;
+   float rv, rms, peak = 0;
 
-   tracks = (int32_t**)rbd->track;
-   for (track=0; track<no_tracks; track++)
+   j = no_samples;
+   do
    {
-      static const float norm = (float)(1<<24);
-      int32_t *dptr = tracks[track];
-      size_t j = no_samples;
-      double rms_total = 0.0;
-      float rms, gain;
-
-      do
-      {
-         float samp = (float)*dptr++;
-         rms_total += samp*samp;
-      }
-      while (--j);
-
-      rms = sqrt(rms_total/no_samples)/norm;
-      gain = _db2lin(-21.0f - _lin2db(rms));
-
-      dptr = tracks[track];
-      _batch_imul_value(dptr, dptr, sizeof(int32_t), no_samples, gain);
+      float samp = abs(*dptr++);
+      rms_total += (double)samp*samp;
+      if (samp > peak) peak = samp;
    }
+   while (--j);
+
+   peak /= norm;
+   rms = sqrt(rms_total/no_samples)/norm;
+
+   peak = -3.0f - _lin2db(peak);
+   rms = -24.0f - _lin2db(rms);
+   rv = 0.5f*_db2lin(peak + rms);
+#if 0
+ printf("gain: %fdB (%f), rms: %fdB (%f), peak: %fdB (%f)\n", peak+rms, rv, rms, _db2lin(rms), peak, _db2lin(peak));
+#endif
+   return rv;
 }
 
 
@@ -1535,6 +1534,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
          }
       }
+      else {
+         handle->gain = 0.6f;
+      }
 
       if (!freq)
       {
@@ -1678,8 +1680,12 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
          if (midi_mode)
          {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-            _bufNormalize(rb);
+            if (!b)
+            {
+               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+               float gain = _bufNormalize(rb);
+               handle->gain *= gain;
+            }
          }
          else if (limiter)
          {
