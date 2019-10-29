@@ -1374,7 +1374,7 @@ _bufNormalize(_aaxRingBuffer* rb)
 
    peak = -3.0f - _lin2db(peak);
    rms = -24.0f - _lin2db(rms);
-   rv = 0.5f*_db2lin(peak + rms);
+   rv = 0.33f*_db2lin(peak + rms);
 #if 0
  printf("gain: %fdB (%f), rms: %fdB (%f), peak: %fdB (%f)\n", peak+rms, rv, rms, _db2lin(rms), peak, _db2lin(peak));
 #endif
