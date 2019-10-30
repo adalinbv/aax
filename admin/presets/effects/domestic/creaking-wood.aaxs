@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="3.35" db="10.6" frequency="300" duration="3.3">
+ <sound gain="2.89" db="11.9" frequency="300" duration="3.3">
   <waveform src="white-noise" ratio="40.0" pitch="0.02" staticity="0.95"/>
   <filter type="frequency">
    <slot n="0">
@@ -50,9 +50,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.22</param>
+    <param n="0">0.255</param>
     <param n="1">0.6</param>
-    <param n="2">0.11</param>
+    <param n="2">0.128</param>
     <param n="3">0.4</param>
    </slot>
   </filter>
