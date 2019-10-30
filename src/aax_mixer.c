@@ -1681,6 +1681,7 @@ _aaxMixerSetRendering(_handle_t *handle)
 {
    if (handle->info->midi_mode == AAX_RENDER_SYNTHESIZER)
    {
+      aaxEffect eff = aaxEffectCreate(handle, AAX_PHASING_EFFECT);
       aaxFilter flt = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
       if (flt)
       {
@@ -1688,6 +1689,13 @@ _aaxMixerSetRendering(_handle_t *handle)
          aaxFilterSetState(flt, AAX_TRUE);
          aaxScenerySetFilter(handle, flt);
          aaxFilterDestroy(flt);
+      }
+      if (eff)
+      {
+         aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.05f, 0.7f);
+         aaxEffectSetState(eff, AAX_SINE_WAVE);
+         aaxMixerSetEffect(handle, eff);
+         aaxEffectDestroy(eff);
       }
    }
    if (handle->info->midi_mode)

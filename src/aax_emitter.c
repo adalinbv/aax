@@ -1594,7 +1594,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
             _aaxEmitter *src = handle->source;
             _aaxSetDefault2dFiltersEffects(src->props2d);
          }
-
+#if 0
          if (handle->midi.mode == AAX_RENDER_SYNTHESIZER)
          {
             aaxEffect eff = aaxEffectCreate(config, AAX_PHASING_EFFECT);
@@ -1606,6 +1606,7 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
                aaxEffectDestroy(eff);
             }
          }
+#endif
 
          xfid = xmlMarkId(xmid);
          if (xfid)
