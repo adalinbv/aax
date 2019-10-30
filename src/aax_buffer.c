@@ -1278,7 +1278,11 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
 static int
 _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
 {
-   aaxFilter flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, handle->info.low_frequency, handle->info.high_frequency, NULL);
+   aaxFilter flt;
+   _midi_t midi;
+
+   midi.mode = handle->midi_mode;
+   flt = _aaxGetFilterFromAAXS(handle->root, xfid, frequency, handle->info.low_frequency, handle->info.high_frequency, &midi);
    if (flt)
    {
       _filter_t* filter = get_filter(flt);
@@ -1315,8 +1319,11 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
 static int
 _bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency, float min, float max)
 {
+   aaxEffect eff;
+   _midi_t midi;
 
-   aaxEffect eff = _aaxGetEffectFromAAXS(handle->root, xeid, frequency, min, max, NULL);
+   midi.mode = handle->midi_mode;
+   eff = _aaxGetEffectFromAAXS(handle->root, xeid, frequency, min, max, &midi);
    if (eff)
    {
       _effect_t* effect = get_effect(eff);

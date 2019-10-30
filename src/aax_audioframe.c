@@ -1726,7 +1726,8 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
       {
          int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
-         void *xeid, *xfid = xmlMarkId(xmid);
+         _aaxAudioFrame* fmixer;
+         void *xeid, *xfid;
 
 #if 0
          if (xmlAttributeExists(xmid, "stereo") &&
@@ -1770,54 +1771,59 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
             handle->max_emitters = _MINMAX(handle->max_emitters, 1, max);
          }
 
-         if (clear)
-         {
-            _aaxAudioFrame* fmixer = handle->submix;
+         fmixer = handle->submix;
+         if (clear) {
             _aaxSetDefault2dFiltersEffects(fmixer->props2d);
          }
 
-         for (i=0; i<num; i++)
+         // No filters and effects for audio-frames if not normal rendering
+         if (fmixer->info->midi_mode != AAX_RENDER_NORMAL)
          {
-            if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
+            xfid = xmlMarkId(xmid);
+            for (i=0; i<num; i++)
             {
-               int non_optional = AAX_TRUE;
-               if (xmlAttributeExists(xfid, "optional")) {
-                  non_optional = !xmlAttributeGetBool(xfid, "optional");
-               }
-               if (non_optional || !get_low_resource())
+               if (xmlNodeGetPos(xmid, xfid, "filter", i) != 0)
                {
-                  aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
-                  if (flt)
+                  int non_optional = AAX_TRUE;
+                  if (xmlAttributeExists(xfid, "optional")) {
+                     non_optional = !xmlAttributeGetBool(xfid, "optional");
+                  }
+                  if (non_optional || !get_low_resource())
                   {
-                     aaxAudioFrameSetFilter(frame, flt);
-                     aaxFilterDestroy(flt);
+                     aaxFilter flt = _aaxGetFilterFromAAXS(config, xfid, freq, 0.0f, 0.0f, NULL);
+                     if (flt)
+                     {
+                        aaxAudioFrameSetFilter(frame, flt);
+                        aaxFilterDestroy(flt);
+                     }
                   }
                }
             }
-         }
-         xmlFree(xfid);
+            xmlFree(xfid);
 
-         xeid = xmlMarkId(xmid);
-         num = xmlNodeGetNum(xmid, "effect");
-         for (i=0; i<num; i++)
-         {
-            if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
-            {int non_optional = AAX_TRUE;
-               if (xmlAttributeExists(xeid, "optional")) {
-                  non_optional = !xmlAttributeGetBool(xeid, "optional");
-               }
-               if (non_optional || !get_low_resource())
+            xeid = xmlMarkId(xmid);
+            num = xmlNodeGetNum(xmid, "effect");
+            for (i=0; i<num; i++)
+            {
+               if (xmlNodeGetPos(xmid, xeid, "effect", i) != 0)
                {
-                  aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
-                  if (eff)
+                  int non_optional = AAX_TRUE;
+                  if (xmlAttributeExists(xeid, "optional")) {
+                     non_optional = !xmlAttributeGetBool(xeid, "optional");
+                  }
+                  if (non_optional || !get_low_resource())
                   {
-                     aaxAudioFrameSetEffect(frame, eff);
-                     aaxEffectDestroy(eff);
+                     aaxEffect eff = _aaxGetEffectFromAAXS(config, xeid, freq, 0.0f, 0.0f, NULL);
+                     if (eff)
+                     {
+                        aaxAudioFrameSetEffect(frame, eff);
+                        aaxEffectDestroy(eff);
+                     }
                   }
                }
             }
+            xmlFree(xeid);
          }
-         xmlFree(xeid);
          xmlFree(xmid);
       }
       xmlClose(xid);

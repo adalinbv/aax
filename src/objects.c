@@ -516,16 +516,17 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
       src[slen] = 0;
       ftype = aaxFilterGetByName(config, src);
       // frequency filter and dynmaic gain filter are always supported
-      if ((ftype != AAX_FREQUENCY_FILTER && ftype != AAX_DYNAMIC_GAIN_FILTER) &&
-          midi && midi->mode != AAX_RENDER_NORMAL)
+      if (midi && midi->mode != AAX_RENDER_NORMAL &&
+          (ftype != AAX_FREQUENCY_FILTER && ftype != AAX_DYNAMIC_GAIN_FILTER))
       {
          // as is the timed-gain filter in synthesizer mode
-         if (midi->mode == AAX_RENDER_SYNTHESIZER &&
-             ftype != AAX_TIMED_GAIN_FILTER)
+         if (midi->mode == AAX_RENDER_SYNTHESIZER)
          {
-            return rv;
+            if (ftype != AAX_TIMED_GAIN_FILTER) {
+               return rv;
+            }
          }
-         else {
+         else { // AAX_RENDER_ARCADE
             return rv;
          }
       }
@@ -629,8 +630,8 @@ _aaxGetEffectFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
       src[slen] = 0;
       etype = aaxEffectGetByName(config, src);
       // dynamic pitch effect is alwasy supported
-      if (etype != AAX_DYNAMIC_PITCH_EFFECT &&
-          midi && midi->mode != AAX_RENDER_NDORMAL)
+      if (midi && midi->mode != AAX_RENDER_NORMAL &&
+          etype != AAX_DYNAMIC_PITCH_EFFECT)
       {
          return rv;
       }
