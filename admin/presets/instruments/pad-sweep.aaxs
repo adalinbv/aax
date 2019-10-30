@@ -26,6 +26,20 @@
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="sine" optional="true">
+   <slot n="0">
+    <param n="0" pitch="2.0">440.0</param>
+    <param n="1">3.0</param>
+    <param n="2">0.0</param>
+    <param n="3">10.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="10.0">2200.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.115</param>
+   </slot>
+  </filter>
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.175</param>
@@ -42,21 +56,6 @@
   </filter>
  </emitter>
 
- <audioframe>
-  <filter type="frequency" src="sine" optional="true">
-   <slot n="0">
-    <param n="0" pitch="2.0">440.0</param>
-    <param n="1">3.0</param>
-    <param n="2">0.0</param>
-    <param n="3">10.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0" pitch="10.0">2200.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.115</param>
-   </slot>
-  </filter>
- </audioframe>
+ <audioframe/>
 
 </aeonwave>
