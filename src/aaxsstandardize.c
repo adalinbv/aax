@@ -407,7 +407,7 @@ float fill_dsp(struct dsp_t *dsp, void *xid, enum type_t t, char timed_gain, flo
                     v = _MAX(value - adjust*_lin2log(220.0f), 0.01f);
 
                     if (env && (p % 2 == 0) && v > max) max = v;
-                    else if (dist && !p) max = -_lin2db(3.0f*powf(v, 1.f/3.5f));
+//                  else if (dist && !p) max = -_lin2db(3.0f*powf(v, 1.f/3.5f));
 
                     if (simplify)
                     {
