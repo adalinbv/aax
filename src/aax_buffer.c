@@ -1657,7 +1657,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                         waves--;
                      }
                   }
-                  else if (!midi_mode)
+                  else
                   {
                      if (!strcasecmp(name, "filter")) {
                         rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
