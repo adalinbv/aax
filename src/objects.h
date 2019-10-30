@@ -253,7 +253,7 @@ typedef struct
    float release_factor;
    float decay_factor;
 
-   char mode;
+   int mode;
 
 } _midi_t;
 

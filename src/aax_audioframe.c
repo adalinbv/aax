@@ -1077,7 +1077,7 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
 
          src->info = fmixer->info;
          if (!emitter->midi.mode) {
-            emitter->midi.mode = src->info->midi_mode;
+            emitter->midi.mode = fmixer->info->midi_mode;
          }
          if (src->update_rate == 0) {
             src->update_rate = fmixer->info->update_rate;

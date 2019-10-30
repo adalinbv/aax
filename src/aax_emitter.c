@@ -192,7 +192,9 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
                }
                else
                {
-                  handle->midi.mode = buffer->midi_mode;
+                  if (!handle->midi.mode) {
+                     handle->midi.mode = buffer->midi_mode;
+                  }
                   rv = AAX_TRUE;
                }
             } else if (!buffer->aaxs) {
