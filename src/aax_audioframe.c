@@ -1754,10 +1754,10 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
 
                 aaxMatrix64SetIdentityMatrix(mtx641);
                 aaxMatrix64SetOrientation(mtx641, pos, _at, up);
-                
+
                 aaxMatrix64SetIdentityMatrix(mtx642);
                 aaxMatrix64Rotate(mtx642, -1.57*pan, 0.0, 1.0, 0.0);
-                
+
                 aaxMatrix64Multiply(mtx642, mtx641);
                 aaxAudioFrameSetMatrix64(frame, mtx642);
                 handle->mtx_set = AAX_TRUE;
@@ -1823,6 +1823,17 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
                }
             }
             xmlFree(xeid);
+         }
+         else if (fmixer->info->midi_mode == AAX_RENDER_SYNTHESIZER)
+         {
+            aaxEffect eff = aaxEffectCreate(config, AAX_PHASING_EFFECT);
+            if (eff)
+            {
+               aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.5f, 0.9f);
+               aaxEffectSetState(eff, AAX_TRUE);
+               aaxAudioFrameSetEffect(frame, eff);
+               aaxEffectDestroy(eff);
+            }
          }
          xmlFree(xmid);
       }
