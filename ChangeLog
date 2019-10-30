@@ -1,6 +1,6 @@
 
 * Tue Oct 31 2019 - tech@adalin.org
-- AeonWave (3.6.8) stable; urgency=low
+- AeonWave (3.7.0) stable; urgency=low
 
  * Add an 80's FM Synthesizer style playback mode for AAXS defined instruments.
  * Add a 70's Arcade Game Console playback mode for AAXS defined instruments.
