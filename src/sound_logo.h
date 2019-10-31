@@ -23,7 +23,7 @@ const char *
 __aax_sound_logo =  							\
 "<?xml version='1.0'?>"							\
 "<aeonwave>"								\
- "<sound frequency='220' duration='3.0'>"				\
+ "<sound frequency='220' db='-21' duration='3.0'>"				\
   "<waveform src='triangle' pitch='0.51' voices='5' spread='0.9'/>"	\
   "<waveform src='square' processing='modulate' ratio='0.8' pitch='8.'/>"\
   "<waveform src='triangle' processing='add' ratio='0.3' pitch='0.94'/>"\
