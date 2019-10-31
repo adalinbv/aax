@@ -38,7 +38,7 @@ __aax_sound_logo =  							\
   "</filter>"								\
  "</sound>"								\
  "<emitter looping='true'>"						\
-  "<filter type='envelope'>"						\
+  "<filter type='timed-gain'>"						\
    "<slot>"								\
     "<param>0.5</param>"						\
     "<param>0.41</param>"						\

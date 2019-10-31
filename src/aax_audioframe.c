@@ -1777,7 +1777,7 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
          }
 
          // No filters and effects for audio-frames if not normal rendering
-         if (fmixer->info->midi_mode != AAX_RENDER_NORMAL)
+         if (fmixer->info->midi_mode == AAX_RENDER_NORMAL)
          {
             xfid = xmlMarkId(xmid);
             for (i=0; i<num; i++)

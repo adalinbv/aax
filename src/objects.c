@@ -598,11 +598,11 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
                   state = aaxGetWaveformTypeByName(src);
                }
             }
-         }
 
-         if (xmlAttributeExists(xid, "stereo") &&
-             xmlAttributeGetBool(xid, "stereo")) {
-            state |= AAX_LFO_STEREO;
+            if (xmlAttributeExists(xid, "stereo") &&
+                xmlAttributeGetBool(xid, "stereo")) {
+               state |= AAX_LFO_STEREO;
+            }
          }
 
          aaxFilterSetState(flt, state);
