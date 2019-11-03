@@ -14,15 +14,20 @@
 
 #define WAVE_TYPE	_SAWTOOTH_WAVE
 #define VSTEP		-0.000039f
-#define MAXNUM		(199*4096*10)
 #define FACTOR		0.7723678263f
 
+// Depends on the timer resolution for an acurate comparison
+#if defined(__arm__) || defined(_M_ARM)
+# define MAXNUM		(199*4096*10)
+#else
+# define MAXNUM		(4096*10)
+#endif
 
 
 #define TESTFN(a,d1,d2,m) { int n = 0; \
    for (i=0; i<MAXNUM; ++i) { \
       if (fabsf(d1[i]-d2[i]) > m) { \
-         printf(" # %s %i: %f != %f\n", a, i, d1[i], d2[i]); \
+         printf(" # %s %i: %10.1f != %10.1f (%5.4f%%)\n", a, i, d1[i], d2[i], 100.0f*fabsf((d1[i]-d2[i])/d1[i])); \
          if (++n == 8) break; \
       } } }
 #define TESTF(a,d1,d2)	TESTFN(a,d1,d2,4.0f)
@@ -30,7 +35,7 @@
 #define TESTLF(a,d1,d2) { int n = 0; \
    for (i=0; i<MAXNUM; ++i) { \
       if (fabsf(d1[i]-d2[i]) > 4) { \
-         printf(" # %s %i: %f != %f\n", a, i, d1[i], d2[i]); \
+         printf(" # %s %i: %10.1f != %10.1f (%5.4f%%)\n", a, i, d1[i], d2[i], 100.0f*fabsf((d1[i]-d2[i])/d1[i])); \
          if (++n == 8) break; \
       } } }
 
@@ -379,7 +384,7 @@ int main()
               eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
             printf("rms "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             if (rms1 != rms2) {
-               printf(" | rms1: %f, rms2: %f - %f (%5.4f%%)\n", rms1, rms2, rms1-rms2, fabsf((rms1-rms2)/rms1));
+               printf(" | rms1: %f, rms2: %f - %f (%5.4f%%)\n", rms1, rms2, rms1-rms2, 100.0f*fabsf((rms1-rms2)/rms1));
             }
             if (peak1 != peak2) {
                printf(" | peak1: %f, peak2: %f - %f (%5.4f%%)\n", peak1, peak2, peak1-peak2, fabsf((peak1-peak2)/peak1));
