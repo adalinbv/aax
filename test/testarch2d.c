@@ -20,7 +20,7 @@
 #if defined(__arm__) || defined(_M_ARM)
 # define MAXNUM		(199*4096*10)
 #else
-# define MAXNUM		(4096*10)
+# define MAXNUM		(20*4096*10)
 #endif
 
 
