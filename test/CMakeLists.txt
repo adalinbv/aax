@@ -25,6 +25,7 @@ if(NOT ARM)
              PROPERTY COMPILE_FLAGS "-std=c++11"
  )
 endif()
+CREATE_CPP_TEST(testparam)
 
 CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
