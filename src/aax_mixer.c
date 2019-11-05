@@ -1432,7 +1432,6 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
 int
 _aaxGetCapabilities(const aaxConfig config)
 {
-   _handle_t *handle = get_handle(config, __func__);
    static int rv = -1;
 
    if (rv < 0)
@@ -1455,8 +1454,9 @@ _aaxGetCapabilities(const aaxConfig config)
       }
    }
 
-   if (handle)
+   if (config)
    {
+      _handle_t *handle = get_handle(config, __func__);
       _aaxMixerInfo* info = handle->info;
       rv |= info->midi_mode;
    }
