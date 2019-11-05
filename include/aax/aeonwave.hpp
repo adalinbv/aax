@@ -131,14 +131,16 @@ public:
     inline T operator-(T v) { return (val - v); }
     inline T operator*(T v) { return (val * v); }
     inline T operator/(T v) { return (val / v); }
-    inline T operator=(T v) { val = v; fire(); return val; }
-    inline T operator+=(T v) { val += v; fire(); return val; }
-    inline T operator-=(T v) { val += v; fire(); return val; }
-    inline T operator*=(T v) { val += v; fire(); return val; }
-    inline T operator/=(T v) { val += v; fire(); return val; }
 
-    inline bool operator==(T v) { val += v; fire(); return val; }
-    inline bool operator!=(T v) { val += v; fire(); return val; }
+        // since fire() is quite involved, do a check before firing
+    inline T operator=(T v) { if (val != v) { val = v; fire(); } return val; }
+    inline T operator+=(T v) { if (v) { val += v; fire(); } return val; }
+    inline T operator-=(T v) { if (v) { val -= v; fire(); } return val; }
+    inline T operator*=(T v) { if (v != 1) { val *= v; fire(); } return val; }
+    inline T operator/=(T v) { if (v != 1) { val /= v; fire(); } return val; }
+
+    inline bool operator==(T v) { return (val == v); }
+    inline bool operator!=(T v) { return (val != v); }
     inline bool operator<(T v) { return (val < v); }
     inline bool operator>(T v) { return (val > v); }
     inline bool operator<=(T v) { return (val <= v); }
@@ -150,10 +152,20 @@ public:
     inline Tieable operator-(const Tieable& v) { return (val - v.val); }
     inline Tieable operator*(const Tieable& v) { return (val * v.val); }
     inline Tieable operator/(const Tieable& v) { return (val / v.val); }
-    inline Tieable operator+=(const Tieable& v) { val+=v.val; fire(); return val; }
-    inline Tieable operator-=(const Tieable& v) { val+=v.val; fire(); return val; }
-    inline Tieable operator*=(const Tieable& v) { val+=v.val; fire(); return val; }
-    inline Tieable operator/=(const Tieable& v) { val+=v.val; fire(); return val; }
+
+        // since fire() is quite involved, do a check before firing
+    inline Tieable operator+=(const Tieable& v) {
+        if (v.val) { val += v.val; fire(); } return val;
+    }
+    inline Tieable operator-=(const Tieable& v) {
+        if (v.val) { val -= v.val; fire(); } return val;
+    }
+    inline Tieable operator*=(const Tieable& v) {
+        if (v.val != 1) { val *= v.val; fire(); } return val;
+    }
+    inline Tieable operator/=(const Tieable& v) {
+        if (v.val != 1) { val /= v.val; fire(); } return val;
+    }
 
     inline bool operator==(const Tieable& v) { return (val == v.val); }
     inline bool operator!=(const Tieable& v) { return (val != v.val); }
