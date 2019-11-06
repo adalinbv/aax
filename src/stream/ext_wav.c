@@ -893,10 +893,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
              (handle->info.freq >= 4000 && handle->info.freq <= 256000) &&
              (handle->info.tracks >= 1 && handle->info.tracks <= _AAX_MAX_SPEAKERS))
          {
-// https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#formatvariations
-//          handle->info.blocksize = header[8] & 0xFFFF;
-            handle->info.blocksize = handle->bits_sample*handle->info.tracks/8;
-
+            handle->info.blocksize = header[8] & 0xFFFF;
             handle->bitrate = handle->info.freq*handle->info.blocksize;
 
             bits = handle->bits_sample;
