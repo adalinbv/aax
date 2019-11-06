@@ -1102,9 +1102,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
                hist = _mm_move_ss(hist, d4);
             }
             while (--i);
-
-            h0 = hist[0];
-            h1 = hist[1];
          }
          else
          {
@@ -1136,14 +1133,11 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 #endif
             }
             while (--i);
-
-            d -= 2;
-            h0 = *d++;
-            h1 = *d;
          }
 
-         *hist++ = h0;
-         *hist++ = h1;
+         d -= 2;
+         *hist++ = *d++;
+         *hist++ = *d;
          cptr += 4;
          k = 1.0f;
          s = dptr;
