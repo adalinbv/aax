@@ -1,9 +1,11 @@
 * Mon Nov 04 2019 - tech@adalin.org
 - AeonWave (3.7.1) stable; urgency=low
 
+ * Fix a devision by zero for IMA4 encoded wav files.
  * Fix tied parameter math operators. Speedup when it's basically a no-op.
  * Fix a harmless void reported error when the mixer is initialized:
    _aaxGetCapabilities: Invalid or NULL handle type at initialization
+ * Fix a pointer mismatch when destroying buffers using the AeonWave class.
 
 -- Erik Hofman <tech@adalin.org>  Mon 04 Nov 2019 10:13:05 + 0100
 

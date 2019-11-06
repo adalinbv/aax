@@ -1087,8 +1087,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
       handle->info.base_frequency = note2freq((uint8_t)header[2]);
       handle->info.pitch_fraction = cents2pitch((int)header[3], 0.5f);
+//    handle->info.gain = _db2lin((float)header[4]);
       handle->info.low_frequency = note2freq((uint8_t)header[5]);
       handle->info.high_frequency = note2freq((uint8_t)header[6]);
+//    handle->info.low_velocity = (uint8_t)header[5];
+//    handle->info.high_velocity = (uint8_t)header[6];
 #if 0
    printf("Base Frequency: %f\n", handle->info.base_frequency);
    printf("Low Frequency:  %f\n", handle->info.low_frequency);

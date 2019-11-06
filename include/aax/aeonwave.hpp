@@ -1055,7 +1055,7 @@ public:
         for(auto it=buffers.begin(); it!=buffers.end(); ++it)
         {
             if ((it->second.second == &b) && it->second.first && !(--it->second.first)) {
-                aaxBufferDestroy(it->second.second);
+                aaxBufferDestroy(*it->second.second);
                 buffers.erase(it); break;
             }
         }
