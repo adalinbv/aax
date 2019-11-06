@@ -47,6 +47,13 @@ hsum_ps_sse_vex(__m128 v) {
    return _mm_cvtss_f32(sums);
 }
 
+static inline FN_PREALIGN float
+hsum_half_ps_sse_vex(__m128 v) {
+   __m128 shuf = _mm_shuffle_ps(v, v, _MM_SHUFFLE(2, 3, 0, 1));
+   __m128 sums = _mm_add_ps(v, shuf);
+   return _mm_cvtss_f32(sums);
+}
+
 static inline __m128
 _mm_abs_ps(__m128 x) {
    return _mm_andnot_ps(_mm_set1_ps(-0.0f), x);
@@ -1106,6 +1113,16 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
             do
             {
+#if 0
+               // d[0] = (*s++ * k) + d[-1]*cptr[0] + d[-2]*cptr[1]; d++;
+               __m128 samp;
+
+               *d = (*s++ * k);
+               samp = _mm_mul_ps(hist, cp01);
+               *d += hsum_half_ps_sse_vex(samp);
+               hist = _mm_shuffle_ps(hist, hist, _MM_SHUFFLE(2, 1, 0, 3));
+               hist = _mm_move_ss(hist, _mm_load_ss(d++));
+#else
                __m128 v01 = _mm_mul_ps(hist, cp01);
                __m128 d4 = _mm_set_ss(*s++ * k);
                __m128 shuf = _mm_movehdup_ps(v01);
@@ -1116,11 +1133,13 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
                d4 = _mm_add_ps(sums, shuf);
                hist = _mm_move_ss(hist, d4);
                *d++ = _mm_cvtss_f32(d4);
+#endif
             }
             while (--i);
 
-            h0 = hist[0];
-            h1 = hist[1];
+            d -= 2;
+            h0 = *d++;
+            h1 = *d;
          }
 
          *hist++ = h0;
