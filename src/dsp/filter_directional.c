@@ -175,7 +175,8 @@ _directional_prepare(_aax3dProps *ep3d,  _aaxDelayed3dProps *edp3d_m, _aaxDelaye
             tmp *= (outer_gain - 1.0f);
             tmp /= (outer_vec - inner_vec);
             cone_volume = (1.0f + tmp);
-         } else {
+         }
+         else if (outer_vec < 1.0f) {
             cone_volume = outer_gain;
          }
       }
