@@ -1079,34 +1079,39 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          {
             __m128 cp01 = _mm_load_ps(cptr);
             __m128 cp23 = _mm_movehl_ps(cp01, cp01);
-            __m128 hist = _mm_set_ps(0.0f, 0.0f, h1, h0);
+            __m128 dhist = _mm_set_ps(0.0f, 0.0f, h1, h0);
+            float *dbuf = (float*)&dhist;
 
             do
             {
-               __m128 v23, v01 = _mm_mul_ps(hist, cp01);
+               __m128 v23, v01 = _mm_mul_ps(dhist, cp01);
                __m128 d4 = _mm_set_ss(*s++ * k);
                __m128 shuf = _mm_movehdup_ps(v01);
                __m128 sums = _mm_add_ps(v01, d4);
 
-               v23 = _mm_mul_ps(hist, cp23);
+               v23 = _mm_mul_ps(dhist, cp23);
                d4 = _mm_add_ps(sums, shuf);
 
                shuf = _mm_movehdup_ps(v23);
                sums = _mm_add_ps(v23, d4);
 
-               hist = _mm_moveldup_ps(hist);
+               dhist = _mm_moveldup_ps(dhist);
 
                sums = _mm_add_ps(sums, shuf);
                *d++ = _mm_cvtss_f32(sums);
 
-               hist = _mm_move_ss(hist, d4);
+               dhist = _mm_move_ss(dhist, d4);
             }
             while (--i);
+
+            h0 = dbuf[0];
+            h1 = dbuf[1];
          }
          else
          {
             __m128 cp01 = _mm_load_ps(cptr);
-            __m128 hist = _mm_set_ps(0.0f, 0.0f, h1, h0);
+            __m128 dhist = _mm_set_ps(0.0f, 0.0f, h1, h0);
+            float *dbuf = (float*)&dhist;
 
             do
             {
@@ -1115,29 +1120,31 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
                __m128 samp;
 
                *d = (*s++ * k);
-               samp = _mm_mul_ps(hist, cp01);
+               samp = _mm_mul_ps(dhist, cp01);
                *d += hsum_half_ps_sse_vex(samp);
-               hist = _mm_shuffle_ps(hist, hist, _MM_SHUFFLE(2, 1, 0, 3));
-               hist = _mm_move_ss(hist, _mm_load_ss(d++));
+               dhist = _mm_shuffle_ps(dhist, dhist, _MM_SHUFFLE(2, 1, 0, 3));
+               dhist = _mm_move_ss(dhist, _mm_load_ss(d++));
 #else
-               __m128 v01 = _mm_mul_ps(hist, cp01);
+               __m128 v01 = _mm_mul_ps(dhist, cp01);
                __m128 d4 = _mm_set_ss(*s++ * k);
                __m128 shuf = _mm_movehdup_ps(v01);
                __m128 sums = _mm_add_ps(v01, d4);
 
-               hist = _mm_moveldup_ps(hist);
+               dhist = _mm_moveldup_ps(dhist);
 
                d4 = _mm_add_ps(sums, shuf);
-               hist = _mm_move_ss(hist, d4);
+               dhist = _mm_move_ss(dhist, d4);
                *d++ = _mm_cvtss_f32(d4);
 #endif
             }
             while (--i);
+
+            h0 = dbuf[0];
+            h1 = dbuf[1];
          }
 
-         d -= 2;
-         *hist++ = *d++;
-         *hist++ = *d;
+         *hist++ = h0;
+         *hist++ = h1;
          cptr += 4;
          k = 1.0f;
          s = dptr;
