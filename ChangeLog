@@ -1,8 +1,8 @@
 * Tue Nov 07 2019 - tech@adalin.org
 - AeonWave (3.7.1) stable; urgency=low
 
- * Fix a typo which can cause silence for 3d emitters if the directional
-   filter wasn't explicitly set
+ * Fix a typo which caused the forward gain to be zero when it wasn't explicitly
+   set after retrieving the filter from the emitter.
  * Fix a devision by zero for IMA4 encoded wav files.
  * Fix tied parameter math operators. Speedup when it's basically a no-op.
  * Fix a harmless void reported error when the mixer is initialized:
