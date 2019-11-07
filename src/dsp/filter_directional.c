@@ -71,7 +71,7 @@ _aaxNewDirectionalFilterHandle(const aaxConfig config, enum aaxFilterType type, 
 
    if (rv)
    {
-      _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
+      _aax_dsp_copy(rv->slot[0], &p3d->filter[rv->pos]);
       rv->slot[0]->data = NULL;
 
       rv->state = p3d->filter[rv->pos].state;
