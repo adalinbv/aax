@@ -1084,7 +1084,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
                *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
                
                h1 = h0;
-               h0 = smp;
+               h0 = nsmp;
             }
             while (--i);
          }
