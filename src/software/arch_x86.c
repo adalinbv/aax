@@ -297,11 +297,10 @@ _aaxGetSSELevel()
 
       res = _aaxArchDetectSSE3();
       if (res) sse_level = res;
-# if 0
-// We don't have any useful SSE4 code
+
       res = _aaxArchDetectSSE4();
       if (res) sse_level = res;
-# endif
+
       res = _aaxArchDetectAVX();
       if (res) sse_level = res;
 
@@ -425,7 +424,7 @@ _aaxGetSIMDSupportLevel()
 
          if (_aax_arch_capabilities & AAX_ARCH_SSE41)
          {
-          _batch_roundps = _batch_roundps_sse4;
+            _batch_roundps = _batch_roundps_sse4;
          }
 
 #  if SIZEOF_SIZE_T == 8
