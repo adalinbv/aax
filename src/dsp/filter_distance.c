@@ -59,8 +59,11 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       flt->slot[0]->data = data;
       if (data)
       {
+         float f = 5000.0f;		// Midband frequency in Hz
+
          memset(data, 0, DSIZE);
          data->run = _aaxDistanceFn[1];
+         data->f2 = f*f;
          data->prev.pa_kPa = 101.325f;
          data->prev.T_K = 293.15f;
          data->prev.hr_pct = 60.0f;
@@ -139,8 +142,11 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
       rv->slot[0]->data = data;
       if (data) 
       {
+         float f = 5000.0f;		// Midband frequency in Hz
+
          memset(data, 0, DSIZE);
          data->run = _aaxDistanceFn[1];
+         data->f2 = f*f;
          data->prev.pa_kPa = 101.325f;
          data->prev.T_K = 293.15f;
          data->prev.hr_pct = 60.0f;
@@ -311,8 +317,6 @@ static float
 _aaxDistISO9613(void *data)
 {
     _aaxRingBufferDistanceData *d = (_aaxRingBufferDistanceData*)data;
-    static float f = 5000.0f;		// Midband frequency in Hz
-    static float a = 0.0f;
     float gain = 1.0f;
 
     if (fabsf(d->prev.T_K - d->next.T_K) > FLT_EPSILON ||
@@ -322,11 +326,11 @@ _aaxDistISO9613(void *data)
        static const float To1 = 273.16f;
        static const float To = 293.15f;
        static const float pr = 101.325f;
+       float f2 = d->f2;
        float pa_pr, pr_pa, psat;
        float frO, frN, T_To;
        float T, pa, hr;
        float h, y, z;
-       float f2 = f*f;
        float unit_m;
 
        if (d->next.T_K == 0.0f) d->next.T_K = d->prev.T_K;
@@ -351,11 +355,11 @@ _aaxDistISO9613(void *data)
 
        z = 0.1068f*expf(-3352.0f/T)*(frN/(frN+f2));
        y = powf(T_To,-2.5f)*(0.01275f*exp(-2239.1f/T)*(frO/(frO*frO+f2))+z);
-       a = 8.686f*f2*((1.84e-11f*pr_pa*powf(T_To,0.5f))+y);
-       a *= unit_m;
+       d->next.a = 8.686f*f2*((1.84e-11f*pr_pa*powf(T_To,0.5f))+y);
+       d->next.a *= -unit_m;
     }
 
-    gain = _db2lin(_MAX(d->dist - d->ref_dist, 0.0f) * -a*d->rolloff);
+    gain = _db2lin(_MAX(d->dist - d->ref_dist, 0.0f) * d->next.a*d->rolloff);
 
     return gain;
 }
