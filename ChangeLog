@@ -1,4 +1,4 @@
-* Tue Nov 07 2019 - tech@adalin.org
+* Tue Nov 09 2019 - tech@adalin.org
 - AeonWave (3.7.1) stable; urgency=low
 
  * Fix a typo which caused the forward gain to be zero when it wasn't explicitly
@@ -8,8 +8,10 @@
  * Fix a harmless void reported error when the mixer is initialized:
    _aaxGetCapabilities: Invalid or NULL handle type at initialization
  * Fix a pointer mismatch when destroying buffers using the AeonWave class.
+ * Fix using shared non-static data for multiple emitters when using ISO9613
+   distance attenuation.
 
--- Erik Hofman <tech@adalin.org>  Tue 07 Nov 2019 11:22:33 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue 09 Nov 2019 14:29:12 + 0100
 
 
 * Tue Oct 31 2019 - tech@adalin.org
