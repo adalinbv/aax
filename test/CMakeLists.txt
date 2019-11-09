@@ -8,6 +8,7 @@ if(HAVE_LIBM)
 endif(HAVE_LIBM)
 
 FUNCTION(CREATE_CPP_TEST TEST_NAME)
+  set_property(SOURCE ${TEST_NAME} APPEND PROPERTY COMPILE_FLAGS "-std=c++11")
   add_executable(${TEST_NAME} ${TEST_NAME}.cpp)
   target_link_libraries(${TEST_NAME} ${LIBAEONWAVE}-static ${EXTRA_LIBS})
   add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
@@ -19,12 +20,7 @@ FUNCTION(CREATE_TEST TEST_NAME)
   add_test(${TEST_NAME} ${EXECUTABLE_OUTPUT_PATH}/${TEST_NAME})
 ENDFUNCTION()
 
-if(NOT ARM)
- CREATE_CPP_TEST(testposition)
- set_property(SOURCE testposition.cpp APPEND
-             PROPERTY COMPILE_FLAGS "-std=c++11"
- )
-endif()
+CREATE_CPP_TEST(testposition)
 CREATE_CPP_TEST(testparam)
 
 CREATE_TEST(test3dmath)
