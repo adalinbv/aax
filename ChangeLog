@@ -3,7 +3,7 @@
 
  * Fix a typo which caused the forward gain to be zero when it wasn't explicitly
    set after retrieving the filter from the emitter.
- * Fix a devision by zero for IMA4 encoded wav files.
+ * Fix a division by zero for IMA4 encoded wav files.
  * Fix tied parameter math operators. Speedup when it's basically a no-op.
  * Fix a harmless void reported error when the mixer is initialized:
    _aaxGetCapabilities: Invalid or NULL handle type at initialization
