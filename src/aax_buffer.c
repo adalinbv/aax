@@ -1146,11 +1146,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    int midi_mode;
 
    midi_mode = handle->midi_mode;
-   if (!midi_mode && handle->mixer_info) {
-      midi_mode = (*handle->mixer_info)->midi_mode;
-   }
-
-   if (!midi_mode)
+   if (midi_mode == AAX_RENDER_NORMAL)
    {
       if (xmlAttributeExists(xwid, "voices"))
       {
@@ -1177,7 +1173,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    } else {
       phase = xmlNodeGetDouble(xwid, "phase");
    }
-   if (!midi_mode)
+   if (midi_mode == AAX_RENDER_NORMAL)
    {
       if (xmlAttributeExists(xwid, "staticity")) {
          staticity = xmlAttributeGetDouble(xwid, "staticity");
@@ -1485,11 +1481,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    float freq = aax_buf->frequency;
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
-   int s, nsound, rv = AAX_FALSE;
+   int s, nsound, midi_mode;
+   int rv = AAX_FALSE;
    limitType limiter;
    void *xaid, *xsid;
    char *env;
 
+   limiter = WAVEFORM_LIMIT_NORMAL;
    env = getenv("AAX_INSTRUMENT_MODE");
    if (env) {
       limiter = atoi(env);
@@ -1510,7 +1508,18 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    xaid = xmlNodeGet(xid, "aeonwave");
    if (!xaid) xaid = xid;
 
-   nsound = 1; // xmlNodeGetNum(xaid, "sound");
+   midi_mode = handle->midi_mode;
+   if (midi_mode == AAX_RENDER_NORMAL && handle->mixer_info) {
+      handle->midi_mode = midi_mode = (*handle->mixer_info)->midi_mode;
+   }
+
+   if (midi_mode != AAX_RENDER_NORMAL && xmlNodeGet(xaid, "fm")) {
+      env = "fm";
+   } else {
+      env = "sound";
+   }
+
+   nsound = 1; // xmlNodeGetNum(xaid, env);
    xsid = xmlMarkId(xaid);
    for (s=0; s<nsound; ++s)
    {
@@ -1518,19 +1527,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       double duration = 1.0f;
       float spread = 0;
       int b, voices = 1;
-      int midi_mode;
 
-      midi_mode = handle->midi_mode;
-      if (!midi_mode && handle->mixer_info) {
-         midi_mode = (*handle->mixer_info)->midi_mode;
-      }
-
-      if (!xmlNodeGetPos(xaid, xsid, "sound", s)) continue;
+      if (!xmlNodeGetPos(xaid, xsid, env, s)) continue;
 
       if (midi_mode == AAX_RENDER_SYNTHESIZER) {
          handle->gain = xmlAttributeGetDouble(xsid, "db");
       }
-      else if (!midi_mode)
+      else if (midi_mode == AAX_RENDER_NORMAL)
       {
          if (xmlAttributeExists(xsid, "gain")) {
             handle->gain = xmlAttributeGetDouble(xsid, "gain");
@@ -1620,7 +1623,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          limiter = xmlAttributeGetInt(xsid, "mode");
       }
 
-      if (!midi_mode)
+      if (midi_mode == AAX_RENDER_NORMAL)
       {
          if (xmlAttributeExists(xsid, "voices")) {
             voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
@@ -1646,6 +1649,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
             handle->ringbuffer[b] = rb;
          }
+
          xwid = xmlMarkId(xsid);
          if (xwid)
          {
