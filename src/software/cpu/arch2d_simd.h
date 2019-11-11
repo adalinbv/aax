@@ -76,6 +76,7 @@ void _batch_freqfilter_iir_float_cpu(float32_ptr, const_float32_ptr, int, size_t
 void _batch_cvt24_ps24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_cpu(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+void _batch_convolution_cpu(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 #else
 void _batch_resample_cpu(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif

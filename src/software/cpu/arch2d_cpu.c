@@ -1247,6 +1247,21 @@ _batch_endianswap64_cpu(void* data, size_t num)
    }
 }
 
+void
+_batch_convolution_cpu(float32_ptr hcptr, const_float32_ptr cptr, const_float32_ptr sptr, unsigned int q, unsigned int dnum, int step, float v, float threshold)
+{
+   do
+   {
+      float volume = *cptr * v;
+      if (fabsf(volume) > threshold) {
+         _batch_fmadd(hcptr, sptr, dnum, volume, 0.0f);
+      }
+      cptr += step;
+      hcptr += step;
+   }
+   while (--q);
+}
+
 /**
  * A mixer callback function mixes the audio from one mono source track and
  * the already existing audio in the mono destination track. The result is

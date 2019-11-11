@@ -70,6 +70,8 @@ typedef void (*_batch_ema_proc)(int32_ptr, const_int32_ptr, size_t, float*, floa
 typedef void (*_batch_freqfilter_proc)(int32_ptr, const_int32_ptr, int, size_t, void*);
 typedef void (*_batch_ema_float_proc)(float32_ptr, const_float32_ptr, size_t, float*, float);
 typedef void (*_batch_freqfilter_float_proc)(float32_ptr, const_float32_ptr, int, size_t, void*);
+typedef void (*_batch_convolution_proc)(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
+
 typedef void (*_batch_resample_float_proc)(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 typedef void (*_batch_resample_proc)(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 
@@ -98,6 +100,7 @@ extern _batch_ema_float_proc _batch_movingaverage_float;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
 extern _batch_resample_proc _batch_resample;
 extern _batch_resample_float_proc _batch_resample_float;
+extern _batch_convolution_proc _batch_convolution;
 
 extern _batch_get_average_rms_proc _batch_get_average_rms;
 extern _batch_dither_proc _batch_dither;

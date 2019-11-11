@@ -422,16 +422,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
 
       q = cnum/step;
       threshold = convolution->threshold;
-      do
-      {
-         float volume = *cptr * v;
-         if (fabsf(volume) > threshold) {
-            rbd->add(hcptr, sptr, dnum, volume, 0.0f);
-         }
-         cptr += step;
-         hcptr += step;
-      }
-      while (--q);
+      _batch_convolution(hcptr, cptr, sptr, q, dnum, step, v, threshold);
    }
 
 #if 1
