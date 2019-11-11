@@ -1248,8 +1248,9 @@ _batch_endianswap64_cpu(void* data, size_t num)
 }
 
 void
-_batch_convolution_cpu(float32_ptr hcptr, const_float32_ptr cptr, const_float32_ptr sptr, unsigned int q, unsigned int dnum, int step, float v, float threshold)
+_batch_convolution_cpu(float32_ptr hcptr, const_float32_ptr cptr, const_float32_ptr sptr, unsigned int cnum, unsigned int dnum, int step, float v, float threshold)
 {
+   unsigned int q = cnum/step;
    do
    {
       float volume = *cptr * v;

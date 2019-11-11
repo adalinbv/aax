@@ -93,6 +93,7 @@ extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_get_average_rms_proc _batch_get_average_rms;
 extern _batch_freqfilter_float_proc _batch_freqfilter_float;
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
+extern _batch_convolution_proc _batch_convolution;
 
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
@@ -499,6 +500,15 @@ int main()
          printf("generate waveform "MKSTR(SIMD5)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTFN("waveform "MKSTR(SIMD5), dst1, dst2, 1e-3f);
       }
+
+      /*
+       * convolution
+       */
+      t = clock();
+      _batch_convolution = _batch_convolution_cpu;
+      _batch_convolution(dst1, dst2, src, MAXNUM/16, MAXNUM/8, 2, 1.0f, 0.0);
+      cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+      printf("\nconvolution cpu:  %f ms\n", cpu*1000.0f);
    }
 
    _aax_aligned_free(dst2);

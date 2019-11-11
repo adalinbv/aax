@@ -410,7 +410,6 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    {
       MIX_T *hcptr, *cptr;
       float v, threshold;
-      unsigned int q;
       int step;
 
       v = convolution->rms * convolution->delay_gain;
@@ -420,9 +419,8 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       cptr = convolution->sample;
       hcptr = hptr + hpos;
 
-      q = cnum/step;
       threshold = convolution->threshold;
-      _batch_convolution(hcptr, cptr, sptr, q, dnum, step, v, threshold);
+      _batch_convolution(hcptr, cptr, sptr, cnum, dnum, step, v, threshold);
    }
 
 #if 1
