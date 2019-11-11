@@ -114,6 +114,9 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          lfo->get = _aaxLFOGetGainFollow;
          lfo->envelope = AAX_TRUE;
          break;
+      case AAX_TIMED_TRANSITION:
+         lfo->get = _aaxLFOGetTimedFade;
+         break;
       default:
          rv = AAX_FALSE;
          break;
@@ -417,6 +420,31 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
       }
       lfo->compression[track] = 1.0f - rv;
    }
+   return rv;
+}
+
+float
+_aaxLFOGetTimedFade(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
+{
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
+   float rv = 1.0f;
+   if (lfo)
+   {
+      float step = lfo->step[track];
+
+      rv = lfo->convert(lfo->value[track], 1.0f);
+      rv = lfo->inv ? rv : lfo->max-(rv-lfo->min);
+      rv = _aaxLFODelay(lfo, rv);
+
+      lfo->value[track] += step;
+      if (lfo->value[track] <=lfo->min) {
+         lfo->value[track] = lfo->min;
+      } else if (lfo->value[track] > lfo->max) {
+         lfo->value[track] = lfo->max;
+      }
+      lfo->compression[track] = 1.0f - rv;
+   }
+
    return rv;
 }
 

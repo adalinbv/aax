@@ -49,6 +49,7 @@ _aaxLFOGetFn _aaxLFOGetTriangle;
 _aaxLFOGetFn _aaxLFOGetSawtooth;
 _aaxLFOGetFn _aaxLFOGetFixedValue;
 _aaxLFOGetFn _aaxLFOGetGainFollow;
+_aaxLFOGetFn _aaxLFOGetTimedFade;
 _aaxLFOGetFn _aaxLFOGetCompressor;
 _aaxLFOGetFn _aaxLFOGetPitchFollow;
 

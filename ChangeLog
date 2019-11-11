@@ -1,3 +1,14 @@
+* Mon Nov 11 2019 - tech@adalin.org
+- AeonWave (3.7.2) stable; urgency=low
+
+ * Add the option to do a timed-transistion in addition to envelope-following
+   or waveform-following for filters and effects.
+ * Add the option to define an <fm/> section in addition to a <sound/>
+   section specially for improved synthesizer modes.
+
+-- Erik Hofman <tech@adalin.org>  Mon 11 Nov 2019 14:32:52 + 0100
+
+
 * Tue Nov 09 2019 - tech@adalin.org
 - AeonWave (3.7.1) stable; urgency=low
 
