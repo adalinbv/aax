@@ -222,7 +222,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
          float ratio;
 
          ratio = bitcrush->env.get(&bitcrush->env, NULL, NULL, 0, 0);
-printf("ratio: %f\n", ratio);
          if (ratio > 0.01f)
          {
             unsigned int i;
