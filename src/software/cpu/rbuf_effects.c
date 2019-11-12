@@ -219,7 +219,10 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
       if (bitcrush)
       {
-         float ratio = _FILTER_GET(p2d, BITCRUSHER_FILTER, AAX_NOISE_LEVEL);
+         float ratio;
+
+         ratio = bitcrush->env.get(&bitcrush->env, NULL, NULL, 0, 0);
+printf("ratio: %f\n", ratio);
          if (ratio > 0.01f)
          {
             unsigned int i;

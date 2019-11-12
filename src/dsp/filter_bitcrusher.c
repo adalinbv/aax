@@ -76,7 +76,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    state &= ~AAX_LFO_STEREO;
 
    filter->state = state;
-   switch (state & ~(AAX_INVERSE|AAX_ENVELOPE_FOLLOW))
+   switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -84,6 +84,8 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_TIMED_TRANSITION:
+   case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)
@@ -95,39 +97,56 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 
       if (bitcrush)
       {
-         float offs, depth;
+         float offset = filter->slot[0]->param[AAX_LFO_OFFSET];
+         float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
+         float fs = 48000.0f;
          int constant;
+
+         if (filter->info) {
+            fs = filter->info->frequency;
+         }
 
          /* bit reduction */
          bitcrush->lfo.convert = _linear;
-         bitcrush->lfo.state = filter->state & ~AAX_ENVELOPE_FOLLOW;
-         bitcrush->lfo.fs = filter->info->frequency;
+         bitcrush->lfo.state = filter->state;
+         bitcrush->lfo.fs = fs;
          bitcrush->lfo.period_rate = filter->info->period_rate;
          bitcrush->lfo.stereo_lnk = !stereo;
 
-         offs = filter->slot[0]->param[AAX_LFO_OFFSET];
-         depth = filter->slot[0]->param[AAX_LFO_DEPTH];
-         if ((offs + depth) > 1.0f) {
-            depth = 1.0f - offs;
-         }
-
-         bitcrush->lfo.min_sec = offs/bitcrush->lfo.fs;
+         bitcrush->lfo.min_sec = offset/bitcrush->lfo.fs;
          bitcrush->lfo.max_sec = bitcrush->lfo.min_sec + depth/bitcrush->lfo.fs;
          bitcrush->lfo.depth = 1.0f;
          bitcrush->lfo.offset = 0.0f;
          bitcrush->lfo.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
          bitcrush->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
+         if ((bitcrush->lfo.offset + bitcrush->lfo.depth) > 1.0f) {
+            bitcrush->lfo.depth = 1.0f - bitcrush->lfo.offset;
+         }
+
          constant = _lfo_set_timing(&bitcrush->lfo);
+
          bitcrush->lfo.envelope = AAX_FALSE;
          if (!_lfo_set_function(&bitcrush->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
 
          /* noise */
+         depth = filter->slot[0]->param[AAX_NOISE_LEVEL];
          memcpy(&bitcrush->env, &bitcrush->lfo, sizeof(_aaxLFOData));
-         bitcrush->env.state = state & (AAX_INVERSE|AAX_ENVELOPE_FOLLOW);
-         bitcrush->env.f = 10.0f;
+
+         bitcrush->env.convert = _linear;
+         bitcrush->env.state = state & (AAX_INVERSE|AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW);
+         bitcrush->env.fs = fs;
+         bitcrush->env.period_rate = filter->info->period_rate;
+         bitcrush->env.stereo_lnk = !stereo;
+
+         bitcrush->env.min_sec = 0.0f;
+         bitcrush->env.max_sec = depth/bitcrush->env.fs;
+         bitcrush->env.depth = 1.0f;
+         bitcrush->env.offset = 0.0f;
+         bitcrush->env.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
+         bitcrush->env.inv = (state & AAX_INVERSE) ? AAX_FALSE : AAX_TRUE;
 
          constant = _lfo_set_timing(&bitcrush->env);
          bitcrush->env.envelope = AAX_FALSE;

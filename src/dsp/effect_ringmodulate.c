@@ -87,6 +87,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferModulatorData *modulator = effect->slot[0]->data;

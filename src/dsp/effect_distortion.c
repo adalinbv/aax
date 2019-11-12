@@ -79,6 +79,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
    effect->state = state;
    switch (state & ~AAX_INVERSE)
    {
+   case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
    {
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
@@ -104,6 +105,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          lfo->state = effect->state;
          lfo->fs = effect->info->frequency;
          lfo->period_rate = effect->info->period_rate;
+         lfo->stereo_lnk = !stereo;
 
          lfo->min_sec = 0.15f/lfo->fs;
          lfo->max_sec = 0.99f/lfo->fs;
@@ -111,7 +113,6 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          lfo->depth = 1.0f;
          lfo->offset = 0.0f;
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-         lfo->stereo_lnk = !stereo;
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {

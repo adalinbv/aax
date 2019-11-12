@@ -115,7 +115,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          lfo->envelope = AAX_TRUE;
          break;
       case AAX_TIMED_TRANSITION:
-         lfo->get = _aaxLFOGetTimedFade;
+         lfo->get = _aaxLFOGetTimed;
          break;
       default:
          rv = AAX_FALSE;
@@ -424,7 +424,7 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
 }
 
 float
-_aaxLFOGetTimedFade(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
+_aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
 {
    _aaxLFOData* lfo = (_aaxLFOData*)data;
    float rv = 1.0f;
