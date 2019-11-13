@@ -163,6 +163,7 @@ _flt_function_tbl _aaxVolumeFilter =
    "AAX_volume_filter_1.1", 1.1f,
    (_aaxFilterCreate*)&_aaxVolumeFilterCreate,
    (_aaxFilterDestroy*)&_aaxVolumeFilterDestroy,
+   NULL,
    (_aaxFilterSetState*)&_aaxVolumeFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewVolumeFilterHandle,
    (_aaxFilterConvert*)&_aaxVolumeFilterSet,

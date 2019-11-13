@@ -468,8 +468,7 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
-            _aaxEnvelopeData* env;
-            _aaxLFOData *lfo;
+            int i;
 
             rb->set_state(rb, RB_REWINDED);
 
@@ -477,39 +476,15 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             src->curr_pos_sec = 0.0f;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
-            // TODO: give filters and effects data a reset function
-            lfo = _FILTER_GET2D_DATA(src, DYNAMIC_GAIN_FILTER);
-            if (lfo) lfo->dt = 0.0f;
-
-            env = _FILTER_GET2D_DATA(src, TIMED_GAIN_FILTER);
-            if (env)
-            {
-               env->value = env->value0;
-               env->stage = 0;
-               env->pos = 0;
-               if (env->state & AAX_REPEAT) {
-                  env->repeat = (env->state & ~AAX_REPEAT);
-               }
+//          _aaxMutexLock(src->props2d->mutex);
+            for (i=0; i<MAX_STEREO_FILTER; ++i) {
+               reset_filter(src->props2d, i);
             }
 
-            env = _EFFECT_GET2D_DATA(src, PITCH_EFFECT);
-            if (env)
-            {
-               env->value = env->value0 = 1.0f;
-               env->stage = 0;
-               env->pos = 0;
+            for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+               reset_effect(src->props2d, i);
             }
-
-            lfo = _EFFECT_GET2D_DATA(src, DYNAMIC_PITCH_EFFECT);
-            if (lfo) lfo->dt = 0.0f;
-
-            env = _EFFECT_GET2D_DATA(src, TIMED_PITCH_EFFECT);
-            if (env)
-            {
-               env->value = env->value0;
-               env->stage = 0;
-               env->pos = 0;
-            }
+//          _aaxMutexDestroy(src->props2d->mutex);
          }
          rv = AAX_TRUE;
          break;

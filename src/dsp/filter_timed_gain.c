@@ -67,6 +67,24 @@ _aaxTimedGainFilterDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
+static int
+_aaxTimedGainFilterReset(void *data)
+{
+   _aaxEnvelopeData* env = data;
+   if (env)
+   {
+      env->value = env->value0;
+      env->stage = 0;
+      env->pos = 0;
+      if (env->state & AAX_REPEAT) {
+         env->repeat = (env->state & ~AAX_REPEAT);
+      }
+   }
+
+   return AAX_TRUE;
+}
+
+
 static aaxFilter
 _aaxTimedGainFilterSetState(_filter_t* filter, int state)
 {
@@ -275,6 +293,7 @@ _flt_function_tbl _aaxTimedGainFilter =
    "AAX_timed_gain_filter_1.03", 1.03f,
    (_aaxFilterCreate*)&_aaxTimedGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxTimedGainFilterDestroy,
+   (_aaxFilterReset*)&_aaxTimedGainFilterReset,
    (_aaxFilterSetState*)&_aaxTimedGainFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewTimedGainFilterHandle,
    (_aaxFilterConvert*)&_aaxTimedGainFilterSet,

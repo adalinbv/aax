@@ -135,6 +135,7 @@ _flt_function_tbl _aaxDirectionalFilter =
    "AAX_directional_filter_1.01", 1.01f,
    (_aaxFilterCreate*)&_aaxDirectionalFilterCreate,
    (_aaxFilterDestroy*)&_aaxDirectionalFilterDestroy,
+   NULL,
    (_aaxFilterSetState*)&_aaxDirectionalFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewDirectionalFilterHandle,
    (_aaxFilterConvert*)&_aaxDirectionalFilterSet,

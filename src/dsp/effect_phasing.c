@@ -67,6 +67,15 @@ _aaxPhasingEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
+static int
+_aaxPhasingEffectReset(void *data)
+{
+   _aaxLFOData *lfo = data;
+   if (lfo) lfo->dt = 0.0f;
+
+   return AAX_TRUE;
+}
+
 static aaxEffect
 _aaxPhasingEffectSetState(_effect_t* effect, int state)
 {
@@ -328,6 +337,7 @@ _eff_function_tbl _aaxPhasingEffect =
    "AAX_phasing_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxPhasingEffectCreate,
    (_aaxEffectDestroy*)&_aaxPhasingEffectDestroy,
+   (_aaxEffectReset*)&_aaxPhasingEffectReset,
    (_aaxEffectSetState*)&_aaxPhasingEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewPhasingEffectHandle,

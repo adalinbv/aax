@@ -34,6 +34,9 @@
 #include "effects.h"
 #include "arch.h"
 
+static int _eff_cvt_tbl[AAX_EFFECT_MAX];
+static int _cvt_eff_tbl[MAX_STEREO_EFFECT];
+
 aaxEffect
 _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned slots, size_t dsize)
 {
@@ -54,7 +57,7 @@ _aaxEffectCreateHandle(_aaxMixerInfo *info, enum aaxEffectType type, unsigned sl
 
       ptr = (char*)eff + sizeof(_effect_t);
       eff->slot[0] = (_aaxEffectInfo*)ptr;
-      eff->pos = _eff_cvt_tbl[type].pos;
+      eff->pos = _eff_cvt_tbl[type];
       eff->type = type;
 
       size = sizeof(_aaxEffectInfo);
@@ -118,6 +121,18 @@ get_effect(const aaxEffect e)
    }
 
    return NULL;
+}
+
+void
+reset_effect(_aax2dProps* p2d, enum _aax2dFiltersEffects type)
+{
+   assert(type >= 0);
+   assert(type < MAX_STEREO_EFFECT);
+
+   int pos = _cvt_eff_tbl[type];
+   _eff_function_tbl *eff = _aaxEffects[pos-1];
+   void *data = _EFFECT_GET_DATA(p2d, type);
+   if (eff->reset && data) eff->reset(data);
 }
 
 void
@@ -199,19 +214,30 @@ _aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, UNUSED(unsigne
 
 /* -------------------------------------------------------------------------- */
 
-const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX] =
+static int _eff_cvt_tbl[AAX_EFFECT_MAX] =
 {
-  { AAX_EFFECT_NONE,            MAX_STEREO_EFFECT },
-  { AAX_PITCH_EFFECT,           PITCH_EFFECT },
-  { AAX_DYNAMIC_PITCH_EFFECT,   DYNAMIC_PITCH_EFFECT },
-  { AAX_TIMED_PITCH_EFFECT,     TIMED_PITCH_EFFECT },
-  { AAX_DISTORTION_EFFECT,      DISTORTION_EFFECT},
-  { AAX_PHASING_EFFECT,         DELAY_EFFECT },
-  { AAX_CHORUS_EFFECT,          DELAY_EFFECT },
-  { AAX_FLANGING_EFFECT,        DELAY_EFFECT },
-  { AAX_VELOCITY_EFFECT,        VELOCITY_EFFECT },
-  { AAX_REVERB_EFFECT,          REVERB_EFFECT },
-  { AAX_CONVOLUTION_EFFECT,     CONVOLUTION_EFFECT },
-  { AAX_RINGMODULATOR_EFFECT,	RINGMODULATE_EFFECT }
+  MAX_STEREO_EFFECT,		// AAX_EFFECT_NONE
+  PITCH_EFFECT,			// AAX_PITCH_EFFECT
+  DYNAMIC_PITCH_EFFECT,		// DYNAMIC_PITCH_EFFECT
+  TIMED_PITCH_EFFECT,		// TIMED_PITCH_EFFECT
+  DISTORTION_EFFECT,		// DISTORTION_EFFECT
+  DELAY_EFFECT,			// DELAY_EFFECT
+  DELAY_EFFECT,			// DELAY_EFFECT
+  DELAY_EFFECT,			// DELAY_EFFECT
+  VELOCITY_EFFECT,		// VELOCITY_EFFECT
+  REVERB_EFFECT,		// REVERB_EFFECT
+  CONVOLUTION_EFFECT,		// CONVOLUTION_EFFECT
+  RINGMODULATE_EFFECT		// RINGMODULATE_EFFECT
 };
 
+static int _cvt_eff_tbl[MAX_STEREO_EFFECT] =
+{
+  AAX_PITCH_EFFECT,		// PITCH_EFFECT
+  AAX_REVERB_EFFECT,		// REVERB_EFFECT
+  AAX_CONVOLUTION_EFFECT,	// CONVOLUTION_EFFECT
+  AAX_DYNAMIC_PITCH_EFFECT,	// DYNAMIC_PITCH_EFFECT
+  AAX_TIMED_PITCH_EFFECT,	// TIMED_PITCH_EFFECT
+  AAX_DISTORTION_EFFECT,	// DISTORTION_EFFECT
+  AAX_CHORUS_EFFECT,		// DELAY_EFFECT
+  AAX_RINGMODULATOR_EFFECT,	// RINGMODULATE_EFFECT
+};

@@ -36,6 +36,9 @@
 #include "arch.h"
 #include "dsp.h"
 
+static int _flt_cvt_tbl[AAX_FILTER_MAX];
+static int _cvt_flt_tbl[MAX_STEREO_FILTER];
+
 aaxFilter
 _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned slots, size_t dsize)
 {
@@ -56,7 +59,7 @@ _aaxFilterCreateHandle(_aaxMixerInfo *info, enum aaxFilterType type, unsigned sl
 
       ptr = (char*)flt + sizeof(_filter_t);
       flt->slot[0] = (_aaxFilterInfo*)ptr;
-      flt->pos = _flt_cvt_tbl[type].pos;
+      flt->pos = _flt_cvt_tbl[type];
       flt->type = type;
 
       size = sizeof(_aaxFilterInfo);
@@ -122,10 +125,22 @@ get_filter(aaxFilter f)
 }
 
 void
+reset_filter(_aax2dProps* p2d, enum _aax2dFiltersEffects type)
+{
+   assert(type >= 0);
+   assert(type < MAX_STEREO_FILTER);
+
+   int pos = _cvt_flt_tbl[type];
+   _flt_function_tbl *flt = _aaxFilters[pos-1];
+   void *data = _FILTER_GET_DATA(p2d, type);
+   if (flt->reset && data) flt->reset(data);
+}
+
+void
 _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
 {
    int i;
- 
+
    /* parametric equalizer */
    for (i=0; i<2; i++)
    {
@@ -219,18 +234,26 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
 
 /* -------------------------------------------------------------------------- */
 
-const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX] =
+static int _flt_cvt_tbl[AAX_FILTER_MAX] =
 {
-  { AAX_FILTER_NONE,            MAX_STEREO_FILTER },
-  { AAX_EQUALIZER,              FREQUENCY_FILTER },
-  { AAX_VOLUME_FILTER,          VOLUME_FILTER },
-  { AAX_DYNAMIC_GAIN_FILTER,    DYNAMIC_GAIN_FILTER },
-  { AAX_TIMED_GAIN_FILTER,      TIMED_GAIN_FILTER },
-  { AAX_DIRECTIONAL_FILTER,     DIRECTIONAL_FILTER },
-  { AAX_DISTANCE_FILTER,        DISTANCE_FILTER },
-  { AAX_FREQUENCY_FILTER,       FREQUENCY_FILTER },
-  { AAX_BITCRUSHER_FILTER,	BITCRUSHER_FILTER },
-  { AAX_GRAPHIC_EQUALIZER,      FREQUENCY_FILTER },
-  { AAX_COMPRESSOR,             DYNAMIC_GAIN_FILTER }
+  MAX_STEREO_FILTER,		// AAX_FILTER_NONE
+  FREQUENCY_FILTER,		// AAX_EQUALIZER
+  VOLUME_FILTER,		// AAX_VOLUME_FILTER
+  DYNAMIC_GAIN_FILTER,		// AAX_DYNAMIC_GAIN_FILTER
+  TIMED_GAIN_FILTER,		// AAX_TIMED_GAIN_FILTER
+  DIRECTIONAL_FILTER,		// AAX_DIRECTIONAL_FILTER
+  DISTANCE_FILTER,		// AAX_DISTANCE_FILTER
+  FREQUENCY_FILTER,		// AAX_FREQUENCY_FILTER
+  BITCRUSHER_FILTER,		// AAX_BITCRUSHER_FILTER
+  FREQUENCY_FILTER,		// AAX_GRAPHIC_EQUALIZER
+  DYNAMIC_GAIN_FILTER		// AAX_COMPRESSOR
 };
 
+static int _cvt_flt_tbl[MAX_STEREO_FILTER] =
+{
+  AAX_VOLUME_FILTER,		// VOLUME_FILTER
+  AAX_DYNAMIC_GAIN_FILTER,	// DYNAMIC_GAIN_FILTER
+  AAX_TIMED_GAIN_FILTER,	// TIMED_GAIN_FILTER
+  AAX_FREQUENCY_FILTER,		// FREQUENCY_FILTER
+  AAX_BITCRUSHER_FILTER		// BITCRUSHER_FILTER
+};

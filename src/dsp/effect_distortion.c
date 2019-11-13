@@ -66,6 +66,13 @@ _aaxDistortionEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
+static int
+_aaxDistortionEffectReset(void *data)
+{
+   return AAX_TRUE;
+}
+
+
 static aaxEffect
 _aaxDistortionEffectSetState(_effect_t* effect, int state)
 {
@@ -202,6 +209,7 @@ _eff_function_tbl _aaxDistortionEffect =
    "AAX_distortion_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
+   (_aaxEffectReset*)&_aaxDistortionEffectReset,
    (_aaxEffectSetState*)&_aaxDistortionEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewDistortionEffectHandle,

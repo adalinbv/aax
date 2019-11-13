@@ -367,6 +367,7 @@ _flt_function_tbl _aaxEqualizer =
    "AAX_equalizer_1.01", 1.01f,
    (_aaxFilterCreate*)&_aaxEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxEqualizerDestroy,
+   NULL,
    (_aaxFilterSetState*)&_aaxEqualizerSetState,
    (_aaxNewFilterHandle*)&_aaxNewEqualizerHandle,
    (_aaxFilterConvert*)&_aaxEqualizerSet,

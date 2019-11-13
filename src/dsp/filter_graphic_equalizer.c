@@ -283,6 +283,7 @@ _flt_function_tbl _aaxGraphicEqualizer =
    "AAX_graphic_equalizer", 1.0f,
    (_aaxFilterCreate*)&_aaxGraphicEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxGraphicEqualizerDestroy,
+   NULL,
    (_aaxFilterSetState*)&_aaxGraphicEqualizerSetState,
    (_aaxNewFilterHandle*)&_aaxNewGraphicEqualizerHandle,
    (_aaxFilterConvert*)&_aaxGraphicEqualizerSet,

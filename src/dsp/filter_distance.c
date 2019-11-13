@@ -238,6 +238,7 @@ _flt_function_tbl _aaxDistanceFilter =
    "AAX_distance_filter_1.02", 1.02f,
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
+   NULL,
    (_aaxFilterSetState*)&_aaxDistanceFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewDistanceFilterHandle,
    (_aaxFilterConvert*)&_aaxDistanceFilterSet,

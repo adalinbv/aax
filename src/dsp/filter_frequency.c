@@ -69,6 +69,12 @@ _aaxFrequencyFilterDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
+static int
+_aaxFrequencyFilterReset(void *data)
+{
+   return AAX_TRUE;
+}
+
 static aaxFilter
 _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
@@ -325,6 +331,7 @@ _flt_function_tbl _aaxFrequencyFilter =
    "AAX_frequency_filter_1.1", 1.1f,
    (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
    (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,
+   (_aaxFilterReset*)&_aaxFrequencyFilterReset,
    (_aaxFilterSetState*)&_aaxFrequencyFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle,
    (_aaxFilterConvert*)&_aaxFrequencyFilterSet,

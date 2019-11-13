@@ -59,6 +59,8 @@ enum _aax3dFiltersEffects
     MAX_3D_EFFECT,
 };
 
+// WARNING: Changing this table requires changing the conversion tables
+//          in effects.c and filters.c
 enum _aax2dFiltersEffects
 {
     /* *

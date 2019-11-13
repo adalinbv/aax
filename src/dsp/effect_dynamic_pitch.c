@@ -65,6 +65,15 @@ _aaxDynamicPitchEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
+static int
+_aaxDynamicPitchEffectReset(void *data)
+{
+   _aaxLFOData *lfo = data;
+   if (lfo) lfo->dt = 0.0f;
+
+   return AAX_TRUE;
+}
+
 static aaxEffect
 _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 {
@@ -194,6 +203,7 @@ _eff_function_tbl _aaxDynamicPitchEffect =
    "AAX_dynamic_pitch_effect_1.01", 1.01f,
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,
+   (_aaxEffectReset*)&_aaxDynamicPitchEffectReset,
    (_aaxEffectSetState*)&_aaxDynamicPitchEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewDynamicPitchEffectHandle,

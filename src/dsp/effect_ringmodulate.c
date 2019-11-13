@@ -66,6 +66,12 @@ _aaxModulatorEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
+static int
+_aaxModulatorEffectReset(void *data)
+{
+   return AAX_TRUE;
+}
+
 static aaxEffect
 _aaxModulatorEffectSetState(_effect_t* effect, int state)
 {
@@ -205,6 +211,7 @@ _eff_function_tbl _aaxModulatorEffect =
    "AAX_ringmodulator_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxModulatorEffectCreate,
    (_aaxEffectDestroy*)&_aaxModulatorEffectDestroy,
+   (_aaxEffectReset*)&_aaxModulatorEffectReset,
    (_aaxEffectSetState*)&_aaxModulatorEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewModulatorEffectHandle,

@@ -320,6 +320,7 @@ _eff_function_tbl _aaxConvolutionEffect =
    "AAX_convolution_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxConvolutionEffectCreate,
    (_aaxEffectDestroy*)&_aaxConvolutionEffectDestroy,
+   NULL,
    (_aaxEffectSetState*)&_aaxConvolutionEffectSetState,
    (_aaxEffectSetData*)&_aaxConvolutionEffectSetData,
    (_aaxNewEffectHandle*)&_aaxNewConvolutionEffectHandle,

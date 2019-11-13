@@ -63,6 +63,19 @@ _aaxBitCrusherFilterDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
+static int
+_aaxBitCrusherFilterReset(void *data)
+{
+   _aaxRingBufferBitCrusherData *bitcrush = data;
+   if (bitcrush)
+   {
+      bitcrush->lfo.dt = 0.0f;
+      bitcrush->env.dt = 0.0f;
+   }
+
+   return AAX_TRUE;
+}
+
 static aaxFilter
 _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
 {
@@ -229,6 +242,7 @@ _flt_function_tbl _aaxBitCrusherFilter =
    "AAX_bitcrusher_filter", 1.0f,
    (_aaxFilterCreate*)&_aaxBitCrusherFilterCreate,
    (_aaxFilterDestroy*)&_aaxBitCrusherFilterDestroy,
+   (_aaxFilterReset*)&_aaxBitCrusherFilterReset,
    (_aaxFilterSetState*)&_aaxBitCrusherFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewBitCrusherFilterHandle,
    (_aaxFilterConvert*)&_aaxBitCrusherFilterSet,

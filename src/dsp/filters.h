@@ -47,13 +47,6 @@ void _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX]);
 
 typedef struct
 {
-  enum aaxFilterType type;
-  int pos;
-
-} _flt_cvt_tbl_t;
-
-typedef struct
-{
    fx4_t min;
    fx4_t max;
 
@@ -73,12 +66,12 @@ typedef struct
 // _filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
 _filter_t* new_filter_handle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 _filter_t* get_filter(aaxFilter);
-
-extern const _flt_cvt_tbl_t _flt_cvt_tbl[AAX_FILTER_MAX];
+void reset_filter(_aax2dProps*, enum _aax2dFiltersEffects);
 
 
 typedef aaxFilter _aaxFilterCreate(_aaxMixerInfo*, enum aaxFilterType);
 typedef int _aaxFilterDestroy(_filter_t*);
+typedef int _aaxFilterReset(_filter_t*);
 typedef aaxFilter _aaxFilterSetState(_filter_t*, int);
 typedef _filter_t* _aaxNewFilterHandle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 typedef float _aaxFilterConvert(float, int, unsigned char);
@@ -90,6 +83,7 @@ typedef struct
    float version;
    _aaxFilterCreate *create;
    _aaxFilterDestroy *destroy;
+   _aaxFilterReset *reset;
    _aaxFilterSetState *state;
    _aaxNewFilterHandle *handle;
 

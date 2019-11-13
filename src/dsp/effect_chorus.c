@@ -67,6 +67,15 @@ _aaxChorusEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
+static int
+_aaxChorusEffectReset(void *data)
+{
+   _aaxLFOData *lfo = data;
+   if (lfo) lfo->dt = 0.0f;
+
+   return AAX_TRUE;
+}
+
 static aaxEffect
 _aaxChorusEffectSetState(_effect_t* effect, int state)
 {
@@ -337,6 +346,7 @@ _eff_function_tbl _aaxChorusEffect =
    "AAX_chorus_effect_1.1", 1.1f,
    (_aaxEffectCreate*)&_aaxChorusEffectCreate,
    (_aaxEffectDestroy*)&_aaxChorusEffectDestroy,
+   (_aaxEffectReset*)&_aaxChorusEffectReset,
    (_aaxEffectSetState*)&_aaxChorusEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewChorusEffectHandle,

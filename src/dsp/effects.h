@@ -47,11 +47,6 @@ void _aaxSetDefaultEffect2d(_aaxEffectInfo*, unsigned int, unsigned slot);
 void _aaxSetDefaultEffect3d(_aaxEffectInfo*, unsigned int, unsigned slot);
 
 typedef struct {
-  enum aaxEffectType type;
-  int pos;
-} _eff_cvt_tbl_t;
-
-typedef struct {
    fx4_t min;
    fx4_t max;
 } _eff_minmax_tbl_t;
@@ -70,13 +65,14 @@ typedef struct
 // _effect_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
 _effect_t* new_effect_handle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 _effect_t* get_effect(aaxEffect);
+void reset_effect(_aax2dProps*, enum _aax2dFiltersEffects);
 
-extern const _eff_cvt_tbl_t _eff_cvt_tbl[AAX_EFFECT_MAX];
 extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
 
 typedef aaxEffect _aaxEffectCreate(_aaxMixerInfo*, enum aaxEffectType);
 typedef int _aaxEffectDestroy(_effect_t*);
+typedef int _aaxEffectReset(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
 typedef aaxEffect _aaxEffectSetData(_effect_t*, aaxBuffer);
 typedef _effect_t* _aaxNewEffectHandle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
@@ -89,6 +85,7 @@ typedef struct
    float version;
    _aaxEffectCreate *create;
    _aaxEffectDestroy *destroy;
+   _aaxEffectReset *reset;
    _aaxEffectSetState *state;
    _aaxEffectSetData *data;
    _aaxNewEffectHandle *handle;
