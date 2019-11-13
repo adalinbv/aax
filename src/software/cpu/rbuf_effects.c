@@ -169,8 +169,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       {
          float level;
 
-         level = bitcrush->lfo.get(&bitcrush->lfo, NULL, NULL, 0, 0);
-
+         level = bitcrush->lfo.get(&bitcrush->lfo, env, psrc, 0, end);
          if (level > 0.01f)
          {
             unsigned bps = sizeof(MIX_T);
@@ -221,14 +220,10 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       {
          float ratio;
 
-         ratio = bitcrush->env.get(&bitcrush->env, NULL, NULL, 0, 0);
+         ratio = bitcrush->env.get(&bitcrush->env, env, psrc, 0, end);
          if (ratio > 0.01f)
          {
             unsigned int i;
-
-            if (bitcrush->env.envelope) {
-               ratio *= bitcrush->env.get(&bitcrush->env, env, psrc, 0, end);
-            }
 
             ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
             for (i=0; i<no_samples; ++i) {
