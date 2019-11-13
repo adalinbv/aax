@@ -70,8 +70,8 @@ _aaxFlangingEffectDestroy(_effect_t* effect)
 static int
 _aaxFlangingEffectReset(void *data)
 {
-   _aaxLFOData *lfo = data;
-   if (lfo) lfo->dt = 0.0f;
+   _aaxRingBufferDelayEffectData *delay = data;
+   if (delay) delay->lfo.dt = 0.0f;
 
    return AAX_TRUE;
 }
