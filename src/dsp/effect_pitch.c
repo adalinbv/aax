@@ -68,20 +68,6 @@ _aaxPitchEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
-static int
-_aaxPitchEffectReset(void *data)
-{
-   _aaxEnvelopeData* env = data;
-   if (env)
-   {
-      env->value = env->value0 = 1.0f;
-      env->stage = 0;
-      env->pos = 0;
-   }
-
-   return AAX_TRUE;
-}
-
 static aaxEffect
 _aaxPitchEffectSetState(_effect_t* effect, UNUSED(int state))
 {
@@ -189,7 +175,7 @@ _eff_function_tbl _aaxPitchEffect =
    "AAX_pitch_effect_1.01", 1.01f,
    (_aaxEffectCreate*)&_aaxPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxPitchEffectDestroy,
-   (_aaxEffectReset*)&_aaxPitchEffectReset,
+   (_aaxEffectReset*)&_env_reset,
    (_aaxEffectSetState*)&_aaxPitchEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewPitchEffectHandle,

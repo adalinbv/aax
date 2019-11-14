@@ -66,20 +66,6 @@ _aaxTimedPitchEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
-static int
-_aaxTimedPitchEffectReset(void *data)
-{
-   _aaxEnvelopeData* env = data;
-   if (env)
-   {
-      env->value = env->value0;
-      env->stage = 0;
-      env->pos = 0;
-   }
-
-   return AAX_TRUE;
-}
-
 static aaxEffect
 _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 {
@@ -257,7 +243,7 @@ _eff_function_tbl _aaxTimedPitchEffect =
    "AAX_timed_pitch_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxTimedPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxTimedPitchEffectDestroy,
-   (_aaxEffectReset*)&_aaxTimedPitchEffectReset,
+   (_aaxEffectReset*)&_env_reset,
    (_aaxEffectSetState*)&_aaxTimedPitchEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewTimedPitchEffectHandle,

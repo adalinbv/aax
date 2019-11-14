@@ -66,15 +66,6 @@ _aaxDynamicGainFilterDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
-static int
-_aaxDynamicGainFilterReset(void *data)
-{
-   _aaxLFOData *lfo = data;
-   if (lfo) lfo->dt = 0.0f;
-
-   return AAX_TRUE;
-}
-
 static aaxFilter
 _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 {
@@ -244,7 +235,7 @@ _flt_function_tbl _aaxDynamicGainFilter =
    "AAX_dynamic_gain_filter_1.01", 1.01f,
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,
-   (_aaxFilterReset*)&_aaxDynamicGainFilterReset,
+   (_aaxFilterReset*)&_lfo_reset,
    (_aaxFilterSetState*)&_aaxDynamicGainFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewDynamicGainFilterHandle,
    (_aaxFilterConvert*)&_aaxDynamicGainFilterSet,

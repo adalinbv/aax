@@ -67,15 +67,6 @@ _aaxFlangingEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
-static int
-_aaxFlangingEffectReset(void *data)
-{
-   _aaxRingBufferDelayEffectData *delay = data;
-   if (delay) delay->lfo.dt = 0.0f;
-
-   return AAX_TRUE;
-}
-
 static aaxEffect
 _aaxFlangingEffectSetState(_effect_t* effect, int state)
 {
@@ -241,7 +232,7 @@ _eff_function_tbl _aaxFlangingEffect =
    "AAX_flanging_effect", 1.0f,
    (_aaxEffectCreate*)&_aaxFlangingEffectCreate,
    (_aaxEffectDestroy*)&_aaxFlangingEffectDestroy,
-   (_aaxEffectReset*)&_aaxFlangingEffectReset,
+   (_aaxEffectReset*)&_delay_reset,
    (_aaxEffectSetState*)&_aaxFlangingEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewFlangingEffectHandle,

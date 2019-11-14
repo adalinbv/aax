@@ -72,7 +72,7 @@ extern const _eff_minmax_tbl_t _eff_minmax_tbl[_MAX_FE_SLOTS][AAX_EFFECT_MAX];
 
 typedef aaxEffect _aaxEffectCreate(_aaxMixerInfo*, enum aaxEffectType);
 typedef int _aaxEffectDestroy(_effect_t*);
-typedef int _aaxEffectReset(_effect_t*);
+typedef void _aaxEffectReset(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
 typedef aaxEffect _aaxEffectSetData(_effect_t*, aaxBuffer);
 typedef _effect_t* _aaxNewEffectHandle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);

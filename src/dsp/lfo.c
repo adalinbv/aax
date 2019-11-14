@@ -29,6 +29,7 @@
 # include <malloc.h>
 # include <string.h>
 #endif
+#include <assert.h>
 
 #include <base/geometry.h>
 #include <arch.h>
@@ -82,6 +83,14 @@ _lfo_swap(_aaxLFOData *dlfo, _aaxLFOData *slfo)
       dlfo->envelope = slfo->envelope;
       dlfo->stereo_lnk = slfo->stereo_lnk;
    }
+}
+
+void
+_lfo_reset(_aaxLFOData *lfo)
+{
+   assert(lfo);
+
+   lfo->dt = 0.0f;
 }
 
 int
@@ -228,6 +237,20 @@ _compressor_set_timing(_aaxLFOData *lfo)
    lfo->gate_period = GMATH_E1 * _MIN(dt/lfo->offset, 2.0f);
 
    return 0;
+}
+
+
+void
+_env_reset(_aaxEnvelopeData* env)
+{
+   assert(env);
+
+   env->value = env->value0;
+   env->stage = 0;
+   env->pos = 0;
+   if (env->state & AAX_REPEAT) {
+      env->repeat = (env->state & ~AAX_REPEAT);
+   }
 }
 
 

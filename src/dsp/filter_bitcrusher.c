@@ -69,8 +69,8 @@ _aaxBitCrusherFilterReset(void *data)
    _aaxRingBufferBitCrusherData *bitcrush = data;
    if (bitcrush)
    {
-      bitcrush->lfo.dt = 0.0f;
-      bitcrush->env.dt = 0.0f;
+      _lfo_reset(&bitcrush->lfo);
+      _lfo_reset(&bitcrush->env);
    }
 
    return AAX_TRUE;

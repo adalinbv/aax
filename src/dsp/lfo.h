@@ -80,6 +80,7 @@ typedef struct
 _aaxLFOData* _lfo_create(void);
 void _lfo_destroy(void*);
 void _lfo_swap(_aaxLFOData*, _aaxLFOData*);
+void _lfo_reset(_aaxLFOData*);
 
 int _lfo_set_function(_aaxLFOData*, int);
 int _lfo_set_timing(_aaxLFOData*);
@@ -96,6 +97,8 @@ typedef struct
    int state;
    char sustain, stage, max_stages;
 } _aaxEnvelopeData;
+
+void _env_reset(_aaxEnvelopeData*);
 
 float _aaxEnvelopeGet(_aaxEnvelopeData*, char, float*, _aaxEnvelopeData*);
 

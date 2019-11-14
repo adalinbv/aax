@@ -66,10 +66,9 @@ _aaxModulatorEffectDestroy(_effect_t* effect)
    return AAX_TRUE;
 }
 
-static int
+static void
 _aaxModulatorEffectReset(void *data)
 {
-   return AAX_TRUE;
 }
 
 static aaxEffect

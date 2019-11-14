@@ -68,13 +68,6 @@ _aaxCompressorDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
-static int
-_aaxCompressorReset(void *data)
-{
-   return AAX_TRUE;
-}
-
-
 static aaxFilter
 _aaxCompressorSetState(_filter_t* filter, int state)
 {
@@ -275,7 +268,7 @@ _flt_function_tbl _aaxCompressor =
    "AAX_compressor", 1.0f,
    (_aaxFilterCreate*)&_aaxCompressorCreate,
    (_aaxFilterDestroy*)&_aaxCompressorDestroy,
-   (_aaxFilterReset*)&_aaxCompressorReset,
+   NULL,
    (_aaxFilterSetState*)&_aaxCompressorSetState,
    (_aaxNewFilterHandle*)&_aaxNewCompressorHandle,
    (_aaxFilterConvert*)&_aaxCompressorSet,

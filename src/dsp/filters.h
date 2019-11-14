@@ -71,7 +71,7 @@ void reset_filter(_aax2dProps*, enum _aax2dFiltersEffects);
 
 typedef aaxFilter _aaxFilterCreate(_aaxMixerInfo*, enum aaxFilterType);
 typedef int _aaxFilterDestroy(_filter_t*);
-typedef int _aaxFilterReset(_filter_t*);
+typedef void _aaxFilterReset(_filter_t*);
 typedef aaxFilter _aaxFilterSetState(_filter_t*, int);
 typedef _filter_t* _aaxNewFilterHandle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 typedef float _aaxFilterConvert(float, int, unsigned char);
