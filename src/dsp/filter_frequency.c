@@ -69,10 +69,11 @@ _aaxFrequencyFilterDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
-static int
+static void
 _aaxFrequencyFilterReset(void *data)
 {
-   return AAX_TRUE;
+   _aaxRingBufferFreqFilterData *flt = data;
+   _lfo_reset(flt->lfo);
 }
 
 static aaxFilter
