@@ -88,9 +88,7 @@ _lfo_swap(_aaxLFOData *dlfo, _aaxLFOData *slfo)
 void
 _lfo_reset(_aaxLFOData *lfo)
 {
-   assert(lfo);
-
-   lfo->dt = 0.0f;
+   if (lfo) lfo->dt = 0.0f;
 }
 
 int
@@ -243,13 +241,14 @@ _compressor_set_timing(_aaxLFOData *lfo)
 void
 _env_reset(_aaxEnvelopeData* env)
 {
-   assert(env);
-
-   env->value = env->value0;
-   env->stage = 0;
-   env->pos = 0;
-   if (env->state & AAX_REPEAT) {
-      env->repeat = (env->state & ~AAX_REPEAT);
+   if (env)
+   {
+      env->value = env->value0;
+      env->stage = 0;
+      env->pos = 0;
+      if (env->state & AAX_REPEAT) {
+         env->repeat = (env->state & ~AAX_REPEAT);
+      }
    }
 }
 
