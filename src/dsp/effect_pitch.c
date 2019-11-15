@@ -94,7 +94,8 @@ _aaxPitchEffectSetState(_effect_t* effect, UNUSED(int state))
          env->max_stages = 1;
          env->state = AAX_TRUE;
          env->sustain = AAX_TRUE;
-         env->value0 = env->value = value;
+         env->value0 = 1.0f;
+         env->value = value;
 
          dt = pitch_slide*fabsf(nextval - value);
          max_pos = rintf(dt * period);
