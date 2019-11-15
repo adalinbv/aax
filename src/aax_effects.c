@@ -176,7 +176,7 @@ aaxEffectAddBuffer(aaxEffect eff, aaxBuffer buf)
          _aaxRingBuffer *rb = buffer->ringbuffer[0];
          if (!rb->get_state(rb, RB_IS_VALID)) {
             _aaxErrorSet(AAX_INVALID_STATE+1);
-         } else if (rb->get_parami(rb, RB_NO_TRACKS) != 1) {
+         } else if (rb->get_parami(rb, RB_NO_TRACKS) > _AAX_MAX_SPEAKERS) {
             _aaxErrorSet(AAX_INVALID_STATE+1);
          }
          else
