@@ -289,7 +289,7 @@ aaxGetErrorString(enum aaxErrorType err)
          int pos = err >> 4;
          if ((err >= AAX_INVALID_DEVICE) && (err < AAX_ERROR_MAX))
          {
-            if (((err & ~0xF) == AAX_INVALID_PARAMETER) && param) {
+            if (param) {
                snprintf(str, 255, "%s: %s for parameter %i",
                                      __aaxErrorSetFunctionOrBackendString(NULL),
                                      _aaxErrorStrings[pos], param);
