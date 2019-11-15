@@ -211,8 +211,9 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
       {
          size_t buffer_samples = aaxBufferGetSetup(buffer, AAX_NO_SAMPLES);
          float *start = *data;
-         float *end =  start + buffer_samples;
+         float *end =  start + buffer_samples-1;
 
+         // find the last sample above the threshold
          while (end > start && fabsf(*end--) < convolution->threshold);
          convolution->no_samples = end-start;
 
