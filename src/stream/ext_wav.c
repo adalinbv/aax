@@ -837,7 +837,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 #if 0
 {
    char *ch = (char*)header;
-   printf("Read %s Header:\n", extfmt ? "Extnesible" : "Canonical");
+   printf("Read %s Header:\n", extfmt ? "Extensible" : "Canonical");
    printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
    printf(" 1: %08x (ChunkSize: %i)\n", header[1], header[1]);
    printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], ch[8], ch[9], ch[10], ch[11]);
@@ -1100,7 +1100,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 #endif
    }
    else if (curr == 0x20657563 ||	/* cue  */
-            curr == 0x74786562)		/* bext */
+            curr == 0x74786562 ||	/* bext */
+            curr == 0x4b4e554a)		/* junk */
    {
       curr = BSWAP(header[1]);
       *step = rv = 2*sizeof(int32_t) + curr;
@@ -1153,7 +1154,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
       res = handle->wavBuffer;
 
 #if 0
-   printf("Write %s Header:\n", extfmt ? "Extnesible" : "Canonical");
+   printf("Write %s Header:\n", extfmt ? "Extensible" : "Canonical");
    printf(" 0: %08x (ChunkID \"RIFF\")\n", header[0]);
    printf(" 1: %08x (ChunkSize: %i)\n", header[1], header[1]);
    printf(" 2: %08x (Format \"WAVE\")\n", header[2]);
