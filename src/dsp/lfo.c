@@ -88,7 +88,14 @@ _lfo_swap(_aaxLFOData *dlfo, _aaxLFOData *slfo)
 void
 _lfo_reset(_aaxLFOData *lfo)
 {
-   if (lfo) lfo->dt = 0.0f;
+   if (lfo)
+   {
+      int t;
+      for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
+         lfo->value[t] = lfo->min;
+      }
+      lfo->dt = 0.0f;
+   }
 }
 
 int
