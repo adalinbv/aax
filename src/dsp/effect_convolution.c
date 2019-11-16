@@ -393,7 +393,8 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    _aaxRingBufferConvolutionData *convolution;
    _aaxRingBufferOcclusionData *occlusion;
    unsigned int cnum, dnum, hpos;
-   MIX_T *sptr, *dptr, *hptr, *scratch;
+   MIX_T *sptr, *dptr, *hptr;
+   MIX_T *hcptr, *scratch;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
 
@@ -402,15 +403,15 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    hpos = convolution->history_start[track];
    cnum = convolution->no_samples - hpos;
    occlusion = convolution->occlusion;
+   hcptr = hptr + hpos;
 
    rbi = rb->handle;
    rbd = rbi->sample;
    dptr = sptr = rbd->track[track];
    scratch = rbd->scratch[0];
    dnum = rb->get_parami(rb, RB_NO_SAMPLES);
-
    {
-      MIX_T *hcptr, *cptr;
+      MIX_T *cptr;
       float v, threshold;
       int step;
 
@@ -419,8 +420,6 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
       step = convolution->step;
 
       cptr = convolution->sample;
-      hcptr = hptr + hpos;
-
       threshold = convolution->threshold;
       _batch_convolution(hcptr, cptr, sptr, cnum, dnum, step, v, threshold);
    }
@@ -428,9 +427,9 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
 #if 1
    /* add the direct path */
    if (occlusion) {
-      occlusion->run(rbd, dptr, hptr+hpos, scratch, dnum, track, occlusion);
+      occlusion->run(rbd, dptr, hcptr, scratch, dnum, track, occlusion);
    } else {
-      rbd->add(dptr, hptr+hpos, dnum, 1.0f, 0.0f);
+      rbd->add(dptr, hcptr, dnum, 1.0f, 0.0f);
    }
 #else
    if (convolution->freq_filter)
