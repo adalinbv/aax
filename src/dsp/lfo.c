@@ -88,15 +88,7 @@ _lfo_swap(_aaxLFOData *dlfo, _aaxLFOData *slfo)
 void
 _lfo_reset(_aaxLFOData *lfo)
 {
-   if (lfo)
-   {
-      int t;
-      for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
-         lfo->value[t] = lfo->min;
-         lfo->step[t] = 0.0f;
-      }
-      lfo->dt = 0.0f;
-   }
+   if (lfo) lfo->dt = 0.0f;
 }
 
 int
@@ -182,6 +174,9 @@ _lfo_set_timing(_aaxLFOData *lfo)
          lfo->step[t] = 2.0f*sign * lfo->f;
          lfo->step[t] *= (lfo->max - lfo->min);
          lfo->step[t] /= lfo->period_rate;
+         if (lfo->step[t] > lfo->max-lfo->min) {
+            lfo->step[t] = lfo->max-lfo->min;
+         }
 
          if ((lfo->value[t] == 0) || (lfo->value[t] < lfo->min)) {
             lfo->value[t] = lfo->min;
@@ -197,7 +192,6 @@ _lfo_set_timing(_aaxLFOData *lfo)
          case AAX_ENVELOPE_FOLLOW:
          {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-//          lfo->value[t] /= lfo->max;
             lfo->value[t] = 0.0f;
             break;
          }
