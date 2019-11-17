@@ -93,7 +93,7 @@ _lfo_reset(_aaxLFOData *lfo)
       int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
          lfo->value[t] = lfo->min;
-         lfo->step[t] = -lfo->step[t];
+         lfo->step[t] = 0.0f;
       }
       lfo->dt = 0.0f;
    }
