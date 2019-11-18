@@ -20,7 +20,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.85" db="-3.3" frequency="110" duration="0.1">
+ <sound gain="0.88" db="-3.3" frequency="110" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
   <waveform src="triangle" processing="modulate" pitch="5.0"/>
@@ -31,11 +31,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.01</param>
-    <param n="2">1.46</param>
+    <param n="2">0.745</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">1.34</param>
+    <param n="0">0.684</param>
     <param n="1">15.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -72,20 +72,12 @@
     <param n="3">1.5</param>
    </slot>
   </filter>
-  <filter type="frequency" optional="true">
-   <slot n="0">
-    <param n="0">3000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
   <effect type="distortion">
    <slot n="0">
-    <param n="0">0.2</param>
-    <param n="1">0.0</param>
-    <param n="2">0.2</param>
-    <param n="3">1.0</param>
+    <param n="0">1.0</param>
+    <param n="1">0.2</param>
+    <param n="2">0.4</param>
+    <param n="3">0.7</param>
    </slot>
   </effect>
  </audioframe>
