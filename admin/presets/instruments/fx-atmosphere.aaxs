@@ -19,22 +19,22 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.30" db="-0.5" frequency="220" voices="3" spread="0.4">
-  <waveform src="triangle" pitch="0.5"/>
-  <waveform src="triangle" processing="add" ratio="1.2"/>
-  <waveform src="triangle" processing="add" ratio="0.1" pitch="3.0"/>
+ <sound gain="0.88" db="-4.6" frequency="220" voices="3" spread="0.9">
+  <waveform src="triangle" processing="add" pitch="0.5"/>
+  <waveform src="square" processing="add" ratio="0.35" pitch="2.98"/>
+  <waveform src="triangle" processing="add"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" release-factor="4.0">
    <slot n="0">
-    <param n="0">0.4</param>
+    <param n="0">0.452</param>
     <param n="1">0.04</param>
-    <param n="2">1.7</param>
+    <param n="2">1.92</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.5</param>
+    <param n="0">1.7</param>
     <param n="1">9.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
