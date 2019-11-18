@@ -1,4 +1,4 @@
-* Mon Nov 11 2019 - tech@adalin.org
+* Tue Nov 19 2019 - tech@adalin.org
 - AeonWave (3.7.2) stable; urgency=low
 
  * Add the option to use timed-transistion as an alternative to
@@ -7,7 +7,7 @@
    section specially for improved synthesizer modes.
  * Fix a read one sample beyond the buffer length for convolution.
 
--- Erik Hofman <tech@adalin.org>  Mon 11 Nov 2019 14:32:52 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue 19 Nov 2019 11:05:52 + 0100
 
 
 * Tue Nov 09 2019 - tech@adalin.org
