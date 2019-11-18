@@ -131,6 +131,9 @@ _aaxRingBufferDistoritonData;
 
 typedef struct
 {
+   void (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+   void (*add_noise)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+
    _aaxLFOData lfo;
    _aaxLFOData env;
 

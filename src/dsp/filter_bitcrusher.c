@@ -27,6 +27,7 @@
 
 #include <aax/aax.h>
 
+#include <base/random.h>
 #include "common.h"
 #include "filters.h"
 #include "arch.h"
@@ -34,7 +35,8 @@
 
 #define DSIZE	sizeof(_aaxRingBufferBitCrusherData)
 
-static float _aaxBitCrusherFilterMinMax(float, int, unsigned char);
+static void _bitcrush_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static void _bitcrush_add_noise(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
 static aaxFilter
 _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -114,6 +116,9 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
          int constant;
+
+         bitcrush->run = _bitcrush_run;
+         bitcrush->add_noise = _bitcrush_add_noise;
 
          if (filter->info) {
             fs = filter->info->frequency;
@@ -250,3 +255,40 @@ _flt_function_tbl _aaxBitCrusherFilter =
    (_aaxFilterConvert*)&_aaxBitCrusherFilterMinMax
 };
 
+void
+_bitcrush_run(MIX_PTR_T s, size_t end, size_t no_samples,
+                    void *data, void *env, unsigned int track)
+{
+   _aaxRingBufferBitCrusherData *bitcrush = data;
+   float level;
+
+   level = bitcrush->lfo.get(&bitcrush->lfo, env, s, 0, end);
+   if (level > 0.01f)
+   {
+      unsigned bps = sizeof(MIX_T);
+
+      level = powf(2.0f, 8+sqrtf(level)*13.5f); // (24-bits/sample)
+      _batch_fmul_value(s, s, bps, no_samples, 1.0f/level);
+      _batch_roundps(s, s, no_samples);
+      _batch_fmul_value(s, s, bps, no_samples, level);
+   }
+}
+
+void
+_bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
+                    void *data, void *env, unsigned int track)
+{
+   _aaxRingBufferBitCrusherData *bitcrush = data;
+   float ratio;
+
+   ratio = bitcrush->env.get(&bitcrush->env, env, s, track, end);
+   if (ratio > 0.01f)
+   {
+      unsigned int i;
+
+      ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
+      for (i=0; i<no_samples; ++i) {
+         s[i] += ratio*xoroshiro128plus();
+      }
+   }
+};

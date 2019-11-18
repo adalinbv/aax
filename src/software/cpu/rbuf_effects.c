@@ -27,7 +27,6 @@
 
 #include <base/logging.h>
 #include <base/geometry.h>
-#include <base/random.h>
 
 #include <dsp/filters.h>
 #include <dsp/effects.h>
@@ -165,20 +164,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       _aaxRingBufferBitCrusherData *bitcrush;
 
       bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
-      if (bitcrush)
-      {
-         float level;
-
-         level = bitcrush->lfo.get(&bitcrush->lfo, env, psrc, 0, end);
-         if (level > 0.01f)
-         {
-            unsigned bps = sizeof(MIX_T);
-
-            level = powf(2.0f, 8+sqrtf(level)*13.5f); // (24-bits/sample)
-            _batch_fmul_value(psrc, psrc, bps, no_samples, 1.0f/level);
-            _batch_roundps(psrc, psrc, no_samples);
-            _batch_fmul_value(psrc, psrc, bps, no_samples, level);
-         }
+      if (bitcrush) {
+        bitcrush->run(psrc, end, no_samples, bitcrush, env, track);
       }
    }
 
@@ -216,20 +203,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       _aaxRingBufferBitCrusherData *bitcrush;
 
       bitcrush = _FILTER_GET_DATA(p2d, BITCRUSHER_FILTER);
-      if (bitcrush)
-      {
-         float ratio;
-
-         ratio = bitcrush->env.get(&bitcrush->env, env, psrc, 0, end);
-         if (ratio > 0.01f)
-         {
-            unsigned int i;
-
-            ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
-            for (i=0; i<no_samples; ++i) {
-               psrc[i] += ratio*xoroshiro128plus();
-            }
-         }
+      if (bitcrush) {
+         bitcrush->add_noise(psrc, end, no_samples, bitcrush, env, track);
       }
    }
 

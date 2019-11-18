@@ -6,6 +6,7 @@
  * Add the option to define an <fm/> section in addition to a <sound/>
    section specially for improved synthesizer modes.
  * Fix a read one sample beyond the buffer length for convolution.
+ * Various updates to quite a number of instruments.
 
 -- Erik Hofman <tech@adalin.org>  Tue 19 Nov 2019 11:05:52 + 0100
 
