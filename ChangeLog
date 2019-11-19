@@ -1,7 +1,7 @@
 * Tue Nov 19 2019 - tech@adalin.org
 - AeonWave (3.7.2) stable; urgency=low
 
- * Add the option to use timed-transistion as an alternative to
+ * Add the option to use timed-transition as an alternative to
    envelope-following or waveform-shapes for filters and effects.
  * Add the option to define an <fm/> section in addition to a <sound/>
    section specially for improved synthesizer modes.

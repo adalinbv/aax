@@ -44,6 +44,6 @@ if(NOT X86_64 AND SSE2_FOUND)
 endif()
 if(ARM)
   set_property(SOURCE matrix_test.c APPEND
-                PROPERTY COMPILE_FLAGS "-march=armv7-a -mthumb -mfpu=neon -funsafe-math-optimizations"
+                PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -funsafe-math-optimizations"
   )
 endif()
