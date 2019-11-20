@@ -325,7 +325,7 @@ _aaxPhasingEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxPhasingEffect =
 {
    AAX_FALSE,
-   "AAX_phasing_effect", 1.0f,
+   "AAX_phasing_effect_1.01", 1.01f,
    (_aaxEffectCreate*)&_aaxPhasingEffectCreate,
    (_aaxEffectDestroy*)&_aaxPhasingEffectDestroy,
    (_aaxEffectReset*)&_delay_reset,

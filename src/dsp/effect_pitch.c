@@ -69,11 +69,13 @@ _aaxPitchEffectDestroy(_effect_t* effect)
 }
 
 static aaxEffect
-_aaxPitchEffectSetState(_effect_t* effect, UNUSED(int state))
+_aaxPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    float pitch_slide = effect->slot[0]->param[AAX_PITCH_RATE];
-   if (pitch_slide > 0.0f)
+
+   effect->state = state;
+   if (state && pitch_slide > 0.0f)
    {
       _aaxEnvelopeData* env = effect->slot[0]->data;
       if (env == NULL)
@@ -92,7 +94,6 @@ _aaxPitchEffectSetState(_effect_t* effect, UNUSED(int state))
          float dt;
 
          env->max_stages = 1;
-         env->state = AAX_TRUE;
          env->sustain = AAX_TRUE;
          env->value0 = 1.0f;
          env->value = value;
