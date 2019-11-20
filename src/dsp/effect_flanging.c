@@ -36,7 +36,8 @@
 #include "dsp.h"
 #include "api.h"
 
-#define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
+#define VERSION	1.01
+#define DSIZE	sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
 _aaxFlangingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -229,7 +230,7 @@ _aaxFlangingEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxFlangingEffect =
 {
    AAX_FALSE,
-   "AAX_flanging_effect_1.01", 1.01f,
+   "AAX_flanging_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxFlangingEffectCreate,
    (_aaxEffectDestroy*)&_aaxFlangingEffectDestroy,
    (_aaxEffectReset*)&_delay_reset,

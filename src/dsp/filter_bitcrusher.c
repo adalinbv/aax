@@ -33,6 +33,7 @@
 #include "arch.h"
 #include "api.h"
 
+#define VERSION 1.01
 #define DSIZE	sizeof(_aaxRingBufferBitCrusherData)
 
 static void _bitcrush_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
@@ -244,7 +245,7 @@ _aaxBitCrusherFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxBitCrusherFilter =
 {
    AAX_TRUE,
-   "AAX_bitcrusher_filter_1.01", 1.01f,
+   "AAX_bitcrusher_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxBitCrusherFilterCreate,
    (_aaxFilterDestroy*)&_aaxBitCrusherFilterDestroy,
    (_aaxFilterReset*)&_aaxBitCrusherFilterReset,

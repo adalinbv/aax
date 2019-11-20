@@ -35,6 +35,7 @@
 #include "arch.h"
 #include "api.h"
 
+#define VERSION	1.02
 #define DSIZE	sizeof(_aaxRingBufferDistanceData)
 
 // "Attenuation is generally proportional to the square of sound frequency."
@@ -235,7 +236,7 @@ _aaxDistanceFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDistanceFilter =
 {
    AAX_TRUE,
-   "AAX_distance_filter_1.02", 1.02f,
+   "AAX_distance_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDistanceFilterCreate,
    (_aaxFilterDestroy*)&_aaxDistanceFilterDestroy,
    NULL,

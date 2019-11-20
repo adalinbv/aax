@@ -35,6 +35,7 @@
 #include "api.h"
 #include "arch.h"
 
+#define VERSION	1.01
 #define DSIZE	sizeof(_aaxLFOData)
 
 static aaxEffect
@@ -191,7 +192,7 @@ _aaxDynamicPitchEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxDynamicPitchEffect =
 {
    AAX_FALSE,
-   "AAX_dynamic_pitch_effect_1.01", 1.01f,
+   "AAX_dynamic_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,
    (_aaxEffectReset*)&_lfo_reset,

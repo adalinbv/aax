@@ -35,6 +35,7 @@
 #include "arch.h"
 #include "api.h"
 
+#define VERSION	1.03
 #define DSIZE	sizeof(_aaxEnvelopeData)
 
 static aaxFilter
@@ -272,7 +273,7 @@ _aaxTimedGainFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxTimedGainFilter =
 {
    AAX_FALSE,
-   "AAX_timed_gain_filter_1.03", 1.03f,
+   "AAX_timed_gain_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxTimedGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxTimedGainFilterDestroy,
    (_aaxFilterReset*)&_env_reset,

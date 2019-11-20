@@ -39,6 +39,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION	1.1
 #define DSIZE	sizeof(_aaxRingBufferOcclusionData)
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
@@ -160,7 +161,7 @@ _aaxVolumeFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxVolumeFilter =
 {
    AAX_TRUE,
-   "AAX_volume_filter_1.1", 1.1f,
+   "AAX_volume_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxVolumeFilterCreate,
    (_aaxFilterDestroy*)&_aaxVolumeFilterDestroy,
    NULL,

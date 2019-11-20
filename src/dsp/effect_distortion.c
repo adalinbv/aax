@@ -35,6 +35,7 @@
 #include "api.h"
 #include "arch.h"
 
+#define VERSION	1.01
 #define DSIZE	sizeof(_aaxRingBufferDistoritonData)
 
 static void _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);
@@ -206,7 +207,7 @@ _aaxDistortionEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxDistortionEffect =
 {
    AAX_FALSE,
-   "AAX_distortion_effect_1.01", 1.01f,
+   "AAX_distortion_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDistortionEffectCreate,
    (_aaxEffectDestroy*)&_aaxDistortionEffectDestroy,
    (_aaxEffectReset*)&_aaxDistortionEffectReset,

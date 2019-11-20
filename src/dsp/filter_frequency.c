@@ -37,6 +37,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION	1.11
 #define DSIZE	sizeof(_aaxRingBufferFreqFilterData)
 
 static aaxFilter
@@ -329,7 +330,7 @@ _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxFrequencyFilter =
 {
    AAX_TRUE,
-   "AAX_frequency_filter_1.11", 1.11f,
+   "AAX_frequency_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
    (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,
    (_aaxFilterReset*)&_aaxFrequencyFilterReset,

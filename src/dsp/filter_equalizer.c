@@ -38,6 +38,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION	1.01
 #define DSIZE	2*(sizeof(_aaxRingBufferFreqFilterData)+MEMALIGN)
 
 static void _equalizer_swap(void*, void*);
@@ -364,7 +365,7 @@ _aaxEqualizerMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxEqualizer =
 {
    AAX_FALSE,
-   "AAX_equalizer_1.01", 1.01f,
+   "AAX_equalizer_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxEqualizerCreate,
    (_aaxFilterDestroy*)&_aaxEqualizerDestroy,
    NULL,

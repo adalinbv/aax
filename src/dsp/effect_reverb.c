@@ -36,6 +36,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION	1.1
 #define DSIZE	sizeof(_aaxRingBufferReverbData)
 
 static void _reverb_swap(void*,void*);
@@ -237,7 +238,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxReverbEffect =
 {
    AAX_TRUE,
-   "AAX_reverb_effect_1.1", 1.1f,
+   "AAX_reverb_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxReverbEffectCreate,
    (_aaxEffectDestroy*)&_aaxReverbEffectDestroy,
    NULL,

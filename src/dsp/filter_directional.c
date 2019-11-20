@@ -34,6 +34,8 @@
 #include "filters.h"
 #include "api.h"
 
+#define VERSION	1.01
+
 static aaxFilter
 _aaxDirectionalFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
@@ -132,7 +134,7 @@ _aaxDirectionalFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDirectionalFilter =
 {
    AAX_TRUE,
-   "AAX_directional_filter_1.01", 1.01f,
+   "AAX_directional_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDirectionalFilterCreate,
    (_aaxFilterDestroy*)&_aaxDirectionalFilterDestroy,
    NULL,

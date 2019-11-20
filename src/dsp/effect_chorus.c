@@ -36,6 +36,7 @@
 #include "dsp.h"
 #include "api.h"
 
+#define VERSION		1.11
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
@@ -334,7 +335,7 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxChorusEffect =
 {
    AAX_FALSE,
-   "AAX_chorus_effect_1.11", 1.11f,
+   "AAX_chorus_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxChorusEffectCreate,
    (_aaxEffectDestroy*)&_aaxChorusEffectDestroy,
    (_aaxEffectReset*)&_delay_reset,

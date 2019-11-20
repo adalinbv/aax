@@ -36,7 +36,8 @@
 #include "dsp.h"
 #include "api.h"
 
-#define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
+#define VERSION	1.01
+#define DSIZE	sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
 _aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -325,7 +326,7 @@ _aaxPhasingEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxPhasingEffect =
 {
    AAX_FALSE,
-   "AAX_phasing_effect_1.01", 1.01f,
+   "AAX_phasing_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxPhasingEffectCreate,
    (_aaxEffectDestroy*)&_aaxPhasingEffectDestroy,
    (_aaxEffectReset*)&_delay_reset,

@@ -34,6 +34,7 @@
 #include "api.h"
 #include "arch.h"
 
+#define VERSION	1.01
 #define DSIZE	sizeof(_aaxRingBufferModulatorData)
 
 static void _modulator_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
@@ -207,7 +208,7 @@ _aaxModulatorEffectMinMax(float val, int slot, unsigned char param)
 _eff_function_tbl _aaxModulatorEffect =
 {
    AAX_TRUE,
-   "AAX_ringmodulator_effect_1.01", 1.01f,
+   "AAX_ringmodulator_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxModulatorEffectCreate,
    (_aaxEffectDestroy*)&_aaxModulatorEffectDestroy,
    (_aaxEffectReset*)&_aaxModulatorEffectReset,
