@@ -1659,10 +1659,11 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
          while (--i);
       }
 
+      *hist++ = h0;
+      *hist++ = h1;
+
       while(--stage)
       {
-         *hist++ = h0;
-         *hist++ = h1;
          cptr += 4;
 
          h0 = hist[0];
@@ -1698,6 +1699,9 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
             }
             while (--i);
          }
+
+         *hist++ = h0;
+         *hist++ = h1;
       }
    }
 }
