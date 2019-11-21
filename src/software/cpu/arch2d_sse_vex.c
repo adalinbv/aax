@@ -1040,6 +1040,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
    if (num)
    {
       float k, *cptr, *hist;
+      float h0, h1;
       int stage;
 
       if (filter->state == AAX_BESSEL) {
@@ -1066,22 +1067,58 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 
       assert(((size_t)cptr & MEMMASK16) == 0);
 
-      do
+      h0 = hist[0];
+      h1 = hist[1];
+
+      if (filter->state == AAX_BUTTERWORTH)
       {
          float32_ptr d = dptr;
-         float h0, h1;
          size_t i = num;
+
+         do
+         {
+            float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+
+            h1 = h0;
+            h0 = nsmp;
+         }
+         while (--i);
+      }
+      else
+      {
+         float32_ptr d = dptr;
+         size_t i = num;
+
+         do
+         {
+            float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
+         }
+         while (--i);
+      }
+
+      while(--stage)
+      {
+         *hist++ = h0;
+         *hist++ = h1;
+         cptr += 4;
 
          h0 = hist[0];
          h1 = hist[1];
 
-#if 1
          if (filter->state == AAX_BUTTERWORTH)
          {
+            float32_ptr d = dptr;
+            size_t i = num;
+
             do
             {
-               float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
-               *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+               float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
                
                h1 = h0;
                h0 = nsmp;
@@ -1090,9 +1127,12 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
          }
          else
          {  
+            float32_ptr d = dptr;
+            size_t i = num;
+
             do
             {
-               float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+               float smp = *d + h0 * cptr[0] + h1 * cptr[1];
                *d++ = smp;
 
                h1 = h0;
@@ -1100,83 +1140,7 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
             }
             while (--i);
          }
-#else
-         if (filter->state == AAX_BUTTERWORTH)
-         {
-            __m128 cp01 = _mm_load_ps(cptr);
-            __m128 cp23 = _mm_movehl_ps(cp01, cp01);
-            __m128 dhist = _mm_set_ps(0.0f, 0.0f, h1, h0);
-            float *dbuf = (float*)&dhist;
-
-            do
-            {
-               __m128 v23, v01 = _mm_mul_ps(dhist, cp01);
-               __m128 d4 = _mm_set_ss(*s++ * k);
-               __m128 shuf = _mm_movehdup_ps(v01);
-               __m128 sums = _mm_add_ps(v01, d4);
-
-               v23 = _mm_mul_ps(dhist, cp23);
-               d4 = _mm_add_ps(sums, shuf);
-
-               shuf = _mm_movehdup_ps(v23);
-               sums = _mm_add_ps(v23, d4);
-
-               dhist = _mm_moveldup_ps(dhist);
-
-               sums = _mm_add_ps(sums, shuf);
-               *d++ = _mm_cvtss_f32(sums);
-
-               dhist = _mm_move_ss(dhist, d4);
-            }
-            while (--i);
-
-            h0 = dbuf[0];
-            h1 = dbuf[1];
-         }
-         else
-         {
-            __m128 cp01 = _mm_load_ps(cptr);
-            __m128 dhist = _mm_set_ps(0.0f, 0.0f, h1, h0);
-            float *dbuf = (float*)&dhist;
-
-            do
-            {
-# if 0
-               // d[0] = (*s++ * k) + d[-1]*cptr[0] + d[-2]*cptr[1]; d++;
-               __m128 samp;
-
-               *d = (*s++ * k);
-               samp = _mm_mul_ps(dhist, cp01);
-               *d += hsum_half_ps_sse_vex(samp);
-               dhist = _mm_shuffle_ps(dhist, dhist, _MM_SHUFFLE(2, 1, 0, 3));
-               dhist = _mm_move_ss(dhist, _mm_load_ss(d++));
-# else
-               __m128 v01 = _mm_mul_ps(dhist, cp01);
-               __m128 d4 = _mm_set_ss(*s++ * k);
-               __m128 shuf = _mm_movehdup_ps(v01);
-               __m128 sums = _mm_add_ps(v01, d4);
-
-               dhist = _mm_moveldup_ps(dhist);
-
-               d4 = _mm_add_ps(sums, shuf);
-               dhist = _mm_move_ss(dhist, d4);
-               *d++ = _mm_cvtss_f32(d4);
-# endif
-            }
-            while (--i);
-
-            h0 = dbuf[0];
-            h1 = dbuf[1];
-         }
-#endif
-
-         *hist++ = h0;
-         *hist++ = h1;
-         cptr += 4;
-         k = 1.0f;
-         s = dptr;
       }
-      while (--stage);
    }
 }
 
