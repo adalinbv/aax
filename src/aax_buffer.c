@@ -1374,13 +1374,12 @@ _bufNormalize(_aaxRingBuffer* rb, float db)
 
    peak /= norm;
    rms = sqrt(rms_total/no_samples)/norm;
-   rv = _db2lin(-15.0f + 0.7f*db - 0.5f*_lin2db(rms) - 0.3f*_lin2db(peak));
+   rv = _db2lin(-20.0f + 0.7f*db - 0.5f*_lin2db(rms) - 0.3f*_lin2db(peak));
 #if 0
  printf("rv: %f, db: %3.1f, rms: %3.1f, peak: %3.1f\n", rv, db, _lin2db(rms), _lin2db(peak));
 #endif
    return rv;
 }
-
 
 static inline float note2freq(uint8_t d) {
    return 440.0f*powf(2.0f, ((float)d-69.0f)/12.0f);
@@ -1531,7 +1530,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       if (!xmlNodeGetPos(xaid, xsid, section, s)) continue;
 
       if (midi_mode == AAX_RENDER_SYNTHESIZER) {
-         handle->gain = xmlAttributeGetDouble(xsid, "db");
+         handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
       }
       else if (midi_mode == AAX_RENDER_NORMAL)
       {
