@@ -146,7 +146,7 @@ typedef ALIGN16 struct {
 typedef ALIGN16 struct
 {
    float coeff[4*_AAX_MAX_STAGES];
-   float Q, k, fs, high_gain, low_gain;
+   float Q, k, fs, fc, high_gain, low_gain;
 
    unsigned int state;
    unsigned char no_stages;

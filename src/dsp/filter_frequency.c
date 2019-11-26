@@ -713,6 +713,7 @@ _aax_butterworth_compute(float fc, void *flt)
    float fs, Q, *coef;
    float a2, a1, a0;
 
+   filter->fc = fc;
    filter->state = AAX_BUTTERWORTH;
    stages = filter->no_stages;
    if (!stages) stages++;
@@ -847,6 +848,7 @@ _aax_bessel_compute(float fc, void *flt)
    float beta, fs, *coef;
    int stages, type;
 
+   filter->fc = fc;
    filter->state = AAX_BESSEL;
    fs = filter->fs;
    coef = filter->coeff;
@@ -1037,7 +1039,7 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       }
    }
 
-   if (fabsf(filter->k-1.0f) > LEVEL_96DB)
+   if (filter->fc < 15000.0f)
    {
       CONST_MIX_PTR_T sptr = s - ds + dmin;
       MIX_T *dptr = d - ds + dmin;
