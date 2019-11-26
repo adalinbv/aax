@@ -44,7 +44,7 @@
 
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
-void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
+int _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _occlusion_swap(void*, void*);
 void _occlusion_destroy(void*);
 
@@ -469,17 +469,24 @@ _occlusion_destroy(void *ptr)
    }
 }
 
-void
+int
 _occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, UNUSED(MIX_PTR_T scratch), size_t samples, unsigned int track, const void *data)
 {
    _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *freq_flt;
+   int rv = AAX_FALSE;
 
    /* add the direct path */
    assert(occlusion);
 
+   // TODO: Make sure we actually need to filter something, otherwise
+   //
+   rv = AAX_TRUE;
+
    freq_flt = &occlusion->freq_filter;
    freq_flt->run(rbd, scratch, sptr, 0, samples, 0, track, freq_flt, NULL, 1.0f, 0);
    rbd->add(dptr, scratch, samples, 1.0f, 0.0f);
+
+   return rv;
 }

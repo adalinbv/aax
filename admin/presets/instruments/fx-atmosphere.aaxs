@@ -19,7 +19,7 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.88" db="-4.6" frequency="220" voices="3" spread="0.9">
+ <sound gain="0.88" db="-5.7" frequency="220" voices="3" spread="0.9">
   <waveform src="triangle" processing="add" pitch="0.5"/>
   <waveform src="square" processing="add" ratio="0.35" pitch="2.98"/>
   <waveform src="triangle" processing="add"/>

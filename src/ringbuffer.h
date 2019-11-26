@@ -124,15 +124,15 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 typedef struct
 {
    _aaxLFOData *lfo;
-   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
-               unsigned int, void*, void*);
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
+              unsigned int, void*, void*);
 }
 _aaxRingBufferDistoritonData;
 
 typedef struct
 {
-   void (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
-   void (*add_noise)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+   int (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+   int (*add_noise)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
    _aaxLFOData lfo;
    _aaxLFOData env;
@@ -153,8 +153,8 @@ typedef ALIGN16 struct
    signed char type;
 
    _aaxLFOData *lfo;
-   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
-               unsigned int, void*, void*, float, unsigned char);
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
+              unsigned int, void*, void*, float, unsigned char);
 
    _aaxRingBufferFreqFilterHistoryData *freqfilter;
 
@@ -205,8 +205,8 @@ typedef struct
 typedef struct
 {
    void (*prepare)(MIX_PTR_T, MIX_PTR_T, size_t, size_t, void*, unsigned int);
-   void (*run)(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-               size_t, size_t, void*, void*, unsigned int);
+   int (*run)(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t,
+              size_t, size_t, void*, void*, unsigned int);
 
    _aaxLFOData lfo;
    _aaxRingBufferOffsetData *offset;
@@ -234,16 +234,16 @@ typedef struct
    char inverse;
 
    void (*prepare)(_aaxEmitter *src, _aax3dProps *fp3d, void*);
-   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t,
-               unsigned int, const void*);
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t,
+              unsigned int, const void*);
 
 } _aaxRingBufferOcclusionData;
 
 typedef struct
 {
    void (*prepare)(_aaxEmitter*, _aax3dProps*, void*);
-   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-               unsigned int, const void*, _aaxMixerInfo*, unsigned char);
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
+              unsigned int, const void*, _aaxMixerInfo*, unsigned char);
  
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;
@@ -269,8 +269,8 @@ typedef struct
 
 typedef struct
 {
-   void (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t,
-               unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t,
+              unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
 
    _aaxRingBufferReverbData *reverb;
 
@@ -283,7 +283,7 @@ typedef struct
 
 typedef struct
 {
-   void (*run)(const _aaxDriverBackend*, const void*, void*, void*);
+   int (*run)(const _aaxDriverBackend*, const void*, void*, void*);
 
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;
@@ -323,7 +323,7 @@ typedef struct
 
 typedef struct
 {
-   void (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+   int (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
    float gain;
    float phase[_AAX_MAX_SPEAKERS];

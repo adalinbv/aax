@@ -518,7 +518,7 @@ _delay_prepare(MIX_PTR_T dst, MIX_PTR_T src, size_t no_samples, size_t ds, void 
  * - no_samples is the number of samples to process this run
  * - dmax does not include ds
  */
-void
+int
 _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
              size_t start, size_t end, size_t no_samples, size_t ds,
              void *data, void *env, unsigned int track)
@@ -528,6 +528,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    _aaxRingBufferDelayEffectData* effect = data;
    ssize_t offs, noffs;
    float pitch, volume;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -601,6 +602,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
       _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
       effect->offset->coffs[track] = coffs;
+
+      rv = AAX_TRUE;
    }
 
    volume =  effect->delay.gain;
@@ -632,6 +635,10 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          }
       }
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+
+      rv = AAX_TRUE;
    }
+
+   return rv;
 }
 

@@ -44,8 +44,8 @@ static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(_aaxRingBufferReverbData*);
 static void _reverb_add_reflections(void*, float, unsigned int, float, int);
 static void _reverb_add_reverb(void**, float, unsigned int, float, float);
-static void _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
-static void _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
+static int _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
+static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
 
 
 static aaxEffect
@@ -313,7 +313,7 @@ _reverb_destroy(void *ptr)
 
 
 
-static void
+static int
 _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
             size_t no_samples, size_t ds, unsigned int track, float gain,
             const void *data, _aaxMixerInfo *info, unsigned char mono)
@@ -322,6 +322,7 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    const _aaxRingBufferReflectionData *reflections = data;
    unsigned int snum, tracks;
+   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -351,6 +352,8 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
             }
          }
       }
+
+      rv = AAX_TRUE;
    }
    else if (gain > LEVEL_64DB)
    {
@@ -358,7 +361,11 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
       if (gain < (1.0f-LEVEL_64DB)) {
          rbd->multiply(dptr, dptr, sizeof(MIX_T), no_samples, gain);
       }
+
+      rv = AAX_TRUE;
    }
+ 
+   return rv;
 }
 
 static void
@@ -384,7 +391,7 @@ _reverb_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
    }
 }
 
-static void
+static int
 _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             size_t no_samples, size_t ds, unsigned int track,
             const void *data, _aaxMixerInfo *info, unsigned char mono)
@@ -394,6 +401,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    const _aaxRingBufferReverbData *reverb = data;
    _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
+   int rv = AAX_FALSE;
    float gain = 1.0f;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -423,8 +431,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       }
 #endif
 
-      _reflections_run(rb, scratch, sptr, no_samples, ds, track, gain,
-                       &reverb->reflections, info, mono);
+      rv = _reflections_run(rb, scratch, sptr, no_samples, ds, track, gain,
+                            &reverb->reflections, info, mono);
 
       /* loopback for reverb (2nd order reflections) */
       snum = reverb->no_loopbacks;
@@ -454,6 +462,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          occlusion->run(rbd, dptr, sptr, scratch, no_samples, track,occlusion);
       }
    }
+
+   return rv;
 }
 
 // Calculate the 1st order reflections

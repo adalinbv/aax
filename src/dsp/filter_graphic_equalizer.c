@@ -331,18 +331,23 @@ _grapheq_destroy(void *ptr)
    }
 }
 
-void
+int
 _grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,
              size_t dmin, size_t dmax, unsigned int track,
              _aaxRingBufferEqualizerData *eq)
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData* filter;
+   int rv = AAX_FALSE;
    size_t no_samples;
    int band;
 
    sptr += dmin;
    no_samples = dmax - dmin;
+
+   // TODO: Make sure we actually need to filter something, otherwise return
+   //       AAX_FALSE, although the impact is rather low being mixer-only.
+   rv = AAX_TRUE;
 
    // first band, straight into dptr to save a bzero() and rbd->add()
    band = _AAX_MAX_EQBANDS;
@@ -357,4 +362,6 @@ _grapheq_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr, MIX_PTR_T tmp,
       rbd->add(dptr, tmp, no_samples, 1.0f, 0.0f);
    }
    while(band);
+
+   return rv;
 }

@@ -36,8 +36,8 @@
 #define VERSION 1.01
 #define DSIZE	sizeof(_aaxRingBufferBitCrusherData)
 
-static void _bitcrush_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
-static void _bitcrush_add_noise(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static int _bitcrush_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static int _bitcrush_add_noise(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
 static aaxFilter
 _aaxBitCrusherFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
@@ -256,11 +256,12 @@ _flt_function_tbl _aaxBitCrusherFilter =
    (_aaxFilterConvert*)&_aaxBitCrusherFilterMinMax
 };
 
-void
+int
 _bitcrush_run(MIX_PTR_T s, size_t end, size_t no_samples,
                     void *data, void *env, unsigned int track)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
+   int rv = AAX_FALSE;
    float level;
 
    level = bitcrush->lfo.get(&bitcrush->lfo, env, s, 0, end);
@@ -272,14 +273,17 @@ _bitcrush_run(MIX_PTR_T s, size_t end, size_t no_samples,
       _batch_fmul_value(s, s, bps, no_samples, 1.0f/level);
       _batch_roundps(s, s, no_samples);
       _batch_fmul_value(s, s, bps, no_samples, level);
+      rv = AAX_TRUE;
    }
+   return rv;
 }
 
-void
+int
 _bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
                     void *data, void *env, unsigned int track)
 {
    _aaxRingBufferBitCrusherData *bitcrush = data;
+   int rv = AAX_FALSE;
    float ratio;
 
    ratio = bitcrush->env.get(&bitcrush->env, env, s, track, end);
@@ -291,5 +295,7 @@ _bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
       for (i=0; i<no_samples; ++i) {
          s[i] += ratio*xoroshiro128plus();
       }
+      rv = AAX_TRUE;
    }
-};
+   return rv;
+}

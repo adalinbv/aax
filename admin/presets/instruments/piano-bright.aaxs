@@ -19,7 +19,7 @@
   <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <fm gain="0.99" db="-10.3" frequency="110" duration="0.2">
+ <fm gain="0.99" db="-0.1" frequency="110" duration="0.2">
   <waveform src="triangle" ratio="0.3"/>
   <waveform src="triangle" processing="modulate" pitch="3.0"/>
  </fm>

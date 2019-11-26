@@ -398,14 +398,15 @@ _equalizer_swap(void *d, void *s)
    dst->swap = src->swap;
 }
 
-void
+int
 _equalizer_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr,
-                              size_t dmin, size_t dmax, unsigned int track,
-                              void *data_lf, void *data_hf)
+               size_t dmin, size_t dmax, unsigned int track,
+               void *data_lf, void *data_hf)
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *filter_lf = data_lf;
    _aaxRingBufferFreqFilterData *filter_hf = data_hf;
+   int rv = AAX_FALSE;
    size_t no_samples;
 
    assert(sptr != 0);
@@ -415,6 +416,10 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr,
    assert(dmin < dmax);
    assert(track < _AAX_MAX_SPEAKERS);
 
+   // TODO: Make sure we actually need to filter something, otherwise return
+   //       AAX_FALSE, although the impacti is rather low being mixer and frame
+   //       only.
+
    sptr += dmin;
    no_samples = dmax - dmin;
    if (filter_lf->type == LOWPASS && filter_hf->type == HIGHPASS)
@@ -422,10 +427,14 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, MIX_PTR_T sptr,
       rbd->freqfilter(sptr, dptr, track, no_samples, filter_lf);
       rbd->freqfilter(dptr, dptr, track, no_samples, filter_hf);
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+      rv = AAX_TRUE;
    }
    else
    {
       rbd->freqfilter(dptr, dptr, track, no_samples, filter_lf);
       rbd->freqfilter(dptr, dptr, track, no_samples, filter_hf);
+      rv = AAX_TRUE;
    }
+
+   return rv;
 }

@@ -40,13 +40,13 @@ extern "C" {
 void _aax_bessel_compute(float, void*);
 void _aax_butterworth_compute(float, void*);
 
-void _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, float, unsigned char);
+int _freqfilter_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*, float, unsigned char);
 void _freqfilter_swap(void*, void*);
 void _freqfilter_destroy(void*);
 
 // equalizers
-void _equalizer_run(void*, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, void*, void*);
-void _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, _aaxRingBufferEqualizerData*);
+int _equalizer_run(void*, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, void*, void*);
+int _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, _aaxRingBufferEqualizerData*);
 
 // delay effects
 #define PHASING_MIN	50e-6f
@@ -61,12 +61,12 @@ void _delay_swap(void*, void*);
 void _delay_destroy(void*);
 void _delay_reset(void*);
 void _delay_prepare(MIX_PTR_T, MIX_PTR_T, size_t, size_t, void*, unsigned int);
-void _delay_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
+int _delay_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, size_t, size_t, void*, void*, unsigned int);
 
 // occlusion
 _aaxRingBufferOcclusionData* _occlusion_create(_aaxRingBufferOcclusionData*, _aaxFilterInfo*, int, float);
 void _occlusion_prepare(_aaxEmitter*, _aax3dProps*, void*);
-void _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
+int _occlusion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, unsigned int, const void*);
 void _occlusion_destroy(void*);
 
 #endif /* _AAX_DSP_H */

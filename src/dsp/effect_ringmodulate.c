@@ -37,7 +37,7 @@
 #define VERSION	1.01
 #define DSIZE	sizeof(_aaxRingBufferModulatorData)
 
-static void _modulator_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
+static int _modulator_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
 
 static aaxEffect
@@ -220,15 +220,18 @@ _eff_function_tbl _aaxModulatorEffect =
    (_aaxEffectConvert*)&_aaxModulatorEffectMinMax
 };
 
-void
+static int
 _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env, unsigned int track)
 {
-      _aaxRingBufferModulatorData *modulate = data;
-      float f, gain, p, step;
-      unsigned int i;
+   _aaxRingBufferModulatorData *modulate = data;
+   float f, gain, p, step;
+   int rv = AAX_FALSE;
+   unsigned int i;
 
-      gain = modulate->gain;
-      f = modulate->lfo.get(&modulate->lfo, env, s, track, end);
+   gain = modulate->gain;
+   f = modulate->lfo.get(&modulate->lfo, env, s, track, end);
+   if (f != 0.0f && gain > LEVEL_128DB)
+   {
       step = f/(GMATH_2PI*no_samples);
 
       p = modulate->phase[track];
@@ -251,4 +254,8 @@ _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env
       }
       assert(track < _AAX_MAX_SPEAKERS);
       modulate->phase[track] = p;
+
+      rv = AAX_TRUE;
+   }
+   return rv;
 }

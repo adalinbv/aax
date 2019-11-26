@@ -20,12 +20,12 @@
   <aftertouch mode="2"/>
  </info>
 
- <fm gain="1.77" db="-8.8" frequency="110" duration="0.1">
+ <fm gain="1.77" db="3.1" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="triangle" processing="modulate" pitch="0.999"/>
  </fm>
 
- <sound gain="1.77" db="-10.8" frequency="110" duration="0.1">
+ <sound gain="1.77" db="-10.3" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.75" pitch="1.999"/>
   <waveform src="triangle" processing="modulate" pitch="0.999"/>

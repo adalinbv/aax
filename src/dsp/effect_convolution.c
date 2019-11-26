@@ -42,7 +42,7 @@
 
 static void _convolution_swap(void*, void*);
 static void _convolution_destroy(void*);
-static void _convolution_run(const _aaxDriverBackend*, const void*, void*, void*);
+static int _convolution_run(const _aaxDriverBackend*, const void*, void*, void*);
 
 static aaxEffect
 _aaxConvolutionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -463,11 +463,12 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
    return 0;
 }
 
-static void
+static int
 _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, void *data)
 {
    _aaxRingBufferConvolutionData *convolution = data;
    _aaxRingBuffer *rb = rbd;
+   int rv = AAX_FALSE;
 
    if (convolution->delay_gain > convolution->threshold)
    {
@@ -489,5 +490,8 @@ _convolution_run(const _aaxDriverBackend *be, const void *be_handle, void *rbd, 
       d.callback = _convolution_thread;
 
       render->process(render, &d);
+
+      rv = AAX_TRUE;
    }
+   return rv;
 }

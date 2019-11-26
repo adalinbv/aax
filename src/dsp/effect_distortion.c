@@ -38,7 +38,7 @@
 #define VERSION	1.01
 #define DSIZE	sizeof(_aaxRingBufferDistoritonData)
 
-static void _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);
+static int _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);
 
 static aaxEffect
 _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -219,7 +219,7 @@ _eff_function_tbl _aaxDistortionEffect =
    (_aaxEffectConvert*)&_aaxDistortionEffectMinMax
 };
 
-void
+static int
 _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
                 size_t dmin, size_t dmax, size_t ds,
                 unsigned int track, void *data, void *env)
@@ -231,6 +231,7 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    _aaxLFOData* lfo = dist_data->lfo;
    float *params = dist_effect->param;
    float clip, asym, fact, mix;
+   int rv = AAX_FALSE;
    size_t no_samples;
    float lfo_fact = 1.0;
    CONST_MIX_PTR_T sptr;
@@ -260,10 +261,11 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    mix  = params[AAX_MIX_FACTOR]*lfo_fact;
    asym = params[AAX_ASYMMETRY];
 
-   _aax_memcpy(dptr, sptr, no_samples*bps);
-   if (mix > 0.01f)
+   if (mix > 0.01f && fact > 0.0013f)
    {
       float mix_factor;
+
+      _aax_memcpy(dptr, sptr, no_samples*bps);
 
       /* make dptr the wet signal */
       if (fact > 0.0013f) {
@@ -283,6 +285,9 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       if (mix < 0.99f) {
          rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
       }  
+
+      rv = AAX_TRUE;
    }
+   return rv;
 }
 
