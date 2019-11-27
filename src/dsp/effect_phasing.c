@@ -605,9 +605,13 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
       _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
 
+#if 0
       // low-pass to smoothen the result
       _batch_movingaverage_float(scratch, s+start, no_samples, hist, k);
       sptr = scratch;
+#else
+      rv = AAX_TRUE;
+#endif
    }
 
    volume =  effect->delay.gain;
