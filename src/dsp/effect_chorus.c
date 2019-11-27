@@ -102,6 +102,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferFreqFilterData *flt = data->freq_filter;
          float fc = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+         float fmax = effect->slot[1]->param[AAX_LFO_FREQUENCY];
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
@@ -111,7 +112,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             fs = effect->info->frequency;
          }
 
-         if (fc >= 100.0f && !flt)
+         if ((fc > MINIMUM_CUTOFF || fmax > MINIMUM_CUTOFF) && !flt)
          {
             flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
             if (flt)
@@ -190,10 +191,9 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
             if (data->lfo.f)
             {
-               float fmax = effect->slot[1]->param[AAX_LFO_FREQUENCY];
                _aaxLFOData* lfo = flt->lfo;
 
-               if (fmax > 20.0f)
+               if (fmax > MINIMUM_CUTOFF)
                {
                   if (lfo == NULL) {
                      lfo = flt->lfo = _lfo_create();
@@ -317,10 +317,10 @@ _aaxChorusEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxChorusRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.001f, 0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
-    { {  20.0f, 0.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
-    { {   0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
-    { {   0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
+    { { 0.001f,  0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
+    { {  51.0f, 51.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
+    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
+    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

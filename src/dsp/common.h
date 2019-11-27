@@ -44,6 +44,9 @@ extern "C" {
 #define LEVEL_96DB	0.00001584893f
 #define LEVEL_128DB	0.00000039811f
 
+#define MINIMUM_CUTOFF	50.0f
+#define MAXIMUM_CUTOFF	15000.0f
+
 enum _aax3dFiltersEffects
 {
     /* 3d filters */

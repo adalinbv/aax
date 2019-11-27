@@ -1039,7 +1039,7 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       }
    }
 
-   if (filter->fc < 15000.0f)
+   if (filter->fc < MAXIMUM_CUTOFF)
    {
       CONST_MIX_PTR_T sptr = s - ds + dmin;
       MIX_T *dptr = d - ds + dmin;

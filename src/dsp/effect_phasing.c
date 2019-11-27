@@ -102,6 +102,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       {
          _aaxRingBufferFreqFilterData *flt = data->freq_filter;
          float fc = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+         float fmax = effect->slot[1]->param[AAX_LFO_FREQUENCY];
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
@@ -111,7 +112,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
             fs = effect->info->frequency;
          }
 
-         if (fc >= 100.0f && !flt)
+         if ((fc > MINIMUM_CUTOFF || fmax > MINIMUM_CUTOFF) && !flt)
          {
             flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
             if (flt)
@@ -181,10 +182,9 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 
             if (data->lfo.f)
             {
-               float fmax = effect->slot[1]->param[AAX_LFO_FREQUENCY];
                _aaxLFOData* lfo = flt->lfo;
 
-               if (fmax > 20.0f)
+               if (fmax > MINIMUM_CUTOFF)
                {
                   if (lfo == NULL) {
                      lfo = flt->lfo = _lfo_create();
@@ -308,10 +308,10 @@ _aaxPhasingEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxPhasingRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {  0.001f, 0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f, 1.0f } },
-    { {   20.0f, 0.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 1.0f } },
-    { {    0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } },
-    { {    0.0f, 0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } }
+    { {  0.001f,  0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f, 1.0f } },
+    { {   51.0f, 51.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 1.0f } },
+    { {    0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } },
+    { {    0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -527,8 +527,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferDelayEffectData* effect = data;
    ssize_t offs, noffs;
-   float pitch, volume;
    int rv = AAX_FALSE;
+   float volume;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -615,25 +615,37 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       ssize_t doffs;
 
       doffs = noffs - offs;
-      pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
 
-      if (pitch == 1.0f)
+      // first the delayed (wet) signal
+      if (doffs == 0)
       {
-         if (freq_flt) {
-            freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
-         } else {
+         if (freq_flt && freq_flt->fc < MAXIMUM_CUTOFF)
+         {
+            if (freq_flt->fc > MINIMUM_CUTOFF) {
+               freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
+            }
+         }
+         else {
             rbd->multiply(dptr, sptr-offs, bps, no_samples, volume);
          }
       }
       else
       {
+         float pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+
          rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
-         if (freq_flt) {
-            freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
-         } else {
+         if (freq_flt && freq_flt->fc < MAXIMUM_CUTOFF)
+         {
+            if (freq_flt->fc > MINIMUM_CUTOFF) {
+               freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
+            }
+         }
+         else {
             rbd->multiply(dptr, dptr, bps, no_samples, volume);
          }
       }
+
+      // then add the original (dry) signal
       rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
 
       rv = AAX_TRUE;
