@@ -602,8 +602,6 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
       _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
       effect->offset->coffs[track] = coffs;
-
-      rv = AAX_TRUE;
    }
 
    volume =  effect->delay.gain;
@@ -616,17 +614,25 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
 
       doffs = noffs - offs;
 
-      // first the delayed (wet) signal
+      // first process the delayed (wet) signal
+      // then add the original (dry) signal
+      // if (freq_flt->fc <= MINIMUM_CUTOFF) do nothing
       if (doffs == 0)
       {
          if (freq_flt && freq_flt->fc < MAXIMUM_CUTOFF)
          {
-            if (freq_flt->fc > MINIMUM_CUTOFF) {
+            if (freq_flt->fc > MINIMUM_CUTOFF)
+            {
                freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
+               rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+               rv = AAX_TRUE;
             }
          }
-         else {
+         else
+         {
             rbd->multiply(dptr, sptr-offs, bps, no_samples, volume);
+            rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+            rv = AAX_TRUE;
          }
       }
       else
@@ -636,19 +642,20 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          rbd->resample(dptr, sptr-offs, 0, no_samples, 0.0f, pitch);
          if (freq_flt && freq_flt->fc < MAXIMUM_CUTOFF)
          {
-            if (freq_flt->fc > MINIMUM_CUTOFF) {
+            if (freq_flt->fc > MINIMUM_CUTOFF)
+            {
                freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
+               rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+               rv = AAX_TRUE;
             }
          }
-         else {
+         else
+         {
             rbd->multiply(dptr, dptr, bps, no_samples, volume);
+            rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+            rv = AAX_TRUE;
          }
       }
-
-      // then add the original (dry) signal
-      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-
-      rv = AAX_TRUE;
    }
 
    return rv;
