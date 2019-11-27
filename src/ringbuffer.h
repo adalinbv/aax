@@ -217,6 +217,10 @@ typedef struct
    size_t history_samples;
    float feedback;
    char flanger;
+
+   float lf_k;
+   _aaxRingBufferFreqFilterHistoryData lf_history;
+
 } _aaxRingBufferDelayEffectData;
 
 typedef struct

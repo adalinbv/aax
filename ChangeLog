@@ -1,3 +1,13 @@
+* Tue Nov 26 2019 - tech@adalin.org
+- AeonWave (3.7.3) stable; urgency=low
+
+ * Bump version nubers of filters and effects that now support timed operation.
+ * Make sure that filters and effects don't run if the parameter selection
+   doesn't have an effect anyhow.
+
+-- Erik Hofman <tech@adalin.org>  Tue 26 Nov 2019 13:39:06 + 0100
+
+
 * Tue Nov 19 2019 - tech@adalin.org
 - AeonWave (3.7.2) stable; urgency=low
 
