@@ -526,6 +526,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferDelayEffectData* effect = data;
+   const MIX_T *sptr = s + start;
    ssize_t offs, noffs;
    int rv = AAX_FALSE;
    float volume;
@@ -557,8 +558,9 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    volume = effect->feedback;
    if (offs && volume > LEVEL_96DB)
    {
-      const MIX_T *sptr = s + start;
+      float *hist = effect->lf_history.history[track];
       MIX_T *dptr = s + start;
+      float k = effect->lf_k;
       ssize_t coffs, doffs;
       int i, step, sign;
 
@@ -599,16 +601,19 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       if (i) {
          rbd->add(dptr, dptr-coffs, i, volume, 0.0f);
       }
+      effect->offset->coffs[track] = coffs;
 
       _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
-      effect->offset->coffs[track] = coffs;
+
+      // low-pass to smoothen the result
+      _batch_movingaverage_float(scratch, s+start, no_samples, hist, k);
+      sptr = scratch;
    }
 
    volume =  effect->delay.gain;
    if (offs && volume > LEVEL_96DB)
    {
       _aaxRingBufferFreqFilterData *freq_flt = effect->freq_filter;
-      const MIX_T *sptr = s + start;
       MIX_T *dptr = d + start;
       ssize_t doffs;
 
@@ -624,14 +629,14 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             if (freq_flt->fc > MINIMUM_CUTOFF)
             {
                freq_flt->run(rbd, dptr, sptr-offs, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
-               rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+               rbd->add(dptr, s+start, no_samples, 1.0f, 0.0f);
                rv = AAX_TRUE;
             }
          }
          else
          {
             rbd->multiply(dptr, sptr-offs, bps, no_samples, volume);
-            rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+            rbd->add(dptr, s+start, no_samples, 1.0f, 0.0f);
             rv = AAX_TRUE;
          }
       }
@@ -645,14 +650,14 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             if (freq_flt->fc > MINIMUM_CUTOFF)
             {
                freq_flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, freq_flt, NULL, 1.0f, 0);
-               rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+               rbd->add(dptr, s+start, no_samples, 1.0f, 0.0f);
                rv = AAX_TRUE;
             }
          }
          else
          {
             rbd->multiply(dptr, dptr, bps, no_samples, volume);
-            rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+            rbd->add(dptr, s+start, no_samples, 1.0f, 0.0f);
             rv = AAX_TRUE;
          }
       }

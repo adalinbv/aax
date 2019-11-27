@@ -130,6 +130,8 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             }
          }
 
+         data->lf_k = _aax_movingaverage_compute(8800.0f, fs);
+
          data->freq_filter = flt;
          data->prepare = _delay_prepare;
          data->run = _delay_run;
