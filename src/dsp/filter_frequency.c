@@ -1028,6 +1028,10 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    assert(dmin < dmax);
    assert(track < _AAX_MAX_SPEAKERS);
 
+   s += dmin;
+   d += dmin;
+   dmax -= dmin;
+
    if (filter->lfo && !ctr)
    {
       float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
@@ -1039,13 +1043,14 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       }
    }
 
-   if (filter->fc < MAXIMUM_CUTOFF)
+   if ((filter->type == LOWPASS && filter->fc > MINIMUM_CUTOFF) ||
+       (filter->type == HIGHPASS && filter->fc < MAXIMUM_CUTOFF))
    {
-      CONST_MIX_PTR_T sptr = s - ds + dmin;
-      MIX_T *dptr = d - ds + dmin;
+      CONST_MIX_PTR_T sptr = s - ds;
+      MIX_T *dptr = d - ds;
       int num;
 
-      num = dmax+ds-dmin;
+      num = dmax + ds;
       rbd->freqfilter(dptr, sptr, track, num, filter);
       if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
          rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
