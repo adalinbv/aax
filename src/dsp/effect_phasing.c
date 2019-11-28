@@ -174,7 +174,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 
 
             flt->low_gain = data->delay.gain;
-            flt->high_gain = LEVEL_64DB;
+            flt->high_gain = LEVEL_128DB;
             flt->Q = effect->slot[1]->param[AAX_RESONANCE];
             flt->k = flt->low_gain/flt->high_gain;
 
@@ -633,7 +633,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             if ((flt->type == LOWPASS && flt->fc > MINIMUM_CUTOFF) ||
                 (flt->type == HIGHPASS && flt->fc < MAXIMUM_CUTOFF))
             {
-               flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, NULL, 1.0f, 0);
+               flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
                rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
                rv = AAX_TRUE;
             }
@@ -656,7 +656,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
             if ((flt->type == LOWPASS && flt->fc > MINIMUM_CUTOFF) ||
                 (flt->type == HIGHPASS && flt->fc < MAXIMUM_CUTOFF))
             {
-               flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, NULL, 1.0f, 0);
+               flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
                rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
                rv = AAX_TRUE;
             }

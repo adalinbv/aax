@@ -130,7 +130,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             }
          }
 
-         data->lf_k = _aax_movingaverage_compute(8800.0f, fs);
+//       data->lf_k = _aax_movingaverage_compute(8800.0f, fs);
 
          data->freq_filter = flt;
          data->prepare = _delay_prepare;
@@ -185,7 +185,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
             flt->type = HIGHPASS;
 
             flt->low_gain = data->delay.gain;
-            flt->high_gain = LEVEL_64DB;
+            flt->high_gain = LEVEL_128DB;
             flt->Q = effect->slot[1]->param[AAX_RESONANCE];
             flt->k = flt->low_gain/flt->high_gain;
 
