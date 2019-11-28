@@ -235,7 +235,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       {
          r = delay->run(rbd, pdst, psrc, scratch, 0, end, no_samples, ds,
                         delay, env, track);
-         if (r && !delay->flanger) BUFSWAP(pdst, psrc);
+         if (r) BUFSWAP(pdst, psrc);
       }
    }
 
