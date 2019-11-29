@@ -95,7 +95,7 @@ _lfo_reset(_aaxLFOData *lfo)
       {
          int t;
          for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
-            lfo->value[t] = lfo->min;
+            lfo->value[t] = lfo->value0[t];
          }
       }
    }
@@ -174,7 +174,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
       for (t=0; t<_AAX_MAX_SPEAKERS; t++)
       {
          if (!lfo->stereo_lnk) {
-            lfo->value[t] = (t % 2)*1e9f;
+            lfo->value0[t] = (t % 2)*1e9f;
          }
 
          // slowly work towards the new settings
@@ -188,10 +188,10 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->step[t] = lfo->max-lfo->min;
          }
 
-         if ((lfo->value[t] == 0) || (lfo->value[t] < lfo->min)) {
-            lfo->value[t] = lfo->min;
-         } else if (lfo->value[t] > lfo->max) {
-            lfo->value[t] = lfo->max;
+         if ((lfo->value0[t] == 0) || (lfo->value0[t] < lfo->min)) {
+            lfo->value0[t] = lfo->min;
+         } else if (lfo->value0[t] > lfo->max) {
+            lfo->value0[t] = lfo->max;
          }
 
          switch (lfo->state & ~AAX_INVERSE)
@@ -202,19 +202,20 @@ _lfo_set_timing(_aaxLFOData *lfo)
          case AAX_ENVELOPE_FOLLOW:
          {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
-            lfo->value[t] = 0.0f;
+            lfo->value0[t] = 0.0f;
             break;
          }
          default:
             break;
          }
+         lfo->value[t] = lfo->value0[t];
       }
    }
    else
    {
       int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
-         lfo->value[t] = lfo->min;
+         lfo->value[t] = lfo->value0[t] = lfo->min;
       }
    }
 

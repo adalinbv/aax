@@ -2,6 +2,8 @@
 - AeonWave (3.7.3) stable; urgency=low
 
  * Fix an issue where chorus could produce clicks on low pitch values.
+ * Reset timed filters and effects to their initial value when an emitter
+   gets initialized again.
  * Bump version nubers of filters and effects that now support timed operation.
  * Make sure that filters and effects don't run if the parameter selection
    doesn't have an effect anyhow.

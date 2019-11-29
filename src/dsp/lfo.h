@@ -72,6 +72,7 @@ typedef struct
 
    float delay, dt;
    float fs, period_rate;
+   float value0[_AAX_MAX_SPEAKERS];	/* initial value                   */
    float value[_AAX_MAX_SPEAKERS];      /* current value                   */
    float average[_AAX_MAX_SPEAKERS];    /* average value over time         */
    float compression[_AAX_MAX_SPEAKERS];        /* compression level       */
