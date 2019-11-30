@@ -418,6 +418,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_PRESSURE_MODE:
          rv = handle->pressure_mode;
          break;
+      case AAX_AFTERTOUCH_SENSITIVITY:
+         rv = handle->pressure_factor;
+         break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
       }
@@ -1776,6 +1779,11 @@ _bufAAXSThread(void *d)
       if (xiid)
       {
          handle->pressure_mode = xmlAttributeGetInt(xiid, "mode");
+         if (xmlAttributeExists(xiid, "sensitivity")) {
+            handle->pressure_factor = xmlAttributeGetInt(xiid, "sensitivity");
+         } else {
+            handle->pressure_factor = 1.0f;
+         }
          xmlFree(xiid);
       }
 

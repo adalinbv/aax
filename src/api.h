@@ -274,6 +274,7 @@ typedef struct
 
    unsigned int pos;
    float rms, peak, gain;
+   float pressure_factor;
 
    enum aaxCapabilities midi_mode;
    char to_mixer;
