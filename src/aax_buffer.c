@@ -419,7 +419,7 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          rv = handle->pressure_mode;
          break;
       case AAX_AFTERTOUCH_SENSITIVITY:
-         rv = handle->pressure_factor;
+         rv = 100.0f*handle->pressure_factor;
          break;
       default:
          _aaxErrorSet(AAX_INVALID_ENUM);
@@ -1775,14 +1775,13 @@ _bufAAXSThread(void *d)
           xmlFree(a);
       }
 
+      handle->pressure_factor = 1.0f;
       xiid = xmlNodeGet(xid, "aeonwave/info/aftertouch");
       if (xiid)
       {
          handle->pressure_mode = xmlAttributeGetInt(xiid, "mode");
          if (xmlAttributeExists(xiid, "sensitivity")) {
-            handle->pressure_factor = xmlAttributeGetInt(xiid, "sensitivity");
-         } else {
-            handle->pressure_factor = 1.0f;
+            handle->pressure_factor = xmlAttributeGetDouble(xiid, "sensitivity");
          }
          xmlFree(xiid);
       }
