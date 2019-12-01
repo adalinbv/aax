@@ -155,7 +155,7 @@ if(MSVC)
  set(C_FLAGS "${C_FLAGS} -DARCH64=1")
 else()
   if(X86_64)
-    set(C_FLAGS "${C_FLAGS} -march=athlon64 -msse2 -mfpmath=sse -DARCH64=1")
+    set(C_FLAGS "${C_FLAGS} -march=athlon64 -msse -msse2 -mfpmath=sse -DARCH64=1")
   elseif(X86)
     set(C_FLAGS "${C_FLAGS} -march=i686 -DARCH32=1")
   elseif(ARM)
@@ -310,7 +310,6 @@ else(MSVC)
          FORCE)
 
      if(X86_64)
-       message("Build environment: X86_64")
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -O2 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
        )
