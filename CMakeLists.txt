@@ -152,19 +152,7 @@ set(C_FLAGS "${CMAKE_C_FLAGS}")
 set(CXX_FLAGS "${CMAKE_CXX_FLAGS}")
 
 if(MSVC)
- set(C_FLAGS "${C_FLAGS} -DARCH64=1")
-else()
-  if(X86_64)
-    set(C_FLAGS "${C_FLAGS} -march=athlon64 -msse -msse2 -mfpmath=sse -DARCH64=1")
-  elseif(X86)
-    set(C_FLAGS "${C_FLAGS} -march=i686 -DARCH32=1")
-  elseif(ARM)
-    set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DARCH32=1")
-  endif()
-endif()
-
-if(MSVC)
-  set(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt")
+  set(C_FLAGS "${C_FLAGS} /NODEFAULTLIB:msvcrt /NODEFAULTLIB:msvcrtd /NODEFAULTLIB:libcmt -DARCH64=1")
   set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
                PROPERTY COMPILE_FLAGS  "/arch:SSE /fp:fast -D__SSE__"
   )
@@ -310,41 +298,43 @@ else(MSVC)
          FORCE)
 
      if(X86_64)
+       set(C_FLAGS "${C_FLAGS} -march=athlon64 -DARCH64=1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize ")
        set_property(SOURCE src/software/cpu/arch2d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -O2 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-msse3 -O2"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse3 -mfpmath=sse -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-msse3"
        )
-       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPEND
-                    PROPERTY COMPILE_FLAGS "-msse4.1 -mfpmath=sse -march=silvermont -O2 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+       set_property(SOURCE src/software/cpu/arch2d_sse4.c APPENDZ
+                    PROPERTY COMPILE_FLAGS "-msse4.1 -march=silvermont -O2"
        )
        set_property(SOURCE src/software/cpu/arch2d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -O2 -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mavx -O2 -march=sandybridge"
        )
        set_property(SOURCE src/software/cpu/arch3d_sse_vex.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -O2 -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mavx -O2 -march=sandybridge"
        )
        set_property(SOURCE src/software/cpu/arch3d_avx.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx -mfpmath=sse -march=sandybridge -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mavx -march=sandybridge"
        )
        set_property(SOURCE src/software/cpu/arch2d_avx2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -O2 -march=haswell -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -O2 -march=haswell"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mavx2 -mfpmath=sse -O2 -mfma -march=haswell -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mavx2 -O2 -mfma -march=haswell"
        )
        set_property(SOURCE src/software/cpu/arch2d_fma4.c APPEND
-                   PROPERTY COMPILE_FLAGS "-mxop -mfpmath=sse -O2 -mfma4 -march=bdver1 -falign-functions=32 -falign-loops=32 -ftree-vectorize -ftree-slp-vectorize"
+                   PROPERTY COMPILE_FLAGS "-mxop -O2 -mfma4 -march=bdver1"
        )
        set_property(SOURCE src/software/cpu/rbuf_effects.c  APPEND
                    PROPERTY COMPILE_FLAGS "${OpenACC_C_FLAGS}"
        )
      elseif(X86)
        message("Build environment: X86")
+       set(C_FLAGS "${C_FLAGS} -march=i686 -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch2d_sse.c APPEND
                     PROPERTY COMPILE_FLAGS "-msse -mfpmath=sse -O2 -march=pentium3m -falign-functions=16 -falign-loops=16 -ftree-vectorize -ftree-slp-vectorize"
        )
@@ -371,26 +361,27 @@ else(MSVC)
        )
      elseif(ARM)
        message("Build environment: ARM")
+       set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV2"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -D__ARM_VFPV2 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv2.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV2"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -ffast-math -D__ARM_VFPV2 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV3"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -ffast-math -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv4.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv4 -mfloat-abi=hard -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -D__ARM_VFPV4"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=vfpv4 -mfloat-abi=hard -O3 -ffast-math -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ftree-vectorize"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_neon.c APPEND
-                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize -funsafe-math-optimizations"
+                    PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -funsafe-math-optimization -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
                     PROPERTY COMPILE_FLAGS "-march=armv7-a -mfpu=neon -O3 -ffast-math -ftree-vectorize -ftree-slp-vectorize"
