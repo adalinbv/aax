@@ -144,6 +144,7 @@ _batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *p
 
          peak1.ps = _mm256_max_ps(peak1.ps, peak2.ps);
          peak1.ps = _mm256_max_ps(peak1.ps, peak3.ps);
+         _mm256_zeroupper();
 
          if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
          if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
@@ -880,7 +881,6 @@ _batch_fadd_avx(float32_ptr dst, const_float32_ptr src, size_t num)
          *d++ += *s++;
       } while(--i);
    }
-   _mm256_zeroall();
 }
 
 #if 0
@@ -1087,7 +1087,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             v += vstep;
          } while(--i);
       }
-      _mm256_zeroall();
    }
    else
    {
@@ -1159,7 +1158,6 @@ _batch_fmadd_avx(float32_ptr dst, const_float32_ptr src, size_t num, float v, fl
             *d++ += *s++ * v;
          } while(--i);
       }
-      _mm256_zeroall();
    }
 }
 
@@ -1234,6 +1232,7 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
          }
          while(--i);
       }
+      _mm256_zeroupper();
    }
 
    if (num) {
@@ -1312,6 +1311,7 @@ _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float 
          }
          h8 = _mm256_add_ps(h8, eight);
       }
+      _mm256_zeroupper();
    }
    return rv;
 }
