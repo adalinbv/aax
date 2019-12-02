@@ -1,8 +1,10 @@
-* Tue Nov 26 2019 - tech@adalin.org
+* Tue Dec 03 2019 - tech@adalin.org
 - AeonWave (3.7.3) stable; urgency=low
 
  * Speed up waveform generation and RMS calculation by a fator of 2 for AVX
  * Speed up frequency filtering and resampling for systems that support FMA3
+ * Deprecate the release-factor attribute for timed-gain filters in favor of
+   a release-time attribute. (Use aaxsstandardize for automatic conversion).
  * Fix an issue where chorus could produce clicks on low pitch values.
  * Reset timed filters and effects to their initial value when an emitter
    gets initialized again.
@@ -10,7 +12,7 @@
  * Make sure that filters and effects don't run if the parameter selection
    doesn't have an effect anyhow.
 
--- Erik Hofman <tech@adalin.org>  Tue 26 Nov 2019 13:39:06 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue 03 Dec 2019 11:39:06 + 0100
 
 
 * Tue Nov 19 2019 - tech@adalin.org
