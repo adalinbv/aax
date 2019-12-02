@@ -562,7 +562,14 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
                state |= AAX_REPEAT;
             }
             else if (xmlAttributeExists(xid, "release-factor")) {
-                release_factor *= xmlAttributeGetDouble(xid, "release-factor");
+               release_factor *= xmlAttributeGetDouble(xid, "release-factor");
+            }
+            else if (xmlAttributeExists(xid, "release-time")) {
+               float dt = 2.5f*xmlAttributeGetDouble(xid, "release-time");
+               _handle_t *handle = get_driver_handle(config);
+               float period = handle->info->period_rate;
+
+               release_factor *= dt*period/86.132812f;
             }
 
             if (release_factor != 1.0f)
