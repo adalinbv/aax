@@ -176,30 +176,36 @@ _aaxArchDetectFeatures()
 
 char
 _aaxArchDetectHF() {
-   return (_aaxArchDetectFeatures() & AAX_ARCH_HF);
+   _aaxArchDetectFeatures();
+   return (_aax_arch_capabilities & AAX_ARCH_HF);
 }
 
 char
 _aaxArchDetectVFPV2() {
-   return (_aaxArchDetectFeatures() & AAX_ARCH_VFPV2);
+   _aaxArchDetectFeatures();
+   return (_aax_arch_capabilities & AAX_ARCH_VFPV2);
 }
 
 char
 _aaxArchDetectVFPV3() {
-   return (_aaxArchDetectFeatures() & AAX_ARCH_VFPV3);
+   _aaxArchDetectFeatures();
+   return (_aax_arch_capabilities & AAX_ARCH_VFPV3);
 }
 
 char
 _aaxArchDetectVFPV4() {
+   _aaxArchDetectFeatures();
    return (_aaxArchDetectFeatures() & AAX_ARCH_VFPV4);
 }
 
 char _aaxArchDetectNeon() {
-   return (_aaxArchDetectFeatures() & AAX_ARCH_NEON);
+   _aaxArchDetectFeatures();
+   return (_aax_arch_capabilities & AAX_ARCH_NEON);
 }
 
 char _aaxArchDetectHelium() {
-   return (_aaxArchDetectFeatures() & AAX_ARCH_HELIUM);
+   _aaxArchDetectFeatures();
+   return (_aax_arch_capabilities & AAX_ARCH_HELIUM);
 }
 
 uint32_t
