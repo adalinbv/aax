@@ -15,9 +15,7 @@ set(CPU_SOURCES
   arch2d_sse4.c
   arch2d_sse_vex.c
   arch2d_avx.c
-  arch2d_avx2.c
   arch2d_fma3.c
-  arch2d_fma4.c
 
   arch3d_neon.c
   arch3d_vfpv2.c

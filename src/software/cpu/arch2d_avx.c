@@ -31,6 +31,43 @@
 
 #ifdef __AVX__
 
+static inline float
+hsum_ps_sse3(__m128 v) {
+   __m128 shuf = _mm_movehdup_ps(v);
+   __m128 sums = _mm_add_ps(v, shuf);
+   shuf        = _mm_movehl_ps(shuf, sums);
+   sums        = _mm_add_ss(sums, shuf);
+   return        _mm_cvtss_f32(sums);
+}
+
+static inline float
+hsum256_ps_avx(__m256 v) {
+   __m128 vlow  = _mm256_castps256_ps128(v);
+   __m128 vhigh = _mm256_extractf128_ps(v, 1);
+   vlow  = _mm_add_ps(vlow, vhigh);
+   return hsum_ps_sse3(vlow);
+}
+
+static inline __m256
+_mm256_abs_ps(__m256 x) {
+   return _mm256_andnot_ps(_mm256_set1_ps(-0.0f), x);
+}
+
+static inline int
+_mm256_testz_ps_avx(__m256 x)
+{
+   __m256i zero = _mm256_setzero_si256();
+   return _mm256_testz_si256(_mm256_castps_si256(x), zero);
+}
+
+
+static inline __m256    // range -1.0f .. 1.0f
+fast_sin8_avx(__m256 x)
+{
+   __m256 four = _mm256_set1_ps(-4.0f);
+   return _mm256_mul_ps(four, _mm256_sub_ps(x, _mm256_mul_ps(x, _mm256_abs_ps(x))));
+}
+
 #if 0
 # define PRINTFUNC	printf("%s\n", __func__)
 #else
@@ -1099,6 +1136,79 @@ _aax_memcpy_avx(void_ptr dst, const_void_ptr src, size_t num)
    }
 
    return dst;
+}
+
+float *
+_aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+{
+   const_float32_ptr harmonics = _harmonics[wtype];
+   if (wtype == _SINE_WAVE) {
+      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+   }
+   else if (rv)
+   {
+      __m256 phase8, freq8, h8;
+      __m256 one, two, eight;
+      __m256 ngain, nfreq;
+      __m256 hdt, s;
+      unsigned int i, h;
+      float *ptr;
+
+      assert(MAX_HARMONICS % 8 == 0);
+
+      one = _mm256_set1_ps(1.0f);
+      two = _mm256_set1_ps(2.0f);
+      eight = _mm256_set1_ps(8.0f);
+
+      phase8 = _mm256_set1_ps(-1.0f + phase/GMATH_PI);
+      freq8 = _mm256_set1_ps(freq);
+      h8 = _mm256_set_ps(8.0f, 7.0f, 6.0f, 5.0f, 4.0f, 3.0f, 2.0f, 1.0f);
+
+      nfreq = _mm256_div_ps(freq8, h8);
+      ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics));
+      hdt = _mm256_div_ps(two, nfreq);
+
+      ptr = rv;
+      i = no_samples;
+      s = phase8;
+      do
+      {
+         __m256 rv = fast_sin8_avx(s);
+
+         *ptr++ = hsum256_ps_avx(_mm256_mul_ps(ngain, rv));
+
+         s = _mm256_add_ps(s, hdt);
+         s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
+      }
+      while (--i);
+
+      h8 = _mm256_add_ps(h8, eight);
+      for(h=8; h<MAX_HARMONICS; h += 8)
+      {
+         nfreq = _mm256_div_ps(freq8, h8);
+         ngain = _mm256_and_ps(_mm256_cmp_ps(two, nfreq, _CMP_LT_OS), _mm256_load_ps(harmonics+h));
+         if (_mm256_testz_ps_avx(ngain))
+         {
+            hdt = _mm256_div_ps(two, nfreq);
+
+            ptr = rv;
+            i = no_samples;
+            s = phase8;
+            do
+            {
+               __m256 rv = fast_sin8_avx(s);
+
+               *ptr++ += hsum256_ps_avx(_mm256_mul_ps(ngain, rv));
+
+               s = _mm256_add_ps(s, hdt);
+               s = _mm256_sub_ps(s, _mm256_and_ps(two, _mm256_cmp_ps(s, one, _CMP_GE_OS)));
+            }
+            while (--i);
+         }
+         h8 = _mm256_add_ps(h8, eight);
+      }
+   }
+   return rv;
 }
 
 #else

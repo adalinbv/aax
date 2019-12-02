@@ -54,9 +54,7 @@ char _aaxArchDetectSSE4();
 # define SIMD4	sse4
 # define SIMD5	avx2
 # define FMA3	fma3
-# define FMA4	fma4
 # define CPUID_FEAT_ECX_FMA3	(1 << 12)
-# define CPUID_FEAT_ECX_FMA4	(1 << 16)
 char _aaxArchDetectSSE4();
 char _aaxArchDetectAVX();
 char _aaxArchDetectAVX2();
@@ -115,9 +113,6 @@ int main()
    simd2 = _aaxArchDetectAVX();
    simd4 = _aaxArchDetectSSE4();
    simd5 = _aaxArchDetectAVX2();
-   if (check_extcpuid_ecx(CPUID_FEAT_ECX_FMA4)) {
-      simd3 = 4;
-   }
    if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
       simd3 = 3;
    }
@@ -184,20 +179,14 @@ int main()
       if (simd3)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
-         else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
+         _batch_fmadd = GLUE(_batch_fmadd, FMA3);
 
          t = clock();
          _batch_fmadd(dst2, dst2, MAXNUM, 1.0f, 0.0f);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
 
-         if (simd3 == 3) {
-            printf("fadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("fadd "MKSTR(FMA3), dst1, dst2);
-         } else {
-            printf("fadd "MKSTR(FMA4)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("fadd "MKSTR(FMA4), dst1, dst2);
-         }
+         printf("fadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("fadd "MKSTR(FMA3), dst1, dst2);
       }
 #endif
 
@@ -239,20 +228,14 @@ int main()
       if (simd3)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
-         else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
+         _batch_fmadd = GLUE(_batch_fmadd, FMA3);
 
          t = clock();
          _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, 0.0f);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
 
-         if (simd3 == 3) {
-            printf("float fadd+fmadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("float fadd+fmadd "MKSTR(FMA3), dst1, dst2);
-         } else {
-            printf("float fadd+fmadd "MKSTR(FMA4)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("float fadd+fmadd "MKSTR(FMA4), dst1, dst2);
-         }
+         printf("float fadd+fmadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("float fadd+fmadd "MKSTR(FMA3), dst1, dst2);
       }
 #endif
 
@@ -294,20 +277,14 @@ int main()
       if (simd3)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
-         if (simd3 == 3) _batch_fmadd = GLUE(_batch_fmadd, FMA3);
-         else _batch_fmadd = GLUE(_batch_fmadd, FMA4);
+         _batch_fmadd = GLUE(_batch_fmadd, FMA3);
 
          t = clock();
          _batch_fmadd(dst2, dst2, MAXNUM, FACTOR, VSTEP);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
 
-         if (simd3 == 3) {
-            printf("float fadd+fmadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("float fadd+fmadd "MKSTR(FMA3), dst1, dst2);
-         } else {
-            printf("float fadd+fmadd "MKSTR(FMA4)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-            TESTF("float fadd+fmadd "MKSTR(FMA4), dst1, dst2);
-         }
+         printf("float fadd+fmadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("float fadd+fmadd "MKSTR(FMA3), dst1, dst2);
       }
 #endif
 
@@ -509,24 +486,13 @@ int main()
 
       if (simd2)
       {
-         _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD1);
+         _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD2);
 
          t = clock();
          _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
          printf("generate waveform "MKSTR(SIMD1)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTFN("waveform "MKSTR(SIMD1), dst1, dst2, 1e-3f);
-      }
-
-      if (simd5)
-      {
-         _aax_generate_waveform_float = GLUE(_aax_generate_waveform, SIMD5);
-
-         t = clock();
-         _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
-         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("generate waveform "MKSTR(SIMD5)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-         TESTFN("waveform "MKSTR(SIMD5), dst1, dst2, 1e-3f);
       }
 
       /*

@@ -432,7 +432,6 @@ _aaxGetSIMDSupportLevel()
          {
             if (_aax_arch_capabilities & AAX_ARCH_AVX)
             {
-               _aax_generate_waveform_float = _aax_generate_waveform_sse_vex;
                _batch_get_average_rms = _batch_get_average_rms_sse_vex;
 //             _batch_convolution = _batch_convolution_sse_vex;
 
@@ -453,25 +452,27 @@ _aaxGetSIMDSupportLevel()
                mtx4dMulVec4 = _mtx4dMulVec4_avx;
                vec3dAltitudeVector = _vec3dAltitudeVector_avx;
 
+               _aax_generate_waveform_float = _aax_generate_waveform_avx;
+
                _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
                _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
                _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
 
-#  if RB_FLOAT_DATA
+#   if RB_FLOAT_DATA
                _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
                _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;
                _batch_resample_float = _batch_resample_float_sse_vex;
-#  else
+#   else
                _batch_imadd = _batch_imadd_sse_vex;
                _batch_freqfilter = _batch_freqfilter_sse_vex;
                _batch_resample = _batch_resample_sse_vex;
-#  endif
+#   endif
 
 //             _aax_memcpy = _aax_memcpy_avx;
                _batch_cvtps_24 = _batch_cvtps_24_avx;
                _batch_cvt24_ps = _batch_cvt24_ps_avx;
 
-#  if RB_FLOAT_DATA
+#   if RB_FLOAT_DATA
 // _batch_fmul_value_avx is slightly slower than the compiler optimized
 // _batch_fmul_value_cpu, _batch_fmul_value_sse2 is faster however.
 //             _batch_fmul_value = _batch_fmul_value_avx;
@@ -479,26 +480,22 @@ _aaxGetSIMDSupportLevel()
                _batch_cvtps24_24 = _batch_cvtps24_24_avx;
                _batch_cvt24_ps24 = _batch_cvt24_ps24_avx;
             }
-#  else
-#  endif
+#   else
+#   endif
 
-            if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
-               _batch_fmadd = _batch_fmadd_fma3;
+            if (_aax_arch_capabilities & AAX_ARCH_AVX2) {
             }
 
-            if (_aax_arch_capabilities & AAX_ARCH_AVX2)
+            if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3))
             {
-               _aax_generate_waveform_float = _aax_generate_waveform_avx2;
-#  if RB_FLOAT_DATA
-               _batch_freqfilter_float = _batch_freqfilter_float_avx2;
-               _batch_resample_float = _batch_resample_float_avx2;
-#  else
-               _batch_freqfilter = _batch_freqfilter_avx2;
-               _batch_resample = _batch_resample_avx2;
-#  endif
+               _batch_fmadd = _batch_fmadd_fma3;
+#   if RB_FLOAT_DATA
+               _batch_freqfilter_float = _batch_freqfilter_float_fma3;
+               _batch_resample_float = _batch_resample_float_fma3;
+#   endif
             }
          }
-#  endif
+#  endif // SIZEOF_SIZE_T == 8
       }
    }
 # endif // __TINYC__

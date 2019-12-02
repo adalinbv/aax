@@ -28,9 +28,6 @@
 
 #ifdef __FMA__
 
-# define CACHE_ADVANCE_FMADD	 (2*16)
-# define CACHE_ADVANCE_FF	 (2*32)
-
 FN_PREALIGN void
 _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
@@ -192,6 +189,299 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
       _mm256_zeroall();
    }
 }
+
+void
+_batch_freqfilter_float_fma3(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
+{
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_float32_ptr s = sptr;
+
+   if (num)
+   {
+      float k, *cptr, *hist;
+      float h0, h1;
+      int stage;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
+      if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      assert(((size_t)cptr & MEMMASK16) == 0);
+
+      h0 = hist[0];
+      h1 = hist[1];
+
+      if (filter->state == AAX_BUTTERWORTH)
+      {
+         float32_ptr d = dptr;
+         size_t i = num;
+
+         do
+         {
+            float nsmp = (*s++ * k) + h0 * cptr[0] + h1 * cptr[1];
+            *d++ = nsmp             + h0 * cptr[2] + h1 * cptr[3];
+
+            h1 = h0;
+            h0 = nsmp;
+         }
+         while (--i);
+      }
+      else
+      {
+         float32_ptr d = dptr;
+         size_t i = num;
+
+         do
+         {
+            float smp = (*s++ * k) + ((h0 * cptr[0]) + (h1 * cptr[1]));
+            *d++ = smp;
+
+            h1 = h0;
+            h0 = smp;
+         }
+         while (--i);
+      }
+
+      *hist++ = h0;
+      *hist++ = h1;
+
+      while(--stage)
+      {
+         cptr += 4;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            float32_ptr d = dptr;
+            size_t i = num;
+
+            do
+            {
+               float nsmp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = nsmp     + h0 * cptr[2] + h1 * cptr[3];
+
+               h1 = h0;
+               h0 = nsmp;
+            }
+            while (--i);
+         }
+         else
+         {
+            float32_ptr d = dptr;
+            size_t i = num;
+
+            do
+            {
+               float smp = *d + h0 * cptr[0] + h1 * cptr[1];
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+
+         *hist++ = h0;
+         *hist++ = h1;
+      }
+   }
+}
+
+static inline void
+_aaxBufResampleDecimate_float_fma3(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   float32_ptr s = (float32_ptr)sptr;
+   float32_ptr d = dptr;
+   float samp, dsamp;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(freq_factor >= 1.0f);
+   assert(0.0f <= smu && smu < 1.0f);
+
+   d += dmin;
+
+   samp = *s++;                 // n+(step-1)
+   dsamp = *s - samp;           // (n+1) - n
+
+   i = dmax-dmin;
+   if (i)
+   {
+      if (freq_factor == 2.0f)
+      {
+         do {
+            *d++ = (*s + *(s+1))*0.5f;
+            s += 2;
+         }
+         while (--i);
+      }
+      else
+      {
+         do
+         {
+            size_t step;
+
+            *d++ = samp + (dsamp * smu);
+
+            smu += freq_factor;
+            step = (size_t)floorf(smu);
+
+            smu -= step;
+            s += step-1;
+            samp = *s++;
+            dsamp = *s - samp;
+         }
+         while (--i);
+      }
+   }
+}
+
+static inline void
+_aaxBufResampleLinear_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   float32_ptr sptr = (float32_ptr)s;
+   float32_ptr dptr = d;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(freq_factor < 1.0f);
+   assert(0.0f <= smu && smu < 1.0f);
+
+   dptr += dmin;
+
+   i = dmax-dmin;
+   if (i)
+   {
+      __m128 samp = _mm_load_ss(sptr++);       // n
+      __m128 nsamp = _mm_load_ss(sptr++);      // (n+1)
+      __m128 dsamp = _mm_sub_ss(nsamp, samp);  // (n+1) - n
+
+      do
+      {
+         __m128 tau = _mm_set_ss(smu);
+         __m128 dout = samp;
+
+         smu += freq_factor;
+
+         // fmadd
+         dout = _mm_add_ss(dout, _mm_mul_ss(dsamp, tau));
+
+         if (smu >= 1.0)
+         {
+            samp = nsamp;
+            nsamp = _mm_load_ss(sptr++);
+
+            smu -= 1.0;;
+
+            dsamp = _mm_sub_ss(nsamp, samp);
+         }
+         _mm_store_ss(dptr++, dout);
+      }
+      while (--i);
+   }
+}
+
+
+static inline void
+_aaxBufResampleCubic_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
+{
+   float32_ptr sptr = (float32_ptr)s;
+   float32_ptr dptr = d;
+   size_t i;
+
+   assert(s != 0);
+   assert(d != 0);
+   assert(dmin < dmax);
+   assert(0.0f <= smu && smu < 1.0f);
+   assert(0.0f < freq_factor && freq_factor <= 1.0f);
+
+#if 1
+   float y0, y1, y2, y3, a0, a1, a2;
+
+   dptr += dmin;
+
+   y0 = *sptr++;
+   y1 = *sptr++;
+   y2 = *sptr++;
+   y3 = *sptr++;
+
+   a0 = y3 - y2 - y0 + y1;
+   a1 = y0 - y1 - a0;
+   a2 = y2 - y0;
+
+   i = dmax-dmin;
+   if (i)
+   {
+      do
+      {
+         float smu2, ftmp;
+
+         smu2 = smu*smu;
+         ftmp = (a0*smu*smu2 + a1*smu2 + a2*smu + y1);
+         *dptr++ = ftmp;
+
+         smu += freq_factor;
+         if (smu >= 1.0)
+         {
+            smu--;
+            a0 += y0;
+            y0 = y1;
+            y1 = y2;
+            y2 = y3;
+            y3 = *sptr++;
+            a0 = -a0 + y3;                      /* a0 = y3 - y2 - y0 + y1; */
+            a1 = y0 - y1 - a0;
+            a2 = y2 - y0;
+         }
+      }
+      while (--i);
+   }
+}
+
+void
+_batch_resample_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
+{
+   assert(fact > 0.0f);
+
+   if (fact < CUBIC_TRESHOLD) {
+      _aaxBufResampleCubic_float_fma3(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact < 1.0f) {
+      _aaxBufResampleLinear_float_fma3(d, s, dmin, dmax, smu, fact);
+   }
+   else if (fact >= 1.0f) {
+      _aaxBufResampleDecimate_float_fma3(d, s, dmin, dmax, smu, fact);
+   } else {
+//    _aaxBufResampleNearest_float_fma3(d, s, dmin, dmax, smu, fact);
+      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+   }
+}
+#endif // RB_FLOAT_DATA
+
 
 #else
 typedef int make_iso_compilers_happy;
