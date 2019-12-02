@@ -116,7 +116,6 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             v += vstep;
          } while(--i);
       }
-      _mm256_zeroall();
    }
    else
    {
@@ -186,7 +185,6 @@ _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
             *d++ += *s++ * v;
          } while(--i);
       }
-      _mm256_zeroall();
    }
 }
 
@@ -388,7 +386,7 @@ _aaxBufResampleLinear_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin
          smu += freq_factor;
 
          // fmadd
-         dout = _mm_add_ss(dout, _mm_mul_ss(dsamp, tau));
+         dout = _mm_fmadd_ss(dout, tau, dsamp);
 
          if (smu >= 1.0)
          {
@@ -411,6 +409,7 @@ _aaxBufResampleCubic_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin,
 {
    float32_ptr sptr = (float32_ptr)s;
    float32_ptr dptr = d;
+   float y0, y1, y2, y3, a0, a1, a2;
    size_t i;
 
    assert(s != 0);
@@ -418,9 +417,6 @@ _aaxBufResampleCubic_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin,
    assert(dmin < dmax);
    assert(0.0f <= smu && smu < 1.0f);
    assert(0.0f < freq_factor && freq_factor <= 1.0f);
-
-#if 1
-   float y0, y1, y2, y3, a0, a1, a2;
 
    dptr += dmin;
 
@@ -480,7 +476,6 @@ _batch_resample_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size
       _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
-#endif // RB_FLOAT_DATA
 
 
 #else
