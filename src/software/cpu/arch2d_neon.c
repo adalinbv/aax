@@ -303,16 +303,22 @@ _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
    if (i)
    {
       float32x4x4_t nir4;
+      int32x4x4_t nfr4d;
 
       do
       {
          nir4 = vld4q_f32(s);
          s += 4*4;
 
-         nir4.val[0] = vrndqn_f32(nir4.val[0]);
-         nir4.val[1] = vrndqn_f32(nir4.val[1]);
-         nir4.val[2] = vrndqn_f32(nir4.val[2]);
-         nir4.val[3] = vrndqn_f32(nir4.val[3]);
+         nfr4d.val[0] = vcvtq_s32_f32(nir4.val[0]);
+         nfr4d.val[1] = vcvtq_s32_f32(nir4.val[1]);
+         nfr4d.val[2] = vcvtq_s32_f32(nir4.val[2]);
+         nfr4d.val[3] = vcvtq_s32_f32(nir4.val[3]);
+
+         nir4.val[0] = vcvtq_f32_s32(nfr4d.val[0]);
+         nir4.val[1] = vcvtq_f32_s32(nfr4d.val[1]);
+         nir4.val[2] = vcvtq_f32_s32(nfr4d.val[2]);
+         nir4.val[3] = vcvtq_f32_s32(nfr4d.val[3]);
 
          vst4q_f32(d, nir4);
          d += step;
@@ -325,6 +331,8 @@ _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
          do {
             *d++ = (int32_t)*s++;
          } while (--i);
+      }
+   }
       }
    }
 }
