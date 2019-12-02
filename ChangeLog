@@ -1,6 +1,8 @@
 * Tue Nov 26 2019 - tech@adalin.org
 - AeonWave (3.7.3) stable; urgency=low
 
+ * Speed up waveform generation and RMS calculation by a fator of 2 for AVX
+ * Speed up frequency filtering and resampling for systems that support FMA3
  * Fix an issue where chorus could produce clicks on low pitch values.
  * Reset timed filters and effects to their initial value when an emitter
    gets initialized again.
