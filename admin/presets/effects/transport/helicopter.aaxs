@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="4.25" db="4.5" frequency="110" duration="3.3">
+ <sound gain="4.25" db="4.1" frequency="110" duration="3.3">
   <waveform src="white-noise" ratio="80.0" pitch="0.75"/>
   <waveform src="sawtooth" processing="mix" ratio="0.96"/>
   <waveform src="impulse" processing="modulate" pitch="0.5"/>

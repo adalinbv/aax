@@ -41,7 +41,7 @@
     <param n="3">30.0</param>
    </slot>
   </filter>
-  <filter type="timed-gain" release-factor="0.3">
+  <filter type="timed-gain" release-time="0.12">
    <slot n="0">
     <param n="0">0.575</param>
     <param n="1">0.109</param>

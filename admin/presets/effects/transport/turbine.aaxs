@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.14" db="-0.1" frequency="220" duration="3.33">
+ <sound gain="0.97" db="-0.1" frequency="220" duration="3.33">
   <waveform src="pink-noise" ratio="0.1" pitch="0.5"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -36,11 +36,11 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">10.0</param>
-    <param n="2">1.01</param>
+    <param n="2">1.19</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.01</param>
+    <param n="0">1.19</param>
     <param n="1">30.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

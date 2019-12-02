@@ -25,7 +25,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-factor="8.0">
+  <filter type="timed-gain" release-time="3.2">
    <slot n="0">
     <param n="0">0.456</param>
     <param n="1">0.05</param>
