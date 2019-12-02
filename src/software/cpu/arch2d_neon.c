@@ -333,8 +333,6 @@ _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
          } while (--i);
       }
    }
-      }
-   }
 }
 
 void
