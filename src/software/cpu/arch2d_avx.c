@@ -68,6 +68,111 @@ fast_sin8_avx(__m256 x)
    return _mm256_mul_ps(four, _mm256_sub_ps(x, _mm256_mul_ps(x, _mm256_abs_ps(x))));
 }
 
+void
+_batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *peak)
+{
+   size_t stmp, step, total;
+   double rms_total = 0.0;
+   float peak_cur = 0.0f;
+   unsigned int i;
+
+   *rms = *peak = 0;
+
+   if (!num) return;
+
+   total = num;
+   stmp = (size_t)s & MEMMASK16;
+   if (stmp)
+   {
+      i = (MEMALIGN16 - stmp)/sizeof(float);
+      if (i <= num)
+      {
+         do
+         {
+            float samp = *s++;            // rms
+            float val = samp*samp;
+            rms_total += val;
+            if (val > peak_cur) peak_cur = val;
+         }
+         while (--i);
+      }
+   }
+
+   if (num)
+   {
+      __m256* sptr = (__m256*)s;
+
+      step = 3*sizeof(__m256)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         union {
+             __m256 ps;
+             float f[8];
+         } rms1, rms2, rms3, peak1, peak2, peak3;
+
+         peak1.ps = peak2.ps = peak3.ps = _mm256_setzero_ps();
+         rms1.ps = rms2.ps = rms3.ps = _mm256_setzero_ps();
+
+         s += i*step;
+         num -= i*step;
+         do
+         {
+            __m256 smp1 = _mm256_load_ps((const float*)sptr++);
+            __m256 smp2 = _mm256_load_ps((const float*)sptr++);
+            __m256 smp3 = _mm256_load_ps((const float*)sptr++);
+            __m256 val1, val2, val3;
+
+            val1 = _mm256_mul_ps(smp1, smp1);
+            val2 = _mm256_mul_ps(smp2, smp2);
+            val3 = _mm256_mul_ps(smp3, smp3);
+
+            rms1.ps = _mm256_add_ps(rms1.ps, val1);
+            rms2.ps = _mm256_add_ps(rms2.ps, val2);
+            rms3.ps = _mm256_add_ps(rms3.ps, val3);
+
+            peak1.ps = _mm256_max_ps(peak1.ps, val1);
+            peak2.ps = _mm256_max_ps(peak2.ps, val2);
+            peak3.ps = _mm256_max_ps(peak3.ps, val3);
+         }
+         while(--i);
+
+         rms_total += hsum256_ps_avx(rms1.ps);
+         rms_total += hsum256_ps_avx(rms2.ps);
+         rms_total += hsum256_ps_avx(rms3.ps);
+
+         peak1.ps = _mm256_max_ps(peak1.ps, peak2.ps);
+         peak1.ps = _mm256_max_ps(peak1.ps, peak3.ps);
+
+         if (peak1.f[0] > peak_cur) peak_cur = peak1.f[0];
+         if (peak1.f[1] > peak_cur) peak_cur = peak1.f[1];
+         if (peak1.f[2] > peak_cur) peak_cur = peak1.f[2];
+         if (peak1.f[3] > peak_cur) peak_cur = peak1.f[3];
+         if (peak1.f[4] > peak_cur) peak_cur = peak1.f[4];
+         if (peak1.f[5] > peak_cur) peak_cur = peak1.f[5];
+         if (peak1.f[6] > peak_cur) peak_cur = peak1.f[6];
+         if (peak1.f[7] > peak_cur) peak_cur = peak1.f[7];
+      }
+
+      if (num)
+      {
+         i = num;
+         do
+         {
+            float samp = *s++;            // rms
+            float val = samp*samp;
+            rms_total += val;
+            if (val > peak_cur) peak_cur = val;
+         }
+         while (--i);
+      }
+   }
+
+   *rms = (float)sqrt(rms_total/total);
+   *peak = sqrtf(peak_cur);
+}
+
 #if 0
 # define PRINTFUNC	printf("%s\n", __func__)
 #else

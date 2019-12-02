@@ -432,7 +432,6 @@ _aaxGetSIMDSupportLevel()
          {
             if (_aax_arch_capabilities & AAX_ARCH_AVX)
             {
-               _batch_get_average_rms = _batch_get_average_rms_sse_vex;
 //             _batch_convolution = _batch_convolution_sse_vex;
 
                /* SSE/VEX */
@@ -453,6 +452,7 @@ _aaxGetSIMDSupportLevel()
                vec3dAltitudeVector = _vec3dAltitudeVector_avx;
 
                _aax_generate_waveform_float = _aax_generate_waveform_avx;
+               _batch_get_average_rms = _batch_get_average_rms_avx;
 
                _batch_cvt24_16 = _batch_cvt24_16_sse_vex;
                _batch_cvt16_24 = _batch_cvt16_24_sse_vex;

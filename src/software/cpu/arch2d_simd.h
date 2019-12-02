@@ -175,8 +175,6 @@ void _batch_roundps_sse4(void_ptr, const_void_ptr, size_t);
 
 /* AVX & SSE/VEX */
 float fast_sin_sse_vex(float);
-float* _aax_generate_waveform_avx(float32_ptr, size_t, float, float, enum wave_types);
-void _batch_get_average_rms_sse_vex(const_float32_ptr, size_t, float*, float*);
 void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
@@ -208,6 +206,9 @@ void _batch_cvt24_ps24_avx(void_ptr, const_void_ptr, size_t);
 
 void _batch_cvtps_24_avx(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_avx(void_ptr, const_void_ptr, size_t);
+
+float* _aax_generate_waveform_avx(float32_ptr, size_t, float, float, enum wave_types);
+void _batch_get_average_rms_avx(const_float32_ptr, size_t, float*, float*);
 
 /* FMA3 */
 void _batch_fmadd_fma3(float32_ptr, const_float32_ptr, size_t, float, float);

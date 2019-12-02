@@ -376,12 +376,12 @@ int main()
 
          if (simd2)
          {
-            _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD1);
+            _batch_get_average_rms = GLUE(_batch_get_average_rms, SIMD2);
 
             t = clock();
             _batch_get_average_rms(src, MAXNUM, &rms2, &peak2);
             eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-            printf("rms "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+            printf("rms "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
             if (rms1 != rms2) {
                printf(" | rms1: %f, rms2: %f - %f (%5.4f%%)\n", rms1, rms2, rms1-rms2, 100.0f*fabsf((rms1-rms2)/rms1));
             }
@@ -491,7 +491,7 @@ int main()
          t = clock();
          _aax_generate_waveform_float(dst2, MAXNUM, FREQ, PHASE, WAVE_TYPE);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("generate waveform "MKSTR(SIMD1)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         printf("generate waveform "MKSTR(SIMD2)": %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTFN("waveform "MKSTR(SIMD1), dst1, dst2, 1e-3f);
       }
 
