@@ -81,10 +81,10 @@ _batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *p
    if (!num) return;
 
    total = num;
-   stmp = (size_t)s & MEMMASK16;
+   stmp = (size_t)s & MEMMASK;
    if (stmp)
    {
-      i = (MEMALIGN16 - stmp)/sizeof(float);
+      i = (MEMALIGN - stmp)/sizeof(float);
       if (i <= num)
       {
          do
