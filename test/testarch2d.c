@@ -426,7 +426,6 @@ int main()
       cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
       printf("\nfreqfilter cpu:  %f\n", cpu*1000.0f);
 
-#if !defined(__arm__) && !defined(_M_ARM)
       if (simd)
       {
          memset(&history, 0, sizeof(history));
@@ -438,7 +437,7 @@ int main()
          printf("freqfilter %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
          TESTF("freqfilter "MKSTR(SIMD), dst1, dst2);
       }
-
+#if !defined(__arm__) && !defined(_M_ARM)
       if (simd2)
       {
          memset(&history, 0,sizeof(history));
@@ -449,6 +448,18 @@ int main()
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
          printf("freqfilter "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTF("freqfilter "MKSTR(SIMD1), dst1, dst2);
+      }
+#else
+      if (simd3)
+      {
+         memset(&history, 0,sizeof(history));
+         _batch_freqfilter_float = GLUE(_batch_freqfilter_float, FMA3);
+
+         t = clock();
+         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("freqfilter "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("freqfilter "MKSTR(FMA3), dst1, dst2);
       }
 #endif
 

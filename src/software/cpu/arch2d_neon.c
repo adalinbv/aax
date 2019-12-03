@@ -57,7 +57,15 @@ fast_sin_neon(float x)
 static inline float32x4_t
 vandq_f32(float32x4_t a, float32x4_t b)
 {
-   return (float32x4_t)vandq_s32((int32x4_t)a, (int32x4_t)b);
+   return vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(a), vreinterpretq_u32_f32(b)));
+}
+
+static inline float32x4x2_t
+vand2q_f32(float32x4x2_t a, float32x4x2_t b)
+{
+   a.val[0] = vandq_f32(a.val[0], b.val[0]);
+   a.val[1] = vandq_f32(a.val[1], b.val[1]);
+   return a;
 }
 
 static inline float
@@ -65,6 +73,12 @@ hsum_float32x4_neon(float32x4_t v)
 {
    float32x2_t r = vadd_f32(vget_high_f32(v), vget_low_f32(v));
    return vget_lane_f32(vpadd_f32(r, r), 0);
+}
+
+static inline float
+hsum_float32x4x2_neon(float32x4x2_t v)
+{
+   return hsum_float32x4_neon(vaddq_f32(v.val[0], v.val[1]));
 }
 
 static inline float32x4_t
@@ -90,11 +104,81 @@ vtestzq_f32(float32x4_t x)
    return vget_lane_u32(vpmax_u32(tmp, tmp), 0);
 }
 
-static inline float32x4_t    // range -1.0f .. 1.0f
-fast_sin4_neon(float32x4_t x)
+static inline int
+vtestz2q_f32(float32x4x2_t x)
 {
-   float32x4_t four = vdupq_n_f32(-4.0f);
-   return vmulq_f32(four, vsubq_f32(x, vmulq_f32(x, vabsq_f32(x))));
+   return (vtestzq_f32(x.val[0]) && vtestzq_f32(x.val[1]));
+}
+
+static inline float32x4x2_t
+vdup2q_n_f32(float a)
+{
+   float32x4x2_t rv;
+   rv.val[0] = rv.val[1] = vdupq_n_f32(a);
+   return rv;
+}
+
+static inline float32x4x2_t
+vadd2q_f32(float32x4x2_t a, float32x4x2_t b)
+{
+   a.val[0] = vaddq_f32(a.val[0], b.val[0]);
+   a.val[1] = vaddq_f32(a.val[1], b.val[1]);
+   return a;
+}
+
+static inline float32x4x2_t
+vsub2q_f32(float32x4x2_t a, float32x4x2_t b)
+{
+   a.val[0] = vsubq_f32(a.val[0], b.val[0]);
+   a.val[1] = vsubq_f32(a.val[1], b.val[1]);
+   return a;
+}
+
+static inline float32x4x2_t
+vmul2q_f32(float32x4x2_t a, float32x4x2_t b)
+{
+   a.val[0] = vmulq_f32(a.val[0], b.val[0]);
+   a.val[1] = vmulq_f32(a.val[1], b.val[1]);
+   return a;
+}
+
+static inline float32x4x2_t
+vdiv2q_f32(float32x4x2_t a, float32x4x2_t b)
+{
+   a.val[0] = vdivq_f32(a.val[0], b.val[0]);
+   a.val[1] = vdivq_f32(a.val[1], b.val[1]);
+   return a;
+}
+
+static inline float32x4x2_t
+vclt2q_f32(float32x4x2_t a, float32x4x2_t b)
+{
+   a.val[0] = vreinterpretq_f32_u32(vcltq_f32(a.val[0], b.val[0]));
+   a.val[1] = vreinterpretq_f32_u32(vcltq_f32(a.val[1], b.val[1]));
+   return a;
+}
+
+static inline float32x4x2_t
+vcge2q_f32(float32x4x2_t a, float32x4x2_t b)
+{
+   a.val[0] = vreinterpretq_f32_u32(vcgeq_f32(a.val[0], b.val[0]));
+   a.val[1] = vreinterpretq_f32_u32(vcgeq_f32(a.val[1], b.val[1]));
+   return a;
+}
+
+static inline float32x4x2_t
+vabs2q_f32(float32x4x2_t a)
+{
+   a.val[0] = vabsq_f32(a.val[0]);
+   a.val[1] = vabsq_f32(a.val[1]);
+   return a;
+}
+
+static inline float32x4x2_t    // range -1.0f .. 1.0f
+fast_sin8_neon(float32x4x2_t x)
+{
+   float32x4x2_t four = vdup2q_n_f32(-4.0f);
+   return vmul2q_f32(four, vsub2q_f32(x, vmul2q_f32(x, vabs2q_f32(x))));
 }
 
 float *
@@ -106,66 +190,66 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float
    }
    else if (rv)
    {
-      static const float fact[4] = { 1.0f, 2.0f, 3.0f, 4.0f };
-      float32x4_t phase4, freq4, h4;
-      float32x4_t one, two, four;
-      float32x4_t ngain, nfreq;
-      float32x4_t hdt, s;
+      static const float fact[8] = { 1.f, 2.f, 3.f, 4.f, 5.f, 6.f, 7.f, 8.f };
+      float32x4x2_t phase8, freq8, h8;
+      float32x4x2_t one, two, eight;
+      float32x4x2_t ngain, nfreq;
+      float32x4x2_t hdt, s;
       unsigned int i, h;
       float *ptr;
 
-      assert(MAX_HARMONICS % 4 == 0);
+      assert(MAX_HARMONICS % 8 == 0);
 
-      one = vdupq_n_f32(1.0f);
-      two = vdupq_n_f32(2.0f);
-      four = vdupq_n_f32(4.0f);
+      one = vdup2q_n_f32(1.0f);
+      two = vdup2q_n_f32(2.0f);
+      eight = vdup2q_n_f32(8.0f);
 
-      phase4 = vdupq_n_f32(-1.0f + phase/GMATH_PI);
-      freq4 = vdupq_n_f32(freq);
-      h4 = vld1q_f32(fact);
+      phase8 = vdup2q_n_f32(-1.0f + phase/GMATH_PI);
+      freq8 = vdup2q_n_f32(freq);
+      h8 = vld2q_f32(fact);
 
-      nfreq = vdivq_f32(freq4, h4);
-      ngain = vandq_f32((float32x4_t)vcltq_f32(two, nfreq), vld1q_f32(harmonics));
-      hdt = vdivq_f32(two, nfreq);
+      nfreq = vdiv2q_f32(freq8, h8);
+      ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics));
+      hdt = vdiv2q_f32(two, nfreq);
 
       ptr = rv;
       i = no_samples;
-      s = phase4;
+      s = phase8;
       do
       {
-         float32x4_t rv = fast_sin4_neon(s);
+         float32x4x2_t rv = fast_sin8_neon(s);
 
-         *ptr++ = hsum_float32x4_neon(vmulq_f32(ngain, rv));
+         *ptr++ = hsum_float32x4x2_neon(vmul2q_f32(ngain, rv));
 
-         s = vaddq_f32(s, hdt);
-         s = vsubq_f32(s, vandq_f32(two, (float32x4_t)vcgeq_f32(s, one)));
+         s = vadd2q_f32(s, hdt);
+         s = vsub2q_f32(s, vand2q_f32(two, vcge2q_f32(s, one)));
       }
       while (--i);
 
-      h4 = vaddq_f32(h4, four);
-      for(h=4; h<MAX_HARMONICS; h += 4)
+      h8 = vadd2q_f32(h8, eight);
+      for(h=8; h<MAX_HARMONICS; h += 8)
       {
-         nfreq = vdivq_f32(freq4, h4);
-         ngain = vandq_f32((float32x4_t)vcltq_f32(two, nfreq), vld1q_f32(harmonics+h));
-         if (vtestzq_f32(ngain))
+         nfreq = vdiv2q_f32(freq8, h8);
+         ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics+h));
+         if (vtestz2q_f32(ngain))
          {
-            hdt = vdivq_f32(two, nfreq);
+            hdt = vdiv2q_f32(two, nfreq);
 
             ptr = rv;
             i = no_samples;
-            s = phase4;
+            s = phase8;
             do
             {
-               float32x4_t rv = fast_sin4_neon(s);
+               float32x4x2_t rv = fast_sin8_neon(s);
 
-               *ptr++ += hsum_float32x4_neon(vmulq_f32(ngain, rv));
+               *ptr++ += hsum_float32x4x2_neon(vmul2q_f32(ngain, rv));
 
-               s = vaddq_f32(s, hdt);
-               s = vsubq_f32(s, vandq_f32(two, (float32x4_t)vcgeq_f32(s, one)));
+               s = vadd2q_f32(s, hdt);
+               s = vsub2q_f32(s, vand2q_f32(two, vcge2q_f32(s, one)));
             }
             while (--i);
          }
-         h4 = vaddq_f32(h4, four);
+         h8 = vadd2q_f32(h8, eight);
       }
    }
    return rv;
@@ -199,6 +283,8 @@ _batch_get_average_rms_neon(const_float32_ptr s, size_t num, float *rms, float *
          float32x4_t smp1 = vld1q_f32(s);
          float32x4_t smp2 = vld1q_f32(s+4);
          float32x4_t val1, val2;
+
+         s += step;
 
          val1 = vmulq_f32(smp1, smp1);
          val2 = vmulq_f32(smp2, smp2);
@@ -308,7 +394,7 @@ _batch_roundps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
       do
       {
          nir4 = vld4q_f32(s);
-         s += 4*4;
+         s += step;
 
          nfr4d.val[0] = vcvtq_s32_f32(nir4.val[0]);
          nfr4d.val[1] = vcvtq_s32_f32(nir4.val[1]);
@@ -359,7 +445,7 @@ _batch_cvt24_ps24_neon(void_ptr dst, const_void_ptr src, size_t num)
       do
       {
          nir4 = vld4q_f32(s);
-         s += 4*4;
+         s += step;
 
          nfr4d.val[0] = vcvtq_s32_f32(nir4.val[0]);
          nfr4d.val[1] = vcvtq_s32_f32(nir4.val[1]);
@@ -878,6 +964,88 @@ _batch_fmul_value_neon(void* dptr, const void* sptr, unsigned bps, size_t num, f
       default:
          break;
       }
+   }
+}
+
+void
+_batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
+{
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_float32_ptr s = sptr;
+
+   if (num)
+   {
+      float k, *cptr, *hist;
+      float smp, h0, h1;
+      int stage;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
+      if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      do
+      {
+         float32_ptr d = dptr;
+         float c0, c1, c2, c3;
+         size_t i = num;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         c0 = *cptr++;
+         c1 = *cptr++;
+         c2 = *cptr++;
+         c3 = *cptr++;
+
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            do
+            {
+               smp = (*s++ * k) + h0 * c0 + h1 * c1;
+               *d++ = smp       + h0 * c2 + h1 * c3;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+
+         *hist++ = h0;
+         *hist++ = h1;
+         k = 1.0f;
+         s = dptr;
+      }
+      while (--stage);
    }
 }
 
