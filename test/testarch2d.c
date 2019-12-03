@@ -171,6 +171,7 @@ int main()
          printf("fadd "MKSTR(SIMD2)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTF("float fadd "MKSTR(SIMD2), dst1, dst2);
       }
+#if defined(__x86_64__)
       if (simd3)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -183,6 +184,7 @@ int main()
          printf("fadd "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTF("fadd "MKSTR(FMA3), dst1, dst2);
       }
+#endif
 
       /*
        * batch fmadd by a value
