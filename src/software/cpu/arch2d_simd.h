@@ -135,7 +135,6 @@ void _batch_cvtpd_intl_24_cpu(void_ptr, const_int32_ptrptr, size_t, unsigned int
 /* SSE2*/
 float fast_sin_sse2(float);
 float* _aax_generate_waveform_sse2(float32_ptr, size_t, float, float, enum wave_types);
-void* _aax_memcpy_sse2(void_ptr, const_void_ptr, size_t);
 
 void _batch_get_average_rms_sse2(const_float32_ptr, size_t, float*, float*);
 void _batch_saturate24_sse2(void*, size_t);
@@ -193,7 +192,6 @@ void _batch_cvt24_16_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_24_sse_vex(void_ptr, const_void_ptr, size_t);
 void _batch_cvt16_intl_24_sse_vex(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
-void* _aax_memcpy_avx(void_ptr, const_void_ptr, size_t);
 void _batch_fmul_value_avx(void*, const void*, unsigned, size_t, float);
 void _batch_fadd_avx(float32_ptr, const_float32_ptr, size_t);
 // void _batch_hmadd_avx(float32_ptr, const_float16_ptr, size_t, float, float);

@@ -48,7 +48,8 @@ extern "C" {
 # define SIMD_PREFIX
 #endif
 
-typedef void* (*_aax_memcpy_proc)(void_ptr, const void*, size_t);
+#define _aax_memcpy	memcpy
+
 typedef char* (*_aax_calloc_proc)(char**, size_t, size_t, size_t);
 typedef char* (*_aax_malloc_proc)(char**, size_t, size_t);
 typedef void (*_aax_free_proc)(void*);
@@ -85,7 +86,6 @@ extern _aax_aligned_free_proc _aax_aligned_free;
 extern _aax_calloc_proc _aax_calloc;
 extern _aax_malloc_proc _aax_malloc;
 extern _aax_free_proc _aax_free;
-extern _aax_memcpy_proc _aax_memcpy;
 extern char* _aax_strdup(const_char_ptr);
 
 extern _batch_mul_value_proc _batch_imul_value;

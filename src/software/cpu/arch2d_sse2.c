@@ -828,14 +828,13 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    }
    stmp = (size_t)s & MEMMASK16;
 
-   step = 2*sizeof(__m128)/sizeof(float);
+   step = 1*sizeof(__m128)/sizeof(float);
    i = num/step;
    if (i)
    {
       __m128* sptr = (__m128*)s;
       __m128 *dptr = (__m128*)d;
-      __m128 xmm0, xmm1;
-      __m128 xmm2, xmm3;
+      __m128 xmm0, xmm2;
 
       num -= i*step;
       s += i*step;
@@ -845,16 +844,9 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
          do
          {
             xmm0 = _mm_loadu_ps((const float*)sptr++);
-            xmm1 = _mm_loadu_ps((const float*)sptr++);
-
             xmm2 = _mm_load_ps((const float*)(dptr+0));
-            xmm3 = _mm_load_ps((const float*)(dptr+1));
-
             xmm0 = _mm_add_ps(xmm0, xmm2);
-            xmm1 = _mm_add_ps(xmm1, xmm3);
-
             _mm_store_ps((float*)dptr++, xmm0);
-            _mm_store_ps((float*)dptr++, xmm1);
          }
          while(--i);
       }
@@ -863,16 +855,9 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
          do
          {
             xmm0 = _mm_load_ps((const float*)sptr++);
-            xmm1 = _mm_load_ps((const float*)sptr++);
-
             xmm2 = _mm_load_ps((const float*)(dptr+0));
-            xmm3 = _mm_load_ps((const float*)(dptr+1));
-
             xmm0 = _mm_add_ps(xmm0, xmm2);
-            xmm1 = _mm_add_ps(xmm1, xmm3);
-
             _mm_store_ps((float*)dptr++, xmm0);
-            _mm_store_ps((float*)dptr++, xmm1);
          }
          while(--i);
       }
@@ -916,7 +901,7 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
          }
       }
 
-      step = 3*sizeof(__m128)/sizeof(float);
+      step = 1*sizeof(__m128)/sizeof(float);
 
       i = num/step;
       if (i)
@@ -924,7 +909,7 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
          __m128* sptr = (__m128*)s;
          __m128* dptr = (__m128*)d;
          __m128 tv = _mm_set1_ps(f);
-         __m128 xmm0, xmm1, xmm2;
+         __m128 xmm0;
 
          num -= i*step;
          s += i*step;
@@ -934,16 +919,8 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
             do
             {
                xmm0 = _mm_loadu_ps((const float*)(sptr++));
-               xmm1 = _mm_loadu_ps((const float*)(sptr++));
-               xmm2 = _mm_loadu_ps((const float*)(sptr++));
-
                xmm0 = _mm_mul_ps(xmm0, tv);
-               xmm1 = _mm_mul_ps(xmm1, tv);
-               xmm2 = _mm_mul_ps(xmm2, tv);
-
                _mm_store_ps((float*)dptr++, xmm0);
-               _mm_store_ps((float*)dptr++, xmm1);
-               _mm_store_ps((float*)dptr++, xmm2);
             }
             while(--i);
          }
@@ -952,16 +929,8 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
             do
             {
                xmm0 = _mm_load_ps((const float*)(sptr++));
-               xmm1 = _mm_load_ps((const float*)(sptr++));
-               xmm2 = _mm_load_ps((const float*)(sptr++));
-
                xmm0 = _mm_mul_ps(xmm0, tv);
-               xmm1 = _mm_mul_ps(xmm1, tv);
-               xmm2 = _mm_mul_ps(xmm2, tv);
-
                _mm_store_ps((float*)dptr++, xmm0);
-               _mm_store_ps((float*)dptr++, xmm1);
-               _mm_store_ps((float*)dptr++, xmm2);
             }
             while(--i);
          }
@@ -1590,7 +1559,6 @@ _batch_freqfilter_sse2(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, 
    }
 }
 
-// https://software.intel.com/en-us/articles/practical-intel-avx-optimization-on-2nd-generation-intel-core-processors
 void
 _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
 {
@@ -1738,104 +1706,6 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
    }
 }
 
-
-/*
- * optimized memcpy for 16-byte aligned destination buffer
- * fall back tobuildt-in  memcpy otherwise.
- */
-void *
-_aax_memcpy_sse2(void_ptr dst, const_void_ptr src, size_t num)
-{
-   size_t i, step;
-   char *d = (char*)dst;
-   char *s = (char*)src;
-   size_t tmp;
-
-   if (!num) return dst;
-
-   /*
-    * work towards a 16-byte aligned dptr and possibly sptr
-    */
-   tmp = (size_t)d & MEMMASK16;
-   if (tmp)
-   {
-      i = (MEMALIGN16 - tmp);
-      num -= i;
-
-      memcpy(d, s, i);
-      d += i;
-      s += i;
-   }
-
-   step = 8*sizeof(__m128i)/sizeof(int8_t);
-
-   i = num/step;
-   if (i)
-   {
-      __m128i xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
-      __m128i *sptr = (__m128i*)s;
-      __m128i *dptr = (__m128i*)d;
-
-      tmp = (size_t)s & MEMMASK16;
-      num -= i*step;
-      s += i*step;
-      d += i*step;
-      if (tmp)
-      {
-         do
-         {
-            xmm0 = _mm_loadu_si128(sptr++);
-            xmm1 = _mm_loadu_si128(sptr++);
-            xmm2 = _mm_loadu_si128(sptr++);
-            xmm3 = _mm_loadu_si128(sptr++);
-            xmm4 = _mm_loadu_si128(sptr++);
-            xmm5 = _mm_loadu_si128(sptr++);
-            xmm6 = _mm_loadu_si128(sptr++);
-            xmm7 = _mm_loadu_si128(sptr++);
-
-            _mm_store_si128(dptr++, xmm0);
-            _mm_store_si128(dptr++, xmm1);
-            _mm_store_si128(dptr++, xmm2);
-            _mm_store_si128(dptr++, xmm3);
-            _mm_store_si128(dptr++, xmm4);
-            _mm_store_si128(dptr++, xmm5);
-            _mm_store_si128(dptr++, xmm6);
-            _mm_store_si128(dptr++, xmm7);
-         }
-         while(--i);
-      }
-      else	/* both buffers are 16-byte aligned */
-      {
-         do
-         {
-            xmm0 = _mm_load_si128(sptr++);
-            xmm1 = _mm_load_si128(sptr++);
-            xmm2 = _mm_load_si128(sptr++);
-            xmm3 = _mm_load_si128(sptr++);
-            xmm4 = _mm_load_si128(sptr++);
-            xmm5 = _mm_load_si128(sptr++);
-            xmm6 = _mm_load_si128(sptr++);
-            xmm7 = _mm_load_si128(sptr++);
-
-            _mm_store_si128(dptr++, xmm0);
-            _mm_store_si128(dptr++, xmm1);
-            _mm_store_si128(dptr++, xmm2);
-            _mm_store_si128(dptr++, xmm3);
-            _mm_store_si128(dptr++, xmm4);
-            _mm_store_si128(dptr++, xmm5);
-            _mm_store_si128(dptr++, xmm6);
-            _mm_store_si128(dptr++, xmm7);
-         }
-         while(--i);
-      }
-   }
-
-   if (num) {
-      memcpy(d, s, num);
-   }
-
-   return dst;
-}
 
 #if !RB_FLOAT_DATA
 static inline void

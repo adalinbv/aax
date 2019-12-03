@@ -40,7 +40,6 @@
 #include "cpu/arch3d_simd.h"
 #include "audio.h"
 
-_aax_memcpy_proc _aax_memcpy = (_aax_memcpy_proc)memcpy;
 _aax_free_proc _aax_free = (_aax_free_proc)_aax_free_aligned;
 _aax_calloc_proc _aax_calloc = (_aax_calloc_proc)_aax_calloc_aligned;
 _aax_malloc_proc _aax_malloc = (_aax_malloc_proc)_aax_malloc_aligned;
