@@ -458,6 +458,7 @@ _aaxGetSIMDSupportLevel()
                _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
                _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
 
+               _batch_roundps = _batch_roundps_sse_vex;
 #   if RB_FLOAT_DATA
                _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;
                _batch_freqfilter_float = _batch_freqfilter_float_sse_vex;

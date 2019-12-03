@@ -348,6 +348,17 @@ int main()
          printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD4), eps*1000.0f, cpu/eps);
          TESTF("round "MKSTR(SIMD4), dst1, dst2);
       }
+      if (simd2)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         _batch_roundps = GLUE(_batch_roundps, SIMD1);
+
+         t = clock();
+         _batch_roundps(dst2, dst2, MAXNUM);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
+         TESTF("round "MKSTR(SIMD1), dst1, dst2);
+      }
 
       /*
        * batch RMS calulculation
