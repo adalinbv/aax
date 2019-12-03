@@ -361,7 +361,7 @@ else(MSVC)
        )
      elseif(ARM)
        message("Build environment: ARM")
-       set(C_FLAGS "${C_FLAGS} -march=armv5 -marm -DARCH32=1")
+       set(C_FLAGS "${C_FLAGS} -march=armv6 -marm -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch3d_vfpv2.c APPEND
                     PROPERTY COMPILE_FLAGS "-mfpu=vfp -mfloat-abi=hard -O3 -D__ARM_VFPV2 -ftree-vectorize -ftree-slp-vectorize"
        )
