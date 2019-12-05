@@ -86,7 +86,7 @@ _flac_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
    int rv = AAX_FALSE;
 
-#if 1
+#if 0
    if (mode == 0) {
       rv = AAX_TRUE;
    }
