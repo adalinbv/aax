@@ -86,7 +86,7 @@ _flac_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 {
    int rv = AAX_FALSE;
 
-#if 0
+#if 1
    if (mode == 0) {
       rv = AAX_TRUE;
    }
@@ -136,11 +136,11 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
                   if (fsize > 0) {	// file
                      handle->id = drflac_open(_flac_callback_read,
                                               _flac_callback_seek,
-                                              handle);
+                                              handle, NULL);
                   } else {		// internet stream
                      handle->id = drflac_open_relaxed(_flac_callback_read,
                                                       _flac_callback_seek,
-                                                      type, handle);
+                                                      type, handle, NULL);
                   }
 
                   if (handle->id)
