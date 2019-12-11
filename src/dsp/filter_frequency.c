@@ -1043,8 +1043,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       }
    }
 
-   if ((filter->type == LOWPASS && filter->fc > MINIMUM_CUTOFF) ||
-       (filter->type == HIGHPASS && filter->fc < MAXIMUM_CUTOFF))
+// if ((filter->type == LOWPASS && filter->fc > MINIMUM_CUTOFF) ||
+//     (filter->type == HIGHPASS && filter->fc < MAXIMUM_CUTOFF))
    {
       CONST_MIX_PTR_T sptr = s - ds;
       MIX_T *dptr = d - ds;

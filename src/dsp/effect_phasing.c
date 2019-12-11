@@ -630,8 +630,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          if (flt && ((flt->type == LOWPASS && flt->fc < MAXIMUM_CUTOFF) ||
                      (flt->type == HIGHPASS && flt->fc > MINIMUM_CUTOFF)))
          {
-            if ((flt->type == LOWPASS && flt->fc > MINIMUM_CUTOFF) ||
-                (flt->type == HIGHPASS && flt->fc < MAXIMUM_CUTOFF))
+//          if ((flt->type == LOWPASS && flt->fc > MINIMUM_CUTOFF) ||
+//              (flt->type == HIGHPASS && flt->fc < MAXIMUM_CUTOFF))
             {
                flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
                rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
