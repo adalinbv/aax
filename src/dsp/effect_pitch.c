@@ -89,20 +89,17 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
       if (env)
       {
          float nextval = effect->slot[0]->param[AAX_PITCH];
-         float value = effect->slot[0]->param[AAX_PITCH_START];
+         float value = effect->slot[0]->param[AAX_PITCH_START]/nextval;
          float period = effect->info->period_rate;
          uint32_t max_pos;
-         float dt;
 
          env->max_stages = 1;
          env->sustain = AAX_TRUE;
          env->value0 = 1.0f;
          env->value = value;
 
-         dt = pitch_slide*fabsf(1.0f - value/nextval);
-         max_pos = rintf(dt * period);
-
-         env->step[0] = (nextval - value)/max_pos;
+         max_pos = rintf(pitch_slide * period);
+         env->step[0] = (1.0f - value)/max_pos;
          env->max_pos[0] = max_pos;
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
