@@ -112,7 +112,6 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
             }
 
             nextval = effect->slot[i]->param[AAX_LEVEL1];
-            if (nextval == 0.0f) nextval = -1e-2f;
             env->step[stage] = (nextval - value)/max_pos;
             env->max_pos[stage] = max_pos;
             stage++;
@@ -132,7 +131,6 @@ _aaxTimedPitchEffectSetState(_effect_t* effect, int state)
 
             value = nextval;
             nextval = (i < 2) ? effect->slot[i+1]->param[AAX_LEVEL0] : 0.0f;
-            if (nextval == 0.0f) nextval = -1e-2f;
             env->step[stage] = (nextval - value)/max_pos;
             env->max_pos[stage] = max_pos;
             stage++;

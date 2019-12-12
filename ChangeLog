@@ -1,3 +1,11 @@
+* Wed Dec 11 2019 - tech@adalin.org
+- AeonWave (3.7.4) stable; urgency=low
+
+ * Fix pitch-slide timing problems.
+
+-- Erik Hofman <tech@adalin.org>  Wed 11 Dec 2019 15:24:31 + 0100
+
+
 * Tue Dec 03 2019 - tech@adalin.org
 - AeonWave (3.7.3) stable; urgency=low
 
