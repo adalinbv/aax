@@ -76,6 +76,21 @@ _aaxFrequencyFilterReset(void *data)
 {
    _aaxRingBufferFreqFilterData *flt = data;
    _lfo_reset(flt->lfo);
+   if (flt->random)
+   {
+      float lfc2 = _lin2log(flt->fc_high);
+      float lfc1 = _lin2log(flt->fc_low);
+      float fc;
+
+      lfc1 += (lfc2 - lfc1)*_aax_random();
+      fc = _log2lin(lfc1);
+
+      if (flt->state == AAX_BESSEL) {
+          _aax_bessel_compute(fc, flt);
+      } else {
+         _aax_butterworth_compute(fc, flt);
+      }
+   }
 }
 
 static aaxFilter
@@ -172,6 +187,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
             float fc2 = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
             float lfc2 = _lin2log(fc2);
             float lfc1 = _lin2log(fc);
+
+            flt->fc_low = fc;
+            flt->fc_high = fc2;
+            flt->random = 1;
 
             lfc1 += (lfc2 - lfc1)*_aax_random();
             fc = _log2lin(lfc1);

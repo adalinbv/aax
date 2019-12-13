@@ -146,10 +146,13 @@ typedef ALIGN16 struct {
 typedef ALIGN16 struct
 {
    float coeff[4*_AAX_MAX_STAGES];
-   float Q, k, fs, fc, high_gain, low_gain;
+   float high_gain, low_gain;
+   float fc_low, fc_high;
+   float Q, k, fs, fc;
 
    unsigned int state;
    unsigned char no_stages;
+   unsigned char random;
    signed char type;
 
    _aaxLFOData *lfo;
