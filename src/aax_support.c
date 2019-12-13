@@ -545,6 +545,8 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_SAWTOOTH_WAVE;
             } else if (!strncasecmp(name, "timed", len)) {
                rv |= AAX_TIMED_TRANSITION;
+            } else if (!strncasecmp(name, "random", len)) {
+               rv |= AAX_RANDOM_SELECT;
             } else if (!strncasecmp(name, "envelope", len)) {
                rv |= AAX_ENVELOPE_FOLLOW;
             } else if (!strncasecmp(name, "true", len) ||

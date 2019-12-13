@@ -29,6 +29,7 @@
 
 #include <base/types.h>		/* for rintf */
 #include <base/gmath.h>
+#include <base/random.h>
 
 #include <software/rbuf_int.h>
 
@@ -93,26 +94,27 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
 
-   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL);
+   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT);
    if (istate == 0) istate = AAX_12DB_OCT;
    wstate = istate & mask;
 
-   if (wstate == AAX_6DB_OCT         ||
-       wstate == AAX_12DB_OCT        ||
-       wstate == AAX_24DB_OCT        ||
-       wstate == AAX_36DB_OCT        ||
-       wstate == AAX_48DB_OCT        ||
-       wstate == AAX_TRIANGLE_WAVE   ||
-       wstate == AAX_SINE_WAVE       ||
-       wstate == AAX_SQUARE_WAVE     ||
-       wstate == AAX_IMPULSE_WAVE    ||
-       wstate == AAX_SAWTOOTH_WAVE   ||
-       wstate == AAX_TIMED_TRANSITION||
-       wstate == AAX_ENVELOPE_FOLLOW ||
-       istate == AAX_6DB_OCT         ||
-       istate == AAX_12DB_OCT        ||
-       istate == AAX_24DB_OCT        ||
-       istate == AAX_36DB_OCT        ||
+   if (wstate == AAX_6DB_OCT          ||
+       wstate == AAX_12DB_OCT         ||
+       wstate == AAX_24DB_OCT         ||
+       wstate == AAX_36DB_OCT         ||
+       wstate == AAX_48DB_OCT         ||
+       wstate == AAX_TRIANGLE_WAVE    ||
+       wstate == AAX_SINE_WAVE        ||
+       wstate == AAX_SQUARE_WAVE      ||
+       wstate == AAX_IMPULSE_WAVE     ||
+       wstate == AAX_SAWTOOTH_WAVE    ||
+       wstate == AAX_TIMED_TRANSITION ||
+       wstate == AAX_ENVELOPE_FOLLOW  ||
+       istate == AAX_RANDOM_SELECT    ||
+       istate == AAX_6DB_OCT          ||
+       istate == AAX_12DB_OCT         ||
+       istate == AAX_24DB_OCT         ||
+       istate == AAX_36DB_OCT         ||
        istate == AAX_48DB_OCT)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
@@ -165,6 +167,16 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
          fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+         if (state & AAX_RANDOM_SELECT)
+         {
+            float fc2 = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+            float lfc2 = _lin2log(fc2);
+            float lfc1 = _lin2log(fc);
+
+            lfc1 += (lfc2 - lfc1)*_aax_random();
+            fc = _log2lin(lfc1);
+        }
+
          if (flt->state == AAX_BESSEL) {
              _aax_bessel_compute(fc, flt);
          }
