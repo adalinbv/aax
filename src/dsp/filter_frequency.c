@@ -76,7 +76,7 @@ _aaxFrequencyFilterReset(void *data)
 {
    _aaxRingBufferFreqFilterData *flt = data;
    _lfo_reset(flt->lfo);
-   if (flt->random)
+   if (0) // flt->random)
    {
       float lfc2 = _lin2log(flt->fc_high);
       float lfc1 = _lin2log(flt->fc_low);
@@ -104,7 +104,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    assert(filter->info);
 
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
-          AAX_SAWTOOTH_WAVE | AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW;
+          AAX_SAWTOOTH_WAVE | AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
@@ -125,6 +125,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_SAWTOOTH_WAVE    ||
        wstate == AAX_TIMED_TRANSITION ||
        wstate == AAX_ENVELOPE_FOLLOW  ||
+       wstate == AAX_ENVELOPE_FOLLOW_OLD||
        istate == AAX_RANDOM_SELECT    ||
        istate == AAX_6DB_OCT          ||
        istate == AAX_12DB_OCT         ||

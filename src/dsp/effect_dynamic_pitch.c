@@ -88,6 +88,7 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
    case AAX_ENVELOPE_FOLLOW:
+   case AAX_ENVELOPE_FOLLOW_OLD:
    {
       _aaxLFOData* lfo = effect->slot[0]->data;
       if (lfo == NULL) {

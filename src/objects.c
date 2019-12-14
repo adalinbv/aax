@@ -548,16 +548,14 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
             if (xmlAttributeExists(xid, "repeat"))
             {
                if (!xmlAttributeCompareString(xid, "repeat", "inf") ||
-                   !xmlAttributeCompareString(xid, "repeat", "max")) {
-                  state = (AAX_REPEAT-1) & ~AAX_ENVELOPE_FOLLOW;
+                   !xmlAttributeCompareString(xid, "repeat", "max"))
+               {
+                  state = AAX_MAX_REPEAT;
                }
                else
                {
                   state = xmlAttributeGetInt(xid, "repeat");
-                  if (state < 0) state = 0;
-                  else if (state >= AAX_REPEAT) {
-                     state = (AAX_REPEAT-1) & ~AAX_ENVELOPE_FOLLOW;
-                  }
+                  state = _MINMAX(state, 0, AAX_MAX_REPEAT);
                }
                state |= AAX_REPEAT;
             }
@@ -575,7 +573,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
             if (release_factor != 1.0f)
             {
                state = 10.0f*release_factor;
-               if (state >= AAX_ENVELOPE_FOLLOW) state = AAX_ENVELOPE_FOLLOW-1;
+               if (state >= AAX_ENVELOPE_FOLLOW_OLD) state = AAX_ENVELOPE_FOLLOW_OLD-1;
                else if (state < 1) state = 0;
                state |= AAX_RELEASE_FACTOR;
             }

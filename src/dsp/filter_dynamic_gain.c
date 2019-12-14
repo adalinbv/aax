@@ -89,6 +89,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
    case AAX_ENVELOPE_FOLLOW:
+   case AAX_ENVELOPE_FOLLOW_OLD:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
@@ -148,7 +149,8 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
             lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-            if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
+            if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
+                (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_OLD)
             {
                lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
                lfo->max_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs + lfo->min_sec;

@@ -102,6 +102,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
+   case AAX_ENVELOPE_FOLLOW_OLD:
    {
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)
@@ -155,7 +156,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          memcpy(&bitcrush->env, &bitcrush->lfo, sizeof(_aaxLFOData));
 
          bitcrush->env.convert = _linear;
-         bitcrush->env.state = state & (AAX_INVERSE|AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW);
+         bitcrush->env.state = state & (AAX_INVERSE|AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_MASK);
          bitcrush->env.fs = fs;
          bitcrush->env.period_rate = filter->info->period_rate;
          bitcrush->env.stereo_lnk = !stereo;

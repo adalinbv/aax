@@ -91,6 +91,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
+   case AAX_ENVELOPE_FOLLOW_OLD:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
 

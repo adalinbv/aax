@@ -128,6 +128,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          lfo->get = _aaxLFOGetSawtooth;
          break;
       case AAX_ENVELOPE_FOLLOW:
+      case AAX_ENVELOPE_FOLLOW_OLD:
          lfo->get = _aaxLFOGetGainFollow;
          lfo->envelope = AAX_TRUE;
          break;
@@ -200,6 +201,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->step[t] *= 0.5f;
             break;
          case AAX_ENVELOPE_FOLLOW:
+         case AAX_ENVELOPE_FOLLOW_OLD:
          {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
             lfo->value0[t] = 0.0f;
@@ -591,7 +593,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          float step = env->step[stage];
          float fact = 1.0f;
 
-         if (fabsf(step) > LEVEL_128DB && env->state & AAX_ENVELOPE_FOLLOW)
+         if (fabsf(step) > LEVEL_128DB && env->state & AAX_ENVELOPE_FOLLOW_MASK)
          {
              if (rv > 1.0f) {
                 fact = _MIN(powf(rv, GMATH_E1), GMATH_E1);
