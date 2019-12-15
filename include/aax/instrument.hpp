@@ -195,13 +195,13 @@ public:
         tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
         tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_HF_GAIN);
         tie(filter_state, AAX_FREQUENCY_FILTER);
-#if 0
+
         tie(reverb_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
         tie(reverb_delay_depth, AAX_REVERB_EFFECT, AAX_DELAY_DEPTH);
         tie(reverb_decay_depth, AAX_REVERB_EFFECT, AAX_DECAY_DEPTH);
         tie(reverb_cutoff_frequency, AAX_REVERB_EFFECT, AAX_CUTOFF_FREQUENCY);
-//      tie(reverb_state, AAX_REVERB_EFFECT);
-#endif
+        tie(reverb_state, AAX_REVERB_EFFECT);
+
         Mixer::matrix(mtx);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
@@ -228,13 +228,11 @@ public:
         i1.chorus_level = std::move(i2.chorus_level);
         i1.chorus_depth = std::move(i2.chorus_depth);
         i1.chorus_state = std::move(i2.chorus_state);
-#if 0
         i1.reverb_level = std::move(i2.reverb_level);
         i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
         i1.reverb_decay_depth = std::move(i2.reverb_decay_depth);
         i1.reverb_cutoff_frequency = std::move(i2.reverb_cutoff_frequency);
         i1.reverb_state = std::move(i2.reverb_state);
-#endif
         i1.attack_time = std::move(i2.attack_time);
         i1.release_time = std::move(i2.release_time);
         i1.decay_time = std::move(i2.decay_time);
@@ -425,12 +423,10 @@ public:
     // Each Channel must have its own adjustable send levels to the chorus
     // and the reverb. A connection from chorus to reverb must be provided.
     void set_reverb_level(float lvl) {
-#if 0
         if (lvl > 1e-5f) {
             reverb_level = lvl;
-            if (!reverb_state) reverb_state = AAX_TRUE;
+            if (!reverb_state) reverb_state = AAX_REVERB_REFLECTIONS;
         } else if (reverb_state) reverb_state = AAX_FALSE;
-#endif
     }
 
     void set_chorus_level(float lvl) {
@@ -487,13 +483,12 @@ private:
     Param filter_resonance = 1.0f;
     Param filter_state = AAX_FALSE;
 
-#if 0
     Param reverb_level = 40.0f/127.0f;
     Param reverb_delay_depth = 0.035f;
     Param reverb_decay_depth = 0.15f;
     Param reverb_cutoff_frequency = 790.0f;
     Status reverb_state = AAX_FALSE;
-#endif
+
     unsigned attack_time = 64;
     unsigned release_time = 64;
     unsigned decay_time = 64;

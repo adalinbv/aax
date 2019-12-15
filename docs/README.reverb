@@ -1,0 +1,96 @@
+https://christianfloisand.wordpress.com/2012/09/04/digital-reverberation/
+---
+Digital Reverberation
+
+In continuing to explore the many areas of digital signal processing, reverb has cropped up many times as an area of great interest, so I’ve decided to dedicate a series of future posts on this topic.  I’m going to start at the beginning, looking at Schroeder’s design, the first digital reverberator solution, and proceed forward looking at how it’s design was improved upon by Moorer, leading eventually to Feedback Delay Networks (FDN) and other types of artificial reverbs.  All of these stages will include actual implementation, with code/algorithms, and possibly some plug-ins as a result.  However, my goal is not to develop any kind of high-end, competetive product at this point, as some commercial reverb algorithms are closely guarded secrets.  Moreover, digital reverb remains as one of the foremost challenges in DSP.  This process will, however, provide greater understanding of digital audio in addition to honing my skills in DSP coding and design.
+
+Reverberation is of course just a dense series of echoes.  There is also a loss of energy in particular frequency ranges that depend on the material the sound bounces off of.  When all the complexities of natural reverb are accounted for, calculations to simulate this reach into the hundreds of billions or more per second!  Human ears cannot fully perceive the full compelxity of natural reverb, however, so this makes the calculations required much more manageable for many reverb designs (convolution is still very computationally expensive, though).
+
+One of the fundamental building blocks of digital reverb is the comb filter, which Schroeder used in his design.  It circulates a signal through a delay line, adding the delayed version, scaled with a constant, g, to the original.
+
+The constant g is given by the formula: g = 0.001*tau/RVT,
+
+where tau is the delay time, or loop time, of the comb filter and RVT is the reverb time desired, which is defined as the time it takes for the delayed signal to reach -60dB (considered silence).
+
+When analyzing the impulse response of natural reverberation, however, we see many dense series of echoes that are not equally spaced out with apparently random amplitudes.  Additionally, the echoes become more diffuse as the amplitudes decrease as the delayed signals build up in the space.  This leads to one of the most important properties of good reverb design, which is the diffusion of the delayed signal’s echoes — in other words it would be unnatural to hear individual pulses as the signal becomes reverberated.  Schroeder proposed the use of four comb filters (in parallel) as one of his solutions to this problem, each with it’s own distinct loop time.  To further ensure the diffusion of echoes, the four loop times should be relatively prime, otherwise the delayed signals would match up too frequently in phase to create a pumping or puffing sound, especially noticeable in the decay.
+
+Another important property of reverb is for the decay to be exponential.  This is satisfied by the comb filter, as can be seen in the above diagram, whereby the impulse response will start out at 1 (assuming an impulse at amplitude 1) and then subsequently being scaled by g, then g2, g3, etc.
+
+To further thicken up the sound of his reverberator, Schroeder fed the summed signals from the four comb filters through two all-pass filters in series.  These filters allow all frequencies to pass, but alter the phase of varying frequencies.  Their design is very much like a comb filter but with a feed-forward section, as can be seen below.
+
+The two all-pass filters Schroeder uses also have their own unique loop times just as the comb filters. Unlike the comb filters, however, the reverb time specified for the all-pass filters are different because their purpose is to thicken and diffuse the echoes of the signal, not to apply additional reverberation.
+
+Schroeder accompanied his design with suggested values to simulate a concert hall.  These values are given below (source: Dodge & Jerse, “Computer Music”, pg. 301):
+
+Element		RVT		tau
+----------------------------------------
+CombFilter 1	RVT		29.7msec
+CombFilter 2	RVT		31.7msec
+CombFilter 3	RVT		41.1msec
+CombFilter 4	RVT		43.7msec
+AllPassFilter 1	96.83msec	 5.0msec
+AllPassFilter 1 32.92msec	 1.7msec
+
+The RVT value of the comb filters is variable and can be specified by the user, but is normally around the order of 1.o second.
+
+The actual implementation of these two filters is fairly straightforward in C++.  The code is given below:
+
+// Code implementing a comb filter
+void CombFilter::pllProcessCombFilterS(const float *input, float *output, size samples)
+{
+   float outL, outR;
+
+   for (int i=0; i<(samples*2); i+=2)
+   {
+      outL = delayBufferL[pos];
+      outR = delayBufferR[pos];
+
+      delayBufferL[pos] = input[i] + outL*g;
+      delayBufferR[pos] = input[i+1] + outR*g;
+
+      output[i] = outL;
+      output[i+1] = outR;
+
+      // increment position cursor for delayBuffers
+      incrPos();
+   }
+}
+
+// Code implementing an all-pass filter
+void CombFilter::serProcessPFilterS(float *input, size samples)
+{
+   float outL, outR;
+
+   for (int i=0; i<(samples*2); i+=2)
+   {
+      outL = delayBufferL[pos];
+      outR = delayBufferR[pos];
+      
+      delayBufferL[pos] = input[i] + outL*g;
+      delayBufferR[pos] = input[i+1] + outR*g;
+
+      input[i] = outL + -g*input[i];
+      input[i+1] = outR + -g*input[i+1];
+
+      // increment position cursor for delayBuffers
+      incrPos();
+   }
+}
+
+================================================================================
+http://community.axoloti.com/t/allpass-filters-and-comb-filters/3222/3
+-----
+Regarding artificial reverberation:
+
+It is important to understand that a real room has an exponential decay, but the allpass doesn't. So allpasses alone are not good as a reverb. Interestingly, the comb filter has a exponential decay so it would work as a reverb. But it has the ringing that sounds very metallic and unnatural. To resolve this issue, you can combine the two:
+
+You take a single comb filter and make the delay so long that the valleys and peaks in the "comb" of the frequency response become so wide that all audible frequencies basically sit on the same peak - that means that the frequency response will be basically flat for all audible frequencies. Now the ringing is gone. Note that such a comb filter will have a delay time long enough that individual echos are audible. Basically it is nothing else than a echo delay effect.
+However, in a reverb, you don't want to hear individual echos, so you add an allpass filter into the signal chain (considering the image of the comb from the top of my post, you would add the allpass right after the z^-m delay, before the signal goes to the output). The allpass will smear and blur the audio so that transients will be spread out and the individual echos become hardly noticable.
+The resulting sound of this "allpass in a comb with a long delay time"-structure will have the exponential decay from the comb combined with the blurring of the allpass.
+
+To my knowledge, many algorithmic reverbs are based on this structure. A simple delay (or a network of interconnected delays) creates the exponential decay of the room without ringing and allpasses are inserted to blur out the transients. Sometimes additional allpasses are added to the input of the reverb as well. There is a lot of creative freedom. The allpasses can be left out for a more grainy reverb - you will find this option in the form of a "diffusion" knob on many reverb processors.
+
+Allpasses
+
+On the other hand, the schroeder allpass is constructed from two comb filters16, one feedback comb and one feedforward comb:
+https://ccrma.stanford.edu/~jos/pasp/Allpass_Two_Combs.html

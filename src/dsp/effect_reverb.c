@@ -47,8 +47,8 @@ static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(_aaxRingBufferReverbData*);
 static void _reverb_add_reflections(void*, float, unsigned int, float, int);
 static void _reverb_add_reverb(void**, float, unsigned int, float, float);
-static int _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
-static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char);
+static int _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char, int);
+static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char, int);
 
 
 static aaxEffect
@@ -89,7 +89,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
    switch (state & ~AAX_INVERSE)
    {
-   case AAX_CONSTANT_VALUE:
+   case AAX_TRUE:
+   case AAX_REVERB_REFLECTIONS:
+   case AAX_REVERB_LOOPBACKS:
    {
       unsigned int tracks = effect->info->no_tracks;
       float lb_depth, lb_gain;
@@ -135,7 +137,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             float dfact;
 
             /* set up a frequency filter between 100Hz and 15000Hz
-             * for the refelctions. The lower the cut-off frequency,
+             * for the reflections. The lower the cut-off frequency,
              * the more the low frequencies get exaggerated.
              *
              * low: 100Hz/1.75*gain .. 15000Hz/1.0*gain
@@ -162,6 +164,10 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
             _aax_butterworth_compute(reverb->fc, flt);
          }
 
+         if ((state & ~AAX_INVERSE) == AAX_TRUE) {
+            state = (AAX_REVERB_REFLECTIONS | AAX_REVERB_LOOPBACKS);
+         }
+         reverb->state = state;
          reverb->info = effect->info;
          reverb->freq_filter = flt;
          reverb->occlusion = _occlusion_create(reverb->occlusion, effect->slot[1], state, fs);
@@ -318,8 +324,8 @@ _reverb_destroy(void *ptr)
 
 static int
 _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
-            size_t no_samples, size_t ds, unsigned int track, float gain,
-            const void *data, _aaxMixerInfo *info, unsigned char mono)
+           size_t no_samples, size_t ds, unsigned int track, float gain,
+           const void *data, _aaxMixerInfo *info, unsigned char mono, int state)
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
@@ -338,7 +344,7 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
    /* reverb (1st order reflections) */
    /* skip if the caller is mono  */
    snum = reflections->no_delays;
-   if (!mono && snum > 0)
+   if (!mono && (snum > 0) && (state & AAX_REVERB_REFLECTIONS))
    {
       unsigned int q;
 
@@ -396,8 +402,8 @@ _reverb_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
 
 static int
 _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
-            size_t no_samples, size_t ds, unsigned int track,
-            const void *data, _aaxMixerInfo *info, unsigned char mono)
+            size_t no_samples, size_t ds, unsigned int track, const void *data,
+            _aaxMixerInfo *info, unsigned char mono, int state)
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
@@ -435,11 +441,11 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 #endif
 
       rv = _reflections_run(rb, scratch, sptr, no_samples, ds, track, gain,
-                            &reverb->reflections, info, mono);
+                            &reverb->reflections, info, mono, state);
 
       /* loopback for reverb (2nd order reflections) */
       snum = reverb->no_loopbacks;
-      if (snum > 0)
+      if ((snum > 0) && (state & AAX_REVERB_LOOPBACKS))
       {
          size_t bytes = ds*sizeof(MIX_T);
          int q;

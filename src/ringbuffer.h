@@ -250,7 +250,7 @@ typedef struct
 {
    void (*prepare)(_aaxEmitter*, _aax3dProps*, void*);
    int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-              unsigned int, const void*, _aaxMixerInfo*, unsigned char);
+              unsigned int, const void*, _aaxMixerInfo*, unsigned char, int);
  
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;
@@ -265,6 +265,7 @@ typedef struct
 #endif
 
     /* 2nd roder reflections */
+    int state;
     unsigned int no_loopbacks;
     _aaxRingBufferDelayData loopback[_AAX_MAX_LOOPBACKS];
     _aaxRingBufferHistoryData *reverb;
@@ -276,8 +277,8 @@ typedef struct
 
 typedef struct
 {
-   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t,
-              unsigned int, float, const void*, _aaxMixerInfo*, unsigned char);
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int,
+              float, const void*, _aaxMixerInfo*, unsigned char, int);
 
    _aaxRingBufferReverbData *reverb;
 
