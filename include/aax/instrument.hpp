@@ -198,8 +198,6 @@ public:
 
         tie(reverb_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
         tie(reverb_delay_depth, AAX_REVERB_EFFECT, AAX_DELAY_DEPTH);
-        tie(reverb_decay_depth, AAX_REVERB_EFFECT, AAX_DECAY_DEPTH);
-        tie(reverb_cutoff_frequency, AAX_REVERB_EFFECT, AAX_CUTOFF_FREQUENCY);
         tie(reverb_state, AAX_REVERB_EFFECT);
 
         Mixer::matrix(mtx);
@@ -230,8 +228,6 @@ public:
         i1.chorus_state = std::move(i2.chorus_state);
         i1.reverb_level = std::move(i2.reverb_level);
         i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
-        i1.reverb_decay_depth = std::move(i2.reverb_decay_depth);
-        i1.reverb_cutoff_frequency = std::move(i2.reverb_cutoff_frequency);
         i1.reverb_state = std::move(i2.reverb_state);
         i1.attack_time = std::move(i2.attack_time);
         i1.release_time = std::move(i2.release_time);
@@ -485,8 +481,6 @@ private:
 
     Param reverb_level = 40.0f/127.0f;
     Param reverb_delay_depth = 0.035f;
-    Param reverb_decay_depth = 0.15f;
-    Param reverb_cutoff_frequency = 790.0f;
     Status reverb_state = AAX_FALSE;
 
     unsigned attack_time = 64;

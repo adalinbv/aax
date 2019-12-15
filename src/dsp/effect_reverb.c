@@ -45,7 +45,7 @@
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(_aaxRingBufferReverbData*);
-static void _reverb_add_reflections(void*, float, unsigned int, float, int);
+static void _reverb_add_reflections(void*, float, unsigned int, float, int, float);
 static void _reverb_add_reverb(void**, float, unsigned int, float, float);
 static int _reflections_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, float, const void*, _aaxMixerInfo*, unsigned char, int);
 static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char, int);
@@ -104,7 +104,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       /* calculate initial and loopback samples                      */
       lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
       lb_gain = 0.01f+effect->slot[0]->param[AAX_DECAY_LEVEL]*0.99f;
-      _reverb_add_reverb(&effect->slot[0]->data, fs, tracks, lb_depth, lb_gain);
+      _reverb_add_reverb(&effect->slot[0]->data, fs, tracks, lb_depth, 1.0f);
 
       if (effect->slot[0]->data)
       {
@@ -112,7 +112,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          _aaxRingBufferFreqFilterData *flt = reverb->freq_filter;
 
          depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
-         _reverb_add_reflections(&reverb->reflections, fs, tracks, depth, state);
+         _reverb_add_reflections(&reverb->reflections, fs, tracks, depth, state, lb_gain);
 
          if (!flt)
          {
@@ -483,7 +483,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
 // Calculate the 1st order reflections
 static void
-_reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, int state)
+_reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, int state, float lb_gain)
 {
    _aaxRingBufferReflectionData *reflections = ptr;
    unsigned int num = NUM_REFLECTIONS;
@@ -513,7 +513,7 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       /* initial gains, defnining a direct path is not necessary    */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      igain = 4.0f/num;
+      igain = 4.0f*lb_gain/num;
       gains[0] = igain*0.9484f;      // conrete/brick = 0.95
       gains[1] = igain*0.8935f;      // wood floor    = 0.90
       gains[2] = igain*0.8254f;      // carpet        = 0.853
