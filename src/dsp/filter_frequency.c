@@ -861,7 +861,7 @@ _aax_butterworth_compute(float fc, void *flt)
  * Bessel: FSF = 1/1.274, Q / 1/0.577
  *
  * Note: The benefit of the Bessel filter is linear phase shifting in the
- *       cut-band. Unfortunately this is only true for anaologue Bessel
+ *       cut-band. Unfortunately this is only true for analogue Bessel
  *       filters but digital bilinear filters use prewrapping which spoils
  *       the advantage.
  *

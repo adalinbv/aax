@@ -39,6 +39,9 @@
 #define VERSION	1.1
 #define DSIZE	sizeof(_aaxRingBufferReverbData)
 
+#define NUM_LOOPBACKS	2
+#define NUM_REFLECTIONS	4
+
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
 static void _reverb_destroy_delays(_aaxRingBufferReverbData*);
@@ -477,7 +480,7 @@ static void
 _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, int state)
 {
    _aaxRingBufferReflectionData *reflections = ptr;
-   unsigned int num = 4;
+   unsigned int num = NUM_REFLECTIONS;
 
    assert(ptr != 0);
    assert(num < _AAX_MAX_DELAYS);
@@ -600,7 +603,7 @@ _reverb_add_reverb(void **data, float fs, unsigned int tracks, float lb_depth, f
          unsigned int track;
          float dlb, dlbp;
 
-         num = 5;
+         num = NUM_LOOPBACKS;
          reverb->loopback[0].gain = lb_gain*0.95015f;   // conrete/brick = 0.95
          reverb->loopback[1].gain = lb_gain*0.87075f;
          reverb->loopback[2].gain = lb_gain*0.91917f;
