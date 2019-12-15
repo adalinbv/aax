@@ -443,14 +443,20 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
          _aax_memcpy(scratch-ds, reverb->reverb->history[track], bytes);
          filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
+
+         _aax_memcpy(dptr, scratch, no_samples*sizeof(MIX_T));
          for(q=0; q<snum; ++q)
          {
             float volume = gain * reverb->loopback[q].gain / (snum+1);
             if ((volume > 0.001f) || (volume < -0.001f))
             {
                ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
-               if (offs && offs < (ssize_t)ds) {
+               if (offs && offs < (ssize_t)ds)
+               {
+                  // comb filter
                   rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
+                  // make it all-pass
+                  rbd->add(scratch, dptr, no_samples, -volume, 0.0f);
                }
             }
          }
@@ -485,6 +491,14 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
       size_t i;
 
       reflections->run = _reflections_run;
+
+      /*
+       https://christianfloisand.wordpress.com/2012/09/04/digital-reverberation/
+       * gain = 0.001f * tau / RVT, where
+       *   tau = the delay time of the comb filter
+       *   RVT =  reverb time desired, which is defined as the time it takes
+       *          for the delayed signal to reach -60dB (considered silence).
+       */
 
       /* initial delay in seconds (should be between 10ms en 70 ms) */
       /* initial gains, defnining a direct path is not necessary    */
