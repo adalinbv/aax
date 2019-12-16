@@ -2,6 +2,7 @@
 - AeonWave (3.7.4) stable; urgency=low
 
  * Fix pitch-slide timing problems.
+ * Prevent a double lock problem when assigning aaxs files to the mixer.
  * Add AAX_RANDOM_SELECT as an option for the frequency filter.
 
 -- Erik Hofman <tech@adalin.org>  Wed 11 Dec 2019 15:24:31 + 0100

@@ -344,7 +344,7 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
    /* reverb (1st order reflections) */
    /* skip if the caller is mono  */
    snum = reflections->no_delays;
-   if (!mono && (snum > 0) && (state & AAX_REVERB_REFLECTIONS))
+   if (!mono && (snum > 0))
    {
       unsigned int q;
 
@@ -366,7 +366,7 @@ _reflections_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr,
    }
    else if (gain > LEVEL_64DB)
    {
-      _aax_memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
+      memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
       if (gain < (1.0f-LEVEL_64DB)) {
          rbd->multiply(dptr, dptr, sizeof(MIX_T), no_samples, gain);
       }
@@ -426,55 +426,67 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    {
       int snum;
 
+      if (state & AAX_REVERB_REFLECTIONS)
+      {
 #if 1
 // TODO: move tot _reverb_prepare
-      if (occlusion)
-      {
-         float l, fc;
-
-         l = 1.0f - occlusion->level;
-         fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc);
-         if (fc > 100.0f) {
-          _aax_butterworth_compute(fc, filter);
-         }
-      }
-#endif
-
-      rv = _reflections_run(rb, scratch, sptr, no_samples, ds, track, gain,
-                            &reverb->reflections, info, mono, state);
-
-      /* loopback for reverb (2nd order reflections) */
-      snum = reverb->no_loopbacks;
-      if ((snum > 0) && (state & AAX_REVERB_LOOPBACKS))
-      {
-         size_t bytes = ds*sizeof(MIX_T);
-         int q;
-
-         _aax_memcpy(scratch-ds, reverb->reverb->history[track], bytes);
-         filter->run(rbd, scratch, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
-
-         _aax_memcpy(dptr, scratch, no_samples*sizeof(MIX_T));
-         for(q=0; q<snum; ++q)
+         if (occlusion)
          {
-            float volume = gain * reverb->loopback[q].gain / (snum+1);
-            if ((volume > 0.001f) || (volume < -0.001f))
-            {
-               ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
-               if (offs && offs < (ssize_t)ds)
-               {
-                  // comb filter
-                  rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
-                  // make it all-pass
-                  rbd->add(scratch, dptr, no_samples, -volume, 0.0f);
-               }
+            float l, fc;
+
+            l = 1.0f - occlusion->level;
+            fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc);
+            if (fc > 100.0f) {
+               _aax_butterworth_compute(fc, filter);
             }
          }
-         _aax_memcpy(reverb->reverb->history[track], scratch+no_samples-ds, bytes);
+#endif
+
+         rv = _reflections_run(rb, scratch, sptr, no_samples, ds, track, gain,
+                               &reverb->reflections, info, mono, state);
+
+         filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
       }
 
-      filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
-      if (occlusion) {
-         occlusion->run(rbd, dptr, sptr, scratch, no_samples, track,occlusion);
+      if (state & AAX_REVERB_LOOPBACKS)
+      {
+         /* loopback for reverb (2nd order reflections) */
+         snum = reverb->no_loopbacks;
+         if ((snum > 0) && (state & AAX_REVERB_LOOPBACKS))
+         {
+            size_t bytes = ds*sizeof(MIX_T);
+            int q;
+
+            memcpy(scratch, dptr, no_samples*sizeof(MIX_T));
+            memcpy(dptr-ds, reverb->reverb->history[track], bytes);
+
+            for(q=0; q<snum; ++q)
+            {
+               float volume = gain * reverb->loopback[q].gain / (snum+1);
+               if ((volume > 0.001f) || (volume < -0.001f))
+               {
+                  ssize_t offs = reverb->loopback[q].sample_offs[track] + dst;
+                  if (offs && offs < (ssize_t)ds)
+                  {
+                     // comb filter
+                     rbd->add(dptr, dptr-offs, no_samples, volume, 0.0f);
+                     // make it all-pass
+                     rbd->add(dptr, scratch, no_samples, -volume, 0.0f);
+                  }
+               }
+            }
+            memcpy(reverb->reverb->history[track], dptr+no_samples-ds, bytes);
+            filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
+         }
+      }
+
+      if (state & AAX_REVERB_REFLECTIONS)
+      {
+         if (occlusion) {
+            occlusion->run(rbd, dptr, sptr, scratch, no_samples, track,occlusion);
+         } else {
+            rbd->add(dptr, sptr, no_samples, 1.0, 0.0f);
+         }
       }
    }
 
@@ -495,8 +507,8 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
    if (reflections)
    {
       static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
-      float delays[8], gains[8];
       float idepth, igain, idepth_offs;
+      float delays[8], gains[8];
       size_t i;
 
       reflections->run = _reflections_run;
@@ -510,10 +522,10 @@ _reverb_add_reflections(void *ptr, float fs, unsigned int tracks, float depth, i
        */
 
       /* initial delay in seconds (should be between 10ms en 70 ms) */
-      /* initial gains, defnining a direct path is not necessary    */
+      /* initial gains, defining a direct path is not necessary     */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      igain = 4.0f*lb_gain/num;
+      igain = 2.0f*lb_gain;
       gains[0] = igain*0.9484f;      // conrete/brick = 0.95
       gains[1] = igain*0.8935f;      // wood floor    = 0.90
       gains[2] = igain*0.8254f;      // carpet        = 0.853
