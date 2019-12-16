@@ -1738,7 +1738,7 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
          if (clear)
          {
             const _intBufferData* dptr;
-            dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+            dptr = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
             if (dptr)
             {
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
