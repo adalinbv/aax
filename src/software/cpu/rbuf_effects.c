@@ -84,7 +84,7 @@ _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
    if (dst == pdst)	/* copy the data back to the dst buffer */
    {
 //    DBG_MEMCLR(1, dst-ds, ds+end, bps);
-      _aax_memcpy(dst, src, no_samples*bps);
+      memcpy(dst, src, no_samples*bps);
    }
 }
 #endif
@@ -258,7 +258,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    if (dst == pdst)
    {
 //    DBG_MEMCLR(1, dst-ds, ds+end, bps);
-      _aax_memcpy(dst, src, no_samples*bps);
+      memcpy(dst, src, no_samples*bps);
    }
 }
 

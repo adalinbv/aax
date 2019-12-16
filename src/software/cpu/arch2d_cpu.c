@@ -268,8 +268,8 @@ _batch_fmul_value_cpu(void* dptr, const void* sptr, unsigned bps, size_t num, fl
 void
 _batch_cvt24_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
-   if (num) {
-      _aax_memcpy(dptr, sptr, num*sizeof(int32_t));
+   if (num && dptr != sptr) {
+      memcpy(dptr, sptr, num*sizeof(int32_t));
    }
 }
 
@@ -1335,7 +1335,7 @@ static inline void
 _aaxBufResampleNearest_cpu(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
+      memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
    }
    else
    {
@@ -1487,6 +1487,7 @@ void
 _batch_resample_cpu(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
+   assert(d != s);
 
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_cpu(d, s, dmin, dmax, smu, fact);
@@ -1498,7 +1499,7 @@ _batch_resample_cpu(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, fl
       _aaxBufResampleDecimate_cpu(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_cpu(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
    }
 }
 
@@ -1560,7 +1561,7 @@ static inline void
 _aaxBufResampleNearest_float_cpu(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
+      memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
    }
    else
    {
@@ -1710,6 +1711,7 @@ void
 _batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
+   assert(d != s);
 
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_float_cpu(d, s, dmin, dmax, smu, fact);
@@ -1721,6 +1723,6 @@ _batch_resample_float_cpu(float32_ptr d, const_float32_ptr s, size_t dmin, size_
       _aaxBufResampleDecimate_float_cpu(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_cpu(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
    }
 }

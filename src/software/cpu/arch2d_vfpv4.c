@@ -447,7 +447,7 @@ _batch_freqfilter_vfpv4(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num,
 
       if (fabsf(k-1.0f) < LEVEL_96DB) 
       {
-         memcpy(dptr, sptr, num*sizeof(float));
+         if (dptr != sptr) memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
       if (fabsf(k) < LEVEL_96DB)
@@ -524,7 +524,7 @@ _batch_freqfilter_float_vfpv4(float32_ptr dptr, const_float32_ptr sptr, int t, s
 
       if (fabsf(k-1.0f) < LEVEL_96DB)
       {
-         memcpy(dptr, sptr, num*sizeof(float));
+         if (dptr != sptr) memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
       if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
@@ -649,7 +649,7 @@ static inline void
 _aaxBufResampleNearest_vfpv4(int32_ptr dptr, const_int32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
+      memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(int32_t));
    }
    else
    {
@@ -812,7 +812,7 @@ _batch_resample_vfpv4(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, 
       _aaxBufResampleDecimate_vfpv4(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_vfpv4(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 
@@ -873,7 +873,7 @@ static inline void
 _aaxBufResampleNearest_float_vfpv4(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
+      memcpy(dptr+dmin, sptr, (dmax-dmin)*sizeof(float));
    }
    else
    {
@@ -1035,7 +1035,7 @@ _batch_resample_float_vfpv4(float32_ptr d, const_float32_ptr s, size_t dmin, siz
       _aaxBufResampleDecimate_float_vfpv4(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_vfpv4(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 # endif /* RB_FLOAT_DATA */

@@ -1579,7 +1579,7 @@ _batch_freqfilter_float_sse2(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
       if (fabsf(k-1.0f) < LEVEL_96DB)
       {
-         memcpy(dptr, sptr, num*sizeof(float));
+         if (dptr != sptr) memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
       if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
@@ -1754,7 +1754,7 @@ static inline void
 _aaxBufResampleNearest_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
    }
    else
    {
@@ -1886,6 +1886,7 @@ void
 _batch_resample_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
+   assert(d != s);
 
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_sse2(d, s, dmin, dmax, smu, fact);
@@ -1897,7 +1898,7 @@ _batch_resample_sse2(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, f
       _aaxBufResampleDecimate_sse2(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_sse2(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 #else
@@ -1958,7 +1959,7 @@ static inline void
 _aaxBufResampleNearest_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
    }
    else
    {
@@ -2120,6 +2121,7 @@ void
 _batch_resample_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
+   assert(d != s);
 
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_float_sse2(d, s, dmin, dmax, smu, fact);
@@ -2131,7 +2133,7 @@ _batch_resample_float_sse2(float32_ptr d, const_float32_ptr s, size_t dmin, size
       _aaxBufResampleDecimate_float_sse2(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_sse2(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 #endif // RB_FLOAT_DATA

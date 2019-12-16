@@ -208,7 +208,7 @@ _batch_freqfilter_float_fma3(float32_ptr dptr, const_float32_ptr sptr, int t, si
 
       if (fabsf(k-1.0f) < LEVEL_96DB)
       {
-         memcpy(dptr, sptr, num*sizeof(float));
+         if (dptr != sptr) memcpy(dptr, sptr, num*sizeof(float));
          return;
       }
       if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
@@ -462,6 +462,7 @@ void
 _batch_resample_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
+   assert(d != s);
 
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_float_fma3(d, s, dmin, dmax, smu, fact);
@@ -473,7 +474,7 @@ _batch_resample_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin, size
       _aaxBufResampleDecimate_float_fma3(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_fma3(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 

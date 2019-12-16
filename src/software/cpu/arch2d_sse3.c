@@ -120,7 +120,7 @@ static inline void
 _aaxBufResampleNearest_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(int32_t));
    }
    else
    {
@@ -301,6 +301,7 @@ void
 _batch_resample_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
+   assert(d != s);
 
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_sse3(d, s, dmin, dmax, smu, fact);
@@ -312,7 +313,7 @@ _batch_resample_sse3(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, f
       _aaxBufResampleDecimate_sse3(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_sse3(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 } 
 #else
@@ -363,7 +364,7 @@ static inline void
 _aaxBufResampleNearest_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)
 {
    if (freq_factor == 1.0f) {
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(float));
    }
    else
    {
@@ -525,6 +526,8 @@ void
 _batch_resample_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size_t dmax, float smu, float fact)
 {
    assert(fact > 0.0f);
+   assert(d != s);
+
    if (fact < CUBIC_TRESHOLD) {
       _aaxBufResampleCubic_float_sse3(d, s, dmin, dmax, smu, fact);
    }
@@ -535,7 +538,7 @@ _batch_resample_float_sse3(float32_ptr d, const_float32_ptr s, size_t dmin, size
       _aaxBufResampleDecimate_float_sse3(d, s, dmin, dmax, smu, fact);
    } else {
 //    _aaxBufResampleNearest_float_sse3(d, s, dmin, dmax, smu, fact);
-      _aax_memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
+      memcpy(d+dmin, s, (dmax-dmin)*sizeof(MIX_T));
    }
 }
 #endif // RB_FLOAT_DATA
