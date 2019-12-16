@@ -1,11 +1,15 @@
-* Wed Dec 11 2019 - tech@adalin.org
-- AeonWave (3.7.4) stable; urgency=low
+* Mon Dec 16 2019 - tech@adalin.org
+- AeonWave (3.8.0) stable; urgency=low
 
- * Fix pitch-slide timing problems.
- * Prevent a double lock problem when assigning aaxs files to the mixer.
+ * Improved Reverb and make it possible to split the reflections section
+   and the reverberation section between audio-frames. This will allow
+   multiple instruments with different reverb levels to be combined in
+   a single reverberation stage.
  * Add AAX_RANDOM_SELECT as an option for the frequency filter.
+ * Prevent a double lock problem when assigning aaxs files to the mixer.
+ * Fix pitch-slide timing problems.
 
--- Erik Hofman <tech@adalin.org>  Wed 11 Dec 2019 15:24:31 + 0100
+-- Erik Hofman <tech@adalin.org>  Mon 16 Dec 2019 14:47:31 + 0100
 
 
 * Tue Dec 03 2019 - tech@adalin.org
