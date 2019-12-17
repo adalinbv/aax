@@ -43,17 +43,17 @@ __aax_sound_logo =  							\
     "<param>0.5</param>"						\
     "<param>0.41</param>"						\
     "<param>1.0</param>"						\
-    "<param>5.05</param>"						\
+    "<param>2.525</param>"						\
    "</slot>"								\
    "<slot>"								\
     "<param>0.8</param>"						\
-    "<param>5.5</param>"						\
+    "<param>2.25</param>"						\
    "</slot>"								\
   "</filter>"								\
   "<effect type='phasing' src='inverse-sine'>"				\
    "<slot>"								\
     "<param>0.3</param>"						\
-    "<param>0.05</param>"						\
+    "<param>0.1</param>"						\
     "<param>0.3</param>"						\
     "<param>0.5</param>"						\
    "</slot>"								\
@@ -69,7 +69,7 @@ __aax_sound_logo =  							\
    "</slot>"								\
    "<slot>"								\
     "<param>1100</param>"						\
-    "<param n='3'>0.03</param>"						\
+    "<param n='3'>0.06</param>"						\
    "</slot>"								\
   "</filter>"								\
  "</audioframe>"							\
