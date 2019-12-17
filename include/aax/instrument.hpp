@@ -472,7 +472,7 @@ private:
 
     Param chorus_rate = 0.0f;
     Param chorus_level = 0.0f;
-    Param chorus_depth = 0.4f;
+    Param chorus_depth = Param(1900.0f, AAX_MICROSECONDS);
     Status chorus_state = AAX_FALSE;
 
     Param filter_cutoff = 2048.0f;

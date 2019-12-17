@@ -1,6 +1,8 @@
 * Mon Dec 16 2019 - tech@adalin.org
 - AeonWave (3.8.0) stable; urgency=low
 
+ * Make it possible to specify the parameter-type for tied properties,
+   defaults to AAX_LINEAR.
  * Improved Reverb and make it possible to split the reflections section
    and the reverberation section between audio-frames. This will allow
    multiple instruments with different reverb levels to be combined in

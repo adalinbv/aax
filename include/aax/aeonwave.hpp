@@ -100,7 +100,7 @@ class Tieable
 public:
     Tieable() = default;
 
-    Tieable(T v) : val(v) {}
+    Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), type(t) {}
 
     Tieable(const Tieable&) = default;
 
@@ -110,6 +110,7 @@ public:
 
     friend void swap(Tieable& t1, Tieable& t2) noexcept {
         t1.val = std::move(t2.val);
+        t1.type = std::move(t2.type);
         t1.tied = std::move(t2.tied);
         t1.param = std::move(t2.param);
         t1.filter = std::move(t2.filter);
@@ -209,13 +210,13 @@ protected:
             if (!tied) return;
             if (filter) {
                 aaxFilter flt = get.filter(obj, dsptype.filter);
-                if (aaxFilterSetParam(flt, param, AAX_LINEAR, val)) {
+                if (aaxFilterSetParam(flt, param, type, val)) {
                      set.filter(obj, flt);
                 }
                 aaxFilterDestroy(flt);
             } else {
                 aaxEffect eff = get.effect(obj, dsptype.effect);
-                if (aaxEffectSetParam(eff, param, AAX_LINEAR, val)) {
+                if (aaxEffectSetParam(eff, param, type, val)) {
                     set.effect(obj, eff);
                 }
                 aaxEffectDestroy(eff);
@@ -238,6 +239,7 @@ protected:
 
 private:
     T val, prev = 0;
+    enum aaxType type = AAX_LINEAR;
     bool tied = 0;
     int param = 0;
     bool filter = false;
