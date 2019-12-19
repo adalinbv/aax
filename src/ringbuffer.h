@@ -193,11 +193,12 @@ typedef struct
    size_t step[_AAX_MAX_SPEAKERS];
 } _aaxRingBufferOffsetData;
 
-typedef struct
+typedef ALIGN16 struct
 {
-  float gain;
   size_t sample_offs[_AAX_MAX_SPEAKERS];
-} _aaxRingBufferDelayData;
+  float gain;
+
+} _aaxRingBufferDelayData ALIGN16C;
 
 typedef struct
 {
@@ -205,8 +206,10 @@ typedef struct
    void* ptr;
 } _aaxRingBufferHistoryData;
 
-typedef struct
+typedef ALIGN16 struct
 {
+   _aaxRingBufferDelayData delay;
+
    void (*prepare)(MIX_PTR_T, MIX_PTR_T, size_t, size_t, void*, unsigned int);
    int (*run)(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t,
               size_t, size_t, void*, void*, unsigned int);
@@ -216,7 +219,6 @@ typedef struct
    _aaxRingBufferHistoryData *history;
    _aaxRingBufferHistoryData *feedback_history;
    _aaxRingBufferFreqFilterData *freq_filter;
-   _aaxRingBufferDelayData delay;
    size_t history_samples;
    float feedback;
    char flanger;
@@ -224,7 +226,7 @@ typedef struct
    float lf_k;
    _aaxRingBufferFreqFilterHistoryData lf_history;
 
-} _aaxRingBufferDelayEffectData;
+} _aaxRingBufferDelayEffectData ALIGN16C;
 
 typedef struct
 {
@@ -246,48 +248,47 @@ typedef struct
 
 } _aaxRingBufferOcclusionData;
 
+typedef ALIGN16 struct
+{
+   /* 1st order reflections */
+   _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
+
+   unsigned int no_delays; 
+   float gain;
+
+} _aaxRingBufferReflectionData ALIGN16C;
+
+typedef ALIGN16 struct
+{
+   /* 2nd roder reflections */
+   _aaxRingBufferDelayData loopback[_AAX_MAX_LOOPBACKS];
+   unsigned int no_loopbacks;
+
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
+              unsigned int, const void*, _aaxMixerInfo*, unsigned char, int,
+              void*, unsigned char);
+ 
+    _aaxRingBufferHistoryData *reverb;
+
+} _aaxRingBufferLoopbackData ALIGN16C;
+
 typedef struct
 {
    void (*prepare)(_aaxEmitter*, _aax3dProps*, void*);
    int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-              unsigned int, const void*, _aaxMixerInfo*, unsigned char, int);
- 
+              unsigned int, const void*, _aaxMixerInfo*, unsigned char, int,
+              void*, unsigned char);
+
+   int state;
+
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;
-
-#if 1
-   struct {
-      /* 1st order reflections */
-      float gain;
-      unsigned int no_delays;
-      _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
-   } reflections;
-#endif
-
-    /* 2nd roder reflections */
-    int state;
-    unsigned int no_loopbacks;
-    _aaxRingBufferDelayData loopback[_AAX_MAX_LOOPBACKS];
-    _aaxRingBufferHistoryData *reverb;
-
+   _aaxRingBufferReflectionData *reflections;
+   _aaxRingBufferLoopbackData *loopbacks;
    _aaxRingBufferFreqFilterData *freq_filter;
    float fc;
 
 } _aaxRingBufferReverbData;
-
-typedef struct
-{
-   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int,
-              float, const void*, _aaxMixerInfo*, unsigned char, int);
-
-   _aaxRingBufferReverbData *reverb;
-
-   /* 1st order reflections */
-   float gain;
-   unsigned int no_delays;
-   _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
-
-} _aaxRingBufferReflectionData;
 
 typedef struct
 {

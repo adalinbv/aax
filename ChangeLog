@@ -7,6 +7,10 @@
    and the reverberation section between audio-frames. This will allow
    multiple instruments with different reverb levels to be combined in
    a single reverberation stage.
+ * Add the option to define a AAX_DECAY_LEVEL greater than 1.0 for reverb,
+   in which case the decay level will max out at 1.0 and the direct path
+   will be reduced by 1.0/AAX_DECAY_LEVEL simulating an obstruction between
+   the sound source and the listener.
  * Add AAX_RANDOM_SELECT as an option for the frequency filter.
  * Prevent a double lock problem when assigning aaxs files to the mixer.
  * Fix pitch-slide timing problems.
