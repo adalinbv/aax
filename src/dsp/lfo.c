@@ -516,7 +516,6 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
          olvl = lfo->value[track];
          fact = lfo->step[track];
          lfo->value[track] = _MINMAX(olvl + fact*(lvl - olvl), 0.01f, 0.99f);
-         olvl = lfo->value[track];
       }
 
       rv = lfo->convert(olvl, lfo->max-lfo->min);

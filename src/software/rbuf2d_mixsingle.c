@@ -74,7 +74,7 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float gain, _history_t history)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float gain_init, _history_t history)
 {
    _aaxRendererData *renderer = data;
    const _aaxMixerInfo *info =  renderer->info;
@@ -87,7 +87,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
-   float pnvel, gnvel;
+   float pnvel, gnvel, gain;
    FLOAT pitch, max;
    int ret = 0;
 
@@ -182,7 +182,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 
    /* Apply envelope filter */
    gnvel = ep2d->note.velocity;
-   gain *= _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
+   gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
    if (gain <= -1e-3f) {
       ret = -2;
    }
@@ -217,12 +217,13 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       gain *= 1.0f - max/2.0f;
    }
 
-   /* 3d: distance, audio-cone and occlusion related gain */
-   gain = _square(gain)*ep2d->final.gain;
-
    /* Final emitter volume */
    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    if (genv) genv->value_total = gain;
+
+   /* 3d: distance, audio-cone and occlusion related gain */
+   gain *= gain_init;
+   gain = _square(gain)*ep2d->final.gain;
 
 // if (gain >= LEVEL_128DB)
    {

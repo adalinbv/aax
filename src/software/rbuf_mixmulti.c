@@ -57,7 +57,7 @@
  * @fp2d mixer 2d properties
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, float gain, _history_t history)
+_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, float gain_init, _history_t history)
 {
    _aaxRingBufferSample *drbd, *srbd;
    size_t offs, dno_samples;
@@ -66,7 +66,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    _aaxEnvelopeData *genv;
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
-   float svol, evol, max;
+   float svol, evol, gain, max;
    float pnvel, gnvel;
    float pitch;
    int ret = 0;
@@ -164,7 +164,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
 
    /* apply envelope filter */
    gnvel = ep2d->note.velocity;
-   gain *= _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
+   gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
    if (gain <= -1e-3f) {
       ret = -2;
    }
@@ -188,9 +188,12 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
       gain *= 1.0f - max/2.0f;
    }
 
-   /* final emitter volume */
-   gain = _square(gain)*_FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+   /* Final emitter volume */
+    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    if (genv) genv->value_total = gain;
+
+   gain *= gain_init;
+   gain = _square(gain);
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
