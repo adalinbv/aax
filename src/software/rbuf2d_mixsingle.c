@@ -87,7 +87,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
-   float pnvel, gnvel, gain;
+   float gain, gain_emitter;
+   float pnvel, gnvel;
    FLOAT pitch, max;
    int ret = 0;
 
@@ -218,12 +219,13 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Final emitter volume */
-   gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
-   if (genv) genv->value_total = gain;
+   gain_emitter = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+   if (genv) genv->value_total = gain*gain_emitter;
 
    /* 3d: distance, audio-cone and occlusion related gain */
    gain *= gain_init;
    gain = _square(gain)*ep2d->final.gain;
+   gain *= gain_emitter;
 
 // if (gain >= LEVEL_128DB)
    {

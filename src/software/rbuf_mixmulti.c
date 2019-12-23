@@ -68,6 +68,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    CONST_MIX_PTRPTR_T sptr;
    float svol, evol, gain, max;
    float pnvel, gnvel;
+   float gain_emitter;
    float pitch;
    int ret = 0;
 
@@ -189,11 +190,12 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    }
 
    /* Final emitter volume */
-    gain *= _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
-   if (genv) genv->value_total = gain;
+   gain_emitter = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
+   if (genv) genv->value_total = gain*gain_emitter;
 
    gain *= gain_init;
    gain = _square(gain);
+   gain *= gain_emitter;
 
    /** Automatic volume ramping to avoid clicking */
    svol = evol = 1.0f;
