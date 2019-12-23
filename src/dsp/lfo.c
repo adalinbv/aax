@@ -37,6 +37,9 @@
 #include "common.h"
 #include "lfo.h"
 
+float _linear(float v, float f) { return v*f; }
+float _compress(float v, float f) { return powf(f, 1.0f-v); }
+float _logarithmic(float v, float f) { return _log2lin(v); }
 
 _aaxLFOData*
 _lfo_create()
@@ -128,7 +131,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          lfo->get = _aaxLFOGetSawtooth;
          break;
       case AAX_ENVELOPE_FOLLOW:
-      case AAX_ENVELOPE_FOLLOW_OLD:
+      case AAX_ENVELOPE_FOLLOW_LOG:
          lfo->get = _aaxLFOGetGainFollow;
          lfo->envelope = AAX_TRUE;
          break;
@@ -201,7 +204,7 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->step[t] *= 0.5f;
             break;
          case AAX_ENVELOPE_FOLLOW:
-         case AAX_ENVELOPE_FOLLOW_OLD:
+         case AAX_ENVELOPE_FOLLOW_LOG:
          {
             lfo->step[t] = ENVELOPE_FOLLOW_STEP_CVT(lfo->f);
             lfo->value0[t] = 0.0f;

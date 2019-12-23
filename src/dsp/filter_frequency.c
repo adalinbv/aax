@@ -125,7 +125,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_SAWTOOTH_WAVE    ||
        wstate == AAX_TIMED_TRANSITION ||
        wstate == AAX_ENVELOPE_FOLLOW  ||
-       wstate == AAX_ENVELOPE_FOLLOW_OLD||
+       wstate == AAX_ENVELOPE_FOLLOW_LOG||
        istate == AAX_RANDOM_SELECT    ||
        istate == AAX_6DB_OCT          ||
        istate == AAX_12DB_OCT         ||
@@ -232,7 +232,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
                lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-               if (fabsf(lfo->max - lfo->min) < 200.0f)
+               if (fabsf(lfo->max - lfo->min) < _lin2log(200.0f))
                {
                   lfo->min = 0.5f*(lfo->min + lfo->max);
                   lfo->max = lfo->min;
@@ -243,6 +243,13 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                   lfo->max = lfo->min;
                   lfo->min = f;
                   state ^= AAX_INVERSE;
+               }
+
+               if (state & AAX_ENVELOPE_FOLLOW_LOG)
+               {
+                  lfo->convert = _logarithmic;
+                  lfo->min =_lin2log(lfo->min);
+                  lfo->max =_lin2log(lfo->max);
                }
 
                lfo->min_sec = lfo->min/lfo->fs;

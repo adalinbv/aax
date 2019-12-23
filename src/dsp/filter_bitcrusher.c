@@ -102,7 +102,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_OLD:
+   case AAX_ENVELOPE_FOLLOW_LOG:
    {
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)

@@ -78,7 +78,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    switch (state & ~AAX_INVERSE)
    {
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_OLD:
+   case AAX_ENVELOPE_FOLLOW_LOG:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
@@ -92,7 +92,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 			// AAX_LFO_DEPTH == AAX_COMPRESSION_RATIO
          depth = _MAX(filter->slot[0]->param[AAX_LFO_DEPTH], 0.01f);
          if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
-             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_OLD)
+             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG)
          {
             if (filter->type == AAX_COMPRESSOR)
             {
@@ -128,7 +128,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             switch (state & ~AAX_INVERSE)
             {
             case AAX_ENVELOPE_FOLLOW:
-            case AAX_ENVELOPE_FOLLOW_OLD:
+            case AAX_ENVELOPE_FOLLOW_LOG:
             {
                if (filter->type == AAX_COMPRESSOR)
                {		// 10dB
@@ -162,7 +162,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             switch (state & ~AAX_INVERSE)
             {
             case AAX_ENVELOPE_FOLLOW:
-            case AAX_ENVELOPE_FOLLOW_OLD:
+            case AAX_ENVELOPE_FOLLOW_LOG:
                if (filter->type == AAX_COMPRESSOR)
                {
                   float dt = 1.0f/filter->info->period_rate;

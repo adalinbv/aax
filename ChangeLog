@@ -12,6 +12,10 @@
    will be reduced by 1.0/AAX_DECAY_LEVEL simulating an obstruction between
    the sound source and the listener.
  * Add AAX_RANDOM_SELECT as an option for the frequency filter.
+ * Add the option to slide logarithmically through the frequency range for
+   frequency filters.
+ * Reorganize the order in which the gains are applied because in some cases
+   the gain value used for envelope following was always maxed out.
  * Prevent a double lock problem when assigning aaxs files to the mixer.
  * Fix pitch-slide timing problems.
 

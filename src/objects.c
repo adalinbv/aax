@@ -575,8 +575,11 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
             if (release_factor != 1.0f)
             {
                state = 10.0f*release_factor;
-               if (state >= AAX_ENVELOPE_FOLLOW_OLD) state = AAX_ENVELOPE_FOLLOW_OLD-1;
-               else if (state < 1) state = 0;
+               if (state >= AAX_ENVELOPE_FOLLOW_LOG) {
+                  state = AAX_ENVELOPE_FOLLOW_LOG-1;
+               } else if (state < 1) {
+                  state = 0;
+               }
                state |= AAX_RELEASE_FACTOR;
             }
             slen = xmlAttributeCopyString(xid, "src", src, 64);
