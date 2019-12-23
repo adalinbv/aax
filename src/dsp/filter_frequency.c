@@ -124,8 +124,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_IMPULSE_WAVE     ||
        wstate == AAX_SAWTOOTH_WAVE    ||
        wstate == AAX_TIMED_TRANSITION ||
+       wstate == (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG) ||
        wstate == AAX_ENVELOPE_FOLLOW  ||
-       wstate == AAX_ENVELOPE_FOLLOW_LOG||
+       wstate == AAX_ENVELOPE_FOLLOW_LOG ||
+       wstate == AAX_ENVELOPE_FOLLOW_MASK ||
        istate == AAX_RANDOM_SELECT    ||
        istate == AAX_6DB_OCT          ||
        istate == AAX_12DB_OCT         ||
@@ -225,31 +227,46 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                int constant;
 
                /* sweeprate */
-               lfo->convert = _linear;
                lfo->state = wstate;
                lfo->fs = filter->info->frequency;
                lfo->period_rate = filter->info->period_rate;
 
                lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-               if (fabsf(lfo->max - lfo->min) < _lin2log(200.0f))
-               {
-                  lfo->min = 0.5f*(lfo->min + lfo->max);
-                  lfo->max = lfo->min;
-               }
-               else if (lfo->max < lfo->min)
-               {
-                  float f = lfo->max;
-                  lfo->max = lfo->min;
-                  lfo->min = f;
-                  state ^= AAX_INVERSE;
-               }
-
-               if (state & AAX_ENVELOPE_FOLLOW_LOG)
+               if ((wstate & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
+                   (wstate & AAX_ENVELOPE_FOLLOW_LOG))
                {
                   lfo->convert = _logarithmic;
-                  lfo->min =_lin2log(lfo->min);
-                  lfo->max =_lin2log(lfo->max);
+                  lfo->min = _lin2log(lfo->min);
+                  lfo->max = _lin2log(lfo->max);
+                  if (fabsf(lfo->max - lfo->min) < _lin2log(200.0f))
+                  {
+                     lfo->min = 0.5f*(lfo->min + lfo->max);
+                     lfo->max = lfo->min;
+                  }
+                  else if (lfo->max < lfo->min)
+                  {
+                     float f = lfo->max;
+                     lfo->max = lfo->min;
+                     lfo->min = f;
+                     state ^= AAX_INVERSE;
+                  }
+               }
+               else
+               {
+                  lfo->convert = _linear;
+                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  {
+                     lfo->min = 0.5f*(lfo->min + lfo->max);
+                     lfo->max = lfo->min;
+                  }
+                  else if (lfo->max < lfo->min)
+                  {
+                     float f = lfo->max;
+                     lfo->max = lfo->min;
+                     lfo->min = f;
+                     state ^= AAX_INVERSE;
+                  }
                }
 
                lfo->min_sec = lfo->min/lfo->fs;

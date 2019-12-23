@@ -132,10 +132,12 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          break;
       case AAX_ENVELOPE_FOLLOW:
       case AAX_ENVELOPE_FOLLOW_LOG:
+      case (AAX_ENVELOPE_FOLLOW|AAX_ENVELOPE_FOLLOW_LOG):
          lfo->get = _aaxLFOGetGainFollow;
          lfo->envelope = AAX_TRUE;
          break;
       case AAX_TIMED_TRANSITION:
+      case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
          lfo->get = _aaxLFOGetTimed;
          break;
       default:
