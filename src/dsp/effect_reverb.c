@@ -688,7 +688,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
          {
             ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
             if (offs && offs < (ssize_t)ds) {
-               rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
+               _batch_fmul_value(dptr, sptr-offs, sizeof(MIX_T), no_samples, volume);
             }
          }
          q++;
