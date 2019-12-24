@@ -373,7 +373,7 @@ _reverb_destroy(void *ptr)
       {
          reverb->reflections->no_delays = 0;
          reverb->reflections->delay[0].gain = 1.0f;
-         free(reverb->reflections);
+         _aax_aligned_free(reverb->reflections);
          reverb->reflections = NULL;
       }
       if (reverb->loopbacks)
@@ -381,6 +381,7 @@ _reverb_destroy(void *ptr)
          _loopbacks_destroy_delays(reverb);
          reverb->loopbacks = NULL;
       }
+      free(reverb);
    }
 }
 
@@ -588,8 +589,7 @@ _loopbacks_destroy_delays(_aaxRingBufferReverbData *reverb)
       if (loopbacks->reverb) free(loopbacks->reverb);
 #endif
       loopbacks->reverb = NULL;
-
-      free(loopbacks);
+      _aax_aligned_free(loopbacks);
    }
 }
 
