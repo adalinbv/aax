@@ -252,9 +252,11 @@ typedef ALIGN16 struct
 {
    /* 1st order reflections */
    _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
-
+   size_t history_samples;
    unsigned int no_delays; 
    float gain;
+
+   _aaxRingBufferHistoryData *history;
 
 } _aaxRingBufferReflectionData ALIGN16C;
 
@@ -274,7 +276,9 @@ typedef ALIGN16 struct
 
 typedef struct
 {
+   void (*clear)(void*, unsigned int);
    void (*prepare)(_aaxEmitter*, _aax3dProps*, void*);
+   void (*reflections_prepare)(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
    int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
               unsigned int, const void*, _aaxMixerInfo*, unsigned char, int,
               void*, unsigned char);
@@ -286,6 +290,8 @@ typedef struct
    _aaxRingBufferReflectionData *reflections;
    _aaxRingBufferLoopbackData *loopbacks;
    _aaxRingBufferFreqFilterData *freq_filter;
+   _aaxRingBufferHistoryData *direct_path;
+   size_t no_samples;
    float fc;
 
 } _aaxRingBufferReverbData;

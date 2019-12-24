@@ -122,18 +122,21 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    // audio-frames, and streaming emitters, with delay effects need
    // the source history
    state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
+   state |= _EFFECT_GET_STATE(p2d, REVERB_EFFECT);
    if (state)
    {
       _aaxRingBufferDelayEffectData *delay;
-      float f = rbd->frequency_hz;
+      _aaxRingBufferReverbData *reverb;
 
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+      reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
 
-      // 0 for frequency filtering
-      // Can't use ddesamps for it when reverb is defined
-      ds = delay ? (size_t)ceilf(f * DELAY_EFFECTS_TIME) : 0;
-
-      if (delay) {
+      if (reverb && reverb->reflections) {
+         reverb->reflections_prepare(dst, src, no_samples, reverb, track);
+      }
+      else if (delay)
+      {
+         ds = delay->history_samples;
          delay->prepare(dst, src, no_samples, ds, delay, track);
       }
    }
@@ -260,47 +263,5 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 //    DBG_MEMCLR(1, dst-ds, ds+end, bps);
       memcpy(dst, src, no_samples*bps);
    }
-}
-
-/* -------------------------------------------------------------------------- */
-
-// size is the number of samples for every track
-size_t
-_aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size, int tracks)
-{
-   char *ptr, *p;
-   size_t offs;
-   int i;
-
-   assert(data);
-   assert(*data == NULL);
-
-   size *= sizeof(MIX_T);
-   offs = sizeof(_aaxRingBufferHistoryData);
-   size += offs;
-#if BYTE_ALIGN
-   if (size & MEMMASK)
-   {
-      size |= MEMMASK;
-      size++;
-   }
-
-   ptr = _aax_calloc(&p, offs, tracks, size);
-#else
-   ptr = calloc(tracks, size);
-   p = ptr+offs;
-#endif
-   if (ptr)
-   {
-      _aaxRingBufferHistoryData *history = (_aaxRingBufferHistoryData*)ptr;
-      *data = history;
-      history->ptr = p;
-      for (i=0; i<tracks; ++i)
-      {
-         history->history[i] = (int32_t*)p;
-         p += size;
-      }
-   }
-   return size;
 }
 

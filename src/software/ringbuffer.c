@@ -1526,3 +1526,43 @@ _aaxRingBufferInitFunctions(_aaxRingBuffer *rb)
    rb->get_scratch = _aaxRingBufferGetScratchBufferPtr;
    rb->copy_effectsdata = _aaxRingBufferCopyDelayEffectsData;
 }
+
+// size is the number of samples for every track
+size_t
+_aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size, int tracks)
+{
+   char *ptr, *p;
+   size_t offs;
+   int i;
+
+   assert(data);
+   assert(*data == NULL);
+
+   size *= sizeof(MIX_T);
+   offs = sizeof(_aaxRingBufferHistoryData);
+   size += offs;
+#if BYTE_ALIGN
+   if (size & MEMMASK)
+   {
+      size |= MEMMASK;
+      size++;
+   }
+
+   ptr = _aax_calloc(&p, offs, tracks, size);
+#else
+   ptr = calloc(tracks, size);
+   p = ptr+offs;
+#endif
+   if (ptr)
+   {
+      _aaxRingBufferHistoryData *history = (_aaxRingBufferHistoryData*)ptr;
+      *data = history;
+      history->ptr = p;
+      for (i=0; i<tracks; ++i)
+      {
+         history->history[i] = (int32_t*)p;
+         p += size;
+      }
+   }
+   return size;
+}
