@@ -609,7 +609,6 @@ _batch_roundps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
             xmm2 = _mm_load_ps((const float*)sptr++);
             xmm3 = _mm_load_ps((const float*)sptr++);
 
-            
             xmm4i = _mm_cvtps_epi32(xmm0);
             xmm5i = _mm_cvtps_epi32(xmm1);
             xmm6i = _mm_cvtps_epi32(xmm2);
@@ -877,8 +876,8 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
 {
    if (!num) return;
 
-   if ((f - 1.0f) < LEVEL_96DB) {
-      memcpy(dptr, sptr,  num*bps);
+   if (fabsf(f - 1.0f) < LEVEL_96DB) {
+      if (sptr != dptr) memcpy(dptr, sptr,  num*bps);
    } else if (f <= LEVEL_96DB) {
       memset(dptr, 0, num*bps);
    }
