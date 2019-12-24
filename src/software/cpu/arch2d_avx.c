@@ -548,9 +548,11 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
 FN_PREALIGN void
 _batch_fmul_value_avx(void* dptr, const void *sptr, unsigned bps, size_t num, float f)
 {
-   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
+   if (!num) return;
 
-   if (f <= LEVEL_128DB) {
+   if (f == 1.0f) {
+      memcpy(dptr, sptr,  num*bps);
+   } else if  (f <= LEVEL_128DB) {
       memset(dptr, 0, num*bps);
    }
    else if (bps == 4)

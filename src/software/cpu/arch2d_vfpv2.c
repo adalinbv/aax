@@ -103,9 +103,11 @@ _batch_imul_value_vfpv2(void* dptr, const void* sptr, unsigned bps, size_t num, 
 void
 _batch_fmul_value_vfpv2(void* dptr, const void* sptr, unsigned bps, size_t num, float f)
 {
-   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
+   if (!num) return;
 
-   if (f <= LEVEL_90DB) {
+   if ((f - 1.0f) < LEVEL_96DB) {
+      memcpy(dptr, sptr,  num*bps);
+   } else if (f <= LEVEL_90DB) {
       memset(dptr, 0, num*bps);
    }
    else if (num)

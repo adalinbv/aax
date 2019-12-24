@@ -875,9 +875,11 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 void
 _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, float f)
 {
-   if (!num || fabsf(f - 1.0f) < LEVEL_96DB) return;
+   if (!num) return;
 
-   if (f <= LEVEL_128DB) {
+   if ((f - 1.0f) < LEVEL_96DB) {
+      memcpy(dptr, sptr,  num*bps);
+   } else if (f <= LEVEL_96DB) {
       memset(dptr, 0, num*bps);
    }
    else if (bps == 4)
