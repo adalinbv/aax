@@ -32,6 +32,7 @@ extern "C" {
 
 #include <ringbuffer.h>
 
+
 // frequency filters
 #define _aax_movingaverage_compute(fc, fs)	(1.f-expf(-GMATH_2PI*(fc)/(fs)))
 
