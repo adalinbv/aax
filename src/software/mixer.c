@@ -81,7 +81,13 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       unsigned int track, no_tracks;
       MIX_T **tracks;
 
-      if (reverb) {
+      no_tracks = mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      tracks = (MIX_T**)rbd->track;
+
+      if (reverb)
+      {
+         reverb->clear(reverb, no_tracks);
          ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
       }
       else if (delay_effect)
@@ -94,9 +100,6 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
       }
 
-      no_tracks = mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
-      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      tracks = (MIX_T**)rbd->track;
       for (track=0; track<no_tracks; track++)
       {
          MIX_T *dptr = (MIX_T*)tracks[track];
