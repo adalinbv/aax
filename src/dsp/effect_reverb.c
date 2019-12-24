@@ -660,6 +660,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
 {
    unsigned int snum, tracks;
    int rv = AAX_FALSE;
+   float volume;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -674,12 +675,30 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
    snum = reflections->no_delays;
    if (!mono && (snum > 0))
    {
-      unsigned int q;
+      unsigned int q = 0;
 
+#if 0
       memset(dptr, 0, no_samples*sizeof(MIX_T));
-      for(q=0; q<snum; ++q)
+#else
+      do
       {
-         float volume = gain*reflections->delay[q].gain;
+         volume = gain*reflections->delay[q].gain;
+         volume /= (1 + (track+q) % tracks);
+         if ((volume > 0.001f) || (volume < -0.001f))
+         {
+            ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
+            if (offs && offs < (ssize_t)ds) {
+               rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
+            }
+         }
+         q++;
+      }
+      while ((volume < 0.001f) && (volume > -0.001f));
+#endif
+
+      for(; q<snum; ++q)
+      {
+         volume = gain*reflections->delay[q].gain;
          volume /= (1 + (track+q) % tracks);
          if ((volume > 0.001f) || (volume < -0.001f))
          {
