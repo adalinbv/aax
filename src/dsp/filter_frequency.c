@@ -233,6 +233,9 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
                lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
                lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+               lfo->min_sec = lfo->min/lfo->fs;
+               lfo->max_sec = lfo->max/lfo->fs;
+
                if ((wstate & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
                    (wstate & AAX_ENVELOPE_FOLLOW_LOG))
                {
@@ -269,8 +272,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                   }
                }
 
-               lfo->min_sec = lfo->min/lfo->fs;
-               lfo->max_sec = lfo->max/lfo->fs;
                lfo->depth = 1.0f;
                lfo->offset = 0.0f;
                lfo->f = filter->slot[1]->param[AAX_RESONANCE];
