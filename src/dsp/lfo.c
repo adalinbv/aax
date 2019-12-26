@@ -524,9 +524,16 @@ _aaxLFOGetGainFollow(void* data, void *env, const void *ptr, unsigned track, siz
          olvl = lfo->value[track];
       }
 
+#if 0
       rv = lfo->convert(olvl, lfo->max-lfo->min);
       rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
       lfo->compression[track] = 1.0f - rv;
+#else
+      lfo->compression[track] = 1.0f - olvl;
+      rv = olvl * (lfo->max-lfo->min);
+      rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+      rv = lfo->convert(rv, 1.0f);
+#endif
    }
 
    return rv;
