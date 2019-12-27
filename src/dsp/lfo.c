@@ -132,7 +132,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          break;
       case AAX_ENVELOPE_FOLLOW:
       case AAX_ENVELOPE_FOLLOW_LOG:
-      case (AAX_ENVELOPE_FOLLOW|AAX_ENVELOPE_FOLLOW_LOG):
+      case AAX_ENVELOPE_FOLLOW_MASK:
          lfo->get = _aaxLFOGetGainFollow;
          lfo->envelope = AAX_TRUE;
          break;
@@ -473,9 +473,13 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
    if (lfo)
    {
       float step = lfo->step[track];
+      float olvl = lfo->value[track];
 
-      rv = lfo->convert(lfo->value[track], 1.0f);
+      lfo->compression[track] = 1.0f - olvl;
+
+      rv = olvl;
       rv = lfo->inv ? rv : lfo->max-(rv-lfo->min);
+      rv = lfo->convert(rv, 1.0f);
       rv = _aaxLFODelay(lfo, rv);
 
       lfo->value[track] += step;
@@ -484,7 +488,6 @@ _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
       } else if (lfo->value[track] > lfo->max) {
          lfo->value[track] = lfo->max;
       }
-      lfo->compression[track] = 1.0f - rv;
    }
 
    return rv;
