@@ -131,13 +131,14 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
 
-      if (reverb && reverb->reflections) {
-         reverb->reflections_prepare(dst, src, no_samples, reverb, track);
-      }
-      else if (delay)
+      if (delay)
       {
          ds = delay->history_samples;
          delay->prepare(dst, src, no_samples, ds, delay, track);
+      }
+
+      if (reverb && reverb->reflections) {
+         reverb->reflections_prepare(dst, src, no_samples, reverb, track);
       }
    }
 
