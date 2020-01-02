@@ -1306,22 +1306,20 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             
             if (dptr && pos != UINT_MAX)
             {
-               _aax3dProps *mp3d, *fp3d;
-               _aaxAudioFrame *smixer, *fmixer;
-
                dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
                if (dptr)
                {
                   _sensor_t *sensor = _intBufGetDataPtr(dptr);
-                  _aaxDelayed3dProps *fdp3d;
-                  smixer = sensor->mixer;
-                  fmixer = frame->submix;
+                  _aaxAudioFrame *smixer = sensor->mixer;
+                  _aaxAudioFrame *fmixer = frame->submix;
+                  _aax3dProps *mp3d = smixer->props3d;
+                  _aax3dProps *fp3d = fmixer->props3d;
+                  _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
+                  _aax2dProps *mp2d = smixer->props2d;
+                  _aax2dProps *fp2d = fmixer->props2d;
 
-                  mp3d = smixer->props3d;
-                  fp3d = fmixer->props3d;
-                  fdp3d = fp3d->dprops3d;
+                  fp2d->parent = mp2d;
                   fp3d->parent = mp3d;
-
                   if (_IS_RELATIVE(fp3d)) {
                      fdp3d->matrix.m4[LOCATION][3] = 0.0;
                      fdp3d->velocity.m4[LOCATION][3] = 0.0;

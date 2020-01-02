@@ -276,12 +276,11 @@ typedef ALIGN16 struct
 
 typedef struct
 {
-   void (*clear)(void*, unsigned int);
    void (*prepare)(_aaxEmitter*, _aax3dProps*, void*);
    void (*reflections_prepare)(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
    int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-              unsigned int, const void*, _aaxMixerInfo*, unsigned char, int,
-              void*, unsigned char);
+              unsigned int, const void*,const void*, _aaxMixerInfo*,
+              unsigned char, int, void*, unsigned char);
 
    int state;
 

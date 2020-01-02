@@ -47,9 +47,8 @@
 static void _reverb_swap(void*,void*);
 static void _reverb_destroy(void*);
 
-static void _reverb_clear(void*, unsigned int);
 static void _reverb_prepare(_aaxEmitter*, _aax3dProps*, void*);
-static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, _aaxMixerInfo*, unsigned char, int, void*, unsigned char);
+static int _reverb_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, const void*, const void*, _aaxMixerInfo*, unsigned char, int, void*, unsigned char);
 
 static void _reflections_prepare(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
 static void _reverb_add_reflections(_aaxRingBufferReverbData*, float, unsigned int, float, int, float);
@@ -95,7 +94,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    int rstate;
 
    rstate = state;
-   if (rstate & ~AAX_ENVELOPE_FOLLOW) {
+   if (rstate == AAX_INVERSE || rstate == AAX_TRUE ||
+       rstate == (AAX_INVERSE|AAX_TRUE))
+   {
       rstate = (AAX_REVERB_REFLECTIONS | AAX_REVERB_LOOPBACKS);
    }
 
@@ -105,7 +106,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    case AAX_INVERSE:
    case (AAX_INVERSE|AAX_TRUE):
    case AAX_REVERB_REFLECTIONS:
+   case (AAX_REVERB_REFLECTIONS|AAX_INVERSE):
    case AAX_REVERB_LOOPBACKS:
+   case (AAX_REVERB_LOOPBACKS|AAX_INVERSE):
    {
       char reflections=(rstate & AAX_REVERB_REFLECTIONS) ? AAX_TRUE : AAX_FALSE;
       char loopbacks = (rstate & AAX_REVERB_LOOPBACKS) ? AAX_TRUE : AAX_FALSE;
@@ -113,6 +116,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       unsigned int tracks = effect->info->no_tracks;
       float lb_depth, rate = 23.0f;
       float depth, fs = 48000.0f;
+
 
       if (effect->info)
       {
@@ -134,7 +138,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
          reverb->reflections_prepare = _reflections_prepare;
          reverb->prepare = _reverb_prepare;
-         reverb->clear = _reverb_clear;
          reverb->run = _reverb_run;
 
          if (reverb->direct_path == 0)
@@ -169,8 +172,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
 
          if (reflections) {
-            _reverb_add_reflections(reverb, fs, tracks, depth, state, decay_level);
+            _reverb_add_reflections(reverb, fs, tracks, depth, state, 0.25f*decay_level);
          }
+
          if (loopbacks) {
             _reverb_add_loopbacks(reverb, fs, tracks, lb_depth, 1.0f);
          }
@@ -418,18 +422,6 @@ _reverb_prepare(_aaxEmitter *src, _aax3dProps *fp3d, void *data)
       if (reverb->fc > 100.0f) {
           _aax_butterworth_compute(reverb->fc, filter);
       }
-   }
-}
-
-static void
-_reverb_clear(void *data, unsigned int tracks)
-{
-   static const size_t bps = sizeof(MIX_T);
-   _aaxRingBufferReverbData *reverb = data;
-   unsigned int i;
-
-   for (i=0; i<tracks; ++i) {
-      memset(reverb->direct_path->history[i], 0, bps*reverb->no_samples);
    }
 }
 
@@ -764,11 +756,12 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
 static int
 _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             size_t no_samples, size_t ds, unsigned int track, const void *data,
-            _aaxMixerInfo *info, unsigned char mono, int state, void *env,
-            unsigned char ctr)
+            const void *pdata, _aaxMixerInfo *info, unsigned char mono,
+            int state, void *env, unsigned char ctr)
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
+  const _aaxRingBufferReverbData *preverb = pdata;
    const _aaxRingBufferReverbData *reverb = data;
    _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
@@ -786,9 +779,15 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
    if (gain > LEVEL_64DB)
    {
-      MIX_T *dpath = (MIX_T*)reverb->direct_path->history[track];
+      MIX_T *dpath;
 
-      if (reverb->reflections)
+      if (preverb) {
+         dpath = (MIX_T*)preverb->direct_path->history[track];
+      } else {
+         dpath = (MIX_T*)reverb->direct_path->history[track];
+      }
+
+      if (reverb->state & AAX_REVERB_REFLECTIONS)
       {
          float l, fc;
 
@@ -818,13 +817,13 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
       }
 
-      if (reverb->loopbacks)
+      if (reverb->state & AAX_REVERB_LOOPBACKS)
       {
          _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples, ds,
                         track, gain, dst, state);
          filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
          rbd->add(dptr, dpath, no_samples, 1.0f, 0.0f);
-
+         memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
       }
    }
 

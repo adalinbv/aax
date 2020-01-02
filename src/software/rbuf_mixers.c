@@ -271,7 +271,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 #endif
 
             if (eff)
-            {
+            {	// emitter effects
 #if 0
 memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
 #else

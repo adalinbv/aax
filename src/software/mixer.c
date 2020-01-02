@@ -85,9 +85,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
       tracks = (MIX_T**)rbd->track;
 
-      if (reverb)
-      {
-         reverb->clear(reverb, no_tracks);
+      if (reverb) {
          ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
       }
       else if (delay_effect)
@@ -114,6 +112,8 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          /* mix the buffer and the delay buffer */
 //       DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
          memset(scratch0, 0, no_samples*bps);
+
+         // mixer (and audio-frames) effects
          rbi->effects_2nd(rbi->sample, scratch0, dptr, scratch1, 0, no_samples,
                           no_samples, ddesamps, track, p2d, 0, mono);
 

@@ -1237,9 +1237,12 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       if (pos != UINT_MAX)
       {
          _aaxAudioFrame *submix = sframe->submix;
+         _aax2dProps *mp2d = fmixer->props2d;
+         _aax2dProps *fp2d = submix->props2d;
          _aax3dProps *mp3d = fmixer->props3d;
          _aax3dProps *fp3d = submix->props3d;
 
+         fp2d->parent = mp2d;
          fp3d->parent = mp3d;
          if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
          {

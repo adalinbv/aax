@@ -327,7 +327,7 @@ typedef struct _aax3dProps_s
 
 } _aax3dProps;
 
-typedef ALIGN16 struct
+typedef ALIGN16 struct _aax2dProps_s
 {
       /* pos[0] position; -1.0 left,  0.0 center, 1.0 right */
       /* pos[1] position; -1.0 down,  0.0 center, 1.0 up    */
@@ -344,6 +344,8 @@ typedef ALIGN16 struct
    /* HRTF head shadow */
    float freqfilter_history[_AAX_MAX_SPEAKERS];
    float k;
+
+   struct _aax2dProps_s *parent;
 
    /* stereo filters */
    void *mutex;
