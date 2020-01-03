@@ -823,7 +823,13 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
                         track, gain, dst, state);
          filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
 
-         if (!pdata)
+         if (pdata)
+         { // there is aparent reverb effect: add the current direct path buffer
+            MIX_T *direct = (MIX_T*)reverb->direct_path->history[track];
+            rbd->add(dpath, direct, no_samples, 1.0f, 0.0f);
+            memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
+         }
+         else
          {
             rbd->add(dptr, dpath, no_samples, 1.0f, 0.0f);
             memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
