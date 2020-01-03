@@ -262,7 +262,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
          // at the sensor and mark it changed.
          if (parent)
          {
-            while ((void*)parent != handle->root)
+            while (handle->root && (void*)parent != handle->root)
             {
                handle = parent;
                parent = handle->parent;
