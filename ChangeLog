@@ -1,4 +1,4 @@
-* Mon Dec 16 2019 - tech@adalin.org
+* Mon Jan 20 2020 - tech@adalin.org
 - AeonWave (3.8.0) stable; urgency=low
 
  * Make it possible to specify the parameter-type for tied properties,
@@ -19,7 +19,7 @@
  * Prevent a double lock problem when assigning aaxs files to the mixer.
  * Fix pitch-slide timing problems.
 
--- Erik Hofman <tech@adalin.org>  Mon 16 Dec 2019 14:47:31 + 0100
+-- Erik Hofman <tech@adalin.org>  Mon 20 Jan 2020 14:20:20 + 0100
 
 
 * Tue Dec 03 2019 - tech@adalin.org
