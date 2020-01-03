@@ -230,9 +230,9 @@ _batch_fmul_value_cpu(void* dptr, const void* sptr, unsigned bps, size_t num, fl
 {
    if (!num) return;
 
-   if ((f - 1.0f) < LEVEL_96DB) {
-      memcpy(dptr, sptr,  num*bps);
-   } else if (f <= LEVEL_90DB) {
+   if (fabsf(f - 1.0f) < LEVEL_96DB) {
+      if (sptr != dptr) memcpy(dptr, sptr,  num*bps);
+   } else if (f <= LEVEL_96DB) {
       memset(dptr, 0, num*bps);
    }
    else if (num)
