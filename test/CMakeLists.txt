@@ -25,6 +25,7 @@ CREATE_CPP_TEST(testparam)
 
 CREATE_TEST(test3dmath)
 CREATE_TEST(testarch2d)
+CREATE_TEST(testregistering)
 CREATE_TEST(testmemory)
 CREATE_TEST(testtypes)
 CREATE_TEST(testdsp)

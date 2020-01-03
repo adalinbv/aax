@@ -1,6 +1,7 @@
 * Mon Jan 20 2020 - tech@adalin.org
-- AeonWave (3.8.0) stable; urgency=low
+- AeonWave (3.8.0) stable; urgency=medium
 
+ * Enable reverb for the instrument code to support reverb the way MIDI dictates
  * Make it possible to specify the parameter-type for tied properties,
    defaults to AAX_LINEAR.
  * Improved Reverb and make it possible to split the reflections section
@@ -17,6 +18,10 @@
  * Reorganize the order in which the gains are applied because in some cases
    the gain value used for envelope following was always maxed out.
  * Prevent a double lock problem when assigning aaxs files to the mixer.
+ * Better handle registering objects to unregistered audio-frames.
+ * Prevent a segementation fault when an audio-frame which was registered to
+   the mixer but which was later assigned to an audio-frame after which it is 
+   de-registered from the mixer for the second time.
  * Fix pitch-slide timing problems.
 
 -- Erik Hofman <tech@adalin.org>  Mon 20 Jan 2020 14:20:20 + 0100
