@@ -483,8 +483,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
                                           reflections->history_samples, tracks);
       }
 
-printf("decay_level: %f\n", decay_level);
-      lb_gain = 0.01f + 0.99f*_MIN(decay_level, 1.0f);
+      lb_gain = 0.01f + 0.99f*_MIN(2.0f*decay_level/num, 1.0f);
 
       /*
        https://christianfloisand.wordpress.com/2012/09/04/digital-reverberation/
@@ -823,8 +822,12 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples, ds,
                         track, gain, dst, state);
          filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
-         rbd->add(dptr, dpath, no_samples, 1.0f, 0.0f);
-         memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
+
+         if (!pdata)
+         {
+            rbd->add(dptr, dpath, no_samples, 1.0f, 0.0f);
+            memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
+         }
       }
    }
 
