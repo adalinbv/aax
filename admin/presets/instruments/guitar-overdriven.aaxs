@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2019 by Erik Hofman.
- * Copyright (C) 2017-2019 by Adalin B.V.
+ * Copyright (C) 2017-2020 by Erik Hofman.
+ * Copyright (C) 2017-2020 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,8 +14,8 @@
 
  <info name="Electric Guitar (60s Overdriven)" bank="0" program="29">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2019" by="Erik Hofman"/>
-  <copyright from="2017" until="2019" by="Adalin B.V."/>
+  <copyright from="2017" until="2020" by="Erik Hofman"/>
+  <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="6" min="40" max="86" step="12"/>
   <aftertouch mode="2"/>
  </info>

@@ -1,0 +1,70 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2020 by Erik Hofman.
+ * Copyright (C) 2017-2020 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
+ * not be disclosed to third parties, copied or duplicated in any form, in
+ * whole or in part, without the prior written permission of the author.
+-->
+
+<aeonwave>
+
+ <info name="Carillon" bank="8" program="14">
+  <license type="Proprietary/Commercial"/>
+  <copyright from="2017" until="2020" by="Erik Hofman"/>
+  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <note polyphony="17" min="60" max="77" step="1"/>
+ </info>
+
+ <sound gain="1.19" db="-10.0" frequency="261.626" duration="0.1">
+  <waveform src="sine" pitch="1.21"/>
+  <waveform src="sine" processing="add" ratio="0.1" pitch="1.59987"/>
+  <waveform src="sine" processing="add" ratio="0.05" pitch="6.25"/>
+  <waveform src="sine" processing="modulate" pitch="4.4587"/>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" release-time="1.4">
+   <slot n="0">
+    <param n="0" auto="2.0">7.86</param>
+    <param n="1">0.02</param>
+    <param n="2" auto="1.0">4.46</param>
+    <param n="3">0.02</param>
+   </slot>
+   <slot n="1">
+    <param n="0" auto="1.0">4.57</param>
+    <param n="1" auto="1.0">5.5</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch">
+   <slot n="0">
+    <param n="0">0.86</param>
+    <param n="1">0.01</param>
+    <param n="2">0.59</param>
+    <param n="3">0.01</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.616</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="chorus" optional="true">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.25</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe/>
+
+</aeonwave>

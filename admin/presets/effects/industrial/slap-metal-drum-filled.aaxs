@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2020 by Erik Hofman.
+ * Copyright (C) 2017-2020 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+-->
+
+<aeonwave>
+
+ <info name="Slap Metal Drum (Filled)" bank="0" program="0">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2020" by="Erik Hofman"/>
+  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <note polyphony="1"/>
+ </info>
+
+ <sound gain="1.25" db="-8.3" frequency="150" duration="0.3">
+  <waveform src="white-noise" ratio="1.2" pitch="0.25"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="28.0">4200.0</param>
+    <param n="1">0.7</param>
+    <param n="2">0.0</param>
+    <param n="3">2.2</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="1.5">225.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">4.0</param>
+   </slot>
+  </filter>
+ </sound>
+
+ <emitter looping="true">
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">2.6</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">2.4</param>
+    <param n="1">0.03</param>
+    <param n="2">1.2</param>
+    <param n="3">0.02</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+ </emitter>
+
+ <audioframe/>
+
+</aeonwave>

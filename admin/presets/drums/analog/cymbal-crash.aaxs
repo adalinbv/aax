@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2019 by Erik Hofman.
- * Copyright (C) 2017-2019 by Adalin B.V.
+ * Copyright (C) 2017-2020 by Erik Hofman.
+ * Copyright (C) 2017-2020 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Crash Cymbal" bank="25" program="49">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2019" by="Erik Hofman"/>
-  <copyright from="2017" until="2019" by="Adalin B.V."/>
+  <copyright from="2017" until="2020" by="Erik Hofman"/>
+  <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.18" db="-9.9" frequency="500" duration="0.3">
+ <sound gain="1.18" db="-8.9" frequency="500" duration="0.3">
   <waveform src="white-noise" ratio="0.7" pitch="0.25"/>
   <waveform src="square" processing="modulate" pitch="5.0"/>
   <filter type="frequency">

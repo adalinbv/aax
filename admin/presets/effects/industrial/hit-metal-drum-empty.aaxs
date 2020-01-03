@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2019 by Erik Hofman.
- * Copyright (C) 2017-2019 by Adalin B.V.
+ * Copyright (C) 2017-2020 by Erik Hofman.
+ * Copyright (C) 2017-2020 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Empty Metal Drum Hit" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2019" by="Erik Hofman"/>
-  <copyright from="2017" until="2019" by="Adalin B.V."/>
+  <copyright from="2017" until="2020" by="Erik Hofman"/>
+  <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.92" db="-2.7" frequency="27">
+ <sound gain="0.92" db="-8.0" frequency="27">
   <waveform src="square"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="9.0897"/>
   <waveform src="triangle" processing="modulate" pitch="6.4991"/>
@@ -44,13 +44,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.912</param>
+    <param n="0">1.66</param>
     <param n="1">0.02</param>
-    <param n="2">1.37</param>
+    <param n="2">2.5</param>
     <param n="3">0.01</param>
    </slot>
    <slot n="1">
-    <param n="0">0.57</param>
+    <param n="0">1.04</param>
     <param n="1">1.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
