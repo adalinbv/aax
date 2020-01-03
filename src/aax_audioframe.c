@@ -1293,6 +1293,8 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!sframe || sframe->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (sframe->parent != handle) {
+         _aaxErrorSet(AAX_INVALID_STATE+1);
       } else if (_intBufGetNumNoLock(handle->submix->frames, _AAX_FRAME) == 0) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {

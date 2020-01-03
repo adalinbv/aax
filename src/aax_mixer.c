@@ -1386,7 +1386,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
    if (handle)
    {
       _frame_t* frame = get_frame(f, _LOCK, __func__);
-      if (frame && frame->mixer_pos != UINT_MAX)
+      if (frame && frame->mixer_pos != UINT_MAX && frame->parent == handle)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
@@ -1417,7 +1417,7 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
          }
       }
       else {
-         _aaxErrorSet(AAX_INVALID_PARAMETER);
+         _aaxErrorSet(AAX_INVALID_STATE+1);
       }
       put_frame(frame);
    }
