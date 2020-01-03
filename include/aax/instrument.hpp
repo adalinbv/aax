@@ -421,7 +421,7 @@ public:
     void set_reverb_level(float lvl) {
         if (lvl > 1e-5f) {
             reverb_level = lvl;
-            if (!reverb_state) reverb_state = AAX_REVERB_REFLECTIONS;
+            if (!reverb_state) reverb_state = AAX_REVERB_1ST_ORDER;
         } else if (reverb_state) reverb_state = AAX_FALSE;
     }
 

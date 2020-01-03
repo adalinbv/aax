@@ -97,7 +97,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    if (rstate == AAX_INVERSE || rstate == AAX_TRUE ||
        rstate == (AAX_INVERSE|AAX_TRUE))
    {
-      rstate = (AAX_REVERB_REFLECTIONS | AAX_REVERB_LOOPBACKS);
+      rstate = (AAX_REVERB_1ST_ORDER | AAX_REVERB_2ND_ORDER);
    }
 
    switch (state & ~AAX_ENVELOPE_FOLLOW)
@@ -105,13 +105,13 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    case AAX_TRUE:
    case AAX_INVERSE:
    case (AAX_INVERSE|AAX_TRUE):
-   case AAX_REVERB_REFLECTIONS:
-   case (AAX_REVERB_REFLECTIONS|AAX_INVERSE):
-   case AAX_REVERB_LOOPBACKS:
-   case (AAX_REVERB_LOOPBACKS|AAX_INVERSE):
+   case AAX_REVERB_1ST_ORDER:
+   case (AAX_REVERB_1ST_ORDER|AAX_INVERSE):
+   case AAX_REVERB_2ND_ORDER:
+   case (AAX_REVERB_2ND_ORDER|AAX_INVERSE):
    {
-      char reflections=(rstate & AAX_REVERB_REFLECTIONS) ? AAX_TRUE : AAX_FALSE;
-      char loopbacks = (rstate & AAX_REVERB_LOOPBACKS) ? AAX_TRUE : AAX_FALSE;
+      char reflections=(rstate & AAX_REVERB_1ST_ORDER) ? AAX_TRUE : AAX_FALSE;
+      char loopbacks = (rstate & AAX_REVERB_2ND_ORDER) ? AAX_TRUE : AAX_FALSE;
       _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
       unsigned int tracks = effect->info->no_tracks;
       float lb_depth, rate = 23.0f;
@@ -172,7 +172,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
 
          if (reflections) {
-            _reverb_add_reflections(reverb, fs, tracks, depth, state, 0.25f*decay_level);
+            _reverb_add_reflections(reverb, fs, tracks, depth, state, decay_level);
          }
 
          if (loopbacks) {
@@ -483,6 +483,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
                                           reflections->history_samples, tracks);
       }
 
+printf("decay_level: %f\n", decay_level);
       lb_gain = 0.01f + 0.99f*_MIN(decay_level, 1.0f);
 
       /*
@@ -723,7 +724,7 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
 
    /* loopbacks (2nd order reflections) */
    snum = loopbacks->no_loopbacks;
-   if ((snum > 0) && (state & AAX_REVERB_LOOPBACKS))
+   if ((snum > 0) && (state & AAX_REVERB_2ND_ORDER))
    {
       _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
       size_t bytes = ds*sizeof(MIX_T);
@@ -787,7 +788,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          dpath = (MIX_T*)reverb->direct_path->history[track];
       }
 
-      if (reverb->state & AAX_REVERB_REFLECTIONS)
+      if (reverb->state & AAX_REVERB_1ST_ORDER)
       {
          float l, fc;
 
@@ -817,7 +818,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
       }
 
-      if (reverb->state & AAX_REVERB_LOOPBACKS)
+      if (reverb->state & AAX_REVERB_2ND_ORDER)
       {
          _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples, ds,
                         track, gain, dst, state);
