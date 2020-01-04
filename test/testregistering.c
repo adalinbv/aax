@@ -42,6 +42,9 @@ int main()
 
          sleep(0);
 
+         // This should fail, if not report.
+         TEST( !aaxMixerDeregisterAudioFrame(config, frame)      );
+
          TEST( aaxAudioFrameDeregisterAudioFrame(parent, frame) );
          TEST( aaxAudioFrameDestroy(frame) 			);
 

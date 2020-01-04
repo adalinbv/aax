@@ -19,9 +19,8 @@
    the gain value used for envelope following was always maxed out.
  * Prevent a double lock problem when assigning aaxs files to the mixer.
  * Better handle registering objects to unregistered audio-frames.
- * Prevent a segementation fault when an audio-frame which was registered to
-   the mixer but which was later assigned to an audio-frame after which it is 
-   de-registered from the mixer for the second time.
+ * Prevent a segementation fault when an object which is registered to another
+   object gets deregistered from a completely different object.
  * Fix pitch-slide timing problems.
 
 -- Erik Hofman <tech@adalin.org>  Mon 20 Jan 2020 14:20:20 + 0100
