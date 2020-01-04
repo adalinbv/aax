@@ -926,6 +926,8 @@ aaxAudioFrameDeregisterSensor(const aaxFrame frame, const aaxConfig sensor)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!ssr_config || ssr_config->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (ssr_config->parent != handle) {
+         _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
          rv = AAX_TRUE;
       }
@@ -1131,6 +1133,8 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!emitter || emitter->mixer_pos == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (emitter->parent != handle) {
+         _aaxErrorSet(AAX_INVALID_STATE+1);
       }
       else
       {

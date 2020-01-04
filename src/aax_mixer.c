@@ -1012,7 +1012,7 @@ aaxMixerDeregisterSensor(const aaxConfig config, const aaxConfig s)
       _handle_t* sframe = get_read_handle(s, __func__);
 
       aaxSensorSetState(s, AAX_SUSPENDED);
-      if (sframe && sframe->mixer_pos != UINT_MAX)
+      if (sframe && sframe->mixer_pos != UINT_MAX && sframe->parent == handle)
       {
          _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
          if (dptr)
@@ -1205,7 +1205,7 @@ aaxMixerDeregisterEmitter(const aaxConfig config, const aaxEmitter em)
    if (handle)
    {
       _emitter_t* emitter = get_emitter(em, _LOCK, __func__);
-      if (emitter && emitter->mixer_pos != UINT_MAX)
+      if (emitter && emitter->mixer_pos != UINT_MAX && emitter->parent == handle)
       {
          _aaxEmitter *src = emitter->source;
          _intBufferData *dptr;
