@@ -40,6 +40,7 @@
 float _linear(float v, float f) { return v*f; }
 float _compress(float v, float f) { return powf(f, 1.0f-v); }
 float _logarithmic(float v, float f) { return _log2lin(v); }
+float _exponential(float v, float f) { return _square(v); }
 
 _aaxLFOData*
 _lfo_create()
