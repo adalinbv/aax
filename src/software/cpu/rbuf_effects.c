@@ -259,8 +259,8 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
             preverb = _EFFECT_GET_DATA(pp2d, REVERB_EFFECT);
          }
 
-         r = reverb->run(rbd, pdst, psrc, scratch, no_samples, ddesamps,
-                         track, reverb, preverb, NULL, mono, reverb->state, env, ctr);
+         r = reverb->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
+                         reverb, preverb, NULL, mono, reverb->state, env, ctr);
          if (r) BUFSWAP(pdst, psrc);
       }
    }

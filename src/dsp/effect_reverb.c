@@ -749,6 +749,7 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
                rbd->add(dptr, dptr-offs, no_samples, volume, 0.0f);
                // make it all-pass
                rbd->add(dptr, scratch, no_samples, -volume, 0.0f);
+               rv = AAX_TRUE;
             }
          }
       }
@@ -796,7 +797,10 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       {
          float l, fc;
 
-         if (occlusion)
+         if (!occlusion) {
+            rbd->add(dpath, sptr, no_samples, reverb->reflections->gain, 0.0f);
+         }
+         else
          {
             l = 1.0f - occlusion->level;
             fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc);
@@ -805,9 +809,6 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             }
             occlusion->run(rbd, dpath, sptr, scratch, no_samples, track,
                            occlusion);
-         }
-         else {
-            rbd->add(dpath, sptr, no_samples, reverb->reflections->gain, 0.0f);
          }
 
          if (filter->lfo && !ctr)
@@ -819,14 +820,16 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
          rv = _reflections_run(reverb->reflections, rb, scratch, sptr,
                                no_samples, ds, track, gain, dst, mono, state);
-         filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
+         rv &= filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter,
+                           NULL, 1.0f, 0);
       }
 
       if (reverb->state & AAX_REVERB_2ND_ORDER)
       {
-         _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples, ds,
-                        track, gain, dst, state);
-         filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter, NULL, 1.0f, 0);
+         rv |= _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
+                              ds, track, gain, dst, state);
+         rv &= filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
+                           NULL, 1.0f, 0);
 
          if (pdata)
          { // there is aparent reverb effect: add the current direct path buffer
@@ -838,8 +841,8 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          {
             rbd->add(dptr, dpath, no_samples, 1.0f, 0.0f);
             memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
+            rv = AAX_TRUE;
          }
-         if (!rv) rv = AAX_TRUE;
       }
    }
 
