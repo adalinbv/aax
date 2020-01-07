@@ -226,12 +226,16 @@ public:
         i1.chorus_level = std::move(i2.chorus_level);
         i1.chorus_depth = std::move(i2.chorus_depth);
         i1.chorus_state = std::move(i2.chorus_state);
+        i1.filter_cutoff = std::move(i2.filter_cutoff);
+        i1.filter_resonance = std::move(i2.filter_resonance);
+        i1.filter_state = std::move(i2.filter_state);
         i1.reverb_level = std::move(i2.reverb_level);
         i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
         i1.reverb_state = std::move(i2.reverb_state);
         i1.attack_time = std::move(i2.attack_time);
         i1.release_time = std::move(i2.release_time);
         i1.decay_time = std::move(i2.decay_time);
+        i1.decay_level = std::move(i2.decay_level);
         i1.delay_level = std::move(i2.delay_level);
         i1.mfreq = std::move(i2.mfreq);
         i1.mrange = std::move(i2.mrange);
