@@ -839,6 +839,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             rbd->add(dptr, dpath, no_samples, 1.0f, 0.0f);
             memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
          }
+         if (!rv) rv = AAX_TRUE;
       }
    }
 
