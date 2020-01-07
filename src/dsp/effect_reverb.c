@@ -293,7 +293,12 @@ _aaxNewReverbEffectHandle(const aaxConfig config, enum aaxEffectType type, UNUSE
 
    if (rv)
    {
-      _aax_dsp_copy(rv->slot[1], &p2d->effect[rv->pos]);
+      _aaxRingBufferReverbData *reverb;
+
+      reverb = (_aaxRingBufferReverbData*)p2d->effect[rv->pos].data;
+      if (reverb) {
+         _occlusion_to_effect(rv->slot[1], reverb->occlusion);
+      }
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _reverb_destroy;
       rv->slot[0]->swap = _reverb_swap;

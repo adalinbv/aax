@@ -108,7 +108,10 @@ _aaxNewVolumeFilterHandle(const aaxConfig config, enum aaxFilterType type, UNUSE
 
    if (rv)
    {
-      _aax_dsp_copy(rv->slot[1], &p2d->filter[rv->pos]);
+      _aaxRingBufferOcclusionData *occlusion;
+
+      occlusion = (_aaxRingBufferOcclusionData*)p2d->effect[rv->pos].data;
+      _occlusion_to_effect(rv->slot[1], occlusion);
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _occlusion_destroy;
       rv->slot[0]->swap = _occlusion_swap;
@@ -292,6 +295,18 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
       }
    }
    return occlusion;
+}
+
+void
+_occlusion_to_effect(_aaxEffectInfo *slot, _aaxRingBufferOcclusionData *occlusion)
+{
+   if (occlusion)
+   {
+      slot->param[0] = 2.0f*occlusion->occlusion.v4[0];
+      slot->param[1] = 2.0f*occlusion->occlusion.v4[1];
+      slot->param[2] = 2.0f*occlusion->occlusion.v4[2];
+      slot->param[3] = 2.0f*occlusion->occlusion.v4[3];
+   }
 }
 
 void
