@@ -486,22 +486,19 @@ _delay_reset(void *ptr)
    if (data) _lfo_reset(&data->lfo);
 }
 
-void
-_delay_prepare(MIX_PTR_T dst, MIX_PTR_T src, size_t no_samples, size_t ds, void *data, unsigned int track)
+size_t
+_delay_prepare(MIX_PTR_T dst, MIX_PTR_T src, size_t no_samples, void *data, unsigned int track)
 {
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* delay = data;
+   size_t ds;
 
    assert(delay);
    assert(delay->history);
    assert(delay->history->ptr);
    assert(bps <= sizeof(MIX_T));
 
-   // When reverb is defined ds will be larger than delay->history_samples
-   // but reverb has it's own history buffer management so just limit it.
-   if (ds > delay->history_samples) {
-      ds = delay->history_samples;
-   }
+   ds = delay->history_samples;
 
    // copy the delay effects history to src
 //       DBG_MEMCLR(1, src-ds, ds, bps);
@@ -509,6 +506,8 @@ _delay_prepare(MIX_PTR_T dst, MIX_PTR_T src, size_t no_samples, size_t ds, void 
 
    // copy the new delay effects history back
    _aax_memcpy(delay->history->history[track], src+no_samples-ds, ds*bps);
+
+   return ds;
 }
 
 /**

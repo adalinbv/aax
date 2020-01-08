@@ -210,7 +210,7 @@ typedef ALIGN16 struct
 {
    _aaxRingBufferDelayData delay;
 
-   void (*prepare)(MIX_PTR_T, MIX_PTR_T, size_t, size_t, void*, unsigned int);
+   size_t (*prepare)(MIX_PTR_T, MIX_PTR_T, size_t, void*, unsigned int);
    int (*run)(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t,
               size_t, size_t, void*, void*, unsigned int);
 

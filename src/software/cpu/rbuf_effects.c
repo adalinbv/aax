@@ -112,10 +112,9 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
    static const size_t bps = sizeof(MIX_T);
    void *env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
    MIX_T *psrc, *pdst;
+   size_t ds = 0;
    int r, state;
-   size_t ds;
 
-   ds = 0;
    src += start;
    dst += start;
 
@@ -131,13 +130,13 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
       reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
 
-      if (delay)
-      {
-         ds = delay->history_samples;
-         delay->prepare(dst, src, no_samples, ds, delay, track);
+      if (delay) {
+         ds = delay->prepare(dst, src, no_samples, delay, track);
       }
 
-      if (reverb && reverb->reflections) {
+      if (reverb && reverb->reflections)
+      {
+         ds = reverb->reflections->history_samples;
          reverb->reflections_prepare(dst, src, no_samples, reverb, track);
       }
    }
