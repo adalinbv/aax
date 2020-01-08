@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2018-2019 by Erik Hofman.
- * Copyright (C) 2018-2019 by Adalin B.V.
+ * Copyright (C) 2018-2020 by Erik Hofman.
+ * Copyright (C) 2018-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -422,11 +422,12 @@ public:
     // The whole device must have one chorus effect and one reverb effect.
     // Each Channel must have its own adjustable send levels to the chorus
     // and the reverb. A connection from chorus to reverb must be provided.
+    void set_reverb(Buffer& buf) {
+        Mixer::add(buf);
+        aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
+        decay_level = dsp.get(AAX_DECAY_LEVEL);
+    }
     void set_reverb_level(float lvl) {
-        if (decay_level == 0.0f) {
-           aax::dsp dsp = get(AAX_REVERB_EFFECT);
-           decay_level = dsp.get(AAX_DECAY_LEVEL);
-        }
         if (lvl > 1e-5f) {
             reverb_level = lvl*decay_level;
             if (!reverb_state) reverb_state = AAX_REVERB_1ST_ORDER;
