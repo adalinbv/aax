@@ -1503,9 +1503,13 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
       xmid = xmlNodeGet(xid, "aeonwave/emitter");
       if (xmid)
       {
-         int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
+         int clear = AAX_FALSE;
          void *xeid, *xfid;
+
+         if (xmlAttributeExists(xmid, "mode")) {
+            clear = xmlAttributeCompareString(xmid, "mode", "append");
+         }
 
          if (xmlAttributeExists(xmid, "looping"))
          {

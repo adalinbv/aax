@@ -1728,9 +1728,13 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
       xmid = xmlNodeGet(xid, "aeonwave/mixer");
       if (xmid)
       {
-         int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
+         int clear = AAX_FALSE;
          void *xeid, *xfid;
+
+         if (xmlAttributeExists(xmid, "mode")) {
+            clear = xmlAttributeCompareString(xmid, "mode", "append");
+         }
 
          if (clear)
          {
