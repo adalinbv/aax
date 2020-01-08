@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2007-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -540,6 +540,9 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    assert(data != NULL);
 
    offs = effect->delay.sample_offs[track];
+   if (ds > effect->history_samples) {
+      ds = effect->history_samples;
+   }
 
    assert(start || (offs < (ssize_t)ds));
    if (offs >= (ssize_t)ds) offs = ds-1;

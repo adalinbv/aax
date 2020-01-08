@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -377,6 +377,8 @@ typedef ALIGN16 struct _aax2dProps_s
 
       float k;			/* attenuation frequency filter */
       float freqfilter_history[_AAX_MAX_SPEAKERS][2];
+
+      char silence;
    } final;
 
 } _aax2dProps ALIGN16C;

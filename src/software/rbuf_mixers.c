@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -276,6 +276,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
 #else
 //             DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
+               DBG_TESTZERO(dst, dno_samples);
                srbi->effects_2nd(srbi->sample, dptr, dst, scratch0,
                                  dest_pos, dend, dno_samples, ddesamps, track,
                                  p2d, ctr, AAX_FALSE);

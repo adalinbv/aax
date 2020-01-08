@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -136,7 +136,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
       if (reverb && reverb->reflections)
       {
-         ds = reverb->reflections->history_samples;
+//       ds = reverb->reflections->history_samples;
          reverb->reflections_prepare(dst, src, no_samples, reverb, track);
       }
    }

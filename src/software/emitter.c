@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2018 by Erik Hofman.
- * Copyright 2012-2018 by Adalin B.V.
+ * Copyright 2012-2020 by Erik Hofman.
+ * Copyright 2012-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -160,6 +160,7 @@ _aaxProcessEmitter(_aaxRingBuffer *drb, _aaxRendererData *data, _intBufferData *
                if (ep2d->curr_pos_sec >= ep2d->dist_delay_sec) {
                   res = drb->mix3d(drb, srb, ep2d, data, emitter->track, ctr,
                                              buffer_gain, src->history);
+//                if (ep2d->final.silence) rv = AAX_FALSE;
                }
             }
             else

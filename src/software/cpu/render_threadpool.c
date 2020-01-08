@@ -1,6 +1,6 @@
 /*
- * Copyright 2013-2018 by Erik Hofman.
- * Copyright 2013-2018 by Adalin B.V.
+ * Copyright 2013-2020 by Erik Hofman.
+ * Copyright 2013-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -104,7 +104,7 @@ typedef struct
    int max_emitters;
    int processed;
    int stage;
-   
+
    struct threat_t thread[_AAX_MAX_NO_WORKERS];
    _aaxRendererData *data;
 
@@ -277,12 +277,13 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
             // Wait until al worker threads are finished
             _aaxSemaphoreWait(handle->worker_ready);
 
-            // In DEBUG mode handle->processed is too slow to be set
-            // causing rv to be AAX_FALSE always because we set it here.
+#ifndef NDEBUG
+            // In DEBUG mode handle->processed is too slow to set the
+            // processed flag in a timely manner causing rv always to
+            // be AAX_FALSE.
             // As a result the audio-frame will not get rendered even if
             // there are active emitters, which causes silence.
-            // So alwars return AAX_TRUE in DEBUG mode.
-#ifndef NDEBUG
+            // Therefore always return AAX_TRUE in DEBUG mode.
             rv = AAX_TRUE;
 #else
             rv = _aaxAtomicIntSet(&handle->processed, AAX_FALSE);

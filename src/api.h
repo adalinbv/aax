@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -403,12 +403,14 @@ extern const char* _aax_id_s[_AAX_MAX_ID];
 #endif
 
 #ifndef NDEBUG
+# define DBG_TESTZERO(a, b)		do { unsigned int i,z=(b); for (i=0;i<(b);i++) if ((a)[i] == 0) --z; if (!z) printf("%s line %i\n\tbuffer is all zero's\n", __FILE__, __LINE__ ); } while(0);
 # define DBG_TESTNAN(a, b)		do { unsigned int i; for (i=0;i<(b);i++) if (is_nan((a)[i])) { printf("%s line %i\n\tNaN detetced at pos %i\n", __FILE__, __LINE__, i); exit(-1); } } while(0);
 # define DBG_MEMCLR(a, b, c, d)         if (a) memset((void*)(b), 0, (c)*(d))
 # define WRITE(a, b, dptr, ds, no_samples) \
    if (a) { static int ct = 0; if (++ct > (b)) { \
              WRITE_BUFFER_TO_FILE(dptr-ds, ds+no_samples); } }
 #else
+# define DBG_TESTZERO(a, b)
 # define DBG_TESTNAN(a, b)
 # define DBG_MEMCLR(a, b, c, d)
 # define WRITE(a, b, dptr, ds, no_samples) \

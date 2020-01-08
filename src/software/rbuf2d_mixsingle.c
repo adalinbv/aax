@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -226,8 +226,9 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    gain *= gain_init;
    gain = _square(gain)*ep2d->final.gain;
    gain *= gain_emitter;
+   ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? 0 : 1;
 
-// if (gain >= LEVEL_128DB)
+// if (!ep2d->final.silence)
    {
       float svol, evol;
 
