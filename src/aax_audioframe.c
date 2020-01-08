@@ -1733,11 +1733,14 @@ _frameCreateEFFromAAXS(aaxFrame frame, const char *aaxs)
       xmid = xmlNodeGet(xid, "aeonwave/audioframe");
       if (xmid)
       {
-         int clear = xmlAttributeCompareString(xmid, "mode", "append");
          unsigned int i, num = xmlNodeGetNum(xmid, "filter");
+         int clear = AAX_FALSE;
          _aaxAudioFrame* fmixer;
          void *xeid, *xfid;
 
+         if (xmlAttributeExists(xmid, "mode")) {
+            clear = xmlAttributeCompareString(xmid, "mode", "append");
+         }
 #if 0
          if (xmlAttributeExists(xmid, "stereo") &&
              xmlAttributeGetBool(xmid, "stereo") == 0)
