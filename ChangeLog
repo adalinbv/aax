@@ -1,9 +1,9 @@
 * Mon Jan 20 2020 - tech@adalin.org
 - AeonWave (3.8.0) stable; urgency=medium
 
- * Enable reverb for the instrument code to support reverb the way MIDI dictates
  * Make it possible to specify the parameter-type for tied properties,
    defaults to AAX_LINEAR.
+ * Enable reverb for the instrument code to support reverb the way MIDI dictates
  * Improved Reverb and make it possible to split the reflections section
    and the reverberation section between audio-frames. This will allow
    multiple instruments with different reverb levels to be combined in
@@ -15,6 +15,8 @@
  * Add AAX_RANDOM_SELECT as an option for the frequency filter.
  * Add the option to slide logarithmically through the frequency range for
    frequency filters.
+ * Make the applying-mode of filters and effects using aaxs files default
+   to 'append' rathter than 'overwrite' of the mode attribute is not defined.
  * Reorganize the order in which the gains are applied because in some cases
    the gain value used for envelope following was always maxed out.
  * Prevent a double lock problem when assigning aaxs files to the mixer.

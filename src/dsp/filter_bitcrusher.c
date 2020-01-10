@@ -101,8 +101,10 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
    case AAX_TIMED_TRANSITION:
+   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
+   case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferBitCrusherData *bitcrush = filter->slot[0]->data;
       if (bitcrush == NULL)
@@ -127,7 +129,13 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          }
 
          /* bit reduction */
-         bitcrush->lfo.convert = _linear;
+         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
+             (state & AAX_ENVELOPE_FOLLOW_LOG))
+         {
+            bitcrush->lfo.convert = _exponential;
+         } else {
+            bitcrush->lfo.convert = _linear;
+         }
          bitcrush->lfo.state = filter->state;
          bitcrush->lfo.fs = fs;
          bitcrush->lfo.period_rate = filter->info->period_rate;

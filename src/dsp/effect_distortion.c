@@ -35,7 +35,7 @@
 #include "api.h"
 #include "arch.h"
 
-#define VERSION	1.01
+#define VERSION	1.02
 #define DSIZE	sizeof(_aaxRingBufferDistoritonData)
 
 static int _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);

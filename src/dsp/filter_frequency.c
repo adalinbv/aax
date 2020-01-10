@@ -38,7 +38,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION	1.11
+#define VERSION	1.12
 #define DSIZE	sizeof(_aaxRingBufferFreqFilterData)
 
 static aaxFilter
