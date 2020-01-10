@@ -549,7 +549,11 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_RANDOM_SELECT;
             } else if (!strncasecmp(name, "envelope", len)) {
                rv |= AAX_ENVELOPE_FOLLOW;
-            } else if (!strncasecmp(name, "logarithmic", len)) {
+            } else if (!strncasecmp(name, "logarithmic", len) ||
+                       !strncasecmp(name, "exponential", len) ||
+                       !strncasecmp(name, "log", len) ||
+                       !strncasecmp(name, "exp", len))
+            {
                rv |= AAX_ENVELOPE_FOLLOW_LOG;
             } else if (!strncasecmp(name, "true", len) ||
                        !strncasecmp(name, "constant", len)) {
