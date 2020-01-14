@@ -12,44 +12,51 @@
 
 <aeonwave>
 
- <info name="Reed Organ" bank="0" program="20">
+ <info name="Reed Organ" bank="0" program="19">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.96" db="-6.1" frequency="220" duration="0.5">
-  <waveform src="sine" processing="add" ratio="0.25"/>
-  <waveform src="sine" processing="add" ratio="0.375" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.4375" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.3125" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.25" pitch="6.0"/>
-  <waveform src="sine" processing="add" ratio="0.125" pitch="8.0"/>
+ <sound gain="1.37" db="3.0" frequency="65.4064">
+  <waveform src="white-noise" ratio="0.1"/>
+  <waveform src="sine" processing="add" ratio="0.151391"/>
+  <waveform src="sine" processing="add" ratio="0.302065" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.602699" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.426678" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.213846" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.151391" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.0758753" pitch="8.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">0.06</param>
-    <param n="2">2.03</param>
-    <param n="3">0.05</param>
+    <param n="0">0.148</param>
+    <param n="1">0.08</param>
+    <param n="2">0.71</param>
+    <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">2.03</param>
-    <param n="1">inf</param>
-    <param n="2">2.03</param>
-    <param n="3">0.2</param>
+    <param n="0">0.71</param>
+    <param n="1">0.2</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
  </emitter>
 
- <audioframe pan="-0.8">
-  <filter type="frequency" src="36db" optional="true">
+ <audioframe>
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">4000.0</param>
+    <param n="0">100.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">3700.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>

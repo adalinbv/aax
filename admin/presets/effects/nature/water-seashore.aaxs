@@ -23,7 +23,7 @@
   <waveform src="white-noise" pitch="0.33"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">100.0</param>
+    <param n="0">200.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">1.1</param>
@@ -43,7 +43,21 @@
     <param n="0" pitch="40.0">8800.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.05</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
+   <slot n="0">
+    <param n="0">0.3</param>
+    <param n="1">0.8</param>
+    <param n="2">1.0</param>
+    <param n="3">inf</param>
+   </slot>
+   <slot n="1">
+    <param n="0">1.0</param>
+    <param n="1">0.9</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
   <filter type="dynamic-gain" src="sawtooth">

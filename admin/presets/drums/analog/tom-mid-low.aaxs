@@ -26,7 +26,7 @@
  <emitter looping="true" pan="0.01">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">2.9</param>
+    <param n="0">2.61</param>
     <param n="1">0.25</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

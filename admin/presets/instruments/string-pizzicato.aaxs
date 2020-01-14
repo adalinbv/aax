@@ -20,12 +20,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <fm gain="0.82" db="-0.4" frequency="110" duration="0.1">
-  <waveform src="triangle"/>
-  <waveform src="triangle" processing="mix" pitch="1.999"/>
- </fm>
-
- <sound gain="0.82" db="-7.2" frequency="110" duration="0.1">
+ <sound gain="0.82" db="-7.3" frequency="110" duration="0.1">
   <waveform src="square"/>
   <waveform src="triangle" processing="modulate" pitch="3.989"/>
   <waveform src="triangle" processing="mix" pitch="1.999"/>
@@ -35,9 +30,9 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.95</param>
+    <param n="0">1.98</param>
     <param n="1">0.0829</param>
-    <param n="2">2.29</param>
+    <param n="2">2.31</param>
     <param n="3">0.929</param>
    </slot>
   </filter>
@@ -66,12 +61,12 @@
     <param n="3">2.0</param>
    </slot>
   </filter>
-  <filter type="frequency" optional="true">
+  <filter type="frequency" src="24db" optional="true">
    <slot n="0">
     <param n="0">1600.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">4.0</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>

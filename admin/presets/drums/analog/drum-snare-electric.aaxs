@@ -20,15 +20,15 @@
  </info>
 
  <sound gain="0.72" db="-5.7" frequency="164" duration="0.5">
-  <waveform src="sine"/>
+  <waveform src="white-noise" ratio="0.8"/>
+  <waveform src="sine" processing="add"/>
   <waveform src="sine" processing="add" ratio="0.8" pitch="2.0"/>
-  <waveform src="white-noise" processing="add" ratio="0.2"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.92</param>
+    <param n="0">1.73</param>
     <param n="1">0.25</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

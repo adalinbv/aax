@@ -19,17 +19,25 @@
   <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="1.69" db="-0.7" frequency="880" duration="0.3">
+ <sound gain="2.10" db="1.2" frequency="880" duration="0.3">
   <waveform src="impulse" ratio="0.2"/>
-  <waveform src="pink-noise" processing="add" ratio="0.5" pitch="0.12"/>
+  <waveform src="pink-noise" processing="add" pitch="0.22" staticity="0.02"/>
+  <filter type="bitcrusher">
+   <slot n="0">
+    <param n="0">0.03</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.5</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.08</param>
+    <param n="0">0.695</param>
     <param n="1">0.2</param>
-    <param n="2">0.27</param>
+    <param n="2">0.173</param>
     <param n="3">0.4</param>
    </slot>
   </filter>

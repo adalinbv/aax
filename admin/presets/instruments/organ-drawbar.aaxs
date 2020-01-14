@@ -12,30 +12,31 @@
 
 <aeonwave>
 
- <info name="Drawbar" bank="0" program="0">
+ <info name="Hammond Organ" bank="0" program="15">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.80" db="-2.5" frequency="220" duration="0.1">
-  <waveform src="sine" ratio="0.560748"/>
-  <waveform src="sine" processing="add" ratio="0.140853" pitch="8.0"/>
-  <waveform src="sine" processing="add" ratio="0.560748" pitch="0.5"/>
+ <sound gain="1.00" db="0.2" frequency="65.4064">
+  <waveform src="white-noise" ratio="0.1"/>
+  <waveform src="sine" ratio="0.560748" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.560748"/>
   <waveform src="sine" processing="add" ratio="0.560748" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.140853" pitch="8.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.34</param>
+    <param n="0">0.202</param>
     <param n="1">0.08</param>
-    <param n="2">1.06</param>
+    <param n="2">0.972</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.06</param>
+    <param n="0">0.972</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

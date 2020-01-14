@@ -12,30 +12,31 @@
 
 <aeonwave>
 
- <info name="Rock Organ" bank="0" program="18">
+ <info name="Rock Organ" bank="0" program="17">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.92" db="-1.4" frequency="220" duration="0.1">
-  <waveform src="sine" ratio="0.463448" pitch="0.75"/>
+ <sound gain="1.00" db="-3.9" frequency="65.4064">
+  <waveform src="white-noise" ratio="0.1"/>
+  <waveform src="sine" ratio="0.463448" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.463448" pitch="0.75"/>
   <waveform src="sine" processing="add" ratio="0.463448"/>
-  <waveform src="sine" processing="add" ratio="0.231048" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.463448" pitch="2.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.18</param>
+    <param n="0">1.57</param>
     <param n="1">0.08</param>
-    <param n="2">0.942</param>
+    <param n="2">1.26</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.942</param>
+    <param n="0">1.26</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -43,23 +44,15 @@
   </filter>
  </emitter>
 
- <audioframe pan="-0.8">
+ <audioframe>
   <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">100.0</param>
-    <param n="1">0.0</param>
+    <param n="0">65.0</param>
+    <param n="1">0.5</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">2000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.5</param>
-    <param n="3">1.1</param>
-   </slot>
-  </filter>
-  <filter type="frequency" optional="true">
-   <slot n="0">
     <param n="0">3700.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
@@ -68,7 +61,7 @@
   </filter>
   <effect type="distortion" optional="true">
    <slot n="0">
-    <param n="0">0.2</param>
+    <param n="0">0.1</param>
     <param n="1">0.0</param>
     <param n="2">0.15</param>
     <param n="3">1.0</param>

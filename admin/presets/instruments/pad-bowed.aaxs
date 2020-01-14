@@ -12,7 +12,7 @@
 
 <aeonwave>
 
- <info name="Pad 4 (Bowed)" bank="0" program="91">
+ <info name="Pad 4 (Choir)" bank="0" program="91">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
@@ -36,15 +36,15 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.234</param>
+    <param n="0">0.237</param>
     <param n="1">0.8</param>
-    <param n="2">1.17</param>
+    <param n="2">1.18</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.896</param>
+    <param n="0">0.907</param>
     <param n="1">inf</param>
-    <param n="2">0.896</param>
+    <param n="2">0.907</param>
     <param n="3">1.5</param>
    </slot>
   </filter>

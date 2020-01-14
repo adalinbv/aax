@@ -19,40 +19,24 @@
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.31" db="-1.0" frequency="220" duration="0.1">
-  <waveform src="sine" ratio="0.426288" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.426288"/>
-  <waveform src="sine" processing="add" ratio="0.426288" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.426288" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.426288" pitch="0.5"/>
-  <waveform src="sine" processing="add" ratio="0.107079" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.107079" pitch="6.0"/>
+ <sound gain="1.09" db="-1.0" frequency="65.4064">
+  <waveform src="white-noise" ratio="0.1"/>
+  <waveform src="sine" ratio="0.560748" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.560748"/>
+  <waveform src="sine" processing="add" ratio="0.560748" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.140853" pitch="8.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="envelope">
-   <slot n="0">
-    <param n="0" pitch="0.25">55.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0" pitch="8.0">1760.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.1</param>
-   </slot>
-  </filter>
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">1.12</param>
-    <param n="1">0.08</param>
-    <param n="2">0.93</param>
+    <param n="1">0.16</param>
+    <param n="2">0.895</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.93</param>
+    <param n="0">0.895</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -60,23 +44,15 @@
   </filter>
  </emitter>
 
- <audioframe pan="0.8">
+ <audioframe>
   <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">100.0</param>
-    <param n="1">0.0</param>
+    <param n="1">0.1</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">2000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.5</param>
-    <param n="3">1.1</param>
-   </slot>
-  </filter>
-  <filter type="frequency" optional="true">
-   <slot n="0">
     <param n="0">3700.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>

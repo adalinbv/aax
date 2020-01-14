@@ -12,43 +12,45 @@
 
 <aeonwave>
 
- <info name="Crash Cymbal" bank="0" program="49">
+ <info name="Crash Cymbal" bank="0" program="57">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.03" db="-8.6" frequency="480" duration="0.3">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="modulate" pitch="6.3"/>
-  <waveform src="white-noise" processing="add" ratio="0.7" pitch="0.25"/>
-  <waveform src="square" processing="modulate" pitch="5.0"/>
+ <sound gain="0.96" db="-11.3" frequency="560" duration="0.3">
+  <waveform src="square"/>
+  <waveform src="sine" processing="modulate" pitch="3.59126"/>
+  <waveform src="white-noise" processing="add" ratio="0.4" pitch="0.24837"/>
+  <waveform src="triangle" processing="modulate" pitch="4.5394"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0">1000.0</param>
-    <param n="1">0.1</param>
+    <param n="0">1600.0</param>
+    <param n="1">0.0</param>
     <param n="2">1.2</param>
     <param n="3">5.0</param>
    </slot>
   </filter>
  </sound>
 
- <emitter looping="true" pan="0.31">
-  <filter type="timed-gain" release-time="0.6">
+ <emitter looping="true" pan="-0.31">
+  <filter type="timed-gain" src="envelope" release-time="1.2">
    <slot n="0">
-    <param n="0">2.04</param>
-    <param n="1">0.13</param>
-    <param n="2">2.99</param>
-    <param n="3">0.13</param>
-   </slot>
-   <slot n="1">
-    <param n="0">2.48</param>
-    <param n="1">2.5</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">3.29</param>
+    <param n="1">0.18</param>
+    <param n="2">3.04</param>
+    <param n="3">3.33</param>
    </slot>
   </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">0.85</param>
+    <param n="1">0.03</param>
+    <param n="2">1.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe/>

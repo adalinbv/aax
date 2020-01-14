@@ -12,63 +12,70 @@
 
 <aeonwave>
 
- <info name="Electric Grand Piano" bank="0" program="2">
+ <info name="Wurlitzer Electric Piano" bank="0" program="2">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="88" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="0.58" db="-8.0" frequency="440" duration="0.1">
-  <waveform src="sine"/>
-  <waveform src="sine" processing="modulate" pitch="2.0"/>
-  <filter type="frequency" optional="true">
+ <sound gain="1.27" db="-7.7" frequency="1760" duration="0.5">
+  <waveform src="square"/>
+  <waveform src="square" processing="mix" ratio="0.25" pitch="5.0"/>
+  <waveform src="sawtooth" processing="modulate" pitch="1.5"/>
+  <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="6.0">2640.0</param>
+    <param n="0" pitch="2.0">3520.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.3</param>
+    <param n="2">0.1</param>
     <param n="3">1.0</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="1.6">
+  <filter type="timed-gain" release-time="0.2">
    <slot n="0">
-    <param n="0">0.904</param>
+    <param n="0">0.0</param>
     <param n="1">0.01</param>
-    <param n="2">2.51</param>
-    <param n="3">0.09</param>
+    <param n="2">2.44</param>
+    <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1.67</param>
-    <param n="1">1.38</param>
+    <param n="0">2.42</param>
+    <param n="1">2.66</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.9</param>
-    <param n="1">0.02</param>
+    <param n="0">1.5</param>
+    <param n="1">0.015</param>
     <param n="2">1.0</param>
-    <param n="3">0.1</param>
+    <param n="3">4.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">0.5</param>
-    <param n="2">0.995</param>
+    <param n="0">0.985</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </emitter>
 
  <audioframe pan="0.6">
-  <filter type="frequency" src="24db" optional="true">
+  <filter type="equalizer" optional="true">
    <slot n="0">
-    <param n="0">3600.0</param>
+    <param n="0">100.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">3700.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.3</param>
+    <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
   </filter>

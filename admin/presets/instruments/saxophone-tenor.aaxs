@@ -16,13 +16,13 @@
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="2" min="37" max="75" step="12"/>
+  <note polyphony="2" min="42" max="75" step="12"/>
  </info>
 
- <sound gain="3.33" db="-0.9" frequency="110" duration="0.5">
+ <sound gain="3.89" db="3.1" frequency="92.4986" duration="0.5">
   <waveform src="triangle"/>
-  <waveform src="sawtooth" processing="modulate" pitch="3.0"/>
-  <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.2"/>
+  <waveform src="triangle" processing="modulate" pitch="4.0"/>
+  <waveform src="pink-noise" processing="add" ratio="0.05" pitch="0.2"/>
   <waveform src="sawtooth" processing="mix" ratio="0.33"/>
   <waveform src="triangle" processing="modulate" pitch="2.0"/>
  </sound>
@@ -32,13 +32,13 @@
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.08</param>
-    <param n="2">1.11</param>
+    <param n="2">0.637</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0">0.973</param>
+    <param n="0">0.702</param>
     <param n="1">7.5</param>
-    <param n="2">0.943</param>
+    <param n="2">0.549</param>
     <param n="3">3.2</param>
    </slot>
   </filter>
@@ -62,6 +62,14 @@
   <filter type="frequency" optional="true">
    <slot n="0">
     <param n="0">550.0</param>
+    <param n="1">0.25</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" optional="true">
+   <slot n="0">
+    <param n="0">550.0</param>
     <param n="1">0.4</param>
     <param n="2">1.0</param>
     <param n="3">1.0</param>
@@ -70,7 +78,7 @@
     <param n="0">1500.0</param>
     <param n="1">1.0</param>
     <param n="2">0.5</param>
-    <param n="3">1.0</param>
+    <param n="3">4.0</param>
    </slot>
   </filter>
  </audioframe>

@@ -19,33 +19,25 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.69" db="-4.3" frequency="220" duration="0.5">
-  <waveform src="square" ratio="0.25" pitch="0.3"/>
-  <waveform src="square" processing="add" ratio="0.15" pitch="3.0"/>
-  <waveform src="triangle" processing="modulate"/>
-  <waveform src="square" processing="mix" ratio="0.2"/>
+ <sound gain="1.19" db="-4.4" frequency="220" duration="0.5">
+  <waveform src="triangle" ratio="0.75" pitch="4.5"/>
+  <waveform src="square" processing="add" ratio="-0.75" pitch="3.0"/>
+  <waveform src="triangle" processing="modulate" pitch="2.987"/>
+  <waveform src="triangle" processing="mix" ratio="0.2"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="3.2">
+  <filter type="timed-gain" release-time="0.2">
    <slot n="0">
-    <param n="0">0.72</param>
+    <param n="0">0.722</param>
     <param n="1">0.05</param>
-    <param n="2">1.64</param>
+    <param n="2">1.66</param>
     <param n="3">0.5</param>
    </slot>
    <slot n="1">
-    <param n="0">1.18</param>
+    <param n="0">1.19</param>
     <param n="1">8.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
-  <filter type="dynamic-gain" src="triangle">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.6</param>
     <param n="3">0.0</param>
    </slot>
   </filter>

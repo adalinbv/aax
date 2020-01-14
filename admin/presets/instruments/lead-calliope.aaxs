@@ -19,51 +19,43 @@
   <note polyphony="43" min="48" max="96" step="6"/>
  </info>
 
- <sound gain="1.08" db="-2.3" frequency="130.813" duration="3.3">
+ <sound gain="0.41" db="-7.5" frequency="1760">
   <waveform src="triangle"/>
-  <waveform src="sine" processing="modulate"/>
-  <filter type="bitcrusher">
-   <slot n="0">
-    <param n="0">0.03</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.33</param>
-   </slot>
-  </filter>
+  <waveform src="sine" processing="add" ratio="0.1" pitch="3.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency">
+  <filter type="bitcrusher" src="inverse-timed">
    <slot n="0">
-    <param n="0" pitch="1.0">130.8</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">30.0</param>
+    <param n="0">0.2</param>
+    <param n="1">0.9</param>
+    <param n="2">0.33</param>
+    <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="timed-gain" release-time="0.12">
+  <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.575</param>
-    <param n="1">0.109</param>
-    <param n="2">1.31</param>
-    <param n="3">0.05</param>
+    <param n="0">0.405</param>
+    <param n="1">0.05</param>
+    <param n="2">2.38</param>
+    <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">1.09</param>
-    <param n="1">9.5</param>
-    <param n="2">0.887</param>
-    <param n="3">3.2</param>
+    <param n="0">2.26</param>
+    <param n="1">inf</param>
+    <param n="2">2.26</param>
+    <param n="3">0.1</param>
    </slot>
   </filter>
  </emitter>
 
  <audioframe>
-  <filter type="frequency" src="24db">
+  <filter type="frequency" optional="true">
    <slot n="0">
     <param n="0">3500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
+    <param n="2">0.35</param>
+    <param n="3">3.0</param>
    </slot>
   </filter>
  </audioframe>

@@ -5,46 +5,46 @@
  * Copyright (C) 2017-2020 by Adalin B.V.
  * All rights reserved.
  *
- * This file is part of AeonWave and covered by the
- * Creative Commons Attribution-ShareAlike 4.0 International Public License
- * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
+ * not be disclosed to third parties, copied or duplicated in any form, in
+ * whole or in part, without the prior written permission of the author.
 -->
 
 <aeonwave>
 
  <info name="Timpani D2" bank="48" program="51">
-  <license type="Attribution-ShareAlike 4.0 International"/>
+  <license type="Proprietary/Commercial"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.22" db="-8.3" frequency="147" duration="0.3">
-  <waveform src="pink-noise" pitch="0.11"/>
-  <waveform src="square" processing="add" ratio="0.3"/>
+ <sound gain="1.69" db="1.6" frequency="147" duration="0.33">
+  <waveform src="square" ratio="0.3"/>
   <waveform src="sine" processing="add" ratio="0.45" pitch="1.7"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="2.8"/>
+  <waveform src="pink-noise" processing="add" ratio="5.0" pitch="0.008"/>
  </sound>
 
- <emitter looping="true" pan="-0.47">
-  <filter type="timed-gain">
+ <emitter looping="true">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0" auto="0.809">4.26</param>
+    <param n="0" auto="0.234">1.23</param>
     <param n="1">0.03</param>
-    <param n="2" auto="0.367">3.22</param>
+    <param n="2" auto="0.103">0.909</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.367">3.46</param>
-    <param n="1" auto="1.0">2.7</param>
+    <param n="0" auto="0.144">1.09</param>
+    <param n="1" auto="1.0">2.9</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0" auto="3.9">10.2</param>
-    <param n="1">0.03</param>
+    <param n="0" auto="1.5">4.8</param>
+    <param n="1">0.06</param>
     <param n="2">1.0</param>
     <param n="3">4.0</param>
    </slot>
@@ -57,13 +57,13 @@
   </effect>
  </emitter>
 
- <audioframe>
+ <audioframe pan="0.6">
   <filter type="frequency" src="36db">
    <slot n="0">
-    <param n="0">880.0</param>
+    <param n="0">660.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
+    <param n="2">0.1</param>
+    <param n="3">1.2</param>
    </slot>
   </filter>
  </audioframe>

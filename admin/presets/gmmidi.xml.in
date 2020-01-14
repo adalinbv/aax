@@ -14,7 +14,7 @@
 
  <midi name="UltraSynth default" version="@AAX_VERSION@">
   <bank n="0">
-   <instrument n="0" name="Acoustic Grand Piano" file="instruments/piano-acoustic"/>
+   <instrument n="0" name="Acoustic Grand Piano" file="instruments/piano-upright"/>
    <instrument n="1" name="Bright Acoustic Piano" file="instruments/piano-bright"/>
    <instrument n="2" name="Electric Grand Piano" file="instruments/piano-electric"/>
    <instrument n="3" name="Honky-tonk Piano" file="instruments/piano-honky-tonk"/>

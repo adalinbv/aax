@@ -40,9 +40,9 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">3.86</param>
+    <param n="0">3.47</param>
     <param n="1">0.03</param>
-    <param n="2">0.878</param>
+    <param n="2">0.79</param>
     <param n="3">1.2</param>
    </slot>
   </filter>

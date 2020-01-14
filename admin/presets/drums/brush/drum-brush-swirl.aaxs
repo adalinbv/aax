@@ -34,9 +34,9 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.8">
    <slot n="0">
-    <param n="0">0.157</param>
+    <param n="0">0.141</param>
     <param n="1">0.15</param>
-    <param n="2">0.72</param>
+    <param n="2">0.648</param>
     <param n="3">0.73</param>
    </slot>
   </filter>

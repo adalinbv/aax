@@ -29,30 +29,30 @@
     <param n="3">30.0</param>
    </slot>
   </filter>
-  <waveform src="sine" processing="mix" ratio="0.8" pitch="10.0"/>
+  <waveform src="sine" processing="mix" ratio="0.2" pitch="10.0"/>
  </sound>
 
  <emitter looping="true" pan="0.55">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.79</param>
+    <param n="0">1.61</param>
     <param n="1">0.05</param>
-    <param n="2">1.8</param>
+    <param n="2">1.62</param>
     <param n="3">0.35</param>
    </slot>
    <slot n="1">
-    <param n="0">1.03</param>
+    <param n="0">0.927</param>
     <param n="1">0.15</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="sawtooth">
+  <filter type="dynamic-gain" src="sawtooth" optional="true">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">50.0</param>
-    <param n="2">1.0</param>
-    <param n="3">0.0</param>
+    <param n="2">0.4</param>
+    <param n="3">0.6</param>
    </slot>
   </filter>
   <effect type="timed-pitch">

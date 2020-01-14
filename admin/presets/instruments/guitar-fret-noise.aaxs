@@ -20,28 +20,42 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="0.78" db="-8.2" frequency="261.626" duration="0.1">
+ <sound gain="0.73" db="-8.9" frequency="261.626" duration="0.1">
   <waveform src="sawtooth" ratio="0.9"/>
   <waveform src="square" processing="add" ratio="0.6" pitch="2.0"/>
-  <waveform src="sine" processing="modulate" pitch="5.0"/>
+  <waveform src="sine" processing="modulate" pitch="8.0"/>
   <waveform src="sine" processing="add" ratio="0.2"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.502</param>
+    <param n="0">0.542</param>
     <param n="1">0.04</param>
-    <param n="2">2.19</param>
+    <param n="2">2.36</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">2.58</param>
+    <param n="0">2.79</param>
     <param n="1">0.432</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">0.546</param>
+    <param n="1">0.04</param>
+    <param n="2">2.38</param>
+    <param n="3">0.1</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.9</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe pan="-0.35"/>

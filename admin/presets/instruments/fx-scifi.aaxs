@@ -19,36 +19,22 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.13" db="-1.1" frequency="220">
+ <sound gain="0.99" db="-2.4" frequency="220">
   <waveform src="triangle" pitch="17.0"/>
   <waveform src="square" processing="mix" pitch="4.9897"/>
   <waveform src="triangle" processing="modulate" pitch="3.4991"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-envelope" optional="true">
-   <slot n="0">
-    <param n="0" pitch="0.1">22.0</param>
-    <param n="1">0.0</param>
-    <param n="2">1.0</param>
-    <param n="3">2.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">4400.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.2</param>
-   </slot>
-  </filter>
   <filter type="timed-gain" src="envelope" release-time="3.2">
    <slot n="0">
-    <param n="0">1.14</param>
+    <param n="0">1.32</param>
     <param n="1">0.04</param>
-    <param n="2">0.912</param>
+    <param n="2">1.06</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.681</param>
+    <param n="0">0.789</param>
     <param n="1">8.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
