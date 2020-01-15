@@ -542,7 +542,7 @@ void _pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
                                 unsigned block_smp, int16_t* sample,
                                 uint8_t* index, short step)
 {
-   unsigned int i;
+   unsigned int i, size = (block_smp/2)*2;
    int16_t header;
    uint8_t nibble;
 
@@ -552,7 +552,7 @@ void _pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
    *ndata++ = *index;
    *ndata++ = 0;
 
-   for (i=0; i<block_smp; i += 2)
+   for (i=0; i<size; i += 2)
    {
       int16_t nsample;
 
@@ -566,6 +566,8 @@ void _pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
       data += step;
       *ndata++ |= nibble << 4;
    }
+
+   if (i < block_smp) *ndata++ = 0;
 }
 
 static size_t
