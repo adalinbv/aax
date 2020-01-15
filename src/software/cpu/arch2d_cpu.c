@@ -720,10 +720,11 @@ _batch_cvt24_24_3_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
       int32_t smp, *d = dptr;
       size_t i = num;
 
-      do {
-         smp = *s++;
-         smp |= (*s++ << 8);
-         smp |= (*s++ << 16);
+      do
+      {
+         smp = ((int32_t)*s++);
+         smp |= ((int32_t)*s++) << 8;
+         smp |= ((int32_t)*s++) << 16;
          if ((smp & 0x00800000) > 0) smp |= 0xFF000000;
 
          *d++ = smp;
@@ -778,9 +779,9 @@ _batch_cvt24_3_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 
       do
       {
-         *d++ = *s & 0xFF;
-         *d++ = (*s >> 8) & 0xFF;
-         *d++ = (*s++ >> 16) & 0xFF;
+         *d++ = (uint8_t)(*s & 0xFF);
+         *d++ = (uint8_t)((*s >> 8) & 0xFF);
+         *d++ = (uint8_t)((*s++ >> 16) & 0xFF);
       }
       while (--i);
    }
