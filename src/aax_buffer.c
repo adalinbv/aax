@@ -2417,21 +2417,25 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
+      rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    case AAX_FLOAT:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_ps_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
+      rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    case AAX_DOUBLE:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_pd_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
+      rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    case AAX_PCM24S_PACKED:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_24_3intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
+      rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    default:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
