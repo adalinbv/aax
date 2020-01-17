@@ -494,7 +494,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
             return rv;
          }
 
-         _aax_memcpy(m, data, buf_samples*fmt_bps);
+         memcpy(m, data, buf_samples*fmt_bps);
          data = m;
 					/* first convert to native endianness */
          if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
@@ -1463,7 +1463,7 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
                    assert(size <= rb->get_parami(rb, RB_TRACKSIZE));
 
                    tracks = (void**)rb->get_tracks_ptr(rb, RB_WRITE);
-                   _aax_memcpy(tracks[0], ptr, size);
+                   memcpy(tracks[0], ptr, size);
                    rb->release_tracks_ptr(rb);
                 }
                 rv = AAX_TRUE;
@@ -2413,6 +2413,11 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
       rb->release_tracks_ptr(rb);
       break;
    case AAX_PCM24S:
+      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      _batch_cvt24_24_intl(tracks, data, 0, no_tracks, no_samples);
+      rb->release_tracks_ptr(rb);
+      rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
+      break;
    case AAX_PCM32S:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
@@ -2440,7 +2445,7 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    default:
       tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
       if (no_tracks == 1) {
-         _aax_memcpy(tracks[0], data, tracksize);
+         memcpy(tracks[0], data, tracksize);
       }
       else /* stereo */
       {
@@ -2523,7 +2528,7 @@ _bufGetDataPitchLevels(_buffer_t *handle)
       assert(offs <= size);
 
       tracks = (void**)rb->get_tracks_ptr(rb, RB_READ);
-      _aax_memcpy(ptr, tracks[0], len);
+      memcpy(ptr, tracks[0], len);
       rb->release_tracks_ptr(rb);
 
       if (fabsf(handle->gain - 1.0f) > 0.05f) {
@@ -2622,7 +2627,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
    }
 
    if (no_tracks == 1) {
-      _aax_memcpy(data, tracks[0], samples*bps);
+      memcpy(data, tracks[0], samples*bps);
    }
    else
    {
@@ -2708,8 +2713,8 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
       _batch_cvtps24_24(dptr, dptr, no_samples);
 
       tmp = sptr+no_samples;
-      _aax_memcpy(sptr, dptr, no_samples*bps);
-      _aax_memcpy(tmp, dptr, no_samples*bps);
+      memcpy(sptr, dptr, no_samples*bps);
+      memcpy(tmp, dptr, no_samples*bps);
 
       if (!data_hf)
       {
@@ -2733,7 +2738,7 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
             rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data_hf);
          }
       }
-      _aax_memcpy(dptr, tmp, no_samples*bps);
+      memcpy(dptr, tmp, no_samples*bps);
 
       _aax_aligned_free(sptr);
       _batch_cvt24_ps24(dptr, dptr, no_samples);
@@ -2762,7 +2767,7 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
    if (sptr)
    {
       _batch_cvtps24_24(dptr, dptr, no_samples);
-      _aax_memcpy(sptr, dptr, no_samples*bps);
+      memcpy(sptr, dptr, no_samples*bps);
       if (mix > 0.01f)
       {
          float mix_factor;
