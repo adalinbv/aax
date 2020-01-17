@@ -2304,6 +2304,9 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
       case AAX_PCM16S:
          _batch_cvt16_24(ndata, data, samples);
          break;
+      case AAX_PCM24S_PACKED:
+         _batch_cvt24_3_24(ndata, data, samples);
+         break;
       case AAX_PCM32S:
          _batch_cvt32_24(ndata, data, samples);
          break;
