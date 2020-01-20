@@ -27,6 +27,7 @@
    + Set the correct ringbuffer format after conversion, if required.
    + Do not convert from 32-bit to 24-bit if it already is 24-bit
    + Also convert to AAX_PCM24S_PACKED when requested.
+ * Fix occlusion. Due to a missing line the filters data-buffer was not set.
  * Fix pitch-slide timing problems.
 
 -- Erik Hofman <tech@adalin.org>  Mon 20 Jan 2020 14:20:20 + 0100

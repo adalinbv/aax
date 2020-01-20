@@ -550,11 +550,6 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       }
       case AAX_VOLUME_FILTER:
          _FILTER_SWAP_SLOT(p2d, type, filter, 0);
-         if (filter->type == AAX_DYNAMIC_GAIN_FILTER ||
-             filter->type == AAX_COMPRESSOR) {
-            p2d->final.gain_lfo = 1.0f;
-         }
-
          _FILTER_SWAP_SLOT(p3d, type, filter, 1);
          _FILTER_COPY_DATA(p3d, p2d, type);
          if (_FILTER_GET_DATA(p3d, type)) {
