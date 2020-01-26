@@ -442,7 +442,7 @@ void _aaxFreeSource(void*);
 void _aaxProcessSource(void*, _aaxEmitter*, unsigned int);
 int _emitterCreateEFFromAAXS(void*, void*, const char*);
 
-void _aaxSetDefaultInfo(_aaxMixerInfo*, void*);
+void _aaxSetDefaultInfo(_aaxMixerInfo**, void*);
 
 void _aaxSetDefault2dProps(_aax2dProps*);
 void _aaxSetDefault2dFiltersEffects(_aax2dProps*);

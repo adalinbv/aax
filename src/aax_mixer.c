@@ -1831,8 +1831,10 @@ _aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
    free(u);
 
    s = strrchr(url, '.');
-   if (!s || strcasecmp(s, ".aaxs")) {
-      ptr = _bufGetDataFromStream(url, &info);
+   if (!s || strcasecmp(s, ".aaxs"))
+   {
+      _handle_t *handle = (_handle_t*)config;
+      ptr = _bufGetDataFromStream(url, &info, handle->info);
    }
 
    if (ptr)

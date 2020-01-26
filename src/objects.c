@@ -44,10 +44,17 @@
 #include "api.h"
 
 void
-_aaxSetDefaultInfo(_aaxMixerInfo *info, void *handle)
+_aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
 {
    char *env = getenv("AAX_RENDER_MODE");
+   _aaxMixerInfo *info;
    unsigned int size;
+
+   assert(inf);
+   if (!*inf) {
+      *inf = &__info;
+   }
+   info = *inf;
 
    size = 2*sizeof(vec4f_t); 
    _aax_memcpy(&info->hrtf, &_aaxDefaultHead, size);

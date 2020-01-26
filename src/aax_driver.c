@@ -59,10 +59,7 @@ static void _aaxFreeSensor(void *);
 static const char* _aax_default_devname;
 static char* _default_renderer = "default";
 
-int __release_mode = AAX_FALSE;
-_aaxMixerInfo* _info = NULL;
 _intBuffers* _backends = NULL;
-time_t _tvnow = 0;
 
 AAX_API enum aaxErrorType AAX_APIENTRY
 aaxDriverGetErrorNo(aaxConfig config)
@@ -410,8 +407,8 @@ aaxDriverOpen(aaxConfig config)
                 handle->backend.driver = renderer;
             }
 
-            if (_info == NULL) {
-               _info =  handle->info;
+            if (_info == NULL || _info == &__info) {
+               _info = handle->info;
             }
 
             if (handle->info->mode == AAX_MODE_WRITE_SURROUND)
@@ -739,6 +736,11 @@ aaxDriverGetInterfaceNameByPos(const aaxConfig config, const char* devname, unsi
 
 static const char* _aax_default_devname = "None";
 
+time_t _tvnow = 0;
+int __release_mode = AAX_FALSE;
+_aaxMixerInfo* _info = NULL;
+_aaxMixerInfo __info;
+
 int get_low_resource()
 {
    static int low_resource = -1;
@@ -778,6 +780,7 @@ _aaxDriverFree(void *handle)
 static _intBuffers*
 get_backends()
 {
+   if (!_info) _aaxSetDefaultInfo(&_info, NULL);
    if (_backends == NULL) {
       _backends = _aaxGetDriverBackends();
    }
@@ -809,7 +812,8 @@ new_handle()
       _SET_PROCESSED(handle);
 
       handle->info = (_aaxMixerInfo*)ptr2;
-      _aaxSetDefaultInfo(handle->info, handle);
+      _aaxSetDefaultInfo(&handle->info, handle);
+      if (!_info) _aaxSetDefaultInfo(&_info, handle);
 
       env = getenv("AAX_SHARED_DATA_DIR");
       if (env && strlen(env) > 0)
@@ -843,6 +847,7 @@ get_handle(aaxConfig config, const char *func)
    else {
        __aaxErrorSet(AAX_INVALID_HANDLE, func);
    }
+   if (!_info) _aaxSetDefaultInfo(&_info, rv);
 
    return rv;
 }
@@ -871,6 +876,7 @@ get_valid_handle(aaxConfig config, const char *func)
    else {
       __aaxErrorSet(AAX_INVALID_HANDLE, func);
    }
+   if (!_info) _aaxSetDefaultInfo(&_info, rv);
 
    return rv;
 }
@@ -887,6 +893,7 @@ get_write_handle(aaxConfig config, const char *func)
       if (handle->info->mode != AAX_MODE_READ) {
          rv = handle;
       }
+      if (!_info) _aaxSetDefaultInfo(&_info, handle);
    }
    else if (handle && handle->id == FADEDBAD) {
       __aaxErrorSet(AAX_DESTROYED_HANDLE, func);
@@ -894,6 +901,7 @@ get_write_handle(aaxConfig config, const char *func)
    else {
       __aaxErrorSet(AAX_INVALID_HANDLE, func);
    }
+   if (!_info) _aaxSetDefaultInfo(&_info, rv);
 
    return rv;
 }
@@ -910,6 +918,7 @@ get_read_handle(aaxConfig config, const char *func)
       if (handle->info->mode == AAX_MODE_READ) {
          rv = handle;
       }
+      if (!_info) _aaxSetDefaultInfo(&_info, handle);
    }
    else if (handle && handle->id == FADEDBAD) {
       __aaxErrorSet(AAX_DESTROYED_HANDLE, func);
@@ -917,6 +926,7 @@ get_read_handle(aaxConfig config, const char *func)
    else {
       __aaxErrorSet(AAX_INVALID_HANDLE, func);
    }
+   if (!_info) _aaxSetDefaultInfo(&_info, rv);
 
    return rv;
 }
@@ -932,13 +942,16 @@ get_driver_handle(aaxConfig c)
       if (frame->id == HANDLE_ID) {
          rv = (_handle_t*)frame;
       } else if (frame->id == AUDIOFRAME_ID) {
-         rv = frame->submix->info->backend;
+         if (frame->submix && frame->submix->info) {
+             rv = frame->submix->info->backend;
+         }
       } else if (frame->id == EMITTER_ID) {
           rv = get_driver_handle( ((_emitter_t*)c)->parent );
       } else if (frame->id == BUFFER_ID) {
           rv = ((_buffer_t*)c)->root;
       }
    }
+   if (!_info) _aaxSetDefaultInfo(&_info, rv);
    return rv;
 }
 
@@ -951,6 +964,7 @@ _open_handle(aaxConfig config)
    {
       assert (handle->backend.ptr != NULL);
 
+      if (!_info) _aaxSetDefaultInfo(&_info, handle);
       if (handle->sensors == NULL)
       {
          unsigned int res = _intBufCreate(&handle->sensors, _AAX_SENSOR);

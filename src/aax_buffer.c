@@ -767,7 +767,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
       _buffer_info_t info;
       char **ptr;
 
-      ptr = _bufGetDataFromStream(url, &info);
+      ptr = _bufGetDataFromStream(url, &info, handle->info);
       if (ptr)
       {
          buf = aaxBufferCreate(config, info.no_samples, info.tracks, info.fmt);
@@ -962,7 +962,7 @@ _bufDestroyRingBuffer(_buffer_t* buf, unsigned char pos)
 }
 
 char**
-_bufGetDataFromStream(const char *url, _buffer_info_t *info)
+_bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_info)
 {
    const _aaxDriverBackend *stream = &_aaxStreamDriverBackend;
    char **ptr = NULL;
@@ -1093,8 +1093,9 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
    free(u);
 
    s = strrchr(url, '.');
-   if (!s || strcasecmp(s, ".aaxs")) {
-      data = _bufGetDataFromStream(url, info);
+   if (!s || strcasecmp(s, ".aaxs"))
+   {
+      data = _bufGetDataFromStream(url, info, *buffer->mixer_info);
 #if 0
  printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, info->fmt, info->tracks, info->freq, info->no_samples, info->blocksize);
 #endif
