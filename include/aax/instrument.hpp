@@ -272,7 +272,7 @@ public:
         return true;
     }
 
-    void play(uint8_t key_no, uint8_t velocity, Buffer& buffer, float pitch = 1.0f)
+    void play(uint32_t key_no, uint32_t velocity, Buffer& buffer, float pitch = 1.0f)
     {
         float frequency = buffer.get(AAX_UPDATE_RATE);
         if (!is_drums) pitch *= note2freq(key_no)/frequency;
@@ -304,7 +304,7 @@ public:
         pitch_last = pitch;
     }
 
-    void stop(uint8_t key_no, uint8_t velocity) {
+    void stop(uint32_t key_no, uint32_t velocity) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             float g = std::min(0.333f + 0.667f*2.0f*velocity/128.0f, 1.0f);
@@ -322,7 +322,7 @@ public:
         for (auto& it : key) it.second->set_pitch(pitch);
     }
 
-    inline void set_pitch(uint8_t key_no, float pitch) {
+    inline void set_pitch(uint32_t key_no, float pitch) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->set_pitch(pitch);
@@ -332,7 +332,7 @@ public:
     inline void set_gain(float v) { volume = v; }
 
     inline void set_pressure(float p) { pressure = p; }
-    inline void set_pressure(uint8_t key_no, float p) {
+    inline void set_pressure(uint32_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
             it->second->set_gain(p*pressure*soft*volume);
@@ -357,7 +357,7 @@ public:
 
     inline void set_soft(bool s) { soft = (s && !is_drums) ? 0.5f : 1.0f; }
 
-    inline void set_hold(uint8_t key_no, bool h) {
+    inline void set_hold(uint32_t key_no, bool h) {
        auto it = key.find(key_no);
        if (it != key.end()) {
             it->second->set_hold(h);
@@ -458,11 +458,11 @@ public:
     inline int get_wide() { return is_stereo; }
 
 private:
-    inline float note2freq(uint8_t d) {
+    inline float note2freq(uint32_t d) {
         return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
     }
 
-    std::map<uint8_t,std::shared_ptr<Note>> key;
+    std::map<uint32_t,std::shared_ptr<Note>> key;
     AeonWave* aax;
 
     Vector at = Vector(0.0f, 0.0f, -1.0f);
@@ -511,7 +511,7 @@ private:
 
     float pitch_rate = 0.0f;
     float pitch_last = 1.0f;
-    uint8_t key_prev = 0;
+    uint32_t key_prev = 0;
 
     int is_stereo;
     bool is_drums;
