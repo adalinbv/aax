@@ -272,7 +272,7 @@ public:
         return true;
     }
 
-    void play(uint32_t key_no, uint32_t velocity, Buffer& buffer, float pitch = 1.0f)
+    void play(uint32_t key_no, float velocity, Buffer& buffer, float pitch=1.0f)
     {
         float frequency = buffer.get(AAX_UPDATE_RATE);
         if (!is_drums) pitch *= note2freq(key_no)/frequency;
@@ -299,15 +299,15 @@ public:
         Mixer::add(*note);
         note->set_attack_time(attack_time);
         note->set_release_time(release_time);
-        float g = 3.321928f*log10f(1.0f+(1+velocity)/128.0f);
+        float g = 3.321928f*log10f(1.0f+velocity);
         note->play(volume*g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
         pitch_last = pitch;
     }
 
-    void stop(uint32_t key_no, uint32_t velocity) {
+    void stop(uint32_t key_no, float velocity = 0) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            float g = std::min(0.333f + 0.667f*2.0f*velocity/128.0f, 1.0f);
+            float g = std::min(0.333f + 0.667f*2.0f*velocity, 1.0f);
             it->second->stop(volume*g*soft);
         }
     }
