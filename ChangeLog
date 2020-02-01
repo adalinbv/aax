@@ -6,7 +6,7 @@
    which was not opened using one of the aaxDriverOpen functions could
    cause a segmentation fault.
 
--- Erik Hofman <tech@adalin.org>  Sat 01 Feb 2020 17:01:11 + 0100
+-- Erik Hofman <tech@adalin.org>  Sat 01 Feb 2020 11:42:11 + 0100
 
 
 * Mon Jan 20 2020 - tech@adalin.org
