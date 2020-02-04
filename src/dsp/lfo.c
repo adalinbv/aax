@@ -112,7 +112,6 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    int rv = AAX_TRUE;
    if (!constant)
    {
-printf("state: %X\n", lfo->state & ~AAX_INVERSE);
       switch (lfo->state & ~AAX_INVERSE)
       {
       case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
@@ -499,7 +498,6 @@ _aaxLFOGetNoise(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned
          lfo->compression[track] = 1.0f - rv;
       }
    }
-printf("rv: %f\n", rv);
    return rv;
 }
 
