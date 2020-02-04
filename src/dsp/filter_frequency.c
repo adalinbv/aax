@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2007-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -38,7 +38,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION	1.12
+#define VERSION	1.13
 #define DSIZE	sizeof(_aaxRingBufferFreqFilterData)
 
 static aaxFilter
@@ -112,7 +112,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    }
 
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
-          AAX_SAWTOOTH_WAVE | AAX_TIMED_TRANSITION | AAX_ENVELOPE_FOLLOW_MASK;
+          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS | AAX_TIMED_TRANSITION |
+          AAX_ENVELOPE_FOLLOW_MASK;
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
@@ -131,6 +132,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        wstate == AAX_SQUARE_WAVE      ||
        wstate == AAX_IMPULSE_WAVE     ||
        wstate == AAX_SAWTOOTH_WAVE    ||
+       wstate == AAX_RANDOMNESS       ||
        wstate == AAX_TIMED_TRANSITION ||
        wstate == AAX_ENVELOPE_FOLLOW  ||
        istate == AAX_RANDOM_SELECT    ||
@@ -507,7 +509,7 @@ _batch_ema_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, floa
 // http://www.dsprelated.com/showarticle/182.php
 // used for per emitter HRTF calculation
 // and for surround crossover
-static void
+void
 _aax_EMA_compute(float fc, float fs, float *a)
 {
    float n = *a;

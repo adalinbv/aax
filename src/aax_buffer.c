@@ -1210,6 +1210,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
        wtype = AAX_IMPULSE_WAVE;
    }
+   else if (!xmlAttributeCompareString(xwid, "src", "sandomness")) {
+       wtype = AAX_RANDOMNESS;
+   }
    else {   // !xmlAttributeCompareString(xwid, "src", "sine")
       wtype = AAX_SINE_WAVE;
    }

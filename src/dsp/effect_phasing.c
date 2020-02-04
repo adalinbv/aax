@@ -36,7 +36,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION	1.01
+#define VERSION	1.02
 #define DSIZE	sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
@@ -89,6 +89,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:

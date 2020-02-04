@@ -32,6 +32,7 @@
 #include <assert.h>
 
 #include <base/geometry.h>
+#include <base/random.h>
 #include <arch.h>
 
 #include "common.h"
@@ -111,6 +112,7 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
    int rv = AAX_TRUE;
    if (!constant)
    {
+printf("state: %X\n", lfo->state & ~AAX_INVERSE);
       switch (lfo->state & ~AAX_INVERSE)
       {
       case AAX_CONSTANT_VALUE: /* equals to AAX_TRUE */
@@ -130,6 +132,9 @@ _lfo_set_function(_aaxLFOData *lfo, int constant)
          break;
       case AAX_SAWTOOTH_WAVE:
          lfo->get = _aaxLFOGetSawtooth;
+         break;
+      case AAX_RANDOMNESS:
+         lfo->get = _aaxLFOGetNoise;
          break;
       case AAX_ENVELOPE_FOLLOW:
       case AAX_ENVELOPE_FOLLOW_LOG:
@@ -465,6 +470,39 @@ _aaxLFOGetSawtooth(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsig
    }
    return rv;
 }
+
+float
+_aaxLFOGetNoise(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))
+{
+   _aaxLFOData* lfo = (_aaxLFOData*)data;
+   float rv = 1.0f;
+   if (lfo)
+   {
+      rv = lfo->value[0];
+
+      /* In stereo-link mode the left track (0) provides the data */
+      if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
+      {
+         float max = (lfo->max - lfo->min);
+         float olvl = lfo->value[track];
+         float alpha;
+
+         alpha = 1.0f - expf(-8.0f*GMATH_2PI*lfo->f/lfo->period_rate);
+
+         rv = 0.5*max*xoroshiro128plus()/(double)INT64_MAX;
+         rv = lfo->convert(rv, 1.0f);
+         rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
+
+         rv = alpha*rv + (1.0f-alpha)*olvl;
+         lfo->value[track] = rv;
+
+         lfo->compression[track] = 1.0f - rv;
+      }
+   }
+printf("rv: %f\n", rv);
+   return rv;
+}
+
 
 float
 _aaxLFOGetTimed(void* data, UNUSED(void *env), UNUSED(const void *ptr), unsigned track, UNUSED(size_t end))

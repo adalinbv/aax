@@ -50,6 +50,7 @@ _aaxLFOGetFn _aaxLFOGetImpulse;
 _aaxLFOGetFn _aaxLFOGetTriangle;
 _aaxLFOGetFn _aaxLFOGetSawtooth;
 _aaxLFOGetFn _aaxLFOGetFixedValue;
+_aaxLFOGetFn _aaxLFOGetNoise;
 _aaxLFOGetFn _aaxLFOGetGainFollow;
 _aaxLFOGetFn _aaxLFOGetTimed;
 _aaxLFOGetFn _aaxLFOGetCompressor;
@@ -104,6 +105,7 @@ typedef struct
 void _env_reset(_aaxEnvelopeData*);
 
 float _aaxEnvelopeGet(_aaxEnvelopeData*, char, float*, _aaxEnvelopeData*);
+void _aax_EMA_compute(float, float, float*);
 
 #endif /* _AAX_FE_LFO_H */
 

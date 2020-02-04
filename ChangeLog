@@ -1,4 +1,13 @@
 
+* Sat Feb 22 2020 - tech@adalin.org
+- AeonWave (3.8.2) stable; urgency=medium
+
+ * Add AAX_RANDOMNESS as an option to certain filters and effects,
+   which generates a low-frequency noise as a waveform.
+
+-- Erik Hofman <tech@adalin.org>  Sat 22 Feb 2020 02:20:22 + 0100
+
+
 * Sat Feb 01 2020 - tech@adalin.org
 - AeonWave (3.8.1) stable; urgency=medium
 

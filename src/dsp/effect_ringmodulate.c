@@ -1,6 +1,6 @@
 /*
- * Copyright 2018 by Erik Hofman.
- * Copyright 2018 by Adalin B.V.
+ * Copyright 2020 by Erik Hofman.
+ * Copyright 2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -34,7 +34,7 @@
 #include "api.h"
 #include "arch.h"
 
-#define VERSION	1.01
+#define VERSION	1.02
 #define DSIZE	sizeof(_aaxRingBufferModulatorData)
 
 static int _modulator_run(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
@@ -93,6 +93,7 @@ _aaxModulatorEffectSetState(_effect_t* effect, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:

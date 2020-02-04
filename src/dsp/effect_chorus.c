@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2019 by Erik Hofman.
- * Copyright 2009-2019 by Adalin B.V.
+ * Copyright 2007-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -36,7 +36,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION		1.11
+#define VERSION		1.12
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
@@ -89,6 +89,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:

@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2007-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -34,7 +34,7 @@
 #include "filters.h"
 #include "api.h"
 
-#define VERSION	1.01
+#define VERSION	1.02
 #define DSIZE	sizeof(_aaxLFOData)
 
 static float _aaxDynamicGainFilterMinMax(float, int, unsigned char);
@@ -88,6 +88,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    case AAX_SQUARE_WAVE:
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
+   case AAX_RANDOMNESS:
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
    {
