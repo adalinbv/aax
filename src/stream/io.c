@@ -61,11 +61,17 @@ _io_create(int protocol)
          rv->param[_IO_FILE_MODE] = 0644;
          break;
       default:
+         free(rv);
+         rv = NULL;
          break;
       }
-      rv->protocol = protocol;
-      rv->fds.fd = -1;
-      rv->fds.events = POLLIN;
+
+      if (rv)
+      {
+         rv->protocol = protocol;
+         rv->fds.fd = -1;
+         rv->fds.events = POLLIN;
+      }
    }
    return rv;
 }
