@@ -430,6 +430,8 @@ char *_aaxURLConstruct(char*, char*);
 int mkDir(const char*);
 size_t getFileSize(const char*);
 
+int isSafeDir(const char*);
+
 char* systemLanguage(char**);
 
 const char* tmpDir();

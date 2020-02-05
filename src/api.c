@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2017 by Erik Hofman.
- * Copyright 2011-2017 by Adalin B.V.
+ * Copyright 2011-2020 by Erik Hofman.
+ * Copyright 2011-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -31,6 +31,7 @@
 #else
 # include <strings.h>
 #endif
+#include <stdlib.h>
 #include <errno.h>
 #include <assert.h>
 #include <locale.h>
@@ -237,6 +238,38 @@ createDACL(SECURITY_ATTRIBUTES * pSA)
                             nSize);
 }
 #endif
+
+/*
+ * Consider paths within the users home directory and the temp directory safe.
+ */
+int
+isSafeDir(const char *directory)
+{
+   const char *temp = TEMP_DIR;
+   const char *home = USER_DIR;
+   char abspath[PATH_MAX+1];
+   char *path = abspath;
+   int rv = AAX_FALSE;
+#ifdef WIN32
+   char **file;
+
+   if (GetFullPathName(directory, PATH_MAX, abspath, file) == 0) {
+      *path = directory;
+   }
+#else
+   if (realpath(directory, abspath) == NULL) {
+      *path = directory;
+   }
+#endif
+
+   if (!strncmp(path, home, strlen(home))) {
+      rv = AAX_TRUE;
+   } else if (!strncmp(path, temp, strlen(temp))) {
+      rv = AAX_TRUE;
+   }
+
+   return rv;
+}
 
 int
 mkDir(const char *directory)

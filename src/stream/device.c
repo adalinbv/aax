@@ -406,8 +406,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
    char *s, *protname, *server, *path, *extension, *patch;
+   int res, port, rate, size, safe;
    int level = 0, rv = AAX_FALSE;
-   int res, port, rate, size;
    _protocol_t protocol;
    size_t headerSize;
    float period_ms;
@@ -431,6 +431,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (patch) level = atoi(patch);
 
    protocol = _url_split(s, &protname, &server, &path, &extension, &port);
+   if (!m || (m && !protocol && isSafeDir(path))) {
+      safe = AAX_TRUE;
+   } else {
+      safe = AAX_FALSE;
+   }
+
 #if 0
  printf("\nname: '%s'\n", handle->name);
  printf("protocol: '%s'\n", protname);
@@ -441,7 +447,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("timeout period: %4.1f ms\n", period_ms);
  printf("refresh rate: %f\n", *refresh_rate);
  printf("buffer size: %i bytes\n", size);
- printf("patch level: %u\n\n", level);
+ printf("patch level: %u\n", level);
+ printf("stream mode: %s\n", m ? "write" : "read");
+ printf("safe dir: %s\n\n", safe ? "yes" : "no");
 #endif
 
    handle->io = _io_create(protocol);
@@ -454,7 +462,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    handle->io->set_param(handle->io, __F_FLAGS, handle->mode);
 
    res = AAX_FALSE;
-   if (1) // !m)
+   if (safe)
    {
       switch (protocol)
       {
@@ -545,6 +553,13 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          _aaxStreamDriverLog(id, 0, 0, "Unknown protocol");
          break;
       }
+   }
+   else if (m)
+   {
+      char err[256];
+      snprintf(err, 255, "Security alert: unsafe path '%s'", path);
+      err[255] = '\0';
+      _aaxStreamDriverLog(id, 0, 0, err);
    }
 
    if (res)
