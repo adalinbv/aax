@@ -248,17 +248,17 @@ isSafeDir(const char *directory)
    const char *temp = TEMP_DIR;
    const char *home = USER_DIR;
    char abspath[PATH_MAX+1];
-   char *path = abspath;
+   const char *path = abspath;
    int rv = AAX_FALSE;
 #ifdef WIN32
    char **file;
 
    if (GetFullPathName(directory, PATH_MAX, abspath, file) == 0) {
-      *path = directory;
+      path = directory;
    }
 #else
    if (realpath(directory, abspath) == NULL) {
-      *path = directory;
+      path = directory;
    }
 #endif
 
