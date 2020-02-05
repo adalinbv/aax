@@ -406,7 +406,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    _driver_t *handle = (_driver_t *)id;
    char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
    char *s, *protname, *server, *path, *extension, *patch;
-   int res, port, rate, size, safe;
+   int res, port, rate, size, safe, safe_path;
    int level = 0, rv = AAX_FALSE;
    _protocol_t protocol;
    size_t headerSize;
@@ -431,7 +431,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    if (patch) level = atoi(patch);
 
    protocol = _url_split(s, &protname, &server, &path, &extension, &port);
-   if (!m || (m && !protocol && isSafeDir(path))) {
+
+   safe_path = isSafeDir(path);
+   if (!m || (m && !protocol && safe_path)) {
       safe = AAX_TRUE;
    } else {
       safe = AAX_FALSE;
@@ -554,7 +556,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       }
    }
-   else if (m)
+   else if (m && !protocol && !safe_path)
    {
       char err[256];
       snprintf(err, 255, "Security alert: unsafe path '%s'", path);
