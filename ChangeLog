@@ -4,6 +4,9 @@
 
  * Add AAX_RANDOMNESS as an option to certain filters and effects,
    which generates a low-frequency noise as a waveform.
+ * Fix a segmentation fault when specifying an unsupported protocol name.
+ * Limit writing of stream data to known safe paths such as the user home
+   directory and the temporary directory.
 
 -- Erik Hofman <tech@adalin.org>  Sat 22 Feb 2020 02:20:22 + 0100
 
