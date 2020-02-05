@@ -50,7 +50,7 @@ _aaxLFOGetFn _aaxLFOGetImpulse;
 _aaxLFOGetFn _aaxLFOGetTriangle;
 _aaxLFOGetFn _aaxLFOGetSawtooth;
 _aaxLFOGetFn _aaxLFOGetFixedValue;
-_aaxLFOGetFn _aaxLFOGetNoise;
+_aaxLFOGetFn _aaxLFOGetRandomness;
 _aaxLFOGetFn _aaxLFOGetGainFollow;
 _aaxLFOGetFn _aaxLFOGetTimed;
 _aaxLFOGetFn _aaxLFOGetCompressor;
