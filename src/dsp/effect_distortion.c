@@ -284,11 +284,8 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
          rbd->multiply(dptr, dptr, bps, no_samples, 1.0f+64.0f*fact);
       }
 
-      if ((fact > 0.01f) || (asym > 0.01f))
-      {
-         size_t average = 0;
-         size_t peak = no_samples;
-         _aaxRingBufferLimiter(dptr, &average, &peak, clip, 4*asym);
+      if ((fact > 0.01f) || (asym > 0.01f)) {
+         _aaxRingBufferLimiter(dptr, no_samples, clip, 4*asym);
       }
 
       /* mix with the dry signal */

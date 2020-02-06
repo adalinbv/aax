@@ -1415,7 +1415,8 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
    {
       { 0.5f, 0.0f },		// Electronic
       { 0.9f, 0.0f }, 		// Digital
-      { 0.2f, 0.9f }		// Valve
+      { 0.2f, 0.9f },		// Valve
+      { 0.0f, 0.0f }		// Comress
    };
 
    _aaxRingBufferData *rbi = rb->handle;
@@ -1423,7 +1424,7 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
    unsigned int track, no_tracks = rbd->no_tracks;
    size_t no_samples = rbd->no_samples;
    size_t maxpeak, maxrms;
-   size_t peak, rms;
+   float peak, rms;
    float dt, rms_rr, avg;
    MIX_T **tracks;
 
@@ -1438,7 +1439,13 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
 
       rms = 0;
       peak = no_samples;
-      _aaxRingBufferLimiter(dptr, &rms, &peak, _val[type][0], _val[type][1]);
+      _batch_get_average_rms(dptr, no_samples, &rms, &peak);
+
+      if (type == RB_COMPRESS) {
+         _aaxRingBufferCompress(dptr, no_samples, _val[type][0], _val[type][1]);
+      } else {
+         _aaxRingBufferLimiter(dptr, no_samples, _val[type][0], _val[type][1]);
+      }
 
       avg = rbi->average[track];
       avg = (rms_rr*avg + (1.0f-rms_rr)*rms);

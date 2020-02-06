@@ -301,7 +301,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
       }
    }
 
-   rb->limit(rb, RB_LIMITER_ELECTRONIC);
+   rb->limit(rb, RB_COMPRESS);
 }
 
 static void

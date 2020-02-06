@@ -102,6 +102,7 @@ enum _aaxLimiterType
     RB_LIMITER_ELECTRONIC = 0,
     RB_LIMITER_DIGITAL,
     RB_LIMITER_VALVE,
+    RB_COMPRESS,
 
     RB_LIMITER_MAX
 };

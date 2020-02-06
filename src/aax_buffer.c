@@ -2784,11 +2784,8 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
             rbd->multiply(dptr, dptr, bps, no_samples, 1.0f+64.f*fact);
          }
 
-         if ((fact > 0.01f) || (asym > 0.01f))
-         {
-            size_t avg = 0;
-            size_t peak = no_samples;
-            _aaxRingBufferLimiter(dptr, &avg, &peak, clip, 4*asym);
+         if ((fact > 0.01f) || (asym > 0.01f)) {
+            _aaxRingBufferLimiter(dptr, no_samples, clip, 4*asym);
          }
 
          /* mix with the dry signal */
