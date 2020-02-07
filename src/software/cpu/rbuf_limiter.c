@@ -97,22 +97,9 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t dmax, float clip, float asym)
    while (--j);
 }
 
-
 /* arctan */
 void
 _aaxRingBufferCompress(MIX_PTR_T d, size_t dmax, float clip, float asym)
 {
-   static const float rf = 1.0f/(65536.0f*256.0f);
-   MIX_T *ptr = (MIX_T*)d;
-   size_t j;
-   float mix;
-
-   mix = 1.0f; // _MINMAX(clip, 0.0, 1.0);
-   j = dmax;
-   do
-   {
-      float samp = atanf(*ptr*rf*mix)*GMATH_1_PI_2;
-      *ptr++ = samp*(65535.0f*256.0f);
-   }
-   while (--j);
+   _batch_atanps(d, d, dmax);
 }

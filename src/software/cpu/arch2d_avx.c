@@ -1237,6 +1237,80 @@ _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float 
    return rv;
 }
 
+void
+_batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
+{
+   float *d = (float*)dst;
+   float *s = (float*)src;
+   size_t i, step;
+   size_t dtmp, stmp;
+
+_batch_atanps_sse2(d, s, i);
+#if 0
+   if (!num) return;
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_atanps_sse2(d, s, i);
+      return;
+   }
+
+   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
+   if (dtmp && num)
+   {
+      i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
+      if (i <= num)
+      {
+         num -= i;
+         _batch_atanps_sse2(d, s, i);
+         d += i;
+         s += i;
+      }
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = 2*sizeof(__m256)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         __m256 xmm0, xmm1;
+         __m256 xmm4, xmm5;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            xmm0 = _mm256_load_ps((const float*)sptr++);
+            xmm1 = _mm256_load_ps((const float*)sptr++);
+
+            xmm4 = _mm256_atan_ps(xmm0);
+            xmm5 = _mm256_atan_ps(xmm1);
+
+            _mm256_store_ps((float*)dptr++, xmm4);
+            _mm256_store_ps((float*)dptr++, xmm5);
+         }
+         while(--i);
+      }
+
+      if (num)
+      {
+         i = num;
+         do {
+            *d++ = (int32_t)*s++;
+         } while (--i);
+      }
+   }
+#endif
+}
+
 #else
 typedef int make_iso_compilers_happy;
 #endif /* AVX */

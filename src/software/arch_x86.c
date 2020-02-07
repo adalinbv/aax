@@ -388,6 +388,7 @@ _aaxGetSIMDSupportLevel()
             _batch_saturate24 = _batch_saturate24_sse2;
 
             _batch_roundps = _batch_roundps_sse2;
+            _batch_atanps = _batch_atanps_sse2;
             _batch_cvtps_24 = _batch_cvtps_24_sse2;
             _batch_cvt24_ps = _batch_cvt24_ps_sse2;
             _batch_cvt24_16 = _batch_cvt24_16_sse2;
@@ -458,6 +459,7 @@ _aaxGetSIMDSupportLevel()
                _batch_cvt16_24 = _batch_cvt16_24_sse_vex;
                _batch_cvt16_intl_24 = _batch_cvt16_intl_24_sse_vex;
 
+               _batch_atanps = _batch_atanps_avx;
                _batch_roundps = _batch_roundps_sse_vex;
 #   if RB_FLOAT_DATA
                _batch_movingaverage_float = _batch_ema_iir_float_sse_vex;

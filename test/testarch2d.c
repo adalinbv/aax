@@ -80,6 +80,7 @@ char _aaxArchDetectNEON();
 #define GLUE(FUNC,NAME)		__GLUE(FUNC,NAME)
 
 extern _batch_fmadd_proc _batch_fmadd;
+extern _batch_cvt_to_proc _batch_atanps;
 extern _batch_cvt_to_proc _batch_roundps;
 extern _batch_mul_value_proc _batch_fmul_value;
 extern _batch_get_average_rms_proc _batch_get_average_rms;
@@ -87,6 +88,7 @@ extern _batch_freqfilter_float_proc _batch_freqfilter_float;
 extern _aax_generate_waveform_proc _aax_generate_waveform_float;
 extern _batch_convolution_proc _batch_convolution;
 
+void _batch_atan_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt);
 
 int main()
@@ -361,6 +363,39 @@ int main()
          printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
          TESTF("round "MKSTR(SIMD1), dst1, dst2);
       }
+
+      /*
+       * batch atan floats
+       */
+      memcpy(dst1, src, MAXNUM*sizeof(float));
+
+      t = clock();
+      _batch_atan_cpu(dst1, dst1, MAXNUM);
+      cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+      printf("\natan cpu:  %f\n", cpu*1000.0f);
+      if (simd)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         _batch_atanps = GLUE(_batch_atanps, SIMD);
+
+         t = clock();
+         _batch_atanps(dst2, dst2, MAXNUM);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("atan %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
+         TESTF("atan "MKSTR(SIMD), dst1, dst2);
+      }
+      if (simd2)
+      {
+         memcpy(dst2, src, MAXNUM*sizeof(float));
+         _batch_atanps = GLUE(_batch_atanps, SIMD2);
+
+         t = clock();
+         _batch_atanps(dst2, dst2, MAXNUM);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("atan %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
+         TESTF("atan "MKSTR(SIMD1), dst1, dst2);
+      }
+
 
       /*
        * batch RMS calulculation

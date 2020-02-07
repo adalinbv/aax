@@ -551,6 +551,27 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    }
 }
 
+#define MUL     (65536.0f*256.0f)
+#define IMUL    (1.0f/MUL)
+
+static inline float fast_atanf(float x) {
+  return GMATH_PI_4*(x)+0.273f*(x)*(1.0f -fabsf(x));
+}
+
+void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
+{  
+   if (num)
+   {  
+      float* d = (float*)dptr;
+      float* s = (float*)sptr;
+      size_t i = num;
+
+      do {
+         *d++ = fast_atanf(*s++ * IMUL)*(MUL*GMATH_1_PI_2);
+      } while (--i);
+   }
+}
+
 void
 _batch_roundps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
