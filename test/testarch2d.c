@@ -372,7 +372,17 @@ int main()
       t = clock();
       _batch_atan_cpu(dst1, dst1, MAXNUM);
       cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-      printf("\natan cpu:  %f\n", cpu*1000.0f);
+      printf("\natanf:  %f\n", cpu*1000.0f);
+
+      memcpy(dst2, src, MAXNUM*sizeof(float));
+      _batch_atanps = _batch_atanps_cpu;
+
+      t = clock();
+      _batch_atanps(dst2, dst2, MAXNUM);
+      eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+      printf("atan  cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+      TESTF("atan "MKSTR(SIMD), dst1, dst2);
+
       if (simd)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -521,7 +531,7 @@ int main()
       }
 
       /*
-       * waveform generation 
+       * waveform generation
        */
       _aax_generate_waveform_float = _aax_generate_waveform_cpu;
 

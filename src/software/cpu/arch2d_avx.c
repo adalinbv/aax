@@ -68,6 +68,19 @@ fast_sin8_avx(__m256 x)
    return _mm256_mul_ps(four, _mm256_sub_ps(x, _mm256_mul_ps(x, _mm256_abs_ps(x))));
 }
 
+#define MUL     (65536.0f*256.0f)
+#define IMUL    (1.0f/MUL)
+
+static inline __m256
+fast_atan8_avx(__m256 x)
+{
+  __m256 pi_4 = _mm256_set1_ps(GMATH_PI_4);
+  __m256 mul =_mm256_set1_ps(0.273f);
+  __m256 one = _mm256_set1_ps(1.0f);
+
+  return _mm256_add_ps(_mm256_mul_ps(pi_4, x), _mm256_mul_ps(_mm256_mul_ps(mul, x), _mm256_sub_ps(one, _mm256_abs_ps(x))));
+}
+
 void
 _batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *peak)
 {
@@ -1245,43 +1258,29 @@ _batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
    size_t i, step;
    size_t dtmp, stmp;
 
-_batch_atanps_sse2(d, s, i);
-#if 0
    if (!num) return;
 
    dtmp = (size_t)d & MEMMASK16;
    stmp = (size_t)s & MEMMASK16;
    if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
    {                                    /* let the compiler figure it out */
-      _batch_atanps_sse2(d, s, i);
+      _batch_atanps_sse2(d, s, num);
       return;
-   }
-
-   /* work towards a 16-byte aligned d (and hence 16-byte aligned sptr) */
-   if (dtmp && num)
-   {
-      i = (MEMALIGN16 - dtmp)/sizeof(int32_t);
-      if (i <= num)
-      {
-         num -= i;
-         _batch_atanps_sse2(d, s, i);
-         d += i;
-         s += i;
-      }
    }
 
    if (num)
    {
-      __m128 *dptr = (__m128*)d;
-      __m128* sptr = (__m128*)s;
+      __m256 *dptr = (__m256*)d;
+      __m256* sptr = (__m256*)s;
 
-      step = 2*sizeof(__m256)/sizeof(float);
+      step = sizeof(__m256)/sizeof(float);
 
       i = num/step;
       if (i)
       {
+         __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
+         __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;
-         __m256 xmm4, xmm5;
 
          num -= i*step;
          s += i*step;
@@ -1289,26 +1288,17 @@ _batch_atanps_sse2(d, s, i);
          do
          {
             xmm0 = _mm256_load_ps((const float*)sptr++);
-            xmm1 = _mm256_load_ps((const float*)sptr++);
-
-            xmm4 = _mm256_atan_ps(xmm0);
-            xmm5 = _mm256_atan_ps(xmm1);
-
-            _mm256_store_ps((float*)dptr++, xmm4);
-            _mm256_store_ps((float*)dptr++, xmm5);
+            xmm1 = _mm256_mul_ps(mul, fast_atan8_avx(_mm256_mul_ps(xmm0, imul)));
+            _mm256_store_ps((float*)dptr++, xmm1);
          }
          while(--i);
+         _mm256_zeroupper();
       }
 
-      if (num)
-      {
-         i = num;
-         do {
-            *d++ = (int32_t)*s++;
-         } while (--i);
+      if (num) {
+         _batch_atanps_sse2(d, s, num);
       }
    }
-#endif
 }
 
 #else

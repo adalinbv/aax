@@ -66,6 +66,21 @@ fast_sin4_sse2(__m128 x)
    return _mm_mul_ps(four, _mm_sub_ps(x, _mm_mul_ps(x, _mm_abs_ps(x))));
 }
 
+#define MUL     (65536.0f*256.0f)
+#define IMUL    (1.0f/MUL)
+
+static inline __m128
+fast_atan4_sse2(__m128 x)
+{
+  __m128 pi_4 = _mm_set1_ps(GMATH_PI_4);
+  __m128 mul =_mm_set1_ps(0.273f);
+  __m128 one = _mm_set1_ps(1.0f);
+
+  return _mm_add_ps(_mm_mul_ps(pi_4, x),
+                    _mm_mul_ps(_mm_mul_ps(mul, x),
+                               _mm_sub_ps(one, _mm_abs_ps(x))));
+}
+
 float *
 _aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
 {
@@ -551,24 +566,52 @@ _batch_cvtps24_24_sse2(void_ptr dst, const_void_ptr src, size_t num)
    }
 }
 
-#define MUL     (65536.0f*256.0f)
-#define IMUL    (1.0f/MUL)
-
-static inline float fast_atanf(float x) {
-  return GMATH_PI_4*(x)+0.273f*(x)*(1.0f -fabsf(x));
-}
-
 void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
 {  
-   if (num)
-   {  
-      float* d = (float*)dptr;
-      float* s = (float*)sptr;
-      size_t i = num;
+   float *d = (float*)dptr;
+   float *s = (float*)sptr;
+   size_t i, step;
+   size_t dtmp, stmp;
 
-      do {
-         *d++ = fast_atanf(*s++ * IMUL)*(MUL*GMATH_1_PI_2);
-      } while (--i);
+   if (!num) return;
+
+   dtmp = (size_t)d & MEMMASK16;
+   stmp = (size_t)s & MEMMASK16;
+   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   {                                    /* let the compiler figure it out */
+      _batch_atanps_cpu(d, s, num);
+      return;
+   }
+
+   if (num)
+   {
+      __m128 *dptr = (__m128*)d;
+      __m128* sptr = (__m128*)s;
+
+      step = sizeof(__m128)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+         __m128 mul = _mm_set1_ps(MUL*GMATH_1_PI_2);
+         __m128 imul = _mm_set1_ps(IMUL);
+         __m128 xmm0, xmm1;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            xmm0 = _mm_load_ps((const float*)sptr++);
+            xmm1 = _mm_mul_ps(mul, fast_atan4_sse2(_mm_mul_ps(xmm0, imul)));
+            _mm_store_ps((float*)dptr++, xmm1);
+         }
+         while(--i);
+      }
+
+      if (num) {
+         _batch_atanps_cpu(d, s, num);
+      }
    }
 }
 
@@ -657,7 +700,6 @@ _batch_roundps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
       }
    }
 }
-
 
 static void
 _batch_iadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num)

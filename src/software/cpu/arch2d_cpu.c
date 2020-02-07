@@ -341,7 +341,7 @@ _batch_cvtps24_24_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
 #define IMUL	(1.0f/MUL)
 
 static inline float fast_atanf(float x) {
-  return GMATH_PI_4*(x)+0.273f*(x)*(1.0f -fabsf(x));
+  return GMATH_PI_4*x + 0.273f*x * (1.0f -fabsf(x));
 }
 
 void _batch_atanps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
