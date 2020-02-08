@@ -380,7 +380,7 @@ int main()
       t = clock();
       _batch_atanps(dst2, dst2, MAXNUM);
       eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-      printf("atan  cpu:  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+      printf("atan  cpu:  %f ms - atanf x %2.1f\n", eps*1000.0f, cpu/eps);
       TESTF("atan "MKSTR(SIMD), dst1, dst2);
 
       if (simd)
@@ -391,7 +391,7 @@ int main()
          t = clock();
          _batch_atanps(dst2, dst2, MAXNUM);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("atan %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
+         printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
          TESTF("atan "MKSTR(SIMD), dst1, dst2);
       }
       if (simd2)
@@ -402,7 +402,7 @@ int main()
          t = clock();
          _batch_atanps(dst2, dst2, MAXNUM);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("atan %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
+         printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
          TESTF("atan "MKSTR(SIMD1), dst1, dst2);
       }
 
