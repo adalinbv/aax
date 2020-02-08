@@ -402,8 +402,8 @@ int main()
          t = clock();
          _batch_atanps(dst2, dst2, MAXNUM);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
-         TESTF("atan "MKSTR(SIMD1), dst1, dst2);
+         printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(SIMD2), eps*1000.0f, cpu/eps);
+         TESTF("atan "MKSTR(SIMD2), dst1, dst2);
       }
 
 

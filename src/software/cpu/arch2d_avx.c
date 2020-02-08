@@ -65,7 +65,7 @@ static inline __m256    // range -1.0f .. 1.0f
 fast_sin8_avx(__m256 x)
 {
    __m256 four = _mm256_set1_ps(-4.0f);
-   return _mm256_mul_ps(four, _mm256_sub_ps(x, _mm256_mul_ps(x, _mm256_abs_ps(x))));
+   return _mm256_mul_ps(four,_mm256_sub_ps(x, _mm256_mul_ps(x, _mm256_abs_ps(x))));
 }
 
 #define MUL     (65536.0f*256.0f)
@@ -78,7 +78,9 @@ fast_atan8_avx(__m256 x)
   __m256 mul =_mm256_set1_ps(0.273f);
   __m256 one = _mm256_set1_ps(1.0f);
 
-  return _mm256_add_ps(_mm256_mul_ps(pi_4, x), _mm256_mul_ps(_mm256_mul_ps(mul, x), _mm256_sub_ps(one, _mm256_abs_ps(x))));
+  return _mm256_add_ps(_mm256_mul_ps(pi_4, x),
+                       _mm256_mul_ps(_mm256_mul_ps(mul, x),
+                                     _mm256_sub_ps(one, _mm256_abs_ps(x))));
 }
 
 void
@@ -1278,6 +1280,8 @@ _batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
       i = num/step;
       if (i)
       {
+         __m256 xmin = _mm256_set1_ps(-1.94139795f);
+         __m256 xmax = _mm256_set1_ps(1.94139795f);
          __m256 mul = _mm256_set1_ps(MUL*GMATH_1_PI_2);
          __m256 imul = _mm256_set1_ps(IMUL);
          __m256 xmm0, xmm1;
@@ -1288,7 +1292,11 @@ _batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
          do
          {
             xmm0 = _mm256_load_ps((const float*)sptr++);
-            xmm1 = _mm256_mul_ps(mul, fast_atan8_avx(_mm256_mul_ps(xmm0, imul)));
+
+            xmm0 = _mm256_mul_ps(xmm0,imul);
+            xmm0 = _mm256_min_ps(_mm256_max_ps(xmm0, xmin), xmax);
+            xmm1 = _mm256_mul_ps(mul, fast_atan8_avx(xmm0));
+
             _mm256_store_ps((float*)dptr++, xmm1);
          }
          while(--i);

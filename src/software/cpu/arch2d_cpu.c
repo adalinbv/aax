@@ -353,7 +353,9 @@ void _batch_atanps_cpu(void_ptr dptr, const_void_ptr sptr, size_t num)
       size_t i = num;
 
       do {
-         *d++ = fast_atanf(*s++ * IMUL)*(MUL*GMATH_1_PI_2);
+         float samp = *s++ * IMUL;
+         samp = _MINMAX(samp, -1.94139795f, 1.94139795f);
+         *d++ = fast_atanf(samp)*(MUL*GMATH_1_PI_2);
       } while (--i);
    }
 }
