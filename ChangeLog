@@ -7,6 +7,7 @@
  * Fix a segmentation fault when specifying an unsupported protocol name.
  * Limit writing of stream data to known safe paths such as the user home
    directory and the temporary directory.
+ * Fix sporadic crackling sounds caused by the timed-gain filter.
 
 -- Erik Hofman <tech@adalin.org>  Sat 22 Feb 2020 02:20:22 + 0100
 
