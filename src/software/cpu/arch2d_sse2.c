@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2019 by Erik Hofman.
- * Copyright 2009-2019 by Adalin B.V.
+ * Copyright 2005-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -86,7 +86,7 @@ _aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float
 {
    const_float32_ptr harmonics = _harmonics[wtype];
 
-   if (wtype == _SINE_WAVE) {
+   if (wtype == _SINE_WAVE || wtype == _CONSTANT_VALUE) {
       rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
    }
    else if (rv)

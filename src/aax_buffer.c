@@ -1210,8 +1210,8 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    else if (!xmlAttributeCompareString(xwid, "src", "impulse")) {
        wtype = AAX_IMPULSE_WAVE;
    }
-   else if (!xmlAttributeCompareString(xwid, "src", "sandomness")) {
-       wtype = AAX_RANDOMNESS;
+   else if (!xmlAttributeCompareString(xwid, "src", "constant")) {
+       wtype = AAX_CONSTANT_VALUE;
    }
    else {   // !xmlAttributeCompareString(xwid, "src", "sine")
       wtype = AAX_SINE_WAVE;
@@ -2005,6 +2005,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
             case AAX_TRIANGLE_WAVE:
             case AAX_SAWTOOTH_WAVE:
             case AAX_IMPULSE_WAVE:
+            case AAX_CONSTANT_VALUE:
                for (q=0; q<voices; ++q)
                {
                   float ffact, nfw, nphase, nratio;

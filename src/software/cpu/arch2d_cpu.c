@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2019 by Erik Hofman.
- * Copyright 2009-2019 by Adalin B.V.
+ * Copyright 2005-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -48,40 +48,56 @@ _aax_generate_waveform_cpu(float32_ptr rv, size_t no_samples, float freq, float 
    const_float32_ptr harmonics = _harmonics[wtype];
    if (rv)
    {
-      float ngain = harmonics[0];
-      unsigned int h, i = no_samples;
-      float hdt = 2.0f/freq;
-      float s = -1.0f + phase/GMATH_PI;
+      unsigned int i = no_samples;
       float *ptr = rv;
 
-      do
+      if (wtype == _CONSTANT_VALUE)
       {
-         *ptr++ = ngain * fast_sin_cpu(s);
-         s = s+hdt;
-         if (s >= 1.0f) s -= 2.0f;
-      }
-      while (--i);
-
-      for(h=1; h<MAX_HARMONICS; ++h)
-      {
-         float nfreq = freq/(h+1);
-         if (nfreq < 2.0f) break;       // higher than the nyquist-frequency
-
-         ngain = harmonics[h];
-         if (ngain)
+         do
          {
-            int i = no_samples;
-            float hdt = 2.0f/nfreq;
-            float s = -1.0f + phase/GMATH_PI;
-            float *ptr = rv;
+            *ptr++ = 1.0f;
+         }
+         while (--i);
+      }
+      else
+      {
+         float ngain = harmonics[0];
+         float hdt = 2.0f/freq;
+         float s = -1.0f + phase/GMATH_PI;
+         unsigned int h;
 
-            do
-            {
-               *ptr++ += ngain * fast_sin_cpu(s);
-               s = s+hdt;
-               if (s >= 1.0f) s -= 2.0f;
+         do
+         {
+            *ptr++ = ngain * fast_sin_cpu(s);
+            s = s+hdt;
+            if (s >= 1.0f) s -= 2.0f;
+         }
+         while (--i);
+
+         if (wtype != _SINE_WAVE)
+         {
+             for(h=1; h<MAX_HARMONICS; ++h)
+             {
+                float nfreq = freq/(h+1);
+                if (nfreq < 2.0f) break;    // higher than the nyquist-frequency
+
+                ngain = harmonics[h];
+                if (ngain)
+                {
+                   int i = no_samples;
+                   float hdt = 2.0f/nfreq;
+                   float s = -1.0f + phase/GMATH_PI;
+                   float *ptr = rv;
+
+                   do
+                   {
+                      *ptr++ += ngain * fast_sin_cpu(s);
+                      s = s+hdt;
+                      if (s >= 1.0f) s -= 2.0f;
+                   }
+                   while (--i);
+               }
             }
-            while (--i);
          }
       }
    }

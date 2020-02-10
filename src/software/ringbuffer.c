@@ -1220,6 +1220,10 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
                          tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
+   case AAX_CONSTANT_VALUE:
+       _bufferMixWaveform(data, scratch, _CONSTANT_VALUE, f, bps, no_samples,
+                         tracks, ratio, phase, modulate, limiter);
+      rv = AAX_TRUE;
    default:
       break;
    }
