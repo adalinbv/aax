@@ -557,6 +557,10 @@ aaxGetWaveformTypeByName(const char *wave)
                        !strncasecmp(name, "exp", len))
             {
                rv |= AAX_ENVELOPE_FOLLOW_LOG;
+            } else if (!strncasecmp(name, "1st-order", len)) {
+                rv |= AAX_REVERB_1ST_ORDER;
+            } else if (!strncasecmp(name, "2nd-order", len)) {
+                rv |= AAX_REVERB_2ND_ORDER;
             } else if (!strncasecmp(name, "true", len) ||
                        !strncasecmp(name, "constant", len)) {
                rv |= AAX_CONSTANT_VALUE;

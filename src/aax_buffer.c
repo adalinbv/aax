@@ -1338,6 +1338,13 @@ _bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency, f
    return AAX_TRUE;
 }
 
+#define MUL     (65536.0f*256.0f)
+#define IMUL    (1.0f/MUL)
+
+static inline float fast_atanf(float x) {
+  return GMATH_PI_4*x + 0.273f*x * (1.0f -fabsf(x));
+}
+
 static void
 _bufLimit(_aaxRingBuffer* rb)
 {
@@ -1351,11 +1358,15 @@ _bufLimit(_aaxRingBuffer* rb)
    for (track=0; track<no_tracks; track++)
    {
       int32_t *dptr = tracks[track];
-      size_t i;
+      size_t i = no_samples;
 
-      for (i=0; i<no_samples; ++i) {
-         dptr[i] = (1<<23)*atanf(dptr[i]*GMATH_1_PI_2/(1<<23));
-      }
+      do
+      {
+         float samp = *dptr * IMUL;
+         samp = _MINMAX(samp, -1.94139795f, 1.94139795f);
+         samp = fast_atanf(samp)*(MUL*GMATH_1_PI_2);
+         *dptr++ = samp;
+      } while (--i);
    }
 }
 

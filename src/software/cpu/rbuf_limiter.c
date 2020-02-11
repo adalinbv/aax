@@ -99,7 +99,7 @@ _aaxRingBufferLimiter(MIX_PTR_T d, size_t dmax, float clip, float asym)
 
 /* arctan */
 void
-_aaxRingBufferCompress(MIX_PTR_T d, size_t dmax, float clip, float asym)
+_aaxRingBufferCompress(MIX_PTR_T d, size_t dmax, UNUSED(float clip), UNUSED(float asym))
 {
    _batch_atanps(d, d, dmax);
 }
