@@ -484,9 +484,12 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
       {
          float max = (lfo->max - lfo->min);
          float olvl = lfo->value[track];
-         float alpha;
+         float fs = lfo->period_rate;
+         float fc = lfo->f;
+         float cfc, alpha;
 
-         alpha = 1.0f - expf(-8.0f*GMATH_2PI*lfo->f/lfo->period_rate);
+         cfc = cosf(GMATH_2PI*fc/fs);
+         alpha = -1.0f + cfc + sqrtf(cfc*cfc -4.0f*cfc + 3.0f);
 
          rv = 0.5*max*xoroshiro128plus()/(double)INT64_MAX;
          rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
