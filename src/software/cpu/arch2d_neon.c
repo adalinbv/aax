@@ -174,6 +174,21 @@ vabs2q_f32(float32x4x2_t a)
    return a;
 }
 
+#define MUL     (65536.0f*256.0f)
+#define IMUL    (1.0f/MUL)
+
+static inline float32x4_t
+fast_atan4_sse2(float32x4_t x)
+{
+  float32x4_t pi_4 = vmovq_n_f32(GMATH_PI_4);
+  float32x4_t mul = vmovq_n_f32(0.273f);
+  float32x4_t one = vmovq_n_f32(1.0f);
+
+  return vaddq_f32(vmulq_f32(pi_4, x),
+                   vmulq_f32(vmulq_f32(mul, x),
+                             vsubq_f32(one, vabsq_f32(x))));
+}
+
 static inline float32x4x2_t    // range -1.0f .. 1.0f
 fast_sin8_neon(float32x4x2_t x)
 {
@@ -182,11 +197,14 @@ fast_sin8_neon(float32x4x2_t x)
 }
 
 float *
-_aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float phase, enum wave_types wtype)
+_aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase, enum wave_types wtype)
 {
    const_float32_ptr harmonics = _harmonics[wtype];
+
+   if (!num) return;
+
    if (wtype == _SINE_WAVE || wtype == _CONSTANT_VALUE) {
-      rv = _aax_generate_waveform_cpu(rv, no_samples, freq, phase, wtype);
+      rv = _aax_generate_waveform_cpu(rv, num, freq, phase, wtype);
    }
    else if (rv)
    {
@@ -195,10 +213,12 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float
       float32x4x2_t one, two, eight;
       float32x4x2_t ngain, nfreq;
       float32x4x2_t hdt, s;
+      float32x4x2_t *ptr;
       unsigned int i, h;
-      float *ptr;
+      size_t step;
 
       assert(MAX_HARMONICS % 8 == 0);
+      step = sizeof(float32x4x2_t)/sizeof(float);
 
       one = vdup2q_n_f32(1.0f);
       two = vdup2q_n_f32(2.0f);
@@ -212,8 +232,8 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float
       ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics));
       hdt = vdiv2q_f32(two, nfreq);
 
-      ptr = rv;
-      i = no_samples;
+      ptr = (float32x4x2_t*)rv;
+      i = num/step;
       s = phase8;
       do
       {
@@ -235,8 +255,8 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t no_samples, float freq, float
          {
             hdt = vdiv2q_f32(two, nfreq);
 
-            ptr = rv;
-            i = no_samples;
+            ptr = (float32x4x2_t*)rv;
+            i = num/step;
             s = phase8;
             do
             {
@@ -366,6 +386,49 @@ _batch_cvtps24_24_neon(void_ptr dst, const_void_ptr src, size_t num)
          do {
             *d++ = (float)*s++;
          } while (--i);
+      }
+   }
+}
+
+void
+_batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
+{
+   if (num)
+   {
+     float32x4_t *dptr = (float32x4_t*)dptr;
+     float32x4_t* sptr = (float32x4_t*)sptr;
+     size_t dtmp, stmp;
+     size_t i, step;
+
+      step = sizeof(float32x4_t)/sizeof(float);
+
+      i = num/step;
+      if (i)
+      {
+        float32x4_t xmin = vmovq_n_f32(-1.94139795f);
+        float32x4_t xmax = vmovq_n_f32(1.94139795f);
+        float32x4_t mul = vmovq_n_f32(MUL*GMATH_1_PI_2);
+        float32x4_t imul = vmovq_n_f32(IMUL);
+        float32x4_t res;
+
+         num -= i*step;
+         s += i*step;
+         d += i*step;
+         do
+         {
+            res = vld1q_f32((const float*)sptr++);
+
+            res = vmulq_f32(res,imul);
+            res = vminq_f32(vmaxq_f32(res, xmin), xmax);
+            res = vmulq_f32(mul, fast_atan4_sse2(res));
+
+            vst1q_f32(dptr++, res);
+         }
+         while(--i);
+      }
+
+      if (num) {
+         _batch_atanps_cpu(d, s, num);
       }
    }
 }

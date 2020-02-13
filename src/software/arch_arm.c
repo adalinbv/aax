@@ -438,6 +438,7 @@ _aaxGetSIMDSupportLevel()
 
 # if RB_FLOAT_DATA
          _batch_fmadd = _batch_fmadd_neon;
+         _batch_atanps = _batch_atanps_neon;
          _batch_roundps = _batch_roundps_neon;
          _batch_cvtps24_24 = _batch_cvtps24_24_neon;
          _batch_cvt24_ps24 = _batch_cvt24_ps24_neon;
