@@ -178,7 +178,7 @@ vabs2q_f32(float32x4x2_t a)
 #define IMUL    (1.0f/MUL)
 
 static inline float32x4_t
-fast_atan4_sse2(float32x4_t x)
+fast_atan4_neon(float32x4_t x)
 {
   float32x4_t pi_4 = vmovq_n_f32(GMATH_PI_4);
   float32x4_t mul = vmovq_n_f32(0.273f);
@@ -391,8 +391,8 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-     float32x4_t *d = (float32x4_t*)dptr;
-     float32x4_t* s = (float32x4_t*)sptr;
+     float32_ptr d = (float32_ptr)dptr;
+     float32_ptr s = (float32_ptr)sptr;
      size_t dtmp, stmp;
      size_t i, step;
 
@@ -408,17 +408,17 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
         float32x4_t res;
 
          num -= i*step;
-         s += i*step;
-         d += i*step;
          do
          {
-            res = vld1q_f32((const float*)sptr++);
+            res = vld1q_f32((const float*)s);
+            s += step;
 
             res = vmulq_f32(res,imul);
             res = vminq_f32(vmaxq_f32(res, xmin), xmax);
-            res = vmulq_f32(mul, fast_atan4_sse2(res));
+            res = vmulq_f32(mul, fast_atan4_neon(res));
 
-            vst1q_f32(dptr++, res);
+            vst1q_f32(d, res);
+            d += step;
          }
          while(--i);
       }
