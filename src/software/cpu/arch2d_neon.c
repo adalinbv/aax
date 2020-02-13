@@ -201,9 +201,7 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase,
 {
    const_float32_ptr harmonics = _harmonics[wtype];
 
-   if (!num) return;
-
-   if (wtype == _SINE_WAVE || wtype == _CONSTANT_VALUE) {
+   if (!num || wtype == _SINE_WAVE || wtype == _CONSTANT_VALUE) {
       rv = _aax_generate_waveform_cpu(rv, num, freq, phase, wtype);
    }
    else if (rv)
@@ -213,12 +211,10 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase,
       float32x4x2_t one, two, eight;
       float32x4x2_t ngain, nfreq;
       float32x4x2_t hdt, s;
-      float32x4x2_t *ptr;
       unsigned int i, h;
-      size_t step;
+      float *ptr;
 
       assert(MAX_HARMONICS % 8 == 0);
-      step = sizeof(float32x4x2_t)/sizeof(float);
 
       one = vdup2q_n_f32(1.0f);
       two = vdup2q_n_f32(2.0f);
@@ -232,8 +228,8 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase,
       ngain = vand2q_f32(vclt2q_f32(two, nfreq), vld2q_f32(harmonics));
       hdt = vdiv2q_f32(two, nfreq);
 
-      ptr = (float32x4x2_t*)rv;
-      i = num/step;
+      ptr = rv;
+      i = num;
       s = phase8;
       do
       {
@@ -255,8 +251,8 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase,
          {
             hdt = vdiv2q_f32(two, nfreq);
 
-            ptr = (float32x4x2_t*)rv;
-            i = num/step;
+            ptr = rv;
+            i = num;
             s = phase8;
             do
             {
@@ -395,8 +391,8 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
 {
    if (num)
    {
-     float32x4_t *dptr = (float32x4_t*)dptr;
-     float32x4_t* sptr = (float32x4_t*)sptr;
+     float32x4_t *d = (float32x4_t*)dptr;
+     float32x4_t* s = (float32x4_t*)sptr;
      size_t dtmp, stmp;
      size_t i, step;
 

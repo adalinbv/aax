@@ -394,6 +394,7 @@ int main()
          printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
          TESTF("atan "MKSTR(SIMD), dst1, dst2);
       }
+# if !defined(__arm__) && !defined(_M_ARM)
       if (simd2)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -405,7 +406,7 @@ int main()
          printf("atan %s:  %f ms - atanf x %2.1f\n", MKSTR(SIMD2), eps*1000.0f, cpu/eps);
          TESTF("atan "MKSTR(SIMD2), dst1, dst2);
       }
-
+#endif
 
       /*
        * batch RMS calulculation
