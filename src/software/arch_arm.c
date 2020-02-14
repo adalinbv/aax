@@ -249,29 +249,66 @@ _aaxGetSIMDSupportLevel()
 
       if (_aax_arch_capabilities & AAX_ARCH_VFPV2)
       {
+         _aax_generate_waveform_float = _aax_generate_waveform_vfpv3;
+//       _batch_imadd = _batch_imadd_vfpv2;
          _batch_fmadd = _batch_fmadd_vfpv2;
          _batch_imul_value = _batch_imul_value_vfpv2;
          _batch_fmul_value = _batch_fmul_value_vfpv2;
+//       _batch_cvt24_24 = _batch_cvt24_24_vfpv2;
+//       _batch_cvt24_32 = _batch_cvt24_32_vfpv2;
+//       _batch_cvt32_24 = _batch_cvt32_24_vfpv2;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv2;
+         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv2;
+         _batch_atanps = _batch_atanps_vfpv2;
+         _batch_roundps = _batch_roundps_vfpv2;
          _batch_cvt24_ps = _batch_cvt24_ps_vfpv2;
          _batch_cvtps_24 = _batch_cvtps_24_vfpv2;
          _batch_cvt24_pd = _batch_cvt24_pd_vfpv2;
+//       _batch_cvt24_8_intl = _batch_cvt24_8_intl_vfpv2;
+//       _batch_cvt24_24_intl = _batch_cvt24_24_intl_vfpv2;
+//       _batch_cvt24_24_3intl = _batch_cvt24_24_3intl_vfpv2;
+//       _batch_cvt24_32_intl = _batch_cvt24_32_intl_vfpv2;
          _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv2;
          _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv2;
          _batch_cvtpd_24 = _batch_cvtpd_24_vfpv2;
+//       _batch_cvt24_8 = _batch_cvt24_8_vfpv2;
+//       _batch_cvt24_16 = _batch_cvt24_16_vfpv2;
+//       _batch_cvt24_24_3 = _batch_cvt24_24_3_vfpv2;
+//       _batch_cvt8_24 = _batch_cvt8_24_vfpv2;
+//       _batch_cvt16_24 = _batch_cvt16_24_vfpv2;
+//       _batch_cvt24_3_24 = _batch_cvt24_3_24_vfpv2;
+//       _batch_cvt8_intl_24 = _batch_cvt8_intl_24_vfpv2;
+//       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_vfpv2;
+//       _batch_cvt24_3intl_24 = _batch_cvt24_3intl_24_vfpv2;
+//       _batch_cvt24_intl_24 = _batch_cvt24_intl_24_vfpv2;
+         _batch_cvt24_intl_ps = _batch_cvt24_intl_ps_vfpv2;
+//       _batch_cvt32_intl_24 = _batch_cvt32_intl_24_vfpv2;
          _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv2;
          _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv2;
-
+         _batch_get_average_rms = _batch_get_average_rms_vfpv2;
+         _batch_saturate24 = _batch_saturate24_vfpv2;
+//       _batch_cvt8u_8s = _batch_cvt8u_8s_vfpv2;
+//       _batch_cvt8s_8u = _batch_cvt8s_8u_vfpv2;
+//       _batch_cvt16u_16s = _batch_cvt16u_16s_vfpv2;
+//       _batch_cvt16s_16u = _batch_cvt16s_16u_vfpv2;
+//       _batch_cvt24u_24s = _batch_cvt24u_24s_vfpv2;
+//       _batch_cvt24s_24u = _batch_cvt24s_24u_vfpv2;
+//       _batch_cvt32u_32s = _batch_cvt32u_32s_vfpv2;
+//       _batch_cvt32s_32u = _batch_cvt32s_32u_vfpv2;
+         _batch_dither = _batch_dither_vfpv2;
+//       _batch_endianswap16 = _batch_endianswap16_vfpv2;
+//       _batch_endianswap24 = _batch_endianswap24_vfpv2;
+//       _batch_endianswap32 = _batch_endianswap32_vfpv2;
+//       _batch_endianswap64 = _batch_endianswap64_vfpv2;
          _batch_movingaverage_float = _batch_ema_iir_float_vfpv2;
          _batch_freqfilter = _batch_freqfilter_vfpv2;
          _batch_freqfilter_float = _batch_freqfilter_float_vfpv2;
-
-#if RB_FLOAT_DATA
-         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv2;
-         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv2;
+         _batch_convolution = _batch_convolution_vfpv2;
+# if RB_FLOAT_DATA
          _batch_resample_float = _batch_resample_float_vfpv2;
-#else
+# else
          _batch_resample = _batch_resample_vfpv2;
-#endif
+# endif
 
 //       vec3fAdd = _vec3fAdd_vfpv2;
 //       vec3fDevide = _vec3fDevide_vfpv2;
@@ -301,31 +338,66 @@ _aaxGetSIMDSupportLevel()
 
       if (_aax_arch_capabilities & AAX_ARCH_VFPV3)
       {
+         _aax_generate_waveform_float = _aax_generate_waveform_vfpv3;
+//       _batch_imadd = _batch_imadd_vfpv3;
          _batch_fmadd = _batch_fmadd_vfpv3;
          _batch_imul_value = _batch_imul_value_vfpv3;
          _batch_fmul_value = _batch_fmul_value_vfpv3;
+//       _batch_cvt24_24 = _batch_cvt24_24_vfpv3;
+//       _batch_cvt24_32 = _batch_cvt24_32_vfpv3;
+//       _batch_cvt32_24 = _batch_cvt32_24_vfpv3;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv3;
+         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv3;
+         _batch_atanps = _batch_atanps_vfpv3;
+         _batch_roundps = _batch_roundps_vfpv3;
          _batch_cvt24_ps = _batch_cvt24_ps_vfpv3;
          _batch_cvtps_24 = _batch_cvtps_24_vfpv3;
          _batch_cvt24_pd = _batch_cvt24_pd_vfpv3;
+//       _batch_cvt24_8_intl = _batch_cvt24_8_intl_vfpv3;
+//       _batch_cvt24_24_intl = _batch_cvt24_24_intl_vfpv3;
+//       _batch_cvt24_24_3intl = _batch_cvt24_24_3intl_vfpv3;
+//       _batch_cvt24_32_intl = _batch_cvt24_32_intl_vfpv3;
          _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv3;
          _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv3;
          _batch_cvtpd_24 = _batch_cvtpd_24_vfpv3;
+//       _batch_cvt24_8 = _batch_cvt24_8_vfpv3;
+//       _batch_cvt24_16 = _batch_cvt24_16_vfpv3;
+//       _batch_cvt24_24_3 = _batch_cvt24_24_3_vfpv3;
+//       _batch_cvt8_24 = _batch_cvt8_24_vfpv3;
+//       _batch_cvt16_24 = _batch_cvt16_24_vfpv3;
+//       _batch_cvt24_3_24 = _batch_cvt24_3_24_vfpv3;
+//       _batch_cvt8_intl_24 = _batch_cvt8_intl_24_vfpv3;
+//       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_vfpv3;
+//       _batch_cvt24_3intl_24 = _batch_cvt24_3intl_24_vfpv3;
+//       _batch_cvt24_intl_24 = _batch_cvt24_intl_24_vfpv3;
+         _batch_cvt24_intl_ps = _batch_cvt24_intl_ps_vfpv3;
+//       _batch_cvt32_intl_24 = _batch_cvt32_intl_24_vfpv3;
          _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv3;
          _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv3;
-
+         _batch_get_average_rms = _batch_get_average_rms_vfpv3;
+         _batch_saturate24 = _batch_saturate24_vfpv3;
+//       _batch_cvt8u_8s = _batch_cvt8u_8s_vfpv3;
+//       _batch_cvt8s_8u = _batch_cvt8s_8u_vfpv3;
+//       _batch_cvt16u_16s = _batch_cvt16u_16s_vfpv3;
+//       _batch_cvt16s_16u = _batch_cvt16s_16u_vfpv3;
+//       _batch_cvt24u_24s = _batch_cvt24u_24s_vfpv3;
+//       _batch_cvt24s_24u = _batch_cvt24s_24u_vfpv3;
+//       _batch_cvt32u_32s = _batch_cvt32u_32s_vfpv3;
+//       _batch_cvt32s_32u = _batch_cvt32s_32u_vfpv3;
+         _batch_dither = _batch_dither_vfpv3;
+//       _batch_endianswap16 = _batch_endianswap16_vfpv3;
+//       _batch_endianswap24 = _batch_endianswap24_vfpv3;
+//       _batch_endianswap32 = _batch_endianswap32_vfpv3;
+//       _batch_endianswap64 = _batch_endianswap64_vfpv3;
          _batch_movingaverage_float = _batch_ema_iir_float_vfpv3;
          _batch_freqfilter = _batch_freqfilter_vfpv3;
          _batch_freqfilter_float = _batch_freqfilter_float_vfpv3;
-
-#if RB_FLOAT_DATA
-         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv3;
-         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv3;
+         _batch_convolution = _batch_convolution_vfpv3;
+# if RB_FLOAT_DATA
          _batch_resample_float = _batch_resample_float_vfpv3;
-#else
+# else
          _batch_resample = _batch_resample_vfpv3;
-#endif
-
-         _aax_generate_waveform_float = _aax_generate_waveform_vfpv3;
+# endif
 
 //       vec3fAdd = _vec3fAdd_vfpv3;
 //       vec3fDevide = _vec3fDevide_vfpv3;
@@ -355,31 +427,66 @@ _aaxGetSIMDSupportLevel()
 
       if (_aax_arch_capabilities & AAX_ARCH_VFPV4)
       {
+         _aax_generate_waveform_float = _aax_generate_waveform_vfpv4;
+//       _batch_imadd = _batch_imadd_vfpv4;
          _batch_fmadd = _batch_fmadd_vfpv4;
          _batch_imul_value = _batch_imul_value_vfpv4;
          _batch_fmul_value = _batch_fmul_value_vfpv4;
+//       _batch_cvt24_24 = _batch_cvt24_24_vfpv4;
+//       _batch_cvt24_32 = _batch_cvt24_32_vfpv4;
+//       _batch_cvt32_24 = _batch_cvt32_24_vfpv4;
+         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv4;
+         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv4;
+         _batch_atanps = _batch_atanps_vfpv4;
+         _batch_roundps = _batch_roundps_vfpv4;
          _batch_cvt24_ps = _batch_cvt24_ps_vfpv4;
          _batch_cvtps_24 = _batch_cvtps_24_vfpv4;
          _batch_cvt24_pd = _batch_cvt24_pd_vfpv4;
+//       _batch_cvt24_8_intl = _batch_cvt24_8_intl_vfpv4;
+//       _batch_cvt24_24_intl = _batch_cvt24_24_intl_vfpv4;
+//       _batch_cvt24_24_3intl = _batch_cvt24_24_3intl_vfpv4;
+//       _batch_cvt24_32_intl = _batch_cvt24_32_intl_vfpv4;
          _batch_cvt24_ps_intl = _batch_cvt24_ps_intl_vfpv4;
          _batch_cvt24_pd_intl = _batch_cvt24_pd_intl_vfpv4;
          _batch_cvtpd_24 = _batch_cvtpd_24_vfpv4;
+//       _batch_cvt24_8 = _batch_cvt24_8_vfpv4;
+//       _batch_cvt24_16 = _batch_cvt24_16_vfpv4;
+//       _batch_cvt24_24_3 = _batch_cvt24_24_3_vfpv4;
+//       _batch_cvt8_24 = _batch_cvt8_24_vfpv4;
+//       _batch_cvt16_24 = _batch_cvt16_24_vfpv4;
+//       _batch_cvt24_3_24 = _batch_cvt24_3_24_vfpv4;
+//       _batch_cvt8_intl_24 = _batch_cvt8_intl_24_vfpv4;
+//       _batch_cvt16_intl_24 = _batch_cvt16_intl_24_vfpv4;
+//       _batch_cvt24_3intl_24 = _batch_cvt24_3intl_24_vfpv4;
+//       _batch_cvt24_intl_24 = _batch_cvt24_intl_24_vfpv4;
+         _batch_cvt24_intl_ps = _batch_cvt24_intl_ps_vfpv4;
+//       _batch_cvt32_intl_24 = _batch_cvt32_intl_24_vfpv4;
          _batch_cvtps_intl_24 = _batch_cvtps_intl_24_vfpv4;
          _batch_cvtpd_intl_24 = _batch_cvtpd_intl_24_vfpv4;
-
+         _batch_get_average_rms = _batch_get_average_rms_vfpv4;
+         _batch_saturate24 = _batch_saturate24_vfpv4;
+//       _batch_cvt8u_8s = _batch_cvt8u_8s_vfpv4;
+//       _batch_cvt8s_8u = _batch_cvt8s_8u_vfpv4;
+//       _batch_cvt16u_16s = _batch_cvt16u_16s_vfpv4;
+//       _batch_cvt16s_16u = _batch_cvt16s_16u_vfpv4;
+//       _batch_cvt24u_24s = _batch_cvt24u_24s_vfpv4;
+//       _batch_cvt24s_24u = _batch_cvt24s_24u_vfpv4;
+//       _batch_cvt32u_32s = _batch_cvt32u_32s_vfpv4;
+//       _batch_cvt32s_32u = _batch_cvt32s_32u_vfpv4;
+         _batch_dither = _batch_dither_vfpv4;
+//       _batch_endianswap16 = _batch_endianswap16_vfpv4;
+//       _batch_endianswap24 = _batch_endianswap24_vfpv4;
+//       _batch_endianswap32 = _batch_endianswap32_vfpv4;
+//       _batch_endianswap64 = _batch_endianswap64_vfpv4;
          _batch_movingaverage_float = _batch_ema_iir_float_vfpv4;
          _batch_freqfilter = _batch_freqfilter_vfpv4;
          _batch_freqfilter_float = _batch_freqfilter_float_vfpv4;
-
-#if RB_FLOAT_DATA
-         _batch_cvt24_ps24 = _batch_cvt24_ps24_vfpv4;
-         _batch_cvtps24_24 = _batch_cvtps24_24_vfpv4;
+         _batch_convolution = _batch_convolution_vfpv4;
+# if RB_FLOAT_DATA
          _batch_resample_float = _batch_resample_float_vfpv4;
-#else
+# else
          _batch_resample = _batch_resample_vfpv4;
-#endif
-
-         _aax_generate_waveform_float = _aax_generate_waveform_vfpv4;
+# endif
 
 //       vec3fAdd = _vec3fAdd_vfpv4;
 //       vec3fDevide = _vec3fDevide_vfpv4;

@@ -218,81 +218,227 @@ void _batch_freqfilter_float_fma3(float32_ptr, const_float32_ptr, int, size_t, v
 void _batch_resample_float_fma3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 
 /* VFPv2 */
-void _batch_dither_vfpv2(void*, unsigned, size_t);
+void _batch_cvt24_24_vfpv2(void_ptr, const void*, size_t);
+void _batch_roundps_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_atanps_vfpv2(void_ptr, const_void_ptr, size_t);
+
+float* _aax_generate_waveform_vfpv2(float32_ptr, size_t, float, float, enum wave_types);
+
 void _batch_imul_value_vfpv2(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv2(void*, const void*, unsigned, size_t, float);
-// void _batch_hmadd_vfpv2(float32_ptr, const_float16_ptr, size_t, float, float);
+void _batch_imadd_vfpv2(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_vfpv2(float32_ptr, const_float32_ptr, size_t, float, float);
-void _batch_ema_iir_float_vfpv2(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
+void _batch_ema_iir_vfpv2(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_vfpv2(int32_ptr, const_int32_ptr, int, size_t, void*);
+void _batch_ema_iir_float_vfpv2(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_float_vfpv2(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
 void _batch_cvt24_ps24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv2(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+void _batch_convolution_vfpv2(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 #else
 void _batch_resample_vfpv2(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
+
+void _batch_get_average_rms_vfpv2(const_float32_ptr, size_t, float*, float*);
+void _batch_dither_vfpv2(void*, unsigned, size_t);
+void _batch_saturate24_vfpv2(void*, size_t);
+
+void _batch_cvt8u_8s_vfpv2(void*, size_t);
+void _batch_cvt8s_8u_vfpv2(void*, size_t);
+void _batch_cvt16u_16s_vfpv2(void*, size_t);
+void _batch_cvt16s_16u_vfpv2(void*, size_t);
+void _batch_cvt24u_24s_vfpv2(void*, size_t);
+void _batch_cvt24s_24u_vfpv2(void*, size_t);
+void _batch_cvt32u_32s_vfpv2(void*, size_t);
+void _batch_cvt32s_32u_vfpv2(void*, size_t);
+
+void _batch_endianswap16_vfpv2(void*, size_t);
+void _batch_endianswap24_vfpv2(void*, size_t);
+void _batch_endianswap32_vfpv2(void*, size_t);
+void _batch_endianswap64_vfpv2(void*, size_t);
+
+void _batch_cvt24_8_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_16_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_24_3_vfpv2(void_ptr, const_void_ptr, size_t);
+//void _batch_cvt24_ph_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_pd_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_32_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_8_intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_16_intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_3intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_32_intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+//void _batch_cvt24_ph_intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_ps_intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_pd_intl_vfpv2(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+
+void _batch_cvt8_24_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt16_24_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_3_24_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt32_24_vfpv2(void_ptr, const_void_ptr, size_t);
+//void _batch_cvtph_24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_cvtpd_24_vfpv2(void_ptr, const_void_ptr, size_t);
+void _batch_cvt8_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt16_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_3intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_intl_ps_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt32_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 void _batch_cvtps_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 void _batch_cvtpd_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* VFPv3 */
-void _batch_dither_vfpv3(void*, unsigned, size_t);
+void _batch_cvt24_24_vfpv3(void_ptr, const void*, size_t);
+void _batch_roundps_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_atanps_vfpv3(void_ptr, const_void_ptr, size_t);
+
 float* _aax_generate_waveform_vfpv3(float32_ptr, size_t, float, float, enum wave_types);
+
 void _batch_imul_value_vfpv3(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv3(void*, const void*, unsigned, size_t, float);
-// void _batch_hmadd_vfpv3(float32_ptr, const_float16_ptr, size_t, float, float);
+void _batch_imadd_vfpv3(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_vfpv3(float32_ptr, const_float32_ptr, size_t, float, float);
-void _batch_ema_iir_float_vfpv3(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
+void _batch_ema_iir_vfpv3(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_vfpv3(int32_ptr, const_int32_ptr, int, size_t, void*);
+void _batch_ema_iir_float_vfpv3(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_float_vfpv3(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
 void _batch_cvt24_ps24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+void _batch_convolution_vfpv3(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 #else
 void _batch_resample_vfpv3(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
+
+void _batch_get_average_rms_vfpv3(const_float32_ptr, size_t, float*, float*);
+void _batch_dither_vfpv3(void*, unsigned, size_t);
+void _batch_saturate24_vfpv3(void*, size_t);
+
+void _batch_cvt8u_8s_vfpv3(void*, size_t);
+void _batch_cvt8s_8u_vfpv3(void*, size_t);
+void _batch_cvt16u_16s_vfpv3(void*, size_t);
+void _batch_cvt16s_16u_vfpv3(void*, size_t);
+void _batch_cvt24u_24s_vfpv3(void*, size_t);
+void _batch_cvt24s_24u_vfpv3(void*, size_t);
+void _batch_cvt32u_32s_vfpv3(void*, size_t);
+void _batch_cvt32s_32u_vfpv3(void*, size_t);
+
+void _batch_endianswap16_vfpv3(void*, size_t);
+void _batch_endianswap24_vfpv3(void*, size_t);
+void _batch_endianswap32_vfpv3(void*, size_t);
+void _batch_endianswap64_vfpv3(void*, size_t);
+
+void _batch_cvt24_8_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_16_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_24_3_vfpv3(void_ptr, const_void_ptr, size_t);
+//void _batch_cvt24_ph_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_pd_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_32_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_8_intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_16_intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_3intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_32_intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+//void _batch_cvt24_ph_intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_ps_intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_pd_intl_vfpv3(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+
+void _batch_cvt8_24_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt16_24_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_3_24_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt32_24_vfpv3(void_ptr, const_void_ptr, size_t);
+//void _batch_cvtph_24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_cvtpd_24_vfpv3(void_ptr, const_void_ptr, size_t);
+void _batch_cvt8_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt16_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_3intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_intl_ps_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt32_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 void _batch_cvtps_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 void _batch_cvtpd_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* VFPv4 */
-void _batch_dither_vfpv4(void*, unsigned, size_t);
+void _batch_cvt24_24_vfpv4(void_ptr, const void*, size_t);
+void _batch_roundps_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_atanps_vfpv4(void_ptr, const_void_ptr, size_t);
+
 float* _aax_generate_waveform_vfpv4(float32_ptr, size_t, float, float, enum wave_types);
+
 void _batch_imul_value_vfpv4(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv4(void*, const void*, unsigned, size_t, float);
-// void _batch_hmadd_vfpv4(float32_ptr, const_float16_ptr, size_t, float, float);
+void _batch_imadd_vfpv4(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_vfpv4(float32_ptr, const_float32_ptr, size_t, float, float);
-void _batch_ema_iir_float_vfpv4(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1);
+void _batch_ema_iir_vfpv4(int32_ptr, const_int32_ptr, size_t, float*, float);
 void _batch_freqfilter_vfpv4(int32_ptr, const_int32_ptr, int, size_t, void*);
+void _batch_ema_iir_float_vfpv4(float32_ptr, const_float32_ptr, size_t, float*, float);
 void _batch_freqfilter_float_vfpv4(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
 void _batch_cvt24_ps24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv4(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
+void _batch_convolution_vfpv4(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 #else
 void _batch_resample_vfpv4(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
+
+void _batch_get_average_rms_vfpv4(const_float32_ptr, size_t, float*, float*);
+void _batch_dither_vfpv4(void*, unsigned, size_t);
+void _batch_saturate24_vfpv4(void*, size_t);
+
+void _batch_cvt8u_8s_vfpv4(void*, size_t);
+void _batch_cvt8s_8u_vfpv4(void*, size_t);
+void _batch_cvt16u_16s_vfpv4(void*, size_t);
+void _batch_cvt16s_16u_vfpv4(void*, size_t);
+void _batch_cvt24u_24s_vfpv4(void*, size_t);
+void _batch_cvt24s_24u_vfpv4(void*, size_t);
+void _batch_cvt32u_32s_vfpv4(void*, size_t);
+void _batch_cvt32s_32u_vfpv4(void*, size_t);
+
+void _batch_endianswap16_vfpv4(void*, size_t);
+void _batch_endianswap24_vfpv4(void*, size_t);
+void _batch_endianswap32_vfpv4(void*, size_t);
+void _batch_endianswap64_vfpv4(void*, size_t);
+
+void _batch_cvt24_8_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_16_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_24_3_vfpv4(void_ptr, const_void_ptr, size_t);
+//void _batch_cvt24_ph_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_ps_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_cvt24_pd_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_32_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_8_intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_16_intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_3intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_24_intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+void _batch_cvt24_32_intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+//void _batch_cvt24_ph_intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_ps_intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 void _batch_cvt24_pd_intl_vfpv4(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+
+void _batch_cvt8_24_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt16_24_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt24_3_24_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt32_24_vfpv4(void_ptr, const_void_ptr, size_t);
+//void _batch_cvtph_24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps_24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_cvtpd_24_vfpv4(void_ptr, const_void_ptr, size_t);
+void _batch_cvt8_intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt16_intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_3intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt24_intl_ps_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+void _batch_cvt32_intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 void _batch_cvtps_intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 void _batch_cvtpd_intl_24_vfpv4(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
+
 
 /* NEON */
 float fast_sin_neon(float);
