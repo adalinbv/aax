@@ -467,7 +467,7 @@ int main()
 #endif
 
       memset(&history, 0, sizeof(history));
-      _batch_freqfilter_float = _batch_freqfilter_iir_float_cpu;
+      _batch_freqfilter_float = _batch_freqfilter_float_cpu;
 
       t = clock();
       _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);

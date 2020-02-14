@@ -484,6 +484,7 @@ _batch_ema_iir_cpu(int32_ptr d, const_int32_ptr sptr, size_t num, float *hist, f
    }
 }
 
+#if 0
 void
 _batch_ema_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
 {
@@ -504,6 +505,7 @@ _batch_ema_iir_float_cpu(float32_ptr d, const_float32_ptr sptr, size_t num, floa
       *hist = smp;
    }
 }
+#endif
 
 // exponential moving average filter:  y[n] = a*x[n] + (1-a)*y[n-1]
 // http://www.dsprelated.com/showarticle/182.php
@@ -568,6 +570,7 @@ _aax_EMA_compute(float fc, float fs, float *a)
  * - frequency filtering (frames and emitters)
  * - equalizer (graphic and parametric)
  */
+#if 0
 void
 _batch_freqfilter_iir_cpu(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
 {
@@ -704,6 +707,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
       while (--stage);
    }
 }
+#endif
 
 static inline void
 _aax_bilinear(float a0, float a1, float a2, float b0, float b1, float b2,

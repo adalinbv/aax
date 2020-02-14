@@ -1310,6 +1310,164 @@ FN(batch_endianswap64,A)(void* data, size_t num)
 }
 
 void
+FN(batch_ema_iir_float,A)(float32_ptr d, const_float32_ptr sptr, size_t num, float *hist, float a1)
+{
+   if (num)
+   {
+      float32_ptr s = (float32_ptr)sptr;
+      size_t i = num;
+      float smp;
+
+      smp = *hist;
+      do
+      {
+//       smp = a1*(*s++) + (1.0f - a1)*smp;
+         smp += a1*(*s++ - smp);        // smp = a1*(*s++ - smp) + smp;
+         *d++ = smp;
+      }
+      while (--i);
+      *hist = smp;
+   }
+}
+
+void
+FN(batch_freqfilter,A)(int32_ptr dptr, const_int32_ptr sptr, int t, size_t num, void *flt)
+{
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_int32_ptr s = sptr;
+
+   if (num)
+   {
+      float k, *cptr, *hist;
+      float smp, nsmp, h0, h1;
+      int stage;
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      do
+      {
+         int32_ptr d = dptr;
+         size_t i = num;
+
+         h0 = hist[0];
+         h1 = hist[1];
+         do
+         {
+            smp = *s++ * k;
+            smp = smp + h0 * cptr[0];
+            nsmp = smp + h1 * cptr[1];
+            smp = nsmp + h0 * cptr[2];
+            smp = smp + h1 * cptr[3];
+
+            h1 = h0;
+            h0 = nsmp;
+            *d++ = smp;
+         }
+         while (--i);
+
+         *hist++ = h0;
+         *hist++ = h1;;
+         cptr += 4;
+         k = 1.0f;
+         s = dptr;
+      }
+      while (--stage);
+   }
+}
+
+void
+FN(batch_freqfilter_float,A)(float32_ptr dptr, const_float32_ptr sptr, int t, size_t num, void *flt)
+{
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   if (num)
+   {
+      const_float32_ptr s = sptr;
+      float k, *cptr, *hist;
+      float c0, c1, c2, c3;
+      float smp, h0, h1;
+      int stage;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         if (dptr != sptr) memcpy(dptr, sptr, num*sizeof(float));
+         return;
+      }
+      if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
+      {
+         memset(dptr, 0, num*sizeof(float));
+         return;
+      }
+
+      cptr = filter->coeff;
+      hist = filter->freqfilter->history[t];
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      do
+      {
+         float32_ptr d = dptr;
+         size_t i = num;
+
+         // for original code see _batch_freqfilter_iir_cpu
+         c0 = *cptr++;
+         c1 = *cptr++;
+         c2 = *cptr++;
+         c3 = *cptr++;
+
+         h0 = hist[0];
+         h1 = hist[1];
+
+         // z[n] = k*x[n] + c0*x[n-1]  + c1*x[n-2] + c2*z[n-1] + c3*z[n-2];
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp       + ((h0 * c2) + (h1 * c3));
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+         else
+         {
+            do
+            {
+               smp = (*s++ * k) + ((h0 * c0) + (h1 * c1));
+               *d++ = smp;
+
+               h1 = h0;
+               h0 = smp;
+            }
+            while (--i);
+         }
+
+         *hist++ = h0;
+         *hist++ = h1;
+         k = 1.0f;
+         s = dptr;
+      }
+      while (--stage);
+   }
+}
+
+void
 FN(batch_convolution,A)(float32_ptr hcptr, const_float32_ptr cptr, const_float32_ptr sptr, unsigned int cnum, unsigned int dnum, int step, float v, float threshold)
 {
    unsigned int q = cnum/step;

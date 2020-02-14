@@ -70,9 +70,9 @@ void _batch_fmul_value_cpu(void*, const void*, unsigned, size_t, float);
 void _batch_imadd_cpu(int32_ptr, const_int32_ptr, size_t, float, float);
 void _batch_fmadd_cpu(float32_ptr, const_float32_ptr, size_t, float, float);
 void _batch_ema_iir_cpu(int32_ptr, const_int32_ptr, size_t, float*, float);
-void _batch_freqfilter_iir_cpu(int32_ptr, const_int32_ptr, int, size_t, void*);
+void _batch_freqfilter_cpu(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_ema_iir_float_cpu(float32_ptr, const_float32_ptr, size_t, float*, float);
-void _batch_freqfilter_iir_float_cpu(float32_ptr, const_float32_ptr, int, size_t, void*);
+void _batch_freqfilter_float_cpu(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
 void _batch_cvt24_ps24_cpu(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_cpu(void_ptr, const_void_ptr, size_t);
@@ -218,6 +218,7 @@ void _batch_freqfilter_float_fma3(float32_ptr, const_float32_ptr, int, size_t, v
 void _batch_resample_float_fma3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 
 /* VFPv2 */
+void _batch_dither_vfpv2(void*, unsigned, size_t);
 void _batch_imul_value_vfpv2(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv2(void*, const void*, unsigned, size_t, float);
 // void _batch_hmadd_vfpv2(float32_ptr, const_float16_ptr, size_t, float, float);
@@ -242,6 +243,7 @@ void _batch_cvtps_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned i
 void _batch_cvtpd_intl_24_vfpv2(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* VFPv3 */
+void _batch_dither_vfpv3(void*, unsigned, size_t);
 float* _aax_generate_waveform_vfpv3(float32_ptr, size_t, float, float, enum wave_types);
 void _batch_imul_value_vfpv3(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv3(void*, const void*, unsigned, size_t, float);
@@ -267,6 +269,7 @@ void _batch_cvtps_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned i
 void _batch_cvtpd_intl_24_vfpv3(void_ptr, const_int32_ptrptr, size_t, unsigned int, size_t);
 
 /* VFPv4 */
+void _batch_dither_vfpv4(void*, unsigned, size_t);
 float* _aax_generate_waveform_vfpv4(float32_ptr, size_t, float, float, enum wave_types);
 void _batch_imul_value_vfpv4(void*, const void*, unsigned, size_t, float);
 void _batch_fmul_value_vfpv4(void*, const void*, unsigned, size_t, float);
