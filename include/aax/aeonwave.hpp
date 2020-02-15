@@ -262,14 +262,15 @@ typedef Tieable<float> Param;
 typedef Tieable<int> Status;
 
 
+template <typename T>
 class Obj
 {
 public:
-    typedef int close_fn(void*);
+    typedef int close_fn(T);
 
     Obj() = default;
 
-    Obj(void *p, close_fn* c) : ptr(p), closefn(c) {}
+    Obj(T p, close_fn* c) : ptr(p), closefn(c) {}
 
     Obj(const Obj& o) noexcept : ptr(o.ptr), closefn(o.closefn) {
         fties = std::move(o.fties);
@@ -324,7 +325,7 @@ public:
         if (pi != ities.end()) { ities.erase(pi); } pm.untie();
     }
 
-    operator void*() const {
+    operator T() const {
         return ptr;
     }
 
@@ -333,14 +334,14 @@ public:
     }
 
 protected:
-    void* ptr = nullptr;
+    T ptr = nullptr;
     mutable close_fn* closefn = nullptr;
     std::vector<Param*> fties;
     std::vector<Status*> ities;
 };
 
 
-class Buffer : public Obj
+class Buffer : public Obj<aaxBuffer>
 {
 public:
     Buffer() = default;
@@ -418,18 +419,28 @@ private:
 };
 
 
-class dsp : public Obj
+class dsp : public Obj<aaxDSP>
 {
 public:
     dsp() = default;
 
     dsp(aaxConfig c, enum aaxFilterType f)
-        : Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
+        : Obj(ptr,aaxFilterDestroy), config(c), filter(true), dsptype(f) {
+        if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
+    }
+
+    dsp(aaxFilter c, enum aaxFilterType f)
+        : Obj(ptr,aaxFilterDestroy), filter(true), dsptype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
     dsp(aaxConfig c, enum aaxEffectType e)
-        : Obj(c,aaxEffectDestroy), filter(false), dsptype(e) {
+        : Obj(ptr,aaxEffectDestroy), config(c), filter(false), dsptype(e) {
+        if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
+    }
+
+    dsp(aaxEffect c, enum aaxEffectType e)
+        : Obj(ptr,aaxEffectDestroy), filter(false), dsptype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
@@ -437,6 +448,7 @@ public:
 
     friend void swap(dsp& o1, dsp& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
+        o1.config = std::move(o2.config);
         o1.filter = std::move(o2.filter);
         o1.dsptype = std::move(o2.dsptype);
     }
@@ -493,12 +505,13 @@ public:
     }
 
 private:
+    aaxConfig config = nullptr;
     bool filter = true;
     union dsptype dsptype;
 };
 
 
-class Emitter : public Obj
+class Emitter : public Obj<aaxEmitter>
 {
 public:
     Emitter() = default;
@@ -593,7 +606,7 @@ public:
 };
 
 
-class Sensor : public Obj
+class Sensor : public Obj<aaxConfig>
 {
 public:
     Sensor() = default;
@@ -782,7 +795,7 @@ private:
 };
 
 
-class Frame : public Obj
+class Frame : public Obj<aaxFrame>
 {
 public:
     Frame() = default;
@@ -950,7 +963,7 @@ public:
         }
         emitters.clear();
         for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
-            aaxBufferDestroy(it->second.second); it->second.first = 0;
+            aaxBufferDestroy(*it->second.second); it->second.first = 0;
         }
         buffers.clear();
     }

@@ -43,7 +43,7 @@
 #include "ringbuffer.h"
 
 AAX_API aaxEffect AAX_APIENTRY
-aaxEffectCreate(aaxConfig config, enum aaxEffectType type)
+aaxEffectCreate(aaxDSP config, enum aaxEffectType type)
 {
    _handle_t *handle = get_handle(config, __func__);
    _aaxMixerInfo *info = (handle && handle->info) ? handle->info : _info;

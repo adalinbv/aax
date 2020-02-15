@@ -46,7 +46,7 @@
 #define READFN		!WRITEFN
 
 AAX_API aaxFilter AAX_APIENTRY
-aaxFilterCreate(aaxConfig config, enum aaxFilterType type)
+aaxFilterCreate(aaxDSP config, enum aaxFilterType type)
 {
    _handle_t *handle = get_handle(config, __func__);
    _aaxMixerInfo *info = (handle && handle->info) ? handle->info : _info;

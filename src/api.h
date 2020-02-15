@@ -86,7 +86,7 @@ size_t _aaxDataMoveData(_data_t*, _data_t*, size_t);
 
 /* --- Error support -- */
 #define _aaxErrorSet(a)		__aaxDriverErrorSet(handle,(a),__func__)
-enum aaxErrorType __aaxDriverErrorSet(aaxConfig,enum aaxErrorType, const char*);
+enum aaxErrorType __aaxDriverErrorSet(void*,enum aaxErrorType, const char*);
 enum aaxErrorType __aaxErrorSet(enum aaxErrorType, const char*);
 
 unsigned long long _aax_get_free_memory();
@@ -134,7 +134,7 @@ struct threat_t
    char initialized;
 };
 
-typedef struct
+typedef struct aax_handle_t
 {
    unsigned int id;
 
@@ -190,7 +190,7 @@ void _aaxMixerSetRendering(_handle_t*);
 /* --- AudioFrame --- */
 #define AUDIOFRAME_ID   0x3137ABFF
 
-typedef struct
+typedef struct aax_frame_t
 {
    unsigned int id;
 
@@ -212,7 +212,7 @@ typedef struct
 
 _frame_t* get_frame(aaxFrame, int, const char*);
 void put_frame(aaxFrame);
-_handle_t *get_driver_handle(aaxFrame);
+_handle_t *get_driver_handle(void*);
 int _aaxAudioFrameStop(_frame_t*);
 void _aaxAudioFrameResetDistDelay(_aaxAudioFrame*, _aaxAudioFrame*);
 void _aaxAudioFrameFree(void*);
@@ -264,7 +264,7 @@ typedef struct
 
 } _buffer_info_t;
 
-typedef struct
+typedef struct aax_buffer_t
 {
    unsigned int id;	/* always first */
    unsigned int ref_counter;
@@ -311,7 +311,7 @@ void _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, size_t, siz
 #define EMITTER_ID	0x17F533AA
 #define EMBUFFER_ID	0xABD82641
 
-typedef struct
+typedef struct aax_emitter_t
 {
    unsigned int id;	/* always first */
 

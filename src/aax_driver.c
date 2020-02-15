@@ -932,7 +932,7 @@ get_read_handle(aaxConfig config, const char *func)
 }
 
 _handle_t *
-get_driver_handle(aaxConfig c)
+get_driver_handle(void *c)
 {
    _frame_t* frame = (_frame_t*)c;
    _handle_t* rv = NULL;
@@ -1380,7 +1380,7 @@ _aaxSetupSpeakers(void **speaker, unsigned char *router, unsigned int n)
 }
 
 enum aaxErrorType
-__aaxDriverErrorSet(aaxConfig config, enum aaxErrorType err, const char* fnname)
+__aaxDriverErrorSet(void *config, enum aaxErrorType err, const char* fnname)
 {
    _handle_t *handle = get_driver_handle(config);
    enum aaxErrorType rv = AAX_INVALID_HANDLE;

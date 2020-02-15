@@ -62,8 +62,7 @@ typedef struct
    _handle_t *handle;
 } _effect_t;
 
-// _effect_t* new_effect(_aaxMixerInfo*, enum aaxEffectType);
-_effect_t* new_effect_handle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+_effect_t* new_effect_handle(const void*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 _effect_t* get_effect(aaxEffect);
 void reset_effect(_aax2dProps*, enum _aax2dFiltersEffects);
 
@@ -75,7 +74,7 @@ typedef int _aaxEffectDestroy(_effect_t*);
 typedef void _aaxEffectReset(_effect_t*);
 typedef aaxEffect _aaxEffectSetState(_effect_t*, int);
 typedef aaxEffect _aaxEffectSetData(_effect_t*, aaxBuffer);
-typedef _effect_t* _aaxNewEffectHandle(const aaxConfig, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
+typedef _effect_t* _aaxNewEffectHandle(const void*, enum aaxEffectType, _aax2dProps*, _aax3dProps*);
 typedef float _aaxEffectConvert(float, int, unsigned char);
 
 typedef struct

@@ -564,12 +564,20 @@ enum aaxProcessingType
    AAX_PROCESSING_MAX
 };
 
-typedef void* aaxConfig;
-typedef void* aaxBuffer;
-typedef void* aaxEmitter;
-typedef void* aaxFilter;
-typedef void* aaxEffect;
-typedef void* aaxFrame;
+struct aax_handle_t;
+struct aax_buffer_t;
+struct aax_emitter_t;
+struct aax_frame_t;
+struct aax_midi_t;
+
+typedef struct aax_handle_t* aaxConfig;
+typedef struct aax_buffer_t* aaxBuffer;
+typedef struct aax_emitter_t* aaxEmitter;
+typedef struct aax_frame_t* aaxFrame;
+typedef struct aax_midi_t* aaxMidi;
+typedef void *aaxDSP;
+typedef aaxDSP aaxFilter;
+typedef aaxDSP aaxEffect;
 
 typedef float aaxVec3f[3];
 typedef double aaxVec3d[3];
@@ -708,8 +716,8 @@ AAX_API int AAX_APIENTRY aaxEmitterGetState(const aaxEmitter);
 AAX_API int AAX_APIENTRY aaxEmitterSetSetup(aaxEmitter, enum aaxSetupType, unsigned int);
 AAX_API unsigned int AAX_APIENTRY aaxEmitterGetSetup(const aaxEmitter, enum aaxSetupType);
 
-AAX_API int AAX_APIENTRY aaxEmitterSetMatrix64(aaxConfig, aaxMtx4d);
-AAX_API int AAX_APIENTRY aaxEmitterGetMatrix64(aaxConfig, aaxMtx4d);
+AAX_API int AAX_APIENTRY aaxEmitterSetMatrix64(aaxEmitter, aaxMtx4d);
+AAX_API int AAX_APIENTRY aaxEmitterGetMatrix64(aaxEmitter, aaxMtx4d);
 
 AAX_API int AAX_APIENTRY aaxEmitterSetVelocity(aaxEmitter, aaxVec3f);
 AAX_API int AAX_APIENTRY aaxEmitterGetVelocity(const aaxEmitter, aaxVec3f);
@@ -760,7 +768,7 @@ AAX_API unsigned long AAX_APIENTRY aaxSensorGetOffset(const aaxConfig, enum aaxT
 /*
  * Filter support
  */
-AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxConfig, enum aaxFilterType);
+AAX_API aaxFilter AAX_APIENTRY aaxFilterCreate(aaxDSP, enum aaxFilterType);
 AAX_API int AAX_APIENTRY aaxFilterDestroy(aaxFilter);
 AAX_API enum aaxFilterType AAX_APIENTRY aaxFilterGetByName(aaxConfig, const char*);
 AAX_API const char* AAX_APIENTRY aaxFilterGetNameByType(aaxConfig, enum aaxFilterType);
@@ -778,7 +786,7 @@ AAX_API int AAX_APIENTRY aaxFilterGetState(aaxFilter);
 /*
  * Effect support
  */
-AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxConfig, enum aaxEffectType);
+AAX_API aaxEffect AAX_APIENTRY aaxEffectCreate(aaxDSP, enum aaxEffectType);
 AAX_API int AAX_APIENTRY aaxEffectDestroy(aaxEffect);
 AAX_API enum aaxEffectType AAX_APIENTRY aaxEffectGetByName(aaxConfig, const char*);
 AAX_API const char* AAX_APIENTRY aaxEffectGetNameByType(aaxConfig, enum aaxEffectType);
@@ -855,6 +863,29 @@ AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aa
 
 AAX_API int AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
 AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterAudioFrame(const aaxFrame, const aaxFrame);
+
+/*
+ * MIDI support (version 4.0 and later)
+ */
+enum aaxMidiSetupType
+{
+   AAX_MIDI_PORT_LISTEN = 2,
+   AAX_MIDI_PORT_IGNORE,
+   AAX_MIDI_CHANNEL_LISTEN,
+   AAX_MIDI_CHANNEL_IGNORE
+};
+
+AAX_API aaxMidi AAX_APIENTRY aaxMidiCreate();
+AAX_API aaxMidi AAX_APIENTRY aaxMidiDestroy(aaxMidi);
+
+AAX_API int AAX_APIENTRY aaxMidiSetSetup(aaxMidi, enum aaxMidiSetupType, unsigned int);
+AAX_API unsigned int AAX_APIENTRY aaxMidiGetSetup(aaxMidi, enum aaxMidiSetupType);
+
+AAX_API int AAX_APIENTRY aaxMidiSetState(aaxMidi, enum aaxState);
+AAX_API enum aaxState AAX_APIENTRY aaxMidiGetState(aaxMidi);
+
+AAX_API int AAX_APIENTRY aaxMidiPushMessage(aaxMidi, unsigned int);
+
 
 
 #if defined(TARGET_OS_MAC) && TARGET_OS_MAC

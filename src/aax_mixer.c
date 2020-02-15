@@ -1711,8 +1711,6 @@ _mixerCreateEFFromAAXS(aaxConfig config, _buffer_t *buffer)
    int rv = AAX_TRUE;
    void *xid;
 
-   put_emitter(handle);
-
    xid = xmlInitBuffer(aaxs, strlen(aaxs));
    if (xid)
    {

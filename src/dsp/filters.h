@@ -63,8 +63,7 @@ typedef struct
    _handle_t *handle;
 } _filter_t;
 
-// _filter_t* new_filter(_aaxMixerInfo*, enum aaxFilterType);
-_filter_t* new_filter_handle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+_filter_t* new_filter_handle(const void*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 _filter_t* get_filter(aaxFilter);
 void reset_filter(_aax2dProps*, enum _aax2dFiltersEffects);
 
@@ -73,7 +72,7 @@ typedef aaxFilter _aaxFilterCreate(_aaxMixerInfo*, enum aaxFilterType);
 typedef int _aaxFilterDestroy(_filter_t*);
 typedef void _aaxFilterReset(_filter_t*);
 typedef aaxFilter _aaxFilterSetState(_filter_t*, int);
-typedef _filter_t* _aaxNewFilterHandle(const aaxConfig, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
+typedef _filter_t* _aaxNewFilterHandle(const void*, enum aaxFilterType, _aax2dProps*, _aax3dProps*);
 typedef float _aaxFilterConvert(float, int, unsigned char);
 
 typedef struct
