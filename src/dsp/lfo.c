@@ -493,7 +493,6 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
          float alpha = lfo->step[track];
          float olvl = lfo->value[track];
 
-printf("# alpha: %f\n", alpha);
          rv = 0.5*max*xoroshiro128plus()/(double)INT64_MAX;
          rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
          rv = lfo->convert(rv, 1.0f);
