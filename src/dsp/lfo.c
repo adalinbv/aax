@@ -217,6 +217,13 @@ _lfo_set_timing(_aaxLFOData *lfo)
             lfo->value0[t] = 0.0f;
             break;
          }
+         case AAX_RANDOMNESS:
+         {
+            float fs = lfo->period_rate;
+            float fc = lfo->f;
+            float cfc = cosf(GMATH_2PI*fc/fs);
+            lfo->step[t] = -1.0f + cfc + sqrtf(cfc*cfc -4.0f*cfc + 3.0f);
+         }
          default:
             break;
          }
@@ -483,14 +490,10 @@ _aaxLFOGetRandomness(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
       if (track == 0 || lfo->stereo_lnk == AAX_FALSE)
       {
          float max = (lfo->max - lfo->min);
+         float alpha = lfo->step[track];
          float olvl = lfo->value[track];
-         float fs = lfo->period_rate;
-         float fc = lfo->f;
-         float cfc, alpha;
 
-         cfc = cosf(GMATH_2PI*fc/fs);
-         alpha = -1.0f + cfc + sqrtf(cfc*cfc -4.0f*cfc + 3.0f);
-
+printf("# alpha: %f\n", alpha);
          rv = 0.5*max*xoroshiro128plus()/(double)INT64_MAX;
          rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
          rv = lfo->convert(rv, 1.0f);
