@@ -568,13 +568,11 @@ struct aax_handle_t;
 struct aax_buffer_t;
 struct aax_emitter_t;
 struct aax_frame_t;
-struct aax_midi_t;
 
 typedef struct aax_handle_t* aaxConfig;
 typedef struct aax_buffer_t* aaxBuffer;
 typedef struct aax_emitter_t* aaxEmitter;
 typedef struct aax_frame_t* aaxFrame;
-typedef struct aax_midi_t* aaxMidi;
 typedef void *aaxDSP;
 typedef aaxDSP aaxFilter;
 typedef aaxDSP aaxEffect;
@@ -863,30 +861,6 @@ AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterEmitter(const aaxFrame, const aa
 
 AAX_API int AAX_APIENTRY aaxAudioFrameRegisterAudioFrame(const aaxFrame, const aaxFrame);
 AAX_API int AAX_APIENTRY aaxAudioFrameDeregisterAudioFrame(const aaxFrame, const aaxFrame);
-
-/*
- * MIDI support (version 4.0 and later)
- */
-enum aaxMidiSetupType
-{
-   AAX_MIDI_PORT_LISTEN = 2,
-   AAX_MIDI_PORT_IGNORE,
-   AAX_MIDI_CHANNEL_LISTEN,
-   AAX_MIDI_CHANNEL_IGNORE
-};
-
-AAX_API aaxMidi AAX_APIENTRY aaxMidiCreate();
-AAX_API aaxMidi AAX_APIENTRY aaxMidiDestroy(aaxMidi);
-
-AAX_API int AAX_APIENTRY aaxMidiSetSetup(aaxMidi, enum aaxMidiSetupType, unsigned int);
-AAX_API unsigned int AAX_APIENTRY aaxMidiGetSetup(aaxMidi, enum aaxMidiSetupType);
-
-AAX_API int AAX_APIENTRY aaxMidiSetState(aaxMidi, enum aaxState);
-AAX_API enum aaxState AAX_APIENTRY aaxMidiGetState(aaxMidi);
-
-AAX_API int AAX_APIENTRY aaxMidiPushMessage(aaxMidi, unsigned int);
-
-
 
 #if defined(TARGET_OS_MAC) && TARGET_OS_MAC
 # pragma export off
