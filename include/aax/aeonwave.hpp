@@ -988,14 +988,17 @@ class AeonWave : public Sensor
 public:
    AeonWave() = default;
 
-   explicit  AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+   explicit AeonWave(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ)
+        : Sensor(c,m) {}
+
+   explicit AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : Sensor(n,m) {}
 
     explicit AeonWave(std::string& s,enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : AeonWave(s.empty() ? nullptr : s.c_str(),m) {}
 
     explicit AeonWave(enum aaxRenderMode m)
-        : AeonWave(nullptr,m) {}
+        : Sensor(aaxConfig(nullptr),m) {}
 
     AeonWave(AeonWave&&) = default;
 
