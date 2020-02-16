@@ -23,6 +23,7 @@
 #define AEONWAVE_INSTRUMENT_HPP 1
 
 #include <map>
+#include <memory>
 #include <algorithm>
 
 #include <aax/aeonwave.hpp>
@@ -80,10 +81,6 @@ public:
     }
 
     Note& operator=(Note&&) = default;
-
-    operator Emitter&() {
-        return *this;
-    }
 
     void matrix(Matrix64& m) {
         Emitter::set(AAX_POSITION, AAX_ABSOLUTE);
@@ -177,7 +174,7 @@ private:
 
 public:
     Instrument(AeonWave& ptr, bool drums = false, int stereo = 0)
-        : Mixer(ptr), aax(&ptr), is_drums(drums), is_stereo(stereo)
+        : Mixer(ptr), aax(&ptr), is_stereo(stereo), is_drums(drums)
     {
         tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
         tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
@@ -256,10 +253,6 @@ public:
     }
 
     Instrument& operator=(Instrument&&) = default;
-
-    operator Mixer&() {
-        return *this;
-    }
 
     void finish() {
         for (auto& it : key) it.second->stop();
