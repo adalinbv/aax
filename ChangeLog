@@ -2,6 +2,8 @@
 * Sat Feb 22 2020 - tech@adalin.org
 - AeonWave (3.8.2) stable; urgency=medium
 
+ * Switch to binary forward, and  backward, compatible strong typed handles
+   for compile time error detection.
  * Add AAX_RANDOMNESS as an option to certain filters and effects, which
    generates a low-frequency noise as a waveform.
  * Add support for 1st-order only reverb (with 4 reflection paths and a

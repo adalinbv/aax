@@ -557,11 +557,11 @@ public:
 
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
-        return pm.tie(aaxEmitterSetFilter, aaxEmitterGetFilter, ptr, f, p);
+        return pm.tie(set_filter, get_filter, ptr, f, p);
     }
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
-        return pm.tie(aaxEmitterSetEffect, aaxEmitterGetEffect, ptr, e, p);
+        return pm.tie(set_effect, get_effect, ptr, e, p);
     }
 
     // ** position and orientation ******
@@ -602,6 +602,19 @@ public:
     }
     inline float offset() {
         return aaxEmitterGetOffsetSec(ptr);
+    }
+private:
+    static int set_filter(void* c, aaxFilter f) {
+        return aaxEmitterSetFilter((aaxEmitter)c, f);
+    }
+    static aaxFilter get_filter(void* c, enum aaxFilterType f) {
+       return aaxEmitterGetFilter((aaxEmitter)c, f);
+    }
+    static int set_effect(void* c, aaxEffect e) {
+        return aaxEmitterSetEffect((aaxEmitter)c, e);
+    }
+    static aaxEffect get_effect(void* c, enum aaxEffectType e) {
+       return aaxEmitterGetEffect((aaxEmitter)c, e);
     }
 };
 
@@ -698,17 +711,17 @@ public:
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
         if (scenery_filter(f)) {
-            return pm.tie(aaxScenerySetFilter, aaxSceneryGetFilter,ptr,f,p);
+            return pm.tie(set_scenery_filter, get_scenery_filter, ptr, f, p);
         } else {
-            return pm.tie(aaxMixerSetFilter, aaxMixerGetFilter, ptr, f, p);
+            return pm.tie(set_mixer_filter, get_scenery_filter, ptr, f, p);
         }
     }
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
         if (scenery_effect(e)) {
-            return pm.tie(aaxScenerySetEffect, aaxSceneryGetEffect,ptr,e,p);
+            return pm.tie(set_scenery_effect, get_scenery_effect, ptr, e, p);
         } else {
-            return pm.tie(aaxMixerSetEffect, aaxMixerGetEffect, ptr, e, p);
+            return pm.tie(set_mixer_effect, get_mixer_effect, ptr, e, p);
         }
     }
 
@@ -780,17 +793,41 @@ protected:
     enum aaxRenderMode mode = AAX_MODE_READ;
 
 private:
-    inline bool scenery_filter(enum aaxFilterType type) {
+    static bool scenery_filter(enum aaxFilterType type) {
         return (type == AAX_DISTANCE_FILTER || type == AAX_FREQUENCY_FILTER);
     }
-    inline bool scenery_filter(int type) {
+    static bool scenery_filter(int type) {
         return scenery_filter(aaxFilterType(type));
     }
-    inline bool scenery_effect(enum aaxEffectType type) {
+    static bool scenery_effect(enum aaxEffectType type) {
         return (type == AAX_VELOCITY_EFFECT);
     }
-    inline bool scenery_effect(int type) {
+    static bool scenery_effect(int type) {
         return scenery_effect(aaxEffectType(type));
+    }
+    static int set_scenery_filter(void* c, aaxFilter f) {
+        return aaxScenerySetFilter((aaxConfig)c, f);
+    }
+    static int set_mixer_filter(void* c, aaxFilter f) {
+        return aaxMixerSetFilter((aaxConfig)c, f);
+    }
+    static aaxFilter get_scenery_filter(void* c, enum aaxFilterType f) {
+        return aaxSceneryGetFilter((aaxConfig)c, f);
+    }
+    static aaxFilter get_mixer_filter(void* c, enum aaxFilterType f)  {
+        return aaxMixerGetFilter((aaxConfig)c, f);
+    }
+    static int set_scenery_effect(void* c, aaxEffect e) {
+        return aaxScenerySetEffect((aaxConfig)c, e);
+    }
+    static int set_mixer_effect(void* c, aaxEffect e) {
+        return aaxMixerSetEffect((aaxConfig)c, e);
+    }
+    static aaxEffect get_scenery_effect(void* c, enum aaxEffectType e) {
+        return aaxSceneryGetEffect((aaxConfig)c, e);
+    }
+    static aaxEffect get_mixer_effect(void* c, enum aaxEffectType e) {
+        return aaxMixerGetEffect((aaxConfig)c, e);
     }
 };
 
@@ -867,11 +904,11 @@ public:
 
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxFilterType f, int p=0) { ties_add(pm);
-        return pm.tie(aaxAudioFrameSetFilter, aaxAudioFrameGetFilter, ptr, f, p);
+        return pm.tie(set_filter, get_filter, ptr, f, p);
     }
     template <typename T>
     bool tie(Tieable<T>& pm, enum aaxEffectType e, int p=0) { ties_add(pm);
-        return pm.tie(aaxAudioFrameSetEffect, aaxAudioFrameGetEffect, ptr, e, p);
+        return pm.tie(set_effect, get_effect, ptr, e, p);
     }
 
     // ** sub-mixing ******
@@ -926,6 +963,19 @@ public:
     }
 
 private:
+    static int set_filter(void* c, aaxFilter f) {
+        return aaxAudioFrameSetFilter((aaxFrame)c, f);
+    }
+    static aaxFilter get_filter(void* c, enum aaxFilterType f) {
+       return aaxAudioFrameGetFilter((aaxFrame)c, f);
+    }
+    static int set_effect(void* c, aaxEffect e) {
+        return aaxAudioFrameSetEffect((aaxFrame)c, e);
+    }
+    static aaxEffect get_effect(void* c, enum aaxEffectType e) {
+       return aaxAudioFrameGetEffect((aaxFrame)c, e);
+    }
+
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
