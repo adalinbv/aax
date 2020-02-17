@@ -425,22 +425,22 @@ public:
     dsp() = default;
 
     dsp(aaxConfig c, enum aaxFilterType f)
-        : Obj(ptr,aaxFilterDestroy), config(c), filter(true), dsptype(f) {
+        : Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
     dsp(aaxFilter c, enum aaxFilterType f)
-        : Obj(ptr,aaxFilterDestroy), filter(true), dsptype(f) {
+        : Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
         if (!aaxIsValid(c, AAX_FILTER)) ptr = aaxFilterCreate(c,f);
     }
 
     dsp(aaxConfig c, enum aaxEffectType e)
-        : Obj(ptr,aaxEffectDestroy), config(c), filter(false), dsptype(e) {
+        : Obj(c,aaxEffectDestroy), filter(false), dsptype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
     dsp(aaxEffect c, enum aaxEffectType e)
-        : Obj(ptr,aaxEffectDestroy), filter(false), dsptype(e) {
+        : Obj(c,aaxEffectDestroy), filter(false), dsptype(e) {
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
@@ -448,7 +448,6 @@ public:
 
     friend void swap(dsp& o1, dsp& o2) noexcept {
         std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        o1.config = std::move(o2.config);
         o1.filter = std::move(o2.filter);
         o1.dsptype = std::move(o2.dsptype);
     }
@@ -505,7 +504,6 @@ public:
     }
 
 private:
-    aaxConfig config = nullptr;
     bool filter = true;
     union dsptype dsptype;
 };
