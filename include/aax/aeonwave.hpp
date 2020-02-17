@@ -624,11 +624,13 @@ class Sensor : public Obj<aaxConfig>
 public:
     Sensor() = default;
 
-    explicit Sensor(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ)
-        : Obj(c, aaxDriverDestroy), mode(m) {}
+    explicit Sensor(aaxConfig c)
+        : Obj(c, aaxDriverDestroy) {
+       mode = aaxRenderMode(aaxMixerGetMode(c, AAX_RENDER_MODE));
+    }
 
     explicit Sensor(const char* n, enum aaxRenderMode m=AAX_MODE_READ)
-        : Sensor(aaxDriverOpenByName(n,m), m) {}
+        : Sensor(aaxDriverOpenByName(n,m)) {}
 
     explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_READ)
         : Sensor(s.empty() ? nullptr : s.c_str(),m) {}
@@ -988,8 +990,8 @@ class AeonWave : public Sensor
 public:
    AeonWave() = default;
 
-   explicit AeonWave(aaxConfig c, enum aaxRenderMode m=AAX_MODE_READ)
-        : Sensor(c,m) {}
+   explicit AeonWave(aaxConfig c)
+        : Sensor(c) {}
 
    explicit AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
         : Sensor(n,m) {}
@@ -998,7 +1000,7 @@ public:
         : AeonWave(s.empty() ? nullptr : s.c_str(),m) {}
 
     explicit AeonWave(enum aaxRenderMode m)
-        : Sensor(aaxConfig(nullptr),m) {}
+        : Sensor(nullptr,m) {}
 
     AeonWave(AeonWave&&) = default;
 
