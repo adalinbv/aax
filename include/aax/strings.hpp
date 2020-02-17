@@ -123,6 +123,7 @@ inline std::string to_string(enum aaxModeType mode)
     case AAX_POSITION: return "position";
     case AAX_LOOPING: return "looping";
     case AAX_BUFFER_TRACK: return "buffer track";
+    case AAX_RENDER_MODE: return "render mode";
     case AAX_MODE_TYPE_NONE:
     case AAX_MODE_TYPE_MAX:
         break;
@@ -350,7 +351,7 @@ inline std::string to_string(enum aaxProcessingType type)
 
 inline std::string to_string(enum aaxCapabilities type)
 {
-    int midi_mode = (type & AAX_RENDER_MODE);
+    int midi_mode = (type & AAX_RENDER_MASK);
     int cores = (type & AAX_CPU_CORES);
     std::string mode;
 
