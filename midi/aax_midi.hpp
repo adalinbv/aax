@@ -22,7 +22,9 @@
 #ifndef AAX_MIDI_HPP
 #define AAX_MIDI_HPP 1
 
+#include <sys/stat.h>
 #include <cstdint>
+#include <climits>
 
 #include <aax/midi.h>
 #include <aax/instrument.hpp>
@@ -36,19 +38,133 @@ namespace MIDI
 #define DRUMS_CHANNEL		0x9
 #define FILE_FORMAT_MAX		0x3
 
+enum {
+    MODE0 = 0,
+    GENERAL_MIDI1,
+    GENERAL_MIDI2,
+    GENERAL_STANDARD,
+    EXTENEND_GENERAL_MIDI,
+
+    MODE_MAX
+};
+
+enum {
+    POLYPHONIC = 3,
+    MONOPHONIC
+};
+
+struct param_t
+{
+   uint32_t coarse;
+   uint32_t fine;
+};
+
 static Buffer nullBuffer;
+
+class Channel;
 
 class MIDI : public Mixer
 {
 public:
-    MIDI(AeonWave& ptr) : config(ptr) {}
+    MIDI(AeonWave& ptr);
 
     virtual ~MIDI() {
-        for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
-            aaxBufferDestroy(*it->second.second); it->second.first = 0;
+        for(auto it : buffers) {
+            aaxBufferDestroy(*it.second.second); it.second.first = 0;
         }
         buffers.clear();
     }
+
+    bool process(uint32_t channel, uint32_t message, uint32_t key, uint32_t velocity, bool omni, float pitch=1.0f);
+
+    Channel& new_channel(uint32_t channel, uint32_t bank, uint32_t program);
+
+    Channel& channel(uint32_t channel_no);
+
+    inline auto& channel() { return channels; }
+
+    inline void set_drum_file(std::string p) { drum = p; }
+    inline void set_instrument_file(std::string p) { instr = p; }
+    inline void set_file_path(std::string p) {
+        config.set(AAX_SHARED_DATA_DIR, p.c_str()); path = p;
+    }
+
+    inline const auto& get_patch_set() { return patch_set; }
+    inline const auto& get_patch_version() { return patch_version; }
+    inline auto& get_selections() { return selection; }
+
+    inline void set_track_active(uint32_t t) { active_track.push_back(t); }
+    inline uint32_t no_active_tracks() { return active_track.size(); }
+    inline bool is_track_active(uint32_t t) {
+        return active_track.empty() ? true : std::find(active_track.begin(), active_track.end(), t) != active_track.end();
+    }
+
+    void read_instruments(std::string gmidi=std::string(), std::string gmdrums=std::string());
+
+    void grep(std::string& filename, const char *grep);
+    inline void load(std::string& name) { loaded.push_back(name); }
+
+    void start();
+    void stop();
+    void rewind();
+
+    void finish(uint32_t n);
+    bool finished(uint32_t n);
+
+    void set_gain(float);
+    void set_balance(float);
+
+    bool is_drums(uint32_t);
+
+    inline void set_capabilities(enum aaxCapabilities m) {
+        instrument_mode = m; set(AAX_CAPABILITIES, m); set_path();
+    }
+
+    inline unsigned int get_refresh_rate() { return refresh_rate; }
+    inline unsigned int get_polyphony() { return polyphony; }
+
+    inline void set_tuning(float pitch) { tuning = powf(2.0f, pitch/12.0f); }
+    inline float get_tuning() { return tuning; }
+
+    inline void set_mode(uint32_t m) { if (m > mode) mode = m; }
+    inline uint32_t get_mode() { return mode; }
+
+    inline void set_grep(bool g) { grep_mode = g; }
+    inline bool get_grep() { return grep_mode; }
+
+    const auto get_drum(uint32_t program, uint32_t key, bool all=false);
+    const auto get_instrument(uint32_t bank, uint32_t program, bool all=false);
+    auto& get_patches() { return patches; }
+
+    inline void set_initialize(bool i) { initialize = i; };
+    inline bool get_initialize() { return initialize; }
+
+    inline void set_verbose(bool v) { verbose = v; }
+    inline bool get_verbose() { return verbose; }
+
+    inline void set_lyrics(bool v) { lyrics = v; }
+    inline bool get_lyrics() { return lyrics; }
+
+    inline void set_format(uint32_t fmt) { format = fmt; }
+    inline uint32_t get_format() { return format; }
+
+    inline void set_tempo(uint32_t tempo) { uSPP = tempo/PPQN; }
+
+    inline void set_uspp(uint32_t uspp) { uSPP = uspp; }
+    inline int32_t get_uspp() { return uSPP; }
+
+    inline void set_ppqn(uint32_t ppqn) { PPQN = ppqn; }
+    inline uint32_t get_ppqn() { return PPQN; }
+
+    void set_chorus(const char *t);
+    void set_chorus_level(float lvl);
+    void set_chorus_depth(float depth);
+    void set_chorus_rate(float rate);
+
+    void set_reverb(const char *t);
+    void set_reverb_level(uint32_t channel, uint32_t value);
+    void set_reverb_type(uint32_t value);
+    inline void set_decay_depth(float rt) { reverb_decay_depth = 0.1f*rt; }
 
     // ** buffer management ******
     Buffer& buffer(std::string& name, int level=0) {
@@ -82,17 +198,65 @@ public:
         return true;
     }
 
+    bool exists(const std::string& path) {
+        struct stat buffer;
+        return (stat(path.c_str(), &buffer) == 0);
+    }
 
-    inline auto& get_patches() { return patches; }
     inline auto& get_config() const { return config; }
 
 private:
+    void add_patch(const char*);
+    void set_path();
+
     AeonWave& config;
+
+    std::string patch_set = "default";
+    std::string patch_version = "1.0.0";
+
+    std::string track_name;
+    std::map<uint32_t,Channel*> channels;
+    std::map<uint32_t,Channel*> reverb_channels;
+    std::map<uint32_t,std::string> frames;
+    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> drums;
+    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> instruments;
 
     typedef std::map<uint32_t,std::pair<uint32_t,std::string>> _patch_t;
     std::map<std::string,_patch_t> patches;
 
     std::unordered_map<std::string,std::pair<size_t,Buffer*>> buffers;
+
+    std::vector<std::string> loaded;
+
+    std::vector<std::string> selection;
+    std::vector<uint32_t> active_track;
+
+    std::pair<std::string,int> empty_map = {"", 0};
+    std::string instr = "gmmidi.xml";
+    std::string drum = "gmdrums.xml";
+    std::string path;
+
+    float tuning = 1.0f;
+
+    unsigned int refresh_rate = 0;
+    unsigned int polyphony = UINT_MAX;
+
+    uint32_t uSPP = 500000/24;
+    uint32_t format = 0;
+    uint32_t PPQN = 24;
+
+    enum aaxCapabilities instrument_mode = AAX_RENDER_NORMAL;
+    uint32_t mode = MODE0;
+    bool initialize = false;
+    bool verbose = false;
+    bool lyrics = false;
+    bool grep_mode = false;
+
+    uint32_t reverb_type = 4;
+    Param reverb_decay_depth = 0.15f;
+    Param reverb_cutoff_frequency = 790.0f;
+    Status reverb_state = AAX_FALSE;
+    aax::Mixer reverb;
 
 }; // class MIDI
 
