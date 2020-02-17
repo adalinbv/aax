@@ -37,7 +37,11 @@ inline std::string to_string(enum aaxHandleType handle)
     case AAX_AUDIOFRAME: return "audio frame";
     case AAX_FILTER: return "sound filter";
     case AAX_EFFECT: return "sound effect";
+    case AAX_NONE:
+    case AAX_HANDLE_TYPE_MAX:
+        break;
     }
+    return "unknown handle type";
 }
 
 inline std::string to_string(enum aaxFormat fmt)
@@ -59,6 +63,7 @@ inline std::string to_string(enum aaxFormat fmt)
     case AAX_PCM32U: return "unsigned, 32-bits per sample";
     case AAX_PCM16S_LE: return "signed, 16-bits per sample little-endian";
     case AAX_PCM24S_LE: return "signed, 24-bits per sample little-endian 32-bit encoded";
+    case AAX_PCM24S_PACKED: return "signed, 24-bits per sample";
     case AAX_PCM32S_LE: return "signed, 32-bits per sample little-endian";
     case AAX_FLOAT_LE: return "32-bit floating point, -1.0 to 1.0 little-endian";
     case AAX_DOUBLE_LE: return "64-bit floating point, -1.0 to 1.0 little-endian";
@@ -75,7 +80,17 @@ inline std::string to_string(enum aaxFormat fmt)
     case AAX_PCM32U_BE: return "unsigned, 32-bits per sample big-endian";
     case AAX_AAXS16S: return "16-bit XML synthesized waveform";
     case AAX_AAXS24S: return "24-bit XML synthesized waveform 32-bit encoded";
+    case AAX_FORMAT_MAX:
+    case AAX_FORMAT_NATIVE:
+    case AAX_FORMAT_LE:
+    case AAX_FORMAT_LE_UNSIGNED:
+    case AAX_FORMAT_BE:
+    case AAX_FORMAT_BE_UNSIGNED:
+    case AAX_SPECIAL:
+    case AAX_FORMAT_NONE:
+        break;
     }
+    return "unknown format";
 }
 
 inline std::string to_string(enum aaxType type)
@@ -90,7 +105,15 @@ inline std::string to_string(enum aaxType type)
     case AAX_FRAMES: return "frames";
     case AAX_SAMPLES: return "samples";
     case AAX_MICROSECONDS: return "µ-seconds";
+    case AAX_DEGREES_CELSIUS: return "degrees Celsious";
+    case AAX_DEGREES_FAHRENHEIT: return "degrees Fahrenheit";
+    case AAX_ATMOSPHERE: return "atmosphere";
+    case AAX_BAR: return "bar";
+    case AAX_PSI: return "pounds per square inch";
+    case AAX_TYPE_MAX:
+        break;
     }
+    return "unknown type";
 }
 
 inline std::string to_string(enum aaxModeType mode)
@@ -100,7 +123,11 @@ inline std::string to_string(enum aaxModeType mode)
     case AAX_POSITION: return "position";
     case AAX_LOOPING: return "looping";
     case AAX_BUFFER_TRACK: return "buffer track";
+    case AAX_MODE_TYPE_NONE:
+    case AAX_MODE_TYPE_MAX:
+        break;
     }
+    return "unknown node type";
 }
 
 inline std::string to_string(enum aaxTrackType type)
@@ -117,6 +144,7 @@ inline std::string to_string(enum aaxTrackType type)
     case AAX_TRACK_SUBWOOFER: return "sub-woofer (low frequency emitter)";
     case AAX_TRACK_SIDE_LEFT: return "side left";
     case AAX_TRACK_SIDE_RIGHT: return "side right";
+    case AAX_TRACK_MAX: return "maximum no. tracks";
     }
 }
 
@@ -176,7 +204,18 @@ inline std::string to_string(enum aaxSetupType type)
     case AAX_MUSIC_PERFORMER_UPDATE: return "updated music performer string";
     case AAX_TRACK_TITLE_UPDATE: return "updated song title string";
     case AAX_RELEASE_MODE: return "release mode";
+    case AAX_SAMPLED_RELEASE: return "samples release";
+    case AAX_CAPABILITIES: return "capabilities";
+    case AAX_RELEASE_FACTOR: return "midi release factor";
+    case AAX_ATTACK_FACTOR: return "midi attack factor";
+    case AAX_DECAY_FACTOR: return "midi decay factor";
+    case AAX_VELOCITY_FACTOR: return "midi velocity factor";
+    case AAX_PRESSURE_FACTOR: return "midi pressure factor";
+    case AAX_SETUP_TYPE_MAX:
+    case AAX_SETUP_TYPE_NONE:
+        break;
     }
+    return "unknown setup type";
 }
 
 inline std::string to_string(enum aaxErrorType type) {
@@ -190,7 +229,11 @@ inline std::string to_string(enum aaxEmitterMode mode)
     case AAX_STEREO: return "multi track stereo";
     case AAX_ABSOLUTE: return "absolute position";
     case AAX_RELATIVE: return "relative to the sensor position";
+    case AAX_INDOOR: return "indoor mode";
+    case AAX_EMITTER_MODE_MAX:
+        break;
     }
+    return "unknown emitter mode";
 }
 
 inline std::string to_string(enum aaxState state)
@@ -206,18 +249,25 @@ inline std::string to_string(enum aaxState state)
     case AAX_STANDBY: return "stand-by";
     case AAX_UPDATE: return "update";
     case AAX_MAXIMUM: return "maximum number of buffers";
+    case AAX_STATE_NONE:
+        break;
     }
+    return "unknown state";
 }
 
 inline std::string to_string(enum aaxRenderMode mode)
 {
     switch(mode)
     {
+    case AAX_MODE_READ: return "capturing";
     case AAX_MODE_WRITE_STEREO: return "stereo playback";
     case AAX_MODE_WRITE_SPATIAL: return "spatialized stereo playback";
     case AAX_MODE_WRITE_SURROUND: return "surround sound playback";
     case AAX_MODE_WRITE_HRTF: return "binaural headphone playback";
+    case AAX_MODE_WRITE_MAX:
+        break;
     }
+    return "Unknown rendering mode";
 }
 
 inline std::string to_string(enum aaxDistanceModel model)
@@ -235,7 +285,12 @@ inline std::string to_string(enum aaxDistanceModel model)
     case AAX_AL_LINEAR_DISTANCE_CLAMPED: return "AL clamped linear distance attenuation";
     case AAX_AL_EXPONENT_DISTANCE: return "AL exponential distance attenuation";
     case AAX_AL_EXPONENT_DISTANCE_CLAMPED: return "AL clamped exponential distance attenuation";
+    case AAX_DISTANCE_DELAY:
+    case AAX_DISTANCE_MODEL_MAX:
+    case AAX_AL_DISTANCE_MODEL_MAX:
+        break;
     }
+    return "unknown distance model";
 }
 
 inline std::string to_string(enum aaxFilterType type) {
@@ -286,7 +341,11 @@ inline std::string to_string(enum aaxProcessingType type)
     case AAX_MIX: return "mix";
     case AAX_RINGMODULATE: return "ring-modulate";
     case AAX_APPEND: return "append";
+    case AAX_PROCESSING_NONE:
+    case AAX_PROCESSING_MAX:
+        break;
     }
+    return "unknown processing type";
 }
 
 inline std::string to_string(enum aaxCapabilities type)
