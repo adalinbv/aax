@@ -108,7 +108,8 @@ AAX_API int AAX_APIENTRY
 aaxMidiPushMessage(aaxMidi handle, uint32_t message)
 {
    Stream* stream = (Stream*)handle;
-   return stream->push(message) ? AAX_TRUE : AAX_FALSE;
+   stream->push(message);
+   return AAX_TRUE;
 }
 
 #if defined(__cplusplus)
