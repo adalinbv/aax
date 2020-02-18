@@ -30,20 +30,18 @@
 #include <aax/instrument.hpp>
 
 
-namespace aax
-{
-
-namespace MIDI
-{
+namespace aax {
+namespace MIDI {
 #define DRUMS_CHANNEL		0x9
 #define FILE_FORMAT_MAX		0x3
+#define BUFFER_SIZE		1024
 
 enum {
     MODE0 = 0,
     GENERAL_MIDI1,
     GENERAL_MIDI2,
     GENERAL_STANDARD,
-    EXTENEND_GENERAL_MIDI,
+    EXTENDED_GENERAL_MIDI,
 
     MODE_MAX
 };
@@ -327,8 +325,105 @@ private:
     bool pressure_pitch_bend = false;
 }; // class Channel
 
-}; // namespace MIDI
 
+class Track
+{
+public:
+    Track() = default;
+
+    Track(MIDI& ptr, size_t len,  uint32_t track)
+        : midi(ptr), channel_no(track)
+    {
+        timestamp_parts = pull_message()*24/600000;
+    }
+
+    Track(const Track&) = default;
+
+    ~Track() = default;
+
+    bool process(uint64_t, uint32_t&, uint32_t&);
+
+    // placeholders for now
+    // these needs to work on a buffer which gets filled by aax::MIDI::Stream
+    uint64_t offset() { return 0; }
+    void forward(uint64_t offs=0) {}
+    uint32_t pull_byte() { return 0; }
+    void push_byte() {};
+    bool eof() { return true; };
+
+    MIDI& midi;
+
+private:
+    inline float cents2pitch(float p, uint32_t channel) {
+        float r = midi.channel(channel).get_semi_tones();
+        return powf(2.0f, p*r/12.0f);
+    }
+    inline float cents2modulation(float p, uint32_t channel) {
+        float r = midi.channel(channel).get_modulation_depth();
+        return powf(2.0f, p*r/12.0f);
+    }
+
+    uint32_t pull_message();
+    bool registered_param(uint32_t, uint32_t, uint32_t);
+
+    uint32_t mode = 0;
+    uint32_t channel_no = 0;
+    uint32_t program_no = 0;
+    uint32_t bank_no = 0;
+    int32_t track_no = -1;
+
+    uint32_t previous = 0;
+    uint32_t wait_parts = 1;
+    uint64_t timestamp_parts = 0;
+    bool polyphony = true;
+    bool omni = true;
+
+    bool registered = false;
+    uint32_t msb_type = 0;
+    uint32_t lsb_type = 0;
+    struct param_t param[MAX_REGISTERED_PARAM+1] = {
+        { 2, 0 }, { 0x40, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
+    };
+
+    const std::string type_name[5] = {
+        "Text", "Copyright", "Track", "Instrument", "Lyrics"
+    };
+}; // class Track
+
+
+class Stream : public MIDI
+{
+public:
+    Stream(AeonWave& config);
+
+    inline operator bool() {
+        return midi_data.capacity();
+    }
+
+    void initialize();
+    inline void start() { MIDI::start(); }
+    inline void stop() { MIDI::stop(); }
+
+    inline float get_pos_sec() { return pos_sec; }
+
+    bool process(uint64_t, uint32_t&);
+
+private:
+    std::string gmmidi;
+    std::string gmdrums;
+    std::vector<Track*> track;
+    std::vector<uint32_t> midi_data;
+
+    uint32_t no_tracks = 0;
+    float pos_sec = 0.0f;
+
+    const std::string mode_name[MODE_MAX] = {
+        "MIDI", "General MIDI 1.0", "General MIDI 2.0", "GS MIDI", "XG MIDI"
+    };
+}; // class Stream
+
+
+}; // namespace MIDI
 }; // namespace aax
 
 #endif /* AAX_MIDI_HPP */
