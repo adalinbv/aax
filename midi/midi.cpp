@@ -38,53 +38,77 @@ AAX_API aaxMidi AAX_APIENTRY
 aaxMidiCreate(aaxConfig config)
 {
    aax::AeonWave handle(config);
-   MIDI* midi = new MIDI(handle);
+   Stream* stream = new Stream(handle);
 
-   return (aaxMidi)midi;
+   return (aaxMidi)stream;
 }
 
 AAX_API int AAX_APIENTRY
 aaxMidiDestroy(aaxMidi handle)
 {
-   MIDI* midi = (MIDI*)handle;
-   delete midi;
+   Stream* stream = (Stream*)handle;
+   delete stream;
 
    return AAX_TRUE;
 }
 
 AAX_API int AAX_APIENTRY
-aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, unsigned int value)
+aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, uint32_t value)
 {
-   MIDI* midi = (MIDI*)handle;
-   return AAX_FALSE;
+   Stream* stream = (Stream*)handle;
+   int rv = AAX_FALSE;
+   switch (type)
+   {
+   case AAX_MIDI_LISTEN_MASK:
+      rv = stream->set_mask(value) ? AAX_TRUE : AAX_FALSE;
+      break;
+   default:
+      break;
+   }
+   return rv;
 }
 
 AAX_API unsigned int AAX_APIENTRY
 aaxMidiGetSetup(aaxMidi handle, enum aaxMidiSetupType type)
 {
-   MIDI* midi = (MIDI*)handle;
+   Stream* stream = (Stream*)handle;
+   (void)stream;
    return AAX_FALSE;
 }
 
 AAX_API int AAX_APIENTRY
 aaxMidiSetState(aaxMidi handle, enum aaxState state)
 {
-   MIDI* midi = (MIDI*)handle;
-   return AAX_FALSE;
+   Stream* stream = (Stream*)handle;
+   int rv = AAX_TRUE;
+   switch (state)
+   {
+   case AAX_PLAYING:
+      stream->start();
+      break;
+   case AAX_STOPPED:
+   case AAX_PROCESSED:
+      stream->stop();
+      break;
+   default:
+      rv = AAX_FALSE;
+      break;
+   }
+   return rv;
 }
 
 AAX_API enum aaxState
 AAX_APIENTRY aaxMidiGetState(aaxMidi handle)
 {
-   MIDI* midi = (MIDI*)handle;
-   return AAX_STATE_NONE;
+   Stream* stream = (Stream*)handle;
+   return stream->state();
 }
 
 AAX_API int AAX_APIENTRY
-aaxMidiPushMessage(aaxMidi handle, unsigned int message)
+aaxMidiPushMessage(aaxMidi handle, uint32_t message)
 {
-   MIDI* midi = (MIDI*)handle;
-   return AAX_FALSE;
+   Stream* stream = (Stream*)handle;
+   return stream->push(message) ? AAX_TRUE : AAX_FALSE;
 }
 
 #if defined(__cplusplus)

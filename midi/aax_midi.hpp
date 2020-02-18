@@ -104,7 +104,6 @@ public:
 
     void start();
     void stop();
-    void rewind();
 
     void finish(uint32_t n);
     bool finished(uint32_t n);
@@ -401,12 +400,14 @@ public:
     }
 
     void initialize();
+    bool push(uint32_t message);
+    bool set_mask(uint32_t mask);
+    bool process(uint64_t, uint32_t&);
+
     inline void start() { MIDI::start(); }
     inline void stop() { MIDI::stop(); }
 
     inline float get_pos_sec() { return pos_sec; }
-
-    bool process(uint64_t, uint32_t&);
 
 private:
     std::string gmmidi;

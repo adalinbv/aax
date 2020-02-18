@@ -84,20 +84,6 @@ MIDI::stop()
     Mixer::set(AAX_PLAYING);
 }
 
-void
-MIDI::rewind()
-{
-    channels.clear();
-    uSPP = 500000/PPQN;
-
-    for (auto it : reverb_channels)
-    {
-        reverb.remove(*it.second);
-        Mixer::add(*it.second);
-    }
-    reverb_channels.clear();
-}
-
 void MIDI::finish(uint32_t n)
 {
     auto it = channels.find(n);
@@ -1813,6 +1799,62 @@ Stream::Stream(AeonWave& config) : MIDI(config)
 {
     midi_data.reserve(BUFFER_SIZE);
 }
+
+void
+Stream::initialize()
+{
+   MIDI::set(AAX_REFRESH_RATE, 100);
+   MIDI::set(AAX_INITIALIZED);
+}
+
+bool
+Stream::push(uint32_t message)
+{
+    if (midi_data.size()+sizeof(message) < midi_data.capacity())
+    {
+        midi_data.push_back(message);
+        return true;
+    }
+    return false;
+}
+
+bool
+Stream::set_mask(uint32_t m)
+{
+   // apply mask of channels to listen to, format: [ pppp cccc ]
+   int16_t port = m >> 16;
+   int16_t mask = m & 0xFFFF;
+
+   (void)port;
+   (void)mask;
+
+   return false;
+}
+
+bool
+Stream::process(uint64_t time_parts, uint32_t& next)
+{
+    uint32_t elapsed_parts = next;
+    uint32_t wait_parts;
+    bool rv = false;
+
+    next = UINT_MAX;
+    for (size_t t=0; t<no_tracks; ++t)
+    {
+        wait_parts = next;
+        rv |= track[t]->process(time_parts, elapsed_parts, wait_parts);
+        if (next > wait_parts) {
+            next = wait_parts;
+        }
+    }
+
+    if (next == UINT_MAX) {
+        next = 100;
+    }
+
+    return rv;
+}
+
 
 }; // namespace MIDI
 
