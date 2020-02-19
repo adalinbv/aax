@@ -325,11 +325,8 @@ class Track
 public:
    Track() = default;
 
-   Track(MIDI& ptr, std::deque<uint32_t>& d)
-      : midi(ptr), data(d) {}
-
+   Track(MIDI& ptr, std::deque<uint32_t>& d) : midi(ptr), data(d) {}
    Track(const Track&) = default;
-
    ~Track() = default;
 
    bool process(uint64_t, uint32_t&, uint32_t&);
