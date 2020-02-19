@@ -37,7 +37,6 @@
 namespace aax {
 namespace MIDI {
 #define DRUMS_CHANNEL		0x9
-#define FILE_FORMAT_MAX		0x3
 
 enum {
    MODE0 = 0,
@@ -96,7 +95,6 @@ public:
 
    void read_instruments(std::string gmidi=std::string(), std::string gmdrums=std::string());
 
-   void grep(std::string& filename, const char *grep);
    inline void load(std::string& name) { loaded.push_back(name); }
 
    void start();
@@ -327,9 +325,8 @@ class Track
 public:
    Track() = default;
 
-   Track(MIDI& ptr, uint32_t track) : midi(ptr), channel_no(track) {
-      timestamp_parts = pull_message()*24/600000;
-   }
+   Track(MIDI& ptr, std::deque<uint32_t>& d)
+      : midi(ptr), data(d) {}
 
    Track(const Track&) = default;
 
@@ -361,7 +358,7 @@ private:
    uint32_t pull_message();
    bool registered_param(uint32_t, uint32_t, uint32_t);
 
-   std::deque<uint32_t> data;
+   std::deque<uint32_t>& data;
 
    uint32_t mode = 0;
    uint32_t channel_no = 0;
@@ -381,18 +378,16 @@ private:
    struct param_t param[MAX_REGISTERED_PARAM+1] = {
       { 2, 0 }, { 0x40, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
    };
-
-   const std::string type_name[5] = {
-      "Text", "Copyright", "Track", "Instrument", "Lyrics"
-   };
 }; // class Track
 
 
 class Stream : public MIDI
 {
 public:
-   Stream(AeonWave& config);
-   virtual ~Stream();
+   Stream(AeonWave& config) : MIDI(config) {
+      track = new Track(*this, data);
+   }
+   virtual ~Stream() { delete track; }
 
    inline operator bool() {
       return data.size();
@@ -404,22 +399,19 @@ public:
 
    inline void start() { MIDI::start(); }
    inline void stop() { MIDI::stop(); }
-   inline void push(uint32_t message) { data.push(message); }
+   inline void push(uint32_t message) { data.push_back(message); }
 
    inline float get_pos_sec() { return pos_sec; }
 
 private:
    std::string gmmidi;
    std::string gmdrums;
-   std::vector<Track*> track;
-   std::queue<uint32_t> data;
+   std::deque<uint32_t> data;
    std::map<uint32_t,uint32_t> channel_mask;
 
-   float pos_sec = 0.0f;
+   Track *track;
 
-   const std::string mode_name[MODE_MAX] = {
-      "MIDI", "General MIDI 1.0", "General MIDI 2.0", "GS MIDI", "XG MIDI"
-   };
+   float pos_sec = 0.0f;
 }; // class Stream
 
 

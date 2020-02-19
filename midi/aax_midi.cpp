@@ -685,22 +685,14 @@ Channel::play(uint32_t key_no, uint32_t velocity, float pitch)
                midi.load(name);
             }
 
-            if (midi.get_grep())
+            Buffer& buffer = midi.buffer(name);
+            if (buffer)
             {
-               auto ret = name_map.insert({key_no,nullBuffer});
+               auto ret = name_map.insert({key_no,buffer});
                it = ret.first;
             }
-            else
-            {
-               Buffer& buffer = midi.buffer(name);
-               if (buffer)
-               {
-                  auto ret = name_map.insert({key_no,buffer});
-                  it = ret.first;
-               }
-               else {
-//                 throw(std::invalid_argument("Instrument file "+name+" could not load"));
-               }
+            else {
+//              throw(std::invalid_argument("Instrument file "+name+" could not load"));
             }
          }
       }
@@ -721,35 +713,27 @@ Channel::play(uint32_t key_no, uint32_t velocity, float pitch)
                midi.load(patch_name);
             }
 
-            if (midi.get_grep())
+            Buffer& buffer = midi.buffer(patch_name, level);
+            if (buffer)
             {
-               auto ret = name_map.insert({key,nullBuffer});
+               auto ret = name_map.insert({key,buffer});
                it = ret.first;
-            }
-            else
-            {
-               Buffer& buffer = midi.buffer(patch_name, level);
-               if (buffer)
-               {
-                  auto ret = name_map.insert({key,buffer});
-                  it = ret.first;
 
-                  // mode == 0: volume bend only
-                  // mode == 1: pitch bend only
-                  // mode == 2: volume and pitch bend
-                  int pressure_mode = buffer.get(AAX_PRESSURE_MODE);
-                  if (pressure_mode == 0 || pressure_mode == 2) {
-                     pressure_volume_bend = true;
-                  }
-                  if (pressure_mode > 0) {
-                     pressure_pitch_bend = true;
-                  }
-
-                  // AAX_AFTERTOUCH_SENSITIVITY == AAX_VELOCITY_FACTOR
-                  pressure_sensitivity = 0.01f*buffer.get(AAX_VELOCITY_FACTOR);
+               // mode == 0: volume bend only
+               // mode == 1: pitch bend only
+               // mode == 2: volume and pitch bend
+               int pressure_mode = buffer.get(AAX_PRESSURE_MODE);
+               if (pressure_mode == 0 || pressure_mode == 2) {
+                  pressure_volume_bend = true;
                }
-               midi.channel(channel_no).set_wide(inst.second);
+               if (pressure_mode > 0) {
+                  pressure_pitch_bend = true;
+               }
+
+               // AAX_AFTERTOUCH_SENSITIVITY == AAX_VELOCITY_FACTOR
+               pressure_sensitivity = 0.01f*buffer.get(AAX_VELOCITY_FACTOR);
             }
+            midi.channel(channel_no).set_wide(inst.second);
          }
       }
    }
@@ -1048,9 +1032,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
       }
       else if ((message & 0xF0) != 0xF0)
       {
-         // System messages and file meta-events (all of which are in the
-         // 0xF0-0xFF range) are not saved, as it is possible to carry a
-         // running status across them.
+         // System messages (which are in the 0xF0-0xFF range) are not saved
+         // as it is possible to carry a running status across them.
          previous = message;
       }
 
@@ -1317,145 +1300,6 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
          size -= (offset() - offs);
          if (size) forward(size);
          break;
-      }
-      case MIDI_FILE_META_EVENT:
-      {
-         uint32_t meta = pull_byte();
-         size_t size = pull_message();
-         size_t offs = offset();
-         uint32_t c;
-#if 1
-         forward(size);
-#else
-         switch(meta)
-         {
-         case MIDI_TRACK_NAME:
-         {
-            std::string tname;
-            auto selections = midi.get_selections();
-            for (size_t i=0; i<size; ++i)
-            {
-               c = pull_byte();
-               tname += c;
-            }
-            midi.channel(channel_no).set_track_name(tname);
-            if (std::find(selections.begin(), selections.end(), tname) != selections.end()) {
-               midi.set_track_active(channel_no);
-            }
-            break;
-         }
-         case MIDI_COPYRIGHT:
-         case MIDI_INSTRUMENT_NAME:
-          for (size_t i=0; i<size; ++i) {
-               c = pull_byte();
-            }
-            break;
-         case MIDI_TEXT:
-            for (size_t i=0; i<size; ++i) {
-               c = pull_byte();
-            }
-            break;
-         case MIDI_LYRICS:
-            midi.set_lyrics(true);
-            for (size_t i=0; i<size; ++i) {
-               c = pull_byte();
-            }
-            if (!midi.get_initialize() && midi.get_verbose()) fflush(stdout);
-            break;
-         case MIDI_MARKER:
-            for (size_t i=0; i<size; ++i) {
-               c = pull_byte();
-            }
-            break;
-         case MIDI_CUE_POINT:
-            for (size_t i=0; i<size; ++i) {
-               c = pull_byte();
-            }
-         case MIDI_DEVICE_NAME:
-            for (size_t i=0; i<size; ++i) {
-               c = pull_byte();
-            }
-            break;
-         case MIDI_CHANNEL_PREFIX:
-            c = pull_byte();
-            channel_no = (channel_no & 0xF0) | c;
-            break;
-         case MIDI_PORT_PREFERENCE:
-            c = pull_byte();
-            channel_no = (channel_no & 0xF) | (c << 8);
-            break;
-         case MIDI_END_OF_TRACK:
-            forward();
-            break;
-         case MIDI_SET_TEMPO:
-         {
-            uint32_t tempo;
-            tempo = (pull_byte() << 16) | (pull_byte() << 8) | pull_byte();
-            midi.set_tempo(tempo);
-            break;
-         }
-         case MIDI_SEQUENCE_NUMBER:      // sequencer software only
-         {
-            uint32_t mm = pull_byte();
-            uint32_t ll = pull_byte();
-
-            (void)mm;
-            (void)ll;
-            break;
-         }
-         case MIDI_TIME_SIGNATURE:
-         {
-            uint32_t nn = pull_byte();
-            uint32_t dd = pull_byte();
-            uint32_t cc = pull_byte(); // 1 << cc
-            uint32_t bb = pull_byte();
-            uint32_t QN = 100000.0f / (float)cc;
-
-            (void)nn;
-            (void)dd;
-            (void)cc;
-            (void)bb;
-            (void)QN;
-            break;
-         }
-         case MIDI_SMPTE_OFFSET:
-         {
-            uint32_t hr = pull_byte();
-            uint32_t mn = pull_byte();
-            uint32_t se = pull_byte();
-            uint32_t fr = pull_byte();
-            uint32_t ff = pull_byte();
-
-            (void)hr;
-            (void)mn;
-            (void)se;
-            (void)fr;
-            (void)ff;
-            break;
-         }
-         case MIDI_KEY_SIGNATURE:
-         {
-            int8_t sf = pull_byte();
-            uint32_t mi = pull_byte();
-
-            (void)sf;
-            (void)mi;
-            break;
-         }
-         case MIDI_SEQUENCERSPECIFICMETAEVENT:
-            for (size_t i=0; i<size; ++i) {
-               c = pull_byte();
-            }
-            break;
-         default:      // unsupported
-            break;
-         }
-
-         if (meta != MIDI_END_OF_TRACK) {
-            size -= (offset() - offs);
-            if (size) forward(size);
-         }
-#endif
       }
       default:
       {
@@ -1803,21 +1647,6 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
 
 
 // aax::MIDI::Stream
-Stream::Stream(AeonWave& config) : MIDI(config)
-{
-   for (int i=0; i<16; ++i) {
-      track.push_back(new Track(*this, i));
-   }
-}
-
-Stream::~Stream()
-{
-   for (auto it : track) {
-      delete it;
-   }
-   track.clear();
-}
-
 void
 Stream::initialize()
 {
@@ -1843,16 +1672,10 @@ Stream::process(uint64_t time_parts, uint32_t& next)
    uint32_t wait_parts;
    bool rv = false;
 
-   // TODO: push data from out own buffer to the track buffers.
-
-   next = UINT_MAX;
-   for (auto it : track)
-   {
-      wait_parts = next;
-      rv |= it->process(time_parts, elapsed_parts, wait_parts);
-      if (next > wait_parts) {
-         next = wait_parts;
-      }
+   wait_parts = next;
+   rv = track->process(time_parts, elapsed_parts, wait_parts);
+   if (next > wait_parts) {
+      next = wait_parts;
    }
 
    if (next == UINT_MAX) {
@@ -1861,7 +1684,6 @@ Stream::process(uint64_t time_parts, uint32_t& next)
 
    return rv;
 }
-
 
 }; // namespace MIDI
 }; // namespace aax
