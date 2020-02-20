@@ -1105,7 +1105,7 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    if (filter->lfo && !ctr)
    {
-      float fc = _MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 1);
+      float fc =_MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 20.0f);
 
       if (filter->state == AAX_BESSEL) {
          _aax_bessel_compute(fc, filter);
