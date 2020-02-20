@@ -115,7 +115,7 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
              (state & AAX_ENVELOPE_FOLLOW_LOG))
          {
-            lfo->convert = _exponential;
+            lfo->convert = _exp_distortion;
          }
          else
          {
