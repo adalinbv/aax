@@ -176,6 +176,8 @@ public:
     Instrument(AeonWave& ptr, bool drums = false, int stereo = 0)
         : Mixer(ptr), aax(&ptr), is_stereo(stereo), is_drums(drums)
     {
+        tie(volume, AAX_VOLUME_FILTER, AAX_GAIN);
+
         tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
         tie(vibrato_depth, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_DEPTH);
         tie(vibrato_state, AAX_DYNAMIC_PITCH_EFFECT);
@@ -293,7 +295,7 @@ public:
         note->set_attack_time(attack_time);
         note->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+velocity);
-        note->play(volume*g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
+        note->play(g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
         pitch_last = pitch;
     }
 
@@ -301,7 +303,7 @@ public:
         auto it = key.find(key_no);
         if (it != key.end()) {
             float g = std::min(0.333f + 0.667f*2.0f*velocity, 1.0f);
-            it->second->stop(volume*g*soft);
+            it->second->stop(g*soft);
         }
     }
 
@@ -328,12 +330,12 @@ public:
     inline void set_pressure(uint32_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->set_gain(p*pressure*soft*volume);
+            it->second->set_gain(p*pressure*soft);
         }
     }
 
     inline void set_expression(float e) {
-        for (auto& it : key) it.second->set_gain(e*pressure*soft*volume);
+        for (auto& it : key) it.second->set_gain(e*pressure*soft);
     }
 
     void set_pan(float p) {
@@ -464,6 +466,8 @@ private:
     Matrix64 mtx = Matrix64(pos, at, up);
     Matrix64 mtx_panned = Matrix64(pos, at, up);
 
+    Param volume = 1.0f;
+
     Param vibrato_freq = 5.0f;
     Param vibrato_depth = 0.0f;
     Status vibrato_state = AAX_FALSE;
@@ -499,7 +503,6 @@ private:
     float Q = float(filter_resonance);
 
     float soft = 1.0f;
-    float volume = 1.0f;
     float pressure = 1.0f;
 
     float pitch_rate = 0.0f;
