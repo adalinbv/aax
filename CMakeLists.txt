@@ -469,7 +469,7 @@ configure_file(
 
 aax_subdirectory(3rdparty)
 aax_subdirectory(base)
-aax_subdirectory(midi)
+#aax_subdirectory(midi)
 aax_subdirectory(src)
 
 # Build a static library
