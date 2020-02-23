@@ -178,33 +178,52 @@ _bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps
 
 static float _gains[AAX_MAX_WAVE] = { 1.0f, 0.9f, 1.0f, 0.95f, 0.7f, 1.1f };
 
-ALIGN float _harmonics[AAX_MAX_WAVE][_AAX_SYNTH_MAX_HARMONICS] =
+ALIGN float _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS] =
 {
   /* AAX_CONSTANT_VALUE */
   { 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f },
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f
+  },
 
   /* _TRIANGLE_WAVE */
   { 1.f, 0.f, -1.f/9.f, 0.f, 1.f/25.f, 0.f, -1.f/49.f, 0.f,
-    1.f/81.f, 0.f, -1.f/121.f, 0.f, 1.f/169.f, 0.0f, -1.f/225.f, 0.f },
+    1.f/81.f, 0.f, -1.f/121.f, 0.f, 1.f/169.f, 0.0f, -1.f/225.f, 0.f,
+    1.f/289.f, 0.f, -1.f/361.f, 0.f, 1.f/441.f, 0.0f, -1.f/529.f, 0.f,
+    1.f/625.f, 0.f, -1.f/729.f, 0.f, 1.f/841.f, 0.0f, -1.f/961.f, 0.f
+  },
 
   /* _SINE_WAVE */
   { 1.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
-    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f },
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f,
+    0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f, 0.f
+  },
 
   /* _SQUARE_WAVE */
   { 1.f, 0.0f, 1.f/3.f, 0.f, 1.f/5.f, 0.f, 1.f/7.f, 0.f,
-    1.f/9.f, 0.f, 1.f/11.f, 0.f, 1.f/13.f, 0.f, 1.f/15.f, 0.f },
+    1.f/9.f, 0.f, 1.f/11.f, 0.f, 1.f/13.f, 0.f, 1.f/15.f, 0.f,
+    1.f/17.f, 0.f, 1.f/19.f, 0.f, 1.f/21.f, 0.f, 1.f/23.f, 0.f,
+    1.f/25.f, 0.f, 1.f/27.f, 0.f, 1.f/29.f, 0.f, 1.f/31.f, 0.f
+  },
 
   /* _SAWTOOTH_WAVE */
   { 1.f, 1.f/2.f, 1.f/3.f, 1.f/4.f, 1.f/5.f, 1.f/6.f, 1.f/7.f, 1.f/8.f,
     1.f/9.f, 1.f/10.f, 1.f/11.f, 1.f/12.f, 1.f/13.f, 1.f/14.f, 1.f/15.f,
-    1.f/16.f},
+    1.f/16.f, 1.f/17.f, 1.f/18.f, 1.f/19.f, 1.f/20.f, 1.f/21.f, 1.f/22.f,
+    1.f/23.f, 1.f/24.f, 1.f/25.f, 1.f/26.f, 1.f/27.f, 1.f/28.f, 1.f/29.f,
+    1.f/30.f, 1.f/31.f
+  },
 
   /* _IMPULSE_WAVE */
   { 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
     1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
-    1.f/16.f, 1.f/16.f }
+    1.f/16.f, 1.f/16.f,
+    1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
+    1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f, 1.f/16.f,
+    1.f/16.f, 1.f/16.f
+  }
 };
 
 #if 0

@@ -36,6 +36,6 @@ enum wave_types
    _IMPULSE_WAVE
 };
 
-extern float ALIGN _harmonics[AAX_MAX_WAVE][MAX_HARMONICS];
+extern float ALIGN _harmonics[AAX_MAX_WAVE][2*MAX_HARMONICS];
 
 #endif /* WAVEFORMS_H */
