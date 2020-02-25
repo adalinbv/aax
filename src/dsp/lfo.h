@@ -94,14 +94,6 @@ int _compressor_set_timing(_aaxLFOData*);
 
 typedef struct
 {
-   _aaxLFOData lfo[3];
-   int num;
-   float feedback;
-
-} _aaxDynamicData;
-
-typedef struct
-{
    float step_finish;
    float value0, value, value_total;
    float step[_MAX_ENVELOPE_STAGES];

@@ -64,7 +64,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    _aaxRingBufferData *drbi, *srbi;
    _aaxEnvelopeData *penv, *pslide;
    _aaxEnvelopeData *genv;
-   _aaxLFOData *lfo;
+   _aaxDynamicData *lfos;
    CONST_MIX_PTRPTR_T sptr;
    float svol, evol, gain, max;
    float pnvel, gnvel;
@@ -93,12 +93,9 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
 
    pslide = _EFFECT_GET_DATA(ep2d, PITCH_EFFECT);
    penv = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-   lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
-   if (lfo)
-   {
-      float pval = lfo->get(lfo, penv, NULL, 0, 0)-1.0f;
-      if (fp2d) pval *= fp2d->final.pitch_lfo;
-      pitch *= NORM_TO_PITCH(pval+1.0f);
+   lfos = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
+   if (lfos) {
+      pitch *= NORM_TO_PITCH(lfos->run(lfos, fp2d, penv, NULL, 0, 0, 0, NULL, AAX_FALSE));
    }
 
    if (fp2d) {
@@ -179,9 +176,9 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    }
 
    /* tremolo, envelope following gain filter is applied below! */
-   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
-   if (lfo && !lfo->envelope) {
-      max *= lfo->get(lfo, genv, NULL, 0, 0);
+   lfos = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
+   if (lfos) {
+      max *= lfos->run(lfos, NULL, genv, NULL, 0, 0, 0, NULL, AAX_TRUE);
    }
 
    /* tremolo was defined */

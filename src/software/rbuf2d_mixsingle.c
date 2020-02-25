@@ -84,7 +84,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxRingBufferSample *drbd;
    _aaxEnvelopeData *penv, *pslide;
    _aaxEnvelopeData *genv;
-   _aaxLFOData *lfo;
+   _aaxDynamicData *lfos;
    CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
    float gain, gain_emitter;
@@ -113,12 +113,9 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 
    pslide = _EFFECT_GET_DATA(ep2d, PITCH_EFFECT);
    penv = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-   lfo = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
-   if (lfo) 
-   {
-      float pval = lfo->get(lfo, penv, NULL, 0, 0)-1.0f;
-      if (fp2d) pval *= fp2d->final.pitch_lfo;
-      pitch *= NORM_TO_PITCH(pval+1.0f);
+   lfos = _EFFECT_GET_DATA(ep2d, DYNAMIC_PITCH_EFFECT);
+   if (lfos) {
+      pitch *= NORM_TO_PITCH(lfos->run(lfos, fp2d, penv, NULL, 0, 0, 0, NULL, AAX_FALSE));
    }
    else if (fp2d && fabsf(fp2d->final.pitch_lfo - 1.0f) > 0.0f) {
       pitch *= NORM_TO_PITCH(fp2d->final.pitch_lfo);
@@ -195,19 +192,9 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Tremolo and envelope following gain filter */
-   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
-   if (lfo)
-   {
-      if (lfo->envelope)
-      {
-         float g = lfo->get(lfo, genv, sptr[ch]+offs, 0, dno_samples);
-         if (lfo->inv) g = 1.0f/g;
-         gain *= g;
-      }
-      else {
-         max *= lfo->get(lfo, genv, NULL, 0, 0);
-      }
-      if (fp2d) max *= fp2d->final.gain_lfo;
+   lfos = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
+   if (lfos) {
+      gain *= lfos->run(lfos, fp2d, genv, sptr, ch, offs, dno_samples, &max, AAX_FALSE);
    }
    else if (fp2d && fabsf(fp2d->final.gain_lfo - 1.0f) > 0.1f) {
        gain *= 1.0f - fp2d->final.gain_lfo;

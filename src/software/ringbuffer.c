@@ -1307,7 +1307,7 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps 
 {
    _aaxRingBufferData *srbi, *drbi;
    _aaxRingBufferSample *drbd;
-   _aaxLFOData *lfo;
+   _aaxDynamicData *lfos;
    unsigned char track;
    size_t dno_samples;
    float g = 1.0f;
@@ -1318,19 +1318,23 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps 
    }
 
    srbi = srb->handle;
-   lfo =  fp2d ? _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER) : NULL;
-   if (lfo && lfo->envelope)
+   lfos =  fp2d ? _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER) : NULL;
+   if (lfos)
    {
-       g = 0.0f;
-       for (track=0; track<tracks; track++)
-       {
-           MIX_T *sptr = srbi->sample->track[track];
-           float gain =  lfo->get(lfo, NULL, sptr, track, dno_samples);
+      _aaxLFOData *lfo = &lfos->lfo[0];
+      if (lfo->envelope)
+      {
+          g = 0.0f;
+          for (track=0; track<tracks; track++)
+          {
+              MIX_T *sptr = srbi->sample->track[track];
+              float gain =  lfo->get(lfo, NULL, sptr, track, dno_samples);
 
-           if (lfo->inv) gain = 1.0f/g;
-           g += gain;
-       }
-       g /= tracks;
+              if (lfo->inv) gain = 1.0f/g;
+              g += gain;
+          }
+          g /= tracks;
+      }
    }
 
    drbi = drb->handle;

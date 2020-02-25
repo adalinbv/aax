@@ -38,6 +38,9 @@
 #define VERSION	1.10
 #define DSIZE	sizeof(_aaxDynamicData)
 
+static float _aax_dynamic_pitch_run(struct _aaxDynamicData*, _aax2dProps*, _aaxEnvelopeData*, CONST_MIX_PTRPTR_T, unsigned char, size_t, size_t, FLOAT*, char);
+
+
 static aaxEffect
 _aaxDynamicPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
@@ -112,6 +115,8 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          _aaxLFOData *lfo = &lfos->lfo[0];
          float depth = 0.5f*effect->slot[0]->param[AAX_LFO_DEPTH];
          int constant;
+
+         lfos->run = _aax_dynamic_pitch_run;
 
          lfo->convert = _linear;
          lfo->state = effect->state;
@@ -217,3 +222,21 @@ _eff_function_tbl _aaxDynamicPitchEffect =
    (_aaxEffectConvert*)&_aaxDynamicPitchEffectMinMax
 };
 
+static float
+_aax_dynamic_pitch_run(struct _aaxDynamicData *lfos, _aax2dProps *fp2d, _aaxEnvelopeData *penv, UNUSED(CONST_MIX_PTRPTR_T sptr), UNUSED(unsigned char ch), UNUSED(size_t offs), UNUSED(size_t dno_samples), UNUSED(FLOAT *max), char frame)
+{
+   _aaxLFOData *lfo = &lfos->lfo[0];
+   float pval;
+   if (frame)
+   {
+      pval = 1.0f + lfo->get(lfo, NULL, NULL, 0, 0);
+      pval -= lfo->min;
+   }
+   else
+   {
+      pval = lfo->get(lfo, penv, NULL, 0, 0)-1.0f;
+      if (fp2d) pval *= fp2d->final.pitch_lfo;
+      pval += 1.0f;
+   }
+   return pval;
+}

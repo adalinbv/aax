@@ -38,6 +38,7 @@
 #define VERSION	1.10
 #define DSIZE	sizeof(_aaxDynamicData)
 
+static float _aax_dynamic_gain_run(struct _aaxDynamicData*, _aax2dProps*, _aaxEnvelopeData*, CONST_MIX_PTRPTR_T, unsigned char, size_t, size_t, FLOAT*, char);
 static float _aaxDynamicGainFilterMinMax(float, int, unsigned char);
 
 static aaxFilter
@@ -112,6 +113,9 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
       if (lfos)
       {
          _aaxLFOData *lfo = &lfos->lfo[0];
+
+         lfos->run = _aax_dynamic_gain_run;
+
          if (filter->type == AAX_COMPRESSOR)
          {
             float f;
@@ -146,7 +150,6 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
          }
          else
          {
-            _aaxLFOData *lfo = &lfos->lfo[0];
             int constant;
 
             lfo->convert = _linear;
@@ -259,4 +262,32 @@ _flt_function_tbl _aaxDynamicGainFilter =
    (_aaxFilterConvert*)&_aaxDynamicGainFilterGet,
    (_aaxFilterConvert*)&_aaxDynamicGainFilterMinMax
 };
+
+static float
+_aax_dynamic_gain_run(struct _aaxDynamicData *lfos, _aax2dProps *fp2d, _aaxEnvelopeData *genv, CONST_MIX_PTRPTR_T sptr, unsigned char ch, size_t offs, size_t dno_samples, FLOAT *max, char frame)
+{
+   _aaxLFOData *lfo = &lfos->lfo[0];
+   float gain = 1.0f;
+
+   if (frame)
+   {
+      if (!lfo->envelope) {
+         gain = lfo->get(lfo, genv, NULL, 0, 0);
+      }
+   }
+   else
+   {
+      if (lfo->envelope)
+      {
+         float g = lfo->get(lfo, genv, sptr[ch]+offs, 0, dno_samples);
+         if (lfo->inv) g = 1.0f/g;
+         gain *= g;
+      }
+      else {
+         *max *= lfo->get(lfo, genv, NULL, 0, 0);
+      }
+      if (fp2d) *max *= fp2d->final.gain_lfo;
+   }
+   return gain;
+}
 
