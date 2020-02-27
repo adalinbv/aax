@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <iostream>
 #include <utility>
+#include <memory>
 #include <vector>
 
 #include <aax/matrix.hpp>
@@ -1107,12 +1108,11 @@ public:
     Buffer& buffer(std::string name, bool strict=false) {
         auto it = buffers.find(name);
         if (it == buffers.end()) {
-            Buffer *b = new Buffer(ptr,name,false,strict);
+            std::shared_ptr<Buffer> b(new Buffer(ptr,name,false,strict));
             if (b) {
                 auto ret = buffers.insert({name,{0,b}});
                 it = ret.first;
             } else {
-                delete b;
                 return nullBuffer;
             }
         }
@@ -1122,7 +1122,8 @@ public:
     void destroy(Buffer& b) {
         for(auto it=buffers.begin(); it!=buffers.end(); ++it)
         {
-            if ((it->second.second == &b) && it->second.first && !(--it->second.first)) {
+            if ((it->second.second.get() == &b) && it->second.first &&
+                 !(--it->second.first)) {
                 aaxBufferDestroy(*it->second.second);
                 buffers.erase(it); break;
             }
@@ -1162,7 +1163,7 @@ private:
     std::vector<aaxFrame> frames;
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
-    std::unordered_map<std::string,std::pair<size_t,Buffer*>> buffers;
+    std::unordered_map<std::string,std::pair<size_t,std::shared_ptr<Buffer>>> buffers;
     Buffer nullBuffer;
 
     // background music stream
