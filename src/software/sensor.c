@@ -195,19 +195,19 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
 
             do
             {
-               _aaxDynamicData *lfos;
+               _aaxLFOData *lfo;
 
-               lfos = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
-               if (lfos)
+               lfo = _EFFECT_GET_DATA(p2d, DYNAMIC_PITCH_EFFECT);
+               if (lfo)
                {
-                  p2d->final.pitch_lfo = lfos->run(lfos, NULL, NULL, NULL, 0, 0, 0, NULL, AAX_TRUE);
+                  p2d->final.pitch_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
+                  p2d->final.pitch_lfo -= lfo->min;
                } else {
                   p2d->final.pitch_lfo = 1.0f;
                }
-
-               lfos = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
-               if (lfos) {
-                  p2d->final.gain_lfo = lfos->run(lfos, NULL, NULL, NULL, 0, 0, 0, NULL, AAX_TRUE);
+               lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
+               if (lfo && !lfo->envelope) {
+                  p2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
                } else {
                   p2d->final.gain_lfo = 1.0f;
                }

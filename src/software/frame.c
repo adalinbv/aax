@@ -66,7 +66,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
    _aaxDelayed3dProps *fdp3d_m = fp3d->m_dprops3d;
    _aaxDelayed3dProps *pdp3d_m = NULL;
    _aaxMixerInfo *info = fmixer->info;
-   _aaxDynamicData *lfos;
+   _aaxLFOData *lfo;
    char process;
    char ssr = 1;
 
@@ -121,16 +121,17 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       }
    }
 
-   lfos = _EFFECT_GET_DATA(fp2d, DYNAMIC_PITCH_EFFECT);
-   if (lfos) {
-      fp2d->final.pitch_lfo = lfos->run(lfos, NULL, NULL, NULL, 0, 0, 0, NULL, AAX_TRUE);
+   lfo = _EFFECT_GET_DATA(fp2d, DYNAMIC_PITCH_EFFECT);
+   if (lfo)
+   {
+      fp2d->final.pitch_lfo = 1.0f + lfo->get(lfo, NULL, NULL, 0, 0);
+      fp2d->final.pitch_lfo -= lfo->min;
    } else {
       fp2d->final.pitch_lfo = 1.0f;
    }
-
-   lfos = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
-   if (lfos) {
-      fp2d->final.gain_lfo = lfos->run(lfos, NULL, NULL, NULL, 0, 0, 0, NULL, AAX_TRUE);
+   lfo = _FILTER_GET_DATA(fp2d, DYNAMIC_GAIN_FILTER);
+   if (lfo && !lfo->envelope) {
+      fp2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);
    } else {
       fp2d->final.gain_lfo = 1.0f;
    }

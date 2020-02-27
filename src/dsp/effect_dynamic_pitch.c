@@ -32,24 +32,22 @@
 
 #include "lfo.h"
 #include "effects.h"
-#include "arch.h"
 #include "api.h"
+#include "arch.h"
 
-#define VERSION	1.10
-#define DSIZE	sizeof(_aaxDynamicData)
-
-static float _aax_dynamic_pitch_run(struct _aaxDynamicData*, _aax2dProps*, _aaxEnvelopeData*, CONST_MIX_PTRPTR_T, unsigned char, size_t, size_t, FLOAT*, char);
-
+#define VERSION	1.02
+#define DSIZE	sizeof(_aaxLFOData)
 
 static aaxEffect
 _aaxDynamicPitchEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, DSIZE);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
    {
       _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
+      eff->slot[0]->destroy = _lfo_destroy;
       rv = (aaxEffect)eff;
    }
    return rv;
@@ -66,16 +64,6 @@ _aaxDynamicPitchEffectDestroy(_effect_t* effect)
    free(effect);
 
    return AAX_TRUE;
-}
-
-static void
-_aaxDynamicPitchEffectReset(_aaxDynamicData *lfos)
-{
-   if (lfos)
-   {
-      _aaxLFOData *lfo = &lfos->lfo[0];
-      lfo->dt = 0.0f;
-   }
 }
 
 static aaxEffect
@@ -103,20 +91,15 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
    {
-      _aaxDynamicData* lfos = effect->slot[0]->data;
-      if (lfos == NULL) {
-         lfos = _aax_aligned_alloc(DSIZE);
-         effect->slot[0]->data = lfos;
-         if (lfos) memset(lfos, 0, sizeof(DSIZE));
+      _aaxLFOData* lfo = effect->slot[0]->data;
+      if (lfo == NULL) {
+         effect->slot[0]->data = lfo = _lfo_create();
       }
 
-      if (lfos)
+      if (lfo)
       {
-         _aaxLFOData *lfo = &lfos->lfo[0];
          float depth = 0.5f*effect->slot[0]->param[AAX_LFO_DEPTH];
          int constant;
-
-         lfos->run = _aax_dynamic_pitch_run;
 
          lfo->convert = _linear;
          lfo->state = effect->state;
@@ -161,11 +144,12 @@ _aaxNewDynamicPitchEffectHandle(const aaxConfig config, enum aaxEffectType type,
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, DSIZE);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    {
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
+      rv->slot[0]->destroy = _lfo_destroy;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;
@@ -213,7 +197,7 @@ _eff_function_tbl _aaxDynamicPitchEffect =
    "AAX_dynamic_pitch_effect_"AAX_MKSTR(VERSION), VERSION,
    (_aaxEffectCreate*)&_aaxDynamicPitchEffectCreate,
    (_aaxEffectDestroy*)&_aaxDynamicPitchEffectDestroy,
-   (_aaxEffectReset*)&_aaxDynamicPitchEffectReset,
+   (_aaxEffectReset*)&_lfo_reset,
    (_aaxEffectSetState*)&_aaxDynamicPitchEffectSetState,
    NULL,
    (_aaxNewEffectHandle*)&_aaxNewDynamicPitchEffectHandle,
@@ -222,21 +206,3 @@ _eff_function_tbl _aaxDynamicPitchEffect =
    (_aaxEffectConvert*)&_aaxDynamicPitchEffectMinMax
 };
 
-static float
-_aax_dynamic_pitch_run(struct _aaxDynamicData *lfos, _aax2dProps *fp2d, _aaxEnvelopeData *penv, UNUSED(CONST_MIX_PTRPTR_T sptr), UNUSED(unsigned char ch), UNUSED(size_t offs), UNUSED(size_t dno_samples), UNUSED(FLOAT *max), char frame)
-{
-   _aaxLFOData *lfo = &lfos->lfo[0];
-   float pval;
-   if (frame)
-   {
-      pval = 1.0f + lfo->get(lfo, NULL, NULL, 0, 0);
-      pval -= lfo->min;
-   }
-   else
-   {
-      pval = lfo->get(lfo, penv, NULL, 0, 0)-1.0f;
-      if (fp2d) pval *= fp2d->final.pitch_lfo;
-      pval += 1.0f;
-   }
-   return pval;
-}

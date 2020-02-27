@@ -32,24 +32,23 @@
 
 #include "lfo.h"
 #include "filters.h"
-#include "arch.h"
 #include "api.h"
 
-#define VERSION	1.10
-#define DSIZE	sizeof(_aaxDynamicData)
+#define VERSION	1.02
+#define DSIZE	sizeof(_aaxLFOData)
 
-static float _aax_dynamic_gain_run(struct _aaxDynamicData*, _aax2dProps*, _aaxEnvelopeData*, CONST_MIX_PTRPTR_T, unsigned char, size_t, size_t, FLOAT*, char);
 static float _aaxDynamicGainFilterMinMax(float, int, unsigned char);
 
 static aaxFilter
 _aaxDynamicGainFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
-   _filter_t* flt = _aaxFilterCreateHandle(info, type, 2, DSIZE);
+   _filter_t* flt = _aaxFilterCreateHandle(info, type, 1, DSIZE);
    aaxFilter rv = NULL;
 
    if (flt)
    {
       _aaxSetDefaultFilter2d(flt->slot[0], flt->pos, 0);
+      flt->slot[0]->destroy = _lfo_destroy;
       rv = (aaxFilter)flt;
    }
    return rv;
@@ -66,16 +65,6 @@ _aaxDynamicGainFilterDestroy(_filter_t* filter)
    free(filter);
 
    return AAX_TRUE;
-}
-
-void
-_aaxDynamicGainFilterReset(_aaxDynamicData *lfos)
-{
-   if (lfos)
-   {
-      _aaxLFOData *lfo = &lfos->lfo[0];
-      lfo->dt = 0.0f;
-   }
 }
 
 static aaxFilter
@@ -103,19 +92,13 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
    {
-      _aaxDynamicData* lfos = filter->slot[0]->data;
-      if (lfos == NULL) {
-         lfos = _aax_aligned_alloc(DSIZE);
-         filter->slot[0]->data = lfos;
-         if (lfos) memset(lfos, 0, sizeof(DSIZE));
+      _aaxLFOData* lfo = filter->slot[0]->data;
+      if (lfo == NULL) {
+         filter->slot[0]->data = lfo = _lfo_create();
       }
 
-      if (lfos)
+      if (lfo)
       {
-         _aaxLFOData *lfo = &lfos->lfo[0];
-
-         lfos->run = _aax_dynamic_gain_run;
-
          if (filter->type == AAX_COMPRESSOR)
          {
             float f;
@@ -203,11 +186,12 @@ _aaxNewDynamicGainFilterHandle(const aaxConfig config, enum aaxFilterType type, 
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, DSIZE);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
    { 
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
+      rv->slot[0]->destroy = _lfo_destroy;
       rv->slot[0]->data = NULL;
 
       rv->state = p2d->filter[rv->pos].state;
@@ -234,10 +218,10 @@ _aaxDynamicGainFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxDynamicGainRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.0f,  0.01f, 0.0f, 0.0f }, { 10.0f, 50.0f, 1.0f, 1.0f } },
-    { { 0.01f, 0.01f, 0.0f, 0.0f }, { 50.0f, 50.0f, 1.0f, 0.0f } },
-    { { 0.0f,  0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
-    { { 0.0f,  0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } }
+    { { 0.0f, 0.01f, 0.0f, 0.0f }, { 10.0f, 50.0f, 1.0f, 1.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
+    { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
@@ -255,39 +239,11 @@ _flt_function_tbl _aaxDynamicGainFilter =
    "AAX_dynamic_gain_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDynamicGainFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicGainFilterDestroy,
-   (_aaxFilterReset*)&_aaxDynamicGainFilterReset,
+   (_aaxFilterReset*)&_lfo_reset,
    (_aaxFilterSetState*)&_aaxDynamicGainFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewDynamicGainFilterHandle,
    (_aaxFilterConvert*)&_aaxDynamicGainFilterSet,
    (_aaxFilterConvert*)&_aaxDynamicGainFilterGet,
    (_aaxFilterConvert*)&_aaxDynamicGainFilterMinMax
 };
-
-static float
-_aax_dynamic_gain_run(struct _aaxDynamicData *lfos, _aax2dProps *fp2d, _aaxEnvelopeData *genv, CONST_MIX_PTRPTR_T sptr, unsigned char ch, size_t offs, size_t dno_samples, FLOAT *max, char frame)
-{
-   _aaxLFOData *lfo = &lfos->lfo[0];
-   float gain = 1.0f;
-
-   if (frame)
-   {
-      if (!lfo->envelope) {
-         gain = lfo->get(lfo, genv, NULL, 0, 0);
-      }
-   }
-   else
-   {
-      if (lfo->envelope)
-      {
-         float g = lfo->get(lfo, genv, sptr[ch]+offs, 0, dno_samples);
-         if (lfo->inv) g = 1.0f/g;
-         gain *= g;
-      }
-      else {
-         *max *= lfo->get(lfo, genv, NULL, 0, 0);
-      }
-      if (fp2d) *max *= fp2d->final.gain_lfo;
-   }
-   return gain;
-}
 

@@ -121,19 +121,6 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 #define _AAX_MAX_LOOPBACKS      _AAX_MAX_SPEAKERS
 #define _AAX_MAX_EQBANDS        8
 
-
-typedef struct _aaxDynamicData
-{
-   float (*run)(struct _aaxDynamicData*, _aax2dProps*, _aaxEnvelopeData*, CONST_MIX_PTRPTR_T, unsigned char, size_t, size_t, FLOAT*, char);
-
-   float feedback;
-
-   int num;
-   _aaxLFOData lfo[3];
-
-} _aaxDynamicData;
-
-
 typedef struct
 {
    _aaxLFOData *lfo;
