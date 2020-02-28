@@ -586,7 +586,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
 
             if (release_factor != 1.0f)
             {
-               state = 10.0f*release_factor;
+               state = _MAX(10.0f*release_factor, 1);
                if (state >= AAX_ENVELOPE_FOLLOW_LOG) {
                   state = AAX_ENVELOPE_FOLLOW_LOG-1;
                } else if (state < 1) {
