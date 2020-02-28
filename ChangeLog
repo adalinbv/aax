@@ -1,4 +1,13 @@
 
+* Sat Mar 14 2020 - tech@adalin.org
+- AeonWave (3.8.3) stable; urgency=medium
+
+ * Fix a problem where a release-time, for the timed gain filter, which is
+   shorter than a single update would silence the sound.
+
+-- Erik Hofman <tech@adalin.org>  Sat 14 Mar 2020 14:03:21 + 0100
+
+
 * Sat Feb 22 2020 - tech@adalin.org
 - AeonWave (3.8.2) stable; urgency=medium
 
