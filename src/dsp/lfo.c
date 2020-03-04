@@ -42,7 +42,7 @@ float _linear(float v, float f) { return v*f; }
 float _compress(float v, float f) { return powf(f, 1.0f-v); }
 float _logarithmic(float v, float f) { return _log2lin(v); }
 float _exponential(float v, float f) { return _square(v); }
-float _exp_distortion(float v, float f) { return v*v*v*v-v*v+v; }
+float _exp_distortion(float v, float f) { float x = v*v; return .5f*(x*x-x+v); }
 
 _aaxLFOData*
 _lfo_create()
