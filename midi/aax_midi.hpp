@@ -24,6 +24,7 @@
 
 #include <sys/stat.h>
 
+#include <thread>
 #include <cstdint>
 #include <climits>
 #include <vector>
@@ -66,7 +67,7 @@ class Channel;
 class MIDI : public Mixer
 {
 public:
-   MIDI(AeonWave& ptr);
+   MIDI(aaxConfig);
    virtual ~MIDI();
 
    bool process(uint32_t channel, uint32_t message, uint32_t key, uint32_t velocity, bool omni, float pitch=1.0f);
@@ -98,7 +99,7 @@ public:
    inline void load(std::string& name) { loaded.push_back(name); }
 
    void start();
-   void stop();
+   void stop(bool processed=false);
 
    void finish(uint32_t n);
    bool finished(uint32_t n);
@@ -195,13 +196,13 @@ public:
       return (stat(path.c_str(), &buffer) == 0);
    }
 
-   inline auto& get_config() const { return config; }
+   inline auto& get_config() { return config; }
 
 private:
    void add_patch(const char*);
    void set_path();
 
-   AeonWave& config;
+   AeonWave config;
 
    std::string patch_set = "default";
    std::string patch_version = "1.0.0";
@@ -333,7 +334,9 @@ public:
 
    inline void push(uint32_t m) { data.push_back(m); }
    inline void push_byte(uint32_t m) { data.push_front(m); }
-   inline void forward(size_t o) { data.erase(data.begin(), data.end()+o); }
+   inline void forward(size_t o) {
+      if (data.size() >= o) data.erase(data.begin(), data.end()+o);
+   }
    inline uint32_t pull_byte() {
       uint32_t r = data.front(); data.pop_front(); return r;
    }
@@ -381,10 +384,10 @@ private:
 class Stream : public MIDI
 {
 public:
-   Stream(AeonWave& config) : MIDI(config) {
+   Stream(aaxConfig config) : MIDI(config) {
       track = new Track(*this, data);
    }
-   virtual ~Stream() { delete track; }
+   virtual ~Stream();
 
    inline operator bool() {
       return data.size();
@@ -394,8 +397,9 @@ public:
    bool set_mask(uint32_t mask);
    bool process(uint64_t, uint32_t&);
 
-   inline void start() { MIDI::start(); }
-   inline void stop() { MIDI::stop(); }
+   void start();
+   void run();
+   void stop(bool processed=true);
    inline void push(uint32_t message) { data.push_back(message); }
 
    inline float get_pos_sec() { return pos_sec; }
@@ -409,6 +413,12 @@ private:
    Track *track;
 
    float pos_sec = 0.0f;
+
+   // C++11 threads
+   static void *thread_run(void* data);
+   std::thread thread;
+   bool started = false;
+
 }; // class Stream
 
 

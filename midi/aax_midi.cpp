@@ -25,6 +25,8 @@
 
 #include <cstring>
 #include <string>
+#include <thread>
+#include <chrono>
 
 #include <xml.h>
 #include <aax/strings.hpp>
@@ -38,7 +40,7 @@ namespace MIDI {
 
 // aax::MIDI::MIDI
 
-MIDI::MIDI(AeonWave& ptr) : config(ptr)
+MIDI::MIDI(aaxConfig ptr) : config(ptr)
 {
    set_path();
 
@@ -50,10 +52,13 @@ MIDI::MIDI(AeonWave& ptr) : config(ptr)
 
 MIDI::~MIDI()
 {
-   for(auto it : buffers) {
-      aaxBufferDestroy(*it.second.second); it.second.first = 0;
+   for(auto it : buffers)
+   {
+      aaxBufferDestroy(*it.second.second);
+      it.second.first = 0;
    }
    buffers.clear();
+
    config.remove(*this);
 }
 
@@ -85,13 +90,17 @@ MIDI::start()
 }
 
 void
-MIDI::stop()
+MIDI::stop(bool processed)
 {
-   reverb.set(AAX_PLAYING);
-   Mixer::set(AAX_PLAYING);
+   if (processed)
+   {
+      reverb.set(AAX_PROCESSED);
+      Mixer::set(AAX_PROCESSED);
+   }
 }
 
-void MIDI::finish(uint32_t n)
+void
+MIDI::finish(uint32_t n)
 {
    auto it = channels.find(n);
    if (it == channels.end()) return;
@@ -212,7 +221,7 @@ MIDI::set_reverb_level(uint32_t channel_no, uint32_t value)
 {
    if (value)
    {
-      float val = (float)value/127.0f;
+      float val = static_cast<float>(value)/127.0f;
       channel(channel_no).set_reverb_level(val);
 
       auto it = reverb_channels.find(channel_no);
@@ -362,7 +371,7 @@ MIDI::read_instruments(std::string gmmidi, std::string gmdrums)
 
                         // instrument file-name
                         slen = xmlAttributeCopyString(xiid, "file",
-                                               file, 64);
+                                                      file, 64);
                         if (slen)
                         {
                            file[slen] = 0;
@@ -372,12 +381,11 @@ MIDI::read_instruments(std::string gmmidi, std::string gmdrums)
                            p.insert({0,{i,file}});
 
                            patches.insert({file,p});
-//                          if (id == 0) printf("{%x, {%i, {%s, %i}}}\n", bank_no, n, file, wide);
                         }
                         else
                         {
                            slen = xmlAttributeCopyString(xiid, "patch",
-                                                  file, 64);
+                                                         file, 64);
                            if (slen)
                            {
                               file[slen] = 0;
@@ -397,12 +405,12 @@ MIDI::read_instruments(std::string gmmidi, std::string gmdrums)
             xmlFree(xaid);
          }
          else {
-            std::cerr << "aeonwave/midi not found in: " << filename << std::endl;
+//          std::cerr << "aeonwave/midi not found in: " << filename << std::endl;
          }
          xmlClose(xid);
       }
       else {
-         std::cerr << "Unable to open: " << filename << std::endl;
+//       std::cerr << "Unable to open: " << filename << std::endl;
       }
 
       if (id == 0)
@@ -421,7 +429,9 @@ MIDI::read_instruments(std::string gmmidi, std::string gmdrums)
                iname.append("/");
                iname.append(gmmidi);
             }
-         } else {
+         }
+         else
+         {
             iname = path;
             iname.append("/");
             iname.append(drum);
@@ -507,8 +517,12 @@ MIDI::get_drum(uint32_t program_no, uint32_t key_no, bool all)
       {
          auto bank = itb->second;
          auto iti = bank.find(key_no);
-         if (iti != bank.end()) {
-            if (all || selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
+         if (iti != bank.end())
+         {
+            if (all || selection.empty() ||
+                std::find(selection.begin(), selection.end(), iti->second.first)
+                      != selection.end())
+            {
                return iti->second;
             } else {
                return empty_map;
@@ -551,7 +565,10 @@ MIDI::get_instrument(uint32_t bank_no, uint32_t program_no, bool all)
          auto iti = bank.find(program_no);
          if (iti != bank.end())
          {
-            if (all || selection.empty() || std::find(selection.begin(), selection.end(), iti->second.first) != selection.end()) {
+            if (all || selection.empty() ||
+                std::find(selection.begin(), selection.end(), iti->second.first)
+                      != selection.end())
+            {
                return iti->second;
             } else {
                return empty_map;
@@ -574,7 +591,7 @@ MIDI::get_instrument(uint32_t bank_no, uint32_t program_no, bool all)
       }
       while (bank_no >= 0);
    }
-   return empty_map;;
+   return empty_map;
 }
 
 Channel&
@@ -593,7 +610,8 @@ MIDI::new_channel(uint32_t channel_no, uint32_t bank_no, uint32_t program_no)
    if (drums && !frames.empty())
    {
       auto it = frames.find(program_no);
-      if (it != frames.end()) {
+      if (it != frames.end())
+      {
          level = it->first;
          name = it->second;
       }
@@ -601,13 +619,14 @@ MIDI::new_channel(uint32_t channel_no, uint32_t bank_no, uint32_t program_no)
 
    Buffer& buffer = config.buffer(name, level);
    if (buffer) {
-      buffer.set(AAX_CAPABILITIES, int(instrument_mode));
+      buffer.set(AAX_CAPABILITIES, static_cast<int>(instrument_mode));
    }
 
-   try {
+   try
+   {
       auto ret = channels.insert(
          { channel_no, new Channel(*this, buffer, channel_no,
-                                bank_no, program_no, drums)
+                                   bank_no, program_no, drums)
          } );
       it = ret.first;
       Mixer::add(*it->second);
@@ -626,7 +645,6 @@ MIDI::channel(uint32_t channel_no)
    }
    return new_channel(channel_no, 0, 0);
 }
-
 
 bool
 MIDI::process(uint32_t channel_no, uint32_t message, uint32_t key, uint32_t velocity, bool omni, float pitch)
@@ -962,16 +980,16 @@ Track::registered_param(uint32_t channel, uint32_t controller, uint32_t value)
       case MIDI_PITCH_BEND_SENSITIVITY:
       {
          float val;
-         val = (float)param[MIDI_PITCH_BEND_SENSITIVITY].coarse +
-              (float)param[MIDI_PITCH_BEND_SENSITIVITY].fine*0.01f;
+         val = static_cast<float>(param[MIDI_PITCH_BEND_SENSITIVITY].coarse) +
+              static_cast<float>(param[MIDI_PITCH_BEND_SENSITIVITY].fine)*0.01f;
          midi.channel(channel).set_semi_tones(val);
          break;
       }
       case MIDI_MODULATION_DEPTH_RANGE:
       {
          float val;
-         val = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
-              (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
+         val = static_cast<float>(param[MIDI_MODULATION_DEPTH_RANGE].coarse) +
+              static_cast<float>(param[MIDI_MODULATION_DEPTH_RANGE].fine)*0.01f;
          midi.channel(channel).set_modulation_depth(val);
          break;
       }
@@ -981,8 +999,8 @@ Track::registered_param(uint32_t channel, uint32_t controller, uint32_t value)
       case MIDI_CHANNEL_FINE_TUNING:
       {
          uint32_t tuning = param[MIDI_CHANNEL_FINE_TUNING].coarse << 7
-                       | param[MIDI_CHANNEL_FINE_TUNING].fine;
-         float pitch = (float)tuning-8192.0f;
+                         | param[MIDI_CHANNEL_FINE_TUNING].fine;
+         float pitch = static_cast<float>(tuning)-8192.0f;
          if (pitch < 0) pitch /= 8192.0f;
          else pitch /= 8191.0f;
          midi.channel(channel).set_tuning(pitch);
@@ -1042,10 +1060,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
       {
       case MIDI_SYSTEM_EXCLUSIVE_END:
       {
-         uint64_t size = pull_message();;
-         while(--size) {
-            pull_byte();
-         }
+         uint64_t size = pull_message();
+         forward(size);
       }
       case MIDI_SYSTEM_EXCLUSIVE:
       {
@@ -1173,16 +1189,16 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                {
                case MIDI_DEVICE_VOLUME:
                   byte = pull_byte();
-                  midi.set_gain((float)byte/127.0f);
+                  midi.set_gain(static_cast<float>(byte)/127.0f);
                   break;
                case MIDI_DEVICE_BALANCE:
                   byte = pull_byte();
-                  midi.set_balance(((float)byte-64.0f)/64.0f);
+                  midi.set_balance((static_cast<float>(byte)-64.0f)/64.0f);
                   break;
                case MIDI_DEVICE_FINE_TUNING:
                {
                   uint32_t tuning = pull_byte() || pull_byte() << 7;
-                  float pitch = (float)tuning-8192.0f;
+                  float pitch = static_cast<float>(tuning)-8192.0f;
                   if (pitch < 0) pitch /= 8192.0f;
                   else pitch /= 8191.0f;
                   midi.set_tuning(pitch);
@@ -1193,7 +1209,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                   float pitch;
                   byte = pull_byte();    // lsb, always zero
                   byte = pull_byte();    // msb
-                  pitch = (float)byte-64.0f;
+                  pitch = static_cast<float>(byte)-64.0f;
                   if (pitch < 0) pitch /= 64.0f;
                   else pitch /= 63.0f;
                   midi.set_tuning(pitch);
@@ -1363,7 +1379,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
          case MIDI_PITCH_BEND:
          {
             int16_t pitch = pull_byte() | pull_byte() << 7;
-            float pitch_bend = (float)pitch-8192.0f;
+            float pitch_bend = static_cast<float>(pitch)-8192.0f;
             if (pitch_bend < 0) pitch_bend /= 8192.0f;
             else pitch_bend /= 8191.0f;
             pitch_bend = cents2pitch(pitch_bend, channel);
@@ -1399,7 +1415,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                break;
             case MIDI_POLY_ALL_NOTES_OFF:
                midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               midi.channel(channel).set_monophonic(false);;
+               midi.channel(channel).set_monophonic(false);
                mode = POLYPHONIC;
                break;
             case MIDI_ALL_SOUND_OFF:
@@ -1419,7 +1435,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                } else if (value == MIDI_BANK_MELODY) {
                   midi.channel(channel).set_drums(false);
                }
-               bank_no = (uint32_t)value << 7;
+               bank_no = static_cast<uint32_t>(value << 7);
                break;
             case MIDI_BANK_SELECT|MIDI_FINE:
                bank_no += value;
@@ -1437,27 +1453,27 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                // device's stereo outputs
                break;
             case MIDI_PAN:
-               midi.channel(channel).set_pan(((float)value-64.0f)/64.0f);
+               midi.channel(channel).set_pan((static_cast<float>(value)-64.0f)/64.0f);
                break;
             case MIDI_EXPRESSION:
-               midi.channel(channel).set_expression((float)value/127.0f);
+               midi.channel(channel).set_expression(static_cast<float>(value)/127.0f);
                break;
             case MIDI_MODULATION_DEPTH:
             {
-               float depth = (float)(value << 7)/16383.0f;
+               float depth = static_cast<float>(value << 7)/16383.0f;
                depth = cents2modulation(depth, channel) - 1.0f;
                midi.channel(channel).set_modulation(depth);
                break;
             }
             case MIDI_CELESTE_EFFECT_DEPTH:
             {
-               float level = (float)value/127.0f;
+               float level = static_cast<float>(value)/127.0f;
                level = cents2pitch(level, channel);
                midi.channel(channel).set_detune(level);
                break;
             }
             case MIDI_CHANNEL_VOLUME:
-               midi.channel(channel).set_gain((float)value/127.0f);
+               midi.channel(channel).set_gain(static_cast<float>(value)/127.0f);
                break;
             case MIDI_ALL_NOTES_OFF:
                for(auto& it : midi.channel())
@@ -1498,38 +1514,38 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                break;
             case MIDI_CHORUS_SEND_LEVEL:
             {
-               float val = (float)value/127.0f;
+               float val = static_cast<float>(value)/127.0f;
                midi.channel(channel).set_chorus_level(val);
                break;
             }
             case MIDI_FILTER_RESONANCE:
             {
-               float val = -1.0f+(float)value/64.0f; // relative: 0.0 - 2.0
+               float val = -1.0f+static_cast<float>(value)/64.0f; // relative: 0.0 - 2.0
                midi.channel(channel).set_filter_resonance(val);
                break;
             }
             case MIDI_CUTOFF:      // Brightness
             {
-               float val = (float)value/64.0f;
+               float val = static_cast<float>(value)/64.0f;
                if (val < 1.0f) val = 0.5f + 0.5f*val;
                midi.channel(channel).set_filter_cutoff(val);
                break;
             }
             case MIDI_VIBRATO_RATE:
             {
-               float val = 0.5f + (float)value/64.0f;
+               float val = 0.5f + static_cast<float>(value)/64.0f;
                midi.channel(channel).set_vibrato_rate(val);
                break;
             }
             case MIDI_VIBRATO_DEPTH:
             {
-               float val = (float)value/64.0f;
+               float val = static_cast<float>(value)/64.0f;
                midi.channel(channel).set_vibrato_depth(val);
                break;
             }
             case MIDI_VIBRATO_DELAY:
             {
-               float val = (float)value/64.0f;
+               float val = static_cast<float>(value)/64.0f;
                midi.channel(channel).set_vibrato_delay(val);
                break;
             }
@@ -1545,7 +1561,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                break;
             case MIDI_RELEASE_TIME:
                midi.channel(channel).set_release_time(value);
-               break;;
+               break;
             case MIDI_ATTACK_TIME:
                midi.channel(channel).set_attack_time(value);
                break;
@@ -1553,10 +1569,10 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                midi.channel(channel).set_decay_time(value);
                break;
             case MIDI_TREMOLO_EFFECT_DEPTH:
-               midi.channel(channel).set_tremolo_depth((float)value/64.0f);
+               midi.channel(channel).set_tremolo_depth(static_cast<float>(value)/64.0f);
                break;
             case MIDI_PHASER_EFFECT_DEPTH:
-               midi.channel(channel).set_phaser_depth((float)value/64.0f);
+               midi.channel(channel).set_phaser_depth(static_cast<float>(value)/64.0f);
                break;
             case MIDI_PORTAMENTO_CONTROL:
             case MIDI_HOLD2:
@@ -1587,7 +1603,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
             try {
                midi.new_channel(channel, bank_no, program_no);
             } catch(const std::invalid_argument& e) {
-               std::cerr << "Error: " << e.what() << std::endl;
+//             std::cerr << "Error: " << e.what() << std::endl;
             }
             break;
          }
@@ -1647,11 +1663,96 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
 
 
 // aax::MIDI::Stream
+
+Stream::~Stream()
+{
+   if (started)
+   {
+      thread.join();
+      started = false;
+   }
+   delete track;
+}
+
 void
 Stream::initialize()
 {
    MIDI::set(AAX_REFRESH_RATE, 100);
    MIDI::set(AAX_INITIALIZED);
+}
+
+void
+Stream::start()
+{
+   if (!started)
+   {
+      MIDI::start();
+
+      try {
+         thread = std::thread(thread_run, this);
+      } catch (std::runtime_error &ex) {
+         return;
+      }
+
+      started = true;
+   }
+}
+
+void
+Stream::stop(bool processed)
+{
+   if (processed && started)
+   {
+      MIDI::stop(processed);
+      if (started)
+      {
+         thread.join();
+         started = false;
+      }
+   }
+}
+
+void*
+Stream::thread_run(void* data)
+{
+    Stream* thread = reinterpret_cast<Stream*>(data);
+    thread->run();
+    return 0;
+}
+
+void
+Stream::run()
+{
+   uint64_t time_parts = 0;
+   uint32_t wait_parts;
+
+   wait_parts = 1000;
+   auto now = std::chrono::high_resolution_clock::now();
+   do
+   {
+      if (!process(time_parts, wait_parts)) break;
+
+      if (wait_parts > 0)
+      {
+          double sleep_us, wait_us;
+
+          auto next = std::chrono::high_resolution_clock::now();
+          std::chrono::duration<double, std::micro> dt_us = next - now;
+
+          wait_us = static_cast<double>( wait_parts*get_uspp() );
+          sleep_us = wait_us - dt_us.count();
+
+          if (sleep_us > 0)
+          {
+             int64_t dt_us = sleep_us;
+             std::this_thread::sleep_until(next + std::chrono::microseconds(dt_us));
+          }
+
+          now = std::chrono::high_resolution_clock::now();
+      }
+      time_parts += wait_parts;
+   }
+   while(1);
 }
 
 bool

@@ -27,8 +27,6 @@
 
 #include "aax_midi.hpp"
 
-using namespace aax::MIDI;
-
 #if defined(__cplusplus)
 extern "C" {
 #endif
@@ -37,16 +35,14 @@ extern "C" {
 AAX_API aaxMidi AAX_APIENTRY
 aaxMidiCreate(aaxConfig config)
 {
-   aax::AeonWave handle(config);
-   Stream* stream = new Stream(handle);
-
-   return (aaxMidi)stream;
+   aax::MIDI::Stream* stream = new aax::MIDI::Stream(config);
+   return reinterpret_cast<aaxMidi>(stream);
 }
 
 AAX_API int AAX_APIENTRY
 aaxMidiDestroy(aaxMidi handle)
 {
-   Stream* stream = (Stream*)handle;
+   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
    delete stream;
 
    return AAX_TRUE;
@@ -55,7 +51,7 @@ aaxMidiDestroy(aaxMidi handle)
 AAX_API int AAX_APIENTRY
 aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, uint32_t value)
 {
-   Stream* stream = (Stream*)handle;
+   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
    int rv = AAX_FALSE;
    switch (type)
    {
@@ -71,7 +67,7 @@ aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, uint32_t value)
 AAX_API unsigned int AAX_APIENTRY
 aaxMidiGetSetup(aaxMidi handle, enum aaxMidiSetupType type)
 {
-   Stream* stream = (Stream*)handle;
+   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
    (void)stream;
    return AAX_FALSE;
 }
@@ -79,7 +75,7 @@ aaxMidiGetSetup(aaxMidi handle, enum aaxMidiSetupType type)
 AAX_API int AAX_APIENTRY
 aaxMidiSetState(aaxMidi handle, enum aaxState state)
 {
-   Stream* stream = (Stream*)handle;
+   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
    int rv = AAX_TRUE;
    switch (state)
    {
@@ -87,8 +83,10 @@ aaxMidiSetState(aaxMidi handle, enum aaxState state)
       stream->start();
       break;
    case AAX_STOPPED:
-   case AAX_PROCESSED:
       stream->stop();
+      break;
+   case AAX_PROCESSED:
+      stream->stop(true);
       break;
    default:
       rv = AAX_FALSE;
@@ -100,14 +98,14 @@ aaxMidiSetState(aaxMidi handle, enum aaxState state)
 AAX_API enum aaxState
 AAX_APIENTRY aaxMidiGetState(aaxMidi handle)
 {
-   Stream* stream = (Stream*)handle;
+   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
    return stream->state();
 }
 
 AAX_API int AAX_APIENTRY
 aaxMidiPushMessage(aaxMidi handle, uint32_t message)
 {
-   Stream* stream = (Stream*)handle;
+   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
    stream->push(message);
    return AAX_TRUE;
 }
