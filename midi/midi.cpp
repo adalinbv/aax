@@ -57,8 +57,11 @@ aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, uint32_t value)
 
    switch (type >> 16)
    {
-   case AAX_MIDI_LISTEN_MASK:
-      stream->set_mask(port, value);
+   case AAX_MIDI_PORT_MASK:
+      stream->set_port_mask(value);
+      break;
+   case AAX_MIDI_CHANNEL_MASK:
+      stream->set_channel_mask(port, value);
       break;
    default:
       rv = AAX_FALSE;
@@ -76,8 +79,11 @@ aaxMidiGetSetup(aaxMidi handle, enum aaxMidiSetupType type)
 
    switch (type >> 16)
    {
-   case AAX_MIDI_LISTEN_MASK:
-      rv = stream->get_mask(port);
+   case AAX_MIDI_PORT_MASK:
+      rv = stream->get_port_mask();
+      break;
+   case AAX_MIDI_CHANNEL_MASK:
+      rv = stream->get_channel_mask(port);
       break;
    default:
       rv = AAX_FALSE;

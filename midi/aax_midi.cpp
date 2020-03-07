@@ -79,6 +79,28 @@ MIDI::set_path()
 }
 
 void
+MIDI::set_port_mask(uint32_t mask)
+{
+   int port = 0;
+   while (mask != 0)
+   {
+      if (mask & 0x1) channel_mask[port] = 0xFFFF;
+      mask >>= 1;
+      port++;
+   }
+}
+
+uint32_t
+MIDI::get_port_mask()
+{
+   uint32_t rv = 0;
+   for (auto it : channel_mask) {
+      rv |= (1 << it.first);
+   }
+   return rv;
+}
+
+void
 MIDI::start()
 {
    reverb_state = AAX_REVERB_2ND_ORDER;
@@ -1025,12 +1047,6 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
 {
    bool rv = !eof();
 
-   if (eof())
-   {
-      if (midi.get_format() && !channel_no) return rv;
-      return !midi.finished(channel_no);
-   }
-
    if (elapsed_parts < wait_parts)
    {
       wait_parts -= elapsed_parts;
@@ -1154,14 +1170,14 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                   switch(byte)
                   {
                   case 0x01:
-                     midi.process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+                     midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
                      midi.set_mode(GENERAL_MIDI1);
                      break;
                   case 0x02:
                      // midi.set_mode(MODE0);
                      break;
                   case 0x03:
-                     midi.process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+                     midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
                      midi.set_mode(GENERAL_MIDI2);
                      break;
                   default:
@@ -1320,12 +1336,15 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
       default:
       {
          uint32_t channel = message & 0xf;
+         bool active = midi.is_channel_active(0 /*port*/, channel);
          switch(message & 0xf0)
          {
          case MIDI_NOTE_ON:
          {
             int16_t key = pull_byte();
             uint32_t velocity = pull_byte();
+            if (!active) break;
+
             float pitch = 1.0f;
             if (!midi.channel(channel).is_drums()) {
                key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
@@ -1339,6 +1358,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
          {
             int16_t key = pull_byte();
             uint32_t velocity = pull_byte();
+            if (!active) break;
+
             if (!midi.channel(channel).is_drums()) {
                key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
             }
@@ -1349,6 +1370,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
          {
             uint32_t key = pull_byte();
             uint32_t pressure = pull_byte();
+            if (!active) break;
+
             if (!midi.channel(channel).is_drums())
             {
                float s=midi.channel(channel).get_aftertouch_sensitivity();
@@ -1364,6 +1387,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
          case MIDI_CHANNEL_AFTERTOUCH:
          {
             uint32_t pressure = pull_byte();
+            if (!active) break;
+
             if (!midi.channel(channel).is_drums())
             {
                float s=midi.channel(channel).get_aftertouch_sensitivity();
@@ -1379,6 +1404,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
          case MIDI_PITCH_BEND:
          {
             int16_t pitch = pull_byte() | pull_byte() << 7;
+            if (!active) break;
+
             float pitch_bend = static_cast<float>(pitch)-8192.0f;
             if (pitch_bend < 0) pitch_bend /= 8192.0f;
             else pitch_bend /= 8191.0f;
@@ -1391,6 +1418,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
             // http://midi.teragonaudio.com/tech/midispec/ctllist.htm
             uint32_t controller = pull_byte();
             uint32_t value = pull_byte();
+            if (!active) break;
+
             switch(controller)
             {
             case MIDI_ALL_CONTROLLERS_OFF:
@@ -1600,6 +1629,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
          case MIDI_PROGRAM_CHANGE:
          {
             uint32_t program_no = pull_byte();
+            if (!active) break;
+
             try {
                midi.new_channel(channel, bank_no, program_no);
             } catch(const std::invalid_argument& e) {

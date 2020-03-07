@@ -198,6 +198,20 @@ public:
 
    inline auto& get_config() { return config; }
 
+   uint32_t get_port_mask();
+   void set_port_mask(uint32_t mask);
+
+   inline uint32_t get_channel_mask(uint32_t port) {
+      return channel_mask[port];
+   }
+   inline void set_channel_mask(uint32_t port, uint32_t mask) {
+      channel_mask[port] = mask;
+   }
+
+   inline bool is_channel_active(uint32_t port, uint32_t mask) {
+      return (channel_mask[port] & (1 << mask)) != 0;
+   }
+
 private:
    void add_patch(const char*);
    void set_path();
@@ -210,6 +224,7 @@ private:
    std::string track_name;
    std::map<uint32_t,Channel*> channels;
    std::map<uint32_t,Channel*> reverb_channels;
+   std::map<uint32_t,uint32_t> channel_mask;
    std::map<uint32_t,std::string> frames;
    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> drums;
    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> instruments;
@@ -361,10 +376,8 @@ private:
    std::deque<uint32_t>& data;
 
    uint32_t mode = 0;
-   uint32_t channel_no = 0;
    uint32_t program_no = 0;
    uint32_t bank_no = 0;
-   int32_t track_no = -1;
 
    uint32_t previous = 0;
    uint32_t wait_parts = 1;
@@ -401,18 +414,12 @@ public:
    void stop(bool processed=true);
    inline void push(uint32_t message) { data.push_back(message); }
 
-   inline uint32_t get_mask(uint32_t port) { return channel_mask[port]; }
-   inline void set_mask(uint32_t port, uint32_t mask) {
-      channel_mask[port] = mask;
-   }
-
    inline float get_pos_sec() { return pos_sec; }
 
 private:
    std::string gmmidi;
    std::string gmdrums;
    std::deque<uint32_t> data;
-   std::map<uint32_t,uint32_t> channel_mask;
 
    Track *track;
 
