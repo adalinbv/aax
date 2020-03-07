@@ -70,7 +70,7 @@ public:
    MIDI(aaxConfig);
    virtual ~MIDI();
 
-   bool process(uint32_t channel, uint32_t message, uint32_t key, uint32_t velocity, bool omni, float pitch=1.0f);
+   bool process(uint32_t channel, uint32_t message, uint32_t key, uint32_t velocity, float pitch=1.0f);
 
    Channel& new_channel(uint32_t channel, uint32_t bank, uint32_t program);
 
@@ -119,27 +119,17 @@ public:
    inline void set_tuning(float pitch) { tuning = powf(2.0f, pitch/12.0f); }
    inline float get_tuning() { return tuning; }
 
-   inline void set_mode(uint32_t m) { if (m > mode) mode = m; }
-   inline uint32_t get_mode() { return mode; }
-
-   inline void set_grep(bool g) { grep_mode = g; }
-   inline bool get_grep() { return grep_mode; }
-
    const auto get_drum(uint32_t program, uint32_t key, bool all=false);
    const auto get_instrument(uint32_t bank, uint32_t program, bool all=false);
    auto& get_patches() { return patches; }
 
-   inline void set_initialize(bool i) { initialize = i; };
-   inline bool get_initialize() { return initialize; }
-
-   inline void set_verbose(bool v) { verbose = v; }
-   inline bool get_verbose() { return verbose; }
-
-   inline void set_lyrics(bool v) { lyrics = v; }
-   inline bool get_lyrics() { return lyrics; }
+   inline void set_mode(uint32_t m) { if (m > mode) mode = m; }
+   inline uint32_t get_mode() { return mode; }
 
    inline void set_format(uint32_t fmt) { format = fmt; }
    inline uint32_t get_format() { return format; }
+
+   inline void set_omni_enabled(bool o) { omni_enabled = 0; }
 
    inline void set_tempo(uint32_t tempo) { uSPP = tempo/PPQN; }
 
@@ -209,7 +199,7 @@ public:
    }
 
    inline bool is_channel_active(uint32_t port, uint32_t mask) {
-      return (channel_mask[port] & (1 << mask)) != 0;
+      return (omni_enabled || (channel_mask[port] & (1 << mask)) != 0);
    }
 
 private:
@@ -248,17 +238,15 @@ private:
 
    unsigned int refresh_rate = 0;
    unsigned int polyphony = UINT_MAX;
+   uint32_t mode = MODE0;
 
    uint32_t uSPP = 500000/24;
    uint32_t format = 0;
    uint32_t PPQN = 24;
 
    enum aaxCapabilities instrument_mode = AAX_RENDER_NORMAL;
-   uint32_t mode = MODE0;
-   bool initialize = false;
-   bool verbose = false;
-   bool lyrics = false;
-   bool grep_mode = false;
+   bool polyphony_enabled = true;
+   bool omni_enabled = true;
 
    uint32_t reverb_type = 4;
    Param reverb_decay_depth = 0.15f;
@@ -382,8 +370,6 @@ private:
    uint32_t previous = 0;
    uint32_t wait_parts = 1;
    uint64_t timestamp_parts = 0;
-   bool polyphony = true;
-   bool omni = true;
 
    bool registered = false;
    uint32_t msb_type = 0;

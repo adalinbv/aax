@@ -42,6 +42,7 @@ namespace MIDI {
 
 MIDI::MIDI(aaxConfig ptr) : config(ptr)
 {
+   channel_mask[0] = 0xFFFF;
    set_path();
 
    reverb.tie(reverb_decay_depth, AAX_REVERB_EFFECT, AAX_DECAY_DEPTH);
@@ -669,7 +670,7 @@ MIDI::channel(uint32_t channel_no)
 }
 
 bool
-MIDI::process(uint32_t channel_no, uint32_t message, uint32_t key, uint32_t velocity, bool omni, float pitch)
+MIDI::process(uint32_t channel_no, uint32_t message, uint32_t key, uint32_t velocity, float pitch)
 {
    // Omni mode: Device responds to MIDI data regardless of channel
    if (message == MIDI_NOTE_ON && velocity) {
@@ -778,7 +779,7 @@ Channel::play(uint32_t key_no, uint32_t velocity, float pitch)
       }
    }
 
-   if (!midi.get_initialize() && it != name_map.end())
+   if (it != name_map.end())
    {
       if (midi.channel(channel_no).is_drums())
       {
@@ -1351,7 +1352,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                pitch = midi.channel(channel).get_tuning();
                pitch *= midi.get_tuning();
             }
-            midi.process(channel, message & 0xf0, key, velocity, omni, pitch);
+            midi.process(channel, message & 0xf0, key, velocity, pitch);
             break;
          }
          case MIDI_NOTE_OFF:
@@ -1363,7 +1364,7 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
             if (!midi.channel(channel).is_drums()) {
                key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
             }
-            midi.process(channel, message & 0xf0, key, velocity, omni);
+            midi.process(channel, message & 0xf0, key, velocity);
             break;
          }
          case MIDI_POLYPHONIC_AFTERTOUCH:
@@ -1452,11 +1453,11 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                break;
             case MIDI_OMNI_OFF:
                midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               omni = false;
+               midi.set_omni_enabled(false);
                break;
             case MIDI_OMNI_ON:
                midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               omni = true;
+               midi.set_omni_enabled(true);
                break;
             case MIDI_BANK_SELECT:
                if (value == MIDI_BANK_RYTHM) {
@@ -1655,8 +1656,8 @@ Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next
                break;
             case MIDI_SYSTEM_RESET:
 #if 0
-               omni = true;
-               polyphony = true;
+               omni_enabled = true;
+               polyphony_enabled = true;
                for(auto& it : midi.channel())
                {
                   midi.process(it.first, MIDI_NOTE_OFF, 0, 0, true);
