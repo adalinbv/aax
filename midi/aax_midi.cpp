@@ -1756,17 +1756,6 @@ Stream::run()
 }
 
 bool
-Stream::set_mask(uint32_t m)
-{
-   int32_t port = m >> 16;
-   int32_t mask = m & 0xFFFF;
-
-   channel_mask[port] = mask;
-
-   return false;
-}
-
-bool
 Stream::process(uint64_t time_parts, uint32_t& next)
 {
    uint32_t elapsed_parts = next;

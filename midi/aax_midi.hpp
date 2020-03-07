@@ -394,13 +394,17 @@ public:
    }
 
    void initialize();
-   bool set_mask(uint32_t mask);
    bool process(uint64_t, uint32_t&);
 
    void start();
    void run();
    void stop(bool processed=true);
    inline void push(uint32_t message) { data.push_back(message); }
+
+   inline uint32_t get_mask(uint32_t port) { return channel_mask[port]; }
+   inline void set_mask(uint32_t port, uint32_t mask) {
+      channel_mask[port] = mask;
+   }
 
    inline float get_pos_sec() { return pos_sec; }
 

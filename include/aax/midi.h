@@ -206,7 +206,7 @@ extern "C" {
  */
 enum aaxMidiSetupType
 {
-   AAX_MIDI_LISTEN_MASK = 1,
+   AAX_MIDI_LISTEN_MASK = 0x10000
 };
 
 struct aax_midi_t;

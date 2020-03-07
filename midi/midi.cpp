@@ -52,13 +52,16 @@ AAX_API int AAX_APIENTRY
 aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, uint32_t value)
 {
    aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
-   int rv = AAX_FALSE;
-   switch (type)
+   uint32_t port = type & 0xFFFF;
+   int rv = AAX_TRUE;
+
+   switch (type >> 16)
    {
    case AAX_MIDI_LISTEN_MASK:
-      rv = stream->set_mask(value) ? AAX_TRUE : AAX_FALSE;
+      stream->set_mask(port, value);
       break;
    default:
+      rv = AAX_FALSE;
       break;
    }
    return rv;
@@ -68,8 +71,19 @@ AAX_API unsigned int AAX_APIENTRY
 aaxMidiGetSetup(aaxMidi handle, enum aaxMidiSetupType type)
 {
    aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
-   (void)stream;
-   return AAX_FALSE;
+   uint32_t port = type & 0xFFFF;
+   int rv = AAX_TRUE;
+
+   switch (type >> 16)
+   {
+   case AAX_MIDI_LISTEN_MASK:
+      rv = stream->get_mask(port);
+      break;
+   default:
+      rv = AAX_FALSE;
+      break;
+   }
+   return rv;
 }
 
 AAX_API int AAX_APIENTRY
@@ -77,6 +91,7 @@ aaxMidiSetState(aaxMidi handle, enum aaxState state)
 {
    aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
    int rv = AAX_TRUE;
+
    switch (state)
    {
    case AAX_PLAYING:
