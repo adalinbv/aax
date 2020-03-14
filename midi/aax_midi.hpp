@@ -24,7 +24,6 @@
 
 #include <sys/stat.h>
 
-#include <thread>
 #include <cstdint>
 #include <climits>
 #include <vector>
@@ -70,7 +69,20 @@ public:
    MIDI(aaxConfig);
    virtual ~MIDI();
 
+   void initialize();
+   void start();
+   void stop(bool processed=false);
+
+   void finish(uint32_t n);
+   bool finished(uint32_t n);
+
+   void push(uint32_t message);
    bool process(uint32_t channel, uint32_t message, uint32_t key, uint32_t velocity, float pitch=1.0f);
+   void process_realtime(uint32_t message);
+   void process_exclusive();
+   void process_common();
+
+   void process_control_change(uint32_t channel_no);
 
    Channel& new_channel(uint32_t channel, uint32_t bank, uint32_t program);
 
@@ -86,23 +98,8 @@ public:
 
    inline const auto& get_patch_set() { return patch_set; }
    inline const auto& get_patch_version() { return patch_version; }
-   inline auto& get_selections() { return selection; }
-
-   inline void set_track_active(uint32_t t) { active_track.push_back(t); }
-   inline uint32_t no_active_tracks() { return active_track.size(); }
-   inline bool is_track_active(uint32_t t) {
-      return active_track.empty() ? true : std::find(active_track.begin(), active_track.end(), t) != active_track.end();
-   }
 
    void read_instruments(std::string gmidi=std::string(), std::string gmdrums=std::string());
-
-   inline void load(std::string& name) { loaded.push_back(name); }
-
-   void start();
-   void stop(bool processed=false);
-
-   void finish(uint32_t n);
-   bool finished(uint32_t n);
 
    void set_gain(float);
    void set_balance(float);
@@ -110,7 +107,7 @@ public:
    bool is_drums(uint32_t);
 
    inline void set_capabilities(enum aaxCapabilities m) {
-      instrument_mode = m; set(AAX_CAPABILITIES, m); set_path();
+      mode = m; set(AAX_CAPABILITIES, m); set_path();
    }
 
    inline unsigned int get_refresh_rate() { return refresh_rate; }
@@ -123,21 +120,7 @@ public:
    const auto get_instrument(uint32_t bank, uint32_t program, bool all=false);
    auto& get_patches() { return patches; }
 
-   inline void set_mode(uint32_t m) { if (m > mode) mode = m; }
-   inline uint32_t get_mode() { return mode; }
-
-   inline void set_format(uint32_t fmt) { format = fmt; }
-   inline uint32_t get_format() { return format; }
-
    inline void set_omni_enabled(bool o) { omni_enabled = 0; }
-
-   inline void set_tempo(uint32_t tempo) { uSPP = tempo/PPQN; }
-
-   inline void set_uspp(uint32_t uspp) { uSPP = uspp; }
-   inline int32_t get_uspp() { return uSPP; }
-
-   inline void set_ppqn(uint32_t ppqn) { PPQN = ppqn; }
-   inline uint32_t get_ppqn() { return PPQN; }
 
    void set_chorus(const char *t);
    void set_chorus_level(float lvl);
@@ -197,25 +180,41 @@ public:
    inline void set_channel_mask(uint32_t port, uint32_t mask) {
       channel_mask[port] = mask;
    }
-
    inline bool is_channel_active(uint32_t port, uint32_t mask) {
       return (omni_enabled || (channel_mask[port] & (1 << mask)) != 0);
    }
 
 private:
+   float cents2pitch(float p, uint32_t channel_no);
+   float cents2modulation(float p, uint32_t channel_no);
+
+   inline bool isStatus(uint32_t message) { return (message & 0x80); }
+   inline bool isExclusive(uint32_t message) { return (message & 0xF0); }
+   bool isRealTime(uint32_t message);
+
+   inline void set_mode(uint32_t m) { if (m > midi_mode) midi_mode = m; }
+   inline uint32_t get_mode() { return midi_mode; }
+
    void add_patch(const char*);
    void set_path();
+
+   uint32_t pull_message();
+   bool registered_param(uint32_t, uint32_t, uint32_t);
+
+   inline uint32_t pull_byte() {
+      uint32_t r = data.front(); data.pop_front(); return r;
+   }
 
    AeonWave config;
 
    std::string patch_set = "default";
    std::string patch_version = "1.0.0";
 
-   std::string track_name;
    std::map<uint32_t,Channel*> channels;
    std::map<uint32_t,Channel*> reverb_channels;
    std::map<uint32_t,uint32_t> channel_mask;
    std::map<uint32_t,std::string> frames;
+
    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> drums;
    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> instruments;
 
@@ -224,11 +223,6 @@ private:
 
    std::unordered_map<std::string,std::pair<size_t,Buffer*>> buffers;
 
-   std::vector<std::string> loaded;
-
-   std::vector<std::string> selection;
-   std::vector<uint32_t> active_track;
-
    std::pair<std::string,int> empty_map = {"", 0};
    std::string instr = "gmmidi.xml";
    std::string drum = "gmdrums.xml";
@@ -236,15 +230,13 @@ private:
 
    float tuning = 1.0f;
 
+   uint32_t bank_no = 0;
+   uint32_t program_no = 0;
+   uint32_t midi_mode = MODE0;
    unsigned int refresh_rate = 0;
    unsigned int polyphony = UINT_MAX;
-   uint32_t mode = MODE0;
 
-   uint32_t uSPP = 500000/24;
-   uint32_t format = 0;
-   uint32_t PPQN = 24;
-
-   enum aaxCapabilities instrument_mode = AAX_RENDER_NORMAL;
+   enum aaxCapabilities mode = AAX_RENDER_NORMAL;
    bool polyphony_enabled = true;
    bool omni_enabled = true;
 
@@ -253,6 +245,17 @@ private:
    Param reverb_cutoff_frequency = 790.0f;
    Status reverb_state = AAX_FALSE;
    aax::Mixer reverb;
+
+   std::string gmmidi;
+   std::string gmdrums;
+   std::deque<uint32_t> data;
+
+   bool registered = false;
+   uint32_t msb_type = 0;
+   uint32_t lsb_type = 0;
+   struct param_t param[MAX_REGISTERED_PARAM+1] = {
+      { 2, 0 }, { 0x40, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
+   };
 
 }; // class MIDI
 
@@ -297,8 +300,6 @@ public:
    inline bool get_pressure_pitch_bend() { return pressure_pitch_bend; }
    inline float get_aftertouch_sensitivity() { return pressure_sensitivity; }
 
-   inline void set_track_name(std::string& tname) { track_name = tname; }
-
 private:
    Channel(const Channel&) = delete;
    Channel& operator=(const Channel&) = delete;
@@ -307,7 +308,6 @@ private:
 
    std::pair<uint32_t,std::string> get_patch(std::string& name, uint32_t& key);
    std::map<uint32_t,Buffer&> name_map;
-   std::string track_name;
 
    float tuning = 1.0f;
    float modulation_range = 2.0f;
@@ -322,101 +322,6 @@ private:
    bool pressure_volume_bend = true;
    bool pressure_pitch_bend = false;
 }; // class Channel
-
-
-class Track
-{
-public:
-   Track() = default;
-
-   Track(MIDI& ptr, std::deque<uint32_t>& d) : midi(ptr), data(d) {}
-   Track(const Track&) = default;
-   ~Track() = default;
-
-   bool process(uint64_t, uint32_t&, uint32_t&);
-
-   inline void push(uint32_t m) { data.push_back(m); }
-   inline void push_byte(uint32_t m) { data.push_front(m); }
-   inline void forward(size_t o) {
-      if (data.size() >= o) data.erase(data.begin(), data.end()+o);
-   }
-   inline uint32_t pull_byte() {
-      uint32_t r = data.front(); data.pop_front(); return r;
-   }
-   inline size_t offset() { return 0; }
-   inline bool eof() { return false; }
-
-   MIDI& midi;
-
-private:
-   inline float cents2pitch(float p, uint32_t channel) {
-      float r = midi.channel(channel).get_semi_tones();
-      return powf(2.0f, p*r/12.0f);
-   }
-   inline float cents2modulation(float p, uint32_t channel) {
-      float r = midi.channel(channel).get_modulation_depth();
-      return powf(2.0f, p*r/12.0f);
-   }
-
-   uint32_t pull_message();
-   bool registered_param(uint32_t, uint32_t, uint32_t);
-
-   std::deque<uint32_t>& data;
-
-   uint32_t mode = 0;
-   uint32_t program_no = 0;
-   uint32_t bank_no = 0;
-
-   uint32_t previous = 0;
-   uint32_t wait_parts = 1;
-   uint64_t timestamp_parts = 0;
-
-   bool registered = false;
-   uint32_t msb_type = 0;
-   uint32_t lsb_type = 0;
-   struct param_t param[MAX_REGISTERED_PARAM+1] = {
-      { 2, 0 }, { 0x40, 0 }, { 0x20, 0 }, { 0, 0 }, { 0, 0 }, { 1, 0 }
-   };
-}; // class Track
-
-
-class Stream : public MIDI
-{
-public:
-   Stream(aaxConfig config) : MIDI(config) {
-      track = new Track(*this, data);
-   }
-   virtual ~Stream();
-
-   inline operator bool() {
-      return data.size();
-   }
-
-   void initialize();
-   bool process(uint64_t, uint32_t&);
-
-   void start();
-   void run();
-   void stop(bool processed=true);
-   inline void push(uint32_t message) { data.push_back(message); }
-
-   inline float get_pos_sec() { return pos_sec; }
-
-private:
-   std::string gmmidi;
-   std::string gmdrums;
-   std::deque<uint32_t> data;
-
-   Track *track;
-
-   float pos_sec = 0.0f;
-
-   // C++11 threads
-   static void *thread_run(void* data);
-   std::thread thread;
-   bool started = false;
-
-}; // class Stream
 
 
 }; // namespace MIDI

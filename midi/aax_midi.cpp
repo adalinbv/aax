@@ -25,8 +25,6 @@
 
 #include <cstring>
 #include <string>
-#include <thread>
-#include <chrono>
 
 #include <xml.h>
 #include <aax/strings.hpp>
@@ -64,41 +62,10 @@ MIDI::~MIDI()
 }
 
 void
-MIDI::set_path()
+MIDI::initialize()
 {
-   path = config.info(AAX_SHARED_DATA_DIR);
-
-   std::string name = path;
-   if (instrument_mode == AAX_RENDER_NORMAL) {
-      name.append("/ultrasynth/");
-   }
-   if (exists(name))
-   {
-      path = name;
-      config.set(AAX_SHARED_DATA_DIR, path.c_str());
-   }
-}
-
-void
-MIDI::set_port_mask(uint32_t mask)
-{
-   int port = 0;
-   while (mask != 0)
-   {
-      if (mask & 0x1) channel_mask[port] = 0xFFFF;
-      mask >>= 1;
-      port++;
-   }
-}
-
-uint32_t
-MIDI::get_port_mask()
-{
-   uint32_t rv = 0;
-   for (auto it : channel_mask) {
-      rv |= (1 << it.first);
-   }
-   return rv;
+   set(AAX_REFRESH_RATE, 100);
+   set(AAX_INITIALIZED);
 }
 
 void
@@ -139,6 +106,834 @@ MIDI::finished(uint32_t n)
    auto it = channels.find(n);
    if (it == channels.end()) return true;
    return it->second->finished();
+}
+
+bool
+MIDI::isRealTime(uint32_t message)
+{
+   bool rv = false;
+   if (message & MIDI_SYSTEM_EXCLUSIVE)
+   {
+      switch(message & ~MIDI_SYSTEM_EXCLUSIVE)
+      {
+      case MIDI_TIMING_CLOCK:
+      case MIDI_START:
+      case MIDI_CONTINUE:
+      case MIDI_STOP:
+      case MIDI_ACTIVE_SENSE:
+      case MIDI_SYSTEM_RESET:
+         rv = true;
+         break;
+      default:
+         break;
+      }
+   }
+   return rv;
+}
+
+void
+MIDI::push(uint32_t message)
+{
+   if (isRealTime(message)) {
+      process_realtime(message);
+   }
+   else if (data.size() || isStatus(message))
+   {
+      data.push_back(message);
+      if (isExclusive(data[0]) && message == MIDI_SYSTEM_EXCLUSIVE_END) {
+         process_exclusive();
+      } else {
+         process_common();
+      }
+   }
+}
+
+uint32_t
+MIDI::pull_message()
+{
+   uint32_t rv = 0;
+
+   for (int i=0; i<4; ++i)
+   {
+      uint32_t byte = pull_byte();
+
+      rv = (rv << 7) | (byte & 0x7f);
+      if ((byte & 0x80) == 0) {
+         break;
+      }
+   }
+
+   return rv;
+}
+
+bool
+MIDI::registered_param(uint32_t channel_no, uint32_t controller, uint32_t value)
+{
+    uint16_t type = value;
+    bool data = false;
+    bool rv = true;
+    if (type > MAX_REGISTERED_PARAM) {
+        type = MAX_REGISTERED_PARAM;
+    }
+
+    switch(controller)
+    {
+    case MIDI_REGISTERED_PARAM_COARSE:
+        msb_type = type;
+        break;
+    case MIDI_REGISTERED_PARAM_FINE:
+        lsb_type = type;
+        break;
+    case MIDI_DATA_ENTRY:
+        if (registered)
+        {
+            param[msb_type].coarse = value;
+            data = true;
+        }
+        break;
+    case MIDI_DATA_ENTRY|MIDI_FINE:
+        if (registered)
+        {
+            param[lsb_type].fine = value;
+            data = true;
+        }
+        break;
+    case MIDI_DATA_INCREMENT:
+        type = msb_type << 8 | lsb_type;
+        if (++param[type].fine == 128) {
+            param[type].coarse++;
+            param[type].fine = 0;
+        }
+        break;
+    case MIDI_DATA_DECREMENT:
+        type = msb_type << 8 | lsb_type;
+        if (param[type].fine == 0) {
+            param[type].coarse--;
+            param[type].fine = 127;
+        } else {
+            param[type].fine--;
+        }
+        break;
+    case MIDI_UNREGISTERED_PARAM_FINE:
+    case MIDI_UNREGISTERED_PARAM_COARSE:
+        break;
+    default:
+        rv = false;
+        break;
+    }
+
+    if (data)
+    {
+        type = msb_type << 8 | lsb_type;
+        switch(type)
+        {
+        case MIDI_PITCH_BEND_SENSITIVITY:
+        {
+            float val;
+            val = (float)param[MIDI_PITCH_BEND_SENSITIVITY].coarse +
+                  (float)param[MIDI_PITCH_BEND_SENSITIVITY].fine*0.01f;
+            channel(channel_no).set_semi_tones(val);
+            break;
+        }
+        case MIDI_MODULATION_DEPTH_RANGE:
+        {
+            float val;
+            val = (float)param[MIDI_MODULATION_DEPTH_RANGE].coarse +
+                  (float)param[MIDI_MODULATION_DEPTH_RANGE].fine*0.01f;
+            channel(channel_no).set_modulation_depth(val);
+            break;
+        }
+        case MIDI_PARAMETER_RESET:
+            channel(channel_no).set_semi_tones(2.0f);
+            break;
+        case MIDI_CHANNEL_FINE_TUNING:
+        {
+            uint16_t tuning = param[MIDI_CHANNEL_FINE_TUNING].coarse << 7
+                              | param[MIDI_CHANNEL_FINE_TUNING].fine;
+            float pitch = (float)tuning-8192.0f;
+            if (pitch < 0) pitch /= 8192.0f;
+            else pitch /= 8191.0f;
+            channel(channel_no).set_tuning(pitch);
+            break;
+        }
+        case MIDI_CHANNEL_COARSE_TUNING:
+            // This is handled by MIDI_NOTE_ON and MIDI_NOTE_OFF
+            break;
+        case MIDI_TUNING_PROGRAM_CHANGE:
+        case MIDI_TUNING_BANK_SELECT:
+            break;
+        default:
+            break;
+        }
+    }
+
+    return rv;
+}
+
+float
+MIDI::cents2pitch(float p, uint32_t channel_no)
+{
+   float r = channel(channel_no).get_semi_tones();
+   return powf(2.0f, p*r/12.0f);
+}
+
+float
+MIDI::cents2modulation(float p, uint32_t channel_no)
+{
+   float r = channel(channel_no).get_modulation_depth();
+   return powf(2.0f, p*r/12.0f);
+}
+
+bool
+MIDI::process(uint32_t channel_no, uint32_t message, uint32_t key, uint32_t velocity, float pitch)
+{
+   // Omni mode: Device responds to MIDI data regardless of channel
+   if (message == MIDI_NOTE_ON && velocity) {
+      channel(channel_no).play(key, velocity, pitch);
+   }
+   else
+   {
+      if (message == MIDI_NOTE_ON) {
+         velocity = 64;
+      }
+      channel(channel_no).stop(key, velocity);
+   }
+   return true;
+}
+
+void
+MIDI::process_realtime(uint32_t message)
+{
+}
+
+void
+MIDI::process_exclusive()
+{
+   uint64_t size = pull_message();
+   const char *s = NULL;
+   uint32_t byte;
+
+   while (data.size() && (byte = pull_byte()) != MIDI_SYSTEM_EXCLUSIVE_END)
+   {
+      switch(byte)
+      {
+      case MIDI_SYSTEM_EXCLUSIVE_ROLAND:
+          byte = pull_byte();
+          if (byte != 0x10) break;
+
+          byte = pull_byte();
+          if (byte != 0x42) break;
+
+          byte = pull_byte();
+          if (byte != 0x12) break;
+
+          byte = pull_byte();
+          if (byte == 0x40)
+          {
+              byte = pull_byte();
+              switch(byte)
+              {
+              case 0x00:
+                  byte = pull_byte();
+                  if (byte != 0x7f) break;;
+
+                  byte = pull_byte();
+                  if (byte != 0x00) break;
+
+                  byte = pull_byte();
+                  if (byte == 0x41) {
+                      set_mode(GENERAL_STANDARD);
+                  }
+                  break;
+              case 0x19:
+              case 0x1a:
+                  byte = pull_byte();
+                  if (byte != 0x15) break;
+
+                  byte = pull_byte();
+                  if (byte == 0x02)
+                  {
+                      byte = pull_byte();
+                      if (byte == 0x10) channel(9).set_drums(true);
+                      else if (byte == 0xf) channel(11).set_drums(true);
+                  }
+                  break;
+              default:
+                  break;
+              }
+          }
+          break;
+      case MIDI_SYSTEM_EXCLUSIVE_YAMAHA:
+          byte = pull_byte();
+          if (byte != 0x10) break;
+
+          byte = pull_byte();
+          if (byte != 0x4c) break;
+
+          byte = pull_byte();
+          if (byte != 0x00) break;
+
+          byte = pull_byte();
+          if (byte != 0x00) break;
+
+          byte = pull_byte();
+          if (byte != 0x7e) break;
+
+          byte = pull_byte();
+          if (byte == 0x00) {
+              set_mode(EXTENDED_GENERAL_MIDI);
+          }
+          break;
+      case MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME:
+          // GM1 rewind: F0 7E 7F 09 01 F7
+          // GM2 rewind: F0 7E 7F 09 03 F7
+          // GS  rewind: F0 41 10 42 12 40 00 7F 00 41 F7
+          byte = pull_byte();
+          if (byte == 0x7F)
+          {
+              byte = pull_byte();
+              switch(byte)
+              {
+              case GENERAL_MIDI_SYSTEM:
+                  byte = pull_byte();
+                  set_mode(byte);
+                  switch(byte)
+                  {
+                  case 0x01:
+                      for (auto it : channels) {
+                         uint32_t channel_no = it.second->get_channel_no();
+                         process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+                      }
+                      set_mode(GENERAL_MIDI1);
+                      break;
+                  case 0x02:
+                      // set_mode(MODE0);
+                      break;
+                  case 0x03:
+                      for (auto it : channels) {
+                         uint32_t channel_no = it.second->get_channel_no();
+                         process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+                      }
+                      set_mode(GENERAL_MIDI2);
+                      break;
+                  default:
+                      break;
+                  }
+                  break;
+              case MIDI_EOF:
+              case MIDI_WAIT:
+              case MIDI_CANCEL:
+              case MIDI_NAK:
+              case MIDI_ACK:
+                  break;
+              default:
+                  break;
+              }
+          }
+          break;
+      case MIDI_SYSTEM_EXCLUSIVE_REALTIME:
+          byte = pull_byte();
+          switch(byte)
+          {
+          case MIDI_DEVICE_CONTROL:
+              byte = pull_byte();
+              switch(byte)
+              {
+              case MIDI_DEVICE_VOLUME:
+                  byte = pull_byte();
+                  set_gain((float)byte/127.0f);
+                  break;
+              case MIDI_DEVICE_BALANCE:
+                  byte = pull_byte();
+                  set_balance(((float)byte-64.0f)/64.0f);
+                  break;
+              case MIDI_DEVICE_FINE_TUNING:
+              {
+                  uint32_t tuning = pull_byte() || pull_byte() << 7;
+                  float pitch = (float)tuning-8192.0f;
+                  if (pitch < 0) pitch /= 8192.0f;
+                  else pitch /= 8191.0f;
+                  set_tuning(pitch);
+                  break;
+              }
+              case MIDI_DEVICE_COARSE_TUNING:
+              {
+                  float pitch;
+                  byte = pull_byte();     // lsb, always zero
+                  byte = pull_byte();     // msb
+                  pitch = (float)byte-64.0f;
+                  if (pitch < 0) pitch /= 64.0f;
+                  else pitch /= 63.0f;
+                  set_tuning(pitch);
+                  break;
+              }
+              case MIDI_GLOBAL_PARAMETER_CONTROL:
+              {
+                  uint32_t path_len = pull_byte();
+                  uint32_t id_width = pull_byte();
+                  uint32_t val_width = pull_byte();
+                  uint32_t slot = pull_byte() || pull_byte() << 7;
+                  uint32_t param =  pull_byte();
+                  uint32_t value = pull_byte();
+                  switch(slot)
+                  {
+                  case MIDI_CHORUS_PARAMETER:
+                      switch(param)
+                      {
+                      case 0:     // CHORUS_TYPE
+                          switch(value)
+                          {
+                          case 0:
+                              set_chorus("chorus/chorus1");
+                              break;
+                          case 1:
+                              set_chorus("chorus/chorus2");
+                              break;
+                          case 2:
+                              set_chorus("chorus/chorus3");
+                              break;
+                          case 3:
+                              set_chorus("chorus/chorus4");
+                              break;
+                          case 4:
+                              set_chorus("chorus/chorus_freedback");
+                              break;
+                          case 5:
+                              set_chorus("chorus/flanger");
+                              break;
+                          default:
+                              break;
+                          }
+                          break;
+                      case 1:     // CHORUS_MOD_RATE
+                      // the modulation frequency in Hz
+                          set_chorus_rate(0.122f*value);
+                          break;
+                      case 2:     // CHORUS_MOD_DEPTH
+                      {
+                      // the peak-to-peak swing of the modulation in ms
+                          float ms = 1e-3f*(value+1.0f)/3.2f;
+                          set_chorus_depth(ms);
+                          break;
+                      }
+                      case 3:     // CHORUS_FEEDBACK
+                          set_chorus_level(0.763f*value);
+                      // the amount of feedback from Chorus output in %
+                          break;
+                      case 4:     // CHORUS_SEND_TO_REVERB
+                      // the send level from Chorus to Reverb in %
+                          set_chorus_level(0.787f*value);
+                      default:
+                         break;
+                      }
+                      break;
+                  case MIDI_REVERB_PARAMETER:
+                      switch(param)
+                      {
+                      case 0:     // Reverb Typ
+                          set_reverb_type(value);
+                          break;
+                      case 1:     //Reverb Time
+                      {
+                          float rt = expf((value-40)*0.025);
+                          set_decay_depth(rt);
+                      }
+                      default:
+                         break;
+                      }
+                      break;
+                  default:
+                      break;
+                  }
+                  break;
+              }
+              default:
+                  byte = pull_byte();
+                  break;
+              }
+              break;
+          default:
+              break;
+          }
+      default:
+          break;
+      }
+   } // while
+}
+
+void
+MIDI::process_common()
+{
+   while (data.size())
+   {
+      uint32_t message = pull_byte();
+      uint32_t channel_no = message & 0xf;
+      switch(message & 0xf0)
+      {
+      case MIDI_NOTE_ON:
+      {
+          uint32_t key = pull_byte();
+          uint32_t velocity = pull_byte();
+          float pitch = 1.0f;
+          if (!channel(channel_no).is_drums()) {
+              key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+              pitch = channel(channel_no).get_tuning();
+              pitch *= get_tuning();
+          }
+          process(channel_no, message & 0xf0, key, velocity, pitch);
+          break;
+      }
+      case MIDI_NOTE_OFF:
+      {
+          uint32_t key = pull_byte();
+          uint32_t velocity = pull_byte();
+          if (!channel(channel_no).is_drums()) {
+              key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+          }
+          process(channel_no, message & 0xf0, key, velocity, omni_enabled);
+          break;
+      }
+      case MIDI_POLYPHONIC_AFTERTOUCH:
+      {
+          uint32_t key = pull_byte();
+          uint32_t pressure = pull_byte();
+          if (!channel(channel_no).is_drums())
+          {
+              float s = channel(channel_no).get_aftertouch_sensitivity();
+              if (channel(channel_no).get_pressure_pitch_bend()) {
+                  channel(channel_no).set_pitch(key, cents2pitch(s*pressure/127.0f, channel_no));
+              }
+              if (channel(channel_no).get_pressure_volume_bend()) {
+                  channel(channel_no).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
+              }
+          }
+          break;
+      }
+      case MIDI_CHANNEL_AFTERTOUCH:
+      {
+          uint32_t pressure = pull_byte();
+          if (!channel(channel_no).is_drums())
+          {
+              float s = channel(channel_no).get_aftertouch_sensitivity();
+              if (channel(channel_no).get_pressure_pitch_bend()) {
+                  channel(channel_no).set_pitch(cents2pitch(s*pressure/127.0f, channel_no));
+              }
+              if (channel(channel_no).get_pressure_volume_bend()) {
+                  channel(channel_no).set_pressure(1.0f-0.33f*pressure/127.0f);
+              }
+          }
+          break;
+      }
+      case MIDI_PITCH_BEND:
+      {
+          uint32_t pitch = pull_byte() | pull_byte() << 7;
+          float pitch_bend = (float)pitch-8192.0f;
+          if (pitch_bend < 0) pitch_bend /= 8192.0f;
+          else pitch_bend /= 8191.0f;
+          pitch_bend = cents2pitch(pitch_bend, channel_no);
+          channel(channel_no).set_pitch(pitch_bend);
+          break;
+      }
+      case MIDI_PROGRAM_CHANGE:
+      {
+          uint32_t program_no = pull_byte();
+          try {
+              new_channel(channel_no, bank_no, program_no);
+          } catch(const std::invalid_argument& e) {
+              std::cerr << "Error: " << e.what() << std::endl;
+          }
+          break;
+      }
+      case MIDI_CONTROL_CHANGE:
+          process_control_change(channel_no);
+          break;
+      case MIDI_SYSTEM:
+          switch(channel_no)
+          {
+          case MIDI_TIMING_CODE:
+              pull_byte();
+              break;
+          case MIDI_POSITION_POINTER:
+              pull_byte();
+              pull_byte();
+              break;
+          case MIDI_SONG_SELECT:
+              pull_byte();
+              break;
+          case MIDI_TUNE_REQUEST:
+              break;
+          case MIDI_SYSTEM_RESET:
+#if 0
+              omni_enabled = true;
+              polyphony = true;
+              for(auto& it : channel())
+              {
+                  process(it.first, MIDI_NOTE_OFF, 0, 0, true);
+                  channel(channel_no).set_semi_tones(2.0f);
+              }
+#endif
+             break;
+          case MIDI_TIMING_CLOCK:
+          case MIDI_START:
+          case MIDI_CONTINUE:
+          case MIDI_STOP:
+          case MIDI_ACTIVE_SENSE:
+              break;
+          default:
+              break;
+          }
+          break;
+      } // switch
+   } // while
+}
+
+void
+MIDI::process_control_change(uint32_t channel_no)
+{
+   uint32_t controller = pull_byte();
+   uint32_t value = pull_byte();
+   switch(controller)
+   {
+   case MIDI_ALL_CONTROLLERS_OFF:
+       channel(channel_no).set_modulation(0.0f);
+       channel(channel_no).set_expression(1.0f);
+       channel(channel_no).set_hold(false);
+//     channel(channel_no).set_portamento(false);
+       channel(channel_no).set_sustain(false);
+       channel(channel_no).set_soft(false);
+       channel(channel_no).set_semi_tones(2.0f);
+       channel(channel_no).set_pitch(1.0f);
+       msb_type = lsb_type = 0x7F;
+       // channel(channel_no).set_gain(100.0f/127.0f);
+       // channel(channel_no).set_pan(0.0f);
+       // intentional falltrough
+   case MIDI_MONO_ALL_NOTES_OFF:
+       process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+       if (value == 1) {
+           polyphony_enabled = false;
+           channel(channel_no).set_monophonic(true);
+       }
+       break;
+   case MIDI_POLY_ALL_NOTES_OFF:
+       process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+       channel(channel_no).set_monophonic(false);;
+       polyphony_enabled = true;
+       break;
+   case MIDI_ALL_SOUND_OFF:
+       process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+       break;
+   case MIDI_OMNI_OFF:
+       process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+       omni_enabled = false;
+       break;
+   case MIDI_OMNI_ON:
+       process(channel_no, MIDI_NOTE_OFF, 0, 0, true);
+       omni_enabled = true;
+       break;
+   case MIDI_BANK_SELECT:
+       if (value == MIDI_BANK_RYTHM) {
+           channel(channel_no).set_drums(true);
+       } else if (value == MIDI_BANK_MELODY) {
+           channel(channel_no).set_drums(false);
+       }
+       bank_no = (uint32_t)value << 7;
+       break;
+   case MIDI_BANK_SELECT|MIDI_FINE:
+       bank_no += value;;
+       break;
+   case MIDI_BREATH_CONTROLLER:
+       if (!channel(channel_no).is_drums()) {
+           channel(channel_no).set_pressure(1.0f-0.33f*value/127.0f);
+       }
+       break;
+   case MIDI_BALANCE:
+       // If a MultiTimbral device, then each Part usually has its
+       // own Balance. This is generally when Balance becomes
+       // useful, because then you can use Pan, Volume, and Balance
+       // controllers to internally mix all of the Parts to the
+       // device's stereo outputs
+       break;
+   case MIDI_PAN:
+       channel(channel_no).set_pan(((float)value-64.0f)/64.0f);
+       break;
+   case MIDI_EXPRESSION:
+       channel(channel_no).set_expression((float)value/127.0f);
+       break;
+   case MIDI_MODULATION_DEPTH:
+   {
+       float depth = (float)(value << 7)/16383.0f;
+       depth = cents2modulation(depth, channel_no) - 1.0f;
+       channel(channel_no).set_modulation(depth);
+       break;
+   }
+   case MIDI_CELESTE_EFFECT_DEPTH:
+   {
+       float level = (float)value/127.0f;
+       level = cents2pitch(level, channel_no);
+       channel(channel_no).set_detune(level);
+       break;
+   }
+   case MIDI_CHANNEL_VOLUME:
+       channel(channel_no).set_gain((float)value/127.0f);
+       break;
+   case MIDI_ALL_NOTES_OFF:
+       for(auto& it : channel())                 {
+           process(it.first, MIDI_NOTE_OFF, 0, 0, true);
+           channel(channel_no).set_semi_tones(2.0f);
+       }
+       break;
+   case MIDI_UNREGISTERED_PARAM_COARSE:
+   case MIDI_UNREGISTERED_PARAM_FINE:
+       registered = false;
+       registered_param(channel_no, controller, value);
+       break;
+   case MIDI_REGISTERED_PARAM_COARSE:
+   case MIDI_REGISTERED_PARAM_FINE:
+       registered = true;
+       registered_param(channel_no, controller, value);
+       break;
+   case MIDI_DATA_ENTRY:
+   case MIDI_DATA_ENTRY|MIDI_FINE:
+   case MIDI_DATA_INCREMENT:
+   case MIDI_DATA_DECREMENT:
+       registered_param(channel_no, controller, value);
+       break;
+   case MIDI_SOFT_PEDAL_SWITCH:
+       channel(channel_no).set_soft(value >= 0x40);
+       break;
+   case MIDI_LEGATO_SWITCH:
+       break;
+   case MIDI_DAMPER_PEDAL_SWITCH:
+       channel(channel_no).set_hold(value >= 0x40);
+       break;
+   case MIDI_SOSTENUTO_SWITCH:
+       channel(channel_no).set_sustain(value >= 0x40);
+       break;
+   case MIDI_REVERB_SEND_LEVEL:
+       set_reverb_level(channel_no, value);
+       break;
+   case MIDI_CHORUS_SEND_LEVEL:
+   {
+       float val = (float)value/127.0f;
+       channel(channel_no).set_chorus_level(val);
+       break;
+   }
+   case MIDI_FILTER_RESONANCE:
+   {
+       float val = -1.0f+(float)value/64.0f; // relative: 0.0 - 2.0
+       channel(channel_no).set_filter_resonance(val);
+       break;
+   }
+   case MIDI_CUTOFF:       // Brightness
+   {
+       float val = (float)value/64.0f;
+       if (val < 1.0f) val = 0.5f + 0.5f*val;
+       channel(channel_no).set_filter_cutoff(val);
+       break;
+   }
+   case MIDI_VIBRATO_RATE:
+   {
+       float val = 0.5f + (float)value/64.0f;
+       channel(channel_no).set_vibrato_rate(val);
+       break;
+   }
+   case MIDI_VIBRATO_DEPTH:
+   {
+       float val = (float)value/64.0f;
+       channel(channel_no).set_vibrato_depth(val);
+       break;
+   }
+   case MIDI_VIBRATO_DELAY:
+   {
+       float val = (float)value/64.0f;
+       channel(channel_no).set_vibrato_delay(val);
+       break;
+   }
+   case MIDI_PORTAMENTO_TIME:
+   {
+       float val = powf(10.0f, 2.0f-3.0f*value/127.0f);
+       val = cents2pitch(val, channel_no)*1e-3f;
+       channel(channel_no).set_pitch_rate(val);
+       break;
+   }
+
+   case MIDI_PORTAMENTO_SWITCH:
+       channel(channel_no).set_pitch_rate(value >= 0x40);
+       break;
+   case MIDI_RELEASE_TIME:
+       channel(channel_no).set_release_time(value);
+       break;
+   case MIDI_ATTACK_TIME:
+       channel(channel_no).set_attack_time(value);
+       break;
+   case MIDI_DECAY_TIME:
+       channel(channel_no).set_decay_time(value);
+       break;
+   case MIDI_TREMOLO_EFFECT_DEPTH:
+       channel(channel_no).set_tremolo_depth((float)value/64.0f);
+       break;
+   case MIDI_PHASER_EFFECT_DEPTH:
+       channel(channel_no).set_phaser_depth((float)value/64.0f);
+       break;
+   case MIDI_PORTAMENTO_CONTROL:
+   case MIDI_HOLD2:
+   case MIDI_PAN|MIDI_FINE:
+   case MIDI_EXPRESSION|MIDI_FINE:
+   case MIDI_BREATH_CONTROLLER|MIDI_FINE:
+   case MIDI_BALANCE|MIDI_FINE:
+   case MIDI_SOUND_VARIATION:
+   case MIDI_SOUND_CONTROL10:
+   case MIDI_HIGHRES_VELOCITY_PREFIX:
+   case MIDI_GENERAL_PURPOSE_CONTROL1:
+   case MIDI_GENERAL_PURPOSE_CONTROL2:
+   case MIDI_GENERAL_PURPOSE_CONTROL3:
+   case MIDI_GENERAL_PURPOSE_CONTROL4:
+   case MIDI_GENERAL_PURPOSE_CONTROL5:
+   case MIDI_GENERAL_PURPOSE_CONTROL6:
+   case MIDI_GENERAL_PURPOSE_CONTROL7:
+   case MIDI_GENERAL_PURPOSE_CONTROL8:
+       break;
+   default:
+       break;
+   }
+}
+
+void
+MIDI::set_path()
+{
+   path = config.info(AAX_SHARED_DATA_DIR);
+
+   std::string name = path;
+   if (mode == AAX_RENDER_NORMAL) {
+      name.append("/ultrasynth/");
+   }
+   if (exists(name))
+   {
+      path = name;
+      config.set(AAX_SHARED_DATA_DIR, path.c_str());
+   }
+}
+
+void
+MIDI::set_port_mask(uint32_t mask)
+{
+   int port = 0;
+   while (mask != 0)
+   {
+      if (mask & 0x1) channel_mask[port] = 0xFFFF;
+      mask >>= 1;
+      port++;
+   }
+}
+
+uint32_t
+MIDI::get_port_mask()
+{
+   uint32_t rv = 0;
+   for (auto it : channel_mask) {
+      rv |= (1 << it.first);
+   }
+   return rv;
 }
 
 void
@@ -342,11 +1137,11 @@ MIDI::read_instruments(std::string gmmidi, std::string gmdrums)
             {
                if (!xmlAttributeCompareString(xmid, "mode", "synthesizer"))
                {
-                  instrument_mode = AAX_RENDER_SYNTHESIZER;
+                  mode = AAX_RENDER_SYNTHESIZER;
                }
                else if (!xmlAttributeCompareString(xmid, "mode", "arcade"))
                {
-                  instrument_mode = AAX_RENDER_ARCADE;
+                  mode = AAX_RENDER_ARCADE;
                }
             }
 
@@ -542,14 +1337,7 @@ MIDI::get_drum(uint32_t program_no, uint32_t key_no, bool all)
          auto iti = bank.find(key_no);
          if (iti != bank.end())
          {
-            if (all || selection.empty() ||
-                std::find(selection.begin(), selection.end(), iti->second.first)
-                      != selection.end())
-            {
-               return iti->second;
-            } else {
-               return empty_map;
-            }
+            return iti->second;
          }
 
          if (program_no > 0)
@@ -588,14 +1376,7 @@ MIDI::get_instrument(uint32_t bank_no, uint32_t program_no, bool all)
          auto iti = bank.find(program_no);
          if (iti != bank.end())
          {
-            if (all || selection.empty() ||
-                std::find(selection.begin(), selection.end(), iti->second.first)
-                      != selection.end())
-            {
-               return iti->second;
-            } else {
-               return empty_map;
-            }
+            return iti->second;
          }
 
          if (bank_no & 0x7F)
@@ -642,7 +1423,7 @@ MIDI::new_channel(uint32_t channel_no, uint32_t bank_no, uint32_t program_no)
 
    Buffer& buffer = config.buffer(name, level);
    if (buffer) {
-      buffer.set(AAX_CAPABILITIES, static_cast<int>(instrument_mode));
+      buffer.set(AAX_CAPABILITIES, static_cast<int>(mode));
    }
 
    try
@@ -669,25 +1450,6 @@ MIDI::channel(uint32_t channel_no)
    return new_channel(channel_no, 0, 0);
 }
 
-bool
-MIDI::process(uint32_t channel_no, uint32_t message, uint32_t key, uint32_t velocity, float pitch)
-{
-   // Omni mode: Device responds to MIDI data regardless of channel
-   if (message == MIDI_NOTE_ON && velocity) {
-      if (is_track_active(channel_no)) {
-         channel(channel_no).play(key, velocity, pitch);
-      }
-   }
-   else
-   {
-      if (message == MIDI_NOTE_ON) {
-         velocity = 64;
-      }
-      channel(channel_no).stop(key, velocity);
-   }
-   return true;
-}
-
 
 // aax::MIDI::Channel
 
@@ -711,21 +1473,16 @@ Channel::get_patch(std::string& name, uint32_t& key_no)
 void
 Channel::play(uint32_t key_no, uint32_t velocity, float pitch)
 {
-   bool all = midi.no_active_tracks() > 0;
    auto it = name_map.begin();
    if (midi.channel(channel_no).is_drums())
    {
       it = name_map.find(key_no);
       if (it == name_map.end())
       {
-         auto inst = midi.get_drum(program_no, key_no, all);
+         auto inst = midi.get_drum(program_no, key_no, true);
          std::string name = inst.first;
          if (!name.empty())
          {
-            if (!midi.buffer_avail(name)) {
-               midi.load(name);
-            }
-
             Buffer& buffer = midi.buffer(name);
             if (buffer)
             {
@@ -744,16 +1501,12 @@ Channel::play(uint32_t key_no, uint32_t velocity, float pitch)
       it = name_map.upper_bound(key);
       if (it == name_map.end())
       {
-         auto inst = midi.get_instrument(bank_no, program_no, all);
+         auto inst = midi.get_instrument(bank_no, program_no, true);
          auto patch = get_patch(inst.first, key);
          std::string patch_name = patch.second;
          uint32_t level = patch.first;
          if (!patch_name.empty())
          {
-            if (!midi.buffer_avail(patch_name)) {
-               midi.load(patch_name);
-            }
-
             Buffer& buffer = midi.buffer(patch_name, level);
             if (buffer)
             {
@@ -917,895 +1670,6 @@ Channel::play(uint32_t key_no, uint32_t velocity, float pitch)
    }
 }
 
-
-// aax::MIDI::Track
-
-uint32_t
-Track::pull_message()
-{
-   uint32_t rv = 0;
-
-   for (int i=0; i<4; ++i)
-   {
-      uint32_t byte = pull_byte();
-
-      rv = (rv << 7) | (byte & 0x7f);
-      if ((byte & 0x80) == 0) {
-         break;
-      }
-   }
-
-   return rv;
-}
-
-bool
-Track::registered_param(uint32_t channel, uint32_t controller, uint32_t value)
-{
-   uint32_t type = value;
-   bool data = false;
-   bool rv = true;
-
-   if (type > MAX_REGISTERED_PARAM) {
-      type = MAX_REGISTERED_PARAM;
-   }
-
-   switch(controller)
-   {
-   case MIDI_REGISTERED_PARAM_COARSE:
-      msb_type = type;
-      break;
-   case MIDI_REGISTERED_PARAM_FINE:
-      lsb_type = type;
-      break;
-   case MIDI_DATA_ENTRY:
-      if (registered)
-      {
-         param[msb_type].coarse = value;
-         data = true;
-      }
-      break;
-   case MIDI_DATA_ENTRY|MIDI_FINE:
-      if (registered)
-      {
-         param[lsb_type].fine = value;
-         data = true;
-      }
-      break;
-   case MIDI_DATA_INCREMENT:
-      type = msb_type << 8 | lsb_type;
-      if (++param[type].fine == 128) {
-         param[type].coarse++;
-         param[type].fine = 0;
-      }
-      break;
-   case MIDI_DATA_DECREMENT:
-      type = msb_type << 8 | lsb_type;
-      if (param[type].fine == 0) {
-         param[type].coarse--;
-         param[type].fine = 127;
-      } else {
-         param[type].fine--;
-      }
-      break;
-   case MIDI_UNREGISTERED_PARAM_FINE:
-   case MIDI_UNREGISTERED_PARAM_COARSE:
-      break;
-   default:
-      rv = false;
-      break;
-   }
-
-   if (data)
-   {
-      type = msb_type << 8 | lsb_type;
-      switch(type)
-      {
-      case MIDI_PITCH_BEND_SENSITIVITY:
-      {
-         float val;
-         val = static_cast<float>(param[MIDI_PITCH_BEND_SENSITIVITY].coarse) +
-              static_cast<float>(param[MIDI_PITCH_BEND_SENSITIVITY].fine)*0.01f;
-         midi.channel(channel).set_semi_tones(val);
-         break;
-      }
-      case MIDI_MODULATION_DEPTH_RANGE:
-      {
-         float val;
-         val = static_cast<float>(param[MIDI_MODULATION_DEPTH_RANGE].coarse) +
-              static_cast<float>(param[MIDI_MODULATION_DEPTH_RANGE].fine)*0.01f;
-         midi.channel(channel).set_modulation_depth(val);
-         break;
-      }
-      case MIDI_PARAMETER_RESET:
-         midi.channel(channel).set_semi_tones(2.0f);
-         break;
-      case MIDI_CHANNEL_FINE_TUNING:
-      {
-         uint32_t tuning = param[MIDI_CHANNEL_FINE_TUNING].coarse << 7
-                         | param[MIDI_CHANNEL_FINE_TUNING].fine;
-         float pitch = static_cast<float>(tuning)-8192.0f;
-         if (pitch < 0) pitch /= 8192.0f;
-         else pitch /= 8191.0f;
-         midi.channel(channel).set_tuning(pitch);
-         break;
-      }
-      case MIDI_CHANNEL_COARSE_TUNING:
-         // This is handled by MIDI_NOTE_ON and MIDI_NOTE_OFF
-         break;
-      case MIDI_TUNING_PROGRAM_CHANGE:
-      case MIDI_TUNING_BANK_SELECT:
-         break;
-      default:
-         break;
-      }
-   }
-
-   return rv;
-}
-
-bool
-Track::process(uint64_t time_offs_parts, uint32_t& elapsed_parts, uint32_t& next)
-{
-   bool rv = !eof();
-
-   if (elapsed_parts < wait_parts)
-   {
-      wait_parts -= elapsed_parts;
-      next = wait_parts;
-      return rv;
-   }
-
-   while (!eof() && (timestamp_parts <= time_offs_parts))
-   {
-      // Handle running status; if the next byte is a data byte
-      // reuse the last command seen in the track
-      uint32_t message = pull_byte();
-      if ((message & 0x80) == 0)
-      {
-         push_byte(message);
-         message = previous;
-      }
-      else if ((message & 0xF0) != 0xF0)
-      {
-         // System messages (which are in the 0xF0-0xFF range) are not saved
-         // as it is possible to carry a running status across them.
-         previous = message;
-      }
-
-      rv = true;
-      switch(message)
-      {
-      case MIDI_SYSTEM_EXCLUSIVE_END:
-      {
-         uint64_t size = pull_message();
-         forward(size);
-      }
-      case MIDI_SYSTEM_EXCLUSIVE:
-      {
-         uint64_t size = pull_message();
-         uint64_t offs = offset();
-         uint32_t byte = pull_byte();
-
-         switch(byte)
-         {
-         case MIDI_SYSTEM_EXCLUSIVE_ROLAND:
-            byte = pull_byte();
-            if (byte != 0x10) break;
-
-            byte = pull_byte();
-            if (byte != 0x42) break;
-
-            byte = pull_byte();
-            if (byte != 0x12) break;
-
-            byte = pull_byte();
-            if (byte == 0x40)
-            {
-               byte = pull_byte();
-               switch(byte)
-               {
-               case 0x00:
-                  byte = pull_byte();
-                  if (byte != 0x7f) break;
-
-                  byte = pull_byte();
-                  if (byte != 0x00) break;
-
-                  byte = pull_byte();
-                  if (byte == 0x41) {
-                     midi.set_mode(GENERAL_STANDARD);
-                  }
-                  break;
-               case 0x19:
-               case 0x1a:
-                  byte = pull_byte();
-                  if (byte != 0x15) break;
-
-                  byte = pull_byte();
-                  if (byte == 0x02)
-                  {
-                     byte = pull_byte();
-                     if (byte == 0x10) midi.channel(9).set_drums(true);
-                     else if (byte == 0xf) midi.channel(11).set_drums(true);
-                  }
-                  break;
-               default:
-                  break;
-               }
-            }
-            break;
-         case MIDI_SYSTEM_EXCLUSIVE_YAMAHA:
-            byte = pull_byte();
-            if (byte != 0x10) break;
-
-            byte = pull_byte();
-            if (byte != 0x4c) break;
-
-            byte = pull_byte();
-            if (byte != 0x00) break;
-
-            byte = pull_byte();
-            if (byte != 0x00) break;
-
-            byte = pull_byte();
-            if (byte != 0x7e) break;
-
-            byte = pull_byte();
-            if (byte == 0x00) {
-               midi.set_mode(EXTENDED_GENERAL_MIDI);
-            }
-            break;
-         case MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME:
-            // GM1 rewind: F0 7E 7F 09 01 F7
-            // GM2 rewind: F0 7E 7F 09 03 F7
-            // GS  rewind: F0 41 10 42 12 40 00 7F 00 41 F7
-            byte = pull_byte();
-            if (byte == 0x7F)
-            {
-               byte = pull_byte();
-               switch(byte)
-               {
-               case GENERAL_MIDI_SYSTEM:
-                  byte = pull_byte();
-                  midi.set_mode(byte);
-                  switch(byte)
-                  {
-                  case 0x01:
-                     midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
-                     midi.set_mode(GENERAL_MIDI1);
-                     break;
-                  case 0x02:
-                     // midi.set_mode(MODE0);
-                     break;
-                  case 0x03:
-                     midi.process(0, MIDI_NOTE_OFF, 0, 0, true);
-                     midi.set_mode(GENERAL_MIDI2);
-                     break;
-                  default:
-                     break;
-                  }
-                  break;
-               case MIDI_EOF:
-               case MIDI_WAIT:
-               case MIDI_CANCEL:
-               case MIDI_NAK:
-               case MIDI_ACK:
-                  break;
-               default:
-                  break;
-               }
-            }
-            break;
-         case MIDI_SYSTEM_EXCLUSIVE_REALTIME:
-            byte = pull_byte();
-            switch(byte)
-            {
-            case MIDI_DEVICE_CONTROL:
-               byte = pull_byte();
-               switch(byte)
-               {
-               case MIDI_DEVICE_VOLUME:
-                  byte = pull_byte();
-                  midi.set_gain(static_cast<float>(byte)/127.0f);
-                  break;
-               case MIDI_DEVICE_BALANCE:
-                  byte = pull_byte();
-                  midi.set_balance((static_cast<float>(byte)-64.0f)/64.0f);
-                  break;
-               case MIDI_DEVICE_FINE_TUNING:
-               {
-                  uint32_t tuning = pull_byte() || pull_byte() << 7;
-                  float pitch = static_cast<float>(tuning)-8192.0f;
-                  if (pitch < 0) pitch /= 8192.0f;
-                  else pitch /= 8191.0f;
-                  midi.set_tuning(pitch);
-                  break;
-               }
-               case MIDI_DEVICE_COARSE_TUNING:
-               {
-                  float pitch;
-                  byte = pull_byte();    // lsb, always zero
-                  byte = pull_byte();    // msb
-                  pitch = static_cast<float>(byte)-64.0f;
-                  if (pitch < 0) pitch /= 64.0f;
-                  else pitch /= 63.0f;
-                  midi.set_tuning(pitch);
-                  break;
-               }
-               case MIDI_GLOBAL_PARAMETER_CONTROL:
-               {
-                  uint32_t path_len = pull_byte();
-                  uint32_t id_width = pull_byte();
-                  uint32_t val_width = pull_byte();
-                  uint32_t slot = pull_byte() || pull_byte() << 7;
-                  uint32_t param =  pull_byte();
-                  uint32_t value = pull_byte();
-
-                  // surpress unused warinings
-                  (void)path_len;
-                  (void)id_width;
-                  (void)val_width;
-
-                  switch(slot)
-                  {
-                  case MIDI_CHORUS_PARAMETER:
-                     switch(param)
-                     {
-                     case 0:    // CHORUS_TYPE
-                        switch(value)
-                        {
-                        case 0:
-                           midi.set_chorus("chorus/chorus1");
-                           break;
-                        case 1:
-                           midi.set_chorus("chorus/chorus2");
-                           break;
-                        case 2:
-                           midi.set_chorus("chorus/chorus3");
-                           break;
-                        case 3:
-                           midi.set_chorus("chorus/chorus4");
-                           break;
-                        case 4:
-                           midi.set_chorus("chorus/chorus_freedback");
-                           break;
-                        case 5:
-                           midi.set_chorus("chorus/flanger");
-                           break;
-                        default:
-                           break;
-                        }
-                        break;
-                     case 1:    // CHORUS_MOD_RATE
-                     // the modulation frequency in Hz
-                        midi.set_chorus_rate(0.122f*value);
-                        break;
-                     case 2:    // CHORUS_MOD_DEPTH
-                     {
-                     // the peak-to-peak swing of the modulation in ms
-                        float ms = 1e-3f*(value+1.0f)/3.2f;
-                        midi.set_chorus_depth(ms);
-                        break;
-                     }
-                     case 3:    // CHORUS_FEEDBACK
-                        midi.set_chorus_level(0.763f*value);
-                     // the amount of feedback from Chorus output in %
-                        break;
-                     case 4:    // CHORUS_SEND_TO_REVERB
-                     // the send level from Chorus to Reverb in %
-                        midi.set_chorus_level(0.787f*value);
-                     default:
-                        break;
-                     }
-                     break;
-                  case MIDI_REVERB_PARAMETER:
-                     switch(param)
-                     {
-                     case 0:    // Reverb Typ
-                        midi.set_reverb_type(value);
-                        break;
-                     case 1:    //Reverb Time
-                     {
-                        float rt = expf((value-40)*0.025);
-                        midi.set_decay_depth(rt);
-                     }
-                     default:
-                        break;
-                     }
-                     break;
-                  default:
-                     break;
-                  }
-                  break;
-               }
-               default:
-                  byte = pull_byte();
-                  break;
-               }
-               break;
-            default:
-               break;
-            }
-         default:
-            break;
-         }
-
-         size -= (offset() - offs);
-         if (size) forward(size);
-         break;
-      }
-      default:
-      {
-         uint32_t channel = message & 0xf;
-         bool active = midi.is_channel_active(0 /*port*/, channel);
-         switch(message & 0xf0)
-         {
-         case MIDI_NOTE_ON:
-         {
-            int16_t key = pull_byte();
-            uint32_t velocity = pull_byte();
-            if (!active) break;
-
-            float pitch = 1.0f;
-            if (!midi.channel(channel).is_drums()) {
-               key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
-               pitch = midi.channel(channel).get_tuning();
-               pitch *= midi.get_tuning();
-            }
-            midi.process(channel, message & 0xf0, key, velocity, pitch);
-            break;
-         }
-         case MIDI_NOTE_OFF:
-         {
-            int16_t key = pull_byte();
-            uint32_t velocity = pull_byte();
-            if (!active) break;
-
-            if (!midi.channel(channel).is_drums()) {
-               key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
-            }
-            midi.process(channel, message & 0xf0, key, velocity);
-            break;
-         }
-         case MIDI_POLYPHONIC_AFTERTOUCH:
-         {
-            uint32_t key = pull_byte();
-            uint32_t pressure = pull_byte();
-            if (!active) break;
-
-            if (!midi.channel(channel).is_drums())
-            {
-               float s=midi.channel(channel).get_aftertouch_sensitivity();
-               if (midi.channel(channel).get_pressure_pitch_bend()) {
-                  midi.channel(channel).set_pitch(key, cents2pitch(s*pressure/127.0f, channel));
-               }
-               if (midi.channel(channel).get_pressure_volume_bend()) {
-                  midi.channel(channel).set_pressure(key, 1.0f-0.33f*pressure/127.0f);
-               }
-            }
-            break;
-         }
-         case MIDI_CHANNEL_AFTERTOUCH:
-         {
-            uint32_t pressure = pull_byte();
-            if (!active) break;
-
-            if (!midi.channel(channel).is_drums())
-            {
-               float s=midi.channel(channel).get_aftertouch_sensitivity();
-               if (midi.channel(channel).get_pressure_pitch_bend()) {
-                  midi.channel(channel).set_pitch(cents2pitch(s*pressure/127.0f, channel));
-               }
-               if (midi.channel(channel).get_pressure_volume_bend()) {
-                  midi.channel(channel).set_pressure(1.0f-0.33f*pressure/127.0f);
-               }
-            }
-            break;
-         }
-         case MIDI_PITCH_BEND:
-         {
-            int16_t pitch = pull_byte() | pull_byte() << 7;
-            if (!active) break;
-
-            float pitch_bend = static_cast<float>(pitch)-8192.0f;
-            if (pitch_bend < 0) pitch_bend /= 8192.0f;
-            else pitch_bend /= 8191.0f;
-            pitch_bend = cents2pitch(pitch_bend, channel);
-            midi.channel(channel).set_pitch(pitch_bend);
-            break;
-         }
-         case MIDI_CONTROL_CHANGE:
-         {
-            // http://midi.teragonaudio.com/tech/midispec/ctllist.htm
-            uint32_t controller = pull_byte();
-            uint32_t value = pull_byte();
-            if (!active) break;
-
-            switch(controller)
-            {
-            case MIDI_ALL_CONTROLLERS_OFF:
-               midi.channel(channel).set_modulation(0.0f);
-               midi.channel(channel).set_expression(1.0f);
-               midi.channel(channel).set_hold(false);
-//              midi.channel(channel).set_portamento(false);
-               midi.channel(channel).set_sustain(false);
-               midi.channel(channel).set_soft(false);
-               midi.channel(channel).set_semi_tones(2.0f);
-               midi.channel(channel).set_pitch(1.0f);
-               msb_type = lsb_type = 0x7F;
-               // midi.channel(channel).set_gain(100.0f/127.0f);
-               // midi.channel(channel).set_pan(0.0f);
-               // intentional falltrough
-            case MIDI_MONO_ALL_NOTES_OFF:
-               midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               if (value == 1) {
-                  mode = MONOPHONIC;
-                  midi.channel(channel).set_monophonic(true);
-               }
-               break;
-            case MIDI_POLY_ALL_NOTES_OFF:
-               midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               midi.channel(channel).set_monophonic(false);
-               mode = POLYPHONIC;
-               break;
-            case MIDI_ALL_SOUND_OFF:
-               midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               break;
-            case MIDI_OMNI_OFF:
-               midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               midi.set_omni_enabled(false);
-               break;
-            case MIDI_OMNI_ON:
-               midi.process(channel, MIDI_NOTE_OFF, 0, 0, true);
-               midi.set_omni_enabled(true);
-               break;
-            case MIDI_BANK_SELECT:
-               if (value == MIDI_BANK_RYTHM) {
-                  midi.channel(channel).set_drums(true);
-               } else if (value == MIDI_BANK_MELODY) {
-                  midi.channel(channel).set_drums(false);
-               }
-               bank_no = static_cast<uint32_t>(value << 7);
-               break;
-            case MIDI_BANK_SELECT|MIDI_FINE:
-               bank_no += value;
-               break;
-            case MIDI_BREATH_CONTROLLER:
-               if (!midi.channel(channel).is_drums()) {
-                  midi.channel(channel).set_pressure(1.0f-0.33f*value/127.0f);
-               }
-               break;
-            case MIDI_BALANCE:
-               // If a MultiTimbral device, then each Part usually has its
-               // own Balance. This is generally when Balance becomes
-               // useful, because then you can use Pan, Volume, and Balance
-               // controllers to internally mix all of the Parts to the
-               // device's stereo outputs
-               break;
-            case MIDI_PAN:
-               midi.channel(channel).set_pan((static_cast<float>(value)-64.0f)/64.0f);
-               break;
-            case MIDI_EXPRESSION:
-               midi.channel(channel).set_expression(static_cast<float>(value)/127.0f);
-               break;
-            case MIDI_MODULATION_DEPTH:
-            {
-               float depth = static_cast<float>(value << 7)/16383.0f;
-               depth = cents2modulation(depth, channel) - 1.0f;
-               midi.channel(channel).set_modulation(depth);
-               break;
-            }
-            case MIDI_CELESTE_EFFECT_DEPTH:
-            {
-               float level = static_cast<float>(value)/127.0f;
-               level = cents2pitch(level, channel);
-               midi.channel(channel).set_detune(level);
-               break;
-            }
-            case MIDI_CHANNEL_VOLUME:
-               midi.channel(channel).set_gain(static_cast<float>(value)/127.0f);
-               break;
-            case MIDI_ALL_NOTES_OFF:
-               for(auto& it : midi.channel())
-               {
-                  midi.process(it.first, MIDI_NOTE_OFF, 0, 0, true);
-                  midi.channel(channel).set_semi_tones(2.0f);
-               }
-               break;
-            case MIDI_UNREGISTERED_PARAM_COARSE:
-            case MIDI_UNREGISTERED_PARAM_FINE:
-               registered = false;
-               registered_param(channel, controller, value);
-               break;
-            case MIDI_REGISTERED_PARAM_COARSE:
-            case MIDI_REGISTERED_PARAM_FINE:
-               registered = true;
-               registered_param(channel, controller, value);
-               break;
-            case MIDI_DATA_ENTRY:
-            case MIDI_DATA_ENTRY|MIDI_FINE:
-            case MIDI_DATA_INCREMENT:
-            case MIDI_DATA_DECREMENT:
-               registered_param(channel, controller, value);
-               break;
-            case MIDI_SOFT_PEDAL_SWITCH:
-               midi.channel(channel).set_soft(value >= 0x40);
-               break;
-            case MIDI_LEGATO_SWITCH:
-               break;
-            case MIDI_DAMPER_PEDAL_SWITCH:
-               midi.channel(channel).set_hold(value >= 0x40);
-               break;
-            case MIDI_SOSTENUTO_SWITCH:
-               midi.channel(channel).set_sustain(value >= 0x40);
-               break;
-            case MIDI_REVERB_SEND_LEVEL:
-               midi.set_reverb_level(channel, value);
-               break;
-            case MIDI_CHORUS_SEND_LEVEL:
-            {
-               float val = static_cast<float>(value)/127.0f;
-               midi.channel(channel).set_chorus_level(val);
-               break;
-            }
-            case MIDI_FILTER_RESONANCE:
-            {
-               float val = -1.0f+static_cast<float>(value)/64.0f; // relative: 0.0 - 2.0
-               midi.channel(channel).set_filter_resonance(val);
-               break;
-            }
-            case MIDI_CUTOFF:      // Brightness
-            {
-               float val = static_cast<float>(value)/64.0f;
-               if (val < 1.0f) val = 0.5f + 0.5f*val;
-               midi.channel(channel).set_filter_cutoff(val);
-               break;
-            }
-            case MIDI_VIBRATO_RATE:
-            {
-               float val = 0.5f + static_cast<float>(value)/64.0f;
-               midi.channel(channel).set_vibrato_rate(val);
-               break;
-            }
-            case MIDI_VIBRATO_DEPTH:
-            {
-               float val = static_cast<float>(value)/64.0f;
-               midi.channel(channel).set_vibrato_depth(val);
-               break;
-            }
-            case MIDI_VIBRATO_DELAY:
-            {
-               float val = static_cast<float>(value)/64.0f;
-               midi.channel(channel).set_vibrato_delay(val);
-               break;
-            }
-            case MIDI_PORTAMENTO_TIME:
-            {
-               float val = powf(10.0f, 2.0f-3.0f*value/127.0f);
-               val = cents2pitch(val, channel)*1e-3f;
-               midi.channel(channel).set_pitch_rate(val);
-               break;
-            }
-            case MIDI_PORTAMENTO_SWITCH:
-               midi.channel(channel).set_pitch_rate(value >= 0x40);
-               break;
-            case MIDI_RELEASE_TIME:
-               midi.channel(channel).set_release_time(value);
-               break;
-            case MIDI_ATTACK_TIME:
-               midi.channel(channel).set_attack_time(value);
-               break;
-            case MIDI_DECAY_TIME:
-               midi.channel(channel).set_decay_time(value);
-               break;
-            case MIDI_TREMOLO_EFFECT_DEPTH:
-               midi.channel(channel).set_tremolo_depth(static_cast<float>(value)/64.0f);
-               break;
-            case MIDI_PHASER_EFFECT_DEPTH:
-               midi.channel(channel).set_phaser_depth(static_cast<float>(value)/64.0f);
-               break;
-            case MIDI_PORTAMENTO_CONTROL:
-            case MIDI_HOLD2:
-            case MIDI_PAN|MIDI_FINE:
-            case MIDI_EXPRESSION|MIDI_FINE:
-            case MIDI_BREATH_CONTROLLER|MIDI_FINE:
-            case MIDI_BALANCE|MIDI_FINE:
-            case MIDI_SOUND_VARIATION:
-            case MIDI_SOUND_CONTROL10:
-            case MIDI_HIGHRES_VELOCITY_PREFIX:
-            case MIDI_GENERAL_PURPOSE_CONTROL1:
-            case MIDI_GENERAL_PURPOSE_CONTROL2:
-            case MIDI_GENERAL_PURPOSE_CONTROL3:
-            case MIDI_GENERAL_PURPOSE_CONTROL4:
-            case MIDI_GENERAL_PURPOSE_CONTROL5:
-            case MIDI_GENERAL_PURPOSE_CONTROL6:
-            case MIDI_GENERAL_PURPOSE_CONTROL7:
-            case MIDI_GENERAL_PURPOSE_CONTROL8:
-               break;
-            default:
-               break;
-            }
-            break;
-         }
-         case MIDI_PROGRAM_CHANGE:
-         {
-            uint32_t program_no = pull_byte();
-            if (!active) break;
-
-            try {
-               midi.new_channel(channel, bank_no, program_no);
-            } catch(const std::invalid_argument& e) {
-//             std::cerr << "Error: " << e.what() << std::endl;
-            }
-            break;
-         }
-         case MIDI_SYSTEM:
-            switch(channel)
-            {
-            case MIDI_TIMING_CODE:
-               pull_byte();
-               break;
-            case MIDI_POSITION_POINTER:
-               pull_byte();
-               pull_byte();
-               break;
-            case MIDI_SONG_SELECT:
-               pull_byte();
-               break;
-            case MIDI_TUNE_REQUEST:
-               break;
-            case MIDI_SYSTEM_RESET:
-#if 0
-               omni_enabled = true;
-               polyphony_enabled = true;
-               for(auto& it : midi.channel())
-               {
-                  midi.process(it.first, MIDI_NOTE_OFF, 0, 0, true);
-                  midi.channel(channel).set_semi_tones(2.0f);
-               }
-#endif
-               break;
-            case MIDI_TIMING_CLOCK:
-            case MIDI_START:
-            case MIDI_CONTINUE:
-            case MIDI_STOP:
-            case MIDI_ACTIVE_SENSE:
-               break;
-            default:
-               break;
-            }
-            break;
-         default:
-            break;
-         }
-         break;
-      } // switch
-      } // default
-
-      if (!eof())
-      {
-         wait_parts = pull_message();
-         timestamp_parts += wait_parts;
-      }
-   }
-   next = wait_parts;
-
-   return rv;
-}
-
-
-// aax::MIDI::Stream
-
-Stream::~Stream()
-{
-   if (started)
-   {
-      thread.join();
-      started = false;
-   }
-   delete track;
-}
-
-void
-Stream::initialize()
-{
-   MIDI::set(AAX_REFRESH_RATE, 100);
-   MIDI::set(AAX_INITIALIZED);
-}
-
-void
-Stream::start()
-{
-   if (!started)
-   {
-      MIDI::start();
-
-      try {
-         thread = std::thread(thread_run, this);
-      } catch (std::runtime_error &ex) {
-         return;
-      }
-
-      started = true;
-   }
-}
-
-void
-Stream::stop(bool processed)
-{
-   if (processed && started)
-   {
-      MIDI::stop(processed);
-      if (started)
-      {
-         thread.join();
-         started = false;
-      }
-   }
-}
-
-void*
-Stream::thread_run(void* data)
-{
-    Stream* thread = reinterpret_cast<Stream*>(data);
-    thread->run();
-    return 0;
-}
-
-void
-Stream::run()
-{
-   uint64_t time_parts = 0;
-   uint32_t wait_parts;
-
-   wait_parts = 1000;
-   auto now = std::chrono::high_resolution_clock::now();
-   do
-   {
-      if (!process(time_parts, wait_parts)) break;
-
-      if (wait_parts > 0)
-      {
-          double sleep_us, wait_us;
-
-          auto next = std::chrono::high_resolution_clock::now();
-          std::chrono::duration<double, std::micro> dt_us = next - now;
-
-          wait_us = static_cast<double>( wait_parts*get_uspp() );
-          sleep_us = wait_us - dt_us.count();
-
-          if (sleep_us > 0)
-          {
-             int64_t dt_us = sleep_us;
-             std::this_thread::sleep_until(next + std::chrono::microseconds(dt_us));
-          }
-
-          now = std::chrono::high_resolution_clock::now();
-      }
-      time_parts += wait_parts;
-   }
-   while(1);
-}
-
-bool
-Stream::process(uint64_t time_parts, uint32_t& next)
-{
-   uint32_t elapsed_parts = next;
-   uint32_t wait_parts;
-   bool rv = false;
-
-   wait_parts = next;
-   rv = track->process(time_parts, elapsed_parts, wait_parts);
-   if (next > wait_parts) {
-      next = wait_parts;
-   }
-
-   if (next == UINT_MAX) {
-      next = 100;
-   }
-
-   return rv;
-}
 
 }; // namespace MIDI
 }; // namespace aax

@@ -35,14 +35,14 @@ extern "C" {
 AAX_API aaxMidi AAX_APIENTRY
 aaxMidiCreate(aaxConfig config)
 {
-   aax::MIDI::Stream* stream = new aax::MIDI::Stream(config);
+   aax::MIDI::MIDI* stream = new aax::MIDI::MIDI(config);
    return reinterpret_cast<aaxMidi>(stream);
 }
 
 AAX_API int AAX_APIENTRY
 aaxMidiDestroy(aaxMidi handle)
 {
-   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
+   aax::MIDI::MIDI* stream = reinterpret_cast<aax::MIDI::MIDI*>(handle);
    delete stream;
 
    return AAX_TRUE;
@@ -51,7 +51,7 @@ aaxMidiDestroy(aaxMidi handle)
 AAX_API int AAX_APIENTRY
 aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, uint32_t value)
 {
-   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
+   aax::MIDI::MIDI* stream = reinterpret_cast<aax::MIDI::MIDI*>(handle);
    uint32_t port = type & 0xFFFF;
    int rv = AAX_TRUE;
 
@@ -73,7 +73,7 @@ aaxMidiSetSetup(aaxMidi handle, enum aaxMidiSetupType type, uint32_t value)
 AAX_API unsigned int AAX_APIENTRY
 aaxMidiGetSetup(aaxMidi handle, enum aaxMidiSetupType type)
 {
-   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
+   aax::MIDI::MIDI* stream = reinterpret_cast<aax::MIDI::MIDI*>(handle);
    uint32_t port = type & 0xFFFF;
    int rv = AAX_TRUE;
 
@@ -95,7 +95,7 @@ aaxMidiGetSetup(aaxMidi handle, enum aaxMidiSetupType type)
 AAX_API int AAX_APIENTRY
 aaxMidiSetState(aaxMidi handle, enum aaxState state)
 {
-   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
+   aax::MIDI::MIDI* stream = reinterpret_cast<aax::MIDI::MIDI*>(handle);
    int rv = AAX_TRUE;
 
    switch (state)
@@ -119,14 +119,14 @@ aaxMidiSetState(aaxMidi handle, enum aaxState state)
 AAX_API enum aaxState
 AAX_APIENTRY aaxMidiGetState(aaxMidi handle)
 {
-   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
+   aax::MIDI::MIDI* stream = reinterpret_cast<aax::MIDI::MIDI*>(handle);
    return stream->state();
 }
 
 AAX_API int AAX_APIENTRY
 aaxMidiPushMessage(aaxMidi handle, uint32_t message)
 {
-   aax::MIDI::Stream* stream = reinterpret_cast<aax::MIDI::Stream*>(handle);
+   aax::MIDI::MIDI* stream = reinterpret_cast<aax::MIDI::MIDI*>(handle);
    stream->push(message);
    return AAX_TRUE;
 }
