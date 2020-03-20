@@ -24,6 +24,7 @@
 
 #include <unordered_map>
 #include <type_traits>
+#include <functional>
 #include <algorithm>
 #include <iostream>
 #include <utility>
@@ -259,8 +260,8 @@ private:
     } get;
     union dsptype dsptype;
 };
-typedef Tieable<float> Param;
-typedef Tieable<int> Status;
+using Param = Tieable<float>;
+using Status = Tieable<int>;
 
 
 template <typename T>
@@ -336,7 +337,7 @@ public:
 
 protected:
     T ptr = nullptr;
-    mutable close_fn* closefn = nullptr;
+    std::function<int(T)> closefn = nullptr;
     std::vector<Param*> fties;
     std::vector<Status*> ities;
 };
@@ -981,7 +982,7 @@ private:
     std::vector<aaxConfig> sensors;
     std::vector<aaxEmitter> emitters;
 };
-typedef Frame Mixer;
+using Mixer = Frame;
 
 
 class AeonWave : public Sensor

@@ -29,7 +29,7 @@
 
 #include "buffer_map.hpp"
 
-typedef buffer_map<uint8_t> uint8_map;
+using uint8_map = buffer_map<uint8_t>;
 
 class byte_stream : public uint8_map
 {

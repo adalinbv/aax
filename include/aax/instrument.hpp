@@ -68,6 +68,8 @@ public:
         }
     }
 
+    ~Note() = default;
+
     friend void swap(Note& n1, Note& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
         n1.mtx = std::move(n2.mtx);

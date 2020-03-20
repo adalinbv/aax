@@ -37,7 +37,7 @@ template <typename T>
 class VecBase
 {
 protected:
-    typedef T VT[4];
+    using VT = T[4];
 
 public:
     VecBase() : _v4(true) {
@@ -252,15 +252,15 @@ private:
     VT _v;
     bool _v4;
 };
-typedef VecBase<float> Vector;
-typedef VecBase<double> Vector64;
+using Vector = VecBase<float>;
+using Vector64 = VecBase<double>;
 
 
 template <typename T>
 class MtxBase
 {
 protected:
-    typedef T MT[4][4];
+    using MT = T[4][4];
 
 public:
     MtxBase() {}
