@@ -54,19 +54,23 @@ public:
         buf = ptr;
     }
 
-    const T& operator[](size_t idx) {
+    const T& operator[](size_t idx) const {
         if (idx < length) return buf[idx];
-        throw(std::out_of_range("index beyond buffer length"));
+        std::cerr << "index beyond buffer length" << std::endl;
+        return _error;
     }
 
-    T operator[](size_t idx) const {
+    T operator[](size_t idx) {
         if (idx < length) return buf[idx];
-        throw(std::out_of_range("index beyond buffer length"));
+        std::cerr << "index beyond buffer length" << std::endl;
+        return _error;
     }
 
-    inline T& get(size_t idx) {
+    inline T& get(size_t idx) const {
         if (idx < length) return buf[idx];
-        throw(std::out_of_range("index beyond buffer length"));
+        std::cerr << "index beyond buffer length" << std::endl;
+        static unsigned char error = 0;
+        return error;
     }
 
     operator T*() const {
@@ -78,6 +82,7 @@ public:
     }
 
 private:
+    static const unsigned char _error = 0;
     size_t length = 0;
     T *buf = nullptr;
 };
