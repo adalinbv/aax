@@ -37,6 +37,10 @@ uint32_t xoshiro128plus();
 
 float _aax_rand_sample();
 
+
+void _aax_srand(uint64_t);
+uint64_t _aax_rand();
+
 #if defined(__cplusplus)
 }  /* extern "C" */
 #endif

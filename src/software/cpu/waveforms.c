@@ -333,7 +333,7 @@ _aax_generate_sawtooth(size_t no_samples, float freq, float phase)
  */
 static float
 _aax_seeded_random() {
-   return (float)rand()/RAND_MAX;
+   return (float)_aax_rand()/INT64_MAX;
 }
 
 static float *
@@ -348,7 +348,7 @@ _aax_generate_noise_float(float *rv, size_t no_samples, unsigned int seed, unsig
 
       if (seed)
       {
-          srand(seed);
+          _aax_srand(seed);
           rnd_fn = _aax_seeded_random;
       }
 
