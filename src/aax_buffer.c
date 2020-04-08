@@ -53,7 +53,7 @@
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
-static int _bufProcessWaveform(aaxBuffer, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
+static int _bufProcessWaveform(aaxBuffer, float, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void** _bufGetDataPitchLevels(_buffer_t*);
@@ -551,7 +551,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, 0, 1, 0.0f, wtype, ratio, ptype, 0);
+   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, 0.0f, 0.0f, 1, 0.0f, wtype, ratio, ptype, 0);
 }
 
 AAX_API void** AAX_APIENTRY
@@ -1147,6 +1147,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
    float phase, pitch, ratio;
    float staticity = 0.0f;
+   float random = 0.0f;
    int midi_mode;
 
    midi_mode = handle->midi_mode;
@@ -1184,6 +1185,11 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
       } else {
          staticity = xmlNodeGetDouble(xwid, "staticity");
       }
+   }
+   if (xmlAttributeExists(xwid, "random")) {
+      random = xmlAttributeGetDouble(xwid, "random");
+   } else {
+      random = xmlNodeGetDouble(xwid, "random");
    }
 
    if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
@@ -1274,7 +1280,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
 
    spread = spread*_log2lin(_lin2log(freq)/3.3f);
    if (ptype == AAX_RINGMODULATE) voices = 1;
-   return _bufProcessWaveform(handle, freq, phase, pitch, staticity,
+   return _bufProcessWaveform(handle, freq, phase, pitch, staticity, random,
                    pitch_level, voices, spread, wtype, ratio, ptype, limiter);
 }
 
@@ -1920,7 +1926,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 #endif
 
 static int
-_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
+_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
@@ -1936,7 +1942,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
       float samps_period, fs, fw, fs_mixer, rate, *scratch;
-      unsigned int no_samples, i, bit = 1;
+      unsigned int seed, no_samples, i, bit = 1;
       int q, hvoices;
       unsigned skip;
       char modulate;
@@ -1945,6 +1951,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       modulate = 0;
       rate = freq * pitch;
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
+      seed = FNMINMAX(random, 0.0f, 1.0f) * UINT_MAX;
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(staticity, 0.0f, 1.0f));
 
       phase *= GMATH_PI;
@@ -2034,7 +2041,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
             case AAX_WHITE_NOISE:
             case AAX_PINK_NOISE:
             case AAX_BROWNIAN_NOISE:
-               rv = rb->data_mix_noise(rb, scratch, wtype & bit, fs_mixer, pitch, ratio, skip, modulate, limiter);
+               rv = rb->data_mix_noise(rb, scratch, wtype & bit, fs_mixer, pitch, ratio, seed, skip, modulate, limiter);
                break;
             default:
                break;

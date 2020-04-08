@@ -214,9 +214,9 @@ void _aaxRingBufferCompress(MIX_PTR_T, size_t, float, float);
 /** BUFFER */
 void _bufferMixWaveform(void**, float*, enum wave_types, float, char, size_t, int, float, float, unsigned char, limitType);
 
-void _bufferMixWhiteNoise(void**, float*, size_t, char, int, float, float, unsigned char, unsigned char, limitType);
-void _bufferMixPinkNoise(void**, float*, size_t, char, int, float, float, float, unsigned char, unsigned char, limitType);
-void _bufferMixBrownianNoise(void**, float*, size_t, char, int, float, float, float, unsigned char, unsigned char, limitType);
+void _bufferMixWhiteNoise(void**, float*, size_t, char, int, float, float, unsigned int, unsigned char, unsigned char, limitType);
+void _bufferMixPinkNoise(void**, float*, size_t, char, int, float, float, float, unsigned int, unsigned char, unsigned char, limitType);
+void _bufferMixBrownianNoise(void**, float*, size_t, char, int, float, float, float, unsigned int, unsigned char, unsigned char, limitType);
 
 #if defined(__cplusplus)
 }  /* extern "C" */

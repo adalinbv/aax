@@ -1233,7 +1233,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
 }
 
 int
-_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, float f, float rate, float ratio, char skip, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, float f, float rate, float ratio, unsigned int seed, char skip, unsigned char modulate, unsigned char limiter)
 {
    unsigned int tracks;
    unsigned char bps;
@@ -1252,20 +1252,20 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformT
    switch (type)
    {
    case AAX_WHITE_NOISE:
-      _bufferMixWhiteNoise(data, scratch, no_samples, bps, tracks, pitch, ratio, skip, modulate, limiter);
+      _bufferMixWhiteNoise(data, scratch, no_samples, bps, tracks, pitch, ratio, seed, skip, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_PINK_NOISE:
       if (f)
       {
-         _bufferMixPinkNoise(data, scratch, no_samples, bps, tracks, pitch, ratio, f, skip, modulate, limiter);
+         _bufferMixPinkNoise(data, scratch, no_samples, bps, tracks, pitch, ratio, f, seed, skip, modulate, limiter);
          rv = AAX_TRUE;
       }
       break;
    case AAX_BROWNIAN_NOISE:
      if (f)
      {
-         _bufferMixBrownianNoise(data, scratch, no_samples, bps, tracks, pitch, ratio, f, skip, modulate, limiter);
+         _bufferMixBrownianNoise(data, scratch, no_samples, bps, tracks, pitch, ratio, f, seed, skip, modulate, limiter);
          rv = AAX_TRUE;
       }
       break;

@@ -55,7 +55,7 @@ static float _gains[AAX_MAX_WAVE];
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
-static float* _aax_generate_noise_float(float*, size_t, unsigned char);
+static float* _aax_generate_noise_float(float*, size_t, unsigned int, unsigned char);
 
 #if 0
 static float* _aax_generate_sine(size_t, float, float);
@@ -91,13 +91,13 @@ _bufferMixWaveform(void** data, float *scratch, enum wave_types wtype, float fre
 }
 
 void
-_bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, unsigned int seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
    {
       size_t noise_samples = pitch*no_samples + NOISE_PADDING;
-      float *ptr2 = _aax_generate_noise_float(scratch, noise_samples, skip);
+      float *ptr2 = _aax_generate_noise_float(scratch, noise_samples, seed, skip);
       float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
 
       if (ptr && ptr2)
@@ -114,7 +114,7 @@ _bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, i
 }
 
 void
-_bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned int seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -125,7 +125,7 @@ _bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, in
       pitch = ((unsigned int)(pitch*no_samples/100.0f)*100.0f)/no_samples;
 
       noise_samples = pitch*no_samples + NOISE_PADDING;
-      ptr2 = _aax_generate_noise_float(scratch, 2*noise_samples, skip);
+      ptr2 = _aax_generate_noise_float(scratch, 2*noise_samples, seed, skip);
       ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
@@ -144,7 +144,7 @@ _bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, in
 }
 
 void
-_bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned int seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -153,7 +153,7 @@ _bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps
       float *ptr, *ptr2;
 
       noise_samples = pitch*no_samples + 64;
-      ptr2 = _aax_generate_noise_float(scratch, noise_samples, skip);
+      ptr2 = _aax_generate_noise_float(scratch, noise_samples, seed, skip);
       ptr = _aax_aligned_alloc(no_samples*sizeof(float));
       if (ptr && ptr2)
       {
@@ -331,14 +331,26 @@ _aax_generate_sawtooth(size_t no_samples, float freq, float phase)
  * Generate an array of random samples
  * output range is -1.0 .. 1.0
  */
+static float
+_aax_seeded_random() {
+   return 0.5f + (float)rand()/INT_MAX;
+}
+
 static float *
-_aax_generate_noise_float(float *rv, size_t no_samples, unsigned char skip)
+_aax_generate_noise_float(float *rv, size_t no_samples, unsigned int seed, unsigned char skip)
 {
    if (rv)
    {
+      float (*rnd)() = _aax_rand_sample;
       float rnd_skip = skip ? skip : 1.0f;
       int i = no_samples;
       float *ptr = rv;
+
+      if (seed)
+      {
+          srand(seed);
+          rnd = _aax_seeded_random;
+      }
 
       memset(rv, 0, no_samples*sizeof(float));
       do
@@ -347,7 +359,7 @@ _aax_generate_noise_float(float *rv, size_t no_samples, unsigned char skip)
 
          ptr += (int)rnd_skip;
          i -= (int)rnd_skip;
-         if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*_aax_random();
+         if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*rnd();
       }
       while (i>=skip);
    }
