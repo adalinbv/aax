@@ -333,7 +333,7 @@ _aax_generate_sawtooth(size_t no_samples, float freq, float phase)
  */
 static float
 _aax_seeded_random() {
-   return 0.5f + (float)rand()/INT_MAX;
+   return (float)rand()/RAND_MAX;
 }
 
 static float *
@@ -341,27 +341,26 @@ _aax_generate_noise_float(float *rv, size_t no_samples, unsigned int seed, unsig
 {
    if (rv)
    {
-      float (*rnd)() = _aax_rand_sample;
+      float (*rnd_fn)() = _aax_rand_sample;
       float rnd_skip = skip ? skip : 1.0f;
-      int i = no_samples;
+      float *end = rv + no_samples;
       float *ptr = rv;
 
       if (seed)
       {
           srand(seed);
-          rnd = _aax_seeded_random;
+          rnd_fn = _aax_seeded_random;
       }
 
       memset(rv, 0, no_samples*sizeof(float));
       do
       {
-         *ptr += 0.5f*_aax_rand_sample();
+         *ptr += 0.5f*rnd_fn();
 
          ptr += (int)rnd_skip;
-         i -= (int)rnd_skip;
-         if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*rnd();
+         if (skip) rnd_skip = 1.0f + (2*skip-rnd_skip)*fabsf(rnd_fn());
       }
-      while (i>=skip);
+      while (ptr < end);
    }
    return rv;
 }
