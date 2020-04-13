@@ -303,6 +303,7 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       float esv, vs;
       float dist_ef;
       float gain;
+      float df;
       FLOAT pitch;
 
       pitch = (FLOAT)1.0f;
@@ -340,6 +341,12 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
  printf("# dist: %5.1f\n", dist_ef);
 #endif
 
+      /* calculate the sound velocity inbetween the emitter and the sensor */
+      esv = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
+      vs = (esv+ssv) / 2.0f;
+      df = _velocity_prepare(ep3d, edp3d, edp3d_m, fdp3d_m, &epos, dist_ef, vs, sdf);
+      pitch *= df;
+
       /* distance attenuation and audio-cone support */
       gain *= _directional_prepare(ep3d, edp3d_m, fdp3d_m);
       gain *= _distance_prepare(ep2d, ep3d, fdp3d_m, &epos, dist_ef, speaker, info);
@@ -351,15 +358,16 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       ep2d->final.k = 1.0f;
       if (fdp3d_m == sdp3d_m || _PROP3D_INDOOR_IS_DEFINED(fdp3d_m))
       {
-         float dist_km = _MIN(dist_ef * info->unit_m / 5000.0f, 1.0f);
-         float fc = 22050.0f - (22050.0f-1000.0f)*sqrtf(dist_km);
+         float dist_km;
+         float fc;
+
+         df = _MAX(df , 1.0f);
+         gain /= df;
+
+         dist_km = _MIN(df*dist_ef * info->unit_m / 5000.0f, 1.0f);
+         fc = 22050.0f - (22050.0f-1000.0f)*sqrtf(dist_km);
          ep2d->final.k = _aax_movingaverage_compute(fc, info->frequency);
       }
-
-      /* calculate the sound velocity inbetween the emitter and the sensor */
-      esv = _EFFECT_GET(ep3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
-      vs = (esv+ssv) / 2.0f;
-      pitch *= _velocity_prepare(ep3d, edp3d, edp3d_m, fdp3d_m, &epos, dist_ef, vs, sdf);
 
       /*
        * Volume filter/Reverb effect: Occlusion at the the parent frame

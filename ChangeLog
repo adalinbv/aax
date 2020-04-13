@@ -1,7 +1,11 @@
 
 * Sat Mar 14 2020 - tech@adalin.org
-- AeonWave (3.8.3) stable; urgency=medium
+- AeonWave (3.8.3) stable; urgency=high
 
+ * Use the Doppler factor to attenuate the sound moving towards the listener.
+ * Make it possible to create a reproducible random sequence by specifying a
+   random attricbute for noise waveforms which defines the random seed.
+ * Fix a possible buffer out-of-bounds when using noise waveforms.
  * Fix a problem where a release-time, for the timed gain filter, which is
    shorter than a single update would silence the sound.
 
