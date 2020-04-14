@@ -310,7 +310,7 @@ void
 MIDI::process_exclusive()
 {
    uint64_t size = pull_message();
-   const char *s = NULL;
+   const char *s = nullptr;
    uint32_t byte;
 
    while (data.size() && (byte = pull_byte()) != MIDI_SYSTEM_EXCLUSIVE_END)

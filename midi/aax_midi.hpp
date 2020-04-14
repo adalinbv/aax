@@ -218,7 +218,7 @@ private:
    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> drums;
    std::map<uint32_t,std::map<uint32_t,std::pair<std::string,int>>> instruments;
 
-   typedef std::map<uint32_t,std::pair<uint32_t,std::string>> _patch_t;
+   using _patch_t = std::map<uint32_t,std::pair<uint32_t,std::string>>;
    std::map<std::string,_patch_t> patches;
 
    std::unordered_map<std::string,std::pair<size_t,Buffer*>> buffers;
