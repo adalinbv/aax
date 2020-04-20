@@ -813,8 +813,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
          if (filter->lfo && !ctr)
          {
-            fc = filter->lfo->get(filter->lfo, env, sptr, track, no_samples);
-            fc = _MAX(fc, 1);
+            fc =_MAX(filter->lfo->get(filter->lfo, env, sptr, track, no_samples), 20.0f);
             _aax_butterworth_compute(fc, filter);
          }
 
