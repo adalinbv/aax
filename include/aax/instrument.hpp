@@ -246,7 +246,7 @@ public:
         i1.volume = std::move(i2.volume);
         i1.pressure = std::move(i2.pressure);
         i1.pitch_rate = std::move(i2.pitch_rate);
-        i1.pitch_last = std::move(i2.pitch_last);
+        i1.pitch_start = std::move(i2.pitch_start);
         i1.key_prev = std::move(i2.key_prev);
         i1.is_stereo = std::move(i2.is_stereo);
         i1.is_drums = std::move(i2.is_drums);
@@ -297,8 +297,8 @@ public:
         note->set_attack_time(attack_time);
         note->set_release_time(release_time);
         float g = 3.321928f*log10f(1.0f+velocity);
-        note->play(g*soft, pitch_last, slide_state ? pitch_rate : 0.0f);
-        pitch_last = pitch;
+        note->play(g*soft, pitch_start, slide_state ? pitch_rate : 0.0f);
+        pitch_start = pitch;
     }
 
     void stop(uint32_t key_no, float velocity = 0) {
@@ -386,6 +386,9 @@ public:
         }
     }
 
+    inline void set_pitch_start(float p) {
+        if (!is_drums) { pitch_start = p; }
+    }
     inline void set_pitch_rate(bool s) {
         if (!is_drums) { slide_state = s; }
     }
@@ -508,7 +511,7 @@ private:
     float pressure = 1.0f;
 
     float pitch_rate = 0.0f;
-    float pitch_last = 1.0f;
+    float pitch_start = 1.0f;
     uint32_t key_prev = 0;
 
     int is_stereo;
