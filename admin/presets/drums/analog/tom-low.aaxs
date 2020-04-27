@@ -23,7 +23,7 @@
   <waveform src="sine"/>
  </sound>
 
- <emitter looping="true" pan="-0.1">
+ <emitter looping="true" pan="0.1">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">2.61</param>

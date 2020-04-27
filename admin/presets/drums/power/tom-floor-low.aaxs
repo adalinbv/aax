@@ -25,7 +25,7 @@
   <waveform src="square" processing="add" ratio="0.25" pitch="0.6"/>
  </sound>
 
- <emitter looping="true" pan="-0.47">
+ <emitter looping="true" pan="0.47">
   <filter type="timed-gain">
    <slot n="0">
     <param n="0">1.54</param>
