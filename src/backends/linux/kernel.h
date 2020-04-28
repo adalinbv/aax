@@ -27,9 +27,15 @@
 # include <sys/ioctl.h>
 #endif
 
-# define __force
-# define __bitwise
-# define __user
+# ifndef __force
+#  define __force
+# endif
+# ifndef __bitwise
+#  define __bitwise
+# endif
+# ifndef __user
+#  define __user
+# endif
 #if HAVE_LINUX_TYPES_H
 # include <linux/types.h>
 #else
