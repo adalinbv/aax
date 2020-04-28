@@ -243,9 +243,11 @@ _aaxLinuxDriverDetect(int mode)
    if TEST_FOR_FALSE(rv) {
       rv = _aaxALSADriverDetect(mode);
    }
+# if HAVE_PULSE_PULSEAUDIO_H
    if TEST_FOR_FALSE(rv) {
       rv = _aaxPulseAudioDriverDetect(mode);
    }
+# endif
 #endif
 
    s = getenv("AAX_USE_KERNEL_DRIVER");
