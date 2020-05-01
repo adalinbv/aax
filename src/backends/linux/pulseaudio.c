@@ -176,7 +176,8 @@ typedef struct
 
 typedef struct
 {
-   _driver_t *handle;
+   char *names;
+   char *descriptions;
    pa_threaded_mainloop *loop;
 } _sink_info_t;
 
@@ -353,7 +354,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
 
    if (handle)
    {
-      char m = (mode == AAX_MODE_READ) ? 1 : 0;
+      int m = (mode == AAX_MODE_READ) ? 1 : 0;
       int frame_sz;
 
       handle->driver = (char*)_const_pulseaudio_default_name;
@@ -384,7 +385,32 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
 #endif
 
       _aaxContextConnect(handle);
-      if (!handle->ctx)
+      if (handle->ctx)
+      {
+         pa_operation *opr;
+         _sink_info_t si;
+
+         si.names = handle->names[m];
+         si.descriptions = handle->descriptions[m];
+         si.loop = handle->ml;
+
+         if (mode == AAX_MODE_READ) {
+            opr = ppa_context_get_source_info_list(handle->ctx,
+                                                   source_device_cb, &si);
+         } else {
+            opr = ppa_context_get_sink_info_list(handle->ctx,
+                                                 sink_device_cb, &si);
+         }
+
+         if (opr)
+         {
+            while(ppa_operation_get_state(opr) == PA_OPERATION_RUNNING) {
+               ppa_threaded_mainloop_wait(handle->ml);
+            }
+            ppa_operation_unref(opr);
+         }
+      }
+      else
       {
          ppa_threaded_mainloop_free(handle->ml);
          free(handle);
@@ -876,43 +902,53 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 {
-   int m = (mode == AAX_MODE_READ) ? 0 : 1;
+   static char names[2][1024] = { "\0\0", "\0\0" };
+   static time_t t_previous[2] = { 0, 0 };
    _driver_t *handle = (_driver_t *)id;
+   int m = (mode == AAX_MODE_READ) ? 1 : 0;
+   time_t t_now;
 
-   if (!id)
+   t_now = time(NULL);
+   if (t_now > (t_previous[m]+5))
    {
-      handle = calloc(1, sizeof(_driver_t));
-      _aaxContextConnect(handle);
-   }
-
-   if (handle->ctx)
-   {
-      pa_operation *opr;
-      _sink_info_t si;
-
-      si.handle = handle;
-      si.loop = handle->ml;
-
-      if (mode == AAX_MODE_READ) {
-         opr = ppa_context_get_source_info_list(handle->ctx, source_device_cb, &si);
-      } else {
-         opr = ppa_context_get_sink_info_list(handle->ctx, sink_device_cb, &si);
-      }
-
-      if (opr)
+      if (!id)
       {
-         while(ppa_operation_get_state(opr) == PA_OPERATION_RUNNING) {
-            ppa_threaded_mainloop_wait(handle->ml);
-         }
-         ppa_operation_unref(opr);
+         handle = calloc(1, sizeof(_driver_t));
+         _aaxContextConnect(handle);
       }
 
-      if (!id) {
-         _aaxPulseAudioDriverDisconnect(handle);
+      if (handle->ctx)
+      {
+         pa_operation *opr;
+         _sink_info_t si;
+
+         t_previous[m] = t_now;
+
+         si.names = NULL;
+         si.descriptions = (char*)&names[m];
+         si.loop = handle->ml;
+
+         if (m) {
+            opr = ppa_context_get_source_info_list(handle->ctx, source_device_cb, &si);
+         } else {
+            opr = ppa_context_get_sink_info_list(handle->ctx, sink_device_cb, &si);
+         }
+
+         if (opr)
+         {
+            while(ppa_operation_get_state(opr) == PA_OPERATION_RUNNING) {
+               ppa_threaded_mainloop_wait(handle->ml);
+            }
+            ppa_operation_unref(opr);
+         }
+
+         if (!id) {
+            _aaxPulseAudioDriverDisconnect(handle);
+         }
       }
    }
 
-   return handle->descriptions[m];
+   return (char *)names[m];
 }
 
 static char *
@@ -969,6 +1005,7 @@ detect_name(_driver_t *handle)
 
    while (strlen(ptr) && strcmp(handle->driver, ptr)) {
       ptr += strlen(ptr)+1;
+      di++;
    }
 
    if (strlen(ptr) > 0)
@@ -1160,19 +1197,17 @@ sink_info_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, voi
 static void
 sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, void *si)
 {
-   _sink_info_t *sink = si;
-   _driver_t *handle = sink->handle;
+   _sink_info_t *handle = si;
    char *sptr, *ptr;
    size_t slen, len;
-   int m = 1;
 
    if (eol)
    {
-      ppa_threaded_mainloop_signal(sink->loop, 0);
+      ppa_threaded_mainloop_signal(handle->loop, 0);
       return;
    }
 
-   sptr = ptr = (char*)&handle->descriptions[m];
+   sptr = ptr = handle->descriptions;
    slen = strlen(sptr);
    if (slen)
    {
@@ -1195,45 +1230,46 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       *ptr = '\0';
    }
 
-   sptr = ptr = handle->names[m];
-   slen = strlen(ptr);
-   if (slen)
+   sptr = ptr = handle->names;
+   if (sptr)
    {
-      char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
-      if (p)
+      slen = strlen(ptr);
+      if (slen)
       {
-         slen = p - sptr;
-         ptr = p+1;
+         char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+         if (p)
+         {
+            slen = p - sptr;
+            ptr = p+1;
+         }
       }
-   }
 
-   len = (MAX_DEVICES_LIST-2) - slen;
-   slen = strlen(info->name);
-   if (len > slen)
-   {
-      sprintf(ptr, "%s", info->name);
-      ptr += slen;
-      *ptr++ = '\0';
-      *ptr = '\0';
+      len = (MAX_DEVICES_LIST-2) - slen;
+      slen = strlen(info->name);
+      if (len > slen)
+      {
+         sprintf(ptr, "%s", info->name);
+         ptr += slen;
+         *ptr++ = '\0';
+         *ptr = '\0';
+      }
    }
 }
 
 static void
 source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eol, void *si)
 {
-    _sink_info_t *sink = si;
-   _driver_t *handle = sink->handle;
+    _sink_info_t *handle = si;
    char *sptr, *ptr;
    size_t slen, len;
-   int m = 0;
 
    if (eol)
    {
-      ppa_threaded_mainloop_signal(sink->loop, 0);
+      ppa_threaded_mainloop_signal(handle->loop, 0);
       return;
    }
 
-   sptr = ptr = (char*)&handle->descriptions[m];
+   sptr = ptr = handle->descriptions;
    slen = strlen(sptr);
    if (slen)
    {
@@ -1255,26 +1291,29 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
       *ptr = '\0';
    }
 
-   sptr = ptr = handle->names[m];
-   slen = strlen(ptr);
-   if (slen)
+   sptr = ptr = handle->names;
+   if (sptr)
    {
-      char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
-      if (p)
+      slen = strlen(ptr);
+      if (slen)
       {
-         slen = p - sptr;
-         ptr = p+1;
+         char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+         if (p)
+         {
+            slen = p - sptr;
+            ptr = p+1;
+         }
       }
-   }
 
-   len = (MAX_DEVICES_LIST-2) - slen;
-   slen = strlen(info->name);
-   if (len > slen)
-   {
-      sprintf(ptr, "%s", info->name);
-      ptr += slen;
-      *ptr++ = '\0';
-      *ptr = '\0';
+      len = (MAX_DEVICES_LIST-2) - slen;
+      slen = strlen(info->name);
+      if (len > slen)
+      {
+         sprintf(ptr, "%s", info->name);
+         ptr += slen;
+         *ptr++ = '\0';
+         *ptr = '\0';
+      }
    }
 }
 
@@ -1430,9 +1469,6 @@ _aaxStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
    handle->pa = ppa_stream_new(handle->ctx, agent, &handle->spec, &map);
    if (handle->pa)
    {
-      int mode = (handle->mode = AAX_MODE_READ) ? 1 : 0;
-      if (mode) // write
-      {
          pa_stream * pa = handle->pa;
          pa_buffer_attr attr;
          unsigned int buflen;
@@ -1454,7 +1490,7 @@ _aaxStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
          flags |= PA_STREAM_ADJUST_LATENCY;
 
          name = detect_name(handle);
-         if (mode == AAX_MODE_READ) {
+         if (handle->mode == AAX_MODE_READ) {
             res = ppa_stream_connect_record(pa, name, NULL, flags);
          } else {
             res = ppa_stream_connect_playback(pa, name, &attr, flags, NULL, NULL);
@@ -1482,7 +1518,6 @@ _aaxStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
          else {
             *error = ppa_context_errno(handle->ctx);
          }
-      }
    }
 }
 
