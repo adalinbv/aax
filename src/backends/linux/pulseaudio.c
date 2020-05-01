@@ -48,6 +48,7 @@
 
 #include <base/types.h>
 #include <base/logging.h>
+#include <base/memory.h>
 #include <base/dlsym.h>
 #include <base/timer.h>
 
@@ -60,12 +61,16 @@
 #include "audio.h"
 
 #define DEFAULT_RENDERER	"PulseAudio"
-#define DEFAULT_DEVNAME		"default"
-#define MAX_DEVICES_LIST	4096
-#define MAX_ID_STRLEN		64
-#define NO_FRAGMENTS		4
+#define MAX_ID_STRLEN		96
 
-static char *_aaxPulseAudioDriverLogVar(const void *, const char *, ...);
+#define DEFAULT_OUTPUT_RATE	48000
+#define DEFAULT_DEVNAME		NULL
+#define DEFAULT_REFRESH		25.0
+
+#define USE_PID			AAX_TRUE
+#define FILL_FACTOR		4.0f
+
+#define MAX_DEVICES_LIST	4096
 
 #define _AAX_DRVLOG(a)         _aaxPulseAudioDriverLog(id, 0, 0, a)
 #define HW_VOLUME_SUPPORT(a)	((a->mixfd >= 0) && a->volumeMax)
@@ -125,43 +130,53 @@ const _aaxDriverBackend _aaxPulseAudioDriverBackend =
 
 typedef struct
 {
+   void *handle;
+   char *driver;
+   char *devname;
+   _aaxRenderer *render;
+
    pa_stream *pa;
    pa_context *ctx;
    pa_threaded_mainloop *ml;
 
-   char *name;
-   void *handle;
-
-   _aaxRenderer *render;
-
-   char no_periods;
-   char bits_sample;
-   unsigned int period_frames;
-
-   int mode;
-   unsigned int format;
-
    pa_sample_spec spec;
    pa_buffer_attr attr;
+
+// char no_periods;
+   char bits_sample;
+   unsigned int format;
+   unsigned int period_frames;
+   enum aaxRenderMode mode;
    float refresh_rate;
+   float latency;
+
+   _data_t *dataBuffer;
+   _aaxMutex *mutex;
 
    /* capabilities */
    unsigned int min_frequency;
    unsigned int max_frequency;
    unsigned int min_tracks;
    unsigned int max_tracks;
-   float latency;
 
-   int16_t *ptr, *scratch;
-   size_t scratch_size;
-#ifndef NDEBUG
-   size_t buf_len;
+#if USE_PID
+   struct {
+      float I;
+      float err;
+   } PID;
+   struct {
+      float aim;
+   } fill;
 #endif
+
+   char descriptions[2][MAX_DEVICES_LIST];
+   char names[2][MAX_DEVICES_LIST];
+
 } _driver_t;
 
 typedef struct
 {
-   char *devices;
+   _driver_t *handle;
    pa_threaded_mainloop *loop;
 } _sink_info_t;
 
@@ -213,6 +228,7 @@ DECL_FUNCTION(pa_operation_unref);
 
 DECL_FUNCTION(pa_stream_get_buffer_attr);
 DECL_FUNCTION(pa_stream_get_context);
+DECL_FUNCTION(pa_sample_spec_valid);
 DECL_FUNCTION(pa_sample_spec_snprint);
 DECL_FUNCTION(pa_channel_map_snprint);
 DECL_FUNCTION(pa_stream_get_sample_spec);
@@ -224,15 +240,19 @@ DECL_FUNCTION(pa_stream_is_suspended);
 
 static void stream_state_cb(pa_stream*, void*);
 static void stream_latency_update_cb(pa_stream*, void*);
-static void stream_request_cb(pa_stream*, size_t, void*);
+static void stream_write_cb(pa_stream*, size_t, void*);
+// static void stream_record_cb(pa_stream*, size_t, void*);
 static void sink_device_cb(pa_context*, const pa_sink_info*, int, void*);
 static void source_device_cb(pa_context*, const pa_source_info*, int, void*);
 
+static const char* detect_name(_driver_t*);
+static float _aaxGetLatency(_driver_t*);
 static void _aaxContextConnect(_driver_t*);
 static void _aaxStreamConnect(_driver_t*,  pa_stream_flags_t flags, int*);
-static float _aaxGetLatency(_driver_t*);
+static char *_aaxPulseAudioDriverLogVar(const void *, const char *, ...);
 
 static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
+const char *_const_pulseaudio_default_device = NULL;
 
 int
 _aaxPulseAudioDriverDetect(UNUSED(int mode))
@@ -242,7 +262,7 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
    char *error = NULL;
 
    _AAX_LOG(LOG_DEBUG, __func__);
-     
+
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent("pulse", "0");
    }
@@ -295,15 +315,16 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
 //       TIE_FUNCTION(pa_signal_done);
 //       TIE_FUNCTION(pa_xfree);
 
-TIE_FUNCTION(pa_stream_get_buffer_attr);
-TIE_FUNCTION(pa_stream_get_context);
-TIE_FUNCTION(pa_sample_spec_snprint);
-TIE_FUNCTION(pa_channel_map_snprint);
-TIE_FUNCTION(pa_stream_get_sample_spec);
-TIE_FUNCTION(pa_stream_get_channel_map);
-TIE_FUNCTION(pa_stream_get_device_name);
-TIE_FUNCTION(pa_stream_get_device_index);
-TIE_FUNCTION(pa_stream_is_suspended);
+         TIE_FUNCTION(pa_stream_get_buffer_attr);
+         TIE_FUNCTION(pa_stream_get_context);
+         TIE_FUNCTION(pa_sample_spec_valid);
+         TIE_FUNCTION(pa_sample_spec_snprint);
+         TIE_FUNCTION(pa_channel_map_snprint);
+         TIE_FUNCTION(pa_stream_get_sample_spec);
+         TIE_FUNCTION(pa_stream_get_channel_map);
+         TIE_FUNCTION(pa_stream_get_device_name);
+         TIE_FUNCTION(pa_stream_get_device_index);
+         TIE_FUNCTION(pa_stream_is_suspended);
       }
 
       error = _aaxGetSymError(0);
@@ -332,20 +353,35 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
 
    if (handle)
    {
-      handle->name = (char*)_const_pulseaudio_default_name;
-      handle->no_periods = NO_FRAGMENTS;
-      handle->period_frames = 2048;
-      handle->bits_sample = 16;
+      char m = (mode == AAX_MODE_READ) ? 1 : 0;
+      int frame_sz;
+
+      handle->driver = (char*)_const_pulseaudio_default_name;
       handle->mode = mode;
-      handle->spec.format = PA_SAMPLE_S16LE;
+      handle->bits_sample = 16;
       handle->spec.rate = 44100;
       handle->spec.channels = 2;
+      handle->spec.format = is_bigendian()? PA_SAMPLE_S16BE:PA_SAMPLE_S16LE;
+      handle->period_frames = get_pow2(handle->spec.rate/DEFAULT_REFRESH);
 
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
+#if USE_PID
+      handle->fill.aim = FILL_FACTOR*handle->period_frames*frame_sz/handle->spec.rate;
+      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+#else
+      handle->latency = (float)handle->period_frames/(float)handle->spec.rate;
+#endif
+
+      if (!m) {
+         handle->mutex = _aaxMutexCreate(handle->mutex);
+      }
+
+#if 0
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
       handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
-      handle->latency = 0;
+#endif
 
       _aaxContextConnect(handle);
       if (!handle->ctx)
@@ -375,19 +411,34 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
 
    if (handle)
    {
+      handle->handle = config;
+      if (renderer)
+      {
+         handle->driver = _aax_strdup(renderer);
+         if (handle->driver)
+         {
+            handle->devname = strstr(handle->driver, ": ");
+            if (handle->devname)
+            {
+               handle->devname[0] = 0;
+               handle->devname += strlen(": ");
+            }
+         }
+      }
+
       if (xid)
       {
          float f;
          char *s;
          int i;
 
-         if (!handle->name)
+         if (!handle->driver)
          {
             s = xmlAttributeGetString(xid, "name");
             if (s)
             {
                if (strcasecmp(s, "default")) {
-                  handle->name = _aax_strdup(s);
+                  handle->driver = _aax_strdup(s);
                }
                xmlFree(s);
             }
@@ -398,12 +449,12 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
          {
             if (f < (float)_AAX_MIN_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("PulseAudio: frequency too small.");
+               _AAX_SYSLOG("pulse; frequency too small.");
                f = (float)_AAX_MIN_MIXER_FREQUENCY;
             }
             else if (f > (float)_AAX_MAX_MIXER_FREQUENCY)
             {
-               _AAX_SYSLOG("PulseAudio: frequency too large.");
+               _AAX_SYSLOG("pulse; frequency too large.");
                f = (float)_AAX_MAX_MIXER_FREQUENCY;
             }
             handle->spec.rate = f;
@@ -416,12 +467,12 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
             {
                if (i < 1)
                {
-                  _AAX_SYSLOG("PulseAudio: no. tracks too small.");
+                  _AAX_SYSLOG("pulse; no. tracks too small.");
                   i = 1;
                }
                else if (i > _AAX_MAX_SPEAKERS)
                {
-                  _AAX_SYSLOG("PulseAudio: no. tracks too great.");
+                  _AAX_SYSLOG("pulse; no. tracks too great.");
                   i = _AAX_MAX_SPEAKERS;
                }
                handle->spec.channels = i;
@@ -433,54 +484,22 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
          {
             if (i != 16)
             {
-               _AAX_SYSLOG("PulseAudio: unsopported bits-per-sample");
+               _AAX_SYSLOG("pulse; unsopported bits-per-sample");
                i = 16;
             }
          }
-
-         i = xmlNodeGetInt(xid, "periods");
-         if (i)
-         {
-            if (i < 1)
-            {
-               _AAX_DRVLOG("no periods too small.");
-               i = 1;
-            }
-            else if (i > 16)
-            {
-               _AAX_DRVLOG("no. periods too great.");
-               i = 16;
-            }
-            handle->no_periods = i;
-         }
       }
-
-      if (renderer) {
-         if (handle->name != _const_pulseaudio_default_name) {
-            free(handle->name);
-         }
-         handle->name = _aax_strdup(renderer);
-      }
-#if 0
- printf("frequency-hz: %i\n", handle->spec.rate);
- printf("channels: %i\n", handle->spec.channels);
-#endif
    }
 
    if (handle)
    {
-      handle->handle = config;
       pa_stream_flags_t flags;
       int error;
-#if 0
-      flags = PA_STREAM_START_CORKED | PA_STREAM_INTERPOLATE_TIMING |
-              PA_STREAM_NOT_MONOTONIC | PA_STREAM_AUTO_TIMING_UPDATE |
-              PA_STREAM_ADJUST_LATENCY | PA_CONTEXT_NOAUTOSPAWN;
-#else
+
       flags = PA_STREAM_FIX_FORMAT | PA_STREAM_FIX_RATE |
               PA_STREAM_FIX_CHANNELS | PA_STREAM_DONT_MOVE |
               PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_START_CORKED;
-#endif
+
       _aaxStreamConnect(handle, flags, &error);
       if (!handle->pa || error != PA_STREAM_READY) {
          _aaxPulseAudioDriverLogVar(id, "connect: %s", ppa_strerror(error));
@@ -497,16 +516,6 @@ _aaxPulseAudioDriverDisconnect(void *id)
 
    if (handle)
    {
-      if (handle->name && handle->name != _const_pulseaudio_default_name) {
-         free(handle->name);
-      }
-
-      if (handle->render)
-      {
-         handle->render->close(handle->render->id);
-         free(handle->render);
-      }
-
       if (handle->ml) {
          ppa_threaded_mainloop_stop(handle->ml);
       }
@@ -521,9 +530,24 @@ _aaxPulseAudioDriverDisconnect(void *id)
          ppa_context_unref(handle->ctx);
       }
 
-     if (handle->ml) {
+      if (handle->ml) {
          ppa_threaded_mainloop_free(handle->ml);
       }
+
+      if (handle->driver != _const_pulseaudio_default_name) {
+         free(handle->driver);
+      }
+
+      if (handle->render)
+      {
+         handle->render->close(handle->render->id);
+         free(handle->render);
+      }
+
+      if (handle->mutex) {
+         _aaxMutexDestroy(handle->mutex);
+      }
+      _aaxDataDestroy(handle->dataBuffer);
 
       free(handle);
 
@@ -539,102 +563,119 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 {
    _driver_t *handle = (_driver_t *)id;
    unsigned int period_frames;
-   unsigned int rate;
+   pa_sample_spec req;
    int rv = AAX_FALSE;
 
-   assert(refresh_rate);
-   assert(handle);
+   *fmt = AAX_PCM16S;
 
+   memcpy(&req, &handle->spec, sizeof(pa_sample_spec));
+
+   req.rate = (unsigned int)*speed;
+   req.channels = *tracks;
+   if (req.channels > handle->spec.channels) {
+      req.channels = handle->spec.channels;
+   }
+
+   if (*refresh_rate > 100) {
+      *refresh_rate = 100;
+   }
+
+   if (!registered) {
+      period_frames = get_pow2((size_t)rintf(req.rate/(*refresh_rate)));
+   } else {
+      period_frames = get_pow2((size_t)rintf(req.rate/period_rate));
+   }
+   handle->period_frames = period_frames;
+
+   if (ppa_sample_spec_valid(&req))
+   {
+      int frame_sz;
+
+      memcpy(&handle->spec, &req, sizeof(pa_sample_spec));
+
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
 #if 0
-   *refresh_rate /= 2;
-printf("refresh_rate: %f\n", *refresh_rate);
+ printf("spec:\n");
+ printf("   frequency: %i\n", handle->spec.rate);
+ printf("   format:    %x\n", handle->format);
+ printf("   channels:  %i\n", handle->spec.channels);
+ printf("   samples:   %i\n", handle->period_frames);
 #endif
 
-   rate = *speed;
-   if (!registered) {
-      period_frames = get_pow2((size_t)rintf(rate/(*refresh_rate*NO_FRAGMENTS)));
-   } else {
-      period_frames = get_pow2((size_t)rintf((rate*NO_FRAGMENTS)/period_rate));
+      *speed = handle->spec.rate;
+      *tracks = handle->spec.channels;
+      if (!registered) {
+         *refresh_rate = handle->spec.rate/(float)handle->period_frames;
+      } else {
+         *refresh_rate = period_rate;
+      }
+      handle->refresh_rate = *refresh_rate;
+
+#if USE_PID
+      handle->fill.aim = FILL_FACTOR*handle->period_frames*frame_sz/handle->spec.rate;
+      handle->latency = (float)handle->fill.aim/(float)frame_sz;
+#else
+      handle->latency = (float)handle->period_frames/(float)handle->spec.rate;
+#endif
+
+      handle->render = _aaxSoftwareInitRenderer(handle->latency,
+                                                handle->mode, registered);
+      if (handle->render)
+      {
+         const char *rstr = handle->render->info(handle->render->id);
+
+         snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s %s",
+                  DEFAULT_RENDERER, ppa_get_library_version(), rstr);
+         rv = AAX_TRUE;
+      }
+      else {
+            _AAX_DRVLOG("unable to get the renderer");
+      }
    }
-
-   if (handle->spec.channels > *tracks) {
-      handle->spec.channels = *tracks;
+   else {
+      _AAX_DRVLOG("incompatible hardware configuration");
    }
-   *tracks = handle->spec.channels;
-
-   if (*tracks > 2)
-   {
-      char str[255];
-      snprintf((char *)&str, 255, "PulseAudio: Unable to output to %i speakers"
-                                  " in this setup (%i is the maximum)", *tracks,
-                                  _AAX_MAX_SPEAKERS);
-      _AAX_SYSLOG(str);
-      return AAX_FALSE;
-   }
-
-   handle->period_frames = period_frames;
-   handle->spec.rate = rate;
-
-   *fmt = AAX_PCM16S;
-   *speed = (float)handle->spec.rate;
-   *tracks = handle->spec.channels;
-
-   period_rate = (float)rate/handle->period_frames;
-   *refresh_rate = period_rate;
-
-   handle->refresh_rate = *refresh_rate;
-   handle->latency = 1.0f / *refresh_rate;
 
    do
    {
-      char m = (handle->mode == AAX_MODE_READ) ? 0 : 1;
-      _aaxRingBuffer *rb;
-      int i;
+      char str[255];
 
-      rb = _aaxRingBufferCreate(0.0f, m);
-      if (rb)
-      {
-         rb->set_format(rb, AAX_PCM24S, AAX_TRUE);
-         rb->set_parami(rb, RB_NO_TRACKS, handle->spec.channels);
-         rb->set_paramf(rb, RB_FREQUENCY, handle->spec.rate);
-         rb->set_parami(rb, RB_NO_SAMPLES, handle->period_frames);
-         rb->init(rb, AAX_TRUE);
-         rb->set_state(rb, RB_STARTED);
+      _AAX_SYSLOG("driver settings:");
 
-         for (i=0; i<handle->no_periods; i++) {
-            _aaxPulseAudioDriverPlayback(handle, rb, 1.0f, 0.0f, 0);
-         }
-         _aaxRingBufferFree(rb);
+      if (handle->mode != AAX_MODE_READ) {
+         snprintf(str,255,"  output renderer: '%s'", handle->driver);
+      } else {
+         snprintf(str,255,"  input renderer: '%s'", handle->driver);
       }
-
-      handle->latency = _aaxGetLatency(handle);
-   }
-   while(0);
-
-   handle->render = _aaxSoftwareInitRenderer(handle->latency, handle->mode, registered);
-   if (handle->render)
-   {
-      const char *rstr = handle->render->info(handle->render->id);
-      snprintf(_pulseaudio_id_str, MAX_ID_STRLEN ,"%s %s %s", DEFAULT_RENDERER, ppa_get_library_version(), rstr);
-      rv = AAX_TRUE;
-   }
-
-#if 1
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  devname: '%s'", handle->devname);
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  playback rate: %5i hz", handle->spec.rate);
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  buffer size: %i bytes", handle->spec.channels*handle->period_frames*handle->bits_sample/8);
+      _AAX_SYSLOG(str);
+      snprintf(str,255, "  latency: %3.2f ms",  1e3f*handle->latency);
+      _AAX_SYSLOG(str);
+      snprintf(str,255,"  timer based: yes");
+      _AAX_SYSLOG(str);
+      snprintf(str,255,"  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
+      _AAX_SYSLOG(str);
+#if 0
  printf("driver settings:\n");
  if (handle->mode != AAX_MODE_READ) {
-    printf("  output renderer: '%s'\n", handle->name);
+    printf("  output renderer: '%s'\n", handle->driver);
  } else {
-    printf("  input renderer: '%s'\n", handle->name);
+    printf("  input renderer: '%s'\n", handle->driver);
  }
+ printf("  device: '%s'\n", handle->devname);
  printf("  playback rate: %5i Hz\n", handle->spec.rate);
- printf("  buffer size: %u bytes\n", handle->no_periods*handle->period_frames*handle->spec.channels*handle->bits_sample/8);
- printf("  refresh_rate: %5.2f Hz\n", *refresh_rate);
- printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
- printf("  no_periods: %i\n", handle->no_periods);
-// printf("  timer based: %s\n",handle->use_timer?"yes":"no");
+ printf("  buffer size: %u bytes\n", handle->spec.channels*handle->period_frames*handle->bits_sample/8);
+ printf("  latency:  %5.2f ms\n", 1e3f*handle->latency);
+ printf("  timer based: yes\n");
  printf("  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
-// printf("  can pause: %i\n", handle->can_pause);
 #endif
+   }
+   while (0);
 
    return rv;
 }
@@ -649,58 +690,62 @@ _aaxPulseAudioDriverCapture(UNUSED(const void *id), UNUSED(void **data), UNUSED(
 static size_t
 _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNUSED(float gain), UNUSED(char batched))
 {
-   _driver_t *handle = (_driver_t *)id;
    _aaxRingBuffer *rb = (_aaxRingBuffer *)src;
-   unsigned int blocksize, no_tracks;
-   size_t offs, no_samples, avail;
-   size_t outbuf_size;
-   void *data;
+   _driver_t *handle = (_driver_t *)id;
+   ssize_t offs, period_frames;
+   unsigned int no_tracks, frame_sz;
+   const int32_t **sbuf;
+   size_t size, free;
+   int rv = 0;
+
+   _AAX_LOG(LOG_DEBUG, __func__);
+
+   assert(rb);
+   assert(id != 0);
+
+   if (handle->mode == 0)
+      return 0;
+
+   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+   period_frames = rb->get_parami(rb, RB_NO_SAMPLES);
+   frame_sz = no_tracks*handle->bits_sample/8;
+
+   size = period_frames*frame_sz;
+   if (handle->dataBuffer == 0 || (handle->dataBuffer->size < 8*size))
+   {
+      _aaxDataDestroy(handle->dataBuffer);
+      handle->dataBuffer = _aaxDataCreate(2*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
+      if (handle->dataBuffer == 0) return -1;
+
+      ppa_stream_set_write_callback(handle->pa, stream_write_cb, handle);
+   }
 
    offs = rb->get_parami(rb, RB_OFFSET_SAMPLES);
-   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-   blocksize = no_tracks*sizeof(int16_t);
-   outbuf_size = no_samples*blocksize;
+   period_frames -= offs;
+   size = period_frames*frame_sz;
 
-   if (handle->ptr == 0)
+   free = handle->dataBuffer->size - handle->dataBuffer->avail;
+   if (free > size)
    {
-      char *p;
-      handle->ptr = (int16_t *)_aax_malloc(&p, 0, outbuf_size);
-      handle->scratch = (int16_t*)p;
-#ifndef NDEBUG
-      handle->buf_len = outbuf_size;
-#endif
-   }
-   assert(outbuf_size <= handle->buf_len);
+      unsigned char *data;
 
-   data = handle->scratch;
-   assert(outbuf_size <= handle->buf_len);
+//    _pulseaudio_set_volume(handle, rb, offs, period_frames, no_tracks, gain);
 
-   ppa_threaded_mainloop_lock(handle->ml);
-
-   avail = ppa_stream_writable_size(handle->pa);
-   if (no_samples > avail) no_samples = avail;
-
-   no_samples -= offs;
-   if (no_samples)
-   {
-      const int32_t **sbuf;
-      int res = 0;
-
+      _aaxMutexLock(handle->mutex);
+      data = handle->dataBuffer->data + handle->dataBuffer->avail;
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
-      _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, no_samples);
+      _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
-      res = ppa_stream_write(handle->pa, data, outbuf_size, NULL, 0LL, PA_SEEK_RELATIVE);
+      handle->dataBuffer->avail += size;
+      _aaxMutexUnLock(handle->mutex);
 
-      if (res < 0 && ppa_strerror) {
-         _AAX_DRVLOG(ppa_strerror(res));
-      }
+      assert(handle->dataBuffer->avail <= handle->dataBuffer->size);
+
+      rv = period_frames;
    }
 
-   ppa_threaded_mainloop_unlock(handle->ml);
-
-   return 0; // (info.bytes-outbuf_size)/(no_tracks*sizeof(int16_t));
+   return rv;
 }
 
 static char *
@@ -709,8 +754,9 @@ _aaxPulseAudioDriverGetName(const void *id, int mode)
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;
 
-   if (handle && (mode < AAX_MODE_WRITE_MAX))
-      ret = _aax_strdup(handle->name);
+   /* TODO: distinguish between playback and record */
+   if (handle && handle->devname && (mode < AAX_MODE_WRITE_MAX))
+      ret = _aax_strdup(handle->driver);
 
    return ret;
 }
@@ -740,7 +786,7 @@ _aaxPulseAudioDriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_RESUME:
-      if (handle) 
+      if (handle)
       {
          if (ppa_stream_is_corked(handle->pa)) {
             ppa_stream_cork(handle->pa, 0, NULL, NULL);
@@ -749,11 +795,7 @@ _aaxPulseAudioDriverState(const void *id, enum _aaxDriverState state)
       }
       break;
    case DRIVER_AVAILABLE:
-      rv = AAX_TRUE;
-      break;
    case DRIVER_SHARED_MIXER:
-      rv = AAX_TRUE;
-      break;
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
@@ -807,7 +849,7 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
-         rv = (float)NO_FRAGMENTS;
+         rv = 2.0f;
          break;
       case DRIVER_MAX_SOURCES:
          rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
@@ -816,17 +858,14 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
          rv = AAX_FPINFINITE;
          break;
       case DRIVER_SAMPLE_DELAY:
-      {
-         rv = _aaxGetLatency(handle);
+ //      rv = _aaxGetLatency(handle);
+         rv = (float)handle->period_frames;
          break;
-      }
 
 		/* boolean */
-      case DRIVER_SHARED_MODE:
       case DRIVER_TIMER_MODE:
-         rv = (float)AAX_TRUE;
-         break;
       case DRIVER_BATCHED_MODE:
+      case DRIVER_SHARED_MODE:
       default:
          break;
       }
@@ -837,7 +876,6 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
 static char *
 _aaxPulseAudioDriverGetDevices(const void *id, int mode)
 {
-   static char names[2][MAX_DEVICES_LIST] = { "\0\0", "\0\0" };
    int m = (mode == AAX_MODE_READ) ? 0 : 1;
    _driver_t *handle = (_driver_t *)id;
 
@@ -852,7 +890,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
       pa_operation *opr;
       _sink_info_t si;
 
-      si.devices = (char *)&names[m];
+      si.handle = handle;
       si.loop = handle->ml;
 
       if (mode == AAX_MODE_READ) {
@@ -874,11 +912,11 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
       }
    }
 
-   return (char *)&names[m];
+   return handle->descriptions[m];
 }
 
 static char *
-_aaxPulseAudioDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char *devname), UNUSED(int mode))
+_aaxPulseAudioDriverGetInterfaces(UNUSED(const void *id), UNUSED(const char *driver), UNUSED(int mode))
 {
 // _driver_t *handle = (_driver_t *)id;
    return NULL;
@@ -921,16 +959,40 @@ _aaxPulseAudioDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), cons
 
 /* ----------------------------------------------------------------------- */
 
-static void
-context_state_cb(pa_context *context, void *ml)
+static const char*
+detect_name(_driver_t *handle)
 {
-   pa_threaded_mainloop *loop = ml;
+   int m = (handle->mode == AAX_MODE_READ) ? 1 : 0;
+   const char *ptr = handle->descriptions[m];
+   const char *rv = NULL;
+   int di = 0, ni = 0;
+
+   while (strlen(ptr) && strcmp(handle->driver, ptr)) {
+      ptr += strlen(ptr)+1;
+   }
+
+   if (strlen(ptr) > 0)
+   {
+      ptr = handle->names[m];
+      for(ni=0; ni<di; ++ni) {
+         ptr += strlen(ptr)+1;
+      }
+      rv = ptr;
+   }
+
+   return rv;
+}
+
+static void
+context_state_cb(pa_context *context, void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
    switch (ppa_context_get_state(context))
    {
    case PA_CONTEXT_READY:
    case PA_CONTEXT_TERMINATED:
    case PA_CONTEXT_FAILED:
-      ppa_threaded_mainloop_signal(loop, 0);
+      ppa_threaded_mainloop_signal(handle->ml, 0);
       break;
    case PA_CONTEXT_UNCONNECTED:
    case PA_CONTEXT_CONNECTING:
@@ -949,7 +1011,7 @@ _aaxGetLatency(_driver_t *handle)
    ppa_threaded_mainloop_lock(handle->ml);
 
    if (ppa_stream_get_latency(handle->pa, &rv, &negative) >= 0) {
-      if (negative) rv = 0; 
+      if (negative) rv = 0;
    }
 
    ppa_threaded_mainloop_unlock(handle->ml);
@@ -959,13 +1021,14 @@ _aaxGetLatency(_driver_t *handle)
 
 
 static void
-stream_state_cb(pa_stream *stream, void *ml)
+stream_state_cb(pa_stream *stream, void *id)
 {
-    pa_threaded_mainloop *loop = ml;
+    _driver_t *handle = (_driver_t *)id;
     switch (ppa_stream_get_state(stream))
     {
     case PA_STREAM_READY:
     {
+#if 0
        pa_stream *s = stream;
        const pa_buffer_attr *a;
        char cmt[PA_CHANNEL_MAP_SNPRINT_MAX], sst[PA_SAMPLE_SPEC_SNPRINT_MAX];
@@ -979,17 +1042,18 @@ stream_state_cb(pa_stream *stream, void *ml)
        }
 
        fprintf(stderr, "Using sample spec '%s', channel map '%s'.\n",
-              ppa_sample_spec_snprint(sst, sizeof(sst), ppa_stream_get_sample_spec(s)),     
+              ppa_sample_spec_snprint(sst, sizeof(sst), ppa_stream_get_sample_spec(s)),
               ppa_channel_map_snprint(cmt, sizeof(cmt), ppa_stream_get_channel_map(s)));
 
       fprintf(stderr, "Connected to device %s (%u, %ssuspended).\n",
               ppa_stream_get_device_name(s),
-              ppa_stream_get_device_index(s), 
+              ppa_stream_get_device_index(s),
               ppa_stream_is_suspended(s) ? "" : "not ");
+#endif
     }
     case PA_STREAM_FAILED:
     case PA_STREAM_TERMINATED:
-       ppa_threaded_mainloop_signal(loop, 0);
+       ppa_threaded_mainloop_signal(handle->ml, 0);
        break;
     case PA_STREAM_UNCONNECTED:
     case PA_STREAM_CREATING:
@@ -998,17 +1062,46 @@ stream_state_cb(pa_stream *stream, void *ml)
 }
 
 static void
-stream_request_cb(pa_stream *stream, size_t size, void *ml)
+stream_write_cb(pa_stream *stream, size_t len, void *be_ptr)
 {
-   pa_threaded_mainloop *loop = ml;
-   ppa_threaded_mainloop_signal(loop, 0);
+   _driver_t *be_handle = (_driver_t *)be_ptr;
+   _handle_t *handle = (_handle_t *)be_handle->handle;
+   void *id = be_handle;
+
+   if (_IS_PLAYING(handle))
+   {
+      assert(be_handle->mode != AAX_MODE_READ);
+      assert(be_handle->dataBuffer);
+
+      _aaxMutexLock(be_handle->mutex);
+
+      // assert(be_handle->dataBuffer->avail >= len);
+      if (be_handle->dataBuffer->avail < len) {
+         len = be_handle->dataBuffer->avail;
+      }
+
+      {
+         int res = -1;
+
+         res = ppa_stream_write(be_handle->pa, be_handle->dataBuffer->data,len,
+                                NULL, 0LL, PA_SEEK_RELATIVE);
+         if (res >= 0) {
+            _aaxDataMove(be_handle->dataBuffer, NULL, len);
+         } else if (ppa_strerror) {
+            _AAX_DRVLOG(ppa_strerror(res));
+         }
+      }
+
+      _aaxMutexUnLock(be_handle->mutex);
+   }
+// ppa_threaded_mainloop_signal(be_handle->ml, 0);
 }
 
 static void
-stream_latency_update_cb(pa_stream *stream, void *ml)
+stream_latency_update_cb(pa_stream *stream, void *id)
 {
-   pa_threaded_mainloop *loop = ml;
-   ppa_threaded_mainloop_signal(loop, 0);
+   _driver_t *handle = (_driver_t *)id;
+   ppa_threaded_mainloop_signal(handle->ml, 0);
 }
 
 #if 0
@@ -1068,8 +1161,10 @@ static void
 sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, void *si)
 {
    _sink_info_t *sink = si;
+   _driver_t *handle = sink->handle;
+   char *sptr, *ptr;
    size_t slen, len;
-   char *ptr;
+   int m = 1;
 
    if (eol)
    {
@@ -1077,14 +1172,75 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       return;
    }
 
-   ptr = sink->devices;
-   slen = strlen(sink->devices);
+   sptr = ptr = (char*)&handle->descriptions[m];
+   slen = strlen(sptr);
    if (slen)
    {
       char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
       if (p)
       {
-         slen = p-sink->devices;
+         slen = p - sptr;
+         ptr = p+1;
+      }
+   }
+
+   len = (MAX_DEVICES_LIST-2) - slen;
+   slen = strlen(info->description);
+   if (len > slen)
+   {
+      sprintf(ptr, "%s", info->description);
+//    printf("# '%s'\n", info->description);
+      ptr += slen;
+      *ptr++ = '\0';
+      *ptr = '\0';
+   }
+
+   sptr = ptr = handle->names[m];
+   slen = strlen(ptr);
+   if (slen)
+   {
+      char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+      if (p)
+      {
+         slen = p - sptr;
+         ptr = p+1;
+      }
+   }
+
+   len = (MAX_DEVICES_LIST-2) - slen;
+   slen = strlen(info->name);
+   if (len > slen)
+   {
+      sprintf(ptr, "%s", info->name);
+      ptr += slen;
+      *ptr++ = '\0';
+      *ptr = '\0';
+   }
+}
+
+static void
+source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eol, void *si)
+{
+    _sink_info_t *sink = si;
+   _driver_t *handle = sink->handle;
+   char *sptr, *ptr;
+   size_t slen, len;
+   int m = 0;
+
+   if (eol)
+   {
+      ppa_threaded_mainloop_signal(sink->loop, 0);
+      return;
+   }
+
+   sptr = ptr = (char*)&handle->descriptions[m];
+   slen = strlen(sptr);
+   if (slen)
+   {
+      char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+      if (p)
+      {
+         slen = p - sptr;
          ptr = p+1;
       }
    }
@@ -1098,33 +1254,26 @@ sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, v
       *ptr++ = '\0';
       *ptr = '\0';
    }
-}
 
-static void
-source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eol, void *si)
-{
-   _sink_info_t *source = si;
-   size_t slen, len;
-   char *ptr;
-
-   if (eol)
+   sptr = ptr = handle->names[m];
+   slen = strlen(ptr);
+   if (slen)
    {
-      ppa_threaded_mainloop_signal(source->loop, 0);
-      return;
+      char *p = memmem(ptr, MAX_DEVICES_LIST, "\0\0", 2);
+      if (p)
+      {
+         slen = p - sptr;
+         ptr = p+1;
+      }
    }
 
-   ptr = memmem(source->devices, MAX_DEVICES_LIST, "\0\0", 2);
-   assert(ptr);
-   
-   slen = ptr-source->devices;
-   if (slen) ptr++;
-
-   len = MAX_DEVICES_LIST - slen;
-   slen = strlen(info->description)+1;
-   if (len > slen+1)
+   len = (MAX_DEVICES_LIST-2) - slen;
+   slen = strlen(info->name);
+   if (len > slen)
    {
-      snprintf(ptr, len, "%s", info->description);
+      sprintf(ptr, "%s", info->name);
       ptr += slen;
+      *ptr++ = '\0';
       *ptr = '\0';
    }
 }
@@ -1175,8 +1324,8 @@ sink_name_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, voi
       return;
    }
 
-   free(handle->name);
-   handle->name = strdup(info->description);
+   free(handle->driver);
+   handle->driver = strdup(info->description);
 }
 #endif
 
@@ -1192,8 +1341,8 @@ source_name_cb(UNUSED(pa_context *context), const pa_source_info *info, int eol,
       return;
    }
 
-   free(handle->name);
-   handle->name = strdup(info->description);
+   free(handle->driver);
+   handle->driver = strdup(info->description);
 }
 #endif
 
@@ -1229,7 +1378,7 @@ _aaxContextConnect(_driver_t *handle)
       {
          char *srv = NULL; // connect to the default server (for now)
 
-         ppa_context_set_state_callback(handle->ctx, context_state_cb, handle->ml);
+         ppa_context_set_state_callback(handle->ctx, context_state_cb, handle);
          if (ppa_context_connect(handle->ctx, srv, 0, NULL) >= 0)
          {
             ppa_threaded_mainloop_lock(handle->ml);
@@ -1273,41 +1422,42 @@ static void
 _aaxStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
 {
    const char *agent = aaxGetVersionString((aaxConfig)handle);
-   pa_sample_spec *spec = &handle->spec;
    pa_channel_map map;
 
    *error = PA_STREAM_READY;
-   ppa_channel_map_init_auto(&map, handle->spec.channels, PA_CHANNEL_MAP_WAVEEX);
 
-   handle->pa = ppa_stream_new(handle->ctx, agent, spec, &map);
+   ppa_channel_map_init_auto(&map, handle->spec.channels, PA_CHANNEL_MAP_WAVEEX);
+   handle->pa = ppa_stream_new(handle->ctx, agent, &handle->spec, &map);
    if (handle->pa)
    {
-      int mode = handle->mode;
+      int mode = (handle->mode = AAX_MODE_READ) ? 1 : 0;
       if (mode) // write
       {
          pa_stream * pa = handle->pa;
          pa_buffer_attr attr;
          unsigned int buflen;
+         const char *name;
          int res;
 
-         ppa_stream_set_state_callback(pa, stream_state_cb, handle->ml);
-         ppa_stream_set_read_callback(pa, stream_request_cb, handle->ml);
-         ppa_stream_set_write_callback(pa, stream_request_cb, handle->ml);
-         ppa_stream_set_latency_update_callback(pa, stream_latency_update_cb, handle->ml);
+         ppa_stream_set_state_callback(pa, stream_state_cb, handle);
+//       ppa_stream_set_read_callback(pa, stream_record_cb, handle);
+//       ppa_stream_set_write_callback(pa, stream_write_cb, handle);
+         ppa_stream_set_latency_update_callback(pa, stream_latency_update_cb, handle);
 
          buflen = handle->period_frames*handle->spec.channels*handle->bits_sample/8;
 
-         attr.tlength = buflen*handle->no_periods;
-         attr.minreq = buflen;
-         attr.maxlength = buflen*handle->no_periods;
-         attr.prebuf = buflen;
-         attr.fragsize = buflen;
-//       flags |= PA_STREAM_ADJUST_LATENCY;
+         attr.fragsize = (uint32_t)-1;
+         attr.maxlength = (uint32_t)-1; // buflen*handle->no_periods;
+         attr.minreq = (uint32_t)-1; // buflen;
+         attr.prebuf = 0; // buflen;
+         attr.tlength = 2*buflen;
+         flags |= PA_STREAM_ADJUST_LATENCY;
 
+         name = detect_name(handle);
          if (mode == AAX_MODE_READ) {
-            res = ppa_stream_connect_record(pa, handle->name, NULL, flags);
+            res = ppa_stream_connect_record(pa, name, NULL, flags);
          } else {
-            res = ppa_stream_connect_playback(pa, handle->name, &attr, flags, NULL, NULL);
+            res = ppa_stream_connect_playback(pa, name, &attr, flags, NULL, NULL);
          }
 
          if (res >= 0)

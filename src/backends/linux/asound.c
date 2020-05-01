@@ -353,6 +353,13 @@ _aaxALSADriverDetect(int mode)
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
+
+#if RELEASE
+   if TEST_FOR_FALSE(rv) {
+      rv = _aaxPulseAudioDriverDetect(mode);
+   }
+#endif
+
    if (TEST_FOR_FALSE(rv) && !audio) {
       audio = _aaxIsLibraryPresent("asound", "2");
       _aaxGetSymError(0);
