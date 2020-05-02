@@ -34,8 +34,6 @@
 #include <stdarg.h>		/* va_start */
 
 #if HAVE_PULSE_PULSEAUDIO_H
-// #include <pulse/pulseaudio.h>
-#include <pulse/def.h>
 #include <pulse/util.h>
 #include <pulse/error.h>
 #include <pulse/stream.h>
@@ -210,9 +208,9 @@ DECL_FUNCTION(pa_context_connect);
 DECL_FUNCTION(pa_context_disconnect);
 DECL_FUNCTION(pa_context_set_state_callback);
 DECL_FUNCTION(pa_context_get_state);
-DECL_FUNCTION(pa_context_get_sink_info_by_name);
+// DECL_FUNCTION(pa_context_get_sink_info_by_name);
 DECL_FUNCTION(pa_context_get_sink_info_list);
-DECL_FUNCTION(pa_context_get_source_info_by_name);
+// DECL_FUNCTION(pa_context_get_source_info_by_name);
 DECL_FUNCTION(pa_context_get_source_info_list);
 DECL_FUNCTION(pa_context_unref);
 DECL_FUNCTION(pa_context_errno);
@@ -220,10 +218,10 @@ DECL_FUNCTION(pa_stream_new);
 DECL_FUNCTION(pa_stream_set_state_callback);
 DECL_FUNCTION(pa_stream_connect_playback);
 DECL_FUNCTION(pa_stream_connect_record);
-DECL_FUNCTION(pa_stream_disconnect);
+// DECL_FUNCTION(pa_stream_disconnect);
 DECL_FUNCTION(pa_stream_unref);
 DECL_FUNCTION(pa_stream_write);
-DECL_FUNCTION(pa_stream_writable_size);
+// DECL_FUNCTION(pa_stream_writable_size);
 DECL_FUNCTION(pa_stream_set_write_callback);
 DECL_FUNCTION(pa_stream_set_read_callback);
 DECL_FUNCTION(pa_stream_get_latency);
@@ -256,7 +254,6 @@ static void sink_device_cb(pa_context*, const pa_sink_info*, int, void*);
 static void source_device_cb(pa_context*, const pa_source_info*, int, void*);
 
 static const char* detect_name(_driver_t*);
-static float _aaxGetLatency(_driver_t*);
 static void _aaxContextConnect(_driver_t*);
 static void _aaxStreamConnect(_driver_t*,  pa_stream_flags_t flags, int*);
 static char *_aaxPulseAudioDriverLogVar(const void *, const char *, ...);
@@ -297,44 +294,43 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pa_context_disconnect);
          TIE_FUNCTION(pa_context_set_state_callback);
          TIE_FUNCTION(pa_context_get_state);
-         TIE_FUNCTION(pa_context_get_sink_info_by_name);
          TIE_FUNCTION(pa_context_get_sink_info_list);
-         TIE_FUNCTION(pa_context_get_source_info_by_name);
          TIE_FUNCTION(pa_context_get_source_info_list);
+//       TIE_FUNCTION(pa_context_get_sink_info_by_name);
+//       TIE_FUNCTION(pa_context_get_source_info_by_name);
          TIE_FUNCTION(pa_context_unref);
          TIE_FUNCTION(pa_context_errno);
          TIE_FUNCTION(pa_stream_set_state_callback);
          TIE_FUNCTION(pa_stream_connect_playback);
          TIE_FUNCTION(pa_stream_connect_record);
-         TIE_FUNCTION(pa_stream_disconnect);
+//       TIE_FUNCTION(pa_stream_disconnect);
          TIE_FUNCTION(pa_stream_unref);
          TIE_FUNCTION(pa_stream_write);
-         TIE_FUNCTION(pa_stream_writable_size);
+//       TIE_FUNCTION(pa_stream_writable_size);
          TIE_FUNCTION(pa_stream_set_write_callback);
          TIE_FUNCTION(pa_stream_set_read_callback);
          TIE_FUNCTION(pa_stream_get_latency);
          TIE_FUNCTION(pa_stream_set_latency_update_callback);
+         TIE_FUNCTION(pa_stream_get_buffer_attr);
+         TIE_FUNCTION(pa_stream_get_context);
          TIE_FUNCTION(pa_stream_get_state);
          TIE_FUNCTION(pa_stream_get_device_name);
          TIE_FUNCTION(pa_stream_cork);
          TIE_FUNCTION(pa_stream_is_corked);
-         TIE_FUNCTION(pa_channel_map_init_auto);
-         TIE_FUNCTION(pa_operation_get_state);
-         TIE_FUNCTION(pa_operation_unref);
-//       TIE_FUNCTION(pa_signal_new);
-//       TIE_FUNCTION(pa_signal_done);
-//       TIE_FUNCTION(pa_xfree);
-
-         TIE_FUNCTION(pa_stream_get_buffer_attr);
-         TIE_FUNCTION(pa_stream_get_context);
-         TIE_FUNCTION(pa_sample_spec_valid);
-         TIE_FUNCTION(pa_sample_spec_snprint);
-         TIE_FUNCTION(pa_channel_map_snprint);
          TIE_FUNCTION(pa_stream_get_sample_spec);
          TIE_FUNCTION(pa_stream_get_channel_map);
          TIE_FUNCTION(pa_stream_get_device_name);
          TIE_FUNCTION(pa_stream_get_device_index);
          TIE_FUNCTION(pa_stream_is_suspended);
+         TIE_FUNCTION(pa_channel_map_init_auto);
+         TIE_FUNCTION(pa_operation_get_state);
+         TIE_FUNCTION(pa_operation_unref);
+         TIE_FUNCTION(pa_sample_spec_valid);
+         TIE_FUNCTION(pa_sample_spec_snprint);
+         TIE_FUNCTION(pa_channel_map_snprint);
+//       TIE_FUNCTION(pa_signal_new);
+//       TIE_FUNCTION(pa_signal_done);
+//       TIE_FUNCTION(pa_xfree);
       }
 
       error = _aaxGetSymError(0);
@@ -386,7 +382,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
          handle->mutex = _aaxMutexCreate(handle->mutex);
       }
 
-#if 0
+#if 1
       handle->min_tracks = 1;
       handle->max_tracks = _AAX_MAX_SPEAKERS;
       handle->min_frequency = _AAX_MIN_MIXER_FREQUENCY;
@@ -526,21 +522,6 @@ _aaxPulseAudioDriverConnect(void *config, const void *id, void *xid, const char 
       }
    }
 
-   if (handle)
-   {
-      pa_stream_flags_t flags;
-      int error;
-
-      flags = PA_STREAM_FIX_FORMAT | PA_STREAM_FIX_RATE |
-              PA_STREAM_FIX_CHANNELS | PA_STREAM_DONT_MOVE |
-              PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_START_CORKED;
-
-      _aaxStreamConnect(handle, flags, &error);
-      if (!handle->pa || error != PA_STREAM_READY) {
-         _aaxPulseAudioDriverLogVar(id, "connect: %s", ppa_strerror(error));
-      }
-   }
-
    return (void *)handle;
 }
 
@@ -627,10 +608,20 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    if (ppa_sample_spec_valid(&req))
    {
-      memcpy(&handle->spec, &req, sizeof(pa_sample_spec));
+      pa_stream_flags_t flags;
+      int error;
 
       handle->samples = samples;
-      frame_sz = handle->spec.channels*handle->bits_sample/8;
+      memcpy(&handle->spec, &req, sizeof(pa_sample_spec));
+
+      flags = PA_STREAM_FIX_FORMAT | PA_STREAM_FIX_RATE |
+              PA_STREAM_FIX_CHANNELS | PA_STREAM_DONT_MOVE |
+              PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_START_CORKED;
+
+      _aaxStreamConnect(handle, flags, &error);
+      if (!handle->pa || error != PA_STREAM_READY) {
+         _aaxPulseAudioDriverLogVar(id, "connect: %s", ppa_strerror(error));
+      }
 #if 0
  printf("spec:\n");
  printf("   frequency: %i\n", handle->spec.rate);
@@ -638,6 +629,8 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("   channels:  %i\n", handle->spec.channels);
  printf("   samples:   %i\n", handle->samples);
 #endif
+
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
 
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
@@ -697,7 +690,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255,"  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
       _AAX_SYSLOG(str);
-#if 0
+#if 1
  printf("driver settings:\n");
  if (handle->mode != AAX_MODE_READ) {
     printf("  output renderer: '%s'\n", handle->driver);
@@ -894,7 +887,6 @@ _aaxPulseAudioDriverParam(const void *id, enum _aaxDriverParam param)
          rv = AAX_FPINFINITE;
          break;
       case DRIVER_SAMPLE_DELAY:
- //      rv = _aaxGetLatency(handle);
          rv = (float)handle->samples/handle->spec.channels;
          break;
 
@@ -1225,24 +1217,6 @@ context_state_cb(pa_context *context, void *id)
    }
 }
 
-static float
-_aaxGetLatency(_driver_t *handle)
-{
-   int negative = 0;
-   pa_usec_t rv;
-
-   ppa_threaded_mainloop_lock(handle->ml);
-
-   if (ppa_stream_get_latency(handle->pa, &rv, &negative) >= 0) {
-      if (negative) rv = 0;
-   }
-
-   ppa_threaded_mainloop_unlock(handle->ml);
-
-   return (float)rv*1e-6f;
-}
-
-
 static void
 stream_state_cb(pa_stream *stream, void *id)
 {
@@ -1288,61 +1262,17 @@ static void
 stream_latency_update_cb(pa_stream *stream, void *id)
 {
    _driver_t *handle = (_driver_t *)id;
-   ppa_threaded_mainloop_signal(handle->ml, 0);
-}
+   int negative = 0;
+   pa_usec_t rv;
 
-#if 0
-static void
-sink_info_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, void *id)
-{
-   _driver_t *handle = (_driver_t*)id;
-   char chanmap_str[256] = "";
-   const struct {
-      const char *str;
-      enum DevFmtChannels chans;
-   } chanmaps[] = {
-      { "front-left,front-right,front-center,lfe,rear-left,rear-right,side-left,side-right",
-        DevFmtX71 },
-      { "front-left,front-right,front-center,lfe,rear-center,side-left,side-right",
-        DevFmtX61 },
-      { "front-left,front-right,front-center,lfe,rear-left,rear-right",
-        DevFmtX51 },
-      { "front-left,front-right,front-center,lfe,side-left,side-right",
-        DevFmtX51Side },
-      { "front-left,front-right,rear-left,rear-right", DevFmtQuad },
-      { "front-left,front-right", DevFmtStereo },
-      { "mono", DevFmtMono },
-      { NULL, 0 }
-   };
-   int i;
-
-   if (eol)
+   if (ppa_stream_get_latency(handle->pa, &rv, &negative) >= 0)
    {
-      ppa_threaded_mainloop_signal(handle->ml, 0);
-      return;
-   }
-
-   for(i = 0;chanmaps[i].str;i++)
-   {
-      pa_channel_map map;
-      if (!pa_channel_map_parse(&map, chanmaps[i].str))
-         continue;
-
-      if (pa_channel_map_equal(&info->channel_map, &map)
-         || (pa_channel_map_superset &&
-             ppa_channel_map_superset(&info->channel_map, &map))
-          )
-      {
-         device->FmtChans = chanmaps[i].chans;
-         return;
+      if (rv && !negative) {
+         handle->latency = (float)rv*1e-6f;
       }
    }
-
-// ppa_channel_map_snprint(chanmap_str, sizeof(chanmap_str), &info->channel_map);
-// ERR("Failed to find format for channel map:\n    %s\n", chanmap_str);
-   _AAX_DRVLOG("Failed to find format for channel map.");
+   ppa_threaded_mainloop_signal(handle->ml, 0);
 }
-#endif
 
 static void
 sink_device_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, void *si)
@@ -1467,74 +1397,6 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
    }
 }
 
-#if 0
-static void
-source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eol, void *id)
-{
-   _driver_t *handle = (_driver_t*)id;
-// void *temp;
-// unsigned i;
-
-   if (eol)
-   {
-      ppa_threaded_mainloop_signal(handle->ml, 0);
-      return;
-   }
-
-#if 0
-   for(i=0; i<numCaptureDevNames; ++i)
-   {
-      if (strcmp(info->name, allCaptureDevNameMap[i].device_name) == 0) {
-         return;
-      }
-   }
-
-   temp = realloc(allCaptureDevNameMap, (numCaptureDevNames+1) * sizeof(*allCaptureDevNameMap));
-   if (temp)
-   {
-      allCaptureDevNameMap = temp;
-      allCaptureDevNameMap[numCaptureDevNames].name = strdup(info->description);
-      allCaptureDevNameMap[numCaptureDevNames].device_name = strdup(info->name);
-      numCaptureDevNames++;
-   }
-#endif
-}
-#endif
-
-#if 0
-static void
-sink_name_cb(UNUSED(pa_context *context), const pa_sink_info *info, int eol, void *id)
-{
-   _driver_t *handle = (_driver_t*)id;
-
-   if (eol)
-   {
-      ppa_threaded_mainloop_signal(handle->ml, 0);
-      return;
-   }
-
-   free(handle->driver);
-   handle->driver = strdup(info->description);
-}
-#endif
-
-#if 0
-static void
-source_name_cb(UNUSED(pa_context *context), const pa_source_info *info, int eol, void *id)
-{
-   _driver_t *handle = (_driver_t*)id;
-
-   if (eol)
-   {
-      ppa_threaded_mainloop_signal(handle->ml, 0);
-      return;
-   }
-
-   free(handle->driver);
-   handle->driver = strdup(info->description);
-}
-#endif
-
 static void
 _aaxContextConnect(_driver_t *handle)
 {
@@ -1619,55 +1481,60 @@ _aaxStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
    handle->pa = ppa_stream_new(handle->ctx, agent, &handle->spec, &map);
    if (handle->pa)
    {
-         pa_stream * pa = handle->pa;
-         pa_buffer_attr attr;
-         unsigned int buflen;
-         const char *name;
-         int res;
+      pa_stream * pa = handle->pa;
+      pa_buffer_attr attr;
+      unsigned int buflen;
+      const char *name;
+      int res;
 
-         ppa_stream_set_state_callback(pa, stream_state_cb, handle);
-//       ppa_stream_set_read_callback(pa, stream_record_cb, handle);
-//       ppa_stream_set_write_callback(pa, stream_write_cb, handle);
-         ppa_stream_set_latency_update_callback(pa, stream_latency_update_cb, handle);
+      ppa_stream_set_state_callback(pa, stream_state_cb, handle);
+//    ppa_stream_set_read_callback(pa, stream_record_cb, handle);
+      ppa_stream_set_latency_update_callback(pa, stream_latency_update_cb, handle);
 
-         buflen = handle->samples*handle->bits_sample/8;
+      buflen = handle->samples*handle->bits_sample/8;
 
-         attr.fragsize = (uint32_t)-1;
-         attr.maxlength = (uint32_t)-1; // buflen*handle->no_periods;
-         attr.minreq = (uint32_t)-1; // buflen;
-         attr.prebuf = 0; // buflen;
-         attr.tlength = 2*buflen;
-         flags |= PA_STREAM_ADJUST_LATENCY;
+      attr.fragsize = (uint32_t)-1;
+      attr.maxlength = (uint32_t)-1; // buflen*handle->no_periods;
+      attr.minreq = (uint32_t)-1; // buflen;
+      attr.prebuf = 0; // buflen;
+      attr.tlength = 2*buflen;
 
-         name = detect_name(handle);
-         if (handle->mode == AAX_MODE_READ) {
-            res = ppa_stream_connect_record(pa, name, NULL, flags);
-         } else {
-            res = ppa_stream_connect_playback(pa, name, &attr, flags, NULL, NULL);
-         }
+      name = detect_name(handle);
+      if (handle->mode == AAX_MODE_READ) {
+         res = ppa_stream_connect_record(pa, name, NULL, flags);
+      } else {
+         res = ppa_stream_connect_playback(pa, name, &attr, flags, NULL, NULL);
+      }
 
-         if (res >= 0)
+      if (res >= 0)
+      {
+         const pa_sample_spec *spec;
+
+         do
          {
-            do
+            pa_stream_state_t state;
+
+            state = ppa_stream_get_state(pa);
+            if (state == PA_STREAM_READY) break;
+
+            if (!PA_STREAM_IS_GOOD(state))
             {
-               pa_stream_state_t state;
-
-               state = ppa_stream_get_state(pa);
-               if (state == PA_STREAM_READY) break;
-
-               if (!PA_STREAM_IS_GOOD(state))
-               {
-                  *error = ppa_context_errno(handle->ctx);
-                  break;
-               }
-
-               ppa_threaded_mainloop_wait(handle->ml);
+               *error = ppa_context_errno(handle->ctx);
+               break;
             }
-            while(1);
+
+            ppa_threaded_mainloop_wait(handle->ml);
          }
-         else {
-            *error = ppa_context_errno(handle->ctx);
+         while(1);
+
+         spec = ppa_stream_get_sample_spec(handle->pa);
+         if (spec) {
+            memcpy(&handle->spec, spec, sizeof(pa_sample_spec));
          }
+      }
+      else {
+         *error = ppa_context_errno(handle->ctx);
+      }
    }
 }
 
