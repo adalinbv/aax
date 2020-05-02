@@ -390,7 +390,6 @@ _aaxSDLDriverConnect(void *config, const void *id, void *xid, const char *render
 
    if (handle && !pSDL_AudioInit(handle->driver))
    {
-     
       SDL_AudioSpec req, avail;
       uint32_t device;
 
@@ -455,6 +454,7 @@ _aaxSDLDriverDisconnect(void *id)
          handle->render->close(handle->render->id);
          free(handle->render);
       }
+
       if (handle->mutex) {
          _aaxMutexDestroy(handle->mutex);
       }
@@ -496,6 +496,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
       if (*refresh_rate > 100) {
          *refresh_rate = 100;
       }
+
       if (!registered) {
          period_samples = get_pow2((size_t)rintf(req.freq/(*refresh_rate)));
       } else {
@@ -538,8 +539,9 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
 #else
          handle->latency = (float)handle->spec.samples/((float)handle->spec.freq*frame_sz);
 #endif
+
          handle->render = _aaxSoftwareInitRenderer(handle->latency,
-                                                handle->mode, registered);
+                                                   handle->mode, registered);
          if (handle->render)
          {
             const char *rstr = handle->render->info(handle->render->id);
@@ -577,7 +579,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255, "  buffer size: %i bytes", handle->spec.samples*handle->bits_sample/8);
       _AAX_SYSLOG(str);
-      snprintf(str,255, "  latency: %3.2f ms",  1e3*handle->latency);
+      snprintf(str,255, "  latency: %3.2f ms",  1e3f*handle->latency);
       _AAX_SYSLOG(str);
       snprintf(str,255,"  timer based: yes");
       _AAX_SYSLOG(str);
@@ -594,7 +596,7 @@ _aaxSDLDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("  device: '%s'\n", handle->devname);
  printf("  playback rate: %5i Hz\n", handle->spec.freq);
  printf("  buffer size: %u bytes\n", handle->spec.samples*handle->bits_sample/8);
- printf("  latency:  %5.2f ms\n", 1e3*handle->latency);
+ printf("  latency:  %5.2f ms\n", 1e3f*handle->latency);
  printf("  timer based: yes\n");
  printf("  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
 #endif
@@ -756,7 +758,7 @@ _aaxSDLDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_SUPPORTS_PLAYBACK:
    case DRIVER_SUPPORTS_CAPTURE:
       rv = AAX_TRUE;
-      break; 
+      break;
    case DRIVER_NEED_REINIT:
    default:
       break;
@@ -855,6 +857,8 @@ _aaxSDLDriverGetDevices(UNUSED(const void *id), int mode)
          // We already provide a file and none backend
          if (!strcmp(driver, "disk") || !strcmp(driver, "dummy")) continue;
 
+         // We already provide the pulseaudio backend
+         if (!strcmp(driver, "pulseaudio")) continue;
          // We already provide the alsa backend
          if (!strcmp(driver, "alsa")) continue;
          // We already provide the oss backend
@@ -982,12 +986,11 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
       assert(be_handle->mode != AAX_MODE_READ);
       assert(be_handle->dataBuffer);
 
+      _aaxMutexLock(be_handle->mutex);
+
       // assert(be_handle->dataBuffer->avail >= len);
-      if (be_handle->dataBuffer->avail >= (size_t)len)
-      {
-         _aaxMutexLock(be_handle->mutex);
+      if (be_handle->dataBuffer->avail >= (size_t)len) {
          _aaxDataMove(be_handle->dataBuffer, dst, len);
-         _aaxMutexUnLock(be_handle->mutex);
       }
       else {
 #if 0
@@ -995,6 +998,8 @@ _sdl_callback_write(void *be_ptr, uint8_t *dst, int len)
 #endif
          _AAX_DRVLOG("buffer underrun\n");
       }
+
+      _aaxMutexUnLock(be_handle->mutex);
    }
 }
 
