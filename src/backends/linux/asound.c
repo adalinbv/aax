@@ -353,14 +353,16 @@ _aaxALSADriverDetect(int mode)
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-#if RELEASE
+#if HAVE_PULSE_PULSEAUDIO_H
+# if RELEASE
    const char *env = getenv("AAX_ALSA_DEVICES");
-   if (env && !_aax_getbool(env))
+   if (!env || !_aax_getbool(env))
    {
       if TEST_FOR_FALSE(rv) {
          rv = _aaxPulseAudioDriverDetect(mode);
       }
    }
+# endif
 #endif
 
    if (TEST_FOR_FALSE(rv) && !audio) {
