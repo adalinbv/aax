@@ -1575,7 +1575,6 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
-      char *sysdefault = NULL;
       void **hints;
       int res;
 
@@ -1597,28 +1596,16 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                char *colon = name ? strchr(name, ':') : NULL;
+               char *comma = colon ? strchr(name, ',') : NULL;
 
-               if (sysdefault && !STRCMP(name, "sysdefault:"))
+               if (comma)
                {
-                  free(sysdefault);
-                  sysdefault = NULL;
-               }
-
-               if (name && !(sysdefault && !STRCMP(colon, sysdefault)))
-               {
-                  if ((!colon &&
-                          (strcmp(name, "null") && !strstr(name, "default")))
-                      || (!STRCMP(name, "hw:") && strstr(name, ",DEV=0"))
-                      || (!STRCMP(name, "hdmi:") && strstr(name, ",DEV=0"))
-                      || !STRCMP(name, "sysdefault:")
+                  if (!STRCMP(comma, ",DEV=0") &&
+                      (!STRCMP(name, "front:") || !STRCMP(name, "hdmi:"))
                      )
                   {
                      char *desc, *iface;
                      size_t slen;
-
-                     if (!sysdefault && !STRCMP(name, "sysdefault:")) {
-                        sysdefault = strdup(colon);
-                     }
 
                      desc = psnd_device_name_get_hint(*lst, "DESC");
                      if (!desc) desc = name;
@@ -1643,7 +1630,6 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
          }
          while (*lst != NULL);
          *ptr = 0;
-         free(sysdefault);
       }
 
       res = psnd_device_name_free_hint(hints);
@@ -1803,21 +1789,10 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
                char *desc = psnd_device_name_get_hint(*lst, "DESC");
                if (!desc) desc = name;
 
-#if 0
-               if ((!m && (!strncmp(name, "default:", strlen("default:")) ||
-                          !strncmp(name, "sysdefault:", strlen("sysdefault:"))))
-                    || !strncmp(name, "front:", strlen("front:"))
-                    || (handle && (!strcasecmp(handle->devname, name) ||
-                                   !strcasecmp(handle->devname, desc)) ||
-                                   (!strcasecmp(handle->devname, "default")
-                                     && strstr(name, "default")))
-                  )
-#else
-                if (handle && (!strcasecmp(handle->devname, name) ||
+               if (handle && (!strcasecmp(handle->devname, name) ||
                                    !strcasecmp(handle->devname, desc) ||
                                    (!strcasecmp(handle->devname, "default")
                                      && strstr(name, "default"))))
-#endif
                {
                   char *iface;
                   if (handle && !strcmp(desc, handle->devname))
