@@ -1596,12 +1596,12 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                char *colon = name ? strchr(name, ':') : NULL;
-               char *comma = colon ? strchr(name, ',') : NULL;
+               char *comma = colon ? strchr(colon+1, ',') : NULL;
 
                if (comma)
                {
-                  if (!STRCMP(comma, ",DEV=0") &&
-                      (!STRCMP(name, "front:") || !STRCMP(name, "hdmi:"))
+                  if (!STRCMP(comma+1, "DEV=") &&
+                      (!STRCMP(name, "hw:") /* || !STRCMP(name, "hdmi:") */)
                      )
                   {
                      char *desc, *iface;
