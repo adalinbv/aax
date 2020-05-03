@@ -622,6 +622,10 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       if (!handle->pa || error != PA_STREAM_READY) {
          _aaxPulseAudioDriverLogVar(id, "connect: %s", ppa_strerror(error));
       }
+
+      period_samples *= handle->spec.channels/2;
+      frame_sz = handle->spec.channels*handle->bits_sample/8;
+      handle->samples = period_samples*frame_sz;
 #if 0
  printf("spec:\n");
  printf("   frequency: %i\n", handle->spec.rate);
@@ -629,8 +633,6 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
  printf("   channels:  %i\n", handle->spec.channels);
  printf("   samples:   %i\n", handle->samples);
 #endif
-
-      frame_sz = handle->spec.channels*handle->bits_sample/8;
 
       *speed = handle->spec.rate;
       *tracks = handle->spec.channels;
@@ -690,7 +692,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
       _AAX_SYSLOG(str);
       snprintf(str,255,"  channels: %i, bytes/sample: %i\n", handle->spec.channels, handle->bits_sample/8);
       _AAX_SYSLOG(str);
-#if 1
+#if 0
  printf("driver settings:\n");
  if (handle->mode != AAX_MODE_READ) {
     printf("  output renderer: '%s'\n", handle->driver);
@@ -908,12 +910,16 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
    static time_t t_previous[2] = { 0, 0 };
    _driver_t *handle = (_driver_t *)id;
    int m = (mode == AAX_MODE_READ) ? 1 : 0;
+   char *rv = (char*)&names[m];
    time_t t_now;
 
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
-      if (!id)
+      if (id) {
+         rv = handle->descriptions[m];
+      }
+      else
       {
          handle = calloc(1, sizeof(_driver_t));
          _aaxContextConnect(handle);
@@ -927,7 +933,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
          t_previous[m] = t_now;
 
          si.names = NULL;
-         si.descriptions = (char*)&names[m];
+         si.descriptions = rv;
          si.loop = handle->ml;
 
          if (m) {
@@ -950,7 +956,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
       }
    }
 
-   return (char *)names[m];
+   return rv;
 }
 
 static char *
