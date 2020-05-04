@@ -49,6 +49,7 @@
 #include <api.h>
 #include <arch.h>
 
+#include <dsp/effects.h>
 #include <software/renderer.h>
 #include "device.h"
 #include "audio.h"
@@ -57,15 +58,16 @@
 #define BACKEND_NAME		"Audio Files"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
 
-#define DEFAULT_OUTPUT_RATE	22050
-#define WAVE_HEADER_SIZE	11
-#define WAVE_EXT_HEADER_SIZE	17
+#define USE_PID			AAX_TRUE
+#define USE_STREAM_THREAD	AAX_TRUE
+#define FILL_FACTOR		4.0f
+
+#define USE_WRITE_THREAD	AAX_TRUE
 #ifdef WIN32
 # define USE_CAPTURE_THREAD	AAX_FALSE
 #else
 # define USE_CAPTURE_THREAD	AAX_TRUE
 #endif
-
 
 static _aaxDriverDetect _aaxStreamDriverDetect;
 static _aaxDriverNewHandle _aaxStreamDriverNewHandle;
@@ -81,6 +83,9 @@ static _aaxDriverGetName _aaxStreamDriverGetName;
 static _aaxDriverRender _aaxStreamDriverRender;
 static _aaxDriverState _aaxStreamDriverState;
 static _aaxDriverParam _aaxStreamDriverParam;
+#if USE_STREAM_THREAD
+static _aaxDriverThread _aaxStreamDriverThread;
+#endif
 
 static char _file_default_renderer[MAX_ID_STRLEN] = DEFAULT_RENDERER;
 const _aaxDriverBackend _aaxStreamDriverBackend =
@@ -100,7 +105,11 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
 
    (_aaxDriverGetName *)&_aaxStreamDriverGetName,
    (_aaxDriverRender *)&_aaxStreamDriverRender,
+#if USE_STREAM_THREAD
+   (_aaxDriverThread *)&_aaxStreamDriverThread,
+#else
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
+#endif
 
    (_aaxDriverConnect *)&_aaxStreamDriverConnect,
    (_aaxDriverDisconnect *)&_aaxStreamDriverDisconnect,
@@ -156,6 +165,16 @@ typedef struct
    _aaxMutex *threadbuf_lock;
    _data_t *threadBuffer;
 
+#if USE_PID
+   struct {
+      float I;
+      float err;
+   } PID;
+   struct {
+      float aim;
+   } fill;
+#endif
+
 } _driver_t;
 
 static _ext_t* _aaxGetFormat(const char*, enum aaxRenderMode);
@@ -163,7 +182,9 @@ static _ext_t* _aaxGetFormat(const char*, enum aaxRenderMode);
 #if USE_CAPTURE_THREAD
 static void* _aaxStreamDriverReadThread(void*);
 #endif
+#if USE_WRITE_THREAD
 static void* _aaxStreamDriverWriteThread(void*);
+#endif
 static void _aaxStreamDriverWriteChunk(const void*);
 static ssize_t _aaxStreamDriverReadChunk(const void*);
 
@@ -680,16 +701,25 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                res = 0;
 #endif
             } else {
+#if USE_WRITE_THREAD
                handle->thread.ptr = _aaxThreadCreate();
                handle->thread.signal.mutex = _aaxMutexCreate(handle->thread.signal.mutex);
                _aaxSignalInit(&handle->thread.signal);
                res = _aaxThreadStart(handle->thread.ptr,
                                      _aaxStreamDriverWriteThread, handle, 20);
+#else
+               res = 0;
+#endif
             }
 
             if (res == 0)
             {
 #if USE_CAPTURE_THREAD
+               if (handle->mode == AAX_MODE_READ) {
+                  handle->thread.started = AAX_TRUE;
+               }
+#endif
+#if USE_WRITE_THREAD
                handle->thread.started = AAX_TRUE;
 #endif
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
@@ -824,7 +854,11 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    if (batched) {
       _aaxStreamDriverWriteChunk(id);
    } else {
+#if USE_WRITE_THREAD
       _aaxSignalTrigger(&handle->thread.signal);
+#else
+      _aaxStreamDriverWriteChunk(id);
+#endif
    }
 
    return (res >= 0) ? (res-res) : -1; // (res - no_samples);
@@ -1480,6 +1514,146 @@ _aaxStreamDriverWriteChunk(const void *id)
 
 }
 
+#if USE_STREAM_THREAD
+static void *
+_aaxStreamDriverThread(void* config)
+{
+   _handle_t *handle = (_handle_t *)config;
+   _intBufferData *dptr_sensor;
+   const _aaxDriverBackend *be;
+   _aaxRingBuffer *dest_rb;
+   _aaxAudioFrame *smixer;
+   _driver_t *be_handle;
+   int state, tracks;
+   float delay_sec;
+   float freq;
+   int res;
+
+   if (!handle || !handle->sensors || !handle->backend.ptr
+       || !handle->info->no_tracks) {
+      return NULL;
+   }
+
+   be = handle->backend.ptr;
+   delay_sec = 1.0f/handle->info->period_rate;
+
+   tracks = 2;
+   freq = 48000.0f;
+   smixer = NULL;
+   dest_rb = be->get_ringbuffer(REVERB_EFFECTS_TIME, handle->info->mode);
+   if (dest_rb)
+   {
+      dptr_sensor = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr_sensor)
+      {
+         _aaxMixerInfo* info;
+         _sensor_t* sensor;
+
+         sensor = _intBufGetDataPtr(dptr_sensor);
+         smixer = sensor->mixer;
+         info = smixer->info;
+
+         freq = info->frequency;
+         tracks = info->no_tracks;
+         dest_rb->set_parami(dest_rb, RB_NO_TRACKS, tracks);
+         dest_rb->set_format(dest_rb, AAX_PCM24S, AAX_TRUE);
+         dest_rb->set_paramf(dest_rb, RB_FREQUENCY, freq);
+         dest_rb->set_paramf(dest_rb, RB_DURATION_SEC, delay_sec);
+         dest_rb->init(dest_rb, AAX_TRUE);
+         dest_rb->set_state(dest_rb, RB_STARTED);
+
+         handle->ringbuffer = dest_rb;
+         _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
+      }
+   }
+
+   dest_rb = handle->ringbuffer;
+   if (!dest_rb) {
+      return NULL;
+   }
+
+   /* get real duration, it might have been altered for better performance */
+   delay_sec = dest_rb->get_paramf(dest_rb, RB_DURATION_SEC);
+
+   be->state(handle->backend.handle, DRIVER_PAUSE);
+   state = AAX_SUSPENDED;
+
+   be_handle = (_driver_t *)handle->backend.handle;
+   be_handle->dataBuffer = _aaxDataCreate(1, 1);
+
+   _aaxMutexLock(handle->thread.signal.mutex);
+   do
+   {
+      float dt = delay_sec;
+
+      if TEST_FOR_FALSE(handle->thread.started) {
+         break;
+      }
+
+      if (state != handle->state)
+      {
+         if (_IS_PAUSED(handle) || (!_IS_PLAYING(handle) && _IS_STANDBY(handle))) {
+            be->state(handle->backend.handle, DRIVER_PAUSE);
+         }
+         else if (_IS_PLAYING(handle) || _IS_STANDBY(handle)) {
+            be->state(handle->backend.handle, DRIVER_RESUME);
+         }
+
+         state = handle->state;
+      }
+
+      if (_IS_PLAYING(handle))
+      {
+         res = _aaxSoftwareMixerThreadUpdate(handle, handle->ringbuffer);
+
+#if USE_PID
+         do
+         {
+            float target, input, err, P, I;
+
+            target = be_handle->fill.aim;
+            input = (float)be_handle->dataBuffer->avail/freq;
+            err = input - target;
+
+            /* present error */
+            P = err;
+
+            /*  accumulation of past errors */
+            be_handle->PID.I += err*delay_sec;
+            I = be_handle->PID.I;
+
+            err = 0.40f*P + 0.97f*I;
+            dt = _MINMAX((delay_sec + err), 1e-6f, 1.5f*delay_sec);
+# if 0
+ printf("target: %8.1f, avail: %8.1f, err: %- 8.1f, delay: %5.4f (%5.4f)\r", target*freq, input*freq, err*freq, dt, delay_sec);
+# endif
+         }
+         while (0);
+#endif
+
+         if (handle->finished) {
+            _aaxSemaphoreRelease(handle->finished);
+         }
+      }
+
+      res = _aaxSignalWaitTimed(&handle->thread.signal, dt);
+   }
+   while (res == AAX_TIMEOUT || res == AAX_TRUE);
+
+   _aaxMutexUnLock(handle->thread.signal.mutex);
+
+   dptr_sensor = _intBufGetNoLock(handle->sensors, _AAX_SENSOR, 0);
+   if (dptr_sensor)
+   {
+      be->destroy_ringbuffer(handle->ringbuffer);
+      handle->ringbuffer = NULL;
+   }
+
+   return handle;
+}
+#endif
+
+#if USE_WRITE_THREAD
 static void*
 _aaxStreamDriverWriteThread(void *id)
 {
@@ -1511,6 +1685,7 @@ _aaxStreamDriverWriteThread(void *id)
 
    return handle;
 }
+#endif
 
 static ssize_t
 _aaxStreamDriverReadChunk(const void *id)
