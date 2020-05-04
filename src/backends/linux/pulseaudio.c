@@ -1187,18 +1187,21 @@ detect_name(_driver_t *handle)
    const char *rv = NULL;
    int di = 0, ni = 0;
 
-   while (strlen(ptr) && strcmp(handle->driver, ptr)) {
-      ptr += strlen(ptr)+1;
-      di++;
-   }
-
-   if (strlen(ptr) > 0)
+   if (handle->driver)
    {
-      ptr = handle->names[m];
-      for(ni=0; ni<di; ++ni) {
+      while (strlen(ptr) && strcmp(handle->driver, ptr)) {
          ptr += strlen(ptr)+1;
+         di++;
       }
-      rv = ptr;
+
+      if (strlen(ptr) > 0)
+      {
+         ptr = handle->names[m];
+         for(ni=0; ni<di; ++ni) {
+            ptr += strlen(ptr)+1;
+         }
+         rv = ptr;
+      }
    }
 
    return rv;
