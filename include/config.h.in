@@ -184,6 +184,10 @@
 #undef HAVE_VALUES_H
 #cmakedefine HAVE_VALUES_H @HAVE_VALUES_H@
 
+/* Define to 1 if you have the <linux/hpet.h> header file. */
+#undef HAVE_HPET_H
+#cmakedefine HAVE_HPET_H @HAVE_HPET_H@
+
 /* Define to the sub-directory in which libtool stores uninstalled libraries.
    */
 #undef LT_OBJDIR

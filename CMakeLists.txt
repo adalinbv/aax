@@ -431,6 +431,7 @@ check_include_file(pulse/pulseaudio.h HAVE_PULSE_PULSEAUDIO_H)
 if(UNIX)
   check_include_file(pthread.h HAVE_PTHREAD_H)
   check_include_file(arm_neon.h HAVE_ARM_NEON_H)
+  check_include_file(linux/hpet.h HAVE_HPET_H)
 endif(UNIX)
 
 if(HAVE_PTHREAD_H)

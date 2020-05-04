@@ -1,4 +1,12 @@
 
+* Tue May 5 2020 - tech@adalin.org
+- AeonWave (3.8.4) stable; urgency=low
+
+ * Implement a native PulseAudio backend.
+
+-- Erik Hofman <tech@adalin.org>  May 05 Apr 2020 11:45:04 + 0100
+
+
 * Tue Apr 14 2020 - tech@adalin.org
 - AeonWave (3.8.3) stable; urgency=high
 
