@@ -102,7 +102,7 @@ _aaxDataDestroy(_data_t* buf)
  * returns the actual number of bytes that where added.
  */
 size_t
-_aaxDataAdd(_data_t* buf, void* data, size_t size)
+_aaxDataAdd(_data_t* buf, const void* data, size_t size)
 {
    size_t free, rv = 0;
 

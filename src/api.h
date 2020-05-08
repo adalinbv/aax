@@ -77,7 +77,7 @@ typedef struct _data_st
 
 _data_t* _aaxDataCreate(size_t, unsigned int);
 int _aaxDataDestroy(_data_t*);
-size_t _aaxDataAdd(_data_t*, void*, size_t);
+size_t _aaxDataAdd(_data_t*, const void*, size_t);
 size_t _aaxDataCopy(_data_t*, void*, size_t, size_t);
 size_t _aaxDataMove(_data_t*, void*, size_t);
 size_t _aaxDataMoveOffset(_data_t*, void*, size_t, size_t);
