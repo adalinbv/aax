@@ -382,6 +382,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_SAMPLED_RELEASE:
          rv= handle->info.sampled_release;
          break;
+      case AAX_COMPRESSION_VALUE:
+         rv = handle->gain*10000;
+         break;
       case AAX_PEAK_VALUE:
       case AAX_AVERAGE_VALUE:
          if (rb->get_state(rb, RB_IS_VALID))
@@ -1553,19 +1556,17 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
       if (!xmlNodeGetPos(xaid, xsid, section, s)) continue;
 
-      if (midi_mode == AAX_RENDER_SYNTHESIZER) {
+      if (midi_mode == AAX_RENDER_SYNTHESIZER ||
+          midi_mode == AAX_RENDER_ARCADE) {
          handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
       }
-      else if (midi_mode == AAX_RENDER_NORMAL)
+      else
       {
          if (xmlAttributeExists(xsid, "gain")) {
             handle->gain = xmlAttributeGetDouble(xsid, "gain");
          } else if (xmlAttributeExists(xsid, "fixed-gain")) {
             handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
          }
-      }
-      else {
-         handle->gain = -4.4f;
       }
 
       if (!freq)
@@ -1679,7 +1680,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             int waves;
 
             num = xmlNodeGetNum(xsid, "*");
-            waves = midi_mode ? _MIN(2, num) : num;
+            if (midi_mode == AAX_RENDER_ARCADE) waves = _MIN(2, num);
+            else if (midi_mode == AAX_RENDER_SYNTHESIZER) waves = _MIN(6, num);
+            else waves = num;
+
             for (i=0; i<num; i++)
             {
                if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
