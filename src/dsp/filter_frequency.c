@@ -41,6 +41,9 @@
 #define VERSION	1.13
 #define DSIZE	sizeof(_aaxRingBufferFreqFilterData)
 
+#define MIN_CUTOFF	20.0f
+#define MAX_CUTOFF	20000.0f
+
 static aaxFilter
 _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {
@@ -191,7 +194,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
-         fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+         fc = _MINMAX(filter->slot[0]->param[AAX_CUTOFF_FREQUENCY],
+                      20.0f, 0.9f*0.5f*flt->fs);
          if (state & AAX_RANDOM_SELECT)
          {
             float fc2 = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
@@ -346,7 +350,7 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
       else
       {
          rv->slot[1]->param[AAX_SWEEP_RATE & 0xF] = 1.0f;
-         rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = 22050.0f;
+         rv->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF] = MAX_CUTOFF;
       }
 
       rv->state = p2d->filter[rv->pos].state;
@@ -379,10 +383,10 @@ _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxFrequencyRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 20.0f, 0.0f, 0.0f, 1.0f  }, { 22050.0f, 10.0f, 10.0f, 100.0f } },
-    { { 20.0f, 0.0f, 0.0f, 0.01f }, { 22050.0f,  1.0f,  1.0f,  50.0f } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f  }, {     0.0f,  0.0f,  0.0f,   0.0f } },
-    { {  0.0f, 0.0f, 0.0f, 0.0f  }, {     0.0f,  0.0f,  0.0f,   0.0f } }
+    { { MIN_CUTOFF, 0.0f, 0.0f, 1.0f  }, { MAX_CUTOFF, 10.0f, 10.0f, 100.0f } },
+    { { MIN_CUTOFF, 0.0f, 0.0f, 0.01f }, { MAX_CUTOFF,  1.0f,  1.0f,  50.0f } },
+    { {       0.0f, 0.0f, 0.0f, 0.0f  }, {       0.0f,  0.0f,  0.0f,   0.0f } },
+    { {       0.0f, 0.0f, 0.0f, 0.0f  }, {       0.0f,  0.0f,  0.0f,   0.0f } }
    };
    
    assert(slot < _MAX_FE_SLOTS);
@@ -1105,7 +1109,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    if (filter->lfo && !ctr)
    {
-      float fc =_MAX(filter->lfo->get(filter->lfo, env, s, track, dmax), 20.0f);
+      float fc =_MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
+                        20.0f, 0.9f*0.5f*filter->fs);
 
       if (filter->state == AAX_BESSEL) {
          _aax_bessel_compute(fc, filter);
