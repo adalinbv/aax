@@ -72,7 +72,7 @@
 #define FILL_FACTOR		4.0f
 
 #define PERIODS			2
-#define CAPTURE_BUFFER_SIZE	8192
+#define CAPTURE_BUFFER_SIZE	(PERIODS*8192)
 #define MAX_DEVICES_LIST	4096
 
 #define _AAX_DRVLOG(a)         _aaxPulseAudioDriverLog(id, 0, 0, a)
@@ -626,7 +626,10 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       flags = PA_STREAM_FIX_FORMAT | PA_STREAM_FIX_RATE |
               PA_STREAM_FIX_CHANNELS | PA_STREAM_DONT_MOVE |
-              PA_STREAM_AUTO_TIMING_UPDATE | PA_STREAM_START_CORKED;
+              PA_STREAM_AUTO_TIMING_UPDATE;
+      if (handle->mode != AAX_MODE_READ) {
+         flags |- PA_STREAM_START_CORKED;
+      }
 
       _aaxStreamConnect(handle, flags, &error);
       if (!handle->pa || error != PA_STREAM_READY) {
@@ -743,8 +746,13 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
 
    if (handle->dataBuffer == 0)
    {
-      _aaxDataDestroy(handle->dataBuffer);
-      handle->dataBuffer = _aaxDataCreate(CAPTURE_BUFFER_SIZE, 1);
+      size_t size = CAPTURE_BUFFER_SIZE;
+      const pa_buffer_attr *a;
+
+      a = ppa_stream_get_buffer_attr(handle->pa);
+      if (a) size = PERIODS*a->maxlength;
+
+      handle->dataBuffer = _aaxDataCreate(size, 1);
       if (handle->dataBuffer == 0) return AAX_FALSE;
 
 #if CAPTURE_CALLBACK
@@ -1161,6 +1169,7 @@ stream_capture_cb(pa_stream *p, size_t nbytes, void *be_ptr)
    const void *buf;
    size_t len = 0;
 
+   len = CAPTURE_BUFFER_SIZE - be_handle->dataBuffer->avail;
    ppa_stream_peek(be_handle->pa, &buf, &len);
    if (buf)
    {
@@ -1640,7 +1649,7 @@ _aaxStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
       attr.maxlength = 2*PERIODS*buflen;
       attr.minreq = (uint32_t)-1;
       attr.prebuf = 0;			// playback only
-      attr.tlength = PERIODS*buflen;		// playback only
+      attr.tlength = PERIODS*buflen;	// playback only
       flags |= PA_STREAM_ADJUST_LATENCY;
 
       name = detect_name(handle);
