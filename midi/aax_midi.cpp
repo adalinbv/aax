@@ -310,8 +310,10 @@ void
 MIDI::process_exclusive()
 {
    uint64_t size = pull_message();
-   const char *s = nullptr;
    uint32_t byte;
+
+   // TODO: handle size properly
+   (void)size;
 
    while (data.size() && (byte = pull_byte()) != MIDI_SYSTEM_EXCLUSIVE_END)
    {
@@ -545,6 +547,10 @@ MIDI::process_exclusive()
                   default:
                       break;
                   }
+                  // prevent compiler warnings
+                  (void)path_len;
+                  (void)id_width;
+                  (void)val_width;
                   break;
               }
               default:
@@ -849,11 +855,27 @@ MIDI::process_control_change(uint32_t channel_no)
        channel(channel_no).set_vibrato_delay(val);
        break;
    }
+   case MIDI_PORTAMENTO_CONTROL:
+   {
+       int16_t key = value;
+       float pitch = 1.0f;
+       if (!channel(channel_no).is_drums()) {
+           key = (key-0x20) + param[MIDI_CHANNEL_COARSE_TUNING].coarse;
+           pitch = channel(channel_no).get_tuning();
+           pitch *= get_tuning();
+       }
+       channel(channel_no).set_pitch_start(pitch);
+       break;
+   }
    case MIDI_PORTAMENTO_TIME:
    {
-       float val = powf(10.0f, 2.0f-3.0f*value/127.0f);
-       val = cents2pitch(val, channel_no)*1e-3f;
+       float v = value/100.0f;
+       float val = v*5.0f*(v*v*v*v - v*v + v);
        channel(channel_no).set_pitch_rate(val);
+       break;
+   }
+   case MIDI_PORTAMENTO_TIME|MIDI_FINE:
+   {
        break;
    }
 
@@ -875,7 +897,6 @@ MIDI::process_control_change(uint32_t channel_no)
    case MIDI_PHASER_EFFECT_DEPTH:
        channel(channel_no).set_phaser_depth((float)value/64.0f);
        break;
-   case MIDI_PORTAMENTO_CONTROL:
    case MIDI_HOLD2:
    case MIDI_PAN|MIDI_FINE:
    case MIDI_EXPRESSION|MIDI_FINE:
