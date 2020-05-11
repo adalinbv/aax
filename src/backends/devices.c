@@ -640,6 +640,7 @@ _aaxIntDriverGetBackends()
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxNoneDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxStreamDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLoopbackDriverBackend);
+      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxSDLDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxOSSDriverBackend);
 #ifdef HAVE_PULSE_PULSEAUDIO_H
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxPulseAudioDriverBackend);
@@ -650,7 +651,6 @@ _aaxIntDriverGetBackends()
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxWASAPIDriverBackend);
 #endif
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxDMediaDriverBackend);
-      _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxSDLDriverBackend);
 
       atexit(_aaxIntDriverRemoveBackends);
    }
