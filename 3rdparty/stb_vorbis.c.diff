@@ -1,6 +1,6 @@
---- /tmp/stb_vorbis.c	2019-10-01 14:07:23.113066589 +0200
-+++ stb_vorbis.c	2019-10-01 14:07:44.484797450 +0200
-@@ -73,6 +73,7 @@
+--- /tmp/stb_vorbis.c	2020-05-11 10:29:27.021494081 +0200
++++ stb_vorbis.c	2020-05-11 10:31:10.236120785 +0200
+@@ -76,6 +76,7 @@
  #ifndef STB_VORBIS_NO_STDIO
  #include <stdio.h>
  #endif
@@ -8,7 +8,7 @@
  
  #ifdef __cplusplus
  extern "C" {
-@@ -553,9 +554,17 @@
+@@ -567,9 +568,17 @@
  #include <stdio.h>
  #endif
  
@@ -28,7 +28,7 @@
     #include <assert.h>
     #include <math.h>
  
-@@ -564,7 +573,9 @@
+@@ -578,7 +587,9 @@
        #include <malloc.h>
     #endif
     #if defined(__linux__) || defined(__linux) || defined(__EMSCRIPTEN__)
@@ -39,16 +39,7 @@
     #endif
  #else // STB_VORBIS_NO_CRT
     #define NULL 0
-@@ -888,7 +899,7 @@
- #define array_size_required(count,size)  (count*(sizeof(void *)+(size)))
- 
- #define temp_alloc(f,size)              (f->alloc.alloc_buffer ? setup_temp_malloc(f,size) : alloca(size))
--#define temp_free(f,p)                  0
-+#define temp_free(f,p)
- #define temp_alloc_save(f)              ((f)->temp_offset)
- #define temp_alloc_restore(f,p)         ((f)->temp_offset = (p))
- 
-@@ -3059,7 +3070,7 @@
+@@ -3050,7 +3061,7 @@
  #else
  typedef int YTYPE;
  #endif
@@ -57,7 +48,7 @@
  {
     int n2 = n >> 1;
     int s = map->chan[i].mux, floor;
-@@ -3166,7 +3177,7 @@
+@@ -3157,7 +3168,7 @@
     return TRUE;
  }
  
