@@ -142,7 +142,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
 int
 _http_process(_prot_t *prot, _data_t *buf, size_t res)
 {
-   size_t buffer_avail = buf->avail;
+   size_t buffer_avail = _aaxDataGetDataAvail(buf);
    unsigned int meta_len = 0;
 
    if (prot->meta_interval)

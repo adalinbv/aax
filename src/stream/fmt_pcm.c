@@ -288,10 +288,10 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = __F_NEED_MORE;
 
-   bufsize = handle->pcmBuffer->avail;
+   bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
    if (bufsize)
    {
-      unsigned int bufsize = handle->pcmBuffer->avail;
+      unsigned int bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
       unsigned int blocksize = handle->blocksize;
       unsigned int blocksmp = handle->blocksmp;
       size_t offs, bytes, n;
@@ -333,10 +333,10 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = __F_NEED_MORE;
 
-   bufsize = handle->pcmBuffer->avail;
+   bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
    if (bufsize)
    {
-      char *buf = (char*)handle->pcmBuffer->data;
+      char *buf = (char*)_aaxDataGetData(handle->pcmBuffer);
       unsigned int blocksize = handle->blocksize;
       unsigned int tracks = handle->no_tracks;
 

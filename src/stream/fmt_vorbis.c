@@ -115,11 +115,11 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fs
 
             if (_vorbis_fill(fmt, buf, bufsize) > 0)
             {
-               buf = handle->vorbisBuffer->data;
+               buf = _aaxDataGetData(handle->vorbisBuffer);
 
                if (!handle->id)
                {
-                  int max = handle->vorbisBuffer->avail;
+                  int max = _aaxDataGetDataAvail(handle->vorbisBuffer);
                   handle->id=stb_vorbis_open_pushdata(buf, max, &used, &err, 0);
                }
 
@@ -255,8 +255,8 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    framesize = tracks*bits/8;
    *num = 0;
 
-   buf = handle->vorbisBuffer->data;
-   bufsize = handle->vorbisBuffer->avail;
+   buf = _aaxDataGetData(handle->vorbisBuffer);
+   bufsize = _aaxDataGetDataAvail(handle->vorbisBuffer);
 
    /* there is still data left in the buffer from the previous run */
    if (handle->out_pos > 0)
@@ -288,7 +288,7 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          if (ret > 0)
          {
             rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
-            bufsize = handle->vorbisBuffer->avail;
+            bufsize = _aaxDataGetDataAvail(handle->vorbisBuffer);
          }
       }
       while (ret && n == 0);
@@ -340,8 +340,8 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
    tracks = handle->no_tracks;
    *num = 0;
 
-   buf = handle->vorbisBuffer->data;
-   bufsize = handle->vorbisBuffer->avail;
+   buf = _aaxDataGetData(handle->vorbisBuffer);
+   bufsize = _aaxDataGetDataAvail(handle->vorbisBuffer);
 
    /* there is still data left in the buffer from the previous run */
    if (handle->out_pos > 0)
@@ -373,7 +373,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
          {
             rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
 
-            bufsize = handle->vorbisBuffer->avail;
+            bufsize = _aaxDataGetDataAvail(handle->vorbisBuffer);
          }
       }
       while (ret && n == 0);

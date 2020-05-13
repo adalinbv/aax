@@ -327,10 +327,10 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    packet_sz = handle->blocksize;
    *num = 0;
 
-   floats = (float*)handle->pcmBuffer->data;
+   floats = (float*)_aaxDataGetData(handle->pcmBuffer);
    do
    {
-      size_t avail = handle->pcmBuffer->avail;
+      size_t avail = _aaxDataGetDataAvail(handle->pcmBuffer);
       if (avail > 0)
       {
          unsigned int max = _MIN(req, avail/framesize);
@@ -348,17 +348,17 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       if (req > 0)
       {
-         size_t bufsize  = _MIN(packet_sz, handle->opusBuffer->avail);
+         size_t bufsize  = _MIN(packet_sz, _aaxDataGetDataAvail(handle->opusBuffer));
          if (bufsize == packet_sz)
          {
-            size_t floatsmp = handle->pcmBuffer->size/framesize;
-            unsigned char *buf = handle->opusBuffer->data;
+            size_t floatsmp = _aaxDataGetSize(handle->pcmBuffer)/framesize;
+            unsigned char *buf = _aaxDataGetData(handle->opusBuffer);
 
-            n = popus_decode_float(handle->id, buf, bufsize,
-                                                           floats, floatsmp, 0);
+            n = popus_decode_float(handle->id, buf, bufsize, floats, floatsmp,
+                                   0);
             if (n <= 0) break;
 
-            handle->pcmBuffer->avail = n*framesize;
+            _aaxDataSetOffset(handle->pcmBuffer, n*framesize);
             rv += _aaxDataMove(handle->opusBuffer, NULL, bufsize);
          }
          else {
@@ -385,8 +385,8 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    tracks = handle->no_tracks;
    *num = 0;
 
-   pcmbuf = handle->pcmBuffer->data;
-   pcmbufavail = handle->pcmBuffer->avail;
+   pcmbuf = _aaxDataGetData(handle->pcmBuffer);
+   pcmbufavail = _aaxDataGetDataAvail(handle->pcmBuffer);
 
    /* there is still data left in the buffer from the previous run */
    if (pcmbufavail)
@@ -410,16 +410,16 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       int frame_space;
 
       packet_size = handle->blocksize;
-      if (handle->opusBuffer->avail < packet_size) {
+      if (_aaxDataGetDataAvail(handle->opusBuffer) < packet_size) {
          return __F_NEED_MORE;
       }
 
-      pcmbufoffs = handle->pcmBuffer->avail;
-      pcmbufremain = handle->pcmBuffer->size - pcmbufoffs;
+      pcmbufoffs = _aaxDataGetOffset(handle->pcmBuffer);
+      pcmbufremain = _aaxDataGetFreeSpace(handle->pcmBuffer);
       frame_space = pcmbufremain/(tracks*sizeof(float));
 
       // store the next chunk into the pcmBuffer;
-      opusbuf = handle->opusBuffer->data;
+      opusbuf = _aaxDataGetData(handle->opusBuffer);
       ret = popus_decode_float(handle->id, opusbuf, packet_size,
                               (float*)(pcmbuf+pcmbufoffs), frame_space, 0);
 
@@ -444,10 +444,10 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
 
             rv += _aaxDataMove(handle->opusBuffer, NULL, packet_size);
 
-            handle->pcmBuffer->avail += ret*sizeof(float);
-            assert(handle->pcmBuffer->avail <= handle->pcmBuffer->size);
+            _aaxDataIncreaseOffset(handle->pcmBuffer, ret*sizeof(float));
+            assert(_aaxDataGetDataAvail(handle->pcmBuffer) <= _aaxDataGetSize(handle->pcmBuffer));
 
-            max = _MIN(req, handle->pcmBuffer->avail/sizeof(float));
+            max = _MIN(req, _aaxDataGetDataAvail(handle->pcmBuffer)/sizeof(float));
 
             _batch_cvt24_ps_intl(dptr, pcmbuf, dptr_offs, tracks, max);
             _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(float));
@@ -486,7 +486,7 @@ _opus_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t of
     * encoder from using the LPC or hybrid modes. 
     */
    res = popus_encode(handle->id, scratch, *num,
-                      handle->opusBuffer->data, handle->opusBuffer->avail);
+                      _aaxDataGetData(handle->opusBuffer), _aaxDataGetDataAvail(handle->opusBuffer));
    _aax_memcpy(dptr, handle->opusBuffer, res);
 
    return res;
@@ -626,8 +626,8 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
 static int
 _aaxReadOpusHeader(_driver_t *handle)
 {
-   char *h = (char*)handle->opusBuffer->data;
-   size_t len = handle->opusBuffer->avail;
+   char *h = (char*)_aaxDataGetData(handle->opusBuffer);
+   size_t len = _aaxDataGetDataAvail(handle->opusBuffer);
    int32_t *x = (int32_t*)h;
    int rv = __F_EOF;
 
@@ -706,8 +706,8 @@ _aaxReadOpusHeader(_driver_t *handle)
 static int
 _aaxReadOpusComment(_driver_t *handle)
 {
-   unsigned char *ch = (unsigned char*)handle->opusBuffer->data;
-   size_t len = handle->opusBuffer->avail;
+   unsigned char *ch = (unsigned char*)_aaxDataGetData(handle->opusBuffer);
+   size_t len = _aaxDataGetDataAvail(handle->opusBuffer);
    uint32_t *header = (uint32_t*)ch;
    char field[COMMENT_SIZE+1];
    int32_t *x = (int32_t*)ch;

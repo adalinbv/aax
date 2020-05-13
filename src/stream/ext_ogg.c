@@ -304,10 +304,10 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
    *bytes = res;
 
-   header = (unsigned char*)handle->oggBuffer->data;
+   header = (unsigned char*)_aaxDataGetData(handle->oggBuffer);
    do
    {
-      avail = _MIN(handle->page_size, handle->oggBuffer->avail);
+      avail = _MIN(handle->page_size, _aaxDataGetDataAvail(handle->oggBuffer));
       if (avail && handle->page_sequence_no >= 2)
       {
          rv = handle->fmt->fill(handle->fmt, header, &avail);
@@ -346,7 +346,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
          }
          else
          {
-            avail = handle->oggBuffer->avail;
+            avail = _aaxDataGetDataAvail(handle->oggBuffer);
             rv = _getOggPageHeader(handle, (uint32_t*)header, avail);
             if (rv <= 0) break;
 
@@ -358,7 +358,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
          }
       }
    }
-   while (avail && handle->oggBuffer->avail);
+   while (avail && _aaxDataGetDataAvail(handle->oggBuffer));
 
 // printf("ogg_fill: %i\n", rv);
    return rv;
@@ -399,7 +399,7 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
          if (rv > 0) handle->packet_no++;
          assert(handle->packet_no <= handle->no_packets);
       }
-      while (ret == __F_NEED_MORE && handle->oggBuffer->avail >= packet_size);
+      while (ret == __F_NEED_MORE && _aaxDataGetDataAvail(handle->oggBuffer) >= packet_size);
       rv = ret;
    }
 
@@ -678,7 +678,7 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
 static int
 _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
-   size_t bufsize = handle->oggBuffer->avail;
+   size_t bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
    uint32_t curr;
    int rv = 0;
 
@@ -1407,8 +1407,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
    size_t bufsize;
    int rv = 0;
 
-   header = (unsigned char*)handle->oggBuffer->data;
-   bufsize = handle->oggBuffer->avail;
+   header = (unsigned char*)_aaxDataGetData(handle->oggBuffer);
+   bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
 
    if (handle->page_sequence_no < 2)
    {

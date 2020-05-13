@@ -628,7 +628,7 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
               PA_STREAM_FIX_CHANNELS | PA_STREAM_DONT_MOVE |
               PA_STREAM_AUTO_TIMING_UPDATE;
       if (handle->mode != AAX_MODE_READ) {
-         flags |- PA_STREAM_START_CORKED;
+         flags |= PA_STREAM_START_CORKED;
       }
 
       _aaxStreamConnect(handle, flags, &error);
@@ -730,10 +730,11 @@ static ssize_t
 _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t *frames, UNUSED(void *scratch), UNUSED(size_t scratchlen), float gain, UNUSED(char batched))
 {
    _driver_t *handle = (_driver_t *)id;
-   size_t len, req, nframes = *frames;
+   size_t len, nframes = *frames;
+// size_t req;
    int tracks, frame_sz;
    size_t offs = *offset;
-   const void *buf;
+// const void *buf;
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
@@ -766,7 +767,7 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
 
 #if !CAPTURE_CALLBACK
    req = nframes*frame_sz;
-   if (handle->dataBuffer->avail < req)
+   if (_aaxDataGetDataAvail(handle->dataBuffer) < req)
    {
       int ctr = 10;
 
@@ -783,7 +784,7 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
          }
          else if (buf)
          {
-            if (handle->dataBuffer->avail+len < CAPTURE_BUFFER_SIZE)
+            if (_aaxDataGetOffset(handle->dataBuffer)+len < aaxDataGetSize(handle->dataBuffer))
             {
                int res = _aaxDataAdd(handle->dataBuffer, buf, len);
                if (res) ppa_stream_drop(handle->pa);
@@ -800,11 +801,11 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
    }
 #endif
 
-   len = handle->dataBuffer->avail;
+   len = _aaxDataGetDataAvail(handle->dataBuffer);
    if (len > nframes*frame_sz) len = nframes*frame_sz;
    if (len)
    {
-      void *buf = handle->dataBuffer->data;
+      void *buf = _aaxDataGetData(handle->dataBuffer);
 
       nframes = len/frame_sz;
       _batch_cvt24_16_intl((int32_t**)data, buf, offs, tracks, nframes);
@@ -851,7 +852,7 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
    frame_sz = no_tracks*handle->bits_sample/8;
 
    size = period_frames*frame_sz;
-   if (handle->dataBuffer == 0 || (handle->dataBuffer->size < 8*size))
+   if (handle->dataBuffer == 0 || (_aaxDataGetSize(handle->dataBuffer) < 8*size))
    {
       _aaxDataDestroy(handle->dataBuffer);
       handle->dataBuffer = _aaxDataCreate(PERIODS*FILL_FACTOR*size, no_tracks*handle->bits_sample/8);
@@ -864,7 +865,7 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
    period_frames -= offs;
    size = period_frames*frame_sz;
 
-   free = handle->dataBuffer->size - handle->dataBuffer->avail;
+   free = _aaxDataGetFreeSpace(handle->dataBuffer);
    if (free > size)
    {
       unsigned char *data;
@@ -872,15 +873,13 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
       _pulseaudio_set_volume(handle, rb, offs, period_frames, no_tracks, gain);
 
       _aaxMutexLock(handle->mutex);
-      data = handle->dataBuffer->data + handle->dataBuffer->avail;
+      data = _aaxDataGetPtr(handle->dataBuffer);
       sbuf = (const int32_t**)rb->get_tracks_ptr(rb, RB_READ);
       _batch_cvt16_intl_24(data, sbuf, offs, no_tracks, period_frames);
       rb->release_tracks_ptr(rb);
 
-      handle->dataBuffer->avail += size;
+      _aaxDataIncreaseOffset(handle->dataBuffer, size);
       _aaxMutexUnLock(handle->mutex);
-
-      assert(handle->dataBuffer->avail <= handle->dataBuffer->size);
 
       rv = period_frames;
    }
@@ -1139,16 +1138,17 @@ stream_playback_cb(pa_stream *stream, size_t len, void *be_ptr)
 
       _aaxMutexLock(be_handle->mutex);
 
-      // assert(be_handle->dataBuffer->avail >= len);
-      if (be_handle->dataBuffer->avail < len) {
-         len = be_handle->dataBuffer->avail;
+      if (_aaxDataGetDataAvail(be_handle->dataBuffer) < len) {
+         len = _aaxDataGetDataAvail(be_handle->dataBuffer);
       }
 
       if (1)
       {
+         void *data = _aaxDataGetData(be_handle->dataBuffer);
          int res;
-         res = ppa_stream_write(be_handle->pa, be_handle->dataBuffer->data,
-                                len, NULL, 0LL, PA_SEEK_RELATIVE);
+
+         res = ppa_stream_write(be_handle->pa, data, len, NULL, 0LL,
+                                PA_SEEK_RELATIVE);
          if (res >= 0) {
             _aaxDataMove(be_handle->dataBuffer, NULL, len);
          } else if (ppa_strerror) {
@@ -1169,11 +1169,11 @@ stream_capture_cb(pa_stream *p, size_t nbytes, void *be_ptr)
    const void *buf;
    size_t len = 0;
 
-   len = CAPTURE_BUFFER_SIZE - be_handle->dataBuffer->avail;
+   len = _aaxDataGetFreeSpace(be_handle->dataBuffer);
    ppa_stream_peek(be_handle->pa, &buf, &len);
    if (buf)
    {
-      if (be_handle->dataBuffer->avail+len < CAPTURE_BUFFER_SIZE)
+      if (_aaxDataGetOffset(be_handle->dataBuffer)+len < _aaxDataGetSize(be_handle->dataBuffer))
       {
          int res = _aaxDataAdd(be_handle->dataBuffer, buf, len);
          if (res) ppa_stream_drop(be_handle->pa);
@@ -1282,7 +1282,7 @@ _aaxPulseAudioDriverThread(void* config)
             float target, input, err, P, I;
 
             target = be_handle->fill.aim;
-            input = (float)be_handle->dataBuffer->avail/freq;
+            input = (float)_aaxDataGetOffset(be_handle->dataBuffer)/freq;
             err = input - target;
 
             /* present error */

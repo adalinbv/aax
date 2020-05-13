@@ -178,7 +178,7 @@ _binary_copy(_fmt_t *fmt, int32_ptr dptr, size_t offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_NEED_MORE;
-   if (handle->rawBuffer->avail) {
+   if (_aaxDataGetDataAvail(handle->rawBuffer)) {
       rv = _aaxDataMove(handle->rawBuffer, (char*)dptr+offs, *num); 
       *num = rv;
    }

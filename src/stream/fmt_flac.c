@@ -232,7 +232,7 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    size_t bufsize, rv = __F_NEED_MORE;
 
-   bufsize = handle->flacBuffer->avail;
+   bufsize = _aaxDataGetDataAvail(handle->flacBuffer);
    if (*num && bufsize)
    {
       size_t bytes = *num * handle->blocksize;

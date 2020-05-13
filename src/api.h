@@ -70,7 +70,7 @@ typedef struct _data_st
 
    unsigned int blocksize;
    size_t size;
-   size_t avail;
+   size_t offset;
    unsigned char *data;
 
 } _data_t;
@@ -82,6 +82,16 @@ size_t _aaxDataCopy(_data_t*, void*, size_t, size_t);
 size_t _aaxDataMove(_data_t*, void*, size_t);
 size_t _aaxDataMoveOffset(_data_t*, void*, size_t, size_t);
 size_t _aaxDataMoveData(_data_t*, _data_t*, size_t);
+
+size_t _aaxDataGetSize(_data_t*);
+size_t _aaxDataGetFreeSpace(_data_t*);
+size_t _aaxDataGetDataAvail(_data_t*);
+ssize_t _aaxDataIncreaseOffset(_data_t*, size_t);
+ssize_t _aaxDataSetOffset(_data_t*, size_t);
+size_t _aaxDataGetOffset(_data_t*);
+
+void* _aaxDataGetData(_data_t*);
+void* _aaxDataGetPtr(_data_t*);
 
 
 /* --- Error support -- */
