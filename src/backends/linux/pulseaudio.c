@@ -211,9 +211,7 @@ DECL_FUNCTION(pa_context_connect);
 DECL_FUNCTION(pa_context_disconnect);
 DECL_FUNCTION(pa_context_set_state_callback);
 DECL_FUNCTION(pa_context_get_state);
-// DECL_FUNCTION(pa_context_get_sink_info_by_name);
 DECL_FUNCTION(pa_context_get_sink_info_list);
-// DECL_FUNCTION(pa_context_get_source_info_by_name);
 DECL_FUNCTION(pa_context_get_source_info_list);
 DECL_FUNCTION(pa_context_unref);
 DECL_FUNCTION(pa_context_errno);
@@ -221,10 +219,8 @@ DECL_FUNCTION(pa_stream_new);
 DECL_FUNCTION(pa_stream_set_state_callback);
 DECL_FUNCTION(pa_stream_connect_playback);
 DECL_FUNCTION(pa_stream_connect_record);
-// DECL_FUNCTION(pa_stream_disconnect);
 DECL_FUNCTION(pa_stream_unref);
 DECL_FUNCTION(pa_stream_write);
-// DECL_FUNCTION(pa_stream_writable_size);
 DECL_FUNCTION(pa_stream_set_write_callback);
 DECL_FUNCTION(pa_stream_peek);
 DECL_FUNCTION(pa_stream_drop);
@@ -233,6 +229,7 @@ DECL_FUNCTION(pa_stream_set_read_callback);
 DECL_FUNCTION(pa_stream_get_latency);
 DECL_FUNCTION(pa_stream_set_latency_update_callback);
 DECL_FUNCTION(pa_stream_get_state);
+DECL_FUNCTION(pa_stream_get_index);
 DECL_FUNCTION(pa_stream_get_device_name);
 DECL_FUNCTION(pa_stream_cork);
 DECL_FUNCTION(pa_stream_is_corked);
@@ -250,6 +247,10 @@ DECL_FUNCTION(pa_stream_get_channel_map);
 DECL_FUNCTION(pa_stream_get_device_name);
 DECL_FUNCTION(pa_stream_get_device_index);
 DECL_FUNCTION(pa_stream_is_suspended);
+
+DECL_FUNCTION(pa_cvolume_set);
+DECL_FUNCTION(pa_context_set_sink_input_volume);
+DECL_FUNCTION(pa_context_set_source_output_volume);
 
 
 static void stream_state_cb(pa_stream*, void*);
@@ -303,17 +304,13 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pa_context_get_state);
          TIE_FUNCTION(pa_context_get_sink_info_list);
          TIE_FUNCTION(pa_context_get_source_info_list);
-//       TIE_FUNCTION(pa_context_get_sink_info_by_name);
-//       TIE_FUNCTION(pa_context_get_source_info_by_name);
          TIE_FUNCTION(pa_context_unref);
          TIE_FUNCTION(pa_context_errno);
          TIE_FUNCTION(pa_stream_set_state_callback);
          TIE_FUNCTION(pa_stream_connect_playback);
          TIE_FUNCTION(pa_stream_connect_record);
-//       TIE_FUNCTION(pa_stream_disconnect);
          TIE_FUNCTION(pa_stream_unref);
          TIE_FUNCTION(pa_stream_write);
-//       TIE_FUNCTION(pa_stream_writable_size);
          TIE_FUNCTION(pa_stream_set_write_callback);
          TIE_FUNCTION(pa_stream_peek);
          TIE_FUNCTION(pa_stream_drop);
@@ -324,6 +321,7 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pa_stream_get_buffer_attr);
          TIE_FUNCTION(pa_stream_get_context);
          TIE_FUNCTION(pa_stream_get_state);
+         TIE_FUNCTION(pa_stream_get_index);
          TIE_FUNCTION(pa_stream_get_device_name);
          TIE_FUNCTION(pa_stream_cork);
          TIE_FUNCTION(pa_stream_is_corked);
@@ -351,6 +349,10 @@ _aaxPulseAudioDriverDetect(UNUSED(int mode))
          TIE_FUNCTION(pa_get_binary_name);
          TIE_FUNCTION(pa_path_get_filename);
          TIE_FUNCTION(pa_get_library_version);
+
+         TIE_FUNCTION(pa_cvolume_set);
+         TIE_FUNCTION(pa_context_set_sink_input_volume);
+         TIE_FUNCTION(pa_context_set_source_output_volume);
          rv = AAX_TRUE;
       }
    }
@@ -731,10 +733,8 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
 {
    _driver_t *handle = (_driver_t *)id;
    size_t len, nframes = *frames;
-// size_t req;
    int tracks, frame_sz;
    size_t offs = *offset;
-// const void *buf;
 
    *offset = 0;
    if ((handle->mode != 0) || (frames == 0) || (data == 0)) {
@@ -811,11 +811,10 @@ _aaxPulseAudioDriverCapture(const void *id, void **data, ssize_t *offset, size_t
       _batch_cvt24_16_intl((int32_t**)data, buf, offs, tracks, nframes);
       _aaxDataMove(handle->dataBuffer, NULL, len);
 
-      /* gain is negative for auto-gain mode */
-      gain = fabsf(gain);
-      if (gain < 0.99f || gain > 1.01f)
+      gain = _pulseaudio_set_volume(handle, NULL, offs, nframes, tracks, gain);
+      if (gain > LEVEL_96DB && fabsf(gain-1.0f) > LEVEL_96DB)
       {
-         int t;
+         unsigned int t;
          for (t=0; t<tracks; t++)
          {
             int32_t *ptr = (int32_t*)data[t]+offs;
@@ -1110,12 +1109,45 @@ _aaxPulseAudioDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), cons
 }
 
 static float
-_pulseaudio_set_volume(UNUSED(_driver_t *handle), _aaxRingBuffer *rb, ssize_t offset, uint32_t period_frames, UNUSED(unsigned int no_tracks), float volume)
+_pulseaudio_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, uint32_t period_frames, unsigned int tracks, float volume)
 {
    float gain = fabsf(volume);
+   pa_operation *op = NULL;
    float rv = 0;
 
-   if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
+   if (ppa_cvolume_set)
+   {
+      pa_cvolume cvol;
+      pa_volume_t vol;
+
+      vol = lroundf(gain*PA_VOLUME_NORM);
+      if (vol > PA_VOLUME_MAX) {
+         vol = PA_VOLUME_MAX;
+      }
+
+      gain = (float)vol/PA_VOLUME_NORM / fabsf(volume);
+
+      ppa_threaded_mainloop_lock(handle->ml);
+
+      ppa_cvolume_set(&cvol, tracks, vol);
+      if (handle->mode == AAX_MODE_READ) {
+         op = ppa_context_set_source_output_volume(handle->ctx,
+                                              ppa_stream_get_index(handle->pa),
+                                              &cvol, NULL, NULL);
+      } else {
+         op = ppa_context_set_sink_input_volume(handle->ctx,
+                                              ppa_stream_get_index(handle->pa),
+                                              &cvol, NULL, NULL);
+      }
+
+      if (op) {
+         ppa_operation_unref(op);
+      }
+      ppa_threaded_mainloop_unlock(handle->ml);
+   }
+
+   /* software volume fallback */
+   if (rb && (!op || fabsf(gain - 1.0f) > LEVEL_32DB)) {
       rb->data_multiply(rb, offset, period_frames, gain);
    }
 
