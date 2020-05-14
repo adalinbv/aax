@@ -151,6 +151,7 @@ typedef struct
 
    pa_sample_spec spec;
    pa_buffer_attr attr;
+   pa_volume_t volume;
 
 // char no_periods;
    char bits_sample;
@@ -1117,7 +1118,6 @@ _pulseaudio_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, ui
 
    if (ppa_cvolume_set)
    {
-      pa_cvolume cvol;
       pa_volume_t vol;
 
       vol = lroundf(gain*PA_VOLUME_NORM);
@@ -1127,27 +1127,34 @@ _pulseaudio_set_volume(_driver_t *handle, _aaxRingBuffer *rb, ssize_t offset, ui
 
       gain = (float)vol/PA_VOLUME_NORM / fabsf(volume);
 
-      ppa_threaded_mainloop_lock(handle->ml);
+      if (abs(handle->volume - vol) > 0)
+      {
+         pa_cvolume cvol;
 
-      ppa_cvolume_set(&cvol, tracks, vol);
-      if (handle->mode == AAX_MODE_READ) {
-         op = ppa_context_set_source_output_volume(handle->ctx,
+         handle->volume = vol;
+
+         ppa_threaded_mainloop_lock(handle->ml);
+
+         ppa_cvolume_set(&cvol, tracks, vol);
+         if (handle->mode == AAX_MODE_READ) {
+            op = ppa_context_set_source_output_volume(handle->ctx,
                                               ppa_stream_get_index(handle->pa),
                                               &cvol, NULL, NULL);
-      } else {
-         op = ppa_context_set_sink_input_volume(handle->ctx,
+         } else {
+            op = ppa_context_set_sink_input_volume(handle->ctx,
                                               ppa_stream_get_index(handle->pa),
                                               &cvol, NULL, NULL);
-      }
+         }
 
-      if (op) {
-         ppa_operation_unref(op);
+         if (op) {
+            ppa_operation_unref(op);
+         }
+         ppa_threaded_mainloop_unlock(handle->ml);
       }
-      ppa_threaded_mainloop_unlock(handle->ml);
    }
 
    /* software volume fallback */
-   if (rb && (!op || fabsf(gain - 1.0f) > LEVEL_32DB)) {
+   if (rb && fabsf(gain - 1.0f) > LEVEL_32DB) {
       rb->data_multiply(rb, offset, period_frames, gain);
    }
 
