@@ -94,6 +94,8 @@ int _http_set(_prot_t*, enum _aaxStreamParam, ssize_t);
 int _http_get(_prot_t*, enum _aaxStreamParam);
 char* _http_name(_prot_t*, enum _aaxStreamParam);
 
+# define SSL_get_cipher(s)	SSL_CIPHER_get_name(SSL_get_current_cipher(s))
+
 /* direct protocol */
 ssize_t _direct_connect(_prot_t*, struct _io_st*, char**, const char*, const char*);
 int _direct_process(struct _prot_st*, _data_t*, size_t);

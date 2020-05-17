@@ -96,7 +96,8 @@ _url_split(char *url, char **protocol, char **server, char **path, char **extens
 
    _aaxURLSplit(url, protocol, server, path, extension, port);
 
-   if ((*protocol && !strcasecmp(*protocol, "http")) ||
+   if ((*protocol && (!strcasecmp(*protocol, "http") ||
+                      !strcasecmp(*protocol, "https"))) ||
        (*server && **server != 0))
    {
       if (!(*port)) *port = 80;

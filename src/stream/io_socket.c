@@ -55,24 +55,65 @@
 
 #include <base/types.h>
 #include <base/timer.h>
+#include <base/dlsym.h>
 
 #include "audio.h"
+
+DECL_FUNCTION(OPENSSL_init_ssl);
+DECL_FUNCTION(SSL_new);
+DECL_FUNCTION(SSL_free);
+DECL_FUNCTION(SSL_CTX_new);
+DECL_FUNCTION(SSL_CTX_free);
+DECL_FUNCTION(SSL_set_fd);
+DECL_FUNCTION(SSL_connect);
+DECL_FUNCTION(SSL_shutdown);
+DECL_FUNCTION(SSL_read);
+DECL_FUNCTION(SSL_write);
+DECL_FUNCTION(TLS_client_method);
+DECL_FUNCTION(SSL_CIPHER_get_name);
+DECL_FUNCTION(SSL_get_current_cipher);
+DECL_FUNCTION(SSL_get_error);
 
 int
 _socket_open(_io_t *io, const char *server)
 {
+   static void *audio = NULL;
    int size = io->param[_IO_SOCKET_SIZE];
    int port = io->param[_IO_SOCKET_PORT];
    int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
-   int fd = -1;
+   int fd, https = 1;
 
+   audio = _aaxIsLibraryPresent("ssl", "1.1");
+   if (audio)
+   {
+      _aaxGetSymError(0);
+
+      TIE_FUNCTION(SSL_new);
+      if (pSSL_new)
+      {
+         TIE_FUNCTION(SSL_free);
+         TIE_FUNCTION(OPENSSL_init_ssl);
+         TIE_FUNCTION(SSL_CTX_new);
+         TIE_FUNCTION(SSL_CTX_free);
+         TIE_FUNCTION(SSL_set_fd);
+         TIE_FUNCTION(SSL_connect);
+         TIE_FUNCTION(SSL_shutdown);
+         TIE_FUNCTION(SSL_read);
+         TIE_FUNCTION(SSL_write);
+         TIE_FUNCTION(TLS_client_method);
+         TIE_FUNCTION(SSL_CIPHER_get_name);
+         TIE_FUNCTION(SSL_get_current_cipher);
+         TIE_FUNCTION(SSL_get_error);
+      }
+   }
+
+retry:
+   fd = -1;
    if (server && (size > 4000) && (port > 0))
    {
       int slen = strlen(server);
       if (slen < 256)
       {
-         struct addrinfo hints, *host;
-         char sport[16];
          int res = 0;
 
 #ifdef WIN32
@@ -83,21 +124,15 @@ _socket_open(_io_t *io, const char *server)
 
          if (res == 0)
          {
-            snprintf(sport, 15, "%d", port);
-            sport[15] = '\0';
+            struct sockaddr_in dest_addr;
+            struct hostent *host;
 
-            memset(&hints, 0, sizeof(hints));
-            hints.ai_socktype = SOCK_STREAM;
-            hints.ai_family = AF_INET;
-            res = getaddrinfo(server, (port > 0) ? sport : NULL, &hints, &host);
-         }
-
-         if (res == 0)
-         {
             if (timeout_ms < 5) timeout_ms = 5;
-            fd = socket(host->ai_family, host->ai_socktype, host->ai_protocol);
+
+            fd = socket(AF_INET, SOCK_STREAM, 0);
             if (fd >= 0)
             {
+
                struct timeval tv;
                int on = 1;
                
@@ -107,7 +142,7 @@ _socket_open(_io_t *io, const char *server)
                setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
                setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on, sizeof(on));
-               setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+//             setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
                setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size,sizeof(size));
                io->error_max = (unsigned)(3000.0f/timeout_ms); // 3.0 sec.
 #if 0
@@ -121,7 +156,49 @@ _socket_open(_io_t *io, const char *server)
  getsockopt(fd, SOL_SOCKET, SO_RCVBUF, &n, &m);
  printf("socket receive buffer size: %u\n", n);
 #endif
-               if (connect(fd, host->ai_addr, host->ai_addrlen) >= 0) {
+
+               host = gethostbyname(server);
+
+               dest_addr.sin_family = AF_INET;
+               dest_addr.sin_port = htons(port);
+               dest_addr.sin_addr.s_addr = *(long*)(host->h_addr);
+               memset(&(dest_addr.sin_zero), '\0', 8);
+
+               if (connect(fd, (struct sockaddr*)&dest_addr,
+                               sizeof(struct sockaddr)) >= 0)
+               {
+                  if (https && pSSL_new)
+                  {
+                     void *meth;
+
+                     meth = pTLS_client_method();
+                     io->ssl_ctx = pSSL_CTX_new(meth);
+                     if (io->ssl_ctx)
+                     {
+                        io->ssl = pSSL_new(io->ssl_ctx);
+                        if (io->ssl)
+                        {
+                           pSSL_set_fd(io->ssl, fd);
+
+                           res = pSSL_connect(io->ssl);
+                           if (res <= 0)
+                           {
+                              pSSL_free(io->ssl);
+                              io->ssl = NULL;
+                           }
+                        }
+                     }
+
+                     if (!io->ssl)
+                     {
+                        pSSL_CTX_free(io->ssl_ctx);
+                        closesocket(fd);
+                        https = 0;
+
+                        msecSleep(200);
+                        goto retry;
+                     }
+                  }
                   io->fds.fd = fd;
                }
                else
@@ -130,7 +207,6 @@ _socket_open(_io_t *io, const char *server)
                   fd = -1;
                }
             }
-            freeaddrinfo(host);
          }
          else {
             errno = -res;
@@ -150,7 +226,25 @@ _socket_open(_io_t *io, const char *server)
 int
 _socket_close(_io_t *io)
 {
-   int rv = closesocket(io->fds.fd);
+   int rv;
+
+   if (io->ssl)
+   {
+      int count = 5;
+      do
+      {
+         int err = pSSL_shutdown(io->ssl);
+         if (err == 1) break;
+         msecSleep(200);
+      }
+      while (--count);
+
+      pSSL_free(io->ssl);
+      pSSL_CTX_free(io->ssl_ctx);
+      io->ssl = NULL;
+   }
+
+   rv = closesocket(io->fds.fd);
    io->fds.fd = -1;
    return rv;
 }
@@ -163,9 +257,15 @@ _socket_read(_io_t *io, void *buf, size_t count)
    assert(buf);
    assert(count);
 
-   do {
-      rv = recv(io->fds.fd, buf, count, 0);
-   } while (rv < 0 && errno == EINTR);
+   if (io->ssl) {
+      rv = pSSL_read(io->ssl, buf, count);
+   }
+   else
+   {
+      do {
+         rv = recv(io->fds.fd, buf, count, 0);
+      } while (rv < 0 && errno == EINTR);
+   }
 
    if (rv < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
       if (++io->error_ctr < io->error_max) {
@@ -182,8 +282,16 @@ _socket_read(_io_t *io, void *buf, size_t count)
 ssize_t
 _socket_write(_io_t *io, const void *buf, size_t size)
 {
-   ssize_t rv = send(io->fds.fd, buf, size, 0);
-   if (rv < 0 && errno == EINTR) rv = send(io->fds.fd, buf, size, 0);
+   ssize_t rv;
+
+   if (io->ssl) {
+      rv = pSSL_write(io->ssl, buf, size);
+   }
+   else
+   {
+      rv = send(io->fds.fd, buf, size, 0);
+      if (rv < 0 && errno == EINTR) rv = send(io->fds.fd, buf, size, 0);
+   }
    return rv;
 }
 

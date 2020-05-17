@@ -86,6 +86,9 @@ struct _io_st
 
    void *timer;
    float update_dt;
+
+   void *ssl;
+   void *ssl_ctx;
 };
 typedef struct _io_st _io_t;
 
@@ -109,6 +112,22 @@ ssize_t _socket_write(_io_t*, const void*, size_t);
 int _socket_set(_io_t*, int, ssize_t);
 ssize_t _socket_get(_io_t*, int);
 void _socket_wait(_io_t*, float);
+
+/* https support */
+typedef int (*OPENSSL_init_ssl_proc)(uint64_t, const void*);
+typedef void* (*SSL_new_proc)(void*);
+typedef int (*SSL_free_proc)(void*);
+typedef void* (*SSL_CTX_new_proc)(const void*);
+typedef void (*SSL_CTX_free_proc)(void*);
+typedef int (*SSL_set_fd_proc)(void*, int);
+typedef int (*SSL_connect_proc)(void*);
+typedef int (*SSL_shutdown_proc)(void*);
+typedef int (*SSL_read_proc)(void*, void*, int);
+typedef int (*SSL_write_proc)(void*, const void*, int);
+typedef const char* (*SSL_CIPHER_get_name_proc)(const void*);
+typedef const void* (*SSL_get_current_cipher_proc)(const void*);
+typedef int (*SSL_get_error_proc)(const void*, int);
+typedef void* (*TLS_client_method_proc)(void);
 
 
 #if defined(__cplusplus)
