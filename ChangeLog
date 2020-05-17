@@ -3,6 +3,9 @@
 - AeonWave (3.8.4) stable; urgency=low
 
  * Implement a native PulseAudio backend.
+ * Support HTTPS streams when OpenSSL is found.
+ * Limit the cutoff frequency range between 20Hz and 90% of half the sample
+   frequency to prevent instability of frequency filters.
 
 -- Erik Hofman <tech@adalin.org>  May 05 Apr 2020 11:45:04 + 0100
 
