@@ -1,6 +1,6 @@
 /*
- * Copyright 2015-2017 by Erik Hofman.
- * Copyright 2015-2017 by Adalin B.V.
+ * Copyright 2015-2020 by Erik Hofman.
+ * Copyright 2015-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -81,7 +81,18 @@ _socket_open(_io_t *io, const char *server)
    int size = io->param[_IO_SOCKET_SIZE];
    int port = io->param[_IO_SOCKET_PORT];
    int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
-   int fd, https = 1;
+   int res, fd = -1;
+
+#ifdef WIN32
+// The WSAStartup function initiates use of the Winsock DLL by a process.
+   WSADATA wsaData;
+   res = WSAStartup(MAKEWORD(1,1), &wsaData);
+   if (res)
+   {
+      errno = -res;
+      return fd;
+   }
+#endif
 
    audio = _aaxIsLibraryPresent("ssl", "1.1");
    if (audio)
@@ -107,32 +118,28 @@ _socket_open(_io_t *io, const char *server)
       }
    }
 
-retry:
-   fd = -1;
+   if (timeout_ms < 5) {
+      timeout_ms = 5;
+   }
+   io->error_max = (unsigned)(3000.0f/timeout_ms); // 3.0 sec.
+
    if (server && (size > 4000) && (port > 0))
    {
       int slen = strlen(server);
       if (slen < 256)
       {
-         int res = 0;
+         // Two tries, first a secure connection, then a plain text connection
+         int tries = 2;
 
-#ifdef WIN32
-// The WSAStartup function initiates use of the Winsock DLL by a process.
-         WSADATA wsaData;
-         res = WSAStartup(MAKEWORD(1,1), &wsaData);
-#endif
-
-         if (res == 0)
+         do
          {
             struct sockaddr_in dest_addr;
             struct hostent *host;
 
-            if (timeout_ms < 5) timeout_ms = 5;
-
+            errno = 0;
             fd = socket(AF_INET, SOCK_STREAM, 0);
             if (fd >= 0)
             {
-
                struct timeval tv;
                int on = 1;
                
@@ -141,10 +148,12 @@ retry:
 #ifdef SO_NOSIGPIPE
                setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
-               setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on, sizeof(on));
-//             setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
+               setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on,sizeof(on));
+               if (tries == 1) {
+                  setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv,
+                                                          sizeof(tv));
+               }
                setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size,sizeof(size));
-               io->error_max = (unsigned)(3000.0f/timeout_ms); // 3.0 sec.
 #if 0
  unsigned int m;
  int n;
@@ -167,11 +176,11 @@ retry:
                if (connect(fd, (struct sockaddr*)&dest_addr,
                                sizeof(struct sockaddr)) >= 0)
                {
-                  if (https && pSSL_new)
-                  {
-                     void *meth;
+                  io->fds.fd = fd;
 
-                     meth = pTLS_client_method();
+                  if (pSSL_new && tries == 2)
+                  {
+                     void *meth = pTLS_client_method();
                      io->ssl_ctx = pSSL_CTX_new(meth);
                      if (io->ssl_ctx)
                      {
@@ -179,38 +188,24 @@ retry:
                         if (io->ssl)
                         {
                            pSSL_set_fd(io->ssl, fd);
-
                            res = pSSL_connect(io->ssl);
-                           if (res <= 0)
-                           {
-                              pSSL_free(io->ssl);
-                              io->ssl = NULL;
-                           }
+                           if (res > 0) break;
+
+                           pSSL_free(io->ssl);
+                           io->ssl = NULL;
                         }
                      }
 
-                     if (!io->ssl)
-                     {
-                        pSSL_CTX_free(io->ssl_ctx);
-                        closesocket(fd);
-                        https = 0;
-
-                        msecSleep(200);
-                        goto retry;
-                     }
+                     pSSL_CTX_free(io->ssl_ctx);
+                     closesocket(fd);
+                     fd = -1;
                   }
-                  io->fds.fd = fd;
-               }
-               else
-               {
-                  closesocket(fd);
-                  fd = -1;
                }
             }
+
+            msecSleep(200);
          }
-         else {
-            errno = -res;
-         }
+         while (--tries);
       }
       else {
          errno = ENAMETOOLONG;
@@ -230,15 +225,7 @@ _socket_close(_io_t *io)
 
    if (io->ssl)
    {
-      int count = 5;
-      do
-      {
-         int err = pSSL_shutdown(io->ssl);
-         if (err == 1) break;
-         msecSleep(200);
-      }
-      while (--count);
-
+      pSSL_shutdown(io->ssl);
       pSSL_free(io->ssl);
       pSSL_CTX_free(io->ssl_ctx);
       io->ssl = NULL;
