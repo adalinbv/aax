@@ -8,7 +8,7 @@ input/output (TODO: Use libcurl if available)
         ~ file open/close
         ~ file descriptor read/write
         * extension (file name extension)
-      - http
+      - http/https
         ~ socket open/close
         ~ file descriptor read/write
         * extension (content-type)
