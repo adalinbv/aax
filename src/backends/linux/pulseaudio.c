@@ -1607,8 +1607,6 @@ _aaxContextConnect(_driver_t *handle)
       }
    }
 
-   assert(loop);
-
    if (ppa_get_binary_name && ppa_get_binary_name(buf, PATH_MAX)) {
       name = ppa_path_get_filename(buf);
    }

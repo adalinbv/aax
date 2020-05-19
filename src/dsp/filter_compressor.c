@@ -74,11 +74,21 @@ _aaxCompressorSetState(_filter_t* filter, int state)
    void *handle = filter->handle;
    aaxFilter rv = NULL;
 
+   // backwards compatibility, can be removed after AeonWave 4.0
+   if (state & AAX_ENVELOPE_FOLLOW_LOG && !(state & AAX_WAVEFORM_MASK) &&
+       !(state & (AAX_ENVELOPE_FOLLOW|AAX_TIMED_TRANSITION)))
+   {
+      state -= AAX_ENVELOPE_FOLLOW_LOG;
+      state += AAX_ENVELOPE_FOLLOW;
+   }
+   state &= ~AAX_TRUE;
+
    state = state ? state|AAX_ENVELOPE_FOLLOW_MASK : AAX_FALSE;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
+   case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
@@ -89,10 +99,12 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       {
          float depth, offs = 0.0f;
          int t;
+
 			// AAX_LFO_DEPTH == AAX_COMPRESSION_RATIO
          depth = _MAX(filter->slot[0]->param[AAX_LFO_DEPTH], 0.01f);
          if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
-             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG)
+             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG ||
+             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_MASK)
          {
             if (filter->type == AAX_COMPRESSOR)
             {
@@ -129,6 +141,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             {
             case AAX_ENVELOPE_FOLLOW:
             case AAX_ENVELOPE_FOLLOW_LOG:
+            case AAX_ENVELOPE_FOLLOW_MASK:
             {
                if (filter->type == AAX_COMPRESSOR)
                {		// 10dB
@@ -163,6 +176,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             {
             case AAX_ENVELOPE_FOLLOW:
             case AAX_ENVELOPE_FOLLOW_LOG:
+            case AAX_ENVELOPE_FOLLOW_MASK:
                if (filter->type == AAX_COMPRESSOR)
                {
                   float dt = 1.0f/filter->info->period_rate;
