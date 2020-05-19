@@ -168,6 +168,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
    MIX_T **tracks, **scratch;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
+   _aaxLFOData *compressor;
 
    assert(rb != 0);
    assert(rb->handle != 0);
@@ -192,6 +193,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
       convolution = _EFFECT_GET_DATA(sensor->mixer->props2d,
                                           CONVOLUTION_EFFECT);
    }
+   compressor = _FILTER_GET_DATA(sensor->mixer->props2d, DYNAMIC_GAIN_FILTER);
    parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
    parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
    graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
@@ -234,6 +236,23 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
    _aaxMutexLock(sensor->mutex);
    if (convolution) {
       convolution->run(id, hid, rb, convolution);
+   }
+
+   if (compressor && compressor->envelope)
+   {
+      float g = 0.0f;
+      for (t=0; t<no_tracks; t++)
+      {
+         float gain;
+
+         gain = compressor->get(compressor, NULL, tracks[t], t, no_samples);
+         if (compressor->inv) g = 1.0f/gain;
+         g += gain/no_tracks;
+      }
+
+      for (t=0; t<no_tracks; t++) {
+         rb->data_multiply(rb, 0, 0, g);
+      }
    }
 
    if (parametric)

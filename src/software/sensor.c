@@ -205,6 +205,7 @@ _aaxSensorsProcessSensor(void *id, _aaxRingBuffer *drb, _aax2dProps *p2d, int de
                } else {
                   p2d->final.pitch_lfo = 1.0f;
                }
+
                lfo = _FILTER_GET_DATA(p2d, DYNAMIC_GAIN_FILTER);
                if (lfo && !lfo->envelope) {
                   p2d->final.gain_lfo = lfo->get(lfo, NULL, NULL, 0, 0);

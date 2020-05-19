@@ -81,9 +81,12 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       state -= AAX_ENVELOPE_FOLLOW_LOG;
       state += AAX_ENVELOPE_FOLLOW;
    }
-   state &= ~AAX_TRUE;
 
    state = state ? state|AAX_ENVELOPE_FOLLOW_MASK : AAX_FALSE;
+   if (state & ~AAX_TRUE) {
+      state &= ~AAX_TRUE;
+   }
+
    switch (state & ~AAX_INVERSE)
    {
    case AAX_ENVELOPE_FOLLOW:
@@ -177,6 +180,8 @@ _aaxCompressorSetState(_filter_t* filter, int state)
             case AAX_ENVELOPE_FOLLOW:
             case AAX_ENVELOPE_FOLLOW_LOG:
             case AAX_ENVELOPE_FOLLOW_MASK:
+               lfo->envelope = AAX_TRUE;
+               lfo->stereo_lnk = AAX_TRUE;
                if (filter->type == AAX_COMPRESSOR)
                {
                   float dt = 1.0f/filter->info->period_rate;
@@ -197,8 +202,6 @@ _aaxCompressorSetState(_filter_t* filter, int state)
                   lfo->get = _aaxLFOGetGainFollow;
                   lfo->max *= 10.0f; // maximum compression factor
                }
-               lfo->envelope = AAX_TRUE;
-               lfo->stereo_lnk = AAX_TRUE;
                break;
             default:
                break;
