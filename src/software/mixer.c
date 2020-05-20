@@ -240,19 +240,16 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
 
    if (compressor && compressor->envelope)
    {
-      float g = 0.0f;
+      float g = 1e9f;
       for (t=0; t<no_tracks; t++)
       {
          float gain;
 
          gain = compressor->get(compressor, NULL, tracks[t], t, no_samples);
-         if (compressor->inv) g = 1.0f/gain;
-         g += gain/no_tracks;
+         if (compressor->inv) gain = 1.0f/gain;
+         if (gain < g) g = gain;
       }
-
-      for (t=0; t<no_tracks; t++) {
-         rb->data_multiply(rb, 0, 0, g);
-      }
+      rb->data_multiply(rb, 0, 0, g);
    }
 
    if (parametric)

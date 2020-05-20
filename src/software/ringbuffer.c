@@ -1280,24 +1280,27 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformT
 int
 _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, float ratio_orig)
 {
-   _aaxRingBufferData *rbi = rb->handle;
-   _aaxRingBufferSample *rbd = rbi->sample;
-   size_t t, tracks;
-   unsigned char bps;
-   MIX_T *data;
-
-   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
-   tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   if (!no_samples)
+   if (fabsf(ratio_orig-1.0f) > LEVEL_96DB)
    {
-      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-      offs = 0;
-   }
+      _aaxRingBufferData *rbi = rb->handle;
+      _aaxRingBufferSample *rbd = rbi->sample;
+      size_t t, tracks;
+      unsigned char bps;
+      MIX_T *data;
 
-   for (t=0; t<tracks; t++)
-   {
-      data = rbd->track[t];
-      rbd->multiply(data+offs, data+offs, bps, no_samples, ratio_orig);
+      bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+      tracks = rb->get_parami(rb, RB_NO_TRACKS);
+      if (!no_samples)
+      {
+         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+         offs = 0;
+      }
+
+      for (t=0; t<tracks; t++)
+      {
+         data = rbd->track[t];
+         rbd->multiply(data+offs, data+offs, bps, no_samples, ratio_orig);
+      }
    }
    return AAX_TRUE;
 }
