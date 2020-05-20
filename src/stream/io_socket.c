@@ -133,7 +133,6 @@ _socket_open(_io_t *io, const char *server)
 
          do
          {
-            struct sockaddr_in dest_addr;
             struct hostent *host;
 
             errno = 0;
@@ -167,39 +166,48 @@ _socket_open(_io_t *io, const char *server)
 #endif
 
                host = gethostbyname(server);
-
-               dest_addr.sin_family = AF_INET;
-               dest_addr.sin_port = htons(port);
-               dest_addr.sin_addr.s_addr = *(long*)(host->h_addr);
-               memset(&(dest_addr.sin_zero), '\0', 8);
-
-               if (connect(fd, (struct sockaddr*)&dest_addr,
-                               sizeof(struct sockaddr)) >= 0)
+               if (host)
                {
-                  io->fds.fd = fd;
+                  struct sockaddr_in dest_addr;
 
-                  if (pSSL_new && tries == 2)
+                  dest_addr.sin_family = AF_INET;
+                  dest_addr.sin_port = htons(port);
+                  dest_addr.sin_addr.s_addr = *(long*)(host->h_addr);
+                  memset(&(dest_addr.sin_zero), '\0', 8);
+
+                  if (connect(fd, (struct sockaddr*)&dest_addr,
+                                  sizeof(struct sockaddr)) >= 0)
                   {
-                     void *meth = pTLS_client_method();
-                     io->ssl_ctx = pSSL_CTX_new(meth);
-                     if (io->ssl_ctx)
+                     io->fds.fd = fd;
+
+                     if (pSSL_new && tries == 2)
                      {
-                        io->ssl = pSSL_new(io->ssl_ctx);
-                        if (io->ssl)
+                        void *meth = pTLS_client_method();
+                        io->ssl_ctx = pSSL_CTX_new(meth);
+                        if (io->ssl_ctx)
                         {
-                           pSSL_set_fd(io->ssl, fd);
-                           res = pSSL_connect(io->ssl);
-                           if (res > 0) break;
+                           io->ssl = pSSL_new(io->ssl_ctx);
+                           if (io->ssl)
+                           {
+                              pSSL_set_fd(io->ssl, fd);
+                              res = pSSL_connect(io->ssl);
+                              if (res > 0) break;
 
-                           pSSL_free(io->ssl);
-                           io->ssl = NULL;
+                              pSSL_free(io->ssl);
+                              io->ssl = NULL;
+                           }
                         }
-                     }
 
-                     pSSL_CTX_free(io->ssl_ctx);
-                     closesocket(fd);
-                     fd = -1;
+                        pSSL_CTX_free(io->ssl_ctx);
+                        closesocket(fd);
+                        fd = -1;
+                     }
                   }
+               }
+               else
+               {
+                  closesocket(fd);
+                  fd = -1;
                }
             }
 
