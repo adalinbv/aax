@@ -458,13 +458,8 @@ int main()
       flt.no_stages = 4;
       flt.Q = 2.5f;
       flt.type = LOWPASS;
-#if 1
       flt.state = AAX_BUTTERWORTH;
       _aax_butterworth_compute(2200.0f, &flt);
-#else
-      flt.state = AAX_BESSEL;
-      _aax_bessel_compute(2200.0f, &flt);
-#endif
 
       memset(&history, 0, sizeof(history));
       _batch_freqfilter_float = _batch_freqfilter_float_cpu;
@@ -472,7 +467,7 @@ int main()
       t = clock();
       _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
       cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-      printf("\nfreqfilter cpu:  %f\n", cpu*1000.0f);
+      printf("\nButterworth freqfilter cpu:  %f\n", cpu*1000.0f);
 
       if (simd)
       {
@@ -482,8 +477,8 @@ int main()
          t = clock();
          _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("freqfilter %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
-         TESTF("freqfilter "MKSTR(SIMD), dst1, dst2);
+         printf("Butterworth freqfilter %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
+         TESTF("Butterworth freqfilter "MKSTR(SIMD), dst1, dst2);
       }
 #if !defined(__arm__) && !defined(_M_ARM)
       if (simd2)
@@ -494,8 +489,8 @@ int main()
          t = clock();
          _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("freqfilter "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-         TESTF("freqfilter "MKSTR(SIMD1), dst1, dst2);
+         printf("Butterworth freqfilter "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("Butterworth freqfilter "MKSTR(SIMD1), dst1, dst2);
       }
 #else
       if (simd3)
@@ -506,8 +501,65 @@ int main()
          t = clock();
          _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
          eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
-         printf("freqfilter "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
-         TESTF("freqfilter "MKSTR(FMA3), dst1, dst2);
+         printf("Butterworth freqfilter "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("Butterworth freqfilter "MKSTR(FMA3), dst1, dst2);
+      }
+#endif
+
+      memset(&flt, 0, sizeof(_aaxRingBufferFreqFilterData));
+      flt.freqfilter = &history;
+      flt.fs = 44100.0f;
+      flt.run = _freqfilter_run;
+      flt.high_gain = 1.0f;
+      flt.low_gain = 0.0f;
+      flt.no_stages = 4;
+      flt.Q = 2.5f;
+      flt.type = LOWPASS;
+      flt.state = AAX_BESSEL;
+      _aax_bessel_compute(2200.0f, &flt);
+
+      memset(&history, 0, sizeof(history));
+      _batch_freqfilter_float = _batch_freqfilter_float_cpu;
+
+      t = clock();
+      _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
+      cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
+      printf("\nBessel freqfilter cpu:  %f\n", cpu*1000.0f);
+
+      if (simd)
+      {
+         memset(&history, 0, sizeof(history));
+         _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD);
+
+         t = clock();
+         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("Bessel freqfilter %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
+         TESTF("Bessel freqfilter "MKSTR(SIMD), dst1, dst2);
+      }
+#if !defined(__arm__) && !defined(_M_ARM)
+      if (simd2)
+      {
+         memset(&history, 0,sizeof(history));
+         _batch_freqfilter_float = GLUE(_batch_freqfilter_float, SIMD1);
+
+         t = clock();
+         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("Bessel freqfilter "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("Bessel freqfilter "MKSTR(SIMD1), dst1, dst2);
+      }
+#else
+      if (simd3)
+      {
+         memset(&history, 0,sizeof(history));
+         _batch_freqfilter_float = GLUE(_batch_freqfilter_float, FMA3);
+
+         t = clock();
+         _batch_freqfilter_float(dst2, src, 0, MAXNUM, &flt);
+         eps = (double)(clock() - t)/ CLOCKS_PER_SEC;
+         printf("Bessel freqfilter "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
+         TESTF("Bessel freqfilter "MKSTR(FMA3), dst1, dst2);
       }
 #endif
 
