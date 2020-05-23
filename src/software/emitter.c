@@ -299,7 +299,6 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
        _PROP3D_MTXSPEED_HAS_CHANGED(fdp3d_m))
    {
       vec3f_t epos, tmp;
-      float min, max;
       float esv, vs;
       float dist_ef;
       float gain;
@@ -392,9 +391,9 @@ _aaxEmitterPrepare3d(_aaxEmitter *src,  const _aaxMixerInfo* info, float ssv, fl
       }
       while (0);
 
-      min = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MIN_GAIN);
-      max = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MAX_GAIN);
-      ep2d->final.gain = _MINMAX(gain, min, max);
+      ep2d->final.gain_min = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MIN_GAIN);
+      ep2d->final.gain_max = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_MAX_GAIN);
+      ep2d->final.gain = gain;
       ep2d->final.pitch = pitch;
    }
 }
