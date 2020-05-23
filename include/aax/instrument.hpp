@@ -66,6 +66,10 @@ public:
         } else {
             Emitter::matrix(mtx);
         }
+
+        aax::dsp dsp = Emitter::get(AAX_VOLUME_FILTER);
+        dsp.set(AAX_MAX_GAIN, 16.0f);
+        Emitter::set(dsp);
     }
 
     ~Note() = default;
