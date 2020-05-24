@@ -1,6 +1,6 @@
 
-* Tue May 5 2020 - tech@adalin.org
-- AeonWave (3.8.4) stable; urgency=low
+* Sun May 24 2020 - tech@adalin.org
+- AeonWave (3.9.0) stable; urgency=low
 
  * Implement a native PulseAudio backend.
  * Support HTTPS streams when an OpenSSL compatible library is found.
@@ -12,7 +12,7 @@
  * Add the option to assign the compressor to the final mixer stage.
  * Fix a regression for the compressor.
 
--- Erik Hofman <tech@adalin.org>  May 05 Apr 2020 11:45:04 + 0100
+-- Erik Hofman <tech@adalin.org>  May 24 Apr 2020 15:34:41 + 0100
 
 
 * Tue Apr 14 2020 - tech@adalin.org
