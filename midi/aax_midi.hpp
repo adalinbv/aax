@@ -209,6 +209,7 @@ private:
 
    std::string patch_set = "default";
    std::string patch_version = "1.0.0";
+   std::string effects;
 
    std::map<uint32_t,Channel*> channels;
    std::map<uint32_t,Channel*> reverb_channels;

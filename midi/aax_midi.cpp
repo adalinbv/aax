@@ -66,6 +66,11 @@ MIDI::initialize()
 {
    set(AAX_REFRESH_RATE, 100);
    set(AAX_INITIALIZED);
+   if (effects.length())
+   {
+      Buffer &buffer = MIDI::buffer(effects, 0);
+      config.add(buffer);
+   }
 }
 
 void
@@ -1173,6 +1178,10 @@ MIDI::read_instruments(std::string gmmidi, std::string gmdrums)
                   patch_version = set;
                }
                xmlFree(set);
+            }
+
+            if (xmlAttributeExists(xmid, "file")) {
+               effects = xmlAttributeGetString(xmid, "file");
             }
 
             unsigned int bnum = xmlNodeGetNum(xmid, "bank");
