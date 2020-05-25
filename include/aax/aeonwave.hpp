@@ -1100,6 +1100,11 @@ public:
         return aaxMixerDeregisterEmitter(ptr,e);
     }
 
+    // ** buffer handling (AAXS only) ******
+    inline bool add(Buffer& b) {
+        return Sensor::add(b);
+    }
+
     // ** buffer management ******
     // Get a shared buffer from the buffer cache if it's name is already
     // in the cache. Otherwise create a new one and add it to the cache.
