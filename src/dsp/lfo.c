@@ -702,7 +702,7 @@ _aaxEnvelopeGet(_aaxEnvelopeData *env, char stopped, float *velocity, _aaxEnvelo
          }
       }
 
-      *velocity = (rv != 0.0f) ? env->value/rv : env->value;
+      *velocity = fabsf((rv != 0.0f) ? env->value/rv : env->value);
    }
    return rv;
 }
