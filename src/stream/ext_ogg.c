@@ -899,9 +899,9 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 }
 
 // https://www.xiph.org/vorbis/doc/Vorbis_I_spec.html#x1-630004.2.2
-#define VORBIS_ID_HEADER_SIZE	(4*7-1)
+#define VORBIS_ID_HEADER_SIZE	30
 static int
-_aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
+_aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len)
 {
    int rv = __F_EOF;
 
@@ -916,12 +916,12 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
    printf("\n--Vorbis Identification Header:\n");
    printf("  0: %08x (Type: %x)\n", header[0], h[0]);
    printf("  1: %08x (Codec identifier \"%c%c%c%c%c%c\")\n", header[1], h[1], h[2], h[3], h[4], h[5], h[6]);
-   printf("  2: %08x (version %i, channels: %i)\n", header[2], (header[2] << 8) | (header[3] >> 24), header[2] >> 24);
-   printf("  3: %08x (Sample rate: %i)\n", header[3], header[3]);
-   printf("  4: %08x (Max. bitrate: %i)\n", header[4], (int32_t)header[4]);
-   printf("  5: %08x (Nom. bitrate: %i)\n", header[5], (int32_t)header[5]);
-   printf("  6: %08x (Min. bitrate: %i)\n", header[6], (int32_t)header[6]);
-   printf("  7: %08x (block size: %i - %i, framing: %i)\n", header[7], 1 << (header[7] >> 28), 1 << ((header[7] >> 24) & 0xF), (header[7] >> 16) & 0x1);
+   printf("  7: %08x (version %i, channels: %u)\n", header[2], (header[2] << 8) | (header[3] >> 24), header[2] >> 24);
+   printf(" 12: %08x (Sample rate: %u)\n", header[3], header[3]);
+   printf(" 16: %08x (Max. bitrate: %u)\n", header[4], header[4]);
+   printf(" 20: %08x (Nom. bitrate: %u)\n", header[5], header[5]);
+   printf(" 24: %08x (Min. bitrate: %u)\n", header[6], header[6]);
+   printf(" 28: %01x  %01x (block size: %u - %u, framing: %u)\n", h[28], h[29], 1 << (h[28] & 0xF), 1 << (h[28] >> 4), h[29]);
 #endif
 
          uint32_t version = (header[2] << 8) | (header[3] >> 24);
@@ -932,9 +932,9 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
             handle->format = AAX_PCM24S;
             handle->no_tracks = header[2] >> 24;
             handle->frequency = header[3];
-            handle->blocksize = 1 << (header[7] >> 28);
+            handle->blocksize = 1 << (h[28] & 0xF);
 //          handle->blocksize = 4*handle->no_tracks;
-            blocksize1 = 1 << ((header[7] >> 24) & 0xF);
+            blocksize1 = 1 << (h[28] >> 4);
 
             handle->bitrate = header[5]; // nominal bitrate
             if (handle->bitrate <= 0) {
@@ -946,7 +946,6 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, char *h, size_t len)
 
             if (handle->no_tracks <= 0 || handle->frequency <= 0 ||
                 (handle->blocksize > blocksize1))
-//              || (((header[7] >> 16) & 0x1) != 0))
             {
                // Failure to meet any of these conditions renders a
                // stream undecodable.
@@ -1159,7 +1158,7 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
       handle->keep_header = AAX_TRUE;
       handle->format_type = _FMT_VORBIS;
 //    handle->ogg_format = VORBIS_OGG_FILE;
-      rv = _aaxFormatDriverReadVorbisHeader(handle, h, len);
+      rv = _aaxFormatDriverReadVorbisHeader(handle, ch, len);
    }
    else if ((len > 8) && !strncmp(h, "OpusHead", 8))
    {
