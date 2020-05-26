@@ -91,8 +91,10 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
+   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
+   case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
       float feedback = effect->slot[1]->param[AAX_MAX_GAIN];
@@ -140,7 +142,16 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          data->flanger = AAX_FALSE;
          data->feedback = feedback;
 
-         data->lfo.convert = _linear;
+         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
+             (state & AAX_ENVELOPE_FOLLOW_LOG))
+         {
+            data->lfo.convert = _exponential;
+         }
+         else
+         {
+            data->lfo.convert = _linear;
+         }
+
          data->lfo.state = effect->state;
          data->lfo.fs = fs;
          data->lfo.period_rate = effect->info->period_rate;
