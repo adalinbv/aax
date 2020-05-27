@@ -114,7 +114,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
          memset(scratch0, 0, no_samples*bps);
 
          // mixer (and audio-frames) effects
-         DBG_TESTZERO(dptr, no_samples);
+//       DBG_TESTZERO(dptr, no_samples);
          rbi->effects_2nd(rbi->sample, scratch0, dptr, scratch1, 0, no_samples,
                           no_samples, ddesamps, track, p2d, 0, mono);
 
