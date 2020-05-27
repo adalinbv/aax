@@ -203,7 +203,7 @@ _occlusion_lfo(void* data, UNUSED(void *env), UNUSED(const void *ptr), UNUSED(un
   gain = occlusion->gain;
   occlusion->freq_filter.low_gain = gain;
   
-  rv = _linear(1.0f - gain, lfo->max-lfo->min);
+  rv = _linear(1.0f - gain, lfo->min, lfo->max-lfo->min);
   rv = lfo->inv ? lfo->max-rv : lfo->min+rv;
 
   return rv;

@@ -33,10 +33,9 @@ extern "C" {
 #include <backends/driver.h>
 
 
-typedef float _convert_fn(float, float);
+typedef float _convert_fn(float, float, float);
 _convert_fn _linear;
 _convert_fn _squared;
-_convert_fn _compress;
 _convert_fn _logarithmic;
 _convert_fn _exponential;
 _convert_fn _exp_distortion;
