@@ -39,9 +39,10 @@
 #include "lfo.h"
 
 float _linear(float v, float f) { return v*f; }
+float _squared(float v, float f) { return v*v; }
 float _compress(float v, float f) { return powf(f, 1.0f-v); }
 float _logarithmic(float v, float f) { return _log2lin(v); }
-float _exponential(float v, float f) { return _square(v); }
+float _exponential(float v, float f) { return (expf(v)-1.0f)/(GMATH_E1-1.0f); }
 float _exp_distortion(float v, float f) { float x = v*v; return .5f*(x*x-x+v); }
 
 _aaxLFOData*

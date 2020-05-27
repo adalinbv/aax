@@ -35,6 +35,7 @@ extern "C" {
 
 typedef float _convert_fn(float, float);
 _convert_fn _linear;
+_convert_fn _squared;
 _convert_fn _compress;
 _convert_fn _logarithmic;
 _convert_fn _exponential;
@@ -95,7 +96,7 @@ int _compressor_set_timing(_aaxLFOData*);
 typedef struct
 {
    float step_finish;
-   float value0, value, value_total;
+   float value0, value, value_max, value_total;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
    uint32_t pos, repeat;
