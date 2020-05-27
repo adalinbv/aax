@@ -1071,7 +1071,7 @@ FN(batch_saturate24,A)(void *data, size_t num)
       size_t i = num;
       do
       {
-         int32_t samp = _MINMAX(*p, -8388607, 8388607);
+         int32_t samp = _MINMAX(*p, -AAX_PEAK_MAX, AAX_PEAK_MAX);
          *p++ = samp;
       }
       while(--i);
@@ -1143,7 +1143,7 @@ FN(batch_cvt24u_24s,A)(void *data, size_t num)
       size_t i = num;
 
       do {
-         *p++ -= (int32_t)8388608;
+         *p++ -= (int32_t)AAX_PEAK_MAX;
       } while (--i);
    }
 }
@@ -1157,7 +1157,7 @@ FN(batch_cvt24s_24u,A)(void *data, size_t num)
       size_t i = num;
 
       do {
-         *p++ += (uint32_t)8388608;
+         *p++ += (uint32_t)AAX_PEAK_MAX;
       } while (--i);
    }
 }

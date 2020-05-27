@@ -439,8 +439,8 @@ _aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
       }
       else if (bps == 3 || bps == 4)
       {
-         static const float div = 1.0f/8388608.0f;
-         static const float mul = 8388607.0f;
+         static const float div = 1.0f/AAX_PEAK_MAX;
+         static const float mul = AAX_PEAK_MAX;
          int32_t *d = data[track];
          do {
             float v = (float)*d * div + *m++ * gain;

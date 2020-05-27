@@ -133,7 +133,7 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
              (state & AAX_ENVELOPE_FOLLOW_LOG))
          {
-            bitcrush->lfo.convert = _exponential;
+            bitcrush->lfo.convert = _squared;
          } else {
             bitcrush->lfo.convert = _linear;
          }
@@ -301,7 +301,7 @@ _bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
    {
       unsigned int i;
 
-      ratio *= (0.25f * 8388608.0f)/UINT64_MAX;
+      ratio *= (0.25f * AAX_PEAK_MAX)/UINT64_MAX;
       for (i=0; i<no_samples; ++i) {
          s[i] += ratio*xoroshiro128plus();
       }

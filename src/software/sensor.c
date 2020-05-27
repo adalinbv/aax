@@ -416,7 +416,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
          /** Automatic Gain Control */
          max = 0.0f;
          if (maxrms > 256) {
-            max = _MIN(0.707f*8388607.0f/maxrms, 128.0f);
+            max = _MIN(0.707f*AAX_PEAK_MAX/maxrms, 128.0f);
          }
 
          agc = drb->get_paramf(drb, RB_AGC_VALUE);

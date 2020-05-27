@@ -68,6 +68,7 @@ extern "C" {
 #endif
 #define AAX_INVERSE		0x10000000
 #define AAX_LFO_STEREO		0x20000000
+#define AAX_PEAK_MAX		8388607
 
 enum aaxHandleType
 {

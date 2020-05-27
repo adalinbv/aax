@@ -126,7 +126,7 @@ _batch_saturate24_sse4(void *data, size_t num)
       {
          num -= i;
          do {
-            int32_t samp = _MINMAX(*d, -8388607, 8388607);
+            int32_t samp = _MINMAX(*d, -AAX_PEAK_MAX, AAX_PEAK_MAX);
             *d++ = samp;
          } while(--i);
       }
@@ -140,8 +140,8 @@ _batch_saturate24_sse4(void *data, size_t num)
       __m128i xmm0i, xmm1i, xmm2i, xmm3i;
       __m128i xmin, xmax;
 
-      xmin = _mm_set1_epi32(-8388607);
-      xmax = _mm_set1_epi32(8388607);
+      xmin = _mm_set1_epi32(-AAX_PEAK_MAX);
+      xmax = _mm_set1_epi32(AAX_PEAK_MAX);
 
       num -= i*step;
       d += i*step;
@@ -171,7 +171,7 @@ _batch_saturate24_sse4(void *data, size_t num)
       i = num;
       do
       {
-         int32_t samp = _MINMAX(*d, -8388607, 8388607);
+         int32_t samp = _MINMAX(*d, -AAX_PEAK_MAX, AAX_PEAK_MAX);
          *d++ = samp;
       }
       while (--i);

@@ -258,7 +258,7 @@ _batch_saturate24_sse2(void *data, size_t num)
       size_t i = num;
       do
       {
-         int32_t samp = _MINMAX(*p, -8388607, 8388607);
+         int32_t samp = _MINMAX(*p, -AAX_PEAK_MAX, AAX_PEAK_MAX);
          *p++ = samp;
       }
       while(--i);
