@@ -268,10 +268,10 @@ _aaxCompressorMinMax(float val, int slot, unsigned char param)
 {
   static const _flt_minmax_tbl_t _aaxCompressorRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 1e-3f, 1e-3f, 0.0f, 0.0f }, { 0.25f, 10.0f, 1.0f, 1.0f } },
-    { {  0.0f, 1e-3f, 0.0f, 0.0f }, { 0.0f,  10.0f, 0.0f, 1.0f } },
-    { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,   0.0f, 0.0f, 0.0f } },
-    { {  0.0f,  0.0f, 0.0f, 0.0f }, { 0.0f,   0.0f, 0.0f, 0.0f } }
+    { { 1e-3f, 1e-3f, 0.0f,  0.0f }, { 0.25f, 10.0f, 1.0f, 1.0f } },
+    { {  0.0f, 1e-3f, 0.0f, 1e-3f }, { 0.0f,  10.0f, 0.0f, 1.0f } },
+    { {  0.0f,  0.0f, 0.0f,  0.0f }, { 0.0f,   0.0f, 0.0f, 0.0f } },
+    { {  0.0f,  0.0f, 0.0f,  0.0f }, { 0.0f,   0.0f, 0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
