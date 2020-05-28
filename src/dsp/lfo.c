@@ -361,10 +361,7 @@ _aaxLFOGetFixedValue(void* data, UNUSED(void *env), UNUSED(const void *ptr), uns
    if (lfo)
    {
       rv = lfo->value[track];
-      rv = lfo->inv ? 1.0f-rv : rv;
-
       lfo->compression[track] = 1.0f - rv;
-      rv = lfo->convert(rv, 0.0f,1.0f);
    }
    return rv;
 }
