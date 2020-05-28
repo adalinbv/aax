@@ -32,7 +32,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="timed|24db">
+  <filter type="frequency" src="inverse-timed|24db">
    <slot n="0">
     <param n="0" pitch="25.0">2000.0</param>
     <param n="1">1.0</param>
