@@ -57,7 +57,7 @@
  * @fp2d mixer 2d properties
  */
 int
-_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, float gain_init, _history_t history)
+_aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, float buffer_gain, _history_t history)
 {
    _aaxRingBufferSample *drbd, *srbd;
    size_t offs, dno_samples;
@@ -193,7 +193,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    gain_emitter = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
    if (genv) genv->value_total = gain*gain_emitter;
 
-   gain *= gain_init;
+   gain *= buffer_gain; // bring gain to a normalized level
    gain = _square(gain);
    gain *= gain_emitter;
 

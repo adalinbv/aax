@@ -74,7 +74,7 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float gain_init, _history_t history)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float buffer_gain, _history_t history)
 {
    _aaxRendererData *renderer = data;
    const _aaxMixerInfo *info =  renderer->info;
@@ -223,7 +223,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    if (genv) genv->value_total = gain*gain_emitter;
 
    /* 3d: distance, audio-cone and occlusion related gain */
-   gain *= gain_init;
+   gain *= buffer_gain; // bring gain to a normalized level
    gain = _square(gain)*ep2d->final.gain;
    gain *= gain_emitter;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? 0 : 1;
