@@ -1,8 +1,16 @@
-# Check if SSE/AVX instructions are available on the machine where
+# Check if NEON/SSE/AVX instructions are available on the machine where
 # the project is compiled.
 
 IF(CMAKE_SYSTEM_NAME MATCHES "Linux")
    EXEC_PROGRAM(cat ARGS "/proc/cpuinfo" OUTPUT_VARIABLE CPUINFO)
+
+   STRING(REGEX REPLACE "^.*(neon).*$" "\\1" NEON_THERE "${CPUINFO}")
+   STRING(COMPARE EQUAL "neon" "${NEON_THERE}" NEON_TRUE)
+   IF (NEON_TRUE)
+      set(NEON_FOUND true CACHE BOOL "NEON available on host")
+   ELSE (NEON_TRUE)
+      set(NEON_FOUND false CACHE BOOL "NEON available on host")
+   ENDIF (NEON_TRUE)
 
    STRING(REGEX REPLACE "^.*(sse2).*$" "\\1" SSE_THERE "${CPUINFO}")
    STRING(COMPARE EQUAL "sse2" "${SSE_THERE}" SSE2_TRUE)
@@ -61,6 +69,14 @@ ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Darwin")
    EXEC_PROGRAM("/usr/sbin/sysctl -n machdep.cpu.features" OUTPUT_VARIABLE
       CPUINFO)
 
+   STRING(REGEX REPLACE "^.*(NEON).*$" "\\1" NEON_THERE "${CPUINFO}")
+   STRING(COMPARE EQUAL "NEON" "${NEON_THERE}" NEON_TRUE)
+   IF (NEON_TRUE)
+      set(NEON_FOUND true CACHE BOOL "NEON available on host")
+   ELSE (NEON_TRUE)
+      set(NEON_FOUND false CACHE BOOL "NEON available on host")
+   ENDIF (NEON_TRUE)
+
    STRING(REGEX REPLACE "^.*[^S](SSE2).*$" "\\1" SSE_THERE "${CPUINFO}")
    STRING(COMPARE EQUAL "SSE2" "${SSE_THERE}" SSE2_TRUE)
    IF (SSE2_TRUE)
@@ -111,6 +127,7 @@ ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 
 ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Windows")
    # TODO
+   set(NEON_FOUND   true  CACHE BOOL "NEON available on host")
    set(SSE2_FOUND   true  CACHE BOOL "SSE2 available on host")
    set(SSE3_FOUND   false CACHE BOOL "SSE3 available on host")
    set(SSSE3_FOUND  false CACHE BOOL "SSSE3 available on host")
@@ -118,6 +135,7 @@ ELSEIF(CMAKE_SYSTEM_NAME MATCHES "Windows")
    set(AVX_FOUND false CACHE BOOL "AVX available on host")
    set(AVX2_FOUND false CACHE BOOL "AVX2 available on host")
 ELSE(CMAKE_SYSTEM_NAME MATCHES "Linux")
+   set(NEON_FOUND   true  CACHE BOOL "NEON available on host")
    set(SSE2_FOUND   true  CACHE BOOL "SSE2 available on host")
    set(SSE3_FOUND   false CACHE BOOL "SSE3 available on host")
    set(SSSE3_FOUND  false CACHE BOOL "SSSE3 available on host")
@@ -126,6 +144,9 @@ ELSE(CMAKE_SYSTEM_NAME MATCHES "Linux")
    set(AVX2_FOUND false CACHE BOOL "AVX2 available on host")
 ENDIF(CMAKE_SYSTEM_NAME MATCHES "Linux")
 
+if(NOT NEON_FOUND)
+      MESSAGE(STATUS "Could not find hardware support for NEON on this machine.")
+endif(NOT NEON_FOUND)
 if(NOT SSE2_FOUND)
       MESSAGE(STATUS "Could not find hardware support for SSE2 on this machine.")
 endif(NOT SSE2_FOUND)
@@ -145,4 +166,4 @@ if(NOT AVX2_FOUND)
       MESSAGE(STATUS "Could not find hardware support for AVX2 on this machine.")
 endif(NOT AVX2_FOUND)
 
-mark_as_advanced(SSE2_FOUND SSE3_FOUND SSSE3_FOUND SSE4_1_FOUND, AVX_FOUND, AVX2_FOUND)
+mark_as_advanced(NEON_FOUND SSE2_FOUND SSE3_FOUND SSSE3_FOUND SSE4_1_FOUND, AVX_FOUND, AVX2_FOUND)
