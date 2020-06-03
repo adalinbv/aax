@@ -1,0 +1,56 @@
+<?xml version="1.0"?>
+
+<!--
+ * Copyright (C) 2017-2020 by Erik Hofman.
+ * Copyright (C) 2017-2020 by Adalin B.V.
+ * All rights reserved.
+ *
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
+ * not be disclosed to third parties, copied or duplicated in any form, in
+ * whole or in part, without the prior written permission of the author.
+-->
+
+<aeonwave>
+
+ <mixer>
+  <filter type="compressor">
+   <slot n="0">
+    <param n="0">0.0025</param>
+    <param n="1">0.5</param>
+    <param n="2">0.8</param>
+    <param n="3">0.3</param>
+   </slot>
+  </filter>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">50.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.5</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">0.02</param>
+    <param n="1">1.0</param>
+    <param n="2">0.1</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="reverb" optional="true">
+   <slot n="0">
+    <param n="0">200.0</param>
+    <param n="1">0.007</param>
+    <param n="2">0.08</param>
+    <param n="3">0.09</param>
+   </slot>
+  </effect>
+ </mixer>
+
+</aeonwave>
