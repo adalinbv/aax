@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.54" db="-5.7" frequency="457" duration="0.1">
+ <sound gain="0.54" db="-4.8" frequency="457" duration="0.1">
   <waveform src="sine"/>
  </sound>
 

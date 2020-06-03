@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="0.98" db="-11.6" frequency="220" duration="0.5">
+ <sound mode="2" gain="0.98" db="-10.7" frequency="220" duration="0.5">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="add" ratio="0.5" pitch="1.3"/>
   <waveform src="white-noise" processing="add" ratio="0.2" pitch="0.4"/>

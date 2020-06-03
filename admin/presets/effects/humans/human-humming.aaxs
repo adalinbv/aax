@@ -19,7 +19,7 @@
   <note polyphony="8" min="48" max="79" step="12"/>
  </info>
 
- <sound gain="2.07" db="-2.0" frequency="220" duration="0.1">
+ <sound gain="2.31" db="-2.0" frequency="220" duration="0.1">
   <waveform src="sawtooth" ratio="0.18" pitch="0.505"/>
   <waveform src="square" processing="add" ratio="0.5"/>
   <waveform src="sine" processing="modulate"/>
@@ -28,15 +28,15 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="1.2">
    <slot n="0">
-    <param n="0" auto="-0.168">0.0984</param>
+    <param n="0" auto="-0.151" min="0.408" max="0.525">0.0884</param>
     <param n="1">0.05</param>
-    <param n="2" auto="0.353">2.08</param>
+    <param n="2" auto="0.317" min="1.2" max="0.95">1.87</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.353">1.77</param>
+    <param n="0" auto="0.317" min="0.918" max="0.672">1.59</param>
     <param n="1">inf</param>
-    <param n="2">0.726</param>
+    <param n="2">0.652</param>
     <param n="3">0.15</param>
    </slot>
   </filter>

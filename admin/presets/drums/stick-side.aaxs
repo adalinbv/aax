@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.46" db="0.0" frequency="230" duration="0.3">
+ <sound gain="0.46" db="0.9" frequency="230" duration="0.3">
   <waveform src="white-noise" pitch="0.05"/>
   <waveform src="triangle" processing="modulate" pitch="11.7587"/>
   <filter type="frequency">
