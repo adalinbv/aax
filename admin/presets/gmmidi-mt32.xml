@@ -12,7 +12,7 @@
  
 <aeonwave rate="45" polyphony="32">
 
- <midi file="instruments/aural-enhancer">
+ <midi>
   <bank n="0">
    <instrument n="0" name="Acou Piano 1" file="instruments/piano-bright"/>
    <instrument n="1" name="Acou Piano 2" file="instruments/piano-acoustic"/>
@@ -23,13 +23,13 @@
    <instrument n="6" name="Elec Piano 4" file="instruments/piano-fm"/>
    <instrument n="7" name="Honkytonk" file="instruments/piano-honky-tonk"/>
    <instrument n="8" name="Elect Org 1" file="instruments/organ-drawbar"/>
-   <instrument n="9" name="Elect Org 2" file="instruments/organ-percussive"/>
-   <instrument n="10" name="Elec Org 3" file="instruments/organ-rock"/>
-   <instrument n="11" name="Elec Org 4" file="instruments/organ-reed"/>
-   <instrument n="12" name="Pipe Org 1" file="instruments/organ-church"/>
-   <instrument n="13" name="Pipe Org 2" file="instruments/organ-church-diapason"/>
+   <instrument n="9" name="Elect Org 2" file="instruments/organ-rock"/>
+   <instrument n="10" name="Elec Org 3" file="instruments/organ-drawbar"/>
+   <instrument n="11" name="Elec Org 4" file="instruments/organ-percussive"/>
+   <instrument n="12" name="Pipe Org 1" file="instruments/organ-church-diapason"/>
+   <instrument n="13" name="Pipe Org 2" file="instruments/organ-church"/>
    <instrument n="14" name="Pipe Org 3" file="instruments/organ-reed"/>
-   <instrument n="15" name="Accordion" file="instruments/accordion-french"/>
+   <instrument n="15" name="Accordion" file="instruments/accordion-italian"/>
    <instrument n="16" name="Harpsi 1" file="instruments/harpsichord"/>
    <instrument n="17" name="Harpsi 2" file="instruments/harpsichord-coupled"/>
    <instrument n="18" name="Harpsi 3" file="instruments/harpsichord-coupled"/>
@@ -46,19 +46,19 @@
    <instrument n="29" name="Syn Bass 2" file="instruments/bass-synth2"/>
    <instrument n="30" name="Syn Bass 3" file="instruments/bass-synth2"/>
    <instrument n="31" name="Syn Bass 4" file="instruments/bass-synth1"/>
-   <instrument n="32" name="Fantasy" file="instruments/fx-goblins"/>
-   <instrument n="33" name="Harmo Pan" file="instruments/pad-halo"/>
+   <instrument n="32" name="Fantasy" file="instruments/fx-crystal"/>
+   <instrument n="33" name="Harmo Pan" file="instruments/pad-sweep"/>
    <instrument n="34" name="Chorale" file="instruments/pad-choir"/>
-   <instrument n="35" name="Glasses" file="instruments/fx-crystal"/>
+   <instrument n="35" name="Glasses" file="instruments/fx-brightness"/>
    <instrument n="36" name="Soundtrack" file="instruments/fx-soundtrack"/>
    <instrument n="37" name="Atmosphere" file="instruments/fx-atmosphere"/>
-   <instrument n="38" name="Warm Bell" file="instruments/bell-tubular"/>
-   <instrument n="39" name="Funny Vox" file="instruments/voice-synth"/>
+   <instrument n="38" name="Warm Bell" file="instruments/bell-tinkle"/>
+   <instrument n="39" name="Funny Vox" file="instruments/lead-bass"/>
    <instrument n="40" name="Echo Bell" file="effects/domestic/bell-church"/>
    <instrument n="41" name="Ice Rain" file="instruments/fx-icerain"/>
    <instrument n="42" name="Oboe 2001" file="instruments/oboe"/>e
-   <instrument n="43" name="Echo Pan" file="instruments/fx-echoes"/>
-   <instrument n="44" name="Doctor Solo" file="instruments/lead-bass"/>
+   <instrument n="43" name="Echo Pan" file="instruments/lead-charang"/>
+   <instrument n="44" name="Doctor Solo" file="instruments/lead-saw-wave"/>
    <instrument n="45" name="School Daze" file="instruments/lead-sawtooth"/>
    <instrument n="46" name="Bellsinger" file="effects/industrial/hit-metal-bowl"/>
    <instrument n="47" name="Square Wave" file="instruments/lead-square-wave"/>
@@ -73,8 +73,8 @@
    <instrument n="56" name="Contrabass" file="instruments/cello"/>
    <instrument n="57" name="Harp 1" file="instruments/harp"/>
    <instrument n="58" name="Harp 2" file="instruments/string-pizzicato"/>
-   <instrument n="59" name="Guitar 1" file="instruments/guitar-steel"/>
-   <instrument n="60" name="Guitar 2" file="instruments/guitar-nylon"/>
+   <instrument n="59" name="Guitar 1" file="instruments/guitar-nylon"/>
+   <instrument n="60" name="Guitar 2" file="instruments/guitar-steel"/>
    <instrument n="61" name="Elec Gtr 1" file="instruments/guitar-clean"/>
    <instrument n="62" name="Elec Gtr 2" file="instruments/guitar-jazz"/>
    <instrument n="63" name="Sitar" file="instruments/sitar"/>
@@ -82,12 +82,12 @@
    <instrument n="65" name="Acou Bass 2" file="instruments/bass-acoustic"/>
    <instrument n="66" name="Elec Bass 1" file="instruments/bass-finger"/>
    <instrument n="67" name="Elec Bass 2" file="instruments/bass-pick"/>
-   <instrument n="68" name="Slap Bass 1" file="instruments/bass-slap1"/>
-   <instrument n="69" name="Slap Bass 2" file="instruments/bass-slap2"/>
+   <instrument n="68" name="Slap Bass 1" file="instruments/bass-slap2"/>
+   <instrument n="69" name="Slap Bass 2" file="instruments/bass-slap1"/>
    <instrument n="70" name="Fretless 1" file="instruments/bass-fretless"/>
    <instrument n="71" name="Fretless 2" file="instruments/bass-fretless"/>
    <instrument n="72" name="Flute 1" file="instruments/flute"/>
-   <instrument n="73" name="Flute 2" file="instruments/shakuhachi"/>
+   <instrument n="73" name="Flute 2" file="instruments/recorder"/>
    <instrument n="74" name="Piccolo 1" file="instruments/flute"/>
    <instrument n="75" name="Piccolo 2" file="instruments/ocarina"/>
    <instrument n="76" name="Flute 2" file="instruments/recorder"/>
@@ -142,7 +142,7 @@
    <instrument n="125" name="One Note Jam" file="effects/one-note-jam"/>
    <instrument n="126" name="Water Bell" file="effects/domestic/carillon"/>
   </bank>
-
  </midi>
+
 
 </aeonwave>
