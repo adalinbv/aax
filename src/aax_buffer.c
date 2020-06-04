@@ -1122,7 +1122,6 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
             free(data);
             data = ndata;
          }
-         _batch_imul_value(*data, *data, sizeof(int32_t), info->no_samples, 256.0f);
       }
 
       info->fmt = AAX_PCM24S;
