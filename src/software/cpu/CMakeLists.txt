@@ -18,6 +18,7 @@ set(CPU_SOURCES
 
   arch3d_neon.c
   arch3d_vfpv3.c
+  arch3d_vfpv4.c
   arch3d_sse.c
   arch3d_sse2.c
   arch3d_sse3.c

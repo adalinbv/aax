@@ -363,15 +363,18 @@ else(MSVC)
        )
      elseif(ARM)
        message("Build environment: ARM")
-       set(C_FLAGS "${C_FLAGS} -march=armv7-a -marm -DARCH32=1")
+       set(C_FLAGS "${C_FLAGS} -march=armv7-a -marm -mfloat-abi=hard -DARCH32=1")
        set_property(SOURCE src/software/cpu/arch3d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfpv3-d16 -mfloat-abi=hard -O3 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfpv3-d16 -O3 -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv3.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfpv3-d16 -mfloat-abi=hard -Ofast -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfpv3-d16 -Ofast -D__ARM_VFPV3 -ftree-vectorize -ftree-slp-vectorize"
+       )
+       set_property(SOURCE src/software/cpu/arch3d_vfpv4.c APPEND
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfpv4-d16 -O3 -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch2d_vfpv4.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=vfpv4 -mfloat-abi=hard -Ofast -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mfpu=vfpv4 -Ofast -D__ARM_VFPV4 -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE src/software/cpu/arch3d_neon.c APPEND
                     PROPERTY COMPILE_FLAGS "-mfpu=neon -O3 -ftree-vectorize -ftree-slp-vectorize"
@@ -380,7 +383,7 @@ else(MSVC)
                     PROPERTY COMPILE_FLAGS "-mfpu=neon -Ofast -funsafe-math-optimizations -ftree-vectorize -ftree-slp-vectorize"
        )
        set_property(SOURCE 3rdparty/pffft.c APPEND
-                    PROPERTY COMPILE_FLAGS "-mfpu=neon -Ofast -ftree-vectorize -ftree-slp-vectorize"
+                    PROPERTY COMPILE_FLAGS "-mfpu=neon -Ofast -funsafe-math-optimizations -ftree-vectorize -ftree-slp-vectorize"
        )
      else()
        message("Build environment: Other (${CMAKE_SYSTEM_PROCESSOR})")
