@@ -48,7 +48,7 @@
 
 #if defined(__arm__) || defined(_M_ARM)
 
-#define MAX_CPUINFO	1024
+#define MAX_CPUINFO	4096
 
 enum {
     AAX_NO_SIMD       = 0,
@@ -108,7 +108,7 @@ _aaxArchDetectFeatures()
          rv = fread(cpuinfo, 1, MAX_CPUINFO, fp);
          fclose(fp);
 
-         if (rv > 0 && rv < MAX_CPUINFO)
+         if (rv > 0 && rv <= MAX_CPUINFO)
          {
             char *features, *ptr;
 
