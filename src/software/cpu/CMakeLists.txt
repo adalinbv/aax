@@ -7,7 +7,6 @@ set(CPU_HEADERS
 set(CPU_SOURCES
   arch2d_cpu.c
   arch2d_neon.c
-  arch2d_vfpv2.c
   arch2d_vfpv3.c
   arch2d_vfpv4.c
   arch2d_sse2.c
@@ -18,7 +17,6 @@ set(CPU_SOURCES
   arch2d_fma3.c
 
   arch3d_neon.c
-  arch3d_vfpv2.c
   arch3d_vfpv3.c
   arch3d_sse.c
   arch3d_sse2.c
