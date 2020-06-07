@@ -32,6 +32,7 @@
 
 #include <aax/aax.h>
 
+#include <base/buffers.h>
 #include <base/threads.h>
 #include <base/logging.h>
 
@@ -87,8 +88,8 @@ _aaxDetectPoolRenderer()
 
 /* -------------------------------------------------------------------------- */
 
-#define _AAX_MAX_NO_WORKERS		(2*8)
-#define _AAX_MIN_EMITTERS_PER_WORKER	4
+#define _AAX_MAX_NO_WORKERS		16
+#define _AAX_MIN_EMITTERS_PER_WORKER	BUFFER_RESERVE
 
 typedef struct
 {
