@@ -701,8 +701,18 @@ _aaxSemaphoreWaitDebug(_aaxSemaphore *sem, char *file, int line)
    to.tv_nsec = 0;
 
    rv = sem_timedwait(sem, &to);
-   if (rv != 0) {
-      printf("semaphore error %i: %s\n  %s line %i\n", errno, strerror(errno), file, line);
+   if (rv != 0)
+   {
+      switch (errno)
+      {
+      case EINTR:
+      case EINVAL:
+      case EAGAIN:
+      case ETIMEDOUT:
+      default:
+         printf("semaphore error %i: %s\n  %s line %i\n", errno, strerror(errno), file, line);
+         break;
+      }
    }
    return rv ? AAX_FALSE : AAX_TRUE;
 }
