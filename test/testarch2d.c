@@ -357,6 +357,7 @@ int main()		// x86		ARM
          printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD1), eps*1000.0f, cpu/eps);
          TESTF("round "MKSTR(SIMD1), dst1, dst2);
       }
+#if !defined(__x86_64__)
       if (simd2)
       {
          memcpy(dst2, src, MAXNUM*sizeof(float));
@@ -368,6 +369,7 @@ int main()		// x86		ARM
          printf("round %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD2), eps*1000.0f, cpu/eps);
          TESTF("round "MKSTR(SIMD2), dst1, dst2);
       }
+#endif
 
       /*
        * batch atan floats
