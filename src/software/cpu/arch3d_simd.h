@@ -96,33 +96,6 @@ void _mtx4dMul_avx(mtx4d_ptr d, const mtx4d_ptr m1, const mtx4d_ptr m2);
 void _mtx4dMulVec4_avx(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
 int _vec3dAltitudeVector_avx(vec3f_ptr altvec, const mtx4d_ptr ifmtx, const vec3d_ptr ppos, const vec3d_ptr epos, const vec3f_ptr afevec, vec3f_ptr fpvec);
 
-/* VFPV2 */
-void _vec3fNegate_vfpv2(vec3f_ptr d, const vec3f_ptr v);
-void _vec4fNegate_vfpv2(vec4f_ptr d, const vec4f_ptr v);
-void _vec4fScalarMul_vfpv2(vec4f_ptr r, float f);
-void _vec3fMulVec3_vfpv2(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
-void _vec4fMulVec4_vfpv2(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
-float _vec3fMagnitude_vfpv2(const vec3f_ptr v);
-double _vec3dMagnitude_vfpv2(const vec3d_ptr v);
-float _vec3fMagnitudeSquared_vfpv2(const vec3f_ptr v);
-float _vec3fDotProduct_vfpv2(const vec3f_ptr v1, const vec3f_ptr v2);
-double _vec3dDotProduct_vfpv2(const vec3d_ptr v1, const vec3d_ptr v2);
-void _vec3fCrossProduct_vfpv2(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
-float _vec3fNormalize_vfpv2(vec3f_ptr d, const vec3f_ptr v);
-double _vec3dNormalize_vfpv2(vec3d_ptr d, const vec3d_ptr v);
-//void _vec3fMatrix3_vfpv2(vec3f_ptr d, const vec3f_ptr v, mtx3 m);
-void _mtx4fSetAbsolute_vfpv2(mtx4f_ptr d, char absolute);
-void _mtx4fMul_vfpv2(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2);
-void _mtx4dMul_vfpv2(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2);
-void _mtx4fMulVec4_vfpv2(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
-void _mtx4dMulVec4_vfpv2(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
-void _mtx4fInverseSimple_vfpv2(mtx4f_ptr dst, const mtx4f_ptr mtx);
-void _mtx4dInverseSimple_vfpv2(mtx4d_ptr dst, const mtx4d_ptr mtx);
-void _mtx4fTranslate_vfpv2(mtx4f_ptr m, float x, float y, float z);
-void _mtx4dTranslate_vfpv2(mtx4d_ptr m, double x, double y, double z);
-void _mtx4fRotate_vfpv2(mtx4f_ptr mtx, float angle_rad, float x, float y, float z);
-void _mtx4dRotate_vfpv2(mtx4d_ptr mtx, double angle_rad, double x, double y, double z);
-
 /* VFPV3 */
 void _vec3fNegate_vfpv3(vec3f_ptr d, const vec3f_ptr v);
 void _vec4fNegate_vfpv3(vec4f_ptr d, const vec4f_ptr v);
@@ -149,6 +122,33 @@ void _mtx4fTranslate_vfpv3(mtx4f_ptr m, float x, float y, float z);
 void _mtx4dTranslate_vfpv3(mtx4d_ptr m, double x, double y, double z);
 void _mtx4fRotate_vfpv3(mtx4f_ptr mtx, float angle_rad, float x, float y, float z);
 void _mtx4dRotate_vfpv3(mtx4d_ptr mtx, double angle_rad, double x, double y, double z);
+
+/* VFPV4 */
+void _vec3fNegate_vfpv4(vec3f_ptr d, const vec3f_ptr v);
+void _vec4fNegate_vfpv4(vec4f_ptr d, const vec4f_ptr v);
+void _vec4fScalarMul_vfpv4(vec4f_ptr r, float f);
+void _vec3fMulVec3_vfpv4(vec3f_ptr r, const vec3f_ptr v1, const vec3f_ptr v2);
+void _vec4fMulVec4_vfpv4(vec4f_ptr r, const vec4f_ptr v1, const vec4f_ptr v2);
+float _vec3fMagnitude_vfpv4(const vec3f_ptr v);
+double _vec3dMagnitude_vfpv4(const vec3d_ptr v);
+float _vec3fMagnitudeSquared_vfpv4(const vec3f_ptr v);
+float _vec3fDotProduct_vfpv4(const vec3f_ptr v1, const vec3f_ptr v2);
+double _vec3dDotProduct_vfpv4(const vec3d_ptr v1, const vec3d_ptr v2);
+void _vec3fCrossProduct_vfpv4(vec3f_ptr d, const vec3f_ptr v1, const vec3f_ptr v2);
+float _vec3fNormalize_vfpv4(vec3f_ptr d, const vec3f_ptr v);
+double _vec3dNormalize_vfpv4(vec3d_ptr d, const vec3d_ptr v);
+//void _vec3fMatrix3_vfpv4(vec3f_ptr d, const vec3f_ptr v, mtx3 m);
+void _mtx4fSetAbsolute_vfpv4(mtx4f_ptr d, char absolute);
+void _mtx4fMul_vfpv4(mtx4f_ptr dst, const mtx4f_ptr mtx1, const mtx4f_ptr mtx2);
+void _mtx4dMul_vfpv4(mtx4d_ptr dst, const mtx4d_ptr mtx1, const mtx4d_ptr mtx2);
+void _mtx4fMulVec4_vfpv4(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v);
+void _mtx4dMulVec4_vfpv4(vec4d_ptr d, const mtx4d_ptr m, const vec4d_ptr v);
+void _mtx4fInverseSimple_vfpv4(mtx4f_ptr dst, const mtx4f_ptr mtx);
+void _mtx4dInverseSimple_vfpv4(mtx4d_ptr dst, const mtx4d_ptr mtx);
+void _mtx4fTranslate_vfpv4(mtx4f_ptr m, float x, float y, float z);
+void _mtx4dTranslate_vfpv4(mtx4d_ptr m, double x, double y, double z);
+void _mtx4fRotate_vfpv4(mtx4f_ptr mtx, float angle_rad, float x, float y, float z);
+void _mtx4dRotate_vfpv4(mtx4d_ptr mtx, double angle_rad, double x, double y, double z);
 
 /* NEON */
 float _vec3fMagnitude_neon(const vec3f_ptr v);
