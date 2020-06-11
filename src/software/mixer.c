@@ -102,7 +102,11 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       {
          MIX_T *dptr = (MIX_T*)tracks[track];
          MIX_T *ddeptr = dptr - ddesamps;
-
+#if 1
+         memcpy(scratch0, dptr, no_samples*bps);
+         rbi->effects_2nd(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
+                          no_samples, ddesamps, track, p2d, 0, mono);
+#else
          /* save the unmodified next effects buffer for later use          */
          /* (scratch buffers have a leading and a trailing effects buffer) */
 //       DBG_MEMCLR(1, scratch1-ddesamps, no_samples+2*ddesamps, bps);
@@ -124,6 +128,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
 
          /* copy the data back from scratch0 to dptr */
          _aax_memcpy(dptr, scratch0, no_samples*bps);
+#endif
       }
    }
 
