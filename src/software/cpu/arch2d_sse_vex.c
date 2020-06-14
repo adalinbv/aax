@@ -1019,6 +1019,198 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
 }
 
 void
+_batch_freqfilter4_float_sse_vex(float32_ptrptr dptr, const_float32_ptrptr sptr, int t, size_t num, void *flt)
+{
+   _aaxRingBufferFreqFilterData *filter = (_aaxRingBufferFreqFilterData*)flt;
+   const_float32_ptrptr s = sptr;
+
+   if (num)
+   {
+      __m128 k4, h0, h1, cptr[4];
+      int h, c, stage;
+      float k;
+
+      if (filter->state == AAX_BESSEL) {
+         k = filter->k * (filter->high_gain - filter->low_gain);
+      } else {
+         k = filter->k * filter->high_gain;
+      }
+
+      if (fabsf(k-1.0f) < LEVEL_96DB)
+      {
+         if (dptr[0] != sptr[0])
+         {
+            for (h=0; h<4; ++h) {
+               memcpy(dptr[h], sptr[h], num*sizeof(float));
+            }
+         }
+         return;
+      }
+      if (fabsf(k) < LEVEL_96DB && filter->no_stages < 2)
+      {
+         for (h=0; h<4; ++h) {
+            memset(dptr[h], 0, num*sizeof(float));
+         }
+         return;
+      }
+
+      c = 0;
+      cptr[0] = _mm_set1_ps(filter->coeff[c++]);
+      cptr[1] = _mm_set1_ps(filter->coeff[c++]);
+      cptr[2] = _mm_set1_ps(filter->coeff[c++]);
+      cptr[3] = _mm_set1_ps(filter->coeff[c++]);
+
+      h = 0;
+      h0 = _mm_load_ps(&filter->freqfilter->history[t][h]);
+      h1 = _mm_load_ps(&filter->freqfilter->history[t][h+1]);
+
+      k4 = _mm_set1_ps(k);
+
+      stage = filter->no_stages;
+      if (!stage) stage++;
+
+      if (filter->state == AAX_BUTTERWORTH)
+      {
+         float32_ptrptr d = dptr;
+         size_t i = num;
+
+         do
+         {
+            __m128 smp, nsmp;
+
+            nsmp[0] = *s[0]++;
+            nsmp[1] = *s[1]++;
+            nsmp[2] = *s[2]++;
+            nsmp[3] = *s[3]++;
+
+            nsmp = _mm_add_ps(_mm_mul_ps(nsmp, k4),
+                              _mm_add_ps(_mm_mul_ps(h0, cptr[0]),
+                                         _mm_mul_ps(h1, cptr[1])));
+
+            smp = _mm_add_ps(nsmp,
+                             _mm_add_ps(_mm_mul_ps(h0, cptr[2]),
+                             _mm_mul_ps(h1, cptr[3])));
+
+            *d[0]++ = smp[0];
+            *d[1]++ = smp[1];
+            *d[2]++ = smp[2];
+            *d[3]++ = smp[3];
+
+            h1 = h0;
+            h0 = nsmp;
+         }
+         while (--i);
+      }
+      else
+      {
+         float32_ptrptr d = dptr;
+         size_t i = num;
+
+         do
+         {
+            __m128 nsmp;
+
+            nsmp[0] = *s[0]++;
+            nsmp[1] = *s[1]++;
+            nsmp[2] = *s[2]++;
+            nsmp[3] = *s[3]++;
+
+            nsmp = _mm_add_ps(_mm_mul_ps(nsmp, k4),
+                              _mm_add_ps(_mm_mul_ps(h0, cptr[0]),
+                                         _mm_mul_ps(h1, cptr[1])));
+
+            *d[0]++ = nsmp[0];
+            *d[1]++ = nsmp[1];
+            *d[2]++ = nsmp[2];
+            *d[3]++ = nsmp[3];
+
+            h1 = h0;
+            h0 = nsmp;
+         }
+         while (--i);
+      }
+
+      _mm_store_ps(&filter->freqfilter->history[t][h++], h0);
+      _mm_store_ps(&filter->freqfilter->history[t][h++], h1);
+
+      while(--stage)
+      {
+         cptr[0] = _mm_set1_ps(filter->coeff[c++]);
+         cptr[1] = _mm_set1_ps(filter->coeff[c++]);
+         cptr[2] = _mm_set1_ps(filter->coeff[c++]);
+         cptr[3] = _mm_set1_ps(filter->coeff[c++]);
+
+         h0 = _mm_load_ps(&filter->freqfilter->history[t][h]);
+         h1 = _mm_load_ps(&filter->freqfilter->history[t][h+1]);
+
+         if (filter->state == AAX_BUTTERWORTH)
+         {
+            float32_ptrptr d = dptr;
+            size_t i = num;
+
+            do
+            {
+               __m128 smp, nsmp;
+
+               nsmp[0] = *s[0]++;
+               nsmp[1] = *s[1]++;
+               nsmp[2] = *s[2]++;
+               nsmp[3] = *s[3]++;
+
+               nsmp = _mm_add_ps(nsmp,
+                                 _mm_add_ps(_mm_mul_ps(h0, cptr[0]),
+                                            _mm_mul_ps(h1, cptr[1])));
+
+               smp = _mm_add_ps(nsmp,
+                                _mm_add_ps(_mm_mul_ps(h0, cptr[2]),
+                                           _mm_mul_ps(h1, cptr[3])));
+
+               *d[0]++ = smp[0];
+               *d[1]++ = smp[1];
+               *d[2]++ = smp[2];
+               *d[3]++ = smp[3];
+
+               h1 = h0;
+               h0 = nsmp;
+            }
+            while (--i);
+         }
+         else
+         {
+            float32_ptrptr d = dptr;
+            size_t i = num;
+
+            do
+            {
+               __m128 nsmp;
+               
+               nsmp[0] = *s[0]++;
+               nsmp[1] = *s[1]++;
+               nsmp[2] = *s[2]++;
+               nsmp[3] = *s[3]++;
+               
+               nsmp = _mm_add_ps(nsmp,
+                                 _mm_add_ps(_mm_mul_ps(h0, cptr[0]),
+                                            _mm_mul_ps(h1, cptr[1])));
+               
+               *d[0]++ = nsmp[0];
+               *d[1]++ = nsmp[1];
+               *d[2]++ = nsmp[2];
+               *d[3]++ = nsmp[3];
+               
+               h1 = h0;
+               h0 = nsmp;
+            }
+            while (--i);
+         }
+
+         _mm_store_ps(&filter->freqfilter->history[t][h++], h0);
+         _mm_store_ps(&filter->freqfilter->history[t][h++], h1);
+      }
+   }
+}
+
+void
 _batch_convolution_sse_vex(float32_ptr hcptr, const_float32_ptr cptr, const_float32_ptr sptr, unsigned int cnum, unsigned int dnum, int step, float v, float threshold)
 {
    size_t i, j;

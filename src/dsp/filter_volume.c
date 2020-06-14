@@ -486,7 +486,7 @@ _occlusion_destroy(void *ptr)
 }
 
 int
-_occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, UNUSED(MIX_PTR_T scratch), size_t samples, unsigned int track, const void *data)
+_occlusion_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch, size_t samples, unsigned int track, const void *data)
 {
    _aaxRingBufferOcclusionData *occlusion = (_aaxRingBufferOcclusionData*)data;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;

@@ -50,64 +50,12 @@
  */
 #define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
 
-#if 0
 void
 _aaxRingBufferEffectsApply1st(_aaxRingBufferSample *rbd,
           MIX_PTR_T dst, MIX_PTR_T src, UNUSED(MIX_PTR_T scratch),
           size_t start, UNUSED(size_t end), size_t no_samples,
           size_t ddesamps, unsigned int track, _aax2dProps *p2d,
-          UNUSED(unsigned char ctr), unsigned char mono)
-{
-   static const size_t bps = sizeof(MIX_T);
-   _aaxRingBufferReflectionData *reflections = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
-#ifndef NDEBUG
-// _aaxRingBufferDelayEffectData *delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-// size_t ds = delay ? ddesamps : 0; /* 0 for frequency filtering */
-#endif
-   MIX_T *psrc, *pdst;
-
-   src += start;
-   dst += start;
-
-   psrc = src; /* might change further in the code */
-   pdst = dst; /* might change further in the code */
-
-   if (reflections)
-   {
-      _aaxRingBufferOcclusionData *occlusion = reflections->reverb->occlusion;
-      float v = (1.0f - occlusion->level);
-      r = reflections->run(rbd, pdst, psrc, no_samples, ddesamps, track,
-                           v, reflections, NULL, mono);
-      if (r) BUFSWAP(pdst, psrc);
-   }
-
-   if (dst == pdst)	/* copy the data back to the dst buffer */
-   {
-//    DBG_MEMCLR(1, dst-ds, ds+end, bps);
-      memcpy(dst, src, no_samples*bps);
-   }
-}
-#endif
-
-/**
- * 2nd order effects:
- *   Apply to all registered emitters, registered sensors and
- *   registered audio-frames.
- *
- * - dst and scratch point to the beginning of a buffer containing room for
- *   the delay effects prior to the pointer.
- * - start is the starting pointer
- * - end is the end pointer (end-start is the number of smaples)
- * - dmax does not include ds
- */
-#define BUFSWAP(a, b) do { void* t = (a); (a) = (b); (b) = t; } while (0);
-
-void
-_aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
-          MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
-          size_t start, size_t end, size_t no_samples,
-          size_t ddesamps, unsigned int track, _aax2dProps *p2d,
-          unsigned char ctr, unsigned char mono)
+          UNUSED(unsigned char ctr), unsigned char mono, unsigned char freqfilter)
 {
    static const size_t bps = sizeof(MIX_T);
    void *env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
@@ -117,29 +65,6 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
 
    src += start;
    dst += start;
-
-   // audio-frames, and streaming emitters, with delay effects need
-   // the source history
-   state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
-   state |= _EFFECT_GET_STATE(p2d, REVERB_EFFECT);
-   if (state)
-   {
-      _aaxRingBufferDelayEffectData *delay;
-      _aaxRingBufferReverbData *reverb;
-
-      delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
-      reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
-
-      if (delay) {
-         ds = delay->prepare(dst, src, no_samples, delay, track);
-      }
-
-      if (reverb && reverb->reflections)
-      {
-//       ds = reverb->reflections->history_samples;
-         reverb->reflections_prepare(dst, src, no_samples, reverb, track);
-      }
-   }
 
    psrc = src; /* might change further in the code */
    pdst = dst; /* might change further in the code */
@@ -184,18 +109,72 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       }
    }
 
-   /* frequency filter */
-   state = _FILTER_GET_STATE(p2d, FREQUENCY_FILTER);
+   /* copy the data back to the dst buffer, if necessary */
+   if (dst == pdst)
+   {
+//    DBG_MEMCLR(1, dst-ds, ds+end, bps);
+      memcpy(dst, src, no_samples*bps);
+   }
+}
+
+void
+_aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
+          MIX_PTR_T dst, MIX_PTR_T src, MIX_PTR_T scratch,
+          size_t start, size_t end, size_t no_samples,
+          size_t ddesamps, unsigned int track, _aax2dProps *p2d,
+          unsigned char ctr, unsigned char mono, unsigned char freqfilter)
+{
+   static const size_t bps = sizeof(MIX_T);
+   void *env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+   MIX_T *psrc, *pdst;
+   size_t ds = 0;
+   int r, state;
+
+   src += start;
+   dst += start;
+
+   // audio-frames, and streaming emitters, with delay effects need
+   // the source history
+   state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
+   state |= _EFFECT_GET_STATE(p2d, REVERB_EFFECT);
    if (state)
    {
-      _aaxRingBufferFreqFilterData *freq;
+      _aaxRingBufferDelayEffectData *delay;
+      _aaxRingBufferReverbData *reverb;
 
-      freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
-      if (freq)
+      delay = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+      reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
+
+      if (delay) {
+         ds = delay->prepare(dst, src, no_samples, delay, track);
+      }
+
+      if (reverb && reverb->reflections)
       {
-         float v = p2d->note.velocity;
-         r = freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, v, ctr);
-         if (r) BUFSWAP(pdst, psrc);
+//       ds = reverb->reflections->history_samples;
+         reverb->reflections_prepare(dst, src, no_samples, reverb, track);
+      }
+   }
+
+
+   psrc = src; /* might change further in the code */
+   pdst = dst; /* might change further in the code */
+
+   if (freqfilter)
+   {
+      /* frequency filter */
+      state = _FILTER_GET_STATE(p2d, FREQUENCY_FILTER);
+      if (state)
+      {
+         _aaxRingBufferFreqFilterData *freq;
+
+         freq =_FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
+         if (freq)
+         {
+            float v = p2d->note.velocity;
+            r = freq->run(rbd, pdst, psrc, 0, end, ds, track, freq, env, v,ctr);
+            if (r) BUFSWAP(pdst, psrc);
+         }
       }
    }
 
