@@ -42,7 +42,7 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float f, float p, int stereo = 0)
+    Note(float f, float p, int stereo = 0, float spread = 1.0f)
         : Emitter(stereo ? AAX_ABSOLUTE : AAX_RELATIVE), frequency(f), pitch(p)
     {
         pitch_param = p;
@@ -60,7 +60,7 @@ public:
             if (abs(stereo) != 1) n = floorf(n/s)*s;
             if (stereo < 0) n = -2.17f + n;
             else n = 2.17f - n;
-            m.rotate(n, 0.0, 1.0, 0.0);
+            m.rotate(n*spread, 0.0, 1.0, 0.0);
             m.multiply(mtx);
             Emitter::matrix(m);
         } else {
@@ -252,6 +252,7 @@ public:
         i1.pitch_rate = std::move(i2.pitch_rate);
         i1.pitch_start = std::move(i2.pitch_start);
         i1.key_prev = std::move(i2.key_prev);
+        i1.spread = std::move(i2.spread);
         i1.is_stereo = std::move(i2.is_stereo);
         i1.is_drums = std::move(i2.is_drums);
         i1.panned = std::move(i2.panned);
@@ -287,7 +288,7 @@ public:
         if (it != key.end()) {
             note = it->second;
         } else {
-            auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,is_stereo)}});
+            auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,is_stereo,spread)}});
             note = ret.first->second;
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
@@ -458,6 +459,9 @@ public:
         if (!filter_state) filter_state = AAX_TRUE;
     }
 
+    inline void set_spread(float s = 1.0f) { spread = s; }
+    inline float get_spread() { return spread; }
+
     inline void set_wide(int s = 1) { is_stereo = s; }
     inline int get_wide() { return is_stereo; }
 
@@ -518,7 +522,9 @@ private:
     float pitch_start = 1.0f;
     uint32_t key_prev = 0;
 
+    float spread = 1.0f;
     int is_stereo;
+
     bool is_drums;
     bool panned = false;
     bool monophonic = false;
