@@ -34,6 +34,40 @@ namespace aax
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f,v); }
 
+class Panning
+{
+public:
+    Panning() = default;
+    ~Panning() = default;
+
+    void set(float p) {
+        pan = p;
+        panned = true;
+
+        if (wide == 0) wide = 1;
+        p = floorf(pan*wide)/abs(wide);
+        if (p != 0.0f) {
+            Matrix64 m;
+            m.rotate(-1.57*p*spread, 0.0, 1.0, 0.0);
+            m.multiply(mtx_init);
+            mtx = m;
+        } else {
+            mtx = mtx_init;
+        }
+    }
+
+public:
+    Vector at = Vector(0.0f, 0.0f, -1.0f);
+    Vector up = Vector(0.0f, 1.0f, 0.0f);
+    Vector64 pos = Vector64(0.0, 1.0, -2.75);
+    Matrix64 mtx_init = Matrix64(pos, at, up);
+    Matrix64 mtx = mtx_init;
+    float pan = 0.0f;
+    float spread = 1.0f;
+    int wide = 0;
+    bool panned = false;
+};
+
 class Note : public Emitter
 {
 private:
@@ -42,27 +76,18 @@ private:
     Note& operator=(const Note&) = delete;
 
 public:
-    Note(float f, float p, int stereo = 0, float spread = 1.0f)
-        : Emitter(stereo ? AAX_ABSOLUTE : AAX_RELATIVE), frequency(f), pitch(p)
+    Note(float f, float p, Panning& pan)
+        : Emitter(pan.wide ? AAX_ABSOLUTE : AAX_RELATIVE), frequency(f), pitch(p)
     {
         pitch_param = p;
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
 
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
-        if (stereo) { // p*f ranges from: 8 - 12544 Hz
-            Vector at = Vector(0.0f, 0.0f, -1.0f);
-            Vector up = Vector(0.0f, 1.0f, 0.0f);
-            Vector64 pos = Vector64(0.0, 1.0, -2.75);
-            Matrix64 mtx = Matrix64(pos, at, up);
-            Matrix64 m;
-            float n = lin2log(p*f);
-            float s = lin2log(12544.0f)/abs(stereo);
-            if (abs(stereo) != 1) n = floorf(n/s)*s;
-            if (stereo < 0) n = -2.17f + n;
-            else n = 2.17f - n;
-            m.rotate(n*spread, 0.0, 1.0, 0.0);
-            m.multiply(mtx);
-            Emitter::matrix(m);
+        if (pan.wide) {
+            // pitch*frequency ranges from: 8 - 12544 Hz, log(12544) = 4.1
+            float p = (lin2log(pitch*frequency) - 2.05f)/2.05f;
+            pan.set(p);
+            Emitter::matrix(pan.mtx);
         } else {
             Emitter::matrix(mtx);
         }
@@ -76,7 +101,6 @@ public:
 
     friend void swap(Note& n1, Note& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
-        n1.mtx = std::move(n2.mtx);
         n1.gain_param = std::move(n2.gain_param);
         n1.pitch_param = std::move(n2.pitch_param);
         n1.frequency = std::move(n2.frequency);
@@ -179,9 +203,11 @@ private:
     Instrument& operator=(const Instrument&) = delete;
 
 public:
-    Instrument(AeonWave& ptr, bool drums = false, int stereo = 0)
-        : Mixer(ptr), aax(&ptr), is_stereo(stereo), is_drums(drums)
+    Instrument(AeonWave& ptr, bool drums = false, int wide = 0)
+        : Mixer(ptr), aax(&ptr), is_drums(drums)
     {
+        pan.wide = wide;
+
         tie(volume, AAX_VOLUME_FILTER, AAX_GAIN);
 
         tie(vibrato_freq, AAX_DYNAMIC_PITCH_EFFECT, AAX_LFO_FREQUENCY);
@@ -205,7 +231,7 @@ public:
         tie(reverb_delay_depth, AAX_REVERB_EFFECT, AAX_DELAY_DEPTH);
         tie(reverb_state, AAX_REVERB_EFFECT);
 
-        Mixer::matrix(mtx);
+        Mixer::matrix(pan.mtx_init);
         Mixer::set(AAX_POSITION, AAX_RELATIVE);
         Mixer::set(AAX_PLAYING);
         if (is_drums) {
@@ -216,11 +242,6 @@ public:
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
-        i1.at = std::move(i2.at);
-        i1.up = std::move(i2.up);
-        i1.pos = std::move(i2.pos);
-        i1.mtx = std::move(i2.mtx);
-        i1.mtx_panned = std::move(i2.mtx_panned);
         i1.vibrato_freq = std::move(i2.vibrato_freq);
         i1.vibrato_depth = std::move(i2.vibrato_depth);
         i1.vibrato_state = std::move(i2.vibrato_state);
@@ -252,10 +273,8 @@ public:
         i1.pitch_rate = std::move(i2.pitch_rate);
         i1.pitch_start = std::move(i2.pitch_start);
         i1.key_prev = std::move(i2.key_prev);
-        i1.spread = std::move(i2.spread);
-        i1.is_stereo = std::move(i2.is_stereo);
+        i1.pan = std::move(i2.pan);
         i1.is_drums = std::move(i2.is_drums);
-        i1.panned = std::move(i2.panned);
         i1.monophonic = std::move(i2.monophonic);
         i1.playing= std::move(i2.playing);
         i1.slide_state = std::move(i2.slide_state);
@@ -288,14 +307,14 @@ public:
         if (it != key.end()) {
             note = it->second;
         } else {
-            auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,is_stereo,spread)}});
+            auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,pan)}});
             note = ret.first->second;
             if (!playing && !is_drums) {
                 Mixer::add(buffer);
                 playing = true;
             }
-            if (is_drums && !panned) note->matrix(mtx);
-            else if (panned && abs(is_stereo) > 1) note->matrix(mtx_panned);
+            if (is_drums && !pan.panned) note->matrix(pan.mtx_init);
+            else if (pan.panned && abs(pan.wide) > 1) note->matrix(pan.mtx);
             note->buffer(buffer);
         }
         Mixer::add(*note);
@@ -346,15 +365,12 @@ public:
     }
 
     void set_pan(float p) {
-        Matrix64 m; panned = true;
-        m.rotate(-1.57*p, 0.0, 1.0, 0.0);
-        m.multiply(mtx);
-        if (!is_drums && !is_stereo) {
-            Mixer::matrix(m);
+        pan.set(p);
+        if (!is_drums && !pan.wide) {
+            Mixer::matrix(pan.mtx);
         } else {
-             for (auto& it : key) it.second->matrix(m);
+            for (auto& it : key) it.second->matrix(pan.mtx);
         }
-        mtx_panned = m;
     }
 
     inline void set_soft(bool s) { soft = (s && !is_drums) ? 0.5f : 1.0f; }
@@ -459,11 +475,11 @@ public:
         if (!filter_state) filter_state = AAX_TRUE;
     }
 
-    inline void set_spread(float s = 1.0f) { spread = s; }
-    inline float get_spread() { return spread; }
+    inline void set_spread(float s = 1.0f) { pan.spread = s; }
+    inline float get_spread() { return pan.spread; }
 
-    inline void set_wide(int s = 1) { is_stereo = s; }
-    inline int get_wide() { return is_stereo; }
+    inline void set_wide(int s = 1) { pan.wide = s; }
+    inline int get_wide() { return pan.wide; }
 
 private:
     inline float note2freq(uint32_t d) {
@@ -473,11 +489,7 @@ private:
     std::map<uint32_t,std::shared_ptr<Note>> key;
     AeonWave* aax;
 
-    Vector at = Vector(0.0f, 0.0f, -1.0f);
-    Vector up = Vector(0.0f, 1.0f, 0.0f);
-    Vector64 pos = Vector64(0.0, 1.0, -2.75);
-    Matrix64 mtx = Matrix64(pos, at, up);
-    Matrix64 mtx_panned = Matrix64(pos, at, up);
+    Panning pan;
 
     Param volume = 1.0f;
 
@@ -522,11 +534,7 @@ private:
     float pitch_start = 1.0f;
     uint32_t key_prev = 0;
 
-    float spread = 1.0f;
-    int is_stereo;
-
     bool is_drums;
-    bool panned = false;
     bool monophonic = false;
     bool playing = false;
     bool slide_state = false;
