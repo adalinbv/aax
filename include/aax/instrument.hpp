@@ -44,8 +44,7 @@ public:
         pan = p;
         panned = true;
 
-        if (wide == 0) wide = 1;
-        p = floorf(pan*wide)/abs(wide);
+        if (abs(wide) > 0) p = floorf(pan*wide)/abs(wide);
         if (p != 0.0f) {
             Matrix64 m;
             m.rotate(-1.57*p*spread, 0.0, 1.0, 0.0);
