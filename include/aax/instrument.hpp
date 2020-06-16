@@ -40,14 +40,16 @@ public:
     Panning() = default;
     ~Panning() = default;
 
-    void set(float p) {
+    void set(float p, bool init=false) {
         pan = p;
-        panned = true;
+        panned = !init;
 
-        if (abs(wide) > 0) p = floorf(pan*wide)/abs(wide);
+        if (!init && abs(wide) > 0) {
+            p = spread*floorf(pan*wide)/abs(wide);
+        }
         if (p != 0.0f) {
             Matrix64 m;
-            m.rotate(-1.57*p*spread, 0.0, 1.0, 0.0);
+            m.rotate(-1.57*p, 0.0, 1.0, 0.0);
             m.multiply(mtx_init);
             mtx = m;
         } else {
@@ -61,8 +63,8 @@ public:
     Vector64 pos = Vector64(0.0, 1.0, -2.75);
     Matrix64 mtx_init = Matrix64(pos, at, up);
     Matrix64 mtx = mtx_init;
-    float pan = 0.0f;
     float spread = 1.0f;
+    float pan = 0.0f;
     int wide = 0;
     bool panned = false;
 };
@@ -86,7 +88,7 @@ public:
             // pitch*frequency ranges from: 8 - 12544 Hz,
             // log(20) = 1.3, log(12544) = 4.1
             float p = (lin2log(pitch*frequency) - 1.3f)/2.8f; // 0.0f .. 1.0f
-            pan.set(2.0f*(p - 0.5f));
+            pan.set(2.0f*(p - 0.5f), true);
             Emitter::matrix(pan.mtx);
         } else {
             Emitter::matrix(mtx);
