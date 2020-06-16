@@ -84,9 +84,10 @@ public:
 
         tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
         if (pan.wide) {
-            // pitch*frequency ranges from: 8 - 12544 Hz, log(12544) = 4.1
-            float p = (lin2log(pitch*frequency) - 2.05f)/2.05f;
-            pan.set(p);
+            // pitch*frequency ranges from: 8 - 12544 Hz,
+            // log(20) = 1.3, log(12544) = 4.1
+            float p = (lin2log(pitch*frequency) - 1.3f)/2.8f; // 0.0f .. 1.0f
+            pan.set(2.0f*(p - 0.5f));
             Emitter::matrix(pan.mtx);
         } else {
             Emitter::matrix(mtx);
