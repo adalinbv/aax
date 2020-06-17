@@ -56,7 +56,7 @@ public:
                 Matrix64 m;
                 m.rotate(1.57*p, 0.0, 1.0, 0.0);
                 m.multiply(mtx_init);
-                matrices[deg] = m;
+                matrices[pos] = m;
                 mtx = m;
             }
         } else {
