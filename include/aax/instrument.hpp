@@ -48,16 +48,24 @@ public:
             p = spread*floorf(pan*wide)/abs(wide);
         }
         if (p != 0.0f) {
-            Matrix64 m;
-            m.rotate(-1.57*p, 0.0, 1.0, 0.0);
-            m.multiply(mtx_init);
-            mtx = m;
+            int pos = floorf(p*64.0f); // MIDI supports 64 panning positions
+            auto it = matrices.find(pos);
+            if (it != matrices.end()) {
+                mtx = it->second;
+            } else {
+                Matrix64 m;
+                m.rotate(1.57*p, 0.0, 1.0, 0.0);
+                m.multiply(mtx_init);
+                matrices[deg] = m;
+                mtx = m;
+            }
         } else {
             mtx = mtx_init;
         }
     }
 
 public:
+    std::map<int,Matrix64> matrices;
     Vector at = Vector(0.0f, 0.0f, -1.0f);
     Vector up = Vector(0.0f, 1.0f, 0.0f);
     Vector64 pos = Vector64(0.0, 1.0, -2.75);
