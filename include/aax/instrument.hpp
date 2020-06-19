@@ -47,9 +47,10 @@ public:
         panned = !init;
 
         if (!init && abs(wide) > 0) {
-            p = spread*floorf(pan*wide)/abs(wide);
+            p = floorf(pan*wide)/abs(wide);
         }
         if (p != 0.0f) {
+            p *= spread;
             int pos = floorf(p*PAN_LEVELS);
             auto it = matrices.find(pos);
             if (it != matrices.end()) {
@@ -98,7 +99,7 @@ public:
             // pitch*frequency ranges from: 8 - 12544 Hz,
             // log(20) = 1.3, log(12544) = 4.1
             float p = (lin2log(pitch*frequency) - 1.3f)/2.8f; // 0.0f .. 1.0f
-            p = floorf(2.0f*(p - 0.5f)/PAN_LEVELS)*PAN_LEVELS;
+            p = floorf(2.0f*(p - 0.5f)*PAN_LEVELS)/PAN_LEVELS;
             if (p != pan_prev) {
                 pan.set(p, true);
                 Emitter::matrix(pan.mtx);
@@ -382,7 +383,7 @@ public:
     }
 
     void set_pan(float p) {
-        p = floorf(p/PAN_LEVELS)*PAN_LEVELS;
+        p = floorf(p*PAN_LEVELS)/PAN_LEVELS;
         if (p != pan_prev) {
             pan.set(p);
             if (!is_drums && !pan.wide) {
