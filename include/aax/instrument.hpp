@@ -31,6 +31,8 @@
 namespace aax
 {
 
+#define PAN_LEVELS		128.0f
+
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f,v); }
 
@@ -48,13 +50,13 @@ public:
             p = spread*floorf(pan*wide)/abs(wide);
         }
         if (p != 0.0f) {
-            int pos = floorf(p*64.0f); // MIDI supports 64 panning positions
+            int pos = floorf(p*PAN_LEVELS);
             auto it = matrices.find(pos);
             if (it != matrices.end()) {
                 mtx = it->second;
             } else {
                 Matrix64 m;
-                m.rotate(1.57*p, 0.0, 1.0, 0.0);
+                m.rotate(-1.57*p, 0.0, 1.0, 0.0);
                 m.multiply(mtx_init);
                 matrices[pos] = m;
                 mtx = m;
@@ -96,8 +98,12 @@ public:
             // pitch*frequency ranges from: 8 - 12544 Hz,
             // log(20) = 1.3, log(12544) = 4.1
             float p = (lin2log(pitch*frequency) - 1.3f)/2.8f; // 0.0f .. 1.0f
-            pan.set(2.0f*(p - 0.5f), true);
-            Emitter::matrix(pan.mtx);
+            p = floorf(2.0f*(p - 0.5f)/PAN_LEVELS)*PAN_LEVELS;
+            if (p != pan_prev) {
+                pan.set(p, true);
+                Emitter::matrix(pan.mtx);
+                pan_prev = p;
+            }
         } else {
             Emitter::matrix(mtx);
         }
@@ -200,6 +206,7 @@ private:
     float frequency;
     float pitch;
     float gain = 1.0f;
+    float pan_prev = 0.0f;
     bool playing = false;
     bool hold = true;
 };
@@ -375,11 +382,15 @@ public:
     }
 
     void set_pan(float p) {
-        pan.set(p);
-        if (!is_drums && !pan.wide) {
-            Mixer::matrix(pan.mtx);
-        } else {
-            for (auto& it : key) it.second->matrix(pan.mtx);
+        p = floorf(p/PAN_LEVELS)*PAN_LEVELS;
+        if (p != pan_prev) {
+            pan.set(p);
+            if (!is_drums && !pan.wide) {
+                Mixer::matrix(pan.mtx);
+            } else {
+                for (auto& it : key) it.second->matrix(pan.mtx);
+            }
+            pan_prev = p;
         }
     }
 
@@ -539,6 +550,8 @@ private:
 
     float soft = 1.0f;
     float pressure = 1.0f;
+
+    float pan_prev = 0.0f;
 
     float pitch_rate = 0.0f;
     float pitch_start = 1.0f;
