@@ -86,22 +86,27 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       tracks = (MIX_T**)rbd->track;
 
       if (reverb) {
-         ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
+//       ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
+         ddesamps = reverb->no_samples;
       }
       else if (delay_effect)
       {
-         float f = rb->get_paramf(rb, RB_FREQUENCY);
          /*
           * can not use rb->get_parami(rb, RB_DDE_SAMPLES) since it's 10 times
           * as big for the final mixer to accomodate for reverb
           */
-         ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
+//       float f = rb->get_paramf(rb, RB_FREQUENCY);
+//       ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
       }
 
       for (track=0; track<no_tracks; track++)
       {
          MIX_T *dptr = (MIX_T*)tracks[track];
          MIX_T *ddeptr = dptr - ddesamps;
+
+         if (!ddesamps && delay_effect) {
+            ddesamps = delay_effect->delay.sample_offs[track];
+         }
 #if 1
          memcpy(scratch0, dptr, no_samples*bps);
          rbi->effects_2nd(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
@@ -259,13 +264,14 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
 
    if (parametric)
    {
-      _aaxRingBufferFreqFilterData *lf, *hf;
+      _aaxRingBufferFreqFilterData *lf, *mf, *hf;
 
       lf = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
+      mf = _FILTER_GET_DATA(sensor, EQUALIZER_MF);
       hf = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
       for (t=0; t<no_tracks; t++) {
          _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
-                        0, no_samples, t, lf, hf);
+                        0, no_samples, t, lf, mf, hf);
       }
    }
    else if (graphic)
@@ -357,17 +363,18 @@ _aaxSubFramePostProcess(UNUSED(const void *id), UNUSED(const void *hid), void *d
 
       if (parametric)
       {
-         _aaxRingBufferFreqFilterData *lf, *hf;
+         _aaxRingBufferFreqFilterData *lf, *mf, *hf;
          unsigned int t, no_tracks;
          size_t no_samples;
 
          lf = _FILTER_GET_DATA(subframe, EQUALIZER_LF);
+         mf = _FILTER_GET_DATA(subframe, EQUALIZER_MF);
          hf = _FILTER_GET_DATA(subframe, EQUALIZER_HF);
          no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
          no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
          for (t=0; t<no_tracks; t++) {
             _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0], 
-                           0, no_samples, t, lf, hf);
+                           0, no_samples, t, lf, mf, hf);
          }
       }
       else if (graphic)

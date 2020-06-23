@@ -167,6 +167,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       }
 
       rdesamps = 0;
+#if 0
       if (ddesamps || delay_effect)
       {
          float dde = DELAY_EFFECTS_TIME*dfreq;
@@ -177,6 +178,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          }
          rdesamps = (size_t)(dde*fact);
       }
+#endif
 
       /* destonation number of samples */
       dend = drb->get_parami(drb, RB_NO_SAMPLES);
@@ -213,6 +215,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 #endif
       if (track_ptr && dno_samples)
       {
+         _aaxRingBufferDelayEffectData* effect;
          char eff = (reflections || delay_effect || freq_filter || dist_state ||
                      ringmodulator || bitcrush) ? 1 : 0;
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
@@ -220,11 +223,22 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          unsigned int track;
          float smu;
 
+         effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);
+
          smu = (srb_pos_sec*sfreq) - (float)src_pos;
          for (track=0; track<sno_tracks; track++)
          {
             MIX_T *sptr = (MIX_T*)srbd->track[track];
             MIX_T *dst, *dptr = track_ptr[track];
+
+#if 1
+            if (ddesamps || delay_effect)
+            {
+               float dde = effect->delay.sample_offs[track];
+               ddesamps = (size_t)dde;
+               rdesamps = (size_t)(dde*fact);
+            }
+#endif
 
             /* short-cut for automatic file streaming with registered sensors */
             if (srbd->mixer_fmt) {
