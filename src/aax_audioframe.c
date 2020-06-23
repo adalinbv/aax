@@ -194,7 +194,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
       _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
                    _aaxRingBufferFree);
 
-      /* frees both EQUALIZER_LF and EQUALIZER_HF */
+      /* frees EQUALIZER_LF, EQUALIZER_MF and EQUALIZER_HF */
       if (handle->filter)
       {
          if (handle->filter[EQUALIZER_LF].data) {
@@ -494,16 +494,17 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       {
 //    case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
-         if (!handle->filter)  		/* EQUALIZER_LF & EQUALIZER_HF */
+         if (!handle->filter)  	/* EQUALIZER_LF, EQUALIZER_MF & EQUALIZER_HF */
          {
             handle->mutex = _aaxMutexCreate(NULL);
-            handle->filter = calloc(2, sizeof(_aaxFilterInfo));
+            handle->filter = calloc(_AAX_EQFILTERS, sizeof(_aaxFilterInfo));
          }
 
          if (handle->filter)
          {
-            _FILTER_SWAP_SLOT(handle, EQUALIZER_HF, filter, 1);
             _FILTER_SWAP_SLOT(handle, EQUALIZER_LF, filter, 0);
+            _FILTER_SWAP_SLOT(handle, EQUALIZER_MF, filter, 1);
+            _FILTER_SWAP_SLOT(handle, EQUALIZER_HF, filter, 2);
             break;
          }
          else {

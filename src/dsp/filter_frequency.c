@@ -801,7 +801,7 @@ _aax_butterworth_compute(float fc, void *flt)
    first_order = stages ? AAX_FALSE : AAX_TRUE;
 
    A = 0.0f;
-   if (filter->low_gain > LEVEL_128DB)
+   if (filter->high_gain > LEVEL_128DB)
    {
       // it's a shelf filter, adjust for correct dB
       // derived from the audio EQ Cookbook

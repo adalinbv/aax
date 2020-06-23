@@ -38,6 +38,7 @@ extern "C" {
 #include "api.h"
 
 #define _AAX_MAX_FILTERS	2
+#define _AAX_EQFILTERS		3
 
 aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned, size_t);
 
