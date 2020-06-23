@@ -224,6 +224,14 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
             _aax_butterworth_compute(fc, flt);
          }
 
+#if 0
+  printf("Filter, type: %s\n", flt->type == LOWPASS ? "low-pass" : "high-pass");
+  printf(" Fc: % 7.1f Hz, ", flt->fc);
+  printf(" k: %5.4f, ", flt->k);
+  printf(" Q: %3.1f\n", flt->Q);
+  printf(" low gain:  %5.4f\n high gain: %5.4f\n", flt->low_gain, flt->high_gain);
+#endif
+
          // Non-Manual only
          if (wstate && EBF_VALID(filter) && filter->slot[1])
          {

@@ -142,7 +142,7 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
    int i;
 
    /* parametric equalizer */
-   for (i=0; i<2; i++)
+   for (i=0; i<_AAX_EQFILTERS; i++)
    {
       filter[i].param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
       filter[i].param[AAX_LF_GAIN] = 1.0f;
