@@ -117,6 +117,7 @@ enum _aaxFreqFilterType
 
 typedef struct
 {
+   int src;
    int state;
    int updated;
    float param[4];

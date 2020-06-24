@@ -178,30 +178,22 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
          for (s=0; s<_AAX_EQFILTERS; ++s)
          {
             float fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
+            int stages, state = filter->slot[s]->src;
             int lp = (gain[s] >= gain[s+1]) ? AAX_TRUE : AAX_FALSE;
 
-            if (fc >= MAX_CUTOFF) flt[s]->no_stages = 0;
-            else flt[s]->no_stages = 1;
-            flt[s]->Q = filter->slot[s]->param[AAX_RESONANCE];
+            if (fc >= MAX_CUTOFF) stages = 0;
+            else if (state & AAX_48DB_OCT) stages = 4;
+            else if (state & AAX_36DB_OCT) stages = 3;
+            else if (state & AAX_24DB_OCT) stages = 2;
+            else stages = 1;
 
-            if (s < (_AAX_EQFILTERS-1))
-            {
-               float fc2 = filter->slot[s+1]->param[AAX_CUTOFF_FREQUENCY];
-               float lfg2 = filter->slot[s+1]->param[AAX_LF_GAIN];
-               float hfg2 = filter->slot[s+1]->param[AAX_HF_GAIN];
-               float lfg = filter->slot[s]->param[AAX_LF_GAIN];
-               float hfg = filter->slot[s]->param[AAX_HF_GAIN];
-
-               if ((fc == fc2) && (lfg == lfg2) && (hfg == hfg2)) {
-                  flt[s]->no_stages++;
-               }
-            }
-
+            flt[s]->no_stages = stages;
             flt[s]->state = AAX_BUTTERWORTH;
             flt[s]->type = lp ? LOWPASS : HIGHPASS;
             flt[s]->fs = filter->info->frequency;
             flt[s]->low_gain = lp ? gain[s+1] : gain[s];
             flt[s]->high_gain = lp ? gain[s] : gain[s+1];
+            flt[s]->Q = filter->slot[s]->param[AAX_RESONANCE];
             _aax_butterworth_compute(fc, flt[s]);
          }
 #if 0
