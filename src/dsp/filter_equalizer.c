@@ -161,7 +161,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             float fc;
 
             fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
-            if (fc == 22050.0f) break;
+            if (fc >= MAX_CUTOFF) break;
 
             gain[s] = 0.5f*(gprev + fabsf(filter->slot[s]->param[AAX_LF_GAIN]));
             if (s) gain[s] = sqrtf(gain[s]);
@@ -177,30 +177,42 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
          for (s=0; s<_AAX_EQFILTERS; ++s)
          {
+            float fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
             int lp = (gain[s] >= gain[s+1]) ? AAX_TRUE : AAX_FALSE;
-            float fc;
+
+            if (fc >= MAX_CUTOFF) flt[s]->no_stages = 0;
+            else flt[s]->no_stages = 1;
+            flt[s]->Q = filter->slot[s]->param[AAX_RESONANCE];
+
+            if (s < (_AAX_EQFILTERS-1))
+            {
+               float fc2 = filter->slot[s+1]->param[AAX_CUTOFF_FREQUENCY];
+               float lfg2 = filter->slot[s+1]->param[AAX_LF_GAIN];
+               float hfg2 = filter->slot[s+1]->param[AAX_HF_GAIN];
+               float lfg = filter->slot[s]->param[AAX_LF_GAIN];
+               float hfg = filter->slot[s]->param[AAX_HF_GAIN];
+
+               if ((fc == fc2) && (lfg == lfg2) && (hfg == hfg2)) {
+                  flt[s]->no_stages++;
+               }
+            }
 
             flt[s]->state = AAX_BUTTERWORTH;
             flt[s]->type = lp ? LOWPASS : HIGHPASS;
             flt[s]->fs = filter->info->frequency;
             flt[s]->low_gain = lp ? gain[s+1] : gain[s];
             flt[s]->high_gain = lp ? gain[s] : gain[s+1];
-            flt[s]->Q = filter->slot[s]->param[AAX_RESONANCE];
-
-            fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
-            if (flt[s]->state == AAX_BUTTERWORTH) {
-               _aax_butterworth_compute(fc, flt[s]);
-            } else {
-               _aax_bessel_compute(fc, flt[s]);
-            }
+            _aax_butterworth_compute(fc, flt[s]);
          }
 #if 0
  for (s=0; s<_AAX_EQFILTERS; ++s) {
-  printf("Filter: %i, type: %s\n", s, flt[s]->type == LOWPASS ? "low-pass" : "high-pass");
+  printf("Filter: %i\n", s);
   printf(" Fc: % 7.1f Hz, ", filter->slot[s]->param[AAX_CUTOFF_FREQUENCY]);
   printf(" k: %5.4f, ", flt[s]->k);
+  printf(" type: %s\n", flt[s]->type == LOWPASS ? "low-pass" : "high-pass");
   printf(" Q: %3.1f\n", flt[s]->Q);
   printf(" low gain:  %5.4f\n high gain: %5.4f\n", flt[s]->low_gain, flt[s]->high_gain);
+  printf(" no. stages: %i\n", flt[s]->no_stages);
  }
  printf("\n");
 #endif
@@ -345,7 +357,7 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
    scratch += dmin;
    no_samples = dmax - dmin;
    for (s=0; s<_AAX_EQFILTERS; ++s) {
-      if (filter[s]->fc < 22050.0f) {
+      if (filter[s]->no_stages) {
          rbd->freqfilter(dptr, dptr, track, no_samples, filter[s]);
       }
    }

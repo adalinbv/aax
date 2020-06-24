@@ -41,9 +41,6 @@
 #define VERSION	1.13
 #define DSIZE	sizeof(_aaxRingBufferFreqFilterData)
 
-#define MIN_CUTOFF	20.0f
-#define MAX_CUTOFF	20000.0f
-
 static aaxFilter
 _aaxFrequencyFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
 {

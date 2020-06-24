@@ -39,6 +39,8 @@ extern "C" {
 
 #define _AAX_MAX_FILTERS	2
 #define _AAX_EQFILTERS		3
+#define MIN_CUTOFF		20.0f
+#define MAX_CUTOFF		20000.0f
 
 aaxFilter _aaxFilterCreateHandle(_aaxMixerInfo*, enum aaxFilterType, unsigned, size_t);
 
