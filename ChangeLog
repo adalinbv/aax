@@ -4,11 +4,16 @@
 
  * Implement a native PulseAudio backend.
  * Support HTTPS streams when an OpenSSL compatible library is found.
- * Delay clipping the gain until the evry last moment. This may require
+ * Delay volume clipping until the evry last moment. This may require
    the emitters AAX_MAX_GAIN to be set to a higher value since the gain
    could get higher tha AAX_MAX_GAIN for the final calculation.
  * Limit the cutoff frequency range between 20Hz and 90% of half the sample
+ * Speed up of the frequency filter by not filtering all of the delay effects
+   buffer but only the no. samples that are required by the delay-effects.
    frequency to prevent instability of frequency filters.
+ * Complete rewrite of the non-graphical equazlizer. Add support for a third
+   cutoff frequency, making it a four-band equalizer. And add the option to
+   define a filtering order for every section when using AAXS files.
  * Add the option to assign the compressor to the final mixer stage.
  * Fix a regression for the compressor.
 
