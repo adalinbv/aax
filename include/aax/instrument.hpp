@@ -242,7 +242,7 @@ public:
         tie(chorus_state, AAX_CHORUS_EFFECT);
 
         tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
-        tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_HF_GAIN);
+        tie(filter_resonance, AAX_FREQUENCY_FILTER, AAX_RESONANCE);
         tie(filter_state, AAX_FREQUENCY_FILTER);
 
         tie(reverb_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
