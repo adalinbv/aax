@@ -407,6 +407,9 @@ typedef struct
    unsigned char refcount;
 
    unsigned char capturing;
+
+   /* parametric and graphic equalizer **/
+   _aaxFilterInfo filter[EQUALIZER_MAX];
  
 } _aaxAudioFrame;
 

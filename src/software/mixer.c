@@ -102,7 +102,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       for (track=0; track<no_tracks; track++)
       {
          MIX_T *dptr = (MIX_T*)tracks[track];
-         MIX_T *ddeptr = dptr - ddesamps;
+//       MIX_T *ddeptr = dptr - ddesamps;
 
          if (!ddesamps && delay_effect) {
             ddesamps = delay_effect->delay.sample_offs[track];
@@ -157,7 +157,7 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
 
    if (sensor) {
       _aaxSensorPostProcess(id, hid, d, sensor, i);
-   } else if (subframe && subframe->filter) {
+   } else if (subframe) {
       _aaxSubFramePostProcess(id, hid, d, subframe, i);
    }
 }
@@ -204,10 +204,10 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
                                           CONVOLUTION_EFFECT);
    }
    compressor = _FILTER_GET_DATA(sensor->mixer->props2d, DYNAMIC_GAIN_FILTER);
-   parametric = graphic = (_FILTER_GET_DATA(sensor, EQUALIZER_HF) != NULL);
-   parametric &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) != NULL);
-   graphic    &= (_FILTER_GET_DATA(sensor, EQUALIZER_LF) == NULL);
-   crossover = (_FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP) != NULL);
+   parametric = graphic = (_FILTER_GET_DATA(sensor->mixer, EQUALIZER_HF) != NULL);
+   parametric &= (_FILTER_GET_DATA(sensor->mixer, EQUALIZER_LF) != NULL);
+   graphic    &= (_FILTER_GET_DATA(sensor->mixer, EQUALIZER_LF) == NULL);
+   crossover = (_FILTER_GET_DATA(sensor->mixer, SURROUND_CROSSOVER_LP) != NULL);
    crossover &= (no_tracks >= lfe_track);
 
    tracks = (MIX_T**)rbd->track;
@@ -266,9 +266,9 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
    {
       _aaxRingBufferFreqFilterData *lf, *mf, *hf;
 
-      lf = _FILTER_GET_DATA(sensor, EQUALIZER_LF);
-      mf = _FILTER_GET_DATA(sensor, EQUALIZER_MF);
-      hf = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
+      lf = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_LF);
+      mf = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_MF);
+      hf = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_HF);
       for (t=0; t<no_tracks; t++) {
          _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
                         0, no_samples, t, lf, mf, hf);
@@ -279,7 +279,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
       _aaxRingBufferEqualizerData *eq;
       size_t track_len_bytes;
 
-      eq = _FILTER_GET_DATA(sensor, EQUALIZER_HF);
+      eq = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_HF);
       track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
       for (t=0; t<no_tracks; t++)
       {
@@ -301,7 +301,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
          unsigned char stages;
          float *hist, k;
 
-         filter = _FILTER_GET_DATA(sensor, SURROUND_CROSSOVER_LP);
+         filter = _FILTER_GET_DATA(sensor->mixer, SURROUND_CROSSOVER_LP);
          hist = filter->freqfilter->history[t];
          stages = filter->no_stages;
          k = filter->k;
@@ -351,8 +351,8 @@ _aaxSubFramePostProcess(UNUSED(const void *id), UNUSED(const void *hid), void *d
    rbd = rbi->sample;
 
    graphic = 0;
-   parametric = (_FILTER_GET_DATA(subframe, EQUALIZER_HF) != NULL);
-   parametric &= (_FILTER_GET_DATA(subframe, EQUALIZER_LF) != NULL);
+   parametric = (_FILTER_GET_DATA(subframe->submix, EQUALIZER_HF) != NULL);
+   parametric &= (_FILTER_GET_DATA(subframe->submix, EQUALIZER_LF) != NULL);
 
    if (parametric || graphic)
    {
@@ -367,9 +367,9 @@ _aaxSubFramePostProcess(UNUSED(const void *id), UNUSED(const void *hid), void *d
          unsigned int t, no_tracks;
          size_t no_samples;
 
-         lf = _FILTER_GET_DATA(subframe, EQUALIZER_LF);
-         mf = _FILTER_GET_DATA(subframe, EQUALIZER_MF);
-         hf = _FILTER_GET_DATA(subframe, EQUALIZER_HF);
+         lf = _FILTER_GET_DATA(subframe->submix, EQUALIZER_LF);
+         mf = _FILTER_GET_DATA(subframe->submix, EQUALIZER_MF);
+         hf = _FILTER_GET_DATA(subframe->submix, EQUALIZER_HF);
          no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
          no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
          for (t=0; t<no_tracks; t++) {
@@ -384,7 +384,7 @@ _aaxSubFramePostProcess(UNUSED(const void *id), UNUSED(const void *hid), void *d
          size_t track_len_bytes;
          size_t no_samples;
 
-         eq = _FILTER_GET_DATA(subframe, EQUALIZER_HF);
+         eq = _FILTER_GET_DATA(subframe->submix, EQUALIZER_HF);
          no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
          no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
          track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);

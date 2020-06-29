@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -549,9 +549,9 @@ aaxMixerSetFilter(aaxConfig config, aaxFilter f)
             break;
          case AAX_EQUALIZER:
          case AAX_GRAPHIC_EQUALIZER:
-            _FILTER_SWAP_SLOT(sensor, EQUALIZER_LF, filter, 0);
-            _FILTER_SWAP_SLOT(sensor, EQUALIZER_MF, filter, 1);
-            _FILTER_SWAP_SLOT(sensor, EQUALIZER_HF, filter, 2);
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_LF, filter, 0);
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_MF, filter, 1);
+            _FILTER_SWAP_SLOT(sensor->mixer, EQUALIZER_HF, filter, 2);
             break;
          default:
             _aaxErrorSet(AAX_INVALID_ENUM);

@@ -110,7 +110,6 @@ typedef struct
 
    /* parametric equalizer, located at _handle_t **/
    void *mutex;
-   _aaxFilterInfo *filter;
 
 } _sensor_t;
 
@@ -177,9 +176,6 @@ typedef struct aax_handle_t
    _aaxTimer *timer;
    float elapsed;
 
-   /* parametric equalizer **/
-   _aaxFilterInfo filter[EQUALIZER_MAX];
-
    /* for AAXS defined filters and effects */
    aaxBuffer buffer;
 
@@ -212,11 +208,10 @@ typedef struct aax_frame_t
 
    _aaxAudioFrame *submix;
 
-   /* parametric equalizer **/
-   void *mutex;
-   _aaxFilterInfo *filter;
-
    char mtx_set;
+
+   /* parametric and graphic equalizer **/
+   void *mutex;
 
 } _frame_t;
 

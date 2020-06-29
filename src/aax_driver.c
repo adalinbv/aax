@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2020 by Erik Hofman.
+ * Copyright 2009-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -409,36 +409,6 @@ aaxDriverOpen(aaxConfig config)
 
             if (_info == NULL || _info == &__info) {
                _info = handle->info;
-            }
-
-            if (handle->info->mode == AAX_MODE_WRITE_SURROUND)
-            {
-               _aaxRingBufferFreqFilterData *freqfilter;
-               float k, fc = 80.0f;
-               _filter_t *filter;
-
-               /* crossover lowpass filter at 80Hz, 4th orer (24dB/oct) */
-               filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
-               aaxFilterSetSlot(filter, 0, AAX_LINEAR, fc, 1.0f, 0.0f, 1.0f);
-               aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
-               _FILTER_SWAP_SLOT_DATA(handle, SURROUND_CROSSOVER_LP, filter, 0);
-               aaxFilterDestroy(filter);
-
-               freqfilter = _FILTER_GET_DATA(handle, SURROUND_CROSSOVER_LP);
-               k = _aax_movingaverage_compute(fc, freqfilter->fs);
-               freqfilter->k = k;
-            }
-            else if (handle->info->mode == AAX_MODE_WRITE_HRTF)
-            {
-               int type = HRTF_HEADSHADOW;
-               _filter_t *filter;
-
-               /* head shadow filter at 1kHz, 1st order (6dB/oct) max */
-               filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
-               aaxFilterSetSlot(filter, 0, AAX_LINEAR, 1000.0f, 1.0f,0.0f,1.0f);
-               aaxFilterSetState(filter, AAX_BESSEL|AAX_6DB_OCT);
-               _FILTER_SWAP_SLOT_DATA(handle, type, filter, 0);
-               aaxFilterDestroy(filter);
             }
          }
          _aaxDriverBackendClearConfigSettings(cfg);
@@ -983,12 +953,41 @@ _open_handle(aaxConfig config)
                _sensor_t* sensor = ptr1;
                _aaxAudioFrame* smixer;
 
-               sensor->filter = handle->filter;
                sensor->mutex = _aaxMutexCreate(NULL);
-               _aaxSetDefaultEqualizer(handle->filter);
 
                size = sizeof(_sensor_t);
                smixer = (_aaxAudioFrame*)((char*)sensor + size);
+
+               _aaxSetDefaultEqualizer(smixer->filter);
+               if (handle->info->mode == AAX_MODE_WRITE_SURROUND)
+               {
+                  _aaxRingBufferFreqFilterData *freqfilter;
+                  float k, fc = 80.0f;
+                  _filter_t *filter;
+
+                  /* crossover lowpass filter at 80Hz, 4th orer (24dB/oct) */
+                  filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
+                  aaxFilterSetSlot(filter, 0, AAX_LINEAR, fc, 1.0f, 0.0f, 1.0f);
+                  aaxFilterSetState(filter, AAX_BESSEL|AAX_24DB_OCT);
+                  _FILTER_SWAP_SLOT_DATA(smixer, SURROUND_CROSSOVER_LP, filter, 0);
+                  aaxFilterDestroy(filter);
+
+                  freqfilter = _FILTER_GET_DATA(smixer, SURROUND_CROSSOVER_LP);
+                  k = _aax_movingaverage_compute(fc, freqfilter->fs);
+                  freqfilter->k = k;
+               }
+               else if (handle->info->mode == AAX_MODE_WRITE_HRTF)
+               {
+                  int type = HRTF_HEADSHADOW;
+                  _filter_t *filter;
+
+                  /* head shadow filter at 1kHz, 1st order (6dB/oct) max */
+                  filter = aaxFilterCreate(handle, AAX_FREQUENCY_FILTER);
+                  aaxFilterSetSlot(filter, 0, AAX_LINEAR, 1000.0f, 1.0f,0.0f,1.0f);
+                  aaxFilterSetState(filter, AAX_BESSEL|AAX_6DB_OCT);
+                  _FILTER_SWAP_SLOT_DATA(smixer, type, filter, 0);
+                  aaxFilterDestroy(filter);
+               }
 
                sensor->mixer = smixer;
                sensor->mixer->info = handle->info;
@@ -1402,12 +1401,12 @@ _aaxFreeSensor(void *ssr)
    _aaxAudioFrame* smixer = sensor->mixer;
    int i;
 
-   if (sensor->filter[EQUALIZER_LF].data) {
+   if (sensor->mixer->filter[EQUALIZER_LF].data) {
       _aaxMutexDestroy(sensor->mutex);
    }
-   _FILTER_FREE_DATA(sensor, EQUALIZER_LF);
-   _FILTER_FREE_DATA(sensor, EQUALIZER_HF);
-   _FILTER_FREE_DATA(sensor, HRTF_HEADSHADOW);
+   _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_LF);
+   _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_HF);
+   _FILTER_FREE_DATA(sensor->mixer, HRTF_HEADSHADOW);
 
    _aaxMutexLock(smixer->props2d->mutex);
    for (i=0; i<MAX_STEREO_FILTER; ++i) {

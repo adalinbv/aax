@@ -1,6 +1,6 @@
 /*
- * Copyright 2011-2019 by Erik Hofman.
- * Copyright 2011-2019 by Adalin B.V.
+ * Copyright 2011-2020 by Erik Hofman.
+ * Copyright 2011-2020 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -195,12 +195,12 @@ aaxAudioFrameDestroy(aaxFrame frame)
                    _aaxRingBufferFree);
 
       /* frees EQUALIZER_LF, EQUALIZER_MF and EQUALIZER_HF */
-      if (handle->filter)
+      if (fmixer->filter)
       {
-         if (handle->filter[EQUALIZER_LF].data) {
+         if (fmixer->filter[EQUALIZER_LF].data) {
             _aaxMutexDestroy(handle->mutex);
          }
-         _FILTER_FREE_DATA(handle, EQUALIZER_LF);
+         _FILTER_FREE_DATA(fmixer, EQUALIZER_LF);
       }
 
       /* safeguard against using already destroyed handles */
@@ -494,17 +494,15 @@ aaxAudioFrameSetFilter(aaxFrame frame, aaxFilter f)
       {
 //    case AAX_GRAPHIC_EQUALIZER:
       case AAX_EQUALIZER:
-         if (!handle->filter)  	/* EQUALIZER_LF, EQUALIZER_MF & EQUALIZER_HF */
-         {
+         if (!handle->submix->filter) { /* EQUALIZER_LF, EQUALIZER_MF & EQUALIZER_HF */
             handle->mutex = _aaxMutexCreate(NULL);
-            handle->filter = calloc(_AAX_EQFILTERS, sizeof(_aaxFilterInfo));
          }
 
-         if (handle->filter)
+         if (handle->submix->filter)
          {
-            _FILTER_SWAP_SLOT(handle, EQUALIZER_LF, filter, 0);
-            _FILTER_SWAP_SLOT(handle, EQUALIZER_MF, filter, 1);
-            _FILTER_SWAP_SLOT(handle, EQUALIZER_HF, filter, 2);
+            _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_LF, filter, 0);
+            _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_MF, filter, 1);
+            _FILTER_SWAP_SLOT(handle->submix, EQUALIZER_HF, filter, 2);
             break;
          }
          else {
