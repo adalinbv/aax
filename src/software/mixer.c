@@ -42,8 +42,8 @@
 #include "audio.h"
 
 
+static void _aaxSubFramePostProcess(void*, const void*);
 static void _aaxSensorPostProcess(const void*, const void*, void*, const void*, void*);
-static void _aaxSubFramePostProcess(const void*, const void*, void*, const void*, void*);
 
 void
 _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const void *props2d, char mono, UNUSED(char order))
@@ -155,14 +155,84 @@ _aaxSoftwareMixerPostProcess(const void *id, const void *hid, void *d, const voi
    const _frame_t *subframe = (_frame_t*)f;
    _sensor_t *sensor = (_sensor_t*)s;
 
-   if (sensor) {
+   if (subframe) {
+      _aaxSubFramePostProcess(d, subframe);
+   } else if (sensor) {
       _aaxSensorPostProcess(id, hid, d, sensor, i);
-   } else if (subframe) {
-      _aaxSubFramePostProcess(id, hid, d, subframe, i);
    }
 }
 
 /* -------------------------------------------------------------------------- */
+
+static void
+_aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer)
+{
+   _aaxRingBufferSample *rbd;
+   _aaxRingBufferData *rbi;
+   char parametric, graphic;
+
+   rbi = rb->handle;
+   rbd = rbi->sample;
+
+   parametric = graphic = (_FILTER_GET_DATA(mixer, EQUALIZER_HF) != NULL);
+   parametric &= (_FILTER_GET_DATA(mixer, EQUALIZER_LF) != NULL);
+   graphic    &= (_FILTER_GET_DATA(mixer, EQUALIZER_LF) == NULL);
+
+   if (parametric || graphic)
+   {
+      MIX_T **tracks = (MIX_T**)rbd->track;
+      MIX_T **scratch = (MIX_T**)rb->get_scratch(rb);
+      unsigned int t, no_tracks;
+      size_t no_samples;
+
+      no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+
+      if (parametric)
+      {
+         _aaxRingBufferFreqFilterData *lf, *mf, *hf;
+
+         lf = _FILTER_GET_DATA(mixer, EQUALIZER_LF);
+         mf = _FILTER_GET_DATA(mixer, EQUALIZER_MF);
+         hf = _FILTER_GET_DATA(mixer, EQUALIZER_HF);
+         for (t=0; t<no_tracks; t++) {
+            _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
+                           0, no_samples, t, lf, mf, hf);
+         }
+      }
+      else
+      {
+         _aaxRingBufferEqualizerData *eq;
+         size_t track_len_bytes;
+
+         eq = _FILTER_GET_DATA(mixer, EQUALIZER_HF);
+         track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
+         for (t=0; t<no_tracks; t++)
+         {
+            _aax_memcpy(scratch[SCRATCH_BUFFER0], tracks[t], track_len_bytes);
+            _grapheq_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
+                         scratch[SCRATCH_BUFFER1], 0, no_samples, t, eq);
+         }
+      }
+   }
+}
+
+static void
+_aaxSubFramePostProcess(void *d, const void *f)
+{
+   _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
+   const _frame_t *subframe = (_frame_t*)f;
+
+   assert(rb != 0);
+   assert(rb->handle != 0);
+
+   _aaxMutexLock(subframe->mutex);
+
+   _aaxFrameProcessEqualizer(rb, subframe->submix);
+
+   _aaxMutexUnLock(subframe->mutex);
+}
+
 
 static void
 _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, void *i)
@@ -174,11 +244,11 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
    unsigned char *router = info->router;
    unsigned char lfe_track, t, no_tracks;
    size_t no_samples, track_len_bytes;
-   char parametric, graphic, crossover;
    MIX_T **tracks, **scratch;
    _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
    _aaxLFOData *compressor;
+   char crossover;
 
    assert(rb != 0);
    assert(rb->handle != 0);
@@ -196,17 +266,14 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
+   crossover = 0;
    convolution = NULL;
    lfe_track = router[AAX_TRACK_LFE];
-   crossover = parametric = graphic = 0;
    if (_EFFECT_GET_STATE(sensor->mixer->props2d, CONVOLUTION_EFFECT)) {
       convolution = _EFFECT_GET_DATA(sensor->mixer->props2d,
                                           CONVOLUTION_EFFECT);
    }
    compressor = _FILTER_GET_DATA(sensor->mixer->props2d, DYNAMIC_GAIN_FILTER);
-   parametric = graphic = (_FILTER_GET_DATA(sensor->mixer, EQUALIZER_HF) != NULL);
-   parametric &= (_FILTER_GET_DATA(sensor->mixer, EQUALIZER_LF) != NULL);
-   graphic    &= (_FILTER_GET_DATA(sensor->mixer, EQUALIZER_LF) == NULL);
    crossover = (_FILTER_GET_DATA(sensor->mixer, SURROUND_CROSSOVER_LP) != NULL);
    crossover &= (no_tracks >= lfe_track);
 
@@ -262,32 +329,7 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
       rb->data_multiply(rb, 0, 0, g);
    }
 
-   if (parametric)
-   {
-      _aaxRingBufferFreqFilterData *lf, *mf, *hf;
-
-      lf = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_LF);
-      mf = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_MF);
-      hf = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_HF);
-      for (t=0; t<no_tracks; t++) {
-         _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
-                        0, no_samples, t, lf, mf, hf);
-      }
-   }
-   else if (graphic)
-   {
-      _aaxRingBufferEqualizerData *eq;
-      size_t track_len_bytes;
-
-      eq = _FILTER_GET_DATA(sensor->mixer, EQUALIZER_HF);
-      track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
-      for (t=0; t<no_tracks; t++)
-      {
-         _aax_memcpy(scratch[SCRATCH_BUFFER0], tracks[t], track_len_bytes);
-         _grapheq_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
-                      scratch[SCRATCH_BUFFER1], 0, no_samples, t, eq);
-      }
-   }
+   _aaxFrameProcessEqualizer(rb, sensor->mixer);
    _aaxMutexUnLock(sensor->mutex);
 
    for (t=0; t<no_tracks; t++)
@@ -329,77 +371,6 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
    }
 
    rb->limit(rb, RB_COMPRESS);
-}
-
-static void
-_aaxSubFramePostProcess(UNUSED(const void *id), UNUSED(const void *hid), void *d, const void *f, UNUSED(void *i))
-{
-   _aaxRingBuffer *rb = (_aaxRingBuffer*)d;
-   const _frame_t *subframe = (_frame_t*)f;
-   char parametric, graphic;
-   _aaxRingBufferSample *rbd;
-   _aaxRingBufferData *rbi;
-
-   assert(rb != 0);
-   assert(rb->handle != 0);
-
-   rbi = rb->handle;
-
-   assert(rbi->sample != 0);
-
-   rbi = rb->handle;
-   rbd = rbi->sample;
-
-   graphic = 0;
-   parametric = (_FILTER_GET_DATA(subframe->submix, EQUALIZER_HF) != NULL);
-   parametric &= (_FILTER_GET_DATA(subframe->submix, EQUALIZER_LF) != NULL);
-
-   if (parametric || graphic)
-   {
-      MIX_T **tracks = (MIX_T**)rbd->track;
-      MIX_T **scratch = (MIX_T**)rb->get_scratch(rb);
-
-      _aaxMutexLock(subframe->mutex);
-
-      if (parametric)
-      {
-         _aaxRingBufferFreqFilterData *lf, *mf, *hf;
-         unsigned int t, no_tracks;
-         size_t no_samples;
-
-         lf = _FILTER_GET_DATA(subframe->submix, EQUALIZER_LF);
-         mf = _FILTER_GET_DATA(subframe->submix, EQUALIZER_MF);
-         hf = _FILTER_GET_DATA(subframe->submix, EQUALIZER_HF);
-         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-         no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-         for (t=0; t<no_tracks; t++) {
-            _equalizer_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0], 
-                           0, no_samples, t, lf, mf, hf);
-         }
-      }
-      else if (graphic)
-      {
-         _aaxRingBufferEqualizerData *eq;
-         unsigned int t, no_tracks;
-         size_t track_len_bytes;
-         size_t no_samples;
-
-         eq = _FILTER_GET_DATA(subframe->submix, EQUALIZER_HF);
-         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-         no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
-         track_len_bytes = rb->get_parami(rb, RB_TRACKSIZE);
-         for (t=0; t<no_tracks; t++)
-         {
-            _aax_memcpy(scratch[SCRATCH_BUFFER0], tracks[t], track_len_bytes);
-            _grapheq_run(rbi->sample, tracks[t], scratch[SCRATCH_BUFFER0],
-                         scratch[SCRATCH_BUFFER1], 0, no_samples, t, eq);
-         }
-      }
-
-      _aaxMutexUnLock(subframe->mutex);
-   }
-
-// rb->limit(rb, RB_LIMITER_ELECTRONIC);
 }
 
 int
