@@ -121,11 +121,18 @@ _mtx4fMulVec4_neon(vec4f_ptr d, const mtx4f_ptr m, const vec4f_ptr v)
 {
    int i;
 
+#if 0
+   d->s4 = vml (m->s4x4[0], v->v4);
+   d->s4 = vmla (d->s4, m->s4x4[1], v->v4);
+   d->s4 = vmla (d->s4, m->s4x4[2], v->v4);
+   d->s4 = vmla (d->s4, m->s4x4[3], v->v4);
+#else
    d->s4 = vmulq_f32(m->s4x4[0], vdupq_n_f32(v->v4[0]));
    for (i=1; i<4; ++i) {
       float32x4_t row = vmulq_f32(m->s4x4[i], vdupq_n_f32(v->v4[i]));
       d->s4 = vaddq_f32(d->s4, row);
    }
+#endif
 }
 
 #else

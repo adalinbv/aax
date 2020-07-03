@@ -17,7 +17,11 @@
 #define FACTOR		0.7723678263f
 
 // Depends on the timer resolution for an acurate comparison
-#define MAXNUM		(20*4096*10)
+#if defined(__arm__) || defined(_M_ARM)
+# define MAXNUM 	(2*4096*10)
+#else
+# define MAXNUM		(20*4096*10)
+#endif
 
 
 #define TESTFN(a,d1,d2,m) { int n = 0; \

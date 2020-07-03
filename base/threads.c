@@ -43,6 +43,7 @@
 # include <values.h>     /* for EM_VALUE_MAX */
 #endif
 #include <errno.h>
+#include <limits.h>
 
 #include <aax/aax.h>
 #include "threads.h"
