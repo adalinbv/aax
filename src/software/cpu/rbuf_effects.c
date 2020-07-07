@@ -251,15 +251,16 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       reverb = _EFFECT_GET_DATA(p2d, REVERB_EFFECT);
       if (reverb)
       {
-         _aaxRingBufferReverbData *preverb = NULL;
+         _aaxRingBufferReverbData *parent_reverb = NULL;
          _aax2dProps *pp2d = p2d->parent;
 
          if (pp2d) {
-            preverb = _EFFECT_GET_DATA(pp2d, REVERB_EFFECT);
+            parent_reverb = _EFFECT_GET_DATA(pp2d, REVERB_EFFECT);
          }
 
          r = reverb->run(rbd, pdst, psrc, scratch, no_samples, ddesamps, track,
-                         reverb, preverb, NULL, mono, reverb->state, env, ctr);
+                         reverb, parent_reverb, NULL, mono, reverb->state, env,
+                         ctr);
          if (r) BUFSWAP(pdst, psrc);
       }
    }

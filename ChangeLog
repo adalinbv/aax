@@ -16,6 +16,7 @@
    define a filtering order for every section when using AAXS files.
  * Add the option to assign the compressor to the final mixer stage.
  * Fix a regression for the compressor.
+ * Fix a regression in reverb.
 
 -- Erik Hofman <tech@adalin.org>  May 24 Apr 2020 15:34:41 + 0100
 

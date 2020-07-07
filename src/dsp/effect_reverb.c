@@ -55,6 +55,18 @@ static void _reverb_add_reflections(_aaxRingBufferReverbData*, float, unsigned i
 static void _reverb_add_loopbacks(_aaxRingBufferReverbData*, float, unsigned int, float, float);
 static void _loopbacks_destroy_delays(_aaxRingBufferReverbData*);
 
+/*
+ * Reverb consists of a direct-path, 1st order reflections and
+ * 2nd order loopbacks.
+ *
+ * Audio-frames can have a direct-path and 1st order reflections.
+ * The Mixer can have a direct-path, 1st order reflections and/or
+ * 2nd order loopbacks.
+ *
+ * If child audio-frames have 1st order reflections and the mixer handles the
+ * 2nd order loopbacks then the direct-path is handled by the mixer, otherwise
+ * the direct-path is handled by the audio-frame itself.
+ */
 
 static aaxEffect
 _aaxReverbEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -728,7 +740,7 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
 
    /* loopbacks (2nd order reflections) */
    snum = loopbacks->no_loopbacks;
-   if ((snum > 0) && (state & AAX_REVERB_2ND_ORDER))
+   if (snum > 0)
    {
       _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
       size_t bytes = ds*sizeof(MIX_T);
@@ -762,12 +774,12 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
 static int
 _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             size_t no_samples, size_t ds, unsigned int track, const void *data,
-            const void *pdata, _aaxMixerInfo *info, unsigned char mono,
+            const void *parent_data, _aaxMixerInfo *info, unsigned char mono,
             int state, void *env, unsigned char ctr)
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-  const _aaxRingBufferReverbData *preverb = pdata;
+  const _aaxRingBufferReverbData *parent_reverb = parent_data;
    const _aaxRingBufferReverbData *reverb = data;
    _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
@@ -787,8 +799,13 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    {
       MIX_T *dpath;
 
-      if (preverb) {
-         dpath = (MIX_T*)preverb->direct_path->history[track];
+      /*
+       * parent_reverb != NULL:
+       * - Child audio-frame with 1st-order reverb
+       * - Parent is a mixer with 2nd order reverb
+       */
+      if (parent_reverb != NULL) {
+         dpath = (MIX_T*)parent_reverb->direct_path->history[track];
       } else {
          dpath = (MIX_T*)reverb->direct_path->history[track];
       }
@@ -825,13 +842,14 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
       if (reverb->state & AAX_REVERB_2ND_ORDER)
       {
+         ds = reverb->no_samples;
          rv |= _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
                               ds, track, gain, dst, state);
          rv &= filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
                            NULL, 1.0f, 0);
 
-         if (pdata)
-         { // there is aparent reverb effect: add the current direct path buffer
+         if (parent_data)
+         { // parent reverb effect is active: add the current direct path buffer
             MIX_T *direct = (MIX_T*)reverb->direct_path->history[track];
             rbd->add(dpath, direct, no_samples, 1.0f, 0.0f);
             memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
@@ -843,12 +861,12 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
             rv = AAX_TRUE;
          }
       }
-      else if (!preverb)	// 1st order reverb without a parent reverb
+      else if (!parent_reverb)	// 1st order reverb without a parent reverb
       {
          rbd->add(dptr, dpath, no_samples, 1.0f, 0.0f);
          memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
       }
    }
 
-   return rv;
+   return 0;
 }
