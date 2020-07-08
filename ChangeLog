@@ -15,6 +15,8 @@
    cutoff frequency, making it a four-band equalizer. And add the option to
    define a filtering order for every section when using AAXS files.
  * Add the option to assign the compressor to the final mixer stage.
+ * Add the option to limit the spead of the instruments which are defined wide-
+   stereo.
  * Fix a regression for the compressor.
  * Fix a regression in reverb.
 
