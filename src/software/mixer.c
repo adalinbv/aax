@@ -86,17 +86,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       tracks = (MIX_T**)rbd->track;
 
       if (reverb) {
-//       ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
-         ddesamps = reverb->no_samples;
-      }
-      else if (delay_effect)
-      {
-         /*
-          * can not use rb->get_parami(rb, RB_DDE_SAMPLES) since it's 10 times
-          * as big for the final mixer to accomodate for reverb
-          */
-//       float f = rb->get_paramf(rb, RB_FREQUENCY);
-//       ddesamps = (size_t)ceilf(f * DELAY_EFFECTS_TIME);
+         ddesamps = rb->get_parami(rb, RB_DDE_SAMPLES);
       }
 
       for (track=0; track<no_tracks; track++)
