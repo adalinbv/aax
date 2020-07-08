@@ -842,7 +842,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
       if (reverb->state & AAX_REVERB_2ND_ORDER)
       {
-         ds = reverb->no_samples;
+         ds = TIME_TO_SAMPLES(filter->fs, DELAY_EFFECTS_TIME);
          rv |= _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
                               ds, track, gain, dst, state);
          rv &= filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
@@ -868,5 +868,5 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       }
    }
 
-   return 0;
+   return rv;
 }
