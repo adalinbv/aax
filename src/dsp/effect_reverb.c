@@ -748,7 +748,7 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
       int q;
 
       memcpy(scratch, dptr, no_samples*sizeof(MIX_T));
-      memcpy(scratch-ds, loopbacks->reverb->history[track], bytes);
+      memcpy(dptr-ds, loopbacks->reverb->history[track], bytes);
 
       gain /= (snum+1);
       for(q=0; q<snum; ++q)
@@ -760,22 +760,20 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
             if (offs && offs < (ssize_t)ds)
             {
                // comb filter
-               rbd->add(scratch, scratch-offs, no_samples, volume, 0.0f);
+               rbd->add(dptr, dptr-offs, no_samples, volume, 0.0f);
                // make it all-pass
-               rbd->add(scratch, dptr, no_samples, -volume, 0.0f);
+               rbd->add(dptr, scratch, no_samples, -volume, 0.0f);
                rv = AAX_TRUE;
             }
          }
       }
       memcpy(loopbacks->reverb->history[track], dptr+no_samples-ds, bytes);
-      memcpy(dptr, scratch, no_samples*sizeof(MIX_T));
 
       // feed the result back to the other channels
-      gain /= (snum+1); // again
+      gain *= -gain;
       for(q=0; q<no_tracks; ++q) {
          if (q != track) {
-            float volume = gain*loopbacks->loopback[q].gain;
-            rbd->add(tracks[q], scratch, no_samples, volume, 0.0f);
+            rbd->add(tracks[q], dptr, no_samples, gain, 0.0f);
          }
       }
    }
