@@ -161,7 +161,16 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             float fc;
 
             fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
-            if (fc >= MAX_CUTOFF) break;
+            if (fc >= MAX_CUTOFF)
+            {
+               int i;
+
+               for (i=s; i<_AAX_EQFILTERS; ++i) {
+                  gain[i] = gprev;
+               }
+               s = i;
+               break;
+            }
 
             gain[s] = 0.5f*(gprev + fabsf(filter->slot[s]->param[AAX_LF_GAIN]));
             if (s) gain[s] = sqrtf(gain[s]);
