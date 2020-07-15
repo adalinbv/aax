@@ -207,7 +207,7 @@ private:
     float frequency;
     float pitch;
     float gain = 1.0f;
-    float pan_prev = 0.0f;
+    float pan_prev = -1000.0f;
     bool playing = false;
     bool hold = true;
 };
