@@ -789,11 +789,10 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 {
    float dst = info ? _MAX(info->speaker[track].v4[0]*info->frequency*track/343.0,0.0f) : 0;
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
-  const _aaxRingBufferReverbData *parent_reverb = parent_data;
    const _aaxRingBufferReverbData *reverb = data;
-   _aaxRingBufferFreqFilterData *filter = reverb->freq_filter;
    _aaxRingBufferOcclusionData *occlusion;
-   float gain = 1.0f;
+   _aaxRingBufferFreqFilterData *filter;
+   MIX_T *direct;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -803,72 +802,58 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    assert(track < _AAX_MAX_SPEAKERS);
    assert(no_samples <= reverb->no_samples);
 
+   filter = reverb->freq_filter;
    occlusion = reverb->occlusion;
-
-   if (gain > LEVEL_64DB)
+   direct = reverb->direct_path->history[track];
+   if (occlusion)
    {
-      MIX_T *direct;
-
-      /*
-       * parent_reverb != NULL:
-       * - Child audio-frame with 1st-order reverb
-       * - Parent is a mixer with 2nd order reverb
-       */
-      if (parent_reverb != NULL) {
-         direct = (MIX_T*)parent_reverb->direct_path->history[track];
-      } else {
-         direct = (MIX_T*)reverb->direct_path->history[track];
+      float l = 1.0f - occlusion->level;
+      float fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc);
+      if (fc > 100.0f) {
+         _aax_butterworth_compute(fc, filter);
       }
-
-      if (reverb->state & AAX_REVERB_1ST_ORDER)
-      {
-         float l, fc;
-
-         if (filter->lfo && !ctr)
-         {
-            fc = filter->lfo->get(filter->lfo, env, sptr, track, no_samples);
-            _aax_butterworth_compute(_MAX(fc, 20.0f), filter);
-         }
-
-         if (occlusion)
-         {
-            l = 1.0f - occlusion->level;
-            fc = _MINMAX(l*22000.0f, 100.0f, reverb->fc);
-            if (fc > 100.0f) {
-               _aax_butterworth_compute(fc, filter);
-            }
-            occlusion->run(rbd, direct, sptr, scratch, no_samples, track,
-                           occlusion);
-         }
-         else {
-            rbd->add(direct, sptr, no_samples, reverb->reflections->gain, 0.0f);
-         }
-         _reflections_run(reverb->reflections, rb, scratch, sptr,
-                               no_samples, ds, track, gain, dst, mono, state);
-         filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter,
-                     NULL, 1.0f, 0);
-      }
-
-      if (reverb->state & AAX_REVERB_2ND_ORDER)
-      {
-         _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
-                        ds, track, reverb->info->no_tracks, gain, dst, state);
-         filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
-                     NULL, 1.0f, 0);
-      }
-
-      if (parent_reverb != NULL)
-      { // add the current direct path buffer to the parent direct path
-         MIX_T *dpath = (MIX_T*)reverb->direct_path->history[track];
-         rbd->add(direct, dpath, no_samples, 1.0f, 0.0f);
-         memset(dpath, 0, reverb->no_samples*sizeof(MIX_T));
-      }
-      else
-      {
-         rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
-         memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
-      }
+      occlusion->run(rbd, direct, sptr, scratch, no_samples, track,
+                     occlusion);
    }
+   else {
+      rbd->add(direct, sptr, no_samples, 1.0f, 0.0f);
+   }
+
+   if (reverb->state & AAX_REVERB_1ST_ORDER)
+   {
+      float gain = reverb->reflections->gain;
+      if (filter->lfo && !ctr)
+      {
+         float fc;
+
+         fc = filter->lfo->get(filter->lfo, env, sptr, track, no_samples);
+         _aax_butterworth_compute(_MAX(fc, 20.0f), filter);
+      }
+
+      _reflections_run(reverb->reflections, rb, scratch, sptr,
+                            no_samples, ds, track, gain, dst, mono, state);
+      filter->run(rbd, dptr, scratch, 0, no_samples, 0, track, filter,
+                  NULL, 1.0f, 0);
+   }
+   else {
+      memcpy(dptr, sptr, no_samples*sizeof(MIX_T));
+   }
+
+   if (reverb->state & AAX_REVERB_2ND_ORDER)
+   {
+      _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
+                     ds, track, reverb->info->no_tracks, 1.0f, dst, state);
+      filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
+                  NULL, 1.0f, 0);
+   }
+
+   if (parent_data != NULL)
+   {  // add the current direct path buffer to the parent direct path
+      const _aaxRingBufferReverbData *parent_reverb = parent_data;
+      dptr = (MIX_T*)parent_reverb->direct_path->history[track];
+   }
+   rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
+   memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
 
    return AAX_TRUE;
 }
