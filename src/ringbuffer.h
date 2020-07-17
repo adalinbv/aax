@@ -202,7 +202,7 @@ typedef ALIGN16 struct
 
 typedef struct
 {
-   int32_t* history[_AAX_MAX_SPEAKERS];
+   MIX_T* history[_AAX_MAX_SPEAKERS];
    void* ptr;
 } _aaxRingBufferHistoryData;
 
@@ -266,11 +266,7 @@ typedef ALIGN16 struct
    _aaxRingBufferDelayData loopback[_AAX_MAX_LOOPBACKS];
    unsigned int no_loopbacks;
 
-   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, MIX_PTR_T, size_t, size_t,
-              unsigned int, const void*, _aaxMixerInfo*, unsigned char, int,
-              void*, unsigned char);
- 
-    _aaxRingBufferHistoryData *reverb;
+   _aaxRingBufferHistoryData *reverb;
 
 } _aaxRingBufferLoopbackData ALIGN16C;
 
