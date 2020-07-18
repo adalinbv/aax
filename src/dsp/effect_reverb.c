@@ -686,7 +686,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
    {
       unsigned int q = 0;
 
-#if 0
+#if 1
       memset(dptr, 0, no_samples*sizeof(MIX_T));
 #else
       do
@@ -712,8 +712,12 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
          if ((volume > 0.001f) || (volume < -0.001f))
          {
             ssize_t offs = reflections->delay[q].sample_offs[track] + dst;
-            if (offs && offs < (ssize_t)ds) {
-               rbd->add(dptr, sptr-offs, no_samples, volume, 0.0f);
+            if (offs && offs < (ssize_t)ds)
+            {
+               // comb filter
+               rbd->add(dptr, sptr-offs, no_samples, -volume, 0.0f);
+               // make it all-pass
+               rbd->add(dptr, sptr, no_samples, volume, 0.0f);
             }
          }
       }
@@ -760,9 +764,9 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
             if (offs && offs < (ssize_t)ds)
             {
                // comb filter
-               rbd->add(dptr, dptr-offs, no_samples, volume, 0.0f);
+               rbd->add(dptr, dptr-offs, no_samples, -volume, 0.0f);
                // make it all-pass
-               rbd->add(dptr, scratch, no_samples, -volume, 0.0f);
+               rbd->add(dptr, scratch, no_samples, volume, 0.0f);
                rv = AAX_TRUE;
             }
          }
