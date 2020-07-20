@@ -254,7 +254,6 @@ typedef ALIGN16 struct
    _aaxRingBufferDelayData delay[_AAX_MAX_DELAYS];
    size_t history_samples;
    unsigned int no_delays; 
-   float gain;
 
    _aaxRingBufferHistoryData *history;
 
@@ -287,6 +286,7 @@ typedef struct
    _aaxRingBufferFreqFilterData *freq_filter;
    _aaxRingBufferHistoryData *direct_path;
    size_t no_samples;
+   float gain;
    float fc;
 
 } _aaxRingBufferReverbData;
