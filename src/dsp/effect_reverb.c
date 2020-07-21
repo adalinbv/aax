@@ -179,9 +179,13 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          }
 
          /* calculate initial and loopback samples                      */
-         decay_level = 0.8f*effect->slot[0]->param[AAX_DECAY_LEVEL];
          depth = effect->slot[0]->param[AAX_DELAY_DEPTH]/0.07f;
          lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
+         decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
+
+         reverb->direct_gain = 0.825f * _MIN(1.0f/decay_level, 1.0f);
+         reverb->loopbacks_gain = -0.625f * _MIN(decay_level, 1.0f);
+         decay_level =  0.725f * _MIN(decay_level, 1.0f);
 
          if (reflections) {
             _reverb_add_reflections(reverb, fs, tracks, depth, state, decay_level);
@@ -340,7 +344,7 @@ _aaxReverbEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxReverbRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,   0.07f,    1.0f, 0.7f } },
+    { {50.0f, 0.001f, 0.0f, 0.001f }, { 22000.0f,   0.07f, FLT_MAX, 0.7f } },
     { { 0.0f,   0.0f, 0.0f,   0.0f }, {  FLT_MAX, FLT_MAX, FLT_MAX, 1.0f } },
     { { 0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } },
     { { 0.0f,   0.0f, 0.0f,   0.0f }, {     0.0f,    0.0f,    0.0f, 0.0f } }
@@ -552,7 +556,6 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
          delays[0] = idepth_offs + idepth/13.0f;
       }
 
-      reverb->gain = -0.9f*decay_level;
       reflections->no_delays = num;
       for (i=0; i<num; ++i)
       {
@@ -811,7 +814,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
                      occlusion);
    }
    else {
-      rbd->add(direct, sptr, no_samples, 1.0f, 0.0f);
+      rbd->add(direct, sptr, no_samples, reverb->direct_gain, 0.0f);
    }
 
    if (reverb->state & AAX_REVERB_1ST_ORDER)
@@ -836,7 +839,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    if (reverb->state & AAX_REVERB_2ND_ORDER)
    {
       int tracks = reverb->info->no_tracks;
-      float gain = reverb->gain;
+      float gain = reverb->loopbacks_gain;
 
       _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
                      ds, track, tracks, dst, state, gain);
