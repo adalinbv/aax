@@ -12,45 +12,52 @@
 
 <aeonwave>
 
- <info name="Bottle Blow" bank="0" program="0">
+ <info name="Whistle (Breathy)" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1" min="60" max="96" step="1"/>
  </info>
 
- <sound gain="0.56" db="-5.5" frequency="261.626" duration="2.1">
-  <waveform src="triangle"/>
-  <waveform src="brownian-noise" processing="add" ratio="0.8"/>
-  <waveform src="square" processing="add" ratio="0.01"/>
+ <sound fixed-gain="1.00" db="-6.0" frequency="261.626" duration="3.33">
+  <waveform src="white-noise" ratio="0.01" pitch="0.1"/>
+  <waveform src="sine" processing="add" ratio="0.05"/>
  </sound>
 
  <emitter looping="true">
+  <filter type="bitcrusher" src="inverse-envelope">
+   <slot n="0">
+    <param n="0">0.15</param>
+    <param n="1" auto="0.4">1.8</param>
+    <param n="2">0.13</param>
+    <param n="3">0.0</param>
+   </slot>
+  </filter>
   <filter type="frequency">
    <slot n="0">
     <param n="0" pitch="1.0">261.6</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">10.0</param>
+    <param n="3">8.0</param>
    </slot>
   </filter>
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.5</param>
+    <param n="0">0.0</param>
     <param n="1">0.15</param>
-    <param n="2" auto="0.71" min="1.4" max="0.762">3.12</param>
+    <param n="2">1.99</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.71" min="1.83" max="1.19">3.55</param>
+    <param n="0">1.75</param>
     <param n="1">inf</param>
-    <param n="2">1.21</param>
+    <param n="2">1.75</param>
     <param n="3">0.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.07</param>
+    <param n="0">0.97</param>
     <param n="1">0.03</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
@@ -64,6 +71,21 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <filter type="equalizer" optional="true">
+   <slot n="0">
+    <param n="0">100.0</param>
+    <param n="1">0.01</param>
+    <param n="2">1.0</param>
+    <param n="3">2.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0">2500.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

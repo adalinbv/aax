@@ -12,26 +12,26 @@
 
 <aeonwave>
 
- <info>
+ <info name="Barking Dog" bank="53" program="53">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.56" db="-2.0" frequency="66" duration="0.3">
-  <waveform src="white-noise" ratio="10.0" pitch="0.0125"/>
-  <filter type="frequency" src="24db">
+ <sound mode="1" fixed-gain="0.95" db="-2.0" frequency="220" duration="3.3">
+  <waveform src="white-noise" ratio="2.0" pitch="0.25"/>
+  <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="9.0">594.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
+    <param n="0" pitch="2.5">550.0</param>
+    <param n="1">0.1</param>
+    <param n="2">1.0</param>
+    <param n="3">20.0</param>
    </slot>
   </filter>
   <effect type="distortion">
    <slot n="0">
-    <param n="0">0.8</param>
+    <param n="0">0.5</param>
     <param n="1">0.3</param>
     <param n="2">0.5</param>
     <param n="3">0.7</param>
@@ -40,45 +40,33 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-timed">
+  <filter type="frequency" src="envelope|24db">
    <slot n="0">
-    <param n="0" pitch="6.25">412.5</param>
+    <param n="0">550.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.5</param>
+    <param n="2">0.5</param>
+    <param n="3">1.0</param>
    </slot>
    <slot n="1">
-    <param n="0">6600.0</param>
+    <param n="0">2000.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">5.0</param>
+    <param n="3">0.75</param>
    </slot>
   </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.26</param>
-    <param n="1">0.24</param>
-    <param n="2">1.01</param>
-    <param n="3" auto="1.0">2.0</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.73</param>
-    <param n="1" auto="1.0">3.5</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">1.0</param>
+    <param n="1">0.05</param>
+    <param n="2">1.26</param>
+    <param n="3">0.4</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">0.9</param>
-    <param n="1">0.04</param>
-    <param n="2">1.8</param>
-    <param n="3">0.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.1</param>
-    <param n="1">2.0</param>
-    <param n="2">0.8</param>
+    <param n="0">0.4</param>
+    <param n="1">0.1</param>
+    <param n="2">0.33</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

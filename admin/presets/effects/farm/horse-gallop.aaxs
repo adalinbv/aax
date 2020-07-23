@@ -12,46 +12,58 @@
 
 <aeonwave>
 
- <info name="Air Fan" bank="0" program="0">
+ <info name="Galloping Horse" bank="0" program="77">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="3.92" db="7.5" frequency="220" duration="3.33">
-  <waveform src="pink-noise" ratio="20.0" pitch="0.125"/>
-  <waveform src="impulse" processing="modulate" pitch="0.1"/>
-  <waveform src="pink-noise" processing="add" ratio="0.1" pitch="0.15"/>
+ <sound gain="1.71" db="11.8" frequency="240" duration="0.33">
+  <waveform src="white-noise" ratio="40.0" pitch="0.02" random="0.6" staticity="0.5"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="0.8">176.0</param>
+    <param n="0" pitch="1.0">240.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">1.2</param>
+    <param n="3">8.5</param>
    </slot>
   </filter>
-  <filter type="frequency" src="24db">
+  <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="1.5">330.0</param>
-    <param n="1">0.8</param>
-    <param n="2">0.2</param>
-    <param n="3">1.2</param>
+    <param n="0" pitch="20.0">4800.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.15</param>
+    <param n="3">3.5</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="1.4">
+  <filter type="frequency" src="envelope">
+   <slot n="0">
+    <param n="0" pitch="1.5">360.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.8</param>
+    <param n="3">8.5</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="4.5">1080.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.2</param>
-    <param n="2">0.457</param>
+    <param n="1">0.1</param>
+    <param n="2">0.257</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.457</param>
-    <param n="1">1.0</param>
+    <param n="0">0.257</param>
+    <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>

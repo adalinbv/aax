@@ -139,7 +139,7 @@
    <instrument n="122" name="Seashore" file="effects/nature/water-seashore"/>
    <instrument n="123" name="Bird Tweet" file="effects/nature/birds"/>
    <instrument n="124" name="Telephone Ring" file="effects/domestic/telephone-bell"/>
-   <instrument n="125" name="Helicopter" file="effects/transport/helicopter"/>
+   <instrument n="125" name="Helicopter" file="effects/transport/rotor-blades"/>
    <instrument n="126" name="Applause" file="effects/humans/applause"/>
    <instrument n="127" name="Gunshot" file="effects/weapons/gun-pistol"/>
   </bank>

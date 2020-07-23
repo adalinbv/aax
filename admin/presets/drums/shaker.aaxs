@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="2.10" db="4.5" frequency="880" duration="0.3">
+ <sound gain="2.10" db="5.7" frequency="880" duration="0.3">
   <waveform src="pink-noise" ratio="19.0" pitch="0.33" staticity="0.5"/>
   <filter type="frequency" src="48db">
    <slot n="0">

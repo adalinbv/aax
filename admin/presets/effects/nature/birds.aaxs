@@ -20,12 +20,12 @@
  </info>
 
  <sound fixed-gain="2.20" db="0.0" frequency="220" duration="2.9">
-  <waveform src="white-noise" ratio="2.0" pitch="0.2"/>
+  <waveform src="white-noise" ratio="2.0" pitch="0.13"/>
   <waveform src="impulse" processing="modulate" pitch="0.4729"/>
   <waveform src="square" processing="modulate" ratio="-2.0" pitch="0.0329"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">50.0</param>
+    <param n="0">100.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
     <param n="3">15.0</param>
@@ -33,7 +33,7 @@
   </filter>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0">150.0</param>
+    <param n="0">250.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">2.0</param>
@@ -47,19 +47,19 @@
     <param n="0" auto="-200.0">1500.0</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">50.0</param>
+    <param n="3">80.0</param>
    </slot>
    <slot n="1">
     <param n="0" auto="-1e+03.0">2300.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">1.1</param>
+    <param n="3">5.1</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="square">
+  <filter type="dynamic-gain" src="randomness">
    <slot n="0">
     <param n="0">0.3</param>
-    <param n="1">0.179</param>
+    <param n="1">0.432</param>
     <param n="2">0.7</param>
     <param n="3">0.0</param>
    </slot>
@@ -97,18 +97,18 @@
     <param n="3">6.0</param>
    </slot>
   </filter>
-  <filter type="dynamic-gain" src="inverse-square">
+  <filter type="dynamic-gain" src="randomness">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.783</param>
+    <param n="1">0.024</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="dynamic-pitch" src="square">
+  <effect type="dynamic-pitch" src="randomness">
    <slot n="0">
     <param n="0">0.0</param>
-    <param n="1">0.0581</param>
+    <param n="1">0.0648</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>

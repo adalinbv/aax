@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.00" db="6.9" frequency="220" duration="0.3">
+ <sound fixed-gain="2.80" db="6.9" frequency="220" duration="0.3">
   <waveform src="brownian-noise" pitch="0.35"/>
   <filter type="frequency">
    <slot n="0">
@@ -32,7 +32,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" repeat="max">
+  <filter type="timed-gain" repeat="1">
    <slot n="0">
     <param n="0">0.45</param>
     <param n="1">0.1</param>
@@ -44,7 +44,7 @@
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.1</param>
-    <param n="2">1.2</param>
+    <param n="2">1.0</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">

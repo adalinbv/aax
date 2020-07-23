@@ -44,7 +44,7 @@
  </emitter>
 
  <audioframe pan="-0.2">
-  <filter type="frequency">
+  <filter type="equalizer">
    <slot n="0">
     <param n="0">1650.0</param>
     <param n="1">1.0</param>

@@ -12,20 +12,20 @@
 
 <aeonwave>
 
- <info name="Helocopter">
+ <info name="Rotor Blades">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="4.13" db="3.9" frequency="110" duration="3.3">
+ <sound gain="5.31" db="6.0" frequency="55" duration="3.3">
   <waveform src="white-noise" ratio="80.0" pitch="0.75"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.96"/>
-  <waveform src="impulse" processing="modulate" pitch="0.5"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.96" pitch="2.0"/>
+  <waveform src="impulse" processing="modulate"/>
   <filter type="frequency" src="48db">
    <slot n="0">
-    <param n="0" pitch="23.0">2530.0</param>
+    <param n="0" pitch="46.0">2530.0</param>
     <param n="1">1.0</param>
     <param n="2">0.4</param>
     <param n="3">1.4</param>
@@ -36,13 +36,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.129</param>
+    <param n="0">0.101</param>
     <param n="1">0.5</param>
-    <param n="2">0.641</param>
+    <param n="2">0.499</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">0.641</param>
+    <param n="0">0.499</param>
     <param n="1">0.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -50,7 +50,7 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.111</param>
+    <param n="0">0.0555</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -58,6 +58,15 @@
   </effect>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">1250.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+ </audioframe>
 
 </aeonwave>

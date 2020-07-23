@@ -30,19 +30,19 @@
    <slot n="0">
     <param n="0">0.919</param>
     <param n="1">0.44</param>
-    <param n="2">0.16</param>
+    <param n="2">0.32</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
     <param n="0">1.04</param>
     <param n="1">0.24</param>
-    <param n="2">0.16</param>
+    <param n="2">0.32</param>
     <param n="3">0.12</param>
    </slot>
    <slot n="2">
     <param n="0">0.733</param>
     <param n="1">0.09</param>
-    <param n="2">0.2</param>
+    <param n="2">0.4</param>
     <param n="3">0.01</param>
    </slot>
   </filter>

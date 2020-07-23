@@ -19,15 +19,15 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.42" db="-2.7" frequency="220" duration="3.3">
+ <sound gain="0.42" db="-3.8" frequency="220" duration="3.3">
   <waveform src="impulse" ratio="5.0"/>
-  <waveform src="pink-noise" processing="mix"/>
+  <waveform src="white-noise" processing="mix"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="5.0">1100.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
-    <param n="3">10.0</param>
+    <param n="3">12.0</param>
    </slot>
   </filter>
   <effect type="distortion">
@@ -43,8 +43,8 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">0.546</param>
-    <param n="1">0.15</param>
+    <param n="0">1.55</param>
+    <param n="1">0.05</param>
     <param n="2">1.36</param>
     <param n="3">0.15</param>
    </slot>

@@ -19,7 +19,7 @@
   <note polyphony="16" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="0.78" db="-7.5" frequency="880" duration="0.5">
+ <sound gain="0.78" db="-7.1" frequency="880" duration="0.5">
   <waveform src="impulse" ratio="0.7"/>
   <waveform src="sawtooth" processing="add" ratio="0.7"/>
   <waveform src="impulse" processing="add" ratio="0.4" pitch="0.99771"/>
@@ -57,7 +57,7 @@
  </emitter>
 
  <audioframe pan="-0.8">
-  <filter type="frequency" optional="true">
+  <filter type="equalizer" optional="true">
    <slot n="0">
     <param n="0">4000.0</param>
     <param n="1">1.0</param>

@@ -20,16 +20,16 @@
  </info>
 
  <sound fixed-gain="1.00" db="-6.0" frequency="261.626" duration="3.33">
-  <waveform src="triangle" ratio="0.05"/>
-  <waveform src="pink-noise" processing="add" ratio="0.01"/>
+  <waveform src="white-noise" ratio="0.01" pitch="0.1"/>
+  <waveform src="sine" processing="add" ratio="0.05"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="bitcrusher" src="inverse-timed">
+  <filter type="bitcrusher" src="inverse-envelope">
    <slot n="0">
-    <param n="0">0.1</param>
+    <param n="0">0.0</param>
     <param n="1" auto="0.4">1.8</param>
-    <param n="2">0.23</param>
+    <param n="2">0.13</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
@@ -38,10 +38,10 @@
     <param n="0" pitch="1.0">261.6</param>
     <param n="1">0.0</param>
     <param n="2">1.0</param>
-    <param n="3">6.0</param>
+    <param n="3">8.0</param>
    </slot>
   </filter>
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">0.0</param>
     <param n="1">0.15</param>
@@ -55,9 +55,9 @@
     <param n="3">0.2</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.07</param>
+    <param n="0">0.97</param>
     <param n="1">0.03</param>
     <param n="2">1.0</param>
     <param n="3">0.1</param>
@@ -82,8 +82,8 @@
    <slot n="1">
     <param n="0">2500.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.35</param>
-    <param n="3">3.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
    </slot>
   </filter>
  </audioframe>

@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.00" db="0.0" frequency="220" duration="2.5">
+ <sound fixed-gain="0.40" db="0.0" frequency="220" duration="2.5">
   <waveform src="white-noise" ratio="10.0" pitch="0.2"/>
   <waveform src="brownian-noise" processing="add" ratio="10.0" pitch="0.25" staticity="0.5"/>
   <filter type="frequency" src="48db">
@@ -57,6 +57,15 @@
   </filter>
  </emitter>
 
- <audioframe/>
+ <audioframe>
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.8</param>
+    <param n="2">0.8</param>
+    <param n="3">0.3</param>
+   </slot>
+  </effect>
+ </audioframe>
 
 </aeonwave>
