@@ -286,8 +286,6 @@ typedef struct
    _aaxRingBufferFreqFilterData *freq_filter;
    _aaxRingBufferHistoryData *direct_path;
    size_t no_samples;
-   float loopbacks_gain;
-   float direct_gain;
    float fc;
 
 } _aaxRingBufferReverbData;

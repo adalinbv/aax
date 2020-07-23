@@ -183,10 +183,6 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          lb_depth = effect->slot[0]->param[AAX_DECAY_DEPTH]/0.7f;
          decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
 
-         reverb->direct_gain = 0.825f * _MIN(1.0f/decay_level, 1.0f);
-         reverb->loopbacks_gain = -0.625f * _MIN(decay_level, 1.0f);
-         decay_level =  0.725f * _MIN(decay_level, 1.0f);
-
          if (reflections) {
             _reverb_add_reflections(reverb, fs, tracks, depth, state, decay_level);
          }
@@ -478,7 +474,6 @@ static void
 _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float depth, int state, float decay_level)
 {
    _aaxRingBufferReflectionData *reflections = reverb->reflections;
-   unsigned int num = NUM_REFLECTIONS;
 
    assert(reverb != 0);
    assert(num < _AAX_MAX_DELAYS);
@@ -493,8 +488,9 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
    if (reflections)
    {
       static const float max_depth = _MIN(REVERB_EFFECTS_TIME, 0.15f);
-      float idepth, igain, idepth_offs, lb_gain;
+      float idepth, idepth_offs;
       float delays[8], gains[8];
+      unsigned int num;
       size_t i;
 
       reflections->history_samples = TIME_TO_SAMPLES(fs, max_depth);
@@ -503,8 +499,6 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
          _aaxRingBufferCreateHistoryBuffer(&reflections->history,
                                           reflections->history_samples, tracks);
       }
-
-      lb_gain = 0.01f + 0.99f*_MIN(2.0f*decay_level/num, 1.0f);
 
       /*
        https://christianfloisand.wordpress.com/2012/09/04/digital-reverberation/
@@ -518,14 +512,17 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       /* initial gains, defining a direct path is not necessary     */
       /* sound Attenuation coeff. in dB/m (α) = 4.343 µ (m-1)       */
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      igain = 2.0f*lb_gain;
-      gains[0] = igain*0.9484f;      // conrete/brick = 0.95
-      gains[1] = igain*0.8935f;      // wood floor    = 0.90
-      gains[2] = igain*0.8254f;      // carpet        = 0.853
-      gains[3] = igain*0.8997f;
-      gains[4] = igain*0.8346f;
-      gains[5] = igain*0.7718f;
-      gains[6] = igain*0.7946f;
+
+      num = NUM_REFLECTIONS;
+      decay_level /= (1.0f + num);
+
+      gains[0] = decay_level*0.9484f;      // conrete/brick = 0.95
+      gains[1] = decay_level*0.8935f;      // wood floor    = 0.90
+      gains[2] = decay_level*0.8254f;      // carpet        = 0.853
+      gains[3] = decay_level*0.8997f;
+      gains[4] = decay_level*0.8346f;
+      gains[5] = decay_level*0.7718f;
+      gains[6] = decay_level*0.7946f;
 
       // depth definies the initial delay of the first reflections
       idepth = 0.005f+0.045f*depth;
@@ -579,7 +576,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
 
 // Calculate the 2nd order reflections
 static void
-_reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float lb_depth, float lb_gain)
+_reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int tracks, float lb_depth, float decay_level)
 {
    _aaxRingBufferLoopbackData *loopbacks = reverb->loopbacks;
    unsigned int num;
@@ -602,7 +599,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
 
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
       // https://web.archive.org/web/20150416071915/http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
-      if ((lb_depth != 0) && (lb_gain != 0))
+      if ((lb_depth != 0) && (decay_level > 0.001f))
       {
          static const float max_depth = REVERB_EFFECTS_TIME; // *0.6877777f;
          unsigned int track;
@@ -611,14 +608,14 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          num = NUM_LOOPBACKS;
          loopbacks->no_loopbacks = num;
 
-         lb_gain /= (num+1);
-         loopbacks->loopback[0].gain = lb_gain*0.95015f;   // conrete/brick = 0.95
-         loopbacks->loopback[1].gain = lb_gain*0.87075f;
-         loopbacks->loopback[2].gain = lb_gain*0.91917f;
-         loopbacks->loopback[3].gain = lb_gain*0.72317f;   // carpet     = 0.853
-         loopbacks->loopback[4].gain = lb_gain*0.80317f;
-         loopbacks->loopback[5].gain = lb_gain*0.73317f;
-         loopbacks->loopback[6].gain = lb_gain*0.88317f;
+         decay_level /= (0.01f*num + num);
+         loopbacks->loopback[0].gain = decay_level*0.95015f;   // conrete/brick = 0.95
+         loopbacks->loopback[1].gain = decay_level*0.87075f;
+         loopbacks->loopback[2].gain = decay_level*0.91917f;
+         loopbacks->loopback[3].gain = decay_level*0.72317f;   // carpet     = 0.853
+         loopbacks->loopback[4].gain = decay_level*0.80317f;
+         loopbacks->loopback[5].gain = decay_level*0.73317f;
+         loopbacks->loopback[6].gain = decay_level*0.88317f;
 #if 0
  for (int i=0; i<7; ++i)
  printf(" loopback[%i].gain: %f\n", i,  loopbacks->loopback[i].gain);
@@ -734,7 +731,7 @@ _reflections_run(const _aaxRingBufferReflectionData *reflections,
 }
 
 static int
-_loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, MIX_PTR_T scratch, size_t no_samples, size_t ds, unsigned int track, unsigned int no_tracks, float dst, int state, float gain)
+_loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, MIX_PTR_T scratch, size_t no_samples, size_t ds, unsigned int track, unsigned int no_tracks, float dst, int state)
 {
    int snum, rv = AAX_FALSE;
 
@@ -771,7 +768,7 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
       // feed the result back to the other channels
       for(q=0; q<no_tracks; ++q) {
          if (q != track) {
-            rbd->add(tracks[q], dptr, no_samples, gain, 0.0f);
+            rbd->add(tracks[q], dptr, no_samples, -1.0f, 0.0f);
          }
       }
    }
@@ -814,7 +811,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
                      occlusion);
    }
    else {
-      rbd->add(direct, sptr, no_samples, reverb->direct_gain, 0.0f);
+      rbd->add(direct, sptr, no_samples, 1.0f, 0.0f);
    }
 
    if (reverb->state & AAX_REVERB_1ST_ORDER)
@@ -839,10 +836,9 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    if (reverb->state & AAX_REVERB_2ND_ORDER)
    {
       int tracks = reverb->info->no_tracks;
-      float gain = reverb->loopbacks_gain;
 
       _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
-                     ds, track, tracks, dst, state, gain);
+                     ds, track, tracks, dst, state);
       filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
                   NULL, 1.0f, 0);
    }
@@ -851,8 +847,13 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    {  // add the current direct path buffer to the parent direct path
       const _aaxRingBufferReverbData *parent_reverb = parent_data;
       dptr = (MIX_T*)parent_reverb->direct_path->history[track];
+      rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
    }
-   rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
+   else
+   {
+      rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
+      _batch_atanps(dptr, dptr, no_samples);
+   }
    memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
 
    return AAX_TRUE;
