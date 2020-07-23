@@ -11,6 +11,7 @@
  * Speed up of the frequency filter by not filtering all of the delay effects
    buffer but only the no. samples that are required by the delay-effects.
    frequency to prevent instability of frequency filters.
+ * A complete rewrite of the reverb effect fixing a regression in the process.
  * Complete rewrite of the non-graphical equazlizer. Add support for a third
    cutoff frequency, making it a four-band equalizer. And add the option to
    define a filtering order for every section when using AAXS files.
@@ -18,7 +19,6 @@
  * Add the option to limit the spead of the instruments which are defined wide-
    stereo.
  * Fix a regression for the compressor.
- * Fix a regression in reverb.
 
 -- Erik Hofman <tech@adalin.org>  May 24 Apr 2020 15:34:41 + 0100
 
