@@ -23,10 +23,18 @@
   <waveform src="impulse" ratio="0.7"/>
   <waveform src="sawtooth" processing="add" ratio="0.7"/>
   <waveform src="impulse" processing="add" ratio="0.4" pitch="0.99771"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="9.0">7920.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.2</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-time="0.14">
    <slot n="0">
     <param n="0">0.204</param>
     <param n="1">0.05</param>
