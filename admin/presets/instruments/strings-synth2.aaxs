@@ -21,8 +21,16 @@
 
  <sound gain="0.96" db="-0.7" frequency="880" duration="0.5">
   <waveform src="sawtooth" ratio="0.75"/>
-  <waveform src="triangle" processing="add" ratio="0.1" pitch="1.499"/>
-  <waveform src="sawtooth" processing="mix" ratio="0.2" pitch="0.9889"/>
+  <waveform src="triangle" processing="add" ratio="0.5" pitch="1.499"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.1" pitch="0.9889"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="10.0">8800.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
