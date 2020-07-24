@@ -115,16 +115,24 @@ int
 _aaxThreadSetAffinity(void *t, int core)
 {
 #if defined(IRIX)
-   pthread_setrunon_np(core);
+  return pthread_setrunon_np(core);
 
 #elif defined(CPU_ZERO) && defined(CPU_SET)
    pthread_t *id = t;
    cpu_set_t cpus;
+   int rv;
 
    CPU_ZERO(&cpus);
    CPU_SET(core, &cpus);
 
-   return pthread_setaffinity_np(*id, sizeof(cpu_set_t), &cpus);
+   rv = pthread_setaffinity_np(*id, sizeof(cpu_set_t), &cpus);
+   if (!pthread_getaffinity_np(*id, sizeof(cpu_set_t), &cpus) &&
+       !CPU_ISSET(core, &cpus))
+   {
+      _TH_SYSLOG("setting thread affinity failed");
+   }
+
+   return rv;
 #else
 # pragma waring implement me
 #endif
