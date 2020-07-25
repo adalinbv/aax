@@ -31,7 +31,7 @@
 FN_PREALIGN void
 _batch_fmadd_fma3(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   int need_step = (fabsf(vstep) <=  LEVEL_96DB) ? 0 : 1;
+   int need_step = (fabsf(vstep*num) < 1.5f) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;

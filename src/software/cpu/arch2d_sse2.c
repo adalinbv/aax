@@ -874,7 +874,7 @@ _batch_imadd_sse2(int32_ptr dst, const_int32_ptr src, size_t num, float v, float
    }
 }
 
-static void
+void
 _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
 {
    float32_ptr s = (float32_ptr)src;
@@ -896,7 +896,7 @@ _batch_fadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num)
    }
    stmp = (size_t)s & MEMMASK16;
 
-   step = 1*sizeof(__m128)/sizeof(float);
+   step = sizeof(__m128)/sizeof(float);
    i = num/step;
    if (i)
    {
@@ -971,7 +971,7 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
          }
       }
 
-      step = 1*sizeof(__m128)/sizeof(float);
+      step = sizeof(__m128)/sizeof(float);
 
       i = num/step;
       if (i)
@@ -1034,7 +1034,7 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
          }
       }
 
-      step = 1*sizeof(__m128d)/sizeof(double);
+      step = sizeof(__m128d)/sizeof(double);
 
       i = num/step;
       if (i)
@@ -1090,13 +1090,13 @@ _batch_fmul_value_sse2(void* dptr, const void *sptr, unsigned bps, size_t num, f
 void
 _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
+   int need_step = (fabsf(vstep*num) < 1.5f) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step, dtmp, stmp;
 
    // nothing to do
-   if (!num || (fabsf(v) <= LEVEL_90DB && !need_step)) return;
+   if (!num || (fabsf(v) <= LEVEL_96DB && !need_step)) return;
 
    // volume ~= 1.0f and no change requested: just add both buffers
    if (fabsf(v - 1.0f) < LEVEL_90DB && !need_step) {
@@ -1214,7 +1214,6 @@ _batch_fmadd_sse2(float32_ptr dst, const_float32_ptr src, size_t num, float v, f
          __m128 tv = _mm_set1_ps(v);
          __m128 xmm0, xmm1, xmm2;
 
-         vstep *= step;
          num -= i*step;
          s += i*step;
          d += i*step;
