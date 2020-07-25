@@ -32,6 +32,7 @@
 #endif
 
 #include <api.h>
+#include <objects.h>
 #include <arch.h>
 #include <ringbuffer.h>
 
@@ -162,6 +163,15 @@ _aax_aligned_free_proc _aax_aligned_free= (_aax_aligned_free_proc)_aligned_free;
 _aax_aligned_free_proc _aax_aligned_free = (_aax_aligned_free_proc)free;
 #endif
 
+#if !BYTE_ALIGN
+char *
+_aax_malloc_aligned(char **start, size_t offs, size_t size)
+{
+   char *rv = malloc(size);
+   *start = rv+offs;
+   return rv;
+}
+#else
 char *
 _aax_malloc_aligned(char **start, size_t offs, size_t size)
 {
@@ -195,7 +205,17 @@ _aax_malloc_aligned(char **start, size_t offs, size_t size)
 
    return ptr;
 }
+#endif
 
+#if !BYTE_ALIGN
+char *
+_aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
+{
+   char *rv = calloc(num, size);
+   *start = rv+offs;
+   return rv;
+}
+#else
 char *
 _aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
 {
@@ -231,6 +251,7 @@ _aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
 
    return ptr;
 }
+#endif
 
 void
 _aax_free_aligned(void *ptr)

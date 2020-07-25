@@ -199,7 +199,7 @@ _aaxRingBufferDestroy(_aaxRingBuffer *rb)
    {
       if (--rbd->ref_counter == 0)
       {
-         if (rbd->track) free(rbd->track);
+         if (rbd->track) _aax_free(rbd->track);
          rbd->track = NULL;
 
          if (rbd->scratch) free(rbd->scratch);
@@ -253,16 +253,13 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
        * The first bytes are reserved for the track pointers
        */
       tracksize = dde_bytes + (no_samples + MEMMASK) * bps;
-#if BYTE_ALIGN
+
       /* 16-byte align every buffer */
       tracksize = SIZE_ALIGNED(tracksize);
 
       tracks = rbd->no_tracks;
       offs = tracks * sizeof(void*);
       ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
-#else
-      ptr = ptr2 = calloc(tracks, offs+tracksize);
-#endif
       if (ptr)
       {
          size_t i;
@@ -316,15 +313,11 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
       tracksize = 2*dde_bytes + no_samples*bps;
       tracks = MAX_SCRATCH_BUFFERS;
 
-#if BYTE_ALIGN
       /* align every buffer */
       tracksize = SIZE_ALIGNED(tracksize);
 
       offs = tracks * sizeof(void*);
       ptr = _aax_calloc(&ptr2, offs, tracks, tracksize);
-#else
-      ptr = ptr2 = calloc(tracks, offs+tracksize);
-#endif
       if (ptr)
       {
          rbd->scratch = (void **)ptr;
@@ -1555,7 +1548,6 @@ _aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size,
    size *= sizeof(MIX_T);
    offs = sizeof(_aaxRingBufferHistoryData);
    size += offs;
-#if BYTE_ALIGN
    if (size & MEMMASK)
    {
       size |= MEMMASK;
@@ -1563,10 +1555,6 @@ _aaxRingBufferCreateHistoryBuffer(_aaxRingBufferHistoryData **data, size_t size,
    }
 
    ptr = _aax_calloc(&p, offs, tracks, size);
-#else
-   ptr = calloc(tracks, size);
-   p = ptr+offs;
-#endif
    if (ptr)
    {
       _aaxRingBufferHistoryData *history = (_aaxRingBufferHistoryData*)ptr;
