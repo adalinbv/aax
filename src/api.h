@@ -108,7 +108,8 @@ typedef struct
 {
    _aaxAudioFrame *mixer;
 
-   /* parametric equalizer, located at _handle_t **/
+   /* high-pass filter at 20 Hz **/
+   _aaxRingBufferFreqFilterData *filter[2];
    void *mutex;
 
 } _sensor_t;

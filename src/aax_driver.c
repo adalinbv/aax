@@ -925,6 +925,59 @@ get_driver_handle(void *c)
    return rv;
 }
 
+static void
+_aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
+{
+   /* 20 Hz high-pass filter */
+   if (flt[0] == NULL)
+   {
+      size_t dsize = sizeof(_aaxRingBufferFreqFilterData);
+      flt[0] = _aax_aligned_alloc(2*dsize);
+      if (flt[0])
+      {
+         memset(flt[0], 0, 2*dsize);
+         flt[1] = flt[0] + 1;
+      }
+   }
+
+   if (flt[0] && !flt[0]->freqfilter)
+   {
+      size_t dsize = sizeof(_aaxRingBufferFreqFilterHistoryData);
+      flt[0]->freqfilter = _aax_aligned_alloc(2*dsize);
+      if (flt[0]->freqfilter)
+      {
+         memset(flt[0]->freqfilter, 0, 2*dsize);
+         flt[1]->freqfilter = flt[0]->freqfilter + 1;
+      }
+      else
+      {
+         _aax_aligned_free(flt[0]);
+         flt[0] = NULL;
+      }
+   }
+
+   if (flt[0])
+   {
+      flt[0]->no_stages = 1;
+      flt[0]->state = AAX_BUTTERWORTH;
+      flt[0]->Q = 1.0f;
+      flt[0]->type = HIGHPASS;
+      flt[0]->high_gain = 1.0f;
+      flt[0]->low_gain = 0.0f;
+      flt[0]->fs = fs;
+      _aax_butterworth_compute(20.0f, flt[0]);
+
+      flt[1]->no_stages = 1;
+      flt[1]->state = AAX_BUTTERWORTH;
+      flt[1]->Q = 1.0f;
+      flt[1]->type = LOWPASS;
+      flt[1]->high_gain = 1.0f;
+      flt[1]->low_gain = 0.0f;
+      flt[1]->fs = fs;
+      _aax_butterworth_compute(20000.0f, flt[1]);
+   }
+}
+
 static _handle_t*
 _open_handle(aaxConfig config)
 {
@@ -954,6 +1007,7 @@ _open_handle(aaxConfig config)
                _aaxAudioFrame* smixer;
 
                sensor->mutex = _aaxMutexCreate(NULL);
+               _aaxSetEqualizer(sensor->filter, handle->info->frequency);
 
                size = sizeof(_sensor_t);
                smixer = (_aaxAudioFrame*)((char*)sensor + size);
@@ -1400,6 +1454,16 @@ _aaxFreeSensor(void *ssr)
    _sensor_t *sensor = (_sensor_t*)ssr;
    _aaxAudioFrame* smixer = sensor->mixer;
    int i;
+
+   if (sensor->filter[0])
+   {
+      _aaxRingBufferFreqFilterData *flt = sensor->filter[0];
+      if (flt->freqfilter) {
+         _aax_aligned_free(flt->freqfilter);
+      }
+      _aax_aligned_free(flt);
+      sensor->filter[0] = NULL;
+   }
 
    if (sensor->mixer->filter[EQUALIZER_LF].data) {
       _aaxMutexDestroy(sensor->mutex);

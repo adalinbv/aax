@@ -125,7 +125,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
       char reflections=(rstate & AAX_REVERB_1ST_ORDER) ? AAX_TRUE : AAX_FALSE;
       char loopbacks = (rstate & AAX_REVERB_2ND_ORDER) ? AAX_TRUE : AAX_FALSE;
       _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
-      unsigned int tracks = effect->info->no_tracks;
+      unsigned int no_tracks = effect->info->no_tracks;
       float lb_depth, rate = 23.0f;
       float depth, fs = 48000.0f;
 
@@ -156,7 +156,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          {
             reverb->no_samples = TIME_TO_SAMPLES(fs, 1.0f/rate);
             _aaxRingBufferCreateHistoryBuffer(&reverb->direct_path,
-                                              reverb->no_samples, tracks);
+                                              reverb->no_samples, no_tracks);
          }
 
          if (!flt)
@@ -184,11 +184,34 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
          decay_level = effect->slot[0]->param[AAX_DECAY_LEVEL];
 
          if (reflections) {
-            _reverb_add_reflections(reverb, fs, tracks, depth, state, decay_level);
+            _reverb_add_reflections(reverb, fs, no_tracks, depth, state, decay_level);
          }
 
-         if (loopbacks) {
-            _reverb_add_loopbacks(reverb, fs, tracks, lb_depth, decay_level);
+         if (loopbacks)
+         {
+            size_t offs, tracksize;
+            char *ptr, *ptr2;
+
+            _reverb_add_loopbacks(reverb, fs, no_tracks, lb_depth, decay_level);
+
+            tracksize = (reverb->no_samples + MEMMASK) * sizeof(MIX_T);
+
+            /* 16-byte align every buffer */
+            tracksize = SIZE_ALIGNED(tracksize);
+
+            offs = no_tracks * sizeof(void*);
+            ptr = _aax_calloc(&ptr2, offs, no_tracks, tracksize);
+            if (ptr)
+            {
+               size_t i;
+
+               reverb->track_prev = (void **)ptr;
+               for (i=0; i<no_tracks; i++)
+               {
+                  reverb->track_prev[i] = ptr2;
+                  ptr2 += tracksize;
+               }
+            }
          }
 
          if (flt)
@@ -415,6 +438,9 @@ _reverb_destroy(void *ptr)
          _loopbacks_destroy_delays(reverb);
          reverb->loopbacks = NULL;
       }
+      if (reverb->track_prev) _aax_free(reverb->track_prev);
+      reverb->track_prev = NULL;
+
       free(reverb);
    }
 }
@@ -514,7 +540,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
 
       num = NUM_REFLECTIONS;
-      decay_level /= (1.0f + num);
+      decay_level /= num;
 
       gains[0] = decay_level*0.9484f;      // conrete/brick = 0.95
       gains[1] = decay_level*0.8935f;      // wood floor    = 0.90
@@ -608,7 +634,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          num = NUM_LOOPBACKS;
          loopbacks->no_loopbacks = num;
 
-         decay_level /= (0.01f*num + num);
+         decay_level /= num;
          loopbacks->loopback[0].gain = decay_level*0.95015f;   // conrete/brick = 0.95
          loopbacks->loopback[1].gain = decay_level*0.87075f;
          loopbacks->loopback[2].gain = decay_level*0.91917f;
@@ -653,11 +679,7 @@ _loopbacks_destroy_delays(_aaxRingBufferReverbData *reverb)
    if (loopbacks)
    {
       loopbacks->no_loopbacks = 0;
-#if BYTE_ALIGN
       if (loopbacks->reverb) _aax_free(loopbacks->reverb);
-#else
-      if (loopbacks->reverb) free(loopbacks->reverb);
-#endif
       loopbacks->reverb = NULL;
       _aax_aligned_free(loopbacks);
    }
@@ -741,7 +763,6 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
    {
       _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
       size_t bytes = ds*sizeof(MIX_T);
-      void **tracks = rbd->track;
       int q;
 
       memcpy(scratch, dptr, no_samples*sizeof(MIX_T));
@@ -764,13 +785,6 @@ _loopbacks_run(_aaxRingBufferLoopbackData *loopbacks, void *rb, MIX_PTR_T dptr, 
          }
       }
       memcpy(loopbacks->reverb->history[track], dptr+no_samples-ds, bytes);
-
-      // feed the result back to the other channels
-      for(q=0; q<no_tracks; ++q) {
-         if (q != track) {
-            rbd->add(tracks[q], dptr, no_samples, -1.0f, 0.0f);
-         }
-      }
    }
 
    return rv;
@@ -835,12 +849,13 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
    if (reverb->state & AAX_REVERB_2ND_ORDER)
    {
-      int tracks = reverb->info->no_tracks;
+      int no_tracks = reverb->info->no_tracks;
 
       _loopbacks_run(reverb->loopbacks, rb, dptr, scratch, no_samples,
-                     ds, track, tracks, dst, state);
+                     ds, track, no_tracks, dst, state);
       filter->run(rbd, dptr, dptr, 0, no_samples, 0, track, filter,
                   NULL, 1.0f, 0);
+      memcpy(reverb->track_prev[track], dptr, no_samples*sizeof(MIX_T));
    }
 
    if (parent_data != NULL)
@@ -848,13 +863,42 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       const _aaxRingBufferReverbData *parent_reverb = parent_data;
       dptr = (MIX_T*)parent_reverb->direct_path->history[track];
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
+      memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
+   }
+   else if (reverb->track_prev)
+   {
+      int q, r, no_tracks = reverb->info->no_tracks;
+
+      if (track == (no_tracks-1))
+      {
+         void **tracks = rbd->track;
+
+         // feed the result back to the other channels
+         for(q=0; q<no_tracks; ++q)
+         {
+            dptr = tracks[q];
+            for(r=0; r<no_tracks; ++r)
+            {
+               if (q != r)
+               {
+                  void *sptr = reverb->track_prev[r];
+                  rbd->add(dptr, sptr, no_samples, -1.0f, 0.0f);
+               }
+            }
+
+            // add the direct paths
+            direct = reverb->direct_path->history[q];
+            rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
+            memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
+         }
+      }
    }
    else
    {
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
-      _batch_atanps(dptr, dptr, no_samples);
+      memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
-   memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
+
 
    return AAX_TRUE;
 }

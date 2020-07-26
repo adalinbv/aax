@@ -285,6 +285,8 @@ typedef struct
    _aaxRingBufferLoopbackData *loopbacks;
    _aaxRingBufferFreqFilterData *freq_filter;
    _aaxRingBufferHistoryData *direct_path;
+   void** track_prev;
+
    size_t no_samples;
    float fc;
 

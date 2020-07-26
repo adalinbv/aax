@@ -319,6 +319,14 @@ _aaxSensorPostProcess(const void *id, const void *hid, void *d, const void *s, v
       rb->data_multiply(rb, 0, 0, g);
    }
 
+   if (sensor->filter[0])
+   {
+      for (t=0; t<no_tracks; t++) {
+         rbd->freqfilter(tracks[t], tracks[t], t, no_samples,sensor->filter[0]);
+         rbd->freqfilter(tracks[t], tracks[t], t, no_samples,sensor->filter[1]);
+      }
+   }
+
    _aaxFrameProcessEqualizer(rb, sensor->mixer);
    _aaxMutexUnLock(sensor->mutex);
 
