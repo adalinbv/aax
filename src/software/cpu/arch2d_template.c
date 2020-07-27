@@ -169,7 +169,7 @@ FN(batch_hmadd,A)(float32_ptr dptr, const_float16_ptr sptr, size_t num, float v,
 void
 FN(batch_fmadd,A)(float32_ptr dptr, const_float32_ptr sptr, size_t num, float v, float vstep)
 {
-   int need_step = (fabsf(vstep*num) < 1.5f) ? 0 : 1;
+   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
    float *s = (float*)sptr;
    float *d = dptr;
    size_t i = num;

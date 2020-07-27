@@ -682,7 +682,7 @@ _batch_fadd_neon(float32_ptr dst, const_float32_ptr src, size_t num)
 void
 _batch_fmadd_neon(float32_ptr dst, const_float32_ptr src, size_t num, float v, float vstep)
 {
-   int need_step = (fabsf(vstep*num) < 1.5f) ? 0 : 1;
+   int need_step = (fabsf(vstep) <= LEVEL_90DB) ? 0 : 1;
    float32_ptr s = (float32_ptr)src;
    float32_ptr d = (float32_ptr)dst;
    size_t i, step;
