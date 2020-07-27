@@ -928,7 +928,6 @@ get_driver_handle(void *c)
 static void
 _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
 {
-   /* 20 Hz high-pass filter */
    if (flt[0] == NULL)
    {
       size_t dsize = sizeof(_aaxRingBufferFreqFilterData);
@@ -958,6 +957,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
 
    if (flt[0])
    {
+      /* 20 Hz high-pass filter */
       flt[0]->no_stages = 1;
       flt[0]->state = AAX_BUTTERWORTH;
       flt[0]->Q = 1.0f;
@@ -967,6 +967,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[0]->fs = fs;
       _aax_butterworth_compute(20.0f, flt[0]);
 
+      /* 90% of half the sample rate low-pass filter */
       flt[1]->no_stages = 1;
       flt[1]->state = AAX_BUTTERWORTH;
       flt[1]->Q = 1.0f;
@@ -974,7 +975,7 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
       flt[1]->high_gain = 1.0f;
       flt[1]->low_gain = 0.0f;
       flt[1]->fs = fs;
-      _aax_butterworth_compute(20000.0f, flt[1]);
+      _aax_butterworth_compute(0.9f*0.5f*fs, flt[1]);
    }
 }
 

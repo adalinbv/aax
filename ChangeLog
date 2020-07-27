@@ -7,8 +7,8 @@
  * Delay volume clipping until the every last moment. This may require
    the emitters AAX_MAX_GAIN to be set to a higher value since the gain
    could get higher than AAX_MAX_GAIN for the final calculation.
- * Limit the cutoff frequency range between 20Hz and 90% of half the sample
-   frequency to prevent instability of frequency filters.
+ * Limit the cutoff frequency range for frequency filters between 20Hz and
+   90% of half the sample frequency to prevent instability.
  * Speed up of the frequency filter by not filtering all of the delay effects
    buffer but only the no. samples that are required by the delay-effects.
  * A complete rewrite of the reverb effect fixing a regression in the process.
