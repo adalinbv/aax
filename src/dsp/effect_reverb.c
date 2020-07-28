@@ -540,7 +540,7 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
 
       num = NUM_REFLECTIONS;
-      decay_level /= num;
+      decay_level /= 0.95f*num;
 
       gains[0] = decay_level*0.9484f;      // conrete/brick = 0.95
       gains[1] = decay_level*0.8935f;      // wood floor    = 0.90
@@ -634,7 +634,7 @@ _reverb_add_loopbacks(_aaxRingBufferReverbData *reverb, float fs, unsigned int t
          num = NUM_LOOPBACKS;
          loopbacks->no_loopbacks = num;
 
-         decay_level /= num;
+         decay_level /= 0.85f*num;
          loopbacks->loopback[0].gain = decay_level*0.95015f;   // conrete/brick = 0.95
          loopbacks->loopback[1].gain = decay_level*0.87075f;
          loopbacks->loopback[2].gain = decay_level*0.91917f;
@@ -862,6 +862,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
    {  // add the current direct path buffer to the parent direct path
       const _aaxRingBufferReverbData *parent_reverb = parent_data;
       dptr = (MIX_T*)parent_reverb->direct_path->history[track];
+
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
       memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
@@ -888,6 +889,7 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
 
             // add the direct paths
             direct = reverb->direct_path->history[q];
+
             rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
             memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
          }
@@ -898,7 +900,6 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
       rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
       memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
-
 
    return AAX_TRUE;
 }
