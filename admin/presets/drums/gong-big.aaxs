@@ -19,16 +19,16 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.60" db="-6.0" frequency="44" duration="0.3">
+ <sound gain="1.10" db="-10.3" frequency="44" duration="0.3">
   <waveform src="square" pitch="1.493"/>
-  <waveform src="white-noise" processing="add" ratio="0.8" pitch="0.2"/>
-  <waveform src="sine" processing="add" ratio="0.5" pitch="0.75"/>
-  <waveform src="sine" processing="add" ratio="0.5"/>
-  <waveform src="triangle" processing="modulate" pitch="2.387"/>
+  <waveform src="white-noise" processing="add" ratio="0.3" pitch="0.2"/>
+  <waveform src="triangle" processing="add" ratio="0.3" pitch="0.75"/>
+  <waveform src="sine" processing="add"/>
+  <waveform src="triangle" processing="modulate" pitch="3.5"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="frequency" src="inverse-timed" optional="true">
+  <filter type="frequency" src="envelope|logarithmic" optional="true">
    <slot n="0">
     <param n="0" pitch="12.5">550.0</param>
     <param n="1">1.0</param>
@@ -39,29 +39,23 @@
     <param n="0" pitch="80.0">3520.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.09</param>
+    <param n="3">0.025</param>
    </slot>
   </filter>
   <filter type="timed-gain" src="envelope" release-time="3.0">
    <slot n="0">
-    <param n="0">2.0</param>
+    <param n="0">3.29</param>
     <param n="1">0.5</param>
-    <param n="2">1.19</param>
-    <param n="3">2.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.169</param>
-    <param n="1">3.5</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="2">2.34</param>
+    <param n="3">5.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.15</param>
-    <param n="1">0.05</param>
+    <param n="0">2.15</param>
+    <param n="1">0.02</param>
     <param n="2">1.05</param>
-    <param n="3">0.08</param>
+    <param n="3">0.18</param>
    </slot>
    <slot n="1">
     <param n="0">0.985</param>

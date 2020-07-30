@@ -39,12 +39,6 @@
     <param n="2">1.0</param>
     <param n="3">0.6</param>
    </slot>
-   <slot n="1">
-    <param n="0">0.95</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
   </effect>
  </emitter>
 

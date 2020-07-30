@@ -19,32 +19,63 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.80" db="-4.5" frequency="800" duration="0.3">
-  <waveform src="pink-noise" ratio="0.8" pitch="0.25"/>
-  <waveform src="sine" processing="add" ratio="0.6"/>
-  <waveform src="sine" processing="add" ratio="0.6" pitch="0.6"/>
+ <sound gain="1.16" db="-12.0" frequency="700" duration="0.3">
+  <waveform src="sine" ratio="0.28"/>
+  <waveform src="sine" processing="add" ratio="0.37" pitch="0.65"/>
+  <waveform src="sine" processing="add" ratio="0.03" pitch="16.0"/>
+  <waveform src="pink-noise" processing="add" ratio="0.6" pitch="0.5"/>
+  <filter type="frequency">
+   <slot n="0">
+    <param n="0" pitch="0.5">350.0</param>
+    <param n="1">0.0</param>
+    <param n="2">1.0</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true" pan="0.31">
-  <filter type="timed-gain">
+  <filter type="bitcrusher" src="inverse-timed">
    <slot n="0">
-    <param n="0">1.2</param>
-    <param n="1">0.02</param>
-    <param n="2">1.67</param>
-    <param n="3">0.12</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.44</param>
-    <param n="1">0.25</param>
-    <param n="2">0.0</param>
+    <param n="0">0.0</param>
+    <param n="1">0.1</param>
+    <param n="2">0.35</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <effect type="timed-pitch">
+  <filter type="frequency" src="timed|logarithmic">
    <slot n="0">
-    <param n="0">1.8</param>
+    <param n="0" pitch="1.0">700.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="20.0">14000.0</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">16.0</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope" release-time="1.0">
+   <slot n="0">
+    <param n="0">4.0</param>
+    <param n="1">0.2</param>
+    <param n="2">2.73</param>
+    <param n="3">1.9</param>
+   </slot>
+  </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">4.8</param>
     <param n="1">0.01</param>
-    <param n="2">0.3</param>
+    <param n="2">1.0</param>
+    <param n="3">0.01</param>
+   </slot>
+   <slot n="1">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

@@ -19,53 +19,40 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.51" db="-6.3" frequency="1008" duration="0.01">
-  <waveform src="sawtooth" ratio="0.8" pitch="0.5"/>
+ <sound gain="0.57" db="-4.6" frequency="1008" duration="0.01">
+  <waveform src="sawtooth" ratio="0.4" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.8"/>
-  <waveform src="triangle" processing="add" ratio="0.7" pitch="3.0"/>
- </sound>
-
- <emitter looping="true" pan="-0.31">
-  <filter type="frequency" src="envelope" optional="true">
+  <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="1.0">1008.0</param>
+    <param n="0" pitch="8.0">8064.0</param>
     <param n="1">1.0</param>
     <param n="2">0.0</param>
     <param n="3">1.0</param>
    </slot>
-   <slot n="1">
-    <param n="0" pitch="5.0">5040.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.02</param>
+  </filter>
+ </sound>
+
+ <emitter looping="true" pan="-0.31">
+  <filter type="timed-gain" src="envelope" release-time="0.1">
+   <slot n="0">
+    <param n="0">1.57</param>
+    <param n="1">0.12</param>
+    <param n="2">1.69</param>
+    <param n="3">0.2</param>
    </slot>
   </filter>
-  <filter type="timed-gain">
+  <effect type="timed-pitch" src="envelope">
    <slot n="0">
-    <param n="0">1.31</param>
+    <param n="0">0.8</param>
     <param n="1">0.1</param>
-    <param n="2">2.06</param>
-    <param n="3">0.15</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.41</param>
-    <param n="1">0.2</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
-   </slot>
-  </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">1.0</param>
-    <param n="1">0.09</param>
     <param n="2">0.95</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
   <effect type="phasing" src="inverse-envelope" optional="true">
    <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.1</param>
+    <param n="0">0.4</param>
+    <param n="1">0.075</param>
     <param n="2">0.2</param>
     <param n="3">0.1</param>
    </slot>

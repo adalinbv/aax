@@ -12,14 +12,14 @@
 
 <aeonwave>
 
- <info name="Base Drum 1" bank="16" program="36">
+ <info name="Kick Base Drum" bank="16" program="36">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="1" gain="1.09" db="-6.1" frequency="55" duration="0.1">
+ <sound gain="0.97" db="-10.8" frequency="55" duration="0.1">
   <waveform src="triangle" ratio="0.4"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
   <filter type="bitcrusher">
@@ -27,21 +27,21 @@
     <param n="0">0.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
-    <param n="3">0.25</param>
+    <param n="3">0.15</param>
    </slot>
   </filter>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" release-time="0.1">
    <slot n="0">
-    <param n="0">2.03</param>
+    <param n="0">3.13</param>
     <param n="1">0.05</param>
-    <param n="2">1.76</param>
+    <param n="2">3.01</param>
     <param n="3">0.3</param>
    </slot>
    <slot n="1">
-    <param n="0">0.127</param>
+    <param n="0">0.216</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -50,7 +50,7 @@
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">3.0</param>
-    <param n="1">0.03</param>
+    <param n="1">0.04</param>
     <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
