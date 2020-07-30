@@ -1,6 +1,6 @@
---- /tmp/stb_vorbis.c	2020-05-11 10:29:27.021494081 +0200
-+++ stb_vorbis.c	2020-05-11 10:31:10.236120785 +0200
-@@ -76,6 +76,7 @@
+--- /tmp/stb_vorbis.c	2020-07-30 10:47:51.379522587 +0200
++++ stb_vorbis.c	2020-07-30 10:48:56.610484051 +0200
+@@ -78,6 +78,7 @@
  #ifndef STB_VORBIS_NO_STDIO
  #include <stdio.h>
  #endif
@@ -8,7 +8,7 @@
  
  #ifdef __cplusplus
  extern "C" {
-@@ -567,9 +568,17 @@
+@@ -569,9 +570,17 @@
  #include <stdio.h>
  #endif
  
@@ -28,18 +28,7 @@
     #include <assert.h>
     #include <math.h>
  
-@@ -578,7 +587,9 @@
-       #include <malloc.h>
-    #endif
-    #if defined(__linux__) || defined(__linux) || defined(__EMSCRIPTEN__)
--      #include <alloca.h>
-+      #ifndef HAVE_RMALLOC_H
-+         #include <alloca.h>
-+      #endif
-    #endif
- #else // STB_VORBIS_NO_CRT
-    #define NULL 0
-@@ -3050,7 +3061,7 @@
+@@ -3055,7 +3064,7 @@
  #else
  typedef int YTYPE;
  #endif
@@ -48,7 +37,7 @@
  {
     int n2 = n >> 1;
     int s = map->chan[i].mux, floor;
-@@ -3157,7 +3168,7 @@
+@@ -3162,7 +3171,7 @@
     return TRUE;
  }
  
