@@ -26,7 +26,7 @@
    <drum n="33" name="Metronome Click" file="drums/click-metronome"/>
    <drum n="34" name="Metronome Bell" file="drums/bell-metronome"/>
    <drum n="35" name="Acoustic Bass Drum" file="drums/drum-bass-acoustic"/>
-   <drum n="36" name="Bass Drum 1" file="drums/drum-bass1"/>
+   <drum n="36" name="Bass Drum 1" file="drums/drum-kick"/>
    <drum n="37" name="Side Stick" file="drums/stick-side"/>
    <drum n="38" name="Acoustic Snare" file="drums/drum-snare-acoustic"/>
    <drum n="39" name="Hand Clap" file="effects/humans/clap-hand"/>
@@ -98,7 +98,7 @@
   </bank>
 
   <bank n="16">
-   <drum n="36" name="Bass Drum 1" file="drums/power/drum-bass1"/>
+   <drum n="36" name="Bass Drum 1" file="drums/power/drum-kick"/>
    <drum n="38" name="Acoustic Snare" file="drums/power/drum-snare-acoustic"/>
    <drum n="41" name="Low Floor Tom" file="drums/power/tom-floor-low"/>
    <drum n="43" name="High Floor Tom" file="drums/power/tom-floor-high"/>
@@ -109,7 +109,7 @@
   </bank>
 
   <bank n="24">
-   <drum n="36" name="Bass Drum 1" file="drums/electronic/drum-bass1"/>
+   <drum n="36" name="Bass Drum 1" file="drums/electronic/drum-kick"/>
    <drum n="38" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
    <drum n="40" name="Acoustic Snare" file="drums/electronic/drum-snare-electronic1"/>
    <drum n="41" name="Low Floor Tom" file="drums/electronic/tom-floor-low"/>
@@ -122,7 +122,7 @@
   </bank>
 
   <bank n="25">
-   <drum n="36" name="Bass Drum 1" file="drums/analog/drum-bass1"/>
+   <drum n="36" name="Bass Drum 1" file="drums/analog/drum-kick"/>
 <!--   <drum n="37" name="Side Stick" file="drums/analog/stick-side"/> -->
    <drum n="38" name="Acoustic Snare" file="drums/analog/drum-snare-acoustic"/>
    <drum n="40" name="Electric Snare" file="drums/analog/drum-snare-electric"/>
@@ -145,14 +145,14 @@
 
   <bank n="32">
    <drum n="35" name="Acoustic Bass Drum" file="drums/jazz/drum-bass-acoustic"/>
-   <drum n="36" name="Bass Drum 1" file="drums/jazz/drum-bass1"/>
+   <drum n="36" name="Bass Drum 1" file="drums/jazz/drum-kick"/>
   </bank>
 
   <bank n="40">
    <drum n="24" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
    <drum n="25" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
    <drum n="35" name="Acoustic Bass Drum" file="drums/brush/drum-bass-acoustic"/>
-   <drum n="36" name="Bass Drum 1" file="drums/brush/drum-bass1"/>
+   <drum n="36" name="Bass Drum 1" file="drums/brush/drum-kick"/>
    <drum n="38" name="Snare Brush Tap" file="drums/brush/drum-brush-tap"/>
    <drum n="39" name="Snare Brush Slap" file="drums/brush/drum-brush-slap"/>
    <drum n="40" name="Snare Brush Swirl" file="drums/brush/drum-brush-swirl"/>
@@ -164,7 +164,7 @@
    <drum n="29" name="Open Hi-Hat" file="drums/orchestra/hi-hat-open"/>
    <drum n="30" name="Ride Cymbal" file="drums/orchestra/cymbal-ride"/>
    <drum n="35" name="Concert Bass Drum 2" file="drums/orchestra/drum-bass-acoustic"/>
-   <drum n="36" name="Concert Bass Drum 1" file="drums/orchestra/drum-bass1"/>
+   <drum n="36" name="Concert Bass Drum 1" file="drums/orchestra/drum-kick"/>
    <drum n="38" name="Concert Snare" file="drums/orchestra/drum-snare-acoustic"/>
    <drum n="39" name="Castanets" file="effects/humans/castanets"/>
    <drum n="40" name="Concert Snare 2" file="drums/orchestra/drum-snare-electric"/>
