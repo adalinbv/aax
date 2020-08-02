@@ -70,9 +70,14 @@ static float _aax_linear(float v) {
    return v;
 }
 
+static inline float fast_atanf(float x) {
+  return GMATH_PI_4*x + 0.273f*x * (1.0f -fabsf(x));
+}
+
 static float
 _aax_atanf(float v) {
-   return atanf(v)*GMATH_1_PI_2;
+// return atanf(v)*GMATH_1_PI_2;
+   return fast_atanf( _MINMAX(v*GMATH_1_PI_2, -1.94139795f, 1.94139795f) );
 }
 
 void
