@@ -131,7 +131,7 @@ int main()		// x86		ARM
       _aaxRingBufferFreqFilterData flt;
       float rms1, rms2, peak1, peak2;
       double *dsrc, *ddst1, *ddst2;
-      double cpu, eps;
+      double cpu, cpu2, eps;
       int i;
 
       for (i=0; i<MAXNUM; ++i) {
@@ -471,6 +471,7 @@ int main()		// x86		ARM
       _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
       cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
       printf("\nButterworth freqfilter cpu:  %f\n", cpu*1000.0f);
+      cpu2 = cpu;
 
       if (simd)
       {
@@ -524,7 +525,7 @@ int main()		// x86		ARM
       t = clock();
       _batch_freqfilter_float(dst1, src, 0, MAXNUM, &flt);
       cpu = (double)(clock() - t)/ CLOCKS_PER_SEC;
-      printf("\nBessel freqfilter cpu:  %f\n", cpu*1000.0f);
+      printf("\nBessel freqfilter cpu:  %f - Butterworth x %3.1f\n", cpu*1000.0f, cpu2/cpu);
 
       if (simd)
       {
