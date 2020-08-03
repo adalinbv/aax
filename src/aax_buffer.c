@@ -2005,10 +2005,9 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       }
 
       rv = AAX_TRUE;
+      fs_mixer = _info->frequency;
       if (handle->mixer_info && *handle->mixer_info) {
          fs_mixer = (*handle->mixer_info)->frequency;
-      } else {
-         fs_mixer = 0.0f;
       }
 
       phasing = (spread <0.0f);
