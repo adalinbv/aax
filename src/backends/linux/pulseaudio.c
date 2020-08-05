@@ -263,9 +263,10 @@ static void source_device_cb(pa_context*, const pa_source_info*, int, void*);
 static float _pulseaudio_set_volume(_driver_t*, _aaxRingBuffer*, ssize_t, uint32_t, unsigned int, float);
 
 static const char* detect_name(_driver_t*);
-static void _aaxContextConnect(_driver_t*);
-static void _aaxStreamConnect(_driver_t*,  pa_stream_flags_t flags, int*);
+static void _aaxPulseAudioContextConnect(_driver_t*);
+static void _aaxPulseAudioStreamConnect(_driver_t*,  pa_stream_flags_t flags, int*);
 static char *_aaxPulseAudioDriverLogVar(const void *, const char *, ...);
+static enum aaxFormat _aaxPulseAudioGetFormat(pa_sample_format_t);
 
 static const char *_const_pulseaudio_default_name = DEFAULT_DEVNAME;
 const char *_const_pulseaudio_default_device = NULL;
@@ -380,7 +381,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
       handle->bits_sample = 16;
       handle->spec.rate = 44100;
       handle->spec.channels = 2;
-      handle->spec.format = is_bigendian()? PA_SAMPLE_S16BE:PA_SAMPLE_S16LE;
+      handle->spec.format = is_bigendian() ? PA_SAMPLE_S16BE : PA_SAMPLE_S16LE;
       handle->samples = get_pow2(handle->spec.rate*handle->spec.channels/DEFAULT_REFRESH);
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
@@ -402,7 +403,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
       handle->max_frequency = _AAX_MAX_MIXER_FREQUENCY;
 #endif
 
-      _aaxContextConnect(handle);
+      _aaxPulseAudioContextConnect(handle);
       if (handle->ctx)
       {
          pa_operation *opr;
@@ -634,13 +635,14 @@ _aaxPulseAudioDriverSetup(const void *id, float *refresh_rate, int *fmt,
          flags |= PA_STREAM_START_CORKED;
       }
 
-      _aaxStreamConnect(handle, flags, &error);
+      _aaxPulseAudioStreamConnect(handle, flags, &error);
       if (!handle->pa || error != PA_STREAM_READY) {
          _aaxPulseAudioDriverLogVar(id, "connect: %s", ppa_strerror(error));
       }
 
       frame_sz = handle->spec.channels*handle->bits_sample/8;
       handle->samples = period_samples*frame_sz;
+      handle->format = _aaxPulseAudioGetFormat(handle->spec.format);
 #if 0
  printf("spec:\n");
  printf("   frequency: %i\n", handle->spec.rate);
@@ -1030,7 +1032,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
       else
       {
          handle = calloc(1, sizeof(_driver_t));
-         _aaxContextConnect(handle);
+         _aaxPulseAudioContextConnect(handle);
       }
 
       if (handle->ctx)
@@ -1590,7 +1592,7 @@ source_device_cb(UNUSED(pa_context *context), const pa_source_info *info, int eo
 }
 
 static void
-_aaxContextConnect(_driver_t *handle)
+_aaxPulseAudioContextConnect(_driver_t *handle)
 {
    static char pulse_avail = AAX_TRUE;
    const char *name = AAX_LIBRARY_STR;
@@ -1658,16 +1660,93 @@ _aaxContextConnect(_driver_t *handle)
    }
 }
 
+static enum aaxFormat
+_aaxPulseAudioGetFormat(pa_sample_format_t format)
+{
+   enum aaxFormat rv = AAX_PCM16S;
+   switch(format)
+   {
+      case PA_SAMPLE_U8 :
+         rv = AAX_PCM8U;
+         break;
+      case PA_SAMPLE_ALAW:
+         rv = AAX_ALAW;
+         break;
+      case PA_SAMPLE_ULAW:
+         rv = AAX_MULAW;
+         break;
+#if __BYTE_ORDER == __BIG_ENDIAN
+      case PA_SAMPLE_S16LE:
+         rv = AAX_PCM16S_LE;
+         break;
+      case PA_SAMPLE_S16BE:
+         rv = AAX_PCM16S;
+         break;
+      case PA_SAMPLE_FLOAT32LE:
+         rv = AAX_FLOAT_LE;
+         break;
+      case PA_SAMPLE_FLOAT32BE:
+         rv = AAX_FLOAT;
+         break;
+      case PA_SAMPLE_S32LE:
+         rv = AAX_PCM32S_LE;
+         break;
+      case PA_SAMPLE_S32BE:
+         rv = AAX_PCM32S;
+         break;
+      case PA_SAMPLE_S24_32LE:
+         rv = AAX_PCM24S_LE;
+         break;
+      case PA_SAMPLE_S24_32BE:
+         rv = AAX_PCM24S;
+         break;
+#else
+      case PA_SAMPLE_S16LE:
+         rv = AAX_PCM16S;
+         break;
+      case PA_SAMPLE_S16BE:
+         rv = AAX_PCM16S_BE;
+         break;
+      case PA_SAMPLE_FLOAT32LE:
+         rv = AAX_FLOAT;
+         break;
+      case PA_SAMPLE_FLOAT32BE:
+         rv = AAX_FLOAT_BE;
+         break;
+      case PA_SAMPLE_S32LE:
+         rv = AAX_PCM32S;
+         break;
+      case PA_SAMPLE_S32BE:
+         rv = AAX_PCM32S_BE;
+         break;
+      case PA_SAMPLE_S24LE:
+         rv = AAX_PCM24S_PACKED;
+         break;
+      case PA_SAMPLE_S24_32LE:
+         rv = AAX_PCM24S;
+         break;
+      case PA_SAMPLE_S24_32BE:
+         rv = AAX_PCM24S_BE;
+         break;
+#endif
+      default:
+         break;
+   }
+   return rv;
+}
 
 static void
-_aaxStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
+_aaxPulseAudioStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *error)
 {
    const char *agent = aaxGetVersionString((aaxConfig)handle);
    pa_channel_map map;
 
    *error = PA_STREAM_READY;
 
-   ppa_channel_map_init_auto(&map, handle->spec.channels, PA_CHANNEL_MAP_WAVEEX);
+   if (!ppa_channel_map_init_auto(&map, handle->spec.channels, PA_CHANNEL_MAP_WAVEEX)) {
+      _AAX_SYSLOG("pulse; unsupported channel map.");
+   }
+
    handle->pa = ppa_stream_new(handle->ctx, agent, &handle->spec, &map);
    if (handle->pa)
    {
