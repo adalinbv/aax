@@ -223,8 +223,8 @@ static int oserror(void);
 static int
 _aaxDMediaDriverDetect(UNUSED(int mode))
 {
+   static void *audio = NULL;
    static int rv = AAX_FALSE;
-   void *audio = NULL;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 

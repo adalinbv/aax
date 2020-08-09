@@ -209,6 +209,7 @@ _aaxSetDefaultFilter3d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       if (data) {
          memset(data, 0, dsize);
          data->run = _aaxDistanceFn[1];
+         filter->destroy = _aax_aligned_free;
          filter->data_size = dsize;
          filter->data = data;
       }

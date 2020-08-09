@@ -2443,7 +2443,7 @@ get_devices_avail(int mode)
    if (rv[m] == 0)
    {
       res = psnd_device_name_hint(-1, "pcm", &hints);
-      if (!res && hints)
+      if (!res)
       {
          void **lst = hints;
 
@@ -2462,9 +2462,7 @@ get_devices_avail(int mode)
             ++lst;
          }
          while (*lst != NULL);
-      }
 
-      if (hints) {
          res = psnd_device_name_free_hint(hints);
       }
    }

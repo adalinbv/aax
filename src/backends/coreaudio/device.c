@@ -115,8 +115,8 @@ static const int __rate[] = { AL_INPUT_RATE, AL_OUTPUT_RATE };
 static int
 _aaxCoreAudioDriverDetect(UNUSED(int mode))
 {
+   static void *audio = NULL;
    static int rv = AAX_FALSE;
-   void *audio = NULL;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 

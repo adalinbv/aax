@@ -199,8 +199,8 @@ const char *_const_sdl_default_device = NULL;
 static int
 _aaxSDLDriverDetect(UNUSED(int mode))
 {
+   static void *audio = NULL;
    static int rv = AAX_FALSE;
-   void *audio = NULL;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 

@@ -502,7 +502,6 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
    _aaxRingBufferReflectionData *reflections = reverb->reflections;
 
    assert(reverb != 0);
-   assert(num < _AAX_MAX_DELAYS);
 
    if (reflections == NULL)
    {
@@ -540,6 +539,8 @@ _reverb_add_reflections(_aaxRingBufferReverbData *reverb, float fs, unsigned int
       // http://www.sae.edu/reference_material/pages/Coefficient%20Chart.htm
 
       num = NUM_REFLECTIONS;
+      assert(num < _AAX_MAX_DELAYS);
+
       decay_level /= 0.95f*num;
 
       gains[0] = decay_level*0.9484f;      // conrete/brick = 0.95

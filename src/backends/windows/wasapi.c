@@ -326,8 +326,8 @@ static int _wasapi_set_volume(_driver_t*, int32_t**, ssize_t, size_t, unsigned i
 static int
 _aaxWASAPIDriverDetect(int mode)
 {
+   static void *audio = NULL;
    static int rv = AAX_FALSE;
-   void *audio = NULL;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
