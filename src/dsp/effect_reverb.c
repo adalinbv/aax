@@ -878,23 +878,20 @@ _reverb_run(void *rb, MIX_PTR_T dptr, CONST_MIX_PTR_T sptr, MIX_PTR_T scratch,
          // feed the result back to the other channels
          for(q=0; q<no_tracks; ++q)
          {
-            dptr = tracks[q];
+            void *xdptr = tracks[q];
             for(r=0; r<no_tracks; ++r)
             {
                if (q != r)
                {
                   void *sptr = reverb->track_prev[r];
-                  rbd->add(dptr, sptr, no_samples, -1.0f, 0.0f);
+                  rbd->add(xdptr, sptr, no_samples, -1.0f, 0.0f);
                }
             }
-
-            // add the direct paths
-            direct = reverb->direct_path->history[q];
-
-            rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
-            memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
          }
       }
+
+      rbd->add(dptr, direct, no_samples, 1.0f, 0.0f);
+      memset(direct, 0, reverb->no_samples*sizeof(MIX_T));
    }
    else
    {
