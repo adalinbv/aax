@@ -462,6 +462,8 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          const _intBufferData* dptr;
 
          src->buffer_pos = 0;
+         src->curr_pos_sec = 0.0f;
+
          handle->mtx_set = AAX_FALSE;
          dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
          if (dptr)
@@ -471,9 +473,6 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
             int i;
 
             rb->set_state(rb, RB_REWINDED);
-
-            src->buffer_pos = 0;
-            src->curr_pos_sec = 0.0f;
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
 //          _aaxMutexLock(src->props2d->mutex);
