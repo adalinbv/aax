@@ -19,9 +19,9 @@
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.50" db="0.6" frequency="220">
+ <sound gain="0.47" db="0.6" frequency="220">
   <waveform src="impulse" voices="3" spread="0.2"/>
-  <waveform src="square" processing="mix" ratio="0.5" pitch="0.9857"/>
+  <waveform src="square" processing="mix" ratio="0.5"/>
   <filter type="frequency" src="24db">
    <slot n="0">
     <param n="0" pitch="1.0">220.0</param>

@@ -20,7 +20,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.38" db="2.5" frequency="220" duration="0.1">
+ <sound gain="2.58" db="11.1" frequency="220" duration="0.1">
   <waveform src="sawtooth" pitch="0.25"/>
   <waveform src="sawtooth" processing="add" pitch="0.5"/>
  </sound>
@@ -42,15 +42,15 @@
   </filter>
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.0379</param>
+    <param n="0">0.0142</param>
     <param n="1">0.3</param>
-    <param n="2">0.747</param>
+    <param n="2">0.279</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">0.629</param>
+    <param n="0">0.235</param>
     <param n="1">inf</param>
-    <param n="2">0.629</param>
+    <param n="2">0.235</param>
     <param n="3">0.0</param>
    </slot>
   </filter>

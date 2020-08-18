@@ -12,43 +12,37 @@
 
 <aeonwave>
 
- <info name="Shotgun" bank="0" program="0">
+ <info>
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.37" db="-6.8" frequency="220" duration="0.3">
-  <waveform src="white-noise" pitch="0.1"/>
+ <sound gain="0.85" db="0.0" frequency="66" duration="0.1">
+  <waveform src="square"/>
+  <waveform src="sawtooth" processing="modulate" ratio="7.0" pitch="7.0"/>
+  <waveform src="sine" processing="modulate" ratio="2.5" pitch="20.0"/>
+  <waveform src="impulse" processing="modulate" ratio="6.5" pitch="1.15"/>
   <filter type="frequency" src="24db">
    <slot n="0">
-    <param n="0" pitch="4.5">990.0</param>
-    <param n="1">1.2</param>
+    <param n="0">300.0</param>
+    <param n="1">0.8</param>
     <param n="2">0.0</param>
-    <param n="3">1.5</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0">150.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">7.5</param>
    </slot>
   </filter>
  </sound>
 
- <emitter looping="true">
-  <filter type="timed-gain">
-   <slot n="0">
-    <param n="0">1.96</param>
-    <param n="1">0.11</param>
-    <param n="2">1.18</param>
-    <param n="3">0.5</param>
-   </slot>
-  </filter>
-  <effect type="timed-pitch">
-   <slot n="0">
-    <param n="0">1.1</param>
-    <param n="1">0.07</param>
-    <param n="2">0.55</param>
-    <param n="3">0.0</param>
-   </slot>
-  </effect>
- </emitter>
+ <emitter looping="true"/>
 
  <audioframe/>
 
