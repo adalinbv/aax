@@ -122,7 +122,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
    case AAX_REVERB_2ND_ORDER:
    case (AAX_REVERB_2ND_ORDER|AAX_INVERSE):
    {
-      char reflections=(rstate & AAX_REVERB_1ST_ORDER) ? AAX_TRUE : AAX_FALSE;
+      char reflections = (rstate & AAX_REVERB_1ST_ORDER) ? AAX_TRUE : AAX_FALSE;
       char loopbacks = (rstate & AAX_REVERB_2ND_ORDER) ? AAX_TRUE : AAX_FALSE;
       _aaxRingBufferReverbData *reverb = effect->slot[0]->data;
       unsigned int no_tracks = effect->info->no_tracks;
@@ -426,10 +426,12 @@ _reverb_destroy(void *ptr)
    {
       _occlusion_destroy(reverb->occlusion);
       _freqfilter_destroy(reverb->freq_filter);
+      if (reverb->direct_path->history) free(reverb->direct_path->history);
       if (reverb->reflections)
       {
          reverb->reflections->no_delays = 0;
          reverb->reflections->delay[0].gain = 1.0f;
+         if (reverb->reflections->history) free(reverb->reflections->history);
          _aax_aligned_free(reverb->reflections);
          reverb->reflections = NULL;
       }
