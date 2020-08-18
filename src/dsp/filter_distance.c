@@ -280,7 +280,6 @@ void
 _distance_destroy(void *ptr)
 {
    _aaxRingBufferDistanceData *distance = (_aaxRingBufferDistanceData*)ptr;
-printf("_distance_destroy: %p\n", distance);
    if (distance) _aax_aligned_free(distance);
 }
 

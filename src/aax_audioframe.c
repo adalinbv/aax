@@ -99,7 +99,11 @@ aaxAudioFrameCreate(aaxConfig config)
                _sensor_t* sensor = _intBufGetDataPtr(dptr);
                _aaxAudioFrame* smixer = sensor->mixer;
 
-               _FILTER_COPYD3D_DATA(submix, smixer, DISTANCE_FILTER);
+//             _FILTER_COPYD3D_DATA(submix, smixer, DISTANCE_FILTER);
+               memcpy(submix->props3d->filter[DISTANCE_FILTER].data,
+                      smixer->props3d->filter[DISTANCE_FILTER].data,
+                      sizeof(_aaxRingBufferDistanceData));
+
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_DOPPLER_FACTOR);
                _EFFECT_COPYD3D(submix, smixer, VELOCITY_EFFECT, AAX_LIGHT_VELOCITY);
@@ -843,7 +847,10 @@ aaxAudioFrameRegisterSensor(const aaxFrame frame, const aaxConfig sensor)
             if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
-               _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
+//             _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
+               memcpy(sp3d->filter[DISTANCE_FILTER].data,
+                      mp3d->filter[DISTANCE_FILTER].data,
+                      sizeof(_aaxRingBufferDistanceData));
             }
             _aaxAudioFrameResetDistDelay(smixer, fmixer);
 
@@ -1088,7 +1095,10 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
             if (_FILTER_GET_STATE(ep3d, DISTANCE_FILTER) == AAX_FALSE)
             {
                _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
-               _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
+//             _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
+               memcpy(ep3d->filter[DISTANCE_FILTER].data,
+                      mp3d->filter[DISTANCE_FILTER].data,
+                      sizeof(_aaxRingBufferDistanceData));
             }
             _aaxEMitterResetDistDelay(src, fmixer);
 
@@ -1245,7 +1255,10 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
          {
             _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
-            _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
+//          _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
+            memcpy(fp3d->filter[DISTANCE_FILTER].data,
+                   mp3d->filter[DISTANCE_FILTER].data,
+                   sizeof(_aaxRingBufferDistanceData));
          }
 
          if (_EFFECT_GET_DATA(fp3d, VELOCITY_EFFECT) == NULL)

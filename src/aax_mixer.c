@@ -880,7 +880,10 @@ aaxMixerRegisterSensor(const aaxConfig config, const aaxConfig s)
                      if (_FILTER_GET_STATE(sp3d, DISTANCE_FILTER) == AAX_FALSE)
                      {
                         _FILTER_COPY_STATE(sp3d, mp3d, DISTANCE_FILTER);
-                        _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
+//                      _FILTER_COPY_DATA(sp3d, mp3d, DISTANCE_FILTER);
+                        memcpy(sp3d->filter[DISTANCE_FILTER].data,
+                               mp3d->filter[DISTANCE_FILTER].data,
+                               sizeof(_aaxRingBufferDistanceData));
                      }
                      _aaxAudioFrameResetDistDelay(submix, mixer);
 
@@ -1171,7 +1174,10 @@ aaxMixerRegisterEmitter(const aaxConfig config, const aaxEmitter em)
                   if (_FILTER_GET_STATE(ep3d, DISTANCE_FILTER) == AAX_FALSE)
                   {
                      _FILTER_COPY_STATE(ep3d, mp3d, DISTANCE_FILTER);
-                     _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
+//                   _FILTER_COPY_DATA(ep3d, mp3d, DISTANCE_FILTER);
+                     memcpy(ep3d->filter[DISTANCE_FILTER].data,
+                            mp3d->filter[DISTANCE_FILTER].data,
+                            sizeof(_aaxRingBufferDistanceData));
                   }
                   _aaxEMitterResetDistDelay(src, mixer);
 
@@ -1336,7 +1342,10 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
                   if (_FILTER_GET_STATE(fp3d, DISTANCE_FILTER) == AAX_FALSE)
                   {
                      _FILTER_COPY_STATE(fp3d, mp3d, DISTANCE_FILTER);
-                     _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
+//                   _FILTER_COPY_DATA(fp3d, mp3d, DISTANCE_FILTER);
+                     memcpy(fp3d->filter[DISTANCE_FILTER].data,
+                            mp3d->filter[DISTANCE_FILTER].data,
+                            sizeof(_aaxRingBufferDistanceData));
                   }
                   _aaxAudioFrameResetDistDelay(fmixer, smixer);
 
