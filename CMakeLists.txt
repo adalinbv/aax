@@ -123,7 +123,15 @@ set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE 
 
 #$ Required libraries
 find_package(SSE REQUIRED)
-find_package(XML REQUIRED)
+if((GCC OR CLANG) AND RMALLOC)
+  set(C_FLAGS "${C_FLAGS} -fsanitize=address")
+  set(CXX_FLAGS "${CXX_FLAGS} -fsanitize=address")
+  set(LDFLAGS "${LD_FLAGS} -fsanitize=address")
+  set(RMALLOC OFF)
+  find_package(XML REQUIRED)
+else((GCC OR CLANG) AND RMALLOC)
+  find_package(XML REQUIRED)
+endif((GCC OR CLANG) AND RMALLOC)
 if(NOT XML_FOUND)
   MESSAGE(FATAL_ERROR "ERROR: required XML library is not installed, aborting.")
 endif(NOT XML_FOUND)
