@@ -55,6 +55,8 @@ _aaxDistanceFilterCreate(_aaxMixerInfo *info, enum aaxFilterType type)
       _aaxRingBufferDistanceData *data;
 
       _aaxSetDefaultFilter3d(flt->slot[0], flt->pos, 0);
+      flt->slot[0]->destroy = _distance_destroy;
+      flt->slot[0]->swap = _distance_swap;
 
       data = _aax_aligned_alloc(DSIZE);
       flt->slot[0]->data = data;
@@ -138,6 +140,8 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
       _aaxRingBufferDistanceData *data;
 
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
+      rv->slot[0]->destroy = _distance_destroy;
+      rv->slot[0]->swap = _distance_swap;
 
       data = _aax_aligned_alloc(DSIZE);
       rv->slot[0]->data = data;
@@ -246,6 +250,39 @@ _flt_function_tbl _aaxDistanceFilter =
    (_aaxFilterConvert*)&_aaxDistanceFilterGet,
    (_aaxFilterConvert*)&_aaxDistanceFilterMinMax
 };
+
+void
+_distance_swap(void *d, void *s)
+{
+   _aaxFilterInfo *dst = d, *src = s;
+
+   if (src->data && src->data_size)
+   {
+      if (!dst->data) {
+          dst->data = _aaxAtomicPointerSwap(&src->data, dst->data);
+          dst->data_size = src->data_size;
+      }
+      else
+      {
+         _aaxRingBufferDistanceData *drev = dst->data;
+         _aaxRingBufferDistanceData *srev = src->data;
+
+         assert(dst->data_size == src->data_size);
+
+         drev->run = srev->run;
+      }
+   }
+   dst->destroy = src->destroy;
+   dst->swap = src->swap;
+}
+
+void
+_distance_destroy(void *ptr)
+{
+   _aaxRingBufferDistanceData *distance = (_aaxRingBufferDistanceData*)ptr;
+printf("_distance_destroy: %p\n", distance);
+   if (distance) _aax_aligned_free(distance);
+}
 
 /* Forward declartations */
 static _aaxDistFn _aaxDistNone;

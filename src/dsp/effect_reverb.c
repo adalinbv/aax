@@ -396,7 +396,7 @@ _eff_function_tbl _aaxReverbEffect =
 void
 _reverb_swap(void *d, void *s)
 {
-   _aaxFilterInfo *dst = d, *src = s;
+   _aaxEffectInfo *dst = d, *src = s;
 
    if (src->data && src->data_size)
    {

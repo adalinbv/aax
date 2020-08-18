@@ -159,7 +159,12 @@ extern _flt_function_tbl *_aaxFilters[AAX_FILTER_MAX];
  _FILTER_SWAP_SLOT_DATA(P, t, F, s);
 
 
+// distance filter
+void _distance_swap(void*,void*);
+void _distance_destroy(void*);
 float _distance_prepare(_aax2dProps*, _aax3dProps*, _aaxDelayed3dProps*, vec3f_ptr, float, vec4f_ptr, const _aaxMixerInfo*);
+
+// directional filter
 float _directional_prepare(_aax3dProps*,  _aaxDelayed3dProps*, _aaxDelayed3dProps*);
 
 #endif /* _AAX_FILTERS_H */
