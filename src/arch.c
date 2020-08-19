@@ -222,10 +222,8 @@ _aaxDataMoveOffset(_data_t* buf, void* data, size_t offset, size_t size)
       }
 
       remain -= rv;
-      assert(remain > 0);
-
       buf->offset -= rv;
-      if (buf->offset > 0) {
+      if (buf->offset > 0 && remain > 0) {
          memmove(buf->data+offset, buf->data+offset+rv, remain);
       }
    }
