@@ -257,6 +257,8 @@ public:
         }
     }
 
+    virtual ~Instrument() = default;
+
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
