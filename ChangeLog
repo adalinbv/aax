@@ -17,7 +17,9 @@
    cutoff frequency, making it a four-band equalizer. And add the option to
    define a filtering order for every section when using AAXS files.
  * Add the option to assign the compressor to the final mixer stage.
- * Optional limiting the spread of the instruments which are defined wide-stereo
+ * Ad the opption to limit the spread of instruments which are wide-stereo.
+ * Fix a bug where in case of unaligned data for conversion functions the
+   result was added to a possibly uninitialized buffer.
  * Fix a regression for the compressor.
 
 -- Erik Hofman <tech@adalin.org>  May 24 Apr 2020 15:34:41 + 0100
