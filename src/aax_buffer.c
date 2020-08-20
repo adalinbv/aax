@@ -2738,11 +2738,10 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
       _aaxRingBufferFreqFilterData *data = filter->slot[0]->data;
       _aaxRingBufferFreqFilterData *data_hf = filter->slot[1]->data;
 
-      _batch_cvtps24_24(dptr, dptr, no_samples);
+      _batch_cvtps24_24(sptr, dptr, no_samples);
 
       tmp = sptr+no_samples;
-      memcpy(sptr, dptr, no_samples*bps);
-      memcpy(tmp, dptr, no_samples*bps);
+      memcpy(tmp, sptr, no_samples*bps);
 
       if (!data_hf)
       {
@@ -2766,10 +2765,9 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
             rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data_hf);
          }
       }
-      memcpy(dptr, tmp, no_samples*bps);
+      _batch_cvt24_ps24(dptr, tmp, no_samples);
 
       _aax_aligned_free(sptr);
-      _batch_cvt24_ps24(dptr, dptr, no_samples);
    }
 }
 
