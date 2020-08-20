@@ -114,7 +114,7 @@ _batch_cvt24_ps24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
    {                                    /* let the compiler figure it out */
       i = num;
       do {
-         *d++ += (int32_t)*s++;
+         *d++ = (int32_t)*s++;
       }
       while (--i);
       return;
@@ -128,7 +128,7 @@ _batch_cvt24_ps24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       {
          num -= i;
          do {
-            *d++ += (int32_t)*s++;
+            *d++ = (int32_t)*s++;
          } while(--i);
       }
    }
@@ -196,7 +196,7 @@ _batch_cvtps24_24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
    {                                    /* let the compiler figure it out */
       i = num;
       do {
-         *d++ += (float)*s++;
+         *d++ = (float)*s++;
       }
       while (--i);
       return;
@@ -210,7 +210,7 @@ _batch_cvtps24_24_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       {
          num -= i;
          do {
-            *d++ += (float)*s++;
+            *d++ = (float)*s++;
          } while(--i);
       }
    }
@@ -734,7 +734,7 @@ _batch_roundps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
    {                                    /* let the compiler figure it out */
       i = num;
       do {
-         *d++ += (float)(int32_t)*s++;
+         *d++ = (float)(int32_t)*s++;
       }
       while (--i);
       return;
@@ -748,7 +748,7 @@ _batch_roundps_sse_vex(void_ptr dst, const_void_ptr src, size_t num)
       {
          num -= i;
          do {
-            *d++ += (int32_t)*s++;
+            *d++ = (int32_t)*s++;
          } while(--i);
       }
    }

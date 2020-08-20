@@ -308,7 +308,7 @@ _batch_cvt24_ps24_avx(void_ptr dst, const_void_ptr src, size_t num)
       {
          num -= i;
          do {
-            *d++ += (int32_t)*s++;
+            *d++ = (int32_t)*s++;
          } while(--i);
       }
    }
@@ -479,7 +479,7 @@ _batch_cvtps24_24_avx(void_ptr dst, const_void_ptr src, size_t num)
       {
          num -= i;
          do {
-            *d++ += (float)*s++;
+            *d++ = (float)*s++;
          } while(--i);
       }
    }
