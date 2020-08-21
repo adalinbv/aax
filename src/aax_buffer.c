@@ -2738,16 +2738,17 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
       _aaxRingBufferFreqFilterData *data = filter->slot[0]->data;
       _aaxRingBufferFreqFilterData *data_hf = filter->slot[1]->data;
 
-      _batch_cvtps24_24(dptr, dptr, no_samples);
+      _batch_cvtps24_24(sptr, dptr, no_samples);
 
       tmp = sptr+no_samples;
-      memcpy(sptr, dptr, no_samples*bps);
       memcpy(tmp, sptr, no_samples*bps);
 
       if (!data_hf)
       {
          rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
-         if (data->state && (data->low_gain > LEVEL_128DB)) { // Bessel
+         if (data->state && (data->low_gain > LEVEL_128DB))	// Bessel
+         {
+            _batch_cvtps24_24(dptr, dptr, no_samples);
             rbd->add(tmp, dptr, no_samples, data->low_gain, 0.0f);
          }
       }
