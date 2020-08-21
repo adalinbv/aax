@@ -2738,15 +2738,16 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
       _aaxRingBufferFreqFilterData *data = filter->slot[0]->data;
       _aaxRingBufferFreqFilterData *data_hf = filter->slot[1]->data;
 
-      _batch_cvtps24_24(sptr, dptr, no_samples);
+      _batch_cvtps24_24(dptr, dptr, no_samples);
 
       tmp = sptr+no_samples;
+      memcpy(sptr, dptr, no_samples*bps);
       memcpy(tmp, sptr, no_samples*bps);
 
       if (!data_hf)
       {
          rbd->freqfilter(sptr, sptr, 0, 2*no_samples, data);
-         if (data->state && (data->low_gain > LEVEL_128DB)) {
+         if (data->state && (data->low_gain > LEVEL_128DB)) { // Bessel
             rbd->add(tmp, dptr, no_samples, data->low_gain, 0.0f);
          }
       }
@@ -2792,11 +2793,12 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
    sptr = _aax_aligned_alloc(no_samples*bps);
    if (sptr)
    {
-      _batch_cvtps24_24(dptr, dptr, no_samples);
-      memcpy(sptr, dptr, no_samples*bps);
       if (mix > 0.01f)
       {
          float mix_factor;
+
+         _batch_cvtps24_24(dptr, dptr, no_samples);
+         memcpy(sptr, dptr, no_samples*bps);
 
          /* make dptr the wet signal */
          if (fact > 0.0013f) {
@@ -2813,9 +2815,10 @@ _bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
          if (mix < 0.99f) {
             rbd->add(dptr, sptr, no_samples, 1.0f-mix, 0.0f);
          }
+
+         _batch_cvt24_ps24(dptr, dptr, no_samples);
       }
       _aax_aligned_free(sptr);
-      _batch_cvt24_ps24(dptr, dptr, no_samples);
    }
    rb->release_tracks_ptr(rb);
 }
