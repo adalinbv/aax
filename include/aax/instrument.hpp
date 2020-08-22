@@ -71,7 +71,7 @@ public:
     std::map<int,Matrix64> matrices;
     Vector at = Vector(0.0f, 0.0f, -1.0f);
     Vector up = Vector(0.0f, 1.0f, 0.0f);
-    Vector64 pos = Vector64(0.0, 1.0, -2.75);
+    Vector64 pos = Vector64(0.0, 1.0, -2.25);
     Matrix64 mtx_init = Matrix64(pos, at, up);
     Matrix64 mtx = mtx_init;
     float spread = 1.0f;
@@ -290,6 +290,7 @@ public:
         i1.soft = std::move(i2.soft);
         i1.volume = std::move(i2.volume);
         i1.pressure = std::move(i2.pressure);
+        i1.expression = std::move(i2.expression);
         i1.pitch_rate = std::move(i2.pitch_rate);
         i1.pitch_start = std::move(i2.pitch_start);
         i1.key_prev = std::move(i2.key_prev);
@@ -376,11 +377,12 @@ public:
     inline void set_pressure(uint32_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->set_gain(p*pressure*soft);
+            it->second->set_gain(p*pressure*expression*soft);
         }
     }
 
     inline void set_expression(float e) {
+        expression = e;
         for (auto& it : key) it.second->set_gain(e*pressure*soft);
     }
 
@@ -553,6 +555,7 @@ private:
 
     float soft = 1.0f;
     float pressure = 1.0f;
+    float expression = 1.0f;
 
     float pan_prev = 0.0f;
 
