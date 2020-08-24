@@ -31,7 +31,8 @@
 namespace aax
 {
 
-#define PAN_LEVELS		128.0f
+#define INSTRUMENT_DISTANCE		2.75f
+#define PAN_LEVELS			128.0f
 
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f,v); }
@@ -71,7 +72,7 @@ public:
     std::map<int,Matrix64> matrices;
     Vector at = Vector(0.0f, 0.0f, -1.0f);
     Vector up = Vector(0.0f, 1.0f, 0.0f);
-    Vector64 pos = Vector64(0.0, 1.0, -2.25);
+    Vector64 pos = Vector64(0.0, 1.0, -INSTRUMENT_DISTANCE);
     Matrix64 mtx_init = Matrix64(pos, at, up);
     Matrix64 mtx = mtx_init;
     float spread = 1.0f;
@@ -99,7 +100,7 @@ public:
             // pitch*frequency ranges from: 8 - 12544 Hz,
             // log(20) = 1.3, log(12544) = 4.1
             float p = (lin2log(pitch*frequency) - 1.3f)/2.8f; // 0.0f .. 1.0f
-            p = floorf(-2.0f*(p - 0.5f)*PAN_LEVELS)/PAN_LEVELS;
+            p = floorf(-2.0f*(p-0.5f)*PAN_LEVELS)/PAN_LEVELS;
             if (p != pan_prev) {
                 pan.set(p, true);
                 Emitter::matrix(pan.mtx);
