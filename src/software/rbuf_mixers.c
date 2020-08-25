@@ -232,9 +232,11 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
             MIX_T *dst, *dptr = track_ptr[track];
 
 #if 1
+            // replaces the code above.
             if (ddesamps || delay_effect)
             {
-               float dde = effect->delay.sample_offs[track];
+               float dde = effect ? effect->delay.sample_offs[track] :
+                                    DELAY_EFFECTS_TIME*dfreq;;
                ddesamps = (size_t)dde;
                rdesamps = (size_t)(dde*fact);
             }
