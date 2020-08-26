@@ -104,7 +104,6 @@ _bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, i
       size_t noise_samples = pitch*no_samples + NOISE_PADDING;
       float *ptr2 = _aax_generate_noise_float(scratch, noise_samples, seed, skip, fs);
       float *ptr = _aax_aligned_alloc(no_samples*sizeof(float));
-
       if (ptr && ptr2)
       {
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
@@ -113,8 +112,8 @@ _bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, i
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
+      _aax_aligned_free(ptr);
    }
 }
 
@@ -143,8 +142,8 @@ _bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, in
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
+      _aax_aligned_free(ptr);
    }
 }
 
@@ -174,8 +173,8 @@ _bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps
          } else {
             _aax_add_data(data, ptr, tracks, no_samples, bps, gain, limiter);
          }
-         _aax_aligned_free(ptr);
       }
+      _aax_aligned_free(ptr);
    }
 }
 

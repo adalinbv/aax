@@ -756,11 +756,11 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->io = _io_free(handle->io);
          }
       }
-      free(s);
    }
    else {
 //    _aaxStreamDriverLog(id, 0, 0, "Unable to intialize the file format");
    }
+   free(s);
 
    return rv;
 }

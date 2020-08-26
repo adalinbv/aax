@@ -792,7 +792,6 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                 rb->set_parami(rb, RB_LOOPING, buf->info.loop_count);
              }
 
-
              if ((aaxBufferSetData(buf, ptr[0])) == AAX_FALSE) {
                 aaxBufferDestroy(buf);
                 buf = NULL;
@@ -1856,11 +1855,11 @@ _bufAAXSThread(void *d)
             }
             free(fname);
          }
-         xmlFree(xid);
       }
       else {
          rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);
       }
+      xmlFree(xid);
    }
    else {
       aax_buf->error = AAX_INVALID_PARAMETER+2;
