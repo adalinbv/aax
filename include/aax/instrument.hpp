@@ -258,7 +258,12 @@ public:
         }
     }
 
-    virtual ~Instrument() = default;
+    virtual ~Instrument() {
+        for (auto it : key) {
+            Mixer::remove(*it.second);
+        }
+        key.clear();
+    }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.key = std::move(i2.key);
