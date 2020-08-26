@@ -1856,6 +1856,7 @@ _bufAAXSThread(void *d)
             }
             free(fname);
          }
+         xmlFree(xid);
       }
       else {
          rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);

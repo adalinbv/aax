@@ -2499,6 +2499,9 @@ get_devices_avail(int mode)
                }
                _sys_free(name);
             }
+            else {
+               _sys_free(type);
+            }
             ++lst;
          }
          while (*lst != NULL);

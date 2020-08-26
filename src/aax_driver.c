@@ -1466,9 +1466,7 @@ _aaxFreeSensor(void *ssr)
       sensor->filter[0] = NULL;
    }
 
-   if (sensor->mixer->filter[EQUALIZER_LF].data) {
-      _aaxMutexDestroy(sensor->mutex);
-   }
+   _aaxMutexDestroy(sensor->mutex);
    _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_LF);
    _FILTER_FREE_DATA(sensor->mixer, EQUALIZER_HF);
    _FILTER_FREE_DATA(sensor->mixer, HRTF_HEADSHADOW);
