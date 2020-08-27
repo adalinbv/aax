@@ -61,6 +61,7 @@ void _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, i
 # define SIMD2  sse2
 # define SIMD4  sse4
 # define SIMD5  sse2
+# define FMA3	sse2
 char _aaxArchDetectSSE2();
 char _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
