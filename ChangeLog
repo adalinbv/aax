@@ -1,5 +1,5 @@
 
-* Sun May 24 2020 - tech@adalin.org
+* Thu Aug 27 2020 - tech@adalin.org
 - AeonWave (3.9.0) stable; urgency=low
 
  * Implement a native PulseAudio backend.
@@ -17,12 +17,12 @@
    cutoff frequency, making it a four-band equalizer. And add the option to
    define a filtering order for every section when using AAXS files.
  * Add the option to assign the compressor to the final mixer stage.
- * Ad the opption to limit the spread of instruments which are wide-stereo.
+ * Ad the option to limit the spread of instruments which are wide-stereo.
  * Fix a bug where in case of unaligned data for conversion functions the
    result was added to a possibly uninitialized buffer.
  * Fix a regression for the compressor.
 
--- Erik Hofman <tech@adalin.org>  May 24 Apr 2020 15:34:41 + 0100
+-- Erik Hofman <tech@adalin.org>  Thu 27 Aug 2020 09:55:27 + 0100
 
 
 * Tue Apr 14 2020 - tech@adalin.org
