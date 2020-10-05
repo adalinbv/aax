@@ -1226,7 +1226,7 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
 }
 
 int
-_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, float fs, float rate, float ratio, unsigned int seed, char skip, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
 {
    unsigned int tracks;
    unsigned char bps;

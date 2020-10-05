@@ -147,10 +147,10 @@ _aax_srand(uint64_t a) {
 uint64_t
 _aax_rand()
 {
-	uint64_t x = _aax_seed;	/* Must be seeded with a nonzero value. */
-	x ^= x >> 12; // a
-	x ^= x << 25; // b
-	x ^= x >> 27; // c
-	_aax_seed = x;
-	return x * UINT64_C(0x2545F4914F6CDD1D);
+    uint64_t x = _aax_seed;	/* Must be seeded with a nonzero value. */
+    x ^= x >> 12; // a
+    x ^= x << 25; // b
+    x ^= x >> 27; // c
+    _aax_seed = x;
+    return x * UINT64_C(0x2545F4914F6CDD1D);
 }

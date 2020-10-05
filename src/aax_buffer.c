@@ -1192,6 +1192,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    } else {
       random = xmlNodeGetDouble(xwid, "random");
    }
+   if (random == 0.0f) { // undefined
+       random = 0.85f;
+   }
 
    if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
        wtype = AAX_BROWNIAN_NOISE;
@@ -1945,7 +1948,8 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
       float samps_period, fs, fw, fs_mixer, rate, *scratch;
-      unsigned int seed, no_samples, i, bit = 1;
+      unsigned int no_samples, i, bit = 1;
+      uint64_t seed;
       int q, hvoices;
       unsigned skip;
       char modulate;
@@ -1954,7 +1958,7 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
       modulate = 0;
       rate = freq * pitch;
       fw = FNMINMAX(rate, 1.0f, 22050.0f);
-      seed = FNMINMAX(random, 0.0f, 1.0f) * UINT_MAX;
+      seed = FNMINMAX(random, 0.0f, 1.0f) * UINT64_MAX;
       skip = (unsigned char)(1.0f + 99.0f*_MINMAX(staticity, 0.0f, 1.0f));
 
       phase *= GMATH_PI;

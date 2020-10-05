@@ -55,7 +55,7 @@ static float _gains[AAX_MAX_WAVE];
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
 static void _aax_add_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
 static void _aax_mul_data(void_ptrptr, const_float32_ptr, int, unsigned int, char, float, limitType);
-static float* _aax_generate_noise_float(float*, size_t, unsigned int, unsigned char, float);
+static float* _aax_generate_noise_float(float*, size_t, uint64_t, unsigned char, float);
 
 #if 0
 static float* _aax_generate_sine(size_t, float, float);
@@ -96,7 +96,7 @@ _bufferMixWaveform(void** data, float *scratch, enum wave_types wtype, float fre
 }
 
 void
-_bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned int seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -118,7 +118,7 @@ _bufferMixWhiteNoise(void** data, float *scratch, size_t no_samples, char bps, i
 }
 
 void
-_bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned int seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -148,7 +148,7 @@ _bufferMixPinkNoise(void** data, float *scratch, size_t no_samples, char bps, in
 }
 
 void
-_bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, unsigned int seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixBrownianNoise(void** data, float *scratch, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -344,7 +344,7 @@ _aax_seeded_random() {
 #define FC	50.0f
 
 static float *
-_aax_generate_noise_float(float *rv, size_t no_samples, unsigned int seed, unsigned char skip, float fs)
+_aax_generate_noise_float(float *rv, size_t no_samples, uint64_t seed, unsigned char skip, float fs)
 {
    if (rv)
    {
