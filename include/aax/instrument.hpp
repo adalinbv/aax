@@ -263,11 +263,13 @@ public:
             Mixer::remove(*it.second);
         }
         key.clear();
+        key_stopped.clear();
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
-        i1.key = std::move(i2.key);
         i1.aax = std::move(i2.aax);
+        i1.key = std::move(i2.key);
+        i1.key_stopped = std::move(i2.key_stopped);
         i1.vibrato_freq = std::move(i2.vibrato_freq);
         i1.vibrato_depth = std::move(i2.vibrato_depth);
         i1.vibrato_state = std::move(i2.vibrato_state);
