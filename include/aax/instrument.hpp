@@ -333,7 +333,14 @@ public:
         auto it = key.find(key_no);
         if (it != key.end()) {
             note = it->second;
-        } else {
+            if (!note->finished()) {
+               note->finish();
+               key_stopped[key_no] = std::move(key.at(key_no));
+               key.erase(key_no);
+               it = key.end();
+            }
+        }
+        if (it == key.end()) {
             auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,pan)}});
             note = ret.first->second;
             if (!playing && !is_drums) {
@@ -350,6 +357,15 @@ public:
         float g = 3.321928f*log10f(1.0f+velocity);
         note->play(g*soft, pitch_start, slide_state ? pitch_rate : 0.0f);
         pitch_start = pitch;
+
+        for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
+             it = next)
+        {
+           ++next;
+           if (it->second->finished()) {
+              key_stopped.erase(it);
+           }
+        }
     }
 
     void stop(uint32_t key_no, float velocity = 0) {
@@ -519,6 +535,7 @@ private:
     }
 
     std::map<uint32_t,std::shared_ptr<Note>> key;
+    std::map<uint32_t,std::shared_ptr<Note>> key_stopped;
     AeonWave* aax;
 
     Panning pan;
