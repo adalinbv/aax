@@ -75,7 +75,11 @@ static void
 _aaxFrequencyFilterReset(void *data)
 {
    _aaxRingBufferFreqFilterData *flt = data;
+
    _lfo_reset(flt->lfo);
+   memset(flt->freqfilter->history, 0,
+          sizeof(float[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES]));
+
    if (0) // flt->random)
    {
       float lfc2 = _lin2log(flt->fc_high);
