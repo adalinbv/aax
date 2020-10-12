@@ -291,12 +291,10 @@ _env_reset(_aaxEnvelopeData* env)
 {
    if (env)
    {
+      env->repeat = env->repeat0;
       env->value = env->value0;
       env->stage = 0;
       env->pos = 0;
-      if (env->state & AAX_REPEAT) {
-         env->repeat = (env->state & ~AAX_REPEAT);
-      }
    }
 }
 

@@ -98,9 +98,10 @@ typedef struct
    float value0, value, value_max, value_total;
    float step[_MAX_ENVELOPE_STAGES];
    uint32_t max_pos[_MAX_ENVELOPE_STAGES];
-   uint32_t pos, repeat;
+   uint32_t pos, repeat0, repeat;
    int state;
-   char sustain, stage, max_stages;
+   signed char stage, max_stages;
+   unsigned char sustain;
 } _aaxEnvelopeData;
 
 void _env_reset(_aaxEnvelopeData*);
