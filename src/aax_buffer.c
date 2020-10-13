@@ -1192,9 +1192,6 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
    } else {
       random = xmlNodeGetDouble(xwid, "random");
    }
-   if (random == 0.0f) { // undefined
-       random = 0.85f;
-   }
 
    if (!xmlAttributeCompareString(xwid, "src", "brownian-noise")) {
        wtype = AAX_BROWNIAN_NOISE;

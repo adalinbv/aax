@@ -263,13 +263,11 @@ public:
             Mixer::remove(*it.second);
         }
         key.clear();
-        key_stopped.clear();
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.aax = std::move(i2.aax);
         i1.key = std::move(i2.key);
-        i1.key_stopped = std::move(i2.key_stopped);
         i1.vibrato_freq = std::move(i2.vibrato_freq);
         i1.vibrato_depth = std::move(i2.vibrato_depth);
         i1.vibrato_state = std::move(i2.vibrato_state);
@@ -335,12 +333,6 @@ public:
         auto it = key.find(key_no);
         if (it != key.end()) {
             note = it->second;
-            if (!note->finished()) {
-               note->finish();
-               key_stopped[key_no] = std::move(key.at(key_no));
-               key.erase(key_no);
-               it = key.end();
-            }
         }
         if (it == key.end()) {
             auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,pan)}});
@@ -359,15 +351,6 @@ public:
         float g = 3.321928f*log10f(1.0f+velocity);
         note->play(g*soft, pitch_start, slide_state ? pitch_rate : 0.0f);
         pitch_start = pitch;
-
-        for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
-             it = next)
-        {
-           ++next;
-           if (it->second->finished()) {
-              key_stopped.erase(it);
-           }
-        }
     }
 
     void stop(uint32_t key_no, float velocity = 0) {
@@ -537,7 +520,6 @@ private:
     }
 
     std::map<uint32_t,std::shared_ptr<Note>> key;
-    std::map<uint32_t,std::shared_ptr<Note>> key_stopped;
     AeonWave* aax;
 
     Panning pan;

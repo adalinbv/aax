@@ -1,8 +1,7 @@
 * Tue Oct 6 2020 - tech@adalin.org
 - AeonWave (3.9.1) stable; urgency=low
 
- * Move notes which are not yet finished playing, but need to rewind, to a
-   temporary map to stop them gracefully to prevent clicks during playback.
+ * Clear the frequency filter history buffer on reset/rewind.
 
 -- Erik Hofman <tech@adalin.org>  Tue 06 Oct 2020 11:49:43 + 0200
 
