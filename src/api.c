@@ -48,7 +48,11 @@
 #include "api.h"
 
 #ifndef PATH_MAX
-# define PATH_MAX		1024
+# ifdef MAX_PATH
+#  define PATH_MAX		MAX_PATH
+# else
+#  define PATH_MAX		1024
+# endif
 #endif
 
 #define CONFIG_FILE             "config.xml"
