@@ -46,11 +46,16 @@
 # define O_BINARY	0
 #endif
 
+#define IOBUF_SIZE	(1024*1024)
+#define THRESHOLD	(2*IOBUF_SIZE/3)
+
 int
 _file_open(_io_t *io, const char* pathname)
 {
    io->fds.fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
    io->timer = _aaxTimerCreate();
+   io->dataBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
+
    return io->fds.fd;
 }
 
@@ -58,9 +63,18 @@ int
 _file_close(_io_t *io)
 {
    int rv = 0;
+
+   ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
+   void *data = _aaxDataGetData(io->dataBuffer);
+   ssize_t res = write(io->fds.fd, data, avail);
+   if (res == EINTR) rv = write(io->fds.fd, data, avail);
+
+   _aaxDataDestroy(io->dataBuffer);
    _aaxTimerDestroy(io->timer);
+
    if (io->fds.fd != -1) close(io->fds.fd);
    io->fds.fd = -1;
+
    return rv;
 }
 
@@ -80,18 +94,22 @@ _file_read(_io_t *io, void* buf, size_t count)
 ssize_t
 _file_write(_io_t *io, const void* buf, size_t count)
 {
-   ssize_t rv = write(io->fds.fd, buf, count);
-   if (rv == EINTR) rv = write(io->fds.fd, buf, count);
+   ssize_t rv = _aaxDataAdd(io->dataBuffer, buf, count);
 
-   // sync messes up writing data to a file
-#if 0
-   io->update_dt += _aaxTimerElapsed(io->timer);
-   if (io->update_dt >= 0.5f)
+   if (_aaxDataGetOffset(io->dataBuffer) >= THRESHOLD)
    {
-      io->update_dt -= 0.5f;
-      fdatasync(io->fds.fd);
+      void *data = _aaxDataGetData(io->dataBuffer);
+      ssize_t res = write(io->fds.fd, data, THRESHOLD);
+      if (res == EINTR) rv = write(io->fds.fd, data, THRESHOLD);
+
+      if (res > 0) {
+         res = _aaxDataMove(io->dataBuffer, NULL, res);
+      }
    }
-#endif
+
+   if (rv < count) {
+      rv += _aaxDataAdd(io->dataBuffer, (char*)buf+count-rv, rv);
+   }
 
    return rv;
 }

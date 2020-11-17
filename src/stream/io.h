@@ -77,6 +77,8 @@ struct _io_st
    _io_set_param_fn *set_param;
    _io_wait_fn *wait;
 
+   _data_t *dataBuffer;
+
    unsigned error_ctr;
    unsigned error_max;
 
