@@ -337,7 +337,7 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
    _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
-   { 
+   {
       _aaxRingBufferFreqFilterData *freq;
 
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
@@ -397,10 +397,10 @@ _aaxFrequencyFilterMinMax(float val, int slot, unsigned char param)
     { {       0.0f, 0.0f, 0.0f, 0.0f  }, {       0.0f,  0.0f,  0.0f,   0.0f } },
     { {       0.0f, 0.0f, 0.0f, 0.0f  }, {       0.0f,  0.0f,  0.0f,   0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxFrequencyRange[slot].min[param],
                        _aaxFrequencyRange[slot].max[param]);
 }
@@ -425,7 +425,7 @@ void
 _freqfilter_swap(void *d, void *s)
 {
    _aaxFilterInfo *dst = d, *src = s;
-   
+
    if (src->data && src->data_size)
    {
       if (!dst->data) {
@@ -433,10 +433,10 @@ _freqfilter_swap(void *d, void *s)
           dst->data_size = src->data_size;
       }
       else
-      {  
+      {
          _aaxRingBufferFreqFilterData *dflt = dst->data;
          _aaxRingBufferFreqFilterData *sflt = src->data;
-         
+
          assert(dst->data_size == src->data_size);
 
          _lfo_swap(dflt->lfo, sflt->lfo);
@@ -656,7 +656,7 @@ _batch_freqfilter_iir_float_cpu(float32_ptr dptr, const_float32_ptr sptr, int t,
          k = filter->k * filter->high_gain;
       }
 
-      if (fabsf(k-1.0f) < LEVEL_96DB) 
+      if (fabsf(k-1.0f) < LEVEL_96DB)
       {
          if (dptr != sptr) memcpy(dptr, sptr, num*sizeof(float));
          return;
@@ -849,7 +849,7 @@ _aax_butterworth_compute(float fc, void *flt)
          default:
             a2 = A;
             a1 = sqrtf(A)/(_Q[pos][i] * Q);
-            a0 = 1.0f; 
+            a0 = 1.0f;
             k *= A;
 
             b2 = 1.0f;
@@ -970,7 +970,7 @@ _aax_bessel_compute(float fc, void *flt)
       for (i=0; i<stages; i++)
       {
          coef[0] = 2.0f*beta;
-         coef[1] = -beta*beta; 
+         coef[1] = -beta*beta;
 
          if      (type == HIGHPASS) coef[2] = -2.0f;
          else if (type == BANDPASS) coef[2] = -1.0f;
@@ -1102,6 +1102,10 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *filter = data;
+   CONST_MIX_PTR_T sptr = s - ds;
+   MIX_T *dptr = d - ds;
+   float fc_prev = filter->fc;
+   float fc = filter->fc;
    int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -1118,21 +1122,50 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    if (filter->lfo && !ctr)
    {
-      float fc =_MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
-                        20.0f, 0.9f*0.5f*filter->fs);
-
+      fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
+                                    20.0f, 0.9f*0.5f*filter->fs);
       if (filter->state == AAX_BESSEL) {
          _aax_bessel_compute(fc, filter);
       } else {
          _aax_butterworth_compute(fc, filter);
       }
    }
-
-// if ((filter->type == LOWPASS && filter->fc > MINIMUM_CUTOFF) ||
-//     (filter->type == HIGHPASS && filter->fc < MAXIMUM_CUTOFF))
+ 
+   if (fabs(fc_prev - fc)  >= 100.0f)
    {
-      CONST_MIX_PTR_T sptr = s - ds;
-      MIX_T *dptr = d - ds;
+      int num, samps = 32;
+      int steps = dmax/samps;
+      do
+      {
+         num = samps;
+         if (sptr < s) num += ds;
+
+         rbd->freqfilter(dptr, sptr, track, num, filter);
+         if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
+            rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
+         }
+         sptr += num;
+         dptr += num;
+         dmax -= samps;
+
+         if (dmax)
+         {
+            float fc;
+
+            fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, samps),
+                                          20.0f, 0.9f*0.5f*filter->fs);
+            if (filter->state == AAX_BESSEL) {
+               _aax_bessel_compute(fc, filter);
+            } else {
+               _aax_butterworth_compute(fc, filter);
+            }
+         }
+      }
+      while (--steps);
+      rv = AAX_TRUE;
+   }
+   else
+   {
       int num;
 
       num = dmax + ds;
