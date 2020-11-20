@@ -64,10 +64,16 @@ _file_close(_io_t *io)
 {
    int rv = 0;
 
-   ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
    void *data = _aaxDataGetData(io->dataBuffer);
-   ssize_t res = write(io->fds.fd, data, avail);
-   if (res == EINTR) rv = write(io->fds.fd, data, avail);
+   ssize_t res = 0;
+   do {
+      ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
+      res = write(io->fds.fd, data, avail);
+      if (res > 0) {
+         res = _aaxDataMove(io->dataBuffer, NULL, res);
+      }
+   }
+   while (res == EINTR);
 
    _aaxDataDestroy(io->dataBuffer);
    _aaxTimerDestroy(io->timer);
@@ -100,8 +106,6 @@ _file_write(_io_t *io, const void* buf, size_t count)
    {
       void *data = _aaxDataGetData(io->dataBuffer);
       ssize_t res = write(io->fds.fd, data, THRESHOLD);
-      if (res == EINTR) rv = write(io->fds.fd, data, THRESHOLD);
-
       if (res > 0) {
          res = _aaxDataMove(io->dataBuffer, NULL, res);
       }
