@@ -1137,31 +1137,36 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       int steps = dmax/samps;
       do
       {
-         num = samps;
-         if (sptr < s) num += ds;
-
-         rbd->freqfilter(dptr, sptr, track, num, filter);
-         if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
-            rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
-         }
-         sptr += num;
-         dptr += num;
-         dmax -= samps;
-
-         if (dmax)
+         do
          {
-            float fc;
+            num = samps;
+            if (sptr < s) num += ds;
 
-            fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, samps),
-                                          20.0f, 0.9f*0.5f*filter->fs);
-            if (filter->state == AAX_BESSEL) {
-               _aax_bessel_compute(fc, filter);
-            } else {
-               _aax_butterworth_compute(fc, filter);
+            rbd->freqfilter(dptr, sptr, track, num, filter);
+            if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
+               rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
             }
+
+            dmax -= samps;
+            if (dmax)
+            {
+               fc = _MINMAX(filter->lfo->get(filter->lfo, env, sptr, track, samps),
+                                             20.0f, 0.9f*0.5f*filter->fs);
+               if (filter->state == AAX_BESSEL) {
+                  _aax_bessel_compute(fc, filter);
+               } else {
+                  _aax_butterworth_compute(fc, filter);
+               }
+            }
+
+            sptr += num;
+            dptr += num;
          }
+         while (--steps);
+         steps = 1;
+         samps = dmax;
       }
-      while (--steps);
+      while(dmax);
       rv = AAX_TRUE;
    }
    else
