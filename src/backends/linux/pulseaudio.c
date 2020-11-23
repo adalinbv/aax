@@ -32,6 +32,7 @@
 # include <string.h>		/* strstr, strncmp */
 #endif
 #include <stdarg.h>		/* va_start */
+#include <stdio.h>		/* snprintf */
 
 #if HAVE_PULSE_PULSEAUDIO_H
 #include <pulse/util.h>
@@ -558,6 +559,7 @@ _aaxPulseAudioDriverDisconnect(void *id)
       {
          ppa_context_disconnect(handle->ctx);
          ppa_context_unref(handle->ctx);
+         handle->ctx = NULL;
       }
 
       if (handle->ml) {
@@ -1650,6 +1652,7 @@ _aaxPulseAudioContextConnect(_driver_t *handle)
          {
             pulse_avail = AAX_FALSE;
             ppa_context_unref(handle->ctx);
+            handle->ctx = NULL;
          }
       }
       else
