@@ -1133,8 +1133,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
  
    if (fabs(fc_prev - fc)  >= 100.0f)
    {
-      int num, samps = 32;
-      int steps = dmax/samps;
+      int num, steps = 8;
+      int samps = dmax/8;
       do
       {
          do
