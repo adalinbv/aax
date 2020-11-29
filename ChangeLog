@@ -2,6 +2,8 @@
 - AeonWave (3.9.1) stable; urgency=low
 
  * Clear the frequency filter history buffer on reset/rewind.
+ * Explicitly set handle->ctx to NULL for PulseAudio when it is destroyed to
+   prevent a segmentation fault.
 
 -- Erik Hofman <tech@adalin.org>  Tue 06 Oct 2020 11:49:43 + 0200
 
