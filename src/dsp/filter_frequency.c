@@ -76,11 +76,28 @@ _aaxFrequencyFilterReset(void *data)
 {
    _aaxRingBufferFreqFilterData *flt = data;
 
-   _lfo_reset(flt->lfo);
-   memset(flt->freqfilter->history, 0,
-          sizeof(float[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES]));
+// memset(flt->freqfilter->history, 0,
+//        sizeof(float[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES]));
 
-   if (0) // flt->random)
+
+   if (flt->lfo)
+   {
+      float fc;
+
+      _lfo_reset(flt->lfo);
+#if 0
+      fc = _MINMAX(flt->lfo->get(flt->lfo, NULL, NULL, 0, 0),
+                   20.0f, 0.9f*0.5f*flt->fs);
+      if (flt->state == AAX_BESSEL) {
+         _aax_bessel_compute(fc, flt);
+      } else {
+         _aax_butterworth_compute(fc, flt);
+      }
+#endif
+   }
+
+#if 0
+   if (flt->random)
    {
       float lfc2 = _lin2log(flt->fc_high);
       float lfc1 = _lin2log(flt->fc_low);
@@ -95,6 +112,7 @@ _aaxFrequencyFilterReset(void *data)
          _aax_butterworth_compute(fc, flt);
       }
    }
+#endif
 }
 
 static aaxFilter

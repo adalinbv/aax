@@ -71,7 +71,7 @@ typedef struct
 
    _aaxLFOGetFn *get;
    _convert_fn *convert;
-   void *data;
+   void *data;				/* used for occlusion              */
    char inv, envelope, stereo_lnk;
 
    float delay, dt;
