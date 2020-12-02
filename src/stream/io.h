@@ -91,7 +91,7 @@ struct _io_st
    void *ssl_ctx;
 
    _data_t *dataBuffer;
-   char initialized;
+   char seeking;
 };
 typedef struct _io_st _io_t;
 

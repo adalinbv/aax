@@ -100,19 +100,29 @@ _file_read(_io_t *io, void* buf, size_t count)
 ssize_t
 _file_write(_io_t *io, const void* buf, size_t count)
 {
-   ssize_t rv = _aaxDataAdd(io->dataBuffer, buf, count);
+   ssize_t rv;
 
-   if (_aaxDataGetOffset(io->dataBuffer) >= THRESHOLD)
+   if (!io->seeking)
    {
-      void *data = _aaxDataGetData(io->dataBuffer);
-      ssize_t res = write(io->fds.fd, data, THRESHOLD);
-      if (res > 0) {
-         res = _aaxDataMove(io->dataBuffer, NULL, res);
+      rv = _aaxDataAdd(io->dataBuffer, buf, count);
+
+      if (_aaxDataGetOffset(io->dataBuffer) >= THRESHOLD)
+      {
+         void *data = _aaxDataGetData(io->dataBuffer);
+         ssize_t res = write(io->fds.fd, data, THRESHOLD);
+         if (res > 0) {
+            res = _aaxDataMove(io->dataBuffer, NULL, res);
+         }
+      }
+
+      if (rv < count) {
+         rv += _aaxDataAdd(io->dataBuffer, (char*)buf+count-rv, rv);
       }
    }
-
-   if (rv < count) {
-      rv += _aaxDataAdd(io->dataBuffer, (char*)buf+count-rv, rv);
+   else
+   {
+      rv = write(io->fds.fd, buf, count);
+      if (rv == count) io->seeking = AAX_FALSE;
    }
 
    return rv;
@@ -135,6 +145,7 @@ _file_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
    switch (ptype)
    {
    case __F_POSITION:
+      io->seeking = AAX_TRUE;
       rv = lseek(io->fds.fd, param, SEEK_SET);
       break;
    case __F_FLAGS:
