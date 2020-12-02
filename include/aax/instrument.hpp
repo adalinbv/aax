@@ -151,13 +151,13 @@ public:
         return playing;
     }
 
-    bool finish() {
+    bool finish(void) {
         hold = false;
         playing = false;
         return Emitter::set(AAX_STOPPED);
     }
 
-    bool finished() {
+    bool finished(void) {
         aaxState s = Emitter::state();
         return (s == AAX_PROCESSED || s == AAX_INITIALIZED);
     }
@@ -168,7 +168,7 @@ public:
         return hold ? true : Emitter::set(AAX_STOPPED);
     }
 
-    bool stopped() {
+    bool stopped(void) {
         aaxState s = Emitter::state();
         return (s != AAX_PLAYING);
     }
@@ -263,11 +263,14 @@ public:
             Mixer::remove(*it.second);
         }
         key.clear();
+        key_stopped.clear();
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
         i1.aax = std::move(i2.aax);
         i1.key = std::move(i2.key);
+        i1.key_stopped = std::move(i2.key_stopped);
+        i1.key_finish = std::move(i2.key_finish);
         i1.vibrato_freq = std::move(i2.vibrato_freq);
         i1.vibrato_depth = std::move(i2.vibrato_depth);
         i1.vibrato_state = std::move(i2.vibrato_state);
@@ -309,11 +312,11 @@ public:
 
     Instrument& operator=(Instrument&&) = default;
 
-    void finish() {
+    void finish(void) {
         for (auto& it : key) it.second->stop();
     }
 
-    bool finished() {
+    bool finished(void) {
         for (auto& it : key) {
             if (!it.second->finished()) return false;
         }
@@ -333,6 +336,12 @@ public:
         auto it = key.find(key_no);
         if (it != key.end()) {
             note = it->second;
+            if (key_finish && !note->finished()) {
+                note->finish();
+                key_stopped[key_no] = std::move(key.at(key_no));
+                key.erase(key_no);
+                it = key.end();
+            }
         }
         if (it == key.end()) {
             auto ret = key.insert({key_no, std::shared_ptr<Note>{new Note(frequency,pitch,pan)}});
@@ -351,6 +360,14 @@ public:
         float g = 3.321928f*log10f(1.0f+velocity);
         note->play(g*soft, pitch_start, slide_state ? pitch_rate : 0.0f);
         pitch_start = pitch;
+        for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
+             it = next)
+        {
+            ++next;
+            if (it->second->finished()) {
+                key_stopped.erase(it);
+            }
+        }
     }
 
     void stop(uint32_t key_no, float velocity = 0) {
@@ -360,6 +377,8 @@ public:
             it->second->stop(g*soft);
         }
     }
+
+    inline void set_key_finish(bool finish) { key_finish = finish; }
 
     inline void set_monophonic(bool m) { if (!is_drums) monophonic = m; }
 
@@ -509,17 +528,16 @@ public:
     }
 
     inline void set_spread(float s = 1.0f) { pan.spread = s; }
-    inline float get_spread() { return pan.spread; }
+    inline float get_spread(void) { return pan.spread; }
 
     inline void set_wide(int s = 1) { pan.wide = s; }
-    inline int get_wide() { return pan.wide; }
+    inline int get_wide(void) { return pan.wide; }
 
 private:
     inline float note2freq(uint32_t d) {
         return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
     }
 
-    std::map<uint32_t,std::shared_ptr<Note>> key;
     AeonWave* aax;
 
     Panning pan;
@@ -574,6 +592,10 @@ private:
     bool monophonic = false;
     bool playing = false;
     bool slide_state = false;
+
+    bool key_finish = false;
+    std::map<uint32_t,std::shared_ptr<Note>> key_stopped;
+    std::map<uint32_t,std::shared_ptr<Note>> key;
 };
 
 } // namespace aax
