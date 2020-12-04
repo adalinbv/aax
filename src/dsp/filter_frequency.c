@@ -71,7 +71,7 @@ _aaxFrequencyFilterDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
-static void
+void
 _aaxFrequencyFilterReset(void *data)
 {
    _aaxRingBufferFreqFilterData *flt = data;

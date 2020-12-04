@@ -11,15 +11,16 @@ set(DSP_SOURCES
   common.c
   filters.c
   effects.c
-  effect_chorus.c
-  effect_distortion.c
-  effect_dynamic_pitch.c
-  effect_flanging.c
-  effect_phasing.c
   effect_pitch.c
+  effect_timed_pitch.c
+  effect_dynamic_pitch.c
+  effect_delay.c
+  effect_phasing.c
+  effect_chorus.c
+  effect_flanging.c
+  effect_distortion.c
   effect_reverb.c
   effect_convolution.c
-  effect_timed_pitch.c
   effect_ringmodulate.c
   effect_velocity.c
   filter_directional.c
