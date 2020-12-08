@@ -470,9 +470,12 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
+            _aax2dProps *p2d = src->props2d;
             int i;
 
             rb->set_state(rb, RB_REWINDED);
+            p2d->curr_pos_sec = 0.0f;
+
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
 //          _aaxMutexLock(src->props2d->mutex);
