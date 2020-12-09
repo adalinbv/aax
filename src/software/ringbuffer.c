@@ -1098,10 +1098,10 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       rv = rbd->format;
       break;
    case RB_LOOPPOINT_START:
-      rv = (size_t)floorf(rbd->loop_start_sec * rbd->frequency_hz);
+      rv = (size_t)roundf(rbd->loop_start_sec * rbd->frequency_hz);
       break;
    case RB_LOOPPOINT_END:
-      rv = (size_t)ceilf(rbd->loop_end_sec * rbd->frequency_hz);
+      rv = (size_t)roundf(rbd->loop_end_sec * rbd->frequency_hz);
       break;
    case RB_OFFSET_SAMPLES:
       rv = rbi->curr_sample;

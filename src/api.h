@@ -246,8 +246,8 @@ typedef struct
 
    size_t no_samples;
    off_t loop_count;
-   size_t loop_start;
-   size_t loop_end;
+   float loop_start;
+   float loop_end;
 
    float freq;
    float base_frequency;

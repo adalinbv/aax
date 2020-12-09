@@ -368,10 +368,10 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
          }
          break;
       case AAX_LOOP_START:
-         rv = handle->info.loop_start;
+         rv = roundf(handle->info.loop_start);
          break;
       case AAX_LOOP_END:
-         rv = handle->info.loop_end;
+         rv = roundf(handle->info.loop_end);
          break;
       case AAX_BLOCK_ALIGNMENT:
          rv = handle->info.blocksize;
@@ -785,11 +785,12 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 
              if (rb)
              {
-                rb->set_paramf(rb, RB_FREQUENCY, buf->info.freq);
-                rb->set_parami(rb, RB_LOOPPOINT_END, buf->info.loop_end);
-                rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
-                rb->set_parami(rb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
-                rb->set_parami(rb, RB_LOOPING, buf->info.loop_count);
+                _buffer_info_t *info = &buf->info;
+                rb->set_paramf(rb, RB_FREQUENCY, info->freq);
+                rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
+                rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
+                rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
+                rb->set_parami(rb, RB_LOOPING, info->loop_count);
              }
 
              if ((aaxBufferSetData(buf, ptr[0])) == AAX_FALSE) {
@@ -929,15 +930,16 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
       rb = be->get_ringbuffer(0.0f, mode);
       if (rb)
       {
+         _buffer_info_t *info = &buf->info;
          /* initialize the ringbuffer in native format only */
-         rb->set_format(rb, buf->info.fmt & AAX_FORMAT_NATIVE, AAX_FALSE);
-         rb->set_parami(rb, RB_NO_TRACKS, buf->info.tracks);
-         rb->set_parami(rb, RB_NO_SAMPLES, buf->info.no_samples);
-         rb->set_parami(rb, RB_LOOPPOINT_END, buf->info.loop_end);
-         rb->set_parami(rb, RB_LOOPPOINT_START, buf->info.loop_start);
-         rb->set_parami(rb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
-         rb->set_paramf(rb, RB_FREQUENCY, buf->info.freq);
-//       rb->set_paramf(rb, RB_BLOCKSIZE, buf->info.blocksize);
+         rb->set_format(rb, info->fmt & AAX_FORMAT_NATIVE, AAX_FALSE);
+         rb->set_parami(rb, RB_NO_TRACKS, info->tracks);
+         rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
+         rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
+         rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
+         rb->set_paramf(rb, RB_SAMPLED_RELEASE, info->sampled_release);
+         rb->set_paramf(rb, RB_FREQUENCY, info->freq);
+//       rb->set_paramf(rb, RB_BLOCKSIZE, info->blocksize);
          /* Postpone until aaxBufferSetData gets called
           * rb->init(rb, AAX_FALSE);
          */
@@ -1593,11 +1595,11 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          if (!handle->info.loop_end) // loop was not defined in the file
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
-            unsigned int loop_start, loop_end;
+            float loop_start, loop_end;
 
-            loop_start = xmlAttributeGetInt(xsid, "loop-start");
+            loop_start = xmlAttributeGetDouble(xsid, "loop-start");
             if (xmlAttributeExists(xsid, "loop-end")) {
-               loop_end = xmlAttributeGetInt(xsid, "loop-end");
+               loop_end = xmlAttributeGetDouble(xsid, "loop-end");
             } else {
                loop_end = handle->info.no_samples;
             }
@@ -2197,8 +2199,8 @@ _bufConvertDataToMixerFormat(_buffer_t *buf, _aaxRingBuffer *rb)
          nrb->set_paramf(nrb, RB_FREQUENCY, buf->info.freq);
          nrb->init(nrb, AAX_FALSE);
 
-         nrb->set_parami(nrb, RB_LOOPPOINT_END, buf->info.loop_end);
-         nrb->set_parami(nrb, RB_LOOPPOINT_START, buf->info.loop_start);
+         nrb->set_paramf(nrb, RB_LOOPPOINT_END, buf->info.loop_end/buf->info.freq);
+         nrb->set_paramf(nrb, RB_LOOPPOINT_START, buf->info.loop_start/buf->info.freq);
          nrb->set_parami(nrb, RB_SAMPLED_RELEASE, buf->info.sampled_release);
          nrb->set_parami(nrb, RB_LOOPING, buf->info.loop_count);
 
