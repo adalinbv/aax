@@ -1234,10 +1234,11 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_COUNT);
          break;
       case DRIVER_LOOP_START:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_START)/(1 << 4);
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_START)/16.0;
+printf("@@ DRIVER_LOOP_START: %g\n", rv);
          break;
       case DRIVER_LOOP_END:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END)/(1 << 4);
+         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END)/16.0f;
          break;
       case DRIVER_SAMPLED_RELEASE:
          rv = (float)handle->ext->get_param(handle->ext, __F_SAMPLED_RELEASE);
