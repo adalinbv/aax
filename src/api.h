@@ -264,9 +264,9 @@ typedef struct
    float vibrato_sweep;
 
    float volume_envelope[2*_MAX_ENVELOPE_STAGES];
-// float pitch_envelope[2*_MAX_ENVELOPE_STAGES];
-
+   char envelope_sustain;
    char sampled_release;
+   char fast_release;
 
 } _buffer_info_t;
 

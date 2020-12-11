@@ -306,7 +306,7 @@ _pat_get(_ext_t *ext, int type)
       switch (type)
       {
       case __F_LOOP_COUNT:
-         rv = (handle->patch.modes & MODE_LOOPING) ? INT_MAX : 0;
+         rv = (handle->patch.modes & MODE_LOOPING) ? INT_MAX : AAX_TRUE;
          break;
       case __F_NO_SAMPLES:
          rv = handle->info.no_samples;

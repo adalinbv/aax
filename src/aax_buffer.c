@@ -1020,6 +1020,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                void **dst = (void **)ptr;
                ssize_t res, offset = 0;
                ssize_t offs_packets = 0;
+               int i;
 
                dst[0] = ptr2;
                ptr2 += datasize;
@@ -1059,9 +1060,17 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                info->vibrato_rate = stream->param(id, DRIVER_VIBRATO_RATE);
                info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
                info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
-#if 0
-{
- int i;
+
+               for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
+               {
+                  info->volume_envelope[2*i] = stream->param(id, DRIVER_ENVELOPE_OFFSET+i);
+                  info->volume_envelope[2*i+1] = stream->param(id, DRIVER_ENVELOPE_RATE+i);
+               }
+               info->envelope_sustain = stream->param(id, DRIVER_ENVELOPE_SUSTAIN);
+               info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
+               info->fast_release = stream->param(id, DRIVER_FAST_RELEASE);
+
+#if 1
  printf("no. samples:\t\t%lu\n", info->no_samples);
  printf("no. loops:\t\t%lu\n", info->loop_count);
  printf("loop start:\t\t%g\n", info->loop_start);
@@ -1087,10 +1096,8 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
  for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
    printf("%4.2f ", 1e-5f*stream->param(id, DRIVER_ENVELOPE_OFFSET+i));
  printf("\n");
- printf("Envelope sustain: %s\n", stream->param(id, DRIVER_ENVELOPE_SUSTAIN) ? "yes" : "no");
- printf("Sampled release: %s\n", stream->param(id, DRIVER_SAMPLED_RELEASE) ? "yes" : "no");
- printf("Fast release: %s\n", stream->param(id, DRIVER_FAST_RELEASE) ? "yes" : "no");
-}
+ printf("Envelope sustain: %s\n", info->envelope_sustain ? "yes" : "no");
+ printf("Fast release: %s\n", info->fast_release ? "yes" : "no");
 #endif
             }
          }
