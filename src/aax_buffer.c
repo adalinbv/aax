@@ -786,11 +786,26 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
              if (rb)
              {
                 _buffer_info_t *info = &buf->info;
+                int i;
+
                 rb->set_paramf(rb, RB_FREQUENCY, info->freq);
                 rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
                 rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
                 rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
                 rb->set_parami(rb, RB_LOOPING, info->loop_count);
+
+                for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
+                {
+                   float offset, rate;
+
+                   offset = info->volume_envelope[2*i];
+                   rate = info->volume_envelope[2*i+1];
+                   rb->set_paramf(rb, RB_ENVELOPE_OFFSET+i, offset);
+                   rb->set_paramf(rb, RB_ENVELOPE_RATE+i, rate);
+                }
+                rb->set_parami(rb, RB_ENVELOPE_SUSTAIN, info->envelope_sustain);
+                rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
+                rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
              }
 
              if ((aaxBufferSetData(buf, ptr[0])) == AAX_FALSE) {
@@ -1063,14 +1078,19 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
 
                for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
                {
-                  info->volume_envelope[2*i] = stream->param(id, DRIVER_ENVELOPE_OFFSET+i);
-                  info->volume_envelope[2*i+1] = stream->param(id, DRIVER_ENVELOPE_RATE+i);
+                  float offset, rate;
+
+                  offset = stream->param(id, DRIVER_ENVELOPE_OFFSET+i);
+                  rate = stream->param(id, DRIVER_ENVELOPE_RATE+i);
+
+                  info->volume_envelope[2*i] = offset*1e-5f;
+                  info->volume_envelope[2*i+1] = rate*1e-5f;
                }
                info->envelope_sustain = stream->param(id, DRIVER_ENVELOPE_SUSTAIN);
                info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);
                info->fast_release = stream->param(id, DRIVER_FAST_RELEASE);
 
-#if 1
+#if 0
  printf("no. samples:\t\t%lu\n", info->no_samples);
  printf("no. loops:\t\t%lu\n", info->loop_count);
  printf("loop start:\t\t%g\n", info->loop_start);

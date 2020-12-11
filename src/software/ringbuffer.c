@@ -823,6 +823,16 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       {
          rbi->average[param-RB_AVERAGE_VALUE] = fval;
       }
+      else if (param >= RB_ENVELOPE_OFFSET && param < RB_ENVELOPE_OFFSET_MAX)
+      {
+         int pos = param - RB_ENVELOPE_OFFSET;
+         rbd->volume_envelope[2*pos] = fval;
+      }
+      else if (param >= RB_ENVELOPE_RATE && param < RB_ENVELOPE_RATE_MAX)
+      {
+         int pos = param - RB_ENVELOPE_RATE;
+         rbd->volume_envelope[2*pos+1] = fval;
+      }
 #ifndef NDEBUG
       else {
          printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
@@ -1000,7 +1010,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
 float
 _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param)
 {
-// _aaxRingBufferSample *rbd;
+   _aaxRingBufferSample *rbd;
    _aaxRingBufferData *rbi;
    float rv = AAX_NONE;
 
@@ -1010,7 +1020,7 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    assert(rbi != NULL);
    assert(rbi->parent == rb);
 
-// rbd = rbi->sample;
+   rbd = rbi->sample;
    switch(param)
    {
    case RB_VOLUME:
@@ -1050,6 +1060,16 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
                (param <= RB_AVERAGE_VALUE_MAX))
       {
          rv = rbi->average[param-RB_AVERAGE_VALUE];
+      }
+      else if (param >= RB_ENVELOPE_OFFSET && param < RB_ENVELOPE_OFFSET_MAX)
+      {
+         int pos = param - RB_ENVELOPE_OFFSET;
+         rv = rbd->volume_envelope[2*pos];
+      }
+      else if (param >= RB_ENVELOPE_RATE && param < RB_ENVELOPE_RATE_MAX)
+      {
+         int pos = param - RB_ENVELOPE_RATE;
+         rv = rbd->volume_envelope[2*pos+1];
       }
 #ifndef NDEBUG
       else {

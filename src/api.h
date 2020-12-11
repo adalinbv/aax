@@ -336,7 +336,7 @@ typedef struct aax_emitter_t
 
 } _emitter_t;
 
-typedef struct
+typedef struct aax_embuffer_t
 {
    unsigned int id;	/* always first */
 

@@ -254,6 +254,8 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             rv = AAX_FALSE;
          }
+//       _emitterCreateEFFromRingbuffer(handle, embuf);
+
 #if 0
          // This is done when the buffer is being used for the first time
          // in software/emitters.c
@@ -301,7 +303,7 @@ aaxEmitterRemoveBuffer(aaxEmitter emitter)
          }
 
          if (_intBufGetNumNoLock(src->buffers, _AAX_EMITTER_BUFFER) == 0) {
-            handle->track = 0; 
+            handle->track = 0;
          }
       }
       else
@@ -643,7 +645,7 @@ aaxEmitterSetMode(aaxEmitter emitter, enum aaxModeType type, int mode)
          {
             _embuffer_t *embuf = _intBufGetDataPtr(dptr);
             _aaxRingBuffer *rb = embuf->ringbuffer;
-            rb->set_parami(rb, RB_LOOPING, mode); 
+            rb->set_parami(rb, RB_LOOPING, mode);
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
          }
          handle->looping = mode;
@@ -831,7 +833,7 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
 
          switch (type)
          {
-         case AAX_BYTES:   
+         case AAX_BYTES:
             offs /= rb->get_parami(rb, RB_BYTES_SAMPLE);
             // intentional fallthrough
          case AAX_FRAMES:
@@ -885,7 +887,6 @@ aaxEmitterSetOffset(aaxEmitter emitter, unsigned long offs, enum aaxType type)
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
          _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
-         
       }
       else {
          _aaxErrorSet(AAX_INVALID_REFERENCE);
@@ -1107,7 +1108,7 @@ aaxEmitterGetOffsetSec(const aaxEmitter emitter)
 
 AAX_API int AAX_APIENTRY
 aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setup)
-{  
+{
    _emitter_t* handle = get_emitter(emitter, _LOCK, __func__);
    _aax2dProps *p2d = handle->source->props2d;
    int rv = AAX_FALSE;
@@ -1317,9 +1318,9 @@ _aaxEMitterResetDistDelay(_aaxEmitter *src, _aaxAudioFrame *mixer)
       vs = _EFFECT_GET(fp3d, VELOCITY_EFFECT, AAX_SOUND_VELOCITY);
 
       /**
-       * Align the modified emitter matrix with the sensor by multiplying 
+       * Align the modified emitter matrix with the sensor by multiplying
        * the emitter matrix by the modified frame matrix.
-       */ 
+       */
 #ifdef ARCH32
       mtx4fMul(&edp3d_m->matrix, &fdp3d_m->matrix, &edp3d->matrix);
       dist = vec3fMagnitude(&edp3d_m->matrix.v34[LOCATION]);
@@ -1481,9 +1482,42 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
 }
 
 int
-_emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
+_emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 {
-   _emitter_t *handle = (_emitter_t*)emitter;
+   _aaxRingBuffer *rb = embuf->ringbuffer;
+   aaxConfig config = handle->root;
+   int rv = AAX_FALSE;
+
+   aaxFilter flt = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
+   if (flt)
+   {
+      _filter_t* filter;
+      int i, param = 0;
+
+      for (i=0; i<_MAX_ENVELOPE_STAGES/2; ++i)
+      {
+         float offset = rb->get_paramf(rb, RB_ENVELOPE_OFFSET+i);
+         float rate = rb->get_paramf(rb, RB_ENVELOPE_RATE+i);
+
+printf("%i: offset: %f\n", param, offset);
+         aaxFilterSetParam(flt, param, AAX_LINEAR, offset);
+printf("%i: rate:   %f\n", param, rate);
+         aaxFilterSetParam(flt, ++param, AAX_LINEAR, rate);
+
+         if ((++param % 4) == 0) param += 0x10 - 4;
+      }
+
+      filter = get_filter(flt);
+      _emitterSetFilter(handle->source, filter);
+      aaxFilterDestroy(flt);
+      rv = AAX_TRUE;
+   }
+   return rv;
+}
+
+int
+_emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aaxs)
+{
    aaxConfig config = handle->root;
    int rv = AAX_TRUE;
    void *xid;
@@ -1516,7 +1550,6 @@ _emitterCreateEFFromAAXS(void *emitter, void *buf, const char *aaxs)
          if (xmlAttributeExists(xmid, "looping"))
          {
             int mode = xmlAttributeGetBool(xmid, "looping");
-            _embuffer_t *embuf = (_embuffer_t*)buf;
             _aaxRingBuffer *rb = embuf->ringbuffer;
             rb->set_parami(rb, RB_LOOPING, mode);
             handle->looping = mode;

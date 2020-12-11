@@ -114,6 +114,11 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     size_t no_samples_avail;	/* maximum available no. samples */
     size_t track_len_bytes;
 
+    float volume_envelope[2*_MAX_ENVELOPE_STAGES];
+    char envelope_sustain;
+    char sampled_release;
+    char fast_release;
+
     enum aaxFormat format;
     _batch_codec_proc codec;
 #if RB_FLOAT_DATA
