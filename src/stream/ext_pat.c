@@ -287,56 +287,76 @@ _pat_get(_ext_t *ext, int type)
    _driver_t *handle = ext->id;
    off_t rv = 0;
 
-   switch (type)
+   if (type >= __F_ENVELOPE_OFFSET && type < __F_ENVELOPE_OFFSET_MAX)
    {
-   case __F_LOOP_COUNT:
-      rv = (handle->patch.modes & MODE_LOOPING) ? INT_MAX : 0;
-      break;
-   case __F_NO_SAMPLES:
-      rv = handle->info.no_samples;
-      break;
-   case __F_LOOP_START:
-      rv = handle->info.loop_start*16.0f;
-      break;
-   case __F_LOOP_END:
-      rv = handle->info.loop_end*16.0f;
-      break;
-   case __F_SAMPLED_RELEASE:
-      rv = (handle->patch.envelope_offset[ENVELOPES-1] > 8) ? 1 : 0;
-      break;
-   case __F_BASE_FREQUENCY:
-      rv = handle->info.base_frequency*(1 << 16);
-      break;
-   case __F_LOW_FREQUENCY:
-      rv = handle->info.low_frequency*(1 << 16);
-      break;
-   case __F_HIGH_FREQUENCY:
-      rv = handle->info.high_frequency*(1 << 16);
-      break;
-   case __F_PITCH_FRACTION:
-      rv = handle->info.pitch_fraction*(1 << 24);
-      break;
-   case __F_TREMOLO_RATE:
-      rv = handle->info.tremolo_rate*(1 << 24);
-      break;
-   case __F_TREMOLO_DEPTH:
-      rv = handle->info.tremolo_depth*(1 << 24);
-      break;
-   case __F_TREMOLO_SWEEP:
-      rv = handle->info.tremolo_sweep*(1 << 24);
-      break;
-   case __F_VIBRATO_RATE:
-      rv = handle->info.vibrato_rate*(1 << 24);
-      break;
-   case __F_VIBRATO_DEPTH:
-      rv = handle->info.vibrato_depth*(1 << 24);
-      break;
-   case __F_VIBRATO_SWEEP:
-      rv = handle->info.vibrato_sweep*(1 << 24);
-      break;
-   default:
-      rv = handle->fmt->get(handle->fmt, type);
-      break;
+      unsigned pos = type & 0xF;
+      if (pos < ENVELOPES) {
+         rv = handle->info.volume_envelope[2*pos]*1e5f;
+      }
+   }
+   else if (type >= __F_ENVELOPE_RATE && type < __F_ENVELOPE_RATE_MAX)
+   {
+      unsigned pos = type & 0xF;
+      if (pos < ENVELOPES) {
+         rv = handle->info.volume_envelope[2*pos+1]*1e5f;
+      }
+   }
+   else
+   {
+      switch (type)
+      {
+      case __F_LOOP_COUNT:
+         rv = (handle->patch.modes & MODE_LOOPING) ? INT_MAX : 0;
+         break;
+      case __F_NO_SAMPLES:
+         rv = handle->info.no_samples;
+         break;
+      case __F_LOOP_START:
+         rv = handle->info.loop_start*16.0f;
+         break;
+      case __F_LOOP_END:
+         rv = handle->info.loop_end*16.0f;
+         break;
+      case __F_ENVELOPE_SUSTAIN:
+         rv = (handle->patch.modes & MODE_ENVELOPE_SUSTAIN);
+         break;
+      case __F_SAMPLED_RELEASE:
+         rv = (handle->patch.modes & MODE_ENVELOPE_RELEASE) ? 0 : 1;
+         break;
+      case __F_BASE_FREQUENCY:
+         rv = handle->info.base_frequency*(1 << 16);
+         break;
+      case __F_LOW_FREQUENCY:
+         rv = handle->info.low_frequency*(1 << 16);
+         break;
+      case __F_HIGH_FREQUENCY:
+         rv = handle->info.high_frequency*(1 << 16);
+         break;
+      case __F_PITCH_FRACTION:
+         rv = handle->info.pitch_fraction*(1 << 24);
+         break;
+      case __F_TREMOLO_RATE:
+         rv = handle->info.tremolo_rate*(1 << 24);
+         break;
+      case __F_TREMOLO_DEPTH:
+         rv = handle->info.tremolo_depth*(1 << 24);
+         break;
+      case __F_TREMOLO_SWEEP:
+         rv = handle->info.tremolo_sweep*(1 << 24);
+         break;
+      case __F_VIBRATO_RATE:
+         rv = handle->info.vibrato_rate*(1 << 24);
+         break;
+      case __F_VIBRATO_DEPTH:
+         rv = handle->info.vibrato_depth*(1 << 24);
+         break;
+      case __F_VIBRATO_SWEEP:
+         rv = handle->info.vibrato_sweep*(1 << 24);
+         break;
+      default:
+         rv = handle->fmt->get(handle->fmt, type);
+         break;
+      }
    }
    return rv;
 }
@@ -634,7 +654,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Envelope Offsets:\t");
  for (i=0; i<6; ++i) {
   float v = handle->info.volume_envelope[2*i];
-  printf("%6.4f\t", v);
+  printf("%4.2f\t", v);
  }
  printf("\n");
  printf("Sampled release:\t%s\n", (handle->patch.envelope_offset[ENVELOPES-1] > 8) ? "yes" : "no");

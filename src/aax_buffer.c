@@ -1060,10 +1060,12 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
                info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
 #if 0
+{
+ int i;
  printf("no. samples:\t\t%lu\n", info->no_samples);
  printf("no. loops:\t\t%lu\n", info->loop_count);
- printf("loop start:\t\t%lu\n", info->loop_start);
- printf("loop end:\t\t%lu\n", info->loop_end);
+ printf("loop start:\t\t%g\n", info->loop_start);
+ printf("loop end:\t\t%g\n", info->loop_end);
  printf("sampled release:\t%s\n", info->sampled_release ? "yes" : "no");
  printf("base frequency:\t\t%g Hz\n", info->base_frequency);
  printf("low frequency:\t\t%g Hz\n", info->low_frequency);
@@ -1075,6 +1077,20 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
  printf("vibrato rate:\t\t%g Hz\n", info->vibrato_rate);
  printf("vibrato depth:\t\t%g\n", info->vibrato_depth);
  printf("vibrato sweep:\t\t%g Hz\n", info->vibrato_sweep);
+ printf("Envelope rates:\n");
+ for (i=0; i<_MAX_ENVELOPE_STAGES; ++i) {
+   float rate = stream->param(id, DRIVER_ENVELOPE_RATE+i);
+   if (rate < 10000.0f) printf("%4.2fms ", 1e-2f*rate);
+   else printf("%4.2fs ", 1e-5f*rate);
+ }
+ printf("\nEnvelope offsets:\n");
+ for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
+   printf("%4.2f ", 1e-5f*stream->param(id, DRIVER_ENVELOPE_OFFSET+i));
+ printf("\n");
+ printf("Envelope sustain: %s\n", stream->param(id, DRIVER_ENVELOPE_SUSTAIN) ? "yes" : "no");
+ printf("Sampled release: %s\n", stream->param(id, DRIVER_SAMPLED_RELEASE) ? "yes" : "no");
+ printf("Fast release: %s\n", stream->param(id, DRIVER_FAST_RELEASE) ? "yes" : "no");
+}
 #endif
             }
          }

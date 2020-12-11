@@ -122,7 +122,14 @@ enum _aaxStreamParam
 
    __F_IS_STREAM = 0x1000,      /* set */
    __F_COPY_DATA,
-   __F_POSITION
+   __F_POSITION,
+
+   __F_ENVELOPE_OFFSET     = 0x2000,
+   __F_ENVELOPE_OFFSET_MAX = 0x2010,
+   __F_ENVELOPE_RATE       = 0x2010,
+   __F_ENVELOPE_RATE_MAX   = 0x2020,
+   __F_ENVELOPE_SUSTAIN,
+   __F_FAST_RELEASE
 };
 
 #include "io.h"

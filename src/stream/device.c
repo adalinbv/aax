@@ -1185,113 +1185,134 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
    float rv = 0.0f;
    if (handle)
    {
-      switch(param)
+      /* envelopes */
+      if (param >= DRIVER_ENVELOPE_OFFSET &&
+          param < DRIVER_ENVELOPE_OFFSET_MAX)
       {
-      /* float */
-      case DRIVER_LATENCY:
-         rv = handle->latency;
-         break;
-      case DRIVER_MAX_VOLUME:
-         rv = 1.0f;
-         break;
-      case DRIVER_MIN_VOLUME:
-         rv = 0.0f;
-         break;
-      case DRIVER_VOLUME:
-         rv = 1.0f;
-         break;
-      case DRIVER_FREQUENCY:
-         rv = (float)handle->frequency;
-         break;
-
-      /* int */
-      case DRIVER_MIN_FREQUENCY:
-         rv = 8000.0f;
-         break;
-      case DRIVER_MAX_FREQUENCY:
-         rv = _AAX_MAX_MIXER_FREQUENCY;
-         break;
-      case DRIVER_MIN_TRACKS:
-         rv = 1.0f;
-         break;
-      case DRIVER_MAX_TRACKS:
-         rv = (float)_AAX_MAX_SPEAKERS;
-         break;
-      case DRIVER_BLOCK_SIZE:
-         rv = (float)handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
-         break;
-      case DRIVER_MIN_PERIODS:
-      case DRIVER_MAX_PERIODS:
-         rv = 1.0f;
-         break;
-      case DRIVER_MAX_SOURCES:
-         rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
-         break;
-      case DRIVER_MAX_SAMPLES:
-         rv = (float)handle->ext->get_param(handle->ext, __F_NO_SAMPLES);
-         break;
-      case DRIVER_LOOP_COUNT:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_COUNT);
-         break;
-      case DRIVER_LOOP_START:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_START)/16.0;
-printf("@@ DRIVER_LOOP_START: %g\n", rv);
-         break;
-      case DRIVER_LOOP_END:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END)/16.0f;
-         break;
-      case DRIVER_SAMPLED_RELEASE:
-         rv = (float)handle->ext->get_param(handle->ext, __F_SAMPLED_RELEASE);
-         break;
-      case DRIVER_BASE_FREQUENCY:
-         rv = (float)handle->ext->get_param(handle->ext, __F_BASE_FREQUENCY)/(1 << 16);
-         break;
-      case DRIVER_LOW_FREQUENCY:
-         rv = (float)handle->ext->get_param(handle->ext, __F_LOW_FREQUENCY)/(1 << 16);
-         break;
-      case DRIVER_HIGH_FREQUENCY:
-         rv = (float)handle->ext->get_param(handle->ext, __F_HIGH_FREQUENCY)/(1 << 16);
-         break;
-      case DRIVER_PITCH_FRACTION:
-         rv = (float)handle->ext->get_param(handle->ext, __F_PITCH_FRACTION)/(1<<24);
-         break;
-      case DRIVER_TREMOLO_RATE:
-         rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_RATE)/(1<<24);
-         break;
-      case DRIVER_TREMOLO_DEPTH:
-         rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_DEPTH)/(1<<24);
-         break;
-      case DRIVER_TREMOLO_SWEEP:
-         rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_SWEEP)/(1<<24);
-         break;
-      case DRIVER_VIBRATO_RATE:
-         rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_RATE)/(1<<24);
-         break;
-      case DRIVER_VIBRATO_DEPTH:
-         rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_DEPTH)/(1<<24);
-         break;
-      case DRIVER_VIBRATO_SWEEP:
-         rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_SWEEP)/(1<<24);
-         break;
-      case DRIVER_SAMPLE_DELAY:
-         rv = (float)handle->no_samples;
-         break;
-
-      /* boolean */
-      case DRIVER_SEEKABLE_SUPPORT:
-         if (handle->ext->get_param(handle->ext, __F_POSITION) &&
-             handle->io->get_param(handle->io, __F_POSITION) != -1)
+         int type = __F_ENVELOPE_OFFSET + (param & 0xF);
+         rv = (float)handle->ext->get_param(handle->ext, type);
+      }
+      else if (param >= DRIVER_ENVELOPE_RATE &&
+               param < DRIVER_ENVELOPE_RATE_MAX)
+      {
+         int type = __F_ENVELOPE_RATE + (param & 0xF);
+         rv = (float)handle->ext->get_param(handle->ext, type);
+      }
+      else
+      {
+         switch(param)
          {
-             rv = (float)AAX_TRUE;
+         /* float */
+         case DRIVER_LATENCY:
+            rv = handle->latency;
+            break;
+         case DRIVER_MAX_VOLUME:
+            rv = 1.0f;
+            break;
+         case DRIVER_MIN_VOLUME:
+            rv = 0.0f;
+            break;
+         case DRIVER_VOLUME:
+            rv = 1.0f;
+            break;
+         case DRIVER_FREQUENCY:
+            rv = (float)handle->frequency;
+            break;
+
+         /* int */
+         case DRIVER_MIN_FREQUENCY:
+            rv = 8000.0f;
+            break;
+         case DRIVER_MAX_FREQUENCY:
+            rv = _AAX_MAX_MIXER_FREQUENCY;
+            break;
+         case DRIVER_MIN_TRACKS:
+            rv = 1.0f;
+            break;
+         case DRIVER_MAX_TRACKS:
+            rv = (float)_AAX_MAX_SPEAKERS;
+            break;
+         case DRIVER_BLOCK_SIZE:
+            rv = (float)handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
+            break;
+         case DRIVER_MIN_PERIODS:
+         case DRIVER_MAX_PERIODS:
+            rv = 1.0f;
+            break;
+         case DRIVER_MAX_SOURCES:
+            rv = ((_handle_t*)(handle->handle))->backend.ptr->getset_sources(0, 0);
+            break;
+         case DRIVER_MAX_SAMPLES:
+            rv = (float)handle->ext->get_param(handle->ext, __F_NO_SAMPLES);
+            break;
+         case DRIVER_LOOP_COUNT:
+            rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_COUNT);
+            break;
+         case DRIVER_LOOP_START:
+            rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_START)/16.0;
+            break;
+         case DRIVER_LOOP_END:
+            rv = (float)handle->ext->get_param(handle->ext, __F_LOOP_END)/16.0f;
+            break;
+         case DRIVER_ENVELOPE_SUSTAIN:
+            rv = (float)handle->ext->get_param(handle->ext, __F_ENVELOPE_SUSTAIN);
+            break;
+         case DRIVER_SAMPLED_RELEASE:
+            rv = (float)handle->ext->get_param(handle->ext, __F_SAMPLED_RELEASE);
+            break;
+         case DRIVER_FAST_RELEASE:
+            rv = (float)handle->ext->get_param(handle->ext, __F_FAST_RELEASE);
+            break;
+         case DRIVER_BASE_FREQUENCY:
+            rv = (float)handle->ext->get_param(handle->ext, __F_BASE_FREQUENCY)/(1 << 16);
+            break;
+         case DRIVER_LOW_FREQUENCY:
+            rv = (float)handle->ext->get_param(handle->ext, __F_LOW_FREQUENCY)/(1 << 16);
+            break;
+         case DRIVER_HIGH_FREQUENCY:
+            rv = (float)handle->ext->get_param(handle->ext, __F_HIGH_FREQUENCY)/(1 << 16);
+            break;
+         case DRIVER_PITCH_FRACTION:
+            rv = (float)handle->ext->get_param(handle->ext, __F_PITCH_FRACTION)/(1<<24);
+            break;
+         case DRIVER_TREMOLO_RATE:
+            rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_RATE)/(1<<24);
+            break;
+         case DRIVER_TREMOLO_DEPTH:
+            rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_DEPTH)/(1<<24);
+            break;
+         case DRIVER_TREMOLO_SWEEP:
+            rv = (float)handle->ext->get_param(handle->ext, __F_TREMOLO_SWEEP)/(1<<24);
+            break;
+         case DRIVER_VIBRATO_RATE:
+            rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_RATE)/(1<<24);
+            break;
+         case DRIVER_VIBRATO_DEPTH:
+            rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_DEPTH)/(1<<24);
+            break;
+         case DRIVER_VIBRATO_SWEEP:
+            rv = (float)handle->ext->get_param(handle->ext, __F_VIBRATO_SWEEP)/(1<<24);
+            break;
+         case DRIVER_SAMPLE_DELAY:
+            rv = (float)handle->no_samples;
+            break;
+
+         /* boolean */
+         case DRIVER_SEEKABLE_SUPPORT:
+            if (handle->ext->get_param(handle->ext, __F_POSITION) &&
+                handle->io->get_param(handle->io, __F_POSITION) != -1)
+            {
+                rv = (float)AAX_TRUE;
+            }
+            break;
+         case DRIVER_TIMER_MODE:
+         case DRIVER_BATCHED_MODE:
+            rv = (float)AAX_TRUE;
+            break;
+         case DRIVER_SHARED_MODE:
+         default:
+            break;
          }
-         break;
-      case DRIVER_TIMER_MODE:
-      case DRIVER_BATCHED_MODE:
-         rv = (float)AAX_TRUE;
-         break;
-      case DRIVER_SHARED_MODE:
-      default:
-         break;
       }
    }
    return rv;
