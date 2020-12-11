@@ -1031,6 +1031,12 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    case RB_DURATION_SEC:
       rv = rbi->sample->duration_sec;
       break;
+   case RB_LOOPPOINT_START:
+      rv = rbi->sample->loop_start_sec;
+      break;
+   case RB_LOOPPOINT_END:
+      rv = rbi->sample->loop_end_sec;
+      break;
    case RB_OFFSET_SEC:
       rv = rbi->curr_pos_sec;
       break;
