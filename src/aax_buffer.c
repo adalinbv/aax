@@ -786,29 +786,34 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
              if (rb)
              {
                 _buffer_info_t *info = &buf->info;
-                int i;
 
                 rb->set_paramf(rb, RB_FREQUENCY, info->freq);
                 rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
                 rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
-                rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
                 rb->set_parami(rb, RB_LOOPING, info->loop_count);
-
-                for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
-                {
-                   float offset, rate;
-
-                   offset = info->volume_envelope[2*i];
-                   rate = info->volume_envelope[2*i+1];
-                   rb->set_paramf(rb, RB_ENVELOPE_OFFSET+i, offset);
-                   rb->set_paramf(rb, RB_ENVELOPE_RATE+i, rate);
-                }
                 rb->set_parami(rb, RB_ENVELOPE_SUSTAIN, info->envelope_sustain);
                 rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
                 rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
              }
 
-             if ((aaxBufferSetData(buf, ptr[0])) == AAX_FALSE) {
+             if ((aaxBufferSetData(buf, ptr[0])) != AAX_FALSE)
+             {
+               _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL, 0);
+                _buffer_info_t *info = &buf->info;
+                int i;
+
+                for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
+                {
+                   float level, rate;
+
+                   level = info->volume_envelope[2*i];
+                   rate = info->volume_envelope[2*i+1];
+                   rb->set_paramf(rb, RB_ENVELOPE_LEVEL+i, level);
+                   rb->set_paramf(rb, RB_ENVELOPE_RATE+i, rate);
+                }
+             }
+             else
+             {
                 aaxBufferDestroy(buf);
                 buf = NULL;
              }
@@ -1080,7 +1085,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                {
                   float offset, rate;
 
-                  offset = stream->param(id, DRIVER_ENVELOPE_OFFSET+i);
+                  offset = stream->param(id, DRIVER_ENVELOPE_LEVEL+i);
                   rate = stream->param(id, DRIVER_ENVELOPE_RATE+i);
 
                   info->volume_envelope[2*i] = offset*1e-5f;
@@ -1114,7 +1119,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
  }
  printf("\nEnvelope offsets:\n");
  for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
-   printf("%4.2f ", 1e-5f*stream->param(id, DRIVER_ENVELOPE_OFFSET+i));
+   printf("%4.2f ", 1e-5f*stream->param(id, DRIVER_ENVELOPE_LEVEL+i));
  printf("\n");
  printf("Envelope sustain: %s\n", info->envelope_sustain ? "yes" : "no");
  printf("Fast release: %s\n", info->fast_release ? "yes" : "no");

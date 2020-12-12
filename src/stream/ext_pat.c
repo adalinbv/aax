@@ -60,7 +60,7 @@ typedef struct
 } _driver_t;
 
 static float env_rate_to_time(unsigned char, float, float);
-static float env_offset_to_level(unsigned char);
+static float env_level_to_level(unsigned char);
 static int _aaxFormatDriverReadHeader(_driver_t *, unsigned char*);
 
 
@@ -221,10 +221,10 @@ _pat_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 }
 
 size_t
-_pat_copy(_ext_t *ext, int32_ptr dptr, size_t offset, size_t *num)
+_pat_copy(_ext_t *ext, int32_ptr dptr, size_t level, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->copy(handle->fmt, dptr, offset, num);
+   return handle->fmt->copy(handle->fmt, dptr, level, num);
 }
 
 size_t
@@ -235,10 +235,10 @@ _pat_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
 }
 
 size_t
-_pat_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
+_pat_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t level, size_t *num)
 {
    _driver_t *handle = ext->id;
-   return handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+   return handle->fmt->cvt_from_intl(handle->fmt, dptr, level, num);
 }
 
 size_t
@@ -287,7 +287,7 @@ _pat_get(_ext_t *ext, int type)
    _driver_t *handle = ext->id;
    off_t rv = 0;
 
-   if (type >= __F_ENVELOPE_OFFSET && type < __F_ENVELOPE_OFFSET_MAX)
+   if (type >= __F_ENVELOPE_LEVEL && type < __F_ENVELOPE_LEVEL_MAX)
    {
       unsigned pos = type & 0xF;
       if (pos < ENVELOPES) {
@@ -401,14 +401,14 @@ env_rate_to_time(unsigned char rate, float prev, float next)
 }
 
 static float
-env_offset_to_level(unsigned char offset)
+env_level_to_level(unsigned char level)
 {
-   // offset is defined as: EEEEMMMM
+   // level is defined as: EEEEMMMM
    // where EEEE is the exponent and MMMM is the mantissa
    // val = mantissa * 2^exponent
 
-   int mantissa = offset & 0xF;
-   int exponent = offset >> 4;
+   int mantissa = level & 0xF;
+   int exponent = level >> 4;
    int rv = mantissa*(1 << exponent);
    return 2.5f*rv/491520.0;
 }
@@ -422,7 +422,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
    {
       size_t offs;
       float cents;
-      int i;
+      int i, pos;
 
       // Patch Header
       memcpy(handle->header.header, header, HEADER_SIZE);
@@ -524,7 +524,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       memcpy(handle->patch.envelope_rate, header, ENVELOPES);
       header += ENVELOPES;
 
-      memcpy(handle->patch.envelope_offset, header, ENVELOPES);
+      memcpy(handle->patch.envelope_level, header, ENVELOPES);
       header += ENVELOPES;
 
       handle->patch.tremolo_sweep = *header++;
@@ -590,17 +590,38 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       handle->info.vibrato_depth = CVTDEPTH(handle->patch.vibrato_depth);
       handle->info.vibrato_sweep = CVTSWEEP(handle->patch.vibrato_sweep);
 
+      /*
+       * An array of 6 rates and levels to implement a 6-point envelope.
+       * The frist three stages can be used for attack and decay. If the
+       * sustain flag is set, than the third envelope point will be the
+       * sustain point. The last three envelpe points are for the release,
+       * and an optional "echo" effect. If the last envelope point is left
+       * at an audible level, then a sampled release can be heard after the
+       * laste envelope point.
+       */
+      pos  = 1;
       for (i=0; i<6; ++i)
       {
-         float v = env_offset_to_level(handle->patch.envelope_offset[i]);
-         handle->info.volume_envelope[2*i] = v;
-      }
-      for (i=0; i<6; ++i)
-      {
-         float prev = i ? handle->info.volume_envelope[2*(i-1)] : 0.0f;
-         float next = handle->info.volume_envelope[2*i];
-         float v = env_rate_to_time(handle->patch.envelope_rate[i], prev, next);
-         handle->info.volume_envelope[2*i+1] = v;
+         float level, rate;
+
+         level = env_level_to_level(handle->patch.envelope_level[i]);
+
+         if (i == 2 && (handle->patch.modes & MODE_ENVELOPE_SUSTAIN)) {
+            rate = AAX_FPINFINITE;
+         }
+         else
+         {
+            float prev = pos ? handle->info.volume_envelope[2*(pos-1)] : 0.0f;
+            float next = level;
+            rate = env_rate_to_time(handle->patch.envelope_rate[i], prev, next);
+         }
+
+         if (rate)
+         {
+            handle->info.volume_envelope[2*pos] = level;
+            handle->info.volume_envelope[2*pos-1] = rate;
+            pos++;
+         }
       }
 
 #if 0
@@ -635,29 +656,22 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Root Frequency:\t\t%g Hz\n", 0.001f*handle->patch.root_frequency);
  printf("Panning:\t\t%.1f\n", (float)(handle->patch.balance - 7)/16.0f);
 
- // Envelope:
- // Two arrays of 6 rates and offsets to implement a 6-stage envelope.
- // * The first three entries can be used for attack and decay.
- // * If the sustain flag is set, then the third envelope stage will be the
- //   sustain stage.
- // * The last three stages are for the release and an optional "echo" effect.
- // * If the last envelope point is left at an audible level, then a sampled
- //   release can be heard after the last envelope point.
+ printf("Envelope Levels:\t");
+ for (i=0; i<6; ++i) {
+  float v = handle->info.volume_envelope[2*i];
+  printf("%4.2f\t", v ? _MAX(v, 0.01f) : 0.0f);
+ }
+ printf("\n");
+
  printf("Envelope Rates:\t\t");
  for (i=0; i<6; ++i) {
   float v = handle->info.volume_envelope[2*i+1];
   if (v < 0.1f) printf ("%4.2fms\t", v*1000.0f);
+  else if (v == AAX_FPINFINITE) printf("%4.2f\t", v);
   else printf("%4.2fs\t", v);
  }
  printf("\n");
-
- printf("Envelope Offsets:\t");
- for (i=0; i<6; ++i) {
-  float v = handle->info.volume_envelope[2*i];
-  printf("%4.2f\t", v);
- }
- printf("\n");
- printf("Sampled release:\t%s\n", (handle->patch.envelope_offset[ENVELOPES-1] > 8) ? "yes" : "no");
+ printf("Sampled release:\t%s\n", (handle->patch.envelope_level[ENVELOPES-1] > 8) ? "yes" : "no");
 
  printf("Tremolo Sweep:\t\t%3i (%.3g Hz)\n", handle->patch.tremolo_sweep,
                                              handle->info.tremolo_sweep);

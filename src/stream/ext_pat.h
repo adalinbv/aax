@@ -129,7 +129,7 @@ typedef struct
    unsigned char balance;
 
    unsigned char envelope_rate[ENVELOPES];
-   unsigned char envelope_offset[ENVELOPES];
+   unsigned char envelope_level[ENVELOPES];
 
    unsigned char tremolo_sweep;
    unsigned char tremolo_rate;

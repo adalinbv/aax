@@ -1496,14 +1496,11 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 
       for (i=0; i<_MAX_ENVELOPE_STAGES/2; ++i)
       {
-         float offset = rb->get_paramf(rb, RB_ENVELOPE_OFFSET+i);
+         float level = rb->get_paramf(rb, RB_ENVELOPE_LEVEL+i);
          float rate = rb->get_paramf(rb, RB_ENVELOPE_RATE+i);
 
-printf("%i: offset: %f\n", param, offset);
-         aaxFilterSetParam(flt, param, AAX_LINEAR, offset);
-printf("%i: rate:   %f\n", param, rate);
+         aaxFilterSetParam(flt, param, AAX_LINEAR, level);
          aaxFilterSetParam(flt, ++param, AAX_LINEAR, rate);
-
          if ((++param % 4) == 0) param += 0x10 - 4;
       }
 
