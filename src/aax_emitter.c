@@ -254,7 +254,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
             rv = AAX_FALSE;
          }
-//       _emitterCreateEFFromRingbuffer(handle, embuf);
+         _emitterCreateEFFromRingbuffer(handle, embuf);
 
 #if 0
          // This is done when the buffer is being used for the first time
@@ -1503,6 +1503,7 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
          aaxFilterSetParam(flt, ++param, AAX_LINEAR, rate);
          if ((++param % 4) == 0) param += 0x10 - 4;
       }
+      aaxFilterSetState(flt, AAX_TRUE);
 
       filter = get_filter(flt);
       _emitterSetFilter(handle->source, filter);

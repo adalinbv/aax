@@ -808,6 +808,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
 
                    level = info->volume_envelope[2*i];
                    rate = info->volume_envelope[2*i+1];
+
                    rb->set_paramf(rb, RB_ENVELOPE_LEVEL+i, level);
                    rb->set_paramf(rb, RB_ENVELOPE_RATE+i, rate);
                 }
@@ -1083,13 +1084,17 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
 
                for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
                {
-                  float offset, rate;
+                  off_t level, rate;
 
-                  offset = stream->param(id, DRIVER_ENVELOPE_LEVEL+i);
+                  level = stream->param(id, DRIVER_ENVELOPE_LEVEL+i);
                   rate = stream->param(id, DRIVER_ENVELOPE_RATE+i);
 
-                  info->volume_envelope[2*i] = offset*1e-5f;
-                  info->volume_envelope[2*i+1] = rate*1e-5f;
+                  if (rate == OFF_T_MAX) {
+                     info->volume_envelope[2*i+1] = AAX_FPINFINITE;
+                  } else {
+                     info->volume_envelope[2*i+1] = rate*1e-5f;
+                  }
+                  info->volume_envelope[2*i] = level*1e-5f;
                }
                info->envelope_sustain = stream->param(id, DRIVER_ENVELOPE_SUSTAIN);
                info->sampled_release = stream->param(id, DRIVER_SAMPLED_RELEASE);

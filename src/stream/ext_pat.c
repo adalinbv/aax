@@ -297,8 +297,11 @@ _pat_get(_ext_t *ext, int type)
    else if (type >= __F_ENVELOPE_RATE && type < __F_ENVELOPE_RATE_MAX)
    {
       unsigned pos = type & 0xF;
-      if (pos < ENVELOPES) {
-         rv = handle->info.volume_envelope[2*pos+1]*1e5f;
+      if (pos < ENVELOPES)
+      {
+         float val = handle->info.volume_envelope[2*pos+1];
+         if (val == AAX_FPINFINITE) rv = OFF_T_MAX;
+         else rv = val*1e5f;
       }
    }
    else
@@ -306,7 +309,7 @@ _pat_get(_ext_t *ext, int type)
       switch (type)
       {
       case __F_LOOP_COUNT:
-         rv = (handle->patch.modes & MODE_LOOPING) ? INT_MAX : AAX_TRUE;
+         rv = (handle->patch.modes & MODE_LOOPING) ? OFF_T_MAX : 0;
          break;
       case __F_NO_SAMPLES:
          rv = handle->info.no_samples;
@@ -604,16 +607,16 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       {
          float level, rate;
 
-         level = env_level_to_level(handle->patch.envelope_level[i]);
-
-         if (i == 2 && (handle->patch.modes & MODE_ENVELOPE_SUSTAIN)) {
+         if (i == 2 && (handle->patch.modes & MODE_ENVELOPE_SUSTAIN))
+         {
+            level = handle->info.volume_envelope[2*(pos-1)];
             rate = AAX_FPINFINITE;
          }
          else
          {
             float prev = pos ? handle->info.volume_envelope[2*(pos-1)] : 0.0f;
-            float next = level;
-            rate = env_rate_to_time(handle->patch.envelope_rate[i], prev, next);
+            level = env_level_to_level(handle->patch.envelope_level[i]);
+            rate = env_rate_to_time(handle->patch.envelope_rate[i], prev, level);
          }
 
          if (rate)
@@ -624,7 +627,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
          }
       }
 
-#if 0
+#if 1
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
  printf("Description:\t\t%s\n", handle->header.description);
