@@ -34,6 +34,10 @@ extern "C" {
 # define O_BINARY	0
 #endif
 
+#ifndef OFF_T_MAX
+# define OFF_T_MAX	(off_t)-1
+#endif
+
 #if SIZEOF_SIZE_T == 8
 # define MEMALIGN	32
 #else
