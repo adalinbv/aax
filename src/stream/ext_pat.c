@@ -651,7 +651,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
  printf("Loop start:\t\t%g (%gs)\n", handle->info.loop_start, SIZE2TIME(handle,handle->info.loop_start));
- printf("Loop end  :\t\t%g (%gs)\n", handle->info.loop_end, SIZE2TIME(handle,handle->info.loop_end));
+ printf("Loop end:\t\t%g (%gs)\n", handle->info.loop_end, SIZE2TIME(handle,handle->info.loop_end));
  printf("Sample size:\t\t%i (%gs)\n", SIZE2SAMPLES(handle,handle->patch.wave_size), SIZE2TIME(handle,handle->info.no_samples));
  printf("Sample rate:\t\t%i Hz\n", handle->patch.sample_rate);
  printf("Low Frequency:\t\t%g Hz\n", 0.001f*handle->patch.low_frequency);

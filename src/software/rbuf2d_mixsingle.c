@@ -151,7 +151,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
-      if (srbi->playing == 0 && srbi->stopped == 1) {
+      if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
          return -1;
       } else {
          return 0;
