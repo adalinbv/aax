@@ -69,6 +69,12 @@ _aaxDataCreate(size_t size, unsigned int blocksize)
    return rv;
 }
 
+void
+_aaxDataClear(_data_t* buf)
+{
+   buf->offset = 0;
+}
+
 /**
  * Destroy and clean up a data structure.
  *

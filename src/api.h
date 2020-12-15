@@ -82,6 +82,7 @@ size_t _aaxDataCopy(_data_t*, void*, size_t, size_t);
 size_t _aaxDataMove(_data_t*, void*, size_t);
 size_t _aaxDataMoveOffset(_data_t*, void*, size_t, size_t);
 size_t _aaxDataMoveData(_data_t*, _data_t*, size_t);
+void _aaxDataClear(_data_t*);
 
 size_t _aaxDataGetSize(_data_t*);
 size_t _aaxDataGetFreeSpace(_data_t*);
