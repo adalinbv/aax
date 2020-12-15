@@ -1493,21 +1493,28 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
    {
       _filter_t* filter;
       int i, param = 0;
+      float sum = 0.0f;
 
       for (i=0; i<_MAX_ENVELOPE_STAGES/2; ++i)
       {
          float level = rb->get_paramf(rb, RB_ENVELOPE_LEVEL+i);
          float rate = rb->get_paramf(rb, RB_ENVELOPE_RATE+i);
 
+         sum += level;
          aaxFilterSetParam(flt, param, AAX_LINEAR, level);
          aaxFilterSetParam(flt, ++param, AAX_LINEAR, rate);
+
          if ((++param % 4) == 0) param += 0x10 - 4;
       }
       aaxFilterSetState(flt, AAX_TRUE);
 
-      filter = get_filter(flt);
-      _emitterSetFilter(handle->source, filter);
-      aaxFilterDestroy(flt);
+      // only apply the timed-gain filter whn at least one level is non-zero.
+      if (sum)
+      {
+         filter = get_filter(flt);
+         _emitterSetFilter(handle->source, filter);
+         aaxFilterDestroy(flt);
+      }
       rv = AAX_TRUE;
    }
    return rv;
