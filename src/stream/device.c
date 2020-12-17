@@ -687,7 +687,10 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
             handle->refresh_rate = period_rate;
             handle->no_samples = no_samples;
-            handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
+            if (handle->no_channels && handle->bits_sample && handle->frequency)
+            {
+               handle->latency = (float)_MAX(no_samples,(PERIOD_SIZE*8/(handle->no_channels*handle->bits_sample))) / (float)handle->frequency;
+            }
 
             if (handle->mode == AAX_MODE_READ) {
 #if USE_CAPTURE_THREAD

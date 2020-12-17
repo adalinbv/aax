@@ -1027,7 +1027,9 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
             info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
             no_bytes = (info->no_samples)*bits/8;
 
-            no_bytes = ((no_bytes/info->blocksize)+1)*info->blocksize;
+            if (info->blocksize) {
+               no_bytes = ((no_bytes/info->blocksize)+1)*info->blocksize;
+            }
             datasize =  SIZE_ALIGNED(info->tracks*no_bytes);
 
             if (datasize < 64*1024*1024) // sanity check
