@@ -35,31 +35,28 @@
 #define CVTDEPT2DB(a)			(16.0f*CVTDEPTH(a))
 #define CVTDEPT2CENTS(a)		(1200.0f*CVTDEPTH(a))
 
-
+#define GF1_HEADER_SIZE			12
+#define GF1_HEADER_TEXT			"GF1PATCH110"
+#define PATCH_ID_SIZE			10
+#define PATCH_DESC_SIZE			60
 #define PATCH_RESERVED_SIZE		36
 #define PATCH_HEADER_SIZE		(93 + PATCH_RESERVED_SIZE)
 
+#define INSTRUMENT_NAME_SIZE			16
 #define INSTRUMENT_RESERVED_SIZE	40
 #define INSTRUMENT_HEADER_SIZE		(23 + INSTRUMENT_RESERVED_SIZE)
 
 #define	LAYER_RESERVED_SIZE		40
 #define LAYER_HEADER_SIZE		(7 + LAYER_RESERVED_SIZE)
 
-#define PATCH_DATA_RESERVED_SIZE	36
-#define PACH_HEADER_SIZE		(60 + PATCH_DATA_RESERVED_SIZE)
+#define WAVE_NAME_SIZE			7
+#define WAVE_RESERVED_SIZE		36
+#define WAVE_HEADER_SIZE		(60 + WAVE_RESERVED_SIZE)
 
-#define FILE_HEADER_SIZE		(PATCH_HEADER_SIZE + INSTRUMENT_HEADER_SIZE + LAYER_HEADER_SIZE + PACH_HEADER_SIZE)
-
-#define GF1_HEADER_TEXT			"GF1PATCH110"
+#define FILE_HEADER_SIZE		(PATCH_HEADER_SIZE + INSTRUMENT_HEADER_SIZE + LAYER_HEADER_SIZE + WAVE_HEADER_SIZE)
 
 #define MAX_LAYERS			4
 #define ENVELOPES			6
-
-#define HEADER_SIZE			12
-#define ID_SIZE				10
-#define DESC_SIZE			60
-#define INST_NAME_SIZE			16
-#define WAV_NAME_SIZE			7
 
 enum
 {
@@ -79,9 +76,9 @@ enum
 
 typedef struct
 {
-   char header[HEADER_SIZE];
-   char gravis_id[ID_SIZE];
-   char description[DESC_SIZE];
+   char header[GF1_HEADER_SIZE];
+   char gravis_id[PATCH_ID_SIZE];
+   char description[PATCH_DESC_SIZE];
    unsigned char instruments;
    char voices;
    char channels;
@@ -94,7 +91,7 @@ typedef struct
 typedef struct
 {
    unsigned short instrument;
-   char name[INST_NAME_SIZE];
+   char name[INSTRUMENT_NAME_SIZE];
    int size;
    char layers;
 // char reserved[RESERVED_SIZE];
@@ -113,7 +110,7 @@ typedef struct
 
 typedef struct
 {
-   char wave_name[WAV_NAME_SIZE];
+   char wave_name[WAVE_NAME_SIZE];
 
    unsigned char fractions;
    int wave_size;
