@@ -59,9 +59,9 @@ struct _ext_st;
 
 typedef int (_ext_detect_fn)(struct _ext_st*, int);
 typedef int (_ext_new_handle_fn)(struct _ext_st*, int, size_t*, int, int, int, size_t, int);
-typedef void* (_ext_open_fn)(struct _ext_st*, void_ptr, size_t*, size_t);
+typedef void* (_ext_open_fn)(struct _ext_st*, void_ptr, ssize_t*, size_t);
 typedef int (_ext_close_fn)(struct _ext_st*);
-typedef void* (_ext_update_fn)(struct _ext_st*, size_t*, size_t*, char);
+typedef void* (_ext_update_fn)(struct _ext_st*, size_t*, ssize_t*, char);
 typedef char* (_ext_get_name_fn)(struct _ext_st*, enum _aaxStreamParam);
 
 typedef char* (_ext_default_fname_fn)(int, int);
@@ -69,7 +69,7 @@ typedef int (_ext_extension_fn)(char*);
 typedef off_t (_ext_get_param_fn)(struct _ext_st*, int);
 typedef off_t (_ext_set_param_fn)(struct _ext_st*, int, off_t);
 
-typedef size_t (_ext_fill_fn)(struct _ext_st*, void_ptr, size_t*);
+typedef size_t (_ext_fill_fn)(struct _ext_st*, void_ptr, ssize_t*);
 typedef size_t (_ext_copy_fn)(struct _ext_st*, int32_ptr, size_t, size_t*);
 typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st*, int32_ptrptr, size_t, size_t*);
 typedef size_t (_ext_cvt_to_intl_fn)(struct _ext_st*, void_ptr, const_int32_ptrptr , size_t, size_t*, void_ptr, size_t);
@@ -105,9 +105,9 @@ void* _ext_free(_ext_t*);
 /* WAV */
 int _wav_detect(_ext_t*, int);
 int _wav_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
-void* _wav_open(_ext_t*, void*, size_t*, size_t);
+void* _wav_open(_ext_t*, void*, ssize_t*, size_t);
 int _wav_close(_ext_t*);
-void* _wav_update(_ext_t*, size_t*, size_t*, char);
+void* _wav_update(_ext_t*, size_t*, ssize_t*, char);
 char* _wav_name(_ext_t*, enum _aaxStreamParam);
 
 char* _wav_interfaces(int, int);
@@ -116,16 +116,16 @@ off_t _wav_get(_ext_t*, int);
 off_t _wav_set(_ext_t*, int, off_t);
 
 size_t _wav_copy(_ext_t*, int32_ptr, size_t, size_t*);
-size_t _wav_fill(_ext_t*, void_ptr, size_t*);
+size_t _wav_fill(_ext_t*, void_ptr, ssize_t*);
 size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _wav_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
 /* OGG, OPUS */
 int _ogg_detect(_ext_t*, int);
 int _ogg_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
-void* _ogg_open(_ext_t*, void*, size_t*, size_t);
+void* _ogg_open(_ext_t*, void*, ssize_t*, size_t);
 int _ogg_close(_ext_t*);
-void* _ogg_update(_ext_t*, size_t*, size_t*, char);
+void* _ogg_update(_ext_t*, size_t*, ssize_t*, char);
 char* _ogg_name(_ext_t*, enum _aaxStreamParam);
 
 char* _ogg_interfaces(int, int);
@@ -134,16 +134,16 @@ off_t _ogg_get(_ext_t*, int);
 off_t _ogg_set(_ext_t*, int, off_t);
 
 size_t _ogg_copy(_ext_t*, int32_ptr, size_t, size_t*);
-size_t _ogg_fill(_ext_t*, void_ptr, size_t*);
+size_t _ogg_fill(_ext_t*, void_ptr, ssize_t*);
 size_t _ogg_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _ogg_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
 /* PAT */
 int _pat_detect(_ext_t*, int);
 int _pat_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
-void* _pat_open(_ext_t*, void*, size_t*, size_t);
+void* _pat_open(_ext_t*, void*, ssize_t*, size_t);
 int _pat_close(_ext_t*);
-void* _pat_update(_ext_t*, size_t*, size_t*, char);
+void* _pat_update(_ext_t*, size_t*, ssize_t*, char);
 char* _pat_name(_ext_t*, enum _aaxStreamParam);
 
 char* _pat_interfaces(int, int);
@@ -152,16 +152,16 @@ off_t _pat_get(_ext_t*, int);
 off_t _pat_set(_ext_t*, int, off_t);
 
 size_t _pat_copy(_ext_t*, int32_ptr, size_t, size_t*);
-size_t _pat_fill(_ext_t*, void_ptr, size_t*);
+size_t _pat_fill(_ext_t*, void_ptr, ssize_t*);
 size_t _pat_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _pat_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
 /* RAW, MP3, FLAC */
 int _raw_detect(_ext_t*, int);
 int _raw_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
-void* _raw_open(_ext_t*, void*, size_t*, size_t);
+void* _raw_open(_ext_t*, void*, ssize_t*, size_t);
 int _raw_close(_ext_t*);
-void* _raw_update(_ext_t*, size_t*, size_t*, char);
+void* _raw_update(_ext_t*, size_t*, ssize_t*, char);
 char* _raw_name(_ext_t*, enum _aaxStreamParam);
 
 char* _raw_interfaces(int, int);
@@ -170,7 +170,7 @@ off_t _raw_get(_ext_t*, int);
 off_t _raw_set(_ext_t*, int, off_t);
 
 size_t _raw_copy(_ext_t*, int32_ptr, size_t, size_t*);
-size_t _raw_fill(_ext_t*, void_ptr, size_t*);
+size_t _raw_fill(_ext_t*, void_ptr, ssize_t*);
 size_t _raw_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _raw_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 

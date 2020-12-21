@@ -126,7 +126,7 @@ typedef struct
 
 static int _aaxFormatDriverReadHeader(_driver_t*);
 static int _getOggPageHeader(_driver_t*, uint32_t*, size_t);
-static int _aaxOggInitFormat(_driver_t*, unsigned char*, size_t*);
+static int _aaxOggInitFormat(_driver_t*, unsigned char*, ssize_t*);
 static void _aaxOggFreeInfo(_driver_t*);
 static void crc32_init(void);
 
@@ -199,7 +199,7 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
 }
 
 void*
-_ogg_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
+_ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = ext->id;
    void *rv = NULL;
@@ -287,18 +287,18 @@ _ogg_close(_ext_t *ext)
 }
 
 void*
-_ogg_update(UNUSED(_ext_t *ext), UNUSED(size_t *offs), UNUSED(size_t *size), UNUSED(char close))
+_ogg_update(UNUSED(_ext_t *ext), UNUSED(size_t *offs), UNUSED(ssize_t *size), UNUSED(char close))
 {
    return NULL;
 }
 
 size_t
-_ogg_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
+_ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = ext->id;
    int res, rv = __F_PROCESS;
    unsigned char *header;
-   size_t avail;
+   ssize_t avail;
 
    handle->need_more = AAX_FALSE;
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
@@ -634,7 +634,7 @@ _aaxOggFreeInfo(_driver_t *handle)
 }
 
 static int
-_aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, size_t *bufsize)
+_aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, ssize_t *bufsize)
 {
    int rv = 0;
    if (!handle->fmt)
@@ -1418,8 +1418,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
              (handle->page_sequence_no < 2))
          {
             unsigned char *segment = (unsigned char*)header + rv;
-            size_t segment_size = handle->segment_size;
-            size_t page_size = handle->page_size;
+            ssize_t segment_size = handle->segment_size;
+            ssize_t page_size = handle->page_size;
 
             /*
              * https://tools.ietf.org/html/rfc3533.html#section-6

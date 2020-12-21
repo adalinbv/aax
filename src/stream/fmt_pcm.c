@@ -87,7 +87,7 @@ _pcm_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 }
 
 void*
-_pcm_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
+_pcm_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -270,7 +270,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
 }
 
 size_t
-_pcm_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
+_pcm_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;

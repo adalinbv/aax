@@ -109,7 +109,7 @@ static enum aaxFormat _getAAXFormatFromWAVFormat(unsigned int, int);
 static enum wavFormat _getWAVFormatFromAAXFormat(enum aaxFormat);
 static _fmt_type_t _getFmtFromWAVFormat(enum wavFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
-static void* _aaxFormatDriverUpdateHeader(_driver_t*, size_t *);
+static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 
 #define WAVE_HEADER_SIZE	(3+8)
 #define WAVE_EXT_HEADER_SIZE	(3+20)
@@ -173,7 +173,7 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
 }
 
 void*
-_wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
+_wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = ext->id;
    void *rv = NULL;
@@ -318,8 +318,9 @@ _wav_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
          if (handle->wavBuffer)
          {
-            size_t step, datapos, datasize = *bufsize, size = *bufsize;
             size_t avail = handle->wavBufSize-handle->wavBufPos;
+            ssize_t datasize = *bufsize, size = *bufsize;
+            size_t step, datapos;
             _fmt_type_t fmt;
             int res;
 
@@ -504,7 +505,7 @@ _wav_close(_ext_t *ext)
 }
 
 void*
-_wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
+_wav_update(_ext_t *ext, size_t *offs, ssize_t *size, char close)
 {
    _driver_t *handle = ext->id;
    void *rv = NULL;
@@ -527,7 +528,7 @@ _wav_update(_ext_t *ext, size_t *offs, size_t *size, char close)
 }
 
 size_t
-_wav_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
+_wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = ext->id;
    unsigned tracks = handle->info.tracks;
@@ -1111,7 +1112,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 }
 
 static void*
-_aaxFormatDriverUpdateHeader(_driver_t *handle, size_t *bufsize)
+_aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 {
    void *res = NULL;
 
@@ -1390,6 +1391,7 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
                           enum aaxFormat format)
 {
    _ext_t* ext;
+   ssize_t req;
    size_t size;
    int fd, oflag;
    int res, mode;
@@ -1414,7 +1416,9 @@ _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
       return;
    }
 
-   buf = _wav_open(ext, NULL, &size, 0);
+   req = size;
+   buf = _wav_open(ext, NULL, &req, 0);
+   size = req;
 
    res = write(fd, buf, size);
    if (res == -1) {

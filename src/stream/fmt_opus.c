@@ -173,7 +173,7 @@ _opus_detect(UNUSED(_fmt_t *fmt), UNUSED(int mode))
 }
 
 void*
-_opus_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, UNUSED(size_t fsize))
+_opus_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsize))
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -298,7 +298,7 @@ _opus_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFor
 }
 
 size_t
-_opus_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
+_opus_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;

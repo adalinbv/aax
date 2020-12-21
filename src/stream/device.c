@@ -353,7 +353,8 @@ _aaxStreamDriverDisconnect(void *id)
 
    if (handle)
    {
-      size_t offs, size;
+      ssize_t size;
+      size_t offs;
       void *buf = NULL;
 
       if (handle->thread.started)
@@ -609,6 +610,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
       if (res && ((handle->io->fds.fd >= 0) || m))
       {
+         ssize_t reqSize = headerSize;
          size_t no_samples = period_frames;
          void *header = NULL;
          void *buf = NULL;
@@ -619,16 +621,25 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
          do
          {
-            if (!m && header && headerSize)
+            if (!m && header && reqSize)
             {
-               int tries = 50; /* 50 miliseconds */
-               do
+               if (reqSize >= 0)
                {
-                  res = handle->io->read(handle->io, header, headerSize);
-                  if (res > 0 || --tries == 0) break;
-                  msecSleep(1);
+                  int tries = 50; /* 50 miliseconds */
+                  do
+                  {
+                     res = handle->io->read(handle->io, header, reqSize);
+                     if (res > 0 || --tries == 0) break;
+                     msecSleep(1);
+                  }
+                  while (res == 0);
                }
-               while (res == 0);
+               else
+               {
+                   off_t pos = handle->io->get_param(handle->io, __F_POSITION);
+                   res = handle->io->set_param(handle->io, __F_POSITION, pos-reqSize);
+                   reqSize = headerSize;
+               }
 
                if (!res)
                {
@@ -651,22 +662,23 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
             }
 
-            headerSize = res;
-            buf = handle->ext->open(handle->ext, header, &headerSize,
+            reqSize = res;
+            buf = handle->ext->open(handle->ext, header, &reqSize,
                                     handle->no_bytes);
-            if (m && buf)
+            if (m && buf && (reqSize > 0))
             {
-               handle->out_header = malloc(headerSize);
-               memcpy(handle->out_header, buf, headerSize);
-               handle->out_hdr_size = headerSize;
-               res = headerSize;
+               handle->out_header = malloc(reqSize);
+               memcpy(handle->out_header, buf, reqSize);
+               handle->out_hdr_size = reqSize;
+               res = reqSize;
                buf = NULL;
             }
             else {
-               res = headerSize;
+               res = reqSize;
             }
          }
-         while (handle->mode == AAX_MODE_READ && buf && headerSize);
+         while (handle->mode == AAX_MODE_READ && buf && reqSize);
+         headerSize = reqSize;
 
          if (header) {
             free(header);
@@ -926,7 +938,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
             else	/* convert data still in the buffer */
             {
-               size_t avail = _aaxDataGetDataAvail(handle->dataBuffer);
+               ssize_t avail = _aaxDataGetDataAvail(handle->dataBuffer);
                res = handle->ext->fill(handle->ext, data, &avail);
                _aaxDataMove(handle->dataBuffer, NULL, avail);
             }
@@ -1490,7 +1502,7 @@ _aaxStreamDriverWriteChunk(const void *id)
    {
       do
       {
-         size_t usize =_aaxDataAdd(handle->threadBuffer, databuf, buffer_avail);
+         ssize_t usize =_aaxDataAdd(handle->threadBuffer, databuf, buffer_avail);
          buffer_avail -= usize;
          databuf += usize;
 
@@ -1513,10 +1525,10 @@ _aaxStreamDriverWriteChunk(const void *id)
                                                   AAX_FALSE);
                   if (buf)
                   {
-                     off_t floc= handle->io->get_param(handle->io,__F_POSITION);
+                     off_t off = handle->io->get_param(handle->io,__F_POSITION);
                      handle->io->set_param(handle->io, __F_POSITION, 0L);
                      res = handle->io->write(handle->io, buf, usize);
-                     handle->io->set_param(handle->io, __F_POSITION, floc);
+                     handle->io->set_param(handle->io, __F_POSITION, off);
                   }
                }
             }

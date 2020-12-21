@@ -62,7 +62,7 @@ typedef struct
 
 static float env_rate_to_time(unsigned char, float, float);
 static float env_level_to_level(unsigned char);
-static int _aaxFormatDriverReadHeader(_driver_t *, unsigned char*);
+static int _aaxFormatDriverReadHeader(_driver_t *, unsigned char*, ssize_t*);
 
 
 int
@@ -119,7 +119,7 @@ _pat_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
 }
 
 void*
-_pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
+_pat_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = ext->id;
    void *rv = NULL;
@@ -134,11 +134,11 @@ _pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 				/* read: handle->capturing */
       else if (!handle->fmt || !handle->fmt->open)
       {
-         if (*bufsize >= FILE_HEADER_SIZE)
+         if (*bufsize >= WAVE_HEADER_SIZE)
          {
             int res;
 
-            res = _aaxFormatDriverReadHeader(handle, buf);
+            res = _aaxFormatDriverReadHeader(handle, buf, bufsize);
             if (res > 0)
             {
                if (!handle->fmt)
@@ -171,7 +171,7 @@ _pat_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
 
                if (handle->fmt)
                {
-                  size_t size = 0;
+                  ssize_t size = 0;
                   handle->fmt->open(handle->fmt, handle->mode, buf, &size, fsize);
                }
             }
@@ -216,7 +216,7 @@ _pat_close(_ext_t *ext)
 }
 
 void*
-_pat_update(_ext_t *ext, size_t *offs, size_t *size, char close)
+_pat_update(_ext_t *ext, size_t *offs, ssize_t *size, char close)
 {
    return NULL;
 }
@@ -229,7 +229,7 @@ _pat_copy(_ext_t *ext, int32_ptr dptr, size_t level, size_t *num)
 }
 
 size_t
-_pat_fill(_ext_t *ext, void_ptr sptr, size_t *bytes)
+_pat_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = ext->id;
    return handle->fmt->fill(handle->fmt, sptr, bytes);
@@ -429,21 +429,24 @@ env_level_to_level(unsigned char level)
 }
 
 static int
-_aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
+_aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *processed)
 {
    unsigned char *buffer = header;
    size_t offs;
    float cents;
    int i, pos;
 
+#if 0
    if (handle->skip > WAVE_HEADER_SIZE)
    {
       handle->skip -= WAVE_HEADER_SIZE;
+//    *processed = WAVE_HEADER_SIZE;
       return __F_NEED_MORE;
    }
+#endif
 
+   *processed = handle->skip;
    header += handle->skip;
-   handle->skip = 0;
 
    if (!handle->header.instruments)
    {
@@ -501,7 +504,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 
          handle->layer.samples = *header++;
          header += LAYER_RESERVED_SIZE;
-#if 1
+#if 0
  printf("Header:\t\t\t%s\n", handle->header.header);
  printf("Gravis id:\t\t%s\n", handle->header.gravis_id);
  printf("Description:\t\t%s\n", handle->header.description);
@@ -525,6 +528,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 #endif
       }
       else {
+         *processed += header-buffer;
          return __F_EOF;
       }
    }
@@ -539,15 +543,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
    handle->patch.wave_size += *header++ << 8;
    handle->patch.wave_size += *header++ << 16;
    handle->patch.wave_size += *header++ << 24;
-
-   if (handle->sample_num != handle->patch_level &&
-       handle->sample_num < handle->layer.samples)
-   {
-      handle->sample_num++;
-      handle->skip = handle->patch.wave_size;
-
-      return __F_NEED_MORE;
-   }
 
    handle->patch.start_loop = *header++;
    handle->patch.start_loop += *header++ << 8;
@@ -603,6 +598,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
 
    handle->patch.scale_factor = *header++;
    handle->patch.scale_factor += *header++ << 8;
+   header += WAVE_RESERVED_SIZE;
+
+   *processed += header-buffer;
+   if (handle->sample_num != handle->patch_level &&
+       handle->sample_num < handle->layer.samples)
+   {
+      handle->sample_num++;
+      *processed = -handle->patch.wave_size - (header-buffer);
+
+      return __F_NEED_MORE;
+   }
 
    switch (handle->patch.modes & MODE_FORMAT)
    {
@@ -685,7 +691,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
       }
    }
 
-#if 1
+#if 0
  printf("Wave name:\t\t%s\n", handle->patch.wave_name);
  printf("Loop start:\t\t%g (%gs)\n", handle->info.loop_start, SIZE2TIME(handle,handle->info.loop_start));
  printf("Loop end:\t\t%g (%gs)\n", handle->info.loop_end, SIZE2TIME(handle,handle->info.loop_end));
@@ -746,5 +752,5 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header)
  printf("Scale Factor:\t\t%i (%gx)\n\n", handle->patch.scale_factor, handle->info.pitch_fraction);
 #endif
 
-   return header-buffer;
+   return AAX_TRUE;
 }

@@ -264,7 +264,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
 }
 
 void*
-_mp3_open(_fmt_t *fmt, int mode, void *buf, size_t *bufsize, size_t fsize)
+_mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -544,7 +544,7 @@ _mp3_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxForm
 }
 
 size_t
-_mp3_fill(_fmt_t *fmt, void_ptr sptr, size_t *bytes)
+_mp3_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = fmt->id;
    size_t rv = __F_PROCESS;

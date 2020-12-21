@@ -95,7 +95,7 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
 }
 
 void*
-_raw_open(_ext_t *ext, void_ptr buf, size_t *bufsize, size_t fsize)
+_raw_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = ext->id;
    return handle->fmt->open(handle->fmt, handle->mode, buf, bufsize, fsize);
@@ -122,7 +122,7 @@ _raw_close(_ext_t *ext)
 }
 
 void*
-_raw_update(UNUSED(_ext_t *ext), UNUSED(size_t *offs), UNUSED(size_t *size), UNUSED(char close))
+_raw_update(UNUSED(_ext_t *ext), UNUSED(size_t *offs), UNUSED(ssize_t *size), UNUSED(char close))
 {
    return NULL;
 }
@@ -135,7 +135,7 @@ _raw_copy(_ext_t *ext, int32_ptr dptr, size_t offs, size_t *num)
 }
 
 size_t
-_raw_fill(_ext_t *ext, void_ptr sptr, size_t *num)
+_raw_fill(_ext_t *ext, void_ptr sptr, ssize_t *num)
 {
    _driver_t *handle = ext->id;
    return handle->fmt->fill(handle->fmt, sptr, num);
