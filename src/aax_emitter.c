@@ -216,6 +216,9 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
       if (!buffer->root) {
          buffer->root = handle->root;
       }
+      if (!handle->root) {
+         handle->root = buffer->root;
+      }
 
       ep2d->pitch_levels = buffer->pitch_levels;
       if (ep2d->pitch_levels > 1)
@@ -1484,38 +1487,41 @@ _emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
 int
 _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
 {
-   _aaxRingBuffer *rb = embuf->ringbuffer;
    aaxConfig config = handle->root;
    int rv = AAX_FALSE;
 
-   aaxFilter flt = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
-   if (flt)
+   if (config)
    {
-      _filter_t* filter;
-      int i, param = 0;
-      float sum = 0.0f;
-
-      for (i=0; i<_MAX_ENVELOPE_STAGES/2; ++i)
+      aaxFilter flt = aaxFilterCreate(config, AAX_TIMED_GAIN_FILTER);
+      if (flt)
       {
-         float level = rb->get_paramf(rb, RB_ENVELOPE_LEVEL+i);
-         float rate = rb->get_paramf(rb, RB_ENVELOPE_RATE+i);
+         _aaxRingBuffer *rb = embuf->ringbuffer;
+         _filter_t* filter;
+         int i, param = 0;
+         float sum = 0.0f;
 
-         sum += level;
-         aaxFilterSetParam(flt, param, AAX_LINEAR, level);
-         aaxFilterSetParam(flt, ++param, AAX_LINEAR, rate);
+         for (i=0; i<_MAX_ENVELOPE_STAGES/2; ++i)
+         {
+            float level = rb->get_paramf(rb, RB_ENVELOPE_LEVEL+i);
+            float rate = rb->get_paramf(rb, RB_ENVELOPE_RATE+i);
 
-         if ((++param % 4) == 0) param += 0x10 - 4;
+            sum += level;
+            aaxFilterSetParam(flt, param, AAX_LINEAR, level);
+            aaxFilterSetParam(flt, ++param, AAX_LINEAR, rate);
+
+            if ((++param % 4) == 0) param += 0x10 - 4;
+         }
+         aaxFilterSetState(flt, AAX_TRUE);
+
+         // only apply the timed-gain filter whn at least one level is non-zero.
+         if (sum)
+         {
+            filter = get_filter(flt);
+            _emitterSetFilter(handle->source, filter);
+            aaxFilterDestroy(flt);
+         }
+         rv = AAX_TRUE;
       }
-      aaxFilterSetState(flt, AAX_TRUE);
-
-      // only apply the timed-gain filter whn at least one level is non-zero.
-      if (sum)
-      {
-         filter = get_filter(flt);
-         _emitterSetFilter(handle->source, filter);
-         aaxFilterDestroy(flt);
-      }
-      rv = AAX_TRUE;
    }
    return rv;
 }

@@ -629,6 +629,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   do
                   {
                      res = handle->io->read(handle->io, header, reqSize);
+printf("read: %i, size: %li\n", res, reqSize);
                      if (res > 0 || --tries == 0) break;
                      msecSleep(1);
                   }
@@ -639,6 +640,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                    off_t pos = handle->io->get_param(handle->io, __F_POSITION);
                    res = handle->io->set_param(handle->io, __F_POSITION, pos-reqSize);
                    reqSize = headerSize;
+printf("seek: %i, size: %li\n", res, -reqSize);
                }
 
                if (!res)
@@ -665,6 +667,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             reqSize = res;
             buf = handle->ext->open(handle->ext, header, &reqSize,
                                     handle->no_bytes);
+printf("m: %i, buf: %p, reqSize: %li\n", m, buf, reqSize);
             if (m && buf && (reqSize > 0))
             {
                handle->out_header = malloc(reqSize);
