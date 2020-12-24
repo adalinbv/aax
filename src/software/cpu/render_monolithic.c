@@ -135,7 +135,7 @@ static int
 _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
 {
    _intBuffers *he = data->e3d;
-   unsigned int stage;
+   int stage;
    int rv = AAX_TRUE;
 
    /*
@@ -146,12 +146,12 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
       stage = 2;
       do
       {
-         unsigned int no_emitters;
+         int no_emitters;
 
          no_emitters = _intBufGetNum(he, _AAX_EMITTER);
          if (no_emitters)
          {
-            unsigned int pos = 0;
+            int pos = 0;
             do
             {
                _intBufferData *dptr_src;
@@ -185,7 +185,7 @@ _aaxCPUProcess(UNUSED(struct _aaxRenderer_t *render), _aaxRendererData *data)
    {
       _aaxRingBufferConvolutionData *convolution = data->be_handle;
       _aaxRingBuffer *rb = data->drb;
-      unsigned int t, no_tracks;
+      int t, no_tracks;
       _render_t handle;
 
       no_tracks = rb->get_parami(rb, RB_NO_TRACKS);

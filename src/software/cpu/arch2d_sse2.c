@@ -95,7 +95,7 @@ _aax_generate_waveform_sse2(float32_ptr rv, size_t no_samples, float freq, float
       __m128 one, two, four;
       __m128 ngain, nfreq;
       __m128 hdt, s;
-      unsigned int i, h;
+      int i, h;
       float *ptr;
 
       assert(MAX_HARMONICS % 4 == 0);
@@ -161,7 +161,7 @@ _batch_get_average_rms_sse2(const_float32_ptr s, size_t num, float *rms, float *
    size_t stmp, step, total;
    double rms_total = 0.0;
    float peak_cur = 0.0f;
-   unsigned int i;
+   int i;
 
    *rms = *peak = 0;
 

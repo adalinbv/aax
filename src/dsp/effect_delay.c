@@ -65,7 +65,7 @@ _delay_create(void *d, void *i, char delay, char feedback)
 
    if (data)
    {
-      unsigned int tracks = info->no_tracks;
+      int tracks = info->no_tracks;
       float fs = info->frequency;
 
       data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);

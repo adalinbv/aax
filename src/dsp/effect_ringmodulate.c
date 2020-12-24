@@ -228,7 +228,7 @@ _modulator_run(MIX_PTR_T s, size_t end, size_t no_samples, void *data, void *env
    _aaxRingBufferModulatorData *modulate = data;
    float f, gain, p, step;
    int rv = AAX_FALSE;
-   unsigned int i;
+   int i;
 
    gain = modulate->gain;
    f = modulate->lfo.get(&modulate->lfo, env, s, track, end);

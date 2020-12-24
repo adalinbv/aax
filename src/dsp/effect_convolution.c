@@ -187,8 +187,8 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
    {
       int simd256 = info->capabilities & AAX_SIMD256;
       int no_cores = (info->capabilities & AAX_CPU_CORES)+1;
-      unsigned int step, freq, tracks = info->no_tracks;
-      unsigned int no_samples = info->no_samples;
+      int step, freq, tracks = info->no_tracks;
+      int no_samples = info->no_samples;
       float fs = info->frequency;
       void **data;
 
@@ -220,7 +220,7 @@ _aaxConvolutionEffectSetData(_effect_t* effect, aaxBuffer buffer)
          if (end > start)
          {
             float rms, peak;
-            unsigned int t;
+            int t;
 
             _batch_get_average_rms(start, convolution->no_samples, &rms, &peak);
             convolution->rms = .25f*rms/peak;
@@ -363,7 +363,7 @@ _convolution_destroy(void *ptr)
    _aaxRingBufferConvolutionData* data = ptr;
    if (data)
    {
-      unsigned int t;
+      int t;
       for (t=0; t<_AAX_MAX_SPEAKERS; ++t)
       {
          if (data->tid[t])
@@ -392,7 +392,7 @@ _convolution_thread(_aaxRingBuffer *rb, _aaxRendererData *d, UNUSED(_intBufferDa
 {
    _aaxRingBufferConvolutionData *convolution;
    _aaxRingBufferOcclusionData *occlusion;
-   unsigned int cnum, dnum, hpos;
+   int cnum, dnum, hpos;
    MIX_T *sptr, *dptr, *hptr;
    MIX_T *hcptr, *scratch;
    _aaxRingBufferSample *rbd;

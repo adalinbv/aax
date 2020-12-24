@@ -196,7 +196,7 @@ _aaxAudioFrameProcess(_aaxRingBuffer *dest_rb, _frame_t *subframe,
       if (frame_rb)
       {
          _intBuffers *hf = fmixer->frames;
-         unsigned int i, max, cnt;
+         int i, max, cnt;
 
          max = _intBufGetMaxNum(hf, _AAX_FRAME);
          cnt = _intBufGetNumNoLock(hf, _AAX_FRAME);

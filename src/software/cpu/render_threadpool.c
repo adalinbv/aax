@@ -235,7 +235,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
 {
    _render_t *handle = renderer->id;
    _intBuffers *he = data->e3d;
-   unsigned int stage;
+   int stage;
    int rv = AAX_FALSE;
 
    assert(data);
@@ -248,7 +248,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
       stage = 2;
       do
       {
-         unsigned int no_emitters, max_emitters;
+         int no_emitters, max_emitters;
 
          max_emitters = _intBufGetMaxNum(he, _AAX_EMITTER);
          no_emitters = _intBufGetNumNoLock(he, _AAX_EMITTER);
@@ -309,7 +309,7 @@ _aaxWorkerProcess(struct _aaxRenderer_t *renderer, _aaxRendererData *data)
    else
    {
       _aaxRingBuffer *rb = data->drb;
-      unsigned int no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
+      int no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
 
       _aaxAtomicIntAdd(&handle->workers_busy, no_tracks);
 

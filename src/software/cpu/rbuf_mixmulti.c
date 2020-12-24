@@ -41,9 +41,9 @@ void
 _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, size_t offs, size_t dno_samples, float gain, UNUSED(float svol), float evol, UNUSED(char cptr))
 {
    _aaxLFOData *lfo;
-   unsigned int rbd_tracks;
-   unsigned int rbs_tracks;
-   unsigned int track;
+   int rbd_tracks;
+   int rbs_tracks;
+   int track;
    float g;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -61,7 +61,7 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
       g = 0.0f;
       for (track=0; track<rbd_tracks; track++)
       {
-         unsigned int rbs_track = track % rbs_tracks;
+         int rbs_track = track % rbs_tracks;
          float cgain = 1.0f;
 
          DBG_TESTNAN(sptr[rbs_track]+offs, dno_samples);
@@ -74,8 +74,8 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
 
    for (track=0; track<rbd_tracks; track++)
    {
-      unsigned int rbs_track = track % rbs_tracks;
-      unsigned int rbd_track = track % rbd_tracks;
+      int rbs_track = track % rbs_tracks;
+      int rbd_track = track % rbd_tracks;
       MIX_T *dptr = (MIX_T*)drbd->track[router[rbd_track]] + offs;
       float vstart, vend, vstep;
 

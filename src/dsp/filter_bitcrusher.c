@@ -299,7 +299,7 @@ _bitcrush_add_noise(MIX_PTR_T s, size_t end, size_t no_samples,
    ratio = bitcrush->env.get(&bitcrush->env, env, s, track, end);
    if (ratio > 0.01f)
    {
-      unsigned int i;
+      int i;
 
       ratio *= (0.25f * AAX_PEAK_MAX)/UINT64_MAX;
       for (i=0; i<no_samples; ++i) {

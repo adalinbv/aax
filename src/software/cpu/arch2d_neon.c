@@ -211,7 +211,7 @@ _aax_generate_waveform_neon(float32_ptr rv, size_t num, float freq, float phase,
       float32x4x2_t one, two, eight;
       float32x4x2_t ngain, nfreq;
       float32x4x2_t hdt, s;
-      unsigned int i, h;
+      int i, h;
       float *ptr;
 
       assert(MAX_HARMONICS % 8 == 0);

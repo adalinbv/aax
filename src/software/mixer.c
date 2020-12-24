@@ -78,7 +78,7 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       MIX_T *scratch0 = scratch[SCRATCH_BUFFER0];
       MIX_T *scratch1 = scratch[SCRATCH_BUFFER1];
       size_t no_samples, ddesamps = 0;
-      unsigned int track, no_tracks;
+      int track, no_tracks;
       MIX_T **tracks;
 
       no_tracks = mono ? 1 : rb->get_parami(rb, RB_NO_TRACKS);
@@ -172,7 +172,7 @@ _aaxFrameProcessEqualizer(_aaxRingBuffer *rb, _aaxAudioFrame *mixer)
    {
       MIX_T **tracks = (MIX_T**)rbd->track;
       MIX_T **scratch = (MIX_T**)rb->get_scratch(rb);
-      unsigned int t, no_tracks;
+      int t, no_tracks;
       size_t no_samples;
 
       no_samples = rb->get_parami(rb, RB_NO_SAMPLES);

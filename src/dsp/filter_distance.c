@@ -485,7 +485,7 @@ _aaxSetupSpeakersFromDistanceVector(vec3f_ptr rpos, float dist_fact,
                                     vec4f_ptr speaker, _aax2dProps *ep2d,
                                     const _aaxMixerInfo* info)
 {
-   unsigned int pos, i, t;
+   int pos, i, t;
    float dp, offs, fact;
 
    switch (info->mode)

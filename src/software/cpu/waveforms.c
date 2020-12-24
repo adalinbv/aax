@@ -433,7 +433,7 @@ _aax_add_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
 
    for(track=0; track<tracks; track++)
    {
-      unsigned int i  = no_samples;
+      int i  = no_samples;
       const float *m = mix;
       if (bps == 1)
       {
@@ -478,7 +478,7 @@ _aax_mul_data(void_ptrptr data, const_float32_ptr mix, int tracks, unsigned int 
 
    for(track=0; track<tracks; track++)
    {
-      unsigned int i  = no_samples;
+      int i  = no_samples;
       const float *m = mix;
       if (bps == 1)
       {
@@ -520,7 +520,7 @@ _aax_pinknoise_filter(float32_ptr data, size_t no_samples, float fs)
    float f = (float)logf(fs/100.0f)/(float)NO_FILTER_STEPS;
    _aaxRingBufferFreqFilterHistoryData freqfilter;
    _aaxRingBufferFreqFilterData filter;
-   unsigned int q = NO_FILTER_STEPS;
+   int q = NO_FILTER_STEPS;
    float *dst, *tmp, *ptr = data;
    dst = ptr + no_samples;
 

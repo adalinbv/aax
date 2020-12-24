@@ -51,7 +51,7 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
    const_float32_ptr harmonics = _harmonics[wtype];
    if (rv)
    {
-      unsigned int i = no_samples;
+      int i = no_samples;
       float *ptr = rv;
 
       if (wtype == _CONSTANT_VALUE)
@@ -67,7 +67,7 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
          float ngain = harmonics[0];
          float hdt = 2.0f/freq;
          float s = -1.0f + phase/GMATH_PI;
-         unsigned int h;
+         int h;
 
          do
          {

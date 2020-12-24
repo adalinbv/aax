@@ -134,7 +134,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       size_t dest_pos, dno_samples, dend;
       size_t src_pos, sstart, sno_samples;
       size_t rdesamps, cno_samples;
-      unsigned int sno_tracks;
+      int sno_tracks;
       unsigned char sbps;
 
       reflections = _EFFECT_GET_STATE(p2d, REVERB_EFFECT);
@@ -220,7 +220,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
                      ringmodulator || bitcrush) ? 1 : 0;
          MIX_T *scratch0 = track_ptr[SCRATCH_BUFFER0];
          MIX_T *scratch1 = track_ptr[SCRATCH_BUFFER1];
-         unsigned int track;
+         int track;
          float smu;
 
          effect = _EFFECT_GET_DATA(p2d, DELAY_EFFECT);

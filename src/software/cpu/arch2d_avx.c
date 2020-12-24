@@ -89,7 +89,7 @@ _batch_get_average_rms_avx(const_float32_ptr s, size_t num, float *rms, float *p
    size_t stmp, step, total;
    double rms_total = 0.0;
    float peak_cur = 0.0f;
-   unsigned int i;
+   int i;
 
    *rms = *peak = 0;
 
@@ -1143,7 +1143,7 @@ _aax_generate_waveform_avx(float32_ptr rv, size_t no_samples, float freq, float 
       __m256 one, two, eight;
       __m256 ngain, nfreq;
       __m256 hdt, s;
-      unsigned int i, h;
+      int i, h;
       float *ptr;
 
       assert(MAX_HARMONICS % 8 == 0);

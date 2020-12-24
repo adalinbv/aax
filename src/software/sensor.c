@@ -278,8 +278,8 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
    scratch = (int32_t**)drb->get_scratch(drb);
    if (scratch)
    {
-      unsigned int track, no_tracks = drb->get_parami(drb, RB_NO_TRACKS);
-      unsigned int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
+      int track, no_tracks = drb->get_parami(drb, RB_NO_TRACKS);
+      int bps = drb->get_parami(drb, RB_BYTES_SAMPLE);
       size_t ds = drb->get_parami(drb, RB_DDE_SAMPLES);
       float freq, dt = GMATH_E1 * (*delay);
       size_t frames, nframes;

@@ -60,7 +60,7 @@ _aaxRingBufferMixMono16Mono(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
 void
 _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
 {
-   unsigned int t;
+   int t;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -100,7 +100,7 @@ _aaxRingBufferMixMono16Stereo(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T spt
 void
 _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
 {
-   unsigned int t;
+   int t;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -190,7 +190,7 @@ _aaxRingBufferMixMono16Surround(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T s
 void
 _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, UNUSED(float fs), float gain, float svol, float evol, UNUSED(char ctr))
 {
-   unsigned int t;
+   int t;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -218,7 +218,7 @@ _aaxRingBufferMixMono16Spatial(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sp
 void
 _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, unsigned char ch, size_t offs, size_t dno_samples, float fs, float gain, UNUSED(float svol), float evol, char ctr)
 {
-   unsigned int t;
+   int t;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
