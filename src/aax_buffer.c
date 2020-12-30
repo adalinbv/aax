@@ -1633,7 +1633,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          handle->info.base_frequency = freq;
          if (high_frequency > 0.0f)
          {
-            handle->pitch_levels =_MAX(1,1+log2i(ceilf(high_frequency/freq)));
+            handle->pitch_levels =_MAX(1,log2i(ceilf(high_frequency/freq)));
             if (handle->pitch_levels > MAX_PITCH_LEVELS) {
                handle->pitch_levels = MAX_PITCH_LEVELS;
             }
