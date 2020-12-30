@@ -237,7 +237,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          _embuffer_t* embuf;
 
          _EFFECT_SET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH,
-                           _MAX(4.0f, (float)(1 << buffer->pitch_levels)));
+                           _MAX(4.0f, (float)(buffer->pitch_levels)));
          if (handle->looping >= 0) {
             rb->set_parami(rb, RB_LOOPING, handle->looping);
          }
