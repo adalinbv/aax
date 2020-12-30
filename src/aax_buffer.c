@@ -1585,9 +1585,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       }
       xmlFree(xaid);
    }
-   if (high_frequency < 10.0f) {
-      high_frequency = 12545.0f; // G8
-   }
 
    xaid = xmlNodeGet(xid, "aeonwave");
    if (!xaid) xaid = xid;
