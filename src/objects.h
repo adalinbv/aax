@@ -361,7 +361,7 @@ typedef ALIGN16 struct _aax2dProps_s
 
    float curr_pos_sec;
    float pitch_factor;
-   int pitch_levels;
+   int mip_levels;
 
    struct {
       float velocity;

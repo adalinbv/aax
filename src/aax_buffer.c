@@ -93,7 +93,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
 
          buf->id = BUFFER_ID;
          buf->ref_counter = 1;
-         buf->pitch_levels = 1;
+         buf->mip_levels = 1;
 
          buf->info.tracks = tracks;
          buf->info.no_samples = samples;
@@ -886,6 +886,19 @@ static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
   1     /* IMA4-ADPCM     */
 };
 
+int _getMaxMipLevels(int n)
+{
+   int rv = 0;
+   int x = 1;
+
+   while (x < n) {
+      x <<= 1;
+      rv++;
+   }
+
+   return rv;
+}
+
 _buffer_t*
 get_buffer(aaxBuffer buffer, const char *func)
 {
@@ -914,7 +927,7 @@ free_buffer(_buffer_t* handle)
       if (--handle->ref_counter == 0)
       {
          unsigned char b;
-         for (b=0; b<handle->pitch_levels; ++b) {
+         for (b=0; b<handle->mip_levels; ++b) {
             handle->ringbuffer[b] = _bufDestroyRingBuffer(handle, b);
          }
          if (handle->aaxs) free(handle->aaxs);
@@ -1481,7 +1494,7 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
       if (data)
       {
          char *end = (char*)data + fsize;
-         int b = 0, pitch_levels = 0;
+         int b = 0, mip_levels = 0;
          size_t *d = (size_t*)data;
          size_t size;
 
@@ -1498,7 +1511,7 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
                   b = -1;
                   break;
                }
-               pitch_levels++;
+               mip_levels++;
             }
 
             // make sure the file-size matches the included data size
@@ -1515,12 +1528,12 @@ _bufAAXSThreadReadFromCache(_buffer_aax_t *aax_buf, const char *fname, size_t fs
             if (b >= 0)
             {
                 d = (size_t*)data;
-                if (pitch_levels > MAX_PITCH_LEVELS) {
-                   pitch_levels = MAX_PITCH_LEVELS;
+                if (mip_levels > MAX_MIP_LEVELS) {
+                   mip_levels = MAX_MIP_LEVELS;
                 }
-                handle->pitch_levels = pitch_levels;
+                handle->mip_levels = mip_levels;
 
-                for (b=0; b<pitch_levels; ++b)
+                for (b=0; b<mip_levels; ++b)
                 {
                    unsigned int no_samples;
                    _aaxRingBuffer *rb;
@@ -1623,16 +1636,16 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
          }
       }
-
       if (!freq)
       {
          freq = xmlAttributeGetDouble(xsid, "frequency");
          handle->info.base_frequency = freq;
          if (high_frequency > 0.0f)
          {
-            handle->pitch_levels =_MAX(1,log2i(ceilf(high_frequency/freq)));
-            if (handle->pitch_levels > MAX_PITCH_LEVELS) {
-               handle->pitch_levels = MAX_PITCH_LEVELS;
+            int pitch = ceilf(high_frequency/freq);
+            handle->mip_levels = _getMaxMipLevels(pitch);
+            if (handle->mip_levels > MAX_MIP_LEVELS) {
+               handle->mip_levels = MAX_MIP_LEVELS;
             }
          }
       }
@@ -1670,7 +1683,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
          }
 
-         handle->pitch_levels = s+1;
+         handle->mip_levels = s+1;
 
          duration = 0.0f;
       }
@@ -1713,7 +1726,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          }
       }
 
-      for (b=0; b<handle->pitch_levels; ++b)
+      for (b=0; b<handle->mip_levels; ++b)
       {
          float mul = (float)(1 << b);
          float frequency = mul*freq;
@@ -2577,7 +2590,7 @@ _bufGetDataPitchLevels(_buffer_t *handle)
    char *ptr;
 
    if (handle->info.tracks != 1) return data;
-   if (handle->pitch_levels <= 1) return data;
+   if (handle->mip_levels <= 1) return data;
    if (format != AAX_PCM24S && format != AAX_FLOAT) return data;
    if (rb->get_parami(rb, RB_FORMAT) != AAX_PCM24S) return data;
    /**
@@ -2587,7 +2600,7 @@ _bufGetDataPitchLevels(_buffer_t *handle)
     * 3. followed by the data for all pitch levels.
     *    - the data format is AAX_PCM24S
     */
-   offs = (handle->pitch_levels+2)*sizeof(void*);
+   offs = (handle->mip_levels+2)*sizeof(void*);
    size = 2*no_samples*sizeof(int32_t);
    data = (void**)_aax_malloc(&ptr, offs, size);
    if (data == NULL)
@@ -2598,7 +2611,7 @@ _bufGetDataPitchLevels(_buffer_t *handle)
 
 
    d = (size_t*)data;
-   for (b=0; b<handle->pitch_levels; ++b)
+   for (b=0; b<handle->mip_levels; ++b)
    {
       uint32_t len;
 

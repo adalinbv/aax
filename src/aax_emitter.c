@@ -210,7 +210,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
    {
       _aax2dProps *ep2d = handle->source->props2d;
       float pitch = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
-      unsigned char pitch_level = 1;
+      int mip_level = 0;
       _aaxRingBuffer *rb;
 
       if (!buffer->root) {
@@ -220,24 +220,24 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
          handle->root = buffer->root;
       }
 
-      ep2d->pitch_levels = buffer->pitch_levels;
-      if (ep2d->pitch_levels > 1)
+      ep2d->mip_levels = buffer->mip_levels;
+      if (ep2d->mip_levels > 1)
       {
-         pitch_level = log2i((unsigned int)_MAX(ceilf(pitch), 1.0f))+1;
-         if (pitch_level > ep2d->pitch_levels) {
-            pitch_level = ep2d->pitch_levels;
+         mip_level = _getMaxMipLevels(ceilf(pitch));
+         if (mip_level >= ep2d->mip_levels) {
+            mip_level = ep2d->mip_levels-1;
          }
-         ep2d->pitch_factor = 1.0f/(float)(1 << (pitch_level-1));
+         ep2d->pitch_factor = 1.0f/(float)(1 << (mip_level));
       }
 
-      rb = buffer->ringbuffer[pitch_level-1];
+      rb = buffer->ringbuffer[mip_level];
       if (rb)
       {
          const _aaxEmitter *src = handle->source;
          _embuffer_t* embuf;
 
          _EFFECT_SET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH,
-                           _MAX(4.0f, (float)(buffer->pitch_levels)));
+                           _MAX(4.0f, (float)(1 << buffer->mip_levels)));
          if (handle->looping >= 0) {
             rb->set_parami(rb, RB_LOOPING, handle->looping);
          }

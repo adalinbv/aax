@@ -230,7 +230,7 @@ void _aaxAudioFrameFree(void*);
 #define DEFAULT_IMA4_BLOCKSIZE		36
 #define IMA4_SMP_TO_BLOCKSIZE(a)	(((a)/2)+4)
 #define IMA4_BLOCKSIZE_TO_SMP(a)	((a) > 1) ? (((a)-4)*2) : 1
-#define MAX_PITCH_LEVELS		8
+#define MAX_MIP_LEVELS			8
 
 typedef enum
 {
@@ -289,8 +289,8 @@ typedef struct aax_buffer_t
    char mipmap;
 
    char pressure_mode;
-   char pitch_levels;
-   _aaxRingBuffer *ringbuffer[MAX_PITCH_LEVELS];
+   char mip_levels;
+   _aaxRingBuffer *ringbuffer[MAX_MIP_LEVELS];
    _aaxMixerInfo **mixer_info;
    void *root;			/* reference to the mixer object */
    void *aaxs;
@@ -311,6 +311,7 @@ _buffer_t* new_buffer(_handle_t*, unsigned int, enum aaxFormat, unsigned);
 _buffer_t* get_buffer(aaxBuffer, const char*);
 int free_buffer(_buffer_t*);
 
+int _getMaxMipLevels(int);
 char** _bufGetDataFromStream(const char*, _buffer_info_t*, _aaxMixerInfo*);
 void _aaxFileDriverWrite(const char*, enum aaxProcessingType, void*, size_t, size_t, char, enum aaxFormat);
 

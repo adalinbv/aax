@@ -147,7 +147,7 @@ _aaxPitchEffectGet(float val, UNUSED(int ptype), UNUSED(unsigned char param))
 }
 
 
-#define PMAX	(4.0f*MAX_PITCH_LEVELS)
+#define PMAX	(float)(1 << MAX_MIP_LEVELS)
 static float
 _aaxPitchEffectMinMax(float val, int slot, unsigned char param)
 {
