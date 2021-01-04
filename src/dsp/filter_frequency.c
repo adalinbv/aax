@@ -1149,6 +1149,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       }
    }
  
+#if 0
+   // Warning: causes effects like water dripping and bubbles to misbehave.
    if (fabs(fc_prev - fc)  >= 100.0f)
    {
       int num, steps = 8;
@@ -1188,6 +1190,7 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       rv = AAX_TRUE;
    }
    else
+#endif
    {
       int num;
 
