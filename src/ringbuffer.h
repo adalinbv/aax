@@ -230,9 +230,6 @@ typedef ALIGN16 struct
    float feedback;
    char flanger;
 
-   float lf_k;
-   _aaxRingBufferFreqFilterHistoryData lf_history;
-
 } _aaxRingBufferDelayEffectData ALIGN16C;
 
 typedef struct

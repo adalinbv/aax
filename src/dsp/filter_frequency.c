@@ -71,50 +71,6 @@ _aaxFrequencyFilterDestroy(_filter_t* filter)
    return AAX_TRUE;
 }
 
-void
-_aaxFrequencyFilterReset(void *data)
-{
-   _aaxRingBufferFreqFilterData *flt = data;
-
-// memset(flt->freqfilter->history, 0,
-//        sizeof(float[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES]));
-
-
-   if (flt->lfo)
-   {
-      float fc;
-
-      _lfo_reset(flt->lfo);
-#if 0
-      fc = _MINMAX(flt->lfo->get(flt->lfo, NULL, NULL, 0, 0),
-                   20.0f, 0.9f*0.5f*flt->fs);
-      if (flt->state == AAX_BESSEL) {
-         _aax_bessel_compute(fc, flt);
-      } else {
-         _aax_butterworth_compute(fc, flt);
-      }
-#endif
-   }
-
-#if 0
-   if (flt->random)
-   {
-      float lfc2 = _lin2log(flt->fc_high);
-      float lfc1 = _lin2log(flt->fc_low);
-      float fc;
-
-      lfc1 += (lfc2 - lfc1)*_aax_random();
-      fc = _log2lin(lfc1);
-
-      if (flt->state == AAX_BESSEL) {
-          _aax_bessel_compute(fc, flt);
-      } else {
-         _aax_butterworth_compute(fc, flt);
-      }
-   }
-#endif
-}
-
 static aaxFilter
 _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 {
@@ -431,13 +387,57 @@ _flt_function_tbl _aaxFrequencyFilter =
    "AAX_frequency_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxFrequencyFilterCreate,
    (_aaxFilterDestroy*)&_aaxFrequencyFilterDestroy,
-   (_aaxFilterReset*)&_aaxFrequencyFilterReset,
+   (_aaxFilterReset*)&_freqfilter_reset,
    (_aaxFilterSetState*)&_aaxFrequencyFilterSetState,
    (_aaxNewFilterHandle*)&_aaxNewFrequencyFilterHandle,
    (_aaxFilterConvert*)&_aaxFrequencyFilterSet,
    (_aaxFilterConvert*)&_aaxFrequencyFilterGet,
    (_aaxFilterConvert*)&_aaxFrequencyFilterMinMax
 };
+
+void
+_freqfilter_reset(void *data)
+{
+   _aaxRingBufferFreqFilterData *flt = data;
+
+// memset(flt->freqfilter->history, 0,
+//        sizeof(float[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES]));
+
+
+   if (flt->lfo)
+   {
+      float fc;
+
+      _lfo_reset(flt->lfo);
+#if 0
+      fc = _MINMAX(flt->lfo->get(flt->lfo, NULL, NULL, 0, 0),
+                   20.0f, 0.9f*0.5f*flt->fs);
+      if (flt->state == AAX_BESSEL) {
+         _aax_bessel_compute(fc, flt);
+      } else {
+         _aax_butterworth_compute(fc, flt);
+      }
+#endif
+   }
+
+#if 0
+   if (flt->random)
+   {
+      float lfc2 = _lin2log(flt->fc_high);
+      float lfc1 = _lin2log(flt->fc_low);
+      float fc;
+
+      lfc1 += (lfc2 - lfc1)*_aax_random();
+      fc = _log2lin(lfc1);
+
+      if (flt->state == AAX_BESSEL) {
+          _aax_bessel_compute(fc, flt);
+      } else {
+         _aax_butterworth_compute(fc, flt);
+      }
+   }
+#endif
+}
 
 void
 _freqfilter_swap(void *d, void *s)
@@ -1199,6 +1199,7 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
       if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
          rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
       }
+
       rv = AAX_TRUE;
    }
    return rv;

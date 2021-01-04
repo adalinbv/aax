@@ -157,7 +157,12 @@ void
 _delay_reset(void *ptr)
 {
    _aaxRingBufferDelayEffectData *data = ptr;
-   if (data) _lfo_reset(&data->lfo);
+
+   if (data)
+   {
+      _lfo_reset(&data->lfo);
+      if (data->freq_filter) _freqfilter_reset(data->freq_filter);
+   }
 }
 
 size_t
@@ -236,8 +241,6 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    volume = effect->feedback;
    if (offs && volume > LEVEL_96DB)
    {
-//    float *hist = effect->lf_history.history[track];
-//    float k = effect->lf_k;
       ssize_t coffs, doffs;
       int i, step, sign;
 
