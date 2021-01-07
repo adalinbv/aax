@@ -406,11 +406,8 @@ _freqfilter_reset(void *data)
 
    if (flt->lfo)
    {
-      float fc;
-
-      _lfo_reset(flt->lfo);
 #if 0
-      fc = _MINMAX(flt->lfo->get(flt->lfo, NULL, NULL, 0, 0),
+      float fc = _MINMAX(flt->lfo->get(flt->lfo, NULL, NULL, 0, 0),
                    20.0f, 0.9f*0.5f*flt->fs);
       if (flt->state == AAX_BESSEL) {
          _aax_bessel_compute(fc, flt);
@@ -418,6 +415,8 @@ _freqfilter_reset(void *data)
          _aax_butterworth_compute(fc, flt);
       }
 #endif
+
+      _lfo_reset(flt->lfo);
    }
 
 #if 0
@@ -1122,9 +1121,7 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    _aaxRingBufferFreqFilterData *filter = data;
    CONST_MIX_PTR_T sptr = s - ds;
    MIX_T *dptr = d - ds;
-   float fc_prev = filter->fc;
    float fc = filter->fc;
-   int rv = AAX_FALSE;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -1148,59 +1145,12 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
          _aax_butterworth_compute(fc, filter);
       }
    }
- 
-#if 0
-   // Warning: causes effects like water dripping and bubbles to misbehave.
-   if (fabs(fc_prev - fc)  >= 100.0f)
-   {
-      int num, steps = 8;
-      int samps = dmax/8;
-      do
-      {
-         do
-         {
-            num = samps;
-            if (sptr < s) num += ds;
 
-            rbd->freqfilter(dptr, sptr, track, num, filter);
-            if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
-               rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
-            }
-
-            dmax -= samps;
-            if (dmax)
-            {
-               fc = _MINMAX(filter->lfo->get(filter->lfo, env, sptr, track, samps),
-                                             20.0f, 0.9f*0.5f*filter->fs);
-               if (filter->state == AAX_BESSEL) {
-                  _aax_bessel_compute(fc, filter);
-               } else {
-                  _aax_butterworth_compute(fc, filter);
-               }
-            }
-
-            sptr += num;
-            dptr += num;
-         }
-         while (--steps);
-         steps = 1;
-         samps = dmax;
-      }
-      while(dmax);
-      rv = AAX_TRUE;
+   dmax += ds;
+   rbd->freqfilter(dptr, sptr, track, dmax, filter);
+   if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
+      rbd->add(dptr, sptr, dmax, filter->low_gain, 0.0f);
    }
-   else
-#endif
-   {
-      int num;
 
-      num = dmax + ds;
-      rbd->freqfilter(dptr, sptr, track, num, filter);
-      if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
-         rbd->add(dptr, sptr, num, filter->low_gain, 0.0f);
-      }
-
-      rv = AAX_TRUE;
-   }
-   return rv;
+   return AAX_TRUE;
 }
