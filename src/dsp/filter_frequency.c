@@ -1119,9 +1119,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *filter = data;
-   CONST_MIX_PTR_T sptr = s - ds;
-   MIX_T *dptr = d - ds;
-   float fc = filter->fc;
+   CONST_MIX_PTR_T sptr;
+   MIX_T *dptr;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
@@ -1137,8 +1136,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    if (filter->lfo && !ctr)
    {
-      fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
-                                    20.0f, 0.9f*0.5f*filter->fs);
+      float fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
+                         20.0f, 0.9f*0.5f*filter->fs);
       if (filter->state == AAX_BESSEL) {
          _aax_bessel_compute(fc, filter);
       } else {
@@ -1147,6 +1146,8 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    }
 
    dmax += ds;
+   sptr = s - ds;
+   dptr = d - ds;
    rbd->freqfilter(dptr, sptr, track, dmax, filter);
    if (filter->state == AAX_BESSEL && filter->low_gain > LEVEL_128DB) {
       rbd->add(dptr, sptr, dmax, filter->low_gain, 0.0f);
