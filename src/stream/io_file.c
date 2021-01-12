@@ -46,6 +46,7 @@
 # define O_BINARY	0
 #endif
 
+#define USE_IO_BUFFER	0
 #define IOBUF_SIZE	(1024*1024)
 #define THRESHOLD	(2*IOBUF_SIZE/3)
 
@@ -54,7 +55,9 @@ _file_open(_io_t *io, const char* pathname)
 {
    io->fds.fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
    io->timer = _aaxTimerCreate();
+#if USE_IO_BUFFER
    io->dataBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
+#endif
 
    return io->fds.fd;
 }
@@ -64,6 +67,7 @@ _file_close(_io_t *io)
 {
    int rv = 0;
 
+#if USE_IO_BUFFER
    void *data = _aaxDataGetData(io->dataBuffer);
    ssize_t res = 0;
    do {
@@ -76,6 +80,7 @@ _file_close(_io_t *io)
    while (res == EINTR);
 
    _aaxDataDestroy(io->dataBuffer);
+#endif
    _aaxTimerDestroy(io->timer);
 
    if (io->fds.fd != -1) close(io->fds.fd);
@@ -102,6 +107,7 @@ _file_write(_io_t *io, const void* buf, size_t count)
 {
    ssize_t rv;
 
+#if USE_IO_BUFFER
    if (!io->seeking)
    {
       rv = _aaxDataAdd(io->dataBuffer, buf, count);
@@ -120,6 +126,7 @@ _file_write(_io_t *io, const void* buf, size_t count)
       }
    }
    else
+#endif
    {
       rv = write(io->fds.fd, buf, count);
       if (rv == count) io->seeking = AAX_FALSE;
