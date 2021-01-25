@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -100,7 +100,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       float feedback = effect->slot[1]->param[AAX_MAX_GAIN];
       char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
-      data = _delay_create(data, effect->info, AAX_TRUE, fbhist);
+      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, DELAY_EFFECTS_TIME);
       effect->slot[0]->data = data;
       if (data)
       {

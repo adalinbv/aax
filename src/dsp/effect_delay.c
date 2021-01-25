@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -27,22 +27,229 @@
 
 #include <aax/aax.h>
 
-#include <base/types.h> 
-#include <software/rbuf_int.h>
+#include <base/types.h>		/*  for rintf */
+#include <base/gmath.h>
 
+#include <software/rbuf_int.h>
 #include "effects.h"
 #include "arch.h"
 #include "dsp.h"
+#include "api.h"
 
-/*
- * This code is shared between the phasing, chorus and flanging effects
- */
-
+#define VERSION		1.0
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
+static aaxEffect
+_aaxDelayLineEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
+{
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+   aaxEffect rv = NULL;
+
+   if (eff)
+   {
+      _aaxSetDefaultEffect2d(eff->slot[0], eff->pos, 0);
+      eff->slot[0]->destroy = _delay_destroy;
+      eff->slot[0]->swap = _delay_swap;
+      rv = (aaxEffect)eff;
+   }
+   return rv;
+}
+
+static int
+_aaxDelayLineEffectDestroy(_effect_t* effect)
+{
+   if (effect->slot[0]->data)
+   {
+      effect->slot[0]->destroy(effect->slot[0]->data);
+      effect->slot[0]->data = NULL;
+   }
+   free(effect);
+
+   return AAX_TRUE;
+}
+
+static aaxEffect
+_aaxDelayLineEffectSetState(_effect_t* effect, int state)
+{
+   void *handle = effect->handle;
+   aaxEffect rv = AAX_FALSE;
+   int stereo;
+
+   assert(effect->info);
+
+   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+   state &= ~AAX_LFO_STEREO;
+
+   effect->state = state;
+   switch (state & ~AAX_INVERSE)
+   {
+   case AAX_CONSTANT_VALUE:
+   {
+      _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
+
+      data = effect->slot[0]->data = data;
+      if (!data)
+      {
+         float delay_max = REVERB_EFFECTS_TIME;
+         data = _delay_create(data, effect->info, AAX_TRUE, AAX_FALSE, delay_max);
+         effect->slot[0]->data = data;
+      }
+
+      if (data)
+      {
+         float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
+         float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
+         float fs = 48000.0f;
+         int t, constant;
+
+         if (effect->info) {
+            fs = effect->info->frequency;
+         }
+
+         data->prepare = _delay_prepare;
+         data->run = _delay_run;
+         data->flanger = AAX_FALSE;
+
+         data->lfo.convert = _linear;
+         data->lfo.state = effect->state;
+         data->lfo.fs = fs;
+         data->lfo.period_rate = effect->info->period_rate;
+
+         data->lfo.min_sec = CHORUS_MIN;
+         data->lfo.max_sec = REVERB_EFFECTS_TIME;
+         data->lfo.depth = depth;
+         data->lfo.offset = offset;
+
+         data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
+         data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         data->lfo.stereo_lnk = !stereo;
+
+         if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
+            data->lfo.depth = 1.0f - data->lfo.offset;
+         }
+
+         constant = _lfo_set_timing(&data->lfo);
+
+         data->delay.gain = effect->slot[0]->param[AAX_DELAY_GAIN];
+         for (t=0; t<_AAX_MAX_SPEAKERS; t++) {
+            data->delay.sample_offs[t] = (size_t)data->lfo.value[t];
+         }
+
+         if (!_lfo_set_function(&data->lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+      }
+      else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+      break;
+   }
+   case AAX_FALSE:
+   {
+      if (effect->slot[0]->data)
+      {
+         effect->slot[0]->destroy(effect->slot[0]->data);
+         effect->slot[0]->data = NULL;
+      }
+      break;
+   }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      break;
+   }
+   rv = effect;
+   return rv;
+}
+
+static _effect_t*
+_aaxNewDelayLineEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
+{
+   _handle_t *handle = get_driver_handle(config);
+   _aaxMixerInfo* info = handle ? handle->info : _info;
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+
+   if (rv)
+   {
+      _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
+      rv->slot[0]->destroy = _delay_destroy;
+      rv->slot[0]->swap = _delay_swap;
+      rv->slot[0]->data = NULL;
+
+      rv->state = p2d->effect[rv->pos].state;
+   }
+   return rv;
+}
+
+static float
+_aaxDelayLineEffectSet(float val, int ptype, unsigned char param)
+{
+   float rv = val;
+   if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
+      rv = _lin2db(val);
+   }
+  else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
+            (ptype == AAX_MICROSECONDS)) {
+       rv = (val*1e-6f)/DELAY_MAX;
+   }
+   return rv;
+}
+
+static float
+_aaxDelayLineEffectGet(float val, int ptype, unsigned char param)
+{
+   float rv = val;
+   if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
+      rv = _db2lin(val);
+   }
+   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
+            (ptype == AAX_MICROSECONDS)) {
+       rv = val*DELAY_MAX*1e6f;
+   }
+   return rv;
+}
+
+#define DELAY_FACTOR	(REVERB_EFFECTS_TIME/DELAY_MAX)
+static float
+_aaxDelayLineEffectMinMax(float val, int slot, unsigned char param)
+{
+   static const _eff_minmax_tbl_t _aaxDelayLineRange[_MAX_FE_SLOTS] =
+   {    /* min[4] */                  /* max[4] */
+    { { 0.001f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, DELAY_FACTOR } },
+    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,         0.0f } },
+    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,         0.0f } },
+    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,         0.0f } }
+   };
+
+   assert(slot < _MAX_FE_SLOTS);
+   assert(param < 4);
+
+   return _MINMAX(val, _aaxDelayLineRange[slot].min[param],
+                       _aaxDelayLineRange[slot].max[param]);
+}
+
+/* -------------------------------------------------------------------------- */
+
+_eff_function_tbl _aaxDelayLineEffect =
+{
+   AAX_FALSE,
+   "AAX_delay_effect_"AAX_MKSTR(VERSION), VERSION,
+   (_aaxEffectCreate*)&_aaxDelayLineEffectCreate,
+   (_aaxEffectDestroy*)&_aaxDelayLineEffectDestroy,
+   (_aaxEffectReset*)&_delay_reset,
+   (_aaxEffectSetState*)&_aaxDelayLineEffectSetState,
+   NULL,
+   (_aaxNewEffectHandle*)&_aaxNewDelayLineEffectHandle,
+   (_aaxEffectConvert*)&_aaxDelayLineEffectSet,
+   (_aaxEffectConvert*)&_aaxDelayLineEffectGet,
+   (_aaxEffectConvert*)&_aaxDelayLineEffectMinMax
+};
+
+
+/*
+ * This code is shared between the delay, phasing, delay_line and flanging effects
+ */
+#define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 void*
-_delay_create(void *d, void *i, char delay, char feedback)
+_delay_create(void *d, void *i, char delay, char feedback, float delay_time)
 {
    _aaxRingBufferDelayEffectData *data = d;
    _aaxMixerInfo *info = i;
@@ -68,7 +275,7 @@ _delay_create(void *d, void *i, char delay, char feedback)
       int tracks = info->no_tracks;
       float fs = info->frequency;
 
-      data->history_samples = TIME_TO_SAMPLES(fs, DELAY_EFFECTS_TIME);
+      data->history_samples = TIME_TO_SAMPLES(fs, delay_time);
 
       if (data->history == NULL) {
          _aaxRingBufferCreateHistoryBuffer(&data->history,

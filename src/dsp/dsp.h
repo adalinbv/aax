@@ -51,14 +51,15 @@ int _equalizer_run(void*, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, vo
 int _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigned int, _aaxRingBufferEqualizerData*);
 
 // delay effects
-#define PHASING_MIN	50e-6f
-#define PHASING_MAX	10e-3f
-#define CHORUS_MIN	10e-3f
-#define CHORUS_MAX	60e-3f
-#define FLANGING_MIN	10e-3f
-#define FLANGING_MAX	60e-3f
+#define PHASING_MIN	 50e-6f
+#define PHASING_MAX	 10e-3f
+#define CHORUS_MIN	 10e-3f
+#define CHORUS_MAX	 60e-3f
+#define FLANGING_MIN	 10e-3f
+#define FLANGING_MAX	 60e-3f
+#define DELAY_MAX	600e-3f
 
-void* _delay_create(void*, void*, char, char);
+void* _delay_create(void*, void*, char, char, float);
 void _delay_swap(void*, void*);
 void _delay_destroy(void*);
 void _delay_reset(void*);
