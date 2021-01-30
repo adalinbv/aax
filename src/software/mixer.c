@@ -92,38 +92,13 @@ _aaxSoftwareMixerApplyEffects(const void *id, const void *hid, void *drb, const 
       for (track=0; track<no_tracks; track++)
       {
          MIX_T *dptr = (MIX_T*)tracks[track];
-//       MIX_T *ddeptr = dptr - ddesamps;
 
          if (!ddesamps && delay_effect) {
             ddesamps = delay_effect->delay.sample_offs[track];
          }
-#if 1
          memcpy(scratch0, dptr, no_samples*bps);
          rbi->effects_2nd(rbi->sample, dptr, scratch0, scratch1, 0, no_samples,
                           no_samples, ddesamps, track, p2d, 0, mono);
-#else
-         /* save the unmodified next effects buffer for later use          */
-         /* (scratch buffers have a leading and a trailing effects buffer) */
-//       DBG_MEMCLR(1, scratch1-ddesamps, no_samples+2*ddesamps, bps);
-
-         _aax_memcpy(scratch1+no_samples, ddeptr+no_samples, ddesamps*bps);
-
-         /* mix the buffer and the delay buffer */
-//       DBG_MEMCLR(1, scratch0-ddesamps, no_samples+2*ddesamps, bps);
-         memset(scratch0, 0, no_samples*bps);
-
-         // mixer (and audio-frames) effects
-//       DBG_TESTZERO(dptr, no_samples);
-         rbi->effects_2nd(rbi->sample, scratch0, dptr, scratch1, 0, no_samples,
-                          no_samples, ddesamps, track, p2d, 0, mono);
-
-         /* copy the unmodified next effects buffer back */
-//       DBG_MEMCLR(1, dptr-ddesamps, no_samples+ddesamps, bps);
-         _aax_memcpy(ddeptr, scratch1+no_samples, ddesamps*bps);
-
-         /* copy the data back from scratch0 to dptr */
-         _aax_memcpy(dptr, scratch0, no_samples*bps);
-#endif
       }
    }
 
