@@ -227,7 +227,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       }
    }
 
-   /* phasing, chorus or flanging */
+   /* phasing, chorus, flanging or delay-line */
    state = _EFFECT_GET_STATE(p2d, DELAY_EFFECT);
    if (state)
    {

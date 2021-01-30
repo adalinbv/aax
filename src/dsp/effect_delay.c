@@ -87,14 +87,8 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
 
-      data = effect->slot[0]->data = data;
-      if (!data)
-      {
-         float delay_max = REVERB_EFFECTS_TIME;
-         data = _delay_create(data, effect->info, AAX_TRUE, AAX_FALSE, delay_max);
-         effect->slot[0]->data = data;
-      }
-
+      data = _delay_create(data, effect->info, AAX_TRUE, AAX_FALSE, FRAME_REVERB_EFFECTS_TIME);
+      effect->slot[0]->data = data;
       if (data)
       {
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
@@ -115,12 +109,11 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
          data->lfo.fs = fs;
          data->lfo.period_rate = effect->info->period_rate;
 
-         data->lfo.min_sec = CHORUS_MIN;
-         data->lfo.max_sec = REVERB_EFFECTS_TIME;
+         data->lfo.min_sec = DELAY_MIN;
+         data->lfo.max_sec = DELAY_MAX;
          data->lfo.depth = depth;
          data->lfo.offset = offset;
-
-         data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
+         data->lfo.f = 0.0f;
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          data->lfo.stereo_lnk = !stereo;
 
@@ -185,7 +178,7 @@ _aaxDelayLineEffectSet(float val, int ptype, unsigned char param)
    if ((param == AAX_DELAY_GAIN) && (ptype == AAX_DECIBEL)) {
       rv = _lin2db(val);
    }
-  else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
+   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
        rv = (val*1e-6f)/DELAY_MAX;
    }
@@ -206,16 +199,15 @@ _aaxDelayLineEffectGet(float val, int ptype, unsigned char param)
    return rv;
 }
 
-#define DELAY_FACTOR	(REVERB_EFFECTS_TIME/DELAY_MAX)
 static float
 _aaxDelayLineEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxDelayLineRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.001f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, DELAY_FACTOR } },
-    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,         0.0f } },
-    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,         0.0f } },
-    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f,         0.0f } }
+    { { 0.001f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
+    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
+    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
+    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);
@@ -288,10 +280,7 @@ _delay_create(void *d, void *i, char delay, char feedback, float delay_time)
 
       if (!data->history || !data->feedback_history)
       {
-         free(data->offset);
-         data->offset = NULL;
-
-         _aax_aligned_free(data);
+         _delay_destroy(data);
          data = NULL;
       }
    }
@@ -417,6 +406,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    ssize_t offs, noffs;
    int rv = AAX_FALSE;
    float volume;
+
+printf("track: %u\n", track);
 
    _AAX_LOG(LOG_DEBUG, __func__);
 

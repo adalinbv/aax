@@ -397,6 +397,9 @@ aaxEffectGetByName(UNUSED(aaxConfig handle), const char *name)
    else if (!strncasecmp(name, "flanging", slen)) {
       rv = AAX_FLANGING_EFFECT;
    }
+   else if (!strncasecmp(name, "delay", slen)) {
+      rv = AAX_DELAY_EFFECT;
+   }
    else if (!strncasecmp(name, "reverb", slen)) {
       rv = AAX_REVERB_EFFECT;
    }

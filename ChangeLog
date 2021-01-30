@@ -1,3 +1,11 @@
+* Wed Jan 27 2021 - tech@adalin.org
+- AeonWave (3.9.2) stable; urgency=high
+
+ * Add a delay-line effect with one delayed signal for up to 200ms.
+
+-- Erik Hofman <tech@adalin.org>  Wed 27 Jan 2021 14:24:33 + 0200
+
+
 * Tue Jan 12 2021 - tech@adalin.org
 - AeonWave (3.9.1) stable; urgency=high
 

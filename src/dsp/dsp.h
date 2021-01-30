@@ -57,7 +57,8 @@ int _grapheq_run(void*, MIX_PTR_T, MIX_PTR_T, MIX_PTR_T, size_t, size_t, unsigne
 #define CHORUS_MAX	 60e-3f
 #define FLANGING_MIN	 10e-3f
 #define FLANGING_MAX	 60e-3f
-#define DELAY_MAX	600e-3f
+#define DELAY_MIN	 60e-3f
+#define DELAY_MAX	200e-3f
 
 void* _delay_create(void*, void*, char, char, float);
 void _delay_swap(void*, void*);

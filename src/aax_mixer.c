@@ -631,6 +631,7 @@ aaxMixerSetEffect(aaxConfig config, aaxEffect e)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
+      case AAX_DELAY_EFFECT:
       case AAX_REVERB_EFFECT:
       case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -677,6 +678,7 @@ aaxMixerGetEffect(const aaxConfig config, enum aaxEffectType type)
       case AAX_PHASING_EFFECT:
       case AAX_CHORUS_EFFECT:
       case AAX_FLANGING_EFFECT:
+      case AAX_DELAY_EFFECT:
       case AAX_REVERB_EFFECT:
       case AAX_CONVOLUTION_EFFECT:
          dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
