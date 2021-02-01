@@ -139,7 +139,6 @@ _pat_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             int res;
 
             res = _aaxFormatDriverReadHeader(handle, buf, bufsize);
-printf(" #  res: %i, bufsize: %li\n", res, *bufsize);
             if (res > 0)
             {
                if (!handle->fmt)
