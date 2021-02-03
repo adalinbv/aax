@@ -232,12 +232,6 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
    rbd = rbi->sample;
 
-   if (rbd->track) _aax_free(rbd->track);
-   rbd->track = NULL;
-
-   if (rbd->scratch) free(rbd->scratch);
-   rbd->scratch = NULL;
-
    /*
     * When moving playing registered sensors from one output device
     * to another rbd->track != NULL.  calculate it's new size, free
