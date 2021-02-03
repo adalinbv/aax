@@ -1761,7 +1761,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
             rb->set_parami(rb, RB_NO_TRACKS, handle->info.tracks);
-            rb->init(rb, AAX_FALSE);
             handle->ringbuffer[b] = rb;
          }
 
