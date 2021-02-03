@@ -407,8 +407,6 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    int rv = AAX_FALSE;
    float volume;
 
-printf("track: %u\n", track);
-
    _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(s != 0);

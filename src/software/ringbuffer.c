@@ -232,12 +232,18 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
    rbd = rbi->sample;
 
+   if (rbd->track) _aax_free(rbd->track);
+   rbd->track = NULL;
+
+   if (rbd->scratch) free(rbd->scratch);
+   rbd->scratch = NULL;
+
    /*
     * When moving playing registered sensors from one output device
     * to another rbd->track != NULL.  calculate it's new size, free
     * the previous buffer and create a new one with the proper size
     */
-   if (1) // !rbd->track)
+   do
    {
       int tracks;
       size_t offs, no_samples, tracksize, dde_bytes;
@@ -279,6 +285,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
          }
       }
    }
+   while (0);
 }
 
 void
@@ -1199,13 +1206,13 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 }
 
 int
-_aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
 {
    int tracks;
    unsigned char bps;
    size_t no_samples;
    int rv = AAX_FALSE;
-   void *data;
+   int32_t **data;
 
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
@@ -1217,33 +1224,33 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
    switch (type)
    {
    case AAX_SINE_WAVE:
-      _bufferMixWaveform(data, scratch, _SINE_WAVE, f, bps, no_samples,
-                         tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _SINE_WAVE, track, f, bps,
+                         no_samples, tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_SQUARE_WAVE:
-      _bufferMixWaveform(data, scratch, _SQUARE_WAVE, f, bps, no_samples,
-                         tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _SQUARE_WAVE, track, f, bps,
+                         no_samples, tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_TRIANGLE_WAVE:
-      _bufferMixWaveform(data, scratch, _TRIANGLE_WAVE, f, bps, no_samples,
-                         tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _TRIANGLE_WAVE, track, f, bps,
+                         no_samples, tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_SAWTOOTH_WAVE:
-      _bufferMixWaveform(data, scratch, _SAWTOOTH_WAVE, f, bps, no_samples,
-                         tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _SAWTOOTH_WAVE, track, f, bps,
+                         no_samples, tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_IMPULSE_WAVE:
-      _bufferMixWaveform(data, scratch, _IMPULSE_WAVE, f, bps, no_samples,
-                         tracks, ratio, phase, modulate, limiter);
+      _bufferMixWaveform(data, scratch, _IMPULSE_WAVE, track, f, bps,
+                         no_samples, tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_CONSTANT_VALUE:
-       _bufferMixWaveform(data, scratch, _CONSTANT_VALUE, f, bps, no_samples,
-                         tracks, ratio, phase, modulate, limiter);
+       _bufferMixWaveform(data, scratch, _CONSTANT_VALUE, track, f, bps,
+                         no_samples, tracks, ratio, phase, modulate, limiter);
       rv = AAX_TRUE;
    default:
       break;
@@ -1254,13 +1261,13 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
 }
 
 int
-_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
+_aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
 {
    int tracks;
    unsigned char bps;
    size_t no_samples;
    int rv = AAX_FALSE;
-   void *data;
+   int32_t **data;
    float pitch;
 
    pitch = _MINMAX(rate, 0.01f, 1.0f);
@@ -1273,18 +1280,18 @@ _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformT
    switch (type)
    {
    case AAX_WHITE_NOISE:
-      _bufferMixWhiteNoise(data, scratch, no_samples, bps, tracks, pitch,
-                           ratio, fs, seed, skip, modulate, limiter);
+      _bufferMixWhiteNoise(data, scratch, track, no_samples, bps, tracks,
+                          pitch,  ratio, fs, seed, skip, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_PINK_NOISE:
-      _bufferMixPinkNoise(data, scratch, no_samples, bps, tracks, pitch,
-                          ratio, fs, seed, skip, modulate, limiter);
+      _bufferMixPinkNoise(data, scratch, track, no_samples, bps, tracks,
+                          pitch, ratio, fs, seed, skip, modulate, limiter);
       rv = AAX_TRUE;
       break;
    case AAX_BROWNIAN_NOISE:
-      _bufferMixBrownianNoise(data, scratch, no_samples, bps, tracks, pitch,
-                              ratio, fs, seed, skip, modulate, limiter);
+      _bufferMixBrownianNoise(data, scratch, track, no_samples, bps, tracks,
+                              pitch, ratio, fs, seed, skip, modulate, limiter);
       rv = AAX_TRUE;
       break;
    default:
@@ -1304,7 +1311,7 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
       _aaxRingBufferSample *rbd = rbi->sample;
       size_t t, tracks;
       unsigned char bps;
-      MIX_T *data;
+      int32_t **data;
 
       bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
       tracks = rb->get_parami(rb, RB_NO_TRACKS);

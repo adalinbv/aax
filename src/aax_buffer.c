@@ -1,6 +1,6 @@
  /*
- * Copyright 2007-2019 by Erik Hofman.
- * Copyright 2009-2019 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -53,7 +53,7 @@
 
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
-static int _bufProcessWaveform(aaxBuffer, float, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
+static int _bufProcessWaveform(aaxBuffer, int, float, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
 static _aaxRingBuffer* _bufSetDataInterleaved(_buffer_t*, _aaxRingBuffer*, const void*, unsigned);
 static _aaxRingBuffer* _bufConvertDataToMixerFormat(_buffer_t*, _aaxRingBuffer*);
 static void** _bufGetDataPitchLevels(_buffer_t*);
@@ -554,7 +554,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   return _bufProcessWaveform(buffer, rate, 0.0f, 1.0f, rate, 0.0f, 0.0f, 1, 0.0f, wtype, ratio, ptype, 0);
+   return _bufProcessWaveform(buffer, 0, rate, 0.0f, 1.0f, rate, 0.0f, 0.0f, 1, 0.0f, wtype, ratio, ptype, 0);
 }
 
 AAX_API void** AAX_APIENTRY
@@ -1212,7 +1212,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 }
 
 static int
-_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
+_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
@@ -1351,8 +1351,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, float freq, unsi
 
    spread = spread*_log2lin(_lin2log(freq)/3.3f);
    if (ptype == AAX_RINGMODULATE) voices = 1;
-   return _bufProcessWaveform(handle, freq, phase, pitch, staticity, random,
-                   pitch_level, voices, spread, wtype, ratio, ptype, limiter);
+   return _bufProcessWaveform(handle, track, freq, phase, pitch, staticity,
+                              random, pitch_level, voices, spread, wtype,
+                              ratio, ptype, limiter);
 }
 
 static int
@@ -1575,11 +1576,35 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    float freq = aax_buf->frequency;
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
-   int s, nsound, midi_mode;
+   float spread = 0;
+   double duration = 1.0f;
+   unsigned int bits = 24;
+   int layer, layers;
+   int voices = 1;
+   int midi_mode;
    int rv = AAX_FALSE;
    limitType limiter;
-   char *env, *section;
-   void *xaid, *xsid;
+   void *xaid, *xnid;
+   void *xsid, *xlid;
+   char *env;
+
+   xaid = xmlNodeGet(xid, "aeonwave");
+   if (!xaid) xaid = xid; // backwards compatibility
+
+   midi_mode = handle->midi_mode;
+   if (midi_mode == AAX_RENDER_NORMAL && handle->mixer_info) {
+      handle->midi_mode = midi_mode = (*handle->mixer_info)->midi_mode;
+   }
+
+   xsid = NULL;
+   if (midi_mode != AAX_RENDER_NORMAL && xmlNodeGet(xaid, "fm")) {
+      xsid = xmlNodeGet(xaid, "fm");
+   }
+   if (!xsid) {
+      xsid = xmlNodeGet(xaid, "sound");
+   }
+   if (!xsid) return rv;
+
 
    limiter = WAVEFORM_LIMIT_NORMAL;
    env = getenv("AAX_INSTRUMENT_MODE");
@@ -1587,143 +1612,138 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       limiter = atoi(env);
    }
 
-   xaid = xmlNodeGet(xid, "aeonwave/info/note");
-   if (xaid)
+   xnid = xmlNodeGet(xaid, "info/note");
+   if (xnid)
    {
-      if (xmlAttributeExists(xaid, "min")) {
-         low_frequency = note2freq(xmlAttributeGetInt(xaid, "min"));
+      if (xmlAttributeExists(xnid, "min")) {
+         low_frequency = note2freq(xmlAttributeGetInt(xnid, "min"));
       }
-      if (xmlAttributeExists(xaid, "max")) {
-         high_frequency = note2freq(_MIN(xmlAttributeGetInt(xaid, "max"), 108));
+      if (xmlAttributeExists(xnid, "max")) {
+         high_frequency = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 108));
       }
-      xmlFree(xaid);
+      xmlFree(xnid);
    }
 
-   xaid = xmlNodeGet(xid, "aeonwave");
-   if (!xaid) xaid = xid;
-
-   midi_mode = handle->midi_mode;
-   if (midi_mode == AAX_RENDER_NORMAL && handle->mixer_info) {
-      handle->midi_mode = midi_mode = (*handle->mixer_info)->midi_mode;
+   if (midi_mode == AAX_RENDER_SYNTHESIZER ||
+       midi_mode == AAX_RENDER_ARCADE) {
+      handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
    }
-
-   if (midi_mode != AAX_RENDER_NORMAL && xmlNodeGet(xaid, "fm")) {
-      section = "fm";
-   } else {
-      section = "sound";
-   }
-
-   nsound = 1; // xmlNodeGetNum(xaid, section);
-   xsid = xmlMarkId(xaid);
-   for (s=0; s<nsound; ++s)
+   else
    {
-      unsigned int i, num, bits = 24;
-      double duration = 1.0f;
-      float spread = 0;
-      int b, voices = 1;
-
-      if (!xmlNodeGetPos(xaid, xsid, section, s)) continue;
-
-      if (midi_mode == AAX_RENDER_SYNTHESIZER ||
-          midi_mode == AAX_RENDER_ARCADE) {
-         handle->gain = _db2lin(xmlAttributeGetDouble(xsid, "db"));
+      if (xmlAttributeExists(xsid, "gain")) {
+         handle->gain = xmlAttributeGetDouble(xsid, "gain");
+      } else if (xmlAttributeExists(xsid, "fixed-gain")) {
+         handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
       }
-      else
+   }
+   if (!freq)
+   {
+      freq = xmlAttributeGetDouble(xsid, "frequency");
+      handle->info.base_frequency = freq;
+      if (high_frequency > 0.0f)
       {
-         if (xmlAttributeExists(xsid, "gain")) {
-            handle->gain = xmlAttributeGetDouble(xsid, "gain");
-         } else if (xmlAttributeExists(xsid, "fixed-gain")) {
-            handle->gain = xmlAttributeGetDouble(xsid, "fixed-gain");
+         int pitch = ceilf(high_frequency/freq);
+         handle->mip_levels = _getMaxMipLevels(pitch);
+         if (handle->mip_levels > MAX_MIP_LEVELS) {
+            handle->mip_levels = MAX_MIP_LEVELS;
          }
       }
-      if (!freq)
+   }
+
+   if (xmlAttributeExists(xsid, "file"))
+   {
+      char *file = xmlAttributeGetString(xsid, "file");
+
+      rv = _bufSetDataFromAAXS(handle, file, 0);
+      if (!rv) {
+         aax_buf->error = AAX_INVALID_REFERENCE;
+      }
+      xmlFree(file);
+
+      if (!handle->info.loop_end) // loop was not defined in the file
       {
-         freq = xmlAttributeGetDouble(xsid, "frequency");
-         handle->info.base_frequency = freq;
-         if (high_frequency > 0.0f)
-         {
-            int pitch = ceilf(high_frequency/freq);
-            handle->mip_levels = _getMaxMipLevels(pitch);
-            if (handle->mip_levels > MAX_MIP_LEVELS) {
-               handle->mip_levels = MAX_MIP_LEVELS;
-            }
+         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
+         float loop_start, loop_end;
+
+         loop_start = xmlAttributeGetDouble(xsid, "loop-start");
+         if (xmlAttributeExists(xsid, "loop-end")) {
+            loop_end = xmlAttributeGetDouble(xsid, "loop-end");
+         } else {
+            loop_end = handle->info.no_samples;
          }
-      }
-
-      if (xmlAttributeExists(xsid, "file"))
-      {
-         char *file = xmlAttributeGetString(xsid, "file");
-
-         rv = _bufSetDataFromAAXS(handle, file, s);
-         if (!rv) {
-            aax_buf->error = AAX_INVALID_REFERENCE;
+         if (loop_end > loop_start) {
+            handle->info.loop_count = INT_MAX;
          }
-         xmlFree(file);
+         handle->info.loop_start = loop_start;
+         handle->info.loop_end = loop_end;
 
-         if (!handle->info.loop_end) // loop was not defined in the file
-         {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
-            float loop_start, loop_end;
-
-            loop_start = xmlAttributeGetDouble(xsid, "loop-start");
-            if (xmlAttributeExists(xsid, "loop-end")) {
-               loop_end = xmlAttributeGetDouble(xsid, "loop-end");
-            } else {
-               loop_end = handle->info.no_samples;
-            }
-            if (loop_end > loop_start) {
-               handle->info.loop_count = INT_MAX;
-            }
-            handle->info.loop_start = loop_start;
-            handle->info.loop_end = loop_end;
-
-            rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/handle->info.freq);
-            rb->set_paramf(rb, RB_LOOPPOINT_START,loop_start/handle->info.freq);
-            rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
-            rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
-         }
-
-         handle->mip_levels = s+1;
-
-         duration = 0.0f;
-      }
-      else if (xmlAttributeExists(xsid, "duration"))
-      {
-         duration = xmlAttributeGetDouble(xsid, "duration");
-         if (duration < 0.1f) {
-            duration = 0.1f;
-         }
+         rb->set_paramf(rb, RB_LOOPPOINT_END, loop_end/handle->info.freq);
+         rb->set_paramf(rb, RB_LOOPPOINT_START,loop_start/handle->info.freq);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE,handle->info.sampled_release);
+         rb->set_parami(rb, RB_LOOPING, handle->info.loop_count);
       }
 
-      if (!handle->info.base_frequency) {
-         handle->info.base_frequency = freq;
-      }
-      if (!handle->info.low_frequency) {
-         handle->info.low_frequency = low_frequency;
-      }
-      if (!handle->info.high_frequency) {
-         handle->info.high_frequency = high_frequency;
-      }
+      handle->mip_levels = 1;
 
-      if (xmlAttributeExists(xsid, "bits"))
-      {
-         bits = xmlAttributeGetInt(xsid, "bits");
-         if (bits != 16) bits = 24;
+      duration = 0.0f;
+   }
+   else if (xmlAttributeExists(xsid, "duration"))
+   {
+      duration = xmlAttributeGetDouble(xsid, "duration");
+      if (duration < 0.1f) {
+         duration = 0.1f;
       }
+   }
 
-      if (!env) {
-         limiter = xmlAttributeGetInt(xsid, "mode");
+   if (!handle->info.base_frequency) {
+      handle->info.base_frequency = freq;
+   }
+   if (!handle->info.low_frequency) {
+      handle->info.low_frequency = low_frequency;
+   }
+   if (!handle->info.high_frequency) {
+      handle->info.high_frequency = high_frequency;
+   }
+
+   if (xmlAttributeExists(xsid, "bits"))
+   {
+      bits = xmlAttributeGetInt(xsid, "bits");
+      if (bits != 16) bits = 24;
+   }
+
+   if (!env) {
+      limiter = xmlAttributeGetInt(xsid, "mode");
+   }
+
+   if (midi_mode == AAX_RENDER_NORMAL)
+   {
+      if (xmlAttributeExists(xsid, "voices")) {
+         voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
       }
+      if (xmlAttributeExists(xsid, "spread")) {
+         spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
+         if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
+      }
+   }
 
-      if (midi_mode == AAX_RENDER_NORMAL)
-      {
-         if (xmlAttributeExists(xsid, "voices")) {
-            voices = _MINMAX(xmlAttributeGetInt(xsid, "voices"), 1, 11);
-         }
-         if (xmlAttributeExists(xsid, "spread")) {
-            spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
-            if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
-         }
+   layers = xmlNodeGetNum(xsid, "layer");
+   if (layers == 0) // backwards compatibility (v3.9 and earlier)
+   {
+      layers = 1;
+      xlid = xsid;
+   }
+   else
+   {
+      xlid = xmlMarkId(xsid);
+   }
+   handle->info.tracks = layers;
+
+   for (layer=0; layer<layers; ++layer)
+   {
+      int b, i, num;
+
+      if (xlid != xsid) {
+         if (!xmlNodeGetPos(xsid, xlid, "layer", layer)) continue;
       }
 
       for (b=0; b<handle->mip_levels; ++b)
@@ -1738,30 +1758,34 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
             float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
             size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
+
             rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+            rb->set_parami(rb, RB_NO_TRACKS, handle->info.tracks);
+            rb->init(rb, AAX_FALSE);
             handle->ringbuffer[b] = rb;
          }
 
-         xwid = xmlMarkId(xsid);
+         xwid = xmlMarkId(xlid);
          if (xwid)
          {
             int waves;
 
-            num = xmlNodeGetNum(xsid, "*");
+            num = xmlNodeGetNum(xlid, "*");
             if (midi_mode == AAX_RENDER_ARCADE) waves = _MIN(2, num);
             else if (midi_mode == AAX_RENDER_SYNTHESIZER) waves = _MIN(6, num);
             else waves = num;
 
             for (i=0; i<num; i++)
             {
-               if (xmlNodeGetPos(xsid, xwid, "*", i) != 0)
+               if (xmlNodeGetPos(xlid, xwid, "*", i) != 0)
                {
                   char *name = xmlNodeGetName(xwid);
                   if (!strcasecmp(name, "waveform"))
                   {
                      if (waves) {
-                        rv = _bufCreateWaveformFromAAXS(handle, xwid, frequency,
-                                                b, voices, spread, limiter & 1);
+                        rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
+                                                        frequency, b, voices,
+                                                        spread, limiter & 1);
                         waves--;
                      }
                   }
@@ -1771,7 +1795,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                         rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
                      } else if (!strcasecmp(name, "effect")) {
                         rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
-                                                 low_frequency, high_frequency);
+                                                low_frequency, high_frequency);
                      }
                   }
                   xmlFree(name);
@@ -1818,6 +1842,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          }
       }
    }
+   if (xlid != xsid) xmlFree(xlid);
    xmlFree(xsid);
    if (xaid != xid) xmlFree(xaid);
 
@@ -1999,7 +2024,7 @@ _bufCreateAAXS(_buffer_t *handle, void **data, unsigned int samples)
 #endif
 
 static int
-_bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
+_bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float pitch, float staticity, float random, unsigned char pitch_level, int voices, float spread, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype, limitType limiter)
 {
    _buffer_t* handle = get_buffer(buffer, __func__);
    int rv = AAX_FALSE;
@@ -2108,13 +2133,13 @@ _bufProcessWaveform(aaxBuffer buffer, float freq, float phase, float pitch, floa
                   nfw = nfw*ceilf(ffact)/ffact;
                   nphase = phase + q*GMATH_2PI/voices;
                   nratio = (q == hvoices) ? 0.8f*ratio : 0.6f*ratio;
-                  rv = rb->data_mix_waveform(rb, scratch, wtype&bit, nfw, nratio, nphase, modulate, limiter);
+                  rv = rb->data_mix_waveform(rb, scratch, wtype&bit, track, nfw, nratio, nphase, modulate, limiter);
                }
                break;
             case AAX_WHITE_NOISE:
             case AAX_PINK_NOISE:
             case AAX_BROWNIAN_NOISE:
-               rv = rb->data_mix_noise(rb, scratch, wtype & bit, fs_mixer, pitch, ratio, seed, skip, modulate, limiter);
+               rv = rb->data_mix_noise(rb, scratch, wtype & bit, track, fs_mixer, pitch, ratio, seed, skip, modulate, limiter);
                break;
             default:
                break;
