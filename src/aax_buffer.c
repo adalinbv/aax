@@ -1579,7 +1579,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    float spread = 0;
    double duration = 1.0f;
    unsigned int bits = 24;
-   int layer, layers;
+   int b, layer, layers;
    int voices = 1;
    int midi_mode;
    int rv = AAX_FALSE;
@@ -1738,109 +1738,112 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    }
    handle->info.tracks = layers;
 
-   for (layer=0; layer<layers; ++layer)
+   for (b=0; b<handle->mip_levels; ++b)
    {
-      int b, i, num;
+      float mul = (float)(1 << b);
+      float frequency = mul*freq;
+      float pitch_fact = 1.0f/mul;
 
-      if (xlid != xsid) {
-         if (!xmlNodeGetPos(xsid, xlid, "layer", layer)) continue;
+      if (duration >= 0.099f)
+      {
+         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
+         float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
+         size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
+
+         rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
+         rb->set_parami(rb, RB_NO_TRACKS, handle->info.tracks);
+         handle->ringbuffer[b] = rb;
       }
 
-      for (b=0; b<handle->mip_levels; ++b)
+      for (layer=0; layer<layers; ++layer)
       {
-         float mul = (float)(1 << b);
-         float frequency = mul*freq;
-         float pitch_fact = 1.0f/mul;
+         int num, waves;
          void *xwid;
 
-         if (duration >= 0.099f)
-         {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
-            float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
-            size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
-
-            rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
-            rb->set_parami(rb, RB_NO_TRACKS, handle->info.tracks);
-            handle->ringbuffer[b] = rb;
+         if (xlid != xsid) {
+            if (!xmlNodeGetPos(xsid, xlid, "layer", layer)) continue;
          }
+
+         num = xmlNodeGetNum(xlid, "*");
+         if (midi_mode == AAX_RENDER_ARCADE) waves = _MIN(2, num);
+         else if (midi_mode == AAX_RENDER_SYNTHESIZER) waves = _MIN(6, num);
+         else waves = num;
 
          xwid = xmlMarkId(xlid);
          if (xwid)
          {
-            int waves;
-
-            num = xmlNodeGetNum(xlid, "*");
-            if (midi_mode == AAX_RENDER_ARCADE) waves = _MIN(2, num);
-            else if (midi_mode == AAX_RENDER_SYNTHESIZER) waves = _MIN(6, num);
-            else waves = num;
+            int i;
 
             for (i=0; i<num; i++)
             {
-               if (xmlNodeGetPos(xlid, xwid, "*", i) != 0)
+               char *type;
+
+               if (!xmlNodeGetPos(xlid, xwid, "*", i)) continue;
+
+               type = xmlNodeGetName(xwid);
+               if (!strcasecmp(type, "waveform"))
                {
-                  char *name = xmlNodeGetName(xwid);
-                  if (!strcasecmp(name, "waveform"))
-                  {
-                     if (waves) {
-                        rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
-                                                        frequency, b, voices,
-                                                        spread, limiter & 1);
-                        waves--;
-                     }
+                  if (waves) {
+                     rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
+                                                     frequency, b, voices,
+                                                     spread, limiter & 1);
+                     waves--;
                   }
-                  else
-                  {
-                     if (!strcasecmp(name, "filter")) {
-                        rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
-                     } else if (!strcasecmp(name, "effect")) {
-                        rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
-                                                low_frequency, high_frequency);
-                     }
-                  }
-                  xmlFree(name);
-                  if (rv == AAX_FALSE) break;
                }
+               else
+               {
+                  if (!strcasecmp(type, "filter")) {
+                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
+                  } else if (!strcasecmp(type, "effect")) {
+                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
+                                             low_frequency, high_frequency);
+                  }
+               }
+               xmlFree(type);
+
+               if (rv == AAX_FALSE) break;
             }
             xmlFree(xwid);
          }
+      } // layer
 
-         if (midi_mode)
-         {
-            if (!b)
-            {
-               _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-               handle->gain = _bufNormalize(rb, handle->gain);
-            }
-         }
-         else if (limiter)
+      if (midi_mode)
+      {
+         if (!b)
          {
             _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-            _bufLimit(rb);
-         }
-
-         if (0) // handle->to_mixer)
-         {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-            _bufConvertDataToMixerFormat(handle, rb);
-         }
-         else if (bits == 16)
-         {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
-            _aaxRingBufferData *rbi = rb->handle;
-            _aaxRingBufferSample *rbd = rbi->sample;
-            void *dptr = rbd->track[0];
-            unsigned int no_samples;
-
-            // 32-bit aligned 24-bit is smaller than 16-bit
-            // TODO: return the freed space,
-            //       but how does aligned realloc work?
-            no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-            _batch_cvt16_24(dptr, dptr, no_samples);
-            rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
-            handle->info.fmt = AAX_PCM16S;
+            handle->gain = _bufNormalize(rb, handle->gain);
          }
       }
-   }
+      else if (limiter)
+      {
+         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+         _bufLimit(rb);
+      }
+
+      if (0) // handle->to_mixer)
+      {
+         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+         _bufConvertDataToMixerFormat(handle, rb);
+         }
+      else if (bits == 16)
+      {
+         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+         _aaxRingBufferData *rbi = rb->handle;
+         _aaxRingBufferSample *rbd = rbi->sample;
+         unsigned int no_samples;
+
+         no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+         for (layer=0; layer<layers; ++layer)
+         {
+            void *dptr = rbd->track[layer];
+            _batch_cvt16_24(dptr, dptr, no_samples);
+         }
+         rb->set_parami(rb, RB_FORMAT, AAX_PCM16S);
+         handle->info.fmt = AAX_PCM16S;
+      }
+   } // mip-level
+
    if (xlid != xsid) xmlFree(xlid);
    xmlFree(xsid);
    if (xaid != xid) xmlFree(xaid);
