@@ -354,6 +354,9 @@ aaxFilterGetByName(UNUSED(aaxConfig handle), const char *name)
    else if (!strncasecmp(name, "compressor", slen)) {
       rv = AAX_COMPRESSOR;
    }
+   else if (!strncasecmp(name, "dynamic_timbre", slen)) {
+       rv = AAX_DYNAMIC_GAIN_FILTER;
+   }
 
    else if (!strncasecmp(name, "directional", slen) ||
             !strncasecmp(name, "angular", slen)) {
