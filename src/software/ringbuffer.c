@@ -1202,54 +1202,55 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 int
 _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
 {
-   int tracks;
-   unsigned char bps;
-   size_t no_samples;
    int rv = AAX_FALSE;
-   int32_t **data;
+   int tracks;
 
-   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-
-   f = rb->get_paramf(rb, RB_FREQUENCY)/f;
-
-   data = _aaxRingBufferGetTracksPtr(rb, RB_WRITE);
-   switch (type)
+   if (track < tracks)
    {
-   case AAX_SINE_WAVE:
-      _bufferMixWaveform(data, scratch, _SINE_WAVE, track, f, bps,
-                         no_samples, tracks, ratio, phase, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   case AAX_SQUARE_WAVE:
-      _bufferMixWaveform(data, scratch, _SQUARE_WAVE, track, f, bps,
-                         no_samples, tracks, ratio, phase, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   case AAX_TRIANGLE_WAVE:
-      _bufferMixWaveform(data, scratch, _TRIANGLE_WAVE, track, f, bps,
-                         no_samples, tracks, ratio, phase, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   case AAX_SAWTOOTH_WAVE:
-      _bufferMixWaveform(data, scratch, _SAWTOOTH_WAVE, track, f, bps,
-                         no_samples, tracks, ratio, phase, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   case AAX_IMPULSE_WAVE:
-      _bufferMixWaveform(data, scratch, _IMPULSE_WAVE, track, f, bps,
-                         no_samples, tracks, ratio, phase, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   case AAX_CONSTANT_VALUE:
-       _bufferMixWaveform(data, scratch, _CONSTANT_VALUE, track, f, bps,
-                         no_samples, tracks, ratio, phase, modulate, limiter);
-      rv = AAX_TRUE;
-   default:
-      break;
+      unsigned char bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+      size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      int32_t **data;
+
+      f = rb->get_paramf(rb, RB_FREQUENCY)/f;
+
+      data = _aaxRingBufferGetTracksPtr(rb, RB_WRITE);
+      switch (type)
+      {
+      case AAX_SINE_WAVE:
+         _bufferMixWaveform(data[track], scratch, _SINE_WAVE, f, bps,
+                            no_samples, ratio, phase, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      case AAX_SQUARE_WAVE:
+         _bufferMixWaveform(data[track], scratch, _SQUARE_WAVE, f, bps,
+                            no_samples, ratio, phase, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      case AAX_TRIANGLE_WAVE:
+         _bufferMixWaveform(data[track], scratch, _TRIANGLE_WAVE, f, bps,
+                            no_samples, ratio, phase, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      case AAX_SAWTOOTH_WAVE:
+         _bufferMixWaveform(data[track], scratch, _SAWTOOTH_WAVE, f, bps,
+                            no_samples, ratio, phase, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      case AAX_IMPULSE_WAVE:
+         _bufferMixWaveform(data[track], scratch, _IMPULSE_WAVE, f, bps,
+                            no_samples, ratio, phase, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      case AAX_CONSTANT_VALUE:
+          _bufferMixWaveform(data[track], scratch, _CONSTANT_VALUE, f, bps,
+                            no_samples, ratio, phase, modulate, limiter);
+         rv = AAX_TRUE;
+      default:
+         break;
+      }
+      _aaxRingBufferReleaseTracksPtr(rb);
    }
-   _aaxRingBufferReleaseTracksPtr(rb);
 
    return rv;
 }
@@ -1257,41 +1258,42 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
 int
 _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
 {
-   int tracks;
-   unsigned char bps;
-   size_t no_samples;
    int rv = AAX_FALSE;
-   int32_t **data;
-   float pitch;
+   int tracks;
 
-   pitch = _MINMAX(rate, 0.01f, 1.0f);
-
-   bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
    tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-
-   data = rb->get_tracks_ptr(rb, RB_WRITE);
-   switch (type)
+   if (track < tracks)
    {
-   case AAX_WHITE_NOISE:
-      _bufferMixWhiteNoise(data, scratch, track, no_samples, bps, tracks,
-                          pitch,  ratio, fs, seed, skip, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   case AAX_PINK_NOISE:
-      _bufferMixPinkNoise(data, scratch, track, no_samples, bps, tracks,
-                          pitch, ratio, fs, seed, skip, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   case AAX_BROWNIAN_NOISE:
-      _bufferMixBrownianNoise(data, scratch, track, no_samples, bps, tracks,
-                              pitch, ratio, fs, seed, skip, modulate, limiter);
-      rv = AAX_TRUE;
-      break;
-   default:
-      break;
+      unsigned char bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+      size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
+      int32_t **data;
+      float pitch;
+
+      pitch = _MINMAX(rate, 0.01f, 1.0f);
+
+      data = rb->get_tracks_ptr(rb, RB_WRITE);
+      switch (type)
+      {
+      case AAX_WHITE_NOISE:
+         _bufferMixWhiteNoise(data[track], scratch, no_samples, bps, pitch,
+                              ratio, fs, seed, skip, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      case AAX_PINK_NOISE:
+         _bufferMixPinkNoise(data[track], scratch, no_samples, bps, pitch,
+                             ratio, fs, seed, skip, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      case AAX_BROWNIAN_NOISE:
+         _bufferMixBrownianNoise(data[track], scratch, no_samples, bps, pitch,
+                                 ratio, fs, seed, skip, modulate, limiter);
+         rv = AAX_TRUE;
+         break;
+      default:
+         break;
+      }
+      rb->release_tracks_ptr(rb);
    }
-   rb->release_tracks_ptr(rb);
 
    return rv;
 }

@@ -53,8 +53,8 @@
 static float _gains[AAX_MAX_WAVE];
 
 static void _aax_pinknoise_filter(float32_ptr, size_t, float);
-static void _aax_add_data(int32_t**, const_float32_ptr, int, int, unsigned int, char, float, limitType);
-static void _aax_mul_data(int32_t**, const_float32_ptr, int, int, unsigned int, char, float, limitType);
+static void _aax_add_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
+static void _aax_mul_data(int32_t*, const_float32_ptr, unsigned int, char, float, limitType);
 static float* _aax_generate_noise_float(float*, size_t, uint64_t, unsigned char, float);
 
 #if 0
@@ -81,22 +81,22 @@ _aax_atanf(float v) {
 }
 
 void
-_bufferMixWaveform(int32_t** data, float *scratch, enum wave_types wtype, int track, float freq, char bps, size_t no_samples, int tracks, float gain, float phase, unsigned char modulate, limitType limiter)
+_bufferMixWaveform(int32_t* data, float *scratch, enum wave_types wtype, float freq, char bps, size_t no_samples, float gain, float phase, unsigned char modulate, limitType limiter)
 {
    gain *= _gains[wtype];
    if (data && gain)
    {
       _aax_generate_waveform_float(scratch, no_samples, freq, phase, wtype);
       if (modulate) {
-         _aax_mul_data(data, scratch, track, tracks, no_samples, bps, fabsf(gain), limiter);
+         _aax_mul_data(data, scratch, no_samples, bps, fabsf(gain), limiter);
       } else {
-         _aax_add_data(data, scratch, track, tracks, no_samples, bps, gain, limiter);
+         _aax_add_data(data, scratch, no_samples, bps, gain, limiter);
       }
    }
 }
 
 void
-_bufferMixWhiteNoise(int32_t** data, float *scratch, int track, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixWhiteNoise(int32_t* data, float *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -108,9 +108,9 @@ _bufferMixWhiteNoise(int32_t** data, float *scratch, int track, size_t no_sample
       {
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
          if (modulate) {
-            _aax_mul_data(data, ptr, track, tracks, no_samples, bps, fabsf(gain), limiter);
+            _aax_mul_data(data, ptr, no_samples, bps, fabsf(gain), limiter);
          } else {
-            _aax_add_data(data, ptr, track, tracks, no_samples, bps, gain, limiter);
+            _aax_add_data(data, ptr, no_samples, bps, gain, limiter);
          }
       }
       _aax_aligned_free(ptr);
@@ -118,7 +118,7 @@ _bufferMixWhiteNoise(int32_t** data, float *scratch, int track, size_t no_sample
 }
 
 void
-_bufferMixPinkNoise(int32_t** data, float *scratch, int track, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixPinkNoise(int32_t* data, float *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -138,9 +138,9 @@ _bufferMixPinkNoise(int32_t** data, float *scratch, int track, size_t no_samples
          _batch_resample_float(ptr, ptr2+NOISE_PADDING/2, 0, no_samples, 0, pitch);
 
          if (modulate) {
-            _aax_mul_data(data, ptr, track, tracks, no_samples, bps, fabsf(gain), limiter);
+            _aax_mul_data(data, ptr, no_samples, bps, fabsf(gain), limiter);
          } else {
-            _aax_add_data(data, ptr, track, tracks, no_samples, bps, gain, limiter);
+            _aax_add_data(data, ptr, no_samples, bps, gain, limiter);
          }
       }
       _aax_aligned_free(ptr);
@@ -148,7 +148,7 @@ _bufferMixPinkNoise(int32_t** data, float *scratch, int track, size_t no_samples
 }
 
 void
-_bufferMixBrownianNoise(int32_t** data, float *scratch, int track, size_t no_samples, char bps, int tracks, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
+_bufferMixBrownianNoise(int32_t* data, float *scratch, size_t no_samples, char bps, float pitch, float gain, float fs, uint64_t seed, unsigned char skip, unsigned char modulate, limitType limiter)
 {
    gain = fabsf(gain);
    if (data && gain)
@@ -169,9 +169,9 @@ _bufferMixBrownianNoise(int32_t** data, float *scratch, int track, size_t no_sam
          _batch_resample_float(ptr, ptr2, 0, no_samples, 0, pitch);
 
          if (modulate) {
-            _aax_mul_data(data, ptr, track, tracks, no_samples, bps, fabsf(gain), limiter);
+            _aax_mul_data(data, ptr, no_samples, bps, fabsf(gain), limiter);
          } else {
-            _aax_add_data(data, ptr, track, tracks, no_samples, bps, gain, limiter);
+            _aax_add_data(data, ptr, no_samples, bps, gain, limiter);
          }
       }
       _aax_aligned_free(ptr);
@@ -426,94 +426,80 @@ _aax_resample_float(float32_ptr dptr, const_float32_ptr sptr, size_t dmin, size_
 #endif
 
 static void
-_aax_add_data(int32_t** data, const_float32_ptr mix, int track, int tracks, unsigned int no_samples, char bps, float gain, limitType limiter)
+_aax_add_data(int32_t* data, const_float32_ptr mix, unsigned int no_samples, char bps, float gain, limitType limiter)
 {
    float (*_aax_limit)(float) = limiter ? _aax_linear : _aax_atanf;
-   int t;
-
-   if (track >= tracks) return;
-
-// for(t=0; t<tracks; t++)
+   int i  = no_samples;
+   const float *m = mix;
+   if (bps == 1)
    {
-      int i  = no_samples;
-      const float *m = mix;
-      if (bps == 1)
-      {
-         static const float div = 1.0f/128.0f;
-         static const float mul = 127.0f;
-         int8_t *d = (int8_t*)data[track];
-         do {
-            float v = (float)*d * div + *m++ * gain;
-            *d++ = mul * _aax_limit(v);
-         } while (--i);
-      }
-      else if (bps == 2)
-      {
-         static const float div = 1.0f/32768.0f;
-         static const float mul = 32767.0f;
-         int16_t *d = (int16_t*)data[track];
-         do {
-            float v = (float)*d * div + *m++ * gain;
-            *d++ = mul * _aax_limit(v);
-         } while (--i);
-      }
-      else if (bps == 3 || bps == 4)
-      {
-         static const float div = 1.0f/AAX_PEAK_MAX;
-         static const float mul = AAX_PEAK_MAX;
-         int32_t *d = (int32_t*)data[track];
-         do {
-            float v = (float)*d * div + *m++ * gain;
-            *d++ = mul * _aax_limit(v);
-         } while (--i);
-      }
+      static const float div = 1.0f/128.0f;
+      static const float mul = 127.0f;
+      int8_t *d = (int8_t*)data;
+      do {
+         float v = (float)*d * div + *m++ * gain;
+         *d++ = mul * _aax_limit(v);
+      } while (--i);
+   }
+   else if (bps == 2)
+   {
+      static const float div = 1.0f/32768.0f;
+      static const float mul = 32767.0f;
+      int16_t *d = (int16_t*)data;
+      do {
+         float v = (float)*d * div + *m++ * gain;
+         *d++ = mul * _aax_limit(v);
+      } while (--i);
+   }
+   else if (bps == 3 || bps == 4)
+   {
+      static const float div = 1.0f/AAX_PEAK_MAX;
+      static const float mul = AAX_PEAK_MAX;
+      int32_t *d = (int32_t*)data;
+      do {
+         float v = (float)*d * div + *m++ * gain;
+         *d++ = mul * _aax_limit(v);
+      } while (--i);
    }
 }
 
 
 #define RINGMODULATE(a,b,c,d)	((c)*(((float)(a)/(d))*((b)/(c))))
 static void
-_aax_mul_data(int32_t** data, const_float32_ptr mix, int track, int tracks, unsigned int no_samples, char bps, float gain, limitType limiter)
+_aax_mul_data(int32_t* data, const_float32_ptr mix, unsigned int no_samples, char bps, float gain, limitType limiter)
 {
    float (*_aax_limit)(float) = limiter ? _aax_linear : _aax_atanf;
-   int t;
-
-   if (track >= tracks) return;
-
-// for(t=0; t<tracks; t++)
+   int i  = no_samples;
+   const float *m = mix;
+   if (bps == 1)
    {
-      int i  = no_samples;
-      const float *m = mix;
-      if (bps == 1)
-      {
-         static const float div = 1.0f/127.0f;
-         static const float mul = 127.0f;
-         int8_t *d = (int8_t*)data[track];
-         do {
-            *d = mul * _aax_limit(*d*div * *m++ * gain);
-            ++d;
-         } while (--i);
-      }
-      else if (bps == 2)
-      {
-         static const float div = 1.0f/32765.0f;
-         static const float mul = 32765.0f;
-         int16_t *d = (int16_t*)data[track];
-         do {
-            *d = mul * _aax_limit(*d*div * *m++ * gain);
-            ++d;
-         } while (--i);
-      }
-      else if (bps == 3 || bps == 4)
-      {
-         static const float div = 1.0f/(255.0f*32765.0f);
-         static const float mul = 255.0f*32765.0f;
-         int32_t *d = (int32_t*)data[track];
-         do {
-            *d = mul * _aax_limit(*d*div * *m++ * gain);
-            ++d;
-         } while (--i);
-      }
+      static const float div = 1.0f/127.0f;
+      static const float mul = 127.0f;
+      int8_t *d = (int8_t*)data;
+      do {
+         *d = mul * _aax_limit(*d*div * *m++ * gain);
+         ++d;
+      } while (--i);
+   }
+   else if (bps == 2)
+   {
+      static const float div = 1.0f/32765.0f;
+      static const float mul = 32765.0f;
+      int16_t *d = (int16_t*)data;
+      do {
+         *d = mul * _aax_limit(*d*div * *m++ * gain);
+         ++d;
+      } while (--i);
+   }
+   else if (bps == 3 || bps == 4)
+   {
+      static const float div = 1.0f/(255.0f*32765.0f);
+      static const float mul = 255.0f*32765.0f;
+      int32_t *d = (int32_t*)data;
+      do {
+         *d = mul * _aax_limit(*d*div * *m++ * gain);
+         ++d;
+      } while (--i);
    }
 }
 
