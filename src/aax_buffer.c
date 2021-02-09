@@ -554,7 +554,8 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 
 AAX_API int AAX_APIENTRY aaxBufferProcessWaveform(aaxBuffer buffer, float rate, enum aaxWaveformType wtype, float ratio, enum aaxProcessingType ptype)
 {
-   return _bufProcessWaveform(buffer, 0, rate, 0.0f, 1.0f, rate, 0.0f, 0.0f, 1, 0.0f, wtype, ratio, ptype, 0);
+   return _bufProcessWaveform(buffer, 0, rate, 0.0f, 1.0f, rate, 0.0f,
+                               0.0f, 1, 0.0f, wtype, ratio, ptype, 0);
 }
 
 AAX_API void** AAX_APIENTRY
@@ -1351,9 +1352,9 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float
 
    spread = spread*_log2lin(_lin2log(freq)/3.3f);
    if (ptype == AAX_RINGMODULATE) voices = 1;
-   return _bufProcessWaveform(handle, track, freq, phase, pitch, staticity,
-                              random, pitch_level, voices, spread, wtype,
-                              ratio, ptype, limiter);
+   return _bufProcessWaveform(handle, track, freq, phase, pitch,
+                              staticity, random, pitch_level, voices, spread,
+                              wtype, ratio, ptype, limiter);
 }
 
 static int
@@ -1573,12 +1574,12 @@ static int
 _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 {
    _buffer_t* handle = aax_buf->parent;
+   double duration = 1.0f;
    float freq = aax_buf->frequency;
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
    float spread = 0;
-   double duration = 1.0f;
-   unsigned int bits = 24;
+   int bits = 24;
    int b, layer, layers;
    int voices = 1;
    int midi_mode;
@@ -1784,9 +1785,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                if (!strcasecmp(type, "waveform"))
                {
                   if (waves) {
-                     rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
-                                                     frequency, b, voices,
-                                                     spread, limiter & 1);
+                     rv = _bufCreateWaveformFromAAXS(handle, xwid,
+                                                     layer, frequency, b,
+                                                     voices, spread,
+                                                     limiter & 1);
                      waves--;
                   }
                }
@@ -2042,9 +2044,9 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
    {
       _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, pitch_level);
       float samps_period, fs, fw, fs_mixer, rate, *scratch;
-      unsigned int no_samples, i, bit = 1;
-      uint64_t seed;
+      int no_samples, i, bit = 1;
       int q, hvoices;
+      uint64_t seed;
       unsigned skip;
       char modulate;
       char phasing;
@@ -2074,7 +2076,7 @@ _bufProcessWaveform(aaxBuffer buffer, int track, float freq, float phase, float 
       switch (ptype)
       {
       case AAX_OVERWRITE:
-         rb->set_state(rb, RB_CLEARED);
+         rb->data_clear(rb, track);
          break;
       case AAX_MIX:
       {

@@ -69,6 +69,7 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
          float s = -1.0f + phase/GMATH_PI;
          int h;
 
+         // first harmonic
          do
          {
             *ptr++ = ngain * FN(fast_sin,A)(s);
@@ -77,6 +78,7 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
          }
          while (--i);
 
+         // remaining harmonics, if required
          if (wtype != _SINE_WAVE)
          {
              for(h=1; h<MAX_HARMONICS; ++h)
@@ -90,8 +92,8 @@ FN(aax_generate_waveform,A)(float32_ptr rv, size_t no_samples, float freq, float
                    int i = no_samples;
                    float hdt = 2.0f/nfreq;
                    float s = -1.0f + phase/GMATH_PI;
-                   float *ptr = rv;
 
+                   ptr = rv;
                    do
                    {
                       *ptr++ += ngain * FN(fast_sin,A)(s);

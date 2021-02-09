@@ -422,7 +422,7 @@ _aaxWorkerThread(void *id)
                _aaxMutexUnLock(handle->mutex);
 
                /* clear our own ringbuffer for future use */
-               drb->data_clear(drb);
+               drb->set_state(drb, RB_CLEARED);
                drb->set_state(drb, RB_REWINDED);
             }
          }

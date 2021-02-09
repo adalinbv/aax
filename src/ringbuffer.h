@@ -42,6 +42,7 @@ extern "C" {
 
 enum _aaxRingBufferParam
 {
+   RB_ALL_TRACKS = -1,
    RB_VOLUME = 0,
    RB_VOLUME_MIN,
    RB_VOLUME_MAX,
@@ -638,7 +639,7 @@ _aaxRingBufferGetParamfFn(const struct _aaxRingBuffer_t*, enum _aaxRingBufferPar
  * returns AAX_TRUE if successful, AAX_FALSE otherwise.
  */
 typedef int
-_aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*);
+_aaxRingBufferDataClearFn(struct _aaxRingBuffer_t*, int);
 
 /**
  * Mix the audio data of two ringbuffers
