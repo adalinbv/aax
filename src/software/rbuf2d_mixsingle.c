@@ -257,19 +257,21 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 #endif
       }
 
+      gain = _MINMAX(gain*gnvel, ep2d->final.gain_min, ep2d->final.gain_max);
       lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_TIMBRE_FILTER);
       if (lfo)
       {
-         float mix = lfo->get(lfo, genv, sptr[ch]+offs, 0, dno_samples);
-         if (mix != 0.0f)
+         float mix = gain;
+         if (!lfo->envelope) {
+            mix = 1.0f - lfo->get(lfo, genv, NULL, 0, 0);
+         }
+         if (mix < 1.0f)
          {
-            mix = 1.0f - mix;
             drbd->multiply(sptr[0], sptr[0], sizeof(MIX_T), dno_samples, mix);
             drbd->add(sptr[0], sptr[1], dno_samples, 1.0f-mix, 0.0f);
          }
       }
 
-      gain = _MINMAX(gain*gnvel, ep2d->final.gain_min, ep2d->final.gain_max);
       if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
          drbd->mix1(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, ch,
