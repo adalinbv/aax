@@ -85,7 +85,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxEnvelopeData *penv, *pslide;
    _aaxEnvelopeData *genv;
    _aaxLFOData *lfo;
-   CONST_MIX_PTRPTR_T sptr;
+   MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
    float gain, gain_emitter;
    float pnvel, gnvel;
@@ -148,7 +148,8 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       offs = drbi->sample->dde_samples;
    }
 
-   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
+   sptr = (MIX_PTRPTR_T)drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples,
+                                  ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
@@ -256,16 +257,28 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
 #endif
       }
 
+      lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_TIMBRE_FILTER);
+      if (lfo)
+      {
+         float mix = lfo->get(lfo, genv, sptr[ch]+offs, 0, dno_samples);
+         if (mix != 0.0f)
+         {
+            mix = 1.0f - mix;
+            drbd->multiply(sptr[0], sptr[0], sizeof(MIX_T), dno_samples, mix);
+            drbd->add(sptr[0], sptr[1], dno_samples, 1.0f-mix, 0.0f);
+         }
+      }
+
       gain = _MINMAX(gain*gnvel, ep2d->final.gain_min, ep2d->final.gain_max);
       if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
-         drbd->mix1(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
-                    info->frequency, gain, svol, evol, ctr);
+         drbd->mix1(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, ch,
+                    offs, dno_samples, info->frequency, gain, svol, evol, ctr);
       }
       else
       {
-         drbd->mix1n(drbd, sptr, info->router, ep2d, ch, offs, dno_samples,
-                     info->frequency, gain, svol, evol, ctr);
+         drbd->mix1n(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, ch,
+                     offs, dno_samples, info->frequency, gain, svol, evol, ctr);
       }
    }
 
