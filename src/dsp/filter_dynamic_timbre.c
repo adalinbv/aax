@@ -89,8 +89,11 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
    case AAX_IMPULSE_WAVE:
    case AAX_SAWTOOTH_WAVE:
    case AAX_RANDOMNESS:
+   case AAX_TIMED_TRANSITION:
+   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
+   case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
@@ -99,68 +102,42 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 
       if (lfo)
       {
-         if (filter->type == AAX_COMPRESSOR)
+         int constant;
+
+         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
+             (state & AAX_ENVELOPE_FOLLOW_LOG))
          {
-            float f;
-
-            lfo->convert = _linear;
-            lfo->state = filter->state;
-            lfo->fs = filter->info->frequency;
-            lfo->period_rate = filter->info->period_rate;
-            lfo->envelope = AAX_TRUE;
-            lfo->stereo_lnk = AAX_TRUE;
-
-            f = filter->slot[0]->param[AAX_RELEASE_RATE];
-            lfo->min_sec = _aaxDynamicTimbreFilterMinMax(f, 0, AAX_RELEASE_RATE);
-
-            f = filter->slot[0]->param[AAX_ATTACK_RATE];
-            lfo->max_sec = _aaxDynamicTimbreFilterMinMax(f, 0, AAX_ATTACK_RATE);
-
-            f = filter->slot[1]->param[AAX_GATE_PERIOD & 0xF];
-            lfo->offset = _aaxDynamicTimbreFilterMinMax(f, 1, AAX_GATE_PERIOD & 0xF);
-
-            f = filter->slot[1]->param[AAX_GATE_THRESHOLD & 0xF];
-            lfo->gate_threshold = _aaxDynamicTimbreFilterMinMax(f, 1, AAX_GATE_THRESHOLD & 0xF);
-
-            lfo->min = filter->slot[0]->param[AAX_THRESHOLD];
-            lfo->max = filter->slot[0]->param[AAX_LFO_DEPTH];
-            lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
-            lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-
-            _compressor_set_timing(lfo);
-
-            lfo->get = _aaxLFOGetCompressor;
+            lfo->convert = _exponential;
          }
          else
          {
-            int constant;
-
             lfo->convert = _linear;
-            lfo->state = filter->state;
-            lfo->fs = filter->info->frequency;
-            lfo->period_rate = filter->info->period_rate;
-            lfo->envelope = AAX_FALSE;
-            lfo->stereo_lnk = !stereo;
+         }
 
-            lfo->min_sec = 0.0f;
-            lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
-            lfo->depth = 1.0f;
-            lfo->offset = 0.0f;
-            lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-            lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
-            lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+         lfo->state = filter->state;
+         lfo->fs = filter->info->frequency;
+         lfo->period_rate = filter->info->period_rate;
+         lfo->envelope = AAX_FALSE;
+         lfo->stereo_lnk = !stereo;
 
-            if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
-                (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG)
-            {
-               lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
-               lfo->max_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs + lfo->min_sec;
-            }
+         lfo->min_sec = 0.0f;
+         lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
+         lfo->depth = 1.0f;
+         lfo->offset = 0.0f;
+         lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
+         lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
+         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-            constant = _lfo_set_timing(lfo);
-            if (!_lfo_set_function(lfo, constant)) {
-               _aaxErrorSet(AAX_INVALID_PARAMETER);
-            }
+         if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
+             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG)
+         {
+            lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
+            lfo->max_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs + lfo->min_sec;
+         }
+
+         constant = _lfo_set_timing(lfo);
+         if (!_lfo_set_function(lfo, constant)) {
+            _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
