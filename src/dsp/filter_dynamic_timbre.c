@@ -117,23 +117,15 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
          lfo->state = filter->state;
          lfo->fs = filter->info->frequency;
          lfo->period_rate = filter->info->period_rate;
-         lfo->envelope = AAX_FALSE;
          lfo->stereo_lnk = !stereo;
 
-         lfo->min_sec = 0.0f;
+         lfo->min_sec = filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
          lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
          lfo->depth = 1.0f;
          lfo->offset = 0.0f;
          lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
          lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-
-         if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
-             (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG)
-         {
-            lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
-            lfo->max_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs + lfo->min_sec;
-         }
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {
@@ -166,7 +158,7 @@ _aaxNewDynamicTimbreFilterHandle(const aaxConfig config, enum aaxFilterType type
    _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, DSIZE);
 
    if (rv)
-   { 
+   {
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _lfo_destroy;
       rv->slot[0]->data = NULL;
@@ -200,10 +192,10 @@ _aaxDynamicTimbreFilterMinMax(float val, int slot, unsigned char param)
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } },
     { { 0.0f, 0.0f,  0.0f, 0.0f }, {  0.0f,  0.0f, 0.0f, 0.0f } }
    };
-   
+
    assert(slot < _MAX_FE_SLOTS);
    assert(param < 4);
-   
+
    return _MINMAX(val, _aaxDynamicTimbreRange[slot].min[param],
                        _aaxDynamicTimbreRange[slot].max[param]);
 }

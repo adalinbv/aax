@@ -234,21 +234,17 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    {
       unsigned char no_tracks = srb->get_parami(srb, RB_NO_TRACKS);
       unsigned char mix_track = (track + 1) % no_tracks;
-      float mix = gain;
+      MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
+      float mix = lfo->get(lfo, genv, s, 0, dno_samples);
 
-      if (!lfo->envelope) {
-         mix = 1.0f - lfo->get(lfo, genv, NULL, 0, 0);
-      }
-
-      if (mix == 0.0) {
+      mix = _MINMAX(mix, 0.0f, 1.0f);
+      if (mix == 1.0) {
          track = mix_track;
       }
-      else if (mix < 1.0f)
+      else if (mix > 0.0f)
       {
-         MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
-
-         drbd->multiply(s, s, sizeof(MIX_T), dno_samples, mix);
-         drbd->add(s, sptr[mix_track]+offs, dno_samples, 1.0f-mix, 0.0f);
+         drbd->multiply(s, s, sizeof(MIX_T), dno_samples, 1.0f - mix);
+         drbd->add(s, sptr[mix_track]+offs, dno_samples, mix, 0.0f);
       }
    }
 
