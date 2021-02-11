@@ -74,7 +74,7 @@
  *       done every frame.
  */
 int
-_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char ch, unsigned char ctr, float buffer_gain, _history_t history)
+_aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *ep2d, void *data, unsigned char track, unsigned char ctr, float buffer_gain, _history_t history)
 {
    _aaxRendererData *renderer = data;
    const _aaxMixerInfo *info =  renderer->info;
@@ -201,7 +201,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    {
       if (lfo->envelope)
       {
-         float g = lfo->get(lfo, genv, sptr[ch]+offs, 0, dno_samples);
+         float g = lfo->get(lfo, genv, sptr[track]+offs, 0, dno_samples);
          if (lfo->inv) g = 1.0f/g;
          gain *= g;
       }
@@ -229,6 +229,29 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    gain *= gain_emitter;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? 0 : 1;
 
+   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_TIMBRE_FILTER);
+   if (lfo)
+   {
+      unsigned char no_tracks = srb->get_parami(srb, RB_NO_TRACKS);
+      unsigned char mix_track = (track + 1) % no_tracks;
+      float mix = gain;
+
+      if (!lfo->envelope) {
+         mix = 1.0f - lfo->get(lfo, genv, NULL, 0, 0);
+      }
+
+      if (mix == 0.0) {
+         track = mix_track;
+      }
+      else if (mix < 1.0f)
+      {
+         MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
+
+         drbd->multiply(s, s, sizeof(MIX_T), dno_samples, mix);
+         drbd->add(s, sptr[mix_track]+offs, dno_samples, 1.0f-mix, 0.0f);
+      }
+   }
+
 // if (!ep2d->final.silence)
    {
       float svol, evol;
@@ -246,7 +269,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       if (ep2d->final.k < 0.9f) // only filter when fc < 17600 Hz
       {
          float *hist = ep2d->final.freqfilter_history[0];
-         MIX_PTR_T s = (MIX_PTR_T)sptr[ch] + offs;
+         MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
 
 #if RB_FLOAT_DATA
          _batch_movingaverage_float(s, s, dno_samples, hist+0, ep2d->final.k);
@@ -258,28 +281,14 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       }
 
       gain = _MINMAX(gain*gnvel, ep2d->final.gain_min, ep2d->final.gain_max);
-      lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_TIMBRE_FILTER);
-      if (lfo)
-      {
-         float mix = gain;
-         if (!lfo->envelope) {
-            mix = 1.0f - lfo->get(lfo, genv, NULL, 0, 0);
-         }
-         if (mix < 1.0f)
-         {
-            drbd->multiply(sptr[0], sptr[0], sizeof(MIX_T), dno_samples, mix);
-            drbd->add(sptr[0], sptr[1], dno_samples, 1.0f-mix, 0.0f);
-         }
-      }
-
       if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
-         drbd->mix1(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, ch,
+         drbd->mix1(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, track,
                     offs, dno_samples, info->frequency, gain, svol, evol, ctr);
       }
       else
       {
-         drbd->mix1n(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, ch,
+         drbd->mix1n(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, track,
                      offs, dno_samples, info->frequency, gain, svol, evol, ctr);
       }
    }
