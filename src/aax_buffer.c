@@ -1725,17 +1725,21 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
          if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
       }
-   }
 
-   layers = xmlNodeGetNum(xsid, "layer");
-   if (layers == 0) // backwards compatibility (v3.9 and earlier)
-   {
-      layers = 1;
-      xlid = xsid;
+      layers = xmlNodeGetNum(xsid, "layer");
+      if (layers == 0) // backwards compatibility (v3.9 and earlier)
+      {
+         layers = 1;
+         xlid = xsid;
+      }
+      else {
+         xlid = xmlMarkId(xsid);
+      }
    }
    else
    {
-      xlid = xmlMarkId(xsid);
+      xlid = xsid;
+      layers = 1;
    }
    handle->info.tracks = layers;
 
@@ -1763,6 +1767,14 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
          if (xlid != xsid) {
             if (!xmlNodeGetPos(xsid, xlid, "layer", layer)) continue;
+         }
+
+         if (xmlAttributeExists(xlid, "voices")) {
+            voices = _MINMAX(xmlAttributeGetInt(xlid, "voices"), 1, 11);
+         }
+         if (xmlAttributeExists(xlid, "spread")) {
+            spread = _MAX(xmlAttributeGetDouble(xlid, "spread"), 0.01f);
+            if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
          }
 
          num = xmlNodeGetNum(xlid, "*");
