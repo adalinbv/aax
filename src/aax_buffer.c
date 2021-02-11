@@ -1213,7 +1213,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 }
 
 static int
-_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
+_bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float ratio_factor, float pitch_factor, float freq, unsigned int pitch_level, int voices, float spread, limitType limiter)
 {
    enum aaxProcessingType ptype = AAX_OVERWRITE;
    enum aaxWaveformType wtype = AAX_SINE_WAVE;
@@ -1309,6 +1309,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float
          if (!ratio) ratio = 1.0f;
          if (!pitch) pitch = 1.0f;
          pitch *= pitch_factor;
+         ratio *= ratio_factor;
       }
       else if (!xmlAttributeCompareString(xwid,"processing","mix"))
       {
@@ -1316,6 +1317,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float
          if (!ratio) ratio = 0.5f;
          if (!pitch) pitch = 1.0f;
          pitch *= pitch_factor;
+         ratio *= ratio_factor;
       }
       else if (!xmlAttributeCompareString(xwid, "processing", "overwrite"))
       {
@@ -1323,6 +1325,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float
          if (!ratio) ratio = 1.0f;
          if (!pitch) pitch = 1.0f;
          pitch *= pitch_factor;
+         ratio *= ratio_factor;
       }
    }
    else
@@ -1338,18 +1341,24 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float
          ptype = AAX_ADD;
          if (!ratio) ratio = 1.0f;
          if (!pitch) pitch = 1.0f;
+         pitch *= pitch_factor;
+         ratio *= ratio_factor;
       }
       else if (!xmlNodeCompareString(xwid, "processing", "mix"))
       {
          ptype = AAX_MIX;
          if (!ratio) ratio = 0.5f;
          if (!pitch) pitch = 1.0f;
+         pitch *= pitch_factor;
+         ratio *= ratio_factor;
       }
       else //!xmlNodeCompareString(xwid, "processing", "overwrite")
       {
          ptype = AAX_OVERWRITE;
          if (!ratio) ratio = 1.0f;
          if (!pitch) pitch = 1.0f;
+         pitch *= pitch_factor;
+         ratio *= ratio_factor;
       }
    }
 
@@ -1766,6 +1775,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       for (layer=0; layer<layers; ++layer)
       {
          float pitch = 1.0f;
+         float ratio = 1.0f;
          int num, waves;
          void *xwid;
 
@@ -1773,6 +1783,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
             if (!xmlNodeGetPos(xsid, xlid, "layer", layer)) continue;
          }
 
+         if (xmlAttributeExists(xlid, "ratio")) {
+            ratio = xmlAttributeGetDouble(xlid, "ratio");
+         }
          if (xmlAttributeExists(xlid, "pitch")) {
             pitch = xmlAttributeGetDouble(xlid, "pitch");
          }
@@ -1806,8 +1819,8 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                {
                   if (waves) {
                      rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
-                                                     pitch ,frequency, b,
-                                                     voices, spread,
+                                                     ratio, pitch, frequency,
+                                                     b, voices, spread,
                                                      limiter & 1);
                      waves--;
                   }
