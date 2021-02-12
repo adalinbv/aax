@@ -1592,7 +1592,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    float high_frequency = 0.0f;
    float spread = 0;
    int bits = 24;
-   int b, layer, layers;
+   int b, layer, no_layers;
    int voices = 1;
    int midi_mode;
    int rv = AAX_FALSE;
@@ -1737,33 +1737,32 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          spread = _MAX(xmlAttributeGetDouble(xsid, "spread"), 0.01f);
          if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
       }
+   }
 
-      layers = xmlNodeGetNum(xsid, "layer");
-      if (layers == 0) // backwards compatibility (v3.9 and earlier)
-      {
-         layers = 1;
-         xlid = xsid;
-      }
-      else {
-         xlid = xmlMarkId(xsid);
-      }
+   // backwards compatibility (pre version 3.10)
+   no_layers = xmlNodeGetNum(xsid, "layer");
+   if (no_layers > 0) {
+      xlid = xmlMarkId(xsid);
    }
    else
    {
+      no_layers = 1;
       xlid = xsid;
-      layers = 1;
    }
-   handle->info.tracks = layers;
+   if (midi_mode != AAX_RENDER_NORMAL) {
+      no_layers = 1;
+   }
+   handle->info.tracks = no_layers;
 
    for (b=0; b<handle->mip_levels; ++b)
    {
+      _aaxRingBuffer *rb = _bufGetRingBuffer(handle, handle->root, b);
       float mul = (float)(1 << b);
       float frequency = mul*freq;
       float pitch_fact = 1.0f/mul;
 
       if (duration >= 0.099f)
       {
-         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, handle->root, b);
          float f = pitch_fact*rb->get_paramf(rb, RB_FREQUENCY);
          size_t no_samples = SIZE_ALIGNED((size_t)rintf(duration*f));
 
@@ -1772,7 +1771,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          handle->ringbuffer[b] = rb;
       }
 
-      for (layer=0; layer<layers; ++layer)
+      for (layer=0; layer<no_layers; ++layer)
       {
          float pitch = 1.0f;
          float ratio = 1.0f;
@@ -1844,32 +1843,25 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
       if (midi_mode)
       {
-         if (!b)
-         {
-            _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+         if (!b && rb->get_state(rb, RB_IS_VALID)) {
             handle->gain = _bufNormalize(rb, handle->gain);
          }
       }
-      else if (limiter)
-      {
-         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+      else if (limiter) {
          _bufLimit(rb);
       }
 
-      if (0) // handle->to_mixer)
-      {
-         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
+      if (0)  { // handle->to_mixer)
          _bufConvertDataToMixerFormat(handle, rb);
-         }
+      }
       else if (bits == 16)
       {
-         _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, b);
          _aaxRingBufferData *rbi = rb->handle;
          _aaxRingBufferSample *rbd = rbi->sample;
          unsigned int no_samples;
 
          no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
-         for (layer=0; layer<layers; ++layer)
+         for (layer=0; layer<no_layers; ++layer)
          {
             void *dptr = rbd->track[layer];
             _batch_cvt16_24(dptr, dptr, no_samples);
