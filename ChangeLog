@@ -1,9 +1,11 @@
-* Wed Jan 27 2021 - tech@adalin.org
-- AeonWave (3.9.2) stable; urgency=high
+* Wed Feb 10 2021 - tech@adalin.org
+- AeonWave (3.10.0) stable; urgency=high
 
  * Add a delay-line effect with one delayed signal for up to 200ms.
+ * Add a dynamic-timbe filter to dynamically mix between two sound
+   layers in the sound section of aaxs files.
 
--- Erik Hofman <tech@adalin.org>  Wed 27 Jan 2021 14:24:33 + 0200
+-- Erik Hofman <tech@adalin.org>  Wed 10 feb 2021 13:50:33 + 0200
 
 
 * Tue Jan 12 2021 - tech@adalin.org
