@@ -1632,7 +1632,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          low_frequency = note2freq(xmlAttributeGetInt(xnid, "min"));
       }
       if (xmlAttributeExists(xnid, "max")) {
-         high_frequency = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 108));
+         high_frequency = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 128));
       }
       xmlFree(xnid);
    }
