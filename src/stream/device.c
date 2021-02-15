@@ -383,10 +383,8 @@ _aaxStreamDriverDisconnect(void *id)
          }
          if (buf && (handle && handle->io))
          {
-            if (handle->io->protocol == PROTOCOL_DIRECT)
-            {
-               handle->io->set_param(handle->io, __F_POSITION, 0L);
-               ret = handle->io->write(handle->io, buf, size);
+            if (handle->io->update_header) {
+               ret = handle->io->update_header(handle->io, buf, size);
             }
          }
          handle->ext->close(handle->ext);
@@ -1523,12 +1521,8 @@ _aaxStreamDriverWriteChunk(const void *id)
                   size_t spos = 0;
                   void *buf = handle->ext->update(handle->ext, &spos, &usize,
                                                   AAX_FALSE);
-                  if (buf)
-                  {
-                     off_t off = handle->io->get_param(handle->io,__F_POSITION);
-                     handle->io->set_param(handle->io, __F_POSITION, 0L);
-                     res = handle->io->write(handle->io, buf, usize);
-                     handle->io->set_param(handle->io, __F_POSITION, off);
+                  if (buf && handle->io->update_header) {
+                     res = handle->io->update_header(handle->io, buf, usize);
                   }
                }
             }

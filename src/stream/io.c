@@ -53,6 +53,7 @@ _io_create(int protocol)
          rv->close = _file_close;
          rv->read = _file_read;
          rv->write = _file_write;
+         rv->update_header = _file_update_header;
          rv->set_param = _file_set;
          rv->get_param = _file_get;
          rv->wait = _file_wait;

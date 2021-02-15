@@ -73,6 +73,7 @@ struct _io_st
    _io_close_fn *close;
    _io_read_fn *read;
    _io_write_fn *write;
+   _io_write_fn *update_header;
    _io_get_param_fn *get_param;
    _io_set_param_fn *set_param;
    _io_wait_fn *wait;
@@ -91,7 +92,6 @@ struct _io_st
    void *ssl_ctx;
 
    _data_t *dataBuffer;
-   char seeking;
 };
 typedef struct _io_st _io_t;
 
@@ -103,6 +103,7 @@ int _file_open(_io_t*, const char*);
 int _file_close(_io_t*);
 ssize_t _file_read(_io_t*, void*, size_t);
 ssize_t _file_write(_io_t*, const void*, size_t);
+ssize_t _file_update_header(_io_t*, const void*, size_t);
 int _file_set(_io_t*, int, ssize_t);
 ssize_t _file_get(_io_t*, int);
 void _file_wait(_io_t*, float);
