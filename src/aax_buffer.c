@@ -1794,7 +1794,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          }
          if (xmlAttributeExists(xlid, "spread")) {
             spread = _MAX(xmlAttributeGetDouble(xlid, "spread"), 0.01f);
-            if (xmlAttributeGetBool(xsid, "phasing")) spread = -spread;
+            if (xmlAttributeGetBool(xlid, "phasing")) spread = -spread;
          }
 
          num = xmlNodeGetNum(xlid, "*");
@@ -1817,6 +1817,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                if (!strcasecmp(type, "waveform"))
                {
                   if (waves) {
+
                      rv = _bufCreateWaveformFromAAXS(handle, xwid, layer,
                                                      ratio, pitch, frequency,
                                                      b, voices, spread,
