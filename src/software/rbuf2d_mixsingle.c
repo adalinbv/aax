@@ -229,7 +229,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    gain *= gain_emitter;
    ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? 0 : 1;
 
-   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_TIMBRE_FILTER);
+   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_LAYER_FILTER);
    if (lfo)
    {
       unsigned char no_tracks = srb->get_parami(srb, RB_NO_TRACKS);

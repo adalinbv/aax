@@ -84,7 +84,7 @@ enum _aax2dFiltersEffects
     TIMED_GAIN_FILTER,
     FREQUENCY_FILTER,
     BITCRUSHER_FILTER,
-    DYNAMIC_TIMBRE_FILTER,
+    DYNAMIC_LAYER_FILTER,
     MAX_STEREO_FILTER,
 
     /* stereo effects */

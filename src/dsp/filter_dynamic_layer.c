@@ -205,7 +205,7 @@ _aaxDynamicTimbreFilterMinMax(float val, int slot, unsigned char param)
 _flt_function_tbl _aaxDynamicTimbreFilter =
 {
    AAX_FALSE,
-   "AAX_dynamic_timbre_filter_"AAX_MKSTR(VERSION), VERSION,
+   "AAX_dynamic_layer_filter_"AAX_MKSTR(VERSION), VERSION,
    (_aaxFilterCreate*)&_aaxDynamicTimbreFilterCreate,
    (_aaxFilterDestroy*)&_aaxDynamicTimbreFilterDestroy,
    (_aaxFilterReset*)&_lfo_reset,

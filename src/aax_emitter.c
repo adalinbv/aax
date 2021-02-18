@@ -540,7 +540,7 @@ aaxEmitterGetFilter(const aaxEmitter emitter, enum aaxFilterType type)
       case AAX_VOLUME_FILTER:
       case AAX_TIMED_GAIN_FILTER:
       case AAX_DYNAMIC_GAIN_FILTER:
-      case AAX_DYNAMIC_TIMBRE_FILTER:
+      case AAX_DYNAMIC_LAYER_FILTER:
       case AAX_BITCRUSHER_FILTER:
       case AAX_DISTANCE_FILTER:
       case AAX_DIRECTIONAL_FILTER:
@@ -1384,7 +1384,7 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
    case AAX_VOLUME_FILTER:
    case AAX_FREQUENCY_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:
-   case AAX_DYNAMIC_TIMBRE_FILTER:
+   case AAX_DYNAMIC_LAYER_FILTER:
    case AAX_BITCRUSHER_FILTER:
       _FILTER_SWAP_SLOT(p2d, type, filter, 0)
       break;

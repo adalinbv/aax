@@ -29,7 +29,7 @@ set(DSP_SOURCES
   filter_dynamic_gain.c
   filter_equalizer.c
   filter_frequency.c
-  filter_dynamic_timbre.c
+  filter_dynamic_layer.c
   filter_graphic_equalizer.c
   filter_timed_gain.c
   filter_bitcrusher.c

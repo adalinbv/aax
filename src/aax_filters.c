@@ -354,8 +354,8 @@ aaxFilterGetByName(UNUSED(aaxConfig handle), const char *name)
    else if (!strncasecmp(name, "compressor", slen)) {
       rv = AAX_COMPRESSOR;
    }
-   else if (!strncasecmp(name, "dynamic_timbre", slen)) {
-       rv = AAX_DYNAMIC_TIMBRE_FILTER;
+   else if (!strncasecmp(name, "dynamic_layer", slen)) {
+       rv = AAX_DYNAMIC_LAYER_FILTER;
    }
 
    else if (!strncasecmp(name, "directional", slen) ||
