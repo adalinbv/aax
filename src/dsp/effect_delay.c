@@ -264,18 +264,18 @@ _delay_create(void *d, void *i, char delay, char feedback, float delay_time)
 
    if (data)
    {
-      int no_tracks = info->no_tracks;
+      int tracks = info->no_tracks;
       float fs = info->frequency;
 
       data->history_samples = TIME_TO_SAMPLES(fs, delay_time);
 
       if (data->history == NULL) {
          _aaxRingBufferCreateHistoryBuffer(&data->history,
-                                           data->history_samples, no_tracks);
+                                           data->history_samples, tracks);
       }
       if (data->feedback_history == NULL) {
          _aaxRingBufferCreateHistoryBuffer(&data->feedback_history,
-                                           data->history_samples, no_tracks);
+                                           data->history_samples, tracks);
       }
 
       if (!data->history || !data->feedback_history)
@@ -402,8 +402,8 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferDelayEffectData* effect = data;
    MIX_T *sptr = s + start;
-   MIX_T *new_sptr = sptr;
-   ssize_t offs, new_offs;
+   MIX_T *nsptr = sptr;
+   ssize_t offs, noffs;
    int rv = AAX_FALSE;
    float volume;
 
@@ -423,13 +423,13 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    if (offs >= (ssize_t)ds) offs = ds-1;
 
    if (start) {
-      new_offs = effect->offset->new_offs[track];
+      noffs = effect->offset->noffs[track];
    }
    else
    {
-      new_offs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
-      effect->delay.sample_offs[track] = new_offs;
-      effect->offset->new_offs[track] = new_offs;
+      noffs = (size_t)effect->lfo.get(&effect->lfo, env, s, track, end);
+      effect->delay.sample_offs[track] = noffs;
+      effect->offset->noffs[track] = noffs;
    }
 
    assert(s != d);
@@ -437,51 +437,51 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    volume = effect->feedback;
    if (offs && volume > LEVEL_96DB)
    {
-      ssize_t curr_offs, diff_offs;
+      ssize_t coffs, doffs;
       int i, step, sign;
 
-      sign = (new_offs < offs) ? -1 : 1;
-      diff_offs = labs(new_offs - offs);
-      curr_offs = offs;
+      sign = (noffs < offs) ? -1 : 1;
+      doffs = labs(noffs - offs);
       i = no_samples;
+      coffs = offs;
       step = end;
 
       if (start)
       {
          step = effect->offset->step[track];
-         curr_offs = effect->offset->current_offs[track];
+         coffs = effect->offset->coffs[track];
       }
       else
       {
-         if (diff_offs)
+         if (doffs)
          {
-            step = end/diff_offs;
+            step = end/doffs;
             if (step < 2) step = end;
          }
       }
       effect->offset->step[track] = step;
 
-      _aax_memcpy(new_sptr-ds, effect->feedback_history->history[track], ds*bps);
+      _aax_memcpy(nsptr-ds, effect->feedback_history->history[track], ds*bps);
       if (i >= step)
       {
          do
          {
-            rbd->add(new_sptr, new_sptr-curr_offs, step, volume, 0.0f);
+            rbd->add(nsptr, nsptr-coffs, step, volume, 0.0f);
 
-            new_sptr += step;
-            curr_offs += sign;
+            nsptr += step;
+            coffs += sign;
             i -= step;
          }
          while(i >= step);
       }
       if (i) {
-         rbd->add(new_sptr, new_sptr-curr_offs, i, volume, 0.0f);
+         rbd->add(nsptr, nsptr-coffs, i, volume, 0.0f);
       }
-      effect->offset->current_offs[track] = curr_offs;
+      effect->offset->coffs[track] = coffs;
 
       _aax_memcpy(effect->feedback_history->history[track], sptr+no_samples-ds, ds*bps);
 
-      new_sptr = sptr;
+      nsptr = sptr;
    }
 
    volume =  effect->delay.gain;
@@ -489,28 +489,28 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
    {
       _aaxRingBufferFreqFilterData *flt = effect->freq_filter;
       MIX_T *dptr = d + start;
-      ssize_t diff_offs;
+      ssize_t doffs;
 
-      diff_offs = new_offs - offs;
+      doffs = noffs - offs;
 
       // first process the delayed (wet) signal
       // then add the original (dry) signal
-      if (diff_offs == 0)
+      if (doffs == 0)
       {
          if (flt && ((flt->type == LOWPASS && flt->fc < MAXIMUM_CUTOFF) ||
                      (flt->type == HIGHPASS && flt->fc > MINIMUM_CUTOFF)))
          {
-            flt->run(rbd, dptr, new_sptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
+            flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
          }  else if (fabsf(volume - 1.0) > LEVEL_96DB) {
-            rbd->multiply(dptr, new_sptr-offs, bps, no_samples, volume);
+            rbd->multiply(dptr, nsptr-offs, bps, no_samples, volume);
          }
          rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
          rv = AAX_TRUE;
       }
       else
       {
-         float pitch = _MAX(((float)end-(float)diff_offs)/(float)(end), 0.001f);
-         rbd->resample(dptr, new_sptr-offs, 0, no_samples, 0.0f, pitch);
+         float pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
+         rbd->resample(dptr, nsptr-offs, 0, no_samples, 0.0f, pitch);
 
          if (flt && ((flt->type == LOWPASS && flt->fc < MAXIMUM_CUTOFF) ||
                      (flt->type == HIGHPASS && flt->fc > MINIMUM_CUTOFF)))

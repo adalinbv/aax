@@ -38,7 +38,7 @@
 #define VERSION	1.02
 #define DSIZE	sizeof(_aaxRingBufferDistoritonData)
 
-static int _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, unsigned int, void*, void*);
+static int _distortion_run(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t, unsigned int, void*, void*);
 
 static aaxEffect
 _aaxDistortionEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -233,8 +233,8 @@ _eff_function_tbl _aaxDistortionEffect =
 
 static int
 _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
-                size_t dmin, size_t dmax, unsigned int track,
-                void *data, void *env)
+                size_t dmin, size_t dmax, size_t ds,
+                unsigned int track, void *data, void *env)
 {
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
@@ -259,11 +259,11 @@ _distortion_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
    assert(data != NULL);
    assert(track < _AAX_MAX_SPEAKERS);
 
-   sptr = s - dmin;
-   dptr = d - dmin;
+   sptr = s - ds + dmin;
+   dptr = d - ds + dmin;
 
-   no_samples = dmax+dmin;
-// DBG_MEMCLR(1, d, dmax, bps);
+   no_samples = dmax+ds-dmin;
+// DBG_MEMCLR(1, d-ds, ds+dmax, bps);
 
    if (lfo) {
       lfo_fact = lfo->get(lfo, env, sptr, track, no_samples);

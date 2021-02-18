@@ -222,7 +222,7 @@ _aaxRingBufferEffectsApply2nd(_aaxRingBufferSample *rbd,
       distort = dist_effect->data;
       if (distort)
       {
-         r = distort->run(rbd, pdst, psrc, 0, end, track, dist_effect, env);
+         r = distort->run(rbd, pdst, psrc, 0, end, ds, track, dist_effect, env);
          if (r) BUFSWAP(pdst, psrc);
       }
    }
