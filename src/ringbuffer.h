@@ -132,7 +132,7 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
 typedef struct
 {
    _aaxLFOData *lfo;
-   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t, size_t,
+   int (*run)(void*, MIX_PTR_T, CONST_MIX_PTR_T, size_t, size_t,
               unsigned int, void*, void*);
 }
 _aaxRingBufferDistoritonData;
@@ -196,8 +196,8 @@ typedef struct
 
 typedef struct
 {
-   size_t noffs[_AAX_MAX_SPEAKERS];
-   size_t coffs[_AAX_MAX_SPEAKERS];
+   size_t new_offs[_AAX_MAX_SPEAKERS];
+   size_t current_offs[_AAX_MAX_SPEAKERS];
    size_t step[_AAX_MAX_SPEAKERS];
 } _aaxRingBufferOffsetData;
 
