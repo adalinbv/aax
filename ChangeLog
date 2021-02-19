@@ -4,6 +4,9 @@
  * Add a delay-line effect with one delayed signal for up to 200ms.
  * Add a dynamic-timbe filter to dynamically mix between two sound
    layers in the sound section of aaxs files.
+ * Fix a segmentation fault for an empty sound section section of the aaxs file.
+ * Fix an improbbale situation where _batch_atanps can cause unaligned data
+   problem for the SIMD accelerated versions of this function.
 
 -- Erik Hofman <tech@adalin.org>  Wed 10 feb 2021 13:50:33 + 0200
 
