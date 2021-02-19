@@ -1803,7 +1803,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
          else waves = num;
 
          xwid = xmlMarkId(xlid);
-         if (xwid)
+         if (num && xwid)
          {
             int i;
 
