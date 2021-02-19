@@ -1214,9 +1214,9 @@ _batch_atanps_avx(void_ptr dst, const_void_ptr src, size_t num)
 
    if (!num) return;
 
-   dtmp = (size_t)d & MEMMASK16;
-   stmp = (size_t)s & MEMMASK16;
-   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   dtmp = (size_t)d & MEMMASK;
+   stmp = (size_t)s & MEMMASK;
+   if (dtmp || stmp)  			/* improperly aligned,            */
    {                                    /* let the compiler figure it out */
       _batch_atanps_sse2(d, s, num);
       return;

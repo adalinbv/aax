@@ -577,7 +577,7 @@ void _batch_atanps_sse2(void_ptr dptr, const_void_ptr sptr, size_t num)
 
    dtmp = (size_t)d & MEMMASK16;
    stmp = (size_t)s & MEMMASK16;
-   if ((dtmp || stmp) && dtmp != stmp)  /* improperly aligned,            */
+   if (dtmp || stmp)  			/* improperly aligned,            */
    {                                    /* let the compiler figure it out */
       _batch_atanps_cpu(d, s, num);
       return;
