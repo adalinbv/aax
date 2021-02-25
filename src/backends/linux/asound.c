@@ -2439,8 +2439,6 @@ detect_devnum(_driver_t *handle, int m)
                   {
                      char *desc, *iface;
 
-                     _sys_free(name);
-
                      desc = psnd_device_name_get_hint(*lst, "DESC");
                      if (!desc) continue;
 
@@ -2452,6 +2450,7 @@ detect_devnum(_driver_t *handle, int m)
                         int pos = strlen("surround");
                         handle->max_tracks = name[pos]-'0' + name[pos+1]-'0';
                      }
+                     _sys_free(name);
                      _sys_free(desc);
                   }
                }
