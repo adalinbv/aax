@@ -62,6 +62,16 @@ else ()
   set(SIZEOF_SIZE_T 4)
 endif ()
 
+#Set the include directory so that the porject can be used as a sub project
+if( NOT(${CMAKE_PROJECT_NAME} STREQUAL ${PROJECT_NAME}) )
+    set(AeonWave_INCLUDE_DIRS "${PROJECT_SOURCE_DIR}/src" PARENT_SCOPE)
+    set(AeonWave_LIBRARIES "AeonWave" PARENT_SCOPE)
+endif()
+
+set(VES_EXPORT_LIBRARY_TARGETS aax AAX libAAX)
+set(VES_CONFIGURE_VARS CMAKE_INSTALL_LIBDIR)
+
+
 # read 'version' file into a variable (stripping any newlines or spaces)
 TODAY(DATE)
 file(READ version versionFile)
@@ -636,3 +646,4 @@ configure_file(
 add_custom_target(uninstall
   "${CMAKE_COMMAND}" -P "${AeonWave_BINARY_DIR}/cmake_uninstall.cmake"
 )
+

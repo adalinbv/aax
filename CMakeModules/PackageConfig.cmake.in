@@ -1,0 +1,29 @@
+# - Config file for the @PROJECT_NAME@ package
+# It defines the following variables
+#  @PROJECT_NAME@_INCLUDE_DIRS - include directories for @PROJECT_NAME@
+#  @PROJECT_NAME@_LIBRARIES    - libraries to link against
+#  @PROJECT_NAME@_EXECUTABLE   - the bar executable
+
+@PACKAGE_INIT@
+
+# These are IMPORTED targets created by @PROJECT_NAME@LibraryDepends.cmake
+set(@PROJECT_NAME@_LIBRARIES "@VES_EXPORT_LIBRARY_TARGETS@" )
+#set(@PROJECT_NAME@_EXECUTABLE test)
+
+# Compute paths
+# get_filename_component(@PROJECT_NAME@_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
+if(EXISTS "${PACKAGE_PREFIX_DIR}/CMakeCache.txt")
+    # In build tree
+    include("${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/@PROJECT_NAME@BuildTreeSettings.cmake")
+    # Our library dependencies (contains definitions for IMPORTED targets)
+    include("${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/@PROJECT_NAME@LibraryDepends.cmake")
+else()
+    set_and_check(@PROJECT_NAME@_INCLUDE_DIRS "${PACKAGE_PREFIX_DIR}/include")
+    # The @PROJECT_NAME@ targets file.
+    if(EXISTS "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/@PROJECT_NAME@-targets.cmake")
+        include("${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/@PROJECT_NAME@-targets.cmake")
+    endif()
+endif()
+
+# The location of the Use@PROJECT_NAME@.cmake file.
+set(@PROJECT_NAME@_USE_FILE "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_LIBDIR@/Use@PROJECT_NAME@.cmake")
