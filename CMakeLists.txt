@@ -566,7 +566,6 @@ endif(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
 
 install(FILES
         ${AeonWave_BINARY_DIR}/include/aax/aax.h
-        include/aax/midi.h
         include/aax/aeonwave.hpp
         include/aax/strings.hpp
         include/aax/matrix.hpp
