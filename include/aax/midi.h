@@ -201,31 +201,6 @@ extern "C" {
 /* status messages */
 #define MIDI_FILE_META_EVENT						0xff
 
-/*
- * MIDI support (version 4.0 and later)
- */
-enum aaxMidiSetupType
-{
-   AAX_MIDI_PORT_MASK    = 0x10000,
-   AAX_MIDI_CHANNEL_MASK = 0x20000
-};
-
-struct aax_midi_t;
-typedef struct aax_midi_t* aaxMidi;
-
-
-AAX_API aaxMidi AAX_APIENTRY aaxMidiCreate(aaxConfig);
-AAX_API int AAX_APIENTRY aaxMidiDestroy(aaxMidi);
-
-AAX_API int AAX_APIENTRY aaxMidiSetSetup(aaxMidi, enum aaxMidiSetupType, unsigned int);
-AAX_API unsigned int AAX_APIENTRY aaxMidiGetSetup(aaxMidi, enum aaxMidiSetupType);
-
-AAX_API int AAX_APIENTRY aaxMidiSetState(aaxMidi, enum aaxState);
-AAX_API enum aaxState AAX_APIENTRY aaxMidiGetState(aaxMidi);
-
-AAX_API int AAX_APIENTRY aaxMidiPushMessage(aaxMidi, unsigned int);
-
-
 #if defined(__cplusplus)
 }	/* extern "C" */
 #endif
