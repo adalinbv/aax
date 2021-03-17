@@ -31,7 +31,8 @@
 namespace aax
 {
 
-#define INSTRUMENT_DISTANCE		2.75f
+#define GAIN_FACTOR			0.5f
+#define INSTRUMENT_DISTANCE		1.0f
 #define PAN_LEVELS			128.0f
 
 inline float lin2log(float v) { return log10f(v); }
@@ -111,7 +112,12 @@ public:
         }
 
         aax::dsp dsp = Emitter::get(AAX_VOLUME_FILTER);
-        dsp.set(AAX_MAX_GAIN, 16.0f);
+        dsp.set(AAX_MAX_GAIN, 4.0f);
+        Emitter::set(dsp);
+
+        dsp = Emitter::get(AAX_DISTANCE_FILTER);
+        dsp.set(AAX_REF_DISTANCE, 0.2f);
+        dsp.set(AAX_MAX_DISTANCE, 50.0f);
         Emitter::set(dsp);
     }
 
@@ -137,7 +143,7 @@ public:
 
     bool play(float g, float start_pitch = 1.0f, float rate = 0.0f) {
         hold = false;
-        gain_param = gain = g;
+        gain_param = gain = GAIN_FACTOR*g;
         if (rate > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
@@ -196,18 +202,18 @@ public:
         return Emitter::add(buffer);
     }
 
-    inline void set_gain(float expr) { gain_param = expr*gain; }
+    inline void set_gain(float expr) { gain_param = GAIN_FACTOR*expr*gain; }
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
 
 private:
     Matrix64 mtx;
 
-    Param gain_param = 1.0f;
+    Param gain_param = GAIN_FACTOR;
     Param pitch_param = 1.0f;
 
     float frequency;
     float pitch;
-    float gain = 1.0f;
+    float gain = GAIN_FACTOR;
     float pan_prev = -1000.0f;
     bool playing = false;
     bool hold = true;
