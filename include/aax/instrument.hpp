@@ -112,12 +112,7 @@ public:
         }
 
         aax::dsp dsp = Emitter::get(AAX_VOLUME_FILTER);
-        dsp.set(AAX_MAX_GAIN, 4.0f);
-        Emitter::set(dsp);
-
-        dsp = Emitter::get(AAX_DISTANCE_FILTER);
-        dsp.set(AAX_REF_DISTANCE, 0.2f);
-        dsp.set(AAX_MAX_DISTANCE, 50.0f);
+        dsp.set(AAX_MAX_GAIN, 2.56f);
         Emitter::set(dsp);
     }
 
