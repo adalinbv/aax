@@ -88,6 +88,7 @@ DECL_FUNCTION(lame_set_in_samplerate);
 DECL_FUNCTION(lame_set_num_channels);
 DECL_FUNCTION(lame_set_brate);
 DECL_FUNCTION(lame_set_VBR);
+DECL_FUNCTION(lame_set_quality);
 DECL_FUNCTION(lame_encode_buffer_interleaved);
 DECL_FUNCTION(lame_encode_flush);
 
@@ -249,6 +250,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_num_channels);
             TIE_FUNCTION(lame_set_brate);
             TIE_FUNCTION(lame_set_VBR);
+            TIE_FUNCTION(lame_set_quality);
             TIE_FUNCTION(lame_encode_buffer_interleaved);
             TIE_FUNCTION(lame_encode_flush);
 
@@ -471,6 +473,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             plame_set_in_samplerate(handle->id, handle->frequency);
             plame_set_brate(handle->id, handle->bitrate);
             plame_set_VBR(handle->id, VBR_OFF);
+            plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
      
             do
             {
