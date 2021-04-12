@@ -1196,11 +1196,17 @@ FN(batch_cvt32s_32u,A)(void *data, size_t num)
 // random number between -1 and 0 and another between 0 and 1 and summing them.
 // When noise shaping is added to dithering, there is less noise at low
 // frequency and more noise at high frequency.
-// Note: apply this after converting to a lower number of bits.
-static inline int sign15(int32_t x) { return (!x)?0:((x<0)?-32768:32768); }
-static inline int sign7(int32_t x) { return (!x)?0:((x<0)?-128:128); }
+static inline float rnd128() {
+   return (double)xoroshiro128plus()/(double)UINT64_MAX;
+}
+static inline int sign15(float x) {
+   return (x < 16384) ? -32768 : ((x > 16384) ? 32768 : 0);
+ }
+static inline int sign7(float x) {
+   return (x < 64) ? -128 : ((x > 64) ? 128 : 0);
+}
 void
-FN(batch_dither,A)(void *data, unsigned new_bps, size_t num)
+FN(batch_dither,A)(int32_t *data, unsigned new_bps, size_t num)
 {
    size_t i = num;
    if (num)
@@ -1209,11 +1215,11 @@ FN(batch_dither,A)(void *data, unsigned new_bps, size_t num)
       {
       case 1:
       {
-         uint32_t s1 = xoroshiro128plus() >> 63;
+         float s1 = rnd128();
          int32_t* d = (int32_t*)data;
          do
          {
-            uint32_t s2 = xoroshiro128plus() >> 63;
+            float s2 = rnd128();
             int32_t tpdf = (s1 - s2);
             *d++ += sign15(tpdf);
             s1 = s2;
@@ -1223,12 +1229,12 @@ FN(batch_dither,A)(void *data, unsigned new_bps, size_t num)
       }
       case 2:
       {
-         uint32_t s1 = xoroshiro128plus() >> 63;
+         float s1 = rnd128();
          int32_t* d = (int32_t*)data;
          do
          {
-            uint32_t s2 = xoroshiro128plus() >> 63;
-            int32_t tpdf = (s1 - s2);
+            float s2 = rnd128();
+            float tpdf = (s1 - s2);
             *d++ += sign7(tpdf);
             s1 = s2;
          }

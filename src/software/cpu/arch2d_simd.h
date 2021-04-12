@@ -83,7 +83,7 @@ void _batch_resample_cpu(int32_ptr, const_int32_ptr, size_t, size_t, float, floa
 #endif
 
 void _batch_get_average_rms_cpu(const_float32_ptr, size_t, float*, float*);
-void _batch_dither_cpu(void*, unsigned, size_t);
+void _batch_dither_cpu(int32_t*, unsigned, size_t);
 void _batch_saturate24_cpu(void*, size_t);
 
 void _batch_cvt8u_8s_cpu(void*, size_t);
@@ -242,7 +242,7 @@ void _batch_resample_vfpv2(int32_ptr, const_int32_ptr, size_t, size_t, float, fl
 #endif
 
 void _batch_get_average_rms_vfpv2(const_float32_ptr, size_t, float*, float*);
-void _batch_dither_vfpv2(void*, unsigned, size_t);
+void _batch_dither_vfpv2(int32_t*, unsigned, size_t);
 void _batch_saturate24_vfpv2(void*, size_t);
 
 void _batch_cvt8u_8s_vfpv2(void*, size_t);
@@ -316,7 +316,7 @@ void _batch_resample_vfpv3(int32_ptr, const_int32_ptr, size_t, size_t, float, fl
 #endif
 
 void _batch_get_average_rms_vfpv3(const_float32_ptr, size_t, float*, float*);
-void _batch_dither_vfpv3(void*, unsigned, size_t);
+void _batch_dither_vfpv3(int32_t*, unsigned, size_t);
 void _batch_saturate24_vfpv3(void*, size_t);
 
 void _batch_cvt8u_8s_vfpv3(void*, size_t);
@@ -390,7 +390,7 @@ void _batch_resample_vfpv4(int32_ptr, const_int32_ptr, size_t, size_t, float, fl
 #endif
 
 void _batch_get_average_rms_vfpv4(const_float32_ptr, size_t, float*, float*);
-void _batch_dither_vfpv4(void*, unsigned, size_t);
+void _batch_dither_vfpv4(int32_t*, unsigned, size_t);
 void _batch_saturate24_vfpv4(void*, size_t);
 
 void _batch_cvt8u_8s_vfpv4(void*, size_t);
