@@ -51,7 +51,7 @@ float _logarithmic(float v, float min, float depth) {
 }
 
 float _exponential(float v, float min, float depth) {
-   return min * depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
+   return min + depth*(expf(v)-1.0f)/(GMATH_E1-1.0f);
 }
 
 float _exp_distortion(float v, float min, float depth) {
