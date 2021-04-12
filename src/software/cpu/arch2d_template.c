@@ -1196,6 +1196,8 @@ FN(batch_cvt32s_32u,A)(void *data, size_t num)
 // random number between -1 and 0 and another between 0 and 1 and summing them.
 // When noise shaping is added to dithering, there is less noise at low
 // frequency and more noise at high frequency.
+#define AAX_INT24_MIN	(-AAX_INT24_MAX - 1)
+#define AAX_INT24_MAX	8388607
 static inline float rnd128() {
    return (double)xoroshiro128plus()/(double)UINT64_MAX;
 }
@@ -1221,8 +1223,9 @@ FN(batch_dither,A)(int32_t *data, unsigned new_bps, size_t num)
          {
             float s2 = rnd128();
             int32_t tpdf = (s1 - s2);
-            *d++ += sign15(tpdf);
+            *d = _MINMAX(*d + sign15(tpdf), AAX_INT24_MIN, AAX_INT24_MAX);
             s1 = s2;
+            d++;
          }
          while (--i);
          break;
@@ -1235,8 +1238,9 @@ FN(batch_dither,A)(int32_t *data, unsigned new_bps, size_t num)
          {
             float s2 = rnd128();
             float tpdf = (s1 - s2);
-            *d++ += sign7(tpdf);
+            *d = _MINMAX(*d + sign7(tpdf), AAX_INT24_MIN, AAX_INT24_MAX);
             s1 = s2;
+            d++;
          }
          while (--i);
          break;
