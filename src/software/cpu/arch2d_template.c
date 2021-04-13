@@ -1202,10 +1202,10 @@ static inline float rnd128() {
    return (double)xoroshiro128plus()/(double)UINT64_MAX;
 }
 static inline int sign15(float x) {
-   return (x < 16384) ? -32768 : ((x > 16384) ? 32768 : 0);
+   return (x < -0.5) ? -32768 : ((x > 0.5) ? 32768 : 0);
  }
 static inline int sign7(float x) {
-   return (x < 64) ? -128 : ((x > 64) ? 128 : 0);
+   return (x < -0.5) ? -128 : ((x > 0.5) ? 128 : 0);
 }
 void
 FN(batch_dither,A)(int32_t *data, unsigned new_bps, size_t num)
