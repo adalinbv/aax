@@ -71,7 +71,7 @@ _aaxSetDefaultInfo(_aaxMixerInfo **inf, void *handle)
    } while (size--);
 
    info->no_tracks = 2;
-   info->bitrate = 320;
+   info->bitrate = 0; // variable bitrate
    info->track = AAX_TRACK_ALL;
 
    info->pitch = 1.0f;

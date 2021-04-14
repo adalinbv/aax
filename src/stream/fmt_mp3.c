@@ -400,7 +400,8 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                   struct mp3_frameinfo info;
                   if (pmp3_info(handle->id,&info) == MP3_OK)
                   {
-                     double q = (double)rate/(info.bitrate/8.0) * fsize;
+                     int bitrate = (info.bitrate > 0) ? info.bitrate : 320;
+                     double q = (double)rate/(bitrate/8.0) * fsize;
                      handle->max_samples = q;
                   }
                }
@@ -471,8 +472,13 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             handle->id = plame_init();
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->frequency);
-            plame_set_brate(handle->id, handle->bitrate);
-            plame_set_VBR(handle->id, VBR_OFF);
+            if (handle->bitrate > 0) {
+                plame_set_brate(handle->id, handle->bitrate);
+                plame_set_VBR(handle->id, VBR_OFF);
+            } else {
+                plame_set_brate(handle->id, 320);
+                plame_set_VBR(handle->id, VBR_DEFAULT);
+            }
             plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
      
             do
@@ -609,7 +615,8 @@ _mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          struct mp3_frameinfo info;
          if (pmp3_info(handle->id,&info) == MP3_OK)
          {
-            double q = (double)rate/(info.bitrate/8.0) * handle->file_size;
+            int bitrate = (info.bitrate > 0) ? info.bitrate : 320;
+            double q = (double)rate/(bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
          }
       }
@@ -679,7 +686,8 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
          struct mp3_frameinfo info;
          if (pmp3_info(handle->id,&info) == MP3_OK)
          {
-            double q = (double)rate/(info.bitrate/8.0) * handle->file_size;
+            int bitrate = (info.bitrate > 0) ? info.bitrate : 320;
+            double q = (double)rate/(bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
          }
       }
