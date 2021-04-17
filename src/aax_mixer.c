@@ -299,7 +299,10 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                break;
             case AAX_BITRATE:
                rv = info->bitrate;
-            break;
+               break;
+            case AAX_FORMAT:
+               rv = info->format;
+               break;
             case AAX_TRACKSIZE:
             {
                _aaxRingBuffer *rb = handle->ringbuffer;
