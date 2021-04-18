@@ -314,9 +314,6 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_TRACKS:
                rv = info->no_tracks;
                break;
-            case AAX_FORMAT:
-               rv = info->format;
-               break;
             case AAX_LATENCY:
             {
                const _aaxDriverBackend *be = handle->backend.ptr;
