@@ -96,6 +96,7 @@ DECL_FUNCTION(lame_get_lametag_frame);
 DECL_FUNCTION(lame_set_write_id3tag_automatic);
 DECL_FUNCTION(lame_get_id3v1_tag);
 DECL_FUNCTION(lame_get_id3v2_tag);
+DECL_FUNCTION(id3tag_set_comment);
 DECL_FUNCTION(id3tag_v2_only);
 
 #define BUFFER_SIZE	256
@@ -267,6 +268,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_write_id3tag_automatic);
             TIE_FUNCTION(lame_get_id3v1_tag);
             TIE_FUNCTION(lame_get_id3v2_tag);
+            TIE_FUNCTION(id3tag_set_comment);
             TIE_FUNCTION(id3tag_v2_only);
 
             error = _aaxGetSymError(0);
@@ -486,6 +488,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
             handle->id = plame_init();
             pid3tag_v2_only(handle->id);
+            pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->frequency);
             if (handle->bitrate > 0) {
@@ -512,16 +515,13 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             plame_set_write_id3tag_automatic(handle->id, 0);
             plame_init_params(handle->id);
 
-            ret = plame_get_id3v2_tag(handle->id, handle->mp3Buffer->data,
-                                            handle->mp3Buffer->size);
-            if (ret <= handle->mp3Buffer->size)
+            ret = plame_get_id3v2_tag(handle->id, 0, 0);
+            handle->id3v2_tag = malloc(ret);
+            if (handle->id3v2_tag)
             {
-               handle->mp3Buffer->offset = ret;
                handle->id3v2_size = ret;
-               handle->id3v2_tag = malloc(ret);
-               if (ret) {
-                  memcpy(handle->id3v2_tag, handle->mp3Buffer->data, ret);
-               }
+               plame_get_id3v2_tag(handle->id, handle->id3v2_tag,
+                                               handle->id3v2_size);
             }
          }
       }
@@ -618,11 +618,12 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
       }
       else if (handle->id3v2_tag)
       {
-         memcpy(handle->mp3Buffer->data, handle->id3v2_tag,
-                                         handle->id3v2_size);
+         char *buf = handle->mp3Buffer->data;
 
-         imp3 = plame_get_lametag_frame(handle->id,
-                                 handle->mp3Buffer->data + handle->id3v2_size,
+         memcpy(buf, handle->id3v2_tag, handle->id3v2_size);
+         buf += handle->id3v2_size;
+
+         imp3 = plame_get_lametag_frame(handle->id, buf,
                                  handle->mp3Buffer->size - handle->id3v2_size);
          if (imp3 <= handle->mp3Buffer->size - handle->id3v2_size)
          {

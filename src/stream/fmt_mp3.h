@@ -297,6 +297,7 @@ typedef size_t (*lame_get_lametag_frame_proc)(const void*, void*, size_t);
 typedef size_t (*lame_get_id3v2_tag_proc)(void*, void*, size_t);
 typedef size_t (*lame_get_id3v1_tag_proc)(void*, void*, size_t);
 typedef void (*id3tag_v2_only_proc)(void*);
+typedef void (*id3tag_set_comment_proc)(void*, const char*);
 
 /* lame */
 
