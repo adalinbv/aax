@@ -121,14 +121,12 @@ _file_write(_io_t *io, const void* buf, size_t count)
 ssize_t
 _file_update_header(_io_t *io, const void* buf, size_t count)
 {
+   off_t off = _file_get(io,__F_POSITION);
    ssize_t rv;
 
-   off_t off = _file_get(io,__F_POSITION);
    _file_set(io, __F_POSITION, 0L);
-
    rv = write(io->fds.fd, buf, count);
-
-   _file_set(io, __F_POSITION,off);
+   _file_set(io, __F_POSITION, off);
 
    return rv;
 }
