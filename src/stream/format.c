@@ -71,6 +71,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->close = _mp3_close;
             rv->name = _mp3_name;
 
+            rv->update = _mp3_update;
             rv->cvt_to_intl = _mp3_cvt_to_intl;
             rv->cvt_from_intl = _mp3_cvt_from_intl;
             rv->fill = _mp3_fill;

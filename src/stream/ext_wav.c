@@ -1119,12 +1119,11 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
    if (handle->info.no_samples != 0)
    {
       char extfmt = (handle->wavBufSize == WAVE_HEADER_SIZE) ? 0 : 1;
-//    int32_t *header = (int32_t*)handle->wavBuffer->data;
       int32_t *header = (int32_t*)handle->wavBuffer;
       size_t size;
       uint32_t s;
 
-      size =(handle->info.no_samples*handle->info.tracks*handle->bits_sample)/8;
+      size=(handle->info.no_samples*handle->info.tracks*handle->bits_sample)/8;
       s =  4*handle->wavBufSize + size - 8;
       header[1] = s;
 

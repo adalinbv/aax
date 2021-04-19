@@ -76,6 +76,7 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->fmt->set(handle->fmt, __F_FREQUENCY, freq);
          handle->fmt->set(handle->fmt, __F_RATE, bitrate);
          handle->fmt->set(handle->fmt, __F_TRACKS, tracks);
+         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, tracks*bits/8);
          handle->fmt->set(handle->fmt, __F_NO_SAMPLES, no_samples);
          handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, bits);
          handle->fmt->setup(handle->fmt, format, format);
@@ -122,9 +123,15 @@ _raw_close(_ext_t *ext)
 }
 
 void*
-_raw_update(UNUSED(_ext_t *ext), UNUSED(size_t *offs), UNUSED(ssize_t *size), UNUSED(char close))
+_raw_update(_ext_t *ext, size_t *offs, ssize_t *size, char close)
 {
-   return NULL;
+   _driver_t *handle = ext->id;
+   void *rv = NULL;
+
+   if (handle->fmt->update) {
+      rv  = handle->fmt->update(handle->fmt, offs, size, close);
+   }
+   return rv;
 }
 
 size_t

@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -92,6 +92,12 @@ DECL_FUNCTION(lame_set_quality);
 DECL_FUNCTION(lame_encode_buffer_interleaved);
 DECL_FUNCTION(lame_encode_flush);
 
+DECL_FUNCTION(lame_get_lametag_frame);
+DECL_FUNCTION(lame_set_write_id3tag_automatic);
+DECL_FUNCTION(lame_get_id3v1_tag);
+DECL_FUNCTION(lame_get_id3v2_tag);
+
+#define BUFFER_SIZE	256
 
 typedef struct
 {
@@ -126,6 +132,7 @@ typedef struct
    size_t max_samples;
    size_t file_size;
 
+   unsigned char *id3v2tag;
    _data_t *mp3Buffer;
 
 } _driver_t;
@@ -253,6 +260,10 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_quality);
             TIE_FUNCTION(lame_encode_buffer_interleaved);
             TIE_FUNCTION(lame_encode_flush);
+            TIE_FUNCTION(lame_get_lametag_frame);
+            TIE_FUNCTION(lame_set_write_id3tag_automatic);
+            TIE_FUNCTION(lame_get_id3v1_tag);
+            TIE_FUNCTION(lame_get_id3v2_tag);
 
             error = _aaxGetSymError(0);
             if (!error) {
@@ -493,7 +504,10 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             }
             while (ret < 0);
 
+            plame_set_write_id3tag_automatic(handle->id, 0);
             plame_init_params(handle->id);
+
+            handle->id3v2tag = malloc(BUFFER_SIZE);
          }
       }
    }
@@ -521,11 +535,7 @@ _mp3_close(_fmt_t *fmt)
             _aax_mp3_init = AAX_FALSE;
          }
       }
-      else
-      {
-         plame_encode_flush(handle->id, handle->mp3Buffer->data,
-                                        handle->mp3Buffer->size);
-         // plame_mp3_tags_fid(handle->id, mp3);
+      else {
          plame_close(handle->id);
       }
       _aaxDataDestroy(handle->mp3Buffer);
@@ -542,6 +552,7 @@ _mp3_close(_fmt_t *fmt)
       if (handle->original) free(handle->original);
       if (handle->website) free(handle->website);
       if (handle->image) free(handle->image);
+      if (handle->id3v2tag) free(handle->id3v2tag);
       free(handle);
    }
 }
@@ -566,6 +577,37 @@ _mp3_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
 
    if (ret != MP3_OK) {
       *bytes = 0;
+   }
+
+   return rv;
+}
+
+void*
+_mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
+{
+   void *rv = NULL;
+
+   *offs = 0;
+   *size = 0;
+   if (close)
+   {
+      _driver_t *handle = fmt->id;
+      size_t imp3;
+
+      imp3 = plame_encode_flush(handle->id, handle->mp3Buffer->data,
+                                      handle->mp3Buffer->size);
+      if (imp3 > 0)
+      {
+          *offs = *size = imp3;
+          rv = handle->mp3Buffer->data;
+      }
+      else if (handle->id3v2tag)
+      {
+         imp3 = plame_get_lametag_frame(handle->id, handle->id3v2tag,
+                                                    BUFFER_SIZE);
+         *size = imp3;
+         rv = handle->id3v2tag;
+      }
    }
 
    return rv;

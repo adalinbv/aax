@@ -148,6 +148,9 @@ enum mp3_errors
 #define	MP3_ID3	0x3
 #define MP3_NEW_ID3	0x1
 
+#define LAME_MAXALBUMART	(128 * 1024)
+#define LAME_MAXMP3BUFFER	(16384 + LAME_MAXALBUMART)
+
 struct mp3_frameinfo
 {
   unsigned version;
@@ -289,6 +292,11 @@ typedef int (*lame_encode_buffer_interleaved_proc)(void*, short int[], int, unsi
 typedef int (*lame_encode_buffer_proc)(void*, short int[], short int[], int, unsigned char*, int);
 typedef int (*lame_encode_flush_proc)(void*, unsigned char*, int);
 typedef void (*lame_mp3_tags_fid_proc)(void*, void*);
+
+typedef void (*lame_set_write_id3tag_automatic_proc)(void*, int);
+typedef size_t (*lame_get_lametag_frame_proc)(const void*, void*, size_t);
+typedef size_t (*lame_get_id3v2_tag_proc)(void*, void*, size_t);
+typedef size_t (*lame_get_id3v1_tag_proc)(void*, void*, size_t);
 
 /* lame */
 

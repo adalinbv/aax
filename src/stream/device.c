@@ -353,10 +353,6 @@ _aaxStreamDriverDisconnect(void *id)
 
    if (handle)
    {
-      ssize_t size;
-      size_t offs;
-      void *buf = NULL;
-
       if (handle->thread.started)
       {
          handle->thread.started = AAX_FALSE;
@@ -378,9 +374,24 @@ _aaxStreamDriverDisconnect(void *id)
 
       if (handle->ext)
       {
-         if (handle->ext->update) {
-            buf = handle->ext->update(handle->ext, &offs, &size, AAX_TRUE);
+         void *buf = NULL;
+         ssize_t size = 0;
+
+         // do one last update
+         if (handle->ext->update)
+         {
+            size_t offs = 0;
+            do
+            {
+               buf = handle->ext->update(handle->ext, &offs, &size, AAX_TRUE);
+               if (offs > 0) {
+                  ret = handle->io->write(handle->io, buf, size);
+               }
+            }
+            while (offs > 0);
          }
+
+         // if update returns non NULL then header needs updating.
          if (buf && (handle && handle->io))
          {
             if (handle->io->update_header) {
@@ -1521,6 +1532,8 @@ _aaxStreamDriverWriteChunk(const void *id)
                   size_t spos = 0;
                   void *buf = handle->ext->update(handle->ext, &spos, &usize,
                                                   AAX_FALSE);
+
+                  // if update returns non NULL then header needs updating.
                   if (buf && handle->io->update_header) {
                      res = handle->io->update_header(handle->io, buf, usize);
                   }
