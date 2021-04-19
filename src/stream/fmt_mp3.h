@@ -284,7 +284,6 @@ typedef int (*lame_set_in_samplerate_proc)(void*, int);
 typedef int (*lame_set_num_channels_proc)(void*, int);
 typedef int (*lame_set_quality_proc)(void*, int);
 typedef int (*lame_set_brate_proc)(void*, int);
-
 typedef int (*lame_set_VBR_proc)(void*, enum vbr_mode_e);
 typedef int (*lame_set_VBR_quality_proc)(void*, float);
 
@@ -297,6 +296,7 @@ typedef void (*lame_set_write_id3tag_automatic_proc)(void*, int);
 typedef size_t (*lame_get_lametag_frame_proc)(const void*, void*, size_t);
 typedef size_t (*lame_get_id3v2_tag_proc)(void*, void*, size_t);
 typedef size_t (*lame_get_id3v1_tag_proc)(void*, void*, size_t);
+typedef void (*id3tag_v2_only_proc)(void*);
 
 /* lame */
 

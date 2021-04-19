@@ -96,6 +96,7 @@ DECL_FUNCTION(lame_get_lametag_frame);
 DECL_FUNCTION(lame_set_write_id3tag_automatic);
 DECL_FUNCTION(lame_get_id3v1_tag);
 DECL_FUNCTION(lame_get_id3v2_tag);
+DECL_FUNCTION(id3tag_v2_only);
 
 #define BUFFER_SIZE	256
 
@@ -132,8 +133,10 @@ typedef struct
    size_t max_samples;
    size_t file_size;
 
-   unsigned char *id3v2tag;
    _data_t *mp3Buffer;
+
+   void *id3v2_tag;
+   size_t id3v2_size;
 
 } _driver_t;
 
@@ -264,6 +267,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_write_id3tag_automatic);
             TIE_FUNCTION(lame_get_id3v1_tag);
             TIE_FUNCTION(lame_get_id3v2_tag);
+            TIE_FUNCTION(id3tag_v2_only);
 
             error = _aaxGetSymError(0);
             if (!error) {
@@ -481,6 +485,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             int ret;
 
             handle->id = plame_init();
+            pid3tag_v2_only(handle->id);
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->frequency);
             if (handle->bitrate > 0) {
@@ -507,7 +512,17 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             plame_set_write_id3tag_automatic(handle->id, 0);
             plame_init_params(handle->id);
 
-            handle->id3v2tag = malloc(BUFFER_SIZE);
+            ret = plame_get_id3v2_tag(handle->id, handle->mp3Buffer->data,
+                                            handle->mp3Buffer->size);
+            if (ret <= handle->mp3Buffer->size)
+            {
+               handle->mp3Buffer->offset = ret;
+               handle->id3v2_size = ret;
+               handle->id3v2_tag = malloc(ret);
+               if (ret) {
+                  memcpy(handle->id3v2_tag, handle->mp3Buffer->data, ret);
+               }
+            }
          }
       }
    }
@@ -540,6 +555,7 @@ _mp3_close(_fmt_t *fmt)
       }
       _aaxDataDestroy(handle->mp3Buffer);
 
+      if (handle->id3v2_tag) free(handle->id3v2_tag);
       if (handle->trackno) free(handle->trackno);
       if (handle->artist) free(handle->artist);
       if (handle->title) free(handle->title);
@@ -552,7 +568,6 @@ _mp3_close(_fmt_t *fmt)
       if (handle->original) free(handle->original);
       if (handle->website) free(handle->website);
       if (handle->image) free(handle->image);
-      if (handle->id3v2tag) free(handle->id3v2tag);
       free(handle);
    }
 }
@@ -585,28 +600,35 @@ _mp3_fill(_fmt_t *fmt, void_ptr sptr, ssize_t *bytes)
 void*
 _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
 {
+   _driver_t *handle = fmt->id;
    void *rv = NULL;
 
    *offs = 0;
    *size = 0;
-   if (close)
+   if (close && !handle->capturing)
    {
-      _driver_t *handle = fmt->id;
       size_t imp3;
 
       imp3 = plame_encode_flush(handle->id, handle->mp3Buffer->data,
-                                      handle->mp3Buffer->size);
+                                            handle->mp3Buffer->size);
       if (imp3 > 0)
       {
           *offs = *size = imp3;
           rv = handle->mp3Buffer->data;
       }
-      else if (handle->id3v2tag)
+      else if (handle->id3v2_tag)
       {
-         imp3 = plame_get_lametag_frame(handle->id, handle->id3v2tag,
-                                                    BUFFER_SIZE);
-         *size = imp3;
-         rv = handle->id3v2tag;
+         memcpy(handle->mp3Buffer->data, handle->id3v2_tag,
+                                         handle->id3v2_size);
+
+         imp3 = plame_get_lametag_frame(handle->id,
+                                 handle->mp3Buffer->data + handle->id3v2_size,
+                                 handle->mp3Buffer->size - handle->id3v2_size);
+         if (imp3 <= handle->mp3Buffer->size - handle->id3v2_size)
+         {
+            *size = imp3 + handle->id3v2_size;
+            rv = handle->mp3Buffer->data;
+         }
       }
    }
 
