@@ -1,11 +1,13 @@
 * Wed Feb 10 2021 - tech@adalin.org
 - AeonWave (3.10.0) stable; urgency=high
 
+ * Add an id3v2 header for mp3 playback.
+ * Add variable bit-rate support for mp3 playback (set bitrate to zero).
  * Add a delay-line effect with one delayed signal for up to 200ms.
  * Add a dynamic-timbe filter to dynamically mix between two sound
    layers in the sound section of aaxs files.
  * Fix a segmentation fault for an empty sound section section of the aaxs file.
- * Fix an improbbale situation where _batch_atanps can cause unaligned data
+ * Fix an improbable situation where _batch_atanps can cause an unaligned data
    problem for the SIMD accelerated versions of this function.
  * Fix a possible use-after-free situation for the ALSA backend.
 
