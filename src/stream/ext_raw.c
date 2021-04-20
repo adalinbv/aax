@@ -100,7 +100,6 @@ _raw_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = ext->id;
    return handle->fmt->open(handle->fmt, handle->mode, buf, bufsize, fsize);
-
 }
 
 int

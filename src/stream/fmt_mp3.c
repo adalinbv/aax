@@ -28,7 +28,9 @@
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #endif
+#include <time.h>
 #include <assert.h>
+#include <stdio.h>
 
 #include <xml.h>
 
@@ -96,6 +98,7 @@ DECL_FUNCTION(lame_get_lametag_frame);
 DECL_FUNCTION(lame_set_write_id3tag_automatic);
 DECL_FUNCTION(lame_get_id3v1_tag);
 DECL_FUNCTION(lame_get_id3v2_tag);
+DECL_FUNCTION(id3tag_set_year);
 DECL_FUNCTION(id3tag_set_comment);
 DECL_FUNCTION(id3tag_v2_only);
 
@@ -268,6 +271,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_write_id3tag_automatic);
             TIE_FUNCTION(lame_get_id3v1_tag);
             TIE_FUNCTION(lame_get_id3v2_tag);
+            TIE_FUNCTION(id3tag_set_year);
             TIE_FUNCTION(id3tag_set_comment);
             TIE_FUNCTION(id3tag_v2_only);
 
@@ -475,19 +479,29 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       }
       else if (!handle->capturing)	// playback
       {
-         /*
-          * The required mp3buf_size can be computed from num_samples,
-          * samplerate and encoding rate, but here is a worst case estimate:
-          *
-          * mp3buf_size in bytes = 1.25*num_samples + 7200
-          */
-         handle->mp3Buffer = _aaxDataCreate(7200 + handle->no_samples*5/4, 1);
+         if (!handle->mp3Buffer)
+         {
+            /*
+             * The required mp3buf_size can be computed from num_samples,
+             * samplerate and encoding rate, but here is a worst case estimate:
+             *
+             * mp3buf_size in bytes = 1.25*num_samples + 7200
+             */
+            handle->mp3Buffer = _aaxDataCreate(7200+handle->no_samples*5/4, 1);
+         }
+
          if (handle->mp3Buffer)
          {
+            time_t t = time(NULL);
+            struct tm tm = *localtime(&t);
+            char year[16];
             int ret;
+
+            snprintf(year, 16, "%d", tm.tm_year + 1900);
 
             handle->id = plame_init();
             pid3tag_v2_only(handle->id);
+            pid3tag_set_year(handle->id, year);
             pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->frequency);
@@ -522,6 +536,12 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                handle->id3v2_size = ret;
                plame_get_id3v2_tag(handle->id, handle->id3v2_tag,
                                                handle->id3v2_size);
+            }
+
+            if (handle->id3v2_tag && bufsize)
+            {
+               rv = handle->id3v2_tag;
+               *bufsize = handle->id3v2_size;
             }
          }
       }
@@ -618,7 +638,7 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
       }
       else if (handle->id3v2_tag)
       {
-         char *buf = handle->mp3Buffer->data;
+         unsigned char *buf = handle->mp3Buffer->data;
 
          memcpy(buf, handle->id3v2_tag, handle->id3v2_size);
          buf += handle->id3v2_size;
