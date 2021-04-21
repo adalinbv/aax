@@ -269,6 +269,8 @@ aaxSensorSetOffset(aaxConfig config, unsigned long offs, enum aaxType type)
    if (handle)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
+      float freq = handle->info->frequency;
+      const _intBufferData* dptr;
       off_t samples = 0;
 
       switch (type)
@@ -285,16 +287,25 @@ aaxSensorSetOffset(aaxConfig config, unsigned long offs, enum aaxType type)
          samples = offs;
          break;
       case AAX_MICROSECONDS:
-      {
-         float freq = handle->info->frequency;
          samples = freq*offs*1e-6f;
          break;
-      }
       default:
          break;
       }
 
       be->set_position(handle->backend.handle, samples);
+
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxAudioFrame* smixer = sensor->mixer;
+
+         smixer->curr_pos_sec = samples/freq;
+         smixer->curr_sample = samples;
+
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
    }
 
    return rv;
@@ -320,9 +331,21 @@ aaxSensorSetOffsetSec(aaxConfig config, float offs)
    {
       const _aaxDriverBackend *be = handle->backend.ptr;
       float freq = handle->info->frequency;
+      const _intBufferData* dptr;
       off_t samples = freq*offs;
 
       be->set_position(handle->backend.handle, samples);
+      dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+      if (dptr)
+      {
+         _sensor_t* sensor = _intBufGetDataPtr(dptr);
+         _aaxAudioFrame* smixer = sensor->mixer;
+
+         smixer->curr_pos_sec = samples/freq;
+         smixer->curr_sample = samples;
+
+         _intBufReleaseData(dptr, _AAX_SENSOR);
+      }
    }
    return rv;
 }
