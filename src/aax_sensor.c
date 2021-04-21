@@ -260,6 +260,74 @@ aaxSensorGetOffset(const aaxConfig config, enum aaxType type)
    return rv;
 }
 
+AAX_API int AAX_APIENTRY
+aaxSensorSetOffset(aaxConfig config, unsigned long offs, enum aaxType type)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = AAX_FALSE;
+
+   if (handle)
+   {
+      const _aaxDriverBackend *be = handle->backend.ptr;
+      off_t samples = 0;
+
+      switch (type)
+      {
+      case AAX_BYTES:
+      {
+         _aaxRingBuffer *rb = handle->ringbuffer;
+         int bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
+         samples = offs/bps;
+         break;
+      }
+      case AAX_FRAMES:
+      case AAX_SAMPLES:
+         samples = offs;
+         break;
+      case AAX_MICROSECONDS:
+      {
+         float freq = handle->info->frequency;
+         samples = freq*offs*1e-6f;
+         break;
+      }
+      default:
+         break;
+      }
+
+      be->set_position(handle->backend.handle, samples);
+   }
+
+   return rv;
+}
+
+AAX_API int AAX_APIENTRY
+aaxSensorSetOffsetSec(aaxConfig config, float offs)
+{
+   _handle_t *handle = get_handle(config, __func__);
+   int rv = __release_mode;
+
+   if (!rv)
+   {
+      if (!handle) {
+      } else if (is_nan(offs)) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else {
+         rv = AAX_TRUE;
+      }
+   }
+
+   if (rv)
+   {
+      const _aaxDriverBackend *be = handle->backend.ptr;
+      float freq = handle->info->frequency;
+      off_t samples = freq*offs;
+
+      be->set_position(handle->backend.handle, samples);
+   }
+   return rv;
+}
+
+
 AAX_API aaxBuffer AAX_APIENTRY
 aaxSensorGetBuffer(const aaxConfig config)
 {

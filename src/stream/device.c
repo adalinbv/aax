@@ -1308,10 +1308,13 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
 
       /* boolean */
       case DRIVER_SEEKABLE_SUPPORT:
-         if (handle->ext->get_param(handle->ext, __F_POSITION) &&
-             handle->io->get_param(handle->io, __F_POSITION) != -1)
+         if (handle->ext && handle->io)
          {
-             rv = (float)AAX_TRUE;
+            if (handle->ext->get_param(handle->ext, __F_POSITION) &&
+                handle->io->get_param(handle->io, __F_POSITION) != -1)
+            {
+                rv = (float)AAX_TRUE;
+            }
          }
          break;
       case DRIVER_TIMER_MODE:

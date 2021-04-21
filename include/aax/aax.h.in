@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman
- * Copyright 2007-2018 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman
+ * Copyright 2007-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -766,6 +766,9 @@ AAX_API int AAX_APIENTRY aaxSensorWaitForBuffer(const aaxConfig, float);
 AAX_API aaxBuffer AAX_APIENTRY aaxSensorGetBuffer(const aaxConfig);
 
 AAX_API unsigned long AAX_APIENTRY aaxSensorGetOffset(const aaxConfig, enum aaxType);
+AAX_API int AAX_APIENTRY aaxSensorSetOffset(aaxConfig, unsigned long, enum aaxType);
+AAX_API int AAX_APIENTRY aaxSensorSetOffsetSec(aaxConfig, float);
+
 
 
 /*
