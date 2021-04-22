@@ -303,6 +303,9 @@ typedef void (*id3tag_set_album_proc)(void*, const char*);
 typedef void (*id3tag_set_year_proc)(void*, const char*);
 typedef void (*id3tag_set_comment_proc)(void*, const char*);
 
+typedef void (*lame_report_function)(const char*, va_list);
+typedef int (*lame_set_errorf_proc)(void*, lame_report_function);
+
 /* lame */
 
 #endif /* __FILE_EXT_MP3_H */

@@ -28,6 +28,7 @@
 #ifdef HAVE_RMALLOC_H
 # include <rmalloc.h>
 #endif
+#include <stdarg.h>
 #include <time.h>
 #include <assert.h>
 #include <stdio.h>
@@ -144,9 +145,13 @@ typedef struct
 
 } _driver_t;
 
-static int _aax_mp3_init = AAX_FALSE;
 static int _getFormatFromMP3Format(int);
 static void _detect_mp3_song_info(_driver_t*);
+#ifndef NDEBUG
+static void _aax_lame_log(const char*, va_list);
+#endif
+
+static int _aax_mp3_init = AAX_FALSE;
 static void *audio = NULL;
 
 int
@@ -500,6 +505,9 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             snprintf(year, 16, "%d", tm.tm_year + 1900);
 
             handle->id = plame_init();
+#ifndef NDEBUG
+            plame_set_errorf(handle->id, _aax_lame_log);
+#endif
             pid3tag_add_v2(handle->id);
             pid3tag_set_year(handle->id, year);
             pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
@@ -529,13 +537,18 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             plame_set_write_id3tag_automatic(handle->id, 0);
             plame_init_params(handle->id);
 
-            ret = plame_get_id3v2_tag(handle->id, 0, 0);
-            handle->id3v2_tag = malloc(ret);
-            if (handle->id3v2_tag)
+            if (bufsize && handle->id3v2_size == 0)
             {
-               handle->id3v2_size = ret;
-               plame_get_id3v2_tag(handle->id, handle->id3v2_tag,
-                                               handle->id3v2_size);
+               ret = plame_get_id3v2_tag(handle->id, 0, 0);
+               if (ret) {
+                  handle->id3v2_tag = malloc(ret);
+               }
+               if (handle->id3v2_tag)
+               {
+                  handle->id3v2_size = ret;
+                  plame_get_id3v2_tag(handle->id, handle->id3v2_tag,
+                                                  handle->id3v2_size);
+               }
             }
 
             if (handle->id3v2_tag && bufsize)
@@ -643,7 +656,7 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
 
           rv = handle->mp3Buffer->data;
       }
-      else if (handle->id3v2_tag &&
+      else if (handle->id3v2_tag && handle->id3v2_size &&
                handle->id3v2_size < handle->mp3Buffer->size)
       {
          unsigned buflen = handle->mp3Buffer->size - handle->id3v2_size;
@@ -965,6 +978,13 @@ _mp3_set(_fmt_t *fmt, int type, off_t value)
 #define __COPY(a, b)	do { int s = sizeof(b); \
       a = calloc(1, s+1); if (a) memcpy(a,b,s); \
    } while(0);
+
+#ifndef NDEBUG
+void _aax_lame_log(const char *format, va_list ap)
+{
+   (void) vfprintf(stdout, format, ap);
+}
+#endif
 
 static int
 _getFormatFromMP3Format(int enc)
