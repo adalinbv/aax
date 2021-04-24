@@ -504,7 +504,9 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
             snprintf(year, 16, "%d", tm.tm_year + 1900);
 
-            handle->id = plame_init();
+            if (!handle->id) {
+               handle->id = plame_init();
+            }
 #ifndef NDEBUG
             plame_set_errorf(handle->id, _aax_lame_log);
 #endif
