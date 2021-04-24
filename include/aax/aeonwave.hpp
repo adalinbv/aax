@@ -285,7 +285,6 @@ public:
     }
 
     virtual ~Obj() {
-        fties.clear(); ities.clear();
         if (!!closefn) closefn(ptr);
     }
 
@@ -350,8 +349,7 @@ public:
 
     virtual ~Buffer() = default;
 
-    Buffer(aaxBuffer b, bool o=true)
-        : Obj(b, o ? aaxBufferDestroy : 0) {}
+    Buffer(aaxBuffer b, bool o=true) : Obj(b, o ? aaxBufferDestroy : 0) {}
 
     Buffer(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f)
         : Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
@@ -632,8 +630,7 @@ public:
 
     virtual ~Sensor() = default;
 
-    explicit Sensor(aaxConfig c)
-        : Obj(c, aaxDriverDestroy) {
+    explicit Sensor(aaxConfig c) : Obj(c, aaxDriverDestroy) {
        mode = aaxRenderMode(aaxMixerGetMode(c, AAX_RENDER_MODE));
     }
 
@@ -855,15 +852,12 @@ public:
         for (size_t i=0; i<frames.size(); ++i) {
              aaxAudioFrameDeregisterAudioFrame(ptr,frames[i]);
         }
-        frames.clear();
         for (size_t i=0; i<sensors.size(); ++i) {
              aaxAudioFrameDeregisterSensor(ptr,sensors[i]);
         }
-        sensors.clear();
         for (size_t i=0; i<emitters.size(); ++i) {
              aaxAudioFrameDeregisterEmitter(ptr,emitters[i]);
         }
-        emitters.clear();
     }
 
     friend void swap(Frame& o1, Frame& o2) noexcept {
@@ -1016,19 +1010,15 @@ public:
         for (size_t i=0; i<frames.size(); ++i) {
              aaxMixerDeregisterAudioFrame(ptr,frames[i]);
         }
-        frames.clear();
         for (size_t i=0; i<sensors.size(); ++i) {
              aaxMixerDeregisterSensor(ptr,sensors[i]);
         }
-        sensors.clear();
         for (size_t i=0; i<emitters.size(); ++i) {
              aaxMixerDeregisterEmitter(ptr,emitters[i]);
         }
-        emitters.clear();
         for(auto it=buffers.begin(); it!=buffers.end(); ++it) {
             aaxBufferDestroy(*it->second.second); it->second.first = 0;
         }
-        buffers.clear();
     }
 
     friend void swap(AeonWave& o1, AeonWave& o2) noexcept {

@@ -264,8 +264,6 @@ public:
         for (auto it : key) {
             Mixer::remove(*it.second);
         }
-        key.clear();
-        key_stopped.clear();
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
