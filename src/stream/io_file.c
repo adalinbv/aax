@@ -65,21 +65,23 @@ _file_close(_io_t *io)
    int rv = 0;
 
    void *data = _aaxDataGetData(io->dataBuffer);
-   ssize_t res = 0;
-   do {
-      ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
-      res = write(io->fds.fd, data, avail);
-      if (res > 0) {
-         res = _aaxDataMove(io->dataBuffer, NULL, res);
+   if (io->fds.fd >= 0)
+   {
+      ssize_t res = 0;
+      do {
+         ssize_t avail = _aaxDataGetDataAvail(io->dataBuffer);
+         res = write(io->fds.fd, data, avail);
+         if (res > 0) {
+            res = _aaxDataMove(io->dataBuffer, NULL, res);
+         }
       }
+      while (res == EINTR);
+      close(io->fds.fd);
+      io->fds.fd = -1;
    }
-   while (res == EINTR);
 
    _aaxDataDestroy(io->dataBuffer);
    _aaxTimerDestroy(io->timer);
-
-   if (io->fds.fd != -1) close(io->fds.fd);
-   io->fds.fd = -1;
 
    return rv;
 }
@@ -102,7 +104,8 @@ _file_write(_io_t *io, const void* buf, size_t count)
 {
    ssize_t  rv = _aaxDataAdd(io->dataBuffer, buf, count);
 
-   if (_aaxDataGetOffset(io->dataBuffer) >= THRESHOLD)
+   if (_aaxDataGetOffset(io->dataBuffer) >= THRESHOLD &&
+       io->fds.fd >= 0)
    {
       void *data = _aaxDataGetData(io->dataBuffer);
       ssize_t res = write(io->fds.fd, data, THRESHOLD);
@@ -122,11 +125,14 @@ ssize_t
 _file_update_header(_io_t *io, const void* buf, size_t count)
 {
    off_t off = _file_get(io,__F_POSITION);
-   ssize_t rv;
+   ssize_t rv = -1;
 
-   _file_set(io, __F_POSITION, 0L);
-   rv = write(io->fds.fd, buf, count);
-   _file_set(io, __F_POSITION, off);
+   if (io->fds.fd >= 0)
+   {
+      _file_set(io, __F_POSITION, 0L);
+      rv = write(io->fds.fd, buf, count);
+      _file_set(io, __F_POSITION, off);
+   }
 
    return rv;
 }
