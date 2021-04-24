@@ -39,6 +39,8 @@ public:
     byte_stream(const byte_stream& s, size_t length = 0)
         : uint8_map(s+s.pos, length), pos(0) {}
 
+    virtual ~byte_stream() = default;
+
     friend void swap(byte_stream& s1, byte_stream& s2) noexcept {
         std::swap(s1.pos, s2.pos);
         swap(s1, s2);

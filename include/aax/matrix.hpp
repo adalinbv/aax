@@ -74,7 +74,7 @@ public:
     VecBase(T f) : _v4(true) {
         std::fill(_v, _v+4, f);
     }
-    ~VecBase() {}
+    virtual ~VecBase() = default;
 
     inline void set(T x, T y, T z) {
         _v[0] = x; _v[1] = y; _v[2] = z; _v[3] = 0; _v4 = false;
@@ -263,8 +263,8 @@ protected:
     using MT = T[4][4];
 
 public:
-    MtxBase() {}
-    virtual ~MtxBase() {}
+    MtxBase() = default;
+    virtual ~MtxBase() = default;
 
     // ** support ******
     inline bool operator==(MtxBase<T>& m) {
@@ -345,7 +345,7 @@ public:
     Matrix64(aaxVec3d& p, aaxVec3f& a, aaxVec3f& u) {
         set(p,a,u);
     }
-    ~Matrix64() {}
+    virtual ~Matrix64() = default;
 
     inline bool set(Vector64& p, Vector& a) {
         return aaxMatrix64SetDirection(_m,p,a);
@@ -485,7 +485,7 @@ public:
     Matrix(aaxVec3f& p, aaxVec3f& a, aaxVec3f& u) {
         set(p,a,u);
     }
-    ~Matrix() {}
+    virtual ~Matrix() = default;
     
     bool set(Vector& p, Vector& a) {
         float eps = std::numeric_limits<float>::epsilon();
