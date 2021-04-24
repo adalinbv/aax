@@ -42,7 +42,8 @@ class Panning
 {
 public:
     Panning() = default;
-    ~Panning() = default;
+
+    virtual ~Panning() = default;
 
     void set(float p, bool init=false) {
         pan = p;
@@ -116,7 +117,7 @@ public:
         Emitter::set(dsp);
     }
 
-    ~Note() = default;
+    virtual ~Note() = default;
 
     friend void swap(Note& n1, Note& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));

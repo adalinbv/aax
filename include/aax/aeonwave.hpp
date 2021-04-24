@@ -348,6 +348,8 @@ class Buffer : public Obj<aaxBuffer>
 public:
     Buffer() = default;
 
+    virtual ~Buffer() = default;
+
     Buffer(aaxBuffer b, bool o=true)
         : Obj(b, o ? aaxBufferDestroy : 0) {}
 
@@ -425,6 +427,8 @@ class dsp : public Obj<aaxDSP>
 {
 public:
     dsp() = default;
+
+    virtual ~dsp() = default;
 
     dsp(aaxConfig c, enum aaxFilterType f)
         : Obj(c,aaxFilterDestroy), filter(true), dsptype(f) {
@@ -515,6 +519,8 @@ class Emitter : public Obj<aaxEmitter>
 {
 public:
     Emitter() = default;
+
+    virtual ~Emitter() = default;
 
     Emitter(enum aaxEmitterMode m) : Obj(aaxEmitterCreate(), aaxEmitterDestroy){
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
@@ -623,6 +629,8 @@ class Sensor : public Obj<aaxConfig>
 {
 public:
     Sensor() = default;
+
+    virtual ~Sensor() = default;
 
     explicit Sensor(aaxConfig c)
         : Obj(c, aaxDriverDestroy) {
