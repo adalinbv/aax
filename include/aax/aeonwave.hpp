@@ -268,16 +268,19 @@ template <typename T>
 class Obj
 {
 public:
+    typedef int stop_fn(T, enum aaxState);
     typedef int close_fn(T);
 
     Obj() = default;
 
     Obj(T p, close_fn* c) : ptr(p), closefn(c) {}
 
-    Obj(const Obj& o) noexcept : ptr(o.ptr), closefn(o.closefn) {
+    Obj(T p, stop_fn* s, close_fn* c) : ptr(p), stopfn(s), closefn(c) {}
+
+    Obj(const Obj& o) noexcept : ptr(o.ptr),
+        stopfn(o.stopfn), closefn(o.closefn) {
         fties = std::move(o.fties);
         ities = std::move(o.ities);
-        o.closefn = nullptr;
     }
 
     Obj(Obj&& o) noexcept : Obj() {
@@ -285,11 +288,13 @@ public:
     }
 
     virtual ~Obj() {
+        if (!!stopfn) stopfn(ptr,AAX_PROCESSED);
         if (!!closefn) closefn(ptr);
     }
 
     friend void swap(Obj& o1, Obj& o2) noexcept {
         std::swap(o1.ptr, o2.ptr);
+        std::swap(o1.stopfn, o2.stopfn);
         std::swap(o1.closefn, o2.closefn);
         o1.fties = std::move(o2.fties);
         o1.ities = std::move(o2.ities);
@@ -301,8 +306,9 @@ public:
     }
 
     bool close() {
+        if (!!stopfn) stopfn(ptr,AAX_PROCESSED);
         bool rv = (!!closefn) ? closefn(ptr) : false;
-        closefn = nullptr;
+        closefn = stopfn = nullptr;
         return rv;
     }
 
@@ -336,6 +342,7 @@ public:
 
 protected:
     T ptr = nullptr;
+    std::function<int(T,enum aaxState)> stopfn = nullptr;
     std::function<int(T)> closefn = nullptr;
     std::vector<Param*> fties;
     std::vector<Status*> ities;
@@ -355,7 +362,6 @@ public:
         : Obj(aaxBufferCreate(c,n,t,f), aaxBufferDestroy) {}
 
     Buffer(aaxConfig c, const char* name, bool o=true, bool s=false)
-        : Obj(nullptr, nullptr)
     {
         ptr = aaxBufferReadFromStream(c, name);
         if (!ptr) { aaxGetErrorNo();
@@ -520,7 +526,8 @@ public:
 
     virtual ~Emitter() = default;
 
-    Emitter(enum aaxEmitterMode m) : Obj(aaxEmitterCreate(), aaxEmitterDestroy){
+    Emitter(enum aaxEmitterMode m)
+      : Obj(aaxEmitterCreate(), aaxEmitterSetState, aaxEmitterDestroy) {
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
     }
 
@@ -630,7 +637,7 @@ public:
 
     virtual ~Sensor() = default;
 
-    explicit Sensor(aaxConfig c) : Obj(c, aaxDriverDestroy) {
+    explicit Sensor(aaxConfig c) : Obj(c, aaxMixerSetState, aaxDriverDestroy) {
        mode = aaxRenderMode(aaxMixerGetMode(c, AAX_RENDER_MODE));
     }
 
@@ -844,7 +851,9 @@ class Frame : public Obj<aaxFrame>
 public:
     Frame() = default;
 
-    Frame(aaxConfig c) : Obj(aaxAudioFrameCreate(c), aaxAudioFrameDestroy) {}
+    Frame(aaxConfig c)
+      : Obj(aaxAudioFrameCreate(c), aaxAudioFrameSetState, aaxAudioFrameDestroy)
+    {}
 
     Frame(Frame&&) = default;
 
