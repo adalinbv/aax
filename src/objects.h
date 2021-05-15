@@ -255,6 +255,8 @@ typedef struct
 
    int mode;
 
+   char legato_mode;
+
 } _midi_t;
 
 typedef ALIGN16  struct {

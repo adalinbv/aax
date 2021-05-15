@@ -47,8 +47,8 @@
 
 
 static void _aaxFreeEmitterBuffer(void *);
-static int _emitterSetFilter(_aaxEmitter*, _filter_t*);
-static int _emitterSetEffect(_aaxEmitter*, _effect_t*);
+static int _emitterSetFilter(_emitter_t*, _filter_t*);
+static int _emitterSetEffect(_emitter_t*, _effect_t*);
 
 AAX_API aaxEmitter AAX_APIENTRY
 aaxEmitterCreate()
@@ -514,7 +514,7 @@ aaxEmitterSetFilter(aaxEmitter emitter, aaxFilter f)
       _filter_t* filter = get_filter(f);
       if (filter)
        {
-         rv = _emitterSetFilter(handle->source, filter);
+         rv = _emitterSetFilter(handle, filter);
          if (!rv) {
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
@@ -567,7 +567,7 @@ aaxEmitterSetEffect(aaxEmitter emitter, aaxEffect e)
       _effect_t* effect = get_effect(e);
       if (effect)
       {
-         rv = _emitterSetEffect(handle->source, effect);
+         rv = _emitterSetEffect(handle, effect);
          if (!rv) {
             _aaxErrorSet(AAX_INVALID_ENUM);
          }
@@ -1118,20 +1118,27 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    int rv = AAX_FALSE;
    switch(type)
    {
+   case AAX_PRESSURE_FACTOR:
+   case AAX_MIDI_PRESSURE_FACTOR:
+      p2d->note.pressure = (float)setup/100.0f;
+      break;
+   case AAX_VELOCITY_FACTOR:
+   case AAX_MIDI_VELOCITY_FACTOR:
+      p2d->note.velocity = 0.8f+0.2f*(float)setup/100.0f;
+      break;
    case AAX_ATTACK_FACTOR:
+   case AAX_MIDI_ATTACK_FACTOR:
       handle->midi.attack_factor = (float)setup/64.0f;
+      break;
+   case AAX_DECAY_FACTOR:
+   case AAX_MIDI_DECAY_FACTOR:
+      handle->midi.decay_factor = (float)setup/64.0f;
       break;
    case AAX_RELEASE_FACTOR:
       handle->midi.release_factor = (float)setup/64.0f;
       break;
-   case AAX_DECAY_FACTOR:
-      handle->midi.decay_factor = (float)setup/64.0f;
-      break;
-   case AAX_VELOCITY_FACTOR:
-      p2d->note.velocity = 0.8f+0.2f*(float)setup/100.0f;
-      break;
-   case AAX_PRESSURE_FACTOR:
-      p2d->note.pressure = (float)setup/100.0f;
+   case AAX_LEGATO_MODE:
+       handle->midi.legato_mode = setup ? AAX_TRUE : AAX_FALSE;
       break;
    default:
       break;
@@ -1149,19 +1156,26 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
    switch(type)
    {
    case AAX_ATTACK_FACTOR:
+   case AAX_MIDI_ATTACK_FACTOR:
       rv = 64.0f*handle->midi.attack_factor;
       break;
    case AAX_RELEASE_FACTOR:
       rv = 64.0f*handle->midi.release_factor;
       break;
    case AAX_DECAY_FACTOR:
+   case AAX_MIDI_DECAY_FACTOR:
       rv = 64.0f*handle->midi.decay_factor;
       break;
    case AAX_VELOCITY_FACTOR:
+   case AAX_MIDI_VELOCITY_FACTOR:
       rv = 127.0f*p2d->note.velocity;
       break;
    case AAX_PRESSURE_FACTOR:
+   case AAX_MIDI_PRESSURE_FACTOR:
       rv = 127.0f*p2d->note.pressure;
+      break;
+   case AAX_LEGATO_MODE:
+       rv = handle->midi.legato_mode ? 0x64 : 0;
       break;
    default:
       break;
@@ -1369,8 +1383,9 @@ _aaxFreeEmitterBuffer(void *sbuf)
 }
 
 static int
-_emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
+_emitterSetFilter(_emitter_t *handle, _filter_t *filter)
 {
+   _aaxEmitter *src = handle->source;
    _aax2dProps *p2d = src->props2d;
    _aax3dProps *p3d = src->props3d;
    int type = filter->pos;
@@ -1380,7 +1395,15 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
    {
    case AAX_TIMED_GAIN_FILTER:
       _PROP_DISTDELAY_SET_DEFINED(src->props3d);
-      // intentional fallthrough
+      _FILTER_SWAP_SLOT(p2d, type, filter, 0)
+      if (handle->midi.legato_mode)
+      {
+         _aaxEnvelopeData* env = _FILTER_GET_DATA(p2d, AAX_TIMED_GAIN_FILTER);
+         if (env->sustain) {
+            env->stage = env->sustain;
+         }
+      }
+      break;
    case AAX_VOLUME_FILTER:
    case AAX_FREQUENCY_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:
@@ -1427,8 +1450,9 @@ _emitterSetFilter(_aaxEmitter *src, _filter_t *filter)
 }
 
 static int
-_emitterSetEffect(_aaxEmitter *src, _effect_t *effect)
+_emitterSetEffect(_emitter_t *handle, _effect_t *effect)
 {
+   _aaxEmitter *src = handle->source;
    _aax2dProps *p2d = src->props2d;
    _aax3dProps *p3d = src->props3d;
    int type = effect->pos;
@@ -1519,7 +1543,7 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
          if (sum)
          {
             filter = get_filter(flt);
-            _emitterSetFilter(handle->source, filter);
+            _emitterSetFilter(handle, filter);
             aaxFilterDestroy(flt);
          }
          rv = AAX_TRUE;
@@ -1629,7 +1653,7 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
             {
                aaxEffectSetSlot(eff, 0, AAX_LINEAR, 0.7f, 0.1f, 0.05f, 0.7f);
                aaxEffectSetState(eff, AAX_SINE_WAVE);
-               _emitterSetEffect(handle->source, eff);
+               _emitterSetEffect(handle, eff);
                aaxEffectDestroy(eff);
             }
          }
@@ -1653,7 +1677,7 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
                       if (flt)
                       {
                         _filter_t* filter = get_filter(flt);
-                         _emitterSetFilter(handle->source, filter);
+                         _emitterSetFilter(handle, filter);
                          aaxFilterDestroy(flt);
                       }
                    }
@@ -1681,7 +1705,7 @@ _emitterCreateEFFromAAXS(_emitter_t *handle, _embuffer_t *embuf, const char *aax
                      if (eff)
                      {
                         _effect_t* effect = get_effect(eff);
-                        _emitterSetEffect(handle->source, effect);
+                        _emitterSetEffect(handle, effect);
                         aaxEffectDestroy(eff);
                      }
                   }
