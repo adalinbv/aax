@@ -192,7 +192,7 @@ public:
     inline void set_attack_time(unsigned t) { set(AAX_ATTACK_FACTOR, t); }
     inline void set_release_time(unsigned t) { set(AAX_RELEASE_FACTOR, t); }
     inline void set_decay_time(unsigned t) { set(AAX_DECAY_FACTOR, t); }
-    inline void set_legato(bool l) { set(AAX_LEGATO_MODE, l; };
+    inline void set_legato(bool l) { set(AAX_LEGATO_MODE, l); };
 
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
