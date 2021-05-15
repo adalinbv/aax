@@ -192,6 +192,7 @@ public:
     inline void set_attack_time(unsigned t) { set(AAX_ATTACK_FACTOR, t); }
     inline void set_release_time(unsigned t) { set(AAX_RELEASE_FACTOR, t); }
     inline void set_decay_time(unsigned t) { set(AAX_DECAY_FACTOR, t); }
+    inline void set_legato(bool l) { set(AAX_LEGATO_MODE, l; };
 
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
@@ -495,6 +496,12 @@ public:
     void set_decay_time(unsigned t) {
         if (!is_drums) { decay_time = t;
             for (auto& it : key) it.second->set_decay_time(t);
+        }
+    }
+
+    inline void set_legato(bool l) {
+        if (!is_drums) {
+            for (auto& it : key) it.second->set_legato(l);
         }
     }
 
