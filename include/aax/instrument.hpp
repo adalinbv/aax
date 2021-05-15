@@ -309,6 +309,7 @@ public:
         i1.monophonic = std::move(i2.monophonic);
         i1.playing= std::move(i2.playing);
         i1.slide_state = std::move(i2.slide_state);
+        i1.legato = std::move(i2.legato);
     }
 
     Instrument& operator=(Instrument&&) = default;
@@ -358,6 +359,7 @@ public:
         Mixer::add(*note);
         note->set_attack_time(attack_time);
         note->set_release_time(release_time);
+        note->set_legato(legato);
         float g = 3.321928f*log10f(1.0f+velocity);
         note->play(g*soft, pitch_start, slide_state ? pitch_rate : 0.0f);
         pitch_start = pitch;
@@ -500,7 +502,7 @@ public:
     }
 
     inline void set_legato(bool l) {
-        if (!is_drums) {
+        if (!is_drums) { legato = l;
             for (auto& it : key) it.second->set_legato(l);
         }
     }
@@ -605,6 +607,7 @@ private:
     bool monophonic = false;
     bool playing = false;
     bool slide_state = false;
+    bool legato = false;
 
     bool key_finish = false;
     std::map<uint32_t,std::shared_ptr<Note>> key_stopped;

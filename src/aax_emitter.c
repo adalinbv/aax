@@ -1398,8 +1398,8 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       _FILTER_SWAP_SLOT(p2d, type, filter, 0)
       if (handle->midi.legato_mode)
       {
-         _aaxEnvelopeData* env = _FILTER_GET_DATA(p2d, AAX_TIMED_GAIN_FILTER);
-         if (env->sustain) {
+         _aaxEnvelopeData* env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
+         if (env && env->sustain) {
             env->stage = env->sustain;
          }
       }
