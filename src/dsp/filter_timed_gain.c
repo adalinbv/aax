@@ -101,7 +101,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                if (env->repeat0 == AAX_MAX_REPEAT) {
                   env->repeat0 = UINT_MAX;
                }
-               env->sustain = AAX_TRUE;
+               env->sustain = UCHAR_MAX;
             }
             env->repeat = env->repeat0;
          }
@@ -126,7 +126,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                max_pos = rintf(dt * period);
             }
             else {
-               env->sustain = AAX_TRUE;
+               env->sustain = stage;
             }
 
             if (max_pos == 0)
@@ -151,7 +151,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                max_pos = rintf(dt * period);
             }
             else {
-               env->sustain = AAX_TRUE;
+               env->sustain = stage;
             }
 
             if (max_pos == 0)
