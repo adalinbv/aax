@@ -1399,8 +1399,8 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       if (handle->midi.legato_mode)
       {
          _aaxEnvelopeData* env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
-         if (env && env->sustain) {
-            env->stage = env->sustain;
+         if (env && env->sustain_stage) {
+            env->stage = env->sustain_stage;
          }
       }
       break;

@@ -101,7 +101,7 @@ typedef struct
    uint32_t pos, repeat0, repeat;
    int state;
    signed char stage, max_stages;
-   unsigned char sustain;
+   unsigned char sustain, sustain_stage;
 } _aaxEnvelopeData;
 
 void _env_reset(_aaxEnvelopeData*);

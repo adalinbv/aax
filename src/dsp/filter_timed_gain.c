@@ -90,6 +90,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
          float period = filter->info->period_rate;
          float timestep = 1.0f / period;
          float release_factor = 1.0f;
+         float max_dt = 0.0f;
          int i, stage;
 
          env->state = state;
@@ -101,7 +102,7 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
                if (env->repeat0 == AAX_MAX_REPEAT) {
                   env->repeat0 = UINT_MAX;
                }
-               env->sustain = UCHAR_MAX;
+               env->sustain = AAX_TRUE;
             }
             env->repeat = env->repeat0;
          }
@@ -124,9 +125,16 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             {
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
+               if (!env->sustain_stage && dt > max_dt)
+               {
+                   env->sustain_stage = stage;
+                   max_dt = dt;
+               }
             }
-            else {
-               env->sustain = stage;
+            else
+            {
+               env->sustain = AAX_TRUE;
+               env->sustain_stage = stage;
             }
 
             if (max_pos == 0)
@@ -149,9 +157,16 @@ _aaxTimedGainFilterSetState(_filter_t* filter, int state)
             {
                if (dt < timestep && dt > EPS) dt = timestep;
                max_pos = rintf(dt * period);
+               if (!env->sustain_stage && dt > max_dt)
+               {
+                   env->sustain_stage = stage;
+                   max_dt = dt;
+               }
             }
-            else {
-               env->sustain = stage;
+            else
+            {
+               env->sustain = AAX_TRUE;
+               env->sustain_stage = stage;
             }
 
             if (max_pos == 0)
