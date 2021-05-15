@@ -297,8 +297,8 @@ public:
         i1.fc = std::move(i2.fc);
         i1.Q = std::move(i2.Q);
         i1.soft = std::move(i2.soft);
+        i1.gain = std::move(i2.gain);
         i1.volume = std::move(i2.volume);
-        i1.pressure = std::move(i2.pressure);
         i1.expression = std::move(i2.expression);
         i1.pitch_rate = std::move(i2.pitch_rate);
         i1.pitch_start = std::move(i2.pitch_start);
@@ -397,19 +397,27 @@ public:
         }
     }
 
-    inline void set_gain(float v) { volume = v; }
+    inline void set_gain(float v) {
+        gain = v; set_expression(expression);
+    }
 
-    inline void set_pressure(float p) { pressure = p; }
-    inline void set_pressure(uint32_t key_no, float p) {
-        auto it = key.find(key_no);
-        if (it != key.end()) {
-            it->second->set_gain(p*pressure*expression*soft);
-        }
+    inline void set_soft(bool s) {
+        soft = (s && !is_drums) ? 0.5f : 1.0f;
     }
 
     inline void set_expression(float e) {
-        expression = e;
-        for (auto& it : key) it.second->set_gain(e*pressure*soft);
+        expression = e; volume = gain*expression;
+    }
+
+    inline void set_pressure(float p) {
+        for (auto& it : key) it.second->set_gain(p*soft);
+    }
+
+    inline void set_pressure(uint32_t key_no, float p) {
+        auto it = key.find(key_no);
+        if (it != key.end()) {
+            it->second->set_gain(p*soft);
+        }
     }
 
     void set_pan(float p) {
@@ -424,8 +432,6 @@ public:
             pan_prev = p;
         }
     }
-
-    inline void set_soft(bool s) { soft = (s && !is_drums) ? 0.5f : 1.0f; }
 
     inline void set_hold(uint32_t key_no, bool h) {
        auto it = key.find(key_no);
@@ -578,8 +584,8 @@ private:
     float fc = lin2log(float(filter_cutoff));
     float Q = float(filter_resonance);
 
+    float gain = 1.0f;
     float soft = 1.0f;
-    float pressure = 1.0f;
     float expression = 1.0f;
 
     float pan_prev = 0.0f;
