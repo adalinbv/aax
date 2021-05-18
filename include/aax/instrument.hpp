@@ -125,6 +125,7 @@ public:
         n1.pitch_param = std::move(n2.pitch_param);
         n1.frequency = std::move(n2.frequency);
         n1.pitch = std::move(n2.pitch);
+        n1.soft = std::move(n2.soft);
         n1.gain = std::move(n2.gain);
         n1.playing = std::move(n2.playing);
         n1.hold = std::move(n2.hold);
@@ -139,7 +140,7 @@ public:
 
     bool play(float g, float start_pitch = 1.0f, float rate = 0.0f) {
         hold = false;
-        gain_param = gain = GAIN_FACTOR*g;
+        gain_param = gain = GAIN_FACTOR*g*soft;
         if (rate > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
@@ -166,7 +167,7 @@ public:
 
     bool stop(float g = 1.0f) {
         playing = false;
-        if (fabsf(g - 1.0f) > 0.1f) gain_param = (gain *= g);
+        if (fabsf(g - 1.0f) > 0.1f) gain_param = (gain *= g*soft);
         return hold ? true : Emitter::set(AAX_STOPPED);
     }
 
@@ -199,7 +200,8 @@ public:
         return Emitter::add(buffer);
     }
 
-    inline void set_gain(float expr) { gain_param = GAIN_FACTOR*expr*gain; }
+    inline void set_soft(float s) { soft = s; }
+    inline void set_gain(float expr) { gain_param = GAIN_FACTOR*expr*gain*soft; }
     inline void set_pitch(float bend) { pitch_param = bend*pitch; }
 
 private:
@@ -210,6 +212,7 @@ private:
 
     float frequency;
     float pitch;
+    float soft = 1.0f;
     float gain = GAIN_FACTOR;
     float pan_prev = -1000.0f;
     bool playing = false;
@@ -360,8 +363,9 @@ public:
         note->set_attack_time(attack_time);
         note->set_release_time(release_time);
         note->set_legato(legato);
+        note->set_soft(soft);
         float g = 3.321928f*log10f(1.0f+velocity);
-        note->play(g*soft, pitch_start, slide_state ? pitch_rate : 0.0f);
+        note->play(g, pitch_start, slide_state ? pitch_rate : 0.0f);
         pitch_start = pitch;
         for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
              it = next)
@@ -377,7 +381,7 @@ public:
         auto it = key.find(key_no);
         if (it != key.end()) {
             float g = std::min(0.333f + 0.667f*2.0f*velocity, 1.0f);
-            it->second->stop(g*soft);
+            it->second->stop(g);
         }
     }
 
@@ -404,8 +408,9 @@ public:
         gain = v; set_expression(expression);
     }
 
-    inline void set_soft(bool s) {
-        soft = (s && !is_drums) ? 0.5f : 1.0f;
+    inline void set_soft(float s) {
+        soft = (!is_drums) ? 1.0f - 0.5f*s : 1.0f;
+        for (auto& it : key) it.second->set_soft(soft);
     }
 
     inline void set_expression(float e) {
@@ -413,13 +418,13 @@ public:
     }
 
     inline void set_pressure(float p) {
-        for (auto& it : key) it.second->set_gain(p*soft);
+        for (auto& it : key) it.second->set_gain(p);
     }
 
     inline void set_pressure(uint32_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->set_gain(p*soft);
+            it->second->set_gain(p);
         }
     }
 
@@ -533,7 +538,7 @@ public:
     inline void set_chorus_rate(float rate) { chorus_rate = rate; }
 
     void set_filter_cutoff(float dfc) {
-        filter_cutoff = log2lin(dfc*fc);
+        filter_cutoff = soft*log2lin(dfc*fc);
         if (!filter_state) filter_state = AAX_TRUE;
     }
 
@@ -593,8 +598,8 @@ private:
     float fc = lin2log(float(filter_cutoff));
     float Q = float(filter_resonance);
 
-    float gain = 1.0f;
     float soft = 1.0f;
+    float gain = 1.0f;
     float expression = 1.0f;
 
     float pan_prev = 0.0f;
