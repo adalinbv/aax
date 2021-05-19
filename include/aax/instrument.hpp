@@ -1,6 +1,6 @@
 /*
- * Copyright (C) 2018-2020 by Erik Hofman.
- * Copyright (C) 2018-2020 by Adalin B.V.
+ * Copyright (C) 2018-2021 by Erik Hofman.
+ * Copyright (C) 2018-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -92,12 +92,13 @@ private:
 
 public:
     Note(float f, float p, Panning& pan)
-        : Emitter(pan.wide ? AAX_ABSOLUTE : AAX_RELATIVE), frequency(f), pitch(p)
+        : Emitter(pan.wide ? AAX_ABSOLUTE : AAX_RELATIVE),
+          frequency(f), pitch(p)
     {
-        pitch_param = p;
+        pitch = p; set_pitch();
         tie(pitch_param, AAX_PITCH_EFFECT, AAX_PITCH);
 
-        tie(gain_param, AAX_VOLUME_FILTER, AAX_GAIN);
+        tie(volume_param, AAX_VOLUME_FILTER, AAX_GAIN);
         if (pan.wide) {
             // pitch*frequency ranges from: 8 - 12544 Hz,
             // log(20) = 1.3, log(12544) = 4.1
@@ -121,14 +122,22 @@ public:
 
     friend void swap(Note& n1, Note& n2) noexcept {
         std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
-        n1.gain_param = std::move(n2.gain_param);
+
+        n1.mtx = std::move(n2.mtx);
+        n1.pan_prev = n2.pan_prev;
+
+        n1.playing = n2.playing;
+        n1.hold = n2.hold;
+
+        n1.volume_param = std::move(n2.volume_param);
+        n1.velocity = n2.velocity;
+        n1.pressure = n2.pressure;
+        n1.soft = n2.soft;
+
         n1.pitch_param = std::move(n2.pitch_param);
-        n1.frequency = std::move(n2.frequency);
-        n1.pitch = std::move(n2.pitch);
-        n1.soft = std::move(n2.soft);
-        n1.gain = std::move(n2.gain);
-        n1.playing = std::move(n2.playing);
-        n1.hold = std::move(n2.hold);
+        n1.pitch_bend = n2.pitch_bend;
+        n1.frequency = n2.frequency;
+        n1.pitch = n2.pitch;
     }
 
     Note& operator=(Note&&) = default;
@@ -138,9 +147,9 @@ public:
         Emitter::matrix(m);
     }
 
-    bool play(float g, float start_pitch = 1.0f, float rate = 0.0f) {
-        hold = false;
-        gain_param = gain = GAIN_FACTOR*g*soft;
+    bool play(float v, float start_pitch = 1.0f, float rate = 0.0f) {
+        v = 3.321928f*log10f(1.0f+v);
+        hold = false; velocity = v; set_gain();
         if (rate > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
@@ -149,26 +158,26 @@ public:
            Emitter::set(dsp);
         }
         Emitter::set(AAX_INITIALIZED);
-        Emitter::set(AAX_VELOCITY_FACTOR, 127.0f*g);
+        Emitter::set(AAX_VELOCITY_FACTOR, 127.0f*velocity);
         if (!playing) playing = Emitter::set(AAX_PLAYING);
         return playing;
     }
 
+    bool stop(float v = 1.0f) {
+        v = std::min(0.333f + 0.667f*2.0f*v, 1.0f);
+        playing = false; velocity = v;
+        if (fabsf(velocity - 1.0f) > 0.1f) set_gain();
+        return hold ? true : Emitter::set(AAX_STOPPED);
+    }
+
     bool finish(void) {
-        hold = false;
-        playing = false;
+        hold = false; playing = false;
         return Emitter::set(AAX_STOPPED);
     }
 
     bool finished(void) {
         aaxState s = Emitter::state();
         return (s == AAX_PROCESSED || s == AAX_INITIALIZED);
-    }
-
-    bool stop(float g = 1.0f) {
-        playing = false;
-        if (fabsf(g - 1.0f) > 0.1f) gain_param = (gain *= g*soft);
-        return hold ? true : Emitter::set(AAX_STOPPED);
     }
 
     bool stopped(void) {
@@ -189,6 +198,16 @@ public:
     // only notes started before this command should hold until stop arrives
     inline void set_sustain(bool s) { hold = s; }
 
+    inline void set_soft(float s) {
+        soft = s; set_gain();
+    }
+    inline void set_pressure(float p) {
+        pressure = p; set_gain();
+    }
+    inline void set_pitch(float b) {
+        pitch_bend = b; set_pitch();
+    }
+
     // envelope control
     inline void set_attack_time(unsigned t) { set(AAX_ATTACK_FACTOR, t); }
     inline void set_release_time(unsigned t) { set(AAX_RELEASE_FACTOR, t); }
@@ -200,23 +219,29 @@ public:
         return Emitter::add(buffer);
     }
 
-    inline void set_soft(float s) { soft = s; }
-    inline void set_gain(float expr) { gain_param = GAIN_FACTOR*expr*gain*soft; }
-    inline void set_pitch(float bend) { pitch_param = bend*pitch; }
-
 private:
+    inline void set_gain() {
+        volume_param = GAIN_FACTOR*velocity*pressure*soft;
+    }
+    inline void set_pitch() {
+        pitch_param = pitch*pitch_bend;
+    }
+
     Matrix64 mtx;
-
-    Param gain_param = GAIN_FACTOR;
-    Param pitch_param = 1.0f;
-
-    float frequency;
-    float pitch;
-    float soft = 1.0f;
-    float gain = GAIN_FACTOR;
     float pan_prev = -1000.0f;
+
     bool playing = false;
     bool hold = true;
+
+    Param volume_param = GAIN_FACTOR;
+    float velocity = 1.0f;
+    float pressure = 1.0f;
+    float soft = 1.0f;
+
+    Param pitch_param = 1.0f;
+    float pitch_bend = 1.0f;
+    float frequency;
+    float pitch;
 };
 
 
@@ -271,48 +296,67 @@ public:
     }
 
     friend void swap(Instrument& i1, Instrument& i2) noexcept {
+        std::swap(static_cast<Mixer&>(i1), static_cast<Mixer&>(i2));
+
         i1.aax = std::move(i2.aax);
-        i1.key = std::move(i2.key);
-        i1.key_stopped = std::move(i2.key_stopped);
-        i1.key_finish = std::move(i2.key_finish);
+
+        i1.pan = std::move(i2.pan);
+
+        i1.volume = std::move(i2.volume);
+
         i1.vibrato_freq = std::move(i2.vibrato_freq);
         i1.vibrato_depth = std::move(i2.vibrato_depth);
         i1.vibrato_state = std::move(i2.vibrato_state);
+
         i1.tremolo_freq = std::move(i2.tremolo_freq);
         i1.tremolo_depth = std::move(i2.tremolo_depth);
         i1.tremolo_state = std::move(i2.tremolo_state);
+
         i1.chorus_rate = std::move(i2.chorus_rate);
         i1.chorus_level = std::move(i2.chorus_level);
         i1.chorus_depth = std::move(i2.chorus_depth);
         i1.chorus_state = std::move(i2.chorus_state);
+
         i1.filter_cutoff = std::move(i2.filter_cutoff);
         i1.filter_resonance = std::move(i2.filter_resonance);
         i1.filter_state = std::move(i2.filter_state);
+
         i1.reverb_level = std::move(i2.reverb_level);
         i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
         i1.reverb_state = std::move(i2.reverb_state);
-        i1.attack_time = std::move(i2.attack_time);
-        i1.release_time = std::move(i2.release_time);
-        i1.decay_time = std::move(i2.decay_time);
-        i1.decay_level = std::move(i2.decay_level);
-        i1.delay_level = std::move(i2.delay_level);
-        i1.mfreq = std::move(i2.mfreq);
-        i1.mrange = std::move(i2.mrange);
-        i1.fc = std::move(i2.fc);
-        i1.Q = std::move(i2.Q);
-        i1.soft = std::move(i2.soft);
-        i1.gain = std::move(i2.gain);
-        i1.volume = std::move(i2.volume);
-        i1.expression = std::move(i2.expression);
-        i1.pitch_rate = std::move(i2.pitch_rate);
-        i1.pitch_start = std::move(i2.pitch_start);
-        i1.key_prev = std::move(i2.key_prev);
-        i1.pan = std::move(i2.pan);
-        i1.is_drums = std::move(i2.is_drums);
-        i1.monophonic = std::move(i2.monophonic);
-        i1.playing= std::move(i2.playing);
-        i1.slide_state = std::move(i2.slide_state);
-        i1.legato = std::move(i2.legato);
+
+        i1.attack_time = i2.attack_time;
+        i1.release_time = i2.release_time;
+        i1.decay_time = i2.decay_time;
+
+        i1.decay_level = i2.decay_level;
+        i1.delay_level = i2.delay_level;
+
+        i1.mfreq = i2.mfreq;
+        i1.mrange = i2.mrange;
+
+        i1.fc = i2.fc;
+        i1.Q = i2.Q;
+
+        i1.soft = i2.soft;
+        i1.gain = i2.gain;
+        i1.expression = i2.expression;
+
+        i1.pan_prev = i2.pan_prev;
+
+        i1.pitch_rate = i2.pitch_rate;
+        i1.pitch_start = i2.pitch_start;
+        i1.key_prev = i2.key_prev;
+
+        i1.is_drums = i2.is_drums;
+        i1.monophonic = i2.monophonic;
+        i1.playing = i2.playing;
+        i1.slide_state = i2.slide_state;
+        i1.legato = i2.legato;
+
+        i1.key_finish = i2.key_finish;
+        i1.key_stopped = std::move(i2.key_stopped);
+        i1.key = std::move(i2.key);
     }
 
     Instrument& operator=(Instrument&&) = default;
@@ -364,8 +408,7 @@ public:
         note->set_release_time(release_time);
         note->set_legato(legato);
         note->set_soft(soft);
-        float g = 3.321928f*log10f(1.0f+velocity);
-        note->play(g, pitch_start, slide_state ? pitch_rate : 0.0f);
+        note->play(velocity, pitch_start, slide_state ? pitch_rate : 0.0f);
         pitch_start = pitch;
         for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
              it = next)
@@ -380,8 +423,7 @@ public:
     void stop(uint32_t key_no, float velocity = 0) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            float g = std::min(0.333f + 0.667f*2.0f*velocity, 1.0f);
-            it->second->stop(g);
+            it->second->stop(velocity);
         }
     }
 
@@ -405,7 +447,11 @@ public:
     }
 
     inline void set_gain(float v) {
-        gain = v; set_expression(expression);
+        gain = v; set_volume();
+    }
+
+    inline void set_expression(float e) {
+        expression = e; set_volume();
     }
 
     inline void set_soft(float s) {
@@ -413,18 +459,14 @@ public:
         for (auto& it : key) it.second->set_soft(soft);
     }
 
-    inline void set_expression(float e) {
-        expression = e; volume = gain*expression;
-    }
-
     inline void set_pressure(float p) {
-        for (auto& it : key) it.second->set_gain(p);
+        for (auto& it : key) it.second->set_pressure(p);
     }
 
     inline void set_pressure(uint32_t key_no, float p) {
         auto it = key.find(key_no);
         if (it != key.end()) {
-            it->second->set_gain(p);
+            it->second->set_pressure(p);
         }
     }
 
@@ -556,6 +598,10 @@ public:
 private:
     inline float note2freq(uint32_t d) {
         return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
+    }
+
+    inline void set_volume() {
+        volume = gain*expression;
     }
 
     AeonWave* aax;
