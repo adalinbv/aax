@@ -128,7 +128,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 
-   pnvel = gnvel = 1.0f;
+   pnvel = 1.0f;
    pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
 
    if (pslide)
