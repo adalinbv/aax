@@ -455,7 +455,7 @@ public:
     }
 
     inline void set_soft(float s) {
-        soft = (!is_drums) ? 1.0f - 0.5f*s : 1.0f;
+        soft = (!is_drums) ? 1.0f - 0.5f*s : 1.0f; set_filter_cutoff();
         for (auto& it : key) it.second->set_soft(soft);
     }
 
@@ -580,7 +580,7 @@ public:
     inline void set_chorus_rate(float rate) { chorus_rate = rate; }
 
     void set_filter_cutoff(float dfc) {
-        filter_cutoff = soft*log2lin(dfc*fc);
+        cutoff = dfc; set_filter_cutoff();
         if (!filter_state) filter_state = AAX_TRUE;
     }
 
@@ -599,7 +599,9 @@ private:
     inline float note2freq(uint32_t d) {
         return 440.0f*powf(2.0f, (float(d)-69.0f)/12.0f);
     }
-
+    inline void set_filter_cutoff() {
+        filter_cutoff = soft*log2lin(cutoff*fc);
+    }
     inline void set_volume() {
         volume = gain*expression;
     }
@@ -641,6 +643,7 @@ private:
     float mfreq = 1.5f;
     float mrange = 1.0f;
 
+    float cutoff = 1.0f;
     float fc = lin2log(float(filter_cutoff));
     float Q = float(filter_resonance);
 
