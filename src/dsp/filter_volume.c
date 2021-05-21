@@ -280,7 +280,7 @@ _occlusion_create(_aaxRingBufferOcclusionData *occlusion, _aaxFilterInfo* slot,
             lfo->period_rate = 1.0f/fs;
          
             lfo->min = 100.0f;
-            lfo->max = 20000.0f;
+            lfo->max = MAX_CUTOFF;
          
             lfo->min_sec = lfo->min/lfo->fs;
             lfo->max_sec = lfo->max/lfo->fs;

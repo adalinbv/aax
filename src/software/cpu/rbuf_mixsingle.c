@@ -38,6 +38,7 @@
 #include <api.h>
 #include <ringbuffer.h>
 #include <dsp/dsp.h>
+#include <dsp/filters.h>
 
 #include "software/rbuf_int.h"
 
@@ -249,7 +250,7 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
               hrtf_volume[DIR_RIGHT],
               hrtf_volume[DIR_UPWD],
               hrtf_volume[DIR_BACK],
-              20000.0f - _log2lin(-4.278754f*_MIN(dir_fact[DIR_RIGHT], 0.0f)));
+              MAX_CUTOFF - _log2lin(-4.278754f*_MIN(dir_fact[DIR_RIGHT], 0.0f)));
 #endif
 #if 0
  printf("t: %i, lr: %5.4f ms, ud: %5.4f ms, bf: %5.4f ms\n", t,
@@ -291,8 +292,8 @@ _aaxRingBufferMixMono16HRTF(_aaxRingBufferSample *drbd, CONST_MIX_PTRPTR_T sptr,
          if (!ctr)
          {
             // dirfact = 0.0f: 20kHz, dirfact = -1.0f: 250Hz
-            // log10(20000 - 1000) = 4.2787541
-            float fc = 20000.0f - _log2lin(-4.278754f*dirfact);
+            // log10(MAX_CUTOFF - 1000) = 4.2787541
+            float fc = MAX_CUTOFF - _log2lin(-4.278754f*dirfact);
             ep2d->k = _aax_movingaverage_compute(fc, fs);
          }
 
