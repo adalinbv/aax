@@ -164,7 +164,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    }
 
    /* apply envelope filter */
-   gnvel = ep2d->note.velocity;
+   gnvel = 0.05f + 0.5f*ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
    if (gain <= -1e-3f) {
       ret = -2;

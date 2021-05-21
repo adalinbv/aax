@@ -1124,7 +1124,7 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
       break;
    case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_VELOCITY_FACTOR:
-      p2d->note.velocity = 0.5f+0.5f*(float)setup/100.0f;	// 0.5 .. 1.135
+      p2d->note.velocity = (float)setup/100.0f;			// 0.0 .. 1.27
       break;
    case AAX_ATTACK_FACTOR:
    case AAX_MIDI_ATTACK_FACTOR:
@@ -1168,11 +1168,11 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
       break;
    case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_VELOCITY_FACTOR:
-      rv = 127.0f*p2d->note.velocity;
+      rv = 100.0f*p2d->note.velocity;
       break;
    case AAX_PRESSURE_FACTOR:
    case AAX_MIDI_PRESSURE_FACTOR:
-      rv = 127.0f*p2d->note.pressure;
+      rv = 100.0f*p2d->note.pressure;
       break;
    case AAX_LEGATO_MODE:
        rv = handle->midi.legato_mode ? 0x64 : 0;
@@ -1405,11 +1405,22 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       }
       break;
    case AAX_VOLUME_FILTER:
-   case AAX_FREQUENCY_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:
    case AAX_DYNAMIC_LAYER_FILTER:
    case AAX_BITCRUSHER_FILTER:
       _FILTER_SWAP_SLOT(p2d, type, filter, 0)
+      break;
+   case AAX_FREQUENCY_FILTER:
+      _FILTER_SWAP_SLOT(p2d, type, filter, 0)
+      if (p2d->note.velocity != 1.0f)
+      {
+         _aaxRingBufferFreqFilterData *flt = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
+         _aaxLFOData* lfo = flt->lfo;
+         if (flt->lfo && p2d->note.velocity > 1.0f) {
+            float max = lfo->max_sec*lfo->fs;
+            lfo->max = _MIN(max*p2d->note.velocity, _lin2log(MAX_CUTOFF));
+         }
+      }
       break;
    case AAX_DISTANCE_FILTER:
       _FILTER_SWAP_SLOT(p3d, type, filter, 0)

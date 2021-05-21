@@ -259,6 +259,11 @@ typedef struct
 
 } _midi_t;
 
+typedef struct {
+   float velocity;
+   float pressure;
+} _note_t;
+
 typedef ALIGN16  struct {
    vec3f_t box;				/* bounding box */
    float radius_sq;			/* bounding radius squared */
@@ -365,10 +370,7 @@ typedef ALIGN16 struct _aax2dProps_s
    float pitch_factor;
    int mip_levels;
 
-   struct {
-      float velocity;
-      float pressure;
-   } note;
+   _note_t note;
 
    struct {
       FLOAT pitch;
