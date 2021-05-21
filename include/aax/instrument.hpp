@@ -116,10 +116,6 @@ public:
         aax::dsp dsp = Emitter::get(AAX_VOLUME_FILTER);
         dsp.set(AAX_MAX_GAIN, 2.56f);
         Emitter::set(dsp);
-
-        dsp = Emitter::get(AAX_FREQUENCY_FILTER);
-        filter_cutoff_hf = dsp.get(AAX_CUTOFF_FREQUENCY_HF);
-        tie(filter_cutoff_hf, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY_HF);
     }
 
     virtual ~Note() = default;
@@ -142,10 +138,6 @@ public:
         n1.pitch_bend = n2.pitch_bend;
         n1.frequency = n2.frequency;
         n1.pitch = n2.pitch;
-
-        n1.filter_cutoff_hf = std::move(n2.filter_cutoff_hf);
-        n1.cutoff = n2.cutoff;
-        n1.fc = n2.fc;
     }
 
     Note& operator=(Note&&) = default;
@@ -157,7 +149,7 @@ public:
 
     bool play(float v, float start_pitch = 1.0f, float rate = 0.0f) {
         v = 3.321928f*log10f(1.0f+v);
-        hold = false; velocity = v; set_gain(); // set_filter_cutoff();
+        hold = false; velocity = v; set_gain();
         if (rate > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
@@ -228,9 +220,6 @@ public:
     }
 
 private:
-    inline void set_filter_cutoff() {
-        filter_cutoff_hf = log2lin((0.5f+0.5f*velocity)*fc);
-    }
     inline void set_gain() {
         volume_param = GAIN_FACTOR*velocity*pressure*soft;
     }
@@ -253,10 +242,6 @@ private:
     float pitch_bend = 1.0f;
     float frequency;
     float pitch;
-
-    Param filter_cutoff_hf = 22050.0f;
-    float fc = lin2log(float(filter_cutoff_hf));
-    float cutoff = 1.0f;
 };
 
 
