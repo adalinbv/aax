@@ -130,9 +130,6 @@ public:
         n1.hold = n2.hold;
 
         n1.volume_param = std::move(n2.volume_param);
-        n1.velocity = n2.velocity;
-        n1.pressure = n2.pressure;
-        n1.soft = n2.soft;
 
         n1.pitch_param = std::move(n2.pitch_param);
         n1.pitch_bend = n2.pitch_bend;
@@ -147,9 +144,8 @@ public:
         Emitter::matrix(m);
     }
 
-    bool play(float v, float start_pitch = 1.0f, float rate = 0.0f) {
-        v = 3.321928f*log10f(1.0f+v);
-        hold = false; velocity = v; set_gain();
+    bool play(float velocity, float start_pitch = 1.0f, float rate = 0.0f) {
+        hold = false;
         if (rate > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
@@ -163,10 +159,8 @@ public:
         return playing;
     }
 
-    bool stop(float v = 1.0f) {
-        v = std::min(0.333f + 0.667f*2.0f*v, 1.0f);
-        playing = false; velocity = v;
-        if (fabsf(velocity - 1.0f) > 0.1f) set_gain();
+    bool stop(float velocity = 1.0f) {
+        playing = false;
         return hold ? true : Emitter::set(AAX_STOPPED);
     }
 
@@ -198,21 +192,21 @@ public:
     // only notes started before this command should hold until stop arrives
     inline void set_sustain(bool s) { hold = s; }
 
-    inline void set_soft(float s) {
-        soft = s; set_gain();
+    inline void set_soft(float soft) {
+        Emitter::set(AAX_MIDI_SOFT_FACTOR, 127.0f*soft);
     }
-    inline void set_pressure(float p) {
-        pressure = p; set_gain();
+    inline void set_pressure(float pressure) {
+        Emitter::set(AAX_MIDI_PRESSURE_FACTOR, 127.0f*pressure);
     }
     inline void set_pitch(float b) {
         pitch_bend = b; set_pitch();
     }
 
     // envelope control
-    inline void set_attack_time(unsigned t) { set(AAX_ATTACK_FACTOR, t); }
-    inline void set_release_time(unsigned t) { set(AAX_RELEASE_FACTOR, t); }
-    inline void set_decay_time(unsigned t) { set(AAX_DECAY_FACTOR, t); }
-    inline void set_legato(bool l) { set(AAX_LEGATO_MODE, l); };
+    inline void set_attack_time(unsigned t) { set(AAX_MIDI_ATTACK_FACTOR, t); }
+    inline void set_release_time(unsigned t) { set(AAX_MIDI_RELEASE_FACTOR,t); }
+    inline void set_decay_time(unsigned t) { set(AAX_MIDI_DECAY_FACTOR, t); }
+    inline void set_legato(bool l) { set(AAX_MIDI_LEGATO_MODE, l); };
 
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
@@ -220,9 +214,6 @@ public:
     }
 
 private:
-    inline void set_gain() {
-        volume_param = GAIN_FACTOR*velocity*pressure*soft;
-    }
     inline void set_pitch() {
         pitch_param = pitch*pitch_bend;
     }
@@ -234,9 +225,6 @@ private:
     bool hold = true;
 
     Param volume_param = GAIN_FACTOR;
-    float velocity = 1.0f;
-    float pressure = 1.0f;
-    float soft = 1.0f;
 
     Param pitch_param = 1.0f;
     float pitch_bend = 1.0f;

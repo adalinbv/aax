@@ -153,6 +153,7 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    p2d->pitch_factor = 1.0f;
    p2d->note.velocity = 1.0f;		/* MIDI */
    p2d->note.pressure = 1.0f;
+   p2d->note.soft = 1.0f;
 
    p2d->final.pitch_lfo = 1.0f;		/* LFO */
    p2d->final.pitch = 1.0f;

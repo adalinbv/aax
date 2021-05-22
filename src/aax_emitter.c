@@ -1126,6 +1126,9 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    case AAX_MIDI_VELOCITY_FACTOR:
       p2d->note.velocity = (float)setup/64.0f;			// 0.0 .. 2.0
       break;
+   case AAX_MIDI_SOFT_FACTOR:
+      p2d->note.soft = (float)setup/127.0f;			// 0.0 .. 1.0
+      break;
    case AAX_ATTACK_FACTOR:
    case AAX_MIDI_ATTACK_FACTOR:
       handle->midi.attack_factor = (float)setup/64.0f;		// 0.0 .. 2.0
@@ -1137,7 +1140,7 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    case AAX_RELEASE_FACTOR:
       handle->midi.release_factor = (float)setup/64.0f;		// 0.0 .. 2.0
       break;
-   case AAX_LEGATO_MODE:
+   case AAX_MIDI_LEGATO_MODE:
        handle->midi.legato_mode = setup ? AAX_TRUE : AAX_FALSE;
       break;
    default:
@@ -1174,7 +1177,10 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
    case AAX_MIDI_PRESSURE_FACTOR:
       rv = 100.0f*p2d->note.pressure;
       break;
-   case AAX_LEGATO_MODE:
+   case AAX_MIDI_SOFT_FACTOR:
+      rv = 127.0f*p2d->note.soft;
+      break;
+   case AAX_MIDI_LEGATO_MODE:
        rv = handle->midi.legato_mode ? 0x64 : 0;
       break;
    default:

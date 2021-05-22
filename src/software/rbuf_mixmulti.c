@@ -105,7 +105,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
       pitch *= _EFFECT_GET(fp2d, PITCH_EFFECT, AAX_PITCH);
    }
 
-   gnvel = pnvel = 1.0f;
+   pnvel = 1.0f;
    pitch *= _aaxEnvelopeGet(penv, srbi->stopped, &pnvel, NULL);
 
    if (pslide)
@@ -164,8 +164,9 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    }
 
    /* apply envelope filter */
-   gnvel = 0.5f + 0.25f*ep2d->note.velocity;
+   gnvel = 0.75f + 0.25f*ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
+   gain *= ep2d->note.soft * ep2d->note.pressure;
    if (gain <= -1e-3f) {
       ret = -2;
    }

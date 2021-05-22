@@ -262,6 +262,7 @@ typedef struct
 typedef struct {
    float velocity;
    float pressure;
+   float soft;
 } _note_t;
 
 typedef ALIGN16  struct {

@@ -183,8 +183,11 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Apply envelope filter */
-   gnvel = 0.5f + 0.25f*ep2d->note.velocity;
+// start: v = 3.321928f*log10f(1.0f+v);
+// stop: v = std::min(0.333f + 0.667f*2.0f*v, 1.0f);
+   gnvel = 0.75f + 0.25f*ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv);
+   gain *= ep2d->note.soft * ep2d->note.pressure;
    if (gain <= -1e-3f) {
       ret = -2;
    }
