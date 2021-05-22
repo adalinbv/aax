@@ -164,12 +164,12 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    }
 
    /* apply envelope filter */
-   gnvel = 0.75f + 0.25f*ep2d->note.velocity;
+   gnvel = 0.67f + 0.33f*ep2d->note.velocity;
    gain = _aaxEnvelopeGet(genv, srbi->stopped, &gnvel, penv); // gain0;
-   gain *= ep2d->note.soft * ep2d->note.pressure;
    if (gain <= -1e-3f) {
       ret = -2;
    }
+   gain *= ep2d->note.soft * ep2d->note.pressure;
 
    /* apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
