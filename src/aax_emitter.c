@@ -1120,11 +1120,12 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    {
    case AAX_PRESSURE_FACTOR:
    case AAX_MIDI_PRESSURE_FACTOR:
-      p2d->note.pressure = (float)setup/100.0f;			// 0.0 .. 1.27
+      p2d->note.pressure = (float)setup/127.0f;			// 0.0 .. 1.0
       break;
    case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_VELOCITY_FACTOR:
       p2d->note.velocity = (float)setup/64.0f;			// 0.0 .. 2.0
+      p2d->note.velocity = 0.67f + 0.33f*p2d->note.velocity;
       break;
    case AAX_MIDI_SOFT_FACTOR:
       p2d->note.soft = (float)setup/127.0f;			// 0.0 .. 1.0
@@ -1171,11 +1172,12 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
       break;
    case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_VELOCITY_FACTOR:
-      rv = 64.0f*p2d->note.velocity;
+      rv = (p2d->note.velocity - 0.67f)/0.33f;
+      rv *= 64.0f;
       break;
    case AAX_PRESSURE_FACTOR:
    case AAX_MIDI_PRESSURE_FACTOR:
-      rv = 100.0f*p2d->note.pressure;
+      rv = 127.0f*p2d->note.pressure;
       break;
    case AAX_MIDI_SOFT_FACTOR:
       rv = 127.0f*p2d->note.soft;
