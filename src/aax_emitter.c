@@ -1125,7 +1125,7 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_VELOCITY_FACTOR:
       p2d->note.velocity = (float)setup/64.0f;			// 0.0 .. 2.0
-      p2d->note.velocity = 0.67f + 0.33f*p2d->note.velocity;
+      p2d->note.velocity = 0.67f + 0.33f*p2d->note.velocity*p2d->note.velocity;
       break;
    case AAX_MIDI_SOFT_FACTOR:
       p2d->note.soft = (float)setup/127.0f;			// 0.0 .. 1.0
