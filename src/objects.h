@@ -260,7 +260,8 @@ typedef struct
 } _midi_t;
 
 typedef struct {
-   float velocity;
+   float velocity;			/* attack */
+   float release;			/* velocity */
    float pressure;
    float soft;
 } _note_t;

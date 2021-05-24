@@ -154,13 +154,14 @@ public:
            Emitter::set(dsp);
         }
         Emitter::set(AAX_INITIALIZED);
-        Emitter::set(AAX_VELOCITY_FACTOR, 127.0f*velocity);
+        Emitter::set(AAX_MIDI_ATTACK_VELOCITY_FACTOR, 127.0f*velocity);
         if (!playing) playing = Emitter::set(AAX_PLAYING);
         return playing;
     }
 
     bool stop(float velocity = 1.0f) {
         playing = false;
+        Emitter::set(AAX_MIDI_RELEASE_VELOCITY_FACTOR, 127.0f*velocity);
         return hold ? true : Emitter::set(AAX_STOPPED);
     }
 
