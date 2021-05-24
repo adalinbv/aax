@@ -73,10 +73,10 @@ static aaxEffect
 _aaxPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   float pitch_rate = effect->slot[0]->param[AAX_PITCH_RATE];
+   float dt = effect->slot[0]->param[AAX_PITCH_RATE];
 
    effect->state = state;
-   if (state && pitch_rate > 0.0f)
+   if (state && dt > 0.0f)
    {
       _aaxEnvelopeData* env = effect->slot[0]->data;
       if (env == NULL)
@@ -91,7 +91,6 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
          float value = effect->slot[0]->param[AAX_PITCH_START];
          float nextval = effect->slot[0]->param[AAX_PITCH];
          float period = effect->info->period_rate;
-         float dt = 1.0f / pitch_rate;
          uint32_t max_pos;
 
          // pitch is already applied elsewhere so we normalize

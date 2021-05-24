@@ -144,12 +144,12 @@ public:
         Emitter::matrix(m);
     }
 
-    bool play(float velocity, float start_pitch = 1.0f, float rate = 0.0f) {
+    bool play(float velocity, float start_pitch = 1.0f, float time = 0.0f) {
         hold = false;
-        if (rate > 0.0f && start_pitch != pitch) {
+        if (time > 0.0f && start_pitch != pitch) {
            aax::dsp dsp = Emitter::get(AAX_PITCH_EFFECT);
            dsp.set(AAX_PITCH_START, start_pitch);
-           dsp.set(AAX_PITCH_RATE, rate);
+           dsp.set(AAX_TRANSITION_TIME, time);
            dsp.set(AAX_TRUE|AAX_ENVELOPE_FOLLOW);
            Emitter::set(dsp);
         }
@@ -334,7 +334,7 @@ public:
 
         i1.pan_prev = i2.pan_prev;
 
-        i1.pitch_rate = i2.pitch_rate;
+        i1.transition_time = i2.transition_time;
         i1.pitch_start = i2.pitch_start;
         i1.key_prev = i2.key_prev;
 
@@ -398,7 +398,7 @@ public:
         note->set_release_time(release_time);
         note->set_legato(legato);
         note->set_soft(soft);
-        note->play(velocity, pitch_start, slide_state ? pitch_rate : 0.0f);
+        note->play(velocity, pitch_start, slide_state ? transition_time : 0.0f);
         pitch_start = pitch;
         for (auto it = key_stopped.begin(), next = it; it != key_stopped.end();
              it = next)
@@ -505,13 +505,15 @@ public:
         }
     }
 
+    // set_pitch_rate(bool) is deprecated in favor of set_pitch_slide_state
+    // set_pitch_rate(float) is deprecated in favor of set_pitch_transition_time
     inline void set_pitch_start(float p) {
         if (!is_drums) { pitch_start = p; }
     }
-    inline void set_pitch_slide_state(bool s) { // was set_pitch_rate(bool)
+    inline void set_pitch_slide_state(bool s) {
         if (!is_drums) { slide_state = s; }
     }
-    inline void set_pitch_rate(float t) {
+    inline void set_pitch_transition_time(float t) {
         if (!is_drums) { pitch_rate = t; }
     }
 
