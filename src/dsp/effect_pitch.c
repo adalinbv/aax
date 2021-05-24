@@ -73,10 +73,10 @@ static aaxEffect
 _aaxPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
-   float pitch_slide = effect->slot[0]->param[AAX_PITCH_RATE];
+   float pitch_rate = effect->slot[0]->param[AAX_PITCH_RATE];
 
    effect->state = state;
-   if (state && pitch_slide > 0.0f)
+   if (state && pitch_rate > 0.0f)
    {
       _aaxEnvelopeData* env = effect->slot[0]->data;
       if (env == NULL)
@@ -87,19 +87,24 @@ _aaxPitchEffectSetState(_effect_t* effect, int state)
       }
 
       if (env)
-      {
+      {		// based on the timed-pitch effect
+         float value = effect->slot[0]->param[AAX_PITCH_START];
          float nextval = effect->slot[0]->param[AAX_PITCH];
-         float value = effect->slot[0]->param[AAX_PITCH_START]/nextval;
          float period = effect->info->period_rate;
+         float dt = 1.0f / pitch_rate;
          uint32_t max_pos;
 
-         env->max_stages = 1;
-         env->sustain = AAX_TRUE;
-         env->value0 = 1.0f;
-         env->value = value;
+         // pitch is already applied elsewhere so we normalize
+         value /= nextval;
+         nextval /= nextval;
 
-         max_pos = rintf(pitch_slide * period);
-         env->step[0] = (1.0f - value)/max_pos;
+         env->sustain = AAX_TRUE;
+         env->value0 = env->value = 1.0f;
+         env->value = value;
+         env->max_stages = 1;
+
+         max_pos = rintf(dt * period);
+         env->step[0] = fabsf(nextval - value)/max_pos;
          env->max_pos[0] = max_pos;
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);

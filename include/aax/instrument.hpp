@@ -508,7 +508,7 @@ public:
     inline void set_pitch_start(float p) {
         if (!is_drums) { pitch_start = p; }
     }
-    inline void set_pitch_rate(bool s) {
+    inline void set_pitch_slide_state(bool s) { // was set_pitch_rate(bool)
         if (!is_drums) { slide_state = s; }
     }
     inline void set_pitch_rate(float t) {
