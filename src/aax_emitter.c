@@ -1124,12 +1124,11 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
       break;
    case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_ATTACK_VELOCITY_FACTOR:
-      p2d->note.velocity = (float)setup/127.0f;			// 0.0 .. 2.0
+      p2d->note.velocity = (float)setup/127.0f;			// 0.0 .. 1.0
       p2d->note.velocity = 0.66f + 0.66f*p2d->note.velocity*p2d->note.velocity;
       break;
    case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
-      p2d->note.release = (float)setup/127.0f;                 // 0.0 .. 2.0
-      p2d->note.release = 0.66f + 0.66f*p2d->note.release*p2d->note.release;
+      p2d->note.release = (float)setup/64.0f;			// 0.0 .. 2.0
       break;
       break;
    case AAX_MIDI_SOFT_FACTOR:
@@ -1177,12 +1176,11 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
       break;
    case AAX_VELOCITY_FACTOR:
    case AAX_MIDI_ATTACK_VELOCITY_FACTOR:
-      rv = (p2d->note.velocity - 0.66f)/0.66f;
+      rv = sqrtf((p2d->note.velocity - 0.66f)/0.66f);
       rv *= 127.0f;
       break;
    case AAX_MIDI_RELEASE_VELOCITY_FACTOR:
-      rv = (p2d->note.release - 0.66f)/0.66f;
-      rv *= 127.0f;
+      rv = 64.0f*p2d->note.release;
       break;
    case AAX_PRESSURE_FACTOR:
    case AAX_MIDI_PRESSURE_FACTOR:
@@ -1436,6 +1434,15 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
          if (flt->lfo) {
             float max = lfo->max_sec*lfo->fs;
             lfo->max = max*(0.875f+0.125f*p2d->note.velocity);
+         }
+      }
+      else if (p2d->note.release < 1.0f)
+      {
+         _aaxRingBufferFreqFilterData *flt = _FILTER_GET_DATA(p2d, FREQUENCY_FILTER);
+         _aaxLFOData* lfo = flt->lfo;
+         if (flt->lfo) {
+            float min = lfo->min_sec*lfo->fs;
+            lfo->min = min*(0.875f+0.125f*p2d->note.release);
          }
       }
       break;
