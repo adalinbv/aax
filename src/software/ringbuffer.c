@@ -133,6 +133,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
 #endif
 
          rbd->dde_sec = dde;
+         rbd->no_layers = 1;
          rbd->no_tracks = 1;
          rbd->frequency_hz = 44100.0f;
          rbd->format = AAX_PCM16S;
@@ -904,6 +905,10 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       else printf("Unable set the no. tracks rbd->track == NULL\n");
 #endif
       break;
+   case RB_NO_LAYERS:
+      rbd->no_layers = val;
+      rv = AAX_TRUE;
+      break;
    case RB_LOOPING:
       rbi->looping = rbi->loop_mode = val ? AAX_TRUE : AAX_FALSE;
       rbi->loop_max = (val > AAX_TRUE) ? val : 0;
@@ -1102,7 +1107,14 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    switch(param)
    {
    case RB_NO_TRACKS:
-      rv = rbi->sample->no_tracks;
+      rv = rbi->sample->no_layers == 1 ? rbi->sample->no_tracks : 1;
+      break;
+   case RB_NO_LAYERS:
+      rv = rbi->sample->no_layers;
+      break;
+   case RB_NO_TRACKS_OR_LAYERS:
+      rv = rbi->sample->no_layers == 1 ? rbi->sample->no_tracks :
+                                         rbi->sample->no_layers;
       break;
    case RB_NO_SAMPLES:
       rv = rbi->sample->no_samples;
@@ -1203,10 +1215,11 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
 int
 _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float f, float ratio, float phase, unsigned char modulate, unsigned char limiter)
 {
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   int no_tracks = rbd->no_tracks;
    int rv = AAX_FALSE;
-   int no_tracks;
 
-   no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    if (track < no_tracks)
    {
       unsigned char bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
@@ -1258,11 +1271,12 @@ _aaxRingBufferDataMixWaveform(_aaxRingBuffer *rb, float *scratch, enum aaxWavefo
 int
 _aaxRingBufferDataMixNoise(_aaxRingBuffer *rb, float *scratch, enum aaxWaveformType type, int track, float fs, float rate, float ratio, uint64_t seed, char skip, unsigned char modulate, unsigned char limiter)
 {
+   _aaxRingBufferData *rbi = rb->handle;
+   _aaxRingBufferSample *rbd = rbi->sample;
+   int no_tracks = rbd->no_tracks;
    int rv = AAX_FALSE;
-   int tracks;
 
-   tracks = rb->get_parami(rb, RB_NO_TRACKS);
-   if (track < tracks)
+   if (track < no_tracks)
    {
       unsigned char bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
       size_t no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
@@ -1305,21 +1319,20 @@ _aaxRingBufferDataMultiply(_aaxRingBuffer *rb, size_t offs, size_t no_samples, f
    {
       _aaxRingBufferData *rbi = rb->handle;
       _aaxRingBufferSample *rbd = rbi->sample;
-      size_t t, tracks;
+      size_t track, no_tracks = rbd->no_tracks;
       unsigned char bps;
       int32_t **data;
 
       bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
-      tracks = rb->get_parami(rb, RB_NO_TRACKS);
       if (!no_samples)
       {
          no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
          offs = 0;
       }
 
-      for (t=0; t<tracks; t++)
+      for (track=0; track<no_tracks; track++)
       {
-         data = rbd->track[t];
+         data = rbd->track[track];
          rbd->multiply(data+offs, data+offs, bps, no_samples, ratio_orig);
       }
    }
@@ -1336,9 +1349,11 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps 
    size_t dno_samples;
    float g = 1.0f;
 
+   drbi = drb->handle;
+   drbd = drbi->sample;
    dno_samples =  drb->get_parami(drb, RB_NO_SAMPLES);
    if (tracks == AAX_TRACK_ALL) {
-      tracks =  drb->get_parami(drb, RB_NO_TRACKS);
+      tracks =  drbd->no_tracks;
    }
 
    srbi = srb->handle;
@@ -1357,8 +1372,6 @@ _aaxRingBufferDataMixData(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps 
        g /= tracks;
    }
 
-   drbi = drb->handle;
-   drbd = drbi->sample;
    for (track=0; track<tracks; track++)
    {
       void *sptr = srbi->sample->track[track];

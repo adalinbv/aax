@@ -233,19 +233,22 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_LAYER_FILTER);
    if (lfo)
    {
-      unsigned char no_tracks = srb->get_parami(srb, RB_NO_TRACKS);
-      unsigned char mix_track = (track + 1) % no_tracks;
-      MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
-      float mix = lfo->get(lfo, genv, s, 0, dno_samples);
-
-      mix = _MINMAX(mix, 0.0f, 1.0f);
-      if (mix == 1.0) {
-         track = mix_track;
-      }
-      else if (mix > 0.0f)
+      unsigned char no_layers = srb->get_parami(srb, RB_NO_LAYERS);
+      if (no_layers > 1)
       {
-         drbd->multiply(s, s, sizeof(MIX_T), dno_samples, 1.0f - mix);
-         drbd->add(s, sptr[mix_track]+offs, dno_samples, mix, 0.0f);
+         unsigned char mix_layer = (track + 1) % no_layers;
+         MIX_PTR_T s = (MIX_PTR_T)sptr[track] + offs;
+         float mix = lfo->get(lfo, genv, s, 0, dno_samples);
+
+         mix = _MINMAX(mix, 0.0f, 1.0f);
+         if (mix == 1.0) {
+            track = mix_layer;
+         }
+         else if (mix > 0.0f)
+         {
+            drbd->multiply(s, s, sizeof(MIX_T), dno_samples, 1.0f - mix);
+            drbd->add(s, sptr[mix_layer]+offs, dno_samples, mix, 0.0f);
+         }
       }
    }
 

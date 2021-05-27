@@ -96,6 +96,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     void** track;
     void** scratch;		/* resident scratch buffer */
 
+    unsigned char no_layers;
     unsigned char no_tracks;
     unsigned char bytes_sample;
     unsigned short ref_counter;

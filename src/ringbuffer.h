@@ -60,6 +60,8 @@ enum _aaxRingBufferParam
    RB_FORMAT,
    RB_STATE,
    RB_NO_TRACKS,
+   RB_NO_LAYERS,
+   RB_NO_TRACKS_OR_LAYERS,
    RB_NO_SAMPLES,
    RB_TRACKSIZE,
    RB_BYTES_SAMPLE,
@@ -228,6 +230,7 @@ typedef ALIGN16 struct
    _aaxRingBufferHistoryData *feedback_history;
    _aaxRingBufferFreqFilterData *freq_filter;
    size_t history_samples;
+   size_t no_tracks;
    float feedback;
    char flanger;
 

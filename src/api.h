@@ -277,7 +277,6 @@ typedef struct aax_buffer_t
    unsigned int ref_counter;
 
    _buffer_info_t info;
-   unsigned int layer_num;
    unsigned int sample_num;
 
    unsigned int pos;

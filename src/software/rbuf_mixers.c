@@ -147,7 +147,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
       /* source */
       sstart = 0;
       sbps = srb->get_parami(srb, RB_BYTES_SAMPLE);
-      sno_tracks = srb->get_parami(srb, RB_NO_TRACKS);
+      sno_tracks = srb->get_parami(srb, RB_NO_TRACKS_OR_LAYERS);
       sno_samples = srb->get_parami(srb, RB_NO_SAMPLES);
       if (src_loops)
       {

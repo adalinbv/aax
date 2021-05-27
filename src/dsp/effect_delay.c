@@ -264,18 +264,19 @@ _delay_create(void *d, void *i, char delay, char feedback, float delay_time)
 
    if (data)
    {
-      int tracks = info->no_tracks;
+      int no_tracks = info->no_tracks;
       float fs = info->frequency;
 
+      data->no_tracks = no_tracks;
       data->history_samples = TIME_TO_SAMPLES(fs, delay_time);
 
       if (data->history == NULL) {
          _aaxRingBufferCreateHistoryBuffer(&data->history,
-                                           data->history_samples, tracks);
+                                           data->history_samples, no_tracks);
       }
       if (data->feedback_history == NULL) {
          _aaxRingBufferCreateHistoryBuffer(&data->feedback_history,
-                                           data->history_samples, tracks);
+                                           data->history_samples, no_tracks);
       }
 
       if (!data->history || !data->feedback_history)
@@ -366,21 +367,24 @@ _delay_prepare(MIX_PTR_T dst, MIX_PTR_T src, size_t no_samples, void *data, unsi
 {
    static const size_t bps = sizeof(MIX_T);
    _aaxRingBufferDelayEffectData* delay = data;
-   size_t ds;
+   size_t ds = 0;
 
    assert(delay);
    assert(delay->history);
    assert(delay->history->ptr);
    assert(bps <= sizeof(MIX_T));
 
-   ds = delay->history_samples;
+   if (track < delay->no_tracks)
+   {
+      ds = delay->history_samples;
 
-   // copy the delay effects history to src
+      // copy the delay effects history to src
 // DBG_MEMCLR(1, src-ds, ds, bps);
-   _aax_memcpy(src-ds, delay->history->history[track], ds*bps);
+      _aax_memcpy(src-ds, delay->history->history[track], ds*bps);
 
-   // copy the new delay effects history back
-   _aax_memcpy(delay->history->history[track], src+no_samples-ds, ds*bps);
+      // copy the new delay effects history back
+      _aax_memcpy(delay->history->history[track], src+no_samples-ds, ds*bps);
+   }
 
    return ds;
 }
