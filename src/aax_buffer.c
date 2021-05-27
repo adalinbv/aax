@@ -869,9 +869,9 @@ aaxBufferWriteToFile(aaxBuffer buffer, const char *file, enum aaxProcessingType 
 
 /* -------------------------------------------------------------------------- */
 
-static void _bufApplyBitCrusherFilter(_buffer_t*, _filter_t*);
-static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*);
-static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*);
+static void _bufApplyBitCrusherFilter(_buffer_t*, _filter_t*, int);
+static void _bufApplyFrequencyFilter(_buffer_t*, _filter_t*, int);
+static void _bufApplyDistortionEffect(_buffer_t*, _effect_t*, int);
 
 
 static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
@@ -1370,7 +1370,7 @@ _bufCreateWaveformFromAAXS(_buffer_t* handle, const void *xwid, int track, float
 }
 
 static int
-_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
+_bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, int layer, float frequency)
 {
    aaxFilter flt;
    _midi_t midi;
@@ -1383,7 +1383,7 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
       switch (filter->type)
       {
       case AAX_BITCRUSHER_FILTER:
-         _bufApplyBitCrusherFilter(handle, filter);
+         _bufApplyBitCrusherFilter(handle, filter, layer);
          break;
       case AAX_FREQUENCY_FILTER:
       {
@@ -1395,12 +1395,12 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
              state == AAX_36DB_OCT ||
              state == AAX_48DB_OCT)
          {
-            _bufApplyFrequencyFilter(handle, filter);
+            _bufApplyFrequencyFilter(handle, filter, layer);
          }
          break;
       }
       case AAX_EQUALIZER:
-         _bufApplyFrequencyFilter(handle, filter);
+         _bufApplyFrequencyFilter(handle, filter, layer);
          break;
       default:
          break;
@@ -1411,7 +1411,7 @@ _bufCreateFilterFromAAXS(_buffer_t* handle, const void *xfid, float frequency)
 }
 
 static int
-_bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency, float min, float max)
+_bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, int layer, float frequency, float min, float max)
 {
    aaxEffect eff;
    _midi_t midi;
@@ -1422,7 +1422,7 @@ _bufCreateEffectFromAAXS(_buffer_t* handle, const void *xeid, float frequency, f
    {
       _effect_t* effect = get_effect(eff);
       if (effect->type == AAX_DISTORTION_EFFECT && effect->state == AAX_TRUE) {
-         _bufApplyDistortionEffect(handle, effect);
+         _bufApplyDistortionEffect(handle, effect, layer);
       }
       aaxEffectDestroy(eff);
    }
@@ -1768,6 +1768,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
          rb->set_parami(rb, RB_NO_SAMPLES, no_samples);
          rb->set_parami(rb, RB_NO_TRACKS, handle->info.tracks);
+         rb->set_parami(rb, RB_NO_LAYERS, handle->info.tracks);
          handle->ringbuffer[b] = rb;
       }
 
@@ -1828,10 +1829,10 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
                else
                {
                   if (!strcasecmp(type, "filter")) {
-                     rv = _bufCreateFilterFromAAXS(handle, xwid, frequency);
+                     rv = _bufCreateFilterFromAAXS(handle, xwid, layer, frequency);
                   } else if (!strcasecmp(type, "effect")) {
-                     rv = _bufCreateEffectFromAAXS(handle, xwid, frequency,
-                                             low_frequency, high_frequency);
+                     rv = _bufCreateEffectFromAAXS(handle, xwid, layer,
+                                      frequency, low_frequency, high_frequency);
                   }
                }
                xmlFree(type);
@@ -2805,7 +2806,7 @@ _bufGetDataInterleaved(_aaxRingBuffer *rb, void* data, unsigned int samples, uns
 }
 
 static void
-_bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter)
+_bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter, int layer)
 {
    _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
    int32_t **sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
@@ -2813,7 +2814,7 @@ _bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter)
    float ratio = slot->param[AAX_NOISE_LEVEL];
    float level = slot->param[AAX_LFO_OFFSET];
    unsigned int bps, no_samples;
-   int32_t *dptr = sbuf[0];
+   int32_t *dptr = sbuf[layer];
 
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    bps = sizeof(float); // rb->get_parami(rb, RB_BYTES_SAMPLE);
@@ -2842,19 +2843,19 @@ _bufApplyBitCrusherFilter(_buffer_t* handle, _filter_t *filter)
 
 
 static void
-_bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
+_bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter, int layer)
 {
    _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
    unsigned int bps, no_samples;
-   float *dptr = rbd->track[0];
+   float *dptr = rbd->track[layer];
    float *sptr, *tmp;
 
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    bps = rb->get_parami(rb, RB_BYTES_SAMPLE);
 
-   /* AAXS defined buffers have just one track */
+   // AAXS defined buffers have just one track, but could have multiple layers
    assert(rb->get_parami(rb, RB_NO_TRACKS) == 1);
    assert(bps == 4);
 
@@ -2900,13 +2901,13 @@ _bufApplyFrequencyFilter(_buffer_t* handle, _filter_t *filter)
 }
 
 static void
-_bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect)
+_bufApplyDistortionEffect(_buffer_t* handle, _effect_t *effect, int layer)
 {
    _aaxRingBuffer* rb = _bufGetRingBuffer(handle, NULL, 0);
    int32_t **sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
    _aaxRingBufferData *rbi = rb->handle;
    _aaxRingBufferSample *rbd = rbi->sample;
-   _aaxEffectInfo* slot = effect->slot[0];
+   _aaxEffectInfo* slot = effect->slot[layer];
    float fact = slot->param[AAX_DISTORTION_FACTOR];
    float clip = slot->param[AAX_CLIPPING_FACTOR];
    float mix  = slot->param[AAX_MIX_FACTOR];
