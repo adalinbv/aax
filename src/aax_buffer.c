@@ -1196,6 +1196,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
 
       info->fmt = AAX_PCM24S;
 //    rb->set_format(rb, fmt, AAX_FALSE);
+      rb->set_parami(rb, RB_NO_LAYERS, info->tracks);
       rb->set_parami(rb, RB_NO_TRACKS, info->tracks);
       rb->set_paramf(rb, RB_FREQUENCY, info->freq);
       rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
@@ -1739,7 +1740,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       }
    }
 
-   // backwards compatibility (pre version 3.10)
+   // layers, if none defined declare one
    no_layers = xmlNodeGetNum(xsid, "layer");
    if (no_layers > 0) {
       xlid = xmlMarkId(xsid);
