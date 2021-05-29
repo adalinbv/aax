@@ -597,19 +597,19 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    if (res)
    {
-      int format = _FMT_NONE;
+      int file_format = _FMT_NONE;
       size_t period_frames;
 
       if (handle->prot) {
-         format = handle->prot->get_param(handle->prot, __F_FMT);
+         file_format = handle->prot->get_param(handle->prot, __F_FMT);
       }
-      if (format == _FMT_NONE) {
-         format = handle->ext->supported(extension);
+      if (file_format == _FMT_NONE) {
+         file_format = handle->ext->supported(extension);
       }
 
       period_frames = (size_t)rintf(rate / period_rate);
       res = handle->ext->setup(handle->ext, handle->mode, &headerSize, rate,
-                               *tracks, format, period_frames, *bitrate);
+                               *tracks, file_format, period_frames, *bitrate);
       handle->ext->set_param(handle->ext,__F_COPY_DATA, handle->copy_to_buffer);
       handle->ext->set_param(handle->ext, __F_NO_BYTES, handle->no_bytes);
       handle->ext->set_param(handle->ext, __F_PATCH_LEVEL, level);

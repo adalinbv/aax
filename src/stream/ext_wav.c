@@ -198,6 +198,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          }
 
          fmt = _getFmtFromWAVFormat(handle->wav_format);
+
          handle->fmt = _fmt_create(fmt, handle->mode);
          if (!handle->fmt) {
             return rv;
@@ -663,6 +664,9 @@ _wav_get(_ext_t *ext, int type)
 
    switch (type)
    {
+   case __F_FMT:
+      rv = handle->info.fmt;
+      break;
    case __F_NO_BYTES:
       rv = handle->io.read.datasize;
       break;
