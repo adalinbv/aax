@@ -20,7 +20,9 @@
  */
 
 /* References:
- * https://www.midi.org/midi-articles/details-about-midi-2-0-midi-ci-profiles-and-property-exchange
+ * - Universal MIDI Packet (UMP) Formatand MIDI 2.0 Protocol, Version 1.0
+ *   Association of Musical Electronics Industry AMEI and
+ *   MIDI Manufacturers Association MMA, M2-104-UM, http://www.midi.org
  */
 
 #ifndef AAX_MIDI_H
@@ -212,8 +214,9 @@ extern "C" {
 #define MIDI2_SYSTEM_REAL_TIME_MESSAGE				0x1
 #define MIDI2_COMMON_MESSAGE					0x1
 #define MIDI1_VOICE_MESSAGE					0x2
-#define MIDI2_DATA_MESSAGE					0x3
+#define MIDI2_SYSTEM_EXCLUSIVE_MESSAGE				0x3
 #define MIDI2_VOICE_MESSAGE					0x4
+#define MIDI2_DATA_MESSAGE					0x5
 
 #if defined(__cplusplus)
 }	/* extern "C" */
@@ -243,10 +246,10 @@ private:
     uint8_t status = 0;
     int32_t data[4] = { 0, 0, 0, 0 };
 
-    inline uint16_t cvt16to14bit_unsigned(uint32_t v) {
+    inline uint16_t cvt2x7to14bit_unsigned(uint32_t v) {
         return (v & 0x7f) | ((v & 0x7f00) >> 1);
     }
-    inline int16_t cvt16to14bit_signed(int32_t v) {
+    inline int16_t cvt2x7to14bit_signed(int32_t v) {
         return (v & 0x7f) | ((v & 0x7f00) >> 1) - 8192;
     }
 
@@ -278,30 +281,50 @@ public:
         group_no = ((m >> 24) & 0xf);
         status = ((m >> 16) & 0xff);
         data[0] = ((m & 0xffff) << 16);
-    };
+    }
     inline void set_message(uint64_t m) {
         data[1] = (m & 0xffffffff);
         set_message(m >> 32);
-    };
+    }
+    inline void set_data(uint8_t i, uint32_t d) {
+        switch(message_type)
+        {
+        case MIDI2_UTILITY_MESSAGE:
+        case MIDI2_SYSTEM_REAL_TIME_MESSAGE:
+        case MIDI1_VOICE_MESSAGE:
+            THROW("set_data index no. " + i + "unsupported for "
+                 "message type" + message_type);
+            break;
+        case MIDI2_SYSTEM_EXCLUSIVE_MESSAGE:
+        case MIDI2_VOICE_MESSAGE:
+        case MIDI2_DATA_MESSAGE:
+            if (i == 1) data[i] = d;
+            else THROW("set_data index no. " + i + "unsupported for"
+                 "message type " + message_type);
+            break;
+        default:
+            THROW("set_data is not supported for message type " +
+               message_type);
+            break;
+        }
+    }
 
     // - note on/off
     inline uint8_t get_attribute_type() {
         if (message_type == MIDI2_VOICE_MESSAGE) {
             return (data[0] & 0xff);
-        }  else {
-            THROW("get_attribute_type is not supported for message type " +
-                   message_type);
-            return 0;
         }
+        THROW("get_attribute_type is not supported for message type " +
+               message_type);
+        return 0;
     }
     inline uint16_t get_attribute() {
         if (message_type == MIDI2_VOICE_MESSAGE) {
             return (data[1] & 0xffff);
-        }  else {
-            THROW("get_attribute is not supported for message type " +
-                   message_type);
-            return 0;
         }
+        THROW("get_attribute is not supported for message type " +
+               message_type);
+        return 0;
     }
 
     // - registered/assignable controller
@@ -363,7 +386,7 @@ public:
     }
     inline uint16_t get_unsigned_value() {
         if (is_note_message()) {
-            return cvt16to14bit_unsigned(data[0]);
+            return cvt2x7to14bit_unsigned(data[0] & 0xffff);
         }
         THROW("get_unsigned_value is not supported for message type " +
               message_type);
@@ -371,7 +394,7 @@ public:
     }
     inline int16_t get_signed_value() {
         if (is_note_message()) {
-            return cvt16to14bit_signed(data[0]);
+            return cvt2x7to14bit_signed(data[0] & 0xffff);
         }
         THROW("get_signed_value is not supported for message type " +
               message_type);
