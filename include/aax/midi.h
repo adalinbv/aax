@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman
- * Copyright 2007-2018 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman
+ * Copyright 2007-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -19,10 +19,16 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+/* References:
+ * https://www.midi.org/midi-articles/details-about-midi-2-0-midi-ci-profiles-and-property-exchange
+ */
+
 #ifndef AAX_MIDI_H
 #define AAX_MIDI_H 1
 
 #if defined(__cplusplus)
+# include <functional>
+
 extern "C" {
 #endif
 
@@ -201,9 +207,182 @@ extern "C" {
 /* status messages */
 #define MIDI_FILE_META_EVENT					0xff	// 255
 
+/* MIDI 2.0: Universal MIDI Packet */
+#define MIDI2_UTILITY_MESSAGE					0x0
+#define MIDI2_SYSTEM_REAL_TIME_MESSAGE				0x1
+#define MIDI2_COMMON_MESSAGE					0x1
+#define MIDI1_VOICE_MESSAGE					0x2
+#define MIDI2_DATA_MESSAGE					0x3
+#define MIDI2_VOICE_MESSAGE					0x4
+
 #if defined(__cplusplus)
 }	/* extern "C" */
+
+#ifndef NDEBUG
+# define THROW(...)	std::throw(std::domain_error(...)
+#else
+# define THROW(...)
 #endif
+
+namespace aax
+{
+
+namespace midi
+{
+
+// a container class to handle universal packets
+class packet
+{
+private:
+    // MIDI 2.0
+    uint8_t message_type = 0;
+    uint8_t group_no = 0;
+    int16_t index = 0;
+
+    // universal
+    uint8_t status = 0;
+    int32_t data[4] = { 0, 0, 0, 0 };
+
+    inline uint16_t cvt16to14bit_unsigned(uint32_t v) {
+        return (v & 0x7f) | ((v & 0x7f00) >> 1);
+    }
+    inline int16_t cvt16to14bit_signed(int32_t v) {
+        return (v & 0x7f) | ((v & 0x7f00) >> 1) - 8192;
+    }
+
+protected:
+    std::function<void()> update = []() { };
+
+public:
+    packet() = default;
+    ~packet() = default;
+
+    inline uint8_t get_message_type() { return message_type; }
+    inline uint8_t get_group_no() { return group_no; }
+
+    // MIDI 1.0: construct the packet ourselves
+    inline void set_status_channel(uint8_t s) {
+        status = s; message_type = MIDI1_VOICE_MESSAGE;
+    }
+
+    inline void set_value_msb(uint8_t m) {
+        data[0] = ((data[0] & 0x00ff) | (uint32_t(m) << 8));
+    }
+    inline void set_value_lsb(uint8_t l) {
+         data[0] = ((data[0] & 0xff00) | uint32_t(l));
+    }
+
+    // MIDI 2.0
+    inline void set_message(uint32_t m) {
+        message_type = (m >> 28);
+        group_no = ((m >> 24) & 0xf);
+        status = ((m >> 16) & 0xff);
+        data[0] = ((m & 0xffff) << 16);
+    };
+    inline void set_message(uint64_t m) {
+        data[1] = (m & 0xffffffff);
+        set_message(m >> 32);
+    };
+
+    // - note on/off
+    inline uint8_t get_attribute_type() {
+        if (message_type == MIDI2_VOICE_MESSAGE) {
+            return (data[0] & 0xff);
+        }  else {
+            THROW("get_attribute_type is not supported for message type " +
+                   message_type);
+            return 0;
+        }
+    }
+    inline uint16_t get_attribute() {
+        if (message_type == MIDI2_VOICE_MESSAGE) {
+            return (data[1] & 0xffff);
+        }  else {
+            THROW("get_attribute is not supported for message type " +
+                   message_type);
+            return 0;
+        }
+    }
+
+    // - registered/assignable controller
+    inline bool is_controller_message() {
+        uint8_t s = (status >> 4);
+        return (message_type == MIDI2_VOICE_MESSAGE && (s == 2 || s == 3));
+    }
+    inline bool is_program_change_message() {
+        uint8_t s = (status >> 4);
+        return (message_type == MIDI2_VOICE_MESSAGE && s == 12);
+    }
+    inline void set_program_no(uint8_t p) {
+        data[1] = ((data[1] & 0x00ffffff) | (p << 24));
+    }
+    inline void set_bank_msb(uint8_t m) {
+        data[1] = ((data[1] & 0xffff00ff) | (m << 8));
+    }
+    inline void set_bank_lsb(uint8_t l) {
+        data[1] = ((data[1] & 0xffffff00) | l);
+    }
+
+    // universal
+    // - note on/off
+    inline bool is_voice_message() {
+       return (message_type == MIDI2_VOICE_MESSAGE ||
+               message_type == MIDI1_VOICE_MESSAGE);
+    }
+    inline bool is_note_message() {
+        uint8_t s = is_voice_message() ? (status & 0xf0) : 0;
+        return (s == MIDI_NOTE_ON || s == MIDI_NOTE_OFF);
+    }
+
+    inline uint8_t get_status() {
+        return is_voice_message() ? (status & 0xf0) : status;
+    }
+    inline uint8_t get_channel_no() {
+        if (is_voice_message()) return (status & 0xf);
+        THROW("get_channel_no is not supported for message type " + 
+              message_type);
+        return 0;
+    }
+    inline uint16_t get_note_no() {
+        if (is_note_message()) return ((data[0] >> 8) & 0x7f);
+        THROW("get_note_no is not supported for message type " +
+              message_type);
+        return 0;
+    }
+    inline uint16_t get_velocity() {
+        if (is_note_message()) {
+            if (message_type == MIDI2_VOICE_MESSAGE) {
+                return ((data[1] >> 16) & 0xffff);
+            } else {
+                return ((data[0] & 0x7f) << 9);
+            }
+        }
+        THROW("get_velocity is not supported for message type " +
+              message_type);
+        return 0;
+    }
+    inline uint16_t get_unsigned_value() {
+        if (is_note_message()) {
+            return cvt16to14bit_unsigned(data[0]);
+        }
+        THROW("get_unsigned_value is not supported for message type " +
+              message_type);
+        return 0;
+    }
+    inline int16_t get_signed_value() {
+        if (is_note_message()) {
+            return cvt16to14bit_signed(data[0]);
+        }
+        THROW("get_signed_value is not supported for message type " +
+              message_type);
+        return 0;
+    }
+};
+
+} // namespace midi
+
+} // namespace aax
+#endif	// defined(__cplusplus)
 
 #endif /* AAX_MIDI_H */
 
