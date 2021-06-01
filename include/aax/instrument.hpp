@@ -514,7 +514,7 @@ public:
         if (!is_drums) { slide_state = s; }
     }
     inline void set_pitch_transition_time(float t) {
-        if (!is_drums) { pitch_rate = t; }
+        if (!is_drums) { transition_time = t; }
     }
 
     void set_vibrato_rate(float r) {}
@@ -645,7 +645,7 @@ private:
 
     float pan_prev = 0.0f;
 
-    float pitch_rate = 0.0f;
+    float transition_time = 0.0f;
     float pitch_start = 1.0f;
     uint32_t key_prev = 0;
 
