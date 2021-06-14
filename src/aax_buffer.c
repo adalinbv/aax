@@ -1463,7 +1463,7 @@ _bufLimit(_aaxRingBuffer* rb)
 }
 
 static float
-_bufNormalize(_aaxRingBuffer* rb, float db)
+_bufNormalize(_aaxRingBuffer* rb, float gain)
 {
    static const float norm = (float)(1<<24);
    _aaxRingBufferData *rbi = rb->handle;
@@ -1484,10 +1484,8 @@ _bufNormalize(_aaxRingBuffer* rb, float db)
 
    peak /= norm;
    rms = sqrt(rms_total/no_samples)/norm;
-   rv = _db2lin(-20.0f + 0.7f*db - 0.5f*_lin2db(rms) - 0.3f*_lin2db(peak));
-#if 0
- printf("rv: %f, db: %3.1f, rms: %3.1f, peak: %3.1f\n", rv, db, _lin2db(rms), _lin2db(peak));
-#endif
+   rv = gain*_db2lin(-16.0f - _lin2db(rms));
+
    return rv;
 }
 
@@ -1846,8 +1844,13 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
 
       if (midi_mode)
       {
-         if (!b && rb->get_state(rb, RB_IS_VALID)) {
-            handle->gain = _bufNormalize(rb, handle->gain);
+         if (!b && rb->get_state(rb, RB_IS_VALID))
+         {
+            float gain = handle->gain;
+            if (handle->midi_mode == AAX_RENDER_ARCADE) {
+                gain *= 0.5f;
+            }
+            handle->gain = _bufNormalize(rb, gain);
          }
       }
       else if (limiter) {
