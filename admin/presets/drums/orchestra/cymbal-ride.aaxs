@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Cymbal Ride" bank="48" program="51">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.18" db="-5.8" frequency="550" duration="0.3">
+ <sound gain="1.18" db="-5.3" frequency="550" duration="0.3">
   <waveform src="square" pitch="0.985"/>
   <waveform src="sawtooth" processing="mix" pitch="2.9"/>
   <waveform src="pink-noise" processing="add" ratio="1.2"/>
@@ -37,15 +37,15 @@
  <emitter looping="true" pan="-0.31">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.95</param>
+    <param n="0">1.85</param>
     <param n="1">0.03</param>
-    <param n="2">1.33</param>
+    <param n="2">1.26</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">1.05</param>
+    <param n="0">0.997</param>
     <param n="1">0.3</param>
-    <param n="2">0.749</param>
+    <param n="2">0.712</param>
     <param n="3">1.5</param>
    </slot>
   </filter>

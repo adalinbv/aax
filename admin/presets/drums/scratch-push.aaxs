@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Scratch Push" bank="0" program="29">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1" min="39" max="45" step="12"/>
  </info>
 
- <sound gain="0.57" db="2.7" frequency="77.7817" duration="3.33">
+ <sound gain="1.15" db="9.2" frequency="77.7817" duration="3.33">
   <waveform src="white-noise" ratio="2.0" pitch="0.25"/>
   <filter type="bitcrusher">
    <slot n="0">
@@ -42,9 +42,9 @@
  <emitter looping="true" pan="-0.16">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.185</param>
+    <param n="0">0.0871</param>
     <param n="1">0.08</param>
-    <param n="2">0.736</param>
+    <param n="2">0.346</param>
     <param n="3">0.08</param>
    </slot>
   </filter>

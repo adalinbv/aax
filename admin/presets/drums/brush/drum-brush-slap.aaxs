@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Snare Brush Slap" bank="40" program="85">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="1.68" db="4.4" frequency="230" duration="0.5">
+ <sound mode="2" gain="1.68" db="4.8" frequency="230" duration="0.5">
   <waveform src="white-noise" ratio="0.5" pitch="0.3" staticity="0.025"/>
   <filter type="bitcrusher">
    <slot n="0">
@@ -34,15 +34,15 @@
  <emitter looping="true" pan="0.2">
   <filter type="timed-gain" release-time="0.8">
    <slot n="0">
-    <param n="0">0.604</param>
+    <param n="0">0.574</param>
     <param n="1">0.15</param>
-    <param n="2">0.503</param>
+    <param n="2">0.478</param>
     <param n="3">0.25</param>
    </slot>
    <slot n="1">
-    <param n="0">0.1</param>
+    <param n="0">0.095</param>
     <param n="1">0.15</param>
-    <param n="2">0.202</param>
+    <param n="2">0.192</param>
     <param n="3">0.4</param>
    </slot>
   </filter>

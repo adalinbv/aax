@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Acoustic Snare" bank="0" program="38">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.81" db="-12.0" frequency="230" duration="0.5">
+ <sound gain="0.81" db="-11.6" frequency="230" duration="0.5">
   <waveform src="sine" ratio="0.55" phase="0.107"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="0.6" phase="0.107"/>
   <waveform src="white-noise" processing="add" ratio="0.1" pitch="0.3"/>
@@ -30,15 +30,15 @@
    <slot n="0">
     <param n="0">0.15</param>
     <param n="1">0.1</param>
-    <param n="2">0.35</param>
+    <param n="2">0.27</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain" src="envelope" release-time="0.06">
    <slot n="0">
-    <param n="0">4.0</param>
-    <param n="1">0.25</param>
-    <param n="2">2.45</param>
+    <param n="0">3.8</param>
+    <param n="1">0.15</param>
+    <param n="2">2.33</param>
     <param n="3">0.53</param>
    </slot>
   </filter>

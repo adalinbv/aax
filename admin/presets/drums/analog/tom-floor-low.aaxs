@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,19 +14,19 @@
 
  <info name="Low Floor Tom" bank="25" program="41">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.64" db="-10.2" frequency="88" duration="0.2">
+ <sound gain="0.64" db="-9.6" frequency="88" duration="0.2">
   <waveform src="sine"/>
  </sound>
 
  <emitter looping="true" pan="0.47">
-  <filter type="timed-gain" src="envelope">
+  <filter type="timed-gain" src="envelope" release-time="0.1">
    <slot n="0">
-    <param n="0">3.22</param>
+    <param n="0">3.03</param>
     <param n="1">0.43</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

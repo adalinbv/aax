@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Chime Tree" bank="0" program="94">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.81" db="-8.5" frequency="1250" duration="0.0333">
+ <sound gain="0.81" db="-8.0" frequency="1250" duration="0.0333">
   <waveform src="triangle" pitch="0.9" voices="3" spread="0.7" phasing="true"/>
   <waveform src="triangle" processing="add" ratio="0.8" pitch="3.0"/>
   <waveform src="triangle" processing="modulate" pitch="6.98"/>
@@ -28,9 +28,9 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="2.0">
    <slot n="0">
-    <param n="0">2.26</param>
+    <param n="0">2.15</param>
     <param n="1">0.3</param>
-    <param n="2">2.65</param>
+    <param n="2">2.52</param>
     <param n="3">2.8</param>
    </slot>
   </filter>

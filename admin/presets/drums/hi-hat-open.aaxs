@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,13 +14,14 @@
 
  <info name="Open Hi-hat" bank="0" program="46">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.82" db="-4.4" frequency="550" duration="0.3">
-  <waveform src="sawtooth" pitch="1.9"/>
+ <sound mode="1" gain="1.10" db="-4.7" frequency="550" duration="0.3">
+  <waveform src="sawtooth" ratio="0.8" pitch="1.9"/>
+  <waveform src="impulse" processing="add" pitch="1.78"/>
   <waveform src="pink-noise" processing="add" ratio="1.5"/>
   <waveform src="sine" processing="modulate" pitch="17.7"/>
  </sound>
@@ -28,18 +29,26 @@
  <emitter looping="true" pan="0.31">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">1.66</param>
+    <param n="0">1.72</param>
     <param n="1">0.03</param>
-    <param n="2">1.33</param>
+    <param n="2">1.39</param>
     <param n="3">0.2</param>
    </slot>
    <slot n="1">
-    <param n="0">1.1</param>
+    <param n="0">1.14</param>
     <param n="1">0.3</param>
-    <param n="2">0.772</param>
+    <param n="2">0.795</param>
     <param n="3">0.8</param>
    </slot>
   </filter>
+  <effect type="timed-pitch" src="envelope">
+   <slot n="0">
+    <param n="0">0.85</param>
+    <param n="1">0.02</param>
+    <param n="2">0.99</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe/>
