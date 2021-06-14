@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Rock Organ" bank="0" program="17">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="10" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.00" db="-3.9" frequency="65.4064">
+ <sound gain="1.00" db="-3.5" frequency="65.4064">
   <waveform src="white-noise" ratio="0.1"/>
   <waveform src="sine" ratio="0.463448" pitch="0.5"/>
   <waveform src="sine" processing="add" ratio="0.463448" pitch="0.75"/>
@@ -28,15 +28,45 @@
  </sound>
 
  <emitter looping="true">
+  <filter type="frequency" src="inverse-timed">
+   <slot n="0">
+    <param n="0" pitch="3.6">235.5</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.0</param>
+   </slot>
+   <slot n="1">
+    <param n="0" pitch="8.0">523.3</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.1</param>
+   </slot>
+  </filter>
+  <filter type="dynamic-gain" src="inverse-sine" optional="true">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.54</param>
+    <param n="2">0.1</param>
+    <param n="3">0.9</param>
+   </slot>
+  </filter>
+  <effect type="dynamic-pitch" src="sine" optional="true">
+   <slot n="0">
+    <param n="0">0.0</param>
+    <param n="1">1.54</param>
+    <param n="2">0.01</param>
+    <param n="3">0.98</param>
+   </slot>
+  </effect>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.57</param>
+    <param n="0">1.49</param>
     <param n="1">0.08</param>
-    <param n="2">1.26</param>
+    <param n="2">1.2</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.26</param>
+    <param n="0">1.2</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -59,12 +89,20 @@
     <param n="3">1.0</param>
    </slot>
   </filter>
-  <effect type="distortion" optional="true">
+  <effect type="distortion" src="envelope|logarithmic" optional="true">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.0</param>
     <param n="2">0.15</param>
     <param n="3">1.0</param>
+   </slot>
+  </effect>
+  <effect type="phasing" src="sine" optional="true">
+   <slot n="0">
+    <param n="0">0.383</param>
+    <param n="1">1.54</param>
+    <param n="2">0.15</param>
+    <param n="3">0.5</param>
    </slot>
   </effect>
  </audioframe>

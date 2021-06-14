@@ -19,7 +19,7 @@
   <note polyphony="8" min="72" max="108" step="12"/>
  </info>
 
- <sound gain="0.69" db="-4.6" frequency="523.251" duration="0.5">
+ <sound gain="0.49" db="-4.6" frequency="523.251" duration="0.5">
   <waveform src="square" pitch="9.0"/>
   <waveform src="sine" processing="modulate" pitch="3.0"/>
   <waveform src="sine" processing="mix" ratio="0.6"/>

@@ -19,38 +19,26 @@
   <note polyphony="8" min="60" max="84" step="12"/>
  </info>
 
- <sound gain="0.73" db="-0.7" frequency="880" duration="0.1">
+ <sound gain="0.83" db="-0.7" frequency="880" duration="0.1">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="modulate" pitch="5.0"/>
   <waveform src="triangle" processing="add" ratio="0.8"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope" release-time="1.0">
    <slot n="0">
-    <param n="0">0.784</param>
-    <param n="1">0.11</param>
-    <param n="2">1.08</param>
-    <param n="3">0.2</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.927</param>
-    <param n="1">1.66</param>
+    <param n="0">1.096</param>
+    <param n="1" auto="0.48">2.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">1.1</param>
-    <param n="1">0.01</param>
-    <param n="2">0.985</param>
-    <param n="3">4.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">1.0</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
+    <param n="0" auto="0.8">4.5</param>
+    <param n="1" auto="0.1">0.2</param>
+    <param n="2">1.0</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

@@ -20,7 +20,15 @@
  </info>
 
  <sound gain="0.48" db="-4.9" frequency="220" duration="0.1">
-  <waveform src="square"/>
+  <waveform src="square" voices="7" spread="0.7"/>
+  <effect type="distortion">
+   <slot n="0">
+    <param n="0">0.2</param>
+    <param n="1">0.0</param>
+    <param n="2">0.1</param>
+    <param n="3">1.0</param>
+   </slot>
+  </effect>
  </sound>
 
  <emitter looping="true">

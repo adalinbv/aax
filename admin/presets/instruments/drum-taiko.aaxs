@@ -19,14 +19,14 @@
   <note polyphony="4" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="1.10" db="-6.0" frequency="261.626" duration="0.5">
-  <waveform src="pink-noise" ratio="1.5" pitch="0.3"/>
-  <waveform src="sine" processing="add" ratio="0.25"/>
-  <waveform src="sine" processing="add" ratio="0.075" pitch="0.4"/>
+ <sound gain="1.04" db="-7.1" frequency="261.626">
+  <waveform src="sine" ratio="0.2" pitch="0.5"/>
+  <waveform src="sine" processing="add" ratio="0.2" pitch="0.64"/>
+  <waveform src="white-noise" processing="add" pitch="0.0152"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="timed-gain" src="envelope">
    <slot n="0">
     <param n="0">1.95</param>
     <param n="1">0.05</param>

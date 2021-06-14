@@ -19,9 +19,17 @@
   <note polyphony="6" min="28" max="88" step="12"/>
  </info>
 
- <sound gain="0.80" db="-1.4" frequency="110" duration="0.1">
+ <sound gain="0.70" db="-1.4" frequency="110" duration="0.1">
   <waveform src="sawtooth" ratio="0.6"/>
   <waveform src="sawtooth" processing="add" ratio="0.4" pitch="1.957"/>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="2.0">220.0</param>
+    <param n="1">2.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">
@@ -41,15 +49,6 @@
   </filter>
  </emitter>
 
- <audioframe>
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">550.0</param>
-    <param n="1">1.2</param>
-    <param n="2">1.0</param>
-    <param n="3">5.0</param>
-   </slot>
-  </filter>
- </audioframe>
+ <audioframe/>
 
 </aeonwave>

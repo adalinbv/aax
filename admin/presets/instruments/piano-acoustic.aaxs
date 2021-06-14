@@ -19,7 +19,7 @@
   <note polyphony="88" min="21" max="108" step="6"/>
  </info>
 
- <sound gain="4.00" db="-4.3" frequency="110" duration="0.2">
+ <sound gain="2.40" db="-4.3" frequency="110" duration="0.2">
   <waveform src="sawtooth"/>
   <waveform src="triangle" processing="add" ratio="0.625" pitch="2.0"/>
   <waveform src="triangle" processing="add" ratio="0.25" pitch="4.0"/>

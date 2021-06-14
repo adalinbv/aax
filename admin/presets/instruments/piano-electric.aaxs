@@ -19,13 +19,13 @@
   <note polyphony="88" min="21" max="108" step="12"/>
  </info>
 
- <sound gain="1.41" db="-6.8" frequency="1760" duration="0.5">
+ <sound gain="1.01" db="-6.8" frequency="1760" duration="0.5">
   <waveform src="square"/>
   <waveform src="square" processing="mix" ratio="0.25" pitch="5.0"/>
   <waveform src="sawtooth" processing="modulate" pitch="1.5"/>
   <filter type="frequency">
    <slot n="0">
-    <param n="0" pitch="2.0">3520.0</param>
+    <param n="0" pitch="4.0">3520.0</param>
     <param n="1">1.0</param>
     <param n="2">0.1</param>
     <param n="3">1.0</param>

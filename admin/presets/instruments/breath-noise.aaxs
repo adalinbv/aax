@@ -19,7 +19,7 @@
   <note polyphony="2" min="60" max="96" step="12"/>
  </info>
 
- <sound gain="2.01" db="1.6" frequency="880" duration="0.3">
+ <sound gain="2.51" db="1.6" frequency="880" duration="0.3">
   <waveform src="impulse" ratio="0.2"/>
   <waveform src="pink-noise" processing="add" pitch="0.22" staticity="0.02"/>
   <filter type="bitcrusher">

@@ -19,13 +19,13 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="2.58" db="7.5" frequency="220" duration="0.5">
-  <waveform src="square" ratio="0.05"/>
-  <waveform src="impulse" processing="add" ratio="0.4" pitch="0.0125"/>
+ <sound gain="1.4" db="7.5" frequency="220" duration="0.5">
+  <waveform src="square" ratio="0.i125"/>
+  <waveform src="impulse" processing="add" pitch="0.0125"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="3.2">
+  <filter type="timed-gain" release-time="0.5">
    <slot n="0">
     <param n="0">0.421</param>
     <param n="1">0.05</param>

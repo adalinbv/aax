@@ -19,10 +19,11 @@
   <note polyphony="4" min="52" max="76" step="6"/>
  </info>
 
- <sound mode="1" gain="1.04" db="-5.8" frequency="220" duration="0.33">
+ <sound mode="1" gain="1.24" db="-5.8" frequency="220" duration="0.33">
   <waveform src="triangle"/>
   <waveform src="triangle" processing="modulate" pitch="1.997"/>
   <waveform src="triangle" processing="modulate" pitch="5.0587"/>
+  <waveform src="sine" processing="mix" ratio="0.07" pitch="4.975"/>
  </sound>
 
  <emitter looping="true">

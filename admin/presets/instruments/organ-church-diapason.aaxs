@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,55 +12,58 @@
 
 <aeonwave>
 
- <info name="Church Organ (Diapason)" bank="8" program="18">
+ <info name="Church Organ (Diapason)" bank="0" program="18">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="10" min="36" max="96" step="12"/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <note polyphony="12" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="1.17" db="-5.3" frequency="65.4064">
+ <sound gain="0.75" db="-10.5" frequency="65.4064">
   <waveform src="white-noise" ratio="0.1"/>
-  <waveform src="sine" processing="add" ratio="0.383295"/>
-  <waveform src="sine" processing="add" ratio="0.541419" pitch="2.0"/>
-  <waveform src="sine" processing="add" ratio="0.271352" pitch="3.0"/>
-  <waveform src="sine" processing="add" ratio="0.271352" pitch="4.0"/>
-  <waveform src="sine" processing="add" ratio="0.192103" pitch="5.0"/>
-  <waveform src="sine" processing="add" ratio="0.135998" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.616324"/>
+  <waveform src="sine" processing="add" ratio="0.436324" pitch="2.0"/>
+  <waveform src="sine" processing="add" ratio="0.308894" pitch="3.0"/>
+  <waveform src="sine" processing="add" ratio="0.21868" pitch="4.0"/>
+  <waveform src="sine" processing="add" ratio="0.308894" pitch="5.0"/>
+  <waveform src="sine" processing="add" ratio="0.1096" pitch="6.0"/>
+  <waveform src="sine" processing="add" ratio="0.0775906" pitch="8.0"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="2.8">
+  <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.386</param>
+    <param n="0">0.699</param>
     <param n="1">0.08</param>
-    <param n="2">1.85</param>
+    <param n="2" auto="0.617" min="1.72" max="0.791">2.84</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.85</param>
+    <param n="0">3.35</param>
     <param n="1">0.7</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
    </slot>
   </filter>
+  <effect type="chorus">
+   <slot n="0">
+    <param n="0">0.8</param>
+    <param n="1">0.0</param>
+    <param n="2">0.0</param>
+    <param n="3">0.05</param>
+   </slot>
+  </effect>
  </emitter>
 
  <audioframe>
-  <filter type="equalizer" optional="true">
+  <effect type="reverb" src="1st-order">
    <slot n="0">
-    <param n="0">100.0</param>
-    <param n="1">0.1</param>
+    <param n="0">2200.0</param>
+    <param n="1">0.027</param>
     <param n="2">1.0</param>
-    <param n="3">1.0</param>
+    <param n="3">0.15</param>
    </slot>
-   <slot n="1">
-    <param n="0">3700.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3">1.0</param>
-   </slot>
-  </filter>
+  </effect>
  </audioframe>
 
 </aeonwave>

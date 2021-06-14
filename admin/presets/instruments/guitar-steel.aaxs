@@ -20,7 +20,7 @@
   <aftertouch mode="2"/>
  </info>
 
- <sound gain="1.57" db="0.9" frequency="110" duration="0.1">
+ <sound gain="1.37" db="0.9" frequency="110" duration="0.1">
   <waveform src="sine"/>
   <waveform src="square" processing="mix" ratio="0.8" pitch="1.999"/>
   <waveform src="square" processing="modulate" pitch="2.999"/>
@@ -28,7 +28,7 @@
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" src="envelope" release-time="0.8">
+  <filter type="timed-gain" src="envelope" release-time="0.5">
    <slot n="0">
     <param n="0">1.37</param>
     <param n="1">0.03</param>

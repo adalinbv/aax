@@ -19,12 +19,12 @@
   <note polyphony="4" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.73" db="-1.4" frequency="220">
+ <sound gain="0.53" db="-1.4" frequency="220">
   <waveform src="sawtooth"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain" release-time="3.2">
+  <filter type="timed-gain" release-time="0.5">
    <slot n="0">
     <param n="0">0.261</param>
     <param n="1">0.05</param>

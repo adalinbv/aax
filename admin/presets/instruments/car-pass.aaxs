@@ -16,31 +16,30 @@
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2020" by="Erik Hofman"/>
   <copyright from="2017" until="2020" by="Adalin B.V."/>
-  <note polyphony="1" min="39" max="45" step="12"/>
+  <note polyphony="1" min="39" max="96" step="12"/>
  </info>
 
- <sound gain="0.82" db="0.2" frequency="110">
-  <waveform src="square" ratio="0.75" pitch="0.25"/>
-  <waveform src="sawtooth" processing="add" pitch="0.25"/>
-  <waveform src="impulse" processing="add" ratio="0.1" pitch="0.5"/>
+ <sound gain="0.77" db="2.2" frequency="110" duration="1.33">
+  <waveform src="sawtooth" pitch="0.25"/>
+  <waveform src="sawtooth" processing="add" pitch="0.5"/>
  </sound>
 
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.484</param>
+    <param n="0">0.387</param>
     <param n="1">4.0</param>
-    <param n="2">0.773</param>
+    <param n="2">0.618</param>
     <param n="3">0.4</param>
    </slot>
    <slot n="1">
-    <param n="0">0.972</param>
+    <param n="0">0.778</param>
     <param n="1">0.4</param>
-    <param n="2">0.773</param>
+    <param n="2">0.618</param>
     <param n="3">6.0</param>
    </slot>
    <slot n="2">
-    <param n="0">0.484</param>
+    <param n="0">0.387</param>
     <param n="1">0.6</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
@@ -48,15 +47,23 @@
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">2.2</param>
+    <param n="0">1.1</param>
     <param n="1">2.0</param>
-    <param n="2">2.2</param>
+    <param n="2">1.2</param>
     <param n="3">2.8</param>
    </slot>
    <slot n="1">
-    <param n="0">1.8</param>
+    <param n="0">1.0</param>
     <param n="1">0.0</param>
     <param n="2">0.0</param>
+    <param n="3">0.0</param>
+   </slot>
+  </effect>
+  <effect type="dynamic-pitch" src="sawtooth">
+   <slot n="0">
+    <param n="0">0.66</param>
+    <param n="1">0.22</param>
+    <param n="2">0.33</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

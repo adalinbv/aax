@@ -19,9 +19,17 @@
   <note polyphony="6" min="28" max="88" step="12"/>
  </info>
 
- <sound gain="1.55" db="2.2" frequency="55">
+ <sound gain="1.75" db="2.2" frequency="55" duration="0.1">
   <waveform src="sawtooth" pitch="2.0"/>
   <waveform src="sawtooth" processing="modulate" pitch="0.996"/>
+  <filter type="frequency" src="24db">
+   <slot n="0">
+    <param n="0" pitch="10.0">550.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">3.1</param>
+   </slot>
+  </filter>
  </sound>
 
  <emitter looping="true">

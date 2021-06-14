@@ -19,7 +19,7 @@
   <note polyphony="16" min="36" max="96" step="6"/>
  </info>
 
- <sound gain="0.78" db="-7.1" frequency="880" duration="0.5">
+ <sound gain="0.55" db="-7.1" frequency="880" duration="0.5">
   <waveform src="impulse" ratio="0.7"/>
   <waveform src="sawtooth" processing="add" ratio="0.7"/>
   <waveform src="impulse" processing="add" ratio="0.4" pitch="0.99771"/>
@@ -27,7 +27,7 @@
    <slot n="0">
     <param n="0" pitch="9.0">7920.0</param>
     <param n="1">1.0</param>
-    <param n="2">0.0</param>
+    <param n="2">0.2</param>
     <param n="3">1.2</param>
    </slot>
   </filter>
@@ -64,23 +64,6 @@
   </effect>
  </emitter>
 
- <audioframe pan="-0.8">
-  <filter type="equalizer" optional="true">
-   <slot n="0">
-    <param n="0">4000.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.4</param>
-    <param n="3">1.5</param>
-   </slot>
-  </filter>
-  <effect type="distortion" src="envelope|logarithmic">
-   <slot n="0">
-    <param n="0">0.8</param>
-    <param n="1">0.5</param>
-    <param n="2">0.1</param>
-    <param n="3">0.5</param>
-   </slot>
-  </effect>
- </audioframe>
+ <audioframe pan="-0.8"/>
 
 </aeonwave>

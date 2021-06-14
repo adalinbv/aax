@@ -19,7 +19,7 @@
   <note polyphony="8" min="36" max="96" step="12"/>
  </info>
 
- <sound gain="0.70" db="-5.6" frequency="1760" duration="0.3">
+ <sound gain="0.70" db="-6.6" frequency="1760" duration="0.3" voices="5" spread="0.3" phasing="true">
   <waveform src="square" pitch="0.6716"/>
   <waveform src="sawtooth" processing="mix" ratio="0.5" pitch="1.5"/>
   <waveform src="sawtooth" processing="mix" ratio="0.7"/>
@@ -28,30 +28,24 @@
  <emitter looping="true">
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0">1.36</param>
+    <param n="0">1.52</param>
     <param n="1">0.05</param>
-    <param n="2">1.91</param>
+    <param n="2">2.14</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">1.69</param>
+    <param n="0">1.89</param>
     <param n="1">inf</param>
-    <param n="2">1.69</param>
+    <param n="2">1.89</param>
     <param n="3">0.8</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
     <param n="0">0.94</param>
-    <param n="1">0.25</param>
+    <param n="1">0.15</param>
     <param n="2">1.0</param>
-    <param n="3">4.5</param>
-   </slot>
-   <slot n="1">
-    <param n="0">0.985</param>
-    <param n="1">0.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="3">1.0</param>
    </slot>
   </effect>
  </emitter>
