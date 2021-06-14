@@ -1484,7 +1484,7 @@ _bufNormalize(_aaxRingBuffer* rb, float gain)
 
    peak /= norm;
    rms = sqrt(rms_total/no_samples)/norm;
-   rv = gain*_db2lin(-16.0f - _lin2db(rms));
+   rv = gain*_db2lin(-21.0f - _lin2db(rms));
 
    return rv;
 }
