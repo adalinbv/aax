@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -12,14 +12,14 @@
 
 <aeonwave>
 
- <info name="Punch" bank="3" program="127">
+ <info name="Swoop" bank="3" program="127">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.09" db="-7.0" frequency="66" duration="3.33">
+ <sound fixed-gain="1.09" db="-6.6" frequency="66" duration="3.33">
   <waveform src="pink-noise" ratio="2.0" pitch="0.25"/>
   <filter type="frequency">
    <slot n="0">
@@ -34,13 +34,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.36</param>
+    <param n="0">0.342</param>
     <param n="1">0.04</param>
-    <param n="2">2.25</param>
+    <param n="2">2.14</param>
     <param n="3">0.06</param>
    </slot>
    <slot n="1">
-    <param n="0">0.72</param>
+    <param n="0">0.684</param>
     <param n="1">0.1</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

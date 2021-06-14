@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Toad Mating Call" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="1.75" db="0.9" frequency="220" duration="0.3">
+ <sound fixed-gain="1.75" db="1.4" frequency="220" duration="0.3">
   <waveform src="pink-noise" ratio="2.0" pitch="0.5" staticity="0.8"/>
   <filter type="frequency" src="48db">
    <slot n="0">
@@ -34,9 +34,9 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.72</param>
+    <param n="0">0.684</param>
     <param n="1">1.0</param>
-    <param n="2">0.9</param>
+    <param n="2">0.855</param>
     <param n="3">0.25</param>
    </slot>
   </filter>

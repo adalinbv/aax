@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Gun Reload" bank="0" program="0">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="0.89" db="-7.3" frequency="190" duration="0.3">
+ <sound gain="0.89" db="-6.9" frequency="190" duration="0.3">
   <waveform src="sine" ratio="2.0" pitch="0.996"/>
   <waveform src="white-noise" processing="add" ratio="4.0" pitch="0.125"/>
   <waveform src="sine" processing="modulate" ratio="1.2" pitch="3.7587"/>
@@ -37,21 +37,21 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">2.33</param>
+    <param n="0">2.21</param>
     <param n="1">0.03</param>
-    <param n="2">1.05</param>
+    <param n="2">0.997</param>
     <param n="3">0.15</param>
    </slot>
    <slot n="1">
-    <param n="0">0.0117</param>
+    <param n="0">0.0111</param>
     <param n="1">0.05</param>
-    <param n="2">0.0117</param>
+    <param n="2">0.0111</param>
     <param n="3">0.04</param>
    </slot>
    <slot n="2">
-    <param n="0">2.33</param>
+    <param n="0">2.21</param>
     <param n="1">0.01</param>
-    <param n="2">0.467</param>
+    <param n="2">0.444</param>
     <param n="3">0.4</param>
    </slot>
   </filter>

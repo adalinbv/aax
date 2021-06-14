@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info name="Door Slamming" bank="3" program="125">
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.17" db="-4.8" frequency="220" duration="0.3">
+ <sound gain="1.15" db="-4.5" frequency="220" duration="0.3">
   <waveform src="white-noise" ratio="2.0" pitch="0.05"/>
   <filter type="frequency" src="24db">
    <slot n="0">
@@ -34,13 +34,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.23</param>
+    <param n="0">0.222</param>
     <param n="1">0.25</param>
-    <param n="2">0.347</param>
+    <param n="2">0.335</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0">1.73</param>
+    <param n="0">1.67</param>
     <param n="1">0.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

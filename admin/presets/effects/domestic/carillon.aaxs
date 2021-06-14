@@ -1,25 +1,25 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
- * This file is part of AeonWave and covered by the
- * Creative Commons Attribution-ShareAlike 4.0 International Public License
- * https://creativecommons.org/licenses/by-sa/4.0/legalcode
+ * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
+ * not be disclosed to third parties, copied or duplicated in any form, in
+ * whole or in part, without the prior written permission of the author.
 -->
 
 <aeonwave>
 
  <info name="Carillon" bank="8" program="14">
-  <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <license type="Proprietary/Commercial"/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="17" min="60" max="77" step="1"/>
  </info>
 
- <sound gain="1.19" db="-10.0" frequency="261.626" duration="0.1">
+ <sound gain="1.19" db="-9.6" frequency="261.626" duration="0.1">
   <waveform src="sine" pitch="1.21"/>
   <waveform src="sine" processing="add" ratio="0.1" pitch="1.59987"/>
   <waveform src="sine" processing="add" ratio="0.05" pitch="6.25"/>
@@ -29,13 +29,13 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="1.4">
    <slot n="0">
-    <param n="0" auto="2.0" min="3.02" max="2.17">7.86</param>
+    <param n="0" auto="1.9" min="2.88" max="2.07">7.47</param>
     <param n="1">0.02</param>
-    <param n="2" auto="1.0" min="2.04" max="1.62">4.46</param>
+    <param n="2" auto="0.95" min="1.94" max="1.54">4.24</param>
     <param n="3">0.02</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="1.0" min="2.15" max="1.73">4.57</param>
+    <param n="0" auto="0.95" min="2.04" max="1.64">4.34</param>
     <param n="1" auto="1.0">5.5</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

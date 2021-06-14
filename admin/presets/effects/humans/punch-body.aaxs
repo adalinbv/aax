@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 
 <!--
- * Copyright (C) 2017-2020 by Erik Hofman.
- * Copyright (C) 2017-2020 by Adalin B.V.
+ * Copyright (C) 2017-2021 by Erik Hofman.
+ * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
  * This file is part of AeonWave and covered by the
@@ -14,12 +14,12 @@
 
  <info>
   <license type="Attribution-ShareAlike 4.0 International"/>
-  <copyright from="2017" until="2020" by="Erik Hofman"/>
-  <copyright from="2017" until="2020" by="Adalin B.V."/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound fixed-gain="4.81" db="5.4" frequency="25" duration="0.3">
+ <sound fixed-gain="4.81" db="5.8" frequency="25" duration="0.3">
   <waveform src="white-noise" ratio="1.25" pitch="0.125"/>
   <waveform src="triangle" processing="modulate" ratio="0.8" pitch="6.4991"/>
   <filter type="frequency" src="24db">
@@ -43,13 +43,13 @@
  <emitter looping="true">
   <filter type="timed-gain">
    <slot n="0">
-    <param n="0">0.18</param>
+    <param n="0">0.171</param>
     <param n="1">0.03</param>
-    <param n="2">0.54</param>
+    <param n="2">0.513</param>
     <param n="3">0.1</param>
    </slot>
    <slot n="1">
-    <param n="0">0.09</param>
+    <param n="0">0.0855</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>

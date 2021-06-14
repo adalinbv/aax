@@ -12,51 +12,53 @@
 
 <aeonwave>
 
- <info name="Turbine With Start And Stop Sequence" bank="0" program="0">
+ <info name="Helicopter">
   <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2021" by="Erik Hofman"/>
   <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="1"/>
  </info>
 
- <sound gain="1.07" db="-1.3" frequency="220" duration="3.33">
-  <waveform src="pink-noise" ratio="0.1" pitch="0.5"/>
-  <filter type="frequency" src="24db">
-   <slot n="0">
-    <param n="0" pitch="20.0">4400.0</param>
-    <param n="1">1.0</param>
-    <param n="2">0.0</param>
-    <param n="3" pitch="0.15">33.0</param>
-   </slot>
-  </filter>
+ <sound gain="2.45" db="5.4" frequency="55" duration="6.7">
+  <waveform src="white-noise" ratio="100.0" pitch="0.5"/>
+  <waveform src="sawtooth" processing="mix" ratio="0.98"/>
+  <waveform src="sawtooth" processing="modulate" pitch="0.25"/>
  </sound>
 
  <emitter looping="true">
-  <filter type="timed-gain">
+  <filter type="frequency">
    <slot n="0">
-    <param n="0">0.0</param>
-    <param n="1">10.0</param>
-    <param n="2">1.03</param>
+    <param n="0">1250.0</param>
+    <param n="1">1.0</param>
+    <param n="2">0.0</param>
+    <param n="3">1.5</param>
+   </slot>
+  </filter>
+  <filter type="timed-gain" src="envelope">
+   <slot n="0">
+    <param n="0">0.122</param>
+    <param n="1">3.0</param>
+    <param n="2">0.608</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
-    <param n="0">1.03</param>
-    <param n="1">30.0</param>
-    <param n="2">0.0</param>
-    <param n="3">0.0</param>
+    <param n="0">0.608</param>
+    <param n="1">7.0</param>
+    <param n="2">0.458</param>
+    <param n="3">3.0</param>
    </slot>
   </filter>
   <effect type="timed-pitch">
    <slot n="0">
-    <param n="0">0.4</param>
-    <param n="1">30.0</param>
+    <param n="0">0.5</param>
+    <param n="1">3.0</param>
     <param n="2">1.0</param>
     <param n="3">inf</param>
    </slot>
    <slot n="1">
     <param n="0">1.0</param>
-    <param n="1">30.0</param>
-    <param n="2">0.2</param>
+    <param n="1">10.0</param>
+    <param n="2">0.13</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
