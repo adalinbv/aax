@@ -131,6 +131,8 @@ extern "C" {
 #define MIDI_EXPRESSION						0x0b	// 11
 #define MIDI_EFFECT_CONTROL1					0x0c	// 12
 #define MIDI_EFFECT_CONTROL2					0x0d	// 13
+#define MIDI_MIDI_MODULATION_VELOCITY				0x0e	// 14
+#define MIDI_SOFT_RELEASE					0x0f	// 15
 #define MIDI_GENERAL_PURPOSE_CONTROL1				0x10	// 16
 #define MIDI_GENERAL_PURPOSE_CONTROL2				0x11	// 17
 #define MIDI_GENERAL_PURPOSE_CONTROL3				0x12	// 18
@@ -188,9 +190,21 @@ extern "C" {
 #define MIDI_TUNING_PROGRAM_CHANGE				0x0003
 #define MIDI_TUNING_BANK_SELECT					0x0004
 #define MIDI_MODULATION_DEPTH_RANGE				0x0005
-#define MIDI_PARAMETER_RESET					0x3fff // 16383
+#define MIDI_MPE_CONFIGURATION_MESSAGE				0x0006
 
-#define MAX_REGISTERED_PARAM					0x0006
+/* Three Dimensional Sound Controllers */
+#define MIDI_AZIMUTH_ANGLE					0x3d00
+#define MIDI_ELEVATION_ANGLE					03dx01
+#define MIDI_GAIN						0x3d02
+#define MIDI_DISTANCE_RATIO					0x3d03
+#define MIDI_MAXIMUM_DISTANCE					0x3d04
+#define MIDI_GAIN_AT_MAXIMUM_DISTANCE				0x3d05
+#define MIDI_REFERENCE_DISTANCE_RATIO				0x3d06
+#define MIDI_PAN_SPREAD_ANGLE					0x3d07
+#define MIDI_ROLL_ANGLE						0x3d08
+
+#define MIDI_PARAMETER_RESET					0x3fff
+#define MIDI_NULL_FUNCTION_NUMBER				0x7f7f
 
 /* system common messages */
 #define MIDI_TIMING_CODE					0x01
