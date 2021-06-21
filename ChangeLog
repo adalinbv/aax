@@ -1,4 +1,4 @@
-* Wed Feb 10 2021 - tech@adalin.org
+* Mon Jun 21 2021 - tech@adalin.org
 - AeonWave (3.10.0) stable; urgency=high
 
  * Add aaxSensorSetOffset() and aaxSensorSetOffsetSec() functions to set the
@@ -16,7 +16,7 @@
    problem for the SIMD accelerated versions of this function.
  * Fix a possible use-after-free situation for the ALSA backend.
 
--- Erik Hofman <tech@adalin.org>  Wed 10 feb 2021 13:50:33 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon 21 Jun 2021 09:55:21 + 0100
 
 
 * Tue Jan 12 2021 - tech@adalin.org
