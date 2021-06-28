@@ -22,6 +22,7 @@
 #ifndef AAX_STRINGS_HPP
 #define AAX_STRINGS_HPP 1
 
+#include <string>
 #include <aax/aax.h>
 
 namespace aax
