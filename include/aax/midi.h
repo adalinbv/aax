@@ -29,7 +29,6 @@
 #define AAX_MIDI_H 1
 
 #if defined(__cplusplus)
-# include <functional>
 
 extern "C" {
 #endif
@@ -234,6 +233,8 @@ extern "C" {
 
 #if defined(__cplusplus)
 }	/* extern "C" */
+
+#include <functional>
 
 #ifndef NDEBUG
 # define THROW(...)	std::throw(std::domain_error(...)

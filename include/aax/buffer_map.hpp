@@ -27,6 +27,9 @@
 #ifndef BUFFER_MAP
 #define BUFFER_MAP
 
+#include <algorithm>
+#include <iostream>
+
 template<typename T>
 class buffer_map
 {
