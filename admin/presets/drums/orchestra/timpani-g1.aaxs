@@ -5,21 +5,21 @@
  * Copyright (C) 2017-2021 by Adalin B.V.
  * All rights reserved.
  *
- * This is UNPUBLISHED PROPRIETARY SOURCE CODE; the contents of this file may
- * not be disclosed to third parties, copied or duplicated in any form, in
- * whole or in part, without the prior written permission of the author.
+ * This file is part of AeonWave and covered by the
+ * Creative Commons Attribution-ShareAlike 4.0 International Public License
+ * https://creativecommons.org/licenses/by-sa/4.0/legalcode
 -->
 
 <aeonwave>
 
  <info name="Timpani G1" bank="48" program="44">
-  <license type="Proprietary/Commercial"/>
+  <license type="Attribution-ShareAlike 4.0 International"/>
   <copyright from="2017" until="2021" by="Erik Hofman"/>
   <copyright from="2017" until="2021" by="Adalin B.V."/>
   <note polyphony="4" min="36" max="57" step="1"/>
  </info>
 
- <sound gain="1.50" db="-2.7" frequency="87.3071" duration="2.0">
+ <sound gain="0.53" db="-2.7" frequency="87.3071" duration="2.0">
   <waveform src="sine" ratio="0.45" pitch="1.7"/>
   <waveform src="sine" processing="add" ratio="0.25" pitch="2.8"/>
   <waveform src="white-noise" processing="add" pitch="0.075" random="0.85"/>
@@ -42,15 +42,15 @@
   </filter>
   <filter type="timed-gain" src="envelope">
    <slot n="0">
-    <param n="0" auto="0.426" min="1.49" max="1.26">2.26</param>
+    <param n="0" auto="1.21" min="4.21" max="3.57">6.4</param>
     <param n="1">0.03</param>
-    <param n="2" auto="0.186" min="1.27" max="1.17">1.61</param>
+    <param n="2" auto="0.527" min="3.6" max="3.32">4.56</param>
     <param n="3">0.05</param>
    </slot>
    <slot n="1">
-    <param n="0" auto="0.258" min="1.5" max="1.37">1.97</param>
+    <param n="0" auto="0.73" min="4.25" max="3.87">5.58</param>
     <param n="1" auto="1.0">0.5</param>
-    <param n="2" auto="0.258" min="1.5" max="1.37">1.97</param>
+    <param n="2" auto="0.73" min="4.25" max="3.87">5.58</param>
     <param n="3" auto="1.0">4.0</param>
    </slot>
   </filter>
