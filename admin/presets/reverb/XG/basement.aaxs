@@ -5,15 +5,15 @@
  <audioframe>
   <effect type="reverb" src="inverse">
    <slot n="0">
-    <param n="0">1280.0</param>
-    <param n="1">0.0300</param>
-    <param n="2">0.704</param>
+    <param n="0">300.0</param>
+    <param n="1">0.0048</param>
+    <param n="2">0.040</param>
     <param n="3">0.420</param>
    </slot>
    <slot n="1">
-    <param n="0">9.1</param>
-    <param n="1">14.5</param>
-    <param n="2">19.7</param>
+    <param n="0">7.2</param>
+    <param n="1">8.0</param>
+    <param n="2">16.5</param>
     <param n="3">0.000</param>
    </slot>
   </effect>
@@ -22,19 +22,18 @@
  <mixer>
   <effect type="reverb" src="inverse">
    <slot n="0">
-    <param n="0">1280.0</param>
-    <param n="1">0.0300</param>
-    <param n="2">0.704</param>
+    <param n="0">300.0</param>
+    <param n="1">0.0048</param>
+    <param n="2">0.040</param>
     <param n="3">0.420</param>
    </slot>
    <slot n="1">
-    <param n="0">9.1</param>
-    <param n="1">14.5</param>
-    <param n="2">19.7</param>
+    <param n="0">7.2</param>
+    <param n="1">8.0</param>
+    <param n="2">16.5</param>
     <param n="3">0.000</param>
    </slot>
   </effect>
  </mixer>
 
 </aeonwave>
-
