@@ -35,6 +35,7 @@ namespace aax
 #define GAIN_FACTOR			0.5f
 #define INSTRUMENT_DISTANCE		1.0f
 #define PAN_LEVELS			128.0f
+#define LEVEL_60DB			0.0001f
 
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f,v); }
@@ -269,6 +270,9 @@ public:
 
         tie(reverb_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
         tie(reverb_delay_depth, AAX_REVERB_EFFECT, AAX_DELAY_DEPTH);
+        tie(reverb_decay_level, AAX_REVERB_EFFECT, AAX_DECAY_LEVEL);
+        tie(reverb_decay_depth, AAX_REVERB_EFFECT, AAX_DECAY_DEPTH);
+        tie(reverb_cutoff, AAX_REVERB_EFFECT, AAX_CUTOFF_FREQUENCY);
         tie(reverb_state, AAX_REVERB_EFFECT);
 
         Mixer::matrix(pan.mtx_init);
@@ -313,14 +317,14 @@ public:
 
         i1.reverb_level = std::move(i2.reverb_level);
         i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
+        i1.reverb_decay_level = std::move(i2.reverb_decay_level);
+        i1.reverb_decay_depth = std::move(i2.reverb_decay_depth);
+        i1.reverb_cutoff = std::move(i2.reverb_cutoff);
         i1.reverb_state = std::move(i2.reverb_state);
 
         i1.attack_time = i2.attack_time;
         i1.release_time = i2.release_time;
         i1.decay_time = i2.decay_time;
-
-        i1.decay_level = i2.decay_level;
-        i1.delay_level = i2.delay_level;
 
         i1.mfreq = i2.mfreq;
         i1.mrange = i2.mrange;
@@ -423,7 +427,6 @@ public:
     inline void set_monophonic(bool m) { if (!is_drums) monophonic = m; }
 
     inline void set_detune(float level) {
-        delay_level = level;
     }
 
     inline void set_pitch(float pitch) {
@@ -553,13 +556,20 @@ public:
     void set_reverb(Buffer& buf) {
         Mixer::add(buf);
         aax::dsp dsp = Mixer::get(AAX_REVERB_EFFECT);
-        decay_level = dsp.get(AAX_DECAY_LEVEL);
+        reverb_decay_level = dsp.get(AAX_DECAY_LEVEL);
     }
     void set_reverb_level(float lvl) {
         if (lvl > 1e-5f) {
-            reverb_level = lvl*decay_level;
+            reverb_level = lvl*reverb_decay_level;
             if (!reverb_state) reverb_state = AAX_REVERB_1ST_ORDER;
         } else if (reverb_state) reverb_state = AAX_FALSE;
+    }
+    inline void set_reverb_cutoff(float fc) { reverb_cutoff = fc; }
+    inline void set_reverb_delay_depth(float v) { reverb_delay_depth = v; }
+    inline void set_reverb_decay_level(float v) { reverb_decay_level = v; }
+    inline void set_reverb_decay_depth(float v) { reverb_decay_depth = v; }
+    inline void set_reverb_time_rt60(float v) {
+        reverb_decay_level = powf(LEVEL_60DB, 0.5f*reverb_decay_depth/v);
     }
 
     void set_chorus_level(float lvl) {
@@ -624,14 +634,14 @@ private:
 
     Param reverb_level = 40.0f/127.0f;
     Param reverb_delay_depth = 0.035f;
+    Param reverb_decay_level = 0.0f;
+    Param reverb_decay_depth = 0.0f;
+    Param reverb_cutoff = 22000.0f;
     Status reverb_state = AAX_FALSE;
 
     unsigned attack_time = 64;
     unsigned release_time = 64;
     unsigned decay_time = 64;
-
-    float decay_level = 0.0f;
-    float delay_level = 0.0f;
 
     float mfreq = 1.5f;
     float mrange = 1.0f;
