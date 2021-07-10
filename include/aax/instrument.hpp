@@ -35,7 +35,7 @@ namespace aax
 #define GAIN_FACTOR			0.5f
 #define INSTRUMENT_DISTANCE		1.0f
 #define PAN_LEVELS			128.0f
-#define LEVEL_60DB			0.0001f
+#define LEVEL_60DB			0.001f
 
 inline float lin2log(float v) { return log10f(v); }
 inline float log2lin(float v) { return powf(10.0f,v); }
