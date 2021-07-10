@@ -3,12 +3,12 @@
 <aeonwave>
 
  <audioframe>
-  <effect type="reverb" src="inverse">
+  <effect type="reverb" src="true">
    <slot n="0">
     <param n="0">2520.0</param>
     <param n="1">0.0993</param>
     <param n="2">0.953</param>
-    <param n="3">0.126</param>
+    <param n="3">0.420</param>
    </slot>
    <slot n="1">
     <param n="0">9.4</param>
@@ -20,12 +20,12 @@
  </audioframe>
 
  <mixer>
-  <effect type="reverb" src="inverse">
+  <effect type="reverb" src="true">
    <slot n="0">
     <param n="0">2520.0</param>
     <param n="1">0.0993</param>
     <param n="2">0.953</param>
-    <param n="3">0.126</param>
+    <param n="3">0.420</param>
    </slot>
    <slot n="1">
     <param n="0">9.4</param>
