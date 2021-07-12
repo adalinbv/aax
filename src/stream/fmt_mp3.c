@@ -102,6 +102,10 @@ DECL_FUNCTION(lame_get_id3v2_tag);
 DECL_FUNCTION(id3tag_set_year);
 DECL_FUNCTION(id3tag_set_comment);
 DECL_FUNCTION(id3tag_add_v2);
+#ifndef NDEBUG
+DECL_FUNCTION(lame_set_errorf);
+#endif
+
 
 #define BUFFER_SIZE	256
 
@@ -279,6 +283,9 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(id3tag_set_year);
             TIE_FUNCTION(id3tag_set_comment);
             TIE_FUNCTION(id3tag_add_v2);
+#ifndef NDEBUG
+            TIE_FUNCTION(lame_set_errorf);
+#endif
 
             error = _aaxGetSymError(0);
             if (!error) {
