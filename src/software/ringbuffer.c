@@ -711,7 +711,7 @@ _aaxRingBufferSetParamd(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, FLOA
    }
    default:
 #ifndef NDEBUG
-      printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+      printf("RingBuffer: UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
 #endif
       break;
    }
@@ -838,7 +838,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       }
 #ifndef NDEBUG
       else {
-         printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+         printf("RingBuffer: UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
       }
 #endif
       break;
@@ -938,6 +938,10 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_SAMPLED_RELEASE:
       rbi->sampled_release = val ? AAX_TRUE : AAX_FALSE;
       break;
+   case RB_FAST_RELEASE: // the envelope-steps after sustain are ignored
+      break;
+   case RB_ENVELOPE_SUSTAIN: // sustain is infinite, until stopped
+      break;
    case RB_OFFSET_SAMPLES:
       if (val > rbd->no_samples) {
          val = rbd->no_samples;
@@ -1005,7 +1009,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       }
 #ifndef NDEBUG
       else {
-         printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+         printf("RingBuffer: UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
       }
 #endif
       break;
@@ -1080,7 +1084,7 @@ _aaxRingBufferGetParamf(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       }
 #ifndef NDEBUG
       else {
-         printf("UNKNOWN PARAMETER %x at line %x\n", param, __LINE__);
+         printf("RingBuffer: UNKNOWN PARAMETER %x at line %x\n", param, __LINE__);
       }
 #endif
       break;
@@ -1171,7 +1175,7 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
       }
 #ifndef NDEBUG
       else {
-         printf("UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
+         printf("RingBuffer: UNKNOWN PARAMETER %x at line %i\n", param, __LINE__);
       }
 #endif
       break;
