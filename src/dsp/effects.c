@@ -184,7 +184,7 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
 }
 
 void
-_aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, UNUSED(unsigned slot))
+_aaxSetDefaultEffect3d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
 {
    assert(type < MAX_3D_EFFECT);
 
