@@ -97,7 +97,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
    case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
-      float feedback = effect->slot[1]->param[AAX_MAX_GAIN];
+      float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
       char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
       data = _delay_create(data, effect->info, AAX_TRUE, fbhist, DELAY_EFFECTS_TIME);
@@ -105,8 +105,8 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
       if (data)
       {
          _aaxRingBufferFreqFilterData *flt = data->freq_filter;
-         float fc = effect->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-         float fmax = effect->slot[1]->param[AAX_LFO_FREQUENCY];
+         float fc = effect->slot[1]->param[AAX_DELAY_CUTOFF_FREQUENCY & 0xF];
+         float fmax = effect->slot[1]->param[AAX_DELAY_CUTOFF_FREQUENCY_HF & 0xF];
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
@@ -188,7 +188,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 
             flt->low_gain = data->delay.gain;
             flt->high_gain = LEVEL_128DB;
-            flt->Q = effect->slot[1]->param[AAX_RESONANCE];
+            flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
             flt->k = flt->low_gain/flt->high_gain;
 
             _aax_butterworth_compute(fc, flt);
