@@ -201,7 +201,7 @@ _aaxFlangingEffectSet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) && 
             (ptype == AAX_MICROSECONDS)) {
-       rv = (val*1e-6f)/FLANGING_MAX;
+       rv = val*FLANGING_MAX*1e6f;
    }
    return rv;
 }
@@ -215,7 +215,7 @@ _aaxFlangingEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = val*FLANGING_MAX*1e6f;
+       rv = (val*1e-6f)/FLANGING_MAX;
    }
    return rv;
 }

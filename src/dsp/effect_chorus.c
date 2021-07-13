@@ -306,7 +306,7 @@ _aaxChorusEffectSet(float val, int ptype, unsigned char param)
    }
   else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = (val*1e-6f)/CHORUS_MAX;
+       rv = val*CHORUS_MAX*1e6f;
    }
    return rv;
 }
@@ -320,7 +320,8 @@ _aaxChorusEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = val*CHORUS_MAX*1e6f;
+       rv = (val*1e-6f)/CHORUS_MAX;
+printf("val: %f, rv: %f\n", val, rv);
    }
    return rv;
 }
