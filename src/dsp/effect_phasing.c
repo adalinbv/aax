@@ -116,22 +116,34 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
             fs = effect->info->frequency;
          }
 
-         if ((fc > MINIMUM_CUTOFF || fmax > MINIMUM_CUTOFF) && !flt)
+         if (fc > MAXIMUM_CUTOFF) fc = MAXIMUM_CUTOFF;
+         if (fmax > MAXIMUM_CUTOFF) fmax = MAXIMUM_CUTOFF;
+
+         if ((fc > MINIMUM_CUTOFF && fc < MAXIMUM_CUTOFF) ||
+             ( fmax > MINIMUM_CUTOFF && fmax < MAXIMUM_CUTOFF))
          {
-            flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
-            if (flt)
+            if (!flt)
             {
-               memset(flt, 0, sizeof(_aaxRingBufferFreqFilterData));
-               flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
-               if (flt->freqfilter) {
-                  memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
-               }
-               else
+               flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
+               if (flt)
                {
-                  _aax_aligned_free(flt);
-                  flt = NULL;
+                  memset(flt, 0, sizeof(_aaxRingBufferFreqFilterData));
+                  flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+                  if (flt->freqfilter) {
+                     memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+                  }
                }
             }
+            else
+            {
+               _aax_aligned_free(flt);
+               flt = NULL;
+            }
+         }
+         else if (flt)
+         {
+            _aax_aligned_free(flt);
+            flt = NULL;
          }
 
          data->freq_filter = flt;
