@@ -508,8 +508,6 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          }  else if (fabsf(volume - 1.0) > LEVEL_96DB) {
             rbd->multiply(dptr, nsptr-offs, bps, no_samples, volume);
          }
-         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-         rv = AAX_TRUE;
       }
       else
       {
@@ -523,9 +521,9 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          } else if (fabsf(volume - 1.0) > LEVEL_96DB) {
             rbd->multiply(dptr, dptr, bps, no_samples, volume);
          }
-         rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
-         rv = AAX_TRUE;
       }
+      rbd->add(dptr, sptr, no_samples, 1.0f, 0.0f);
+      rv = AAX_TRUE;
    }
 
    return rv;
