@@ -153,6 +153,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
 
       if (flt[0] && flt[1] && flt[2])
       {
+         float fs = filter->info->frequency;
          float gain[EQBANDS], gprev;
 
          gprev = fabsf(filter->slot[0]->param[AAX_LF_GAIN]);
@@ -161,7 +162,8 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             float fc;
 
             fc = filter->slot[s]->param[AAX_CUTOFF_FREQUENCY];
-            if (fc >= MAX_CUTOFF)
+            fc = CLIP_FREQUENCY(fc, fs);
+            if (fc >= MAXIMUM_CUTOFF)
             {
                int i;
 
@@ -190,7 +192,8 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             int stages, state = filter->slot[s]->src;
             int lp = (gain[s] >= gain[s+1]) ? AAX_TRUE : AAX_FALSE;
 
-            if (fc >= MAX_CUTOFF) stages = 0;
+            fc = CLIP_FREQUENCY(fc, fs);
+            if (fc >= MAXIMUM_CUTOFF) stages = 0;
             else if (state & AAX_48DB_OCT) stages = 4;
             else if (state & AAX_36DB_OCT) stages = 3;
             else if (state & AAX_24DB_OCT) stages = 2;
@@ -199,7 +202,7 @@ _aaxEqualizerSetState(_filter_t* filter, int state)
             flt[s]->no_stages = stages;
             flt[s]->state = AAX_BUTTERWORTH;
             flt[s]->type = lp ? LOWPASS : HIGHPASS;
-            flt[s]->fs = filter->info->frequency;
+            flt[s]->fs = fs;
             flt[s]->low_gain = lp ? gain[s+1] : gain[s];
             flt[s]->high_gain = lp ? gain[s] : gain[s+1];
             flt[s]->Q = filter->slot[s]->param[AAX_RESONANCE];

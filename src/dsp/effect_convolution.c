@@ -128,6 +128,8 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
          convolution->occlusion = _occlusion_create(convolution->occlusion, effect->slot[1], state, fs);
 
          convolution->fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+         convolution->fc = CLIP_FREQUENCY(convolution->fc, fs);
+
          convolution->delay_gain = effect->slot[0]->param[AAX_MAX_GAIN];
          convolution->threshold = effect->slot[0]->param[AAX_THRESHOLD];
 

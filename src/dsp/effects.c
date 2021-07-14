@@ -166,14 +166,14 @@ _aaxSetDefaultEffect2d(_aaxEffectInfo *effect, unsigned int type, unsigned slot)
       break;
    case REVERB_EFFECT:
       if (slot == 0) {
-         effect->param[AAX_CUTOFF_FREQUENCY] = 15000.0f;
+         effect->param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
          effect->param[AAX_DELAY_DEPTH] = 0.27f;
          effect->param[AAX_DECAY_LEVEL] = 0.3f;
          effect->param[AAX_DECAY_DEPTH] = 0.7f;
       }
       break;
    case CONVOLUTION_EFFECT:
-      effect->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
+      effect->param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
       effect->param[AAX_LF_GAIN] = 1.0f;
       effect->param[AAX_MAX_GAIN] = 1.0f;
       effect->param[AAX_THRESHOLD] = LEVEL_64DB;

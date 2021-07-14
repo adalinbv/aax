@@ -115,6 +115,8 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          if (effect->info) {
             fs = effect->info->frequency;
          }
+         fc = CLIP_FREQUENCY(fc, fs);
+         fmax = CLIP_FREQUENCY(fmax, fs);
 
          if ((fc > MINIMUM_CUTOFF && fc < MAXIMUM_CUTOFF) ||
              ( fmax > MINIMUM_CUTOFF && fmax < MAXIMUM_CUTOFF))

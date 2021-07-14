@@ -216,7 +216,7 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
          if (flt)
          {
-            float dfact;
+            float fc, dfact;
 
             /* set up a frequency filter between 100Hz and 15000Hz
              * for the reflections. The lower the cut-off frequency,
@@ -229,7 +229,9 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
              * provide a bit smoother frequency response  around the
              * cut-off frequency.
              */
-            reverb->fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+            fc = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+            fc = CLIP_FREQUENCY(fc, fs);
+            reverb->fc = fc;
 
             flt->run = _freqfilter_run;
             flt->fs = fs;
@@ -263,8 +265,8 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
                   lfo->fs = effect->info->frequency;
                   lfo->period_rate = effect->info->period_rate;
 
-                  lfo->min = effect->slot[0]->param[AAX_CUTOFF_FREQUENCY];
-                  lfo->max = 22000.0f;
+                  lfo->min = fc;
+                  lfo->max = MAXIMUM_CUTOFF;
                   if (fabsf(lfo->max - lfo->min) < 200.0f)
                   {
                      lfo->min = 0.5f*(lfo->min + lfo->max);

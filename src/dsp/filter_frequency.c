@@ -147,7 +147,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
 
       if (flt)
       {
-         float fc;
+         float fc, fmax;
 
          flt->fs = filter->info ? filter->info->frequency : 48000.0f;
          flt->run = _freqfilter_run;
@@ -169,21 +169,22 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
-         fc = _MINMAX(filter->slot[0]->param[AAX_CUTOFF_FREQUENCY],
-                      20.0f, 0.9f*0.5f*flt->fs);
+         fc = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
+         fmax = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY_HF & 0xF];
+         fc = CLIP_FREQUENCY(fc, flt->fs);
+         fmax = CLIP_FREQUENCY(fmax, flt->fs);
          if (state & AAX_RANDOM_SELECT)
          {
-            float fc2 = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
-            float lfc2 = _lin2log(fc2);
+            float lfc2 = _lin2log(fmax);
             float lfc1 = _lin2log(fc);
 
             flt->fc_low = fc;
-            flt->fc_high = fc2;
+            flt->fc_high = fmax;
             flt->random = 1;
 
             lfc1 += (lfc2 - lfc1)*_aax_random();
             fc = _log2lin(lfc1);
-        }
+         }
 
          if (flt->state == AAX_BESSEL) {
              _aax_bessel_compute(fc, flt);
@@ -225,8 +226,8 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->fs = filter->info->frequency;
                lfo->period_rate = filter->info->period_rate;
 
-               lfo->min = filter->slot[0]->param[AAX_CUTOFF_FREQUENCY];
-               lfo->max = filter->slot[1]->param[AAX_CUTOFF_FREQUENCY];
+               lfo->min = fc;
+               lfo->max = fmax;
 
                if (state & AAX_ENVELOPE_FOLLOW_LOG)
                {
@@ -401,42 +402,9 @@ _freqfilter_reset(void *data)
 {
    _aaxRingBufferFreqFilterData *flt = data;
 
-// memset(flt->freqfilter->history, 0,
-//        sizeof(float[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES]));
-
-
-   if (flt->lfo)
-   {
-#if 0
-      float fc = _MINMAX(flt->lfo->get(flt->lfo, NULL, NULL, 0, 0),
-                   20.0f, 0.9f*0.5f*flt->fs);
-      if (flt->state == AAX_BESSEL) {
-         _aax_bessel_compute(fc, flt);
-      } else {
-         _aax_butterworth_compute(fc, flt);
-      }
-#endif
-
+   if (flt->lfo) {
       _lfo_reset(flt->lfo);
    }
-
-#if 0
-   if (flt->random)
-   {
-      float lfc2 = _lin2log(flt->fc_high);
-      float lfc1 = _lin2log(flt->fc_low);
-      float fc;
-
-      lfc1 += (lfc2 - lfc1)*_aax_random();
-      fc = _log2lin(lfc1);
-
-      if (flt->state == AAX_BESSEL) {
-          _aax_bessel_compute(fc, flt);
-      } else {
-         _aax_butterworth_compute(fc, flt);
-      }
-   }
-#endif
 }
 
 void

@@ -145,7 +145,7 @@ _aaxSetDefaultEqualizer(_aaxFilterInfo filter[EQUALIZER_MAX])
    /* parametric equalizer */
    for (i=0; i<_AAX_EQFILTERS; i++)
    {
-      filter[i].param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
+      filter[i].param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
       filter[i].param[AAX_LF_GAIN] = 1.0f;
       filter[i].param[AAX_HF_GAIN] = 1.0f;
       filter[i].param[AAX_RESONANCE] = 1.0f;
@@ -179,7 +179,7 @@ _aaxSetDefaultFilter2d(_aaxFilterInfo *filter, unsigned int type, UNUSED(unsigne
       }
       break;
    case FREQUENCY_FILTER:
-      filter->param[AAX_CUTOFF_FREQUENCY] = 22050.0f;
+      filter->param[AAX_CUTOFF_FREQUENCY] = MAXIMUM_CUTOFF;
       filter->param[AAX_LF_GAIN] = 1.0f;
       filter->param[AAX_HF_GAIN] = 1.0f;
       filter->param[AAX_RESONANCE] = 1.0f;

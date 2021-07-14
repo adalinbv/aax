@@ -47,6 +47,7 @@ extern "C" {
 
 #define MINIMUM_CUTOFF	50.0f
 #define MAXIMUM_CUTOFF	15000.0f
+#define CLIP_FREQUENCY(f, fs) _MINMAX(f, MINIMUM_CUTOFF, _MIN(0.9f*0.5f*fs, MAXIMUM_CUTOFF))
 
 enum _aax3dFiltersEffects
 {
