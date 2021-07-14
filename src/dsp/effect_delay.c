@@ -501,8 +501,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
       // then add the original (dry) signal
       if (doffs == 0)
       {
-         if (flt && ((flt->type == LOWPASS && flt->fc < MAXIMUM_CUTOFF) ||
-                     (flt->type == HIGHPASS && flt->fc > MINIMUM_CUTOFF)))
+         if (flt)
          {
             flt->run(rbd, dptr, nsptr-offs, 0, no_samples, 0, track, flt, env, 1.0f, 0);
          }  else if (fabsf(volume - 1.0) > LEVEL_96DB) {
@@ -514,8 +513,7 @@ _delay_run(void *rb, MIX_PTR_T d, MIX_PTR_T s, MIX_PTR_T scratch,
          float pitch = _MAX(((float)end-(float)doffs)/(float)(end), 0.001f);
          rbd->resample(dptr, nsptr-offs, 0, no_samples, 0.0f, pitch);
 
-         if (flt && ((flt->type == LOWPASS && flt->fc < MAXIMUM_CUTOFF) ||
-                     (flt->type == HIGHPASS && flt->fc > MINIMUM_CUTOFF)))
+         if (flt)
          {
             flt->run(rbd, dptr, dptr, 0, no_samples, 0, track, flt, env, 1.0f, 0);
          } else if (fabsf(volume - 1.0) > LEVEL_96DB) {
