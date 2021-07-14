@@ -29,6 +29,7 @@
 
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
+#include <base/random.h>
 
 #include <software/rbuf_int.h>
 #include "effects.h"
@@ -36,8 +37,8 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION	1.02
-#define DSIZE	sizeof(_aaxRingBufferDelayEffectData)
+#define VERSION		1.02
+#define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
 _aaxPhasingEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
@@ -73,12 +74,21 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
+   int mask, istate, wstate;
    int stereo;
 
    assert(effect->info);
 
+   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
+          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS | AAX_TIMED_TRANSITION |
+          AAX_ENVELOPE_FOLLOW_MASK;
+
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
+
+   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
+   if (istate == 0) istate = AAX_12DB_OCT;
+   wstate = istate & mask;
 
    effect->state = state;
    switch (state & ~AAX_INVERSE)
@@ -169,6 +179,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          data->lfo.max_sec = PHASING_MAX;
          data->lfo.depth = depth;
          data->lfo.offset = offset;
+
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          data->lfo.stereo_lnk = !stereo;
@@ -187,32 +198,60 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
          if (!_lfo_set_function(&data->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
          }
-         else if (flt)
+         else if (flt) // add a frequecny filter
          {
-            flt->run = _freqfilter_run;
+            int stages;
 
             flt->fs = fs;
-            flt->lfo = NULL;
-            flt->no_stages = 0;
-            flt->type = HIGHPASS;
+            flt->run = _freqfilter_run;
 
+            flt->high_gain = data->delay.gain;
+            flt->low_gain = 0.0f;
 
-            flt->low_gain = data->delay.gain;
-            flt->high_gain = LEVEL_128DB;
+            if (state & AAX_48DB_OCT) stages = 4;
+            else if (state & AAX_36DB_OCT) stages = 3;
+            else if (state & AAX_24DB_OCT) stages = 2;
+            else if (state & AAX_6DB_OCT) stages = 0;
+            else stages = 1;
+
+            flt->no_stages = stages;
+            flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
             flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
-            flt->k = flt->low_gain/flt->high_gain;
+            flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
 
-            _aax_butterworth_compute(fc, flt);
+            if (state & AAX_RANDOM_SELECT)
+            {
+               float lfc2 = _lin2log(fmax);
+               float lfc1 = _lin2log(fc);
+
+               flt->fc_low = fc;
+               flt->fc_high = fmax;
+               flt->random = 1;
+
+               lfc1 += (lfc2 - lfc1)*_aax_random();
+               fc = _log2lin(lfc1);
+            }
+
+            if (flt->state == AAX_BESSEL) {
+                _aax_bessel_compute(fc, flt);
+            }
+            else
+            {
+               if (flt->type == HIGHPASS)
+               {
+                  float g = flt->high_gain;
+                  flt->high_gain = flt->low_gain;
+                  flt->low_gain = g;
+               }
+               _aax_butterworth_compute(fc, flt);
+            }
 
             if (data->lfo.f)
             {
                _aaxLFOData* lfo = flt->lfo;
 
-               if (fmax > MINIMUM_CUTOFF)
-               {
-                  if (lfo == NULL) {
-                     lfo = flt->lfo = _lfo_create();
-                  }
+               if (lfo == NULL) {
+                  lfo = flt->lfo = _lfo_create();
                }
                else if (lfo)
                {
@@ -222,13 +261,19 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 
                if (lfo)
                {
-                  memcpy(lfo, &data->lfo, sizeof(_aaxLFOData));
+               int constant;
 
-                  lfo->min = fc;
-                  lfo->max = fmax;
-                  if (lfo->max == 0.0f) {
-                      lfo->max = 22050.0f;
-                  }
+               /* sweeprate */
+               lfo->state = wstate;
+               lfo->fs = fs;
+               lfo->period_rate = data->lfo.period_rate;
+
+               lfo->min = fc;
+               lfo->max = fmax;
+
+               if (state & AAX_ENVELOPE_FOLLOW_LOG)
+               {
+                  lfo->convert = _logarithmic;
                   if (fabsf(lfo->max - lfo->min) < 200.0f)
                   {
                      lfo->min = 0.5f*(lfo->min + lfo->max);
@@ -241,21 +286,42 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
                      lfo->min = f;
                      state ^= AAX_INVERSE;
                   }
-
-                  lfo->min_sec = lfo->min/lfo->fs;
-                  lfo->max_sec = lfo->max/lfo->fs;
-                  lfo->depth = 1.0f;
-                  lfo->offset = 0.0f;
-                  lfo->f = flt->Q;
-                  lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-                  lfo->stereo_lnk = !stereo;
-
-                  constant = _lfo_set_timing(lfo);
-                  lfo->envelope = AAX_FALSE;
-
-                  if (!_lfo_set_function(lfo, constant)) {
-                     _aaxErrorSet(AAX_INVALID_PARAMETER);
+                  lfo->min = _lin2log(lfo->min);
+                  lfo->max = _lin2log(lfo->max);
+               }
+               else
+               {
+                  lfo->convert = _linear;
+                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  {
+                     lfo->min = 0.5f*(lfo->min + lfo->max);
+                     lfo->max = lfo->min;
                   }
+                  else if (lfo->max < lfo->min)
+                  {
+                     float f = lfo->max;
+                     lfo->max = lfo->min;
+                     lfo->min = f;
+                     state ^= AAX_INVERSE;
+                  }
+               }
+
+               lfo->depth = 1.0f;
+               lfo->offset = 0.0f;
+               lfo->min_sec = lfo->min/lfo->fs;
+               lfo->max_sec = lfo->max/lfo->fs;
+
+               lfo->f = data->lfo.f;
+               lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+               lfo->stereo_lnk = !stereo;
+
+               constant = _lfo_set_timing(lfo);
+               lfo->envelope = AAX_FALSE;
+
+               if (!_lfo_set_function(lfo, constant)) {
+                  _aaxErrorSet(AAX_INVALID_PARAMETER);
+               }
+
                }
             }
          }
@@ -322,7 +388,7 @@ _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = (val*1e-6f - PHASING_MIN)/PHASING_MAX;
+      rv = (val*1e-6f - PHASING_MIN)/PHASING_MAX;
    }
    return rv;
 }
@@ -332,10 +398,10 @@ _aaxPhasingEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxPhasingRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { {  0.001f,  0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f, 1.0f } },
-    { {   20.0f, 20.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 1.0f } },
-    { {    0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } },
-    { {    0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f, 0.0f } }
+    { { 0.001f,  0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
+    { {  20.0f, 20.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
+    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
+    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

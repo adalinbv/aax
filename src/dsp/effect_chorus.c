@@ -397,7 +397,7 @@ _aaxChorusEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = (val*1e-6f - CHORUS_MIN)/CHORUS_MAX;
+      rv = (val*1e-6f - CHORUS_MIN)/CHORUS_MAX;
    }
    return rv;
 }

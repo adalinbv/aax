@@ -215,7 +215,7 @@ _aaxFlangingEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = (val*1e-6f - FLANGING_MIN)/FLANGING_MAX;
+      rv = (val*1e-6f - FLANGING_MIN)/FLANGING_MAX;
    }
    return rv;
 }
