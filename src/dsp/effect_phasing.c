@@ -37,7 +37,7 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION		1.02
+#define VERSION		1.03
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
@@ -81,7 +81,7 @@ _aaxPhasingEffectSetState(_effect_t* effect, int state)
 
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
           AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS | AAX_TIMED_TRANSITION |
-          AAX_ENVELOPE_FOLLOW_MASK;
+          AAX_ENVELOPE_FOLLOW_MASK | AAX_CONSTANT_VALUE;
 
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
