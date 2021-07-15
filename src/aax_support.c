@@ -637,7 +637,7 @@ aaxGetFrequencyFilterTypeByName(const char *type)
 {
    int rv = aaxGetWaveformTypeByName(type);
 
-   /* Prevent a clash with reverb 1st-order and end-order */
+   /* Prevent a clash with reverb 1st-order and 2nd-order */
    if (rv & AAX_REVERB_1ST_ORDER) rv &= ~AAX_REVERB_1ST_ORDER;
    else if (rv & AAX_REVERB_2ND_ORDER) rv &= ~AAX_REVERB_2ND_ORDER;
 

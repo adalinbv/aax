@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2018 by Erik Hofman.
- * Copyright 2009-2018 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -287,6 +287,7 @@ typedef struct
 
    int state;
 
+   _aaxLFOData *lfo;
    _aaxMixerInfo *info;
    _aaxRingBufferOcclusionData *occlusion;
    _aaxRingBufferReflectionData *reflections;

@@ -972,7 +972,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
          rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
          rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->freq);
          rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->freq);
-         rb->set_paramf(rb, RB_SAMPLED_RELEASE, info->sampled_release);
+         rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
          rb->set_paramf(rb, RB_FREQUENCY, info->freq);
 //       rb->set_paramf(rb, RB_BLOCKSIZE, info->blocksize);
          /* Postpone until aaxBufferSetData gets called
