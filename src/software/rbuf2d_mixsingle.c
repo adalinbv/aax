@@ -216,9 +216,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    }
 
    /* Tremolo was defined */
-   if (max != 1.0f) {
-      gain *= 1.0f - max/2.0f;
-   }
+   gain *= max;
 
    /* Final emitter volume */
    gain_emitter = _FILTER_GET(ep2d, VOLUME_FILTER, AAX_GAIN);
