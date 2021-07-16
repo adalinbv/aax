@@ -2,8 +2,15 @@
 
 <aeonwave>
 
+ <info name="Flanger">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <description text="General MIDI 2.0 specification"/>
+ </info>
+
  <audioframe>
-  <effect type="chorus" src="sine">
+  <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.1</param>
@@ -13,14 +20,14 @@
    <slot n="1">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
-    <param n="2">0.52</param>
+    <param n="2">0.86</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </audioframe>
 
  <mixer>
-  <effect type="chorus" src="sine">
+  <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.1</param>
     <param n="1">0.1</param>
@@ -30,7 +37,7 @@
    <slot n="1">
     <param n="0">0.0</param>
     <param n="1">0.0</param>
-    <param n="2">0.52</param>
+    <param n="2">0.86</param>
     <param n="3">0.0</param>
    </slot>
   </effect>

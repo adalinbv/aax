@@ -2,8 +2,15 @@
 
 <aeonwave>
 
+ <info name="Chorus 1">
+  <license type="Attribution-ShareAlike 4.0 International"/>
+  <copyright from="2017" until="2021" by="Erik Hofman"/>
+  <copyright from="2017" until="2021" by="Adalin B.V."/>
+  <description text="General MIDI 2.0 specification"/>
+ </info>
+
  <audioframe>
-  <effect type="chorus" src="sine">
+  <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.4</param>
@@ -20,7 +27,7 @@
  </audioframe>
 
  <mixer>
-  <effect type="chorus" src="sine">
+  <effect type="phasing" src="sine">
    <slot n="0">
     <param n="0">0.6</param>
     <param n="1">0.4</param>
