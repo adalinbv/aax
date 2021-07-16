@@ -277,7 +277,6 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
                lfo->fs = fs;
                lfo->period_rate = data->lfo.period_rate;
 
-printf("fc: %f, fmax: %f\n", fc, fmax);
                lfo->min = fc;
                lfo->max = fmax;
 
