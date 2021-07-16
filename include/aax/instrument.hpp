@@ -262,6 +262,7 @@ public:
         tie(chorus_level, AAX_CHORUS_EFFECT, AAX_DELAY_GAIN);
         tie(chorus_depth, AAX_CHORUS_EFFECT, AAX_LFO_OFFSET);
         tie(chorus_rate, AAX_CHORUS_EFFECT, AAX_LFO_FREQUENCY);
+        tie(chorus_feedback, AAX_CHORUS_EFFECT, AAX_FEEDBACK_GAIN);
         tie(chorus_state, AAX_CHORUS_EFFECT);
 
         tie(filter_cutoff, AAX_FREQUENCY_FILTER, AAX_CUTOFF_FREQUENCY);
@@ -309,6 +310,7 @@ public:
         i1.chorus_rate = std::move(i2.chorus_rate);
         i1.chorus_level = std::move(i2.chorus_level);
         i1.chorus_depth = std::move(i2.chorus_depth);
+        i1.chorus_feedback = std::move(i2.chorus_feedback);
         i1.chorus_state = std::move(i2.chorus_state);
 
         i1.filter_cutoff = std::move(i2.filter_cutoff);
@@ -581,6 +583,7 @@ public:
 
     inline void set_chorus_depth(float depth) { chorus_depth = depth; }
     inline void set_chorus_rate(float rate) { chorus_rate = rate; }
+    inline void set_chorus_feedback(float fb) { chorus_feedback = fb; }
 
     void set_filter_cutoff(float dfc) {
         cutoff = dfc; set_filter_cutoff();
@@ -625,6 +628,7 @@ private:
 
     Param chorus_rate = 0.0f;
     Param chorus_level = 0.0f;
+    Param chorus_feedback = 0.0f;
     Param chorus_depth = Param(1900.0f, AAX_MICROSECONDS);
     Status chorus_state = AAX_FALSE;
 
