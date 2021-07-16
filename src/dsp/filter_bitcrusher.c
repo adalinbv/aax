@@ -142,8 +142,8 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
          bitcrush->lfo.period_rate = filter->info->period_rate;
          bitcrush->lfo.stereo_lnk = !stereo;
 
-         bitcrush->lfo.min_sec = offset/bitcrush->lfo.fs;
-         bitcrush->lfo.max_sec = bitcrush->lfo.min_sec + depth/bitcrush->lfo.fs;
+         bitcrush->lfo.min_sec = offset/fs;
+         bitcrush->lfo.max_sec = bitcrush->lfo.min_sec + depth/fs;
          bitcrush->lfo.depth = 1.0f;
          bitcrush->lfo.offset = 0.0f;
          bitcrush->lfo.f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
