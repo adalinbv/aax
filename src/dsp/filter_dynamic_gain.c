@@ -133,28 +133,35 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
          }
          else
          {
+            float offset = filter->slot[0]->param[AAX_LFO_OFFSET];
+            float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
+            float fs = 48000.0f;
             int constant;
+
+            if (filter->info) {
+               fs = filter->info->frequency;
+            }
 
             lfo->convert = _linear;
             lfo->state = filter->state;
-            lfo->fs = filter->info->frequency;
+            lfo->fs = fs;
             lfo->period_rate = filter->info->period_rate;
             lfo->envelope = AAX_FALSE;
             lfo->stereo_lnk = !stereo;
 
-            lfo->min_sec = 0.0f;
-            lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
+            lfo->min_sec = offset/fs;
+            lfo->max_sec =  lfo->min_sec + depth/fs;
             lfo->depth = 1.0f;
             lfo->offset = 0.0f;
+            lfo->delay = -filter->slot[0]->param[AAX_INITIAL_DELAY];
             lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-            lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
             lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
             if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
                 (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG)
             {
-               lfo->min_sec = 0.5f*filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
-               lfo->max_sec = 0.5f*filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs + lfo->min_sec;
+               lfo->min_sec = 0.5f*depth/lfo->fs;
+               lfo->max_sec = 0.5f*depth/lfo->fs + lfo->min_sec;
             }
 
             constant = _lfo_set_timing(lfo);
