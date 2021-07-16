@@ -29,6 +29,7 @@
 
 #include <base/types.h>		/*  for rintf */
 #include <base/gmath.h>
+#include <base/random.h>
 
 #include <software/rbuf_int.h>
 #include "effects.h"
@@ -36,13 +37,13 @@
 #include "dsp.h"
 #include "api.h"
 
-#define VERSION		1.0
+#define VERSION		1.03
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
 static aaxEffect
 _aaxDelayLineEffectCreate(_aaxMixerInfo *info, enum aaxEffectType type)
 {
-   _effect_t* eff = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+   _effect_t* eff = _aaxEffectCreateHandle(info, type, 2, DSIZE);
    aaxEffect rv = NULL;
 
    if (eff)
@@ -73,24 +74,49 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
+   int mask, istate, wstate;
    int stereo;
 
    assert(effect->info);
 
+   mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
+          AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS | AAX_TIMED_TRANSITION |
+          AAX_ENVELOPE_FOLLOW_MASK | AAX_CONSTANT_VALUE;
+
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
    state &= ~AAX_LFO_STEREO;
+
+   istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
+   if (istate == 0) istate = AAX_12DB_OCT;
+   wstate = istate & mask;
 
    effect->state = state;
    switch (state & ~AAX_INVERSE)
    {
    case AAX_CONSTANT_VALUE:
+   case AAX_TRIANGLE_WAVE:
+   case AAX_SINE_WAVE:
+   case AAX_SQUARE_WAVE:
+   case AAX_IMPULSE_WAVE:
+   case AAX_SAWTOOTH_WAVE:
+   case AAX_RANDOMNESS:
+   case AAX_TIMED_TRANSITION:
+   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
+   case AAX_ENVELOPE_FOLLOW:
+   case AAX_ENVELOPE_FOLLOW_LOG:
+   case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
+      float feedback = effect->slot[1]->param[AAX_FEEDBACK_GAIN & 0xF];
+      char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
-      data = _delay_create(data, effect->info, AAX_TRUE, AAX_FALSE, FRAME_REVERB_EFFECTS_TIME);
+      data = _delay_create(data, effect->info, AAX_TRUE, fbhist, FRAME_REVERB_EFFECTS_TIME);
       effect->slot[0]->data = data;
       if (data)
       {
+         _aaxRingBufferFreqFilterData *flt = data->freq_filter;
+         float fc = effect->slot[1]->param[AAX_DELAY_CUTOFF_FREQUENCY & 0xF];
+         float fmax = effect->slot[1]->param[AAX_DELAY_CUTOFF_FREQUENCY_HF & 0xF];
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
          float fs = 48000.0f;
@@ -99,12 +125,52 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
          if (effect->info) {
             fs = effect->info->frequency;
          }
+         fc = CLIP_FREQUENCY(fc, fs);
+         fmax = CLIP_FREQUENCY(fmax, fs);
 
+         if ((fc > MINIMUM_CUTOFF && fc < MAXIMUM_CUTOFF) ||
+             ( fmax > MINIMUM_CUTOFF && fmax < MAXIMUM_CUTOFF))
+         {
+            if (!flt)
+            {
+               flt = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterData));
+               if (flt)
+               {
+                  memset(flt, 0, sizeof(_aaxRingBufferFreqFilterData));
+                  flt->freqfilter = _aax_aligned_alloc(sizeof(_aaxRingBufferFreqFilterHistoryData));
+                  if (flt->freqfilter) {
+                     memset(flt->freqfilter, 0, sizeof(_aaxRingBufferFreqFilterHistoryData));
+                  }
+               }
+            }
+            else
+            {
+               _aax_aligned_free(flt);
+               flt = NULL;
+            }
+         }
+         else if (flt)
+         {
+            _aax_aligned_free(flt);
+            flt = NULL;
+         }
+
+         data->freq_filter = flt;
          data->prepare = _delay_prepare;
          data->run = _delay_run;
          data->flanger = AAX_FALSE;
+         data->feedback = feedback;
 
-         data->lfo.convert = _linear;
+         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
+             (state & AAX_ENVELOPE_FOLLOW_LOG))
+         {
+            data->lfo.convert = _exponential;
+         }
+         else
+         {
+            data->lfo.convert = _linear;
+         }
+
          data->lfo.state = effect->state;
          data->lfo.fs = fs;
          data->lfo.period_rate = effect->info->period_rate;
@@ -113,7 +179,7 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
          data->lfo.max_sec = DELAY_MAX;
          data->lfo.depth = depth;
          data->lfo.offset = offset;
-         data->lfo.f = 0.0f;
+         data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
          data->lfo.stereo_lnk = !stereo;
 
@@ -130,6 +196,133 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
 
          if (!_lfo_set_function(&data->lfo, constant)) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
+         }
+         else if (flt) // add a frequecny filter
+         {
+            int stages;
+
+            flt->fs = fs;
+            flt->run = _freqfilter_run;
+
+            flt->high_gain = data->delay.gain;
+            flt->low_gain = 0.0f;
+
+            if (state & AAX_48DB_OCT) stages = 4;
+            else if (state & AAX_36DB_OCT) stages = 3;
+            else if (state & AAX_24DB_OCT) stages = 2;
+            else if (state & AAX_6DB_OCT) stages = 0;
+            else stages = 1;
+
+            flt->no_stages = stages;
+            flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
+            flt->Q = effect->slot[1]->param[AAX_DELAY_RESONANCE & 0xF];
+            flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
+
+            if (state & AAX_RANDOM_SELECT)
+            {
+               float lfc2 = _lin2log(fmax);
+               float lfc1 = _lin2log(fc);
+
+               flt->fc_low = fc;
+               flt->fc_high = fmax;
+               flt->random = 1;
+
+               lfc1 += (lfc2 - lfc1)*_aax_random();
+               fc = _log2lin(lfc1);
+            }
+
+            if (flt->state == AAX_BESSEL) {
+                _aax_bessel_compute(fc, flt);
+            }
+            else
+            {
+               if (flt->type == HIGHPASS)
+               {
+                  float g = flt->high_gain;
+                  flt->high_gain = flt->low_gain;
+                  flt->low_gain = g;
+               }
+               _aax_butterworth_compute(fc, flt);
+            }
+
+            if (data->lfo.f)
+            {
+               _aaxLFOData* lfo = flt->lfo;
+
+               if (lfo == NULL) {
+                  lfo = flt->lfo = _lfo_create();
+               }
+               else if (lfo)
+               {
+                  _lfo_destroy(flt->lfo);
+                   lfo = flt->lfo = NULL;
+               }
+
+               if (lfo)
+               {
+               int constant;
+
+               /* sweeprate */
+               lfo->state = wstate;
+               lfo->fs = fs;
+               lfo->period_rate = data->lfo.period_rate;
+
+               lfo->min = fc;
+               lfo->max = fmax;
+
+               if (state & AAX_ENVELOPE_FOLLOW_LOG)
+               {
+                  lfo->convert = _logarithmic;
+                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  {
+                     lfo->min = 0.5f*(lfo->min + lfo->max);
+                     lfo->max = lfo->min;
+                  }
+                  else if (lfo->max < lfo->min)
+                  {
+                     float f = lfo->max;
+                     lfo->max = lfo->min;
+                     lfo->min = f;
+                     state ^= AAX_INVERSE;
+                  }
+                  lfo->min = _lin2log(lfo->min);
+                  lfo->max = _lin2log(lfo->max);
+               }
+               else
+               {
+                  lfo->convert = _linear;
+                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  {
+                     lfo->min = 0.5f*(lfo->min + lfo->max);
+                     lfo->max = lfo->min;
+                  }
+                  else if (lfo->max < lfo->min)
+                  {
+                     float f = lfo->max;
+                     lfo->max = lfo->min;
+                     lfo->min = f;
+                     state ^= AAX_INVERSE;
+                  }
+               }
+
+               lfo->depth = 1.0f;
+               lfo->offset = 0.0f;
+               lfo->min_sec = lfo->min/lfo->fs;
+               lfo->max_sec = lfo->max/lfo->fs;
+
+               lfo->f = data->lfo.f;
+               lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+               lfo->stereo_lnk = !stereo;
+
+               constant = _lfo_set_timing(lfo);
+               lfo->envelope = AAX_FALSE;
+
+               if (!_lfo_set_function(lfo, constant)) {
+                  _aaxErrorSet(AAX_INVALID_PARAMETER);
+               }
+
+               }
+            }
          }
       }
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -153,11 +346,12 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
 }
 
 static _effect_t*
+
 _aaxNewDelayLineEffectHandle(const aaxConfig config, enum aaxEffectType type, _aax2dProps* p2d, UNUSED(_aax3dProps* p3d))
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 1, DSIZE);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, DSIZE);
 
    if (rv)
    {
@@ -180,7 +374,7 @@ _aaxDelayLineEffectSet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = (val*1e-6f)/DELAY_MAX;
+       rv = (DELAY_MIN + val*DELAY_MAX)*1e6f;
    }
    return rv;
 }
@@ -194,7 +388,7 @@ _aaxDelayLineEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-       rv = val*DELAY_MAX*1e6f;
+       rv = _MINMAX((val*1e-6f - DELAY_MIN)/DELAY_MAX, 0.0f, 1.0f);
    }
    return rv;
 }
@@ -204,10 +398,10 @@ _aaxDelayLineEffectMinMax(float val, int slot, unsigned char param)
 {
    static const _eff_minmax_tbl_t _aaxDelayLineRange[_MAX_FE_SLOTS] =
    {    /* min[4] */                  /* max[4] */
-    { { 0.001f, 0.0f, 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f, 1.0f } },
-    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
-    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } },
-    { {   0.0f, 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f, 0.0f } }
+    { { 0.001f,  0.01f, 0.0f, 0.0f  }, {     1.0f,    10.0f, 1.0f,  1.0f } },
+    { {  20.0f, 20.0f,  0.0f, 0.01f }, { 22050.0f, 22050.0f, 1.0f, 80.0f } },
+    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } },
+    { {   0.0f,  0.0f,  0.0f, 0.0f  }, {     0.0f,     0.0f, 0.0f,  0.0f } }
    };
 
    assert(slot < _MAX_FE_SLOTS);

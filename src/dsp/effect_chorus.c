@@ -277,6 +277,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
                lfo->fs = fs;
                lfo->period_rate = data->lfo.period_rate;
 
+printf("fc: %f, fmax: %f\n", fc, fmax);
                lfo->min = fc;
                lfo->max = fmax;
 
@@ -397,7 +398,7 @@ _aaxChorusEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-      rv = (val*1e-6f - CHORUS_MIN)/CHORUS_MAX;
+      rv = _MINMAX((val*1e-6f - CHORUS_MIN)/CHORUS_MAX, 0.0f, 1.0f);
    }
    return rv;
 }

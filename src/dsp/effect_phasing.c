@@ -388,7 +388,7 @@ _aaxPhasingEffectGet(float val, int ptype, unsigned char param)
    }
    else if ((param == AAX_LFO_DEPTH || param == AAX_LFO_OFFSET) &&
             (ptype == AAX_MICROSECONDS)) {
-      rv = (val*1e-6f - PHASING_MIN)/PHASING_MAX;
+      rv = _MINMAX((val*1e-6f - PHASING_MIN)/PHASING_MAX, 0.0f, 1.0f);
    }
    return rv;
 }
