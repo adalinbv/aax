@@ -6,8 +6,8 @@
   <effect type="reverb" src="true">
    <slot n="0">
     <param n="0">5002.9</param>
-    <param n="1">0.0200</param>
-    <param n="2">0.875</param>
+    <param n="1">0.0130</param>
+    <param n="2">0.699</param>
     <param n="3">0.700</param>
    </slot>
    <slot n="1">
@@ -29,8 +29,8 @@
   <effect type="reverb" src="true">
    <slot n="0">
     <param n="0">5002.9</param>
-    <param n="1">0.0200</param>
-    <param n="2">0.875</param>
+    <param n="1">0.0130</param>
+    <param n="2">0.699</param>
     <param n="3">0.700</param>
    </slot>
    <slot n="1">

@@ -5,10 +5,10 @@
  <audioframe>
   <effect type="reverb" src="true">
    <slot n="0">
-    <param n="0">5002.9</param>
-    <param n="1">0.0200</param>
-    <param n="2">0.875</param>
-    <param n="3">0.700</param>
+    <param n="0">3318.0</param>
+    <param n="1">0.0070</param>
+    <param n="2">0.522</param>
+    <param n="3">0.546</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
@@ -28,10 +28,10 @@
  <mixer>
   <effect type="reverb" src="true">
    <slot n="0">
-    <param n="0">5002.9</param>
-    <param n="1">0.0200</param>
-    <param n="2">0.875</param>
-    <param n="3">0.700</param>
+    <param n="0">3318.0</param>
+    <param n="1">0.0070</param>
+    <param n="2">0.522</param>
+    <param n="3">0.546</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>

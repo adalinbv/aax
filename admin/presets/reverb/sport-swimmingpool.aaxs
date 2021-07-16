@@ -3,12 +3,12 @@
 <aeonwave>
 
  <audioframe>
-  <effect type="reverb" src="true">
+  <effect type="reverb" src="sine">
    <slot n="0">
     <param n="0">5002.9</param>
     <param n="1">0.0200</param>
-    <param n="2">0.875</param>
-    <param n="3">0.700</param>
+    <param n="2">0.782</param>
+    <param n="3">0.490</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
@@ -18,20 +18,20 @@
    </slot>
    <slot n="2">
     <param n="0">0.0</param>
-    <param n="1">0.2</param>
-    <param n="2">0.0</param>
+    <param n="1">0.9</param>
+    <param n="2">0.2</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
  </audioframe>
 
  <mixer>
-  <effect type="reverb" src="true">
+  <effect type="reverb" src="sine">
    <slot n="0">
     <param n="0">5002.9</param>
     <param n="1">0.0200</param>
-    <param n="2">0.875</param>
-    <param n="3">0.700</param>
+    <param n="2">0.782</param>
+    <param n="3">0.490</param>
    </slot>
    <slot n="1">
     <param n="0">0.0</param>
@@ -41,8 +41,8 @@
    </slot>
    <slot n="2">
     <param n="0">0.0</param>
-    <param n="1">0.2</param>
-    <param n="2">0.0</param>
+    <param n="1">0.9</param>
+    <param n="2">0.2</param>
     <param n="3">0.0</param>
    </slot>
   </effect>
