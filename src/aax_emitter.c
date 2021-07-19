@@ -483,15 +483,18 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
-//          _aaxMutexLock(src->props2d->mutex);
-            for (i=0; i<MAX_STEREO_FILTER; ++i) {
-               reset_filter(src->props2d, i);
-            }
+            if (!handle->midi.legato_mode)
+            {
+//             _aaxMutexLock(src->props2d->mutex);
+               for (i=0; i<MAX_STEREO_FILTER; ++i) {
+                  reset_filter(src->props2d, i);
+               }
 
-            for (i=0; i<MAX_STEREO_EFFECT; ++i) {
-               reset_effect(src->props2d, i);
+               for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+                  reset_effect(src->props2d, i);
+               }
+//             _aaxMutexDestroy(src->props2d->mutex);
             }
-//          _aaxMutexDestroy(src->props2d->mutex);
          }
          rv = AAX_TRUE;
          break;
