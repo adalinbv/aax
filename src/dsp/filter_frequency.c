@@ -158,6 +158,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          flt->low_gain = fabsf(filter->slot[0]->param[AAX_HF_GAIN]);
          if (flt->low_gain < LEVEL_128DB) flt->low_gain = 0.0f;
 
+         if (fabsf(flt->low_gain - flt->high_gain) < LEVEL_128DB) {
+             flt->high_gain *= 0.9f;
+         }
+
          if (state & AAX_48DB_OCT) stages = 4;
          else if (state & AAX_36DB_OCT) stages = 3;
          else if (state & AAX_24DB_OCT) stages = 2;
