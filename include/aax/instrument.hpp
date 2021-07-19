@@ -373,7 +373,7 @@ public:
     {
         float frequency = buffer.get(AAX_UPDATE_RATE);
         if (!is_drums) pitch *= note2freq(key_no)/frequency;
-        if (monophonic) {
+        if (monophonic || legato) {
             auto it = key.find(key_prev);
             if (it != key.end()) it->second->stop();
             key_prev = key_no;
