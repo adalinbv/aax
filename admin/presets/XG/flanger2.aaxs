@@ -7,16 +7,18 @@
    <slot n="0">
     <param n="0">0.748</param>
     <param n="1">1.340</param>
-    <param n="2">0.134</param>
+    <param n="2">0.067</param>
     <param n="3" type="usec">200.0</param>
    </slot>
-   <slot n="1">
-    <param n="0">500.0</param>
-    <param n="1">4000.0</param>
-    <param n="2">0.000</param>
+  </effect>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">0.631</param>
     <param n="3">1.0</param>
    </slot>
-  </effect>
+  </filter>
  </audioframe>
 
  <mixer>
@@ -24,16 +26,18 @@
    <slot n="0">
     <param n="0">0.748</param>
     <param n="1">1.340</param>
-    <param n="2">0.134</param>
+    <param n="2">0.067</param>
     <param n="3" type="usec">200.0</param>
    </slot>
-   <slot n="1">
-    <param n="0">500.0</param>
-    <param n="1">4000.0</param>
-    <param n="2">0.000</param>
+  </effect>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">0.631</param>
     <param n="3">1.0</param>
    </slot>
-  </effect>
+  </filter>
  </mixer>
 
 </aeonwave>

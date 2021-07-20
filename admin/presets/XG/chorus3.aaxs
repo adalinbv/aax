@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <audioframe>
+  <effect type="chorus" src="sine">
+   <slot n="0">
+    <param n="0">0.496</param>
+    <param n="1">0.160</param>
+    <param n="2">0.173</param>
+    <param n="3" type="usec">23300.0</param>
+   </slot>
+  </effect>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.259</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </audioframe>
+
+ <mixer>
+  <effect type="chorus" src="sine">
+   <slot n="0">
+    <param n="0">0.496</param>
+    <param n="1">0.160</param>
+    <param n="2">0.173</param>
+    <param n="3" type="usec">23300.0</param>
+   </slot>
+  </effect>
+  <filter type="equalizer">
+   <slot n="0">
+    <param n="0">4000.0</param>
+    <param n="1">1.000</param>
+    <param n="2">1.259</param>
+    <param n="3">1.0</param>
+   </slot>
+  </filter>
+ </mixer>
+
+</aeonwave>

@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+
+<aeonwave>
+
+ <audioframe>
+  <effect type="distortion" src="envelope">
+   <slot n="0">
+    <param n="0">0.209</param>
+    <param n="1">0.819</param>
+    <param n="2">0.217</param>
+    <param n="3">0.181</param>
+   </slot>
+  </effect>
+ </audioframe>
+
+ <mixer>
+  <effect type="distortion" src="envelope">
+   <slot n="0">
+    <param n="0">0.209</param>
+    <param n="1">0.819</param>
+    <param n="2">0.217</param>
+    <param n="3">0.181</param>
+   </slot>
+  </effect>
+ </mixer>
+
+</aeonwave>
