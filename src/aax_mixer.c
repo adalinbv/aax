@@ -1294,9 +1294,9 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!frame) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else if (frame->mixer_pos != UINT_MAX) {
+      } else if (frame->mixer_pos[0] != UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
-      } else if (frame->parent) {
+      } else if (frame->parent[0]) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
          rv = AAX_TRUE;
@@ -1390,8 +1390,8 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             fmixer->refcount++;
 
             frame->root = handle->root;
-            frame->parent = handle;
-            frame->mixer_pos = pos;
+            frame->parent[0] = handle;
+            frame->mixer_pos[0] = pos;
          }
       else {
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
@@ -1419,9 +1419,9 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
    {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!frame || frame->parent != handle) {
+      } else if (!frame || frame->parent[0] != handle) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else if (frame->mixer_pos == UINT_MAX) {
+      } else if (frame->mixer_pos[0] == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
          rv = AAX_TRUE;
@@ -1442,14 +1442,14 @@ aaxMixerDeregisterAudioFrame(const aaxConfig config, const aaxFrame f)
          if (_intBufGetNumNoLock(hf, _AAX_FRAME))
          {
             _aaxAudioFrame *submix = frame->submix;
-            _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
-            _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos, AAX_FALSE);
+            _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos[0]);
+            _intBufRemove(hf, _AAX_FRAME, frame->mixer_pos[0], AAX_FALSE);
             mixer->no_registered--;
 
             submix->refcount--;
             frame->root = NULL;
-            frame->parent = NULL;
-            frame->mixer_pos = UINT_MAX;
+            frame->parent[0] = NULL;
+            frame->mixer_pos[0] = UINT_MAX;
             rv = AAX_TRUE;
          }
          else {

@@ -70,7 +70,7 @@ aaxAudioFrameCreate(aaxConfig config)
 
          frame->id = AUDIOFRAME_ID;
          frame->root = handle->root;
-         frame->mixer_pos = UINT_MAX;
+         frame->mixer_pos[0] = UINT_MAX;
          frame->max_emitters = get_low_resource() ? 32 : 256;
          if (handle->info->midi_mode)
          {
@@ -249,7 +249,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 #endif
 
       if (_IS_RELATIVE(fp3d) &&
-          handle->parent && (handle->parent == handle->root))
+          handle->parent[0] && (handle->parent[0] == handle->root))
       {
          fdp3d->matrix.m4[LOCATION][3] = 0.0;
       } else {
@@ -260,7 +260,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
 
       if (_IS_RELATIVE(fp3d))
       {
-         _frame_t *parent = handle->parent;
+         _frame_t *parent = handle->parent[0];
 
          // Walk back to the lowest parent frame which is registered
          // at the sensor and mark it changed.
@@ -269,7 +269,7 @@ aaxAudioFrameSetMatrix64(aaxFrame frame, aaxMtx4d mtx64)
             while (handle->root && (void*)parent != handle->root)
             {
                handle = parent;
-               parent = handle->parent;
+               parent = handle->parent[0];
             }
          }
          _PROP_MTX_SET_CHANGED(handle->submix->props3d);
@@ -333,7 +333,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 
       vec3fFill(fdp3d->velocity.m4[VELOCITY], velocity);
       if (_IS_RELATIVE(fp3d) &&
-          handle->parent && (handle->parent == handle->root))
+          handle->parent[0] && (handle->parent[0] == handle->root))
       {
          fdp3d->velocity.m4[LOCATION][3] = 0.0f;
       } else {
@@ -343,7 +343,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
 
       if (_IS_RELATIVE(fp3d))
       {
-         _frame_t *parent = handle->parent;
+         _frame_t *parent = handle->parent[0];
 
          // Walk back to the lowest parent frame which is registered
          // at the sensor and mark it changed.
@@ -352,7 +352,7 @@ aaxAudioFrameSetVelocity(aaxFrame frame, aaxVec3f velocity)
             while ((void*)parent != handle->root)
             {
                handle = parent;
-               parent = handle->parent;
+               parent = handle->parent[0];
 
             }
          }
@@ -722,7 +722,7 @@ aaxAudioFrameSetMode(aaxFrame frame, enum aaxModeType type, int mode)
             if (_IS_RELATIVE(fp3d))
             {
                _aaxDelayed3dProps *fdp3d = fp3d->dprops3d;
-               if (handle->parent && (handle->parent == handle->root))
+               if (handle->parent[0] && (handle->parent[0] == handle->root))
                {
                   fdp3d->matrix.m4[LOCATION][3] = 0.0;
                   fdp3d->velocity.m4[LOCATION][3] = 0.0;
@@ -1206,9 +1206,9 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          _aaxErrorSet(AAX_INVALID_HANDLE);
       } else if (!sframe) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else if (sframe->parent) {
+      } else if (sframe->parent[0]) {
          _aaxErrorSet(AAX_INVALID_STATE);
-      } else if (sframe->mixer_pos < UINT_MAX) {
+      } else if (sframe->mixer_pos[0] < UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
          rv = AAX_TRUE;
@@ -1278,14 +1278,14 @@ aaxAudioFrameRegisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
          }
 
          submix->refcount++;
-         sframe->parent = handle;
-         sframe->mixer_pos = pos;
+         sframe->parent[0] = handle;
+         sframe->mixer_pos[0] = pos;
 
          _aaxAudioFrameResetDistDelay(submix, fmixer);
       }
       else
       {
-         if (sframe->parent) put_frame(sframe);
+         if (sframe->parent[0]) put_frame(sframe);
          _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
          rv = AAX_FALSE;
       }
@@ -1306,9 +1306,9 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
    {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!sframe || sframe->mixer_pos == UINT_MAX) {
+      } else if (!sframe || sframe->mixer_pos[0] == UINT_MAX) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else if (sframe->parent != handle) {
+      } else if (sframe->parent[0] != handle) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else if (_intBufGetNumNoLock(handle->submix->frames, _AAX_FRAME) == 0) {
             _aaxErrorSet(AAX_INVALID_PARAMETER);
@@ -1323,11 +1323,11 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
 
       /* Unlock the frame again to make sure locking is done in the proper */
       /* order by _intBufRemove                                            */
-      _intBufRelease(hf, _AAX_FRAME, sframe->mixer_pos);
-      _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos, AAX_FALSE);
+      _intBufRelease(hf, _AAX_FRAME, sframe->mixer_pos[0]);
+      _intBufRemove(hf, _AAX_FRAME, sframe->mixer_pos[0], AAX_FALSE);
       sframe->submix->refcount--;
-      sframe->mixer_pos = UINT_MAX;
-      sframe->parent = NULL;
+      sframe->mixer_pos[0] = UINT_MAX;
+      sframe->parent[0] = NULL;
       sframe->root = NULL;
 
       handle->submix->no_registered--;
@@ -1525,9 +1525,9 @@ get_frame(aaxFrame f, int lock, const char *func)
 
    if (frame && (frame->id == AUDIOFRAME_ID))
    {
-      if (frame->parent)
+      if (frame->parent[0])
       {
-         if (frame->parent == frame->root)
+         if (frame->parent[0] == frame->root)
          {
             _handle_t *handle = frame->root;
             _intBufferData *dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1541,9 +1541,9 @@ get_frame(aaxFrame f, int lock, const char *func)
                hf = smixer->frames;
 
                if (lock) {
-                  dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->mixer_pos);
+                  dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->mixer_pos[0]);
                } else {
-                  dptr_frame =_intBufGetNoLock(hf,_AAX_FRAME, frame->mixer_pos);
+                  dptr_frame =_intBufGetNoLock(hf,_AAX_FRAME, frame->mixer_pos[0]);
                }
                frame = _intBufGetDataPtr(dptr_frame);
                _intBufReleaseData(dptr, _AAX_SENSOR);
@@ -1551,15 +1551,15 @@ get_frame(aaxFrame f, int lock, const char *func)
          }
          else			/* subframe is registered at another frame */
          {
-            _frame_t *handle = frame->parent;
+            _frame_t *handle = frame->parent[0];
             _intBufferData *dptr_frame;
             _intBuffers *hf;
 
             hf =  handle->submix->frames;
             if (lock) {
-               dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->mixer_pos);
+               dptr_frame = _intBufGet(hf, _AAX_FRAME, frame->mixer_pos[0]);
             } else {
-               dptr_frame = _intBufGetNoLock(hf, _AAX_FRAME, frame->mixer_pos);
+               dptr_frame = _intBufGetNoLock(hf, _AAX_FRAME, frame->mixer_pos[0]);
             }
             frame = _intBufGetDataPtr(dptr_frame);
          }
@@ -1583,9 +1583,9 @@ put_frame(aaxFrame f)
 
    if (frame && (frame->id == AUDIOFRAME_ID))
    {
-      if (frame->parent)
+      if (frame->parent[0])
       {
-         if (frame->parent == frame->root)
+         if (frame->parent[0] == frame->root)
          {
             _handle_t *handle = frame->root;
             _intBufferData *dptr =_intBufGet(handle->sensors, _AAX_SENSOR, 0);
@@ -1596,17 +1596,17 @@ put_frame(aaxFrame f)
                _intBuffers *hf;
 
                hf = smixer->frames;
-               _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
+               _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos[0]);
                _intBufReleaseData(dptr, _AAX_SENSOR);
             }
          }
          else
          {
-            _frame_t *handle = frame->parent;
+            _frame_t *handle = frame->parent[0];
             _intBuffers *hf;
 
             hf =  handle->submix->frames;
-            _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos);
+            _intBufRelease(hf, _AAX_FRAME, frame->mixer_pos[0]);
          }
       }
    }

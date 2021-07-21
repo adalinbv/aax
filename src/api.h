@@ -196,20 +196,24 @@ int get_low_resource();
 void _aaxMixerSetRendering(_handle_t*);
 
 /* --- AudioFrame --- */
-#define AUDIOFRAME_ID   0x3137ABFF
+#define AUDIOFRAME_ID   0x8AE7A22F
+#define AUDIOFRAME_MAX_PARENTS	4
 
 typedef struct aax_frame_t
 {
    unsigned int id;
 
-   unsigned int mixer_pos;
    unsigned int max_emitters;
+   unsigned int num_parents;
+   unsigned int mixer_pos[AUDIOFRAME_MAX_PARENTS];
 
-   void *parent;		/* assigned when registered to a (sub)mixer */
+   /* assigned when registered to a (sub)mixer */
+   void *parent[AUDIOFRAME_MAX_PARENTS];
    _handle_t *root;		/* reference to the mixer object            */
 
    _aaxAudioFrame *submix;
 
+   char registered_at_mixer;
    char mtx_set;
 
    /* parametric and graphic equalizer **/
