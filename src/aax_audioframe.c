@@ -976,8 +976,10 @@ aaxAudioFrameRegisterEmitter(const aaxFrame frame, const aaxEmitter em)
    {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!emitter || emitter->parent || emitter->mixer_pos < UINT_MAX) {
-          _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (!emitter) {
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
+      } else if (emitter->parent || emitter->mixer_pos < UINT_MAX) {
+          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else {
          rv = AAX_TRUE;
       }
@@ -1137,9 +1139,9 @@ aaxAudioFrameDeregisterEmitter(const aaxFrame frame, const aaxEmitter em)
    {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (!emitter || emitter->mixer_pos == UINT_MAX) {
+      } else if (!emitter) {
          _aaxErrorSet(AAX_INVALID_PARAMETER);
-      } else if (emitter->parent != handle) {
+      } else if (emitter->mixer_pos == UINT_MAX || emitter->parent != handle) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       }
       else
