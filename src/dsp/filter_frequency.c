@@ -77,7 +77,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
    int mask, istate, wstate;
-   int stereo;
+   int resonance, stereo;
 
    assert(filter->info);
 
@@ -88,6 +88,10 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       state -= AAX_ENVELOPE_FOLLOW_LOG;
       state += AAX_ENVELOPE_FOLLOW;
    }
+
+   resonance = ((state & AAX_RESONANCE_FACTOR) == AAX_RESONANCE_FACTOR)
+               ? AAX_TRUE : AAX_FALSE;
+   if (resonance) state &= ~AAX_6DB_OCT;
 
    mask = AAX_TRIANGLE_WAVE|AAX_SINE_WAVE|AAX_SQUARE_WAVE|AAX_IMPULSE_WAVE|
           AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS | AAX_TIMED_TRANSITION |
@@ -121,7 +125,6 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
        istate == AAX_48DB_OCT)
    {
       _aaxRingBufferFreqFilterData *flt = filter->slot[0]->data;
-      int stages;
 
       if (flt == NULL)
       {
@@ -148,6 +151,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
       if (flt)
       {
          float fc, fmax;
+         int stages;
 
          flt->fs = filter->info ? filter->info->frequency : 48000.0f;
          flt->run = _freqfilter_run;
@@ -169,6 +173,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
          else stages = 1;
 
          flt->no_stages = stages;
+         flt->resonance = resonance;
          flt->state = (state & AAX_BESSEL) ? AAX_BESSEL : AAX_BUTTERWORTH;
          flt->Q = filter->slot[0]->param[AAX_RESONANCE];
          flt->type = (flt->high_gain >= flt->low_gain) ? LOWPASS : HIGHPASS;
@@ -230,13 +235,21 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                lfo->fs = filter->info->frequency;
                lfo->period_rate = filter->info->period_rate;
 
-               lfo->min = fc;
-               lfo->max = fmax;
+               if (!resonance)
+               {
+                  lfo->min = fc;
+                  lfo->max = fmax;
+               }
+               else
+               {
+                  lfo->min = 1.0f;
+                  lfo->max = flt->Q;
+               }
 
                if (state & AAX_ENVELOPE_FOLLOW_LOG)
                {
                   lfo->convert = _logarithmic;
-                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  if (!resonance && fabsf(lfo->max - lfo->min) < 200.0f)
                   {
                      lfo->min = 0.5f*(lfo->min + lfo->max);
                      lfo->max = lfo->min;
@@ -254,7 +267,7 @@ _aaxFrequencyFilterSetState(_filter_t* filter, int state)
                else
                {
                   lfo->convert = _linear;
-                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  if (!resonance && fabsf(lfo->max - lfo->min) < 200.0f)
                   {
                      lfo->min = 0.5f*(lfo->min + lfo->max);
                      lfo->max = lfo->min;
@@ -1109,8 +1122,15 @@ _freqfilter_run(void *rb, MIX_PTR_T d, CONST_MIX_PTR_T s,
 
    if (filter->lfo && !ctr)
    {
-      float fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
-                         20.0f, 0.9f*0.5f*filter->fs);
+      float fc = filter->fc;
+
+      if (filter->resonance) {
+         filter->Q = filter->lfo->get(filter->lfo, env, s, track, dmax);
+      } else {
+         fc = _MINMAX(filter->lfo->get(filter->lfo, env, s, track, dmax),
+                            20.0f, 0.9f*0.5f*filter->fs);
+      }
+
       if (filter->state == AAX_BESSEL) {
          _aax_bessel_compute(fc, filter);
       } else {

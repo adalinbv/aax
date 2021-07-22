@@ -162,6 +162,7 @@ typedef ALIGN16 struct
 
    unsigned int state;
    unsigned char no_stages;
+   unsigned char resonance;
    unsigned char random;
    signed char type;
 

@@ -674,8 +674,12 @@ aaxGetFrequencyFilterTypeByName(const char *type)
             }
          }
 
-         if (!strncasecmp(name, "1st", len) ||
-             !strncasecmp(name, "6db", len)) {
+         if (!strncasecmp(name, "resonance", len) ||
+             !strncasecmp(name, "Q", len)) {
+            rv |= AAX_RESONANCE_FACTOR;
+         }
+         else if (!strncasecmp(name, "1st", len) ||
+                  !strncasecmp(name, "6db", len)) {
             rv |= AAX_1ST_ORDER;
          }
          else if (!strncasecmp(name, "2nd", len) ||
