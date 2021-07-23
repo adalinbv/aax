@@ -609,7 +609,7 @@ private:
         filter_cutoff = soft*log2lin(cutoff*fc);
     }
     inline void set_volume() {
-        volume = gain*expression;
+        volume = gain*expression*expression;
     }
 
     AeonWave* aax;
