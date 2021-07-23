@@ -41,8 +41,12 @@ extern "C" {
 #define MIDI_SYSTEM_EXCLUSIVE_NON_REALTIME			0x7e	// 126
 #define MIDI_SYSTEM_EXCLUSIVE_REALTIME				0x7f	// 127
 
+#define MIDI_SYSTEM_EXCLUSIVE_E_MU				0x18	// 24
 #define MIDI_SYSTEM_EXCLUSIVE_ROLAND				0x41	// 65
+#define MIDI_SYSTEM_EXCLUSIVE_KORG				0x42	// 66
 #define MIDI_SYSTEM_EXCLUSIVE_YAMAHA				0x43	// 67
+#define MIDI_SYSTEM_EXCLUSIVE_CASIO				0x44	// 68
+
 /* system exclusive non-real time message */
 #define MIDI_EOF						0x7b	// 123
 #define MIDI_WAIT						0x7c	// 124
@@ -51,6 +55,8 @@ extern "C" {
 #define MIDI_ACK						0x7f	// 127
 
 /* system exclusive real time message */
+#define MIDI_BROADCAST						0x7f
+
 #define MIDI_DEVICE_CONTROL					0x04
 
 #define MIDI_DEVICE_VOLUME					0x01
