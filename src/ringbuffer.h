@@ -159,10 +159,10 @@ typedef ALIGN16 struct
    float high_gain, low_gain;
    float fc_low, fc_high;
    float Q, k, fs, fc;
+   float resonance;
 
    unsigned int state;
    unsigned char no_stages;
-   unsigned char resonance;
    unsigned char random;
    signed char type;
 
