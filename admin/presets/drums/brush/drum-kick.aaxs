@@ -19,7 +19,7 @@
   <note polyphony="1"/>
  </info>
 
- <sound mode="2" gain="0.96" db="-5.9" frequency="55" duration="0.1">
+ <sound mode="2" gain="0.39" db="-5.9" frequency="55" duration="0.1">
   <waveform src="triangle" ratio="0.4"/>
   <waveform src="sine" processing="add" ratio="0.6" pitch="1.1"/>
   <filter type="bitcrusher">
@@ -35,13 +35,13 @@
  <emitter looping="true">
   <filter type="timed-gain" release-time="0.08">
    <slot n="0">
-    <param n="0">1.97</param>
+    <param n="0">4.9</param>
     <param n="1">0.05</param>
-    <param n="2">1.71</param>
+    <param n="2">4.25</param>
     <param n="3">0.3</param>
    </slot>
    <slot n="1">
-    <param n="0">0.123</param>
+    <param n="0">0.306</param>
     <param n="1">0.2</param>
     <param n="2">0.0</param>
     <param n="3">0.0</param>
