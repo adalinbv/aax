@@ -343,7 +343,6 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
 {
    _aaxRingBufferSample *rbd = (_aaxRingBufferSample*)rb;
    _aaxRingBufferFreqFilterData *filter[_AAX_EQFILTERS];
-   size_t no_samples;
    int s;
 
    assert(scratch != 0);
@@ -358,11 +357,13 @@ _equalizer_run(void *rb, MIX_PTR_T dptr, UNUSED(MIX_PTR_T scratch),
    filter[1] = data_mf;
    filter[2] = data_hf;
 
+   dptr += dmin;
    scratch += dmin;
-   no_samples = dmax - dmin;
+   dmax -= dmin;
+
    for (s=0; s<_AAX_EQFILTERS; ++s) {
       if (filter[s]->no_stages) {
-         rbd->freqfilter(dptr, dptr, track, no_samples, filter[s]);
+         rbd->freqfilter(dptr, dptr, track, dmax, filter[s]);
       }
    }
 
