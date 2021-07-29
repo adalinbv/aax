@@ -483,18 +483,15 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
 
             _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
 
-            if (!handle->midi.legato_mode)
-            {
-//             _aaxMutexLock(src->props2d->mutex);
-               for (i=0; i<MAX_STEREO_FILTER; ++i) {
-                  reset_filter(src->props2d, i);
-               }
-
-               for (i=0; i<MAX_STEREO_EFFECT; ++i) {
-                  reset_effect(src->props2d, i);
-               }
-//             _aaxMutexDestroy(src->props2d->mutex);
+//          _aaxMutexLock(src->props2d->mutex);
+            for (i=0; i<MAX_STEREO_FILTER; ++i) {
+               reset_filter(src->props2d, i);
             }
+
+            for (i=0; i<MAX_STEREO_EFFECT; ++i) {
+               reset_effect(src->props2d, i);
+            }
+//          _aaxMutexDestroy(src->props2d->mutex);
          }
          rv = AAX_TRUE;
          break;
@@ -1148,9 +1145,6 @@ aaxEmitterSetSetup(aaxEmitter emitter, enum aaxSetupType type, unsigned int setu
    case AAX_RELEASE_FACTOR:
       handle->midi.release_factor = (float)setup/64.0f;		// 0.0 .. 2.0
       break;
-   case AAX_MIDI_LEGATO_MODE:
-       handle->midi.legato_mode = setup ? AAX_TRUE : AAX_FALSE;
-      break;
    default:
       break;
    }
@@ -1191,9 +1185,6 @@ aaxEmitterGetSetup(const aaxEmitter emitter, enum aaxSetupType type)
       break;
    case AAX_MIDI_SOFT_FACTOR:
       rv = 127.0f*p2d->note.soft;
-      break;
-   case AAX_MIDI_LEGATO_MODE:
-       rv = handle->midi.legato_mode ? 0x64 : 0;
       break;
    default:
       break;
@@ -1414,13 +1405,6 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
    case AAX_TIMED_GAIN_FILTER:
       _PROP_DISTDELAY_SET_DEFINED(src->props3d);
       _FILTER_SWAP_SLOT(p2d, type, filter, 0)
-      if (handle->midi.legato_mode)
-      {
-         _aaxEnvelopeData* env = _FILTER_GET_DATA(p2d, TIMED_GAIN_FILTER);
-         if (env && env->sustain_stage) {
-            env->stage = env->sustain_stage;
-         }
-      }
       break;
    case AAX_VOLUME_FILTER:
    case AAX_DYNAMIC_GAIN_FILTER:

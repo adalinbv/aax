@@ -209,7 +209,6 @@ public:
     inline void set_attack_time(unsigned t) { set(AAX_MIDI_ATTACK_FACTOR, t); }
     inline void set_release_time(unsigned t) { set(AAX_MIDI_RELEASE_FACTOR,t); }
     inline void set_decay_time(unsigned t) { set(AAX_MIDI_DECAY_FACTOR, t); }
-    inline void set_legato(bool l) { set(AAX_MIDI_LEGATO_MODE, l); };
 
     bool buffer(Buffer& buffer) {
         Emitter::remove_buffer();
@@ -403,7 +402,6 @@ public:
         Mixer::add(*note);
         note->set_attack_time(attack_time);
         note->set_release_time(release_time);
-        note->set_legato(legato);
         note->set_soft(soft);
         note->play(velocity, pitch_start, slide_state ? transition_time : 0.0f);
         pitch_start = pitch;
@@ -418,9 +416,11 @@ public:
     }
 
     void stop(uint32_t key_no, float velocity = 0) {
-        auto it = key.find(key_no);
-        if (it != key.end()) {
-            it->second->stop(velocity);
+        if (!legato) {
+            auto it = key.find(key_no);
+            if (it != key.end()) {
+                it->second->stop(velocity);
+            }
         }
     }
 
@@ -546,11 +546,8 @@ public:
         }
     }
 
-    inline void set_legato(bool l) {
-        if (!is_drums) { legato = l;
-            for (auto& it : key) it.second->set_legato(l);
-        }
-    }
+    inline void set_legato(bool l) { legato = l;
+printf("# LEGATO: %i\n", l);  }
 
     // The whole device must have one chorus effect and one reverb effect.
     // Each Channel must have its own adjustable send levels to the chorus

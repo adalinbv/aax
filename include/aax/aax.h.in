@@ -287,7 +287,6 @@ enum aaxSetupType
    AAX_MIDI_RELEASE_VELOCITY_FACTOR,
    AAX_MIDI_PRESSURE_FACTOR,
    AAX_MIDI_SOFT_FACTOR,
-   AAX_MIDI_LEGATO_MODE = 0x4000010,
 
    // backwards compatibility: prior to version 3.10.0
    // do not use in new software
