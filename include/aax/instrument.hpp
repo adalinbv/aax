@@ -546,8 +546,7 @@ public:
         }
     }
 
-    inline void set_legato(bool l) { legato = l;
-printf("# LEGATO: %i\n", l);  }
+    inline void set_legato(bool l) { legato = l; }
 
     // The whole device must have one chorus effect and one reverb effect.
     // Each Channel must have its own adjustable send levels to the chorus
