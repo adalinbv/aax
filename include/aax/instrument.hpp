@@ -256,6 +256,7 @@ public:
 
         tie(tremolo_freq, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_FREQUENCY);
         tie(tremolo_depth, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_DEPTH);
+        tie(tremolo_offset, AAX_DYNAMIC_GAIN_FILTER, AAX_LFO_OFFSET);
         tie(tremolo_state, AAX_DYNAMIC_GAIN_FILTER);
 
         tie(chorus_level, AAX_CHORUS_EFFECT, AAX_DELAY_GAIN);
@@ -304,6 +305,7 @@ public:
 
         i1.tremolo_freq = std::move(i2.tremolo_freq);
         i1.tremolo_depth = std::move(i2.tremolo_depth);
+        i1.tremolo_offset = std::move(i2.tremolo_offset);
         i1.tremolo_state = std::move(i2.tremolo_state);
 
         i1.chorus_rate = std::move(i2.chorus_rate);
@@ -499,7 +501,7 @@ public:
     void set_modulation(float m) {
         if (!is_drums) {
             bool enabled = (m != 0.0f);
-            vibrato_depth = m; tremolo_depth = m;
+            vibrato_depth = m; tremolo_depth = m; tremolo_offset - 1.0f - m;
             if (enabled)
             {
                 if (!vibrato_state) {
@@ -620,6 +622,7 @@ private:
 
     Param tremolo_freq = 5.0f;
     Param tremolo_depth = 0.0f;
+    Param tremolo_offset = 1.0f;
     Status tremolo_state = AAX_FALSE;
 
     Param chorus_rate = 0.0f;

@@ -142,6 +142,10 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
                fs = filter->info->frequency;
             }
 
+            if (offset == 0.0f && depth == 0.0f) {
+                offset = 1.0f;
+            }
+
             lfo->convert = _linear;
             lfo->state = filter->state;
             lfo->fs = fs;
