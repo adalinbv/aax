@@ -327,6 +327,9 @@ aaxBufferGetSetup(const aaxBuffer buffer, enum aaxSetupType type)
       case AAX_FREQUENCY:
          rv = (unsigned int)handle->info.freq;
          break;
+      case AAX_REFRESH_RATE:
+         rv = (unsigned int)(handle->info.pitch_fraction*1e6f);
+         break;
       case AAX_UPDATE_RATE:
          rv = (unsigned int)handle->info.base_frequency;
          break;
@@ -1589,6 +1592,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    float freq = aax_buf->frequency;
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
+   float pitch_fraction = 1.0f;
    float spread = 0;
    int bits = 24;
    int b, layer, no_layers;
@@ -1628,10 +1632,14 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    if (xnid)
    {
       if (xmlAttributeExists(xnid, "min")) {
-         low_frequency = note2freq(xmlAttributeGetInt(xnid, "min"));
+         low_frequency = note2freq(xmlAttributeGetDouble(xnid, "min"));
       }
       if (xmlAttributeExists(xnid, "max")) {
-         high_frequency = note2freq(_MIN(xmlAttributeGetInt(xnid, "max"), 128));
+         high_frequency = note2freq(_MIN(xmlAttributeGetDouble(xnid, "max"), 128));
+      }
+
+      if (xmlAttributeExists(xnid, "pitch-fraction")) {
+         pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
       }
       xmlFree(xnid);
    }
@@ -1715,6 +1723,9 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    }
    if (!handle->info.high_frequency) {
       handle->info.high_frequency = high_frequency;
+   }
+   if (!handle->info.pitch_fraction) {
+      handle->info.pitch_fraction = pitch_fraction;
    }
 
    if (xmlAttributeExists(xsid, "bits"))

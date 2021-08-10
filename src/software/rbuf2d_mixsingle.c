@@ -110,7 +110,6 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /** Pitch */
    pitch = ep2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
-printf("1. pitch: %f\n", pitch);
 
    pslide = _EFFECT_GET_DATA(ep2d, PITCH_EFFECT);
    penv = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);

@@ -373,7 +373,12 @@ public:
     void play(uint32_t key_no, float velocity, Buffer& buffer, float pitch=1.0f)
     {
         float frequency = buffer.get(AAX_UPDATE_RATE);
-        if (!is_drums) pitch *= note2freq(key_no)/frequency;
+        if (!is_drums) {
+            float fraction = 1e-6f*buffer.get(AAX_REFRESH_RATE);
+            float f = note2freq(key_no);
+            f = (f - frequency)*fraction + frequency;
+            pitch *= f/frequency;
+        }
         if (monophonic || legato) {
             auto it = key.find(key_prev);
             if (it != key.end()) it->second->stop();
