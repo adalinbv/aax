@@ -89,7 +89,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    size_t offs, dno_samples;
    float gain, gain_emitter;
    float pnvel, gnvel;
-   FLOAT pitch, max;
+   FLOAT pitch, min, max;
    int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -110,6 +110,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    /** Pitch */
    pitch = ep2d->final.pitch; /* Doppler effect */
    pitch *= _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH);
+printf("1. pitch: %f\n", pitch);
 
    pslide = _EFFECT_GET_DATA(ep2d, PITCH_EFFECT);
    penv = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
@@ -137,8 +138,11 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       pitch *= _aaxEnvelopeGet(pslide, srbi->stopped, &pnvel, NULL);
    }
 
+   if (_EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH_RATE) == 0.0f) {
+       min = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_PITCH_START);
+    } else min = 1e-3f;
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
-   pitch = _MINMAX(pitch*ep2d->pitch_factor, 0.0f, max);
+   pitch = _MINMAX(pitch*ep2d->pitch_factor, min, max);
 
    /** DECODE, resample and apply effects */
    offs = 0;
