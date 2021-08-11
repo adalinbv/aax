@@ -1646,7 +1646,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       }
       xmlFree(xnid);
    }
-printf("handle->info.pitch_fraction: %f\n", handle->info.pitch_fraction);
 
    if (midi_mode == AAX_RENDER_SYNTHESIZER ||
        midi_mode == AAX_RENDER_ARCADE) {
