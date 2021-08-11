@@ -124,8 +124,8 @@ _aaxSetDefault2dProps(_aax2dProps *p2d)
    assert (p2d);
 
    p2d->mutex = _aaxMutexCreate(NULL);
-   _aaxSetDefaultFilter2d(&p2d->filter[0], 0, 0); // volume
-   _aaxSetDefaultEffect2d(&p2d->effect[0], 0, 0); // pitch
+   _aaxSetDefaultFilter2d(&p2d->filter[0], VOLUME_FILTER, 0);
+   _aaxSetDefaultEffect2d(&p2d->effect[0], PITCH_EFFECT, 0);
    _aaxSetDefault2dFiltersEffects(p2d);
 
    /* normalized  directions */

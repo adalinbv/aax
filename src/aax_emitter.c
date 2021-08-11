@@ -49,6 +49,7 @@
 static void _aaxFreeEmitterBuffer(void *);
 static int _emitterSetFilter(_emitter_t*, _filter_t*);
 static int _emitterSetEffect(_emitter_t*, _effect_t*);
+static void _emitterSetPitch(const _aaxEmitter*, _aax2dProps *);
 
 AAX_API aaxEmitter AAX_APIENTRY
 aaxEmitterCreate()
@@ -258,6 +259,7 @@ aaxEmitterAddBuffer(aaxEmitter emitter, aaxBuffer buf)
             rv = AAX_FALSE;
          }
          _emitterCreateEFFromRingbuffer(handle, embuf);
+         _emitterSetPitch(src, ep2d);
 
 #if 0
          // This is done when the buffer is being used for the first time
@@ -1483,6 +1485,10 @@ _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
    switch (effect->type)
    {
    case AAX_PITCH_EFFECT:
+      _PROP_PITCH_SET_CHANGED(p3d);
+      _EFFECT_SWAP_SLOT(p2d, type, effect, 0);
+      _emitterSetPitch(src, p2d);
+      break;
    case AAX_TIMED_PITCH_EFFECT:
       _PROP_PITCH_SET_CHANGED(p3d);
       // intentional fallthrough
@@ -1530,6 +1536,30 @@ _emitterSetEffect(_emitter_t *handle, _effect_t *effect)
    }
 
    return rv;
+}
+
+void
+_emitterSetPitch(const _aaxEmitter *src, _aax2dProps *p2d)
+{
+   _intBufferData *dptr = _intBufGet(src->buffers, _AAX_EMITTER_BUFFER, 0);
+   float pitch, fraction = 1.0f;
+   if (dptr)
+   {
+      _embuffer_t *embuf = _intBufGetDataPtr(dptr);
+      _buffer_t* buf = embuf->buffer;
+
+      assert(embuf->id == EMBUFFER_ID);
+      fraction = buf->info.pitch_fraction;
+      _intBufReleaseData(dptr, _AAX_EMITTER_BUFFER);
+   }
+
+   pitch = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH);
+   pitch = fraction*(pitch - 1.0f) + 1.0f;
+   _EFFECT_SET(p2d, PITCH_EFFECT, AAX_PITCH, pitch);
+
+   pitch = _EFFECT_GET(p2d, PITCH_EFFECT, AAX_PITCH_START);
+   pitch = fraction*(pitch - 1.0f) + 1.0f;
+   _EFFECT_SET(p2d, PITCH_EFFECT, AAX_PITCH_START, pitch);
 }
 
 int

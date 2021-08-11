@@ -98,6 +98,7 @@ aaxBufferCreate(aaxConfig config, unsigned int samples, unsigned tracks,
          buf->info.tracks = tracks;
          buf->info.no_samples = samples;
          buf->info.blocksize = blocksize;
+         buf->info.pitch_fraction = 1.0f;
          buf->midi_mode = AAX_RENDER_NORMAL;
          buf->mipmap = AAX_FALSE;
          buf->pos = 0;
@@ -1093,7 +1094,9 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
                info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
                info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);
-               info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
+               if (info->pitch_fraction == 1.0f) {
+                  info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
+               }
                info->tremolo_rate = stream->param(id, DRIVER_TREMOLO_RATE);
                info->tremolo_depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
                info->tremolo_sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
@@ -1592,7 +1595,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    float freq = aax_buf->frequency;
    float low_frequency = 0.0f;
    float high_frequency = 0.0f;
-   float pitch_fraction = 1.0f;
    float spread = 0;
    int bits = 24;
    int b, layer, no_layers;
@@ -1639,7 +1641,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       }
 
       if (xmlAttributeExists(xnid, "pitch-fraction")) {
-         pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
+         handle->info.pitch_fraction = xmlAttributeGetDouble(xnid, "pitch-fraction");
       }
       xmlFree(xnid);
    }
@@ -1723,9 +1725,6 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
    }
    if (!handle->info.high_frequency) {
       handle->info.high_frequency = high_frequency;
-   }
-   if (!handle->info.pitch_fraction) {
-      handle->info.pitch_fraction = pitch_fraction;
    }
 
    if (xmlAttributeExists(xsid, "bits"))
