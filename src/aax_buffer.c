@@ -1094,13 +1094,16 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                info->base_frequency = stream->param(id, DRIVER_BASE_FREQUENCY);
                info->low_frequency = stream->param(id, DRIVER_LOW_FREQUENCY);
                info->high_frequency = stream->param(id, DRIVER_HIGH_FREQUENCY);
-               info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
                info->tremolo_rate = stream->param(id, DRIVER_TREMOLO_RATE);
                info->tremolo_depth = stream->param(id, DRIVER_TREMOLO_DEPTH);
                info->tremolo_sweep = stream->param(id, DRIVER_TREMOLO_SWEEP);
                info->vibrato_rate = stream->param(id, DRIVER_VIBRATO_RATE);
                info->vibrato_depth = stream->param(id, DRIVER_VIBRATO_DEPTH);
                info->vibrato_sweep = stream->param(id, DRIVER_VIBRATO_SWEEP);
+               info->pitch_fraction = stream->param(id, DRIVER_PITCH_FRACTION);
+               if (info->pitch_fraction == 0.0f) {
+                  info->pitch_fraction = 1.0f;
+               }
 
                for (i=0; i<_MAX_ENVELOPE_STAGES; ++i)
                {
@@ -1643,6 +1646,7 @@ _bufAAXSThreadCreateWaveform(_buffer_aax_t *aax_buf, void *xid)
       }
       xmlFree(xnid);
    }
+printf("handle->info.pitch_fraction: %f\n", handle->info.pitch_fraction);
 
    if (midi_mode == AAX_RENDER_SYNTHESIZER ||
        midi_mode == AAX_RENDER_ARCADE) {
