@@ -111,6 +111,7 @@ _aaxDelayLineEffectSetState(_effect_t* effect, int state)
       char fbhist = feedback ? AAX_TRUE : AAX_FALSE;
 
       data = _delay_create(data, effect->info, AAX_TRUE, fbhist, FRAME_REVERB_EFFECTS_TIME);
+
       effect->slot[0]->data = data;
       if (data)
       {
@@ -430,7 +431,8 @@ _eff_function_tbl _aaxDelayLineEffect =
 
 
 /*
- * This code is shared between the delay, phasing, delay_line and flanging effects
+ * This code is shared between chorus, phasing, flanging and the delay_line
+ * effects.
  */
 #define DSIZE		sizeof(_aaxRingBufferDelayEffectData)
 
@@ -483,10 +485,34 @@ _delay_create(void *d, void *i, char delay, char feedback, float delay_time)
    return data;
 }
 
+static void
+_delay_adjust(_aaxRingBufferDelayEffectData *ddef, _aaxRingBufferDelayEffectData *sdef)
+{
+   if (ddef->history_samples != sdef->history_samples)
+   {
+      int no_tracks = sdef->no_tracks;
+
+      ddef->history_samples = sdef->history_samples;
+
+      if (ddef->history)
+      {
+         free(ddef->history);
+         _aaxRingBufferCreateHistoryBuffer(&ddef->history,
+                                           ddef->history_samples, no_tracks);
+      }
+      if (ddef->feedback_history)
+      {
+         free(ddef->feedback_history);
+         _aaxRingBufferCreateHistoryBuffer(&ddef->feedback_history,
+                                           ddef->history_samples, no_tracks);
+      }
+   }
+}
+
 void
 _delay_swap(void *d, void *s)
 {
-   _aaxFilterInfo *dst = d, *src = s;
+   _aaxEffectInfo *dst = d, *src = s;
 
    if (src->data && src->data_size)
    {
@@ -501,6 +527,7 @@ _delay_swap(void *d, void *s)
 
          assert(dst->data_size == src->data_size);
 
+         _delay_adjust(ddef, sdef);
          _lfo_swap(&ddef->lfo, &sdef->lfo);
          ddef->delay = sdef->delay;
          ddef->history_samples = sdef->history_samples;
