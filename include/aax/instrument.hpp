@@ -47,6 +47,12 @@ public:
 
     virtual ~Panning() = default;
 
+    Panning(const Panning&) = delete;
+    Panning(Panning&&) = delete;
+
+    Panning& operator=(const Panning&) = delete;
+    Panning& operator=(Panning&&) = delete;
+
     void set(float p, bool init=false) {
         pan = p;
         panned = !init;
@@ -87,11 +93,6 @@ public:
 
 class Note : public Emitter
 {
-private:
-    Note(const Note&) = delete;
-
-    Note& operator=(const Note&) = delete;
-
 public:
     Note(float f, float p, Panning& pan)
         : Emitter(pan.wide ? AAX_ABSOLUTE : AAX_RELATIVE),
@@ -122,24 +123,11 @@ public:
 
     virtual ~Note() = default;
 
-    friend void swap(Note& n1, Note& n2) noexcept {
-        std::swap(static_cast<Emitter&>(n1), static_cast<Emitter&>(n2));
+    Note(const Note&) = delete;
+    Note(Note&&) = delete;
 
-        n1.mtx = std::move(n2.mtx);
-        n1.pan_prev = n2.pan_prev;
-
-        n1.playing = n2.playing;
-        n1.hold = n2.hold;
-
-        n1.volume_param = std::move(n2.volume_param);
-
-        n1.pitch_param = std::move(n2.pitch_param);
-        n1.pitch_bend = n2.pitch_bend;
-        n1.frequency = n2.frequency;
-        n1.pitch = n2.pitch;
-    }
-
-    Note& operator=(Note&&) = default;
+    Note& operator=(const Note&) = delete;
+    Note& operator=(Note&&) = delete;
 
     void matrix(Matrix64& m) {
         Emitter::set(AAX_POSITION, AAX_ABSOLUTE);
@@ -237,14 +225,9 @@ private:
 
 class Instrument : public Mixer
 {
-private:
-    Instrument(const Instrument& i) = delete;
-
-    Instrument& operator=(const Instrument&) = delete;
-
 public:
     Instrument(AeonWave& ptr, bool drums = false, int wide = 0)
-        : Mixer(ptr), aax(&ptr), is_drums(drums)
+        : Mixer(ptr), aax(ptr), is_drums(drums)
     {
         pan.wide = wide;
 
@@ -290,74 +273,11 @@ public:
         }
     }
 
-    friend void swap(Instrument& i1, Instrument& i2) noexcept {
-        std::swap(static_cast<Mixer&>(i1), static_cast<Mixer&>(i2));
+    Instrument(const Instrument&) = delete;
+    Instrument(Instrument&&) = delete;
 
-        i1.aax = std::move(i2.aax);
-
-        i1.pan = std::move(i2.pan);
-
-        i1.volume = std::move(i2.volume);
-
-        i1.vibrato_freq = std::move(i2.vibrato_freq);
-        i1.vibrato_depth = std::move(i2.vibrato_depth);
-        i1.vibrato_state = std::move(i2.vibrato_state);
-
-        i1.tremolo_freq = std::move(i2.tremolo_freq);
-        i1.tremolo_depth = std::move(i2.tremolo_depth);
-        i1.tremolo_offset = std::move(i2.tremolo_offset);
-        i1.tremolo_state = std::move(i2.tremolo_state);
-
-        i1.chorus_rate = std::move(i2.chorus_rate);
-        i1.chorus_level = std::move(i2.chorus_level);
-        i1.chorus_depth = std::move(i2.chorus_depth);
-        i1.chorus_feedback = std::move(i2.chorus_feedback);
-        i1.chorus_state = std::move(i2.chorus_state);
-
-        i1.filter_cutoff = std::move(i2.filter_cutoff);
-        i1.filter_resonance = std::move(i2.filter_resonance);
-        i1.filter_state = std::move(i2.filter_state);
-
-        i1.reverb_level = std::move(i2.reverb_level);
-        i1.reverb_delay_depth = std::move(i2.reverb_delay_depth);
-        i1.reverb_decay_level = std::move(i2.reverb_decay_level);
-        i1.reverb_decay_depth = std::move(i2.reverb_decay_depth);
-        i1.reverb_cutoff = std::move(i2.reverb_cutoff);
-        i1.reverb_state = std::move(i2.reverb_state);
-
-        i1.attack_time = i2.attack_time;
-        i1.release_time = i2.release_time;
-        i1.decay_time = i2.decay_time;
-
-        i1.mfreq = i2.mfreq;
-        i1.mrange = i2.mrange;
-
-        i1.cutoff = i2.cutoff;
-        i1.fc = i2.fc;
-        i1.Q = i2.Q;
-
-        i1.soft = i2.soft;
-        i1.gain = i2.gain;
-        i1.expression = i2.expression;
-
-        i1.pan_prev = i2.pan_prev;
-
-        i1.transition_time = i2.transition_time;
-        i1.pitch_start = i2.pitch_start;
-        i1.key_prev = i2.key_prev;
-
-        i1.is_drums = i2.is_drums;
-        i1.monophonic = i2.monophonic;
-        i1.playing = i2.playing;
-        i1.slide_state = i2.slide_state;
-        i1.legato = i2.legato;
-
-        i1.key_finish = i2.key_finish;
-        i1.key_stopped = std::move(i2.key_stopped);
-        i1.key = std::move(i2.key);
-    }
-
-    Instrument& operator=(Instrument&&) = default;
+    Instrument& operator=(const Instrument&) = delete;
+    Instrument& operator=(Instrument&&) = delete;
 
     void finish(void) {
         for (auto& it : key) it.second->stop();
@@ -615,7 +535,7 @@ private:
         volume = gain*expression;
     }
 
-    AeonWave* aax;
+    AeonWave& aax;
 
     Panning pan;
 

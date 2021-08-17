@@ -102,26 +102,14 @@ class Tieable
 public:
     Tieable() = default;
 
+    virtual ~Tieable() = default;
+
     Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), type(t) {}
 
     Tieable(const Tieable&) = default;
-
     Tieable(Tieable&&) = default;
 
-    virtual ~Tieable() = default;
-
-    friend void swap(Tieable& t1, Tieable& t2) noexcept {
-        t1.val = std::move(t2.val);
-        t1.type = std::move(t2.type);
-        t1.tied = std::move(t2.tied);
-        t1.param = std::move(t2.param);
-        t1.filter = std::move(t2.filter);
-        t1.obj = std::move(t2.obj);
-        t1.set = std::move(t2.set);
-        t1.get = std::move(t2.get);
-        t1.dsptype = std::move(t2.dsptype);
-    }
-
+    Tieable& operator=(const Tieable&) = default;
     Tieable& operator=(Tieable&&) = default;
 
     friend std::ostream& operator<<(std::ostream& os, const Tieable& v) {
@@ -273,37 +261,20 @@ public:
 
     Obj() = default;
 
-    Obj(T p, close_fn* c) : ptr(p), closefn(c) {}
-
-    Obj(T p, stop_fn* s, close_fn* c) : ptr(p), stopfn(s), closefn(c) {}
-
-    Obj(const Obj& o) noexcept : ptr(o.ptr),
-        stopfn(o.stopfn), closefn(o.closefn) {
-        fties = std::move(o.fties);
-        ities = std::move(o.ities);
-    }
-
-    Obj(Obj&& o) noexcept : Obj() {
-        swap(*this, o);
-    }
-
     virtual ~Obj() {
         if (!!stopfn) stopfn(ptr,AAX_PROCESSED);
         if (!!closefn) closefn(ptr);
     }
 
-    friend void swap(Obj& o1, Obj& o2) noexcept {
-        std::swap(o1.ptr, o2.ptr);
-        std::swap(o1.stopfn, o2.stopfn);
-        std::swap(o1.closefn, o2.closefn);
-        o1.fties = std::move(o2.fties);
-        o1.ities = std::move(o2.ities);
-    }
+    Obj(T p, close_fn* c) : ptr(p), closefn(c) {}
 
-    Obj& operator=(Obj o) noexcept {
-        swap(*this, o);
-        return *this;
-    }
+    Obj(T p, stop_fn* s, close_fn* c) : ptr(p), stopfn(s), closefn(c) {}
+
+    Obj(const Obj&) = delete;
+    Obj(Obj&&) = default;
+
+    Obj& operator=(const Obj&) = delete;
+    Obj& operator=(Obj&&) = default;
 
     bool close() {
         if (!!stopfn) stopfn(ptr,AAX_PROCESSED);
@@ -381,8 +352,10 @@ public:
     Buffer(aaxConfig c, std::string& name, bool o=true, bool s=false)
         : Buffer(c, name.c_str(), o, s) {}
 
+    Buffer(const Buffer&) = default;
     Buffer(Buffer&&) = default;
 
+    Buffer& operator=(const Buffer&) = default;
     Buffer& operator=(Buffer&&) = default;
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
@@ -454,14 +427,10 @@ public:
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
+    dsp(const dsp&) = default;
     dsp(dsp&&) = default;
 
-    friend void swap(dsp& o1, dsp& o2) noexcept {
-        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        o1.filter = std::move(o2.filter);
-        o1.dsptype = std::move(o2.dsptype);
-    }
-
+    dsp& operator=(const dsp&) = default;
     dsp& operator=(dsp&&) = default;
 
     inline bool add(Buffer& b) {
@@ -531,8 +500,10 @@ public:
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
     }
 
+    Emitter(const Emitter&) = default;
     Emitter(Emitter&&) = default;
 
+    Emitter& operator=(const Emitter&) = default;
     Emitter& operator=(Emitter&&) = default;
 
     inline bool set(enum aaxModeType t, int m) {
@@ -647,13 +618,10 @@ public:
     explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_READ)
         : Sensor(s.empty() ? nullptr : s.c_str(),m) {}
 
+    Sensor(const Sensor&) = default;
     Sensor(Sensor&&) = default;
 
-    friend void swap(Sensor& o1, Sensor& o2) noexcept {
-        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        o1.mode = std::move(o2.mode);
-    }
-
+    Sensor& operator=(const Sensor&) = default;
     Sensor& operator=(Sensor&&) = default;
 
     inline int render_mode() {
@@ -851,12 +819,6 @@ class Frame : public Obj<aaxFrame>
 public:
     Frame() = default;
 
-    Frame(aaxConfig c)
-      : Obj(aaxAudioFrameCreate(c), aaxAudioFrameSetState, aaxAudioFrameDestroy)
-    {}
-
-    Frame(Frame&&) = default;
-
     virtual ~Frame() {
         for (size_t i=0; i<frames.size(); ++i) {
              aaxAudioFrameDeregisterAudioFrame(ptr,frames[i]);
@@ -869,13 +831,14 @@ public:
         }
     }
 
-    friend void swap(Frame& o1, Frame& o2) noexcept {
-        std::swap(static_cast<Obj&>(o1), static_cast<Obj&>(o2));
-        o1.frames = std::move(o2.frames);
-        o1.sensors = std::move(o2.sensors);
-        o1.emitters = std::move(o2.emitters);
-    }
+    Frame(aaxConfig c)
+      : Obj(aaxAudioFrameCreate(c), aaxAudioFrameSetState, aaxAudioFrameDestroy)
+    {}
 
+    Frame(const Frame&) = default;
+    Frame(Frame&&) = default;
+
+    Frame& operator=(const Frame&) = default;
     Frame& operator=(Frame&&) = default;
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -1001,21 +964,7 @@ class AeonWave : public Sensor
 public:
    AeonWave() = default;
 
-   explicit AeonWave(aaxConfig c)
-        : Sensor(c) {}
-
-   explicit AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
-        : Sensor(n,m) {}
-
-    explicit AeonWave(std::string& s,enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
-        : AeonWave(s.empty() ? nullptr : s.c_str(),m) {}
-
-    explicit AeonWave(enum aaxRenderMode m)
-        : Sensor(nullptr,m) {}
-
-    AeonWave(AeonWave&&) = default;
-
-    virtual ~AeonWave() {
+   virtual ~AeonWave() {
         for (size_t i=0; i<frames.size(); ++i) {
              aaxMixerDeregisterAudioFrame(ptr,frames[i]);
         }
@@ -1030,15 +979,22 @@ public:
         }
     }
 
-    friend void swap(AeonWave& o1, AeonWave& o2) noexcept {
-        std::swap(static_cast<Sensor&>(o1), static_cast<Sensor&>(o2));
-        o1.frames = std::move(o2.frames);
-        o1.sensors = std::move(o2.sensors);
-        o1.emitters = std::move(o2.emitters);
-        o1.buffers = std::move(o2.buffers);
-        std::swap(o1.play, o2.play);
-    }
+   explicit AeonWave(aaxConfig c)
+        : Sensor(c) {}
 
+   explicit AeonWave(const char* n, enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+        : Sensor(n,m) {}
+
+    explicit AeonWave(std::string& s,enum aaxRenderMode m=AAX_MODE_WRITE_STEREO)
+        : AeonWave(s.empty() ? nullptr : s.c_str(),m) {}
+
+    explicit AeonWave(enum aaxRenderMode m)
+        : Sensor(nullptr,m) {}
+
+    AeonWave(const AeonWave&) = default;
+    AeonWave(AeonWave&&) = default;
+
+    AeonWave& operator=(const AeonWave&) = default;
     AeonWave& operator=(AeonWave&&) = default;
 
     // ** position and orientation ******
