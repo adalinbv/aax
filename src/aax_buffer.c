@@ -2000,7 +2000,7 @@ _bufAAXSThread(void *d)
       else {
          rv = _bufAAXSThreadCreateWaveform(aax_buf, xid);
       }
-      xmlFree(xid);
+      xmlClose(xid);
    }
    else {
       aax_buf->error = AAX_INVALID_PARAMETER+2;
