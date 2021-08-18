@@ -287,13 +287,13 @@ typedef const char* (*mpg123_plain_strerror_proc)(int);
 /** lame */
 
 typedef enum vbr_mode_e {
-  VBR_OFF=0,
-  VBR_MT,		/* obsolete, same as vbr_mtrh */
-  VBR_RH,
-  VBR_ABR,
-  VBR_MTRH,
-  VBR_MAX_INDICATOR,	/* Don't use this! It's used for sanity checks.       */
-  VBR_DEFAULT=VBR_MTRH	/* change this to change the default VBR mode of LAME */
+  vbr_off=0,
+  vbr_mt,               /* obsolete, same as vbr_mtrh */
+  vbr_rh,
+  vbr_abr,
+  vbr_mtrh,
+  vbr_max_indicator,    /* Don't use this! It's used for sanity checks.       */
+  vbr_default=vbr_mtrh  /* change this to change the default VBR mode of LAME */
 } vbr_mode;
 
 typedef void* (*lame_init_proc)(void);

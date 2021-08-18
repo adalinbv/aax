@@ -162,7 +162,7 @@ _pat_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                   }
 
                   handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.freq);
-                  handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
+                  handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
                   handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
                   handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->info.no_samples);
                   handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);

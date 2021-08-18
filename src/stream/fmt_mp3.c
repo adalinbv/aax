@@ -310,6 +310,8 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       if (fmt->id)
       {
          handle->mode = mode;
+         handle->info.rate = 44100;
+         handle->info.bitrate = 320;
          handle->file_size = fsize;
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = sizeof(int16_t);
@@ -523,15 +525,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->info.rate);
-            if (handle->info.bitrate > 0) {
-                plame_set_brate(handle->id, handle->info.bitrate);
-                plame_set_VBR(handle->id, VBR_OFF);
-            } else {
-                plame_set_brate(handle->id, 320);
-                plame_set_VBR(handle->id, VBR_DEFAULT);
-            }
-            plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
-     
+
             do
             {
                ret = plame_set_num_channels(handle->id, handle->no_tracks);
@@ -616,8 +610,22 @@ _mp3_close(_fmt_t *fmt)
 }
 
 int
-_mp3_setup(UNUSED(_fmt_t *fmt), UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_fmt))
+_mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_fmt))
 {
+   _driver_t *handle = fmt->id;
+
+   if (handle->info.bitrate > 0)
+   {
+       plame_set_brate(handle->id, handle->info.bitrate);
+       plame_set_VBR(handle->id, vbr_off);
+   }
+   else
+   {
+       plame_set_brate(handle->id, 320);
+       plame_set_VBR(handle->id, vbr_default);
+   }
+   plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
+
    return AAX_TRUE;
 }
 
@@ -947,9 +955,6 @@ _mp3_set(_fmt_t *fmt, int type, off_t value)
    {
    case __F_FREQUENCY:
       handle->info.rate = rv = value;
-      break;
-   case __F_RATE:
-      handle->info.bitrate = rv = value;
       break;
    case __F_TRACKS:
       handle->no_tracks = rv = value;

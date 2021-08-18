@@ -596,7 +596,7 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
    case __F_FREQUENCY:
       handle->frequency = rv = value;
       break;
-   case __F_RATE:
+   case __F_BITRATE:
       handle->bitrate = rv = value;
       break;
    case __F_TRACKS:

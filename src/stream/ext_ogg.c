@@ -657,7 +657,7 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, ssize_t *bufsize)
       }
 
       handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
-      handle->fmt->set(handle->fmt, __F_RATE, handle->bitrate);
+      handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
       handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
       handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
       handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
