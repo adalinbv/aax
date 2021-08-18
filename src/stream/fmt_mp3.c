@@ -539,7 +539,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             while (ret < 0);
 
             plame_set_write_id3tag_automatic(handle->id, 0);
-            plame_init_params(handle->id);
+//          plame_init_params(handle->id);
 
             if (bufsize && handle->id3v2_size == 0)
             {
@@ -614,17 +614,22 @@ _mp3_setup(_fmt_t *fmt, UNUSED(_fmt_type_t pcm_fmt), UNUSED(enum aaxFormat aax_f
 {
    _driver_t *handle = fmt->id;
 
-   if (handle->info.bitrate > 0)
+   if (!handle->capturing)
    {
-       plame_set_brate(handle->id, handle->info.bitrate);
-       plame_set_VBR(handle->id, vbr_off);
+      if (handle->info.bitrate > 0)
+      {
+          plame_set_brate(handle->id, handle->info.bitrate);
+          plame_set_VBR(handle->id, vbr_off);
+      }
+      else
+      {
+          plame_set_brate(handle->id, 320);
+          plame_set_VBR(handle->id, vbr_default);
+      }
+      plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
+
+      plame_init_params(handle->id);
    }
-   else
-   {
-       plame_set_brate(handle->id, 320);
-       plame_set_VBR(handle->id, vbr_default);
-   }
-   plame_set_quality(handle->id, 2); // 2=high  5 = medium  7=low
 
    return AAX_TRUE;
 }
