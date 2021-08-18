@@ -297,9 +297,6 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_FRAME_TIMING:
                rv = (int)(handle->elapsed*1000000.0f);
                break;
-            case AAX_BITRATE:
-               rv = info->bitrate;
-               break;
             case AAX_FORMAT:
                rv = info->format;
                break;
@@ -314,12 +311,22 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
             case AAX_TRACKS:
                rv = info->no_tracks;
                break;
+            case AAX_BITRATE:
             case AAX_LATENCY:
             {
                const _aaxDriverBackend *be = handle->backend.ptr;
                float f;
                switch(type)
                {
+               case AAX_BITRATE:
+                  rv = be->param(handle->backend.handle, DRIVER_BITRATE);
+                  if (!rv)
+                  {
+                     rv = aaxGetBitsPerSample(info->format);
+                     rv *= info->frequency*info->no_tracks;
+                     rv /= 1000;
+                  }
+                  break;
                case AAX_LATENCY:
                   f = be->param(handle->backend.handle, DRIVER_LATENCY);
                   rv = (int)(f*1e6);

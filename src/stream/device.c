@@ -1244,6 +1244,9 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_BLOCK_SIZE:
          rv = (float)handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
          break;
+      case DRIVER_BITRATE:
+         rv = (float)handle->ext->get_param(handle->ext, __F_BITRATE);
+         break;
       case DRIVER_MIN_PERIODS:
       case DRIVER_MAX_PERIODS:
          rv = 1.0f;

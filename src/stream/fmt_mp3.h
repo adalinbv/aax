@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2020 by Erik Hofman.
- * Copyright 2012-2020 by Adalin B.V.
+ * Copyright 2012-2021 by Erik Hofman.
+ * Copyright 2012-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -30,7 +30,7 @@
 # include <3rdparty/minimp3.h>
 #endif
 
-enum    mp3_parms {
+enum mp3_parms {
   MP3_VERBOSE = 0, MP3_FLAGS,
   MP3_ADD_FLAGS, MP3_FORCE_RATE,
   MP3_DOWN_SAMPLE, MP3_RVA,
@@ -43,7 +43,7 @@ enum    mp3_parms {
   MP3_FEEDBUFFER
 };
 
-enum    mp3_param_flags {
+enum mp3_param_flags {
   MP3_FORCE_MONO = 0x7, MP3_MONO_LEFT = 0x1,
   MP3_MONO_RIGHT = 0x2, MP3_MONO_MIX = 0x4,
   MP3_FORCE_STEREO = 0x8, MP3_FORCE_8BIT = 0x10,
@@ -56,12 +56,32 @@ enum    mp3_param_flags {
   MP3_PICTURE = 1<<17
 };
 
-enum    mp3_param_rva {
+enum mp3_param_rva {
   MP3_RVA_OFF = 0, MP3_RVA_MIX = 1,
   MP3_RVA_ALBUM = 2, MP3_RVA_MAX = MP3_RVA_ALBUM
 };
 
-enum    mp3_feature_set {
+enum mpg123_mode {
+  MPG123_M_STEREO = 0, MPG123_M_JOINT,
+  MPG123_M_DUAL, MPG123_M_MONO
+};
+
+enum mpg123_version {
+  MPG123_1_0 = 0, MPG123_2_0,
+  MPG123_2_5
+};
+
+enum mpg123_flags {
+  MPG123_CRC = 0x1, MPG123_COPYRIGHT = 0x2,
+  MPG123_PRIVATE = 0x4, MPG123_ORIGINAL = 0x8
+};
+
+enum mpg123_vbr {
+  MPG123_CBR =0, MPG123_VBR,
+  MPG123_ABR
+};
+
+enum mp3_feature_set {
   MP3_FEATURE_ABI_UTF8OPEN = 0, MP3_FEATURE_OUTPUT_8BIT,
   MP3_FEATURE_OUTPUT_16BIT, MP3_FEATURE_OUTPUT_32BIT,
   MP3_FEATURE_INDEX, MP3_FEATURE_PARSE_ID3V2,
@@ -71,7 +91,7 @@ enum    mp3_feature_set {
   MP3_FEATURE_PARSE_ICY, MP3_FEATURE_TIMEOUT_READ
 };
 
-enum   mp3_enc_enum {
+enum mp3_enc_enum {
   MP3_ENC_8 = 0x00f, MP3_ENC_16 = 0x040,
   MP3_ENC_24 = 0x4000, MP3_ENC_32 = 0x100,
   MP3_ENC_SIGNED = 0x080, MP3_ENC_FLOAT = 0xe00,
@@ -88,7 +108,7 @@ enum   mp3_enc_enum {
   MP3_ENC_ANY
 };
 
-enum   mp3_channelcount {
+enum mp3_channelcount {
   MP3_MONO = 1,
   MP3_STEREO = 2
 };
@@ -153,17 +173,17 @@ enum mp3_errors
 
 struct mp3_frameinfo
 {
-  unsigned version;
-  unsigned layer;
+  enum mpg123_version version;
+  int layer;
   long rate;
-  unsigned mode;
-  unsigned mode_ext;
-  unsigned framesize;
-  unsigned flags;
-  unsigned emphasis;
-  unsigned bitrate;
-  unsigned abr_rate;
-  unsigned vbr;
+  enum mpg123_mode mode;
+  int mode_ext;
+  int framesize;
+  enum mpg123_flags flags;
+  int emphasis;
+  int bitrate;
+  int abr_rate;
+  enum mpg123_vbr vbr;
 };
 
 typedef struct {

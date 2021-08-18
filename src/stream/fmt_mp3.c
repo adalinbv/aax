@@ -134,13 +134,13 @@ typedef struct
 
    uint8_t no_tracks;
    uint8_t bits_sample;
-   int frequency;
-   int bitrate;
    int blocksize;
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
    size_t file_size;
+
+   struct mp3_frameinfo info;
 
    _data_t *mp3Buffer;
 
@@ -381,7 +381,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                                          MP3_AUTO_RESAMPLE, 0);
                pmp3_param(handle->id, MP3_RVA, MP3_RVA_MIX, 0.0);
 
-               pmp3_format(handle->id, handle->frequency,
+               pmp3_format(handle->id, handle->info.rate,
                                     MP3_MONO | MP3_STEREO,
                                     MP3_ENC_SIGNED_16);
 
@@ -414,6 +414,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             if (!handle->id3_found) {
                _detect_mp3_song_info(handle);
             }
+
             if (ret == MP3_NEW_FORMAT)
             {
                int enc, channels;
@@ -424,16 +425,15 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                       (1000 <= rate) && (rate <= 192000) &&
                       (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
                {
-                  handle->frequency = rate;
+                  handle->info.rate = rate;
                   handle->no_tracks = channels;
                   handle->format = _getFormatFromMP3Format(enc);
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
                   handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
-                  struct mp3_frameinfo info;
-                  if (pmp3_info(handle->id,&info) == MP3_OK)
+                  if (pmp3_info(handle->id,&handle->info) == MP3_OK)
                   {
-                     int bitrate = (info.bitrate > 0) ? info.bitrate : 320;
+                     int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320;
                      double q = (double)rate/(bitrate/8.0) * fsize;
                      handle->max_samples = q;
                   }
@@ -452,6 +452,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             if (!handle->id3_found) {
                _detect_mp3_song_info(handle);
             }
+
             if (ret == MP3_NEW_FORMAT)
             {
                int enc, channels;
@@ -462,7 +463,7 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                       (1000 <= rate) && (rate <= 192000) &&
                       (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
                {
-                  handle->frequency = rate;
+                  handle->info.rate = rate;
                   handle->no_tracks = channels;
                   handle->format = _getFormatFromMP3Format(enc);
                   handle->bits_sample = aaxGetBitsPerSample(handle->format);
@@ -521,9 +522,9 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             pid3tag_set_year(handle->id, year);
             pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
             plame_set_num_samples(handle->id, handle->no_samples);
-            plame_set_in_samplerate(handle->id, handle->frequency);
-            if (handle->bitrate > 0) {
-                plame_set_brate(handle->id, handle->bitrate);
+            plame_set_in_samplerate(handle->id, handle->info.rate);
+            if (handle->info.bitrate > 0) {
+                plame_set_brate(handle->id, handle->info.bitrate);
                 plame_set_VBR(handle->id, VBR_OFF);
             } else {
                 plame_set_brate(handle->id, 320);
@@ -720,16 +721,15 @@ _mp3_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
              (1000 <= rate) && (rate <= 192000) &&
              (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
       {
-         handle->frequency = rate;
+         handle->info.rate = rate;
          handle->no_tracks = channels;
          handle->format = _getFormatFromMP3Format(enc);
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
          handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
-         struct mp3_frameinfo info;
-         if (pmp3_info(handle->id,&info) == MP3_OK)
+         if (pmp3_info(handle->id,&handle->info) == MP3_OK)
          {
-            int bitrate = (info.bitrate > 0) ? info.bitrate : 320;
+            int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320;
             double q = (double)rate/(bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
          }
@@ -791,16 +791,15 @@ _mp3_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
              (1000 <= rate) && (rate <= 192000) &&
              (1 <= channels) && (channels <= _AAX_MAX_SPEAKERS))
       {
-         handle->frequency = rate;
+         handle->info.rate = rate;
          handle->no_tracks = channels;
          handle->format = _getFormatFromMP3Format(enc);
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
          handle->blocksize = handle->no_tracks*handle->bits_sample/8;
 
-         struct mp3_frameinfo info;
-         if (pmp3_info(handle->id,&info) == MP3_OK)
+         if (pmp3_info(handle->id,&handle->info) == MP3_OK)
          {
-            int bitrate = (info.bitrate > 0) ? info.bitrate : 320;
+            int bitrate = (handle->info.bitrate > 0) ? handle->info.bitrate : 320;
             double q = (double)rate/(bitrate/8.0) * handle->file_size;
             handle->max_samples = q;
          }
@@ -905,7 +904,7 @@ _mp3_get(_fmt_t *fmt, int type)
       rv = handle->no_tracks;
       break;
    case __F_FREQUENCY:
-      rv = handle->frequency;
+      rv = handle->info.rate;
       break;
    case __F_BITS_PER_SAMPLE:
       rv = handle->bits_sample;
@@ -915,6 +914,9 @@ _mp3_get(_fmt_t *fmt, int type)
       break;
    case __F_NO_SAMPLES:
       rv = handle->max_samples;
+      break;
+   case __F_BITRATE:
+      rv = (handle->info.vbr) ? -handle->info.bitrate : handle->info.bitrate;
       break;
    case __F_POSITION:
       if (pmp3_feedseek) {
@@ -944,10 +946,10 @@ _mp3_set(_fmt_t *fmt, int type, off_t value)
    switch(type)
    {
    case __F_FREQUENCY:
-      handle->frequency = rv = value;
+      handle->info.rate = rv = value;
       break;
    case __F_RATE:
-      handle->bitrate = rv = value;
+      handle->info.bitrate = rv = value;
       break;
    case __F_TRACKS:
       handle->no_tracks = rv = value;
@@ -961,6 +963,9 @@ _mp3_set(_fmt_t *fmt, int type, off_t value)
       break;
    case __F_BLOCK_SIZE:
       handle->blocksize = rv = value;
+      break;
+   case __F_BITRATE:
+       handle->info.bitrate = rv = value;
       break;
    case __F_IS_STREAM:
       handle->streaming = AAX_TRUE;
@@ -1165,5 +1170,17 @@ _detect_mp3_song_info(_driver_t *handle)
          }
       }
    }
+
+   pmp3_info(handle->id,&handle->info);
+#if 0
+ printf("mp3 info\n");
+ printf(" - version: %i\n", handle->info.version);
+ printf(" - layer: %i\n", handle->info.layer);
+ printf(" - rate: %li\n", handle->info.rate);
+ printf(" - mode: %i\n", handle->info.mode);
+ printf(" - bitrate: %i\n", handle->info.bitrate);
+ printf(" - abr_rate: %i\n", handle->info.abr_rate);
+ printf(" - vbr: %i\n", handle->info.vbr);
+#endif
 }
 
