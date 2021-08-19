@@ -100,16 +100,16 @@ template <typename T>
 class Tieable
 {
 public:
-    Tieable() = default;
+    Tieable() = delete;
 
     virtual ~Tieable() = default;
 
     Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), type(t) {}
 
-    Tieable(const Tieable&) = default;
+    Tieable(const Tieable&) = delete;
     Tieable(Tieable&&) = default;
 
-    Tieable& operator=(const Tieable&) = default;
+    Tieable& operator=(const Tieable&) = delete;
     Tieable& operator=(Tieable&&) = default;
 
     friend std::ostream& operator<<(std::ostream& os, const Tieable& v) {
@@ -237,13 +237,11 @@ private:
     void* obj = nullptr;
 
     union setter {
-        setter() : filter(nullptr) {}
-        set_filter* filter;
+        set_filter* filter = nullptr;
         set_effect* effect;
     } set;
     union getter {
-        getter() : filter(nullptr) {}
-        get_filter* filter;
+        get_filter* filter = nullptr;
         get_effect* effect;
     } get;
     union dsptype dsptype;
@@ -352,10 +350,10 @@ public:
     Buffer(aaxConfig c, std::string& name, bool o=true, bool s=false)
         : Buffer(c, name.c_str(), o, s) {}
 
-    Buffer(const Buffer&) = default;
+    Buffer(const Buffer&) = delete;
     Buffer(Buffer&&) = default;
 
-    Buffer& operator=(const Buffer&) = default;
+    Buffer& operator=(const Buffer&) = delete;
     Buffer& operator=(Buffer&&) = default;
 
     inline void set(aaxConfig c, unsigned int n, unsigned int t, enum aaxFormat f) {
@@ -427,10 +425,10 @@ public:
         if (!aaxIsValid(c, AAX_EFFECT)) ptr = aaxEffectCreate(c,e);
     }
 
-    dsp(const dsp&) = default;
+    dsp(const dsp&) = delete;
     dsp(dsp&&) = default;
 
-    dsp& operator=(const dsp&) = default;
+    dsp& operator=(const dsp&) = delete;
     dsp& operator=(dsp&&) = default;
 
     inline bool add(Buffer& b) {
@@ -500,10 +498,10 @@ public:
         aaxEmitterSetMode(ptr, AAX_POSITION, m);
     }
 
-    Emitter(const Emitter&) = default;
+    Emitter(const Emitter&) = delete;
     Emitter(Emitter&&) = default;
 
-    Emitter& operator=(const Emitter&) = default;
+    Emitter& operator=(const Emitter&) = delete;
     Emitter& operator=(Emitter&&) = default;
 
     inline bool set(enum aaxModeType t, int m) {
@@ -618,10 +616,10 @@ public:
     explicit Sensor(std::string& s, enum aaxRenderMode m=AAX_MODE_READ)
         : Sensor(s.empty() ? nullptr : s.c_str(),m) {}
 
-    Sensor(const Sensor&) = default;
+    Sensor(const Sensor&) = delete;
     Sensor(Sensor&&) = default;
 
-    Sensor& operator=(const Sensor&) = default;
+    Sensor& operator=(const Sensor&) = delete;
     Sensor& operator=(Sensor&&) = default;
 
     inline int render_mode() {
@@ -835,10 +833,10 @@ public:
       : Obj(aaxAudioFrameCreate(c), aaxAudioFrameSetState, aaxAudioFrameDestroy)
     {}
 
-    Frame(const Frame&) = default;
+    Frame(const Frame&) = delete;
     Frame(Frame&&) = default;
 
-    Frame& operator=(const Frame&) = default;
+    Frame& operator=(const Frame&) = delete;
     Frame& operator=(Frame&&) = default;
 
     inline bool set(enum aaxSetupType t, unsigned int s) {
@@ -991,10 +989,10 @@ public:
     explicit AeonWave(enum aaxRenderMode m)
         : Sensor(nullptr,m) {}
 
-    AeonWave(const AeonWave&) = default;
+    AeonWave(const AeonWave&) = delete;
     AeonWave(AeonWave&&) = default;
 
-    AeonWave& operator=(const AeonWave&) = default;
+    AeonWave& operator=(const AeonWave&) = delete;
     AeonWave& operator=(AeonWave&&) = default;
 
     // ** position and orientation ******

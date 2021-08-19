@@ -121,6 +121,8 @@ public:
         Emitter::set(dsp);
     }
 
+    Note() = delete;
+
     virtual ~Note() = default;
 
     Note(const Note&) = delete;
@@ -266,6 +268,8 @@ public:
             Mixer::set(AAX_MONO_EMITTERS, 10);
         }
     }
+
+    Instrument() = delete;
 
     virtual ~Instrument() {
         for (auto it : key) {
