@@ -57,6 +57,7 @@ typedef int32_t	_history_t[_AAX_MAX_SPEAKERS][HISTORY_SAMPS];
  */
 enum
 {
+    //  playing = (_STATE_PAUSED|_STATE_PROCESSED) == 0
     _STATE_PAUSED	= 0x0001,
     _STATE_PROCESSED	= 0x0002,
     _STATE_STOPPED	= 0x0004,
