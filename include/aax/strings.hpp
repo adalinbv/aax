@@ -28,7 +28,7 @@
 namespace aax
 {
 
-inline std::string to_string(enum aaxHandleType handle)
+static inline std::string to_string(enum aaxHandleType handle)
 {
     switch(handle)
     {
@@ -45,7 +45,7 @@ inline std::string to_string(enum aaxHandleType handle)
     return "unknown handle type";
 }
 
-inline std::string to_string(enum aaxFormat fmt)
+static inline std::string to_string(enum aaxFormat fmt)
 {
     switch(fmt)
     {
@@ -94,7 +94,7 @@ inline std::string to_string(enum aaxFormat fmt)
     return "unknown format";
 }
 
-inline std::string to_string(enum aaxType type)
+static inline std::string to_string(enum aaxType type)
 {
     switch(type)
     {
@@ -117,7 +117,7 @@ inline std::string to_string(enum aaxType type)
     return "unknown type";
 }
 
-inline std::string to_string(enum aaxModeType mode)
+static inline std::string to_string(enum aaxModeType mode)
 {
     switch(mode)
     {
@@ -132,7 +132,7 @@ inline std::string to_string(enum aaxModeType mode)
     return "unknown node type";
 }
 
-inline std::string to_string(enum aaxTrackType type)
+static inline std::string to_string(enum aaxTrackType type)
 {
     switch(type)
     {
@@ -150,7 +150,7 @@ inline std::string to_string(enum aaxTrackType type)
     }
 }
 
-inline std::string to_string(enum aaxSetupType type)
+static inline std::string to_string(enum aaxSetupType type)
 {
     switch(type)
     {
@@ -220,11 +220,11 @@ inline std::string to_string(enum aaxSetupType type)
     return "unknown setup type";
 }
 
-inline std::string to_string(enum aaxErrorType type) {
+static inline std::string to_string(enum aaxErrorType type) {
     return aaxGetErrorString(type);
 }
 
-inline std::string to_string(enum aaxEmitterMode mode)
+static inline std::string to_string(enum aaxEmitterMode mode)
 {
     switch(mode)
     {
@@ -238,7 +238,7 @@ inline std::string to_string(enum aaxEmitterMode mode)
     return "unknown emitter mode";
 }
 
-inline std::string to_string(enum aaxState state)
+static inline std::string to_string(enum aaxState state)
 {
     switch(state)
     {
@@ -257,7 +257,7 @@ inline std::string to_string(enum aaxState state)
     return "unknown state";
 }
 
-inline std::string to_string(enum aaxRenderMode mode)
+static inline std::string to_string(enum aaxRenderMode mode)
 {
     switch(mode)
     {
@@ -272,7 +272,7 @@ inline std::string to_string(enum aaxRenderMode mode)
     return "Unknown rendering mode";
 }
 
-inline std::string to_string(enum aaxDistanceModel model)
+static inline std::string to_string(enum aaxDistanceModel model)
 {
     switch(model)
     {
@@ -295,15 +295,15 @@ inline std::string to_string(enum aaxDistanceModel model)
     return "unknown distance model";
 }
 
-inline std::string to_string(enum aaxFilterType type) {
+static inline std::string to_string(enum aaxFilterType type) {
     return aaxFilterGetNameByType(0, type);
 }
 
-inline std::string to_string(enum aaxEffectType type) {
+static inline std::string to_string(enum aaxEffectType type) {
     return aaxEffectGetNameByType(0, type);
 }
 
-inline std::string to_string(enum aaxWaveformType type)
+static inline std::string to_string(enum aaxWaveformType type)
 {
     if (!type) return "{}";
     std::string result;
@@ -321,7 +321,7 @@ inline std::string to_string(enum aaxWaveformType type)
     return "{" + result.substr(0, result.size() - 3) + "}";
 }
 
-inline std::string to_string(enum aaxFrequencyFilterType type)
+static inline std::string to_string(enum aaxFrequencyFilterType type)
 {
     std::string result;
     if (type & AAX_6DB_OCT) result += "6dB/oct ";
@@ -334,7 +334,7 @@ inline std::string to_string(enum aaxFrequencyFilterType type)
     return result;
 }
 
-inline std::string to_string(enum aaxProcessingType type)
+static inline std::string to_string(enum aaxProcessingType type)
 {
     switch(type)
     {
@@ -350,7 +350,7 @@ inline std::string to_string(enum aaxProcessingType type)
     return "unknown processing type";
 }
 
-inline std::string to_string(enum aaxCapabilities type)
+static inline std::string to_string(enum aaxCapabilities type)
 {
     int midi_mode = (type & AAX_RENDER_MASK);
     int cores = (type & AAX_CPU_CORES);
