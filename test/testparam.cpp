@@ -5,7 +5,7 @@
 
 int main()
 {
-   aax::Param t, p = 3.1415927536f;
+   aax::Param p = 3.1415927536f;
    float v = 3.1415927536f;
 
    if (p != v) printf("Error: %f != %f (should be equal)\n", float(p), v);
@@ -33,7 +33,8 @@ int main()
 
    p += p;
    v += v;
-   t = v;
+
+   aax::Param t = v;
    if (p != t) printf("Param add: %f != %f (should be equal)\n", float(p), float(t));
    if (p == t) {} else printf("Param add: not %f == %f (should be equal)\n", float(p), float(t));
    if (p < t) printf("Param %f < %f (should be equal)\n", float(p), float(t));
