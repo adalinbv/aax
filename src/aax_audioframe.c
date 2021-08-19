@@ -156,7 +156,7 @@ aaxAudioFrameDestroy(aaxFrame frame)
    {
       if (!handle) {
          _aaxErrorSet(AAX_INVALID_HANDLE);
-      } else if (handle->parent) {
+      } else if (handle->parent[0]) {
          _aaxErrorSet(AAX_INVALID_STATE);
       } else {
          rv = AAX_TRUE;
@@ -197,6 +197,9 @@ aaxAudioFrameDestroy(aaxFrame frame)
                    _aaxRingBufferFree);
       _intBufErase(&fmixer->frame_ringbuffers, _AAX_RINGBUFFER,
                    _aaxRingBufferFree);
+      if (fmixer->ringbuffer) {
+         _aaxRingBufferFree(fmixer->ringbuffer);
+      }
 
       /* frees EQUALIZER_LF, EQUALIZER_MF and EQUALIZER_HF */
       if (fmixer->filter)

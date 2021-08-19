@@ -1630,6 +1630,9 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
                   _sys_free(name);
                }
             }
+            else {
+               _sys_free(type);
+            }
             ++lst;
          }
          while (*lst != NULL);
@@ -1753,6 +1756,9 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                   }
                }
             }
+            else {
+               _sys_free(type);
+            }
             ++lst;
          }
          while (*lst != NULL);
@@ -1847,8 +1853,8 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
                      }
                      found = 1;
                   }
-                  if (desc != name) _sys_free(desc);
                }
+               if (desc != name) _sys_free(desc);
                _sys_free(name);
             }
          }
@@ -2035,6 +2041,7 @@ _alsa_pcm_open(_driver_t *handle, int m)
 
    err = psnd_pcm_open(&handle->pcm, handle->devname, _alsa_mode[m],
                        SND_PCM_NONBLOCK);
+
 // psnd_config_update_free_global();
    if (err >= 0)
    {
@@ -2453,6 +2460,10 @@ detect_devnum(_driver_t *handle, int m)
                      _sys_free(name);
                      _sys_free(desc);
                   }
+                  else {
+                      _sys_free(name);
+                  }
+
                }
             }
             ++lst;
