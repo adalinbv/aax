@@ -457,8 +457,9 @@ aaxEmitterSetState(aaxEmitter emitter, enum aaxState state)
          rv = AAX_TRUE;
          break;
       case AAX_PROCESSED:
-         if (_IS_PLAYING(src->props3d))
+         if (!_IS_PROCESSED(src->props3d))
          {
+            _SET_PLAYING(src->props3d); // In case rthe caller never did that
             _SET_PROCESSED(src->props3d);
             src->buffer_pos = UINT_MAX;
          }
