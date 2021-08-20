@@ -414,6 +414,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
          si.descriptions = handle->descriptions[m];
          si.loop = handle->ml;
 
+         ppa_threaded_mainloop_lock(handle->ml);
          if (mode == AAX_MODE_READ) {
             opr = ppa_context_get_source_info_list(handle->ctx,
                                                    source_device_cb, &si);
@@ -429,6 +430,7 @@ _aaxPulseAudioDriverNewHandle(enum aaxRenderMode mode)
             }
             ppa_operation_unref(opr);
          }
+         ppa_threaded_mainloop_unlock(handle->ml);
       }
       else
       {
@@ -1048,6 +1050,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
          si.descriptions = rv;
          si.loop = handle->ml;
 
+         ppa_threaded_mainloop_lock(handle->ml);
          if (m) {
             opr = ppa_context_get_source_info_list(handle->ctx, source_device_cb, &si);
          } else {
@@ -1061,6 +1064,7 @@ _aaxPulseAudioDriverGetDevices(const void *id, int mode)
             }
             ppa_operation_unref(opr);
          }
+         ppa_threaded_mainloop_unlock(handle->ml);
 
          if (!id) {
             _aaxPulseAudioDriverDisconnect(handle);
@@ -1750,6 +1754,7 @@ _aaxPulseAudioStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *err
       _AAX_SYSLOG("pulse; unsupported channel map.");
    }
 
+   ppa_threaded_mainloop_lock(handle->ml);
    handle->pa = ppa_stream_new(handle->ctx, agent, &handle->spec, &map);
    if (handle->pa)
    {
@@ -1808,6 +1813,7 @@ _aaxPulseAudioStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *err
          *error = ppa_context_errno(handle->ctx);
       }
    }
+   ppa_threaded_mainloop_unlock(handle->ml);
 }
 
 #endif /* HAVE_PULSE_PULSEAUDIO_H */
