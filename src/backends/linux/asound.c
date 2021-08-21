@@ -464,7 +464,7 @@ _aaxALSADriverDetect(int mode)
       if (!error)
       {
          TIE_FUNCTION(snd_pcm_hw_params_set_period_wakeup);
-         if (get_devices_avail(mode) != 0)
+         if (0 && get_devices_avail(mode) != 0)
          {
             snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version());
@@ -1572,7 +1572,7 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
    t_now = time(NULL);
    if (t_now > (t_previous[m]+5))
    {
-      void **hints;
+      void **hints = NULL;
       int res;
 
       t_previous[m] = t_now;
@@ -1611,7 +1611,6 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
 
                      desc = psnd_device_name_get_hint(*lst, "DESC");
                      if (!desc) desc = name;
-                     else _sys_free(name);
 
                      iface = strstr(desc, ", ");
                      if (iface) *iface = 0;
@@ -1623,23 +1622,17 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
                         len -= slen;
                         ptr += slen;
                      }
-                     _sys_free(desc);
+                     if (desc && desc != name) _sys_free(desc);
                   }
                }
-               else {
-                  _sys_free(name);
-               }
+               if (name) _sys_free(name);
             }
-            else {
-               _sys_free(type);
-            }
-            ++lst;
+            if (type) _sys_free(type);
          }
-         while (*lst != NULL);
+         while (*(++lst) != NULL);
          *ptr = 0;
       }
-
-      res = psnd_device_name_free_hint(hints);
+      if (hints) psnd_device_name_free_hint(hints);
 
        /* always end with "\0\0" no matter what */
        names[m][1022] = 0;
@@ -1661,8 +1654,8 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
    if (!rv && devname)
    {
       char devlist[1024] = "\0\0";
+      void **hints = NULL;
       size_t len = 1024;
-      void **hints;
       int res;
 
       res = psnd_device_name_hint(-1, "pcm", &hints);
@@ -1703,7 +1696,6 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
 
                      desc = psnd_device_name_get_hint(*lst, "DESC");
                      if (!desc) desc = name;
-                     else _sys_free(name);
 
                      iface = strstr(desc, ", ");
                      if (iface) *iface = 0;
@@ -1749,19 +1741,14 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
                         len -= slen;
                         ptr += slen;
                      }
-                     _sys_free(desc);
-                  }
-                  else {
-                     _sys_free(name);
+                     if (desc && desc != name) _sys_free(desc);
                   }
                }
+               if (name) _sys_free(name);
             }
-            else {
-               _sys_free(type);
-            }
-            ++lst;
+            if (type) _sys_free(type);
          }
-         while (*lst != NULL);
+         while (*(++lst) != NULL);
 
          if (ptr != devlist)
          {
@@ -1778,7 +1765,7 @@ _aaxALSADriverGetInterfaces(const void *id, const char *devname, int mode)
             }
          }
       }
-      res = psnd_device_name_free_hint(hints);
+      if (hints) psnd_device_name_free_hint(hints);
    }
    psnd_lib_error_set_handler(_alsa_error_handler);
 
@@ -1791,8 +1778,8 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
    _driver_t *handle = (_driver_t *)id;
    int m = (mode > 0) ? 1 : 0;
    char rv[1024]  = "default";
+   void **hints = NULL;
    ssize_t len = 1024;
-   void **hints;
    int res;
 
    psnd_lib_error_set_handler(_alsa_error_handler_none);
@@ -1854,15 +1841,16 @@ _aaxALSADriverGetDefaultInterface(const void *id, int mode)
                      found = 1;
                   }
                }
-               if (desc != name) _sys_free(desc);
-               _sys_free(name);
+               if (desc && desc != name) _sys_free(desc);
             }
+            if (name) _sys_free(name);
          }
-         ++lst;
-       }
-      while (!found && (*lst != NULL));
-      res = psnd_device_name_free_hint(hints);
+         if (type) _sys_free(type);
+      }
+      while (*(++lst) != NULL && !found);
    }
+   if (hints) psnd_device_name_free_hint(hints);
+
    psnd_lib_error_set_handler(_alsa_error_handler);
 
    return _aax_strdup(rv);
@@ -1873,8 +1861,8 @@ _aaxALSADriverGetInterfaceName(const void *id)
 {
    _driver_t *handle = (_driver_t *)id;
    char *rv = NULL;
+   void **hints = NULL;
    ssize_t len = 1024;
-   void **hints;
    int res;
 
    psnd_lib_error_set_handler(_alsa_error_handler_none);
@@ -1912,17 +1900,17 @@ _aaxALSADriverGetInterfaceName(const void *id)
                   else {
                      snprintf(s, len, "%s", desc);
                   }
-                  if (desc != name) _sys_free(desc);
+                  if (desc && desc != name) _sys_free(desc);
+
                   found = 1;
                   rv = _aax_strdup(rvname);
                }
-               _sys_free(name);
             }
-            ++lst;
+            if (name) _sys_free(name);
          }
-         while (!found && (*lst != NULL));
-         res = psnd_device_name_free_hint(hints);
+         while (*(++lst) != NULL && !found);
       }
+      if (hints) psnd_device_name_free_hint(hints);
    }
    psnd_lib_error_set_handler(_alsa_error_handler);
 
@@ -2207,7 +2195,7 @@ detect_devname(_driver_t *handle, int m)
    if (devname && (tracks < _AAX_MAX_SPEAKERS))
    {
       unsigned int tracks_2 = tracks/2;
-      void **hints;
+      void **hints = NULL;
       int res;
 
       res = psnd_device_name_hint(-1, "pcm", &hints);
@@ -2267,6 +2255,7 @@ detect_devname(_driver_t *handle, int m)
                             snprintf(rv, dlen, "%s", name);
                         }
                      }
+                     if (name) _sys_free(name);
                      break;
                   }
                   else if (ifname_prefix[i] &&
@@ -2319,25 +2308,26 @@ detect_devname(_driver_t *handle, int m)
                                                  name+strlen(ifname_prefix[i]));
                                  }
                               }
-                              if (desc != name) _sys_free(desc);
-                              _sys_free(name);
+                              if (desc && desc != name) _sys_free(desc);
+                              if (name) _sys_free(name);
                               break;
                            }
                         }
                         else	// no interface specified, use sysdefault
                         {
+                           if (desc && desc != name) _sys_free(desc);
                            rv = name;
                            break;
                         }
                      }
-                     if (desc != name) _sys_free(desc);
+                     if (desc && desc != name) _sys_free(desc);
                   }
-                  _sys_free(name);
                }
+               if (name) _sys_free(name);
             }
-            ++lst;
+            if (type) _sys_free(type);
          }
-         while (*lst != NULL);
+         while (*(++lst) != NULL);
 
          if (ifname)
          {
@@ -2345,8 +2335,7 @@ detect_devname(_driver_t *handle, int m)
             *ifname = ':';
          }
       }
-
-      res = psnd_device_name_free_hint(hints);
+      if (hints) psnd_device_name_free_hint(hints);
    }
 
    return rv;
@@ -2466,9 +2455,8 @@ detect_devnum(_driver_t *handle, int m)
 
                }
             }
-            ++lst;
          }
-         while (*lst != NULL);
+         while (*(++lst) != NULL);
       }
 
       res = psnd_device_name_free_hint(hints);
@@ -2482,7 +2470,7 @@ get_devices_avail(int mode)
 {
    static unsigned int rv[2] = {0, 0};
    int m = (mode > 0) ? 1 : 0;
-   void **hints;
+   void **hints = NULL;
    int res;
 
    if (rv[m] == 0)
@@ -2491,31 +2479,20 @@ get_devices_avail(int mode)
       if (!res)
       {
          void **lst = hints;
-
-         do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
             if (type && !strcmp(type, _alsa_type[m]))
-            {
-               _sys_free(type);
-               type = NULL;
-            }
-            if (!type)
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
                if (name && (!STRCMP(name,"front:") || strstr(name,"default:")))
                {
                   rv[m]++;
                }
-               _sys_free(name);
+               if (name) _sys_free(name);
             }
-            else {
-               _sys_free(type);
-            }
-            ++lst;
+            if (type) _sys_free(type);
          }
-         while (*lst != NULL);
-
+         while (*(++lst) != NULL);
          res = psnd_device_name_free_hint(hints);
       }
    }
