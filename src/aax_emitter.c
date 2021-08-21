@@ -1592,13 +1592,13 @@ _emitterCreateEFFromRingbuffer(_emitter_t *handle, _embuffer_t *embuf)
          }
          aaxFilterSetState(flt, AAX_TRUE);
 
-         // only apply the timed-gain filter whn at least one level is non-zero.
+         // only apply the timed-gain filter when at least one level is non-zero.
          if (sum)
          {
             filter = get_filter(flt);
             _emitterSetFilter(handle, filter);
-            aaxFilterDestroy(flt);
          }
+         aaxFilterDestroy(flt);
          rv = AAX_TRUE;
       }
    }
