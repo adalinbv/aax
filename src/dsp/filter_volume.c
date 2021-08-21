@@ -481,8 +481,8 @@ _occlusion_destroy(void *ptr)
    {
       _aaxRingBufferOcclusionData *occlusion = ptr;
       _aax_aligned_free(occlusion->freq_filter.freqfilter);
-      _aax_aligned_free(occlusion);
    }
+   _aax_dsp_destroy(ptr);
 }
 
 int

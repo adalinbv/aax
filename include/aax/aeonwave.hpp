@@ -177,8 +177,8 @@ public:
         if (!tied) {
             set.filter = sfn; get.filter = gfn;
             obj = o; dsptype.filter = f; param = p;
-            filter = true; tied = enabled = true; fire();
-            return true;
+            filter = true; tied = enabled = true;
+            fire(); return true;
         }
         return false;
     }
@@ -186,8 +186,8 @@ public:
         if (!tied) {
             set.effect = sfn; get.effect = gfn;
             obj = o; dsptype.effect = e; param = p;
-            filter = false; tied = enabled = true; fire();
-            return true;
+            filter = false; tied = enabled = true;
+            fire(); return true;
         }
         return false;
     }

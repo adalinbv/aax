@@ -444,9 +444,8 @@ _reverb_destroy(void *ptr)
       }
       if (reverb->track_prev) _aax_free(reverb->track_prev);
       reverb->track_prev = NULL;
-
-      free(reverb);
    }
+   _aax_dsp_destroy(ptr);
 }
 
 static void

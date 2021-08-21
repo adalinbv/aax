@@ -567,8 +567,8 @@ _delay_destroy(void *ptr)
          _freqfilter_destroy(data->freq_filter);
          data->freq_filter = NULL;
       }
-      _aax_aligned_free(data);
    }
+   _aax_dsp_destroy(ptr);
 }
 
 void

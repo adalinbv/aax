@@ -465,8 +465,8 @@ _freqfilter_destroy(void *ptr)
    {
       _lfo_destroy(data->lfo);
       _aax_aligned_free(data->freqfilter);
-      _aax_aligned_free(data);
    }
+   _aax_dsp_destroy(ptr);
 }
 
 /**
