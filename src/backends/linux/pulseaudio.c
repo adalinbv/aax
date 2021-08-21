@@ -149,6 +149,7 @@ typedef struct
    pa_stream *pa;
    pa_context *ctx;
    pa_threaded_mainloop *ml;
+   pa_mainloop_api *ml_api;
 
    pa_sample_spec spec;
    pa_buffer_attr attr;
@@ -924,18 +925,22 @@ _aaxPulseAudioDriverState(const void *id, enum _aaxDriverState state)
    case DRIVER_PAUSE:
       if (handle)
       {
+         ppa_threaded_mainloop_lock(handle->ml);
          if (!ppa_stream_is_corked(handle->pa)) {
             ppa_stream_cork(handle->pa, 1, NULL, NULL);
          }
+         ppa_threaded_mainloop_unlock(handle->ml);
          rv = AAX_TRUE;
       }
       break;
    case DRIVER_RESUME:
       if (handle)
       {
+         ppa_threaded_mainloop_lock(handle->ml);
          if (ppa_stream_is_corked(handle->pa)) {
             ppa_stream_cork(handle->pa, 0, NULL, NULL);
          }
+         ppa_threaded_mainloop_unlock(handle->ml);
          rv = AAX_TRUE;
       }
       break;
@@ -1602,7 +1607,7 @@ _aaxPulseAudioContextConnect(_driver_t *handle)
 {
    static char pulse_avail = AAX_TRUE;
    const char *name = AAX_LIBRARY_STR;
-   char buf[PATH_MAX];
+   char buf[PATH_MAX] = "";
 
    if (!pulse_avail)
    {
@@ -1615,14 +1620,15 @@ _aaxPulseAudioContextConnect(_driver_t *handle)
       }
    }
 
-   if (ppa_get_binary_name && ppa_get_binary_name(buf, PATH_MAX)) {
+   if (ppa_get_binary_name && ppa_get_binary_name(buf, sizeof(buf))) {
       name = ppa_path_get_filename(buf);
    }
 
    handle->ml = ppa_threaded_mainloop_new();
    if (handle->ml)
    {
-      handle->ctx = ppa_context_new(ppa_threaded_mainloop_get_api(handle->ml), name);
+      handle->ml_api = ppa_threaded_mainloop_get_api(handle->ml);
+      handle->ctx = ppa_context_new(handle->ml_api, name);
       if (handle->ctx)
       {
          char *srv = NULL; // connect to the default server (for now)
