@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -249,7 +249,7 @@ _aaxNewEqualizerHandle(const aaxConfig config, enum aaxFilterType type, _aax2dPr
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, _AAX_EQFILTERS, DSIZE);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, _AAX_EQFILTERS, 0);
 
    if (rv)
    {

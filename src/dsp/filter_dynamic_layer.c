@@ -155,14 +155,12 @@ _aaxNewDynamicTimbreFilterHandle(const aaxConfig config, enum aaxFilterType type
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, DSIZE);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 1, 0);
 
    if (rv)
    {
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _lfo_destroy;
-      rv->slot[0]->data = NULL;
-
       rv->state = p2d->filter[rv->pos].state;
    }
    return rv;

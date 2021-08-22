@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -74,8 +74,6 @@ _aaxNewDirectionalFilterHandle(const aaxConfig config, enum aaxFilterType type, 
    if (rv)
    {
       _aax_dsp_copy(rv->slot[0], &p3d->filter[rv->pos]);
-      rv->slot[0]->data = NULL;
-
       rv->state = p3d->filter[rv->pos].state;
    }
    return rv;

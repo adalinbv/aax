@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -326,7 +326,7 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, DSIZE);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, 0);
 
    if (rv)
    {
@@ -335,7 +335,6 @@ _aaxNewFrequencyFilterHandle(const aaxConfig config, enum aaxFilterType type, _a
       _aax_dsp_copy(rv->slot[0], &p2d->filter[rv->pos]);
       rv->slot[0]->destroy = _freqfilter_destroy;
       rv->slot[0]->swap = _freqfilter_swap;
-      rv->slot[0]->data = NULL;
 
       /* reconstruct rv->slot[1] */
       freq = (_aaxRingBufferFreqFilterData*)p2d->filter[rv->pos].data;

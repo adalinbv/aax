@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -155,7 +155,7 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2, DSIZE);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, _MAX_ENVELOPE_STAGES/2,0);
 
    if (rv)
    {
@@ -165,7 +165,6 @@ _aaxNewTimedPitchEffectHandle(const aaxConfig config, enum aaxEffectType type, _
       int i, stages;
 
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
-      rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;
 

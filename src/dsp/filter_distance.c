@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -133,7 +133,7 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, DSIZE);
+   _filter_t* rv = _aaxFilterCreateHandle(info, type, 2, 0);
 
    if (rv)
    {
@@ -143,8 +143,6 @@ _aaxNewDistanceFilterHandle(const aaxConfig config, enum aaxFilterType type, UNU
       rv->slot[0]->destroy = _distance_destroy;
       rv->slot[0]->swap = _distance_swap;
 
-      data = _aax_aligned_alloc(DSIZE);
-      rv->slot[0]->data = data;
       if (data) 
       {
          float f = 5000.0f;		// Midband frequency in Hz

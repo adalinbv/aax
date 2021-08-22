@@ -352,14 +352,13 @@ _aaxNewDelayLineEffectHandle(const aaxConfig config, enum aaxEffectType type, _a
 {
    _handle_t *handle = get_driver_handle(config);
    _aaxMixerInfo* info = handle ? handle->info : _info;
-   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, DSIZE);
+   _effect_t* rv = _aaxEffectCreateHandle(info, type, 2, 0);
 
    if (rv)
    {
       _aax_dsp_copy(rv->slot[0], &p2d->effect[rv->pos]);
       rv->slot[0]->destroy = _delay_destroy;
       rv->slot[0]->swap = _delay_swap;
-      rv->slot[0]->data = NULL;
 
       rv->state = p2d->effect[rv->pos].state;
    }
