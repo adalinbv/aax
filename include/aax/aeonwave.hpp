@@ -102,14 +102,13 @@ class Tieable
 public:
     Tieable() = delete;
 
-    virtual ~Tieable() = default;
+    virtual ~Tieable() { untie(); }
 
     Tieable(T v, enum aaxType t = AAX_LINEAR) : val(v), type(t) {}
 
-    Tieable(const Tieable&) = delete;
-    Tieable(Tieable&&) = default;
+    Tieable(const Tieable& v) { val = v.val; fire(); }
 
-    Tieable& operator=(const Tieable&) = delete;
+    Tieable(Tieable&&) = default;
     Tieable& operator=(Tieable&&) = default;
 
     friend std::ostream& operator<<(std::ostream& os, const Tieable& v) {
@@ -123,12 +122,11 @@ public:
     inline T operator*(T v) { return (val * v); }
     inline T operator/(T v) { return (val / v); }
 
-        // since fire() is quite involved, do a check before firing
-    inline T operator=(T v) { if (val != v) { val = v; fire(); } return val; }
-    inline T operator+=(T v) { if (v) { val += v; fire(); } return val; }
-    inline T operator-=(T v) { if (v) { val -= v; fire(); } return val; }
-    inline T operator*=(T v) { if (v != 1) { val *= v; fire(); } return val; }
-    inline T operator/=(T v) { if (v != 1) { val /= v; fire(); } return val; }
+    inline T operator=(T v) { val = v; fire(); return val; }
+    inline T operator+=(T v) { val += v; fire(); return val; }
+    inline T operator-=(T v) { val -= v; fire(); return val; }
+    inline T operator*=(T v) { val *= v; fire(); return val; }
+    inline T operator/=(T v) { val /= v; fire(); return val; }
 
     inline bool operator==(T v) { return (val == v); }
     inline bool operator!=(T v) { return (val != v); }
@@ -144,18 +142,20 @@ public:
     inline Tieable operator*(const Tieable& v) { return (val * v.val); }
     inline Tieable operator/(const Tieable& v) { return (val / v.val); }
 
-        // since fire() is quite involved, do a check before firing
+    inline Tieable operator=(const Tieable& v) {
+        val = v.val; fire(); return val;
+    }
     inline Tieable operator+=(const Tieable& v) {
-        if (v.val) { val += v.val; fire(); } return val;
+        val += v.val; fire(); return val;
     }
     inline Tieable operator-=(const Tieable& v) {
-        if (v.val) { val -= v.val; fire(); } return val;
+        val -= v.val; fire(); return val;
     }
     inline Tieable operator*=(const Tieable& v) {
-        if (v.val != 1) { val *= v.val; fire(); } return val;
+        val *= v.val; fire(); return val;
     }
     inline Tieable operator/=(const Tieable& v) {
-        if (v.val != 1) { val /= v.val; fire(); } return val;
+        val /= v.val; fire(); return val;
     }
 
     inline bool operator==(const Tieable& v) { return (val == v.val); }
@@ -178,6 +178,8 @@ public:
             set.filter = sfn; get.filter = gfn;
             obj = o; dsptype.filter = f; param = p;
             filter = true; tied = enabled = true;
+            if (filter) handle.filter = get.filter(obj, dsptype.filter);
+            else handle.effect = get.effect(obj, dsptype.effect);
             fire(); return true;
         }
         return false;
@@ -187,40 +189,42 @@ public:
             set.effect = sfn; get.effect = gfn;
             obj = o; dsptype.effect = e; param = p;
             filter = false; tied = enabled = true;
+            if (filter) handle.filter = get.filter(obj, dsptype.filter);
+            else handle.effect = get.effect(obj, dsptype.effect);
             fire(); return true;
         }
         return false;
     }
-    void untie() { tied = false; }
+    void untie() {
+        if (tied) {
+            if (filter) aaxFilterDestroy(handle.filter);
+            else aaxEffectDestroy(handle.effect);
+        }
+        tied = false;
+    }
 
 protected:
     void fire() {
-        if (val == prev) return;
+        if (!tied || val == prev) return;
         if (std::is_same<T,float>::value) {
-            if (!tied) return;
             if (filter) {
-                aaxFilter flt = get.filter(obj, dsptype.filter);
-                if (aaxFilterSetParam(flt, param, type, val)) {
-                     set.filter(obj, flt);
+                if (aaxFilterSetParam(handle.filter, param, type, val)) {
+                     set.filter(obj, handle.filter);
                 }
-                aaxFilterDestroy(flt);
             } else {
-                aaxEffect eff = get.effect(obj, dsptype.effect);
-                if (aaxEffectSetParam(eff, param, type, val)) {
-                    set.effect(obj, eff);
+                if (aaxEffectSetParam(handle.effect, param, type, val)) {
+                    set.effect(obj, handle.effect);
                 }
-                aaxEffectDestroy(eff);
             }
         } else if (std::is_same<T,int>::value) {
-            if (!enabled) return;
             if (filter) {
-                aaxFilter flt = get.filter(obj, dsptype.filter);
-                if (aaxFilterSetState(flt, val)) set.filter(obj, flt);
-                aaxFilterDestroy(flt);
+                if (aaxFilterSetState(handle.filter, val)) {
+                    set.filter(obj, handle.filter);
+                }
             } else {
-                aaxEffect eff = get.effect(obj, dsptype.effect);
-                if (aaxEffectSetState(eff, val)) set.effect(obj, eff);
-                aaxEffectDestroy(eff);
+                if (aaxEffectSetState(handle.effect, val)) {
+                    set.effect(obj, handle.effect);
+                }
             }
             enabled = tied;
         }
@@ -236,6 +240,10 @@ private:
     bool enabled = false;
     void* obj = nullptr;
 
+    union handle {
+        aaxFilter filter = nullptr;
+        aaxEffect effect;
+    } handle;
     union setter {
         set_filter* filter = nullptr;
         set_effect* effect;
@@ -282,22 +290,22 @@ public:
     }
 
     void ties_add(Param& pm) {
-        auto pi = std::find(fties.begin(),fties.end(),&pm);
+        auto pi = std::find(fties.begin(), fties.end(), &pm);
         if (pi == fties.end()) fties.push_back(&pm);
     }
 
     void ties_add(Status& pm) {
-        auto pi = std::find(ities.begin(),ities.end(),&pm);
+        auto pi = std::find(ities.begin(), ities.end(), &pm);
         if (pi == ities.end()) ities.push_back(&pm);
     }
 
     void untie(Param& pm) {
-        auto pi = std::find(fties.begin(),fties.end(),&pm);
+        auto pi = std::find(fties.begin(), fties.end(), &pm);
         if (pi != fties.end()) { fties.erase(pi); } pm.untie();
     }
 
     void untie(Status& pm) {
-        auto pi = std::find(ities.begin(),ities.end(),&pm);
+        auto pi = std::find(ities.begin(), ities.end(), &pm);
         if (pi != ities.end()) { ities.erase(pi); } pm.untie();
     }
 
