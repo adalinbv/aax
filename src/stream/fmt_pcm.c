@@ -194,7 +194,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          {
             handle->format = AAX_PCM24S;
             handle->bits_sample = 32;
-            handle->blocksize = 4*handle->no_tracks;
+            handle->blocksize = handle->no_tracks*handle->bits_sample/8;
          }
          rv = AAX_TRUE;
          break;

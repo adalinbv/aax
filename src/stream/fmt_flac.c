@@ -64,6 +64,7 @@ typedef struct
    int frequency;
    int bitrate;
    int blocksize;
+   int blocksmp;
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
@@ -108,7 +109,7 @@ _flac_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       {
          handle->mode = mode;
          handle->capturing = (mode == 0) ? 1 : 0;
-//       handle->blocksize = 4096;
+         handle->blocksmp = 1;
          handle->blocksize = sizeof(int32_t);
          handle->out_size = MAX_PCMBUFSIZE;
       }
@@ -233,8 +234,37 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    size_t bufsize, rv = __F_NEED_MORE;
 
    bufsize = _aaxDataGetDataAvail(handle->flacBuffer);
-   if (*num && bufsize)
+   if (bufsize)
    {
+      unsigned int bufsize = _aaxDataGetDataAvail(handle->flacBuffer);
+      unsigned int blocksize = handle->blocksize;
+      unsigned int blocksmp = handle->blocksmp;
+      size_t offs, bytes, n;
+
+      if ((*num + handle->no_samples) > handle->max_samples) {
+         *num = handle->max_samples - handle->no_samples;
+      }
+
+      if (*num)
+      {
+         n = *num/blocksmp;
+         bytes = n*blocksize;
+         if (bytes > bufsize)
+         {
+            n = (bufsize/blocksize);
+            bytes = n*blocksize;
+         }
+         *num = n*blocksmp;
+
+         offs = (dptr_offs/blocksmp)*blocksize;
+         rv = _aaxDataMove(handle->flacBuffer, (char*)dptr+offs, bytes);
+         handle->no_samples += *num;
+
+         if (handle->no_samples >= handle->max_samples) {
+            rv = __F_EOF;
+         }
+      }
+#if 0
       size_t bytes = *num * handle->blocksize;
       if (bytes <= bufsize)
       {
@@ -242,6 +272,7 @@ _flac_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          rv = _aaxDataMove(handle->flacBuffer, (char*)dptr+offs, bytes);
          handle->no_samples += *num;
       }
+#endif
       else {
          *num = 0;
       }
@@ -283,7 +314,7 @@ _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
       *num = max;
    }
 
-   if (req > 0)
+   while (req > 0)
    {
       size_t no_frames = MAX_PCMBUFSIZE/handle->blocksize;
 
@@ -316,6 +347,9 @@ _flac_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          _batch_cvt24_32_intl(dptr, handle->output, dptr_offs, tracks, n);
 
          dptr_offs += n;
+      }
+      else {
+         break;
       }
    }
 
@@ -398,6 +432,12 @@ _flac_set(_fmt_t *fmt, int type, off_t value)
       break;
    case __F_BITS_PER_SAMPLE:
       handle->bits_sample = rv = value;
+      break;
+  case __F_BLOCK_SIZE:
+      handle->blocksize = rv = value;
+      break;
+   case __F_BLOCK_SAMPLES:
+      handle->blocksmp = rv = value;
       break;
    case __F_IS_STREAM:
       break;
