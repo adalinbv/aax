@@ -72,12 +72,13 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int stereo;
+   int stereo, log;
 
    assert(filter->info);
 
+   log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~AAX_LFO_STEREO;
+   state &= ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
 
    filter->state = state;
    switch (state & ~AAX_INVERSE)
@@ -90,13 +91,11 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_RANDOMNESS:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
       if (lfo == NULL) {
          filter->slot[0]->data = lfo = _lfo_create();
       }
-
       if (lfo)
       {
          if (filter->type == AAX_COMPRESSOR)
@@ -146,7 +145,9 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
                 offset = 1.0f;
             }
 
-            lfo->convert = _linear;
+            if (log) lfo->convert = _exponential;
+            else lfo->convert = _linear;
+
             lfo->state = filter->state;
             lfo->fs = fs;
             lfo->period_rate = filter->info->period_rate;
@@ -161,8 +162,7 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
             lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
-            if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW ||
-                (state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW_LOG)
+            if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
             {
                lfo->min_sec = 0.5f*depth/lfo->fs;
                lfo->max_sec = 0.5f*depth/lfo->fs + lfo->min_sec;

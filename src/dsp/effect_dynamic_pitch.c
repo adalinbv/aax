@@ -71,12 +71,13 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int stereo;
+   int stereo, log;
 
    assert(effect->info);
 
+   log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
    stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~AAX_LFO_STEREO;
+   state &= ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
 
    effect->state = state;
    switch (state & ~AAX_INVERSE)
@@ -89,7 +90,6 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_RANDOMNESS:
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
    {
       _aaxLFOData* lfo = effect->slot[0]->data;
       if (lfo == NULL) {
@@ -101,7 +101,9 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          float depth = 0.5f*effect->slot[0]->param[AAX_LFO_DEPTH];
          int constant;
 
-         lfo->convert = _linear;
+         if (log) lfo->convert = _exponential;
+         else lfo->convert = _linear;
+
          lfo->state = effect->state;
          lfo->fs = effect->info->frequency;
          lfo->period_rate = effect->info->period_rate;
