@@ -73,6 +73,7 @@ _aaxCompressorSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = NULL;
+   int mask;
 
    // backwards compatibility, can be removed after AeonWave 4.0
    if (state & AAX_ENVELOPE_FOLLOW_LOG && !(state & AAX_WAVEFORM_MASK) &&
@@ -87,7 +88,8 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       state &= ~AAX_TRUE;
    }
 
-   switch (state & ~AAX_INVERSE)
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   switch (state & ~mask)
    {
    case AAX_ENVELOPE_FOLLOW:
    case AAX_ENVELOPE_FOLLOW_LOG:
@@ -213,15 +215,15 @@ _aaxCompressorSetState(_filter_t* filter, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
          filter->slot[0]->data = NULL;
       }
-      break;
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = filter;

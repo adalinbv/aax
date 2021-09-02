@@ -140,7 +140,7 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
 
             flt->run = _freqfilter_run;
 
-            flt->lfo = 0;
+            flt->lfo = NULL;
             flt->fs = fs;
             flt->Q = 0.6f;
             flt->no_stages = 1;
@@ -154,17 +154,15 @@ _aaxConvolutionEffectSetState(_effect_t* effect, int state)
       }
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
-   {
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
          effect->slot[0]->data = NULL;
       }
-      break;
-   }
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    return effect;

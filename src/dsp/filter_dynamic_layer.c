@@ -72,15 +72,13 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int stereo;
+   int mask;
 
    assert(filter->info);
 
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~AAX_LFO_STEREO;
-
    filter->state = state;
-   switch (state & ~AAX_INVERSE)
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -90,9 +88,7 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
-   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
    case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxLFOData* lfo = filter->slot[0]->data;
@@ -104,28 +100,12 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
       {
          int constant;
 
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
-         {
-            lfo->convert = _exponential;
-         }
-         else
-         {
-            lfo->convert = _linear;
-         }
-
-         lfo->state = filter->state;
-         lfo->fs = filter->info->frequency;
-         lfo->period_rate = filter->info->period_rate;
-         lfo->stereo_lnk = !stereo;
+         _lfo_setup(lfo, filter->info, filter->state);
 
          lfo->min_sec = filter->slot[0]->param[AAX_LFO_OFFSET]/lfo->fs;
          lfo->max_sec = filter->slot[0]->param[AAX_LFO_DEPTH]/lfo->fs;
-         lfo->depth = 1.0f;
-         lfo->offset = 0.0f;
          lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
          lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
-         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {
@@ -135,15 +115,15 @@ _aaxDynamicTimbreFilterSetState(_filter_t* filter, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
          filter->slot[0]->data = NULL;
       }
-      break;
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = filter;

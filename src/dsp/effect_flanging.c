@@ -73,15 +73,13 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int stereo;
+   int mask;
 
    assert(effect->info);
 
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~AAX_LFO_STEREO;
-
    effect->state = state;
-   switch (state & ~AAX_INVERSE)
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -91,9 +89,7 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
-   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
    case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
@@ -104,39 +100,20 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
       {
          float offset = effect->slot[0]->param[AAX_LFO_OFFSET];
          float depth = effect->slot[0]->param[AAX_LFO_DEPTH];
-         float fs = 48000.0f;
          int t, constant;
-
-         if (effect->info) {
-            fs = effect->info->frequency;
-         }
 
          data->prepare = _delay_prepare;
          data->run = _delay_run;
          data->flanger = AAX_TRUE;
          data->feedback = effect->slot[0]->param[AAX_DELAY_GAIN];
 
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
-         {
-            data->lfo.convert = _exponential;
-         }
-         else
-         {
-            data->lfo.convert = _linear;
-         }
-
-         data->lfo.state = effect->state;
-         data->lfo.fs = fs;
-         data->lfo.period_rate = effect->info->period_rate;
+         _lfo_setup(&data->lfo, effect->info, effect->state);
 
          data->lfo.min_sec = FLANGING_MIN;
          data->lfo.max_sec = FLANGING_MAX;
          data->lfo.depth = depth;
          data->lfo.offset = offset;
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-         data->lfo.stereo_lnk = !stereo;
 
          if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
             data->lfo.depth = 1.0f - data->lfo.offset;
@@ -156,17 +133,15 @@ _aaxFlangingEffectSetState(_effect_t* effect, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
-   {
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
          effect->slot[0]->data = NULL;
       }
-      break;
-   }
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = effect;

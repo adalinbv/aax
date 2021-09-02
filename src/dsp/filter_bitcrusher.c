@@ -186,15 +186,15 @@ _aaxBitCrusherFilterSetState(_filter_t* filter, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
          filter->slot[0]->data = NULL;
       }
-      break;
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = filter;

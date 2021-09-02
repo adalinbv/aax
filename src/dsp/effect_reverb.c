@@ -306,15 +306,15 @@ _aaxReverbEffectSetState(_effect_t* effect, int state)
 
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
          effect->slot[0]->data = NULL;
       }
-      break;
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = effect;

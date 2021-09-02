@@ -36,6 +36,7 @@
 #include <arch.h>
 
 #include "common.h"
+#include "api.h"
 #include "lfo.h"
 
 float _linear(float v, float min, float depth) {
@@ -76,6 +77,23 @@ _lfo_destroy(void *data)
       lfo->envelope = AAX_FALSE;
       _aax_aligned_free(lfo);
    }
+}
+
+void
+_lfo_setup(_aaxLFOData *lfo, void *i, int state)
+{  
+   _aaxMixerInfo *info = (_aaxMixerInfo*)i;
+   int log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
+   int stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
+
+   lfo->fs = info->frequency;
+   lfo->period_rate = info->period_rate; 
+   lfo->convert = (log) ? _exponential : _linear;
+   lfo->state = state & ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
+   lfo->stereo_lnk = !stereo;
+   lfo->depth = 1.0f;
+   lfo->offset = 0.0f;
 }
 
 void

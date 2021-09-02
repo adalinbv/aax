@@ -79,18 +79,15 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int stereo;
-
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~AAX_LFO_STEREO;
+   int mask;
 
    effect->state = state;
-   switch (state & ~AAX_INVERSE)
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   switch (state & ~mask)
    {
+   case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
-   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
    case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
@@ -112,27 +109,14 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
          data->run = _distortion_run;
 
          lfo = data->lfo;
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
-         {
+         _lfo_setup(lfo, effect->info, effect->state);
+         if (state & AAX_ENVELOPE_FOLLOW_LOG) {
             lfo->convert = _exp_distortion;
          }
-         else
-         {
-            lfo->convert = _linear;
-         }
-
-         lfo->state = effect->state;
-         lfo->fs = effect->info->frequency;
-         lfo->period_rate = effect->info->period_rate;
-         lfo->stereo_lnk = !stereo;
 
          lfo->min_sec = 0.15f/lfo->fs;
          lfo->max_sec = 0.99f/lfo->fs;
          lfo->f = 3.33f;
-         lfo->depth = 1.0f;
-         lfo->offset = 0.0f;
-         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {
@@ -141,24 +125,24 @@ _aaxDistortionEffectSetState(_effect_t* effect, int state)
       }
       break;
    }
-   case AAX_CONSTANT_VALUE:
-   case AAX_FALSE:
-   {
-      _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
-
-      if (data) effect->slot[0]->destroy(data);
-      data = _aax_aligned_alloc(DSIZE);
-      effect->slot[0]->data = data;
-      if (data)
-      {
-         memset(data, 0, DSIZE);
-         data->run = _distortion_run;
-         data->lfo = NULL;
-      }
-      break;
-   }
    default:
       _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
+   case AAX_CONSTANT_VALUE:
+   case AAX_FALSE:
+      do {
+         _aaxRingBufferDistoritonData *data = effect->slot[0]->data;
+
+         if (data) effect->slot[0]->destroy(data);
+         data = _aax_aligned_alloc(DSIZE);
+         effect->slot[0]->data = data;
+         if (data)
+         {
+            memset(data, 0, DSIZE);
+            data->run = _distortion_run;
+            data->lfo = NULL;
+         }
+      } while (0);
       break;
    }
    rv = effect;

@@ -84,6 +84,7 @@ typedef struct
 
 _aaxLFOData* _lfo_create(void);
 void _lfo_destroy(void*);
+void _lfo_setup(_aaxLFOData*, void*, int);
 void _lfo_swap(_aaxLFOData*, _aaxLFOData*);
 void _lfo_reset(_aaxLFOData*);
 

@@ -71,16 +71,13 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
 {
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
-   int stereo, log;
+   int mask;
 
    assert(effect->info);
 
-   log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
-
    effect->state = state;
-   switch (state & ~AAX_INVERSE)
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -101,22 +98,13 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
          float depth = 0.5f*effect->slot[0]->param[AAX_LFO_DEPTH];
          int constant;
 
-         if (log) lfo->convert = _exponential;
-         else lfo->convert = _linear;
+         _lfo_setup(lfo, effect->info, effect->state);
 
-         lfo->state = effect->state;
-         lfo->fs = effect->info->frequency;
-         lfo->period_rate = effect->info->period_rate;
          lfo->envelope = AAX_FALSE;
-         lfo->stereo_lnk = !stereo;
-
          lfo->min_sec = (1.0f - depth)/lfo->fs;
          lfo->max_sec = (1.0f + depth)/lfo->fs;
-         lfo->depth = 1.0f;
-         lfo->offset = 0.0f;
          lfo->delay = -effect->slot[0]->param[AAX_INITIAL_DELAY];
          lfo->f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
-         lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
          constant = _lfo_set_timing(lfo);
          if (!_lfo_set_function(lfo, constant)) {
@@ -126,15 +114,15 @@ _aaxDynamicPitchEffectSetState(_effect_t* effect, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
          effect->slot[0]->data = NULL;
       }
-      break;
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = effect;

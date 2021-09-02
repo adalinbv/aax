@@ -72,16 +72,13 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
 {
    void *handle = filter->handle;
    aaxFilter rv = AAX_FALSE;
-   int stereo, log;
+   int mask;
 
    assert(filter->info);
 
-   log = (state & AAX_ENVELOPE_FOLLOW_LOG) ? AAX_TRUE : AAX_FALSE;
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~(AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
-
    filter->state = state;
-   switch (state & ~AAX_INVERSE)
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -98,14 +95,12 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
       }
       if (lfo)
       {
+         _lfo_setup(lfo, filter->info, filter->state);
          if (filter->type == AAX_COMPRESSOR)
          {
             float f;
 
             lfo->convert = _linear;
-            lfo->state = filter->state;
-            lfo->fs = filter->info->frequency;
-            lfo->period_rate = filter->info->period_rate;
             lfo->envelope = AAX_TRUE;
             lfo->stereo_lnk = AAX_TRUE;
 
@@ -124,7 +119,6 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
             lfo->min = filter->slot[0]->param[AAX_THRESHOLD];
             lfo->max = filter->slot[0]->param[AAX_LFO_DEPTH];
             lfo->delay = filter->slot[0]->param[AAX_INITIAL_DELAY];
-            lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
             _compressor_set_timing(lfo);
 
@@ -134,33 +128,17 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
          {
             float offset = filter->slot[0]->param[AAX_LFO_OFFSET];
             float depth = filter->slot[0]->param[AAX_LFO_DEPTH];
-            float fs = 48000.0f;
             int constant;
-
-            if (filter->info) {
-               fs = filter->info->frequency;
-            }
 
             if (offset == 0.0f && depth == 0.0f) {
                 offset = 1.0f;
             }
 
-            if (log) lfo->convert = _exponential;
-            else lfo->convert = _linear;
-
-            lfo->state = filter->state;
-            lfo->fs = fs;
-            lfo->period_rate = filter->info->period_rate;
             lfo->envelope = AAX_FALSE;
-            lfo->stereo_lnk = !stereo;
-
-            lfo->min_sec = offset/fs;
-            lfo->max_sec =  lfo->min_sec + depth/fs;
-            lfo->depth = 1.0f;
-            lfo->offset = 0.0f;
+            lfo->min_sec = offset/lfo->fs;
+            lfo->max_sec =  lfo->min_sec + depth/lfo->fs;
             lfo->delay = -filter->slot[0]->param[AAX_INITIAL_DELAY];
             lfo->f = filter->slot[0]->param[AAX_LFO_FREQUENCY];
-            lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
 
             if ((state & ~AAX_INVERSE) == AAX_ENVELOPE_FOLLOW)
             {
@@ -177,15 +155,15 @@ _aaxDynamicGainFilterSetState(_filter_t* filter, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
       if (filter->slot[0]->data)
       {
          filter->slot[0]->destroy(filter->slot[0]->data);
          filter->slot[0]->data = NULL;
       }
-      break;
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = filter;

@@ -75,7 +75,6 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    void *handle = effect->handle;
    aaxEffect rv = AAX_FALSE;
    int mask, istate, wstate;
-   int stereo;
 
    assert(effect->info);
 
@@ -83,15 +82,13 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
           AAX_SAWTOOTH_WAVE|AAX_RANDOMNESS | AAX_TIMED_TRANSITION |
           AAX_ENVELOPE_FOLLOW_MASK | AAX_CONSTANT_VALUE;
 
-   stereo = (state & AAX_LFO_STEREO) ? AAX_TRUE : AAX_FALSE;
-   state &= ~AAX_LFO_STEREO;
-
    istate = state & ~(AAX_INVERSE|AAX_BUTTERWORTH|AAX_BESSEL|AAX_RANDOM_SELECT|AAX_ENVELOPE_FOLLOW_LOG);
    if (istate == 0) istate = AAX_12DB_OCT;
    wstate = istate & mask;
 
    effect->state = state;
-   switch (state & ~AAX_INVERSE)
+   mask = (AAX_INVERSE|AAX_LFO_STEREO|AAX_ENVELOPE_FOLLOW_LOG);
+   switch (state & ~mask)
    {
    case AAX_CONSTANT_VALUE:
    case AAX_TRIANGLE_WAVE:
@@ -101,9 +98,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
    case AAX_SAWTOOTH_WAVE:
    case AAX_RANDOMNESS:
    case AAX_TIMED_TRANSITION:
-   case (AAX_TIMED_TRANSITION|AAX_ENVELOPE_FOLLOW_LOG):
    case AAX_ENVELOPE_FOLLOW:
-   case AAX_ENVELOPE_FOLLOW_LOG:
    case AAX_ENVELOPE_FOLLOW_MASK:
    {
       _aaxRingBufferDelayEffectData* data = effect->slot[0]->data;
@@ -161,19 +156,7 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          data->flanger = AAX_FALSE;
          data->feedback = feedback;
 
-         if ((state & (AAX_ENVELOPE_FOLLOW | AAX_TIMED_TRANSITION)) &&
-             (state & AAX_ENVELOPE_FOLLOW_LOG))
-         {
-            data->lfo.convert = _exponential;
-         }
-         else
-         {
-            data->lfo.convert = _linear;
-         }
-
-         data->lfo.state = effect->state;
-         data->lfo.fs = fs;
-         data->lfo.period_rate = effect->info->period_rate;
+         _lfo_setup(&data->lfo, effect->info, effect->state);
 
          if ((offset+depth)/CHORUS_MAX > CHORUS_MIN)
          {
@@ -191,7 +174,6 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
          }
          data->lfo.f = effect->slot[0]->param[AAX_LFO_FREQUENCY];
          data->lfo.inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-         data->lfo.stereo_lnk = !stereo;
 
          if ((data->lfo.offset + data->lfo.depth) > 1.0f) {
             data->lfo.depth = 1.0f - data->lfo.offset;
@@ -270,67 +252,58 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
 
                if (lfo)
                {
-               int constant;
+                  int constant;
 
-               /* sweeprate */
-               lfo->state = wstate;
-               lfo->fs = fs;
-               lfo->period_rate = data->lfo.period_rate;
+                  _lfo_setup(lfo, effect->info, wstate);
 
-               lfo->min = fc;
-               lfo->max = fmax;
+                  /* sweeprate */
+                  lfo->min = fc;
+                  lfo->max = fmax;
 
-               if (state & AAX_ENVELOPE_FOLLOW_LOG)
-               {
-                  lfo->convert = _logarithmic;
-                  if (fabsf(lfo->max - lfo->min) < 200.0f)
+                  if (state & AAX_ENVELOPE_FOLLOW_LOG)
                   {
-                     lfo->min = 0.5f*(lfo->min + lfo->max);
-                     lfo->max = lfo->min;
+                     lfo->convert = _logarithmic;
+                     if (fabsf(lfo->max - lfo->min) < 200.0f)
+                     {
+                        lfo->min = 0.5f*(lfo->min + lfo->max);
+                        lfo->max = lfo->min;
+                     }
+                     else if (lfo->max < lfo->min)
+                     {
+                        float f = lfo->max;
+                        lfo->max = lfo->min;
+                        lfo->min = f;
+                        state ^= AAX_INVERSE;
+                     }
+                     lfo->min = _lin2log(lfo->min);
+                     lfo->max = _lin2log(lfo->max);
                   }
-                  else if (lfo->max < lfo->min)
+                  else
                   {
-                     float f = lfo->max;
-                     lfo->max = lfo->min;
-                     lfo->min = f;
-                     state ^= AAX_INVERSE;
+                     if (fabsf(lfo->max - lfo->min) < 200.0f)
+                     {
+                        lfo->min = 0.5f*(lfo->min + lfo->max);
+                        lfo->max = lfo->min;
+                     }
+                     else if (lfo->max < lfo->min)
+                     {
+                        float f = lfo->max;
+                        lfo->max = lfo->min;
+                        lfo->min = f;
+                        state ^= AAX_INVERSE;
+                     }
                   }
-                  lfo->min = _lin2log(lfo->min);
-                  lfo->max = _lin2log(lfo->max);
-               }
-               else
-               {
-                  lfo->convert = _linear;
-                  if (fabsf(lfo->max - lfo->min) < 200.0f)
-                  {
-                     lfo->min = 0.5f*(lfo->min + lfo->max);
-                     lfo->max = lfo->min;
+
+                  lfo->min_sec = lfo->min/lfo->fs;
+                  lfo->max_sec = lfo->max/lfo->fs;
+                  lfo->f = data->lfo.f;
+
+                  constant = _lfo_set_timing(lfo);
+                  lfo->envelope = AAX_FALSE;
+
+                  if (!_lfo_set_function(lfo, constant)) {
+                     _aaxErrorSet(AAX_INVALID_PARAMETER);
                   }
-                  else if (lfo->max < lfo->min)
-                  {
-                     float f = lfo->max;
-                     lfo->max = lfo->min;
-                     lfo->min = f;
-                     state ^= AAX_INVERSE;
-                  }
-               }
-
-               lfo->depth = 1.0f;
-               lfo->offset = 0.0f;
-               lfo->min_sec = lfo->min/lfo->fs;
-               lfo->max_sec = lfo->max/lfo->fs;
-
-               lfo->f = data->lfo.f;
-               lfo->inv = (state & AAX_INVERSE) ? AAX_TRUE : AAX_FALSE;
-               lfo->stereo_lnk = !stereo;
-
-               constant = _lfo_set_timing(lfo);
-               lfo->envelope = AAX_FALSE;
-
-               if (!_lfo_set_function(lfo, constant)) {
-                  _aaxErrorSet(AAX_INVALID_PARAMETER);
-               }
-
                }
             }
          }
@@ -338,17 +311,15 @@ _aaxChorusEffectSetState(_effect_t* effect, int state)
       else _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       break;
    }
+   default:
+      _aaxErrorSet(AAX_INVALID_PARAMETER);
+      // inetnional fall-through
    case AAX_FALSE:
-   {
       if (effect->slot[0]->data)
       {
          effect->slot[0]->destroy(effect->slot[0]->data);
          effect->slot[0]->data = NULL;
       }
-      break;
-   }
-   default:
-      _aaxErrorSet(AAX_INVALID_PARAMETER);
       break;
    }
    rv = effect;
