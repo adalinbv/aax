@@ -1457,7 +1457,7 @@ _emitterSetFilter(_emitter_t *handle, _filter_t *filter)
       float inner_vec = _FILTER_GET_SLOT(filter, 0, 0);
       float outer_gain = _FILTER_GET_SLOT(filter, 0, 2);
 
-      if ((inner_vec >= 0.995f) || (outer_gain >= 0.99f)) {
+      if ((inner_vec >= 1.0f) || (outer_gain >= 1.0f)) {
          _PROP_CONE_CLEAR_DEFINED(p3d);
       } else {
          _PROP_CONE_SET_DEFINED(p3d);
