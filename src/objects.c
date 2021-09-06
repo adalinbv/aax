@@ -615,7 +615,6 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
                }
             }
 
-            state = 0;
             if (release_factor != 1.0f)
             {
                state = _MAX(10.0f*release_factor, 1);
