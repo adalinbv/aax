@@ -586,20 +586,21 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
          if (ftype == AAX_TIMED_GAIN_FILTER)
          {
             float release_factor = midi ? midi->release_factor : 1.0f;
+            int repeat = 0;
 
             if (xmlAttributeExists(xid, "repeat"))
             {
                if (!xmlAttributeCompareString(xid, "repeat", "inf") ||
                    !xmlAttributeCompareString(xid, "repeat", "max"))
                {
-                  state = AAX_MAX_REPEAT;
+                  repeat = AAX_MAX_REPEAT;
                }
                else
                {
-                  state = xmlAttributeGetInt(xid, "repeat");
-                  state = _MINMAX(state, 0, AAX_MAX_REPEAT);
+                  repeat = xmlAttributeGetInt(xid, "repeat");
+                  repeat = _MINMAX(repeat, 0, AAX_MAX_REPEAT);
                }
-               state |= AAX_REPEAT;
+               repeat |= AAX_REPEAT;
             }
             else if (xmlAttributeExists(xid, "release-factor")) {
                release_factor *= xmlAttributeGetDouble(xid, "release-factor");
@@ -614,6 +615,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
                }
             }
 
+            state = 0;
             if (release_factor != 1.0f)
             {
                state = _MAX(10.0f*release_factor, 1);
@@ -635,6 +637,7 @@ _aaxGetFilterFromAAXS(aaxConfig config, const char *xid, float freq, float min, 
                   state = s;
                }
             }
+            state |= repeat;
          }
          else
          {
