@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -39,6 +39,14 @@
 #include "audio.h"
 #include "fmt_vorbis.h"
 
+typedef struct
+{
+   vorbis_info vi;
+   vorbis_comment vc;
+   vorbis_dsp_state vd;
+   vorbis_block vb;
+} _driver_write_t;
+
 
 typedef struct
 {
@@ -62,18 +70,78 @@ typedef struct
    unsigned int out_pos;
    unsigned int out_size;
 
+   _driver_write_t *out;
+
 } _driver_t;
 
 
 #define FRAME_SIZE		4096
 
+DECL_FUNCTION(vorbis_info_init);
+DECL_FUNCTION(vorbis_encode_setup_init);
+DECL_FUNCTION(vorbis_encode_setup_managed);
+DECL_FUNCTION(vorbis_encode_ctl);
+DECL_FUNCTION(vorbis_info_clear);
+DECL_FUNCTION(vorbis_comment_init);
+DECL_FUNCTION(vorbis_comment_add_tag);
+DECL_FUNCTION(vorbis_comment_clear);
+DECL_FUNCTION(vorbis_analysis_init);
+DECL_FUNCTION(vorbis_analysis_headerout);
+DECL_FUNCTION(vorbis_analysis_buffer);
+DECL_FUNCTION(vorbis_analysis_blockout);
+DECL_FUNCTION(vorbis_analysis);
+DECL_FUNCTION(vorbis_analysis_wrote);
+DECL_FUNCTION(vorbis_bitrate_addblock);
+DECL_FUNCTION(vorbis_bitrate_flushpacket);
+DECL_FUNCTION(vorbis_block_init);
+DECL_FUNCTION(vorbis_block_clear);
+DECL_FUNCTION(vorbis_dsp_clear);
+
+static void *audio = NULL;
 
 int
 _vorbis_detect(UNUSED(_fmt_t *fmt), int mode)
 {
    int rv = AAX_FALSE;
 
-   if (!mode) {
+   if (mode)
+   {
+      audio = _aaxIsLibraryPresent("vorbisenc", "2");
+      if (audio)
+      {
+         char *error;
+
+         _aaxGetSymError(0);
+
+         TIE_FUNCTION(vorbis_info_init);
+         if (pvorbis_info_init)
+         {
+            TIE_FUNCTION(vorbis_encode_setup_init);
+            TIE_FUNCTION(vorbis_encode_setup_managed);
+            TIE_FUNCTION(vorbis_encode_ctl);
+            TIE_FUNCTION(vorbis_info_clear);
+            TIE_FUNCTION(vorbis_comment_init);
+            TIE_FUNCTION(vorbis_comment_add_tag);
+            TIE_FUNCTION(vorbis_comment_clear);
+            TIE_FUNCTION(vorbis_analysis_init);
+            TIE_FUNCTION(vorbis_analysis_headerout);
+            TIE_FUNCTION(vorbis_analysis_buffer);
+            TIE_FUNCTION(vorbis_analysis_blockout);
+            TIE_FUNCTION(vorbis_analysis);
+            TIE_FUNCTION(vorbis_analysis_wrote);
+            TIE_FUNCTION(vorbis_bitrate_addblock);
+            TIE_FUNCTION(vorbis_bitrate_flushpacket);
+            TIE_FUNCTION(vorbis_block_init);
+            TIE_FUNCTION(vorbis_block_clear);
+            TIE_FUNCTION(vorbis_dsp_clear);
+
+            error = _aaxGetSymError(0);
+            if (!error) rv = AAX_TRUE;
+         }
+      }
+      
+   }
+   else {
       rv = AAX_TRUE;
    }
 
@@ -94,6 +162,8 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
          handle->mode = mode;
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = FRAME_SIZE;
+
+         if (mode) handle->out = malloc(sizeof(handle->out));
       }
       else {
          _AAX_FILEDRVLOG("VORBIS: Insufficient memory");
@@ -191,7 +261,53 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
                   }
                }
             } /* _buf_fill() != 0 */
-         } /* handle->capturing */
+         }
+         else	// playback
+         {
+            int ret;
+
+            pvorbis_info_init(&handle->out->vi);
+
+            // quality mode with approximate bitrate
+            ret = pvorbis_encode_setup_managed(&handle->out->vi,
+                                          handle->no_tracks,
+                                          handle->frequency, -1,
+                                          handle->bitrate, -1);
+            if (!ret) {
+               ret = pvorbis_encode_ctl(&handle->out->vi,
+                                      OV_ECTL_RATEMANAGE2_SET, NULL);
+            }
+            if (!ret) {
+               ret = pvorbis_encode_setup_init(&handle->out->vi);
+            }
+
+            if (ret)
+            {
+               pvorbis_comment_init(&handle->out->vc);
+               pvorbis_comment_add_tag(&handle->out->vc,
+                                      "ENCODER", aaxGetVersionString(NULL));
+
+               pvorbis_analysis_init(&handle->out->vd, &handle->out->vi);
+               pvorbis_block_init(&handle->out->vd, &handle->out->vb);
+
+               if (buf && *bufsize == 3*sizeof(ogg_packet))
+               {
+                  ogg_packet *header = buf;
+                  pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
+                                            &header[0], &header[1], &header[2]);
+
+               }
+               else {
+                  *bufsize = 0;
+               }
+            }
+            else
+            {
+               _AAX_FILEDRVLOG("VORBIS: Unable to create a handle for writing")
+               free(handle->out);
+               handle->out = NULL;
+            }
+         }
       }
       else {
          _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
@@ -214,6 +330,17 @@ _vorbis_close(_fmt_t *fmt)
    {
       stb_vorbis_close(handle->id);
       handle->id = NULL;
+
+      if (handle->out)
+      {
+         pvorbis_analysis_wrote(&handle->out->vd, 0);
+
+         pvorbis_block_clear(&handle->out->vb);
+         pvorbis_dsp_clear(&handle->out->vd);
+         pvorbis_comment_clear(&handle->out->vc);
+         pvorbis_info_clear(&handle->out->vi);
+         free(handle->out);
+      }
 
       _aaxDataDestroy(handle->vorbisBuffer);
       free(handle);

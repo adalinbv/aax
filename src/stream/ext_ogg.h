@@ -1,6 +1,6 @@
 /*
- * Copyright 2016-2020 by Erik Hofman.
- * Copyright 2016-2020. by Adalin B.V.
+ * Copyright 2016-2021 by Erik Hofman.
+ * Copyright 2016-2021. by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -227,6 +227,58 @@ enum oggpcm_xheader
     OGG_CHANNEL_CONVERSION = 0x00000001
 };
 
+
+typedef struct {
+  unsigned char *packet;
+  long bytes;
+  long b_o_s;
+  long e_o_s;
+  int64_t granulepos;
+  int64_t packetno;
+} ogg_packet;
+
+typedef struct {
+  long endbyte;
+  int  endbit;
+  unsigned char *buffer;
+  unsigned char *ptr;
+  long storage;
+} oggpack_buffer;
+
+typedef struct {
+  unsigned char *header;
+  long header_len;
+  unsigned char *body;
+  long body_len;
+} ogg_page;
+
+typedef struct {
+  unsigned char *body_data;
+  long    body_storage;
+  long    body_fill;
+  long    body_returned;
+  int     *lacing_vals;
+  int64_t *granule_vals;
+  long    lacing_storage;
+  long    lacing_fill;
+  long    lacing_packet;
+  long    lacing_returned;
+  unsigned char header[282];
+  int header_fill;
+  int e_o_s;
+  int b_o_s;
+  long serialno;
+  long pageno;
+  int64_t packetno;
+  int64_t granulepos;
+} ogg_stream_state;
+
+typedef void (*ogg_stream_init_proc)(ogg_stream_state*, int);
+typedef void (*ogg_stream_packetin_proc)(ogg_stream_state*, ogg_packet*);
+typedef int (*ogg_stream_pageout_proc)(ogg_stream_state*, ogg_page*);
+typedef int (*ogg_stream_flush_proc)(ogg_stream_state*, ogg_page*);
+typedef int (*ogg_page_eos_proc)(ogg_page*);
+typedef int (*ogg_stream_clear_proc)(ogg_stream_state*);
 
 #endif /* __FILE_EXT_OGG_H */
 

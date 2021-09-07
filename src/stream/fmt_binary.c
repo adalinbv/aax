@@ -100,7 +100,7 @@ _binary_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
          handle->max_samples = 0;
       }
       else {
-         _AAX_FILEDRVLOG("RAW format: Insufficient memory");
+         _AAX_FILEDRVLOG("Binary File: Insufficient memory");
       }
    }
 
@@ -119,12 +119,12 @@ _binary_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
          }
       }
       else {
-         _AAX_FILEDRVLOG("RAW format: Unable to allocate the audio buffer");
+         _AAX_FILEDRVLOG("Binary File: Unable to allocate the audio buffer");
       }
    }
    else
    {
-      _AAX_FILEDRVLOG("RAW format: Internal error: handle id equals 0");
+      _AAX_FILEDRVLOG("Binary File: Internal error: handle id equals 0");
    }
 
    return rv;

@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -23,6 +23,7 @@
 #include "config.h"
 #endif
 
+#include <time.h>
 #include <stdio.h>
 #include <assert.h>
 #ifdef HAVE_RMALLOC_H
@@ -54,6 +55,12 @@
 
 #define OGG_CALCULATE_CRC	0
 
+typedef struct
+{
+   ogg_stream_state os;
+   ogg_page og;
+   ogg_packet op;
+} _driver_write_t;
 
 typedef struct
 {
@@ -117,6 +124,8 @@ typedef struct
    _data_t *oggBuffer;
    size_t datasize;
 
+   _driver_write_t *out;
+
    /* Opus */
    size_t pre_skip;
    float gain;
@@ -141,11 +150,48 @@ static void crc32_init(void);
  */
 #define OGG_HEADER_SIZE		8
 
+DECL_FUNCTION(ogg_stream_init);
+DECL_FUNCTION(ogg_stream_clear);
+DECL_FUNCTION(ogg_stream_packetin);
+DECL_FUNCTION(ogg_stream_pageout);
+DECL_FUNCTION(ogg_stream_flush);
+DECL_FUNCTION(ogg_page_eos);
+
+static void *audio = NULL;
 
 int
 _ogg_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
 {
-   return AAX_TRUE;
+   int rv = AAX_FALSE;
+
+   if (mode)
+   {
+      audio = _aaxIsLibraryPresent("ogg", "0");
+      if (audio)
+      {
+         char *error;
+
+         _aaxGetSymError(0);
+
+         TIE_FUNCTION(ogg_stream_init);
+         if (pogg_stream_init)
+         {
+            TIE_FUNCTION(ogg_stream_clear);
+            TIE_FUNCTION(ogg_stream_packetin);
+            TIE_FUNCTION(ogg_stream_pageout);
+            TIE_FUNCTION(ogg_stream_flush);
+            TIE_FUNCTION(ogg_page_eos);
+
+            error = _aaxGetSymError(0);
+            if (!error) rv = AAX_TRUE;
+         }
+      }
+   }
+   else {
+      rv = AAX_TRUE;
+   }
+
+   return rv;
 }
 
 int
@@ -172,6 +218,8 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->bitrate = bitrate;
          handle->no_samples = no_samples;
          handle->max_samples = 0;
+
+         if (mode) handle->out = malloc(sizeof(handle->out));
 
          if (handle->capturing)
          {
@@ -210,7 +258,42 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
    {
       if (!handle->capturing)   /* write */
       {
-         *bufsize = 0;
+         srand(time(NULL));
+         pogg_stream_init(&handle->out->os, rand());
+
+         if (!handle->fmt) {
+            handle->fmt = _fmt_create(handle->format_type, handle->mode);
+         }
+
+         if (handle->fmt)
+         {
+            ogg_packet header[3];
+            ssize_t size = sizeof(header);
+
+            handle->fmt->open(handle->fmt, handle->mode, &header, &size, 0);
+            if (size)
+            {
+               int eos = 0;
+
+               pogg_stream_packetin(&handle->out->os, &header[0]);
+               pogg_stream_packetin(&handle->out->os, &header[1]); // comm
+               pogg_stream_packetin(&handle->out->os, &header[2]); // code
+
+               while(!eos)
+               {
+                  int res;
+
+                  res = pogg_stream_flush(&handle->out->os, &handle->out->og);
+                  if (!res) break;
+// TODO: Fill buf
+//  fwrite(handle->out->os.og.header, 1, handle->out->os.og.header_len, stdout);
+//  fwrite(handle->out->os.og.body, 1, handle->out.og.body_len, stdout);
+               }
+            }
+         }
+         else {
+            *bufsize = 0;
+         }
       }
 			/* read: handle->capturing */
       else if (!handle->fmt || !handle->fmt->open)
@@ -277,6 +360,12 @@ _ogg_close(_ext_t *ext)
       {
          handle->fmt->close(handle->fmt);
          _fmt_free(handle->fmt);
+      }
+
+      if (handle->out)
+      {
+         pogg_stream_clear(&handle->out->os);
+         free(handle->out);
       }
 
       _aaxOggFreeInfo(handle);
@@ -508,7 +597,7 @@ _ogg_interfaces(int ext, int mode)
    };
    char *rv = NULL;
 
-   if (!mode && ext >= _EXT_OGG && ext < _EXT_PCM)
+   if (ext >= _EXT_OGG && ext < _EXT_PCM)
    {
       int m = mode > 0 ? 1 : 0;
       int pos = ext - _EXT_OGG;
