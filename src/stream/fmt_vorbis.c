@@ -41,7 +41,6 @@
 
 typedef struct
 {
-   vorbis_info vi;
    vorbis_comment vc;
    vorbis_dsp_state vd;
    vorbis_block vb;
@@ -55,14 +54,13 @@ typedef struct
    char capturing;
    int mode;
 
-   uint8_t no_tracks;
+   vorbis_info info;
    uint8_t bits_sample;
-   int frequency;
-   int bitrate;
    int blocksize;
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
+   size_t file_size;
 
    _data_t *vorbisBuffer;
 
@@ -76,6 +74,7 @@ typedef struct
 
 
 #define FRAME_SIZE		4096
+#define VORBIS_BUFFER_SIZE	16384
 
 DECL_FUNCTION(vorbis_info_init);
 DECL_FUNCTION(vorbis_encode_setup_init);
@@ -148,7 +147,7 @@ _vorbis_detect(UNUSED(_fmt_t *fmt), int mode)
 }
 
 void*
-_vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsize))
+_vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = fmt->id;
    void *rv = NULL;
@@ -159,6 +158,11 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
       if (fmt->id)
       {
          handle->mode = mode;
+         handle->info.rate = 44100;
+         handle->info.bitrate_lower = -1;
+         handle->info.bitrate_upper = -1;
+         handle->info.bitrate_nominal = 320;
+         handle->file_size = fsize;
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = FRAME_SIZE;
 
@@ -172,7 +176,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
    if (handle && buf && bufsize)
    {
       if (!handle->vorbisBuffer) {
-         handle->vorbisBuffer = _aaxDataCreate(16384, 1);
+         handle->vorbisBuffer = _aaxDataCreate(VORBIS_BUFFER_SIZE, 1);
       }
 
       if (handle->vorbisBuffer)
@@ -196,8 +200,8 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
                {
                   stb_vorbis_info info = stb_vorbis_get_info(handle->id);
 
-                  handle->no_tracks = info.channels;
-                  handle->frequency = info.sample_rate;
+                  handle->info.channels = info.channels;
+                  handle->info.rate = info.sample_rate;
                   handle->blocksize = info.max_frame_size;
 
                   handle->max_samples = 20*info.sample_rate;
@@ -265,19 +269,21 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
          {
             int ret;
 
-            pvorbis_info_init(&handle->out->vi);
+            pvorbis_info_init(&handle->info);
 
             // quality mode with approximate bitrate
-            ret = pvorbis_encode_setup_managed(&handle->out->vi,
-                                          handle->no_tracks,
-                                          handle->frequency, -1,
-                                          handle->bitrate, -1);
-            if (!ret) {
-               ret = pvorbis_encode_ctl(&handle->out->vi,
-                                      OV_ECTL_RATEMANAGE2_SET, NULL);
+            ret = pvorbis_encode_setup_managed(&handle->info,
+                                               handle->info.channels,
+                                               handle->info.rate,
+                                               handle->info.bitrate_lower,
+                                               handle->info.bitrate_nominal,
+                                               handle->info.bitrate_upper);
+            if (ret) {
+               ret = pvorbis_encode_ctl(&handle->info,
+                                        OV_ECTL_RATEMANAGE2_SET, NULL);
             }
-            if (!ret) {
-               ret = pvorbis_encode_setup_init(&handle->out->vi);
+            if (ret) {
+               ret = pvorbis_encode_setup_init(&handle->info);
             }
 
             if (ret)
@@ -286,7 +292,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
                pvorbis_comment_add_tag(&handle->out->vc,
                                       "ENCODER", aaxGetVersionString(NULL));
 
-               pvorbis_analysis_init(&handle->out->vd, &handle->out->vi);
+               pvorbis_analysis_init(&handle->out->vd, &handle->info);
                pvorbis_block_init(&handle->out->vd, &handle->out->vb);
 
                if (buf && *bufsize == 3*sizeof(ogg_packet))
@@ -295,6 +301,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
                   pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
                                             &header[0], &header[1], &header[2]);
 
+                  *bufsize = VORBIS_BUFFER_SIZE;
                }
                else {
                   *bufsize = 0;
@@ -308,8 +315,10 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
             }
          }
       }
-      else {
+      else
+      {
          _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
+         rv = buf;	// try again
       }
    }
    else
@@ -337,7 +346,7 @@ _vorbis_close(_fmt_t *fmt)
          pvorbis_block_clear(&handle->out->vb);
          pvorbis_dsp_clear(&handle->out->vd);
          pvorbis_comment_clear(&handle->out->vc);
-         pvorbis_info_clear(&handle->out->vi);
+         pvorbis_info_clear(&handle->info);
          free(handle->out);
       }
 
@@ -376,7 +385,7 @@ _vorbis_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    int n;
 
    req = *num;
-   tracks = handle->no_tracks;
+   tracks = handle->info.channels;
    bits = handle->bits_sample;
    framesize = tracks*bits/8;
    *num = 0;
@@ -463,7 +472,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
    int n, i, tracks;
 
    req = *num;
-   tracks = handle->no_tracks;
+   tracks = handle->info.channels;
    *num = 0;
 
    buf = _aaxDataGetData(handle->vorbisBuffer);
@@ -544,7 +553,7 @@ _vorbis_cvt_to_intl(_fmt_t *fmt, UNUSED(void_ptr dptr), const_int32_ptrptr sptr,
    assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
 
    handle->no_samples += *num;
-   _batch_cvt16_intl_24(scratch, sptr, offs, handle->no_tracks, *num);
+   _batch_cvt16_intl_24(scratch, sptr, offs, handle->info.channels, *num);
 
 #if 0
    res = vorbis_encode(handle->id, scratch, *num,
@@ -573,10 +582,10 @@ _vorbis_get(_fmt_t *fmt, int type)
       rv = handle->format;
       break;
    case __F_TRACKS:
-      rv = handle->no_tracks;
+      rv = handle->info.channels;
       break;
    case __F_FREQUENCY:
-      rv = handle->frequency;
+      rv = handle->info.rate;
       break;
    case __F_BITS_PER_SAMPLE:
       rv = handle->bits_sample;
@@ -610,13 +619,13 @@ _vorbis_set(_fmt_t *fmt, int type, off_t value)
    switch(type)
    {
    case __F_FREQUENCY:
-      handle->frequency = value;
+      handle->info.rate = value;
       break;
    case __F_BITRATE:
-      handle->bitrate = value;
+      handle->info.bitrate_nominal = value;
       break;
    case __F_TRACKS:
-      handle->no_tracks = value;
+      handle->info.channels = value;
       break;
    case __F_NO_SAMPLES:
       handle->no_samples = value;

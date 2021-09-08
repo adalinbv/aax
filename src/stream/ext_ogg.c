@@ -281,7 +281,8 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                ogg_packet header[3];
                ssize_t size = sizeof(header);
 
-               handle->fmt->open(handle->fmt, handle->mode, &header, &size, 0);
+               rv = handle->fmt->open(handle->fmt, handle->mode, &header, &size, fsize);
+               *bufsize = size;
                if (size)
                {
                   int res = 1;
@@ -290,24 +291,32 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                   pogg_stream_packetin(&handle->out->os, &header[1]); // comm
                   pogg_stream_packetin(&handle->out->os, &header[2]); // code
 
+                  size = 0;
                   while (pogg_stream_flush(&handle->out->os,&handle->out->og))
                   {
                      if (res && handle->out->og.header_len) {
                         res = _aaxDataAdd(handle->oggBuffer,
                                           handle->out->og.header,
                                           handle->out->og.header_len);
+                        size += handle->out->og.header_len;
                      }
 
                      if (res && handle->out->og.body_len) {
                         res = _aaxDataAdd(handle->oggBuffer,
                                           handle->out->og.body,
                                           handle->out->og.body_len);
+                        size += handle->out->og.body_len;
                      }
 
                      if (!res) break;
                   }
 
-                  if (!res)
+                  if (res)
+                  {
+                     *bufsize = size;
+                     rv = handle->oggBuffer;
+                  }
+                  else
                   {
                      _AAX_FILEDRVLOG("OGG: Insufficient buffer size");
                      *bufsize = 0;
