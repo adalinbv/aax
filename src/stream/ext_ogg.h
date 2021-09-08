@@ -22,6 +22,8 @@
 #ifndef __FILE_EXT_OGG_H
 #define __FILE_EXT_OGG_H 1
 
+#include <sys/types.h>
+
 #if 0
 enum oggFormat
 {
@@ -239,7 +241,7 @@ typedef struct {
 
 typedef struct {
   long endbyte;
-  int  endbit;
+  int endbit;
   unsigned char *buffer;
   unsigned char *ptr;
   long storage;
@@ -254,15 +256,15 @@ typedef struct {
 
 typedef struct {
   unsigned char *body_data;
-  long    body_storage;
-  long    body_fill;
-  long    body_returned;
-  int     *lacing_vals;
+  long body_storage;
+  long body_fill;
+  long body_returned;
+  int *lacing_vals;
   int64_t *granule_vals;
-  long    lacing_storage;
-  long    lacing_fill;
-  long    lacing_packet;
-  long    lacing_returned;
+  long lacing_storage;
+  long lacing_fill;
+  long lacing_packet;
+  long lacing_returned;
   unsigned char header[282];
   int header_fill;
   int e_o_s;

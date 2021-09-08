@@ -162,7 +162,7 @@ char* _flac_name(_fmt_t*, enum _aaxStreamParam);
 off_t _flac_set(_fmt_t*, int, off_t);
 off_t _flac_get(_fmt_t*, int);
 
-/* RAW binary dat */
+/* RAW binary data */
 int _binary_detect(_fmt_t*, int);
 int _binary_setup(_fmt_t*, _fmt_type_t, enum aaxFormat);
 void* _binary_open(_fmt_t*, int, void*, ssize_t*, size_t);

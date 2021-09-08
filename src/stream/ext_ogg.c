@@ -148,6 +148,7 @@ static void crc32_init(void);
  * The Vorbis code always expects an Ogg stream.
  * The FLAC code automatically detects if it is an Ogg stream or a raw stream.
  */
+#define OGG_WRITE_BUFFER_SIZE	(4*1024+44)
 #define OGG_HEADER_SIZE		8
 
 DECL_FUNCTION(ogg_stream_init);
@@ -219,7 +220,11 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->no_samples = no_samples;
          handle->max_samples = 0;
 
-         if (mode) handle->out = malloc(sizeof(handle->out));
+         if (mode)
+         {
+            handle->format_type = _FMT_VORBIS;
+            handle->out = calloc(1, sizeof(_driver_write_t));
+         }
 
          if (handle->capturing)
          {
@@ -265,34 +270,58 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             handle->fmt = _fmt_create(handle->format_type, handle->mode);
          }
 
-         if (handle->fmt)
+         if (!handle->oggBuffer) {
+            handle->oggBuffer = _aaxDataCreate(OGG_WRITE_BUFFER_SIZE, 1);
+         }
+
+         if (handle->oggBuffer)
          {
-            ogg_packet header[3];
-            ssize_t size = sizeof(header);
-
-            handle->fmt->open(handle->fmt, handle->mode, &header, &size, 0);
-            if (size)
+            if (handle->fmt)
             {
-               int eos = 0;
+               ogg_packet header[3];
+               ssize_t size = sizeof(header);
 
-               pogg_stream_packetin(&handle->out->os, &header[0]);
-               pogg_stream_packetin(&handle->out->os, &header[1]); // comm
-               pogg_stream_packetin(&handle->out->os, &header[2]); // code
-
-               while(!eos)
+               handle->fmt->open(handle->fmt, handle->mode, &header, &size, 0);
+               if (size)
                {
-                  int res;
+                  int res = 1;
 
-                  res = pogg_stream_flush(&handle->out->os, &handle->out->og);
-                  if (!res) break;
-// TODO: Fill buf
-//  fwrite(handle->out->os.og.header, 1, handle->out->os.og.header_len, stdout);
-//  fwrite(handle->out->os.og.body, 1, handle->out.og.body_len, stdout);
+                  pogg_stream_packetin(&handle->out->os, &header[0]);
+                  pogg_stream_packetin(&handle->out->os, &header[1]); // comm
+                  pogg_stream_packetin(&handle->out->os, &header[2]); // code
+
+                  while (pogg_stream_flush(&handle->out->os,&handle->out->og))
+                  {
+                     if (res && handle->out->og.header_len) {
+                        res = _aaxDataAdd(handle->oggBuffer,
+                                          handle->out->og.header,
+                                          handle->out->og.header_len);
+                     }
+
+                     if (res && handle->out->og.body_len) {
+                        res = _aaxDataAdd(handle->oggBuffer,
+                                          handle->out->og.body,
+                                          handle->out->og.body_len);
+                     }
+
+                     if (!res) break;
+                  }
+
+                  if (!res)
+                  {
+                     _AAX_FILEDRVLOG("OGG: Insufficient buffer size");
+                     *bufsize = 0;
+                  }
                }
             }
+            else {
+               *bufsize = 0;
+            }
          }
-         else {
-            *bufsize = 0;
+         else
+         {
+            _AAX_FILEDRVLOG("OGG: Insufficient memory");
+            return rv;
          }
       }
 			/* read: handle->capturing */
@@ -320,7 +349,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          }
          else
          {
-            _AAX_FILEDRVLOG("OGG: Incorrect format");
+            _AAX_FILEDRVLOG("OGG: Insufficient memory");
             return rv;
          }
       }

@@ -139,7 +139,6 @@ _vorbis_detect(UNUSED(_fmt_t *fmt), int mode)
             if (!error) rv = AAX_TRUE;
          }
       }
-      
    }
    else {
       rv = AAX_TRUE;
@@ -163,7 +162,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t f
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = FRAME_SIZE;
 
-         if (mode) handle->out = malloc(sizeof(handle->out));
+         if (mode) handle->out = calloc(1, sizeof(_driver_write_t));
       }
       else {
          _AAX_FILEDRVLOG("VORBIS: Insufficient memory");
