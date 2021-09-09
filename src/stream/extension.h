@@ -57,22 +57,151 @@ typedef enum {
 
 struct _ext_st;
 
-typedef int (_ext_detect_fn)(struct _ext_st*, int);
-typedef int (_ext_new_handle_fn)(struct _ext_st*, int, size_t*, int, int, int, size_t, int);
-typedef void* (_ext_open_fn)(struct _ext_st*, void_ptr, ssize_t*, size_t);
-typedef int (_ext_close_fn)(struct _ext_st*);
-typedef void* (_ext_update_fn)(struct _ext_st*, size_t*, ssize_t*, char);
-typedef char* (_ext_get_name_fn)(struct _ext_st*, enum _aaxStreamParam);
+// Detect whether a particular extension type is supported.
+//
+// handle must be created using _ext_create(type);
+// mode == 0 (AAX_MODE_READ) means reading, writing otherwise.
+//
+// The function may probe for special conditions required to support the
+// requested extension in the requested mode. For example  whether a
+// particular library is installed.
+//
+// Returns AAX_TRUE if the extension-type is supported, AAX_FALSE otherwise.
+typedef int (_ext_detect_fn)(struct _ext_st *handle, int mode);
 
+// Set up the extension in the requested format.
+//
+// handle must have been created using _ext_create(type);
+// mode == 0 (AAX_MODE_READ) means reading, writing otherwise.
+// *bufsize: returns the required buffer-size to hold the header data
+//           for this extension
+// rate: the requested sample-rate
+// channels: the requested number of audio channels
+// format: the requested audio format (enum aaxFormat)
+// no_samples: the number of samples of one rendering period
+// bitrate: the requested bit-rate of the audio stream
+// 
+// Returns AAX_TRUE on success, AAX_FALSE otherwise.
+typedef int (_ext_new_handle_fn)(struct _ext_st *handle, int mode, size_t *bufsize, int rate, int channels, int format, size_t no_samples, int bitrate);
+
+// Open the extension for business. This is where the stream is accessed
+// for the first time.
+//
+// handle must have been created using _ext_create(type);
+// buf: the buffer holding the stream-data to be processed
+// *bufsize: size of the buffer of the stream-data to be processed
+//           returns the actual number of bytes which where processed
+// fsize: the file-size in bytes as reported by the operating system
+//
+// Returns a pointer to the buffer holding the data
+//   In case of a failure NULL is returned and *bufsize is set to 0
+//   In case of end-of-file a non-NULL pointer is returned but *bufsize is 0
+typedef void* (_ext_open_fn)(struct _ext_st *handle, void_ptr buf, ssize_t *bufsize, size_t fsize);
+
+// Close the stream and clear all it's resources.
+//
+// handle must have been created using _ext_create(type);
+//
+// Returns AAX_TRUE
+typedef int (_ext_close_fn)(struct _ext_st *handle);
+
+// Updates the extension (and format) internals before converting it to PCM
+// Usually this means decoding to an internal buffer
+//
+// handle must have been created using _ext_create(type);
+// *offset: returns the number of bytes which are unprocessed, or 0
+// *size: returns the header size in bytes, or 0
+// close: AAX_TRUE of this is the final call when closing the stream,
+//        AAX_FLASE otherwise
+//
+// Returns a non-NULL pointer to a buffer containg the header if the header
+// needs updating
+typedef void* (_ext_update_fn)(struct _ext_st *handle, size_t *offset, ssize_t *size, char close);
+
+// Returns a string from the extension and/or format
+//
+// handle must have been created using _ext_create(type);
+// param: the string type to return
+typedef char* (_ext_get_name_fn)(struct _ext_st *handle, enum _aaxStreamParam param);
+
+// Returns the extensions supported file extensions in plain text for 
+// the requested extension-type in the requested mode. Extensions are
+// separated with a single space-character which is directly usable
+// for GUI applications.
 typedef char* (_ext_default_fname_fn)(int, int);
-typedef int (_ext_extension_fn)(char*);
-typedef off_t (_ext_get_param_fn)(struct _ext_st*, int);
-typedef off_t (_ext_set_param_fn)(struct _ext_st*, int, off_t);
 
-typedef size_t (_ext_fill_fn)(struct _ext_st*, void_ptr, ssize_t*);
-typedef size_t (_ext_copy_fn)(struct _ext_st*, int32_ptr, size_t, size_t*);
-typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st*, int32_ptrptr, size_t, size_t*);
-typedef size_t (_ext_cvt_to_intl_fn)(struct _ext_st*, void_ptr, const_int32_ptrptr , size_t, size_t*, void_ptr, size_t);
+// Returns whether a file extension string is supported or not.
+//
+// Extensions may support multiple file extensions through formats
+// The RAW extension for example supports .mp3 and .pcm formats
+typedef int (_ext_extension_fn)(char*);
+
+// Returns the value of one single parameter from the extension
+//
+// handle must have been created using _ext_create(type);
+// param: the requested parameter (enum _aaxStreamParam)
+typedef off_t (_ext_get_param_fn)(struct _ext_st *handle, int param);
+
+// Set the value of one single parameter from the extension
+//
+// param: the requested parameter (enum _aaxStreamParam)
+// value: the value to set the parameter to
+typedef off_t (_ext_set_param_fn)(struct _ext_st *handle, int param, off_t value);
+
+// Fill the extension and/or formats internal buffer with new data
+//
+// handle must have been created using _ext_create(type);
+// buffer: a pointer to the buffer containing new raw data
+// *bytes: The number of bytes available in the buffer
+//         returns the number of bytes processed by the function
+//
+// Returns the number of processed bytes
+//         __F_NEED_MORE if more data is required before processing can start
+//         0 in case of an error
+typedef size_t (_ext_fill_fn)(struct _ext_st *handle, void_ptr buffer, ssize_t *bytes);
+
+// Convert data into a memory buffer
+//
+// handle must have been created using _ext_create(type);
+// buffer: buffer where to put the converted data
+// offset: offset from the start of the buffer where to put the new data
+// *num: requested number of samples to convert
+//       outputs the actual number of sampled which where converted
+//
+// Returns the number of processed bytes
+//         __F_NEED_MORE if more data is required before processing can start
+//         0 in case of an error
+typedef size_t (_ext_copy_fn)(struct _ext_st *handle, int32_ptr buffer, size_t offset, size_t *num);
+
+// Convert data from a possible compressed r interleaved stream into separate
+// buffers for every track
+//
+// handle must have been created using _ext_create(type);
+// buffer[]: array of audio channel buffers where to put the converted data
+// offset: offset from the start of the buffer where to put the new data
+// *num: requested number of samples to convert
+//       outputs the actual number of sampled which where converted
+//
+// Returns the number of processed bytes
+//         __F_NEED_MORE if more data is required before processing can start
+//         0 in case of an error
+typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st *handle, int32_ptrptr buf, size_t offset, size_t *num);
+
+// Covert interleaved PCM data to an extension native format
+//
+// handle must have been created using _ext_create(type);
+// buffer: buffer where to put the converted data
+// channels: array of audio channel buffers where the source data is stored
+// offset: offset from the start of the buffer where to get the new data
+// *num: requested number of samples to convert
+//       outputs the actual number of sampled which where converted
+// scratch: a pre-allocated scratch buffer for general use
+// size: size in bytes of the scratch buffer
+//
+// Returns the number of processed bytes
+//         __F_NEED_MORE if more data is required before processing can start
+//         0 in case of an error
+typedef size_t (_ext_cvt_to_intl_fn)(struct _ext_st *handle, void_ptr buffer, const_int32_ptrptr channels, size_t offset, size_t *num, void_ptr scratch, size_t size);
 
 
 struct _ext_st
