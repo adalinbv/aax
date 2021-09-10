@@ -199,7 +199,9 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
          fmt = _getFmtFromWAVFormat(handle->wav_format);
 
-         handle->fmt = _fmt_create(fmt, handle->mode);
+         if (!handle->fmt) {
+            handle->fmt = _fmt_create(fmt, handle->mode);
+         }
          if (!handle->fmt) {
             return rv;
          }
@@ -287,12 +289,9 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                header[8] = _aax_bswap32(header[8]);
                if (extfmt)
                {
-                  header[9] =
-                                           _aax_bswap32(header[9]);
-                  header[10] =
-                                          _aax_bswap32(header[10]);
-                  header[11] =
-                                          _aax_bswap32(header[11]);
+                  header[9] = _aax_bswap32(header[9]);
+                  header[10] = _aax_bswap32(header[10]);
+                  header[11] = _aax_bswap32(header[11]);
                }
             }
             _aaxFormatDriverUpdateHeader(handle, bufsize);

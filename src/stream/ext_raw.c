@@ -82,7 +82,7 @@ _raw_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->fmt->setup(handle->fmt, format, format);
 
          *bufsize = 0;
-         if (handle->mode == 0) {
+         if (!handle->mode) {	// read
             *bufsize = (no_samples*tracks*bits)/8;
          }
          rv = AAX_TRUE;

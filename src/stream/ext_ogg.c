@@ -161,11 +161,11 @@ DECL_FUNCTION(ogg_page_eos);
 static void *audio = NULL;
 
 int
-_ogg_detect(UNUSED(_ext_t *ext), UNUSED(int mode))
+_ogg_detect(UNUSED(_ext_t *ext), int mode)
 {
    int rv = AAX_FALSE;
 
-   if (mode)
+   if (mode) // write
    {
       audio = _aaxIsLibraryPresent("ogg", "0");
       if (audio)
@@ -220,12 +220,6 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->no_samples = no_samples;
          handle->max_samples = 0;
 
-         if (mode)
-         {
-            handle->format_type = _FMT_VORBIS;
-            handle->out = calloc(1, sizeof(_driver_write_t));
-         }
-
          if (handle->capturing)
          {
             handle->no_samples = UINT_MAX;
@@ -233,7 +227,9 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          }
          else /* playback */
          {
-            *bufsize = 0;
+            handle->format_type = _FMT_VORBIS;
+            handle->out = calloc(1, sizeof(_driver_write_t));
+            *bufsize = sizeof(ogg_packet[3]);
          }
          ext->id = handle;
 
@@ -257,74 +253,81 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
    _driver_t *handle = ext->id;
    void *rv = NULL;
 
-   assert(bufsize);
-
    if (handle)
    {
       if (!handle->capturing)   /* write */
       {
-         srand(time(NULL));
-         pogg_stream_init(&handle->out->os, rand());
-
-         if (!handle->fmt) {
-            handle->fmt = _fmt_create(handle->format_type, handle->mode);
-         }
-
          if (!handle->oggBuffer) {
             handle->oggBuffer = _aaxDataCreate(OGG_WRITE_BUFFER_SIZE, 1);
          }
 
          if (handle->oggBuffer)
          {
-            if (handle->fmt)
-            {
-               ogg_packet header[3];
-               ssize_t size = sizeof(header);
+            ogg_packet header[3];
+            ssize_t size = sizeof(ogg_packet[3]);
 
-               rv = handle->fmt->open(handle->fmt, handle->mode, &header, &size, fsize);
-               *bufsize = size;
-               if (size)
-               {
-                  int res = 1;
+            srand(time(NULL));
+            pogg_stream_init(&handle->out->os, rand());
 
-                  pogg_stream_packetin(&handle->out->os, &header[0]);
-                  pogg_stream_packetin(&handle->out->os, &header[1]); // comm
-                  pogg_stream_packetin(&handle->out->os, &header[2]); // code
-
-                  size = 0;
-                  while (pogg_stream_flush(&handle->out->os,&handle->out->og))
-                  {
-                     if (res && handle->out->og.header_len) {
-                        res = _aaxDataAdd(handle->oggBuffer,
-                                          handle->out->og.header,
-                                          handle->out->og.header_len);
-                        size += handle->out->og.header_len;
-                     }
-
-                     if (res && handle->out->og.body_len) {
-                        res = _aaxDataAdd(handle->oggBuffer,
-                                          handle->out->og.body,
-                                          handle->out->og.body_len);
-                        size += handle->out->og.body_len;
-                     }
-
-                     if (!res) break;
-                  }
-
-                  if (res)
-                  {
-                     *bufsize = size;
-                     rv = handle->oggBuffer;
-                  }
-                  else
-                  {
-                     _AAX_FILEDRVLOG("OGG: Insufficient buffer size");
-                     *bufsize = 0;
-                  }
-               }
+            if (!handle->fmt) {
+               handle->fmt = _fmt_create(handle->format_type, handle->mode);
             }
-            else {
-               *bufsize = 0;
+            if (!handle->fmt) {
+               return rv;
+            }
+
+            handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
+            if (!handle->fmt->setup(handle->fmt, handle->format_type, handle->format))
+            {
+               handle->fmt = _fmt_free(handle->fmt);
+               return rv;
+            }
+
+            handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
+            handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
+            handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
+            handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
+            rv = handle->fmt->open(handle->fmt, handle->mode, &header, &size, fsize);
+
+            *bufsize = size;
+            if (size)
+            {
+               int res = 1;
+
+               pogg_stream_packetin(&handle->out->os, &header[0]);
+               pogg_stream_packetin(&handle->out->os, &header[1]); // comm
+               pogg_stream_packetin(&handle->out->os, &header[2]); // code
+
+               size = 0;
+               while (pogg_stream_flush(&handle->out->os,&handle->out->og))
+               {
+                  if (res && handle->out->og.header_len) {
+                     res = _aaxDataAdd(handle->oggBuffer,
+                                       handle->out->og.header,
+                                       handle->out->og.header_len);
+                     size += handle->out->og.header_len;
+                  }
+
+                  if (res && handle->out->og.body_len) {
+                     res = _aaxDataAdd(handle->oggBuffer,
+                                       handle->out->og.body,
+                                       handle->out->og.body_len);
+                     size += handle->out->og.body_len;
+                  }
+
+                  if (!res) break;
+               }
+
+               if (res)
+               {
+                  *bufsize = size;
+                  rv = handle->oggBuffer;
+               }
+               else
+               {
+                  _AAX_FILEDRVLOG("OGG: Insufficient buffer size");
+                  *bufsize = 0;
+               }
             }
          }
          else
@@ -336,6 +339,8 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 			/* read: handle->capturing */
       else if (!handle->fmt || !handle->fmt->open)
       {
+         assert(bufsize);
+
          if (!handle->oggBuffer) {
             handle->oggBuffer = _aaxDataCreate(200*1024, 1);
          }

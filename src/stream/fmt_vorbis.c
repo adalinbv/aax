@@ -157,16 +157,20 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       handle = fmt->id = calloc(1, sizeof(_driver_t));
       if (fmt->id)
       {
+         if (mode)
+         {
+            handle->out = calloc(1, sizeof(_driver_write_t));
+            pvorbis_info_init(&handle->info);
+         }
+
          handle->mode = mode;
          handle->info.rate = 44100;
          handle->info.bitrate_lower = -1;
          handle->info.bitrate_upper = -1;
-         handle->info.bitrate_nominal = 320;
+         handle->info.bitrate_nominal = 128000;
          handle->file_size = fsize;
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = FRAME_SIZE;
-
-         if (mode) handle->out = calloc(1, sizeof(_driver_write_t));
       }
       else {
          _AAX_FILEDRVLOG("VORBIS: Insufficient memory");
@@ -269,8 +273,6 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
          {
             int ret;
 
-            pvorbis_info_init(&handle->info);
-
             // quality mode with approximate bitrate
             ret = pvorbis_encode_setup_managed(&handle->info,
                                                handle->info.channels,
@@ -278,15 +280,23 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                                                handle->info.bitrate_lower,
                                                handle->info.bitrate_nominal,
                                                handle->info.bitrate_upper);
-            if (ret) {
+#if 0
+ printf("channels: %i\n", handle->info.channels);
+ printf("rate: %li\n", handle->info.rate);
+ printf("bitrate_lower: %li\n", handle->info.bitrate_lower);
+ printf("bitrate_nominal: %li\n", handle->info.bitrate_nominal);
+ printf("bitrate_upper: %li\n", handle->info.bitrate_upper);
+ printf("vorbis_encode_setup_managed: %i\n", ret);
+#endif
+            if (!ret) {
                ret = pvorbis_encode_ctl(&handle->info,
                                         OV_ECTL_RATEMANAGE2_SET, NULL);
             }
-            if (ret) {
+            if (!ret) {
                ret = pvorbis_encode_setup_init(&handle->info);
             }
 
-            if (ret)
+            if (!ret)
             {
                pvorbis_comment_init(&handle->out->vc);
                pvorbis_comment_add_tag(&handle->out->vc,
@@ -297,7 +307,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
                if (buf && *bufsize == 3*sizeof(ogg_packet))
                {
-                  ogg_packet *header = buf;
+                  ogg_packet *header = (ogg_packet*)buf;
                   pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
                                             &header[0], &header[1], &header[2]);
 
@@ -622,7 +632,7 @@ _vorbis_set(_fmt_t *fmt, int type, off_t value)
       handle->info.rate = value;
       break;
    case __F_BITRATE:
-      handle->info.bitrate_nominal = value;
+      handle->info.bitrate_nominal = value*1000;
       break;
    case __F_TRACKS:
       handle->info.channels = value;
