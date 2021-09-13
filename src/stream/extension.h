@@ -93,9 +93,11 @@ typedef int (_ext_new_handle_fn)(struct _ext_st *handle, int mode, size_t *bufsi
 //           returns the actual number of bytes which where processed
 // fsize: the file-size in bytes as reported by the operating system
 //
-// Returns a pointer to the buffer holding the data
-//   In case of a failure NULL is returned and *bufsize is set to 0
-//   In case of end-of-file a non-NULL pointer is returned but *bufsize is 0
+// Returns a pointer to the buffer holding any data to be written to the steam.
+// Returns a NULL pointer and sets *bufsize > 0 when the function was succesful
+// and no data needs to be written.
+//  In case of end-of-file a non-NULL pointer is returned but *bufsize is 0
+//  In case of a failure NULL is returned and *bufsize is set to 0
 typedef void* (_ext_open_fn)(struct _ext_st *handle, void_ptr buf, ssize_t *bufsize, size_t fsize);
 
 // Close the stream and clear all it's resources.
