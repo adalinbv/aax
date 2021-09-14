@@ -543,12 +543,12 @@ aaxGetWaveformTypeByName(const char *wave)
                rv |= AAX_IMPULSE_WAVE;
             } else if (!strncasecmp(name, "sawtooth", len)) {
                rv |= AAX_SAWTOOTH_WAVE;
+            } else if (!strncasecmp(name, "random", len)) {
+               rv |= AAX_RANDOM_SELECT;
             } else if (!strncasecmp(name, "randomness", len)) {
                rv |= AAX_RANDOMNESS;
             } else if (!strncasecmp(name, "timed", len)) {
                rv |= AAX_TIMED_TRANSITION;
-            } else if (!strncasecmp(name, "random", len)) {
-               rv |= AAX_RANDOM_SELECT;
             } else if (!strncasecmp(name, "envelope", len)) {
                rv |= AAX_ENVELOPE_FOLLOW;
             } else if (!strncasecmp(name, "logarithmic", len) ||
