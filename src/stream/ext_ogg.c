@@ -539,18 +539,38 @@ size_t
 _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = ext->id;
+   size_t bytes = *num;
    size_t rv;
 
-   rv = _MIN(*num, _aaxDataGetDataAvail(handle->oggBuffer));
+   rv = _MIN(bytes, _aaxDataGetDataAvail(handle->oggBuffer));
    if (rv) {
       _aaxDataMove(handle->oggBuffer, dptr, rv);
    }
    else
    {
-      rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num,
-                                    scratch, scratchlen);
-      handle->no_samples += *num;
-//    handle->update_dt += (float)*num/handle->frequency;
+      rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, &bytes,
+                                    &handle->out->op, sizeof(ogg_packet));
+      if (bytes == sizeof(ogg_packet))
+      {
+         pogg_stream_packetin(&handle->out->os, &handle->out->op);
+
+         if (pogg_stream_pageout(&handle->out->os, &handle->out->og))
+         {
+            char *buf = (char*)dptr;
+
+            bytes = handle->out->og.header_len;
+            _aax_memcpy(buf, &handle->out->og.header, bytes);
+
+            buf += bytes;
+            bytes = handle->out->og.body_len;
+            _aax_memcpy(buf, &handle->out->og.body, bytes);
+
+           handle->no_samples += *num;
+//         handle->update_dt += (float)*num/handle->frequency;
+
+           // TODO...
+         }
+      }
    }
 
    return rv;

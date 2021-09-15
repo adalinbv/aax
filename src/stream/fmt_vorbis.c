@@ -555,21 +555,36 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
 }
 
 size_t
-_vorbis_cvt_to_intl(_fmt_t *fmt, UNUSED(void_ptr dptr), const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+_vorbis_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
-   int res = 0;
+   size_t samples = *num;
+   float** buffer;
+   int t, res = 0;
 
-   assert(scratchlen >= *num*handle->no_tracks*sizeof(int32_t));
+   if (samples)
+   {
+      /* expose the buffer and submit data as float (0.0..1.0f) */
+      buffer = pvorbis_analysis_buffer(&handle->out->vd, samples);
+      for (t=0; t<handle->info.channels; ++t) {
+         _batch_cvtps_24(buffer[t], sptr[t]+offs, samples);
+      }
 
-   handle->no_samples += *num;
-   _batch_cvt16_intl_24(scratch, sptr, offs, handle->info.channels, *num);
+      /* tell the library how much we actually submitted */
+      pvorbis_analysis_wrote(&handle->out->vd, samples);
+      handle->no_samples += samples;
+   }
 
-#if 0
-   res = vorbis_encode(handle->id, scratch, *num,
-                                  handle->vorbisBuffer, handle->vorbisBufSize);
-   _aax_memcpy(dptr, handle->vorbisBuffer, res);
-#endif
+   if (pvorbis_analysis_blockout(&handle->out->vd, &handle->out->vb) == 1)
+   {
+      pvorbis_analysis(&handle->out->vb, NULL);
+      pvorbis_bitrate_addblock(&handle->out->vb);
+
+      *num = sizeof(ogg_packet);
+      assert(*num < scratchlen);
+
+      res = pvorbis_bitrate_flushpacket(&handle->out->vd, scratch);
+   }
 
    return res;
 }

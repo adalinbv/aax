@@ -856,7 +856,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
 
    assert(outbuf_size <= _aaxDataGetSize(handle->dataBuffer));
 
-   // NOTE: Need RB_RW in case it is used as a slaved file-backend
+   // NOTE: Need RB_RW in case it is used as a mirrored file-backend
    //       See _aaxSoftwareMixerPlay
 
    sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
