@@ -35,6 +35,7 @@
 
 #include <api.h>
 #include <arch.h>
+#include <software/cpu/arch2d_simd.h>
 
 #include "audio.h"
 #include "fmt_vorbis.h"
@@ -558,32 +559,43 @@ size_t
 _vorbis_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
-   size_t samples = *num;
-   float** buffer;
-   int t, res = 0;
+   int res = 0;
 
-   if (samples)
+   if (num)
    {
+      size_t samples = *num;
+      float** buffer;
+      int t;
+
       /* expose the buffer and submit data as float (0.0..1.0f) */
       buffer = pvorbis_analysis_buffer(&handle->out->vd, samples);
       for (t=0; t<handle->info.channels; ++t) {
-         _batch_cvtps_24(buffer[t], sptr[t]+offs, samples);
+         _batch_cvtps_24_cpu(buffer[t], sptr[t]+offs, samples);
       }
 
       /* tell the library how much we actually submitted */
       pvorbis_analysis_wrote(&handle->out->vd, samples);
       handle->no_samples += samples;
-   }
 
-   if (pvorbis_analysis_blockout(&handle->out->vd, &handle->out->vb) == 1)
+      if (pvorbis_analysis_blockout(&handle->out->vd, &handle->out->vb) == 1)
+      {
+         pvorbis_analysis(&handle->out->vb, NULL);
+         pvorbis_bitrate_addblock(&handle->out->vb);
+
+         *num = sizeof(ogg_packet);
+         assert(*num < scratchlen);
+
+         res = pvorbis_bitrate_flushpacket(&handle->out->vd, scratch);
+      }
+   }
+   else if (scratch && scratchlen == sizeof(ogg_packet)) {
+      res = pvorbis_bitrate_flushpacket(&handle->out->vd, scratch);
+   }
+   else if (pvorbis_analysis_blockout(&handle->out->vd, &handle->out->vb) == 1)
    {
       pvorbis_analysis(&handle->out->vb, NULL);
       pvorbis_bitrate_addblock(&handle->out->vb);
-
-      *num = sizeof(ogg_packet);
-      assert(*num < scratchlen);
-
-      res = pvorbis_bitrate_flushpacket(&handle->out->vd, scratch);
+      res = 1;
    }
 
    return res;

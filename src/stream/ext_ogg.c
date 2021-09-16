@@ -539,37 +539,66 @@ size_t
 _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = ext->id;
-   size_t bytes = *num;
+   char *buf = (char*)dptr;
+   size_t size = *num;
    size_t rv;
 
-   rv = _MIN(bytes, _aaxDataGetDataAvail(handle->oggBuffer));
+   rv = _MIN(size, _aaxDataGetDataAvail(handle->oggBuffer));
    if (rv) {
       _aaxDataMove(handle->oggBuffer, dptr, rv);
    }
    else
    {
-      rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, &bytes,
+      *num = 0;
+      rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, &size,
                                     &handle->out->op, sizeof(ogg_packet));
-      if (bytes == sizeof(ogg_packet))
+      if (size == sizeof(ogg_packet))
       {
+         int next = 0;
+
          pogg_stream_packetin(&handle->out->os, &handle->out->op);
-
-         if (pogg_stream_pageout(&handle->out->os, &handle->out->og))
+         do
          {
-            char *buf = (char*)dptr;
+            if (pogg_stream_pageout(&handle->out->os, &handle->out->og))
+            {
+               size = handle->out->og.header_len;
+               _aax_memcpy(buf, &handle->out->og.header, size);
 
-            bytes = handle->out->og.header_len;
-            _aax_memcpy(buf, &handle->out->og.header, bytes);
+               buf += size;
+               size = handle->out->og.body_len;
+               _aax_memcpy(buf, &handle->out->og.body, size);
+ 
+               *num += size;
+               size /= sizeof(float);
+               handle->no_samples += size;
+//             handle->update_dt += (float)size/handle->frequency;
 
-            buf += bytes;
-            bytes = handle->out->og.body_len;
-            _aax_memcpy(buf, &handle->out->og.body, bytes);
+               if (!pogg_page_eos(&handle->out->og))
+               {
+                  if (handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0, NULL,
+                                          &handle->out->op, sizeof(ogg_packet)))
+                  {
+                     pogg_stream_packetin(&handle->out->os, &handle->out->op);
+                  }
+                  else
+                  {
+                     if (!handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0,
+                                                                NULL, NULL, 0))
+                     {
+                        rv = *num;
+                        break;
+                     }
+                  }
+               }
+            }
+            else break;
 
-           handle->no_samples += *num;
-//         handle->update_dt += (float)*num/handle->frequency;
-
-           // TODO...
-         }
+            if (pogg_page_eos(&handle->out->og))
+            {
+               rv = __F_EOF;
+               next = 1;
+            }
+         } while (!next);
       }
    }
 
