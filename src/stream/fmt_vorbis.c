@@ -311,8 +311,6 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                   ogg_packet *header = (ogg_packet*)buf;
                   pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
                                             &header[0], &header[1], &header[2]);
-
-                  *bufsize = VORBIS_BUFFER_SIZE;
                }
                else {
                   *bufsize = 0;

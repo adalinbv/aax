@@ -266,9 +266,6 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             ogg_packet header[3];
             ssize_t size = sizeof(ogg_packet[3]);
 
-            srand(time(NULL));
-            pogg_stream_init(&handle->out->os, rand());
-
             if (!handle->fmt) {
                handle->fmt = _fmt_create(handle->format_type, handle->mode);
             }
@@ -276,6 +273,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                return rv;
             }
 
+            // create the handle
             handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
             if (!handle->fmt->setup(handle->fmt, handle->format_type, handle->format))
             {
@@ -283,14 +281,22 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                return rv;
             }
 
+            handle->blocksize = handle->no_samples*sizeof(float);
             handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
             handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
             handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
             handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
-            rv = handle->fmt->open(handle->fmt, handle->mode, &header, &size, fsize);
-            if (size)
+            handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+
+            // open the vorbis layer
+            rv = handle->fmt->open(handle->fmt, handle->mode, &header, &size,
+                                   fsize);
+            if (size == sizeof(ogg_packet[3]))
             {
                int res = 1;
+
+               srand(time(NULL));
+               pogg_stream_init(&handle->out->os, rand());
 
                pogg_stream_packetin(&handle->out->os, &header[0]);
                pogg_stream_packetin(&handle->out->os, &header[1]); // comm
@@ -539,18 +545,22 @@ size_t
 _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = ext->id;
+   size_t size = *num*handle->blocksize;
    char *buf = (char*)dptr;
-   size_t size = *num;
    size_t rv;
 
    rv = _MIN(size, _aaxDataGetDataAvail(handle->oggBuffer));
-   if (rv) {
-      _aaxDataMove(handle->oggBuffer, dptr, rv);
-   }
-   else
+   if (rv)
    {
-      *num = 0;
-      rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, &size,
+      _aaxDataMove(handle->oggBuffer, buf, rv);
+      buf += rv;
+      size -= rv;
+   }
+
+   if (size)
+   {
+      // convert from PCM to a vorbis-stream
+      rv += handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, &size,
                                     &handle->out->op, sizeof(ogg_packet));
       if (size == sizeof(ogg_packet))
       {
@@ -567,33 +577,32 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
                buf += size;
                size = handle->out->og.body_len;
                _aax_memcpy(buf, &handle->out->og.body, size);
- 
-               *num += size;
+
+               rv += size;
                size /= sizeof(float);
                handle->no_samples += size;
 //             handle->update_dt += (float)size/handle->frequency;
+            }
 
-               if (!pogg_page_eos(&handle->out->og))
+            if (!pogg_page_eos(&handle->out->og))
+            {
+               // vorbis flush packet
+               if (handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0, NULL,
+                                       &handle->out->op, sizeof(ogg_packet)))
                {
-                  if (handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0, NULL,
-                                          &handle->out->op, sizeof(ogg_packet)))
+                  pogg_stream_packetin(&handle->out->os, &handle->out->op);
+               }
+               else
+               {
+                  // vorbis analysis
+                  if (!handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0,
+                                                             NULL, NULL, 0))
                   {
-                     pogg_stream_packetin(&handle->out->os, &handle->out->op);
-                  }
-                  else
-                  {
-                     if (!handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0,
-                                                                NULL, NULL, 0))
-                     {
-                        rv = *num;
-                        break;
-                     }
+                     break;
                   }
                }
             }
-            else break;
-
-            if (pogg_page_eos(&handle->out->og))
+            else
             {
                rv = __F_EOF;
                next = 1;
@@ -601,6 +610,7 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
          } while (!next);
       }
    }
+   *num = rv/handle->blocksize;
 
    return rv;
 }

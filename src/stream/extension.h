@@ -196,7 +196,7 @@ typedef size_t (_ext_cvt_from_intl_fn)(struct _ext_st *handle, int32_ptrptr buf,
 // channels: array of audio channel buffers where the source data is stored
 // offset: offset from the start of the buffer where to get the new data
 // *num: requested number of samples to convert
-//       outputs the actual number of sampled which where converted
+//       outputs the actual number of samples which where converted
 // scratch: a pre-allocated scratch buffer for general use
 // size: size in bytes of the scratch buffer
 //
