@@ -178,15 +178,15 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       }
    }
 
-   if (handle && buf && bufsize)
-   {
-      if (!handle->vorbisBuffer) {
-         handle->vorbisBuffer = _aaxDataCreate(VORBIS_BUFFER_SIZE, 1);
-      }
+   if (!handle->vorbisBuffer) {
+      handle->vorbisBuffer = _aaxDataCreate(VORBIS_BUFFER_SIZE, 1);
+   }
 
-      if (handle->vorbisBuffer)
+   if (handle && handle->vorbisBuffer)
+   {
+      if (handle->capturing)
       {
-         if (handle->capturing)
+         if (handle && buf && bufsize)
          {
             int err = VORBIS__no_error;
             int used = 0;
@@ -270,7 +270,10 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                }
             } /* _buf_fill() != 0 */
          }
-         else	// playback
+      }
+      else	// playback
+      {
+         if (buf && *bufsize == sizeof(ogg_packet[3]))
          {
             int ret;
 
@@ -299,6 +302,8 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
             if (!ret)
             {
+               ogg_packet *header = (ogg_packet*)buf;
+
                pvorbis_comment_init(&handle->out->vc);
                pvorbis_comment_add_tag(&handle->out->vc,
                                       "ENCODER", aaxGetVersionString(NULL));
@@ -306,15 +311,8 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                pvorbis_analysis_init(&handle->out->vd, &handle->info);
                pvorbis_block_init(&handle->out->vd, &handle->out->vb);
 
-               if (buf && *bufsize == 3*sizeof(ogg_packet))
-               {
-                  ogg_packet *header = (ogg_packet*)buf;
-                  pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
-                                            &header[0], &header[1], &header[2]);
-               }
-               else {
-                  *bufsize = 0;
-               }
+               pvorbis_analysis_headerout(&handle->out->vd, &handle->out->vc,
+                                      &header[0], &header[1], &header[2]);
             }
             else
             {
@@ -324,11 +322,11 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             }
          }
       }
-      else
-      {
-         _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
-         rv = buf;	// try again
-      }
+   }
+   else if (handle)
+   {
+      _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
+      rv = buf;	// try again
    }
    else
    {

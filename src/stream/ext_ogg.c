@@ -273,6 +273,9 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                return rv;
             }
 
+            srand(time(NULL));
+            pogg_stream_init(&handle->out->os, rand());
+
             // create the handle
             handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
             if (!handle->fmt->setup(handle->fmt, handle->format_type, handle->format))
@@ -281,7 +284,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                return rv;
             }
 
-            handle->blocksize = handle->no_samples*sizeof(float);
+            handle->blocksize = handle->no_tracks*sizeof(float);
             handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->frequency);
             handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
             handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
@@ -294,9 +297,6 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             if (size == sizeof(ogg_packet[3]))
             {
                int res = 1;
-
-               srand(time(NULL));
-               pogg_stream_init(&handle->out->os, rand());
 
                pogg_stream_packetin(&handle->out->os, &header[0]);
                pogg_stream_packetin(&handle->out->os, &header[1]); // comm
@@ -560,7 +560,8 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    if (size)
    {
       // convert from PCM to a vorbis-stream
-      rv += handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, &size,
+      size /= handle->blocksize;
+      rv += handle->fmt->cvt_to_intl(handle->fmt, buf, sptr, offs, &size,
                                     &handle->out->op, sizeof(ogg_packet));
       if (size == sizeof(ogg_packet))
       {
