@@ -148,7 +148,9 @@ static void crc32_init(void);
  * The Vorbis code always expects an Ogg stream.
  * The FLAC code automatically detects if it is an Ogg stream or a raw stream.
  */
-#define OGG_WRITE_BUFFER_SIZE	(4*1024+44)
+#define OGG_WRITE_SAMPLES	1024
+#define OGG_WRITE_PACKET_SIZE	(OGG_WRITE_SAMPLES*sizeof(float))
+#define OGG_WRITE_BUFFER_SIZE	(4*OGG_WRITE_PACKET_SIZE)
 #define OGG_HEADER_SIZE		8
 
 DECL_FUNCTION(ogg_stream_init);
@@ -545,44 +547,43 @@ size_t
 _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = ext->id;
-   size_t size = *num*handle->blocksize;
+   size_t bufsize, reqsize = *num*handle->blocksize;
    char *buf = (char*)dptr;
-   size_t rv;
+   size_t rv = 0;
 
-   rv = _MIN(size, _aaxDataGetDataAvail(handle->oggBuffer));
-   if (rv)
+   do
    {
-      _aaxDataMove(handle->oggBuffer, buf, rv);
-      buf += rv;
-      size -= rv;
-   }
+      size_t res;
 
-   if (size)
-   {
-      // convert from PCM to a vorbis-stream
-      size /= handle->blocksize;
-      rv += handle->fmt->cvt_to_intl(handle->fmt, buf, sptr, offs, &size,
-                                    &handle->out->op, sizeof(ogg_packet));
-      if (size == sizeof(ogg_packet))
+      bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
+      res = _MIN(reqsize, bufsize);
+      if (res)
       {
-         int next = 0;
+         _aaxDataMove(handle->oggBuffer, buf, res);
+         buf += res;
+         reqsize -= res;
+         rv += res;
+      }
 
-         pogg_stream_packetin(&handle->out->os, &handle->out->op);
-         do
+      bufsize = _aaxDataGetFreeSpace(handle->oggBuffer);
+      if (bufsize >= 2*OGG_WRITE_PACKET_SIZE)
+      {
+         signed char buffer[OGG_WRITE_PACKET_SIZE+44];
+         size_t size = OGG_WRITE_SAMPLES;
+
+         // convert from PCM to an OGG/vorbis-stream
+         res = handle->fmt->cvt_to_intl(handle->fmt, buffer, sptr, offs, &size,
+                                        &handle->out->op, sizeof(ogg_packet));
+         if (res && size == sizeof(ogg_packet))
          {
+            pogg_stream_packetin(&handle->out->os, &handle->out->op);
+
             if (pogg_stream_pageout(&handle->out->os, &handle->out->og))
             {
-               size = handle->out->og.header_len;
-               _aax_memcpy(buf, &handle->out->og.header, size);
-
-               buf += size;
-               size = handle->out->og.body_len;
-               _aax_memcpy(buf, &handle->out->og.body, size);
-
-               rv += size;
-               size /= sizeof(float);
-               handle->no_samples += size;
-//             handle->update_dt += (float)size/handle->frequency;
+               _aaxDataAdd(handle->oggBuffer, handle->out->og.header,
+                                              handle->out->og.header_len);
+               _aaxDataAdd(handle->oggBuffer, handle->out->og.body,
+                                              handle->out->og.body_len);
             }
 
             if (!pogg_page_eos(&handle->out->og))
@@ -605,13 +606,14 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
             }
             else
             {
+               *num = rv;
                rv = __F_EOF;
-               next = 1;
             }
-         } while (!next);
+         }
       }
    }
-   *num = rv/handle->blocksize;
+   while (reqsize);
+   if (rv >= 0) *num = rv/handle->blocksize;
 
    return rv;
 }
@@ -881,7 +883,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
       return __F_NEED_MORE;
    }
 
-#if 0
+#if 1
 {
    char *ch = (char*)header;
    unsigned int i;

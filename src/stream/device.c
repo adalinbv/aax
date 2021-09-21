@@ -869,6 +869,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
          _batch_imul_value(ptr, ptr, sizeof(int32_t), no_samples, gain);
       }
    }
+
    res = handle->ext->cvt_to_intl(handle->ext, databuf, (const int32_t**)sbuf,
                                   offs, &no_samples, scratch, scratchsize);
    rb->release_tracks_ptr(rb);
