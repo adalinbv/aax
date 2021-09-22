@@ -324,7 +324,9 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                   if (!res) break;
                }
 
-               if (res) {
+               if (res)
+               {
+                  handle->need_more = AAX_TRUE;
                   *bufsize = size;
                }
                else
@@ -568,16 +570,26 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
       bufsize = _aaxDataGetFreeSpace(handle->oggBuffer);
       if (bufsize >= 2*OGG_WRITE_PACKET_SIZE)
       {
-         signed char buffer[OGG_WRITE_PACKET_SIZE+44];
-         size_t size = OGG_WRITE_SAMPLES;
+         size_t size = sizeof(ogg_packet);
 
          // convert from PCM to an OGG/vorbis-stream
-         res = handle->fmt->cvt_to_intl(handle->fmt, buffer, sptr, offs, &size,
-                                        &handle->out->op, sizeof(ogg_packet));
-         if (res && size == sizeof(ogg_packet))
+         if (handle->need_more)
          {
-            pogg_stream_packetin(&handle->out->os, &handle->out->op);
+            signed char buffer[OGG_WRITE_PACKET_SIZE+44];
+            size = OGG_WRITE_SAMPLES;
+            res = handle->fmt->cvt_to_intl(handle->fmt,buffer, sptr,offs, &size,
+                                          &handle->out->op, sizeof(ogg_packet));
+            if (res)
+            {
+               pogg_stream_packetin(&handle->out->os, &handle->out->op);
+               handle->need_more = AAX_FALSE;
+               res = 1;
+            }
+         }
+         else res = 1;
 
+         if (res)
+         {
             if (pogg_stream_pageout(&handle->out->os, &handle->out->og))
             {
                _aaxDataAdd(handle->oggBuffer, handle->out->og.header,
@@ -588,7 +600,7 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
 
             if (!pogg_page_eos(&handle->out->og))
             {
-               // vorbis flush packet
+               // vorbis bitrate flushpacket
                if (handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0, NULL,
                                        &handle->out->op, sizeof(ogg_packet)))
                {
@@ -596,11 +608,12 @@ _ogg_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
                }
                else
                {
-                  // vorbis analysis
+                  // vorbis analysis blockout
                   if (!handle->fmt->cvt_to_intl(handle->fmt, NULL, NULL, 0,
                                                              NULL, NULL, 0))
                   {
-                     break;
+                     handle->need_more = AAX_TRUE;
+                     break; // continue the main loop
                   }
                }
             }
