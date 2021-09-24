@@ -552,7 +552,7 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
 }
 
 size_t
-_vorbis_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
+_vorbis_cvt_to_intl(_fmt_t *fmt, UNUSED(void_ptr dptr), const_int32_ptrptr sptr, size_t offs, size_t *num, void_ptr scratch, size_t scratchlen)
 {
    _driver_t *handle = fmt->id;
    int res = 0;
