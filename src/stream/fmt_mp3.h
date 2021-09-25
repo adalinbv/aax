@@ -322,6 +322,9 @@ typedef void (*id3tag_set_artist_proc)(void*, const char*);
 typedef void (*id3tag_set_album_proc)(void*, const char*);
 typedef void (*id3tag_set_year_proc)(void*, const char*);
 typedef void (*id3tag_set_comment_proc)(void*, const char*);
+typedef void (*id3tag_set_track_proc)(void*, const char*);
+typedef void (*id3tag_set_genre_proc)(void*, const char*);
+typedef void (*id3tag_set_albumart_proc)(void*, const char*, size_t);
 
 typedef void (*lame_report_function)(const char*, va_list);
 typedef int (*lame_set_errorf_proc)(void*, lame_report_function);

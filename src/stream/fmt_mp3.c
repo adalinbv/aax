@@ -99,6 +99,12 @@ DECL_FUNCTION(lame_get_lametag_frame);
 DECL_FUNCTION(lame_set_write_id3tag_automatic);
 DECL_FUNCTION(lame_get_id3v1_tag);
 DECL_FUNCTION(lame_get_id3v2_tag);
+DECL_FUNCTION(id3tag_set_title);
+DECL_FUNCTION(id3tag_set_artist);
+DECL_FUNCTION(id3tag_set_album);
+DECL_FUNCTION(id3tag_set_genre);
+DECL_FUNCTION(id3tag_set_track);
+DECL_FUNCTION(id3tag_set_albumart);
 DECL_FUNCTION(id3tag_set_year);
 DECL_FUNCTION(id3tag_set_comment);
 DECL_FUNCTION(id3tag_add_v2);
@@ -280,6 +286,12 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_write_id3tag_automatic);
             TIE_FUNCTION(lame_get_id3v1_tag);
             TIE_FUNCTION(lame_get_id3v2_tag);
+            TIE_FUNCTION(id3tag_set_title);
+            TIE_FUNCTION(id3tag_set_artist);
+            TIE_FUNCTION(id3tag_set_album);
+            TIE_FUNCTION(id3tag_set_genre);
+            TIE_FUNCTION(id3tag_set_track);
+            TIE_FUNCTION(id3tag_set_albumart);
             TIE_FUNCTION(id3tag_set_year);
             TIE_FUNCTION(id3tag_set_comment);
             TIE_FUNCTION(id3tag_add_v2);
@@ -521,7 +533,12 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             plame_set_errorf(handle->id, _aax_lame_log);
 #endif
             pid3tag_add_v2(handle->id);
-            pid3tag_set_year(handle->id, year);
+            pid3tag_set_title(handle->id, handle->title);
+            pid3tag_set_artist(handle->id, handle->artist);
+            pid3tag_set_album(handle->id, handle->album);
+            pid3tag_set_track(handle->id, handle->trackno);
+            pid3tag_set_genre(handle->id, handle->genre);
+            pid3tag_set_year(handle->id, handle->date ? handle->date : year);
             pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->info.rate);
@@ -866,22 +883,27 @@ _mp3_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
       break;
    case __F_TITLE:
       handle->title = (char*)desc;
+      pid3tag_set_title(handle->id, handle->title);
       rv = AAX_TRUE;
       break;
    case __F_GENRE:
       handle->genre = (char*)desc;
+      pid3tag_set_genre(handle->id, handle->genre);
       rv = AAX_TRUE;
       break;
    case __F_TRACKNO:
       handle->trackno = (char*)desc;
+      pid3tag_set_track(handle->id, handle->trackno);
       rv = AAX_TRUE;
       break;
    case __F_ALBUM:
       handle->album = (char*)desc;
+      pid3tag_set_album(handle->id, handle->album);
       rv = AAX_TRUE;
       break;
    case __F_DATE:
       handle->date = (char*)desc;
+      pid3tag_set_year(handle->id, handle->date);
       rv = AAX_TRUE;
       break;
    case __F_COMPOSER:
@@ -890,6 +912,7 @@ _mp3_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
       break;
    case __F_COMMENT:
       handle->comments = (char*)desc;
+      pid3tag_set_comment(handle->id, handle->comments);
       rv = AAX_TRUE;
       break;
    case __F_COPYRIGHT:
