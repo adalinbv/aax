@@ -601,6 +601,58 @@ _wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    return rv;
 }
 
+int
+_wav_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
+{
+   _driver_t *handle = ext->id;
+   int rv = handle->fmt->set_name(handle->fmt, param, desc);
+
+   if (!rv)
+   {
+      switch(param)
+      {
+      case __F_ARTIST:
+         handle->artist = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_TITLE:
+         handle->title = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_GENRE:
+         handle->genre = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_TRACKNO:
+         handle->trackno = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_ALBUM:
+         handle->album = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_DATE:
+         handle->date = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_COMMENT:
+         handle->comments = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_COPYRIGHT:
+         handle->copyright = (char*)desc;
+         rv = AAX_TRUE;
+         break;
+      case __F_COMPOSER:
+      case __F_ORIGINAL:
+      case __F_WEBSITE:
+      default:
+         break;
+      }
+   }
+   return rv;
+}
+
 char*
 _wav_name(_ext_t *ext, enum _aaxStreamParam param)
 {

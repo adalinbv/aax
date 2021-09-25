@@ -42,6 +42,7 @@ _ext_create(_ext_type_t extension)
          rv->close = _wav_close;
          rv->update = _wav_update;
          rv->name = _wav_name;
+         rv->set_name = _wav_set_name;
 
          rv->supported = _wav_extension;
          rv->interfaces = _wav_interfaces;
@@ -67,6 +68,7 @@ _ext_create(_ext_type_t extension)
          rv->close = _ogg_close;
          rv->update = _ogg_update;
          rv->name = _ogg_name;
+         rv->set_name = _ogg_set_name;
 
          rv->supported = _ogg_extension;
          rv->interfaces = _ogg_interfaces;
@@ -91,6 +93,7 @@ _ext_create(_ext_type_t extension)
          rv->close = _pat_close;
          rv->update = _pat_update;
          rv->name = _pat_name;
+         rv->set_name = _pat_set_name;
 
          rv->supported = _pat_extension;
          rv->interfaces = _pat_interfaces;
@@ -117,6 +120,7 @@ _ext_create(_ext_type_t extension)
          rv->close = _raw_close;
          rv->update = _raw_update;
          rv->name = _raw_name;
+         rv->set_name = _raw_set_name;
 
          rv->supported = _raw_extension;
          rv->interfaces = _raw_interfaces;

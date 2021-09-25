@@ -120,6 +120,13 @@ typedef int (_ext_close_fn)(struct _ext_st *handle);
 // needs updating
 typedef void* (_ext_update_fn)(struct _ext_st *handle, size_t *offset, ssize_t *size, char close);
 
+// Sets a string in the extension and/or format
+//
+// handle must have been created using _ext_create(type);
+// param: the string type to set
+// desc: the description string
+typedef int (_ext_set_name_fn)(struct _ext_st *handle, enum _aaxStreamParam param, const char *desc);
+
 // Returns a string from the extension and/or format
 //
 // handle must have been created using _ext_create(type);
@@ -215,6 +222,8 @@ struct _ext_st
    _ext_open_fn *open;
    _ext_close_fn *close;
    _ext_update_fn *update;
+
+   _ext_set_name_fn *set_name;
    _ext_get_name_fn *name;
 
    _ext_extension_fn *supported;
@@ -240,6 +249,7 @@ void* _wav_open(_ext_t*, void*, ssize_t*, size_t);
 int _wav_close(_ext_t*);
 void* _wav_update(_ext_t*, size_t*, ssize_t*, char);
 char* _wav_name(_ext_t*, enum _aaxStreamParam);
+int _wav_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _wav_interfaces(int, int);
 int _wav_extension(char*);
@@ -258,6 +268,7 @@ void* _ogg_open(_ext_t*, void*, ssize_t*, size_t);
 int _ogg_close(_ext_t*);
 void* _ogg_update(_ext_t*, size_t*, ssize_t*, char);
 char* _ogg_name(_ext_t*, enum _aaxStreamParam);
+int _ogg_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _ogg_interfaces(int, int);
 int _ogg_extension(char*);
@@ -276,6 +287,7 @@ void* _pat_open(_ext_t*, void*, ssize_t*, size_t);
 int _pat_close(_ext_t*);
 void* _pat_update(_ext_t*, size_t*, ssize_t*, char);
 char* _pat_name(_ext_t*, enum _aaxStreamParam);
+int _pat_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _pat_interfaces(int, int);
 int _pat_extension(char*);
@@ -294,6 +306,7 @@ void* _raw_open(_ext_t*, void*, ssize_t*, size_t);
 int _raw_close(_ext_t*);
 void* _raw_update(_ext_t*, size_t*, ssize_t*, char);
 char* _raw_name(_ext_t*, enum _aaxStreamParam);
+int _raw_set_name(_ext_t*, enum _aaxStreamParam, const char*);
 
 char* _raw_interfaces(int, int);
 int _raw_extension(char*);

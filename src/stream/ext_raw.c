@@ -161,6 +161,13 @@ _raw_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
 }
 
+int
+_raw_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
+{
+   _driver_t *handle = ext->id;
+   return handle->fmt->set_name(handle->fmt, param, desc);
+}
+
 char*
 _raw_name(_ext_t *ext, enum _aaxStreamParam param)
 {

@@ -430,6 +430,12 @@ _pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    return *num*handle->blocksize;
 }
 
+int
+_pcm_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
+{
+   return AAX_FALSE;
+}
+
 char*
 _pcm_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
 {

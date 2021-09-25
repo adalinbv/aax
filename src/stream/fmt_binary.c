@@ -202,6 +202,12 @@ _binary_cvt_to_intl(UNUSED(_fmt_t *fmt), UNUSED(void_ptr dptr), UNUSED(const_int
    return rv;
 }
 
+int
+_binary_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
+{
+   return AAX_FALSE;
+}
+
 char*
 _binary_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
 {

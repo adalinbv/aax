@@ -249,6 +249,12 @@ _pat_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    return handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num, scratch, scratchlen);
 }
 
+int
+_pat_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
+{
+   return AAX_FALSE;
+}
+
 char*
 _pat_name(_ext_t *ext, enum _aaxStreamParam param)
 {

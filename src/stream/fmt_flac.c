@@ -363,6 +363,12 @@ _flac_cvt_to_intl(UNUSED(_fmt_t *fmt), UNUSED(void_ptr dptr), UNUSED(const_int32
    return res;
 }
 
+int
+_flac_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
+{
+   return AAX_FALSE;
+}
+
 char*
 _flac_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
 {

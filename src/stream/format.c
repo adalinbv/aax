@@ -41,6 +41,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->open = _pcm_open;
             rv->close = _pcm_close;
             rv->name = _pcm_name;
+            rv->set_name = _pcm_set_name;
 
             rv->cvt_to_signed = _pcm_cvt_to_signed;
             rv->cvt_from_signed = _pcm_cvt_from_signed;
@@ -70,6 +71,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->open = _mp3_open;
             rv->close = _mp3_close;
             rv->name = _mp3_name;
+            rv->set_name = _mp3_set_name;
 
             rv->update = _mp3_update;
             rv->cvt_to_intl = _mp3_cvt_to_intl;
@@ -97,6 +99,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->open = _opus_open;
             rv->close = _opus_close;
             rv->name = _opus_name;
+            rv->set_name = _opus_set_name;
 
             rv->cvt_to_intl = _opus_cvt_to_intl;
             rv->cvt_from_intl = _opus_cvt_from_intl;
@@ -123,6 +126,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->open = _vorbis_open;
             rv->close = _vorbis_close;
             rv->name = _vorbis_name;
+            rv->set_name = _vorbis_set_name;
 
             rv->cvt_to_intl = _vorbis_cvt_to_intl;
             rv->cvt_from_intl = _vorbis_cvt_from_intl;
@@ -149,6 +153,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->open = _flac_open;
             rv->close = _flac_close;
             rv->name = _flac_name;
+            rv->set_name = _flac_set_name;
 
             rv->cvt_to_intl = _flac_cvt_to_intl;
             rv->cvt_from_intl = _flac_cvt_from_intl;
@@ -175,6 +180,7 @@ _fmt_create(_fmt_type_t format, int mode)
             rv->open = _binary_open;
             rv->close = _binary_close;
             rv->name = _binary_name;
+            rv->set_name = _binary_set_name;
 
             rv->cvt_to_intl = _binary_cvt_to_intl;
             rv->cvt_from_intl = _binary_cvt_from_intl;

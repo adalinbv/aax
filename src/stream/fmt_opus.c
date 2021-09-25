@@ -483,13 +483,71 @@ _opus_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t of
     * frame size for the encoder's sampling rate. For example, at 48 kHz the
     * permitted values are 120, 240, 480, 960, 1920, and 2880. Passing in a
     * duration of less than 10 ms (480 samples at 48 kHz) will prevent the
-    * encoder from using the LPC or hybrid modes. 
+    * encoder from using the LPC or hybrid modes.
     */
    res = popus_encode(handle->id, scratch, *num,
                       _aaxDataGetData(handle->opusBuffer), _aaxDataGetDataAvail(handle->opusBuffer));
    _aax_memcpy(dptr, handle->opusBuffer, res);
 
    return res;
+}
+
+int
+_opus_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
+{
+   _driver_t *handle = fmt->id;
+   int rv = AAX_FALSE;
+
+   switch(param)
+   {
+   case __F_ARTIST:
+      handle->artist = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_TITLE:
+      handle->title = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_GENRE:
+      handle->genre = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_TRACKNO:
+      handle->trackno = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_ALBUM:
+      handle->album = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_DATE:
+      handle->date = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_COMPOSER:
+      handle->composer = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_COMMENT:
+      handle->comments = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_COPYRIGHT:
+      handle->copyright = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_ORIGINAL:
+      handle->original = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   case __F_WEBSITE:
+      handle->website = (char*)desc;
+      rv = AAX_TRUE;
+      break;
+   default:
+      break;
+   }
+   return rv;
 }
 
 char*
