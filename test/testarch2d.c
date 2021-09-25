@@ -91,11 +91,15 @@ char _aaxArchDetectNEON();
 int main()		// x86		ARM
 {			// -------	-------
    char simd = 0;	// SSE2		VFPV3
-   char simd1 = 0;	// SSE_VEX	VFPV4
+#if defined(__x86_64__) || defined(_M_ARM)
+// char simd1 = 0;	// SSE_VEX      VFPV4
+#endif
    char simd2 = 0;	// AVX		NEON
-   char simd3 = 0;	// SSE3
+// char simd3 = 0;	// SSE3
    char simd4 = 0;	// SSE4
-   char simd5 = 0;	// AVX2
+#if defined(__x86_64__)
+// char simd5 = 0;	// AVX2
+#endif
    char fma = 0;	// FMA3		VFPV4
    float *src, *dst1, *dst2, *dst3;
    clock_t t;
@@ -105,16 +109,16 @@ int main()		// x86		ARM
    simd4 = _aaxArchDetectSSE4();
 #elif defined(__x86_64__)
    simd = 1;
-   simd1 = _aaxArchDetectAVX();
+// simd1 = _aaxArchDetectAVX();
    simd2 = _aaxArchDetectAVX();
    simd4 = _aaxArchDetectSSE4();
-   simd5 = _aaxArchDetectAVX2();
+// simd5 = _aaxArchDetectAVX2();
    if (check_cpuid_ecx(CPUID_FEAT_ECX_FMA3)) {
       fma = 3;
    }
 #elif defined(__arm__) || defined(_M_ARM)
    simd = _aaxArchDetectVFPV3();
-   simd1 = _aaxArchDetectVFPV4();
+// simd1 = _aaxArchDetectVFPV4();
    simd2 = _aaxArchDetectNeon();
    fma = _aaxArchDetectVFPV4();
 #endif
