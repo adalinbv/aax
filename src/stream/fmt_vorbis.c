@@ -742,7 +742,7 @@ static void __dup(char **a, const char *b)
    size_t blen = strlen(b);
    char *ptr;
 
-   ptr = realloc(*a, alen+blen);
+   ptr = realloc(*a, alen+blen+3); // strlen(", ")+1
    if (ptr)
    {
       *a = ptr;
@@ -775,6 +775,11 @@ _detect_vorbis_song_info(_driver_t *handle)
    for (i=0; i<comments.comment_list_length; ++i)
    {
        const char *comment = comments.comment_list[i];
+
+#if 0
+  printf("handle->comments: %s\n", handle->comments);
+  __dup(&handle->comments, comment);
+#endif
        if (!strcasecmp(comment, "TRACKNUMBER=")) {
           __dup(&handle->trackno, comment+strlen("TRACKNUMBER="));
        } else if (!strcasecmp(comment, "TITLE=")) {
