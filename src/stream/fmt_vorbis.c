@@ -51,6 +51,18 @@ typedef struct
 typedef struct
 {
    void *id;
+   char *artist;
+   char *original;
+   char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *composer;
+   char *comments;
+   char *copyright;
+   char *website;
+   char *image;
 
    char capturing;
    int mode;
@@ -72,6 +84,8 @@ typedef struct
    _driver_write_t *out;
 
 } _driver_t;
+
+static void _detect_vorbis_song_info(_driver_t*);
 
 
 #define FRAME_SIZE		4096
@@ -203,20 +217,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
                if (handle->id)
                {
-                  stb_vorbis_info info = stb_vorbis_get_info(handle->id);
-
-                  handle->info.channels = info.channels;
-                  handle->info.rate = info.sample_rate;
-                  handle->blocksize = info.max_frame_size;
-
-                  handle->max_samples = 20*info.sample_rate;
-                  handle->format = AAX_PCM24S;
-                  handle->bits_sample = aaxGetBitsPerSample(handle->format);
-#if 0
-  printf("%d channels, %d samples/sec\n", info.channels, info.sample_rate);
-  printf("Predicted memory needed: %d (%d + %d)\n", info.setup_memory_required + info.temp_memory_required,
-                info.setup_memory_required, info.temp_memory_required);
-#endif
+                  _detect_vorbis_song_info(handle);
                   _aaxDataMove(handle->vorbisBuffer, NULL, used);
                   // we're done decoding, return NULL
                }
@@ -345,6 +346,19 @@ _vorbis_close(_fmt_t *fmt)
    {
       stb_vorbis_close(handle->id);
       handle->id = NULL;
+
+      if (handle->trackno) free(handle->trackno);
+      if (handle->artist) free(handle->artist);
+      if (handle->title) free(handle->title);
+      if (handle->album) free(handle->album);
+      if (handle->date) free(handle->date);
+      if (handle->genre) free(handle->genre);
+      if (handle->comments) free(handle->comments);
+      if (handle->composer) free(handle->composer);
+      if (handle->copyright) free(handle->copyright);
+      if (handle->original) free(handle->original);
+      if (handle->website) free(handle->website);
+      if (handle->image) free(handle->image);
 
       if (handle->out)
       {
@@ -598,9 +612,53 @@ _vorbis_cvt_to_intl(_fmt_t *fmt, UNUSED(void_ptr dptr), const_int32_ptrptr sptr,
 }
 
 char*
-_vorbis_name(UNUSED(_fmt_t *fmt), UNUSED(enum _aaxStreamParam param))
+_vorbis_name(_fmt_t *fmt, enum _aaxStreamParam param)
 {
-   return NULL;
+   _driver_t *handle = fmt->id;
+   char *rv = NULL;
+
+   switch(param)
+   {
+   case __F_ARTIST:
+      rv = handle->artist;
+      break;
+   case __F_TITLE:
+      rv = handle->title;
+      break;
+   case __F_COMPOSER:
+      rv = handle->composer;
+      break;
+   case __F_GENRE:
+      rv = handle->genre;
+      break;
+   case __F_TRACKNO:
+      rv = handle->trackno;
+      break;
+   case __F_ALBUM:
+      rv = handle->album;
+      break;
+   case __F_DATE:
+      rv = handle->date;
+      break;
+   case __F_COMMENT:
+      rv = handle->comments;
+      break;
+   case __F_COPYRIGHT:
+      rv = handle->copyright;
+      break;
+   case __F_ORIGINAL:
+      rv = handle->original;
+      break;
+   case __F_WEBSITE:
+      rv = handle->website;
+      break;
+   case __F_IMAGE:
+      rv = handle->image;
+      break;
+   default:
+      break;
+   }
+   return rv;
 }
 
 off_t
@@ -677,3 +735,85 @@ _vorbis_set(_fmt_t *fmt, int type, off_t value)
    return rv;
 }
 
+/* -------------------------------------------------------------------------- */
+static void __dup(char **a, const char *b)
+{
+   size_t alen = (*a) ? strlen(*a) : 0;
+   size_t blen = strlen(b);
+   char *ptr;
+
+   ptr = realloc(*a, alen+blen);
+   if (ptr)
+   {
+      *a = ptr;
+      ptr = *a + alen;
+      if (alen)
+      {
+         *ptr++ = ',';
+         *ptr++ = ' ';
+      }
+      memcpy(ptr, b, blen);
+   }
+}
+
+static void
+_detect_vorbis_song_info(_driver_t *handle)
+{
+   stb_vorbis_comment comments = stb_vorbis_get_comment(handle->id);
+   stb_vorbis_info info = stb_vorbis_get_info(handle->id);
+   int i;
+
+   handle->info.channels = info.channels;
+   handle->info.rate = info.sample_rate;
+   handle->blocksize = info.max_frame_size;
+
+   handle->max_samples = 20*info.sample_rate;
+   handle->format = AAX_PCM24S;
+   handle->bits_sample = aaxGetBitsPerSample(handle->format);
+
+   // https://www.xiph.org/vorbis/doc/v-comment.html
+   for (i=0; i<comments.comment_list_length; ++i)
+   {
+       const char *comment = comments.comment_list[i];
+       if (!strcasecmp(comment, "TRACKNUMBER=")) {
+          __dup(&handle->trackno, comment+strlen("TRACKNUMBER="));
+       } else if (!strcasecmp(comment, "TITLE=")) {
+          __dup(&handle->title, comment+strlen("TITLE="));
+       } else if (!strcasecmp(comment, "ARTIST=")) {
+          __dup(&handle->composer, comment+strlen("ARTIST="));
+       } else if (!strcasecmp(comment, "ALBUM ARTIST=")) {
+          __dup(&handle->artist, comment+strlen("ALBUM ARTIST="));
+       } else if (!strcasecmp(comment, "ALBUMARTIST=")) {
+          __dup(&handle->artist, comment+strlen("ALBUMARTIST="));
+       } else if (!strcasecmp(comment, "PERFORMER=")) {
+          __dup(&handle->artist, comment+strlen("PERFORMER="));
+       } else if (!strcasecmp(comment, "COPYRIGHT=")) {
+          __dup(&handle->copyright, comment+strlen("COPYRIGHT="));
+       } else if (!strcasecmp(comment, "ALBUM=")) {
+          __dup(&handle->album, comment+strlen("ALBUM="));
+       } else if (!strcasecmp(comment, "GENRE=")) {
+          __dup(&handle->genre, comment+strlen("GENRE="));
+       } else if (!strcasecmp(comment, "DATE=")) {
+          __dup(&handle->date, comment+strlen("DATE="));
+       } else if (!strcasecmp(comment, "CONTACT=")) {
+          __dup(&handle->website, comment+strlen("CONTACT="));
+       } else if (!strcasecmp(comment, "DESCRIPTION=")) {
+          __dup(&handle->comments, comment+strlen("DESCRIPTION="));
+       } else if (!strcasecmp(comment, "COMMENT=")) {
+          __dup(&handle->comments, comment+strlen("COMMENT="));
+       } else {
+          __dup(&handle->comments, comment);
+       }
+   }
+
+#if 0
+  printf("%d channels, %d samples/sec\n", info.channels, info.sample_rate);
+  printf("Predicted memory needed: %d (%d + %d)\n",
+           info.setup_memory_required + info.temp_memory_required,
+           info.setup_memory_required, info.temp_memory_required);
+  printf("Vendor: %s\n", comments.vendor);
+  for (i=0; i<comments.comment_list_length; ++i) {
+    printf("Comment: %s\n", comments.comment_list[i]);
+  }
+#endif
+}
