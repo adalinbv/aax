@@ -64,7 +64,8 @@ static _aaxDriverDisconnect _aaxCoreAudioDriverDisconnect;
 static _aaxDriverSetup _aaxCoreAudioDriverSetup;
 static _aaxDriverCaptureCallback _aaxCoreAudioDriverCapture;
 static _aaxDriverPlaybackCallback _aaxCoreAudioDriverPlayback;
-static _aaxDriverGetName _aaxCoreAudioGetName;
+static _aaxDriverSetName _aaxCoreAudioDriverSetName;
+static _aaxDriverGetName _aaxCoreAudioDriverGetName;
 static _aaxDriverRender _aaxCoreAudioDriverRender;
 static _aaxDriverState _aaxCoreAudioDriverState;
 static _aaxDriverParam _aaxCoreAudioDriverParam;
@@ -86,7 +87,8 @@ const _aaxDriverBackend _aaxCoreAudioDriverBackend =
    (_aaxDriverGetDevices *)&_aaxCoreAudioDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxCoreAudioDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxCoreAudioGetName,
+   (_aaxDriverSetName *)&_aaxCoreAudioDriverSetName,
+   (_aaxDriverGetName *)&_aaxCoreAudioDriverGetName,
    (_aaxDriverRender *)&_aaxCoreAudioDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
@@ -380,8 +382,23 @@ _aaxCoreAudioDriverPlayback(const void *id, void *s, UNUSED(float pitch), float 
    return 0;
 }
 
+static int
+_aaxCoreAudioDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      default:
+         break;
+      }
+   }
+}
+
 static char *
-_aaxCoreAudioGetName(const void *id, int mode)
+_aaxCoreAudioDriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;

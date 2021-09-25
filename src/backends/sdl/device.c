@@ -79,7 +79,8 @@ static _aaxDriverDisconnect _aaxSDLDriverDisconnect;
 static _aaxDriverSetup _aaxSDLDriverSetup;
 static _aaxDriverCaptureCallback _aaxSDLDriverCapture;
 static _aaxDriverPlaybackCallback _aaxSDLDriverPlayback;
-static _aaxDriverGetName _aaxSDLGetName;
+static _aaxDriverSetName _aaxSDLDriverSetName;
+static _aaxDriverGetName _aaxSDLDriverGetName;
 static _aaxDriverRender _aaxSDLDriverRender;
 static _aaxDriverState _aaxSDLDriverState;
 static _aaxDriverParam _aaxSDLDriverParam;
@@ -104,7 +105,8 @@ const _aaxDriverBackend _aaxSDLDriverBackend =
    (_aaxDriverGetDevices *)&_aaxSDLDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxSDLDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxSDLGetName,
+   (_aaxDriverSetName *)&_aaxSDLDriverSetName,
+   (_aaxDriverGetName *)&_aaxSDLDriverGetName,
    (_aaxDriverRender *)&_aaxSDLDriverRender,
 #if USE_SDL_THREAD
    (_aaxDriverThread *)&_aaxSDLDriverThread,
@@ -707,8 +709,24 @@ _aaxSDLDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    return rv;
 }
 
+static int
+_aaxSDLDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      default:
+         break;
+      }
+   }
+   return ret;
+}
+
 static char *
-_aaxSDLGetName(const void *id, int mode)
+_aaxSDLDriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;

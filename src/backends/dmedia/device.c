@@ -83,7 +83,8 @@ static _aaxDriverDisconnect _aaxDMediaDriverDisconnect;
 static _aaxDriverSetup _aaxDMediaDriverSetup;
 static _aaxDriverCaptureCallback _aaxDMediaDriverCapture;
 static _aaxDriverPlaybackCallback _aaxDMediaDriverPlayback;
-static _aaxDriverGetName _aaxDMediaGetName;
+static _aaxDriverSetName _aaxDMediaDriverSetName;
+static _aaxDriverGetName _aaxDMediaDriverGetName;
 static _aaxDriverRender _aaxDMediaDriverRender;
 static _aaxDriverState _aaxDMediaDriverState;
 static _aaxDriverParam _aaxDMediaDriverParam;
@@ -105,7 +106,8 @@ const _aaxDriverBackend _aaxDMediaDriverBackend =
    (_aaxDriverGetDevices *)&_aaxDMediaDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxDMediaDriverGetInterfaces,
 
-   (_aaxDriverGetName *)&_aaxDMediaGetName,
+   (_aaxDriverSetName *)&_aaxDMediaDriverSetName,
+   (_aaxDriverGetName *)&_aaxDMediaDriverGetName,
    (_aaxDriverRender *)&_aaxDMediaDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
 
@@ -833,8 +835,38 @@ _aaxDMediaDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gai
    return 0;
 }
 
+static int
+_aaxDMediaDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      case AAX_MUSIC_PERFORMER_STRING:
+      case AAX_MUSIC_PERFORMER_UPDATE:
+      case AAX_TRACK_TITLE_STRING:
+      case AAX_TRACK_TITLE_UPDATE:
+      case AAX_MUSIC_GENRE_STRING:
+      case AAX_TRACK_NUMBER_STRING:
+      case AAX_ALBUM_NAME_STRING:
+      case AAX_RELEASE_DATE_STRING:
+      case AAX_SONG_COMPOSER_STRING:
+      case AAX_SONG_COPYRIGHT_STRING:
+      case AAX_SONG_COMMENT_STRING:
+      case AAX_ORIGINAL_PERFORMER_STRING:
+      case AAX_CONTACT_STRING:
+      case AAX_COVER_IMAGE_DATA:
+      default:
+         break;
+      }
+   }
+   return ret;
+}
+
 static char *
-_aaxDMediaGetName(const void *id, int mode)
+_aaxDMediaDriverGetName(const void *id, int mode)
 {
    _driver_t *handle = (_driver_t *)id;
    char *ret = NULL;

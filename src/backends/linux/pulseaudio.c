@@ -88,6 +88,7 @@ static _aaxDriverDisconnect _aaxPulseAudioDriverDisconnect;
 static _aaxDriverSetup _aaxPulseAudioDriverSetup;
 static _aaxDriverCaptureCallback _aaxPulseAudioDriverCapture;
 static _aaxDriverPlaybackCallback _aaxPulseAudioDriverPlayback;
+static _aaxDriverSetName _aaxPulseAudioDriverSetName;
 static _aaxDriverGetName _aaxPulseAudioDriverGetName;
 static _aaxDriverRender _aaxPulseAudioDriverRender;
 static _aaxDriverState _aaxPulseAudioDriverState;
@@ -113,6 +114,7 @@ const _aaxDriverBackend _aaxPulseAudioDriverBackend =
    (_aaxDriverGetDevices *)&_aaxPulseAudioDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxPulseAudioDriverGetInterfaces,
 
+   (_aaxDriverSetName *)&_aaxPulseAudioDriverSetName,
    (_aaxDriverGetName *)&_aaxPulseAudioDriverGetName,
    (_aaxDriverRender *)&_aaxPulseAudioDriverRender,
 #if USE_PULSE_THREAD
@@ -892,6 +894,22 @@ _aaxPulseAudioDriverPlayback(const void *id, void *src, UNUSED(float pitch), UNU
    }
 
    return rv;
+}
+
+static int
+_aaxPulseAudioDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      default:
+         break;
+      }
+   }
+   return ret;
 }
 
 static char *

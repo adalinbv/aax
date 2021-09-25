@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -79,6 +79,7 @@ static _aaxDriverSetup _aaxStreamDriverSetup;
 static _aaxDriverCaptureCallback _aaxStreamDriverCapture;
 static _aaxDriverPlaybackCallback _aaxStreamDriverPlayback;
 static _aaxDriverSetPosition _aaxStreamDriverSetPosition;
+static _aaxDriverSetName _aaxStreamDriverSetName;
 static _aaxDriverGetName _aaxStreamDriverGetName;
 static _aaxDriverRender _aaxStreamDriverRender;
 static _aaxDriverState _aaxStreamDriverState;
@@ -103,6 +104,7 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
    (_aaxDriverGetDevices *)&_aaxStreamDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxStreamDriverGetInterfaces,
 
+   (_aaxDriverSetName *)&_aaxStreamDriverSetName,
    (_aaxDriverGetName *)&_aaxStreamDriverGetName,
    (_aaxDriverRender *)&_aaxStreamDriverRender,
 #if USE_STREAM_THREAD
@@ -133,6 +135,18 @@ typedef struct
 {
    void *handle;
    char *name;
+   char *artist;
+   char *original;
+   char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *composer;
+   char *comments;
+   char *copyright;
+   char *contact;
+   char *image;
 
    char copy_to_buffer; // true if Capture has to copy the data unmodified
    char start_with_fill;
@@ -418,6 +432,19 @@ _aaxStreamDriverDisconnect(void *id)
          handle->render->close(handle->render->id);
          free(handle->render);
       }
+
+      if (handle->trackno) free(handle->trackno);
+      if (handle->artist) free(handle->artist);
+      if (handle->title) free(handle->title);
+      if (handle->album) free(handle->album);
+      if (handle->date) free(handle->date);
+      if (handle->genre) free(handle->genre);
+      if (handle->comments) free(handle->comments);
+      if (handle->composer) free(handle->composer);
+      if (handle->copyright) free(handle->copyright);
+      if (handle->original) free(handle->original);
+      if (handle->contact) free(handle->contact);
+      if (handle->image) free(handle->image);
 
       _aaxDataDestroy(handle->threadBuffer);
       if (handle->interfaces) {
@@ -1031,6 +1058,72 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    return bytes;
 }
 
+static int
+_aaxStreamDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      case AAX_MUSIC_PERFORMER_STRING:
+      case AAX_MUSIC_PERFORMER_UPDATE:
+         handle->artist = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_TRACK_TITLE_STRING:
+      case AAX_TRACK_TITLE_UPDATE:
+         handle->title = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_MUSIC_GENRE_STRING:
+         handle->genre = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_TRACK_NUMBER_STRING:
+         handle->trackno = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_ALBUM_NAME_STRING:
+         handle->album = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_RELEASE_DATE_STRING:
+         handle->date = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_SONG_COMPOSER_STRING:
+         handle->composer = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_SONG_COPYRIGHT_STRING:
+         handle->copyright = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_SONG_COMMENT_STRING:
+         handle->comments = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_ORIGINAL_PERFORMER_STRING:
+         handle->original = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_CONTACT_STRING:
+         handle->contact = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      case AAX_COVER_IMAGE_DATA:
+         handle->image = strdup(name);
+         ret = AAX_TRUE;
+         break;
+      default:
+         break;
+      }
+   }
+   return ret;
+}
+
 static char *
 _aaxStreamDriverGetName(const void *id, int type)
 {
@@ -1066,13 +1159,20 @@ _aaxStreamDriverGetName(const void *id, int type)
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_ARTIST);
                }
+               if (!ret) {
+                  ret = handle->artist;
+               }
                break;
             case AAX_MUSIC_PERFORMER_UPDATE:
                if (handle->prot) {
                   ret = handle->prot->name(handle->prot, __F_ARTIST|__F_NAME_CHANGED);
                }
                if (!ret) {
-                  ret = handle->ext->name(handle->ext, __F_ARTIST|__F_NAME_CHANGED);           }
+                  ret = handle->ext->name(handle->ext, __F_ARTIST|__F_NAME_CHANGED);
+               }
+               if (!ret) {
+                  ret = handle->artist;
+               }
                break;
             case AAX_TRACK_TITLE_STRING:
                if (handle->prot) {
@@ -1080,6 +1180,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_TITLE);
+               }
+               if (!ret) {
+                  ret = handle->title;
                }
                break;
             case AAX_TRACK_TITLE_UPDATE:
@@ -1089,6 +1192,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_TITLE|__F_NAME_CHANGED);
                }
+               if (!ret) {
+                  ret = handle->title;
+               }
                break;
             case AAX_MUSIC_GENRE_STRING:
                if (handle->prot) {
@@ -1096,6 +1202,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_GENRE);
+               }
+               if (!ret) {
+                  ret = handle->genre;
                }
                break;
             case AAX_TRACK_NUMBER_STRING:
@@ -1105,6 +1214,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_TRACKNO);
                }
+               if (!ret) {
+                  ret = handle->trackno;
+               }
                break;
             case AAX_ALBUM_NAME_STRING:
                if (handle->prot) {
@@ -1112,6 +1224,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_ALBUM);
+               }
+               if (!ret) {
+                  ret = handle->album;
                }
                break;
             case AAX_RELEASE_DATE_STRING:
@@ -1121,6 +1236,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_DATE);
                }
+               if (!ret) {
+                  ret = handle->date;
+               }
                break;
             case AAX_SONG_COMPOSER_STRING:
                if (handle->prot) {
@@ -1128,6 +1246,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_COMPOSER);
+               }
+               if (!ret) {
+                  ret = handle->composer;
                }
                break;
             case AAX_SONG_COPYRIGHT_STRING:
@@ -1137,6 +1258,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_COPYRIGHT);
                }
+               if (!ret) {
+                  ret = handle->copyright;
+               }
                break;
             case AAX_SONG_COMMENT_STRING:
                if (handle->prot) {
@@ -1144,6 +1268,9 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_COMMENT);
+               }
+               if (!ret) {
+                  ret = handle->comments;
                }
                break;
             case AAX_ORIGINAL_PERFORMER_STRING:
@@ -1153,17 +1280,26 @@ _aaxStreamDriverGetName(const void *id, int type)
                if (!ret) {
                    ret = handle->ext->name(handle->ext, __F_ORIGINAL);
                }
+               if (!ret) {
+                  ret = handle->original;
+               }
                break;
-            case AAX_WEBSITE_STRING:
+            case AAX_CONTACT_STRING:
                if (handle->prot) {
                   ret = handle->prot->name(handle->prot, __F_WEBSITE);
                }
                if (!ret) {
                    ret = handle->ext->name(handle->ext, __F_WEBSITE);
                }
+               if (!ret) {
+                  ret = handle->contact;
+               }
                break;
             case AAX_COVER_IMAGE_DATA:
                ret = handle->ext->name(handle->ext, __F_IMAGE);
+               if (!ret) {
+                  ret = handle->image;
+               }
                break;
             default:
                break;
@@ -1185,6 +1321,7 @@ _aaxStreamDriverRender(const void* config)
 
 static int
 _aaxStreamDriverState(UNUSED(const void *id), enum _aaxDriverState state)
+
 {
    int rv = AAX_FALSE;
    switch(state)

@@ -139,6 +139,7 @@ typedef int _aaxDriverDisconnect(void*);
 typedef int _aaxDriverSetup(const void*, float*, int*, unsigned int*, float*, int*, int, float);
 
 typedef char *_aaxDriverGetName(const void*, int);
+typedef int _aaxDriverSetName(const void*, int, const char*);
 typedef int _aaxDriverState(const void*, enum _aaxDriverState);
 typedef float _aaxDriverParam(const void*, enum _aaxDriverParam);
 typedef int _aaxDriverSetPosition(const void*, off_t);
@@ -178,6 +179,7 @@ typedef struct
     _aaxDriverGetDevices *get_devices;
     _aaxDriverGetInterfaces *get_interfaces;
 
+    _aaxDriverSetName *set;
     _aaxDriverGetName *name;
     _aaxDriverRender *render;
     _aaxDriverThread *thread;

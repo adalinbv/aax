@@ -119,7 +119,7 @@ aaxDriverGetSetup(const aaxConfig config, enum aaxSetupType type)
       case AAX_SONG_COPYRIGHT_STRING:
       case AAX_SONG_COMMENT_STRING:
       case AAX_ORIGINAL_PERFORMER_STRING:
-      case AAX_WEBSITE_STRING:
+      case AAX_CONTACT_STRING:
       case AAX_COVER_IMAGE_DATA:
           rv = be->name(handle->backend.handle, type);
           break;
@@ -137,12 +137,29 @@ aaxDriverSetSetup(const aaxConfig config, enum aaxSetupType type, const char *se
    int rv = AAX_FALSE;
    if (handle)
    {
+      const _aaxDriverBackend *be = handle->backend.ptr;
       switch(type)
       {
       case AAX_SHARED_DATA_DIR:
          free(handle->data_dir);
          handle->data_dir = strdup(setup);
          break;
+      case AAX_MUSIC_PERFORMER_STRING:
+      case AAX_MUSIC_PERFORMER_UPDATE:
+      case AAX_MUSIC_GENRE_STRING:
+      case AAX_TRACK_TITLE_STRING:
+      case AAX_TRACK_TITLE_UPDATE:
+      case AAX_TRACK_NUMBER_STRING:
+      case AAX_ALBUM_NAME_STRING:
+      case AAX_RELEASE_DATE_STRING:
+      case AAX_SONG_COMPOSER_STRING:
+      case AAX_SONG_COPYRIGHT_STRING:
+      case AAX_SONG_COMMENT_STRING:
+      case AAX_ORIGINAL_PERFORMER_STRING:
+      case AAX_CONTACT_STRING:
+      case AAX_COVER_IMAGE_DATA:
+          rv = be->set(handle->backend.handle, type, setup);
+          break;
       default:
          break;
       }

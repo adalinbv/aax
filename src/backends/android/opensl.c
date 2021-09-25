@@ -64,6 +64,7 @@ static _aaxDriverDisconnect _aaxSLESDriverDisconnect;
 static _aaxDriverSetup _aaxSLESDriverSetup;
 static _aaxDriverCaptureCallback _aaxSLESDriverCapture;
 static _aaxDriverPlaybackCallback _aaxSLESDriverPlayback;
+static _aaxDriverSetName _aaxSLESDriverSetName;
 static _aaxDriverGetName _aaxSLESDriverGetName;
 static _aaxDriverRender _aaxSLESDriverRender;
 static _aaxDriverState _aaxSLESDriverState;
@@ -87,6 +88,7 @@ const _aaxDriverBackend _aaxSLESDriverBackend =
    (_aaxDriverGetDevices *)&_aaxSLESDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxSLESDriverGetInterfaces,
 
+   (_aaxDriverSetName *)&_aaxSLESDriverSetName,
    (_aaxDriverGetName *)&_aaxSLESDriverGetName,
    (_aaxDriverRender *)&_aaxSLESDriverRender,
    (_aaxDriverThread *)&_aaxSLESDriverThread,
@@ -591,6 +593,21 @@ _aaxSLESDriverRender(const void* id)
    return handle->render;
 }
 
+
+static int
+_aaxSLESDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      default:
+         break;
+      }
+   }
+}
 
 static char *
 _aaxSLESDriverGetName(const void *id, int playback)

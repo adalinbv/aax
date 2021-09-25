@@ -86,6 +86,7 @@ static _aaxDriverDisconnect _aaxOSSDriverDisconnect;
 static _aaxDriverSetup _aaxOSSDriverSetup;
 static _aaxDriverCaptureCallback _aaxOSSDriverCapture;
 static _aaxDriverPlaybackCallback _aaxOSSDriverPlayback;
+static _aaxDriverSetName _aaxOSSDriverSetName;
 static _aaxDriverGetName _aaxOSSDriverGetName;
 static _aaxDriverRender _aaxOSSDriverRender;
 static _aaxDriverState _aaxOSSDriverState;
@@ -108,6 +109,7 @@ const _aaxDriverBackend _aaxOSSDriverBackend =
    (_aaxDriverGetDevices *)&_aaxOSSDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxOSSDriverGetInterfaces,
 
+   (_aaxDriverSetName *)&_aaxOSSDriverSetName,
    (_aaxDriverGetName *)&_aaxOSSDriverGetName,
    (_aaxDriverRender *)&_aaxOSSDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
@@ -698,6 +700,22 @@ _aaxOSSDriverPlayback(const void *id, void *s, UNUSED(float pitch), float gain,
    outbuf_size = info.fragstotal*info.fragsize - outbuf_size;
 
    return 0; // (info.bytes-outbuf_size)/(no_tracks*sizeof(int16_t));
+}
+
+static int
+_aaxOSSDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      default:
+         break;
+      }
+   }
+   return ret;
 }
 
 static char *

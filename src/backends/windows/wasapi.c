@@ -84,6 +84,7 @@ static _aaxDriverDisconnect _aaxWASAPIDriverDisconnect;
 static _aaxDriverSetup _aaxWASAPIDriverSetup;
 static _aaxDriverCaptureCallback _aaxWASAPIDriverCapture;
 static _aaxDriverPlaybackCallback _aaxWASAPIDriverPlayback;
+static _aaxDriverSetName _aaxWASAPIDriverSetName;
 static _aaxDriverGetName _aaxWASAPIDriverGetName;
 static _aaxDriverRender _aaxWASAPIDriverRender;
 static _aaxDriverThread _aaxWASAPIDriverThread;
@@ -109,6 +110,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverGetDevices *)&_aaxWASAPIDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxWASAPIDriverGetInterfaces,
 
+   (_aaxDriverGetName *)&_aaxWASAPIDriverSetName,
    (_aaxDriverGetName *)&_aaxWASAPIDriverGetName,
    (_aaxDriverRender *)&_aaxWASAPIDriverRender,
    (_aaxDriverThread *)&_aaxWASAPIDriverThread,
@@ -952,6 +954,21 @@ _aaxWASAPIDriverRender(const void* config)
 {
    _driver_t *handle = (_driver_t *)config;
    return handle->render;
+}
+
+static int
+_aaxWASAPIDriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      default:
+         break;
+      }
+   }
 }
 
 static char *

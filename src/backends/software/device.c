@@ -54,6 +54,7 @@ static _aaxDriverConnect _aaxNoneDriverConnect;
 static _aaxDriverDisconnect _aaxNoneDriverDisconnect;
 static _aaxDriverSetup _aaxNoneDriverSetup;
 static _aaxDriverPlaybackCallback _aaxNoneDriverPlayback;
+static _aaxDriverSetName _aaxNoneDriverSetName;
 static _aaxDriverGetName _aaxNoneDriverGetName;
 static _aaxDriverRender _aaxNoneDriverRender;
 static _aaxDriverPrepare3d _aaxNoneDriver3dPrepare;
@@ -80,6 +81,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverGetDevices *)&_aaxNoneDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
+   (_aaxDriverSetName *)&_aaxNoneDriverSetName,
    (_aaxDriverGetName *)&_aaxNoneDriverGetName,
    (_aaxDriverRender *)&_aaxNoneDriverRender,
    (_aaxDriverThread *)&_aaxNoneDriverThread,
@@ -145,6 +147,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverGetDevices *)&_aaxNoneDriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxNoneDriverGetInterfaces,
 
+   (_aaxDriverSetName *)&_aaxNoneDriverSetName,
    (_aaxDriverGetName *)&_aaxNoneDriverGetName,
    (_aaxDriverRender *)&_aaxLoopbackDriverRender,
    (_aaxDriverThread *)&_aaxSoftwareMixerThread,
@@ -217,6 +220,12 @@ _aaxNoneDriverPrepare(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(vo
 static void
 _aaxNoneDriverPostProcess(UNUSED(const void *id), UNUSED(const void *hid), UNUSED(void *s), UNUSED(const void *l), UNUSED(const void *f), UNUSED(void *i))
 {
+}
+
+static int
+_aaxNoneDriverSetName(const void *id, int type, const char *name)
+{
+   return AAX_FALSE;
 }
 
 static char *

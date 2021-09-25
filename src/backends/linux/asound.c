@@ -80,6 +80,7 @@ static _aaxDriverDisconnect _aaxALSADriverDisconnect;
 static _aaxDriverSetup _aaxALSADriverSetup;
 static _aaxDriverPlaybackCallback _aaxALSADriverPlayback;
 static _aaxDriverCaptureCallback _aaxALSADriverCapture;
+static _aaxDriverSetName _aaxALSADriverSetName;
 static _aaxDriverGetName _aaxALSADriverGetName;
 static _aaxDriverRender _aaxALSADriverRender;
 static _aaxDriverThread _aaxALSADriverThread;
@@ -103,6 +104,7 @@ const _aaxDriverBackend _aaxALSADriverBackend =
    (_aaxDriverGetDevices *)&_aaxALSADriverGetDevices,
    (_aaxDriverGetInterfaces *)&_aaxALSADriverGetInterfaces,
 
+   (_aaxDriverSetName *)&_aaxALSADriverSetName,
    (_aaxDriverGetName *)&_aaxALSADriverGetName,
    (_aaxDriverRender *)&_aaxALSADriverRender,
    (_aaxDriverThread *)&_aaxALSADriverThread,
@@ -1392,6 +1394,22 @@ if (corr)
    else rv = AAX_TRUE;
 
    return rv;
+}
+
+static int
+_aaxALSADriverSetName(const void *id, int type, const char *name)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+   if (handle)
+   {
+      switch (type)
+      {
+      default:
+         break;
+      }
+   }
+   return ret;
 }
 
 static char *
