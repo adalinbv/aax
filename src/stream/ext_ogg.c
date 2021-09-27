@@ -228,7 +228,7 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          }
          else /* playback */
          {
-            handle->format_type = _FMT_VORBIS;
+            handle->format_type = format;
             handle->out = calloc(1, sizeof(_driver_write_t));
             *bufsize = sizeof(ogg_packet[3]);
          }
@@ -801,16 +801,13 @@ _ogg_interfaces(int ext, int mode)
 int
 _ogg_extension(char *ext)
 {
-   int rv = _EXT_NONE;
+   int rv = _FMT_NONE;
 
-   if (ext) {
-      if (!strcasecmp(ext, "ogg") || !strcasecmp(ext, "oga")
-//        || !strcasecmp(ext, "ogx") || !strcasecmp(ext, "spx")
-          || !strcasecmp(ext, "opus")
-         )
-      {
-         rv = _EXT_OGG;
-      }
+   if (ext)
+   {
+      if (!strcasecmp(ext, "ogg") || !strcasecmp(ext, "oga")) rv = _FMT_VORBIS;
+      else if (!strcasecmp(ext, "opus")) rv = _FMT_OPUS;
+//    else if (!strcasecmp(ext, "ogx") || !strcasecmp(ext, "spx"))
    }
    return rv;
 }
