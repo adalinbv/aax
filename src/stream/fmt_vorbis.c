@@ -329,8 +329,7 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
       _AAX_FILEDRVLOG("VORBIS: Unable to allocate the audio buffer");
       rv = buf;	// try again
    }
-   else
-   {
+   else {
       _AAX_FILEDRVLOG("VORBIS: Internal error: handle id equals 0");
    }
 

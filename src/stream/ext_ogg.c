@@ -292,7 +292,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
             handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
 
-            // open the vorbis layer
+            // open the format layer
             rv = handle->fmt->open(handle->fmt, handle->mode, &header, &size,
                                    fsize);
             if (size == sizeof(ogg_packet[3]))
