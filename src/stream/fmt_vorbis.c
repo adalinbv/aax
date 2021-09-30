@@ -32,6 +32,7 @@
 #include <xml.h>
 
 #include <base/dlsym.h>
+#include <base/memory.h>
 
 #include <api.h>
 #include <arch.h>
@@ -793,26 +794,6 @@ _vorbis_set(_fmt_t *fmt, int type, off_t value)
 }
 
 /* -------------------------------------------------------------------------- */
-static void __dup(char **a, const char *b)
-{
-   size_t alen = (*a) ? strlen(*a) : 0;
-   size_t blen = strlen(b);
-   char *ptr;
-
-   ptr = realloc(*a, alen+blen+3); // strlen(", ")+1
-   if (ptr)
-   {
-      *a = ptr;
-      ptr = *a + alen;
-      if (alen)
-      {
-         *ptr++ = ',';
-         *ptr++ = ' ';
-      }
-      memcpy(ptr, b, blen);
-   }
-}
-
 static void
 _detect_vorbis_song_info(_driver_t *handle)
 {
@@ -831,40 +812,39 @@ _detect_vorbis_song_info(_driver_t *handle)
    // https://www.xiph.org/vorbis/doc/v-comment.html
    for (i=0; i<comments.comment_list_length; ++i)
    {
-       const char *comment = comments.comment_list[i];
-
+       char *comment = comments.comment_list[i];
 #if 0
   printf("handle->comments: %s\n", handle->comments);
-  __dup(&handle->comments, comment);
+  stradd(&handle->comments, comment);
 #endif
-       if (!strcasecmp(comment, "TRACKNUMBER=")) {
-          __dup(&handle->trackno, comment+strlen("TRACKNUMBER="));
-       } else if (!strcasecmp(comment, "TITLE=")) {
-          __dup(&handle->title, comment+strlen("TITLE="));
-       } else if (!strcasecmp(comment, "ARTIST=")) {
-          __dup(&handle->composer, comment+strlen("ARTIST="));
-       } else if (!strcasecmp(comment, "ALBUM ARTIST=")) {
-          __dup(&handle->artist, comment+strlen("ALBUM ARTIST="));
-       } else if (!strcasecmp(comment, "ALBUMARTIST=")) {
-          __dup(&handle->artist, comment+strlen("ALBUMARTIST="));
-       } else if (!strcasecmp(comment, "PERFORMER=")) {
-          __dup(&handle->artist, comment+strlen("PERFORMER="));
-       } else if (!strcasecmp(comment, "COPYRIGHT=")) {
-          __dup(&handle->copyright, comment+strlen("COPYRIGHT="));
-       } else if (!strcasecmp(comment, "ALBUM=")) {
-          __dup(&handle->album, comment+strlen("ALBUM="));
-       } else if (!strcasecmp(comment, "GENRE=")) {
-          __dup(&handle->genre, comment+strlen("GENRE="));
-       } else if (!strcasecmp(comment, "DATE=")) {
-          __dup(&handle->date, comment+strlen("DATE="));
-       } else if (!strcasecmp(comment, "CONTACT=")) {
-          __dup(&handle->website, comment+strlen("CONTACT="));
-       } else if (!strcasecmp(comment, "DESCRIPTION=")) {
-          __dup(&handle->comments, comment+strlen("DESCRIPTION="));
-       } else if (!strcasecmp(comment, "COMMENT=")) {
-          __dup(&handle->comments, comment+strlen("COMMENT="));
+       if (!STRCMP(comment, "TRACKNUMBER")) {
+          handle->trackno = stradd(handle->trackno, comment+strlen("TRACKNUMBER="));
+       } else if (!STRCMP(comment, "TITLE")) {
+          handle->title = stradd(handle->title, comment+strlen("TITLE="));
+       } else if (!STRCMP(comment, "ARTIST")) {
+          handle->composer = stradd(handle->composer, comment+strlen("ARTIST="));
+       } else if (!STRCMP(comment, "ALBUM ARTIST")) {
+          handle->artist = stradd(handle->artist, comment+strlen("ALBUM ARTIST="));
+       } else if (!STRCMP(comment, "ALBUMARTIST")) {
+          handle->artist = stradd(handle->artist, comment+strlen("ALBUMARTIST="));
+       } else if (!STRCMP(comment, "PERFORMER")) {
+          handle->artist = stradd(handle->artist, comment+strlen("PERFORMER="));
+       } else if (!STRCMP(comment, "COPYRIGHT")) {
+          handle->copyright = stradd(handle->copyright, comment+strlen("COPYRIGHT="));
+       } else if (!STRCMP(comment, "ALBUM")) {
+          handle->album = stradd(handle->album, comment+strlen("ALBUM="));
+       } else if (!STRCMP(comment, "GENRE")) {
+          handle->genre = stradd(handle->genre, comment+strlen("GENRE="));
+       } else if (!STRCMP(comment, "DATE")) {
+          handle->date = stradd(handle->date, comment+strlen("DATE="));
+       } else if (!STRCMP(comment, "CONTACT")) {
+          handle->website = stradd(handle->website, comment+strlen("CONTACT="));
+       } else if (!STRCMP(comment, "DESCRIPTION")) {
+          handle->comments = stradd(handle->comments, comment+strlen("DESCRIPTION="));
+       } else if (!STRCMP(comment, "COMMENT")) {
+          handle->comments = stradd(handle->comments, comment+strlen("COMMENT="));
        } else {
-          __dup(&handle->comments, comment);
+          handle->comments = stradd(handle->comments, comment);
        }
    }
 
