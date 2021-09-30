@@ -1458,7 +1458,7 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
    //                      'Opus'                'Tags'
    if (len > 12 && x[0] == 0x7375704f && x[1] == 0x73676154)
    {
-#if 0
+#if 1
       printf("\n--Opus Comment Header:\n");
       printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
 

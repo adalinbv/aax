@@ -486,8 +486,8 @@ size_t
 _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   size_t bufsize, rv = 0;
-   unsigned char *buf;
+   size_t outbufavail, rv = 0;
+   unsigned char *outbuf;
    unsigned int req, ret;
    int n, i, tracks;
 
@@ -495,8 +495,8 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
    tracks = handle->info.channels;
    *num = 0;
 
-   buf = _aaxDataGetData(handle->vorbisBuffer);
-   bufsize = _aaxDataGetDataAvail(handle->vorbisBuffer);
+   outbuf = _aaxDataGetData(handle->vorbisBuffer);
+   outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer);
 
    /* there is still data left in the buffer from the previous run */
    if (handle->out_pos > 0)
@@ -522,13 +522,13 @@ _vorbis_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *
       ret = 0;
       do
       {
-         ret = stb_vorbis_decode_frame_pushdata(handle->id, buf, bufsize, NULL,
-                                                &handle->outputs, &n);
+         ret = stb_vorbis_decode_frame_pushdata(handle->id, outbuf, outbufavail,
+                                                NULL, &handle->outputs, &n);
          if (ret > 0)
          {
             rv += _aaxDataMove(handle->vorbisBuffer, NULL, ret);
 
-            bufsize = _aaxDataGetDataAvail(handle->vorbisBuffer);
+            outbufavail = _aaxDataGetDataAvail(handle->vorbisBuffer);
          }
       }
       while (ret && n == 0);
