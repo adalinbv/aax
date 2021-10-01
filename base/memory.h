@@ -22,11 +22,19 @@
 #ifndef MEMEORY_H
 #define MEMORY_H 1
 
+#include <stdint.h>
+
 #if defined(__cplusplus)
 extern "C" {
 #endif
 
 char is_bigendian();
+
+uint8_t read8(uint8_t**);
+uint16_t read16(uint8_t**);
+uint32_t read32(uint8_t**);
+uint64_t read64(uint8_t**);
+
 char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);
 char* stradd(char*, char*);

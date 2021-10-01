@@ -49,6 +49,65 @@ is_bigendian()
    return __big_endian;
 }
 
+// Read data from a stream, byte by byte
+uint8_t
+read8(uint8_t **ptr)
+{
+   uint8_t *ch = *ptr;
+   uint8_t u8;
+
+   u8 = *ch++;
+   *ptr = ch;
+
+   return u8;
+}
+
+uint16_t
+read16(uint8_t **ptr)
+{
+   uint8_t *ch = *ptr;
+   uint16_t u16;
+
+   u16 = (uint16_t)*ch++;
+   u16 |= (uint16_t)*ch++ << 8;
+   *ptr = ch;
+
+   return u16;
+}
+
+uint32_t
+read32(uint8_t **ptr)
+{
+   uint8_t *ch = *ptr;
+   uint32_t u32;
+
+   u32 = (uint32_t)*ch++;
+   u32 |= (uint32_t)*ch++ << 8;
+   u32 |= (uint32_t)*ch++ << 16;
+   u32 |= (uint32_t)*ch++ << 24;
+   *ptr = ch;
+
+   return u32;
+}
+
+uint64_t
+read64(uint8_t **ptr)
+{
+   uint8_t *ch = *ptr;
+   uint64_t u64;
+
+   u64 = (uint64_t)*ch++;
+   u64 |= (uint64_t)*ch++ << 8;
+   u64 |= (uint64_t)*ch++ << 16;
+   u64 |= (uint64_t)*ch++ << 24;
+   u64 |= (uint64_t)*ch++ << 32;
+   u64 |= (uint64_t)*ch++ << 40;
+   u64 |= (uint64_t)*ch++ << 48;
+   u64 |= (uint64_t)*ch++ << 56;
+   *ptr = ch;
+
+   return u64;
+}
 
 /*
  * Taken from FreeBSD:
