@@ -45,6 +45,7 @@
 #include "ext_ogg.h"
 
 
+// https://xiph.org/ogg/
 // https://wiki.xiph.org/index.php/Main_Page
 // https://xiph.org/vorbis/doc/v-comment.html
 // https://xiph.org/flac/ogg_mapping.html
@@ -53,7 +54,7 @@
 // https://wiki.xiph.org/OggPCM (listed under abandonware)
 
 
-#define OGG_CALCULATE_CRC	0
+#define OGG_CALCULATE_CRC	1
 #define OGG_WRITE_SAMPLES	1024
 #define OGG_WRITE_PACKET_SIZE	(OGG_WRITE_SAMPLES*sizeof(float))
 #define OGG_WRITE_BUFFER_SIZE	(4*OGG_WRITE_PACKET_SIZE)
@@ -94,6 +95,7 @@ typedef struct
    int bits_sample;
    int frequency;
    int bitrate;
+   int bitrate_min, bitrate_max;
    enum aaxFormat format;
    size_t blocksize;
    size_t no_samples;
@@ -108,7 +110,7 @@ typedef struct
     * Indicate whether the data presented to the format code needs the Ogg
     * page header or not. If not remove it from the data stream.
     */
-   char keep_header;
+   char keep_ogg_header;
 
    /* page header information */
    char header_type;
@@ -485,7 +487,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
             rv = _getOggPageHeader(handle, (uint32_t*)header, avail);
             if (rv <= 0) break;
 
-            if (!handle->keep_header)
+            if (!handle->keep_ogg_header)
             {
                handle->page_size -= rv;
                _aaxDataMove(handle->oggBuffer, NULL, rv);
@@ -931,7 +933,7 @@ static int
 _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 {
    size_t bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
-   uint32_t curr;
+   uint8_t *ch = (uint8_t*)header;
    int rv = 0;
 
    if (bufsize < OGG_HEADER_SIZE || size < OGG_HEADER_SIZE) {
@@ -940,14 +942,15 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 
 #if 0
 {
-   char *ch = (char*)header;
    unsigned int i;
+   uint32_t curr;
    uint64_t i64;
    uint32_t i32;
 
+   ch = (uint8_t*)header;
    printf("Read Header:\n");
 
-   printf("0: %08x (Magic number: \"%c%c%c%c\"\n", header[0], ch[0], ch[1], ch[2], ch[3]);
+   printf("0: %08x (Magic number: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
 
    printf("1: %08x (Version: %i | Type: 0x%x)\n", header[1], ch[4], ch[5]);
 
@@ -972,14 +975,21 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
       i64 += (uint8_t)ch[27+i];
    }
    printf("6: %08x (Page segments: %i, Total segment size: %zi)\n", header[6], i32, i64);
-}
-#endif
 
    curr = header[0];
    if (curr != 0x5367674f)		/* OggS */
    {
       char *c = strncasestr((const char*)header, "OggS", size);
-      if (!c) printf("OggS header not found, len: %zu\n", size);
+      if (!c)
+      {
+         char *b = (char *)header;
+         int i;
+         printf("OggS header not found, len: %zu\n", size);
+         for (i=0; i<10; ++i) {
+            printf("%c ", b[i]);
+         }
+         printf("\n");
+      }
       else
       {
          printf("Found OggS header at offset: %zi\n", c-(char*)header);
@@ -987,79 +997,40 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
          curr = header[0];
       }
    }
+}
+#endif
 
-   if (curr == 0x5367674f)		/* OggS */
+   ch = (uint8_t*)header;
+   if (*ch++ == 'O' && *ch++ == 'g' && *ch++ == 'g' && *ch++ == 'S')
    {
-      unsigned int version;
+      int32_t version, crc32, serial_no, no_segments, sequence_no;
 
-      curr = header[1] & 0xFF;
-      version = curr;
+      version = read8(&ch);
+      handle->header_type = read8(&ch);
+      handle->granule_position = read64(&ch);;
 
-      curr = (header[6] >> 16) & 0xFF;
-      handle->header_size = 27 + curr;
+      serial_no = read32(&ch);
+      if (!handle->bitstream_serial_no) {
+         handle->bitstream_serial_no = serial_no;
+      }
+
+      sequence_no = read32(&ch);
+      crc32 = read32(&ch);
+
+      no_segments = read8(&ch);
+      handle->header_size = 27 + no_segments;
 
       if ((bufsize >= handle->header_size) && (version == 0x0))
       {
-         curr = (header[3] >> 16) | (header[4] << 16);
-         if (!handle->bitstream_serial_no) {
-            handle->bitstream_serial_no = curr;
-         }
-
-         if (curr == handle->bitstream_serial_no)
+         if (serial_no == handle->bitstream_serial_no)
          {
-            curr = (header[4] >> 16) | (header[5] << 16);
             if (!handle->page_sequence_no ||
-                curr > handle->page_sequence_no)
+                sequence_no > handle->page_sequence_no)
             {
-               unsigned char *ch = (unsigned char*)header;
-               unsigned int i, no_segments;
+               unsigned int i;
 
-               handle->page_sequence_no = curr;
+               handle->page_sequence_no = sequence_no;
 
-#if 0
-{
-   char *ch = (char*)header;
-   unsigned int i;
-   uint64_t i64;
-   uint32_t i32;
-
-   printf("Read Header:\n");
-
-   printf("0: %08x (Magic number: \"%c%c%c%c\"\n", header[0], ch[0], ch[1], ch[2], ch[3]);
-
-   printf("1: %08x (Version: %i | Type: 0x%x)\n", header[1], ch[4], ch[5]);
-
-   i64 = (uint64_t)(header[1] >> 16);
-   i64 |= ((uint64_t)header[2] << 16);
-   i64 |= ((uint64_t)header[3] << 48);
-   printf("2: %08x (Granule position: %zu)\n", header[2], i64);
-
-   i32 = (header[3] >> 16) | (header[4] << 16);
-   printf("3: %08x (Serial number: %08x)\n", header[3], i32);
-
-   i32 = (header[4] >> 16) | (header[5] << 16);
-   printf("4: %08x (Sequence number: %08x)\n", header[4], i32);
-
-   i32 = (header[5] >> 16) | (header[6] << 16);
-   printf("5: %08x (CRC cehcksum: %08x)\n", header[5], i32);
-
-   i32 = (header[6] >> 16) & 0xFF;
-
-   i64 = 0;
-   for (i=0; i<i32; ++i) {
-      i64 += (uint8_t)ch[27+i];
-   }
-   printf("6: %08x (Page segments: %i, Total segment size: %zi)\n", header[6], i32, i64);
-}
-#endif
-               curr = (header[1] >> 8) & 0xFF;
-               handle->header_type = curr;
-
-               handle->granule_position  = ((uint64_t)header[1] >> 16);
-               handle->granule_position |= ((uint64_t)header[2] << 16);
-               handle->granule_position |= ((uint64_t)header[3] << 48);
-
-               no_segments = (header[6] >> 16) & 0xFF;
                if (no_segments > 0)
                {
                   unsigned int p = 0;
@@ -1069,7 +1040,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                   handle->packet_offset[p] = 0;
                   for (i=0; i<no_segments; ++i)
                   {
-                     unsigned char ps = ch[27+i];
+                     unsigned char ps = *ch++;
 
                      handle->segment_size += ps;
                      handle->packet_offset[p] += ps;
@@ -1090,10 +1061,6 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
 #if OGG_CALCULATE_CRC
                   if (handle->page_size <= bufsize)
                   {
-                     uint32_t crc32 = 0;
-
-                     header[5] = (header[5] & 0x0000FFFF);
-                     header[6] = (header[6] & 0xFFFF0000);
                      for (i=0; i<handle->page_size; i++) {
                         CRC32_UPDATE(crc32, ch[i]);
                      }
@@ -1113,6 +1080,25 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
                   rv = __F_EOF;
                }
             }
+#if 0
+{
+   unsigned int i;
+   ch = (uint8_t*)header;
+   printf("Read Header:\n");
+   printf("0: %08x (Magic number: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
+   printf("1: %08x (Version: %i | Type: 0x%x)\n", header[1], version, handle->header_type);
+   printf("2: %08x (Granule position: %zu)\n", header[2], handle->granule_position);
+   printf("3: %08x (Serial number: %08x)\n", header[3], serial_no);
+   printf("4: %08x (Sequence number: %08x)\n", header[4], handle->page_sequence_no);
+   printf("5: %08x (CRC cehcksum: %08x)\n", header[5], crc32);
+
+   i64 = 0;
+   for (i=0; i<no_segments; ++i) {
+      i64 += (uint8_t)ch[27+i];
+   }
+   printf("6: %08x (Page segments: %i, Total segment size: %zi)\n", header[6], no_segments, i64);
+}
+#endif
          }
          else	// SKIP page due to incorrect serial number
          {
@@ -1160,10 +1146,13 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
    if (len >= VORBIS_ID_HEADER_SIZE)
    {
       uint32_t *header = (uint32_t*)h;
-      int type = h[0];
+      uint8_t *ch = h;
+      int type = read8(&ch);
 
-      if (type == HEADER_IDENTIFICATION)
+      if (type == HEADER_IDENTIFICATION && *ch++ == 'v' && *ch++ == 'o' &&
+          *ch++ == 'r' && *ch++ == 'b' && *ch++ == 'i' && *ch++ == 's')
       {
+         uint32_t version;
 #if 0
    printf("\n--Vorbis Identification Header:\n");
    printf("  0: %08x (Type: %x)\n", header[0], h[0]);
@@ -1175,26 +1164,24 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
    printf(" 24: %08x (Min. bitrate: %u)\n", header[6], header[6]);
    printf(" 28: %01x  %01x (block size: %u - %u, framing: %u)\n", h[28], h[29], 1 << (h[28] & 0xF), 1 << (h[28] >> 4), h[29]);
 #endif
-
-         uint32_t version = (header[2] << 8) | (header[3] >> 24);
+         version = read32(&ch);
          if (version == 0x0)
          {
-            unsigned int blocksize1;
+            unsigned int blocksize1, framing;
+            uint32_t i32;
 
             handle->format = AAX_PCM24S;
-            handle->no_tracks = header[2] >> 24;
-            handle->frequency = header[3];
-            handle->blocksize = 1 << (h[28] & 0xF);
-//          handle->blocksize = 4*handle->no_tracks;
-            blocksize1 = 1 << (h[28] >> 4);
+            handle->no_tracks = read8(&ch);
+            handle->frequency = read32(&ch);
+            handle->bitrate_max = read32(&ch);
+            handle->bitrate = read32(&ch);
+            handle->bitrate_min = read32(&ch);
 
-            handle->bitrate = header[5]; // nominal bitrate
-            if (handle->bitrate <= 0) {
-               handle->bitrate = header[6]; // minimum bitrate
-            }
-            if (handle->bitrate <= 0) {
-               handle->bitrate = header[4]; // maximum bitrate
-            }
+            i32 = read8(&ch);
+            handle->blocksize = 1 << (i32 & 0xF);
+//          handle->blocksize = 4*handle->no_tracks;
+            blocksize1 = 1 << (i32 >> 4);
+            framing = read8(&ch) & 0x1;
 
             if (handle->no_tracks <= 0 || handle->frequency <= 0 ||
                 (handle->blocksize > blocksize1))
@@ -1208,7 +1195,17 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
 #endif
                return __F_EOF;
             }
-
+#if 0
+   printf("\n--Vorbis Identification Header:\n");
+   printf("  0: %08x (Type: %x)\n", header[0], type);
+   printf("  1: %08x (Codec identifier \"%c%c%c%c%c%c\")\n", header[1], h[1], h[2], h[3], h[4], h[5], h[6]);
+   printf("  7: %08x (version %i, channels: %u)\n", header[2], version, handle->no_tracks);
+   printf(" 12: %08x (Sample rate: %u)\n", header[3], handle->frequency);
+   printf(" 16: %08x (Max. bitrate: %u)\n", header[4], handle->bitrate_max);
+   printf(" 20: %08x (Nom. bitrate: %u)\n", header[5], handle->bitrate);
+   printf(" 24: %08x (Min. bitrate: %u)\n", header[6], handle->bitrate_min);
+   printf(" 28: %01x  %01x (block size: %lu - %u, framing: %u)\n", h[28], h[29], handle->blocksize, blocksize1, framing);
+#endif
             rv = VORBIS_ID_HEADER_SIZE;
          }
       }
@@ -1399,7 +1396,7 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 
    if ((len > 5) && !strncmp(h, "\177FLAC", 5))
    {
-      handle->keep_header = AAX_FALSE;
+      handle->keep_ogg_header = AAX_FALSE;
 //    handle->ogg_format = FLAC_OGG_FILE;
       handle->format_type = _FMT_FLAC;
       handle->format = AAX_PCM16S;
@@ -1407,14 +1404,14 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
    }
    else if ((len > 7) && !strncmp(h, "\x01vorbis", 7))
    {
-      handle->keep_header = AAX_TRUE;
+      handle->keep_ogg_header = AAX_TRUE;
       handle->format_type = _FMT_VORBIS;
 //    handle->ogg_format = VORBIS_OGG_FILE;
       rv = _aaxFormatDriverReadVorbisHeader(handle, ch, len);
    }
    else if ((len > 8) && !strncmp(h, "OpusHead", 8))
    {
-      handle->keep_header = AAX_FALSE;
+      handle->keep_ogg_header = AAX_FALSE;
       handle->format_type = _FMT_OPUS;
 //    handle->ogg_format = OPUS_OGG_FILE;
       rv = _aaxFormatDriverReadOpusHeader(handle, h, len);
@@ -1422,14 +1419,14 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 #if 0
    else if ((len > 8) && !strncmp(h, "PCM     ", 8))
    {
-      handle->keep_header = AAX_FALSE;
+      handle->keep_ogg_header = AAX_FALSE;
       handle->format_type = _FMT_PCM;
       handle->ogg_format = PCM_OGG_FILE;
       rv = _aaxFormatDriverReadPCMHeader(handle, h, len);
    }
    else if ((len > 8) && !strncmp(h, "Speex   ", 8))
    {
-      handle->keep_header = AAX_FALSE;
+      handle->keep_ogg_header = AAX_FALSE;
       handle->format_type = _FMT_SPEEX;
       handle->ogg_format = SPEEX_OGG_FILE;
       handle->format = AAX_PCM16S;
@@ -1458,7 +1455,7 @@ _getOggOpusComment(_driver_t *handle, unsigned char *ch, size_t len)
    //                      'Opus'                'Tags'
    if (len > 12 && x[0] == 0x7375704f && x[1] == 0x73676154)
    {
-#if 1
+#if 0
       printf("\n--Opus Comment Header:\n");
       printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], ch[0], ch[1], ch[2], ch[3], ch[4], ch[5], ch[6], ch[7]);
 
@@ -1696,7 +1693,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
 
                   if (rv >= 0)
                   {
-                     if (handle->keep_header) {
+                     if (handle->keep_ogg_header) {
                         rv = _aaxOggInitFormat(handle, header, &page_size);
                      } else {
                         rv = _aaxOggInitFormat(handle, segment, &segment_size);
@@ -1735,7 +1732,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                   if (rv >= 0)
                   {
                      void *buf;
-                     if (handle->keep_header) {
+                     if (handle->keep_ogg_header) {
                         buf = handle->fmt->open(handle->fmt, handle->mode,
                                                 header, &page_size,
                                                 handle->datasize);
@@ -1773,7 +1770,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                handle->page_size = 0;
             }
          }
-         else if (!handle->keep_header && handle->page_sequence_no > 1)
+         else if (!handle->keep_ogg_header && handle->page_sequence_no > 1)
          {
             handle->page_size -= rv;
             _aaxDataMove(handle->oggBuffer, NULL, rv);
