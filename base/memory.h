@@ -34,6 +34,7 @@ uint8_t read8(uint8_t**);
 uint16_t read16(uint8_t**);
 uint32_t read32(uint8_t**);
 uint64_t read64(uint8_t**);
+size_t readstr(uint8_t**, char*, size_t, size_t);
 
 char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);

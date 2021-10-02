@@ -33,6 +33,7 @@
 #include <ctype.h>	// toupper
 #include <assert.h>
 
+#include "types.h"	// _MIN
 #include "memory.h"
 
 char
@@ -107,6 +108,21 @@ read64(uint8_t **ptr)
    *ptr = ch;
 
    return u64;
+}
+
+size_t
+readstr(uint8_t **ptr, char *buf, size_t len, size_t buflen)
+{
+   size_t max = _MIN(len, buflen);
+   uint8_t *ch = *ptr;
+   size_t i;
+   for (i=0; i<max; ++i) {
+      *buf++ = *ch++;
+   }
+   *ptr = ch;
+   *buf = '\0';
+
+   return max;
 }
 
 /*
