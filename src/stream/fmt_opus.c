@@ -115,8 +115,6 @@ typedef struct
 
 static void *audio = NULL;
 
-static int _aaxReadOpusHeader(_driver_t*);
-
 int
 _opus_detect(UNUSED(_fmt_t *fmt), int mode)
 {
@@ -187,7 +185,7 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsi
       {
          handle->mode = mode;
          handle->frequency = 48000;
-         handle->format = AAX_PCM24S;
+         handle->format = AAX_FLOAT;
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = FRAME_SIZE;
@@ -223,16 +221,7 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsi
                   int32_t freq = handle->frequency;
 
                   handle->id = popus_decoder_create(freq, tracks, &err);
-                  if (handle->id)
-                  {
-                     res = _aaxReadOpusHeader(handle);
-                     if (res)
-                     {
-                        res = _aaxDataMove(handle->opusBuffer, NULL, res);
-                        // Note: _getOggOpusComment is handled in ext_ogg
-                     }
-                  }
-                  else
+                  if (!handle->id)
                   {
                      *bufsize = 0;
                      switch (err)
@@ -702,82 +691,5 @@ _opus_set(_fmt_t *fmt, int type, off_t value)
    default:
       break;
    }
-   return rv;
-}
-
-/* -------------------------------------------------------------------------- */// https://tools.ietf.org/html/rfc7845.html#page-12
-#define OPUS_ID_HEADER_SIZE	(4*5-1)
-
-static int
-_aaxReadOpusHeader(_driver_t *handle)
-{
-   char *h = (char*)_aaxDataGetData(handle->opusBuffer);
-   size_t len = _aaxDataGetDataAvail(handle->opusBuffer);
-   int32_t *x = (int32_t*)h;
-   int rv = __F_EOF;
-
-   //                                       'Opus'                'Head'
-   if (len >= OPUS_ID_HEADER_SIZE && x[0] == 0x7375704f && x[1] == 0x64616548)
-   {
-      int version = h[8];
-      if (version == 1)
-      {
-         unsigned char mapping_family;
-         int gain;
-
-         handle->format = AAX_FLOAT;
-         handle->no_tracks = (unsigned char)h[9];
-         handle->nb_streams = 1;
-         handle->nb_coupled = handle->no_tracks/2;
-         handle->frequency = *((uint32_t*)h+3);
-         handle->preSkip = (unsigned)h[10] << 8 | h[11];
-//       handle->no_samples = -handle->preSkip;
-
-         gain = (int)h[16] << 8 | h[17];
-         handle->gain = pow(10, (float)gain/(20.0f*256.0f));
-
-         mapping_family = h[18];
-         if ((mapping_family == 0 || mapping_family == 1) &&
-             (handle->no_tracks > 1) && (handle->no_tracks <= 8))
-         {
-             /*
-              * The 'channel mapping table' MUST be omitted when the channel
-              * mapping family s 0, but is REQUIRED otherwise.
-              */
-             if (mapping_family == 1)
-             {
-                 handle->nb_streams = h[19];
-                 handle->nb_coupled = h[20];
-                 if ((handle->nb_streams > 0) &&
-                     (handle->nb_streams <= handle->nb_coupled))
-                 {
-                    // what follows is 'no_tracks' bytes for the channel mapping
-                    rv = OPUS_ID_HEADER_SIZE + handle->no_tracks + 2;
-                    if (rv <= (int)len) {
-                       rv = __F_NEED_MORE;
-                    }
-                 }
-             }
-             else {
-                rv = OPUS_ID_HEADER_SIZE;
-             }
-         }
-#if 1
-  printf("\n-- Opus Identification Header:\n");
-  printf("  0: %08x %08x ('%c%c%c%c%c%c%c%c')\n", x[0], x[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
-  printf("  2: %08x (Version: %i, Tracks: %i, Pre Skip: %i)\n", x[2], h[8], (unsigned char)h[9], (unsigned)h[10] << 8 | h[11]);
-  printf("  3: %08x (Original Sample Rate: %i)\n", x[3],  x[3]);
-  if (mapping_family == 1) {
-    printf("  4: %08x (Replay gain: %f, Mapping Family: %i)\n", x[4], handle->gain, h[18]);
-    printf("  5: %08x (Stream Count: %i, Coupled Count: %i)\n", x[5], handle->nb_streams, handle->nb_coupled);
-  } else {
-    uint32_t i = (int)h[16] << 16 | h[17] << 8 || h[18];
-    printf("  4: %08x (Replay gain: %f, Mapping Family: %i)\n", i, handle->gain, h[18]);
-  }
-  printf(" rv: %i\n", rv);
-#endif
-      }
-   }
-
    return rv;
 }
