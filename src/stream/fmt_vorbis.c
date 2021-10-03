@@ -252,6 +252,8 @@ _vorbis_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
                      _AAX_FILEDRVLOG("VORBIS: cant find last page");
                      break;
                   case VORBIS_invalid_setup:
+                     _AAX_FILEDRVLOG("VORBIS: invalid setup");
+                     break;
                   case VORBIS_invalid_stream:
                      _AAX_FILEDRVLOG("VORBIS: corrupt/invalid stream");
                      break;
