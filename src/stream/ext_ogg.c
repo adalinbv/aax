@@ -988,32 +988,29 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
       i64 += (uint8_t)ch[27+i];
    }
    printf("6: %08x (Page segments: %i, Total segment size: %zi)\n", header[6], i32, i64);
+}
+#endif
 
-   curr = header[0];
-   if (curr != 0x5367674f)		/* OggS */
+   ch = (uint8_t*)header;
+   if (ch[0] != 'O' || ch[1] != 'g' || ch[2] != 'g' || ch[3] != 'S')
    {
-      char *c = strncasestr((const char*)header, "OggS", size);
+      char *c = strncasestr((char*)ch, "OggS", size);
       if (!c)
       {
-         char *b = (char *)header;
          int i;
          printf("OggS header not found, len: %zu\n", size);
          for (i=0; i<10; ++i) {
-            printf("%c ", b[i]);
+            printf("%c ", ch[i]);
          }
          printf("\n");
       }
       else
       {
-         printf("Found OggS header at offset: %zi\n", c-(char*)header);
-         header = (uint32_t*)c;
-         curr = header[0];
+         printf("Found OggS header at offset: %zi\n", c-(char*)ch);
+         ch = (uint8_t*)c;
       }
    }
-}
-#endif
 
-   ch = (uint8_t*)header;
    if (*ch++ == 'O' && *ch++ == 'g' && *ch++ == 'g' && *ch++ == 'S')
    {
       int32_t version, crc32, serial_no, no_segments, sequence_no;
