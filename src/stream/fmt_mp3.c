@@ -680,35 +680,34 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
    *size = 0;
    if (close && !handle->capturing)
    {
-      unsigned char *buf = handle->mp3Buffer->data;
-      size_t imp3;
+      unsigned char *buf = _aaxDataGetPtr(handle->mp3Buffer);
+      size_t avail = _aaxDataGetFreeSpace(handle->mp3Buffer);
+      size_t res;
 
-      imp3 = plame_encode_flush(handle->id, buf, handle->mp3Buffer->size);
-      if (imp3 > 0)
+      res = plame_encode_flush(handle->id, buf, avail);
+      if (res > 0)
       {
-          unsigned buflen = handle->mp3Buffer->size - imp3;
+          avail -= res;
+          *offs = res;
+          *size += res;
 
-          *offs = *size = imp3;
-          buf += imp3;
+          res = plame_get_id3v1_tag(handle->id, buf+res, avail);
+          *size += res;
 
-          imp3 = plame_get_id3v1_tag(handle->id, buf, buflen);
-          *size += imp3;
-
-          rv = handle->mp3Buffer->data;
+          rv = buf;
       }
       else if (handle->id3v2_tag && handle->id3v2_size &&
-               handle->id3v2_size < handle->mp3Buffer->size)
+               handle->id3v2_size < avail)
       {
-         unsigned buflen = handle->mp3Buffer->size - handle->id3v2_size;
-
          memcpy(buf, handle->id3v2_tag, handle->id3v2_size);
+         avail -= handle->id3v2_size;
          buf += handle->id3v2_size;
 
-         imp3 = plame_get_lametag_frame(handle->id, buf, buflen);
-         if (imp3 < buflen)
+         res = plame_get_lametag_frame(handle->id, buf, avail);
+         if (res < avail)
          {
-            *size = imp3 + handle->id3v2_size;
-            rv = handle->mp3Buffer->data;
+            *size = res + handle->id3v2_size;
+            rv = buf;
          }
       }
    }
