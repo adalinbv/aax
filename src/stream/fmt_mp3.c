@@ -150,9 +150,6 @@ typedef struct
 
    _data_t *mp3Buffer;
 
-   void *id3v2_tag;
-   size_t id3v2_size;
-
 } _driver_t;
 
 static int _getFormatFromMP3Format(int);
@@ -557,26 +554,6 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
 
             plame_set_write_id3tag_automatic(handle->id, 0);
 //          plame_init_params(handle->id);
-
-            if (bufsize && handle->id3v2_size == 0)
-            {
-               ret = plame_get_id3v2_tag(handle->id, 0, 0);
-               if (ret) {
-                  handle->id3v2_tag = malloc(ret);
-               }
-               if (handle->id3v2_tag)
-               {
-                  handle->id3v2_size = ret;
-                  plame_get_id3v2_tag(handle->id, handle->id3v2_tag,
-                                                  handle->id3v2_size);
-               }
-            }
-
-            if (handle->id3v2_tag && bufsize)
-            {
-               rv = handle->id3v2_tag;
-               *bufsize = handle->id3v2_size;
-            }
          }
       }
    }
@@ -609,7 +586,6 @@ _mp3_close(_fmt_t *fmt)
       }
       _aaxDataDestroy(handle->mp3Buffer);
 
-      if (handle->id3v2_tag) free(handle->id3v2_tag);
       if (handle->trackno) free(handle->trackno);
       if (handle->artist) free(handle->artist);
       if (handle->title) free(handle->title);
@@ -684,31 +660,35 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
       size_t avail = _aaxDataGetFreeSpace(handle->mp3Buffer);
       size_t res;
 
+      // will also write id3v1 tags (if any) into the bitstream
       res = plame_encode_flush(handle->id, buf, avail);
       if (res > 0)
       {
-          avail -= res;
-          *offs = res;
-          *size += res;
+         _aaxDataIncreaseOffset(handle->mp3Buffer, res);
+         *offs = res;
+         *size += res;
 
-          res = plame_get_id3v1_tag(handle->id, buf+res, avail);
-          *size += res;
-
-          rv = buf;
-      }
-      else if (handle->id3v2_tag && handle->id3v2_size &&
-               handle->id3v2_size < avail)
-      {
-         memcpy(buf, handle->id3v2_tag, handle->id3v2_size);
-         avail -= handle->id3v2_size;
-         buf += handle->id3v2_size;
-
+         buf = _aaxDataGetPtr(handle->mp3Buffer);
+         avail = _aaxDataGetFreeSpace(handle->mp3Buffer);
          res = plame_get_lametag_frame(handle->id, buf, avail);
-         if (res < avail)
+         if (res > 0 && res < avail)
          {
-            *size = res + handle->id3v2_size;
-            rv = buf;
+            _aaxDataIncreaseOffset(handle->mp3Buffer, res);
+            *size += res;
          }
+
+         rv = _aaxDataGetData(handle->mp3Buffer);
+      }
+      else
+      {
+         buf = _aaxDataGetData(handle->mp3Buffer);
+         avail = _aaxDataGetSize(handle->mp3Buffer);
+         res = plame_get_id3v2_tag(handle->id, buf, avail);
+         if (res > 0 && res < avail) {
+            *size = res;
+         }
+
+         rv = _aaxDataGetData(handle->mp3Buffer);
       }
    }
 
