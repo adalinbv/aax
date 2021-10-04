@@ -295,8 +295,23 @@ aaxMixerGetSetup(const aaxConfig config, enum aaxSetupType type)
                 rv=(unsigned int)(info->refresh_rate/handle->info->update_rate);
                 break;
             case AAX_FRAME_TIMING:
-               rv = (int)(handle->elapsed*1000000.0f);
+            {
+               const _intBufferData* dptr;
+               dptr = _intBufGet(handle->sensors, _AAX_SENSOR, 0);
+               if (dptr)
+               {
+                  _sensor_t* sensor = _intBufGetDataPtr(dptr);
+                  if (sensor->mixer->capturing) {
+                     rv = (unsigned int)(1e6f/info->period_rate);
+                  } else {
+                     rv = (unsigned int)(handle->elapsed*1000000.0f);
+                  }
+                  _intBufReleaseData(dptr, _AAX_SENSOR);
+               } else {
+                  rv = (unsigned int)(handle->elapsed*1000000.0f);
+               }
                break;
+            }
             case AAX_FORMAT:
                rv = info->format;
                break;
