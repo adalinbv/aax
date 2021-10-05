@@ -93,7 +93,7 @@ DECL_FUNCTION(lame_set_brate);
 DECL_FUNCTION(lame_set_VBR);
 DECL_FUNCTION(lame_set_quality);
 DECL_FUNCTION(lame_encode_buffer_interleaved);
-DECL_FUNCTION(lame_encode_flush);
+DECL_FUNCTION(lame_encode_flush_nogap);
 
 DECL_FUNCTION(lame_get_lametag_frame);
 DECL_FUNCTION(lame_set_write_id3tag_automatic);
@@ -278,7 +278,7 @@ _mp3_detect(UNUSED(_fmt_t *fmt), int mode)
             TIE_FUNCTION(lame_set_VBR);
             TIE_FUNCTION(lame_set_quality);
             TIE_FUNCTION(lame_encode_buffer_interleaved);
-            TIE_FUNCTION(lame_encode_flush);
+            TIE_FUNCTION(lame_encode_flush_nogap);
             TIE_FUNCTION(lame_get_lametag_frame);
             TIE_FUNCTION(lame_set_write_id3tag_automatic);
             TIE_FUNCTION(lame_get_id3v1_tag);
@@ -660,8 +660,7 @@ _mp3_update(_fmt_t *fmt, size_t *offs, ssize_t *size, char close)
       size_t avail = _aaxDataGetFreeSpace(handle->mp3Buffer);
       size_t res;
 
-      // will also write id3v1 tags (if any) into the bitstream
-      res = plame_encode_flush(handle->id, buf, avail);
+      res = plame_encode_flush_nogap(handle->id, buf, avail);
       if (res > 0)
       {
          _aaxDataIncreaseOffset(handle->mp3Buffer, res);

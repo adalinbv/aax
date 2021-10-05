@@ -310,6 +310,7 @@ typedef int (*lame_set_VBR_quality_proc)(void*, float);
 typedef int (*lame_encode_buffer_interleaved_proc)(void*, short int[], int, unsigned char*, int);
 typedef int (*lame_encode_buffer_proc)(void*, short int[], short int[], int, unsigned char*, int);
 typedef int (*lame_encode_flush_proc)(void*, unsigned char*, int);
+typedef int (*lame_encode_flush_nogap_proc)(void*, unsigned char*, int);
 typedef void (*lame_mp3_tags_fid_proc)(void*, void*);
 
 typedef void (*lame_set_write_id3tag_automatic_proc)(void*, int);
