@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -44,17 +44,12 @@
 #define MAX_FRAME_SIZE		(6*FRAME_SIZE)
 #define MAX_PACKET_SIZE		(2*3*1276)
 
-#if 1
-#define MAX_FLOATBUFSIZE	OPUS_BUFFER_SIZE
-#else
-#define MAX_OPUSBUFSIZE		(MAX_FRAME_SIZE*handle->no_tracks*sizeof(float))
-#define MAX_FLOATBUFSIZE	(2*MAX_OPUSBUFSIZE)
-#endif
+#define MAX_PCMBUFSIZE	(MAX_FRAME_SIZE*_AAX_MAX_SPEAKERS*sizeof(int16_t))
 
 DECL_FUNCTION(opus_decoder_create);
 DECL_FUNCTION(opus_decoder_destroy);
 DECL_FUNCTION(opus_decoder_ctl);
-DECL_FUNCTION(opus_decode_float);
+DECL_FUNCTION(opus_decode);
 
 DECL_FUNCTION(opus_encoder_create);
 DECL_FUNCTION(opus_encoder_destroy);
@@ -138,7 +133,7 @@ _opus_detect(UNUSED(_fmt_t *fmt), int mode)
          {
             TIE_FUNCTION(opus_decoder_destroy);
             TIE_FUNCTION(opus_decoder_ctl);
-            TIE_FUNCTION(opus_decode_float);
+            TIE_FUNCTION(opus_decode);
          }
       }
       else // playback
@@ -185,7 +180,7 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsi
       {
          handle->mode = mode;
          handle->frequency = 48000;
-         handle->format = AAX_FLOAT;
+         handle->format = AAX_PCM16S;
          handle->bits_sample = aaxGetBitsPerSample(handle->format);
          handle->capturing = (mode == 0) ? 1 : 0;
          handle->blocksize = FRAME_SIZE;
@@ -200,7 +195,7 @@ _opus_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsi
    }
 
    if (!handle->pcmBuffer) {
-      handle->pcmBuffer = _aaxDataCreate(MAX_FLOATBUFSIZE, 1);
+      handle->pcmBuffer = _aaxDataCreate(MAX_PCMBUFSIZE, 1);
    }
 
    if (handle && handle->opusBuffer && handle->pcmBuffer)
@@ -323,17 +318,17 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    _driver_t *handle = fmt->id;
    unsigned int bits, tracks, framesize, packet_sz;
    size_t req, rv = 0;
-   float *floats;
+   int16_t *pcmBuffer;
    int n;
 
    req = *num;
    tracks = handle->no_tracks;
    bits = handle->bits_sample;
    framesize = tracks*bits/8;
-   packet_sz = handle->blocksize;
+   packet_sz = FRAME_SIZE;
    *num = 0;
 
-   floats = (float*)_aaxDataGetData(handle->pcmBuffer);
+   pcmBuffer = (int16_t*)_aaxDataGetData(handle->pcmBuffer);
    do
    {
       size_t avail = _aaxDataGetDataAvail(handle->pcmBuffer);
@@ -342,7 +337,7 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          unsigned int max = _MIN(req, avail/framesize);
          if (max)
          {
-            _batch_cvt24_ps(dptr+dptr_offs, floats, max*tracks);
+            _batch_cvt24_ps(dptr+dptr_offs, pcmBuffer, max*tracks);
             _aaxDataMove(handle->pcmBuffer, NULL, max*framesize);
 
             dptr_offs += max;
@@ -357,10 +352,10 @@ _opus_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
          size_t bufsize  = _MIN(packet_sz, _aaxDataGetDataAvail(handle->opusBuffer));
          if (bufsize == packet_sz)
          {
-            size_t floatsmp = _aaxDataGetSize(handle->pcmBuffer)/framesize;
+            size_t pcmsmp = _aaxDataGetSize(handle->pcmBuffer)/framesize;
             unsigned char *buf = _aaxDataGetData(handle->opusBuffer);
 
-            n = popus_decode_float(handle->id, buf, bufsize, floats, floatsmp,
+            n = popus_decode(handle->id, buf, bufsize, pcmBuffer, pcmsmp,
                                    0);
             if (n <= 0) break;
 
@@ -381,100 +376,90 @@ size_t
 _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num)
 {
    _driver_t *handle = fmt->id;
-   unsigned int req, tracks;
+   unsigned int req, bps, tracks;
+   unsigned char *opusBuf;
    unsigned char *pcmBuf;
-   size_t pcmBufavail;
+   size_t opusBufAvail;
+   size_t pcmBufAvail;
    size_t rv = 0;
    int ret;
+size_t q = *num;
 
    req = *num;
    tracks = handle->no_tracks;
+   bps = tracks*sizeof(int16_t);
    *num = 0;
 
    pcmBuf = _aaxDataGetData(handle->pcmBuffer);
-   pcmBufavail = _aaxDataGetDataAvail(handle->pcmBuffer);
+   pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer);
 
    /* there is still data left in the buffer from the previous run */
-   if (pcmBufavail)
+   if (pcmBufAvail)
    {
-      unsigned int max = _MIN(req, pcmBufavail/sizeof(float));
+      unsigned int max = _MIN(req, pcmBufAvail/bps);
 
-      _batch_cvt24_ps_intl(dptr, pcmBuf, dptr_offs, tracks, max);
-      _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(float));
+      _batch_cvt24_16_intl(dptr, pcmBuf, dptr_offs, tracks, max);
+      _aaxDataMove(handle->pcmBuffer, NULL, max*bps);
       handle->no_samples += max;
       dptr_offs += max;
       req -= max;
-      *num = max;
+      *num += max;
    }
 
-   if (req > 0)
+   opusBuf = _aaxDataGetData(handle->opusBuffer);
+   opusBufAvail = _aaxDataGetDataAvail(handle->opusBuffer);
+   while (req > 0 && opusBufAvail >= FRAME_SIZE)
    {
-      unsigned char *opusBuf;
-      int32_t opusBufAvail;
-      size_t packetSize;
+      int32_t packetSize = FRAME_SIZE;
+      int32_t pcmBufFree;
+      size_t frameSpace;
 
-      packetSize = handle->blocksize;
-      opusBufAvail = _aaxDataGetDataAvail(handle->opusBuffer);
-      if (opusBufAvail < packetSize) {
-         return __F_NEED_MORE;
+      pcmBuf = _aaxDataGetPtr(handle->pcmBuffer);
+      pcmBufFree = _aaxDataGetFreeSpace(handle->pcmBuffer);
+      frameSpace = pcmBufFree/bps;
+
+      if (handle->recover) {
+         popus_decoder_ctl(handle->id,
+                           OPUS_GET_LAST_PACKET_DURATION(&packetSize));
       }
 
-      opusBuf = _aaxDataGetData(handle->opusBuffer);
-      do
+      // store the next chunk into the pcmBuffer
+      ret = popus_decode(handle->id,
+                         handle->recover ? NULL : opusBuf, packetSize,
+                         (int16_t*)(pcmBuf), frameSpace, 0);
+      if (ret > 0)
       {
-         int32_t pcmBufOffs = _aaxDataGetOffset(handle->pcmBuffer);
-         int32_t pcmBufFree = _aaxDataGetFreeSpace(handle->pcmBuffer);
-         size_t frameSpace = pcmBufFree/(tracks*sizeof(float));
+         handle->recover = AAX_FALSE;
+         _aaxDataIncreaseOffset(handle->pcmBuffer, ret*bps);
+         rv += _aaxDataMove(handle->opusBuffer, NULL, packetSize);
 
-         // store the next chunk into the pcmBuffer
-         ret = popus_decode_float(handle->id, opusBuf, packetSize,
-                                  (float*)(pcmBuf+pcmBufOffs), frameSpace, 0);
-printf("opus_decode_float: %i\n", ret);
-         if (ret >= 0)
+         opusBufAvail = _aaxDataGetDataAvail(handle->opusBuffer);
+
+         pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer);
+         if (pcmBufAvail > 0)
          {
-            rv += _aaxDataMove(handle->opusBuffer, NULL, packetSize);
+            unsigned int max = _MIN(req, pcmBufAvail/bps);
 
-            if (handle->preSkip > (size_t)ret) {
-               handle->preSkip -= ret;
-            }
-            else
-            {
-               ret -= handle->preSkip;
-               handle->preSkip = 0;
-            }
-#if 0
-            if (!handle->preSkip)
-            {
-               size_t pcmBufAvail;
-               unsigned int max;
-
-               _aaxDataIncreaseOffset(handle->pcmBuffer, ret*sizeof(float));
-
-               pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer);
-               assert(pcmBufAvail <= _aaxDataGetSize(handle->pcmBuffer));
-
-               max = _MIN(req, pcmBufAvail/sizeof(float));
-               _batch_cvt24_ps_intl(dptr, pcmBuf, dptr_offs, tracks, max);
-
-               _aaxDataMove(handle->pcmBuffer, NULL, max*sizeof(float));
-               handle->no_samples += max;
-               dptr_offs += max;
-               req -= max;
-               *num += max;
-            }
-#endif
+            _batch_cvt24_16_intl(dptr, pcmBuf, dptr_offs, tracks, max);
+            _aaxDataMove(handle->pcmBuffer, NULL, max*bps);
+            handle->no_samples += max;
+            dptr_offs += max;
+            req -= max;
+            *num += max;
+         }
+         else {
+            break;
          }
       }
-      while (ret > 0); // _aaxDataGetDataAvail(handle->opusBuffer) >= packetSize);
-
-      if (ret < 0)
+      else if (ret < 0)
       {
+         handle->recover = AAX_TRUE;
          _AAX_FILEDRVLOG(popus_strerror(ret));
          rv = __F_NEED_MORE;
+         break;
       }
-   }
+   } // while
 
-// printf("  opus_cvt_from: %li\n", rv);
    return rv;
 }
 

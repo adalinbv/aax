@@ -1092,6 +1092,7 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
             }
 #if 0
 {
+   uint64_t i64;
    unsigned int i;
    ch = (uint8_t*)header;
    printf("Read Header:\n");
@@ -1189,7 +1190,6 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
 
             i32 = read8(&ch);
             handle->blocksize = 1 << (i32 & 0xF);
-//          handle->blocksize = 4*handle->no_tracks;
             blocksize1 = 1 << (i32 >> 4);
             framing = read8(&ch) & 0x1;
 
@@ -1215,6 +1215,8 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
    printf(" 20: %08x (Nom. bitrate: %u)\n", header[5], handle->bitrate);
    printf(" 24: %08x (Min. bitrate: %u)\n", header[6], handle->bitrate_min);
    printf(" 28: %01x  %01x (block size: %lu - %u, framing: %u)\n", h[28], h[29], handle->blocksize, blocksize1, framing);
+#else
+  (void)framing;
 #endif
             rv = VORBIS_ID_HEADER_SIZE;
          }
