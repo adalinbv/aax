@@ -121,9 +121,9 @@ typedef struct
    uint32_t bitstream_serial_no;
    uint32_t page_sequence_no;
 
-   unsigned int header_size;
-   unsigned int page_size;
-   unsigned int segment_size;
+   uint32_t header_size;
+   uint32_t page_size;
+   uint32_t segment_size;
 
    unsigned short packet_no;
    unsigned short no_packets;
@@ -143,7 +143,7 @@ typedef struct
 
 
 static int _aaxFormatDriverReadHeader(_driver_t*);
-static int _getOggPageHeader(_driver_t*, uint32_t*, size_t);
+static int _getOggPageHeader(_driver_t*, uint8_t*, size_t, char);
 static int _aaxOggInitFormat(_driver_t*, unsigned char*, ssize_t*);
 static void _aaxOggFreeInfo(_driver_t*);
 static void crc32_init(void);
@@ -437,14 +437,14 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = ext->id;
    int res, rv = __F_PROCESS;
-   unsigned char *header;
+   uint8_t *header;
    ssize_t avail;
 
    handle->need_more = AAX_FALSE;
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
    *bytes = res;
 
-   header = (unsigned char*)_aaxDataGetData(handle->oggBuffer);
+   header = _aaxDataGetData(handle->oggBuffer);
    do
    {
       avail = _MIN(handle->page_size, _aaxDataGetDataAvail(handle->oggBuffer));
@@ -475,6 +475,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
                _fmt_free(handle->fmt);
                handle->fmt = NULL;
             }
+
             rv = _aaxFormatDriverReadHeader(handle);
             if (rv <= 0)
             {
@@ -487,14 +488,8 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
          else
          {
             avail = _aaxDataGetDataAvail(handle->oggBuffer);
-            rv = _getOggPageHeader(handle, (uint32_t*)header, avail);
+            rv = _getOggPageHeader(handle, header, avail, AAX_TRUE);
             if (rv <= 0) break;
-
-            if (!handle->keep_ogg_header)
-            {
-               handle->page_size -= rv;
-               _aaxDataMove(handle->oggBuffer, NULL, rv);
-            }
          }
       }
    }
@@ -943,10 +938,10 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, ssize_t *bufsize)
 
 // https://www.ietf.org/rfc/rfc3533.txt
 static int
-_getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
+_getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_header)
 {
    size_t bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
-   uint8_t *ch = (uint8_t*)header;
+   uint8_t *ch = header;
    int rv = 0;
 
    if (bufsize < OGG_HEADER_SIZE || size < OGG_HEADER_SIZE) {
@@ -1067,6 +1062,18 @@ _getOggPageHeader(_driver_t *handle, uint32_t *header, size_t size)
   for(i=0; i<handle->no_packets; i++)
   printf(" %i: %u\n", i, handle->packet_offset[i+1] - handle->packet_offset[i]);
 #endif
+
+                  // replace the ogg header with just the page size
+                  if (remove_header && !handle->keep_ogg_header)
+                  {
+                     uint32_t *buf = _aaxDataGetPtr(handle->oggBuffer);
+
+                     _aaxDataMove(handle->oggBuffer, NULL,
+                                  rv-sizeof(handle->segment_size));
+                     *buf = handle->segment_size;
+
+                     handle->page_size -= rv;
+                  }
 
 #if OGG_CALCULATE_CRC
                   if (handle->page_size <= bufsize)
@@ -1664,18 +1671,18 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *h, size_t len)
 static int
 _aaxFormatDriverReadHeader(_driver_t *handle)
 {
-   unsigned char *header;
+   uint8_t *header;
    size_t bufsize;
    int rv = 0;
 
-   header = (unsigned char*)_aaxDataGetData(handle->oggBuffer);
+   header = _aaxDataGetData(handle->oggBuffer);
    bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
 
    if (handle->page_sequence_no < 2)
    {
       do
       {
-         rv = _getOggPageHeader(handle, (uint32_t*)header, bufsize);
+         rv = _getOggPageHeader(handle, header, bufsize, AAX_FALSE);
          if ((rv >= 0) && (handle->segment_size > 0) &&
              (handle->page_sequence_no < 2))
          {
@@ -1696,8 +1703,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
             if (bufsize >= page_size)
             {
                /*
-                * The packets must occur in the order of identification,
-                * comment (and setup for Vorbis).
+                * The packets must occur in the order of identification packet,
+                * followed by the comment packet (and setup packet for Vorbis).
                 */
                switch(handle->page_sequence_no)
                {
@@ -1718,7 +1725,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                      {
                         _aaxDataMove(handle->oggBuffer, NULL, page_size);
                         handle->page_size -= page_size;
-                        bufsize -= page_size;
+                        bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
                      }
                      else if (rv > 0) {
                         rv = __F_NEED_MORE;
@@ -1763,7 +1770,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
                      {
                         _aaxDataMove(handle->oggBuffer, NULL, page_size);
                         handle->page_size -= page_size;
-                        bufsize -= page_size;
+                        bufsize = _aaxDataGetDataAvail(handle->oggBuffer);
                      }
                      else {
                         rv = __F_NEED_MORE;
