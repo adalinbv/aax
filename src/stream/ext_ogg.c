@@ -480,11 +480,19 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    else
    {
       header = _aaxDataGetData(handle->oggBuffer);
+      avail = _aaxDataGetDataAvail(handle->oggBuffer);
       do
       {
-         avail = _MIN(handle->page_size, _aaxDataGetDataAvail(handle->oggBuffer));
-         if (avail)
+         if (!handle->page_size)
          {
+            rv = _getOggPageHeader(handle, header, avail, AAX_TRUE);
+            if (rv <= 0) break;
+         }
+
+         avail = _aaxDataGetDataAvail(handle->oggBuffer);
+         if (avail >= handle->page_size)
+         {  
+            avail = handle->page_size;
             rv = handle->fmt->fill(handle->fmt, header, &avail);
             if (avail)
             {
@@ -494,14 +502,9 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
             if (rv <= 0) break;
          }
 
-         if (!handle->page_size)
-         {
-            avail = _aaxDataGetDataAvail(handle->oggBuffer);
-            rv = _getOggPageHeader(handle, header, avail, AAX_TRUE);
-            if (rv <= 0) break;
-         }
+         avail = _aaxDataGetDataAvail(handle->oggBuffer);
       }
-      while (avail && _aaxDataGetDataAvail(handle->oggBuffer));
+      while (avail > handle->page_size);
    }
 
 // printf("ogg_fill: %i\n", rv);
