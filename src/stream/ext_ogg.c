@@ -438,26 +438,22 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = ext->id;
    int res, rv = __F_PROCESS;
    uint8_t *header;
-   uint32_t curr;
    ssize_t avail;
 
    handle->need_more = AAX_FALSE;
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
    *bytes = res;
 
+   // vorbis stream may reset the stream at the start of each song with
+   // a packet indicated as a first page followed by a new comment page.
    header = _aaxDataGetData(handle->oggBuffer);
-   curr = header[5];
-
-   if (curr == PACKET_FIRST_PAGE || handle->page_sequence_no < 2)
+   if (header[5] == PACKET_FIRST_PAGE || handle->page_sequence_no < 2)
    {
-      header = _aaxDataGetData(handle->oggBuffer);
       do
       {
-         avail = _MIN(handle->page_size, _aaxDataGetDataAvail(handle->oggBuffer));
          if (!handle->page_size)
          {
-            uint32_t curr = header[5];
-            if (curr == PACKET_FIRST_PAGE)
+            if (header[5] == PACKET_FIRST_PAGE)
             {
                handle->bitstream_serial_no = 0;
                handle->page_sequence_no = 0;
@@ -479,7 +475,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
             }
          }
       }
-      while (avail && _aaxDataGetDataAvail(handle->oggBuffer));
+      while (_aaxDataGetDataAvail(handle->oggBuffer));
    }
    else
    {
