@@ -438,13 +438,17 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    _driver_t *handle = ext->id;
    int res, rv = __F_PROCESS;
    uint8_t *header;
+   uint32_t curr;
    ssize_t avail;
 
    handle->need_more = AAX_FALSE;
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
    *bytes = res;
 
-   if (handle->page_sequence_no < 2)
+   header = _aaxDataGetData(handle->oggBuffer);
+   curr = header[5];
+
+   if (curr == PACKET_FIRST_PAGE || handle->page_sequence_no < 2)
    {
       header = _aaxDataGetData(handle->oggBuffer);
       do
