@@ -444,26 +444,15 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
    *bytes = res;
 
-   header = _aaxDataGetData(handle->oggBuffer);
-   do
+   if (handle->page_sequence_no < 2)
    {
-      avail = _MIN(handle->page_size, _aaxDataGetDataAvail(handle->oggBuffer));
-      if (avail && handle->page_sequence_no >= 2)
+      header = _aaxDataGetData(handle->oggBuffer);
+      do
       {
-         rv = handle->fmt->fill(handle->fmt, header, &avail);
-         if (avail)
+         avail = _MIN(handle->page_size, _aaxDataGetDataAvail(handle->oggBuffer));
+         if (!handle->page_size)
          {
-            _aaxDataMove(handle->oggBuffer, NULL, avail);
-            handle->page_size -= avail;
-         }
-         if (rv <= 0) break;
-      }
-
-      if (!handle->page_size)
-      {
-         uint32_t curr = header[5];
-         if (curr == PACKET_FIRST_PAGE || handle->page_sequence_no < 2)
-         {
+            uint32_t curr = header[5];
             if (curr == PACKET_FIRST_PAGE)
             {
                handle->bitstream_serial_no = 0;
@@ -485,15 +474,35 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
                break;
             }
          }
-         else
+      }
+      while (avail && _aaxDataGetDataAvail(handle->oggBuffer));
+   }
+   else
+   {
+      header = _aaxDataGetData(handle->oggBuffer);
+      do
+      {
+         avail = _MIN(handle->page_size, _aaxDataGetDataAvail(handle->oggBuffer));
+         if (avail)
+         {
+            rv = handle->fmt->fill(handle->fmt, header, &avail);
+            if (avail)
+            {
+               _aaxDataMove(handle->oggBuffer, NULL, avail);
+               handle->page_size -= avail;
+            }
+            if (rv <= 0) break;
+         }
+
+         if (!handle->page_size)
          {
             avail = _aaxDataGetDataAvail(handle->oggBuffer);
             rv = _getOggPageHeader(handle, header, avail, AAX_TRUE);
             if (rv <= 0) break;
          }
       }
+      while (avail && _aaxDataGetDataAvail(handle->oggBuffer));
    }
-   while (avail && _aaxDataGetDataAvail(handle->oggBuffer));
 
 // printf("ogg_fill: %i\n", rv);
    return rv;
