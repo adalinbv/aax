@@ -441,13 +441,13 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
                   ssv=_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_SOUND_VELOCITY);
                   sdf=_EFFECT_GETD3D(smixer,VELOCITY_EFFECT,AAX_DOPPLER_FACTOR);
 
-                  _aax_memcpy(&sp2d, smixer->props2d, sizeof(_aax2dProps));
-                  _aax_memcpy(&sp3d, smixer->props3d, sizeof(_aax3dProps));
+                  _aax_memcpy(&sp2d, smixer->props2d, sizeof(sp2d));
+                  _aax_memcpy(&sp3d, smixer->props3d, sizeof(sp3d));
                   _aax_memcpy(&sdp3d, smixer->props3d->dprops3d,
-                                      sizeof(_aaxDelayed3dProps));
+                                      sizeof(sdp3d));
                   sp3d.root = &sp3d;
                   if (_PROP3D_MTX_HAS_CHANGED(smixer->props3d->dprops3d)) {
-                     _aax_memcpy(sdp3d_m, &sdp3d, sizeof(_aaxDelayed3dProps));
+                     _aax_memcpy(sdp3d_m, &sdp3d, sizeof(sdp3d));
                   }
                   _PROP_CLEAR(smixer->props3d);
                   _intBufReleaseData(dptr_sensor, _AAX_SENSOR);
@@ -455,8 +455,9 @@ _aaxSoftwareMixerThreadUpdate(void *config, void *drb)
 
                /* read-only data */
                _aax_memcpy(&sp2d.speaker, handle->info->speaker,
-                                          2*_AAX_MAX_SPEAKERS*sizeof(vec4f_t));
-               _aax_memcpy(&sp2d.hrtf, handle->info->hrtf, 2*sizeof(vec4f_t));
+                                   sizeof(handle->info->speaker));
+               _aax_memcpy(&sp2d.hrtf, handle->info->hrtf,
+                                sizeof(handle->info->hrtf));
 
                /* update the modified properties */
                do {
