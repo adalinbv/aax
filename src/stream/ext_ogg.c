@@ -449,33 +449,28 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    header = _aaxDataGetData(handle->oggBuffer);
    if (header[5] == PACKET_FIRST_PAGE || handle->page_sequence_no < 2)
    {
-      do
+      if (!handle->page_size)
       {
-         if (!handle->page_size)
+         if (header[5] == PACKET_FIRST_PAGE)
          {
-            if (header[5] == PACKET_FIRST_PAGE)
-            {
-               handle->bitstream_serial_no = 0;
-               handle->page_sequence_no = 0;
+            handle->bitstream_serial_no = 0;
+            handle->page_sequence_no = 0;
 
-               _aaxOggFreeInfo(handle);
+            _aaxOggFreeInfo(handle);
 
-               handle->fmt->close(handle->fmt);
-               _fmt_free(handle->fmt);
-               handle->fmt = NULL;
-            }
+            handle->fmt->close(handle->fmt);
+            _fmt_free(handle->fmt);
+            handle->fmt = NULL;
+         }
 
-            rv = _aaxFormatDriverReadHeader(handle);
-            if (rv <= 0)
-            {
-               if (rv == __F_NEED_MORE) {
-                  handle->need_more = AAX_TRUE;
-               }
-               break;
+         rv = _aaxFormatDriverReadHeader(handle);
+         if (rv <= 0)
+         {
+            if (rv == __F_NEED_MORE) {
+               handle->need_more = AAX_TRUE;
             }
          }
       }
-      while (_aaxDataGetDataAvail(handle->oggBuffer));
    }
    else
    {
@@ -503,8 +498,9 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
          }
 
          avail = _aaxDataGetDataAvail(handle->oggBuffer);
+         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
       }
-      while (avail > handle->page_size);
+      while (0); // one page at a time
    }
 
 // printf("ogg_fill: %i\n", rv);
@@ -546,7 +542,7 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
          if (rv > 0) handle->packet_no++;
          assert(handle->packet_no <= handle->no_packets);
       }
-      while (ret == __F_NEED_MORE && _aaxDataGetDataAvail(handle->oggBuffer) >= packet_size);
+      while (0); // ret != __F_NEED_MORE && _aaxDataGetDataAvail(handle->oggBuffer) >= packet_size);
       rv = ret;
    }
 
@@ -1075,18 +1071,6 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
   printf(" %i: %u\n", i, handle->packet_offset[i+1] - handle->packet_offset[i]);
 #endif
 
-                  // replace the ogg header with just the page size
-                  if (remove_header && !handle->keep_ogg_header)
-                  {
-                     uint32_t *buf = _aaxDataGetPtr(handle->oggBuffer);
-
-                     _aaxDataMove(handle->oggBuffer, NULL,
-                                  rv-sizeof(handle->segment_size));
-                     *buf = handle->segment_size;
-
-                     handle->page_size -= rv;
-                  }
-
 #if OGG_CALCULATE_CRC
                   if (handle->page_size <= bufsize)
                   {
@@ -1102,6 +1086,16 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
                      handle->page_sequence_no--;
                   }
 #endif
+
+                  if (remove_header && !handle->keep_ogg_header)
+                  {
+                     uint32_t *buf = _aaxDataGetPtr(handle->oggBuffer);
+
+                     _aaxDataMove(handle->oggBuffer, NULL, rv);
+                     handle->page_size -= rv;
+
+                     *buf = handle->segment_size;
+                  }
 
                   rv = handle->header_size;
                }
