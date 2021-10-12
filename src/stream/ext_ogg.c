@@ -476,13 +476,13 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    {
       header = _aaxDataGetData(handle->oggBuffer);
       avail = _aaxDataGetDataAvail(handle->oggBuffer);
-      do
+      if (!handle->page_size) {
+         rv = _getOggPageHeader(handle, header, avail, AAX_TRUE);
+      }
+
+      if (handle->page_size || rv > 0)
       {
-         if (!handle->page_size)
-         {
-            rv = _getOggPageHeader(handle, header, avail, AAX_TRUE);
-            if (rv <= 0) break;
-         }
+         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
 
          avail = _aaxDataGetDataAvail(handle->oggBuffer);
          if (avail >= handle->page_size)
@@ -494,13 +494,8 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
                _aaxDataMove(handle->oggBuffer, NULL, avail);
                handle->page_size -= avail;
             }
-            if (rv <= 0) break;
          }
-
-         avail = _aaxDataGetDataAvail(handle->oggBuffer);
-         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
       }
-      while (0); // one page at a time
    }
 
 // printf("ogg_fill: %i\n", rv);
@@ -530,19 +525,15 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
       size_t packet_size;
       int ret;
 
-      do
+      packet_size = handle->packet_offset[handle->packet_no];
+      ret = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+
+      if (handle->packet_no != handle->no_packets)
       {
-         packet_size = handle->packet_offset[handle->packet_no];
-
-         handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, packet_size);
-         ret = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
-
-         if (handle->packet_no == handle->no_packets) break;
-
-         if (rv > 0) handle->packet_no++;
+         if (ret > 0) handle->packet_no++;
          assert(handle->packet_no <= handle->no_packets);
       }
-      while (0); // ret != __F_NEED_MORE && _aaxDataGetDataAvail(handle->oggBuffer) >= packet_size);
+
       rv = ret;
    }
 
