@@ -295,7 +295,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
             handle->fmt->set(handle->fmt, __F_TRACKS, handle->no_tracks);
             handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
-            handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+//          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
 
             // open the format layer
             rv = handle->fmt->open(handle->fmt, handle->mode, &header, &size,
@@ -476,11 +476,8 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    {
       header = _aaxDataGetData(handle->oggBuffer);
       avail = _aaxDataGetDataAvail(handle->oggBuffer);
-      if (!handle->page_size) {
-         rv = _getOggPageHeader(handle, header, avail, AAX_TRUE);
-      }
-
-      if (handle->page_size || rv > 0)
+      if (handle->page_size ||
+          _getOggPageHeader(handle, header, avail, AAX_TRUE))
       {
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
 
@@ -913,7 +910,7 @@ _aaxOggInitFormat(_driver_t *handle, unsigned char *oggbuf, ssize_t *bufsize)
       handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->no_samples);
       handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
 
-      handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
+//    handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->blocksize);
 //    handle->fmt->set(handle->fmt, __F_POSITION,
 //                                     handle->blockbufpos);
    }
@@ -1080,12 +1077,9 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
 
                   if (remove_header && !handle->keep_ogg_header)
                   {
-                     uint32_t *buf = _aaxDataGetPtr(handle->oggBuffer);
-
-                     _aaxDataMove(handle->oggBuffer, NULL, rv);
-                     handle->page_size -= rv;
-
-                     *buf = handle->segment_size;
+                     size_t hs = handle->header_size;
+                     _aaxDataMove(handle->oggBuffer, NULL, hs);
+                     handle->page_size -= hs;
                   }
 
                   rv = handle->header_size;
