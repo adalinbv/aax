@@ -132,6 +132,17 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
             }
          }
       }
+#if 0
+ printf("server: %s\n", *server);
+ printf("type: %s\n", prot->content_type);
+ printf("artist: %s\n", prot->artist);
+ printf("station: %s\n", prot->station);
+ printf("title: %s\n", prot->title);
+ printf("description: %s\n", prot->description);
+ printf("genre: %s\n", prot->genre);
+ printf("url: %s\n", prot->website);
+ printf("inteval %li\n", prot->meta_interval);
+#endif
    }
    else {
       res = -res;
