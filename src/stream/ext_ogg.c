@@ -59,8 +59,8 @@
 
 #define OGG_CALCULATE_CRC	1
 #define OGG_WRITE_SAMPLES	1024
-#define OGG_WRITE_PACKET_SIZE	(OGG_WRITE_SAMPLES*sizeof(float))
-#define OGG_WRITE_BUFFER_SIZE	(4*OGG_WRITE_PACKET_SIZE)
+#define OGG_WRITE_PACKET_SIZE	(OGG_WRITE_SAMPLES*sizeof(float)*handle->no_tracks)
+#define OGG_WRITE_BUFFER_SIZE	(2*OGG_WRITE_PACKET_SIZE)
 #define OGG_HEADER_SIZE		8
 
 typedef struct
@@ -229,7 +229,7 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          if (handle->capturing)
          {
             handle->no_samples = UINT_MAX;
-            *bufsize = 4096;
+            *bufsize = OGG_WRITE_SAMPLES;
          }
          else /* playback */
          {
@@ -350,7 +350,7 @@ _ogg_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          assert(bufsize);
 
          if (!handle->oggBuffer) {
-            handle->oggBuffer = _aaxDataCreate(200*1024, 1);
+            handle->oggBuffer = _aaxDataCreate(OGG_WRITE_BUFFER_SIZE, 1);
          }
 
          if (handle->oggBuffer)
@@ -441,8 +441,11 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    ssize_t avail;
 
    handle->need_more = AAX_FALSE;
-   res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
-   *bytes = res;
+   if (sptr && bytes)
+   {
+      res = _aaxDataAdd(handle->oggBuffer, sptr, *bytes);
+      *bytes = res;
+   }
 
    // vorbis stream may reset the stream at the start of each song with
    // a packet indicated as a first page followed by a new comment page.
@@ -519,19 +522,34 @@ _ogg_cvt_from_intl(_ext_t *ext, int32_ptrptr dptr, size_t offset, size_t *num)
    }
    else
    {
-      size_t packet_size;
-      int ret;
-
-      packet_size = handle->packet_offset[handle->packet_no];
-      ret = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
-
-      if (handle->packet_no != handle->no_packets)
+      if (handle->keep_ogg_header)
       {
-         if (ret > 0) handle->packet_no++;
-         assert(handle->packet_no <= handle->no_packets);
-      }
+         int ret = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
 
-      rv = ret;
+         if (handle->packet_no != handle->no_packets)
+         {
+            if (ret > 0) handle->packet_no++;
+            assert(handle->packet_no <= handle->no_packets);
+         }
+
+         rv = ret;
+      }
+      else
+      {
+         int i, ret;
+
+         rv = 0;
+         for(i=0; i<handle->no_packets; i++)
+         {
+            size_t packetSize;
+
+            packetSize = handle->packet_offset[i+1] - handle->packet_offset[i];
+            handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, packetSize);
+
+            ret = handle->fmt->cvt_from_intl(handle->fmt, dptr, offset, num);
+            rv += ret;
+         }
+      }
    }
 
 // printf("ogg_cvt_from: %li\n", rv);
