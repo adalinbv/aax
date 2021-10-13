@@ -35,7 +35,7 @@ extern "C" {
 #include <base/dlsym.h>
 #include <backends/driver.h>
 
-#define MAX_ID_STRLEN			64
+#define MAX_ID_STRLEN			128
 
 #ifdef WIN32
 // TODO: Needs fixing # define WINXP
