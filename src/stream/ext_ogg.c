@@ -229,7 +229,7 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          if (handle->capturing)
          {
             handle->no_samples = UINT_MAX;
-            *bufsize = OGG_WRITE_SAMPLES;
+            *bufsize = 64;
          }
          else /* playback */
          {
