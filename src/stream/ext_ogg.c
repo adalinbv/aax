@@ -117,6 +117,9 @@ typedef struct
 
    /* page header information */
    char header_type;
+   char continued; // packet continues on the next page
+   char first_page;
+   char last_page;
    uint64_t granule_position;
    uint32_t bitstream_serial_no;
    uint32_t page_sequence_no;
@@ -134,6 +137,9 @@ typedef struct
    size_t datasize;
 
    _driver_write_t *out;
+
+   /* Vorbis */
+   char framing;
 
    /* Opus */
    size_t pre_skip;
@@ -1025,7 +1031,12 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
       int32_t version, crc32, serial_no, no_segments, sequence_no;
 
       version = read8(&ch);
+
       handle->header_type = read8(&ch);
+      handle->first_page = handle->header_type & PACKET_FIRST_PAGE;
+      handle->last_page = handle->header_type & PACKET_LAST_PAGE;
+      handle->continued = handle->header_type & PACKET_CONTINUED;
+
       handle->granule_position = read64(&ch);;
 
       serial_no = read32(&ch);
@@ -1113,7 +1124,10 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
    ch = (uint8_t*)header;
    printf("Read Header:\n");
    printf("0: %08x (Magic number: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
-   printf("1: %08x (Version: %i | Type: 0x%x)\n", header[1], version, handle->header_type);
+   printf("1: %08x (Version: %i | Type: 0x%x: sos: %s, eos: %s, continued: %s)\n", header[1], version, handle->header_type,
+     handle->first_page ? "true" : "false",
+     handle->last_page ? "true" : "false",
+     handle->continued ? "true" : "false");
    printf("2: %08x (Granule position: %zu)\n", header[2], handle->granule_position);
    printf("3: %08x (Serial number: %08x)\n", header[3], serial_no);
    printf("4: %08x (Sequence number: %08x)\n", header[4], handle->page_sequence_no);
@@ -1194,7 +1208,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
          version = read32(&ch);
          if (version == 0x0)
          {
-            unsigned int blocksize1, framing;
+            unsigned int blocksize1;
             uint32_t i32;
 
             handle->format = AAX_PCM24S;
@@ -1207,7 +1221,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
             i32 = read8(&ch);
             handle->blocksize = 1 << (i32 & 0xF);
             blocksize1 = 1 << (i32 >> 4);
-            framing = read8(&ch) & 0x1;
+            handle->framing = read8(&ch) & 0x1;
 
             if (handle->no_tracks <= 0 || handle->frequency <= 0 ||
                 (handle->blocksize > blocksize1))
@@ -1230,9 +1244,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
    printf(" 16: %08x (Max. bitrate: %u)\n", header[4], handle->bitrate_max);
    printf(" 20: %08x (Nom. bitrate: %u)\n", header[5], handle->bitrate);
    printf(" 24: %08x (Min. bitrate: %u)\n", header[6], handle->bitrate_min);
-   printf(" 28: %01x  %01x (block size: %lu - %u, framing: %u)\n", h[28], h[29], handle->blocksize, blocksize1, framing);
-#else
-  (void)framing;
+   printf(" 28: %01x  %01x (block size: %lu - %u, framing: %u)\n", h[28], h[29], handle->blocksize, blocksize1, handle->framing);
 #endif
             rv = VORBIS_ID_HEADER_SIZE;
          }
@@ -1299,8 +1311,8 @@ _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
 {
   uint32_t *header = (uint32_t*)h;
   float gain = (int)h[16] << 8 | h[17];
-  printf("\n-- OGG/Opus Identification Header:\n");
-  printf("  0: %08x %08x ('%c%c%c%c%c%c%c%c')\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
+  printf("Opus Header:\n");
+  printf("  0: %08x %08x (Magic number: '%c%c%c%c%c%c%c%c')\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
   printf("  2: %08x (Version: %i, Tracks: %i, Pre Skip: %li)\n", header[2], version, handle->no_tracks, handle->pre_skip);
   printf("  3: %08x (Original Sample Rate: %i)\n", header[3],  handle->frequency);
   if (h[18] == 1) {
