@@ -235,7 +235,7 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          if (handle->capturing)
          {
             handle->no_samples = UINT_MAX;
-            *bufsize = 64;
+            *bufsize = 4096;
          }
          else /* playback */
          {
@@ -486,13 +486,13 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
       header = _aaxDataGetData(handle->oggBuffer);
       avail = _aaxDataGetDataAvail(handle->oggBuffer);
       if (handle->page_size ||
-          _getOggPageHeader(handle, header, avail, AAX_TRUE))
+          _getOggPageHeader(handle, header, avail, AAX_TRUE) > 0)
       {
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
 
          avail = _aaxDataGetDataAvail(handle->oggBuffer);
          if (avail >= handle->page_size)
-         {  
+         {
             avail = handle->page_size;
             rv = handle->fmt->fill(handle->fmt, header, &avail);
             if (avail)
@@ -1103,7 +1103,6 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
                      handle->page_sequence_no--;
                   }
 #endif
-
                   if (remove_header && !handle->keep_ogg_header)
                   {
                      size_t hs = handle->header_size;
@@ -1119,6 +1118,9 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
             }
 #if 0
 {
+ static int prev_seq_no = -1;
+ if (handle->page_sequence_no != prev_seq_no)
+ {
    uint64_t i64;
    unsigned int i;
    ch = (uint8_t*)header;
@@ -1138,6 +1140,8 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
       i64 += (uint8_t)ch[27+i];
    }
    printf("6: %08x (Page segments: %i, Total segment size: %zi)\n", header[6], no_segments, i64);
+   prev_seq_no = handle->page_sequence_no;
+ }
 }
 #endif
          }
@@ -1500,8 +1504,8 @@ _getOggOpusComment(_driver_t *handle, unsigned char *h, size_t len)
 #if 0
       uint32_t *header = (uint32_t*)h;
       unsigned char *ptr;
-      printf("\n--Opus Comment Header:\n");
-      printf("  0: %08x %08x (\"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
+      printf("Opus Comment:\n");
+      printf("  0: %08x %08x (Magic number: \"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
 
       size = header[2];
       snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", h+12);
@@ -1714,9 +1718,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle)
             /*
              * https://tools.ietf.org/html/rfc3533.html#section-6
              * As Ogg pages have a maximum size of about 64 kBytes, sometimes a
-             * packet has to be distributed over several pages. To simplify that
-             * process, Ogg divides each packet into 255 byte long chunks plus a
-             * final shorter chunk.  These chunks are called "Ogg Segments".
+             * packet has to be distributed over several pages.
+             *
+             * if handle->continued is true then a packet spans across pages.
+             *
+             * To simplify that process, Ogg divides each packet into 255 byte
+             * long chunks plus a final shorter chunk.  These chunks are called
+             * "Ogg Segments".
              *
              * They are only a logical construct and do not have a header for
              * themselves.
