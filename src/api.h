@@ -69,9 +69,9 @@ typedef struct _data_st
    unsigned int id;
 
    unsigned int blocksize;
-   size_t size;
-   size_t offset;
    unsigned char *data;
+   size_t offset;
+   size_t size;
 
 } _data_t;
 
