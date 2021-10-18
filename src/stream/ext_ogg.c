@@ -102,7 +102,6 @@ typedef struct
    enum aaxFormat format;
    size_t blocksize;
    size_t no_samples;
-   size_t max_samples;
 
    _fmt_type_t format_type;
 // enum oggFormat ogg_format;
@@ -230,7 +229,6 @@ _ogg_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->format = format;
          handle->bitrate = bitrate;
          handle->no_samples = no_samples;
-         handle->max_samples = 0;
 
          if (handle->capturing)
          {
