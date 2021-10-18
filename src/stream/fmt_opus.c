@@ -40,9 +40,10 @@
 #include "fmt_opus.h"
 
 #define FRAME_SIZE		960
-#define OPUS_BUFFER_SIZE	16384
 #define MAX_FRAME_SIZE		(6*FRAME_SIZE)
-#define MAX_PACKET_SIZE		(2*3*1276)
+#define MAX_PACKET_SIZE		(3*1276)
+#define OPUS_BUFFER_SIZE	(2*MAX_PACKET_SIZE)
+// #define OPUS_BUFFER_SIZE	16384
 
 #define MAX_PCMBUFSIZE	(MAX_FRAME_SIZE*_AAX_MAX_SPEAKERS*sizeof(int16_t))
 
@@ -116,6 +117,7 @@ int
 _opus_detect(UNUSED(_fmt_t *fmt), int mode)
 {
    int rv = AAX_FALSE;
+return rv;
 
    audio = _aaxIsLibraryPresent("opus", "0");
    if (!audio) {
@@ -388,30 +390,26 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
    req = *num;
    tracks = handle->no_tracks;
    bps = tracks*sizeof(int16_t);
-   *num = 0;
+
    // there is still data left in the buffer from the previous run
-   do
+   *num = 0;
+   while (req && (pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer)) > 0)
    {
-      pcmBufAvail = _aaxDataGetDataAvail(handle->pcmBuffer);
-      if (pcmBufAvail)
-      {
-         unsigned int max = _MIN(req, pcmBufAvail/bps);
+      unsigned int max = _MIN(req, pcmBufAvail/bps);
 
-         pcmBuf = _aaxDataGetData(handle->pcmBuffer);
-         _batch_cvt24_16_intl(dptr, pcmBuf, dptr_offs, tracks, max);
+      pcmBuf = _aaxDataGetData(handle->pcmBuffer);
+      _batch_cvt24_16_intl(dptr, pcmBuf, dptr_offs, tracks, max);
 
-         _aaxDataMove(handle->pcmBuffer, NULL, max*bps);
-         handle->no_samples += max;
-         dptr_offs += max;
-         req -= max;
-         *num += max;
-      }
+      _aaxDataMove(handle->pcmBuffer, NULL, max*bps);
+      handle->no_samples += max;
+      dptr_offs += max;
+      req -= max;
+      *num += max;
    }
-   while(pcmBufAvail && req > 0);
 
    if (req > 0)
    {
-      int32_t packetSize =_aaxDataGetDataAvail(handle->opusBuffer);
+      int32_t packetSize = handle->blocksize;
       if (packetSize)
       {
          int32_t pcmBufFree;
@@ -422,6 +420,7 @@ _opus_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *nu
          frameSpace = pcmBufFree/bps;
 
          opusBuf = _aaxDataGetData(handle->opusBuffer);
+
          if (handle->recover) {
             popus_decoder_ctl(handle->id,
                               OPUS_GET_LAST_PACKET_DURATION(&packetSize));
