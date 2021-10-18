@@ -486,7 +486,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
       header = _aaxDataGetData(handle->oggBuffer);
       avail = _aaxDataGetDataAvail(handle->oggBuffer);
       if (handle->page_size ||
-          _getOggPageHeader(handle, header, avail, AAX_TRUE) > 0)
+          (rv = _getOggPageHeader(handle, header, avail, AAX_TRUE)) > 0)
       {
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->page_size);
 
