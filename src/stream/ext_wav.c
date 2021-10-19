@@ -836,6 +836,46 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          return __F_EOF;
       }
 
+#if 0
+{
+   char *ch = (char*)header;
+   extfmt = (header[5] >> 16 == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
+   printf("Read %s Header:\n", extfmt ? "Extensible" : "Canonical");
+   printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
+   printf(" 1: %08x (ChunkSize: %i)\n", header[1], header[1]);
+   printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], ch[8], ch[9], ch[10], ch[11]);
+   printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], ch[12], ch[13], ch[14], ch[15]);
+   printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
+   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], header[5] >> 16, header[5] & 0xffff);
+   printf(" 6: %08x (SampleRate: %if)\n", header[6], header[6]);
+   printf(" 7: %08x (ByteRate: %i)\n", header[7], header[7]);
+   printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], header[8] >> 16, header[8] & 0xffff);
+    if (header[4] == 0x10)
+   {
+      printf(" 9: %08x (SubChunk2ID \"data\")\n", header[9]);
+      printf("10: %08x (Subchunk2Size: %i)\n", header[10], header[10]);
+   }
+   else if (extfmt)
+   {
+      printf(" 9: %08x (size: %i, nValidBits: %i)\n", header[9], header[9] & 0xFFFF, header[9] >> 16);
+      printf("10: %08x (dwChannelMask: %i)\n", header[10], header[10]);
+      printf("11: %08x (GUID0)\n", header[11]);
+      printf("12: %08x (GUID1)\n", header[12]);
+      printf("13: %08x (GUID2)\n", header[13]);
+      printf("14: %08x (GUID3)\n", header[14]);
+      printf("15: %08x (SubChunk2ID \"data\")\n", header[15]);
+      printf("16: %08x (Subchunk2Size: %i)\n", header[16], header[16]);
+   }
+   else if (header[10] == 0x74636166) // fact
+   {
+      printf(" 9: %08x (xFromat: %i)\n", header[9], header[9]);
+      printf("10: %08x (SubChunk2ID \"fact\")\n", header[10]);
+      printf("11: %08x (Subchunk2Size: %i)\n", header[11], header[11]);
+      printf("12: %08x (nSamples: %i)\n", header[12], header[12]);
+   }
+}
+#endif
+
 // Notice: 'fmt ' is not garuenteed to follow 'RIFF",
 // it could be later.
 
@@ -865,8 +905,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
             if (extfmt)
             {
-               handle->wav_format = header[11];
-               handle->bits_sample = header[9] >> 16;
+               curr = read16(&ch);		// header[9]: ValidBitsPerSample
+               handle->bits_sample = curr;
+               curr = read32(&ch);		// header[10]: ChannelMask
+               handle->wav_format = read32(&ch);// header[11]: SubFormat
             }
 
             switch(handle->wav_format)
@@ -882,7 +924,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                 (handle->info.freq >= 4000 && handle->info.freq <= 256000) &&
                 (handle->info.tracks >= 1 && handle->info.tracks <= _AAX_MAX_SPEAKERS))
             {
-               handle->info.blocksize = header[8] & 0xFFFF;
                handle->bitrate = handle->info.freq*handle->info.blocksize;
 
                bits = handle->bits_sample;
@@ -899,7 +940,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], ch[8], ch[9], ch[10], ch[11]);
    printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], ch[12], ch[13], ch[14], ch[15]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
-   printf(" 5: %08x (NumChannels: %i | AudioFormat: %x)\n", header[5], handle->info.tracks, handle->wav_format);
+   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], handle->info.tracks, handle->wav_format);
    printf(" 6: %08x (SampleRate: %5.1f)\n", header[6], handle->info.freq);
    printf(" 7: %08x (ByteRate: %i)\n", header[7], header[7]);
    printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], handle->bits_sample, handle->info.blocksize);
@@ -1161,7 +1202,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
       uint32_t s;
 
       size=(handle->info.no_samples*handle->info.tracks*handle->bits_sample)/8;
-      s =  4*handle->wavBufSize + size - 8;
+      s = 4*handle->wavBufSize + size - 8;
       header[1] = s;
 
       s = size;
@@ -1197,7 +1238,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
    printf(" 2: %08x (Format \"WAVE\")\n", header[2]);
    printf(" 3: %08x (Subchunk1ID \"fmt \")\n", header[3]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
-   printf(" 5: %08x (NumChannels: %i | AudioFormat: %x)\n", header[5], header[5] >> 16, header[5] & 0xFFFF);
+   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], header[5] >> 16, header[5] & 0xFFFF);
    printf(" 6: %08x (SampleRate: %i)\n", header[6], header[6]);
    printf(" 7: %08x (ByteRate: %i)\n", header[7], header[7]);
    printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], header[8] >> 16, header[8] & 0xFFFF);
