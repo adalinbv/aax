@@ -109,6 +109,7 @@ static _fmt_type_t _getFmtFromWAVFormat(enum wavFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 
+#define COMMENT_SIZE		1024
 #define WAVE_HEADER_SIZE	(3+8)
 #define WAVE_EXT_HEADER_SIZE	(3+20)
 static const uint32_t _aaxDefaultWaveHeader[WAVE_HEADER_SIZE];
@@ -806,10 +807,12 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
 };
 
 // http://wiki.audacityteam.org/wiki/WAV
+// https://docs.fileformat.com/audio/wav/
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
    uint32_t *header = _aaxDataGetData(handle->wavBuffer);
+   uint8_t *ch = (uint8_t*)header;
    size_t size, bufsize = _aaxDataGetDataAvail(handle->wavBuffer);
    uint32_t curr, init_tag;
    int bits, rv = __F_EOF;
@@ -819,39 +822,74 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
    init_tag = curr = handle->io.read.last_tag;
    if (curr == 0) {
-      curr = BSWAP(header[0]);
+#if 0
+ printf("%c%c%c%C\n", ch[0], ch[1], ch[2], ch[3]);
+#endif
+      curr = read32(&ch);
    }
    handle->io.read.last_tag = 0;
 
    /* Is it a RIFF file? */
-   if (curr == 0x46464952)              /* RIFF */
+   if (curr == 0x46464952)              // header[0]: ChunkID: RIFF
    {
       if (bufsize < WAVE_HEADER_SIZE) {
          return __F_EOF;
       }
-// TODO: 'fmt ' is not garuenteed to follow 'RIFF"
 
-      /* normal or extended format header? */
-      curr = BSWAPH(header[5] & 0xFFFF);
+// Notice: 'fmt ' is not garuenteed to follow 'RIFF",
+// it could be later.
 
-      extfmt = (curr == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
-      if (extfmt && (bufsize < WAVE_EXT_HEADER_SIZE)) {
-         return __F_EOF;
-      }
-
-      /* actual file size */
-      curr = BSWAP(header[4]);
-
-      /* fmt chunk size */
-      size = 5*sizeof(int32_t) + curr;
-      *step = rv = size;
-      if (is_bigendian())
+      curr = read32(&ch); 			// header[1]: ChunkSize
+      curr = read32(&ch);
+      if (curr == 0x45564157)			// header[2]: Format: WAVE
       {
-         size_t i;
-         for (i=0; i<size/sizeof(int32_t); i++) {
-            header[i] = _aax_bswap32(header[i]);
-         }
-      }
+         curr = read32(&ch);
+         if (curr == 0x20746d66) 		// header[3]: Subchunk1ID: fmt
+         {
+            curr = read32(&ch);			// header[4]: Subchunk1Size
+            size = 5*sizeof(int32_t) + curr;
+            *step = rv = size;
+
+            handle->wav_format = read16(&ch);	// header[5]: AudioFormat
+            extfmt = (handle->wav_format == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
+            if (extfmt && (bufsize < WAVE_EXT_HEADER_SIZE)) {
+                return __F_EOF;
+            }
+
+            handle->info.tracks = read16(&ch);
+            handle->info.freq = read32(&ch);		// header[6]: SampleRate
+
+            curr = read32(&ch);				// header[7]: ByteRate
+            handle->info.blocksize = read16(&ch);	// header[8]: BlockAlign
+            handle->bits_sample = read16(&ch);		//         BitsPerSample
+
+            if (extfmt)
+            {
+               handle->wav_format = header[11];
+               handle->bits_sample = header[9] >> 16;
+            }
+
+            switch(handle->wav_format)
+            {
+            case MP3_WAVE_FILE:
+               handle->bits_sample = 16;
+               break;
+            default:
+               break;
+            }
+
+            if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
+                (handle->info.freq >= 4000 && handle->info.freq <= 256000) &&
+                (handle->info.tracks >= 1 && handle->info.tracks <= _AAX_MAX_SPEAKERS))
+            {
+               handle->info.blocksize = header[8] & 0xFFFF;
+               handle->bitrate = handle->info.freq*handle->info.blocksize;
+
+               bits = handle->bits_sample;
+               handle->info.fmt = _getAAXFormatFromWAVFormat(handle->wav_format,bits);
+               if (handle->info.fmt == AAX_FORMAT_NONE) {
+                  return __F_EOF;
+               }
 #if 0
 {
    char *ch = (char*)header;
@@ -861,10 +899,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], ch[8], ch[9], ch[10], ch[11]);
    printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], ch[12], ch[13], ch[14], ch[15]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
-   printf(" 5: %08x (NumChannels: %i | AudioFormat: %x)\n", header[5], header[5] >> 16, header[5] & 0xFFFF);
-   printf(" 6: %08x (SampleRate: %i)\n", header[6], header[6]);
+   printf(" 5: %08x (NumChannels: %i | AudioFormat: %x)\n", header[5], handle->info.tracks, handle->wav_format);
+   printf(" 6: %08x (SampleRate: %5.1f)\n", header[6], handle->info.freq);
    printf(" 7: %08x (ByteRate: %i)\n", header[7], header[7]);
-   printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], header[8] >> 16, header[8] & 0xFFFF);
+   printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], handle->bits_sample, handle->info.blocksize);
    if (header[4] == 0x10)
    {
       printf(" 9: %08x (SubChunk2ID \"data\")\n", header[9]);
@@ -890,39 +928,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    }
 }
 #endif
-
-      if (header[2] == 0x45564157 &&            /* WAVE */
-          header[3] == 0x20746d66)              /* fmt  */
-      {
-         handle->info.freq = header[6];
-         handle->info.tracks = header[5] >> 16;
-         handle->wav_format = extfmt ? (header[11]) : (header[5] & 0xFFFF);
-         switch(handle->wav_format)
-         {
-         case MP3_WAVE_FILE:
-            handle->bits_sample = 16;
-            break;
-         default:
-            handle->bits_sample = extfmt? (header[9] >> 16) : (header[8] >> 16);
-            break;
-         }
-
-         if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
-             (handle->info.freq >= 4000 && handle->info.freq <= 256000) &&
-             (handle->info.tracks >= 1 && handle->info.tracks <= _AAX_MAX_SPEAKERS))
-         {
-            handle->info.blocksize = header[8] & 0xFFFF;
-            handle->bitrate = handle->info.freq*handle->info.blocksize;
-
-            bits = handle->bits_sample;
-            handle->info.fmt = _getAAXFormatFromWAVFormat(handle->wav_format,bits);
-            switch(handle->info.fmt)
-            {
-            case AAX_FORMAT_NONE:
-               return __F_EOF;
-               break;
-            default:
-               break;
+            }
+            else {
+               return -1;
             }
          }
          else {
@@ -940,7 +948,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       *step = 0;
       if (!init_tag)
       {
-         curr = BSWAP(header[1]);
+         curr = read32(&ch);		// header[1]: size
          handle->io.read.blockbufpos = curr;
          size = _MIN(2*sizeof(int32_t) + curr, bufsize);
       }
@@ -950,8 +958,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
        * the last run couldn't finish due to lack of data and we did set
        * handle->io.read.last_tag to "LIST" ourselves.
        */
-      if (init_tag || BSWAP(header[2]) == 0x4f464e49)   /* INFO */
+      curr = read32(&ch);
+      if (init_tag || curr == 0x4f464e49)   /* INFO */
       {
+         char field[COMMENT_SIZE+1];
+
          if (!init_tag)
          {
             header += 3;
@@ -961,9 +972,13 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          *step += sizeof(int32_t);
          rv = *step + size;
 
+         field[COMMENT_SIZE] = 0;
          do
          {
-            int32_t head = BSWAP(header[0]);
+#if 0
+ printf("LIST: %c%c%c%C\n", ch[0], ch[1], ch[2], ch[3]);
+#endif
+            int32_t head = read32(&ch); // header[0];
             switch(head)
             {
             case 0x54524149:    /* IART: Artist              */
@@ -980,38 +995,40 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             case 0x48435449:    /* ITCH: Engineer            */
             case 0x474e4549:    /* IENG: Technician          */
             case 0x524e4547:    /* GENR: Genre               */
-               curr = BSWAP(header[1]);
+               curr = read32(&ch); // header[1];
                size -= 2*sizeof(int32_t) + curr;
                if (size < 0) break;
 
+               readstr(&ch, field, curr, COMMENT_SIZE);
                switch(head)
                {
                case 0x54524149: /* IART: Artist              */
-                  __COPY(handle->artist, curr, (char*)&header[2]);
+                  handle->artist = stradd(handle->artist, field);
                   break;
                case 0x4d414e49: /* INAM: Track Title         */
-                  __COPY(handle->title, curr, (char*)&header[2]);
+                  handle->title = stradd(handle->title, field);
                   break;
                case 0x44525049: /* IPRD: Album Title/Product */
-                  __COPY(handle->album, curr, (char*)&header[2]);
+                  handle->album = stradd(handle->album, field);
                   break;
                case 0x4b525449: /* ITRK: Track Number        */
-                  __COPY(handle->trackno, curr, (char*)&header[2]);
+                  handle->trackno = stradd(handle->trackno, field);
                   break;
                case 0x44524349: /* ICRD: Date Created        */
-                  __COPY(handle->date, curr, (char*)&header[2]);
+                  handle->date = stradd(handle->date, field);
                   break;
                case 0x524e4749: /* IGNR: Genre               */
-                  __COPY(handle->genre, curr, (char*)&header[2]);
+                  handle->genre = stradd(handle->genre, field);
                   break;
                case 0x504f4349: /* ICOP: Copyright           */
-                  __COPY(handle->copyright, curr, (char*)&header[2]);
+                  handle->copyright = stradd(handle->copyright, field);
                   break;
                case 0x544d4349: /* ICMT: Comments            */
-                  __COPY(handle->comments, curr, (char*)&header[2]);
+                  handle->comments = stradd(handle->comments, field);
                   break;
                case 0x54465349: /* ISFT: Software            */
                default:
+                  handle->comments = stradd(handle->comments, field);
                   break;
                }
                *step += 2*sizeof(int32_t) + curr;
@@ -1051,17 +1068,20 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    }
    else if (curr == 0x74636166)         /* fact */
    {
-      curr = BSWAP(header[2]);
+      curr = read32(&ch); // header[1]: size
+      *step = rv = 2*sizeof(int32_t) + curr;
+
+      curr = read32(&ch); // header[2]: data
       handle->info.no_samples = curr;
       handle->max_samples = curr;
-      *step = rv = 3*sizeof(int32_t);
    }
    else if (curr == 0x61746164)         /* data */
    {
-      handle->io.read.datasize = header[1];
+      curr = read32(&ch);
+      handle->io.read.datasize = curr;
       if (handle->max_samples == 0)
       {
-         curr = BSWAP(header[1])*8/(handle->info.tracks*handle->bits_sample);
+         curr = curr*8/(handle->info.tracks*handle->bits_sample);
          handle->info.no_samples = curr;
          handle->max_samples = curr;
       }
@@ -1071,7 +1091,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    else if (curr == 0x6c706d73)		/* smpl */
    {
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl
-      curr = BSWAP(header[1]);
+      curr = read32(&ch);
       *step = rv = 2*sizeof(int32_t) + curr;
 
       curr = BSWAP(header[9]);
@@ -1100,7 +1120,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    else if (curr == 0x74736e69)		/* inst */
    {
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
-      curr = BSWAP(header[1]);
+      curr = read32(&ch);
       *step = rv = 2*sizeof(int32_t) + curr;
 
       handle->info.base_frequency = note2freq((uint8_t)header[2]);
@@ -1121,7 +1141,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             curr == 0x74786562 ||	/* bext */
             curr == 0x4b4e554a)		/* junk */
    {
-      curr = BSWAP(header[1]);
+      curr = read32(&ch);
       *step = rv = 2*sizeof(int32_t) + curr;
    }
 
