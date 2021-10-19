@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -24,6 +24,8 @@
 #endif
 
 #include <stdio.h>
+#include <fcntl.h>	/* SEEK_*, O_* */
+#include <errno.h>
 #include <assert.h>
 #ifdef HAVE_UNISTD_H
 # include <unistd.h>
@@ -97,6 +99,7 @@ typedef struct
    } io;
 
    _data_t *wavBuffer;
+   size_t wavBufSize;
 
 } _driver_t;
 
@@ -213,25 +216,27 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
 
          if (extfmt) {
-            size = WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
+            handle->wavBufSize = WAVE_EXT_HEADER_SIZE;
          } else {
-            size = WAVE_HEADER_SIZE*sizeof(int32_t);
+            handle->wavBufSize = WAVE_HEADER_SIZE;
          }
-         handle->wavBuffer = _aaxDataCreate(size, handle->info.blocksize);
+         size = 4*handle->wavBufSize;
+         handle->wavBuffer = _aaxDataCreate(size, 1);
 
-         if (handle->wavBuffer)
+         if (handle->wavBuffer->data)
          {
-            uint32_t s, *header = _aaxDataGetData(handle->wavBuffer);
+            uint32_t s, *header;
 
+            header = (uint32_t*)_aaxDataGetData(handle->wavBuffer);
             if (extfmt)
             {
-               _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultExtWaveHeader, size);
+               _aaxDataAdd(handle->wavBuffer, _aaxDefaultExtWaveHeader, size);
                s = (handle->info.tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
                header[5] = s;
             }
             else
             {
-               _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultWaveHeader, size);
+               _aaxDataAdd(handle->wavBuffer, _aaxDefaultWaveHeader, size);
                s = (handle->info.tracks << 16) | handle->wav_format;
                header[5] = s;
             }
@@ -258,12 +263,10 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                header[11] = s;
             }
 
-            size = _aaxDataGetDataAvail(handle->wavBuffer);
             if (is_bigendian())
             {
-               uint32_t *header = _aaxDataGetData(handle->wavBuffer);
                size_t i;
-               for (i=0; i<size/sizeof(int32_t); i++)
+               for (i=0; i<handle->wavBufSize; i++)
                {
                   uint32_t tmp = _aax_bswap32(header[i]);
                   header[i] = tmp;
@@ -283,6 +286,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             _aaxFormatDriverUpdateHeader(handle, bufsize);
 
             *bufsize = size;
+
             rv = _aaxDataGetData(handle->wavBuffer);
          }
          else {
@@ -298,10 +302,8 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
          if (handle->wavBuffer)
          {
-            size_t avail = _aaxDataGetDataAvail(handle->wavBuffer);
             ssize_t datasize = *bufsize, size = *bufsize;
-            size_t step, datapos;
-            _fmt_type_t fmt;
+            size_t datapos;
             int res;
 
             res = _aaxDataAdd(handle->wavBuffer, buf, size);
@@ -314,7 +316,8 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             datapos = 0;
             do
             {
-               while ((res = _aaxFormatDriverReadHeader(handle,&step)) != __F_EOF)
+               size_t step;
+               while ((res = _aaxFormatDriverReadHeader(handle, &step)) != __F_EOF)
                {
                   datapos += step;
                   datasize -= step;
@@ -328,7 +331,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                // Copy the next chunk and process it.
                if (size)
                {
-                  avail = _aaxDataAdd(handle->wavBuffer, buf, size);
+                  size_t avail = _aaxDataAdd(handle->wavBuffer, buf, size);
                   if (!avail) break;
 
                   datapos = 0;
@@ -340,6 +343,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
             if (!handle->fmt)
             {
+               _fmt_type_t fmt;
                char *dataptr;
 
                fmt = _getFmtFromWAVFormat(handle->wav_format);
@@ -506,16 +510,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
              *bytes = avail;
           }
 
-#if 0
-printf("handle->info.no_samples: %li\n", handle->info.no_samples);
-          if (handle->wavBufSize < (handle->wavBufPos + *bytes)) {
-              return __F_EOF;
-          }
-#endif
-
-          if (_aaxDataAdd(handle->wavBuffer, sptr, *bytes) == 0) {
-             *bytes = 0;
-          }
+          _aaxDataAdd(handle->wavBuffer, sptr, *bytes);
       }
       else {
          rv = *bytes = 0;
@@ -1140,14 +1135,13 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 
    if (handle->info.no_samples != 0)
    {
-      size_t bufSize = _aaxDataGetDataAvail(handle->wavBuffer);
-      char extfmt = (bufSize == WAVE_HEADER_SIZE*sizeof(uint32_t)) ? 0 : 1;
+      char extfmt = (handle->wavBufSize == WAVE_HEADER_SIZE) ? 0 : 1;
       int32_t *header = _aaxDataGetData(handle->wavBuffer);
       size_t size;
       uint32_t s;
 
       size=(handle->info.no_samples*handle->info.tracks*handle->bits_sample)/8;
-      s =  bufSize + size - 8;
+      s =  4*handle->wavBufSize + size - 8;
       header[1] = s;
 
       s = size;
@@ -1173,8 +1167,8 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
          }
       }
 
-      *bufsize = bufSize;
-      res = handle->wavBuffer;
+      *bufsize = 4*handle->wavBufSize;
+      res = _aaxDataGetData(handle->wavBuffer);
 
 #if 0
    printf("Write %s Header:\n", extfmt ? "Extensible" : "Canonical");
@@ -1403,9 +1397,6 @@ _wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, unsigned int tracks, size_t
  * @param no_tracks number of audio tracks in the buffer
  * @param format audio format
  */
-#include <fcntl.h>              /* SEEK_*, O_* */
-#include <errno.h>
-#include <stdio.h>
 void
 _aaxFileDriverWrite(const char *file, enum aaxProcessingType type,
                           void *data, size_t no_samples,
