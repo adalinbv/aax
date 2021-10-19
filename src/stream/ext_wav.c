@@ -96,12 +96,7 @@ typedef struct
       } read;
    } io;
 
-// _data_t *wavBuffer;
-   void *wavptr;
-   uint32_t *wavBuffer;
-   size_t wavBufPos;
-
-   size_t wavBufSize;
+   _data_t *wavBuffer;
 
 } _driver_t;
 
@@ -185,17 +180,10 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          char extfmt = AAX_FALSE;
          _fmt_type_t fmt;
          size_t size;
-         char *ptr;
 
          if (handle->bits_sample > 16) extfmt = AAX_TRUE;
          else if (handle->info.tracks > 2) extfmt = AAX_TRUE;
          else if (handle->bits_sample < 8) extfmt = AAX_TRUE;
-
-         if (extfmt) {
-            handle->wavBufSize = WAVE_EXT_HEADER_SIZE;
-         } else {
-            handle->wavBufSize = WAVE_HEADER_SIZE;
-         }
 
          fmt = _getFmtFromWAVFormat(handle->wav_format);
 
@@ -224,30 +212,26 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          rv = handle->fmt->open(handle->fmt, handle->mode, buf, bufsize, fsize);
 
 
-         size = 4*handle->wavBufSize;
-//       handle->wavBuffer = _aaxDataCreate(size, handle->blocksize);
-         handle->wavptr = _aax_malloc(&ptr, 0, size);
-         handle->wavBuffer = (uint32_t*)ptr;
+         if (extfmt) {
+            size = WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
+         } else {
+            size = WAVE_HEADER_SIZE*sizeof(int32_t);
+         }
+         handle->wavBuffer = _aaxDataCreate(size, handle->info.blocksize);
 
          if (handle->wavBuffer)
          {
-            uint32_t s, *header;
+            uint32_t s, *header = _aaxDataGetData(handle->wavBuffer);
 
-//          header = handle->wavBuffer->data;
-            header = handle->wavBuffer;
             if (extfmt)
             {
-//             _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultExtWaveHeader, size);
-               memcpy(handle->wavBuffer, _aaxDefaultExtWaveHeader, size);
-
+               _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultExtWaveHeader, size);
                s = (handle->info.tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
                header[5] = s;
             }
             else
             {
-//             _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultWaveHeader, size);
-               memcpy(handle->wavBuffer, _aaxDefaultWaveHeader, size);
-
+               _aaxDataAdd(handle->wavBuffer, (void*)_aaxDefaultWaveHeader, size);
                s = (handle->info.tracks << 16) | handle->wav_format;
                header[5] = s;
             }
@@ -274,10 +258,12 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                header[11] = s;
             }
 
+            size = _aaxDataGetDataAvail(handle->wavBuffer);
             if (is_bigendian())
             {
+               uint32_t *header = _aaxDataGetData(handle->wavBuffer);
                size_t i;
-               for (i=0; i<handle->wavBufSize; i++)
+               for (i=0; i<size/sizeof(int32_t); i++)
                {
                   uint32_t tmp = _aax_bswap32(header[i]);
                   header[i] = tmp;
@@ -297,7 +283,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             _aaxFormatDriverUpdateHeader(handle, bufsize);
 
             *bufsize = size;
-            rv = handle->wavBuffer;
+            rv = _aaxDataGetData(handle->wavBuffer);
          }
          else {
             _AAX_FILEDRVLOG("WAV: Insufficient memory");
@@ -307,31 +293,19 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
       else if (!handle->fmt || !handle->fmt->open)
       {
          if (!handle->wavBuffer) {
-//          handle->wavBuffer = _aaxDataCreate(16384, handle->blocksize);
-            char *ptr;
-
-            handle->wavBufPos = 0;
-            handle->wavBufSize = 16384;
-            handle->wavptr = _aax_malloc(&ptr, 0, handle->wavBufSize);
-            handle->wavBuffer = (uint32_t*)ptr;
+            handle->wavBuffer = _aaxDataCreate(16384, handle->info.blocksize);
          }
 
          if (handle->wavBuffer)
          {
-            size_t avail = handle->wavBufSize-handle->wavBufPos;
+            size_t avail = _aaxDataGetDataAvail(handle->wavBuffer);
             ssize_t datasize = *bufsize, size = *bufsize;
             size_t step, datapos;
             _fmt_type_t fmt;
             int res;
 
-//          res = _aaxDataAdd(handle->wavBuffer, buf, size);
-//          if (!res) return NULL;
-            avail = _MIN(size, avail);
-            if (!avail) return NULL;
-
-            memcpy((char*)handle->wavBuffer+handle->wavBufPos, buf, avail);
-            handle->wavBufPos += avail;
-            size -= avail;
+            res = _aaxDataAdd(handle->wavBuffer, buf, size);
+            if (!res) return NULL;
 
             /*
              * read the file information and set the file-pointer to
@@ -345,10 +319,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                   datapos += step;
                   datasize -= step;
 
-//                _aaxDataMove(handle->wavBuffer, NULL, step);
-                  handle->wavBufPos -= step;
-                  memmove(handle->wavBuffer, (char*)handle->wavBuffer+step,
-                          handle->wavBufPos);
+                  _aaxDataMove(handle->wavBuffer, NULL, step);
                   if (res <= 0) break;
                }
 
@@ -357,18 +328,12 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                // Copy the next chunk and process it.
                if (size)
                {
-//                size_t avail = _aaxDataAdd(handle->wavBuffer, buf, size);
-                  avail = handle->wavBufSize-handle->wavBufPos;
+                  avail = _aaxDataAdd(handle->wavBuffer, buf, size);
                   if (!avail) break;
-
-                  avail = _MIN(size, avail);
 
                   datapos = 0;
                   datasize = avail;
                   size -= avail;
-                  memcpy((char*)handle->wavBuffer+handle->wavBufPos,
-                         buf, avail);
-                  handle->wavBufPos += avail;
                }
             }
             while (res > 0);
@@ -418,8 +383,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                {
                   if (datasize)
                   {
-//                    handle->wavBuffer->avail = 0;
-                      handle->wavBufPos = 0;
+                      _aaxDataClear(handle->wavBuffer);
                       _wav_fill(ext, dataptr, &datasize);
                   }
                   else {
@@ -459,8 +423,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                                 handle->io.read.datasize);
          if (!rv && bufsize)
          {
-//          handle->wavBuffer->avail = 0;
-            handle->wavBufPos = 0;
+            _aaxDataClear(handle->wavBuffer);
             _wav_fill(ext, buf, bufsize);
          }
       }
@@ -491,8 +454,7 @@ _wav_close(_ext_t *ext)
       if (handle->copyright) free(handle->copyright);
       if (handle->comments) free(handle->comments);
 
-//    _aaxDataDestroy(handle->wavBuffer);
-      _aax_free(handle->wavptr);
+      _aaxDataDestroy(handle->wavBuffer);
       if (handle->fmt)
       {
          handle->fmt->close(handle->fmt);
@@ -536,7 +498,6 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 
    if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
    {
-      char *dptr = (char*)handle->wavBuffer;
       size_t blocksize = handle->info.blocksize;
       size_t avail = (*bytes/blocksize)*blocksize;
       if (avail)
@@ -545,8 +506,16 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
              *bytes = avail;
           }
 
-          memcpy(dptr+handle->wavBufPos, sptr, *bytes);
-          handle->wavBufPos += *bytes;
+#if 0
+printf("handle->info.no_samples: %li\n", handle->info.no_samples);
+          if (handle->wavBufSize < (handle->wavBufPos + *bytes)) {
+              return __F_EOF;
+          }
+#endif
+
+          if (_aaxDataAdd(handle->wavBuffer, sptr, *bytes) == 0) {
+             *bytes = 0;
+          }
       }
       else {
          rv = *bytes = 0;
@@ -845,10 +814,8 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
-// uint32_t *header = (uint32_t*)handle->wavBuffer->data;
-// size_t size, bufsize = handle->wavBuffer->avail;
-   uint32_t *header = handle->wavBuffer;
-   size_t size, bufsize = handle->wavBufPos;
+   uint32_t *header = _aaxDataGetData(handle->wavBuffer);
+   size_t size, bufsize = _aaxDataGetDataAvail(handle->wavBuffer);
    uint32_t curr, init_tag;
    int bits, rv = __F_EOF;
    char extfmt;
@@ -1173,13 +1140,14 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 
    if (handle->info.no_samples != 0)
    {
-      char extfmt = (handle->wavBufSize == WAVE_HEADER_SIZE) ? 0 : 1;
-      int32_t *header = (int32_t*)handle->wavBuffer;
+      size_t bufSize = _aaxDataGetDataAvail(handle->wavBuffer);
+      char extfmt = (bufSize == WAVE_HEADER_SIZE*sizeof(uint32_t)) ? 0 : 1;
+      int32_t *header = _aaxDataGetData(handle->wavBuffer);
       size_t size;
       uint32_t s;
 
       size=(handle->info.no_samples*handle->info.tracks*handle->bits_sample)/8;
-      s =  4*handle->wavBufSize + size - 8;
+      s =  bufSize + size - 8;
       header[1] = s;
 
       s = size;
@@ -1205,7 +1173,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
          }
       }
 
-      *bufsize = 4*handle->wavBufSize;
+      *bufsize = bufSize;
       res = handle->wavBuffer;
 
 #if 0
