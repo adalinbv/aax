@@ -846,15 +846,15 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
 #if 0
 {
-   char *ch = (char*)header;
-   extfmt = (header[5] >> 16 == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
+   char *h = (char*)header;
+   extfmt = ((header[5] & 0xffff) == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
    printf("Read %s Header:\n", extfmt ? "Extensible" : "Canonical");
-   printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
+   printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", header[0], h[0], h[1], h[2], h[3]);
    printf(" 1: %08x (ChunkSize: %i)\n", header[1], header[1]);
-   printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], ch[8], ch[9], ch[10], ch[11]);
-   printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], ch[12], ch[13], ch[14], ch[15]);
+   printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], h[8], h[9], h[10], h[11]);
+   printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], h[12], h[13], h[14], h[15]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
-   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], header[5] >> 16, header[5] & 0xffff);
+   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i/0x%x)\n", header[5], header[5] >> 16, header[5] & 0xffff, header[5] & 0xffff);
    printf(" 6: %08x (SampleRate: %i)\n", header[6], header[6]);
    printf(" 7: %08x (ByteRate: %i)\n", header[7], header[7]);
    printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], header[8] >> 16, header[8] & 0xffff);
@@ -913,6 +913,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
             if (extfmt)
             {
+               curr = read16(&ch);		// size
                curr = read16(&ch);		// header[9]: ValidBitsPerSample
                handle->bits_sample = curr;
                curr = read32(&ch);		// header[10]: ChannelMask
@@ -927,6 +928,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             default:
                break;
             }
+
+#if 0
+ printf("bits/sample: %i, rate: %f, tracks: %i\n", handle->bits_sample, handle->info.freq, handle->info.tracks);
+#endif
 
             if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
                 (handle->info.freq >= 4000 && handle->info.freq <= 256000) &&
