@@ -149,8 +149,9 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
 
          if (handle->capturing)
          {
-            handle->info.no_samples = UINT_MAX;
-            *bufsize = 4096; // 2*WAVE_EXT_HEADER_SIZE*sizeof(int32_t);
+            handle->info.no_samples = 0;
+            handle->max_samples = 0;
+            *bufsize = 4096;
          }
          else /* playback */
          {
@@ -501,20 +502,24 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    unsigned tracks = handle->info.tracks;
    size_t rv = __F_PROCESS;
 
-   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
+   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE ||
+       handle->wav_format == MSADPCM_WAVE_FILE)
    {
-      size_t blocksize = handle->info.blocksize;
-      size_t avail = (*bytes/blocksize)*blocksize;
-      if (avail)
+      if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
       {
-          if (*bytes > avail) {
-             *bytes = avail;
-          }
+         size_t blocksize = handle->info.blocksize;
+         size_t avail = (*bytes/blocksize)*blocksize;
+         if (avail)
+         {
+             if (*bytes > avail) {
+                *bytes = avail;
+             }
 
-          _aaxDataAdd(handle->wavBuffer, sptr, *bytes);
-      }
-      else {
-         rv = *bytes = 0;
+             _aaxDataAdd(handle->wavBuffer, sptr, *bytes);
+         }
+         else {
+            rv = *bytes = 0;
+         }
       }
    }
    else {
@@ -757,6 +762,7 @@ _wav_set(_ext_t *ext, int type, off_t value)
 #define WAVE_FACT_CHUNK_SIZE		3
 #define DEFAULT_OUTPUT_RATE		22050
 
+#define EVEN(n)		((n % 1) ? (n+1) : n)
 #define __COPY(p, c, h) if ((p = malloc(c)) != NULL) memcpy(p, h, c)
 
 static const uint32_t _aaxDefaultWaveHeader[WAVE_HEADER_SIZE] =
@@ -823,9 +829,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    init_tag = curr = handle->io.read.last_tag;
    if (curr == 0) {
 #if 0
- printf("%c%c%c%C\n", ch[0], ch[1], ch[2], ch[3]);
+ printf("%x: '%c%c%c%c'\n", header[0], ch[0], ch[1], ch[2], ch[3]);
 #endif
       curr = read32(&ch);
+
    }
    handle->io.read.last_tag = 0;
 
@@ -847,7 +854,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], ch[12], ch[13], ch[14], ch[15]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
    printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], header[5] >> 16, header[5] & 0xffff);
-   printf(" 6: %08x (SampleRate: %if)\n", header[6], header[6]);
+   printf(" 6: %08x (SampleRate: %i)\n", header[6], header[6]);
    printf(" 7: %08x (ByteRate: %i)\n", header[7], header[7]);
    printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], header[8] >> 16, header[8] & 0xffff);
     if (header[4] == 0x10)
@@ -887,8 +894,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          if (curr == 0x20746d66) 		// header[3]: Subchunk1ID: fmt
          {
             curr = read32(&ch);			// header[4]: Subchunk1Size
-            size = 5*sizeof(int32_t) + curr;
-            *step = rv = size;
+            size = (ch-(uint8_t*)header)+curr;
+            *step = rv = EVEN(size);
 
             handle->wav_format = read16(&ch);	// header[5]: AudioFormat
             extfmt = (handle->wav_format == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
@@ -933,12 +940,12 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                }
 #if 0
 {
-   char *ch = (char*)header;
+   char *h = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extensible" : "Canonical");
-   printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", header[0], ch[0], ch[1], ch[2], ch[3]);
+   printf(" 0: %08x (ChunkID RIFF: \"%c%c%c%c\")\n", header[0], h[0], h[1], h[2], h[3]);
    printf(" 1: %08x (ChunkSize: %i)\n", header[1], header[1]);
-   printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], ch[8], ch[9], ch[10], ch[11]);
-   printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], ch[12], ch[13], ch[14], ch[15]);
+   printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], h[8], h[9], h[10], h[11]);
+   printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], h[12], h[13], h[14], h[15]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
    printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], handle->info.tracks, handle->wav_format);
    printf(" 6: %08x (SampleRate: %5.1f)\n", header[6], handle->info.freq);
@@ -967,6 +974,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       printf("11: %08x (Subchunk2Size: %i)\n", header[11], header[11]);
       printf("12: %08x (nSamples: %i)\n", header[12], header[12]);
    }
+   printf("AAX format: %x\n", handle->info.fmt);
+   printf("rv: %i, step: %li, processed: %lu\n", rv, *step, ch-(uint8_t*)header);
 }
 #endif
             }
@@ -991,7 +1000,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       {
          curr = read32(&ch);		// header[1]: size
          handle->io.read.blockbufpos = curr;
-         size = _MIN(2*sizeof(int32_t) + curr, bufsize);
+         size = (ch-(uint8_t*)header);
+         size = _MIN(size, bufsize);
+         *step = rv = size;
       }
 
       /*
@@ -1003,15 +1014,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       if (init_tag || curr == 0x4f464e49)   /* INFO */
       {
          char field[COMMENT_SIZE+1];
-
-         if (!init_tag)
-         {
-            header += 3;
-            size -= 3*sizeof(int32_t);
-            *step += 2*sizeof(int32_t);
-         }
-         *step += sizeof(int32_t);
-         rv = *step + size;
 
          field[COMMENT_SIZE] = 0;
          do
@@ -1039,6 +1041,9 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                curr = read32(&ch); // header[1];
                size -= 2*sizeof(int32_t) + curr;
                if (size < 0) break;
+
+               rv += 2*sizeof(int32_t)+EVEN(curr);
+               *step = rv;
 
                readstr(&ch, field, curr, COMMENT_SIZE);
                switch(head)
@@ -1072,15 +1077,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                   handle->comments = stradd(handle->comments, field);
                   break;
                }
-               *step += 2*sizeof(int32_t) + curr;
-               header = (uint32_t*)((char*)header + 2*sizeof(int32_t) + curr);
                break;
             default:            // we're done
                size = 0;
-               *step -= sizeof(int32_t);
-               if (head == 0x61746164) {         /* data */
-                  rv = *step;
-               } else {
+               if (head != 0x61746164) {         /* data */
                   rv = __F_EOF;
                }
                break;
@@ -1097,20 +1097,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             handle->io.read.blockbufpos = 0;
          }
       }
-      else
-      {
-         rv = *step = size;
-      }
-   }
-   else if (curr == 0x4b414550)		/* peak */
-   {
-      *step = rv = 8 + (2*sizeof(int32_t) +
-                   handle->info.tracks*(sizeof(float)+sizeof(int32_t)));
    }
    else if (curr == 0x74636166)         /* fact */
    {
       curr = read32(&ch); // header[1]: size
-      *step = rv = 2*sizeof(int32_t) + curr;
+      *step = rv = (ch-(uint8_t*)header)+EVEN(curr);
 
       curr = read32(&ch); // header[2]: data
       handle->info.no_samples = curr;
@@ -1126,14 +1117,14 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          handle->info.no_samples = curr;
          handle->max_samples = curr;
       }
-      *step = rv = 2*sizeof(int32_t);
+      *step = rv = (ch-(uint8_t*)header);
       if (!handle->io.read.datasize) rv = __F_EOF;
    }
    else if (curr == 0x6c706d73)		/* smpl */
    {
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl
       curr = read32(&ch);
-      *step = rv = 2*sizeof(int32_t) + curr;
+      *step = rv = (ch-(uint8_t*)header)+EVEN(curr);
 
       curr = BSWAP(header[9]);
       if (curr && *step >= (17*4))
@@ -1162,7 +1153,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    {
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
       curr = read32(&ch);
-      *step = rv = 2*sizeof(int32_t) + curr;
+      *step = rv = (ch-(uint8_t*)header)+EVEN(curr);
 
       handle->info.base_frequency = note2freq((uint8_t)header[2]);
       handle->info.pitch_fraction = cents2pitch((int)header[3], 0.5f);
@@ -1178,12 +1169,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
 #endif
    }
+   else if (curr == 0x4b414550)         /* peak */
+   { // https://web.archive.org/web/20081201144551/http://music.calarts.edu/~tre/PeakChunk.html
+      curr = read32(&ch); // header[1]: size
+      *step = rv = (ch-(uint8_t*)header)+EVEN(curr);
+   }
    else if (curr == 0x20657563 ||	/* cue  */
             curr == 0x74786562 ||	/* bext */
             curr == 0x4b4e554a)		/* junk */
    {
       curr = read32(&ch);
-      *step = rv = 2*sizeof(int32_t) + curr;
+      *step = rv = (ch-(uint8_t*)header)+EVEN(curr);
    }
 
    return rv;
@@ -1302,23 +1298,18 @@ static enum aaxFormat
 _getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
 {
    enum aaxFormat rv = AAX_FORMAT_NONE;
-   int big_endian = is_bigendian();
 
    switch (format)
    {
    case PCM_WAVE_FILE:
       if (bits_sample == 8) rv = AAX_PCM8U;
-      else if (bits_sample == 16 && big_endian) rv = AAX_PCM16S_LE;
-      else if (bits_sample == 16) rv = AAX_PCM16S;
-      else if (bits_sample == 24) rv = AAX_PCM24S_PACKED;
-      else if (bits_sample == 32 && big_endian) rv = AAX_PCM32S_LE;
-      else if (bits_sample == 32) rv = AAX_PCM32S;
+      else if (bits_sample == 16) rv = AAX_PCM16S_LE;
+      else if (bits_sample == 24) rv = AAX_PCM24S_PACKED_LE;
+      else if (bits_sample == 32) rv = AAX_PCM32S_LE;
       break;
    case FLOAT_WAVE_FILE:
-      if (bits_sample == 32 && big_endian) rv = AAX_FLOAT_LE;
-      else if (bits_sample == 32) rv = AAX_FLOAT;
-      else if (bits_sample == 64 && big_endian) rv = AAX_DOUBLE_LE;
-      else if (bits_sample == 64) rv = AAX_DOUBLE;
+      if (bits_sample == 32) rv = AAX_FLOAT_LE;
+      else if (bits_sample == 64) rv = AAX_DOUBLE_LE;
       break;
    case ALAW_WAVE_FILE:
       rv = AAX_ALAW;
@@ -1326,7 +1317,7 @@ _getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
    case MULAW_WAVE_FILE:
       rv = AAX_MULAW;
       break;
-// case MSADPCM_WAVE_FILE:
+   case MSADPCM_WAVE_FILE:
    case IMA4_ADPCM_WAVE_FILE:
       rv = AAX_IMA4_ADPCM;
       break;
@@ -1376,7 +1367,7 @@ _getWAVFormatFromAAXFormat(enum aaxFormat format)
 static _fmt_type_t
 _getFmtFromWAVFormat(enum wavFormat fmt)
 {
-   _fmt_type_t rv = _FMT_PCM;
+   _fmt_type_t rv = _FMT_NONE;
 
    switch(fmt)
    {
@@ -1387,11 +1378,13 @@ _getFmtFromWAVFormat(enum wavFormat fmt)
       rv = _FMT_VORBIS;
       break;
    case PCM_WAVE_FILE:
-   case MSADPCM_WAVE_FILE:
    case FLOAT_WAVE_FILE:
    case ALAW_WAVE_FILE:
    case MULAW_WAVE_FILE:
+   case MSADPCM_WAVE_FILE:
    case IMA4_ADPCM_WAVE_FILE:
+      rv = _FMT_PCM;
+      break;
    default:
       break;
    }
