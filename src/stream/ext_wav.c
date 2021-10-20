@@ -814,6 +814,7 @@ static const uint32_t _aaxDefaultExtWaveHeader[WAVE_EXT_HEADER_SIZE] =
 
 // http://wiki.audacityteam.org/wiki/WAV
 // https://docs.fileformat.com/audio/wav/
+// https://sites.google.com/site/musicgapi/technical-documents/wav-file-format
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
@@ -1095,6 +1096,37 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          }
          else {
             handle->io.read.blockbufpos = 0;
+         }
+      }
+      else if (curr == 0x6c746461)         /* adtl */
+      {
+#if 0
+ printf("2 %x: '%c%c%c%c'\n", header[0], ch[0], ch[1], ch[2], ch[3]);
+#endif
+         curr = read32(&ch);
+         if (curr == 0x6e6f7465)	/* note */
+         {
+            curr = read32(&ch);
+            rv += 3*sizeof(int32_t)+EVEN(curr);
+            *step = rv;
+         }
+         else if (curr == 0x6c61626c)	/* labl */
+         {
+            curr = read32(&ch);
+            rv += 3*sizeof(int32_t)+EVEN(curr);
+            *step = rv;
+         }
+         else if (curr == 0x6c747874)	/* ltxt */
+         {
+            curr = read32(&ch);
+            rv += 3*sizeof(int32_t)+EVEN(curr);
+            *step = rv;
+         }
+         else				/* unknown */
+         {
+            curr = read32(&ch);
+            rv += 3*sizeof(int32_t)+EVEN(curr);
+            *step = rv;
          }
       }
    }
