@@ -305,26 +305,23 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
          if (handle->wavBuffer)
          {
-            ssize_t datasize = *bufsize, size = *bufsize;
-            size_t datapos;
+            ssize_t size = *bufsize;
             int res;
 
             res = _aaxDataAdd(handle->wavBuffer, buf, size);
+            *bufsize = res;
             if (!res) return NULL;
 
             /*
              * read the file information and set the file-pointer to
              * the start of the data section
              */
-            datapos = 0;
+            size -= res;
             do
             {
                size_t step;
                while ((res = _aaxFormatDriverReadHeader(handle, &step)) != __F_EOF)
                {
-                  datapos += step;
-                  datasize -= step;
-
                   _aaxDataMove(handle->wavBuffer, NULL, step);
                   if (res <= 0) break;
                }
@@ -335,10 +332,9 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                if (size)
                {
                   size_t avail = _aaxDataAdd(handle->wavBuffer, buf, size);
+                  *bufsize += avail;
                   if (!avail) break;
 
-                  datapos = 0;
-                  datasize = avail;
                   size -= avail;
                }
             }
@@ -347,7 +343,6 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             if (!handle->fmt)
             {
                _fmt_type_t fmt;
-               char *dataptr;
 
                fmt = _getFmtFromWAVFormat(handle->wav_format);
                handle->fmt = _fmt_create(fmt, handle->mode);
@@ -382,7 +377,12 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                }
                handle->fmt->set(handle->fmt, __F_POSITION,
                                                 handle->io.read.blockbufpos);
-               dataptr = (char*)buf + datapos;
+            }
+
+            if (handle->fmt)
+            {
+               char *dataptr = _aaxDataGetData(handle->wavBuffer);
+               ssize_t datasize = _aaxDataGetDataAvail(handle->wavBuffer);
                rv = handle->fmt->open(handle->fmt, handle->mode,
                                       dataptr, &datasize,
                                       handle->io.read.datasize);
@@ -500,40 +500,44 @@ size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 {
    _driver_t *handle = ext->id;
-   unsigned tracks = handle->info.tracks;
    size_t rv = __F_PROCESS;
+   size_t res;
 
-   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE ||
-       handle->wav_format == MSADPCM_WAVE_FILE)
+   res = _aaxDataAdd(handle->wavBuffer, sptr, *bytes);
+   if (res > 0)
    {
-// https://icculus.org/SDL_sound/downloads/external_documentation/wavecomp.htm
-      size_t blocksize = handle->info.blocksize;
-      if (_aaxDataAdd(handle->wavBuffer, sptr, *bytes) > 0)
-      {
-         void *data = _aaxDataGetData(handle->wavBuffer);
-         ssize_t avail, size = blocksize;
+      void *data = _aaxDataGetData(handle->wavBuffer);
+      ssize_t avail = _aaxDataGetDataAvail(handle->wavBuffer);
 
+      if (handle->wav_format == IMA4_ADPCM_WAVE_FILE ||
+          handle->wav_format == MSADPCM_WAVE_FILE)
+      {
+         size_t blocksize = handle->info.blocksize;
+         unsigned tracks = handle->info.tracks;
+         ssize_t size = blocksize;
          *bytes = 0;
-         avail = _aaxDataGetDataAvail(handle->wavBuffer);
          while (size > 0 && avail > blocksize)
          {
             size = blocksize;
             if (handle->wav_format == MSADPCM_WAVE_FILE) {
                _wav_cvt_msadpcm_to_ima4(data, size, tracks, &size);
             }
-            handle->fmt->fill(handle->fmt, sptr, &size);
+            handle->fmt->fill(handle->fmt, data, &size);
             *bytes += size;
 
             _aaxDataMove(handle->wavBuffer, NULL, size);
             avail = _aaxDataGetDataAvail(handle->wavBuffer);
          }
       }
-      else {
-         rv = *bytes = 0;
+      else
+      {
+         handle->fmt->fill(handle->fmt, data, &avail);
+         _aaxDataMove(handle->wavBuffer, NULL, avail);
+         *bytes = res;
       }
    }
    else {
-      rv = handle->fmt->fill(handle->fmt, sptr, bytes);
+      *bytes = 0;
    }
 
    return rv;
