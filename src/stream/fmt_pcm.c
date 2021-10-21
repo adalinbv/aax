@@ -544,7 +544,8 @@ _pcm_cvt_endianness(_fmt_t *fmt, void_ptr dptr, size_t num)
    }
 }
 
-void _pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
+void
+_pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
                                 unsigned block_smp, int16_t* sample,
                                 uint8_t* index, short step)
 {
