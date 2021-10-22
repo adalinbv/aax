@@ -302,7 +302,7 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       if (*num)
       {
-         n = *num/blocksmp;
+         n = _MAX(1, *num/blocksmp);
          bytes = n*blocksize;
          if (bytes > bufsize)
          {
