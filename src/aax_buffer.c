@@ -481,7 +481,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       unsigned int format = handle->info.fmt;
       void *data = (void*)d, *ptr = NULL;
       unsigned int native_fmt;
-      char fmt_bps, *m;
+      char fmt_bps;
 
       rb->init(rb, AAX_FALSE);
       tracks = rb->get_parami(rb, RB_NO_TRACKS);
@@ -494,19 +494,23 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       if (format & ~AAX_FORMAT_NATIVE)
       {
          fmt_bps = _aaxFormatsBPS[native_fmt];
-         ptr = (void**)_aax_malloc(&m, 0, buf_samples*fmt_bps);
-         if (!ptr)
-         {
-            _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-            return rv;
-         }
-
-         memcpy(m, data, buf_samples*fmt_bps);
-         data = m;
 					/* first convert to native endianness */
          if ( ((format & AAX_FORMAT_LE) && is_bigendian()) ||
               ((format & AAX_FORMAT_BE) && !is_bigendian()) )
          {
+            if (!ptr)
+            {
+               ptr = (void**)_aax_aligned_alloc(buf_samples*fmt_bps);
+               if (!ptr)
+               {
+                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+                  return rv;
+               }
+
+               memcpy(ptr, data, buf_samples*fmt_bps);
+               data = ptr;
+            }
+
             switch (native_fmt)
             {
             case AAX_PCM16S:
@@ -527,6 +531,19 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
 					/* then convert to proper signedness */
          if (format & AAX_FORMAT_UNSIGNED)
          {
+            if (!ptr)
+            {
+               ptr = (void**)_aax_aligned_alloc(buf_samples*fmt_bps);
+               if (!ptr)
+               {
+                  _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+                  return rv;
+               }
+
+               memcpy(ptr, data, buf_samples*fmt_bps);
+               data = ptr;
+            }
+
             switch (native_fmt)
             {
             case AAX_PCM8S:
@@ -551,7 +568,7 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
       handle->ringbuffer[0] = rb;
 
       rv = AAX_TRUE;
-      if (ptr) _aax_free(ptr);
+      if (ptr) _aax_aligned_free(ptr);
    }
    return rv;
 }
