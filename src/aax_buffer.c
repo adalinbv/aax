@@ -1078,6 +1078,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                void **dst = (void **)ptr;
                ssize_t res, offset = 0;
                ssize_t offs_packets = 0;
+               size_t size;
                int i;
 
                dst[0] = ptr2;
@@ -1086,6 +1087,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
 
                // capture now returns native file format instead of PCM24S
                // in batched capturing mode
+               size = 0;
                do
                {
                   ssize_t offs = offs_packets;
@@ -1095,6 +1097,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
 
                   res = stream->capture(id, dst, &offs, &packets,
                                             dst[1], datasize, 1.0f, AAX_TRUE);
+                  if (res > 0) size += res;
                   offs_packets += packets;
                   if (res > 0) {
                      offset += res*8/(bits*info->tracks);
@@ -2526,45 +2529,68 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
 
 /*
  * Convert 4-bit IMA to 16-bit PCM
+ *
+ * IMA4 coding of one block is as follows
+ * +--+-+--+-+----------------+----------------+----------------+----- ...
+ * |P1|I|P2|I| Data           | Data           | Data           | Data
+ * +--+-+--+-+----------------+----------------+----------------+----- ...
+ * | T1 | T2 | T1             | T2             | T1             | T2
+ * P: Predictor - 2 bytes
+ * I: Index - 1 byte
+ * Data: 4*4 bytes of 4-bit nibbles: delta offset per sample
+ * T: Track no.
  */
 static void
-_aaxRingBufferIMA4ToPCM16(int32_t **__restrict dst, const void *__restrict src, int tracks, int blocksize, unsigned int no_samples)
+_aaxRingBufferIMA4ToPCM16(int32_t **__restrict dptr, const void *__restrict src, int tracks, int blocksize, unsigned int no_samples)
 {
-   unsigned int i, blocks, block_smp;
+   unsigned int b, blocks, block_smp;
    int16_t *d[_AAX_MAX_SPEAKERS];
    uint8_t *s = (uint8_t *)src;
    int t;
 
-   if (tracks > _AAX_MAX_SPEAKERS)
+   if (tracks > _AAX_MAX_SPEAKERS) {
       return;
+   }
 
    /* copy buffer pointers */
-   for(t=0; t<tracks; t++) {
-      d[t] = (int16_t*)dst[t];
+   for(t=0; t<tracks; ++t) {
+      d[t] = (int16_t*)dptr[t];
    }
 
    block_smp = IMA4_BLOCKSIZE_TO_SMP(blocksize);
    blocks = no_samples / block_smp;
-   i = blocks-1;
-   do
-   {
-      for (t=0; t<tracks; t++)
-      {
-         _sw_bufcpy_ima_adpcm(d[t], s, block_smp);
-         d[t] += block_smp;
-         s += blocksize;
-      }
-   }
-   while (--i);
 
-   no_samples -= blocks*block_smp;
-   if (no_samples)
+   for (b=0; b<blocks; ++b)
    {
-      int t;
-      for (t=0; t<tracks; t++)
+      uint8_t nibble, index[_AAX_MAX_SPEAKERS];
+      int16_t predictor[_AAX_MAX_SPEAKERS];
+      int j;
+
+      // block header
+      for (t=0; t<tracks; ++t)
       {
-         _sw_bufcpy_ima_adpcm(d[t], s, no_samples);
-         s += blocksize;
+         predictor[t] = *s++;
+         predictor[t] |= *s++ << 8;
+
+         index[t] = *s++;
+         s++;
+      }
+
+      // block data
+      for (j=tracks*4; j<blocksize; j += tracks*4)
+      {
+         for (t=0; t<tracks; ++t)
+         {
+            int q;
+            for (q=0; q<4; ++q)
+            {
+               nibble = *s & 0xf;
+               *d[t]++ = _adpcm2linear(nibble, &predictor[t], &index[t]);
+
+               nibble = *s++ >> 4;
+               *d[t]++ = _adpcm2linear(nibble, &predictor[t], &index[t]);
+            }
+         }
       }
    }
 }
@@ -2595,42 +2621,42 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    switch (rb_format)
    {
    case AAX_IMA4_ADPCM:
-      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      tracks = rb->get_tracks_ptr(rb, RB_WRITE);
       _aaxRingBufferIMA4ToPCM16(tracks, data, no_tracks, blocksize, no_samples);
       rb->release_tracks_ptr(rb);
       break;
    case AAX_PCM24S:
-      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      tracks = rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_24_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
       rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    case AAX_PCM32S:
-      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      tracks = rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_32_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
       rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    case AAX_FLOAT:
-      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      tracks = rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_ps_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
       rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    case AAX_DOUBLE:
-      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      tracks = rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_pd_intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
       rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    case AAX_PCM24S_PACKED:
-      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      tracks = rb->get_tracks_ptr(rb, RB_WRITE);
       _batch_cvt24_24_3intl(tracks, data, 0, no_tracks, no_samples);
       rb->release_tracks_ptr(rb);
       rb->set_parami(rb, RB_FORMAT, AAX_PCM24S);
       break;
    default:
-      tracks = (int32_t**)rb->get_tracks_ptr(rb, RB_WRITE);
+      tracks = rb->get_tracks_ptr(rb, RB_WRITE);
       if (no_tracks == 1) {
          memcpy(tracks[0], data, tracksize);
       }
