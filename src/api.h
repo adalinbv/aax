@@ -248,6 +248,7 @@ typedef struct
    enum aaxFormat fmt; 
    unsigned int tracks;
    unsigned int blocksize;
+   size_t no_blocks;
 
    size_t no_samples;
    off_t loop_count;
