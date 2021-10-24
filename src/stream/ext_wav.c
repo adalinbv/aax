@@ -101,6 +101,8 @@ typedef struct
    _data_t *wavBuffer;
    size_t wavBufSize;
 
+   int32_t *adpcmBuffer;
+
 } _driver_t;
 
 static enum aaxFormat _getAAXFormatFromWAVFormat(unsigned int, int);
@@ -108,6 +110,7 @@ static enum wavFormat _getWAVFormatFromAAXFormat(enum aaxFormat);
 static _fmt_type_t _getFmtFromWAVFormat(enum wavFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
+static void _wav_cvt_msadpcm_to_ima4(_driver_t*, void*, size_t, unsigned int, ssize_t*);
 
 
 #define COMMENT_SIZE		1024
@@ -461,6 +464,8 @@ _wav_close(_ext_t *ext)
       if (handle->copyright) free(handle->copyright);
       if (handle->comments) free(handle->comments);
 
+      if (handle->adpcmBuffer) _aax_aligned_free(handle->adpcmBuffer);
+
       _aaxDataDestroy(handle->wavBuffer);
       if (handle->fmt)
       {
@@ -512,6 +517,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
       if (handle->wav_format == IMA4_ADPCM_WAVE_FILE ||
           handle->wav_format == MSADPCM_WAVE_FILE)
       {
+#if 0
          size_t blocksize = handle->info.blocksize;
          unsigned tracks = handle->info.tracks;
          ssize_t size = blocksize;
@@ -520,7 +526,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
          {
             size = blocksize;
             if (handle->wav_format == MSADPCM_WAVE_FILE) {
-               _wav_cvt_msadpcm_to_ima4(data, size, tracks, &size);
+               _wav_cvt_msadpcm_to_ima4(handle, data, size, tracks, &size);
             }
             handle->fmt->fill(handle->fmt, data, &size);
             *bytes += size;
@@ -528,6 +534,18 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
             _aaxDataMove(handle->wavBuffer, NULL, size);
             avail = _aaxDataGetDataAvail(handle->wavBuffer);
          }
+#else
+         ssize_t size = handle->info.blocksize;
+         unsigned tracks = handle->info.tracks;
+
+         avail = (avail/size)*size;
+
+//       _wav_cvt_msadpcm_to_ima4(handle, data, size, tracks, &size);
+
+         handle->fmt->fill(handle->fmt, data, &size);
+         _aaxDataMove(handle->wavBuffer, NULL, size);
+         *bytes += size;
+#endif
       }
       else
       {
@@ -704,6 +722,9 @@ _wav_get(_ext_t *ext, int type)
       break;
    case __F_NO_BYTES:
       rv = handle->io.read.datasize;
+      break;
+   case __F_BLOCK_SIZE:
+      rv = handle->info.blocksize;
       break;
    case __F_LOOP_COUNT:
       rv = handle->info.loop_count;
@@ -1392,7 +1413,7 @@ _getAAXFormatFromWAVFormat(unsigned int format, int bits_sample)
    case MULAW_WAVE_FILE:
       rv = AAX_MULAW;
       break;
-   case MSADPCM_WAVE_FILE:
+// case MSADPCM_WAVE_FILE:
    case IMA4_ADPCM_WAVE_FILE:
       rv = AAX_IMA4_ADPCM;
       break;
@@ -1456,7 +1477,7 @@ _getFmtFromWAVFormat(enum wavFormat fmt)
    case FLOAT_WAVE_FILE:
    case ALAW_WAVE_FILE:
    case MULAW_WAVE_FILE:
-   case MSADPCM_WAVE_FILE:
+// case MSADPCM_WAVE_FILE:
    case IMA4_ADPCM_WAVE_FILE:
       rv = _FMT_PCM;
       break;
@@ -1477,31 +1498,36 @@ _getFmtFromWAVFormat(enum wavFormat fmt)
  * https://wiki.multimedia.cx/index.php/Apple_QuickTime_IMA_ADPCM
  * IMA4 expects: [track0[0]..track0[n]|track1[0]..track1[n]|... ]
  */
-void
-_wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, unsigned int tracks, ssize_t *size)
+static void
+_wav_cvt_msadpcm_to_ima4(_driver_t *handle, void *data, size_t bufsize, unsigned int tracks, ssize_t *size)
 {
-   size_t blocksize = *size;
+   size_t blockSize = *size;
 
-   *size /= tracks;
+   *size = bufsize/tracks;
    if (tracks > 1)
    {
-      int32_t *buf = (int32_t*)malloc(blocksize);
+      int32_t *buf;
+
+      if (!handle->adpcmBuffer) {
+         handle->adpcmBuffer = (int32_t*)_aax_aligned_alloc(blockSize);
+      }
+
+      buf = handle->adpcmBuffer;
       if (buf)
       {
          int32_t* dptr = (int32_t*)data;
-         size_t blockBytes, numChunks;
-         size_t blockNum, numBlocks;
+         int numBlocks, numChunks;
+         int blockNum;
 
-         numBlocks = bufsize/blocksize;
-         blockBytes = blocksize/tracks;
-         numChunks = blockBytes/sizeof(int32_t);
+         numBlocks = *size/blockSize;
+         numChunks = blockSize/sizeof(int32_t);
 
          for (blockNum=0; blockNum<numBlocks; blockNum++)
          {
             unsigned int t, i;
 
             /* block shuffle */
-            memcpy(buf, dptr, blocksize);
+            memcpy(buf, dptr, blockSize);
             for (t=0; t<tracks; t++)
             {
                int32_t *src = (int32_t*)buf + t;
@@ -1512,7 +1538,6 @@ _wav_cvt_msadpcm_to_ima4(void *data, size_t bufsize, unsigned int tracks, ssize_
                }
             }
          }
-         free(buf);
       }
    }
 }
