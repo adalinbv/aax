@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -302,7 +302,9 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       if (*num)
       {
-         n = _MAX(1, *num/blocksmp);
+         n = *num/blocksmp;
+         if (*num % blocksmp) n++;
+
          bytes = n*blocksize;
          if (bytes > bufsize)
          {
