@@ -1380,6 +1380,9 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
       case DRIVER_MAX_TRACKS:
          rv = (float)_AAX_MAX_SPEAKERS;
          break;
+      case DRIVER_NO_BYTES:
+         rv = (float)handle->ext->get_param(handle->ext, __F_NO_BYTES);
+         break;
       case DRIVER_BLOCK_SIZE:
          rv = (float)handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
          break;

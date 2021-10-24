@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -72,7 +72,6 @@ enum _aaxDriverParam {
    DRIVER_MAX_VOLUME,
    DRIVER_VOLUME,
    DRIVER_AGC_LEVEL,
-   DRIVER_BLOCK_SIZE,
    DRIVER_FREQUENCY,
    DRIVER_REFRESHRATE,
    DRIVER_BITRATE,
@@ -96,6 +95,8 @@ enum _aaxDriverParam {
    DRIVER_MAX_PERIODS,
    DRIVER_MAX_SOURCES,
    DRIVER_MAX_SAMPLES,	/* no. samples in the file or UINT_MAX */
+   DRIVER_NO_BYTES,
+   DRIVER_BLOCK_SIZE,
    DRIVER_SAMPLE_DELAY,	/* no samples to go before the next sample is played */
    DRIVER_LOOP_COUNT,
    DRIVER_LOOP_START,
