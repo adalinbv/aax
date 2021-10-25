@@ -138,7 +138,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->frequency_hz = 44100.0f;
          rbd->format = AAX_PCM16S;
          rbd->codec = _aaxRingBufferCodecs[rbd->format];
-         rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
+         rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
 #if RB_FLOAT_DATA
          rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
@@ -245,15 +245,15 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       char *ptr, *ptr2;
       char bps;
 
-      bps = rbd->bytes_sample;
+      bps = rbd->bits_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = SIZE_ALIGNED(rbd->dde_samples * bps);
+      dde_bytes = SIZE_ALIGNED(rbd->dde_samples*bps/8);
 
       /*
        * Create one buffer that can hold the data for all channels.
        * The first bytes are reserved for the track pointers
        */
-      tracksize = dde_bytes + (no_samples + MEMMASK) * bps;
+      tracksize = dde_bytes + (no_samples + MEMMASK)*bps/8;
 
       /* 16-byte align every buffer */
       tracksize = SIZE_ALIGNED(tracksize);
@@ -265,7 +265,7 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       {
          size_t i;
 
-         rbd->track_len_bytes = no_samples * bps;
+         rbd->track_len_bytes = no_samples*bps/8;
          rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
 
          rbd->loop_start_sec = 0.0f;
@@ -306,13 +306,13 @@ _aaxRingBufferInit(_aaxRingBuffer *rb, char add_scratchbuf)
       char *ptr, *ptr2;
       char bps;
 
-      bps = rbd->bytes_sample;
+      bps = rbd->bits_sample;
       no_samples = rbd->no_samples_avail;
-      dde_bytes = rbd->dde_samples*bps;
+      dde_bytes = rbd->dde_samples*bps/8;
       dde_bytes = SIZE_ALIGNED(dde_bytes);
 
       // scratch buffers have two delay effects sections
-      tracksize = 2*dde_bytes + no_samples*bps;
+      tracksize = 2*dde_bytes + no_samples*bps/8;
       tracks = MAX_SCRATCH_BUFFERS;
 
       /* align every buffer */
@@ -761,6 +761,7 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       rbd->duration_sec = fval;
       fval *= rbd->frequency_hz;
       val = ceilf(fval);
+      rbd->track_len_bytes = val*rbd->bits_sample/8;
 
       // same code as for _aaxRingBufferSetParami with RB_NO_SAMPLES
       if (rbd->track == NULL)
@@ -889,7 +890,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       break;
    case RB_BYTES_SAMPLE:
       if (rbd->track == NULL) {
-         rbd->bytes_sample = val;
+         rbd->bits_sample = val*8;
          rv = AAX_TRUE;
       }
 #ifndef NDEBUG
@@ -950,8 +951,15 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       rbi->curr_pos_sec = (double)val / rbd->frequency_hz;
       rv = AAX_TRUE;
       break;
+   case RB_BLOCK_SIZE:
+      rbd->block_size = val;
+      break;
+   case RB_NO_BLOCKS:
+      val *= rbd->block_size;
+      // intentional fallthrough
    case RB_TRACKSIZE:
-      val /= rbd->bytes_sample;
+      rbd->track_len_bytes = val;
+      val /= (rbd->bits_sample/8);
       // intentional fallthrough
    case RB_NO_SAMPLES:
       if (rbd->track == NULL)
@@ -994,7 +1002,10 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_FORMAT:
       rbd->format = val;
       rbd->codec = _aaxRingBufferCodecs[rbd->format];
-      rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
+      rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
+      if (rbd->block_size == 0) {
+         rbd->block_size = rbd->no_tracks*rbd->bits_sample/8;
+      }
       break;
    default:
       if ((param >= RB_PEAK_VALUE) &&
@@ -1126,11 +1137,17 @@ _aaxRingBufferGetParami(const _aaxRingBuffer *rb, enum _aaxRingBufferParam param
    case RB_NO_SAMPLES_AVAIL:
       rv = rbi->sample->no_samples_avail;
       break;
+   case RB_NO_BLOCKS:
+      rv = rbi->sample->track_len_bytes/rbi->sample->block_size;
+      break;
+   case RB_BLOCK_SIZE:
+      rv = rbi->sample->block_size;
+      break;
    case RB_TRACKSIZE:
       rv = rbi->sample->track_len_bytes;
       break;
    case RB_BYTES_SAMPLE:
-      rv = rbi->sample->bytes_sample;
+      rv = rbi->sample->bits_sample/8;
       break;
    case RB_INTERNAL_FORMAT:
       rv = _aaxRingBufferFormat[rbd->format].format;
@@ -1207,7 +1224,7 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
    {
       rbd->format = format;
       rbd->codec = _aaxRingBufferCodecs[rbd->format];
-      rbd->bytes_sample = _aaxRingBufferFormat[rbd->format].bits/8;
+      rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
    }
 #ifndef NDEBUG
    else printf("%s: Can't set value when rbd->track != NULL\n", __func__);
@@ -1429,7 +1446,7 @@ _aaxRingBufferCopyDelayEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *sr
    srbd = srbi->sample;
    drbd = drbi->sample;
 
-   if (srbd->bytes_sample == drbd->bytes_sample)
+   if (srbd->bits_sample == drbd->bits_sample)
    {
       size_t t, tracks, ds, bps;
 
@@ -1443,12 +1460,12 @@ _aaxRingBufferCopyDelayEffectsData(_aaxRingBuffer *drb, const _aaxRingBuffer *sr
          tracks = drbd->no_tracks;
       }
 
-      bps = srbd->bytes_sample;
+      bps = srbd->bits_sample;
       for (t=0; t<tracks; t++)
       {
          MIX_T *sptr = srbd->track[t];
          MIX_T *dptr = drbd->track[t];
-         _aax_memcpy(dptr-ds, sptr-ds, ds*bps);
+         _aax_memcpy(dptr-ds, sptr-ds, ds*bps/8);
       }
    }
 }
@@ -1534,7 +1551,7 @@ _aaxRingBufferClear(_aaxRingBufferData *rbi, int track, char dde)
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
 
    rbd = rbi->sample;
-   dde_bytes = dde ? rbd->dde_samples*rbd->bytes_sample : 0;
+   dde_bytes = dde ? rbd->dde_samples*rbd->bits_sample/8 : 0;
 
    if (track != RB_ALL_TRACKS) {
       memset((void *)((char*)rbd->track[track]-dde_bytes), 0,

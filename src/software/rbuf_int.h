@@ -96,9 +96,17 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     void** track;
     void** scratch;		/* resident scratch buffer */
 
-    unsigned char no_layers;
-    unsigned char no_tracks;
-    unsigned char bytes_sample;
+    size_t no_blocks;
+    size_t dde_samples;
+    size_t no_samples;		/* actual no. samples */
+    size_t no_samples_avail;	/* maximum available no. samples */
+    size_t track_len_bytes;
+
+    unsigned int block_size;
+    unsigned short bits_sample;
+    unsigned short no_tracks;
+    unsigned short no_layers;
+
     unsigned short ref_counter;
 
     float frequency_hz;
@@ -110,15 +118,12 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     float freqfilter_history_x[_AAX_MAX_SPEAKERS];
     float freqfilter_history_y[_AAX_MAX_SPEAKERS];
 
-    size_t dde_samples;
-    size_t no_samples;		/* actual no. samples */
-    size_t no_samples_avail;	/* maximum available no. samples */
-    size_t track_len_bytes;
-
     float volume_envelope[2*_MAX_ENVELOPE_STAGES];
-    char envelope_sustain;
-    char sampled_release;
-    char fast_release;
+    unsigned char envelope_sustain;
+    unsigned char sampled_release;
+    unsigned char fast_release;
+
+    unsigned char mixer_fmt;    /* 1 if the ringbuffer is part of the mixer */
 
     enum aaxFormat format;
     _batch_codec_proc codec;
@@ -138,8 +143,6 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
    _aaxRingBufferMix1NFn *mix1;
    _aaxRingBufferMix1NFn *mix1n;
    _aaxRingBufferMixMNFn *mixmn;
-
-   unsigned char mixer_fmt;	/* 1 if the ringbuffer is part of the mixer */
 
 } _aaxRingBufferSample;
 
