@@ -123,6 +123,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     unsigned char sampled_release;
     unsigned char fast_release;
 
+    unsigned char block_size_set;
     unsigned char mixer_fmt;    /* 1 if the ringbuffer is part of the mixer */
 
     enum aaxFormat format;
