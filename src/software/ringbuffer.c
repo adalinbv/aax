@@ -139,6 +139,8 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->format = AAX_PCM16S;
          rbd->codec = _aaxRingBufferCodecs[rbd->format];
          rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
+         rbd->block_size = rbd->bits_sample/8;
+         rbd->block_size_set = AAX_FALSE;
 #if RB_FLOAT_DATA
          rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
@@ -891,6 +893,9 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
    case RB_BYTES_SAMPLE:
       if (rbd->track == NULL) {
          rbd->bits_sample = val*8;
+         if (!rbd->block_size_set) {
+            rbd->block_size = rbd->bits_sample/8;
+         }
          rv = AAX_TRUE;
       }
 #ifndef NDEBUG
@@ -953,6 +958,7 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       break;
    case RB_BLOCK_SIZE:
       rbd->block_size = val;
+      rbd->block_size_set = AAX_TRUE;
       break;
    case RB_NO_BLOCKS:
       val *= rbd->block_size;
@@ -1003,8 +1009,8 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       rbd->format = val;
       rbd->codec = _aaxRingBufferCodecs[rbd->format];
       rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
-      if (rbd->block_size == 0) {
-         rbd->block_size = rbd->no_tracks*rbd->bits_sample/8;
+      if (!rbd->block_size_set) {
+         rbd->block_size = rbd->bits_sample/8;
       }
       break;
    default:
@@ -1225,6 +1231,9 @@ _aaxRingBufferSetFormat(_aaxRingBuffer *rb, enum aaxFormat format, int mixer)
       rbd->format = format;
       rbd->codec = _aaxRingBufferCodecs[rbd->format];
       rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
+      if (!rbd->block_size_set) {
+         rbd->block_size = rbd->bits_sample/8;
+      }
    }
 #ifndef NDEBUG
    else printf("%s: Can't set value when rbd->track != NULL\n", __func__);
@@ -1528,7 +1537,7 @@ static _aaxFormat_t _aaxRingBufferFormat[AAX_FORMAT_MAX] =
 {
   {  8, AAX_PCM8S },	/* 8-bit  */
   { 16, AAX_PCM16S },	/* 16-bit */
-  { 32, AAX_PCM24S },	/* 24-bit */
+  { 32, AAX_PCM24S },	/* 24-bit encoded in 32-bit */
   { 32, AAX_PCM24S },	/* 32-bit gets converted to 24-bit */
   { 32, AAX_PCM24S },	/* float gets converted to 24-bit  */
   { 32, AAX_PCM24S },	/* double gets converted to 24-bit */
