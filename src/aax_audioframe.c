@@ -1485,10 +1485,10 @@ aaxAudioFrameGetBuffer(const aaxFrame frame)
 
             buf->info.blocksize = 1;
             buf->pos = 0;
-            buf->info.tracks = rb->get_parami(rb, RB_NO_TRACKS);
+            buf->info.no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
             buf->info.no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
             buf->info.fmt = rb->get_parami(rb, RB_FORMAT);
-            buf->info.freq = rb->get_paramf(rb, RB_FREQUENCY);
+            buf->info.rate = rb->get_paramf(rb, RB_FREQUENCY);
 
             buf->mipmap = AAX_FALSE;
 

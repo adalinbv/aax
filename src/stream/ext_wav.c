@@ -92,7 +92,7 @@ typedef struct
 
       struct
       {
-         size_t datasize;
+         size_t datasize; // combined size of all tracks
          size_t blockbufpos;
          uint32_t last_tag;
       } read;
@@ -144,8 +144,8 @@ _wav_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->capturing = (mode > 0) ? 0 : 1;
          handle->bits_sample = bits_sample;
          handle->info.blocksize = tracks*bits_sample/8;
-         handle->info.freq = freq;
-         handle->info.tracks = tracks;
+         handle->info.rate = freq;
+         handle->info.no_tracks = tracks;
          handle->info.fmt = format;
          handle->info.no_samples = no_samples;
          handle->bitrate = bitrate;
@@ -191,7 +191,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          size_t size;
 
          if (handle->bits_sample > 16) extfmt = AAX_TRUE;
-         else if (handle->info.tracks > 2) extfmt = AAX_TRUE;
+         else if (handle->info.no_tracks > 2) extfmt = AAX_TRUE;
          else if (handle->bits_sample < 8) extfmt = AAX_TRUE;
 
          fmt = _getFmtFromWAVFormat(handle->wav_format);
@@ -210,14 +210,14 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             return rv;
          }
 
-         handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.freq);
+         handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.rate);
          handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
-         handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+         handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
          handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->info.no_samples);
          handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
          handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
          handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
-           MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize, handle->info.tracks));
+           MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize, handle->info.no_tracks));
          rv = handle->fmt->open(handle->fmt, handle->mode, buf, bufsize, fsize);
 
 
@@ -237,20 +237,20 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             if (extfmt)
             {
                _aaxDataAdd(handle->wavBuffer, _aaxDefaultExtWaveHeader, size);
-               s = (handle->info.tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
+               s = (handle->info.no_tracks << 16) | EXTENSIBLE_WAVE_FORMAT;
                header[5] = s;
             }
             else
             {
                _aaxDataAdd(handle->wavBuffer, _aaxDefaultWaveHeader, size);
-               s = (handle->info.tracks << 16) | handle->wav_format;
+               s = (handle->info.no_tracks << 16) | handle->wav_format;
                header[5] = s;
             }
 
-            s = (uint32_t)handle->info.freq;
+            s = (uint32_t)handle->info.rate;
             header[6] = s;
 
-            s = (s * handle->info.tracks * handle->bits_sample)/8;
+            s = (s * handle->info.no_tracks * handle->bits_sample)/8;
             header[7] = s;
 
             s = handle->info.blocksize;
@@ -262,7 +262,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                s = handle->bits_sample;
                header[9] = s << 16 | 22;
 
-               s = getMSChannelMask(handle->info.tracks);
+               s = getMSChannelMask(handle->info.no_tracks);
                header[10] = s;
 
                s = handle->wav_format;
@@ -355,7 +355,7 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                }
 
                handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
-               handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+               handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
                handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
                if (!handle->fmt->setup(handle->fmt, fmt, handle->info.fmt))
                {
@@ -364,17 +364,17 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                   return rv;
                }
 
-               handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.freq);
+               handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.rate);
                handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
-               handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+               handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
                handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->info.no_samples);
                handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
                if (handle->info.fmt == AAX_IMA4_ADPCM) {
                   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
-                                   handle->info.blocksize/handle->info.tracks);
+                                   handle->info.blocksize/handle->info.no_tracks);
                   handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
                                   MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize,
-                                                         handle->info.tracks));
+                                                         handle->info.no_tracks));
                } else {
                   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
                }
@@ -519,7 +519,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
       {
 #if 0
          size_t blocksize = handle->info.blocksize;
-         unsigned tracks = handle->info.tracks;
+         unsigned tracks = handle->info.no_tracks;
          ssize_t size = blocksize;
          *bytes = 0;
          while (size > 0 && avail > blocksize)
@@ -536,7 +536,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
          }
 #else
          ssize_t size = handle->info.blocksize;
-         unsigned tracks = handle->info.tracks;
+         unsigned tracks = handle->info.no_tracks;
 
          avail = (avail/size)*size;
 
@@ -598,7 +598,7 @@ _wav_cvt_to_intl(_ext_t *ext, void_ptr dptr, const_int32_ptrptr sptr, size_t off
    rv = handle->fmt->cvt_to_intl(handle->fmt, dptr, sptr, offs, num,
                                  scratch, scratchlen);
    handle->info.no_samples += *num;
-   handle->io.write.update_dt += (float)*num/handle->info.freq;
+   handle->io.write.update_dt += (float)*num/handle->info.rate;
 
    return rv;
 }
@@ -720,8 +720,8 @@ _wav_get(_ext_t *ext, int type)
    case __F_FMT:
       rv = handle->info.fmt;
       break;
-   case __F_NO_BYTES:
-      rv = handle->io.read.datasize;
+   case __F_NO_BYTES: // size per track
+      rv = handle->io.read.datasize/handle->info.no_tracks;
       break;
    case __F_BLOCK_SIZE:
       rv = handle->info.blocksize;
@@ -947,8 +947,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                 return __F_EOF;
             }
 
-            handle->info.tracks = read16(&ch);
-            handle->info.freq = read32(&ch);		// header[6]: SampleRate
+            handle->info.no_tracks = read16(&ch);
+            handle->info.rate = read32(&ch);		// header[6]: SampleRate
 
             handle->bitrate = read32(&ch);		// header[7]: ByteRate
             handle->info.blocksize = read16(&ch);	// header[8]: BlockAlign
@@ -980,17 +980,17 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
             }
 
 #if 0
- printf("bits/sample: %i, rate: %f, tracks: %i\n", handle->bits_sample, handle->info.freq, handle->info.tracks);
+ printf("bits/sample: %i, rate: %f, tracks: %i\n", handle->bits_sample, handle->info.rate, handle->info.no_tracks);
 #endif
 
             if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
-                (handle->info.freq >= 4000 && handle->info.freq <= 256000) &&
-                (handle->info.tracks >= 1 && handle->info.tracks <= _AAX_MAX_SPEAKERS))
+                (handle->info.rate >= 4000 && handle->info.rate <= 256000) &&
+                (handle->info.no_tracks >= 1 && handle->info.no_tracks <= _AAX_MAX_SPEAKERS))
             {
                if (handle->wav_format == PCM_WAVE_FILE)
                {
-                  handle->info.blocksize = handle->bits_sample*handle->info.tracks/8;
-                  handle->bitrate = handle->info.freq*handle->info.blocksize;
+                  handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
+                  handle->bitrate = handle->info.rate*handle->info.blocksize;
                }
                handle->info.fmt = _getAAXFormatFromWAVFormat(handle->wav_format,
                                                            handle->bits_sample);
@@ -1007,8 +1007,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    printf(" 2: %08x (Format WAVE: \"%c%c%c%c\")\n", header[2], h[8], h[9], h[10], h[11]);
    printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", header[3], h[12], h[13], h[14], h[15]);
    printf(" 4: %08x (Subchunk1Size): %i\n", header[4], header[4]);
-   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], handle->info.tracks, handle->wav_format);
-   printf(" 6: %08x (SampleRate: %5.1f)\n", header[6], handle->info.freq);
+   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i)\n", header[5], handle->info.no_tracks, handle->wav_format);
+   printf(" 6: %08x (SampleRate: %5.1f)\n", header[6], handle->info.rate);
    printf(" 7: %08x (ByteRate: %i)\n", header[7], header[7]);
    printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", header[8], handle->bits_sample, handle->info.blocksize);
    if (extfmt)
@@ -1035,6 +1035,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       printf("10: %08x (SubChunk2ID \"fact\")\n", *head++);
       printf("11: %08x (Subchunk2Size: %i)\n", *head, *head); head++;
       printf("12: %08x (nSamples: %i)\n", *head, *head); head++;
+   }
+   if (*head == 0x4b414550) {	/* peak */
+      ch = (uint8_t*)(head+2);
+      head = (uint32_t*)(ch + EVEN(head[1]));
    }
    if (*head == 0x61746164) /* data */
    {
@@ -1071,7 +1075,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       handle->io.read.datasize = curr;
       if (handle->max_samples == 0)
       {
-         curr = curr*8/(handle->info.tracks*handle->bits_sample);
+         curr = curr*8/(handle->info.no_tracks*handle->bits_sample);
          handle->info.no_samples = curr;
          handle->max_samples = curr;
       }
@@ -1293,7 +1297,7 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
       size_t size;
       uint32_t s;
 
-      size=(handle->info.no_samples*handle->info.tracks*handle->bits_sample)/8;
+      size=(handle->info.no_samples*handle->info.no_tracks*handle->bits_sample)/8;
       s = 4*handle->wavBufSize + size - 8;
       header[1] = s;
 

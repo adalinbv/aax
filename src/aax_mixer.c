@@ -1898,13 +1898,13 @@ _aaxCreateBufferFromAAXS(aaxConfig config, _buffer_t *buffer, char *file)
 
    if (ptr)
    {
-      rv = aaxBufferCreate(config, info.no_samples, info.tracks, info.fmt);
+      rv = aaxBufferCreate(config, info.no_samples, info.no_tracks, info.fmt);
       if (rv)
       {
           free(rv->url);
           rv->url = url;
 
-          aaxBufferSetSetup(rv, AAX_FREQUENCY, info.freq);
+          aaxBufferSetSetup(rv, AAX_FREQUENCY, info.rate);
           aaxBufferSetSetup(rv, AAX_BLOCK_ALIGNMENT, info.blocksize);
           if ((aaxBufferSetData(rv, ptr[0])) == AAX_FALSE) {
              aaxBufferDestroy(rv);

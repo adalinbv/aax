@@ -60,10 +60,12 @@ enum _aaxRingBufferParam
    RB_FORMAT,
    RB_STATE,
    RB_NO_TRACKS,
+   RB_NO_BLOCKS,
    RB_NO_LAYERS,
    RB_NO_TRACKS_OR_LAYERS,
    RB_NO_SAMPLES,
-   RB_TRACKSIZE,
+   RB_BLOCK_SIZE,
+   RB_TRACKSIZE, 	/* no bytes of data in every track */
    RB_BYTES_SAMPLE,
    RB_OFFSET_SAMPLES,
    RB_INTERNAL_FORMAT,

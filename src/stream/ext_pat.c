@@ -88,8 +88,8 @@ _pat_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
          handle->bits_sample = bits_sample;
          handle->bitrate = bitrate;
          handle->max_samples = 0;
-         handle->info.freq = freq;
-         handle->info.tracks = 1;
+         handle->info.rate = freq;
+         handle->info.no_tracks = 1;
          handle->info.fmt = format;
          handle->info.no_samples = no_samples;
          handle->info.blocksize = tracks*bits_sample/8;
@@ -152,7 +152,7 @@ _pat_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                   }
 
                   handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
-                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
                   handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
                   if (!handle->fmt->setup(handle->fmt, fmt, handle->info.fmt))
                   {
@@ -161,9 +161,9 @@ _pat_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                      return rv;
                   }
 
-                  handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.freq);
+                  handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.rate);
                   handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
-                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.tracks);
+                  handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
                   handle->fmt->set(handle->fmt, __F_NO_SAMPLES, handle->info.no_samples);
                   handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
                   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
@@ -638,8 +638,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, unsigned char *header, ssize_t *pr
       break;
    }
 
-   handle->info.freq = handle->patch.sample_rate;
-   handle->info.blocksize = handle->info.tracks*handle->bits_sample/8;
+   handle->info.rate = handle->patch.sample_rate;
+   handle->info.blocksize = handle->info.no_tracks*handle->bits_sample/8;
    handle->info.no_samples = SIZE2SAMPLES(handle, handle->patch.wave_size);
 
    offs = (handle->patch.start_loop << 4) + (handle->patch.fractions >> 4);

@@ -246,7 +246,8 @@ typedef enum
 typedef struct
 {
    enum aaxFormat fmt; 
-   unsigned int tracks;
+   unsigned int no_tracks;
+   unsigned int no_bytes;
    unsigned int blocksize;
    size_t no_blocks;
 
@@ -255,7 +256,7 @@ typedef struct
    float loop_start;
    float loop_end;
 
-   float freq;
+   float rate;
    float base_frequency;
    float low_frequency;
    float high_frequency;
