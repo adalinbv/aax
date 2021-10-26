@@ -141,6 +141,7 @@ _aaxRingBufferCreate(float dde, enum aaxRenderMode mode)
          rbd->bits_sample = _aaxRingBufferFormat[rbd->format].bits;
          rbd->block_size = rbd->bits_sample/8;
          rbd->block_size_set = AAX_FALSE;
+         rbd->track_len_set = AAX_FALSE;
 #if RB_FLOAT_DATA
          rbd->freqfilter = _batch_freqfilter_float;
          rbd->resample = _batch_resample_float;
@@ -267,8 +268,11 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
       {
          size_t i;
 
-         rbd->track_len_bytes = no_samples*bps/8;
          rbd->duration_sec = (float)no_samples / rbd->frequency_hz;
+         rbd->tracksize = no_samples*bps/8;
+         if (!rbd->track_len_set) {
+            rbd->track_len_bytes = rbd->tracksize;
+         }
 
          rbd->loop_start_sec = 0.0f;
          rbd->loop_end_sec = rbd->duration_sec;
@@ -763,7 +767,9 @@ _aaxRingBufferSetParamf(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, floa
       rbd->duration_sec = fval;
       fval *= rbd->frequency_hz;
       val = ceilf(fval);
-      rbd->track_len_bytes = val*rbd->bits_sample/8;
+      if (!rbd->track_len_set) {
+         rbd->track_len_bytes = val*rbd->bits_sample/8;
+      }
 
       // same code as for _aaxRingBufferSetParami with RB_NO_SAMPLES
       if (rbd->track == NULL)
@@ -965,7 +971,8 @@ _aaxRingBufferSetParami(_aaxRingBuffer *rb, enum _aaxRingBufferParam param, unsi
       // intentional fallthrough
    case RB_TRACKSIZE:
       rbd->track_len_bytes = val;
-      val /= (rbd->bits_sample/8);
+      rbd->track_len_set = AAX_TRUE;
+      val /= rbd->block_size;
       // intentional fallthrough
    case RB_NO_SAMPLES:
       if (rbd->track == NULL)
@@ -1570,7 +1577,7 @@ _aaxRingBufferClear(_aaxRingBufferData *rbi, int track, char dde)
    {
       for (i=0; i<rbd->no_tracks; i++) {
          memset((void *)((char*)rbd->track[i]-dde_bytes), 0,
-                rbd->track_len_bytes+dde_bytes);
+                rbd->tracksize+dde_bytes);
       }
    }
 

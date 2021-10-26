@@ -93,16 +93,18 @@ enum
 
 typedef struct _aaxRingBufferSample_t  /* static information about the sample */
 {
-    void** track;
     void** scratch;		/* resident scratch buffer */
+    void** track;		/* audio tracks data */
+    size_t tracksize;		/* size of the allocated audio tracks data */
 
     size_t no_blocks;
     size_t dde_samples;
     size_t no_samples;		/* actual no. samples */
     size_t no_samples_avail;	/* maximum available no. samples */
-    size_t track_len_bytes;
 
+    size_t track_len_bytes;	/* as specified by the audio file */
     unsigned int block_size;
+
     unsigned short bits_sample;
     unsigned short no_tracks;
     unsigned short no_layers;
@@ -123,6 +125,7 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     unsigned char sampled_release;
     unsigned char fast_release;
 
+    unsigned char track_len_set;
     unsigned char block_size_set;
     unsigned char mixer_fmt;    /* 1 if the ringbuffer is part of the mixer */
 
