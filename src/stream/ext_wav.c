@@ -536,7 +536,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
          }
 #else
          ssize_t size = handle->info.blocksize;
-         unsigned tracks = handle->info.no_tracks;
+//       unsigned tracks = handle->info.no_tracks;
 
          avail = (avail/size)*size;
 
@@ -999,6 +999,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
                }
 #if 0
 {
+   uint32_t samples = 0;
    uint32_t *head = header+9;
    char *h = (char*)header;
    printf("Read %s Header:\n", extfmt ? "Extensible" : "Canonical");
@@ -1032,19 +1033,24 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    }
    if (*head == 0x74636166)	/* fact */
    {
-      printf("10: %08x (SubChunk2ID \"fact\")\n", *head++);
-      printf("11: %08x (Subchunk2Size: %i)\n", *head, *head); head++;
-      printf("12: %08x (nSamples: %i)\n", *head, *head); head++;
+      printf("%li: %08x (SubChunk2ID \"fact\")\n", head-header, *head); head++;
+      printf("%li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head);
+      samples = *(++head);
+      printf("%li: %08x (nSamples: %i)\n", head-header, samples, samples); head++;
    }
-   if (*head == 0x4b414550) {	/* peak */
+   while (*head != 0x61746164) { /* data */
       ch = (uint8_t*)(head+2);
       head = (uint32_t*)(ch + EVEN(head[1]));
    }
    if (*head == 0x61746164) /* data */
    {
-      printf(" 9: %08x (SubChunk2ID \"data\")\n", *head++);
-      printf("10: %08x (Subchunk2Size: %i)\n", *head, *head);
+      printf("%li: %08x (SubChunk2ID \"data\")\n", head-header, *head); head++;
+      printf("%li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head);
+      if (samples == 0) {
+         samples = *head*8/(handle->info.no_tracks*handle->bits_sample);
+      }
    }
+   printf("Duration: %f\n", (float)samples/handle->info.rate);
 }
 #endif
             }
