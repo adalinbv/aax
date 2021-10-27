@@ -1033,10 +1033,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    }
    if (*head == 0x74636166)	/* fact */
    {
-      printf("%li: %08x (SubChunk2ID \"fact\")\n", head-header, *head); head++;
-      printf("%li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head);
+      printf("%2li: %08x (SubChunk2ID \"fact\")\n", head-header, *head); head++;
+      printf("%2li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head);
       samples = *(++head);
-      printf("%li: %08x (nSamples: %i)\n", head-header, samples, samples); head++;
+      printf("%2li: %08x (nSamples: %i)\n", head-header, samples, samples); head++;
    }
    while (*head != 0x61746164) { /* data */
       ch = (uint8_t*)(head+2);
@@ -1044,8 +1044,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    }
    if (*head == 0x61746164) /* data */
    {
-      printf("%li: %08x (SubChunk2ID \"data\")\n", head-header, *head); head++;
-      printf("%li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head);
+      printf("%2li: %08x (SubChunk2ID \"data\")\n", head-header, *head); head++;
+      printf("%2li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head);
       if (samples == 0) {
          samples = *head*8/(handle->info.no_tracks*handle->bits_sample);
       }
