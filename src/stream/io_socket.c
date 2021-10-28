@@ -41,6 +41,7 @@
 #if HAVE_SYS_SOCKET_H
 # include <sys/socket.h>
 # include <netinet/in.h>
+# include <arpa/inet.h>		/* inet_ntop */
 # include <netdb.h>
 #endif
 #if HAVE_WINSOCK2_H
@@ -175,6 +176,13 @@ _socket_open(_io_t *io, const char *server)
                   dest_addr.sin_addr.s_addr = *(long*)(host->h_addr);
                   memset(&(dest_addr.sin_zero), '\0', 8);
 
+#if 0
+{
+ char buffer[INET_ADDRSTRLEN];
+ inet_ntop( AF_INET, &dest_addr.sin_addr, buffer, sizeof( buffer ));
+ printf( "address:%s\n", buffer );
+}
+#endif
                   if (connect(fd, (struct sockaddr*)&dest_addr,
                                   sizeof(struct sockaddr)) >= 0)
                   {
