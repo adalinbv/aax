@@ -543,8 +543,15 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   char *s = server;
                   rv = handle->prot->connect(handle->prot, handle->io,
                                               &s, path, agent);
-                  if (rv == -300) {
+                  if (rv == -300)
+                  {
                       protocol = _url_split(s, &protname, &server, &path, &extension, &port);
+                      handle->prot = _prot_free(handle->prot);
+                      handle->io->close(handle->io);
+
+                      if (handle->io->open(handle->io, server) < 0) break;
+                      handle->prot = _prot_create(protocol);
+                      if (!handle->prot) break;
                   }
                } while (rv < 0 && --num);
 
@@ -946,7 +953,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       do
       {
          // handle->start_with_fill == AAX_TRUE if the previous session was
-         // a call to  handle->ext->fill() and it returned __F_NEED_MORE
+         // a call to  handle->ext->fill and it returned __F_NEED_MORE
          if (!handle->start_with_fill)
          {
             if (!data)
