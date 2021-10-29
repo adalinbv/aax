@@ -43,6 +43,7 @@ _prot_create(_protocol_t protocol)
    switch(protocol)
    {
    case PROTOCOL_HTTP:
+   case PROTOCOL_HTTPS:
       rv = calloc(1, sizeof(_prot_t));
       if (rv)
       {
@@ -95,21 +96,34 @@ _prot_free(_prot_t *prot)
 _protocol_t
 _url_split(char *url, char **protocol, char **server, char **path, char **extension, int *port)
 {
-   _protocol_t rv;
+   _protocol_t rv = PROTOCOL_DIRECT;
 
    _aaxURLSplit(url, protocol, server, path, extension, port);
 
-   if ((*protocol && (!strcasecmp(*protocol, "http") ||
-                      !strcasecmp(*protocol, "https"))) ||
-       (*server && **server != 0))
+   if (*protocol)
    {
-      if (!(*port)) *port = 80;
-      rv = PROTOCOL_HTTP;
-   }
-   else if (!*protocol || !strcasecmp(*protocol, "file")) {
-      rv = PROTOCOL_DIRECT;
-   } else {
-      rv = PROTOCOL_UNSUPPORTED;
+      if (*server && **server != 0)
+      {
+         if (!strcasecmp(*protocol, "http"))
+         {
+            if (!(*port)) *port = 80;
+            rv = PROTOCOL_HTTP;
+         }
+         else if (!strcasecmp(*protocol, "https"))
+         {
+            if (!(*port)) *port = 443;
+            rv = PROTOCOL_HTTPS;
+         }
+         else {
+            rv = PROTOCOL_UNSUPPORTED;
+         }
+      }
+      else if (!strcasecmp(*protocol, "file")) {
+         rv = PROTOCOL_DIRECT;
+      }
+      else {
+         rv = PROTOCOL_UNSUPPORTED;
+      }
    }
 
    return rv;
