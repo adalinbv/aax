@@ -527,6 +527,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       switch (protocol)
       {
       case PROTOCOL_HTTP:
+      case PROTOCOL_HTTPS:
          handle->io->set_param(handle->io, __F_NO_BYTES, size);
          handle->io->set_param(handle->io, __F_RATE, *refresh_rate);
          handle->io->set_param(handle->io, __F_PORT, port);
@@ -648,7 +649,8 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->ext->set_param(handle->ext,__F_COPY_DATA, handle->copy_to_buffer);
       handle->ext->set_param(handle->ext, __F_NO_BYTES, handle->no_bytes);
       handle->ext->set_param(handle->ext, __F_PATCH_LEVEL, level);
-      if (handle->io->protocol == PROTOCOL_HTTP) {
+      if (handle->io->protocol == PROTOCOL_HTTP ||
+          handle->io->protocol == PROTOCOL_HTTPS) {
          handle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
       }
 
@@ -1579,7 +1581,8 @@ _aaxStreamDriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const ch
 
    if (str)
    {
-      if (handle && handle->io && handle->io->protocol == PROTOCOL_HTTP) {
+      if (handle && handle->io && (handle->io->protocol == PROTOCOL_HTTP ||
+                                   handle->io->protocol == PROTOCOL_HTTPS)) {
           snprintf(_errstr, 256, "HTTP: %s\n", str);
       } else {
          snprintf(_errstr, 256, "Stream: %s\n", str);
@@ -1624,6 +1627,7 @@ _aaxGetFormat(const char *url, enum aaxRenderMode mode)
    switch (res)
    {
    case PROTOCOL_HTTP:
+   case PROTOCOL_HTTPS:
       if (path) extension = strrchr(path, '.');
       if (!extension) extension = ".mp3";
       break;

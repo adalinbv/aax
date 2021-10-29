@@ -188,10 +188,11 @@ _socket_open(_io_t *io, const char *server)
                   {
                      io->fds.fd = fd;
 
-                     if (pSSL_new && tries == 2)
+                     if (io->protocol == PROTOCOL_HTTPS &&
+                         pSSL_new && tries == 2)
                      {
-                        void *meth = pTLS_client_method();
-                        io->ssl_ctx = pSSL_CTX_new(meth);
+                        void *method = pTLS_client_method();
+                        io->ssl_ctx = pSSL_CTX_new(method);
                         if (io->ssl_ctx)
                         {
                            io->ssl = pSSL_new(io->ssl_ctx);

@@ -36,8 +36,9 @@ extern "C" {
 typedef enum
 {
    PROTOCOL_UNSUPPORTED = -1,
-   PROTOCOL_DIRECT = 0,
-   PROTOCOL_HTTP
+   PROTOCOL_DIRECT = 1,
+   PROTOCOL_HTTP,
+   PROTOCOL_HTTPS
 } _protocol_t;
 
 struct _io_st;
