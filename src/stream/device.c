@@ -539,20 +539,22 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             {
                const char *agent = aaxGetVersionString((aaxConfig)id);
                ssize_t rv;
-               int num = 10;
+               int num = 25;
                do {
                   char *s = server;
                   rv = handle->prot->connect(handle->prot, handle->io,
                                               &s, path, agent);
                   if (rv == -300)
                   {
-                      protocol = _url_split(s, &protname, &server, &path, &extension, &port);
-                      handle->prot = _prot_free(handle->prot);
-                      handle->io->close(handle->io);
+                     handle->prot = _prot_free(handle->prot);
+                     handle->io->close(handle->io);
 
-                      if (handle->io->open(handle->io, server) < 0) break;
-                      handle->prot = _prot_create(protocol);
-                      if (!handle->prot) break;
+                     protocol = _url_split(s, &protname, &server, &path,
+                                              &extension, &port);
+
+                     if (handle->io->open(handle->io, server) < 0) break;
+                     handle->prot = _prot_create(protocol);
+                     if (!handle->prot) break;
                   }
                } while (rv < 0 && --num);
 

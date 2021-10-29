@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -77,14 +77,17 @@ _prot_create(_protocol_t protocol)
 void*
 _prot_free(_prot_t *prot)
 {
-   if (prot->path) free(prot->path);
-   if (prot->content_type) free(prot->content_type);
-   if (prot->station) free(prot->station);
-   if (prot->description) free(prot->description);
-   if (prot->genre) free(prot->genre);
-   if (prot->website) free(prot->website);
-   if (prot->metadata) free(prot->metadata);
-   if (prot) free(prot);
+   if (prot)
+   {
+      if (prot->path) free(prot->path);
+      if (prot->content_type) free(prot->content_type);
+      if (prot->station) free(prot->station);
+      if (prot->description) free(prot->description);
+      if (prot->genre) free(prot->genre);
+      if (prot->website) free(prot->website);
+      if (prot->metadata) free(prot->metadata);
+      if (prot) free(prot);
+   }
    return 0;
 }
 

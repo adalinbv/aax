@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -62,7 +62,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
    }
 
 #if 0
-  printf("GET:\n server: '%s'\n path: '%s'\n agent: '%s'\n res: %i\n", *server, path, agent, res);
+  printf("GET: res: %i\n server: '%s'\n path: '%s'\n agent: '%s'\n", res, *server, path, agent);
 #endif
 
    if (res > 0)
@@ -417,7 +417,7 @@ _http_get_response_data(_io_t *io, char *response, int size)
       {
          res = io->read(io, buf, 1);
          if (res > 0) break;
-         msecSleep(1);
+         msecSleep(10);
       }
       while (res == 0 && --j);
 
