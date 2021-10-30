@@ -1,6 +1,6 @@
 /*
- * Copyright 2007-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2007-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -48,6 +48,67 @@ is_bigendian()
       detect = 1;
    }
    return __big_endian;
+}
+
+// Write data to a stream, byte by byte
+void
+write8(uint8_t **ptr, uint8_t i, size_t *buflen)
+{
+   if (*buflen-- >= 1) {
+      **ptr++ = i;
+   }
+}
+
+void
+write16(uint8_t **ptr, uint16_t i, size_t *buflen)
+{
+   if (*buflen >= 2)
+   {
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i;
+      *buflen -= 2;
+   }
+}
+
+void
+write32(uint8_t **ptr, uint32_t i, size_t *buflen)
+{
+   if (*buflen >= 4)
+   {
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i;
+      *buflen -= 4;
+   }
+}
+
+void
+write64(uint8_t **ptr, uint64_t i, size_t *buflen)
+{
+   if (*buflen >= 8)
+   {
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i & 0xFF; i >>= 8;
+      **ptr++ = i;
+      *buflen -= 8;
+   }
+}
+
+void
+writestr(uint8_t **ptr, char *s, size_t *buflen)
+{
+   size_t slen = strlen(s);
+   if (*buflen >= slen)
+   {
+      strcpy((char*)*ptr, s);
+      buflen -= slen;
+   }
 }
 
 // Read data from a stream, byte by byte
@@ -221,7 +282,7 @@ _nt_memptr(const void *ptr, off_t offs, size_t n)
     assert(info != NULL);
     assert(info->id == NTID);
     assert(info->start+(offs+n) < info->end);
-   
+
     return info->start+offs;
 }
 
