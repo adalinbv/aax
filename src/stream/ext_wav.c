@@ -1055,15 +1055,15 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 #endif
             }
             else {
-               return -1;
+               return __F_EOF;
             }
          }
          else {
-            return -1;
+            return __F_EOF;
          }
       }
       else {
-         return -1;
+         return __F_EOF;
       }
    }
    else if (curr == 0x74636166)         /* fact */
@@ -1087,6 +1087,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
       }
       *step = rv = ch-buf;
       if (!handle->io.read.datasize) rv = __F_EOF;
+      else rv = __F_PROCESS;
    }
    else if (curr == 0x5453494c)         /* LIST */
    {                            // http://www.daubnet.com/en/file-format-riff
