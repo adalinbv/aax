@@ -836,7 +836,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
  printf(" blocksize: %i\n", info.blocksize);
  printf(" data size: %i\n", info.no_bytes);
  printf(" samples: %li\n\n", info.no_samples);
-# if 0
+# if 1
  _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr[0], info.no_samples, info.rate, info.no_tracks, info.fmt);
 # endif
 #endif
@@ -2639,10 +2639,6 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    tracksize = no_samples * bps;
-
-#if 1
- _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, data, buf->info.no_samples, buf->info.rate, buf->info.no_tracks, buf->info.fmt);
-#endif
 
    switch (rb_format)
    {
