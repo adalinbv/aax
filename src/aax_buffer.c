@@ -827,6 +827,19 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                 rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
                 rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
              }
+#if 0
+ printf("Stream Captured data:\n");
+ printf(" url: '%s'\n", url);
+ printf(" format: %x\n", info.fmt);
+ printf(" no. tracks: %i\n", info.no_tracks);
+ printf(" rate: %5.1f\n", info.rate);
+ printf(" blocksize: %i\n", info.blocksize);
+ printf(" data size: %i\n", info.no_bytes);
+ printf(" samples: %li\n\n", info.no_samples);
+# if 0
+ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr[0], info.no_samples, info.rate, info.no_tracks, info.fmt);
+# endif
+#endif
 
              if ((aaxBufferSetData(buf, ptr[0])) != AAX_FALSE)
              {
@@ -2552,10 +2565,10 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
  * T: Track no.
  */
 static void
-_aaxRingBufferIMA4ToPCM16(int32_t **__restrict dptr, const void *__restrict src, int no_tracks, int blocksize, unsigned int no_blocks)
+_aaxRingBufferIMA4ToPCM16(int32_t **__restrict dptr, const void *__restrict sptr, int no_tracks, int blocksize, unsigned int no_blocks)
 {
    int16_t *d[_AAX_MAX_SPEAKERS];
-   uint8_t *s = (uint8_t *)src;
+   uint8_t *s = (uint8_t *)sptr;
    int b, t;
 
    if (no_tracks > _AAX_MAX_SPEAKERS) {
@@ -2626,6 +2639,10 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    tracksize = no_samples * bps;
+
+#if 1
+ _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, data, buf->info.no_samples, buf->info.rate, buf->info.no_tracks, buf->info.fmt);
+#endif
 
    switch (rb_format)
    {
