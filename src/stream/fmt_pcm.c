@@ -385,8 +385,8 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
             if (handle->cvt_endianness) {
                handle->cvt_endianness(buf, *num);
             }
-            if (handle->cvt_to_signed) {
-               handle->cvt_to_signed(buf, *num);
+            if (handle->cvt_from_signed) {
+               handle->cvt_from_signed(buf, *num);
             }
 
             if (handle->cvt_from_intl) {
