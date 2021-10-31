@@ -1432,7 +1432,7 @@ _getWAVFormatFromAAXFormat(enum aaxFormat format)
    enum wavFormat rv = UNSUPPORTED;
    switch (format & AAX_FORMAT_NATIVE)
    {
-   case AAX_PCM8U:
+   case AAX_PCM8S:
    case AAX_PCM16S:
    case AAX_PCM24S_PACKED:
    case AAX_PCM32S:
