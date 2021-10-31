@@ -54,8 +54,12 @@ is_bigendian()
 void
 write8(uint8_t **ptr, uint8_t i, size_t *buflen)
 {
-   if (*buflen-- >= 1) {
-      **ptr++ = i;
+   if (*buflen >= 1)
+   {
+      uint8_t *ch = *ptr;
+      *ch++ = i;
+      *ptr = ch;
+      *buflen -= 1;
    }
 }
 
@@ -64,8 +68,10 @@ write16(uint8_t **ptr, uint16_t i, size_t *buflen)
 {
    if (*buflen >= 2)
    {
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i;
+      uint8_t *ch = *ptr;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i;
+      *ptr = ch;
       *buflen -= 2;
    }
 }
@@ -75,10 +81,12 @@ write32(uint8_t **ptr, uint32_t i, size_t *buflen)
 {
    if (*buflen >= 4)
    {
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i;
+      uint8_t *ch = *ptr;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i;
+      *ptr = ch;
       *buflen -= 4;
    }
 }
@@ -88,25 +96,31 @@ write64(uint8_t **ptr, uint64_t i, size_t *buflen)
 {
    if (*buflen >= 8)
    {
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i & 0xFF; i >>= 8;
-      **ptr++ = i;
+      uint8_t *ch = *ptr;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i & 0xFF; i >>= 8;
+      *ch++ = i;
+      *ptr = ch;
       *buflen -= 8;
    }
 }
 
 void
-writestr(uint8_t **ptr, char *s, size_t *buflen)
+writestr(uint8_t **ptr, char *s, size_t slen, size_t *buflen)
 {
-   size_t slen = strlen(s);
    if (*buflen >= slen)
    {
-      strcpy((char*)*ptr, s);
+      uint8_t *ch = *ptr;
+      int i;
+      for (i=0; i<slen; ++i) {
+         *ch++ = (uint8_t)*s++;
+      }
+      *ptr = ch;
       buflen -= slen;
    }
 }

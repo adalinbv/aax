@@ -34,7 +34,7 @@ void write8(uint8_t**, uint8_t, size_t*);
 void write16(uint8_t**, uint16_t, size_t*);
 void write32(uint8_t**, uint32_t, size_t*);
 void write64(uint8_t**, uint64_t, size_t*);
-void writestr(uint8_t**, char*, size_t*);
+void writestr(uint8_t**, char*, size_t, size_t*);
 
 uint8_t read8(uint8_t**);
 uint16_t read16(uint8_t**);
