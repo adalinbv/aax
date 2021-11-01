@@ -51,36 +51,43 @@ static inline std::string to_string(enum aaxFormat fmt)
     {
     case AAX_PCM8S: return "signed, 8-bits per sample";
     case AAX_PCM16S: return "signed, 16-bits per sample";
-    case AAX_PCM24S: return "signed, 24-bits per sample 32-bit encoded";
+    case AAX_PCM24S: return "signed, 24-bits per sample, 32-bit encoded";
     case AAX_PCM32S: return "signed, 32-bits per sample";
-    case AAX_FLOAT: return "32-bit floating point, -1.0 to 1.0";
-    case AAX_DOUBLE: return "64-bit floating point, -1.0 to 1.0";
+    case AAX_FLOAT: return "32-bit floating point: -1.0 to 1.0";
+    case AAX_DOUBLE: return "64-bit floating point: -1.0 to 1.0";
     case AAX_MULAW: return "16-bit compressed to 8-bit µ-law";
     case AAX_ALAW: return "16-bit compresed to 8-bit A-law";
     case AAX_IMA4_ADPCM: return "16-bit compressed to 4-bit";
+    case AAX_PCM24S_PACKED: return "signed, 24-bits per sample, 24-bit encoded";
+
     case AAX_PCM8U: return "unsigned, 8-bits per sample";
     case AAX_PCM16U: return "unsigned, 16-bits per sample";
     case AAX_PCM24U: return "unsigned, 24-bits per sample 32-bit encoded";
     case AAX_PCM32U: return "unsigned, 32-bits per sample";
+
     case AAX_PCM16S_LE: return "signed, 16-bits per sample little-endian";
-    case AAX_PCM24S_LE: return "signed, 24-bits per sample little-endian 32-bit encoded";
-    case AAX_PCM24S_PACKED: return "signed, 24-bits per sample";
+    case AAX_PCM24S_LE: return "signed, 24-bits per sample, 32-bit encoded little-endian";
     case AAX_PCM32S_LE: return "signed, 32-bits per sample little-endian";
-    case AAX_FLOAT_LE: return "32-bit floating point, -1.0 to 1.0 little-endian";
-    case AAX_DOUBLE_LE: return "64-bit floating point, -1.0 to 1.0 little-endian";
+    case AAX_FLOAT_LE: return "32-bit floating point little-endian: -1.0 to 1.0";
+    case AAX_DOUBLE_LE: return "64-bit floating point little-endian: -1.0 to 1.0";
+
     case AAX_PCM16U_LE: return "unsigned, 16-bits per sample little-endian";
-    case AAX_PCM24U_LE: return "unsigned, 24-bits per sample little-endian 32-bit encoded";
+    case AAX_PCM24U_LE: return "unsigned, 24-bits per sample, 32-bit encoded little-endian";
     case AAX_PCM32U_LE: return "unsigned, 32-bits per sample little-endian";
+
     case AAX_PCM16S_BE: return "signed, 16-bits per sample big-endian";
-    case AAX_PCM24S_BE: return "signed, 24-bits per sample big-endian 32-bit encoded";
+    case AAX_PCM24S_BE: return "signed, 24-bits per sample, 32-bit encoded big-endian";
     case AAX_PCM32S_BE: return "signed, 32-bits per sample big-endian";
-    case AAX_FLOAT_BE: return "32-bit floating point, -1.0 to 1.0 big-endian";
-    case AAX_DOUBLE_BE: return "64-bit floating point, -1.0 to 1.0 big-endian";
+    case AAX_FLOAT_BE: return "32-bit floating point big-endian: -1.0 to 1.0";
+    case AAX_DOUBLE_BE: return "64-bit floating point big-endian: -1.0 to 1.0";
+
     case AAX_PCM16U_BE: return "unsigned, 16-bits per sample big-endian";
-    case AAX_PCM24U_BE: return "unsigned, 24-bits per sample big-endian 32-bit encoded";
+    case AAX_PCM24U_BE: return "unsigned, 24-bits per sample, 32-bit encoded big-endian";
     case AAX_PCM32U_BE: return "unsigned, 32-bits per sample big-endian";
-    case AAX_AAXS16S: return "16-bit XML synthesized waveform";
-    case AAX_AAXS24S: return "24-bit XML synthesized waveform 32-bit encoded";
+
+    case AAX_AAXS16S: return "16-bits per sample XML defined waveform";
+    case AAX_AAXS24S: return "24-bit per sample, 32-bit encoded XML defined waveform";
+
     case AAX_FORMAT_MAX:
     case AAX_FORMAT_NATIVE:
     case AAX_FORMAT_LE:
