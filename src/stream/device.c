@@ -932,7 +932,7 @@ static ssize_t
 _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, UNUSED(void *scratch), UNUSED(size_t scratchSize), float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
-   ssize_t offs = *offset;
+   ssize_t offs = *offset, xoffs = *offset;
    ssize_t bytes = 0;
    int num = 3;
 
@@ -1025,7 +1025,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
             else {
 #if USE_CAPTURE_THREAD
-//             _aaxSignalTrigger(&handle->thread.signal);
+               _aaxSignalTrigger(&handle->thread.signal);
 #else
                _aaxStreamDriverReadChunk(id);
 #endif
@@ -1063,7 +1063,8 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
          }
       }
-      *offset = _MINMAX(IOBUF_THRESHOLD-(ssize_t)_aaxDataGetDataAvail(handle->threadBuffer), -1, 1);
+//    *offset = _MINMAX(IOBUF_THRESHOLD-(ssize_t)_aaxDataGetDataAvail(handle->threadBuffer), -1, 1);
+      *offset = offs-xoffs;
    }
 
    return bytes;
