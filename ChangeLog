@@ -1,4 +1,4 @@
-* Thu Oct 21 2021 - tech@adalin.org
+* Tue Nov 21 2021 - tech@adalin.org
 - AeonWave (3.11.0) stable; urgency=high
 
  * Add support for pitch-fractions.
@@ -18,7 +18,7 @@
  * Fix a possible null-pointer reference for filters and effects when setting
    the state with an unsupported waveform.
 
--- Erik Hofman <tech@adalin.org>  Thu 21 Oct 2021 23:56:23 + 0100
+-- Erik Hofman <tech@adalin.org>  Tue 02 Nov 2021 08:27:21 + 0200
 
 
 * Mon Jun 21 2021 - tech@adalin.org
