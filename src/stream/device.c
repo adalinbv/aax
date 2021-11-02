@@ -1393,6 +1393,8 @@ _aaxStreamDriverParam(const void *id, enum _aaxDriverParam param)
          break;
       case DRIVER_NO_BYTES:
          rv = (float)handle->ext->get_param(handle->ext, __F_NO_BYTES);
+         // Not all extensions return DRIVER_NO_BYTES
+         if (!rv) rv = handle->no_samples*handle->bits_sample/8;
          break;
       case DRIVER_BLOCK_SIZE:
          rv = (float)handle->ext->get_param(handle->ext, __F_BLOCK_SIZE);
