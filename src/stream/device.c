@@ -894,7 +894,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
 
    assert(outbuf_size <= _aaxDataGetSize(handle->dataBuffer));
 
-   // NOTE: Need RB_RW in case it is used as a mirrored file-backend
+   // NOTE: Need RB_RW in case it is used as a mirroring file-backend
    //       See _aaxSoftwareMixerPlay
 
    sbuf = (int32_t**)rb->get_tracks_ptr(rb, RB_RW);
@@ -1912,8 +1912,8 @@ _aaxStreamDriverReadChunk(const void *id)
       return 0;
    }
 
-   // read may block until enough data is available but others will only
-   // remove data from the threadBuffer so size may only increase.
+   // read may block until enough data is available but other users will only
+   // remove data from the threadBuffer so size can never get smaller.
    res = handle->io->read(handle->io, buffer, size);
    if (res > 0)
    {

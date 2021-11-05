@@ -311,7 +311,16 @@ _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
    case __F_EXTENSION:
       if (prot->content_type)
       {
-         if (!strcasecmp(prot->content_type, "audio/wav") ||
+         if (!strcasecmp(prot->content_type, "audio/x-scpls") ||
+             !strcasecmp(prot->content_type, "audio/x-mpegurl") ||
+             !strcasecmp(prot->content_type, "audio/mpegurl") ||
+             !strcasecmp(prot->content_type, "application/x-mpegurl") ||
+             !strcasecmp(prot->content_type, "application/mpegurl") ||
+             !strcasecmp(prot->content_type, "application/vnd.apple.mpegurl") ||
+             !strcasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio")) {
+            rv = _EXT_PCM;
+         }
+         else if (!strcasecmp(prot->content_type, "audio/wav") ||
              !strcasecmp(prot->content_type, "audio/wave") ||
              !strcasecmp(prot->content_type, "audio/x-wav")) {
             rv = _EXT_WAV;

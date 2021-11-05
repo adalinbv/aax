@@ -107,6 +107,33 @@ _ext_create(_ext_type_t extension)
          rv->cvt_to_intl = _pat_cvt_to_intl;
       }
       break;
+#if 0
+   case _EXT_BYTESTREAM:
+      rv = calloc(1, sizeof(_ext_t));
+      if (rv)
+      {
+         rv->id = NULL;
+         rv->detect = _pls_detect;
+         rv->setup = _pls_setup;
+         rv->open = _pls_open;
+         rv->close = _pls_close;
+         rv->update = _pls_update;
+         rv->name = _pls_name;
+         rv->set_name = _pls_set_name;
+
+         rv->supported = _pls_extension;
+         rv->interfaces = _pls_interfaces;
+
+         rv->get_param = _pls_get;
+         rv->set_param = _pls_set;
+
+         rv->copy = _pls_copy;
+         rv->fill = _pls_fill;
+         rv->cvt_from_intl = _pls_cvt_from_intl;
+         rv->cvt_to_intl = _pls_cvt_to_intl;
+      }
+      break;
+#endif
    case _EXT_PCM:
    case _EXT_MP3:
    case _EXT_FLAC:

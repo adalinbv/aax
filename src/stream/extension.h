@@ -47,6 +47,7 @@ typedef enum {
    _EXT_PATCH,
 
    /* raw format extensions */
+   _EXT_BYTESTREAM,
    _EXT_PCM,
    _EXT_MP3,
    _EXT_FLAC,

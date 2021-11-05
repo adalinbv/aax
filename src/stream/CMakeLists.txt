@@ -21,6 +21,7 @@ set(STREAM_SOURCES
   ext_raw.c
   ext_wav.c
   ext_pat.c
+  ext_bytestream.c
   fmt_binary.c
   fmt_flac.c
   fmt_mp3.c
