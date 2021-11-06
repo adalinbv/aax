@@ -969,7 +969,6 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
 #if 0
 {
    unsigned int i;
-   uint32_t curr;
    uint64_t i64;
    uint32_t i32;
 
@@ -1028,24 +1027,24 @@ _getOggPageHeader(_driver_t *handle, uint8_t *header, size_t size, char remove_h
    {
       int32_t version, crc32, serial_no, no_segments, sequence_no;
 
-      version = read8(&ch);
+      version = read8(&ch, &bufsize);
 
-      handle->header_type = read8(&ch);
+      handle->header_type = read8(&ch, &bufsize);
       handle->first_page = handle->header_type & PACKET_FIRST_PAGE;
       handle->last_page = handle->header_type & PACKET_LAST_PAGE;
       handle->continued = handle->header_type & PACKET_CONTINUED;
 
-      handle->granule_position = read64(&ch);;
+      handle->granule_position = read64le(&ch, &bufsize);
 
-      serial_no = read32(&ch);
+      serial_no = read32le(&ch, &bufsize);
       if (!handle->bitstream_serial_no) {
          handle->bitstream_serial_no = serial_no;
       }
 
-      sequence_no = read32(&ch);
-      crc32 = read32(&ch);
+      sequence_no = read32le(&ch, &bufsize);
+      crc32 = read32le(&ch, &bufsize);
 
-      no_segments = read8(&ch);
+      no_segments = read8(&ch, &bufsize);
       handle->header_size = 27 + no_segments;
 
       if ((bufsize >= handle->header_size) && (version == 0x0))
@@ -1189,7 +1188,7 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
    if (len >= VORBIS_ID_HEADER_SIZE)
    {
       uint8_t *ch = h;
-      int type = read8(&ch);
+      int type = read8(&ch, &len);
 
       if (type == HEADER_IDENTIFICATION && *ch++ == 'v' && *ch++ == 'o' &&
           *ch++ == 'r' && *ch++ == 'b' && *ch++ == 'i' && *ch++ == 's')
@@ -1207,23 +1206,23 @@ _aaxFormatDriverReadVorbisHeader(_driver_t *handle, unsigned char *h, size_t len
    printf(" 24: %08x (Min. bitrate: %u)\n", header[6], header[6]);
    printf(" 28: %01x  %01x (block size: %u - %u, framing: %u)\n", h[28], h[29], 1 << (h[28] & 0xF), 1 << (h[28] >> 4), h[29]);
 #endif
-         version = read32(&ch);
+         version = read32le(&ch, &len);
          if (version == 0x0)
          {
             unsigned int blocksize1;
             uint32_t i32;
 
             handle->format = AAX_PCM24S;
-            handle->no_tracks = read8(&ch);
-            handle->frequency = read32(&ch);
-            handle->bitrate_max = read32(&ch);
-            handle->bitrate = read32(&ch);
-            handle->bitrate_min = read32(&ch);
+            handle->no_tracks = read8(&ch, &len);
+            handle->frequency = read32le(&ch, &len);
+            handle->bitrate_max = read32le(&ch, &len);
+            handle->bitrate = read32le(&ch, &len);
+            handle->bitrate_min = read32le(&ch, &len);
 
-            i32 = read8(&ch);
+            i32 = read8(&ch, &len);
             handle->blocksize = 1 << (i32 & 0xF);
             blocksize1 = 1 << (i32 >> 4);
-            handle->framing = read8(&ch) & 0x1;
+            handle->framing = read8(&ch, &len) & 0x1;
 
             if (handle->no_tracks <= 0 || handle->frequency <= 0 ||
                 (handle->blocksize > blocksize1))
@@ -1271,19 +1270,19 @@ _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
       unsigned char mapping_family = 0;
       int stream_count = 0, gain = 0;
       int coupled_count = 0;
-      int version = read8(&ch);
+      int version = read8(&ch, &len);
       if (version == 1)
       {
          handle->format = AAX_FLOAT;
-         handle->no_tracks = read8(&ch);
-         handle->pre_skip = read16(&ch);
-         handle->frequency = read32(&ch);
+         handle->no_tracks = read8(&ch, &len);
+         handle->pre_skip = read16le(&ch, &len);
+         handle->frequency = read32le(&ch, &len);
          handle->no_samples = -handle->pre_skip;
 
-         gain = read16(&ch);
+         gain = read16le(&ch, &len);
          handle->gain = pow(10, (float)gain/(20.0f*256.0f));
 
-         mapping_family = read8(&ch);
+         mapping_family = read8(&ch, &len);
          if ((mapping_family == 0 || mapping_family == 1) &&
              (handle->no_tracks > 1) && (handle->no_tracks <= 8))
          {
@@ -1293,8 +1292,8 @@ _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
               */
              if (mapping_family == 1)
              {
-                 stream_count = read8(&ch);
-                 coupled_count = read8(&ch);
+                 stream_count = read8(&ch, &len);
+                 coupled_count = read8(&ch, &len);
                  if ((stream_count > 0) && (stream_count <= coupled_count))
                  {
                     // what follows is 'no_tracks' bytes for the channel mapping
@@ -1312,7 +1311,6 @@ _aaxFormatDriverReadOpusHeader(_driver_t *handle, char *h, size_t len)
 #if 0
 {
   uint32_t *header = (uint32_t*)h;
-  float gain = (int)h[16] << 8 | h[17];
   printf("Opus Header:\n");
   printf("  0: %08x %08x (Magic number: '%c%c%c%c%c%c%c%c')\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
   printf("  2: %08x (Version: %i, Tracks: %i, Pre Skip: %li)\n", header[2], version, handle->no_tracks, handle->pre_skip);
@@ -1499,48 +1497,51 @@ _getOggOpusComment(_driver_t *handle, unsigned char *h, size_t len)
        *ch++ == 's' && *ch++ == 'T' && *ch++ == 'a' && *ch++ == 'g' &&
        *ch++ == 's')
    {
+      size_t clen;
 #if 0
-      uint32_t *header = (uint32_t*)h;
-      unsigned char *ptr;
-      printf("Opus Comment:\n");
-      printf("  0: %08x %08x (Magic number: \"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
+ uint32_t *header = (uint32_t*)h;
+ unsigned char *ptr;
+ printf("Opus Comment:\n");
+ printf("  0: %08x %08x (Magic number: \"%c%c%c%c%c%c%c%c\")\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6], h[7]);
 
-      size = header[2];
-      snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", h+12);
-      printf("  2: %08x Vendor: '%s'\n", header[2], field);
+ size = header[2];
+ snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", h+12);
+ printf("  2: %08x Vendor: '%s'\n", header[2], field);
 
-      i = 12+size;
-      ptr = h+i;
-      size = *(uint32_t*)ptr;
-//    printf("User comment list length: %i\n", size);
+ i = 12+size;
+ ptr = h+i;
+ size = *(uint32_t*)ptr;
+// printf("User comment list length: %i\n", size);
 
-      ptr += 4;
-      for (i=0; i<size; i++)
-      {
-         size_t slen = *(uint32_t*)ptr;
-         ptr += 4;
-         snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
-         printf("\t'%s'\n", field);
-         ptr += slen;
-      }
+ ptr += 4;
+ for (i=0; i<size; i++)
+ {
+    size_t slen = *(uint32_t*)ptr;
+    ptr += 4;
+    snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+    printf("\t'%s'\n", field);
+    ptr += slen;
+ }
 #endif
 
       field[COMMENT_SIZE] = 0;
 
-      size = read32(&ch);
-      readstr(&ch, field, size, COMMENT_SIZE);
+      clen =  COMMENT_SIZE;
+      size = read32le(&ch, &len);
+      readstr(&ch, field, size, &clen);
 //    handle->vendor = strdup(field);
 
-      size = read32(&ch);
+      size = read32le(&ch, &len);
       for (i=0; i<size; i++)
       {
-         uint32_t slen = read32(&ch);
+         uint32_t slen = read32le(&ch, &len);
 
          if ((size_t)(ch+slen-h) > len) {
             return __F_NEED_MORE;
          }
 
-         readstr(&ch, field, slen, COMMENT_SIZE);
+         clen = COMMENT_SIZE;
+         readstr(&ch, field, slen, &clen);
          if (!STRCMP(field, "TITLE"))
          {
             handle->title = stradd(handle->title, field+strlen("TITLE="));
@@ -1597,50 +1598,53 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *h, size_t len)
    if (len > 12 && *ch++ == 3 && *ch++ == 'v' && *ch++ == 'o' && *ch++ == 'r' &&
        *ch++ == 'b' && *ch++ == 'i' && *ch++ == 's')
    {
+      size_t clen;
 #if 0
-      uint32_t *header = (uint32_t*)h;
-      unsigned char *ptr;
-      printf("\n--Vorbis Comment Header:\n");
-      printf("  0: %08x %08x (packet no.: %i, \"%c%c%c%c%c%c\")\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6]);
+ uint32_t *header = (uint32_t*)h;
+ unsigned char *ptr;
+ printf("\n--Vorbis Comment Header:\n");
+ printf("  0: %08x %08x (packet no.: %i, \"%c%c%c%c%c%c\")\n", header[0], header[1], h[0], h[1], h[2], h[3], h[4], h[5], h[6]);
 
-      size = (header[1] >> 24) | (header[2] << 8);
-      snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", h+11);
-      printf("  2: %08x Vendor: '%s'\n", header[2], field);
+ size = (header[1] >> 24) | (header[2] << 8);
+ snprintf(field, _MIN(size+1, COMMENT_SIZE), "%s", h+11);
+ printf("  2: %08x Vendor: '%s'\n", header[2], field);
 
-      i = 11+size;
-      ptr = h+i;
-      size = *(uint32_t*)ptr;
-//    printf("User comment list length: %i\n", size);
+ i = 11+size;
+ ptr = h+i;
+ size = *(uint32_t*)ptr;
+// printf("User comment list length: %i\n", size);
 
-      ptr += 4;
-      for (i=0; i<size; i++)
-      {
-         size_t slen = *(uint32_t*)ptr;
-         ptr += 4;
-         snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
-         printf("\t'%s'\n", field);
-         ptr += slen;
-      }
-      ptr++;
-      printf("framing: %i\n", *ptr & 0x1);
+ ptr += 4;
+ for (i=0; i<size; i++)
+ {
+    size_t slen = *(uint32_t*)ptr;
+    ptr += 4;
+    snprintf(field, _MIN(slen+1, COMMENT_SIZE), "%s", ptr);
+    printf("\t'%s'\n", field);
+    ptr += slen;
+ }
+ ptr++;
+ printf("framing: %i\n", *ptr & 0x1);
 #endif
 
       field[COMMENT_SIZE] = 0;
 
-      size = read32(&ch);
-      readstr(&ch, field, size, COMMENT_SIZE);
+      clen = COMMENT_SIZE;
+      size = read32le(&ch, &len);
+      readstr(&ch, field, size, &clen);
 //    handle->vendor = strdup(field);
 
-      size = read32(&ch);
+      size = read32le(&ch, &len);
       for (i=0; i<size; i++)
       {
-         uint32_t slen = read32(&ch);
+         uint32_t slen = read32le(&ch, &len);
 
          if ((size_t)(ch+slen-h) > len) {
             return __F_NEED_MORE;
          }
 
-         readstr(&ch, field, slen, COMMENT_SIZE);
+         clen = COMMENT_SIZE;
+         readstr(&ch, field, slen, &clen);
          if (!STRCMP(field, "TITLE"))
          {
              handle->title = stradd(handle->title, field+strlen("TITLE="));

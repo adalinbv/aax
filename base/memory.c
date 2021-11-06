@@ -64,7 +64,7 @@ write8(uint8_t **ptr, uint8_t i, size_t *buflen)
 }
 
 void
-write16(uint8_t **ptr, uint16_t i, size_t *buflen)
+write16le(uint8_t **ptr, uint16_t i, size_t *buflen)
 {
    if (*buflen >= 2)
    {
@@ -77,7 +77,7 @@ write16(uint8_t **ptr, uint16_t i, size_t *buflen)
 }
 
 void
-write32(uint8_t **ptr, uint32_t i, size_t *buflen)
+write32le(uint8_t **ptr, uint32_t i, size_t *buflen)
 {
    if (*buflen >= 4)
    {
@@ -92,7 +92,7 @@ write32(uint8_t **ptr, uint32_t i, size_t *buflen)
 }
 
 void
-write64(uint8_t **ptr, uint64_t i, size_t *buflen)
+write64le(uint8_t **ptr, uint64_t i, size_t *buflen)
 {
    if (*buflen >= 8)
    {
@@ -105,6 +105,53 @@ write64(uint8_t **ptr, uint64_t i, size_t *buflen)
       *ch++ = i & 0xFF; i >>= 8;
       *ch++ = i & 0xFF; i >>= 8;
       *ch++ = i;
+      *ptr = ch;
+      *buflen -= 8;
+   }
+}
+
+void
+write16be(uint8_t **ptr, uint16_t i, size_t *buflen)
+{
+   if (*buflen >= 2)
+   {
+      uint8_t *ch = *ptr;
+      *ch++ = i >> 8;
+      *ch++ = i & 0xFF;
+      *ptr = ch;
+      *buflen -= 2;
+   }
+}
+
+void
+write32be(uint8_t **ptr, uint32_t i, size_t *buflen)
+{
+   if (*buflen >= 4)
+   {
+      uint8_t *ch = *ptr;
+      *ch++ = i >> 24;
+      *ch++ = (i >> 16) & 0xFF;
+      *ch++ = (i >> 8) & 0xFF;
+      *ch++ = i & 0xFF;
+      *ptr = ch;
+      *buflen -= 4;
+   }
+}
+
+void
+write64be(uint8_t **ptr, uint64_t i, size_t *buflen)
+{
+   if (*buflen >= 8)
+   {
+      uint8_t *ch = *ptr;
+      *ch++ = i >> 56;
+      *ch++ = (i >> 48) & 0xFF;
+      *ch++ = (i >> 40) & 0xFF;
+      *ch++ = (i >> 32) & 0xFF;
+      *ch++ = (i >> 24) & 0xFF;
+      *ch++ = (i >> 16) & 0xFF;
+      *ch++ = (i >> 8) & 0xFF;
+      *ch++ = i & 0xFF;
       *ptr = ch;
       *buflen -= 8;
    }
@@ -127,73 +174,135 @@ writestr(uint8_t **ptr, char *s, size_t slen, size_t *buflen)
 
 // Read data from a stream, byte by byte
 uint8_t
-read8(uint8_t **ptr)
+read8(uint8_t **ptr, size_t *buflen)
 {
-   uint8_t *ch = *ptr;
-   uint8_t u8;
-
-   u8 = *ch++;
-   *ptr = ch;
-
+   uint8_t u8 = 0;
+   if (*buflen > 1)
+   {
+      uint8_t *ch = *ptr;
+      u8 = *ch++;
+      *buflen -= 1;
+      *ptr = ch;
+   }
    return u8;
 }
 
 uint16_t
-read16(uint8_t **ptr)
+read16le(uint8_t **ptr, size_t *buflen)
 {
-   uint8_t *ch = *ptr;
-   uint16_t u16;
-
-   u16 = (uint16_t)*ch++;
-   u16 |= (uint16_t)*ch++ << 8;
-   *ptr = ch;
-
+   uint16_t u16 = 0;
+   if (*buflen > 2)
+   {
+      uint8_t *ch = *ptr;
+      u16 = (uint64_t)*ch++;
+      u16 |= (uint64_t)*ch++ << 8;
+      *buflen -= 2;
+      *ptr = ch;
+   }
    return u16;
 }
 
 uint32_t
-read32(uint8_t **ptr)
+read32le(uint8_t **ptr, size_t *buflen)
 {
-   uint8_t *ch = *ptr;
-   uint32_t u32;
-
-   u32 = (uint32_t)*ch++;
-   u32 |= (uint32_t)*ch++ << 8;
-   u32 |= (uint32_t)*ch++ << 16;
-   u32 |= (uint32_t)*ch++ << 24;
-   *ptr = ch;
-
+   uint32_t u32 = 0;
+   if (*buflen > 4)
+   {
+      uint8_t *ch = *ptr;
+      u32 = (uint64_t)*ch++;
+      u32 |= (uint64_t)*ch++ << 8;
+      u32 |= (uint64_t)*ch++ << 16;
+      u32 |= (uint64_t)*ch++ << 24;
+      *buflen -= 4;
+      *ptr = ch;
+   }
    return u32;
 }
 
 uint64_t
-read64(uint8_t **ptr)
+read64le(uint8_t **ptr, size_t *buflen)
 {
-   uint8_t *ch = *ptr;
-   uint64_t u64;
+   uint64_t u64 = 0;
+   if (*buflen > 8)
+   {
+      uint8_t *ch = *ptr;
+      u64 = (uint64_t)*ch++;
+      u64 |= (uint64_t)*ch++ << 8;
+      u64 |= (uint64_t)*ch++ << 16;
+      u64 |= (uint64_t)*ch++ << 24;
+      u64 |= (uint64_t)*ch++ << 32;
+      u64 |= (uint64_t)*ch++ << 40;
+      u64 |= (uint64_t)*ch++ << 48;
+      u64 |= (uint64_t)*ch++ << 56;
+      *buflen -= 8;
+      *ptr = ch;
+   }
+   return u64;
+}
 
-   u64 = (uint64_t)*ch++;
-   u64 |= (uint64_t)*ch++ << 8;
-   u64 |= (uint64_t)*ch++ << 16;
-   u64 |= (uint64_t)*ch++ << 24;
-   u64 |= (uint64_t)*ch++ << 32;
-   u64 |= (uint64_t)*ch++ << 40;
-   u64 |= (uint64_t)*ch++ << 48;
-   u64 |= (uint64_t)*ch++ << 56;
-   *ptr = ch;
+uint16_t
+read16be(uint8_t **ptr, size_t *buflen)
+{
+   uint16_t u16 = 0;
+   if (*buflen > 2)
+   {
+      uint8_t *ch = *ptr;
+      u16 = (uint64_t)*ch++ << 8;
+      u16 |= (uint64_t)*ch++;
+      *buflen -= 2;
+      *ptr = ch;
+   }
+   return u16;
+}
 
+uint32_t
+read32be(uint8_t **ptr, size_t *buflen)
+{
+   uint32_t u32 = 0;
+   if (*buflen > 4)
+   {
+      uint8_t *ch = *ptr;
+      u32 = (uint64_t)*ch++ << 24;
+      u32 |= (uint64_t)*ch++ << 16;
+      u32 |= (uint64_t)*ch++ << 8;
+      u32 |= (uint64_t)*ch++;
+      *buflen -= 4;
+      *ptr = ch;
+   }
+   return u32;
+}
+
+uint64_t
+read64be(uint8_t **ptr, size_t *buflen)
+{
+   uint64_t u64 = 0;
+   if (*buflen > 8)
+   {
+      uint8_t *ch = *ptr;
+      u64 = (uint64_t)*ch++ << 56;
+      u64 |= (uint64_t)*ch++ << 48;
+      u64 |= (uint64_t)*ch++ << 40;
+      u64 |= (uint64_t)*ch++ << 32;
+      u64 |= (uint64_t)*ch++ << 24;
+      u64 |= (uint64_t)*ch++ << 16;
+      u64 |= (uint64_t)*ch++ << 8;
+      u64 |= (uint64_t)*ch++;
+      *buflen -= 8;
+      *ptr = ch;
+   }
    return u64;
 }
 
 size_t
-readstr(uint8_t **ptr, char *buf, size_t len, size_t buflen)
+readstr(uint8_t **ptr, char *buf, size_t len, size_t *buflen)
 {
-   size_t max = _MIN(len, buflen);
+   size_t max = _MIN(len, *buflen);
    uint8_t *ch = *ptr;
    size_t i;
    for (i=0; i<max; ++i) {
       *buf++ = *ch++;
    }
+   *buflen -= max;
    *ptr = ch;
    *buf = '\0';
 
