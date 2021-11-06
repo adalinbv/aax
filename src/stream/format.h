@@ -47,6 +47,7 @@ typedef enum
    _FMT_SPEEX,
 
    _FMT_AAXS,
+   _FMT_PLAYLIST,
    _FMT_MAX
 
 } _fmt_type_t;

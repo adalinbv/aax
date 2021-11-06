@@ -78,11 +78,15 @@ _direct_get(_prot_t *prot, enum _aaxStreamParam ptype)
          if (!strcasecmp(ext, "pcm")) {
             rv = _FMT_PCM;
          }
-         else if (!strcasecmp(ext, "mp3")) { 
+         else if (!strcasecmp(ext, "mp3")) {
             rv = _FMT_MP3;
          }
-         else if (!strcasecmp(ext, "flac")) { 
+         else if (!strcasecmp(ext, "flac")) {
             rv = _FMT_FLAC;
+         }
+         else if (!strcasecmp(ext, "m3u") || !strcasecmp(ext, "m3u8") ||
+                                              !strcasecmp(ext, "pls")) {
+            rv = _FMT_PLAYLIST;
          }
          else {
             rv = _FMT_NONE;
@@ -100,11 +104,15 @@ _direct_get(_prot_t *prot, enum _aaxStreamParam ptype)
          else if (!strcasecmp(ext, "pcm")) {
             rv = _EXT_PCM;
          }
-         else if (!strcasecmp(ext, "mp3")) { 
+         else if (!strcasecmp(ext, "mp3")) {
             rv = _EXT_MP3;
          }
-         else if (!strcasecmp(ext, "flac")) { 
+         else if (!strcasecmp(ext, "flac")) {
             rv = _EXT_FLAC;
+         }
+         else if (!strcasecmp(ext, "m3u") || !strcasecmp(ext, "m3u8") ||
+                                              !strcasecmp(ext, "pls")) {
+            rv = _EXT_BYTESTREAM;
          }
          else {
             rv = _EXT_NONE;

@@ -207,6 +207,9 @@ _raw_interfaces(int ext, int mode)
          case _EXT_FLAC:
             format = _FMT_FLAC;
             break;
+         case _EXT_BYTESTREAM:
+            format = _FMT_PLAYLIST;
+            break;
          default:
             break;
          }
@@ -234,6 +237,8 @@ _raw_extension(char *ext)
       else if (!strcasecmp(ext, "flac")) rv = _FMT_FLAC;
       else if (!strcasecmp(ext, "pcm") || !strcasecmp(ext, "raw")) rv =_FMT_PCM;
       else if (!strcasecmp(ext, "aaxs")) rv = _FMT_AAXS;
+      else if (!strcasecmp(ext, "m3u") || !strcasecmp(ext, "m3u8") ||
+               !strcasecmp(ext, "pls")) rv = _FMT_PLAYLIST;
    }
    return rv;
 }

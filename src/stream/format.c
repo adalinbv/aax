@@ -171,6 +171,7 @@ _fmt_create(_fmt_type_t format, int mode)
       }
       break;
    case _FMT_AAXS:
+   case _FMT_PLAYLIST:
       rv = calloc(1, sizeof(_fmt_t));
       if (rv)
       {

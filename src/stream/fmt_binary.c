@@ -155,6 +155,7 @@ _binary_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, UNUSED(enum aaxFormat aax_fmt))
       handle->max_samples = handle->frequency;
       break;
    default:
+      handle->format = AAX_PCM8U;
       break;
    }
    return AAX_TRUE;
@@ -182,7 +183,9 @@ _binary_copy(_fmt_t *fmt, int32_ptr dptr, size_t offs, size_t *num)
       rv = _aaxDataMove(handle->rawBuffer, (char*)dptr+offs, *num); 
       *num = rv;
    }
-   else {
+   else
+   {
+      rv = __F_EOF;
       *num = 0;
    }
    return rv;

@@ -278,6 +278,8 @@ _http_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
 int
 _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
 {
+   char *end = strchr(prot->content_type, ';');
+   size_t len = end ? (end - prot->content_type) : strlen(prot->content_type);
    int rv = -1;
 
    switch (ptype)
@@ -285,20 +287,29 @@ _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
    case __F_FMT:
       if (prot->content_type)
       {
-         if (!strcasecmp(prot->content_type, "audio/mpeg")) {
+         if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
             rv = _FMT_MP3;
          }
-         else if (!strcasecmp(prot->content_type, "audio/flac")) {
+         else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
             rv = _FMT_FLAC;
          }
-         else if (!strcasecmp(prot->content_type, "audio/opus")) {
+         else if (!strncasecmp(prot->content_type, "audio/opus", len)) {
             rv = _FMT_OPUS;
          }
-         else if (!strcasecmp(prot->content_type, "audio/vorbis")) {
+         else if (!strncasecmp(prot->content_type, "audio/vorbis", len)) {
             rv = _FMT_VORBIS;
          }
-         else if (!strcasecmp(prot->content_type, "audio/speex")) {
+         else if (!strncasecmp(prot->content_type, "audio/speex", len)) {
             rv = _FMT_SPEEX;
+         }
+         else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
+                  !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
+            rv = _FMT_PLAYLIST;
          }
          else {
             rv = _FMT_NONE;
@@ -311,30 +322,30 @@ _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
    case __F_EXTENSION:
       if (prot->content_type)
       {
-         if (!strcasecmp(prot->content_type, "audio/x-scpls") ||
-             !strcasecmp(prot->content_type, "audio/x-mpegurl") ||
-             !strcasecmp(prot->content_type, "audio/mpegurl") ||
-             !strcasecmp(prot->content_type, "application/x-mpegurl") ||
-             !strcasecmp(prot->content_type, "application/mpegurl") ||
-             !strcasecmp(prot->content_type, "application/vnd.apple.mpegurl") ||
-             !strcasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio")) {
-            rv = _EXT_PCM;
-         }
-         else if (!strcasecmp(prot->content_type, "audio/wav") ||
-             !strcasecmp(prot->content_type, "audio/wave") ||
-             !strcasecmp(prot->content_type, "audio/x-wav")) {
+         if (!strncasecmp(prot->content_type, "audio/wav", len) ||
+             !strncasecmp(prot->content_type, "audio/wave", len) ||
+             !strncasecmp(prot->content_type, "audio/x-wav", len)) {
             rv = _EXT_WAV;
          }
-         else if (!strcasecmp(prot->content_type, "audio/ogg") ||
-                  !strcasecmp(prot->content_type, "application/ogg") ||
-                  !strcasecmp(prot->content_type, "audio/x-ogg")) {
+         else if (!strncasecmp(prot->content_type, "audio/ogg", len) ||
+                  !strncasecmp(prot->content_type, "application/ogg", len) ||
+                  !strncasecmp(prot->content_type, "audio/x-ogg", len)) {
             rv = _EXT_OGG;
          }
-         else if (!strcasecmp(prot->content_type, "audio/mpeg")) {
+         else if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
             rv = _EXT_MP3;
          }
-         else if (!strcasecmp(prot->content_type, "audio/flac")) {
+         else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
             rv = _EXT_FLAC;
+         }
+         else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
+                  !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
+                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
+            rv = _EXT_BYTESTREAM;
          }
          else {
             rv = _EXT_NONE;
