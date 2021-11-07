@@ -574,7 +574,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                      handle->ext = _ext_create(fmt);
                      if (handle->ext)
                      {
-                        handle->no_bytes = res;
+                        handle->no_bytes = rv;
                         res = AAX_TRUE;
                      }
                   }

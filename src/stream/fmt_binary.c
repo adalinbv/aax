@@ -183,9 +183,7 @@ _binary_copy(_fmt_t *fmt, int32_ptr dptr, size_t offs, size_t *num)
       rv = _aaxDataMove(handle->rawBuffer, (char*)dptr+offs, *num); 
       *num = rv;
    }
-   else
-   {
-//    rv = __F_EOF;
+   else {
       *num = 0;
    }
    return rv;

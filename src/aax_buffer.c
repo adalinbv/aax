@@ -1103,7 +1103,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                ssize_t res, offset = 0;
                ssize_t offs_packets = 0;
                size_t size;
-               int i;
+               int i, num = 10;
 
                dst[0] = ptr2;
                ptr2 += datasize;
@@ -1127,7 +1127,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                      offset += res*8/(bits*info->no_tracks);
                   }
                }
-               while (res >= 0);
+               while (res >= 0 && --num);
 
                // get the actual number of samples
                info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
