@@ -278,85 +278,88 @@ _http_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
 int
 _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
 {
-   char *end = strchr(prot->content_type, ';');
-   size_t len = end ? (end - prot->content_type) : strlen(prot->content_type);
    int rv = -1;
-
-   switch (ptype)
+   if (prot && prot->content_type)
    {
-   case __F_FMT:
-      if (prot->content_type)
+      char *end = strchr(prot->content_type, ';');
+      size_t len = end ? (end-prot->content_type) : strlen(prot->content_type);
+
+      switch (ptype)
       {
-         if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
-            rv = _FMT_MP3;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
-            rv = _FMT_FLAC;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/opus", len)) {
-            rv = _FMT_OPUS;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/vorbis", len)) {
-            rv = _FMT_VORBIS;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/speex", len)) {
-            rv = _FMT_SPEEX;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
-                  !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
-            rv = _FMT_PLAYLIST;
+      case __F_FMT:
+         if (prot->content_type)
+         {
+            if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
+               rv = _FMT_MP3;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
+               rv = _FMT_FLAC;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/opus", len)) {
+               rv = _FMT_OPUS;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/vorbis", len)) {
+               rv = _FMT_VORBIS;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/speex", len)) {
+               rv = _FMT_SPEEX;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
+               !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
+               !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
+               rv = _FMT_PLAYLIST;
+            }
+            else {
+               rv = _FMT_NONE;
+            }
          }
          else {
-            rv = _FMT_NONE;
+            rv = _direct_get(prot, ptype);
          }
-      }
-      else {
-         rv = _direct_get(prot, ptype);
-      }
-      break;
-   case __F_EXTENSION:
-      if (prot->content_type)
-      {
-         if (!strncasecmp(prot->content_type, "audio/wav", len) ||
-             !strncasecmp(prot->content_type, "audio/wave", len) ||
-             !strncasecmp(prot->content_type, "audio/x-wav", len)) {
-            rv = _EXT_WAV;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/ogg", len) ||
-                  !strncasecmp(prot->content_type, "application/ogg", len) ||
-                  !strncasecmp(prot->content_type, "audio/x-ogg", len)) {
-            rv = _EXT_OGG;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
-            rv = _EXT_MP3;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
-            rv = _EXT_FLAC;
-         }
-         else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
-                  !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
-                  !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
-            rv = _EXT_BYTESTREAM;
+         break;
+      case __F_EXTENSION:
+         if (prot->content_type)
+         {
+            if (!strncasecmp(prot->content_type, "audio/wav", len) ||
+                !strncasecmp(prot->content_type, "audio/wave", len) ||
+                !strncasecmp(prot->content_type, "audio/x-wav", len)) {
+               rv = _EXT_WAV;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/ogg", len) ||
+                     !strncasecmp(prot->content_type, "application/ogg", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-ogg", len)) {
+               rv = _EXT_OGG;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
+               rv = _EXT_MP3;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
+               rv = _EXT_FLAC;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
+               !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
+               !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
+               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
+               rv = _EXT_BYTESTREAM;
+            }
+            else {
+               rv = _EXT_NONE;
+            }
          }
          else {
-            rv = _EXT_NONE;
+            rv = _direct_get(prot, ptype);
          }
+         break;
+      default:
+         break;
       }
-      else {
-         rv = _direct_get(prot, ptype);
-      }
-      break;
-   default:
-      break;
    }
    return rv;
 }
