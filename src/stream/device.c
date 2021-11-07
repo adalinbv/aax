@@ -54,8 +54,8 @@
 #include "device.h"
 #include "audio.h"
 
-#define BACKEND_NAME_OLD	"File"
-#define BACKEND_NAME		"Audio Files"
+#define BACKEND_NAME_ALIAS	"Audio Files"
+#define BACKEND_NAME		"Audio Streams"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
 
 #define USE_PID			AAX_TRUE
@@ -243,14 +243,14 @@ _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *dev
       s = default_renderer;
       if (renderer)
       {
-         unsigned int devlenold = 5; /* strlen(BACKEND_NAME_OLD":"); */
-         unsigned int devlen = 12;   /* strlen(BACKEND_NAME":");     */
+         unsigned int devlenold = strlen(BACKEND_NAME_ALIAS":");
+         unsigned int devlen = strlen(BACKEND_NAME":");
          if (!strncasecmp(renderer, BACKEND_NAME":", devlen))
          {
             renderer += devlen;
             while (*renderer == ' ' && *renderer != '\0') renderer++;
          }
-         else if (!strncasecmp(renderer, BACKEND_NAME_OLD":", devlenold))
+         else if (!strncasecmp(renderer, BACKEND_NAME_ALIAS":", devlenold))
          {
             renderer += devlenold;
             while (*renderer == ' ' && *renderer != '\0') renderer++;
