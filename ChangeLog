@@ -5,6 +5,8 @@
  * Add specific AL, GS and XG configuration files for chorus and reverb.
  * Add the option to alter the Q-factor of the frequency filter instead of the
    cutoff-frequency, when using an LFO.
+ * Rename the 'Audio Files' backend to 'Audio Streams' but keep 'Audio Files'
+   as an unreported alias
  * Reorganize the stream connecting code for shorter connection times.
  * A complete overhaul of the WAV handling code making it much more robust,
    fault tolerant and support more chunk types.
