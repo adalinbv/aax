@@ -7,6 +7,9 @@
    cutoff-frequency, when using an LFO.
  * Rename the 'Audio Files' backend to 'Audio Streams' but keep 'Audio Files'
    as an unreported alias
+ * The aaxBufferReadFromStream function now will fetch, and return, .pls .m3u
+   and .m3u8 playlists from a remote connection. It is up to the caller to
+   handle tehm properly.
  * Reorganize the stream connecting code for shorter connection times.
  * A complete overhaul of the WAV handling code making it much more robust,
    fault tolerant and support more chunk types.
