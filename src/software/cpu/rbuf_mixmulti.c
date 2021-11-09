@@ -72,7 +72,7 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
       g /= rbd_tracks;
    }
 
-   for (track=0; track<rbd_tracks; track++)
+   for (track=0; track<rbs_tracks; track++)
    {
       int rbs_track = track % rbs_tracks;
       int rbd_track = track % rbd_tracks;
