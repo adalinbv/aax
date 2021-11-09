@@ -43,6 +43,7 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
    _aaxLFOData *lfo;
    int rbd_tracks;
    int rbs_tracks;
+   int no_tracks;
    int track;
    float g;
 
@@ -72,7 +73,8 @@ _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample
       g /= rbd_tracks;
    }
 
-   for (track=0; track<rbs_tracks; track++)
+   no_tracks = _MAX(rbs_tracks, rbd_tracks);
+   for (track=0; track<no_tracks; track++)
    {
       int rbs_track = track % rbs_tracks;
       int rbd_track = track % rbd_tracks;
