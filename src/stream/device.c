@@ -932,9 +932,10 @@ static ssize_t
 _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *frames, UNUSED(void *scratch), UNUSED(size_t scratchSize), float gain, char batched)
 {
    _driver_t *handle = (_driver_t *)id;
+   int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
    ssize_t offs = *offset, xoffs = *offset;
-   ssize_t bytes = 0;
-   int num = 3;
+   int num = 5*file_tracks;
+   size_t bytes = 0;
 
    assert(*frames);
 
@@ -942,7 +943,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
    if (handle->io->fds.fd >= 0 && frames && tracks)
    {
       int32_t **sbuf = (int32_t**)tracks;
-      int file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
       unsigned char *data;
       ssize_t res, no_samples;
       size_t samples;
@@ -1044,6 +1044,14 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
             data = _aaxDataGetData(handle->dataBuffer); // needed above
          }
+
+#if USE_CAPTURE_THREAD
+         // make the time-slice available for other waiting processes
+         // TODO: use a thread swithcing mechanism
+         if (no_samples) {
+            msecSleep(1);
+         }
+#endif
       }
       while (no_samples > 0 && --num);
 
