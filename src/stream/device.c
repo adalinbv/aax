@@ -1025,7 +1025,11 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
             else {
 #if USE_CAPTURE_THREAD
-               _aaxSignalTrigger(&handle->thread.signal);
+               if (no_samples)
+               {
+                  _aaxSignalTrigger(&handle->thread.signal);
+                  usecSleep(1);
+               }
 #else
                _aaxStreamDriverReadChunk(id);
 #endif
@@ -1044,14 +1048,6 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
 
             data = _aaxDataGetData(handle->dataBuffer); // needed above
          }
-
-#if USE_CAPTURE_THREAD
-         // make the time-slice available for other waiting processes
-         // TODO: use a thread swithcing mechanism
-         if (no_samples) {
-            msecSleep(1);
-         }
-#endif
       }
       while (no_samples > 0 && --num);
 
