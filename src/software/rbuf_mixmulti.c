@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -51,10 +51,14 @@
  * first remaining source track will be mixed with the first destination 
  * buffer and so on.
  *
- * @drbi single or multi track destination buffer
- * @srbi single or multi track source buffer
+ * @drb multi track destination ringbuffer
+ * @srb multi track source ringbuffer
+ * @info aeonwaves info structure
  * @ep2d 2d emitter/sensor 2d properties
  * @fp2d mixer 2d properties
+ * @ctr update-rate counter as number of instanced of the refresh-rate
+ * @buffer_gain gain as specified in the sources aaxBuffer
+ * @history source history buffer
  */
 int
 _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, float buffer_gain, _history_t history)

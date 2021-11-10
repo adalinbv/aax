@@ -78,17 +78,15 @@ extern const int16_t _ima4_index_table[16];
  *     | ddesamps | track data      |
  *     +----+------------------+----+
  *
+ * @src source data buffer
  * @codecfn the function that transforms the data to singed, 16-bit.
- * @s pointers referencing the ss that contain the track data.
- * @spos starting sample position within the source track.
- * @sdesamps length (in samples) of the delay effects of the source buffer.
+ * @src_pos starting sample position within the source track.
  * @loop_start sample position to start from when looping.
  * @sno_samples total length (in samples) of the source buffer.
  *              sno_samples gets adjusted for loop end point
  * @ddesamps length (in samples) of the delay effects of the destination.
  * @dno_samples total length (in samples) of the destination buffer.
- * @bps bytes per sample of the source s.
- * @no_tracks number of no_tracks in the source s.
+ * @sbps bytes per sample of the source s.
  * @src_loops boolean, 0 = no srource looping, otherwise the source loops.
  */
 void

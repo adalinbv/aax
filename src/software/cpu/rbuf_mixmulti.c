@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -40,54 +40,45 @@
 void
 _aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, size_t offs, size_t dno_samples, float gain, UNUSED(float svol), float evol, UNUSED(char cptr))
 {
-   _aaxLFOData *lfo;
-   int rbd_tracks;
-   int rbs_tracks;
-   int no_tracks;
-   int track;
-   float g;
+   _aaxLFOData *lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);;
+   int rbd_tracks = drbd->no_tracks;
+   int rbs_tracks = srbd->no_tracks;
+   int no_tracks = _MAX(rbs_tracks, rbd_tracks);
+   float g = 1.0f;
+   int t;
 
    _AAX_LOG(LOG_DEBUG, __func__);
 
-   rbs_tracks = srbd->no_tracks;
-   rbd_tracks = drbd->no_tracks;
-
    /** Mix */
-   g = 1.0f;
-   lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
    if (lfo && lfo->envelope)				// envelope follow
    {
       void *env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
 
       g = 0.0f;
-      for (track=0; track<rbd_tracks; track++)
+      for (t=0; t<rbs_tracks; t++)
       {
-         int rbs_track = track % rbs_tracks;
+         int rbs_track = t % rbs_tracks;
          float cgain = 1.0f;
 
          DBG_TESTNAN(sptr[rbs_track]+offs, dno_samples);
-         cgain -= lfo->get(lfo, env, sptr[rbs_track]+offs, track, dno_samples);
+         cgain -= lfo->get(lfo, env, sptr[rbs_track]+offs, t, dno_samples);
          if (lfo->inv) g = 1.0f/cgain;
          g += cgain;
       }
-      g /= rbd_tracks;
+      g /= rbs_tracks;
    }
 
-   no_tracks = _MAX(rbs_tracks, rbd_tracks);
-   for (track=0; track<no_tracks; track++)
+   for (t=0; t<no_tracks; t++)
    {
-      int rbs_track = track % rbs_tracks;
-      int rbd_track = track % rbd_tracks;
+      int rbs_track = t % rbs_tracks;
+      int rbd_track = t % rbd_tracks;
       MIX_T *dptr = (MIX_T*)drbd->track[router[rbd_track]] + offs;
-      float vstart, vend, vstep;
-
-      vstart = ep2d->prev_gain[track];
-      vend = gain * g*evol;
-      vstep = (vend - vstart) / dno_samples;
+      float vstart = ep2d->prev_gain[t];
+      float vend = gain * g*evol;
+      float vstep = (vend - vstart) / dno_samples;
 
       drbd->add(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
-
-      ep2d->prev_gain[track] = vend;
+      ep2d->prev_gain[t] = vend;
    }
 }
 

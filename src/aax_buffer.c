@@ -2682,7 +2682,7 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
       if (no_tracks == 1) {
          memcpy(tracks[0], data, tracksize);
       }
-      else /* stereo */
+      else /* multi-channel */
       {
          unsigned int frame_size = no_tracks * bps;
          unsigned int t;
