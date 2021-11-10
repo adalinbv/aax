@@ -60,7 +60,6 @@
 
 #define USE_PID			AAX_TRUE
 #define USE_STREAM_THREAD	AAX_TRUE
-#define FILL_FACTOR		4.0f
 
 #define USE_WRITE_THREAD	AAX_TRUE
 #ifdef WIN32
@@ -783,7 +782,9 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                }
 #endif
 #if USE_WRITE_THREAD
-               handle->thread.started = AAX_TRUE;
+               if (handle->mode != AAX_MODE_READ) {
+                  handle->thread.started = AAX_TRUE;
+               }
 #endif
                handle->render = _aaxSoftwareInitRenderer(handle->latency,
                                                       handle->mode, registered);
@@ -879,7 +880,9 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    file_tracks = handle->ext->get_param(handle->ext, __F_TRACKS);
    assert(file_tracks == handle->no_channels);
 
+#if USE_WRITE_THREAD
    _aaxMutexLock(handle->thread.signal.mutex);
+#endif
 
    outbuf_size = file_tracks * no_samples*_MAX(file_bps, rb_bps);
    if ((handle->dataBuffer == 0) || (_aaxDataGetSize(handle->dataBuffer) < 2*outbuf_size))
@@ -913,7 +916,9 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    rb->release_tracks_ptr(rb);
    handle->dataAvailWrite = res;
 
+#if USE_WRITE_THREAD
    _aaxMutexUnLock(handle->thread.signal.mutex);
+#endif
 
    if (batched) {
       _aaxStreamDriverWriteChunk(id);
