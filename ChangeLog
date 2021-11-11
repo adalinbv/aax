@@ -1,4 +1,4 @@
-* Tue Nov 21 2021 - tech@adalin.org
+* Thu Nov 11 2021 - tech@adalin.org
 - AeonWave (3.11.0) stable; urgency=high
 
  * Add support for pitch-fractions.
@@ -9,11 +9,14 @@
    as an unreported alias
  * The aaxBufferReadFromStream function now will fetch, and return, .pls .m3u
    and .m3u8 playlists from a remote connection. It is up to the caller to
-   handle tehm properly.
+   handle them properly.
  * Reorganize the stream connecting code for shorter connection times.
  * A complete overhaul of the WAV handling code making it much more robust,
    fault tolerant and support more chunk types.
  * Add stream writing to OGG/Vorbis if libvorbisenc and libogg are found.
+ * Fix streaming of multi-channel audio files in cases where the playback rate
+   was too high for the internal buffer sizes resulting in slowed-down,
+   choppy playback.
  * Fix a segmentation fault when trying to parse a too large vorbis file into
    a too small audio buffer (max 20 seconds).
  * Fix the MP3 stream writing the wrong bit-rate to the file header.
@@ -22,8 +25,9 @@
    requires a larger history buffer.
  * Fix a possible null-pointer reference for filters and effects when setting
    the state with an unsupported waveform.
+ * Fix a segmentation fault at the end of a non threaded stream playback.
 
--- Erik Hofman <tech@adalin.org>  Tue 02 Nov 2021 08:27:21 + 0200
+-- Erik Hofman <tech@adalin.org>  Thu 11 Nov 2021 08:27:21 + 0200
 
 
 * Mon Jun 21 2021 - tech@adalin.org
