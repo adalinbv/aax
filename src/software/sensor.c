@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2017 by Erik Hofman.
- * Copyright 2009-2017 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -270,7 +270,7 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
    /*
     * drb is thread specific and does not need a lock
     * Note:
-    *  - The ringbuffer is singed 24-bit PCM, stereo or mono
+    *  - The ringbuffer is singed 24-bit PCM, one or more tracks
     *  - capture functions should return the data in signed 24-bit
     */
    assert(delay);

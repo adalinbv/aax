@@ -59,6 +59,29 @@ enum wavFormat
    EXTENSIBLE_WAVE_FORMAT = 0xFFFE
 };
 
+#define SPEAKER_FRONT_LEFT              0x1
+#define SPEAKER_FRONT_RIGHT             0x2
+#define SPEAKER_FRONT_CENTER            0x4
+#define SPEAKER_LOW_FREQUENCY           0x8
+#define SPEAKER_BACK_LEFT               0x10
+#define SPEAKER_BACK_RIGHT              0x20
+#define SPEAKER_FRONT_LEFT_OF_CENTER    0x40
+#define SPEAKER_FRONT_RIGHT_OF_CENTER   0x80
+#define SPEAKER_BACK_CENTER             0x100
+#define SPEAKER_SIDE_LEFT               0x200
+#define SPEAKER_SIDE_RIGHT              0x400
+#define SPEAKER_TOP_CENTER              0x800
+#define SPEAKER_TOP_FRONT_LEFT          0x1000
+#define SPEAKER_TOP_FRONT_CENTER        0x2000
+#define SPEAKER_TOP_FRONT_RIGHT         0x4000
+#define SPEAKER_TOP_BACK_LEFT           0x8000
+#define SPEAKER_TOP_BACK_CENTER         0x10000
+#define SPEAKER_TOP_BACK_RIGHT          0x20000
+
+#define KSDATAFORMAT_SUBTYPE1           0x00100000
+#define KSDATAFORMAT_SUBTYPE2           0xaa000080
+#define KSDATAFORMAT_SUBTYPE3           0x719b3800
+
 typedef struct
 {
    _fmt_t *fmt;
@@ -97,6 +120,7 @@ typedef struct
          size_t datasize; // combined size of all tracks
          size_t blockbufpos;
          uint32_t last_tag;
+         uint32_t channel_mask;
       } read;
    } io;
 
@@ -113,6 +137,8 @@ static _fmt_type_t _getFmtFromWAVFormat(enum wavFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 // static void _wav_cvt_msadpcm_to_ima4(_driver_t*, void*, size_t, unsigned int, ssize_t*);
+static uint32_t _aaxRouterFromMSChannelMask(uint32_t, uint8_t);
+
 
 
 #define COMMENT_SIZE		1024
@@ -727,6 +753,9 @@ _wav_get(_ext_t *ext, int type)
    case __F_BLOCK_SIZE:
       rv = handle->info.blocksize;
       break;
+   case __F_CHANNEL_MASK:
+      rv = handle->io.read.channel_mask;
+      break;
    case __F_LOOP_COUNT:
       rv = handle->info.loop_count;
       break;
@@ -885,40 +914,44 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 // Notice: 'fmt ' is not garuenteed to follow 'RIFF",
 // it could be later.
 
-      curr = read32le(&ch, &bufsize); 		// header[1]: ChunkSize
+      curr = read32le(&ch, &bufsize); // // header[1]: ChunkSize
       curr = read32le(&ch, &bufsize);
-      if (curr == 0x45564157)			// header[2]: Format: WAVE
+      if (curr == 0x45564157)
       {
          curr = read32le(&ch, &bufsize);
-         if (curr == 0x20746d66) 		// header[3]: Subchunk1ID: fmt
+         if (curr == 0x20746d66)
          {
-            curr = read32le(&ch, &bufsize);		// header[4]: Subchunk1Size
+            curr = read32le(&ch, &bufsize); // header[4]: Subchunk1Size
             *step = rv = ch-buf+EVEN(curr);
 
-            handle->wav_format = read16le(&ch, &bufsize);	// header[5]: AudioFormat
+            handle->wav_format = read16le(&ch, &bufsize);
             extensible = (handle->wav_format == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
             if (extensible && (bufsize < WAVE_EXT_HEADER_SIZE)) {
                 return __F_EOF;
             }
 
             handle->info.no_tracks = read16le(&ch, &bufsize);
-            handle->info.rate = read32le(&ch, &bufsize);		// header[6]: SampleRate
+            handle->info.rate = read32le(&ch, &bufsize);
 
-            handle->bitrate = read32le(&ch, &bufsize);		// header[7]: ByteRate
-            handle->info.blocksize = read16le(&ch, &bufsize);	// header[8]: BlockAlign
-            handle->bits_sample = read16le(&ch, &bufsize);	//         BitsPerSample
+            handle->bitrate = read32le(&ch, &bufsize);
+            handle->info.blocksize = read16le(&ch, &bufsize);
+            handle->bits_sample = read16le(&ch, &bufsize);
 
             if (extensible)
             {
-               curr = read16le(&ch, &bufsize);		// size
-               curr = read16le(&ch, &bufsize);		// header[9]: ValidBitsPerSample
+               curr = read16le(&ch, &bufsize);	// size
+               curr = read16le(&ch, &bufsize);	// header[9]: ValidBitsPerSample
                handle->bits_sample = curr;
-               curr = read32le(&ch, &bufsize);		// header[10]: ChannelMask
-               handle->wav_format = read32le(&ch, &bufsize);// header[11]: SubFormat
+
+               curr = read32le(&ch, &bufsize);
+               handle->io.read.channel_mask = _aaxRouterFromMSChannelMask(curr,
+                                                        handle->info.no_tracks);
+
+               handle->wav_format = read32le(&ch, &bufsize);
             }
             else if (rv > 16)
             {
-               curr = read16le(&ch, &bufsize);		// xFormatBytes
+               curr = read16le(&ch, &bufsize);	// xFormatBytes
 //             _aaxDataAdd(handle->wavBuffer, ch, curr);
                ch += curr;
             }
@@ -969,7 +1002,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    if (extensible)
    {
       printf(" 9: %08x (size: %i, nValidBits: %i)\n", *head, *head & 0xFFFF, *head >> 16); head++;
-      printf("10: %08x (dwChannelMask: %i)\n", *head, *head); head++;
+      printf("10: %08x (dwChannelMask: %08x)\n", *head, handle->io.read.channel_mask ); head++;
       printf("11: %08x (GUID0)\n", *head++);
       printf("12: %08x (GUID1)\n", *head++);
       printf("13: %08x (GUID2)\n", *head++);
@@ -1344,6 +1377,69 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
    }
 
    return res;
+}
+
+
+/*
+ * The drivers channel mask defines a a 32-bit packed nibble-array where every
+ * nibble specifies a aaxTrackType for that particular channel.
+ * The lowest 4-bits are for channel 0.
+ */
+uint32_t
+_aaxRouterFromMSChannelMask(uint32_t mask, uint8_t no_channels)
+{
+   uint32_t rv = 0x10101010;
+
+   if (mask)
+   {
+      switch(no_channels)
+      {
+      case 4:
+         if (mask & (SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT))
+         {
+            rv = (rv & 0xFFFFF0FF) | (AAX_TRACK_REAR_LEFT << 8);
+            rv = (rv & 0xFFFF0FFF) | (AAX_TRACK_REAR_RIGHT << 12);
+         }
+         if (mask & (SPEAKER_FRONT_CENTER|SPEAKER_BACK_CENTER))
+         {
+            rv = (rv & 0xFFFFF0FF) | (AAX_TRACK_CENTER_FRONT << 8);
+            rv = (rv & 0xFFFF0FFF) | (AAX_TRACK_CENTER_FRONT << 12);
+         }
+         break;
+      case 6:
+         if (mask & (SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT))
+         {
+            rv = (rv & 0xFFFFF0FF) | (AAX_TRACK_REAR_LEFT << 8);
+            rv = (rv & 0xFFFF0FFF) | (AAX_TRACK_REAR_RIGHT << 12);
+         }
+         if (mask & (SPEAKER_FRONT_CENTER|SPEAKER_LOW_FREQUENCY))
+         {
+            rv = (rv & 0xFFF0FFFF) | (AAX_TRACK_CENTER_FRONT << 16);
+            rv = (rv & 0xFF0FFFFF) | (AAX_TRACK_SUBWOOFER << 20);
+         }
+         break;
+      case 8:
+         if (mask & (SPEAKER_BACK_LEFT|SPEAKER_BACK_RIGHT))
+         {
+            rv = (rv & 0xFFFFF0FF) | (AAX_TRACK_REAR_LEFT << 8);
+            rv = (rv & 0xFFFF0FFF) | (AAX_TRACK_REAR_RIGHT << 12);
+         }
+         if (mask & (SPEAKER_FRONT_CENTER||SPEAKER_LOW_FREQUENCY))
+         {
+            rv = (rv & 0xFFF0FFFF) | (AAX_TRACK_CENTER_FRONT << 16);
+            rv = (rv & 0xFF0FFFFF) | (AAX_TRACK_SUBWOOFER << 20);
+         }
+         if (mask & (SPEAKER_SIDE_LEFT|SPEAKER_SIDE_RIGHT))
+         {
+            rv = (rv & 0xF0FFFFFF) | (AAX_TRACK_SIDE_LEFT << 24);
+            rv = (rv & 0x0FFFFFFF) | (AAX_TRACK_SIDE_RIGHT << 28);
+         }
+         break;
+      default:
+         break;
+      }
+   }
+   return rv;
 }
 
 uint32_t

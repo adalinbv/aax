@@ -1,6 +1,6 @@
 /*
- * Copyright 2012-2020 by Erik Hofman.
- * Copyright 2012-2020 by Adalin B.V.
+ * Copyright 2012-2021 by Erik Hofman.
+ * Copyright 2012-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -41,33 +41,9 @@ extern "C" {
 // TODO: Needs fixing # define WINXP
 #endif
 
-#define SPEAKER_FRONT_LEFT              0x1
-#define SPEAKER_FRONT_RIGHT             0x2
-#define SPEAKER_FRONT_CENTER            0x4
-#define SPEAKER_LOW_FREQUENCY           0x8
-#define SPEAKER_BACK_LEFT               0x10
-#define SPEAKER_BACK_RIGHT              0x20
-#define SPEAKER_FRONT_LEFT_OF_CENTER    0x40
-#define SPEAKER_FRONT_RIGHT_OF_CENTER   0x80
-#define SPEAKER_BACK_CENTER             0x100
-#define SPEAKER_SIDE_LEFT               0x200
-#define SPEAKER_SIDE_RIGHT              0x400
-#define SPEAKER_TOP_CENTER              0x800
-#define SPEAKER_TOP_FRONT_LEFT          0x1000
-#define SPEAKER_TOP_FRONT_CENTER        0x2000
-#define SPEAKER_TOP_FRONT_RIGHT         0x4000
-#define SPEAKER_TOP_BACK_LEFT           0x8000
-#define SPEAKER_TOP_BACK_CENTER         0x10000
-#define SPEAKER_TOP_BACK_RIGHT          0x20000
-
-#define KSDATAFORMAT_SUBTYPE1           0x00100000
-#define KSDATAFORMAT_SUBTYPE2           0xaa000080
-#define KSDATAFORMAT_SUBTYPE3           0x719b3800
-
 #define STRCMP(a, b)                strncasecmp((a), (b), strlen(b))
 #define _AAX_FILEDRVLOG(a)          _aaxStreamDriverLog(NULL, 0, 0, a);
 _aaxDriverLog _aaxStreamDriverLog;
-
 
 enum _aaxStreamParam
 {
@@ -83,6 +59,7 @@ enum _aaxStreamParam
    __F_NO_SAMPLES,
    __F_NO_BYTES,
    __F_BITRATE,
+   __F_CHANNEL_MASK,
 
    __F_PATCH_LEVEL,
    __F_LOOP_COUNT,

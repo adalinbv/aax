@@ -151,8 +151,9 @@ typedef struct
    char start_with_fill;
    char end_of_file;
 
-   uint8_t no_channels;
    uint8_t bits_sample;
+   uint8_t no_channels;
+   uint32_t channel_mask;
    enum aaxFormat format;
    int mode;
    float latency;
@@ -738,6 +739,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             handle->frequency = (float)rate;
             handle->format = handle->ext->get_param(handle->ext, __F_FMT);
             handle->no_channels = handle->ext->get_param(handle->ext, __F_TRACKS);
+            handle->channel_mask = handle->ext->get_param(handle->ext, __F_CHANNEL_MASK);
 
             *fmt = handle->format;
             *speed = handle->frequency;
