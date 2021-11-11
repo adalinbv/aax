@@ -466,7 +466,7 @@ _aaxALSADriverDetect(int mode)
       if (!error)
       {
          TIE_FUNCTION(snd_pcm_hw_params_set_period_wakeup);
-         if (0 && get_devices_avail(mode) != 0)
+         if (get_devices_avail(mode) != 0)
          {
             snprintf(_alsa_id_str, MAX_ID_STRLEN, "%s %s",
                              DEFAULT_RENDERER, psnd_asoundlib_version());
@@ -2497,12 +2497,14 @@ get_devices_avail(int mode)
       if (!res)
       {
          void **lst = hints;
+         do
          {
             char *type = psnd_device_name_get_hint(*lst, "IOID");
             if (type && !strcmp(type, _alsa_type[m]))
             {
                char *name = psnd_device_name_get_hint(*lst, "NAME");
-               if (name && (!STRCMP(name,"front:") || strstr(name,"default:")))
+               if (name && (!STRCMP(name,"front:") || !STRCMP(name,"hw:") ||
+                            strstr(name,"default:")))
                {
                   rv[m]++;
                }
