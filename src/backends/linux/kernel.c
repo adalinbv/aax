@@ -253,8 +253,8 @@ _aaxLinuxDriverDetect(int mode)
 #endif
 
    s = getenv("AAX_USE_KERNEL_DRIVER");
-   if (s && (_aax_getbool(s) == AAX_FALSE)) {
-      rv = AAX_TRUE;
+   if (s && _aax_getbool(s)) {
+      rv = AAX_FALSE;
    }
 
    if (TEST_FOR_FALSE(rv) && !audio)
@@ -263,7 +263,7 @@ _aaxLinuxDriverDetect(int mode)
       _aaxGetSymError(0);
    }
      
-   if (audio && mode != -1)
+   if (audio && mode != 0)
    {
       TIE_FUNCTION(ioctl);
       TIE_FUNCTION(mmap);
