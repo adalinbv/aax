@@ -20,8 +20,7 @@
  */
 
 /*
- * 2d M:N ringbuffer mixer functions ranging from extremely fast to extremely
- * precise.
+ * 2d M:N ringbuffer mixer functions.
  */
 
 #if HAVE_CONFIG_H
@@ -63,17 +62,16 @@
 int
 _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMixerInfo *info, _aax2dProps *ep2d, _aax2dProps *fp2d, unsigned char ctr, float buffer_gain, _history_t history)
 {
-   _aaxRingBufferSample *drbd, *srbd;
-   size_t offs, dno_samples;
    _aaxRingBufferData *drbi, *srbi;
+   _aaxRingBufferSample *drbd, *srbd;
    _aaxEnvelopeData *penv, *pslide;
    _aaxEnvelopeData *genv;
    _aaxLFOData *lfo;
    CONST_MIX_PTRPTR_T sptr;
-   float svol, evol, gain, max;
+   size_t offs, dno_samples;
+   float gain, gain_emitter;
    float pnvel, gnvel;
-   float gain_emitter;
-   float pitch;
+   FLOAT pitch, min, max;
    int ret = 0;
 
    _AAX_LOG(LOG_DEBUG, __func__);
@@ -118,25 +116,22 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
       pitch *= _aaxEnvelopeGet(pslide, srbi->stopped, &pnvel, NULL);
    }
 
+   min = 1e-3f;
    max = _EFFECT_GET(ep2d, PITCH_EFFECT, AAX_MAX_PITCH);
-   pitch = _MINMAX(pitch*ep2d->pitch_factor, 0.01f, max);
+   pitch = _MINMAX(pitch*ep2d->pitch_factor, min, max);
 
    /** Resample */
    offs = 0;
-#if 0
-{
- size_t samps = srb->get_parami(srb, RB_NO_SAMPLES);
- int t;
- for(t=0; t<srb->get_parami(srb, RB_NO_TRACKS); t++) {
-  DBG_TESTNAN((MIX_T*)srbd->track[t], samps);
-  printf("%i | %x: mix, no_samples: %i\n", t, srbd->track[t], samps);
- }
-}
-#endif
+   if (drbi->mode == AAX_MODE_WRITE_HRTF ||
+       drbi->mode == AAX_MODE_WRITE_SURROUND /* also uses HRTF for up-down */)
+   {
+      offs = drbi->sample->dde_samples;
+   }
+
    sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
-      if (srbi->playing == 0 && srbi->stopped == 1) {
+      if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
          return -1;
       } else {
          return 0;
@@ -146,7 +141,7 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    /** Volume */
    genv = _FILTER_GET_DATA(ep2d, TIMED_GAIN_FILTER);
    if (!genv)
-      {
+   {
       if (srbi->playing == 0 && srbi->stopped == 1)
       {
          /* the ringbuffer was already flagged as stopped */
@@ -175,18 +170,23 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    }
    gain *= ep2d->note.soft * ep2d->note.pressure;
 
-   /* apply the parent mixer/audio-frame volume and tremolo-gain */
+   /* Apply the parent mixer/audio-frame volume and tremolo-gain */
    max = 1.0f;
-   if (fp2d)
-   {
+   if (fp2d) {
       gain *= _FILTER_GET(fp2d, VOLUME_FILTER, AAX_GAIN);
-      max *= fp2d->final.gain_lfo;
    }
 
    /* tremolo, envelope following gain filter is applied below! */
    lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);
-   if (lfo && !lfo->envelope) {
-      max *= lfo->get(lfo, genv, NULL, 0, 0);
+   if (lfo)
+   {
+      if (!lfo->envelope) {
+         max *= lfo->get(lfo, genv, NULL, 0, 0);
+      }
+      if (fp2d) max *= fp2d->final.gain_lfo;
+   }
+   else if (fp2d && fabsf(fp2d->final.gain_lfo - 1.0f) > 0.1f) {
+       gain *= 1.0f - fp2d->final.gain_lfo;
    }
 
    /* tremolo was defined */
@@ -197,21 +197,27 @@ _aaxRingBufferMixMulti16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, const _aaxMix
    if (genv) genv->value_total = gain*gain_emitter;
 
    gain *= buffer_gain; // bring gain to a normalized level
-   gain = _square(gain);
+   gain = _square(gain)*ep2d->final.gain;
    gain *= gain_emitter;
+   ep2d->final.silence = (fabsf(gain) >= LEVEL_128DB) ? 0 : 1;
 
-   /** Automatic volume ramping to avoid clicking */
-   svol = evol = 1.0f;
-   if (!genv && !srbi->streaming && (srbi->playing && srbi->stopped))
+// if (!ep2d->final.silence)
    {
-      svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
-      evol = (srbi->stopped) ? 0.0f : 1.0f;
-      srbi->playing = 0;
-   }
-   evol *= gnvel;
+      float svol, evol;
 
-   drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples,
-               gain, svol, evol, ctr);
+      /* Automatic volume ramping to avoid clicking */
+      svol = evol = 1.0f;
+      if (!genv && !srbi->streaming && (srbi->playing == srbi->stopped))
+      {
+         svol = (srbi->stopped || offs) ? 1.0f : 0.0f;
+         evol = (srbi->stopped) ? 0.0f : 1.0f;
+         srbi->playing = !srbi->stopped;
+      }
+
+      gain *= gnvel;
+      drbd->mixmn(drbd, srbd, sptr, info->router, ep2d, offs, dno_samples,
+                  gain, svol, evol, ctr);
+   }
 
    if (ret >= -1 && drbi->playing == 0 && drbi->stopped == 1) {
       ret = 0;

@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -85,7 +85,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
    _aaxEnvelopeData *penv, *pslide;
    _aaxEnvelopeData *genv;
    _aaxLFOData *lfo;
-   MIX_PTRPTR_T sptr;
+   CONST_MIX_PTRPTR_T sptr;
    size_t offs, dno_samples;
    float gain, gain_emitter;
    float pnvel, gnvel;
@@ -149,8 +149,7 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       offs = drbi->sample->dde_samples;
    }
 
-   sptr = (MIX_PTRPTR_T)drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples,
-                                  ctr, history);
+   sptr = drbi->mix(drb, srb, ep2d, pitch, &offs, &dno_samples, ctr, history);
    if (sptr == NULL || dno_samples == 0)
    {
       if (!dno_samples || (srbi->playing == 0 && srbi->stopped == 1)) {
@@ -282,13 +281,13 @@ _aaxRingBufferMixMono16(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps *e
       gain = _MINMAX(gain*gnvel, ep2d->final.gain_min, ep2d->final.gain_max);
       if (_PROP3D_MONO_IS_DEFINED(fdp3d_m))
       {
-         drbd->mix1(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, track,
-                    offs, dno_samples, info->frequency, gain, svol, evol, ctr);
+         drbd->mix1(drbd, sptr, info->router, ep2d, track, offs, dno_samples,
+                    info->frequency, gain, svol, evol, ctr);
       }
       else
       {
-         drbd->mix1n(drbd, (CONST_MIX_PTRPTR_T)sptr, info->router, ep2d, track,
-                     offs, dno_samples, info->frequency, gain, svol, evol, ctr);
+         drbd->mix1n(drbd, sptr, info->router, ep2d, track, offs, dno_samples,
+                     info->frequency, gain, svol, evol, ctr);
       }
    }
 

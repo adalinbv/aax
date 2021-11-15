@@ -20,8 +20,7 @@
  */
 
 /*
- * 2d M:N ringbuffer mixer functions ranging from extremely fast to extremely
- * precise.
+ * 2d M:N ringbuffer mixer function.
  */
 
 #if HAVE_CONFIG_H
@@ -38,46 +37,27 @@
 #include "software/rbuf_int.h"
 
 void
-_aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, size_t offs, size_t dno_samples, float gain, UNUSED(float svol), float evol, UNUSED(char cptr))
+_aaxRingBufferMixStereo16(_aaxRingBufferSample *drbd, const _aaxRingBufferSample *srbd, CONST_MIX_PTRPTR_T sptr, const unsigned char *router, _aax2dProps *ep2d, size_t offs, size_t dno_samples, float gain, float svol, float evol, UNUSED(char cptr))
 {
-   _aaxLFOData *lfo = _FILTER_GET_DATA(ep2d, DYNAMIC_GAIN_FILTER);;
    int rbd_tracks = drbd->no_tracks;
    int rbs_tracks = srbd->no_tracks;
    int no_tracks = _MAX(rbs_tracks, rbd_tracks);
-   float g = 1.0f;
    int t;
-
-   _AAX_LOG(LOG_DEBUG, __func__);
-
-   /** Mix */
-   if (lfo && lfo->envelope)				// envelope follow
-   {
-      void *env = _EFFECT_GET_DATA(ep2d, TIMED_PITCH_EFFECT);
-
-      g = 0.0f;
-      for (t=0; t<rbs_tracks; t++)
-      {
-         int rbs_track = t % rbs_tracks;
-         float cgain = 1.0f;
-
-         DBG_TESTNAN(sptr[rbs_track]+offs, dno_samples);
-         cgain -= lfo->get(lfo, env, sptr[rbs_track]+offs, t, dno_samples);
-         if (lfo->inv) g = 1.0f/cgain;
-         g += cgain;
-      }
-      g /= rbs_tracks;
-   }
 
    for (t=0; t<no_tracks; t++)
    {
-      int rbs_track = t % rbs_tracks;
-      int rbd_track = t % rbd_tracks;
-      MIX_T *dptr = (MIX_T*)drbd->track[router[rbd_track]] + offs;
-      float vstart = ep2d->prev_gain[t];
-      float vend = gain * g*evol;
-      float vstep = (vend - vstart) / dno_samples;
+      int track = t % rbd_tracks;
+      int ch = t % rbs_tracks;
+      MIX_T *dptr = (MIX_T*)drbd->track[router[track]] + offs;
+      float vstart, vend, vstep;
 
-      drbd->add(dptr, sptr[rbs_track]+offs, dno_samples, vstart, vstep);
+      vstart = ep2d->prev_gain[t] * svol;
+      vend = gain * evol;
+      vstep = (vend - vstart) / dno_samples;
+
+//    DBG_MEMCLR(!offs, drbd->track[t], drbd->no_samples, sizeof(int32_t));
+      drbd->add(dptr, sptr[ch]+offs, dno_samples, vstart, vstep);
+
       ep2d->prev_gain[t] = vend;
    }
 }
