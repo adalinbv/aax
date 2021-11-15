@@ -55,7 +55,7 @@
 #include "audio.h"
 
 #define BACKEND_NAME_ALIAS	"Audio Files"
-#define BACKEND_NAME		"Audio Streams"
+#define BACKEND_NAME		"Audio Stream"
 #define DEFAULT_RENDERER	AAX_NAME_STR""
 
 #define USE_PID			AAX_TRUE
@@ -65,7 +65,7 @@
 #ifdef WIN32
 # define USE_CAPTURE_THREAD	AAX_FALSE
 #else
-# define USE_CAPTURE_THREAD	AAX_TRUE
+# define USE_CAPTURE_THREAD	AAX_FALSE
 #endif
 
 static _aaxDriverDetect _aaxStreamDriverDetect;
