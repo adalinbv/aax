@@ -63,7 +63,7 @@
 #include "device.h"
 #include "audio.h"
 
-#define TIMER_BASED		AAX_FALSE
+#define TIMER_BASED		AAX_TRUE
 
 #define MAX_NAME		40
 #define MAX_DEVICES		16

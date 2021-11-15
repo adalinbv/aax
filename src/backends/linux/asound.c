@@ -762,6 +762,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
    unsigned int bits, periods;
    int err, rv = 0;
 
+
    _AAX_LOG(LOG_DEBUG, __func__);
 
    assert(handle != 0);
@@ -947,9 +948,10 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       /** set buffer and period sizes */
       if (handle->use_timer)
       {
-         TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &period_frames),
+         size_t max_size = 0;
+         TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &max_size),
                "unable to fetch the maximum buffer size" );
-         period_frames_actual = period_frames;
+         period_frames_actual = period_frames = _MIN(65536, max_size);
       }
       else
       {
@@ -971,6 +973,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       do {
          err = psnd_pcm_hw_params_set_periods_near(hid, hwparams, &periods, 0);
       } while ((err < 0) && (++periods < handle->max_periods));
+
 
       TRUN( psnd_pcm_hw_params(hid, hwparams), "unable to configure hardware" );
       if (err >= 0)
@@ -3311,21 +3314,27 @@ _aaxALSADriverThread(void* config)
 
          if (be_handle->use_timer)
          {
-            float diff, target, input, err, P, I;
+            float target, input, err, P, I; //, D;
             float freq = mixer->info->frequency;
 
             target = be_handle->target[1];
             input = (float)res/freq;
             err = input - target;
 
+            /* present error */
             P = err;
-            I = err*delay_sec;
 
-            be_handle->PID[0] += I;
+            /*  accumulation of past errors */
+            be_handle->PID[0] += err*delay_sec;
             I = be_handle->PID[0];
 
-            diff = 1.85f*P + 0.9f*I;
-            wait_us = _MAX((delay_sec + diff)*1000000.0f, 1.0f);
+            /* prediction of future errors, based on current rate of change */
+//          D = (be_handle->PID.err - err)/delay_sec;
+//          be_handle->PID.err = err;
+
+            err = 1.85f*P + 0.9f*I;
+//          wait_us = _MAX((delay_sec + err)*1000000.0f, 1.0f);
+            wait_us = _MAX((delay_sec + err), 1e-6f) * 1000000.0f;
 
             be_handle->target[2] += delay_sec*1000.0f;	// ms
             if (res < be_handle->target[0]*freq)
