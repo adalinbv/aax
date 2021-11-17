@@ -553,6 +553,35 @@ _wav_update(_ext_t *ext, size_t *offs, ssize_t *size, char close)
 size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 {
+#if 1
+   _driver_t *handle = ext->id;
+   unsigned tracks = handle->info.no_tracks;
+   size_t rv = __F_PROCESS;
+
+   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
+   {
+      size_t blocksize = handle->info.blocksize;
+      size_t avail = (*bytes/blocksize)*blocksize;
+      if (avail)
+      {
+          if (*bytes > avail) {
+             *bytes = avail;
+          }
+
+          if (_aaxDataAdd(handle->wavBuffer, sptr, *bytes) == 0) {
+             *bytes = 0;
+          }
+      }
+      else {
+         rv = *bytes = 0;
+      }
+   }
+   else {
+      rv = handle->fmt->fill(handle->fmt, sptr, bytes);
+   }
+
+   return rv;
+#else
    _driver_t *handle = ext->id;
    size_t rv = __F_PROCESS;
    size_t res;
@@ -586,6 +615,7 @@ _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
    }
 
    return rv;
+#endif
 }
 
 size_t
