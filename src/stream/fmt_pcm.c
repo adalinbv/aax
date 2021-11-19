@@ -294,7 +294,7 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
       unsigned int bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
       unsigned int blocksize = handle->blocksize;
       unsigned int blocksmp = handle->blocksmp;
-      size_t offs, bytes, n;
+      size_t offs, bytes, no_blocks;
 
       if ((*num + handle->no_samples) > handle->max_samples) {
          *num = handle->max_samples - handle->no_samples;
@@ -302,23 +302,26 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       if (*num)
       {
-         n = *num/blocksmp;
-         if (*num % blocksmp) n++;
+         no_blocks = *num/blocksmp;
+         if (*num % blocksmp) no_blocks++;
 
-         bytes = n*blocksize;
+         bytes = no_blocks*blocksize;
          if (bytes > bufsize)
          {
-            n = (bufsize/blocksize);
-            bytes = n*blocksize;
+            no_blocks = (bufsize/blocksize);
+            bytes = no_blocks*blocksize;
          }
-         *num = n*blocksmp;
+         *num = no_blocks*blocksmp;
 
-         offs = (dptr_offs/blocksmp)*blocksize;
-         rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
-         handle->no_samples += *num;
+         if (bytes)
+         {
+            offs = (dptr_offs/blocksmp)*blocksize;
+            rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
+            handle->no_samples += *num;
 
-         if (handle->no_samples >= handle->max_samples) {
-            rv = __F_EOF;
+            if (handle->no_samples >= handle->max_samples) {
+               rv = __F_EOF;
+            }
          }
       }
    }

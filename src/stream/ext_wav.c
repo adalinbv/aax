@@ -136,8 +136,8 @@ static enum wavFormat _getWAVFormatFromAAXFormat(enum aaxFormat);
 static _fmt_type_t _getFmtFromWAVFormat(enum wavFormat);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
-// static void _wav_cvt_msadpcm_to_ima4(_driver_t*, void*, size_t, unsigned int, ssize_t*);
 static uint32_t _aaxRouterFromMSChannelMask(uint32_t, uint8_t);
+//static void _wav_cvt_msadpcm_to_ima4(_driver_t*, void*, size_t, unsigned int, ssize_t*);
 
 
 
@@ -553,69 +553,20 @@ _wav_update(_ext_t *ext, size_t *offs, ssize_t *size, char close)
 size_t
 _wav_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
 {
-#if 1
    _driver_t *handle = ext->id;
-   unsigned tracks = handle->info.no_tracks;
-   size_t rv = __F_PROCESS;
+   size_t res, rv = __F_PROCESS;
 
-   if (handle->wav_format == IMA4_ADPCM_WAVE_FILE && tracks > 1)
-   {
-      size_t blocksize = handle->info.blocksize;
-      size_t avail = (*bytes/blocksize)*blocksize;
-      if (avail)
-      {
-          if (*bytes > avail) {
-             *bytes = avail;
-          }
-
-          if (_aaxDataAdd(handle->wavBuffer, sptr, *bytes) == 0) {
-             *bytes = 0;
-          }
-      }
-      else {
-         rv = *bytes = 0;
-      }
-   }
-   else {
-      rv = handle->fmt->fill(handle->fmt, sptr, bytes);
-   }
-
-   return rv;
-#else
-   _driver_t *handle = ext->id;
-   size_t rv = __F_PROCESS;
-   size_t res;
-
-   res = _aaxDataAdd(handle->wavBuffer, sptr, *bytes);
+   *bytes = res = _aaxDataAdd(handle->wavBuffer, sptr, *bytes);
    if (res > 0)
    {
       void *data = _aaxDataGetData(handle->wavBuffer);
       ssize_t avail = _aaxDataGetDataAvail(handle->wavBuffer);
 
-      if (handle->wav_format == IMA4_ADPCM_WAVE_FILE ||
-          handle->wav_format == MSADPCM_WAVE_FILE)
-      {
-         ssize_t size = handle->info.blocksize;
-//       unsigned tracks = handle->info.no_tracks;
-
-         avail = (avail/size)*size;
-         handle->fmt->fill(handle->fmt, data, &avail);
-         _aaxDataMove(handle->wavBuffer, NULL, avail);
-         *bytes = avail;
-      }
-      else
-      {
-         handle->fmt->fill(handle->fmt, data, &avail);
-         _aaxDataMove(handle->wavBuffer, NULL, avail);
-         *bytes = res;
-      }
-   }
-   else {
-      *bytes = 0;
+       handle->fmt->fill(handle->fmt, data, &avail);
+      _aaxDataMove(handle->wavBuffer, NULL, avail);
    }
 
    return rv;
-#endif
 }
 
 size_t
