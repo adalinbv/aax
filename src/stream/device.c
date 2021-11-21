@@ -65,7 +65,7 @@
 #ifdef WIN32
 # define USE_CAPTURE_THREAD	AAX_FALSE
 #else
-# define USE_CAPTURE_THREAD	AAX_FALSE
+# define USE_CAPTURE_THREAD	AAX_TRUE
 #endif
 
 static _aaxDriverDetect _aaxStreamDriverDetect;

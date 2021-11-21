@@ -70,14 +70,14 @@ typedef struct
    /* IMA */
    int16_t predictor[_AAX_MAX_SPEAKERS];
    uint8_t index[_AAX_MAX_SPEAKERS];
-// _data_t *blockbuf;
-   size_t blockbufpos;
+   size_t block_offs[_AAX_MAX_SPEAKERS];
 
 } _driver_t;
 
 static void _batch_cvt24_alaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
 static void _batch_cvt24_mulaw_intl(int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
-static size_t _batch_cvt24_adpcm_intl(_driver_t*, int32_t**, const_char_ptr, size_t, size_t, size_t, unsigned int);
+static size_t _batch_cvt24_adpcm_intl(_driver_t*, int32_ptrptr, const_void_ptr, size_t, unsigned int, size_t);
+
 
 
 int
@@ -342,7 +342,9 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    if (bufsize)
    {
       char *buf = (char*)_aaxDataGetData(handle->pcmBuffer);
+      unsigned int bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
       unsigned int blocksize = handle->blocksize;
+      unsigned int blocksmp = handle->blocksmp;
       unsigned int tracks = handle->no_tracks;
 
       if ((*num + handle->no_samples) > handle->max_samples) {
@@ -353,52 +355,47 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
       {
          if (handle->format == AAX_IMA4_ADPCM)
          {
-            if (handle->blocksize <= bufsize)
+            rv = _batch_cvt24_adpcm_intl(handle, dptr, buf, dptr_offs, tracks,
+                                         *num);
+            if (rv) {
+               rv = _aaxDataMove(handle->pcmBuffer, NULL, rv);
+            }
+            handle->no_samples += *num;
+         }
+         else
+         {
+            size_t bytes, no_blocks;
+
+            no_blocks = *num/blocksmp;
+            if (*num % blocksmp) no_blocks++;
+
+            bytes = no_blocks*blocksize;
+            if (bytes > bufsize)
             {
-               size_t block_smp = handle->blocksmp;
-               size_t offs_smp = handle->blockbufpos;
-               size_t decode_smp;
+               no_blocks = (bufsize/blocksize);
+               bytes = no_blocks*blocksize;
+            }
+            *num = no_blocks*blocksmp;
 
-               decode_smp = _MIN(block_smp-offs_smp, *num);
-               rv = _batch_cvt24_adpcm_intl(handle, dptr, buf, offs_smp,
-                                       decode_smp, dptr_offs, tracks);
-               handle->blockbufpos += rv;
-               handle->no_samples += rv;
-               *num = rv;
-
-               if (handle->blockbufpos >= block_smp)
-               {
-                  handle->blockbufpos = 0;
-                  _aaxDataMove(handle->pcmBuffer, NULL, handle->blocksize);
+            if (bytes)
+            {
+               if (handle->cvt_endianness) {
+                  handle->cvt_endianness(buf, *num);
                }
+               if (handle->cvt_from_signed) {
+                  handle->cvt_from_signed(buf, *num);
+               }
+               if (handle->cvt_from_intl) {
+                  handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
+               }
+
+               /* skip processed data */
+               rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
+               handle->no_samples += *num;
             }
             else {
                *num = rv = 0;
             }
-         }
-         else
-         {
-            size_t bytes = *num*blocksize;
-
-            if (bytes > bufsize) {
-               bytes = (bufsize/blocksize)*blocksize;
-            }
-            *num = bytes/blocksize;
-
-            if (handle->cvt_endianness) {
-               handle->cvt_endianness(buf, *num);
-            }
-            if (handle->cvt_from_signed) {
-               handle->cvt_from_signed(buf, *num);
-            }
-
-            if (handle->cvt_from_intl) {
-               handle->cvt_from_intl(dptr, buf, dptr_offs, tracks, *num);
-            }
-
-            /* skip processed data */
-            rv = _aaxDataMove(handle->pcmBuffer, NULL, bytes);
-            handle->no_samples += *num;
          }
 
          if (handle->no_samples >= handle->max_samples) {
@@ -509,7 +506,7 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
       handle->blocksmp = rv = value;
       break;
    case __F_POSITION:
-      handle->blockbufpos = rv = value;
+//    handle->block_offs = rv = value;
       break;
    case __F_COPY_DATA:
       handle->copy_to_buffer = rv = value;
@@ -549,131 +546,154 @@ _pcm_cvt_endianness(_fmt_t *fmt, void_ptr dptr, size_t num)
    }
 }
 
-void
-_pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
-                                unsigned block_smp, int16_t* sample,
-                                uint8_t* index, short step)
+
+/*
+ * convert one track of adpcm data
+ * 8 samples per chunk of 4 bytes (int32_t) interleaved per track
+ */
+static size_t
+_batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int t, unsigned int tracks, size_t num)
 {
-   unsigned int i, size = (block_smp/2)*2;
-   int16_t header;
-   uint8_t nibble;
+   unsigned int block_offs = handle->block_offs[t];
+   unsigned int blocksize = handle->blocksize;
+   unsigned int blocksmp = handle->blocksmp;
+   uint32_t *src = (uint32_t*)sptr+t;
+   int32_t *d = dptr[t]+offset;
+   uint8_t *s = (uint8_t*)src;
+   size_t i = num;
+   size_t rv = 0;
 
-   header = *sample;
-   *ndata++ = header & 0xFF;
-   *ndata++ = header >> 8;
-   *ndata++ = *index;
-   *ndata++ = 0;
+   if (block_offs)				/* start inside a block  */
+   {						/* finish this block     */
+      int16_t predictor = handle->predictor[t];
+      uint8_t index = handle->index[t];
+      unsigned int chunk_ctr = 4;		/* 4 bytes per chunk     */
+      unsigned int chunk_offs;			/* offset within a chunk */
+      size_t bytes_offs;
 
-   for (i=0; i<size; i += 2)
-   {
-      int16_t nsample;
+      chunk_offs = block_offs % 8;		/* 8 samples per chunk   */
+      bytes_offs = chunk_offs/2;		/* two samples per byte  */
+      chunk_ctr -= bytes_offs;
 
-      nsample = *data >> 8;
-      _linear2adpcm(sample, nsample, &nibble, index);
-      data += step;
-      *ndata = nibble;
+      src += tracks;				/* skip the block header */
+      src += tracks*block_offs/8;		/* skip the data chunks  */
+      s = (uint8_t*)src;
+      s += bytes_offs;
 
-      nsample = *data >> 8;
-      _linear2adpcm(sample, nsample, &nibble, index);
-      data += step;
-      *ndata++ |= nibble << 4;
+      if (chunk_offs % 2)			/* offset is an odd number */
+      {
+         uint8_t nibble;
+
+         nibble = *s++;
+         *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
+         if (--chunk_ctr == 0)
+         {
+            chunk_ctr = 4;
+            src += tracks;
+            s = (uint8_t*)src;
+         }
+
+         block_offs++;
+         i--;
+      }
+
+      /* the rest of the samples in the block start at a byte boundary */
+      while (i >= 2 && block_offs < blocksmp)
+      {
+         uint8_t nibble = *s++;
+         *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
+         *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
+
+         if (--chunk_ctr == 0)
+         {
+            chunk_ctr = 4;
+            src += tracks;
+            s = (uint8_t*)src;
+         }
+
+         block_offs += 2;
+         i -= 2;
+      }
+
+      if (block_offs == blocksmp)
+      {
+         block_offs = 0;
+         rv += blocksize;
+      }
+      handle->predictor[t] = predictor;
+      handle->index[t] = index;
    }
 
-   if (i < block_smp) *ndata++ = 0;
-}
+   /* decode remaining block(s) */
+   while (i >= 2)
+   {
+      size_t chunk_ctr = 4;
+      int16_t predictor;
+      uint8_t index;
 
-static size_t
-_batch_cvt24_adpcm_intl(_driver_t *handle, int32_t **dptr, const_char_ptr src, size_t smp_offs, size_t num, size_t offset, unsigned int tracks)
+      predictor = *s++;
+      predictor |= *s++ << 8;
+      index = *s;
 
-{
-   size_t offs_smp, rv = 0;
-   unsigned t;
+      src += tracks;				/* skip the header       */
+      s = (uint8_t*)src;
 
-   for (t=0; t<tracks; t++)
+      while (i >= 2 && block_offs < blocksmp)
+      {
+         uint8_t nibble = *s++;
+         *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
+         *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
+
+         if (--chunk_ctr == 0)
+         {
+            chunk_ctr = 4;
+            src += tracks;
+            s = (uint8_t*)src;
+         }
+
+         block_offs += 2;
+         i -= 2;
+      }
+
+      if (block_offs == blocksmp)
+      {
+         block_offs = 0;
+         rv += blocksize;
+      }
+      handle->predictor[t] = predictor;
+      handle->index[t] = index;
+   }
+
+   if (i)				/* no. samples was an odd number */
    {
       int16_t predictor = handle->predictor[t];
       uint8_t index = handle->index[t];
-      int32_t *d = dptr[t]+offset;
-      int32_t *s = (int32_t*)src+t;
-      size_t l, ctr = 4;
-      uint8_t *sptr;
+      uint8_t nibble = *s;
 
-      l = num;
-      offs_smp = smp_offs;
-      if (!offs_smp)
-      {
-         sptr = (uint8_t*)s;                 /* read the block header */
-         predictor = *sptr++;
-         predictor |= *sptr++ << 8;
-         index = *sptr;
+      *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
+      block_offs++;
+      i--;
 
-         s += tracks;                        /* skip the header      */
-         sptr = (uint8_t*)s;
+      if (block_offs == blocksmp) {
+         rv += blocksize;
       }
-      else
-      {
-         /* 8 samples per chunk of 4 bytes (int32_t) */
-         size_t offs_chunks = offs_smp/8;
-         size_t offs_bytes;
-
-         s += tracks;                        /* skip the header      */
-         s += tracks*offs_chunks;            /* skip the data chunks */
-         sptr = (uint8_t*)s;
-
-         offs_smp -= offs_chunks*8;
-         offs_bytes = offs_smp/2;            /* two samples per byte */
-
-         sptr += offs_bytes;                 /* add remaining offset */
-         ctr -= offs_bytes;
-
-         offs_smp -= offs_bytes*2;           /* skip two-samples (bytes) */
-         offs_bytes = offs_smp/2;
-
-         sptr += offs_bytes;
-         if (offs_smp)                       /* offset is an odd number */
-         {
-            uint8_t nibble = *sptr++;
-            *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
-            if (--ctr == 0)
-            {
-               ctr = 4;
-               s += tracks;
-               sptr = (uint8_t*)s;
-            }
-         }
-      }
-
-      if (l >= 2)                    /* decode the (rest of the) blocks  */
-      {
-         do
-         {
-            uint8_t nibble = *sptr++;
-            *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
-            *d++ = _adpcm2linear(nibble >> 4, &predictor, &index) << 8;
-            if (--ctr == 0)
-            {
-               ctr = 4;
-               s += tracks;
-               sptr = (uint8_t*)s;
-            }
-            l -= 2;
-         }
-         while (l >= 2);
-      }
-
-      if (l)                         /* no. samples was an odd number */
-      {
-         uint8_t nibble = *sptr;
-         *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
-         l--;
-      }
-
       handle->predictor[t] = predictor;
       handle->index[t] = index;
-
-      rv = num-l;
    }
+   handle->block_offs[t] = block_offs;
 
+   return rv;
+}
+
+static size_t
+_batch_cvt24_adpcm_intl(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int tracks, size_t num)
+{
+   size_t rv = 0;
+   unsigned t;
+
+   for (t=0; t<tracks; t++) {
+      rv = _batch_cvt24_adpcm_track(handle, dptr, sptr, offset, t, tracks, num);
+   }
    return rv;
 }
 

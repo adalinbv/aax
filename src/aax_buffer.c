@@ -2423,6 +2423,39 @@ _aaxLinear2ALaw(uint8_t* ndata, int32_t* data, unsigned int i)
 /*
  * Incompatible with MS-IMA which specifies a different way of interleaving.
  */
+void
+_pcm_cvt_lin_to_ima4_block(uint8_t* ndata, int32_t* data,
+                                unsigned block_smp, int16_t* sample,
+                                uint8_t* index, short step)
+{
+   unsigned int i, size = (block_smp/2)*2;
+   int16_t header;
+   uint8_t nibble;
+
+   header = *sample;
+   *ndata++ = header & 0xFF;
+   *ndata++ = header >> 8;
+   *ndata++ = *index;
+   *ndata++ = 0;
+
+   for (i=0; i<size; i += 2)
+   {
+      int16_t nsample;
+
+      nsample = *data >> 8;
+      _linear2adpcm(sample, nsample, &nibble, index);
+      data += step;
+      *ndata = nibble;
+
+      nsample = *data >> 8;
+      _linear2adpcm(sample, nsample, &nibble, index);
+      data += step;
+      *ndata++ |= nibble << 4;
+   }
+
+   if (i < block_smp) *ndata++ = 0;
+}
+
 static void
 _aaxLinear2IMA4(uint8_t* ndata, int32_t* data, unsigned int samples, unsigned block_smp, unsigned tracks)
 {
