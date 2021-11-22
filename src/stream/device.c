@@ -652,26 +652,24 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       handle->ext->set_param(handle->ext, __F_NO_BYTES, handle->no_bytes);
       handle->ext->set_param(handle->ext, __F_PATCH_LEVEL, level);
       if (handle->io->protocol == PROTOCOL_HTTP ||
-          handle->io->protocol == PROTOCOL_HTTPS) {
+          handle->io->protocol == PROTOCOL_HTTPS)
+      {
          handle->ext->set_param(handle->ext, __F_IS_STREAM, 1);
       }
 
       if (res && ((handle->io->fds.fd >= 0) || m))
       {
-         ssize_t reqSize = headerSize;
+         void *header = _aaxDataGetData(handle->threadBuffer);
          size_t no_samples = period_frames;
-         void *header = NULL;
+         ssize_t reqSize = headerSize;
          void *buf = NULL;
-
-         if (headerSize) {
-            header = malloc(headerSize);
-         }
 
          do
          {
-            if (!m && header && reqSize)
+            if (!m && reqSize)
             {
-               if (reqSize >= 0)
+               if (reqSize >= 0 &&
+                   reqSize < _aaxDataGetSize(handle->threadBuffer))
                {
                   int tries = 50; /* 50 miliseconds */
                   do
@@ -704,9 +702,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                {
                   int r;
 
-                  _aaxDataAdd(handle->threadBuffer, header, res);
                   r = handle->prot->process(handle->prot, handle->threadBuffer, res);
-                  res -= r;
+                  if (r > 0)
+                  {
+                     _aaxDataMove(handle->threadBuffer, NULL, r);
+                     res -= r;
+                  }
                }
             }
 
@@ -727,10 +728,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          }
          while (handle->mode == AAX_MODE_READ && buf && reqSize);
          headerSize = reqSize;
-
-         if (header) {
-            free(header);
-         }
 
          if (headerSize && res == (int)headerSize)
          {
