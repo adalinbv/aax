@@ -347,29 +347,6 @@ _aaxSensorCapture(_aaxRingBuffer *drb, const _aaxDriverBackend* be, void *be_han
          {
             MIX_T *optr = otptr[track];
 
-#if 0
-            if (frames != nframes)
-            {
-               /*
-                * The backend driver may fetch one sample more, or one sample
-                * less than requested to synchronize the capture and playback
-                * streams. If one extra sample is fetched it replaces the last
-                * sample in the delay effects buffer.
-                * If one sample less wat fetched the new data starts at the
-                * second position and we have to construct the first sample in
-                * the buffer ourselves based on the last sample in the delay
-                * effects buffer and the first new sample.
-                */
-               if (frames < nframes) {
-                  *optr = (*(optr-1) + *(optr+1))/2;
-               }
-               else {
-                  *(optr-1) = (*(optr-2)*2 + *(optr+1))/3;
-                  *optr     = (*(optr-2) + *(optr+1)*2)/3;
-               }
-            }
-#endif
-
             /* stereo downmix requested, add the tracks to track0 */
             if ((dest_track == AAX_TRACK_MIX) && track) {
                drbd->add(otptr[0], optr, frames, 1.0f, 0.0f);
