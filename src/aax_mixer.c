@@ -1415,17 +1415,14 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             frame->parent[0] = handle;
             frame->mixer_pos[0] = pos;
          }
-      else {
-         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
       }
-
-      /* No need to put the frame since it was not registered yet.
-       * This means there is no lock to unlock
-       * put_frame(frame);
-       */
+      else if (pos == UINT_MAX)
+      {
+         if (frame->parent[0]) put_frame(frame);
+         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
+         rv = AAX_FALSE;
       }
    }
-   if (f) put_frame(frame);
 
    return rv;
 }
