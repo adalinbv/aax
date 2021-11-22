@@ -190,7 +190,7 @@ _http_process(_prot_t *prot, _data_t *buf, size_t res)
                prot->metadata_len = len;
             }
 
-            if (!_aaxDataMoveOffset(buf, metaptr, offset, meta_len)) {
+            if (!_aaxDataMoveOffset(buf, metaptr, offset, meta_len+1)) {
                break;
             }
             metaptr = prot->metadata+1;
