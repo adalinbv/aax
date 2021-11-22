@@ -947,12 +947,13 @@ _aaxSetEqualizer(_aaxRingBufferFreqFilterData *flt[2], float fs)
 {
    if (flt[0] == NULL)
    {
-      size_t dsize = sizeof(_aaxRingBufferFreqFilterData);
+      size_t dsize = SIZE_ALIGNED(sizeof(_aaxRingBufferFreqFilterData));
       flt[0] = _aax_aligned_alloc(2*dsize);
       if (flt[0])
       {
+         char *ptr = (char*)flt[0] + dsize;
+         flt[1] = (_aaxRingBufferFreqFilterData*)ptr;
          memset(flt[0], 0, 2*dsize);
-         flt[1] = flt[0] + 1;
       }
    }
 

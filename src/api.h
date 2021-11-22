@@ -109,7 +109,7 @@ typedef struct
 {
    _aaxAudioFrame *mixer;
 
-   /* high-pass filter at 20 Hz **/
+   /* band-pass filter between 20 Hz and 20kHz **/
    _aaxRingBufferFreqFilterData *filter[2];
    void *mutex;
 
