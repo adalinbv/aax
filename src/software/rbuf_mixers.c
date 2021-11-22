@@ -76,7 +76,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
    drbd = drbi->sample;
    track_ptr = (MIX_T**)drbd->scratch;
 
-   assert(drbd->bytes_sample == 4);
+   assert(drbd->bits_sample == 32);
    assert(srbd->no_tracks >= 1);
    assert(drbd->no_tracks >= 1);
 
