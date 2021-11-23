@@ -1314,7 +1314,7 @@ aaxAudioFrameDeregisterAudioFrame(const aaxFrame frame, const aaxFrame subframe)
       } else if (sframe->parent[0] != handle) {
          _aaxErrorSet(AAX_INVALID_STATE+1);
       } else if (_intBufGetNumNoLock(handle->submix->frames, _AAX_FRAME) == 0) {
-            _aaxErrorSet(AAX_INVALID_PARAMETER);
+         _aaxErrorSet(AAX_INVALID_PARAMETER);
       } else {
          rv = AAX_TRUE;
       }

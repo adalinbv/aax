@@ -440,11 +440,10 @@ _adpcm2linear(uint8_t nibble, int16_t *val, uint8_t *idx)
   sign = nibble & 0x8;
   delta = nibble & 0x7;
 
-  diff = 0;
+  diff = (step >> 3);
   if (delta & 4) diff += step;
   if (delta & 2) diff += (step >> 1);
   if (delta & 1) diff += (step >> 2);
-  diff += (step >> 3);
 
   if (sign) predictor -= diff;
   else predictor += diff;

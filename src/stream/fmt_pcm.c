@@ -52,8 +52,8 @@ typedef struct
    uint8_t bits_sample;
    int frequency;
    int bitrate;
-   unsigned int blocksize;
-   int blocksmp;
+   int block_size;
+   int block_samps;
    enum aaxFormat format;
    size_t no_samples;
    size_t max_samples;
@@ -70,7 +70,6 @@ typedef struct
    /* IMA */
    int16_t predictor[_AAX_MAX_SPEAKERS];
    uint8_t index[_AAX_MAX_SPEAKERS];
-   size_t block_offs[_AAX_MAX_SPEAKERS];
 
 } _driver_t;
 
@@ -99,7 +98,7 @@ _pcm_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, UNUSED(size_t fsiz
       {
          handle->mode = mode;
          handle->capturing = (mode == 0) ? 1 : 0;
-         handle->blocksmp = 1;
+         handle->block_samps = 1;
       }
       else {
          _AAX_FILEDRVLOG("PCM: Unable to create a handle");
@@ -194,7 +193,7 @@ _pcm_setup(_fmt_t *fmt, _fmt_type_t pcm_fmt, enum aaxFormat aax_fmt)
          {
             handle->format = AAX_PCM24S;
             handle->bits_sample = 32;
-            handle->blocksize = handle->no_tracks*handle->bits_sample/8;
+            handle->block_size = handle->no_tracks*handle->bits_sample/8;
          }
          rv = AAX_TRUE;
          break;
@@ -291,9 +290,9 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
    if (bufsize)
    {
-      unsigned int bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
-      unsigned int blocksize = handle->blocksize;
-      unsigned int blocksmp = handle->blocksmp;
+      size_t bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
+      int block_size = handle->block_size;
+      int block_samps = handle->block_samps;
       size_t offs, bytes, no_blocks;
 
       if ((*num + handle->no_samples) > handle->max_samples) {
@@ -302,20 +301,20 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
 
       if (*num)
       {
-         no_blocks = *num/blocksmp;
-         if (*num % blocksmp) no_blocks++;
+         no_blocks = *num/block_samps;
+         if (*num % block_samps) no_blocks++;
 
-         bytes = no_blocks*blocksize;
+         bytes = no_blocks*block_size;
          if (bytes > bufsize)
          {
-            no_blocks = (bufsize/blocksize);
-            bytes = no_blocks*blocksize;
+            no_blocks = (bufsize/block_size);
+            bytes = no_blocks*block_size;
          }
-         *num = no_blocks*blocksmp;
+         *num = no_blocks*block_samps;
 
          if (bytes)
          {
-            offs = (dptr_offs/blocksmp)*blocksize;
+            offs = (dptr_offs/block_samps)*block_size;
             rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr+offs, bytes);
             handle->no_samples += *num;
 
@@ -342,10 +341,10 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
    if (bufsize)
    {
       char *buf = (char*)_aaxDataGetData(handle->pcmBuffer);
-      unsigned int bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
-      unsigned int blocksize = handle->blocksize;
-      unsigned int blocksmp = handle->blocksmp;
-      unsigned int tracks = handle->no_tracks;
+      size_t bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
+      int block_size = handle->block_size;
+      int block_samps = handle->block_samps;
+      int tracks = handle->no_tracks;
 
       if ((*num + handle->no_samples) > handle->max_samples) {
          *num = handle->max_samples - handle->no_samples;
@@ -366,16 +365,16 @@ _pcm_cvt_from_intl(_fmt_t *fmt, int32_ptrptr dptr, size_t dptr_offs, size_t *num
          {
             size_t bytes, no_blocks;
 
-            no_blocks = *num/blocksmp;
-            if (*num % blocksmp) no_blocks++;
+            no_blocks = *num/block_samps;
+            if (*num % block_samps) no_blocks++;
 
-            bytes = no_blocks*blocksize;
+            bytes = no_blocks*block_size;
             if (bytes > bufsize)
             {
-               no_blocks = (bufsize/blocksize);
-               bytes = no_blocks*blocksize;
+               no_blocks = (bufsize/block_size);
+               bytes = no_blocks*block_size;
             }
-            *num = no_blocks*blocksmp;
+            *num = no_blocks*block_samps;
 
             if (bytes)
             {
@@ -429,7 +428,7 @@ _pcm_cvt_to_intl(_fmt_t *fmt, void_ptr dptr, const_int32_ptrptr sptr, size_t off
       handle->cvt_endianness(dptr, *num * tracks);
    }
 
-   return *num*handle->blocksize;
+   return *num*handle->block_size;
 }
 
 int
@@ -465,7 +464,7 @@ _pcm_get(_fmt_t *fmt, int type)
       rv = handle->bits_sample;
       break;
    case __F_BLOCK_SIZE:
-      rv = handle->blocksize;
+      rv = handle->block_size;
       break;
    case __F_NO_SAMPLES:
       rv = handle->max_samples;
@@ -500,13 +499,13 @@ _pcm_set(_fmt_t *fmt, int type, off_t value)
       handle->bits_sample = rv = value;
       break;
    case __F_BLOCK_SIZE:
-      handle->blocksize = rv = value;
+      handle->block_size = rv = value;
       break;
    case __F_BLOCK_SAMPLES:
-      handle->blocksmp = rv = value;
+      handle->block_samps = rv = value;
       break;
    case __F_POSITION:
-//    handle->block_offs = rv = value;
+      handle->no_samples = rv = value;
       break;
    case __F_COPY_DATA:
       handle->copy_to_buffer = rv = value;
@@ -546,20 +545,20 @@ _pcm_cvt_endianness(_fmt_t *fmt, void_ptr dptr, size_t num)
    }
 }
 
-
 /*
  * convert one track of adpcm data
  * 8 samples per chunk of 4 bytes (int32_t) interleaved per track
+ * https://wiki.multimedia.cx/index.php?title=Microsoft_IMA_ADPCM
  */
 static size_t
-_batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sptr, size_t offset, unsigned int t, unsigned int tracks, size_t num)
+_batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_int32_ptr sptr, size_t offset, unsigned int t, unsigned int tracks, size_t num)
 {
-   unsigned int block_offs = handle->block_offs[t];
-   unsigned int blocksize = handle->blocksize;
-   unsigned int blocksmp = handle->blocksmp;
-   uint32_t *src = (uint32_t*)sptr+t;
+   int block_size = handle->block_size;
+   int block_samps = handle->block_samps;
+   int block_offs = handle->no_samples % block_samps;
    int32_t *d = dptr[t]+offset;
-   uint8_t *s = (uint8_t*)src;
+   const int32_t *src = sptr+t;
+   const uint8_t *s = (const uint8_t*)src;
    size_t i = num;
    size_t rv = 0;
 
@@ -567,9 +566,9 @@ _batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sp
    {						/* finish this block     */
       int16_t predictor = handle->predictor[t];
       uint8_t index = handle->index[t];
-      unsigned int chunk_ctr = 4;		/* 4 bytes per chunk     */
-      unsigned int chunk_offs;			/* offset within a chunk */
-      size_t bytes_offs;
+      int chunk_ctr = 4;			/* 4 bytes per chunk     */
+      int chunk_offs;				/* offset within a chunk */
+      int bytes_offs;
 
       chunk_offs = block_offs % 8;		/* 8 samples per chunk   */
       bytes_offs = chunk_offs/2;		/* two samples per byte  */
@@ -598,7 +597,7 @@ _batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sp
       }
 
       /* the rest of the samples in the block start at a byte boundary */
-      while (i >= 2 && block_offs < blocksmp)
+      while (i >= 2 && block_offs < block_samps)
       {
          uint8_t nibble = *s++;
          *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
@@ -615,10 +614,10 @@ _batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sp
          i -= 2;
       }
 
-      if (block_offs == blocksmp)
+      if (block_offs == block_samps)
       {
          block_offs = 0;
-         rv += blocksize;
+         rv += block_size;
       }
       handle->predictor[t] = predictor;
       handle->index[t] = index;
@@ -638,7 +637,7 @@ _batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sp
       src += tracks;				/* skip the header       */
       s = (uint8_t*)src;
 
-      while (i >= 2 && block_offs < blocksmp)
+      while (i >= 2 && block_offs < block_samps)
       {
          uint8_t nibble = *s++;
          *d++ = _adpcm2linear(nibble & 0xF, &predictor, &index) << 8;
@@ -655,10 +654,10 @@ _batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sp
          i -= 2;
       }
 
-      if (block_offs == blocksmp)
+      if (block_offs == block_samps)
       {
          block_offs = 0;
-         rv += blocksize;
+         rv += block_size;
       }
       handle->predictor[t] = predictor;
       handle->index[t] = index;
@@ -674,13 +673,12 @@ _batch_cvt24_adpcm_track(_driver_t *handle, int32_ptrptr dptr, const_void_ptr sp
       block_offs++;
       i--;
 
-      if (block_offs == blocksmp) {
-         rv += blocksize;
+      if (block_offs == block_samps) {
+         rv += block_size;
       }
       handle->predictor[t] = predictor;
       handle->index[t] = index;
    }
-   handle->block_offs[t] = block_offs;
 
    return rv;
 }
@@ -692,7 +690,7 @@ _batch_cvt24_adpcm_intl(_driver_t *handle, int32_ptrptr dptr, const_void_ptr spt
    unsigned t;
 
    for (t=0; t<tracks; t++) {
-      rv = _batch_cvt24_adpcm_track(handle, dptr, sptr, offset, t, tracks, num);
+      rv +=_batch_cvt24_adpcm_track(handle, dptr, sptr, offset, t, tracks, num);
    }
    return rv;
 }
