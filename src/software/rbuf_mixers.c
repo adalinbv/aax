@@ -244,7 +244,7 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
 
             /* short-cut for automatic file streaming with registered sensors */
             if (srbd->mixer_fmt) {
-                scratch0 = sptr+src_pos;
+                scratch0 = sptr+src_pos-HISTORY_SAMPS;
             }
             else
             {
