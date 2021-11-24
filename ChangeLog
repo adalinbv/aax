@@ -12,7 +12,8 @@
    handle them properly.
  * Reorganize the stream connecting code for shorter connection times.
  * A complete overhaul of the WAV handling code making it much more robust,
-   fault tolerant and support more chunk types.
+   fault tolerant and support more chunk types. Also fix clicking sounds when
+   streaming files with a sample-rate not matching the playback rate.
  * Add stream writing to OGG/Vorbis if libvorbisenc and libogg are found.
  * Fix streaming of multi-channel audio files in cases where the playback rate
    was too high for the internal buffer sizes resulting in slowed-down,
