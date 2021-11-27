@@ -949,6 +949,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       int32_t **sbuf = (int32_t**)tracks;
       unsigned char *data;
       ssize_t res, no_samples;
+      float new_rate;
       size_t samples;
 
       no_samples = (ssize_t)*frames;
@@ -1055,7 +1056,9 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
       }
       while (no_samples > 0 && --num);
 
-      handle->frequency = (float)handle->ext->get_param(handle->ext, __F_FREQUENCY);
+      // Some formats may change the sample rate mid-stream to save bandwith
+      new_rate = (float)handle->ext->get_param(handle->ext, __F_FREQUENCY);
+      handle->frequency = new_rate;
 
       if (!handle->copy_to_buffer && bytes > 0)
       {
