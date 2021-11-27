@@ -924,23 +924,26 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
    /* Is it a RIFF file? */
    switch(curr)
    {
-   case 0x46464952:				// header[0]: ChunkID: RIFF
-   case 0x34364652:				//            ChunkID: RF64
+   case 0x46464952: // RIFF
+   case 0x34364652: // RF64
       bufsize = _aaxDataGetDataAvail(handle->wavBuffer);
-      if (bufsize < WAVE_HEADER_SIZE) {
-         return __F_EOF;
-      }
-      curr = read32le(&ch, &bufsize);		// header[1]: ChunkSize
-      handle->io.read.filesize = curr;
+      if (bufsize >= WAVE_HEADER_SIZE)
+      {
+         curr = read32le(&ch, &bufsize);
+         handle->io.read.filesize = curr;
 
-      curr = read32le(&ch, &bufsize);
-      if (curr == 0x45564157) {			// "WAVE"
-         *step = rv = ch-buf;
-      } else {
-         return __F_EOF;
+         curr = read32le(&ch, &bufsize);
+         if (curr == 0x45564157) { // WAVE
+            *step = rv = ch-buf;
+         } else {
+            rv = __F_EOF;
+         }
+      }
+      else {
+         rv  = __F_EOF;
       }
       break;
-   case 0x20746d66:				// "fmt "
+   case 0x20746d66: // fmt 
       curr = read32le(&ch, &bufsize);		 // header[4]: Subchunk1Size
       *step = rv = ch-buf+EVEN(curr);
 
@@ -988,7 +991,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 
       if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
           (handle->info.rate >= 4000 && handle->info.rate <= 256000) &&
-          (handle->info.no_tracks >= 1 && handle->info.no_tracks <= _AAX_MAX_SPEAKERS*4))
+          (handle->info.no_tracks >= 1 && handle->info.no_tracks <= _AAX_MAX_SPEAKERS))
       {
          if (handle->wav_format == PCM_WAVE_FILE)
          {
@@ -998,25 +1001,14 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
          handle->info.fmt = _getAAXFormatFromWAVFormat(handle->wav_format,
                                                            handle->bits_sample);
          if (handle->info.fmt == AAX_FORMAT_NONE) {
-            return __F_EOF;
+            rv = __F_EOF;
          }
       }
       else {
-         return __F_EOF;
+         rv = __F_EOF;
       }
       break;
-   case 0x74636166:				/* fact */
-      curr = read32le(&ch, &bufsize);		// header[1]: size
-      *step = rv = ch-buf+EVEN(curr);
-
-      curr = read32le(&ch, &bufsize);		// header[2]: dta: no. samples
-      if (curr != -1)
-      {
-         handle->info.no_samples = curr;
-         handle->max_samples = curr;
-      }
-      break;
-   case 0x61746164:				/* data */
+   case 0x61746164: // data
       curr = read32le(&ch, &bufsize);
       if (curr != -1) {
          handle->io.read.datasize = curr;
@@ -1046,7 +1038,18 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       if (!handle->io.read.datasize) rv = __F_EOF;
       else rv = __F_PROCESS;
       break;
-   case 0x5453494c:				/* LIST */
+   case 0x74636166: // fact
+      curr = read32le(&ch, &bufsize);
+      *step = rv = ch-buf+EVEN(curr);
+
+      curr = read32le(&ch, &bufsize); // no. samples
+      if (curr != -1)
+      {
+         handle->info.no_samples = curr;
+         handle->max_samples = curr;
+      }
+      break;
+   case 0x5453494c: // LIST
    {                            // http://www.daubnet.com/en/file-format-riff
       ssize_t size = bufsize;
 
@@ -1080,20 +1083,20 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
             size_t clen;
             switch(head)
             {
-            case 0x54524149:    /* IART: Artist              */
-            case 0x4d414e49:    /* INAM: Track Title         */
-            case 0x44525049:    /* IPRD: Album Title/Product */
-            case 0x4b525449:    /* ITRK: Track Number        */
-            case 0x44524349:    /* ICRD: Date Created        */
-            case 0x524e4749:    /* IGNR: Genre               */
-            case 0x504f4349:    /* ICOP: Copyright           */
-            case 0x544d4349:    /* ISFT: Comments            */
-            case 0x54465349:    /* ICMT: Software            */
-            case 0x59454b49:    /* IKEY: Subject             */
-            case 0x4a425349:    /* ISBJ	 Keywords            */
-            case 0x48435449:    /* ITCH: Engineer            */
-            case 0x474e4549:    /* IENG: Technician          */
-            case 0x524e4547:    /* GENR: Genre               */
+            case 0x54524149: // IART
+            case 0x4d414e49: // INAM
+            case 0x44525049: // IPRD
+            case 0x4b525449: // ITRK
+            case 0x44524349: // ICRD
+            case 0x524e4749: // IGNR
+            case 0x504f4349: // ICOP
+            case 0x544d4349: // ISFT
+            case 0x54465349: // ICMT
+            case 0x59454b49: // IKEY
+            case 0x4a425349: // ISBJ
+            case 0x48435449: // ITCH
+            case 0x474e4549: // IENG
+            case 0x524e4547: // GENR
                curr = read32le(&ch, &bufsize); // header[1];
                size -= 2*sizeof(int32_t) + EVEN(curr);
                if (size < 0) break;
@@ -1162,17 +1165,17 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
          curr = read32le(&ch, &bufsize);
          switch(curr)
          {
-         case 0x6e6f7465: /* note */
+         case 0x6e6f7465: // note
             curr = read32le(&ch, &bufsize);
             rv += 3*sizeof(int32_t)+EVEN(curr);
             *step = rv;
             break;
-         case 0x6c61626c: /* labl */
+         case 0x6c61626c: // labl
             curr = read32le(&ch, &bufsize);
             rv += 3*sizeof(int32_t)+EVEN(curr);
             *step = rv;
             break;
-         case 0x6c747874: /* ltxt */
+         case 0x6c747874: // ltxt
             curr = read32le(&ch, &bufsize);
             rv += 3*sizeof(int32_t)+EVEN(curr);
             *step = rv;
@@ -1185,7 +1188,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       }
       break;
    }
-   case 0x6c706d73:				/* smpl */
+   case 0x6c706d73: // smpl
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl
       curr = read32le(&ch, &bufsize);
       *step = rv = ch-buf+EVEN(curr);
@@ -1213,18 +1216,32 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 #endif
       }
       break;
-   case 0x74736e69: /* inst */
+   case 0x74736e69: // inst
+   case 0x7478746c: // ltxt
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
       curr = read32le(&ch, &bufsize);
       *step = rv = ch-buf+EVEN(curr);
 
-      handle->info.base_frequency = note2freq((uint8_t)header[2]);
-      handle->info.pitch_fraction = cents2pitch((int)header[3], 0.5f);
-//    handle->info.gain = _db2lin((float)header[4]);
-      handle->info.low_frequency = note2freq((uint8_t)header[5]);
-      handle->info.high_frequency = note2freq((uint8_t)header[6]);
-//    handle->info.low_velocity = (uint8_t)header[5];
-//    handle->info.high_velocity = (uint8_t)header[6];
+      curr = read8(&ch, &bufsize);
+      handle->info.base_frequency = note2freq(curr);
+
+      curr = read8(&ch, &bufsize);
+      handle->info.pitch_fraction = cents2pitch(curr, 0.5f);
+
+      curr = read8(&ch, &bufsize);
+//    handle->info.gain = _db2lin((float)curr));
+
+      curr = read8(&ch, &bufsize);
+      handle->info.low_frequency = note2freq(curr);
+
+      curr = read8(&ch, &bufsize);
+      handle->info.high_frequency = note2freq(curr);
+
+      curr = read8(&ch, &bufsize);
+//    handle->info.low_velocity = curr;
+
+      curr = read8(&ch, &bufsize);
+//    handle->info.high_velocity = curr;
 #if 0
    printf("Base Frequency: %f\n", handle->info.base_frequency);
    printf("Low Frequency:  %f\n", handle->info.low_frequency);
@@ -1232,7 +1249,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
 #endif
       break;
-   case 0x34367364: // "ds64"
+   case 0x34367364: // ds64
    {
       int i;
 
@@ -1261,10 +1278,34 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       curr = read32le(&ch, &bufsize); // header[1]: size
       *step = rv = ch-buf+EVEN(curr);
       break;
-   case 0x20657563: /* cue  */
-   case 0x74786562: /* bext */
-   case 0x20444150: /* PAD  */
-   case 0x4b4e554a: /* junk */
+   case 0x74786562: // bext
+   {
+      char field[COMMENT_SIZE+1];
+      size_t clen;
+
+      curr = read32le(&ch, &bufsize);
+      *step = rv = ch-buf+EVEN(curr);
+
+      clen = 256;
+      readstr(&ch, field, curr, &clen);
+      handle->comments = stradd(handle->title, field);
+
+      clen = 32;
+      readstr(&ch, field, curr, &clen);
+      handle->copyright = stradd(handle->artist, field);
+
+      clen = 32;
+      readstr(&ch, field, curr, &clen);
+      handle->copyright = stradd(handle->copyright, field);
+
+      clen = 10;
+      readstr(&ch, field, curr, &clen);
+      handle->copyright = stradd(handle->date, field);
+      break;
+   }
+   case 0x20657563: // cue 
+   case 0x20444150: // PAD 
+   case 0x4b4e554a: // junk
       curr = read32le(&ch, &bufsize);
       *step = rv = ch-buf+EVEN(curr);
       break;
