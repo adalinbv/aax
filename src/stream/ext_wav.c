@@ -1217,7 +1217,6 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       }
       break;
    case 0x74736e69: // inst
-   case 0x7478746c: // ltxt
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
       curr = read32le(&ch, &bufsize);
       *step = rv = ch-buf+EVEN(curr);
@@ -1288,11 +1287,11 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 
       clen = 256;
       readstr(&ch, field, curr, &clen);
-      handle->comments = stradd(handle->title, field);
+      handle->title = stradd(handle->title, field);
 
       clen = 32;
       readstr(&ch, field, curr, &clen);
-      handle->copyright = stradd(handle->artist, field);
+      handle->comments = stradd(handle->comments, field);
 
       clen = 32;
       readstr(&ch, field, curr, &clen);
@@ -1300,7 +1299,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 
       clen = 10;
       readstr(&ch, field, curr, &clen);
-      handle->copyright = stradd(handle->date, field);
+      handle->date = stradd(handle->date, field);
       break;
    }
    case 0x20657563: // cue 
