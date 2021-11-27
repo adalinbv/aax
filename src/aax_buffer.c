@@ -1089,7 +1089,7 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
             if (info->blocksize) {
                no_bytes = ((no_bytes/info->blocksize)+1)*info->blocksize;
             }
-            datasize =  SIZE_ALIGNED(info->no_tracks*no_bytes);
+            datasize = SIZE_ALIGNED(info->no_tracks*no_bytes);
 
             if (datasize < 64*1024*1024) // sanity check
             {
@@ -2652,7 +2652,7 @@ _aaxRingBuffer*
 _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, unsigned blocksize)
 {
    unsigned int no_blocks, no_samples, no_tracks;
-   unsigned int rb_format, bps,  tracksize;
+   unsigned int rb_format, bps, tracksize;
    _aaxRingBuffer *rv = rb;
    const void* data;
    int32_t **tracks;
@@ -2672,6 +2672,13 @@ _bufSetDataInterleaved(_buffer_t *buf, _aaxRingBuffer *rb, const void *dbuf, uns
    no_samples = rb->get_parami(rb, RB_NO_SAMPLES);
    no_tracks = rb->get_parami(rb, RB_NO_TRACKS);
    tracksize = no_samples * bps;
+#if 0
+ printf("format: %x, bps: %i\n", rb_format, bps);
+ printf("no_blocks:  %i\n", no_blocks);
+ printf("no_samples: %i\n", no_samples);
+ printf("no_tracks:  %i\n", no_tracks);
+ printf("tracksize:  %i\n", tracksize);
+#endif
 
    switch (rb_format)
    {
