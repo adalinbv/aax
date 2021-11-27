@@ -1559,7 +1559,8 @@ _aaxMixerInit(_handle_t *handle)
 
       if (TEST_FOR_TRUE(res))
       {
-         if ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY))
+         if ((VALID_HANDLE(handle) && freq <= _AAX_MAX_MIXER_FREQUENCY &&
+                                      ch < _AAX_MAX_SPEAKERS))
          {
             const _intBufferData* dptr;
             float old_rate, periods;
