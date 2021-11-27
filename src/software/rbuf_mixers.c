@@ -228,14 +228,15 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
          smu = (srb_pos_sec*sfreq) - (float)src_pos;
          for (track=0; track<sno_tracks; track++)
          {
+            int t = track % _AAX_MAX_SPEAKERS;
             MIX_T *sptr = (MIX_T*)srbd->track[track];
-            MIX_T *dst, *dptr = track_ptr[track];
+            MIX_T *dst, *dptr = track_ptr[t];
 
 #if 1
             // replaces the code above.
             if (ddesamps || delay_effect)
             {
-               float dde = effect ? effect->delay.sample_offs[track] :
+               float dde = effect ? effect->delay.sample_offs[t] :
                                     DELAY_EFFECTS_TIME*dfreq;;
                ddesamps = (size_t)dde;
                rdesamps = (size_t)(dde*fact);
@@ -273,8 +274,8 @@ _aaxRingBufferProcessMixer(_aaxRingBuffer *drb, _aaxRingBuffer *srb, _aax2dProps
                size_t size = HISTORY_SAMPS*sizeof(MIX_T);
                MIX_T *ptr = scratch0-HISTORY_SAMPS;
 
-               _aax_memcpy(ptr, history[track], size);
-               _aax_memcpy(history[track], ptr+cno_samples, size);
+               _aax_memcpy(ptr, history[t], size);
+               _aax_memcpy(history[t], ptr+cno_samples, size);
             }
 
             dst = eff ? scratch1 : dptr;
@@ -294,7 +295,7 @@ memcpy(dptr+dest_pos, dst+dest_pos, dno_samples*sizeof(MIX_T));
 //             DBG_MEMCLR(1, dptr-ddesamps, ddesamps+dend, sizeof(MIX_T));
                DBG_TESTZERO(dst, dno_samples);
                srbi->effects_2nd(srbi->sample, dptr, dst, scratch0,
-                                 dest_pos, dend, dno_samples, ddesamps, track,
+                                 dest_pos, dend, dno_samples, ddesamps, t,
                                  p2d, ctr, AAX_FALSE);
 #endif
 #if RB_FLOAT_DATA
