@@ -135,7 +135,7 @@ typedef struct
       struct
       {
          size_t datasize; // combined size of all tracks
-         size_t filesize; // size of the file
+         ssize_t size; // size of the file: headers + data
          uint32_t blockbufpos;
          uint32_t last_tag;
          uint32_t channel_mask;
@@ -230,7 +230,6 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 {
    _driver_t *handle = ext->id;
    void *rv = NULL;
-
    if (handle)
    {
       if (!handle->capturing)	/* write */
@@ -835,7 +834,7 @@ _wav_set(_ext_t *ext, int type, off_t value)
 #define WAVE_FACT_CHUNK_SIZE		3
 #define DEFAULT_OUTPUT_RATE		22050
 
-#define EVEN(n)		((n % 1) ? (n+1) : n)
+#define EVEN(n)		(((n) % 1) ? ((n)+1) : (n))
 
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
@@ -929,12 +928,14 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       bufsize = _aaxDataGetDataAvail(handle->wavBuffer);
       if (bufsize >= WAVE_HEADER_SIZE)
       {
-         curr = read32le(&ch, &bufsize);
-         handle->io.read.filesize = curr;
+         curr = read32le(&ch, &bufsize); // fileSize-8
+         handle->io.read.size = curr+8;
 
          curr = read32le(&ch, &bufsize);
-         if (curr == 0x45564157) { // WAVE
-            *step = rv = ch-buf;
+         if (curr == 0x45564157) // WAVE
+         {
+            *step = rv = EVEN(ch-buf);
+            handle->io.read.size -= rv;
          } else {
             rv = __F_EOF;
          }
@@ -944,8 +945,9 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       }
       break;
    case 0x20746d66: // fmt 
-      curr = read32le(&ch, &bufsize);		 // header[4]: Subchunk1Size
+      curr = read32le(&ch, &bufsize); // size
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
 
       handle->wav_format = read16le(&ch, &bufsize);
       extensible = (handle->wav_format == EXTENSIBLE_WAVE_FORMAT) ? 1 : 0;
@@ -1007,10 +1009,14 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       }
       break;
    case 0x61746164: // data
-      curr = read32le(&ch, &bufsize);
+      curr = read32le(&ch, &bufsize); // size
       if (curr != -1) {
          handle->io.read.datasize = curr;
       }
+
+      *step = rv = EVEN(ch-buf);
+      handle->io.read.size -= rv + handle->io.read.datasize;
+
       if (handle->max_samples == 0)
       {
          curr = curr*8/(handle->info.no_tracks*handle->bits_sample);
@@ -1020,7 +1026,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 #if 0
 {
    printf("final:\n");
-   printf(" ChunkSize: %li\n", handle->io.read.filesize);
+   printf(" ChunkSize: %li\n", handle->io.read.size);
    printf(" NumChannels: %i\n", handle->info.no_tracks);
    printf(" AudioFormat: %i\n", handle->wav_format);
    printf(" SampleRate: %5.1f\n", handle->info.rate);
@@ -1032,13 +1038,14 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
    printf("Duration: %f\n", (float)handle->info.no_samples/handle->info.rate);
 }
 #endif
-      *step = rv = ch-buf;
+
       if (!handle->io.read.datasize) rv = __F_EOF;
       else rv = __F_PROCESS;
       break;
    case 0x74636166: // fact
-      curr = read32le(&ch, &bufsize);
+      curr = read32le(&ch, &bufsize); // size
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
 
       curr = read32le(&ch, &bufsize); // no. samples
       if (curr != -1)
@@ -1054,7 +1061,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       *step = 0;
       if (!init_tag)
       {
-         curr = read32le(&ch, &bufsize);		// header[1]: size
+         curr = read32le(&ch, &bufsize); // size
          handle->io.read.blockbufpos = curr;
          size = ch-buf;
          size = _MIN(size, bufsize);
@@ -1095,7 +1102,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
             case 0x48435449: // ITCH
             case 0x474e4549: // IENG
             case 0x524e4547: // GENR
-               curr = read32le(&ch, &bufsize); // header[1];
+               curr = read32le(&ch, &bufsize); // size
                size -= 2*sizeof(int32_t) + EVEN(curr);
                if (size < 0) break;
 
@@ -1184,12 +1191,14 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
             *step = rv;
          }
       }
+      handle->io.read.size -= rv;
       break;
    }
    case 0x6c706d73: // smpl
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#smpl
-      curr = read32le(&ch, &bufsize);
+      curr = read32le(&ch, &bufsize); // size
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
 
       curr = BSWAP(header[9]);
       if (curr && *step >= (17*4))
@@ -1216,8 +1225,9 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       break;
    case 0x74736e69: // inst
 // https://sites.google.com/site/musicgapi/technical-documents/wav-file-format#inst
-      curr = read32le(&ch, &bufsize);
+      curr = read32le(&ch, &bufsize); // size
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
 
       curr = read8(&ch, &bufsize);
       handle->info.base_frequency = note2freq(curr);
@@ -1252,11 +1262,12 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 
       handle->rf64 = 1;
 
-      curr = read32le(&ch, &bufsize);	// SubchunkSize
+      curr = read32le(&ch, &bufsize); // chunkSize
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
 
-      curr64 = read64le(&ch, &bufsize);	// header[1]: ChunkSize
-      handle->io.read.filesize = curr64;
+      curr64 = read64le(&ch, &bufsize);	// fileSize-8
+      handle->io.read.size += curr64;
 
       curr64 = read64le(&ch, &bufsize);	// dataSize
       handle->io.read.datasize = curr64;
@@ -1272,16 +1283,18 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
    }
    case 0x4b414550: /* peak */
    // https://web.archive.org/web/20081201144551/http://music.calarts.edu/~tre/PeakChunk.html
-      curr = read32le(&ch, &bufsize); // header[1]: size
+      curr = read32le(&ch, &bufsize); // size
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
       break;
    case 0x74786562: // bext
    {
       char field[COMMENT_SIZE+1];
       size_t clen;
 
-      curr = read32le(&ch, &bufsize);
+      curr = read32le(&ch, &bufsize); // size
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
 
       clen = 256;
       readstr(&ch, field, curr, &clen);
@@ -1303,8 +1316,9 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
    case 0x20657563: // cue 
    case 0x20444150: // PAD 
    case 0x4b4e554a: // junk
-      curr = read32le(&ch, &bufsize);
+      curr = read32le(&ch, &bufsize); // size
       *step = rv = ch-buf+EVEN(curr);
+      handle->io.read.size -= rv;
       break;
    default:
       break;
