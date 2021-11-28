@@ -989,9 +989,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
  printf("bits/sample: %i, rate: %f, tracks: %i\n", handle->bits_sample, handle->info.rate, handle->info.no_tracks);
 #endif
 
-      if ((handle->bits_sample >= 4 && handle->bits_sample <= 64) &&
-          (handle->info.rate >= 4000 && handle->info.rate <= 256000) &&
-          (handle->info.no_tracks >= 1 && handle->info.no_tracks <= _AAX_MAX_SPEAKERS))
+      if (handle->bits_sample >= 4 && handle->bits_sample <= 64)
       {
          if (handle->wav_format == PCM_WAVE_FILE)
          {

@@ -51,6 +51,8 @@
 #include "arch.h"
 #include "api.h"
 
+#define MAX_BUFFER_SIZE		(768*1024*1024)
+
 static _aaxRingBuffer* _bufGetRingBuffer(_buffer_t*, _handle_t*, unsigned char);
 static _aaxRingBuffer* _bufDestroyRingBuffer(_buffer_t*, unsigned char);
 static int _bufProcessWaveform(aaxBuffer, int, float, float, float, float, float, unsigned char, int, float, enum aaxWaveformType, float, enum aaxProcessingType, limitType);
@@ -1075,7 +1077,9 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
 
          res = stream->setup(id, &refrate, &info->fmt, &info->no_tracks,
                                  &info->rate, &brate, AAX_FALSE, periodrate);
-         if (res)
+         if (TEST_FOR_TRUE(res) &&
+             (info->no_tracks >= 1 && info->no_tracks <= RB_MAX_TRACKS) &&
+             (info->rate >= 4000 && info->rate <= _AAX_MAX_MIXER_FREQUENCY))
          {
             size_t no_bytes, datasize, bits;
             char *ptr2;
@@ -1089,9 +1093,9 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
             if (info->blocksize) {
                no_bytes = ((no_bytes/info->blocksize)+1)*info->blocksize;
             }
-            datasize = SIZE_ALIGNED(info->no_tracks*no_bytes);
 
-            if (datasize < 64*1024*1024) // sanity check
+            datasize = SIZE_ALIGNED(info->no_tracks*no_bytes);
+            if (datasize < MAX_BUFFER_SIZE)	// sanity check
             {
                size_t offs = 2 * sizeof(void*);
                ptr = (char**)_aax_calloc(&ptr2, offs, 2, datasize);

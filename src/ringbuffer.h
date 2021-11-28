@@ -37,7 +37,7 @@ extern "C" {
 #include <objects.h>
 
 #define RB_FLOAT_DATA			1
-#define RB_MAX_TRACKS			_AAX_MAX_SPEAKERS
+#define RB_MAX_TRACKS			(_AAX_MAX_SPEAKERS*4)
 #define _AAX_SYNTH_MAX_WAVEFORMS	4
 #define _AAX_SYNTH_MAX_HARMONICS	16
 
