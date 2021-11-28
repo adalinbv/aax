@@ -11,6 +11,7 @@
    and .m3u8 playlists from a remote connection. It is up to the caller to
    handle them properly.
  * Reorganize the stream connecting code for shorter connection times.
+ * Allow for up to 32 tracks in the source buffer, from 8 previously.
  * A complete overhaul of the WAV handling code making it much more robust,
    fault tolerant and support more chunk types. Also fix clicking sounds when
    streaming files with a sample-rate not matching the playback rate.
