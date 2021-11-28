@@ -85,7 +85,7 @@ _aaxRingBufferMix1NFn(struct _aaxRingBufferSample_t*, CONST_MIX_PTRPTR_T, const 
 
 enum
 {
-    SCRATCH_BUFFER0 = _AAX_MAX_SPEAKERS,
+    SCRATCH_BUFFER0 = RB_MAX_TRACKS,
     SCRATCH_BUFFER1,
 
     MAX_SCRATCH_BUFFERS
@@ -117,8 +117,8 @@ typedef struct _aaxRingBufferSample_t  /* static information about the sample */
     float loop_end_sec;
     float dde_sec;
 
-    float freqfilter_history_x[_AAX_MAX_SPEAKERS];
-    float freqfilter_history_y[_AAX_MAX_SPEAKERS];
+    float freqfilter_history_x[RB_MAX_TRACKS];
+    float freqfilter_history_y[RB_MAX_TRACKS];
 
     float volume_envelope[2*_MAX_ENVELOPE_STAGES];
     unsigned char envelope_sustain;
@@ -156,8 +156,8 @@ typedef struct _aaxRingBufferData_t
 {
     _aaxRingBufferSample* sample;		/* shared, constat settings */
 
-    float peak[_AAX_MAX_SPEAKERS+1];		/* for the vu meter */
-    float average[_AAX_MAX_SPEAKERS+1];
+    float peak[RB_MAX_TRACKS+1];		/* for the vu meter */
+    float average[RB_MAX_TRACKS+1];
 
     float elapsed_sec;
     float volume_norm, gain_agc;

@@ -37,6 +37,7 @@ extern "C" {
 #include <objects.h>
 
 #define RB_FLOAT_DATA			1
+#define RB_MAX_TRACKS			_AAX_MAX_SPEAKERS
 #define _AAX_SYNTH_MAX_WAVEFORMS	4
 #define _AAX_SYNTH_MAX_HARMONICS	16
 
@@ -75,9 +76,9 @@ enum _aaxRingBufferParam
    RB_IS_MIXER_BUFFER,
 
    RB_PEAK_VALUE = 0x1000,
-   RB_PEAK_VALUE_MAX = RB_PEAK_VALUE+_AAX_MAX_SPEAKERS,
+   RB_PEAK_VALUE_MAX = RB_PEAK_VALUE+RB_MAX_TRACKS,
    RB_AVERAGE_VALUE,
-   RB_AVERAGE_VALUE_MAX = RB_AVERAGE_VALUE+_AAX_MAX_SPEAKERS,
+   RB_AVERAGE_VALUE_MAX = RB_AVERAGE_VALUE+RB_MAX_TRACKS,
 
    RB_ENVELOPE_LEVEL     = 0x2000,
    RB_ENVELOPE_LEVEL_MAX = 0x2010,
@@ -129,8 +130,8 @@ typedef struct _aaxRingBuffer_t __aaxRingBuffer;
  */
 
 #define _AAX_MAX_STAGES		4
-#define _AAX_MAX_DELAYS         _AAX_MAX_SPEAKERS
-#define _AAX_MAX_LOOPBACKS      _AAX_MAX_SPEAKERS
+#define _AAX_MAX_DELAYS         RB_MAX_TRACKS
+#define _AAX_MAX_LOOPBACKS      RB_MAX_TRACKS
 #define _AAX_MAX_EQBANDS        8
 
 typedef struct
@@ -152,7 +153,7 @@ typedef struct
 } _aaxRingBufferBitCrusherData;
 
 typedef ALIGN16 struct {
-   float history[_AAX_MAX_SPEAKERS][2*_AAX_MAX_STAGES];
+   float history[RB_MAX_TRACKS][2*_AAX_MAX_STAGES];
 } _aaxRingBufferFreqFilterHistoryData ALIGN16C;
 
 typedef ALIGN16 struct
@@ -201,21 +202,21 @@ typedef struct
 
 typedef struct
 {
-   size_t noffs[_AAX_MAX_SPEAKERS];
-   size_t coffs[_AAX_MAX_SPEAKERS];
-   size_t step[_AAX_MAX_SPEAKERS];
+   size_t noffs[RB_MAX_TRACKS];
+   size_t coffs[RB_MAX_TRACKS];
+   size_t step[RB_MAX_TRACKS];
 } _aaxRingBufferOffsetData;
 
 typedef ALIGN16 struct
 {
-  size_t sample_offs[_AAX_MAX_SPEAKERS];
+  size_t sample_offs[RB_MAX_TRACKS];
   float gain;
 
 } _aaxRingBufferDelayData ALIGN16C;
 
 typedef struct
 {
-   MIX_T* history[_AAX_MAX_SPEAKERS];
+   MIX_T* history[RB_MAX_TRACKS];
    void* ptr;
 } _aaxRingBufferHistoryData;
 
@@ -318,7 +319,7 @@ typedef struct
    float threshold;
 
    _aaxRingBufferHistoryData *history;
-   int history_start[_AAX_MAX_SPEAKERS];
+   int history_start[RB_MAX_TRACKS];
    unsigned int history_samples;
    unsigned int history_max;
 
@@ -328,7 +329,7 @@ typedef struct
    void **sample_ptr;
    MIX_T *sample;
 
-   void *tid[_AAX_MAX_SPEAKERS];
+   void *tid[RB_MAX_TRACKS];
 
 #if 0
 #if __LINUX__
@@ -338,8 +339,8 @@ typedef struct
    EGLDisplay display;
    GLuint shader;
    GLuint cptr;
-   GLuint hptr[_AAX_MAX_SPEAKERS];
-   GLuint sptr[_AAX_MAX_SPEAKERS];
+   GLuint hptr[RB_MAX_TRACKS];
+   GLuint sptr[RB_MAX_TRACKS];
 #endif
 
 } _aaxRingBufferConvolutionData;
@@ -349,7 +350,7 @@ typedef struct
    int (*run)(MIX_PTR_T, size_t, size_t, void*, void*, unsigned int);
 
    float gain;
-   float phase[_AAX_MAX_SPEAKERS];
+   float phase[RB_MAX_TRACKS];
    _aaxLFOData lfo;
 
    char amplitude;

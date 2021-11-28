@@ -1534,8 +1534,8 @@ _aaxRingBufferDataLimiter(_aaxRingBuffer *rb, enum _aaxLimiterType type)
       if (maxpeak < peak) maxpeak = peak;
    }
 
-   rbi->average[_AAX_MAX_SPEAKERS] = maxrms;
-   rbi->peak[_AAX_MAX_SPEAKERS] = maxpeak;
+   rbi->average[RB_MAX_TRACKS] = maxrms;
+   rbi->peak[RB_MAX_TRACKS] = maxpeak;
 }
 
 /* -------------------------------------------------------------------------- */
