@@ -609,14 +609,14 @@ _aiff_name(_ext_t *ext, enum _aaxStreamParam param)
 char*
 _aiff_interfaces(UNUSED(int ext), int mode)
 {
-   static const char *rd[2] = { "*.aiff\0", "*.aiff\0" };
+   static const char *rd[2] = { "*.aiff *.aif\0", "*.aiff\0" };
    return (char *)rd[mode];
 }
 
 int
 _aiff_extension(char *ext)
 {
-   return (ext && !strcasecmp(ext, "aiff")) ? 1 : 0;
+   return (ext && (!strcasecmp(ext, "aiff") || !strcasecmp(ext, "aif"))) ? 1 : 0;
 }
 
 off_t
