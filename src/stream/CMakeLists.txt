@@ -20,6 +20,7 @@ set(STREAM_SOURCES
   ext_ogg.c
   ext_raw.c
   ext_wav.c
+  ext_aiff.c
   ext_pat.c
   fmt_binary.c
   fmt_flac.c

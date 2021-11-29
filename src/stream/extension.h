@@ -41,6 +41,7 @@ extern "C" {
 typedef enum {
    _EXT_NONE = 0,
    _EXT_WAV,
+   _EXT_AIFF,
    _EXT_OGG,
    _EXT_OPUS,
    _EXT_SPEEX,
@@ -261,6 +262,25 @@ size_t _wav_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _wav_fill(_ext_t*, void_ptr, ssize_t*);
 size_t _wav_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _wav_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+
+/* AIFF */
+int _aiff_detect(_ext_t*, int);
+int _aiff_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
+void* _aiff_open(_ext_t*, void*, ssize_t*, size_t);
+int _aiff_close(_ext_t*);
+void* _aiff_update(_ext_t*, size_t*, ssize_t*, char);
+char* _aiff_name(_ext_t*, enum _aaxStreamParam);
+int _aiff_set_name(_ext_t*, enum _aaxStreamParam, const char*);
+
+char* _aiff_interfaces(int, int);
+int _aiff_extension(char*);
+off_t _aiff_get(_ext_t*, int);
+off_t _aiff_set(_ext_t*, int, off_t);
+
+size_t _aiff_copy(_ext_t*, int32_ptr, size_t, size_t*);
+size_t _aiff_fill(_ext_t*, void_ptr, ssize_t*);
+size_t _aiff_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
+size_t _aiff_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
 /* OGG, OPUS */
 int _ogg_detect(_ext_t*, int);

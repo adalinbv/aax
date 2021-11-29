@@ -56,6 +56,31 @@ _ext_create(_ext_type_t extension)
          rv->cvt_to_intl = _wav_cvt_to_intl;
       }
       break;
+   case _EXT_AIFF:
+      rv = calloc(1, sizeof(_ext_t));
+      if (rv)
+      {
+         rv->id = NULL;
+         rv->detect = _aiff_detect;
+         rv->setup = _aiff_setup;
+         rv->open = _aiff_open;
+         rv->close = _aiff_close;
+         rv->update = _aiff_update;
+         rv->name = _aiff_name;
+         rv->set_name = _aiff_set_name;
+
+         rv->supported = _aiff_extension;
+         rv->interfaces = _aiff_interfaces;
+
+         rv->get_param = _aiff_get;
+         rv->set_param = _aiff_set;
+
+         rv->copy = _aiff_copy;
+         rv->fill = _aiff_fill;
+         rv->cvt_from_intl = _aiff_cvt_from_intl;
+         rv->cvt_to_intl = _aiff_cvt_to_intl;
+      }
+      break;
    case _EXT_OGG:
    case _EXT_OPUS:
       rv = calloc(1, sizeof(_ext_t));
