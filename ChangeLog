@@ -1,6 +1,7 @@
-* Thu Nov 11 2021 - tech@adalin.org
+* Mon Nov 29 2021 - tech@adalin.org
 - AeonWave (3.11.0) stable; urgency=high
 
+ * Add support for AIFF files.
  * Add support for pitch-fractions.
  * Add specific AL, GS and XG configuration files for chorus and reverb.
  * Add the option to alter the Q-factor of the frequency filter instead of the
@@ -29,7 +30,7 @@
    the state with an unsupported waveform.
  * Fix a segmentation fault at the end of a non threaded stream playback.
 
--- Erik Hofman <tech@adalin.org>  Thu 11 Nov 2021 08:27:21 + 0200
+-- Erik Hofman <tech@adalin.org>  Mon 29 Nov 2021 12:55:43 + 0200
 
 
 * Mon Jun 21 2021 - tech@adalin.org
