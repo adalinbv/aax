@@ -472,6 +472,12 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
 
    assert(handle);
 
+   // read the last information chunks, if any
+   if (!refresh_rate)
+   {
+      return 0;
+   }
+
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
    handle->frequency = *speed;
@@ -1030,7 +1036,7 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
             else {
 #if USE_CAPTURE_THREAD
-               if (no_samples)
+               if (handle->io->protocol == PROTOCOL_DIRECT)
                {
                   _aaxSignalTrigger(&handle->thread.signal);
                   usecSleep(1);
