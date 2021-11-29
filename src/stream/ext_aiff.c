@@ -715,7 +715,7 @@ _aiff_set(_ext_t *ext, int type, off_t value)
 /* -------------------------------------------------------------------------- */
 #define DEFAULT_OUTPUT_RATE		22050
 
-#define EVEN(n)		(((n) % 1) ? ((n)+1) : (n))
+#define EVEN(n)		(((n) % 2) ? ((n)+1) : (n))
 
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
@@ -864,10 +864,13 @@ if (curr == 0x464f524d) // FORM
       handle->aifc = curr;
       break;
    // TODO: more chunk types
-   default:
+   case 0x5045414b: // PEAK
+   case 0x414e4e4f: // ANNO
       curr = read32be(&ch, &bufsize); // size
       *step = rv = ch-buf + EVEN(curr);
       handle->io.read.size -= rv;
+      break;
+   default:
       break;
    }
 
