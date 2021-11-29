@@ -240,6 +240,34 @@ read64le(uint8_t **ptr, size_t *buflen)
    return u64;
 }
 
+double
+readfp80le(uint8_t **ptr, size_t *buflen)
+{ // https://en.wikipedia.org/wiki/Extended_precision
+   double d = 0.0;
+   if (*buflen > 10)
+   {
+      __float80 fp80;
+      uint8_t *p = (uint8_t*)&fp80;
+      uint8_t *ch = *ptr;
+
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *p++ = *ch++;
+      *buflen -= 10;
+      *ptr = ch;
+
+      d = fp80;
+   }
+   return d;
+}
+
 uint16_t
 read16be(uint8_t **ptr, size_t *buflen)
 {
@@ -291,6 +319,34 @@ read64be(uint8_t **ptr, size_t *buflen)
       *ptr = ch;
    }
    return u64;
+}
+
+double
+readfp80be(uint8_t **ptr, size_t *buflen)
+{ // https://en.wikipedia.org/wiki/Extended_precision
+   double d = 0.0;
+   if (*buflen > 10)
+   {
+      __float80 fp80;
+      uint8_t *p = (uint8_t*)&fp80 + 10;
+      uint8_t *ch = *ptr;
+
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *(--p) = *ch++;
+      *buflen -= 10;
+      *ptr = ch;
+
+      d = fp80;
+   }
+   return d;
 }
 
 size_t

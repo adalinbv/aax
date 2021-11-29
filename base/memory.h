@@ -37,6 +37,7 @@ void write64le(uint8_t**, uint64_t, size_t*);
 void write16be(uint8_t**, uint16_t, size_t*);
 void write32be(uint8_t**, uint32_t, size_t*);
 void write64be(uint8_t**, uint64_t, size_t*);
+double readfp80le(uint8_t**, size_t*);
 void writestr(uint8_t**, char*, size_t, size_t*);
 
 uint8_t read8(uint8_t**, size_t*);
@@ -46,6 +47,7 @@ uint64_t read64le(uint8_t**, size_t*);
 uint16_t read16be(uint8_t**, size_t*);
 uint32_t read32be(uint8_t**, size_t*);
 uint64_t read64be(uint8_t**, size_t*);
+double readfp80be(uint8_t**, size_t*);
 size_t readstr(uint8_t**, char*, size_t, size_t*);
 
 char *strnstr(const char*, const char*, size_t);
