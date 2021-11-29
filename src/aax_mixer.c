@@ -1416,13 +1416,8 @@ aaxMixerRegisterAudioFrame(const aaxConfig config, const aaxFrame f)
             frame->mixer_pos[0] = pos;
          }
       }
-      else if (pos == UINT_MAX)
-      {
-         if (frame->parent[0]) put_frame(frame);
-         _aaxErrorSet(AAX_INSUFFICIENT_RESOURCES);
-         rv = AAX_FALSE;
-      }
    }
+   if (frame && frame->parent[0]) put_frame(frame);
 
    return rv;
 }
