@@ -715,7 +715,7 @@ _aiff_set(_ext_t *ext, int type, off_t value)
 /* -------------------------------------------------------------------------- */
 #define DEFAULT_OUTPUT_RATE		22050
 
-#define EVEN(n)		(((n) % 2) ? ((n)+1) : (n))
+#define EVEN(n)		(((n) & 0x1) ? ((n)+1) : (n))
 
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
@@ -816,7 +816,7 @@ if (curr == 0x464f524d) // FORM
       if (handle->bits_sample >= 4 && handle->bits_sample <= 64)
       {
          handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
-         handle->bitrate = handle->info.rate*handle->info.blocksize;
+         handle->bitrate = handle->info.rate*handle->bits_sample*handle->info.no_tracks;
          handle->info.fmt = _getAAXFormatFromAIFFFormat(handle->aiff_format,
                                                         handle->bits_sample);
          if (handle->info.fmt == AAX_FORMAT_NONE) {

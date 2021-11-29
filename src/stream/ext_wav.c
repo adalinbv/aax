@@ -834,7 +834,7 @@ _wav_set(_ext_t *ext, int type, off_t value)
 #define WAVE_FACT_CHUNK_SIZE		3
 #define DEFAULT_OUTPUT_RATE		22050
 
-#define EVEN(n)		(((n) % 2) ? ((n)+1) : (n))
+#define EVEN(n)		(((n) & 0x1) ? ((n)+1) : (n))
 
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
@@ -996,7 +996,7 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
          if (handle->wav_format == PCM_WAVE_FILE)
          {
             handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
-            handle->bitrate = handle->info.rate*handle->info.blocksize;
+            handle->bitrate = handle->info.rate*handle->bits_sample*handle->info.no_tracks;
          }
          handle->info.fmt = _getAAXFormatFromWAVFormat(handle->wav_format,
                                                            handle->bits_sample);
