@@ -48,11 +48,15 @@ enum aiffCompression
 {
    UNSUPPORTED                = 0x0000000,
    PCM_AIFF_FILE              = 0x4e4f4e45, // NONE
+   RAW_AIFF_FILE              = 0x72617720, // raw
    PCM_AIFF_BYTE_SWAPPED_FILE = 0x736f7774, // sowt
    FLOAT32_AIFF_FILE          = 0x666c3332, // fl32
+   XFLOAT32_AIFF_FILE         = 0x464c3332, // FL32
    FLOAT64_AIFF_FILE          = 0x666c3634, // fl64
+   XFLOAT64_AIFF_FILE         = 0x464c3634, // FL64
    ALAW_AIFF_FILE             = 0x616c6177, // alaw
    MULAW_AIFF_FILE            = 0x756c6177, // ulaw
+   IMA4_AIFF_FILE             = 0x696d6134  // ima4
 };
 
 typedef struct
@@ -161,6 +165,9 @@ _aiff_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int fo
          else /* playback */
          {
             handle->aiff_format = _getAIFFFormatFromAAXFormat(format);
+            if (format == AAX_IMA4_ADPCM) {
+               handle->info.blocksize = 512;
+            }
             *bufsize = 0;
          }
          ext->id = handle;
@@ -316,7 +323,15 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
                handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->info.no_samples);
                handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
-               handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
+               if (handle->info.fmt == AAX_IMA4_ADPCM) {
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
+                                   handle->info.blocksize/handle->info.no_tracks);
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
+                                  MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize,
+                                                         handle->info.no_tracks));
+               } else {
+                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
+               }
                handle->fmt->set(handle->fmt, __F_POSITION,
                                                 handle->io.read.blockbufpos);
             }
@@ -788,9 +803,8 @@ if (curr == 0x464f524d) // FORM
 
          curr = read32be(&ch, &bufsize); // compressionType
          handle->aiff_format = curr;
-printf("aiff_format: 0x%08x\n", curr);
 
-         // read the pascal string length
+         // read the pascal string length first
          clen = _MAX(read8(&ch, &bufsize), COMMENT_SIZE);
          readstr(&ch, field, curr, &clen); // compressionName
       }
@@ -801,11 +815,8 @@ printf("aiff_format: 0x%08x\n", curr);
 
       if (handle->bits_sample >= 4 && handle->bits_sample <= 64)
       {
-         if (handle->aiff_format == PCM_AIFF_FILE)
-         {
-            handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
-            handle->bitrate = handle->info.rate*handle->info.blocksize;
-         }
+         handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
+         handle->bitrate = handle->info.rate*handle->info.blocksize;
          handle->info.fmt = _getAAXFormatFromAIFFFormat(handle->aiff_format,
                                                         handle->bits_sample);
          if (handle->info.fmt == AAX_FORMAT_NONE) {
@@ -826,10 +837,11 @@ printf("aiff_format: 0x%08x\n", curr);
       curr = read32be(&ch, &bufsize); // blocksize
 #if 0
 {
+   char *c = (char*)&handle->aiff_format;
    printf("final:\n");
    printf(" ChunkSize: %li\n", handle->io.read.size);
    printf(" NumChannels: %i\n", handle->info.no_tracks);
-   printf(" AudioFormat: %i\n", handle->aiff_format);
+   printf(" AudioFormat: '%c%c%c%c'\n", c[3], c[2], c[1], c[0]);
    printf(" SampleRate: %5.1f\n", handle->info.rate);
    printf(" BitsPerSample: %i\n", handle->bits_sample);
    printf(" BlockAlign: %i\n", handle->info.blocksize);
@@ -967,7 +979,8 @@ _getAAXFormatFromAIFFFormat(unsigned int format, int bits_sample)
    switch (format)
    {
    case PCM_AIFF_FILE:
-      if (bits_sample == 8) rv = AAX_PCM8S;
+   case RAW_AIFF_FILE:
+      if (bits_sample == 8) rv = (format == RAW_AIFF_FILE) ? AAX_PCM8U : AAX_PCM8S;
       else if (bits_sample == 16) rv = AAX_PCM16S_BE;
       else if (bits_sample == 24) rv = AAX_PCM24S_PACKED_BE;
       else if (bits_sample == 32) rv = AAX_PCM32S_BE;
@@ -978,9 +991,11 @@ _getAAXFormatFromAIFFFormat(unsigned int format, int bits_sample)
       else if (bits_sample == 24) rv = AAX_PCM24S_PACKED_LE;
       else if (bits_sample == 32) rv = AAX_PCM32S_LE;
    case FLOAT32_AIFF_FILE:
+   case XFLOAT32_AIFF_FILE:
       rv = AAX_FLOAT_BE;
       break;
    case FLOAT64_AIFF_FILE:
+   case XFLOAT64_AIFF_FILE:
       rv = AAX_DOUBLE_BE;
       break;
    case ALAW_AIFF_FILE:
@@ -988,6 +1003,9 @@ _getAAXFormatFromAIFFFormat(unsigned int format, int bits_sample)
       break;
    case MULAW_AIFF_FILE:
       rv = AAX_MULAW;
+      break;
+   case IMA4_AIFF_FILE:
+      rv = AAX_IMA4_ADPCM;
       break;
    default:
       break;
@@ -1019,6 +1037,9 @@ _getAIFFFormatFromAAXFormat(enum aaxFormat format)
    case AAX_MULAW:
       rv = MULAW_AIFF_FILE;
       break;
+   case AAX_IMA4_ADPCM:
+      rv = IMA4_AIFF_FILE;
+      break;
    default:
       break;
    }
@@ -1033,11 +1054,15 @@ _getFmtFromAIFFFormat(enum aiffCompression fmt)
    switch(fmt)
    {
    case PCM_AIFF_FILE:
+   case RAW_AIFF_FILE:
    case PCM_AIFF_BYTE_SWAPPED_FILE:
    case FLOAT32_AIFF_FILE:
+   case XFLOAT32_AIFF_FILE:
    case FLOAT64_AIFF_FILE:
+   case XFLOAT64_AIFF_FILE:
    case ALAW_AIFF_FILE:
    case MULAW_AIFF_FILE:
+   case IMA4_AIFF_FILE:
       rv = _FMT_PCM;
       break;
    default:
