@@ -758,16 +758,18 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    size_t bufsize = _aaxDataGetDataAvail(handle->aiffBuffer);
    uint8_t *buf = _aaxDataGetData(handle->aiffBuffer);
    uint32_t *header = (uint32_t*)buf;
-   uint32_t curr, init_tag;
+   uint32_t clen, curr, init_tag;
+   char field[COMMENT_SIZE+1];
    uint8_t *ch = buf;
    int rv = __F_EOF;
 
    *step = 0;
 
+ printf("'%c%c%c%c'\n", ch[0], ch[1], ch[2], ch[3]);
    init_tag = curr = handle->io.read.last_tag;
    if (curr == 0) {
 #if 0
- printf("%08x: '%c%c%c%c'\n", header[0], ch[0], ch[1], ch[2], ch[3]);
+ printf("%08x: '%c%c%c%c'\n", _aax_bswap32(header[0]), ch[0], ch[1], ch[2], ch[3]);
 #endif
       curr = read32be(&ch, &bufsize);
    }
@@ -833,9 +835,6 @@ if (curr == 0x464f524d) // FORM
 
       if (handle->aifc >= 2726318400)
       {
-         char field[COMMENT_SIZE+1];
-         size_t clen;
-
          curr = read32be(&ch, &bufsize); // compressionType
          handle->aiff_format = curr;
 
@@ -898,12 +897,104 @@ if (curr == 0x464f524d) // FORM
       curr = read32be(&ch, &bufsize); // timestamp
       handle->aifc = curr;
       break;
-   // TODO: more chunk types
-   case 0x5045414b: // PEAK
    case 0x4e414d45: // NAME
-   case 0x41445448: // AUTH
-// case: // (c) 
+   case 0x41555448: // AUTH
+   case 0x28632920: // (c) 
    case 0x414e4e4f: // ANNO
+   {
+      uint32_t type = curr;
+
+      curr = read32be(&ch, &bufsize); // ckDataSize
+      *step = rv = ch-buf + EVEN(curr);
+      handle->io.read.size -= rv;
+
+      // The number of characters is determined by ckDataSize.
+      clen = _MIN(EVEN(curr), COMMENT_SIZE);
+      readstr(&ch, field, clen, &bufsize);
+      switch(type)
+      {
+      case 0x4e414d45: // NAME
+         handle->title = stradd(handle->title, field);
+         break;
+      case 0x41555448: // AUTH
+         handle->artist = stradd(handle->artist, field);
+         break;
+      case 0x28632920: // (c) 
+         handle->copyright = stradd(handle->copyright, field);
+         break;
+      case 0x414e4e4f: // ANNO
+         handle->date = stradd(handle->date, field);
+         break;
+      default:
+         break;
+      }
+      break;
+   }
+   case 0x434f4d54: // COMT
+   {
+      uint16_t i, num;
+
+      curr = read32be(&ch, &bufsize); // size
+      *step = rv = ch-buf + EVEN(curr);
+      handle->io.read.size -= rv;
+
+      num = read16be(&ch, &bufsize);
+      for (i=0; i<num; ++i)
+      {
+         uint32_t timeStamp = read32be(&ch, &bufsize);
+         uint32_t MarkerID = read32be(&ch, &bufsize);
+
+         clen = read16be(&ch, &bufsize);
+         readstr(&ch, field, clen, &bufsize);
+         handle->comments = stradd(handle->comments, field);
+      }
+      break;
+   }
+   case 0x494e5354: // INST
+      curr = read32be(&ch, &bufsize); // size
+      *step = rv = ch-buf + EVEN(curr);
+      handle->io.read.size -= rv;
+
+      curr = read8(&ch, &bufsize);
+      handle->info.base_frequency = note2freq(curr);
+
+      curr = read8(&ch, &bufsize);
+      handle->info.pitch_fraction = cents2pitch(curr, 0.5f);
+
+      curr = read8(&ch, &bufsize);
+      handle->info.low_frequency = note2freq(curr);
+
+      curr = read8(&ch, &bufsize);
+      handle->info.high_frequency = note2freq(curr);
+
+      curr = read8(&ch, &bufsize);
+//    handle->info.low_velocity = curr;
+
+      curr = read8(&ch, &bufsize);
+//    handle->info.high_velocity = curr;
+
+      curr = read8(&ch, &bufsize);
+//    handle->info.gain = _db2lin((float)curr));
+
+      // sustainLoop
+      curr = read16be(&ch, &bufsize); // playMode
+      curr = read32be(&ch, &bufsize); // MarkerId: beginLoop
+      curr = read32be(&ch, &bufsize); // MarkerId: endLoop
+
+      // releaseLoop
+      curr = read16be(&ch, &bufsize); // playMode
+      curr = read32be(&ch, &bufsize); // MarkerId: beginLoop
+      curr = read32be(&ch, &bufsize); // MarkerId: endLoop
+#if 0
+   printf("Base Frequency: %f\n", handle->info.base_frequency);
+   printf("Low Frequency:  %f\n", handle->info.low_frequency);
+   printf("High Frequency: %f\n", handle->info.high_frequency);
+   printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
+#endif
+      break;
+   case 0x5045414b: // PEAK
+   case 0x49443320: // ID3 
+   case 0x4150504c: // APPL
       curr = read32be(&ch, &bufsize); // size
       *step = rv = ch-buf + EVEN(curr);
       handle->io.read.size -= rv;
