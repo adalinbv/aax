@@ -63,6 +63,32 @@ write8(uint8_t **ptr, uint8_t i, size_t *buflen)
    }
 }
 
+// Just a series of characters
+void
+writestr(uint8_t **ptr, const char *s, size_t slen, size_t *buflen)
+{
+   if (*buflen >= slen)
+   {
+      uint8_t *ch = *ptr;
+      int i;
+
+      for (i=0; i<slen; ++i) {
+         *ch++ = (uint8_t)*s++;
+      }
+      *ptr = ch;
+      buflen -= slen;
+   }
+}
+
+// Pascal-style string: one byte count followed by the text
+void
+writepstr(uint8_t **ptr, const char *s, size_t slen, size_t *buflen)
+{
+   write8(ptr, slen, buflen);
+   writestr(ptr, s, slen, buflen);
+}
+
+
 void
 write16le(uint8_t **ptr, uint16_t i, size_t *buflen)
 {
@@ -109,6 +135,29 @@ write64le(uint8_t **ptr, uint64_t i, size_t *buflen)
       *buflen -= 8;
    }
 }
+
+void
+writefp80le(uint8_t **ptr, double val, size_t *buflen)
+{
+   if (*buflen >= 10)
+   {
+      __float80 fp80 = val;
+      uint8_t *p = (uint8_t*)&fp80;
+      uint8_t *ch = *ptr;
+
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+      *ch++ = *p++;
+   }
+}
+
 
 void
 write16be(uint8_t **ptr, uint16_t i, size_t *buflen)
@@ -158,17 +207,24 @@ write64be(uint8_t **ptr, uint64_t i, size_t *buflen)
 }
 
 void
-writestr(uint8_t **ptr, char *s, size_t slen, size_t *buflen)
+writefp80be(uint8_t **ptr, double val, size_t *buflen)
 {
-   if (*buflen >= slen)
+   if (*buflen >= 10)
    {
+      __float80 fp80 = val;
+      uint8_t *p = (uint8_t*)&fp80 + 10;
       uint8_t *ch = *ptr;
-      int i;
-      for (i=0; i<slen; ++i) {
-         *ch++ = (uint8_t)*s++;
-      }
-      *ptr = ch;
-      buflen -= slen;
+
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
+      *ch++ = *(--p);
    }
 }
 
@@ -349,12 +405,37 @@ readfp80be(uint8_t **ptr, size_t *buflen)
    return d;
 }
 
+// C-style string: text followed by a NULL character
 size_t
 readstr(uint8_t **ptr, char *buf, size_t len, size_t *buflen)
 {
    size_t max = _MIN(len, *buflen);
    uint8_t *ch = *ptr;
    size_t i;
+
+   buf[*buflen] = '\0';
+   for (i=0; i<max; ++i) {
+      *buf++ = *ch++;
+   }
+   *buflen -= max;
+   *ptr = ch;
+   *buf = '\0';
+
+   return max;
+}
+
+// Pascal-style string: one byte count followed by the text
+size_t
+readpstr(uint8_t **ptr, char *buf, size_t len, size_t *buflen)
+{
+   size_t max = _MIN(len, *buflen);
+   uint8_t *ch = *ptr;
+   uint8_t i;
+
+   buf[*buflen] = '\0';
+
+   i = *ch++;
+   max = _MIN(i, max);
    for (i=0; i<max; ++i) {
       *buf++ = *ch++;
    }

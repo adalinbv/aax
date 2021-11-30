@@ -30,25 +30,35 @@ extern "C" {
 
 char is_bigendian();
 
+/* write */
 void write8(uint8_t**, uint8_t, size_t*);
+void writestr(uint8_t**, const char*, size_t, size_t*);
+void writepstr(uint8_t**, const char*, size_t, size_t*);
+
 void write16le(uint8_t**, uint16_t, size_t*);
 void write32le(uint8_t**, uint32_t, size_t*);
 void write64le(uint8_t**, uint64_t, size_t*);
+void writefp80le(uint8_t**, double, size_t*);
+
 void write16be(uint8_t**, uint16_t, size_t*);
 void write32be(uint8_t**, uint32_t, size_t*);
 void write64be(uint8_t**, uint64_t, size_t*);
-double readfp80le(uint8_t**, size_t*);
-void writestr(uint8_t**, char*, size_t, size_t*);
+void writefp80be(uint8_t**, double, size_t*);
 
+/* read */
 uint8_t read8(uint8_t**, size_t*);
+size_t readstr(uint8_t**, char*, size_t, size_t*);
+size_t readpstr(uint8_t**, char*, size_t, size_t*);
+
 uint16_t read16le(uint8_t**, size_t*);
 uint32_t read32le(uint8_t**, size_t*);
 uint64_t read64le(uint8_t**, size_t*);
+double readfp80le(uint8_t**, size_t*);
+
 uint16_t read16be(uint8_t**, size_t*);
 uint32_t read32be(uint8_t**, size_t*);
 uint64_t read64be(uint8_t**, size_t*);
 double readfp80be(uint8_t**, size_t*);
-size_t readstr(uint8_t**, char*, size_t, size_t*);
 
 char *strnstr(const char*, const char*, size_t);
 char *strncasestr(const char*, const char*, size_t);
