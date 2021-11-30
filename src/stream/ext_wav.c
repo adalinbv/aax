@@ -834,8 +834,6 @@ _wav_set(_ext_t *ext, int type, off_t value)
 #define WAVE_FACT_CHUNK_SIZE		3
 #define DEFAULT_OUTPUT_RATE		22050
 
-#define EVEN(n)		(((n) & 0x1) ? ((n)+1) : (n))
-
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {

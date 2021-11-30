@@ -113,11 +113,12 @@ typedef struct
 static enum aaxFormat _getAAXFormatFromAIFFFormat(unsigned int, int);
 static enum aiffCompression _getAIFFFormatFromAAXFormat(enum aaxFormat);
 static _fmt_type_t _getFmtFromAIFFFormat(enum aiffCompression);
+static const char* _getNameFromAIFFFormat(enum aiffCompression);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 
 #define COMMENT_SIZE		1024
-#define AIFF_HEADER_SIZE	(4+4)
+#define AIFF_HEADER_SIZE	(3+3+20+4)
 
 #ifdef PRINT
 # undef PRINT
@@ -146,7 +147,7 @@ _aiff_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int fo
       {
          handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
-         handle->aiff_format = PCM_AIFF_FILE;
+         handle->aiff_format = PCM_AIFF_BYTE_SWAPPED_FILE;
          handle->bits_sample = bits_sample;
          handle->info.blocksize = tracks*bits_sample/8;
          handle->info.rate = freq;
@@ -237,17 +238,53 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 
          if (handle->aiffBuffer)
          {
+            const char *cmp = _getNameFromAIFFFormat(handle->aiff_format);
+            uint8_t clen = strlen(cmp);
             uint32_t *header;
             uint8_t *ch;
 
             header = (uint32_t*)_aaxDataGetData(handle->aiffBuffer);
             ch = (uint8_t*)header;
 
-            writestr(&ch, "FORM", 4, &size);			// [0]
-            write32be(&ch, 0, &size);				// [1]
-            writestr(&ch, "AIFF", 4, &size);			// [2]
-            writestr(&ch, "COMM", 4, &size);			// [3]
-            // TODO
+            writestr(&ch, "FORM", 4, &size);
+            write32be(&ch, 0, &size);
+            if (handle->aiff_format == PCM_AIFF_FILE) {
+               writestr(&ch, "AIFF", 4, &size);
+            }
+            else
+            {
+               writestr(&ch, "AIFC", 4, &size);
+               writestr(&ch, "FVER", 4, &size);
+               write32be(&ch, 4, &size);			// ckDataSize
+               write32be(&ch, 2726318400, &size);		// timestamp
+            }
+            writestr(&ch, "COMM", 4, &size);
+            if (handle->aiff_format == PCM_AIFF_FILE) {		// ckDataSize
+                write32be(&ch, 36, &size);
+            } else {
+               write32be(&ch, EVEN(41+clen), &size);
+            }
+            write16be(&ch, handle->info.no_tracks, &size);
+            write32be(&ch, handle->info.no_samples, &size);
+            write16be(&ch, handle->bits_sample, &size);
+            writefp80be(&ch, handle->info.rate, &size);
+            if (handle->aiff_format != PCM_AIFF_FILE)
+            {
+               write32be(&ch, handle->aiff_format, &size);
+               writepstr(&ch, cmp, clen, &size);
+            }
+
+            handle->io.write.data_chunk_offs = 3 + (uint32_t*)ch - header;
+            writestr(&ch, "SSND", 4, &size);
+            write32be(&ch, 0, &size);				// ckDataSize
+            write32be(&ch, 0, &size);				// offset
+            write32be(&ch, 0, &size);				// blockSize
+
+            _aaxFormatDriverUpdateHeader(handle, bufsize);
+
+            *bufsize = 4*handle->aiffBufSize;
+
+            rv = _aaxDataGetData(handle->aiffBuffer);
          }
          else {
             _AAX_FILEDRVLOG("AIFF: Insufficient memory");
@@ -715,8 +752,6 @@ _aiff_set(_ext_t *ext, int type, off_t value)
 /* -------------------------------------------------------------------------- */
 #define DEFAULT_OUTPUT_RATE		22050
 
-#define EVEN(n)		(((n) & 0x1) ? ((n)+1) : (n))
-
 int
 _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 {
@@ -805,8 +840,8 @@ if (curr == 0x464f524d) // FORM
          handle->aiff_format = curr;
 
          // read the pascal string length first
-         clen = _MAX(read8(&ch, &bufsize), COMMENT_SIZE);
-         readstr(&ch, field, curr, &clen); // compressionName
+         clen = COMMENT_SIZE;
+         readpstr(&ch, field, clen, &bufsize); // compressionName
       }
 
 #if 0
@@ -831,7 +866,6 @@ if (curr == 0x464f524d) // FORM
       curr = read32be(&ch, &bufsize); // size
       handle->io.read.datasize = curr;
       *step = rv = EVEN(ch-buf);
-      handle->io.read.size -= rv + handle->io.read.datasize;
 
       curr = read32be(&ch, &bufsize); // offset
       curr = read32be(&ch, &bufsize); // blocksize
@@ -852,6 +886,7 @@ if (curr == 0x464f524d) // FORM
 }
 #endif
 
+      handle->io.read.size -= rv + handle->io.read.datasize;
       if (!handle->io.read.datasize) rv = __F_EOF;
       else rv = __F_PROCESS;
       break;
@@ -865,6 +900,9 @@ if (curr == 0x464f524d) // FORM
       break;
    // TODO: more chunk types
    case 0x5045414b: // PEAK
+   case 0x4e414d45: // NAME
+   case 0x41445448: // AUTH
+// case: // (c) 
    case 0x414e4e4f: // ANNO
       curr = read32be(&ch, &bufsize); // size
       *step = rv = ch-buf + EVEN(curr);
@@ -892,8 +930,8 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 
    if (handle->info.no_samples != 0)
    {
+#if 0
       uint32_t *header = _aaxDataGetData(handle->aiffBuffer);
-//    char extensible = (handle->aiffBufSize == AIFF_HEADER_SIZE) ? 0 : 1;
       size_t size;
       uint32_t s;
 
@@ -920,55 +958,9 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
          s = handle->io.write.data_chunk_offs;
          header[s] = _aax_bswap32(header[s]);
       }
-
+#endif
       *bufsize = 4*handle->aiffBufSize;
       res = _aaxDataGetData(handle->aiffBuffer);
-
-#if 0
-{
-   uint32_t *head = header;
-   char *h = (char*)header;
-   extensible = ((header[5] & 0xffff) == EXTENSIBLE_AIFF_FORMAT) ? 1 : 0;
-   printf("Write %s Header:\n", extensible ? "Extensible" : "Canonical");
-   printf(" 0: %08x (ChunkID FORM: \"%c%c%c%c\")\n", *head, h[0], h[1], h[2], h[3]); head++;
-   printf(" 1: %08x (ChunkSize: %i)\n", *head, *head); head++;
-   printf(" 2: %08x (Format AIFF: \"%c%c%c%c\")\n", *head, h[8], h[9], h[10], h[11]); head++;
-   printf(" 3: %08x (Subchunk1ID fmt: \"%c%c%c%c\")\n", *head, h[12], h[13], h[14], h[15]); head++;
-   printf(" 4: %08x (Subchunk1Size): %i\n", *head, *head); head++;
-   printf(" 5: %08x (NumChannels: %i | AudioFormat: %i/0x%x)\n", *head, *head >> 16, *head & 0xffff, *head & 0xffff); head++;
-   printf(" 6: %08x (SampleRate: %i)\n", *head, *head); head++;
-   printf(" 7: %08x (ByteRate: %i)\n", *head, *head); head++;
-   printf(" 8: %08x (BitsPerSample: %i | BlockAlign: %i)\n", *head, *head >> 16, *head & 0xffff); head++;
-   if (extensible)
-   {
-      printf(" 9: %08x (size: %i, nValidBits: %i)\n", *head, *head & 0xFFFF, *head >> 16); head++;
-      printf("10: %08x (dwChannelMask: %i)\n", *head, *head); head++;
-      printf("11: %08x (GUID0)\n", *head++);
-      printf("12: %08x (GUID1)\n", *head++);
-      printf("13: %08x (GUID2)\n", *head++);
-      printf("14: %08x (GUID3)\n", *head++);
-   }
-   else if (header[4] > 16)
-   {
-      int i, size = *head & 0xffff;
-      printf(" 9: %08x (xFormatBytes: %i) ", *head, size);
-      head = (uint32_t*)((char*)head+EVEN(size)+2);
-      for(i=0; i<size; ++i) printf("0x%1x ", (unsigned)(unsigned char)h[38+i]);
-      printf("\n");
-   }
-   if (*head == 0x74636166)     /* fact */
-   {
-      printf("%2li: %08x (SubChunk2ID \"fact\")\n", head-header, *head); head++;
-      printf("%2li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head); head++;
-      printf("%2li: %08x (nSamples: %i)\n", head-header, *head, *head); head++;
-   }
-   if (*head == 0x61746164) /* data */
-   {
-      printf("%2li: %08x (SubChunk2ID \"data\")\n", head-header, *head); head++;
-      printf("%2li: %08x (Subchunk2Size: %i)\n", head-header, *head, *head);
-   }
-}
-#endif
    }
 
    return res;
@@ -993,6 +985,7 @@ _getAAXFormatFromAIFFFormat(unsigned int format, int bits_sample)
       else if (bits_sample == 16) rv = AAX_PCM16S_LE;
       else if (bits_sample == 24) rv = AAX_PCM24S_PACKED_LE;
       else if (bits_sample == 32) rv = AAX_PCM32S_LE;
+      break;
    case FLOAT32_AIFF_FILE:
    case XFLOAT32_AIFF_FILE:
       rv = AAX_FLOAT_BE;
@@ -1067,6 +1060,38 @@ _getFmtFromAIFFFormat(enum aiffCompression fmt)
    case MULAW_AIFF_FILE:
    case IMA4_AIFF_FILE:
       rv = _FMT_PCM;
+      break;
+   default:
+      break;
+   }
+   return rv;
+}
+
+static const char*
+_getNameFromAIFFFormat(enum aiffCompression fmt)
+{
+   const char *rv = "";
+   switch(fmt)
+   {
+   case PCM_AIFF_BYTE_SWAPPED_FILE:
+      rv = "little-endian";
+      break;
+   case FLOAT32_AIFF_FILE:
+   case XFLOAT32_AIFF_FILE:
+      rv = "IEEE 32-bit float";
+      break;
+   case FLOAT64_AIFF_FILE:
+   case XFLOAT64_AIFF_FILE:
+      rv = "IEEE 64-bit float";
+      break;
+   case ALAW_AIFF_FILE:
+      rv = "Alaw 2:1";
+      break;
+   case MULAW_AIFF_FILE:
+      rv = "μlaw 2:1";
+      break;
+   case IMA4_AIFF_FILE:
+      rv = "IMA 4";
       break;
    default:
       break;

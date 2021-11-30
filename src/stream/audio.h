@@ -41,6 +41,7 @@ extern "C" {
 // TODO: Needs fixing # define WINXP
 #endif
 
+#define EVEN(n)                     (((n) & 0x1) ? ((n)+1) : (n))
 #define STRCMP(a, b)                strncasecmp((a), (b), strlen(b))
 #define _AAX_FILEDRVLOG(a)          _aaxStreamDriverLog(NULL, 0, 0, a);
 _aaxDriverLog _aaxStreamDriverLog;
