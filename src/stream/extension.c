@@ -40,6 +40,7 @@ _ext_create(_ext_type_t extension)
          rv->setup = _wav_setup;
          rv->open = _wav_open;
          rv->close = _wav_close;
+         rv->flush = _wav_flush;
          rv->update = _wav_update;
          rv->name = _wav_name;
          rv->set_name = _wav_set_name;
@@ -65,6 +66,7 @@ _ext_create(_ext_type_t extension)
          rv->setup = _aiff_setup;
          rv->open = _aiff_open;
          rv->close = _aiff_close;
+         rv->flush = _aiff_flush;
          rv->update = _aiff_update;
          rv->name = _aiff_name;
          rv->set_name = _aiff_set_name;

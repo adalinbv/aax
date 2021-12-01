@@ -224,6 +224,7 @@ struct _ext_st
    _ext_open_fn *open;
    _ext_close_fn *close;
    _ext_update_fn *update;
+   _ext_close_fn *flush;
 
    _ext_set_name_fn *set_name;
    _ext_get_name_fn *name;
@@ -249,6 +250,7 @@ int _wav_detect(_ext_t*, int);
 int _wav_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
 void* _wav_open(_ext_t*, void*, ssize_t*, size_t);
 int _wav_close(_ext_t*);
+int _wav_flush(_ext_t*);
 void* _wav_update(_ext_t*, size_t*, ssize_t*, char);
 char* _wav_name(_ext_t*, enum _aaxStreamParam);
 int _wav_set_name(_ext_t*, enum _aaxStreamParam, const char*);
@@ -268,6 +270,7 @@ int _aiff_detect(_ext_t*, int);
 int _aiff_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
 void* _aiff_open(_ext_t*, void*, ssize_t*, size_t);
 int _aiff_close(_ext_t*);
+int _aiff_flush(_ext_t*);
 void* _aiff_update(_ext_t*, size_t*, ssize_t*, char);
 char* _aiff_name(_ext_t*, enum _aaxStreamParam);
 int _aiff_set_name(_ext_t*, enum _aaxStreamParam, const char*);

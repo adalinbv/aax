@@ -128,6 +128,7 @@ const _aaxDriverBackend _aaxPulseAudioDriverBackend =
    (_aaxDriverSetup *)&_aaxPulseAudioDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxPulseAudioDriverCapture,
    (_aaxDriverPlaybackCallback *)&_aaxPulseAudioDriverPlayback,
+   NULL,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,

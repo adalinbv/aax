@@ -120,6 +120,7 @@ const _aaxDriverBackend _aaxWASAPIDriverBackend =
    (_aaxDriverSetup *)&_aaxWASAPIDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxWASAPIDriverCapture,
    (_aaxDriverPlaybackCallback *)&_aaxWASAPIDriverPlayback,
+   NULL,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,

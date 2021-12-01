@@ -469,6 +469,15 @@ _aiff_close(_ext_t *ext)
    return res;
 }
 
+int
+_aiff_flush(_ext_t *ext)
+{
+   _driver_t *handle = ext->id;
+   int res = AAX_TRUE;
+
+   return res;
+}
+
 void*
 _aiff_update(_ext_t *ext, size_t *offs, ssize_t *size, char close)
 {
@@ -765,7 +774,6 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 
    *step = 0;
 
- printf("'%c%c%c%c'\n", ch[0], ch[1], ch[2], ch[3]);
    init_tag = curr = handle->io.read.last_tag;
    if (curr == 0) {
 #if 0
@@ -779,23 +787,43 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
 if (curr == 0x464f524d) // FORM
 {
    ssize_t samples = 0;
+   char i, aifc = 0;
    uint32_t *head = header;
-   uint8_t *h = (uint8_t*)header;
+   uint8_t *c, *h = (uint8_t*)header;
    printf("Read Header:\n");
    PRINT("(ChunkID FORM: \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
    PRINT("(ChunkSize: %i)\n", _aax_bswap32(*head));
    PRINT("(Format AIFF: \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
-   if (*header == 0x34364652) {
-      PRINT("(Subchunk1ID fmt: \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
-      PRINT("(Subchunk1Size): %i\n", _aax_bswap32(*head));
-      head += 7; h += 7*4;
+   if (*head == 0x52455646) { aifc = 1;
+      PRINT("(SubchunkID FVER: \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
+      PRINT("(SubchunkSize: %i)\n", _aax_bswap32(*head));
+      head++; h += 4; // timestamp
    }
-   PRINT("(Subchunk1ID COMM: \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
-   PRINT("(Subchunk1Size): %i\n", _aax_bswap32(*head));
-   printf("%2li: %08x ", head-header, *head);  printf("(numChannels): %i\n", _aax_bswap32(*head) >> 16); h += 2;
+   PRINT("(SubchunkID COMM: \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
+   c = 4 + h + EVEN(_aax_bswap32(*head));
+   PRINT("(SubchunkSize: %i)\n", _aax_bswap32(*head));
+   printf("%2li: %08x ", head-header, *head); printf("(numChannels): %i\n", _aax_bswap32(*head) >> 16); h += 2;
    printf("%2li: %08x ", head-header+1, _aax_bswap32(*head));
-    printf("(numSampleFrames: %i", (_aax_bswap32(*head) & 0xFFF)<<16|(_aax_bswap32(*(head+1)) >> 16)); head++; h += 4;
-    printf("| sampleSize: %i)\n", _aax_bswap32(*head) & 0xFFFF); head++; h += 2;
+   printf("(numSampleFrames: %i", (_aax_bswap32(*head) & 0xFFF)<<16|(_aax_bswap32(*(head+1)) >> 16)); head++; h += 4;
+   printf(" | sampleSize: %i)\n", _aax_bswap32(*head) & 0xFFFF); head++; h += 2;
+   h += 10; head = (uint32_t*)h; // fp80 sample rate
+   if (aifc) {
+      PRINT("(compressionType: \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
+      printf("%2li: %08x ", head-header, *head); printf("(compressionName: \"");
+      i = *h++; while(i--) { printf("%c", *h++); } printf("\")\n");
+   }
+   head = (uint32_t*)c; samples = bufsize - (head-header);
+   while (samples > 0 && *head != 0x444e5353) { /* search for data */
+      h = (uint8_t*)(head+2);
+      head = (uint32_t*)(h + EVEN(_aax_bswap32(head[1])));
+      samples = bufsize - (head-header);
+   }
+   if (samples > 0 && *head == 0x444e5353) /* SSND */
+   {
+      h = (uint8_t*)head;
+      PRINT("(SubChunkID \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
+      PRINT("(SubchunkSize: %i)\n", _aax_bswap32(*head));
+   }
 }
 #endif
 

@@ -91,6 +91,7 @@ const _aaxDriverBackend _aaxNoneDriverBackend =
    (_aaxDriverSetup *)&_aaxNoneDriverSetup,
    NULL,
    (_aaxDriverPlaybackCallback *)&_aaxNoneDriverPlayback,
+   NULL,
 
    (_aaxDriverPrepare3d *)&_aaxNoneDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxNoneDriverPostProcess,
@@ -157,6 +158,7 @@ const _aaxDriverBackend _aaxLoopbackDriverBackend =
    (_aaxDriverSetup *)&_aaxLoopbackDriverSetup,
    NULL,
    (_aaxDriverPlaybackCallback *)&_aaxNoneDriverPlayback,
+   NULL,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,

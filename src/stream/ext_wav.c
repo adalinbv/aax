@@ -546,6 +546,16 @@ _wav_close(_ext_t *ext)
    return res;
 }
 
+int
+_wav_flush(_ext_t *ext)
+{
+   _driver_t *handle = ext->id;
+   int res = AAX_TRUE;
+
+   return res;
+}
+
+
 void*
 _wav_update(_ext_t *ext, size_t *offs, ssize_t *size, char close)
 {

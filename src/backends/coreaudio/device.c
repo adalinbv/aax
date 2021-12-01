@@ -97,6 +97,7 @@ const _aaxDriverBackend _aaxCoreAudioDriverBackend =
    (_aaxDriverSetup *)&_aaxCoreAudioDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxCoreAudioDriverCapture,
    (_aaxDriverPlaybackCallback *)&_aaxCoreAudioDriverPlayback,
+   NULL,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,

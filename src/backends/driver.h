@@ -190,6 +190,7 @@ typedef struct
     _aaxDriverSetup *setup;
     _aaxDriverCaptureCallback *capture;
     _aaxDriverPlaybackCallback *play;
+   _aaxDriverDisconnect *flush;
 
     _aaxDriverPrepare3d *prepare3d;
     _aaxDriverPostProcess *postprocess;

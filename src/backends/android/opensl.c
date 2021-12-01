@@ -98,6 +98,7 @@ const _aaxDriverBackend _aaxSLESDriverBackend =
    (_aaxDriverSetup *)&_aaxSLESDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxSLESDriverCapture,
    (_aaxDriverPlaybackCallback *)&_aaxSLESDriverPlayback,
+   NULL,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,

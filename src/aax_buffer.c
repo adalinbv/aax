@@ -1133,6 +1133,9 @@ _bufGetDataFromStream(const char *url, _buffer_info_t *info, _aaxMixerInfo *_inf
                }
                while (res >= 0);
 
+               // read the last information chunks, if any
+               stream->flush(id);
+
                // get the actual number of samples
                info->no_samples = stream->param(id, DRIVER_MAX_SAMPLES);
                info->loop_count = stream->param(id, DRIVER_LOOP_COUNT);

@@ -74,6 +74,7 @@ static _aaxDriverGetDevices _aaxStreamDriverGetDevices;
 static _aaxDriverGetInterfaces _aaxStreamDriverGetInterfaces;
 static _aaxDriverConnect _aaxStreamDriverConnect;
 static _aaxDriverDisconnect _aaxStreamDriverDisconnect;
+static _aaxDriverDisconnect  _aaxStreamDriverFlush;
 static _aaxDriverSetup _aaxStreamDriverSetup;
 static _aaxDriverCaptureCallback _aaxStreamDriverCapture;
 static _aaxDriverPlaybackCallback _aaxStreamDriverPlayback;
@@ -117,6 +118,7 @@ const _aaxDriverBackend _aaxStreamDriverBackend =
    (_aaxDriverSetup *)&_aaxStreamDriverSetup,
    (_aaxDriverCaptureCallback *)&_aaxStreamDriverCapture,
    (_aaxDriverPlaybackCallback *)&_aaxStreamDriverPlayback,
+   (_aaxDriverDisconnect *)&_aaxStreamDriverFlush,
 
    (_aaxDriverPrepare3d *)&_aaxSoftwareDriver3dPrepare,
    (_aaxDriverPostProcess *)&_aaxSoftwareMixerPostProcess,
@@ -457,6 +459,19 @@ _aaxStreamDriverDisconnect(void *id)
 }
 
 static int
+_aaxStreamDriverFlush(void *id)
+{
+   _driver_t *handle = (_driver_t *)id;
+   int ret = AAX_FALSE;
+
+   if (handle->ext->flush) {
+      ret = handle->ext->flush(handle->ext);
+   }
+
+   return ret;
+}
+
+static int
 _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                     unsigned int *tracks, float *speed, int *bitrate,
                     int registered, float period_rate)
@@ -471,12 +486,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
    float period_ms;
 
    assert(handle);
-
-   // read the last information chunks, if any
-   if (!refresh_rate)
-   {
-      return 0;
-   }
 
    handle->format = *fmt;
    handle->bits_sample = aaxGetBitsPerSample(*fmt);
