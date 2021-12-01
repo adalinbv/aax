@@ -39,6 +39,7 @@
 
 #include "device.h"
 #include "audio.h"
+#include "fmt_mp3.h"
 #include "api.h"
 
 // Spec:
@@ -69,6 +70,7 @@ typedef struct
    char *trackno;
    char *date;
    char *genre;
+   char *composer;
    char *copyright;
    char *comments;
 
@@ -115,6 +117,7 @@ static enum aiffCompression _getAIFFFormatFromAAXFormat(enum aaxFormat);
 static _fmt_type_t _getFmtFromAIFFFormat(enum aiffCompression);
 static const char* _getNameFromAIFFFormat(enum aiffCompression);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
+static void _aaxFormatDriverReadID3Header(_driver_t*, uint8_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 
 #define COMMENT_SIZE		1024
@@ -454,6 +457,7 @@ _aiff_close(_ext_t *ext)
       if (handle->genre) free(handle->genre);
       if (handle->copyright) free(handle->copyright);
       if (handle->comments) free(handle->comments);
+      if (handle->composer) free(handle->composer);
 
       if (handle->adpcmBuffer) _aax_aligned_free(handle->adpcmBuffer);
 
@@ -473,9 +477,23 @@ int
 _aiff_flush(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   int res = AAX_TRUE;
+   void *header =  _aaxDataGetData(handle->aiffBuffer);
+   size_t size = _aaxDataGetSize(handle->aiffBuffer);
+   int res, rv = AAX_TRUE;
 
-   return res;
+   rv = handle->fmt->copy(handle->fmt, header, -1, &size);
+   if (size)
+   {
+      size_t step = -1;
+      _aaxDataSetOffset(handle->aiffBuffer, size);
+      while ((res = _aaxFormatDriverReadHeader(handle, &step)) != __F_EOF)
+      {
+         _aaxDataMove(handle->aiffBuffer, NULL, step);
+         if (res <= 0) break;
+      }
+   }
+
+   return rv;
 }
 
 void*
@@ -599,6 +617,10 @@ _aiff_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
          handle->date = (char*)desc;
          rv = AAX_TRUE;
          break;
+      case __F_COMPOSER:
+         handle->composer = (char*)desc;
+         rv = AAX_TRUE;
+         break;
       case __F_COMMENT:
          handle->comments = (char*)desc;
          rv = AAX_TRUE;
@@ -607,7 +629,6 @@ _aiff_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
          handle->copyright = (char*)desc;
          rv = AAX_TRUE;
          break;
-      case __F_COMPOSER:
       case __F_ORIGINAL:
       case __F_WEBSITE:
       default:
@@ -632,6 +653,9 @@ _aiff_name(_ext_t *ext, enum _aaxStreamParam param)
          break;
       case __F_TITLE:
          rv = handle->title;
+         break;
+      case __F_COMPOSER:
+         rv = handle->composer;
          break;
       case __F_GENRE:
          rv = handle->genre;
@@ -767,9 +791,10 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    size_t bufsize = _aaxDataGetDataAvail(handle->aiffBuffer);
    uint8_t *buf = _aaxDataGetData(handle->aiffBuffer);
    uint32_t *header = (uint32_t*)buf;
+   uint8_t *ch = (uint8_t*)header;
    uint32_t clen, curr, init_tag;
    char field[COMMENT_SIZE+1];
-   uint8_t *ch = buf;
+   char flush = (*step == -1);
    int rv = __F_EOF;
 
    *step = 0;
@@ -831,7 +856,6 @@ if (curr == 0x464f524d) // FORM
    switch(curr)
    {
    case 0x464f524d: // FORM
-      bufsize = _aaxDataGetDataAvail(handle->aiffBuffer);
       if (bufsize >= AIFF_HEADER_SIZE)
       {
          curr = read32be(&ch, &bufsize); // fileSize-8
@@ -892,10 +916,10 @@ if (curr == 0x464f524d) // FORM
    case 0x53534e44: // SSND
       curr = read32be(&ch, &bufsize); // size
       handle->io.read.datasize = curr;
-      *step = rv = EVEN(ch-buf);
 
       curr = read32be(&ch, &bufsize); // offset
       curr = read32be(&ch, &bufsize); // blocksize
+      *step = rv = EVEN(ch-buf);
 #if 0
 {
    char *c = (char*)&handle->aiff_format;
@@ -945,13 +969,13 @@ if (curr == 0x464f524d) // FORM
          handle->title = stradd(handle->title, field);
          break;
       case 0x41555448: // AUTH
-         handle->artist = stradd(handle->artist, field);
+         handle->composer = stradd(handle->composer, field);
          break;
       case 0x28632920: // (c) 
          handle->copyright = stradd(handle->copyright, field);
          break;
       case 0x414e4e4f: // ANNO
-         handle->date = stradd(handle->date, field);
+         handle->title = stradd(handle->title, field);
          break;
       default:
          break;
@@ -1020,8 +1044,15 @@ if (curr == 0x464f524d) // FORM
    printf("Pitch Fraction: %f\n", handle->info.pitch_fraction);
 #endif
       break;
-   case 0x5045414b: // PEAK
    case 0x49443320: // ID3 
+      curr = read32be(&ch, &bufsize); // size
+      *step = rv = ch-buf + EVEN(curr);
+      handle->io.read.size -= rv;
+
+      _aaxFormatDriverReadID3Header(handle, ch, step);
+      rv = *step;
+      break;
+   case 0x5045414b: // PEAK
    case 0x4150504c: // APPL
       curr = read32be(&ch, &bufsize); // size
       *step = rv = ch-buf + EVEN(curr);
@@ -1033,7 +1064,7 @@ if (curr == 0x464f524d) // FORM
 
    // sanity check
    bufsize = _aaxDataGetDataAvail(handle->aiffBuffer);
-   if ((*step == 0) || (*step > bufsize))
+   if (!flush && ((*step == 0) || (*step > bufsize)))
    {
       *step = 0;
       rv = __F_EOF;
@@ -1216,4 +1247,41 @@ _getNameFromAIFFFormat(enum aiffCompression fmt)
       break;
    }
    return rv;
+}
+
+// https://web.archive.org/web/20100518091954/http://www.id3.org/id3v2.3.0
+// see 3rdparty/pdmp3.c
+static int
+_aaxReadID3v2Frame(_driver_t *handle, uint8_t *header, size_t *size)
+{
+   int res = MP3_DONE;
+   return res;
+}
+
+static void
+_aaxFormatDriverReadID3Header(_driver_t *handle, uint8_t *ch, size_t *bufsize)
+{
+   if (*ch++ == 'I' && *ch++ == 'D' && *ch++ == '3')
+   {
+      unsigned b1, b2, b3, b4;
+      unsigned flags;
+
+      b1 = read8(&ch, bufsize);
+      b2 = read8(&ch, bufsize);
+      if((b1 == 3 || b1 == 4) && b2 != 0xFF)
+      {
+         flags = read8(&ch, bufsize);
+         b1 = read8(&ch, bufsize);
+         b2 = read8(&ch, bufsize);
+         b2 = read8(&ch, bufsize);
+         b3 = read8(&ch, bufsize);
+         if ((b1 & 0x80 || b1 & 0x80 || b2 & 0x80 || b3 & 0x80) == 0)
+         {
+            size_t id3size = (size_t)b1 << 21 | (size_t)b2 << 14 |
+                             (size_t)b3 << 7 | (size_t)b4;
+            int res;
+            while ((res = _aaxReadID3v2Frame(handle, ch, bufsize)) == MP3_OK);
+         }
+      }
+   }
 }

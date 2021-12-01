@@ -288,9 +288,13 @@ _pcm_copy(_fmt_t *fmt, int32_ptr dptr, size_t dptr_offs, size_t *num)
    size_t bufsize, rv = __F_NEED_MORE;
 
    bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
-   if (bufsize)
+   if (dptr_offs == -1)
    {
-      size_t bufsize = _aaxDataGetDataAvail(handle->pcmBuffer);
+      rv = _aaxDataMove(handle->pcmBuffer, (char*)dptr, *num);
+      *num = bufsize;
+   }
+   else if (bufsize)
+   {
       int block_size = handle->block_size;
       int block_samps = handle->block_samps;
       size_t offs, bytes, no_blocks;

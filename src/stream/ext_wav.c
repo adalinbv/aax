@@ -550,9 +550,23 @@ int
 _wav_flush(_ext_t *ext)
 {
    _driver_t *handle = ext->id;
-   int res = AAX_TRUE;
+   void *header =  _aaxDataGetData(handle->wavBuffer);
+   size_t size = _aaxDataGetSize(handle->wavBuffer);
+   int res, rv = AAX_TRUE;
 
-   return res;
+   rv = handle->fmt->copy(handle->fmt, header, -1, &size);
+   if (size)
+   {
+      size_t step = -1;
+      _aaxDataSetOffset(handle->wavBuffer, size);
+      while ((res = _aaxFormatDriverReadHeader(handle, &step)) != __F_EOF)
+      {
+         _aaxDataMove(handle->wavBuffer, NULL, step);
+         if (res <= 0) break;
+      }
+   }
+
+   return rv;
 }
 
 
