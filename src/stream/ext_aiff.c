@@ -1065,6 +1065,7 @@ if (curr == 0x464f524d) // FORM
       _aaxFormatDriverReadID3Header(&id, &handle->meta);
       rv = *step;
       break;
+   }
    case 0x4d41524b: // MARK
    case 0x5045414b: // PEAK
    case 0x4150504c: // APPL
