@@ -211,7 +211,7 @@ _aax_malloc_aligned(char **start, size_t offs, size_t size)
 char *
 _aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
 {
-   char *rv = calloc(num, size);
+   char *rv = calloc(num, offs+num*size);
    *start = rv+offs;
    return rv;
 }
@@ -226,7 +226,7 @@ _aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
    size = SIZE_ALIGNED(size + MEMALIGN);
    do
    {
-      ptr = (char *)malloc(num*size);
+      ptr = (char*)calloc(1, num*size);
       if (ptr)
       {
          char *s = ptr + offs;
@@ -239,8 +239,6 @@ _aax_calloc_aligned(char **start, size_t offs, size_t num, size_t size)
             s += tmp;
          }
          *start = s;
-
-         memset(ptr, 0, num*size);
       }
    }
    while (!ptr && --ctr);

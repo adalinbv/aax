@@ -1561,26 +1561,27 @@ _aaxRingBufferMixStereoFn _aaxRingBufferMixMulti16;
 _aaxRingBufferMixMonoFn _aaxRingBufferMixMono16;
 
 static int
-_aaxRingBufferClear(_aaxRingBufferData *rbi, int track, char dde)
+_aaxRingBufferClear(_aaxRingBufferData *rbi, int t, char dde)
 {
    _aaxRingBufferSample *rbd;
-   size_t dde_bytes;
+   size_t size, dde_bytes;
+   char **track;
    int i;
 
    assert(rbi->parent == (char*)rbi-sizeof(_aaxRingBuffer));
 
    rbd = rbi->sample;
+   track = (char**)rbd->track;
    dde_bytes = dde ? rbd->dde_samples*rbd->bits_sample/8 : 0;
 
-   if (track != RB_ALL_TRACKS) {
-      memset((void *)((char*)rbd->track[track]-dde_bytes), 0,
-             rbd->track_len_bytes+dde_bytes);
+   size = rbd->track_len_bytes+dde_bytes;
+   if (t != RB_ALL_TRACKS) {
+      memset((void *)(track[t]-dde_bytes), 0, size);
    }
    else
    {
       for (i=0; i<rbd->no_tracks; i++) {
-         memset((void *)((char*)rbd->track[i]-dde_bytes), 0,
-                rbd->tracksize+dde_bytes);
+         memset((void *)(track[i]-dde_bytes), 0, size);
       }
    }
 
