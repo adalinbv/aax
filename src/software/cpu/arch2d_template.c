@@ -1273,15 +1273,15 @@ FN(batch_endianswap24,A)(void* data, size_t num)
 {
    if (num)
    {
-      int32_t* p = (int32_t*)data;
-      size_t i = num*3;
+      uint8_t* p = (uint8_t*)data;
+      size_t i = num;
 
       do
       {
-         char s = *p;
-         *p = *(p+2);
-         p += 2;
-         *p++ = s;
+         uint8_t s = p[0];
+         p[0] = p[2];
+         p[2] = s;
+         p += 3;
       }
       while (--i);
    }

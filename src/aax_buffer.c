@@ -520,6 +520,9 @@ aaxBufferSetData(aaxBuffer buffer, const void* d)
             case AAX_PCM16S:
                _batch_endianswap16(data, buf_samples);
                break;
+            case AAX_PCM24S_PACKED:
+               _batch_endianswap24(data, buf_samples);
+               break;
             case AAX_PCM24S:
             case AAX_PCM32S:
             case AAX_FLOAT:
@@ -742,6 +745,9 @@ aaxBufferGetData(const aaxBuffer buffer)
             case AAX_PCM16S:
                _batch_endianswap16(*data, buf_samples);
                break;
+            case AAX_PCM24S_PACKED:
+               _batch_endianswap24(data, buf_samples);
+               break;
             case AAX_PCM24S:
             case AAX_PCM32S:
             case AAX_FLOAT:
@@ -804,11 +810,10 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
          {
              _aaxRingBuffer* rb = _bufGetRingBuffer(buf, NULL, 0);
 
-             if(buf->url) free(buf->url);
+             if (buf->url) free(buf->url);
              buf->url = strdup(url);
 
              buf->info = info;
-
              if (rb)
              {
                 _buffer_info_t *info = &buf->info;
@@ -829,6 +834,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
                 rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
                 rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
              }
+
 #if 0
  printf("Stream Captured data:\n");
  printf(" url: '%s'\n", url);
@@ -838,7 +844,7 @@ aaxBufferReadFromStream(aaxConfig config, const char *url)
  printf(" blocksize: %i\n", info.blocksize);
  printf(" data size: %i\n", info.no_bytes);
  printf(" samples: %li\n\n", info.no_samples);
-# if 1
+# if 0
  _aaxFileDriverWrite("/tmp/test.wav", AAX_OVERWRITE, ptr[0], info.no_samples, info.rate, info.no_tracks, info.fmt);
 # endif
 #endif
@@ -930,7 +936,8 @@ static unsigned char  _aaxFormatsBPS[AAX_FORMAT_MAX] =
   8,    /* 64-bit doubles */
   1,    /* mu-law         */
   1,    /* a-law          */
-  1     /* IMA4-ADPCM     */
+  1,    /* IMA4-ADPCM     */
+  3 	/* AAX_PCM24S_PACKED */
 };
 
 int _getMaxMipLevels(int n)
@@ -1013,15 +1020,21 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
       {
          _buffer_info_t *info = &buf->info;
          /* initialize the ringbuffer in native format only */
+         rb->set_paramf(rb, RB_FREQUENCY, info->rate);
          rb->set_format(rb, info->fmt & AAX_FORMAT_NATIVE, AAX_FALSE);
          rb->set_parami(rb, RB_NO_TRACKS, info->no_tracks);
+
+         // RB_BLOCK_SIZE must be set before RB_TRACKSIZE
+         rb->set_parami(rb, RB_BLOCK_SIZE, info->blocksize);
+         rb->set_parami(rb, RB_TRACKSIZE, info->no_bytes);
          rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
+
          rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->rate);
          rb->set_paramf(rb, RB_LOOPPOINT_START, info->loop_start/info->rate);
+         rb->set_parami(rb, RB_LOOPING, info->loop_count);
+         rb->set_parami(rb, RB_ENVELOPE_SUSTAIN, info->envelope_sustain);
          rb->set_parami(rb, RB_SAMPLED_RELEASE, info->sampled_release);
-         rb->set_paramf(rb, RB_FREQUENCY, info->rate);
-//       rb->set_parami(rb, RB_TRACKSIZE, info->no_bytes);
-         rb->set_parami(rb, RB_BLOCK_SIZE, info->blocksize);
+         rb->set_parami(rb, RB_FAST_RELEASE, info->fast_release);
          /* Postpone until aaxBufferSetData gets called
           * rb->init(rb, AAX_FALSE);
          */
@@ -2289,6 +2302,9 @@ _bufConvertDataToPCM24S(void *ndata, void *data, unsigned int samples, enum aaxF
             case AAX_PCM16S:
                _batch_endianswap16(data, samples);
                break;
+            case AAX_PCM24S_PACKED:
+               _batch_endianswap24(data, samples);
+               break;
             case AAX_PCM24S:
             case AAX_PCM32S:
             case AAX_FLOAT:
@@ -2510,6 +2526,9 @@ _bufConvertDataFromPCM24S(void *ndata, void *data, unsigned int tracks, unsigned
             {
             case AAX_PCM16S:
                _batch_endianswap16(data, samples);
+               break;
+            case AAX_PCM24S_PACKED:
+               _batch_endianswap24(data, samples);
                break;
             case AAX_PCM24S:
             case AAX_PCM32S:
