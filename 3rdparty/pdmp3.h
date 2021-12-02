@@ -36,6 +36,13 @@
 
 #define PDMP3_INBUF_SIZE	(4*4096)
 
+/** define a subset of a libmpg123 compatible streaming API */
+#define PDMP3_OK           0
+#define PDMP3_ERR         -1
+#define PDMP3_NEED_MORE  -10
+#define PDMP3_NEW_FORMAT -11
+#define PDMP3_NO_SPACE     7
+
 typedef enum { /* Layer number */
   mpeg1_layer_reserved = 0,
   mpeg1_layer_3        = 1,
@@ -127,6 +134,17 @@ typedef struct
 
 typedef struct
 {
+  char tag[3];
+  char title[30];
+  char artist[30];
+  char album[30];
+  char year[4];
+  char comment[30];
+  unsigned char genre;
+} pdmp3_id3v1;
+
+typedef struct
+{
   unsigned char version;
   pdmp3_string *title;
   pdmp3_string *artist;
@@ -177,7 +195,7 @@ typedef struct
 }
 pdmp3_handle;
 
-int Read_ID3v2_Header(pdmp3_handle*);
+int Read_Header(pdmp3_handle*);
 void Free_ID3v2(pdmp3_id3v2*);
 
 #endif // PDMP3_H

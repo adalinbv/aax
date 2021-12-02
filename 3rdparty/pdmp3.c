@@ -68,26 +68,8 @@ typedef struct { /* Scale factor band indices,for long and short windows */
 }
 t_sf_band_indices;
 
-/** define a subset of a libmpg123 compatible streaming API */
-#define PDMP3_OK           0
-#define PDMP3_ERR         -1
-#define PDMP3_NEED_MORE  -10
-#define PDMP3_NEW_FORMAT -11
-#define PDMP3_NO_SPACE     7
-
 #define PDMP3_ID3        0x03
 #define PDMP3_ENC_SIGNED_16 (0x080|0x040|0x10)
-
-typedef struct
-{
-  char tag[3];
-  char title[30];
-  char artist[30];
-  char album[30];
-  char year[4];
-  char comment[30];
-  unsigned char genre;
-} pdmp3_id3v1;
 
 struct pdmp3_frameinfo
 {
@@ -1244,7 +1226,9 @@ void Free_ID3v2(pdmp3_id3v2 *v2) {
     for (i=0; i<v2->texts; ++i)
       Free_ID3v2_text(&v2->text[i]);
     v2->texts = 0;
-    free(v2->text);
+    if (v2->text != v2->_text) {
+       free(v2->text);
+    }
     for (i=0; i<v2->extras; ++i)
       Free_ID3v2_text(&v2->extra[i]);
     v2->extras = 0;
@@ -1476,7 +1460,7 @@ static int Read_ID3v2_Frame(pdmp3_handle *id) {
   return(res);
 }
 
-int Read_ID3v2_Header(pdmp3_handle *id) {
+static int Read_ID3v2_Header(pdmp3_handle *id) {
   int res=PDMP3_ERR;
 
   if(Get_Filepos(id) == 3) {
@@ -1527,7 +1511,7 @@ int Read_ID3v2_Header(pdmp3_handle *id) {
 * Return value: PDMP3_OK or PDMP3_ERR if the syncword can't be found,or the header
 *               contains impossible values.
 * Author: Krister Lagerström(krister@kmlager.com) **/
-static int Read_Header(pdmp3_handle *id) {
+int Read_Header(pdmp3_handle *id) {
   unsigned b1,b2,b3,b4,header;
   /* Get the next four bytes from the bitstream */
   b1 = Get_Byte(id);
