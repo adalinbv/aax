@@ -118,21 +118,8 @@ DECL_FUNCTION(lame_set_errorf);
 typedef struct
 {
    void *id;
-   char *artist;
-   char *original;
-   char *title;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *composer;
-   char *comments;
-   char *copyright;
-   char *website;
-   char *image;
 
    int mode;
-
    char capturing;
    char id3_found;
    char streaming;
@@ -147,6 +134,7 @@ typedef struct
    size_t file_size;
 
    struct mp3_frameinfo info;
+   struct _meta_t meta;
 
    _data_t *mp3Buffer;
 
@@ -530,12 +518,12 @@ _mp3_open(_fmt_t *fmt, int mode, void *buf, ssize_t *bufsize, size_t fsize)
             plame_set_errorf(handle->id, _aax_lame_log);
 #endif
             pid3tag_add_v2(handle->id);
-            pid3tag_set_title(handle->id, handle->title);
-            pid3tag_set_artist(handle->id, handle->artist);
-            pid3tag_set_album(handle->id, handle->album);
-            pid3tag_set_track(handle->id, handle->trackno);
-            pid3tag_set_genre(handle->id, handle->genre);
-            pid3tag_set_year(handle->id, handle->date ? handle->date : year);
+            pid3tag_set_title(handle->id, handle->meta.title);
+            pid3tag_set_artist(handle->id, handle->meta.artist);
+            pid3tag_set_album(handle->id, handle->meta.album);
+            pid3tag_set_track(handle->id, handle->meta.trackno);
+            pid3tag_set_genre(handle->id, handle->meta.genre);
+            pid3tag_set_year(handle->id, handle->meta.date ? handle->meta.date : year);
             pid3tag_set_comment(handle->id, aaxGetVersionString(NULL));
             plame_set_num_samples(handle->id, handle->no_samples);
             plame_set_in_samplerate(handle->id, handle->info.rate);
@@ -586,18 +574,18 @@ _mp3_close(_fmt_t *fmt)
       }
       _aaxDataDestroy(handle->mp3Buffer);
 
-      if (handle->trackno) free(handle->trackno);
-      if (handle->artist) free(handle->artist);
-      if (handle->title) free(handle->title);
-      if (handle->album) free(handle->album);
-      if (handle->date) free(handle->date);
-      if (handle->genre) free(handle->genre);
-      if (handle->comments) free(handle->comments);
-      if (handle->composer) free(handle->composer);
-      if (handle->copyright) free(handle->copyright);
-      if (handle->original) free(handle->original);
-      if (handle->website) free(handle->website);
-      if (handle->image) free(handle->image);
+      if (handle->meta.trackno) free(handle->meta.trackno);
+      if (handle->meta.artist) free(handle->meta.artist);
+      if (handle->meta.title) free(handle->meta.title);
+      if (handle->meta.album) free(handle->meta.album);
+      if (handle->meta.date) free(handle->meta.date);
+      if (handle->meta.genre) free(handle->meta.genre);
+      if (handle->meta.comments) free(handle->meta.comments);
+      if (handle->meta.composer) free(handle->meta.composer);
+      if (handle->meta.copyright) free(handle->meta.copyright);
+      if (handle->meta.original) free(handle->meta.original);
+      if (handle->meta.website) free(handle->meta.website);
+      if (handle->meta.image) free(handle->meta.image);
       free(handle);
    }
 }
@@ -856,53 +844,53 @@ _mp3_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
    switch(param)
    {
    case __F_ARTIST:
-      handle->artist = (char*)desc;
+      handle->meta.artist = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_TITLE:
-      handle->title = (char*)desc;
-      pid3tag_set_title(handle->id, handle->title);
+      handle->meta.title = (char*)desc;
+      pid3tag_set_title(handle->id, handle->meta.title);
       rv = AAX_TRUE;
       break;
    case __F_GENRE:
-      handle->genre = (char*)desc;
-      pid3tag_set_genre(handle->id, handle->genre);
+      handle->meta.genre = (char*)desc;
+      pid3tag_set_genre(handle->id, handle->meta.genre);
       rv = AAX_TRUE;
       break;
    case __F_TRACKNO:
-      handle->trackno = (char*)desc;
-      pid3tag_set_track(handle->id, handle->trackno);
+      handle->meta.trackno = (char*)desc;
+      pid3tag_set_track(handle->id, handle->meta.trackno);
       rv = AAX_TRUE;
       break;
    case __F_ALBUM:
-      handle->album = (char*)desc;
-      pid3tag_set_album(handle->id, handle->album);
+      handle->meta.album = (char*)desc;
+      pid3tag_set_album(handle->id, handle->meta.album);
       rv = AAX_TRUE;
       break;
    case __F_DATE:
-      handle->date = (char*)desc;
-      pid3tag_set_year(handle->id, handle->date);
+      handle->meta.date = (char*)desc;
+      pid3tag_set_year(handle->id, handle->meta.date);
       rv = AAX_TRUE;
       break;
    case __F_COMPOSER:
-      handle->composer = (char*)desc;
+      handle->meta.composer = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_COMMENT:
-      handle->comments = (char*)desc;
-      pid3tag_set_comment(handle->id, handle->comments);
+      handle->meta.comments = (char*)desc;
+      pid3tag_set_comment(handle->id, handle->meta.comments);
       rv = AAX_TRUE;
       break;
    case __F_COPYRIGHT:
-      handle->copyright = (char*)desc;
+      handle->meta.copyright = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_ORIGINAL:
-      handle->original = (char*)desc;
+      handle->meta.original = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_WEBSITE:
-      handle->website = (char*)desc;
+      handle->meta.website = (char*)desc;
       rv = AAX_TRUE;
       break;
    default:
@@ -920,40 +908,40 @@ _mp3_name(_fmt_t *fmt, enum _aaxStreamParam param)
    switch(param)
    {
    case __F_ARTIST:
-      rv = handle->artist;
+      rv = handle->meta.artist;
       break;
    case __F_TITLE:
-      rv = handle->title;
+      rv = handle->meta.title;
       break;
    case __F_COMPOSER:
-      rv = handle->composer;
+      rv = handle->meta.composer;
       break;
    case __F_GENRE:
-      rv = handle->genre;
+      rv = handle->meta.genre;
       break;
    case __F_TRACKNO:
-      rv = handle->trackno;
+      rv = handle->meta.trackno;
       break;
    case __F_ALBUM:
-      rv = handle->album;
+      rv = handle->meta.album;
       break;
    case __F_DATE:
-      rv = handle->date;
+      rv = handle->meta.date;
       break;
    case __F_COMMENT:
-      rv = handle->comments;
+      rv = handle->meta.comments;
       break;
    case __F_COPYRIGHT:
-      rv = handle->copyright;
+      rv = handle->meta.copyright;
       break;
    case __F_ORIGINAL:
-      rv = handle->original;
+      rv = handle->meta.original;
       break;
    case __F_WEBSITE:
-      rv = handle->website;
+      rv = handle->meta.website;
       break;
    case __F_IMAGE:
-      rv = handle->image;
+      rv = handle->meta.image;
       break;
    default:
       break;
@@ -1139,11 +1127,11 @@ _detect_mp3_song_info(_driver_t *handle)
          {
             size_t i;
 
-            __DUP(handle->artist, v2->artist);
-            __DUP(handle->title, v2->title);
-            __DUP(handle->album, v2->album);
-            __DUP(handle->date, v2->year);
-            __DUP(handle->comments, v2->comment);
+            __DUP(handle->meta.artist, v2->artist);
+            __DUP(handle->meta.title, v2->title);
+            __DUP(handle->meta.album, v2->album);
+            __DUP(handle->meta.date, v2->year);
+            __DUP(handle->meta.comments, v2->comment);
             if (v2->genre && v2->genre->fill && (v2->genre->p[0] == '('))
             {
                char *end;
@@ -1152,12 +1140,12 @@ _detect_mp3_song_info(_driver_t *handle)
                {
                   void *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
                   char *g = xmlGetString(xnid);
-                  handle->genre = strdup(g);
+                  handle->meta.genre = strdup(g);
                   xmlFree(g);
                }
-               else handle->genre = strdup(v2->genre->p);
+               else handle->meta.genre = strdup(v2->genre->p);
             }
-            else __DUP(handle->genre, v2->genre);
+            else __DUP(handle->meta.genre, v2->genre);
 
             for (i=0; i<v2->texts; i++)
             {
@@ -1166,42 +1154,42 @@ _detect_mp3_song_info(_driver_t *handle)
                   if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'R' &&
                       v2->text[i].id[2] == 'C' && v2->text[i].id[3] == 'K')
                   {
-                     handle->trackno = strdup(v2->text[i].text.p);
+                     handle->meta.trackno = strdup(v2->text[i].text.p);
                   } else
                   if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'C'  &&
                       v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'M')
                   {
-                     handle->composer = strdup(v2->text[i].text.p);
+                     handle->meta.composer = strdup(v2->text[i].text.p);
                   } else
                   if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'O' &&
                       v2->text[i].id[2] == 'P' && v2->text[i].id[3] == 'E')
                   {
-                     handle->original = strdup(v2->text[i].text.p);
+                     handle->meta.original = strdup(v2->text[i].text.p);
                   } else
                   if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'C' &&
                       v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'P')
                   {
-                     handle->copyright = strdup(v2->text[i].text.p);
+                     handle->meta.copyright = strdup(v2->text[i].text.p);
                   } else
                   if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
                       v2->text[i].id[2] == 'A' && v2->text[i].id[3] == 'R')
                   {
-                     free(handle->website);
-                     handle->website = strdup(v2->text[i].text.p);
+                     free(handle->meta.website);
+                     handle->meta.website = strdup(v2->text[i].text.p);
                   }
-                  else if (!handle->website &&
+                  else if (!handle->meta.website &&
                          v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'P' &&
                          v2->text[i].id[2] == 'U' && v2->text[i].id[3] == 'B')
                   {
-                     free(handle->website);
-                     handle->website = strdup(v2->text[i].text.p);
+                     free(handle->meta.website);
+                     handle->meta.website = strdup(v2->text[i].text.p);
                   }
-                  else if (!handle->website &&
+                  else if (!handle->meta.website &&
                          v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
                          v2->text[i].id[2] == 'R' && v2->text[i].id[3] == 'S')
                   {
-                     free(handle->website);
-                     handle->website = strdup(v2->text[i].text.p);
+                     free(handle->meta.website);
+                     handle->meta.website = strdup(v2->text[i].text.p);
                   }
                }
             }
@@ -1211,25 +1199,25 @@ _detect_mp3_song_info(_driver_t *handle)
                if (v2->picture[i].data != NULL) {};
             }
 #endif
-            handle->id3_found = AAX_TRUE;
+            handle->meta.id3_found = AAX_TRUE;
          }
          else if (v1)
          {
-            __COPY(handle->artist, v1->artist);
-            __COPY(handle->title, v1->title);
-            __COPY(handle->album, v1->album);
-            __COPY(handle->date, v1->year);
-            __COPY(handle->comments, v1->comment);
+            __COPY(handle->meta.artist, v1->artist);
+            __COPY(handle->meta.title, v1->title);
+            __COPY(handle->meta.album, v1->album);
+            __COPY(handle->meta.date, v1->year);
+            __COPY(handle->meta.comments, v1->comment);
             if (v1->comment[28] == '\0') {
-               __COPY(handle->trackno, (char*)&v1->comment[29]);
+               __COPY(handle->meta.trackno, (char*)&v1->comment[29]);
             }
             if (xgid && v1->genre < MAX_ID3V1_GENRES) {
                void *xnid = xmlNodeGetPos(xid, xgid, "name", v1->genre);
                char *g = xmlGetString(xnid);
-               handle->genre = strdup(g);
+               handle->meta.genre = strdup(g);
                xmlFree(g);
             }
-            handle->id3_found = AAX_TRUE;
+            handle->meta.id3_found = AAX_TRUE;
          }
          if (xid)
          {

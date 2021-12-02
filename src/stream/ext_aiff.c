@@ -39,7 +39,6 @@
 
 #include "device.h"
 #include "audio.h"
-#include "fmt_mp3.h"
 #include "api.h"
 
 // Spec:
@@ -64,15 +63,7 @@ typedef struct
 {
    _fmt_t *fmt;
 
-   char *artist;
-   char *title;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *composer;
-   char *copyright;
-   char *comments;
+   struct _meta_t meta;
 
    int capturing;
    int mode;
@@ -117,7 +108,6 @@ static enum aiffCompression _getAIFFFormatFromAAXFormat(enum aaxFormat);
 static _fmt_type_t _getFmtFromAIFFFormat(enum aiffCompression);
 static const char* _getNameFromAIFFFormat(enum aiffCompression);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
-static void _aaxFormatDriverReadID3Header(_driver_t*, uint8_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 
 #define COMMENT_SIZE		1024
@@ -316,7 +306,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
             size -= res;
             do
             {
-               size_t step;
+               size_t step = 0;
                while ((res = _aaxFormatDriverReadHeader(handle, &step)) != __F_EOF)
                {
                   _aaxDataMove(handle->aiffBuffer, NULL, step);
@@ -449,15 +439,18 @@ _aiff_close(_ext_t *ext)
 
    if (handle)
    {
-      if (handle->artist) free(handle->artist);
-      if (handle->title) free(handle->title);
-      if (handle->album) free(handle->album);
-      if (handle->trackno) free(handle->trackno);
-      if (handle->date) free(handle->date);
-      if (handle->genre) free(handle->genre);
-      if (handle->copyright) free(handle->copyright);
-      if (handle->comments) free(handle->comments);
-      if (handle->composer) free(handle->composer);
+      if (handle->meta.artist) free(handle->meta.artist);
+      if (handle->meta.title) free(handle->meta.title);
+      if (handle->meta.album) free(handle->meta.album);
+      if (handle->meta.trackno) free(handle->meta.trackno);
+      if (handle->meta.date) free(handle->meta.date);
+      if (handle->meta.genre) free(handle->meta.genre);
+      if (handle->meta.copyright) free(handle->meta.copyright);
+      if (handle->meta.comments) free(handle->meta.comments);
+      if (handle->meta.composer) free(handle->meta.composer);
+      if (handle->meta.original) free(handle->meta.original);
+      if (handle->meta.website) free(handle->meta.website);
+      if (handle->meta.image) free(handle->meta.image);
 
       if (handle->adpcmBuffer) _aax_aligned_free(handle->adpcmBuffer);
 
@@ -594,43 +587,48 @@ _aiff_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       switch(param)
       {
       case __F_ARTIST:
-         handle->artist = (char*)desc;
+         handle->meta.artist = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_TITLE:
-         handle->title = (char*)desc;
+         handle->meta.title = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_GENRE:
-         handle->genre = (char*)desc;
+         handle->meta.genre = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_TRACKNO:
-         handle->trackno = (char*)desc;
+         handle->meta.trackno = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_ALBUM:
-         handle->album = (char*)desc;
+         handle->meta.album = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_DATE:
-         handle->date = (char*)desc;
+         handle->meta.date = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COMPOSER:
-         handle->composer = (char*)desc;
+         handle->meta.composer = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COMMENT:
-         handle->comments = (char*)desc;
+         handle->meta.comments = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COPYRIGHT:
-         handle->copyright = (char*)desc;
+         handle->meta.copyright = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_ORIGINAL:
+         handle->meta.original = (char*)desc;
+         rv = AAX_TRUE;
+         break;
       case __F_WEBSITE:
+         handle->meta.website = (char*)desc;
+         rv = AAX_TRUE;
       default:
          break;
       }
@@ -649,31 +647,40 @@ _aiff_name(_ext_t *ext, enum _aaxStreamParam param)
       switch(param)
       {
       case __F_ARTIST:
-         rv = handle->artist;
+         rv = handle->meta.artist;
          break;
       case __F_TITLE:
-         rv = handle->title;
+         rv = handle->meta.title;
          break;
       case __F_COMPOSER:
-         rv = handle->composer;
+         rv = handle->meta.composer;
          break;
       case __F_GENRE:
-         rv = handle->genre;
+         rv = handle->meta.genre;
          break;
       case __F_TRACKNO:
-         rv = handle->trackno;
+         rv = handle->meta.trackno;
          break;
       case __F_ALBUM:
-         rv = handle->album;
+         rv = handle->meta.album;
          break;
       case __F_DATE:
-         rv = handle->date;
+         rv = handle->meta.date;
          break;
       case __F_COMMENT:
-         rv = handle->comments;
+         rv = handle->meta.comments;
          break;
       case __F_COPYRIGHT:
-         rv = handle->copyright;
+         rv = handle->meta.copyright;
+         break;
+      case __F_ORIGINAL:
+         rv = handle->meta.original;
+         break;
+      case __F_WEBSITE:
+         rv = handle->meta.website;
+         break;
+      case __F_IMAGE:
+         rv = handle->meta.image;
          break;
       default:
          break;
@@ -895,8 +902,8 @@ if (curr == 0x464f524d) // FORM
          readpstr(&ch, field, clen, &bufsize); // compressionName
       }
 
-#if 0
- printf("no_samples: %li, bits/sample: %i, rate: %f, tracks: %i\n", handle->info.no_samples, handle->bits_sample, handle->info.rate, handle->info.no_tracks);
+#if 1
+ printf("rate: %f, no_samples: %li, bits/sample: %i, tracks: %i\n", handle->info.rate, handle->info.no_samples, handle->bits_sample, handle->info.no_tracks);
 #endif
 
       if (handle->bits_sample >= 4 && handle->bits_sample <= 64)
@@ -966,16 +973,16 @@ if (curr == 0x464f524d) // FORM
       switch(type)
       {
       case 0x4e414d45: // NAME
-         handle->title = stradd(handle->title, field);
+         handle->meta.title = stradd(handle->meta.title, field);
          break;
       case 0x41555448: // AUTH
-         handle->composer = stradd(handle->composer, field);
+         handle->meta.composer = stradd(handle->meta.composer, field);
          break;
       case 0x28632920: // (c) 
-         handle->copyright = stradd(handle->copyright, field);
+         handle->meta.copyright = stradd(handle->meta.copyright, field);
          break;
       case 0x414e4e4f: // ANNO
-         handle->title = stradd(handle->title, field);
+         handle->meta.title = stradd(handle->meta.title, field);
          break;
       default:
          break;
@@ -998,7 +1005,7 @@ if (curr == 0x464f524d) // FORM
 
          clen = read16be(&ch, &bufsize);
          readstr(&ch, field, clen, &bufsize);
-         handle->comments = stradd(handle->comments, field);
+         handle->meta.comments = stradd(handle->meta.comments, field);
       }
       break;
    }
@@ -1045,11 +1052,17 @@ if (curr == 0x464f524d) // FORM
 #endif
       break;
    case 0x49443320: // ID3 
+   {
+      pdmp3_handle id;
+
       curr = read32be(&ch, &bufsize); // size
       *step = rv = ch-buf + EVEN(curr);
       handle->io.read.size -= rv;
 
-      _aaxFormatDriverReadID3Header(handle, ch, step);
+      memset(&id, 0, sizeof(id));
+      id.iend = _MIN(bufsize, PDMP3_INBUF_SIZE);
+      memcpy(id.in, ch, bufsize);
+      _aaxFormatDriverReadID3Header(&id, &handle->meta);
       rv = *step;
       break;
    case 0x4d41524b: // MARK
@@ -1250,39 +1263,3 @@ _getNameFromAIFFFormat(enum aiffCompression fmt)
    return rv;
 }
 
-// https://web.archive.org/web/20100518091954/http://www.id3.org/id3v2.3.0
-// see 3rdparty/pdmp3.c
-static int
-_aaxReadID3v2Frame(_driver_t *handle, uint8_t *header, size_t *size)
-{
-   int res = MP3_DONE;
-   return res;
-}
-
-static void
-_aaxFormatDriverReadID3Header(_driver_t *handle, uint8_t *ch, size_t *bufsize)
-{
-   if (*ch++ == 'I' && *ch++ == 'D' && *ch++ == '3')
-   {
-      unsigned b1, b2, b3, b4;
-      unsigned flags;
-
-      b1 = read8(&ch, bufsize);
-      b2 = read8(&ch, bufsize);
-      if((b1 == 3 || b1 == 4) && b2 != 0xFF)
-      {
-         flags = read8(&ch, bufsize);
-         b1 = read8(&ch, bufsize);
-         b2 = read8(&ch, bufsize);
-         b2 = read8(&ch, bufsize);
-         b3 = read8(&ch, bufsize);
-         if ((b1 & 0x80 || b1 & 0x80 || b2 & 0x80 || b3 & 0x80) == 0)
-         {
-            size_t id3size = (size_t)b1 << 21 | (size_t)b2 << 14 |
-                             (size_t)b3 << 7 | (size_t)b4;
-            int res;
-            while ((res = _aaxReadID3v2Frame(handle, ch, bufsize)) == MP3_OK);
-         }
-      }
-   }
-}

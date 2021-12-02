@@ -34,6 +34,9 @@
 # include <rmalloc.h>
 #endif
 
+#include <xml.h>
+
+#include <3rdparty/pdmp3.h>
 #include <base/memory.h>
 #include <arch.h>
 
@@ -102,18 +105,10 @@ typedef struct
 {
    _fmt_t *fmt;
 
-   char *artist;
-   char *title;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *copyright;
-   char *comments;
+   struct _meta_t meta;
 
-   int capturing;
    int mode;
-
+   int capturing;
    int bitrate;
    int bits_sample;
    size_t max_samples;
@@ -523,14 +518,14 @@ _wav_close(_ext_t *ext)
 
    if (handle)
    {
-      if (handle->artist) free(handle->artist);
-      if (handle->title) free(handle->title);
-      if (handle->album) free(handle->album);
-      if (handle->trackno) free(handle->trackno);
-      if (handle->date) free(handle->date);
-      if (handle->genre) free(handle->genre);
-      if (handle->copyright) free(handle->copyright);
-      if (handle->comments) free(handle->comments);
+      if (handle->meta.artist) free(handle->meta.artist);
+      if (handle->meta.title) free(handle->meta.title);
+      if (handle->meta.album) free(handle->meta.album);
+      if (handle->meta.trackno) free(handle->meta.trackno);
+      if (handle->meta.date) free(handle->meta.date);
+      if (handle->meta.genre) free(handle->meta.genre);
+      if (handle->meta.copyright) free(handle->meta.copyright);
+      if (handle->meta.comments) free(handle->meta.comments);
 
       if (handle->adpcmBuffer) _aax_aligned_free(handle->adpcmBuffer);
 
@@ -672,40 +667,49 @@ _wav_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       switch(param)
       {
       case __F_ARTIST:
-         handle->artist = (char*)desc;
+         handle->meta.artist = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_TITLE:
-         handle->title = (char*)desc;
+         handle->meta.title = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_GENRE:
-         handle->genre = (char*)desc;
+         handle->meta.genre = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_TRACKNO:
-         handle->trackno = (char*)desc;
+         handle->meta.trackno = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_ALBUM:
-         handle->album = (char*)desc;
+         handle->meta.album = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_DATE:
-         handle->date = (char*)desc;
+         handle->meta.date = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COMMENT:
-         handle->comments = (char*)desc;
+         handle->meta.comments = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COPYRIGHT:
-         handle->copyright = (char*)desc;
+         handle->meta.copyright = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COMPOSER:
+         handle->meta.composer = (char*)desc;
+         rv = AAX_TRUE;
+         break;
       case __F_ORIGINAL:
+         handle->meta.original = (char*)desc;
+         rv = AAX_TRUE;
+         break;
       case __F_WEBSITE:
+         handle->meta.website = (char*)desc;
+         rv = AAX_TRUE;
+         break;
       default:
          break;
       }
@@ -724,28 +728,40 @@ _wav_name(_ext_t *ext, enum _aaxStreamParam param)
       switch(param)
       {
       case __F_ARTIST:
-         rv = handle->artist;
+         rv = handle->meta.artist;
          break;
       case __F_TITLE:
-         rv = handle->title;
+         rv = handle->meta.title;
+         break;
+      case __F_COMPOSER:
+         rv = handle->meta.composer;
          break;
       case __F_GENRE:
-         rv = handle->genre;
+         rv = handle->meta.genre;
          break;
       case __F_TRACKNO:
-         rv = handle->trackno;
+         rv = handle->meta.trackno;
          break;
       case __F_ALBUM:
-         rv = handle->album;
+         rv = handle->meta.album;
          break;
       case __F_DATE:
-         rv = handle->date;
+         rv = handle->meta.date;
          break;
       case __F_COMMENT:
-         rv = handle->comments;
+         rv = handle->meta.comments;
          break;
       case __F_COPYRIGHT:
-         rv = handle->copyright;
+         rv = handle->meta.copyright;
+         break;
+      case __F_ORIGINAL:
+         rv = handle->meta.original;
+         break;
+      case __F_WEBSITE:
+         rv = handle->meta.website;
+         break;
+      case __F_IMAGE:
+         rv = handle->meta.image;
          break;
       default:
          break;
@@ -1136,32 +1152,32 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
                switch(head)
                {
                case 0x54524149: /* IART: Artist              */
-                  handle->artist = stradd(handle->artist, field);
+                  handle->meta.artist = stradd(handle->meta.artist, field);
                   break;
                case 0x4d414e49: /* INAM: Track Title         */
-                  handle->title = stradd(handle->title, field);
+                  handle->meta.title = stradd(handle->meta.title, field);
                   break;
                case 0x44525049: /* IPRD: Album Title/Product */
-                  handle->album = stradd(handle->album, field);
+                  handle->meta.album = stradd(handle->meta.album, field);
                   break;
                case 0x4b525449: /* ITRK: Track Number        */
-                  handle->trackno = stradd(handle->trackno, field);
+                  handle->meta.trackno = stradd(handle->meta.trackno, field);
                   break;
                case 0x44524349: /* ICRD: Date Created        */
-                  handle->date = stradd(handle->date, field);
+                  handle->meta.date = stradd(handle->meta.date, field);
                   break;
                case 0x524e4749: /* IGNR: Genre               */
-                  handle->genre = stradd(handle->genre, field);
+                  handle->meta.genre = stradd(handle->meta.genre, field);
                   break;
                case 0x504f4349: /* ICOP: Copyright           */
-                  handle->copyright = stradd(handle->copyright, field);
+                  handle->meta.copyright = stradd(handle->meta.copyright, field);
                   break;
                case 0x544d4349: /* ICMT: Comments            */
-                  handle->comments = stradd(handle->comments, field);
+                  handle->meta.comments = stradd(handle->meta.comments, field);
                   break;
                case 0x54465349: /* ISFT: Software            */
                default:
-                  handle->comments = stradd(handle->comments, field);
+                  handle->meta.comments = stradd(handle->meta.comments, field);
                   break;
                }
                break;
@@ -1320,19 +1336,34 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
 
       clen = 256;
       readstr(&ch, field, curr, &clen);
-      handle->title = stradd(handle->title, field);
+      handle->meta.title = stradd(handle->meta.title, field);
 
       clen = 32;
       readstr(&ch, field, curr, &clen);
-      handle->comments = stradd(handle->comments, field);
+      handle->meta.comments = stradd(handle->meta.comments, field);
 
       clen = 32;
       readstr(&ch, field, curr, &clen);
-      handle->copyright = stradd(handle->copyright, field);
+      handle->meta.copyright = stradd(handle->meta.copyright, field);
 
       clen = 10;
       readstr(&ch, field, curr, &clen);
-      handle->date = stradd(handle->date, field);
+      handle->meta.date = stradd(handle->meta.date, field);
+      break;
+   }
+   case 0x69643320: // id3 
+   {
+      pdmp3_handle id;
+
+      curr = read32be(&ch, &bufsize); // size
+      *step = rv = ch-buf + EVEN(curr);
+      handle->io.read.size -= rv;
+
+      memset(&id, 0, sizeof(id));
+      id.iend = _MIN(bufsize, PDMP3_INBUF_SIZE);
+      memcpy(id.in, ch, bufsize);
+      _aaxFormatDriverReadID3Header(&id, &handle->meta);
+      rv = *step;
       break;
    }
    case 0x20657563: // cue 
@@ -1444,6 +1475,128 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
    }
 
    return res;
+}
+
+// https://web.archive.org/web/20100518091954/http://www.id3.org/id3v2.3.0
+#define __DUP(a, b)     if ((b) != NULL && (b)->fill) a = strdup((b)->p);
+#define MAX_ID3V1_GENRES        192
+void
+_aaxFormatDriverReadID3Header(pdmp3_handle *id, struct _meta_t *handle)
+{
+   id->id3v2_processing = 1;
+   int ret;
+
+   if ((ret = Read_Header(id)) != PDMP3_ERR)
+   {
+      pdmp3_id3v2 *v2 = id->id3v2;
+         void *xid = NULL, *xmid = NULL, *xgid = NULL;
+         char *lang = systemLanguage(NULL);
+         char *path, fname[81];
+
+         snprintf(fname, 80, "genres-%s.xml", lang);
+         path = systemDataFile(fname);
+         xid = xmlOpen(path);
+         free(path);
+         if (!xid)
+         {
+            path = systemDataFile("genres.xml");
+            xid = xmlOpen(path);
+            free(path);
+         }
+         if (xid)
+         {
+            xmid = xmlNodeGet(xid, "/genres/mp3");
+            if (xmid) {
+               xgid = xmlMarkId(xmid);
+            }
+         }
+
+         if (v2)
+         {
+            size_t i;
+
+            __DUP(handle->artist, v2->artist);
+            __DUP(handle->title, v2->title);
+            __DUP(handle->album, v2->album);
+            __DUP(handle->date, v2->year);
+            __DUP(handle->comments, v2->comment);
+            if (v2->genre && v2->genre->fill && (v2->genre->p[0] == '('))
+            {
+               char *end;
+               unsigned char genre = strtol((char*)&v2->genre->p[1], &end, 10);
+               if (xgid && (genre < MAX_ID3V1_GENRES) && (*end == ')'))
+               {
+                  void *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
+                  char *g = xmlGetString(xnid);
+                  handle->genre = strdup(g);
+                  xmlFree(g);
+               }
+               else handle->genre = strdup(v2->genre->p);
+            }
+            else __DUP(handle->genre, v2->genre);
+
+            for (i=0; i<v2->texts; i++)
+            {
+               if (v2->text[i].text.p != NULL)
+               {
+                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'R' &&
+                      v2->text[i].id[2] == 'C' && v2->text[i].id[3] == 'K')
+                  {
+                     handle->trackno = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'C'  &&
+                      v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'M')
+                  {
+                     handle->composer = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'O' &&
+                      v2->text[i].id[2] == 'P' && v2->text[i].id[3] == 'E')
+                  {
+                     handle->original = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'C' &&
+                      v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'P')
+                  {
+                     handle->copyright = strdup(v2->text[i].text.p);
+                  } else
+                  if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
+                      v2->text[i].id[2] == 'A' && v2->text[i].id[3] == 'R')
+                  {
+                     free(handle->website);
+                     handle->website = strdup(v2->text[i].text.p);
+                  }
+                  else if (!handle->website &&
+                         v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'P' &&
+                         v2->text[i].id[2] == 'U' && v2->text[i].id[3] == 'B')
+                  {
+                     free(handle->website);
+                     handle->website = strdup(v2->text[i].text.p);
+                  }
+                  else if (!handle->website &&
+                         v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
+                         v2->text[i].id[2] == 'R' && v2->text[i].id[3] == 'S')
+                  {
+                     free(handle->website);
+                     handle->website = strdup(v2->text[i].text.p);
+                  }
+               }
+            }
+#if 0
+            for (i=0; i<v2->pictures; i++)
+            {
+               if (v2->picture[i].data != NULL) {};
+            }
+#endif
+            handle->id3_found = AAX_TRUE;
+         }
+
+         if (xid)
+         {
+            xmlFree(xgid);
+            xmlFree(xmid);
+            xmlClose(xid);
+         }
+   }
 }
 
 

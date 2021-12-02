@@ -145,6 +145,23 @@ struct threat_t
    char initialized;
 };
 
+struct _meta_t
+{
+   char id3_found;
+   char *artist;
+   char *original;
+   char *title;
+   char *album;
+   char *trackno;
+   char *date;
+   char *genre;
+   char *composer;
+   char *comments;
+   char *copyright;
+   char *website;
+   char *image;
+};
+
 typedef struct aax_handle_t
 {
    unsigned int id;

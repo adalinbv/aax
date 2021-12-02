@@ -260,6 +260,9 @@ _aaxRingBufferInitTracks(_aaxRingBufferData *rbi)
 
       /* 16-byte align every buffer */
       tracksize = SIZE_ALIGNED(tracksize);
+      if (rbd->track_len_set && rbd->track_len_bytes > tracksize) {
+         tracksize = rbd->track_len_bytes;
+      }
 
       tracks = rbd->no_tracks;
       offs = tracks * sizeof(void*);
