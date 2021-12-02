@@ -53,68 +53,9 @@
 #endif
 
 #include <base/types.h>
+#include "pdmp3.h"
 
 /* Types used in the frame header */
-typedef enum { /* Layer number */
-  mpeg1_layer_reserved = 0,
-  mpeg1_layer_3        = 1,
-  mpeg1_layer_2        = 2,
-  mpeg1_layer_1        = 3
-}
-t_mpeg1_layer;
-typedef enum { /* Modes */
-  mpeg1_mode_stereo = 0,
-  mpeg1_mode_joint_stereo,
-  mpeg1_mode_dual_channel,
-  mpeg1_mode_single_channel
-}
-t_mpeg1_mode;
-typedef struct { /* MPEG1 Layer 1-3 frame header */
-  unsigned id;                 /* 1 bit */
-  t_mpeg1_layer layer;         /* 2 bits */
-  unsigned protection_bit;     /* 1 bit */
-  unsigned bitrate_index;      /* 4 bits */
-  unsigned sampling_frequency; /* 2 bits */
-  unsigned padding_bit;        /* 1 bit */
-  unsigned private_bit;        /* 1 bit */
-  t_mpeg1_mode mode;           /* 2 bits */
-  unsigned mode_extension;     /* 2 bits */
-  unsigned copyright;          /* 1 bit */
-  unsigned original_or_copy;   /* 1 bit */
-  unsigned emphasis;           /* 2 bits */
-}
-t_mpeg1_header;
-typedef struct {  /* MPEG1 Layer 3 Side Information : [2][2] means [gr][ch] */
-  unsigned main_data_begin;         /* 9 bits */
-  unsigned private_bits;            /* 3 bits in mono,5 in stereo */
-  unsigned scfsi[2][4];             /* 1 bit */
-  unsigned part2_3_length[2][2];    /* 12 bits */
-  unsigned big_values[2][2];        /* 9 bits */
-  unsigned global_gain[2][2];       /* 8 bits */
-  unsigned scalefac_compress[2][2]; /* 4 bits */
-  unsigned win_switch_flag[2][2];   /* 1 bit */
-  /* if(win_switch_flag[][]) */ //use a union dammit
-  unsigned block_type[2][2];        /* 2 bits */
-  unsigned mixed_block_flag[2][2];  /* 1 bit */
-  unsigned table_select[2][2][3];   /* 5 bits */
-  unsigned subblock_gain[2][2][3];  /* 3 bits */
-  /* else */
-  /* table_select[][][] */
-  unsigned region0_count[2][2];     /* 4 bits */
-  unsigned region1_count[2][2];     /* 3 bits */
-  /* end */
-  unsigned preflag[2][2];           /* 1 bit */
-  unsigned scalefac_scale[2][2];    /* 1 bit */
-  unsigned count1table_select[2][2];/* 1 bit */
-  unsigned count1[2][2];            /* Not in file,calc. by huff.dec.! */
-}
-t_mpeg1_side_info;
-typedef struct { /* MPEG1 Layer 3 Main Data */
-  unsigned  scalefac_l[2][2][21];    /* 0-4 bits */
-  unsigned  scalefac_s[2][2][12][3]; /* 0-4 bits */
-  float is[2][2][576];               /* Huffman coded freq. lines */
-}
-t_mpeg1_main_data;
 typedef struct hufftables{
   const unsigned short * hufftable;
   uint16_t treelen;
@@ -139,30 +80,6 @@ t_sf_band_indices;
 
 typedef struct
 {
-  char *p;
-  size_t size;
-  size_t fill;
-} pdmp3_string;
-
-typedef struct
-{
-  char lang[3];
-  char id[4];
-  pdmp3_string description;
-  pdmp3_string text;
-  unsigned char encoding;
-} pdmp3_text;
-
-typedef struct
-{
-  pdmp3_string description;
-  pdmp3_string mime_type;
-  size_t size;
-  unsigned char *data;
-} pdmp3_picture;
-
-typedef struct
-{
   char tag[3];
   char title[30];
   char artist[30];
@@ -171,59 +88,6 @@ typedef struct
   char comment[30];
   unsigned char genre;
 } pdmp3_id3v1;
-
-typedef struct
-{
-  unsigned char version;
-  pdmp3_string *title;
-  pdmp3_string *artist;
-  pdmp3_string *album;
-  pdmp3_string *year;
-  pdmp3_string *genre;
-  pdmp3_string *comment;
-  pdmp3_text *comment_list;
-  size_t comments;
-  pdmp3_text *text;
-  size_t texts;
-  pdmp3_text *extra;
-  size_t extras;
-  pdmp3_picture *picture;
-  size_t pictures;
-  pdmp3_text _text[32];
-} pdmp3_id3v2;
-
-#define INBUF_SIZE      (4*4096)
-typedef struct
-{
-  size_t processed;
-  unsigned istart,iend,ostart;
-  unsigned char in[INBUF_SIZE];
-  unsigned out[2][576];
-  t_mpeg1_header g_frame_header;
-  t_mpeg1_side_info g_side_info;  /* < 100 words */
-  t_mpeg1_main_data g_main_data;
-
-  unsigned hsynth_init;
-  unsigned synth_init;
-  /* Bit reservoir for main data */
-  unsigned g_main_data_vec[2*1024];/* Large static data */
-  unsigned *g_main_data_ptr;/* Pointer into the reservoir */
-  unsigned g_main_data_idx;/* Index into the current byte(0-7) */
-  unsigned g_main_data_top;/* Number of bytes in reservoir(0-1024) */
-  /* Bit reservoir for side info */
-  unsigned side_info_vec[32+4];
-  unsigned *side_info_ptr;  /* Pointer into the reservoir */
-  unsigned side_info_idx;  /* Index into the current byte(0-7) */
-
-  pdmp3_id3v2 *id3v2;
-  unsigned id3v2_size;
-  unsigned id3v2_frame_pos;
-  unsigned id3v2_frame_size;
-  char id3v2_processing;
-  char id3v2_flags;
-  char new_header;
-}
-pdmp3_handle;
 
 struct pdmp3_frameinfo
 {
@@ -1158,11 +1022,11 @@ static int Decode_L3(pdmp3_handle *id){
 }
 
 static unsigned Get_Inbuf_Filled(pdmp3_handle *id) {
-  return (id->istart<=id->iend)?(id->iend-id->istart):(INBUF_SIZE-id->istart+id->iend);
+  return (id->istart<=id->iend)?(id->iend-id->istart):(PDMP3_INBUF_SIZE-id->istart+id->iend);
 }
 
 static unsigned Get_Inbuf_Free(pdmp3_handle *id) {
-  return (id->iend<id->istart)?(id->istart-id->iend):(INBUF_SIZE-id->iend+id->istart);
+  return (id->iend<id->istart)?(id->istart-id->iend):(PDMP3_INBUF_SIZE-id->iend+id->istart);
 }
 
 
@@ -1365,7 +1229,7 @@ static void Free_ID3v2_picture(pdmp3_picture *pic) {
   }
 }
 
-static void Free_ID3v2(pdmp3_id3v2 *v2) {
+void Free_ID3v2(pdmp3_id3v2 *v2) {
   if(v2) {
     unsigned i;
     v2->title = NULL;
@@ -1612,7 +1476,7 @@ static int Read_ID3v2_Frame(pdmp3_handle *id) {
   return(res);
 }
 
-static int Read_ID3v2_Header(pdmp3_handle *id) {
+int Read_ID3v2_Header(pdmp3_handle *id) {
   int res=PDMP3_ERR;
 
   if(Get_Filepos(id) == 3) {
@@ -1750,7 +1614,7 @@ static int Search_Header(pdmp3_handle *id) {
     res = Read_Header(id);
     if((res == PDMP3_OK || res == PDMP3_NEW_FORMAT) &&
        (id->g_frame_header.layer == 3)) break;
-    if(++mark == INBUF_SIZE) {
+    if(++mark == PDMP3_INBUF_SIZE) {
       mark = 0;
     }
     id->istart = mark;
@@ -1889,7 +1753,7 @@ static unsigned Get_Byte(pdmp3_handle *id){
   unsigned val = C_EOF;
   if(id->istart != id->iend){
     val = id->in[id->istart++]; //  && 0xff;
-    if(id->istart == INBUF_SIZE){
+    if(id->istart == PDMP3_INBUF_SIZE){
       id->istart=0;
     }
     id->processed++;
@@ -2834,7 +2698,7 @@ int pdmp3_feed(pdmp3_handle *id,const unsigned char *in,size_t size){
       }
       else
       {
-         res = INBUF_SIZE-id->iend;
+         res = PDMP3_INBUF_SIZE-id->iend;
          if(size<res) res=size;
          if(res) {
             memcpy(id->in+id->iend,in,res);
@@ -3021,7 +2885,7 @@ int pdmp3_id3(pdmp3_handle *id,pdmp3_id3v1 **v1,pdmp3_id3v2 **v2)
 void pdmp3(char * const *mp3s){
   static const char *filename,*audio_name = "/dev/dsp";
   static FILE *fp =(FILE *) NULL;
-  unsigned char out[INBUF_SIZE];
+  unsigned char out[PDMP3_INBUF_SIZE];
   pdmp3_handle *id;
   size_t done;
   int res;
@@ -3042,7 +2906,7 @@ void pdmp3(char * const *mp3s){
       Error("Cannot open file\n",0);
 
     pdmp3_open_feed(id);
-    while((res = pdmp3_read(id,out,INBUF_SIZE,&done)) != PDMP3_ERR){
+    while((res = pdmp3_read(id,out,PDMP3_INBUF_SIZE,&done)) != PDMP3_ERR){
       audio_write(id,audio_name,filename,out,done);
       if(res == PDMP3_OK || res == PDMP3_NEW_FORMAT) {
 #ifndef NDEBUG
