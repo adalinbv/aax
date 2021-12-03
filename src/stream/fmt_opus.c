@@ -64,24 +64,9 @@ typedef struct
 {
    void *id;
 
-   char artist_changed;
-   char title_changed;
-
-   char *artist;
-   char *original;
-   char *title;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *composer;
-   char *comments;
-   char *copyright;
-   char *website;
-   char *image;
+   struct _meta_t meta;
 
    int mode;
-
    char capturing;
    char recover;
 
@@ -281,18 +266,7 @@ _opus_close(_fmt_t *fmt)
       _aaxDataDestroy(handle->opusBuffer);
       _aaxDataDestroy(handle->pcmBuffer);
 
-      free(handle->trackno);
-      free(handle->artist);
-      free(handle->title);
-      free(handle->album);
-      free(handle->date);
-      free(handle->genre);
-      free(handle->comments);
-      free(handle->composer);
-      free(handle->copyright);
-      free(handle->original);
-      free(handle->website);
-      free(handle->image);
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 }
@@ -515,47 +489,47 @@ _opus_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
    switch(param)
    {
    case __F_ARTIST:
-      handle->artist = (char*)desc;
+      handle->meta.artist = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_TITLE:
-      handle->title = (char*)desc;
+      handle->meta.title = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_GENRE:
-      handle->genre = (char*)desc;
+      handle->meta.genre = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_TRACKNO:
-      handle->trackno = (char*)desc;
+      handle->meta.trackno = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_ALBUM:
-      handle->album = (char*)desc;
+      handle->meta.album = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_DATE:
-      handle->date = (char*)desc;
+      handle->meta.date = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_COMPOSER:
-      handle->composer = (char*)desc;
+      handle->meta.composer = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_COMMENT:
-      handle->comments = (char*)desc;
+      handle->meta.comments = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_COPYRIGHT:
-      handle->copyright = (char*)desc;
+      handle->meta.copyright = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_ORIGINAL:
-      handle->original = (char*)desc;
+      handle->meta.original = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_WEBSITE:
-      handle->website = (char*)desc;
+      handle->meta.website = (char*)desc;
       rv = AAX_TRUE;
       break;
    default:
@@ -573,40 +547,40 @@ _opus_name(_fmt_t *fmt, enum _aaxStreamParam param)
    switch(param)
    {
    case __F_ARTIST:
-      rv = handle->artist;
+      rv = handle->meta.artist;
       break;
    case __F_TITLE:
-      rv = handle->title;
+      rv = handle->meta.title;
       break;
    case __F_COMPOSER:
-      rv = handle->composer;
+      rv = handle->meta.composer;
       break;
    case __F_GENRE:
-      rv = handle->genre;
+      rv = handle->meta.genre;
       break;
    case __F_TRACKNO:
-      rv = handle->trackno;
+      rv = handle->meta.trackno;
       break;
    case __F_ALBUM:
-      rv = handle->album;
+      rv = handle->meta.album;
       break;
    case __F_DATE:
-      rv = handle->date;
+      rv = handle->meta.date;
       break;
    case __F_COMMENT:
-      rv = handle->comments;
+      rv = handle->meta.comments;
       break;
    case __F_COPYRIGHT:
-      rv = handle->copyright;
+      rv = handle->meta.copyright;
       break;
    case __F_ORIGINAL:
-      rv = handle->original;
+      rv = handle->meta.original;
       break;
    case __F_WEBSITE:
-      rv = handle->website;
+      rv = handle->meta.website;
       break;
    case __F_IMAGE:
-      rv = handle->image;
+      rv = handle->meta.image;
       break;
    default:
       break;

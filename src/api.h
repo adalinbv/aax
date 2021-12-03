@@ -148,6 +148,10 @@ struct threat_t
 struct _meta_t
 {
    char id3_found;
+
+   char artist_changed;
+   char title_changed;
+
    char *artist;
    char *original;
    char *title;

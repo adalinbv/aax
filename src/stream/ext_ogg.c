@@ -74,20 +74,7 @@ typedef struct
 {
    void *id;
 
-   char artist_changed;
-   char title_changed;
-
-   char *artist;
-   char *title;
-   char *original;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *composer;
-   char *comments;
-   char *copyright;
-   char *website;
+   struct _meta_t meta;
 
    _fmt_t *fmt;
 
@@ -150,7 +137,6 @@ typedef struct
 static int _aaxFormatDriverReadHeader(_driver_t*);
 static int _getOggPageHeader(_driver_t*, uint8_t*, size_t, char);
 static int _aaxOggInitFormat(_driver_t*, unsigned char*, ssize_t*);
-static void _aaxOggFreeInfo(_driver_t*);
 static void crc32_init(void);
 
 /*
@@ -423,7 +409,7 @@ _ogg_close(_ext_t *ext)
          free(handle->out);
       }
 
-      _aaxOggFreeInfo(handle);
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 
@@ -463,7 +449,7 @@ _ogg_fill(_ext_t *ext, void_ptr sptr, ssize_t *bytes)
             handle->bitstream_serial_no = 0;
             handle->page_sequence_no = 0;
 
-            _aaxOggFreeInfo(handle);
+            _aax_free_meta(&handle->meta);
 
             handle->fmt->close(handle->fmt);
             _fmt_free(handle->fmt);
@@ -644,47 +630,47 @@ _ogg_set_name(_ext_t *ext, enum _aaxStreamParam param, const char *desc)
       switch(param)
       {
       case __F_ARTIST:
-         handle->artist = (char*)desc;
+         handle->meta.artist = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_TITLE:
-         handle->title = (char*)desc;
+         handle->meta.title = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_GENRE:
-         handle->genre = (char*)desc;
+         handle->meta.genre = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_TRACKNO:
-         handle->trackno = (char*)desc;
+         handle->meta.trackno = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_ALBUM:
-         handle->album = (char*)desc;
+         handle->meta.album = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_DATE:
-         handle->date = (char*)desc;
+         handle->meta.date = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COMPOSER:
-         handle->composer = (char*)desc;
+         handle->meta.composer = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COMMENT:
-         handle->comments = (char*)desc;
+         handle->meta.comments = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_COPYRIGHT:
-         handle->copyright = (char*)desc;
+         handle->meta.copyright = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_ORIGINAL:
-         handle->original = (char*)desc;
+         handle->meta.original = (char*)desc;
          rv = AAX_TRUE;
          break;
       case __F_WEBSITE:
-         handle->website = (char*)desc;
+         handle->meta.website = (char*)desc;
          rv = AAX_TRUE;
          break;
       default:
@@ -705,39 +691,39 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
       switch(param)
       {
       case __F_ARTIST:
-         rv = handle->artist;
-         handle->artist_changed = AAX_FALSE;
+         rv = handle->meta.artist;
+         handle->meta.artist_changed = AAX_FALSE;
          break;
       case __F_TITLE:
-         rv = handle->title;
-         handle->title_changed = AAX_FALSE;
+         rv = handle->meta.title;
+         handle->meta.title_changed = AAX_FALSE;
          break;
       case __F_GENRE:
-         rv = handle->genre;
+         rv = handle->meta.genre;
          break;
       case __F_TRACKNO:
-         rv = handle->trackno;
+         rv = handle->meta.trackno;
          break;
       case __F_ALBUM:
-         rv = handle->album;
+         rv = handle->meta.album;
          break;
       case __F_DATE:
-         rv = handle->date;
+         rv = handle->meta.date;
          break;
       case __F_COMPOSER:
-         rv = handle->composer;
+         rv = handle->meta.composer;
          break;
       case __F_COMMENT:
-         rv = handle->comments;
+         rv = handle->meta.comments;
          break;
       case __F_COPYRIGHT:
-         rv = handle->copyright;
+         rv = handle->meta.copyright;
          break;
       case __F_ORIGINAL:
-         rv = handle->original;
+         rv = handle->meta.original;
          break;
       case __F_WEBSITE:
-         rv = handle->website;
+         rv = handle->meta.website;
          break;
       default:
          if (param & __F_NAME_CHANGED)
@@ -745,17 +731,17 @@ _ogg_name(_ext_t *ext, enum _aaxStreamParam param)
             switch (param & ~__F_NAME_CHANGED)
             {
             case __F_ARTIST:
-               if (handle->artist_changed)
+               if (handle->meta.artist_changed)
                {
-                  rv = handle->artist;
-                  handle->artist_changed = AAX_FALSE;
+                  rv = handle->meta.artist;
+                  handle->meta.artist_changed = AAX_FALSE;
                }
                break;
             case __F_TITLE:
-               if (handle->title_changed)
+               if (handle->meta.title_changed)
                {
-                  rv = handle->title;
-                  handle->title_changed = AAX_FALSE;
+                  rv = handle->meta.title;
+                  handle->meta.title_changed = AAX_FALSE;
                }
                break;
             default:
@@ -874,33 +860,6 @@ crc32_init(void)
          s = (s << 1) ^ (s >= (1U<<31) ? CRC32_POLY : 0);
       crc_table[i] = s;
    }
-}
-
-static void
-_aaxOggFreeInfo(_driver_t *handle)
-{
-   if (handle->trackno) free(handle->trackno);
-   handle->trackno = NULL;
-   if (handle->artist) free(handle->artist);
-   handle->artist = NULL;
-   if (handle->title) free(handle->title);
-   handle->title = NULL;
-   if (handle->album) free(handle->album);
-   handle->album = NULL;
-   if (handle->date) free(handle->date);
-   handle->date = NULL;
-   if (handle->genre) free(handle->genre);
-   handle->genre = NULL;
-   if (handle->composer) free(handle->composer);
-   handle->composer = NULL;
-   if (handle->comments) free(handle->comments);
-   handle->comments = NULL;
-   if (handle->copyright) free(handle->copyright);
-   handle->copyright = NULL;
-   if (handle->original) free(handle->original);
-   handle->original = NULL;
-   if (handle->website) free(handle->website);
-   handle->website = NULL;
 }
 
 static int
@@ -1544,12 +1503,12 @@ _getOggOpusComment(_driver_t *handle, unsigned char *h, size_t len)
          readstr(&ch, field, slen, &clen);
          if (!STRCMP(field, "TITLE"))
          {
-            handle->title = stradd(handle->title, field+strlen("TITLE="));
-            handle->title_changed = AAX_TRUE;
+            handle->meta.title = stradd(handle->meta.title, field+strlen("TITLE="));
+            handle->meta.title_changed = AAX_TRUE;
          }
          else if (!STRCMP(field, "ARTIST")) {
-            handle->artist = stradd(handle->artist, field+strlen("ARTIST="));
-            handle->artist_changed = AAX_TRUE;
+            handle->meta.artist = stradd(handle->meta.artist, field+strlen("ARTIST="));
+            handle->meta.artist_changed = AAX_TRUE;
          }
 //       else if (!STRCMP(field, "PERFORMER"))
 //       {
@@ -1557,19 +1516,19 @@ _getOggOpusComment(_driver_t *handle, unsigned char *h, size_t len)
 //          handle->artist_changed = AAX_TRUE;
 //       }
          else if (!STRCMP(field, "ALBUM")) {
-            handle->album = stradd(handle->album, field+strlen("ALBUM="));
+            handle->meta.album = stradd(handle->meta.album, field+strlen("ALBUM="));
          } else if (!STRCMP(field, "TRACKNUMBER")) {
-            handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
+            handle->meta.trackno = stradd(handle->meta.trackno, field+strlen("TRACKNUMBER="));
          } else if (!STRCMP(field, "COPYRIGHT")) {
-            handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
+            handle->meta.copyright = stradd(handle->meta.copyright, field+strlen("COPYRIGHT="));
          } else if (!STRCMP(field, "GENRE")) {
-            handle->genre = stradd(handle->genre, field+strlen("GENRE="));
+            handle->meta.genre = stradd(handle->meta.genre, field+strlen("GENRE="));
          } else if (!STRCMP(field, "DATE")) {
-            handle->date = stradd(handle->date, field+strlen("DATE="));
+            handle->meta.date = stradd(handle->meta.date, field+strlen("DATE="));
          } else if (!STRCMP(field, "CONTACT")) {
-            handle->website = stradd(handle->website, field+strlen("CONTACT="));
+            handle->meta.website = stradd(handle->meta.website, field+strlen("CONTACT="));
          } else if (!STRCMP(field, "DESCRIPTION")) {
-            handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
+            handle->meta.comments = stradd(handle->meta.comments, field+strlen("DESCRIPTION="));
          }
          else if (!STRCMP(field, "R128_TRACK_GAIN"))
          {
@@ -1577,7 +1536,7 @@ _getOggOpusComment(_driver_t *handle, unsigned char *h, size_t len)
             handle->gain = pow(10, (float)gain/(20.0f*256.0f));
          }
          else {
-            handle->comments = stradd(handle->comments, field);
+            handle->meta.comments = stradd(handle->meta.comments, field);
          }
       }
       rv = ch-h;
@@ -1647,34 +1606,34 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *h, size_t len)
          readstr(&ch, field, slen, &clen);
          if (!STRCMP(field, "TITLE"))
          {
-             handle->title = stradd(handle->title, field+strlen("TITLE="));
-             handle->title_changed = AAX_TRUE;
+             handle->meta.title = stradd(handle->meta.title, field+strlen("TITLE="));
+             handle->meta.title_changed = AAX_TRUE;
          }
          else if (!STRCMP(field, "ARTIST")) {
-            handle->artist = stradd(handle->artist, field+strlen("ARTIST="));
-            handle->artist_changed = AAX_TRUE;
+            handle->meta.artist = stradd(handle->meta.artist, field+strlen("ARTIST="));
+            handle->meta.artist_changed = AAX_TRUE;
          }
 //       else if (!STRCMP(field, "PERFORMER"))
 //       {
-//           handle->artist = stradd(handle->artist, field+strlen("PERFORMER="));
-//           handle->artist_changed = AAX_TRUE;
+//           handle->meta.artist = stradd(handle->meta.artist, field+strlen("PERFORMER="));
+//           handle->meta.artist_changed = AAX_TRUE;
 //       }
          else if (!STRCMP(field, "ALBUM")) {
-             handle->album = stradd(handle->album, field+strlen("ALBUM="));
+             handle->meta.album = stradd(handle->meta.album, field+strlen("ALBUM="));
          } else if (!STRCMP(field, "TRACKNUMBER")) {
-             handle->trackno = stradd(handle->trackno, field+strlen("TRACKNUMBER="));
+             handle->meta.trackno = stradd(handle->meta.trackno, field+strlen("TRACKNUMBER="));
          } else if (!STRCMP(field, "TRACK")) {
-             handle->trackno = stradd(handle->trackno, field+strlen("TRACK="));
+             handle->meta.trackno = stradd(handle->meta.trackno, field+strlen("TRACK="));
          } else if (!STRCMP(field, "COPYRIGHT")) {
-             handle->copyright = stradd(handle->copyright, field+strlen("COPYRIGHT="));
+             handle->meta.copyright = stradd(handle->meta.copyright, field+strlen("COPYRIGHT="));
          } else if (!STRCMP(field, "GENRE")) {
-             handle->genre = stradd(handle->genre, field+strlen("GENRE="));
+             handle->meta.genre = stradd(handle->meta.genre, field+strlen("GENRE="));
          } else if (!STRCMP(field, "DATE")) {
-             handle->date = stradd(handle->date, field+strlen("DATE="));
+             handle->meta.date = stradd(handle->meta.date, field+strlen("DATE="));
          } else if (!STRCMP(field, "CONTACT")) {
-             handle->website = stradd(handle->website, field+strlen("CONTACT="));
+             handle->meta.website = stradd(handle->meta.website, field+strlen("CONTACT="));
          } else if (!STRCMP(field, "DESCRIPTION")) {
-             handle->comments = stradd(handle->comments, field+strlen("DESCRIPTION="));
+             handle->meta.comments = stradd(handle->meta.comments, field+strlen("DESCRIPTION="));
          }
          // REPLAYGAIN_TRACK_PEAK
          // REPLAYGAIN_ALBUM_GAIN
@@ -1685,7 +1644,7 @@ _getOggVorbisComment(_driver_t *handle, unsigned char *h, size_t len)
              handle->gain = _db2lin(gain_db);
          }
          else {
-            handle->comments = stradd(handle->comments, field);
+            handle->meta.comments = stradd(handle->meta.comments, field);
          }
       }
    }
