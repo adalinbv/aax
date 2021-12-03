@@ -1026,7 +1026,7 @@ _bufGetRingBuffer(_buffer_t* buf, _handle_t *handle, unsigned char pos)
 
          // RB_BLOCK_SIZE must be set before RB_TRACKSIZE
          rb->set_parami(rb, RB_BLOCK_SIZE, info->blocksize);
-         rb->set_parami(rb, RB_TRACKSIZE, info->no_bytes);
+//       rb->set_parami(rb, RB_TRACKSIZE, info->no_bytes);
          rb->set_parami(rb, RB_NO_SAMPLES, info->no_samples);
 
          rb->set_paramf(rb, RB_LOOPPOINT_END, info->loop_end/info->rate);
