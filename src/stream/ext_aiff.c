@@ -1062,8 +1062,11 @@ if (curr == 0x464f524d) // FORM
       memset(&id, 0, sizeof(id));
       id.iend = _MIN(bufsize, PDMP3_INBUF_SIZE);
       memcpy(id.in, ch, bufsize);
-      _aaxFormatDriverReadID3Header(&id, &handle->meta);
-      rv = *step;
+      if (_aaxFormatDriverReadID3Header(&id, &handle->meta) == __F_NEED_MORE)
+      {
+         handle->io.read.last_tag = 0x49443320; // ID3 
+         rv = __F_NEED_MORE;
+      }
       break;
    }
    case 0x4d41524b: // MARK

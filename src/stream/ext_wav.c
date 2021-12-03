@@ -1362,8 +1362,11 @@ if (curr == 0x46464952 ||	// header[0]: ChunkID: RIFF
       memset(&id, 0, sizeof(id));
       id.iend = _MIN(bufsize, PDMP3_INBUF_SIZE);
       memcpy(id.in, ch, bufsize);
-      _aaxFormatDriverReadID3Header(&id, &handle->meta);
-      rv = *step;
+      if (_aaxFormatDriverReadID3Header(&id, &handle->meta) == __F_NEED_MORE)
+      {
+         handle->io.read.last_tag = 0x69643320; // id3 
+         rv = __F_NEED_MORE;
+      }
       break;
    }
    case 0x20657563: // cue 
@@ -1480,123 +1483,125 @@ _aaxFormatDriverUpdateHeader(_driver_t *handle, ssize_t *bufsize)
 // https://web.archive.org/web/20100518091954/http://www.id3.org/id3v2.3.0
 #define __DUP(a, b)     if ((b) != NULL && (b)->fill) a = strdup((b)->p);
 #define MAX_ID3V1_GENRES        192
-void
+int
 _aaxFormatDriverReadID3Header(pdmp3_handle *id, struct _meta_t *handle)
 {
    id->id3v2_processing = 1;
    int ret;
 
-   if ((ret = Read_Header(id)) != PDMP3_ERR)
+   if ((ret = Read_Header(id)) == PDMP3_OK)
    {
       pdmp3_id3v2 *v2 = id->id3v2;
-         void *xid = NULL, *xmid = NULL, *xgid = NULL;
-         char *lang = systemLanguage(NULL);
-         char *path, fname[81];
+      void *xid = NULL, *xmid = NULL, *xgid = NULL;
+      char *lang = systemLanguage(NULL);
+      char *path, fname[81];
 
-         snprintf(fname, 80, "genres-%s.xml", lang);
-         path = systemDataFile(fname);
+      snprintf(fname, 80, "genres-%s.xml", lang);
+      path = systemDataFile(fname);
+      xid = xmlOpen(path);
+      free(path);
+      if (!xid)
+      {
+         path = systemDataFile("genres.xml");
          xid = xmlOpen(path);
          free(path);
-         if (!xid)
-         {
-            path = systemDataFile("genres.xml");
-            xid = xmlOpen(path);
-            free(path);
+      }
+      if (xid)
+      {
+         xmid = xmlNodeGet(xid, "/genres/mp3");
+         if (xmid) {
+            xgid = xmlMarkId(xmid);
          }
-         if (xid)
-         {
-            xmid = xmlNodeGet(xid, "/genres/mp3");
-            if (xmid) {
-               xgid = xmlMarkId(xmid);
-            }
-         }
+      }
 
-         if (v2)
-         {
-            size_t i;
+      if (v2)
+      {
+         size_t i;
 
-            __DUP(handle->artist, v2->artist);
-            __DUP(handle->title, v2->title);
-            __DUP(handle->album, v2->album);
-            __DUP(handle->date, v2->year);
-            __DUP(handle->comments, v2->comment);
-            if (v2->genre && v2->genre->fill && (v2->genre->p[0] == '('))
+         __DUP(handle->artist, v2->artist);
+         __DUP(handle->title, v2->title);
+         __DUP(handle->album, v2->album);
+         __DUP(handle->date, v2->year);
+         __DUP(handle->comments, v2->comment);
+         if (v2->genre && v2->genre->fill && (v2->genre->p[0] == '('))
+         {
+            char *end;
+            unsigned char genre = strtol((char*)&v2->genre->p[1], &end, 10);
+            if (xgid && (genre < MAX_ID3V1_GENRES) && (*end == ')'))
             {
-               char *end;
-               unsigned char genre = strtol((char*)&v2->genre->p[1], &end, 10);
-               if (xgid && (genre < MAX_ID3V1_GENRES) && (*end == ')'))
+               void *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
+               char *g = xmlGetString(xnid);
+               handle->genre = strdup(g);
+               xmlFree(g);
+            }
+            else handle->genre = strdup(v2->genre->p);
+         }
+         else __DUP(handle->genre, v2->genre);
+
+         for (i=0; i<v2->texts; i++)
+         {
+            if (v2->text[i].text.p != NULL)
+            {
+               if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'R' &&
+                   v2->text[i].id[2] == 'C' && v2->text[i].id[3] == 'K')
                {
-                  void *xnid = xmlNodeGetPos(xmid, xgid, "name", genre);
-                  char *g = xmlGetString(xnid);
-                  handle->genre = strdup(g);
-                  xmlFree(g);
+                  handle->trackno = strdup(v2->text[i].text.p);
+               } else
+               if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'C'  &&
+                v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'M')
+               {
+                  handle->composer = strdup(v2->text[i].text.p);
+               } else
+               if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'O' &&
+                   v2->text[i].id[2] == 'P' && v2->text[i].id[3] == 'E')
+               {
+                  handle->original = strdup(v2->text[i].text.p);
+               } else
+               if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'C' &&
+                   v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'P')
+               {
+                  handle->copyright = strdup(v2->text[i].text.p);
+               } else
+               if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
+                   v2->text[i].id[2] == 'A' && v2->text[i].id[3] == 'R')
+               {
+                  free(handle->website);
+                  handle->website = strdup(v2->text[i].text.p);
                }
-               else handle->genre = strdup(v2->genre->p);
-            }
-            else __DUP(handle->genre, v2->genre);
-
-            for (i=0; i<v2->texts; i++)
-            {
-               if (v2->text[i].text.p != NULL)
+               else if (!handle->website &&
+                      v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'P' &&
+                      v2->text[i].id[2] == 'U' && v2->text[i].id[3] == 'B')
                {
-                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'R' &&
-                      v2->text[i].id[2] == 'C' && v2->text[i].id[3] == 'K')
-                  {
-                     handle->trackno = strdup(v2->text[i].text.p);
-                  } else
-                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'C'  &&
-                      v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'M')
-                  {
-                     handle->composer = strdup(v2->text[i].text.p);
-                  } else
-                  if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'O' &&
-                      v2->text[i].id[2] == 'P' && v2->text[i].id[3] == 'E')
-                  {
-                     handle->original = strdup(v2->text[i].text.p);
-                  } else
-                  if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'C' &&
-                      v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'P')
-                  {
-                     handle->copyright = strdup(v2->text[i].text.p);
-                  } else
-                  if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
-                      v2->text[i].id[2] == 'A' && v2->text[i].id[3] == 'R')
-                  {
-                     free(handle->website);
-                     handle->website = strdup(v2->text[i].text.p);
-                  }
-                  else if (!handle->website &&
-                         v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'P' &&
-                         v2->text[i].id[2] == 'U' && v2->text[i].id[3] == 'B')
-                  {
-                     free(handle->website);
-                     handle->website = strdup(v2->text[i].text.p);
-                  }
-                  else if (!handle->website &&
-                         v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
-                         v2->text[i].id[2] == 'R' && v2->text[i].id[3] == 'S')
-                  {
-                     free(handle->website);
-                     handle->website = strdup(v2->text[i].text.p);
-                  }
+                  free(handle->website);
+                  handle->website = strdup(v2->text[i].text.p);
+               }
+               else if (!handle->website &&
+                      v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
+                      v2->text[i].id[2] == 'R' && v2->text[i].id[3] == 'S')
+               {
+                  free(handle->website);
+                  handle->website = strdup(v2->text[i].text.p);
                }
             }
+         }
 #if 0
-            for (i=0; i<v2->pictures; i++)
-            {
-               if (v2->picture[i].data != NULL) {};
-            }
-#endif
-            handle->id3_found = AAX_TRUE;
-         }
-
-         if (xid)
+         for (i=0; i<v2->pictures; i++)
          {
-            xmlFree(xgid);
-            xmlFree(xmid);
-            xmlClose(xid);
+            if (v2->picture[i].data != NULL) {};
          }
+#endif
+         handle->id3_found = AAX_TRUE;
+      }
+
+      if (xid)
+      {
+         xmlFree(xgid);
+         xmlFree(xmid);
+         xmlClose(xid);
+      }
    }
+
+   return (ret == PDMP3_NEED_MORE) ? __F_NEED_MORE : ret;
 }
 
 

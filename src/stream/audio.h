@@ -124,7 +124,7 @@ float cents2pitch(float, float);
 float cents2modulation(float, float);
 
 /* ID3 support */
-void _aaxFormatDriverReadID3Header(pdmp3_handle*, struct _meta_t*);
+int _aaxFormatDriverReadID3Header(pdmp3_handle*, struct _meta_t*);
 
 #if defined(__cplusplus)
 }  /* extern "C" */
