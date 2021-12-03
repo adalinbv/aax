@@ -1462,6 +1462,7 @@ static int Read_ID3v2_Frame(pdmp3_handle *id) {
 
 static int Read_ID3v2_Header(pdmp3_handle *id) {
   int res=PDMP3_ERR;
+  unsigned size=0;
 
   if(Get_Filepos(id) == 3) {
     unsigned b1, b2, b3, b4;
@@ -1491,6 +1492,7 @@ static int Read_ID3v2_Header(pdmp3_handle *id) {
       ERR("Special id3v2 features not implemented");
       return(PDMP3_ERR);
     }
+    size = id->id3v2_size;
     id->id3v2 = calloc(1,sizeof(pdmp3_id3v2));
     if(id->id3v2)
       id->id3v2->text = id->id3v2->_text;
@@ -1501,6 +1503,7 @@ static int Read_ID3v2_Header(pdmp3_handle *id) {
        if (!id->id3v2_processing) break;
     }
   }
+  id->id3v2_size = size;
   return(res);
 
 }
