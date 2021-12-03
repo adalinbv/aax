@@ -856,6 +856,8 @@ if (curr == 0x464f524d) // FORM
       h = (uint8_t*)head;
       PRINT("(SubChunkID \"%c%c%c%c\")\n", h[0], h[1], h[2], h[3]);
       PRINT("(SubchunkSize: %i)\n", _aax_bswap32(*head));
+      PRINT("(offset: %i)\n", _aax_bswap32(*head));
+      PRINT("(blockSzie: %i)\n", _aax_bswap32(*head));
    }
 }
 #endif
