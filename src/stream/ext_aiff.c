@@ -140,7 +140,7 @@ _aiff_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int fo
       {
          handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
-         handle->aiff_format = PCM_AIFF_BYTE_SWAPPED_FILE;
+         handle->aiff_format = PCM_AIFF_FILE;
          handle->bits_sample = bits_sample;
          handle->info.blocksize = tracks*bits_sample/8;
          handle->info.rate = freq;
@@ -158,6 +158,7 @@ _aiff_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int fo
          }
          else /* playback */
          {
+            handle->aiff_format = PCM_AIFF_BYTE_SWAPPED_FILE;
             handle->aiff_format = _getAIFFFormatFromAAXFormat(format);
             if (format == AAX_IMA4_ADPCM) {
                handle->info.blocksize = 512;
@@ -799,14 +800,14 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    uint8_t *buf = _aaxDataGetData(handle->aiffBuffer);
    uint32_t *header = (uint32_t*)buf;
    uint8_t *ch = (uint8_t*)header;
-   uint32_t clen, curr, init_tag;
+   uint32_t clen, curr;
    char field[COMMENT_SIZE+1];
    char flush = (*step == -1);
    int rv = __F_EOF;
 
    *step = 0;
 
-   init_tag = curr = handle->io.read.last_tag;
+   curr = handle->io.read.last_tag;
    if (curr == 0) {
 #if 0
  printf("%08x: '%c%c%c%c'\n", _aax_bswap32(header[0]), ch[0], ch[1], ch[2], ch[3]);
@@ -902,7 +903,7 @@ if (curr == 0x464f524d) // FORM
          readpstr(&ch, field, clen, &bufsize); // compressionName
       }
 
-#if 1
+#if 0
  printf("rate: %f, no_samples: %li, bits/sample: %i, tracks: %i\n", handle->info.rate, handle->info.no_samples, handle->bits_sample, handle->info.no_tracks);
 #endif
 
@@ -1006,6 +1007,10 @@ if (curr == 0x464f524d) // FORM
          clen = read16be(&ch, &bufsize);
          readstr(&ch, field, clen, &bufsize);
          handle->meta.comments = stradd(handle->meta.comments, field);
+
+         // prevent compiler warnings
+         (void)MarkerID; 
+         (void)timeStamp;
       }
       break;
    }
@@ -1069,6 +1074,9 @@ if (curr == 0x464f524d) // FORM
       }
       break;
    }
+   case 0x4348414e: // CHAN
+   case 0x53465821: // SFX!
+   case 0x62617363: // basc
    case 0x4d41524b: // MARK
    case 0x5045414b: // PEAK
    case 0x4150504c: // APPL
@@ -1141,9 +1149,11 @@ _getAAXFormatFromAIFFFormat(unsigned int format, int bits_sample)
 
    switch (format)
    {
-   case PCM_AIFF_FILE:
    case RAW_AIFF_FILE:
-      if (bits_sample == 8) rv = (format == RAW_AIFF_FILE) ? AAX_PCM8U : AAX_PCM8S;
+      rv = AAX_PCM8U;
+      break;
+   case PCM_AIFF_FILE:
+      if (bits_sample == 8) rv = AAX_PCM8S;
       else if (bits_sample == 16) rv = AAX_PCM16S_BE;
       else if (bits_sample == 24) rv = AAX_PCM24S_PACKED_BE;
       else if (bits_sample == 32) rv = AAX_PCM32S_BE;
