@@ -162,6 +162,8 @@ struct _meta_t
    char *image;
 };
 
+void _aax_free_meta(struct _meta_t*);
+
 typedef struct aax_handle_t
 {
    unsigned int id;

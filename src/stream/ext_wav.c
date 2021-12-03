@@ -24,7 +24,7 @@
 #endif
 
 #include <stdio.h>
-#include <fcntl.h>	/* SEEK_*, O_* */
+#include <fcntl.h>	/* O_CREAT|O_WRONLY|O_BINARY */
 #include <errno.h>
 #include <assert.h>
 #ifdef HAVE_UNISTD_H
@@ -434,10 +434,10 @@ _wav_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
                if (handle->info.fmt == AAX_IMA4_ADPCM) {
                   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
-                                   handle->info.blocksize/handle->info.no_tracks);
+                                 handle->info.blocksize/handle->info.no_tracks);
                   handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
-                                  MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize,
-                                                         handle->info.no_tracks));
+                                MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize,
+                                                       handle->info.no_tracks));
                } else {
                   handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
                }
@@ -518,15 +518,6 @@ _wav_close(_ext_t *ext)
 
    if (handle)
    {
-      if (handle->meta.artist) free(handle->meta.artist);
-      if (handle->meta.title) free(handle->meta.title);
-      if (handle->meta.album) free(handle->meta.album);
-      if (handle->meta.trackno) free(handle->meta.trackno);
-      if (handle->meta.date) free(handle->meta.date);
-      if (handle->meta.genre) free(handle->meta.genre);
-      if (handle->meta.copyright) free(handle->meta.copyright);
-      if (handle->meta.comments) free(handle->meta.comments);
-
       if (handle->adpcmBuffer) _aax_aligned_free(handle->adpcmBuffer);
 
       _aaxDataDestroy(handle->wavBuffer);
@@ -535,6 +526,8 @@ _wav_close(_ext_t *ext)
          handle->fmt->close(handle->fmt);
          _fmt_free(handle->fmt);
       }
+
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 
@@ -1561,6 +1554,21 @@ _aaxFormatDriverReadID3Header(pdmp3_handle *id, struct _meta_t *handle)
                    v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'P')
                {
                   handle->copyright = strdup(v2->text[i].text.p);
+               } else
+               if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'C' &&
+                   v2->text[i].id[2] == 'O' && v2->text[i].id[3] == 'N')
+               {
+                  handle->genre = strdup(v2->text[i].text.p);
+               } else
+               if (v2->text[i].id[0] == 'T' && v2->text[i].id[1] == 'D' &&
+                   v2->text[i].id[2] == 'R' && v2->text[i].id[3] == 'C')
+               {
+                  handle->date = strdup(v2->text[i].text.p);
+               } else
+               if (v2->text[i].id[0] == 'C' && v2->text[i].id[1] == 'O' &&
+                   v2->text[i].id[2] == 'M' && v2->text[i].id[3] == 'M')
+               {
+                  handle->comments = stradd(handle->comments, v2->text[i].text.p);
                } else
                if (v2->text[i].id[0] == 'W' && v2->text[i].id[1] == 'O' &&
                    v2->text[i].id[2] == 'A' && v2->text[i].id[3] == 'R')

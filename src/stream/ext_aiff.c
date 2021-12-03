@@ -440,19 +440,6 @@ _aiff_close(_ext_t *ext)
 
    if (handle)
    {
-      if (handle->meta.artist) free(handle->meta.artist);
-      if (handle->meta.title) free(handle->meta.title);
-      if (handle->meta.album) free(handle->meta.album);
-      if (handle->meta.trackno) free(handle->meta.trackno);
-      if (handle->meta.date) free(handle->meta.date);
-      if (handle->meta.genre) free(handle->meta.genre);
-      if (handle->meta.copyright) free(handle->meta.copyright);
-      if (handle->meta.comments) free(handle->meta.comments);
-      if (handle->meta.composer) free(handle->meta.composer);
-      if (handle->meta.original) free(handle->meta.original);
-      if (handle->meta.website) free(handle->meta.website);
-      if (handle->meta.image) free(handle->meta.image);
-
       if (handle->adpcmBuffer) _aax_aligned_free(handle->adpcmBuffer);
 
       _aaxDataDestroy(handle->aiffBuffer);
@@ -461,6 +448,8 @@ _aiff_close(_ext_t *ext)
          handle->fmt->close(handle->fmt);
          _fmt_free(handle->fmt);
       }
+
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 
@@ -918,6 +907,7 @@ if (curr == 0x464f524d) // FORM
          if (handle->info.fmt == AAX_FORMAT_NONE) {
             rv = __F_EOF;
          }
+printf("aiff format: %x, aax format: %x\n", handle->aiff_format, handle->info.fmt);
       }
       else {
          rv = __F_EOF;
@@ -979,13 +969,13 @@ if (curr == 0x464f524d) // FORM
          handle->meta.title = stradd(handle->meta.title, field);
          break;
       case 0x41555448: // AUTH
-         handle->meta.composer = stradd(handle->meta.composer, field);
+         handle->meta.artist = stradd(handle->meta.artist, field);
          break;
       case 0x28632920: // (c) 
          handle->meta.copyright = stradd(handle->meta.copyright, field);
          break;
       case 0x414e4e4f: // ANNO
-         handle->meta.title = stradd(handle->meta.title, field);
+         handle->meta.comments = stradd(handle->meta.comments, field);
          break;
       default:
          break;

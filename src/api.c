@@ -636,3 +636,19 @@ _aaxURLConstruct(char *url1, char *url2)
    return strdup(url);
 }
 
+void
+_aax_free_meta(struct _meta_t *meta)
+{
+      if (meta->trackno) free(meta->trackno);
+      if (meta->artist) free(meta->artist);
+      if (meta->title) free(meta->title);
+      if (meta->album) free(meta->album);
+      if (meta->date) free(meta->date);
+      if (meta->genre) free(meta->genre);
+      if (meta->comments) free(meta->comments);
+      if (meta->composer) free(meta->composer);
+      if (meta->copyright) free(meta->copyright);
+      if (meta->original) free(meta->original);
+      if (meta->website) free(meta->website);
+      if (meta->image) free(meta->image);
+}

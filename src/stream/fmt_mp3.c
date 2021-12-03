@@ -574,18 +574,7 @@ _mp3_close(_fmt_t *fmt)
       }
       _aaxDataDestroy(handle->mp3Buffer);
 
-      if (handle->meta.trackno) free(handle->meta.trackno);
-      if (handle->meta.artist) free(handle->meta.artist);
-      if (handle->meta.title) free(handle->meta.title);
-      if (handle->meta.album) free(handle->meta.album);
-      if (handle->meta.date) free(handle->meta.date);
-      if (handle->meta.genre) free(handle->meta.genre);
-      if (handle->meta.comments) free(handle->meta.comments);
-      if (handle->meta.composer) free(handle->meta.composer);
-      if (handle->meta.copyright) free(handle->meta.copyright);
-      if (handle->meta.original) free(handle->meta.original);
-      if (handle->meta.website) free(handle->meta.website);
-      if (handle->meta.image) free(handle->meta.image);
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 }
