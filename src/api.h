@@ -162,6 +162,7 @@ struct _meta_t
    char *composer;
    char *comments;
    char *copyright;
+   char *contact;
    char *website;
    char *image;
 };

@@ -42,21 +42,10 @@
 typedef struct
 {
    void *id;
-   char *artist;
-   char *original;
-   char *title;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *composer;
-   char *comments;
-   char *copyright;
-   char *website;
-   char *image;
+
+   struct _meta_t meta;
 
    int mode;
-
    char capturing;
 
    uint8_t no_tracks;
@@ -192,18 +181,7 @@ _flac_close(_fmt_t *fmt)
 
       _aaxDataDestroy(handle->flacBuffer);
 
-      free(handle->trackno);
-      free(handle->artist);
-      free(handle->title);
-      free(handle->album);
-      free(handle->date);
-      free(handle->genre);
-      free(handle->comments);
-      free(handle->composer);
-      free(handle->copyright);
-      free(handle->original);
-      free(handle->website);
-      free(handle->image);
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 }

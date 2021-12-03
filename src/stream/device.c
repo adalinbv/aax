@@ -136,18 +136,8 @@ typedef struct
 {
    void *handle;
    char *name;
-   char *artist;
-   char *original;
-   char *title;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *composer;
-   char *comments;
-   char *copyright;
-   char *contact;
-   char *image;
+
+   struct _meta_t meta;
 
    char copy_to_buffer; // true if Capture has to copy the data unmodified
    char start_with_fill;
@@ -435,23 +425,12 @@ _aaxStreamDriverDisconnect(void *id)
          free(handle->render);
       }
 
-      if (handle->trackno) free(handle->trackno);
-      if (handle->artist) free(handle->artist);
-      if (handle->title) free(handle->title);
-      if (handle->album) free(handle->album);
-      if (handle->date) free(handle->date);
-      if (handle->genre) free(handle->genre);
-      if (handle->comments) free(handle->comments);
-      if (handle->composer) free(handle->composer);
-      if (handle->copyright) free(handle->copyright);
-      if (handle->original) free(handle->original);
-      if (handle->contact) free(handle->contact);
-      if (handle->image) free(handle->image);
-
       _aaxDataDestroy(handle->threadBuffer);
       if (handle->interfaces) {
          free(handle->interfaces);
       }
+
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 
@@ -1107,52 +1086,52 @@ _aaxStreamDriverSetName(const void *id, int type, const char *name)
       {
       case AAX_MUSIC_PERFORMER_STRING:
       case AAX_MUSIC_PERFORMER_UPDATE:
-         handle->artist = strdup(name);
+         handle->meta.artist = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_TRACK_TITLE_STRING:
       case AAX_TRACK_TITLE_UPDATE:
-         handle->title = strdup(name);
+         handle->meta.title = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_MUSIC_GENRE_STRING:
-         handle->genre = strdup(name);
+         handle->meta.genre = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_TRACK_NUMBER_STRING:
-         handle->trackno = strdup(name);
+         handle->meta.trackno = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_ALBUM_NAME_STRING:
-         handle->album = strdup(name);
+         handle->meta.album = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_RELEASE_DATE_STRING:
-         handle->date = strdup(name);
+         handle->meta.date = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_SONG_COMPOSER_STRING:
-         handle->composer = strdup(name);
+         handle->meta.composer = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_SONG_COPYRIGHT_STRING:
-         handle->copyright = strdup(name);
+         handle->meta.copyright = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_SONG_COMMENT_STRING:
-         handle->comments = strdup(name);
+         handle->meta.comments = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_ORIGINAL_PERFORMER_STRING:
-         handle->original = strdup(name);
+         handle->meta.original = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_CONTACT_STRING:
-         handle->contact = strdup(name);
+         handle->meta.contact = strdup(name);
          ret = AAX_TRUE;
          break;
       case AAX_COVER_IMAGE_DATA:
-         handle->image = strdup(name);
+         handle->meta.image = strdup(name);
          ret = AAX_TRUE;
          break;
       default:
@@ -1198,7 +1177,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_ARTIST);
                }
                if (!ret) {
-                  ret = handle->artist;
+                  ret = handle->meta.artist;
                }
                break;
             case AAX_MUSIC_PERFORMER_UPDATE:
@@ -1209,7 +1188,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_ARTIST|__F_NAME_CHANGED);
                }
                if (!ret) {
-                  ret = handle->artist;
+                  ret = handle->meta.artist;
                }
                break;
             case AAX_TRACK_TITLE_STRING:
@@ -1220,7 +1199,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_TITLE);
                }
                if (!ret) {
-                  ret = handle->title;
+                  ret = handle->meta.title;
                }
                break;
             case AAX_TRACK_TITLE_UPDATE:
@@ -1231,7 +1210,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_TITLE|__F_NAME_CHANGED);
                }
                if (!ret) {
-                  ret = handle->title;
+                  ret = handle->meta.title;
                }
                break;
             case AAX_MUSIC_GENRE_STRING:
@@ -1242,7 +1221,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_GENRE);
                }
                if (!ret) {
-                  ret = handle->genre;
+                  ret = handle->meta.genre;
                }
                break;
             case AAX_TRACK_NUMBER_STRING:
@@ -1253,7 +1232,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_TRACKNO);
                }
                if (!ret) {
-                  ret = handle->trackno;
+                  ret = handle->meta.trackno;
                }
                break;
             case AAX_ALBUM_NAME_STRING:
@@ -1264,7 +1243,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_ALBUM);
                }
                if (!ret) {
-                  ret = handle->album;
+                  ret = handle->meta.album;
                }
                break;
             case AAX_RELEASE_DATE_STRING:
@@ -1275,7 +1254,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_DATE);
                }
                if (!ret) {
-                  ret = handle->date;
+                  ret = handle->meta.date;
                }
                break;
             case AAX_SONG_COMPOSER_STRING:
@@ -1286,7 +1265,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_COMPOSER);
                }
                if (!ret) {
-                  ret = handle->composer;
+                  ret = handle->meta.composer;
                }
                break;
             case AAX_SONG_COPYRIGHT_STRING:
@@ -1297,7 +1276,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_COPYRIGHT);
                }
                if (!ret) {
-                  ret = handle->copyright;
+                  ret = handle->meta.copyright;
                }
                break;
             case AAX_SONG_COMMENT_STRING:
@@ -1308,7 +1287,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                   ret = handle->ext->name(handle->ext, __F_COMMENT);
                }
                if (!ret) {
-                  ret = handle->comments;
+                  ret = handle->meta.comments;
                }
                break;
             case AAX_ORIGINAL_PERFORMER_STRING:
@@ -1319,7 +1298,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                    ret = handle->ext->name(handle->ext, __F_ORIGINAL);
                }
                if (!ret) {
-                  ret = handle->original;
+                  ret = handle->meta.original;
                }
                break;
             case AAX_CONTACT_STRING:
@@ -1330,13 +1309,13 @@ _aaxStreamDriverGetName(const void *id, int type)
                    ret = handle->ext->name(handle->ext, __F_WEBSITE);
                }
                if (!ret) {
-                  ret = handle->contact;
+                  ret = handle->meta.contact;
                }
                break;
             case AAX_COVER_IMAGE_DATA:
                ret = handle->ext->name(handle->ext, __F_IMAGE);
                if (!ret) {
-                  ret = handle->image;
+                  ret = handle->meta.image;
                }
                break;
             default:

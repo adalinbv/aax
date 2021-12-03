@@ -52,21 +52,11 @@ typedef struct
 typedef struct
 {
    void *id;
-   char *artist;
-   char *original;
-   char *title;
-   char *album;
-   char *trackno;
-   char *date;
-   char *genre;
-   char *composer;
-   char *comments;
-   char *copyright;
-   char *website;
-   char *image;
 
-   char capturing;
+   struct _meta_t meta;
+
    int mode;
+   char capturing;
 
    vorbis_info info;
    uint8_t bits_sample;
@@ -352,19 +342,6 @@ _vorbis_close(_fmt_t *fmt)
       stb_vorbis_close(handle->id);
       handle->id = NULL;
 
-      if (handle->trackno) free(handle->trackno);
-      if (handle->artist) free(handle->artist);
-      if (handle->title) free(handle->title);
-      if (handle->album) free(handle->album);
-      if (handle->date) free(handle->date);
-      if (handle->genre) free(handle->genre);
-      if (handle->comments) free(handle->comments);
-      if (handle->composer) free(handle->composer);
-      if (handle->copyright) free(handle->copyright);
-      if (handle->original) free(handle->original);
-      if (handle->website) free(handle->website);
-      if (handle->image) free(handle->image);
-
       if (handle->out)
       {
          pvorbis_analysis_wrote(&handle->out->vd, 0);
@@ -377,6 +354,8 @@ _vorbis_close(_fmt_t *fmt)
       }
 
       _aaxDataDestroy(handle->vorbisBuffer);
+
+      _aax_free_meta(&handle->meta);
       free(handle);
    }
 }
@@ -631,47 +610,47 @@ _vorbis_set_name(_fmt_t *fmt, enum _aaxStreamParam param, const char *desc)
    switch(param)
    {
    case __F_ARTIST:
-      handle->artist = (char*)desc;
+      handle->meta.artist = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_TITLE:
-      handle->title = (char*)desc;
+      handle->meta.title = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_GENRE:
-      handle->genre = (char*)desc;
+      handle->meta.genre = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_TRACKNO:
-      handle->trackno = (char*)desc;
+      handle->meta.trackno = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_ALBUM:
-      handle->album = (char*)desc;
+      handle->meta.album = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_DATE:
-      handle->date = (char*)desc;
+      handle->meta.date = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_COMPOSER:
-      handle->composer = (char*)desc;
+      handle->meta.composer = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_COMMENT:
-      handle->comments = (char*)desc;
+      handle->meta.comments = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_COPYRIGHT:
-      handle->copyright = (char*)desc;
+      handle->meta.copyright = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_ORIGINAL:
-      handle->original = (char*)desc;
+      handle->meta.original = (char*)desc;
       rv = AAX_TRUE;
       break;
    case __F_WEBSITE:
-      handle->website = (char*)desc;
+      handle->meta.website = (char*)desc;
       rv = AAX_TRUE;
       break;
    default:
@@ -689,40 +668,40 @@ _vorbis_name(_fmt_t *fmt, enum _aaxStreamParam param)
    switch(param)
    {
    case __F_ARTIST:
-      rv = handle->artist;
+      rv = handle->meta.artist;
       break;
    case __F_TITLE:
-      rv = handle->title;
+      rv = handle->meta.title;
       break;
    case __F_COMPOSER:
-      rv = handle->composer;
+      rv = handle->meta.composer;
       break;
    case __F_GENRE:
-      rv = handle->genre;
+      rv = handle->meta.genre;
       break;
    case __F_TRACKNO:
-      rv = handle->trackno;
+      rv = handle->meta.trackno;
       break;
    case __F_ALBUM:
-      rv = handle->album;
+      rv = handle->meta.album;
       break;
    case __F_DATE:
-      rv = handle->date;
+      rv = handle->meta.date;
       break;
    case __F_COMMENT:
-      rv = handle->comments;
+      rv = handle->meta.comments;
       break;
    case __F_COPYRIGHT:
-      rv = handle->copyright;
+      rv = handle->meta.copyright;
       break;
    case __F_ORIGINAL:
-      rv = handle->original;
+      rv = handle->meta.original;
       break;
    case __F_WEBSITE:
-      rv = handle->website;
+      rv = handle->meta.website;
       break;
    case __F_IMAGE:
-      rv = handle->image;
+      rv = handle->meta.image;
       break;
    default:
       break;
@@ -830,33 +809,33 @@ _detect_vorbis_song_info(_driver_t *handle)
   stradd(&handle->comments, comment);
 #endif
        if (!STRCMP(comment, "TRACKNUMBER")) {
-          handle->trackno = stradd(handle->trackno, comment+strlen("TRACKNUMBER="));
+          handle->meta.trackno = stradd(handle->meta.trackno, comment+strlen("TRACKNUMBER="));
        } else if (!STRCMP(comment, "TITLE")) {
-          handle->title = stradd(handle->title, comment+strlen("TITLE="));
+          handle->meta.title = stradd(handle->meta.title, comment+strlen("TITLE="));
        } else if (!STRCMP(comment, "ARTIST")) {
-          handle->composer = stradd(handle->composer, comment+strlen("ARTIST="));
+          handle->meta.composer = stradd(handle->meta.composer, comment+strlen("ARTIST="));
        } else if (!STRCMP(comment, "ALBUM ARTIST")) {
-          handle->artist = stradd(handle->artist, comment+strlen("ALBUM ARTIST="));
+          handle->meta.artist = stradd(handle->meta.artist, comment+strlen("ALBUM ARTIST="));
        } else if (!STRCMP(comment, "ALBUMARTIST")) {
-          handle->artist = stradd(handle->artist, comment+strlen("ALBUMARTIST="));
+          handle->meta.artist = stradd(handle->meta.artist, comment+strlen("ALBUMARTIST="));
        } else if (!STRCMP(comment, "PERFORMER")) {
-          handle->artist = stradd(handle->artist, comment+strlen("PERFORMER="));
+          handle->meta.artist = stradd(handle->meta.artist, comment+strlen("PERFORMER="));
        } else if (!STRCMP(comment, "COPYRIGHT")) {
-          handle->copyright = stradd(handle->copyright, comment+strlen("COPYRIGHT="));
+          handle->meta.copyright = stradd(handle->meta.copyright, comment+strlen("COPYRIGHT="));
        } else if (!STRCMP(comment, "ALBUM")) {
-          handle->album = stradd(handle->album, comment+strlen("ALBUM="));
+          handle->meta.album = stradd(handle->meta.album, comment+strlen("ALBUM="));
        } else if (!STRCMP(comment, "GENRE")) {
-          handle->genre = stradd(handle->genre, comment+strlen("GENRE="));
+          handle->meta.genre = stradd(handle->meta.genre, comment+strlen("GENRE="));
        } else if (!STRCMP(comment, "DATE")) {
-          handle->date = stradd(handle->date, comment+strlen("DATE="));
+          handle->meta.date = stradd(handle->meta.date, comment+strlen("DATE="));
        } else if (!STRCMP(comment, "CONTACT")) {
-          handle->website = stradd(handle->website, comment+strlen("CONTACT="));
+          handle->meta.website = stradd(handle->meta.website, comment+strlen("CONTACT="));
        } else if (!STRCMP(comment, "DESCRIPTION")) {
-          handle->comments = stradd(handle->comments, comment+strlen("DESCRIPTION="));
+          handle->meta.comments = stradd(handle->meta.comments, comment+strlen("DESCRIPTION="));
        } else if (!STRCMP(comment, "COMMENT")) {
-          handle->comments = stradd(handle->comments, comment+strlen("COMMENT="));
+          handle->meta.comments = stradd(handle->meta.comments, comment+strlen("COMMENT="));
        } else {
-          handle->comments = stradd(handle->comments, comment);
+          handle->meta.comments = stradd(handle->meta.comments, comment);
        }
    }
 
