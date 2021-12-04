@@ -181,7 +181,7 @@ _snd_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
          if (handle->sndBuffer)
          {
             ssize_t size = *bufsize;
-            size_t step = 0;
+            size_t step;
             int res;
 
             res = _aaxDataAdd(handle->sndBuffer, buf, size);
@@ -193,6 +193,7 @@ _snd_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
              * the start of the data section
              */
             size -= res;
+            step = fsize;
             res = _aaxFormatDriverReadHeader(handle, &step);
 #if 0
  printf("format: 0x%x, rate: %f, no_samples: %li, bits/sample: %i, tracks: %i\n", handle->info.fmt, handle->info.rate, handle->info.no_samples, handle->bits_sample, handle->info.no_tracks);
@@ -537,6 +538,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
    size_t bufsize = _aaxDataGetDataAvail(handle->sndBuffer);
    uint8_t *buf = _aaxDataGetData(handle->sndBuffer);
    uint8_t *ch = (uint8_t*)buf;
+   size_t fsize = *step;
    int rv = __F_EOF;
    uint32_t curr;
 
@@ -551,7 +553,11 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          uint32_t clen;
 
          curr = read32be(&ch, &bufsize);
-         handle->io.read.datasize = curr;
+         if (curr != -1) { // AUDIO_UNKNOWN_SIZE
+            handle->io.read.datasize = curr;
+         } else {
+            handle->io.read.datasize = fsize - handle->io.read.size;
+         }
 
          curr = read32be(&ch, &bufsize);
          handle->snd_format = curr;
