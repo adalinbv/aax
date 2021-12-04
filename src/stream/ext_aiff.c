@@ -99,8 +99,6 @@ typedef struct
    _data_t *aiffBuffer;
    size_t aiffBufSize;
 
-   int32_t *adpcmBuffer;
-
 } _driver_t;
 
 static enum aaxFormat _getAAXFormatFromAIFFFormat(unsigned int, int);
@@ -110,7 +108,6 @@ static const char* _getNameFromAIFFFormat(enum aiffCompression);
 static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
 static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 
-#define COMMENT_SIZE		1024
 #define AIFF_HEADER_SIZE	(3+3+20+4)
 
 #ifdef PRINT
@@ -440,8 +437,6 @@ _aiff_close(_ext_t *ext)
 
    if (handle)
    {
-      if (handle->adpcmBuffer) _aax_aligned_free(handle->adpcmBuffer);
-
       _aaxDataDestroy(handle->aiffBuffer);
       if (handle->fmt)
       {
@@ -682,7 +677,7 @@ _aiff_name(_ext_t *ext, enum _aaxStreamParam param)
 char*
 _aiff_interfaces(UNUSED(int ext), int mode)
 {
-   static const char *rd[2] = { "*.aiff *.aif\0", "*.aiff\0" };
+   static const char *rd[2] = { "*.aiff\0", "*.aiff\0" };
    return (char *)rd[mode];
 }
 

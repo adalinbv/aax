@@ -759,7 +759,7 @@ char*
 _ogg_interfaces(int ext, int mode)
 {
    static const char *ogg_exts[_EXT_PCM - _EXT_OGG] = {
-      "*.ogg *.oga", "*.opus"
+      "*.ogg", "*.opus"
    };
    static char *rd[2][_EXT_PCM - _EXT_OGG] = {
       { NULL, NULL },
@@ -1442,8 +1442,6 @@ _getOggIdentification(_driver_t *handle, unsigned char *ch, size_t len)
 // https://xiph.org/vorbis/doc/v-comment.html
 // https://wiki.xiph.org/OggOpus#Content_Type
 // https://wiki.xiph.org/OggPCM#Comment_packet
-#define COMMENT_SIZE    1024
-
 static int
 _getOggOpusComment(_driver_t *handle, unsigned char *h, size_t len)
 {

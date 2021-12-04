@@ -152,7 +152,6 @@ static void* _aaxFormatDriverUpdateHeader(_driver_t*, ssize_t *);
 static uint32_t _aaxRouterFromMSChannelMask(uint32_t, uint8_t);
 static void _wav_cvt_msadpcm_to_ima4(_driver_t*, int32_ptr, ssize_t*);
 
-#define COMMENT_SIZE		1024
 #define WAVE_HEADER_SIZE	(3+6+2)
 #define WAVE_EXT_HEADER_SIZE	(3+20)
 

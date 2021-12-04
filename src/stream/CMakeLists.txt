@@ -19,6 +19,7 @@ set(STREAM_SOURCES
   extension.c
   ext_ogg.c
   ext_raw.c
+  ext_snd.c
   ext_wav.c
   ext_aiff.c
   ext_pat.c

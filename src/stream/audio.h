@@ -37,6 +37,7 @@ extern "C" {
 #include <3rdparty/pdmp3.h>
 
 #define MAX_ID_STRLEN			128
+#define COMMENT_SIZE			1024
 
 #ifdef WIN32
 // TODO: Needs fixing # define WINXP

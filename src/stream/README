@@ -17,13 +17,13 @@ input/output (TODO: Use libcurl if available)
 file extension (container format)
 ----------------------------------------------
   * extension
-    + wav
+    + wav/aif(f)/snd/au
       - handle container header
       * format (pcm, mp3)
     + pat
       - handle file structure
       * format (pcm)
-    + ogg
+    + ogg/(oga)
       - handle package headers
       * format (vorbis, opus, flac, speex)
     + raw

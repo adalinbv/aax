@@ -109,6 +109,32 @@ _ext_create(_ext_type_t extension)
          rv->cvt_to_intl = _ogg_cvt_to_intl;
       }
       break;
+    case _EXT_SND:
+      rv = calloc(1, sizeof(_ext_t));
+      if (rv)
+      {
+         rv->id = NULL;
+         rv->detect = _snd_detect;
+         rv->setup = _snd_setup;
+         rv->open = _snd_open;
+         rv->close = _snd_close;
+         rv->flush = _snd_flush;
+         rv->update = _snd_update;
+         rv->name = _snd_name;
+         rv->set_name = _snd_set_name;
+
+         rv->supported = _snd_extension;
+         rv->interfaces = _snd_interfaces;
+
+         rv->get_param = _snd_get;
+         rv->set_param = _snd_set;
+
+         rv->copy = _snd_copy;
+         rv->fill = _snd_fill;
+         rv->cvt_from_intl = _snd_cvt_from_intl;
+         rv->cvt_to_intl = _snd_cvt_to_intl;
+      }
+      break;
     case _EXT_PATCH:
       rv = calloc(1, sizeof(_ext_t));
       if (rv)

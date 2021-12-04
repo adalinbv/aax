@@ -40,6 +40,7 @@ extern "C" {
 
 typedef enum {
    _EXT_NONE = 0,
+   _EXT_SND,
    _EXT_WAV,
    _EXT_AIFF,
    _EXT_OGG,
@@ -303,6 +304,26 @@ size_t _ogg_copy(_ext_t*, int32_ptr, size_t, size_t*);
 size_t _ogg_fill(_ext_t*, void_ptr, ssize_t*);
 size_t _ogg_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
 size_t _ogg_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
+
+/* SND */
+int _snd_detect(_ext_t*, int);
+int _snd_setup(_ext_t*, int, size_t*, int, int, int, size_t, int);
+void* _snd_open(_ext_t*, void*, ssize_t*, size_t);
+int _snd_close(_ext_t*);
+int _snd_flush(_ext_t*);
+void* _snd_update(_ext_t*, size_t*, ssize_t*, char);
+char* _snd_name(_ext_t*, enum _aaxStreamParam);
+int _snd_set_name(_ext_t*, enum _aaxStreamParam, const char*);
+
+char* _snd_interfaces(int, int);
+int _snd_extension(char*);
+off_t _snd_get(_ext_t*, int);
+off_t _snd_set(_ext_t*, int, off_t);
+
+size_t _snd_copy(_ext_t*, int32_ptr, size_t, size_t*);
+size_t _snd_fill(_ext_t*, void_ptr, ssize_t*);
+size_t _snd_cvt_from_intl(_ext_t*, int32_ptrptr, size_t, size_t*);
+size_t _snd_cvt_to_intl(_ext_t*, void_ptr, const_int32_ptrptr, size_t, size_t*, void_ptr, size_t);
 
 /* PAT */
 int _pat_detect(_ext_t*, int);
