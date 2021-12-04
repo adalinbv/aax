@@ -413,7 +413,6 @@ readstr(uint8_t **ptr, char *buf, size_t len, size_t *buflen)
    uint8_t *ch = *ptr;
    size_t i;
 
-   buf[*buflen] = '\0';
    for (i=0; i<max; ++i) {
       *buf++ = *ch++;
    }
