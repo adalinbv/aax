@@ -902,7 +902,6 @@ if (curr == 0x464f524d) // FORM
          if (handle->info.fmt == AAX_FORMAT_NONE) {
             rv = __F_EOF;
          }
-printf("aiff format: %x, aax format: %x\n", handle->aiff_format, handle->info.fmt);
       }
       else {
          rv = __F_EOF;
