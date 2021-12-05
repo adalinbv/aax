@@ -364,6 +364,14 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                                                 handle->io.read.blockbufpos);
             }
 
+#if 1
+ printf("format: 0x%x\n", handle->info.fmt);
+ printf("sample rate: %5.1f\n", handle->info.rate);
+ printf("no. tracks : %i\n", handle->info.no_tracks);
+ printf("bits/sample: %i\n", handle->bits_sample);
+ printf("bitrate: %i\n", handle->bitrate);
+ printf("blocksize:  %i\n", handle->info.blocksize);
+#endif
             if (handle->fmt)
             {
                char *dataptr = _aaxDataGetData(handle->aiffBuffer);
@@ -895,10 +903,14 @@ if (curr == 0x464f524d) // FORM
 
       if (handle->bits_sample >= 4 && handle->bits_sample <= 64)
       {
-         handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
-         handle->bitrate = handle->info.rate*handle->bits_sample*handle->info.no_tracks;
+         int bps;
+
          handle->info.fmt = _getAAXFormatFromAIFFFormat(handle->aiff_format,
                                                         handle->bits_sample);
+
+         bps = aaxGetBitsPerSample(handle->info.fmt);
+         handle->info.blocksize = bps*handle->info.no_tracks/8;
+         handle->bitrate = bps*handle->info.rate*handle->info.no_tracks;
          if (handle->info.fmt == AAX_FORMAT_NONE) {
             rv = __F_EOF;
          }
@@ -995,7 +1007,7 @@ if (curr == 0x464f524d) // FORM
          handle->meta.comments = stradd(handle->meta.comments, field);
 
          // prevent compiler warnings
-         (void)MarkerID; 
+         (void)MarkerID;
          (void)timeStamp;
       }
       break;
