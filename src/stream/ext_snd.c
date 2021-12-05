@@ -219,6 +219,9 @@ _snd_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
 #endif
                   rv = handle->fmt->open(handle->fmt, handle->mode,
                                         buf, bufsize, handle->io.read.datasize);
+                  if (!rv && *bufsize) {
+                     _snd_fill(ext, buf, bufsize);
+                  }
                }
                else
                {
