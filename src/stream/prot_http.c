@@ -304,9 +304,24 @@ _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
             else if (!strncasecmp(prot->content_type, "audio/speex", len)) {
                rv = _FMT_SPEEX;
             }
+            else if (!strncasecmp(prot->content_type, "audio/wav", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-wav", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-pn-wav", len)) {
+               rv = _EXT_WAV;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/aiff", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-aiff", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-pn-aiff", len)) {
+               rv = _EXT_AIFF;
+            }
+            else if (!strncasecmp(prot->content_type, "audio/basic", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-basic", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-pn-au", len)) {
+               rv = _EXT_SND;
+            }
             else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
-               !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
-               !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
+                     !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
+                     !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
                !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
                !strncasecmp(prot->content_type, "application/mpegurl", len) ||
                !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
