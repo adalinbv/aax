@@ -364,7 +364,7 @@ _aiff_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
                                                 handle->io.read.blockbufpos);
             }
 
-#if 1
+#if 0
  printf("format: 0x%x\n", handle->info.fmt);
  printf("sample rate: %5.1f\n", handle->info.rate);
  printf("no. tracks : %i\n", handle->info.no_tracks);

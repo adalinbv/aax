@@ -65,17 +65,15 @@ typedef struct
 
    char *annotation;
 
-   int capturing;
    int mode;
-
    int bitrate;
    int bits_sample;
    size_t max_samples;
    _buffer_info_t info;
 
-   int snd_format;
+   enum sndEncoding encoding;
    char copy_to_buffer;
-   char au; // headerless, not snd which has a header
+   char capturing;
 
    union
    {
@@ -101,7 +99,7 @@ typedef struct
 } _driver_t;
 
 static enum aaxFormat _getAAXFormatFromSNDFormat(unsigned int);
-static int _aaxFormatDriverReadHeader(_driver_t*, size_t*);
+static int _aaxFormatDriverReadHeader(_driver_t*, uint8_t*, size_t, size_t*);
 
 #define SND_HEADER_SIZE		6
 #define DEFAULT_OUTPUT_RATE	8000
@@ -129,7 +127,7 @@ _snd_setup(_ext_t *ext, int mode, size_t *bufsize, int freq, int tracks, int for
       {
          handle->mode = mode;
          handle->capturing = (mode > 0) ? 0 : 1;
-         handle->snd_format = MULAW_SND_FILE;
+         handle->encoding = MULAW_SND_FILE;
          handle->bits_sample = bits_sample;
          handle->info.blocksize = tracks*bits_sample/8;
          handle->info.rate = freq;
@@ -169,129 +167,67 @@ _snd_open(_ext_t *ext, void_ptr buf, ssize_t *bufsize, size_t fsize)
    void *rv = NULL;
    if (handle)
    {
-      if (!handle->capturing) {	/* write */
+      if (!handle->sndBuffer) {
+         handle->sndBuffer = _aaxDataCreate(16384, 0);
       }
-			/* read: handle->capturing */
-      else if (!handle->fmt || !handle->fmt->open)
+
+      if (!handle->capturing) { // write
+      }
+      else if (buf && bufsize && *bufsize > SND_HEADER_SIZE)
       {
-         if (!handle->sndBuffer) {
-            handle->sndBuffer = _aaxDataCreate(16384, 0);
-         }
-
-         if (handle->sndBuffer)
+         int res = _aaxFormatDriverReadHeader(handle, buf, *bufsize, &fsize);
+         if (res > 0)
          {
-            ssize_t size = *bufsize;
-            size_t step;
-            int res;
+            _fmt_type_t fmt = _FMT_PCM;
 
-            res = _aaxDataAdd(handle->sndBuffer, buf, size);
-            *bufsize = res;
-            if (!res) return NULL;
+            buf = ((uint8_t*)buf+res);
+            *bufsize -= res;
 
-            /*
-             * read the file information and set the file-pointer to
-             * the start of the data section
-             */
-            size -= res;
-            step = fsize;
-            res = _aaxFormatDriverReadHeader(handle, &step);
-#if 0
- printf("format: 0x%x, rate: %f, no_samples: %li, bits/sample: %i, tracks: %i\n", handle->info.fmt, handle->info.rate, handle->info.no_samples, handle->bits_sample, handle->info.no_tracks);
-#endif
-
-            if (!handle->fmt)
+            handle->fmt = _fmt_create(fmt, handle->mode);
+            if (handle->fmt)
             {
-               _fmt_type_t fmt = _FMT_PCM;
-               handle->fmt = _fmt_create(fmt, handle->mode);
-               if (!handle->fmt) {
-                  *bufsize = 0;
-                  return rv;
-               }
-
                handle->fmt->open(handle->fmt, handle->mode, NULL, NULL, 0);
                handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
                handle->fmt->set(handle->fmt, __F_COPY_DATA, handle->copy_to_buffer);
-               if (!handle->fmt->setup(handle->fmt, fmt, handle->info.fmt))
+               if (handle->fmt->setup(handle->fmt, fmt, handle->info.fmt))
+               {
+                  handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.rate);
+                  handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
+                  handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->info.no_samples);
+                  handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
+
+                  if (handle->info.fmt == AAX_IMA4_ADPCM)
+                  {
+                     handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
+                                 handle->info.blocksize/handle->info.no_tracks);
+                     handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
+                                  MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize,
+                                                       handle->info.no_tracks));
+                  } else {
+                     handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
+                                                   handle->info.blocksize);
+                  }
+                  handle->fmt->set(handle->fmt, __F_POSITION,
+                                                handle->io.read.blockbufpos);
+#if 0
+ printf("format: 0x%x\n", handle->info.fmt);
+ printf("sample rate: %5.1f\n", handle->info.rate);
+ printf("no. tracks : %i\n", handle->info.no_tracks);
+ printf("bits/sample: %i\n", handle->bits_sample);
+ printf("bitrate: %i\n", handle->bitrate);
+ printf("blocksize:  %i\n", handle->info.blocksize);
+#endif
+                  rv = handle->fmt->open(handle->fmt, handle->mode,
+                                        buf, bufsize, handle->io.read.datasize);
+               }
+               else
                {
                   *bufsize = 0;
                   handle->fmt = _fmt_free(handle->fmt);
-                  return rv;
-               }
-
-               handle->fmt->set(handle->fmt, __F_FREQUENCY, handle->info.rate);
-               handle->fmt->set(handle->fmt, __F_BITRATE, handle->bitrate);
-               handle->fmt->set(handle->fmt, __F_TRACKS, handle->info.no_tracks);
-               handle->fmt->set(handle->fmt,__F_NO_SAMPLES, handle->info.no_samples);
-               handle->fmt->set(handle->fmt, __F_BITS_PER_SAMPLE, handle->bits_sample);
-               if (handle->info.fmt == AAX_IMA4_ADPCM) {
-                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE,
-                                   handle->info.blocksize/handle->info.no_tracks);
-                  handle->fmt->set(handle->fmt, __F_BLOCK_SAMPLES,
-                                  MSIMA_BLOCKSIZE_TO_SMP(handle->info.blocksize,
-                                                         handle->info.no_tracks));
-               } else {
-                  handle->fmt->set(handle->fmt, __F_BLOCK_SIZE, handle->info.blocksize);
-               }
-               handle->fmt->set(handle->fmt, __F_POSITION,
-                                                handle->io.read.blockbufpos);
-            }
-
-            if (handle->fmt)
-            {
-               char *dataptr = _aaxDataGetData(handle->sndBuffer);
-               ssize_t datasize = _aaxDataGetDataAvail(handle->sndBuffer);
-               rv = handle->fmt->open(handle->fmt, handle->mode,
-                                      dataptr, &datasize,
-                                      handle->io.read.datasize);
-               if (!rv)
-               {
-                  if (datasize)
-                  {
-                      _aaxDataClear(handle->sndBuffer);
-                      _snd_fill(ext, dataptr, &datasize);
-                  }
-                  else {
-                     *bufsize = 0;
-                  }
                }
             }
-
-            if (res < 0)
-            {
-               if (res == __F_PROCESS) {
-                  return buf;
-               }
-               else if (size)
-               {
-                  _AAX_FILEDRVLOG("SND: Incorrect format");
-                  return rv;
-               }
-            }
-            else if (res > 0)
-            {
-               *bufsize = res;
-                return buf;
-            }
-            // else we're done decoding, return NULL
-         }
-         else
-         {
-            _AAX_FILEDRVLOG("SND: Incorrect format");
-            return rv;
          }
       }
-	/* Format requires more data to process it's own header */
-      else if (handle->fmt && handle->fmt->open)
-      {
-         rv = handle->fmt->open(handle->fmt, handle->mode, buf, bufsize,
-                                handle->io.read.datasize);
-         if (!rv && bufsize)
-         {
-            _aaxDataClear(handle->sndBuffer);
-            _snd_fill(ext, buf, bufsize);
-         }
-      }
-      else _AAX_FILEDRVLOG("SND: Unknown opening error");
    }
    else {
       _AAX_FILEDRVLOG("SND: Internal error: handle id equals 0");
@@ -504,7 +440,9 @@ _snd_get(_ext_t *ext, int type)
       rv = handle->info.vibrato_sweep*(1 << 24);
       break;
    default:
-      rv = handle->fmt->get(handle->fmt, type);
+      if (handle->fmt) {
+         rv = handle->fmt->get(handle->fmt, type);
+      }
       break;
    }
    return rv;
@@ -533,12 +471,10 @@ _snd_set(_ext_t *ext, int type, off_t value)
 
 /* -------------------------------------------------------------------------- */
 int
-_aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
+_aaxFormatDriverReadHeader(_driver_t *handle, uint8_t *buf, size_t bufsize, size_t *step)
 {
-   size_t bufsize = _aaxDataGetDataAvail(handle->sndBuffer);
-   uint8_t *buf = _aaxDataGetData(handle->sndBuffer);
-   uint8_t *ch = (uint8_t*)buf;
    size_t fsize = *step;
+   uint8_t *ch = buf;
    int rv = __F_EOF;
    uint32_t curr;
 
@@ -552,6 +488,8 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          char field[COMMENT_SIZE+1];
          uint32_t clen;
 
+         *step = rv = handle->io.read.size;
+
          curr = read32be(&ch, &bufsize);
          if (curr != -1) { // AUDIO_UNKNOWN_SIZE
             handle->io.read.datasize = curr;
@@ -560,7 +498,7 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          }
 
          curr = read32be(&ch, &bufsize);
-         handle->snd_format = curr;
+         handle->encoding = curr;
 
          curr = read32be(&ch, &bufsize);
          handle->info.rate = curr;
@@ -573,18 +511,19 @@ _aaxFormatDriverReadHeader(_driver_t *handle, size_t *step)
          readstr(&ch, field, clen, &bufsize);
          handle->annotation = strdup(field);
 
-         handle->info.fmt = _getAAXFormatFromSNDFormat(handle->snd_format);
+         handle->info.fmt = _getAAXFormatFromSNDFormat(handle->encoding);
+         handle->bits_sample = aaxGetBitsPerSample(handle->info.fmt);
+         handle->info.no_samples = handle->io.read.datasize/(handle->info.no_tracks*handle->bits_sample/8);
+         handle->info.blocksize = handle->bits_sample*handle->info.no_tracks/8;
+         handle->bitrate = handle->info.rate*handle->bits_sample*handle->info.no_tracks;
+
          if (handle->info.fmt == AAX_FORMAT_NONE) {
             rv = __F_EOF;
          }
-         else
-         {
-            handle->bits_sample = aaxGetBitsPerSample(handle->info.fmt);
-            handle->info.no_samples = handle->io.read.datasize/(handle->info.no_tracks*handle->bits_sample/8);
-
-            *step = rv = ch-buf;
-            handle->io.read.size -= rv;
-         }
+#if 0
+ printf("format: 0x%x, bits/sample: %i, rate: %f, tracks: %i\n", 
+         handle->info.fmt, handle->bits_sample, handle->info.rate, handle->info.no_tracks);
+#endif
       }
    }
    return rv;
