@@ -387,7 +387,7 @@ off_t
 _snd_get(_ext_t *ext, int type)
 {
    _driver_t *handle = ext->id;
-   off_t rv;
+   off_t rv = 0;
 
    switch (type)
    {
