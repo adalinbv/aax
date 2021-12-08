@@ -279,7 +279,7 @@ _http_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
 int
 _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
 {
-   int rv = -1;
+   int rv = 0;
    if (prot && prot->content_type)
    {
       char *end = strchr(prot->content_type, ';');

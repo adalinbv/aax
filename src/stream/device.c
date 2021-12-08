@@ -535,7 +535,18 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                   res = AAX_TRUE;
                }
             }
-            else if (!handle->ext)
+            else
+            {
+               handle->ext = _ext_free(handle->ext);
+               handle->ext = _aaxGetFormat(handle->name, handle->mode);
+               if (handle->ext)
+               {
+                  handle->no_bytes = rv;
+                  res = AAX_TRUE;
+               }
+            }
+
+            if (!handle->ext)
             {
                _aaxStreamDriverLog(id, 0, 0, "Unsupported file extension");
                handle->io->close(handle->io);
