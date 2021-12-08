@@ -40,7 +40,7 @@
 #include <aax/aax.h>
 
 #include <base/timer.h>
-#include "audio.h"
+#include "io.h"
 
 #ifndef O_BINARY
 # define O_BINARY	0
@@ -50,7 +50,7 @@
 #define THRESHOLD	(IOBUF_SIZE/16)
 
 int
-_file_open(_io_t *io, const char* pathname)
+_file_open(_io_t *io, const char* pathname, UNUSED(const char*path))
 {
    io->fds.fd = open(pathname, io->param[_IO_FILE_FLAGS], io->param[_IO_FILE_MODE]);
    io->timer = _aaxTimerCreate();
@@ -192,3 +192,10 @@ _file_get(_io_t *io, enum _aaxStreamParam ptype)
    }
    return rv;
 }
+
+char*
+_file_name(_io_t *io, enum _aaxStreamParam ptype)
+{
+   return NULL;
+}
+

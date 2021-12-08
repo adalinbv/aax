@@ -58,7 +58,7 @@
 #include <base/timer.h>
 #include <base/dlsym.h>
 
-#include "audio.h"
+#include "io.h"
 
 DECL_FUNCTION(OPENSSL_init_ssl);
 DECL_FUNCTION(SSL_new);
@@ -76,13 +76,16 @@ DECL_FUNCTION(SSL_get_current_cipher);
 DECL_FUNCTION(SSL_get_error);
 
 int
-_socket_open(_io_t *io, const char *server)
+_socket_open(_io_t *io, const char *remote, const char *pathname)
 {
+   static int recursive = 0;
    static void *audio = NULL;
    int size = io->param[_IO_SOCKET_SIZE];
    int port = io->param[_IO_SOCKET_PORT];
    int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
    int res, fd = -1;
+
+   recursive++;
 
 #ifdef WIN32
 // The WSAStartup function initiates use of the Winsock DLL by a process.
@@ -124,9 +127,9 @@ _socket_open(_io_t *io, const char *server)
    }
    io->error_max = (unsigned)(3000.0f/timeout_ms); // 3.0 sec.
 
-   if (server && (size > 4000) && (port > 0))
+   if (remote && (size > 4000) && (port > 0))
    {
-      int slen = strlen(server);
+      int slen = strlen(remote);
       if (slen < 256)
       {
          // Two tries, first a secure connection, then a plain text connection
@@ -166,7 +169,7 @@ _socket_open(_io_t *io, const char *server)
  printf("socket receive buffer size: %u\n", n);
 #endif
 
-               host = gethostbyname(server);
+               host = gethostbyname(remote);
                if (host)
                {
                   struct sockaddr_in dest_addr;
@@ -223,6 +226,38 @@ _socket_open(_io_t *io, const char *server)
             msecSleep(200);
          }
          while (--tries);
+
+         if (fd != -1 && recursive < 5)
+         {
+            const char *agent = aaxGetVersionString(NULL);
+            char *protname, *server, *extension;
+            char *path = (char*)pathname;
+            char *s = (char*)remote;
+
+            res = io->prot->connect(io->prot, io, &s, path, agent);
+            if (res == -300)
+            {
+               _protocol_t protocol;
+
+               io->prot = _prot_free(io->prot);
+               _socket_close(io);
+
+               protocol = _url_split(s, &protname, &server, &path,
+                                        &extension, &port);
+#if 0
+ printf("\nredirect name: '%s'\n", remote);
+ printf("protocol: '%s'\n", protname);
+ printf("server: '%s'\n", server);
+ printf("path: '%s'\n", path);
+ printf("ext: '%s'\n", extension);
+ printf("port: %i\n", port);
+#endif
+               io->prot = _prot_create(protocol);
+               if (io->prot) {
+                  fd = _socket_open(io, server, path);
+               }
+            }
+         }
       }
       else {
          errno = ENAMETOOLONG;
@@ -231,6 +266,8 @@ _socket_open(_io_t *io, const char *server)
    else {
       errno = EACCES;
    }
+
+   recursive--;
 
    return fd;
 }
@@ -278,6 +315,17 @@ _socket_read(_io_t *io, void *buf, size_t count)
    }
    else {
       io->error_ctr = 0;
+   }
+
+   if (rv > 0 && io->prot)
+   {
+      int res;
+      res = io->prot->process(io->prot, buf, count);
+      if (res > 0)
+      {
+         count -= res;
+         memmove(buf, (char*)buf+res, count);
+      }
    }
 
    return rv;
@@ -345,8 +393,22 @@ _socket_get(UNUSED(_io_t *io), enum _aaxStreamParam ptype)
       rv = -1;
       break;
    case __F_NO_BYTES:
-   default:
       break;
+   default:
+      if (io->prot) {
+         rv = io->prot->get_param(io->prot, ptype);
+      }
+      break;
+   }
+   return rv;
+}
+
+char*
+_socket_name(_io_t *io, enum _aaxStreamParam ptype)
+{
+   char *rv = NULL;
+   if (io->prot) {
+      rv = io->prot->name(io->prot, ptype);
    }
    return rv;
 }

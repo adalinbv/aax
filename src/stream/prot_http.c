@@ -40,6 +40,7 @@
 #include "device.h"
 #include "audio.h"
 #include "arch.h"
+#include "io.h"
 
 #define MAX_HEADER	512
 #define STREAMTITLE	"StreamTitle='"

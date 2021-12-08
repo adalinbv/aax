@@ -35,6 +35,7 @@ extern "C" {
 #include <base/dlsym.h>
 #include <backends/driver.h>
 #include <3rdparty/pdmp3.h>
+#include "api.h"
 
 #define MAX_ID_STRLEN			128
 #define COMMENT_SIZE			1024
@@ -113,10 +114,8 @@ enum _aaxStreamParam
    __F_FAST_RELEASE
 };
 
-#include "io.h"
 #include "format.h"
 #include "extension.h"
-#include "protocol.h"
 
 /* MIDI support */
 float note2freq(uint8_t);

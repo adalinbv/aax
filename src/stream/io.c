@@ -43,6 +43,7 @@ _io_create(int protocol)
          rv->write = _socket_write;
          rv->set_param = _socket_set;
          rv->get_param = _socket_get;
+         rv->name = _socket_name;
          rv->wait = _socket_wait;
 
          rv->param[_IO_SOCKET_SIZE] = 2048;
@@ -57,6 +58,7 @@ _io_create(int protocol)
          rv->update_header = _file_update_header;
          rv->set_param = _file_set;
          rv->get_param = _file_get;
+         rv->name = _file_name;
          rv->wait = _file_wait;
 
          rv->param[_IO_FILE_FLAGS] = 0;
@@ -64,11 +66,12 @@ _io_create(int protocol)
          break;
       default:
          free(rv);
-         rv = NULL;
+         return NULL;
          break;
       }
 
-      if (rv)
+      rv->prot = _prot_create(protocol);
+      if (rv->prot)
       {
          rv->protocol = protocol;
          rv->fds.fd = -1;
@@ -81,6 +84,9 @@ _io_create(int protocol)
 void*
 _io_free(_io_t* io)
 {
+   if (io->prot) {
+      io->prot = _prot_free(io->prot);
+   }
    free(io);
    return 0;
 }

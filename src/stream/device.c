@@ -52,7 +52,7 @@
 #include <dsp/effects.h>
 #include <software/renderer.h>
 #include "device.h"
-#include "audio.h"
+#include "io.h"
 
 #define BACKEND_NAME_ALIAS	"Audio Files"
 #define BACKEND_NAME		"Audio Stream"
@@ -161,7 +161,6 @@ typedef struct
    unsigned int out_hdr_size;
 
    _io_t *io;
-   _prot_t *prot;
    _ext_t* ext;
 
    char *interfaces;
@@ -412,9 +411,6 @@ _aaxStreamDriverDisconnect(void *id)
          handle->io->close(handle->io);
          handle->io = _io_free(handle->io);
       }
-      if (handle->prot) {
-         handle->prot = _prot_free(handle->prot);
-      }
       if (handle->out_header) {
          free(handle->out_header);
       }
@@ -526,63 +522,24 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          handle->io->set_param(handle->io, __F_RATE, *refresh_rate);
          handle->io->set_param(handle->io, __F_PORT, port);
          handle->io->set_param(handle->io, __F_TIMEOUT, (int)period_ms);
-         if (handle->io->open(handle->io, server) >= 0)
+         if (handle->io->open(handle->io, server, path) >= 0)
          {
-            handle->prot = _prot_create(protocol);
-            if (handle->prot)
+            int fmt = handle->io->get_param(handle->io, __F_EXTENSION);
+            if (fmt)
             {
-               const char *agent = aaxGetVersionString((aaxConfig)id);
-               ssize_t rv;
-               int num = 25;
-               do {
-                  char *s = server;
-                  rv = handle->prot->connect(handle->prot, handle->io,
-                                              &s, path, agent);
-                  if (rv == -300)
-                  {
-                     handle->prot = _prot_free(handle->prot);
-                     handle->io->close(handle->io);
-
-                     protocol = _url_split(s, &protname, &server, &path,
-                                              &extension, &port);
-
-                     if (handle->io->open(handle->io, server) < 0) break;
-                     handle->prot = _prot_create(protocol);
-                     if (!handle->prot) break;
-                  }
-               } while (rv < 0 && --num);
-
-               if (rv < 0)
+               handle->ext = _ext_free(handle->ext);
+               handle->ext = _ext_create(fmt);
+               if (handle->ext)
                {
-                  _aaxStreamDriverLog(id, 0, 0, "Unable to open connection");
-                  handle->prot = _prot_free(handle->prot);
-                  handle->io->close(handle->io);
-                  handle->io = _io_free(handle->io);
-               }
-               else
-               {
-                  int fmt = handle->prot->get_param(handle->prot,__F_EXTENSION);
-                  if (fmt)
-                  {
-                     handle->ext = _ext_free(handle->ext);
-                     handle->ext = _ext_create(fmt);
-                     if (handle->ext)
-                     {
-                        handle->no_bytes = rv;
-                        res = AAX_TRUE;
-                     }
-                  }
-                  else if (!handle->ext)
-                  {
-                     _aaxStreamDriverLog(id, 0, 0, "Unsupported file extension");
-                     handle->prot = _prot_free(handle->prot);
-                     handle->io->close(handle->io);
-                     handle->io = _io_free(handle->io);
-                  }
+                  handle->no_bytes = rv;
+                  res = AAX_TRUE;
                }
             }
-            else {
-               _aaxStreamDriverLog(id, 0, 0, "Unknow protocol");
+            else if (!handle->ext)
+            {
+               _aaxStreamDriverLog(id, 0, 0, "Unsupported file extension");
+               handle->io->close(handle->io);
+               handle->io = _io_free(handle->io);
             }
          }
          else {
@@ -591,7 +548,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          break;
       case PROTOCOL_DIRECT:
          handle->io->set_param(handle->io, __F_FLAGS, handle->mode);
-         if (handle->io->open(handle->io, path) >= 0)
+         if (handle->io->open(handle->io, path, NULL) >= 0)
          {
             handle->ext = _ext_free(handle->ext);
             handle->ext = _aaxGetFormat(handle->name, handle->mode);
@@ -631,9 +588,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
       int file_format = _FMT_NONE;
       size_t period_frames;
 
-      if (handle->prot) {
-         file_format = handle->prot->get_param(handle->prot, __F_FMT);
-      }
+      file_format = handle->io->get_param(handle->io, __F_FMT);
       if (file_format == _FMT_NONE) {
          file_format = handle->ext->supported(extension);
       }
@@ -690,18 +645,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                {
                   _aaxStreamDriverLog(id, 0, 0, "Timeout");
                   break;
-               }
-
-               if (handle->prot)
-               {
-                  int r;
-
-                  r = handle->prot->process(handle->prot, handle->threadBuffer, res);
-                  if (r > 0)
-                  {
-                     _aaxDataMove(handle->threadBuffer, NULL, r);
-                     res -= r;
-                  }
                }
             }
 
@@ -806,9 +749,6 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
          if (!rv)
          {
             handle->ext = _ext_free(handle->ext);
-            if (handle->prot) {
-               handle->prot = _prot_free(handle->prot);
-            }
             handle->io->close(handle->io);
             handle->io = _io_free(handle->io);
          }
@@ -842,7 +782,7 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
     * which always opens a file in playback mode.
     */
    if (handle->io->fds.fd < 0) {
-      handle->io->open(handle->io, handle->name);
+      handle->io->open(handle->io, handle->name, NULL);
    }
 
    if (handle->out_header)
@@ -1170,9 +1110,7 @@ _aaxStreamDriverGetName(const void *id, int type)
             switch (type)
             {
             case AAX_MUSIC_PERFORMER_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_ARTIST);
-               }
+               ret = handle->io->name(handle->io, __F_ARTIST);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_ARTIST);
                }
@@ -1181,9 +1119,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_MUSIC_PERFORMER_UPDATE:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_ARTIST|__F_NAME_CHANGED);
-               }
+               ret = handle->io->name(handle->io, __F_ARTIST|__F_NAME_CHANGED);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_ARTIST|__F_NAME_CHANGED);
                }
@@ -1192,9 +1128,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_TRACK_TITLE_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_TITLE);
-               }
+               ret = handle->io->name(handle->io, __F_TITLE);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_TITLE);
                }
@@ -1203,9 +1137,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_TRACK_TITLE_UPDATE:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_TITLE|__F_NAME_CHANGED);
-               }
+               ret = handle->io->name(handle->io, __F_TITLE|__F_NAME_CHANGED);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_TITLE|__F_NAME_CHANGED);
                }
@@ -1214,9 +1146,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_MUSIC_GENRE_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_GENRE);
-               }
+               ret = handle->io->name(handle->io, __F_GENRE);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_GENRE);
                }
@@ -1225,9 +1155,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_TRACK_NUMBER_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_TRACKNO);
-               }
+               ret = handle->io->name(handle->io, __F_TRACKNO);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_TRACKNO);
                }
@@ -1236,9 +1164,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_ALBUM_NAME_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_ALBUM);
-               }
+               ret = handle->io->name(handle->io, __F_ALBUM);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_ALBUM);
                }
@@ -1247,9 +1173,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_RELEASE_DATE_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_DATE);;
-               }
+               ret = handle->io->name(handle->io, __F_DATE);;
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_DATE);
                }
@@ -1258,9 +1182,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_SONG_COMPOSER_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_COMPOSER);
-               }
+               ret = handle->io->name(handle->io, __F_COMPOSER);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_COMPOSER);
                }
@@ -1269,9 +1191,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_SONG_COPYRIGHT_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_COPYRIGHT);
-               }
+               ret = handle->io->name(handle->io, __F_COPYRIGHT);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_COPYRIGHT);
                }
@@ -1280,9 +1200,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_SONG_COMMENT_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_COMMENT);
-               }
+               ret = handle->io->name(handle->io, __F_COMMENT);
                if (!ret) {
                   ret = handle->ext->name(handle->ext, __F_COMMENT);
                }
@@ -1291,9 +1209,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_ORIGINAL_PERFORMER_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_ORIGINAL);
-               }
+               ret = handle->io->name(handle->io, __F_ORIGINAL);
                if (!ret) {
                    ret = handle->ext->name(handle->ext, __F_ORIGINAL);
                }
@@ -1302,9 +1218,7 @@ _aaxStreamDriverGetName(const void *id, int type)
                }
                break;
             case AAX_CONTACT_STRING:
-               if (handle->prot) {
-                  ret = handle->prot->name(handle->prot, __F_WEBSITE);
-               }
+               ret = handle->io->name(handle->io, __F_WEBSITE);
                if (!ret) {
                    ret = handle->ext->name(handle->ext, __F_WEBSITE);
                }
@@ -1927,9 +1841,6 @@ _aaxStreamDriverReadChunk(const void *id)
 #endif
 
       _aaxDataAdd(handle->threadBuffer, buffer, res);
-      if (handle->prot) {
-         handle->prot->process(handle->prot, handle->threadBuffer, res);
-      }
 
 #if USE_CAPTURE_THREAD
       _aaxMutexUnLock(handle->threadbuf_lock);
