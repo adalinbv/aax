@@ -451,7 +451,7 @@ _http_get_response_data(_io_t *io, char *response, int size)
    {
       i++;
 
-      j = 10;
+      j = 50;
       do
       {
          res = io->read(io, buf, 1);
