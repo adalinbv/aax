@@ -86,7 +86,6 @@ _prot_free(_prot_t *prot)
       if (prot->description) free(prot->description);
       if (prot->genre) free(prot->genre);
       if (prot->website) free(prot->website);
-      if (prot->metadata) free(prot->metadata);
       if (prot) free(prot);
    }
    return 0;

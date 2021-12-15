@@ -47,12 +47,12 @@
 #define HEADERLEN	strlen(STREAMTITLE)
 
 static int _http_send_request(_io_t*, const char*, const char*, const char*, const char*);
-static int _http_get_response(_io_t*, char*, int*);
-static const char *_get_yaml(const char*, const char*, size_t);
+static int _http_get_response(_io_t*, _data_t*, int*);
+static const char *_get_yaml(_data_t*, const char*);
 
 
 ssize_t
-_http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const char *agent)
+_http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char *path, const char *agent)
 {
    int res = _http_send_request(io, "GET", *server, path, agent);
 
@@ -62,41 +62,33 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
       prot->path = strdup(path);
    }
 
-#if 0
-  printf("GET: res: %i\n server: '%s'\n path: '%s'\n agent: '%s'\n", res, *server, path, agent);
-#endif
-
    if (res > 0)
    {
-      int max = 4096;
-      char buf[4096];
-
-      res = _http_get_response(io, buf, &max);
+      int size = _http_get_response(io, buf, &res);
       if (res >= 300 && res < 400) // Moved
       {
-           *server = (char*)_get_yaml(buf, "Location", max);
-           return -300;
+           *server = (char*)_get_yaml(buf, "Location");
+           res = -300;
       }
-
-      if (res >= 200 && res < 300)
+      else if (res >= 200 && res < 300)
       {
          const char *s;
+         size_t res = 0;
 
-         res = 0;
-         s = _get_yaml(buf, "content-length", max);
+         s = _get_yaml(buf, "content-length");
          if (s)
          {
             prot->no_bytes = strtol(s, NULL, 10);
             res = prot->no_bytes;
          }
 
-         s = _get_yaml(buf, "content-type", max);
+         s = _get_yaml(buf, "content-type");
          if (s) {
             prot->content_type = strdup(s);
          }
          if (s && _http_get(prot, __F_EXTENSION) != _EXT_NONE)
          {
-            s = _get_yaml(buf, "icy-name", max);
+            s = _get_yaml(buf, "icy-name");
             if (s)
             {
                int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
@@ -106,7 +98,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
                prot->station = strdup(s);
             }
 
-            s = _get_yaml(buf, "icy-description", max);
+            s = _get_yaml(buf, "icy-description");
             if (s)
             {
                int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
@@ -116,17 +108,17 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
                prot->description = strdup(s);
             }
 
-            s = _get_yaml(buf, "icy-genre", max);
+            s = _get_yaml(buf, "icy-genre");
             if (s) prot->genre = strdup(s);
 
-            s = _get_yaml(buf, "icy-url", max);
+            s = _get_yaml(buf, "icy-url");
             if (s) prot->website = strdup(s);
-            s = _get_yaml(buf, "icy-metaint", max);
+            s = _get_yaml(buf, "icy-metaint");
             if (s)
             {
                errno = 0;
                prot->meta_interval = strtol(s, NULL, 10);
-               prot->meta_pos = 0;
+               prot->meta_offset = prot->meta_interval;
                if (errno == ERANGE) {
                   _AAX_SYSLOG("stream meta out of range");
                }
@@ -135,6 +127,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
       }
 #if 0
  printf("server: %s\n", *server);
+ printf("reponse: %i\n", res);
  printf("type: %s\n", prot->content_type);
  printf("artist: %s\n", prot->artist);
  printf("station: %s\n", prot->station);
@@ -144,71 +137,42 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
  printf("url: %s\n", prot->website);
  printf("inteval %li\n", prot->meta_interval);
 #endif
+      _aaxDataMove(buf, NULL, size);
    }
    else {
       res = -res;
    }
+
    return res;
 }
 
+/*
+ * Read up to the meta-interval. If res > the remeaining bytes return the later.
+ * Process the meta-data at the start of buf, remove it afterwards
+ */
 int
-_http_process(_prot_t *prot, _data_t *buf, size_t res)
+_http_process(_prot_t *prot, _data_t *buf)
 {
-   size_t buffer_avail = _aaxDataGetDataAvail(buf);
-   unsigned int meta_len = 0;
-
+   int rv = _aaxDataGetDataAvail(buf);
    if (prot->meta_interval)
    {
-      prot->meta_pos += res;
-      while (prot->meta_pos >= prot->meta_interval)
+      // The first byte indicates the meta length devided by 16
+      // Empty meta information is indicated by a meta_len of 0
+      if (!prot->meta_offset)
       {
-         ssize_t meta_offs, block_len;
-         ssize_t offset = 0;
-         uint8_t msize = 0;
-
-         meta_offs = prot->meta_pos % prot->meta_interval;
-         offset += buffer_avail;
-         offset -= meta_offs;
-
-         // The first byte indicates the meta length devided by 16
-         // Empty meta information is indicated by a meta_len of 0
-         _aaxDataCopy(buf, &msize, offset, 1);
-         prot->meta_size = meta_len = msize*16;
-         if (offset+meta_len >= buffer_avail) break;
-
-         if (meta_len > 0)
+         char *metaptr = _aaxDataGetData(buf);
+         int meta_len = *metaptr++;
+         if (meta_len < rv)
          {
-            char *metaptr = prot->metadata;
-
-            if (meta_len > prot->metadata_len)
+            if (meta_len > HEADERLEN+strlen("'\0"))
             {
-               size_t len = SIZE_ALIGNED(meta_len+1);
-               if ((metaptr = realloc(prot->metadata, len)) == NULL) {
-                  break;
-               }
-
-               prot->metadata = metaptr;
-               prot->metadata_len = len;
-            }
-
-            if (!_aaxDataMoveOffset(buf, metaptr, offset, meta_len+1)) {
-               break;
-            }
-            metaptr = prot->metadata+1;
-
-            // meta_len > block_len means it's not an empty stream title.
-            // So we now have a continuous block of memory containing the
-            // stream title data.
-            block_len = HEADERLEN+1;
-            if (meta_len > block_len &&
-                !strncasecmp((char*)metaptr, STREAMTITLE, block_len-1))
-            {
-               char *artist = (char*)metaptr + HEADERLEN;
-               if (artist)
+               size_t header_len = meta_len - HEADERLEN;
+               if (!strncasecmp(metaptr, STREAMTITLE, HEADERLEN))
                {
-                  char *title = strnstr(artist, " - ", meta_len);
-                  char *end = strnstr(artist, "\';", meta_len);
-                  if (!end) end = strnstr(artist, "\'\0", meta_len);
+                  char *artist = metaptr + HEADERLEN;
+                  char *title = strnstr(artist, " - ", header_len);
+                  char *end = strnstr(artist, "\';", header_len);
+                  if (!end) end = strnstr(artist, "\'\0", header_len);
                   if (title)
                   {
                      *title = '\0';
@@ -243,21 +207,27 @@ _http_process(_prot_t *prot, _data_t *buf, size_t res)
                      prot->title[1] = '\0';
                      prot->title[0] = AAX_TRUE;
                   }
-                  prot->meta_size -= meta_len;
                   prot->metadata_changed = AAX_TRUE;
                }
             }
-         } // if (meta_len > 0)
-         else {
-            _aaxDataMoveOffset(buf, NULL, offset, 1);
+
+            prot->meta_offset = prot->meta_interval;
+            meta_len++; // meta_len itself is one byte
+            rv -= meta_len;
+
+            _aaxDataMove(buf, NULL, meta_len);
          }
-
-         meta_len++;     // add the meta_len-byte itself
-         prot->meta_pos -= (prot->meta_interval+meta_len);
-
-      } // while (prot->meta_pos >= prot->meta_interval)
+         else { // meta_len > size
+            rv = __F_NEED_MORE;
+         }
+      }
+      else // prot->meta_offset > 0
+      {
+         rv = _MIN(rv, prot->meta_offset);
+         prot->meta_offset -= rv;
+      }
    }
-   return meta_len;
+   return rv;
 }
 
 int
@@ -267,7 +237,7 @@ _http_set(_prot_t *prot, enum _aaxStreamParam ptype, ssize_t param)
    switch (ptype)
    {
    case __F_POSITION:
-      prot->meta_pos += param;
+//    prot->meta_pos += param;
       rv = 0;
       break;
    default:
@@ -440,8 +410,10 @@ _http_name(_prot_t *prot, enum _aaxStreamParam ptype)
 /* -------------------------------------------------------------------------- */
 
 static int
-_http_get_response_data(_io_t *io, char *response, int size)
+_http_get_response_data(_io_t *io, _data_t *databuf)
 {
+   char *response = _aaxDataGetData(databuf);
+   size_t size = _aaxDataGetSize(databuf);
    static char end[4] = "\r\n\r\n";
    char *buf = response;
    unsigned int found = 0;
@@ -454,13 +426,13 @@ _http_get_response_data(_io_t *io, char *response, int size)
       j = 50;
       do
       {
-         res = io->read(io, buf, 1);
+         res = io->read(io, databuf, 1);
          if (res > 0) break;
          msecSleep(10);
       }
       while (res == 0 && --j);
 
-      if (res == 1)
+      if (res >= 1)
       {
          if (*buf == end[found]) found++;
          else found = 0;
@@ -481,10 +453,11 @@ _http_get_response_data(_io_t *io, char *response, int size)
 int
 _http_send_request(_io_t *io, const char *command, const char *server, const char *path, const char *user_agent)
 {
-   char header[MAX_HEADER];
+   _data_t *buf = _aaxDataCreate(MAX_HEADER, 0);
+   char *header = _aaxDataGetData(buf);
    int hlen, rv = 0;
 
-   snprintf(header, MAX_HEADER,
+   snprintf(header, MAX_HEADER+1,
             "%s /%.256s HTTP/1.0\r\n"
             "User-Agent: %s\r\n"
             "Accept: */*\r\n"
@@ -495,42 +468,47 @@ _http_send_request(_io_t *io, const char *command, const char *server, const cha
 #endif
             "\r\n",
             command, path, user_agent, server);
-   header[MAX_HEADER-1] = '\0';
 
    hlen = strlen(header);
-   rv = io->write(io, header, hlen);
+   _aaxDataIncreaseOffset(buf, hlen);
+
+   rv = io->write(io, buf);
    if (rv != hlen) {
-      rv = -1;
+      rv = __F_EOF;
    }
+
+   _aaxDataDestroy(buf);
 
    return rv;
 }
 
 int
-_http_get_response(_io_t *io, char *buf, int *size)
+_http_get_response(_io_t *io, _data_t *buf, int *code)
 {
-   int res, rv = -1;
+   int res, rv = __F_EOF;
 
-   res = _http_get_response_data(io, buf, *size);
-   *size = res;
-   if (res > 0)
+   *code = 0;
+   rv = _http_get_response_data(io, buf);
+   if (rv > 0)
    {
-      res = sscanf(buf, "HTTP/1.%*d %03d", (int*)&rv);
+      char *ptr = _aaxDataGetData(buf);
+      res = sscanf(ptr, "HTTP/1.%*d %03d", code);
       if (res != 1)
       {
-         res =  sscanf(buf, "ICY %03d", (int*)&rv);
+         res =  sscanf(ptr, "ICY %03d", (int*)&rv);
          if (res != 1) {
-            rv = -1;
+            rv = __F_EOF;
          }
       }
    }
-
    return rv;
 }
 
 static const char*
-_get_yaml(const char *haystack, const char *needle, size_t haystacklen)
+_get_yaml(_data_t *databuf, const char *needle)
 {
+   size_t haystacklen = _aaxDataGetSize(databuf);
+   const char *haystack = _aaxDataGetData(databuf);
    static char buf[1024];
    char *start, *end;
    size_t pos;

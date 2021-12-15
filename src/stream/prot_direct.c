@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2020 by Erik Hofman.
- * Copyright 2009-2020 by Adalin B.V.
+ * Copyright 2005-2021 by Erik Hofman.
+ * Copyright 2009-2021 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -35,7 +35,7 @@
 #include "io.h"
 
 ssize_t
-_direct_connect(_prot_t *prot, UNUSED(_io_t *io), UNUSED(char **server), const char *path, UNUSED(const char *agent))
+_direct_connect(_prot_t *prot, UNUSED(_data_t *buf), UNUSED(_io_t *io), UNUSED(char **server), const char *path, UNUSED(const char *agent))
 {
    if (path) {
       prot->path = strdup(path);
@@ -44,9 +44,9 @@ _direct_connect(_prot_t *prot, UNUSED(_io_t *io), UNUSED(char **server), const c
 }
 
 int
-_direct_process(UNUSED(_prot_t *prot), UNUSED(_data_t *buf), UNUSED(size_t res))
+_direct_process(UNUSED(_prot_t *prot), _data_t *buf)
 {
-   return 0;
+   return _aaxDataGetDataAvail(buf);
 }
 
 int

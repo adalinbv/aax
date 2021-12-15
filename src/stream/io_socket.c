@@ -76,7 +76,7 @@ DECL_FUNCTION(SSL_get_current_cipher);
 DECL_FUNCTION(SSL_get_error);
 
 int
-_socket_open(_io_t *io, const char *remote, const char *pathname)
+_socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
 {
    static int recursive = 0;
    static void *audio = NULL;
@@ -145,9 +145,9 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
             {
                struct timeval tv;
                int on = 1;
-               
+
                tv.tv_sec = timeout_ms / 1000;
-               tv.tv_usec = (timeout_ms * 1000) % 1000000;              
+               tv.tv_usec = (timeout_ms * 1000) % 1000000;
 #ifdef SO_NOSIGPIPE
                setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
@@ -234,7 +234,7 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
             char *path = (char*)pathname;
             char *s = (char*)remote;
 
-            res = io->prot->connect(io->prot, io, &s, path, agent);
+            res = io->prot->connect(io->prot, buf, io, &s, path, agent);
             if (res == -300)
             {
                _protocol_t protocol;
@@ -246,6 +246,7 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
                                         &extension, &port);
 #if 0
  printf("\nredirect name: '%s'\n", remote);
+ printf("recursive: %i\n", recursive);
  printf("protocol: '%s'\n", protname);
  printf("server: '%s'\n", server);
  printf("path: '%s'\n", path);
@@ -253,8 +254,8 @@ _socket_open(_io_t *io, const char *remote, const char *pathname)
  printf("port: %i\n", port);
 #endif
                io->prot = _prot_create(protocol);
-               if (io->prot) {
-                  fd = _socket_open(io, server, path);
+               if (io->prot) { // recursively call _socket_open
+                  fd = _socket_open(io, buf, server, path);
                }
             }
          }
@@ -291,40 +292,38 @@ _socket_close(_io_t *io)
 }
 
 ssize_t
-_socket_read(_io_t *io, void *buf, size_t count)
+_socket_read(_io_t *io, _data_t *buf, size_t count)
 {
+   size_t size = _MIN(count, _aaxDataGetFreeSpace(buf));
+   void *ptr = _aaxDataGetPtr(buf);
    ssize_t rv = 0;
 
-   assert(buf);
-   assert(count);
-
-   if (io->ssl) {
-      rv = pSSL_read(io->ssl, buf, count);
-   }
-   else
+   if (size)
    {
-      do {
-         rv = recv(io->fds.fd, buf, count, 0);
-      } while (rv < 0 && errno == EINTR);
-   }
-
-   if (rv < 0 && (errno == EAGAIN || errno == EWOULDBLOCK)) {
-      if (++io->error_ctr < io->error_max) {
-         rv = 0;
+      if (io->ssl) {
+         rv = pSSL_read(io->ssl, ptr, size);
       }
-   }
-   else {
-      io->error_ctr = 0;
-   }
-
-   if (rv > 0 && io->prot)
-   {
-      int res;
-      res = io->prot->process(io->prot, buf, count);
-      if (res > 0)
+      else
       {
-         count -= res;
-         memmove(buf, (char*)buf+res, count);
+         do {
+            rv = recv(io->fds.fd, ptr, size, 0);
+         } while (rv < 0 && errno == EINTR);
+      }
+
+      if (rv >= 0)
+      {
+         io->error_ctr = 0;
+         _aaxDataIncreaseOffset(buf, rv);
+
+         if (io->prot) {
+            rv = io->prot->process(io->prot, buf);
+         }
+      }
+      else if (errno == EAGAIN || errno == EWOULDBLOCK)
+      {
+         if (++io->error_ctr < io->error_max) {
+            rv = 0;
+         }
       }
    }
 
@@ -332,18 +331,30 @@ _socket_read(_io_t *io, void *buf, size_t count)
 }
 
 ssize_t
-_socket_write(_io_t *io, const void *buf, size_t size)
+_socket_write(_io_t *io, _data_t *buf)
 {
-   ssize_t rv;
-
-   if (io->ssl) {
-      rv = pSSL_write(io->ssl, buf, size);
-   }
-   else
+   ssize_t rv = _aaxDataGetDataAvail(buf);
+   if (rv > 0)
    {
-      rv = send(io->fds.fd, buf, size, 0);
-      if (rv < 0 && errno == EINTR) rv = send(io->fds.fd, buf, size, 0);
+      void *data = _aaxDataGetData(buf);
+      ssize_t res = 0;
+
+      if (io->ssl) {
+         res = pSSL_write(io->ssl, data, rv);
+      }
+      else if (io->fds.fd >= 0)
+      {
+         res = send(io->fds.fd, data, rv, 0);
+         if (res < 0 && errno == EINTR) {
+            res = send(io->fds.fd,data, rv, 0);
+         }
+      }
+
+      if (res > 0) {
+         rv = _aaxDataMove(buf, NULL, res);
+      }
    }
+
    return rv;
 }
 
@@ -375,6 +386,9 @@ _socket_set(_io_t *io, enum _aaxStreamParam ptype, ssize_t param)
       break;
    case __F_TIMEOUT:
       io->param[_IO_SOCKET_TIMEOUT] = param;
+      rv = 0;
+      break;
+   case __F_POSITION:
       rv = 0;
       break;
    default:

@@ -1241,7 +1241,7 @@ _bufSetDataFromAAXS(_buffer_t *buffer, char *file, int level)
    {
       data = _bufGetDataFromStream(url, info, *buffer->mixer_info);
 #if 0
- printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %li\n", url, info->fmt, info->no_tracks, info->rate, info->no_samples, info->blocksize);
+ printf("url: '%s'\n\tfmt: %x, tracks: %i, freq: %4.1f, samples: %li, blocksize: %i\n", url, info->fmt, info->no_tracks, info->rate, info->no_samples, info->blocksize);
 #endif
    }
    free(url);

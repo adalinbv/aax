@@ -59,10 +59,11 @@ struct _io_st;
 struct stat;
 
 /* I/O related: file, socket, etc */
-typedef int _io_open_fn(struct _io_st*, const char*, const char*);
+typedef int _io_open_fn(struct _io_st*, _data_t*, const char*, const char*);
 typedef int _io_close_fn(struct _io_st*);
-typedef ssize_t _io_read_fn(struct _io_st*, void*, size_t);
-typedef ssize_t _io_write_fn(struct _io_st*, const void*, size_t);
+typedef ssize_t _io_read_fn(struct _io_st*, _data_t*, size_t);
+typedef ssize_t _io_write_fn(struct _io_st*, _data_t*);
+typedef ssize_t _io_update_fn(struct _io_st*, void*, size_t);
 typedef int _io_set_param_fn(struct _io_st*, enum _aaxStreamParam, ssize_t);
 typedef ssize_t _io_get_param_fn(struct _io_st*, enum _aaxStreamParam);
 typedef char* _io_name_fn(struct _io_st*, enum _aaxStreamParam);
@@ -74,7 +75,7 @@ struct _io_st
    _io_close_fn *close;
    _io_read_fn *read;
    _io_write_fn *write;
-   _io_write_fn *update_header;
+   _io_update_fn *update_header;
    _io_get_param_fn *get_param;
    _io_set_param_fn *set_param;
    _io_name_fn *name;
@@ -94,7 +95,6 @@ struct _io_st
    void *ssl_ctx;
 
    _prot_t *prot;
-   _data_t *dataBuffer;
 };
 typedef struct _io_st _io_t;
 
@@ -102,21 +102,21 @@ _io_t* _io_create(int);
 void* _io_free(_io_t*);
 
 /* file */
-int _file_open(_io_t*, const char*, const char*);
+int _file_open(_io_t*, _data_t*, const char*, const char*);
 int _file_close(_io_t*);
-ssize_t _file_read(_io_t*, void*, size_t);
-ssize_t _file_write(_io_t*, const void*, size_t);
-ssize_t _file_update_header(_io_t*, const void*, size_t);
+ssize_t _file_read(_io_t*, _data_t*, size_t);
+ssize_t _file_write(_io_t*, _data_t*);
+ssize_t _file_update_header(_io_t*, void*, size_t);
 int _file_set(_io_t*, int, ssize_t);
 ssize_t _file_get(_io_t*, int);
 char* _file_name(_io_t*, enum _aaxStreamParam);
 void _file_wait(_io_t*, float);
 
 /* socket */
-int _socket_open(_io_t*, const char*, const char*);
+int _socket_open(_io_t*, _data_t*, const char*, const char*);
 int _socket_close(_io_t*);
-ssize_t _socket_read(_io_t*, void*, size_t);
-ssize_t _socket_write(_io_t*, const void*, size_t);
+ssize_t _socket_read(_io_t*, _data_t*, size_t);
+ssize_t _socket_write(_io_t*, _data_t*);
 int _socket_set(_io_t*, int, ssize_t);
 ssize_t _socket_get(_io_t*, int);
 char* _socket_name(_io_t*, enum _aaxStreamParam);
