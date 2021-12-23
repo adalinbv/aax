@@ -164,6 +164,12 @@ typedef struct
    _data_t *ioBuffer;
    _data_t *rawBuffer;
 
+#if USE_CAPTURE_THREAD
+   // the recv function can block causing ioBufLock to be held for too long.
+   // use a separate buffer for recv to circumvent this problem.
+   _data_t *captureBuffer;
+#endif
+
 #if USE_PID
    struct {
       float I;
@@ -205,6 +211,9 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
       handle->mode = mode;
       handle->rawBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
       handle->ioBuffer = _aaxDataCreate(IOBUF_THRESHOLD, 1);
+#if USE_CAPTURE_THREAD
+      handle->captureBuffer = _aaxDataCreate(IOBUF_THRESHOLD, 1);
+#endif
    }
 
    return handle;
@@ -411,6 +420,9 @@ _aaxStreamDriverDisconnect(void *id)
       }
 
       _aaxDataDestroy(handle->ioBuffer);
+#if USE_CAPTURE_THREAD
+      _aaxDataDestroy(handle->captureBuffer);
+#endif
       if (handle->interfaces) {
          free(handle->interfaces);
       }
@@ -1764,6 +1776,37 @@ _aaxStreamDriverWriteThread(void *id)
 }
 #endif
 
+#if USE_CAPTURE_THREAD
+static ssize_t
+_aaxStreamDriverReadChunk(const void *id)
+{
+   _driver_t *handle = (_driver_t*)id;
+   _data_t *buf = handle->captureBuffer;
+   ssize_t res = 0;
+   size_t size;
+
+   if (_aaxDataGetDataAvail(buf) < 4096)
+   {
+      size = _aaxDataGetFreeSpace(buf);
+      res = handle->io->read(handle->io, buf, size);
+   }
+
+   size = _aaxDataGetDataAvail(buf);
+   if (size)
+   {
+      // Move data from captureBuffer to ioBuffer
+      _aaxMutexLock(handle->ioBufLock);
+      res = _aaxDataMoveData(buf, handle->ioBuffer, size);
+      _aaxMutexUnLock(handle->ioBufLock);
+   }
+
+   if (res == -1) {
+      handle->end_of_file = AAX_TRUE;
+   }
+
+   return res;
+}
+#else
 static ssize_t
 _aaxStreamDriverReadChunk(const void *id)
 {
@@ -1783,6 +1826,7 @@ _aaxStreamDriverReadChunk(const void *id)
 
    return res;
 }
+#endif
 
 #if USE_CAPTURE_THREAD
 static void*
