@@ -210,9 +210,9 @@ _aaxStreamDriverNewHandle(enum aaxRenderMode mode)
    {
       handle->mode = mode;
       handle->rawBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
-      handle->ioBuffer = _aaxDataCreate(IOBUF_THRESHOLD, 1);
+      handle->ioBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
 #if USE_CAPTURE_THREAD
-      handle->captureBuffer = _aaxDataCreate(IOBUF_THRESHOLD, 1);
+      handle->captureBuffer = _aaxDataCreate(IOBUF_SIZE, 1);
 #endif
    }
 
@@ -633,7 +633,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             {
                if (reqSize)
                {
-                  int tries = 50; /* approx. 50 miliseconds */
+                  int tries = 500; /* approx. 500 miliseconds */
                   do
                   { // no need to lock here: the capture thread is created later
                      res = handle->io->read(handle->io, buf, reqSize);
@@ -1785,7 +1785,7 @@ _aaxStreamDriverReadChunk(const void *id)
    ssize_t res = 0;
    size_t size;
 
-   if (_aaxDataGetDataAvail(buf) < 4096)
+   if (_aaxDataGetDataAvail(buf) < IOBUF_THRESHOLD)
    {
       size = _aaxDataGetFreeSpace(buf);
       res = handle->io->read(handle->io, buf, size);

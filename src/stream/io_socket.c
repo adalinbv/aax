@@ -68,8 +68,8 @@ DECL_FUNCTION(SSL_CTX_free);
 DECL_FUNCTION(SSL_set_fd);
 DECL_FUNCTION(SSL_connect);
 DECL_FUNCTION(SSL_shutdown);
-DECL_FUNCTION(SSL_read);
-DECL_FUNCTION(SSL_write);
+DECL_FUNCTION(SSL_read_ex);
+DECL_FUNCTION(SSL_write_ex);
 DECL_FUNCTION(TLS_client_method);
 DECL_FUNCTION(SSL_CIPHER_get_name);
 DECL_FUNCTION(SSL_get_current_cipher);
@@ -85,78 +85,72 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
    int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
    int res, fd = -1;
 
-   recursive++;
-
-#ifdef WIN32
-// The WSAStartup function initiates use of the Winsock DLL by a process.
-   WSADATA wsaData;
-   res = WSAStartup(MAKEWORD(1,1), &wsaData);
-   if (res)
-   {
-      errno = -res;
-      return fd;
-   }
-#endif
-
-   audio = _aaxIsLibraryPresent("ssl", "1.1");
-   if (audio)
-   {
-      _aaxGetSymError(0);
-
-      TIE_FUNCTION(SSL_new);
-      if (pSSL_new)
-      {
-         TIE_FUNCTION(SSL_free);
-         TIE_FUNCTION(OPENSSL_init_ssl);
-         TIE_FUNCTION(SSL_CTX_new);
-         TIE_FUNCTION(SSL_CTX_free);
-         TIE_FUNCTION(SSL_set_fd);
-         TIE_FUNCTION(SSL_connect);
-         TIE_FUNCTION(SSL_shutdown);
-         TIE_FUNCTION(SSL_read);
-         TIE_FUNCTION(SSL_write);
-         TIE_FUNCTION(TLS_client_method);
-         TIE_FUNCTION(SSL_CIPHER_get_name);
-         TIE_FUNCTION(SSL_get_current_cipher);
-         TIE_FUNCTION(SSL_get_error);
-      }
-   }
-
    if (timeout_ms < 5) {
       timeout_ms = 5;
    }
-   io->error_max = (unsigned)(3000.0f/timeout_ms); // 3.0 sec.
+
+   if (recursive++ == 0)
+   {
+#ifdef WIN32
+//    The WSAStartup function initiates use of the Winsock DLL by a process.
+      WSADATA wsaData;
+      res = WSAStartup(MAKEWORD(1,1), &wsaData);
+      if (res)
+      {
+         errno = -res;
+         return fd;
+      }
+#endif
+
+      audio = _aaxIsLibraryPresent("ssl", "1.1");
+      if (audio)
+      {
+         _aaxGetSymError(0);
+
+         TIE_FUNCTION(SSL_new);
+         if (pSSL_new)
+         {
+            TIE_FUNCTION(SSL_free);
+            TIE_FUNCTION(OPENSSL_init_ssl);
+            TIE_FUNCTION(SSL_CTX_new);
+            TIE_FUNCTION(SSL_CTX_free);
+            TIE_FUNCTION(SSL_set_fd);
+            TIE_FUNCTION(SSL_connect);
+            TIE_FUNCTION(SSL_shutdown);
+            TIE_FUNCTION(SSL_read_ex);
+            TIE_FUNCTION(SSL_write_ex);
+            TIE_FUNCTION(TLS_client_method);
+            TIE_FUNCTION(SSL_CIPHER_get_name);
+            TIE_FUNCTION(SSL_get_current_cipher);
+            TIE_FUNCTION(SSL_get_error);
+         }
+      }
+
+      io->error_max = (unsigned)(10000.0f/timeout_ms); // 10.0 sec.
+   }
 
    if (remote && (size > 4000) && (port > 0))
    {
       int slen = strlen(remote);
       if (slen < 256)
       {
-         // Two tries, first a secure connection, then a plain text connection
-         int tries = 2;
+         struct hostent *host;
 
-         do
+         errno = 0;
+         fd = socket(AF_INET, SOCK_STREAM, 0);
+         if (fd >= 0)
          {
-            struct hostent *host;
+            struct timeval tv;
+            int on = 1;
 
-            errno = 0;
-            fd = socket(AF_INET, SOCK_STREAM, 0);
-            if (fd >= 0)
-            {
-               struct timeval tv;
-               int on = 1;
-
-               tv.tv_sec = timeout_ms / 1000;
-               tv.tv_usec = (timeout_ms * 1000) % 1000000;
+            tv.tv_sec = timeout_ms / 1000;
+            tv.tv_usec = (timeout_ms * 1000) % 1000000;
+            setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
 #ifdef SO_NOSIGPIPE
-               setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
+            setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
 #endif
-               setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on,sizeof(on));
-               if (tries == 1) {
-                  setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv,
-                                                          sizeof(tv));
-               }
-               setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size,sizeof(size));
+            setsockopt(fd, SOL_SOCKET, SO_KEEPALIVE, (char*)&on,sizeof(on));
+            setsockopt(fd, SOL_SOCKET, SO_RCVBUF, (char*)&size, sizeof(size));
 #if 0
  unsigned int m;
  int n;
@@ -169,15 +163,15 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
  printf("socket receive buffer size: %u\n", n);
 #endif
 
-               host = gethostbyname(remote);
-               if (host)
-               {
-                  struct sockaddr_in dest_addr;
+            host = gethostbyname(remote);
+            if (host)
+            {
+               struct sockaddr_in dest_addr;
 
-                  dest_addr.sin_family = AF_INET;
-                  dest_addr.sin_port = htons(port);
-                  dest_addr.sin_addr.s_addr = *(long*)(host->h_addr);
-                  memset(&(dest_addr.sin_zero), '\0', 8);
+               dest_addr.sin_family = AF_INET;
+               dest_addr.sin_port = htons(port);
+               dest_addr.sin_addr.s_addr = *(long*)(host->h_addr);
+               memset(&(dest_addr.sin_zero), '\0', 8);
 
 #if 0
 {
@@ -186,46 +180,45 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
  printf( "address:%s\n", buffer );
 }
 #endif
-                  if (connect(fd, (struct sockaddr*)&dest_addr,
-                                  sizeof(struct sockaddr)) >= 0)
+               if (connect(fd, (struct sockaddr*)&dest_addr,
+                               sizeof(struct sockaddr)) >= 0)
+               {
+                  io->fds.fd = fd;
+
+                  if (io->protocol == PROTOCOL_HTTPS && pSSL_new)
                   {
-                     io->fds.fd = fd;
-
-                     if (io->protocol == PROTOCOL_HTTPS &&
-                         pSSL_new && tries == 2)
+                     void *method = pTLS_client_method();
+                     io->ssl_ctx = pSSL_CTX_new(method);
+                     if (io->ssl_ctx)
                      {
-                        void *method = pTLS_client_method();
-                        io->ssl_ctx = pSSL_CTX_new(method);
-                        if (io->ssl_ctx)
+                        io->ssl = pSSL_new(io->ssl_ctx);
+                        if (io->ssl)
                         {
-                           io->ssl = pSSL_new(io->ssl_ctx);
-                           if (io->ssl)
+                           pSSL_set_fd(io->ssl, fd);
+                           res = pSSL_connect(io->ssl);
+                           if (res <= 0)
                            {
-                              pSSL_set_fd(io->ssl, fd);
-                              res = pSSL_connect(io->ssl);
-                              if (res > 0) break;
-
                               pSSL_free(io->ssl);
                               io->ssl = NULL;
                            }
                         }
+                     }
 
+                     if (!io->ssl)
+                     {
                         pSSL_CTX_free(io->ssl_ctx);
                         closesocket(fd);
                         fd = -1;
                      }
                   }
                }
-               else
-               {
-                  closesocket(fd);
-                  fd = -1;
-               }
             }
-
-            msecSleep(200);
+            else
+            {
+               closesocket(fd);
+               fd = -1;
+            }
          }
-         while (--tries);
 
          if (fd != -1 && recursive < 5)
          {
@@ -300,12 +293,22 @@ _socket_read(_io_t *io, _data_t *buf, size_t count)
 
    if (size)
    {
-      if (io->ssl) {
-         rv = pSSL_read(io->ssl, ptr, size);
+      if (io->ssl)
+      {
+         size_t read;
+         if (pSSL_read_ex(io->ssl, ptr, size, &read)) {
+            rv = read;
+         }
+         else
+         {
+            errno = EAGAIN;
+            rv = -1;
+         }
       }
       else
       {
          do {
+            errno = 0;
             rv = recv(io->fds.fd, ptr, size, 0);
          } while (rv < 0 && errno == EINTR);
       }
@@ -339,15 +342,24 @@ _socket_write(_io_t *io, _data_t *buf)
       void *data = _aaxDataGetData(buf);
       ssize_t res = 0;
 
-      if (io->ssl) {
-         res = pSSL_write(io->ssl, data, rv);
+      if (io->ssl)
+      {
+         size_t written;
+         if (pSSL_write_ex(io->ssl, data, rv, &written)) {
+            rv = written;
+         }
+         else
+         {
+            errno = EAGAIN;
+            rv = -1;
+         }
       }
       else if (io->fds.fd >= 0)
       {
-         res = send(io->fds.fd, data, rv, 0);
-         if (res < 0 && errno == EINTR) {
-            res = send(io->fds.fd,data, rv, 0);
-         }
+         do {
+            errno = 0;
+            rv = send(io->fds.fd, data, rv, 0);
+         } while (rv < 0 && errno == EINTR);
       }
 
       if (res > 0) {

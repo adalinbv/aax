@@ -428,7 +428,7 @@ _http_get_response_data(_io_t *io, _data_t *databuf)
       {
          res = io->read(io, databuf, 1);
          if (res > 0) break;
-         msecSleep(10);
+         msecSleep(1);
       }
       while (res == 0 && --j);
 
