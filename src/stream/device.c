@@ -246,6 +246,11 @@ _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *dev
             renderer += devlenold;
             while (*renderer == ' ' && *renderer != '\0') renderer++;
          }
+         else
+         {
+            _AAX_FILEDRVLOG("File: renderer not supported.");
+            return NULL;
+         }
 
          if (strcasecmp(renderer, "default")) {
             s = _aax_strdup(renderer);
