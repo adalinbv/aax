@@ -373,7 +373,6 @@ _aaxStreamDriverDisconnect(void *id)
          _aaxThreadDestroy(handle->thread.ptr);
       }
 
-      _aaxDataDestroy(handle->rawBuffer);
       if (handle->name && handle->name != default_renderer) {
          free(handle->name);
       }
@@ -419,7 +418,8 @@ _aaxStreamDriverDisconnect(void *id)
          free(handle->render);
       }
 
-      _aaxDataDestroy(handle->ioBuffer);
+      handle->ioBuffer = _aaxDataDestroy(handle->ioBuffer);
+      handle->rawBuffer = _aaxDataDestroy(handle->rawBuffer);
 #if USE_CAPTURE_THREAD
       _aaxDataDestroy(handle->captureBuffer);
 #endif
