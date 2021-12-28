@@ -48,6 +48,7 @@ _prot_create(_protocol_t protocol)
       if (rv)
       {
          rv->connect = _http_connect;
+         rv->disconnect = _http_disconnect;
          rv->process = _http_process;
          rv->name = _http_name;
          rv->set_param = _http_set;
@@ -61,6 +62,7 @@ _prot_create(_protocol_t protocol)
       if (rv)
       {
          rv->connect = _direct_connect;
+         rv->disconnect = _direct_disconnect;
          rv->process = _direct_process;
          rv->name = _direct_name;
          rv->set_param = _direct_set;
@@ -78,16 +80,7 @@ _prot_create(_protocol_t protocol)
 void*
 _prot_free(_prot_t *prot)
 {
-   if (prot)
-   {
-      if (prot->path) free(prot->path);
-      if (prot->content_type) free(prot->content_type);
-      if (prot->station) free(prot->station);
-      if (prot->description) free(prot->description);
-      if (prot->genre) free(prot->genre);
-      if (prot->website) free(prot->website);
-      if (prot) free(prot);
-   }
+   _aax_free_meta(&prot->meta);
    return 0;
 }
 

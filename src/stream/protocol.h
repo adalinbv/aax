@@ -45,6 +45,7 @@ struct _io_st;
 struct _prot_st;
 
 typedef ssize_t _prot_connect_fn(struct _prot_st*, _data_t*, struct _io_st*, char**, const char*, const char*);
+typedef void _prot_disconnect_fn(struct _prot_st*);
 typedef int _prot_process_fn(struct _prot_st*, _data_t*);
 typedef int _prot_set_param_fn(struct _prot_st*, enum _aaxStreamParam, ssize_t);
 typedef int _prot_get_param_fn(struct _prot_st*, enum _aaxStreamParam);
@@ -53,6 +54,7 @@ typedef char* _prot_name_fn(struct _prot_st*, enum _aaxStreamParam);
 struct _prot_st
 {
    _prot_connect_fn *connect;
+   _prot_disconnect_fn *disconnect;
    _prot_process_fn *process;
    _prot_set_param_fn *set_param;
    _prot_get_param_fn *get_param;
@@ -64,17 +66,7 @@ struct _prot_st
    size_t meta_offset;
 
    char metadata_changed;
-   char *path;
-   char *station;
-   char *description;
-   char *genre;
-   char *website;
-   char *content_type;
-
-      // artist[0] = AAX_TRUE if changed since the last get
-   char artist[MAX_ID_STRLEN+1];
-      // title[0] = AAX_TRUE if changed since the last get
-   char title[MAX_ID_STRLEN+1];
+   struct _meta_t meta;
 };
 typedef struct _prot_st _prot_t;
 
@@ -85,6 +77,7 @@ void* _prot_free(_prot_t*);
 
 /* http protocol */
 ssize_t _http_connect(_prot_t*, _data_t*, struct _io_st*, char**, const char*, const char*);
+void _http_disconnect(_prot_t*);
 int _http_process(struct _prot_st*, _data_t*);
 int _http_set(_prot_t*, enum _aaxStreamParam, ssize_t);
 int _http_get(_prot_t*, enum _aaxStreamParam);
@@ -94,6 +87,7 @@ char* _http_name(_prot_t*, enum _aaxStreamParam);
 
 /* direct protocol */
 ssize_t _direct_connect(_prot_t*, _data_t*, struct _io_st*, char**, const char*, const char*);
+void _direct_disconnect(_prot_t*);
 int _direct_process(struct _prot_st*, _data_t*);
 int _direct_set(_prot_t*, enum _aaxStreamParam, ssize_t);
 int _direct_get(_prot_t*, enum _aaxStreamParam);

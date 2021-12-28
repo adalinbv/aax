@@ -38,9 +38,13 @@ ssize_t
 _direct_connect(_prot_t *prot, UNUSED(_data_t *buf), UNUSED(_io_t *io), UNUSED(char **server), const char *path, UNUSED(const char *agent))
 {
    if (path) {
-      prot->path = strdup(path);
+      prot->meta.comments = strdup(path);
    }
    return 0;
+}
+
+void
+_direct_disconnect(UNUSED(_prot_t *prot)) {
 }
 
 int
@@ -67,7 +71,7 @@ _direct_set(UNUSED(_prot_t *prot), enum _aaxStreamParam ptype, UNUSED(ssize_t pa
 int
 _direct_get(_prot_t *prot, enum _aaxStreamParam ptype)
 {
-   char *ext = prot->path ? strrchr(prot->path, '.') : NULL;
+   char *ext = prot->meta.comments ? strrchr(prot->meta.comments, '.') : NULL;
    int rv = -1;
 
    if (ext++)

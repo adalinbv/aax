@@ -42,6 +42,7 @@
 #include "arch.h"
 #include "io.h"
 
+#define INCLUDE_ICY	0
 #define MAX_HEADER	512
 #define STREAMTITLE	"StreamTitle='"
 #define HEADERLEN	strlen(STREAMTITLE)
@@ -55,12 +56,6 @@ ssize_t
 _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char *path, const char *agent)
 {
    int res = _http_send_request(io, "GET", *server, path, agent);
-
-   if (path)
-   {
-      if (prot->path) free(prot->path);
-      prot->path = strdup(path);
-   }
 
    if (res > 0)
    {
@@ -84,35 +79,32 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
 
          s = _get_yaml(buf, "content-type");
          if (s) {
-            prot->content_type = strdup(s);
+            prot->meta.comments = strdup(s);
          }
          if (s && _http_get(prot, __F_EXTENSION) != _EXT_NONE)
          {
             s = _get_yaml(buf, "icy-name");
             if (s)
             {
-               int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
-               memcpy(prot->artist+1, s, len);
-               prot->artist[len] = '\0';
-               prot->artist[0] = AAX_TRUE;
-               prot->station = strdup(s);
+               prot->meta.artist_changed = AAX_TRUE;
+               prot->meta.artist = strdup(s);
+               prot->meta.composer = strdup(s);
             }
 
             s = _get_yaml(buf, "icy-description");
             if (s)
             {
-               int len = _MIN(strlen(s)+1, MAX_ID_STRLEN);
-               memcpy(prot->title+1, s, len);
-               prot->title[len] = '\0';
-               prot->title[0] = AAX_TRUE;
-               prot->description = strdup(s);
+               prot->meta.title_changed = AAX_TRUE;
+               prot->meta.title = strdup(s);
+               prot->meta.album = strdup(s);
             }
 
             s = _get_yaml(buf, "icy-genre");
-            if (s) prot->genre = strdup(s);
+            if (s) prot->meta.genre = strdup(s);
 
             s = _get_yaml(buf, "icy-url");
-            if (s) prot->website = strdup(s);
+            if (s) prot->meta.website = strdup(s);
+
             s = _get_yaml(buf, "icy-metaint");
             if (s)
             {
@@ -128,13 +120,13 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
 #if 0
  printf("server: %s\n", *server);
  printf("reponse: %i\n", res);
- printf("type: %s\n", prot->content_type);
- printf("artist: %s\n", prot->artist);
- printf("station: %s\n", prot->station);
- printf("title: %s\n", prot->title);
- printf("description: %s\n", prot->description);
- printf("genre: %s\n", prot->genre);
- printf("url: %s\n", prot->website);
+ printf("type: %s\n", prot->meta.comments);
+ printf("artist: %s\n", prot->meta.artist);
+ printf("station: %s\n", prot->meta.composer);
+ printf("title: %s\n", prot->meta.title);
+ printf("description: %s\n", prot->meta.album);
+ printf("genre: %s\n", prot->meta.genre);
+ printf("url: %s\n", prot->meta.website);
  printf("inteval %li\n", prot->meta_interval);
 #endif
       _aaxDataMove(buf, NULL, size);
@@ -144,6 +136,12 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
    }
 
    return res;
+}
+
+void
+_http_disconnect(_prot_t *prot)
+{
+   _aax_free_meta(&prot->meta);
 }
 
 /*
@@ -182,31 +180,24 @@ _http_process(_prot_t *prot, _data_t *buf)
                      *end = '\0';
                   }
 
+                  prot->meta.artist_changed = AAX_TRUE;
+                  if (prot->meta.artist) free(prot->meta.artist);
                   if (artist && end)
                   {
-                     int len = _MIN(strlen(artist)+1, MAX_ID_STRLEN);
-                     memcpy(prot->artist+1, artist, len);
-                     prot->artist[len] = '\0';
-                     prot->artist[0] = AAX_TRUE;
+                     prot->meta.artist_changed = AAX_TRUE;
+                     prot->meta.artist = strdup(artist);
                   }
-                  else if (prot->artist[1] != '\0')
-                  {
-                     prot->artist[1] = '\0';
-                     prot->artist[0] = AAX_TRUE;
-                  }
+                  else prot->meta.artist = strdup("");
 
+                  prot->meta.title_changed = AAX_TRUE;
+                  if (prot->meta.title) free(prot->meta.title);
                   if (title && end)
                   {
-                     int len = _MIN(strlen(title)+1, MAX_ID_STRLEN);
-                     memcpy(prot->title+1, title, len);
-                     prot->title[len] = '\0';
-                     prot->title[0] = AAX_TRUE;
+                     prot->meta.title_changed = AAX_TRUE;
+                     prot->meta.title = strdup(title);
                   }
-                  else if (prot->title[1] != '\0')
-                  {
-                     prot->title[1] = '\0';
-                     prot->title[0] = AAX_TRUE;
-                  }
+                  else prot->meta.title = strdup("");
+
                   prot->metadata_changed = AAX_TRUE;
                }
             }
@@ -250,53 +241,53 @@ int
 _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
 {
    int rv = 0;
-   if (prot && prot->content_type)
+   if (prot && prot->meta.comments)
    {
-      char *end = strchr(prot->content_type, ';');
-      size_t len = end ? (end-prot->content_type) : strlen(prot->content_type);
+      char *end = strchr(prot->meta.comments, ';');
+      size_t len = end ? (end-prot->meta.comments) : strlen(prot->meta.comments);
 
       switch (ptype)
       {
       case __F_FMT:
-         if (prot->content_type)
+         if (prot->meta.comments)
          {
-            if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
+            if (!strncasecmp(prot->meta.comments, "audio/mpeg", len)) {
                rv = _FMT_MP3;
             }
-            else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/flac", len)) {
                rv = _FMT_FLAC;
             }
-            else if (!strncasecmp(prot->content_type, "audio/opus", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/opus", len)) {
                rv = _FMT_OPUS;
             }
-            else if (!strncasecmp(prot->content_type, "audio/vorbis", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/vorbis", len)) {
                rv = _FMT_VORBIS;
             }
-            else if (!strncasecmp(prot->content_type, "audio/speex", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/speex", len)) {
                rv = _FMT_SPEEX;
             }
-            else if (!strncasecmp(prot->content_type, "audio/wav", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-wav", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-pn-wav", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/wav", len) ||
+                     !strncasecmp(prot->meta.comments, "audio/x-wav", len) ||
+                     !strncasecmp(prot->meta.comments, "audio/x-pn-wav", len)) {
                rv = _EXT_WAV;
             }
-            else if (!strncasecmp(prot->content_type, "audio/aiff", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-aiff", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-pn-aiff", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/aiff", len) ||
+                     !strncasecmp(prot->meta.comments, "audio/x-aiff", len) ||
+                     !strncasecmp(prot->meta.comments, "audio/x-pn-aiff", len)) {
                rv = _EXT_AIFF;
             }
-            else if (!strncasecmp(prot->content_type, "audio/basic", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-basic", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-pn-au", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/basic", len) ||
+                     !strncasecmp(prot->meta.comments, "audio/x-basic", len) ||
+                     !strncasecmp(prot->meta.comments, "audio/x-pn-au", len)) {
                rv = _EXT_SND;
             }
-            else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
-                     !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/x-scpls", len) ||
+                     !strncasecmp(prot->meta.comments, "audio/x-mpegurl", len) ||
+                      !strncasecmp(prot->meta.comments, "audio/mpegurl", len) ||
+              !strncasecmp(prot->meta.comments, "application/x-mpegurl", len) ||
+                !strncasecmp(prot->meta.comments, "application/mpegurl", len) ||
++               !strncasecmp(prot->meta.comments, "application/vnd.apple.mpegurl", len) ||
+               !strncasecmp(prot->meta.comments, "application/vnd.apple.mpegurl.audio", len)) {
                rv = _FMT_PLAYLIST;
             }
             else {
@@ -308,32 +299,32 @@ _http_get(_prot_t *prot, enum _aaxStreamParam ptype)
          }
          break;
       case __F_EXTENSION:
-         if (prot->content_type)
+         if (prot->meta.comments)
          {
-            if (!strncasecmp(prot->content_type, "audio/wav", len) ||
-                !strncasecmp(prot->content_type, "audio/wave", len) ||
-                !strncasecmp(prot->content_type, "audio/x-wav", len)) {
+            if (!strncasecmp(prot->meta.comments, "audio/wav", len) ||
+                !strncasecmp(prot->meta.comments, "audio/wave", len) ||
+                !strncasecmp(prot->meta.comments, "audio/x-wav", len)) {
                rv = _EXT_WAV;
             }
-            else if (!strncasecmp(prot->content_type, "audio/ogg", len) ||
-                     !strncasecmp(prot->content_type, "application/ogg", len) ||
-                     !strncasecmp(prot->content_type, "audio/x-ogg", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/ogg", len) ||
+                    !strncasecmp(prot->meta.comments, "application/ogg", len) ||
+                    !strncasecmp(prot->meta.comments, "audio/x-ogg", len)) {
                rv = _EXT_OGG;
             }
-            else if (!strncasecmp(prot->content_type, "audio/mpeg", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/mpeg", len)) {
                rv = _EXT_MP3;
             }
-            else if (!strncasecmp(prot->content_type, "audio/flac", len)) {
+            else if (!strncasecmp(prot->meta.comments, "audio/flac", len)) {
                rv = _EXT_FLAC;
             }
-            else if (!strncasecmp(prot->content_type, "audio/x-scpls", len) ||
-               !strncasecmp(prot->content_type, "audio/x-mpegurl", len) ||
-               !strncasecmp(prot->content_type, "audio/mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/x-mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl", len) ||
-               !strncasecmp(prot->content_type, "application/vnd.apple.mpegurl.audio", len)) {
-               rv = _EXT_BYTESTREAM;
+            else if (!strncasecmp(prot->meta.comments, "audio/x-scpls", len) ||
+                    !strncasecmp(prot->meta.comments, "audio/x-mpegurl", len) ||
+                      !strncasecmp(prot->meta.comments, "audio/mpegurl", len) ||
+              !strncasecmp(prot->meta.comments, "application/x-mpegurl", len) ||
+                !strncasecmp(prot->meta.comments, "application/mpegurl", len) ||
+               !strncasecmp(prot->meta.comments, "application/vnd.apple.mpegurl", len) ||
+               !strncasecmp(prot->meta.comments, "application/vnd.apple.mpegurl.audio", len)) {
+
             }
             else {
                rv = _EXT_NONE;
@@ -357,46 +348,46 @@ _http_name(_prot_t *prot, enum _aaxStreamParam ptype)
    switch (ptype)
    {
    case __F_ARTIST:
-      if (prot->artist[1] != '\0')
+      if (prot->meta.artist_changed)
       {
-         ret = prot->artist+1;
-         prot->artist[0] = AAX_FALSE;
+         ret = prot->meta.artist;
+         prot->meta.artist_changed = AAX_FALSE;
       }
       break;
    case __F_TITLE:
-      if (prot->title[1] != '\0')
+      if (prot->meta.title_changed)
       {
-         ret = prot->title+1;
-         prot->title[0] = AAX_FALSE;
+         ret = prot->meta.title;
+         prot->meta.title_changed = AAX_FALSE;
       }
       break;
    case __F_GENRE:
-      ret = prot->genre;
+      ret = prot->meta.genre;
       break;
    case __F_ALBUM:
-      ret = prot->description;
+      ret = prot->meta.album;;
       break;
    case __F_COMPOSER:
-      ret = prot->station;
+      ret = prot->meta.composer;
       break;
    case __F_WEBSITE:
-      ret = prot->website;
+      ret = prot->meta.website;
       break;
    default:
       switch (ptype & ~__F_NAME_CHANGED)
       {
       case (__F_ARTIST):
-         if (prot->artist[0] == AAX_TRUE)
+         if (prot->meta.artist_changed)
          {
-            ret = prot->artist+1;
-            prot->artist[0] = AAX_FALSE;
+            ret = prot->meta.artist;
+            prot->meta.artist_changed = AAX_FALSE;
          }
          break;
       case (__F_TITLE):
-         if (prot->title[0] == AAX_TRUE)
+         if (prot->meta.title_changed)
          {
-            ret = prot->title+1;
-            prot->title[0] = AAX_FALSE;
+            ret = prot->meta.title;
+            prot->meta.title_changed = AAX_FALSE;
          }
          break;
       default:
@@ -463,7 +454,7 @@ _http_send_request(_io_t *io, const char *command, const char *server, const cha
             "Accept: */*\r\n"
             "Host: %s\r\n"
             "Connection: Keep-Alive\r\n"
-#ifndef RELEASE
+#if INCLUDE_ICY
             "Icy-MetaData:1\r\n"
 #endif
             "\r\n",
