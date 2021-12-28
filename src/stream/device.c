@@ -247,6 +247,11 @@ _aaxStreamDriverConnect(void *config, const void *id, void *xid, const char *dev
             renderer += devlenold;
             while (*renderer == ' ' && *renderer != '\0') renderer++;
          }
+         else
+         {
+            _AAX_FILEDRVLOG("File: renderer not supported.");
+            return NULL;
+         }
 
          if (strcasecmp(renderer, "default")) {
             s = _aax_strdup(renderer);
@@ -418,8 +423,8 @@ _aaxStreamDriverDisconnect(void *id)
          free(handle->render);
       }
 
-      handle->ioBuffer = _aaxDataDestroy(handle->ioBuffer);
-      handle->rawBuffer = _aaxDataDestroy(handle->rawBuffer);
+      _aaxDataDestroy(handle->ioBuffer);
+      _aaxDataDestroy(handle->rawBuffer);
 #if USE_CAPTURE_THREAD
       _aaxDataDestroy(handle->captureBuffer);
 #endif

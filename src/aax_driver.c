@@ -404,11 +404,16 @@ aaxDriverOpen(aaxConfig config)
             char *renderer;
 
             handle->backend.handle = be->connect(handle, nid, xoid, name, mode);
+            if (!handle->backend.handle) 
+            {
+               _AAX_SYSLOG(be->log(NULL, 0, 0, NULL));
+               return NULL;
+            }
 
             if (handle->backend.driver != _default_renderer) {
                free(handle->backend.driver);
             }
-            renderer = be->name(handle->backend.handle, mode?1:0);
+            renderer = be->name(handle->backend.handle, mode ? 1 : 0);
             if (!renderer) renderer = _default_renderer;
 
             handle->backend.driver = malloc(strlen(be->driver)
