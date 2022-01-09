@@ -386,7 +386,7 @@ _aaxBufResampleLinear_float_fma3(float32_ptr d, const_float32_ptr s, size_t dmin
          smu += freq_factor;
 
          // fmadd
-         dout = _mm_fmadd_ss(dout, tau, dsamp);
+         dout = _mm_fmadd_ss(tau, dsamp, dout);
 
          if (smu >= 1.0)
          {

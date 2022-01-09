@@ -1282,7 +1282,7 @@ _aaxBufResampleLinear_float_sse_vex(float32_ptr d, const_float32_ptr s, size_t d
          smu += freq_factor;
 
          // fmadd
-         dout = _mm_add_ss(dout, _mm_mul_ss(dsamp, tau));
+         dout = _mm_add_ss(_mm_mul_ss(dsamp, tau), dout);
 
          if (smu >= 1.0)
          {
