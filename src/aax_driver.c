@@ -403,6 +403,7 @@ aaxDriverOpen(aaxConfig config)
             const char* name = handle->devname[1];
             char *renderer;
 
+            if (!name) name = "default";
             handle->backend.handle = be->connect(handle, nid, xoid, name, mode);
             if (!handle->backend.handle) 
             {
