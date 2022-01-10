@@ -543,7 +543,6 @@ int main()		// x86		ARM
          printf("Bessel freqfilter %s:  %f ms - cpu x %2.1f\n", MKSTR(SIMD), eps*1000.0f, cpu/eps);
          TESTF("Bessel freqfilter "MKSTR(SIMD), dst1, dst2);
       }
-#if !defined(__arm__) && !defined(_M_ARM)
       if (simd2)
       {
          memset(&history, 0,sizeof(history));
@@ -555,7 +554,6 @@ int main()		// x86		ARM
          printf("Bessel freqfilter "MKSTR(SIMD1)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTF("Bessel freqfilter "MKSTR(SIMD1), dst1, dst2);
       }
-#else
       if (fma)
       {
          memset(&history, 0,sizeof(history));
@@ -567,7 +565,6 @@ int main()		// x86		ARM
          printf("Bessel freqfilter "MKSTR(FMA3)":  %f ms - cpu x %2.1f\n", eps*1000.0f, cpu/eps);
          TESTF("Bessel freqfilter "MKSTR(FMA3), dst1, dst2);
       }
-#endif
 
       /*
        * batch fmul by a value for doubles
