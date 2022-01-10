@@ -156,9 +156,9 @@ typedef ALIGN16 struct {
    float history[RB_MAX_TRACKS][2*_AAX_MAX_STAGES];
 } _aaxRingBufferFreqFilterHistoryData ALIGN16C;
 
-typedef ALIGN16 struct
+typedef struct
 {
-   float coeff[4*_AAX_MAX_STAGES];
+   ALIGN16 float coeff[4*_AAX_MAX_STAGES] ALIGN16C;
    float high_gain, low_gain;
    float fc_low, fc_high;
    float Q, k, fs, fc;
@@ -175,7 +175,7 @@ typedef ALIGN16 struct
 
    _aaxRingBufferFreqFilterHistoryData *freqfilter;
 
-} _aaxRingBufferFreqFilterData ALIGN16C;
+} _aaxRingBufferFreqFilterData;
 
 typedef struct
 {
@@ -207,12 +207,12 @@ typedef struct
    size_t step[RB_MAX_TRACKS];
 } _aaxRingBufferOffsetData;
 
-typedef ALIGN16 struct
+typedef struct
 {
-  size_t sample_offs[RB_MAX_TRACKS];
+   ALIGN16 size_t sample_offs[RB_MAX_TRACKS] ALIGN16C;
   float gain;
 
-} _aaxRingBufferDelayData ALIGN16C;
+} _aaxRingBufferDelayData;
 
 typedef struct
 {
