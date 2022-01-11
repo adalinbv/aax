@@ -1,6 +1,6 @@
 /*
- * Copyright 2005-2019 by Erik Hofman.
- * Copyright 2009-2019 by Adalin B.V.
+ * Copyright 2005-2022 by Erik Hofman.
+ * Copyright 2009-2022 by Adalin B.V.
  *
  * This file is part of AeonWave
  *
@@ -1963,8 +1963,9 @@ _aaxALSADriverLog(const void *id, UNUSED(int prio), UNUSED(int type), const char
    _driver_t *handle = id ? ((_driver_t *)id)->handle : NULL;
    static char _errstr[256];
 
-   snprintf(_errstr, 256, "alsa: %s\n", str);
-   _errstr[255] = '\0';  /* always null terminated */
+   if (snprintf(_errstr, 255, "alsa: %s\n", str) < 0) {
+      _errstr[255] = '\0';  /* always null terminated */
+   }
 
    __aaxDriverErrorSet(handle, AAX_BACKEND_ERROR, (char*)&_errstr);
    _AAX_SYSLOG(_errstr);
