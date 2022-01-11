@@ -40,7 +40,7 @@ unsigned
 get_pow2(uint32_t n)
 {
 #if defined(__GNUC__)
-    return 1 << (32 -__builtin_clzl(n-1));
+    return 1 << (32 -__builtin_clz(n-1));
 #else
    unsigned y, x = n;
 
@@ -64,9 +64,9 @@ log2i(uint32_t x)
 {
 #if defined(__GNUC__)
 # if __x86_64__ || __ppc64__
-   return 63 - __builtin_clzl(x);
+   return 63 - __builtin_clz(x);
 # else
-   return 31 - __builtin_clzl(x);
+   return 31 - __builtin_clz(x);
 # endif
 #else
    int y = 0;
