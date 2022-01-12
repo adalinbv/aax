@@ -130,7 +130,7 @@ _http_connect(_prot_t *prot, _io_t *io, char **server, const char *path, const c
       else
       {
          res = -res;
-         if (res >= 300 && res < 400) // Moved
+         if (res <= -300 && res >= -400) // Moved
          {
             *server = (char*)_get_yaml(buf, "Location", max);
             errno = EREMCHG;
