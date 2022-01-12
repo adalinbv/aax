@@ -251,6 +251,17 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
                   fd = _socket_open(io, buf, server, path);
                }
             }
+            else if (res < 0)
+            {
+               closesocket(fd);
+               fd = -1;
+            }
+         }
+         else if (recursive == 5) {
+            errno = EMLINK;
+         }
+         else {
+            errno = EFAULT;
          }
       }
       else {
@@ -258,7 +269,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
       }
    }
    else {
-      errno = EACCES;
+      errno = EFAULT;
    }
 
    recursive--;

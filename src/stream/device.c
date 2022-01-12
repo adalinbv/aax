@@ -561,8 +561,11 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
                handle->io = _io_free(handle->io);
             }
          }
-         else {
-            _aaxStreamDriverLog(id, 0, 0, "Connection failed");
+         else
+         {
+            char s[256];
+            snprintf(s, 255, "Connection failed: %s", strerror(errno));
+            _aaxStreamDriverLog(id, 0, 0, s);
          }
          break;
       case PROTOCOL_DIRECT:

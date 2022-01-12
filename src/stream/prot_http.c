@@ -60,15 +60,9 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
    if (res > 0)
    {
       int size = _http_get_response(io, buf, &res);
-      if (res >= 300 && res < 400) // Moved
-      {
-           *server = (char*)_get_yaml(buf, "Location");
-           res = -300;
-      }
-      else if (res >= 200 && res < 300)
+      if (res >= 200 && res < 300)
       {
          const char *s;
-         size_t res = 0;
 
          s = _get_yaml(buf, "content-length");
          if (s)
@@ -116,6 +110,27 @@ _http_connect(_prot_t *prot, _data_t *buf, _io_t *io, char **server, const char 
                }
             }
          }
+      }
+      else
+      {
+         res = -res;
+         if (res >= 300 && res < 400) // Moved
+         {
+            *server = (char*)_get_yaml(buf, "Location");
+            errno = EREMCHG;
+            res = -300;
+         }
+         else if (res == -400) errno = EINVAL;		// Bad Request
+         else if (res == -403) errno = ECONNREFUSED;	// Forbidden
+         else if (res == -404) errno = ENOENT;		// Not Found
+         else if (res == -406) errno = EINVAL;		// Not Acceptable
+         else if (res == -408) errno = ETIMEDOUT;	// Request Timeout
+         else if (res == -410) errno = ENODATA;		// Gone
+         else if (res == -414) errno = ENAMETOOLONG;	// URI Too Long
+         else if (res == -500) errno = EREMOTEIO;	// Internal Server Error
+         else if (res == -503) errno = EUSERS;		// Service Unavailable
+         else if (res == -504) errno = ETIME;		// Gateway Timeout
+         else errno = EPROTO;
       }
 #if 0
  printf("server: %s\n", *server);
