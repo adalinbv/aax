@@ -1581,7 +1581,7 @@ _aaxALSADriverGetDevices(UNUSED(const void *id), int mode)
    int m = (mode > 0) ? 1 : 0;
    time_t t_now;
 
-#if HAVE_PULSE_PULSEAUDIO_H
+#if HAVE_PULSEAUDIO_H
 # if RELEASE
    const char *env = getenv("AAX_SHOW_ALSA_DEVICES");
    if (!env || !_aax_getbool(env)) {

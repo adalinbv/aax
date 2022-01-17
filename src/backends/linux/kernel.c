@@ -246,7 +246,7 @@ _aaxLinuxDriverDetect(int mode)
    if TEST_FOR_FALSE(rv) {
       rv = _aaxALSADriverDetect(mode);
    }
-# if HAVE_PULSE_PULSEAUDIO_H
+# if HAVE_PULSEAUDIO_H
    if TEST_FOR_FALSE(rv) {
       rv = _aaxPulseAudioDriverDetect(mode);
    }

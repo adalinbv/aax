@@ -644,7 +644,7 @@ _aaxIntDriverGetBackends()
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxOSSDriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxALSADriverBackend);
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxLinuxDriverBackend);
-#ifdef HAVE_PULSE_PULSEAUDIO_H
+#ifdef HAVE_PULSEAUDIO_H
       _intBufAddData(_aaxIntBackends, _AAX_BACKEND, &_aaxPulseAudioDriverBackend);
 #endif
 #ifdef HAVE_WINDOWS_H

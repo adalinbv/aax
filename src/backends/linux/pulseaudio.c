@@ -34,7 +34,7 @@
 #include <stdarg.h>		/* va_start */
 #include <stdio.h>		/* snprintf */
 
-#if HAVE_PULSE_PULSEAUDIO_H
+#if HAVE_PULSEAUDIO_H
 #include <pulse/util.h>
 #include <pulse/error.h>
 #include <pulse/stream.h>
@@ -1841,4 +1841,4 @@ _aaxPulseAudioStreamConnect(_driver_t *handle, pa_stream_flags_t flags, int *err
    ppa_threaded_mainloop_unlock(handle->ml);
 }
 
-#endif /* HAVE_PULSE_PULSEAUDIO_H */
+#endif /* HAVE_PULSEAUDIO_H */
