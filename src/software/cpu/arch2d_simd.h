@@ -182,7 +182,6 @@ void _batch_ema_iir_float_sse_vex(float32_ptr d, const_float32_ptr sptr, size_t 
 void _batch_freqfilter_sse_vex(int32_ptr, const_int32_ptr, int, size_t, void*);
 void _batch_freqfilter_float_sse_vex(float32_ptr, const_float32_ptr, int, size_t, void*);
 #if RB_FLOAT_DATA
-void _batch_convolution_sse_vex(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 void _batch_resample_float_sse_vex(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
 #else
 void _batch_resample_sse_vex(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
@@ -236,7 +235,6 @@ void _batch_freqfilter_float_vfpv2(float32_ptr, const_float32_ptr, int, size_t, 
 void _batch_cvt24_ps24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv2(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv2(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-void _batch_convolution_vfpv2(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 #else
 void _batch_resample_vfpv2(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
@@ -310,7 +308,6 @@ void _batch_freqfilter_float_vfpv3(float32_ptr, const_float32_ptr, int, size_t, 
 void _batch_cvt24_ps24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv3(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv3(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-void _batch_convolution_vfpv3(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 #else
 void _batch_resample_vfpv3(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif
@@ -384,7 +381,6 @@ void _batch_freqfilter_float_vfpv4(float32_ptr, const_float32_ptr, int, size_t, 
 void _batch_cvt24_ps24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_cvtps24_24_vfpv4(void_ptr, const_void_ptr, size_t);
 void _batch_resample_float_vfpv4(float32_ptr, const_float32_ptr, size_t, size_t, float, float);
-void _batch_convolution_vfpv4(float32_ptr, const_float32_ptr, const_float32_ptr, unsigned int, unsigned int, int, float, float);
 #else
 void _batch_resample_vfpv4(int32_ptr, const_int32_ptr, size_t, size_t, float, float);
 #endif

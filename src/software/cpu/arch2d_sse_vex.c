@@ -1018,35 +1018,6 @@ _batch_freqfilter_float_sse_vex(float32_ptr dptr, const_float32_ptr sptr, int t,
    }
 }
 
-void
-_batch_convolution_sse_vex(float32_ptr hcptr, const_float32_ptr cptr, const_float32_ptr sptr, unsigned int cnum, unsigned int dnum, int step, float v, float threshold)
-{
-   size_t i, j;
-   for (i=0; i<dnum; i += 4)
-   {
-      __m128 hist = _mm_set1_ps(0.0f);
-      for (j=0; j<cnum; j += 4)
-      {
-         __m128 v0 = _mm_set1_ps(cptr[j+0]);
-         __m128 v1 = _mm_set1_ps(cptr[j+1]);
-         __m128 v2 = _mm_set1_ps(cptr[j+2]);
-         __m128 v3 = _mm_set1_ps(cptr[j+3]);
-
-         __m128 c0 = _mm_mul_ps(v0, _mm_load_ps(&sptr[i-j+0]));
-         __m128 c1 = _mm_mul_ps(v1, _mm_loadu_ps(&sptr[i-j+1]));
-         __m128 c2 = _mm_mul_ps(v2, _mm_loadu_ps(&sptr[i-j+2]));
-         __m128 c3 = _mm_mul_ps(v3, _mm_loadu_ps(&sptr[i-j+3]));
-
-         c0 = _mm_add_ps(c0, c1);
-         c2 = _mm_add_ps(c2, c3);
-         c3 = _mm_add_ps(c0, c2);
-         hist = _mm_add_ps(hist, c3);
-      }
-      _mm_store_ps(&hcptr[i], hist);
-   }
-}
-
-
 #if !RB_FLOAT_DATA
 static inline void
 _aaxBufResampleDecimate_sse_vex(int32_ptr d, const_int32_ptr s, size_t dmin, size_t dmax, float smu, float freq_factor)

@@ -133,6 +133,9 @@ endif(WIN32)
 set(CPACK_SOURCE_PACKAGE_FILE_NAME "${CMAKE_PROJECT_NAME}-${AAX_VERSION}" CACHE INTERNAL "tarball basename")
 
 #$ Required libraries
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PIPEWIRE3 libpipewire-0.3)
+
 find_package(SSE REQUIRED)
 if((GCC OR CLANG) AND RMALLOC)
   set(C_FLAGS "${C_FLAGS} -fsanitize=address")
