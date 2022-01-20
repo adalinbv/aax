@@ -295,9 +295,8 @@ readfp80le(uint8_t **ptr, size_t *buflen)
    double d = 0.0;
    if (*buflen >= 10)
    {
-      uint8_t *ch = *ptr;
-      uint64_t mantissa = read64le(&ch, buflen);
-      uint32_t exponent = read16le(&ch, buflen);
+      uint64_t mantissa = read64le(ptr, buflen);
+      uint32_t exponent = read16le(ptr, buflen);
       double sign = (exponent & 0x8000) ? -1 : 1;
       double normalized = (mantissa & 0x8000000000000000) ? 1 : 0;
       mantissa &= 0x7FFFFFFFFFFFFFFF;
@@ -370,9 +369,8 @@ readfp80be(uint8_t **ptr, size_t *buflen)
    double d = 0.0;
    if (*buflen >= 10)
    {
-      uint8_t *ch = *ptr;
-      uint32_t exponent = read16be(&ch, buflen);
-      uint64_t mantissa = read64be(&ch, buflen);
+      uint32_t exponent = read16be(ptr, buflen);
+      uint64_t mantissa = read64be(ptr, buflen);
       double sign = (exponent & 0x8000) ? -1 : 1;
       double normalized = (mantissa & 0x8000000000000000) ? 1 : 0;
       mantissa &= 0x7FFFFFFFFFFFFFFF;
