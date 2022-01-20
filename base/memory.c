@@ -36,6 +36,7 @@
 #include "types.h"	// _MIN
 #include "memory.h"
 
+
 char
 is_bigendian()
 {
@@ -141,20 +142,16 @@ writefp80le(uint8_t **ptr, double val, size_t *buflen)
 {
    if (*buflen >= 10)
    {
-      __float80 fp80 = val;
-      uint8_t *p = (uint8_t*)&fp80;
-      uint8_t *ch = *ptr;
+      uint8_t sign = (val < 0) ? 0x800 : 0x000;
+      uint64_t d, mantissa;
+      uint16_t exponent;
 
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
-      *ch++ = *p++;
+      memcpy(&d, &val, sizeof(val));
+      exponent = (sign | d >> 60) << 12 | ((d >> 52) & 0xff);
+      mantissa = ((d & 0xFFFFFFFFFFFFF) << 11) | 0x8000000000000000;
+
+      write64le(ptr, mantissa, buflen);
+      write16le(ptr, exponent, buflen);
    }
 }
 
@@ -211,20 +208,16 @@ writefp80be(uint8_t **ptr, double val, size_t *buflen)
 {
    if (*buflen >= 10)
    {
-      __float80 fp80 = val;
-      uint8_t *p = (uint8_t*)&fp80 + 10;
-      uint8_t *ch = *ptr;
+      uint8_t sign = (val < 0) ? 0x800 : 0x000;
+      uint64_t d, mantissa;
+      uint16_t exponent;
 
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
-      *ch++ = *(--p);
+      memcpy(&d, &val, sizeof(val));
+      exponent = (sign | d >> 60) << 12 | ((d >> 52) & 0xff);
+      mantissa = ((d & 0xFFFFFFFFFFFFF) << 11) | 0x8000000000000000;
+
+      write16be(ptr, exponent, buflen);
+      write64be(ptr, mantissa, buflen);
    }
 }
 
@@ -296,30 +289,24 @@ read64le(uint8_t **ptr, size_t *buflen)
    return u64;
 }
 
-double
+double // https://en.wikipedia.org/wiki/Extended_precision
 readfp80le(uint8_t **ptr, size_t *buflen)
-{ // https://en.wikipedia.org/wiki/Extended_precision
+{
    double d = 0.0;
-   if (*buflen > 10)
+   if (*buflen >= 10)
    {
-      __float80 fp80;
-      uint8_t *p = (uint8_t*)&fp80;
       uint8_t *ch = *ptr;
+      uint64_t mantissa = read64le(&ch, buflen);
+      uint32_t exponent = read16le(&ch, buflen);
+      double sign = (exponent & 0x8000) ? -1 : 1;
+      double normalized = (mantissa & 0x8000000000000000) ? 1 : 0;
+      mantissa &= 0x7FFFFFFFFFFFFFFF;
+      exponent &= 0x7FFF;
 
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *p++ = *ch++;
-      *buflen -= 10;
-      *ptr = ch;
-
-      d = fp80;
+      // construct the double precision floating point value:
+      // Wanring: NaN becomes inf
+      d = (sign * (normalized + (double)mantissa /
+                 ((uint64_t)1 << 63)) * pow(2.0, ((int32_t)exponent - 16383)));
    }
    return d;
 }
@@ -379,28 +366,22 @@ read64be(uint8_t **ptr, size_t *buflen)
 
 double
 readfp80be(uint8_t **ptr, size_t *buflen)
-{ // https://en.wikipedia.org/wiki/Extended_precision
+{
    double d = 0.0;
-   if (*buflen > 10)
+   if (*buflen >= 10)
    {
-      __float80 fp80;
-      uint8_t *p = (uint8_t*)&fp80 + 10;
       uint8_t *ch = *ptr;
+      uint32_t exponent = read16be(&ch, buflen);
+      uint64_t mantissa = read64be(&ch, buflen);
+      double sign = (exponent & 0x8000) ? -1 : 1;
+      double normalized = (mantissa & 0x8000000000000000) ? 1 : 0;
+      mantissa &= 0x7FFFFFFFFFFFFFFF;
+      exponent &= 0x7FFF;
 
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *(--p) = *ch++;
-      *buflen -= 10;
-      *ptr = ch;
-
-      d = fp80;
+      // construct the double precision floating point value:
+      // Wanring: NaN becomes inf
+      d = (sign * (normalized + (double)mantissa /
+                 ((uint64_t)1 << 63)) * pow(2.0, ((int32_t)exponent - 16383)));
    }
    return d;
 }
