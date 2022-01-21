@@ -146,8 +146,10 @@ writefp80le(uint8_t **ptr, double val, size_t *buflen)
       uint64_t d, mantissa;
       uint16_t exponent;
 
+      // Warning: nan becomes inf, not important for us.
       memcpy(&d, &val, sizeof(val));
       exponent = (sign | d >> 60) << 12 | ((d >> 52) & 0xff);
+      if (val < 2.0 && val > -2.0) exponent |= 0xF00;
       mantissa = ((d & 0xFFFFFFFFFFFFF) << 11) | 0x8000000000000000;
 
       write64le(ptr, mantissa, buflen);
@@ -212,8 +214,10 @@ writefp80be(uint8_t **ptr, double val, size_t *buflen)
       uint64_t d, mantissa;
       uint16_t exponent;
 
+      // Warning: nan becomes inf, not important for us.
       memcpy(&d, &val, sizeof(val));
       exponent = (sign | d >> 60) << 12 | ((d >> 52) & 0xff);
+      if (val < 2.0 && val > -2.0) exponent |= 0xF00;
       mantissa = ((d & 0xFFFFFFFFFFFFF) << 11) | 0x8000000000000000;
 
       write16be(ptr, exponent, buflen);
@@ -303,7 +307,7 @@ readfp80le(uint8_t **ptr, size_t *buflen)
       exponent &= 0x7FFF;
 
       // construct the double precision floating point value:
-      // Wanring: NaN becomes inf
+      // Warning: nan becomes inf, not important for us.
       d = (sign * (normalized + (double)mantissa /
                  ((uint64_t)1 << 63)) * pow(2.0, ((int32_t)exponent - 16383)));
    }
@@ -377,7 +381,7 @@ readfp80be(uint8_t **ptr, size_t *buflen)
       exponent &= 0x7FFF;
 
       // construct the double precision floating point value:
-      // Wanring: NaN becomes inf
+      // Warning: nan becomes inf, not important for us.
       d = (sign * (normalized + (double)mantissa /
                  ((uint64_t)1 << 63)) * pow(2.0, ((int32_t)exponent - 16383)));
    }
