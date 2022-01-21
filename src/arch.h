@@ -54,7 +54,7 @@ typedef char* (*_aax_calloc_proc)(char**, size_t, size_t, size_t);
 typedef char* (*_aax_malloc_proc)(char**, size_t, size_t);
 typedef void (*_aax_free_proc)(void*);
 
-typedef void (*_batch_dither_proc)(void*, unsigned, size_t);
+typedef void (*_batch_dither_proc)(int32_t*, unsigned, size_t);
 
 typedef void (*_batch_cvt_proc)(void*, size_t);
 typedef void (*_batch_cvt_from_proc)(void_ptr, const_void_ptr, size_t);

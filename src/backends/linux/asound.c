@@ -949,7 +949,7 @@ _aaxALSADriverSetup(const void *id, float *refresh_rate, int *fmt,
       /** set buffer and period sizes */
       if (handle->use_timer)
       {
-         size_t max_size = 0;
+         long unsigned int max_size = 0;
          TRUN( psnd_pcm_hw_params_get_buffer_size_max(hwparams, &max_size),
                "unable to fetch the maximum buffer size" );
          period_frames_actual = period_frames = _MIN(65536, max_size);

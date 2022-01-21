@@ -303,7 +303,6 @@ _aaxGetSIMDSupportLevel()
          _batch_movingaverage_float = _batch_ema_iir_float_vfpv3;
          _batch_freqfilter = _batch_freqfilter_vfpv3;
          _batch_freqfilter_float = _batch_freqfilter_float_vfpv3;
-         _batch_convolution = _batch_convolution_vfpv3;
 # if RB_FLOAT_DATA
          _batch_resample_float = _batch_resample_float_vfpv3;
 # else
@@ -392,7 +391,6 @@ _aaxGetSIMDSupportLevel()
          _batch_movingaverage_float = _batch_ema_iir_float_vfpv4;
          _batch_freqfilter = _batch_freqfilter_vfpv4;
          _batch_freqfilter_float = _batch_freqfilter_float_vfpv4;
-         _batch_convolution = _batch_convolution_vfpv4;
 # if RB_FLOAT_DATA
          _batch_resample_float = _batch_resample_float_vfpv4;
 # else

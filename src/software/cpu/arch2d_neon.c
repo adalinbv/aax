@@ -395,7 +395,6 @@ _batch_atanps_neon(void_ptr dptr, const_void_ptr sptr, size_t num)
    float32_ptr d = (float32_ptr)dptr;
    float32_ptr s = (float32_ptr)sptr;
    size_t i, step;
-   size_t dtmp, stmp;
 
    if (num)
    {
@@ -1049,7 +1048,7 @@ _batch_freqfilter_float_neon(float32_ptr dptr, const_float32_ptr sptr, int t, si
    if (num)
    {
       float k, *cptr, *hist;
-      float smp, h0, h1;
+      float h0, h1;
       int stage;
 
       if (filter->state == AAX_BESSEL) {

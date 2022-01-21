@@ -42,10 +42,10 @@ hsum_float32x4_neon(float32x4_t v) {
 }
 
 float
-_vec3fMagnitudeSquared_neon(const vec3f_ptr v3)
+_vec3fMagnitudeSquared_neon(const vec3f_ptr v)
 {
-   float32x4_t v = load_vec3f(v3);
-   return hsum_float32x4_neon(vmulq_f32(v, v));
+   float32x4_t r = load_vec3f(v);
+   return hsum_float32x4_neon(vmulq_f32(r, r));
 }
 
 float
