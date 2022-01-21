@@ -383,6 +383,32 @@ _aaxMutexLock(void *mutex)
 #endif
 
 int
+_aaxMutexLockTimed(void *mutex, float dt)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = 0;
+
+   if (m)
+   {
+      if (m->initialized == 0) {
+         m = _aaxMutexCreateInt(m);
+      }
+
+      if (m->initialized != 0) {
+         struct timespec to;
+         to.tv_sec = time(NULL);
+         to.tv_nsec = dt*1e9f;
+         if (to.tv_nsec > 1000000000LL) {
+            to.tv_nsec -= 1000000000LL;
+            to.tv_sec++;
+         }
+         r = pthread_mutex_timedlock(&m->mutex, &to);
+      }
+   }
+   return r;
+}
+
+int
 _aaxMutexLockDebug(void *mutex, char *file, int line)
 {
    _aaxMutex *m = (_aaxMutex *)mutex;
@@ -1057,6 +1083,42 @@ _aaxMutexLock(void *mutex)
    return r;
 }
 #endif
+
+int
+_aaxMutexLockTimed(void *mutex, float dt)
+{
+   _aaxMutex *m = (_aaxMutex *)mutex;
+   int r = 0;
+
+   if (m)
+   {
+      if (m->initialized == 0) {
+         m = _aaxMutexCreateInt(m);
+      }
+
+      if (m->initialized != 0)
+      {
+         r = WaitForSingleObject(m->mutex, dt*1000);
+         switch (r)
+         {
+         case WAIT_OBJECT_0:
+            break;
+         case WAIT_TIMEOUT:
+            printf("mutex timed out after %i seconds in %s line %i\n",
+                    DEBUG_TIMEOUT, file, line);
+            abort();
+            r = ETIMEDOUT;
+            break;
+         case WAIT_ABANDONED:
+         case WAIT_FAILED:
+         default:
+            printf("mutex lock error %i in %s line %i\n", r, file, line);
+            abort();
+         }
+      }
+   }
+   return r;
+}
 
 int
 _aaxMutexLockDebug(void *mutex, char *file, int line)

@@ -75,7 +75,7 @@ _file_read(_io_t *io, _data_t* buf, size_t count)
 {
    size_t size = _MIN(count, _aaxDataGetFreeSpace(buf));
    void *ptr = _aaxDataGetPtr(buf);
-   ssize_t rv;
+   ssize_t rv = 0;
 
    if (size)
    {

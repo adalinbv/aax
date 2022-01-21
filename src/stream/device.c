@@ -145,6 +145,7 @@ typedef struct
    size_t no_samples;
    unsigned int no_bytes;
    float refresh_rate;
+   float dt;
 
    _io_t *io;
    _ext_t* ext;
@@ -703,6 +704,7 @@ _aaxStreamDriverSetup(const void *id, float *refresh_rate, int *fmt,
             *refresh_rate = period_rate;
 
             handle->refresh_rate = period_rate;
+            handle->dt = 0.5f*handle->refresh_rate;
             handle->no_samples = no_samples;
             if (handle->no_channels && handle->bits_sample && handle->frequency)
             {
@@ -792,8 +794,8 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    size_t no_samples, offs, outbuf_size, scratchsize;
    unsigned int rb_bps, file_bps, file_tracks;
    unsigned char *scratch, *databuf;
+   ssize_t res = 0;
    int32_t** sbuf;
-   ssize_t res;
    _data_t *buf;
 
    assert(rb);
@@ -853,10 +855,12 @@ _aaxStreamDriverPlayback(const void *id, void *src, UNUSED(float pitch), float g
    _aaxMutexUnLock(handle->thread.signal.mutex);
 
    // Move data from rawBuffer to ioBuffer
-   _aaxMutexLock(handle->ioBufLock);
-   res = _aaxDataGetDataAvail(handle->rawBuffer);
-   _aaxDataMoveData(handle->rawBuffer, handle->ioBuffer, res);
-   _aaxMutexUnLock(handle->ioBufLock);
+   if (!_aaxMutexLockTimed(handle->ioBufLock, handle->dt))
+   {
+      res = _aaxDataGetDataAvail(handle->rawBuffer);
+      _aaxDataMoveData(handle->rawBuffer, handle->ioBuffer, res);
+      _aaxMutexUnLock(handle->ioBufLock);
+   }
 
    if (batched) {
       _aaxStreamDriverWriteChunk(id);
@@ -980,11 +984,12 @@ _aaxStreamDriverCapture(const void *id, void **tracks, ssize_t *offset, size_t *
             }
 
             // Move data from ioBuffer to rawBuffer
-            _aaxMutexLock(handle->ioBufLock);
-            avail = _aaxDataGetDataAvail(handle->ioBuffer);
-            res = _aaxDataMoveData(handle->ioBuffer, handle->rawBuffer, avail);
-            _aaxMutexUnLock(handle->ioBufLock);
-
+            if (!_aaxMutexLockTimed(handle->ioBufLock, handle->dt))
+            {
+               avail = _aaxDataGetDataAvail(handle->ioBuffer);
+               res = _aaxDataMoveData(handle->ioBuffer, handle->rawBuffer, avail);
+               _aaxMutexUnLock(handle->ioBufLock);
+            }
             data = _aaxDataGetData(handle->rawBuffer); // needed above
          }
       }
@@ -1590,11 +1595,13 @@ _aaxStreamDriverWriteChunk(const void *id)
       _data_t *buf = handle->ioBuffer;
       while (_aaxDataGetDataAvail(buf))
       {
-         ssize_t res;
+         ssize_t res = 0;
 
-         _aaxMutexLock(handle->ioBufLock);
-         res = handle->io->write(handle->io, buf);
-         _aaxMutexUnLock(handle->ioBufLock);
+         if (!_aaxMutexLockTimed(handle->ioBufLock, handle->dt))
+         {
+            res = handle->io->write(handle->io, buf);
+            _aaxMutexUnLock(handle->ioBufLock);
+         }
 
          if (res > 0)
          {
@@ -1803,9 +1810,11 @@ _aaxStreamDriverReadChunk(const void *id)
    if (size)
    {
       // Move data from captureBuffer to ioBuffer
-      _aaxMutexLock(handle->ioBufLock);
-      res = _aaxDataMoveData(buf, handle->ioBuffer, size);
-      _aaxMutexUnLock(handle->ioBufLock);
+      if (!_aaxMutexLockTimed(handle->ioBufLock, handle->dt))
+      {
+         res = _aaxDataMoveData(buf, handle->ioBuffer, size);
+         _aaxMutexUnLock(handle->ioBufLock);
+      }
    }
 
    if (res == -1) {
@@ -1863,7 +1872,7 @@ _aaxStreamDriverReadThread(void *id)
 
    do
    {
-      _aaxSignalWaitTimed(&handle->thread.signal, 1.0f/handle->refresh_rate);
+      _aaxSignalWaitTimed(&handle->thread.signal, 0.5f/handle->refresh_rate);
       res = _aaxStreamDriverReadChunk(id);
    }
    while(res >= 0 && handle->thread.started);
