@@ -2228,10 +2228,13 @@ detect_devname(_driver_t *handle, int m)
          char *ifname;
 
          ifname = strstr(devname, ": ");
-         if (ifname)
+         if (ifname && (strlen(ifname) >= 2))
          {
              *ifname = 0;
             ifname += 2;
+         }
+         else {
+            ifname = NULL;
          }
 
          do
