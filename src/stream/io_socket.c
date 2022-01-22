@@ -82,11 +82,11 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
    static void *audio = NULL;
    int size = io->param[_IO_SOCKET_SIZE];
    int port = io->param[_IO_SOCKET_PORT];
-   int timeout_ms = io->param[_IO_SOCKET_TIMEOUT];
+   int timeout_us = io->param[_IO_SOCKET_TIMEOUT];
    int res, fd = -1;
 
-   if (timeout_ms < 5) {
-      timeout_ms = 5;
+   if (timeout_us < 5000) {
+      timeout_us = 5000;
    }
 
    if (recursive++ == 0)
@@ -126,7 +126,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
          }
       }
 
-      io->error_max = (unsigned)(10000.0f/timeout_ms); // 10.0 sec.
+      io->error_max = (unsigned)(10e6f/timeout_us); // 10.0 sec.
    }
 
    if (remote && (size > 4000) && (port > 0))
@@ -143,8 +143,8 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
             struct timeval tv;
             int on = 1;
 
-            tv.tv_sec = timeout_ms / 1000;
-            tv.tv_usec = (timeout_ms * 1000) % 1000000;
+            tv.tv_sec = timeout_us / 1000000;
+            tv.tv_usec = timeout_us % 1000000;
             setsockopt(fd, SOL_SOCKET, SO_RCVTIMEO, (char*)&tv, sizeof(tv));
 #ifdef SO_NOSIGPIPE
             setsockopt(fd, SOL_SOCKET, SO_NOSIGPIPE, &on, sizeof(on));
@@ -155,7 +155,7 @@ _socket_open(_io_t *io, _data_t *buf, const char *remote, const char *pathname)
  unsigned int m;
  int n;
 
- printf("timeout_ms: %i\n", timeout_ms);
+ printf("timeout_us: %i\n", timeout_us);
  printf("error_max: %i\n", io->error_max);
 
  m = sizeof(n);
@@ -304,16 +304,30 @@ _socket_read(_io_t *io, _data_t *buf, size_t count)
 
    if (size)
    {
+      errno = 0;
       if (io->ssl)
       {
-         size_t read;
-         if (pSSL_read_ex(io->ssl, ptr, size, &read)) {
-            rv = read;
-         }
-         else
+         size_t read = 0;
+         int res;
+         res = pSSL_read_ex(io->ssl, ptr, size, &read);
+         rv = read;
+         if (!res)
          {
-            errno = EAGAIN;
-            rv = -1;
+            int err = pSSL_get_error(io->ssl, res);
+            switch (err)
+            {
+            case SSL_ERROR_NONE:
+            case SSL_ERROR_SYSCALL:
+               break;
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+               errno = EAGAIN;
+               break;
+            case SSL_ERROR_SSL:
+            default:
+               errno = EIO;
+               break;
+            }
          }
       }
       else
@@ -356,13 +370,27 @@ _socket_write(_io_t *io, _data_t *buf)
       if (io->ssl)
       {
          size_t written;
-         if (pSSL_write_ex(io->ssl, data, rv, &written)) {
-            rv = written;
-         }
-         else
+         int res;
+
+         res = pSSL_write_ex(io->ssl, data, rv, &written);
+         rv = written;
+         if (!res)
          {
-            errno = EAGAIN;
-            rv = -1;
+            int err = pSSL_get_error(io->ssl, res);
+            switch (err)
+            {
+            case SSL_ERROR_NONE:
+            case SSL_ERROR_SYSCALL:
+               break;
+            case SSL_ERROR_WANT_READ:
+            case SSL_ERROR_WANT_WRITE:
+               errno = EAGAIN;
+               break;
+            case SSL_ERROR_SSL:
+            default:
+               errno = EIO;
+               break;
+            }
          }
       }
       else if (io->fds.fd >= 0)

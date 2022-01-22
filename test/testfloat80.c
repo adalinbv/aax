@@ -5,11 +5,11 @@
 
 #include <base/memory.h>
 
-#define PRINTFP80	0
+#define PRINTFP80	1
 
 int main()
 {
-   long double ld = 44100.0;
+   long double ld = 44100.0009;
    __float80 nfp80, fp80 = ld;
    size_t size;
    uint8_t *ch;
